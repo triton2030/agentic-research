@@ -1,0 +1,579 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Civic-Chain — Design System</title>
+  <link rel="icon" href="brand/civic-chain-logo.svg"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Text:ital@0;1&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="ds/tokens.css"/>
+  <link rel="stylesheet" href="ds/primitives.css"/>
+  <link rel="stylesheet" href="ds/patterns.css"/>
+  <style>
+    /* Living-reference-only chrome */
+    body { padding-bottom: 6rem; }
+    .ds-topbar {
+      position: sticky; top: 0; z-index: 30;
+      background: color-mix(in oklab, var(--background), white 40%);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 1.25rem;
+    }
+    .ds-topbar-inner { max-width: var(--page-max); margin: 0 auto;
+      display: flex; flex-wrap: wrap; align-items: center; gap: 1rem 2rem; }
+    .ds-brand { display: inline-flex; align-items: center; gap: 0.625rem; font-weight: 600; }
+    .ds-brand img { height: 28px; width: auto; }
+    .ds-nav { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; margin-left: auto; font-size: 0.875rem; color: var(--muted-foreground); }
+    .ds-nav a { padding: 0.35rem 0.6rem; border-radius: 0.5rem; }
+    .ds-nav a:hover { background: var(--surface); color: var(--foreground); }
+
+    main.ds-main { max-width: var(--page-max); margin: 0 auto; padding: 3rem 1.25rem; }
+    @media (min-width: 640px) { main.ds-main { padding: 4rem 2rem; } }
+    @media (min-width: 1024px) { main.ds-main { padding: 5rem 3rem; } }
+
+    .ds-section { margin-top: 5rem; scroll-margin-top: 6rem; }
+    .ds-section:first-of-type { margin-top: 0; }
+    .ds-section-head { margin-bottom: 2rem; display: grid; gap: 0.5rem; max-width: 56rem; }
+    .ds-section-head h2 { font-family: var(--font-display); font-size: clamp(2rem, 3vw, 2.75rem); line-height: 1; letter-spacing: -0.03em; }
+    .ds-section-head p { color: var(--muted-foreground); font-size: 1.0625rem; line-height: 1.7; max-width: 50ch; }
+
+    .ds-block-label { font-family: var(--font-sans); font-size: 0.75rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.18em; color: var(--muted-foreground); margin-bottom: 0.75rem; }
+
+    /* Palette */
+    .ds-palette { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+    .ds-swatch {
+      border-radius: 1rem; overflow: hidden;
+      border: 1px solid var(--border);
+      background: var(--card);
+      box-shadow: var(--shadow-ambient);
+    }
+    .ds-swatch-chip { aspect-ratio: 4/3; border-bottom: 1px solid var(--border); }
+    .ds-swatch-meta { padding: 0.875rem 1rem; font-size: 0.8125rem; }
+    .ds-swatch-meta strong { display: block; font-weight: 600; font-size: 0.9rem; }
+    .ds-swatch-meta code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.75rem; color: var(--muted-foreground); }
+    .ds-swatch-meta .token { display: block; margin-top: 0.25rem; color: var(--muted-foreground); font-size: 0.72rem; letter-spacing: 0.02em; }
+
+    /* Type scale demo */
+    .ds-type-row {
+      display: grid; grid-template-columns: 180px 1fr; align-items: baseline;
+      gap: 1.5rem; padding: 1.25rem 0;
+      border-top: 1px solid var(--border);
+    }
+    .ds-type-row:first-child { border-top: none; }
+    .ds-type-row .meta { font-size: 0.75rem; color: var(--muted-foreground); letter-spacing: 0.04em; }
+    .ds-type-row .meta strong { display: block; color: var(--foreground); font-size: 0.9rem; margin-bottom: 0.25rem; letter-spacing: 0; }
+    .ds-type-row .meta code { font-family: ui-monospace, Menlo, monospace; font-size: 0.72rem; }
+
+    /* Radius + spacing rulers */
+    .ds-radii { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+    .ds-radius-tile {
+      height: 96px; background: var(--card);
+      border: 1px solid var(--border);
+      display: flex; align-items: flex-end; justify-content: center;
+      padding: 0.5rem;
+      font-size: 0.72rem; color: var(--muted-foreground);
+      font-family: ui-monospace, Menlo, monospace;
+    }
+    .ds-spacing { display: grid; gap: 0.75rem; }
+    .ds-spacing-row { display: grid; grid-template-columns: 90px 1fr 90px; align-items: center; gap: 0.75rem; font-family: ui-monospace, Menlo, monospace; font-size: 0.78rem; color: var(--muted-foreground); }
+    .ds-spacing-bar { height: 8px; background: var(--accent); border-radius: 4px; }
+
+    /* Shadows */
+    .ds-shadows { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+    .ds-shadow-tile {
+      height: 140px; border-radius: 1rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      display: flex; align-items: flex-end; padding: 1rem;
+      font-size: 0.75rem; color: var(--muted-foreground);
+      font-family: ui-monospace, Menlo, monospace;
+    }
+
+    /* Icons grid */
+    .ds-icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 0.75rem; }
+    .ds-icon-tile {
+      display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+      padding: 1rem; border-radius: 1rem;
+      background: var(--card); border: 1px solid var(--border);
+    }
+    .ds-icon-tile .icon-chip { width: 3rem; height: 3rem; color: var(--accent); }
+    .ds-icon-tile .name { font-size: 0.72rem; color: var(--muted-foreground); font-family: ui-monospace, Menlo, monospace; }
+
+    /* Component demo frames */
+    .ds-demo {
+      border: 1px dashed var(--border);
+      border-radius: 1rem;
+      padding: 1.75rem;
+      background: color-mix(in oklab, var(--card), white 25%);
+    }
+    .ds-demo + .ds-demo { margin-top: 1rem; }
+    .ds-demo-grid { display: grid; gap: 1.25rem; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+
+    /* Tone rhythm demo (bento sampler) */
+    .ds-bento-sampler { display: grid; gap: 1rem; grid-template-columns: repeat(2, 1fr); }
+    @media (min-width: 1024px) { .ds-bento-sampler { grid-template-columns: repeat(4, 1fr); } }
+    .ds-bento-sampler .surface .pad-card p { font-size: 0.875rem; line-height: 1.5; }
+  </style>
+</head>
+<body>
+
+<!-- Sprite -->
+<div id="icon-sprite-host" style="position:absolute;width:0;height:0;overflow:hidden;"></div>
+
+<header class="ds-topbar">
+  <div class="ds-topbar-inner">
+    <a class="ds-brand" href="#top">
+      <img src="brand/civic-chain-logo.svg" alt=""/>
+      <span>Civic-Chain <span style="color:var(--muted-foreground);font-weight:500">· Design System</span></span>
+    </a>
+    <nav class="ds-nav">
+      <a href="#foundations">Foundations</a>
+      <a href="#palette">Palette</a>
+      <a href="#tones">Tones</a>
+      <a href="#typography">Typography</a>
+      <a href="#radii">Radii</a>
+      <a href="#spacing">Spacing</a>
+      <a href="#shadows">Shadows</a>
+      <a href="#icons">Icons</a>
+      <a href="#primitives">Primitives</a>
+      <a href="#patterns">Patterns</a>
+      <a href="#expandable">Expandable</a>
+      <a href="Landing Page.html" style="color:var(--accent);font-weight:500">Landing →</a>
+    </nav>
+  </div>
+</header>
+
+<main class="ds-main" id="top">
+
+  <!-- Intro -->
+  <section class="ds-section">
+    <div class="landing-grid-overlay" aria-hidden="true" style="position:absolute;inset:0;opacity:0.4;z-index:-1;"></div>
+    <div class="badge" style="margin-bottom:1rem;">Design System v1</div>
+    <h1 class="type-display" style="max-width:24ch;">The quiet <br/>civic vocabulary.</h1>
+    <p class="type-body-lg text-muted" style="max-width:48ch;margin-top:1.25rem;">
+      One brand pair (deep civic blue + warm cream), four editorial tones, a serif-and-sans pairing,
+      and a handful of patterns that compose into the whole product. Tokens are the canon; every screen
+      is a rearrangement of the same parts.
+    </p>
+  </section>
+
+  <!-- Foundations anchor -->
+  <section class="ds-section" id="foundations">
+    <div class="ds-section-head">
+      <h2>Foundations</h2>
+      <p>Semantic surfaces before pigments. Every token below maps to a role — background, foreground, accent, muted — not a hex. Swap the hex, keep the role, keep the system.</p>
+    </div>
+
+    <div class="ds-block-label" id="palette">Semantic palette</div>
+    <div class="ds-palette">
+      <!-- Filled by JS -->
+      <div id="ds-palette-core"></div>
+    </div>
+  </section>
+
+  <!-- Tones -->
+  <section class="ds-section" id="tones">
+    <div class="ds-section-head">
+      <h2>Four tones</h2>
+      <p>The bento rhythm uses four editorial surface tones. They rotate across cards the way a magazine rotates art direction — never two adjacent cards in the same tone.</p>
+    </div>
+
+    <div class="ds-bento-sampler">
+      <div class="surface tone-cream"><div class="pad-card stack stack-heading-copy"><div class="type-label text-c58">Cream</div><p>Soft document surface. Most common.</p></div></div>
+      <div class="surface tone-dusty"><div class="pad-card stack stack-heading-copy"><div class="type-label text-c58">Dusty</div><p>Cool civic register. Role-and-process moments.</p></div></div>
+      <div class="surface tone-gold"><div class="pad-card stack stack-heading-copy"><div class="type-label text-c58">Gold</div><p>Warm accent. Marks the weight of a number.</p></div></div>
+      <div class="surface tone-sage"><div class="pad-card stack stack-heading-copy"><div class="type-label text-c58">Sage</div><p>Grounded, trust-forward. Anchors proof.</p></div></div>
+    </div>
+  </section>
+
+  <!-- Typography -->
+  <section class="ds-section" id="typography">
+    <div class="ds-section-head">
+      <h2>Typography</h2>
+      <p>DM Serif Text for display moments — headlines, section titles, pull quotes. DM Sans everywhere else. Two registers, one voice.</p>
+    </div>
+
+    <div class="ds-block-label">Display register — DM Serif Text</div>
+    <div>
+      <div class="ds-type-row">
+        <div class="meta"><strong>type-display</strong><code>--size-8 · 3rem → 5.5rem</code></div>
+        <div class="type-display">Every dollar on&nbsp;the record.</div>
+      </div>
+      <div class="ds-type-row">
+        <div class="meta"><strong>type-heading</strong><code>--size-6 · 2.25rem → 3rem</code></div>
+        <div class="type-heading">From request to payout.</div>
+      </div>
+      <div class="ds-type-row">
+        <div class="meta"><strong>type-heading-sm</strong><code>--size-5 · 1.5rem → 1.875rem</code></div>
+        <div class="type-heading-sm">Open the work and keep the record clear</div>
+      </div>
+    </div>
+
+    <div class="ds-block-label" style="margin-top:2.5rem;">Sans register — DM Sans</div>
+    <div>
+      <div class="ds-type-row">
+        <div class="meta"><strong>type-title</strong><code>clamp(1.125rem → 1.45rem) · 600</code></div>
+        <div class="type-title">Bid publishing</div>
+      </div>
+      <div class="ds-type-row">
+        <div class="meta"><strong>type-body-lg</strong><code>--size-4 · 2rem leading</code></div>
+        <div class="type-body-lg text-muted">A procurement platform where money moves fast, and everyone can watch.</div>
+      </div>
+      <div class="ds-type-row">
+        <div class="meta"><strong>type-body</strong><code>--size-3 · 1.75rem leading</code></div>
+        <div class="type-body">Small towns manage real contractor spend through inboxes, PDFs, calls, and memory.</div>
+      </div>
+      <div class="ds-type-row">
+        <div class="meta"><strong>type-body-sm</strong><code>--size-2 · 1.5rem leading</code></div>
+        <div class="type-body-sm">Public spending stays visible without a request, a login, or a call to town hall.</div>
+      </div>
+      <div class="ds-type-row">
+        <div class="meta"><strong>type-label</strong><code>--size-1 · uppercase · 0.18em</code></div>
+        <div class="type-label">Portal Hub</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Radii -->
+  <section class="ds-section" id="radii">
+    <div class="ds-section-head">
+      <h2>Radii</h2>
+      <p>The soft canon — rounded, not pill. One <code>--radius</code> token anchors the whole family; everything else derives.</p>
+    </div>
+    <div class="ds-radii">
+      <div class="ds-radius-tile" style="border-radius:var(--radius-xs)">xs · <br/>var(--radius-xs)</div>
+      <div class="ds-radius-tile" style="border-radius:var(--radius-sm)">sm · <br/>var(--radius-sm)</div>
+      <div class="ds-radius-tile" style="border-radius:var(--radius-md)">md · <br/>var(--radius-md)</div>
+      <div class="ds-radius-tile" style="border-radius:var(--radius-icon)">icon · <br/>1.25rem</div>
+      <div class="ds-radius-tile" style="border-radius:calc(var(--radius) - 0.1rem)">radius · <br/>2.25rem</div>
+      <div class="ds-radius-tile" style="border-radius:var(--radius-lg)">lg · <br/>var(--radius-lg)</div>
+      <div class="ds-radius-tile" style="border-radius:9999px">full · <br/>9999px</div>
+    </div>
+  </section>
+
+  <!-- Spacing -->
+  <section class="ds-section" id="spacing">
+    <div class="ds-section-head">
+      <h2>Spacing</h2>
+      <p>A single rhythmic scale powers every margin, padding, and gap. Stacks are named by role, not by size.</p>
+    </div>
+    <div class="ds-spacing">
+      <div class="ds-spacing-row"><span>--space-2xs</span><div><div class="ds-spacing-bar" style="width:0.25rem"></div></div><span>0.25rem</span></div>
+      <div class="ds-spacing-row"><span>--space-xs</span><div><div class="ds-spacing-bar" style="width:0.5rem"></div></div><span>0.5rem</span></div>
+      <div class="ds-spacing-row"><span>--space-sm</span><div><div class="ds-spacing-bar" style="width:0.75rem"></div></div><span>0.75rem</span></div>
+      <div class="ds-spacing-row"><span>--space-md</span><div><div class="ds-spacing-bar" style="width:1rem"></div></div><span>1rem</span></div>
+      <div class="ds-spacing-row"><span>--space-lg</span><div><div class="ds-spacing-bar" style="width:1.5rem"></div></div><span>1.5rem</span></div>
+      <div class="ds-spacing-row"><span>--space-xl</span><div><div class="ds-spacing-bar" style="width:2rem"></div></div><span>2rem</span></div>
+      <div class="ds-spacing-row"><span>--space-2xl</span><div><div class="ds-spacing-bar" style="width:3rem"></div></div><span>3rem</span></div>
+      <div class="ds-spacing-row"><span>--space-3xl</span><div><div class="ds-spacing-bar" style="width:4rem"></div></div><span>4rem</span></div>
+      <div class="ds-spacing-row"><span>--section-gap</span><div><div class="ds-spacing-bar" style="width:5rem"></div></div><span>4rem→8rem</span></div>
+    </div>
+  </section>
+
+  <!-- Shadows -->
+  <section class="ds-section" id="shadows">
+    <div class="ds-section-head">
+      <h2>Shadows</h2>
+      <p>Minimal. Depth comes from temperature and rhythm, not from blur. Four ambient layers — enough for the whole page.</p>
+    </div>
+    <div class="ds-shadows">
+      <div class="ds-shadow-tile" style="box-shadow:var(--shadow-ambient)">--shadow-ambient</div>
+      <div class="ds-shadow-tile" style="box-shadow:var(--shadow-lift)">--shadow-lift</div>
+      <div class="ds-shadow-tile" style="box-shadow:var(--shadow-button)">--shadow-button</div>
+      <div class="ds-shadow-tile" style="box-shadow:var(--shadow-button-hover)">--shadow-button-hover</div>
+    </div>
+  </section>
+
+  <!-- Icons -->
+  <section class="ds-section" id="icons">
+    <div class="ds-section-head">
+      <h2>Icon set</h2>
+      <p>Hugeicons-style stroke icons, 1.8px weight, 24px grid. Eight role glyphs covering the full landing and app vocabulary.</p>
+    </div>
+    <div class="ds-icons" id="ds-icons-grid"></div>
+  </section>
+
+  <!-- Primitives -->
+  <section class="ds-section" id="primitives">
+    <div class="ds-section-head">
+      <h2>Primitives</h2>
+      <p>The small, focused building blocks. Each one does one job — the patterns compose them.</p>
+    </div>
+
+    <div class="ds-block-label">Badge</div>
+    <div class="ds-demo">
+      <div style="display:flex;flex-wrap:wrap;gap:0.75rem;">
+        <span class="badge">Portal Hub</span>
+        <span class="badge">The Problem</span>
+        <span class="badge">How It Works</span>
+        <span class="badge">FAQ</span>
+      </div>
+    </div>
+
+    <div class="ds-block-label" style="margin-top:2rem;">Buttons</div>
+    <div class="ds-demo">
+      <div style="display:flex;flex-wrap:wrap;gap:0.75rem;align-items:center;">
+        <a class="btn btn-primary btn-lg" href="#">View the guided demo</a>
+        <a class="btn btn-outline btn-lg" href="#">Open the investor path</a>
+        <a class="btn btn-ghost btn-lg" href="#">Talk with the team</a>
+      </div>
+    </div>
+
+    <div class="ds-block-label" style="margin-top:2rem;">Icon chip · stage pill</div>
+    <div class="ds-demo" style="display:flex;flex-wrap:wrap;gap:1rem;align-items:center;color:var(--accent);">
+      <span class="icon-chip icon-chip-md"><svg><use href="#icon-project"/></svg></span>
+      <span class="icon-chip icon-chip-md"><svg><use href="#icon-vendor"/></svg></span>
+      <span class="icon-chip icon-chip-md"><svg><use href="#icon-record"/></svg></span>
+      <span class="stage-pill">Publish request</span>
+      <span class="stage-pill">Document input</span>
+      <span class="stage-pill">Record award</span>
+    </div>
+
+    <div class="ds-block-label" style="margin-top:2rem;">Surface card (4 tones)</div>
+    <div class="ds-demo">
+      <div class="ds-demo-grid">
+        <div class="surface tone-cream"><div class="pad-card stack stack-heading-copy">
+          <span class="icon-chip icon-chip-md"><svg><use href="#icon-admin"/></svg></span>
+          <h3 class="type-heading-sm">Town staff</h3>
+          <p class="type-body text-c75">Manage bids, approvals, and payments in one place.</p>
+        </div></div>
+        <div class="surface tone-dusty"><div class="pad-card stack stack-heading-copy">
+          <span class="icon-chip icon-chip-md"><svg><use href="#icon-vendor"/></svg></span>
+          <h3 class="type-heading-sm">Contractor</h3>
+          <p class="type-body text-c75">Track work, payment, and allowed spending.</p>
+        </div></div>
+        <div class="surface tone-gold"><div class="pad-card stack stack-heading-copy">
+          <span class="icon-chip icon-chip-md"><svg><use href="#icon-citizen"/></svg></span>
+          <h3 class="type-heading-sm">Public record</h3>
+          <p class="type-body text-c75">See what was approved, spent, and completed.</p>
+        </div></div>
+        <div class="surface tone-sage"><div class="pad-card stack stack-heading-copy">
+          <span class="icon-chip icon-chip-md"><svg><use href="#icon-trust"/></svg></span>
+          <h3 class="type-heading-sm">Proof layer</h3>
+          <p class="type-body text-c75">Record history stays readable instead of rebuilt later.</p>
+        </div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Patterns -->
+  <section class="ds-section" id="patterns">
+    <div class="ds-section-head">
+      <h2>Patterns</h2>
+      <p>Composites that carry meaning, not just layout — section heading with eyebrow, vignette block, metric card, proof stack.</p>
+    </div>
+
+    <div class="ds-block-label">Section heading</div>
+    <div class="ds-demo">
+      <div class="stack stack-section-heading">
+        <div><span class="badge">The Problem</span></div>
+        <div class="stack stack-heading-copy">
+          <h2 class="type-heading max-w-4xl">Contract work is scattered. Slow. Unclear.</h2>
+          <p class="type-body-lg text-muted max-w-2xl">Small towns manage real contractor spend through inboxes, PDFs, calls, and memory. The result is weaker clarity, weaker control, and slower answers for everyone involved.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-block-label" style="margin-top:2rem;">Vignette (how-it-works)</div>
+    <div class="ds-demo">
+      <div class="surface tone-cream" style="max-width:420px;">
+        <div class="how-card-inner">
+          <div class="vignette">
+            <div class="vignette-blob-1"></div>
+            <div class="vignette-blob-2"></div>
+            <div class="vignette-content">
+              <div class="vignette-topbar"><span>Block 01</span><span>Lifecycle pair</span></div>
+              <div class="stack stack-card-tight">
+                <span class="icon-chip icon-chip-lg"><svg><use href="#icon-project"/></svg></span>
+                <div class="stages">
+                  <span class="stage-pill">Publish request</span>
+                  <span class="stage-pill">Document input</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="stack stack-heading-copy">
+            <h3 class="type-heading-sm">Open the work and keep the starting record clear</h3>
+            <p class="type-body text-c75">The town publishes the request and can document public input where appropriate.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-block-label" style="margin-top:2rem;">Metric card</div>
+    <div class="ds-demo">
+      <div class="ds-demo-grid">
+        <div class="surface tone-gold"><div class="metric-card-inner">
+          <div class="type-display tracking-metric">$273B</div>
+          <p class="type-body-lg text-c75" style="max-width:22rem;">added to U.S. construction bids every year because vendors expect slow payment</p>
+        </div></div>
+        <div class="surface tone-sage"><div class="metric-card-inner">
+          <div class="type-display tracking-metric">30 days → seconds</div>
+          <p class="type-body-lg text-c75" style="max-width:22rem;">the shift in payout timing when the contract closes through a clearer workflow</p>
+        </div></div>
+      </div>
+    </div>
+
+    <div class="ds-block-label" style="margin-top:2rem;">Proof card stack</div>
+    <div class="ds-demo">
+      <div class="surface tone-sage">
+        <div class="trust-layout">
+          <div class="stack stack-card">
+            <span class="badge" style="width:fit-content;">Why this holds up</span>
+            <h2 class="type-heading max-w-4xl">Accountability built in.</h2>
+            <div class="trust-quote-card">
+              <blockquote class="type-heading-sm" style="max-width:32rem;">&ldquo;The problem is not corruption. The problem is infrastructure.&rdquo;</blockquote>
+            </div>
+          </div>
+          <div class="stack stack-card">
+            <div class="type-label text-c58">Shared record proof</div>
+            <div class="proof-card proof-lead">
+              <div class="stack stack-heading-copy">
+                <h3 class="type-heading-sm" style="max-width:22rem;">Shared contract history</h3>
+                <p class="type-body" style="color:color-mix(in oklab, var(--tone-sage-foreground), transparent 22%);max-width:32rem;">Scope, budget, approvals, and status remain tied to one readable record instead of scattering across follow-up.</p>
+              </div>
+            </div>
+            <div class="proof-supporting-grid">
+              <div class="proof-card proof-fact">
+                <div class="stack stack-card-tight">
+                  <h3 class="type-title-sm">Spend with boundaries</h3>
+                  <p class="type-body-sm" style="color:color-mix(in oklab, var(--tone-sage-foreground), transparent 22%);">Money moves inside rules attached to the job.</p>
+                </div>
+              </div>
+              <div class="proof-card proof-fact">
+                <div class="stack stack-card-tight">
+                  <h3 class="type-title-sm">Approval before release</h3>
+                  <p class="type-body-sm" style="color:color-mix(in oklab, var(--tone-sage-foreground), transparent 22%);">Completion passes through a visible checkpoint.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Expandable -->
+  <section class="ds-section" id="expandable">
+    <div class="ds-section-head">
+      <h2>Expandable</h2>
+      <p>One reveal mechanism, two modes. Add <code>data-expandable</code> to any surface, put collapsed detail in <code>.expandable-body &gt; .inner</code>. Use <code>data-expandable-group="single"</code> inside a <code>[data-expandable-scope]</code> for accordion behaviour, <code>"multi"</code> for independent toggles. Hydrated by <code>ds/expandable.js</code>.</p>
+    </div>
+
+    <div class="ds-block-label">Multi — workflow-card style</div>
+    <div class="ds-demo">
+      <div class="surface tone-cream" data-expandable data-expandable-group="multi" style="overflow:hidden;max-width:420px;">
+        <div class="pad-card stack stack-card">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;">
+            <div class="type-body-sm text-c58" style="font-weight:500;max-width:22rem;">Use when scope, approvals, and status need to stay in one place.</div>
+            <span class="icon-chip" style="width:2.75rem;height:2.75rem;"><svg><use href="#icon-project"/></svg></span>
+          </div>
+          <div class="stack stack-heading-copy">
+            <h3 class="type-title">Contract record</h3>
+            <p class="type-body text-c75">Keep the contract readable from the first decision onward.</p>
+            <div class="expandable-body"><div class="inner">
+              <div class="expandable-label">In practice</div>
+              <p class="type-body-sm text-c75">Scope, approvals, and status stay in one readable record instead of being rebuilt across email, PDFs, and follow-up.</p>
+            </div></div>
+            <span class="expandable-hint"><span class="hint-open">Tap to expand</span><span class="hint-close">Tap to close</span> <span class="arrow">↗</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ds-block-label" style="margin-top:2rem;">Single — FAQ accordion</div>
+    <div class="ds-demo">
+      <div class="stack" style="gap:1rem;max-width:640px;" data-expandable-scope>
+        <div class="surface tone-cream" data-expandable data-expandable-group="single" data-open="true">
+          <div class="pad-card stack stack-heading-copy">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;">
+              <h3 class="type-heading-sm" style="max-width:30rem;">Why start with smaller municipalities?</h3>
+              <span class="expandable-toggle" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>
+            </div>
+            <div class="expandable-body"><div class="inner">
+              <p class="type-body text-c75 max-w-72ch" style="padding-top:0.25rem;">Because smaller towns carry meaningful contractor spend with lean teams and strong accountability pressure.</p>
+            </div></div>
+          </div>
+        </div>
+        <div class="surface tone-dusty" data-expandable data-expandable-group="single">
+          <div class="pad-card stack stack-heading-copy">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;">
+              <h3 class="type-heading-sm" style="max-width:30rem;">Is Civic-Chain primarily a blockchain company?</h3>
+              <span class="expandable-toggle" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>
+            </div>
+            <div class="expandable-body"><div class="inner">
+              <p class="type-body text-c75 max-w-72ch" style="padding-top:0.25rem;">No. It's a municipal contracting and accountability platform first.</p>
+            </div></div>
+          </div>
+        </div>
+        <div class="surface tone-gold" data-expandable data-expandable-group="single">
+          <div class="pad-card stack stack-heading-copy">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;">
+              <h3 class="type-heading-sm" style="max-width:30rem;">Is public input required for every contract?</h3>
+              <span class="expandable-toggle" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>
+            </div>
+            <div class="expandable-body"><div class="inner">
+              <p class="type-body text-c75 max-w-72ch" style="padding-top:0.25rem;">No. It's a layer that supports the broader contract process where appropriate.</p>
+            </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script defer src="ds/expandable.js"></script>
+
+<script>
+  // Inject icon sprite
+  fetch('ds/icons.svg').then(r => r.text()).then(svg => {
+    document.getElementById('icon-sprite-host').innerHTML = svg;
+    renderIcons();
+  });
+
+  // Palette data
+  const paletteTokens = [
+    { name: 'Brand Blue',   token: '--brand-blue',   hex: '#131F86' },
+    { name: 'Brand Cream',  token: '--brand-cream',  hex: '#F3F1E8' },
+    { name: 'Background',   token: '--background',   hex: '#F3F1E8' },
+    { name: 'Foreground',   token: '--foreground',   hex: '#131F86' },
+    { name: 'Card',         token: '--card',         hex: '#FBF8F0' },
+    { name: 'Surface',      token: '--surface',      hex: '#EFE9DF' },
+    { name: 'Accent',       token: '--accent',       hex: '#131F86' },
+    { name: 'Secondary',    token: '--secondary',    hex: '#DBE2EE' },
+    { name: 'Muted',        token: '--muted',        hex: '#E4DDD2' },
+    { name: 'Muted FG',     token: '--muted-foreground', hex: '#5C6382' },
+    { name: 'Tone · Cream', token: '--tone-cream',   hex: '#FBF8F0' },
+    { name: 'Tone · Dusty', token: '--tone-dusty',   hex: '#DBE3EE' },
+    { name: 'Tone · Gold',  token: '--tone-gold',    hex: '#DFC28C' },
+    { name: 'Tone · Sage',  token: '--tone-sage',    hex: '#D5DFD5' },
+  ];
+  const paletteHost = document.getElementById('ds-palette-core');
+  paletteHost.outerHTML = paletteTokens.map(t => `
+    <div class="ds-swatch">
+      <div class="ds-swatch-chip" style="background: var(${t.token});"></div>
+      <div class="ds-swatch-meta">
+        <strong>${t.name}</strong>
+        <code>${t.hex}</code>
+        <span class="token">${t.token}</span>
+      </div>
+    </div>
+  `).join('');
+
+  // Icons grid
+  function renderIcons() {
+    const names = ['admin','vendor','citizen','project','vote','record','metric','trust'];
+    document.getElementById('ds-icons-grid').innerHTML = names.map(n => `
+      <div class="ds-icon-tile">
+        <span class="icon-chip"><svg><use href="#icon-${n}"/></svg></span>
+        <span class="name">${n}</span>
+      </div>
+    `).join('');
+  }
+</script>
+
+</body>
+</html>

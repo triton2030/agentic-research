@@ -1,0 +1,4 @@
+interface:
+  display_name: "Playwright Guide"
+  short_description: "Router for official Playwright skills"
+  default_prompt: "Use $playwright-guide to choose the right official Playwright skill, reveal only the needed context, and turn this browser or layout task into an evidence-first path."
