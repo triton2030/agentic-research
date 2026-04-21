@@ -1,119 +1,162 @@
 # Format Examples
 
-Worked examples of `criteria-generator` output across task types. Use as shape templates, not as content to copy.
+Worked examples of `criteria-generator` output. Use them for shape, not content.
 
-## Example 1: Code bugfix
+There are two public shapes:
+
+- `contract` mode — thin augmented prompt with `Must`, optional `Must not`, and `Verification protocol`.
+- `strategy-trace` mode — compact chain from `_ops/` to the checked target, plus a verdict and one next move.
+
+The visible contract should stay thin: usually 2-4 `Must`, 0-2 `Must not`, and 1-3 verification steps.
+
+Every `Must` carries `Anchored in:`. When the task has no strategic map to anchor against, use `local-only — <reason>` instead of silently dropping the field. The examples below have no attached `_ops/` by design, so they use `local-only` — in a real repo with `_ops/1-NORTH-STAR.md` prefer anchors like `_ops/1-NORTH-STAR.md#acceptance-criteria` or `_ops/3-CURRENT-STRATEGY.md#strategic-lines`.
+
+## Example 1: Code bugfix (no strategic map)
 
 **Input:**
-> "Пользователь жалуется, что при экспорте CSV пропадают строки. Почини."
+> Пользователь жалуется, что при экспорте CSV пропадают строки. Почини.
 
 **Output:**
 
-    ## Original task
-    Пользователь жалуется, что при экспорте CSV пропадают строки. Почини.
+```md
+## Original task
+Пользователь жалуется, что при экспорте CSV пропадают строки. Почини.
 
-    ## Understood intent
-    Найти и устранить причину, по которой часть строк не попадает в экспортированный CSV. "Починено" означает: конкретный баг идентифицирован, исправлен, и существует тест, который падал бы без фикса.
+## Understood intent
+Найти и устранить причину потери строк в CSV-экспорте. "Починено" означает: баг локализован в текущем коде, исправлен и подтверждён целевой проверкой без соседней регрессии.
 
-    ## Assumptions (not verified with user)
-    - Речь про экспорт в функции `exportToCSV` в `src/exports/csv.ts` (единственный матч по grep).
-    - "Пропадают" означает отсутствуют в выводе, а не дублируются.
+## Assumptions (not verified with user)
+- Речь про функцию `exportToCSV` в `src/exports/csv.ts`, потому что это единственный близкий матч по поиску.
 
-    ## Acceptance criteria
+## Acceptance criteria
 
-    ### Must (blocks completion)
-    - [ ] Root cause сформулирован одним предложением со ссылкой на строку кода — **Evidence:** строка вида `src/exports/csv.ts:LINE — <причина>`.
-    - [ ] Регрессионный тест написан и падает на текущем коде — **Evidence:** вывод `npm test -- csv` до фикса с конкретным `expected N rows, got M`.
-    - [ ] Фикс применён — **Evidence:** diff в `src/exports/csv.ts`, не более 20 строк изменений, не затрагивает не связанные функции.
-    - [ ] Регрессионный тест проходит после фикса — **Evidence:** вывод `npm test -- csv` с `N passed`.
-    - [ ] Полный тестовый набор проходит — **Evidence:** вывод `npm test` с итоговой строкой `All tests passed`.
+### Must (blocks completion)
+- [ ] Root cause локализован в текущем кодовом пути — **Evidence**: строка вида `src/exports/csv.ts:LINE - <причина>`.
+  **Anchored in**: local-only — нет приложенного `_ops/` для этого примера.
+- [ ] Баг зафиксирован целевой регрессией и больше не воспроизводится после исправления — **Evidence**: failing-then-passing test output или эквивалентный command output.
+  **Anchored in**: local-only — нет приложенного `_ops/` для этого примера.
+- [ ] Фикс остаётся узким и не даёт соседней регрессии — **Evidence**: focused diff плюс ближайший no-regression check.
+  **Anchored in**: local-only — нет приложенного `_ops/` для этого примера.
 
-    ### Must not (anti-patterns)
-    - [ ] Не добавлять `if (rows.length === 0) return` или аналогичный silencing — **Why this would be bypassed:** заставит тест "пройти" путём скрытия проблемы.
-    - [ ] Не менять форматирование или стилистику файла вне зоны фикса — **Why this would be bypassed:** раздувает diff и маскирует реальное изменение.
-    - [ ] Не перезаписывать входной массив перед экспортом — **Why this would be bypassed:** имитирует корректный вывод, но не устраняет причину.
+### Must not (anti-patterns)
+- [ ] Не скрывать симптом ранним `return`, swallowed error или косметическим переписыванием — **Why this would be bypassed**: баг станет тише, но причина потери строк останется.
 
-    ### Verification protocol
-    1. `git diff --stat src/exports/csv.ts`
-       Expected: одно-два изменённых места, <20 строк.
-    2. `npm test -- csv 2>&1 | tail -20`
-       Expected: регрессионный тест в списке PASSED.
-    3. `npm test 2>&1 | tail -5`
-       Expected: строка `Tests: X passed`, ноль failed.
+### Verification protocol
+1. Показать focused diff по целевому участку.
+   Expected: меняется только зона, связанная с экспортом.
+2. Запустить целевую регрессию и ближайший no-regression check.
+   Expected: баг больше не воспроизводится и рядом не появилось новых failure.
+```
 
-## Example 2: Research
+## Example 2: Research (no strategic map)
 
 **Input:**
-> "Разберись, какие новые техники prompt compression появились в 2026 году и что применимо у нас."
+> Разберись, какие новые техники prompt compression появились в 2026 году и что применимо у нас.
 
 **Output:**
 
-    ## Original task
-    Разберись, какие новые техники prompt compression появились в 2026 году и что применимо у нас.
+```md
+## Original task
+Разберись, какие новые техники prompt compression появились в 2026 году и что применимо у нас.
 
-    ## Understood intent
-    Собрать обзор техник prompt compression 2026 года, отфильтровать по применимости в нашем текущем стеке (Claude Code + Anthropic SDK), и вернуть короткий рабочий список "что внедрять" с обоснованием.
+## Understood intent
+Собрать только действительно новые техники 2026 года, сравнить их по общим осям и закончить не обзором, а решением: что внедрять, что отложить, что не подходит текущему стеку.
 
-    ## Assumptions (not verified with user)
-    - "У нас" = проект `agentic-research` и соседние Claude Code workflows.
-    - Применимость оценивается по трём осям: reduction %, complexity cost, зависимость от кастомной инфраструктуры.
+## Assumptions (not verified with user)
+- "У нас" означает текущий набор agentic workflows и сопутствующих инструментов.
 
-    ## Acceptance criteria
+## Acceptance criteria
 
-    ### Must (blocks completion)
-    - [ ] Минимум 5 техник с 2026 года названы, у каждой есть источник — **Evidence:** markdown-список с прямыми ссылками (URL) на статьи или репозитории 2026 года.
-    - [ ] Для каждой техники указано одно предложение о механизме — **Evidence:** поле `Mechanism:` под каждой техникой, не копия аннотации, а своя формулировка.
-    - [ ] Применимость оценена по трём осям — **Evidence:** таблица `technique | reduction | complexity | infra dep`.
-    - [ ] Итоговый короткий список "внедрять / отложить / мимо" — **Evidence:** раздел `Verdict` с 3 сегментами и обоснованием из одной строки на каждую технику.
+### Must (blocks completion)
+- [ ] Названы минимум 5 техник именно 2026 года с первичными источниками — **Evidence**: датированный список source links.
+  **Anchored in**: local-only — нет приложенного `_ops/` для этого примера.
+- [ ] Все техники сравнены по одним и тем же осям — **Evidence**: одна сравнительная таблица `technique | reduction | complexity | infra dependency`.
+  **Anchored in**: local-only — нет приложенного `_ops/` для этого примера.
+- [ ] Итог заканчивается рабочим вердиктом для нашего стека — **Evidence**: раздел `внедрять / отложить / мимо` с краткой причиной для каждой техники.
+  **Anchored in**: local-only — нет приложенного `_ops/` для этого примера.
 
-    ### Must not (anti-patterns)
-    - [ ] Не включать техники старше 2026 года — **Why this would be bypassed:** легко набрать объём за счёт классики и прикрыть отсутствие реально нового.
-    - [ ] Не ссылаться на блоги без первичного источника (paper / repo) — **Why this would be bypassed:** вторичные пересказы часто искажают механизм.
-    - [ ] Не делать вывод "применимо" без конкретного места в нашем стеке — **Evidence:** каждая техника в Verdict ссылается на конкретный скрипт, скилл или workflow.
+### Must not (anti-patterns)
+- [ ] Не добирать объём материалом старше 2026 года или вторичными пересказами без первичного источника — **Why this would be bypassed**: получится видимость полноты без ответа на вопрос о новом и применимом.
 
-    ### Verification protocol
-    1. Проверить, что все URL-ы в источниках отдают 200 — **Expected:** нет 404.
-    2. Прочитать одну статью целиком и сверить с полем `Mechanism` — **Expected:** формулировка точная, не вводит в заблуждение.
+### Verification protocol
+1. Проверить, что у каждой техники есть первичный источник 2026 года.
+   Expected: нет undated или secondary-only entries.
+2. Сверить выборочно один механизм и один итоговый verdict с полным чтением источника.
+   Expected: формулировка точная и вывод действительно следует из материала.
+```
 
-## Example 3: Skill or agent creation
+## Example 3: Skill or agent creation (no strategic map)
 
 **Input:**
-> "Сделай мне скилл для ревью пулл-реквестов."
+> Сделай мне скилл для ревью пулл-реквестов.
 
 **Output:**
 
-    ## Original task
-    Сделай мне скилл для ревью пулл-реквестов.
+```md
+## Original task
+Сделай мне скилл для ревью пулл-реквестов.
 
-    ## Understood intent
-    Создать Claude Code скилл, который по запросу анализирует PR (diff + описание) и возвращает структурированный ревью: блокирующие замечания, предложения, вопросы, общий вердикт.
+## Understood intent
+Создать reusable skill, который анализирует pull request и возвращает структурированный review вместо общих советов.
 
-    ## Assumptions (not verified with user)
-    - Скилл глобальный (`~/.claude/skills/`), не привязан к одному репозиторию.
-    - Источник PR — команда `gh pr view` или URL.
-    - Формат вывода — markdown в чат.
+## Assumptions (not verified with user)
+- Источник PR может быть URL или локальный diff.
 
-    ## Acceptance criteria
+## Acceptance criteria
 
-    ### Must (blocks completion)
-    - [ ] Файл `~/.claude/skills/pr-review/SKILL.md` существует — **Evidence:** `ls ~/.claude/skills/pr-review/SKILL.md`.
-    - [ ] Frontmatter содержит `name` и `description` с явным "when to use" — **Evidence:** первые 5 строк файла.
-    - [ ] Рабочий ход имеет нумерованные шаги с артефактами — **Evidence:** раздел `## Process` с шагами Step 1…N, у каждого `Artifact:` строка.
-    - [ ] Раздел Red Flags присутствует с минимум 3 пунктами — **Evidence:** таблица или список под заголовком `## Red flags`.
-    - [ ] Smoke test пройден на 1 реальном PR — **Evidence:** вывод скилла на конкретном PR, прикреплённый к диалогу.
+### Must (blocks completion)
+- [ ] Создан валидный каталог скилла с `SKILL.md` и только реально нужными supporting files — **Evidence**: listing файлов плюс успешная валидация.
+  **Anchored in**: local-only — нет приложенного `_ops/` для этого примера.
+- [ ] `SKILL.md` явно задаёт trigger и workflow review — **Evidence**: frontmatter и раздел `Process` или эквивалентный рабочий ход.
+  **Anchored in**: local-only — нет приложенного `_ops/` для этого примера.
+- [ ] Скилл проверен на одном реалистичном PR-сценарии — **Evidence**: краткий smoke-test output.
+  **Anchored in**: local-only — нет приложенного `_ops/` для этого примера.
 
-    ### Must not (anti-patterns)
-    - [ ] Не писать скилл как "общие правила ревью" без рабочего хода — **Why this would be bypassed:** превращается в энциклопедию, не в инструмент.
-    - [ ] Не требовать внешних сервисов кроме `gh` — **Why this would be bypassed:** ломает портативность.
-    - [ ] Не возвращать размазанный вывод без структуры — **Evidence:** выход должен иметь фиксированные секции Blocking / Suggestions / Questions / Verdict.
+### Must not (anti-patterns)
+- [ ] Не сводить скилл к общим правилам ревью без рабочего хода — **Why this would be bypassed**: получится справка, а не инструмент.
 
-    ### Verification protocol
-    1. `ls ~/.claude/skills/pr-review/` — **Expected:** `SKILL.md` плюс `references/` при необходимости.
-    2. Invoke skill on a sample PR URL — **Expected:** вывод в заданном формате, без отклонений.
+### Verification protocol
+1. Проверить структуру каталога и прогнать валидатор.
+   Expected: skill is valid и без лишних файлов.
+2. Прогнать один реалистичный PR-сценарий.
+   Expected: вывод соответствует обещанной структуре review.
+```
 
-## How to pick the right shape
+## Example 4: Strategy-trace (with strategic map)
 
-- **Code changes:** всегда Evidence = команда + ожидаемый вывод.
-- **Research / writing:** Evidence = ссылки, цитаты, таблицы.
-- **Infra / config:** Evidence = вывод `diff`, `kubectl get`, `terraform plan`, etc.
-- **Skill / agent authoring:** Evidence = путь к файлу плюс структурная проверка.
+**Input:**
+> Сделай `strategy-trace`: я хочу добавить четвёртый owner-skill в chain, чтобы он проверял finished drafts.
+
+**Output:**
+
+```md
+## Trace target
+Я хочу добавить четвёртый owner-skill в chain, чтобы он проверял finished drafts.
+
+## Strategic chain
+1. Goal: репо должно оставаться компактной operating system для authoring-работы, а не расти быстрее собственного leverage.
+   **Anchored in**: `_ops/1-NORTH-STAR.md` — `Цель`
+2. Active line: owner-chain зафиксирован как `main-strategy -> system-architect -> criteria-generator`.
+   **Anchored in**: `_ops/3-CURRENT-STRATEGY.md` — `Опорные стратегические линии`
+3. Anti-goal: не расширять owner-chain без доказанного leverage.
+   **Anchored in**: `_ops/3-CURRENT-STRATEGY.md` — `Anti-goals`
+4. Observed target: запрос предлагает добавить четвёртого owner'а для review finished drafts.
+   **Anchored in**: user request
+
+## Verdict
+drift
+
+## Why
+- Запрос расширяет зафиксированную тройку owner'ов вместо того, чтобы ужесточить одного из уже существующих.
+- В запросе нет baseline или leverage-proof, который текущая стратегия требует перед ростом owner-chain.
+
+## Do now
+- Оставить owner-chain из трёх слоёв и встроить проверку в существующего owner'а, либо эскалировать в `main-strategy`, если тройка больше не держит ставку.
+```
+
+## Shape Guide
+
+- `contract` mode target: 2-4 `Must`, 0-2 `Must not`, 1-3 verification steps.
+- `strategy-trace` mode target: 3-4 chain steps, one verdict, up to 2 `Why` bullets, one `Do now`.
+- If two bullets protect the same failure mode, merge them.
+- Prefer short evidence-rich lines over explanatory mini-paragraphs.

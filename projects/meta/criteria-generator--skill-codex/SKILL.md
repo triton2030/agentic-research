@@ -1,204 +1,281 @@
 ---
 name: criteria-generator
-description: Use BEFORE implementing any non-trivial task to augment the user prompt with LLM-proof acceptance criteria. Analyze project context through AGENTS.md, CLAUDE.md, READMEs, docs/, `ops/`, memory, and recent git to infer true intent, load strategic direction from `ops/NORTH-STAR.md`, and if `ops/` or that north-star note is missing, create them before deeper criteria generation. Any operational files the skill needs for its own execution belong in `ops/`. Output is the augmented prompt plus only the minimal `ops/` support files needed for the skill itself — never task implementation.
+description: Use before executing any non-trivial or ambiguous task when Codex should first turn the user's request into the same request augmented with non-bypassable acceptance criteria. Recover intent from project context such as AGENTS.md, CLAUDE.md, GEMINI.md, README files, docs/, `_ops/`, project memory files, git state, and the instruction layer shaped by `system-architect` such as prompts, instructions, skills, validators, or approvals. When `_ops/1-NORTH-STAR.md` and `_ops/3-CURRENT-STRATEGY.md` exist, treat them as the upstream strategic map owned by `main-strategy`; read `_ops/2-RATIONALE.md` only when the why behind the strategy, rejected paths, or premortem materially changes the task contract. When that map or repo instructions already define canonical domains, let them route the next reads instead of broad generic scanning. Do not create or refresh operational files as part of criteria generation. Output only the augmented prompt and execution offer — never task implementation or operational scaffolding.
 ---
 
-# Criteria Generator (Codex)
+# Criteria Generator
 
-Turn an ambiguous user task into a prompt armored with LLM-proof acceptance criteria.
+Announce at the start with the active mode:
 
-**Announce at start:** "I'm using the criteria-generator skill to produce acceptance criteria."
+- Contract mode: "I'm using the criteria-generator skill to produce acceptance criteria."
+- Strategy-trace mode: "I'm using the criteria-generator skill in strategy-trace mode."
 
-## When to use
+## Role
 
-- Non-trivial task where execution quality matters.
-- Task formulation is vague or could be interpreted multiple ways.
-- Before delegating a task to another agent or subagent.
-- Before starting work on anything whose "done" state is not obvious.
+You translate the global goal from `_ops/1-NORTH-STAR.md` and `_ops/3-CURRENT-STRATEGY.md` into local-task acceptance criteria that keep the execution agent aligned with the durable goal while doing this specific task.
 
-## When NOT to use
+Quality of downstream execution comes from constant focus on the global goal. A task contract without a North-Star anchor is weaker, even if it looks specific.
 
-- Trivial one-line fixes (typo, obvious rename).
-- Pure questions that do not request action.
-- Tasks already accompanied by explicit acceptance criteria.
+Reason wide, emit narrow. Use discovery, EVPI, adversarial pass, and the quality gate to decide what matters. Do not dump your reasoning trace into the visible contract. The visible criteria should be the smallest set of constraints that would materially prevent weak execution.
 
-## Hard gate
+## Modes
+
+Two modes, one owner:
+
+- `contract` (default) — produce the thin augmented prompt used as a hard execution contract.
+- `strategy-trace` (explicit-only) — run a compact read-only test of whether the current ask, plan, or draft still serves the global goal and active strategy.
+
+Switch to `strategy-trace` only when the user explicitly asks for `strategy-trace`, a quick strategic-memory check, a drift check, or "just verify alignment" before execution. Do not silently replace normal contract generation with this mode.
+
+This mode is not a substitute for a full trajectory audit or a durable architecture decision. If the real question is artifact-quality drift, use a trajectory-auditor-style pass when available. If the real question is where a durable rule should live, route to `system-architect`.
+
+## Success Criteria For The Contract
+
+Before emitting, verify every `Must` item passes all six checks:
+
+1. **North-Star traceability** — an `Anchored in:` line points to a specific section of `_ops/1-NORTH-STAR.md`, `_ops/3-CURRENT-STRATEGY.md`, or (rarely) `_ops/2-RATIONALE.md`. If no strategic anchor applies, label the item `Anchored in: local-only — <reason>`. Silent absence is not allowed.
+2. **Observable** — a reviewer inspects evidence, not a claim.
+3. **Unambiguous** — two careful readers would judge it similarly.
+4. **Non-bypassable** — a weak agent cannot pass it with shallow work.
+5. **Minimal** — removing it would materially increase failure risk.
+6. **Non-overlapping** — it is not already enforced elsewhere in the contract.
+
+If `_ops/1-NORTH-STAR.md` is missing, mark the whole contract as **weak strategic grounding** and keep it thinner instead of inventing anchors. Do not hallucinate a North Star.
+
+Drop or rewrite any criterion that fails one check. If two criteria guard the same failure mode, keep the shorter or stronger one.
+
+## Success Criteria For Strategy-Trace Mode
+
+Before emitting a trace result, verify it is:
+
+1. **Chain-shaped** — it walks from global goal -> active strategic line or anti-goal -> local implication -> observed target.
+2. **Anchored** — every chain step cites `_ops/` or the checked artifact. No free-floating claims.
+3. **Compact** — usually 3-4 trace steps plus one verdict. Do not expand into a full criteria contract.
+4. **Decisive** — return exactly one verdict: `aligned`, `partial`, `drift`, or `unknown`.
+5. **Actionable** — name the smallest next move that would reduce drift or uncertainty.
+6. **Read-only** — do not invent new strategy, architecture, or `Must` items while in this mode.
+
+## When To Use
+
+- Before executing a non-trivial task whose "done" state is not obvious.
+- When the request is vague, high-stakes, easy to misread, or likely to invite shortcut behavior.
+- Before handing work off for future execution or converting a request into a brief.
+- When acceptance criteria are missing, soft, or easy to fake.
+- Before major execution when task-level criteria should stay aligned with a strategic map in `_ops/1-NORTH-STAR.md` and `_ops/3-CURRENT-STRATEGY.md`.
+- When the user explicitly wants a quick `strategy-trace` check to verify that the current ask, plan, or draft still follows the strategic map before committing to execution.
+
+## When Not To Use
+
+- Skip for trivial factual questions with no execution step.
+- Skip for tiny obvious edits when the user already defined what success looks like.
+- Skip when the user already supplied explicit, testable acceptance criteria.
+- Skip `strategy-trace` when the user really needs a full artifact or trajectory audit with evidence from the work itself.
+- Skip when the immediately previous turn already produced a criteria contract from this skill, the user explicitly approved execution, and the ask has not materially changed. In that case the correct next step is execution under the approved contract, not a second criteria pass.
+
+If the skill was explicitly invoked on a trivial task, keep the result minimal instead of inflating the contract.
+
+## Hard Gate
 
 Do not implement the user's task while running this skill.
 
-Allowed side effects are limited to the skill's own operational layer in `ops/`:
+Do not create `_ops/`, do not create or refresh `_ops/1-NORTH-STAR.md`, and do not write any other support files while running this skill.
 
-- create `ops/` if it does not exist;
-- create or refresh a minimal `ops/NORTH-STAR.md` if the project lacks one;
-- write any other criteria-generator support files only inside `ops/`.
+Treat `main-strategy` as the owner of the strategic map in `_ops/1-NORTH-STAR.md`, `_ops/3-CURRENT-STRATEGY.md`, and optional `_ops/2-RATIONALE.md`. This skill may read those artifacts as upstream truth when present, but does not author them.
 
-Do not write support files for this skill anywhere else unless the repository instructions explicitly override `ops/`.
+Treat the durable instruction layer shaped by `system-architect` as the nearest upstream for task criteria. If owner, control-surface choice, or system shape is still unresolved or lives only in chat, stop and route the task back to `system-architect` before drafting criteria.
 
-## Process
+Begin execution only after the user agrees to use these criteria as a hard contract.
 
-Create one `update_plan` item per step below. Each step has a required artifact. Do not advance without producing it.
+If the user approval arrives in a later turn and the ask has not materially changed, treat that reply as the execution handoff. Do not re-enter this skill just to restate the same contract.
 
-### Step 1: Capture
+`strategy-trace` is read-only. Do not emit `Must`, `Must not`, or a verification protocol there, and do not stretch this mode into a shadow trajectory audit or architecture review.
 
-Quote the user's original task verbatim. This becomes the `Original task` block in the final output.
+## Mode Selection
 
-Artifact: verbatim quote of user input, stored for Step 9.
+1. Use `contract` mode by default.
+2. Switch to `strategy-trace` only on explicit user intent: `strategy-trace`, "check alignment", "quick drift test", "does this still follow the strategy", or equivalent.
+3. If there is already substantial artifact evidence to audit, prefer a trajectory-auditor-style pass when available.
+4. If the blocker is missing strategy or unresolved control-surface ownership, route to `main-strategy` or `system-architect` instead of stretching this skill.
 
-### Step 2: Discovery
+## Contract Mode Process
 
-Probe for available context sources. Do not assume; check.
+Four checkpoints. Produce the artifact for each before moving on.
 
-Required probes (skip only if the path obviously cannot exist):
+### 1. Capture
 
-- `CWD/CLAUDE.md`, `~/.claude/CLAUDE.md`
-- `CWD/AGENTS.md`, `CWD/GEMINI.md`
-- `CWD/README*`
-- `CWD/docs/`
-- `CWD/ops/`, especially `CWD/ops/NORTH-STAR.md`
-- `CWD/knowledge/`, `CWD/projects/` (or legacy `CWD/_research/`, `CWD/_random-guides/`)
-- Memory index if the platform exposes one
-- Git: `git log --oneline -20` and `git status` (only if `.git` exists in CWD or an ancestor)
+Quote the user's task verbatim.
 
-For non-standard project layouts see `references/discovery-map.md`.
+Artifact: the exact task quote for the final `Original task` block.
 
-Artifact: list of paths found, grouped as `will read` vs `noted, skipped`.
+### 2. Discover — global goal first, then local
 
-If `ops/` is missing, create it before going deeper.
+Read the strategic map before local context.
 
-If `ops/NORTH-STAR.md` is missing, write a minimal note first and then read it. Keep it short:
+1. `_ops/1-NORTH-STAR.md` and `_ops/3-CURRENT-STRATEGY.md` — mandatory unless missing. Translate only the parts that materially change the contract:
+   - `Goal` and `Acceptance criteria` from `_ops/1-NORTH-STAR.md` — durable outcome and proof floor the task should serve
+   - `Strategic Objective Now` from `_ops/3-CURRENT-STRATEGY.md` — calibrates what matters now vs later
+   - `Working Hypothesis` — the active strategic bet the task should not quietly contradict
+   - `Strategic Lines` and `Implications For Criteria Generator` — often become Must items or scope constraints
+   - `Anti-goals` — often become Must-not items
+   - `Unknowns` — feed EVPI questions or explicit assumptions
+2. `_ops/2-RATIONALE.md` — read only when `Chosen Path`, `Premortem`, or `Revisit Triggers` would materially change completion, forbidden shortcuts, or verification depth.
+3. Local sources — read only what changes what "good" means for THIS task. Let the strategic map route the next folders: the nearest `projects/{category}/...` if a specific artifact line is implicated, then `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, `README*`, `docs/`, active instruction surfaces (system prompts, folder instructions, local skills, validators, approvals), recent git state. Reading everything "just in case" is a bypass.
 
-- why this project exists;
-- who it is for;
-- what must become easier;
-- what wrong success should be avoided.
+If `_ops/1-NORTH-STAR.md` is missing, note it and continue with weaker strategic grounding — prefer a thinner contract to inventing anchors.
 
-Any other operational files created by this skill must also live under `ops/`.
+If only `_ops/1-NORTH-STAR.md` exists without `_ops/3-CURRENT-STRATEGY.md`, use the North Star cautiously and record that the task contract is missing a current-strategy layer.
 
-### Step 3: Selective read
+Use [references/discovery-map.md](references/discovery-map.md) for extended routing by project type and task type. Do not treat generic folders like `docs/` or loose root notes as equal-priority substitutes when the repo already has stronger homes for the artifact type.
 
-Read only the sources likely relevant to the task topic. For each read, record one sentence of what changed in your understanding.
+Produce, in the same step:
 
-Red flag: reading everything "just in case". That is rationalization. Pick by topic match.
+- A bullet list of `<source>: <one-line takeaway that changed your understanding>`.
+- `Understood intent` — 1-3 sentences stating what the future agent must actually accomplish.
+- `Unknowns` — missing facts that could materially change the criteria.
 
-Artifact: bulleted list of `<path>: <one-line takeaway>`.
+If the user proposed a solution path, classify it explicitly as `accept`, `narrow`, or `reject` based on current evidence. Do not silently inherit the proposed path as the task contract.
 
-If `ops/NORTH-STAR.md` exists, read it before deeper intent reconstruction. Treat it as evidence, not unquestioned truth.
+### 3. Draft → Adversarial → Gate (single loop)
 
-### Step 4: Intent distillation
+Draft the smallest visible contract that still blocks bad work, then attack it, then run the Success Criteria check. Loop until it passes.
 
-Produce two blocks:
+**Draft.** Three buckets:
 
-- **Understood intent** (1-3 sentences): what the agent must actually do.
-- **Unknowns**: explicit list of facts that would change the criteria if known.
+- `Must`: conditions that block completion if missing. Every item carries `Evidence:` naming the observable artifact, and `Anchored in:` pointing to a strategic section (or `local-only — <reason>`).
+- `Must not`: forbidden shortcuts that would make the work look done while staying poor. Add only when the bypass is both likely and not already blocked by a `Must`.
+- `Verification protocol`: 1-3 concrete actions, ordered by highest-signal proof.
 
-Artifact: both blocks written out.
+For code tasks, prefer behavior-first `Must` items: observable behavior change, regression proof, no-regression checks. Lock implementation details only when they are load-bearing and observable.
 
-### Step 5: EVPI gate
+Keep each criterion short. Prefer one sentence before `Evidence:` and merge overlapping obligations. Default budgets: 2-4 `Must`, 0-2 `Must not`, 1-3 verification steps. Exceed only when a thinner contract would materially weaken correctness.
 
-For each unknown, answer two questions:
+**Adversarial pass.** Act like a lazy agent trying to satisfy each criterion formally while doing poor work. For every bypass found, strengthen or merge criteria until the bypass is closed. Prefer one stronger criterion that closes several related bypasses over multiple narrow ones.
 
-1. Does available context resolve it? If yes, resolve and continue.
-2. If not, does asking the user one targeted question materially change the criteria?
+Use [references/failure-modes.md](references/failure-modes.md) to pick 2-5 modes relevant to the task type. Do not apply all 13.
 
-If 1-3 unknowns pass the EVPI test, stop and ask the user directly in chat. Keep the questions short, numbered, and phrased so one line of reply resolves each. Wait for answers before continuing.
+**Gate.** Run every criterion through the six Success Criteria at the top of this file. Drop or rewrite any that fails. Drop any that duplicates a guard already present.
 
-Otherwise record each surviving unknown as an explicit Assumption in the output.
+**EVPI — ask only when it materially changes the contract.** If one targeted question would materially change scope, acceptance threshold, or an irreversible decision, ask it now in chat. Otherwise continue and record the unresolved point as an assumption prefixed with `[EVPI-would-ask]`. In Codex there is no native `AskUserQuestion` tool — phrase the question with 2-4 discrete options and explicit tradeoffs.
 
-Artifact: either user answers captured, or an Assumptions list finalized.
+Do not smuggle unresolved architecture into `Must` items. If the contract still depends on deciding whether the owner should be `AGENTS.md`, a local skill, a validator, an approval rule, or another control surface, stop and hand off to `system-architect` first.
 
-### Step 6: Draft criteria
+Artifact: final criteria set passing all six Success Criteria, with either user answers captured or an `Assumptions` list finalized.
 
-Draft three buckets:
+### 4. Emit
 
-- **Must** — conditions that, if missing, mean the task is not done.
-- **Must not** — anti-patterns that would look correct but represent a bypass.
-- **Verification protocol** — concrete commands or actions that prove the Must items.
+Return the augmented prompt in this shape and nothing outside it:
 
-Every Must item requires an `Evidence:` subfield naming the observable artifact that proves it (file contents, command output, URL, specific number, screenshot).
+```md
+## Original task
+<verbatim quote>
 
-See `references/format-examples.md` for worked examples across task types.
+## Understood intent
+<1-3 sentences>
 
-Artifact: draft of all three buckets.
+## Context anchors
+- <source>: <why it changed the contract>
 
-### Step 7: Adversarial pass
+## Assumptions (not verified with user)
+- ...
 
-Play a lazy agent. For each Must item answer: "How would I formally pass this while doing the task badly?"
+## Acceptance criteria
 
-For every bypass you name, add or strengthen a criterion until the bypass is blocked.
+### Must (blocks completion)
+- [ ] <criterion> — **Evidence**: <artifact>
+  **Anchored in**: <_ops path + section | local-only — <reason>>
 
-Common bypasses to probe (non-exhaustive — full catalog in `references/failure-modes.md`):
+### Must not (anti-patterns)
+- [ ] <forbidden shortcut> — **Why this would be bypassed**: <bypass mechanic>
 
-- Claiming verification without running the command.
-- Mock-only implementations that look real.
-- Skipping edge cases not named explicitly.
-- Renaming or moving code instead of fixing logic.
-- Summary-based review instead of reading the actual artifact.
-- Adding superficial comments in place of behavioral change.
-- Declaring success on the happy path only.
+### Verification protocol
+1. <command or action>
+   Expected: <observable output>
+```
 
-Artifact: list of bypasses found plus the criterion that now closes each.
+If `Context anchors`, `Assumptions`, or `Must not` would be empty, omit that heading.
 
-### Step 8: Quality gate
+Default visible limits: up to 3 `Context anchors`, up to 3 `Assumptions`, 2-4 `Must`, 0-2 `Must not`, 1-3 verification steps. Go above these only when a shorter contract would materially weaken correctness.
 
-Check each criterion against three axes:
+Prefer one-line criteria. Avoid multi-clause bullets and mini-essays.
 
-- **Observable** — does it name a concrete artifact, not "I checked"?
-- **Unambiguous** — can only one reading pass it?
-- **Non-bypassable** — can Step 7 find a formal-pass-bad-work route? If yes, return to Step 7.
+After emitting, ask exactly one question:
 
-Drop or rewrite any criterion that fails any axis.
+`Acceptance criteria generated. Want me to execute the task using these criteria as a hard contract?`
 
-Artifact: final criteria set with all three axes satisfied.
+If the user says yes, stop this skill and continue the task under the generated contract.
 
-### Step 9: Emit output
+Artifact: the full augmented prompt plus the execution offer.
 
-Print the augmented prompt in this exact format. Emit nothing else outside this block:
+## Strategy-Trace Mode
 
-    ## Original task
-    <verbatim quote>
+Use this explicit-only mode for a compact upstream-alignment test.
 
-    ## Understood intent
-    <1-3 sentences>
+### Read Path
 
-    ## Assumptions (not verified with user)
-    - ...
+1. Quote the concrete target being checked: the current ask, plan, draft, or short artifact summary.
+2. Read `_ops/1-NORTH-STAR.md` and `_ops/3-CURRENT-STRATEGY.md`.
+3. Read `_ops/2-RATIONALE.md` only if a rejected path, premortem, or revisit trigger is needed to decide between `partial`, `drift`, and `unknown`.
+4. Read only the local artifact being checked. Do not widen into a repo scan.
 
-    ## Acceptance criteria
+### Emit
 
-    ### Must (blocks completion)
-    - [ ] <criterion> — **Evidence**: <artifact>
+Return this shape and nothing outside it:
 
-    ### Must not (anti-patterns)
-    - [ ] <forbidden pattern> — **Why this would be bypassed**: <bypass mechanic>
+```md
+## Trace target
+<verbatim quote or named artifact>
 
-    ### Verification protocol
-    1. <command or action>
-       Expected: <observable output>
+## Strategic chain
+1. Goal: <durable outcome that matters here>
+   **Anchored in**: <_ops path + section>
+2. Active line: <current bet, line, or anti-goal that matters>
+   **Anchored in**: <_ops path + section>
+3. Local implication: <what this target must do or avoid if it is aligned>
+   **Anchored in**: <_ops path + section | local artifact>
+4. Observed target: <what the ask, plan, or draft is actually trying to do>
+   **Anchored in**: <user quote | artifact>
 
-If there is nothing to put in Assumptions or Must not, omit that heading entirely rather than leaving it empty.
+## Verdict
+<aligned | partial | drift | unknown>
 
-Artifact: full output in chat.
+## Why
+- <1-2 evidence-backed bullets>
 
-### Step 10: Offer execution
+## Do now
+- <one short next move>
+```
 
-Ask the user exactly one question:
+If step 4 adds no information beyond `Trace target`, omit it.
 
-> "Acceptance criteria generated. Want me to execute the task using these criteria as a hard contract?"
+If `_ops/1-NORTH-STAR.md` or `_ops/3-CURRENT-STRATEGY.md` is missing, say so explicitly and default to `unknown` unless the missing layer truly does not change the call.
 
-If yes: stop this skill; proceed to execution treating each Must item as blocking and each Must-not as forbidden. Announce the transition.
-If no: stop. Return control.
+Default visible limits: 3-4 chain steps, up to 2 `Why` bullets, 1 `Do now`.
 
-## Red flags (rationalizations to block)
+Do not emit `Must`, `Must not`, or a verification protocol in this mode.
 
-| You catch yourself thinking | Actually |
-|---|---|
-| "Task is obvious, skip Discovery" | Discovery is always cheap. Skipping is the #1 source of wrong criteria. |
-| "Adversarial pass is overkill here" | The skill exists for this step. If you skip it, use a different tool. |
-| "User context is thin, make a judgment call" | That is exactly when the EVPI gate matters. Ask. |
-| "Evidence field is implied by the criterion" | Implied ≠ enforced. LLMs skip implied. Write it out. |
-| "Three axes are a formality" | Each one blocks a distinct failure mode. Run them. |
-| "One-shot is faster than 10 steps" | Speed is not the goal. Non-bypassability is. |
+After emitting, ask exactly one question:
 
-## Output constraint
+`Strategy trace checked. Want me to turn this into a hard execution contract?`
 
-The skill produces the augmented prompt and, when needed, only the minimal `ops/` support files required for criteria generation. No task code, no task implementation, no partial delivery of the user's requested work. Implementation begins only after the user answers Step 10.
+## Red Flags
+
+- "The task is obvious; I can skip discovery." No. Wrong criteria almost always start there.
+- "Adversarial pass is overkill." No. This skill exists for that step.
+- "I can say something was verified without naming the artifact." No. Evidence must be explicit.
+- "Thin context means I should improvise." No. Thin context is why the EVPI gate exists.
+- "The evidence is implied by the criterion." No. LLMs skip implied obligations.
+- "Adding more constraints always makes the output safer." No. Over-constraint is its own bypass.
+- "I found six plausible risks; I should list all six." No. Compress to the few constraints that materially change execution.
+- "The Must item is obviously related to the goal — no need to anchor it explicitly." No. Make the anchor explicit, or mark `local-only` with a reason.
+- "I can use `strategy-trace` as a cheap full review." No. It checks alignment memory, not artifact quality.
+- "I can call something aligned without quoting the chain back to `_ops/`." No. A verdict without anchors is theatre.
+
+## Output Constraint
+
+Produce only the mode-appropriate artifact and its single follow-up question. No `_ops/` support files, no task code, no partial task implementation, no side work.
+
+## References
+
+- Use [references/discovery-map.md](references/discovery-map.md) when the default discovery pass needs adaptation by project type or task type.
+- Use [references/failure-modes.md](references/failure-modes.md) during the adversarial pass.
+- Use [references/format-examples.md](references/format-examples.md) to match the output shape without copying the content.

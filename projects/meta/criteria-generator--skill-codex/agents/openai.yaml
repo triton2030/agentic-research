@@ -1,0 +1,4 @@
+interface:
+  display_name: "Criteria Generator"
+  short_description: "Turns tasks into hard execution contracts"
+  default_prompt: "Use $criteria-generator before execution to restate this request as a thin augmented prompt with strategic alignment when `_ops/` grounds the task. For a quick read-only alignment check, ask for `strategy-trace` mode."
