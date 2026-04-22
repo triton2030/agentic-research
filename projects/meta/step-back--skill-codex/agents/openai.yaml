@@ -1,0 +1,17 @@
+interface:
+  display_name: "Шаг Назад"
+  short_description: "Cognitive meta-regulator for the dialog"
+  default_prompt: >
+    Use $step-back as a cognitive meta-regulator when the thinking itself
+    needs to be questioned, not when execution needs to continue. Catches
+    reasoning failures common to humans and LLMs (anchoring, Einstellung,
+    premature convergence, goal drift, sunk cost, streetlight) and
+    LLM-specific ones (sycophancy, confabulation, chain-of-thought
+    unfaithfulness, goal misgeneralization, frame lock). Also on explicit
+    requests like "шаг назад", "step back", "давай отойдём", "выйдем на
+    уровень выше". Works on any topic, any project. No file writes, no
+    persistence. Single-block output in a strict 4-field form (Ошибка /
+    Было / Стало / Ход), then executes the reframed next move immediately.
+
+policy:
+  allow_implicit_invocation: true

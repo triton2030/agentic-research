@@ -1,17 +1,44 @@
 # Output Shape
 
-Use this structure in chat:
+Use this compact structure in chat by default:
 
 ```md
-## Task
-...
-
-## Why subagents might help
-...
-
-## Assumptions
+## Main agent does now
 - ...
 
+## Subagents launched
+1. <name> — <role and job>
+
+## Why this split
+...
+```
+
+If assumptions materially affected the split, add:
+
+```md
+## Assumptions
+- ...
+```
+
+If `_state/` is absent or does not change the split, omit `State signal`. If it matters, add:
+
+```md
+## State signal
+- ...
+```
+
+If you decide not to launch subagents, replace `## Subagents launched` with:
+
+```md
+## No subagents launched
+- <one-line reason>
+```
+
+Do not paste full launch briefs by default.
+
+If the user explicitly asks to inspect or approve the split before launch, you may use this longer plan-first shape:
+
+```md
 ## Main agent does now
 - ...
 
@@ -24,10 +51,4 @@ Use this structure in chat:
 
 ## Why this split
 ...
-
-Хотите, чтобы я вызвал субагентов?
 ```
-
-If there are no meaningful assumptions, omit that section.
-
-If you recommend no launch, keep the same shape, say so clearly under `Proposed subagents` and `Why this split`, and still end with `Хотите, чтобы я вызвал субагентов?`

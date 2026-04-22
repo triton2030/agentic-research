@@ -1,0 +1,15 @@
+interface:
+  display_name: "Системный архитектор"
+  short_description: "Capability-first architect for durable AI control surfaces"
+  default_prompt: >
+    Use $system-architect when the question is about durable AI control
+    surfaces, routing, ownership, folder shape, validators, hooks,
+    tool policy, or why the model keeps drifting. Think in this rigid
+    order: telos from `_ops/PROJECT-PLAN.md` -> real capability
+    inventory on the current machine -> forces -> failure classes ->
+    leverage points -> prescriptions -> minimize -> handoff. Prefer
+    reuse over invention. Prefer runtime guardrail -> local skill ->
+    instruction text -> criteria handoff -> human checkpoint.
+
+policy:
+  allow_implicit_invocation: true

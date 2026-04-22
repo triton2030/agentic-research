@@ -17,7 +17,7 @@
 - Claude Opus 4.7 уже лучше даёт progress updates в длинных agentic traces. Старый scaffolding вида "после каждых N tool calls отчитайся" стоит убирать и переснимать baseline, а не тащить по инерции.
 - В Claude Code свободные скиллы и plugin-скиллы — это разные слои упаковки: свободные видит модель, но не UI `/plugin`; plugin-скиллы имеют namespace, версию, источник и toggle.
 - Быстрый личный workflow разумно держать как свободный skill, а sharable и управляемую связку skills и agents — как plugin.
-- Committed project learnings (`ops/learnings.md` или аналог в репо) превращает индивидуальный опыт в team knowledge: любой член команды начинает сессию с накопленного контекста. Это отличает Claude Code от single-user memory-систем, где опыт заперт в профиль одного пользователя.
+- Committed project learnings (`_ops/learnings.md` или аналог в репо) превращает индивидуальный опыт в team knowledge: любой член команды начинает сессию с накопленного контекста. Это отличает Claude Code от single-user memory-систем, где опыт заперт в профиль одного пользователя.
 - Self-learning skill должен быть связкой из трёх петель: read-before, capture-after и periodic-prune. Любая из трёх без остальных деградирует файл: без read — контекст не влияет, без capture — не обновляется, без prune — превращается в мусор.
 
 ### Agent tool

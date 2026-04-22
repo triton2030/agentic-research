@@ -1,4 +1,4 @@
 interface:
   display_name: "Guide Subagents"
-  short_description: "Helper for planning Codex subagents"
-  default_prompt: "Use $guide-subagents to decide whether this task truly deserves native Codex subagents, split the work into local vs parallel streams, write launch-ready briefs, and stop by asking whether to call the subagents."
+  short_description: "Protocol for launching Codex subagents"
+  default_prompt: "Use $guide-subagents to decide whether this task truly deserves native Codex subagents, split the work into local vs parallel streams, write launch-ready briefs, and by default launch native Codex subagents directly when the split is clear instead of stopping for confirmation."

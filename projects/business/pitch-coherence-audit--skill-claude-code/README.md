@@ -31,7 +31,7 @@ Series A / growth) идёт через `references/stage-criteria.md` — мен
 - **impeccable:** — визуал слайдов, не текст.
 - **simplify / impeccable:clarify** — общее качество прозы.
 - **screenshot-design** — визуальный аудит рендера.
-- **ops / brainstorming** — выработка первичного нарратива, если его ещё нет.
+- **step-back / brainstorming** — выработка первичного нарратива, если его ещё нет.
 
 `pitch-coherence-audit` срабатывает только на уже существующий текст
 инвесторского питча. Если текста нет — сначала brainstorming, не этот скилл.

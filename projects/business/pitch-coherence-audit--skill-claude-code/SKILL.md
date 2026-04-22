@@ -31,7 +31,7 @@ description: >
 
 ## Когда не использовать
 
-- Питч-текста ещё нет — сначала brainstorming или ops, не этот скилл.
+- Питч-текста ещё нет — сначала brainstorming или step-back, не этот скилл.
 - Работа по визуалу слайдов — impeccable:arrange / typeset / polish.
 - Общее качество прозы — simplify или impeccable:clarify.
 - Проверка рендера по скриншоту — screenshot-design.
@@ -137,7 +137,7 @@ description: >
 - **Needs fix** — 1–2 оси weakened или есть локальный drift. Перечислить
   must-fix до показа.
 - **Fundamental issue** — ось broken или missing, или insight — не insight.
-  Переадресовать на brainstorming или ops: правкой текста не лечится.
+  Переадресовать на brainstorming или step-back: правкой текста не лечится.
 
 ## Развилки
 

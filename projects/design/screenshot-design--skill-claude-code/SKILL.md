@@ -1,6 +1,6 @@
 ---
 name: screenshot-design
-description: Runs an evidence-based visual audit of UI screenshots — landing pages, dashboards, product flows, competitor interfaces, before/after comparisons. MANDATORY whenever the primary evidence is a screenshot and the question is visual rather than code-based. Use by default when the user asks to "analyze this screenshot", "visually review this UI", "audit this design", "check this screen", "compare these two designs", "review the spacing, hierarchy, or block logic", and for Russian phrasings like "проверь этот скриншот", "визуально проверь экран", "оцени дизайн по скрину", "что не так на этом экране", "сравни эти скрины". Forces the calling model to prove it actually examined the screenshot by producing a Visual Evidence Ledger before any verdict, anchoring every conclusion to visible spacing, grouping, block logic, alignment, hierarchy, typography, color, density, or readability. Do NOT use for code review, Figma editing, live-browser verification, accessibility compliance checks beyond visible symptoms, or claims about hover, focus, motion, responsive, or other states that are not visible in a static image.
+description: Runs an evidence-based visual audit of UI screenshots — landing pages, dashboards, product flows, competitor interfaces, before/after comparisons. MANDATORY only when the screenshot is a UI artifact and the task is to judge visible design qualities such as layout, spacing, hierarchy, typography, color, density, composition, polish, or harmony. Do not trigger just because an attachment happens to be a screenshot. Use by default when the user asks to "analyze this UI", "visually review this interface", "audit this design", "check this screen layout", "compare these product screens", or "review the spacing, hierarchy, or block logic", and for Russian phrasings like "проверь дизайн этого экрана", "визуально проверь интерфейс", "оцени дизайн по скрину", "что не так в этом экране", "сравни эти экраны". Forces the calling model to prove it actually examined the screenshot by producing a Visual Evidence Ledger before any verdict, anchoring every conclusion to visible spacing, grouping, block logic, alignment, hierarchy, typography, color, density, or readability. Do NOT use for receipts, passports, IDs, invoices, scanned documents, chat logs, terminal captures, OCR/extraction, factual reading, proof/evidence review, code review, Figma editing, live-browser verification, accessibility compliance checks beyond visible symptoms, or claims about hover, focus, motion, responsive, or other states that are not visible in a static image.
 ---
 
 # Screenshot Design
@@ -8,6 +8,7 @@ description: Runs an evidence-based visual audit of UI screenshots — landing p
 Rigid, screenshot-first visual review skill. Follow the workflow exactly — the discipline is the value.
 
 If the main evidence is a screenshot and the question is visual, produce the full output. Do not shortcut to verdicts without the ledger — this is how screenshot reviews drift into generic praise.
+Do not trigger the skill for non-UI screenshots or for screenshots attached only as evidence, identity, paperwork, or factual context.
 
 ## When to use
 
@@ -19,6 +20,8 @@ If the main evidence is a screenshot and the question is visual, produce the ful
 
 ## When not to use
 
+- Non-UI screenshots or document-like captures such as receipts, passports, IDs, invoices, forms, scans, chat logs, or terminal output
+- Screenshots attached only for OCR, transcription, factual reading, compliance, identity, or evidence review
 - Pure code or DOM/CSS review
 - Figma editing or design-system authoring
 - Live-browser verification
@@ -27,7 +30,7 @@ If the main evidence is a screenshot and the question is visual, produce the ful
 
 ## Required input
 
-- At least one screenshot
+- At least one UI screenshot
 - Optional: product goal, audience, intended primary action, brand constraints
 - If there are multiple screenshots, label them `Screen A`, `Screen B`, etc., and keep every ledger bullet tagged to the right screen
 

@@ -22,7 +22,7 @@
 - [changes-2026-04-17.md](changes-2026-04-17.md) — что именно менялось при переходе 2.0.0 → 3.0.0.
 - [decision-2026-04-17.md](decision-2026-04-17.md) — финальное решение о выпиле, landscape-анализ, симуляции.
 
-План миграции — [`ops/plans/plan-2026-04-17-design-auditor-shrink.md`](../../../ops/plans/plan-2026-04-17-design-auditor-shrink.md).
+Старый migration plan-file жил в удалённом `ops/` слое и больше не является source of truth. Для текущего контекста опирайся на [decision-2026-04-17.md](decision-2026-04-17.md).
 
 ## Где взять капчур-логику при необходимости
 

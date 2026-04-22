@@ -3,14 +3,16 @@ name: screenshot-design
 description: >
   Runs an evidence-backed artistic critique of UI screenshots: landing pages,
   dashboards, flows, competitor screens, and before/after comparisons.
-  MANDATORY when the primary evidence is a screenshot and the question is
-  visual, aesthetic, or composition-based. Use by default for requests like
-  "analyze this screenshot", "visually review this UI", "audit this design",
-  "check this screen", or "compare these screens". Outputs only a compact
-  visible protocol and concrete recommendations. Includes an explicit check
-  for ugliness, disharmony, and contradictory color relationships. Designed
-  for repeated iterative passes until visible errors are gone. Do NOT use for
-  code review, Figma editing, live-browser verification, or invisible states.
+  MANDATORY only when the screenshot is a UI artifact and the task is to
+  judge visible design qualities such as layout, spacing, hierarchy,
+  typography, color, density, composition, polish, or harmony. Do not
+  trigger just because an attachment happens to be a screenshot. Use by
+  default for requests like "analyze this UI", "audit this design", "check
+  this screen layout", or "compare these product screens". Outputs only a
+  compact visible protocol and concrete recommendations. Do NOT use for
+  receipts, passports, IDs, invoices, scanned documents, chat logs, terminal
+  captures, OCR/extraction, factual reading, proof/evidence review, code
+  review, Figma editing, live-browser verification, or invisible states.
 ---
 
 # Screenshot Design
@@ -23,6 +25,7 @@ It is meant for cyclical reuse across iterations, not a one-shot opinion dump.
 If the main evidence is a screenshot and the question is visual, do the full review. Do not jump straight from the image to a verdict.
 Do not call a screen beautiful, harmonious, dead, flat, theatrical, or premium until the review has judged the whole frame, not just the local craft.
 Do not dump the whole internal audit into chat. By default the printed answer is compact.
+Do not trigger the skill for non-UI screenshots or for screenshots attached only as evidence, identity, paperwork, or factual context.
 
 ## When to use
 
@@ -35,6 +38,8 @@ Do not dump the whole internal audit into chat. By default the printed answer is
 
 ## When not to use
 
+- Non-UI screenshots or document-like captures such as receipts, passports, IDs, invoices, forms, scans, chat logs, or terminal output
+- Screenshots attached only for OCR, transcription, factual reading, compliance, identity, or evidence review
 - Pure code or DOM/CSS review
 - Figma editing or design-system authoring
 - Live-browser verification
@@ -43,7 +48,7 @@ Do not dump the whole internal audit into chat. By default the printed answer is
 
 ## Required input
 
-- At least one screenshot
+- At least one UI screenshot
 - Optional: product goal, audience, intended primary action, brand constraints
 - If there are multiple screenshots, label them `Screen A`, `Screen B`, etc., and keep every ledger bullet tagged to the right screen
 

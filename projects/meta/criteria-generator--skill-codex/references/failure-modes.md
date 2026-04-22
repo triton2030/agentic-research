@@ -1,93 +1,121 @@
 # LLM Failure Modes
 
-Catalog of ways language models produce formal-pass-bad-work. Use during Step 7 (adversarial pass) of `criteria-generator`. For each mode there is a probe question and a countermeasure criterion.
+Catalog of formal-pass-bad-work patterns. Use it during the adversarial pass of `criteria-generator`.
+
+For each chosen mode, run the probe against your draft criteria and apply the countermeasure.
 
 ## 1. Claimed verification
 
-**Pattern:** Model writes "I verified X" without running the command or reading the file.
-**Probe:** Does the criterion allow a pass with the string "verified" alone?
-**Countermeasure:** Require command and expected output, not a claim. `Evidence: output of <cmd>` not `Evidence: I ran it`.
+Pattern: the agent writes "verified" without running the command or reading the artifact.
+
+Probe: could the criterion pass with the word `verified` alone?
+
+Countermeasure: require the command and the expected output, not a claim about running it.
 
 ## 2. Mock-shaped implementation
 
-**Pattern:** Function returns the happy-path value hardcoded; passes one test but implements nothing.
-**Probe:** Can the Must criterion be satisfied by returning a constant?
-**Countermeasure:** Include at least two input variants with different expected outputs, or require a property-style check.
+Pattern: the output looks right on one happy path but the real work is not implemented.
 
-## 3. Silent edge case skipping
+Probe: could the criterion be satisfied by returning a constant, stubbing the result, or hardcoding one example?
 
-**Pattern:** Empty input, null, large input, unicode, concurrency — model handles the cases it thought of and omits the rest.
-**Probe:** What inputs outside the happy path would break the naive solution?
-**Countermeasure:** Enumerate at least the edge cases the context implies (from existing tests, similar code, or user examples).
+Countermeasure: require multiple inputs, a property check, or behavior that cannot be faked by a single canned path.
+
+## 3. Silent edge-case skipping
+
+Pattern: the agent handles the obvious case and omits null, empty, large, unicode, concurrency, or other implied cases.
+
+Probe: what cases outside the happy path would break the naive solution?
+
+Countermeasure: name the implied edge cases or require evidence from nearby tests and existing behavior.
 
 ## 4. Rename without refactor
 
-**Pattern:** Model moves or renames a symbol instead of changing behavior.
-**Probe:** Would the criterion pass if nothing behavioral changed, only the name?
-**Countermeasure:** Tie the Must item to observable behavior change (output diff, metric, log line, regression test).
+Pattern: a symbol moves or changes name while behavior stays broken.
+
+Probe: would the criterion still pass if nothing behavioral changed?
+
+Countermeasure: tie the criterion to observable behavior change, not textual movement.
 
 ## 5. Summary-based review
 
-**Pattern:** Agent says "I reviewed the file" but only saw the first chunk.
-**Probe:** Does the criterion require a specific line or section of the file to be cited?
-**Countermeasure:** Name a specific artifact to quote back — a line range, a function, a config key.
+Pattern: the agent says it reviewed a file after skimming one section.
+
+Probe: does the criterion require a specific line, section, config key, or function to be cited?
+
+Countermeasure: require a named artifact to quote back.
 
 ## 6. Comment as behavior
 
-**Pattern:** Model adds a `// TODO: handle X` or a docstring instead of handling X.
-**Probe:** Does the criterion differentiate behavioral change from textual change?
-**Countermeasure:** Require test-level or runtime-level evidence, not just file diff.
+Pattern: the agent adds a comment, TODO, or docstring instead of making the behavior real.
+
+Probe: does the criterion distinguish runtime change from textual change?
+
+Countermeasure: require runtime, test, or output evidence rather than diff alone.
 
 ## 7. Happy-path-only success claim
 
-**Pattern:** "All tests pass" meaning only the one test that was written.
-**Probe:** Does the criterion require the full suite, the specific new tests, and no-regressions?
-**Countermeasure:** Break verification into: new tests pass, existing suite passes, no skipped tests added.
+Pattern: "all tests pass" means only the one newly written test passes.
+
+Probe: does the criterion require both the targeted proof and a no-regression check?
+
+Countermeasure: separate targeted verification from broader regression evidence.
 
 ## 8. Stale-context hallucination
 
-**Pattern:** Model cites a function, file, or flag that existed once but is gone.
-**Probe:** Could the criterion be satisfied by referencing something that no longer exists?
-**Countermeasure:** Require a read of the current file as part of verification, not memory of it.
+Pattern: the agent cites a file, function, or setting remembered from old context rather than the current workspace.
+
+Probe: could the criterion be satisfied by referencing something that no longer exists?
+
+Countermeasure: require current-file evidence, not memory.
 
 ## 9. Tool not actually invoked
 
-**Pattern:** Model narrates a tool call in prose but never emits it.
-**Probe:** Can the criterion be satisfied from chat text alone?
-**Countermeasure:** Require a tool_use block as evidence, named by tool and arg shape.
+Pattern: the agent narrates a tool call in prose but never performs it.
+
+Probe: could the criterion be satisfied from chat text alone?
+
+Countermeasure: require tool output, command output, or another observable trace of the action.
 
 ## 10. Scope creep as diversion
 
-**Pattern:** Model fixes the easy adjacent thing and reports success on both.
-**Probe:** Is the criterion narrow enough that adjacent fixes do not satisfy it?
-**Countermeasure:** State the target file and target symbol explicitly; forbid unrelated changes in Must not.
+Pattern: the agent fixes something adjacent and reports success on the original task too.
+
+Probe: is the criterion narrow enough that adjacent changes do not count?
+
+Countermeasure: state the target artifact, target behavior, or target decision explicitly; forbid unrelated changes when necessary.
 
 ## 11. Test-passing-but-wrong
 
-**Pattern:** Test is written loosely enough that a wrong implementation passes it.
-**Probe:** Could the test pass with a pathological implementation?
-**Countermeasure:** Require at least one negative assertion (something that must NOT happen) alongside positive ones.
+Pattern: the test is weak enough that a pathological implementation still passes it.
+
+Probe: could the evidence pass while the real requirement is still violated?
+
+Countermeasure: require at least one negative assertion or counterexample, not only the positive case.
 
 ## 12. Specification drift
 
-**Pattern:** Model gradually reinterprets the task mid-work to match what it found easy.
-**Probe:** Does the criterion lock the scope in a way the model cannot soften?
-**Countermeasure:** Quote the user's exact phrasing in the Must items; forbid paraphrase-as-spec.
+Pattern: the agent gradually softens the task to match what it found easy to do.
+
+Probe: does the criterion preserve the user's actual ask or only a paraphrased interpretation?
+
+Countermeasure: quote the user's scope explicitly and forbid paraphrase-as-spec when precision matters.
 
 ## 13. Confidence theatre
 
-**Pattern:** Model writes "clearly", "obviously", "as expected" to paper over uncertainty.
-**Probe:** Does any Must item depend on agent self-report of confidence?
-**Countermeasure:** Replace any self-report with an external check (command, file, number, human review).
+Pattern: the agent writes "clearly", "obviously", or "as expected" to cover uncertainty.
 
-## Using this catalog
+Probe: does any criterion rely on the agent sounding confident?
 
-In Step 7, do not copy every item. Pick the 2-5 modes most relevant to the task type:
+Countermeasure: replace self-report with an external check, named source, command, file, or number.
 
-- Code changes: 1, 2, 3, 4, 6, 7, 10, 11.
-- Refactors: 4, 5, 10, 12.
-- Research / writing: 5, 8, 12, 13.
-- Config / infra: 1, 4, 8, 10.
-- Tool integration: 1, 9, 10.
+## Picking Modes
 
-For each chosen mode, run the Probe against your draft criteria and apply the Countermeasure.
+If several chosen modes collapse into one stronger observable criterion, prefer the merged criterion over one countermeasure per mode.
+
+Pick only the modes relevant to the task:
+
+- Code changes: 1, 2, 3, 4, 6, 7, 10, 11
+- Refactors: 4, 5, 10, 12
+- Research or writing: 5, 8, 12, 13
+- Config or infrastructure: 1, 4, 8, 10
+- Tool integration: 1, 9, 10

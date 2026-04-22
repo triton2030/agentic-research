@@ -2,14 +2,15 @@
 
 Worked examples of `criteria-generator` output. Use them for shape, not content.
 
-There are two public shapes:
+There are three public shapes:
 
 - `contract` mode — thin augmented prompt with `Must`, optional `Must not`, and `Verification protocol`.
 - `strategy-trace` mode — compact chain from `_ops/` to the checked target, plus a verdict and one next move.
+- `pulse-check` mode — dialog-time memory probe: cold `Recalled` block emitted before reading `_ops/`, then `Actual` quoted from `_ops/`, then a 3-step `Trace`, one verdict, and a `Delta` only when verdict is not `remembered`.
 
 The visible contract should stay thin: usually 2-4 `Must`, 0-2 `Must not`, and 1-3 verification steps.
 
-Every `Must` carries `Anchored in:`. When the task has no strategic map to anchor against, use `local-only — <reason>` instead of silently dropping the field. The examples below have no attached `_ops/` by design, so they use `local-only` — in a real repo with `_ops/1-NORTH-STAR.md` prefer anchors like `_ops/1-NORTH-STAR.md#acceptance-criteria` or `_ops/3-CURRENT-STRATEGY.md#strategic-lines`.
+Every `Must` carries `Anchored in:`. When the task has no plan to anchor against, use `local-only — <reason>` instead of silently dropping the field. The examples below have no attached `_ops/` by design, so they use `local-only` — in a real repo with `_ops/PROJECT-PLAN.md` prefer anchors like `_ops/PROJECT-PLAN.md#goal`, `_ops/PROJECT-PLAN.md#stage-<slug>`, or `_ops/INTERVIEW.md#<preference-section>`.
 
 ## Example 1: Code bugfix (no strategic map)
 
@@ -135,11 +136,11 @@ Every `Must` carries `Anchored in:`. When the task has no strategic map to ancho
 
 ## Strategic chain
 1. Goal: репо должно оставаться компактной operating system для authoring-работы, а не расти быстрее собственного leverage.
-   **Anchored in**: `_ops/1-NORTH-STAR.md` — `Цель`
-2. Active line: owner-chain зафиксирован как `main-strategy -> system-architect -> criteria-generator`.
-   **Anchored in**: `_ops/3-CURRENT-STRATEGY.md` — `Опорные стратегические линии`
+   **Anchored in**: `_ops/PROJECT-PLAN.md` — `Goal`
+2. Active stage: owner-chain зафиксирован как `main-strategy -> system-architect -> criteria-generator`.
+   **Anchored in**: `_ops/PROJECT-PLAN.md` — `Stage <owner-chain>`
 3. Anti-goal: не расширять owner-chain без доказанного leverage.
-   **Anchored in**: `_ops/3-CURRENT-STRATEGY.md` — `Anti-goals`
+   **Anchored in**: `_ops/PROJECT-PLAN.md` — `Anti-goals`
 4. Observed target: запрос предлагает добавить четвёртого owner'а для review finished drafts.
    **Anchored in**: user request
 
@@ -154,9 +155,39 @@ drift
 - Оставить owner-chain из трёх слоёв и встроить проверку в существующего owner'а, либо эскалировать в `main-strategy`, если тройка больше не держит ставку.
 ```
 
+## Example 5: Pulse-check (with strategic map)
+
+**Input:**
+> Pulse check — мы уже третий час про agent-creator разговариваем, ты ещё помнишь ради чего?
+
+**Output:**
+
+```md
+## Pulse check
+
+### Recalled
+- North Star: репо остаётся компактной operating system для authoring-работы и не растёт быстрее реального leverage.
+- Active line: owner-chain зафиксирован тугой тройкой `main-strategy → system-architect → criteria-generator`.
+- This dialog: третий час проектируем agent-creator без привязки к тройке owner'ов.
+
+### Actual
+- Goal: "lean operating system for authoring, where a short _ops/ plan directs downstream framing" — _ops/PROJECT-PLAN.md#Goal
+- Active stage: "owner-chain stays a tight triple; no fourth owner without proven leverage" — _ops/PROJECT-PLAN.md#Stage <owner-chain>
+
+### Trace
+compact _ops/ truth-layer → tight owner triple → dialog is designing a fourth owner outside that triple
+
+### Verdict
+drift
+
+### Delta
+Recall на North Star и активную линию правильный, но три часа разговора ушли в проектирование agent-creator без baseline-проверки, которую требует активная линия. Текущая линия просит сначала доказать leverage одного из существующих owner'ов, а не плодить четвёртого.
+```
+
 ## Shape Guide
 
 - `contract` mode target: 2-4 `Must`, 0-2 `Must not`, 1-3 verification steps.
 - `strategy-trace` mode target: 3-4 chain steps, one verdict, up to 2 `Why` bullets, one `Do now`.
+- `pulse-check` mode target: 3-line `Recalled`, 2-line `Actual`, 1-line `Trace` with exactly 3 arrow-separated steps, one verdict from `remembered | drift | forgotten`, `Delta` only when not `remembered`. Total visible output ≤ 15 lines.
 - If two bullets protect the same failure mode, merge them.
 - Prefer short evidence-rich lines over explanatory mini-paragraphs.

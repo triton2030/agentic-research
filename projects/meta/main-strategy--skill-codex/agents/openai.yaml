@@ -1,0 +1,13 @@
+interface:
+  display_name: "Главный Стратег"
+  short_description: "Owns durable project bets"
+  default_prompt: >
+    Use $main-strategy when the task is to shape or revise
+    `_ops/PROJECT-PLAN.md`, capture durable preferences in
+    `_ops/INTERVIEW.md`, or reconcile drift via `_ops/learnings.md`.
+    It owns the project-plan and preference layer; use
+    `system-architect` for instruction-layer architecture and
+    `criteria-generator` for task-level execution contracts.
+
+policy:
+  allow_implicit_invocation: true

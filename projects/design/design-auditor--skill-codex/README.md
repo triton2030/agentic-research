@@ -1,4 +1,4 @@
-# Design Auditor
+# Design Auditor [DEPRECATED]
 
 Рабочая папка по Codex-скиллу `design-auditor`.
 
