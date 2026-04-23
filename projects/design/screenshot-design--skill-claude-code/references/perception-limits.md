@@ -6,7 +6,7 @@ Read before writing the ledger. These are the kinds of visual judgement where mu
 
 On fine-grained visual tasks top multimodal models still stay below ~50% accuracy, and around 29% of confidently-correct reasoning answers contain an underlying perception error. The failure is rarely in the reasoning — it is in how the image was read. Most of the damage in a screenshot review comes from treating low-confidence perceptual reads as if they were facts.
 
-The fix is not to stop looking. The fix is to mark the uncertainty at the moment of looking, so it cannot silently propagate into diagnosis and recommendations.
+The fix is not to stop looking. The fix is to mark the uncertainty at the moment of looking, so it cannot silently propagate into protocol findings and recommendations.
 
 ## Fragile perceptions — mark or downgrade
 
@@ -20,7 +20,7 @@ For each item below: state the observation, mark it approximate, and prefer rela
 ### Exact pixel measurements
 
 - The model cannot measure in pixels. Do not claim "12 px" or "16 px padding".
-- Prefer relative references: "~1× line-height", "~2× the gap above", "about the same as the padding on the card to its left".
+- Prefer relative references: "~1x line-height", "~2x the gap above", "about the same as the padding on the card to its left".
 
 ### Tiny text / microcopy
 
@@ -53,7 +53,7 @@ For each item below: state the observation, mark it approximate, and prefer rela
 
 ### Invisible states
 
-- Hover, focus, pressed, disabled, loading, error states that are not currently displayed cannot be judged. Put them in the uncertainty block.
+- Hover, focus, pressed, disabled, loading, error states that are not currently displayed cannot be judged. Surface that limit in the protocol only when it materially matters.
 
 ### Reading intent from filenames or surrounding chat
 
@@ -77,8 +77,11 @@ Watch for these patterns in your own draft:
 Applied across the workflow:
 
 - **Ground every bullet** — `Location` is required on every ledger bullet. "General feel of the page" is not a location.
-- **Mark confidence** — every ledger bullet carries a `Perception:` tag: `high-confidence visible` (the visible fact is directly readable from the image) or `low-confidence read` (counts, microcopy, hairline alignment, color guesses, inferred state).
+- **Mark confidence** — every ledger bullet ends with a confidence tag: `[HC]` for `high-confidence visible` or `[LC]` for `low-confidence read`. Use `[LC]` for counts, microcopy, hairline alignment, color guesses, or inferred state.
 - **Re-attend before recommending** — after drafting recommendations, read the screenshot again against each one and delete any that do not survive the second look.
 - **Describe before judging** — the Literal Read comes first. It anchors attention and reduces contextual guessing.
+- **Check the frame before the parts** — note where the visual mass sits, which regions stay dormant, and whether the empty space acts as counterweight or merely leftover canvas.
+- **Negative space is not automatically good** — empty area only helps if it sharpens focus, creates tension, or balances another active region. If one side is overloaded while the other side does nothing, call that stranded whitespace.
+- **Color harmony is perceptual, not numeric** — check whether colors visibly clash, muddy each other, flatten the scene, or contradict the palette logic. Do not invent formal theory claims or exact color measurements you cannot actually see.
 - **Prefer relative over absolute** — any time an exact number is tempting, switch to a ratio relative to a reference element in the frame.
-- **Push unverifiable claims into the uncertainty block** — if a claim cannot be shown on the pixels, it does not belong in Diagnosis or Recommendations.
+- **Push unverifiable claims into uncertainty, not into verdicts** — if a claim cannot be shown on the pixels, it does not belong in the protocol findings or recommendations.

@@ -1,185 +1,191 @@
 # Output Contract
 
-Exact response shape for a screenshot review. Read when composing the ledger, the recommendations, or the final report.
+Read when composing the internal ledger and the printed review.
 
-## Contents
+This contract is meant for repeated passes on the same design.
+Use it, fix the strongest problems, then apply it again to the updated screenshot until the screen looks resolved.
 
-- Visual Evidence Ledger — format, composition, perception tags, examples
-- Recommendation format — structure, severity, examples
-- Comparison mode
-- Uncertainty block
-- Final report template
-- Measurement policy — what can and cannot be stated exactly
+## Internal evidence ledger
 
-## Visual Evidence Ledger
+The ledger is still mandatory, but by default it stays internal.
+Do not print it in chat unless the user explicitly asks to see the evidence trail.
 
-Produce 6–12 bullets. Each bullet is four labeled lines:
+Produce 8-12 internal one-line bullets.
 
-- `Location:` where on the screen this is happening
-- `Visible fact:` what is literally true in the image
-- `Read on the relationship:` what that visible fact implies for the user
-- `Perception:` `high-confidence visible` (directly readable from pixels) or `low-confidence read` (counts above ~7, microcopy, 1–2 px alignment, color codes, inferred state). See [perception-limits.md](perception-limits.md).
+Format:
 
-Minimum composition (do not skip ahead to diagnosis until all four are satisfied):
+`- Slot / location — visible fact → read on the relationship. [HC|LC]`
 
-- ≥ 2 bullets on spacing, proximity, grouping, or block boundaries
-- ≥ 2 bullets on hierarchy, eye path, emphasis, or contrast
-- ≥ 1 bullet on alignment, containment, or rhythm
-- ≥ 1 bullet on typography, color, or readability
+Where:
+
+- `Slot` is a compact reading lane such as `Canvas`, `Payload`, `Eye path`, `Rhythm`, or `Craft`
+- `location` can be full-frame or local
+- `HC` means `high-confidence visible`
+- `LC` means `low-confidence read`
+
+Use [perception-limits.md](perception-limits.md) when deciding the `Perception:` tag.
+
+At least one bullet must operate at scene level rather than only at component level. "This card has good spacing" is not enough if the overall frame is compositionally dead.
+
+Minimum composition:
+
+- >= 1 full-frame bullet on composition, negative space, visual mass distribution, or scene balance
+- >= 1 bullet on eye path, hierarchy, or emphasis
+- >= 1 bullet on grouping, spacing, containment, or rhythm
+- >= 1 bullet on typography, contrast, color, or readability
+- >= 1 bullet on color harmony, palette energy, or visible color conflict when color is materially in play
+
+Do not proceed to critique until all five are covered.
 
 ### Good bullets
 
-- `Location:` hero.
-  `Visible fact:` headline and subcopy sit close enough to read as one unit, but the primary CTA is pushed ~2× line-height below.
-  `Read on the relationship:` the CTA reads as a separate island rather than the closing move of the hero message.
-  `Perception:` high-confidence visible.
+- `Canvas / full frame` — left half carries nearly all active text and rule weight while the right ~40% stays mostly empty. → The eye runs out of work and the frame reads as a left-aligned document, not a staged composition. `[HC]`
 
-- `Location:` left sidebar.
-  `Visible fact:` icon labels align cleanly, but the active item is signaled mostly through fill color, not weight or shape.
-  `Read on the relationship:` the active-state signal is visually thin and easy to miss on a quick scan.
-  `Perception:` high-confidence visible.
+- `Eye path / hero` — the headline dominates immediately, but there is no secondary anchor on the right or lower-right to catch the gaze. → Attention lands hard and then stalls instead of traveling through a composed scene. `[HC]`
 
-- `Location:` pricing row.
-  `Visible fact:` the three plan cards share the same container width, but the middle card appears to have slightly more vertical padding and a marginally darker border.
-  `Read on the relationship:` the middle plan reads as the emphasised "recommended" option even though no label says so.
-  `Perception:` low-confidence read — the padding and border-weight differences are close to the limit of what can be judged from the image.
+- `Craft / pricing row` — the middle card appears to have slightly stronger border contrast and a touch more vertical padding than its neighbors. → It reads as the emphasized option even without an explicit label. `[LC]`
 
-- `Location:` table header.
-  `Visible fact:` column labels are the same weight and size as cell values.
-  `Read on the relationship:` header and body blur into one texture, so the row-scan anchor disappears.
-  `Perception:` high-confidence visible.
-
-### Weak bullets (do not use)
+### Weak bullets
 
 - "Spacing feels off."
 - "The hierarchy is weak."
-- "This looks clean and modern."
-- "I checked the alignment."
-- "Feels more premium now."
+- "This looks cleaner."
+- "It feels more premium now."
 
-The failure mode behind weak bullets is always the same: a verdict with no visible anchor. Replace with one of the three-line bullets above.
+## Printed review
 
-## Recommendation format
+Print only a short visible review with this fixed order:
 
-Use this format for each issue:
+- `## What I Notice First`
+- `## What Starts To Break`
+- `## Verdict`
+- `## Fix Next`
+- `## Limits` only if needed
 
-`[Severity] Short issue name`
-- `Location:` where it happens
-- `Visual evidence:` the ledger bullet(s) this is based on
-- `Why it matters:` effect on clarity, trust, scanability, or perceived quality
-- `Better direction:` concrete visual change
-- `Confidence:` high | medium | low
+Rules:
 
-### Severity levels
+- Do not give the verdict first.
+- Do not print a progress trace, status ledger, or checklist.
+- Do not dump raw internal reasoning.
+- The visible order should feel conversational, but compressed.
 
-- `Blocker` — breaks comprehension of the screen or the primary action
-- `High` — materially weakens the screen or pushes users toward the wrong action
-- `Medium` — noticeable degradation, survivable
-- `Polish` — refinement, not structural
+`What I Notice First`:
 
-### Good recommendation
+- 2-4 short bullets or sentences
+- whole frame before local details
+- where the weight sits, what the eye catches, what the empty space is doing
+- no final verdict yet
 
-`[High] CTA detached from hero message`
-- `Location:` hero
-- `Visual evidence:` ledger bullet 1 — CTA sits ~2× line-height below subcopy
-- `Why it matters:` the CTA is the closing move of the hero message; when it floats away from the copy, scanning users do not connect offer and action
-- `Better direction:` reduce the gap between subcopy and CTA to roughly one line-height, keeping the CTA inside the visual group of the message
-- `Confidence:` high
+`What Starts To Break`:
 
-### Weak recommendation (do not write)
+- 2-4 short bullets or sentences
+- the strongest failures in harmony, alignment, rhythm, or semantic balance
+- each point ties a visible cue to its effect on reading, emphasis, or felt composition
+- still no final verdict yet
 
-"The CTA could be closer to the subcopy to feel more connected."
-- No location, no evidence, no severity, no confidence. Reader cannot act or verify.
+`Verdict`:
+
+- one short paragraph
+- comes after the visible examination
+- synthesizes the screen as a whole
+- may use `broken`, `mixed`, `close`, or `resolved` only if helpful
+
+`Fix Next`:
+
+- list only the strongest 1-3 changes
+- highest leverage first
+- composition and frame before local polish
+- make each item concrete enough for the next edit pass to start immediately
+
+`Limits`:
+
+- optional and brief
+- use only when crop, image quality, or hidden states materially limit the read
+
+### Good `What I Notice First` lines
+
+- `The headline wins immediately, but almost all active weight still sits on the left, so the frame reads as one loaded column plus passive canvas.`
+- `The first pass feels orderly, but the page has no second anchor after the hero, so the eye lands and then stalls.`
+
+### Good `What Starts To Break` lines
+
+- `The hero CTA hangs lower than the supporting copy, so the action feels detached from the argument that should justify it.`
+- `The empty space on the right is large enough to matter, but it is not balancing anything yet, so it reads as leftover space rather than compositional tension.`
+
+### Weak printed lines
+
+- "Spacing feels off."
+- "It looks more premium."
+- "The hierarchy is weak."
+- "Everything is fine except some polish."
 
 ## Comparison mode
 
-If the review covers multiple screenshots or a before/after pair:
+Use only when there are multiple screenshots or a before/after pair.
+
+Rules:
 
 - keep ledger bullets tagged by screen (`Screen A`, `Screen B`, etc.)
-- identify what actually changed visually before judging whether it improved
+- identify what actually changed before judging whether it improved
 - never treat `different` as `better`
-- state, for each change: did it improve clarity, regress it, or shift an unresolved tradeoff
+- say which change improved clarity, which regressed, and which tradeoff remains unresolved
+- put the winner or tradeoff in `Verdict`, not at the top of the answer
 
-Expected comparison block format:
+## Limits handling
 
-```
-## Comparison — Screen A vs Screen B
+By default, surface limits as a short `Limits` section only when needed.
 
-### Changed and improved
-- [change]: [why the visible evidence supports "better"]
-
-### Changed and regressed
-- [change]: [why the visible evidence supports "worse"]
-
-### Changed, tradeoff unresolved
-- [change]: [what is gained, what is lost, what would settle it]
-```
-
-## Uncertainty block
-
-End the review with a section titled `What I cannot conclude from this screenshot`. Typical items:
+Typical items:
 
 - hover, focus, pressed, or motion behavior
 - responsive behavior across breakpoints
 - hidden or secondary states not shown
-- real accessibility compliance beyond obvious visual symptoms
+- real accessibility compliance beyond obvious visible symptoms
 - exact spacing tokens, grid, or type scale
-- actual copy correctness beyond what is legible
-- screenshot quality limits (cropped, low-resolution, compressed, visually noisy)
+- actual copy correctness beyond what is clearly legible
+- screenshot quality limits such as crop, compression, or low resolution
 
-Be direct. If the image quality or missing context lowered confidence, say so.
+Keep the uncertainty language tight and specific.
 
 ## Measurement policy
 
-Never state as fact — always approximate or describe qualitatively:
+Never state as fact:
 
-- exact pixel values ("16 px gap", "48 px button height")
+- exact pixel values
 - exact counts above ~7
-- exact color codes (hex, RGB, HSL, token names)
-- WCAG contrast ratios from a screenshot
-- 1–2 px alignment differences
-- microcopy that is visibly small or compressed
+- exact color codes
+- WCAG ratios from a screenshot
+- 1-2 px alignment differences
+- microcopy that is visibly tiny or compressed
 
-Safe patterns:
+Prefer:
 
 - relative size: "about the same gap as the padding on the card next to it"
-- ratios: "roughly 2× the line-height", "about 1.15× the adjacent card's padding"
-- qualitative color: "cool desaturated gray, slightly darker than the background"
-- approximate counts: "roughly 8–10 items", "a short row of three"
-- approximate microcopy: "appears to read ‘Upgrade plan’"
+- ratios: "roughly 2x the line-height"
+- qualitative color: "cool desaturated gray"
+- approximate counts: "roughly 8-10 items"
+- approximate microcopy: "appears to read 'Upgrade plan'"
 
 ## Final report template
 
-Use this structure for the full output. Adjust only where the task demands it.
+```text
+## What I Notice First
+- The headline reads clearly, but most of the active weight still sits on the left, so the frame opens as one heavy text column plus passive space.
+- The eye lands hard on the hero and then struggles to find a second anchor.
 
-```
-## Literal read
-[screen type, blocks in reading order, dominant element, obvious issues]
+## What Starts To Break
+- The CTA sits low enough below the supporting copy that it feels detached from the message instead of completing it.
+- The right-side space is large, but it is not counterbalancing anything yet, so it reads as leftover canvas rather than intentional tension.
+- The palette stays too quiet to build a strong emphasis ladder after the headline.
 
-## Visual Evidence Ledger
-1. Location: … / Visible fact: … / Read on the relationship: … / Perception: high-confidence visible | low-confidence read
-2. …
-…
+## Verdict
+The screen is mixed: the message is readable, but the composition still feels under-resolved. It has decent local craft, yet the frame does not distribute weight and emphasis deliberately enough to feel harmonious.
 
-## Diagnosis
-- Block logic: [judgement tied to ledger bullets]
-- Spacing and alignment: [judgement tied to ledger bullets]
-- Hierarchy and emphasis: [judgement tied to ledger bullets]
-- Readability, typography, color: [judgement tied to ledger bullets]
+## Fix Next
+- Rebalance the frame: either give the right side a real visual anchor or tighten the left block so the empty field starts working as counterweight.
+- Pull the CTA into the hero unit: reduce the gap below the supporting copy so the action reads as the close of the message.
+- Strengthen the second emphasis point: add enough contrast or shape that the eye has a meaningful stop after the headline.
 
-## Recommendations
-[Severity] Short issue name
-- Location: …
-- Visual evidence: …
-- Why it matters: …
-- Better direction: …
-- Confidence: …
-
-(repeat)
-
-## Comparison (if multiple screenshots)
-Changed and improved / regressed / tradeoff unresolved
-
-## What I cannot conclude from this screenshot
-- …
+## Limits
+- The crop hides the footer, so the final balance read is limited to the visible frame.
 ```

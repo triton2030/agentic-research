@@ -45,12 +45,16 @@
 
 - `_ops/` — не общий склад заметок, backlog и случайных plan-файлов
 - По умолчанию `_ops/` должен быть пустым
-- Если `main-strategy` реально активирован и работа требует durable layer, он владеет:
-  - `_ops/PROJECT-PLAN.md`
+- Если `main-strategy` реально активирован и работа требует durable layer, main-strategy владеет тремя файлами:
+  - `_ops/PROJECT-PLAN.md` — короткий план до 20 фаз полной траектории
   - `_ops/INTERVIEW.md`
   - `_ops/learnings.md`
+- `_ops/plans/` — **эфемерный operational слой**, синхронизируется с PROJECT-PLAN:
+  - `_ops/plans/phase-NN-<slug>/` — папка под каждый Stage из PROJECT-PLAN.md, main-strategy держит набор в sync через свой `sync-ops.sh`
+  - `_ops/plans/phase-NN-<slug>/task-MM-<slug>.md` — task-файл одного Step, владелец — `task-planner` (Цель / Подшаги / Критерии приёмки)
+  - **Не ссылаться на пути внутри `_ops/plans/` извне** (скиллы, код, документация): слой одноразовый, пользователь может удалить содержимое при смене траектории
 - Не создавать numbered `_ops/*` вроде `1-NORTH-STAR.md`, `2-RATIONALE.md`, `3-CURRENT-STRATEGY.md`
-- Не создавать `_ops/inbox/`, `_ops/plans/`, task trackers и другие ops-поверхности без явного запроса пользователя и явного skill contract, который этого требует
+- Не создавать `_ops/inbox/`, task trackers и другие ops-поверхности сверх того, что явно описано в контрактах `main-strategy` и `task-planner`
 
 ## Минимальный След
 
@@ -77,9 +81,9 @@
 - Перед работой в категории читать `knowledge/research/{category}/learnings.md`
 - Skills использовать как routing, не как preload
 - Для существенной repo-level работы default owner-chain такой:
-  - `main-strategy` — durable plan / preferences / `_ops/`
+  - `main-strategy` — durable plan / preferences / `_ops/` + phase-folder sync
   - `system-architect` — instruction layer, folder ownership, guardrails
-  - `criteria-generator` — task-level hard contract
+  - `task-planner` — владелец task-файла (Цель / Подшаги / Критерии приёмки Must/Must-not с Anchored in)
 - `step-back` — dialog-time framing и один короткий zoom-out/reframe ход
 - `guide-subagents` — только когда пользователь явно хочет subagents/delegation
 - Если root docs и skill conflict, следовать skill contract

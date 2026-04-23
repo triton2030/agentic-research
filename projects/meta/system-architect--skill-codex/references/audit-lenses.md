@@ -4,13 +4,13 @@
 
 ## Обязательные Линзы
 
-- `Telos clarity`
-  Где Goal или активный Stage слишком расплывчаты, чтобы на них строить durable architecture.
+- `Project reality clarity`
+  Где сам проект, его цель или текущая траектория слишком расплывчаты, чтобы на них строить instruction layer.
 
-- `Capability reality`
-  Какие hooks, validators, skills, plugins, tool constraints и owner surfaces реально существуют, а какие только упомянуты в текстах.
+- `AI job map clarity`
+  Какие типы работы ИИ реально должен делать в проекте, а какие ты подставил по привычке.
 
-- `Force surface`
+- `Pressure surface`
   Какие силы уже давят на систему и почему их нельзя оставлять в эпилоге после выбранного решения.
 
 - `Weakest default path`
@@ -18,6 +18,9 @@
 
 - `Failure-class clustering`
   Какие seemingly разные симптомы на самом деле принадлежат одному классу сбоев.
+
+- `Control surface reality`
+  Какие `AGENTS.md`, skills, hooks, validators, folder rules и approvals реально влияют на поведение, а какие только названы.
 
 - `Leverage over patch-count`
   Какая одна правка убирает несколько failure classes, и где система сейчас тянет тебя в bundle из мелких patch'ей.
@@ -33,6 +36,6 @@
 Если текущий чат уже даёт signal:
 
 - смотри на shortcut path, а не только на финальный ответ;
-- отмечай, где модель пропустила upstream или capability reality;
+- отмечай, где модель пропустила project reality, AI job map или control surface reality;
 - отделяй разовый промах от failure class;
 - используй trace как evidence для leverage choice, а не просто как повод переписать один ответ.

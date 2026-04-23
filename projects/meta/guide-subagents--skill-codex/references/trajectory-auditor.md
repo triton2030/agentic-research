@@ -22,13 +22,13 @@ A read-only meta-auditor of trajectory and artifacts. It does not own strategy, 
 - shortcutting against active criteria;
 - violations of relevant skill contracts;
 - recurring failure classes: `scope drift`, `claimed verification`, `summary instead of contact`, `confidence theatre`, `local optimization`;
-- whether the fix belongs to `execution`, `criteria-generator`, `system-architect`, or a human checkpoint.
+- whether the fix belongs to `execution`, `task-planner`, `system-architect`, or a human checkpoint.
 
 ## Good Return
 
 - `Verdict`: `aligned` | `drift` | `unknown`
 - `Findings`: concise and evidence-backed
-- `Next owner`: `execution` | `criteria-generator` | `system-architect` | `human`
+- `Next owner`: `execution` | `task-planner` | `system-architect` | `human`
 - `Do now`: one short next move
 
 ## Must Not

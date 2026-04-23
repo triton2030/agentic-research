@@ -68,13 +68,13 @@
 <only if not remembered — 1-3 lines>
 ```
 
-Видимый выход ≤ 15 строк. Если `_ops/PROJECT-PLAN.md` нет — `forgotten — strategic map unavailable` и стоп. Не создавай отсутствующий файл — это территория `main-strategy`.
+Видимый выход ≤ 15 строк. Если `_ops/PROJECT-PLAN.md` нет — `forgotten — unbootstrapped _ops` и стоп. Не создавай отсутствующий файл — это территория `main-strategy`; следующий ход — `ensure-ops.sh`, потом повторный pulse-check.
 
 Не emit'и `Must`, `Must not`, verification-протокол.
 
 После emit'а — один вопрос:
 
-`Pulse checked. Поднять это в жёсткий контракт (contract mode) или в artifact-alignment trace (strategy-trace mode)?`
+`Pulse checked. Зафиксировать это task-файлом (task mode) или прогнать artifact-alignment trace (strategy-trace mode)?`
 
 ## Когда не использовать
 

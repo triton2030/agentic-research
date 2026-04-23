@@ -1,23 +1,9 @@
 # Output Contract
 
-Read when composing the internal ledger, the visible protocol, and the compact recommendations.
+Read when composing the internal ledger and the printed review.
 
 This contract is meant for repeated passes on the same design.
 Use it, fix the strongest problems, then apply it again to the updated screenshot until the screen looks resolved.
-
-## Protocol Trace
-
-Every printed answer must start with one compact visible line:
-
-`Protocol Trace: screenshot-design applied | evidence gate: ok | audit: ok | internal checks: ok | comparison: n/a|done | uncertainty: none|present`
-
-Rules:
-
-- this line must be visible in chat
-- keep it to one line
-- do not print the full internal checklist
-- do not fake `ok`; only print a status that was actually earned
-- use `n/a` when a branch did not apply
 
 ## Internal evidence ledger
 
@@ -66,34 +52,72 @@ Do not proceed to critique until all five are covered.
 - "This looks cleaner."
 - "It feels more premium now."
 
-## Protocol
+## Printed review
 
-Print only a short visible protocol.
+Print only a short visible review with this fixed order:
 
-Recommended shape:
+- `## What I Notice First`
+- `## What Starts To Break`
+- `## Verdict`
+- `## Fix Next`
+- `## Limits` only if needed
 
-- `Evidence gate:` one short line
-- `State:` one short line on the screen as a whole: `broken`, `mixed`, `close`, or `resolved`
-- `Scene:` one short line
-- `Structure:` one short line
-- `Surface:` one short line
-- `Color harmony:` one short line
-- `Internal checks:` one short line
-- `Comparison:` only if multiple screenshots
-- `Uncertainty:` only if needed
+Rules:
 
-The protocol is not a checklist recital.
-Open with the strongest frame-level truth, then cover the minimum proof surface compactly.
+- Do not give the verdict first.
+- Do not print a progress trace, status ledger, or checklist.
+- Do not dump raw internal reasoning.
+- The visible order should feel conversational, but compressed.
 
-## Strongest fixes
+`What I Notice First`:
 
-List only the strongest 1-4 fixes.
+- 2-4 short bullets or sentences
+- whole frame before local details
+- where the weight sits, what the eye catches, what the empty space is doing
+- no final verdict yet
 
-Use this shape for each issue:
+`What Starts To Break`:
 
-`[Severity] Short issue name`
-- `Fix:` `<concrete change>`
-- `Why:` `<one clause tied to scene / structure / surface / color harmony>`
+- 2-4 short bullets or sentences
+- the strongest failures in harmony, alignment, rhythm, or semantic balance
+- each point ties a visible cue to its effect on reading, emphasis, or felt composition
+- still no final verdict yet
+
+`Verdict`:
+
+- one short paragraph
+- comes after the visible examination
+- synthesizes the screen as a whole
+- may use `broken`, `mixed`, `close`, or `resolved` only if helpful
+
+`Fix Next`:
+
+- list only the strongest 1-3 changes
+- highest leverage first
+- composition and frame before local polish
+- make each item concrete enough for the next edit pass to start immediately
+
+`Limits`:
+
+- optional and brief
+- use only when crop, image quality, or hidden states materially limit the read
+
+### Good `What I Notice First` lines
+
+- `The headline wins immediately, but almost all active weight still sits on the left, so the frame reads as one loaded column plus passive canvas.`
+- `The first pass feels orderly, but the page has no second anchor after the hero, so the eye lands and then stalls.`
+
+### Good `What Starts To Break` lines
+
+- `The hero CTA hangs lower than the supporting copy, so the action feels detached from the argument that should justify it.`
+- `The empty space on the right is large enough to matter, but it is not balancing anything yet, so it reads as leftover space rather than compositional tension.`
+
+### Weak printed lines
+
+- "Spacing feels off."
+- "It looks more premium."
+- "The hierarchy is weak."
+- "Everything is fine except some polish."
 
 ## Comparison mode
 
@@ -104,13 +128,12 @@ Rules:
 - keep ledger bullets tagged by screen (`Screen A`, `Screen B`, etc.)
 - identify what actually changed before judging whether it improved
 - never treat `different` as `better`
-- state whether each change improved clarity, regressed it, or left a real tradeoff unresolved
-- do not create a separate `Comparison` section by default; fold the result into `Protocol` and `Recommendations`
+- say which change improved clarity, which regressed, and which tradeoff remains unresolved
+- put the winner or tradeoff in `Verdict`, not at the top of the answer
 
-## Uncertainty handling
+## Limits handling
 
-By default, surface uncertainty as one compact `Uncertainty:` line inside `Protocol`.
-Do not create a separate uncertainty section unless the user explicitly asks for more detail.
+By default, surface limits as a short `Limits` section only when needed.
 
 Typical items:
 
@@ -146,21 +169,23 @@ Prefer:
 ## Final report template
 
 ```text
-Protocol Trace: screenshot-design applied | evidence gate: ok | audit: ok | internal checks: ok | comparison: n/a | uncertainty: none
+## What I Notice First
+- The headline reads clearly, but most of the active weight still sits on the left, so the frame opens as one heavy text column plus passive space.
+- The eye lands hard on the hero and then struggles to find a second anchor.
 
-## Protocol
-- Evidence gate: screenshot is legible enough for aesthetic judgement.
-- State: broken; the frame is still compositionally unresolved.
-- Scene: left-heavy composition; empty right field reads unused, not intentional.
-- Structure: headline, subhead, and payload stack too densely in one zone.
-- Surface: typography is readable, but the screen feels more document-like than staged.
-- Color harmony: palette feels inert / clashes / no visible color conflict.
-- Internal checks: re-attention + fresh-eye sweep completed.
-- Comparison: Screen B improves eye path but weakens rhythm. [only if multiple screenshots]
-- Uncertainty: crop hides the footer, so final balance judgement is partial. [only if needed]
+## What Starts To Break
+- The CTA sits low enough below the supporting copy that it feels detached from the message instead of completing it.
+- The right-side space is large, but it is not counterbalancing anything yet, so it reads as leftover canvas rather than intentional tension.
+- The palette stays too quiet to build a strong emphasis ladder after the headline.
 
-## Recommendations
-[High] Short issue name
-- Fix: ...
-- Why: ...
+## Verdict
+The screen is mixed: the message is readable, but the composition still feels under-resolved. It has decent local craft, yet the frame does not distribute weight and emphasis deliberately enough to feel harmonious.
+
+## Fix Next
+- Rebalance the frame: either give the right side a real visual anchor or tighten the left block so the empty field starts working as counterweight.
+- Pull the CTA into the hero unit: reduce the gap below the supporting copy so the action reads as the close of the message.
+- Strengthen the second emphasis point: add enough contrast or shape that the eye has a meaningful stop after the headline.
+
+## Limits
+- The crop hides the footer, so the final balance read is limited to the visible frame.
 ```

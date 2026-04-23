@@ -1,7 +1,0 @@
-interface:
-  display_name: "Criteria Generator"
-  short_description: "Turns tasks into hard execution contracts"
-  default_prompt: "Use $criteria-generator before execution to restate this request as a thin hard contract grounded in repo context. When present, read `_ops/PROJECT-PLAN.md` and `_ops/INTERVIEW.md` as upstream and `_ops/learnings.md` only if a recorded delta materially changes the contract. In default `contract` mode, emit a compact receipt, add a short plain-Russian reminder of what matters from `_ops`, and continue execution by default; stop only for explicit criteria-only asks or read-only modes."
-
-policy:
-  allow_implicit_invocation: true

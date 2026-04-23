@@ -35,6 +35,6 @@ Pressure-test, inversion, premortem, adversarial self-play, fresh-session check 
 
 ## Связь С Другими Скиллами
 
-- `criteria-generator` — читает `INTERVIEW.md` + `PROJECT-PLAN.md` как upstream. `Anchored in:` в критериях ссылается на секции этих файлов.
+- `task-planner` — читает `INTERVIEW.md` + `PROJECT-PLAN.md` как upstream. `Anchored in:` в критериях ссылается на секции этих файлов.
 - `system-architect` — читает `PROJECT-PLAN.md` (Goal + активный Stage) + `learnings.md` (реальные failure modes).
 - `step-back` — dialog-time fallback для короткой pressure-test / reframe сессии, включается явно пользователем.

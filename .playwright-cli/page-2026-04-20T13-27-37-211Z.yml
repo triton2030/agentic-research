@@ -1,0 +1,47 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - main [ref=e5]:
+        - generic [ref=e6]:
+          - generic [ref=e11]:
+            - generic [ref=e12]:
+              - img [ref=e13]
+              - heading "Sign in to GitBook" [level=2] [ref=e15]
+            - generic [ref=e16]:
+              - generic [ref=e17]:
+                - button "Continue with GitHub" [disabled] [ref=e18]:
+                  - img [ref=e54]
+                  - generic: Continue with GitHub
+                - button "Continue with Google" [disabled] [ref=e21]:
+                  - img [ref=e22]
+                  - generic: Continue with Google
+              - generic [ref=e28]:
+                - separator [ref=e29]
+                - paragraph [ref=e30]: OR
+                - separator [ref=e31]
+              - generic [ref=e32]:
+                - generic [ref=e33]:
+                  - textbox "Enter work email" [disabled] [ref=e36]
+                  - button "Continue" [disabled] [ref=e38]:
+                    - generic: Continue
+                - paragraph [ref=e40]:
+                  - text: By continuing, you agree to the
+                  - link "Terms of Service" [ref=e41] [cursor=pointer]:
+                    - /url: https://policies.gitbook.com/terms
+                  - text: and
+                  - link "Privacy policy" [ref=e42] [cursor=pointer]:
+                    - /url: https://policies.gitbook.com/privacy-and-security/statement
+                  - text: .
+            - generic [ref=e44]:
+              - text: Get started with GitBook.
+              - link "Sign up" [ref=e45] [cursor=pointer]:
+                - /url: /join
+                - generic: Sign up
+          - complementary [ref=e46]:
+            - img "Abstract asset used in the GitBook brand" [ref=e48]
+            - img "Multiple docs example" [ref=e51]
+      - status [ref=e52]
+    - generic:
+      - region "Notifications alt+T"
+  - iframe [ref=e58]:
+    

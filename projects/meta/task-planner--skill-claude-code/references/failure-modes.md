@@ -1,6 +1,6 @@
 # LLM Failure Modes
 
-Catalog of ways language models produce formal-pass-bad-work. Use during Step 7 (adversarial pass) of `criteria-generator`. For each mode there is a probe question and a countermeasure criterion.
+Catalog of ways language models produce formal-pass-bad-work. Use during the adversarial pass of `task-planner` (Step 3 of the task-file lifecycle). For each mode there is a probe question and a countermeasure criterion.
 
 ## 1. Claimed verification
 

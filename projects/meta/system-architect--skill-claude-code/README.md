@@ -22,21 +22,21 @@
 ## Работает downstream от `main-strategy`
 
 - **Upstream**: `main-strategy` владеет PROJECT-PLAN + INTERVIEW + learnings. Без заполненных Goal и активного Stage архитектор блокируется и возвращается к стратегу.
-- **Downstream**: `criteria-generator` получает handoff с указанием durable instruction surfaces как upstream. Если архитектор отработал хорошо, `criteria-generator` делает меньше работы — правила живут в fabric.
+- **Downstream**: `task-planner` получает handoff с указанием durable instruction surfaces как upstream. Если архитектор отработал хорошо, `task-planner` делает меньше работы — правила живут в fabric.
 
 ## Два уровня защиты
 
 - **Структурная** (always-on) — `system-architect` через hooks, permissions, AGENTS.md, skill routing. Автоматически в каждой сессии.
-- **Task-specific** (on-demand) — `criteria-generator` через acceptance criteria. Когда явно вызван.
+- **Task-specific** (on-demand) — `task-planner` через acceptance criteria. Когда явно вызван.
 
-Если `criteria-generator` раз за разом пишет одну Must-not для одного паттерна — правило должно жить в hook/validator, эскалация обратно в архитектора.
+Если `task-planner` раз за разом пишет одну Must-not для одного паттерна — правило должно жить в hook/validator, эскалация обратно в архитектора.
 
 ## Preference order fix-layers
 
 1. Runtime guardrail (hook / permission / validator).
 2. Local skill.
 3. Instruction text (AGENTS.md / prompt).
-4. `criteria-generator` handoff.
+4. `task-planner` handoff.
 5. Human checkpoint.
 
 Prompt-level — **последнее средство**. Canon: *«runtime layer важнее текстовых просьб»*.

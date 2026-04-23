@@ -74,7 +74,7 @@
 
 После emit'а — один вопрос:
 
-`Pulse checked. Поднять это в жёсткий контракт (contract mode) или в artifact-alignment trace (strategy-trace mode)?`
+`Pulse checked. Зафиксировать это task-файлом (task mode) или прогнать artifact-alignment trace (strategy-trace mode)?`
 
 ## Когда не использовать
 

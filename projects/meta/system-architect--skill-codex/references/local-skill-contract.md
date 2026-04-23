@@ -8,7 +8,7 @@
 
 - `AGENTS.md` или другой durable instruction layer;
 - runtime guardrail: hook, validator, approval, narrower tool policy;
-- `criteria-generator`, если проблема по природе task-specific.
+- `task-planner`, если проблема по природе task-specific.
 
 Если хотя бы один из этих слоёв может честно владеть проблемой, новый skill не default answer.
 

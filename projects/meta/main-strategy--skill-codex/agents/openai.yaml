@@ -4,10 +4,17 @@ interface:
   default_prompt: >
     Use $main-strategy when the task is to shape or revise
     `_ops/PROJECT-PLAN.md`, capture durable preferences in
-    `_ops/INTERVIEW.md`, or reconcile drift via `_ops/learnings.md`.
-    It owns the project-plan and preference layer; use
+    `_ops/INTERVIEW.md`, reconcile drift via `_ops/learnings.md`, or
+    bootstrap a project with the standard `_ops` contour via
+    `ensure-ops.sh`. Missing `_ops` is an unbootstrapped project state,
+    not an alternate structure. Keep the project plan phase-level:
+    short phase descriptions, why each phase exists, and no task
+    inventory inside the plan. It owns the project-plan and preference layer; use
     `system-architect` for instruction-layer architecture and
-    `criteria-generator` for task-level execution contracts.
+    `task-planner` for task-level execution contracts. Do not trigger
+    just because the user wants to do work inside the current active
+    phase; if the plan already covers the work, route to
+    `task-planner` instead.
 
 policy:
   allow_implicit_invocation: true

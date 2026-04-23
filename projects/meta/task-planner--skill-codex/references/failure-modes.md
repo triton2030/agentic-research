@@ -1,6 +1,6 @@
 # LLM Failure Modes
 
-Catalog of formal-pass-bad-work patterns. Use it during the adversarial pass of `criteria-generator`.
+Catalog of formal-pass-bad-work patterns. Use it during the adversarial pass of `task-planner`.
 
 For each chosen mode, run the probe against your draft criteria and apply the countermeasure.
 

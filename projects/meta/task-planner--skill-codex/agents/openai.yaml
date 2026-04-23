@@ -1,0 +1,7 @@
+interface:
+  display_name: "Task Planner"
+  short_description: "Owns task-files inside the active phase folder"
+  default_prompt: "Use $task-planner to open, update, or close a task file at `_ops/plans/phase-NN-<slug>/task-MM-<slug>.md` inside the active phase from `_ops/PROJECT-PLAN.md`. Write the three sections (Цель / Подшаги / Критерии приёмки) in full — criteria are Must / Must-not with a mandatory `Anchored in:` pointer to PROJECT-PLAN or INTERVIEW. Read `_ops/PROJECT-PLAN.md` and `_ops/INTERVIEW.md` as upstream (owned by `main-strategy`). If `_ops` is unbootstrapped or the phase folder is missing, block and hand off to `main-strategy` for `ensure-ops.sh` / `ensure-ops.sh --sync`; do not use `local-only` as a substitute. In default `task` mode emit a compact receipt, add a short plain-Russian reminder of what matters from `_ops/`, and continue execution."
+
+policy:
+  allow_implicit_invocation: true

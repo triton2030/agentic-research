@@ -1,39 +1,38 @@
 # Failure Modes
 
-Read when the review starts to sound smarter than it looks.
+Read before sending the final answer.
 
 ## Core anti-bypass rule
 
-A screenshot review is only good if a human reader can point from each conclusion back to something actually visible in the image. The goal is not to sound like a designer — the goal is to leave a visible audit trail of design judgment.
+A screenshot review is only good if a human reader can point from each conclusion back to something actually visible in the image.
+
+The goal is not to sound like a designer.
+The goal is to leave a visible audit trail of design judgment.
 
 ## Forbidden shortcuts
 
-- Generic praise or critique without a visible anchor.
-- Claimed exact pixel measurements not actually read from the image. If measurement is needed, mark it approximate ("~2× line-height", "about 1.15× padding") and tie it to what is visible.
-- Importing code assumptions into a visual review. The screenshot is the evidence.
-- Smuggling brand strategy that is not in the screenshot or in the provided brief.
-- Calling something balanced, premium, minimal, cluttered, clean, modern, or polished without explaining what specifically creates that effect.
-- Wrapping uncertainty in confident-sounding language. If confidence is low, say so.
-- Numeric scores without a visible basis. If a score is given, its components must be traceable to ledger bullets.
-- Inferring invisible behavior from a static image — hover, focus, motion, responsive, onboarding flow, error states.
-- Judging accessibility compliance beyond what is visibly wrong in the frame (e.g., obvious low contrast). Real a11y needs tools, not a screenshot.
-- Reading intent from filenames or screenshot titles. Only the pixels count.
-- Re-describing the product instead of reviewing it. Literal read is two or three lines, not the whole response.
-- Conflating taste with craft. "I would do it differently" is not a finding — a finding has a visible fact behind it.
-
-## Perception hallucinations to catch in your own draft
-
-Documented failure modes for multimodal models on visual tasks (2026 literature). Watch for these:
-
-- **Contextual guessing** — describing what usually appears on this kind of screen, not what is actually shown. Cut anything you cannot point to.
-- **Identity incongruity** — calling a menu a modal, a tab a pill, a toast a banner. Slow down and name only what the pixels show.
-- **Visual illusion** — asserting misalignment or imbalance driven by optical effects. Mark as `low-confidence read` or drop.
-- **Wrong reading** — OCR mistakes on small or stylized text. Quote only clearly legible portions; mark the rest approximate.
-- **Numeric discrepancy** — wrong counts, wrong ordering, wrong cardinality. Default to ranges ("roughly 8–10") for counts above ~7.
-- **VLM-as-classifier** — collapsing nuance into a familiar template ("this is a SaaS dashboard, so…"). Review this specific screen, not the genre.
-- **Attention dispersion under long reasoning** — perceptual description is correct, but diagnosis and recommendations drift away from the region of interest. If the draft became abstract, return to the screenshot and re-anchor.
-
-See [perception-limits.md](perception-limits.md) for the full catalog and the rules for marking fragile reads.
+- Giving the verdict before the screen has been visibly examined
+- Opening with process, status, or checklist theater instead of the screen
+- Generic praise or critique without a visible anchor
+- Importing code assumptions into a visual review
+- Smuggling brand strategy that is not in the screenshot or the provided brief
+- Applying the skill but leaving no visible trace in the chat that it was used
+- Printing internal checking steps instead of using them silently
+- Printing the whole internal ledger or long diagnostic essay by default
+- Letting the visible reasoning sprawl into a raw stream of consciousness
+- Treating any large empty area as automatically elegant, premium, or minimal without judging what that negative space is doing
+- Calling a screen balanced, harmonious, beautiful, or polished without evidence about visual mass distribution and eye path
+- Skipping the explicit ugliness / disharmony / color-harmony check
+- Praising component-level craft while ignoring stage-level imbalance or stranded whitespace
+- Calling something balanced, premium, minimal, cluttered, clean, modern, or polished without visible support
+- Writing an emotional ending that could have been written before looking at the screenshot
+- Letting the emotional ending contradict the evidence-led critique above it
+- Wrapping uncertainty in confident-sounding language
+- Numeric scores without a visible basis
+- Inferring invisible behavior from a static image
+- Judging accessibility compliance beyond obvious visible symptoms
+- Re-describing the product instead of reviewing it
+- Conflating taste with craft
 
 ## Red flags
 
@@ -46,19 +45,29 @@ If any of these phrases appear in the draft, stop and return to the screenshot:
 - "hierarchy is weak"
 - "alignment seems weird"
 - "the layout is balanced"
+- "the whitespace makes it feel premium"
+- "this is beautiful"
+- "this feels harmonious"
 - "probably"
 - "likely accessible"
 - "feels intuitive"
 - "looks professional"
 
-Replace each with a three-line ledger bullet (`Location` / `Visible fact` / `Read on the relationship`) or cut it.
+Replace each with a grounded ledger bullet or cut it.
 
-## Self-check before sending
+## Self-check
 
-- Every judgement in Diagnosis names at least one ledger bullet.
-- Every Recommendation names the ledger bullet(s) it rests on.
-- The ledger hits the minimum composition (spacing, hierarchy, alignment, readability).
-- Every ledger bullet has a `Perception:` tag; low-confidence reads have not silently been promoted into confident diagnoses or recommendations.
-- The Re-attention pass actually happened: each recommendation was checked against the screenshot again.
-- The uncertainty block is present, and anything not visible in the image lives there, not in the diagnosis.
-- No red-flag phrase above survived.
+- The printed answer contains only `What I Notice First`, `What Starts To Break`, `Verdict`, `Fix Next`, and optional `Limits` unless the user asked for more
+- The verdict comes after the visible examination, not before it
+- `What I Notice First` and `What Starts To Break` stay anchored and readable, not checklist-like
+- Every printed point names a real conclusion earned from the internal ledger
+- Every fix names a real conclusion earned from the internal ledger
+- The ledger hits the minimum composition
+- At least one ledger bullet judges composition, negative space, or visual mass at frame level
+- Every ledger bullet has a `Perception:` tag
+- Low-confidence reads did not silently become confident findings
+- Limits are surfaced only when needed
+- Internal checks were done but not printed unless the user asked
+- Ugly, disharmonious, or contradictory color relationships become a recommendation when they materially hurt the screen
+- Any beauty / harmony / balance claim cites ledger bullets about empty space, mass distribution, and eye path
+- No red-flag phrase survived

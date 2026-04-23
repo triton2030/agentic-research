@@ -20,14 +20,15 @@
 
 - [x] Зафиксировать repo-level Goal и owner-layer в `_ops/`.
 - [~] Перевести стратегический слой на модель `_ops/PROJECT-PLAN.md` / `_ops/INTERVIEW.md` и не возвращать старый `ops/`.
+- [~] Зафиксировать owner-chain так, чтобы `system-architect` защищал горячий `_ops`-контур `main-strategy` и не давал `PROJECT-PLAN` / `INTERVIEW` / `learnings` остывать между значимыми изменениями.
 - [ ] Сверить корневые инструкции, inventories и активные project folders с фактической живой поверхностью репы.
 - [ ] Зафиксировать в `AGENTS.md` правила placement для research vs guides vs wisdom vs shipped skills, чтобы `knowledge/` не дрейфовал.
-- [ ] Переписать `criteria-generator` (Codex + Claude Code) как primer + check, не hard gate; финальный блок — короткое резюме `_ops/` на русском; глобальный `~/.claude/CLAUDE.md` подтянуть.
+- [x] Переименовать `criteria-generator` → `task-planner` (Codex + Claude Code) — владелец task-файла (`_ops/plans/phase-NN-<slug>/task-MM-<slug>.md`): Цель / Подшаги / Критерии приёмки; primer + check для on-plan задач, fail-closed для ask вне плана через Plan-Anchor Gate; финальный блок — короткое русское резюме `_ops/`.
 - [ ] Закрыть явные stale surfaces и архивные хвосты так, чтобы новая сессия читала один и тот же truth layer.
 
 ### 2. Довести meta-стек до platform-parity [ ]
 
-- [ ] Удержать `main-strategy`, `system-architect`, `criteria-generator`, `step-back` и соседние meta artifacts одинаковыми по сути между Codex и Claude Code.
+- [ ] Удержать `main-strategy`, `system-architect`, `task-planner`, `step-back` и соседние meta artifacts одинаковыми по сути между Codex и Claude Code.
 - [ ] Оставлять только platform-necessary differences: packaging, tool invocation, pathing и metadata.
 - [ ] Держать inventories и repo docs в синхроне с реальным набором живых control surfaces.
 

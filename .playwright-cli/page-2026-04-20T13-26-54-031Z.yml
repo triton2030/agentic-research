@@ -1,0 +1,528 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]: CC
+    - link "01" [ref=e4] [cursor=pointer]:
+      - /url: "#slide-01"
+    - link "02" [ref=e5] [cursor=pointer]:
+      - /url: "#slide-02"
+    - link "03" [ref=e6] [cursor=pointer]:
+      - /url: "#slide-03"
+    - link "04" [ref=e7] [cursor=pointer]:
+      - /url: "#slide-04"
+    - link "05" [ref=e8] [cursor=pointer]:
+      - /url: "#slide-05"
+    - link "06" [ref=e9] [cursor=pointer]:
+      - /url: "#slide-06"
+    - link "07" [ref=e10] [cursor=pointer]:
+      - /url: "#slide-07"
+    - link "08" [ref=e11] [cursor=pointer]:
+      - /url: "#slide-08"
+    - link "09" [ref=e12] [cursor=pointer]:
+      - /url: "#slide-09"
+    - link "10" [ref=e13] [cursor=pointer]:
+      - /url: "#slide-10"
+    - link "11" [ref=e14] [cursor=pointer]:
+      - /url: "#slide-15"
+    - link "12" [ref=e15] [cursor=pointer]:
+      - /url: "#slide-11"
+    - link "13" [ref=e16] [cursor=pointer]:
+      - /url: "#slide-12"
+    - link "14" [ref=e17] [cursor=pointer]:
+      - /url: "#slide-14"
+  - main [ref=e18]:
+    - generic [ref=e23]:
+      - generic [ref=e24]:
+        - img "Civic-Chain" [ref=e25]
+        - generic [ref=e26]:
+          - heading "A clearer way for small towns to manage contractor spend." [level=1] [ref=e27]
+          - paragraph [ref=e28]: Seed Round 2026
+        - paragraph [ref=e31]: Confidential · For Authorized Recipients Only
+      - generic [ref=e32]:
+        - img "Town official paying a contractor while residents observe." [ref=e33]
+        - generic [ref=e34]:
+          - paragraph [ref=e35]: Powered by Patented Blockchain payment architecture
+          - paragraph [ref=e36]: "*See Slide 12 for Extended Market Segments and Verticals"
+    - generic [ref=e40]:
+      - generic [ref=e41]:
+        - generic [ref=e42]: Problem
+        - heading "Small towns still manage contractor work through scattered manual tools." [level=2] [ref=e43]
+        - paragraph [ref=e44]: Scattered approvals, unclear payment timing, and late visibility turn routine contractor work into a fragile municipal process.
+      - generic [ref=e46]:
+        - img "Admin desk — fragmented municipal workflow" [ref=e48]
+        - generic [ref=e49]:
+          - generic [ref=e50]:
+            - generic: "01"
+            - heading "Scattered workflow" [level=3] [ref=e51]
+            - paragraph [ref=e52]: Approvals, work confirmation, and payment follow-up sit across inboxes, PDFs, calls, and staff memory.
+          - generic [ref=e53]:
+            - generic: "02"
+            - heading "Unclear payment path" [level=3] [ref=e54]
+            - paragraph [ref=e55]: Contractors face unclear timing, status, and approval steps, so finished work and payment drift apart.
+          - generic [ref=e56]:
+            - generic: "03"
+            - heading "Late visibility" [level=3] [ref=e57]
+            - paragraph [ref=e58]: Leadership and auditors often reconstruct the record later instead of seeing contract activity as it happens.
+    - generic [ref=e62]:
+      - generic [ref=e63]:
+        - generic [ref=e64]: Cost
+        - heading "On a $385K contractor budget, the hidden cost is $52,958." [level=2] [ref=e65]
+        - paragraph [ref=e66]: Modeled scenario for a small town. The point is scale, not a savings promise.
+      - generic [ref=e68]:
+        - generic [ref=e69]:
+          - generic [ref=e70]:
+            - generic: "03"
+            - paragraph [ref=e71]: Annual inefficiency
+            - generic [ref=e72]: $52,958
+            - paragraph [ref=e73]: 13.8% of contractor spend
+          - generic [ref=e76]:
+            - generic [ref=e77]:
+              - generic [ref=e78]: 47.8%
+              - generic [ref=e79]:
+                - generic [ref=e80]: Staff coordination overhead
+                - generic [ref=e81]: Manual reconciliation and status chasing
+              - generic [ref=e82]: $25,320
+            - generic [ref=e83]:
+              - generic [ref=e84]: 27.1%
+              - generic [ref=e85]:
+                - generic [ref=e86]: Contractor uncertainty premium
+                - generic [ref=e87]: Unclear timing, status, and approval path
+              - generic [ref=e88]: $14,370
+            - generic [ref=e89]:
+              - generic [ref=e90]: 10.3%
+              - generic [ref=e91]:
+                - generic [ref=e92]: Payment handling fees
+                - generic [ref=e93]: Processing and portal charges
+              - generic [ref=e94]: $5,468
+            - generic [ref=e95]:
+              - generic [ref=e96]: 9.0%
+              - generic [ref=e97]:
+                - generic [ref=e98]: Untracked direct costs
+                - generic [ref=e99]: Fuel, parts, and other spend leakage
+              - generic [ref=e100]: $4,750
+            - generic [ref=e101]:
+              - generic [ref=e102]: 5.8%
+              - generic [ref=e103]:
+                - generic [ref=e104]: Audit reconstruction
+                - generic [ref=e105]: After-the-fact records and review (FOIA)
+              - generic [ref=e106]: $3,050
+        - paragraph [ref=e107]: "19,500 US towns under 25,000 population. ~$7.8B in aggregate contractor spend. Software TAM: ~$94M at beachhead scope."
+        - paragraph [ref=e108]: Based on a $385K annual contractor budget.
+    - generic [ref=e112]:
+      - generic [ref=e113]:
+        - generic [ref=e114]: Product
+        - heading "One verifiable contract lifecycle." [level=2] [ref=e115]
+      - generic [ref=e117]:
+        - generic [ref=e118]:
+          - generic [ref=e119]:
+            - generic [ref=e120]: "01"
+            - generic [ref=e121]:
+              - paragraph [ref=e122]: Request
+              - paragraph [ref=e123]: Need defined. Budget allocated. Civic input where jurisdiction allows.
+          - generic [ref=e124]:
+            - generic [ref=e125]: "02"
+            - generic [ref=e126]:
+              - paragraph [ref=e127]: Award
+              - paragraph [ref=e128]: Vendors bid. Town selects. Contract terms locked in the record.
+          - generic [ref=e129]:
+            - generic [ref=e130]: "03"
+            - generic [ref=e131]:
+              - paragraph [ref=e132]: Spend
+              - paragraph [ref=e133]: Card pool funded. MCC-locked. Biometric auth. Hard decline at exhaustion.
+          - generic [ref=e134]:
+            - generic [ref=e135]: "04"
+            - generic [ref=e136]:
+              - paragraph [ref=e137]: Verify
+              - paragraph [ref=e138]: Work confirmed on-site. Completion recorded before residual release.
+          - generic [ref=e139]:
+            - generic [ref=e140]: "05"
+            - generic [ref=e141]:
+              - paragraph [ref=e142]: Record
+              - paragraph [ref=e143]: Every event anchored on XRPL. Auditable by anyone, no login required.
+        - generic [ref=e144]:
+          - paragraph [ref=e145]: Visible to town, contractor, and public — same record, three views.
+          - paragraph [ref=e146]: XRPL anchor on every event. Detailed in slide 09.
+    - generic [ref=e150]:
+      - generic [ref=e151]:
+        - generic [ref=e152]: Controlled spend
+        - heading "Tap. MCC-locked. Recorded." [level=2] [ref=e153]
+      - generic [ref=e155]:
+        - generic [ref=e156]:
+          - generic [ref=e157]:
+            - generic [ref=e158]: "01"
+            - generic [ref=e159]: Need
+          - generic [ref=e160]: →
+          - generic [ref=e161]:
+            - generic [ref=e162]: "02"
+            - generic [ref=e163]: RFP
+          - generic [ref=e164]: →
+          - generic [ref=e165]:
+            - generic [ref=e166]: "03"
+            - generic [ref=e167]: Award
+          - generic [ref=e168]: →
+          - generic [ref=e169]:
+            - generic [ref=e170]: "04"
+            - generic [ref=e171]: $40K snow contract issued to J. Pelletier
+        - generic [ref=e172]:
+          - generic [ref=e173]: Step 05 — the moment of spend
+          - heading "Phone tap. $1,240 of road salt. 3:07 AM." [level=3] [ref=e174]
+          - generic [ref=e175]:
+            - generic [ref=e176]:
+              - generic [ref=e177]: Auth
+              - generic [ref=e178]: Biometric, Apple Pay / Google Pay
+              - generic [ref=e179]: Face/fingerprint at the point of sale. Physical card(s) available as well.
+            - generic [ref=e180]:
+              - generic [ref=e181]: Category lock
+              - generic [ref=e182]: MCC-restricted to snow / ice / fuel
+              - generic [ref=e183]: Off-category swipes are declined automatically.
+            - generic [ref=e184]:
+              - generic [ref=e185]: Pool guard
+              - generic [ref=e186]: Hard decline at configurable amount
+              - generic [ref=e187]: Real-time balance check. No overrun possible.
+        - generic [ref=e188]:
+          - generic [ref=e189]:
+            - generic [ref=e190]: 06 · Verify
+            - generic [ref=e191]: Completion recorded on-site before residual release.
+          - generic [ref=e192]:
+            - generic [ref=e193]: 07 · Public trail
+            - generic [ref=e194]: Every event anchored on XRPL. Auditable, no login.
+        - paragraph [ref=e195]: Stablecoin Sandwich approach. USD by default on both ends. USD <> RLUSD <> USD.
+    - generic [ref=e200]:
+      - generic [ref=e201]:
+        - generic [ref=e202]:
+          - paragraph [ref=e203]: Vivid moment
+          - paragraph [ref=e204]: 3:07
+          - heading "A routine salt purchase is on the record before sunrise." [level=2] [ref=e205]
+          - paragraph [ref=e206]: At 3:07 AM, a contractor spends inside the contract pool. The town sees the authorization and remaining balance right away. The public gets the spending trail by morning.
+        - paragraph [ref=e208]: No invoice chase. No later reconstruction.
+      - generic [ref=e210]:
+        - generic [ref=e211]:
+          - generic [ref=e212]: Spend record
+          - generic [ref=e213]: 3:07 AM
+        - heading "Road salt, 2 tons" [level=3] [ref=e214]
+        - paragraph [ref=e215]: CRN-2026-PLW-0042
+        - generic [ref=e216]:
+          - paragraph [ref=e217]: Town view
+          - generic [ref=e218]:
+            - generic [ref=e219]:
+              - generic [ref=e220]: Amount
+              - generic [ref=e221]: $1,240
+            - generic [ref=e222]:
+              - generic [ref=e223]: Authorization
+              - generic [ref=e224]: Authorized within contract rules
+            - generic [ref=e225]:
+              - generic [ref=e226]: Remaining pool
+              - generic [ref=e227]: $32,810 of $40,000
+        - generic [ref=e228]:
+          - paragraph [ref=e229]: Public record
+          - generic [ref=e230]:
+            - generic [ref=e231]:
+              - generic [ref=e232]: Contractor
+              - generic [ref=e233]: J. Pelletier — Snow/Ice Removal
+            - generic [ref=e234]:
+              - generic [ref=e235]: Item
+              - generic [ref=e236]: Road salt, 2 tons
+            - generic [ref=e237]:
+              - generic [ref=e238]: Status
+              - generic [ref=e239]: Recorded by morning. Independently verifiable.
+    - generic [ref=e243]:
+      - generic [ref=e244]:
+        - generic [ref=e245]: Town Value
+        - heading "Small towns get operating control without enterprise overhead." [level=2] [ref=e246]
+        - paragraph [ref=e247]: Lean municipal teams gain less reconstruction, tighter spend control, and one operating truth per contract.
+      - generic [ref=e249]:
+        - generic [ref=e250]:
+          - generic [ref=e251]:
+            - heading "Less admin drag." [level=3] [ref=e252]
+            - paragraph [ref=e253]: Status, pending actions, refill requests, and payment approvals live in one working view instead of inboxes, PDFs, and memory.
+          - generic [ref=e254]:
+            - heading "Spend stays inside contract rules." [level=3] [ref=e255]
+            - paragraph [ref=e256]: MCC locks, per-card limits, hard decline at pool exhaustion, and admin-approved refill keep contractor spend inside the contract envelope.
+          - generic [ref=e257]:
+            - heading "One operating truth." [level=3] [ref=e258]
+            - paragraph [ref=e259]: Leadership, finance, and oversight functions can work from the same contract record, payment history, and public trail instead of competing versions of the story.
+        - img "Municipal operating view — contracts, card pools, approvals" [ref=e261]
+    - generic [ref=e265]:
+      - generic [ref=e266]:
+        - generic [ref=e267]: Contractor Value
+        - heading "Clear payment rules reduce the uncertainty contractors’ price into bids." [level=2] [ref=e268]
+        - paragraph [ref=e269]: The contractor side of the same operating record matters because hidden process cost shows up in the bid.
+      - generic [ref=e271]:
+        - list [ref=e272]:
+          - listitem [ref=e273]:
+            - generic [ref=e274]: "01"
+            - generic [ref=e275]:
+              - paragraph [ref=e276]: Rules
+              - heading "Rules are visible before work starts." [level=3] [ref=e277]
+              - paragraph [ref=e278]: Spend categories, contract boundaries, and workflow checkpoints are legible up front — not through back-and-forth after the first purchase.
+          - listitem [ref=e279]:
+            - generic [ref=e280]: "02"
+            - generic [ref=e281]:
+              - paragraph [ref=e282]: Status
+              - heading "Status is visible without chasing the town." [level=3] [ref=e283]
+              - paragraph [ref=e284]: Balance, residual status, WCR progress, and next action all live in one portal — not in phone calls to town hall.
+        - region "Modeled bid-premium effect" [ref=e285]:
+          - generic [ref=e286]: "03"
+          - generic [ref=e287]:
+            - paragraph [ref=e288]: Result
+            - heading "Less uncertainty, less risk priced into the bid." [level=3] [ref=e289]
+          - generic [ref=e290]:
+            - generic [ref=e291]: Modeled
+            - generic [ref=e292]: 3–8%
+            - generic [ref=e293]: Bid premium reduction
+    - generic [ref=e298]:
+      - region "Trust architecture thesis" [ref=e299]:
+        - generic [ref=e300]:
+          - generic [ref=e301]: Trust Architecture
+          - heading "A shared contract record that neither side can quietly change." [level=2] [ref=e302]
+          - paragraph [ref=e303]: Under the operating flow sits a trust architecture that makes the record harder to edit, harder to lose, and easier to inspect.
+        - complementary "Supporting rails note" [ref=e304]:
+          - paragraph [ref=e306]: Under the stack
+          - paragraph [ref=e307]: Release 1 is USD-first. XRPL, Rail, and RLUSD sit underneath as supporting rails, not the headline.
+      - list "Four-layer trust stack" [ref=e309]:
+        - listitem [ref=e312]:
+          - generic [ref=e315]: "01"
+          - generic [ref=e316]:
+            - paragraph [ref=e317]: SAR — Service Agreement Record
+            - paragraph [ref=e318]: Contract record
+            - paragraph [ref=e319]: Scope, budget, approvals, and status live in one canonical contract truth — not a loose folder of documents.
+        - listitem [ref=e320]:
+          - generic [ref=e323]: "02"
+          - generic [ref=e324]:
+            - paragraph [ref=e325]: MCC locks · per-card limits · admin refill
+            - paragraph [ref=e326]: Spend control
+            - paragraph [ref=e327]: Card rules, hard decline at exhaustion, and approved refills keep every dollar inside the contract envelope.
+        - listitem [ref=e328]:
+          - generic [ref=e331]: "03"
+          - generic [ref=e332]:
+            - paragraph [ref=e333]: WCR checkpoints
+            - paragraph [ref=e334]: Work confirmation
+            - paragraph [ref=e335]: Completed work ties to payout authorization through visible operational gates — not private follow-up.
+        - listitem [ref=e336]:
+          - generic [ref=e339]: "04"
+          - generic [ref=e340]:
+            - paragraph [ref=e341]: Anchored to a public record
+            - paragraph [ref=e342]: Public visibility
+            - paragraph [ref=e343]: Significant contract events stay inspectable later — no need to reconstruct the story from scratch.
+      - paragraph [ref=e344]: Card issuance via BIN-sponsor partner. No money-transmission license required at launch.
+    - generic [ref=e348]:
+      - generic [ref=e349]:
+        - generic [ref=e350]: Why Now
+        - heading "The rails are new. The pain isn’t." [level=2] [ref=e351]
+        - paragraph [ref=e352]: "What changed is buildability: a cleaner product boundary, a credible USD-first path, and the right team to provide the solution."
+      - generic [ref=e354]:
+        - generic [ref=e355]:
+          - generic [ref=e356]:
+            - heading "Then" [level=4] [ref=e357]
+            - paragraph [ref=e358]: Old pain. No clean build path.
+          - generic [ref=e359]:
+            - paragraph [ref=e362]: Contractor spend still sat inside fragmented workflow, paper follow-up, and weak visibility.
+            - paragraph [ref=e365]: There was no clean way to tie contract record, spend control, and payout into one operating truth.
+            - paragraph [ref=e368]: No team with this mix of govtech depth, delivery leadership, and systems build experience.
+        - generic [ref=e369]:
+          - generic [ref=e370]:
+            - heading "Now" [level=4] [ref=e371]
+            - paragraph [ref=e372]: Buildability is what changed.
+          - generic [ref=e373]:
+            - generic [ref=e374]:
+              - generic [ref=e375]: "01"
+              - paragraph [ref=e376]: "Consistent & configurable workflow, full visibility: contractor spend, approvals, payout, and public trail."
+            - generic [ref=e377]:
+              - generic [ref=e378]: "02"
+              - paragraph [ref=e379]: A USD-first path exists, all built on transparent ledger technology.
+            - generic [ref=e380]:
+              - generic [ref=e381]: "03"
+              - paragraph [ref=e382]: This founding team has thirty years of combined govtech delivery experience
+        - generic [ref=e383]:
+          - generic [ref=e384]: Investor takeaway
+          - paragraph [ref=e385]: Timing through buildability, not hype.
+    - generic [ref=e389]:
+      - generic [ref=e390]:
+        - generic [ref=e391]: Market Scope
+        - heading "A narrow entry point does not mean a small outcome. Land with Software." [level=2] [ref=e392]
+        - paragraph [ref=e393]: Civic-Chain starts in New England, expands through the small-municipality segment, and points toward a broader public-contract market. Not a payment processor with a civic-chain wrapper, a symbiotic layer that deepens over time.
+      - generic [ref=e395]:
+        - region "$100M-$147M" [ref=e396]:
+          - generic [ref=e397]:
+            - generic [ref=e398]: Entry point
+            - paragraph [ref=e399]: Modeled New England beachhead with the fastest path to savings and revenue.
+          - generic [ref=e401]:
+            - generic [ref=e402]: SOM
+            - heading "$100M-$147M" [level=3] [ref=e404]
+        - region "$1.54B-$3.30B" [ref=e405]:
+          - generic [ref=e406]:
+            - generic [ref=e407]: Core segment
+            - paragraph [ref=e408]: Small-municipality revenue surface before market segment expansion.
+          - generic [ref=e410]:
+            - generic [ref=e411]: SAM
+            - heading "$1.54B-$3.30B" [level=3] [ref=e413]
+        - region "Up to $7.27B" [ref=e414]:
+          - generic [ref=e415]:
+            - generic [ref=e416]: Category ceiling
+            - paragraph [ref=e417]: National ceiling across broader public-contract flow.
+          - generic [ref=e419]:
+            - generic [ref=e420]: TAM
+            - heading "Up to $7.27B" [level=3] [ref=e422]
+        - paragraph [ref=e423]: New England is the seed beachhead; the national figure is category ceiling, not near-term capture. Keep in mind this is ONLY small towns, does not include use cases and verticals listed on slide 12!
+    - generic [ref=e427]:
+      - generic [ref=e428]:
+        - generic [ref=e429]: Beachhead
+        - heading "Small towns are the beachhead, not the ceiling." [level=2] [ref=e430]
+        - paragraph [ref=e431]: Civic-Chain starts where contractor-spend pain is easiest to prove, easiest to sell, and hardest for lean teams to manage manually.
+      - generic [ref=e433]:
+        - img "New England small town — village with white church steeple and surrounding hills" [ref=e435]
+        - generic [ref=e436]:
+          - generic [ref=e437]:
+            - heading "Why this beachhead wins" [level=3] [ref=e438]
+            - paragraph [ref=e439]: Lean teams, meaningful contractor spend, and high accountability pressure make small towns the fastest place to prove operating control without enterprise overhead.
+          - generic [ref=e440]:
+            - heading "Why proof is faster here" [level=3] [ref=e441]
+            - paragraph [ref=e442]: The workflow is concrete, the buyer problem is easy to explain, and regional density makes neighbor references and municipal-association channels matter early.
+          - generic [ref=e443]:
+            - heading "Why this is not the ceiling" [level=3] [ref=e444]
+            - paragraph [ref=e445]: "The entry point is small-town contractor spend. The broader category is public contract control: contract record, spend rules, approvals, payouts, and audit trail."
+          - paragraph [ref=e446]: "Beachhead: small-town contractor spend. Category: public contract control."
+    - generic [ref=e450]:
+      - generic [ref=e451]:
+        - generic [ref=e452]: Business Model
+        - heading "Land with software. Expand with payment flow." [level=2] [ref=e453]
+        - paragraph [ref=e454]: The SaaS relationship comes first. Payment economics compound after Civic-Chain becomes the operating truth for the contract.
+        - paragraph [ref=e455]: Not a payment processor with a civic wrapper — a control layer that deepens over time.
+      - generic [ref=e457]:
+        - article [ref=e458]:
+          - generic [ref=e459]: Now
+          - generic [ref=e461]: Phase 1 · Live
+          - generic [ref=e462]:
+            - heading "Municipal contracting" [level=3] [ref=e463]
+            - paragraph [ref=e464]: SaaS + 0.35% transaction fee + float yield on payment volume
+          - generic [ref=e466]:
+            - generic [ref=e467]: White Paper TAM
+            - generic [ref=e468]: $7.27B
+            - generic [ref=e469]: Full 5-segment universe · 3 streams
+          - generic [ref=e470]:
+            - generic [ref=e471]: Capture Scenarios
+            - generic [ref=e472]:
+              - generic [ref=e473]:
+                - generic [ref=e474]: Full universe
+                - generic [ref=e475]: $7.27B
+              - generic [ref=e476]:
+                - generic [ref=e477]: Base
+                - generic [ref=e478]: $5.5B
+              - generic [ref=e479]:
+                - generic [ref=e480]: Seed
+                - generic [ref=e481]: $1.54B
+          - list [ref=e483]:
+            - listitem [ref=e484]: "SaaS: $600M–$989M"
+            - listitem [ref=e486]: "Txn fees: $900M–$2.2B"
+            - listitem [ref=e488]: "Float: $35M–$108M"
+        - article [ref=e490]:
+          - generic [ref=e492]: Phase 2 · Deferred
+          - generic [ref=e493]:
+            - heading "Permits & licensing" [level=3] [ref=e494]
+            - paragraph [ref=e495]: SaaS + portal processing fee on permit payments. Same 3-stream model, new vertical.
+          - generic [ref=e497]:
+            - generic [ref=e498]: Software + Payments TAM
+            - generic [ref=e499]: $4B+
+            - generic [ref=e500]: Building, business, liquor, event permits
+          - generic [ref=e501]:
+            - generic [ref=e502]: Small-Town SAM
+            - generic [ref=e503]:
+              - generic [ref=e504]:
+                - generic [ref=e505]: Full market
+                - generic [ref=e506]: $4B
+              - generic [ref=e507]:
+                - generic [ref=e508]: Small-town SAM
+                - generic [ref=e509]: $300M
+              - generic [ref=e510]:
+                - generic [ref=e511]: 3–5yr SOM
+                - generic [ref=e512]: $15–35M
+          - list [ref=e514]:
+            - listitem [ref=e515]: "Census: $71.25B state license tax/yr"
+            - listitem [ref=e517]: No new customer acquisition needed
+            - listitem [ref=e519]: Same portal, new module
+        - article [ref=e521]:
+          - generic [ref=e523]: Phase 3 · Deferred
+          - generic [ref=e524]:
+            - heading "Excise tax processing" [level=3] [ref=e525]
+            - paragraph [ref=e526]: Transaction processing fee on excise tax collections. XRPL dramatically undercuts legacy card fees. Patent already filed.
+          - generic [ref=e528]:
+            - generic [ref=e529]: Annual Excise Tax Flow
+            - generic [ref=e530]: $213B
+            - generic [ref=e531]: Census Bureau · annual US excise collections
+          - generic [ref=e532]:
+            - generic [ref=e533]: Processing Fee Capture
+            - generic [ref=e534]:
+              - generic [ref=e535]:
+                - generic [ref=e536]: At 0.35%
+                - generic [ref=e537]: $745M/yr max
+              - generic [ref=e538]:
+                - generic [ref=e539]: At 0.25%
+                - generic [ref=e540]: $532M/yr
+              - generic [ref=e541]:
+                - generic [ref=e542]: Addressable slice
+                - generic [ref=e543]: $250M+
+          - list [ref=e545]:
+            - listitem [ref=e546]: "Current card fees: 2.5–3.5%"
+            - listitem [ref=e548]: "XRPL alternative: $0.0003/txn"
+            - listitem [ref=e550]: Architecture patented and built
+        - article [ref=e552]:
+          - generic [ref=e554]: Phase 4 · Long-term
+          - generic [ref=e555]:
+            - heading "Municipal bond administration" [level=3] [ref=e556]
+            - paragraph [ref=e557]: Compliance, disclosure, and audit infrastructure layer on outstanding municipal debt stock.
+          - generic [ref=e559]:
+            - generic [ref=e560]: Outstanding Muni Debt Stock
+            - generic [ref=e561]: $4.2T
+            - generic [ref=e562]: SIFMA 2024 · ~50,000 issuing entities
+          - generic [ref=e563]:
+            - generic [ref=e564]: Basis Point Capture on Stock
+            - generic [ref=e565]:
+              - generic [ref=e566]:
+                - generic [ref=e567]: At 5 bps
+                - generic [ref=e568]: $2.1B/yr
+              - generic [ref=e569]:
+                - generic [ref=e570]: At 2 bps
+                - generic [ref=e571]: $840M/yr
+              - generic [ref=e572]:
+                - generic [ref=e573]: At 1 bp
+                - generic [ref=e574]: $420M/yr
+          - list [ref=e576]:
+            - listitem [ref=e577]: $500B+ new issuance/yr
+            - listitem [ref=e579]: SEC 15c2-12 disclosure obligations
+            - listitem [ref=e581]: GASB 87/96 compliance layer
+    - generic [ref=e586]:
+      - generic [ref=e587]:
+        - generic [ref=e588]: Team + Ask
+        - heading "Turn demo proof into first customer proof." [level=2] [ref=e589]
+        - paragraph [ref=e590]: A proof round for the beachhead, not a leap to scale — fund the commercial gates, then widen the category from a position of proof.
+      - generic [ref=e592]:
+        - generic [ref=e593]:
+          - generic [ref=e594]:
+            - paragraph [ref=e595]: Seed Round 2026 · 24-month runway target
+            - generic [ref=e597]: $7M
+            - paragraph [ref=e598]: "Capital: engineering · go-to-market · operations & compliance."
+          - paragraph [ref=e601]: $7M is beachhead ask. More investment easily translates into more rapid vertical expansion programs and milestone achievement.
+        - generic [ref=e602]:
+          - paragraph [ref=e603]: Why this team delivers it
+          - generic [ref=e604]:
+            - generic [ref=e605]:
+              - paragraph [ref=e606]: CEO · Govtech payments & revenue cycles
+              - heading "Justin Harvey" [level=3] [ref=e607]
+              - paragraph [ref=e608]:
+                - text: 6+ yrs Tyler Technologies ·
+                - strong [ref=e609]: $500M/yr SaaS processing across 20+ agencies, 500K+ users
+                - text: . Founded 45th Parallel Risk Management. Expert consultant to institutional investors on Government payment infrastructure. GLG Council Member. Father.
+            - generic [ref=e610]:
+              - paragraph [ref=e611]: COO · Program delivery & org design
+              - heading "Michael Stansfield" [level=3] [ref=e612]
+              - paragraph [ref=e613]:
+                - text: 18+ yrs leadership and delivery · Deputy Lead Enterprise Agile Coach, (US Navy,
+                - strong [ref=e614]: 65 Teams, 700 staff
+                - text: ). Lead Coach Army ATIS. US Army National Guard and Reserves, Enlisted Combat Medic and Officer. Splinterlands DeFi. Farmer.
+            - generic [ref=e615]:
+              - paragraph [ref=e616]: CTO · Realtime infrastructure & DeFi
+              - heading "Daniel Durantes" [level=3] [ref=e617]
+              - paragraph [ref=e618]:
+                - text: 13+ yrs full-stack, Fortune 100 · CTO Genesis Volatility. Realtime infra processing
+                - strong [ref=e619]: 900+ markets at 99.9% uptime
+                - text: . Code deployed in Stripe, Walmart, Hubcash. Blockchain/DeFi. Published technical author.
+  - button "Refresh styles" [ref=e620] [cursor=pointer]: ↻

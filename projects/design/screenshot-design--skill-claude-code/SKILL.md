@@ -1,14 +1,51 @@
 ---
 name: screenshot-design
-description: Runs an evidence-based visual audit of UI screenshots — landing pages, dashboards, product flows, competitor interfaces, before/after comparisons. MANDATORY only when the screenshot is a UI artifact and the task is to judge visible design qualities such as layout, spacing, hierarchy, typography, color, density, composition, polish, or harmony. Do not trigger just because an attachment happens to be a screenshot. Use by default when the user asks to "analyze this UI", "visually review this interface", "audit this design", "check this screen layout", "compare these product screens", or "review the spacing, hierarchy, or block logic", and for Russian phrasings like "проверь дизайн этого экрана", "визуально проверь интерфейс", "оцени дизайн по скрину", "что не так в этом экране", "сравни эти экраны". Forces the calling model to prove it actually examined the screenshot by producing a Visual Evidence Ledger before any verdict, anchoring every conclusion to visible spacing, grouping, block logic, alignment, hierarchy, typography, color, density, or readability. Do NOT use for receipts, passports, IDs, invoices, scanned documents, chat logs, terminal captures, OCR/extraction, factual reading, proof/evidence review, code review, Figma editing, live-browser verification, accessibility compliance checks beyond visible symptoms, or claims about hover, focus, motion, responsive, or other states that are not visible in a static image.
+description: >
+  Runs an evidence-backed artistic critique of UI screenshots: landing pages,
+  dashboards, flows, competitor screens, and before/after comparisons.
+  MANDATORY only when the screenshot is a UI artifact and the task is to
+  judge visible design qualities such as layout, spacing, hierarchy,
+  typography, color, density, composition, polish, or harmony. Do not
+  trigger just because an attachment happens to be a screenshot. Use by
+  default for requests like "analyze this UI", "audit this design", "check
+  this screen layout", or "compare these product screens". The printed answer
+  must follow a delayed-judgment order: what is noticed first, what starts to
+  break, verdict, then fix-next changes. Do NOT use for receipts, passports,
+  IDs, invoices, scanned documents, chat logs, terminal captures,
+  OCR/extraction, factual reading, proof/evidence review, code review, Figma
+  editing, live-browser verification, or invisible states.
 ---
 
 # Screenshot Design
 
-Rigid, screenshot-first visual review skill. Follow the workflow exactly — the discipline is the value.
+Rigid, screenshot-first critique from the eye of an interface designer who cares deeply about harmony, composition, alignment, visual weight, and semantic balance.
+It earns that freedom by grounding the read in visible evidence first.
+It is meant for cyclical reuse across iterations, not a one-shot opinion dump.
 
-If the main evidence is a screenshot and the question is visual, produce the full output. Do not shortcut to verdicts without the ledger — this is how screenshot reviews drift into generic praise.
+If the main evidence is a screenshot and the question is visual, do the full review. Do not jump straight from the image to a verdict.
+Do not call a screen beautiful, harmonious, dead, flat, theatrical, or premium until the review has judged the whole frame, not just the local craft.
+Do not dump the whole internal audit into chat. By default the printed answer is compact.
 Do not trigger the skill for non-UI screenshots or for screenshots attached only as evidence, identity, paperwork, or factual context.
+
+## Governing lens
+
+Think like an interface designer with a strong bias for:
+- harmony of the frame as a whole;
+- composition before component praise;
+- alignment, rhythm, and containment;
+- visual weight and the distribution of emphasis;
+- semantic balance, so the important things feel important and the secondary things stay secondary.
+
+Judge the screen first as one visual field:
+- where the weight sits;
+- where the eye goes first, second, and then stalls;
+- whether empty space works as counterweight or is just leftover canvas;
+- whether blocks align into one rhythm or drift apart;
+- whether the distribution of meaning feels intentional.
+
+Frame-level harmony outranks local neatness.
+Composition outranks component polish.
+Semantic weight distribution outranks stylistic cleverness.
 
 ## When to use
 
@@ -16,7 +53,8 @@ Do not trigger the skill for non-UI screenshots or for screenshots attached only
 - Screenshot-based design critique or visual verification
 - Before/after screenshot comparison
 - Competitor teardown from screenshots
-- Requests about spacing, hierarchy, grouping, density, polish, readability, or block logic on a screen
+- Repeated refinement passes on the same screen until visible mistakes are removed and the design feels clean, harmonious, and beautiful
+- Requests about spacing, hierarchy, grouping, density, polish, readability, block logic, composition, balance, rhythm, beauty, or negative space on a screen
 
 ## When not to use
 
@@ -36,127 +74,118 @@ Do not trigger the skill for non-UI screenshots or for screenshots attached only
 
 ## Workflow
 
-Copy this checklist into the response and tick items off as the review advances:
+Load only the support files you need:
+- before the ledger or critique: [references/output-contract.md](references/output-contract.md), [references/perception-limits.md](references/perception-limits.md)
+- before sending the final answer: [references/failure-modes.md](references/failure-modes.md)
+- comparison rules live inside `output-contract`; use them only when there are multiple screenshots
 
-```
-Review Progress:
-- [ ] 1. Evidence gate
-- [ ] 2. Literal read
-- [ ] 3. Visual Evidence Ledger (validated against the minimum composition)
-- [ ] 4. Diagnosis on four axes
-- [ ] 5. Recommendations
-- [ ] 6. Re-attention pass (re-read the screenshot against each recommendation)
-- [ ] 7. Comparison mode (if multiple screenshots)
-- [ ] 8. What I cannot conclude from this screenshot
-```
+## Action bias
 
-Before the ledger, skim [references/perception-limits.md](references/perception-limits.md). Multimodal models make perception errors on ~30% of confident answers — most of that damage comes from fragile reads (counts, exact pixels, tiny text, hairline alignment, color codes) treated as facts. The `Perception:` tag on each ledger bullet exists to stop that leakage.
+This skill is a diagnostic step, not the end of the task.
+End the critique with fix-next changes that can be acted on immediately.
+If the surrounding task is to improve the current UI rather than only discuss it, continue from the fix list into the next edit pass unless the user explicitly asked for critique only.
+
+## Iteration model
+
+This skill is for iterative design tightening.
+
+Run it, fix the strongest visible problems, then run it again on the updated screenshot.
+The goal is not to produce one clever critique.
+The goal is to keep cycling until obvious visual mistakes are gone and the screen feels resolved, harmonious, and aesthetically convincing.
+
+## What gets printed vs. what stays internal
+
+Print:
+- `What I Notice First` — the visible first pass in short conversational form
+- `What Starts To Break` — the strongest tensions or failures before any verdict
+- `Verdict` — one short synthesis at the end
+- `Fix Next` — only the strongest concrete changes
+- `Limits` — only if image quality or hidden states materially limit the read
+
+Stay internal and do not print unless the user explicitly asks:
+- internal evidence ledger
+- review progress checklist
+- scene read notes
+- axis-by-axis critique notes
+- re-attention pass
+- fresh-eye sweep
+- uncertainty notes
+- emotional freeform close
+- scratch checks used to decide whether the printed answer is grounded
 
 ### 1. Evidence gate
 
 Confirm the screenshot is legible enough to judge. Stop and ask for a better image if it is cropped, blurred, tiny, partial, or noisy. If code is also attached, ignore it until the visual pass is done — do not smuggle code assumptions into a visual review.
 
-### 2. Literal read
+### 2. Internal audit
 
-State what is actually visible before judging any of it:
-- screen type and purpose;
-- main regions or blocks, in reading order;
-- dominant visual element;
-- obvious crowding, drift, asymmetry, or gaps.
+Internally inspect in this order:
+- frame — visual mass, negative space, felt balance, scene presence;
+- eye path — first anchor, second anchor, stalls, overloaded zones, dead zones;
+- grouping and rhythm — containment, spacing cadence, alignment, structural breaks;
+- surface and color — typography, contrast, readability, palette harmony or conflict.
 
-Keep this factual. No adjectives about quality yet.
+Build the internal evidence ledger exactly to spec from [references/output-contract.md](references/output-contract.md).
+Hold the verdict back until the inspection is finished.
 
-### 3. Visual Evidence Ledger
+### 3. Internal checks
 
-Produce a `Visual Evidence Ledger` of 6–12 bullets. Every bullet must contain four lines:
-- `Location:` where on the screen
-- `Visible fact:` what is literally true in the image
-- `Read on the relationship:` what that visible fact implies for the user
-- `Perception:` `high-confidence visible` or `low-confidence read` (counts, microcopy, hairline alignment, color guesses, inferred state — see [references/perception-limits.md](references/perception-limits.md))
+Run the review progress checklist, re-attention pass, and fresh-eye sweep internally.
 
-Minimum composition — do not proceed to diagnosis until all four are satisfied:
-- ≥ 2 bullets on spacing, grouping, or block boundaries;
-- ≥ 2 bullets on hierarchy or eye path;
-- ≥ 1 bullet on alignment or rhythm;
-- ≥ 1 bullet on typography, color, or readability.
+Do not print them in the answer unless the user explicitly asks to see the checking process.
 
-If the ledger does not meet the minimum, return to the screenshot and add bullets — do not write the diagnosis.
+### 4. Printed answer
 
-Prefer relative language ("~2× line-height", "about the same padding as the card to its left") over exact numbers. The model cannot measure in pixels reliably. Treat counts above ~7, microcopy, 1–2 px alignment, and color codes as fragile by default.
+Print only:
+- `What I Notice First`
+- `What Starts To Break`
+- `Verdict`
+- `Fix Next`
+- `Limits`, only if needed
 
-For the full contract, good/bad bullet examples, and the report template, read [references/output-contract.md](references/output-contract.md).
+The visible path should feel like a designer looking carefully, then thinking, then concluding.
+It must not read like a checklist and it must not spill into a raw stream of consciousness.
 
-#### Quick example bullet
+`What I Notice First` comes first and stays close to the pixels:
+- 2-4 short bullets or sentences;
+- whole frame before local details;
+- what the eye catches, where the weight sits, what the empty space is doing.
 
-- `Location:` hero block.
-  `Visible fact:` the primary CTA sits ~2× the line-height below the subcopy, while secondary links sit tight under it.
-  `Read on the relationship:` the CTA reads as a separate island instead of the closing move of the hero message.
-  `Perception:` high-confidence visible.
+`What Starts To Break` comes next:
+- 2-4 short bullets or sentences;
+- the strongest harmony, alignment, rhythm, or semantic-balance failures;
+- each point ties a visible cue to its effect on reading, emphasis, or felt composition;
+- still no final verdict yet.
 
-### 4. Diagnosis
+`Verdict` comes at the end of the reasoning path:
+- one short paragraph;
+- synthesize the screen as a whole;
+- use `broken`, `mixed`, `close`, or `resolved` only if helpful;
+- the verdict must be earned by the two sections above, not assumed at the start.
 
-Use the ledger to judge exactly four axes:
-- block logic;
-- spacing and alignment;
-- hierarchy and emphasis;
-- readability, typography, color.
+`Fix Next` must include only the strongest 1-3 changes:
+- highest leverage first;
+- composition and frame before local polish;
+- concrete enough that the next edit pass can start immediately;
+- if the colors are visibly ugly, disharmonious, or contradictory, that must surface here when it materially harms the screen.
 
-Every conclusion must point back to specific ledger bullets. If a judgement cannot be traced to a ledger bullet, drop it or add the missing bullet first.
-
-### 5. Recommendations
-
-Turn only the strongest visual findings into fixes. Use this format for each issue:
-
-`[Severity] Short issue name`
-- `Location:` where it happens
-- `Visual evidence:` the ledger bullet(s) this is based on
-- `Why it matters:` effect on clarity, trust, scanability, or perceived quality
-- `Better direction:` concrete visual change
-- `Confidence:` high | medium | low
-
-Severity: `Blocker` | `High` | `Medium` | `Polish`. Full severity definitions live in [references/output-contract.md](references/output-contract.md).
-
-### 6. Re-attention pass
-
-After the recommendations are drafted, read the screenshot one more time against each one. This exists because extended reasoning in multimodal models causes measurable attention drift — the perceptual description stays correct, but later claims drift away from the region of interest ("Deeper Thought, Weaker Aim", 2026).
-
-For each recommendation:
-- locate the region on the screenshot again;
-- confirm the ledger bullet(s) it rests on actually say what the recommendation claims;
-- delete or downgrade any recommendation whose visual anchor does not survive the second look;
-- move any claim that turned out to rest on a low-confidence read into the uncertainty block.
-
-### 7. Comparison mode
-
-If there are multiple screenshots or a before/after pair:
-- keep ledger bullets tagged by screen;
-- identify what actually changed before judging whether it improved;
-- never treat `different` as `better`;
-- name which change improved clarity, which regressed, and which tradeoff is still unresolved.
-
-### 8. Uncertainty block
-
-End with a section titled `What I cannot conclude from this screenshot`. Call out specifically:
-- hover, focus, or motion behavior;
-- responsive behavior;
-- hidden or secondary states;
-- real accessibility compliance beyond obvious visual symptoms;
-- exact spacing tokens, grid, or type scale;
-- screenshot quality limits (cropped, low-res, compressed, noisy).
-
-If confidence was reduced by image quality or missing context, say so directly.
+`Limits` is optional. Use it only when crop, image quality, or hidden states materially limit the verdict.
 
 ## Done when
 
-- The response follows the checklist above and every item is ticked
-- The `Visual Evidence Ledger` meets the minimum composition and every bullet has `Location`, `Visible fact`, `Read on the relationship`
-- Every diagnosis and recommendation traces to ledger bullets
+- The printed answer contains only `What I Notice First`, `What Starts To Break`, `Verdict`, `Fix Next`, and optional `Limits` unless the user explicitly asked for the internal working
+- The internal evidence ledger meets the minimum composition even though it is not printed
+- Every printed reason and fix traces to internal ledger bullets
+- The answer reads like delayed judgment, not early anchoring
+- The verdict comes after the visible examination, not before it
+- The skill is usable in repeated cycles on the same design without changing format or lowering discipline
 - Comparison mode is used when multiple screenshots are present
-- The `What I cannot conclude from this screenshot` section is present
-- No red-flag phrases from [references/failure-modes.md](references/failure-modes.md) survived the draft
+- Internal checks happened, but were not printed unless the user asked
+- Visible ugliness / disharmony / color conflict is always checked, and surfaces in recommendations when it materially harms the design
+- The final answer passes [references/failure-modes.md](references/failure-modes.md)
 
 ## References
 
-- [references/output-contract.md](references/output-contract.md) — full ledger spec, recommendation format, comparison mode, final report template
-- [references/failure-modes.md](references/failure-modes.md) — red flags, forbidden shortcuts, anti-bypass rules
-- [references/perception-limits.md](references/perception-limits.md) — what multimodal models systematically get wrong on screenshots (counts, tiny text, hairline alignment, color codes) and how to mark fragile reads
+- [references/output-contract.md](references/output-contract.md) — ledger format, minimum composition, recommendations, comparison mode, measurement policy, final report template
+- [references/failure-modes.md](references/failure-modes.md) — red flags, forbidden shortcuts, and final self-check
+- [references/perception-limits.md](references/perception-limits.md) — fragile reads and confidence rules for screenshot perception

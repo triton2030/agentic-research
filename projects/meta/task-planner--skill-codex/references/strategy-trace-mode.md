@@ -50,7 +50,7 @@
 
 Если шаг 4 не добавляет информации сверх `Trace target` — опусти.
 
-Если `_ops/PROJECT-PLAN.md` или `_ops/INTERVIEW.md` отсутствует — скажи явно и дефолти в `unknown`, кроме случая, когда отсутствующий слой реально не меняет call.
+Если `_ops/PROJECT-PLAN.md` или `_ops/INTERVIEW.md` отсутствует — скажи явно: `unknown — unbootstrapped _ops`. Не создавай файлы. `Do now`: handoff в `main-strategy` на `ensure-ops.sh`, потом повторить trace.
 
 Лимиты: 3-4 шага цепочки, до 2 `Why` буллетов, 1 `Do now`.
 

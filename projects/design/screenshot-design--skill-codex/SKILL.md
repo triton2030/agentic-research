@@ -8,17 +8,17 @@ description: >
   typography, color, density, composition, polish, or harmony. Do not
   trigger just because an attachment happens to be a screenshot. Use by
   default for requests like "analyze this UI", "audit this design", "check
-  this screen layout", or "compare these product screens". Outputs only a
-  compact visible protocol and concrete recommendations. Do NOT use for
-  receipts, passports, IDs, invoices, scanned documents, chat logs, terminal
-  captures, OCR/extraction, factual reading, proof/evidence review, code
-  review, Figma editing, live-browser verification, or invisible states.
+  this screen layout", or "compare these product screens". The printed answer
+  must follow a delayed-judgment order: what is noticed first, what starts to
+  break, verdict, then fix-next changes. Do NOT use for receipts, passports,
+  IDs, invoices, scanned documents, chat logs, terminal captures,
+  OCR/extraction, factual reading, proof/evidence review, code review, Figma
+  editing, live-browser verification, or invisible states.
 ---
 
 # Screenshot Design
 
-Rigid, screenshot-first critique from the eye of an art director.
-The skill must feel beauty, disharmony, rhythm, emptiness, and scene presence.
+Rigid, screenshot-first critique from the eye of an interface designer who cares deeply about harmony, composition, alignment, visual weight, and semantic balance.
 It earns that freedom by grounding the read in visible evidence first.
 It is meant for cyclical reuse across iterations, not a one-shot opinion dump.
 
@@ -26,6 +26,26 @@ If the main evidence is a screenshot and the question is visual, do the full rev
 Do not call a screen beautiful, harmonious, dead, flat, theatrical, or premium until the review has judged the whole frame, not just the local craft.
 Do not dump the whole internal audit into chat. By default the printed answer is compact.
 Do not trigger the skill for non-UI screenshots or for screenshots attached only as evidence, identity, paperwork, or factual context.
+
+## Governing lens
+
+Think like an interface designer with a strong bias for:
+- harmony of the frame as a whole;
+- composition before component praise;
+- alignment, rhythm, and containment;
+- visual weight and the distribution of emphasis;
+- semantic balance, so the important things feel important and the secondary things stay secondary.
+
+Judge the screen first as one visual field:
+- where the weight sits;
+- where the eye goes first, second, and then stalls;
+- whether empty space works as counterweight or is just leftover canvas;
+- whether blocks align into one rhythm or drift apart;
+- whether the distribution of meaning feels intentional.
+
+Frame-level harmony outranks local neatness.
+Composition outranks component polish.
+Semantic weight distribution outranks stylistic cleverness.
 
 ## When to use
 
@@ -59,6 +79,12 @@ Load only the support files you need:
 - before sending the final answer: [references/failure-modes.md](references/failure-modes.md)
 - comparison rules live inside `output-contract`; use them only when there are multiple screenshots
 
+## Action bias
+
+This skill is a diagnostic step, not the end of the task.
+End the critique with fix-next changes that can be acted on immediately.
+If the surrounding task is to improve the current UI rather than only discuss it, continue from the fix list into the next edit pass unless the user explicitly asked for critique only.
+
 ## Iteration model
 
 This skill is for iterative design tightening.
@@ -70,9 +96,11 @@ The goal is to keep cycling until obvious visual mistakes are gone and the scree
 ## What gets printed vs. what stays internal
 
 Print:
-- `Protocol Trace` — one compact visible line proving the skill was applied and showing step status
-- `Protocol` — compact visible proof that the skill steps were actually executed
-- `Recommendations` — only the strongest concrete changes
+- `What I Notice First` — the visible first pass in short conversational form
+- `What Starts To Break` — the strongest tensions or failures before any verdict
+- `Verdict` — one short synthesis at the end
+- `Fix Next` — only the strongest concrete changes
+- `Limits` — only if image quality or hidden states materially limit the read
 
 Stay internal and do not print unless the user explicitly asks:
 - internal evidence ledger
@@ -89,17 +117,16 @@ Stay internal and do not print unless the user explicitly asks:
 
 Confirm the screenshot is legible enough to judge. Stop and ask for a better image if it is cropped, blurred, tiny, partial, or noisy. If code is also attached, ignore it until the visual pass is done — do not smuggle code assumptions into a visual review.
 
-The printed answer must begin with `Protocol Trace`.
-
 ### 2. Internal audit
 
-Internally inspect:
-- scene — visual mass, empty space, eye path, felt balance;
-- structure — grouping, hierarchy, rhythm;
-- surface — typography, contrast, readability;
-- color harmony — visible clashes, muddy combinations, inert palettes, or contradictions in temperature / accent logic.
+Internally inspect in this order:
+- frame — visual mass, negative space, felt balance, scene presence;
+- eye path — first anchor, second anchor, stalls, overloaded zones, dead zones;
+- grouping and rhythm — containment, spacing cadence, alignment, structural breaks;
+- surface and color — typography, contrast, readability, palette harmony or conflict.
 
 Build the internal evidence ledger exactly to spec from [references/output-contract.md](references/output-contract.md).
+Hold the verdict back until the inspection is finished.
 
 ### 3. Internal checks
 
@@ -110,34 +137,47 @@ Do not print them in the answer unless the user explicitly asks to see the check
 ### 4. Printed answer
 
 Print only:
-- `Protocol Trace`
-- `Protocol`
-- `Recommendations`
+- `What I Notice First`
+- `What Starts To Break`
+- `Verdict`
+- `Fix Next`
+- `Limits`, only if needed
 
-`Protocol` must visibly prove that the skill actually inspected:
-- evidence gate;
-- current state of the screen as a whole: broken | mixed | close | resolved;
-- scene;
-- structure;
-- surface;
-- color harmony;
-- internal checks;
-- comparison, if relevant;
-- uncertainty, only if it materially limits the verdict.
+The visible path should feel like a designer looking carefully, then thinking, then concluding.
+It must not read like a checklist and it must not spill into a raw stream of consciousness.
 
-Keep `Protocol` compact. It is proof, not an essay.
-Lead with the dominant truth of the frame, not with checkbox energy.
+`What I Notice First` comes first and stays close to the pixels:
+- 2-4 short bullets or sentences;
+- whole frame before local details;
+- what the eye catches, where the weight sits, what the empty space is doing.
 
-`Recommendations` must include only the strongest 1-4 changes. If the colors are visibly ugly, disharmonious, or contradictory in their relationships, that must appear either as a protocol finding or as one of the recommendations, and as a recommendation when it materially hurts the screen.
+`What Starts To Break` comes next:
+- 2-4 short bullets or sentences;
+- the strongest harmony, alignment, rhythm, or semantic-balance failures;
+- each point ties a visible cue to its effect on reading, emphasis, or felt composition;
+- still no final verdict yet.
+
+`Verdict` comes at the end of the reasoning path:
+- one short paragraph;
+- synthesize the screen as a whole;
+- use `broken`, `mixed`, `close`, or `resolved` only if helpful;
+- the verdict must be earned by the two sections above, not assumed at the start.
+
+`Fix Next` must include only the strongest 1-3 changes:
+- highest leverage first;
+- composition and frame before local polish;
+- concrete enough that the next edit pass can start immediately;
+- if the colors are visibly ugly, disharmonious, or contradictory, that must surface here when it materially harms the screen.
+
+`Limits` is optional. Use it only when crop, image quality, or hidden states materially limit the verdict.
 
 ## Done when
 
-- The answer visibly begins with `Protocol Trace`, proving `screenshot-design` was applied in this chat
-- `Protocol Trace` reports the state of evidence gate, audit, internal checks, comparison, and uncertainty as `ok`, `n/a`, `none`, or a compact count
-- The printed answer contains only `Protocol Trace`, `Protocol`, and `Recommendations` unless the user explicitly asked for the internal working
+- The printed answer contains only `What I Notice First`, `What Starts To Break`, `Verdict`, `Fix Next`, and optional `Limits` unless the user explicitly asked for the internal working
 - The internal evidence ledger meets the minimum composition even though it is not printed
-- Every protocol item and recommendation traces to internal ledger bullets
-- `Protocol` includes a compact whole-screen state signal: `broken`, `mixed`, `close`, or `resolved`
+- Every printed reason and fix traces to internal ledger bullets
+- The answer reads like delayed judgment, not early anchoring
+- The verdict comes after the visible examination, not before it
 - The skill is usable in repeated cycles on the same design without changing format or lowering discipline
 - Comparison mode is used when multiple screenshots are present
 - Internal checks happened, but were not printed unless the user asked

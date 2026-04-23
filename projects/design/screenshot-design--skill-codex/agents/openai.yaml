@@ -1,6 +1,6 @@
 interface:
   display_name: "Screenshot Design"
-  short_description: "Compact screenshot critique with protocol trace and focused recommendations"
-  default_prompt: "Use $screenshot-design by default only when the screenshot is a UI artifact and the user explicitly wants visual or design judgment of what is visible: layout, spacing, hierarchy, typography, color, density, composition, polish, or harmony. Do not trigger this skill just because an attachment is a screenshot. Do not use it for receipts, passports, IDs, invoices, scanned documents, chat logs, terminal captures, OCR/extraction, factual reading, or evidence review. This skill is designed for repeated iterative passes until visible design errors are gone. Start the chat answer with a visible one-line Protocol Trace, then print only a compact Protocol and Recommendations. Always include an explicit color-harmony check and surface ugly, disharmonious, or contradictory color relationships when they materially hurt the design."
+  short_description: "Delayed-verdict critique for interface harmony"
+  default_prompt: "Use $screenshot-design only when the screenshot is a UI artifact and the user wants visual judgment of what is visible; think like an interface designer obsessed with harmony, composition, alignment, visual weight, and semantic balance, keep the internal evidence ledger strict, and print the review in delayed-judgment order: What I Notice First, What Starts To Break, Verdict, Fix Next, and Limits only if needed."
 policy:
   allow_implicit_invocation: true

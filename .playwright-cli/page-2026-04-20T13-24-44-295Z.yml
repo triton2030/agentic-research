@@ -1,0 +1,49 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e3]:
+      - main [ref=e7]:
+        - generic [ref=e8]:
+          - generic [ref=e13]:
+            - generic [ref=e14]:
+              - img [ref=e15]
+              - heading "Sign in to GitBook" [level=2] [ref=e17]
+            - generic [ref=e18]:
+              - generic [ref=e19]:
+                - button "Continue with GitHub" [disabled] [ref=e20]:
+                  - img [ref=e57]
+                  - generic: Continue with GitHub
+                - button "Continue with Google" [disabled] [ref=e23]:
+                  - img [ref=e24]
+                  - generic: Continue with Google
+              - generic [ref=e30]:
+                - separator [ref=e31]
+                - paragraph [ref=e32]: OR
+                - separator [ref=e33]
+              - generic [ref=e34]:
+                - generic [ref=e35]:
+                  - textbox "Enter work email" [disabled] [ref=e38]
+                  - button "Continue" [disabled] [ref=e40]:
+                    - generic: Continue
+                - paragraph [ref=e42]:
+                  - text: By continuing, you agree to the
+                  - link "Terms of Service" [ref=e43] [cursor=pointer]:
+                    - /url: https://policies.gitbook.com/terms
+                  - text: and
+                  - link "Privacy policy" [ref=e44] [cursor=pointer]:
+                    - /url: https://policies.gitbook.com/privacy-and-security/statement
+                  - text: .
+            - generic [ref=e46]:
+              - text: Get started with GitBook.
+              - link "Sign up" [ref=e47] [cursor=pointer]:
+                - /url: /join
+                - generic: Sign up
+          - complementary [ref=e48]:
+            - img "Abstract asset used in the GitBook brand" [ref=e50]
+            - img "Multiple docs example" [ref=e53]
+      - status [ref=e54]
+    - generic:
+      - region "Notifications alt+T"
+  - iframe [ref=e55]:
+    
+  - iframe [ref=e61]:
+    

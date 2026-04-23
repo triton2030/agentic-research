@@ -2,31 +2,39 @@
 
 Это не абстрактные запреты. Это короткий список ошибок, которые ломают архитектурное мышление.
 
-## Spine Errors
+## Starting In The Wrong Place
 
-- **Failure scan до capability inventory.** Это проектирование в темноте. Сначала надо знать, какие рычаги уже стоят на машине.
-- **Force Fields в эпилоге.** Если силы появляются после решения, они не проектируют дизайн, а оправдывают его задним числом.
-- **`1 failure -> 1 prescription` как default.** Это инженерная санитария, но ещё не архитектура. Архитектура ищет leverage.
-- **Add-only answer без `Minimize pass`.** Если ничего не удалено и ничего не отказано, почти наверняка система стала тяжелее.
+- **Начинать с редактуры `AGENTS.md` до понимания проекта.** Инструкции — не стартовая точка, а вывод из project reality.
+- **Начинать с control surface inventory до AI job map.** Если не понятно, какую работу должен делать ИИ, inventory превращается в фоновый шум.
+- **Считать instruction layer целью, а не следствием.** Так рождаются красивые правила, которые не служат реальной траектории проекта.
 
-## Capabilities
+## Failure Thinking
 
-- **Предположению о capability по текстовому упоминанию.** `README сказал` не равно `реально установлено`.
-- **Новому skill до отказа от существующих слоёв.** Skill — дорогой слой, не default answer.
-- **Внешнему поиску до локального capability audit.** Часто решение уже стоит в repo или в installed surface.
+- **Россыпи симптомов без failure classes.** Это список неприятностей, а не архитектура.
+- **Force fields в эпилоге.** Если силы появляются после решения, они оправдывают выбор задним числом.
+- **`1 failure -> 1 prescription` как default.** Это санитария, но ещё не leverage.
+- **Игнорировать `unbootstrapped` или `stale` upstream truth layer.** Тогда система начинает защищать призрак плана или случайный legacy layer.
 
-## Prescriptions
+## Control Surfaces
 
-- **Prescription без backlink.** Тогда правило нельзя отрефакторить и нельзя похоронить.
-- **Prescription без sunset signal.** Это archaeology by construction.
-- **Сильному новому слою ради одиночного симптома.** Сначала докажи class, потом строй защиту.
+- **Переписывать `AGENTS.md`, не собрав карту существующих skills, ownership и guardrails.**
+- **Принимать текстовое упоминание за runtime-факт.** `README сказал` не равно `реально установлено`.
+- **Рекомендовать новый skill до отказа от более сильных слоёв.** Skill — дорогой слой, не default answer.
+
+## Architecture Changes
+
+- **Изменение без leverage verdict.**
+- **Изменение без owner, backlink или sunset signal.**
+- **Add-only answer без `Minimize pass`.** Если ничего не удалено и ничего не отклонено, система почти наверняка стала тяжелее.
+- **Опираться на дисциплину человека там, где можно поставить более сильный guardrail.**
 
 ## Folder Discipline
 
 - **Удалению папки без Chesterton's fence probe.**
-- **Folder verdict без якоря в Stage, Goal или preference.**
+- **Folder verdict без якоря в project reality, Stage или preference.**
 
 ## Questions
 
 - **Вопросам без EVPI.**
-- **Формату "согласен с моим анализом?"** Это sycophancy trap.
+- **Формату `согласен с моим анализом?`** Это sycophancy trap.
+- **Вопросам, которые меняют только wording, а не layer / owner / add-vs-remove verdict.**

@@ -1,0 +1,3 @@
+[     888ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ https://app.gitbook.com/__/firebase/init.json:0
+[    7082ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://collector.github.com/github/collect:0
+[    8087ms] [ERROR] Failed to load resource: the server responded with a status of 503 () @ https://collector.github.com/github/collect:0

@@ -9,6 +9,13 @@
 - **Add-only output без Minimize pass.** Архитектор, который только добавляет, делает систему тяжелее каждой сессией. Шаг 7 обязателен, молчание = сбой Gate.
 - **«1 failure → 1 prescription» без Leverage analysis.** Инженерная гигиена, не архитектура. Сначала ищи systemic fix, закрывающий класс; только потом 1:1 patch.
 
+## Upstream Truth Layer
+
+- **Читать `_ops/` как snapshot, не как hot state.** Триада (PLAN + INTERVIEW + learnings) должна обновляться **при каждом значимом сигнале**, не раз в месяц. Архитектор, читающий stale триаду, работает по устаревшей карте.
+- **Prescription без механизма обновления триады.** Если в output нет ни одного hook / skill / checkpoint, который триггерит запись в `_ops/` при preference revealed / plan delta / expected-vs-actual дельте — архитектор оставил upstream без защиты. Это failure, не feature.
+- **Делегировать freshness дисциплине пользователя или модели.** Обе дисциплины проигрывают усталости, token economy и забыванию. Freshness — **структурная задача**, не «попросим запомнить».
+- **Ожидать, что `main-strategy` сам вызовется при каждом сигнале.** `main-strategy` — процедура, а не fairy. Её вызов должен быть триггернут механизмом (UserPromptSubmit hook на preference keywords, Stop hook на Stage completion), а не надеждой.
+
 ## Проектирование
 
 - **Красивым схемам ролей до проверки plan-specific failure modes.** Порядок «схема → сбои» подгоняет реальность под схему. Правильный порядок — «telos → as-is → forces → failures → leverage → prescriptions».

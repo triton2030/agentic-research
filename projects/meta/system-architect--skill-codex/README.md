@@ -4,22 +4,25 @@ Codex-версия `system-architect`.
 
 ## Что Это
 
-Opinionated системный архитектор instruction layer. Его spine:
+Opinionated системный архитектор durable control surfaces.
 
-`telos -> as-is map -> forces -> failure classes -> leverage analysis -> prescriptions -> minimize -> handoff`
+Он не стартует с редактуры `AGENTS.md`. Сначала понимает проект, его траекторию и какую работу здесь должен делать ИИ. Только потом выводит из этого instruction architecture.
 
-Он не начинает с чеклиста симптомов и не заканчивает `Force Fields` как красивым приложением. Сначала смотрит, что система должна обслуживать, что реально уже стоит на машине, какие силы давят на дизайн, и только потом выбирает leverage.
+Его причинная цепочка:
+
+`project reality -> AI job map -> pressure and failure map -> control surfaces -> leverage -> instruction architecture -> minimize -> handoff`
 
 ## Чем Эта Версия Отличается От Старой
 
-- capability inventory поднят в first-order шаг;
-- forces стали design input, не epilogue;
-- leverage выделен как отдельный обязательный этап;
-- minimize pass стал обязательным, а не ценностью "где-то в тексте";
-- `1 failure -> 1 fix` перестал быть default формой мышления.
+- `SKILL.md` стал короче и работает как router;
+- центр тяжести перенесён в `workflow.md` и `output-shape.md`;
+- порядок мышления стал project-first, а не instruction-first;
+- pressure / failure / control surfaces теперь читаются как одна инженерная цепочка;
+- `AGENTS.md` и соседние surfaces трактуются как выход системы, а не как стартовая точка.
 
 ## Что Важно
 
+- сначала проект и карта работы ИИ, потом control surfaces;
 - reuse before invention;
 - runtime guardrail сильнее local skill, local skill сильнее instruction text;
 - новый skill не default answer;
@@ -28,8 +31,8 @@ Opinionated системный архитектор instruction layer. Его sp
 ## Файлы
 
 - `SKILL.md` — ядро скилла
-- `references/workflow.md` — rigid spine
-- `references/output-shape.md` — финальная форма audit result
+- `references/workflow.md` — полная инженерная последовательность
+- `references/output-shape.md` — форма финального audit result
 - `references/audit-lenses.md` — глубокие линзы
 - `references/anti-patterns.md` — типовые ошибки мышления
 - `references/system-building-principles.md` — короткий системный канон

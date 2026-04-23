@@ -20,6 +20,7 @@
 - PROJECT-PLAN §Stage (активный): <1 строка — заполнен/generic/отсутствует>
 - INTERVIEW: <релевантная секция названа | отсутствует>
 - learnings.md: <пуст | есть конкретные дельты | generic>
+- Состояние `_ops/` truth layer: `hot` | `cold` — что именно отстаёт или отсутствует.
 
 Generic Goal или пустой Stage → audit блокирован, откат в `main-strategy`.
 
@@ -103,7 +104,7 @@ Generic («AI будет развиваться») отброшено. Если 
   - Что уже покрывает частично: <handle из Шага 2 | ничего не покрывает>
   - Почему недостаточно: <одна строка gap>
   - Default: <расширить существующее <handle> | добавить новое, потому что <reason>>
-- **Fix-layer**: `runtime guardrail` | `local skill` | `instruction text` | `criteria-generator handoff` | `human checkpoint`
+- **Fix-layer**: `runtime guardrail` | `local skill` | `instruction text` | `task-planner handoff` | `human checkpoint`
 - **Если не runtime**: почему runtime/skill альтернатива отклонена — одна строка.
 - **Механизм** (если runtime): тип hook'а / permission rule / subagent config — с отсылкой на [claude-code-guardrails.md](claude-code-guardrails.md).
 - **Backlink**: `→ protects PROJECT-PLAN §Goal` / `→ protects §Stage <name>` / `→ addresses learnings entry YYYY-MM-DD` / `→ honors INTERVIEW §<section>`. Без backlink'а невалидна.
@@ -136,11 +137,20 @@ Generic («AI будет развиваться») отброшено. Если 
 - **Skill на типичные триггеры**: <skill X на триггер Y>
 - **Hooks срабатывают автоматически**: <какие и когда>
 - **Буквальная формулировка load-bearing правила**: *«<точная цитата>»*
+- **Если `_ops` холодный**: <что блокирует hardening и как уходим в `main-strategy`>
 - **Что блокирует действие до этого шага**: <>
 
-### Criteria-generator Handoff (если нужен)
+### Task-planner Handoff (если нужен)
 - Durable instruction surfaces как upstream: <AGENTS.md § | skill X | hook Y output | validator Z>
 - Task-level constraints наследуются из них: <>
+
+### Main-strategy handoff
+(Только если вскрыт upstream drift или ownership contamination.)
+- Что нужно пересинхронизировать: ...
+- Какой из `_ops/PROJECT-PLAN.md` / `_ops/INTERVIEW.md` / `_ops/learnings.md` остыл, отсутствует или не отражает реальность: ...
+- Какой sign of reality надо туда занести сейчас: ...
+- Почему это не owner `system-architect`: ...
+- Следующий шаг `main-strategy`: ...
 
 ### Forces Verification
 - **Force 1** → уязвимые prescriptions: <N, M>; совпадает ли sunset signal с early signal: <да/нет; если нет — перепроектирую или удаляю силу>

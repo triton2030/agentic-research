@@ -26,6 +26,7 @@
 ## Рабочий Режим
 
 - 2026-04-22 · Skills использовать как routing, не как preload.
-- 2026-04-22 · Для существенной repo-level работы owner-chain по умолчанию: `main-strategy` -> `system-architect` -> `criteria-generator`.
+- 2026-04-22 · Для существенной repo-level работы owner-chain по умолчанию: `main-strategy` -> `system-architect` -> `task-planner`.
 - 2026-04-22 · `ops` использовать только для dialog-time framing, а не как постоянный repo owner.
-- 2026-04-22 · `criteria-generator` работает как primer + check, не как hard gate — не блокирует ход работы; нарушения Must эскалируются обратно вверх по owner-chain, но ход не останавливается на входе.
+- 2026-04-22 · `task-planner` работает как primer + check, не как hard gate — не блокирует ход работы; нарушения Must эскалируются обратно вверх по owner-chain, но ход не останавливается на входе.
+- 2026-04-22 · `system-architect` должен управлять agent instruction layer так, чтобы он защищал горячий `_ops`-контур `main-strategy`; `_ops/PROJECT-PLAN.md`, `_ops/INTERVIEW.md` и `_ops/learnings.md` надо пересинхронизировать почти после каждого значимого изменения.

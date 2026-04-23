@@ -6,10 +6,10 @@
 
 ## Что Есть
 
-### criteria-generator
+### task-planner
 - Тип: skill
 - Источник: наш
-- Что делает: превращает пользовательскую задачу в тот же запрос с добавленными LLM-устойчивыми критериями приёмки
+- Что делает: владеет task-файлом одного Step'а (`_ops/plans/phase-NN-<slug>/task-MM-<slug>.md`) — Цель / Подшаги / Критерии приёмки Must/Must-not с `Anchored in:`; primer + check для on-plan задач, fail-closed для ask вне плана через Plan-Anchor Gate
 
 ### main-strategy
 - Тип: skill

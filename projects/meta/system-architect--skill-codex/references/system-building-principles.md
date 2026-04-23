@@ -6,15 +6,21 @@
 
 Поведение системы — свойство структуры. Поэтому архитектор должен идти не от красивого ответа, а от:
 
-`telos -> as-is reality -> forces -> failure classes -> leverage -> minimize`
+`project reality -> AI job map -> pressure and failure map -> control surfaces -> leverage -> instruction architecture -> minimize`
 
 ## Принципы
 
-- `As-is before design`
-  Сначала карта реальных capabilities на текущей машине. Потом проектирование.
+- `Project before instructions`
+  Сначала понять сам проект и его траекторию. Только потом проектировать instruction layer.
+
+- `AI job map before guardrails`
+  Нельзя строить routing и guardrails, пока не ясно, какую работу ИИ должен делать.
+
+- `Control-surface reality before prescriptions`
+  Перед изменением системы надо увидеть, какие surfaces реально живы, а какие только упомянуты текстом.
 
 - `Forces are input, not epilogue`
-  Давление будущего должно ограничивать выбор заранее, а не объяснять уже выбранный фикс.
+  Давление будущего должно ограничивать выбор заранее, а не объяснять уже выбранный фикс задним числом.
 
 - `Leverage beats patch bundles`
   Сильная архитектурная правка убирает класс сбоев, а не один симптом.
@@ -40,13 +46,13 @@
 ## Частые Симптомы
 
 - `Модель плавает между файлами`
-  Частая причина: слабый owner graph и плохой as-is map.
+  Частая причина: слабый owner graph и плохая карта control surfaces.
 
 - `Модель изобретает новый слой`
-  Частая причина: capability reality не была проверена до prescriptions.
+  Частая причина: до prescriptions не были проверены project reality, AI job map или control-surface reality.
 
 - `Правил становится больше, а системы — меньше`
   Частая причина: нет minimize pass и leverage analysis.
 
 - `Архитектура выглядит умно, но не переживёт давление`
-  Частая причина: forces оказались в epilogue вместо design input.
+  Частая причина: pressure map оказалась в epilogue вместо design input.

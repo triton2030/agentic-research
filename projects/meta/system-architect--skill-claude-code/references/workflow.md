@@ -19,6 +19,13 @@
 
 Generic Goal или пустой Stage → **блокирую audit**. Верну: чего не хватает, почему без этого audit слабый, откат в `main-strategy`. Не компенсирую слабую карту generic архитектурой.
 
+**Freshness check.** `_ops/` триада должна быть **горячей**, а не snapshot'ом:
+- Когда каждый из трёх файлов последний раз обновлялся? (`git log -1 --format=%ad -- _ops/<file>`).
+- Есть ли в текущем диалоге или недавних сессиях сигналы, требующие обновления, но обновления не случилось? Сигналы: **preference revealed** (пользователь сказал «предпочитаю X», «не люблю Y», «давай в таком стиле») → INTERVIEW; **plan delta** (Stage завершён, новый Stage начался, Goal смещён, Anti-goal появился) → PROJECT-PLAN; **expected-vs-actual дельта** (что-то пошло не так, не как ожидали) → learnings.
+- Stale триада с явными непогашенными сигналами — это **default failure class** для Шага 4 («upstream truth layer не горячий»). Не молчаливо проходить.
+
+Если триада горячая и сигналы отработаны — отметь это в output Шага 1 явно: «триада горячая, сигналы отработаны». Если холодная — failure class обязателен.
+
 ## 2. As-is Map — Capability Inventory
 
 **First-order артефакт.** Не линза, не проверка мимоходом. Без него Шаг 6 невозможен.
@@ -78,6 +85,18 @@ Plan-specific пример: *«Активный Stage требует шипит�
 
 Группирую failures в **классы** — общий корень, не разрозненный список. Это подготовка к Шагу 5.
 
+### Default failure class — Cold Upstream Triad
+
+Всегда проверяю: есть ли в системе механизм, который **триггерит обновление `_ops/` триады при сигналах**?
+
+- Сигнал «preference revealed» приходит — что заставляет записать в INTERVIEW? UserPromptSubmit hook? Правило в AGENTS.md? Или ничего, и запись происходит только если пользователь сам попросит?
+- Сигнал «plan delta» приходит — что заставляет обновить PROJECT-PLAN? Stop hook при завершении Stage? Или никто?
+- Сигнал «expected-vs-actual дельта» приходит — что заставляет записать в learnings? Или дельты исчезают в истории чата?
+
+Если ответ «ничего / только дисциплина» — это **structural failure**, а не косметический. Попадает в Шаг 5 (leverage) как кандидат на systemic fix. Обычный fix — связка из трёх hooks (UserPromptSubmit / PostToolUse / Stop) или один compose skill для hot-keeping.
+
+Это default failure class — не исчезает, даже если в learnings.md он явно не записан, потому что stale триада это системный tilt, а не разовая дельта.
+
 ## 5. Leverage Analysis
 
 **Не «1 failure → 1 prescription».** Это инженерная гигиена, а не архитектура. Ищу одну интервенцию, которая убивает класс.
@@ -117,7 +136,7 @@ Prescriptions в Шаге 6 строятся из:
 1. **Runtime guardrail** (hook / permission / validator) — для необратимых и опасных сбоев.
 2. **Local skill** — для повторяемого workflow.
 3. **Instruction text** (AGENTS.md / системный prompt) — для устойчивой рамки.
-4. **`criteria-generator` handoff** — для task-level контракта.
+4. **`task-planner` handoff** — для task-level контракта.
 5. **Human checkpoint** — где нужна эскалация.
 
 Prompt-level допустима **только после явного отказа** от runtime и skill с причиной.
@@ -175,13 +194,13 @@ Prompt-level допустима **только после явного отка�
 
 Буквальная формулировка load-bearing правила, чтобы новая сессия считывала его без интерпретации.
 
-### Criteria-generator Handoff (если нужен)
+### Task-planner Handoff (если нужен)
 
 Если диагноз — shortcut, formal pass или weak done-state — явно рекомендую handoff. Называю:
-- durable instruction surfaces, которые `criteria-generator` читает как upstream;
+- durable instruction surfaces, которые `task-planner` читает как upstream;
 - task-level constraints, которые он наследует из них.
 
-Если архитектор отработал хорошо, `criteria-generator` делает **меньше** работы — правила уже живут в fabric.
+Если архитектор отработал хорошо, `task-planner` делает **меньше** работы — правила уже живут в fabric.
 
 ### Forces Verification
 

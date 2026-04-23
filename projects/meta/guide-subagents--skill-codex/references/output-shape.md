@@ -20,10 +20,10 @@ If assumptions materially affected the split, add:
 - ...
 ```
 
-If `_state/` is absent or does not change the split, omit `State signal`. If it matters, add:
+If a current-reality artifact materially changed the split, add:
 
 ```md
-## State signal
+## Current-reality signal
 - ...
 ```
 

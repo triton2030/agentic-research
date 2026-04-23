@@ -2,7 +2,7 @@
 
 Открывай этот файл только когда prescription требует конкретный Claude Code-specific механизм (hook, permission, subagent, MCP, skill). Для generic AI system thinking — `system-building-principles.md`.
 
-Порядок предпочтения при проектировании защиты: **runtime (hooks/permissions) → local skill → instruction text → criteria-generator handoff → human checkpoint**. Prompt-level правила — последнее средство, не первое.
+Порядок предпочтения при проектировании защиты: **runtime (hooks/permissions) → local skill → instruction text → task-planner handoff → human checkpoint**. Prompt-level правила — последнее средство, не первое.
 
 ## Hooks — события и когда их использовать
 
@@ -119,7 +119,7 @@ Skills в плагинах (marketplace или local) — повторяемые
 Следует точно, без адаптации. Каждый шаг обязателен.
 
 Когда использовать: когда дисциплина и порядок сами создают ценность.
-Примеры: `main-strategy` (thinking workflow для durable bet), `criteria-generator` (task-level контракт), TDD, security review.
+Примеры: `main-strategy` (thinking workflow для durable bet), `task-planner` (task-level контракт), TDD, security review.
 
 ### Flexible skill
 
@@ -159,6 +159,6 @@ Use case: skill, который только читает и анализиру�
 2. **Permission rule** даёт бэкап (если hook fail'ит).
 3. **Rigid skill** учит правильный путь.
 4. **AGENTS.md** даёт context почему это важно.
-5. **criteria-generator** ловит task-level bypass.
+5. **task-planner** ловит task-level bypass.
 
 Это defense in depth. Prescription, опирающаяся только на AGENTS.md, — самая слабая. Prescription, опирающаяся только на hook, — жёсткая, но без объяснения пользователю. Комбинация — надёжная.

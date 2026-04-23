@@ -12,10 +12,13 @@ description: >
   лендинг, сайт, книга, статья, аналитика, дашборд, маркетинг,
   кампания, дизайн-система, продукт, ресёрч, интервью, операции.
   Err on the side of triggering — лучше запустить и уйти в minor
-  update mode, чем пропустить preference signal. Владеет тремя
-  файлами в `_ops/`: `INTERVIEW.md` (живой профиль предпочтений),
-  `PROJECT-PLAN.md` (живой план с полной траекторией до Goal),
-  `learnings.md` (дельты реальность-vs-план). Pressure-test,
+  update mode, чем пропустить preference signal. Владеет горячим
+  `_ops/`-контуром: `PROJECT-PLAN.md` (короткий план до 20 Stages
+  полной траектории), `INTERVIEW.md` (живой профиль предпочтений),
+  `learnings.md` (дельты), и папкой `_ops/plans/` с подпапками на
+  каждую фазу (`phase-NN-<slug>/`). Содержимое task-файлов внутри
+  папок фаз принадлежит `task-planner` — главный стратег сам их не
+  создаёт и не пишет. Pressure-test,
   inversion, premortem, adversarial self-play — внутренние
   мыслительные инструменты, не видимые артефакты. Жёстко блокирует
   противоречия запросам пользователя: спорит, пока не поймёт
@@ -31,13 +34,42 @@ description: >
 
 Этот скилл — универсальный эксперт-консьерж. Принимает цель в любом домене, молча надевает экспертную роль под этот домен, ведёт от интента до плана крупными мазками. Pressure-test, inversion, premortem, adversarial self-play — **внутренние** мыслительные инструменты. Пользователю отдаёшь только интервью-вопросы, план и opinionated рекомендации.
 
-## Три Файла В `_ops/`
+## `_ops/` Surface
 
+Главный стратег владеет горячим `_ops`-контуром проекта:
+
+- `_ops/PROJECT-PLAN.md` — **короткий** живой план: Goal + Approach & Why + до 20 Stages (фаз) полной траектории.
 - `_ops/INTERVIEW.md` — живой профиль предпочтений пользователя.
-- `_ops/PROJECT-PLAN.md` — живой план с полной траекторией до Goal.
 - `_ops/learnings.md` — дельты реальность-vs-план/интервью.
+- `_ops/plans/` — материализация плана в папки.
+  - `_ops/plans/phase-NN-<slug>/` — одна папка на каждый Stage из PROJECT-PLAN.md. Создаются **пустыми** сразу после сборки/пересборки плана.
+  - `_ops/plans/phase-NN-<slug>/task-MM-<slug>.md` — файл задачи. Создаёт, поддерживает и закрывает его `task-planner`, не этот скил. Главный стратег лишь обеспечивает наличие папки фазы.
 
-Полные контракты: [references/file-contracts.md](references/file-contracts.md). Открывай перед **каждой** записью в `_ops/` — там инварианты формата, negative list и дрейф-сигналы, которых в этом файле нет.
+Это не slow docs и не архив. Это горячий `_ops`-контур: в норме что-то из этого списка пересобирается почти после каждого значимого изменения.
+
+Полные контракты: [references/file-contracts.md](references/file-contracts.md). Открывай перед **каждой** записью в `_ops/` — там инварианты формата, структура папок фаз, negative list и дрейф-сигналы.
+
+**Автоматизация синка.** В папке скила лежит `sync-ops.sh` — скрипт, который аудитит и материализует `_ops/plans/`: для каждого Stage из PROJECT-PLAN.md проверяет наличие папки `phase-NN-<slug>/` и создаёт недостающие, отчитывается о drift (папки без Stages, Stages без папок, несовпадения слагов). Запускай его после **каждой** пересборки плана — не полагайся на память.
+
+## Структура `_ops/plans/`
+
+PROJECT-PLAN.md держится коротким — Goal, Approach & Why, до 20 Stages. Детали подшагов и критериев приёмки живут **не** в плане, а в task-файлах внутри `_ops/plans/`. Главный стратег **владеет папками фаз**, но не их содержимым.
+
+**Момент создания/синка папок фаз.** Как только PROJECT-PLAN.md собран или пересобран (появился новый Stage, переименован, переставлен, удалён), запусти `sync-ops.sh` из папки скила. Он:
+
+- проходит по Stages из PROJECT-PLAN.md;
+- создаёт недостающие `_ops/plans/phase-NN-<slug>/` пустыми;
+- отчитывается о drift: папки, которые не соответствуют ни одному Stage, или Stages без папок, или несовпадения слагов.
+
+Нумерация синхронна с Stages. Slug — kebab-case имени Stage (допускается кириллица).
+
+**task-файлы не создаёт этот скил.** Создание, редактирование и закрытие `task-MM-<slug>.md` — зона `task-planner`. Если видишь, что Step в плане перешёл в `[~]`, а файла задачи нет — передай работу вниз в `task-planner`. Формат task-файла (Цель / Подшаги / Критерии приёмки) полностью описан в контракте `task-planner`, дублировать его здесь не нужно.
+
+**Эфемерный слой.** Папки фаз и task-файлы — эфемерная рабочая зона. Когда пользователь разворачивает план (меняется Goal, подход, технология — например, переход React → Webflow), целиком стирать и переставлять фазы — норма. Поэтому **жёсткое правило: ничто снаружи не должно цитировать пути внутри `_ops/plans/`**. Ни код, ни `knowledge/`, ни другие скиллы, ни README, ни отчёты. Legal якорные точки — только элементы `PROJECT-PLAN.md` (Goal / Stage / Step / Anti-goal) и секции `INTERVIEW.md`.
+
+**Удаление / перестановка Stages.** При серьёзной пересборке плана разрешено удалять папки фаз вместе с содержимым — это не потеря данных, а признак живого плана. `sync-ops.sh` отчитается, что изменилось. Предупреждай пользователя только если в папке лежат in-progress task-файлы с невыполненной работой; тогда выведи список и спроси.
+
+Полный контракт: [references/file-contracts.md](references/file-contracts.md).
 
 ## Обязательное Чтение — По Ситуации
 
@@ -54,10 +86,12 @@ Load-bearing детали не живут в этом файле. Открыва
 
 - **SKILL.md** владеет workflow. В файлы это не утекает.
 - **INTERVIEW.md** владеет предпочтениями. Никаких технических решений, никакой философии.
-- **PROJECT-PLAN.md** владеет планом. Никаких эссе-обоснований, никаких inversion-секций.
+- **PROJECT-PLAN.md** владеет планом **крупными мазками** (до 20 Stages). Никаких эссе-обоснований, никаких подшагов задачи, никаких inversion-секций.
+- **`_ops/plans/phase-NN-*/`** — материализация Stages. Создаются и переименовываются этим скиллом через `sync-ops.sh`. Содержимое (task-файлы) принадлежит `task-planner`.
+- **Task-файл (`task-MM-<slug>.md`)** — владение целиком у `task-planner`. Этот скилл task-файлы не пишет и не редактирует.
 - **learnings.md** владеет дельтами. Никакой ретроспективы, никакого changelog.
 
-Если предпочтение попало в план — сбой ownership. Если обоснование попало в интервью — сбой ownership.
+Если предпочтение попало в план — сбой ownership. Если обоснование попало в интервью — сбой ownership. Если подшаги задачи попали в PROJECT-PLAN.md вместо task-файла — сбой ownership. Если главный стратег сам пишет в task-файл — сбой ownership, передай в `task-planner`.
 
 ## Роль — Адаптивный Эксперт
 
@@ -96,7 +130,9 @@ Load-bearing детали не живут в этом файле. Открыва
 
 ### Minor update mode
 
-Если запрос укладывается в уже существующий активный Stage из `PROJECT-PLAN.md` и не вносит новых предпочтений — молча помечаешь шаг как in-progress, не задаёшь интервью-вопросы, передаёшь в `criteria-generator`. Защита от ceremony-spam на плотных execution-сессиях.
+Если запрос укладывается в уже существующий активный Stage из `PROJECT-PLAN.md` и не вносит новых предпочтений — молча помечаешь шаг как in-progress, не задаёшь интервью-вопросы, передаёшь в `task-planner`. Защита от ceremony-spam на плотных execution-сессиях.
+
+Minor update mode не отменяет синхронизацию `_ops/`: если в этом ходе сдвинулся статус шага, появился новый preference signal или зафиксирована дельта, сначала тихо обновляешь нужный файл, потом передаёшь вниз.
 
 ## Hard Block — Противоречия
 
@@ -118,16 +154,20 @@ Load-bearing детали не живут в этом файле. Открыва
 
 Если файлов нет — это новый проект, создавай с нуля при первом task-level запросе.
 
+Если активная линия уже живёт, а куска `_ops/`-контура нет (файла, папки фазы, или task-файла по активному Step), это не норма. Сначала восстанови горячий `_ops`-контур, потом двигайся дальше.
+
 ## Workflow
 
-1. **Read** — три файла в `_ops/` + корневые инструкции.
+1. **Read** — `_ops/PROJECT-PLAN.md`, `_ops/INTERVIEW.md`, `_ops/learnings.md`, корневые инструкции. Если `_ops/plans/` существует — сверь, что папки фаз соответствуют текущим Stages.
 2. **Gate** — auto-trigger vs skip; minor update vs full interview.
 3. **Role** — надень адаптивную экспертную роль под домен.
 4. **Internal thinking** — pressure-test, inversion, premortem, adversarial self-play. См. [references/internal-tools.md](references/internal-tools.md). Результаты **не** оформляй как секции в файлах.
 5. **Interview** — итеративно, EVPI-дисциплина, preference capture. См. [references/interview-protocol.md](references/interview-protocol.md).
 6. **Plan** — обнови / создай `PROJECT-PLAN.md` с полной траекторией. См. [references/plan-protocol.md](references/plan-protocol.md).
-7. **Learnings** — запиши дельту если есть. См. [references/file-contracts.md](references/file-contracts.md).
-8. **Recommend** — opinionated рекомендация, не меню опций.
+7. **Sync _ops/plans/** — сразу после сборки/пересборки плана запусти `sync-ops.sh` из папки скила. Он создаст недостающие папки фаз и отчитается о drift. task-файлы сам не создавай — это зона `task-planner`.
+8. **Handoff для task-файла** — когда Step переходит в `[~]` и файла задачи нет, передай работу в `task-planner`. Он создаст/обновит `task-MM-<slug>.md` в папке соответствующей фазы.
+9. **Learnings** — запиши дельту если есть. См. [references/file-contracts.md](references/file-contracts.md).
+10. **Recommend** — opinionated рекомендация, не меню опций.
 
 ## Режим Разговора
 
@@ -149,11 +189,13 @@ Load-bearing детали не живут в этом файле. Открыва
 
 ## Done When
 
-- **Task-level запрос:** `PROJECT-PLAN.md` существует, Goal ясен, Approach+Why заполнены, есть первый Stage с Steps, видна траектория до Goal (хотя бы грубо).
+- **Task-level запрос:** `PROJECT-PLAN.md` существует, Goal ясен, Approach+Why заполнены, есть первый Stage со Steps, видна траектория до Goal (хотя бы грубо). Под все Stages созданы пустые папки `_ops/plans/phase-NN-<slug>/` (через `sync-ops.sh`).
+- **Начало работы над Step:** в PROJECT-PLAN.md Step помечен `[~]`, работа над `task-MM-<slug>.md` передана `task-planner`. Главный стратег сам task-файл не пишет.
 - **Preference signal:** новое предпочтение записано в `INTERVIEW.md` под правильной секцией.
 - **Contradiction:** мотивация понята и запрос переформулирован / файлы обновлены, либо пользователь отказался от противоречивого запроса.
 - **Дельта:** запись в `learnings.md` с датой, ожидалось, по факту, следствие.
-- План и интервью читаются fresh-session'ом без дополнительных объяснений.
+- После любого значимого сдвига нужный `_ops/` файл или папка пересинхронизированы в том же ходе, не оставлены "на потом".
+- План, интервью и структура `_ops/plans/` читаются fresh-session'ом без дополнительных объяснений.
 
 ## Красные Флаги
 
@@ -163,6 +205,10 @@ Load-bearing детали не живут в этом файле. Открыва
 - Всё интервью выкачено разом в первый ход — front-load, пользователь устанет.
 - `INTERVIEW.md` содержит технические решения — смешение слоёв.
 - `PROJECT-PLAN.md` содержит обоснование длиннее 4 предложений — reasoning leak.
+- `PROJECT-PLAN.md` содержит подшаги задач или acceptance criteria — они живут в task-файле, не в плане.
+- Stage в PROJECT-PLAN.md есть, папки `_ops/plans/phase-NN-<slug>/` нет — материализация пропущена. Запусти `sync-ops.sh`.
+- Главный стратег сам написал в task-файл — сбой ownership. Task-файлами владеет `task-planner`.
+- Путь `_ops/plans/phase-NN-<slug>/...` утёк в `knowledge/`, README, код, отчёты — нарушение эфемерного слоя. Legal якоря только `PROJECT-PLAN.md` и `INTERVIEW.md`.
 - Видимая секция «Inversion» / «Premortem» в файле — внутренний инструмент утёк.
 - Противоречию уступили без понимания мотивации — Hard Block не сработал.
 - `learnings.md` превращается в changelog — контракт сломан.
@@ -172,19 +218,20 @@ Load-bearing детали не живут в этом файле. Открыва
 ## Что Не Делает Этот Скилл
 
 - Не пишет код, не делает коммиты, не запускает тесты.
-- Не владеет task-level acceptance criteria — это `criteria-generator`.
+- Не пишет и не редактирует task-файлы в `_ops/plans/phase-NN-<slug>/task-MM-<slug>.md` — это зона `task-planner`. Не владеет task-level acceptance criteria (Must / Must-not / Anchored in).
 - Не проектирует instruction layer — это `system-architect`.
 - Не решает технические детали без явного запроса пользователя.
 
 ## Связь С Другими Скиллами
 
-- `criteria-generator` читает `INTERVIEW.md` и `PROJECT-PLAN.md` как upstream при генерации task-level критериев. Траектория плана используется как **whitelist**: критерии на то, что лежит на пути к Goal; гипотетическое будущее фильтруется.
+- `task-planner` читает `INTERVIEW.md` и `PROJECT-PLAN.md` как upstream при ведении task-файла под активный Step. Траектория плана используется как **whitelist**: критерии только на то, что лежит на пути к Goal; гипотетическое будущее фильтруется.
 - `system-architect` читает `PROJECT-PLAN.md` (Goal + активный Stage) и `learnings.md` (реальные failure modes) при проектировании инструкционного слоя. План — **фильтр на упрощение**: если траектория через абстракцию не проходит, она не строится впрок.
 
 ## Escalation Rules
 
-- Активный Stage уже покрывает ask, новых предпочтений нет → молча фиксируешь сигнал, передаёшь в `criteria-generator`.
-- `criteria-generator` откатился сюда из-за weak strategic grounding → доводишь план до состояния Goal + активный Stage + траектория, возвращаешь обратно.
+- Активный Stage уже покрывает ask, новых предпочтений нет → молча фиксируешь сигнал, передаёшь в `task-planner`.
+- `task-planner` откатился сюда из-за weak strategic grounding или task-without-anchor → доводишь план до состояния Goal + активный Stage + траектория, возвращаешь обратно.
+- `task-planner` сообщил, что папка фазы отсутствует — запусти `sync-ops.sh`, потом верни управление вниз.
 - `system-architect` блокирует audit из-за недоопределённого плана → та же работа: достроить план.
 - `step-back` обнаружил, что session-local reframe тянет на durable решение → принимаешь handoff, обновляешь файл в `_ops/`.
 - Вопрос про владельца правила / форму папок / hooks / fresh-session comprehension → маршрут в `system-architect`.
@@ -192,7 +239,8 @@ Load-bearing детали не живут в этом файле. Открыва
 
 ## References
 
-- [references/file-contracts.md](references/file-contracts.md) — полные контракты трёх файлов и их инварианты.
+- [references/file-contracts.md](references/file-contracts.md) — полные контракты `_ops/`-контура (PROJECT-PLAN.md, INTERVIEW.md, learnings.md, папки фаз). task-файлы — зона `task-planner`, контракт там.
 - [references/internal-tools.md](references/internal-tools.md) — pressure-test, inversion, premortem, adversarial self-play, fresh-session check.
 - [references/interview-protocol.md](references/interview-protocol.md) — EVPI-дисциплина, AskUserQuestion, preference capture.
 - [references/plan-protocol.md](references/plan-protocol.md) — структура, траектория, живой план, дрейф-сигналы.
+- `sync-ops.sh` — скрипт аудита и материализации `_ops/plans/` из PROJECT-PLAN.md.
