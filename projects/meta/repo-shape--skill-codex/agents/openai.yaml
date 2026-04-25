@@ -1,0 +1,8 @@
+interface:
+  display_name: "Repo Shape"
+  short_description: "Design repo runtime shape"
+  default_prompt: >
+    Use $repo-shape to design repo runtime shape when the task matches its trigger.
+
+policy:
+  allow_implicit_invocation: true

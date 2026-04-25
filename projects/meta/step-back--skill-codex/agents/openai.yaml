@@ -10,8 +10,10 @@ interface:
     unfaithfulness, goal misgeneralization, frame lock). Also on explicit
     requests like "шаг назад", "step back", "давай отойдём", "выйдем на
     уровень выше". Works on any topic, any project. No file writes, no
-    persistence. Single-block output in a strict 4-field form (Ошибка /
-    Было / Стало / Ход), then executes the reframed next move immediately.
+    persistence. If the reframe exposes a durable user preference, surface
+    a handoff to `preference-sync` to update `_ops/INTERVIEW.md`; do not write it yourself.
+    Single-block output in a strict 4-field form (Ошибка / Было / Стало /
+    Ход), then executes the reframed next move immediately.
 
 policy:
   allow_implicit_invocation: true

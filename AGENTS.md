@@ -45,23 +45,21 @@
 
 - `_ops/` — не общий склад заметок, backlog и случайных plan-файлов
 - По умолчанию `_ops/` должен быть пустым
-- Если `main-strategy` реально активирован и работа требует durable layer, main-strategy владеет тремя файлами:
-  - `_ops/PROJECT-PLAN.md` — короткий план до 20 фаз полной траектории
-  - `_ops/INTERVIEW.md`
-  - `_ops/learnings.md`
-- `_ops/plans/` — **эфемерный operational слой**, синхронизируется с PROJECT-PLAN:
-  - `_ops/plans/phase-NN-<slug>/` — папка под каждый Stage из PROJECT-PLAN.md, main-strategy держит набор в sync через свой `sync-ops.sh`
-  - `_ops/plans/phase-NN-<slug>/task-MM-<slug>.md` — task-файл одного Step, владелец — `task-planner` (Цель / Подшаги / Критерии приёмки)
-  - **Не ссылаться на пути внутри `_ops/plans/` извне** (скиллы, код, документация): слой одноразовый, пользователь может удалить содержимое при смене траектории
+- `project-strategy` владеет `_ops/PROJECT-PLAN.md` и `_ops/learnings.md`
+- `preference-sync` владеет `_ops/INTERVIEW.md`
+- `ops-sync` синхронизирует `_ops/plans/phase-NN-<slug>/` и `done/` по Stages из PROJECT-PLAN
+- `task-contract` владеет `_ops/plans/phase-NN-<slug>/task-MM-<slug>.md` целиком: Цель / Подшаги / Критерии приёмки
+- `_ops/plans/` — эфемерный слой; не ссылаться на пути внутри него извне
 - Не создавать numbered `_ops/*` вроде `1-NORTH-STAR.md`, `2-RATIONALE.md`, `3-CURRENT-STRATEGY.md`
-- Не создавать `_ops/inbox/`, task trackers и другие ops-поверхности сверх того, что явно описано в контрактах `main-strategy` и `task-planner`
+- Не создавать `_ops/inbox/`, task trackers и другие ops-поверхности сверх контрактов live skills
 
 ## Минимальный След
 
-- По умолчанию новые файлы не создавать
-- Сначала обновлять существующий правильный файл
+- По умолчанию новые файлы, разделы и абзацы не создавать
+- Сначала обновлять существующий правильный файл; если его нет, назвать функцию будущего файла до создания
+- Каждый файл держит одну функцию; содержимое вне функции файла не добавлять
 - Не заводить side-docs, summaries, handoff notes и дополнительные explainers без явного запроса
-- Каждый новый файл и лишний абзац считать будущим drift-point
+- Каждый новый файл, раздел и лишнее слово считать будущим drift-point
 
 ## Куда Что Класть
 
@@ -72,7 +70,7 @@
 - Категорийные learnings и inventories → `knowledge/research/{category}/`
 - Новый agent / skill / plugin → `projects/{category}/...`
 - Retired или superseded project artifacts → `projects/_archive/`, если их нужно сохранить как историю
-- Skill-owned operational state → `_ops/` только когда его реально создаёт живой skill
+- Skill-owned operational state → `_ops/` только когда его реально создаёт live skill
 
 ## Перед Работой
 
@@ -80,10 +78,11 @@
 - Для крупных shape/routing задач читать `knowledge/wisdom-systems-thinking.md`
 - Перед работой в категории читать `knowledge/research/{category}/learnings.md`
 - Skills использовать как routing, не как preload
-- Для существенной repo-level работы default owner-chain такой:
-  - `main-strategy` — durable plan / preferences / `_ops/` + phase-folder sync
-  - `system-architect` — instruction layer, folder ownership, guardrails
-  - `task-planner` — владелец task-файла (Цель / Подшаги / Критерии приёмки Must/Must-not с Anchored in)
+- Default chain для существенной repo-level работы: `before-work` → нужный owner-skill → execution → `work-review`
+- Перед substantive Edit/Write использовать `before-write`
+- Task-file scope/criteria/status/closeout → `task-contract`
+- Direction/Goal/roadmap/status drift → `project-strategy`; phase folders → `ops-sync`; preferences → `preference-sync`; contradictions → `contradiction-hold`; plan evidence drift → `plan-drift-watch`
+- Skill/trigger design → `skill-architect`; AGENTS/CLAUDE/routing placement → `instruction-layer`; folders/hooks/permissions/MCP/validators → `repo-shape`
 - `step-back` — dialog-time framing и один короткий zoom-out/reframe ход
 - `guide-subagents` — только когда пользователь явно хочет subagents/delegation
 - Если root docs и skill conflict, следовать skill contract
@@ -91,10 +90,10 @@
 
 ## Правила Письма
 
-- Писать как можно короче
+- Писать как можно короче; каждое слово должно платить за место
 - По умолчанию писать только запрошенное
 - Не выдумывать facts
-- Не добавлять разделы и пояснения без необходимости
+- Не придумывать новые разделы, описания и пояснения без необходимости
 - Отделять факты от гипотез
 - Имена обычных файлов и проектных папок — `kebab-case`
 - `AGENTS.md`, `CLAUDE.md`, `knowledge/`, `projects/`, `_ops/` — допустимые исключения

@@ -1,13 +1,9 @@
 ---
 name: guide-subagents
 description: >
-  Use when the user explicitly wants Codex subagents or parallel delegation and the
-  result depends on a clean split, strong briefs, and disciplined integration
-  afterward. Decide whether delegation is worth it, keep the main agent on
-  blocking or integration work, assign workers only disjoint clean scopes, and
-  verify returned work on disk before trusting status reports. Do not use for
-  vague multi-agent brainstorming, for work that is faster to do locally, or
-  when ownership cannot be separated cleanly.
+  Use only on explicit Codex subagents, delegation, parallel workers, or
+  independent passes with separable scopes. Skip "think deeply", vague
+  brainstorming, and non-disjoint work.
 ---
 
 # Guide Subagents (Codex)
@@ -20,9 +16,9 @@ This skill is execution hygiene for native Codex subagents. It sits downstream o
 
 If any of these are unresolved, do not force delegation yet:
 
-- missing durable goal, plan, or user-preference context -> `main-strategy`;
-- unresolved control-surface, folder ownership, or where a guardrail belongs -> `system-architect`;
-- unresolved task-level acceptance criteria or proof boundary -> `task-planner`.
+- missing durable goal or plan context -> `project-strategy`; user-preference context -> `preference-sync`;
+- unresolved instruction placement -> `instruction-layer`; unresolved folder/runtime/tooling guardrail -> `repo-shape`;
+- unresolved task-level acceptance criteria or proof boundary -> `task-contract`.
 
 ## When to use
 

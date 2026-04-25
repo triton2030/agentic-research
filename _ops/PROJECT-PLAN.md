@@ -20,15 +20,15 @@
 
 - [x] Зафиксировать repo-level Goal и owner-layer в `_ops/`.
 - [~] Перевести стратегический слой на модель `_ops/PROJECT-PLAN.md` / `_ops/INTERVIEW.md` и не возвращать старый `ops/`.
-- [~] Зафиксировать owner-chain так, чтобы `system-architect` защищал горячий `_ops`-контур `main-strategy` и не давал `PROJECT-PLAN` / `INTERVIEW` / `learnings` остывать между значимыми изменениями.
+- [~] Зафиксировать owner-chain так, чтобы `instruction-layer` защищал горячий `_ops`-контур, moment-skills освежали контекст до/перед записью/после работы, `task-contract` владел только task-файлами, а `project-strategy` сверял `PROJECT-PLAN` с chat/git/task-фактами.
 - [ ] Сверить корневые инструкции, inventories и активные project folders с фактической живой поверхностью репы.
 - [ ] Зафиксировать в `AGENTS.md` правила placement для research vs guides vs wisdom vs shipped skills, чтобы `knowledge/` не дрейфовал.
-- [x] Переименовать `criteria-generator` → `task-planner` (Codex + Claude Code) — владелец task-файла (`_ops/plans/phase-NN-<slug>/task-MM-<slug>.md`): Цель / Подшаги / Критерии приёмки; primer + check для on-plan задач, fail-closed для ask вне плана через Plan-Anchor Gate; финальный блок — короткое русское резюме `_ops/`.
+- [x] Закрепить `task-contract` в Claude Code landscape как владельца task-файла (`_ops/plans/phase-NN-<slug>/task-MM-<slug>.md`): Цель / Подшаги / Критерии приёмки; primer/check моменты вынесены в `before-work`, `before-write` и `work-review`.
 - [ ] Закрыть явные stale surfaces и архивные хвосты так, чтобы новая сессия читала один и тот же truth layer.
 
 ### 2. Довести meta-стек до platform-parity [ ]
 
-- [ ] Удержать `main-strategy`, `system-architect`, `task-planner`, `step-back` и соседние meta artifacts одинаковыми по сути между Codex и Claude Code.
+- [ ] Решить отдельным task, какой parity нужен между Claude Code split landscape и текущими Codex meta artifacts.
 - [ ] Оставлять только platform-necessary differences: packaging, tool invocation, pathing и metadata.
 - [ ] Держать inventories и repo docs в синхроне с реальным набором живых control surfaces.
 

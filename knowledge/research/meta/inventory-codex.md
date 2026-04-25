@@ -1,58 +1,106 @@
 # Meta — Инвентарь Codex
 
-Снимок на 22 апреля 2026.
+Снимок на 25 апреля 2026.
 
-Инвентарь смешанный: здесь перечислены и repo-local project artifacts, и globally available handles, которые реально доступны в рабочей среде. Если локальной проектной папки нет или она ушла в `projects/_archive/`, сначала проверяй installed handle; archived folder сам по себе не делает capability живой.
+Инвентарь смешанный: здесь перечислены repo-local project artifacts и globally installed handles, которые реально доступны в рабочей среде. Если локальная проектная папка ушла в `projects/_archive/`, сначала проверяй installed handle; archive сам по себе не делает capability живой.
 
-## Что Есть
+## Split Meta Skills
 
-### task-planner
+### before-work
 - Тип: skill
-- Источник: наш
-- Что делает: владеет task-файлом одного Step'а (`_ops/plans/phase-NN-<slug>/task-MM-<slug>.md`) — Цель / Подшаги / Критерии приёмки Must/Must-not с `Anchored in:`; primer + check для on-plan задач, fail-closed для ask вне плана через Plan-Anchor Gate
+- Что делает: освежает Stage / цель / Must-not / next step перед нетривиальной работой.
 
-### main-strategy
+### before-write
 - Тип: skill
-- Источник: наш
-- Что делает: владеет durable project framing через `_ops/PROJECT-PLAN.md`, `_ops/INTERVIEW.md` и `_ops/learnings.md`
+- Что делает: проверяет write scope прямо перед `apply_patch`, bulk rewrite или generated file creation.
 
-### system-architect
+### work-review
 - Тип: skill
-- Источник: наш
-- Что делает: аудирует и улучшает систему агентных инструкций, папок и capabilities так, чтобы новая сессия модели понимала truth layer, приоритеты, routing и границы работы
+- Что делает: сверяет результат с goal / criteria / evidence перед финальным closeout.
+
+### preference-sync
+- Тип: skill
+- Что делает: владеет durable preference capture в `_ops/INTERVIEW.md`.
+
+### contradiction-hold
+- Тип: skill
+- Что делает: держит конфликт между новым запросом и stored plan/preference truth до ясной мотивации.
+
+### plan-drift-watch
+- Тип: skill
+- Что делает: ловит chat/git/task/artifact evidence, показывающий drift между планом и реальностью.
+
+### task-contract
+- Тип: skill
+- Что делает: владеет task-файлом `_ops/plans/phase-NN-*/task-MM-*.md` — Цель / Подшаги / Критерии приёмки.
+
+### strategy-trace
+- Тип: skill
+- Что делает: read-only alignment trace артефакта или запроса против Goal / Stage / intent.
+
+### pulse-check
+- Тип: skill
+- Что делает: read-only probe того, держит ли сессия цель и активную линию в памяти.
+
+### project-strategy
+- Тип: skill
+- Что делает: владеет `_ops/PROJECT-PLAN.md` и `_ops/learnings.md`.
+
+### ops-sync
+- Тип: skill
+- Что делает: синхронизирует `_ops/plans/` phase folders с Stages из PROJECT-PLAN.
+
+### skill-architect
+- Тип: skill
+- Что делает: проектирует Codex skill trigger surfaces, descriptions, references, validation и `agents/openai.yaml`.
+
+### instruction-layer
+- Тип: skill
+- Что делает: решает placement правил в AGENTS/CLAUDE/subtree instructions и routing.
+
+### repo-shape
+- Тип: skill
+- Что делает: проектирует folders, plugins, MCP/apps, subagents, validators, scripts, config и tool boundaries.
+
+## Utility Skills / Capabilities
 
 ### step-back
 - Тип: skill
-- Источник: наш
-- Что делает: делает один короткий zoom-out / reframe, когда разговор ушёл в sycophancy drift, tunnel vision или debug loop
+- Что делает: короткий zoom-out / reframe при reasoning drift.
+
+### screenshot-design
+- Тип: skill
+- Что делает: visual critique UI screenshots.
+
+### pitch-coherence-audit
+- Тип: skill
+- Что делает: narrative coherence audit для investor pitch materials.
+
+### playwright
+- Тип: skill
+- Что делает: re-runnable browser automation flows.
 
 ### subagents (native)
 - Тип: agent
 - Источник: OpenAI
-- Что делает: позволяют запускать в Codex специализированных агентов с отдельным контекстом и распределять работу по ролям
+- Что делает: отдельные контексты для критики, проверки или делегирования при явном запросе пользователя.
 
 ### guide-subagents
 - Тип: skill
-- Источник: наш
-- Что делает: помогает подготовить запуск native Codex subagents через чат — отделяет локальный следующий шаг от параллельных потоков, пишет сильные brief'ы и только потом просит явное подтверждение пользователя
-
-### llm-wisdom
-- Тип: skill
-- Источник: наш, globally available; repo-local версия архивирована
-- Что делает: даёт переносимую библиотеку знаний о поведении LLM, типовых failure modes, shortcutting и сильных control levers при создании агентов, промптов и скиллов
+- Что делает: готовит запуск native Codex subagents через чат и держит owner boundaries.
 
 ### skills
-- Тип: skill
+- Тип: system feature
 - Источник: OpenAI
-- Что делает: задают повторяемый workflow-слой поверх обычного поведения Codex
+- Что делает: повторяемый workflow-слой поверх обычного поведения Codex.
 
 ### plugins
 - Тип: plugin
 - Источник: OpenAI
-- Что делает: упаковывают skills, app integrations и MCP в расширяемый слой Codex
+- Что делает: упаковывают skills, app integrations и MCP в расширяемый слой Codex.
 
 ## Чего Не Хватает
 
-- Memory skill — гибридная активация и безопасная запись пользовательских, проектных и стратегических знаний в scoped память с confirmation, merge и audit
-- Builder-agent для typed `AgentSpec`, tool bundle и eval bundle
-- Promotion rule: когда знание остаётся в `_research/`, а когда переходит в устойчивые правила
+- Sync script source↔installed для Codex skills.
+- Trigger smoke на свежих Codex sessions после split rollout.
+- Promotion rule: когда знание остаётся в research, а когда переходит в устойчивые rules.

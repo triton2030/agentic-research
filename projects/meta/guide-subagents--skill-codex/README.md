@@ -17,7 +17,7 @@
 
 ## Важные Границы
 
-- Upstream owners остаются upstream: `main-strategy`, `system-architect`, `task-planner`.
+- Upstream owners остаются upstream: `project-strategy`, `instruction-layer` / `repo-shape`, `task-contract`.
 - `guide-subagents` не компенсирует отсутствующий план, не придумывает критерии и не превращается в mini-orchestrator.
 - Native Codex launch mechanics и post-launch verification считаются частью самого workflow, а не “деталями исполнения”.
 

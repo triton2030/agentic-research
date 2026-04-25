@@ -1,19 +1,9 @@
 ---
 name: step-back
 description: >
-  Cognitive meta-regulator for the dialog. Use when the thinking itself
-  needs to be questioned, not when execution needs to continue. Triggers
-  on patterns of reasoning failure common to humans and LLMs: sycophancy
-  drift (agreeing without a position), anchoring on the first framing,
-  Einstellung (applying a familiar method regardless of fit), premature
-  convergence on an early hypothesis, goal drift across turns, sunk-cost
-  continuation of a long chain of thought, streetlight effect, LLM-specific
-  confabulation, chain-of-thought unfaithfulness, goal misgeneralization,
-  and frame lock from prompt/instruction layer. Also on explicit requests
-  ("шаг назад", "step back", "давай отойдём", "выйдем на уровень выше",
-  "зум аут", "не о том ли мы"). Works on any topic, any project, with or
-  without code. No file writes, no persistence. Single-block output in
-  a strict 4-field form, then executes the reframed next move immediately.
+  Use to reframe wrong goals, assumptions, or reasoning paths: "шаг назад",
+  "step back", zoom out, goal drift, anchoring, sycophancy, or frame lock.
+  Skip clear execution; no files.
 ---
 
 # Шаг Назад
@@ -29,6 +19,8 @@ description: >
 Скил — таблетка от ошибок мышления, общих людям и LLM (anchoring, Einstellung, premature convergence, sunk cost, streetlight, goal drift) и специфичных моделям (sycophancy, confabulation, chain-of-thought unfaithfulness, goal misgeneralization, frame lock).
 
 Не процесс, не маршрутизатор, не интервью. Один ход. Ноль файлов. Никакой persistence.
+
+Если во время reframe проявился durable preference signal пользователя, не записывай его сам. Назови это в `Ход:` как handoff в `preference-sync` на обновление `_ops/INTERVIEW.md`, затем продолжай уже с новой рамкой. `step-back` слушает и подсвечивает, но не владеет памятью.
 
 ## Когда Включаться
 
@@ -102,7 +94,7 @@ Load-bearing таксономия классов ошибок — **не зде�
 - Не ведёт интервью (максимум один вопрос после блока, и только если load-bearing).
 - Не создаёт план.
 - Не объясняет процесс, не извиняется за шаг назад.
-- Не маршрутизирует в другие скилы — просто продолжает с новой рамкой.
+- Не маршрутизирует в другие скилы как общий dispatcher. Единственное исключение: durable preference signal → handoff в `preference-sync` на обновление `_ops/INTERVIEW.md`, потому что сам скил не пишет файлы.
 
 ## Работает Везде
 

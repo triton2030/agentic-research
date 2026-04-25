@@ -1,0 +1,8 @@
+interface:
+  display_name: "Contradiction Hold"
+  short_description: "Hold conflicts before override"
+  default_prompt: >
+    Use $contradiction-hold to hold conflicts before override when the task matches its trigger.
+
+policy:
+  allow_implicit_invocation: true

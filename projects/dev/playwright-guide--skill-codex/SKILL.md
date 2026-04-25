@@ -1,17 +1,9 @@
 ---
 name: playwright-guide
 description: >
-  Use when the task touches browser automation, live-page evidence collection,
-  Playwright script authoring, UI-flow verification, or layout/design checks
-  where the first job is to route work through already installed official
-  Playwright skills instead of inventing a local browser workflow. This skill
-  is a guide and router: choose between `$playwright`,
-  `$playwright-interactive`, and adjacent review skills, expose only the
-  context that changes the browser path, and gather evidence before judgment.
-  Use for one-shot browser checks, persistent interactive debugging, section
-  evidence capture, and algorithmic checks of spacing, block order, and visual
-  weight. Do not use for pure code review or screenshot-only critique where a
-  screenshot skill already fits directly.
+  Use to route live-page/browser evidence work between `$playwright`,
+  `$playwright-interactive`, and visual review skills. Skip pure code
+  review, static CSS reasoning, and screenshot-only critique.
 ---
 
 # Playwright Guide

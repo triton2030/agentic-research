@@ -1,19 +1,9 @@
 ---
 name: screenshot-design
 description: >
-  Runs an evidence-backed artistic critique of UI screenshots: landing pages,
-  dashboards, flows, competitor screens, and before/after comparisons.
-  MANDATORY only when the screenshot is a UI artifact and the task is to
-  judge visible design qualities such as layout, spacing, hierarchy,
-  typography, color, density, composition, polish, or harmony. Do not
-  trigger just because an attachment happens to be a screenshot. Use by
-  default for requests like "analyze this UI", "audit this design", "check
-  this screen layout", or "compare these product screens". The printed answer
-  must follow a delayed-judgment order: what is noticed first, what starts to
-  break, verdict, then fix-next changes. Do NOT use for receipts, passports,
-  IDs, invoices, scanned documents, chat logs, terminal captures,
-  OCR/extraction, factual reading, proof/evidence review, code review, Figma
-  editing, live-browser verification, or invisible states.
+  Use for visual critique of UI screenshots: layout, hierarchy, typography,
+  composition, polish, or harmony. Skip non-UI, OCR, evidence, code, Figma,
+  live-browser, and invisible states.
 ---
 
 # Screenshot Design

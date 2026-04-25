@@ -1,0 +1,8 @@
+interface:
+  display_name: "Preference Sync"
+  short_description: "Capture durable preferences"
+  default_prompt: >
+    Use $preference-sync to capture durable preferences when the task matches its trigger.
+
+policy:
+  allow_implicit_invocation: true

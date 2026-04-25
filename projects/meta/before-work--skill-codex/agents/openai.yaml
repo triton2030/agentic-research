@@ -1,0 +1,8 @@
+interface:
+  display_name: "Before Work"
+  short_description: "Refresh task frame before work"
+  default_prompt: >
+    Use $before-work to refresh task frame before work when the task matches its trigger.
+
+policy:
+  allow_implicit_invocation: true

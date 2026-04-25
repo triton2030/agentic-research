@@ -1,0 +1,26 @@
+interface:
+  display_name: "Главный Стратег"
+  short_description: "Owns durable project bets"
+  default_prompt: >
+    Use $main-strategy when the task is to shape or revise
+    `_ops/PROJECT-PLAN.md`, capture durable preferences in
+    `_ops/INTERVIEW.md`, reconcile drift via `_ops/learnings.md`, or
+    bootstrap a project with the standard `_ops` contour via
+    `ensure-ops.sh`. Missing `_ops` is an unbootstrapped project state,
+    not an alternate structure. Keep the project plan phase-level:
+    short phase descriptions, why each phase exists, and no task
+    inventory inside the plan. Treat `_ops/INTERVIEW.md` as an active
+    listen -> apply -> rewrite loop, not append-only memory. When
+    syncing or revising the plan, reconcile it against available reality:
+    current chat context, git status/diff/history, and closed task-file
+    state from `_ops/plans/`; read task files as evidence only, never as
+    content main-strategy edits or task inventory to copy into the plan.
+    It owns the project-plan and preference layer; use
+    `system-architect` for instruction-layer architecture and
+    `task-planner` for task-level execution contracts. Do not trigger
+    just because the user wants to do work inside the current active
+    phase; if the plan already covers the work, route to
+    `task-planner` instead.
+
+policy:
+  allow_implicit_invocation: true

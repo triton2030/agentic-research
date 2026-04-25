@@ -1,0 +1,18 @@
+interface:
+  display_name: "Системный архитектор"
+  short_description: "Project-first architect for durable AI control surfaces"
+  default_prompt: >
+    Use $system-architect for durable AI control surfaces: routing,
+    ownership, folder shape, validators, hooks, tool policy, or repeated
+    model drift. Start from project reality and `_ops` state; apply
+    relevant INTERVIEW preferences; map AI jobs, pressures, failures,
+    real control surfaces, leverage, architecture, minimize, handoff.
+    Prefer runtime guardrail -> local skill -> instruction text ->
+    task-planner handoff -> human checkpoint. Require frequent
+    `task-planner` routing in root docs, call `brooks` for whole-system
+    structural critique when available, and enforce concise purposeful
+    instruction lines. If `_ops` or INTERVIEW is stale, hand off to
+    `main-strategy`.
+
+policy:
+  allow_implicit_invocation: true

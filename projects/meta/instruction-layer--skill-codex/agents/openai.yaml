@@ -1,0 +1,8 @@
+interface:
+  display_name: "Instruction Layer"
+  short_description: "Place routing instructions"
+  default_prompt: >
+    Use $instruction-layer to place routing instructions when the task matches its trigger.
+
+policy:
+  allow_implicit_invocation: true

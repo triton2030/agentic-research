@@ -1,0 +1,8 @@
+interface:
+  display_name: "Project Strategy"
+  short_description: "Own plan direction and learnings"
+  default_prompt: >
+    Use $project-strategy to own plan direction and learnings when the task matches its trigger.
+
+policy:
+  allow_implicit_invocation: true

@@ -1,19 +1,18 @@
 ---
 name: step-back
 description: >
-  Cognitive meta-regulator for the dialog. Use when the thinking itself
-  needs to be questioned, not when execution needs to continue. Triggers
-  on patterns of reasoning failure common to humans and LLMs: sycophancy
-  drift (agreeing without a position), anchoring on the first framing,
-  Einstellung (applying a familiar method regardless of fit), premature
-  convergence on an early hypothesis, goal drift across turns, sunk-cost
-  continuation of a long chain of thought, streetlight effect, LLM-specific
-  confabulation, chain-of-thought unfaithfulness, goal misgeneralization,
-  and frame lock from prompt/instruction layer. Also on explicit requests
-  ("шаг назад", "step back", "давай отойдём", "выйдем на уровень выше",
-  "зум аут", "не о том ли мы"). Works on any topic, any project, with or
-  without code. No file writes, no persistence. Single-block output in
-  a strict 4-field form, then executes the reframed next move immediately.
+  Reframe the conversation when the current line of thinking may be wrong.
+  Use when the frame, goal, assumption, or reasoning path needs to be
+  questioned before execution continues. Trigger on explicit requests:
+  "шаг назад", "step back", "давай отойдём", "выйдем на уровень выше",
+  "зум аут", "посмотрим шире", "не о том ли мы", "что мы вообще делаем",
+  or "притормози". Also trigger on reasoning-failure signals: sycophancy
+  drift, anchoring, Einstellung, premature convergence, goal drift, sunk
+  cost, streetlight effect, confabulation, chain-of-thought unfaithfulness,
+  goal misgeneralization, or frame lock from instructions. Output one
+  strict 4-field reframe block, then continue with the reframed next move.
+  Do not trigger when the task is already framed correctly and execution
+  should continue; do not write files or persist memory.
 ---
 
 # Шаг Назад

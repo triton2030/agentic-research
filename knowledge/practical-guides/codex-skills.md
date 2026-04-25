@@ -8,7 +8,8 @@
 ## Что Важно Именно Для Codex
 
 - Installed skill держать lean в `~/.codex/skills/<name>/`: только то, что реально нужно Codex.
-- `description` писать как routing contract: `Use when ...`, boundaries, skip-cases. Для Codex длинный boundary-rich `description` — нормальный официальный паттерн.
+- `description` писать как routing contract, а не summary: `Use when ...`, `Trigger when ...`, реальные user phrases, boundaries, skip-cases, tool/workflow preference. Для Codex длинный boundary-rich `description` — нормальный официальный паттерн.
+- Всё "когда использовать" класть во frontmatter `description`: body грузится уже после trigger, поэтому body-only `When to use` не помогает первичному выбору skill.
 - `agents/openai.yaml` добавлять почти всегда: для Codex metadata — реальная UI/routing surface, не косметика.
 - `SKILL.md` оставлять тонким; в официальном repo-local corpus типичная форма часто ближе к short operational playbook, чем к длинному guide.
 - Ядро строить вокруг `Overview` / `Quick start` / `Workflow`; детали выносить в `references/`, `scripts/`, `assets/`.
@@ -21,6 +22,7 @@
 - Не класть в installed skill лишние `README.md`, `CHANGELOG.md`, `QUICK_REFERENCE.md`.
 - Не дублировать один и тот же материал в `SKILL.md` и `references/`.
 - Не писать `description` как label уровня “this skill helps with X”; без boundary wording Codex хуже роутит skill.
+- Не прятать trigger phrases, negative triggers и adjacent-case boundaries только в body.
 - Не подменять Codex-native workflow терминальными обходами без реальной причины.
 
 ## Минимальная Структура

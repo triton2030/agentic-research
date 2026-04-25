@@ -1,6 +1,6 @@
 # Official Codex Skills Patterns
 
-Снимок на 20 апреля 2026.
+Снимок обновлён 25 апреля 2026.
 
 Этот guide фиксирует, как OpenAI пишет Codex skills в официальных источниках.
 Основан только на:
@@ -19,6 +19,8 @@
   - потом при активации грузит `SKILL.md`
   - потом читает `references/` или запускает `scripts/` только по мере надобности
 - Для implicit invocation критичен `description`: docs прямо говорят писать его с **clear scope and boundaries**.
+- `openai/skills` теперь прямо позиционирован как **Skills Catalog for Codex**: `.system` skills автоматически установлены в свежем Codex, `.curated` и `.experimental` ставятся через `$skill-installer`.
+- Системный `skill-creator` формулирует жёстче: для решения о вызове Codex видит `name` и `description`; body грузится только после trigger. Поэтому всё знание "когда использовать" должно быть во frontmatter `description`, а не только в секции body.
 - Официальный use case рекомендует не таскать длинные промпты между тредами, а превращать повторяемую работу в skill.
 - Официальный blog показывает целевой паттерн для production:
   - `AGENTS.md` задаёт обязательные repo rules
@@ -133,6 +135,7 @@
 Частые формулы:
 
 - `Use when ...`
+- `Trigger when ...`
 - `Use only when ...`
 - `Do not ...`
 - `Skip only for ...`
@@ -142,6 +145,8 @@
 - `description` у OpenAI часто не короткий label, а **жёсткий routing contract**
 - туда выносятся:
   - trigger surface
+  - реальные user phrases
+  - tool / workflow preference
   - repo boundary
   - skip-cases
   - expected output
@@ -150,6 +155,24 @@
 Практически это значит:
 - OpenAI не стесняется длинного `description`, если он режет ambiguity
 - описание должно говорить не только **что делает skill**, но и **когда его нельзя или не нужно звать**
+- `description` нужно писать как маленький matcher prompt: какие слова пользователь скажет, какой тип задачи это значит, что skill должен включить, какие соседние случаи не сюда
+- секция `When to use` в body может быть полезна человеку после загрузки skill, но не заменяет frontmatter-trigger, потому что body ещё не виден на момент выбора skill
+
+Типовой официальный каркас:
+
+```text
+[What the skill does].
+Use when [task class / user intent / exact context].
+Trigger when [likely user phrases].
+Prefer/use [tool or workflow] when relevant.
+Do not trigger for [adjacent but out-of-scope cases].
+```
+
+Наблюдаемые примеры:
+- `vercel-deploy` ловит не только смысл, но и exact phrases вроде "deploy my app", "push this live", "create a preview deployment".
+- `security-threat-model` и `security-best-practices` используют negative triggers, чтобы не перехватывать general architecture, code review или debugging.
+- `gh-fix-ci` вшивает прямо в `description` tool choice (`gh`), scope boundary (GitHub Actions), expected loop и safety gate.
+- `pdf` показывает плотный вариант: объект работы, условие важности layout/rendering и preferred tooling в одной строке.
 
 ## Metadata Surface
 

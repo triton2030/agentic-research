@@ -1,19 +1,19 @@
 ---
 name: pitch-coherence-audit
 description: >
-  Iteratively audit investor pitch materials (deck text, investor memo,
-  pitch script) for narrative coherence and investor appeal after edits.
-  Trigger whenever pitch content has been edited, restructured, or affected
-  by design changes and the investor hook may have drifted. Runs a rigid
-  six-axis check — problem sharpness, unique insight, why-now, wedge,
-  stage-appropriate proof, ask and milestone — plus cross-cutting coherence
-  drift, adapted to investor stage (pre-seed, seed, Series A, growth). Not
-  for visual polish (use impeccable skills), not for general prose quality
-  (use simplify), not for initial pitch generation from scratch. Triggers
-  include "проверь питч", "проверь презентацию для инвестора", "не сломали
-  ли посыл", "аудит нарратива презентации", "аудит инвесторского питча",
-  "check pitch narrative", "does this still pitch", "investor appeal audit",
-  and automatic invocation after edits to investor-facing pitch materials.
+  Audit existing investor pitch materials for narrative coherence and
+  investor appeal after edits. Use when deck text, investor memo, pitch
+  script, slide structure, or slide design has changed and the investor
+  hook may have drifted. Trigger when the user asks "проверь питч",
+  "проверь презентацию для инвестора", "не сломали ли посыл",
+  "аудит нарратива презентации", "аудит инвесторского питча",
+  "check pitch narrative", "does this still pitch", or "investor appeal
+  audit", or after edits to investor-facing pitch materials. Run the
+  rigid six-axis audit: problem sharpness, unique insight, why-now,
+  wedge, stage-appropriate proof, ask and milestone, plus cross-cutting
+  coherence drift by investor stage. Do not trigger for initial pitch
+  generation, general prose quality, visual polish, screenshot review,
+  or non-investor materials.
 ---
 
 # Pitch Coherence Audit
