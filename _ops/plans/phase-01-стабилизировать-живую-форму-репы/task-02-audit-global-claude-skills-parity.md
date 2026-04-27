@@ -15,9 +15,9 @@
 - [ ] Аудит опирается на фактический путь Claude skills, найденный через filesystem evidence, а не на память. — **Evidence**: команда показывает найденные Claude skill directories.
   **Anchored in**: `_ops/INTERVIEW.md#Рабочий-Режим`
 - [ ] Сравнение отделяет Claude Code global skills от repo-local Claude variants и Codex installed skills. — **Evidence**: результат явно называет baseline и target для сравнения.
-  **Anchored in**: `_ops/PROJECT-PLAN.md#Stages`
+  **Anchored in**: `_ops/PROJECT-ROADMAP.md#Stage 1`
 - [ ] Отстающие skills названы с конкретной причиной отставания: missing, stale content, metadata/package mismatch, superseded duplicate или no current counterpart. — **Evidence**: итоговая таблица/список с причиной по каждому skill.
-  **Anchored in**: `_ops/PROJECT-PLAN.md#Stages`
+  **Anchored in**: `_ops/PROJECT-ROADMAP.md#Stage 1`
 - [ ] Никакие Claude или Codex skill files не изменяются в рамках аудита без отдельного запроса на синхронизацию. — **Evidence**: `git status --short` не получает новых skill edits от этого аудита.
   **Anchored in**: `_ops/INTERVIEW.md#Минимальный-След`
 

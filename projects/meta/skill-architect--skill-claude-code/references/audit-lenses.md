@@ -43,7 +43,7 @@
 ## Pressure Lenses — Применяются В Шаге 7 (Minimize Pass)
 
 - `Ещё живое?`
-  Служит ли правило своему backlink'у сейчас? PROJECT-PLAN сдвинулся, а правило осталось — archaeology-кандидат.
+  Служит ли правило своему backlink'у сейчас? PROJECT-ROADMAP изменилась, а правило осталось — archaeology-кандидат.
 
 - `Overlap`
   Два правила на одну проблему — один owner или compose layer, не три параллельных.

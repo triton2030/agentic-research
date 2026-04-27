@@ -5,7 +5,7 @@
 ## 1. Telos — Upstream Check
 
 Читаю:
-- `_ops/PROJECT-PLAN.md` — Goal + Approach & Why + активный Stage + Anti-goals.
+- `_ops/PROJECT-ROADMAP.md` — Goal + Approach & Why + релевантный Stage + Anti-goals.
 - `_ops/INTERVIEW.md` — только секции, ограничивающие архитектурный выбор.
 - `_ops/learnings.md` — реальные дельты план-vs-реальность.
 - корневые и локальные `AGENTS.md` / `CLAUDE.md` / `GEMINI.md` в затронутой зоне.
@@ -13,15 +13,15 @@
 **Content gate:**
 - `Goal` — одна строка результата, не процесса.
 - `Approach & Why` — непустой.
-- Есть хотя бы один активный `Stage` со Steps.
+- Есть хотя бы один релевантный `Stage`; task-level Steps/status живут в task-файлах, не в стратегии.
 - `INTERVIEW.md` — хотя бы одна релевантная секция (или явно: «для этого домена предпочтений нет»).
 - `learnings.md` — может быть пустым в начале; но если есть, дельты конкретные (named scenario + дата), не generic.
 
-Generic Goal или пустой Stage → **блокирую audit**. Верну: чего не хватает, почему без этого audit слабый, откат в `project-strategy`. Не компенсирую слабую карту generic архитектурой.
+Generic Goal или пустой Stage → **блокирую audit**. Верну: чего не хватает, почему без этого audit слабый, откат в `project-roadmap`. Не компенсирую слабую карту generic архитектурой.
 
 **Freshness check.** `_ops/` триада должна быть **горячей**, а не snapshot'ом:
 - Когда каждый из трёх файлов последний раз обновлялся? (`git log -1 --format=%ad -- _ops/<file>`).
-- Есть ли в текущем диалоге или недавних сессиях сигналы, требующие обновления, но обновления не случилось? Сигналы: **preference revealed** (пользователь сказал «предпочитаю X», «не люблю Y», «давай в таком стиле») → INTERVIEW; **plan delta** (Stage завершён, новый Stage начался, Goal смещён, Anti-goal появился) → PROJECT-PLAN; **expected-vs-actual дельта** (что-то пошло не так, не как ожидали) → learnings.
+- Есть ли в текущем диалоге или недавних сессиях сигналы, требующие обновления, но обновления не случилось? Сигналы: **preference revealed** (пользователь сказал «предпочитаю X», «не люблю Y», «давай в таком стиле») → INTERVIEW; **plan delta** (Stage завершён, новый Stage начался, Goal смещён, Anti-goal появился) → PROJECT-ROADMAP; **expected-vs-actual дельта** (что-то пошло не так, не как ожидали) → learnings.
 - Stale триада с явными непогашенными сигналами — это **default failure class** для Шага 4 («upstream truth layer не горячий»). Не молчаливо проходить.
 
 Если триада горячая и сигналы отработаны — отметь это в output Шага 1 явно: «триада горячая, сигналы отработаны». Если холодная — failure class обязателен.
@@ -74,7 +74,7 @@ Generic Goal или пустой Stage → **блокирую audit**. Верн�
 
 Источник — две линии:
 1. **`_ops/learnings.md`** — реальные дельты. Лучший источник: факт, а не гипотеза.
-2. **Внутренний inversion/premortem** по активному Stage. Внутреннее мышление, **не видимая секция в файлах**.
+2. **Внутренний inversion/premortem** по релевантному Stage. Внутреннее мышление, **не видимая секция в файлах**.
 
 Для каждого failure:
 - **Что конкретно пойдёт не так** — plan-specific, не generic.
@@ -90,7 +90,7 @@ Plan-specific пример: *«Активный Stage требует шипит�
 Всегда проверяю: есть ли в системе механизм, который **триггерит обновление `_ops/` триады при сигналах**?
 
 - Сигнал «preference revealed» приходит — что заставляет записать в INTERVIEW? UserPromptSubmit hook? Правило в AGENTS.md? Или ничего, и запись происходит только если пользователь сам попросит?
-- Сигнал «plan delta» приходит — что заставляет обновить PROJECT-PLAN? Stop hook при завершении Stage? Или никто?
+- Сигнал «plan delta» приходит — что заставляет обновить PROJECT-ROADMAP? Stop hook при завершении Stage? Или никто?
 - Сигнал «expected-vs-actual дельта» приходит — что заставляет записать в learnings? Или дельты исчезают в истории чата?
 
 Если ответ «ничего / только дисциплина» — это **structural failure**, а не косметический. Попадает в Шаг 5 (leverage) как кандидат на systemic fix. Обычный fix — связка из трёх hooks (UserPromptSubmit / PostToolUse / Stop) или один compose skill для hot-keeping.
@@ -149,7 +149,7 @@ Prompt-level допустима **только после явного отка�
 
 ### Backlink
 
-`→ protects PROJECT-PLAN §Stage <name>` / `→ protects §Goal` / `→ addresses learnings entry YYYY-MM-DD` / `→ honors INTERVIEW §<section>`. Без backlink'а невалидна.
+`→ protects PROJECT-ROADMAP §Stage <name>` / `→ protects §Goal` / `→ addresses learnings entry YYYY-MM-DD` / `→ honors INTERVIEW §<section>`. Без backlink'а невалидна.
 
 ### Observable signal
 
@@ -178,8 +178,8 @@ Prompt-level допустима **только после явного отка�
 Вопросы:
 - Какое существующее правило новая prescription делает избыточным?
 - Какие две prescriptions можно смерджить?
-- Какое правило больше не служит своему backlink'у (PROJECT-PLAN сдвинулся, правило осталось)?
-- Какая папка / файл без якоря в PROJECT-PLAN или INTERVIEW?
+- Какое правило больше не служит своему backlink'у (PROJECT-ROADMAP изменилась, правило осталось)?
+- Какая папка / файл без якоря в PROJECT-ROADMAP или INTERVIEW?
 
 **Chesterton's fence probe.** Прежде чем удалить — что сломаю? Если не могу объяснить, зачем это было здесь, — рано трогать. Archaeology иногда держит load-bearing state.
 

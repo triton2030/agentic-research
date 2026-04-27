@@ -15,9 +15,9 @@
 Это рамка, в которой работают все принципы ниже:
 
 - **Path of least resistance.** ИИ идёт по пути наименьшего сопротивления. Архитектор делает этот путь совпадающим с путём к цели через структуру, не через напоминания.
-- **Каждая защита — с backlink'ом к плану или предпочтению.** Правило без привязки к `PROJECT-PLAN §Goal` / `§Stage <name>` / `learnings entry <date>` / `INTERVIEW §<section>` — archaeology, кандидат на удаление при следующей ре-валидации плана.
+- **Каждая защита — с backlink'ом к плану или предпочтению.** Правило без привязки к `PROJECT-ROADMAP §Goal` / `§Stage <name>` / `learnings entry <date>` / `INTERVIEW §<section>` — archaeology, кандидат на удаление при следующей ре-валидации плана.
 - **Preference order fix-layers**: runtime guardrail (hook/permission/validator) → local skill → instruction text → `task-contract` handoff → human checkpoint. Prompt-level прескрипция — последнее средство, не первое.
-- **Plan-specific vs generic failure modes.** Generic failure modes (см. «Частые Симптомы» ниже) важны, но недостаточны. Каждый активный Stage плана генерирует свой класс ошибок. Источник plan-specific failures — `_ops/learnings.md` (реальные дельты) + внутренний inversion/premortem архитектора по активному Stage. Архитектор обязан превратить их в структурные защиты.
+- **Strategy-specific vs generic failure modes.** Generic failure modes (см. «Частые Симптомы» ниже) важны, но недостаточны. Каждый релевантный Stage стратегии генерирует свой класс ошибок. Источник strategy-specific failures — `_ops/learnings.md` (реальные дельты) + внутренний inversion/premortem архитектора по релевантному Stage. Архитектор обязан превратить их в структурные защиты.
 
 ## Принципы
 
@@ -55,7 +55,7 @@
   Не смешивай routing и write-path. Для памяти нужны precedence, review, dedup, contradiction handling и quality metrics.
 
 - `Upstream truth layer должен быть горячим`
-  `_ops/` триада (`PROJECT-PLAN.md` + `INTERVIEW.md` + `learnings.md`) — источник истины, на котором стоит весь архитектурный слой. Если эти файлы обновляются раз в месяц, архитектор работает по устаревшей карте и prescriptions строятся под несуществующую реальность. Задача — проектировать механизмы, которые **триггерят обновление при каждом сигнале**: preference revealed → INTERVIEW; plan delta / Stage complete / new Stage → PROJECT-PLAN; expected-vs-actual дельта → learnings. Сигнал без обновления — это не дисциплина пользователя, это **структурный сбой** и failure class, подлежащий prescription (UserPromptSubmit hook, Stop hook, task-contract handoff, явный checkpoint). *(Boyd — OODA loop: система, чей orient-этап работает на устаревших данных, проигрывает. Deming — plan-do-check-act с ежедневной калибровкой, не квартальной.)*
+  `_ops/` триада (`PROJECT-ROADMAP.md` + `INTERVIEW.md` + `learnings.md`) — источник истины, на котором стоит весь архитектурный слой. Если эти файлы обновляются раз в месяц, архитектор работает по устаревшей карте и prescriptions строятся под несуществующую реальность. Задача — проектировать механизмы, которые **триггерят обновление при каждом сигнале**: preference revealed → INTERVIEW; plan delta / Stage complete / new Stage → PROJECT-ROADMAP; expected-vs-actual дельта → learnings. Сигнал без обновления — это не дисциплина пользователя, это **структурный сбой** и failure class, подлежащий prescription (UserPromptSubmit hook, Stop hook, task-contract handoff, явный checkpoint). *(Boyd — OODA loop: система, чей orient-этап работает на устаревших данных, проигрывает. Deming — plan-do-check-act с ежедневной калибровкой, не квартальной.)*
 
 - `Chesterton's fence на каждое удаление`
   Прежде чем убрать правило, папку или ownership — объясни, зачем оно здесь было. Если не можешь — не трогай, archaeology иногда держит load-bearing state.

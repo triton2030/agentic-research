@@ -37,6 +37,20 @@ Name the owner, surface, exact routing rule, and any removed stale rule. If edit
 - Does not configure hooks, permissions, MCP, or folder topology; route to `repo-shape`.
 - Does not own plan or task files.
 
+## Структурная критика — Brooks-оптика
+
+Применяю к instruction layer (включая агенты в `.claude/agents/` как часть слоя):
+
+- **Configuration explosion** правил в AGENTS/CLAUDE/MEMORY (N условных строк там, где должна быть одна абстракция)
+- **Dependency surprise** (правило молча требует другое; agent читает одно, ломает другое)
+- **Broken window** (один шаткий rule → норма для остальных)
+
+**Stop-rule:** если не могу назвать организующий принцип layer'а — находка, не добавляй правило.
+
+**Subagent fallback:** `brooks` опционально на сложных аудитах layer-precedence.
+
+Полный словарь: `knowledge/wisdom-structural-critique.md`.
+
 ## References
 
 - [references/system-building-principles.md](references/system-building-principles.md)

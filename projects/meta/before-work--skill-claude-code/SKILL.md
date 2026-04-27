@@ -1,114 +1,56 @@
 ---
 name: before-work
 description: >
-  Use this skill whenever the user starts real non-trivial work: "сделай",
-  "реализуй", "напиши", "поправь", "исправь", "обнови", "продолжи", "доделай",
-  "приступим", "начнём", "implement", "fix", "edit", "continue", "build".
-  Refresh the active task frame: Stage, Цель, top Must-not, next Подшаг; for new
-  artifacts also verify reality before creating. Route missing task contracts to
-  `task-contract`, missing plan anchor to `project-strategy`. Skip typos,
-  factual questions, review/closeout, preference/direction/exploration talk
-  without an edit-imperative, and imminent tool-write moments handled by
-  `before-write`.
+  Use before non-trivial work starts: implement, fix, edit, write, continue, or create artifacts. Re-anchor the intended action against PROJECT-ROADMAP, user truth, and the task contract; extract the execution lesson that changes how the work should be done. Route user truth to `user-interview`, missing domain prerequisites to `domain-clarifier`, missing task contract to `task-contract`, missing strategy anchor to `project-roadmap`. Skip typos, facts, review, pure interview talk, and imminent write checks.
 ---
 
 # Before Work
 
-Объяви в начале одной строкой: «Использую `before-work` — освежаю рамку перед действием».
+Объяви в начале одной строкой: «Использую `before-work` — сверяю следующий ход со strategy».
 
-Это **лёгкий preflight**, не owner-skill. Не пишет файлы. Не ведёт план. Не задаёт interview-вопросов. Один проход за пять-десять секунд работы Claude — освежает рамку и возвращает к задаче.
+This is a lightweight decision gate. It does not write files and does not own strategy or task contracts.
 
-## Зачем существует
+## Ordering
 
-Корневые инструкции декаются по ходу сессии. `task-contract` владеет task-файлом, но его триггер часто пропускается на быстрых правках. `project-strategy` тяжёлый и не запускается на рутинной работе. Между «обсуждение» и «выполнение» сейчас дыра — никакой скил гарантированно не освежает frame перед действием.
+If the same user message contains a user-truth signal (`хочу` / `предпочитаю` /
+`люблю` / `не хочу` / `always` / `never` / `make this default`),
+`user-interview` fires first when it changes scope, Must-not, or verification
+depth; this skill runs after it.
 
-`before-work` закрывает эту дыру: точечная инжекция «что мы вообще делаем, в какой рамке, что нельзя сломать» прямо перед action.
+## What It Does
 
-## Что Делает — Три Шага
+1. Read `_ops/PROJECT-ROADMAP.md` for Goal, relevant Stage, Anti-goals, and
+   domain grounding.
+2. Read relevant `_ops/INTERVIEW.md` user truth when it can change scope,
+   Must-not, tone, or verification depth.
+3. Look for an existing task file in the matching `_ops/plans/phase-NN-*`
+   folder when execution work is about to start.
+4. Compare the intended action against strategy, user truth, and task criteria.
+5. Extract the execution lesson: what these sources change about how this work
+   should be done now.
+6. If the ask does not fit any Stage, route to `project-roadmap`; if domain
+   prerequisites are unclear, route to `domain-clarifier`; if execution is
+   non-trivial and no task contract exists, route to `task-contract`.
 
-1. **Найди активный контракт.**
-   - Прочитай `_ops/PROJECT-PLAN.md` — какой Stage активен (`[~]`)?
-   - В папке `_ops/plans/phase-NN-<slug>/` посмотри task-файл по активному Step.
-   - Если task-файл есть — открой, прочитай Цель / Подшаги / Must / Must-not.
+## Receipt
 
-2. **Освежи рамку наружу.** Emit короткий receipt 3-5 строк простым языком:
-   - **Stage:** активный Stage / Step
-   - **Цель:** одной фразой
-   - **Must-not:** топ-1-2 ограничения, которые нельзя нарушить
-   - **Next:** конкретный следующий Подшаг (не общий план, а ближайший шаг)
-
-3. **Эскалируй если нет контракта.**
-   - Нет task-файла + работа нетривиальна → передай в `task-contract`: «нужен task-контракт перед работой, блокирую».
-   - Нет PROJECT-PLAN.md или Goal размыт → передай в `project-strategy`.
-   - Активный Stage не покрывает запрос → передай в `project-strategy` для plan-anchor check.
-
-После receipt — **сразу возвращай управление к задаче**. Не блокируй работу, если контракт есть и понятен.
-
-## Дополнительный Gate — Создание Новых Артефактов
-
-Если задача — **создать что-то новое** (новый скил, агент, файл, модуль, пакет), особенно если оно упомянуто в `MEMORY.md`, `AGENTS.md`, `CLAUDE.md` или старом плане — **сначала verify against reality**.
-
-Память и инструкционный слой могут содержать **аспирации, упоминания будущих сущностей, устаревшие ссылки**. Строить по упоминанию без проверки = cargo cult. Память — context для понимания, не buildable spec.
-
-Перед созданием X:
-
-1. **Существует ли X уже?** Grep / find / ls по имени и алиасам. Если есть — не создавай дубль, читай существующее.
-2. **Якоря, на которые ссылается описание X — существуют ли они?** Если в памяти «Solomon — часть critic-family с Brooks и Smith» — Brooks и Smith существуют? (если да — это совместимый якорь). Если ссылка на slot, который пуст — это аспирация, не спека.
-3. **Какой layer?** Если паттерн (например critic-family) живёт как агенты в `~/.claude/agents/` — новый член семьи тоже агент, не скил. Не смешивай слои на основе аналогии «по мотивам».
-4. **Зачем именно сейчас?** Что этот новый артефакт ловит, чего существующие не ловят? Если ответ «потому что упомянут в памяти» — это не scope, это inertia.
-
-Если хотя бы один из этих чеков не сходится — **блок**, escalate в `project-strategy` (для scope/justification) или `instruction-layer` (для layer choice).
-
-Это защита от паттерна «memory says X exists → Claude builds X by analogy without checking». Особенно опасно для agent / skill / hook слоёв — там разная runtime-механика, аналогия по описанию даёт неправильную форму.
-
-## Output Contract
-
-Только один формат — короткий receipt:
-
-```
-**Stage:** Phase 02 — landing copy / Step 3 hero block
-**Цель:** хедер из одной фразы передаёт ценность за 3 секунды
-**Must-not:** не упоминать конкурентов; не больше 8 слов
-**Next:** черновик 3 вариантов хедера
+```md
+**Stage:** <relevant Stage from PROJECT-ROADMAP>
+**Upstream Goal:** <Goal or Stage outcome, not prompt paraphrase>
+**Why this action serves Goal:** <one sentence>
+**Execution lesson:** <how strategy/task/user truth changes this work>
+**Must-not:** <top 1-2 anti-goals or task Must-not>
+**Next / Shift:** <next task-file/owner-layer move>
 ```
 
-Не больше 5 строк. Никаких длинных объяснений. Никаких задач на запись в файлы. Если эскалация — одна строка escalate-сигнала вместо receipt.
-
-## Когда Не Запускать (SKIP)
-
-- **Тривиальные правки.** Typo, очевидное переименование, однострочник, где critика не нужна.
-- **Фактические вопросы.** «Что такое X?», «Где лежит файл Y?» — без последующего действия.
-- **Review/closeout.** Юзер уже сделал работу и проверяет результат — это `work-review` (или `task-contract` closeout-проход).
-- **Preference / direction / exploration talk без императива.** «Хочу попробовать», «хочу обсудить», «давай подумаем», «как лучше», «куда дальше», «что думаешь о подходе» — это `project-strategy` / `preference-sync`, не preflight. Триггер требует **императивной формы старт-работы** (сделай / напиши / реализуй) или приближающегося `Edit`/`Write`, не упоминания глагола в инфинитиве.
-- **Упоминание артефакта без запроса на создание.** «Solomon упомянут в памяти» — не триггер. «Создай Solomon» — триггер. Разница в наличии императива на действие.
-- **Активный task-файл уже свежий в контексте этого хода.** Если ты только что прочитал и проговорил Цель/Must, повторный preflight — шум.
+Do not look for `[~]` in strategy. Execution status lives in task files.
 
 ## Role Boundaries
 
-- **Я не пишу task-файл.** Если контракта нет — передаю в `task-contract`. Не создаю сам.
-- **Я не обновляю PROJECT-PLAN.** Если план рассинхронизирован — передаю в `project-strategy`.
-- **Я не задаю interview-вопросов.** Preflight — это чтение контракта, не сбор требований.
-- **Я не делаю adversarial pass / pressure-test.** Это `task-contract` adversarial step или `project-strategy` internal thinking.
-
-## Связь С Другими Скилами
-
-- **`task-contract`** — owner task-файла. Читаю его, не пишу. После моего receipt задача идёт к `task-contract`, если нужен write/closeout.
-- **`project-strategy`** — owner PROJECT-PLAN. Читаю активный Stage. Эскалирую, если контекст плана недоопределён.
-- **`work-review`** — парный moment-skill после действия (когда появится). Я — на входе, он — на выходе.
-- **`step-back`** — отдельный класс. Я освежаю **рамку**, он реформирует **способ думать**. Не путать.
-
-## Красные Флаги
-
-- Я начал писать в task-файл → нарушил role boundary, передаю в `task-contract`.
-- Я задал интервью-вопрос → нарушение, это `project-strategy`.
-- Receipt длиннее 5 строк → размылся, режу.
-- Я пропустил эскалацию (нет task-файла, но приступил к работе) → реальная работа без контракта, чинить.
-- Я триггернулся на тривиальную правку → SKIP gate сломан, проверить description.
-- Я начал создавать X, упомянутый в `MEMORY.md` / `AGENTS.md`, **не проверив** существует ли он уже и существуют ли его зависимости → cargo cult, блок, верификация против реальности.
-- Я выбрал layer (skill / agent / hook) для нового артефакта по аналогии «по мотивам существующего», не сверившись где живёт паттерн в реальности → конфликт runtime-форм.
+- Does not update `PROJECT-ROADMAP.md`; route strategy drift to `project-roadmap`.
+- Does not create or close task files; route durable task scope to `task-contract`.
+- Does not ask domain questions; route to `domain-clarifier`.
 
 ## Done When
 
-- Receipt из 3-5 строк выдан, либо escalate-сигнал в `task-contract`/`project-strategy` — и сразу возврат к задаче.
-- Никаких изменений в `_ops/`, никаких файловых правок этим скилом.
-- Юзер видит свежую рамку и может продолжать работу не вспоминая весь PROJECT-PLAN заново.
+The relevant Stage is named, the next owner/action is clear, and no file was changed by this skill.

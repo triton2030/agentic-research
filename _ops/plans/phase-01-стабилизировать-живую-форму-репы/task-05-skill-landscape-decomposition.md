@@ -23,16 +23,16 @@
 ### Must
 
 - [x] Live marketplace содержит ровно 18 expected skill dirs.
-  **Anchored in**: `_ops/PROJECT-PLAN.md#Stages`
+  **Anchored in**: `_ops/PROJECT-ROADMAP.md#Stage 1`
   **Evidence**: `ls /Users/triton/.claude/marketplaces/my-skills/skills/` matched expected 18 dirs.
 - [x] `projects/meta` содержит 15 Claude draft dirs: 14 landscape skills + `step-back`.
-  **Anchored in**: `_ops/PROJECT-PLAN.md#Stages`
+  **Anchored in**: `_ops/PROJECT-ROADMAP.md#Stage 1`
   **Evidence**: `ls projects/meta | grep -- '--skill-claude-code'` matched expected 15 dirs.
 - [x] Retired live handles отсутствуют в marketplace, root instructions, `_ops`, global CLAUDE and project memory.
-  **Anchored in**: `_ops/PROJECT-PLAN.md#Stages`
+  **Anchored in**: `_ops/PROJECT-ROADMAP.md#Stage 1`
   **Evidence**: old-handle grep over live surfaces returned 0 lines.
 - [x] Metadata JSON валиден и version = `1.14.0`.
-  **Anchored in**: `_ops/PROJECT-PLAN.md#Stages`
+  **Anchored in**: `_ops/PROJECT-ROADMAP.md#Stage 1`
   **Evidence**: both marketplace metadata files parsed with `python3 -m json.tool`; version is `1.14.0`.
 - [x] `before-work` и `before-write` разделены по моменту: user work-start vs imminent substantive write.
   **Anchored in**: `_ops/INTERVIEW.md#skill-architecture`
@@ -41,7 +41,7 @@
   **Anchored in**: `_ops/INTERVIEW.md#skill-architecture`
   **Evidence**: verification protocol keeps fresh Claude Code trigger smoke as next operational step.
 - [x] Native Codex landscape установлен без retired handles.
-  **Anchored in**: `_ops/PROJECT-PLAN.md#Stages`
+  **Anchored in**: `_ops/PROJECT-ROADMAP.md#Stage 1`
   **Evidence**: `quick_validate.py` passed on 14 repo drafts and 14 live installs; live inventory has 14 new split skills and no retired live handles; repo/live diff returned `DIFF_OK`.
 
 ### Must not

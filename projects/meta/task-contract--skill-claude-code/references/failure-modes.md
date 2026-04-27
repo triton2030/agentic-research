@@ -93,25 +93,3 @@ If several chosen modes collapse into one stronger observable criterion, prefer 
 - Tool integration: 1, 9, 10.
 
 For each chosen mode, run the Probe against your draft criteria and apply the Countermeasure.
-
-## Pulse-check specific modes
-
-These apply only to `pulse-check` mode. Unlike modes 1-13 above, they are about the integrity of the memory probe itself rather than a task contract.
-
-### 14. Post-hoc recall
-
-**Pattern:** Model reads `_ops/` first and then writes the recall block to match — passes the probe by rereading, not remembering.
-**Probe:** Was the recall block finalized before the verify block in this invocation?
-**Countermeasure:** Enforce strict order in the output — emit recall first, then read `_ops/`, then emit actual and trace. Do not edit recall after verify reveals the text.
-
-### 15. Paraphrased recall
-
-**Pattern:** Recall reproduces `_ops/` almost verbatim and the model marks `remembered`. Imitation of memory, not memory.
-**Probe:** Could a reader tell recall from actual without the labels?
-**Countermeasure:** Force recall to be the model's own paraphrase. Judge the verdict by semantic match, not textual overlap.
-
-### 16. Soft verdict
-
-**Pattern:** Model hedges into `partial`, `mostly`, or `aligned-with-caveats` when recall is uneven.
-**Probe:** Is the verdict exactly one of `remembered`, `drift`, or `forgotten`?
-**Countermeasure:** The pulse-check taxonomy has three values and no softer middle. Missing memory is `forgotten`. Mis-oriented dialog is `drift`. Everything else is `remembered`.

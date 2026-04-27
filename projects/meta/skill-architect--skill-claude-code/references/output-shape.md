@@ -16,13 +16,13 @@
 Пустая секция = сбой Gate, audit невалиден.
 
 ## 1. Telos
-- PROJECT-PLAN §Goal: <1 строка verdict — заполнен/generic/пуст>
-- PROJECT-PLAN §Stage (активный): <1 строка — заполнен/generic/отсутствует>
+- PROJECT-ROADMAP §Goal: <1 строка verdict — заполнен/generic/пуст>
+- PROJECT-ROADMAP §Stage (релевантный): <1 строка — заполнен/generic/отсутствует>
 - INTERVIEW: <релевантная секция названа | отсутствует>
 - learnings.md: <пуст | есть конкретные дельты | generic>
 - Состояние `_ops/` truth layer: `hot` | `cold` — что именно отстаёт или отсутствует.
 
-Generic Goal или пустой Stage → audit блокирован, откат в `project-strategy`.
+Generic Goal или пустой Stage → audit блокирован, откат в `project-roadmap`.
 
 ## 2. As-is Map
 
@@ -48,12 +48,12 @@ Generic Goal или пустой Stage → audit блокирован, отка�
 - Root task-contract routing: <explicit frequent route present | missing | not in scope>
 
 ### `_ops/` состояние
-- PROJECT-PLAN.md: <реально заполнен | шаблон | частично>
+- PROJECT-ROADMAP.md: <реально заполнен | шаблон | частично>
 - INTERVIEW.md: <...>
 - learnings.md: <...>
 
 ### Папки в scope (если applicable)
-- `<путь>/` — что производит — якорь в PROJECT-PLAN/INTERVIEW
+- `<путь>/` — что производит — якорь в PROJECT-ROADMAP/INTERVIEW
 
 ### Mismatch между текстом и реальностью
 - `<instruction text ссылается на X>` → реально: <не установлено | активно | matcher другой>. Уходит в Failure class <N>.
@@ -108,7 +108,7 @@ Generic («AI будет развиваться») отброшено. Если 
 - **Fix-layer**: `runtime guardrail` | `local skill` | `instruction text` | `task-contract handoff` | `human checkpoint`
 - **Если не runtime**: почему runtime/skill альтернатива отклонена — одна строка.
 - **Механизм** (если runtime): тип hook'а / permission rule / subagent config — с отсылкой на [claude-code-guardrails.md](claude-code-guardrails.md).
-- **Backlink**: `→ protects PROJECT-PLAN §Goal` / `→ protects §Stage <name>` / `→ addresses learnings entry YYYY-MM-DD` / `→ honors INTERVIEW §<section>`. Без backlink'а невалидна.
+- **Backlink**: `→ protects PROJECT-ROADMAP §Goal` / `→ protects §Stage <name>` / `→ addresses learnings entry YYYY-MM-DD` / `→ honors INTERVIEW §<section>`. Без backlink'а невалидна.
 - **Observable signal**: один конкретный сигнал через N сессий.
 - **Sunset signal**: один конкретный сигнал устаревания. **Обязан соотноситься с early signal одной из Сил (Шаг 3).**
 - **Owner**: <какой файл/механизм владеет как source of truth>.
@@ -139,20 +139,20 @@ Generic («AI будет развиваться») отброшено. Если 
 - **Когда вызывает `task-contract`**: <task discussion | edits | status/movement | criteria check | closeout>
 - **Hooks срабатывают автоматически**: <какие и когда>
 - **Буквальная формулировка load-bearing правила**: *«<точная цитата>»*
-- **Если `_ops` холодный**: <что блокирует hardening и как уходим в `project-strategy`>
+- **Если `_ops` холодный**: <что блокирует hardening и как уходим в `project-roadmap`>
 - **Что блокирует действие до этого шага**: <>
 
 ### `task-contract` Handoff (если нужен)
 - Durable instruction surfaces как upstream: <AGENTS.md § | skill X | hook Y output | validator Z>
 - Task-level constraints наследуются из них: <>
 
-### `project-strategy` handoff
+### `project-roadmap` handoff
 (Только если вскрыт upstream drift или ownership contamination.)
 - Что нужно пересинхронизировать: ...
-- Какой из `_ops/PROJECT-PLAN.md` / `_ops/INTERVIEW.md` / `_ops/learnings.md` остыл, отсутствует или не отражает реальность: ...
+- Какой из `_ops/PROJECT-ROADMAP.md` / `_ops/INTERVIEW.md` / `_ops/learnings.md` остыл, отсутствует или не отражает реальность: ...
 - Какой sign of reality надо туда занести сейчас: ...
 - Почему это не owner `skill-architect`: ...
-- Следующий шаг `project-strategy`: ...
+- Следующий шаг `project-roadmap`: ...
 
 ### Forces Verification
 - **Force 1** → уязвимые prescriptions: <N, M>; совпадает ли sunset signal с early signal: <да/нет; если нет — перепроектирую или удаляю силу>
@@ -164,7 +164,7 @@ Generic («AI будет развиваться») отброшено. Если 
 ## Folder Audit (только если папки в scope)
 - `<путь>/`
   - Что производит: ...
-  - Якорь: `PROJECT-PLAN §Stage <name>` | `INTERVIEW §<section>` | отсутствует
+  - Якорь: `PROJECT-ROADMAP §Stage <name>` | `INTERVIEW §<section>` | отсутствует
   - Negative list: есть | отсутствует
   - Verdict: `keep` | `archive` | `remove` | `нужен AskUserQuestion`
 

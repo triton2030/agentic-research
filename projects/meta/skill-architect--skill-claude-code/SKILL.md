@@ -10,7 +10,7 @@ Design and repair skill/agent control surfaces by trigger surface, not by capabi
 
 ## Role
 
-Use this for skill descriptions, trigger boundaries, skill splitting/merging, reference layout, and validation design. Marketplace/live files may be edited only when the user asks implementation; otherwise emit prescriptions.
+Use this for skill descriptions, trigger boundaries, skill splitting/merging, reference layout, validation design, and agent (subagent) design — persona, three-category vocabularies, swarm-safety, fallback patterns. Same discipline applies to skills, agents, and hook-scripts: design by trigger surface (or invocation surface), not by capability list. Marketplace/live files may be edited only when the user asks implementation; otherwise emit prescriptions.
 
 ## First Read
 
@@ -36,6 +36,25 @@ For design: skill name, trigger surface, skip surface, body shape, references, v
 
 - Does not own `_ops`, task-files, AGENTS/CLAUDE placement, hooks, permissions, or MCP shape.
 - Route instruction placement to `instruction-layer`; runtime/folder/tooling shape to `repo-shape`.
+
+## Surface Choice
+
+Первый шаг любого аудита/дизайна — назвать surface: skill / agent / hook-as-code / instruction-text. У них разный runtime, разная discipline, разное место жизни. Не смешивать «по аналогии». Если паттерн живёт как агенты в `~/.claude/agents/` — новый член семьи тоже агент, не скил. Если паттерн runtime-enforced (хук) — не клади его в инструкционный текст.
+
+## Структурная критика — Brooks-оптика
+
+Применяю к design скилов / агентов / hook-скриптов:
+
+- **Central model violation** — description перечисляет capabilities вместо trigger surface (моментов, фраз, состояний)
+- **Shallow abstraction** — description ≈ paraphrase body; интерфейс не экономит чтение реализации
+- **Configuration explosion** — N пересекающихся скилов на ту же фразовую поверхность
+- **Cargo cult creation** — новый артефакт «по аналогии» без verify, что он ловит чего не ловят существующие
+
+**Stop-rule:** если не могу назвать trigger surface скила/агента в одной фразе — это и есть находка, не дописывай description.
+
+**Subagent fallback:** при сложном случае или когда нужен независимый контекст-свободный взгляд — `brooks` (опционально, не дефолт).
+
+Полный словарь: `knowledge/wisdom-structural-critique.md`.
 
 ## References
 

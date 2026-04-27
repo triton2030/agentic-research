@@ -1,68 +1,84 @@
 # Meta — Инвентарь Claude Code
 
-Снимок на 22 апреля 2026.
+Снимок на 25 апреля 2026.
 
-Инвентарь смешанный: здесь перечислены и repo-local project artifacts, и globally available handles, которые реально доступны в рабочей среде. Если локальной проектной папки нет или она ушла в архив, сначала проверяй installed handle; archived folder сам по себе не делает capability живой.
+Инвентарь перечисляет repo-local project artifacts и globally installed handles,
+которые реально доступны в рабочей среде. Если локальная проектная папка ушла
+в `projects/_archive/`, сначала проверяй installed handle.
 
-## Что Есть
+## Core Meta Skills
 
-### task-planner
+### project-roadmap
+
 - Тип: skill
-- Источник: наш
-- Что делает: владеет task-файлом одного Step'а (`_ops/plans/phase-NN-<slug>/task-MM-<slug>.md`) — Цель / Подшаги / Критерии приёмки Must/Must-not с `Anchored in:`; primer + check для on-plan задач, fail-closed для ask вне плана через Plan-Anchor Gate
+- Что делает: владеет `_ops/PROJECT-ROADMAP.md` и `_ops/learnings.md`;
+  строит domain-grounded Stage-chain.
 
-### main-strategy
-- Тип: skill
-- Источник: наш
-- Что делает: project-level owner-скилл для `_ops/PROJECT-PLAN.md`, `_ops/INTERVIEW.md` и `_ops/learnings.md`
+### domain-clarifier
 
-### system-architect
 - Тип: skill
-- Источник: наш
-- Что делает: проектирует и чинит durable instruction layer, folder ownership и guardrails из уже зафиксированного плана
+- Что делает: задаёт consequential domain questions, когда prerequisites,
+  Stage order, task scope или criteria зависят от доменных знаний.
+
+### user-interview
+
+- Тип: skill
+- Что делает: владеет `_ops/INTERVIEW.md`; хранит предпочтения, видение,
+  ограничения и ответы пользователя.
+
+### ops-sync
+
+- Тип: skill
+- Что делает: синхронизирует `_ops/plans/` phase folders со Stages из
+  `PROJECT-ROADMAP.md`.
+
+### task-contract
+
+- Тип: skill
+- Что делает: создаёт empty phase task skeletons и детализирует только текущий
+  task-файл.
+
+### before-work
+
+- Тип: skill
+- Что делает: перед работой извлекает execution lesson из strategy, task и
+  user truth.
+
+### before-write
+
+- Тип: skill
+- Что делает: перед write проверяет scope, current substep и execution lesson.
+
+### work-review
+
+- Тип: skill
+- Что делает: сверяет результат с task criteria/evidence и продолжает repair
+  loop до качественного завершения.
+
+## Control / Utility Skills
+
+### skill-architect
+
+- Тип: skill
+- Что делает: проектирует Claude/Codex skill trigger surfaces и references.
+
+### instruction-layer
+
+- Тип: skill
+- Что делает: решает placement правил в AGENTS/CLAUDE/subtree instructions.
+
+### repo-shape
+
+- Тип: skill
+- Что делает: проектирует folders, hooks, permissions, MCP/apps, validators,
+  scripts, config и tool boundaries.
 
 ### step-back
+
 - Тип: skill
-- Источник: наш
-- Что делает: делает один короткий шаг назад, когда разговор ушёл в tunnel vision, sycophancy drift или debug loop
+- Что делает: короткий zoom-out / reframe при reasoning drift.
 
-### Claude Preview
-- Тип: коннектор
-- Источник: Anthropic
-- Что делает: превью dev-серверов, скриншоты, инспекция DOM, консоль и сеть браузера
+### repo-power-tools
 
-### Claude in Chrome
-- Тип: коннектор
-- Источник: Anthropic
-- Что делает: управление вкладками браузера, загрузка файлов в формы
-
-### Control your Mac
-- Тип: коннектор
-- Источник: Anthropic
-- Что делает: выполнение AppleScript для управления macOS
-
-### MCP Registry
-- Тип: коннектор
-- Источник: Anthropic
-- Что делает: поиск и подключение новых MCP-коннекторов из реестра
-
-### Scheduled Tasks
-- Тип: коннектор
-- Источник: Anthropic
-- Что делает: бэкенд для запланированных задач — создание, обновление, запуск
-
-### CCD
-- Тип: коннектор
-- Источник: Anthropic
-- Что делает: управление сессией — главы, побочные задачи, доступ к директориям
-
-## Чего Не Хватает
-
-- Memory skill — гибридная активация и безопасная запись пользовательских, проектных и стратегических знаний в scoped память с confirmation, merge и audit
-- First-principles agent — пересборка задачи с нуля, без унаследованных допущений
-- Problem-framing agent — уточнение что решаем, для кого и почему сейчас
-- Tradeoff agent — раскладка живых вариантов с последствиями каждого пути
-- Assumption/risk agent — вскрытие неявных допущений и рисков
-- Trajectory agent — проверка текущей задачи на соответствие долгому пути проекта
-- Reflection agent — ревью принятых решений постфактум
-- Кросс-проектный контекст — передача выводов между разными проектами
+- Тип: skill
+- Что делает: fast CLI evidence для code/docs/package/security work.

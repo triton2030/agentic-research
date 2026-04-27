@@ -32,14 +32,14 @@ Skill — золотая середина: **сильнее корневых, г
 
 ### Moment-skills (контекстные инжекторы)
 
-Триггерятся на **тип действия или фразу пользователя в конкретный момент**. Описание = «прямо сейчас ты делаешь X — вот что вспомнить». Должны быть лёгкими: 3-5 строк receipt, никаких файлов на запись, никакого interview, никакого пересмотра плана.
+Триггерятся на **тип действия или фразу пользователя в конкретный момент**. Описание = «прямо сейчас ты делаешь X — вот что вспомнить». Должны быть лёгкими: 3-5 строк receipt, никаких файлов на запись, никакого interview, никакого пересмотра стратегии.
 
 Примеры:
 - `before-work` — перед нетривиальной правкой: освежи рамку, прочитай контракт.
 - `work-review` — после правки, перед закрытием хода: проверь evidence, отметь Подшаг.
 - `preference-sync` — на «хочу/предпочитаю»: молча захвати в INTERVIEW.md.
 - `contradiction-hold` — на запрос, противоречащий stored предпочтению: блок диалогом.
-- `plan-drift-watch` — git/chat показывают, что фаза фактически закрыта: синкни план.
+- `plan-drift-watch` — git/chat показывают, что фаза фактически закрыта: синкни стратегию.
 
 ### Topic-skills (узкие owner-skills по контракту)
 
@@ -47,7 +47,7 @@ Skill — золотая середина: **сильнее корневых, г
 
 Примеры:
 - `task-contract` — owner task-файла: Цель / Подшаги / Критерии приёмки.
-- `project-strategy` — owner PROJECT-PLAN: direction, Goal, roadmap.
+- `project-roadmap` — owner PROJECT-ROADMAP: direction, Goal, roadmap.
 - `ops-sync` — механический sync `_ops/`: phase folders, sync-ops.sh.
 - `skill-architect` — design новых скилов/агентов.
 - `instruction-layer` — где живёт правило: AGENTS/CLAUDE, routing, ownership.
@@ -64,7 +64,7 @@ Skill — золотая середина: **сильнее корневых, г
 
 ## Дублирование — Фича
 
-`before-work` пересказывает кусок инструкции `task-contract` («открой task-файл, прочитай Цель/Must-not»). `preference-sync` пересказывает кусок `project-strategy` («молча в INTERVIEW.md»). `contradiction-hold` пересказывает Hard Block оттуда же.
+`before-work` пересказывает кусок инструкции `task-contract` («открой task-файл, прочитай Цель/Must-not»). `preference-sync` пересказывает кусок `project-roadmap` («молча в INTERVIEW.md»). `contradiction-hold` пересказывает Hard Block оттуда же.
 
 Это **не bloat** — это **resilience**:
 
@@ -78,7 +78,7 @@ Skill — золотая середина: **сильнее корневых, г
 
 ## Cargo-Cult Guard — Не Строй По Памяти
 
-Когда строится новый скил/агент/файл/модуль, особенно по упоминанию в `MEMORY.md`/`AGENTS.md`/CLAUDE.md/старом плане — **сначала verify against reality**:
+Когда строится новый скил/агент/файл/модуль, особенно по упоминанию в `MEMORY.md`/`AGENTS.md`/CLAUDE.md/старой стратегии — **сначала verify against reality**:
 
 1. Существует ли уже? Grep / find / ls по имени и алиасам.
 2. Якоря, на которые ссылается описание — существуют? («Solomon — часть critic-family с Brooks и Smith» → Brooks и Smith реально есть как агенты?)
@@ -124,7 +124,7 @@ Anthropic в `skill-creator`: *«Claude only consults skills for tasks it can't 
 | `before-write` | прямо перед Edit/Write на substantive content | nothing |
 | `work-review` | после действия, перед закрытием хода: «готово», «проверь», «закрыли» | nothing |
 | `preference-sync` | «хочу / предпочитаю / люблю / не хочу» | INTERVIEW.md update only |
-| `contradiction-hold` | новый запрос противоречит stored INTERVIEW/PROJECT-PLAN | nothing (dialogue mode) |
+| `contradiction-hold` | новый запрос противоречит stored INTERVIEW/PROJECT-ROADMAP | nothing (dialogue mode) |
 | `plan-drift-watch` | git/chat/closed task показывают drift | nothing (signal-only) |
 
 ### Topic-skills (8)
@@ -135,7 +135,7 @@ Anthropic в `skill-creator`: *«Claude only consults skills for tasks it can't 
 - `pulse-check` — dialog-time memory probe
 
 Из strategy family:
-- `project-strategy` — direction, Goal, roadmap, planning
+- `project-roadmap` — direction, Goal, roadmap, planning
 - `ops-sync` — механический sync `_ops/`, phase folders, sync-ops.sh
 
 Из system/control-surface family:
@@ -163,7 +163,7 @@ Anthropic в `skill-creator`: *«Claude only consults skills for tasks it can't 
 2. Прототип `before-work` — выполнено.
 3. Остальные 5 moment-skills — выполнено.
 4. Task lifecycle split: `task-contract`, `strategy-trace`, `pulse-check` — выполнено.
-5. Strategy split: `project-strategy`, `preference-sync`, `ops-sync`, `plan-drift-watch`, `contradiction-hold` — выполнено.
+5. Strategy split: `project-roadmap`, `preference-sync`, `ops-sync`, `plan-drift-watch`, `contradiction-hold` — выполнено.
 6. Control-surface split: `skill-architect`, `instruction-layer`, `repo-shape` — выполнено.
 7. Финальный inventory + bump версии + sync `marketplace.json` / `plugin.json` — выполнено.
 8. Post-publication validation — следующий operational step.
@@ -191,7 +191,7 @@ Anthropic в `skill-creator`: *«Claude only consults skills for tasks it can't 
 
 ## Связь С Другими Документами
 
-- `_ops/plans/phase-01-стабилизировать-живую-форму-репы/task-05-skill-landscape-decomposition.md` — executable task-file под этот план.
+- `_ops/plans/phase-01-стабилизировать-живую-форму-репы/task-05-skill-landscape-decomposition.md` — executable task-file под эту стратегию.
 - `knowledge/wisdom-skills-plugins.md` — общая wisdom про packaging.
 - `knowledge/guides/perfect-skills.md` — устойчивые правила написания скилов (требует обновления под moment vs topic split).
 - `knowledge/practical-guides/claude-code-skills.md` — practical guide.

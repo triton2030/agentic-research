@@ -13,7 +13,7 @@ Skills в плагинах (marketplace или local) — повторяемые
 Следует точно, без адаптации. Каждый шаг обязателен.
 
 Когда использовать: когда дисциплина и порядок сами создают ценность.
-Примеры: `project-strategy` (thinking workflow для durable bet), `task-contract` (task-level контракт), TDD, security review.
+Примеры: `project-roadmap` (thinking workflow для durable bet), `task-contract` (task-level контракт), TDD, security review.
 
 ### Flexible skill
 
@@ -38,7 +38,7 @@ Use case: skill, который только читает и анализиру�
 | Симптом | Первый выбор | Почему |
 |---|---|---|
 | Модель пишет не туда | PreToolUse hook | Structural block на Write path. |
-| Модель забывает читать PROJECT-PLAN | SessionStart + UserPromptSubmit hooks | Context injection до reasoning. |
+| Модель забывает читать PROJECT-ROADMAP | SessionStart + UserPromptSubmit hooks | Context injection до reasoning. |
 | Модель запускает опасную команду | Bash permission deny + PreToolUse safeguard | Два слоя защиты. |
 | Модель не проверяет свою работу | PostToolUse hook (validator) + Stop hook (done-check) | Автоматический check после action. |
 | Модель не следует процедуре | Rigid local skill | Порядок шагов как контракт. |

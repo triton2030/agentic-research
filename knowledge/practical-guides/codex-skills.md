@@ -14,7 +14,7 @@
 - `SKILL.md` оставлять тонким; в официальном repo-local corpus типичная форма часто ближе к short operational playbook, чем к длинному guide.
 - Ядро строить вокруг `Overview` / `Quick start` / `Workflow`; детали выносить в `references/`, `scripts/`, `assets/`.
 - `references/` держать в один переход от `SKILL.md`; для reference-файлов длиннее 100 строк — давать table of contents в начале.
-- После правок прогонять `quick_validate.py`, а не полагаться на визуальную проверку.
+- После правок прогонять `quick_validate.py` через `uv`, а не полагаться на визуальную проверку.
 - Для длинного `description` с `:` использовать folded scalar (`>`) или безопасное quoting, иначе YAML может сломаться.
 
 ## Чего Не Делать
@@ -43,5 +43,5 @@ skill-name/
 ```bash
 python3 ~/.codex/skills/.system/skill-creator/scripts/init_skill.py my-skill --path /target/path
 python3 ~/.codex/skills/.system/skill-creator/scripts/generate_openai_yaml.py /path/to/skill --interface display_name="My Skill" --interface short_description="Short UI text" --interface default_prompt="Use $my-skill to ..."
-python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py /path/to/skill
+uv run --python 3.12 --with PyYAML python ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py /path/to/skill
 ```

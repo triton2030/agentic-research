@@ -1,7 +1,7 @@
 ---
 name: repo-shape
 description: >
-  Use this skill whenever repo/runtime shape is the object: "папки", "структура репы", "hooks", "permissions", "MCP", "settings.json", "tools", "validators", "guardrail", "runtime", "файловая форма", "folder ownership", "repo shape", "Claude Code config", "permission rule". Designs folders, hooks, permissions, validators, and tool boundaries. Skip skill descriptions, task criteria, project strategy, and prose-only instruction placement.
+  Use this skill whenever repo/runtime shape is the object: "папки", "структура репы", "hooks", "permissions", "MCP", "settings.json", "tools", "validators", "guardrail", "runtime", "файловая форма", "folder ownership", "repo shape", "Claude Code config", "permission rule". Designs folders, hooks, permissions, validators, and tool boundaries. Skip skill descriptions, task criteria, project roadmap, and prose-only instruction placement.
 ---
 
 # Repo Shape
@@ -32,9 +32,24 @@ Return the chosen control surface, owner, exact config/file target, expected beh
 
 ## Role Boundaries
 
-- Does not write task contracts or project strategy.
+- Does not write task contracts or project roadmap.
 - Does not design skill trigger surfaces; route to `skill-architect`.
 - Does not place prose rules in AGENTS/CLAUDE unless paired with `instruction-layer`.
+- Before proposing a new code/docs validator, check what is already installed via `repo-power-tools`.
+
+## Структурная критика — Brooks-оптика
+
+Применяю к shape репо (папки, hooks, permissions, settings.json, agent files в `~/.claude/agents/`):
+
+- **Configuration explosion** в `settings.json` (N permission-правил без объединяющего)
+- **Hook pass-through** (вызывает один tool без преобразования)
+- **Folder без owner / contract** — есть директория, нет принципа что в ней живёт
+
+**Stop-rule:** если не могу назвать ownership папки/настройки — находка, не добавляй структуру.
+
+**Subagent fallback:** `brooks` опционально на hook-скриптах (они код).
+
+Полный словарь: `knowledge/wisdom-structural-critique.md`.
 
 ## References
 

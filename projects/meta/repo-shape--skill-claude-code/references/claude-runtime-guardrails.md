@@ -37,9 +37,9 @@ Use cases:
 Срабатывает когда пользователь отправляет сообщение, **до** обработки моделью. Может инъектировать дополнительный контекст.
 
 Use cases:
-- Автоматически добавить `Read: _ops/PROJECT-PLAN.md` если prompt затрагивает архитектурное решение.
-- Предупредить если session давно не ре-валидировала активный Stage (*«PROJECT-PLAN last touched 2 months ago — revisit?»*).
-- Инъектировать напоминание про активный Stage в начале сессии.
+- Автоматически добавить `Read: _ops/PROJECT-ROADMAP.md` если prompt затрагивает архитектурное решение.
+- Предупредить если session давно не ре-валидировала релевантный Stage (*«PROJECT-ROADMAP last touched 2 months ago — revisit?»*).
+- Инъектировать напоминание про релевантный Stage в начале сессии.
 
 ### Stop / SubagentStop
 
@@ -55,8 +55,8 @@ Use cases:
 Срабатывает при старте сессии. Инъектирует контекст один раз.
 
 Use cases:
-- Загрузка `_ops/PROJECT-PLAN.md` в системный prompt как context anchor.
-- Проверка свежести активного Stage в PROJECT-PLAN.
+- Загрузка `_ops/PROJECT-ROADMAP.md` в системный prompt как context anchor.
+- Проверка свежести релевантного Stage в PROJECT-ROADMAP.
 - Warning пользователю если `_ops/` давно не обновлялся.
 
 
@@ -119,11 +119,10 @@ Use case в prescription'ах: *«Для failure "модель пытается 
 | Симптом | Первый выбор | Почему |
 |---|---|---|
 | Модель пишет не туда | PreToolUse hook | Structural block на Write path. |
-| Модель забывает читать PROJECT-PLAN | SessionStart + UserPromptSubmit hooks | Context injection до reasoning. |
+| Модель забывает читать PROJECT-ROADMAP | SessionStart + UserPromptSubmit hooks | Context injection до reasoning. |
 | Модель запускает опасную команду | Bash permission deny + PreToolUse safeguard | Два слоя защиты. |
 | Модель не проверяет свою работу | PostToolUse hook (validator) + Stop hook (done-check) | Автоматический check после action. |
 | Модель не следует процедуре | Rigid local skill | Порядок шагов как контракт. |
 | Модель делает generic вместо specific | Flexible local skill + reference examples | Рамка + канон. |
 | Опасная batch-операция | Subagent isolation (worktree) | Изолированный blast radius. |
 | Tool доступ в проекте где не нужен | Project-scope MCP | Precise grant. |
-

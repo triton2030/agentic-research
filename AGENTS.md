@@ -45,10 +45,16 @@
 
 - `_ops/` — не общий склад заметок, backlog и случайных plan-файлов
 - По умолчанию `_ops/` должен быть пустым
-- `project-strategy` владеет `_ops/PROJECT-PLAN.md` и `_ops/learnings.md`
-- `preference-sync` владеет `_ops/INTERVIEW.md`
-- `ops-sync` синхронизирует `_ops/plans/phase-NN-<slug>/` и `done/` по Stages из PROJECT-PLAN
-- `task-contract` владеет `_ops/plans/phase-NN-<slug>/task-MM-<slug>.md` целиком: Цель / Подшаги / Критерии приёмки
+
+**Три уровня планирования (других владельцев у уровней нет):**
+
+- **Level 1 — `_ops/PROJECT-ROADMAP.md`** (owner `project-roadmap`): путь от нуля до конца — Goal, Approach, Stages (фазы), Anti-goals; `_ops/learnings.md` рядом
+- **Level 2 — `_ops/plans/phase-NN-<slug>/task-MM-<slug>.md`** (owner `task-contract`): одна задача = один файл, Цель + Stage anchor
+- **Level 3 — Подшаги / Must / Must-not / Verification внутри task-file** (owner `task-contract`)
+
+`repo-shape`, `instruction-layer`, `ops-sync`, `before-work`, `before-write`, `work-review` обслуживают runtime/folders/routing/moments — не уровни планирования.
+
+- `user-truth` владеет `_ops/INTERVIEW.md`
 - `_ops/plans/` — эфемерный слой; не ссылаться на пути внутри него извне
 - Не создавать numbered `_ops/*` вроде `1-NORTH-STAR.md`, `2-RATIONALE.md`, `3-CURRENT-STRATEGY.md`
 - Не создавать `_ops/inbox/`, task trackers и другие ops-поверхности сверх контрактов live skills
@@ -81,12 +87,27 @@
 - Default chain для существенной repo-level работы: `before-work` → нужный owner-skill → execution → `work-review`
 - Перед substantive Edit/Write использовать `before-write`
 - Task-file scope/criteria/status/closeout → `task-contract`
-- Direction/Goal/roadmap/status drift → `project-strategy`; phase folders → `ops-sync`; preferences → `preference-sync`; contradictions → `contradiction-hold`; plan evidence drift → `plan-drift-watch`
+- Direction/Goal/roadmap/status reconciliation → `project-roadmap`; unresolved approach branches / domain prerequisites / missing-middle questions → `strategy-discussion`; user preferences/vision/conflicts → `user-truth`
 - Skill/trigger design → `skill-architect`; AGENTS/CLAUDE/routing placement → `instruction-layer`; folders/hooks/permissions/MCP/validators → `repo-shape`
 - `step-back` — dialog-time framing и один короткий zoom-out/reframe ход
-- `guide-subagents` — только когда пользователь явно хочет subagents/delegation
+- `guide-subagents` — только когда пользователь явно хочет Codex subagents / delegation / parallel workers / multiple agents
 - Если root docs и skill conflict, следовать skill contract
 - Если инструкция ссылается на глобальный Codex-skill, сначала проверять реальный installed handle в `/Users/triton/.codex/skills`
+
+## Локальные Инструменты
+
+- Для поиска и инвентаризации сначала использовать `rg`, `fd`,
+  `git status/diff/log`; `find` — только при необходимости
+- Для JS/TS/Markdown/package evidence доступны: `knip`, `lychee`,
+  `markdownlint-cli2`, `tsc`, `biome`, `eslint`, `stylelint`,
+  `depcruise`, `ast-grep`/`sg`, `publint`, `attw`, `syncpack`,
+  `gitleaks`, `osv-scanner`, `trivy`, `semgrep`, `actionlint`
+- Предпочитать repo-local запуск (`pnpm exec`, `npm exec --`,
+  `npx --no-install`) перед глобальными бинарями; глобальные
+  Homebrew/npm tools — fallback evidence
+- `repo-power-tools` вызывать, когда нужны быстрые CLI evidence для
+  cleanup/move/delete/dead-code/docs-link/import/package/security задач;
+  root docs только напоминают о tool surface
 
 ## Правила Письма
 
