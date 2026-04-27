@@ -16,6 +16,12 @@ answers to domain questions, and reasons for changing prior preferences.
 This is not a task planner and not a strategy writer. It makes downstream
 skills better by keeping user truth current.
 
+This trigger applies even when the user is mid-flow in another skill
+(`strategy-discussion`, `project-roadmap`, `task-contract`). A preference
+signal during a strategic dialog still belongs to `INTERVIEW.md` —
+`STRATEGY-DISCUSSION.md` is point-in-time decisions, not durable preferences.
+Different files, different lifetimes; do not substitute one for the other.
+
 ## What It Does
 
 1. Decide whether the signal is durable: preference, red line, vision,
