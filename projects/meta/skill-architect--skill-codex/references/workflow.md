@@ -17,7 +17,7 @@
 - `INTERVIEW.md` — хотя бы одна релевантная секция (или явно: «для этого домена предпочтений нет»).
 - `learnings.md` — может быть пустым в начале; но если есть, дельты конкретные (named scenario + дата), не generic.
 
-Generic Goal или пустой Stage → **блокирую audit**. Верну: чего не хватает, почему без этого audit слабый, откат в `project-roadmap`. Не компенсирую слабую карту generic архитектурой.
+Generic Goal или пустой Stage → **блокирую audit**. Верну: чего не хватает, почему без этого audit слабый, откат в `project-strategy`. Не компенсирую слабую карту generic архитектурой.
 
 **Freshness check.** `_ops/` триада должна быть **горячей**, а не snapshot'ом:
 - Когда каждый из трёх файлов последний раз обновлялся? (`git log -1 --format=%ad -- _ops/<file>`).
@@ -131,18 +131,18 @@ Prescriptions в Шаге 6 строятся из:
 
 Если существующий механизм покрывает полностью — **не добавляй prescription, перемаршрутизируй**: *«failure закрывается hook or validator where the runtime supports it X, пользователь/ИИ не знает об этом; единственное изменение — добавить явный вызов в default route fresh session (Шаг 8)»*.
 
-### Root-instruction task-contract routing
+### Root-instruction 1task-contract routing
 
-Если root `AGENTS.md` / `CLAUDE.md` в scope, проверь, есть ли прямое routing-правило часто вызывать `task-contract`. Оно должно покрывать обсуждение задачи, уточнение подхода, status/movement, редактирование текста/кода/артефакта, сверку текущей работы с Подшагами / Must / Must-not / Verification protocol task-файла и closeout после выполнения.
+Если root `AGENTS.md` / `CLAUDE.md` в scope, проверь, есть ли прямое routing-правило часто вызывать `1task-contract`. Оно должно покрывать обсуждение задачи, уточнение подхода, status/movement, редактирование текста/кода/артефакта, сверку текущей работы с Подшагами / Must / Must-not / Verification protocol task-файла и closeout после выполнения.
 
-Если такого правила нет, prescription обычно живёт в `instruction text` layer. Не дублируй тело `task-contract`: root docs должны сказать **когда вызывать**, а не переписать lifecycle.
+Если такого правила нет, prescription обычно живёт в `instruction text` layer. Не дублируй тело `1task-contract`: root docs должны сказать **когда вызывать**, а не переписать lifecycle.
 
 ### Fix-layer в preference order
 
 1. **Runtime guardrail** (hook or validator where the runtime supports it / tool permission / approval policy / validator) — для необратимых и опасных сбоев.
 2. **Local skill** — для повторяемого workflow.
 3. **Instruction text** (AGENTS.md / системный prompt) — для устойчивой рамки.
-4. **`task-contract` handoff** — для task-level контракта.
+4. **`1task-contract` handoff** — для task-level контракта.
 5. **Human checkpoint** — где нужна эскалация.
 
 Prompt-level допустима **только после явного отказа** от runtime и skill с причиной.
@@ -200,14 +200,14 @@ Prompt-level допустима **только после явного отка�
 
 Буквальная формулировка load-bearing правила, чтобы новая сессия считывала его без интерпретации.
 
-### `task-contract` Handoff (если нужен)
+### `1task-contract` Handoff (если нужен)
 
 Если диагноз — shortcut, formal pass или weak done-state — явно рекомендую handoff. Называю:
-- durable instruction surfaces, которые `task-contract` читает как upstream;
+- durable instruction surfaces, которые `1task-contract` читает как upstream;
 - task-level constraints, которые он наследует из них.
-- literal root-instruction wording, если fresh-session default route должен чаще вызывать `task-contract`.
+- literal root-instruction wording, если fresh-session default route должен чаще вызывать `1task-contract`.
 
-Если архитектор отработал хорошо, `task-contract` делает **меньше** работы — правила уже живут в fabric.
+Если архитектор отработал хорошо, `1task-contract` делает **меньше** работы — правила уже живут в fabric.
 
 ### Forces Verification
 

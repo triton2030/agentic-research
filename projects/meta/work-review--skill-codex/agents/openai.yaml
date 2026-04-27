@@ -3,7 +3,7 @@ interface:
   short_description: "Verify work before closeout"
   default_prompt: >
     Use $work-review to verify work before closeout and route newly discovered
-    branches to $strategy-discussion when needed.
+    branches to $1strategy-discussion when needed.
 
 policy:
   allow_implicit_invocation: true

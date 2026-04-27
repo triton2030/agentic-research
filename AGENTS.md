@@ -48,11 +48,13 @@
 
 **Три уровня планирования (других владельцев у уровней нет):**
 
-- **Level 1 — `_ops/PROJECT-ROADMAP.md`** (owner `project-roadmap`): путь от нуля до конца — Goal, Approach, Stages (фазы), Anti-goals; `_ops/learnings.md` рядом
-- **Level 2 — `_ops/plans/phase-NN-<slug>/task-MM-<slug>.md`** (owner `task-contract`): одна задача = один файл, Цель + Stage anchor
-- **Level 3 — Подшаги / Must / Must-not / Verification внутри task-file** (owner `task-contract`)
+- **Level 1 — `_ops/PROJECT-ROADMAP.md`** (owner `project-strategy`): путь от нуля до конца — Goal, Approach, Stages (фазы), Anti-goals; `_ops/learnings.md` рядом
+- **Level 2 — `_ops/plans/phase-NN-<slug>/task-MM-<slug>.md`** (owner `1task-contract`): одна задача = один файл, Цель + Stage anchor
+- **Level 3 — Подшаги / Must / Must-not / Verification внутри task-file** (owner `1task-contract`)
 
-`repo-shape`, `instruction-layer`, `ops-sync`, `before-work`, `before-write`, `work-review` обслуживают runtime/folders/routing/moments — не уровни планирования.
+`1repo-shape`, `1instruction-layer`, `1before-work`, `before-write`,
+`work-review` обслуживают runtime/folders/routing/moments — не уровни
+планирования.
 
 - `user-truth` владеет `_ops/INTERVIEW.md`
 - `_ops/plans/` — эфемерный слой; не ссылаться на пути внутри него извне
@@ -84,13 +86,13 @@
 - Для крупных shape/routing задач читать `knowledge/wisdom-systems-thinking.md`
 - Перед работой в категории читать `knowledge/research/{category}/learnings.md`
 - Skills использовать как routing, не как preload
-- Default chain для существенной repo-level работы: `before-work` → нужный owner-skill → execution → `work-review`
+- Default chain для существенной repo-level работы: `1before-work` → нужный owner-skill → execution → `work-review`
 - Перед substantive Edit/Write использовать `before-write`
-- Task-file scope/criteria/status/closeout → `task-contract`
-- Direction/Goal/roadmap/status reconciliation → `project-roadmap`; unresolved approach branches / domain prerequisites / missing-middle questions → `strategy-discussion`; user preferences/vision/conflicts → `user-truth`
-- Skill/trigger design → `skill-architect`; AGENTS/CLAUDE/routing placement → `instruction-layer`; folders/hooks/permissions/MCP/validators → `repo-shape`
-- `step-back` — dialog-time framing и один короткий zoom-out/reframe ход
-- `guide-subagents` — только когда пользователь явно хочет Codex subagents / delegation / parallel workers / multiple agents
+- Task-file scope/criteria/status/closeout → `1task-contract`
+- Direction/Goal/roadmap/status reconciliation → `project-strategy`; unresolved approach branches / domain prerequisites / missing-middle questions → `1strategy-discussion`; user preferences/vision/conflicts → `user-truth`
+- Skill/trigger design → `skill-architect`; AGENTS/CLAUDE/routing placement → `1instruction-layer`; folders/hooks/permissions/MCP/validators → `1repo-shape`
+- `1step-back` — dialog-time framing и один короткий zoom-out/reframe ход
+- `1guide-subagents` — только когда пользователь явно хочет Codex subagents / delegation / parallel workers / multiple agents
 - Если root docs и skill conflict, следовать skill contract
 - Если инструкция ссылается на глобальный Codex-skill, сначала проверять реальный installed handle в `/Users/triton/.codex/skills`
 

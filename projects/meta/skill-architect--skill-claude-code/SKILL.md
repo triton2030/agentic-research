@@ -35,7 +35,7 @@ For design: skill name, trigger surface, skip surface, body shape, references, v
 ## Role Boundaries
 
 - Does not own `_ops`, task-files, AGENTS/CLAUDE placement, hooks, permissions, or MCP shape.
-- Route instruction placement to `instruction-layer`; runtime/folder/tooling shape to `repo-shape`.
+- Route instruction placement to `1instruction-layer`; runtime/folder/tooling shape to `1repo-shape`.
 
 ## Surface Choice
 

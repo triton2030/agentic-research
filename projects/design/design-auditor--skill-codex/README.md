@@ -33,7 +33,9 @@
 Почему удалили:
 
 - screenshot-first случаи уже лучше закрывает `$screenshot-design`;
-- live-page ветку в проекте сильнее закрывает `$playwright-guide` + `$playwright`/`$playwright-interactive`;
+- live-page ветку сильнее закрывают Browser Use / Vercel agent-browser;
+  старый `$playwright-guide` удалён вместе с `$playwright` /
+  `$playwright-interactive`;
 - delegation-ветка через `$guide-subagents` слишком редкая, чтобы оправдать отдельный глобальный trigger;
 - после critique естественный следующий шаг чаще ведёт в `$impeccable`, а не в отдельный router.
 

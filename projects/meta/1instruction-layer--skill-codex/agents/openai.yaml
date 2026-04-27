@@ -1,0 +1,9 @@
+interface:
+  display_name: "1Instruction Layer"
+  short_description: "Place routing instructions"
+  default_prompt: >
+    Use $1instruction-layer to place routing instructions after unresolved
+    control-surface tradeoffs are discussed through $1strategy-discussion.
+
+policy:
+  allow_implicit_invocation: true

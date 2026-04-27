@@ -1,0 +1,9 @@
+interface:
+  display_name: "1Strategy Discussion"
+  short_description: "Discuss branches before planning"
+  default_prompt: >
+    Use $1strategy-discussion to reveal expert approach branches, tradeoffs,
+    rejected routes, and consequential questions before planning or execution.
+
+policy:
+  allow_implicit_invocation: true

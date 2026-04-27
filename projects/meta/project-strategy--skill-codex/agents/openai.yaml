@@ -1,0 +1,9 @@
+interface:
+  display_name: "Project Strategy"
+  short_description: "Own the top-level project path"
+  default_prompt: >
+    Use $project-strategy to own the top-level project path and learnings after raw
+    branches are resolved through $1strategy-discussion when needed.
+
+policy:
+  allow_implicit_invocation: true

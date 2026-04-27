@@ -6,7 +6,7 @@ description: >
   consequential answers that should affect future routing, scope, Must-not, or
   verification depth. Own `_ops/INTERVIEW.md`. Do not run interviews, do not ask
   broad discovery questions, and skip one-off task facts, implementation trivia,
-  and strategy/domain branches owned by `strategy-discussion`.
+  and strategy/domain branches owned by `1strategy-discussion`.
 ---
 
 # User Truth
@@ -16,7 +16,7 @@ description: >
 Store durable truth about the user. This skill is memory sync, not an interview
 process.
 
-Most user truth is discovered inside `strategy-discussion`, `project-roadmap`,
+Most user truth is discovered inside `1strategy-discussion`, `project-strategy`,
 or task work. This skill only decides whether the signal is durable, resolves
 conflicts with existing memory, and updates `_ops/INTERVIEW.md`.
 
@@ -63,7 +63,7 @@ Question: What changed?
 
 - Owns only `_ops/INTERVIEW.md`.
 - Does not create strategy, task criteria, instruction rules, or repo shape.
-- Routes unresolved approach/domain branches to `strategy-discussion`.
+- Routes unresolved approach/domain branches to `1strategy-discussion`.
 
 ## Done When
 

@@ -1,4 +1,0 @@
-interface:
-  display_name: "Guide Subagents"
-  short_description: "Guide explicit subagent requests"
-  default_prompt: "Use $guide-subagents only when the user explicitly asks for Codex subagents, delegation, parallel workers, or multiple agents. Treat subagents as a proposed method: name the missing judgment, choose the cheapest shape that buys it, keep blocking/integration/hotspot work with the main agent, name required skills in each worker prompt, keep scopes disjoint, and verify evidence before trusting worker claims. Route strategic uncertainty to $strategy-discussion instead of launching workers."

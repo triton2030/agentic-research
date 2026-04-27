@@ -1,6 +1,6 @@
 # Meta — Инвентарь Codex
 
-Снимок на 25 апреля 2026.
+Снимок на 27 апреля 2026.
 
 Инвентарь перечисляет repo-local project artifacts и globally installed handles,
 которые реально доступны в рабочей среде. Если локальная проектная папка ушла
@@ -8,37 +8,31 @@
 
 ## Core Meta Skills
 
-### project-roadmap
+### project-strategy
 
 - Тип: skill
 - Что делает: владеет `_ops/PROJECT-ROADMAP.md` и `_ops/learnings.md`;
-  строит domain-grounded Stage-chain.
+  держит top-level Goal, Approach, Stage-chain и Anti-goals.
 
-### domain-clarifier
+### 1strategy-discussion
 
 - Тип: skill
-- Что делает: задаёт consequential domain questions, когда prerequisites,
-  Stage order, task scope или criteria зависят от доменных знаний.
+- Что делает: раскрывает approach branches, hidden tradeoffs и consequential
+  domain questions до планирования или исполнения.
 
-### user-interview
+### user-truth
 
 - Тип: skill
 - Что делает: владеет `_ops/INTERVIEW.md`; хранит предпочтения, видение,
   ограничения и ответы пользователя.
 
-### ops-sync
-
-- Тип: skill
-- Что делает: синхронизирует `_ops/plans/` phase folders со Stages из
-  `PROJECT-ROADMAP.md`.
-
-### task-contract
+### 1task-contract
 
 - Тип: skill
 - Что делает: создаёт empty phase task skeletons и детализирует только текущий
   task-файл.
 
-### before-work
+### 1before-work
 
 - Тип: skill
 - Что делает: перед работой извлекает execution lesson из strategy, task и
@@ -63,21 +57,27 @@
 - Что делает: проектирует skill trigger surfaces, descriptions, references,
   validation и `agents/openai.yaml`.
 
-### instruction-layer
+### 1instruction-layer
 
 - Тип: skill
 - Что делает: решает placement правил в AGENTS/CLAUDE/subtree instructions.
 
-### repo-shape
+### 1repo-shape
 
 - Тип: skill
 - Что делает: проектирует folders, plugins, MCP/apps, subagents, validators,
   scripts, config и tool boundaries.
 
-### step-back
+### 1step-back
 
 - Тип: skill
 - Что делает: короткий zoom-out / reframe при reasoning drift.
+
+### 1guide-subagents
+
+- Тип: skill
+- Что делает: ограничивает и оформляет Codex subagent delegation, когда
+  пользователь явно просит parallel workers или delegation.
 
 ### repo-power-tools
 

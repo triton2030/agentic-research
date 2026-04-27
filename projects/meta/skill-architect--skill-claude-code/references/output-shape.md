@@ -45,7 +45,7 @@ Generic Goal или пустой Stage → audit блокирован, отка�
 
 ### Instruction слои
 - `<путь к AGENTS.md/CLAUDE.md>` — precedence: <...> — load-bearing правила: <...>
-- Root task-contract routing: <explicit frequent route present | missing | not in scope>
+- Root 1task-contract routing: <explicit frequent route present | missing | not in scope>
 
 ### `_ops/` состояние
 - PROJECT-ROADMAP.md: <реально заполнен | шаблон | частично>
@@ -105,7 +105,7 @@ Generic («AI будет развиваться») отброшено. Если 
   - Что уже покрывает частично: <handle из Шага 2 | ничего не покрывает>
   - Почему недостаточно: <одна строка gap>
   - Default: <расширить существующее <handle> | добавить новое, потому что <reason>>
-- **Fix-layer**: `runtime guardrail` | `local skill` | `instruction text` | `task-contract handoff` | `human checkpoint`
+- **Fix-layer**: `runtime guardrail` | `local skill` | `instruction text` | `1task-contract handoff` | `human checkpoint`
 - **Если не runtime**: почему runtime/skill альтернатива отклонена — одна строка.
 - **Механизм** (если runtime): тип hook'а / permission rule / subagent config — с отсылкой на [claude-code-guardrails.md](claude-code-guardrails.md).
 - **Backlink**: `→ protects PROJECT-ROADMAP §Goal` / `→ protects §Stage <name>` / `→ addresses learnings entry YYYY-MM-DD` / `→ honors INTERVIEW §<section>`. Без backlink'а невалидна.
@@ -136,13 +136,13 @@ Generic («AI будет развиваться») отброшено. Если 
 ### Default Route For Fresh Session
 - **Читает первым**: <один файл>
 - **Skill на типичные триггеры**: <skill X на триггер Y>
-- **Когда вызывает `task-contract`**: <task discussion | edits | status/movement | criteria check | closeout>
+- **Когда вызывает `1task-contract`**: <task discussion | edits | status/movement | criteria check | closeout>
 - **Hooks срабатывают автоматически**: <какие и когда>
 - **Буквальная формулировка load-bearing правила**: *«<точная цитата>»*
 - **Если `_ops` холодный**: <что блокирует hardening и как уходим в `project-roadmap`>
 - **Что блокирует действие до этого шага**: <>
 
-### `task-contract` Handoff (если нужен)
+### `1task-contract` Handoff (если нужен)
 - Durable instruction surfaces как upstream: <AGENTS.md § | skill X | hook Y output | validator Z>
 - Task-level constraints наследуются из них: <>
 

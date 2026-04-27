@@ -167,15 +167,16 @@ outcome.
 
 ## Skill Touchpoints
 
-- `project-roadmap` owns strategy truth. См. `/Users/triton/.codex/skills/project-roadmap/SKILL.md`.
-- `domain-clarifier` owns consequential domain questions. См. `/Users/triton/.codex/skills/domain-clarifier/SKILL.md`.
-- `ops-sync` owns phase folder shape. См. `/Users/triton/.codex/skills/ops-sync/SKILL.md`.
-- `task-contract` owns task-files. См. `/Users/triton/.codex/skills/task-contract/SKILL.md`.
-- `before-work` owns work-start framing. См. `/Users/triton/.codex/skills/before-work/SKILL.md`.
+- `project-strategy` owns strategy truth. См. `/Users/triton/.codex/skills/project-strategy/SKILL.md`.
+- `1strategy-discussion` owns unresolved approach branches and consequential
+  domain questions. См.
+  `/Users/triton/.codex/skills/1strategy-discussion/SKILL.md`.
+- `1task-contract` owns task-files. См. `/Users/triton/.codex/skills/1task-contract/SKILL.md`.
+- `1before-work` owns work-start framing. См. `/Users/triton/.codex/skills/1before-work/SKILL.md`.
 - `before-write` owns imminent write checks. См. `/Users/triton/.codex/skills/before-write/SKILL.md`.
 - `work-review` owns post-action review. См. `/Users/triton/.codex/skills/work-review/SKILL.md`.
-- `user-interview` owns durable user truth. См. `/Users/triton/.codex/skills/user-interview/SKILL.md`.
-- `skill-architect`, `instruction-layer` и `repo-shape` own control-surface
+- `user-truth` owns durable user truth. См. `/Users/triton/.codex/skills/user-truth/SKILL.md`.
+- `skill-architect`, `1instruction-layer` и `1repo-shape` own control-surface
   changes; use them only when the failure is structural.
 
 ## Research Tie-Back

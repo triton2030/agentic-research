@@ -22,7 +22,7 @@
 - learnings.md: <пуст | есть конкретные дельты | generic>
 - Состояние `_ops/` truth layer: `hot` | `cold` — что именно отстаёт или отсутствует.
 
-Generic Goal или пустой Stage → audit блокирован, откат в `project-roadmap`.
+Generic Goal или пустой Stage → audit блокирован, откат в `project-strategy`.
 
 ## 2. As-is Map
 
@@ -45,7 +45,7 @@ Generic Goal или пустой Stage → audit блокирован, отка�
 
 ### Instruction слои
 - `<путь к AGENTS.md/CLAUDE.md>` — precedence: <...> — load-bearing правила: <...>
-- Root task-contract routing: <explicit frequent route present | missing | not in scope>
+- Root 1task-contract routing: <explicit frequent route present | missing | not in scope>
 
 ### `_ops/` состояние
 - PROJECT-ROADMAP.md: <реально заполнен | шаблон | частично>
@@ -105,7 +105,7 @@ Generic («AI будет развиваться») отброшено. Если 
   - Что уже покрывает частично: <handle из Шага 2 | ничего не покрывает>
   - Почему недостаточно: <одна строка gap>
   - Default: <расширить существующее <handle> | добавить новое, потому что <reason>>
-- **Fix-layer**: `runtime guardrail` | `local skill` | `instruction text` | `task-contract handoff` | `human checkpoint`
+- **Fix-layer**: `runtime guardrail` | `local skill` | `instruction text` | `1task-contract handoff` | `human checkpoint`
 - **Если не runtime**: почему runtime/skill альтернатива отклонена — одна строка.
 - **Механизм** (если runtime): тип hook or validator where the runtime supports it'а / tool permission / approval policy rule / Codex subagent config — с отсылкой на [claude-code-guardrails.md](claude-code-guardrails.md).
 - **Backlink**: `→ protects PROJECT-ROADMAP §Goal` / `→ protects §Stage <name>` / `→ addresses learnings entry YYYY-MM-DD` / `→ honors INTERVIEW §<section>`. Без backlink'а невалидна.
@@ -136,23 +136,23 @@ Generic («AI будет развиваться») отброшено. Если 
 ### Default Route For Fresh Session
 - **Читает первым**: <один файл>
 - **Skill на типичные триггеры**: <skill X на триггер Y>
-- **Когда вызывает `task-contract`**: <task discussion | edits | status/movement | criteria check | closeout>
+- **Когда вызывает `1task-contract`**: <task discussion | edits | status/movement | criteria check | closeout>
 - **Hooks срабатывают автоматически**: <какие и когда>
 - **Буквальная формулировка load-bearing правила**: *«<точная цитата>»*
-- **Если `_ops` холодный**: <что блокирует hardening и как уходим в `project-roadmap`>
+- **Если `_ops` холодный**: <что блокирует hardening и как уходим в `project-strategy`>
 - **Что блокирует действие до этого шага**: <>
 
-### `task-contract` Handoff (если нужен)
+### `1task-contract` Handoff (если нужен)
 - Durable instruction surfaces как upstream: <AGENTS.md § | skill X | hook or validator where the runtime supports it Y output | validator Z>
 - Task-level constraints наследуются из них: <>
 
-### `project-roadmap` handoff
+### `project-strategy` handoff
 (Только если вскрыт upstream drift или ownership contamination.)
 - Что нужно пересинхронизировать: ...
 - Какой из `_ops/PROJECT-ROADMAP.md` / `_ops/INTERVIEW.md` / `_ops/learnings.md` остыл, отсутствует или не отражает реальность: ...
 - Какой sign of reality надо туда занести сейчас: ...
 - Почему это не owner `skill-architect`: ...
-- Следующий шаг `project-roadmap`: ...
+- Следующий шаг `project-strategy`: ...
 
 ### Forces Verification
 - **Force 1** → уязвимые prescriptions: <N, M>; совпадает ли sunset signal с early signal: <да/нет; если нет — перепроектирую или удаляю силу>

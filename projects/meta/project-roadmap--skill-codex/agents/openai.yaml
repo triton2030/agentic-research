@@ -1,9 +1,0 @@
-interface:
-  display_name: "Project Roadmap"
-  short_description: "Own the top-level project path"
-  default_prompt: >
-    Use $project-roadmap to own the top-level project path and learnings after raw
-    branches are resolved through $strategy-discussion when needed.
-
-policy:
-  allow_implicit_invocation: true

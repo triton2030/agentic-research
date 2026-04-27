@@ -5,10 +5,10 @@ description: >
   generated file creation, bulk rewrite, or content/schema/instruction changes.
   Check target, task contract, Must-not, write scope, and the execution lesson
   from strategy/task/user truth. Route new unresolved branches or hidden
-  approach/domain tradeoffs to `strategy-discussion`; route durable user truth
+  approach/domain tradeoffs to `1strategy-discussion`; route durable user truth
   to `user-truth`, and missing contract or out-of-substep work to
-  `task-contract`. Skip pure reads, shell checks, trivial typos, and work-start
-  talk handled by `before-work`.
+  `1task-contract`. Skip pure reads, shell checks, trivial typos, and work-start
+  talk handled by `1before-work`.
 ---
 
 # Before file write
@@ -34,10 +34,10 @@ verification depth; this skill runs after it.
 2. Re-open the nearest task contract if one exists; read Цель, current Подшаг, Must, Must-not, and Verification.
 3. Read relevant strategy/user truth only enough to extract the execution lesson for this write.
 4. Confirm the write is within scope. If the only purpose you can name is the local operation (“исправить файл”, “обновить текст”), stop and re-read the plan/task; route instead of writing if the upstream purpose remains unclear.
-4a. Confirm the imminent write is covered by an existing Подшаг in the task-file. If this action is a new step not listed in Подшаги (setup, fix-of-fix, side-effect work), STOP and route to `task-contract` for a one-line Подшаг addition, then resume the write.
+4a. Confirm the imminent write is covered by an existing Подшаг in the task-file. If this action is a new step not listed in Подшаги (setup, fix-of-fix, side-effect work), STOP and route to `1task-contract` for a one-line Подшаг addition, then resume the write.
 5. If domain prerequisites, hidden requirements, or alternate approaches affect
-   this write and are unclear, route to `strategy-discussion`.
-6. If no contract exists for non-trivial work, route to `task-contract`. If the plan anchor is missing, route to `project-roadmap`. If the write changes instruction/runtime shape and owner is unclear, route to `instruction-layer` or `repo-shape`.
+   this write and are unclear, route to `1strategy-discussion`.
+6. If no contract exists for non-trivial work, route to `1task-contract`. If the plan anchor is missing, route to `project-strategy`. If the write changes instruction/runtime shape and owner is unclear, route to `1instruction-layer` or `1repo-shape`.
 7. Self-check: compare `Upstream Goal` and `Why this write serves Goal` in the receipt with the current user prompt. If 3+ consecutive words from the prompt appear in either field, this is paraphrase failure. Re-read the contract; do not continue the write.
 8. For React/TS/Markdown moves, deletes, or cleanup, consider `$repo-power-tools` for `knip`, `lychee`, `markdownlint-cli2`, `tsc`, `biome`, `depcruise`, or `ast-grep` evidence.
 
@@ -58,7 +58,7 @@ verification depth; this skill runs after it.
 
 ## Skip
 
-Skip for pure reads, terminal checks, generated caches, one-character typo fixes, or when `before-work` already refreshed the same contract in this turn and no write-scope changed.
+Skip for pure reads, terminal checks, generated caches, one-character typo fixes, or when `1before-work` already refreshed the same contract in this turn and no write-scope changed.
 
 ## Output Contract
 

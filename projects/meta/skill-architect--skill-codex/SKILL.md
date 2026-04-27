@@ -1,7 +1,7 @@
 ---
 name: skill-architect
 description: >
-  Use for Codex skill/agent design: skill, description, trigger, frontmatter, implicit invocation, matcher, split, merge, validation, openai.yaml. Design trigger surfaces and references. Route AGENTS/CLAUDE placement to `instruction-layer`, runtime/folders to `repo-shape`. Skip ordinary coding.
+  Use for Codex skill/agent design: skill, description, trigger, frontmatter, implicit invocation, matcher, split, merge, validation, openai.yaml. Design trigger surfaces and references. Route AGENTS/CLAUDE placement to `1instruction-layer`, runtime/folders to `1repo-shape`. Skip ordinary coding.
 ---
 
 # Skill Architect
@@ -41,7 +41,7 @@ For design: skill name, trigger surface, skip surface, body shape, references, v
 ## Role Boundaries
 
 - Does not own `_ops`, task-files, AGENTS/CLAUDE placement, hook or validator where the runtime supports its or validators where the runtime supports them, tool tool permission / approval policys / approval policy, or MCP shape.
-- Route instruction placement to `instruction-layer`; runtime/folder/tooling shape to `repo-shape`.
+- Route instruction placement to `1instruction-layer`; runtime/folder/tooling shape to `1repo-shape`.
 
 ## References
 
