@@ -1,8 +1,0 @@
-interface:
-  display_name: "Pulse Check"
-  short_description: "Probe session memory vs plan"
-  default_prompt: >
-    Use $pulse-check to probe session memory vs plan when the task matches its trigger.
-
-policy:
-  allow_implicit_invocation: true

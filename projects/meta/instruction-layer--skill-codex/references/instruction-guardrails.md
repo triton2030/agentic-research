@@ -13,7 +13,7 @@ Skills в плагинах (Codex skill folder или local) — повторя�
 Следует точно, без адаптации. Каждый шаг обязателен.
 
 Когда использовать: когда дисциплина и порядок сами создают ценность.
-Примеры: `project-strategy` (thinking workflow для durable bet), `task-contract` (task-level контракт), TDD, security review.
+Примеры: `project-roadmap` (thinking workflow для durable bet), `task-contract` (task-level контракт), TDD, security review.
 
 ### Flexible skill
 
@@ -38,7 +38,7 @@ Use case: skill, который только читает и анализиру�
 | Симптом | Первый выбор | Почему |
 |---|---|---|
 | Модель пишет не туда | PreToolUse hook or validator where the runtime supports it | Structural block на file write path. |
-| Модель забывает читать PROJECT-PLAN | fresh-session instruction load + user prompt handling hook or validator where the runtime supports its or validators where the runtime supports them | Context injection до reasoning. |
+| Модель забывает читать PROJECT-ROADMAP | fresh-session instruction load + user prompt handling hook or validator where the runtime supports its or validators where the runtime supports them | Context injection до reasoning. |
 | Модель запускает опасную команду | Bash tool permission / approval policy deny + PreToolUse safeguard | Два слоя защиты. |
 | Модель не проверяет свою работу | PostToolUse hook or validator where the runtime supports it (validator) + Stop hook or validator where the runtime supports it (done-check) | Автоматический check после action. |
 | Модель не следует процедуре | Rigid local skill | Порядок шагов как контракт. |

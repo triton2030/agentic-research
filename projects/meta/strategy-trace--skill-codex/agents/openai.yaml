@@ -1,8 +1,0 @@
-interface:
-  display_name: "Strategy Trace"
-  short_description: "Read-only strategy alignment"
-  default_prompt: >
-    Use $strategy-trace to read-only strategy alignment when the task matches its trigger.
-
-policy:
-  allow_implicit_invocation: true

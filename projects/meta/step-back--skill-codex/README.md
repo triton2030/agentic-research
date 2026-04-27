@@ -1,6 +1,6 @@
 # step-back (Шаг Назад) — Codex variant
 
-Cognitive meta-regulator for the dialog. Antidote to reasoning failures common to humans and LLMs.
+Cognitive-psychological meta-regulator for the dialog. Antidote to reasoning failures common to humans and LLMs.
 
 ## What it is
 
@@ -10,7 +10,7 @@ The one moment in the conversation where the model is allowed and required to do
 
 - Works on any topic, any project, with or without code.
 - No file writes. No persistence. No other-skill routing as part of the skill itself.
-- Single-block output, strict 4-field form, then the reframed next move executes immediately.
+- Deep conversational output from the final goal backward. It starts with one of the required conversational role-anchor phrases, reconstructs available prior work and the current chat trajectory, notices where the thinking itself slipped, then explains which cognitive distortions are showing up, why they appeared, and what corrected thinking frame should replace them. It does not execute the next action.
 
 ## Taxonomy of reasoning failures it catches
 

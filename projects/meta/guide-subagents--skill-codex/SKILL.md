@@ -1,158 +1,105 @@
 ---
 name: guide-subagents
 description: >
-  Use only on explicit Codex subagents, delegation, parallel workers, or
-  independent passes with separable scopes. Skip "think deeply", vague
-  brainstorming, and non-disjoint work.
+  Use only when the user explicitly asks for Codex subagents, delegation,
+  parallel workers, or says to use multiple agents. This is a compact gotcha
+  guide: treat subagents as a proposed method, name the missing judgment,
+  decide whether a split is useful, keep blocking work local, name skills in
+  worker prompts, keep scopes disjoint, and verify evidence. Do not trigger
+  merely because a task could be parallelized.
 ---
 
 # Guide Subagents (Codex)
 
-Prepare, launch, receive, and integrate native Codex subagents when delegation is genuinely the best execution path.
+The model already knows the basics of subagents. Use this guide only after the
+user has explicitly asked for subagents, delegation, parallel workers, or
+multiple agents. Its job is to avoid predictable failures: fake parallelism,
+missing skill activation, copied prompt style, scope drift, status theatre, and
+outsourced judgment.
 
-This skill is execution hygiene for native Codex subagents. It sits downstream of strategy, architecture, and task-criteria owners. Do not let it compensate for missing plan or missing scope decisions upstream.
+Activating this guide does not force a launch. If the split is weak, continue
+locally.
 
-## Upstream gate
+Do not launch subagents merely because a task has independent streams. Without
+an explicit user ask, keep the work in the main agent and optionally mention the
+parallelization opportunity in ordinary prose.
 
-If any of these are unresolved, do not force delegation yet:
+## Outcome Gate
 
-- missing durable goal or plan context -> `project-strategy`; user-preference context -> `preference-sync`;
-- unresolved instruction placement -> `instruction-layer`; unresolved folder/runtime/tooling guardrail -> `repo-shape`;
-- unresolved task-level acceptance criteria or proof boundary -> `task-contract`.
+Treat subagents as a proposed method, not the task.
 
-## When to use
+Before splitting, name the judgment the request needs: speed, evidence,
+critique, domain knowledge, disjoint implementation, validation, or synthesis.
+If the needed judgment is strategic rather than executable, route to
+`strategy-discussion` instead of launching workers.
 
-- The user explicitly wants subagents, delegation, or parallel work in Codex.
-- The task has at least one real sidecar stream that can run without blocking the main agent's next move.
-- Better role split or better briefs would materially improve the result.
-- Fresh-context validation, evidence collection, or leaf implementation can run in parallel while the main agent keeps the critical path moving.
+Prefer the cheapest shape that buys the needed judgment:
 
-## When not to use
+- main agent only;
+- one sidecar worker;
+- multiple disjoint workers;
+- adversarial critique or evidence collection instead of implementation.
 
-- The task is trivial, linear, or faster to do directly.
-- The main agent's immediate next step is the critical path and there is no real sidecar work.
-- The user wants only the main agent and does not want delegation.
-- Ownership cannot be separated cleanly.
-- The split would require multiple workers to touch the same hotspot or integration surface.
+## Split
 
-## Hard gate
-
-- Use native Codex subagents only.
-- Do not present this as a philosophy brainstorm. It is a launch-and-integration helper.
-- Do not force a confirmation pause just because subagents are involved.
-- If the user explicitly asks to inspect or approve the split first, switch to plan-first mode for that turn and do not auto-launch.
-- If delegation is not warranted, say so briefly and continue locally.
-- Do not trust status updates as truth; truth comes from on-disk changes and real verification.
-
-## Launch mechanics
-
-- Reuse prepared briefs when the split is still valid; do not improvise a different split at launch time.
-- If launch uses `fork_context=true`, do not override `agent_type`, `model`, or `reasoning_effort` unless the user explicitly asked for a different agent shape. This is a native Codex gotcha.
-- Keep launch parameters minimal. Only set what materially changes the worker's job.
-- Keep each coding worker on a disjoint write scope.
-
-## Split discipline
-
-Before assigning any worker, check the candidate files and workstreams.
+Use subagents for independent side streams: separate files, leaf implementation,
+evidence collection, critique, or validation that can run while the main agent
+keeps moving.
 
 Keep with the main agent:
 
-- the immediate blocking next step;
-- integration surfaces and cross-worker join points;
-- hotspot files that many changes converge through;
-- files that are already dirty or mix old diff with new work;
-- repo-level verification after integration.
+- the immediate blocking step;
+- dirty or hotspot files;
+- integration surfaces and synthesis;
+- repo-level verification.
 
-Prefer for workers:
+Give workers clean, disjoint scopes. One worker owns one scope. If two workers
+need the same files or decision surface, the split is probably wrong.
 
-- clean leaf files;
-- new files;
-- isolated module slices;
-- one narrow question or one disjoint write scope.
+## Brief
 
-Dirty worktree gate:
-
-- Do not hand a worker a file that is already dirty unless the brief explicitly says it is dirty and the worker's task is limited to a clearly separable delta.
-- If the file mixes preexisting edits with the new task, keep it with the main agent or find a cleaner leaf split.
-
-## Briefing stance
-
-Bias briefs toward:
+A good worker prompt names only what matters:
 
 - role;
 - owned scope;
 - task;
-- role behavior and stance;
-- work boundaries;
-- quality criteria;
-- evidence required;
-- report discipline.
+- skills to use;
+- boundaries;
+- evidence/report expected.
 
-Default brief shape is: `role + owned task + work boundaries + quality criteria + evidence + report discipline`.
+Tell the worker explicitly which skills to use. Do not rely on it to infer skill
+activation from the task. The launcher sees the broader context, so skill choice
+belongs in the prompt.
 
-Do not give subagents a rigid algorithm by default. The brief should tell them what job they own, what stance to keep, what they may or may not do, and what counts as high-quality completion. Add ordered steps only when sequence is truly load-bearing, safety-critical, or the task is fragile enough that a free-form approach would predictably fail.
+Subagents copy the prompt's style, tone, and format. If you want a conversational
+answer, prompt conversationally. If you want findings, prompt in a findings
+shape. Prompt format steers output.
 
-Every worker brief must make these boundaries explicit:
+Brief for judgment, not obedience theatre. Add ordered steps only when sequence
+is actually load-bearing or safety-critical.
 
-- report only owned scope;
-- do not summarize adjacent workers;
-- do not launch more subagents;
-- do not comment on launcher or tool availability unless it blocks the owned task;
-- if an owned file was already dirty before the worker edited it, say so explicitly and describe only the worker's delta.
+## Gotchas
 
-Use [references/launch-brief-template.md](references/launch-brief-template.md) and [references/role-split-patterns.md](references/role-split-patterns.md).
+- **Broken telephone:** do not delegate synthesis through chains of summaries.
+  Pass exact evidence; synthesize in the main context.
+- **Outsourced judgment:** workers may collect evidence, critique, validate, or
+  implement scoped slices. The main agent owns the delegation choice and final
+  synthesis.
+- **Sycophantic consensus:** multiple workers can agree on the same wrong answer.
+  For validation, ask for evidence-first or adversarial critique.
+- **Missing skills:** if a skill would improve the worker's job, name it in the
+  prompt.
+- **Scope drift:** workers report only owned scope. They do not summarize other
+  workers or become mini-orchestrators.
+- **Status theatre:** worker status is not truth. Check diffs, citations, logs,
+  screenshots, or other evidence.
+- **Verification inflation:** workers claim only scoped checks. The main agent
+  owns integration and final verification.
 
-## Output discipline
+## Plan-First
 
-Scope discipline is mandatory. Brevity is not universal.
+Do not pause for split approval by default. Use plan-first mode only when the
+user asks to inspect or approve the split first.
 
-- A worker must report only its owned scope.
-- The length and format of the return should fit the deliverable.
-- For coding workers, concise scoped deltas are usually best.
-- For strategist, writer, marketer, researcher, or business-analysis workers, a substantive answer in chat can be the correct deliverable if that is what the brief asked for.
-- Do not force every worker into a short status-note shape when the real owned deliverable is a memo, critique, options analysis, or structured recommendation.
-- Do not let a worker use "full analysis" as an excuse to drift into adjacent scopes.
-
-## Current-reality signal
-
-If the repo has a real current-reality artifact and it changes delegation quality, read it before splitting the work. `_state/YYYY-MM-DD-state.md` is only one possible example, not a required input.
-
-Use such a snapshot only as read-only evidence of what still matters now. Do not let it replace `_ops/`, task criteria, or ownership.
-
-## Process
-
-1. Capture the ask and name the main agent's immediate next step.
-2. Check whether any upstream owner layer is unresolved. If so, route there before launching workers.
-3. Inspect candidate scopes for dirty files, hotspots, and integration surfaces.
-4. Split the work into `Main agent does now` and real sidecar streams. If there is no true parallel-ready sidecar, do not force delegation.
-5. Write one ready-to-send brief per worker. Make the owned scope, owned task, work boundaries, quality criteria, and report discipline unambiguous.
-6. Decide mode:
-   - `default launch mode`: delegation is warranted and the split is clear, so launch native Codex subagents;
-   - `plan-first mode`: only when the user explicitly asked to inspect or approve the split before launch;
-   - `no-launch mode`: delegation is not worth it, so continue locally.
-7. After workers return, inspect the on-disk diff for each owned scope before trusting any status message.
-8. Integrate locally. The main agent owns cross-scope joins, conflict resolution, and hotspot updates.
-9. Run verification at the right level:
-   - workers may report only scoped checks tied to their owned files or owned question;
-   - the main agent owns repo-level `lint`, `tsc`, Playwright, browser truth, and other integration checks after the changes are merged.
-10. If verification is mixed, separate `scope truth` from `preexisting unrelated failures` instead of collapsing them into one verdict.
-11. Before finishing, run the checks in [references/red-flags.md](references/red-flags.md).
-
-## Plan-first mode
-
-In plan-first mode:
-
-- show the split and worker briefs in chat;
-- do not auto-launch until the user clearly asks to proceed.
-
-Use the compact shape in [references/output-shape.md](references/output-shape.md). Keep full briefs internal unless the user explicitly wants to inspect them.
-
-## Done when
-
-- The main agent's local next step is named.
-- Worker scopes are disjoint and preferably clean.
-- Launch parameters do not accidentally trigger native Codex gotchas.
-- Each brief defines role, owned task, work boundaries, quality criteria, report discipline, and evidence.
-- Returned work is verified on disk before it is trusted.
-- Repo-level verification is done by the main agent after integration.
-- Any unrelated preexisting failures are separated from the truth about the delegated scope.
+Done means the split was real, worker claims were evidence-checked, and the main
+agent integrated the result.

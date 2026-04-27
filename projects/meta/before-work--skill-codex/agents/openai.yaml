@@ -1,8 +1,9 @@
 interface:
   display_name: "Before Work"
-  short_description: "Refresh task frame before work"
+  short_description: "Re-anchor work against plan"
   default_prompt: >
-    Use $before-work to refresh task frame before work when the task matches its trigger.
+    Use $before-work to re-anchor the next action against the active plan and
+    route unresolved branches to $strategy-discussion before non-trivial work.
 
 policy:
   allow_implicit_invocation: true

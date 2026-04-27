@@ -1,0 +1,9 @@
+interface:
+  display_name: "User Truth"
+  short_description: "Sync durable user memory"
+  default_prompt: >
+    Use $user-truth to save durable user preferences, constraints, goals, red
+    lines, and success criteria discovered elsewhere.
+
+policy:
+  allow_implicit_invocation: true

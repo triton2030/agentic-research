@@ -1,8 +1,0 @@
-interface:
-  display_name: "Plan Drift Watch"
-  short_description: "Detect plan/status drift"
-  default_prompt: >
-    Use $plan-drift-watch to detect plan/status drift when the task matches its trigger.
-
-policy:
-  allow_implicit_invocation: true

@@ -2,7 +2,8 @@ interface:
   display_name: "Before Write"
   short_description: "Check scope before file edits"
   default_prompt: >
-    Use $before-write to check scope before file edits when the task matches its trigger.
+    Use $before-write to check scope before file edits and route unresolved
+    branches to $strategy-discussion when needed.
 
 policy:
   allow_implicit_invocation: true

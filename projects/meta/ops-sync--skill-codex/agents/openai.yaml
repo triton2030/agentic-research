@@ -1,8 +1,0 @@
-interface:
-  display_name: "Ops Sync"
-  short_description: "Sync _ops phase folders"
-  default_prompt: >
-    Use $ops-sync to sync _ops phase folders when the task matches its trigger.
-
-policy:
-  allow_implicit_invocation: true
