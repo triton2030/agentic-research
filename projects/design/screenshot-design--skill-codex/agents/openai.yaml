@@ -1,6 +1,0 @@
-interface:
-  display_name: "Screenshot Design"
-  short_description: "Delayed-verdict critique for interface harmony"
-  default_prompt: "Use $screenshot-design only when the screenshot is a UI artifact and the user wants visual judgment of what is visible; think like an interface designer obsessed with harmony, composition, alignment, visual weight, and semantic balance, keep the internal evidence ledger strict, and print the review in delayed-judgment order: What I Notice First, What Starts To Break, Verdict, Fix Next, and Limits only if needed."
-policy:
-  allow_implicit_invocation: true

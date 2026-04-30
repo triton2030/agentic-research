@@ -1,4 +1,0 @@
-interface:
-  display_name: "LLM Wisdom"
-  short_description: "Portable knowledge library for LLM behavior and quality"
-  default_prompt: "Use $llm-wisdom to load the right modules on model behavior, failure patterns, escape patterns, control levers, and prompt or agent quality before answering."

@@ -1,0 +1,11 @@
+interface:
+  display_name: "Claude MCP"
+  short_description: "Use Claude Bridge MCP controls"
+  default_prompt: >
+    Use $claude-mcp when Codex should delegate to Claude Code through
+    the globally registered Claude Bridge MCP/server with profiles,
+    peek/wait/kill controls, local logs, cleanup, streaming observation,
+    chat relay, or skill-read evidence.
+
+policy:
+  allow_implicit_invocation: true

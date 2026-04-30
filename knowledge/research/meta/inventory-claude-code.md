@@ -2,17 +2,17 @@
 
 Снимок на 25 апреля 2026.
 
-Инвентарь перечисляет repo-local project artifacts и globally installed handles,
-которые реально доступны в рабочей среде. Если локальная проектная папка ушла
-в `projects/_archive/`, сначала проверяй installed handle.
+Инвентарь перечисляет globally installed Claude Code handles и живые знания о
+них. `projects/` больше не является repo-local source surface; если нужен код
+скилла, проверяй installed handle в Claude marketplace/cache.
 
 ## Core Meta Skills
 
 ### project-roadmap
 
 - Тип: skill
-- Что делает: владеет `_ops/PROJECT-ROADMAP.md` и `_ops/learnings.md`;
-  строит domain-grounded Stage-chain.
+- Что делает: владеет `_ops/PROJECT-ROADMAP.md`; строит domain-grounded
+  Stage-chain.
 
 ### domain-clarifier
 
@@ -23,14 +23,16 @@
 ### user-interview
 
 - Тип: skill
-- Что делает: владеет `_ops/INTERVIEW.md`; хранит предпочтения, видение,
-  ограничения и ответы пользователя.
+- Что делает: legacy/reference handle для user-signal capture; в текущей repo
+  model durable signals маршрутизируются в root instructions, `_ops/criteria/`
+  или `_ops/PROJECT-ROADMAP.md` через соответствующего owner.
 
 ### ops-sync
 
 - Тип: skill
-- Что делает: синхронизирует `_ops/plans/` phase folders со Stages из
-  `PROJECT-ROADMAP.md`.
+- Что делает: legacy installed helper для `_ops/plans/` phase folders; в
+  compact repo использовать только когда активная задача реально требует
+  эфемерную execution surface.
 
 ### task-contract
 
@@ -41,15 +43,15 @@
 ### before-work
 
 - Тип: skill
-- Что делает: перед работой извлекает execution lesson из strategy, task и
-  user truth.
+- Что делает: перед работой сверяет strategy/task и релевантные criteria by
+  task meaning.
 
 ### before-write
 
 - Тип: skill
 - Что делает: перед write проверяет scope, current substep и execution lesson.
 
-### work-review
+### 1work-review
 
 - Тип: skill
 - Что делает: сверяет результат с task criteria/evidence и продолжает repair
@@ -57,7 +59,7 @@
 
 ## Control / Utility Skills
 
-### skill-architect
+### 1skill-architect
 
 - Тип: skill
 - Что делает: проектирует Claude/Codex skill trigger surfaces и references.
@@ -65,7 +67,8 @@
 ### instruction-layer
 
 - Тип: skill
-- Что делает: решает placement правил в AGENTS/CLAUDE/subtree instructions.
+- Что делает: решает placement правил в AGENTS/CLAUDE/subtree instructions и
+  criteria layer.
 
 ### repo-shape
 

@@ -105,9 +105,9 @@
   - суть: detailed rules, case matrix, resources, templates, failure handling
 
 У OpenAI заметен устойчивый каркас:
-- сначала **boundary or overview**
-- потом **quick start**
-- потом **workflow**
+- сначала **boundary / outcome / overview**
+- потом **quick start**, если он ускоряет вход
+- потом **workflow**, если порядок load-bearing
 - потом **resources / references / output expectations**
 
 ## Какие Слова Они Выбирают
@@ -222,9 +222,12 @@ Do not trigger for [adjacent but out-of-scope cases].
 ## Durable Takeaways
 
 - Для Codex сначала оптимизировать **routing contract**, потом красоту prose.
+- Официальный минимум качества: один skill — одна работа; instruction-only по
+  умолчанию; `scripts/` только для детерминированности или внешнего tooling.
 - Короткий и жёсткий `SKILL.md` — нормальная официальная форма, особенно для repo-local skills.
-- `Workflow` и `Quick start` — почти дефолтный каркас.
-- Skip-cases и boundaries писать прямо в `description`, а не надеяться, что модель “сама поймёт”.
+- Outcome, boundaries и stop condition — первый слой. `Workflow` и
+  `Quick start` добавлять, когда они реально ускоряют или защищают выполнение.
+- Skip-cases и boundaries писать прямо в `description`, а не надеяться, что модель “сама поймёт”. Первый sentence должен сохранять главный matcher, если Codex сокращает initial skill list.
 - Deterministic части лучше выносить в `scripts/`.
 - Variant-heavy и длинные детали лучше выносить в `references/`.
 - Metadata в Codex — полноценная surface area, а не второстепенное украшение.

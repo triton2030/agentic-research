@@ -1,9 +1,10 @@
 # Wisdom — Agents
 
-Снимок на 19 апреля 2026.
+Снимок на 28 апреля 2026.
 
-Здесь только повторяемые принципы для агентов любого типа.
-То, что важно только одной линии, держим в её `_research/`.
+Здесь только повторяемые принципы для агентов на текущей рабочей паре моделей:
+`GPT-5.5` и `Claude Opus 4.7`. Советы из других модельных эпох не считать
+baseline без свежей проверки.
 
 ## Проверено
 
@@ -28,8 +29,17 @@
 - Sycophantic consensus: при голосовании или iterative discussion несколько LLM-агентов сходятся к согласию даже при ошибочной позиции одного. Если нужна реальная проверка — встраивать adversarial роль с мандатом «искать дыры», не консенсус.
 - Tool surface: радикальное сокращение (классический кейс — 17 узких инструментов → 2 примитива над файловой системой) обычно повышает качество выбора. Перед добавлением tool в скилл — проверить, не делается ли это уже базовыми примитивами.
 - Tool description (frontmatter скилла, MCP tool) валиден, если отвечает на 4 вопроса: что делает, когда применять, что вернёт, чем отличается от соседнего. Без этого триггеры конфликтуют.
+- Для GPT-5.5 tool-specific guidance чаще класть в tool descriptions, а не в
+  общий системный prompt. В prompt оставлять только policy, общий для tools.
+- Для long-running Responses agents с GPT-5.5 сохранять assistant state:
+  `previous_response_id` или round-trip output items, `phase` для preambles и
+  compaction после milestones. Иначе preamble может стать ложным финалом.
+- Для Claude Opus 4.7 явно писать, когда нужны tools/subagents: модель чаще
+  думает сама и реже фан-аутится без явной причины. `high`/`xhigh` усиливают tool use
+  в agentic search и coding.
 - Перед автоматизацией пайплайна — собрать один пример руками. Без manual prototype скилл-обёртка кодифицирует ошибки, которые ещё не пойманы.
-- Self-eval скилла лучше делать моделью другой семьи: same-family judge даёт self-enhancement bias.
+- Self-eval скилла лучше делать второй рабочей модельной семьёй (`GPT` ↔
+  `Claude`): same-family judge даёт self-enhancement bias.
 
 ## Рабочие Гипотезы
 
@@ -44,11 +54,14 @@
 - https://openai.com/index/introducing-the-model-spec/
   Instruction hierarchy, роли и приоритеты правил.
 
-- https://ai.google.dev/gemini-api/docs/prompting-strategies
-  Recovery, risk assessment и смена стратегии после неудач.
+- https://platform.openai.com/docs/api-reference/responses
+  Базовая опора по stateful tool use и управляемому вызову GPT-5.5.
 
-- https://platform.openai.com/docs/api-reference/chat
-  Базовая опора по tool use и управляемому вызову модели.
+- https://developers.openai.com/api/docs/guides/reasoning
+  GPT-5.5 reasoning effort, Responses state, reasoning items и `phase`.
+
+- https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices
+  Opus 4.7 tool triggering, progress updates, literal scope и subagent policy.
 
 - `/knowledge/guides/perfect-system-prompts.md`
   Устойчивые правила по устройству стабильного instruction layer.

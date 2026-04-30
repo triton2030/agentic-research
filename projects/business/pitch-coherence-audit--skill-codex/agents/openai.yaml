@@ -1,7 +1,0 @@
-interface:
-  display_name: "Pitch Coherence Audit"
-  short_description: "Iterative investor-pitch narrative audit"
-  default_prompt: "Use $pitch-coherence-audit to audit the current investor pitch materials after edits — run the rigid six-axis check (problem, insight, why-now, wedge, stage-proof, ask-and-milestone), produce a Narrative Coherence Ledger with file:line anchors, check for coherence drift between axes, and return a verdict with must-fix items before the pitch ships."
-
-policy:
-  allow_implicit_invocation: true

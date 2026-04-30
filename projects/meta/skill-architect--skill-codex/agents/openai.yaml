@@ -1,8 +1,0 @@
-interface:
-  display_name: "Skill Architect"
-  short_description: "Design Codex skill triggers"
-  default_prompt: >
-    Use $skill-architect to design Codex skill triggers when the task matches its trigger.
-
-policy:
-  allow_implicit_invocation: true

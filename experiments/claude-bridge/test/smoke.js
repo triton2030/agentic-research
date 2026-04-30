@@ -1,0 +1,272 @@
+import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import {
+  auditSkill,
+  cleanupRuns,
+  doctor,
+  killRun,
+  peekRun,
+  profiles,
+  resultRun,
+  startRun,
+  waitRun
+} from "../src/runner.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const bridgeRoot = path.resolve(__dirname, "..");
+const fakeClaude = path.join(__dirname, "fixtures", "fake-claude.mjs");
+const cli = path.join(bridgeRoot, "src", "cli.js");
+const runsDir = path.join(bridgeRoot, "runs");
+process.env.CLAUDE_BRIDGE_CLAUDE_BIN = fakeClaude;
+
+function cliJson(args) {
+  const result = spawnSync(process.execPath, [cli, ...args], {
+    cwd: bridgeRoot,
+    env: { ...process.env, CLAUDE_BRIDGE_CLAUDE_BIN: fakeClaude },
+    encoding: "utf8"
+  });
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  return JSON.parse(result.stdout);
+}
+
+function writeSyntheticState(runId, state) {
+  const runDir = path.join(runsDir, runId);
+  fs.mkdirSync(runDir, { recursive: true });
+  const files = {
+    prompt: path.join(runDir, "prompt.txt"),
+    profile: path.join(runDir, "profile.json"),
+    command: path.join(runDir, "command.json"),
+    events: path.join(runDir, "events.ndjson"),
+    stdout: path.join(runDir, "stdout.log"),
+    stderr: path.join(runDir, "stderr.log"),
+    debug: path.join(runDir, "debug.log"),
+    report: path.join(runDir, "report.json"),
+    state: path.join(runDir, "state.json")
+  };
+  fs.writeFileSync(files.events, "");
+  fs.writeFileSync(
+    files.state,
+    JSON.stringify(
+      {
+        run_id: runId,
+        profile: "normal",
+        model: "opus",
+        cwd: bridgeRoot,
+        pid: process.pid,
+        status: "running",
+        started_at: new Date().toISOString(),
+        command: [process.execPath, "--debug-file", "/tmp/not-this-run/debug.log"],
+        log_dir: runDir,
+        files,
+        ...state
+      },
+      null,
+      2
+    )
+  );
+  return { runDir, files };
+}
+
+const doctorReport = doctor();
+assert.equal(doctorReport.ok, true);
+assert.equal(doctorReport.stream_json_supported, true);
+assert.equal(doctorReport.flags["--dangerously-skip-permissions"], true);
+assert.equal(Object.hasOwn(doctorReport.flags, "--agent"), false);
+assert.equal(Object.hasOwn(doctorReport.flags, "--agents"), false);
+
+const profileList = profiles();
+assert.ok(profileList.some((profile) => profile.name === "turbo" && profile.flags.includes("--dangerously-skip-permissions")));
+assert.ok(profileList.some((profile) => profile.name === "no-skills" && profile.flags.includes("--disable-slash-commands")));
+assert.ok(profileList.some((profile) => profile.name === "clean" && profile.flags.includes("--bare")));
+assert.ok(profileList.some((profile) => profile.name === "no-memory"));
+assert.equal(profileList.some((profile) => profile.name === "subagent"), false);
+for (const profile of profileList) {
+  if (profile.flags.includes("stream-json")) {
+    assert.ok(profile.flags.includes("--verbose"), `${profile.name} must include --verbose with stream-json`);
+  }
+}
+assert.throws(
+  () =>
+    startRun({
+      prompt: "This should fail before spawning.",
+      profile: "normal",
+      cwd: bridgeRoot,
+      maxTurns: 1
+    }),
+  /does not advertise/
+);
+
+const started = startRun({
+  prompt: "Return exactly BRIDGE_OK.",
+  profile: "normal",
+  cwd: bridgeRoot
+});
+assert.ok(started.run_id);
+assert.ok(fs.existsSync(started.log_dir));
+
+const peek = peekRun(started.run_id);
+assert.equal(peek.run_id, started.run_id);
+assert.ok(Array.isArray(peek.milestones));
+
+const report = await waitRun(started.run_id, { timeoutMs: 10000 });
+assert.equal(report.status, "completed");
+assert.equal(report.managed, true);
+assert.match(report.final_output_summary, /BRIDGE_OK/);
+assert.match(report.chat_relay.text, /BRIDGE_OK/);
+assert.match(report.chat_relay.markdown, /Claude:\nBRIDGE_OK/);
+assert.ok(fs.existsSync(report.files.state));
+assert.ok(report.milestones.some((event) => event.kind === "assistant_text" && /BRIDGE_OK/u.test(event.text)));
+
+const separateResult = cliJson(["result", "--run-id", started.run_id]);
+assert.equal(separateResult.status, "completed");
+assert.equal(separateResult.managed, false);
+assert.match(separateResult.final_output_summary, /BRIDGE_OK/);
+assert.match(separateResult.chat_relay.text, /BRIDGE_OK/);
+const separatePeek = cliJson(["peek", "--run-id", started.run_id, "--cursor", "0"]);
+assert.equal(separatePeek.status, "completed");
+assert.equal(separatePeek.managed, false);
+assert.ok(separatePeek.next_cursor > 0);
+assert.ok(Array.isArray(separatePeek.relay_updates));
+assert.match(separatePeek.chat_relay.text, /BRIDGE_OK/);
+
+const noMemoryRun = startRun({
+  prompt: "Return exactly BRIDGE_OK.",
+  profile: "no-memory",
+  cwd: bridgeRoot
+});
+const noMemoryReport = await waitRun(noMemoryRun.run_id, { timeoutMs: 10000 });
+const noMemoryCommand = JSON.parse(fs.readFileSync(noMemoryReport.files.command, "utf8"));
+assert.equal(noMemoryCommand.env.CLAUDE_CODE_DISABLE_AUTO_MEMORY, "1");
+
+const orphanId = `orphan-no-fingerprint-${Date.now()}`;
+writeSyntheticState(orphanId, {});
+const orphanReport = cliJson(["result", "--run-id", orphanId]);
+assert.equal(orphanReport.status, "orphaned");
+assert.match(orphanReport.orphan_reason, /fingerprint/u);
+const orphanKill = cliJson(["kill", "--run-id", orphanId]);
+assert.equal(orphanKill.killed, false);
+
+const longRun = startRun({
+  prompt: "SLEEP_BRIDGE",
+  profile: "normal",
+  cwd: bridgeRoot
+});
+await new Promise((resolve) => setTimeout(resolve, 250));
+const restartedLongReport = cliJson(["result", "--run-id", longRun.run_id]);
+assert.equal(restartedLongReport.status, "running_orphaned");
+assert.equal(restartedLongReport.managed, false);
+const restartedLongKill = cliJson(["kill", "--run-id", longRun.run_id]);
+assert.equal(restartedLongKill.killed, true);
+const localKilledReport = await waitRun(longRun.run_id, { timeoutMs: 10000 });
+assert.equal(localKilledReport.status, "failed");
+
+const fixtureDir = path.join(runsDir, "_smoke-fixtures");
+fs.mkdirSync(fixtureDir, { recursive: true });
+const fixtureSkill = path.join(fixtureDir, "sample-skill.md");
+fs.writeFileSync(fixtureSkill, "# Sample Skill\n\nRead marker: SAMPLE_SKILL_MARKER\n");
+const audit = await auditSkill({
+  skillPath: fixtureSkill,
+  cwd: bridgeRoot,
+  timeoutMs: 10000
+});
+assert.equal(audit.evidence, "passed");
+
+const selfReportAudit = await auditSkill({
+  skillPath: fixtureSkill,
+  prompt: "SELF_REPORT_ONLY",
+  cwd: bridgeRoot,
+  timeoutMs: 10000
+});
+assert.equal(selfReportAudit.evidence, "unknown");
+
+const wrongPathAudit = await auditSkill({
+  skillPath: fixtureSkill,
+  prompt: "WRONG_TOOL_PATH",
+  cwd: bridgeRoot,
+  timeoutMs: 10000
+});
+assert.equal(wrongPathAudit.evidence, "failed");
+
+const oldRunId = `old-cleanup-${Date.now()}`;
+const old = writeSyntheticState(oldRunId, {
+  pid: null,
+  status: "completed",
+  started_at: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString()
+});
+const oldTime = new Date(Date.now() - 20 * 24 * 60 * 60 * 1000);
+fs.utimesSync(old.runDir, oldTime, oldTime);
+const cleanupDryRun = cleanupRuns({ olderThanDays: 14 });
+assert.ok(cleanupDryRun.dry_run);
+assert.ok(cleanupDryRun.candidates.some((candidate) => candidate.run_id === oldRunId));
+assert.ok(fs.existsSync(old.runDir));
+const cleanupConfirmed = cliJson(["cleanup", "--days", "14", "--confirm"]);
+assert.ok(cleanupConfirmed.candidates.some((candidate) => candidate.run_id === oldRunId));
+assert.equal(fs.existsSync(old.runDir), false);
+
+const transport = new StdioClientTransport({
+  command: process.execPath,
+  args: [path.join(bridgeRoot, "src", "server.js")],
+  env: {
+    ...process.env,
+    CLAUDE_BRIDGE_CLAUDE_BIN: fakeClaude
+  }
+});
+const client = new Client({ name: "claude-bridge-smoke", version: "0.1.0" });
+await client.connect(transport);
+const tools = await client.listTools();
+const toolNames = tools.tools.map((tool) => tool.name);
+assert.ok(toolNames.includes("claude_run"));
+assert.ok(toolNames.includes("claude_cleanup_runs"));
+assert.equal(toolNames.includes("claude_subagent_run"), false);
+assert.equal(toolNames.includes("claude_agents"), false);
+const doctorTool = await client.callTool({ name: "claude_doctor", arguments: {} });
+assert.ok(doctorTool.content?.[0]?.text?.includes("stream_json_supported"));
+const mcpRun = await client.callTool({
+  name: "claude_run",
+  arguments: {
+    prompt: "Return exactly BRIDGE_OK from MCP.",
+    profile: "normal",
+    cwd: bridgeRoot
+  }
+});
+const mcpRunPayload = JSON.parse(mcpRun.content[0].text);
+assert.ok(mcpRunPayload.run_id);
+const mcpWait = await client.callTool({
+  name: "claude_wait",
+  arguments: {
+    run_id: mcpRunPayload.run_id,
+    timeoutMs: 10000
+  }
+});
+const mcpWaitPayload = JSON.parse(mcpWait.content[0].text);
+assert.equal(mcpWaitPayload.status, "completed");
+assert.match(mcpWaitPayload.final_output_summary, /BRIDGE_OK/);
+assert.match(mcpWaitPayload.chat_relay.text, /BRIDGE_OK/);
+const mcpPeek = await client.callTool({
+  name: "claude_peek",
+  arguments: {
+    run_id: mcpRunPayload.run_id,
+    cursor: 0
+  }
+});
+const mcpPeekPayload = JSON.parse(mcpPeek.content[0].text);
+assert.ok(mcpPeekPayload.next_cursor > 0);
+assert.match(mcpPeekPayload.chat_relay.text, /BRIDGE_OK/);
+const mcpCleanup = await client.callTool({
+  name: "claude_cleanup_runs",
+  arguments: { olderThanDays: 14 }
+});
+assert.ok(mcpCleanup.content?.[0]?.text?.includes("dry_run"));
+await client.close();
+
+const directResult = resultRun(started.run_id);
+assert.equal(directResult.status, "completed");
+const directKill = killRun(started.run_id);
+assert.equal(directKill.killed, false);
+
+process.stdout.write("claude-bridge smoke ok\n");

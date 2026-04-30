@@ -74,7 +74,8 @@
 - `Reference Files`
 - `Dependencies`
 - явные команды и snippets
-- anti-pitfall блоки вроде `Common Pitfalls`, `CRITICAL`, `ALWAYS`, `NEVER`
+- anti-pitfall блоки вроде `Common Pitfalls`, `CRITICAL`, `ALWAYS`, `NEVER`;
+  для Opus 4.7 это pattern только под verified failure modes, а не default tone
 
 Типовые рабочие формы:
 
@@ -88,7 +89,8 @@
 
 - **Heavy production skill**
   - примеры: `skills/docx/SKILL.md`, `skills/pptx/SKILL.md`, `skills/xlsx/SKILL.md`
-  - суть: много operational detail, команды, QA loop, gotchas, scripts
+  - суть: много operational detail, команды, QA loop через observable
+    evidence/scripts, gotchas, scripts
 
 - **Meta-skill**
   - примеры: `skills/claude-api/SKILL.md`, `skills/skill-creator/SKILL.md`

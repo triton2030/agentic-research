@@ -1,9 +1,10 @@
 # Meta — Links Knowledge
 
-Снимок на 17 апреля 2026.
+Снимок на 28 апреля 2026.
 
-Здесь только источники по памяти, аудиту, eval и управлению агентной системой.
-Общие материалы про модели и общий control layer вынесены в `knowledge/`.
+Здесь источники по памяти, аудиту, eval и model-delta, которые меняют
+управление агентной системой. Устойчивые выводы поднимаются в `wisdom-*` и
+`guides/`.
 
 ## Memory
 
@@ -35,3 +36,21 @@
 
 - https://dl.acm.org/doi/10.1145/3711896.3736570
   Survey по evaluation и benchmarking LLM-агентов.
+
+## Model Delta
+
+- https://developers.openai.com/api/docs/guides/latest-model
+  GPT-5.5: outcome-first prompts, fresh baseline, `medium` default effort,
+  Responses API, tool descriptions, `phase` и compaction.
+
+- https://developers.openai.com/api/docs/guides/reasoning
+  Reasoning effort, state handling, reasoning items и `phase` для GPT-5.5
+  tool-heavy workflows.
+
+- https://platform.claude.com/docs/en/about-claude/models/migration-guide
+  Claude Opus 4.7 migration: literal scope, strict effort, progress updates,
+  fewer tools/subagents, tokenization and task budgets.
+
+- https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices
+  Claude Opus 4.7 prompt tuning: verbosity, effort, tool triggering,
+  subagents, tone and long-horizon agentic work.

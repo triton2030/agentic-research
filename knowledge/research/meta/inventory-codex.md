@@ -1,18 +1,18 @@
 # Meta — Инвентарь Codex
 
-Снимок на 27 апреля 2026.
+Снимок на 28 апреля 2026.
 
-Инвентарь перечисляет repo-local project artifacts и globally installed handles,
-которые реально доступны в рабочей среде. Если локальная проектная папка ушла
-в `projects/_archive/`, сначала проверяй installed handle.
+Инвентарь перечисляет globally installed Codex handles и живые знания о них.
+`projects/` больше не является repo-local source surface; если нужен код
+скилла, проверяй installed handle в `/Users/triton/.codex/skills`.
 
 ## Core Meta Skills
 
-### project-strategy
+### 1project-strategy
 
 - Тип: skill
-- Что делает: владеет `_ops/PROJECT-ROADMAP.md` и `_ops/learnings.md`;
-  держит top-level Goal, Approach, Stage-chain и Anti-goals.
+- Что делает: владеет `_ops/PROJECT-ROADMAP.md`; держит top-level Goal,
+  Approach, Stage-chain и Anti-goals.
 
 ### 1strategy-discussion
 
@@ -23,8 +23,9 @@
 ### user-truth
 
 - Тип: skill
-- Что делает: владеет `_ops/INTERVIEW.md`; хранит предпочтения, видение,
-  ограничения и ответы пользователя.
+- Что делает: маршрутизирует durable user signals: стиль/defaults/criteria в
+  `1instruction-layer`, стратегию в `1project-strategy`, task detail в
+  `1task-contract`.
 
 ### 1task-contract
 
@@ -35,15 +36,15 @@
 ### 1before-work
 
 - Тип: skill
-- Что делает: перед работой извлекает execution lesson из strategy, task и
-  user truth.
+- Что делает: перед работой выбирает релевантные `_ops/criteria/*.md`,
+  коротко цитирует 1-3 Rule/Why и сверяет work scope со стратегией.
 
 ### before-write
 
 - Тип: skill
 - Что делает: перед write проверяет scope, current substep и execution lesson.
 
-### work-review
+### 1work-review
 
 - Тип: skill
 - Что делает: сверяет результат с task criteria/evidence и продолжает repair
@@ -51,7 +52,7 @@
 
 ## Control / Utility Skills
 
-### skill-architect
+### 1skill-architect
 
 - Тип: skill
 - Что делает: проектирует skill trigger surfaces, descriptions, references,
@@ -60,7 +61,8 @@
 ### 1instruction-layer
 
 - Тип: skill
-- Что делает: решает placement правил в AGENTS/CLAUDE/subtree instructions.
+- Что делает: решает placement правил в AGENTS/CLAUDE/subtree instructions и
+  владеет `_ops/criteria/*.md`.
 
 ### 1repo-shape
 
@@ -73,18 +75,13 @@
 - Тип: skill
 - Что делает: короткий zoom-out / reframe при reasoning drift.
 
-### 1guide-subagents
+### 1criteria-council
 
 - Тип: skill
-- Что делает: ограничивает и оформляет Codex subagent delegation, когда
-  пользователь явно просит parallel workers или delegation.
+- Что делает: запускает 2-3 read-only Codex subagents как council критериев,
+  когда пользователь явно хочет разные роли для многокритериального решения.
 
 ### repo-power-tools
 
 - Тип: skill
 - Что делает: fast CLI evidence для code/docs/package/security work.
-
-### guide-subagents
-
-- Тип: skill
-- Что делает: guide для real parallel split и проверки evidence.

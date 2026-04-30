@@ -27,7 +27,10 @@
 - Quality gate перед записью в learnings-файл отсеивает 60-70% кандидатов. Три проверки: specific-not-general, actionable-next-time, project-bound-not-generic. Отсутствие записи — валидный исход, не провал.
 - User corrections — высший приоритет для записи в memory. Correction сильнее observation как сигнал: пользователь уже вложил attention в исправление.
 - Dedup и contradiction detection — обязательные механизмы поддержки learnings-файла, не опциональные. Без них файл превращается в клад противоречий. При конфликте: свежая запись побеждает, старая удаляется (не оставлять обе).
-- Active summarize при чтении сильнее passive load: skill должен явно перечислить 2-5 релевантных записей в начале работы, а не просто «прочитать файл».
+- Active summarize при чтении сильнее passive load: skill должен применить 2-5
+  релевантных записей к текущему решению. Наружу перечислять их только когда
+  пользователь просит evidence of applied memory или когда это меняет routing,
+  scope, Must-not либо verification.
 - Curator-паттерн — отдельный этап извлечения learnings после выполнения задачи в context playbook, который автоматически инжектится в следующем запуске. Измеримый lift на agent-benchmarks зафиксирован относительно работы без playbook.
 
 ## Правило Продвижения

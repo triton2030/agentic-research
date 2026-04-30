@@ -21,7 +21,7 @@ PROJECT-ROADMAP.md
 ```
 
 - Strategy: куда и почему идём.
-- Task-файл: какой bounded outcome сейчас создаём и как проверим готовность.
+- Task-файл: эфемерная execution surface — какой bounded outcome сейчас создаём и как проверим готовность.
 - Подшаги: ближайшие исполнимые ходы.
 - Более глубокие уровни: только при блокере, риске или отдельном evidence.
 
@@ -167,16 +167,16 @@ outcome.
 
 ## Skill Touchpoints
 
-- `project-strategy` owns strategy truth. См. `/Users/triton/.codex/skills/project-strategy/SKILL.md`.
+- `1project-strategy` owns strategy truth. См. `/Users/triton/.codex/skills/1project-strategy/SKILL.md`.
 - `1strategy-discussion` owns unresolved approach branches and consequential
   domain questions. См.
   `/Users/triton/.codex/skills/1strategy-discussion/SKILL.md`.
 - `1task-contract` owns task-files. См. `/Users/triton/.codex/skills/1task-contract/SKILL.md`.
 - `1before-work` owns work-start framing. См. `/Users/triton/.codex/skills/1before-work/SKILL.md`.
 - `before-write` owns imminent write checks. См. `/Users/triton/.codex/skills/before-write/SKILL.md`.
-- `work-review` owns post-action review. См. `/Users/triton/.codex/skills/work-review/SKILL.md`.
+- `1work-review` owns post-action review. См. `/Users/triton/.codex/skills/1work-review/SKILL.md`.
 - `user-truth` owns durable user truth. См. `/Users/triton/.codex/skills/user-truth/SKILL.md`.
-- `skill-architect`, `1instruction-layer` и `1repo-shape` own control-surface
+- `1skill-architect`, `1instruction-layer` и `1repo-shape` own control-surface
   changes; use them only when the failure is structural.
 
 ## Research Tie-Back

@@ -1,9 +1,0 @@
-interface:
-  display_name: "1Task Contract"
-  short_description: "Own active task contracts"
-  default_prompt: >
-    Use $1task-contract to own active task contracts after unresolved approach
-    branches are handled by $1strategy-discussion when needed.
-
-policy:
-  allow_implicit_invocation: true

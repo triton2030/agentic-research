@@ -1,0 +1,24 @@
+{
+  "name": "claude-bridge-control",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Repo-contained Claude Code runner and MCP bridge prototype for Codex.",
+  "bin": {
+    "claude-bridge": "./src/cli.js",
+    "claude-bridge-mcp": "./src/server.js"
+  },
+  "scripts": {
+    "doctor": "node ./src/cli.js doctor",
+    "profiles": "node ./src/cli.js profiles",
+    "smoke": "node ./test/smoke.js",
+    "mcp": "node ./src/server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^4.4.1"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

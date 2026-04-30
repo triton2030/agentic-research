@@ -1,0 +1,10 @@
+interface:
+  display_name: "Gemini MCP"
+  short_description: "Use Gemini MCP with high thinking"
+  default_prompt: >
+    Use $gemini-mcp when Codex should call Gemini 3.1 Pro through
+    the repo-contained MCP server with high thinking and model-specific
+    prompting guidance.
+
+policy:
+  allow_implicit_invocation: true

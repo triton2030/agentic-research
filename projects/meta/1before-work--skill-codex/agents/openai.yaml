@@ -1,9 +1,0 @@
-interface:
-  display_name: "1Before Work"
-  short_description: "Re-anchor work against plan"
-  default_prompt: >
-    Use $1before-work to re-anchor the next action against the active plan and
-    route unresolved branches to $1strategy-discussion before non-trivial work.
-
-policy:
-  allow_implicit_invocation: true

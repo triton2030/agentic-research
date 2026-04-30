@@ -1,6 +1,0 @@
-# Business — Links Knowledge
-
-Снимок на 16 апреля 2026.
-
-Здесь только источники по business-линии.
-Общие agent и LLM материалы вынесены в `knowledge/`.

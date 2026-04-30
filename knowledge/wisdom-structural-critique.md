@@ -2,7 +2,7 @@
 
 Снимок на 25 апреля 2026.
 
-Единый источник для оптики структурной критики, распределённой по 9 скилам (`skill-architect`, `instruction-layer`, `repo-shape`, `project-roadmap`, `task-contract`, `plan-drift-watch`, `strategy-trace`, `work-review`, `pulse-check`). Скилы несут адаптацию под свою trigger surface; этот файл держит **полный словарь и discipline**, чтобы избежать drift между скилами.
+Единый источник для оптики структурной критики, распределённой по 9 скилам (`1skill-architect`, `instruction-layer`, `repo-shape`, `project-roadmap`, `task-contract`, `plan-drift-watch`, `strategy-trace`, `1work-review`, `pulse-check`). Скилы несут адаптацию под свою trigger surface; этот файл держит **полный словарь и discipline**, чтобы избежать drift между скилами.
 
 Дополнительно — поверхность для двух subagent'ов (`brooks`, `smith`) как conditional fallback, когда нужен независимый, контекст-свободный взгляд.
 
@@ -18,7 +18,9 @@
 
 ## Discipline Rules (универсально для всех 9 скилов)
 
-1. **Назвать проблему, не чинить.** Output — диагноз, не решение. Решение — отдельная сессия / отдельный owner.
+1. **Назвать проблему, не чинить.** Output — диагноз. Brooks даёт structural
+   recommendation к finding; Smith даёт scoped recommendation к trajectory
+   finding. Исполнение и переписывание остаются у отдельного owner.
 2. **Молчание при сомнении лучше слабого замечания.** Если не уверен — не пиши.
 3. **Пустой review — валидный результат.** Не выдавливать findings ради presence.
 4. **Не комментировать стиль/именование/длину функций**, пока не решены вопросы структуры. Структура первой.
@@ -34,6 +36,9 @@
 ## Brooks-Vocabulary (структура артефакта)
 
 Применяется к **код**, **скилам**, **агентам**, **инструкциям**, **папкам/конфигам** — везде, где есть структура, имеющая центральную модель.
+Brooks не останавливается на диагнозе: каждая находка должна назвать
+архитектурную рекомендацию, то есть какой shape системы лучше сохранит
+central model, deep modules и conceptual integrity.
 
 ### Три категории
 
@@ -60,7 +65,7 @@
 
 Каждый принимающий скил адаптирует 2-3 категории под свой trigger surface.
 
-**`skill-architect`:**
+**`1skill-architect`:**
 - Central model = trigger surface (что скил ловит как пользовательский момент)
 - Shallow = description, который перечисляет capabilities вместо моментов; SKILL.md тело, дублирующее description
 - Red flags: skill configuration explosion (N пересекающихся скилов), interface=implementation (description ≈ body paraphrase), dependency surprise (скил тихо требует другой), broken-window, cargo-cult creation (по упоминанию в памяти без verify)
@@ -79,19 +84,34 @@
 - Central model = служит ли артефакт Goal/активному Stage
 - Red flags: vague boundary (артефакт «как бы» служит), phantom prerequisite (опирается на удалённый Stage)
 
-**`work-review`** (light) и **`pulse-check`** (light):
+**`1work-review`** (light) и **`pulse-check`** (light):
 - Только universal stop-rule — «не могу назвать что не так = это и есть находка».
 
-## Smith-Vocabulary (швы плана/последовательности)
+## Smith-Vocabulary (траектория выполнения)
 
-Применяется к **планам**, **task-файлам с Подшагами**, **phase-структурам**, **handoffs между шагами/скилами/owners**.
+Применяется к **трём слоям плана**: L1 project roadmap / strategy,
+L2 task-файлы и phase tasks, L3 Подшаги / done evidence / verification.
+Smith также держит бывшую Bob-оптику: метод не должен подменять цель, а
+локально удобная задача не должна ломать будущую траекторию проекта. Как и
+Brooks, Smith может давать рекомендации, но по trajectory scope: как лучше
+сформулировать задачу, разбить её, проверить done state или выбрать способ
+выполнения.
 
-### Четыре категории швов
+### Категории
 
-1. **Missing intermediate** — между шагом A и шагом C нет необходимого B. Прыжок через пропасть.
-2. **Phantom prerequisite** — шаг ссылается на «уже сделано», чего на самом деле нет / удалили / не доделали.
-3. **Vague boundary** — конец шага не определён testable-критерием; «closeout» субъективен.
-4. **Hidden coupling** — два «независимых» шага на самом деле зависят; правка одного ломает другой без видимой причины.
+1. **Strategy mismatch** — L2/L3 работа не служит L1 trajectory.
+2. **Method as goal** — способ, артефакт или процесс подменил исходный эффект.
+3. **One-way door** — локальный способ создаёт будущую дорогую связку.
+4. **Cheaper probe missing** — перед дорогим ходом не сделан маленький reversible check.
+5. **Best-practice mismatch** — формулировка, разбиение или исполнение задачи
+   нарушает релевантную доменную практику: programming, frontend, business,
+   prompts, skills, instructions, research или другую выбранную линзу.
+6. **Missing intermediate** — между шагом A и шагом C нет необходимого B.
+7. **Phantom prerequisite** — шаг ссылается на «уже сделано», чего на самом деле нет / удалили / не доделали.
+8. **Vague boundary** — конец шага не определён testable-критерием; «closeout» субъективен.
+9. **Hidden coupling** — два «независимых» шага на самом деле зависят; правка одного ломает другой без видимой причины.
+10. **Done not evidenced** — задача объявлена закрытой без evidence, совпадающего со scope.
+11. **Future trajectory risk** — локально выполненная задача ухудшает следующий Stage.
 
 ### Адаптация под domain
 
@@ -120,7 +140,9 @@
 | Когда | Поднять | Причина |
 |---|---|---|
 | Сложный артефакт + чувство «что-то не так но не могу назвать» | `brooks` | independent perspective, контекст-свободный |
+| Три слоя плана расходятся: roadmap -> task -> subtasks/evidence | `smith` | нужен внешний trajectory/execution critic |
 | План/последовательность с 5+ Подшагами с handoffs между ними | `smith` | швы тяжело видеть из главного потока |
+| Нужно проверить несколько независимых task/subtask surfaces | parallel `smith` instances | каждый Smith получает disjoint scope, synthesis остаётся в main context |
 | Cross-cutting concern, нужно проверить consistency между N артефактами | `brooks` или `smith` по доминанте | роевая безопасность, можно звать параллельно |
 | Перед критическим commit (instruction layer, hook-script) | `brooks` | last-line-of-defense на структурную ошибку |
 
@@ -133,14 +155,14 @@
 
 | Скил | Vocab | Subagent fallback |
 |---|---|---|
-| `skill-architect` | Brooks (full-domain adapted) | `brooks` (primary) |
+| `1skill-architect` | Brooks (full-domain adapted) | `brooks` (primary) |
 | `instruction-layer` | Brooks-light | `brooks` (available) |
 | `repo-shape` | Brooks-light | `brooks` (available) |
 | `project-roadmap` | Smith (full-domain adapted) | `smith` (primary) |
 | `task-contract` | Smith-light | `smith` (available) |
 | `plan-drift-watch` | Smith-light | `smith` (available) |
 | `strategy-trace` | Brooks+Smith-light | оба available |
-| `work-review` | stop-rule only | оба manually invokable |
+| `1work-review` | stop-rule only | оба manually invokable |
 | `pulse-check` | stop-rule only | — |
 
 ## Условия Promotion в Tested Wisdom

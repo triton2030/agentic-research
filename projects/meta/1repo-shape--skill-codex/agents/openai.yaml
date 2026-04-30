@@ -1,9 +1,0 @@
-interface:
-  display_name: "1Repo Shape"
-  short_description: "Design repo runtime shape"
-  default_prompt: >
-    Use $1repo-shape to design repo runtime shape after unresolved shape
-    tradeoffs are discussed through $1strategy-discussion.
-
-policy:
-  allow_implicit_invocation: true
