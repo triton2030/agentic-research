@@ -41,6 +41,18 @@ baseline без свежей проверки.
 - Self-eval скилла лучше делать второй рабочей модельной семьёй (`GPT` ↔
   `Claude`): same-family judge даёт self-enhancement bias.
 
+## Ground Before Action
+
+- Агент не должен отвечать из training prior, когда локальный owner-контекст
+  может изменить маршрут, объём, запрет или проверку.
+- До существенного действия нужен дешёвый read-before-write: актуальные
+  инструкции, owner-файл, критерии, граф зависимостей или ближайший контекст.
+- Паттерн защищает от `vacuum-default`, `stale-anchor`, `obvious-skip`,
+  `domain-bypass` и `frame capture`.
+- Реализация этого принципа живёт в instruction/runtime layer: `AGENTS.md`,
+  `_ops/project-graph.md`, criteria gate, hooks и routing skills. Wisdom держит
+  принцип, а не операционную схему.
+
 ## Рабочие Гипотезы
 
 - Зрелость агентной системы растёт не от длины prompt, а от качества runtime-layer: validation, hooks, approvals, logging и ясного разделения ответственности.

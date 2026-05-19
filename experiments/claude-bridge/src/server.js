@@ -20,6 +20,17 @@ const server = new McpServer({
   version: "0.1.0"
 });
 
+function exitOnClosedStdio() {
+  let exiting = false;
+  const exit = () => {
+    if (exiting) return;
+    exiting = true;
+    setImmediate(() => process.exit(0));
+  };
+  process.stdin.once("end", exit);
+  process.stdin.once("close", exit);
+}
+
 function textResult(value) {
   return {
     content: [
@@ -53,7 +64,7 @@ function registerTool(name, description, inputSchema, handler) {
 
 registerTool(
   "claude_run",
-  "Start a Claude Code run with a named bridge profile. Returns run_id, pid, profile, cwd, and log_dir.",
+  "Start a controlled Claude Code run. Returns run_id, saved pid, profile, cwd, and log_dir for later peek/wait/result/kill.",
   {
     prompt: z.string().min(1),
     profile: z.string().optional().default("normal"),
@@ -92,7 +103,7 @@ registerTool(
 
 registerTool(
   "claude_peek",
-  "Return recent milestone-like events and warnings for a running or completed Claude run.",
+  "Observe a Claude run without stopping it: recent milestones, warnings, relay updates, and cursor for evidence/timeouts.",
   {
     run_id: z.string().min(1),
     limit: z.number().int().positive().max(50).optional(),
@@ -103,7 +114,7 @@ registerTool(
 
 registerTool(
   "claude_wait",
-  "Wait for a Claude run to finish and return a compact run report.",
+  "Wait for a Claude run report. timeoutMs stops waiting, not the live Claude process; use peek/result/kill if not terminal.",
   {
     run_id: z.string().min(1),
     timeoutMs: z.number().int().positive().optional()
@@ -113,7 +124,7 @@ registerTool(
 
 registerTool(
   "claude_kill",
-  "Stop a running Claude process.",
+  "Stop only the saved/fingerprinted Claude process for run_id; never broad-kill Claude processes by name.",
   {
     run_id: z.string().min(1)
   },
@@ -122,7 +133,7 @@ registerTool(
 
 registerTool(
   "claude_result",
-  "Return the current or final report and log file locations for a Claude run.",
+  "Return current/final Claude report, relay/log files, status, and tail-check evidence for deciding whether the run is terminal.",
   {
     run_id: z.string().min(1)
   },
@@ -165,4 +176,5 @@ registerTool(
 );
 
 const transport = new StdioServerTransport();
+exitOnClosedStdio();
 await server.connect(transport);

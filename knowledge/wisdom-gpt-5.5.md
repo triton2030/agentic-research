@@ -29,7 +29,7 @@ LLM держит `wisdom-llm.md`; платформенные правила Code
 
 - `perfect-system-prompts.md` — при написании системных промптов.
 - `perfect-context-engineering.md` — при сборке контекста.
-- `perfect-skills.md` и practical guides — при authoring skills.
+- `practical-guides/how-to-write-skills/` — при authoring skills.
 - `wisdom-codex.md` — когда GPT-5.5 работает внутри Codex-подобного coding agent.
 
 ## Опоры

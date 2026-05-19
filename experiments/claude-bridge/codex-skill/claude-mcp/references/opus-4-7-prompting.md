@@ -12,13 +12,19 @@ Sources:
 
 ## Default Shape
 
-Use a short structured prompt:
+Use a short structured prompt. For Independent Reviewer Mode, keep this packet
+shape aligned with `SKILL.md`:
 
 ```xml
 <role>What Claude is responsible for in this run.</role>
+<lens>The specific judgment Claude should provide.</lens>
 <task>The exact outcome to produce.</task>
-<context>Only facts that change the work.</context>
-<constraints>Allowed moves, must-not rules, tools, and boundaries.</constraints>
+<goal>User goal and current project state.</goal>
+<claim>Codex's plan, diff, conclusion, or risk assessment to check.</claim>
+<sources>Exact files, diffs, logs, URLs, screenshots, or cwd/addDir roots.</sources>
+<criteria>Relevant instructions, criteria files, task contract, or acceptance rules.</criteria>
+<unknowns>Assumptions and facts Claude must treat as unknown if not evidenced.</unknowns>
+<boundaries>Allowed moves, read/write policy, tools, and must-not rules.</boundaries>
 <evidence>What files, logs, tool calls, checks, or citations must support the answer.</evidence>
 <output>Final answer shape and stop condition.</output>
 ```

@@ -4,9 +4,9 @@
 
 Применимые критерии:
 - [`knowledge-maintenance`](../../criteria/knowledge-maintenance.md) — смысловая раскладка `knowledge/`, дубли, model-specific файлы.
-- [`repo-shape`](../../criteria/repo-shape.md) — папки, owner surfaces, безопасные удаления и переносы.
+- [`repo-structure-and-runtime-guards`](../../criteria/repo-structure-and-runtime-guards.md) — папки, owner surfaces, безопасные удаления и переносы.
 - [`instruction-layer`](../../criteria/instruction-layer.md) — ссылки на knowledge/criteria из инструкций без копирования тел.
-- [`work-review`](../../criteria/work-review.md) — проверка результата по observable evidence.
+- [`work-review-and-evidence`](../../criteria/work-review-and-evidence.md) — проверка результата по observable evidence.
 
 ## Цель
 

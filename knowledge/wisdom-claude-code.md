@@ -54,5 +54,5 @@ Opus 4.7 держит `knowledge/wisdom-claude-opus-4.7.md`; доменные в
 - https://docs.anthropic.com/en/docs/build-with-claude/computer-use
   Approval, уровни риска и контроль внешних действий.
 
-- `/knowledge/practical-guides/claude-code-plugins-vs-skills.md`
-  Короткая операционная памятка по различию между свободными skills и plugins в Claude Code.
+- `/knowledge/practical-guides/how-to-write-skills/platform-deltas.md`
+  Операционная памятка по Claude Code skills, free skills и plugin packaging.

@@ -2,10 +2,26 @@ interface:
   display_name: "Claude MCP"
   short_description: "Use Claude Bridge MCP controls"
   default_prompt: >
-    Use $claude-mcp when Codex should delegate to Claude Code through
-    the globally registered Claude Bridge MCP/server with profiles,
-    peek/wait/kill controls, local logs, cleanup, streaming observation,
-    chat relay, or skill-read evidence.
+    Use $claude-mcp when Codex should delegate to Claude Code as an independent
+    reviewer/advisor for long chats, large project work, important decisions,
+    second opinions, code/opinion checks, research, or controlled Claude Bridge
+    MCP runs. Enter only for controlled Claude peer work; keep raw claude/inline
+    Codex answers outside when observation or proof matters. First state the
+    distinct Claude role; if there is none, answer inline. Give Claude a
+    context packet, not a raw chat dump: role, lens, task, user goal/current
+    state, checked claim, project sources, criteria, targets, unknowns,
+    boundaries, evidence requirements, output shape, and stop condition. Lens,
+    task, goal, and claim must come from the user request or explicit project
+    sources; do not invent them. For non-trivial Opus runs, format the packet
+    with XML tags so instructions, evidence, and variable context do not blur.
+    Treat Claude findings as evidence; stage persistent real pre-task problems
+    in _ops/problems/** after Codex review when needed. Use cwd/addDir when
+    files matter.
+    After wait/result/kill, confirm the run is terminal and no direct stdio
+    server process remains alive before closing. If MCP tools are absent, treat
+    it as session/registration exposure and use the controlled CLI bridge. If
+    chat_relay is truncated, recover from logs. Fix or block the run instead of
+    replacing it with Codex.
 
 policy:
   allow_implicit_invocation: true

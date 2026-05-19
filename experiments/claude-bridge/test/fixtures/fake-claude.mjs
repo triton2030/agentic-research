@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+import { spawn } from "node:child_process";
+import fs from "node:fs";
+
 const args = process.argv.slice(2);
 
 if (args.includes("--version")) {
@@ -25,7 +28,7 @@ if (args.includes("--help")) {
 
 const debugIndex = args.indexOf("--debug-file");
 if (debugIndex !== -1 && args[debugIndex + 1]) {
-  await import("node:fs").then((fs) => fs.writeFileSync(args[debugIndex + 1], "fake debug log\n"));
+  fs.writeFileSync(args[debugIndex + 1], "fake debug log\n");
 }
 
 const promptIndex = args.indexOf("-p");
@@ -37,11 +40,39 @@ function emit(event) {
   console.log(JSON.stringify(event));
 }
 
+function writeTrackedPids(child) {
+  if (process.env.FAKE_CLAUDE_PID_FILE) {
+    fs.writeFileSync(process.env.FAKE_CLAUDE_PID_FILE, String(process.pid));
+  }
+  if (child && process.env.FAKE_CLAUDE_CHILD_PID_FILE) {
+    fs.writeFileSync(process.env.FAKE_CLAUDE_CHILD_PID_FILE, String(child.pid));
+  }
+}
+
+function spawnTrackedChild({ ignoreTerm = false, stdio = "ignore" } = {}) {
+  const code = `${ignoreTerm ? "process.on('SIGTERM', () => {});" : ""} setInterval(() => {}, 1000);`;
+  const child = spawn(process.execPath, ["-e", code, process.env.CLAUDE_BRIDGE_RUN_ID || "no-run-id"], {
+    stdio
+  });
+  writeTrackedPids(child);
+  child.unref();
+  return child;
+}
+
 emit({ type: "system", session_id: "fake-session", message: "fake claude started" });
 emit({ type: "assistant_delta", text: "Reading context and preparing response." });
 
 if (/SLEEP_BRIDGE/u.test(prompt)) {
+  spawnTrackedChild();
   await new Promise((resolve) => setTimeout(resolve, 60000));
+}
+if (/IGNORE_TERM_BRIDGE/u.test(prompt)) {
+  process.on("SIGTERM", () => {});
+  spawnTrackedChild({ ignoreTerm: true });
+  await new Promise((resolve) => setTimeout(resolve, 60000));
+}
+if (/DAEMON_BRIDGE/u.test(prompt)) {
+  spawnTrackedChild();
 }
 
 if (/SELF_REPORT_ONLY/u.test(prompt) && targetPath) {

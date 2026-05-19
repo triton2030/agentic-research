@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Repo-contained MCP prototype for one-shot Gemini API calls.",
+  "description": "Repo-contained MCP server for Gemini CLI agent calls plus bounded Gemini API fallbacks.",
   "bin": {
     "gemini-mcp": "./src/server.js"
   },

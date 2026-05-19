@@ -83,6 +83,14 @@ shows this run's `debug.log` or run directory. Otherwise it is `orphaned`.
 `kill` after restart is conservative: it sends SIGTERM only when that same
 fingerprint check passes.
 
+After any paid/long Claude run, confirm the final status is terminal before
+closing the conversation. If `result` still reports `running`,
+`running_orphaned`, or `killing`, use `kill` and re-check. If you launched the
+MCP server as a direct stdio fallback, confirm the matching
+`node .../experiments/claude-bridge/src/server.js` process exits after the
+client closes. Never kill broad `claude` or bridge processes by name; only act
+through the bridge run id, server path, and fingerprint.
+
 ## Chat Relay
 
 MCP cannot push messages into the Codex chat by itself. It can only return tool

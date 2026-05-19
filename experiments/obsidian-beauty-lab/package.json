@@ -1,0 +1,26 @@
+{
+  "name": "obsidian-beauty-lab",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Local Obsidian visual experiments with generated diagrams and flow pages.",
+  "scripts": {
+    "dev:flowpage": "vite --host 127.0.0.1",
+    "build:flowpage": "vite build",
+    "render:elk": "node scripts/render-elk-square-svg.js",
+    "render:d2:skillmap": "node scripts/render-d2-svg.mjs data/skillmap.d2 generated/skillmap.svg",
+    "render:d2:instruction-map": "node scripts/render-d2-svg.mjs data/instruction-map.d2 generated/instruction-map.svg",
+    "render:d2": "npm run render:d2:skillmap && npm run render:d2:instruction-map",
+    "render:diagrams": "npm run render:elk && npm run render:d2"
+  },
+  "dependencies": {
+    "@terrastruct/d2": "^0.1.33",
+    "@vitejs/plugin-react": "^6.0.1",
+    "@xyflow/react": "^12.10.2",
+    "d3-force": "^3.0.0",
+    "elkjs": "^0.11.1",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "vite": "^8.0.12",
+    "webcola": "^3.4.0"
+  }
+}

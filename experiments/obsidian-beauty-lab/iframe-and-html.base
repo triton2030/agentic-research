@@ -1,0 +1,33 @@
+filters:
+  and:
+    - file.inFolder("experiments/obsidian-beauty-lab")
+formulas:
+  surface: if(file.ext == "md", "note", if(file.ext == "canvas", "canvas", if(file.ext == "base", "base", if(file.ext == "html", "html", "asset"))))
+  badge: html("<span style='display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;background:#e7f2ed;color:#244942;font-weight:750;font-size:12px'>" + formula.surface + "</span>")
+  cover: if(formula.surface == "note", "#e7f2ed", if(formula.surface == "canvas", "#eff1fb", if(formula.surface == "base", "#fff2d8", if(formula.surface == "html", "#f8eef2", "#d0d7de"))))
+properties:
+  formula.badge:
+    displayName: Surface
+  file.name:
+    displayName: File
+  file.folder:
+    displayName: Folder
+  file.mtime:
+    displayName: Changed
+views:
+  - type: cards
+    name: Beauty Lab Surfaces
+    order:
+      - file.name
+      - formula.badge
+      - file.mtime
+    image: formula.cover
+    imageFit: cover
+    cardSize: 160
+  - type: table
+    name: Files
+    order:
+      - formula.badge
+      - file.name
+      - file.folder
+      - file.mtime

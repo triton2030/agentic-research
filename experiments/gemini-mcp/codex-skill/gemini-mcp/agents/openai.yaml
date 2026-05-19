@@ -2,9 +2,21 @@ interface:
   display_name: "Gemini MCP"
   short_description: "Use Gemini MCP with high thinking"
   default_prompt: >
-    Use $gemini-mcp when Codex should call Gemini 3.1 Pro through
-    the repo-contained MCP server with high thinking and model-specific
-    prompting guidance.
+    Use $gemini-mcp when Codex should manually call Gemini 3.1 Pro for a second
+    opinion, code/opinion check, web research, computer-wide file research,
+    high-thinking prompt, or comparison with Claude. Use gemini_status before
+    live work, gemini_ask for short calls, and gemini_run plus peek/wait/result/
+    kill for long observable CLI work. Set useTmux only when the run should
+    survive MCP churn. Enter only for controlled Gemini peer work; keep raw
+    gemini/web lookup outside. First state the distinct Gemini role; if there is
+    none, answer inline. After wait/result/kill, confirm the run is terminal and
+    no saved tmux session or direct stdio server process remains alive. Give
+    Gemini a full brief with role, lens, task, checked claim, project sources,
+    criteria, targets, evidence, output shape, and stop condition. Treat Gemini
+    findings as evidence; stage persistent real pre-task problems in
+    _ops/problems/** after Codex review when needed. Treat empty
+    text or missing MCP tools as a surface failure to fix or report, not as work
+    to silently absorb into Codex.
 
 policy:
   allow_implicit_invocation: true

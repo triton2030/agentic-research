@@ -12,6 +12,22 @@ export const RUNS_DIR = path.join(BRIDGE_ROOT, "runs");
 export const DEFAULT_CLEANUP_DAYS = 14;
 
 const activeRuns = new Map();
+const TERMINAL_STATUSES = new Set(["completed", "failed", "killed", "orphaned"]);
+const WAITABLE_STATUSES = new Set(["running", "running_orphaned", "killing"]);
+
+function isTerminalStatus(status) {
+  return TERMINAL_STATUSES.has(status);
+}
+
+function isManagedRun(run) {
+  return !isTerminalStatus(run.status) && (Boolean(run.child) || Boolean(run.managed));
+}
+
+function markTerminal(run) {
+  run.child = null;
+  run.managed = false;
+  activeRuns.delete(run.runId);
+}
 
 function ensureDir(dir) {
   fs.mkdirSync(dir, { recursive: true });
@@ -37,6 +53,12 @@ function safeReadJson(file, fallback = null) {
   } catch {
     return fallback;
   }
+}
+
+function writeJsonAtomic(file, value) {
+  const tmp = `${file}.${process.pid}.${randomUUID().slice(0, 8)}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify(value, null, 2));
+  fs.renameSync(tmp, file);
 }
 
 function readJsonLines(file) {
@@ -497,6 +519,7 @@ function writeState(run) {
     model: MODEL,
     cwd: run.cwd,
     pid: run.child?.pid ?? run.pid ?? null,
+    process_group_pid: run.processGroupPid ?? run.child?.pid ?? run.pid ?? null,
     status: run.status,
     exit_code: run.exitCode ?? null,
     signal: run.signal ?? null,
@@ -508,7 +531,7 @@ function writeState(run) {
     files: runFiles(run),
     orphan_reason: run.orphanReason || null
   };
-  fs.writeFileSync(run.stateFile, JSON.stringify(state, null, 2));
+  writeJsonAtomic(run.stateFile, state);
   return state;
 }
 
@@ -519,29 +542,95 @@ function pidArgs(pid) {
   return result.stdout.trim();
 }
 
+function processGroupRows(processGroupPid) {
+  if (!processGroupPid) return [];
+  const result = spawnSync("ps", ["-axo", "pid=,pgid=,args="], { encoding: "utf8" });
+  if (result.status !== 0) return [];
+  return result.stdout
+    .split(/\r?\n/u)
+    .map((line) => line.match(/^\s*(\d+)\s+(\d+)\s+(.+)$/u))
+    .filter(Boolean)
+    .map((match) => ({
+      pid: Number(match[1]),
+      pgid: Number(match[2]),
+      args: match[3]
+    }))
+    .filter((row) => row.pgid === Number(processGroupPid));
+}
+
 function processMatchesRun(run) {
+  const processGroupPid = run.processGroupPid ?? run.pid;
+  const fingerprints = [run.debugFile, run.logDir, run.runId].filter(Boolean);
+  const rows = processGroupRows(processGroupPid);
+  if (rows.length) {
+    const matched = rows.some((row) => fingerprints.some((fingerprint) => row.args.includes(fingerprint)));
+    return {
+      alive: true,
+      matched,
+      args: rows.map((row) => row.args).join("\n"),
+      processGroupPid,
+      pids: rows.map((row) => row.pid)
+    };
+  }
+
   const args = pidArgs(run.pid);
   if (!args) {
-    return { alive: false, matched: false, args: "" };
+    return { alive: false, matched: false, args: "", processGroupPid, pids: [] };
   }
-  const fingerprints = [run.debugFile, run.logDir].filter(Boolean);
   const matched = fingerprints.some((fingerprint) => args.includes(fingerprint));
-  return { alive: true, matched, args };
+  return { alive: true, matched, args, processGroupPid, pids: [run.pid].filter(Boolean) };
+}
+
+function signalProcessGroup(run, signal = "SIGTERM") {
+  const match = processMatchesRun(run);
+  if (!match.alive || !match.matched || !match.processGroupPid) return { ...match, signaled: false };
+  return signalMatchedProcessGroup(match, signal);
+}
+
+function signalMatchedProcessGroup(match, signal = "SIGTERM") {
+  if (!match.alive || !match.matched || !match.processGroupPid) return { ...match, signaled: false };
+  try {
+    process.kill(-Number(match.processGroupPid), signal);
+    return { ...match, signaled: true };
+  } catch (error) {
+    return { ...match, signaled: false, error: error.message };
+  }
 }
 
 function refreshInactiveRun(run) {
-  if (!["running", "killing", "running_orphaned"].includes(run.status)) return run;
+  if (["completed", "failed", "killed"].includes(run.status)) {
+    const match = processMatchesRun(run);
+    if (match.alive && match.matched) {
+      run.status = run.status === "killed" ? "killing" : "running_orphaned";
+      run.orphanReason =
+        run.status === "killing"
+          ? "Run recorded killed status, but its fingerprint-matched process group still has live members."
+          : "Run recorded terminal status, but its fingerprint-matched process group still has live members.";
+      writeState(run);
+      writeReport(run);
+    }
+    return run;
+  }
+  if (!WAITABLE_STATUSES.has(run.status)) return run;
   const match = processMatchesRun(run);
   run.managed = false;
   if (match.alive && match.matched) {
-    run.status = "running_orphaned";
-    run.orphanReason = "Process is alive and fingerprint matches this run, but current MCP server does not own the child handle.";
+    run.status = run.status === "killing" ? "killing" : "running_orphaned";
+    run.orphanReason =
+      run.status === "killing"
+        ? "Kill was requested; process group is still alive and fingerprint matches this run."
+        : "Process group is alive and fingerprint matches this run, but current MCP server does not own the child handle.";
   } else if (match.alive) {
     run.status = "orphaned";
+    markTerminal(run);
     run.orphanReason = "Saved PID is alive, but ps args do not contain this run directory or debug.log fingerprint.";
   } else {
-    run.status = "orphaned";
-    run.orphanReason = "Saved PID is not alive; previous MCP server likely exited before recording completion.";
+    run.status = run.status === "killing" ? "killed" : "orphaned";
+    markTerminal(run);
+    run.orphanReason =
+      run.status === "killed"
+        ? "Kill was requested and saved process group is no longer alive."
+        : "Saved PID is not alive; previous MCP server likely exited before recording completion.";
   }
   writeState(run);
   writeReport(run);
@@ -571,6 +660,7 @@ function buildRunFromState(runId, logDir, state) {
     sessionId: state.session_id ?? null,
     startedAt: state.started_at || null,
     pid: state.pid ?? null,
+    processGroupPid: state.process_group_pid ?? state.pid ?? null,
     child: null,
     managed: false,
     orphanReason: state.orphan_reason || null
@@ -601,6 +691,7 @@ function buildRunFromLegacyReport(runId, logDir, report) {
     sessionId: report.session_id ?? null,
     startedAt: null,
     pid: report.pid ?? null,
+    processGroupPid: report.process_group_pid ?? report.pid ?? null,
     child: null,
     managed: false,
     orphanReason: status === "completed_unknown" ? "Legacy run has no durable state.json." : null
@@ -619,7 +710,7 @@ function buildReport(run) {
     cwd: run.cwd,
     pid: run.child?.pid ?? run.pid ?? null,
     status: run.status,
-    managed: Boolean(run.child) || Boolean(run.managed),
+    managed: isManagedRun(run),
     orphan_reason: run.orphanReason || null,
     exit_code: run.exitCode ?? null,
     signal: run.signal ?? null,
@@ -637,7 +728,7 @@ function buildReport(run) {
 
 function writeReport(run) {
   const report = buildReport(run);
-  fs.writeFileSync(run.reportFile, JSON.stringify(report, null, 2));
+  writeJsonAtomic(run.reportFile, report);
   return report;
 }
 
@@ -694,6 +785,7 @@ export function startRun(options = {}) {
   const { command, prefixArgs } = resolveClaudeCommand();
   const runEnv = {
     ...process.env,
+    CLAUDE_BRIDGE_RUN_ID: runId,
     ...(profileConfig.env || {}),
     ...(options.env || {})
   };
@@ -778,6 +870,8 @@ export function startRun(options = {}) {
     signal: null,
     sessionId: null,
     startedAt: new Date().toISOString(),
+    pid: null,
+    processGroupPid: null,
     child: null,
     managed: true,
     orphanReason: null
@@ -786,10 +880,15 @@ export function startRun(options = {}) {
   const child = spawn(command, args, {
     cwd,
     env: runEnv,
+    detached: true,
     stdio: ["ignore", "pipe", "pipe"]
   });
   run.child = child;
   run.pid = child.pid;
+  run.processGroupPid = child.pid;
+  const commandRecord = safeReadJson(files.command, {});
+  commandRecord.process_group_pid = run.processGroupPid;
+  writeJsonAtomic(files.command, commandRecord);
   activeRuns.set(runId, run);
   writeState(run);
 
@@ -826,6 +925,7 @@ export function startRun(options = {}) {
     run.status = "failed";
     run.error = error.message;
     jsonLine(files.events, { type: "process_error", error: error.message });
+    markTerminal(run);
     writeState(run);
     writeReport(run);
   });
@@ -834,9 +934,12 @@ export function startRun(options = {}) {
     if (stdoutBuffer.trim()) {
       jsonLine(files.events, { type: "stdout", raw: stdoutBuffer.trim() });
     }
-    run.status = code === 0 ? "completed" : "failed";
+    const diskStatus = safeReadJson(run.stateFile, {})?.status;
+    run.status = run.status === "killing" || diskStatus === "killing" ? "killed" : code === 0 ? "completed" : "failed";
     run.exitCode = code;
     run.signal = signal;
+    run.orphanReason = null;
+    markTerminal(run);
     writeState(run);
     writeReport(run);
   });
@@ -890,7 +993,7 @@ export function peekRun(runId, { limit = 12, cursor = 0 } = {}) {
 
 export function waitRun(runId, { timeoutMs = 120000 } = {}) {
   const run = getRun(runId);
-  if (run.status !== "running") {
+  if (!WAITABLE_STATUSES.has(run.status)) {
     return Promise.resolve(writeReport(run));
   }
   if (!run.child) {
@@ -898,7 +1001,7 @@ export function waitRun(runId, { timeoutMs = 120000 } = {}) {
   }
   return new Promise((resolve) => {
     const timer = setTimeout(() => {
-      resolve({ ...buildReport(run), status: "running", timed_out: true });
+      resolve({ ...buildReport(run), status: run.status, timed_out: true });
     }, timeoutMs);
     run.child.once("close", () => {
       clearTimeout(timer);
@@ -909,35 +1012,84 @@ export function waitRun(runId, { timeoutMs = 120000 } = {}) {
 
 export function killRun(runId) {
   const run = getRun(runId);
-  if (run.status === "running" && run.child) {
-    run.child.kill("SIGTERM");
+  if (!run.child && ["completed", "failed", "killed"].includes(run.status)) {
+    const signal = run.status === "killed" ? "SIGKILL" : "SIGTERM";
+    const match = processMatchesRun(run);
+    if (!match.alive || !match.matched) {
+      return {
+        run_id: runId,
+        status: run.status,
+        killed: false,
+        reason: match.alive ? "Process group is alive, but no run fingerprint matched." : "No live process group remains for this terminal run."
+      };
+    }
     run.status = "killing";
+    run.orphanReason =
+      signal === "SIGKILL"
+        ? "Hard kill sent to fingerprint-matched process group that survived killed status."
+        : "Kill sent to fingerprint-matched process group that survived terminal status.";
     writeState(run);
     writeReport(run);
+    const signaled = signalMatchedProcessGroup(match, signal);
+    if (!signaled.signaled) {
+      run.orphanReason = signaled.error || "Failed to signal fingerprint-matched process group.";
+      writeState(run);
+      writeReport(run);
+      return { run_id: runId, status: run.status, killed: false, reason: run.orphanReason };
+    }
+    return { run_id: runId, status: run.status, killed: true };
+  }
+  if (run.status === "running" && run.child) {
+    const match = processMatchesRun(run);
+    if (!match.alive || !match.matched) {
+      run.orphanReason = match.error || "Process group did not match this run fingerprint.";
+      writeState(run);
+      writeReport(run);
+      return { run_id: runId, status: run.status, killed: false, reason: run.orphanReason };
+    }
+    run.status = "killing";
+    run.orphanReason = "Kill sent conservatively to fingerprint-matched process group.";
+    writeState(run);
+    writeReport(run);
+    const signaled = signalMatchedProcessGroup(match);
+    if (!signaled.signaled) {
+      run.orphanReason = signaled.error || "Failed to signal fingerprint-matched process group.";
+      writeState(run);
+      writeReport(run);
+      return { run_id: runId, status: run.status, killed: false, reason: run.orphanReason };
+    }
     return { run_id: runId, status: run.status, killed: true };
   }
 
   if (["running_orphaned", "orphaned", "killing"].includes(run.status)) {
+    const signal = run.status === "killing" ? "SIGKILL" : "SIGTERM";
     const match = processMatchesRun(run);
-    if (!match.alive) {
-      run.status = "orphaned";
-      run.orphanReason = "Saved PID is not alive.";
+    if (!match.alive || !match.matched) {
+      run.status = match.alive ? "orphaned" : run.status === "killing" ? "killed" : "orphaned";
+      markTerminal(run);
+      run.orphanReason = match.alive
+        ? match.error || "PID is alive, but ps args do not contain this run directory or debug.log fingerprint."
+        : run.status === "killed"
+          ? "Kill was already requested and saved process group is not alive."
+          : "Saved PID is not alive.";
       writeState(run);
       writeReport(run);
       return { run_id: runId, status: run.status, killed: false, reason: run.orphanReason };
     }
-    if (!match.matched) {
-      run.status = "orphaned";
-      run.orphanReason = "PID is alive, but ps args do not contain this run directory or debug.log fingerprint.";
-      writeState(run);
-      writeReport(run);
-      return { run_id: runId, status: run.status, killed: false, reason: run.orphanReason };
-    }
-    process.kill(run.pid, "SIGTERM");
     run.status = "killing";
-    run.orphanReason = "Kill sent conservatively by saved PID after fingerprint match.";
+    run.orphanReason =
+      signal === "SIGKILL"
+        ? "Hard kill sent to fingerprint-matched process group after it stayed in killing."
+        : "Kill sent conservatively to fingerprint-matched process group.";
     writeState(run);
     writeReport(run);
+    const signaled = signalMatchedProcessGroup(match, signal);
+    if (!signaled.signaled) {
+      run.orphanReason = signaled.error || "Failed to signal fingerprint-matched process group.";
+      writeState(run);
+      writeReport(run);
+      return { run_id: runId, status: run.status, killed: false, reason: run.orphanReason };
+    }
     return { run_id: runId, status: run.status, killed: true };
   }
 

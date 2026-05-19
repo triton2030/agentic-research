@@ -1,0 +1,134 @@
+{
+  "title": "AtlasGrid",
+  "subtitle": "ELK.js no-server layout: JSON -> square SVG -> Obsidian embed",
+  "edgeLabels": false,
+  "nodes": [
+    {
+      "id": "idea",
+      "type": "start",
+      "label": "Idea in Obsidian note"
+    },
+    {
+      "id": "json",
+      "type": "data",
+      "label": "Small graph JSON"
+    },
+    {
+      "id": "constraints",
+      "type": "guard",
+      "label": "Square 1:1 target"
+    },
+    {
+      "id": "elk",
+      "type": "compute",
+      "label": "ELK chooses node positions"
+    },
+    {
+      "id": "trials",
+      "type": "process",
+      "label": "Try several layout modes"
+    },
+    {
+      "id": "score",
+      "type": "decision",
+      "label": "Closest to square?"
+    },
+    {
+      "id": "routes",
+      "type": "process",
+      "label": "Short direct routes"
+    },
+    {
+      "id": "fit",
+      "type": "guard",
+      "label": "Scale content into one canvas"
+    },
+    {
+      "id": "svg",
+      "type": "output",
+      "label": "Static SVG artifact"
+    },
+    {
+      "id": "obsidian",
+      "type": "success",
+      "label": "Inline image inside Obsidian"
+    },
+    {
+      "id": "html",
+      "type": "note",
+      "label": "HTML link stays optional"
+    },
+    {
+      "id": "plugin",
+      "type": "future",
+      "label": "Plugin only if this becomes core"
+    }
+  ],
+  "edges": [
+    {
+      "from": "idea",
+      "to": "json",
+      "label": "describe"
+    },
+    {
+      "from": "idea",
+      "to": "constraints",
+      "label": "shape"
+    },
+    {
+      "from": "json",
+      "to": "elk",
+      "label": "input"
+    },
+    {
+      "from": "constraints",
+      "to": "trials",
+      "label": "target"
+    },
+    {
+      "from": "elk",
+      "to": "trials",
+      "label": "layout"
+    },
+    {
+      "from": "trials",
+      "to": "score",
+      "label": "compare"
+    },
+    {
+      "from": "score",
+      "to": "routes",
+      "label": "winner"
+    },
+    {
+      "from": "score",
+      "to": "fit",
+      "label": "bounds"
+    },
+    {
+      "from": "routes",
+      "to": "svg",
+      "label": "draw"
+    },
+    {
+      "from": "fit",
+      "to": "svg",
+      "label": "place"
+    },
+    {
+      "from": "svg",
+      "to": "obsidian",
+      "label": "embed"
+    },
+    {
+      "from": "svg",
+      "to": "html",
+      "label": "optional"
+    },
+    {
+      "from": "obsidian",
+      "to": "plugin",
+      "label": "later"
+    }
+  ]
+}

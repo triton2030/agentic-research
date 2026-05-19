@@ -8,8 +8,8 @@
 
 ## Применимые критерии
 
-- [_ops/criteria/claude-bridge-control.md](../../criteria/claude-bridge-control.md)
-- [_ops/criteria/repo-shape.md](../../criteria/repo-shape.md)
+- [_ops/criteria/external-agent-control.md](../../criteria/external-agent-control.md)
+- [_ops/criteria/repo-structure-and-runtime-guards.md](../../criteria/repo-structure-and-runtime-guards.md)
 - [_ops/criteria/skill-authoring.md](../../criteria/skill-authoring.md)
 
 ## Подшаги

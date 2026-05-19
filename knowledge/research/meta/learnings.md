@@ -1,47 +1,57 @@
 # Meta — Learnings
 
-Снимок на 17 апреля 2026.
+Снимок после cleanup 18 мая 2026.
 
-Здесь только выводы про управление агентной системой: память, ролевой дизайн, аудит, eval и правила продвижения знаний.
-Общие свойства моделей и общие принципы агентов вынесены в `knowledge/`.
+Здесь только staging/source-backed выводы про управление агентной системой:
+память, eval, аудит, ролевой дизайн и продвижение знаний. Уже повышенные
+принципы живут в `knowledge/wisdom-agents.md` и не дублируются здесь.
 
 ## Проверено
 
-- Память — это отдельная подсистема, а не просто длинный контекст. Нужны явные правила записи, пересмотра и устаревания.
-- Для memory-навыка нельзя смешивать активацию и запись в один шаг. Надёжнее двухступенчатая схема: сначала routing, потом write-path.
-- Наиболее устойчивый trigger для памяти — гибрид: явная команда пользователя, детерминированные правила и hooks, вероятностная классификация с threshold и ambiguity margin.
-- Безопасная запись в память должна идти через поток `candidate -> policy/merge -> committed`, а не через прямую автозапись из чата.
-- Память полезно делить по scope и типу: turn, session, user, project, org и semantic, episodic, procedural.
-- Конфликты памяти лучше решать через явный precedence: deny и запрет пользователя выше всего; новые явные указания сильнее старых inferred facts.
-- Для памяти надёжнее append-only журнал версий с `supersedes`, audit и trace correlation, чем перезапись одного состояния.
-- Качество memory-системы нельзя мерить одной метрикой. Нужны отдельные сигналы для activation quality, extraction quality и commit quality.
-- PII, secrets и regulated data не должны auto-commit'иться. Для чувствительных случаев нужен confirm или deny path.
-- Meta-agent полезнее всего как аудитор траектории: он смотрит на drift цели, слабые циклы и несоответствие north star.
-- Business agent полезен как критик долгих последствий: он проверяет обратимость решений, скрытую стоимость и закрывающиеся опции.
-- Developer agent ценнее как архитектор системы, чем как тикет-машина: он должен уметь ставить под вопрос саму постановку и альтернативы решения.
-- Prompt editor полезен не как редактор текста, а как дизайнер агентной системы: он должен отличать проблему prompt от проблемы guardrails, tool policy, памяти или ownership.
-- Planner agent полезен как управляющий гипотезами, рисками, ADR и живыми планами, а не как генератор списка задач.
-- Полная retention деградирует качество: наивное «помнить всё» снижает task completion по FiFA benchmark сильнее, чем структурированное забывание. Forgetting — это архитектура, а не баг.
-- Spectrum стратегий вытеснения: FIFO → LRU → Priority Decay → Reflection-Summary → Adaptive Decay → Hybrid → Random Drop. Чистый LRU оптимален там, где полезность decay'ится экспоненциально (большинство assistant-задач). Hybrid даёт лучший композитный результат (~0.911) в benchmarks.
-- Long-tail knowledge problem: чистый frequency-based eviction опасен для редкого, но критического знания. Простой LRU не подходит для специализированных фактов, которые вспоминают раз в год.
-- Quality gate перед записью в learnings-файл отсеивает 60-70% кандидатов. Три проверки: specific-not-general, actionable-next-time, project-bound-not-generic. Отсутствие записи — валидный исход, не провал.
-- User corrections — высший приоритет для записи в memory. Correction сильнее observation как сигнал: пользователь уже вложил attention в исправление.
-- Dedup и contradiction detection — обязательные механизмы поддержки learnings-файла, не опциональные. Без них файл превращается в клад противоречий. При конфликте: свежая запись побеждает, старая удаляется (не оставлять обе).
-- Active summarize при чтении сильнее passive load: skill должен применить 2-5
-  релевантных записей к текущему решению. Наружу перечислять их только когда
-  пользователь просит evidence of applied memory или когда это меняет routing,
-  scope, Must-not либо verification.
-- Curator-паттерн — отдельный этап извлечения learnings после выполнения задачи в context playbook, который автоматически инжектится в следующем запуске. Измеримый lift на agent-benchmarks зафиксирован относительно работы без playbook.
+- Memory skill нельзя проектировать как прямую автозапись из чата. Более
+  безопасная форма: `candidate -> policy/merge -> committed`.
+- Для memory activation нужен гибрид: явная команда пользователя,
+  детерминированные правила/hooks и вероятностная классификация с threshold и
+  ambiguity margin.
+- Memory-систему полезно делить по scope и типу: `turn`, `session`, `user`,
+  `project`, `org`; `semantic`, `episodic`, `procedural`.
+- Конфликты памяти требуют явного precedence: deny и запрет пользователя выше
+  всего; новые явные указания сильнее старых inferred facts.
+- Append-only журнал с `supersedes`, audit и trace correlation надёжнее
+  перезаписи одного состояния.
+- Качество памяти нужно мерить раздельно: activation quality, extraction
+  quality и commit quality.
+- PII, secrets и regulated data не должны auto-commit'иться; нужен confirm или
+  deny path.
+- Retention policy должна защищать long-tail knowledge: частотное вытеснение
+  опасно для редких, но критичных фактов.
+- Curator-паттерн: отдельный этап извлечения learnings после задачи и
+  injection в следующий запуск.
 
-## Правило Продвижения
+## Promotion Rule
 
-- Правило продвижения должно быть явным, а не жить “по ощущению”.
-- Пока вывод не начал повторно влиять на решения в нескольких сессиях или линиях, ему место в research-слое.
-- Когда вывод становится стабильным правилом по умолчанию для всей работы, его нужно поднимать в `AGENTS.md` или `knowledge/guides/`.
+- Пока вывод не начал повторно влиять на решения в нескольких сессиях или
+  линиях, ему место здесь.
+- Когда вывод стал правилом по умолчанию, owner становится `wisdom-*`,
+  `guides/`, `AGENTS.md` или criteria layer.
+- При продвижении удалить или заменить staging-пункт, чтобы research не стал
+  вторым каноном.
+
+## Promoted
+
+- Agent roles, trajectory audit, business/developer/prompt/planner agent value
+  -> `knowledge/wisdom-agents.md`.
+- Полная retention vs structured forgetting -> `knowledge/wisdom-agents.md`.
+- User corrections как сильный memory signal -> `knowledge/wisdom-agents.md`.
+- Learnings quality gate -> `knowledge/wisdom-agents.md`.
+- Dedup / contradiction discipline -> `knowledge/wisdom-agents.md`.
 
 ## Рабочие Гипотезы
 
-- Для meta-линии полезнее мыслить не категориями “усилить prompt”, а категориями `цель -> границы -> исполнение -> evidence -> audit`.
-- `meta-thinking` должен оставаться лёгким слоем переоценки рамки, а не превращаться в обязательный тяжёлый ритуал.
-- `before-you-build` наиболее ценен как ранний фильтр скрытого допущения, а не как planner или critic общего назначения.
-- Для memory-линии наиболее перспективна не одна “умная” активация, а композиция из узких маршрутов: явная запись, удаление, извлечение preferences, strategic signals, summary-only и confirm path.
+- Для meta-линии полезнее мыслить цепочкой `цель -> границы -> исполнение ->
+  evidence -> audit`, а не “усилить prompt”.
+- `meta-thinking` должен оставаться лёгким reframe-слоем, а не обязательным
+  тяжёлым ритуалом.
+- Для memory-линии перспективна композиция узких маршрутов: явная запись,
+  удаление, preference extraction, strategic signals, summary-only и confirm
+  path.

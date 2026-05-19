@@ -1,0 +1,140 @@
+.markdown-preview-view.obsidian-beauty-lab {
+  --obl-ink: #29251d;
+  --obl-muted: #665d50;
+  --obl-paper: #fffaf1;
+  --obl-mist: #edf7f2;
+  --obl-rose: #f8eef2;
+  --obl-gold: #c28a34;
+  --obl-teal: #3f7168;
+  --obl-shadow: 0 22px 70px rgba(50, 42, 30, 0.14);
+  color: var(--obl-ink);
+  background:
+    linear-gradient(180deg, rgba(255, 250, 241, 0.96), rgba(239, 247, 242, 0.66)),
+    repeating-linear-gradient(90deg, rgba(120, 98, 62, 0.045) 0 1px, transparent 1px 92px);
+}
+
+.markdown-preview-view.obsidian-beauty-lab .markdown-preview-sizer {
+  max-width: 980px;
+}
+
+.markdown-preview-view.obsidian-beauty-lab h1 {
+  margin-top: 18px;
+  color: var(--obl-ink);
+  font-size: 2.65rem;
+  line-height: 1.04;
+}
+
+.markdown-preview-view.obsidian-beauty-lab h2 {
+  margin-top: 2rem;
+  color: #343027;
+}
+
+.markdown-preview-view.obsidian-beauty-lab .obl-hero,
+.markdown-preview-view.obsidian-beauty-lab .obl-bento > div,
+.markdown-preview-view.obsidian-beauty-lab .obl-control > div,
+.markdown-preview-view.obsidian-beauty-lab .obl-details {
+  box-shadow: var(--obl-shadow);
+}
+
+.markdown-preview-view.obsidian-beauty-lab .callout {
+  border: 1px solid rgba(78, 65, 44, 0.14);
+  border-radius: 20px;
+  background: rgba(255, 250, 241, 0.72);
+  box-shadow: 0 16px 42px rgba(48, 39, 26, 0.08);
+  overflow: hidden;
+}
+
+.markdown-preview-view.obsidian-beauty-lab .callout-title {
+  padding: 13px 16px;
+  background: linear-gradient(90deg, rgba(255, 242, 216, 0.92), rgba(237, 247, 242, 0.76));
+}
+
+.markdown-preview-view.obsidian-beauty-lab .callout-content {
+  padding: 6px 16px 16px;
+}
+
+.markdown-preview-view.obsidian-beauty-lab .callout[data-callout="warning"] .callout-title {
+  background: linear-gradient(90deg, rgba(248, 238, 242, 0.94), rgba(255, 242, 216, 0.7));
+}
+
+.markdown-preview-view.obsidian-beauty-lab .callout[data-callout="example"] .callout-title {
+  background: linear-gradient(90deg, rgba(237, 247, 242, 0.94), rgba(239, 241, 251, 0.72));
+}
+
+.markdown-preview-view.obsidian-beauty-lab .callout[data-callout="custom-beauty"] {
+  --callout-color: 194, 138, 52;
+  --callout-icon: lucide-sparkles;
+}
+
+.markdown-preview-view.obsidian-beauty-lab .callout[data-callout="custom-beauty"] .callout-title {
+  background: linear-gradient(90deg, rgba(255, 242, 216, 0.96), rgba(248, 238, 242, 0.8));
+}
+
+.markdown-preview-view.obsidian-primitives-lab .contains-task-list {
+  padding-left: 0.2rem;
+}
+
+.markdown-preview-view.obsidian-primitives-lab .task-list-item {
+  margin: 0.32rem 0;
+}
+
+.markdown-preview-view.obsidian-primitives-lab .metadata-container,
+.markdown-preview-view.obsidian-primitives-lab .meta-bind-plugin-input-wrapper,
+.markdown-preview-view.obsidian-primitives-lab .meta-bind-plugin-view-wrapper {
+  border-radius: 12px;
+}
+
+.markdown-preview-view.obsidian-beauty-lab .mermaid {
+  margin: 18px 0 28px;
+  padding: 18px;
+  border: 1px solid rgba(78, 65, 44, 0.12);
+  border-radius: 24px;
+  background: rgba(255, 250, 241, 0.74);
+  box-shadow: 0 16px 48px rgba(48, 39, 26, 0.1);
+}
+
+.markdown-preview-view.obsidian-beauty-lab .mermaid svg {
+  display: block;
+  margin: 0 auto;
+}
+
+.markdown-preview-view.obsidian-beauty-lab iframe {
+  max-width: 100%;
+}
+
+.markdown-preview-view.obsidian-beauty-lab .obl-frame-shell {
+  box-shadow: 0 20px 58px rgba(48, 39, 26, 0.12);
+}
+
+.markdown-preview-view.obsidian-beauty-lab .obl-details {
+  margin: 12px 0;
+  padding: 15px 17px;
+  border: 1px solid rgba(78, 65, 44, 0.13);
+  border-radius: 18px;
+  background: rgba(255, 250, 241, 0.76);
+}
+
+.markdown-preview-view.obsidian-beauty-lab .obl-details summary {
+  cursor: pointer;
+  font-weight: 760;
+  color: #3b3124;
+}
+
+.markdown-preview-view.obsidian-beauty-lab a {
+  color: #2d6c62;
+  font-weight: 650;
+}
+
+@media (max-width: 720px) {
+  .markdown-preview-view.obsidian-beauty-lab h1 {
+    font-size: 2.1rem;
+  }
+
+  .markdown-preview-view.obsidian-beauty-lab .obl-hero {
+    padding: 22px !important;
+  }
+
+  .markdown-preview-view.obsidian-beauty-lab .obl-control {
+    grid-template-columns: 1fr !important;
+  }
+}

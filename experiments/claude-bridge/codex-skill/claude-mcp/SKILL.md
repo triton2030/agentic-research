@@ -1,143 +1,125 @@
 ---
 name: claude-mcp
-description: Use when Codex should delegate to Claude Code through the Claude Bridge MCP/server with run/peek/wait/kill controls, profiles, logs, streaming observation, memory/skill/system-prompt control, or skill-read evidence; skip ordinary inline answers and one-off raw `claude` commands that do not need bridge control.
+description: Use when Codex should delegate to Claude Code as an independent reviewer/advisor for long chats, large project work, important decisions, second opinions, code/opinion checks, web research, or controlled Claude Bridge MCP runs with run/peek/wait/kill controls, profiles, logs, observation, context access, or skill-read evidence; skip ordinary inline answers and one-off raw `claude` commands that do not need bridge control.
 ---
 
 # Claude MCP
 
-Use the Claude Bridge MCP/server instead of calling `claude` ad hoc when the
-user needs repeatable Claude delegation, profile control, logs, streaming
-milestones, kill/wait/peek control, skill-audit evidence, or MCP-compatible
-operation. When the user wants Claude's answer, relay Claude's actual answer in
-chat from `chat_relay` instead of summarizing raw JSON.
+Use the Claude Bridge MCP/server when Claude should act as a controlled external
+agent with profiles, logs, observation, stop control, context access, or
+skill-read evidence. Relay Claude's actual `chat_relay.text` when the user asks
+for Claude's answer.
 
-## Locate Bridge
+Default to **Independent Reviewer Mode** for long chats, large project work, or
+important decisions: Claude checks Codex's current claim against real project
+sources as a second strong advisor, not as a vague "ask Claude" side chat.
 
-- Bridge root:
-  `/Users/triton/Documents/GitHub/agentic-research/experiments/claude-bridge`
-- Registered Codex MCP name: `claude-mcp`.
-- Prefer callable MCP tools when this server is available in the current Codex
-  session.
-- If the MCP tools are not available, use the repo-local CLI fallback:
-  `node /Users/triton/Documents/GitHub/agentic-research/experiments/claude-bridge/src/cli.js`.
-- Do not edit global MCP config, `~/.claude`, or `~/.codex` unless the user
-  explicitly asks.
-- Treat bridge logs as sensitive: `prompt.txt`, `debug.log`, `stdout.log`,
-  `stderr.log`, and `events.ndjson` may contain secrets.
+## Active Contract
 
-## Default Flow
+- **Entry:** controlled Claude Code peer work: independent review, advice,
+  audit, research, or Codex claim-checking, not ordinary inline answering.
+- **Boundary:** use bridge controls for work that needs profiles, observation,
+  logs, context access, relay, or stop control; raw `claude` is not a substitute.
+- **Handoff:** return to Codex after Claude's relay/report, warnings, and
+  evidence are available, or after the exact missing layer is named.
+- **Stop:** done only when Claude's answer/evidence is relayed and the managed
+  run/process tail is terminal or honestly unknown.
 
-1. Run `claude_doctor` when the session is fresh, flags are uncertain, or the
-   user asks about capability.
-2. Run `claude_profiles` before choosing a non-default profile.
-3. Start work with `claude_run`.
-4. For long/risky work, use `claude_peek` with `cursor` instead of waiting
-   blindly, and post `chat_relay.text` as concise chat updates when it contains
-   new Claude answer text.
-5. Finish with `claude_wait` or `claude_result`, then paste
-   `chat_relay.text` into the chat when the user asked to see Claude's answer.
-6. Use `claude_kill` if the run is looping, clearly wrong, or the user asks to
-   stop it.
-7. Use `claude_cleanup_runs` for old logs; dry-run first, delete only with
-   confirmation.
+## Default Path
 
-CLI fallback equivalents:
+1. Before starting, state the distinct Claude role: what independent judgment,
+   audit, research, or Codex claim-check Claude adds. If there is no distinct
+   role, answer inline instead.
+2. Use `claude_doctor` when setup, flags, auth, or current capability are
+   uncertain.
+3. Use `claude_profiles` before choosing a non-default profile.
+4. Start with `claude_run`; observe long or risky work with `claude_peek`, and
+   finish with `claude_wait` or `claude_result`.
+5. Use `claude_kill` when a run loops, goes wrong, or the user asks to stop it.
+6. After `wait`, `result`, or `kill`, check the run is not still
+   `running`/`running_orphaned` before closing the conversation.
+7. Give Claude a context packet, not a raw long-chat dump: role, lens, task,
+   user goal/current state, Codex claim to check, project sources, relevant
+   criteria, targets, open questions/assumptions, boundaries, evidence
+   requirements, output shape, and stop condition. Lens, task, goal, and claim
+   must come from the user request or explicit project sources; do not invent
+   them.
+8. Use `cwd`/`addDir` when file access matters; do not ask Claude to judge only
+   a Codex summary when the evidence is in files, logs, screenshots, or URLs.
+9. Treat Claude's findings as external evidence, not automatic task scope. If a
+   finding describes a real current problem but strategy has not decided action,
+   Codex may stage it in `_ops/problems/**` after local review instead of
+   promoting it directly to `_ops/plans/**` or `_ops/criteria/*.md`.
 
-```bash
-node /Users/triton/Documents/GitHub/agentic-research/experiments/claude-bridge/src/cli.js doctor
-node /Users/triton/Documents/GitHub/agentic-research/experiments/claude-bridge/src/cli.js profiles
-node /Users/triton/Documents/GitHub/agentic-research/experiments/claude-bridge/src/cli.js run --profile normal --cwd "$PWD" --prompt "..."
-node /Users/triton/Documents/GitHub/agentic-research/experiments/claude-bridge/src/cli.js peek --run-id "<run_id>" --cursor 0
-node /Users/triton/Documents/GitHub/agentic-research/experiments/claude-bridge/src/cli.js wait --run-id "<run_id>"
-node /Users/triton/Documents/GitHub/agentic-research/experiments/claude-bridge/src/cli.js cleanup --days 14
+## Independent Reviewer Mode
+
+Use this as the default mode when the user wants Claude as a project advisor
+during a long chat, major decision, large implementation, or close review.
+
+Build a compact context packet from durable sources plus the current working
+state:
+
+- **Role/lens/task:** the specific kind of second opinion Claude should provide
+  and the exact outcome it should produce.
+- **Goal/current state:** what the user is trying to achieve and where Codex is
+  now.
+- **Codex claim:** the plan, diff, conclusion, or risk assessment to check.
+- **Sources:** `cwd`/`addDir`, key files, diffs, logs, URLs, screenshots, or
+  docs Claude should inspect directly.
+- **Criteria:** relevant instructions, `_ops/criteria/*.md`, task files, or
+  acceptance rules.
+- **Unknowns:** assumptions, unresolved questions, and what Claude must not
+  invent.
+- **Boundaries:** read-only by default; ask for findings, patch suggestions, or
+  instructions unless the user explicitly chose Claude-side edits.
+- **Evidence:** what files, logs, tool calls, checks, or citations must support
+  the answer.
+- **Output:** findings first, evidence per finding, open questions, recommended
+  next move, and stop after the report.
+
+For non-trivial Opus runs, format that packet with XML tags so instructions,
+evidence, and variable context do not blur:
+
+```xml
+<role>Read-only external reviewer.</role>
+<lens>The specific judgment Claude should provide.</lens>
+<task>The exact outcome Claude should produce.</task>
+<goal>User goal and current project state.</goal>
+<claim>Codex's plan, diff, conclusion, or risk assessment to check.</claim>
+<sources>Exact files, diffs, logs, URLs, screenshots, or cwd/addDir roots.</sources>
+<criteria>Relevant instructions, criteria files, task contract, or acceptance rules.</criteria>
+<unknowns>Assumptions and facts Claude must treat as unknown if not evidenced.</unknowns>
+<boundaries>Allowed moves, read/write policy, tools, and must-not rules.</boundaries>
+<evidence>For each finding, cite file/log/tool evidence or say what evidence is missing.</evidence>
+<output>Findings first with evidence, open questions, recommended next move, then stop.</output>
 ```
 
-## Profiles
-
-- `normal`: default Opus run.
-- `clean`: minimal mode with `--bare`; may be limited by auth.
-- `no-memory`: disables Claude auto memory.
-- `no-skills`: disables Claude slash-command skills.
-- `read-only`: planning/read profile.
-- `turbo`: full-power Opus run with dangerous permission skip.
-- `skill-audit`: checks whether Claude read the target skill/context.
-- `streaming-observe`: verbose long-run observation.
-
-Say the selected profile and why in one short sentence before starting a
-non-trivial run. Prefer the user's natural task language; only require explicit
-profile names when the user overrides the default.
-
-## Controls
-
-When the Claude prompt itself matters, read
-`references/opus-4-7-prompting.md` before composing `prompt`,
-`systemPrompt`, `appendSystemPrompt`, or `skill-audit` instructions.
-
-Use first-class bridge fields instead of raw flags:
-
-- system prompt: `systemPrompt`, `appendSystemPrompt`, and supported file
-  variants;
-- memory: `disableAutoMemory` or profile `no-memory`;
-- skills: profile `no-skills`, `clean`, or `skill-audit`;
-- MCP: `mcpConfig`, `strictMcpConfig`, `mcpTimeout`,
-  `maxMcpOutputTokens`;
-- permissions/tools: `tools`, `allowedTools`, `disallowedTools`;
-- context roots: `cwd`, `addDir`, `pluginDir`, `settingSources`, `settings`;
-- run control: `maxBudgetUsd`, `sessionId`, `resume`, `forkSession`,
-  `noSessionPersistence`;
-- cleanup: `claude_cleanup_runs` or CLI `cleanup --days 14 --confirm` after a
-  dry-run.
-
-Budget note: for tiny smoke tests on Opus, do not use very low
-`maxBudgetUsd` values such as `0.05`. Claude may produce the expected
-`chat_relay.text` and still exit with `error_max_budget_usd`, which means the
-budget gate failed, not that the MCP bridge or Claude answer failed. If that
-happens, report it precisely and rerun with a higher budget or no budget before
-calling the bridge broken.
-
-## Chat Relay
-
-MCP cannot write directly into the Codex chat. Only Codex can do that. The
-bridge therefore returns chat-ready fields:
-
-- `chat_relay.text`: Claude's answer/update without raw JSON;
-- `chat_relay.markdown`: the same text with a `Claude:` prefix;
-- `chat_relay.truncated`: whether the text was shortened;
-- `next_cursor`: for the next `claude_peek` call.
-
-When observing a run, keep the latest `next_cursor`. On each `claude_peek`, if
-`chat_relay.text` is non-empty, write it to the user as a short Claude update
-and call the next `peek` with the returned cursor. At completion, include
-`chat_relay.text` as Claude's answer unless the user only wanted a summary.
-
-The v1 tool set is intentionally limited to run observation, result control,
-profiles, doctor checks, skill discovery/audit, and cleanup.
-
-The bridge checks local `claude --help` before using version-sensitive flags.
-If a flag is missing, report the bridge error instead of inventing a workaround.
+Do not pass the whole chat history by default. Summarize only the current state
+that changes judgment, then anchor Claude in the same owner files and evidence
+Codex used. For large context, put source material before the ask and require
+evidence before conclusions. This makes Claude strong without importing stale
+conversation noise.
 
 ## Evidence
 
-For skill or context work, do not accept Claude self-report as proof of
-reading. Use `claude_audit_skill` or inspect bridge logs. Evidence passes only
-when tool, debug, or stream logs mention the target path.
-
-Report the result with:
-
-- profile and cwd;
-- run_id and log_dir;
-- status, managed, and orphan_reason when present;
-- warnings from `peek`, `wait`, or `result`;
-- `error_max_budget_usd` separately from bridge/auth failure when
-  `chat_relay.text` or `final_output_summary` exists;
-- milestones, not raw stream-json;
-- `chat_relay.text` when the user needs Claude's answer in chat;
-- final summary if you are summarizing rather than relaying;
-- evidence status when the task depends on reading a skill/context.
+Report profile, cwd/addDir, context packet sources, run_id/log_dir, status,
+warnings, whether `chat_relay.truncated` was true, whether the answer was
+recovered from bridge logs, process-tail status, and skill/context-read evidence
+when that matters.
 
 ## Stop Rule
 
-If the bridge MCP tools are unavailable and the CLI fallback also fails, stop
-and report exactly what is missing: MCP registration, Node package install,
-`claude` CLI, auth, or unsupported local flag. Do not silently fall back to an
-uncontrolled raw `claude` command for work that needs observation or evidence.
+If bridge MCP tools are unavailable and the controlled CLI fallback also fails,
+stop with the exact missing layer: registration, Node dependencies, Claude CLI,
+auth, unsupported flag, or missing evidence. Do not silently fall back to an
+uncontrolled raw `claude` command for work that needs observation or proof.
+
+## References
+
+- Read [references/opus-4-7-prompting.md](references/opus-4-7-prompting.md)
+  for complex briefs, profiles, or model/prompt-control changes.
+- Read [references/managed-runs-and-relay.md](references/managed-runs-and-relay.md)
+  for role-fit, audit briefs, `run/peek/wait/result/kill`, relay, timeout,
+  logs, or process-tail work.
+- Read [references/mcp-failure-handling.md](references/mcp-failure-handling.md)
+  when tools, bridge/backend/auth/config, direct recovery, or relay text fail.

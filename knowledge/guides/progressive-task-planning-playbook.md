@@ -167,17 +167,20 @@ outcome.
 
 ## Skill Touchpoints
 
-- `1project-strategy` owns strategy truth. См. `/Users/triton/.codex/skills/1project-strategy/SKILL.md`.
-- `1strategy-discussion` owns unresolved approach branches and consequential
+- `1strategy` owns strategy truth. См. `/Users/triton/.codex/skills/1strategy/SKILL.md`.
+- `1strategy` owns unresolved approach branches and consequential
   domain questions. См.
-  `/Users/triton/.codex/skills/1strategy-discussion/SKILL.md`.
-- `1task-contract` owns task-files. См. `/Users/triton/.codex/skills/1task-contract/SKILL.md`.
-- `1before-work` owns work-start framing. См. `/Users/triton/.codex/skills/1before-work/SKILL.md`.
-- `before-write` owns imminent write checks. См. `/Users/triton/.codex/skills/before-write/SKILL.md`.
+  `/Users/triton/.codex/skills/1strategy/SKILL.md`.
+- `1planning` owns roadmap/task-files and task prerequisites. См.
+  `/Users/triton/.codex/skills/1planning/SKILL.md`.
+- Substantive-write discipline is distributed through local instructions,
+  criteria delivery, owner skills, and `1work-review`.
 - `1work-review` owns post-action review. См. `/Users/triton/.codex/skills/1work-review/SKILL.md`.
-- `user-truth` owns durable user truth. См. `/Users/triton/.codex/skills/user-truth/SKILL.md`.
-- `1skill-architect`, `1instruction-layer` и `1repo-shape` own control-surface
-  changes; use them only when the failure is structural.
+- `1user-truth` owns durable user truth. См.
+  `/Users/triton/.codex/skills/1user-truth/SKILL.md`.
+- `1skill-architect` owns skill control-surface changes; `1folder-contract`
+  owns structural folder/runtime controls; `1instruction-layer` owns wording
+  and placement of instruction prose.
 
 ## Research Tie-Back
 

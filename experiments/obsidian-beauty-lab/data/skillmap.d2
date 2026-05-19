@@ -1,0 +1,41 @@
+title: SkillMap
+
+direction: down
+
+"User request": {
+  shape: oval
+}
+
+"1start-here": {
+  shape: hexagon
+}
+
+"Direct answer"
+"1strategy"
+"1planning"
+"1user-truth"
+"1instruction-layer"
+"1obsidian"
+"Instruction/criteria gates"
+"Artifacts": {
+  shape: cylinder
+}
+"1work-review"
+
+"User request" -> "1start-here"
+"1start-here" -> "Direct answer"
+"1start-here" -> "1strategy"
+"1start-here" -> "1user-truth"
+"1start-here" -> "1instruction-layer"
+"1start-here" -> "1obsidian"
+
+"1strategy" -> "1planning"
+"1planning" -> "Instruction/criteria gates"
+
+"1user-truth" -> "Instruction/criteria gates"
+"1instruction-layer" -> "Instruction/criteria gates"
+"1obsidian" -> "Artifacts"
+
+"Instruction/criteria gates" -> "Artifacts"
+"Artifacts" -> "1work-review"
+"1work-review" -> "1start-here"

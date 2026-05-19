@@ -1,0 +1,17 @@
+{
+	"nodes":[
+		{"id":"title","type":"text","text":"# Obsidian Beauty Lab\nMarkdown stays the owner; Obsidian becomes the surface.","x":-120,"y":-280,"width":520,"height":160,"color":"6"},
+		{"id":"note","type":"file","file":"00-obsidian-beauty-lab.md","x":-120,"y":-60,"width":300,"height":220,"color":"2"},
+		{"id":"markdown","type":"text","text":"## Markdown\nReadable in git, terminal and Codex.","x":-520,"y":20,"width":260,"height":150,"color":"4"},
+		{"id":"html","type":"text","text":"## HTML\nHero, bento cards and compact panels.","x":280,"y":20,"width":260,"height":150,"color":"1"},
+		{"id":"mermaid","type":"text","text":"## Mermaid\nDecision routes, sequence and structure.","x":-520,"y":250,"width":260,"height":150,"color":"3"},
+		{"id":"css","type":"text","text":"## CSS snippet\nVisual polish without changing the truth layer.","x":280,"y":250,"width":260,"height":150,"color":"5"}
+	],
+	"edges":[
+		{"id":"e1","fromNode":"title","fromSide":"bottom","toNode":"note","toSide":"top"},
+		{"id":"e2","fromNode":"markdown","fromSide":"right","toNode":"note","toSide":"left"},
+		{"id":"e3","fromNode":"html","fromSide":"left","toNode":"note","toSide":"right"},
+		{"id":"e4","fromNode":"mermaid","fromSide":"right","toNode":"note","toSide":"left"},
+		{"id":"e5","fromNode":"css","fromSide":"left","toNode":"note","toSide":"right"}
+	]
+}

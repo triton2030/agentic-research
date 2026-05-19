@@ -72,6 +72,32 @@ function writeSyntheticState(runId, state) {
   return { runDir, files };
 }
 
+function readPidFile(file) {
+  return Number(fs.readFileSync(file, "utf8").trim());
+}
+
+function pidAlive(pid) {
+  return spawnSync("ps", ["-p", String(pid)], { encoding: "utf8" }).status === 0;
+}
+
+async function waitForFile(file, timeoutMs = 5000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (fs.existsSync(file)) return;
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  throw new Error(`Timed out waiting for ${file}`);
+}
+
+async function waitForPidExit(pid, label, timeoutMs = 5000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (!pidAlive(pid)) return;
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+  throw new Error(`${label} pid ${pid} is still alive`);
+}
+
 const doctorReport = doctor();
 assert.equal(doctorReport.ok, true);
 assert.equal(doctorReport.stream_json_supported, true);
@@ -115,7 +141,7 @@ assert.ok(Array.isArray(peek.milestones));
 
 const report = await waitRun(started.run_id, { timeoutMs: 10000 });
 assert.equal(report.status, "completed");
-assert.equal(report.managed, true);
+assert.equal(report.managed, false);
 assert.match(report.final_output_summary, /BRIDGE_OK/);
 assert.match(report.chat_relay.text, /BRIDGE_OK/);
 assert.match(report.chat_relay.markdown, /Claude:\nBRIDGE_OK/);
@@ -151,11 +177,21 @@ assert.match(orphanReport.orphan_reason, /fingerprint/u);
 const orphanKill = cliJson(["kill", "--run-id", orphanId]);
 assert.equal(orphanKill.killed, false);
 
+const fakeParentPidFile = path.join(bridgeRoot, "runs", "_fake-claude-parent.pid");
+const fakeChildPidFile = path.join(bridgeRoot, "runs", "_fake-claude-child.pid");
+fs.rmSync(fakeParentPidFile, { force: true });
+fs.rmSync(fakeChildPidFile, { force: true });
+process.env.FAKE_CLAUDE_PID_FILE = fakeParentPidFile;
+process.env.FAKE_CLAUDE_CHILD_PID_FILE = fakeChildPidFile;
 const longRun = startRun({
   prompt: "SLEEP_BRIDGE",
   profile: "normal",
   cwd: bridgeRoot
 });
+await waitForFile(fakeParentPidFile);
+await waitForFile(fakeChildPidFile);
+const longRunParentPid = readPidFile(fakeParentPidFile);
+const longRunChildPid = readPidFile(fakeChildPidFile);
 await new Promise((resolve) => setTimeout(resolve, 250));
 const restartedLongReport = cliJson(["result", "--run-id", longRun.run_id]);
 assert.equal(restartedLongReport.status, "running_orphaned");
@@ -163,7 +199,56 @@ assert.equal(restartedLongReport.managed, false);
 const restartedLongKill = cliJson(["kill", "--run-id", longRun.run_id]);
 assert.equal(restartedLongKill.killed, true);
 const localKilledReport = await waitRun(longRun.run_id, { timeoutMs: 10000 });
-assert.equal(localKilledReport.status, "failed");
+assert.equal(localKilledReport.status, "killed");
+assert.equal(localKilledReport.managed, false);
+await waitForPidExit(longRunParentPid, "Claude parent");
+await waitForPidExit(longRunChildPid, "Claude child");
+
+fs.rmSync(fakeParentPidFile, { force: true });
+fs.rmSync(fakeChildPidFile, { force: true });
+const daemonRun = startRun({
+  prompt: "DAEMON_BRIDGE",
+  profile: "normal",
+  cwd: bridgeRoot
+});
+await waitForFile(fakeChildPidFile);
+const daemonChildPid = readPidFile(fakeChildPidFile);
+const daemonReport = await waitRun(daemonRun.run_id, { timeoutMs: 10000 });
+assert.equal(daemonReport.status, "running_orphaned");
+const daemonRestartedReport = cliJson(["result", "--run-id", daemonRun.run_id]);
+assert.equal(daemonRestartedReport.status, "running_orphaned");
+const daemonKill = cliJson(["kill", "--run-id", daemonRun.run_id]);
+assert.equal(daemonKill.killed, true);
+await waitForPidExit(daemonChildPid, "Claude daemon child");
+const daemonKilledReport = cliJson(["result", "--run-id", daemonRun.run_id]);
+assert.equal(daemonKilledReport.status, "killed");
+
+fs.rmSync(fakeParentPidFile, { force: true });
+fs.rmSync(fakeChildPidFile, { force: true });
+const stubbornRun = startRun({
+  prompt: "IGNORE_TERM_BRIDGE",
+  profile: "normal",
+  cwd: bridgeRoot
+});
+await waitForFile(fakeParentPidFile);
+await waitForFile(fakeChildPidFile);
+const stubbornParentPid = readPidFile(fakeParentPidFile);
+const stubbornChildPid = readPidFile(fakeChildPidFile);
+await new Promise((resolve) => setTimeout(resolve, 250));
+const stubbornSoftKill = cliJson(["kill", "--run-id", stubbornRun.run_id]);
+assert.equal(stubbornSoftKill.killed, true);
+const stubbornStillKilling = cliJson(["result", "--run-id", stubbornRun.run_id]);
+assert.equal(stubbornStillKilling.status, "killing");
+const stubbornHardKill = cliJson(["kill", "--run-id", stubbornRun.run_id]);
+assert.equal(stubbornHardKill.killed, true);
+await waitForPidExit(stubbornParentPid, "Claude stubborn parent");
+await waitForPidExit(stubbornChildPid, "Claude stubborn child");
+const stubbornKilledReport = await waitRun(stubbornRun.run_id, { timeoutMs: 10000 });
+assert.equal(stubbornKilledReport.status, "killed");
+delete process.env.FAKE_CLAUDE_PID_FILE;
+delete process.env.FAKE_CLAUDE_CHILD_PID_FILE;
+fs.rmSync(fakeParentPidFile, { force: true });
+fs.rmSync(fakeChildPidFile, { force: true });
 
 const fixtureDir = path.join(runsDir, "_smoke-fixtures");
 fs.mkdirSync(fixtureDir, { recursive: true });
@@ -266,6 +351,7 @@ await client.close();
 
 const directResult = resultRun(started.run_id);
 assert.equal(directResult.status, "completed");
+assert.equal(directResult.managed, false);
 const directKill = killRun(started.run_id);
 assert.equal(directKill.killed, false);
 

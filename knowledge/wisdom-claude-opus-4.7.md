@@ -30,7 +30,7 @@
 
 - `perfect-system-prompts.md` — при написании системных промптов.
 - `perfect-context-engineering.md` — при сборке длинного контекста.
-- `perfect-skills.md` и `practical-guides/claude-code-skills.md` — при authoring Claude skills.
+- `practical-guides/how-to-write-skills/` — при authoring Claude skills.
 - `wisdom-claude-code.md` — когда Opus 4.7 работает внутри Claude Code.
 
 ## Опоры

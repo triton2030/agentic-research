@@ -1,0 +1,121 @@
+title: InstructionMap
+
+direction: down
+
+request: "Запрос пользователя" {
+  shape: oval
+}
+
+intent: |md
+# Смысловой вход
+1. Восстановить реальную просьбу.
+2. Проверить, не подменяет ли способ цель.
+3. Выбрать маршрут или задать один точный вопрос.
+|
+intent.shape: document
+
+instruction_layer: "Instruction Layer" {
+  root: |md
+# AGENTS.md
+Роль, инварианты, язык общения,
+границы проекта и маршруты.
+|
+  root.shape: document
+
+  ops: |md
+# _ops/criteria
+Постоянные критерии качества:
+что считать хорошей работой
+в похожих будущих задачах.
+|
+  ops.shape: cylinder
+
+  folder_rules: |md
+# Folder Rules
+Куда класть знания, эксперименты,
+задачи, проблемы и инструкции.
+|
+  folder_rules.shape: page
+}
+
+skill_contract: "Skill Contract" {
+  route: "1start-here" {
+    shape: hexagon
+  }
+
+  active_skill: |md
+# Активный скилл
+Один основной маршрут ведёт работу.
+Соседние скилы подключаются только
+если реально меняют решение.
+|
+  active_skill.shape: document
+
+  stop_rule: |md
+# Stop Rule
+Когда достаточно фактов,
+когда надо спросить,
+а когда пора править.
+|
+  stop_rule.shape: document
+}
+
+execution: "Execution Moment" {
+  write_gate: "Instruction/criteria gate" {
+    shape: diamond
+  }
+
+  artifact: "Артефакт" {
+    shape: package
+  }
+
+  review: "1work-review" {
+    shape: hexagon
+  }
+}
+
+obsidian_surface: "Obsidian Surface" {
+  note: |md
+# Заметка
+Остаётся обычным Markdown:
+callouts, wikilinks, embeds,
+и читаемый текст в git.
+|
+  note.shape: document
+
+  svg: "D2 SVG export" {
+    shape: page
+  }
+
+  callout: |md
+# Callout
+Нативный Obsidian-блок
+для смысла и сворачивания.
+|
+  callout.shape: document
+}
+
+risk: |md
+# Риск
+Если важный смысл живёт только
+в картинке, будущий агент хуже
+поймёт и изменит систему.
+|
+risk.shape: cloud
+
+request -> intent: "понимание до маршрута"
+intent -> instruction_layer.root: "читает рамку"
+intent -> skill_contract.route: "выбирает handle"
+instruction_layer.root -> instruction_layer.ops: "критерии по сфере"
+instruction_layer.root -> instruction_layer.folder_rules: "куда класть"
+instruction_layer.ops -> execution.before_write: "проверка перед записью"
+skill_contract.route -> skill_contract.active_skill: "один ведущий маршрут"
+skill_contract.active_skill -> skill_contract.stop_rule: "граница работы"
+skill_contract.active_skill -> execution.before_work: "почва подхода"
+execution.before_work -> execution.before_write: "готово к правке?"
+execution.before_write -> execution.artifact: "пишем только после проверки"
+execution.artifact -> obsidian_surface.svg: "render:d2"
+obsidian_surface.svg -> obsidian_surface.note: "embed"
+obsidian_surface.note -> obsidian_surface.callout: "текстовый контекст"
+execution.artifact -> execution.review: "доказательство закрытия"
+risk -> obsidian_surface.note: "держать смысл рядом с SVG"
