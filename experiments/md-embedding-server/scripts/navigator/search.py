@@ -213,9 +213,14 @@ def _sections_to_pick_map(
     final_results: list[dict[str, Any]],
 ) -> dict[str, Any]:
     """Build a JSON map shaped exactly like build_map output, restricted to the
-    files surfaced by search. Compatible with `pick --headings`."""
-    file_ids_kept = {r["file_id"] for r in final_results}
-    files_kept = [f for f in map_data["files"] if f["id"] in file_ids_kept]
+    files surfaced by search. Compatible with `pick --headings`.
+
+    Filters by `relative_path` (stable) rather than `file_id` (positional from
+    `iter_markdown` order). file_id alignment between index and a fresh map
+    is enforced by the remap step in cmd_search; this path-based filter is
+    defense in depth in case that remap is bypassed or regresses."""
+    paths_kept = {r["relative_path"] for r in final_results}
+    files_kept = [f for f in map_data["files"] if f["relative_path"] in paths_kept]
     return {
         "root": map_data["root"],
         "file_count": len(files_kept),
@@ -280,7 +285,7 @@ def cmd_search(args) -> int:
         print(
             f"Missing Python dependency: {exc}.\n"
             f"  This script needs uv to resolve its inline deps "
-            f"(`sqlite-vec`, `pyyaml`).\n"
+            f"(`numpy`, `sqlite-vec`, `pyyaml`).\n"
             f"  Run it via the uv shebang:\n"
             f"    chmod +x md_navigator.py && ./md_navigator.py search ...\n"
             f"  Or explicitly:\n"
@@ -349,7 +354,38 @@ def cmd_search(args) -> int:
     rrf_scores = _rrf_merge(bm25_results, dense_results, k=SEARCH_RRF_K)
     fused_sorted = sorted(rrf_scores.items(), key=lambda x: -x[1])
     fused_rowids = [rid for rid, _ in fused_sorted[: args.candidates]]
-    final_results = _hydrate_rows(conn, fused_rowids)[: args.limit]
+    hydrated = _hydrate_rows(conn, fused_rowids)[: args.limit]
+
+    # Remap hydrated rows from index-time positional ids to fresh map ids.
+    # file_id is positional from `iter_markdown` order at index time; corpus
+    # reorders since then drift it away from a fresh build_map. Downstream
+    # `pick` resolves against a fresh map, so we must hand it fresh ids.
+    #
+    # section_id has shape "<file_id>.<suffix>" where suffix is heading_idx,
+    # "0" (no-headings file), or "desc". The suffix is stable for surviving
+    # rows: _section_hash(rel, start_line, body) is the diff key, so any
+    # within-file reshuffle (heading add/remove, line shift) rewrites the
+    # hash and reindexes the row. Surviving rows match their fresh-map
+    # counterpart at the same heading_idx; we rebuild the full id with the
+    # fresh prefix and keep the original suffix.
+    fresh_file_id_by_path = {f["relative_path"]: f["id"] for f in map_data["files"]}
+
+    final_results: list[dict[str, Any]] = []
+    dropped_stale_path = 0
+    for r in hydrated:
+        path = r["relative_path"]
+        fresh_fid = fresh_file_id_by_path.get(path)
+        if fresh_fid is None:
+            dropped_stale_path += 1
+            continue
+        r["file_id"] = fresh_fid
+        old_sid = str(r.get("section_id") or "")
+        if "." in old_sid:
+            suffix = old_sid.split(".", 1)[1]
+            r["section_id"] = f"{fresh_fid}.{suffix}"
+        else:
+            r["section_id"] = str(fresh_fid)
+        final_results.append(r)
 
     bm25_map = dict(bm25_results)
     dense_map = dict(dense_results)
@@ -384,6 +420,7 @@ def cmd_search(args) -> int:
             "sections_removed": removed_count,
             "bm25_hits": len(bm25_results),
             "dense_hits": len(dense_results),
+            "dropped_stale_path": dropped_stale_path,
         },
         "weights": weights,
         "results": final_results,
@@ -437,6 +474,16 @@ def render_search(out: dict[str, Any], output_path: str | None = None) -> str:
         "Reading router: ranked items, not exhaustive proof.",
         "",
     ]
+    dropped_path = stats.get("dropped_stale_path", 0)
+    if dropped_path:
+        # Index still carries rows for files no longer in the corpus. Benign
+        # for this call (results were filtered out) but a signal to reindex
+        # so the pruner clears them.
+        lines.append(
+            f"Note: dropped {dropped_path} result(s) for files no longer in "
+            f"the corpus — run `index` to prune the stale rows."
+        )
+        lines.append("")
     if scope == "descriptions":
         lines.append("## Files (ranked by description)")
     else:

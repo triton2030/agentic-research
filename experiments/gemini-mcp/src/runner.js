@@ -5,19 +5,21 @@ import { homedir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
-import { GoogleGenAI } from "@google/genai";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const ROOT = path.resolve(__dirname, "..");
 export const RUNS_DIR = path.join(ROOT, "runs");
 export const DEFAULT_MODEL = "gemini-3.1-pro-preview";
+export const DEFAULT_ANTIGRAVITY_MODEL = "gemini-3.5-flash";
+export const DEFAULT_ANTIGRAVITY_MODEL_LABEL = "Gemini 3.5 Flash (High)";
 export const DEFAULT_THINKING_LEVEL = "high";
 export const THINKING_LEVELS = ["minimal", "low", "medium", "high"];
-export const BACKENDS = ["auto", "sdk", "vertex", "cli"];
+export const BACKENDS = ["auto", "cli", "antigravity"];
 export const APPROVAL_MODES = ["default", "auto_edit", "yolo", "plan"];
 export const DEFAULT_CLI_TIMEOUT_MS = 50000;
 export const DEFAULT_CLEANUP_DAYS = 14;
 const PREFERRED_GEMINI_CLI_PATH = "/Users/triton/.local/bin/gemini";
+const PREFERRED_ANTIGRAVITY_CLI_PATH = "/Users/triton/.local/bin/agy";
 const execFileAsync = promisify(execFile);
 const activeRuns = new Map();
 const TERMINAL_STATUSES = new Set(["completed", "failed", "killed", "orphaned"]);
@@ -46,7 +48,11 @@ function nowIsoForPath() {
 }
 
 function jsonLine(file, value) {
-  fs.appendFileSync(file, `${JSON.stringify(value)}\n`);
+  const event =
+    value && typeof value === "object" && !Array.isArray(value)
+      ? { observed_at: new Date().toISOString(), ...value }
+      : value;
+  fs.appendFileSync(file, `${JSON.stringify(event)}\n`);
 }
 
 function safeRead(file, fallback = "") {
@@ -98,15 +104,15 @@ function commandSummary(command, args) {
   });
 }
 
-function apiKeySource() {
-  if (process.env.GOOGLE_API_KEY) return "GOOGLE_API_KEY";
-  if (process.env.GEMINI_API_KEY) return "GEMINI_API_KEY";
-  return null;
-}
-
-function apiKey() {
-  const source = apiKeySource();
-  return source ? process.env[source] : null;
+function accountCliEnv() {
+  const env = { ...process.env };
+  delete env.GEMINI_API_KEY;
+  delete env.GOOGLE_API_KEY;
+  delete env.GOOGLE_APPLICATION_CREDENTIALS;
+  delete env.GOOGLE_GENAI_USE_VERTEXAI;
+  delete env.GOOGLE_CLOUD_PROJECT;
+  delete env.GOOGLE_CLOUD_LOCATION;
+  return env;
 }
 
 function envFlag(name) {
@@ -121,22 +127,16 @@ function requestedBackend() {
   return backend;
 }
 
-function vertexConfig() {
-  return {
-    useVertex: envFlag("GOOGLE_GENAI_USE_VERTEXAI"),
-    project: process.env.GOOGLE_CLOUD_PROJECT || null,
-    location: process.env.GOOGLE_CLOUD_LOCATION || "global",
-    adcEnv: process.env.GOOGLE_APPLICATION_CREDENTIALS || null,
-    adcFilePresent: fs.existsSync(
-      path.join(homedir(), ".config", "gcloud", "application_default_credentials.json")
-    )
-  };
-}
-
 function defaultGeminiCliCommand() {
   if (process.env.GEMINI_CLI_PATH) return process.env.GEMINI_CLI_PATH;
   if (fs.existsSync(PREFERRED_GEMINI_CLI_PATH)) return PREFERRED_GEMINI_CLI_PATH;
   return "gemini";
+}
+
+function defaultAntigravityCliCommand() {
+  if (process.env.ANTIGRAVITY_CLI_PATH) return process.env.ANTIGRAVITY_CLI_PATH;
+  if (fs.existsSync(PREFERRED_ANTIGRAVITY_CLI_PATH)) return PREFERRED_ANTIGRAVITY_CLI_PATH;
+  return "agy";
 }
 
 function geminiCliConfig() {
@@ -148,7 +148,26 @@ function geminiCliConfig() {
   };
 }
 
+function antigravityCliConfig() {
+  return {
+    command: defaultAntigravityCliCommand(),
+    preferredCommand: PREFERRED_ANTIGRAVITY_CLI_PATH,
+    preferredCommandPresent: fs.existsSync(PREFERRED_ANTIGRAVITY_CLI_PATH),
+    appDataDirPresent: fs.existsSync(path.join(homedir(), ".gemini", "antigravity-cli")),
+    projectConfigDirPresent: fs.existsSync(path.join(process.cwd(), ".antigravitycli"))
+  };
+}
+
 export async function geminiCliVersion(command = geminiCliConfig().command) {
+  try {
+    const { stdout } = await execFileAsync(command, ["--version"], { timeout: 5000 });
+    return stdout.trim() || "unknown";
+  } catch {
+    return null;
+  }
+}
+
+export async function antigravityCliVersion(command = antigravityCliConfig().command) {
   try {
     const { stdout } = await execFileAsync(command, ["--version"], { timeout: 5000 });
     return stdout.trim() || "unknown";
@@ -169,24 +188,27 @@ function tmuxVersion() {
 
 function inferBackend() {
   const requested = requestedBackend();
-  const key = apiKey();
-  const vertex = vertexConfig();
   const cli = geminiCliConfig();
-  const hasVertexAdc = Boolean(vertex.adcEnv || vertex.adcFilePresent);
-  const hasVertexConfig = Boolean(vertex.project && (vertex.useVertex || hasVertexAdc));
+  const antigravity = antigravityCliConfig();
+  const hasAntigravityCli = Boolean(antigravity.preferredCommandPresent || antigravity.appDataDirPresent);
 
-  if (requested === "sdk") return key ? "gemini-api-key" : null;
-  if (requested === "vertex") return vertex.project || key ? "vertex-ai" : null;
   if (requested === "cli") return "gemini-cli";
+  if (requested === "antigravity") return "antigravity-cli";
+  if (hasAntigravityCli && antigravity.appDataDirPresent) return "antigravity-cli";
   if (cli.oauthFilePresent) return "gemini-cli";
-  if (vertex.useVertex && (vertex.project || key)) return "vertex-ai";
-  if (key) return "gemini-api-key";
-  if (hasVertexConfig) return "vertex-ai";
   return null;
 }
 
 function defaultModel() {
   return process.env.GEMINI_MODEL || DEFAULT_MODEL;
+}
+
+function defaultAntigravityModel() {
+  return process.env.GEMINI_MODEL || DEFAULT_ANTIGRAVITY_MODEL;
+}
+
+function defaultAntigravityModelLabel() {
+  return process.env.ANTIGRAVITY_MODEL_LABEL || DEFAULT_ANTIGRAVITY_MODEL_LABEL;
 }
 
 function defaultThinkingLevel() {
@@ -220,30 +242,6 @@ function validateThinkingLevel(value) {
     throw new Error(`thinkingLevel must be one of: ${THINKING_LEVELS.join(", ")}.`);
   }
   return value;
-}
-
-function createSdkClient(backend) {
-  const key = apiKey();
-  const vertex = vertexConfig();
-
-  if (backend === "vertex-ai") {
-    if (key && !vertex.project) return new GoogleGenAI({ vertexai: true, apiKey: key });
-    if (!vertex.project) {
-      throw new Error(
-        "Set GOOGLE_CLOUD_PROJECT for Vertex ADC, or set GOOGLE_API_KEY for Vertex express mode."
-      );
-    }
-    return new GoogleGenAI({
-      vertexai: true,
-      project: vertex.project,
-      location: vertex.location
-    });
-  }
-
-  if (!key) {
-    throw new Error("Set GEMINI_API_KEY or GOOGLE_API_KEY for the Gemini API backend.");
-  }
-  return new GoogleGenAI({ apiKey: key });
 }
 
 function summarizeCliStderr(stderr) {
@@ -340,30 +338,194 @@ function buildCliArgs(options) {
   return args;
 }
 
+function goDuration(timeoutMs) {
+  return `${timeoutMs}ms`;
+}
+
+function selectedAntigravityOptions({
+  prompt,
+  model,
+  systemInstruction,
+  thinkingLevel,
+  temperature,
+  maxOutputTokens,
+  cwd,
+  includeDirectories,
+  approvalMode,
+  timeoutMs
+}) {
+  const selectedThinkingLevel = validateThinkingLevel(thinkingLevel || defaultThinkingLevel());
+  const unsupported = ["model", "thinkingLevel"];
+  if (temperature !== undefined) unsupported.push("temperature");
+  if (maxOutputTokens !== undefined) unsupported.push("maxOutputTokens");
+  if (approvalMode && !APPROVAL_MODES.includes(approvalMode)) {
+    throw new Error(`approvalMode must be one of: ${APPROVAL_MODES.join(", ")}.`);
+  }
+  const skipPermissions = approvalMode === "yolo" || envFlag("ANTIGRAVITY_CLI_SKIP_PERMISSIONS");
+  const selectedCwd = cwd || process.cwd();
+  const selectedIncludeDirectories = [
+    ...defaultCliIncludeDirectories(),
+    ...listFromValue(includeDirectories)
+  ];
+  if (skipPermissions) {
+    if (!path.isAbsolute(selectedCwd)) {
+      throw new Error("Antigravity approvalMode=yolo requires an absolute cwd for the allowed write folder.");
+    }
+    if (!selectedIncludeDirectories.length) {
+      throw new Error(
+        "Antigravity approvalMode=yolo requires includeDirectories to name the allowed write folder."
+      );
+    }
+    for (const directory of selectedIncludeDirectories) {
+      if (!path.isAbsolute(directory)) {
+        throw new Error(
+          "Antigravity approvalMode=yolo requires absolute includeDirectories for allowed write folders."
+        );
+      }
+    }
+  }
+
+  return {
+    model: model || defaultAntigravityModel(),
+    modelLabel: defaultAntigravityModelLabel(),
+    thinkingLevel: selectedThinkingLevel,
+    cwd: selectedCwd,
+    includeDirectories: selectedIncludeDirectories,
+    approvalMode: approvalMode || null,
+    skipPermissions,
+    timeoutMs: timeoutMs || defaultCliTimeoutMs(),
+    prompt: buildCliPrompt(prompt, systemInstruction),
+    warnings: [
+      `Antigravity CLI uses its configured model picker; MCP cannot set first-class controls for: ${unsupported.join(", ")}.`
+    ]
+  };
+}
+
+function buildAntigravityArgs(options) {
+  const args = [
+    "-p",
+    options.prompt,
+    "--print-timeout",
+    goDuration(options.timeoutMs)
+  ];
+  for (const directory of options.includeDirectories) {
+    args.push("--add-dir", directory);
+  }
+  if (envFlag("ANTIGRAVITY_CLI_SANDBOX")) args.push("--sandbox");
+  if (options.skipPermissions) {
+    args.push("--dangerously-skip-permissions");
+  }
+  return args;
+}
+
+function scopedRunEnvAssignments(runId) {
+  const assignments = [`GEMINI_MCP_RUN_ID=${shellQuote(runId)}`];
+  for (const [name, value] of Object.entries(process.env)) {
+    if (/^FAKE_GEMINI_/u.test(name) && value !== undefined) {
+      assignments.push(`${name}=${shellQuote(value)}`);
+    }
+  }
+  return assignments;
+}
+
+function spawnCollect(command, args, { cwd, timeoutMs, maxBuffer = 1024 * 1024 * 8 }) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, {
+      cwd,
+      env: accountCliEnv(),
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    let stdout = "";
+    let stderr = "";
+    let settled = false;
+    let terminatingReason = null;
+    let killTimer = null;
+
+    const finish = (error, result) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      clearTimeout(killTimer);
+      if (error) reject(error);
+      else resolve(result);
+    };
+
+    const terminateWithError = (message) => {
+      if (settled || terminatingReason) return;
+      terminatingReason = message;
+      child.kill("SIGTERM");
+      killTimer = setTimeout(() => {
+        child.kill("SIGKILL");
+      }, 2000);
+    };
+
+    const timer = setTimeout(() => {
+      terminateWithError(`${commandSummary(command, args).join(" ")} timed out after ${timeoutMs}ms.`);
+    }, timeoutMs);
+
+    child.stdout.on("data", (chunk) => {
+      stdout += chunk;
+      if (stdout.length + stderr.length > maxBuffer) {
+        terminateWithError(`${commandSummary(command, args).join(" ")} exceeded output buffer.`);
+      }
+    });
+    child.stderr.on("data", (chunk) => {
+      stderr += chunk;
+      if (stdout.length + stderr.length > maxBuffer) {
+        terminateWithError(`${commandSummary(command, args).join(" ")} exceeded output buffer.`);
+      }
+    });
+    child.on("error", finish);
+    child.on("close", (code, signal) => {
+      if (terminatingReason) {
+        const error = new Error(terminatingReason);
+        error.code = code;
+        error.signal = signal;
+        error.stdout = stdout;
+        error.stderr = stderr;
+        finish(error);
+        return;
+      }
+      if (code === 0) {
+        finish(null, { stdout, stderr });
+        return;
+      }
+      const details = stderr.trim() || stdout.trim() || `exit=${code ?? "null"} signal=${signal ?? "null"}`;
+      const error = new Error(`${commandSummary(command, args).join(" ")} failed: ${shortText(details, 800)}`);
+      error.code = code;
+      error.signal = signal;
+      error.stdout = stdout;
+      error.stderr = stderr;
+      finish(error);
+    });
+  });
+}
+
 export async function geminiStatus() {
   const cli = geminiCliConfig();
-  const vertex = vertexConfig();
+  const antigravity = antigravityCliConfig();
   const tmux = tmuxVersion();
+  const effectiveBackend = inferBackend();
   return {
     ok: true,
     requested_backend: requestedBackend(),
-    effective_backend: inferBackend(),
+    effective_backend: effectiveBackend,
     available_auth: {
-      api_key: Boolean(apiKey()),
-      api_key_source: apiKeySource(),
-      vertex_ai: Boolean(vertex.project || apiKey()),
-      vertex_project: vertex.project,
-      vertex_location: vertex.location,
-      vertex_flag: vertex.useVertex,
-      adc_env_present: Boolean(vertex.adcEnv),
-      adc_file_present: vertex.adcFilePresent,
+      account_cli_env_sanitized: true,
       gemini_cli_command: cli.command,
       gemini_cli_preferred_command: cli.preferredCommand,
       gemini_cli_preferred_command_present: cli.preferredCommandPresent,
       gemini_cli_version: await geminiCliVersion(cli.command),
-      gemini_cli_oauth_file_present: cli.oauthFilePresent
+      gemini_cli_oauth_file_present: cli.oauthFilePresent,
+      antigravity_cli_command: antigravity.command,
+      antigravity_cli_preferred_command: antigravity.preferredCommand,
+      antigravity_cli_preferred_command_present: antigravity.preferredCommandPresent,
+      antigravity_cli_version: await antigravityCliVersion(antigravity.command),
+      antigravity_cli_app_data_present: antigravity.appDataDirPresent,
+      antigravity_cli_project_config_present: antigravity.projectConfigDirPresent
     },
-    default_model: defaultModel(),
+    default_model: effectiveBackend === "antigravity-cli" ? defaultAntigravityModel() : defaultModel(),
+    default_antigravity_model_label: defaultAntigravityModelLabel(),
     default_thinking_level: validateThinkingLevel(defaultThinkingLevel()),
     default_cli_approval_mode: defaultCliApprovalMode(),
     default_cli_include_directories: defaultCliIncludeDirectories(),
@@ -373,6 +535,46 @@ export async function geminiStatus() {
       version: tmux
     },
     node: process.version
+  };
+}
+
+async function askViaAntigravityCli(args) {
+  const cli = antigravityCliConfig();
+  const cliVersion = await antigravityCliVersion(cli.command);
+  if (!cliVersion) {
+    throw new Error(
+      `Antigravity CLI is not runnable at ${cli.command}. Run gemini_status and set ANTIGRAVITY_CLI_PATH before retrying.`
+    );
+  }
+  const options = selectedAntigravityOptions(args);
+  const cliArgs = buildAntigravityArgs(options);
+  const { stdout, stderr } = await spawnCollect(cli.command, cliArgs, {
+    timeoutMs: options.timeoutMs + 5000,
+    cwd: options.cwd
+  });
+  const text = requireNonEmptyText(stdout.trim(), "Antigravity CLI");
+  return {
+    backend: "antigravity-cli",
+    authMode: "antigravity-oauth",
+    model: options.model,
+    modelLabel: options.modelLabel,
+    thinkingLevel: options.thinkingLevel,
+    cliCommand: cli.command,
+    cliVersion,
+    cwd: options.cwd,
+    includeDirectories: options.includeDirectories,
+    approvalMode: options.approvalMode,
+    skipPermissions: options.skipPermissions,
+    timeoutMs: options.timeoutMs,
+    text,
+    usageMetadata: null,
+    warnings: [
+      ...options.warnings,
+      ...(options.skipPermissions
+        ? ["Antigravity CLI permission prompts are bypassed for this call. Use only with explicit user approval and constrained cwd/includeDirectories."]
+        : []),
+      ...(summarizeCliStderr(stderr) ? [`antigravity stderr: ${summarizeCliStderr(stderr)}`] : [])
+    ]
   };
 }
 
@@ -389,7 +591,8 @@ async function askViaCli(args) {
   const { stdout, stderr } = await execFileAsync(cli.command, cliArgs, {
     maxBuffer: 1024 * 1024 * 8,
     timeout: options.timeoutMs,
-    cwd: options.cwd
+    cwd: options.cwd,
+    env: accountCliEnv()
   });
   const text = requireNonEmptyText(parseCliResponse(stdout), "Gemini CLI");
   return {
@@ -412,54 +615,16 @@ async function askViaCli(args) {
   };
 }
 
-async function askViaSdk({
-  backend,
-  prompt,
-  model,
-  systemInstruction,
-  thinkingLevel,
-  temperature,
-  maxOutputTokens
-}) {
-  const ai = createSdkClient(backend);
-  const selectedModel = model || defaultModel();
-  const selectedThinkingLevel = validateThinkingLevel(thinkingLevel || defaultThinkingLevel());
-  const config = {
-    thinkingConfig: {
-      thinkingLevel: selectedThinkingLevel
-    }
-  };
-  if (systemInstruction) config.systemInstruction = systemInstruction;
-  if (temperature !== undefined) config.temperature = temperature;
-  if (maxOutputTokens !== undefined) config.maxOutputTokens = maxOutputTokens;
-
-  const response = await ai.models.generateContent({
-    model: selectedModel,
-    contents: prompt,
-    config
-  });
-  const text = requireNonEmptyText(response.text || "", "Gemini SDK/Vertex");
-
-  return {
-    backend,
-    authMode: backend === "vertex-ai" ? "vertex-ai" : "api-key",
-    model: selectedModel,
-    thinkingLevel: selectedThinkingLevel,
-    text,
-    usageMetadata: response.usageMetadata || null,
-    warnings: []
-  };
-}
-
 export async function askGemini(args) {
   const backend = inferBackend();
   if (!backend) {
     throw new Error(
-      "No Gemini auth backend is available. Use GEMINI_API_KEY/GOOGLE_API_KEY, Vertex AI with GOOGLE_GENAI_USE_VERTEXAI=true and GOOGLE_CLOUD_PROJECT, or GEMINI_MCP_BACKEND=cli with an authenticated Gemini CLI."
+      "No account-backed Gemini backend is available. Use GEMINI_MCP_BACKEND=antigravity with an authenticated Antigravity CLI, or GEMINI_MCP_BACKEND=cli with an authenticated Gemini CLI."
     );
   }
+  if (backend === "antigravity-cli") return askViaAntigravityCli(args);
   if (backend === "gemini-cli") return askViaCli(args);
-  return askViaSdk({ backend, ...args });
+  throw new Error(`Unsupported Gemini backend: ${backend}.`);
 }
 
 function filesForLogDir(logDir) {
@@ -495,7 +660,7 @@ function runFiles(run) {
 function writeState(run) {
   const state = {
     run_id: run.runId,
-    backend: "gemini-cli",
+    backend: run.backend,
     model: run.model,
     thinking_level: run.thinkingLevel,
     cwd: run.cwd,
@@ -708,6 +873,7 @@ function buildRunFromState(runId, logDir, state) {
   const files = state.files || filesForLogDir(logDir);
   return {
     runId,
+    backend: state.backend || "gemini-cli",
     model: state.model || DEFAULT_MODEL,
     thinkingLevel: state.thinking_level || DEFAULT_THINKING_LEVEL,
     cwd: state.cwd || process.cwd(),
@@ -777,6 +943,40 @@ function milestonesFromLogs(run, limit = 12, cursor = 0) {
   };
 }
 
+function elapsedSeconds(startedAt) {
+  const started = Date.parse(startedAt || "");
+  if (!Number.isFinite(started)) return null;
+  return Math.max(0, Math.round((Date.now() - started) / 1000));
+}
+
+function countLines(file) {
+  return safeRead(file).split(/\r?\n/u).filter(Boolean).length;
+}
+
+function activitySummary(run, { limit = 12, cursor = 0 } = {}) {
+  const { milestones, nextCursor } = milestonesFromLogs(run, limit, cursor);
+  const allMilestones = milestonesFromLogs(run, 200, 0).milestones;
+  const toolLike = allMilestones
+    .filter((event) => /tool|read|write|edit|bash|shell|file|grep|rg|search|run|command|apply|patch/iu.test(event.text))
+    .slice(-limit);
+  const tmux = tmuxCapturePane(run);
+  const lastOutput = allMilestones.at(-1)?.text || tmux.text || "";
+  return {
+    elapsed_seconds: elapsedSeconds(run.startedAt),
+    stdout_line_count: countLines(run.stdoutFile),
+    stderr_line_count: countLines(run.stderrFile),
+    next_cursor: nextCursor,
+    recent_log_trace: milestones,
+    tool_like_log_trace: toolLike,
+    tmux_capture_available: tmux.available,
+    last_output: shortText(lastOutput, 900),
+    note: "Observable trace only: CLI logs, tmux pane capture, warnings, and model-visible output. Private chain-of-thought is not exposed.",
+    stop_hint: WAITABLE_STATUSES.has(run.status)
+      ? "Use gemini_kill for this run_id if the trajectory is wrong or the run should stop."
+      : "Run is terminal; no kill is needed unless a saved process or tmux session is still alive."
+  };
+}
+
 function detectWarnings(run) {
   const warnings = [];
   const stderr = safeRead(run.stderrFile).trim();
@@ -807,7 +1007,7 @@ function buildReport(run) {
   const finalOutput = finalOutputDetails(run, 1200);
   return {
     run_id: run.runId,
-    backend: "gemini-cli",
+    backend: run.backend,
     model: run.model,
     thinking_level: run.thinkingLevel,
     cwd: run.cwd,
@@ -826,6 +1026,7 @@ function buildReport(run) {
     tmux_go_channel: run.tmuxGoChannel || null,
     tmux_done_channel: run.tmuxDoneChannel || null,
     warnings: detectWarnings(run),
+    activity: activitySummary(run),
     milestones,
     events: milestones,
     chat_relay: buildChatRelay(run),
@@ -843,7 +1044,7 @@ function writeReport(run) {
 function writeRunScript(files, run, cliCommand, args) {
   const commandLine = [
     "env",
-    `GEMINI_MCP_RUN_ID=${shellQuote(run.runId)}`,
+    ...scopedRunEnvAssignments(run.runId),
     shellQuote(cliCommand),
     ...args.map(shellQuote)
   ].join(" ");
@@ -905,18 +1106,23 @@ export async function startRun(args = {}) {
     throw new Error("gemini_run requires a non-empty prompt.");
   }
   const backend = inferBackend();
-  if (backend !== "gemini-cli") {
-    throw new Error("gemini_run requires the Gemini CLI backend. Use gemini_ask for SDK/Vertex calls.");
-  }
-  const cli = geminiCliConfig();
-  const cliVersion = await geminiCliVersion(cli.command);
-  if (!cliVersion) {
+  if (!["gemini-cli", "antigravity-cli"].includes(backend)) {
     throw new Error(
-      `Gemini CLI is not runnable at ${cli.command}. Run gemini_status and set GEMINI_CLI_PATH before retrying.`
+      "gemini_run requires an authenticated Gemini CLI or Antigravity CLI backend."
     );
   }
-  const options = selectedCliOptions(args);
-  const cliArgs = buildCliArgs(options);
+  const cli = backend === "antigravity-cli" ? antigravityCliConfig() : geminiCliConfig();
+  const cliVersion =
+    backend === "antigravity-cli"
+      ? await antigravityCliVersion(cli.command)
+      : await geminiCliVersion(cli.command);
+  if (!cliVersion) {
+    throw new Error(
+      `${backend === "antigravity-cli" ? "Antigravity CLI" : "Gemini CLI"} is not runnable at ${cli.command}. Run gemini_status and set the matching CLI path before retrying.`
+    );
+  }
+  const options = backend === "antigravity-cli" ? selectedAntigravityOptions(args) : selectedCliOptions(args);
+  const cliArgs = backend === "antigravity-cli" ? buildAntigravityArgs(options) : buildCliArgs(options);
   const useTmux = Boolean(args.useTmux || args.tmuxMode);
   if (useTmux && !tmuxVersion()) {
     throw new Error("tmux mode requested, but tmux is not available. Install tmux or run without useTmux.");
@@ -939,6 +1145,7 @@ export async function startRun(args = {}) {
 
   const run = {
     runId,
+    backend,
     model: options.model,
     thinkingLevel: options.thinkingLevel,
     cwd: options.cwd,
@@ -1001,7 +1208,7 @@ export async function startRun(args = {}) {
   );
 
   if (useTmux) {
-    const result = spawnSync(command, commandArgs, { encoding: "utf8" });
+    const result = spawnSync(command, commandArgs, { encoding: "utf8", env: accountCliEnv() });
     if (result.status !== 0) {
       run.status = "failed";
       fs.appendFileSync(files.stderr, result.stderr || result.stdout || "tmux start failed\n");
@@ -1048,7 +1255,7 @@ export async function startRun(args = {}) {
   } else {
     const child = spawn(command, commandArgs, {
       cwd: options.cwd,
-      env: process.env,
+      env: accountCliEnv(),
       detached: true,
       stdio: ["ignore", "ignore", "ignore"]
     });
@@ -1084,7 +1291,7 @@ export async function startRun(args = {}) {
   return {
     run_id: runId,
     pid: run.pid,
-    backend: "gemini-cli",
+    backend,
     model: options.model,
     thinking_level: options.thinkingLevel,
     cwd: options.cwd,
@@ -1136,6 +1343,7 @@ export function peekRun(runId, { limit = 12, cursor = 0 } = {}) {
       instruction: "Relay this update in chat instead of raw logs when observing a Gemini run."
     },
     tmux_capture: tmuxCapturePane(run),
+    activity: activitySummary(run, { limit, cursor }),
     warnings: detectWarnings(run),
     log_dir: run.logDir
   };
@@ -1176,7 +1384,7 @@ export function waitRun(runId, { timeoutMs = 120000 } = {}) {
     }, timeoutMs);
     run.child.once("close", () => {
       clearTimeout(timer);
-      resolve(writeReport(run));
+      resolve(writeReport(refreshInactiveRun(run)));
     });
   });
 }

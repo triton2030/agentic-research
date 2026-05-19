@@ -19,7 +19,7 @@ instruction files так, чтобы новая ИИ-сессия не писа�
 6. `knowledge/` — wisdom, guides, practical guides, examples и research.
    Для написания скиллов начинать с
    `knowledge/practical-guides/how-to-write-skills/`.
-7. `_ops/problems/`, `_ops/interviews/`, `_ops/plans/` — временные рабочие
+7. `_ops/findings/`, `_ops/interviews/`, `_ops/plans/` — временные рабочие
    поверхности; открывать их только когда текущая задача на них указывает.
 
 ## Подход

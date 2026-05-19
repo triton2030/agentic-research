@@ -17,25 +17,6 @@ export const PROFILES = {
     flags: [...commonStreamFlags],
     unsupported: false
   },
-  clean: {
-    description: "Minimal Claude mode; may require API-key auth because --bare skips keychain/OAuth.",
-    flags: [
-      "--model",
-      MODEL,
-      "--bare",
-      "--disable-slash-commands",
-      "--no-session-persistence",
-      "--output-format",
-      "stream-json",
-      "--verbose",
-      "--include-partial-messages",
-      "--include-hook-events"
-    ],
-    unsupported: false,
-    env: {
-      CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1"
-    }
-  },
   "no-memory": {
     description: "Opus run with Claude auto memory disabled via CLAUDE_CODE_DISABLE_AUTO_MEMORY=1.",
     flags: [...commonStreamFlags],

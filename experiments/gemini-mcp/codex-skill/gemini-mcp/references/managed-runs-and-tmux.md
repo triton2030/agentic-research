@@ -1,7 +1,7 @@
 # Managed Runs And Tmux
 
-Use `gemini_ask` for quick compatible calls. Use `gemini_run` only when the
-Gemini CLI call needs observation, retry/stop control, logs, or timeout
+Use `gemini_ask` for quick compatible calls. Use `gemini_run` when a Gemini CLI
+or Antigravity CLI call needs observation, retry/stop control, logs, or timeout
 diagnosis.
 
 ## Role Fit
@@ -33,7 +33,7 @@ If any item is missing and changes the outcome, fix the brief before `ask` or
 ## Modes
 
 - Normal managed run: default `spawn` backend, repo-local `runs/<run_id>/`
-  state, stdout/stderr logs, report, `peek/wait/result/kill`.
+  state, stdout/stderr logs, report, `observe/peek/wait/result/kill`.
 - Tmux managed run: set `useTmux: true` only for long CLI sessions that should
   survive MCP client/server churn.
 
@@ -44,9 +44,17 @@ The pane waits on a `tmux wait-for` start channel before Gemini starts, the
 server attaches `pipe-pane -o` to `tmux-pane.log`, then releases the pane.
 Completion writes `exit-code.txt` and signals a done channel with `wait-for -S`.
 
-`gemini_peek` reads ordinary logs and may include `tmux_capture` from
-`capture-pane` while the session is still alive. `gemini_kill` closes only the
-saved session with `kill-session`; never kill broad tmux state.
+`gemini_observe` / `gemini_peek` read ordinary logs, include `activity`, and
+may include `tmux_capture` from `capture-pane` while the session is still alive.
+`gemini_kill` closes only the saved session with `kill-session`; never kill
+broad tmux state.
+
+## Activity Trace
+
+For hour-scale runs, poll `gemini_observe` with the last `next_cursor`. Use
+`activity` to inspect elapsed time, stdout/stderr line counts, recent visible
+logs, tool-like log lines, tmux capture availability, and stop hint. This is the
+observable work trail, not Gemini's private thinking.
 
 ## Cost Tail Check
 
@@ -57,7 +65,7 @@ managed run is still `running`, `running_orphaned`, or `killing`.
   `completed`, `failed`, `killed`, or safely `orphaned`.
 - For tmux runs, confirm the saved `tmux_session` is gone with
   `tmux has-session -t <tmux_session>` or an equivalent session listing.
-- If the MCP server was launched as a direct stdio fallback, confirm the
+- If the MCP server was launched as a direct stdio process, confirm the
   matching `node .../experiments/gemini-mcp/src/server.js` process exits after
   the client closes.
 - If the run is still alive, use `gemini_kill` and then re-check.
@@ -75,7 +83,7 @@ managed run is still `running`, `running_orphaned`, or `killing`.
 
 `gemini_wait.timeoutMs` waits for a report or tmux done signal. It does not kill
 Gemini and is separate from Codex/MCP client timeout. If a wait times out but
-the session is alive, use `peek` or `kill`.
+the session is alive, use `observe`, `peek`, or `kill`.
 
 If tmux is missing, run without `useTmux` or install tmux. If the session is
 alive without an exit code, status is `running_orphaned`; if the session is gone

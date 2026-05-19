@@ -2,7 +2,7 @@
 
 ## Проблема
 
-Codex-side инструкции и глобальные скилы теперь используют `_ops/problems/**`
+Codex-side инструкции и глобальные скилы теперь используют `_ops/findings/**`
 и держат structural guardrails внутри `1instruction-layer`, но поверхности
 Claude для Codex read-only: `CLAUDE.md`, `.claude/**` и Claude skills нельзя
 редактировать из этой сессии.
@@ -27,8 +27,8 @@ Claude для Codex read-only: `CLAUDE.md`, `.claude/**` и Claude skills нел
 ## Что Снимет Проблему
 
 - Claude-side инструкции и скилы синхронизированы с маршрутами
-  `_ops/problems/**`, `_ops/problems/_archive/` и structural guardrails внутри
+  `_ops/findings/**`, `_ops/findings/_archive/` и structural guardrails внутри
   `instruction-layer`; или
 - пользователь явно решает, что Claude-side поверхности пока не надо менять.
 
-После этого файл нужно переместить в `_ops/problems/_archive/`.
+После этого файл нужно переместить в `_ops/findings/_archive/`.

@@ -36,6 +36,7 @@ GITIGNORE_BANNER = "# md-navigator persistent index — do not commit\n*\n"
 def _index_dir_for_corpus(
     corpus_root: Path,
     cache_root: Path | None = None,
+    create: bool = True,
 ) -> Path:
     """Default: `<corpus_root>/.md-navigator/`. Override: a per-corpus
     subdirectory inside `cache_root` (sha256-of-corpus-path subdir, same
@@ -48,18 +49,38 @@ def _index_dir_for_corpus(
     else:
         anchor = corpus_root if corpus_root.is_dir() else corpus_root.parent
         d = anchor / INDEX_DIRNAME
-    d.mkdir(parents=True, exist_ok=True)
-    # Auto-write .gitignore on first create so the index never ends up in a
-    # commit when the corpus is a git working tree.
-    gi = d / ".gitignore"
-    if not gi.exists():
-        gi.write_text(GITIGNORE_BANNER, encoding="utf-8")
+    if create:
+        d.mkdir(parents=True, exist_ok=True)
+        # Auto-write .gitignore on first create so the index never ends up in a
+        # commit when the corpus is a git working tree.
+        gi = d / ".gitignore"
+        if not gi.exists():
+            gi.write_text(GITIGNORE_BANNER, encoding="utf-8")
     return d
 
 
 # Backwards-compat alias: callers used to call `_cache_dir_for_root(cache_root, corpus_root)`.
 def _cache_dir_for_root(cache_root: Path, corpus_root: Path) -> Path:
     return _index_dir_for_corpus(corpus_root, cache_root=cache_root)
+
+
+def _acquire_index_write_lock(corpus_root: Path, cache_root: Path | None = None):
+    """Serialise writers for one corpus index across parallel agent sessions."""
+    import fcntl
+
+    lock_dir = _index_dir_for_corpus(corpus_root, cache_root=cache_root, create=True)
+    handle = (lock_dir / "index.lock").open("a+", encoding="utf-8")
+    fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+    return handle
+
+
+def _release_index_write_lock(handle) -> None:
+    import fcntl
+
+    try:
+        fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+    finally:
+        handle.close()
 
 
 # --- Meta helpers --------------------------------------------------------
@@ -174,7 +195,7 @@ def _open_index(
     import sqlite3
     import sqlite_vec
 
-    cache_dir = _index_dir_for_corpus(corpus_root, cache_root=cache_root)
+    cache_dir = _index_dir_for_corpus(corpus_root, cache_root=cache_root, create=True)
     db_path = cache_dir / "index.sqlite"
     needs_fresh = False
     if db_path.exists():
@@ -232,6 +253,84 @@ def _open_index(
     _meta_set(conn, "embedding_api_url", embedding_api_url)
     conn.commit()
     return conn
+
+
+def _open_index_metadata_readonly(corpus_root: Path, cache_root: Path | None = None):
+    """Open existing index metadata read-only. Does not create directories."""
+    import sqlite3
+
+    cache_dir = _index_dir_for_corpus(corpus_root, cache_root=cache_root, create=False)
+    db_path = cache_dir / "index.sqlite"
+    if not db_path.exists():
+        raise FileNotFoundError(db_path)
+    return sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+
+
+def _index_delta_stats_readonly(
+    conn,
+    scope: str,
+    items: list[dict[str, Any]],
+    embed_model: str,
+    embedding_api_url: str,
+    max_auto_embed: int | None,
+) -> dict[str, Any]:
+    """Compute freshness stats without schema creation, meta writes, or pruning."""
+    stats: dict[str, Any] = {
+        "embedded": 0,
+        "reused": 0,
+        "removed": 0,
+        "added_sections": 0,
+        "removed_sections": 0,
+        "total_sections_in_scope": 0,
+        "subchunked_sections": 0,
+        "delta_too_large": False,
+        "pending_chunks": 0,
+        "metadata_mismatch": False,
+    }
+    try:
+        recorded_version = _meta_get(conn, "schema_version")
+        recorded_model = _meta_get(conn, "embed_model")
+        recorded_api = _meta_get(conn, "embedding_api_url")
+    except Exception:
+        stats["metadata_mismatch"] = True
+        return stats
+
+    if (
+        recorded_version != str(SCHEMA_VERSION)
+        or recorded_model != embed_model
+        or recorded_api != embedding_api_url
+    ):
+        stats["metadata_mismatch"] = True
+        return stats
+
+    try:
+        existing_rows = conn.execute(
+            "SELECT rowid, content_hash FROM sections WHERE scope = ?",
+            (scope,),
+        ).fetchall()
+    except Exception:
+        stats["metadata_mismatch"] = True
+        return stats
+
+    existing_hash_to_rowid: dict[str, int] = {h: rid for rid, h in existing_rows}
+    current_hash_to_item: dict[str, dict[str, Any]] = {it["content_hash"]: it for it in items}
+    added_hashes = [h for h in current_hash_to_item if h not in existing_hash_to_rowid]
+    removed_hashes = [h for h in existing_hash_to_rowid if h not in current_hash_to_item]
+    pending_chunks = sum(len(_chunks_for_item(current_hash_to_item[h])) for h in added_hashes)
+
+    stats["reused"] = len(existing_hash_to_rowid) - len(removed_hashes)
+    stats["added_sections"] = len(added_hashes)
+    stats["removed_sections"] = len(removed_hashes)
+    stats["pending_chunks"] = pending_chunks
+    stats["delta_too_large"] = max_auto_embed is not None and pending_chunks > max_auto_embed
+    stats["total_sections_in_scope"] = len(existing_hash_to_rowid)
+    stats["subchunked_sections"] = sum(
+        1
+        for h in added_hashes
+        if scope == "sections"
+        and len(_chunks_for_item(current_hash_to_item[h])) > 1
+    )
+    return stats
 
 
 # --- Monotonic counters ---------------------------------------------------
@@ -350,13 +449,64 @@ def ensure_index(
     batch_pause_s: float = DEFAULT_INDEX_PAUSE_S,
     dry_run: bool = False,
 ) -> tuple[Any, dict[str, Any]]:
+    """Public index entrypoint. Write paths are serialised by a lock file.
+
+    `dry_run=True` is strictly read-only: no directory creation, no schema
+    creation, no meta writes. It is used by `status`.
+    """
+    if dry_run:
+        conn = _open_index_metadata_readonly(corpus_root, cache_root=cache_root)
+        stats = _index_delta_stats_readonly(
+            conn,
+            scope,
+            items,
+            embed_model,
+            embedding_api_url,
+            max_auto_embed,
+        )
+        return conn, stats
+
+    lock_handle = _acquire_index_write_lock(corpus_root, cache_root=cache_root)
+    try:
+        return _ensure_index_unlocked(
+            corpus_root,
+            scope,
+            items,
+            embed_model,
+            embedding_api_url=embedding_api_url,
+            embedding_timeout=embedding_timeout,
+            cache_root=cache_root,
+            progress=progress,
+            max_auto_embed=max_auto_embed,
+            batch_size=batch_size,
+            batch_pause_s=batch_pause_s,
+            dry_run=False,
+        )
+    finally:
+        _release_index_write_lock(lock_handle)
+
+
+def _ensure_index_unlocked(
+    corpus_root: Path,
+    scope: str,
+    items: list[dict[str, Any]],
+    embed_model: str,
+    embedding_api_url: str = SEARCH_DEFAULT_EMBEDDING_API_URL,
+    embedding_timeout: float = SEARCH_DEFAULT_EMBEDDING_TIMEOUT,
+    cache_root: Path | None = None,
+    progress: Callable[[str], None] | None = None,
+    max_auto_embed: int | None = DEFAULT_MAX_AUTO_EMBED,
+    batch_size: int = DEFAULT_INDEX_BATCH,
+    batch_pause_s: float = DEFAULT_INDEX_PAUSE_S,
+    dry_run: bool = False,
+) -> tuple[Any, dict[str, Any]]:
     """Open the persistent index for `corpus_root` and reconcile against
     `items` for the given `scope`. Only new sections cost embedding work;
     removed ones are pruned; unchanged ones are reused.
 
-    Embedding runs in small batches (`batch_size`, default 8) with a short
-    pause between batches (`batch_pause_s`, default 50ms) so a low-spec
-    laptop never sees a sustained Metal peak. The DB is committed after
+    Embedding runs in batches (`batch_size`, default 32) with no pause by
+    default (`batch_pause_s`, default 0s) because vectors now come from a
+    cloud API instead of a local Metal allocator. The DB is committed after
     every batch, so Ctrl+C only loses the current in-flight batch and any
     sections in it are auto-cleaned on the next run.
 
@@ -380,7 +530,7 @@ def ensure_index(
 
     # 1. Decide vec_dim. Re-open path: read recorded dim from meta. Cold
     #    path: probe the server (skipped in dry_run — no embedding work).
-    cache_dir = _index_dir_for_corpus(corpus_root, cache_root=cache_root)
+    cache_dir = _index_dir_for_corpus(corpus_root, cache_root=cache_root, create=True)
     db_path = cache_dir / "index.sqlite"
     if db_path.exists():
         vec_dim = None  # _open_index will recover from meta
@@ -435,6 +585,55 @@ def ensure_index(
         _say(f"Pruning {len(removed_rowids)} stale sections (scope={scope})...")
         stats["removed"] = _delete_section_rowids(conn, removed_rowids)
         conn.commit()
+
+    # Refresh metadata on surviving rows. content_hash (= rel + start_line +
+    # body) is the diff key, but file_id is positional from iter_markdown
+    # order and section_id depends on it; file_description / file_title
+    # change with frontmatter or H1 edits that don't touch this section's
+    # body. Without this refresh those fields stay at index-time values and
+    # downstream consumers that resolve against a fresh map see drift.
+    if not dry_run:
+        surviving_hashes = [
+            h for h in current_hash_to_item if h in existing_hash_to_rowid
+        ]
+        if surviving_hashes:
+            section_updates = []
+            fts_updates = []
+            for h in surviving_hashes:
+                it = current_hash_to_item[h]
+                rowid = existing_hash_to_rowid[h]
+                section_updates.append(
+                    (
+                        it["section_id"],
+                        it["file_id"],
+                        it["file_description"],
+                        it["file_title"],
+                        rowid,
+                    )
+                )
+                chain = (
+                    " > ".join(it["heading_chain"]) if it["heading_chain"] else ""
+                )
+                chain_for_fts = (chain + " " + it["heading_text"]).strip()
+                fts_updates.append(
+                    (
+                        it["file_description"],
+                        it["file_title"],
+                        chain_for_fts,
+                        rowid,
+                    )
+                )
+            conn.executemany(
+                "UPDATE sections SET section_id=?, file_id=?, "
+                "file_description=?, file_title=? WHERE rowid=?",
+                section_updates,
+            )
+            conn.executemany(
+                "UPDATE sections_fts SET description=?, title=?, "
+                "heading_chain=? WHERE rowid=?",
+                fts_updates,
+            )
+            conn.commit()
 
     # 4. Build a chunk plan for added sections so we can decide whether the
     #    delta is small enough to embed inline, or too large and should
@@ -666,7 +865,7 @@ def cmd_index(args) -> int:
             print(
                 f"Missing Python dependency: {exc}.\n"
                 f"  This script needs uv to resolve its inline deps "
-                f"(`sqlite-vec`, `pyyaml`).\n"
+                f"(`numpy`, `sqlite-vec`, `pyyaml`).\n"
                 f"  Run it via the uv shebang:\n"
                 f"    chmod +x md_navigator.py && ./md_navigator.py index ...\n"
                 f"  Or explicitly:\n"
@@ -694,7 +893,7 @@ def cmd_index(args) -> int:
         totals["reused"] += stats["reused"]
         totals["removed"] += stats["removed_sections"]
 
-    index_dir = _index_dir_for_corpus(corpus_root, cache_root=cache_root)
+    index_dir = _index_dir_for_corpus(corpus_root, cache_root=cache_root, create=False)
     print(
         f"Index ready at {index_dir / 'index.sqlite'}\n"
         f"  embedded: {totals['embedded']} (newly computed this run)\n"
@@ -727,7 +926,7 @@ def cmd_status(args) -> int:
     cache_root = (
         Path(args.cache_dir).expanduser() if getattr(args, "cache_dir", None) else None
     )
-    index_dir = _index_dir_for_corpus(corpus_root, cache_root=cache_root)
+    index_dir = _index_dir_for_corpus(corpus_root, cache_root=cache_root, create=False)
     db_path = index_dir / "index.sqlite"
 
     print(f"Corpus: {corpus_root}")
@@ -761,6 +960,7 @@ def cmd_status(args) -> int:
         "pending_chunks": 0,
         "in_scope": 0,
         "delta_too_large": False,
+        "metadata_mismatch": False,
     }
     for scope in ("sections", "descriptions"):
         items = build_items_from_map(map_data, scope=scope)
@@ -791,6 +991,7 @@ def cmd_status(args) -> int:
             f"reused={stats['reused']} "
             f"pending_chunks={stats['pending_chunks']} "
             f"total={stats['total_sections_in_scope']}"
+            f"{' metadata=MISMATCH' if stats.get('metadata_mismatch') else ''}"
         )
         totals["added_sections"] += stats["added_sections"]
         totals["removed_sections"] += stats["removed_sections"]
@@ -799,12 +1000,46 @@ def cmd_status(args) -> int:
         totals["in_scope"] += stats["total_sections_in_scope"]
         if stats.get("delta_too_large"):
             totals["delta_too_large"] = True
+        if stats.get("metadata_mismatch"):
+            totals["metadata_mismatch"] = True
 
     pending = totals["pending_chunks"]
     removed = totals["removed_sections"]
     added = totals["added_sections"]
 
-    if added == 0 and removed == 0:
+    # ID drift check: positional file_id stored at index time stays put while
+    # corpus reorders shift the fresh-map positional id. Content-hash diff
+    # doesn't see this — same body at same line keeps the same row. Without
+    # the check, `status` says FRESH but a downstream `pick` resolving stale
+    # ids against a fresh map pulls the wrong file. search.cmd_search now
+    # remaps to fresh ids, so drift is benign there; this stays as visible
+    # signal so other consumers and humans know to reindex for clean state.
+    import sqlite3
+
+    fresh_file_id_by_path = {f["relative_path"]: f["id"] for f in map_data["files"]}
+    drift_count = 0
+    try:
+        conn_ro = _open_index_readonly(corpus_root, cache_root=cache_root)
+        try:
+            rows = conn_ro.execute(
+                "SELECT DISTINCT relative_path, file_id FROM sections"
+            ).fetchall()
+        finally:
+            conn_ro.close()
+        for path, idx_fid in rows:
+            fresh_fid = fresh_file_id_by_path.get(path)
+            if fresh_fid is not None and int(fresh_fid) != int(idx_fid):
+                drift_count += 1
+    except (FileNotFoundError, sqlite3.OperationalError):
+        pass
+
+    if totals["metadata_mismatch"]:
+        print(
+            "Status: NEEDS REBUILD — index metadata/schema does not match the "
+            "current model, API URL, or schema version."
+        )
+        print(f"  Run: md_navigator.py index '{corpus_root}'")
+    elif added == 0 and removed == 0:
         print("Status: FRESH — no pending changes; `search` is instant.")
     elif totals["delta_too_large"]:
         print(
@@ -820,6 +1055,12 @@ def cmd_status(args) -> int:
         print(
             f"  Optional: md_navigator.py index '{corpus_root}'  "
             f"(eagerly warm the index instead of paying inside search)"
+        )
+    if drift_count:
+        print(
+            f"  ID drift: {drift_count} files have shifted positional ids "
+            f"since indexed. `search` auto-remaps to fresh ids; `index` "
+            f"prunes the stale rows."
         )
     return 0
 
@@ -842,7 +1083,7 @@ def _open_index_readonly(corpus_root: Path, cache_root: Path | None = None):
     import sqlite3
     import sqlite_vec
 
-    cache_dir = _index_dir_for_corpus(corpus_root, cache_root=cache_root)
+    cache_dir = _index_dir_for_corpus(corpus_root, cache_root=cache_root, create=False)
     db_path = cache_dir / "index.sqlite"
     if not db_path.exists():
         raise FileNotFoundError(db_path)

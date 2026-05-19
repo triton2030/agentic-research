@@ -22,6 +22,16 @@ function getArg(name, fallback) {
   return process.argv[index + 1] ?? fallback;
 }
 
+function getArgs(name) {
+  const values = [];
+  for (let index = 0; index < process.argv.length; index += 1) {
+    if (process.argv[index] === `--${name}` && process.argv[index + 1]) {
+      values.push(process.argv[index + 1]);
+    }
+  }
+  return values;
+}
+
 const command = process.argv[2] || "help";
 
 if (command === "help") {
@@ -49,6 +59,20 @@ if (command === "help") {
       cwd: getArg("cwd", process.cwd()),
       title: getArg("title"),
       maxTurns: getArg("max-turns"),
+      permissionMode: getArg("permission-mode"),
+      jsonSchema: getArg("json-schema"),
+      agent: getArg("agent"),
+      agents: getArg("agents"),
+      pluginUrl: getArgs("plugin-url"),
+      allowedTools: getArgs("allowed-tools"),
+      disallowedTools: getArgs("disallowed-tools"),
+      addDir: getArgs("add-dir"),
+      file: getArgs("file"),
+      inputFormat: getArg("input-format"),
+      brief: process.argv.includes("--brief"),
+      allowDangerouslySkipPermissions: process.argv.includes("--allow-dangerously-skip-permissions"),
+      replayUserMessages: process.argv.includes("--replay-user-messages"),
+      useTmux: process.argv.includes("--tmux") || process.argv.includes("--use-tmux"),
       disableAutoMemory: process.argv.includes("--disable-auto-memory")
     })
   );

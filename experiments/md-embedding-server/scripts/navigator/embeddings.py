@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -22,6 +23,7 @@ SEARCH_EMBED_BATCH = int(os.environ.get("MD_EMBEDDING_BATCH", "32"))
 # first network glitch and forces a manual restart.
 SEARCH_RETRY_ATTEMPTS = int(os.environ.get("MD_EMBEDDING_RETRY", "3"))
 SEARCH_RETRY_BACKOFF_S = float(os.environ.get("MD_EMBEDDING_RETRY_BACKOFF", "1.0"))
+_ANNOUNCED_KEY_PATHS: set[Path] = set()
 
 
 # --- Key resolution ------------------------------------------------------
@@ -34,6 +36,70 @@ def _read_key_file(path: Path) -> str | None:
     except OSError:
         return None
     return value or None
+
+
+def _detect_runtime_label() -> str:
+    explicit = os.environ.get("MD_NAVIGATOR_RUNTIME", "").strip().lower()
+    if explicit:
+        return "".join(ch if ch.isalnum() or ch in {"-", "_"} else "-" for ch in explicit)
+    argv0 = str(Path(sys.argv[0]).expanduser())
+    if "/.codex/skills/" in argv0:
+        return "codex"
+    if "/.claude/skills/" in argv0:
+        return "claude"
+    return "direct"
+
+
+def _openrouter_identity_headers() -> dict[str, str]:
+    runtime = _detect_runtime_label()
+    referer = (
+        os.environ.get("MD_NAVIGATOR_HTTP_REFERER")
+        or os.environ.get("OPENROUTER_HTTP_REFERER")
+    )
+    if not referer:
+        referer = {
+            "claude": "https://github.com/anthropics/claude-code",
+            "codex": "https://github.com/openai/codex",
+        }.get(runtime, "https://github.com/triton/agentic-research")
+    title = (
+        os.environ.get("MD_NAVIGATOR_TITLE")
+        or os.environ.get("OPENROUTER_APP_TITLE")
+        or f"md-navigator/{runtime}"
+    )
+    return {"HTTP-Referer": referer, "X-Title": title}
+
+
+def _nearest_git_root(path: Path) -> Path | None:
+    for parent in [path.parent, *path.parent.parents]:
+        if (parent / ".git").exists():
+            return parent
+    return None
+
+
+def _gitignore_mentions_openrouter_key(repo_root: Path) -> bool:
+    gitignore = repo_root / ".gitignore"
+    try:
+        lines = gitignore.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return False
+    return any(line.strip() in {".openrouter.key", "*.openrouter.key"} for line in lines)
+
+
+def _announce_key_source(path: Path) -> None:
+    resolved = path.resolve()
+    if resolved in _ANNOUNCED_KEY_PATHS:
+        return
+    _ANNOUNCED_KEY_PATHS.add(resolved)
+    if os.environ.get("MD_NAVIGATOR_QUIET_KEY_SOURCE") == "1":
+        return
+    print(f"md_navigator: using OpenRouter key from {resolved}", file=sys.stderr)
+    repo_root = _nearest_git_root(resolved)
+    if repo_root is not None and not _gitignore_mentions_openrouter_key(repo_root):
+        print(
+            f"md_navigator: warning: {resolved} is inside git repo {repo_root}; "
+            "add `.openrouter.key` to .gitignore if it is not already ignored elsewhere.",
+            file=sys.stderr,
+        )
 
 
 def _key_lookup_paths(corpus_root: Path | None = None) -> list[Path]:
@@ -94,6 +160,7 @@ def _resolve_api_key(api_url: str, corpus_root: Path | None = None) -> str | Non
     for path in _key_lookup_paths(corpus_root):
         value = _read_key_file(path)
         if value:
+            _announce_key_source(path)
             return value
     return None
 
@@ -198,8 +265,7 @@ def _embed_texts_http(
     # OpenRouter asks (politely) for these so usage shows up under a
     # recognisable referrer rather than "Unknown".
     if "openrouter.ai" in api_url:
-        headers.setdefault("HTTP-Referer", "https://github.com/anthropics/claude-code")
-        headers.setdefault("X-Title", "md-navigator")
+        headers.update(_openrouter_identity_headers())
 
     import sys
     import time

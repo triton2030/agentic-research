@@ -1,6 +1,6 @@
 ---
 name: gemini-mcp
-description: Use when Codex should manually call Gemini for a second opinion, code/opinion check, web research, computer-wide file research, Gemini 3.1 Pro high-thinking prompt, repo-contained Gemini MCP config work, or comparison alongside Claude MCP; skip ordinary web lookup, generic Gemini docs questions, and raw `gemini` CLI calls that do not need MCP control.
+description: Use when Codex should manually call Gemini through the repo MCP for a second opinion, code/opinion check, web research, computer-wide file research, Gemini 3.5 Flash via Antigravity CLI, repo-contained Gemini MCP config work, or comparison alongside Claude MCP; skip ordinary web lookup, generic Gemini docs questions, and raw `agy`/`gemini` CLI calls that do not need MCP control.
 ---
 
 # Gemini MCP
@@ -27,33 +27,46 @@ or checker of a Codex claim.
    role, answer inline instead.
 2. For setup changes, run `npm run smoke` in the server root before claiming the
    surface works.
-3. Use `gemini_status` before live work to confirm backend, model, thinking
-   level, CLI path/version, auth mode, cwd/include-directory defaults, and tmux
-   availability without a network call.
-4. Use `gemini_ask` for short compatible calls. Use
-   `gemini_run`/`gemini_peek`/`gemini_wait`/`gemini_result`/`gemini_kill` when
+3. Use `gemini_status` before live work to confirm backend, model/model label,
+   thinking level, CLI path/version, auth mode, cwd/include-directory defaults,
+   and tmux availability without a network call.
+4. Use `gemini_ask` for short compatible calls. In the current Google One path
+   `auto` should resolve to Antigravity via `agy` and Gemini 3.5 Flash; set
+   `GEMINI_MCP_BACKEND=antigravity` if you need to force it. The bridge is
+   account-backed only; API/SDK/Vertex routes are not supported fallbacks. Use
+   `gemini_run`/`gemini_observe`/`gemini_peek`/`gemini_wait`/`gemini_result`/
+   `gemini_kill` for Gemini CLI or Antigravity CLI managed runs where
    observation, stop control, logs, or timeout diagnosis matter.
-5. Set `useTmux: true` only for long Gemini CLI runs that should survive
+5. For Antigravity read-only review, leave `approvalMode` unset. For an
+   explicitly approved write run, pass `approvalMode: "yolo"` and constrain
+   absolute `cwd` plus absolute `includeDirectories` to the allowed folder.
+6. Set `useTmux: true` only for long Gemini CLI runs that should survive
    MCP client/server churn. Ordinary calls must work without tmux.
-6. After `wait`, `result`, or `kill`, check the run is not still running and no
-   saved `tmux_session` remains alive before closing the conversation.
-7. Give Gemini a complete brief: role, lens, task, Codex claim to check,
+7. After `wait`, `result`, or `kill`, check the run is not still running and no
+   saved `tmux_session` remains alive before closing the conversation. A
+   `server.js` process owned by Codex app-server is an active MCP transport, not
+   a Gemini run.
+8. Give Gemini a complete brief: role, lens, task, Codex claim to check,
    project sources, relevant criteria, targets, evidence/output shape, and stop
    condition.
-8. Pass the right `cwd` and `includeDirectories`; do not leave Gemini trapped in
+9. Pass the right `cwd` and `includeDirectories`; do not leave Gemini trapped in
    the MCP server directory when project or computer-wide files matter.
-9. Treat Gemini's findings as external evidence, not automatic task scope. If a
+10. Treat Gemini's findings as external evidence, not automatic task scope. If a
    finding describes a real current problem but strategy has not decided action,
-   Codex may stage it in `_ops/problems/**` after local review instead of
+   Codex may stage it in `_ops/findings/**` after local review instead of
    promoting it directly to `_ops/plans/**` or `_ops/criteria/*.md`.
 
 ## Evidence
 
-Report model/thinking level, requested/effective backend, CLI path/version when
-used, cwd/includeDirectories, whether the call was live or smoke/status only,
-run_id/log_dir/status for managed runs, `use_tmux` when relevant, warnings, and
-whether any answer came through direct CLI recovery instead of MCP. For managed
-runs, include the process/session tail check.
+Report model/model label/thinking level, requested/effective backend, CLI
+path/version when used, auth mode, account CLI env sanitization,
+cwd/includeDirectories, whether the call was live or smoke/status only,
+run_id/log_dir/status for managed runs, `use_tmux` when relevant, activity
+trace, warnings, and whether any answer came through direct CLI recovery
+instead of MCP. `activity` is observable logs/tmux/tool-like progress, not
+private chain-of-thought. For managed runs, include the external
+process/session tail check; do not count Codex-held MCP server transports as
+model tails.
 
 ## Stop Rule
 
@@ -64,8 +77,8 @@ the external review with Codex's own answer.
 
 ## References
 
-- Read [references/gemini-3.1-pro-prompting.md](references/gemini-3.1-pro-prompting.md)
-  for complex briefs or model/thinking changes.
+- Read [references/antigravity-cli-and-gemini-3.5-flash.md](references/antigravity-cli-and-gemini-3.5-flash.md)
+  for current Antigravity CLI / Gemini 3.5 Flash calls and model-control limits.
 - Read [references/managed-runs-and-tmux.md](references/managed-runs-and-tmux.md)
   for role-fit, audit briefs, `run/peek/wait/result/kill`, tmux, timeout, or
   process-tail work.

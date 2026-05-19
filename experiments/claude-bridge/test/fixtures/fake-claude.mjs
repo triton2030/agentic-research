@@ -18,12 +18,34 @@ if (args.includes("--help")) {
   --include-hook-events
   --debug-file <path>
   --disable-slash-commands
-  --bare
   stream-json
   --permission-mode <mode>
+  --json-schema <schema>
+  --agent <agent>
+  --agents <json>
+  --plugin-url <url>
+  --allow-dangerously-skip-permissions
+  --brief
+  --file <specs...>
+  --input-format <format>
+  --replay-user-messages
   --tools <tools...>
   -p, --print`);
   process.exit(0);
+}
+
+if (process.env.FAKE_CLAUDE_ENV_CAPTURE) {
+  fs.writeFileSync(
+    process.env.FAKE_CLAUDE_ENV_CAPTURE,
+    JSON.stringify(
+      {
+        ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY || null,
+        CLAUDE_API_KEY: process.env.CLAUDE_API_KEY || null
+      },
+      null,
+      2
+    )
+  );
 }
 
 const debugIndex = args.indexOf("--debug-file");

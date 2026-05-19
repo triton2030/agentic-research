@@ -14,6 +14,9 @@ with Codex's own reasoning or a weaker local summary.
   callable? If not, treat it as MCP registration or current-session tool
   exposure, then try the repo-local CLI bridge.
 - Runtime: run `claude_doctor` or CLI `doctor` and report the failing layer.
+- Local installs: prefer the native `~/.local/bin/claude` that the bridge
+  resolves first. A stale lower-priority Homebrew cask can trigger Claude's
+  multiple-install warning without breaking bridge runs.
 - Profile: switch to the profile that matches the task before downgrading the
   task: `normal`, `read-only`, `skill-audit`, `no-memory`, or `turbo`.
 - Context: fix `cwd`, `addDir`, prompt files, tools, permissions, or budget so
@@ -28,6 +31,9 @@ with Codex's own reasoning or a weaker local summary.
 - Long output: if `chat_relay.truncated` is true or the visible answer is cut,
   inspect `stdout.log`, `events.ndjson`, or other bridge artifacts before
   reporting Claude's final answer.
+- Tail check: treat Codex-held `server.js` MCP transports as tool plumbing, not
+  model work. The expensive tail to stop is the saved `claude` run/process
+  group surfaced by `result`, not every bridge server process in `ps`.
 
 ## Allowed Recovery
 

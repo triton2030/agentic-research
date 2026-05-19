@@ -12,6 +12,19 @@ const root = path.resolve(__dirname, "..");
 const serverPath = path.join(root, "src", "server.js");
 const runnerUrl = pathToFileURL(path.join(root, "src", "runner.js")).href;
 const smokeHome = fs.mkdtempSync(path.join(os.tmpdir(), "gemini-mcp-home-"));
+const smokeTmuxSessions = new Set();
+
+function cleanupSmokeTmuxSessions() {
+  for (const session of smokeTmuxSessions) {
+    spawnSync("tmux", ["kill-session", "-t", session], { encoding: "utf8" });
+  }
+}
+
+function trackTmuxSession(payload) {
+  if (payload?.tmux_session) smokeTmuxSessions.add(payload.tmux_session);
+}
+
+process.once("exit", cleanupSmokeTmuxSessions);
 
 function baseEnv() {
   const env = Object.fromEntries(
@@ -24,6 +37,10 @@ function baseEnv() {
   delete env.GEMINI_MCP_BACKEND;
   delete env.GEMINI_CLI_PATH;
   delete env.GEMINI_CLI_TIMEOUT_MS;
+  delete env.ANTIGRAVITY_CLI_PATH;
+  delete env.ANTIGRAVITY_MODEL_LABEL;
+  delete env.ANTIGRAVITY_CLI_SKIP_PERMISSIONS;
+  delete env.ANTIGRAVITY_CLI_SANDBOX;
   delete env.GOOGLE_GENAI_USE_VERTEXAI;
   delete env.GOOGLE_CLOUD_PROJECT;
   delete env.GOOGLE_CLOUD_LOCATION;
@@ -43,7 +60,8 @@ async function withClient(env, callback) {
   try {
     return await callback(client);
   } finally {
-    await client.close();
+    await client.close().catch(() => {});
+    await transport.close?.().catch(() => {});
   }
 }
 
@@ -116,6 +134,7 @@ await withClient({ ...baseEnv(), PATH: "" }, async (client) => {
     "gemini_ask",
     "gemini_cleanup_runs",
     "gemini_kill",
+    "gemini_observe",
     "gemini_peek",
     "gemini_result",
     "gemini_run",
@@ -127,7 +146,7 @@ await withClient({ ...baseEnv(), PATH: "" }, async (client) => {
   const statusPayload = JSON.parse(status.content[0].text);
   assert.equal(statusPayload.ok, true);
   assert.equal(statusPayload.effective_backend, null);
-  assert.equal(statusPayload.available_auth.api_key, false);
+  assert.equal(statusPayload.available_auth.account_cli_env_sanitized, true);
   assert.equal(statusPayload.default_model, "gemini-3.1-pro-preview");
   assert.equal(statusPayload.default_thinking_level, "high");
   assert.equal(statusPayload.default_cli_timeout_ms, 50000);
@@ -139,12 +158,14 @@ await withClient({ ...baseEnv(), PATH: "" }, async (client) => {
     }
   });
   assert.equal(ask.isError, true);
-  assert.match(ask.content[0].text, /Vertex AI|GEMINI_MCP_BACKEND=cli/u);
+  assert.match(ask.content[0].text, /account-backed|GEMINI_MCP_BACKEND=cli/u);
 });
 
 const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "gemini-mcp-smoke-"));
 const fakeGemini = path.join(tempDir, "gemini");
+const fakeAgy = path.join(tempDir, "agy");
 const captureFile = path.join(tempDir, "capture.json");
+const agyCaptureFile = path.join(tempDir, "agy-capture.json");
 fs.writeFileSync(
   fakeGemini,
   `#!/usr/bin/env node
@@ -160,7 +181,22 @@ if (args.includes("--version")) {
 if (process.env.FAKE_GEMINI_CAPTURE) {
   fs.writeFileSync(
     process.env.FAKE_GEMINI_CAPTURE,
-    JSON.stringify({ args, cwd: process.cwd() }, null, 2)
+    JSON.stringify(
+      {
+        args,
+        cwd: process.cwd(),
+        env: {
+          GEMINI_API_KEY: process.env.GEMINI_API_KEY || null,
+          GOOGLE_API_KEY: process.env.GOOGLE_API_KEY || null,
+          GOOGLE_APPLICATION_CREDENTIALS: process.env.GOOGLE_APPLICATION_CREDENTIALS || null,
+          GOOGLE_GENAI_USE_VERTEXAI: process.env.GOOGLE_GENAI_USE_VERTEXAI || null,
+          GOOGLE_CLOUD_PROJECT: process.env.GOOGLE_CLOUD_PROJECT || null,
+          GOOGLE_CLOUD_LOCATION: process.env.GOOGLE_CLOUD_LOCATION || null
+        }
+      },
+      null,
+      2
+    )
   );
 }
 if (process.env.FAKE_GEMINI_EMPTY === "1") {
@@ -215,6 +251,145 @@ console.log(
 );
 fs.chmodSync(fakeGemini, 0o755);
 
+fs.writeFileSync(
+  fakeAgy,
+  `#!/usr/bin/env node
+import fs from "node:fs";
+const args = process.argv.slice(2);
+if (args.includes("--version")) {
+  console.log("fake-agy 0.0.0");
+  process.exit(0);
+}
+if (process.env.FAKE_AGY_CAPTURE) {
+  fs.writeFileSync(
+    process.env.FAKE_AGY_CAPTURE,
+    JSON.stringify(
+      {
+        args,
+        cwd: process.cwd(),
+        env: {
+          GEMINI_API_KEY: process.env.GEMINI_API_KEY || null,
+          GOOGLE_API_KEY: process.env.GOOGLE_API_KEY || null,
+          GOOGLE_APPLICATION_CREDENTIALS: process.env.GOOGLE_APPLICATION_CREDENTIALS || null,
+          GOOGLE_GENAI_USE_VERTEXAI: process.env.GOOGLE_GENAI_USE_VERTEXAI || null,
+          GOOGLE_CLOUD_PROJECT: process.env.GOOGLE_CLOUD_PROJECT || null,
+          GOOGLE_CLOUD_LOCATION: process.env.GOOGLE_CLOUD_LOCATION || null
+        }
+      },
+      null,
+      2
+    )
+  );
+}
+if (process.env.FAKE_AGY_EMPTY === "1") {
+  process.exit(0);
+}
+console.log("AGY_MCP_OK");
+`
+);
+fs.chmodSync(fakeAgy, 0o755);
+
+await withClient(
+  {
+    ...baseEnv(),
+    GEMINI_MCP_BACKEND: "antigravity",
+    ANTIGRAVITY_CLI_PATH: fakeAgy,
+    GEMINI_API_KEY: "should-not-leak",
+    GOOGLE_API_KEY: "should-not-leak",
+    GOOGLE_APPLICATION_CREDENTIALS: "/tmp/should-not-leak.json",
+    GOOGLE_GENAI_USE_VERTEXAI: "true",
+    GOOGLE_CLOUD_PROJECT: "should-not-leak",
+    GOOGLE_CLOUD_LOCATION: "global",
+    FAKE_AGY_CAPTURE: agyCaptureFile
+  },
+  async (client) => {
+    const status = await client.callTool({ name: "gemini_status", arguments: {} });
+    const statusPayload = JSON.parse(status.content[0].text);
+    assert.equal(statusPayload.effective_backend, "antigravity-cli");
+    assert.equal(statusPayload.available_auth.antigravity_cli_command, fakeAgy);
+    assert.equal(statusPayload.available_auth.antigravity_cli_version, "fake-agy 0.0.0");
+    assert.equal(statusPayload.default_model, "gemini-3.5-flash");
+    assert.equal(statusPayload.default_antigravity_model_label, "Gemini 3.5 Flash (High)");
+
+    const ask = await client.callTool({
+      name: "gemini_ask",
+      arguments: {
+        prompt: "Return exactly AGY_MCP_OK.",
+        cwd: tempDir,
+        includeDirectories: [root],
+        timeoutMs: 12345
+      }
+    });
+    assert.equal(ask.isError, undefined);
+    const payload = JSON.parse(ask.content[0].text);
+    assert.equal(payload.backend, "antigravity-cli");
+    assert.equal(payload.cliCommand, fakeAgy);
+    assert.equal(payload.cliVersion, "fake-agy 0.0.0");
+    assert.equal(payload.model, "gemini-3.5-flash");
+    assert.equal(payload.modelLabel, "Gemini 3.5 Flash (High)");
+    assert.equal(payload.cwd, tempDir);
+    assert.deepEqual(payload.includeDirectories, [root]);
+    assert.equal(payload.approvalMode, null);
+    assert.equal(payload.skipPermissions, false);
+    assert.equal(payload.timeoutMs, 12345);
+    assert.equal(payload.text, "AGY_MCP_OK");
+    const captured = JSON.parse(fs.readFileSync(agyCaptureFile, "utf8"));
+    assert.equal(fs.realpathSync(captured.cwd), fs.realpathSync(tempDir));
+    assert.deepEqual(captured.env, {
+      GEMINI_API_KEY: null,
+      GOOGLE_API_KEY: null,
+      GOOGLE_APPLICATION_CREDENTIALS: null,
+      GOOGLE_GENAI_USE_VERTEXAI: null,
+      GOOGLE_CLOUD_PROJECT: null,
+      GOOGLE_CLOUD_LOCATION: null
+    });
+    assert.match(captured.args.join(" "), /--print-timeout 12345ms/u);
+    assert.match(captured.args.join(" "), /--add-dir/u);
+    assert.doesNotMatch(captured.args.join(" "), /--approval-mode/u);
+    assert.doesNotMatch(captured.args.join(" "), /--dangerously-skip-permissions/u);
+
+    const writeAsk = await client.callTool({
+      name: "gemini_ask",
+      arguments: {
+        prompt: "Return exactly AGY_MCP_OK with write permissions.",
+        cwd: tempDir,
+        includeDirectories: [tempDir],
+        approvalMode: "yolo",
+        timeoutMs: 12345
+      }
+    });
+    assert.equal(writeAsk.isError, undefined);
+    const writePayload = JSON.parse(writeAsk.content[0].text);
+    assert.equal(writePayload.approvalMode, "yolo");
+    assert.equal(writePayload.skipPermissions, true);
+    const writeCaptured = JSON.parse(fs.readFileSync(agyCaptureFile, "utf8"));
+    assert.match(writeCaptured.args.join(" "), /--dangerously-skip-permissions/u);
+
+    const run = await client.callTool({
+      name: "gemini_run",
+      arguments: {
+        prompt: "Return exactly AGY_MCP_OK.",
+        cwd: tempDir
+      }
+    });
+    assert.equal(run.isError, undefined);
+    const runPayload = JSON.parse(run.content[0].text);
+    assert.equal(runPayload.backend, "antigravity-cli");
+    const runWait = await client.callTool({
+      name: "gemini_wait",
+      arguments: {
+        run_id: runPayload.run_id,
+        timeoutMs: 10000
+      }
+    });
+    const runWaitPayload = JSON.parse(runWait.content[0].text);
+    assert.equal(runWaitPayload.backend, "antigravity-cli");
+    assert.equal(runWaitPayload.status, "completed");
+    assert.match(runWaitPayload.chat_relay.text, /AGY_MCP_OK/u);
+    assert.ok(runWaitPayload.activity);
+  }
+);
+
 function readPidFile(file) {
   return Number(fs.readFileSync(file, "utf8").trim());
 }
@@ -249,6 +424,12 @@ await withClient(
     ...baseEnv(),
     GEMINI_MCP_BACKEND: "cli",
     GEMINI_CLI_PATH: fakeGemini,
+    GEMINI_API_KEY: "should-not-leak",
+    GOOGLE_API_KEY: "should-not-leak",
+    GOOGLE_APPLICATION_CREDENTIALS: "/tmp/should-not-leak.json",
+    GOOGLE_GENAI_USE_VERTEXAI: "true",
+    GOOGLE_CLOUD_PROJECT: "should-not-leak",
+    GOOGLE_CLOUD_LOCATION: "global",
     FAKE_GEMINI_CAPTURE: captureFile,
     FAKE_GEMINI_PID_FILE: fakeParentPidFile,
     FAKE_GEMINI_CHILD_PID_FILE: fakeChildPidFile
@@ -282,6 +463,14 @@ await withClient(
     assert.equal(payload.text, "GEMINI_MCP_OK");
     const captured = JSON.parse(fs.readFileSync(captureFile, "utf8"));
     assert.equal(fs.realpathSync(captured.cwd), fs.realpathSync(tempDir));
+    assert.deepEqual(captured.env, {
+      GEMINI_API_KEY: null,
+      GOOGLE_API_KEY: null,
+      GOOGLE_APPLICATION_CREDENTIALS: null,
+      GOOGLE_GENAI_USE_VERTEXAI: null,
+      GOOGLE_CLOUD_PROJECT: null,
+      GOOGLE_CLOUD_LOCATION: null
+    });
     assert.ok(captured.args.includes("--skip-trust"));
     assert.match(captured.args.join(" "), /--approval-mode yolo/u);
     assert.match(captured.args.join(" "), /--include-directories/u);
@@ -321,6 +510,17 @@ await withClient(
     const peekPayload = JSON.parse(peek.content[0].text);
     assert.ok(peekPayload.next_cursor > 0);
     assert.match(peekPayload.chat_relay.text, /GEMINI_MCP_OK/u);
+    assert.ok(peekPayload.activity);
+    assert.match(peekPayload.activity.note, /Observable trace only/u);
+    const observe = await client.callTool({
+      name: "gemini_observe",
+      arguments: {
+        run_id: startedPayload.run_id,
+        cursor: 0
+      }
+    });
+    const observePayload = JSON.parse(observe.content[0].text);
+    assert.ok(observePayload.activity);
 
     const result = await client.callTool({
       name: "gemini_result",
@@ -467,6 +667,7 @@ await withClient(
         }
       });
       const tmuxRunPayload = JSON.parse(tmuxRun.content[0].text);
+      trackTmuxSession(tmuxRunPayload);
       assert.equal(tmuxRunPayload.use_tmux, true);
       assert.ok(tmuxRunPayload.tmux_session);
 
@@ -512,6 +713,7 @@ await withClient(
         }
       });
       const streamingTmuxPayload = JSON.parse(streamingTmuxRun.content[0].text);
+      trackTmuxSession(streamingTmuxPayload);
       await waitForFile(fakeParentPidFile);
       await waitForFile(fakeChildPidFile);
       const streamingParentPid = readPidFile(fakeParentPidFile);
@@ -561,6 +763,25 @@ await withClient(
     GEMINI_MCP_BACKEND: "cli",
     GEMINI_CLI_PATH: fakeGemini,
     FAKE_GEMINI_EMPTY: "1"
+  },
+  async (client) => {
+    const ask = await client.callTool({
+      name: "gemini_ask",
+      arguments: {
+        prompt: "Return an empty response."
+      }
+    });
+    assert.equal(ask.isError, true);
+    assert.match(ask.content[0].text, /empty text/u);
+  }
+);
+
+await withClient(
+  {
+    ...baseEnv(),
+    GEMINI_MCP_BACKEND: "antigravity",
+    ANTIGRAVITY_CLI_PATH: fakeAgy,
+    FAKE_AGY_EMPTY: "1"
   },
   async (client) => {
     const ask = await client.callTool({

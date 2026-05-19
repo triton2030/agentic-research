@@ -168,7 +168,7 @@ context_personal: true
 - Anti-goals в форме повторяемого правила → `_ops/criteria/*.md`;
   описательные anti-goals → `README.md` через `1strategy`.
 - Goal/мотивация уровня проекта → `_ops/PROJECT-ROADMAP.md` через `1planning`.
-- Нерешённая проблема, которая всплывёт из ответов → `_ops/problems/**`.
+- Нерешённая проблема, которая всплывёт из ответов → `_ops/findings/**`.
 - Полностью разобранное интервью → `_ops/interviews/_archive/`. Если хотя бы
   одно поле осталось без владельца — не архивируй.
 

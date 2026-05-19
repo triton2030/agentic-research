@@ -33,11 +33,20 @@ API key lookup order:
 
 1. `OPENROUTER_API_KEY` env var
 2. `MD_EMBEDDING_API_KEY` env var
-3. `.openrouter.key` in the current working directory
-4. `~/.openrouter.key`
+3. `<corpus>/.openrouter.key`, then every parent directory upward
+4. `.openrouter.key` in the current working directory
+5. `~/.openrouter.key`
+6. `$XDG_CONFIG_HOME/md-navigator/openrouter.key`
 
 The file is a single line, mode `0600`. Add `.openrouter.key` to
-`.gitignore` of any project where you place one.
+`.gitignore` of any project where you place one. When a file key is used,
+the client prints the path to stderr so the active credential source is
+visible without exposing the key.
+
+OpenRouter attribution defaults to the detected runtime:
+`md-navigator/codex`, `md-navigator/claude`, or `md-navigator/direct`.
+Override it with `MD_NAVIGATOR_RUNTIME`, `MD_NAVIGATOR_HTTP_REFERER`, or
+`MD_NAVIGATOR_TITLE`.
 
 Override the endpoint for any OpenAI-compatible service:
 
@@ -56,8 +65,11 @@ Subcommands:
 - `pick --extract` (or `read`) — return text of selected sections in one packet
 - `read-related` — linked Markdown neighborhood for context
 - `index` — cold-start (or top up) the persistent vector index for a corpus
+- `status` — freshness check for an existing index; no HTTP and no writes
 - `search` — hybrid section retrieval (BM25F + dense via RRF)
 - `overlaps` — semantic similarity pair detector for IA smells
+- `repeated-concepts`, `cluster` — corpus-level duplicate/topic probes
+- `manifest` — machine-readable command/default contract for docs/skill sync
 
 ## Persistent index
 
@@ -86,7 +98,10 @@ Lifecycle commands:
 # First-time warmup for a corpus
 md_navigator.py index <corpus>
 
-# After that — near-instant; auto-embeds tiny deltas (≤20 chunks default)
+# Later orientation — no HTTP, no writes
+md_navigator.py status  <corpus>
+
+# After that — near-instant; auto-embeds tiny deltas (≤50 chunks default)
 md_navigator.py search   <corpus> "query"
 md_navigator.py overlaps <corpus>
 
@@ -97,10 +112,10 @@ md_navigator.py search   <corpus> "query" --no-cache
 md_navigator.py index    <corpus> --cache-dir ~/.local/share/md-navigator
 ```
 
-Big delta refusal: if `search`/`overlaps` would have to embed more than
-`--max-auto-embed` chunks (default 20), they refuse with exit code 4
-and ask you to run `index` first. Pass `--max-auto-embed 0` to disable
-the cap.
+Big delta refusal: if `search`/`overlaps`/`repeated-concepts` would have
+to embed more than `--max-auto-embed` chunks (default 50), they refuse
+with exit code 4 and ask you to run `index` first. Pass
+`--max-auto-embed 0` to disable the cap.
 
 Indexing tunables:
 
@@ -112,6 +127,9 @@ Indexing tunables:
 The DB is committed after every batch, so Ctrl+C only loses the current
 in-flight batch. The next run heals incomplete sections automatically
 before continuing.
+
+Index writers are serialized by `<corpus>/.md-navigator/index.lock`, so
+parallel Claude/Codex sessions do not race the same SQLite counters.
 
 ## Indexing scope
 

@@ -16,10 +16,12 @@ interface:
     with XML tags so instructions, evidence, and variable context do not blur.
     Treat Claude findings as evidence; stage persistent real pre-task problems
     in _ops/problems/** after Codex review when needed. Use cwd/addDir when
-    files matter.
-    After wait/result/kill, confirm the run is terminal and no direct stdio
-    server process remains alive before closing. If MCP tools are absent, treat
-    it as session/registration exposure and use the controlled CLI bridge. If
+    files matter. For long runs, prefer useTmux true, poll observe/peek with
+    cursor, and relay only observable activity/tool/file/log/tmux progress, not
+    private chain-of-thought. After wait/result/kill, confirm the run is
+    terminal and no saved tmux session or direct stdio server process remains
+    alive before closing. If MCP tools are absent, treat it as
+    session/registration exposure and use the controlled CLI bridge. If
     chat_relay is truncated, recover from logs. Fix or block the run instead of
     replacing it with Codex.
 

@@ -34,8 +34,10 @@ If any item is missing and changes the outcome, fix the brief before `run`.
 - `claude_profiles`: inspect available control profiles when default is not
   enough.
 - `claude_run`: start a controlled run with profile, cwd/addDir, prompt, and
-  first-class controls.
-- `claude_peek`: observe milestones and relay updates with cursor.
+  first-class controls. Use `useTmux: true` for long human-observable terminal
+  sessions.
+- `claude_peek` / `claude_observe`: observe milestones, relay updates,
+  activity trace, tool/file/command events, warnings, and cursor.
 - `claude_wait` or `claude_result`: get the final report and chat-ready answer.
 - `claude_kill`: stop a looping or wrong run.
 - `claude_cleanup_runs`: dry-run first; delete only with confirmation.
@@ -56,11 +58,15 @@ managed run is still `running`, `running_orphaned`, or `killing`.
   an ordinary review run. If a task truly needs a long service, make the
   service lifecycle explicit in the brief and keep the run open until the
   saved run/process tail is stopped or accounted for.
-- If the MCP server was launched as a direct stdio fallback, confirm the
+- If the MCP server was launched as a direct stdio process, confirm the
   matching `node .../experiments/claude-bridge/src/server.js` process exits
   after the client closes.
+- If the same `server.js` process is held under Codex app-server, it is an
+  active MCP transport, not a Claude model run or paid tail.
+- For tmux runs, confirm the saved `tmux_session` is gone with
+  `tmux has-session -t <tmux_session>` or an equivalent session listing.
 - After restart, kill only when the bridge fingerprint matches the saved run;
-  never kill broad `claude` or bridge processes by name.
+  never kill broad `claude`, tmux, or bridge processes by name.
 - Include the final process-tail status in Codex closeout when Claude was used.
 
 ## Brief Shape
@@ -95,6 +101,22 @@ MCP cannot push directly into Codex chat. Bridge reports include
 `chat_relay.text`, `chat_relay.markdown`, and `chat_relay.truncated`.
 Relay `chat_relay.text` when the user needs Claude's answer. If it is truncated
 or visibly cut, recover the full answer from bridge logs before reporting.
+
+## Activity Trace
+
+For hour-scale runs, poll `claude_observe` with the last `next_cursor`. Use the
+`activity` object to check elapsed time, recent tool calls, touched paths,
+model-visible updates, tmux capture, warnings, and the current stop hint. Do
+not describe it as Claude's private thinking; it is only the observable work
+trail.
+
+## Tmux Behavior
+
+`useTmux: true` creates a detached session named `claude-bridge-<run_id>`.
+The pane waits on a start channel, the server attaches `pipe-pane -o` to
+`tmux-pane.log`, then releases Claude. stdout/stderr are still tee'd into
+repo-local logs so final answer extraction keeps working. `claude_kill` closes
+only the saved session; never kill broad tmux state.
 
 ## Evidence And Failure
 

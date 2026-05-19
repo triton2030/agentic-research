@@ -15,32 +15,40 @@ with Codex's own reasoning, file reading, or a weaker local summary.
   is not a Gemini model failure.
 - Server: run `npm run smoke` in the server root after server or environment
   changes.
-- Backend: check `gemini_status` for API key, Vertex AI/ADC, or Gemini CLI
-  auth. The verified full-agent backend is Gemini CLI.
+- Backend: check `gemini_status` for Antigravity CLI or legacy Gemini CLI
+  account auth. The current Google One / individual-user backend is
+  Antigravity CLI.
 - CLI path/version: before a live CLI call, confirm the exact command and
-  version. In this workspace the verified current CLI is
-  `/Users/triton/.local/bin/gemini` `0.40.0`; `/opt/homebrew/bin/gemini` is
-  older (`0.38.2`).
-- Capability: Gemini CLI has verified local `read_file`, web `web_fetch`,
-  `--include-directories`, and `--approval-mode yolo` support in this
-  workspace.
-- Controls: if the CLI backend drops first-class controls such as thinking
-  level, report that limitation before trusting the answer.
+  version. In this workspace the verified Antigravity CLI is
+  `/Users/triton/.local/bin/agy` `1.0.0`. The verified legacy Gemini CLI is
+  `/Users/triton/.local/bin/gemini`; `/opt/homebrew/bin/gemini` is older.
+- Capability: Antigravity CLI has verified `agy -p` print mode and
+  `--add-dir`; legacy Gemini CLI has verified local file, web,
+  `--include-directories`, and `--approval-mode yolo` support.
+- Controls: if the CLI backend drops first-class controls such as model,
+  thinking level, temperature, or approval mode, report that limitation before
+  trusting the answer.
 - Empty text: a successful-looking call with empty `text` is an error. Rerun or
   recover; do not treat empty text as Gemini's answer.
 - Timeouts: distinguish the server CLI timeout (`timeoutMs` or
   `GEMINI_CLI_TIMEOUT_MS`) from the Codex MCP/client timeout.
+- Tail checks: no `agy`, legacy `gemini`, or `gemini-mcp-*` tmux session should
+  remain after a call/run. A `node .../src/server.js` process whose parent is
+  Codex app-server is the active MCP transport, not a runaway Gemini call.
 
 ## Allowed Recovery
 
 - Fix auth, backend selection, MCP registration, session reload, `cwd`, or
   `includeDirectories`.
+- Set `GEMINI_MCP_BACKEND=antigravity` and
+  `ANTIGRAVITY_CLI_PATH=/Users/triton/.local/bin/agy` for the current Google
+  One / individual-user path.
 - Set `GEMINI_CLI_PATH=/Users/triton/.local/bin/gemini` when the wrong Gemini
-  CLI is selected.
+  CLI is selected for legacy managed runs.
 - Increase `timeoutMs` or the server timeout when the child process times out;
   restart/retry the Codex MCP call when the client timeout fires first.
-- Switch to Gemini CLI for full-agent work when available.
-- Use direct Gemini CLI only as recovery, and report that the final answer came
+- Switch to Antigravity CLI for Gemini 3.5 Flash work when available.
+- Use direct `agy`/Gemini CLI only as recovery, and report that the final answer came
   from direct CLI recovery rather than a clean MCP call.
 - Use excerpts or diffs only for an intentionally bounded evidence review, and
   say that Gemini is judging only supplied evidence.
@@ -51,8 +59,8 @@ with Codex's own reasoning, file reading, or a weaker local summary.
 - Do not call a prompt-only answer a full project inspection.
 - Do not accept empty `text` as success.
 - Do not call direct CLI recovery a clean MCP result.
-- Do not accept SDK/Vertex silently when the task depends on local files, web
-  tools, whole-computer search, or Gemini CLI permissions.
+- Do not add API/SDK/Vertex recovery paths when the chosen contract is
+  account-backed CLI.
 
 ## Report
 

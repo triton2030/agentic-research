@@ -64,7 +64,7 @@ defensive repetition, автоматический fan-out или устарев
   ответов пользователя. Создавать через `1start-here` / `1folder-contract`,
   wording маршрута чинить через `1instruction-layer`, оформлять через
   `1obsidian`; после разбора переносить смысл к владельцам и архивировать.
-- `_ops/problems/**` — временный слой только для реальных актуальных проблем:
+- `_ops/findings/**` — временный слой только для реальных актуальных находок:
   ошибок, подтверждённых сомнений, результатов аудита и субагентов, которые ещё
   не стали задачей, критерием или решением.
 - `_ops/plans/**` — только временные task-файлы по явному запросу для активной
@@ -88,9 +88,9 @@ defensive repetition, автоматический fan-out или устарев
 - `_ops/` — не общий склад заметок, backlog, идей, исследований или случайных
   plan-файлов.
 - По умолчанию `_ops/` содержит `AGENTS.md`, `GOAL.md`, `PROJECT-ROADMAP.md`,
-  `criteria/`, `interviews/`, `problems/` и ленивый `plans/`.
+  `criteria/`, `interviews/`, `findings/` и ленивый `plans/`.
 - `_ops/AGENTS.md` объясняет, как пользоваться папками `_ops/` и какие скилы
-  вызывать для planning, criteria, interviews и problems.
+  вызывать для planning, criteria, interviews и findings.
 - `INTERVIEW.md` и `LEARNINGS.md` не являются живыми рабочими поверхностями; не
   восстанавливать их. Для длинных вопросов использовать `_ops/interviews/**`,
   но только как временный вход, а не как постоянную память.
@@ -99,7 +99,7 @@ defensive repetition, автоматический fan-out или устарев
   или `python3 ~/.codex/skills/1start-here/scripts/init_project_shape.py <repo-root>` (Codex).
   Скрипт создаёт `README.md`, `_ops/AGENTS.md`, `_ops/GOAL.md`,
   `_ops/PROJECT-ROADMAP.md`, `_ops/criteria/`, `_ops/interviews/`,
-  `_ops/interviews/_archive/`, `_ops/problems/`, `_ops/problems/_archive/`,
+  `_ops/interviews/_archive/`, `_ops/findings/`, `_ops/findings/_archive/`,
   `_ops/plans/` и `_ops/plans/_archive/`, не перетирая существующие файлы.
 
 **Рабочие слои:**
@@ -126,9 +126,12 @@ defensive repetition, автоматический fan-out или устарев
   “проверь” переносить смысл в criteria, task-файлы, roadmap, GOAL/README или
   knowledge и архивировать файл в `_ops/interviews/_archive/`. Критерий:
   `_ops/criteria/interview-intake-workflow.md`.
-- **Проблемы — `_ops/problems/**`**:
-  лёгкий временный слой только для актуальных проблем до решения стратегии.
-  Это не задачи, не критерии, не backlog и не общий список наблюдений.
+- **Находки — `_ops/findings/**`** (owner `1findings`):
+  лёгкий временный слой только для актуальных находок до решения стратегии.
+  Quick-jot path — одна команда `~/.claude/skills/1findings/scripts/add.sh
+  <model> "<строка>"`, одна сессия = один файл; полная нота-документ только
+  если находка реально требует структуры. Это не задачи, не критерии, не
+  backlog и не общий список наблюдений.
 - **Task-файлы — `_ops/plans/**`** (owner `1planning`):
   опциональная временная поверхность только для активной сложной задачи, когда
   пользователь явно хочет task contract.
@@ -186,9 +189,9 @@ folder-system contract — не уровни планирования. В Codex 
 - Длинный набор вопросов к пользователю → `_ops/interviews/**` через
   `1start-here` / `1folder-contract`; Obsidian-форму брать из `1obsidian`,
   wording маршрута — через `1instruction-layer`.
-- Актуальная проблема, ошибка, подтверждённый риск аудита или результат
+- Актуальная находка, ошибка, подтверждённый риск аудита или результат
   субагента, который ещё не стал задачей, критерием или решением →
-  `_ops/problems/**`.
+  `_ops/findings/**`.
 - Описательные anti-goals / границы проекта → `_ops/GOAL.md` через
   `1strategy-docs`, если это выбранный scope-контракт.
 - Anti-goals в форме правила, красной линии или повторяемого критерия →

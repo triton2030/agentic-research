@@ -15,7 +15,7 @@ documentation.md", "маркер ради маркера") в данные, на
 - [_ops/criteria/repo-structure-and-runtime-guards.md](../../criteria/repo-structure-and-runtime-guards.md) — UserPromptSubmit как light reminder, runtime guards rules.
 - [_ops/criteria/skill-authoring.md](../../criteria/skill-authoring.md) — UserPromptSubmit лёгкое напоминание, `1work-review` проверяет факт применения после правок.
 - [_ops/criteria/planning-surface-ownership.md](../../criteria/planning-surface-ownership.md) — task structure, `_ops/plans/**` только по явному запросу.
-- [_ops/criteria/ops-problems-layer.md](../../criteria/ops-problems-layer.md) — где живут отчёты о находках.
+- [_ops/criteria/ops-findings-layer.md](../../criteria/ops-findings-layer.md) — где живут отчёты о находках.
 - `AGENTS.md`, `CLAUDE.md` (root) — repo-wide write rules и task-level anchor правило.
 
 ## Контекст
@@ -45,14 +45,14 @@ documentation.md", "маркер ради маркера") в данные, на
    EN: For each hook compute: total firings, legit-catch %, decorative %, redundant %. Decision rule: `legit-catch <20%` → migrate-or-drop candidate, `>50%` → keep with conditional firing.
 
 6. Записать находку через `1findings`.
-   EN: Write classification + decision matrix to `_ops/problems/hook-firing-counters.md` using `1findings` skill (Evidence + Current tension + Owner gap format).
+   EN: Write classification + decision matrix to `_ops/findings/hook-firing-counters.md` using `1findings` skill (Evidence + Current tension + Owner gap format).
 
 ## Готово
 
 - [ ] Shim прозрачно дописывает events в `~/.claude/state/hook-events.jsonl`, поведение текущих hooks не изменилось.
 - [ ] 5+ типовых задач прогнаны bare-prompt subagent'ами, transcripts сохранены.
 - [ ] Каждое событие классифицировано по таксономии failure-classes.
-- [ ] Counter-таблица per hook записана в `_ops/problems/hook-firing-counters.md`.
+- [ ] Counter-таблица per hook записана в `_ops/findings/hook-firing-counters.md`.
 - [ ] Decision per hook (keep / migrate / drop) принято на данных, не теоретически.
 
 ## Красные линии
@@ -73,7 +73,7 @@ style или task type.
 1. `jq 'select(.hook=="Stop")' ~/.claude/state/hook-events.jsonl | head`
    Ожидаемо: события Stop hook с классификацией, ts, session_id, turn_id.
 
-2. `cat /Users/triton/Documents/GitHub/agentic-research/_ops/problems/hook-firing-counters.md`
+2. `cat /Users/triton/Documents/GitHub/agentic-research/_ops/findings/hook-firing-counters.md`
    Ожидаемо: таблица per hook с legit/decorative/redundant ratios и decision.
 
 3. Manual review одного baseline transcript:

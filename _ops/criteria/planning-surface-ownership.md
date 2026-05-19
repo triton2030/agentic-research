@@ -34,7 +34,7 @@ Rule: `_ops/plans/**` используется только по явному з
 Why: В polygon-режиме task-файлы не являются backlog или активным списком задач.
 
 Rule: В `_ops/plans/` и каждой папке внутри неё должна быть `_archive/` для неактивных task-файлов и plan-веток.
-Why: User signal: задачи не всегда закрываются; если верхний слой изменился, старый нижний слой надо архивировать, чтобы он не управлял работой по инерции.
+Why: User signal: задачи не всегда закрываются; если верхний слой изменился, старый нижний слой надо архивировать, чтобы он не управлял работой по инерции. В staged mode каждая stage folder обязательна и должна иметь свой `_archive/`; в polygon mode папки создаются лениво, но как только папка создана — `_archive/` обязателен.
 
 Rule: Выполненные task/plan-файлы уходят в `_ops/plans/_archive/` или ближайший `_archive/` только после проверки фактического закрытия; если архивной папки нет, её создают перед переносом.
 Why: User signal: активные plans должны показывать живую работу, а архив нужен, чтобы полезная информация из выполненных планов не исчезала и не превращалась в обязательное чтение.
@@ -42,8 +42,8 @@ Why: User signal: активные plans должны показывать жи�
 Rule: Старые task-файлы нельзя использовать как текущее направление без явного пользовательского сигнала.
 Why: Исторические task-файлы возвращают старую roadmap-модель.
 
-Rule: Когда проект работает по стадиям, task-файлы выходят из `_ops/PROJECT-ROADMAP.md`: Stage, current mode или current path становятся якорем задачи.
-Why: User signal: «задачи всегда выходят из дорожной карты. И если меняется дорожная карта, то задачи тоже должны поменяться».
+Rule: Когда проект работает по стадиям, task-файлы выходят из `_ops/PROJECT-ROADMAP.md`: Stage, current mode или current path становятся якорем задачи. **Class-rule:** каждая Stage в `## Stages` chain ROADMAP materializes как отдельная папка `_ops/plans/<stage-slug>/` с собственным `_archive/`; task-файлы этой стадии живут только внутри её папки, не в корне `_ops/plans/`. Polygon-mode проект (нет `## Stages` chain в ROADMAP) использует domain-anchored folders или flat task в корне `_ops/plans/`. Lazy-vs-mandatory зависит от mode: в staged mode stage folder обязательна; в polygon mode папки создаются лениво.
+Why: User signal: «задачи всегда выходят из дорожной карты. И если меняется дорожная карта, то задачи тоже должны поменяться». User signal (2026-05-19): «каждая стадия должна быть отдельной папкой задач» — закрепляет class-rule mapping Stage → folder. Cross-stage task — сигнал что либо stage shape неверный, либо task на самом деле два. Если Stage переименован/split/merged, stage folder переименован/split/merged до continuing execution.
 
 Rule: Если roadmap edit меняет outcome, scope, NOT in scope, stop rules или подход — это работа `1strategy-docs` (он думает goal-formation internal работой и пишет GOAL/README/ROADMAP shape, не делегируя thinking в `1strategy`). Если меняется только decision подхода для конкретной задачи без задевания goal/scope, это `1strategy` (momentum decision-thinking).
 Why: Roadmap должен переводить выбранный подход в текущую картину пути. Goal-formation — document-driven deep thinking, живёт у владельца документа; momentum approach-choice в моменте — у `1strategy`. Раньше split был thinking-vs-commit, теперь document-level ownership лечит ownership leak.

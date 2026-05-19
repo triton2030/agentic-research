@@ -85,14 +85,14 @@ registerTool("gemini_status", "Report Gemini MCP configuration without making a 
 
 registerTool(
   "gemini_ask",
-  "Ask Gemini once. Uses authenticated Gemini CLI as a full local agent when available; SDK/Vertex are bounded API fallbacks.",
+  "Ask Gemini once through account-backed Antigravity CLI or legacy Gemini CLI.",
   askSchema,
   (args) => askGemini(args)
 );
 
 registerTool(
   "gemini_run",
-  "Start a managed Gemini CLI run. Returns run_id, status, log_dir, and saved process/tmux identifiers for later peek/wait/result/kill.",
+  "Start a managed Gemini CLI or Antigravity CLI run. Returns run_id, status, log_dir, and saved process/tmux identifiers for later peek/wait/result/kill.",
   {
     ...askSchema,
     useTmux: z.boolean().optional(),
@@ -103,7 +103,18 @@ registerTool(
 
 registerTool(
   "gemini_peek",
-  "Observe a Gemini run without stopping it: recent log milestones, relay text, and tmux_capture when a tmux pane is alive.",
+  "Observe a Gemini run without stopping it: recent log milestones, relay text, activity summary, and tmux_capture when a tmux pane is alive.",
+  {
+    run_id: z.string().min(1),
+    limit: z.number().int().positive().max(50).optional(),
+    cursor: z.number().int().nonnegative().optional()
+  },
+  (args) => peekRun(args.run_id, { limit: args.limit, cursor: args.cursor })
+);
+
+registerTool(
+  "gemini_observe",
+  "Observe a long Gemini/Antigravity run: elapsed time, recent logs, tool-like trace, tmux capture, warnings, cursor, and stop hint.",
   {
     run_id: z.string().min(1),
     limit: z.number().int().positive().max(50).optional(),

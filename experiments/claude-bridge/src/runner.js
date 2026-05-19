@@ -42,8 +42,29 @@ function shortText(value, max = 600) {
   return text.length > max ? `${text.slice(0, max - 3)}...` : text;
 }
 
+function safeRead(file, fallback = "") {
+  try {
+    return fs.existsSync(file) ? fs.readFileSync(file, "utf8") : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function trimText(value, limit = 4000) {
+  if (!value || value.length <= limit) return value || "";
+  return `${value.slice(0, limit)}\n...[truncated]`;
+}
+
+function shellQuote(value) {
+  return `'${String(value).replace(/'/g, `'\\''`)}'`;
+}
+
 function jsonLine(file, value) {
-  fs.appendFileSync(file, `${JSON.stringify(value)}\n`);
+  const event =
+    value && typeof value === "object" && !Array.isArray(value)
+      ? { observed_at: new Date().toISOString(), ...value }
+      : value;
+  fs.appendFileSync(file, `${JSON.stringify(event)}\n`);
 }
 
 function safeReadJson(file, fallback = null) {
@@ -76,17 +97,40 @@ function readJsonLines(file) {
     });
 }
 
+function readRunEvents(run) {
+  const recordedEvents = readJsonLines(run.eventsFile);
+  if (!run.useTmux) return recordedEvents;
+  const stdoutEvents = safeRead(run.stdoutFile)
+    .split(/\r?\n/u)
+    .filter(Boolean)
+    .map((line) => {
+      try {
+        return JSON.parse(line);
+      } catch {
+        return { type: "stdout", raw: line };
+      }
+    });
+  const stderrEvents = safeRead(run.stderrFile)
+    .split(/\r?\n/u)
+    .filter(Boolean)
+    .map((line) => ({ type: "stderr", raw: line }));
+  return [...recordedEvents, ...stdoutEvents, ...stderrEvents];
+}
+
 function filesForLogDir(logDir) {
   return {
     prompt: path.join(logDir, "prompt.txt"),
     profile: path.join(logDir, "profile.json"),
     command: path.join(logDir, "command.json"),
+    script: path.join(logDir, "run.sh"),
     events: path.join(logDir, "events.ndjson"),
     stdout: path.join(logDir, "stdout.log"),
     stderr: path.join(logDir, "stderr.log"),
+    tmuxPane: path.join(logDir, "tmux-pane.log"),
     debug: path.join(logDir, "debug.log"),
     report: path.join(logDir, "report.json"),
-    state: path.join(logDir, "state.json")
+    state: path.join(logDir, "state.json"),
+    exitCode: path.join(logDir, "exit-code.txt")
   };
 }
 
@@ -108,10 +152,95 @@ function commandSummary(command, args) {
   });
 }
 
+function scopedRunEnvAssignments(runId, runEnv = {}) {
+  const allowed = new Set([
+    "CLAUDE_CODE_DISABLE_AUTO_MEMORY",
+    "MCP_TIMEOUT",
+    "MAX_MCP_OUTPUT_TOKENS"
+  ]);
+  const assignments = [`CLAUDE_BRIDGE_RUN_ID=${shellQuote(runId)}`];
+  for (const [name, value] of Object.entries(runEnv)) {
+    if (value === undefined) continue;
+    if (/^FAKE_CLAUDE_/u.test(name) || allowed.has(name)) {
+      assignments.push(`${name}=${shellQuote(value)}`);
+    }
+  }
+  return assignments;
+}
+
+function stripClaudeApiCredentials(runEnv) {
+  delete runEnv.ANTHROPIC_API_KEY;
+  delete runEnv.CLAUDE_API_KEY;
+  return runEnv;
+}
+
+function tmuxVersion() {
+  try {
+    const result = spawnSync("tmux", ["-V"], { encoding: "utf8" });
+    if (result.status !== 0) return null;
+    return (result.stdout || result.stderr).trim() || "unknown";
+  } catch {
+    return null;
+  }
+}
+
+function tmuxHasSession(session) {
+  if (!session) return false;
+  const result = spawnSync("tmux", ["has-session", "-t", session], { encoding: "utf8" });
+  return result.status === 0;
+}
+
+function tmuxSignal(channel) {
+  if (!channel) return false;
+  const result = spawnSync("tmux", ["wait-for", "-S", channel], { encoding: "utf8" });
+  return result.status === 0;
+}
+
+function tmuxWait(channel, timeoutMs) {
+  if (!channel) return { status: 1, error: "missing channel" };
+  const result = spawnSync("tmux", ["wait-for", channel], {
+    encoding: "utf8",
+    timeout: timeoutMs
+  });
+  return {
+    status: result.status,
+    signal: result.signal,
+    error: result.error?.code || result.error?.message || null,
+    stdout: result.stdout || "",
+    stderr: result.stderr || ""
+  };
+}
+
+function tmuxCapturePane(run) {
+  if (!run.useTmux || !run.tmuxTarget || !tmuxHasSession(run.tmuxSession)) {
+    return { available: false, text: "", source: "tmux capture-pane" };
+  }
+  const result = spawnSync("tmux", ["capture-pane", "-p", "-t", run.tmuxTarget, "-S", "-200"], {
+    encoding: "utf8"
+  });
+  if (result.status !== 0) {
+    return {
+      available: false,
+      text: "",
+      source: "tmux capture-pane",
+      error: shortText(result.stderr || result.stdout || "capture-pane failed", 400)
+    };
+  }
+  return {
+    available: true,
+    text: trimText((result.stdout || "").trim(), 4000),
+    source: "tmux capture-pane"
+  };
+}
+
 function claudeHelpText() {
   const { command, prefixArgs } = resolveClaudeCommand();
   const help = spawnSync(command, [...prefixArgs, "--help"], { encoding: "utf8" });
   return `${help.stdout || ""}\n${help.stderr || ""}`;
+}
+
+function cliJsonValue(value) {
+  return typeof value === "string" ? value : JSON.stringify(value);
 }
 
 function assertSupportedOptions(options) {
@@ -119,8 +248,18 @@ function assertSupportedOptions(options) {
     ["maxTurns", "--max-turns"],
     ["systemPromptFile", "--system-prompt-file"],
     ["appendSystemPromptFile", "--append-system-prompt-file"],
-    ["permissionPromptTool", "--permission-prompt-tool"]
-  ].filter(([key]) => options[key]);
+    ["permissionPromptTool", "--permission-prompt-tool"],
+    ["permissionMode", "--permission-mode"],
+    ["jsonSchema", "--json-schema"],
+    ["agent", "--agent"],
+    ["agents", "--agents"],
+    ["pluginUrl", "--plugin-url"],
+    ["allowDangerouslySkipPermissions", "--allow-dangerously-skip-permissions"],
+    ["brief", "--brief"],
+    ["file", "--file"],
+    ["inputFormat", "--input-format"],
+    ["replayUserMessages", "--replay-user-messages"]
+  ].filter(([key]) => options[key] !== undefined && options[key] !== false);
 
   if (!requestedFlags.length) return;
 
@@ -154,13 +293,23 @@ function buildArgs({
   mcpConfig,
   strictMcpConfig,
   permissionPromptTool,
+  permissionMode,
+  jsonSchema,
+  agent,
+  agents,
   settings,
   settingSources,
   tools,
   allowedTools,
   disallowedTools,
   addDir,
-  pluginDir
+  pluginDir,
+  pluginUrl,
+  allowDangerouslySkipPermissions,
+  brief,
+  file,
+  inputFormat,
+  replayUserMessages
 }) {
   const profile = getProfile(profileName);
   const args = [...profile.flags, "--debug-file", debugFile];
@@ -211,6 +360,18 @@ function buildArgs({
   if (permissionPromptTool) {
     args.push("--permission-prompt-tool", permissionPromptTool);
   }
+  if (permissionMode) {
+    args.push("--permission-mode", permissionMode);
+  }
+  if (jsonSchema) {
+    args.push("--json-schema", cliJsonValue(jsonSchema));
+  }
+  if (agent) {
+    args.push("--agent", agent);
+  }
+  if (agents) {
+    args.push("--agents", cliJsonValue(agents));
+  }
   if (settings) {
     args.push("--settings", settings);
   }
@@ -231,6 +392,25 @@ function buildArgs({
   }
   for (const value of [].concat(pluginDir || [])) {
     args.push("--plugin-dir", value);
+  }
+  for (const value of [].concat(pluginUrl || [])) {
+    args.push("--plugin-url", value);
+  }
+  if (allowDangerouslySkipPermissions) {
+    args.push("--allow-dangerously-skip-permissions");
+  }
+  if (brief) {
+    args.push("--brief");
+  }
+  const fileSpecs = [].concat(file || []).filter(Boolean);
+  if (fileSpecs.length) {
+    args.push("--file", ...fileSpecs);
+  }
+  if (inputFormat) {
+    args.push("--input-format", inputFormat);
+  }
+  if (replayUserMessages) {
+    args.push("--replay-user-messages");
   }
   args.push(...extraArgs);
   args.push("-p", prompt);
@@ -416,6 +596,88 @@ function detectWarnings(events, cwd) {
   return warnings;
 }
 
+function eventObservedAt(event) {
+  return event?.observed_at || event?.timestamp || event?.time || event?.created_at || null;
+}
+
+function elapsedSeconds(startedAt) {
+  const started = Date.parse(startedAt || "");
+  if (!Number.isFinite(started)) return null;
+  return Math.max(0, Math.round((Date.now() - started) / 1000));
+}
+
+function toolTraceFromEvent(event, eventIndex) {
+  const normalized = normalizeEvent(event);
+  if (!normalized || !["tool_use", "tool_result"].includes(normalized.kind)) return null;
+  const core = event.event && typeof event.event === "object" ? event.event : event;
+  const input = core.input || event.input || core.tool_input || event.tool_input || {};
+  const command = input.command || input.cmd || null;
+  const filePath =
+    normalized.file_path ||
+    input.file_path ||
+    input.path ||
+    input.absolute_path ||
+    core.file_path ||
+    core.path ||
+    event.file_path ||
+    event.path ||
+    null;
+  return {
+    event_index: eventIndex,
+    observed_at: eventObservedAt(event),
+    kind: normalized.kind,
+    tool_name: normalized.tool_name || core.name || event.name || null,
+    file_path: filePath,
+    command: command ? shortText(command, 500) : null,
+    text: shortText(normalized.text || extractEventText(event), 500)
+  };
+}
+
+function activitySummary(events, run, { limit = 12, cursor = 0 } = {}) {
+  const startIndex = Math.max(0, Number(cursor) || 0);
+  const tmux = tmuxCapturePane(run);
+  const tool_trace = events
+    .map((event, eventIndex) => toolTraceFromEvent(event, eventIndex))
+    .filter(Boolean);
+  const recent_tool_trace = tool_trace.filter((event) => event.event_index >= startIndex).slice(-limit);
+  const counts = {};
+  for (const event of events) {
+    const normalized = normalizeEvent(event);
+    if (!normalized?.kind) continue;
+    counts[normalized.kind] = (counts[normalized.kind] || 0) + 1;
+  }
+  const recent_text = summarizeMilestones(events, limit, { cursor: startIndex, includeSessions: false })
+    .filter((event) => ["assistant_text", "result", "error", "rate_limit"].includes(event.kind))
+    .map((event) => ({
+      event_index: event.event_index,
+      kind: event.kind,
+      text: shortText(event.text, 700)
+    }));
+  const recentPaths = [
+    ...new Set(
+      [
+        ...recent_tool_trace.map((event) => event.file_path).filter(Boolean),
+        ...events.slice(-50).flatMap((event) => collectPathStrings(event))
+      ].filter(Boolean)
+    )
+  ].slice(-20);
+  return {
+    elapsed_seconds: elapsedSeconds(run.startedAt),
+    event_count: events.length,
+    last_event_at: [...events].reverse().map(eventObservedAt).find(Boolean) || null,
+    counts,
+    recent_tool_trace,
+    recent_paths: recentPaths,
+    recent_text,
+    tmux_capture_available: tmux.available,
+    last_tmux_output: shortText(tmux.text, 900),
+    note: "Observable trace only: tool calls, files, logs, warnings, and model-visible updates. Private chain-of-thought is not exposed.",
+    stop_hint: WAITABLE_STATUSES.has(run.status)
+      ? "Use claude_kill for this run_id if the trajectory is wrong or the run should stop."
+      : "Run is terminal; no kill is needed unless a fingerprint-matched process still appears in result."
+  };
+}
+
 function finalOutputDetails(events, max = 8000) {
   for (let index = events.length - 1; index >= 0; index -= 1) {
     const event = events[index];
@@ -503,12 +765,15 @@ function runFiles(run) {
     prompt: run.promptFile,
     profile: run.profileFile,
     command: run.commandFile,
+    script: run.scriptFile || null,
     events: run.eventsFile,
     stdout: run.stdoutFile,
     stderr: run.stderrFile,
+    tmux_pane: run.tmuxPaneFile || null,
     debug: run.debugFile,
     report: run.reportFile,
-    state: run.stateFile
+    state: run.stateFile,
+    exit_code: run.exitCodeFile || null
   };
 }
 
@@ -529,7 +794,13 @@ function writeState(run) {
     command: run.commandSummary,
     log_dir: run.logDir,
     files: runFiles(run),
-    orphan_reason: run.orphanReason || null
+    orphan_reason: run.orphanReason || null,
+    use_tmux: run.useTmux || false,
+    tmux_session: run.tmuxSession || null,
+    tmux_target: run.tmuxTarget || null,
+    tmux_start_channel: run.tmuxStartChannel || null,
+    tmux_go_channel: run.tmuxGoChannel || null,
+    tmux_done_channel: run.tmuxDoneChannel || null
   };
   writeJsonAtomic(run.stateFile, state);
   return state;
@@ -597,7 +868,40 @@ function signalMatchedProcessGroup(match, signal = "SIGTERM") {
   }
 }
 
+function refreshTmuxRun(run) {
+  if (!run.useTmux || !WAITABLE_STATUSES.has(run.status)) return run;
+  if (fs.existsSync(run.exitCodeFile)) {
+    const code = Number(safeRead(run.exitCodeFile, "1").trim());
+    run.exitCode = Number.isInteger(code) ? code : 1;
+    run.status = run.status === "killing" ? "killed" : run.exitCode === 0 ? "completed" : "failed";
+    markTerminal(run);
+    run.orphanReason = null;
+    writeState(run);
+    writeReport(run);
+    return run;
+  }
+  if (tmuxHasSession(run.tmuxSession)) {
+    run.status = run.status === "killing" ? "killing" : "running_orphaned";
+    run.managed = false;
+    run.orphanReason =
+      run.status === "killing"
+        ? "Kill was requested; tmux session is still alive."
+        : "tmux session is alive, but this MCP server does not own a child handle.";
+  } else {
+    run.status = run.status === "killing" ? "killed" : "orphaned";
+    markTerminal(run);
+    run.orphanReason =
+      run.status === "killed"
+        ? "Kill was requested and tmux session is no longer alive."
+        : "tmux session is gone and no exit-code.txt was recorded.";
+  }
+  writeState(run);
+  writeReport(run);
+  return run;
+}
+
 function refreshInactiveRun(run) {
+  if (run.useTmux) return refreshTmuxRun(run);
   if (["completed", "failed", "killed"].includes(run.status)) {
     const match = processMatchesRun(run);
     if (match.alive && match.matched) {
@@ -647,12 +951,15 @@ function buildRunFromState(runId, logDir, state) {
     promptFile: files.prompt,
     profileFile: files.profile,
     commandFile: files.command,
+    scriptFile: files.script,
     eventsFile: files.events,
     stdoutFile: files.stdout,
     stderrFile: files.stderr,
+    tmuxPaneFile: files.tmux_pane || files.tmuxPane || path.join(logDir, "tmux-pane.log"),
     debugFile: files.debug,
     reportFile: files.report,
     stateFile: files.state || path.join(logDir, "state.json"),
+    exitCodeFile: files.exit_code || files.exitCode || path.join(logDir, "exit-code.txt"),
     commandSummary: state.command || [],
     status: state.status || "completed_unknown",
     exitCode: state.exit_code ?? null,
@@ -663,7 +970,13 @@ function buildRunFromState(runId, logDir, state) {
     processGroupPid: state.process_group_pid ?? state.pid ?? null,
     child: null,
     managed: false,
-    orphanReason: state.orphan_reason || null
+    orphanReason: state.orphan_reason || null,
+    useTmux: Boolean(state.use_tmux),
+    tmuxSession: state.tmux_session || null,
+    tmuxTarget: state.tmux_target || null,
+    tmuxStartChannel: state.tmux_start_channel || null,
+    tmuxGoChannel: state.tmux_go_channel || null,
+    tmuxDoneChannel: state.tmux_done_channel || null
   };
 }
 
@@ -678,12 +991,15 @@ function buildRunFromLegacyReport(runId, logDir, report) {
     promptFile: files.prompt,
     profileFile: files.profile,
     commandFile: files.command,
+    scriptFile: files.script || path.join(logDir, "run.sh"),
     eventsFile: files.events,
     stdoutFile: files.stdout,
     stderrFile: files.stderr,
+    tmuxPaneFile: files.tmux_pane || files.tmuxPane || path.join(logDir, "tmux-pane.log"),
     debugFile: files.debug,
     reportFile: files.report || path.join(logDir, "report.json"),
     stateFile: files.state || path.join(logDir, "state.json"),
+    exitCodeFile: files.exit_code || files.exitCode || path.join(logDir, "exit-code.txt"),
     commandSummary: report.command || [],
     status,
     exitCode: report.exit_code ?? null,
@@ -694,14 +1010,21 @@ function buildRunFromLegacyReport(runId, logDir, report) {
     processGroupPid: report.process_group_pid ?? report.pid ?? null,
     child: null,
     managed: false,
-    orphanReason: status === "completed_unknown" ? "Legacy run has no durable state.json." : null
+    orphanReason: status === "completed_unknown" ? "Legacy run has no durable state.json." : null,
+    useTmux: Boolean(report.use_tmux),
+    tmuxSession: report.tmux_session || null,
+    tmuxTarget: report.tmux_target || null,
+    tmuxStartChannel: report.tmux_start_channel || null,
+    tmuxGoChannel: report.tmux_go_channel || null,
+    tmuxDoneChannel: report.tmux_done_channel || null
   };
 }
 
 function buildReport(run) {
-  const events = readJsonLines(run.eventsFile);
+  const events = readRunEvents(run);
   const warnings = detectWarnings(events, run.cwd);
   const milestones = summarizeMilestones(events);
+  const activity = activitySummary(events, run);
 
   return {
     run_id: run.runId,
@@ -717,7 +1040,12 @@ function buildReport(run) {
     session_id: run.sessionId ?? null,
     log_dir: run.logDir,
     command: run.commandSummary,
+    use_tmux: run.useTmux || false,
+    tmux_session: run.tmuxSession || null,
+    tmux_target: run.tmuxTarget || null,
+    tmux_capture: tmuxCapturePane(run),
     warnings,
+    activity,
     milestones,
     events: milestones,
     chat_relay: buildFinalChatRelay(events),
@@ -730,6 +1058,52 @@ function writeReport(run) {
   const report = buildReport(run);
   writeJsonAtomic(run.reportFile, report);
   return report;
+}
+
+function writeRunScript(files, run, command, args, runEnv) {
+  const commandLine = [
+    "env",
+    ...scopedRunEnvAssignments(run.runId, runEnv),
+    shellQuote(command),
+    ...args.map(shellQuote)
+  ].join(" ");
+  const lines = [
+    "#!/bin/bash",
+    `cd ${shellQuote(run.cwd)} || exit 127`,
+    "set +e",
+    `stdout_pipe=${shellQuote(path.join(run.logDir, "stdout.pipe"))}`,
+    `stderr_pipe=${shellQuote(path.join(run.logDir, "stderr.pipe"))}`,
+    "rm -f \"$stdout_pipe\" \"$stderr_pipe\"",
+    "mkfifo \"$stdout_pipe\" \"$stderr_pipe\"",
+    "cleanup_pipes() { rm -f \"$stdout_pipe\" \"$stderr_pipe\"; }",
+    "trap cleanup_pipes EXIT",
+    `tmux wait-for -S ${shellQuote(run.tmuxStartChannel)} 2>/dev/null || true`,
+    `tmux wait-for ${shellQuote(run.tmuxGoChannel)} 2>/dev/null || true`,
+    `tee -a ${shellQuote(files.stdout)} < "$stdout_pipe" &`,
+    "stdout_tee=$!",
+    `tee -a ${shellQuote(files.stderr)} < "$stderr_pipe" >&2 &`,
+    "stderr_tee=$!",
+    `${commandLine} > "$stdout_pipe" 2> "$stderr_pipe"`,
+    "code=$?",
+    "drain_tee() {",
+    "  local pid=\"$1\"",
+    "  local count=0",
+    "  while kill -0 \"$pid\" 2>/dev/null && [ \"$count\" -lt 20 ]; do",
+    "    sleep 0.05",
+    "    count=$((count + 1))",
+    "  done",
+    "  if kill -0 \"$pid\" 2>/dev/null; then",
+    "    kill \"$pid\" 2>/dev/null || true",
+    "  fi",
+    "  wait \"$pid\" 2>/dev/null || true",
+    "}",
+    "drain_tee \"$stdout_tee\"",
+    "drain_tee \"$stderr_tee\"",
+    `printf "%s" "$code" > ${shellQuote(files.exitCode)}`,
+    `tmux wait-for -S ${shellQuote(run.tmuxDoneChannel)} 2>/dev/null || true`,
+    "exit \"$code\""
+  ];
+  fs.writeFileSync(files.script, `${lines.join("\n")}\n`, { mode: 0o700 });
 }
 
 export function startRun(options = {}) {
@@ -754,13 +1128,25 @@ export function startRun(options = {}) {
     mcpConfig,
     strictMcpConfig,
     permissionPromptTool,
+    permissionMode,
+    jsonSchema,
+    agent,
+    agents,
     settings,
     settingSources,
     tools,
     allowedTools,
     disallowedTools,
     addDir,
-    pluginDir
+    pluginDir,
+    pluginUrl,
+    allowDangerouslySkipPermissions,
+    brief,
+    file,
+    inputFormat,
+    replayUserMessages,
+    useTmux,
+    tmuxMode
   } = options || {};
 
   if (!prompt || !String(prompt).trim()) {
@@ -789,6 +1175,7 @@ export function startRun(options = {}) {
     ...(profileConfig.env || {}),
     ...(options.env || {})
   };
+  stripClaudeApiCredentials(runEnv);
   if (options.disableAutoMemory) {
     runEnv.CLAUDE_CODE_DISABLE_AUTO_MEMORY = "1";
   }
@@ -798,7 +1185,7 @@ export function startRun(options = {}) {
   if (options.maxMcpOutputTokens) {
     runEnv.MAX_MCP_OUTPUT_TOKENS = String(options.maxMcpOutputTokens);
   }
-  const args = [
+  const claudeArgs = [
     ...prefixArgs,
     ...buildArgs({
       prompt: String(prompt),
@@ -820,35 +1207,39 @@ export function startRun(options = {}) {
       mcpConfig,
       strictMcpConfig,
       permissionPromptTool,
+      permissionMode,
+      jsonSchema,
+      agent,
+      agents,
       settings,
       settingSources,
       tools,
       allowedTools,
       disallowedTools,
       addDir,
-      pluginDir
+      pluginDir,
+      pluginUrl,
+      allowDangerouslySkipPermissions,
+      brief,
+      file,
+      inputFormat,
+      replayUserMessages
     })
   ];
-  const summary = commandSummary(command, args);
-  fs.writeFileSync(
-    files.command,
-    JSON.stringify(
-      {
-        command,
-        args,
-        summary,
-        cwd,
-        title,
-        env: {
-          CLAUDE_CODE_DISABLE_AUTO_MEMORY: runEnv.CLAUDE_CODE_DISABLE_AUTO_MEMORY || null,
-          MCP_TIMEOUT: runEnv.MCP_TIMEOUT || null,
-          MAX_MCP_OUTPUT_TOKENS: runEnv.MAX_MCP_OUTPUT_TOKENS || null
-        }
-      },
-      null,
-      2
-    )
-  );
+  const selectedUseTmux = Boolean(useTmux || tmuxMode);
+  if (selectedUseTmux && !tmuxVersion()) {
+    throw new Error("tmux mode requested, but tmux is not available. Install tmux or run without useTmux.");
+  }
+  const tmuxSession = selectedUseTmux ? `claude-bridge-${runId.replace(/[^A-Za-z0-9_-]/gu, "-")}` : null;
+  const tmuxTarget = selectedUseTmux ? `${tmuxSession}:0.0` : null;
+  const tmuxStartChannel = selectedUseTmux ? `${tmuxSession}-ready` : null;
+  const tmuxGoChannel = selectedUseTmux ? `${tmuxSession}-go` : null;
+  const tmuxDoneChannel = selectedUseTmux ? `${tmuxSession}-done` : null;
+  const runCommand = selectedUseTmux ? "tmux" : command;
+  const runArgs = selectedUseTmux
+    ? ["new-session", "-d", "-s", tmuxSession, "/bin/bash", files.script]
+    : claudeArgs;
+  const summary = commandSummary(runCommand, runArgs);
 
   const run = {
     runId,
@@ -858,12 +1249,15 @@ export function startRun(options = {}) {
     promptFile: files.prompt,
     profileFile: files.profile,
     commandFile: files.command,
+    scriptFile: files.script,
     eventsFile: files.events,
     stdoutFile: files.stdout,
     stderrFile: files.stderr,
+    tmuxPaneFile: files.tmuxPane,
     debugFile: files.debug,
     reportFile: files.report,
     stateFile: files.state,
+    exitCodeFile: files.exitCode,
     commandSummary: summary,
     status: "running",
     exitCode: null,
@@ -874,10 +1268,107 @@ export function startRun(options = {}) {
     processGroupPid: null,
     child: null,
     managed: true,
-    orphanReason: null
+    orphanReason: null,
+    useTmux: selectedUseTmux,
+    tmuxSession,
+    tmuxTarget,
+    tmuxStartChannel,
+    tmuxGoChannel,
+    tmuxDoneChannel
   };
 
-  const child = spawn(command, args, {
+  if (selectedUseTmux) {
+    writeRunScript(files, run, command, claudeArgs, runEnv);
+  }
+
+  fs.writeFileSync(
+    files.command,
+    JSON.stringify(
+      {
+        command: runCommand,
+        args: runArgs,
+        summary,
+        claude_command: command,
+        claude_args: claudeArgs,
+        cwd,
+        title,
+        use_tmux: selectedUseTmux,
+        tmux_session: tmuxSession,
+        tmux_target: tmuxTarget,
+        tmux_start_channel: tmuxStartChannel,
+        tmux_go_channel: tmuxGoChannel,
+        tmux_done_channel: tmuxDoneChannel,
+        env: {
+          CLAUDE_CODE_DISABLE_AUTO_MEMORY: runEnv.CLAUDE_CODE_DISABLE_AUTO_MEMORY || null,
+          MCP_TIMEOUT: runEnv.MCP_TIMEOUT || null,
+          MAX_MCP_OUTPUT_TOKENS: runEnv.MAX_MCP_OUTPUT_TOKENS || null,
+          api_key_env_stripped: true
+        }
+      },
+      null,
+      2
+    )
+  );
+
+  if (selectedUseTmux) {
+    const result = spawnSync(runCommand, runArgs, { encoding: "utf8" });
+    if (result.status !== 0) {
+      run.status = "failed";
+      fs.appendFileSync(files.stderr, result.stderr || result.stdout || "tmux start failed\n");
+      writeState(run);
+      writeReport(run);
+      throw new Error(`tmux failed to start Claude run: ${shortText(result.stderr || result.stdout, 600)}`);
+    }
+    const ready = tmuxWait(tmuxStartChannel, 5000);
+    if (ready.status !== 0) {
+      spawnSync("tmux", ["kill-session", "-t", tmuxSession], { encoding: "utf8" });
+      run.status = "failed";
+      fs.appendFileSync(files.stderr, ready.stderr || ready.error || "tmux pane did not reach ready channel\n");
+      writeState(run);
+      writeReport(run);
+      throw new Error(`tmux Claude run did not reach ready channel: ${shortText(ready.stderr || ready.error || "", 600)}`);
+    }
+    const pipe = spawnSync(
+      "tmux",
+      ["pipe-pane", "-o", "-t", tmuxTarget, `cat >> ${shellQuote(files.tmuxPane)}`],
+      { encoding: "utf8" }
+    );
+    if (pipe.status !== 0) {
+      spawnSync("tmux", ["kill-session", "-t", tmuxSession], { encoding: "utf8" });
+      run.status = "failed";
+      fs.appendFileSync(files.stderr, pipe.stderr || pipe.stdout || "tmux pipe-pane failed\n");
+      writeState(run);
+      writeReport(run);
+      throw new Error(`tmux pipe-pane failed: ${shortText(pipe.stderr || pipe.stdout, 600)}`);
+    }
+    if (!tmuxSignal(tmuxGoChannel)) {
+      spawnSync("tmux", ["kill-session", "-t", tmuxSession], { encoding: "utf8" });
+      run.status = "failed";
+      fs.appendFileSync(files.stderr, "tmux failed to signal Claude run start\n");
+      writeState(run);
+      writeReport(run);
+      throw new Error("tmux failed to signal Claude run start.");
+    }
+    run.pid = null;
+    run.managed = false;
+    jsonLine(files.events, { type: "tmux_start", session: tmuxSession, target: tmuxTarget });
+    jsonLine(files.events, { type: "tmux_pipe_pane", file: files.tmuxPane });
+    writeState(run);
+    writeReport(run);
+    return {
+      run_id: runId,
+      pid: null,
+      profile,
+      cwd,
+      log_dir: logDir,
+      status: run.status,
+      use_tmux: true,
+      tmux_session: tmuxSession,
+      tmux_target: tmuxTarget
+    };
+  }
+
+  const child = spawn(runCommand, runArgs, {
     cwd,
     env: runEnv,
     detached: true,
@@ -951,7 +1442,8 @@ export function startRun(options = {}) {
     profile,
     cwd,
     log_dir: logDir,
-    status: run.status
+    status: run.status,
+    use_tmux: false
   };
 }
 
@@ -972,7 +1464,7 @@ export function getRun(runId) {
 
 export function peekRun(runId, { limit = 12, cursor = 0 } = {}) {
   const run = getRun(runId);
-  const events = readJsonLines(run.eventsFile);
+  const events = readRunEvents(run);
   const report = buildReport(run);
   const nextCursor = events.length;
   const relayUpdates = summarizeMilestones(events, limit, { cursor, includeSessions: false });
@@ -986,8 +1478,28 @@ export function peekRun(runId, { limit = 12, cursor = 0 } = {}) {
     milestones: summarizeMilestones(events, limit),
     relay_updates: relayUpdates,
     chat_relay: buildPeekChatRelay(relayUpdates, nextCursor),
+    activity: activitySummary(events, run, { limit, cursor }),
+    tmux_capture: tmuxCapturePane(run),
     warnings: report.warnings,
     log_dir: run.logDir
+  };
+}
+
+function waitForTmuxRun(runId, timeoutMs) {
+  let run = getRun(runId);
+  if (!WAITABLE_STATUSES.has(run.status)) return writeReport(run);
+  if (fs.existsSync(run.exitCodeFile)) return writeReport(refreshTmuxRun(run));
+
+  const wait = tmuxWait(run.tmuxDoneChannel, timeoutMs);
+  run = getRun(runId);
+  if (fs.existsSync(run.exitCodeFile)) return writeReport(refreshTmuxRun(run));
+  if (!WAITABLE_STATUSES.has(run.status)) return writeReport(run);
+
+  return {
+    ...buildReport(run),
+    status: run.status,
+    timed_out: true,
+    wait_error: wait.error || null
   };
 }
 
@@ -995,6 +1507,9 @@ export function waitRun(runId, { timeoutMs = 120000 } = {}) {
   const run = getRun(runId);
   if (!WAITABLE_STATUSES.has(run.status)) {
     return Promise.resolve(writeReport(run));
+  }
+  if (run.useTmux) {
+    return Promise.resolve(waitForTmuxRun(runId, timeoutMs));
   }
   if (!run.child) {
     return Promise.resolve(writeReport(refreshInactiveRun(run)));
@@ -1005,13 +1520,37 @@ export function waitRun(runId, { timeoutMs = 120000 } = {}) {
     }, timeoutMs);
     run.child.once("close", () => {
       clearTimeout(timer);
-      resolve(writeReport(run));
+      resolve(writeReport(refreshInactiveRun(run)));
     });
   });
 }
 
 export function killRun(runId) {
   const run = getRun(runId);
+  if (run.useTmux) {
+    if (tmuxHasSession(run.tmuxSession)) {
+      const killed = spawnSync("tmux", ["kill-session", "-t", run.tmuxSession], { encoding: "utf8" });
+      if (killed.status !== 0) {
+        run.orphanReason = shortText(killed.stderr || killed.stdout || "tmux kill-session failed", 600);
+        writeState(run);
+        writeReport(run);
+        return { run_id: runId, status: run.status, killed: false, reason: run.orphanReason };
+      }
+      run.status = "killed";
+      markTerminal(run);
+      run.orphanReason = "Kill sent to saved tmux session.";
+      writeState(run);
+      writeReport(run);
+      return { run_id: runId, status: run.status, killed: true, tmux_session: run.tmuxSession };
+    }
+    run.status = fs.existsSync(run.exitCodeFile) ? run.status : run.status === "killing" ? "killed" : "orphaned";
+    markTerminal(run);
+    run.orphanReason =
+      run.status === "killed" ? "tmux session is already gone after kill request." : "tmux session is not alive.";
+    writeState(run);
+    writeReport(run);
+    return { run_id: runId, status: run.status, killed: false, reason: run.orphanReason };
+  }
   if (!run.child && ["completed", "failed", "killed"].includes(run.status)) {
     const signal = run.status === "killed" ? "SIGKILL" : "SIGTERM";
     const match = processMatchesRun(run);
@@ -1120,12 +1659,15 @@ export function doctor() {
     "--include-hook-events",
     "--debug-file",
     "--disable-slash-commands",
-    "--bare",
     "--verbose",
     "--max-turns",
     "--system-prompt-file",
     "--append-system-prompt-file",
     "--permission-prompt-tool",
+    "--permission-mode",
+    "--json-schema",
+    "--agent",
+    "--agents",
     "--setting-sources",
     "--settings",
     "--strict-mcp-config",
@@ -1133,6 +1675,12 @@ export function doctor() {
     "--disallowedTools",
     "--add-dir",
     "--plugin-dir",
+    "--plugin-url",
+    "--allow-dangerously-skip-permissions",
+    "--brief",
+    "--file",
+    "--input-format",
+    "--replay-user-messages",
     "--fallback-model",
     "--max-budget-usd",
     "--no-session-persistence",

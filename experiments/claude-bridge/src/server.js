@@ -31,14 +31,15 @@ function exitOnClosedStdio() {
   process.stdin.once("close", exit);
 }
 
-function textResult(value) {
+function textResult(value, options = {}) {
   return {
     content: [
       {
         type: "text",
         text: typeof value === "string" ? value : JSON.stringify(value, null, 2)
       }
-    ]
+    ],
+    ...options
   };
 }
 
@@ -54,9 +55,12 @@ function registerTool(name, description, inputSchema, handler) {
       try {
         return textResult(await handler(args));
       } catch (error) {
-        return textResult({
-          error: error instanceof Error ? error.message : String(error)
-        });
+        return textResult(
+          {
+            error: error instanceof Error ? error.message : String(error)
+          },
+          { isError: true }
+        );
       }
     }
   );
@@ -64,7 +68,7 @@ function registerTool(name, description, inputSchema, handler) {
 
 registerTool(
   "claude_run",
-  "Start a controlled Claude Code run. Returns run_id, saved pid, profile, cwd, and log_dir for later peek/wait/result/kill.",
+  "Start a controlled Claude Code run. Use useTmux for long human-observable terminal sessions. Returns run_id, saved pid/session, profile, cwd, and log_dir for later observe/peek/wait/result/kill.",
   {
     prompt: z.string().min(1),
     profile: z.string().optional().default("normal"),
@@ -85,6 +89,10 @@ registerTool(
     mcpConfig: z.union([z.string(), z.array(z.string())]).optional(),
     strictMcpConfig: z.boolean().optional(),
     permissionPromptTool: z.string().optional(),
+    permissionMode: z.enum(["acceptEdits", "auto", "bypassPermissions", "default", "dontAsk", "plan"]).optional(),
+    jsonSchema: z.union([z.string(), z.record(z.string(), z.unknown())]).optional(),
+    agent: z.string().optional(),
+    agents: z.union([z.string(), z.record(z.string(), z.unknown())]).optional(),
     settings: z.string().optional(),
     settingSources: z.union([z.string(), z.array(z.string())]).optional(),
     tools: z.union([z.string(), z.array(z.string())]).optional(),
@@ -92,6 +100,14 @@ registerTool(
     disallowedTools: z.union([z.string(), z.array(z.string())]).optional(),
     addDir: z.union([z.string(), z.array(z.string())]).optional(),
     pluginDir: z.union([z.string(), z.array(z.string())]).optional(),
+    pluginUrl: z.union([z.string(), z.array(z.string())]).optional(),
+    allowDangerouslySkipPermissions: z.boolean().optional(),
+    brief: z.boolean().optional(),
+    file: z.union([z.string(), z.array(z.string())]).optional(),
+    inputFormat: z.enum(["text", "stream-json"]).optional(),
+    replayUserMessages: z.boolean().optional(),
+    useTmux: z.boolean().optional(),
+    tmuxMode: z.boolean().optional(),
     disableAutoMemory: z.boolean().optional(),
     mcpTimeout: z.number().int().positive().optional(),
     maxMcpOutputTokens: z.number().int().positive().optional(),
@@ -104,6 +120,17 @@ registerTool(
 registerTool(
   "claude_peek",
   "Observe a Claude run without stopping it: recent milestones, warnings, relay updates, and cursor for evidence/timeouts.",
+  {
+    run_id: z.string().min(1),
+    limit: z.number().int().positive().max(50).optional(),
+    cursor: z.number().int().nonnegative().optional()
+  },
+  (args) => peekRun(args.run_id, { limit: args.limit, cursor: args.cursor })
+);
+
+registerTool(
+  "claude_observe",
+  "Observe a long Claude run: elapsed time, recent tool/file/command trace, model-visible updates, warnings, cursor, and stop hint.",
   {
     run_id: z.string().min(1),
     limit: z.number().int().positive().max(50).optional(),

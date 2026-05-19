@@ -32,12 +32,70 @@ from .search import (
 )
 
 
+def build_manifest() -> dict[str, object]:
+    """Machine-readable contract for skill/docs sync checks."""
+    return {
+        "name": "md_navigator",
+        "commands": [
+            "map",
+            "headings",
+            "pick",
+            "read",
+            "read-related",
+            "search",
+            "overlaps",
+            "index",
+            "status",
+            "repeated-concepts",
+            "cluster",
+            "manifest",
+        ],
+        "defaults": {
+            "embed_model": SEARCH_DEFAULT_EMBED_MODEL,
+            "embedding_api_url": SEARCH_DEFAULT_EMBEDDING_API_URL,
+            "embedding_timeout": SEARCH_DEFAULT_EMBEDDING_TIMEOUT,
+            "index_batch_size": DEFAULT_INDEX_BATCH,
+            "index_batch_pause_ms": int(DEFAULT_INDEX_PAUSE_S * 1000),
+            "max_auto_embed": DEFAULT_MAX_AUTO_EMBED,
+            "search_limit": SEARCH_DEFAULT_LIMIT,
+            "search_candidates": SEARCH_DEFAULT_CANDIDATES,
+            "search_scope": SEARCH_DEFAULT_SCOPE,
+        },
+        "env": [
+            "OPENROUTER_API_KEY",
+            "MD_EMBEDDING_API_KEY",
+            "MD_EMBEDDING_API_URL",
+            "MD_EMBEDDING_MODEL_ID",
+            "MD_EMBEDDING_TIMEOUT",
+            "MD_EMBEDDING_BATCH",
+            "MD_EMBEDDING_RETRY",
+            "MD_EMBEDDING_RETRY_BACKOFF",
+            "MD_NAVIGATOR_RUNTIME",
+            "MD_NAVIGATOR_HTTP_REFERER",
+            "MD_NAVIGATOR_TITLE",
+            "MD_NAVIGATOR_QUIET_KEY_SOURCE",
+        ],
+        "exit_codes": {
+            "0": "success or status report",
+            "1": "no Markdown/items or no indexed vectors for requested operation",
+            "2": "usage/path/input error",
+            "3": "dependency or embedding API failure",
+            "4": "index warmup required before search-like command can continue",
+        },
+    }
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Map Markdown files by frontmatter descriptions and headings, "
         "and run hybrid section search."
     )
     sub = parser.add_subparsers(dest="command", required=True)
+
+    sub.add_parser(
+        "manifest",
+        help="Print the machine-readable md_navigator command/default contract.",
+    )
 
     for name in ("map", "headings"):
         cmd = sub.add_parser(name, help=f"Build a Markdown {name} view for a folder.")
@@ -426,10 +484,9 @@ def parse_args() -> argparse.Namespace:
         "index",
         help=(
             "Build / top up the persistent vector index for a corpus. "
-            "Heavy operation: writes embeddings to disk in small batches with a "
-            "small pause so a low-spec laptop stays usable. Run this once when "
-            "you start working with a project; `search` and `overlaps` after "
-            "that are near-instant."
+            "Heavy operation: writes cloud embeddings to disk in batches. "
+            "Run this once when you start working with a project; `search` "
+            "and `overlaps` after that are near-instant."
         ),
     )
     index.add_argument("path", help="Folder or Markdown file to index.")
@@ -701,6 +758,10 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
+    if args.command == "manifest":
+        print(json.dumps(build_manifest(), ensure_ascii=False, indent=2))
+        return 0
+
     if args.command in {"map", "headings"}:
         data = build_map(Path(args.path), args.max_heading_level, with_tokens=args.with_tokens)
         data = apply_match_filter(data, args.match)

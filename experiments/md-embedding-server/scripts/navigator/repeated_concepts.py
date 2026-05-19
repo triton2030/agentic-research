@@ -90,7 +90,7 @@ def cmd_repeated_concepts(args) -> int:
         print(
             f"Missing Python dependency: {exc}.\n"
             f"  This script needs uv to resolve its inline deps "
-            f"(`sqlite-vec`, `pyyaml`).\n"
+            f"(`numpy`, `sqlite-vec`, `pyyaml`).\n"
             f"  Run it via the uv shebang:\n"
             f"    chmod +x md_navigator.py && ./md_navigator.py repeated-concepts ...\n"
             f"  Or explicitly:\n"

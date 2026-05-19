@@ -33,8 +33,10 @@ sources as a second strong advisor, not as a vague "ask Claude" side chat.
 2. Use `claude_doctor` when setup, flags, auth, or current capability are
    uncertain.
 3. Use `claude_profiles` before choosing a non-default profile.
-4. Start with `claude_run`; observe long or risky work with `claude_peek`, and
-   finish with `claude_wait` or `claude_result`.
+4. Start with `claude_run`; observe long or risky work with `claude_observe`
+   or `claude_peek`, and finish with `claude_wait` or `claude_result`.
+   For hour-scale or human-observable work, pass `useTmux: true` so Claude runs
+   in a real terminal session with logs and `tmux_capture`.
 5. Use `claude_kill` when a run loops, goes wrong, or the user asks to stop it.
 6. After `wait`, `result`, or `kill`, check the run is not still
    `running`/`running_orphaned` before closing the conversation.
@@ -46,9 +48,13 @@ sources as a second strong advisor, not as a vague "ask Claude" side chat.
    them.
 8. Use `cwd`/`addDir` when file access matters; do not ask Claude to judge only
    a Codex summary when the evidence is in files, logs, screenshots, or URLs.
+   For tighter per-call control, use first-class fields such as
+   `permissionMode`, `allowedTools`, `disallowedTools`, `jsonSchema`,
+   `agent`/`agents`, `pluginUrl`, `file`, `brief`, and `inputFormat` instead
+   of hiding important behavior in `extraArgs`.
 9. Treat Claude's findings as external evidence, not automatic task scope. If a
    finding describes a real current problem but strategy has not decided action,
-   Codex may stage it in `_ops/problems/**` after local review instead of
+   Codex may stage it in `_ops/findings/**` after local review instead of
    promoting it directly to `_ops/plans/**` or `_ops/criteria/*.md`.
 
 ## Independent Reviewer Mode
@@ -104,8 +110,12 @@ conversation noise.
 
 Report profile, cwd/addDir, context packet sources, run_id/log_dir, status,
 warnings, whether `chat_relay.truncated` was true, whether the answer was
-recovered from bridge logs, process-tail status, and skill/context-read evidence
-when that matters.
+recovered from bridge logs, process-tail status, activity trace, and
+skill/context-read evidence when that matters. `activity` is observable
+tool/file/log/tmux progress, not private chain-of-thought. A
+`node .../experiments/claude-bridge/src/server.js` process held by Codex
+app-server is the MCP transport, not a Claude model run; do not treat it as a
+paid tail.
 
 ## Stop Rule
 

@@ -22,7 +22,20 @@ const bridgeRoot = path.resolve(__dirname, "..");
 const fakeClaude = path.join(__dirname, "fixtures", "fake-claude.mjs");
 const cli = path.join(bridgeRoot, "src", "cli.js");
 const runsDir = path.join(bridgeRoot, "runs");
+const smokeTmuxSessions = new Set();
 process.env.CLAUDE_BRIDGE_CLAUDE_BIN = fakeClaude;
+
+function cleanupSmokeTmuxSessions() {
+  for (const session of smokeTmuxSessions) {
+    spawnSync("tmux", ["kill-session", "-t", session], { encoding: "utf8" });
+  }
+}
+
+function trackTmuxSession(payload) {
+  if (payload?.tmux_session) smokeTmuxSessions.add(payload.tmux_session);
+}
+
+process.once("exit", cleanupSmokeTmuxSessions);
 
 function cliJson(args) {
   const result = spawnSync(process.execPath, [cli, ...args], {
@@ -102,14 +115,16 @@ const doctorReport = doctor();
 assert.equal(doctorReport.ok, true);
 assert.equal(doctorReport.stream_json_supported, true);
 assert.equal(doctorReport.flags["--dangerously-skip-permissions"], true);
-assert.equal(Object.hasOwn(doctorReport.flags, "--agent"), false);
-assert.equal(Object.hasOwn(doctorReport.flags, "--agents"), false);
+assert.equal(doctorReport.flags["--permission-mode"], true);
+assert.equal(doctorReport.flags["--json-schema"], true);
+assert.equal(doctorReport.flags["--agent"], true);
+assert.equal(doctorReport.flags["--agents"], true);
 
 const profileList = profiles();
 assert.ok(profileList.some((profile) => profile.name === "turbo" && profile.flags.includes("--dangerously-skip-permissions")));
 assert.ok(profileList.some((profile) => profile.name === "no-skills" && profile.flags.includes("--disable-slash-commands")));
-assert.ok(profileList.some((profile) => profile.name === "clean" && profile.flags.includes("--bare")));
 assert.ok(profileList.some((profile) => profile.name === "no-memory"));
+assert.equal(profileList.some((profile) => profile.name === "clean"), false);
 assert.equal(profileList.some((profile) => profile.name === "subagent"), false);
 for (const profile of profileList) {
   if (profile.flags.includes("stream-json")) {
@@ -127,6 +142,11 @@ assert.throws(
   /does not advertise/
 );
 
+const fakeEnvCaptureFile = path.join(bridgeRoot, "runs", "_fake-claude-env.json");
+fs.rmSync(fakeEnvCaptureFile, { force: true });
+process.env.FAKE_CLAUDE_ENV_CAPTURE = fakeEnvCaptureFile;
+process.env.ANTHROPIC_API_KEY = "should-not-leak";
+process.env.CLAUDE_API_KEY = "should-not-leak";
 const started = startRun({
   prompt: "Return exactly BRIDGE_OK.",
   profile: "normal",
@@ -140,6 +160,13 @@ assert.equal(peek.run_id, started.run_id);
 assert.ok(Array.isArray(peek.milestones));
 
 const report = await waitRun(started.run_id, { timeoutMs: 10000 });
+const startedCommand = JSON.parse(fs.readFileSync(report.files.command, "utf8"));
+const fakeEnvCapture = JSON.parse(fs.readFileSync(fakeEnvCaptureFile, "utf8"));
+assert.equal(startedCommand.env.api_key_env_stripped, true);
+assert.deepEqual(fakeEnvCapture, { ANTHROPIC_API_KEY: null, CLAUDE_API_KEY: null });
+delete process.env.FAKE_CLAUDE_ENV_CAPTURE;
+delete process.env.ANTHROPIC_API_KEY;
+delete process.env.CLAUDE_API_KEY;
 assert.equal(report.status, "completed");
 assert.equal(report.managed, false);
 assert.match(report.final_output_summary, /BRIDGE_OK/);
@@ -168,6 +195,34 @@ const noMemoryRun = startRun({
 const noMemoryReport = await waitRun(noMemoryRun.run_id, { timeoutMs: 10000 });
 const noMemoryCommand = JSON.parse(fs.readFileSync(noMemoryReport.files.command, "utf8"));
 assert.equal(noMemoryCommand.env.CLAUDE_CODE_DISABLE_AUTO_MEMORY, "1");
+
+const newCliControlsRun = startRun({
+  prompt: "Return exactly BRIDGE_OK.",
+  profile: "read-only",
+  cwd: bridgeRoot,
+  permissionMode: "plan",
+  jsonSchema: { type: "object", properties: { ok: { type: "boolean" } }, required: ["ok"] },
+  agent: "reviewer",
+  agents: { reviewer: { description: "Reviews bridge smoke runs", prompt: "Review only." } },
+  pluginUrl: ["https://example.invalid/plugin.zip"],
+  allowDangerouslySkipPermissions: true,
+  brief: true,
+  file: ["file_abc:doc.txt"],
+  inputFormat: "text",
+  replayUserMessages: true
+});
+const newCliControlsReport = await waitRun(newCliControlsRun.run_id, { timeoutMs: 10000 });
+const newCliControlsCommand = JSON.parse(fs.readFileSync(newCliControlsReport.files.command, "utf8"));
+assert.ok(newCliControlsCommand.args.includes("--permission-mode"));
+assert.ok(newCliControlsCommand.args.includes("--json-schema"));
+assert.ok(newCliControlsCommand.args.includes("--agent"));
+assert.ok(newCliControlsCommand.args.includes("--agents"));
+assert.ok(newCliControlsCommand.args.includes("--plugin-url"));
+assert.ok(newCliControlsCommand.args.includes("--allow-dangerously-skip-permissions"));
+assert.ok(newCliControlsCommand.args.includes("--brief"));
+assert.ok(newCliControlsCommand.args.includes("--file"));
+assert.ok(newCliControlsCommand.args.includes("--input-format"));
+assert.ok(newCliControlsCommand.args.includes("--replay-user-messages"));
 
 const orphanId = `orphan-no-fingerprint-${Date.now()}`;
 writeSyntheticState(orphanId, {});
@@ -250,6 +305,63 @@ delete process.env.FAKE_CLAUDE_CHILD_PID_FILE;
 fs.rmSync(fakeParentPidFile, { force: true });
 fs.rmSync(fakeChildPidFile, { force: true });
 
+if (spawnSync("tmux", ["-V"], { encoding: "utf8" }).status === 0) {
+  const tmuxRun = startRun({
+    prompt: "Return exactly BRIDGE_OK via tmux.",
+    profile: "normal",
+    cwd: bridgeRoot,
+    useTmux: true
+  });
+  trackTmuxSession(tmuxRun);
+  assert.equal(tmuxRun.use_tmux, true);
+  assert.ok(tmuxRun.tmux_session);
+  const tmuxReport = await waitRun(tmuxRun.run_id, { timeoutMs: 10000 });
+  assert.equal(tmuxReport.status, "completed");
+  assert.equal(tmuxReport.use_tmux, true);
+  assert.equal(tmuxReport.managed, false);
+  assert.match(tmuxReport.final_output_summary, /BRIDGE_OK/u);
+  assert.match(tmuxReport.chat_relay.text, /BRIDGE_OK/u);
+  assert.ok(tmuxReport.files.tmux_pane);
+  assert.match(fs.readFileSync(tmuxReport.files.stdout, "utf8"), /BRIDGE_OK/u);
+  assert.match(fs.readFileSync(tmuxReport.files.tmux_pane, "utf8"), /BRIDGE_OK/u);
+  await new Promise((resolve) => setTimeout(resolve, 250));
+  assert.notEqual(
+    spawnSync("tmux", ["has-session", "-t", tmuxRun.tmux_session], { encoding: "utf8" }).status,
+    0
+  );
+
+  fs.rmSync(fakeParentPidFile, { force: true });
+  fs.rmSync(fakeChildPidFile, { force: true });
+  process.env.FAKE_CLAUDE_PID_FILE = fakeParentPidFile;
+  process.env.FAKE_CLAUDE_CHILD_PID_FILE = fakeChildPidFile;
+  const liveTmuxRun = startRun({
+    prompt: "SLEEP_BRIDGE",
+    profile: "normal",
+    cwd: bridgeRoot,
+    useTmux: true
+  });
+  trackTmuxSession(liveTmuxRun);
+  await waitForFile(fakeParentPidFile);
+  await waitForFile(fakeChildPidFile);
+  const liveParentPid = readPidFile(fakeParentPidFile);
+  const liveChildPid = readPidFile(fakeChildPidFile);
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  const livePeek = peekRun(liveTmuxRun.run_id, { cursor: 0 });
+  assert.equal(livePeek.tmux_capture.available, true);
+  assert.match(livePeek.tmux_capture.text, /Reading context/u);
+  assert.equal(livePeek.activity.tmux_capture_available, true);
+  const liveKill = killRun(liveTmuxRun.run_id);
+  assert.equal(liveKill.killed, true);
+  await waitForPidExit(liveParentPid, "Claude tmux parent");
+  await waitForPidExit(liveChildPid, "Claude tmux child");
+  const liveKilledReport = resultRun(liveTmuxRun.run_id);
+  assert.equal(liveKilledReport.status, "killed");
+  delete process.env.FAKE_CLAUDE_PID_FILE;
+  delete process.env.FAKE_CLAUDE_CHILD_PID_FILE;
+  fs.rmSync(fakeParentPidFile, { force: true });
+  fs.rmSync(fakeChildPidFile, { force: true });
+}
+
 const fixtureDir = path.join(runsDir, "_smoke-fixtures");
 fs.mkdirSync(fixtureDir, { recursive: true });
 const fixtureSkill = path.join(fixtureDir, "sample-skill.md");
@@ -306,11 +418,22 @@ await client.connect(transport);
 const tools = await client.listTools();
 const toolNames = tools.tools.map((tool) => tool.name);
 assert.ok(toolNames.includes("claude_run"));
+assert.ok(toolNames.includes("claude_observe"));
 assert.ok(toolNames.includes("claude_cleanup_runs"));
 assert.equal(toolNames.includes("claude_subagent_run"), false);
 assert.equal(toolNames.includes("claude_agents"), false);
 const doctorTool = await client.callTool({ name: "claude_doctor", arguments: {} });
 assert.ok(doctorTool.content?.[0]?.text?.includes("stream_json_supported"));
+const badRunTool = await client.callTool({
+  name: "claude_run",
+  arguments: {
+    prompt: "This should fail inside the handler.",
+    profile: "missing-profile",
+    cwd: bridgeRoot
+  }
+});
+assert.equal(badRunTool.isError, true);
+assert.match(badRunTool.content?.[0]?.text || "", /Unknown Claude bridge profile/u);
 const mcpRun = await client.callTool({
   name: "claude_run",
   arguments: {
@@ -342,6 +465,18 @@ const mcpPeek = await client.callTool({
 const mcpPeekPayload = JSON.parse(mcpPeek.content[0].text);
 assert.ok(mcpPeekPayload.next_cursor > 0);
 assert.match(mcpPeekPayload.chat_relay.text, /BRIDGE_OK/);
+assert.ok(mcpPeekPayload.activity);
+assert.ok(Array.isArray(mcpPeekPayload.activity.recent_text));
+const mcpObserve = await client.callTool({
+  name: "claude_observe",
+  arguments: {
+    run_id: mcpRunPayload.run_id,
+    cursor: 0
+  }
+});
+const mcpObservePayload = JSON.parse(mcpObserve.content[0].text);
+assert.ok(mcpObservePayload.activity);
+assert.match(mcpObservePayload.activity.note, /Observable trace only/u);
 const mcpCleanup = await client.callTool({
   name: "claude_cleanup_runs",
   arguments: { olderThanDays: 14 }

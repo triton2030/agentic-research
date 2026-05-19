@@ -155,7 +155,7 @@ Claude запускай `bash ~/.claude/skills/1start-here/scripts/init-three-le
 [/path]`; скрипт fill-missing и idempotent — создаёт skeleton'ы `README.md` /
 `AGENTS.md` / `CLAUDE.md` / `_ops/GOAL.md`, минимальный `_ops/PROJECT-ROADMAP.md`
 (current path TBD), пустой `_ops/project-graph.md` skeleton, пустые папки
-`_ops/{criteria,plans,interviews,problems}` с `_archive/` и `.gitkeep`. Файлы
+`_ops/{criteria,plans,interviews,findings}` с `_archive/` и `.gitkeep`. Файлы
 внутри добавляют owner-скилы по мере проекта.
 
 GitHub/push workflow читать через `_ops/criteria/git-backup-workflow.md`:

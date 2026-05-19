@@ -69,5 +69,8 @@ Why: User signal: русские chat labels тоже путают пользо�
 Rule: Criteria про русский human-facing текст не применяются к skill handles, `display_name`, metadata keys, command names, template field labels или status labels.
 Why: Иначе соседние критерии про удобочитаемые русские документы снова начинают конфликтовать с английской идентичностью скиллов и служебных меток.
 
+Rule: Codex skill `description` trigger phrases пишутся на языке пользователя проекта; для русско-говорящего пользователя — RU-primary (фразы которые пользователь реально печатает). Skill handles (`$1strategy`), `display_name`, и technical concept anchors остаются английскими: specification literalism, Owner Decision Map, OODA, one-way/two-way doors, lost-in-middle, DDD bounded contexts, defense in depth, leverage point, premortem, adversarial self-play, Hyrum unintentional contracts, ground-check.
+Why: User signal (2026-05-19): «я работаю с этими скилами на русском языке и триггеры должны быть на русском». English-only triggers вызывают undertriggering — matcher не видит фразы которые пользователь реально печатает. English identity скилов и устойчивых терминов сохраняется для cross-runtime portability и связи с canonical literature.
+
 Rule: Codex-скилл для субагентов явно говорит: это нативный механизм Codex, не CLI/MCP, и запуск требует прямого запроса или подтверждения брифа.
 Why: User signal: пользователь исправил `1fresh-eyes`, чтобы субагенты не вызывались через внешний обход или без разрешения.

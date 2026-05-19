@@ -19,7 +19,7 @@ Why: Иначе новый surface станет будущей точкой drif
 Rule: `_ops/` содержит горячую рабочую форму, а не backlog, inbox или архив.
 Why: `_ops` должен читаться в работе и не превращаться в склад заметок.
 
-Rule: `_ops/AGENTS.md` объясняет, как пользоваться папками `_ops` и какие скилы вызываются для recursive planning, criteria, interviews, problems и plans.
+Rule: `_ops/AGENTS.md` объясняет, как пользоваться папками `_ops` и какие скилы вызываются для recursive planning, criteria, interviews, findings и plans.
 Why: Агенты не должны писать случайные вещи в `_ops` без скилла или необходимости.
 
 Rule: Missing base shape создаётся через `bash ~/.claude/skills/1start-here/scripts/init-three-level.sh [/path]` (Claude) или `python3 ~/.codex/skills/1start-here/scripts/init_project_shape.py <repo-root>` (Codex); оба add недостающее без перезаписи существующих owner-файлов.

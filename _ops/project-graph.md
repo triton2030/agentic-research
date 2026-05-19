@@ -73,7 +73,7 @@ Owner: `1folder-contract`. Single source of truth о связях папок. Ro
   `_ops/criteria/design-subagent-analysis.md`, `1fresh-eyes` skill.
 - «интервью / длинные вопросники» →
   `_ops/criteria/interview-intake-workflow.md`,
-  `_ops/criteria/ops-problems-layer.md`.
+  `_ops/criteria/ops-findings-layer.md`.
 
 ## Veto-class
 
