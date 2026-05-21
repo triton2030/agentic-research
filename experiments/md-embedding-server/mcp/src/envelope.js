@@ -187,6 +187,48 @@ function deriveNextStep(result, { toolName, args, corpusRoot }) {
   return [];
 }
 
+// Fields the agent typically iterates. Counting them across known names lets
+// us report items_returned without per-tool knowledge.
+const COUNTABLE_LIST_FIELDS = [
+  "results", "files", "items", "pairs", "proposals", "sections",
+  "concepts", "headings", "cycles", "orphans", "hubs", "anchors",
+  "issues", "corpora", "unindexed_with_md", "must_read", "must_update",
+  "cascade_breaks", "reference_breaks", "body_wikilink_refs",
+  "body_markdown_refs", "modified", "changes", "topics", "candidates",
+  "folder_breakdown", "scopes"
+];
+
+// Soft threshold for "this reply is heavy on attention budget". Surfaces a
+// warning so the agent can switch to a narrower path (`top: 5`, scope,
+// path_include, or future verbose:false default).
+const LARGE_REPLY_BYTES = 10_000;
+
+function computeSizeEstimate(result) {
+  if (!result || typeof result !== "object") return null;
+
+  let bytes = null;
+  try {
+    bytes = JSON.stringify(result).length;
+  } catch {}
+
+  let items_returned = 0;
+  let counted_fields = [];
+  for (const field of COUNTABLE_LIST_FIELDS) {
+    const v = result[field];
+    if (Array.isArray(v) && v.length > 0) {
+      items_returned += v.length;
+      counted_fields.push({ field, count: v.length });
+    }
+  }
+
+  const out = { bytes, items_returned };
+  if (counted_fields.length > 0) out.counted_fields = counted_fields;
+  if (bytes !== null && bytes > LARGE_REPLY_BYTES) {
+    out.large_reply = true;
+  }
+  return out;
+}
+
 /**
  * Wrap a tool result in the standard md-mcp envelope.
  *
@@ -204,6 +246,7 @@ function deriveNextStep(result, { toolName, args, corpusRoot }) {
 export function wrap(result, { toolName, args, lock = null, corpusState = null } = {}) {
   const corpusRoot = resolveCorpusRoot(args);
   const nextStep = deriveNextStep(result, { toolName, args, corpusRoot });
+  const size_estimate = computeSizeEstimate(result);
 
   const envelope = {
     version: ENVELOPE_VERSION,
@@ -212,6 +255,7 @@ export function wrap(result, { toolName, args, lock = null, corpusState = null }
     corpus_state: corpusState,
     lock,
     cost: getCostSnapshot(),
+    size_estimate,
     next_step: nextStep
   };
 
