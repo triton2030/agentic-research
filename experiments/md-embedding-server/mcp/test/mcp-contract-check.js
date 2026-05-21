@@ -220,18 +220,56 @@ async function checkGraphMutatorParity() {
     const initLive = await callJson(client, "md_init", {
       paths: [root],
       path_include: [includePattern],
-      confirm: true
+      confirm: true,
+      transaction_id: initDry.transaction_id
     });
     const missingText = await readFile(missing, "utf8");
     const excludedText = await readFile(excluded, "utf8");
     record(
       "md_init dry_run/live parity",
       initDry.file_count === 1 &&
+        typeof initDry.transaction_id === "string" &&
+        typeof initDry.fingerprint === "string" &&
         initLive.parse_failed !== true &&
         initLive.changed === 1 &&
         initDry.file_count === initLive.changed &&
         missingText.startsWith("---\n") &&
         !excludedText.startsWith("---\n")
+    );
+
+    // Drift detection: modify a file between dry_run and confirm — must reject.
+    const driftPath = join(includeDir, "drift.md");
+    await writeFile(driftPath, "# Drift\n\nOriginal body.\n", "utf8");
+    const driftDry = await callJson(client, "md_init", {
+      paths: [root],
+      path_include: [includePattern],
+      dry_run: true
+    });
+    // Mutate the file content out-of-band.
+    await writeFile(driftPath, "# Drift\n\nMutated body.\n", "utf8");
+    const driftConfirm = await callJson(client, "md_init", {
+      paths: [root],
+      path_include: [includePattern],
+      confirm: true,
+      transaction_id: driftDry.transaction_id
+    });
+    record(
+      "md_init drift detected",
+      driftConfirm.error === "drift_detected" &&
+        typeof driftConfirm.original_fingerprint === "string" &&
+        typeof driftConfirm.current_fingerprint === "string" &&
+        driftConfirm.original_fingerprint !== driftConfirm.current_fingerprint
+    );
+
+    // Confirm without transaction_id: must reject with structured error.
+    const noTxn = await callJson(client, "md_init", {
+      paths: [root],
+      path_include: [includePattern],
+      confirm: true
+    });
+    record(
+      "md_init confirm without transaction rejected",
+      noTxn.error === "transaction_required"
     );
 
     const legacy = join(includeDir, "legacy.md");
@@ -271,7 +309,8 @@ async function checkGraphMutatorParity() {
       paths: [root],
       path_include: [includePattern],
       also_related_section: true,
-      confirm: true
+      confirm: true,
+      transaction_id: stripDry.transaction_id
     });
     const stripped = await readFile(legacy, "utf8");
     record(

@@ -1,7 +1,9 @@
+import { resolve } from "node:path";
 import { z } from "zod";
 
 import { resolveGraphScript } from "../paths.js";
 import { spawnPython, tryParseJson } from "../subprocess.js";
+import { computeFingerprint, consumeTransaction, createTransaction, verifyTransaction } from "../transaction.js";
 
 const GRAPH_EXIT_CODES = {
   FINDINGS: 1,
@@ -344,27 +346,67 @@ COST: Free but DESTRUCTIVE — modifies .md files in place. Use dry_run first.`,
       paths: z.array(z.string().min(1)).optional().describe("Files or directories (default: current directory)"),
       confirm: z.boolean().optional().describe("Required true to actually run. Default false rejects with destructive warning."),
       dry_run: z.boolean().optional().describe("If true, return list of files that would be modified without writing."),
+      transaction_id: z.string().optional().describe("Token from a prior dry_run. Required for confirm:true to detect file drift."),
       path_include: z.array(z.string().min(1)).optional(),
       path_exclude: z.array(z.string().min(1)).optional()
     },
-    async ({ paths, confirm, dry_run, path_include, path_exclude }) => {
+    async ({ paths, confirm, dry_run, transaction_id, path_include, path_exclude }) => {
       if (dry_run) {
         const est = await estimateInitScope(paths, path_include, path_exclude);
+        const absoluteFiles = est.files_to_modify.map((p) => resolve(p));
+        const { fingerprint, files } = await computeFingerprint(absoluteFiles);
+        const txn = est.file_count > 0
+          ? createTransaction({
+              tool: "md_init",
+              args: { paths, path_include, path_exclude },
+              fingerprint,
+              files
+            })
+          : null;
         return {
           dry_run: true,
           ...est,
+          ...(txn && {
+            transaction_id: txn.id,
+            transaction_expires_at: txn.expires_at,
+            fingerprint
+          }),
           hint: est.file_count === 0
             ? "No files need init — frontmatter present everywhere."
-            : `Pass confirm:true to add frontmatter template to ${est.file_count} files.`
+            : `Pass confirm:true with transaction_id="${txn.id}" to add frontmatter template to ${est.file_count} files.`
         };
       }
       if (!confirm) {
         return {
           error: "confirm_required",
           reason: "Destructive operation: modifies .md files in place.",
-          hint: "Pass dry_run:true to see affected files, then confirm:true to proceed."
+          hint: "Pass dry_run:true to obtain transaction_id, then confirm:true with that id."
         };
       }
+      if (!transaction_id) {
+        return {
+          error: "transaction_required",
+          reason: "Destructive confirm requires a transaction_id obtained from a recent dry_run.",
+          hint: "Run md_init with dry_run:true first to obtain transaction_id, then pass it with confirm:true."
+        };
+      }
+      const v = await verifyTransaction(transaction_id, "md_init");
+      if (!v.ok) {
+        return {
+          error: v.reason,
+          ...(v.reason === "drift_detected" && {
+            original_fingerprint: v.original_fingerprint,
+            current_fingerprint: v.current_fingerprint,
+            original_files: v.original_files
+          }),
+          hint: v.reason === "drift_detected"
+            ? "Files changed since dry_run. Re-run md_init dry_run:true to obtain a fresh transaction_id."
+            : v.reason === "tool_mismatch"
+              ? `transaction_id was issued by ${v.got || "another tool"}, not md_init.`
+              : "Transaction expired or unknown. Re-run md_init dry_run:true to obtain a fresh transaction_id."
+        };
+      }
+      consumeTransaction(transaction_id);
       const args = ["init", "--json"];
       pushRepeated(args, "--path-include", path_include);
       pushRepeated(args, "--path-exclude", path_exclude);
@@ -391,28 +433,68 @@ COST: Free but DESTRUCTIVE — modifies .md files. Use dry_run first.`,
       paths: z.array(z.string().min(1)).optional().describe("Files or directories (default: current directory)"),
       confirm: z.boolean().optional().describe("Required true to actually run."),
       dry_run: z.boolean().optional().describe("If true, return list of files that would be modified."),
+      transaction_id: z.string().optional().describe("Token from a prior dry_run. Required for confirm:true to detect file drift."),
       also_related_section: z.boolean().optional().describe("Also remove '## Связанные документы' / '## Related documents' sections from body."),
       path_include: z.array(z.string().min(1)).optional(),
       path_exclude: z.array(z.string().min(1)).optional()
     },
-    async ({ paths, confirm, dry_run, also_related_section, path_include, path_exclude }) => {
+    async ({ paths, confirm, dry_run, transaction_id, also_related_section, path_include, path_exclude }) => {
       if (dry_run) {
         const est = await estimateStripScope(paths, also_related_section, path_include, path_exclude);
+        const absoluteFiles = est.files_to_modify.map((p) => resolve(p));
+        const { fingerprint, files } = await computeFingerprint(absoluteFiles);
+        const txn = est.file_count > 0
+          ? createTransaction({
+              tool: "md_strip",
+              args: { paths, also_related_section, path_include, path_exclude },
+              fingerprint,
+              files
+            })
+          : null;
         return {
           dry_run: true,
           ...est,
+          ...(txn && {
+            transaction_id: txn.id,
+            transaction_expires_at: txn.expires_at,
+            fingerprint
+          }),
           hint: est.file_count === 0
             ? "No legacy fields found — nothing to strip."
-            : `Pass confirm:true to strip legacy fields from ${est.file_count} files.`
+            : `Pass confirm:true with transaction_id="${txn.id}" to strip legacy fields from ${est.file_count} files.`
         };
       }
       if (!confirm) {
         return {
           error: "confirm_required",
           reason: "Destructive operation: removes frontmatter fields and optionally body sections.",
-          hint: "Pass dry_run:true to see affected files, then confirm:true to proceed."
+          hint: "Pass dry_run:true to obtain transaction_id, then confirm:true with that id."
         };
       }
+      if (!transaction_id) {
+        return {
+          error: "transaction_required",
+          reason: "Destructive confirm requires a transaction_id obtained from a recent dry_run.",
+          hint: "Run md_strip with dry_run:true first to obtain transaction_id, then pass it with confirm:true."
+        };
+      }
+      const v = await verifyTransaction(transaction_id, "md_strip");
+      if (!v.ok) {
+        return {
+          error: v.reason,
+          ...(v.reason === "drift_detected" && {
+            original_fingerprint: v.original_fingerprint,
+            current_fingerprint: v.current_fingerprint,
+            original_files: v.original_files
+          }),
+          hint: v.reason === "drift_detected"
+            ? "Files changed since dry_run. Re-run md_strip dry_run:true to obtain a fresh transaction_id."
+            : v.reason === "tool_mismatch"
+              ? `transaction_id was issued by ${v.got || "another tool"}, not md_strip.`
+              : "Transaction expired or unknown. Re-run md_strip dry_run:true to obtain a fresh transaction_id."
+        };
+      }
+      consumeTransaction(transaction_id);
       const args = ["strip", "--json"];
       if (also_related_section) args.push("--also-related-section");
       pushRepeated(args, "--path-include", path_include);
