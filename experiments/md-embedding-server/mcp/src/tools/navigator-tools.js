@@ -2,7 +2,7 @@ import { z } from "zod";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { randomBytes } from "node:crypto";
-import { writeFile, unlink } from "node:fs/promises";
+import { readdir, stat, writeFile, unlink } from "node:fs/promises";
 
 import { resolveNavigatorScript } from "../paths.js";
 import { spawnPython, tryParseJson } from "../subprocess.js";
@@ -116,6 +116,88 @@ async function withTempMap(mapData, callback) {
   } finally {
     await unlink(path).catch(() => {});
   }
+}
+
+// Repo-wide corpus scan: walks filesystem, finds .md-navigator/ corpora and
+// folders with .md files that have no corpus. Filesystem only — no subprocess
+// per-corpus state probe (agent calls md_status for that).
+const SCAN_EXCLUDED_DIRS = new Set([
+  ".git", ".github", ".claude", ".codex", ".md-navigator",
+  ".cache", ".venv", "venv", "__pycache__", ".pytest_cache",
+  ".mypy_cache", ".ruff_cache", "node_modules", ".next", ".nuxt",
+  "dist", "build", "out", "target", "_archive", "runs"
+]);
+
+async function fileExists(path) {
+  try {
+    await stat(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function scanRepoForCorpora(repoRoot, maxDepth = 10) {
+  const root = resolve(repoRoot);
+  const corpora = [];
+  const unindexed = [];
+
+  async function walk(dir, depth) {
+    if (depth > maxDepth) return;
+
+    let entries;
+    try {
+      entries = await readdir(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+
+    const indexPath = join(dir, ".md-navigator", "index.sqlite");
+    const hasCorpus = await fileExists(indexPath);
+    if (hasCorpus) {
+      const entry = { root: dir, index_path: indexPath };
+      try {
+        const st = await stat(indexPath);
+        entry.last_touched = st.mtime.toISOString();
+        entry.index_size_bytes = st.size;
+      } catch {}
+      corpora.push(entry);
+    }
+
+    let mdCount = 0;
+    for (const e of entries) {
+      if (e.isFile() && (e.name.endsWith(".md") || e.name.endsWith(".mdx"))) {
+        mdCount++;
+      }
+    }
+    if (mdCount > 0 && !hasCorpus) {
+      unindexed.push({ folder: dir, md_files: mdCount });
+    }
+
+    for (const e of entries) {
+      if (!e.isDirectory()) continue;
+      if (SCAN_EXCLUDED_DIRS.has(e.name)) continue;
+      if (e.name.startsWith(".") && e.name !== "." && e.name !== "..") continue;
+      await walk(join(dir, e.name), depth + 1);
+    }
+  }
+
+  await walk(root, 0);
+
+  // Filter unindexed: drop folders covered by an ancestor corpus. The agent
+  // cares about "where is .md without coverage", not "subfolder of an indexed
+  // corpus that doesn't have its own nested .md-navigator".
+  const corpusRoots = corpora.map((c) => c.root);
+  const reallyUnindexed = unindexed.filter((u) => {
+    return !corpusRoots.some((cr) => u.folder === cr || u.folder.startsWith(cr + "/"));
+  });
+
+  return {
+    repo_root: root,
+    corpora,
+    unindexed_with_md: reallyUnindexed,
+    excluded_dirs_skipped: [...SCAN_EXCLUDED_DIRS].sort()
+  };
 }
 
 // Dry-run helper: estimate pending chunks via `status` command (no HTTP).
@@ -572,6 +654,26 @@ COST: Heuristic mode free. LLM mode ~$0.0005/section (haiku). Use dry_run first.
       return await runNavigator(args, { timeoutMs: 600_000 });
     },
     { readOnlyHint: false, openWorldHint: true, idempotentHint: false }
+  );
+
+  registerTool(
+    "md_corpus_scan",
+    `Repo-wide scan: find all md-navigator corpora and folders with .md files without a corpus.
+
+WHEN: Cold session start, "what's indexed where?" agent question, repo-wide health check before committing to one corpus.
+WHY OURS: Single filesystem walk replaces manually checking every .md-navigator/. Surfaces unindexed .md folders so you know what was NOT covered (intentionally or by oversight).
+INPUT: root (default cwd).
+OUTPUT: { repo_root, corpora: [{root, index_path, last_touched, index_size_bytes}], unindexed_with_md: [{folder, md_files}], excluded_dirs_skipped }.
+ALT: md_status for one corpus's freshness state. md_orient for cold-start of one corpus.
+COST: Free. Filesystem walk only, no subprocess, no HTTP.`,
+    {
+      root: z.string().optional().describe("Repo root to scan from (default: server cwd).")
+    },
+    async ({ root }) => {
+      const target = root || process.cwd();
+      return await scanRepoForCorpora(target);
+    },
+    { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true }
   );
 }
 

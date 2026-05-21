@@ -18,7 +18,7 @@ const KNOWLEDGE = resolve(REPO, "knowledge");
 const AGENTS = resolve(KNOWLEDGE, "agents");
 const FILE = resolve(AGENTS, "evaluation.md");
 
-// 28 tools total: 27 public-facing + md_ping (server health).
+// 29 tools total: 28 public-facing + md_ping (server health).
 const EXPECTED_TOOLS = [
   // Composite (6)
   "md_audit",
@@ -27,7 +27,8 @@ const EXPECTED_TOOLS = [
   "md_query_by_type",
   "md_refactor_candidates",
   "md_section_blast_radius",
-  // Atomic navigation/content (7)
+  // Atomic navigation/content (8)
+  "md_corpus_scan",
   "md_extract",
   "md_importance",
   "md_ls",
@@ -127,6 +128,15 @@ await expect("md_ping", {}, (p) => Boolean(p.name === "md-mcp" && p.version === 
 
 await expect("md_status", { corpus: KNOWLEDGE }, (p) =>
   typeof p.text === "string" && p.text.includes("Corpus:") ? true : "missing Corpus: line"
+);
+
+await expect("md_corpus_scan", { root: REPO }, (p) =>
+  typeof p.repo_root === "string" &&
+  Array.isArray(p.corpora) &&
+  Array.isArray(p.unindexed_with_md) &&
+  Array.isArray(p.excluded_dirs_skipped)
+    ? true
+    : "missing corpus_scan fields"
 );
 
 await expect("md_ls", { path: AGENTS }, (p) =>

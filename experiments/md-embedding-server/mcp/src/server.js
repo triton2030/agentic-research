@@ -70,6 +70,7 @@ const TOOL_ANNOTATION_ALLOWLIST = {
   md_audit: { readOnlyHint: false, destructiveHint: false, openWorldHint: true, idempotentHint: true },
   md_changed: { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
   md_check: { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+  md_corpus_scan: { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
   md_cycles: { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
   md_deps: { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
   md_edit_context: { readOnlyHint: false, destructiveHint: false, openWorldHint: true, idempotentHint: true },

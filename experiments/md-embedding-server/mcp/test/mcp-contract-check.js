@@ -19,6 +19,7 @@ const EXPECTED_TOOLS = [
   "md_audit",
   "md_changed",
   "md_check",
+  "md_corpus_scan",
   "md_cycles",
   "md_deps",
   "md_edit_context",
@@ -50,6 +51,7 @@ const EXPECTED_ANNOTATIONS = {
   md_audit: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
   md_changed: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
   md_check: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+  md_corpus_scan: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
   md_cycles: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
   md_deps: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
   md_edit_context: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
@@ -148,7 +150,7 @@ async function checkMcpContract() {
   try {
     const list = await client.listTools();
     const names = list.tools.map((tool) => tool.name).sort();
-    record("listTools names", names.length === 28 && sameJson(names, EXPECTED_TOOLS), `${names.length} tools`);
+    record("listTools names", names.length === 29 && sameJson(names, EXPECTED_TOOLS), `${names.length} tools`);
 
     const toolsByName = new Map(list.tools.map((tool) => [tool.name, tool]));
     let annotationsOk = true;
