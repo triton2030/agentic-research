@@ -46,31 +46,67 @@ export function registerCompositeTools(registerTool) {
 
 WHEN: New Markdown corpus / folder, 'orient me in this repo', first call before any md_* deep dive.
 WHY OURS: Three signals (status / files / importance) in one shot, no embeddings, no HTTP. Bash ls + grep + wc loop equivalent at ~3x token cost.
-INPUT: corpus (path), max_heading_level (default 2 in composite), top (default 10).
+INPUT: corpus (path), max_heading_level (default 2 in composite), top (default 10), compact (default false — trims to essentials).
 OUTPUT: { workflow:'md_orient', corpus, status, files, importance, next } — files include in_degree/out_degree.
+COMPACT MODE: top=3, max_heading_level=1, structured status only, files limited to path+description. ~80% token reduction.
 ALT: md_status / md_ls / md_importance separately if only one signal needed.
 COST: Free.`,
     {
       corpus: z.string().min(1).describe("Markdown corpus folder"),
       max_heading_level: z.number().int().min(1).max(6).optional(),
-      top: z.number().int().positive().max(50).optional()
+      top: z.number().int().positive().max(50).optional(),
+      compact: z.boolean().optional().describe("If true, trim output for attention budget: top=3, headings level 1, structured status, no link counts.")
     },
-    async ({ corpus, max_heading_level, top }) => {
-      const status = await runNavigator(["status", corpus], { parseJson: false, timeoutMs: 30_000 });
-      const mapArgs = ["map", corpus, "--json", "--with-link-counts"];
-      pushFlag(mapArgs, "--max-heading-level", max_heading_level ?? 2);
+    async ({ corpus, max_heading_level, top, compact }) => {
+      const effectiveTop = compact ? 3 : (top ?? 10);
+      const effectiveLevel = compact ? 1 : (max_heading_level ?? 2);
+      const status = compact
+        ? await runNavigator(["status", corpus, "--json"], { timeoutMs: 30_000 })
+        : await runNavigator(["status", corpus], { parseJson: false, timeoutMs: 30_000 });
+      const mapArgs = compact
+        ? ["map", corpus, "--json"]
+        : ["map", corpus, "--json", "--with-link-counts"];
+      pushFlag(mapArgs, "--max-heading-level", effectiveLevel);
       const files = await runNavigator(mapArgs, { timeoutMs: 30_000 });
       const importance = await runNavigator(
-        ["importance", corpus, "--json", "--top", String(top ?? 10)],
+        ["importance", corpus, "--json", "--top", String(effectiveTop)],
         { timeoutMs: 30_000 }
       );
+
+      if (compact) {
+        const slimStatus = status.state
+          ? {
+              state: status.state,
+              model: status.model,
+              pending_chunks: status.pending_chunks,
+              drift_count: status.drift_count,
+              recommended_action: status.recommended_action
+            }
+          : status;
+        const slimFiles = Array.isArray(files?.files)
+          ? files.files.map((f) => ({
+              relative_path: f.relative_path,
+              description: f.description
+            }))
+          : [];
+        return {
+          workflow: "md_orient",
+          corpus,
+          compact: true,
+          status: slimStatus,
+          files: { files: slimFiles, file_count: slimFiles.length },
+          importance,
+          next: "Compact mode: top=3, no headings, no link counts. Drop compact:true for full details."
+        };
+      }
+
       return {
         workflow: "md_orient",
         corpus,
         status,
         files,
         importance,
-        next: "For semantic duplicate/drift health use md_audit. For editing one file use md_edit_context."
+        next: "For semantic duplicate/drift health use md_audit. For editing one file use md_edit_context. Pass compact:true to shrink this reply ~80%."
       };
     }
   );
@@ -159,16 +195,28 @@ COST: Requires warm index + profiles. Auto-profiles unprofiled sections lazily.`
       uniqueness_threshold: z.number().min(0).max(1).optional(),
       owner_confidence_threshold: z.number().min(0).max(1).optional(),
       path_include: z.array(z.string().min(1)).optional(),
-      path_exclude: z.array(z.string().min(1)).optional()
+      path_exclude: z.array(z.string().min(1)).optional(),
+      compact: z.boolean().optional().describe("If true, return top 3 proposals only with minimal evidence — for attention budget.")
     },
-    async ({ corpus, top, uniqueness_threshold, owner_confidence_threshold, path_include, path_exclude }) => {
+    async ({ corpus, top, uniqueness_threshold, owner_confidence_threshold, path_include, path_exclude, compact }) => {
+      const effectiveTop = compact ? 3 : top;
       const args = ["refactor-candidates", corpus, "--json"];
-      pushFlag(args, "--top", top);
+      pushFlag(args, "--top", effectiveTop);
       pushFlag(args, "--uniqueness-threshold", uniqueness_threshold);
       pushFlag(args, "--owner-confidence-threshold", owner_confidence_threshold);
       pushRepeated(args, "--path-include", path_include);
       pushRepeated(args, "--path-exclude", path_exclude);
-      return await runNavigator(args, { timeoutMs: 120_000 });
+      const result = await runNavigator(args, { timeoutMs: 120_000 });
+      if (compact && Array.isArray(result.proposals)) {
+        result.proposals = result.proposals.map((p) => ({
+          kind: p.kind,
+          target: p.target,
+          confidence: p.confidence,
+          why: p.why
+        }));
+        result.compact = true;
+      }
+      return result;
     },
     { readOnlyHint: false, openWorldHint: true }
   );
@@ -189,15 +237,26 @@ COST: Lazy-profiles unprofiled sections (heuristic free, llm ~$0.0005/section). 
       filter: z.string().optional().describe("Optional substring filter over subject/heading"),
       limit: z.number().int().positive().max(200).optional(),
       path_include: z.array(z.string().min(1)).optional(),
-      path_exclude: z.array(z.string().min(1)).optional()
+      path_exclude: z.array(z.string().min(1)).optional(),
+      compact: z.boolean().optional().describe("If true, limit=10 and drop heading_chain/confidence — for attention budget.")
     },
-    async ({ corpus, types, filter, limit, path_include, path_exclude }) => {
+    async ({ corpus, types, filter, limit, path_include, path_exclude, compact }) => {
+      const effectiveLimit = compact ? Math.min(limit ?? 10, 10) : limit;
       const args = ["query-by-type", corpus, "--json", "--types", types.join(",")];
       pushFlag(args, "--filter", filter);
-      pushFlag(args, "--limit", limit);
+      pushFlag(args, "--limit", effectiveLimit);
       pushRepeated(args, "--path-include", path_include);
       pushRepeated(args, "--path-exclude", path_exclude);
-      return await runNavigator(args, { timeoutMs: 120_000 });
+      const result = await runNavigator(args, { timeoutMs: 120_000 });
+      if (compact && Array.isArray(result.sections)) {
+        result.sections = result.sections.map((s) => ({
+          path: s.path,
+          subject: s.subject,
+          type: s.type
+        }));
+        result.compact = true;
+      }
+      return result;
     },
     { readOnlyHint: false, openWorldHint: true }
   );
