@@ -46,46 +46,67 @@ async function runGraph(args, { timeoutMs = 60_000, expectFindings = false } = {
 }
 
 // Dry-run helper for md_init: walk graph and count files that would be modified.
-async function estimateInitScope(paths) {
-  // `scan` returns issues including missing-frontmatter; init would add to those.
+async function estimateInitScope(paths, path_include, path_exclude) {
+  // `scan` returns issues including missing-frontmatter; init modifies only those.
   const args = ["scan", "--json"];
+  pushRepeated(args, "--path-include", path_include);
+  pushRepeated(args, "--path-exclude", path_exclude);
   if (Array.isArray(paths) && paths.length > 0) {
     args.push(...paths);
   }
   const result = await runGraph(args, { timeoutMs: 60_000 });
-  const findings = result.findings || [];
+  const issues = result.issues || [];
   const wouldModify = new Set();
-  for (const f of findings) {
-    // Frontmatter missing / legacy → init touches them.
-    if (f.code === "MISSING_FRONTMATTER" || f.code === "LEGACY_FIELD" || f.code === "FRONTMATTER_INVALID") {
+  for (const f of issues) {
+    if (f.code === "MISSING_FRONTMATTER") {
       if (f.path) wouldModify.add(f.path);
     }
   }
   return {
     files_to_modify: [...wouldModify],
     file_count: wouldModify.size,
-    findings_total: findings.length
+    issues_total: issues.length
   };
 }
 
 // Dry-run helper for md_strip: scan for legacy fields.
-async function estimateStripScope(paths, alsoRelatedSection) {
+async function estimateStripScope(paths, alsoRelatedSection, path_include, path_exclude) {
   const args = ["scan", "--json"];
+  pushRepeated(args, "--path-include", path_include);
+  pushRepeated(args, "--path-exclude", path_exclude);
   if (Array.isArray(paths) && paths.length > 0) {
     args.push(...paths);
   }
   const result = await runGraph(args, { timeoutMs: 60_000 });
-  const findings = result.findings || [];
+  const issues = result.issues || [];
   const wouldModify = new Set();
-  for (const f of findings) {
+  for (const f of issues) {
     if (f.code === "LEGACY_FIELD" || f.code === "UNKNOWN_FIELD") {
       if (f.path) wouldModify.add(f.path);
+    }
+  }
+  let issuesTotal = issues.length;
+  if (alsoRelatedSection) {
+    const checkArgs = ["check", "--json"];
+    pushRepeated(checkArgs, "--path-include", path_include);
+    pushRepeated(checkArgs, "--path-exclude", path_exclude);
+    if (Array.isArray(paths) && paths.length > 0) {
+      checkArgs.push(...paths);
+    }
+    const checkResult = await runGraph(checkArgs, { timeoutMs: 60_000 });
+    const checkIssues = checkResult.issues || [];
+    issuesTotal += checkIssues.length;
+    for (const f of checkIssues) {
+      if (f.code === "RELATED_SECTION_PRESENT" && f.path) {
+        wouldModify.add(f.path);
+      }
     }
   }
   return {
     files_to_modify: [...wouldModify],
     file_count: wouldModify.size,
     also_related_section: !!alsoRelatedSection,
+    issues_total: issuesTotal,
     note: alsoRelatedSection
       ? "Will also remove '## Связанные документы' / '## Related documents' sections from body."
       : "Frontmatter-only strip. Pass also_related_section:true to also remove related-docs body sections."
@@ -257,7 +278,7 @@ COST: Free.`,
 WHEN: Onboarding new .md files into graph, after schema change, before md_init/md_strip.
 WHY OURS: One pass over every .md frontmatter with canonical schema check. Replaces grep + yaml-parse loop.
 INPUT: paths (default '.'), path_include/exclude.
-OUTPUT: { command:'scan', findings: [{ code, path, field, message }] } — codes: MISSING_FRONTMATTER / LEGACY_FIELD / UNKNOWN_FIELD / FRONTMATTER_INVALID.
+OUTPUT: { command:'scan', issues: [{ code, path, detail }] } — codes: MISSING_FRONTMATTER / LEGACY_FIELD / UNKNOWN_FIELD / FRONTMATTER_INVALID.
 ALT: md_health rolls up scan + check + cycles. md_init to add templates. md_strip to remove legacy.
 COST: Free.`,
     {
@@ -328,7 +349,7 @@ COST: Free but DESTRUCTIVE — modifies .md files in place. Use dry_run first.`,
     },
     async ({ paths, confirm, dry_run, path_include, path_exclude }) => {
       if (dry_run) {
-        const est = await estimateInitScope(paths);
+        const est = await estimateInitScope(paths, path_include, path_exclude);
         return {
           dry_run: true,
           ...est,
@@ -376,7 +397,7 @@ COST: Free but DESTRUCTIVE — modifies .md files. Use dry_run first.`,
     },
     async ({ paths, confirm, dry_run, also_related_section, path_include, path_exclude }) => {
       if (dry_run) {
-        const est = await estimateStripScope(paths, also_related_section);
+        const est = await estimateStripScope(paths, also_related_section, path_include, path_exclude);
         return {
           dry_run: true,
           ...est,
@@ -392,7 +413,7 @@ COST: Free but DESTRUCTIVE — modifies .md files. Use dry_run first.`,
           hint: "Pass dry_run:true to see affected files, then confirm:true to proceed."
         };
       }
-      const args = ["strip"];
+      const args = ["strip", "--json"];
       if (also_related_section) args.push("--also-related-section");
       pushRepeated(args, "--path-include", path_include);
       pushRepeated(args, "--path-exclude", path_exclude);

@@ -233,7 +233,7 @@ COST: First call on cold corpus returns index_warmup_required (exit 4) — run m
       pushRepeated(args, "--path-exclude", path_exclude);
       return await runNavigator(args, { timeoutMs: 120_000 });
     },
-    { openWorldHint: true }
+    { readOnlyHint: false, openWorldHint: true }
   );
 
   registerTool(
@@ -390,7 +390,7 @@ COST: Requires warm index (md_index first). Returns index_warmup_required if col
       pushRepeated(args, "--path-exclude", path_exclude);
       return await runNavigator(args, { timeoutMs: 120_000 });
     },
-    { openWorldHint: true }
+    { readOnlyHint: false, openWorldHint: true }
   );
 
   registerTool(

@@ -8,6 +8,8 @@ tools over stdio.
 Node owns the tool surface. Python owns backend behavior. Skill files own
 workflow choices.
 
+Current version: **0.6.1**.
+
 ## Design — MCP is the API spec
 
 `listTools` is the canonical contract. Every tool description is
@@ -19,6 +21,17 @@ Skills are **workflow overlay** — they layer interpretation, multi-tool
 sequencing, and project-specific judgment on top of the MCP surface. A skill
 does not duplicate MCP's input schema; it teaches when to choose composite
 vs atomic and how to interpret output.
+
+Tool annotations are part of the API contract. `readOnlyHint:true` is reserved
+for tools that do not write corpus files, `.md-navigator/`, SQLite cache,
+reports, or profiles. Lazy-write tools are intentionally non-read-only so Codex
+and Claude can make the same approval/safety choice from `listTools`.
+`openWorldHint:true` marks tools that can hit OpenRouter/LLM/external
+backends. Only `md_init` and `md_strip` are destructive.
+
+`0.6.1` intentionally keeps tool results text-only:
+`{ content: [{ type: "text", text: JSON.stringify(payload) }] }`. MCP
+`structuredContent` / `outputSchema` are deferred to a future typed-output pass.
 
 ## Tool surface (27 public tools + md_ping)
 
@@ -104,7 +117,7 @@ vs atomic and how to interpret output.
 | Cold-start embedding index | `md_index` (with `dry_run:true` first) |
 | Profile sections for type classification | `md_profile_sections` |
 | Add graph frontmatter to new files | `md_init` |
-| Remove legacy graph fields | `md_strip` |
+| Remove legacy/unknown graph fields | `md_strip` |
 | Exact strings, regex, stale refs | `rg` / Bash — not MCP |
 
 ## Self-sufficient description contract
@@ -175,7 +188,7 @@ Zod input schemas live next to each `registerTool(...)` call in
 | `md_index` (mutating) | `corpus`, `confirm` | `index` | `dry_run:true` returns estimate. |
 | `md_profile_sections` (mutating) | `corpus`, `confirm` | `profile-sections --json` | Heuristic free; LLM mode ~$0.0005/section. |
 | `md_init` (mutating) | `confirm` | `init --json` | Adds frontmatter template. `dry_run:true` lists files. |
-| `md_strip` (mutating) | `confirm` | `strip` | Removes legacy fields. `also_related_section` for body. |
+| `md_strip` (mutating) | `confirm` | `strip --json` | Removes legacy/unknown fields. `also_related_section` for body. |
 
 ## Registration
 
@@ -238,7 +251,7 @@ extra `config.toml` env block is needed.
 | navigator | 1 | `{ empty: true, self_repair, stderr }` (no markdown / no indexed vectors) |
 | navigator | 2 | thrown: usage error |
 | navigator | 3 | thrown: dependency / API failure |
-| graph | 1 | result with `has_blockers: true` (preflight/changed) or `findings` listed (others) |
+| graph | 1 | result with `has_blockers: true` (preflight/changed) or issue arrays listed (others) |
 | graph | 2 | thrown: usage error |
 
 ## Smoke test
@@ -248,6 +261,8 @@ cd experiments/md-embedding-server/mcp
 npm install   # one-time
 npm run smoke
 # 37 passed, 0 failed (md_audit skipped by default)
+npm run mcp-contract-check
+# exact tool/annotation/runtime contract
 SMOKE_AUDIT=1 npm run smoke   # include md_audit (slow)
 ```
 
@@ -265,6 +280,10 @@ Smoke proves the stdio server starts, the exact documented tool list is
 registered, representative output shapes parse, mutating-tool guards work,
 and Python script resolution works.
 
+Contract check proves the wrapper contract itself: exact 28-tool surface,
+annotation allowlist, `md_ping` version, accepted text-only result shape,
+bad-path `isError`, subprocess timeout process-group kill, and output caps.
+
 ## Adding a new tool
 
 1. Identify the family: navigator, graph, hybrid, or composite.
@@ -276,11 +295,25 @@ and Python script resolution works.
    120s for search/profile/refactor, 300s for audit, 600s for index.
 6. Use `runNavigator` or `runGraph` so exit-code mapping stays consistent.
 7. For mutating tools, add `dry_run` + `confirm` guards.
-8. Add `npm run smoke` assertion. Update `EXPECTED_TOOLS` if total changed.
-9. Update this README's tool tables and version bump in `package.json`,
+8. Update the annotation allowlist and `npm run mcp-contract-check`.
+9. Add `npm run smoke` assertion. Update `EXPECTED_TOOLS` if total changed.
+10. Update this README's tool tables and version bump in `package.json`,
    `src/server.js`, and `md_ping`.
 
 ## Version history
+
+**0.6.1** (2026-05-21):
+- Fixed MCP annotation contract for lazy-write, profile/index, destructive, and
+  read-only tools across the 28-tool surface.
+- Fixed `md_init` / `md_strip` live JSON output and `dry_run`/live scope parity
+  for path filters.
+- Fixed graph `strip` so it sees raw frontmatter and removes legacy/unknown
+  fields without losing allowed graph fields.
+- Fixed section-profile cache correctness for `mode=auto` and committed profile
+  writes in short transactions.
+- Hardened subprocess timeout handling with Unix process-group kill fallback.
+- Added `npm run mcp-contract-check`; text-only result shape remains the
+  accepted `0.6.x` contract.
 
 **0.6.0** (2026-05-21):
 - Expanded surface from 19 → 27 public tools (+ `md_ping`).

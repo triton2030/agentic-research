@@ -229,7 +229,8 @@ def _open_index(
     db_path = cache_dir / "index.sqlite"
     needs_fresh = False
     if db_path.exists():
-        probe = sqlite3.connect(db_path)
+        probe = sqlite3.connect(db_path, timeout=30.0)
+        probe.execute("PRAGMA busy_timeout = 30000")
         probe.enable_load_extension(True)
         sqlite_vec.load(probe)
         probe.enable_load_extension(False)
@@ -264,9 +265,10 @@ def _open_index(
                 embed_model, embedding_api_url, corpus_root=corpus_root
             )
 
-    conn = sqlite3.connect(db_path)
+    conn = sqlite3.connect(db_path, timeout=30.0)
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA synchronous=NORMAL")
+    conn.execute("PRAGMA busy_timeout = 30000")
     conn.enable_load_extension(True)
     sqlite_vec.load(conn)
     conn.enable_load_extension(False)
@@ -300,7 +302,9 @@ def _open_index_metadata_readonly(corpus_root: Path, cache_root: Path | None = N
     db_path = cache_dir / "index.sqlite"
     if not db_path.exists():
         raise FileNotFoundError(db_path)
-    return sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+    conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True, timeout=30.0)
+    conn.execute("PRAGMA busy_timeout = 30000")
+    return conn
 
 
 def _open_index_readonly(corpus_root: Path, cache_root: Path | None = None):
@@ -316,7 +320,8 @@ def _open_index_readonly(corpus_root: Path, cache_root: Path | None = None):
     db_path = cache_dir / "index.sqlite"
     if not db_path.exists():
         raise FileNotFoundError(db_path)
-    conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+    conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True, timeout=30.0)
+    conn.execute("PRAGMA busy_timeout = 30000")
     conn.enable_load_extension(True)
     sqlite_vec.load(conn)
     conn.enable_load_extension(False)

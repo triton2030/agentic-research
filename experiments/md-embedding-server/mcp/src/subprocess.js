@@ -21,7 +21,7 @@ export class SpawnError extends Error {
 
 function appendWithCap(chunks, currentBytes, chunk, maxBytes) {
   // Streaming append that stops accumulating after maxBytes. Caller still
-  // sees first portion + last portion via assemble().
+  // sees the first portion plus an explicit truncation marker via assemble().
   if (currentBytes >= maxBytes) {
     return { currentBytes, dropped: chunks.dropped + chunk.length };
   }
@@ -54,6 +54,23 @@ function makeCappedSink(maxBytes) {
   };
 }
 
+function killSubprocessGroup(child, signal = "SIGKILL") {
+  if (process.platform !== "win32" && child.pid) {
+    try {
+      process.kill(-child.pid, signal);
+      return;
+    } catch {
+      // Fall back to the direct child below when process-group kill is not
+      // available or the child exited between timeout and signal delivery.
+    }
+  }
+  try {
+    child.kill(signal);
+  } catch {
+    // The close/error handlers below still settle the promise.
+  }
+}
+
 export function spawnPython(scriptPath, args, {
   timeoutMs = 60_000,
   env,
@@ -65,6 +82,7 @@ export function spawnPython(scriptPath, args, {
     const child = spawn(scriptPath, args, {
       env: { ...process.env, ...(env || {}) },
       cwd,
+      detached: process.platform !== "win32",
       stdio: ["ignore", "pipe", "pipe"]
     });
 
@@ -74,7 +92,7 @@ export function spawnPython(scriptPath, args, {
 
     const timer = setTimeout(() => {
       timedOut = true;
-      child.kill("SIGKILL");
+      killSubprocessGroup(child);
     }, timeoutMs);
 
     child.stdout.on("data", (chunk) => stdoutSink.feed(chunk));

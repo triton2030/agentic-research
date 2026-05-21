@@ -133,7 +133,7 @@ COST: Free unless full+query (~$0.001 if rerank, normally cached).`,
         usage_note: "Graph rows are obligations/checks; related/search rows are context candidates."
       };
     },
-    { openWorldHint: true }
+    { readOnlyHint: false, openWorldHint: true }
   );
 
   registerTool(
@@ -159,7 +159,7 @@ COST: Requires warm index + profiles. Auto-profiles unprofiled sections lazily.`
       pushFlag(args, "--owner-confidence-threshold", owner_confidence_threshold);
       return await runNavigator(args, { timeoutMs: 120_000 });
     },
-    { openWorldHint: true }
+    { readOnlyHint: false, openWorldHint: true }
   );
 
   registerTool(
@@ -183,6 +183,7 @@ COST: Lazy-profiles unprofiled sections (heuristic free, llm ~$0.0005/section). 
       pushFlag(args, "--filter", filter);
       pushFlag(args, "--limit", limit);
       return await runNavigator(args, { timeoutMs: 120_000 });
-    }
+    },
+    { readOnlyHint: false, openWorldHint: true }
   );
 }

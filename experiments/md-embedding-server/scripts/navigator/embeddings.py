@@ -296,15 +296,49 @@ class OpenRouterClient:
             "response_format": {"type": "json_object"},
         }
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
-        req = request.Request(url, data=body, headers=headers, method="POST")
-        try:
-            with request.urlopen(req, timeout=self.timeout) as response:
-                raw = response.read().decode("utf-8")
-        except error.HTTPError as exc:
-            detail = exc.read().decode("utf-8", errors="replace")
-            raise RuntimeError(f"Completion API returned {exc.code}: {detail}") from exc
-        except OSError as exc:
-            raise RuntimeError(f"Completion API unavailable at {url}: {exc}") from exc
+
+        # Retry on 5xx + 429 (rate limit). Mirrors embed() retry pattern.
+        # Without retry, single network blip / rate-limit terminates whole
+        # profile-sections run with no partial-progress preserved.
+        import time as _time
+        last_exc: Exception | None = None
+        raw: str | None = None
+        for attempt in range(SEARCH_RETRY_ATTEMPTS):
+            req = request.Request(url, data=body, headers=headers, method="POST")
+            try:
+                with request.urlopen(req, timeout=self.timeout) as response:
+                    raw = response.read().decode("utf-8")
+                break
+            except error.HTTPError as exc:
+                retryable_http = exc.code >= 500 or exc.code == 429
+                if not retryable_http or attempt == SEARCH_RETRY_ATTEMPTS - 1:
+                    detail = exc.read().decode("utf-8", errors="replace")
+                    raise RuntimeError(
+                        f"Completion API returned {exc.code}: {detail}"
+                    ) from exc
+                last_exc = exc
+                wait = SEARCH_RETRY_BACKOFF_S * (2**attempt)
+                print(
+                    f"  completion API {exc.code}, retry "
+                    f"{attempt + 1}/{SEARCH_RETRY_ATTEMPTS} in {wait:.1f}s...",
+                    file=sys.stderr,
+                )
+                _time.sleep(wait)
+            except OSError as exc:
+                if attempt == SEARCH_RETRY_ATTEMPTS - 1:
+                    raise RuntimeError(
+                        f"Completion API unavailable at {url}: {exc}"
+                    ) from exc
+                last_exc = exc
+                wait = SEARCH_RETRY_BACKOFF_S * (2**attempt)
+                print(
+                    f"  completion API network error ({exc}), retry "
+                    f"{attempt + 1}/{SEARCH_RETRY_ATTEMPTS} in {wait:.1f}s...",
+                    file=sys.stderr,
+                )
+                _time.sleep(wait)
+        if raw is None:
+            raise RuntimeError(f"Completion API failed after {SEARCH_RETRY_ATTEMPTS} attempts") from last_exc
 
         parsed = json.loads(raw)
         choices = parsed.get("choices")
@@ -377,7 +411,10 @@ def _embed_texts_http(
                     raw = response.read().decode("utf-8")
                 break
             except error.HTTPError as exc:
-                if exc.code < 500 or attempt == SEARCH_RETRY_ATTEMPTS - 1:
+                # Retry on 5xx (server errors) and 429 (rate limit).
+                # OpenRouter docs explicitly call out 429 + 529 as transient.
+                retryable_http = exc.code >= 500 or exc.code == 429
+                if not retryable_http or attempt == SEARCH_RETRY_ATTEMPTS - 1:
                     detail = exc.read().decode("utf-8", errors="replace")
                     raise RuntimeError(
                         f"Embedding API returned {exc.code}: {detail}"

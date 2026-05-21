@@ -1,6 +1,6 @@
 {
   "name": "md-mcp",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "private": true,
   "type": "module",
   "description": "Unified MCP server for Markdown corpus tooling: md-navigator (semantic search, frontmatter map, hybrid retrieval) and md-graph (read-before-edit / edit-after-edit graph hygiene). Subprocess wrapper over the existing Python CLIs.",
@@ -9,6 +9,7 @@
   },
   "scripts": {
     "mcp": "node ./src/server.js",
+    "mcp-contract-check": "node ./test/mcp-contract-check.js",
     "smoke": "node ./test/smoke.js"
   },
   "dependencies": {

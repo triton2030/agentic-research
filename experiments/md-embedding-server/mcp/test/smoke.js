@@ -123,7 +123,7 @@ record(
   `${list.tools.length} tools${missingTools.length ? `, missing: ${missingTools.join(",")}` : ""}${extraTools.length ? `, extra: ${extraTools.join(",")}` : ""}`
 );
 
-await expect("md_ping", {}, (p) => Boolean(p.name === "md-mcp" && p.version === "0.6.0" && p.navigator_script && p.graph_script));
+await expect("md_ping", {}, (p) => Boolean(p.name === "md-mcp" && p.version === "0.6.1" && p.navigator_script && p.graph_script));
 
 await expect("md_status", { corpus: KNOWLEDGE }, (p) =>
   typeof p.text === "string" && p.text.includes("Corpus:") ? true : "missing Corpus: line"

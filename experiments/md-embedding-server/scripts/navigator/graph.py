@@ -35,7 +35,7 @@ LEGACY_FIELDS = (
 )
 ALLOWED_FIELDS = {"description", "read-before-edit", "edit-after-edit"}
 RELATED_SECTION_RE = re.compile(
-    r"(?ms)^##\s+(?:Связанные документы|Related documents)\s*\n.*?(?=^## |\Z)"
+    r"(?ms)^##\s+(?:Связанные документы|Related documents)\s*\n.*?(?=^#{1,2}\s|\Z)"
 )
 NAVIGATOR_SCRIPT = str(
     Path(__file__).resolve().parent.parent / "md_navigator.py"
@@ -381,7 +381,9 @@ def cmd_scan(args: argparse.Namespace) -> int:
 def cmd_init(args: argparse.Namespace) -> int:
     root = repo_root()
     docs = load_docs(args.paths, root, args)
+    json_output = getattr(args, "json", False)
     changed = 0
+    modified: list[str] = []
     template = {
         "description": "TODO",
         "read-before-edit": [],
@@ -392,7 +394,20 @@ def cmd_init(args: argparse.Namespace) -> int:
             continue
         write_doc(doc, template, doc.body)
         changed += 1
-        print(f"INIT | {doc.rel}")
+        modified.append(str(doc.rel))
+        if not json_output:
+            print(f"INIT | {doc.rel}")
+    if json_output:
+        emit_json(
+            {
+                "command": "init",
+                "targets": len(docs),
+                "changed": changed,
+                "unchanged": len(docs) - changed,
+                "modified": modified,
+            }
+        )
+        return 0
     print(f"SUMMARY | targets={len(docs)} changed={changed} unchanged={len(docs) - changed}")
     return 0
 
@@ -408,11 +423,36 @@ def strip_related_section(body: str) -> tuple[str, bool]:
 def cmd_strip(args: argparse.Namespace) -> int:
     root = repo_root()
     docs = load_docs(args.paths, root, args)
+    json_output = getattr(args, "json", False)
     changed = 0
+    modified: list[str] = []
+    changes: list[dict[str, Any]] = []
     for doc in docs:
         if not doc.has_frontmatter:
+            if not args.also_related_section:
+                continue
+            new_body, section_removed = strip_related_section(doc.body)
+            if not section_removed:
+                continue
+            doc.path.write_text(new_body, encoding="utf-8")
+            changed += 1
+            modified.append(str(doc.rel))
+            changes.append(
+                {
+                    "path": str(doc.rel),
+                    "removed_fields": [],
+                    "related_section_removed": True,
+                }
+            )
+            if not json_output:
+                print(f"STRIP | {doc.rel} | (no frontmatter)+related-section")
             continue
-        new_data = {key: value for key, value in doc.frontmatter.items() if key not in LEGACY_FIELDS}
+        removed_fields = [key for key in doc.frontmatter if key not in ALLOWED_FIELDS]
+        new_data = {
+            key: value
+            for key, value in doc.frontmatter.items()
+            if key in ALLOWED_FIELDS
+        }
         new_body = doc.body
         section_removed = False
         if args.also_related_section:
@@ -421,11 +461,31 @@ def cmd_strip(args: argparse.Namespace) -> int:
             continue
         write_doc(doc, new_data, new_body)
         changed += 1
-        removed_fields = ",".join(key for key in LEGACY_FIELDS if key in doc.frontmatter)
-        marker = removed_fields or "(no legacy fields)"
+        modified.append(str(doc.rel))
+        changes.append(
+            {
+                "path": str(doc.rel),
+                "removed_fields": removed_fields,
+                "related_section_removed": section_removed,
+            }
+        )
+        marker = ",".join(removed_fields) or "(no legacy/unknown fields)"
         if section_removed:
             marker = f"{marker}+related-section"
-        print(f"STRIP | {doc.rel} | {marker}")
+        if not json_output:
+            print(f"STRIP | {doc.rel} | {marker}")
+    if json_output:
+        emit_json(
+            {
+                "command": "strip",
+                "targets": len(docs),
+                "changed": changed,
+                "unchanged": len(docs) - changed,
+                "modified": modified,
+                "changes": changes,
+            }
+        )
+        return 0
     print(f"SUMMARY | targets={len(docs)} changed={changed} unchanged={len(docs) - changed}")
     return 0
 
@@ -1327,6 +1387,7 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Also remove '## Связанные документы' / '## Related documents' sections from body.",
     )
+    strip.add_argument("--json", action="store_true", help="Print machine-readable JSON.")
     add_path_filter_args(strip)
     strip.set_defaults(func=cmd_strip)
 

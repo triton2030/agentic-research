@@ -109,7 +109,9 @@ def normalize_frontmatter_links(value: Any) -> list[str]:
         raw = value.strip()
         if not raw or raw == "[]":
             return []
-        if raw.startswith("[") and raw.endswith("]"):
+        if raw.startswith("[") and raw.endswith("]") and not (
+            raw.startswith("[[") and raw.endswith("]]")
+        ):
             raw = raw[1:-1]
             return [strip_quotes(part.strip()) for part in raw.split(",") if part.strip()]
         return [strip_quotes(raw)]
@@ -133,9 +135,9 @@ def parse_frontmatter(lines: list[str]) -> dict[str, Any]:
         if parsed is not None:
             data: dict[str, Any] = {}
             if isinstance(parsed, dict):
-                description = parsed.get("description", "")
-                if description:
-                    data["description"] = str(description).strip()
+                data.update(parsed)
+                if "description" in data:
+                    data["description"] = str(data.get("description") or "").strip()
                 for key in GRAPH_LINK_KEYS:
                     if key in parsed:
                         data[key] = normalize_frontmatter_links(parsed.get(key))
@@ -152,8 +154,8 @@ def parse_frontmatter(lines: list[str]) -> dict[str, Any]:
             continue
         key, raw = line.split(":", 1)
         key = key.strip()
+        marker = raw.strip()
         if key == "description":
-            marker = raw.strip()
             if marker in {">", "|", ">-", "|-"}:
                 folded: list[str] = []
                 index += 1
@@ -167,7 +169,6 @@ def parse_frontmatter(lines: list[str]) -> dict[str, Any]:
                 continue
             data[key] = strip_quotes(raw)
         elif key in GRAPH_LINK_KEYS:
-            marker = raw.strip()
             if not marker:
                 links: list[str] = []
                 index += 1
@@ -182,6 +183,32 @@ def parse_frontmatter(lines: list[str]) -> dict[str, Any]:
                 data[key] = [link for link in links if link]
                 continue
             data[key] = normalize_frontmatter_links(marker)
+        else:
+            if marker in {">", "|", ">-", "|-"}:
+                folded = []
+                index += 1
+                while index < len(frontmatter_lines):
+                    next_line = frontmatter_lines[index]
+                    if next_line and not next_line.startswith((" ", "\t")):
+                        break
+                    folded.append(next_line.strip())
+                    index += 1
+                data[key] = " ".join(part for part in folded if part)
+                continue
+            if not marker:
+                items: list[str] = []
+                index += 1
+                while index < len(frontmatter_lines):
+                    next_line = frontmatter_lines[index]
+                    stripped = next_line.strip()
+                    if next_line and not next_line.startswith((" ", "\t")):
+                        break
+                    if stripped.startswith("- "):
+                        items.append(strip_quotes(stripped[2:]))
+                    index += 1
+                data[key] = items
+                continue
+            data[key] = strip_quotes(marker)
         index += 1
     return data
 

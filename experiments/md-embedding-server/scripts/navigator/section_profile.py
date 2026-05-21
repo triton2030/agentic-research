@@ -187,13 +187,28 @@ def classify_section(
     model: str = DEFAULT_PROFILE_MODEL,
     mode: str = "heuristic",
 ) -> dict[str, Any]:
+    profile, _, _ = _classify_section_with_method(
+        section,
+        client=client,
+        model=model,
+        mode=mode,
+    )
+    return profile
+
+
+def _classify_section_with_method(
+    section: dict[str, Any],
+    client: OpenRouterClient | None = None,
+    model: str = DEFAULT_PROFILE_MODEL,
+    mode: str = "heuristic",
+) -> tuple[dict[str, Any], str, str]:
     if mode in {"llm", "auto"} and client is not None:
         try:
-            return classify_section_llm(section, client=client, model=model)
+            return classify_section_llm(section, client=client, model=model), "llm", model
         except Exception:
             if mode == "llm":
                 raise
-    return classify_section_heuristic(section)
+    return classify_section_heuristic(section), "heuristic", HEURISTIC_MODEL
 
 
 def _profile_from_row(row: Any) -> dict[str, Any]:
@@ -292,6 +307,8 @@ def profile_corpus(
     from .index_meta import _ensure_profile_columns
 
     _ensure_profile_columns(conn)
+    if getattr(conn, "in_transaction", False):
+        conn.commit()
     selected_mode = mode or DEFAULT_PROFILE_MODE
     selected_model = model or DEFAULT_PROFILE_MODEL
     if selected_mode not in {"heuristic", "llm", "auto"}:
@@ -332,22 +349,12 @@ def profile_corpus(
             stats["skipped_cached"] += 1
             continue
         try:
-            profile = classify_section(
+            profile, method, model_used = _classify_section_with_method(
                 section,
                 client=client,
                 model=selected_model,
                 mode=selected_mode,
             )
-            method = "llm" if selected_mode == "llm" else "heuristic"
-            model_used = selected_model if method == "llm" else HEURISTIC_MODEL
-            if selected_mode == "auto" and client is not None:
-                # classify_section falls back silently in auto mode. We cannot
-                # infer which path succeeded from outside, so use the evidence
-                # source: LLM profiles tend to lack our heuristic marker only
-                # when completion succeeded. Keep cache conservative by marking
-                # auto fallbacks as heuristic unless explicitly forced to llm.
-                method = "heuristic"
-                model_used = HEURISTIC_MODEL
             _write_profile(
                 conn,
                 int(section["rowid"]),
@@ -356,13 +363,14 @@ def profile_corpus(
                 method=method,
                 source_mtime=source_mtime,
             )
+            conn.commit()
             stats["profiled"] += 1
             if method == "llm":
                 stats["cost_estimate_usd"] += 0.001
         except Exception:
+            if getattr(conn, "in_transaction", False):
+                conn.rollback()
             stats["failed"] += 1
-    if stats["profiled"]:
-        conn.commit()
     stats["cost_estimate_usd"] = round(float(stats["cost_estimate_usd"]), 4)
     return stats
 
@@ -446,7 +454,8 @@ def open_profile_db(corpus: Path):
     db_path = _index_dir_for_corpus(corpus.resolve(), create=False) / "index.sqlite"
     if not db_path.exists():
         raise RuntimeError(f"No md-navigator index at {db_path}; run `md_navigator.py index {corpus}` first.")
-    conn = sqlite3.connect(db_path)
+    conn = sqlite3.connect(db_path, timeout=30.0)
+    conn.execute("PRAGMA busy_timeout = 30000")
     try:
         import sqlite_vec
 

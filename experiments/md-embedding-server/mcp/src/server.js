@@ -7,9 +7,11 @@ import { registerGraphTools } from "./tools/graph-tools.js";
 import { registerHybridTools } from "./tools/hybrid-tools.js";
 import { registerCompositeTools } from "./tools/composite-tools.js";
 
+const SERVER_VERSION = "0.6.1";
+
 const server = new McpServer({
   name: "md-mcp",
-  version: "0.6.0"
+  version: SERVER_VERSION
 });
 
 function exitOnClosedStdio() {
@@ -47,11 +49,6 @@ function textResult(value, options = {}) {
  * Backwards-compatible signature: registerTool(name, description, inputSchema, handler)
  * still works — annotations defaults to undefined.
  */
-// Safe default annotations for our tool surface. Almost everything is
-// read-only and stays inside the corpus / SQLite index. Tools that hit
-// OpenRouter (semantic search, embeddings, profile classifier) override
-// with openWorldHint=true. Tools that write to .md-navigator/ (md_audit)
-// override with readOnlyHint=false.
 const DEFAULT_ANNOTATIONS = {
   readOnlyHint: true,
   destructiveHint: false,
@@ -59,12 +56,47 @@ const DEFAULT_ANNOTATIONS = {
   idempotentHint: true
 };
 
+const TOOL_ANNOTATION_ALLOWLIST = {
+  md_audit: { readOnlyHint: false, destructiveHint: false, openWorldHint: true, idempotentHint: true },
+  md_changed: { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+  md_check: { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+  md_cycles: { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+  md_deps: { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+  md_edit_context: { readOnlyHint: false, destructiveHint: false, openWorldHint: true, idempotentHint: true },
+  md_extract: { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+  md_health: { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+  md_impact: { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+  md_importance: { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+  md_index: { readOnlyHint: false, destructiveHint: false, openWorldHint: true, idempotentHint: false },
+  md_init: { readOnlyHint: false, destructiveHint: true, openWorldHint: false, idempotentHint: true },
+  md_ls: { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+  md_orient: { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+  md_overlaps: { readOnlyHint: false, destructiveHint: false, openWorldHint: true, idempotentHint: true },
+  md_ping: { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+  md_preflight: { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+  md_profile_sections: { readOnlyHint: false, destructiveHint: false, openWorldHint: true, idempotentHint: false },
+  md_query_by_type: { readOnlyHint: false, destructiveHint: false, openWorldHint: true, idempotentHint: true },
+  md_read_related: { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+  md_refactor_candidates: { readOnlyHint: false, destructiveHint: false, openWorldHint: true, idempotentHint: true },
+  md_repeated_concepts: { readOnlyHint: false, destructiveHint: false, openWorldHint: true, idempotentHint: true },
+  md_scan: { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+  md_search: { readOnlyHint: false, destructiveHint: false, openWorldHint: true, idempotentHint: true },
+  md_section_blast_radius: { readOnlyHint: false, destructiveHint: false, openWorldHint: true, idempotentHint: true },
+  md_status: { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true },
+  md_strip: { readOnlyHint: false, destructiveHint: true, openWorldHint: false, idempotentHint: true },
+  md_toc: { readOnlyHint: true, destructiveHint: false, openWorldHint: false, idempotentHint: true }
+};
+
 export function registerTool(name, description, inputSchema, handler, annotations) {
+  const allowlistedAnnotations = TOOL_ANNOTATION_ALLOWLIST[name];
+  if (!allowlistedAnnotations) {
+    throw new Error(`Missing MCP annotation allowlist entry for tool: ${name}`);
+  }
   const config = {
     title: name,
     description,
     inputSchema,
-    annotations: { ...DEFAULT_ANNOTATIONS, ...(annotations || {}) }
+    annotations: { ...DEFAULT_ANNOTATIONS, ...(annotations || {}), ...allowlistedAnnotations }
   };
   server.registerTool(
     name,
@@ -105,7 +137,7 @@ COST: Free.`,
     try { graph = resolveGraphScript(); } catch (e) { graphError = e.message; }
     return {
       name: "md-mcp",
-      version: "0.6.0",
+      version: SERVER_VERSION,
       navigator_script: navigator,
       navigator_error: navigatorError,
       graph_script: graph,
