@@ -14,6 +14,11 @@ const NAVIGATOR_EXIT_CODES = {
   INDEX_WARMUP: 4
 };
 
+// Approximate cost per chunk for OpenRouter bge-m3 embeddings.
+// Used by md_index / md_profile_sections dry_run estimates.
+const COST_PER_CHUNK_USD = 0.00002;          // ~$0.02 per 1000 chunks
+const COST_PER_PROFILE_USD = 0.0005;         // heuristic by default; LLM ~$0.0005/section
+
 function pushFlag(args, flag, value) {
   if (value === undefined || value === null || value === "") return;
   args.push(flag, String(value));
@@ -33,7 +38,7 @@ async function runNavigator(args, { timeoutMs = 60_000, parseJson = true } = {})
   if (code === NAVIGATOR_EXIT_CODES.INDEX_WARMUP) {
     return {
       error: "index_warmup_required",
-      self_repair: `Skill 1md-navigator → Quick start: run \`${script} index <corpus>\` once (~$0.02 per ~1000 chunks). Then retry. New-section delta exceeds --max-auto-embed.`,
+      self_repair: `Run md_index with confirm:true (or pass dry_run:true first to see estimated cost). New-section delta exceeds --max-auto-embed cap. ~$0.02 per ~1000 chunks.`,
       stderr: stderr.trim() || null
     };
   }
@@ -41,12 +46,12 @@ async function runNavigator(args, { timeoutMs = 60_000, parseJson = true } = {})
     throw new Error(`navigator usage error (exit 2): ${stderr.trim() || stdout.trim()}`);
   }
   if (code === NAVIGATOR_EXIT_CODES.DEPENDENCY) {
-    throw new Error(`navigator dependency/API failure (exit 3): ${stderr.trim() || stdout.trim()}. Check OPENROUTER_API_KEY or .openrouter.key file. Skill 1md-navigator → references/setup.md.`);
+    throw new Error(`navigator dependency/API failure (exit 3): ${stderr.trim() || stdout.trim()}. Check OPENROUTER_API_KEY or .openrouter.key file.`);
   }
   if (code === NAVIGATOR_EXIT_CODES.NO_RESULTS) {
     return {
       empty: true,
-      self_repair: "Empty result. Check that the path exists and contains .md files. For semantic queries returning empty, try broader wording or `--scope descriptions`. Skill 1md-navigator → Search contract.",
+      self_repair: "Empty result. Check path exists and contains .md files. For semantic queries returning empty, try broader wording or scope='descriptions'.",
       stderr: stderr.trim() || null
     };
   }
@@ -74,10 +79,65 @@ async function withTempMap(mapData, callback) {
   }
 }
 
+// Dry-run helper: estimate pending chunks via `status` command (no HTTP).
+async function estimateIndexCost(corpus) {
+  const args = ["status", corpus];
+  const result = await runNavigator(args, { parseJson: false, timeoutMs: 30_000 });
+  const text = result.text || "";
+  // Parse "added=X pending_chunks=Y" lines. Sum across scopes.
+  let pendingChunks = 0;
+  let addedSections = 0;
+  for (const m of text.matchAll(/pending_chunks=(\d+)/g)) {
+    pendingChunks += parseInt(m[1], 10);
+  }
+  for (const m of text.matchAll(/added=(\d+)/g)) {
+    addedSections += parseInt(m[1], 10);
+  }
+  const noIndex = /Status: NO INDEX/.test(text);
+  return {
+    pending_chunks: pendingChunks,
+    added_sections: addedSections,
+    no_index: noIndex,
+    estimated_cost_usd: Number((pendingChunks * COST_PER_CHUNK_USD).toFixed(4)),
+    status_text: text.trim()
+  };
+}
+
+// Profile dry-run: count unprofiled sections via section_profile metadata.
+async function estimateProfileCost(corpus, mode) {
+  // Use a JSON probe — call profile-sections with --limit 0 in dry-emulation
+  // shape. Backend does not have a separate dry_run flag; we count sections
+  // from `map` and assume all unprofiled when no profile DB exists.
+  // For first-cut estimate, return section count from headings map.
+  const mapResult = await runNavigator(["map", corpus, "--json"], { timeoutMs: 30_000 });
+  let sectionCount = 0;
+  if (mapResult && Array.isArray(mapResult.files)) {
+    for (const file of mapResult.files) {
+      if (Array.isArray(file.headings)) sectionCount += file.headings.length;
+    }
+  }
+  const perUnit = mode === "llm" || mode === "auto" ? COST_PER_PROFILE_USD : 0;
+  return {
+    sections_to_profile_estimate: sectionCount,
+    mode: mode || "heuristic",
+    estimated_cost_usd: Number((sectionCount * perUnit).toFixed(4)),
+    note: mode === "heuristic" || !mode
+      ? "Heuristic mode runs locally — no API cost. Cost only for --mode llm/auto."
+      : "Estimate assumes all sections need profiling. Already-profiled sections are skipped at runtime (unless force=true)."
+  };
+}
+
 export function registerNavigatorTools(registerTool) {
   registerTool(
     "md_status",
-    "Index freshness for a Markdown corpus. No HTTP, no writes. Returns FRESH / HEALTHY / NEEDS WARMUP / NO INDEX.",
+    `Index freshness for a Markdown corpus. Cheap, no HTTP.
+
+WHEN: Before md_search on a corpus you've been editing. To check if md_index is needed.
+WHY OURS: One-call answer — FRESH / HEALTHY / NEEDS WARMUP / NO INDEX with pending-chunk counts. No grep over .md-navigator/.
+INPUT: corpus (path).
+OUTPUT: text block with Corpus / Index / Last touched / Status / per-scope deltas.
+ALT: md_orient bundles status + map + importance.
+COST: Free (no embedding calls).`,
     {
       corpus: z.string().min(1).describe("Path to Markdown corpus folder")
     },
@@ -89,7 +149,14 @@ export function registerNavigatorTools(registerTool) {
 
   registerTool(
     "md_ls",
-    "Building block — usually called via md_orient. List Markdown files with frontmatter description, title, heading count, optional token and link counts. No index needed.",
+    `List Markdown files with frontmatter descriptions, titles, heading counts.
+
+WHEN: 'what files are in this folder', folder overview, file inventory, before md_search to scope-down.
+WHY OURS: Frontmatter description per file in one packet — Bash ls + cat-loop equivalent at ~10x token cost.
+INPUT: path (folder or .md), max_heading_level, match (substring filter), with_tokens, with_link_counts.
+OUTPUT: { files: [{ id, relative_path, description, title, heading_count, ...optional }] } — used as map_data for md_extract.
+ALT: md_orient for full corpus orientation. md_toc when heading-level detail needed.
+COST: Free (no embedding).`,
     {
       path: z.string().min(1).describe("Folder or .md file path"),
       max_heading_level: z.number().int().min(1).max(6).optional(),
@@ -109,7 +176,14 @@ export function registerNavigatorTools(registerTool) {
 
   registerTool(
     "md_toc",
-    "Building block — usually called via md_orient or md_edit_context. Table of contents for a Markdown folder with stable heading ids usable as input to md_pick. No index needed.",
+    `Table of contents with stable heading ids usable as md_extract input.
+
+WHEN: 'show me headings of folder', need handles before md_extract, planning which sections to read.
+WHY OURS: Stable ids (1.2, 4.3) survive heading-text edits. grep '^#' returns text, not ids.
+INPUT: path, max_heading_level (default 6), match, with_tokens, with_link_counts.
+OUTPUT: { files: [{ id, headings: [{ id, text, level, line }] }] } — map_data for md_extract.
+ALT: md_ls when headings unneeded. md_orient for whole corpus.
+COST: Free.`,
     {
       path: z.string().min(1),
       max_heading_level: z.number().int().min(1).max(6).optional(),
@@ -129,7 +203,14 @@ export function registerNavigatorTools(registerTool) {
 
   registerTool(
     "md_search",
-    "Semantic + keyword search across a Markdown corpus (BM25F + dense via RRF). Returns ranked sections, not lines. Use for natural-language «which section talks about X». For exact strings / regex / known symbols use `rg` — cheaper, no spawn overhead, no index needed.",
+    `Find Markdown sections by natural-language query (BM25F + dense via RRF).
+
+WHEN: 'where is X discussed', 'find sections about Y', any meaning question over .md. Default tool for non-exact searches.
+WHY OURS: Semantic + keyword hybrid ranks heading-bounded sections (not line matches). Beats grep for paraphrased / multi-lingual / morphologically-varied queries.
+INPUT: corpus, query, scope ('sections'|'descriptions'), limit (10), rerank (false), path_include/exclude.
+OUTPUT: { results: [{ path, heading_chain, signals, rrf, snippet }] } ranked. scope='descriptions' returns one item per file.
+ALT: Exact strings / regex → rg via Bash. For one file by path → md_extract.
+COST: First call on cold corpus returns index_warmup_required (exit 4) — run md_index first. Rerank flag adds ~$0.001.`,
     {
       corpus: z.string().min(1),
       query: z.string().min(1),
@@ -151,17 +232,25 @@ export function registerNavigatorTools(registerTool) {
       pushRepeated(args, "--path-include", path_include);
       pushRepeated(args, "--path-exclude", path_exclude);
       return await runNavigator(args, { timeoutMs: 120_000 });
-    }
+    },
+    { openWorldHint: true }
   );
 
   registerTool(
-    "md_pick",
-    "Select files/headings from a saved map (output of md_ls / md_toc / md_search). Pass map_data inline; with extract:true returns section bodies.",
+    "md_extract",
+    `Extract file metadata or section bodies from a saved map (md_ls / md_toc / md_search output).
+
+WHEN: After md_ls/md_toc/md_search returned a map and you need to pull specific files/headings — metadata only (extract=false) or full text (extract=true).
+WHY OURS: One call instead of pick→cat chain. Heading-aware (extract=true pulls only the section, not whole file). Token-budgeted.
+INPUT: map_data (JSON from md_ls/md_toc/md_search), files (comma ids '1,4'), headings (comma ids '1.2,4.3'), extract (false=metadata, true=bodies), token_budget.
+OUTPUT: { files: [...], headings: [{ id, text, body? }] } — body present only when extract=true.
+ALT: For one whole file by path → built-in Read. For semantic-aware extract → md_read_related with paths.
+COST: Free.`,
     {
       map_data: z.unknown().describe("JSON map object from md_ls / md_toc / md_search"),
       files: z.string().optional().describe("Comma list of file ids, e.g. '1,4,7'"),
       headings: z.string().optional().describe("Comma list of heading ids, e.g. '1.2,4.3'"),
-      extract: z.boolean().optional().describe("Include section text body for selected headings"),
+      extract: z.boolean().optional().describe("false (default): return metadata only. true: include section text bodies."),
       token_budget: z.number().int().nonnegative().optional()
     },
     async ({ map_data, files, headings, extract, token_budget }) => {
@@ -169,10 +258,18 @@ export function registerNavigatorTools(registerTool) {
         throw new Error("map_data is required. First call md_ls / md_toc / md_search to get the map.");
       }
       return await withTempMap(map_data, async (mapPath) => {
+        if (extract) {
+          // extract=true → use `read` subcommand for heading-aware bodies
+          const args = ["read", mapPath, "--json"];
+          pushFlag(args, "--files", files);
+          pushFlag(args, "--headings", headings);
+          pushFlag(args, "--token-budget", token_budget);
+          return await runNavigator(args, { timeoutMs: 30_000 });
+        }
+        // extract=false → use `pick` for metadata-only selection
         const args = ["pick", mapPath, "--json"];
         pushFlag(args, "--files", files);
         pushFlag(args, "--headings", headings);
-        if (extract) args.push("--extract");
         pushFlag(args, "--token-budget", token_budget);
         return await runNavigator(args, { timeoutMs: 30_000 });
       });
@@ -180,34 +277,15 @@ export function registerNavigatorTools(registerTool) {
   );
 
   registerTool(
-    "md_cat",
-    "Heading-aware section extract from a saved map (output of md_ls / md_toc / md_search). Pass map_data + heading ids to get section bodies in one packet, optionally token-budgeted. For one file by path use built-in Read — it's shorter and identical for whole-file reads.",
-    {
-      map_data: z.unknown().describe("JSON map from md_ls / md_toc / md_search"),
-      files: z.string().optional(),
-      headings: z.string().optional(),
-      token_budget: z.number().int().nonnegative().optional()
-    },
-    async ({ map_data, files, headings, token_budget }) => {
-      if (map_data === null || map_data === undefined) {
-        throw new Error("map_data is required. First call md_ls / md_toc / md_search to get the map. For one file by path use built-in Read.");
-      }
-      const argsBase = ["read"];
-      pushFlag(argsBase, "--token-budget", token_budget);
-      pushFlag(argsBase, "--files", files);
-      pushFlag(argsBase, "--headings", headings);
-      argsBase.push("--json");
-      return await withTempMap(map_data, async (mapPath) => {
-        return await runNavigator([...argsBase.slice(0, 1), mapPath, ...argsBase.slice(1)], {
-          timeoutMs: 30_000
-        });
-      });
-    }
-  );
-
-  registerTool(
     "md_audit",
-    "Orchestrated corpus health audit: overlaps + repeated concepts + clusters + heading signals. Six IA classes with severity and 0-100 health gauge. Slow (~minutes), 300s timeout.",
+    `Orchestrated corpus health audit: overlaps + repeated concepts + clusters + heading signals. Slow.
+
+WHEN: 'is this corpus healthy', monthly hygiene pass, before major refactor, suspect IA drift.
+WHY OURS: Bundles 4 IA probes + 6 issue-class scoring + 0-100 health gauge — single call instead of 4-tool sequence.
+INPUT: corpus, path_include/exclude.
+OUTPUT: { classes, findings, health_score, ... } — IA classes with severity ratings.
+ALT: For one probe only → md_overlaps / md_repeated_concepts directly. For graph hygiene → md_health.
+COST: Slow (minutes), 300s timeout. Cloud embeddings if not cached. Auto-skipped in fast smoke (SMOKE_AUDIT=1 to include).`,
     {
       corpus: z.string().min(1),
       path_include: z.array(z.string().min(1)).optional(),
@@ -218,18 +296,26 @@ export function registerNavigatorTools(registerTool) {
       pushRepeated(args, "--path-include", path_include);
       pushRepeated(args, "--path-exclude", path_exclude);
       return await runNavigator(args, { timeoutMs: 300_000 });
-    }
+    },
+    { readOnlyHint: false, openWorldHint: true }
   );
 
   registerTool(
     "md_read_related",
-    "Building block — usually called via md_edit_context. Read an anchor file and linked neighborhood. mode=preview returns descriptions/headings only; mode=full returns content bodies.",
+    `Read an anchor file and its linked neighborhood.
+
+WHEN: Before editing a file you don't know well, understand its graph dependencies, gather context for a question that spans files.
+WHY OURS: Walks wikilinks + markdown-links + backlinks + (optional) semantic neighbors in one packet. preview mode omits bodies for fast scan.
+INPUT: paths (anchor file(s)), scan (root, default cwd), include (csv: self/frontmatter/wikilinks/markdown-links/backlinks), mode ('preview' | 'full'), anchor_aware (default true), semantic_radius (0=off), check_links, token_budget.
+OUTPUT: { anchors, items: [{ path, kind, content? }] } — content present only in full mode.
+ALT: md_edit_context composite bundles this with preflight. md_extract for known sections without graph walk.
+COST: Free unless semantic_radius>0 or check_links (uses on-disk vecs, no HTTP).`,
     {
       paths: z.array(z.string().min(1)).min(1).describe("Anchor file path(s) — the document(s) you want enriched"),
       scan: z.string().optional().describe("Markdown root to scan for backlinks (default: cwd)"),
       include: z.string().optional().describe("Comma list: self,frontmatter,wikilinks,markdown-links,backlinks (default all)"),
       mode: z.enum(["preview", "full"]).optional().describe("preview: descriptions/headings only. full: include content bodies. Default full."),
-      anchor_aware: z.boolean().optional().describe("If a link points to `file#Heading`, extract only that section instead of whole file. Default true. Set false to revert to whole-file behavior."),
+      anchor_aware: z.boolean().optional().describe("If a link points to `file#Heading`, extract only that section instead of whole file. Default true."),
       token_budget: z.number().int().nonnegative().optional(),
       semantic_radius: z.number().int().nonnegative().optional().describe("Append top-K semantic neighbors not in the link graph (0 = off)"),
       check_links: z.boolean().optional().describe("Flag explicit links that are semantically far from the anchor — candidates for off-topic review"),
@@ -252,7 +338,14 @@ export function registerNavigatorTools(registerTool) {
 
   registerTool(
     "md_importance",
-    "Building block — usually called via md_orient. Rank Markdown files by link-graph importance: pagerank, in_degree, or out_degree. No embeddings or HTTP.",
+    `Rank Markdown files by link-graph importance (pagerank / in_degree / out_degree / centrality).
+
+WHEN: 'what are the central docs', orient on new corpus, prioritize reading order, find hubs.
+WHY OURS: NetworkX pagerank over the Markdown link graph in one call. No grep loops, no embedding cost.
+INPUT: corpus, top (default 10), sort_by ('pagerank'|'in_degree'|'out_degree'|'centrality').
+OUTPUT: { files: [{ relative_path, pagerank, in_degree, out_degree }] } ranked.
+ALT: md_orient bundles importance + status + map.
+COST: Free (no embeddings, no HTTP).`,
     {
       corpus: z.string().min(1),
       top: z.number().int().positive().max(100).optional(),
@@ -264,6 +357,168 @@ export function registerNavigatorTools(registerTool) {
       pushFlag(args, "--sort-by", sort_by);
       return await runNavigator(args, { timeoutMs: 30_000 });
     }
+  );
+
+  registerTool(
+    "md_overlaps",
+    `Find section pairs with high semantic similarity (smeared-information detector).
+
+WHEN: 'are there duplicate ideas across files', IA audit for owner-truth violation, before merging two files.
+WHY OURS: Section-level cosine pairs ranked by similarity — pinpoints duplicates Bash grep can't catch (paraphrase, different wording).
+INPUT: corpus, threshold (default 0.85), top (default 10), include_same_file (false), min_tokens (30), path_include/exclude.
+OUTPUT: { pairs: [{ similarity, a: {section, path}, b: {section, path} }], stats } ranked.
+ALT: md_audit bundles this + repeated_concepts + clusters. md_repeated_concepts groups by connected components.
+COST: Requires warm index (md_index first). Returns index_warmup_required if cold.`,
+    {
+      corpus: z.string().min(1).describe("Corpus root with warm md-navigator index"),
+      threshold: z.number().min(0).max(1).optional().describe("Cosine similarity threshold (default 0.85)"),
+      top: z.number().int().positive().max(100).optional().describe("Top-N pairs to return (default 10)"),
+      min_tokens: z.number().int().nonnegative().optional().describe("Skip sections below this token count (default 30)"),
+      include_same_file: z.boolean().optional().describe("Include section pairs from the same file (default false)"),
+      max_heading_level: z.number().int().min(1).max(6).optional(),
+      path_include: z.array(z.string().min(1)).optional(),
+      path_exclude: z.array(z.string().min(1)).optional()
+    },
+    async ({ corpus, threshold, top, min_tokens, include_same_file, max_heading_level, path_include, path_exclude }) => {
+      const args = ["overlaps", corpus, "--json"];
+      pushFlag(args, "--threshold", threshold);
+      pushFlag(args, "--top", top);
+      pushFlag(args, "--min-tokens", min_tokens);
+      if (include_same_file) args.push("--include-same-file");
+      pushFlag(args, "--max-heading-level", max_heading_level);
+      pushRepeated(args, "--path-include", path_include);
+      pushRepeated(args, "--path-exclude", path_exclude);
+      return await runNavigator(args, { timeoutMs: 120_000 });
+    },
+    { openWorldHint: true }
+  );
+
+  registerTool(
+    "md_repeated_concepts",
+    `Find ideas that recur across the corpus via connected components on section-similarity graph.
+
+WHEN: 'what concepts keep coming up', owner-truth probe, recurring topic discovery, before splitting a topic into a dedicated file.
+WHY OURS: Concept-level clustering (not just pair-wise like md_overlaps). Each concept lists files it touches + representative section.
+INPUT: corpus, threshold (default 0.80), top (default 30), min_files (default 2), min_sections, path_include/exclude.
+OUTPUT: { concepts: [{ medoid_section, files, member_sections, cohesion }], stats } + writes <corpus>/.md-navigator/repeated-concepts.md as side-effect report.
+ALT: md_audit bundles this + overlaps + clusters. md_overlaps for pair-level only.
+COST: Requires warm index (md_index first). Writes one Markdown file inside .md-navigator/.`,
+    {
+      corpus: z.string().min(1).describe("Corpus root with warm md-navigator index"),
+      threshold: z.number().min(0).max(1).optional().describe("Cosine threshold for graph edges (default 0.80)"),
+      top: z.number().int().positive().max(200).optional().describe("Top-N concepts (default 30)"),
+      min_files: z.number().int().positive().optional().describe("Drop concepts spanning fewer than this many files (default 2)"),
+      min_sections: z.number().int().positive().optional(),
+      min_tokens: z.number().int().nonnegative().optional(),
+      top_members: z.number().int().positive().optional(),
+      path_include: z.array(z.string().min(1)).optional(),
+      path_exclude: z.array(z.string().min(1)).optional()
+    },
+    async ({ corpus, threshold, top, min_files, min_sections, min_tokens, top_members, path_include, path_exclude }) => {
+      const args = ["repeated-concepts", corpus, "--json"];
+      pushFlag(args, "--threshold", threshold);
+      pushFlag(args, "--top", top);
+      pushFlag(args, "--min-files", min_files);
+      pushFlag(args, "--min-sections", min_sections);
+      pushFlag(args, "--min-tokens", min_tokens);
+      pushFlag(args, "--top-members", top_members);
+      pushRepeated(args, "--path-include", path_include);
+      pushRepeated(args, "--path-exclude", path_exclude);
+      return await runNavigator(args, { timeoutMs: 180_000 });
+    },
+    { readOnlyHint: false, openWorldHint: true }
+  );
+
+  registerTool(
+    "md_index",
+    `Cold-start or top-up the persistent embedding index for a corpus. MUTATING + COST-BEARING.
+
+WHEN: New corpus / md_search returns index_warmup_required / large delta detected by md_status.
+WHY OURS: One-shot warmup; subsequent md_search / md_overlaps / md_repeated_concepts become instant.
+INPUT: corpus, confirm (required true), dry_run (estimate cost without running), batch_size, batch_pause_ms.
+OUTPUT (live): index summary text — chunks embedded, time, cost.
+OUTPUT (dry_run): { dry_run: true, pending_chunks, estimated_cost_usd, status_text }.
+ALT: md_status to check state first.
+COST: ~$0.02 per ~1000 chunks via OpenRouter bge-m3. Use dry_run:true first. Refuses without confirm:true.`,
+    {
+      corpus: z.string().min(1).describe("Markdown corpus folder"),
+      confirm: z.boolean().optional().describe("Required true to actually run. Default false rejects with cost warning."),
+      dry_run: z.boolean().optional().describe("If true, return estimated cost / pending chunks without embedding."),
+      batch_size: z.number().int().positive().max(128).optional(),
+      batch_pause_ms: z.number().int().nonnegative().optional(),
+      max_heading_level: z.number().int().min(1).max(6).optional()
+    },
+    async ({ corpus, confirm, dry_run, batch_size, batch_pause_ms, max_heading_level }) => {
+      if (dry_run) {
+        const est = await estimateIndexCost(corpus);
+        return {
+          dry_run: true,
+          ...est,
+          hint: est.pending_chunks === 0 && !est.no_index
+            ? "Index is fresh — no embedding needed. Skip md_index."
+            : `Pass confirm:true to embed ${est.pending_chunks} chunks (~$${est.estimated_cost_usd}).`
+        };
+      }
+      if (!confirm) {
+        return {
+          error: "confirm_required",
+          reason: "Cost-bearing operation: embeds Markdown sections via OpenRouter (~$0.02 per ~1000 chunks).",
+          hint: "Pass dry_run:true for estimate, then confirm:true to proceed."
+        };
+      }
+      const args = ["index", corpus];
+      pushFlag(args, "--batch-size", batch_size);
+      pushFlag(args, "--batch-pause-ms", batch_pause_ms);
+      pushFlag(args, "--max-heading-level", max_heading_level);
+      return await runNavigator(args, { parseJson: false, timeoutMs: 600_000 });
+    },
+    { readOnlyHint: false, openWorldHint: true, idempotentHint: false }
+  );
+
+  registerTool(
+    "md_profile_sections",
+    `Classify indexed sections and cache section profiles in index.sqlite. MUTATING (writes profile rows).
+
+WHEN: Before md_query_by_type / md_refactor_candidates on a fresh index, after large corpus edits.
+WHY OURS: One-pass classifier — heuristic (free) or LLM (~$0.0005/section). Profiles cached, subsequent reads instant.
+INPUT: corpus, confirm (required true), dry_run (estimate), limit, force, mode ('heuristic'|'llm'|'auto'), model.
+OUTPUT (live): { stats, sample } — sections profiled, counts per type.
+OUTPUT (dry_run): { dry_run: true, sections_to_profile_estimate, mode, estimated_cost_usd }.
+ALT: md_query_by_type / md_refactor_candidates lazy-profile what they need.
+COST: Heuristic mode free. LLM mode ~$0.0005/section (haiku). Use dry_run first.`,
+    {
+      corpus: z.string().min(1).describe("Corpus root with warm md-navigator index"),
+      confirm: z.boolean().optional().describe("Required true to actually run."),
+      dry_run: z.boolean().optional().describe("If true, return section count + estimated cost without classifying."),
+      limit: z.number().int().nonnegative().optional().describe("Max sections to profile (0=all)"),
+      force: z.boolean().optional().describe("Re-profile even cached rows"),
+      mode: z.enum(["heuristic", "llm", "auto"]).optional(),
+      model: z.string().optional().describe("LLM classifier model id for mode=llm/auto")
+    },
+    async ({ corpus, confirm, dry_run, limit, force, mode, model }) => {
+      if (dry_run) {
+        const est = await estimateProfileCost(corpus, mode);
+        return {
+          dry_run: true,
+          ...est,
+          hint: `Pass confirm:true to profile ${est.sections_to_profile_estimate} sections (mode=${est.mode}).`
+        };
+      }
+      if (!confirm) {
+        return {
+          error: "confirm_required",
+          reason: "Cost-bearing operation: classifies sections (heuristic=free, llm mode=~$0.0005/section).",
+          hint: "Pass dry_run:true for estimate, then confirm:true to proceed."
+        };
+      }
+      const args = ["profile-sections", corpus, "--json"];
+      pushFlag(args, "--limit", limit);
+      if (force) args.push("--force");
+      pushFlag(args, "--mode", mode);
+      pushFlag(args, "--model", model);
+      return await runNavigator(args, { timeoutMs: 600_000 });
+    },
+    { readOnlyHint: false, openWorldHint: true, idempotentHint: false }
   );
 }
 

@@ -1,6 +1,6 @@
 # md-mcp
 
-Unified MCP server for Markdown corpus tooling. It exposes the repo-owned
+Unified MCP server for Markdown corpus tooling. Exposes the repo-owned
 **md-navigator** backend (maps, search, profiles, refactor signals) and
 **md-graph** backend (read-before-edit / edit-after-edit hygiene) as typed
 tools over stdio.
@@ -8,84 +8,82 @@ tools over stdio.
 Node owns the tool surface. Python owns backend behavior. Skill files own
 workflow choices.
 
-## Why it exists
+## Design — MCP is the API spec
 
-- **Discoverability** - models see typed tool schemas through `listTools`
-  instead of remembering CLI flags.
-- **Workflow packets** - composites like `md_orient` and
-  `md_edit_context` bundle common agent moments into one call.
-- **Cross-runtime backend** - the same server serves Claude and Codex; fewer
-  divergence points than mirrored skill scripts.
+`listTools` is the canonical contract. Every tool description is
+**self-sufficient**: it teaches WHEN to call, WHY it beats Bash, INPUT/OUTPUT
+shape, ALTernatives, and COST/RISK in one packet. An agent without skills
+installed can read `listTools` and call the right tool.
 
-CLI scripts stay live: indexing, schema mutations (`init` / `strip`),
-git-driven `changed`, hooks, debugging, and direct fallback remain CLI-only.
-Ordinary read-only agent workflows should use MCP first.
+Skills are **workflow overlay** — they layer interpretation, multi-tool
+sequencing, and project-specific judgment on top of the MCP surface. A skill
+does not duplicate MCP's input schema; it teaches when to choose composite
+vs atomic and how to interpret output.
 
-## Tool surface (19 tools)
+## Tool surface (27 public tools + md_ping)
 
-### Primary composites (4)
+### Composite (6) — bundled workflows
 
 | Tool | Purpose |
 |---|---|
-| `md_orient` | Cheap corpus orientation: status + map with link counts + importance. No embeddings. |
+| `md_orient` | New corpus orientation: status + map with link counts + importance. No embeddings. |
 | `md_edit_context` | Pre-edit packet for one file. Modes: `preview`, `full`, `strict`. |
+| `md_section_blast_radius` | Section rename radius: graph hard layer + semantic soft layer. |
+| `md_audit` | Orchestrated corpus health audit: overlaps + repeated concepts + clusters. Slow. |
 | `md_refactor_candidates` | Human-reviewed refactor proposals from section profiles. No automation. |
-| `md_query_by_type` | List profiled sections by type: `open-question`, `decision`, `definition`, etc. |
+| `md_query_by_type` | List profiled sections by type: open-question / decision / definition / rule. |
 
-### Hybrid (1)
-
-| Tool | Purpose |
-|---|---|
-| `md_section_blast_radius` | Section rename/rewrite radius: graph hard layer + semantic soft layer. `query` is required. |
-
-### Navigator building blocks (9)
+### Atomic navigation/content (7)
 
 | Tool | Purpose |
 |---|---|
-| `md_status` | Index freshness for a corpus. |
-| `md_ls` | Folder listing: paths + frontmatter `description` + heading counts; optional link counts. |
-| `md_toc` | Table of contents with stable heading ids (`1.2`, `4.3`); optional link counts. |
-| `md_search` | Semantic + keyword search (BM25F + dense via RRF); ranked sections, not line matches. |
-| `md_pick` | Select files/headings from a saved map; `extract: true` returns bodies. |
-| `md_cat` | Heading-aware section extract from a saved map. For one file by path use built-in Read. |
-| `md_read_related` | Read anchor + linked neighborhood. `mode: preview` returns descriptions/headings only; MCP default is anchor-aware for heading links. |
-| `md_audit` | Orchestrated corpus health audit; slow, 300s timeout. |
-| `md_importance` | Rank files by pagerank / centrality / in-degree / out-degree. No embeddings. |
+| `md_status` | Index freshness: FRESH / HEALTHY / NEEDS WARMUP / NO INDEX. |
+| `md_ls` | List files with frontmatter descriptions + heading counts + optional link counts. |
+| `md_toc` | Headings with stable ids for use as `md_extract` input. |
+| `md_search` | Semantic + BM25 hybrid search via RRF. Ranked sections. |
+| `md_extract` | Pull metadata or section bodies from a saved map (merger of old `pick` + `cat`). |
+| `md_read_related` | Anchor file + linked neighborhood. `preview` / `full` modes. |
+| `md_importance` | Rank files by pagerank / centrality / in/out-degree. No embeddings. |
 
-### Graph building blocks (4)
+### Atomic graph (7)
 
 | Tool | Purpose |
 |---|---|
-| `md_preflight` | Pre-edit safety report for a `.md` file; sets `has_blockers: true` on missing-target / broken-link / cycle / missing-frontmatter. |
+| `md_preflight` | Pre-edit safety report. Sets `has_blockers:true` on missing-target / broken-link / cycle. |
 | `md_impact` | What breaks if a `.md` file is deleted or renamed. |
-| `md_deps` | Forward edges + reverse holders for one file, with cascade depth. |
-| `md_health` | Repo-level summary: description coverage, hubs, orphans, cycles. |
+| `md_deps` | Forward edges + reverse holders for one file, depth>1 walks cascade. |
+| `md_health` | Repo-level summary: description coverage, hubs, orphans, cycles, broken links. |
+| `md_cycles` | Edit-after-edit cycles list. Tarjan SCC. |
+| `md_check` | Wikilink / anchor / markdown-link validation. |
+| `md_scan` | Frontmatter form issues: missing / legacy / unknown / malformed. |
 
-### Server health (1)
+### Atomic IA probes (2)
 
 | Tool | Purpose |
 |---|---|
-| `md_ping` | Health check: server + resolved script paths, no backend call. |
+| `md_overlaps` | Section pairs with high semantic similarity (smeared-information detector). |
+| `md_repeated_concepts` | Concept-level clustering via connected components on similarity graph. |
 
-**Renamed in 0.2.0**: `md_map -> md_ls`, `md_headings -> md_toc`,
-`md_read -> md_cat`.
+### Git-driven (1)
 
-**0.4.0 changes**:
-- Graph backend now resolves to the repo-owned `scripts/md_graph.py` first.
-- Tier 1: link counts in `md_ls` / `md_toc`, `md_importance`,
-  `md_read_related.mode`, `md_orient`, `md_edit_context`.
-- Tier 2: section profiles, `md_refactor_candidates`, `md_query_by_type`.
-- Smoke coverage is now 24 assertions.
+| Tool | Purpose |
+|---|---|
+| `md_changed` | Preflight on every `.md` file touched by git diff. `--base` / `--staged`. |
 
-**0.5.x changes** (post-refactor closeout 2026-05-21):
-- `scripts/` folders removed from `~/.claude/skills/1md-{navigator,graph}/` and
-  `~/.codex/skills/1md-{navigator,graph}/`. Skills are now pure `SKILL.md`
-  (+ `references/`, `agents/`). Backend lives only in
-  `experiments/md-embedding-server/scripts/`.
-- `paths.js` fallback paths to skill folders removed — resolution is now
-  `MD_NAVIGATOR_SCRIPT` env → in-repo only.
-- `md_refactor_candidates` structural fix: skip H1 file-root sections in
-  candidate pool (reduces multi-topic file-root bias).
+### Mutating with guards (4)
+
+| Tool | Cost / Risk | Guard pattern |
+|---|---|---|
+| `md_index` | Cost: ~$0.02 per 1000 chunks via OpenRouter | `confirm:true` required; `dry_run:true` returns estimate. |
+| `md_profile_sections` | Cost: heuristic free, llm ~$0.0005/section | `confirm:true` + `dry_run:true`. |
+| `md_init` | Destructive: modifies `.md` files in place | `confirm:true` + `dry_run:true` lists affected files. |
+| `md_strip` | Destructive: removes frontmatter fields and optionally body sections | `confirm:true` + `dry_run:true`. |
+
+### Server (1)
+
+| Tool | Purpose |
+|---|---|
+| `md_ping` | Health check: server name, version, resolved script paths. No backend call. |
 
 ## Workflow quick reference
 
@@ -97,59 +95,91 @@ Ordinary read-only agent workflows should use MCP first.
 | Check hard graph blockers | `md_preflight` or `md_edit_context mode=strict` |
 | Delete or rename a file | `md_impact` |
 | Rename or rewrite a section | `md_section_blast_radius` |
+| Find duplicate / smeared sections | `md_overlaps` |
+| Find recurring concepts across files | `md_repeated_concepts` |
 | Find refactor opportunities | `md_refactor_candidates` |
 | Find open questions / decisions / definitions | `md_query_by_type` |
-| Exact strings, regex, stale refs | `rg` / `1cli-tools`, not MCP search |
+| Repo-level graph hygiene | `md_health` (rollup) or `md_cycles` / `md_check` / `md_scan` (individual) |
+| Pre-commit graph check | `md_changed` |
+| Cold-start embedding index | `md_index` (with `dry_run:true` first) |
+| Profile sections for type classification | `md_profile_sections` |
+| Add graph frontmatter to new files | `md_init` |
+| Remove legacy graph fields | `md_strip` |
+| Exact strings, regex, stale refs | `rg` / Bash — not MCP |
+
+## Self-sufficient description contract
+
+Every tool description follows:
+
+```
+<one-line action>
+
+WHEN: trigger phrases / typical situations / which user question
+WHY OURS: what we add vs Bash ls/grep/find
+INPUT: main params and defaults
+OUTPUT: shape preview — key fields, when array vs object
+ALT: when to prefer composite tool / another tool
+COST/RISK: cost / what changes on disk (for mutating)
+```
+
+Skills must not duplicate input schemas — point at MCP. Skills teach
+interpretation and multi-tool sequencing.
+
+## Mutating-tool guard pattern
+
+Mutating tools (`md_index`, `md_profile_sections`, `md_init`, `md_strip`)
+require explicit confirmation:
+
+```javascript
+{ corpus, confirm: true }           // proceeds
+{ corpus, dry_run: true }           // returns estimate, no side-effect
+{ corpus }                          // returns { error: "confirm_required" }
+```
+
+`dry_run` returns:
+- `md_index` — `{ pending_chunks, estimated_cost_usd, status_text }`
+- `md_profile_sections` — `{ sections_to_profile_estimate, mode, estimated_cost_usd }`
+- `md_init` / `md_strip` — `{ files_to_modify, file_count }`
 
 ## Tool contracts and backend mapping
 
 Zod input schemas live next to each `registerTool(...)` call in
-`src/tools/*.js`. There is no separate shared schema source; if a common arg
-helper is introduced later, it must be imported by the tool files and covered
-by smoke.
+`src/tools/*.js`.
 
 | Tool | Required args | Python command(s) | Notes |
 |---|---|---|---|
 | `md_ping` | - | none | Server/path health only. |
 | `md_orient` | `corpus` | `status`, `map --with-link-counts`, `importance` | Cheap, no embeddings. |
 | `md_edit_context` | `path` | `preflight`, `read-related`, optional `search` | `strict` mode skips context body. |
+| `md_section_blast_radius` | `path`, `corpus`, `query` | `preflight` + `search` | Hard graph + soft semantic candidates. |
+| `md_audit` | `corpus` | `audit --json` | Slow, 300s timeout. |
 | `md_refactor_candidates` | `corpus` | `refactor-candidates` | Needs warm index + profiles. |
 | `md_query_by_type` | `corpus`, `types` | `query-by-type` | Profiles are created lazily when missing. |
-| `md_section_blast_radius` | `path`, `corpus`, `query` | `preflight` + `search` | Hard graph + soft semantic candidates. |
 | `md_status` | `corpus` | `status` | No HTTP, no writes. |
 | `md_ls` | `path` | `map --json` | Optional tokens/link counts. |
-| `md_toc` | `path` | `headings --json` | Stable heading ids for later pick/cat. |
+| `md_toc` | `path` | `headings --json` | Stable heading ids for later extract. |
 | `md_search` | `corpus`, `query` | `search --json` | May return `index_warmup_required`. |
-| `md_pick` | `map_data` | `pick --json` via temp map | Selects files/headings from map output. |
-| `md_cat` | `map_data` | `pick --extract --json` via temp map | For direct whole-file reads use built-in Read. |
+| `md_extract` | `map_data` | `pick --json` or `read --json` | `extract:false`→pick metadata; `true`→read bodies. |
 | `md_read_related` | `paths` | `read-related --json` | Linked context; `preview` omits content. |
-| `md_audit` | `corpus` | `audit --json` | Slow, 300s timeout; skipped in default smoke. |
 | `md_importance` | `corpus` | `importance --json` | Link graph only, no embeddings. |
+| `md_overlaps` | `corpus` | `overlaps --json` | Needs warm index. Section-pair similarity. |
+| `md_repeated_concepts` | `corpus` | `repeated-concepts --json` | Needs warm index. Writes `.md-navigator/repeated-concepts.md`. |
 | `md_preflight` | `path` | `preflight --json` | `has_blockers` reflects graph blockers. |
 | `md_impact` | `path` | `impact --json` | Delete/rename blast radius for explicit links. |
 | `md_deps` | `path` | `deps --json` | Forward/reverse graph edges. |
 | `md_health` | - | `health --json` | Optional `paths`; graph summary. |
-
-## Excluded by design
-
-`md_overlaps`, `md_repeated_concepts`, `md_cluster` - rolled into
-`md_audit`. Standalone tools are too granular for the MCP surface.
-
-`md_scan`, `md_check`, `md_doctor`, `md_cycles` - rolled into `md_health`.
-
-`md_index`, `profile-sections`, `md_init`, `md_strip` - mutating or
-cost-bearing; MCP has no good UX for cost or destructive confirmation. Stay CLI.
-
-`md_originality`, `md_owner_candidates` - advanced internals used by refactor
-proposals. Kept out of MCP until real usage proves they are useful directly.
-
-`md_changed` - git-driven; better as a pre-commit hook than an MCP tool.
+| `md_cycles` | - | `cycles --json` | Edit-after-edit cycle list. |
+| `md_check` | - | `check --json` | Wikilink/anchor/markdown-link validation. |
+| `md_scan` | - | `scan --json` | Frontmatter schema issues. |
+| `md_changed` | - | `changed --json` | Git diff → preflight each `.md`. |
+| `md_index` (mutating) | `corpus`, `confirm` | `index` | `dry_run:true` returns estimate. |
+| `md_profile_sections` (mutating) | `corpus`, `confirm` | `profile-sections --json` | Heuristic free; LLM mode ~$0.0005/section. |
+| `md_init` (mutating) | `confirm` | `init --json` | Adds frontmatter template. `dry_run:true` lists files. |
+| `md_strip` (mutating) | `confirm` | `strip` | Removes legacy fields. `also_related_section` for body. |
 
 ## Registration
 
 ### Codex (`~/.codex/config.toml`)
-
-Already wired:
 
 ```toml
 [mcp_servers.md-mcp]
@@ -198,9 +228,6 @@ extra `config.toml` env block is needed.
 | `md_navigator.py` | `MD_NAVIGATOR_SCRIPT` env -> `../scripts/md_navigator.py` (in-repo) |
 | `md_graph.py` | `MD_GRAPH_SCRIPT` env -> `../scripts/md_graph.py` (in-repo) |
 
-Skill-folder fallbacks were removed in 0.5.x post-refactor (skills are now pure
-`SKILL.md`, no scripts).
-
 ## Exit-code mapping
 
 `src/subprocess.js` maps Python exit codes:
@@ -220,43 +247,61 @@ Skill-folder fallbacks were removed in 0.5.x post-refactor (skills are now pure
 cd experiments/md-embedding-server/mcp
 npm install   # one-time
 npm run smoke
-# 24 passed, 0 failed (md_audit skipped by default)
+# 37 passed, 0 failed (md_audit skipped by default)
 SMOKE_AUDIT=1 npm run smoke   # include md_audit (slow)
 ```
 
-The fixture corpus defaults to this repo's `knowledge/` folder, derived from
-the smoke script location. Override it with:
+The fixture corpus defaults to this repo's `knowledge/` folder. Override with:
 
 ```bash
 MD_MCP_SMOKE_REPO=/path/to/agentic-research npm run smoke
 ```
 
 Semantic tools rely on a warm index at `<corpus>/.md-navigator/index.sqlite`;
-run `md_navigator.py index knowledge` once if absent.
+run `md_index` (with `dry_run:true` first to see cost, then `confirm:true`) if
+absent. Or run CLI directly: `md_navigator.py index knowledge`.
 
-Smoke proves that the stdio server starts, the exact documented tool list is
-registered, representative output shapes parse, and Python script resolution
-works. It does not prove editorial quality of `md_refactor_candidates`, full
-`md_audit` behavior unless `SMOKE_AUDIT=1`, or real-world usefulness of a new
-workflow.
+Smoke proves the stdio server starts, the exact documented tool list is
+registered, representative output shapes parse, mutating-tool guards work,
+and Python script resolution works.
 
 ## Adding a new tool
 
 1. Identify the family: navigator, graph, hybrid, or composite.
-2. Confirm the backend command exists and decide whether the tool is read-only,
-   mutating, or cost-bearing. Mutating/cost-bearing commands stay CLI-only.
+2. Confirm the backend command exists. Decide read-only vs mutating vs cost-bearing.
 3. Add a `registerTool(...)` block in the matching `src/tools/*.js`, with Zod
    schema inline near the handler.
-4. Pick timeout intentionally: 30s for cheap map/status, 60s for graph/context,
-   120s for search/profile/refactor, 300s for audit.
-5. Use `runNavigator` or `runGraph` so exit-code mapping stays consistent.
-6. Decide the result envelope: parsed JSON, `{ text }`, or self-repair error.
-7. Add or update a `npm run smoke` assertion. If the tool list changes, update
-   the exact expected names in `test/smoke.js`.
-8. Update this README's tool table, contract/mapping table, workflow reference,
-   and excluded-tools section if relevant.
-9. For versioned MCP surface changes, update `package.json`,
-   `package-lock.json`, and `src/server.js` / `md_ping` version together.
+4. Write self-sufficient description (WHEN / WHY / INPUT / OUTPUT / ALT / COST).
+5. Pick timeout intentionally: 30s for cheap map/status, 60s for graph/context,
+   120s for search/profile/refactor, 300s for audit, 600s for index.
+6. Use `runNavigator` or `runGraph` so exit-code mapping stays consistent.
+7. For mutating tools, add `dry_run` + `confirm` guards.
+8. Add `npm run smoke` assertion. Update `EXPECTED_TOOLS` if total changed.
+9. Update this README's tool tables and version bump in `package.json`,
+   `src/server.js`, and `md_ping`.
+
+## Version history
+
+**0.6.0** (2026-05-21):
+- Expanded surface from 19 → 27 public tools (+ `md_ping`).
+- New read-only atomic tools: `md_overlaps`, `md_repeated_concepts`,
+  `md_cycles`, `md_check`, `md_scan`, `md_changed`.
+- New mutating tools with `confirm` / `dry_run` guards: `md_index`,
+  `md_init`, `md_strip`, `md_profile_sections`.
+- Merged `md_pick` + `md_cat` → `md_extract` (`extract:true` toggles bodies).
+- All descriptions rewritten to self-sufficient format.
+- Smoke coverage: 37 assertions.
+
+**0.5.x** (2026-05-21):
+- `scripts/` folders removed from `~/.claude/skills/1md-{navigator,graph}/`
+  and `~/.codex/skills/1md-{navigator,graph}/`. Backend lives only in
+  `experiments/md-embedding-server/scripts/`.
+- `paths.js` fallback paths to skill folders removed.
+
+**0.4.0**:
+- Graph backend now resolves to the repo-owned `scripts/md_graph.py` first.
+- Tier 1 + Tier 2 composites: `md_orient`, `md_edit_context`,
+  `md_refactor_candidates`, `md_query_by_type`.
 
 ## Troubleshooting
 
@@ -264,8 +309,8 @@ workflow.
 failed. Run `md_ping` and inspect `navigator_error` / `graph_error` fields.
 
 **`md_search` returns `{ error: "index_warmup_required" }`** - first-time index
-for that corpus exceeds `--max-auto-embed`. Run CLI:
-`md_navigator.py index <corpus>` once. Restarting MCP is not needed.
+for that corpus exceeds `--max-auto-embed`. Call `md_index` with
+`dry_run:true` for cost estimate, then `confirm:true` to run.
 
 **Codex sees the server but tools do not appear** - verify Codex started a new
 session after editing `config.toml`. Codex reads MCP config at session start.
@@ -273,6 +318,9 @@ session after editing `config.toml`. Codex reads MCP config at session start.
 **Claude Code says connected but no tools** - check `claude mcp list` shows the
 server, then restart the Claude Code session because tool lists are cached at
 session start.
+
+**Mutating tool returns `confirm_required`** - by design. Pass `dry_run:true`
+first to see scope, then `confirm:true` to execute.
 
 **Server exits immediately** - `exitOnClosedStdio` fires when stdin closes.
 Both Claude and Codex keep stdin open during a real session.

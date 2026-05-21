@@ -18,26 +18,43 @@ const KNOWLEDGE = resolve(REPO, "knowledge");
 const AGENTS = resolve(KNOWLEDGE, "agents");
 const FILE = resolve(AGENTS, "evaluation.md");
 
+// 28 tools total: 27 public-facing + md_ping (server health).
 const EXPECTED_TOOLS = [
+  // Composite (6)
   "md_audit",
-  "md_cat",
-  "md_deps",
   "md_edit_context",
-  "md_health",
-  "md_impact",
+  "md_orient",
+  "md_query_by_type",
+  "md_refactor_candidates",
+  "md_section_blast_radius",
+  // Atomic navigation/content (7)
+  "md_extract",
   "md_importance",
   "md_ls",
-  "md_orient",
-  "md_pick",
-  "md_ping",
-  "md_preflight",
-  "md_query_by_type",
   "md_read_related",
-  "md_refactor_candidates",
   "md_search",
-  "md_section_blast_radius",
   "md_status",
-  "md_toc"
+  "md_toc",
+  // Atomic graph (7)
+  "md_check",
+  "md_cycles",
+  "md_deps",
+  "md_health",
+  "md_impact",
+  "md_preflight",
+  "md_scan",
+  // Atomic IA probes (2)
+  "md_overlaps",
+  "md_repeated_concepts",
+  // Git-driven (1)
+  "md_changed",
+  // Mutating with guards (4)
+  "md_index",
+  "md_init",
+  "md_profile_sections",
+  "md_strip",
+  // Server (1)
+  "md_ping"
 ];
 
 if (!existsSync(KNOWLEDGE) || !existsSync(FILE)) {
@@ -106,7 +123,7 @@ record(
   `${list.tools.length} tools${missingTools.length ? `, missing: ${missingTools.join(",")}` : ""}${extraTools.length ? `, extra: ${extraTools.join(",")}` : ""}`
 );
 
-await expect("md_ping", {}, (p) => Boolean(p.name === "md-mcp" && p.navigator_script && p.graph_script));
+await expect("md_ping", {}, (p) => Boolean(p.name === "md-mcp" && p.version === "0.6.0" && p.navigator_script && p.graph_script));
 
 await expect("md_status", { corpus: KNOWLEDGE }, (p) =>
   typeof p.text === "string" && p.text.includes("Corpus:") ? true : "missing Corpus: line"
@@ -134,13 +151,16 @@ const searchResult = await expect(
   (p) => (Array.isArray(p.results) && p.results.length >= 1) || p.error === "index_warmup_required"
 );
 
-// md_cat now requires map_data (path-mode removed in 0.3.0; use built-in Read for that)
-const tocForCat = await client.callTool({ name: "md_toc", arguments: { path: AGENTS } });
-const tocData = JSON.parse(tocForCat.content[0].text);
+// md_extract: extract=false (metadata) and extract=true (bodies)
+const tocForExtract = await client.callTool({ name: "md_toc", arguments: { path: AGENTS } });
+const tocData = JSON.parse(tocForExtract.content[0].text);
 const firstHeadingId = tocData.files?.[0]?.headings?.[0]?.id;
 if (firstHeadingId) {
-  await expect("md_cat", { map_data: tocData, headings: firstHeadingId }, (p) =>
-    Array.isArray(p.headings) && p.headings.length > 0 ? true : "no extracted heading"
+  await expectTool("md_extract metadata", "md_extract", { map_data: tocData, headings: firstHeadingId, extract: false }, (p) =>
+    Array.isArray(p.headings) && p.headings.length > 0 ? true : "no extracted heading metadata"
+  );
+  await expectTool("md_extract bodies", "md_extract", { map_data: tocData, headings: firstHeadingId, extract: true }, (p) =>
+    Array.isArray(p.headings) && p.headings.length > 0 ? true : "no extracted heading bodies"
   );
 }
 
@@ -196,24 +216,20 @@ await expect("md_refactor_candidates", { corpus: KNOWLEDGE, top: 3 }, (p) =>
   Array.isArray(p.proposals) && p.no_automation === true ? true : "missing proposal list"
 );
 
-const map = await expect("md_ls", { path: AGENTS }, () => true);
-if (map && Array.isArray(map.files) && map.files.length > 0) {
-  await expect(
-    "md_pick",
-    { map_data: map, files: "1", extract: false },
-    (p) => Array.isArray(p.files) && p.files.length === 1 ? true : "wrong file count"
-  );
-}
+// md_overlaps and md_repeated_concepts — IA probes. Require warm index.
+await expect("md_overlaps", { corpus: KNOWLEDGE, top: 3, threshold: 0.85 }, (p) =>
+  (Array.isArray(p.pairs) && p.stats) || p.error === "index_warmup_required" || p.empty
+    ? true
+    : "missing overlaps pairs/stats"
+);
 
-// md_audit is slow — only run when SMOKE_AUDIT=1
-if (process.env.SMOKE_AUDIT === "1") {
-  await expect("md_audit", { corpus: AGENTS }, (p) =>
-    p.classes || p.findings || p.health_score !== undefined ? true : "missing audit fields"
-  );
-} else {
-  console.log("  [SKIP] md_audit — set SMOKE_AUDIT=1 to run (~minutes)");
-}
+await expect("md_repeated_concepts", { corpus: KNOWLEDGE, top: 3, threshold: 0.80 }, (p) =>
+  (Array.isArray(p.concepts) || p.error === "index_warmup_required" || p.empty)
+    ? true
+    : "missing repeated_concepts concepts"
+);
 
+// Graph atomic tools
 await expect("md_preflight", { path: FILE, scan: KNOWLEDGE }, (p) =>
   p.command === "preflight" ? true : "wrong command field"
 );
@@ -230,6 +246,75 @@ await expect("md_health", { paths: [AGENTS] }, (p) =>
   p.command === "health" && p.description_coverage ? true : "missing health fields"
 );
 
+await expect("md_cycles", { paths: [AGENTS] }, (p) =>
+  p.command === "cycles" ? true : "wrong command field"
+);
+
+await expect("md_check", { paths: [AGENTS] }, (p) =>
+  p.command === "check" ? true : "wrong command field"
+);
+
+await expect("md_scan", { paths: [AGENTS] }, (p) =>
+  p.command === "scan" ? true : "wrong command field"
+);
+
+// md_changed — git-driven; need a sensible base. Use HEAD~1 if available,
+// fall back to staged. Allowed to be empty.
+await expect("md_changed", { scan: REPO, depth: 1, staged: true }, (p) =>
+  p.command === "changed" || (typeof p === "object" && p.changed !== undefined) || p.text
+    ? true
+    : "missing changed output"
+);
+
+// Mutating tools — verify guard pattern. dry_run estimate path + confirm_required path.
+await expectTool("md_index dry_run", "md_index", { corpus: KNOWLEDGE, dry_run: true }, (p) =>
+  p.dry_run === true && typeof p.estimated_cost_usd === "number" && typeof p.pending_chunks === "number"
+    ? true
+    : `missing dry_run fields (got: ${JSON.stringify(p).slice(0, 100)})`
+);
+
+await expectTool("md_index no-confirm", "md_index", { corpus: KNOWLEDGE }, (p) =>
+  p.error === "confirm_required" && typeof p.hint === "string"
+    ? true
+    : `expected confirm_required (got: ${JSON.stringify(p).slice(0, 100)})`
+);
+
+await expectTool("md_profile_sections dry_run", "md_profile_sections", { corpus: KNOWLEDGE, dry_run: true }, (p) =>
+  p.dry_run === true && typeof p.estimated_cost_usd === "number" && typeof p.sections_to_profile_estimate === "number"
+    ? true
+    : `missing profile dry_run fields (got: ${JSON.stringify(p).slice(0, 100)})`
+);
+
+await expectTool("md_profile_sections no-confirm", "md_profile_sections", { corpus: KNOWLEDGE }, (p) =>
+  p.error === "confirm_required" && typeof p.hint === "string"
+    ? true
+    : `expected confirm_required (got: ${JSON.stringify(p).slice(0, 100)})`
+);
+
+await expectTool("md_init dry_run", "md_init", { paths: [AGENTS], dry_run: true }, (p) =>
+  p.dry_run === true && Array.isArray(p.files_to_modify) && typeof p.file_count === "number"
+    ? true
+    : `missing init dry_run fields (got: ${JSON.stringify(p).slice(0, 100)})`
+);
+
+await expectTool("md_init no-confirm", "md_init", { paths: [AGENTS] }, (p) =>
+  p.error === "confirm_required" && typeof p.hint === "string"
+    ? true
+    : `expected confirm_required (got: ${JSON.stringify(p).slice(0, 100)})`
+);
+
+await expectTool("md_strip dry_run", "md_strip", { paths: [AGENTS], dry_run: true }, (p) =>
+  p.dry_run === true && Array.isArray(p.files_to_modify) && typeof p.file_count === "number"
+    ? true
+    : `missing strip dry_run fields (got: ${JSON.stringify(p).slice(0, 100)})`
+);
+
+await expectTool("md_strip no-confirm", "md_strip", { paths: [AGENTS] }, (p) =>
+  p.error === "confirm_required" && typeof p.hint === "string"
+    ? true
+    : `expected confirm_required (got: ${JSON.stringify(p).slice(0, 100)})`
+);
+
 await expect(
   "md_section_blast_radius",
   {
@@ -240,6 +325,15 @@ await expect(
   },
   (p) => p.graph && p.semantic ? true : "missing graph or semantic block"
 );
+
+// md_audit is slow — only run when SMOKE_AUDIT=1
+if (process.env.SMOKE_AUDIT === "1") {
+  await expect("md_audit", { corpus: AGENTS }, (p) =>
+    p.classes || p.findings || p.health_score !== undefined ? true : "missing audit fields"
+  );
+} else {
+  console.log("  [SKIP] md_audit — set SMOKE_AUDIT=1 to run (~minutes)");
+}
 
 await client.close();
 

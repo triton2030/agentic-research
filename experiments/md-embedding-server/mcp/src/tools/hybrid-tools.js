@@ -6,7 +6,14 @@ import { runGraph } from "./graph-tools.js";
 export function registerHybridTools(registerTool) {
   registerTool(
     "md_section_blast_radius",
-    "Hybrid blast-radius for a section before rename/rewrite. Combines graph hard layer (md_preflight: explicit wikilinks, anchor-drift, must-update) with semantic soft layer (md_search: paraphrase / named-citation neighbors). One call instead of two. `query` is required — formulate it to capture the section's contract intent.",
+    `Section rename/rewrite radius: graph hard layer + semantic soft layer.
+
+WHEN: Renaming or rewriting a heading, before splitting a section, evaluating contract impact of a paragraph rewrite.
+WHY OURS: Combines author-signed contracts (anchor wikilinks via md_preflight) with paraphrase neighbors (md_search). Two layers in one call — Bash can't synthesize semantic candidates.
+INPUT: path (.md), corpus (semantic root), query (REQUIRED — capture section's contract intent), heading_id (optional, annotation), scan, depth, limit (default 8), path_include/exclude.
+OUTPUT: { path, query, graph, semantic, usage_note } — graph rows = obligations, semantic rows = manual-review candidates.
+ALT: md_preflight alone for hard layer. md_search alone for soft layer. md_impact for delete/rename of whole file.
+COST: Embedding call for semantic layer (free if cached). Returns index_warmup_required if cold corpus.`,
     {
       path: z.string().min(1).describe("Markdown file path to inspect"),
       corpus: z.string().min(1).describe("Corpus root for semantic search"),
@@ -43,6 +50,7 @@ export function registerHybridTools(registerTool) {
         semantic,
         usage_note: "Hard layer = author-signed contracts (anchor wikilinks). Soft layer = candidate semantic neighbors, manual review not obligations."
       };
-    }
+    },
+    { openWorldHint: true }
   );
 }
