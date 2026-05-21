@@ -7,15 +7,14 @@ read-only project context; a `--check` failure can be an intentional handoff,
 not a backend failure. Do not run the write mode merely as a default closeout
 gate after Codex-only recipe edits.
 
-The two SKILL.md files are nearly identical, differing only in:
+Post-2026-05-21 refactor: the two SKILL.md files have intentional drift
+(Codex has Runtime-sanity / agents sections Claude does not). Treat
+`--check` as a diff probe, not an enforcement gate.
 
-  - Skill home path (`~/.claude/skills/...` vs `~/.codex/skills/...`)
-  - Skill-reference syntax (`1md-graph` vs `$1md-graph` — Codex prefixes)
-  - Cross-runtime description ("The Codex skill at..." vs "The Claude
-    skill at...")
+Mechanical transforms applied:
 
-Keeping both files maintained by hand drifts. This script keeps Claude
-as the source of truth and regenerates the Codex copy on demand.
+  - Skill home path (`~/.claude/skills/...` -> `~/.codex/skills/...`)
+  - Skill-reference syntax (`1md-graph` -> `$1md-graph` — Codex prefix)
 
 Usage:
     python3 scripts/sync-skill-docs.py            # render Codex from Claude
@@ -44,18 +43,7 @@ def render_for_codex(claude_text: str) -> str:
     # 1. Skill home paths.
     out = out.replace("~/.claude/skills/", "~/.codex/skills/")
 
-    # 2. Cross-runtime description block — direction flips. The Claude copy
-    #    says "The Codex skill at ~/.codex/... points to the same file";
-    #    the Codex copy must say "The Claude skill at ~/.claude/...".
-    #    We do this BEFORE the global path substitution above would have
-    #    flipped both sides, so we use a more specific pattern here.
-    out = re.sub(
-        r"The Codex skill at\s*`~/\.codex/skills/1md-navigator/scripts/`",
-        "The Claude skill at `~/.claude/skills/1md-navigator/scripts/`",
-        out,
-    )
-
-    # 3. Skill-reference prefix: `1md-graph` → `$1md-graph` etc.
+    # 2. Skill-reference prefix: `1md-graph` → `$1md-graph` etc.
     out = SKILL_REF_PATTERN.sub(r"`$1\1`", out)
 
     return out
