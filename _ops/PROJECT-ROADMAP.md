@@ -16,18 +16,13 @@
 
 ## Текущие активные фронты
 
-**mcp-self-sufficiency** (`_ops/plans/mcp-self-sufficiency/`): ⚠️ **Active.**
-- Цель: сделать `md-mcp` самодостаточным продуктом (27 public tools, self-sufficient descriptions, CLI-equivalent reduced).
-- Skills становятся overlay (учат **когда применять / как интерпретировать**, не дублируют tool spec).
-- Phases: A (backend expand) → B1-B4 (skills rewrite в parallel) → C (final sweep).
-- См. [README](plans/mcp-self-sufficiency/README.md).
-
 **knowledge-description-cleanup** (`_ops/plans/knowledge-description-cleanup/`):
 - ⚠️ 27 из 37 файлов в `knowledge/` без frontmatter `description` (surfaced via `md_orient`). Task created not started.
 
 **Archived 2026-05-21**:
 - `md-tools-refactor` — Refactor complete: backend unified, MCP 0.5.x, 19 tools, smoke 24/24. См. `_ops/findings/2026-05-21-md-refactor-editorial-verification.md`.
 - `md-skills-cross-check` — Cross-check skills consistency после refactor (4 parallel subagents, 6 edits).
+- `mcp-self-sufficiency` — MCP v0.6.0 with 27 self-sufficient tools (11 new wrappers + merged extract + mutating guards). 16 SKILL.md (Claude+Codex×8) переписаны в overlay style. Smoke 37/37. Phases A → B1-B4 (parallel) → C done.
 
 ## Как здесь работать
 
