@@ -30,16 +30,17 @@ Fresh agent, читающий впервые: начни с **этого README*
 - ✅ P8 reliability hardening done (added after P5 audit): SQLite timeouts, OpenRouter 429 retry, completion retry, spawnPython output cap, tool annotations с safe defaults.
 - ✅ Section profile: **300/300 LLM-coverage** (anthropic/claude-haiku-4.5), 0 heuristic.
 - ✅ **task-002 done 2026-05-21**: structural L1 fix landed в `refactor_proposals.py`, bias finding closed, ≥5/10 actionable bar reframed (corpus sparse-duplicate). См. `_ops/findings/2026-05-21-md-refactor-editorial-verification.md`.
-- ⏸ P7 cleanup deferred until burn-in + user explicit confirmation
+- ✅ **P7 cleanup done 2026-05-21**: `scripts/` removed from 4 skill folders (Claude+Codex × navigator+graph), `paths.js` skill fallbacks removed, READMEs + project-graph updated. Skills pure `SKILL.md`, MCP — single bridge.
+- 🎉 **Refactor complete**.
 - Archived phases: see `_archive/`
 
 ## Active surface (для fresh agent)
 
 | Item | File | Status |
 |---|---|---|
-| Main contract | [`task-001-md-tools-unified-backend.md`](task-001-md-tools-unified-backend.md) | P1-P6+P8 done, P5 editorial done via task-002, P7 outstanding |
+| Main contract | [`task-001-md-tools-unified-backend.md`](task-001-md-tools-unified-backend.md) | ✅ All phases done |
 | Editorial verification + tuning | [`task-002-editorial-verification-and-tuning.md`](task-002-editorial-verification-and-tuning.md) | ✅ Done 2026-05-21 |
-| P7 cleanup | [`phase-7-cleanup.md`](phase-7-cleanup.md) | Blocked until burn-in confirmation |
+| P7 cleanup | [`_archive/phase-7-cleanup.md`](_archive/phase-7-cleanup.md) | ✅ Done 2026-05-21 |
 
 ## Archived (done)
 

@@ -16,10 +16,11 @@
 
 ## Текущие активные фронты
 
-**md-tools-refactor** (`_ops/plans/md-tools-refactor/`):
-- ✅ Backend unified, MCP 0.5.0, 19 tools, smoke 24/24, 300/300 LLM profile coverage. P1-P6 + P8 done.
-- ✅ **`task-002-editorial-verification-and-tuning.md`** — done 2026-05-21. Structural L1 filter в `refactor_proposals.py`, bias closed, ≥5/10 bar reframed (corpus sparse-duplicate). См. `_ops/findings/2026-05-21-md-refactor-editorial-verification.md`.
-- ⏸ **`phase-7-cleanup.md`** — удаление scripts/ из skill папок (blocked на burn-in confirmation от user)
+**md-tools-refactor** (`_ops/plans/md-tools-refactor/`): ✅ **Refactor complete 2026-05-21.**
+- Backend unified, MCP 0.5.x, 19 tools, smoke 24/24, 300/300 LLM profile coverage.
+- P1-P6 + P8 done. P5 editorial done via task-002. P7 cleanup done.
+- Skill folders pure `SKILL.md` (Claude + Codex × navigator + graph), MCP — single bridge.
+- См. `_ops/findings/2026-05-21-md-refactor-editorial-verification.md`.
 
 **knowledge-description-cleanup** (`_ops/plans/knowledge-description-cleanup/`):
 - ⚠️ 27 из 37 файлов в `knowledge/` без frontmatter `description` (surfaced via `md_orient`). Task created not started.
