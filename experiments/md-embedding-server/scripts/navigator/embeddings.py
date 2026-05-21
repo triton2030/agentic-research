@@ -7,8 +7,18 @@ from pathlib import Path
 from typing import Any
 
 
+# Global default — used when CLI flag absent AND no recorded model in index
+# meta. Sticky behavior in `index.resolve_embed_model_for_corpus` makes the
+# stored model win for existing corpora, so changing this default does not
+# force a reindex of every project; only new corpora pick it up.
+#
+# Default `baai/bge-m3` chosen after A/B (2026-05-20, archived finding
+# `_ops/findings/_archive/2026-05-18-md-navigator-bm25-russian-stemming.md`):
+# multilingual-strong, cheapest tier ($0.01/MTok), compact 1024-dim. For
+# pure-English corpora `openai/text-embedding-3-small` is a reasonable
+# override.
 SEARCH_DEFAULT_EMBED_MODEL = os.environ.get(
-    "MD_EMBEDDING_MODEL_ID", "openai/text-embedding-3-small"
+    "MD_EMBEDDING_MODEL_ID", "baai/bge-m3"
 )
 SEARCH_DEFAULT_EMBEDDING_API_URL = os.environ.get(
     "MD_EMBEDDING_API_URL", "https://openrouter.ai/api/v1"

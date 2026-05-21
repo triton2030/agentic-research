@@ -52,37 +52,20 @@ vision, approach, motivation, как читать репо. Не главный 
 Рабочие слои:
 - `_ops/GOAL.md`: outcome-first контракт.
 - `_ops/PROJECT-ROADMAP.md`: текущая рамка движения без обязательной цепочки стадий.
-- `_ops/criteria/*.md`: рабочие критерии по сфере будущей работы.
+- `_ops/user-said/YYYY-MM-DD.md`: сырые цитаты пользователя по дням.
+  Capture через `1user-said` (`add.sh`). Обработка manual — пользователь сам
+  решает, что превращать в правило, инструкцию или decision.
 - `_ops/plans/**`: временная task-поверхность только по явному запросу для
   активной сложной работы.
 
-`_ops/criteria/*.md` — постоянные критерии приёмки по сфере будущей работы.
-Выбирай criteria по задаче и готовности для агента, а не по редактируемому
-файлу. Точный шаблон и протокол записи criteria держит `1user-truth`; не
-дублируй его в instruction files. Новые цели и критерии принятия нельзя
-додумывать за пользователя: только прямой пользовательский сигнал или явно
-утверждённый пользователем источник проекта.
-
-Папка `_ops/criteria/` остаётся рабочей и нужной даже без активной дорожной
-карты или task-файла. В разные моменты выбирай реально применимые критерии и
-не грузись теми, которые не меняют текущую работу.
-
-Папочные instruction files должны перечислять, какие `_ops/criteria/*.md`
-могут пригодиться для работы в этой папке. Файлов может быть несколько. Сами
-критерии не копировать в instruction file; давать ссылки на файлы.
-
 `INTERVIEW.md` и `LEARNINGS.md` больше не являются live owner surfaces. Не
-восстанавливай их. Durable user preference / tone / red line / рабочий default
-маршрутизируй через `1user-truth`: он выбирает owner в root-инструкциях,
-`_ops/criteria/`, в рамке проекта или task-file.
+восстанавливай их. Важная durable цитата пользователя → `1user-said` capture
+в `_ops/user-said/`; дальнейшая обработка (поменять ли AGENTS / CLAUDE,
+обновить ли GOAL, завести ли decision) — отдельным manual проходом.
 
 Moment layer работает через runtime и инструкционный слой, не через отдельный
 скил-перед-работой:
 
-- **Write gate** перед каждой substantive правкой — PreToolUse hook
-  (`~/.claude/skills/1start-here/scripts/criteria-gate.py`): блокирует
-  `Edit`/`Write`/`MultiEdit`/mutating `Bash` без prior Read из applicable
-  `_ops/criteria/*.md`. Fail-open на ambiguous mapping.
 - **Intent grounding** на 1-м ходу сессии — UserPromptSubmit hook
   (`~/.claude/skills/1start-here/scripts/prompt-submit-reminder.py`):
   threshold-based через `session-state.turn_id`, активен только при
@@ -94,10 +77,10 @@ Moment layer работает через runtime и инструкционный
 - **Task-level anchor** перед нетривиальной работой — это правило: до
   содержательного ответа на substantive imperative («сделай / напиши / fix /
   implement / build / поправь») прочитать `_ops/GOAL.md` (контракт scope/done),
-  `_ops/PROJECT-ROADMAP.md` (current path), применимые `_ops/criteria/*.md` и
-  релевантные agent instructions (root + subtree).
+  `_ops/PROJECT-ROADMAP.md` (current path), `_ops/project-graph.md` (граф
+  папок) и релевантные agent instructions (root + subtree).
 - **Closeout** перед claim «готово» — `1work-review` сравнивает diff с
-  Definition of done из GOAL, applicable criteria, evidence.
+  Definition of done из GOAL, evidence работ.
 
 Начало работы в repo/project, новый проект, отсутствующая базовая
 shape-структура или вопрос «какой skill брать?» → `1start-here`.
@@ -122,12 +105,12 @@ self-play) — общий toolkit; canonical ownership у `1strategy`, оба с
 Recursive planning (Level 1 roadmap content / current path → Level 2 task-файлы → Level 3
 подшаги, archive/reconcile) живёт в `1planning`. Активный уровень
 материализуется только по явному запросу; всё дерево заранее не разворачивается.
-Task-файл обязан ссылаться на применимые `_ops/criteria/*.md` и агентные
-инструкции, которые меняют scope, red lines или verification. Unresolved
-approach branches при выполнении задачи / domain prerequisites / missing-middle
-questions — в `1strategy`. Unresolved goal/scope/done shape — в `1strategy-docs`.
-По явному запросу `1planning` может прогнать clean-context decomposition audit
-через субагентов (см. `references/decomposition-audit-agents.md`).
+Task-файл ссылается на агентные инструкции, которые меняют scope, red lines
+или verification. Unresolved approach branches при выполнении задачи /
+domain prerequisites / missing-middle questions — в `1strategy`. Unresolved
+goal/scope/done shape — в `1strategy-docs`. По явному запросу `1planning` может
+прогнать clean-context decomposition audit через субагентов (см.
+`references/decomposition-audit-agents.md`).
 
 Instruction слой разделён по двум скилам:
 - **Формулировка отдельного правила / placement текста инструкции / language
@@ -155,11 +138,10 @@ Claude запускай `bash ~/.claude/skills/1start-here/scripts/init-three-le
 [/path]`; скрипт fill-missing и idempotent — создаёт skeleton'ы `README.md` /
 `AGENTS.md` / `CLAUDE.md` / `_ops/GOAL.md`, минимальный `_ops/PROJECT-ROADMAP.md`
 (current path TBD), пустой `_ops/project-graph.md` skeleton, пустые папки
-`_ops/{criteria,plans,interviews,findings}` с `_archive/` и `.gitkeep`. Файлы
+`_ops/{plans,interviews,findings,user-said}` с `_archive/` и `.gitkeep`. Файлы
 внутри добавляют owner-скилы по мере проекта.
 
-GitHub/push workflow читать через `_ops/criteria/git-backup-workflow.md`:
-GitHub здесь — backup локального `main`, а не branch/PR collaboration flow.
+GitHub здесь — backup локального `main`, не branch/PR collaboration flow.
 
 ## Язык
 

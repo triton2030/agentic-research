@@ -13,6 +13,11 @@ with Codex's own reasoning or a weaker local summary.
 - Tool surface: are `claude_run`, `peek`, `wait`, `result`, and `kill`
   callable? If not, treat it as MCP registration or current-session tool
   exposure, then try the repo-local CLI bridge.
+- Transport closed: if the current Codex tool handle returns `Transport
+  closed`, do not broad-kill `server.js` processes by name. Treat the live tool
+  handle as stale for this window, use the repo-local controlled runner
+  fallback, and report that the answer came through recovery rather than clean
+  MCP.
 - Runtime: run `claude_doctor` or CLI `doctor` and report the failing layer.
 - Local installs: prefer the native `~/.local/bin/claude` that the bridge
   resolves first. A stale lower-priority Homebrew cask can trigger Claude's
@@ -39,6 +44,8 @@ with Codex's own reasoning or a weaker local summary.
 
 - Rerun with corrected profile, context roots, tools, or budget.
 - Use the controlled CLI bridge fallback when MCP tools are absent.
+- Use the controlled CLI bridge fallback when MCP transport is stale in the
+  current session.
 - Recover a long answer from logs, and say that the visible relay was
   truncated.
 - Narrow the external review only if the user agrees or the task was already

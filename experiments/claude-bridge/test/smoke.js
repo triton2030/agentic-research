@@ -172,6 +172,10 @@ assert.equal(report.managed, false);
 assert.match(report.final_output_summary, /BRIDGE_OK/);
 assert.match(report.chat_relay.text, /BRIDGE_OK/);
 assert.match(report.chat_relay.markdown, /Claude:\nBRIDGE_OK/);
+assert.equal(report.chat_relay.full_text_file, report.files.final_output);
+assert.match(fs.readFileSync(report.files.final_output, "utf8"), /BRIDGE_OK/);
+assert.equal(report.agent_behavior.role, "controlled_external_claude");
+assert.equal(report.agent_behavior.tail.terminal, true);
 assert.ok(fs.existsSync(report.files.state));
 assert.ok(report.milestones.some((event) => event.kind === "assistant_text" && /BRIDGE_OK/u.test(event.text)));
 
@@ -180,6 +184,7 @@ assert.equal(separateResult.status, "completed");
 assert.equal(separateResult.managed, false);
 assert.match(separateResult.final_output_summary, /BRIDGE_OK/);
 assert.match(separateResult.chat_relay.text, /BRIDGE_OK/);
+assert.match(fs.readFileSync(separateResult.files.final_output, "utf8"), /BRIDGE_OK/);
 const separatePeek = cliJson(["peek", "--run-id", started.run_id, "--cursor", "0"]);
 assert.equal(separatePeek.status, "completed");
 assert.equal(separatePeek.managed, false);

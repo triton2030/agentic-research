@@ -1,6 +1,6 @@
 # Self-Learning Log
 
-Свалка наблюдений **только про AI поведение и работу с инструментами** — как модель использует tools / skills / инструкции и где можно сделать комфортнее и быстрее. Записывает `1work-review` после closeout.
+Свалка наблюдений **только про AI поведение и работу с инструментами** — как модель использует tools / skills / инструкции и где можно сделать комфортнее и быстрее. Owner — `1self-learning` (срабатывает anywhere в сессии при noticing + natural moment после closeout, когда `1work-review` зовёт).
 
 Цель: **«как AI быть полезнее и быстрее конкретно для меня»**. Это comfort & efficiency setup для модели, не tracker проектных задач.
 
@@ -79,6 +79,8 @@
 
 **Runtime field обязателен.** GPT-5.5 и Claude Opus 4.7 — разные thinking patterns; разделение помогает видеть, у кого какие шероховатости.
 
+**Handoff identity в чат.** При сообщении о записи модель явно указывает свой runtime: `1self-learning [Claude Opus 4.7]: записал в <file>` или `1self-learning [GPT-5.5]: записал в <file>`. Файлы shared (один файл = одна тема, mixed runtime entries — норма), но **acting runtime** должен self-identify в handoff, чтобы пользователь видел кто именно только что записал без открытия файла. Обе SKILL.md (Claude + Codex) дублируют этот формат — это часть convention, не платформенная деталь.
+
 **Length cap:** файл ≤ 50 строк.
 
 ## Cleanup
@@ -95,7 +97,7 @@
 
 | Слой | Owns | Скил |
 |---|---|---|
-| **Self-learning** (эта папка) | AI behavior meta-patterns: «модель спотыкается на X», «инструкция Y запутала», «skill Z не discoverable» | `1work-review` пишет |
+| **Self-learning** (эта папка) | AI behavior meta-patterns: «модель спотыкается на X», «инструкция Y запутала», «skill Z не discoverable» | `1self-learning` пишет |
 | `_ops/findings/**` | Проектные problems: «в коде / архитектуре / контенте есть вопрос с decision-trigger» | `1findings` |
 | `_ops/criteria/*.md` | Durable user-backed правила | `1user-truth` |
 | Memory `/remember` | Cross-project user preferences (durable taste, red lines) | manual |

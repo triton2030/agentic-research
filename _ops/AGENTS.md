@@ -12,13 +12,14 @@
 - `PROJECT-ROADMAP.md` — текущий режим, путь или стадия проекта. Shape файла —
   `1strategy-docs`; content updates (current path сдвинулся, Stage closed) —
   `1planning`; основной контракт не дублировать, ссылаться на `GOAL.md`.
-- `criteria/` — устойчивые критерии, предпочтения, красные линии и правила
-  качества. Пишутся через `1user-truth`; wording/placement ссылок проверяет
-  `1instruction-layer`, delivery chain — `1folder-contract`.
+- `user-said/` — сырые цитаты пользователя по дням (`YYYY-MM-DD.md`). Capture
+  через `1user-said` (`add.sh`); append-only, без классификации. Дальнейшая
+  обработка цитат — manual, отдельным проходом.
 - `interviews/` — временные интерактивные вопросники для случаев, когда агенту
   нужно много ответов пользователя. Маршрут задают `1start-here` и
   `1folder-contract`, wording маршрута чинит `1instruction-layer`, форму в
-  Obsidian берёт `1obsidian`, устойчивые ответы переносит `1user-truth`.
+  Obsidian берёт `1obsidian`. После разбора смысл переносится к владельцам
+  (task-файлы, roadmap, GOAL/README, knowledge).
 - `interviews/_archive/` — архив полностью разобранных интервью.
 - `problems/` — временный слой для реальных актуальных проблем и коротких
   hot-findings с источником/трением: ошибок, подтверждённых рисков аудита,
@@ -57,12 +58,10 @@ dependency-radius — проверяет `$1md-graph`. Смысл файла п�
 - Файл интервью должен быть удобен пользователю в Obsidian: короткие русские
   блоки, элементы Meta Bind из `1obsidian`, а агентные подсказки — под
   сворачиваемым блоком.
-- Перед созданием или обработкой интервью читать
-  `_ops/criteria/interview-intake-workflow.md`.
 - Когда пользователь ответил и сказал “проверь”, агент читает интервью и
-  переносит смысл к владельцам: criteria через `1user-truth`, план/task scope
-  через `1planning`, GOAL/README через `1strategy-docs`, знания в
-  `knowledge/`.
+  переносит смысл к владельцам: durable цитата → `1user-said` capture,
+  план/task scope через `1planning`, GOAL/README через `1strategy-docs`,
+  знания в `knowledge/`.
 - После полного разбора переместить файл в `interviews/_archive/`. Активная
   папка показывает только незавершённые или ещё неразобранные интервью.
 
@@ -88,8 +87,10 @@ dependency-radius — проверяет `$1md-graph`. Смысл файла п�
 - Если находка противоречит текущему roadmap/task/stage, передать в
   `1planning` для reconcile/archive; если противоречит выбранному подходу
   для задачи — `1strategy`; если задевает goal/scope shape — `1strategy-docs`.
-- Если проблема содержит устойчивое правило пользователя, красную линию или
-  критерий качества, передать в `1user-truth`, а не держать это здесь.
+- Если проблема содержит устойчивое правило пользователя или красную линию,
+  цитата идёт в `_ops/user-said/YYYY-MM-DD.md` через `1user-said` capture;
+  превращение цитаты в правило AGENTS/CLAUDE или decision в GOAL — manual,
+  отдельным проходом, не здесь.
 - Если проблема меняет roadmap content (current path сдвинулся, Stage closed),
   передать в `1planning`. Если меняет roadmap shape или goal/scope —
   `1strategy-docs`.
@@ -107,5 +108,6 @@ dependency-radius — проверяет `$1md-graph`. Смысл файла п�
 - Не использовать `interviews/` как новую постоянную память или замену
   `INTERVIEW.md`.
 - Не писать в `plans/`, пока strategy не решила, что это действительно задача.
-- Не писать в `criteria/` без `1user-truth`.
+- Не редактировать записанные цитаты в `user-said/` автономно — это сырой
+  capture, обработка manual.
 - Не копировать тела скилов в этот файл; здесь только маршруты `_ops`.

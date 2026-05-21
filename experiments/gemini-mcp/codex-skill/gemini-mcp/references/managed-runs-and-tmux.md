@@ -56,6 +56,17 @@ For hour-scale runs, poll `gemini_observe` with the last `next_cursor`. Use
 logs, tool-like log lines, tmux capture availability, and stop hint. This is the
 observable work trail, not Gemini's private thinking.
 
+## Relay And Agent Behavior
+
+Managed reports include `chat_relay.text`, `chat_relay.truncated`, and
+`chat_relay.full_text_file`. Relay `chat_relay.text` for ordinary answers; if it
+is truncated, read `full_text_file` before digging into raw logs.
+
+`agent_behavior` is the closeout card for reusable external reviews: it reports
+the backend control surface, observable trace, relay/full-text state, warnings,
+and process or tmux tail status. Codex should use it to judge the Gemini run,
+not just Gemini's findings.
+
 ## Cost Tail Check
 
 After using Gemini as an external agent, do not close the conversation while the

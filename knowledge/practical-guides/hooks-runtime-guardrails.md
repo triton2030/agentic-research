@@ -135,8 +135,9 @@ Hook без памяти сессии стреляет одинаково каж
 и того же criteria 5 раз, verbatim citation требуемая когда anchor docs не
 менялись, маркеры ставимые ради маркеров. Session-state разрывает loop:
 
-- **anchor_reads** — какие anchor-doc (`_ops/criteria/*.md`, `AGENTS.md`,
-  `CLAUDE.md`) прочитаны в этой сессии и когда (turn_id + ts + mtime).
+- **anchor_reads** — какие anchor-doc (`AGENTS.md`, `CLAUDE.md`, `_ops/GOAL.md`,
+  `_ops/PROJECT-ROADMAP.md`, `_ops/project-graph.md`) прочитаны в этой сессии
+  и когда (turn_id + ts + mtime).
 - **file_changes** — что менялось в текущей и прошлых turns.
 - **skill_invocations** — какие skills вызывались (per turn). Hook читает
   это для composability check: вместо `marker регex` спрашивает «вызывался
@@ -151,9 +152,9 @@ GC: 14 дней.
 
 Использовать когда: cross-hook / cross-skill ratio truth, idempotent
 re-firing, threshold logic, mtime-based freshness, composability detection.
-Не использовать как durable storage для user truth (это `_ops/criteria/*.md`
-через `1user-truth`) или для task contracts (`_ops/plans/**/task-*.md`
-через `1planning`).
+Не использовать как durable storage для user quotes (это
+`_ops/user-said/YYYY-MM-DD.md` через `1user-said`) или для task contracts
+(`_ops/plans/**/task-*.md` через `1planning`).
 
 ## Sources
 

@@ -636,6 +636,7 @@ function filesForLogDir(logDir) {
     stdout: path.join(logDir, "stdout.log"),
     stderr: path.join(logDir, "stderr.log"),
     tmuxPane: path.join(logDir, "tmux-pane.log"),
+    finalOutput: path.join(logDir, "final-output.md"),
     report: path.join(logDir, "report.json"),
     state: path.join(logDir, "state.json"),
     exitCode: path.join(logDir, "exit-code.txt")
@@ -651,6 +652,7 @@ function runFiles(run) {
     stdout: run.stdoutFile,
     stderr: run.stderrFile,
     tmux_pane: run.tmuxPaneFile || null,
+    final_output: run.finalOutputFile || null,
     report: run.reportFile,
     state: run.stateFile,
     exit_code: run.exitCodeFile
@@ -885,6 +887,7 @@ function buildRunFromState(runId, logDir, state) {
     stdoutFile: files.stdout,
     stderrFile: files.stderr,
     tmuxPaneFile: files.tmux_pane || files.tmuxPane || path.join(logDir, "tmux-pane.log"),
+    finalOutputFile: files.final_output || files.finalOutput || path.join(logDir, "final-output.md"),
     reportFile: files.report,
     stateFile: files.state || path.join(logDir, "state.json"),
     exitCodeFile: files.exit_code || files.exitCode || path.join(logDir, "exit-code.txt"),
@@ -914,16 +917,24 @@ function finalOutputDetails(run, max = 8000) {
     const truncated = text.length > max;
     return {
       text: truncated ? `${text.slice(0, max - 3)}...` : text,
+      full_text: text,
       source: "stdout",
-      truncated
+      truncated,
+      full_text_chars: text.length
     };
   }
   const stderr = safeRead(run.stderrFile);
   if (stderr.trim()) {
     const textFromStderr = trimText(stderr.trim(), max);
-    return { text: textFromStderr, source: "stderr", truncated: textFromStderr.length < stderr.trim().length };
+    return {
+      text: textFromStderr,
+      full_text: stderr.trim(),
+      source: "stderr",
+      truncated: textFromStderr.length < stderr.trim().length,
+      full_text_chars: stderr.trim().length
+    };
   }
-  return { text: "", source: null, truncated: false };
+  return { text: "", full_text: "", source: null, truncated: false, full_text_chars: 0 };
 }
 
 function milestonesFromLogs(run, limit = 12, cursor = 0) {
@@ -991,13 +1002,22 @@ function detectWarnings(run) {
   return warnings;
 }
 
+function writeFinalOutputFile(run, fullText) {
+  if (!run.finalOutputFile || !fullText) return null;
+  fs.writeFileSync(run.finalOutputFile, fullText);
+  return run.finalOutputFile;
+}
+
 function buildChatRelay(run) {
   const finalOutput = finalOutputDetails(run);
+  const fullTextFile = writeFinalOutputFile(run, finalOutput.full_text);
   return {
     text: finalOutput.text,
     markdown: finalOutput.text ? `Gemini:\n${finalOutput.text}` : "",
     source: finalOutput.source,
     truncated: finalOutput.truncated,
+    full_text_chars: finalOutput.full_text_chars,
+    full_text_file: fullTextFile,
     instruction: "Relay this text to the user in chat when the user needs Gemini's answer."
   };
 }
@@ -1005,6 +1025,9 @@ function buildChatRelay(run) {
 function buildReport(run) {
   const { milestones } = milestonesFromLogs(run);
   const finalOutput = finalOutputDetails(run, 1200);
+  const chatRelay = buildChatRelay(run);
+  const activity = activitySummary(run);
+  const warnings = detectWarnings(run);
   return {
     run_id: run.runId,
     backend: run.backend,
@@ -1025,12 +1048,36 @@ function buildReport(run) {
     tmux_start_channel: run.tmuxStartChannel || null,
     tmux_go_channel: run.tmuxGoChannel || null,
     tmux_done_channel: run.tmuxDoneChannel || null,
-    warnings: detectWarnings(run),
-    activity: activitySummary(run),
+    warnings,
+    activity,
     milestones,
     events: milestones,
-    chat_relay: buildChatRelay(run),
+    chat_relay: chatRelay,
     final_output_summary: finalOutput.text,
+    agent_behavior: {
+      role: "controlled_external_gemini",
+      control_surface: run.useTmux ? "tmux_managed_run" : "managed_process",
+      observable_trace: {
+        available: true,
+        activity_note: activity.note,
+        recent_log_count: activity.recent_log_trace.length,
+        tool_like_log_count: activity.tool_like_log_trace.length,
+        tmux_capture_available: activity.tmux_capture_available
+      },
+      relay: {
+        source: chatRelay.source,
+        truncated: chatRelay.truncated,
+        full_text_chars: chatRelay.full_text_chars,
+        full_text_file: chatRelay.full_text_file
+      },
+      tail: {
+        status: run.status,
+        terminal: isTerminalStatus(run.status),
+        cleanup_needed: WAITABLE_STATUSES.has(run.status),
+        tmux_session: run.tmuxSession || null
+      },
+      warnings_count: warnings.length
+    },
     files: runFiles(run)
   };
 }
@@ -1157,6 +1204,7 @@ export async function startRun(args = {}) {
     stdoutFile: files.stdout,
     stderrFile: files.stderr,
     tmuxPaneFile: files.tmuxPane,
+    finalOutputFile: files.finalOutput,
     reportFile: files.report,
     stateFile: files.state,
     exitCodeFile: files.exitCode,

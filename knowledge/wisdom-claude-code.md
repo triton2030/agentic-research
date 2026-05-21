@@ -15,10 +15,11 @@ Opus 4.7 держит `knowledge/wisdom-claude-opus-4.7.md`; доменные в
   `knowledge/wisdom-claude-opus-4.7.md`.
 - В Claude Code свободные скиллы и plugin-скиллы — это разные слои упаковки: свободные видит модель, но не UI `/plugin`; plugin-скиллы имеют namespace, версию, источник и toggle.
 - Быстрый личный workflow разумно держать как свободный skill, а sharable и управляемую связку skills и agents — как plugin.
-- Committed project criteria (`_ops/criteria/*.md` или аналог в репо)
-  превращают устойчивые уроки в team knowledge: любой член команды начинает с
-  критериев приёмки, а не с личной памяти одного пользователя.
-- Self-learning criteria layer должен быть связкой из трёх петель: read-before,
+- Raw user-said capture (`_ops/user-said/YYYY-MM-DD.md` или аналог в репо)
+  фиксирует важные цитаты пользователя без классификации в момент записи.
+  Превращение цитат в правила, инструкции или decisions — отдельным manual
+  проходом, не автономно агентом.
+- Self-learning capture слой должен быть связкой из трёх петель: read-before,
   capture-after и periodic-prune. Любая из трёх без остальных деградирует файл:
   без read — контекст не влияет, без capture — не обновляется, без prune —
   превращается в мусор.

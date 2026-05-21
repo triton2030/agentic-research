@@ -14,6 +14,8 @@ Owner: `1folder-contract`. Single source of truth о связях папок. Ro
 
 - `knowledge/wisdom-*.md` depends-on `_ops/GOAL.md` — модельная рамка
   `GPT-5.5` / `Claude Opus 4.7` ограничивает baseline.
+- `knowledge/agents/*.md` depends-on `_ops/GOAL.md` — function-first
+  принципы агентных систем под ту же модельную рамку.
 - `knowledge/guides/` depends-on живые `SKILL.md` в `~/.claude/skills/` и
   `~/.codex/skills/` — guide не должен расходиться с действующим контрактом
   скилла.
@@ -25,16 +27,13 @@ Owner: `1folder-contract`. Single source of truth о связях папок. Ro
   (он думает + пишет; thinking не делегируется в `1strategy`).
 - `_ops/PROJECT-ROADMAP.md` depends-on `_ops/GOAL.md` — текущая рамка
   работает внутри контракта.
-- `_ops/criteria/*.md` depends-on `_ops/GOAL.md` — criteria применимы
-  только в рамках scope.
 - `_ops/plans/**/task-*.md` depends-on `_ops/PROJECT-ROADMAP.md` +
-  applicable `_ops/criteria/*.md`.
+  релевантные `AGENTS.md` (root + subtree).
 - `experiments/claude-bridge/` depends-on `~/.codex/skills/claude-mcp/`
-  (skill it serves) + `_ops/criteria/external-agent-control.md`.
+  (skill it serves) + локальный `experiments/claude-bridge/AGENTS.md`.
 - `experiments/gemini-mcp/` depends-on `~/.codex/skills/gemini-mcp/` +
-  `_ops/criteria/external-agent-control.md`.
-- `experiments/strategy-gallery/` depends-on
-  `_ops/criteria/strategy-gallery-workflow.md` + локальный
+  локальный `experiments/gemini-mcp/AGENTS.md`.
+- `experiments/strategy-gallery/` depends-on локальный
   `experiments/strategy-gallery/AGENTS.md`.
 - `experiments/md-embedding-server/` depends-on
   `~/.claude/skills/1md-navigator/SKILL.md` (server is the navigator's
@@ -44,36 +43,31 @@ Owner: `1folder-contract`. Single source of truth о связях папок. Ro
 
 ## Темы (related-when — retrieval hint)
 
-- «правка skill / agent / prompt» → `knowledge/wisdom-agents.md`,
+- «правка skill / agent / prompt» → `knowledge/agents/` (runtime-layer,
+  tool-design, memory, multi-agent, evaluation),
   `knowledge/wisdom-skills-plugins.md`,
   `knowledge/wisdom-claude-opus-4.7.md`, `knowledge/wisdom-gpt-5.5.md`,
-  `knowledge/practical-guides/how-to-write-skills/`,
-  `_ops/criteria/skill-authoring.md`, `_ops/criteria/instruction-layer.md`,
-  `_ops/criteria/folder-contract.md`.
+  `knowledge/practical-guides/how-to-write-skills/`, `1skill-architect` skill,
+  `1instruction-layer` skill, `1folder-contract` skill.
 - «правка hook / runtime / settings.json» →
   `knowledge/practical-guides/hooks-runtime-guardrails.md`,
-  `_ops/criteria/repo-structure-and-runtime-guards.md`,
-  `_ops/criteria/folder-contract.md`.
-- «изменение GOAL / scope / Definition of done» → Goal-цитаты в `AGENTS.md`
-  и `CLAUDE.md` проверяются через `1folder-contract`; Codex синхронизирует
-  только Codex-editable surfaces и отдаёт Claude-side handoff.
-- «новый knowledge / wisdom / guide» → `knowledge/wisdom-systems-thinking.md`,
-  `_ops/criteria/knowledge-maintenance.md`.
-- «правка `experiments/**` subtree» →
-  `_ops/criteria/external-agent-control.md` +
-  applicable strategy-gallery / claude-bridge / gemini-mcp criteria.
-- «criteria-routing / placement / naming» →
-  `_ops/criteria/criteria-routing-and-naming.md`,
-  `_ops/criteria/instruction-layer.md`, `_ops/criteria/folder-contract.md`.
-- «закрытие работы / verify done» →
-  `_ops/criteria/work-review-and-evidence.md`, `1work-review` skill.
-- «git push / backup» → `_ops/criteria/git-backup-workflow.md` (GitHub —
-  backup локального `main`, не collaboration flow).
-- «design subagents / fresh eyes» →
-  `_ops/criteria/design-subagent-analysis.md`, `1fresh-eyes` skill.
-- «интервью / длинные вопросники» →
-  `_ops/criteria/interview-intake-workflow.md`,
-  `_ops/criteria/ops-findings-layer.md`.
+  `1start-here` (runtime delegate), `1folder-contract` skill.
+- «изменение GOAL / scope / Definition of done» → `1strategy-docs` skill;
+  Goal-цитаты в `AGENTS.md` и `CLAUDE.md` проверяются через `1folder-contract`;
+  Codex синхронизирует только Codex-editable surfaces и отдаёт Claude-side handoff.
+- «новый knowledge / wisdom / guide» → `knowledge/wisdom-systems-thinking.md`.
+- «правка `experiments/**` subtree» → локальный `AGENTS.md` сабтри +
+  релевантный skill контракт (`claude-mcp`, `gemini-mcp`).
+- «routing / placement / naming инструкций» → `1instruction-layer` skill,
+  `1folder-contract` skill.
+- «закрытие работы / verify done» → `1work-review` skill.
+- «git push / backup» → GitHub здесь — backup локального `main`,
+  не collaboration flow.
+- «design subagents / fresh eyes» → `1fresh-eyes` skill.
+- «интервью / длинные вопросники» → `1interview-tool` skill, `_ops/AGENTS.md`
+  раздел про `interviews/`.
+- «важная цитата пользователя» → `1user-said` capture в
+  `_ops/user-said/YYYY-MM-DD.md`.
 
 ## Veto-class
 

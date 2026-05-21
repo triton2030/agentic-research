@@ -5,6 +5,7 @@
 #   "numpy>=1.26",
 #   "sqlite-vec>=0.1.6",
 #   "pyyaml>=6",
+#   "pymorphy3>=2.0",
 # ]
 # ///
 """Entry script for the md_navigator package. See `navigator/cli.py`."""

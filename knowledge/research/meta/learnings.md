@@ -4,7 +4,7 @@
 
 Здесь только staging/source-backed выводы про управление агентной системой:
 память, eval, аудит, ролевой дизайн и продвижение знаний. Уже повышенные
-принципы живут в `knowledge/wisdom-agents.md` и не дублируются здесь.
+принципы живут в `knowledge/agents/` и не дублируются здесь.
 
 ## Проверено
 
@@ -39,12 +39,13 @@
 
 ## Promoted
 
-- Agent roles, trajectory audit, business/developer/prompt/planner agent value
-  -> `knowledge/wisdom-agents.md`.
-- Полная retention vs structured forgetting -> `knowledge/wisdom-agents.md`.
-- User corrections как сильный memory signal -> `knowledge/wisdom-agents.md`.
-- Learnings quality gate -> `knowledge/wisdom-agents.md`.
-- Dedup / contradiction discipline -> `knowledge/wisdom-agents.md`.
+- Agent roles, role separation -> `knowledge/agents/multi-agent.md`.
+- Trajectory audit, observable acceptance criteria, multi-channel audit
+  -> `knowledge/agents/evaluation.md`.
+- Полная retention vs structured forgetting -> `knowledge/agents/memory.md`.
+- User corrections как сильный memory signal -> `knowledge/agents/memory.md`.
+- Learnings quality gate -> `knowledge/agents/memory.md`.
+- Dedup / contradiction discipline -> `knowledge/agents/memory.md`.
 
 ## Рабочие Гипотезы
 

@@ -98,9 +98,15 @@ broad exploratory run and accepts the cost/noise tradeoff.
 ## Chat Relay
 
 MCP cannot push directly into Codex chat. Bridge reports include
-`chat_relay.text`, `chat_relay.markdown`, and `chat_relay.truncated`.
-Relay `chat_relay.text` when the user needs Claude's answer. If it is truncated
-or visibly cut, recover the full answer from bridge logs before reporting.
+`chat_relay.text`, `chat_relay.markdown`, `chat_relay.truncated`, and
+`chat_relay.full_text_file`. Relay `chat_relay.text` when the user needs
+Claude's answer. If it is truncated or visibly cut, read `full_text_file`
+before falling back to raw logs.
+
+`agent_behavior` is the closeout card for reusable external reviews: it reports
+observable trace availability, relay/full-text state, warnings, and process or
+tmux tail status. Codex should use it to judge the agent run, not just the
+agent's findings.
 
 ## Activity Trace
 

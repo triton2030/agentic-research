@@ -1,27 +1,31 @@
 ---
 name: claude-mcp
-description: Use when Codex should delegate to Claude Code as an independent reviewer/advisor for long chats, large project work, important decisions, second opinions, code/opinion checks, web research, or controlled Claude Bridge MCP runs with run/peek/wait/kill controls, profiles, logs, observation, context access, or skill-read evidence; skip ordinary inline answers and one-off raw `claude` commands that do not need bridge control.
+description: Use when Codex should run Claude Code as a controlled External Peer Review agent for a project/folder/diff: second opinion, code/opinion check, bug hunt, architecture or instruction audit, behavior comparison with Gemini, web research, or any long observable Claude Bridge run with run/peek/wait/kill, logs, full relay, agent-behavior evidence, and tail cleanup; skip ordinary inline answers and raw `claude` calls that do not need bridge control.
 ---
 
 # Claude MCP
 
 Use the Claude Bridge MCP/server when Claude should act as a controlled external
-agent with profiles, logs, observation, stop control, context access, or
-skill-read evidence. Relay Claude's actual `chat_relay.text` when the user asks
-for Claude's answer.
+peer reviewer with profiles, logs, observation, stop control, context access,
+full relay, or skill-read evidence. Relay Claude's actual `chat_relay.text`
+when the user asks for Claude's answer; use `chat_relay.full_text_file` when
+the visible relay is truncated.
 
-Default to **Independent Reviewer Mode** for long chats, large project work, or
-important decisions: Claude checks Codex's current claim against real project
-sources as a second strong advisor, not as a vague "ask Claude" side chat.
+Default to **External Peer Review** for project/folder/diff checks: Claude gets
+a compact context packet, inspects the real sources, returns findings with
+evidence, and stops. Codex then judges the answer, applies any changes locally,
+and reports both the findings and Claude's agent behavior.
 
 ## Active Contract
 
-- **Entry:** controlled Claude Code peer work: independent review, advice,
-  audit, research, or Codex claim-checking, not ordinary inline answering.
+- **Entry:** controlled External Peer Review: independent review, advice,
+  audit, research, bug hunt, or Codex claim-checking, not ordinary inline
+  answering.
 - **Boundary:** use bridge controls for work that needs profiles, observation,
   logs, context access, relay, or stop control; raw `claude` is not a substitute.
-- **Handoff:** return to Codex after Claude's relay/report, warnings, and
-  evidence are available, or after the exact missing layer is named.
+- **Handoff:** return to Codex after Claude's relay/report, warnings,
+  `agent_behavior`, and evidence are available, or after the exact missing
+  layer is named.
 - **Stop:** done only when Claude's answer/evidence is relayed and the managed
   run/process tail is terminal or honestly unknown.
 
@@ -57,9 +61,35 @@ sources as a second strong advisor, not as a vague "ask Claude" side chat.
    Codex may stage it in `_ops/findings/**` after local review instead of
    promoting it directly to `_ops/plans/**` or `_ops/criteria/*.md`.
 
+## External Peer Review
+
+Use this as the main reusable scenario across projects.
+
+Quick user intent: "дай Claude проверить `/path` на баги/архитектуру/инструкции"
+means: build a read-only context packet from that project, run Claude with
+`cwd`/`addDir` on the real sources, observe progress, then return findings plus
+run-quality evidence.
+
+**Brief Claude as a reviewer, not a worker.** Default boundary:
+
+- read files and logs through `cwd`/`addDir`;
+- do not edit files, create plan files, run a private closeout, or read global
+  skills unless that is the explicit task;
+- return findings, patch suggestions, missing evidence, and the recommended
+  next move;
+- stop after the report.
+
+**Codex closeout after Claude returns:**
+
+- summarize Claude's findings separately from Codex's local judgment;
+- name false positives or unverified claims;
+- include `agent_behavior`: what was observed, whether the relay was full,
+  warnings, and tail status;
+- apply or stage changes only after Codex rereads local criteria.
+
 ## Independent Reviewer Mode
 
-Use this as the default mode when the user wants Claude as a project advisor
+Use this when the user wants Claude as a project advisor
 during a long chat, major decision, large implementation, or close review.
 
 Build a compact context packet from durable sources plus the current working
@@ -109,9 +139,9 @@ conversation noise.
 ## Evidence
 
 Report profile, cwd/addDir, context packet sources, run_id/log_dir, status,
-warnings, whether `chat_relay.truncated` was true, whether the answer was
-recovered from bridge logs, process-tail status, activity trace, and
-skill/context-read evidence when that matters. `activity` is observable
+warnings, `agent_behavior`, whether `chat_relay.truncated` was true,
+`chat_relay.full_text_file` when available, process-tail status, activity trace,
+and skill/context-read evidence when that matters. `activity` is observable
 tool/file/log/tmux progress, not private chain-of-thought. A
 `node .../experiments/claude-bridge/src/server.js` process held by Codex
 app-server is the MCP transport, not a Claude model run; do not treat it as a
@@ -119,9 +149,11 @@ paid tail.
 
 ## Stop Rule
 
-If bridge MCP tools are unavailable and the controlled CLI fallback also fails,
-stop with the exact missing layer: registration, Node dependencies, Claude CLI,
-auth, unsupported flag, or missing evidence. Do not silently fall back to an
+If bridge MCP tools are unavailable or return `Transport closed`, use the
+repo-local controlled CLI runner fallback once and report that recovery path as
+not a clean MCP call. If that fallback also fails, stop with the exact missing
+layer: registration/session exposure, Node dependencies, Claude CLI, auth,
+unsupported flag, or missing evidence. Do not silently fall back to an
 uncontrolled raw `claude` command for work that needs observation or proof.
 
 ## References

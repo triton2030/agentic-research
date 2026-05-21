@@ -12,7 +12,7 @@
 - `effort` — главный рычаг поведения. Низкий effort не лечить длинным prompt; сначала выбрать правильный режим, потом чинить точечные провалы.
 - На `low` и `medium` модель строже держится буквального запроса и меньше идёт дальше сама.
 - Для intelligence-sensitive задач безопаснее начинать с `high`; для coding/agentic work — с `high` или `xhigh`, если качество важнее скорости.
-- Tool/subagent policy задавать явно. Opus 4.7 чаще думает сам и реже зовёт tools/subagents без причины.
+- Tool/subagent policy задавать явно. Opus 4.7 чаще думает сам и реже зовёт tools/subagents без причины. `high`/`xhigh` усиливают tool use в agentic search и coding.
 - Не компенсировать редкую авто-делегацию автоматическим fan-out. Параллельные агенты нужны только при независимых файлах, evidence streams или leaf implementation.
 - Progress updates уже лучше держатся без старого scaffolding; прогресс-ритуалы оставлять только если baseline без них проседает.
 - При `xhigh`/`max` effort нужен большой `max_tokens` headroom, иначе thinking/tool/subagent loop может не поместиться.

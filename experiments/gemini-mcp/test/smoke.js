@@ -386,6 +386,10 @@ await withClient(
     assert.equal(runWaitPayload.backend, "antigravity-cli");
     assert.equal(runWaitPayload.status, "completed");
     assert.match(runWaitPayload.chat_relay.text, /AGY_MCP_OK/u);
+    assert.equal(runWaitPayload.chat_relay.full_text_file, runWaitPayload.files.final_output);
+    assert.match(fs.readFileSync(runWaitPayload.files.final_output, "utf8"), /AGY_MCP_OK/u);
+    assert.equal(runWaitPayload.agent_behavior.role, "controlled_external_gemini");
+    assert.equal(runWaitPayload.agent_behavior.tail.terminal, true);
     assert.ok(runWaitPayload.activity);
   }
 );
@@ -499,6 +503,9 @@ await withClient(
     assert.equal(waitedPayload.managed, false);
     assert.match(waitedPayload.final_output_summary, /GEMINI_MCP_OK/u);
     assert.match(waitedPayload.chat_relay.text, /GEMINI_MCP_OK/u);
+    assert.match(fs.readFileSync(waitedPayload.files.final_output, "utf8"), /GEMINI_MCP_OK/u);
+    assert.equal(waitedPayload.agent_behavior.role, "controlled_external_gemini");
+    assert.equal(waitedPayload.agent_behavior.tail.terminal, true);
 
     const peek = await client.callTool({
       name: "gemini_peek",

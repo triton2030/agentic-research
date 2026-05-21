@@ -43,6 +43,13 @@ DEFAULT_EXCLUDED_PARTS = frozenset(
         "out",
         "target",
         "_archive",
+        # Auto-generated execution logs: `experiments/*/runs/<timestamp>/`
+        # carries claude-bridge / gemini-mcp / similar live-output dumps.
+        # Strong-multilingual embedding models surface boilerplate phrases
+        # from these files as top retrieval hits (e.g. "Reading context and
+        # preparing response"), drowning canonical knowledge. Treat as
+        # build artefacts — not knowledge content.
+        "runs",
     }
 )
 
@@ -52,6 +59,28 @@ def iter_markdown(path: Path) -> list[Path]:
         return [path] if path.suffix.lower() in {".md", ".mdx"} else []
     if not path.exists():
         raise SystemExit(f"Path does not exist: {path}")
+    # Heads-up: if the target itself sits in (or under) a default-excluded
+    # folder, the disjoint filter below silently drops every result and the
+    # user gets `Files: 0` with no clue why. Warn once to stderr so the
+    # exclusion is visible without changing the contract or polluting stdout
+    # (downstream JSON parsers stay clean).
+    try:
+        resolved_parts = path.resolve().parts
+    except (OSError, RuntimeError):
+        resolved_parts = path.parts
+    excluded_in_target = DEFAULT_EXCLUDED_PARTS.intersection(resolved_parts)
+    if excluded_in_target:
+        import sys
+
+        sys.stderr.write(
+            f"[md_navigator] note: target path contains default-excluded "
+            f"part(s) {sorted(excluded_in_target)} — every Markdown file "
+            f"under this path will be skipped, so results will be empty. "
+            f"To work with this folder anyway, point md_navigator at a "
+            f"specific file inside it, or rename / move it out of the "
+            f"excluded set. Default exclusions: "
+            f"{sorted(DEFAULT_EXCLUDED_PARTS)}\n"
+        )
     return sorted(
         p
         for p in path.rglob("*")
@@ -233,6 +262,33 @@ def wikilinks_from_text(text: str) -> list[str]:
     return targets
 
 
+def wikilinks_with_anchors_from_text(text: str) -> list[tuple[str, str | None]]:
+    """Same as wikilinks_from_text but preserves the `#anchor` part.
+
+    Returns (target_path, anchor_or_None) tuples. `[[file#Heading Name]]`
+    becomes ("file", "Heading Name"); plain `[[file]]` becomes ("file", None).
+    """
+    results: list[tuple[str, str | None]] = []
+    for match in WIKILINK_RE.finditer(text):
+        raw = match.group(1)
+        if not raw:
+            continue
+        target = raw.split("|", 1)[0].strip().strip("<>").strip()
+        if not target:
+            continue
+        if "#" in target:
+            path_part, anchor_part = target.split("#", 1)
+            path_clean = split_link_target(path_part)
+            anchor_clean = anchor_part.split("?", 1)[0].strip()
+            if path_clean:
+                results.append((path_clean, anchor_clean or None))
+        else:
+            path_clean = split_link_target(target)
+            if path_clean:
+                results.append((path_clean, None))
+    return results
+
+
 def markdown_links_from_text(text: str) -> list[str]:
     targets: list[str] = []
     for raw in MD_LINK_RE.findall(text):
@@ -248,6 +304,58 @@ def markdown_links_from_text(text: str) -> list[str]:
             continue
         targets.append(target)
     return targets
+
+
+def markdown_links_with_anchors_from_text(text: str) -> list[tuple[str, str | None]]:
+    """Same as markdown_links_from_text but preserves the `#anchor` part."""
+    results: list[tuple[str, str | None]] = []
+    for raw in MD_LINK_RE.findall(text):
+        raw_stripped = raw.strip().strip("<>").strip()
+        if not raw_stripped:
+            continue
+        if " " in raw_stripped and not Path(raw_stripped.split(" ", 1)[0]).exists():
+            raw_stripped = raw_stripped.split(" ", 1)[0]
+        lowered = raw_stripped.lower()
+        if (
+            "://" in lowered
+            or lowered.startswith(("mailto:", "tel:", "data:"))
+            or lowered.startswith("#")
+        ):
+            continue
+        if "#" in raw_stripped:
+            path_part, anchor_part = raw_stripped.split("#", 1)
+            path_clean = path_part.split("?", 1)[0].strip()
+            anchor_clean = anchor_part.split("?", 1)[0].strip()
+            if path_clean:
+                results.append((path_clean, anchor_clean or None))
+        else:
+            path_clean = raw_stripped.split("?", 1)[0].strip()
+            if path_clean:
+                results.append((path_clean, None))
+    return results
+
+
+def extract_section_by_anchor(file_path: Path, anchor: str) -> str | None:
+    """Extract a single heading-bounded section from a file by heading text.
+
+    Matches anchor against heading text case-insensitively with whitespace
+    normalized — Obsidian/Markdown wikilink convention `[[file#Heading]]`.
+    Returns the section body (from the heading line through the next
+    sibling-or-higher heading) or None when no heading matches.
+    """
+    try:
+        text = file_path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return None
+    lines = text.splitlines()
+    headings = collect_headings(lines, max_level=6)
+    normalized_anchor = "".join(anchor.lower().split())
+    for heading in headings:
+        normalized_heading = "".join(heading["text"].lower().split())
+        if normalized_anchor == normalized_heading:
+            from .pick import section_lines
+            return section_lines(file_path, heading["line"])
+    return None
 
 
 def markdown_lookup(root: Path) -> dict[str, list[Path]]:

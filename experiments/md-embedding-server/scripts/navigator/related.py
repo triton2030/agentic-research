@@ -7,8 +7,10 @@ from .markdown_io import (
     GRAPH_LINK_KEYS,
     approx_tokens,
     collect_headings,
+    extract_section_by_anchor,
     iter_markdown,
     markdown_links_from_text,
+    markdown_links_with_anchors_from_text,
     markdown_lookup,
     normalize_frontmatter_links,
     parse_frontmatter,
@@ -16,34 +18,58 @@ from .markdown_io import (
     resolve_input_path,
     resolve_markdown_target,
     wikilinks_from_text,
+    wikilinks_with_anchors_from_text,
 )
 from .pick import parse_csv
 
 
 def add_related_item(
-    items: dict[Path, dict[str, Any]],
+    items: dict[tuple[Path, str | None], dict[str, Any]],
     path: Path,
     root: Path,
     reason: str,
+    anchor: str | None = None,
 ) -> None:
+    """Add a related item. With anchor, content is the heading-bounded
+    section instead of the whole file; each (path, anchor) tuple is a
+    separate item so the same file can contribute multiple sections."""
     resolved = path.resolve()
-    if resolved not in items:
+    key = (resolved, anchor)
+    if key not in items:
         text = resolved.read_text(encoding="utf-8", errors="replace")
         lines = text.splitlines()
         frontmatter = parse_frontmatter(lines)
         headings = collect_headings(lines, max_level=1)
         title = headings[0]["text"] if headings else ""
-        items[resolved] = {
+        if anchor is not None:
+            section = extract_section_by_anchor(resolved, anchor)
+            if section is None:
+                # Fallback to whole file when anchor doesn't match any heading.
+                section = text.strip()
+                anchor_status = "anchor-not-found"
+            else:
+                anchor_status = "section"
+            content = section
+            tokens = approx_tokens(section)
+        else:
+            content = text.strip()
+            tokens = approx_tokens(text)
+            anchor_status = None
+        item = {
             "path": str(resolved),
             "relative_path": relative_path(resolved, root),
             "description": frontmatter.get("description", ""),
             "title": title,
             "reasons": [],
-            "tokens": approx_tokens(text),
-            "content": text.strip(),
+            "tokens": tokens,
+            "content": content,
         }
-    if reason not in items[resolved]["reasons"]:
-        items[resolved]["reasons"].append(reason)
+        if anchor is not None:
+            item["anchor"] = anchor
+            item["anchor_status"] = anchor_status
+        items[key] = item
+    if reason not in items[key]["reasons"]:
+        items[key]["reasons"].append(reason)
 
 
 def collect_related_items(args) -> dict[str, Any]:
@@ -55,10 +81,11 @@ def collect_related_items(args) -> dict[str, Any]:
     if not include:
         include = {"self", "frontmatter", "wikilinks", "markdown-links", "backlinks"}
 
+    anchor_aware = bool(getattr(args, "anchor_aware", False))
     lookup = markdown_lookup(scan_root)
     anchors = [resolve_input_path(path, scan_root) for path in args.paths]
     anchor_set = {path.resolve() for path in anchors}
-    items: dict[Path, dict[str, Any]] = {}
+    items: dict[tuple[Path, str | None], dict[str, Any]] = {}
 
     for anchor in anchors:
         text = anchor.read_text(encoding="utf-8", errors="replace")
@@ -76,16 +103,28 @@ def collect_related_items(args) -> dict[str, Any]:
                         add_related_item(items, resolved, scan_root, key)
 
         if "wikilinks" in include:
-            for target in wikilinks_from_text(text):
-                resolved = resolve_markdown_target(target, anchor, scan_root, lookup)
-                if resolved:
-                    add_related_item(items, resolved, scan_root, "wikilink")
+            if anchor_aware:
+                for target, link_anchor in wikilinks_with_anchors_from_text(text):
+                    resolved = resolve_markdown_target(target, anchor, scan_root, lookup)
+                    if resolved:
+                        add_related_item(items, resolved, scan_root, "wikilink", anchor=link_anchor)
+            else:
+                for target in wikilinks_from_text(text):
+                    resolved = resolve_markdown_target(target, anchor, scan_root, lookup)
+                    if resolved:
+                        add_related_item(items, resolved, scan_root, "wikilink")
 
         if "markdown-links" in include:
-            for target in markdown_links_from_text(text):
-                resolved = resolve_markdown_target(target, anchor, scan_root, lookup)
-                if resolved:
-                    add_related_item(items, resolved, scan_root, "markdown-link")
+            if anchor_aware:
+                for target, link_anchor in markdown_links_with_anchors_from_text(text):
+                    resolved = resolve_markdown_target(target, anchor, scan_root, lookup)
+                    if resolved:
+                        add_related_item(items, resolved, scan_root, "markdown-link", anchor=link_anchor)
+            else:
+                for target in markdown_links_from_text(text):
+                    resolved = resolve_markdown_target(target, anchor, scan_root, lookup)
+                    if resolved:
+                        add_related_item(items, resolved, scan_root, "markdown-link")
 
     if "backlinks" in include:
         for candidate in iter_markdown(scan_root):

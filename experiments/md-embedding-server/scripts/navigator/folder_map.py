@@ -20,7 +20,15 @@ def build_map(path: Path, max_heading_level: int, with_tokens: bool = False) -> 
         lines = text.splitlines()
         frontmatter = parse_frontmatter(lines)
         headings = collect_headings(lines, max_heading_level)
-        rel_path = str(file_path.resolve().relative_to(root) if root.is_dir() else file_path.resolve())
+        # Single-file corpus: `root` IS the file, so `relative_to(root)` is
+        # impossible and `file_path.resolve()` would give an absolute path —
+        # confusing for a field literally named `relative_path` and broken
+        # for downstream consumers (path filters, pick, search remap).
+        # Use the bare filename instead so the field stays "relative-ish".
+        if root.is_dir():
+            rel_path = str(file_path.resolve().relative_to(root))
+        else:
+            rel_path = file_path.name
         title = next((h["text"] for h in headings if h["level"] == 1), "")
         heading_items = []
         for heading_index, heading in enumerate(headings, start=1):

@@ -83,7 +83,7 @@ ops    → ops/ (операционный слой)
 
 Wisdom-база (`agentic-research`):
 
-- WRONG: положить в `knowledge/wisdom-agents.md` потому что «про агентов»
+- WRONG: положить в `knowledge/agents/runtime-layer.md` потому что «про агентов»
 - RIGHT: research-note → `knowledge/research/{category}/learnings.md`; в wisdom поднимается только повторяемый принцип, дистиллированный до 1-3 предложений
 
 Книга:

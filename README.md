@@ -15,7 +15,8 @@ instruction files так, чтобы новая ИИ-сессия не писа�
    остановиться и вернуться к стратегии.
 4. `_ops/PROJECT-ROADMAP.md` — текущий режим движения. Это не backlog и не
    обязательная дорожная карта.
-5. `_ops/criteria/*.md` — критерии качества по сфере будущей работы.
+5. `_ops/user-said/` — сырые цитаты пользователя по дням (capture через
+   `1user-said`); обработка manual.
 6. `knowledge/` — wisdom, guides, practical guides, examples и research.
    Для написания скиллов начинать с
    `knowledge/practical-guides/how-to-write-skills/`.

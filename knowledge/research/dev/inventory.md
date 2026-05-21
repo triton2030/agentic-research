@@ -77,6 +77,17 @@
 - Источник: Anthropic
 - Что делает: анализ кодовой базы и рекомендации по автоматизации Claude Code.
 
+### 1repo-map
+
+- Тип: skill
+- Источник: наш (vendors [pdavis68/RepoMapper](https://github.com/pdavis68/RepoMapper), MIT, functionally based on Aider's RepoMap)
+- Что делает: cold-start orientation в незнакомой кодовой базе через
+  tree-sitter + NetworkX PageRank, без эмбеддингов. Token-budgeted
+  hierarchical map с PageRank personalization. Решение основано на
+  research snapshot [code-aware-tooling-2026-q2.md](code-aware-tooling-2026-q2.md).
+- Где живёт: `~/.claude/skills/1repo-map/` (Source of Truth для scripts +
+  references + vendored RepoMapper).
+
 ## Codex
 
 ### subagents
@@ -85,6 +96,18 @@
 - Источник: OpenAI
 - Что делает: распределяет независимые dev-задачи между отдельными агентами
   внутри Codex.
+
+### 1repo-map
+
+- Тип: skill
+- Источник: наш (Codex-side mirror)
+- Что делает: то же, что и Claude-side `1repo-map`, но через
+  GPT-5.5-shaped `SKILL.md` (outcome-first, без process stack) +
+  `agents/openai.yaml` с `policy.allow_implicit_invocation: true` для
+  bare-prompt auto-trigger. `scripts/`, `references/`, `ATTRIBUTION.md`
+  — symlinks на Claude SoT; venv (`~/.cache/1repo-map/`) и vendored
+  RepoMapper shared между обоими runtimes.
+- Где живёт: `~/.codex/skills/1repo-map/`.
 
 ## Missing
 
@@ -95,3 +118,6 @@
 - GitHub / Vercel / Build Web Apps plugin-layer where needed.
 - Next.js, Turborepo, Vercel Functions, AI SDK, v0.dev, Stripe, Supabase.
 - Слой знаний про thread-based orchestration через Codex CLI и Codex SDK.
+- Code embeddings / semantic code search — closed by `1repo-map` (structural
+  approach) после research 2026-Q2 показал industry retreat from embedding-based
+  code RAG к agentic search + structural выжимке.

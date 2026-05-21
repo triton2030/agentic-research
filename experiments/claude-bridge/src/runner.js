@@ -128,6 +128,7 @@ function filesForLogDir(logDir) {
     stderr: path.join(logDir, "stderr.log"),
     tmuxPane: path.join(logDir, "tmux-pane.log"),
     debug: path.join(logDir, "debug.log"),
+    finalOutput: path.join(logDir, "final-output.md"),
     report: path.join(logDir, "report.json"),
     state: path.join(logDir, "state.json"),
     exitCode: path.join(logDir, "exit-code.txt")
@@ -689,8 +690,10 @@ function finalOutputDetails(events, max = 8000) {
       const truncated = text.length > max;
       return {
         text: truncated ? `${text.slice(0, max - 3)}...` : text,
+        full_text: text,
         source: "result",
         truncated,
+        full_text_chars: text.length,
         event_index: index
       };
     }
@@ -705,8 +708,10 @@ function finalOutputDetails(events, max = 8000) {
       const truncated = text.length > max;
       return {
         text: truncated ? `${text.slice(0, max - 3)}...` : text,
+        full_text: text,
         source: "assistant_text",
         truncated,
+        full_text_chars: text.length,
         event_index: index
       };
     }
@@ -714,8 +719,10 @@ function finalOutputDetails(events, max = 8000) {
 
   return {
     text: "",
+    full_text: "",
     source: null,
     truncated: false,
+    full_text_chars: 0,
     event_index: null
   };
 }
@@ -736,13 +743,22 @@ function relayTextFromMilestones(milestones, max = 4000) {
   return text.length > max ? `${text.slice(0, max - 3)}...` : text;
 }
 
-function buildFinalChatRelay(events) {
+function writeFinalOutputFile(run, fullText) {
+  if (!run.finalOutputFile || !fullText) return null;
+  fs.writeFileSync(run.finalOutputFile, fullText);
+  return run.finalOutputFile;
+}
+
+function buildFinalChatRelay(events, run) {
   const finalOutput = finalOutputDetails(events);
+  const fullTextFile = writeFinalOutputFile(run, finalOutput.full_text);
   return {
     text: finalOutput.text,
     markdown: finalOutput.text ? `Claude:\n${finalOutput.text}` : "",
     source: finalOutput.source,
     truncated: finalOutput.truncated,
+    full_text_chars: finalOutput.full_text_chars,
+    full_text_file: fullTextFile,
     event_index: finalOutput.event_index,
     instruction: "Relay this text to the user in chat when the user needs Claude's answer."
   };
@@ -771,6 +787,7 @@ function runFiles(run) {
     stderr: run.stderrFile,
     tmux_pane: run.tmuxPaneFile || null,
     debug: run.debugFile,
+    final_output: run.finalOutputFile || null,
     report: run.reportFile,
     state: run.stateFile,
     exit_code: run.exitCodeFile || null
@@ -957,6 +974,7 @@ function buildRunFromState(runId, logDir, state) {
     stderrFile: files.stderr,
     tmuxPaneFile: files.tmux_pane || files.tmuxPane || path.join(logDir, "tmux-pane.log"),
     debugFile: files.debug,
+    finalOutputFile: files.final_output || files.finalOutput || path.join(logDir, "final-output.md"),
     reportFile: files.report,
     stateFile: files.state || path.join(logDir, "state.json"),
     exitCodeFile: files.exit_code || files.exitCode || path.join(logDir, "exit-code.txt"),
@@ -997,6 +1015,7 @@ function buildRunFromLegacyReport(runId, logDir, report) {
     stderrFile: files.stderr,
     tmuxPaneFile: files.tmux_pane || files.tmuxPane || path.join(logDir, "tmux-pane.log"),
     debugFile: files.debug,
+    finalOutputFile: files.final_output || files.finalOutput || path.join(logDir, "final-output.md"),
     reportFile: files.report || path.join(logDir, "report.json"),
     stateFile: files.state || path.join(logDir, "state.json"),
     exitCodeFile: files.exit_code || files.exitCode || path.join(logDir, "exit-code.txt"),
@@ -1025,6 +1044,7 @@ function buildReport(run) {
   const warnings = detectWarnings(events, run.cwd);
   const milestones = summarizeMilestones(events);
   const activity = activitySummary(events, run);
+  const chatRelay = buildFinalChatRelay(events, run);
 
   return {
     run_id: run.runId,
@@ -1048,8 +1068,32 @@ function buildReport(run) {
     activity,
     milestones,
     events: milestones,
-    chat_relay: buildFinalChatRelay(events),
+    chat_relay: chatRelay,
     final_output_summary: finalOutputSummary(events),
+    agent_behavior: {
+      role: "controlled_external_claude",
+      control_surface: run.useTmux ? "tmux_managed_run" : "managed_process",
+      observable_trace: {
+        available: true,
+        activity_note: activity.note,
+        recent_tool_trace_count: activity.recent_tool_trace.length,
+        recent_path_count: activity.recent_paths.length,
+        tmux_capture_available: activity.tmux_capture_available
+      },
+      relay: {
+        source: chatRelay.source,
+        truncated: chatRelay.truncated,
+        full_text_chars: chatRelay.full_text_chars,
+        full_text_file: chatRelay.full_text_file
+      },
+      tail: {
+        status: run.status,
+        terminal: isTerminalStatus(run.status),
+        cleanup_needed: WAITABLE_STATUSES.has(run.status),
+        tmux_session: run.tmuxSession || null
+      },
+      warnings_count: warnings.length
+    },
     files: runFiles(run)
   };
 }
@@ -1255,6 +1299,7 @@ export function startRun(options = {}) {
     stderrFile: files.stderr,
     tmuxPaneFile: files.tmuxPane,
     debugFile: files.debug,
+    finalOutputFile: files.finalOutput,
     reportFile: files.report,
     stateFile: files.state,
     exitCodeFile: files.exitCode,

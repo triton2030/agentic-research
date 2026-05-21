@@ -10,8 +10,29 @@ from .embeddings import (
     _embed_texts_http,
     _vec_to_blob,
 )
+from .cli_common import (
+    add_auto_embed_args,
+    add_cache_arg,
+    add_embedding_args,
+    add_json_arg,
+    add_max_heading_level_arg,
+)
+from .filters import (
+    add_path_filter_args,
+    apply_path_filters as _apply_path_filters,
+    path_matches_any as _path_matches_any,
+)
 from .folder_map import build_map
-from .index import ensure_index
+from .index import ensure_index, resolve_embed_model_for_corpus
+from .lemmatize import lemmatize_text, lemmatize_token
+from .rerank import (
+    DEFAULT_RERANK_API_URL,
+    DEFAULT_RERANK_MODEL,
+    DEFAULT_RERANK_TIMEOUT,
+    DEFAULT_RERANK_TOP_N,
+    doc_text_for_rerank,
+    rerank_documents,
+)
 from .sections import _should_subchunk, build_items_from_map
 
 
@@ -21,14 +42,105 @@ SEARCH_RRF_K = 60
 SEARCH_DEFAULT_WEIGHTS = {"description": 5.0, "title": 4.0, "heading": 3.0, "body": 1.0}
 SEARCH_DEFAULT_SCOPE = "sections"
 SEARCH_SCOPES = ("sections", "descriptions")
+# Default cap on inline embedding work during read-path commands. Mirrors
+# index_build.DEFAULT_MAX_AUTO_EMBED but kept local to avoid a back-import.
+_DEFAULT_MAX_AUTO_EMBED = 50
+
+
+def register_search(sub) -> None:
+    """Register the `search` subcommand on the parser-level subparsers
+    object. Owns its own argparse so cli.py can stay thin."""
+    p = sub.add_parser(
+        "search",
+        help=(
+            "Hybrid section search: BM25F (lemmatized) + dense fusion via "
+            "RRF, optional cross-encoder rerank. Outputs ranked Markdown "
+            "sections, not line matches."
+        ),
+    )
+    p.add_argument("path", help="Folder or Markdown file to search.")
+    p.add_argument("query", help="Search query (natural language or keywords).")
+    add_max_heading_level_arg(p)
+    p.add_argument(
+        "--scope",
+        default=SEARCH_DEFAULT_SCOPE,
+        choices=SEARCH_SCOPES,
+        help=(
+            f"What to rank (default: {SEARCH_DEFAULT_SCOPE}). `sections` ranks "
+            "heading-bounded sections; `descriptions` ranks files by their "
+            "frontmatter `description`."
+        ),
+    )
+    p.add_argument(
+        "--limit",
+        type=int,
+        default=SEARCH_DEFAULT_LIMIT,
+        help=f"How many results to print (default: {SEARCH_DEFAULT_LIMIT}).",
+    )
+    p.add_argument(
+        "--candidates",
+        type=int,
+        default=SEARCH_DEFAULT_CANDIDATES,
+        help=(
+            f"How many fused candidates to consider before trimming to "
+            f"--limit (default: {SEARCH_DEFAULT_CANDIDATES})."
+        ),
+    )
+    add_embedding_args(p)
+    add_cache_arg(p)
+    add_auto_embed_args(p, default_cap=_DEFAULT_MAX_AUTO_EMBED)
+    p.add_argument(
+        "--output",
+        help="Write the section map (compatible with pick) to this JSON file.",
+    )
+    add_json_arg(p)
+    p.add_argument(
+        "--rerank",
+        action="store_true",
+        help=(
+            "Apply cross-encoder rerank to top-N RRF candidates before "
+            "limiting. Lifts top-1 precision on business docs by ~10-15%%. "
+            "Reuses OPENROUTER_API_KEY (or `.openrouter.key` file)."
+        ),
+    )
+    p.add_argument(
+        "--rerank-model",
+        default=DEFAULT_RERANK_MODEL,
+        help=f"Rerank model id (default: {DEFAULT_RERANK_MODEL}).",
+    )
+    p.add_argument(
+        "--rerank-api-url",
+        default=DEFAULT_RERANK_API_URL,
+        help=f"Cohere-compatible rerank endpoint (default: {DEFAULT_RERANK_API_URL}).",
+    )
+    p.add_argument(
+        "--rerank-timeout",
+        type=float,
+        default=DEFAULT_RERANK_TIMEOUT,
+        help=f"Rerank API timeout in seconds (default: {DEFAULT_RERANK_TIMEOUT}).",
+    )
+    p.add_argument(
+        "--rerank-top-n",
+        type=int,
+        default=DEFAULT_RERANK_TOP_N,
+        help=(
+            f"How many RRF candidates to send for cross-encoder rerank "
+            f"(default: {DEFAULT_RERANK_TOP_N}). Latency scales with N."
+        ),
+    )
+    add_path_filter_args(p, command_name="search")
+    p.set_defaults(func=lambda args: cmd_search(args))
 
 
 def _fts5_query(query: str) -> str:
-    """Build a safe FTS5 MATCH query: tokenize, quote each token, OR-join."""
+    """Build a safe FTS5 MATCH query: tokenize, lemmatize Russian, quote
+    each token, OR-join. Stored body/heading_chain were lemmatized at
+    index time, so query tokens must travel through the same normalizer
+    or BM25 will never connect inflected forms."""
     tokens = re.findall(r"\w+", query, re.UNICODE)
     if not tokens:
         return ""
-    quoted = [f'"{t.lower()}"' for t in tokens]
+    quoted = [f'"{lemmatize_token(t.lower())}"' for t in tokens]
     return " OR ".join(quoted)
 
 
@@ -173,20 +285,35 @@ def _snippet_for(text: str, query: str, width: int = 200) -> str:
         if p >= 0 and (pos < 0 or p < pos):
             pos = p
     if pos < 0:
-        snippet = text[:width].replace("\n", " ")
-        return snippet + ("..." if len(text) > width else "")
-    start = max(0, pos - width // 3)
-    end = min(len(text), start + width)
-    snippet = text[start:end].replace("\n", " ")
+        start, end = 0, min(len(text), width)
+    else:
+        start = max(0, pos - width // 3)
+        end = min(len(text), start + width)
+    if start > 0:
+        m = re.search(r"\s", text[start : start + 30])
+        if m:
+            start = start + m.start() + 1
+    if end < len(text):
+        m = re.search(r"\s", text[end : end + 30])
+        if m:
+            end = end + m.start()
+    snippet = text[start:end].replace("\n", " ").strip()
     prefix = "..." if start > 0 else ""
     suffix = "..." if end < len(text) else ""
     return prefix + snippet + suffix
 
 
 def _fields_hit(conn, rowid: int, query: str) -> list[str]:
-    tokens = [t.lower() for t in re.findall(r"\w+", query, re.UNICODE)]
-    if not tokens:
+    """Annotate which surface(s) of the row carry the query.
+
+    Both sides go through lemmatization so a query like `критериев` hits a
+    section that literally stores `критерии`. Description/title are also
+    lemmatized for symmetry — frontmatter description is often Russian
+    prose and benefits from the same normalization."""
+    raw_tokens = [t.lower() for t in re.findall(r"\w+", query, re.UNICODE)]
+    if not raw_tokens:
         return []
+    tokens = [lemmatize_token(t) for t in raw_tokens]
     row = conn.execute(
         "SELECT file_description, file_title, heading_chain, heading_text, body "
         "FROM sections WHERE rowid = ?",
@@ -194,7 +321,7 @@ def _fields_hit(conn, rowid: int, query: str) -> list[str]:
     ).fetchone()
     if not row:
         return []
-    desc, title, chain, heading, body = (str(x).lower() for x in row)
+    desc, title, chain, heading, body = (lemmatize_text(str(x).lower()) for x in row)
     hits: list[str] = []
     if any(t in desc for t in tokens):
         hits.append("description")
@@ -256,6 +383,9 @@ def cmd_search(args) -> int:
         return 1
 
     cache_root = Path(args.cache_dir).expanduser() if args.cache_dir else None
+    args.embed_model = resolve_embed_model_for_corpus(
+        corpus_root, args.embed_model, cache_root=cache_root
+    )
 
     if args.no_cache:
         # User explicitly asked to recompute. Wipe the on-disk index file for
@@ -354,7 +484,73 @@ def cmd_search(args) -> int:
     rrf_scores = _rrf_merge(bm25_results, dense_results, k=SEARCH_RRF_K)
     fused_sorted = sorted(rrf_scores.items(), key=lambda x: -x[1])
     fused_rowids = [rid for rid, _ in fused_sorted[: args.candidates]]
-    hydrated = _hydrate_rows(conn, fused_rowids)[: args.limit]
+    # If `--rerank` is set, hydrate more candidates than the final limit so
+    # the cross-encoder has a real reordering pool. Path filters might
+    # also drop candidates, so hydrate from the full fused pool before
+    # filtering — we don't know which paths will pass until we look.
+    rerank_on = bool(getattr(args, "rerank", False))
+    include_patterns: list[str] = list(getattr(args, "path_include", None) or [])
+    exclude_patterns: list[str] = list(getattr(args, "path_exclude", None) or [])
+    filter_on = bool(include_patterns or exclude_patterns)
+    if rerank_on or filter_on:
+        # Pull the whole candidates pool — filters / rerank shrink it.
+        hydrate_n = len(fused_rowids)
+    else:
+        hydrate_n = args.limit
+    hydrated = _hydrate_rows(conn, fused_rowids)[:hydrate_n]
+
+    # Apply path filters BEFORE rerank so the cross-encoder budget isn't
+    # spent on candidates the user is going to drop anyway.
+    if filter_on:
+        before = len(hydrated)
+        hydrated = _apply_path_filters(hydrated, include_patterns, exclude_patterns)
+        if not hydrated:
+            print(
+                f"Path filters excluded all {before} candidates "
+                f"(include={include_patterns or '∅'}, exclude={exclude_patterns or '∅'}).",
+                file=sys.stderr,
+            )
+    if rerank_on:
+        # After filter; cap to rerank_top_n.
+        hydrated = hydrated[: getattr(args, "rerank_top_n", args.limit)]
+    else:
+        hydrated = hydrated[: args.limit]
+
+    rerank_scores: dict[int, float] = {}
+    rerank_applied = False
+    if rerank_on and hydrated:
+        docs = [
+            doc_text_for_rerank(r["relative_path"], r["heading_chain"], r["body"])
+            for r in hydrated
+        ]
+        try:
+            ordered = rerank_documents(
+                args.query,
+                docs,
+                model=args.rerank_model,
+                api_url=args.rerank_api_url,
+                timeout=args.rerank_timeout,
+                corpus_root=corpus_root,
+            )
+        except RuntimeError as exc:
+            print(
+                f"Rerank failed: {exc}\n  Falling back to RRF order.",
+                file=sys.stderr,
+            )
+            ordered = []
+        if ordered:
+            new_order: list[dict[str, Any]] = []
+            for idx, score in ordered:
+                if 0 <= idx < len(hydrated):
+                    r = hydrated[idx]
+                    rerank_scores[r["rowid"]] = score
+                    new_order.append(r)
+            if new_order:
+                hydrated = new_order
+                rerank_applied = True
+
+    # Final trim to user's requested limit (rerank may have reordered).
+    hydrated = hydrated[: args.limit]
 
     # Remap hydrated rows from index-time positional ids to fresh map ids.
     # file_id is positional from `iter_markdown` order at index time; corpus
@@ -394,6 +590,7 @@ def cmd_search(args) -> int:
         r["bm25_score"] = bm25_map.get(rid)
         r["dense_distance"] = dense_map.get(rid)
         r["rrf_score"] = rrf_scores.get(rid, 0.0)
+        r["rerank_score"] = rerank_scores.get(rid)
         r["fields_hit"] = _fields_hit(conn, rid, args.query)
         r["snippet"] = _snippet_for(r["body"], args.query)
 
@@ -410,6 +607,12 @@ def cmd_search(args) -> int:
             "dense": True,
             "embed_model": args.embed_model,
             "embedding_api_url": args.embedding_api_url,
+            "rerank": rerank_applied,
+            "rerank_model": getattr(args, "rerank_model", None) if rerank_applied else None,
+            "rerank_top_n": getattr(args, "rerank_top_n", None) if rerank_applied else None,
+            "rerank_api_url": getattr(args, "rerank_api_url", None) if rerank_applied else None,
+            "path_include": include_patterns,
+            "path_exclude": exclude_patterns,
         },
         "stats": {
             "files_indexed": map_data["file_count"],
@@ -450,48 +653,63 @@ def _script_invocation_path() -> str:
         return p
 
 
+def _signal_label(r: dict[str, Any]) -> str:
+    """Channel diagnosis for one result. Surfaces `Dense only` explicitly —
+    on this corpus it almost always means BM25 failed on Russian morphology
+    (unicode61 tokenizer does not stem). Rerank tag is added separately
+    in render_search to keep this label compact."""
+    fields_hit = r.get("fields_hit") or []
+    has_bm25 = r.get("bm25_score") is not None
+    has_dense = r.get("dense_distance") is not None
+    if fields_hit and has_dense:
+        return f"BM25+Dense ({','.join(fields_hit)})"
+    if fields_hit and has_bm25:
+        return f"BM25 only ({','.join(fields_hit)})"
+    if has_dense:
+        return "Dense only ⚠ morphology miss likely"
+    return "graph-only"
+
+
+def _top_lead(results: list[dict[str, Any]]) -> bool:
+    """True when #1 RRF dominates #2 by >25%. Promotes a single-hit `read`
+    over the multi-section `pick` chain when the leader is clear."""
+    if len(results) < 2:
+        return bool(results)
+    top = results[0].get("rrf_score", 0) or 0
+    nxt = results[1].get("rrf_score", 0) or 0
+    if nxt <= 0:
+        return top > 0
+    return (top - nxt) / nxt > 0.25
+
+
 def render_search(out: dict[str, Any], output_path: str | None = None) -> str:
-    eng = out["engine"]
     stats = out["stats"]
+    eng = out.get("engine") or {}
     scope = out.get("scope", SEARCH_DEFAULT_SCOPE)
-    engine_parts = ["FTS5 BM25F"]
-    if eng.get("dense"):
-        engine_parts.append(f"dense ({eng['embed_model']})")
     unit_word = "descriptions" if scope == "descriptions" else "sections"
     subchunk_note = ""
     if scope == "sections" and stats.get("sections_subchunked"):
-        subchunk_note = f" ({stats['sections_subchunked']} sub-chunked)"
+        subchunk_note = f", {stats['sections_subchunked']} sub-chunked"
+    rerank_note = ""
+    if eng.get("rerank"):
+        rerank_note = f", rerank: {eng.get('rerank_model') or 'on'}"
     me = _script_invocation_path()
     lines = [
-        f"# Markdown search: {out['query']}",
-        "",
-        f"Root: {out['root']}",
-        f"Scope: {scope}",
-        f"Engine: {' + '.join(engine_parts)}",
-        f"Indexed: {stats['files_indexed']} files / {stats['items_indexed']} {unit_word}{subchunk_note} "
-        f"| reused: {stats['embeddings_cached']} | computed: {stats['embeddings_computed']}"
-        f"{' | pruned: ' + str(stats['sections_removed']) if stats.get('sections_removed') else ''}",
-        "Reading router: ranked items, not exhaustive proof.",
+        f"# search: {out['query']}  ({scope}, "
+        f"{stats['files_indexed']} files / {stats['items_indexed']} {unit_word}{subchunk_note}{rerank_note})",
         "",
     ]
     dropped_path = stats.get("dropped_stale_path", 0)
     if dropped_path:
-        # Index still carries rows for files no longer in the corpus. Benign
-        # for this call (results were filtered out) but a signal to reindex
-        # so the pruner clears them.
         lines.append(
-            f"Note: dropped {dropped_path} result(s) for files no longer in "
-            f"the corpus — run `index` to prune the stale rows."
+            f"Note: dropped {dropped_path} result(s) for stale paths — run `index` to prune."
         )
         lines.append("")
-    if scope == "descriptions":
-        lines.append("## Files (ranked by description)")
-    else:
-        lines.append("## Sections (ranked)")
-    if not out["results"]:
+    results = out.get("results") or []
+    if not results:
         lines.append("(no results)")
         lines.append("")
-    for i, r in enumerate(out["results"], start=1):
+    for i, r in enumerate(results, start=1):
         chain = r["heading_chain"]
         if scope == "descriptions":
             heading_str = "(frontmatter description)"
@@ -499,42 +717,52 @@ def render_search(out: dict[str, Any], output_path: str | None = None) -> str:
             heading_str = "(file, no heading)"
         else:
             heading_str = f"## {chain}"
-        scores = []
-        if r.get("bm25_score") is not None:
-            scores.append(f"BM25: {r['bm25_score']:.2f}")
-        if r.get("dense_distance") is not None:
-            scores.append(f"Dense: {r['dense_distance']:.3f}")
-        scores.append(f"RRF: {r['rrf_score']:.4f}")
-        fields = ",".join(r["fields_hit"]) or "(graph-only)"
         lines.append(
-            f"{i}. [{r['section_id']}] {r['relative_path']}:L{r['start_line']} {heading_str}"
+            f"{i}. [{r['section_id']}] {r['relative_path']}:L{r['start_line']}  ~{r['token_count']}t"
         )
-        lines.append(f"   Fields hit: {fields} | {' | '.join(scores)} | ~{r['token_count']}t")
+        lines.append(f"   {heading_str}")
+        signal_line = f"   signals: {_signal_label(r)}  rrf {r['rrf_score']:.3f}"
+        if r.get("rerank_score") is not None:
+            signal_line += f"  rerank {r['rerank_score']:.3f}"
+        lines.append(signal_line)
         if r.get("snippet"):
             lines.append(f"   {r['snippet']}")
         lines.append("")
-    lines.append("## Hand off")
-    lines.append("- Exact strings / regex / code symbols → Grep / `1cli-tools` rg")
-    lines.append("- What breaks if I edit this → `1md-graph preflight <file>`")
-    if scope == "descriptions":
-        lines.append(
-            "- Drill down into specific sections of a file → "
-            "`headings <path> --output /tmp/md-map.json`, then `pick --files <file_id>`"
-        )
-    lines.append("")
-    if out["results"]:
+    # Low-confidence diagnostic: when rerank was applied and the top
+    # rerank score is in the noise floor, surface a hint so the agent
+    # knows to broaden query or scope rather than trust top-1 blindly.
+    if eng.get("rerank") and results:
+        top_rerank = results[0].get("rerank_score")
+        if top_rerank is not None and top_rerank < 0.1:
+            lines.append(
+                f"Note: low-confidence rerank (top score {top_rerank:.3f} < 0.10). "
+                f"No section strongly matches — try a broader query, drop "
+                f"--path-include filters, or raise --candidates."
+            )
+            lines.append("")
+
+    if results:
         if scope == "descriptions":
-            file_ids = ",".join(str(r["file_id"]) for r in out["results"])
-            lines.append("Command (drill down into the selected files):")
-            lines.append(f"  {me} headings '{out['root']}' --output /tmp/md-map.json")
-            lines.append(f"  {me} pick /tmp/md-map.json --files {file_ids}")
+            file_ids = ",".join(str(r["file_id"]) for r in results)
+            lines.append(
+                f"Drill: {me} headings '{out['root']}' --output /tmp/md-map.json"
+            )
+            lines.append(f"       {me} pick /tmp/md-map.json --files {file_ids}")
         else:
-            ids = ",".join(r["section_id"] for r in out["results"])
+            ids = ",".join(r["section_id"] for r in results)
+            if _top_lead(results):
+                top = results[0]
+                lines.append(
+                    f"Read top: {me} read '{top['relative_path']}' "
+                    f"--offset {top['start_line']} --limit 80"
+                )
             if output_path:
-                lines.append("Command (read sections via pick):")
-                lines.append(f"  {me} pick {output_path} --headings {ids} --extract")
+                lines.append(f"Pick batch: {me} pick {output_path} --headings {ids} --extract")
             else:
-                lines.append("Command (read sections via pick — save the map first):")
-                lines.append(f"  {me} headings '{out['root']}' --output /tmp/md-map.json")
-                lines.append(f"  {me} pick /tmp/md-map.json --headings {ids} --extract")
+                lines.append(
+                    f"Pick batch: {me} headings '{out['root']}' --output /tmp/md-map.json"
+                )
+                lines.append(
+                    f"            {me} pick /tmp/md-map.json --headings {ids} --extract"
+                )
     return "\n".join(lines).rstrip() + "\n"

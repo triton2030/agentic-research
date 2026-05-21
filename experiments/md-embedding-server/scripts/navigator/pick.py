@@ -73,6 +73,14 @@ def pick_items(
 ) -> dict[str, Any]:
     files_by_id = {str(item["id"]): item for item in data["files"]}
     picked_files = [files_by_id[file_id] for file_id in sorted(file_ids, key=int) if file_id in files_by_id]
+    # When user asks `pick --files X,Y --extract`, the intent is "give me
+    # content of those files". Without this expansion, only file metadata was
+    # returned (no body text). Auto-expand to every heading of every picked
+    # file. Explicit --headings remain additive — union, not override.
+    if extract and picked_files:
+        heading_ids = set(heading_ids) | {
+            h["id"] for f in picked_files for h in f["headings"]
+        }
     picked_headings = []
     for item in data["files"]:
         for heading in item["headings"]:

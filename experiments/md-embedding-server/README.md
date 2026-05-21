@@ -26,8 +26,21 @@ Default endpoint:
 
 ```text
 https://openrouter.ai/api/v1/embeddings
-model: openai/text-embedding-3-small  (1536-dim, 8192 max_seq)
+model: baai/bge-m3  (1024-dim, 8192 max_seq, multilingual, $0.01/MTok)
 ```
+
+The model default switched from `openai/text-embedding-3-small` to
+`baai/bge-m3` on 2026-05-20 after an A/B replay on a RU+EN corpus showed
+BGE-M3 wins on multilingual retrieval, ties on English (after corpus
+hygiene), is 2× cheaper, and uses smaller 1024-dim vectors. Evidence:
+`_ops/findings/_archive/2026-05-18-md-navigator-bm25-russian-stemming.md`.
+
+**Sticky model behavior.** When `--embed-model` is omitted, the navigator
+reads the recorded model from the existing index meta and uses that.
+This prevents accidental drop+reindex when a corpus was indexed on a
+non-default model. The fallback (no meta yet) is the global default
+above. Explicit `--embed-model X` always wins and triggers reindex on
+mismatch.
 
 API key lookup order:
 

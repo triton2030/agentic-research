@@ -57,9 +57,8 @@ defensive repetition, автоматический fan-out или устарев
   файла (формат, что туда идёт) — `1strategy-docs`; content updates (current
   path сдвинулся, Stage closed) — `1planning`. Это не список стадий и не
   обязательная дорожная карта.
-- `_ops/criteria/*.md` — рабочие критерии по сфере будущей работы. Папка
-  остаётся нужной и используется в разные моменты, когда критерии реально
-  помогают задаче.
+- `_ops/user-said/YYYY-MM-DD.md` — сырые цитаты пользователя по дням. Capture
+  через `1user-said` (`add.sh`); обработка manual.
 - `_ops/interviews/**` — временные интерактивные вопросники для длинного сбора
   ответов пользователя. Создавать через `1start-here` / `1folder-contract`,
   wording маршрута чинить через `1instruction-layer`, оформлять через
@@ -88,9 +87,9 @@ defensive repetition, автоматический fan-out или устарев
 - `_ops/` — не общий склад заметок, backlog, идей, исследований или случайных
   plan-файлов.
 - По умолчанию `_ops/` содержит `AGENTS.md`, `GOAL.md`, `PROJECT-ROADMAP.md`,
-  `criteria/`, `interviews/`, `findings/` и ленивый `plans/`.
+  `project-graph.md`, `user-said/`, `interviews/`, `findings/` и ленивый `plans/`.
 - `_ops/AGENTS.md` объясняет, как пользоваться папками `_ops/` и какие скилы
-  вызывать для planning, criteria, interviews и findings.
+  вызывать для planning, user-said capture, interviews и findings.
 - `INTERVIEW.md` и `LEARNINGS.md` не являются живыми рабочими поверхностями; не
   восстанавливать их. Для длинных вопросов использовать `_ops/interviews/**`,
   но только как временный вход, а не как постоянную память.
@@ -98,7 +97,7 @@ defensive repetition, автоматический fan-out или устарев
   `bash ~/.claude/skills/1start-here/scripts/init-three-level.sh [/path]` (Claude)
   или `python3 ~/.codex/skills/1start-here/scripts/init_project_shape.py <repo-root>` (Codex).
   Скрипт создаёт `README.md`, `_ops/AGENTS.md`, `_ops/GOAL.md`,
-  `_ops/PROJECT-ROADMAP.md`, `_ops/criteria/`, `_ops/interviews/`,
+  `_ops/PROJECT-ROADMAP.md`, `_ops/user-said/`, `_ops/interviews/`,
   `_ops/interviews/_archive/`, `_ops/findings/`, `_ops/findings/_archive/`,
   `_ops/plans/` и `_ops/plans/_archive/`, не перетирая существующие файлы.
 
@@ -115,17 +114,16 @@ defensive repetition, автоматический fan-out или устарев
 - **Рамка — `_ops/PROJECT-ROADMAP.md`**:
   текущая рамка проекта без обязательной цепочки стадий. Shape файла —
   `1strategy-docs`; content updates — `1planning`.
-- **Критерии — `_ops/criteria/*.md`** (write/protocol owner `1user-truth`):
-  постоянные критерии приёмки по сфере будущей работы; `1instruction-layer`
-  отвечает за wording/placement ссылок, `1folder-contract` — за delivery chain.
+- **Цитаты пользователя — `_ops/user-said/YYYY-MM-DD.md`** (owner `1user-said`):
+  сырой capture важных цитат пользователя одной командой `add.sh`. Один файл
+  на день, append-only, без классификации. Дальнейшая обработка (поменять ли
+  инструкции, обновить ли GOAL, завести ли decision) — отдельным manual проходом.
 - **Интервью — `_ops/interviews/**`** (route owner `1start-here` /
-  `1folder-contract`, wording owner `1instruction-layer`, truth owner
-  `1user-truth`):
+  `1folder-contract`, wording owner `1instruction-layer`):
   временные интерактивные вопросники, когда агенту нужно много ответов от
   пользователя. Форму брать из `1obsidian`; после команды пользователя вроде
-  “проверь” переносить смысл в criteria, task-файлы, roadmap, GOAL/README или
-  knowledge и архивировать файл в `_ops/interviews/_archive/`. Критерий:
-  `_ops/criteria/interview-intake-workflow.md`.
+  “проверь” переносить смысл к владельцам (task-файлы, roadmap, GOAL/README,
+  knowledge) и архивировать файл в `_ops/interviews/_archive/`.
 - **Находки — `_ops/findings/**`** (owner `1findings`):
   лёгкий временный слой только для актуальных находок до решения стратегии.
   Quick-jot path — одна команда `~/.claude/skills/1findings/scripts/add.sh
@@ -149,20 +147,15 @@ folder-system contract — не уровни планирования. В Codex 
   `~/.claude/skills/1start-here/references/session-state-schema.md` (canonical
   shared structure через `~/.claude/state/session-{session_id}.json`).
 
-## _ops/criteria/
+## _ops/user-said/
 
-- Критерии выбираются по сфере будущей работы и готовности для агента, а не по
-  редактируемому пути или широкой абстрактной теме.
-- Один и тот же файл может требовать разные criteria: текст посадочной страницы,
-  дизайн, frontend animation, skill authoring, instruction layer,
-  folder contract, criteria-routing или repo structure/runtime guards.
-- Точный шаблон criteria-файла и протокол записи держит `1user-truth`; не
-  дублировать его в AGENTS/CLAUDE/папочных инструкциях.
-- Критерий пишется только из прямого пользовательского сигнала или источника
-  проекта, который пользователь явно утвердил; цели и критерии принятия нельзя
-  додумывать за пользователя.
-- Если criteria-файл растёт, сначала сжимать и объединять смысл; разбивать
-  только когда появились разные типы работ, которые часто вызываются отдельно.
+- Сырые цитаты пользователя по дням: `_ops/user-said/YYYY-MM-DD.md`.
+- Capture одной командой `~/.claude/skills/1user-said/scripts/add.sh "<цитата>" "<контекст>"`.
+- Append-only, без классификации и интерпретации в момент записи.
+- Дальнейшая обработка — отдельным manual проходом: пользователь сам решает,
+  что превратить в правило AGENTS/CLAUDE, decision в GOAL, или просто оставить
+  как историческую цитату.
+- Агент не редактирует и не маршрутизирует записанные цитаты автономно.
 
 ## Минимальный След
 
@@ -194,20 +187,21 @@ folder-system contract — не уровни планирования. В Codex 
   `_ops/findings/**`.
 - Описательные anti-goals / границы проекта → `_ops/GOAL.md` через
   `1strategy-docs`, если это выбранный scope-контракт.
-- Anti-goals в форме правила, красной линии или повторяемого критерия →
-  `_ops/criteria/*.md` через `1user-truth`.
-- Постоянные критерии приёмки → `_ops/criteria/*.md`.
+- Важная durable цитата пользователя (red line, default, taste) →
+  `_ops/user-said/YYYY-MM-DD.md` через `1user-said` capture. Дальнейшая
+  обработка (что превратить в правило AGENTS/CLAUDE или decision в GOAL) —
+  manual, отдельным проходом.
 - Объём активной задачи, подшаги и доказательства закрытия →
   `_ops/plans/**/task-*.md` через `1planning` только по явному запросу или
   когда без task-файла работа станет мутной.
 - Новый agent / skill / plugin не создавать как repo artifact по умолчанию; если нужен живой control surface, сначала выбрать installed/global handle или отдельную strategy/package линию.
-- Retired или superseded artifacts по умолчанию не хранить; важный урок извлекать в `knowledge/` или `_ops/criteria/`.
+- Retired или superseded artifacts по умолчанию не хранить; важный урок извлекать в `knowledge/`.
 
 ## Перед Работой
 
 - Сначала прочитать `AGENTS.md`; если работа публично-проектная, также `README.md`.
 - Перед записью или разбором файлов внутри `_ops/` читать `_ops/AGENTS.md`.
-- Перед нетривиальной работой читать релевантный `knowledge/wisdom-*.md`; если неясно, начинать с `knowledge/wisdom-agents.md`.
+- Перед нетривиальной работой читать релевантный `knowledge/wisdom-*.md` или `knowledge/agents/*.md`; если неясно, начинать с `knowledge/agents/runtime-layer.md`.
 - Для крупных shape/routing задач читать `knowledge/wisdom-systems-thinking.md`.
 - Перед работой в категории читать `knowledge/research/{category}/learnings.md`.
 - Перед созданием или правкой skill / agent / instruction file начинать с
@@ -219,13 +213,6 @@ folder-system contract — не уровни планирования. В Codex 
   stop condition; не читать ради полноты.
 - Для skill / prompt / instruction правок сначала сверять модельную рамку:
   `GPT-5.5` и `Claude Opus 4.7`, outcome/scope/evidence/stop до процесса.
-- Для любой substantive работы выбрать релевантные `_ops/criteria/*.md` по
-  сфере будущей работы и применить их как критерии приёмки.
-- При создании или правке папочных instruction files перечислить, какие
-  `_ops/criteria/*.md` могут пригодиться для работы в этой папке; файлов может
-  быть несколько, выбор делается по сфере будущих задач.
-- В `AGENTS.md`, `CLAUDE.md` и папочные инструкции не копировать сами критерии;
-  давать ссылки на нужные файлы из `_ops/criteria/`.
 - Критический анализ служит цели пользователя, а не остановке ради остановки:
   сначала понять желаемый эффект, но не считать желание доказательством
   правильности способа.
@@ -239,8 +226,8 @@ folder-system contract — не уровни планирования. В Codex 
   `1obsidian`.
 - Moment layer включать по риску, а не как ритуал: `1strategy` перед важным
   автономным/scope-changing ходом, `1planning` для task/prerequisite scope,
-  локальные owner/criteria checks перед substantive Edit/Write,
-  `1work-review` перед closeout или когда есть criteria/evidence.
+  локальные owner checks перед substantive Edit/Write,
+  `1work-review` перед closeout или когда есть evidence для проверки.
 - Рекурсивное планирование, roadmap content (current path сдвинулся, Stage closed),
   task-файлы, подшаги, статус и закрытие task-файла → `1planning`. Shape roadmap
   (формат, что туда идёт) → `1strategy-docs`.
@@ -255,11 +242,10 @@ folder-system contract — не уровни планирования. В Codex 
 - Unresolved approach branches при выполнении задачи / domain prerequisites /
   missing-middle questions → `1strategy`. Unresolved goal/scope/done shape →
   `1strategy-docs`.
-- Устойчивая пользовательская правда, тон, красная линия или рабочий default → `1user-truth`,
-  который выбирает owner: root-инструкции / `_ops/criteria/*.md` /
-  рамка проекта / task-file; не в `INTERVIEW.md`. Если сигнал пришёл из
-  заполненного `_ops/interviews/**`, сначала извлечь прямые ответы
-  пользователя, потом записывать только нужную устойчивую правду.
+- Важная цитата пользователя (durable preference, red line, default, taste,
+  явная коррекция) → `1user-said` capture в `_ops/user-said/YYYY-MM-DD.md`.
+  Без классификации в момент записи. Дальнейшая обработка (поменять ли AGENTS /
+  CLAUDE / GOAL) — отдельным manual проходом.
 - Вопрос “как сформулировать или куда положить маленькое правило” →
   `1instruction-layer`. Вопрос “какой механизм/папочный контракт/guardrail
   ведёт агента к цели” → `1folder-contract`. Уже выбранная skill-работа
@@ -276,9 +262,14 @@ folder-system contract — не уровни планирования. В Codex 
   между несколькими `.md` файлами/секциями. `map`, `headings` и `read-related`
   дают меню по `description`, заголовкам, ссылкам и объёму, чтобы агент быстрее
   находил owner, читал точные фрагменты и не забивал контекст шумом.
+- `$1md-navigator` теперь использует `baai/bge-m3` как глобальный default
+  и **sticky** model из index meta (когда `--embed-model` не передан —
+  читает recorded из meta). Существующие индексы не пересоздаются на
+  default. Подробности и A/B evidence:
+  `_ops/findings/_archive/2026-05-18-md-navigator-bm25-russian-stemming.md`.
 - Если один `.md` файл очевиден, читай напрямую. После выбора цели проверки
   graph/frontmatter/related-docs/dependency-radius идут через `$1md-graph`;
-  смысл файла остаётся за owner: `1planning`, `1user-truth`,
+  смысл файла остаётся за owner: `1planning`, `1user-said`,
   `1strategy-docs`, `knowledge/` или скиллом.
 - `1step-back` — dialog-time framing и один короткий zoom-out/reframe ход.
 - Codex-only `1fresh-eyes` — когда пользователь явно хочет свежие глаза,
@@ -296,8 +287,7 @@ folder-system contract — не уровни планирования. В Codex 
 - Грязное git-дерево само по себе не блокер: здесь есть только правки
   пользователя и агента. Работать с текущим содержимым файлов, не требовать
   чистого дерева перед обычной задачей.
-- GitHub/push workflow читать через `_ops/criteria/git-backup-workflow.md`:
-  GitHub здесь — backup локального `main`, а не branch/PR collaboration flow.
+- GitHub здесь — backup локального `main`, не branch/PR collaboration flow.
 - Для JS/TS/Markdown/package evidence доступны: `knip`, `lychee`,
   `markdownlint-cli2`, `tsc`, `biome`, `eslint`, `stylelint`,
   `depcruise`, `ast-grep`/`sg`, `publint`, `attw`, `syncpack`,

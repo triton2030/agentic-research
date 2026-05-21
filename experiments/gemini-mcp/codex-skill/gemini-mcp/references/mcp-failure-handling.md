@@ -13,6 +13,11 @@ with Codex's own reasoning, file reading, or a weaker local summary.
 - Tool surface: are `gemini_status` and `gemini_ask` callable? If not, report
   MCP registration or current-session tool exposure as the failing layer. This
   is not a Gemini model failure.
+- Transport closed: if the current Codex tool handle returns `Transport
+  closed`, do not broad-kill `server.js` processes by name. Treat the live tool
+  handle as stale for this window, use the repo-local controlled runner
+  fallback, and report that the answer came through recovery rather than clean
+  MCP.
 - Server: run `npm run smoke` in the server root after server or environment
   changes.
 - Backend: check `gemini_status` for Antigravity CLI or legacy Gemini CLI
@@ -50,6 +55,8 @@ with Codex's own reasoning, file reading, or a weaker local summary.
 - Switch to Antigravity CLI for Gemini 3.5 Flash work when available.
 - Use direct `agy`/Gemini CLI only as recovery, and report that the final answer came
   from direct CLI recovery rather than a clean MCP call.
+- Use the repo-local controlled runner fallback when MCP transport is stale in
+  the current session.
 - Use excerpts or diffs only for an intentionally bounded evidence review, and
   say that Gemini is judging only supplied evidence.
 
