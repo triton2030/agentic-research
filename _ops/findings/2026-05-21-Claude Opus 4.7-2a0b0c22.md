@@ -1,0 +1,4 @@
+# Findings — 2026-05-21 — Claude Opus 4.7 — sess:2a0b0c22
+
+- 20:53 — owner_detector.py: pagerank * 50 clamp делает pagerank weight (0.15 в composite) non-differentiating — все файлы корпуса имеют pagerank > 0.02 → min(1, pr*50) = 1.0 для всех. Не contribute к ranking; tuning weight 0.15→0.05 не сдвинет signal. Чтобы pagerank реально работал: использовать raw normalized pagerank или scaling pr * (N / 2) где N = file count.
+- 20:53 — originality.py: _lexical_jaccard_fallback не учитывает exclude_same_file — neighbor запрашивается из всех секций (rowid != target[0]), включая same file. Когда embeddings отсутствуют (sqlite-vec не загружен или chunks broken), фолбэк даёт fake-low uniqueness через neighbor из того же файла. Fix: добавить параметр exclude_same_file в _lexical_jaccard_fallback и фильтр relative_path.

@@ -20,8 +20,9 @@ def refactor_candidates(
         "SELECT section_id, relative_path, start_line, heading_text, profile_type, "
         "profile_subject, profile_confidence FROM sections WHERE scope='sections' "
         "AND profile_type IN ('uses','example','external-citation') "
+        "AND level > 1 "
         "ORDER BY token_count DESC LIMIT ?",
-        (max(top * 6, top),),
+        (max(top * 10, top),),
     ).fetchall()
 
     proposals: list[dict[str, Any]] = []

@@ -14,12 +14,15 @@
 `_ops/findings/` под текущую просьбу, не восстанавливает старые поверхности и
 не превращает эксперимент в backlog.
 
-## Текущий активный фронт
+## Текущие активные фронты
 
-`_ops/plans/md-tools-refactor/task-001-md-tools-unified-backend.md` — унификация
-backend для md-navigator + md-graph capabilities в одном Python package, MCP
-как единственный мост от skills к backend, scripts/ удаляются из skill папок
-в конце как cleanup. ~7 phases (P1-P7).
+**md-tools-refactor** (`_ops/plans/md-tools-refactor/`):
+- ✅ Backend unified, MCP 0.5.0, 19 tools, smoke 24/24, 300/300 LLM profile coverage. P1-P6 + P8 done.
+- ✅ **`task-002-editorial-verification-and-tuning.md`** — done 2026-05-21. Structural L1 filter в `refactor_proposals.py`, bias closed, ≥5/10 bar reframed (corpus sparse-duplicate). См. `_ops/findings/2026-05-21-md-refactor-editorial-verification.md`.
+- ⏸ **`phase-7-cleanup.md`** — удаление scripts/ из skill папок (blocked на burn-in confirmation от user)
+
+**knowledge-description-cleanup** (`_ops/plans/knowledge-description-cleanup/`):
+- ⚠️ 27 из 37 файлов в `knowledge/` без frontmatter `description` (surfaced via `md_orient`). Task created not started.
 
 ## Как здесь работать
 

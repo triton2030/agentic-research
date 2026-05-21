@@ -1,6 +1,6 @@
 # Task 001 — md-tools унифицированный backend + workflow tools
 
-**Status**: P1-P6 backend/MCP/Codex side implemented; P6 Claude-side recipes and P7 cleanup deferred by safety rules
+**Status**: P1-P6 + P8 done. P5 editorial verification done 2026-05-21 (task-002 closed, bar reframed). **Outstanding**: P7 cleanup deferred until burn-in.
 **Created**: 2026-05-21
 **Owner skill**: `1planning` (task content), `1md-navigator` / `1md-graph` (capability ownership), `1instruction-layer` (SKILL.md updates)
 
@@ -160,7 +160,7 @@
 | P2 | Smoke добавлены 4 assertion + manual `md_importance` sanity check |
 | P3 | Smoke 3 modes + composite latency targets |
 | P4 | Full corpus profile run + cost report + cache invalidation test |
-| P5 | **Editorial scenario** — real refactor session, ≥5/10 proposals actionable |
+| P5 | **Editorial scenario** done 2026-05-21: structural L1 filter landed, bias finding closed, bar reframed — corpus sparse-duplicate. Tool useful as editorial-input surface. See `_ops/findings/2026-05-21-md-refactor-editorial-verification.md` |
 | P6 | Manual: новая Claude сессия видит workflow recipes, выбирает MCP первым |
 | P7 | scripts/ удалены, ничего не сломалось, MCP стабилен в новой сессии |
 

@@ -9,6 +9,7 @@
 ## Counter
 
 - 2026-05-21 [Claude Opus 4.7]: создал `experiments/md-embedding-server/mcp/` (10+ файлов) без открытия `experiments/AGENTS.md` или `experiments/md-embedding-server/AGENTS.md` (если есть). Closeout review поймал как `missing` anchor. Smoke прошёл, реальной поломки не обнаружено, residual risk остался.
+- 2026-05-21 [Claude Opus 4.7]: closeout task-002. CLAUDE.md был автоматически loaded в context через system-reminder + injected `1start-here/SKILL.md` slice. Модель приняла это за достаточный orient и не сделала explicit Read на root `AGENTS.md` несмотря на CLAUDE.md MUST «Сначала прочитай AGENTS.md». Variant: «implicit-load illusion» — anchor виден в context через reminder ≠ anchor прочитан как companion file. Subtree `_ops/AGENTS.md` тоже не открыт. Smoke clean, project-graph покрыл папочный граф, residual risk low.
 
 ## Possible upgrade
 

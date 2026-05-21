@@ -24,35 +24,48 @@ Fresh agent, читающий впервые: начни с **этого README*
 - Workflow recipes в SKILL.md
 - Backend deps: `networkx`, `scipy` (inline в uv shebang)
 
-**Execution state (2026-05-21)**:
-- P1-P5 backend/MCP реализованы: MCP version `0.4.0`, 19 tools, smoke 24/24.
-- P6 Codex recipes добавлены; Claude-side recipes deferred, потому что Codex
-  не редактирует Claude surfaces по root-инструкции.
-- P7 cleanup deferred until burn-in and explicit user confirmation.
+**Execution state (2026-05-21 end-of-day)**:
+- ✅ P1-P5 backend/MCP реализованы: MCP version **0.5.0**, 19 tools с annotations, smoke **24/24**.
+- ✅ P6 recipes: Codex (Codex sessions) + Claude (Claude session) — обе runtime mirrored.
+- ✅ P8 reliability hardening done (added after P5 audit): SQLite timeouts, OpenRouter 429 retry, completion retry, spawnPython output cap, tool annotations с safe defaults.
+- ✅ Section profile: **300/300 LLM-coverage** (anthropic/claude-haiku-4.5), 0 heuristic.
+- ✅ **task-002 done 2026-05-21**: structural L1 fix landed в `refactor_proposals.py`, bias finding closed, ≥5/10 actionable bar reframed (corpus sparse-duplicate). См. `_ops/findings/2026-05-21-md-refactor-editorial-verification.md`.
+- ⏸ P7 cleanup deferred until burn-in + user explicit confirmation
+- Archived phases: see `_archive/`
 
-## Phase overview
+## Active surface (для fresh agent)
 
-| Phase | Файл | Цель | Cost | Depends on |
-|---|---|---|---|---|
-| P1 | [`phase-1-foundation-refactor.md`](phase-1-foundation-refactor.md) | Перенос md_graph → navigator/graph.py, deduplicate parsing, новые модули link_graph + importance | ~1.5 дня | — |
-| P2 | [`phase-2-tier1-atomic-capabilities.md`](phase-2-tier1-atomic-capabilities.md) | link counts в md_ls/md_toc, новый md_importance, preview mode в md_read_related | ~0.5 дня | P1 |
-| P3 | [`phase-3-tier1-composite-tools.md`](phase-3-tier1-composite-tools.md) | md_orient (cheap), md_edit_context (3 modes) | ~0.5 дня | P2 |
-| P4 | [`phase-4-section-profile-foundation.md`](phase-4-section-profile-foundation.md) | section_profile.py (LLM-prompt classifier), cache в sections table, invalidation rules | ~1.5-2 дня | P1 (не P3) |
-| P5 | [`phase-5-tier2-capabilities.md`](phase-5-tier2-capabilities.md) | md_originality, md_owner_candidates (internal), md_refactor_candidates + md_query_by_type composite | ~2 дня | P4 |
-| P6 | [`phase-6-workflow-recipes.md`](phase-6-workflow-recipes.md) | 5-7 recipes в каждом из 4 SKILL.md | ~0.5 дня | P3 (Tier 1) или P5 (всё) |
-| P7 | [`phase-7-cleanup.md`](phase-7-cleanup.md) | Удалить scripts/ из skill папок, обновить README, project-graph | ~0.5 часа | Burn-in после P3+P6 |
+| Item | File | Status |
+|---|---|---|
+| Main contract | [`task-001-md-tools-unified-backend.md`](task-001-md-tools-unified-backend.md) | P1-P6+P8 done, P5 editorial done via task-002, P7 outstanding |
+| Editorial verification + tuning | [`task-002-editorial-verification-and-tuning.md`](task-002-editorial-verification-and-tuning.md) | ✅ Done 2026-05-21 |
+| P7 cleanup | [`phase-7-cleanup.md`](phase-7-cleanup.md) | Blocked until burn-in confirmation |
+
+## Archived (done)
+
+| Phase | File | Status |
+|---|---|---|
+| P1 foundation refactor | `_archive/phase-1-foundation-refactor.md` | ✅ Done |
+| P2 Tier 1 atomic | `_archive/phase-2-tier1-atomic-capabilities.md` | ✅ Done |
+| P3 Tier 1 composite | `_archive/phase-3-tier1-composite-tools.md` | ✅ Done |
+| P4 section profile | `_archive/phase-4-section-profile-foundation.md` | ✅ Done (300/300 LLM coverage) |
+| P5 Tier 2 capabilities | `_archive/phase-5-tier2-capabilities.md` | ✅ Code done; editorial verification → task-002 |
+| P6 workflow recipes | `_archive/phase-6-workflow-recipes.md` | ✅ Done (Codex + Claude mirrors) |
+| P8 reliability hardening | `_archive/phase-8-reliability-hardening.md` | ✅ Done |
 
 **Total ~6-7 дней работы**. Phase boundaries — каждая phase это атомарный commit, можно paused между phases.
 
-## Tool surface (target после рефактора)
+## Tool surface (actual после P5, MCP 0.4.0)
 
 | Layer | Tools | Описание |
 |---|---|---|
-| **Composite primary (6)** | `md_orient`, `md_edit_context`, `md_section_blast_radius`, `md_audit`, `md_refactor_candidates`, `md_query_by_type` | Pre-baked workflows. Описания начинаются с `**Primary tool for X workflow**`. |
-| **Atomic public (~9)** | `md_search`, `md_ls`, `md_toc`, `md_read_related`, `md_preflight`, `md_impact`, `md_health`, `md_status`, `md_ping` | Building blocks. Описания начинаются с `Building block — usually called via Y composite`. |
-| **Internal (не expose)** | `md_pick`, `md_cat`, `md_deps`, `md_classify_section`, `md_originality`, `md_owner_candidates` | Используются только composite tools внутри. Не зарегистрированы в `listTools`. |
+| **Composite primary (6)** | `md_orient`, `md_edit_context`, `md_section_blast_radius`, `md_audit`, `md_refactor_candidates`, `md_query_by_type` | Pre-baked workflows. Descriptions начинаются с `**PRIMARY for W{N} {workflow} workflow.**`. |
+| **Atomic public (13)** | `md_search`, `md_ls`, `md_toc`, `md_read_related`, `md_preflight`, `md_impact`, `md_deps`, `md_health`, `md_status`, `md_ping`, `md_cat`, `md_pick`, `md_importance` | Building blocks. Descriptions начинаются с `Building block — usually called via {composite}`. |
+| **Internal (не exposed)** | `md_classify_section`, `md_originality`, `md_owner_candidates` | Используются только composite tools внутри. Не зарегистрированы в `listTools`. |
 
-`md_cat` остаётся public но scoped: «heading-aware extract from map. For one-file path use built-in Read».
+**Total listTools surface**: 19 tools.
+
+**Acknowledgement spec drift (audit 2026-05-21)**: исходный план держал `md_pick` и `md_deps` как internal. На execution они оставлены public как standalone-useful: `md_pick` для batch heading extraction (composite-неудобный без full content), `md_deps` для отдельного graph slice без preflight overhead. `md_cat` остаётся public scoped: «heading-aware extract from map. For one-file path use built-in Read».
 
 ## Skill boundaries
 
