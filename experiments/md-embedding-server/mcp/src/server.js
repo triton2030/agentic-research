@@ -6,7 +6,16 @@ import { registerNavigatorTools } from "./tools/navigator-tools.js";
 import { registerGraphTools } from "./tools/graph-tools.js";
 import { registerHybridTools } from "./tools/hybrid-tools.js";
 import { registerCompositeTools } from "./tools/composite-tools.js";
-import { wrap as wrapEnvelope, resetTurn } from "./envelope.js";
+import { wrap as wrapEnvelope, resetTurn, quickCorpusState } from "./envelope.js";
+
+function corpusRootFromArgs(args) {
+  if (!args || typeof args !== "object") return null;
+  return typeof args.corpus === "string"
+    ? args.corpus
+    : typeof args.scan === "string"
+      ? args.scan
+      : null;
+}
 
 const SERVER_VERSION = "0.6.1";
 
@@ -104,15 +113,23 @@ export function registerTool(name, description, inputSchema, handler, annotation
     config,
     async (args) => {
       resetTurn();
+      // Fire corpus_state probe in parallel with the actual handler. Cached
+      // (30s TTL) so back-to-back tools on the same corpus pay once.
+      const corpusRoot = corpusRootFromArgs(args);
+      const corpusStatePromise = corpusRoot
+        ? quickCorpusState(corpusRoot).catch(() => null)
+        : Promise.resolve(null);
       try {
         const result = await handler(args);
-        return textResult(wrapEnvelope(result, { toolName: name, args }));
+        const corpusState = await corpusStatePromise;
+        return textResult(wrapEnvelope(result, { toolName: name, args, corpusState }));
       } catch (error) {
         const errResult = {
           error: error instanceof Error ? error.message : String(error)
         };
+        const corpusState = await corpusStatePromise;
         return textResult(
-          wrapEnvelope(errResult, { toolName: name, args }),
+          wrapEnvelope(errResult, { toolName: name, args, corpusState }),
           { isError: true }
         );
       }

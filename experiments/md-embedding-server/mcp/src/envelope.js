@@ -13,6 +13,8 @@
 import { resolve } from "node:path";
 
 const ENVELOPE_VERSION = 1;
+const CORPUS_STATE_TTL_MS = 30_000;
+const CORPUS_STATE_TIMEOUT_MS = 10_000;
 
 const _ledger = {
   turn_usd: 0,
@@ -43,13 +45,76 @@ function round4(n) {
 }
 
 function resolveCorpusRoot(args) {
+  // Only resolve from explicit corpus-shaped args. `args.path` is usually a
+  // single file (md_preflight, md_impact, md_read_related), not a corpus —
+  // running status on it would mis-classify state. `args.scan` is a corpus
+  // scope for graph tools; `args.corpus` is the explicit navigator arg.
   if (!args || typeof args !== "object") return null;
-  const candidate = args.corpus || args.scan || args.path;
+  const candidate = args.corpus || args.scan;
   if (!candidate || typeof candidate !== "string") return null;
   try {
     return resolve(candidate);
   } catch {
     return null;
+  }
+}
+
+const _corpusStateCache = new Map();
+
+export async function quickCorpusState(corpusRoot) {
+  if (!corpusRoot) return null;
+
+  const cached = _corpusStateCache.get(corpusRoot);
+  if (cached && Date.now() - cached.fetched_at < CORPUS_STATE_TTL_MS) {
+    return cached.state;
+  }
+
+  try {
+    const { resolveNavigatorScript } = await import("./paths.js");
+    const { spawnPython, tryParseJson } = await import("./subprocess.js");
+    const script = resolveNavigatorScript();
+    const { code, stdout } = await spawnPython(
+      script,
+      ["status", corpusRoot, "--json"],
+      { timeoutMs: CORPUS_STATE_TIMEOUT_MS }
+    );
+    // Exit 0 = success; exit 1 = "no markdown files" — both produce valid
+    // state JSON. Exit 2/3 (path/dependency errors) we treat as null.
+    if (code === 0 || code === 1) {
+      const parsed = tryParseJson(stdout);
+      if (parsed && typeof parsed === "object") {
+        const slim = {
+          state: parsed.state ?? null,
+          model: parsed.model ?? null,
+          index_exists: parsed.index_exists ?? false,
+          last_touched: parsed.last_touched ?? null,
+          added_sections: parsed.added_sections ?? 0,
+          removed_sections: parsed.removed_sections ?? 0,
+          pending_chunks: parsed.pending_chunks ?? 0,
+          drift_count: parsed.drift_count ?? 0,
+          metadata_mismatch: parsed.metadata_mismatch ?? false,
+          delta_too_large: parsed.delta_too_large ?? false,
+          recommended_action: parsed.recommended_action ?? null
+        };
+        _corpusStateCache.set(corpusRoot, { state: slim, fetched_at: Date.now() });
+        return slim;
+      }
+    }
+  } catch {
+    // Silent fail — corpus_state stays null. We do not want a broken status
+    // probe to break the underlying tool reply that the agent actually asked
+    // for. Diagnose via md_ping or direct CLI.
+  }
+  return null;
+}
+
+export function invalidateCorpusStateCache(corpusRoot) {
+  // Phase 2 mutating tools (md_index, md_init, md_strip confirm:true) should
+  // call this after a successful run so the next reply sees fresh state.
+  if (corpusRoot) {
+    _corpusStateCache.delete(corpusRoot);
+  } else {
+    _corpusStateCache.clear();
   }
 }
 
