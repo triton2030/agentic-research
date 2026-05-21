@@ -16,14 +16,18 @@
 
 ## Текущие активные фронты
 
-**md-tools-refactor** (`_ops/plans/md-tools-refactor/`): ✅ **Refactor complete 2026-05-21.**
-- Backend unified, MCP 0.5.x, 19 tools, smoke 24/24, 300/300 LLM profile coverage.
-- P1-P6 + P8 done. P5 editorial done via task-002. P7 cleanup done.
-- Skill folders pure `SKILL.md` (Claude + Codex × navigator + graph), MCP — single bridge.
-- См. `_ops/findings/2026-05-21-md-refactor-editorial-verification.md`.
+**mcp-self-sufficiency** (`_ops/plans/mcp-self-sufficiency/`): ⚠️ **Active.**
+- Цель: сделать `md-mcp` самодостаточным продуктом (27 public tools, self-sufficient descriptions, CLI-equivalent reduced).
+- Skills становятся overlay (учат **когда применять / как интерпретировать**, не дублируют tool spec).
+- Phases: A (backend expand) → B1-B4 (skills rewrite в parallel) → C (final sweep).
+- См. [README](plans/mcp-self-sufficiency/README.md).
 
 **knowledge-description-cleanup** (`_ops/plans/knowledge-description-cleanup/`):
 - ⚠️ 27 из 37 файлов в `knowledge/` без frontmatter `description` (surfaced via `md_orient`). Task created not started.
+
+**Archived 2026-05-21**:
+- `md-tools-refactor` — Refactor complete: backend unified, MCP 0.5.x, 19 tools, smoke 24/24. См. `_ops/findings/2026-05-21-md-refactor-editorial-verification.md`.
+- `md-skills-cross-check` — Cross-check skills consistency после refactor (4 parallel subagents, 6 edits).
 
 ## Как здесь работать
 
