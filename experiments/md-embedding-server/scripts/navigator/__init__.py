@@ -1,1 +1,1 @@
-from .cli import main
+"""Markdown navigator backend package."""

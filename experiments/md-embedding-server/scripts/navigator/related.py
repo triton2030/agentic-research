@@ -39,7 +39,7 @@ def add_related_item(
         text = resolved.read_text(encoding="utf-8", errors="replace")
         lines = text.splitlines()
         frontmatter = parse_frontmatter(lines)
-        headings = collect_headings(lines, max_level=1)
+        headings = collect_headings(lines, max_level=3)
         title = headings[0]["text"] if headings else ""
         if anchor is not None:
             section = extract_section_by_anchor(resolved, anchor)
@@ -60,6 +60,10 @@ def add_related_item(
             "relative_path": relative_path(resolved, root),
             "description": frontmatter.get("description", ""),
             "title": title,
+            "headings": [
+                {"line": h["line"], "level": h["level"], "text": h["text"]}
+                for h in headings
+            ],
             "reasons": [],
             "tokens": tokens,
             "content": content,
@@ -145,6 +149,17 @@ def collect_related_items(args) -> dict[str, Any]:
                     break
 
     ordered = list(items.values())
+    if getattr(args, "mode", "full") == "preview":
+        for item in ordered:
+            preview_text = "\n".join(
+                [
+                    item.get("description") or "",
+                    item.get("title") or "",
+                    *[h.get("text", "") for h in item.get("headings", [])],
+                ]
+            )
+            item["tokens"] = approx_tokens(preview_text)
+            item.pop("content", None)
     reason_rank = {
         "self": 0,
         "read-before-edit": 1,

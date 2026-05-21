@@ -89,36 +89,40 @@ export function registerNavigatorTools(registerTool) {
 
   registerTool(
     "md_ls",
-    "List Markdown files in a folder with frontmatter description, title, and heading count. Faster than `ls` + reading frontmatter manually. No index needed.",
+    "Building block — usually called via md_orient. List Markdown files with frontmatter description, title, heading count, optional token and link counts. No index needed.",
     {
       path: z.string().min(1).describe("Folder or .md file path"),
       max_heading_level: z.number().int().min(1).max(6).optional(),
       match: z.string().optional().describe("Case-insensitive substring filter over description/title/headings"),
-      with_tokens: z.boolean().optional().describe("Attach approximate token counts per file")
+      with_tokens: z.boolean().optional().describe("Attach approximate token counts per file"),
+      with_link_counts: z.boolean().optional().describe("Attach in_degree/out_degree per file from the Markdown link graph")
     },
-    async ({ path, max_heading_level, match, with_tokens }) => {
+    async ({ path, max_heading_level, match, with_tokens, with_link_counts }) => {
       const args = ["map", path, "--json"];
       pushFlag(args, "--max-heading-level", max_heading_level);
       pushFlag(args, "--match", match);
       if (with_tokens) args.push("--with-tokens");
+      if (with_link_counts) args.push("--with-link-counts");
       return await runNavigator(args, { timeoutMs: 30_000 });
     }
   );
 
   registerTool(
     "md_toc",
-    "Table of contents for a Markdown folder: every heading with a stable id (`1.2`, `4.3`) usable as input to md_pick. No index needed.",
+    "Building block — usually called via md_orient or md_edit_context. Table of contents for a Markdown folder with stable heading ids usable as input to md_pick. No index needed.",
     {
       path: z.string().min(1),
       max_heading_level: z.number().int().min(1).max(6).optional(),
       match: z.string().optional(),
-      with_tokens: z.boolean().optional()
+      with_tokens: z.boolean().optional(),
+      with_link_counts: z.boolean().optional()
     },
-    async ({ path, max_heading_level, match, with_tokens }) => {
+    async ({ path, max_heading_level, match, with_tokens, with_link_counts }) => {
       const args = ["headings", path, "--json"];
       pushFlag(args, "--max-heading-level", max_heading_level);
       pushFlag(args, "--match", match);
       if (with_tokens) args.push("--with-tokens");
+      if (with_link_counts) args.push("--with-link-counts");
       return await runNavigator(args, { timeoutMs: 30_000 });
     }
   );
@@ -219,21 +223,23 @@ export function registerNavigatorTools(registerTool) {
 
   registerTool(
     "md_read_related",
-    "Read an anchor file and pull content from its linked neighborhood in one packet: wikilinks, markdown-links, frontmatter graph edges, backlinks. When a link targets a specific heading (`[[file#Heading]]`), pulls only that section, not the whole file (anchor_aware default true). Use to enrich understanding of a document with context from its references in one call.",
+    "Building block — usually called via md_edit_context. Read an anchor file and linked neighborhood. mode=preview returns descriptions/headings only; mode=full returns content bodies.",
     {
       paths: z.array(z.string().min(1)).min(1).describe("Anchor file path(s) — the document(s) you want enriched"),
       scan: z.string().optional().describe("Markdown root to scan for backlinks (default: cwd)"),
       include: z.string().optional().describe("Comma list: self,frontmatter,wikilinks,markdown-links,backlinks (default all)"),
+      mode: z.enum(["preview", "full"]).optional().describe("preview: descriptions/headings only. full: include content bodies. Default full."),
       anchor_aware: z.boolean().optional().describe("If a link points to `file#Heading`, extract only that section instead of whole file. Default true. Set false to revert to whole-file behavior."),
       token_budget: z.number().int().nonnegative().optional(),
       semantic_radius: z.number().int().nonnegative().optional().describe("Append top-K semantic neighbors not in the link graph (0 = off)"),
       check_links: z.boolean().optional().describe("Flag explicit links that are semantically far from the anchor — candidates for off-topic review"),
       link_distance_threshold: z.number().positive().optional()
     },
-    async ({ paths, scan, include, anchor_aware, token_budget, semantic_radius, check_links, link_distance_threshold }) => {
+    async ({ paths, scan, include, mode, anchor_aware, token_budget, semantic_radius, check_links, link_distance_threshold }) => {
       const args = ["read-related", ...paths];
       pushFlag(args, "--scan", scan);
       pushFlag(args, "--include", include);
+      pushFlag(args, "--mode", mode);
       if (anchor_aware !== false) args.push("--anchor-aware");
       pushFlag(args, "--token-budget", token_budget);
       pushFlag(args, "--semantic-radius", semantic_radius);
@@ -241,6 +247,22 @@ export function registerNavigatorTools(registerTool) {
       pushFlag(args, "--link-distance-threshold", link_distance_threshold);
       args.push("--json");
       return await runNavigator(args, { timeoutMs: 60_000 });
+    }
+  );
+
+  registerTool(
+    "md_importance",
+    "Building block — usually called via md_orient. Rank Markdown files by link-graph importance: pagerank, in_degree, or out_degree. No embeddings or HTTP.",
+    {
+      corpus: z.string().min(1),
+      top: z.number().int().positive().max(100).optional(),
+      sort_by: z.enum(["pagerank", "in_degree", "out_degree", "centrality"]).optional()
+    },
+    async ({ corpus, top, sort_by }) => {
+      const args = ["importance", corpus, "--json"];
+      pushFlag(args, "--top", top);
+      pushFlag(args, "--sort-by", sort_by);
+      return await runNavigator(args, { timeoutMs: 30_000 });
     }
   );
 }

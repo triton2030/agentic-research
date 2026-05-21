@@ -2,20 +2,16 @@
 # /// script
 # requires-python = ">=3.11"
 # dependencies = [
-#   "numpy>=1.26",
-#   "sqlite-vec>=0.1.6",
 #   "pyyaml>=6",
-#   "pymorphy3>=2.0",
-#   "networkx>=3.2",
-#   "scipy>=1.11",
 # ]
 # ///
-"""Entry script for the md_navigator package. See `navigator/cli.py`."""
+"""Entry script for the repository-owned Markdown graph backend."""
+
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from navigator.cli import main
+from navigator.graph import main
 
 if __name__ == "__main__":
     raise SystemExit(main())

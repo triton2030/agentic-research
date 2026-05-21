@@ -2,23 +2,42 @@
 
 Unified Markdown navigator client used by both the Claude and Codex
 `1md-navigator` skills. Reads through an OpenAI-compatible embedding API
-(default: OpenRouter / `openai/text-embedding-3-small`) — no local
+(default: OpenRouter / `baai/bge-m3`) — no local
 embedding server, no Metal allocator pressure, no model files on disk.
 
-The script in `scripts/md_navigator.py` is the **single source of truth**
-for both runtimes. Both skill folders symlink to it:
+The scripts in `scripts/md_navigator.py` and `scripts/md_graph.py` are
+the repo-owned backend entry points. `md_navigator.py` is the shared
+navigation/search/profile client; `md_graph.py` is the graph hygiene
+wrapper around `navigator/graph.py`.
+
+Both runtime skill folders can point to these entry points:
 
 ```text
 ~/.claude/skills/1md-navigator/scripts/md_navigator.py -> experiments/md-embedding-server/scripts/md_navigator.py
 ~/.codex/skills/1md-navigator/scripts/md_navigator.py  -> experiments/md-embedding-server/scripts/md_navigator.py
+~/.codex/skills/1md-graph/scripts/md_graph.py          -> experiments/md-embedding-server/scripts/md_graph.py
 ```
 
-Edit the script here; both runtimes pick up changes immediately.
+Edit the backend here; runtime wrappers pick up changes immediately.
 
 > **Note on the folder name.** Historically this directory hosted a
 > local MLX embedding server. We retired the server when we moved to
 > cloud embeddings; the folder name is kept for the symlink path
 > compatibility. The real entry point is the `navigator/` package.
+
+## Unified backend shape
+
+- `navigator/markdown_io.py` owns shared Markdown parsing.
+- `navigator/graph.py` owns graph commands: `preflight`, `impact`,
+  `deps`, `health`, `check`, `changed`, and schema cleanup.
+- `navigator/link_graph.py` and `navigator/importance.py` add link
+  counts and centrality without embeddings.
+- `navigator/section_profile.py`, `originality.py`,
+  `owner_detector.py`, and `refactor_proposals.py` add Tier 2
+  refactor signals. Section profiles support explicit OpenRouter LLM mode
+  with heuristic fallback; proposals are human-reviewed and never mutate files.
+- `mcp/` exposes read-only typed tools. Mutating and cost-bearing work
+  stays CLI-only.
 
 ## Embedding backend
 
@@ -77,6 +96,10 @@ Subcommands:
 - `pick` — select files/sections by stable id from a saved JSON map
 - `pick --extract` (or `read`) — return text of selected sections in one packet
 - `read-related` — linked Markdown neighborhood for context
+- `importance` — graph centrality ranking (pagerank / centrality / in-degree / out-degree)
+- `profile-sections` — cache section profiles in the index (`--mode llm` for OpenRouter, heuristic default for no-cost runs)
+- `originality`, `owner-candidates` — embedding-cosine and graph-aware refactor signals
+- `refactor-candidates`, `query-by-type` — human-reviewed refactor/query helpers
 - `index` — cold-start (or top up) the persistent vector index for a corpus
 - `status` — freshness check for an existing index; no HTTP and no writes
 - `search` — hybrid section retrieval (BM25F + dense via RRF)

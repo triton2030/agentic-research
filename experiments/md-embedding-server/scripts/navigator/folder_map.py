@@ -12,8 +12,19 @@ from .markdown_io import (
 )
 
 
-def build_map(path: Path, max_heading_level: int, with_tokens: bool = False) -> dict[str, Any]:
+def build_map(
+    path: Path,
+    max_heading_level: int,
+    with_tokens: bool = False,
+    with_link_counts: bool = False,
+) -> dict[str, Any]:
     root = path.resolve()
+    counts_by_path: dict[Path, dict[str, int]] = {}
+    if with_link_counts:
+        from .link_graph import link_counts
+
+        graph_root = root if root.is_dir() else root.parent
+        counts_by_path = link_counts(graph_root)
     files: list[dict[str, Any]] = []
     for file_index, file_path in enumerate(iter_markdown(path), start=1):
         text = file_path.read_text(encoding="utf-8", errors="replace")
@@ -52,6 +63,10 @@ def build_map(path: Path, max_heading_level: int, with_tokens: bool = False) -> 
         }
         if with_tokens:
             file_entry["tokens"] = approx_tokens(text)
+        if with_link_counts:
+            counts = counts_by_path.get(file_path.resolve(), {"in_degree": 0, "out_degree": 0})
+            file_entry["in_degree"] = counts["in_degree"]
+            file_entry["out_degree"] = counts["out_degree"]
         files.append(file_entry)
     data: dict[str, Any] = {
         "root": str(root),
@@ -62,6 +77,8 @@ def build_map(path: Path, max_heading_level: int, with_tokens: bool = False) -> 
     }
     if with_tokens:
         data["token_count"] = sum(item.get("tokens", 0) for item in files)
+    if with_link_counts:
+        data["with_link_counts"] = True
     return data
 
 
@@ -123,6 +140,11 @@ def render_map(data: dict[str, Any], include_headings: bool, with_tokens: bool) 
         desc = item["description"] or "TODO description"
         title = f" | title: {item['title']}" if item["title"] else ""
         tokens = f" | {item['tokens']}t" if with_tokens and "tokens" in item else ""
+        link_counts = (
+            f" | in={item['in_degree']} out={item['out_degree']}"
+            if "in_degree" in item and "out_degree" in item
+            else ""
+        )
         match_hits = (
             f" | match: {','.join(item['matched_terms'])}"
             if item.get("matched_terms")
@@ -130,7 +152,7 @@ def render_map(data: dict[str, Any], include_headings: bool, with_tokens: bool) 
         )
         lines.append(
             f"{item['id']}. {item['relative_path']} - {desc}{title} "
-            f"({item['heading_count']} headings{tokens}){match_hits}"
+            f"({item['heading_count']} headings{tokens}{link_counts}){match_hits}"
         )
         if include_headings:
             for heading in item["headings"]:

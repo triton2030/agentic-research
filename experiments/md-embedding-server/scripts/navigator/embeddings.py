@@ -239,6 +239,84 @@ def _embeddings_url(api_url: str) -> str:
     return f"{base}/embeddings"
 
 
+def _chat_completions_url(api_url: str) -> str:
+    base = api_url.rstrip("/")
+    if base.endswith("/chat/completions"):
+        return base
+    return f"{base}/chat/completions"
+
+
+class OpenRouterClient:
+    """Small OpenAI-compatible completion client for profile classifiers.
+
+    Reuses the same key lookup and OpenRouter attribution headers as the
+    embedding client so profile tooling has one credential path.
+    """
+
+    def __init__(
+        self,
+        api_url: str = SEARCH_DEFAULT_EMBEDDING_API_URL,
+        timeout: float = SEARCH_DEFAULT_EMBEDDING_TIMEOUT,
+        corpus_root: Path | None = None,
+    ) -> None:
+        self.api_url = api_url
+        self.timeout = timeout
+        self.corpus_root = corpus_root
+
+    def completion(
+        self,
+        model: str,
+        messages: list[dict[str, str]],
+        max_tokens: int = 512,
+        temperature: float = 0.0,
+    ) -> str:
+        from urllib import error, request
+
+        url = _chat_completions_url(self.api_url)
+        headers = {"Content-Type": "application/json; charset=utf-8"}
+        needs_auth = not (
+            self.api_url.startswith("http://127.0.0.1")
+            or self.api_url.startswith("http://localhost")
+        )
+        api_key = _resolve_api_key(self.api_url, corpus_root=self.corpus_root)
+        if needs_auth and not api_key:
+            raise RuntimeError(
+                _format_missing_key_error(self.api_url, corpus_root=self.corpus_root)
+            )
+        if api_key:
+            headers["Authorization"] = f"Bearer {api_key}"
+        if "openrouter.ai" in self.api_url:
+            headers.update(_openrouter_identity_headers())
+
+        payload = {
+            "model": model,
+            "messages": messages,
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "response_format": {"type": "json_object"},
+        }
+        body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        req = request.Request(url, data=body, headers=headers, method="POST")
+        try:
+            with request.urlopen(req, timeout=self.timeout) as response:
+                raw = response.read().decode("utf-8")
+        except error.HTTPError as exc:
+            detail = exc.read().decode("utf-8", errors="replace")
+            raise RuntimeError(f"Completion API returned {exc.code}: {detail}") from exc
+        except OSError as exc:
+            raise RuntimeError(f"Completion API unavailable at {url}: {exc}") from exc
+
+        parsed = json.loads(raw)
+        choices = parsed.get("choices")
+        if not isinstance(choices, list) or not choices:
+            raise RuntimeError("Completion API response missing choices")
+        message = choices[0].get("message") or {}
+        content = message.get("content")
+        if not isinstance(content, str):
+            raise RuntimeError("Completion API response missing message.content")
+        return content
+
+
 def _embed_texts_http(
     model_name: str,
     texts: list[str],

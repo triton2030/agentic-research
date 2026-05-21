@@ -1,6 +1,6 @@
 # Task 001 — md-tools унифицированный backend + workflow tools
 
-**Status**: Active
+**Status**: P1-P6 backend/MCP/Codex side implemented; P6 Claude-side recipes and P7 cleanup deferred by safety rules
 **Created**: 2026-05-21
 **Owner skill**: `1planning` (task content), `1md-navigator` / `1md-graph` (capability ownership), `1instruction-layer` (SKILL.md updates)
 
@@ -72,7 +72,7 @@
 
 - Extend `folder_map.build_map`: param `with_link_counts: bool`, добавляет `in_degree` / `out_degree` per file через `link_graph`
 - MCP wrapper: `md_ls` / `md_toc` принимают `with_link_counts: boolean`
-- New atomic tool `md_importance({ corpus, top?, sort_by?: "pagerank"|"in_degree"|"out_degree" })`
+- New atomic tool `md_importance({ corpus, top?, sort_by?: "pagerank"|"centrality"|"in_degree"|"out_degree" })`
 - Extend `md_read_related`: param `mode: "preview" | "full"` (default `"full"`). Preview = descriptions + headings only, no content body
 
 **Verification P2**: smoke добавляет 4 новых assertions; manual check: `md_importance knowledge` returns top hubs match intuitive expectations.
@@ -173,7 +173,7 @@
 | LLM profile noise (false positives в classification) | Confidence threshold + manual sample review per 20 sections; editorial verification, не accuracy |
 | Profile cost эскалация на больших корпусах | Cap `--max-profile-batch` (default 50), CLI `--no-profile` flag для skip, profile только при index, не при search |
 | `md_refactor_candidates` outputs noise > signal | Stop rule P5: если editorial session показывает < 50% actionable, не deploy в production usage |
-| Cross-runtime drift (Claude видит, Codex нет) | Один MCP сервер для обоих, registration через `claude mcp add` + `config.toml` уже сделано в 0.3.0 |
+| Cross-runtime drift (Claude видит, Codex нет) | Один MCP сервер для обоих, registration через `claude mcp add` + `config.toml` уже сделано; текущая версия MCP `0.4.0` |
 | 2-week refactor blocks других работ | Phase boundaries — каждая phase отдельный commit, можно paused между phases |
 | User vision shift во время refactor | Stop rule explicit; escalate в `1strategy-docs` если goal/scope/done меняется |
 
@@ -183,12 +183,21 @@
 - Должны ли `md_originality` / `md_owner_candidates` всё-таки expose'иться через MCP (как «advanced») или strictly internal? Defer до P5 implementation — посмотрим на real usage pattern
 - Удалять ли `experiments/md-embedding-server/README.md` mention legacy MLX server (исторический artifact) — defer до P7
 
+## Execution evidence — 2026-05-21
+
+- Backend graph wrapper moved into repo: `experiments/md-embedding-server/scripts/md_graph.py` → `navigator/graph.py`; Codex `1md-graph` fallback symlink points to repo backend.
+- Tier 1 MCP works: link counts, `md_importance`, `md_orient`, `md_edit_context`, `md_read_related mode`.
+- Tier 2 MCP works: OpenRouter/heuristic section profiles, embedding-cosine originality, graph-aware owner candidates, `md_refactor_candidates`, `md_query_by_type`; helper signals remain CLI/internal.
+- Verification passed: `npm run smoke` = 24 passed, 0 failed; `pytest experiments/md-embedding-server/tests` = 89 passed.
+- LLM profile burn-in: `profile-sections knowledge --limit 20 --mode llm --json` completed with 20 profiled, 0 failed, estimated cost `$0.020`; unbounded full-corpus LLM profiling remains explicit because it is cost/time-bearing.
+- Deferred: Claude-side `SKILL.md` edits are blocked for Codex by root instruction read-only boundary for Claude surfaces. P7 script removal is blocked until burn-in and explicit user confirmation.
+
 ## Anchors / Evidence
 
 - Architecture discussion: `_ops/user-said/2026-05-21.md` (durable architecture decision)
 - Adversarial review from external agent — captured в chat 2026-05-21 (this session), 8 of 9 points integrated
 - Self-learning pattern: `_ops/self-learning/user-workflow-probe-skip-on-design.md`
-- Current MCP version: 0.3.0 (`experiments/md-embedding-server/mcp/package.json`)
+- Current MCP version: 0.4.0 (`experiments/md-embedding-server/mcp/package.json`)
 - Backend single source of truth (already): `experiments/md-embedding-server/scripts/md_navigator.py`
 - Current graph location (to migrate): `~/.claude/skills/1md-graph/scripts/md_graph.py` (1446 LOC monolith)
 - Spike outcome: `obsidiantools` mismatch с нашим mixed-link-style corpus — NetworkX напрямую правильный путь

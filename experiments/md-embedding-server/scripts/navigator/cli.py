@@ -20,14 +20,19 @@ from pathlib import Path
 
 from .audit import register_audit
 from .folder_map import apply_match_filter, build_map, render_map
+from .importance import importance_rows, render_importance
 from .index_build import DEFAULT_MAX_AUTO_EMBED, register_index
 from .index_cluster import register_cluster
 from .index_status import register_status
 from .overlaps import register_overlaps
+from .originality import originality_for_section
+from .owner_detector import owner_candidates
 from .pick import parse_csv, pick_items, render_pick
+from .refactor_proposals import refactor_candidates
 from .related import collect_related_items, render_related_packet
 from .repeated_concepts import register_repeated_concepts
 from .schemas import register_schema
+from .section_profile import open_profile_db, profile_corpus, profile_rows, profile_unprofiled_sections
 from .search import register_search
 
 
@@ -53,6 +58,12 @@ def build_manifest() -> dict[str, object]:
             "status",
             "cluster",
             "audit",
+            "importance",
+            "profile-sections",
+            "originality",
+            "owner-candidates",
+            "refactor-candidates",
+            "query-by-type",
             "schema",
         ],
         "defaults": {
@@ -121,6 +132,11 @@ def parse_args() -> argparse.Namespace:
                 "section heading. Useful for fitting a reading set into a "
                 "context budget."
             ),
+        )
+        cmd.add_argument(
+            "--with-link-counts",
+            action="store_true",
+            help="Attach in_degree/out_degree per file from the Markdown link graph.",
         )
 
     pick = sub.add_parser("pick", help="Select files/headings from a saved JSON map.")
@@ -257,6 +273,12 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     read_related.add_argument(
+        "--mode",
+        choices=("preview", "full"),
+        default="full",
+        help="preview returns descriptions, titles, and headings without content bodies.",
+    )
+    read_related.add_argument(
         "--token-budget",
         "--max-tokens",
         dest="token_budget",
@@ -315,6 +337,63 @@ def parse_args() -> argparse.Namespace:
     )
     read_related.add_argument("--json", action="store_true", help="Print JSON packet.")
 
+    importance = sub.add_parser(
+        "importance",
+        help="Rank Markdown files by graph importance (pagerank, in_degree, out_degree).",
+    )
+    importance.add_argument("path", help="Markdown corpus folder.")
+    importance.add_argument("--top", type=int, default=10, help="How many files to return.")
+    importance.add_argument(
+        "--sort-by",
+        choices=("pagerank", "in_degree", "out_degree", "centrality"),
+        default="pagerank",
+        help="Metric to sort by.",
+    )
+    importance.add_argument("--json", action="store_true", help="Print JSON.")
+
+    profile_sections = sub.add_parser(
+        "profile-sections",
+        help="Classify indexed sections and cache section profiles in index.sqlite.",
+    )
+    profile_sections.add_argument("path", help="Markdown corpus folder with an index.")
+    profile_sections.add_argument("--limit", type=int, default=0, help="Optional max sections to profile.")
+    profile_sections.add_argument("--force", action="store_true", help="Re-profile even cached rows.")
+    profile_sections.add_argument("--mode", choices=("heuristic", "llm", "auto"), default=None, help="Classifier mode. Default: MD_PROFILE_MODE or heuristic.")
+    profile_sections.add_argument("--model", default=None, help="LLM classifier model for --mode llm/auto.")
+    profile_sections.add_argument("--json", action="store_true", help="Print JSON.")
+
+    originality = sub.add_parser("originality", help="Compute a section uniqueness score.")
+    originality.add_argument("path", help="Markdown corpus folder with an index.")
+    originality.add_argument("section_id", help="Section id, e.g. 4.2.")
+    originality.add_argument("--json", action="store_true", help="Print JSON.")
+
+    owners = sub.add_parser("owner-candidates", help="Rank owner-like sections for text or section_id.")
+    owners.add_argument("path", help="Markdown corpus folder with an index.")
+    owners.add_argument("--section-id", default=None, help="Section id to analyze.")
+    owners.add_argument("--text", default=None, help="Raw text to analyze.")
+    owners.add_argument("--limit", type=int, default=5, help="How many candidates to return.")
+    owners.add_argument("--json", action="store_true", help="Print JSON.")
+
+    proposals = sub.add_parser(
+        "refactor-candidates",
+        help="Generate human-reviewed refactor proposals from section profiles.",
+    )
+    proposals.add_argument("path", help="Markdown corpus folder with an index.")
+    proposals.add_argument("--top", type=int, default=10, help="How many proposals to return.")
+    proposals.add_argument("--uniqueness-threshold", type=float, default=0.35, help="Below this uniqueness, a section is duplicate-like.")
+    proposals.add_argument("--owner-confidence-threshold", type=float, default=0.45, help="Minimum owner composite score.")
+    proposals.add_argument("--json", action="store_true", help="Print JSON.")
+
+    query_by_type = sub.add_parser(
+        "query-by-type",
+        help="List profiled sections by profile.type, e.g. open-question, decision, definition.",
+    )
+    query_by_type.add_argument("path", help="Markdown corpus folder with an index.")
+    query_by_type.add_argument("--types", required=True, help="Comma-list of profile types.")
+    query_by_type.add_argument("--filter", default=None, help="Optional substring filter over subject/heading.")
+    query_by_type.add_argument("--limit", type=int, default=50, help="Max sections to return.")
+    query_by_type.add_argument("--json", action="store_true", help="Print JSON.")
+
     # Big commands — each module owns its own argparse via register_X.
     register_search(sub)
     register_overlaps(sub)
@@ -338,7 +417,12 @@ def _dispatch_inline(args: argparse.Namespace) -> int | None:
         return 0
 
     if args.command in {"map", "headings"}:
-        data = build_map(Path(args.path), args.max_heading_level, with_tokens=args.with_tokens)
+        data = build_map(
+            Path(args.path),
+            args.max_heading_level,
+            with_tokens=args.with_tokens,
+            with_link_counts=args.with_link_counts,
+        )
         data = apply_match_filter(data, args.match)
         if args.output:
             Path(args.output).write_text(
@@ -356,6 +440,102 @@ def _dispatch_inline(args: argparse.Namespace) -> int | None:
                 ),
                 end="",
             )
+        return 0
+
+    if args.command == "importance":
+        root = Path(args.path).expanduser()
+        rows = importance_rows(root, top=max(1, args.top), sort_by=args.sort_by)
+        if args.json:
+            print(
+                json.dumps(
+                    {"root": str(root.resolve()), "sort_by": args.sort_by, "files": rows},
+                    ensure_ascii=False,
+                    indent=2,
+                )
+            )
+        else:
+            print(render_importance(rows, args.sort_by), end="")
+        return 0
+
+    if args.command == "profile-sections":
+        root = Path(args.path).expanduser().resolve()
+        try:
+            conn = open_profile_db(root)
+            stats = profile_corpus(
+                conn,
+                limit=args.limit or None,
+                corpus_root=root,
+                force=args.force,
+                mode=args.mode,
+                model=args.model,
+            )
+            rows = profile_rows(conn, limit=10)
+        except RuntimeError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+        payload = {"root": str(root), **stats, "sample": rows}
+        if args.json:
+            print(json.dumps(payload, ensure_ascii=False, indent=2))
+        else:
+            print(json.dumps(payload, ensure_ascii=False, indent=2))
+        return 0
+
+    if args.command == "originality":
+        root = Path(args.path).expanduser().resolve()
+        try:
+            conn = open_profile_db(root)
+            payload = originality_for_section(conn, args.section_id)
+        except RuntimeError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+        return 0
+
+    if args.command == "owner-candidates":
+        root = Path(args.path).expanduser().resolve()
+        if not args.text and not args.section_id:
+            print("owner-candidates requires --text or --section-id", file=sys.stderr)
+            return 2
+        try:
+            conn = open_profile_db(root)
+            payload = {"candidates": owner_candidates(conn, corpus_root=root, text=args.text, section_id=args.section_id, limit=args.limit)}
+        except RuntimeError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+        return 0
+
+    if args.command == "refactor-candidates":
+        root = Path(args.path).expanduser().resolve()
+        try:
+            conn = open_profile_db(root)
+            payload = refactor_candidates(
+                conn,
+                corpus_root=root,
+                top=args.top,
+                uniqueness_threshold=args.uniqueness_threshold,
+                owner_confidence_threshold=args.owner_confidence_threshold,
+            )
+        except RuntimeError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+        return 0
+
+    if args.command == "query-by-type":
+        root = Path(args.path).expanduser().resolve()
+        types = [item.strip() for item in args.types.split(",") if item.strip()]
+        try:
+            conn = open_profile_db(root)
+            profile_unprofiled_sections(conn, corpus_root=root)
+            payload = {
+                "types": types,
+                "sections": profile_rows(conn, types=types, filter_text=args.filter, limit=args.limit),
+            }
+        except RuntimeError as exc:
+            print(str(exc), file=sys.stderr)
+            return 2
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
         return 0
 
     if args.command in {"pick", "read"}:

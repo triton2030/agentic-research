@@ -27,12 +27,13 @@ export function resolveNavigatorScript() {
 
 export function resolveGraphScript() {
   const fromEnv = process.env.MD_GRAPH_SCRIPT;
+  const inRepo = resolve(here, "..", "..", "scripts", "md_graph.py");
   const claudeSkill = resolve(homedir(), ".claude", "skills", "1md-graph", "scripts", "md_graph.py");
   const codexSkill = resolve(homedir(), ".codex", "skills", "1md-graph", "scripts", "md_graph.py");
-  const found = firstExisting([fromEnv, claudeSkill, codexSkill]);
+  const found = firstExisting([fromEnv, inRepo, claudeSkill, codexSkill]);
   if (!found) {
     throw new Error(
-      `md_graph.py not found. Set MD_GRAPH_SCRIPT, or check ${claudeSkill} or ${codexSkill}.`
+      `md_graph.py not found. Set MD_GRAPH_SCRIPT, or check ${inRepo}, ${claudeSkill}, or ${codexSkill}.`
     );
   }
   return found;

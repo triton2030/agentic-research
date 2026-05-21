@@ -41,6 +41,7 @@ from .sections import (
     _should_subchunk,
     _split_body_into_chunks,
 )
+from .section_profile import profile_unprofiled_sections
 
 
 # Cloud embeddings: no Metal cap, no on-laptop heat. Bigger batches amortise
@@ -533,7 +534,11 @@ def _ensure_index_unlocked(
         #    pass at the top of the next run will sweep any sections left
         #    without chunks.
         conn.executemany(
-            "INSERT INTO sections VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO sections ("
+            "rowid, section_id, scope, file_id, relative_path, start_line, "
+            "level, heading_text, heading_chain, body, file_description, "
+            "file_title, content_hash, token_count"
+            ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
             section_rows,
         )
         conn.executemany(
@@ -625,6 +630,10 @@ def _ensure_index_unlocked(
             "SELECT COUNT(*) FROM sections WHERE scope = ?", (scope,)
         ).fetchone()[0]
     )
+    if not dry_run and scope == "sections":
+        profiled = profile_unprofiled_sections(conn, corpus_root=corpus_root)
+        if profiled:
+            stats["profiled_sections"] = profiled
     return conn, stats
 
 

@@ -36,10 +36,14 @@ function record(name, ok, detail) {
 }
 
 async function expect(name, args, predicate) {
+  return await expectTool(name, name, args, predicate);
+}
+
+async function expectTool(label, name, args, predicate) {
   try {
     const r = await client.callTool({ name, arguments: args });
     if (r.isError) {
-      record(name, false, `tool returned isError: ${r.content[0].text.slice(0, 120)}`);
+      record(label, false, `tool returned isError: ${r.content[0].text.slice(0, 120)}`);
       return null;
     }
     const text = r.content[0].text;
@@ -51,15 +55,15 @@ async function expect(name, args, predicate) {
     }
     const ok = predicate(payload);
     if (ok === true) {
-      record(name, true, `${text.length}B`);
+      record(label, true, `${text.length}B`);
     } else if (typeof ok === "string") {
-      record(name, false, ok);
+      record(label, false, ok);
     } else {
-      record(name, false, "predicate returned false");
+      record(label, false, "predicate returned false");
     }
     return payload;
   } catch (e) {
-    record(name, false, `threw: ${e.message}`);
+    record(label, false, `threw: ${e.message}`);
     return null;
   }
 }
@@ -73,7 +77,7 @@ await client.connect(transport);
 const list = await client.listTools();
 record(
   "listTools",
-  list.tools.length >= 13,
+  list.tools.length >= 17,
   `${list.tools.length} tools`
 );
 
@@ -85,6 +89,12 @@ await expect("md_status", { corpus: KNOWLEDGE }, (p) =>
 
 await expect("md_ls", { path: AGENTS }, (p) =>
   Array.isArray(p.files) && p.files.length >= 1 ? true : "no files in map"
+);
+
+await expectTool("md_ls link counts", "md_ls", { path: KNOWLEDGE, with_link_counts: true }, (p) =>
+  Array.isArray(p.files) && p.files.some((f) => Number.isInteger(f.in_degree) && Number.isInteger(f.out_degree))
+    ? true
+    : "missing in_degree/out_degree"
 );
 
 await expect("md_toc", { path: AGENTS, max_heading_level: 3 }, (p) =>
@@ -113,6 +123,52 @@ await expect(
   "md_read_related",
   { paths: [FILE], scan: KNOWLEDGE, token_budget: 1500 },
   (p) => (Array.isArray(p.anchors) && p.anchors.length >= 1) || "no anchors"
+);
+
+await expectTool(
+  "md_read_related preview",
+  "md_read_related",
+  { paths: [FILE], scan: KNOWLEDGE, mode: "preview", token_budget: 1500 },
+  (p) => {
+    if (!Array.isArray(p.items) || p.items.length < 1) return "no related items";
+    return p.items.every((item) => item.content === undefined) ? true : "preview leaked content";
+  }
+);
+
+await expect("md_importance", { corpus: KNOWLEDGE, top: 5 }, (p) =>
+  Array.isArray(p.files) && p.files.length >= 1 && p.files[0].pagerank !== undefined
+    ? true
+    : "missing importance files"
+);
+
+await expect("md_orient", { corpus: KNOWLEDGE, top: 5 }, (p) =>
+  p.workflow === "md_orient" && p.status && p.files && p.importance ? true : "missing orient blocks"
+);
+
+await expectTool("md_edit_context preview", "md_edit_context", { path: FILE, scan: KNOWLEDGE, mode: "preview" }, (p) =>
+  p.workflow === "md_edit_context" && p.mode === "preview" && p.preflight && p.related
+    ? true
+    : "missing edit context preview blocks"
+);
+
+await expectTool("md_edit_context full", "md_edit_context", { path: FILE, scan: KNOWLEDGE, mode: "full" }, (p) =>
+  p.workflow === "md_edit_context" && p.mode === "full" && p.preflight && p.related
+    ? true
+    : "missing edit context full blocks"
+);
+
+await expectTool("md_edit_context strict", "md_edit_context", { path: FILE, scan: KNOWLEDGE, mode: "strict" }, (p) =>
+  p.workflow === "md_edit_context" && p.mode === "strict" && p.blockers && p.blockers.has_blockers === false
+    ? true
+    : "missing or over-eager edit context strict blockers"
+);
+
+await expect("md_query_by_type", { corpus: KNOWLEDGE, types: ["definition", "rule"], limit: 5 }, (p) =>
+  Array.isArray(p.sections) ? true : "missing typed sections"
+);
+
+await expect("md_refactor_candidates", { corpus: KNOWLEDGE, top: 3 }, (p) =>
+  Array.isArray(p.proposals) && p.no_automation === true ? true : "missing proposal list"
 );
 
 const map = await expect("md_ls", { path: AGENTS }, () => true);

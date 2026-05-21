@@ -5,10 +5,11 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { registerNavigatorTools } from "./tools/navigator-tools.js";
 import { registerGraphTools } from "./tools/graph-tools.js";
 import { registerHybridTools } from "./tools/hybrid-tools.js";
+import { registerCompositeTools } from "./tools/composite-tools.js";
 
 const server = new McpServer({
   name: "md-mcp",
-  version: "0.3.0"
+  version: "0.4.0"
 });
 
 function exitOnClosedStdio() {
@@ -71,7 +72,7 @@ registerTool(
     try { graph = resolveGraphScript(); } catch (e) { graphError = e.message; }
     return {
       name: "md-mcp",
-      version: "0.3.0",
+      version: "0.4.0",
       navigator_script: navigator,
       navigator_error: navigatorError,
       graph_script: graph,
@@ -83,6 +84,7 @@ registerTool(
 registerNavigatorTools(registerTool);
 registerGraphTools(registerTool);
 registerHybridTools(registerTool);
+registerCompositeTools(registerTool);
 
 const transport = new StdioServerTransport();
 exitOnClosedStdio();

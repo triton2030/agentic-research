@@ -123,9 +123,21 @@ def _create_schema(conn, dim: int) -> None:
         "  file_title TEXT NOT NULL,"
         "  content_hash TEXT NOT NULL,"
         "  token_count INTEGER NOT NULL,"
+        "  profile_type TEXT,"
+        "  profile_subject TEXT,"
+        "  profile_owns_terms TEXT,"
+        "  profile_mentions TEXT,"
+        "  profile_evidence TEXT,"
+        "  profile_confidence REAL,"
+        "  profile_version TEXT,"
+        "  profile_model TEXT,"
+        "  profile_classified_at TEXT,"
+        "  profile_source_mtime REAL,"
+        "  profile_method TEXT,"
         "  UNIQUE(scope, content_hash)"
         ")"
     )
+    _ensure_profile_columns(conn)
     conn.execute(
         "CREATE INDEX IF NOT EXISTS sections_scope_path ON sections(scope, relative_path)"
     )
@@ -150,6 +162,26 @@ def _create_schema(conn, dim: int) -> None:
     conn.execute(
         f"CREATE VIRTUAL TABLE IF NOT EXISTS sections_vec USING vec0(embedding float[{dim}])"
     )
+
+
+def _ensure_profile_columns(conn) -> None:
+    existing = {row[1] for row in conn.execute("PRAGMA table_info(sections)").fetchall()}
+    columns = {
+        "profile_type": "TEXT",
+        "profile_subject": "TEXT",
+        "profile_owns_terms": "TEXT",
+        "profile_mentions": "TEXT",
+        "profile_evidence": "TEXT",
+        "profile_confidence": "REAL",
+        "profile_version": "TEXT",
+        "profile_model": "TEXT",
+        "profile_classified_at": "TEXT",
+        "profile_source_mtime": "REAL",
+        "profile_method": "TEXT",
+    }
+    for name, ddl in columns.items():
+        if name not in existing:
+            conn.execute(f"ALTER TABLE sections ADD COLUMN {name} {ddl}")
 
 
 # --- Open / probe --------------------------------------------------------

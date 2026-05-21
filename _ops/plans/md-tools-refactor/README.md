@@ -24,6 +24,12 @@ Fresh agent, читающий впервые: начни с **этого README*
 - Workflow recipes в SKILL.md
 - Backend deps: `networkx`, `scipy` (inline в uv shebang)
 
+**Execution state (2026-05-21)**:
+- P1-P5 backend/MCP реализованы: MCP version `0.4.0`, 19 tools, smoke 24/24.
+- P6 Codex recipes добавлены; Claude-side recipes deferred, потому что Codex
+  не редактирует Claude surfaces по root-инструкции.
+- P7 cleanup deferred until burn-in and explicit user confirmation.
+
 ## Phase overview
 
 | Phase | Файл | Цель | Cost | Depends on |
