@@ -77,6 +77,16 @@ Ordinary read-only agent workflows should use MCP first.
 - Tier 2: section profiles, `md_refactor_candidates`, `md_query_by_type`.
 - Smoke coverage is now 24 assertions.
 
+**0.5.x changes** (post-refactor closeout 2026-05-21):
+- `scripts/` folders removed from `~/.claude/skills/1md-{navigator,graph}/` and
+  `~/.codex/skills/1md-{navigator,graph}/`. Skills are now pure `SKILL.md`
+  (+ `references/`, `agents/`). Backend lives only in
+  `experiments/md-embedding-server/scripts/`.
+- `paths.js` fallback paths to skill folders removed — resolution is now
+  `MD_NAVIGATOR_SCRIPT` env → in-repo only.
+- `md_refactor_candidates` structural fix: skip H1 file-root sections in
+  candidate pool (reduces multi-topic file-root bias).
+
 ## Workflow quick reference
 
 | Moment | Use |
@@ -185,8 +195,11 @@ extra `config.toml` env block is needed.
 
 | Script | Resolution order |
 |---|---|
-| `md_navigator.py` | `MD_NAVIGATOR_SCRIPT` env -> `../scripts/md_navigator.py` (in-repo) -> `~/.claude/skills/1md-navigator/scripts/md_navigator.py` |
-| `md_graph.py` | `MD_GRAPH_SCRIPT` env -> `../scripts/md_graph.py` (in-repo) -> `~/.claude/skills/1md-graph/scripts/md_graph.py` -> `~/.codex/skills/1md-graph/scripts/md_graph.py` |
+| `md_navigator.py` | `MD_NAVIGATOR_SCRIPT` env -> `../scripts/md_navigator.py` (in-repo) |
+| `md_graph.py` | `MD_GRAPH_SCRIPT` env -> `../scripts/md_graph.py` (in-repo) |
+
+Skill-folder fallbacks were removed in 0.5.x post-refactor (skills are now pure
+`SKILL.md`, no scripts).
 
 ## Exit-code mapping
 

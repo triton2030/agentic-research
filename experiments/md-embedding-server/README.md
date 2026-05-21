@@ -10,33 +10,18 @@ the repo-owned backend entry points. `md_navigator.py` is the shared
 navigation/search/profile client; `md_graph.py` is the graph hygiene
 wrapper around `navigator/graph.py`.
 
-Runtime skill folders should point to these entry points:
-
-```text
-~/.claude/skills/1md-navigator/scripts/md_navigator.py -> experiments/md-embedding-server/scripts/md_navigator.py
-~/.codex/skills/1md-navigator/scripts/md_navigator.py  -> experiments/md-embedding-server/scripts/md_navigator.py
-~/.codex/skills/1md-graph/scripts/md_graph.py          -> experiments/md-embedding-server/scripts/md_graph.py
-```
-
-Edit backend code here. Before assuming a runtime wrapper has picked it up,
-verify the live links:
-
-```bash
-ls -l ~/.claude/skills/1md-navigator/scripts/md_navigator.py \
-      ~/.codex/skills/1md-navigator/scripts/md_navigator.py \
-      ~/.claude/skills/1md-graph/scripts/md_graph.py \
-      ~/.codex/skills/1md-graph/scripts/md_graph.py
-```
-
-Current repo-owned source of truth is `experiments/md-embedding-server/scripts/`.
-Codex may update Codex-side wrappers; Claude-side skill files and scripts are
-read-only from Codex sessions and need a Claude/user-owned sync pass when they
-drift.
+Skill folders (`~/.claude/skills/1md-{navigator,graph}/`,
+`~/.codex/skills/1md-{navigator,graph}/`) are now pure `SKILL.md` after
+the 2026-05-21 refactor closeout. There are no skill-side scripts or
+symlinks; the MCP server (`mcp/src/server.js`) is the single bridge to
+the in-repo backend. Resolution is `MD_NAVIGATOR_SCRIPT` / `MD_GRAPH_SCRIPT`
+env vars → in-repo `scripts/`. CLI fallback works for direct usage via
+`uv run --script` shebang in `scripts/md_navigator.py`.
 
 > **Note on the folder name.** Historically this directory hosted a
 > local MLX embedding server. We retired the server when we moved to
-> cloud embeddings; the folder name is kept for the symlink path
-> compatibility. The real entry point is the `navigator/` package.
+> cloud embeddings; the folder name is kept for path compatibility.
+> The real entry point is the `navigator/` package.
 
 ## Unified backend shape
 

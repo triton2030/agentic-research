@@ -77,10 +77,13 @@ Owner: `1folder-contract`. Single source of truth о связях папок. Ro
 **Cross-project blast** (требует явного `AskUserQuestion` перед commit):
 
 - `~/.claude/skills/**` — правка задевает все Claude-проекты.
-- `~/.codex/skills/**` — правка задевает все Codex-проекты.
+  **Note (post-P7 refactor 2026-05-21)**: skills `1md-navigator` и `1md-graph`
+  теперь pure `SKILL.md` (no `scripts/` folder). Backend живёт в
+  `experiments/md-embedding-server/scripts/navigator/`, MCP — единственный мост.
+- `~/.codex/skills/**` — то же, post-refactor. Skills `1md-navigator` и
+  `1md-graph` — pure `SKILL.md`.
 - `~/.claude/CLAUDE.md` — user's private global instruction file.
 - `~/.claude/settings.json` — глобальные hooks / permissions / MCP.
 
 Эти поверхности живут вне репо, но видны отсюда как зависимости при работе
-с `experiments/**` (где skills и MCP serverы реально живут параллельно
-глобальным handle).
+с `experiments/**` (где MCP server реально живёт параллельно глобальным handle).
