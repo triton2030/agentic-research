@@ -1105,7 +1105,7 @@ def render_edge_data(item: dict[str, Any]) -> str:
 def navigator_read_related_command(path: str, token_budget: int = 3000, scan: str | None = None) -> str:
     scan_arg = f" --scan {shlex.quote(scan)}" if scan else ""
     return (
-        f"python3 {NAVIGATOR_SCRIPT} read-related {shlex.quote(path)}"
+        f"uv run --script {shlex.quote(NAVIGATOR_SCRIPT)} read-related {shlex.quote(path)}"
         f"{scan_arg} --token-budget {token_budget}"
     )
 

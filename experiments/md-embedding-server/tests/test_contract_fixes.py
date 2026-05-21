@@ -10,6 +10,8 @@
      absolute path (used to leak the absolute path).
   5. `read-related --token-budget` help text now flags best-effort
      semantics (anchor never trimmed).
+  6. Graph-generated related-reading recipes use the uv script runner
+     instead of raw `python3`, so inline script dependencies resolve.
 """
 
 from __future__ import annotations
@@ -19,6 +21,7 @@ from argparse import Namespace
 from pathlib import Path
 
 from navigator.folder_map import build_map
+from navigator.graph import navigator_read_related_command
 from navigator.index import cmd_index
 from navigator.schemas import ALL_SCHEMAS
 from navigator.search import cmd_search
@@ -321,3 +324,17 @@ def test_read_on_directory_surfaces_pre_formed_recipe(tmp_path, capsys):
     assert rc == 2
     assert "md_navigator.py read" in err
     assert "--files 1" in err
+
+
+def test_graph_related_reading_recipe_uses_uv_runner():
+    cmd = navigator_read_related_command(
+        "knowledge/agents/tool-design.md",
+        scan="knowledge",
+        token_budget=3000,
+    )
+
+    assert cmd.startswith("uv run --script ")
+    assert " python3 " not in f" {cmd} "
+    assert "md_navigator.py read-related knowledge/agents/tool-design.md" in cmd
+    assert "--scan knowledge" in cmd
+    assert "--token-budget 3000" in cmd

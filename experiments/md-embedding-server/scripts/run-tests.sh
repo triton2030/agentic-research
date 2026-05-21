@@ -9,4 +9,6 @@ exec uv run \
   --with sqlite-vec \
   --with pyyaml \
   --with pymorphy3 \
+  --with networkx \
+  --with scipy \
   pytest tests/ "$@"
