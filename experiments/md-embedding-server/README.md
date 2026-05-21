@@ -10,7 +10,7 @@ the repo-owned backend entry points. `md_navigator.py` is the shared
 navigation/search/profile client; `md_graph.py` is the graph hygiene
 wrapper around `navigator/graph.py`.
 
-Both runtime skill folders can point to these entry points:
+Runtime skill folders should point to these entry points:
 
 ```text
 ~/.claude/skills/1md-navigator/scripts/md_navigator.py -> experiments/md-embedding-server/scripts/md_navigator.py
@@ -18,7 +18,20 @@ Both runtime skill folders can point to these entry points:
 ~/.codex/skills/1md-graph/scripts/md_graph.py          -> experiments/md-embedding-server/scripts/md_graph.py
 ```
 
-Edit the backend here; runtime wrappers pick up changes immediately.
+Edit backend code here. Before assuming a runtime wrapper has picked it up,
+verify the live links:
+
+```bash
+ls -l ~/.claude/skills/1md-navigator/scripts/md_navigator.py \
+      ~/.codex/skills/1md-navigator/scripts/md_navigator.py \
+      ~/.claude/skills/1md-graph/scripts/md_graph.py \
+      ~/.codex/skills/1md-graph/scripts/md_graph.py
+```
+
+Current repo-owned source of truth is `experiments/md-embedding-server/scripts/`.
+Codex may update Codex-side wrappers; Claude-side skill files and scripts are
+read-only from Codex sessions and need a Claude/user-owned sync pass when they
+drift.
 
 > **Note on the folder name.** Historically this directory hosted a
 > local MLX embedding server. We retired the server when we moved to
@@ -38,6 +51,32 @@ Edit the backend here; runtime wrappers pick up changes immediately.
   with heuristic fallback; proposals are human-reviewed and never mutate files.
 - `mcp/` exposes read-only typed tools. Mutating and cost-bearing work
   stays CLI-only.
+
+## Developer workflow
+
+From the repository root:
+
+```bash
+experiments/md-embedding-server/scripts/run-tests.sh
+cd experiments/md-embedding-server/mcp && npm run smoke
+```
+
+Current expected signal: Python tests pass, and MCP smoke reports all tools
+passing with `md_audit` skipped unless `SMOKE_AUDIT=1` is set.
+
+Choose the cheapest gate by change type:
+
+| Change | Required check |
+|---|---|
+| Python parser/helper/search/profile/graph code | `experiments/md-embedding-server/scripts/run-tests.sh` |
+| New or changed Python CLI command | `experiments/md-embedding-server/scripts/run-tests.sh` + `uv run --script experiments/md-embedding-server/scripts/md_navigator.py manifest` |
+| New or changed MCP tool/schema/description | `cd experiments/md-embedding-server/mcp && npm run smoke` |
+| `md_audit` behavior | `SMOKE_AUDIT=1 npm run smoke` |
+| Runtime `SKILL.md` workflow text | `python3 experiments/md-embedding-server/scripts/sync-skill-docs.py --check` if Claude/Codex sync is in scope |
+
+`sync-skill-docs.py --check` is not a backend gate. It checks installed skill
+docs, may fail on intentional Claude/Codex drift, and Codex must not repair
+Claude-side files directly.
 
 ## Embedding backend
 
@@ -106,6 +145,33 @@ Subcommands:
 - `overlaps` — semantic similarity pair detector for IA smells
 - `repeated-concepts`, `cluster` — corpus-level duplicate/topic probes
 - `manifest` — machine-readable command/default contract for docs/skill sync
+
+## Adding a Python CLI command
+
+Start by choosing the owner surface:
+
+| New behavior | Put it in |
+|---|---|
+| Search/index/audit-style command with shared flags or real logic | dedicated `navigator/<name>.py` with `register_<name>(sub)` and `cmd_<name>` |
+| Tiny map/read/pick-style command with one-off argparse shape | inline block in `navigator/cli.py` |
+| Graph contract, frontmatter, `read-before-edit`, `edit-after-edit`, rename/delete, or link-health logic | `navigator/graph.py` / `scripts/md_graph.py` |
+| Agent workflow over existing primitives | MCP composite/hybrid tool first; add Python only if a backend primitive is missing |
+
+Checklist:
+
+1. Add the parser/help text and a pure helper where possible.
+2. Return `0` for success, `1` for empty/no-result, `2` for usage/path
+   errors, `3` for dependency/API failure, and `4` for index warmup refusal.
+3. If the command emits JSON, decide whether it is a stable agent-facing
+   contract. Stable contracts get a schema in `navigator/schemas.py`; debug
+   JSON must be documented as debug-only.
+4. Ensure the command is registered on the argparse surface; `manifest` is
+   generated from that parser and the test suite catches parser/manifest drift.
+5. Add tests close to the changed layer: pure helper tests, command smoke, and
+   schema/manifest contract tests when applicable.
+6. Update this README. If the command should be used by agents directly, also
+   update the MCP README/tool surface; if it changes workflow choices, update
+   the relevant runtime `SKILL.md` through the proper runtime owner.
 
 ## Persistent index
 

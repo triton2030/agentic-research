@@ -1,11 +1,15 @@
-"""JSON Schema definitions for `--json` outputs of every command that
-emits structured data.
+"""JSON Schema definitions for stable agent-facing `--json` outputs.
 
 Why a schema layer at all: agent consumers parse `--json` output across
 sessions and across runtimes. Without a versioned contract, a print
 tweak in `render_search` silently breaks downstream pickers. The schemas
 also let test suites assert "every result row has these fields" without
 hand-rolling assertions.
+
+Not every diagnostic `--json` command is listed here. A command belongs
+in `ALL_SCHEMAS` when other agents/tools are expected to parse it as a
+stable machine contract. Debug JSON may stay undocumented, but the README
+must say so when a new command is added.
 
 Versioning rule: bump `SCHEMA_VERSION` on any change that removes a
 field, renames a field, or tightens a type. Adding optional fields is

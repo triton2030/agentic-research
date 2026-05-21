@@ -13,10 +13,32 @@ import { fileURLToPath } from "node:url";
 const here = dirname(fileURLToPath(import.meta.url));
 const SERVER = resolve(here, "..", "src", "server.js");
 
-const REPO = "/Users/triton/Documents/GitHub/agentic-research";
+const REPO = process.env.MD_MCP_SMOKE_REPO || resolve(here, "..", "..", "..", "..");
 const KNOWLEDGE = resolve(REPO, "knowledge");
 const AGENTS = resolve(KNOWLEDGE, "agents");
 const FILE = resolve(AGENTS, "evaluation.md");
+
+const EXPECTED_TOOLS = [
+  "md_audit",
+  "md_cat",
+  "md_deps",
+  "md_edit_context",
+  "md_health",
+  "md_impact",
+  "md_importance",
+  "md_ls",
+  "md_orient",
+  "md_pick",
+  "md_ping",
+  "md_preflight",
+  "md_query_by_type",
+  "md_read_related",
+  "md_refactor_candidates",
+  "md_search",
+  "md_section_blast_radius",
+  "md_status",
+  "md_toc"
+];
 
 if (!existsSync(KNOWLEDGE) || !existsSync(FILE)) {
   console.error("Smoke fixture missing: expected agentic-research knowledge folder at " + KNOWLEDGE);
@@ -75,10 +97,13 @@ console.log(`md-mcp smoke — server: ${SERVER}`);
 await client.connect(transport);
 
 const list = await client.listTools();
+const toolNames = list.tools.map((tool) => tool.name).sort();
+const missingTools = EXPECTED_TOOLS.filter((name) => !toolNames.includes(name));
+const extraTools = toolNames.filter((name) => !EXPECTED_TOOLS.includes(name));
 record(
   "listTools",
-  list.tools.length >= 17,
-  `${list.tools.length} tools`
+  missingTools.length === 0 && extraTools.length === 0,
+  `${list.tools.length} tools${missingTools.length ? `, missing: ${missingTools.join(",")}` : ""}${extraTools.length ? `, extra: ${extraTools.join(",")}` : ""}`
 );
 
 await expect("md_ping", {}, (p) => Boolean(p.name === "md-mcp" && p.navigator_script && p.graph_script));

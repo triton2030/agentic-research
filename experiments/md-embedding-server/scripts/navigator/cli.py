@@ -44,28 +44,7 @@ def build_manifest() -> dict[str, object]:
     canonical list and exit-code contract from one place."""
     return {
         "version": "1.0.0",
-        "commands": [
-            "manifest",
-            "map",
-            "headings",
-            "pick",
-            "read",
-            "read-related",
-            "search",
-            "overlaps",
-            "repeated-concepts",
-            "index",
-            "status",
-            "cluster",
-            "audit",
-            "importance",
-            "profile-sections",
-            "originality",
-            "owner-candidates",
-            "refactor-candidates",
-            "query-by-type",
-            "schema",
-        ],
+        "commands": parser_commands(),
         "defaults": {
             "embed_model": "sticky from index meta or `baai/bge-m3` for fresh corpora",
             "embedding_api_url": "https://openrouter.ai/api/v1",
@@ -83,7 +62,7 @@ def build_manifest() -> dict[str, object]:
     }
 
 
-def parse_args() -> argparse.Namespace:
+def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Map Markdown files by frontmatter descriptions and headings, "
         "and run hybrid section search."
@@ -404,7 +383,19 @@ def parse_args() -> argparse.Namespace:
     register_audit(sub)
     register_schema(sub)
 
-    return parser.parse_args()
+    return parser
+
+
+def parser_commands() -> list[str]:
+    parser = build_parser()
+    for action in parser._actions:
+        if isinstance(action, argparse._SubParsersAction):
+            return sorted(action.choices)
+    return []
+
+
+def parse_args() -> argparse.Namespace:
+    return build_parser().parse_args()
 
 
 def _dispatch_inline(args: argparse.Namespace) -> int | None:

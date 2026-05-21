@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Render the Codex SKILL.md from the canonical Claude SKILL.md.
+"""Legacy helper: render the Codex SKILL.md from the Claude SKILL.md.
+
+Use only after explicitly deciding that the Claude skill is the canonical
+source for this sync pass. In Codex sessions, Claude-side skill files are
+read-only project context; a `--check` failure can be an intentional handoff,
+not a backend failure. Do not run the write mode merely as a default closeout
+gate after Codex-only recipe edits.
 
 The two SKILL.md files are nearly identical, differing only in:
 

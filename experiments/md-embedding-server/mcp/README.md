@@ -91,6 +91,35 @@ Ordinary read-only agent workflows should use MCP first.
 | Find open questions / decisions / definitions | `md_query_by_type` |
 | Exact strings, regex, stale refs | `rg` / `1cli-tools`, not MCP search |
 
+## Tool contracts and backend mapping
+
+Zod input schemas live next to each `registerTool(...)` call in
+`src/tools/*.js`. There is no separate shared schema source; if a common arg
+helper is introduced later, it must be imported by the tool files and covered
+by smoke.
+
+| Tool | Required args | Python command(s) | Notes |
+|---|---|---|---|
+| `md_ping` | - | none | Server/path health only. |
+| `md_orient` | `corpus` | `status`, `map --with-link-counts`, `importance` | Cheap, no embeddings. |
+| `md_edit_context` | `path` | `preflight`, `read-related`, optional `search` | `strict` mode skips context body. |
+| `md_refactor_candidates` | `corpus` | `refactor-candidates` | Needs warm index + profiles. |
+| `md_query_by_type` | `corpus`, `types` | `query-by-type` | Profiles are created lazily when missing. |
+| `md_section_blast_radius` | `path`, `corpus`, `query` | `preflight` + `search` | Hard graph + soft semantic candidates. |
+| `md_status` | `corpus` | `status` | No HTTP, no writes. |
+| `md_ls` | `path` | `map --json` | Optional tokens/link counts. |
+| `md_toc` | `path` | `headings --json` | Stable heading ids for later pick/cat. |
+| `md_search` | `corpus`, `query` | `search --json` | May return `index_warmup_required`. |
+| `md_pick` | `map_data` | `pick --json` via temp map | Selects files/headings from map output. |
+| `md_cat` | `map_data` | `pick --extract --json` via temp map | For direct whole-file reads use built-in Read. |
+| `md_read_related` | `paths` | `read-related --json` | Linked context; `preview` omits content. |
+| `md_audit` | `corpus` | `audit --json` | Slow, 300s timeout; skipped in default smoke. |
+| `md_importance` | `corpus` | `importance --json` | Link graph only, no embeddings. |
+| `md_preflight` | `path` | `preflight --json` | `has_blockers` reflects graph blockers. |
+| `md_impact` | `path` | `impact --json` | Delete/rename blast radius for explicit links. |
+| `md_deps` | `path` | `deps --json` | Forward/reverse graph edges. |
+| `md_health` | - | `health --json` | Optional `paths`; graph summary. |
+
 ## Excluded by design
 
 `md_overlaps`, `md_repeated_concepts`, `md_cluster` - rolled into
@@ -165,8 +194,8 @@ extra `config.toml` env block is needed.
 
 | Script | Exit code | MCP result |
 |---|---|---|
-| navigator | 4 | `{ error: "index_warmup_required", hint: "Run md_navigator.py index <corpus>" }` |
-| navigator | 1 | `{ empty: true, stderr: ... }` (no markdown / no indexed vectors) |
+| navigator | 4 | `{ error: "index_warmup_required", self_repair, stderr }` |
+| navigator | 1 | `{ empty: true, self_repair, stderr }` (no markdown / no indexed vectors) |
 | navigator | 2 | thrown: usage error |
 | navigator | 3 | thrown: dependency / API failure |
 | graph | 1 | result with `has_blockers: true` (preflight/changed) or `findings` listed (others) |
@@ -182,16 +211,39 @@ npm run smoke
 SMOKE_AUDIT=1 npm run smoke   # include md_audit (slow)
 ```
 
-The fixture corpus is the local `agentic-research/knowledge/` folder. Semantic
-tools rely on a warm index at `<corpus>/.md-navigator/index.sqlite`; run
-`md_navigator.py index knowledge` once if absent.
+The fixture corpus defaults to this repo's `knowledge/` folder, derived from
+the smoke script location. Override it with:
+
+```bash
+MD_MCP_SMOKE_REPO=/path/to/agentic-research npm run smoke
+```
+
+Semantic tools rely on a warm index at `<corpus>/.md-navigator/index.sqlite`;
+run `md_navigator.py index knowledge` once if absent.
+
+Smoke proves that the stdio server starts, the exact documented tool list is
+registered, representative output shapes parse, and Python script resolution
+works. It does not prove editorial quality of `md_refactor_candidates`, full
+`md_audit` behavior unless `SMOKE_AUDIT=1`, or real-world usefulness of a new
+workflow.
 
 ## Adding a new tool
 
-1. Identify which family owns it: navigator, graph, hybrid, or composite.
-2. Add a `registerTool(...)` block in the corresponding `src/tools/*.js`.
-3. Add a `npm run smoke` assertion in `test/smoke.js`.
-4. Update this README's tool table and bump `package.json` version.
+1. Identify the family: navigator, graph, hybrid, or composite.
+2. Confirm the backend command exists and decide whether the tool is read-only,
+   mutating, or cost-bearing. Mutating/cost-bearing commands stay CLI-only.
+3. Add a `registerTool(...)` block in the matching `src/tools/*.js`, with Zod
+   schema inline near the handler.
+4. Pick timeout intentionally: 30s for cheap map/status, 60s for graph/context,
+   120s for search/profile/refactor, 300s for audit.
+5. Use `runNavigator` or `runGraph` so exit-code mapping stays consistent.
+6. Decide the result envelope: parsed JSON, `{ text }`, or self-repair error.
+7. Add or update a `npm run smoke` assertion. If the tool list changes, update
+   the exact expected names in `test/smoke.js`.
+8. Update this README's tool table, contract/mapping table, workflow reference,
+   and excluded-tools section if relevant.
+9. For versioned MCP surface changes, update `package.json`,
+   `package-lock.json`, and `src/server.js` / `md_ping` version together.
 
 ## Troubleshooting
 

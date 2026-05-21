@@ -20,6 +20,7 @@ import json
 from argparse import Namespace
 from pathlib import Path
 
+from navigator.cli import build_manifest, parser_commands
 from navigator.folder_map import build_map
 from navigator.graph import navigator_read_related_command
 from navigator.index import cmd_index
@@ -83,10 +84,10 @@ def test_repeated_concepts_json_prints_to_stdout(tiny_corpus, mock_embed, capsys
 # --- 2. schemas completeness --------------------------------------
 
 
-def test_all_schemas_cover_every_json_capable_command():
-    """Every command with --json must have a schema entry. Catches the
-    agent-contract drift the user surfaced: overlaps + repeated-concepts +
-    cluster used to be missing."""
+def test_all_schemas_cover_stable_machine_contracts():
+    """Stable agent-facing JSON contracts must have schema entries. Catches
+    the agent-contract drift the user surfaced: overlaps +
+    repeated-concepts + cluster used to be missing."""
     required = {
         "search",
         "map",
@@ -98,6 +99,12 @@ def test_all_schemas_cover_every_json_capable_command():
     }
     missing = required - set(ALL_SCHEMAS.keys())
     assert not missing, f"Schemas missing for: {missing}"
+
+
+def test_manifest_commands_are_generated_from_parser_surface():
+    """The manifest must not drift from argparse choices when a command is
+    added or removed."""
+    assert build_manifest()["commands"] == parser_commands()
 
 
 def test_overlaps_schema_has_pairs_structure():
