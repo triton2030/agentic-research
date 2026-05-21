@@ -59,6 +59,71 @@ def register_status(sub) -> None:
     p.set_defaults(func=lambda args: cmd_status(args))
 
 
+def _build_folder_breakdown(
+    scoped_map_data: dict[str, Any],
+    corpus_root: Path,
+    db_path: Path,
+    cache_root: Path | None,
+) -> list[dict[str, Any]]:
+    """Per top-level subfolder of corpus_root: file count + indexed section count.
+    Lets the agent see which subtrees actually carry the indexed knowledge vs
+    which are dead weight or excluded by defaults."""
+    breakdown: dict[str, dict[str, Any]] = {}
+    for f in scoped_map_data["files"]:
+        rel = f["relative_path"]
+        parts = rel.split("/")
+        folder = parts[0] if len(parts) > 1 else "(root)"
+        entry = breakdown.setdefault(
+            folder,
+            {"folder": folder, "files": 0, "indexed_sections": 0, "has_corpus": False},
+        )
+        entry["files"] += 1
+        if (corpus_root / folder / ".md-navigator" / "index.sqlite").exists():
+            entry["has_corpus"] = True
+
+    if db_path.exists():
+        import sqlite3
+        try:
+            conn = _open_index_readonly(corpus_root, cache_root=cache_root)
+            try:
+                rows = conn.execute(
+                    "SELECT relative_path, COUNT(*) FROM sections "
+                    "WHERE scope='sections' GROUP BY relative_path"
+                ).fetchall()
+            finally:
+                conn.close()
+            for path, count in rows:
+                folder = path.split("/")[0] if "/" in path else "(root)"
+                if folder in breakdown:
+                    breakdown[folder]["indexed_sections"] += int(count)
+        except (FileNotFoundError, sqlite3.OperationalError):
+            pass
+
+    for entry in breakdown.values():
+        files = entry["files"]
+        sections = entry["indexed_sections"]
+        # coverage: avg sections/file, but only meaningful with index
+        entry["avg_sections_per_file"] = round(sections / files, 1) if files and sections else 0.0
+
+    return sorted(breakdown.values(), key=lambda e: (-e["files"], e["folder"]))
+
+
+def _detect_excluded(corpus_root: Path) -> list[str]:
+    """List default-excluded subdirs that actually exist inside corpus.
+    Tells the agent 'these dirs were skipped (intentionally) — don't worry
+    that they have no indexed sections'."""
+    from .markdown_io import DEFAULT_EXCLUDED_PARTS
+
+    present = []
+    try:
+        for child in corpus_root.iterdir():
+            if child.is_dir() and child.name in DEFAULT_EXCLUDED_PARTS:
+                present.append(child.name)
+    except (PermissionError, OSError):
+        pass
+    return sorted(present)
+
+
 def _state_payload(state: str, corpus_root: Path) -> dict[str, Any]:
     """Map state code → {recommended_action} dict for JSON output.
     Action is structured: {tool, args, reason}. Skips when no follow-up needed."""
@@ -190,6 +255,8 @@ def cmd_status(args) -> int:
         state = "NO_INDEX"
         if emit_json:
             import json
+            folder_breakdown = _build_folder_breakdown(scoped_map_data, corpus_root, db_path, cache_root)
+            excluded = _detect_excluded(corpus_root)
             payload = {
                 "command": "status",
                 "corpus": str(corpus_root),
@@ -199,6 +266,12 @@ def cmd_status(args) -> int:
                 "model": args.embed_model,
                 "path_scope": {"include": include_patterns or None, "exclude": exclude_patterns or None},
                 "scopes": scopes_payload,
+                "folder_breakdown": folder_breakdown,
+                "excluded": {
+                    "by_default_present": excluded,
+                    "by_path_exclude": exclude_patterns or [],
+                    "by_path_include": include_patterns or [],
+                },
                 "added_sections": total_added,
                 "removed_sections": 0,
                 "pending_chunks": total_chunks,
@@ -330,6 +403,8 @@ def cmd_status(args) -> int:
 
     if emit_json:
         import json
+        folder_breakdown = _build_folder_breakdown(scoped_map_data, corpus_root, db_path, cache_root)
+        excluded = _detect_excluded(corpus_root)
         payload = {
             "command": "status",
             "corpus": str(corpus_root),
@@ -339,6 +414,12 @@ def cmd_status(args) -> int:
             "model": args.embed_model,
             "path_scope": {"include": include_patterns or None, "exclude": exclude_patterns or None},
             "scopes": scopes_payload,
+            "folder_breakdown": folder_breakdown,
+            "excluded": {
+                "by_default_present": excluded,
+                "by_path_exclude": exclude_patterns or [],
+                "by_path_include": include_patterns or [],
+            },
             "added_sections": added,
             "removed_sections": removed,
             "pending_chunks": pending,
