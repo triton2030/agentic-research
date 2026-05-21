@@ -6,6 +6,7 @@ import { registerNavigatorTools } from "./tools/navigator-tools.js";
 import { registerGraphTools } from "./tools/graph-tools.js";
 import { registerHybridTools } from "./tools/hybrid-tools.js";
 import { registerCompositeTools } from "./tools/composite-tools.js";
+import { wrap as wrapEnvelope, resetTurn } from "./envelope.js";
 
 const SERVER_VERSION = "0.6.1";
 
@@ -102,13 +103,16 @@ export function registerTool(name, description, inputSchema, handler, annotation
     name,
     config,
     async (args) => {
+      resetTurn();
       try {
-        return textResult(await handler(args));
+        const result = await handler(args);
+        return textResult(wrapEnvelope(result, { toolName: name, args }));
       } catch (error) {
+        const errResult = {
+          error: error instanceof Error ? error.message : String(error)
+        };
         return textResult(
-          {
-            error: error instanceof Error ? error.message : String(error)
-          },
+          wrapEnvelope(errResult, { toolName: name, args }),
           { isError: true }
         );
       }
