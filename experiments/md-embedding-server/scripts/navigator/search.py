@@ -19,8 +19,11 @@ from .cli_common import (
 )
 from .filters import (
     add_path_filter_args,
+    apply_path_filters_to_map,
     apply_path_filters as _apply_path_filters,
+    normalize_path_filter_patterns,
     path_matches_any as _path_matches_any,
+    sqlite_path_filter_sql,
 )
 from .folder_map import build_map
 from .index import ensure_index, resolve_embed_model_for_corpus
@@ -150,6 +153,8 @@ def _search_bm25(
     scope: str,
     weights: dict[str, float],
     candidates: int,
+    path_include: list[str] | None = None,
+    path_exclude: list[str] | None = None,
 ) -> list[tuple[int, float]]:
     """FTS5 match restricted to the current scope. The FTS table holds rows
     for both `sections` and `descriptions` scopes; the JOIN against
@@ -158,10 +163,16 @@ def _search_bm25(
     match_query = _fts5_query(query)
     if not match_query:
         return []
+    path_clause, path_params = sqlite_path_filter_sql(
+        "s.relative_path",
+        list(path_include or []),
+        list(path_exclude or []),
+    )
     sql = (
         "SELECT s.rowid, bm25(sections_fts, ?, ?, ?, ?) AS score "
         "FROM sections_fts JOIN sections AS s ON s.rowid = sections_fts.rowid "
         "WHERE sections_fts MATCH ? AND s.scope = ? "
+        f"{path_clause} "
         "ORDER BY score LIMIT ?"
     )
     try:
@@ -174,6 +185,7 @@ def _search_bm25(
                 weights["body"],
                 match_query,
                 scope,
+                *path_params,
                 candidates,
             ),
         ).fetchall()
@@ -192,6 +204,8 @@ def _search_dense(
     embedding_api_url: str,
     embedding_timeout: float,
     corpus_root: Path | None = None,
+    path_include: list[str] | None = None,
+    path_exclude: list[str] | None = None,
 ) -> list[tuple[int, float]]:
     """Dense KNN at chunk granularity, then dedupe to best chunk per section
     inside the requested scope. Over-fetches because many chunks belong to
@@ -207,6 +221,11 @@ def _search_dense(
         return []
     q_blob = _vec_to_blob(q_vec_list[0])
     over_fetch = max(candidates * 8, candidates + 100)
+    path_clause, path_params = sqlite_path_filter_sql(
+        "s.relative_path",
+        list(path_include or []),
+        list(path_exclude or []),
+    )
     try:
         rows = conn.execute(
             "SELECT s.rowid, vec.distance "
@@ -214,8 +233,9 @@ def _search_dense(
             "JOIN chunks ON chunks.chunk_id = vec.rowid "
             "JOIN sections AS s ON s.rowid = chunks.section_rowid "
             "WHERE vec.embedding MATCH ? AND vec.k = ? AND s.scope = ? "
+            f"{path_clause} "
             "ORDER BY vec.distance",
-            (q_blob, over_fetch, scope),
+            (q_blob, over_fetch, scope, *path_params),
         ).fetchall()
     except Exception as exc:
         print(f"Dense query failed: {exc}", file=sys.stderr)
@@ -371,15 +391,32 @@ def cmd_search(args) -> int:
         )
         return 2
 
+    include_patterns = normalize_path_filter_patterns(
+        getattr(args, "path_include", None),
+        corpus_root,
+    )
+    exclude_patterns = normalize_path_filter_patterns(
+        getattr(args, "path_exclude", None),
+        corpus_root,
+    )
+
     map_data = build_map(corpus_root, args.max_heading_level, with_tokens=True)
     if not map_data["files"]:
         print(f"No Markdown files under {corpus_root}", file=sys.stderr)
         return 1
 
-    items = build_items_from_map(map_data, scope=scope)
+    scoped_map_data = apply_path_filters_to_map(map_data, include_patterns, exclude_patterns)
+    if not scoped_map_data["files"]:
+        print(
+            f"Path filters matched no Markdown files under {corpus_root}",
+            file=sys.stderr,
+        )
+        return 1
+
+    items = build_items_from_map(scoped_map_data, scope=scope)
     if not items:
         gap = "no frontmatter descriptions" if scope == "descriptions" else "no sections"
-        print(f"No items to index under {corpus_root} ({gap})", file=sys.stderr)
+        print(f"No items to index under selected path scope ({gap})", file=sys.stderr)
         return 1
 
     cache_root = Path(args.cache_dir).expanduser() if args.cache_dir else None
@@ -410,6 +447,8 @@ def cmd_search(args) -> int:
             embedding_timeout=args.embedding_timeout,
             cache_root=cache_root,
             max_auto_embed=max_auto_embed,
+            path_include=include_patterns,
+            path_exclude=exclude_patterns,
         )
     except ModuleNotFoundError as exc:
         print(
@@ -464,7 +503,15 @@ def cmd_search(args) -> int:
         weights = {"description": 5.0, "title": 0.0, "heading": 0.0, "body": 1.0}
     else:
         weights = dict(SEARCH_DEFAULT_WEIGHTS)
-    bm25_results = _search_bm25(conn, args.query, scope, weights, args.candidates)
+    bm25_results = _search_bm25(
+        conn,
+        args.query,
+        scope,
+        weights,
+        args.candidates,
+        path_include=include_patterns,
+        path_exclude=exclude_patterns,
+    )
 
     try:
         dense_results = _search_dense(
@@ -476,6 +523,8 @@ def cmd_search(args) -> int:
             args.embedding_api_url,
             args.embedding_timeout,
             corpus_root=corpus_root,
+            path_include=include_patterns,
+            path_exclude=exclude_patterns,
         )
     except RuntimeError as exc:
         print(f"Dense query failed: {exc}", file=sys.stderr)
@@ -489,8 +538,6 @@ def cmd_search(args) -> int:
     # also drop candidates, so hydrate from the full fused pool before
     # filtering — we don't know which paths will pass until we look.
     rerank_on = bool(getattr(args, "rerank", False))
-    include_patterns: list[str] = list(getattr(args, "path_include", None) or [])
-    exclude_patterns: list[str] = list(getattr(args, "path_exclude", None) or [])
     filter_on = bool(include_patterns or exclude_patterns)
     if rerank_on or filter_on:
         # Pull the whole candidates pool — filters / rerank shrink it.

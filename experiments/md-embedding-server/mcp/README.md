@@ -50,12 +50,12 @@ backends. Only `md_init` and `md_strip` are destructive.
 
 | Tool | Purpose |
 |---|---|
-| `md_status` | Index freshness: FRESH / HEALTHY / NEEDS WARMUP / NO INDEX. |
+| `md_status` | Index freshness: FRESH / HEALTHY / NEEDS WARMUP / NO INDEX. Accepts `path_include/exclude` for partial indexes. |
 | `md_ls` | List files with frontmatter descriptions + heading counts + optional link counts. |
 | `md_toc` | Headings with stable ids for use as `md_extract` input. |
 | `md_search` | Semantic + BM25 hybrid search via RRF. Ranked sections. |
 | `md_extract` | Pull metadata or section bodies from a saved map (merger of old `pick` + `cat`). |
-| `md_read_related` | Anchor file + linked neighborhood. `preview` / `full` modes. |
+| `md_read_related` | Anchor file + linked neighborhood. `preview` / `full` modes; semantic requests report `semantic_status`. |
 | `md_importance` | Rank files by pagerank / centrality / in/out-degree. No embeddings. |
 
 ### Atomic graph (7)
@@ -87,8 +87,8 @@ backends. Only `md_init` and `md_strip` are destructive.
 
 | Tool | Cost / Risk | Guard pattern |
 |---|---|---|
-| `md_index` | Cost: ~$0.02 per 1000 chunks via OpenRouter | `confirm:true` required; `dry_run:true` returns estimate. |
-| `md_profile_sections` | Cost: heuristic free, llm ~$0.0005/section | `confirm:true` + `dry_run:true`. |
+| `md_index` | Cost: ~$0.02 per 1000 chunks via OpenRouter | `confirm:true` required; `dry_run:true` returns estimate. Supports `path_include/exclude`. |
+| `md_profile_sections` | Cost: heuristic free, llm ~$0.0005/section | `confirm:true` + `dry_run:true`. Supports `path_include/exclude`. |
 | `md_init` | Destructive: modifies `.md` files in place | `confirm:true` + `dry_run:true` lists affected files. |
 | `md_strip` | Destructive: removes frontmatter fields and optionally body sections | `confirm:true` + `dry_run:true`. |
 
@@ -154,6 +154,14 @@ require explicit confirmation:
 - `md_profile_sections` — `{ sections_to_profile_estimate, mode, estimated_cost_usd }`
 - `md_init` / `md_strip` — `{ files_to_modify, file_count }`
 
+Partial indexes are valid first-class state. Use the same
+`path_include/path_exclude` on `md_status`, `md_index`, `md_search`,
+`md_overlaps`, `md_repeated_concepts`, `md_audit`, `md_profile_sections`,
+`md_query_by_type`, and `md_refactor_candidates`. Filters define the working
+scope for freshness, dry-run cost, indexing, search candidates, IA probes, and
+lazy section profiling; intentionally skipped folders do not force warmup for
+that scoped run.
+
 ## Tool contracts and backend mapping
 
 Zod input schemas live next to each `registerTool(...)` call in
@@ -165,18 +173,18 @@ Zod input schemas live next to each `registerTool(...)` call in
 | `md_orient` | `corpus` | `status`, `map --with-link-counts`, `importance` | Cheap, no embeddings. |
 | `md_edit_context` | `path` | `preflight`, `read-related`, optional `search` | `strict` mode skips context body. |
 | `md_section_blast_radius` | `path`, `corpus`, `query` | `preflight` + `search` | Hard graph + soft semantic candidates. |
-| `md_audit` | `corpus` | `audit --json` | Slow, 300s timeout. |
-| `md_refactor_candidates` | `corpus` | `refactor-candidates` | Needs warm index + profiles. |
-| `md_query_by_type` | `corpus`, `types` | `query-by-type` | Profiles are created lazily when missing. |
-| `md_status` | `corpus` | `status` | No HTTP, no writes. |
+| `md_audit` | `corpus` | `audit --json` | Slow, 300s timeout. Optional path filters scope index checks. |
+| `md_refactor_candidates` | `corpus` | `refactor-candidates` | Needs warm index + profiles. Optional path filters. |
+| `md_query_by_type` | `corpus`, `types` | `query-by-type` | Profiles are created lazily when missing. Optional path filters. |
+| `md_status` | `corpus` | `status` | No HTTP, no writes. Optional path filters report scoped freshness. |
 | `md_ls` | `path` | `map --json` | Optional tokens/link counts. |
 | `md_toc` | `path` | `headings --json` | Stable heading ids for later extract. |
-| `md_search` | `corpus`, `query` | `search --json` | May return `index_warmup_required`. |
+| `md_search` | `corpus`, `query` | `search --json` | May return `index_warmup_required`; path filters scope both warmup and candidates. |
 | `md_extract` | `map_data` | `pick --json` or `read --json` | `extract:false`→pick metadata; `true`→read bodies. |
 | `md_read_related` | `paths` | `read-related --json` | Linked context; `preview` omits content. |
 | `md_importance` | `corpus` | `importance --json` | Link graph only, no embeddings. |
-| `md_overlaps` | `corpus` | `overlaps --json` | Needs warm index. Section-pair similarity. |
-| `md_repeated_concepts` | `corpus` | `repeated-concepts --json` | Needs warm index. Writes `.md-navigator/repeated-concepts.md`. |
+| `md_overlaps` | `corpus` | `overlaps --json` | Needs warm index. Section-pair similarity. Optional path filters. |
+| `md_repeated_concepts` | `corpus` | `repeated-concepts --json` | Needs warm index. Writes `.md-navigator/repeated-concepts.md`. Optional path filters. |
 | `md_preflight` | `path` | `preflight --json` | `has_blockers` reflects graph blockers. |
 | `md_impact` | `path` | `impact --json` | Delete/rename blast radius for explicit links. |
 | `md_deps` | `path` | `deps --json` | Forward/reverse graph edges. |
@@ -185,8 +193,8 @@ Zod input schemas live next to each `registerTool(...)` call in
 | `md_check` | - | `check --json` | Wikilink/anchor/markdown-link validation. |
 | `md_scan` | - | `scan --json` | Frontmatter schema issues. |
 | `md_changed` | - | `changed --json` | Git diff → preflight each `.md`. |
-| `md_index` (mutating) | `corpus`, `confirm` | `index` | `dry_run:true` returns estimate. |
-| `md_profile_sections` (mutating) | `corpus`, `confirm` | `profile-sections --json` | Heuristic free; LLM mode ~$0.0005/section. |
+| `md_index` (mutating) | `corpus`, `confirm` | `index` | `dry_run:true` returns scoped estimate. |
+| `md_profile_sections` (mutating) | `corpus`, `confirm` | `profile-sections --json` | Heuristic free; LLM mode ~$0.0005/section. Optional path filters. |
 | `md_init` (mutating) | `confirm` | `init --json` | Adds frontmatter template. `dry_run:true` lists files. |
 | `md_strip` (mutating) | `confirm` | `strip --json` | Removes legacy/unknown fields. `also_related_section` for body. |
 
@@ -314,6 +322,8 @@ bad-path `isError`, subprocess timeout process-group kill, and output caps.
 - Hardened subprocess timeout handling with Unix process-group kill fallback.
 - Added `npm run mcp-contract-check`; text-only result shape remains the
   accepted `0.6.x` contract.
+- Fixed partial-index scope: path filters now define freshness, dry-run cost,
+  indexing, search candidates, IA probes, and lazy section profiling.
 
 **0.6.0** (2026-05-21):
 - Expanded surface from 19 → 27 public tools (+ `md_ping`).
@@ -344,6 +354,10 @@ failed. Run `md_ping` and inspect `navigator_error` / `graph_error` fields.
 **`md_search` returns `{ error: "index_warmup_required" }`** - first-time index
 for that corpus exceeds `--max-auto-embed`. Call `md_index` with
 `dry_run:true` for cost estimate, then `confirm:true` to run.
+
+For a deliberate partial index, pass the same `path_include/path_exclude` to
+`md_status`, `md_index`, and the querying tool. Skipped folders are ignored only
+inside that explicit scope.
 
 **Codex sees the server but tools do not appear** - verify Codex started a new
 session after editing `config.toml`. Codex reads MCP config at session start.

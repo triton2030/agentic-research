@@ -13,6 +13,7 @@ logic was needed in `overlaps.py` and `repeated_concepts.py`."""
 from __future__ import annotations
 
 import fnmatch
+from pathlib import Path
 from typing import Any
 
 
@@ -52,6 +53,86 @@ def apply_path_filters(
             continue
         out.append(item)
     return out
+
+
+def normalize_path_filter_patterns(
+    patterns: list[str] | None,
+    corpus_root: Path,
+) -> list[str]:
+    """Convert absolute patterns under `corpus_root` to relative patterns.
+
+    Path filters are evaluated against stored `relative_path` values. MCP
+    callers often have absolute paths handy, so accept both forms without
+    changing the core matching contract.
+    """
+    if not patterns:
+        return []
+    root = str(corpus_root.resolve())
+    prefix = root + "/"
+    out: list[str] = []
+    for pattern in patterns:
+        raw = str(pattern).strip()
+        if not raw:
+            continue
+        if raw.startswith(prefix):
+            raw = raw[len(prefix) :]
+        elif raw.startswith("./"):
+            raw = raw[2:]
+        out.append(raw)
+    return out
+
+
+def apply_path_filters_to_map(
+    map_data: dict[str, Any],
+    include_patterns: list[str],
+    exclude_patterns: list[str],
+) -> dict[str, Any]:
+    """Return a shallow map copy with `files` narrowed by path filters."""
+    files = apply_path_filters(
+        list(map_data.get("files") or []),
+        include_patterns,
+        exclude_patterns,
+    )
+    scoped = dict(map_data)
+    scoped["files"] = files
+    scoped["file_count"] = len(files)
+    scoped["description_gap_count"] = sum(1 for f in files if not f.get("description"))
+    scoped["heading_count"] = sum(int(f.get("heading_count") or 0) for f in files)
+    return scoped
+
+
+def sqlite_path_filter_sql(
+    column: str,
+    include_patterns: list[str],
+    exclude_patterns: list[str],
+) -> tuple[str, list[str]]:
+    """Build a SQLite WHERE fragment matching `path_matches_any` semantics.
+
+    Glob patterns use SQLite GLOB. Plain patterns use substring matching via
+    instr() to mirror the helper's bare-name fallback.
+    """
+
+    def _condition(pattern: str) -> tuple[str, str]:
+        if any(ch in pattern for ch in "*?["):
+            return f"{column} GLOB ?", pattern
+        return f"instr({column}, ?) > 0", pattern
+
+    clauses: list[str] = []
+    params: list[str] = []
+    if include_patterns:
+        include_parts = []
+        for pattern in include_patterns:
+            clause, param = _condition(pattern)
+            include_parts.append(clause)
+            params.append(param)
+        clauses.append("(" + " OR ".join(include_parts) + ")")
+    for pattern in exclude_patterns:
+        clause, param = _condition(pattern)
+        clauses.append(f"NOT ({clause})")
+        params.append(param)
+    if not clauses:
+        return "", []
+    return " AND " + " AND ".join(clauses), params
 
 
 def add_path_filter_args(parser, command_name: str) -> None:

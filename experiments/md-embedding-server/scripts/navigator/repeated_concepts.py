@@ -25,7 +25,13 @@ from .cli_common import (
     add_json_arg,
     add_max_heading_level_arg,
 )
-from .filters import add_path_filter_args, apply_path_filters
+from .filters import (
+    add_path_filter_args,
+    apply_path_filters_to_map,
+    normalize_path_filter_patterns,
+    path_matches_any,
+    sqlite_path_filter_sql,
+)
 from .folder_map import build_map
 from .index import _index_dir_for_corpus, ensure_index, resolve_embed_model_for_corpus
 from .sections import build_sections_from_map
@@ -164,6 +170,19 @@ def compute_repeated_concepts(
     cached_count = index_stats["reused"]
 
     import numpy as np  # type: ignore
+    path_include: list[str] = normalize_path_filter_patterns(
+        getattr(args, "path_include", None),
+        corpus_root,
+    )
+    path_exclude: list[str] = normalize_path_filter_patterns(
+        getattr(args, "path_exclude", None),
+        corpus_root,
+    )
+    path_clause, path_params = sqlite_path_filter_sql(
+        "s.relative_path",
+        path_include,
+        path_exclude,
+    )
 
     rows = conn.execute(
         "SELECT chunks.chunk_id, chunks.section_rowid, chunks.chunk_idx, "
@@ -174,7 +193,9 @@ def compute_repeated_concepts(
         "JOIN sections_vec vec ON vec.rowid = chunks.chunk_id "
         "JOIN sections AS s ON s.rowid = chunks.section_rowid "
         "WHERE s.scope = 'sections' "
-        "ORDER BY chunks.chunk_id"
+        f"{path_clause} "
+        "ORDER BY chunks.chunk_id",
+        path_params,
     ).fetchall()
 
     m = len(rows)
@@ -187,11 +208,6 @@ def compute_repeated_concepts(
     min_sections = int(args.min_sections)
     top_n = int(args.top)
     top_members = int(args.top_members)
-    path_include: list[str] = list(getattr(args, "path_include", None) or [])
-    path_exclude: list[str] = list(getattr(args, "path_exclude", None) or [])
-
-    from .filters import path_matches_any
-
     def _path_ok(rel: str) -> bool:
         if path_include and not path_matches_any(rel, path_include):
             return False
@@ -386,10 +402,29 @@ def cmd_repeated_concepts(args) -> int:
         print(f"Path does not exist: {corpus_root}", file=sys.stderr)
         return 2
 
+    include_patterns = normalize_path_filter_patterns(
+        getattr(args, "path_include", None),
+        corpus_root,
+    )
+    exclude_patterns = normalize_path_filter_patterns(
+        getattr(args, "path_exclude", None),
+        corpus_root,
+    )
+
     map_data = build_map(corpus_root, args.max_heading_level, with_tokens=False)
     if not map_data["files"]:
         print(f"No Markdown files under {corpus_root}", file=sys.stderr)
         return 1
+
+    map_data = apply_path_filters_to_map(map_data, include_patterns, exclude_patterns)
+    if not map_data["files"]:
+        print(
+            f"Path filters matched no Markdown files under {corpus_root}",
+            file=sys.stderr,
+        )
+        return 1
+    args.path_include = include_patterns
+    args.path_exclude = exclude_patterns
 
     sections = build_sections_from_map(map_data)
     if not sections:
@@ -419,6 +454,8 @@ def cmd_repeated_concepts(args) -> int:
             embedding_timeout=args.embedding_timeout,
             cache_root=cache_root,
             max_auto_embed=max_auto_embed,
+            path_include=include_patterns,
+            path_exclude=exclude_patterns,
         )
     except ModuleNotFoundError as exc:
         print(

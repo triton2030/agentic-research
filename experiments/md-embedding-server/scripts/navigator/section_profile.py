@@ -303,8 +303,11 @@ def profile_corpus(
     force: bool = False,
     mode: str | None = None,
     model: str | None = None,
+    path_include: list[str] | None = None,
+    path_exclude: list[str] | None = None,
 ) -> dict[str, Any]:
     from .index_meta import _ensure_profile_columns
+    from .filters import normalize_path_filter_patterns, sqlite_path_filter_sql
 
     _ensure_profile_columns(conn)
     if getattr(conn, "in_transaction", False):
@@ -324,9 +327,22 @@ def profile_corpus(
         "SELECT rowid, section_id, relative_path, start_line, level, heading_text, "
         "heading_chain, body, token_count, profile_type, profile_version, "
         "profile_model, profile_source_mtime FROM sections "
-        "WHERE scope='sections' ORDER BY relative_path, start_line"
+        "WHERE scope='sections'"
     )
-    params: list[Any] = []
+    if corpus_root is not None:
+        include_patterns = normalize_path_filter_patterns(path_include, corpus_root)
+        exclude_patterns = normalize_path_filter_patterns(path_exclude, corpus_root)
+    else:
+        include_patterns = list(path_include or [])
+        exclude_patterns = list(path_exclude or [])
+    path_clause, path_params = sqlite_path_filter_sql(
+        "relative_path",
+        include_patterns,
+        exclude_patterns,
+    )
+    sql += path_clause
+    sql += " ORDER BY relative_path, start_line"
+    params: list[Any] = list(path_params)
     if limit is not None:
         sql += " LIMIT ?"
         params.append(limit)
@@ -341,6 +357,8 @@ def profile_corpus(
         "model": current_model,
         "version": PROFILE_VERSION,
         "mode": selected_mode,
+        "path_include": include_patterns,
+        "path_exclude": exclude_patterns,
     }
     for row in rows:
         section = _profile_from_row(row)
@@ -382,6 +400,8 @@ def profile_unprofiled_sections(
     force: bool = False,
     mode: str | None = None,
     model: str | None = None,
+    path_include: list[str] | None = None,
+    path_exclude: list[str] | None = None,
 ) -> int:
     return int(
         profile_corpus(
@@ -391,6 +411,8 @@ def profile_unprofiled_sections(
             force=force,
             mode=mode,
             model=model,
+            path_include=path_include,
+            path_exclude=path_exclude,
         )["profiled"]
     )
 
@@ -400,12 +422,29 @@ def profile_rows(
     types: list[str] | None = None,
     filter_text: str | None = None,
     limit: int = 50,
+    corpus_root: Path | None = None,
+    path_include: list[str] | None = None,
+    path_exclude: list[str] | None = None,
 ) -> list[dict[str, Any]]:
     from .index_meta import _ensure_profile_columns
+    from .filters import normalize_path_filter_patterns, sqlite_path_filter_sql
 
     _ensure_profile_columns(conn)
     where = "WHERE scope='sections' AND profile_type IS NOT NULL"
     params: list[Any] = []
+    if corpus_root is not None:
+        include_patterns = normalize_path_filter_patterns(path_include, corpus_root)
+        exclude_patterns = normalize_path_filter_patterns(path_exclude, corpus_root)
+    else:
+        include_patterns = list(path_include or [])
+        exclude_patterns = list(path_exclude or [])
+    path_clause, path_params = sqlite_path_filter_sql(
+        "relative_path",
+        include_patterns,
+        exclude_patterns,
+    )
+    where += path_clause
+    params.extend(path_params)
     if types:
         placeholders = ",".join("?" * len(types))
         where += f" AND profile_type IN ({placeholders})"

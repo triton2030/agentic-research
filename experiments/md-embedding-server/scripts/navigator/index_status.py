@@ -15,11 +15,16 @@ from .cli_common import (
     add_embedding_args,
     add_max_heading_level_arg,
 )
-from .index_build import DEFAULT_MAX_AUTO_EMBED, ensure_index
+from .index_build import DEFAULT_MAX_AUTO_EMBED, _chunks_for_item, ensure_index
 from .index_meta import (
     _index_dir_for_corpus,
     _open_index_readonly,
     resolve_embed_model_for_corpus,
+)
+from .filters import (
+    add_path_filter_args,
+    apply_path_filters_to_map,
+    normalize_path_filter_patterns,
 )
 
 
@@ -36,6 +41,7 @@ def register_status(sub) -> None:
     add_max_heading_level_arg(p)
     add_embedding_args(p)
     add_cache_arg(p)
+    add_path_filter_args(p, command_name="status")
     p.add_argument(
         "--max-auto-embed",
         type=int,
@@ -86,8 +92,47 @@ def cmd_status(args) -> int:
     print(f"Corpus: {corpus_root}")
     print(f"Index:  {db_path}")
 
+    include_patterns = normalize_path_filter_patterns(
+        getattr(args, "path_include", None),
+        corpus_root,
+    )
+    exclude_patterns = normalize_path_filter_patterns(
+        getattr(args, "path_exclude", None),
+        corpus_root,
+    )
+    if include_patterns or exclude_patterns:
+        print(f"Path scope: include={include_patterns or '∅'} exclude={exclude_patterns or '∅'}")
+
+    map_data = build_map(corpus_root, args.max_heading_level, with_tokens=False)
+    if not map_data["files"]:
+        print(f"No Markdown files under {corpus_root}", file=sys.stderr)
+        return 1
+    scoped_map_data = apply_path_filters_to_map(map_data, include_patterns, exclude_patterns)
+    if not scoped_map_data["files"]:
+        print(
+            f"Path filters matched no Markdown files under {corpus_root}",
+            file=sys.stderr,
+        )
+        return 1
+
     if not db_path.exists():
-        print("Status: NO INDEX")
+        total_added = 0
+        total_chunks = 0
+        for scope in ("sections", "descriptions"):
+            items = build_items_from_map(scoped_map_data, scope=scope)
+            if not items:
+                continue
+            pending = sum(len(_chunks_for_item(item)) for item in items)
+            total_added += len(items)
+            total_chunks += pending
+            print(
+                f"[{scope}] added={len(items)} removed=0 reused=0 "
+                f"pending_chunks={pending} total=0"
+            )
+        print(
+            f"Status: NO INDEX — {total_added} sections / {total_chunks} chunks "
+            "would be embedded."
+        )
         print(f"  Run: md_navigator.py index '{corpus_root}'")
         return 0
 
@@ -95,11 +140,6 @@ def cmd_status(args) -> int:
 
     mtime = datetime.datetime.fromtimestamp(db_path.stat().st_mtime)
     print(f"Last touched: {mtime.isoformat(timespec='seconds')}")
-
-    map_data = build_map(corpus_root, args.max_heading_level, with_tokens=False)
-    if not map_data["files"]:
-        print(f"No Markdown files under {corpus_root}", file=sys.stderr)
-        return 1
 
     max_auto_embed = (
         None
@@ -117,7 +157,7 @@ def cmd_status(args) -> int:
         "metadata_mismatch": False,
     }
     for scope in ("sections", "descriptions"):
-        items = build_items_from_map(map_data, scope=scope)
+        items = build_items_from_map(scoped_map_data, scope=scope)
         if not items:
             continue
         try:
@@ -131,6 +171,8 @@ def cmd_status(args) -> int:
                 cache_root=cache_root,
                 max_auto_embed=max_auto_embed,
                 dry_run=True,
+                path_include=include_patterns,
+                path_exclude=exclude_patterns,
             )
         except ModuleNotFoundError as exc:
             print(
@@ -170,7 +212,7 @@ def cmd_status(args) -> int:
     # signal so other consumers and humans know to reindex for clean state.
     import sqlite3
 
-    fresh_file_id_by_path = {f["relative_path"]: f["id"] for f in map_data["files"]}
+    fresh_file_id_by_path = {f["relative_path"]: f["id"] for f in scoped_map_data["files"]}
     drift_count = 0
     try:
         conn_ro = _open_index_readonly(corpus_root, cache_root=cache_root)

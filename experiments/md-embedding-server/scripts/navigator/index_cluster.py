@@ -15,6 +15,11 @@ from pathlib import Path
 from typing import Any
 
 from .cli_common import add_cache_arg, add_json_arg
+from .filters import (
+    add_path_filter_args,
+    normalize_path_filter_patterns,
+    sqlite_path_filter_sql,
+)
 from .index_meta import _open_index_readonly
 
 
@@ -42,6 +47,7 @@ def register_cluster(sub) -> None:
         default=42,
         help="K-means seed for reproducible runs (default: 42).",
     )
+    add_path_filter_args(p, command_name="cluster")
     add_cache_arg(p)
     add_json_arg(p)
     p.set_defaults(func=lambda args: cmd_cluster(args))
@@ -128,6 +134,8 @@ def cluster_sections(
     k: int,
     cache_root: Path | None = None,
     seed: int = 42,
+    path_include: list[str] | None = None,
+    path_exclude: list[str] | None = None,
 ) -> dict[str, Any]:
     """Group all `sections`-scope chunks of the corpus into `k` semantic
     clusters using K-means on L2-normalised dense vectors. Aggregates
@@ -157,6 +165,14 @@ def cluster_sections(
     Raises FileNotFoundError if the corpus has no on-disk index."""
     import numpy as np  # type: ignore
 
+    include_patterns = normalize_path_filter_patterns(path_include, corpus_root)
+    exclude_patterns = normalize_path_filter_patterns(path_exclude, corpus_root)
+    path_clause, path_params = sqlite_path_filter_sql(
+        "sections.relative_path",
+        include_patterns,
+        exclude_patterns,
+    )
+
     conn = _open_index_readonly(corpus_root, cache_root=cache_root)
     try:
         rows = conn.execute(
@@ -167,7 +183,9 @@ def cluster_sections(
             "JOIN sections_vec vec ON vec.rowid = chunks.chunk_id "
             "JOIN sections ON sections.rowid = chunks.section_rowid "
             "WHERE sections.scope = 'sections' "
-            "ORDER BY chunks.chunk_id"
+            f"{path_clause} "
+            "ORDER BY chunks.chunk_id",
+            path_params,
         ).fetchall()
         if not rows:
             return {"k": 0, "n_sections": 0, "n_chunks": 0, "clusters": []}
@@ -274,6 +292,8 @@ def cmd_cluster(args) -> int:
             k=args.k,
             cache_root=cache_root,
             seed=args.seed,
+            path_include=getattr(args, "path_include", None),
+            path_exclude=getattr(args, "path_exclude", None),
         )
     except FileNotFoundError:
         print(

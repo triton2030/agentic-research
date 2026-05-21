@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { randomBytes } from "node:crypto";
 import { writeFile, unlink } from "node:fs/promises";
 
@@ -29,6 +29,45 @@ function pushRepeated(args, flag, values) {
   for (const v of values) {
     if (v) args.push(flag, String(v));
   }
+}
+
+function normalizePathPatterns(patterns, corpus) {
+  if (!Array.isArray(patterns)) return [];
+  const root = resolve(corpus);
+  const prefix = `${root}/`;
+  return patterns
+    .map((pattern) => String(pattern || "").trim())
+    .filter(Boolean)
+    .map((pattern) => {
+      if (pattern.startsWith(prefix)) return pattern.slice(prefix.length);
+      if (pattern.startsWith("./")) return pattern.slice(2);
+      return pattern;
+    });
+}
+
+function pathMatchesAny(relativePath, patterns) {
+  for (const pattern of patterns || []) {
+    if (!pattern.includes("*") && !pattern.includes("?") && !pattern.includes("[")) {
+      if (relativePath.includes(pattern)) return true;
+      continue;
+    }
+    const escaped = pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&")
+      .replace(/\*/g, ".*")
+      .replace(/\?/g, ".");
+    if (new RegExp(`^${escaped}$`).test(relativePath)) return true;
+  }
+  return false;
+}
+
+function applyPathScope(files, corpus, path_include, path_exclude) {
+  const include = normalizePathPatterns(path_include, corpus);
+  const exclude = normalizePathPatterns(path_exclude, corpus);
+  return (files || []).filter((file) => {
+    const rel = file.relative_path || "";
+    if (include.length && !pathMatchesAny(rel, include)) return false;
+    if (exclude.length && pathMatchesAny(rel, exclude)) return false;
+    return true;
+  });
 }
 
 async function runNavigator(args, { timeoutMs = 60_000, parseJson = true } = {}) {
@@ -80,8 +119,10 @@ async function withTempMap(mapData, callback) {
 }
 
 // Dry-run helper: estimate pending chunks via `status` command (no HTTP).
-async function estimateIndexCost(corpus) {
+async function estimateIndexCost(corpus, path_include, path_exclude) {
   const args = ["status", corpus];
+  pushRepeated(args, "--path-include", path_include);
+  pushRepeated(args, "--path-exclude", path_exclude);
   const result = await runNavigator(args, { parseJson: false, timeoutMs: 30_000 });
   const text = result.text || "";
   // Parse "added=X pending_chunks=Y" lines. Sum across scopes.
@@ -104,7 +145,7 @@ async function estimateIndexCost(corpus) {
 }
 
 // Profile dry-run: count unprofiled sections via section_profile metadata.
-async function estimateProfileCost(corpus, mode) {
+async function estimateProfileCost(corpus, mode, path_include, path_exclude) {
   // Use a JSON probe — call profile-sections with --limit 0 in dry-emulation
   // shape. Backend does not have a separate dry_run flag; we count sections
   // from `map` and assume all unprofiled when no profile DB exists.
@@ -112,7 +153,7 @@ async function estimateProfileCost(corpus, mode) {
   const mapResult = await runNavigator(["map", corpus, "--json"], { timeoutMs: 30_000 });
   let sectionCount = 0;
   if (mapResult && Array.isArray(mapResult.files)) {
-    for (const file of mapResult.files) {
+    for (const file of applyPathScope(mapResult.files, corpus, path_include, path_exclude)) {
       if (Array.isArray(file.headings)) sectionCount += file.headings.length;
     }
   }
@@ -134,15 +175,19 @@ export function registerNavigatorTools(registerTool) {
 
 WHEN: Before md_search on a corpus you've been editing. To check if md_index is needed.
 WHY OURS: One-call answer — FRESH / HEALTHY / NEEDS WARMUP / NO INDEX with pending-chunk counts. No grep over .md-navigator/.
-INPUT: corpus (path).
+INPUT: corpus (path), path_include/exclude to check a deliberately partial index scope.
 OUTPUT: text block with Corpus / Index / Last touched / Status / per-scope deltas.
 ALT: md_orient bundles status + map + importance.
 COST: Free (no embedding calls).`,
     {
-      corpus: z.string().min(1).describe("Path to Markdown corpus folder")
+      corpus: z.string().min(1).describe("Path to Markdown corpus folder"),
+      path_include: z.array(z.string().min(1)).optional().describe("Only check/index paths matching these globs or bare substrings"),
+      path_exclude: z.array(z.string().min(1)).optional().describe("Exclude matching paths from this status check")
     },
-    async ({ corpus }) => {
+    async ({ corpus, path_include, path_exclude }) => {
       const args = ["status", corpus];
+      pushRepeated(args, "--path-include", path_include);
+      pushRepeated(args, "--path-exclude", path_exclude);
       return await runNavigator(args, { parseJson: false, timeoutMs: 30_000 });
     }
   );
@@ -435,7 +480,7 @@ COST: Requires warm index (md_index first). Writes one Markdown file inside .md-
 
 WHEN: New corpus / md_search returns index_warmup_required / large delta detected by md_status.
 WHY OURS: One-shot warmup; subsequent md_search / md_overlaps / md_repeated_concepts become instant.
-INPUT: corpus, confirm (required true), dry_run (estimate cost without running), batch_size, batch_pause_ms.
+INPUT: corpus, confirm (required true), dry_run (estimate cost without running), batch_size, batch_pause_ms, path_include/exclude for partial indexes.
 OUTPUT (live): index summary text — chunks embedded, time, cost.
 OUTPUT (dry_run): { dry_run: true, pending_chunks, estimated_cost_usd, status_text }.
 ALT: md_status to check state first.
@@ -446,11 +491,13 @@ COST: ~$0.02 per ~1000 chunks via OpenRouter bge-m3. Use dry_run:true first. Ref
       dry_run: z.boolean().optional().describe("If true, return estimated cost / pending chunks without embedding."),
       batch_size: z.number().int().positive().max(128).optional(),
       batch_pause_ms: z.number().int().nonnegative().optional(),
-      max_heading_level: z.number().int().min(1).max(6).optional()
+      max_heading_level: z.number().int().min(1).max(6).optional(),
+      path_include: z.array(z.string().min(1)).optional().describe("Only index paths matching these globs or bare substrings"),
+      path_exclude: z.array(z.string().min(1)).optional().describe("Exclude matching paths from this index run")
     },
-    async ({ corpus, confirm, dry_run, batch_size, batch_pause_ms, max_heading_level }) => {
+    async ({ corpus, confirm, dry_run, batch_size, batch_pause_ms, max_heading_level, path_include, path_exclude }) => {
       if (dry_run) {
-        const est = await estimateIndexCost(corpus);
+        const est = await estimateIndexCost(corpus, path_include, path_exclude);
         return {
           dry_run: true,
           ...est,
@@ -470,6 +517,8 @@ COST: ~$0.02 per ~1000 chunks via OpenRouter bge-m3. Use dry_run:true first. Ref
       pushFlag(args, "--batch-size", batch_size);
       pushFlag(args, "--batch-pause-ms", batch_pause_ms);
       pushFlag(args, "--max-heading-level", max_heading_level);
+      pushRepeated(args, "--path-include", path_include);
+      pushRepeated(args, "--path-exclude", path_exclude);
       return await runNavigator(args, { parseJson: false, timeoutMs: 600_000 });
     },
     { readOnlyHint: false, openWorldHint: true, idempotentHint: false }
@@ -481,7 +530,7 @@ COST: ~$0.02 per ~1000 chunks via OpenRouter bge-m3. Use dry_run:true first. Ref
 
 WHEN: Before md_query_by_type / md_refactor_candidates on a fresh index, after large corpus edits.
 WHY OURS: One-pass classifier — heuristic (free) or LLM (~$0.0005/section). Profiles cached, subsequent reads instant.
-INPUT: corpus, confirm (required true), dry_run (estimate), limit, force, mode ('heuristic'|'llm'|'auto'), model.
+INPUT: corpus, confirm (required true), dry_run (estimate), limit, force, mode ('heuristic'|'llm'|'auto'), model, path_include/exclude.
 OUTPUT (live): { stats, sample } — sections profiled, counts per type.
 OUTPUT (dry_run): { dry_run: true, sections_to_profile_estimate, mode, estimated_cost_usd }.
 ALT: md_query_by_type / md_refactor_candidates lazy-profile what they need.
@@ -493,11 +542,13 @@ COST: Heuristic mode free. LLM mode ~$0.0005/section (haiku). Use dry_run first.
       limit: z.number().int().nonnegative().optional().describe("Max sections to profile (0=all)"),
       force: z.boolean().optional().describe("Re-profile even cached rows"),
       mode: z.enum(["heuristic", "llm", "auto"]).optional(),
-      model: z.string().optional().describe("LLM classifier model id for mode=llm/auto")
+      model: z.string().optional().describe("LLM classifier model id for mode=llm/auto"),
+      path_include: z.array(z.string().min(1)).optional(),
+      path_exclude: z.array(z.string().min(1)).optional()
     },
-    async ({ corpus, confirm, dry_run, limit, force, mode, model }) => {
+    async ({ corpus, confirm, dry_run, limit, force, mode, model, path_include, path_exclude }) => {
       if (dry_run) {
-        const est = await estimateProfileCost(corpus, mode);
+        const est = await estimateProfileCost(corpus, mode, path_include, path_exclude);
         return {
           dry_run: true,
           ...est,
@@ -516,6 +567,8 @@ COST: Heuristic mode free. LLM mode ~$0.0005/section (haiku). Use dry_run first.
       if (force) args.push("--force");
       pushFlag(args, "--mode", mode);
       pushFlag(args, "--model", model);
+      pushRepeated(args, "--path-include", path_include);
+      pushRepeated(args, "--path-exclude", path_exclude);
       return await runNavigator(args, { timeoutMs: 600_000 });
     },
     { readOnlyHint: false, openWorldHint: true, idempotentHint: false }

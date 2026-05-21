@@ -890,6 +890,8 @@ def _check_cluster_folder_mismatch(corpus_root: Path, args) -> list[dict[str, An
             k=args.cluster_k,
             cache_root=Path(args.cache_dir).expanduser() if args.cache_dir else None,
             seed=42,
+            path_include=getattr(args, "path_include", None),
+            path_exclude=getattr(args, "path_exclude", None),
         )
     except (FileNotFoundError, ModuleNotFoundError):
         return []
@@ -932,7 +934,11 @@ def cmd_audit(args) -> int:
     import json
     import sys
 
-    from .filters import path_matches_any  # noqa: F401  (re-export for tests)
+    from .filters import (
+        apply_path_filters_to_map,
+        normalize_path_filter_patterns,
+        path_matches_any,  # noqa: F401  (re-export for tests)
+    )
     from .folder_map import build_map
     from .index_meta import (
         _index_dir_for_corpus,
@@ -946,10 +952,29 @@ def cmd_audit(args) -> int:
         print(f"Path does not exist: {corpus_root}", file=sys.stderr)
         return 2
 
+    include_patterns = normalize_path_filter_patterns(
+        getattr(args, "path_include", None),
+        corpus_root,
+    )
+    exclude_patterns = normalize_path_filter_patterns(
+        getattr(args, "path_exclude", None),
+        corpus_root,
+    )
+
     map_data = build_map(corpus_root, args.max_heading_level, with_tokens=False)
     if not map_data["files"]:
         print(f"No Markdown files under {corpus_root}", file=sys.stderr)
         return 1
+
+    map_data = apply_path_filters_to_map(map_data, include_patterns, exclude_patterns)
+    if not map_data["files"]:
+        print(
+            f"Path filters matched no Markdown files under {corpus_root}",
+            file=sys.stderr,
+        )
+        return 1
+    args.path_include = include_patterns
+    args.path_exclude = exclude_patterns
 
     sections = build_sections_from_map(map_data)
     if not sections:
@@ -979,6 +1004,8 @@ def cmd_audit(args) -> int:
             embedding_timeout=args.embedding_timeout,
             cache_root=cache_root,
             max_auto_embed=max_auto_embed,
+            path_include=include_patterns,
+            path_exclude=exclude_patterns,
         )
     except (ModuleNotFoundError, RuntimeError) as exc:
         print(f"Index open failed: {exc}", file=sys.stderr)

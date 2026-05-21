@@ -10,6 +10,8 @@ from argparse import Namespace
 from pathlib import Path
 
 from navigator.index import cmd_index
+from navigator.index_status import cmd_status
+from navigator.overlaps import cmd_overlaps
 from navigator.search import (
     _apply_path_filters,
     _path_matches_any,
@@ -96,6 +98,30 @@ def _index(tiny_corpus: Path) -> None:
     assert cmd_index(args) == 0
 
 
+def _partial_corpus(tmp_path: Path) -> Path:
+    root = tmp_path / "partial-corpus"
+    (root / "keep").mkdir(parents=True)
+    (root / "skip").mkdir(parents=True)
+    (root / "keep" / "a.md").write_text(
+        "# Keep\n\n"
+        "## Alpha\n\n"
+        "Partial scoped retrieval should keep working here.\n\n"
+        "## Beta\n\n"
+        "Another useful scoped section for partial indexing.\n",
+        encoding="utf-8",
+    )
+    (root / "skip" / "many.md").write_text(
+        "# Skip\n\n"
+        + "\n\n".join(
+            f"## Skip {i}\n\nThis intentionally unindexed section should not block scoped tools."
+            for i in range(8)
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    return root
+
+
 def _search_args(corpus: Path, query: str, **overrides) -> Namespace:
     base = dict(
         path=str(corpus),
@@ -119,6 +145,44 @@ def _search_args(corpus: Path, query: str, **overrides) -> Namespace:
         rerank_api_url="unused",
         rerank_timeout=5,
         rerank_top_n=10,
+        path_include=[],
+        path_exclude=[],
+    )
+    base.update(overrides)
+    return Namespace(**base)
+
+
+def _status_args(corpus: Path, **overrides) -> Namespace:
+    base = dict(
+        path=str(corpus),
+        max_heading_level=6,
+        embed_model="test/stub-1",
+        embedding_api_url="http://test.local/v1",
+        embedding_timeout=5,
+        cache_dir=None,
+        max_auto_embed=50,
+        path_include=[],
+        path_exclude=[],
+    )
+    base.update(overrides)
+    return Namespace(**base)
+
+
+def _overlaps_args(corpus: Path, **overrides) -> Namespace:
+    base = dict(
+        path=str(corpus),
+        threshold=-1.0,
+        top=20,
+        min_tokens=0,
+        include_same_file=True,
+        max_heading_level=6,
+        embed_model="test/stub-1",
+        embedding_api_url="http://test.local/v1",
+        embedding_timeout=5,
+        cache_dir=None,
+        max_auto_embed=1,
+        no_cache=False,
+        json=True,
         path_include=[],
         path_exclude=[],
     )
@@ -174,3 +238,108 @@ def test_search_filters_in_engine_metadata(
     # Even with no filters, the keys must be present (= empty arrays)
     assert payload["engine"]["path_include"] == []
     assert payload["engine"]["path_exclude"] == []
+
+
+def test_partial_index_scoped_search_ignores_unindexed_skipped_paths(
+    tmp_path: Path, mock_embed, capsys
+) -> None:
+    corpus = _partial_corpus(tmp_path)
+    include = [str(corpus / "keep" / "*.md")]
+
+    _index_args = Namespace(
+        path=str(corpus),
+        max_heading_level=6,
+        embed_model="test/stub-1",
+        embedding_api_url="http://test.local/v1",
+        embedding_timeout=5,
+        cache_dir=None,
+        batch_size=32,
+        batch_pause_ms=0,
+        path_include=include,
+        path_exclude=[],
+    )
+    assert cmd_index(_index_args) == 0
+    capsys.readouterr()
+
+    scoped = _search_args(
+        corpus,
+        "partial scoped retrieval",
+        max_auto_embed=1,
+        path_include=include,
+    )
+    assert cmd_search(scoped) == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["results"]
+    assert all(row["relative_path"].startswith("keep/") for row in payload["results"])
+
+    unscoped = _search_args(corpus, "partial scoped retrieval", max_auto_embed=1)
+    assert cmd_search(unscoped) == 4
+    assert "Index needs warmup" in capsys.readouterr().err
+
+
+def test_partial_index_scoped_status_is_fresh_when_unscoped_needs_warmup(
+    tmp_path: Path, mock_embed, capsys
+) -> None:
+    corpus = _partial_corpus(tmp_path)
+    include = ["keep/*"]
+    args = Namespace(
+        path=str(corpus),
+        max_heading_level=6,
+        embed_model="test/stub-1",
+        embedding_api_url="http://test.local/v1",
+        embedding_timeout=5,
+        cache_dir=None,
+        batch_size=32,
+        batch_pause_ms=0,
+        path_include=include,
+        path_exclude=[],
+    )
+    assert cmd_index(args) == 0
+    capsys.readouterr()
+
+    assert cmd_status(_status_args(corpus, max_auto_embed=1, path_include=include)) == 0
+    assert "Status: FRESH" in capsys.readouterr().out
+
+    assert cmd_status(_status_args(corpus, max_auto_embed=1)) == 0
+    assert "Status: NEEDS WARMUP" in capsys.readouterr().out
+
+
+def test_status_no_index_reports_pending_chunks_for_dry_run_estimate(
+    tmp_path: Path, capsys
+) -> None:
+    corpus = _partial_corpus(tmp_path)
+    assert cmd_status(_status_args(corpus, path_include=["keep/*"])) == 0
+    out = capsys.readouterr().out
+    assert "Status: NO INDEX" in out
+    assert "pending_chunks=" in out
+    assert "pending_chunks=0" not in out
+
+
+def test_partial_index_scoped_overlaps_compares_only_included_chunks(
+    tmp_path: Path, mock_embed, capsys
+) -> None:
+    corpus = _partial_corpus(tmp_path)
+    include = ["keep/*"]
+    args = Namespace(
+        path=str(corpus),
+        max_heading_level=6,
+        embed_model="test/stub-1",
+        embedding_api_url="http://test.local/v1",
+        embedding_timeout=5,
+        cache_dir=None,
+        batch_size=32,
+        batch_pause_ms=0,
+        path_include=include,
+        path_exclude=[],
+    )
+    assert cmd_index(args) == 0
+    capsys.readouterr()
+
+    assert cmd_overlaps(_overlaps_args(corpus, path_include=include)) == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["stats"]["chunks_compared"] == 3
+    assert all(
+        pair["a"]["relative_path"].startswith("keep/")
+        and pair["b"]["relative_path"].startswith("keep/")
+        for pair in payload["pairs"]
+    )

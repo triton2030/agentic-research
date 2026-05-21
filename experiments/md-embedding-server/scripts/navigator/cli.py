@@ -19,6 +19,7 @@ import sys
 from pathlib import Path
 
 from .audit import register_audit
+from .filters import add_path_filter_args, normalize_path_filter_patterns
 from .folder_map import apply_match_filter, build_map, render_map
 from .importance import importance_rows, render_importance
 from .index_build import DEFAULT_MAX_AUTO_EMBED, register_index
@@ -339,6 +340,7 @@ def build_parser() -> argparse.ArgumentParser:
     profile_sections.add_argument("--force", action="store_true", help="Re-profile even cached rows.")
     profile_sections.add_argument("--mode", choices=("heuristic", "llm", "auto"), default=None, help="Classifier mode. Default: MD_PROFILE_MODE or heuristic.")
     profile_sections.add_argument("--model", default=None, help="LLM classifier model for --mode llm/auto.")
+    add_path_filter_args(profile_sections, command_name="profiled sections")
     profile_sections.add_argument("--json", action="store_true", help="Print JSON.")
 
     originality = sub.add_parser("originality", help="Compute a section uniqueness score.")
@@ -361,6 +363,7 @@ def build_parser() -> argparse.ArgumentParser:
     proposals.add_argument("--top", type=int, default=10, help="How many proposals to return.")
     proposals.add_argument("--uniqueness-threshold", type=float, default=0.35, help="Below this uniqueness, a section is duplicate-like.")
     proposals.add_argument("--owner-confidence-threshold", type=float, default=0.45, help="Minimum owner composite score.")
+    add_path_filter_args(proposals, command_name="refactor candidates")
     proposals.add_argument("--json", action="store_true", help="Print JSON.")
 
     query_by_type = sub.add_parser(
@@ -371,6 +374,7 @@ def build_parser() -> argparse.ArgumentParser:
     query_by_type.add_argument("--types", required=True, help="Comma-list of profile types.")
     query_by_type.add_argument("--filter", default=None, help="Optional substring filter over subject/heading.")
     query_by_type.add_argument("--limit", type=int, default=50, help="Max sections to return.")
+    add_path_filter_args(query_by_type, command_name="typed sections")
     query_by_type.add_argument("--json", action="store_true", help="Print JSON.")
 
     # Big commands — each module owns its own argparse via register_X.
@@ -450,6 +454,8 @@ def _dispatch_inline(args: argparse.Namespace) -> int | None:
 
     if args.command == "profile-sections":
         root = Path(args.path).expanduser().resolve()
+        include_patterns = normalize_path_filter_patterns(args.path_include, root)
+        exclude_patterns = normalize_path_filter_patterns(args.path_exclude, root)
         try:
             conn = open_profile_db(root)
             stats = profile_corpus(
@@ -459,8 +465,16 @@ def _dispatch_inline(args: argparse.Namespace) -> int | None:
                 force=args.force,
                 mode=args.mode,
                 model=args.model,
+                path_include=include_patterns,
+                path_exclude=exclude_patterns,
             )
-            rows = profile_rows(conn, limit=10)
+            rows = profile_rows(
+                conn,
+                limit=10,
+                corpus_root=root,
+                path_include=include_patterns,
+                path_exclude=exclude_patterns,
+            )
         except RuntimeError as exc:
             print(str(exc), file=sys.stderr)
             return 2
@@ -498,6 +512,8 @@ def _dispatch_inline(args: argparse.Namespace) -> int | None:
 
     if args.command == "refactor-candidates":
         root = Path(args.path).expanduser().resolve()
+        include_patterns = normalize_path_filter_patterns(args.path_include, root)
+        exclude_patterns = normalize_path_filter_patterns(args.path_exclude, root)
         try:
             conn = open_profile_db(root)
             payload = refactor_candidates(
@@ -506,6 +522,8 @@ def _dispatch_inline(args: argparse.Namespace) -> int | None:
                 top=args.top,
                 uniqueness_threshold=args.uniqueness_threshold,
                 owner_confidence_threshold=args.owner_confidence_threshold,
+                path_include=include_patterns,
+                path_exclude=exclude_patterns,
             )
         except RuntimeError as exc:
             print(str(exc), file=sys.stderr)
@@ -516,12 +534,29 @@ def _dispatch_inline(args: argparse.Namespace) -> int | None:
     if args.command == "query-by-type":
         root = Path(args.path).expanduser().resolve()
         types = [item.strip() for item in args.types.split(",") if item.strip()]
+        include_patterns = normalize_path_filter_patterns(args.path_include, root)
+        exclude_patterns = normalize_path_filter_patterns(args.path_exclude, root)
         try:
             conn = open_profile_db(root)
-            profile_unprofiled_sections(conn, corpus_root=root)
+            profile_unprofiled_sections(
+                conn,
+                corpus_root=root,
+                path_include=include_patterns,
+                path_exclude=exclude_patterns,
+            )
             payload = {
                 "types": types,
-                "sections": profile_rows(conn, types=types, filter_text=args.filter, limit=args.limit),
+                "path_include": include_patterns,
+                "path_exclude": exclude_patterns,
+                "sections": profile_rows(
+                    conn,
+                    types=types,
+                    filter_text=args.filter,
+                    limit=args.limit,
+                    corpus_root=root,
+                    path_include=include_patterns,
+                    path_exclude=exclude_patterns,
+                ),
             }
         except RuntimeError as exc:
             print(str(exc), file=sys.stderr)

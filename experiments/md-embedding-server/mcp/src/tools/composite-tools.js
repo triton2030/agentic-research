@@ -8,6 +8,13 @@ function pushFlag(args, flag, value) {
   args.push(flag, String(value));
 }
 
+function pushRepeated(args, flag, values) {
+  if (!Array.isArray(values)) return;
+  for (const value of values) {
+    if (value) args.push(flag, String(value));
+  }
+}
+
 function graphBlockers(preflight) {
   const blockerCodes = new Set([
     "MISSING_TARGET",
@@ -142,7 +149,7 @@ COST: Free unless full+query (~$0.001 if rerank, normally cached).`,
 
 WHEN: 'find refactor opportunities', IA hygiene pass, before split/merge planning. Output is suggestion list for human review.
 WHY OURS: Combines section profiles + originality + owner candidates into ranked proposals with evidence/confidence/why. Manual heuristic combo is hours; this is one call.
-INPUT: corpus (warm index), top (default 10), uniqueness_threshold (default 0.35), owner_confidence_threshold (default 0.45).
+INPUT: corpus (warm index), top (default 10), uniqueness_threshold (default 0.35), owner_confidence_threshold (default 0.45), path_include/exclude.
 OUTPUT: { proposals: [{ kind, target, evidence, confidence, why }], no_automation:true } — no_automation:true signals 'human reviews, MCP never edits'.
 ALT: md_audit for whole-corpus health. md_query_by_type to filter by semantic shape.
 COST: Requires warm index + profiles. Auto-profiles unprofiled sections lazily.`,
@@ -150,13 +157,17 @@ COST: Requires warm index + profiles. Auto-profiles unprofiled sections lazily.`
       corpus: z.string().min(1).describe("Markdown corpus folder with a warm md-navigator index"),
       top: z.number().int().positive().max(50).optional(),
       uniqueness_threshold: z.number().min(0).max(1).optional(),
-      owner_confidence_threshold: z.number().min(0).max(1).optional()
+      owner_confidence_threshold: z.number().min(0).max(1).optional(),
+      path_include: z.array(z.string().min(1)).optional(),
+      path_exclude: z.array(z.string().min(1)).optional()
     },
-    async ({ corpus, top, uniqueness_threshold, owner_confidence_threshold }) => {
+    async ({ corpus, top, uniqueness_threshold, owner_confidence_threshold, path_include, path_exclude }) => {
       const args = ["refactor-candidates", corpus, "--json"];
       pushFlag(args, "--top", top);
       pushFlag(args, "--uniqueness-threshold", uniqueness_threshold);
       pushFlag(args, "--owner-confidence-threshold", owner_confidence_threshold);
+      pushRepeated(args, "--path-include", path_include);
+      pushRepeated(args, "--path-exclude", path_exclude);
       return await runNavigator(args, { timeoutMs: 120_000 });
     },
     { readOnlyHint: false, openWorldHint: true }
@@ -168,7 +179,7 @@ COST: Requires warm index + profiles. Auto-profiles unprofiled sections lazily.`
 
 WHEN: 'show me all open questions', 'list rules in this corpus', semantic-shape query.
 WHY OURS: Returns only sections that match the type (heuristic or LLM classifier). Bash grep can't classify rule-vs-example.
-INPUT: corpus (warm index), types (array), filter (substring over subject/heading), limit (default 50).
+INPUT: corpus (warm index), types (array), filter (substring over subject/heading), limit (default 50), path_include/exclude.
 OUTPUT: { types, sections: [{ section_id, path, heading_chain, subject, type, confidence }] }.
 ALT: md_refactor_candidates for proposal-level. md_search for free-text query.
 COST: Lazy-profiles unprofiled sections (heuristic free, llm ~$0.0005/section). Pre-profile via md_profile_sections.`,
@@ -176,12 +187,16 @@ COST: Lazy-profiles unprofiled sections (heuristic free, llm ~$0.0005/section). 
       corpus: z.string().min(1).describe("Markdown corpus folder with a warm md-navigator index"),
       types: z.array(z.string().min(1)).min(1).describe("Profile types to return: open-question, decision, definition, rule, example, uses, external-citation, heading-only"),
       filter: z.string().optional().describe("Optional substring filter over subject/heading"),
-      limit: z.number().int().positive().max(200).optional()
+      limit: z.number().int().positive().max(200).optional(),
+      path_include: z.array(z.string().min(1)).optional(),
+      path_exclude: z.array(z.string().min(1)).optional()
     },
-    async ({ corpus, types, filter, limit }) => {
+    async ({ corpus, types, filter, limit, path_include, path_exclude }) => {
       const args = ["query-by-type", corpus, "--json", "--types", types.join(",")];
       pushFlag(args, "--filter", filter);
       pushFlag(args, "--limit", limit);
+      pushRepeated(args, "--path-include", path_include);
+      pushRepeated(args, "--path-exclude", path_exclude);
       return await runNavigator(args, { timeoutMs: 120_000 });
     },
     { readOnlyHint: false, openWorldHint: true }

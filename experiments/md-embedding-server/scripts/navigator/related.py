@@ -198,6 +198,7 @@ def collect_related_items(args) -> dict[str, Any]:
     check_links = bool(getattr(args, "check_links", False))
     semantic_neighbors: list[dict[str, Any]] = []
     suspicious_links: list[dict[str, Any]] = []
+    semantic_status = "not_requested"
 
     if semantic_radius > 0 or check_links:
         # Local-import: these helpers pull in sqlite_vec, which is a heavy
@@ -211,6 +212,7 @@ def collect_related_items(args) -> dict[str, Any]:
 
         corpus_root = find_corpus_root_for(anchors[0])
         if corpus_root is not None:
+            semantic_status = "ok"
             already_linked = {
                 relative_path(Path(item["path"]), corpus_root)
                 for item in items.values()
@@ -267,6 +269,8 @@ def collect_related_items(args) -> dict[str, Any]:
                             threshold=threshold,
                         )
                     )
+        else:
+            semantic_status = "no_index"
 
     return {
         "root": str(scan_root),
@@ -276,6 +280,7 @@ def collect_related_items(args) -> dict[str, Any]:
         "token_total": running,
         "items": kept,
         "dropped_by_budget": dropped,
+        "semantic_status": semantic_status,
         "semantic_neighbors": semantic_neighbors,
         "suspicious_links": suspicious_links,
         "note": "Reading context only; graph obligations belong to 1md-graph.",

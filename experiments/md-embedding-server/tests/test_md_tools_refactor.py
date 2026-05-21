@@ -60,6 +60,31 @@ def test_read_related_preview_omits_content(tmp_path):
     assert all("headings" in item for item in packet["items"])
 
 
+def test_read_related_semantic_status_reports_missing_index(tmp_path):
+    root = tmp_path / "corpus"
+    root.mkdir()
+    anchor = root / "a.md"
+    anchor.write_text("# A\n\nSee [B](b.md).\n", encoding="utf-8")
+    (root / "b.md").write_text("# B\n\nBody.\n", encoding="utf-8")
+
+    packet = collect_related_items(
+        Namespace(
+            paths=[str(anchor)],
+            scan=str(root),
+            include="self,markdown-links",
+            token_budget=0,
+            semantic_radius=2,
+            check_links=False,
+            link_distance_threshold=0.4,
+            anchor_aware=True,
+            mode="preview",
+        )
+    )
+
+    assert packet["semantic_status"] == "no_index"
+    assert packet["semantic_neighbors"] == []
+
+
 def test_section_profile_classifies_rule_and_question():
     rule = classify_section(
         {

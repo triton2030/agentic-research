@@ -6,6 +6,7 @@ from typing import Any
 from .originality import originality_for_section
 from .owner_detector import owner_candidates
 from .section_profile import profile_unprofiled_sections
+from .filters import normalize_path_filter_patterns, sqlite_path_filter_sql
 
 
 def refactor_candidates(
@@ -14,15 +15,34 @@ def refactor_candidates(
     top: int = 10,
     uniqueness_threshold: float = 0.35,
     owner_confidence_threshold: float = 0.45,
+    path_include: list[str] | None = None,
+    path_exclude: list[str] | None = None,
 ) -> dict[str, Any]:
-    profile_unprofiled_sections(conn, corpus_root=corpus_root)
+    profile_unprofiled_sections(
+        conn,
+        corpus_root=corpus_root,
+        path_include=path_include,
+        path_exclude=path_exclude,
+    )
+    if corpus_root is not None:
+        include_patterns = normalize_path_filter_patterns(path_include, corpus_root)
+        exclude_patterns = normalize_path_filter_patterns(path_exclude, corpus_root)
+    else:
+        include_patterns = list(path_include or [])
+        exclude_patterns = list(path_exclude or [])
+    path_clause, path_params = sqlite_path_filter_sql(
+        "relative_path",
+        include_patterns,
+        exclude_patterns,
+    )
     rows = conn.execute(
         "SELECT section_id, relative_path, start_line, heading_text, profile_type, "
         "profile_subject, profile_confidence FROM sections WHERE scope='sections' "
         "AND profile_type IN ('uses','example','external-citation') "
         "AND level > 1 "
+        f"{path_clause} "
         "ORDER BY token_count DESC LIMIT ?",
-        (max(top * 10, top),),
+        (*path_params, max(top * 10, top)),
     ).fetchall()
 
     proposals: list[dict[str, Any]] = []
@@ -91,5 +111,7 @@ def refactor_candidates(
             "uniqueness": uniqueness_threshold,
             "owner_confidence": owner_confidence_threshold,
         },
+        "path_include": include_patterns,
+        "path_exclude": exclude_patterns,
         "no_automation": True,
     }

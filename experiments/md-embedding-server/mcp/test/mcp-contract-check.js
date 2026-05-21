@@ -77,6 +77,18 @@ const EXPECTED_ANNOTATIONS = {
   md_toc: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false }
 };
 
+const PATH_FILTER_TOOLS = [
+  "md_audit",
+  "md_index",
+  "md_overlaps",
+  "md_profile_sections",
+  "md_query_by_type",
+  "md_refactor_candidates",
+  "md_repeated_concepts",
+  "md_search",
+  "md_status"
+];
+
 let passed = 0;
 let failed = 0;
 
@@ -108,6 +120,11 @@ function isTextOnlyResult(result) {
     typeof result.content[0]?.text === "string" &&
     !("structuredContent" in result)
   );
+}
+
+function hasPathFilters(tool) {
+  const props = tool?.inputSchema?.properties || {};
+  return Boolean(props.path_include && props.path_exclude);
 }
 
 function processAlive(pid) {
@@ -149,6 +166,10 @@ async function checkMcpContract() {
     }
     record("annotation allowlist", annotationsOk);
     record("no outputSchema", schemasOk);
+    record(
+      "scoped path-filter schemas",
+      PATH_FILTER_TOOLS.every((name) => hasPathFilters(toolsByName.get(name)))
+    );
 
     const ping = await client.callTool({ name: "md_ping", arguments: {} });
     const pingPayload = JSON.parse(ping.content[0].text);
@@ -274,6 +295,45 @@ async function checkGraphMutatorParity() {
   }
 }
 
+async function checkPartialIndexScopeContract() {
+  const transport = new StdioClientTransport({ command: "node", args: [SERVER] });
+  const client = new Client({ name: "md-mcp-contract-partial-index", version: "0.0.1" });
+  const root = await realpath(await mkdtemp(join(tmpdir(), "md-mcp-partial-index-")));
+  await client.connect(transport);
+
+  try {
+    const keepDir = join(root, "keep");
+    const skipDir = join(root, "skip");
+    await mkdir(keepDir, { recursive: true });
+    await mkdir(skipDir, { recursive: true });
+    await writeFile(join(keepDir, "a.md"), "# Keep\n\n## One\n\nUseful scoped section.\n", "utf8");
+    await writeFile(join(skipDir, "b.md"), "# Skip\n\n## Two\n\nSkipped section.\n", "utf8");
+    const includePattern = `${root}/keep/*.md`;
+
+    const dry = await callJson(client, "md_index", {
+      corpus: root,
+      path_include: [includePattern],
+      dry_run: true
+    });
+    const status = await client.callTool({
+      name: "md_status",
+      arguments: { corpus: root, path_include: [includePattern] }
+    });
+    const statusText = status.content?.[0]?.text || "";
+    record(
+      "partial-index scoped dry_run/status",
+      dry.dry_run === true &&
+        dry.pending_chunks > 0 &&
+        /Path scope: include=\[/.test(statusText) &&
+        /Status: NO INDEX/.test(statusText) &&
+        isTextOnlyResult(status)
+    );
+  } finally {
+    await client.close();
+    await rm(root, { recursive: true, force: true });
+  }
+}
+
 async function checkSubprocessTimeoutGroupKill() {
   const script = `
     const { spawn } = require("node:child_process");
@@ -327,6 +387,7 @@ async function checkSubprocessOutputCap() {
 console.log(`md-mcp contract check - server: ${SERVER}`);
 await checkMcpContract();
 await checkGraphMutatorParity();
+await checkPartialIndexScopeContract();
 await checkSubprocessTimeoutGroupKill();
 await checkSubprocessOutputCap();
 

@@ -33,6 +33,12 @@ from .index_meta import (
     probe_embedding_dim,
     resolve_embed_model_for_corpus,
 )
+from .filters import (
+    add_path_filter_args,
+    apply_path_filters,
+    normalize_path_filter_patterns,
+    path_matches_any,
+)
 from .lemmatize import lemmatize_text
 from .sections import (
     SUBCHUNK_MAX_TOKENS,
@@ -69,6 +75,7 @@ def register_index(sub) -> None:
     add_max_heading_level_arg(p)
     add_embedding_args(p)
     add_cache_arg(p)
+    add_path_filter_args(p, command_name="indexed sections")
     p.add_argument(
         "--batch-size",
         type=int,
@@ -108,6 +115,38 @@ def _set_counter(conn, counter_key: str, value: int) -> None:
     from .index_meta import _meta_set
 
     _meta_set(conn, counter_key, str(value))
+
+
+def _filter_existing_rows_by_path(
+    rows: list[Any],
+    include_patterns: list[str],
+    exclude_patterns: list[str],
+) -> list[Any]:
+    """Filter DB rows whose third column is relative_path."""
+    if not include_patterns and not exclude_patterns:
+        return rows
+    out: list[Any] = []
+    for row in rows:
+        rel = str(row[2] or "")
+        if include_patterns and not path_matches_any(rel, include_patterns):
+            continue
+        if exclude_patterns and path_matches_any(rel, exclude_patterns):
+            continue
+        out.append(row)
+    return out
+
+
+def _count_sections_in_path_scope(
+    conn,
+    scope: str,
+    include_patterns: list[str],
+    exclude_patterns: list[str],
+) -> int:
+    rows = conn.execute(
+        "SELECT rowid, content_hash, relative_path FROM sections WHERE scope = ?",
+        (scope,),
+    ).fetchall()
+    return len(_filter_existing_rows_by_path(rows, include_patterns, exclude_patterns))
 
 
 # --- Delta apply ---------------------------------------------------------
@@ -187,8 +226,13 @@ def _index_delta_stats_readonly(
     embed_model: str,
     embedding_api_url: str,
     max_auto_embed: int | None,
+    path_include: list[str] | None = None,
+    path_exclude: list[str] | None = None,
 ) -> dict[str, Any]:
     """Compute freshness stats without schema creation, meta writes, or pruning."""
+    include_patterns = list(path_include or [])
+    exclude_patterns = list(path_exclude or [])
+    items = apply_path_filters(items, include_patterns, exclude_patterns)
     stats: dict[str, Any] = {
         "embedded": 0,
         "reused": 0,
@@ -219,14 +263,19 @@ def _index_delta_stats_readonly(
 
     try:
         existing_rows = conn.execute(
-            "SELECT rowid, content_hash FROM sections WHERE scope = ?",
+            "SELECT rowid, content_hash, relative_path FROM sections WHERE scope = ?",
             (scope,),
         ).fetchall()
     except Exception:
         stats["metadata_mismatch"] = True
         return stats
 
-    existing_hash_to_rowid: dict[str, int] = {h: rid for rid, h in existing_rows}
+    existing_rows = _filter_existing_rows_by_path(
+        existing_rows,
+        include_patterns,
+        exclude_patterns,
+    )
+    existing_hash_to_rowid: dict[str, int] = {h: rid for rid, h, _ in existing_rows}
     current_hash_to_item: dict[str, dict[str, Any]] = {it["content_hash"]: it for it in items}
     added_hashes = [h for h in current_hash_to_item if h not in existing_hash_to_rowid]
     removed_hashes = [h for h in existing_hash_to_rowid if h not in current_hash_to_item]
@@ -260,6 +309,8 @@ def ensure_index(
     batch_size: int = DEFAULT_INDEX_BATCH,
     batch_pause_s: float = DEFAULT_INDEX_PAUSE_S,
     dry_run: bool = False,
+    path_include: list[str] | None = None,
+    path_exclude: list[str] | None = None,
 ) -> tuple[Any, dict[str, Any]]:
     """Public index entrypoint. Write paths are serialised by a lock file.
 
@@ -267,6 +318,8 @@ def ensure_index(
     creation, no meta writes. It is used by `status`.
     """
     if dry_run:
+        include_patterns = normalize_path_filter_patterns(path_include, corpus_root)
+        exclude_patterns = normalize_path_filter_patterns(path_exclude, corpus_root)
         conn = _open_index_metadata_readonly(corpus_root, cache_root=cache_root)
         stats = _index_delta_stats_readonly(
             conn,
@@ -275,9 +328,13 @@ def ensure_index(
             embed_model,
             embedding_api_url,
             max_auto_embed,
+            path_include=include_patterns,
+            path_exclude=exclude_patterns,
         )
         return conn, stats
 
+    include_patterns = normalize_path_filter_patterns(path_include, corpus_root)
+    exclude_patterns = normalize_path_filter_patterns(path_exclude, corpus_root)
     lock_handle = _acquire_index_write_lock(corpus_root, cache_root=cache_root)
     try:
         return _ensure_index_unlocked(
@@ -293,6 +350,8 @@ def ensure_index(
             batch_size=batch_size,
             batch_pause_s=batch_pause_s,
             dry_run=False,
+            path_include=include_patterns,
+            path_exclude=exclude_patterns,
         )
     finally:
         _release_index_write_lock(lock_handle)
@@ -311,6 +370,8 @@ def _ensure_index_unlocked(
     batch_size: int = DEFAULT_INDEX_BATCH,
     batch_pause_s: float = DEFAULT_INDEX_PAUSE_S,
     dry_run: bool = False,
+    path_include: list[str] | None = None,
+    path_exclude: list[str] | None = None,
 ) -> tuple[Any, dict[str, Any]]:
     """Open the persistent index for `corpus_root` and reconcile against
     `items` for the given `scope`. Only new sections cost embedding work;
@@ -333,6 +394,10 @@ def _ensure_index_unlocked(
     `<corpus>/.md-navigator/` (default). Pass a Path to override (legacy
     `~/.cache/md-navigator/` location uses this)."""
     import time
+
+    include_patterns = normalize_path_filter_patterns(path_include, corpus_root)
+    exclude_patterns = normalize_path_filter_patterns(path_exclude, corpus_root)
+    items = apply_path_filters(items, include_patterns, exclude_patterns)
 
     def _say(msg: str) -> None:
         if progress is not None:
@@ -371,10 +436,15 @@ def _ensure_index_unlocked(
 
     # 3. Build (scope, content_hash) → rowid map for existing sections.
     existing_rows = conn.execute(
-        "SELECT rowid, content_hash FROM sections WHERE scope = ?",
+        "SELECT rowid, content_hash, relative_path FROM sections WHERE scope = ?",
         (scope,),
     ).fetchall()
-    existing_hash_to_rowid: dict[str, int] = {h: rid for rid, h in existing_rows}
+    existing_rows = _filter_existing_rows_by_path(
+        existing_rows,
+        include_patterns,
+        exclude_patterns,
+    )
+    existing_hash_to_rowid: dict[str, int] = {h: rid for rid, h, _ in existing_rows}
     current_hash_to_item: dict[str, dict[str, Any]] = {it["content_hash"]: it for it in items}
 
     added_hashes = [h for h in current_hash_to_item if h not in existing_hash_to_rowid]
@@ -514,18 +584,14 @@ def _ensure_index_unlocked(
                 max_auto_embed is not None and len(plan) > max_auto_embed
             )
             stats["total_sections_in_scope"] = int(
-                conn.execute(
-                    "SELECT COUNT(*) FROM sections WHERE scope = ?", (scope,)
-                ).fetchone()[0]
+                _count_sections_in_path_scope(conn, scope, include_patterns, exclude_patterns)
             )
             return conn, stats
 
         if max_auto_embed is not None and len(plan) > max_auto_embed:
             stats["delta_too_large"] = True
             stats["total_sections_in_scope"] = int(
-                conn.execute(
-                    "SELECT COUNT(*) FROM sections WHERE scope = ?", (scope,)
-                ).fetchone()[0]
+                _count_sections_in_path_scope(conn, scope, include_patterns, exclude_patterns)
             )
             return conn, stats
 
@@ -626,12 +692,15 @@ def _ensure_index_unlocked(
                 time.sleep(batch_pause_s)
 
     stats["total_sections_in_scope"] = int(
-        conn.execute(
-            "SELECT COUNT(*) FROM sections WHERE scope = ?", (scope,)
-        ).fetchone()[0]
+        _count_sections_in_path_scope(conn, scope, include_patterns, exclude_patterns)
     )
     if not dry_run and scope == "sections":
-        profiled = profile_unprofiled_sections(conn, corpus_root=corpus_root)
+        profiled = profile_unprofiled_sections(
+            conn,
+            corpus_root=corpus_root,
+            path_include=include_patterns,
+            path_exclude=exclude_patterns,
+        )
         if profiled:
             stats["profiled_sections"] = profiled
     return conn, stats
@@ -666,6 +735,14 @@ def cmd_index(args) -> int:
     )
 
     totals = {"embedded": 0, "reused": 0, "removed": 0}
+    include_patterns: list[str] = list(getattr(args, "path_include", None) or [])
+    exclude_patterns: list[str] = list(getattr(args, "path_exclude", None) or [])
+    if include_patterns or exclude_patterns:
+        print(
+            f"Path scope: include={include_patterns or '∅'} "
+            f"exclude={exclude_patterns or '∅'}",
+            file=sys.stderr,
+        )
     for scope in ("sections", "descriptions"):
         items = build_items_from_map(map_data, scope=scope)
         if not items:
@@ -683,6 +760,8 @@ def cmd_index(args) -> int:
                 max_auto_embed=None,  # explicit warmup: no cap
                 batch_size=args.batch_size,
                 batch_pause_s=args.batch_pause_ms / 1000.0,
+                path_include=include_patterns,
+                path_exclude=exclude_patterns,
             )
         except ModuleNotFoundError as exc:
             print(
