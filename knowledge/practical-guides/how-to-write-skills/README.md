@@ -34,8 +34,17 @@ edit-after-edit: []
    stop condition и ссылки на нужные bundled files.
 4. Длинные детали вынеси в `references/`, детерминированные операции — в
    `scripts/`, выходные ресурсы — в `assets/`.
-5. Проверь на реальных `should-trigger` / `should-not-trigger` prompts и хотя
-   бы одном `with_skill` vs baseline прогоне.
+5. Масштабируй проверку: для маленького скила достаточно минимальной проверки
+   (`minimum gate`); для глобального, частого, рискованного или спорного
+   trigger — строгая проверка (`strict gate`).
+   Детали в [`checklist.md`](checklist.md).
+
+## Свежесть
+
+[`research-2026-mar-may.md`](research-2026-mar-may.md) — snapshot источников,
+а не вечная истина. Перед audit'ом current/default/best-practice решений
+сверяй свежие официальные docs; канон в `authoring-canon.md` держит только
+выводы, которые переживают такую сверку.
 
 ## Не Создавать
 

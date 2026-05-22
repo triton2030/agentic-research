@@ -5,7 +5,18 @@ edit-after-edit: []
 ---
 # Checklist
 
-Пройди сверху вниз. Если первые ответы слабые — скилл пока не писать.
+Пройди сверху вниз. Если первые ответы слабые — скилл пока не писать. Сначала
+выбери глубину проверки: минимальную (`minimum gate`) или строгую
+(`strict gate`).
+
+## Режим Проверки
+
+**Минимальная проверка (`minimum gate`)** — маленький, локальный,
+низкорисковый скилл или узкая правка существующего скила.
+
+**Строгая проверка (`strict gate`)** — глобальный / часто вызываемый скилл,
+широкий или спорный trigger, scripts/network/credentials, высокий blast radius,
+безопасность, перенос между runtime или уже замеченные regressions.
 
 ## Go / No-Go
 
@@ -22,9 +33,10 @@ edit-after-edit: []
 - `description` говорит, когда использовать skill?
 - Первый sentence содержит главный use case и trigger words?
 - Есть boundaries и skip-cases?
-- Есть 8-10 `should-trigger` и 8-10 `should-not-trigger` prompts?
-- Negative prompts — near-misses, а не очевидно нерелевантные запросы?
-- Проверено, что соседние skills не делят тот же trigger surface?
+- Минимум: есть 2-3 concrete use cases и реальные trigger phrases?
+- Строго: есть 8-10 `should-trigger` и 8-10 `should-not-trigger` prompts?
+- Строго: negative prompts — near-misses, а не очевидно нерелевантные запросы?
+- Строго: проверено, что соседние skills не делят тот же trigger surface?
 
 ## Shape
 
@@ -48,9 +60,13 @@ edit-after-edit: []
 
 ## Proof
 
-- Есть baseline: without skill или previous version?
-- Есть один реалистичный with-skill прогон?
-- Зафиксированы regressions, а не только improvements?
-- Assertions проверяют наблюдаемое, а human review оставлен для вкуса/качества?
+- Минимум: прошла структурная проверка (`quick_validate.py` для Codex)?
+- Минимум: есть одна наблюдаемая проверка результата: команда, dry-run, `wc -m`,
+  grep, пример output или ручная сверка с коротким критерием?
+- Строго: есть baseline — without skill или previous version?
+- Строго: есть один реалистичный with-skill прогон?
+- Строго: зафиксированы regressions, а не только improvements?
+- Строго: assertions проверяют наблюдаемое, а human review оставлен для
+  вкуса/качества?
 - После прогона удалено всё, что не улучшает routing, качество, скорость или
   надёжность?

@@ -5,8 +5,14 @@ edit-after-edit: []
 ---
 # Research 2026 Mar-May
 
-Срез источников на 19 мая 2026. Здесь только выводы, которые меняют authoring
-практику.
+Срез источников на 19 мая 2026. Это snapshot, а не живой источник истины.
+Перед current/default/best-practice audit сверяй свежие официальные docs, затем
+обновляй `authoring-canon.md` только теми выводами, которые меняют практику.
+
+Recheck 2026-05-22: текущие OpenAI Codex docs и Agent Skills docs по-прежнему
+поддерживают progressive disclosure, короткий `description` как trigger
+surface, 2-3 concrete use cases как старт и более широкий trigger eval для
+важных/спорных skill descriptions.
 
 ## Official Baseline
 
@@ -31,7 +37,8 @@ edit-after-edit: []
 
 - SkillsBench (Feb 2026): skills дают сильный, но variable effect; “есть skill”
   намного слабее, чем “правильный skill, правильный момент, правильное
-  содержание”. Практика: каждый skill требует proof loop, а не веры в формат.
+  содержание”. Практика: каждый skill требует proof loop, но глубина проверки
+  масштабируется по риску.
   Source: [SkillsBench](https://www.skillsbench.ai/blogs/introducing-skillsbench)
 - SkillReducer (31 Mar 2026): на 55k+ public skills найдено много token waste;
   compression descriptions/body улучшала качество при меньшем контексте.
@@ -74,7 +81,8 @@ edit-after-edit: []
 1. **Less is more, но не “short is always better”.** Короткий core + нужные
    bundled files сильнее длинного ядра.
 2. **Description — главный рычаг.** Без trigger evals skill может быть идеален
-   внутри и бесполезен снаружи.
+   внутри и бесполезен снаружи. Для маленьких скилов достаточно малого
+   набора use cases; 8-10/8-10 prompts — strict gate, а не universal minimum.
 3. **Author from traces.** Лучший материал — реальные успехи, провалы,
    corrections, issue/review history.
 4. **Evaluate as intervention.** Считать repairs и regressions, а не только

@@ -1,5 +1,5 @@
 ---
-description: "Короткий практический канон: когда писать skill, как держать scope, description, body и proof loop."
+description: "Короткий практический канон: когда писать skill, как держать scope, description, body и проверку по риску."
 read-before-edit: []
 edit-after-edit: []
 ---
@@ -45,8 +45,11 @@ edit-after-edit: []
 - достаточно точный, чтобы не перетриггерить соседние задачи;
 - остаётся до 1024 символов и переживает shortening в больших skill lists.
 
-Проверка: 8-10 `should-trigger` и 8-10 `should-not-trigger` prompts. Негативные
-примеры должны быть near-miss, а не очевидный мусор.
+Минимальная проверка: 2-3 concrete use cases и реальные trigger phrases,
+которые пользователь мог бы сказать. Для глобальных, частых, рискованных или
+спорных trigger surface добавляй strict check: 8-10 `should-trigger` и 8-10
+`should-not-trigger` prompts. Негативные примеры должны быть near-miss, а не
+очевидный мусор.
 
 ## Тело `SKILL.md`
 
@@ -91,15 +94,29 @@ stop rules и короткие defaults обычно сильнее, чем дл
 
 ## Доказательство
 
-Скилл нельзя считать хорошим по тексту. Минимальный proof loop:
+Скилл нельзя считать хорошим по тексту, но proof loop должен соответствовать
+риску. Тяжёлые проверки не являются ритуалом для каждого маленького скила.
 
-1. Один реальный task run.
-2. Сравнение с baseline: без скилла или старая версия.
-3. Проверка trigger: should / should-not prompts.
-4. Проверка output: observable assertions плюс human review там, где качество
-   нельзя свести к тесту.
-5. После первого прогона вырезать всё, что не улучшило routing, качество,
-   скорость или надёжность.
+**Минимальная проверка (`minimum gate`)** — для маленького, локального или
+низкорискового скила:
+
+1. Есть 2-3 concrete use cases или один реальный trace/correction.
+2. `description` явно говорит, когда использовать и когда пропустить.
+3. Структурная проверка прошла (`quick_validate.py` для Codex).
+4. Есть одна наблюдаемая проверка результата: команда, dry-run, `wc -m`,
+   grep, пример output или ручная сверка с коротким критерием.
+
+**Строгая проверка (`strict gate`)** — включай, если скилл глобальный, часто
+вызывается, имеет широкий/спорный trigger, scripts/network/credentials,
+высокий blast radius или уже показал regressions:
+
+1. Сравнение с baseline: без скилла или старая версия.
+2. Trigger eval: 8-10 should-trigger и 8-10 should-not near-miss prompts.
+3. Output assertions и regression check, а не только красивый пример.
+4. Синхронизация `SKILL.md`, `description`, metadata и `agents/openai.yaml`,
+   если он есть.
+5. После первого реального использования вырезать всё, что не улучшило
+   routing, качество, скорость или надёжность.
 
 ## Типовые Провалы
 
