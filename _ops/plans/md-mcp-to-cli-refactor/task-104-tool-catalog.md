@@ -28,15 +28,38 @@ Codex не имеет `listTools` mechanism. Discovery идёт через `agen
 
 Этот hint живёт в `default_prompt`, обновляется в task-302/305.
 
+## Contract guarantee (architectural review)
+
+`catalog.py` — **the single source of truth для 29-tool contract**. Из catalog можно за один lookup получить:
+- Какой Python function tool вызывает (library_function для atomic / workflow_function для workflow)
+- Где живёт handler (handler_module)
+- Где живёт test (tests_module)
+- Какие argparse flags принимает (cli_signature + input_schema)
+- Описание для агента (description.when/why/input/output)
+- Метаданные (annotations, category)
+
+Test `tests/test_catalog_contract.py` verifies для каждого entry: handler_module importable, library_function или workflow_function importable (точно один из двух), tests_module exists.
+
+**Tool count contract**:
+- 24 atomic: 16 navigator + 8 graph (см. README §Tool count contract для полного списка)
+- 5 workflow: 4 composite (orient, edit_context, refactor_candidates, query_by_type) + 1 hybrid (section_blast_radius)
+- Total: 29 — matches MCP `TOOL_ANNOTATION_ALLOWLIST` в `mcp/src/server.js`
+- Catalog enforces этот count: assert `len(TOOLS) == 29` в `__init__`
+
 ## Подшаги
 
-- [ ] Дизайн каталога. Один Python модуль `src/md_cli/catalog.py` с явной структурой:
+- [ ] Дизайн каталога как **contract map** (architectural review — single source of truth для всех 29 tools). Один Python модуль `src/md_cli/catalog.py`:
   ```python
   TOOLS = {
       "md_orient": {
           "name": "md_orient",
-          "category": "composite",  # atomic | composite | hybrid | mutating
-          "annotations": {"readOnlyHint": True, "destructiveHint": False, ...},
+          "cli_name": "orient",                     # CLI subcommand (kebab-case)
+          "category": "workflow",                   # atomic | workflow | mutating
+          "library_function": None,                 # для atomic — "navigator.status"
+          "workflow_function": "navigator.workflows.orient",  # для workflow
+          "handler_module": "md_cli.handlers.md_orient",
+          "tests_module": "tests.test_workflow_orient",
+          "annotations": {"readOnlyHint": True, "destructiveHint": False, "openWorldHint": False, "idempotentHint": True},
           "description": {
               "when": "...",
               "why": "...",
@@ -51,11 +74,21 @@ Codex не имеет `listTools` mechanism. Discovery идёт через `agen
               "required": [...]
           },
           "cli_signature": "md orient --corpus PATH [--top N] [--compact]",
-          "handler_module": "md_cli.handlers.orient"
       },
-      ...
+      "md_status": {
+          "name": "md_status",
+          "cli_name": "status",
+          "category": "atomic",
+          "library_function": "navigator.status",
+          "workflow_function": None,
+          "handler_module": "md_cli.handlers.md_status",
+          ...
+      },
+      ...  # 29 entries total
   }
   ```
+  
+  **Contract guarantee**: для любого tool можно через one lookup определить какой Python function он вызывает, какой handler где живёт, какой test покрывает. Это устраняет drift через 6 месяцев.
 
 - [ ] Содержимое — портировать из текущих MCP tool registrations:
   - `mcp/src/tools/navigator-tools.js` (22 tools)

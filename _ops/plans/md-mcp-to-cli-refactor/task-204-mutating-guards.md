@@ -1,7 +1,7 @@
-# Mutating tools: md_init, md_strip, md_index с dry-run/confirm
+# Mutating tools: md_init, md_strip, md_index, md_profile_sections с dry-run/confirm
 
 ## Цель
-3 mutating handlers — те что меняют файлы или дорого расходуют embedding API. Каждый защищён dry-run/confirm/fingerprint protocol из task-103. Параллельно — гарантия что без явного `--confirm` agent не получит side-effect.
+**4 mutating handlers** (после architectural review: md_profile_sections тоже cost-bearing — LLM profiling stoит реальных $) — те что меняют файлы или дорого расходуют API. Каждый защищён dry-run/confirm/fingerprint protocol с **intent-binding verify** (не только content fingerprint, но и совпадение tool name + args).
 
 Anchored in: `_ops/PROJECT-ROADMAP.md#md-mcp-to-cli-refactor`
 
@@ -42,7 +42,7 @@ Codex использует `sandbox_mode = "workspace-write"`. Mutating tools п
   - destructiveHint: true
 
 - [ ] Реализовать `src/md_cli/handlers/md_index.py`:
-  - Wraps `navigator.search_index.index()` или equivalent — embedding warmup
+  - Wraps `navigator.index()` — embedding warmup
   - Decorator `@requires_transaction`
   - dry-run: count pending chunks, estimate cost ($X based on chunk count + model), return preview
   - confirm: actually embed, persist to disk
@@ -50,10 +50,20 @@ Codex использует `sandbox_mode = "workspace-write"`. Mutating tools п
   - openWorldHint: true (HTTP к OpenRouter)
   - Особый exit code 4 для `index_warmup_required` (используется другими tools для self-repair via envelope.next_step)
 
-- [ ] Envelope integration:
-  - error response `confirm_required` → envelope.next_step генерирует 2 directives (dry-run, confirm)
-  - error response `index_warmup_required` (specifically for md_index ситуация) → envelope.next_step генерирует 3 directives (md_index dry-run, md_index confirm, retry original tool)
+- [ ] Реализовать `src/md_cli/handlers/md_profile_sections.py` (audit cycle-2 architectural review):
+  - Wraps `navigator.profile_sections()` — LLM-classifier для секций
+  - Decorator `@requires_transaction`
+  - **Cost-bearing**: `mode: "llm"` использует OpenRouter LLM ~$0.0005 per section. На corpus 200+ секций — реальные $$.
+  - dry-run: count unprofiled sections, estimate cost, return preview
+  - confirm: actually classify, persist to index.sqlite
+  - mode=heuristic — free, можно skip dry-run/confirm gate
+  - mode=llm — must use dry-run/confirm
+
+- [ ] Envelope integration (audit architectural review — strict intent verify):
+  - error response `confirm_required` → envelope.next_step генерирует **только dry-run directive** (НЕ runnable confirm без transaction_id). Confirm directive активируется только после dry-run возвращает transaction_id.
+  - error response `index_warmup_required` (specifically for md_index ситуация) → envelope.next_step генерирует **dry-run + retry original** (без runnable confirm). Confirm составляется skill после видения dry-run результата.
   - error response `drift_detected` → не next_step (это user error), просто error в payload
+  - **Confirm always re-verifies**: даже после fingerprint match, confirm перепроверяет (re-compute fingerprint снова из live files) + intent args match (tool name, path/corpus args identical к dry-run-ed). Двойная защита.
 
 - [ ] Tests `tests/test_mutating_handlers.py`:
   - test md_init без флагов → exit 1 with `confirm_required` + envelope.next_step has 2 directives
@@ -70,12 +80,14 @@ Codex использует `sandbox_mode = "workspace-write"`. Mutating tools п
   - Confirm flow → same final state in test corpus
 
 ## Готово
-- [ ] `src/md_cli/handlers/md_init.py` — реализован, `@requires_transaction`
+- [ ] `src/md_cli/handlers/md_init.py` — реализован, `@requires_transaction`, ToolResult
 - [ ] `src/md_cli/handlers/md_strip.py` — реализован
 - [ ] `src/md_cli/handlers/md_index.py` — реализован, special exit 4 на cold corpus refusal
-- [ ] `tests/test_mutating_handlers.py` — 12+ test cases (4 per tool) зелёные
-- [ ] `tests/test_mutating_mcp_parity.py` — 3 tools match зелёные
-- [ ] Без `--confirm` все 3 tools безопасны (no file changes, no HTTP cost)
+- [ ] `src/md_cli/handlers/md_profile_sections.py` — реализован (mode=llm требует dry-run/confirm; mode=heuristic free path)
+- [ ] `tests/test_mutating_handlers.py` — 16+ test cases (4 per tool × 4 tools) зелёные
+- [ ] `tests/test_mutating_mcp_parity.py` (snapshot-based) — 4 tools match зелёные
+- [ ] Без `--confirm` все 4 tools безопасны (no file changes, no HTTP cost)
+- [ ] Confirm всегда re-verifies fingerprint + intent args (двойная защита)
 
 ## Красные линии
 - [ ] Не пропускать transaction verify даже если args обещают «я уверен». Skill agent может ошибиться.

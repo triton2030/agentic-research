@@ -1,7 +1,7 @@
-# Hybrid tool: md_section_blast_radius
+# Hybrid tool: md_section_blast_radius — handler
 
 ## Цель
-Реализовать единственный hybrid tool — `md_section_blast_radius`. Hybrid = graph слой (hard, contracts) + semantic слой (soft, candidates) в параллельном вызове через `concurrent.futures` или asyncio. Это где совмещаются два домена в одном tool.
+Реализовать **thin CLI handler** для `md_section_blast_radius`. Workflow function уже implemented в `src/navigator/workflows/section_blast_radius.py` из task-202a (Layer 2). Здесь — handler (Layer 3) который вызывает workflow и returns ToolResult.
 
 Anchored in: `_ops/PROJECT-ROADMAP.md#md-mcp-to-cli-refactor`
 
@@ -15,20 +15,37 @@ Anchored in: `_ops/PROJECT-ROADMAP.md#md-mcp-to-cli-refactor`
 
 ## Подшаги
 
-- [ ] Создать `src/md_cli/hybrid/__init__.py` пустой.
+## Architectural position
 
-- [ ] Реализовать `src/md_cli/hybrid/section_blast_radius.py`:
-  - Inputs: path, corpus, query, heading_id (optional), scan, depth, limit, path_include, path_exclude
-  - Two parallel calls:
-    1. `graph.preflight(path, scan, depth, path_filters)` — hard layer
-    2. `navigator.search(corpus, query, limit, path_filters)` — soft layer
-  - Run via `concurrent.futures.ThreadPoolExecutor` (Python GIL не блокер для I/O-bound: subprocess + HTTP)
-  - Return dict: `{path, heading_id, query, graph, semantic, usage_note}`
+`navigator.workflows.section_blast_radius` (Layer 2) — implemented in task-202a. Handler `md_cli/handlers/md_section_blast_radius.py` (Layer 3) — thin wrapper. Никаких `md_cli/hybrid/` модулей не создаётся.
 
-- [ ] Handler `src/md_cli/handlers/md_section_blast_radius.py`:
-  - Standard wrap pattern
-  - Validate query non-empty (это REQUIRED для smart soft layer)
-  - Pass через envelope.wrap()
+## Зависимости
+- task-202a закрыт (`navigator.workflows.section_blast_radius` готов)
+- task-101 закрыт (runner)
+- task-106 закрыт (architecture lock)
+
+## Подшаги
+
+- [ ] **Verify** workflow готов в task-202a:
+  - `from navigator.workflows import section_blast_radius` — importable
+  - Workflow function реально parallelizes preflight + search через `concurrent.futures.ThreadPoolExecutor`
+  - Returns dict: `{path, heading_id, query, graph, semantic, usage_note}`
+  - Если что-то отсутствует — task-202a не закрыт
+
+- [ ] Handler `src/md_cli/handlers/md_section_blast_radius.py` (ToolResult pattern):
+  ```python
+  from md_cli.result import ToolResult
+  from navigator.workflows import section_blast_radius
+  
+  def run(args) -> ToolResult:
+      if not args.query or not args.query.strip():
+          return ToolResult(payload={"error": "query_required"}, exit_code=2)
+      payload = section_blast_radius(
+          path=args.path, corpus=args.corpus, query=args.query, ...
+      )
+      return ToolResult(payload=payload, exit_code=0)
+  ```
+  Никакого envelope import, никакого JSON print.
 
 - [ ] Tests `tests/test_hybrid_section_blast.py`:
   - test: оба слоя выполнены — graph и semantic поля присутствуют

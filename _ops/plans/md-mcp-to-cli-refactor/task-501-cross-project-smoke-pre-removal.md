@@ -30,10 +30,35 @@ Anchored in: `_ops/PROJECT-ROADMAP.md#md-mcp-to-cli-refactor`
 
 ## Подшаги
 
-- [ ] **Pre-flight check**:
+- [ ] **Convert parity tests to snapshot-based** (architectural review — moved from task-502):
+  - В `experiments/md-embedding-server/tests/test_*_mcp_parity.py` — заменить «запустить live MCP» на «load golden JSON fixtures from `tests/golden/mcp-responses/`»
+  - Golden fixtures были созданы в task-000 + task-106
+  - Tests становятся pure snapshot tests; не require living MCP
+  - Run `uv run pytest tests/test_*_mcp_parity.py -v` → all green БЕЗ Node MCP standing by
+  - Это **prerequisite** для smoke и deletion — без snapshot conversion parity tests сломаются после task-502 deletion
+
+- [ ] **Pre-flight check (architectural review — clean install test, не editable)**:
+  - **Clean install test** (NOT editable repo install):
+    ```bash
+    TEMP_HOME=$(mktemp -d)
+    cd /tmp  # cwd outside repo
+    HOME="$TEMP_HOME" uv tool install /Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server --force
+    HOME="$TEMP_HOME" PATH="$TEMP_HOME/.local/bin:$PATH" md ping --json
+    HOME="$TEMP_HOME" PATH="$TEMP_HOME/.local/bin:$PATH" md status . --json
+    HOME="$TEMP_HOME" PATH="$TEMP_HOME/.local/bin:$PATH" md tools --json
+    HOME="$TEMP_HOME" PATH="$TEMP_HOME/.local/bin:$PATH" md selftest --json
+    ```
+  - Это catches missing dependencies в pyproject (которые editable mode не ловит)
+  - Это catches PATH issues (binary actually installed правильно)
+  - Это catches cwd-relative assumptions (CLI работает вне repo)
+  - **All 4 commands должны быть зелёные** перед continue
+  - Cleanup: `rm -rf "$TEMP_HOME"`
+
+- [ ] **Standard pre-flight**:
   - `md selftest --json | jq '.summary'` → all OK (или audit-skip)
   - `md doctor` → no FAIL
   - `md --version` → 0.7.0
+  - All parity tests (`tests/test_*_mcp_parity.py`) — already snapshot-based (from task-201/202/203), passing without live MCP
 
 - [ ] **Claude smoke в agentic-research repo**:
   - Запустить fresh Claude session в `/Users/triton/Documents/GitHub/agentic-research/`

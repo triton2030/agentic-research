@@ -24,11 +24,10 @@ Anchored in: `_ops/PROJECT-ROADMAP.md#md-mcp-to-cli-refactor`
   - `git tag | grep pre-mcp-refactor-2026-05-22` → exists
   - Если нет — abort, создать tag и потом продолжить
 
-- [ ] **Convert parity tests to snapshot-based** (audit fix Implementation #7 + Smith #5):
-  - В `experiments/md-embedding-server/tests/test_*_mcp_parity.py` — заменить «запустить live MCP» на «load golden JSON fixtures from `tests/golden/mcp-responses/`»
-  - Golden fixtures были созданы в task-000 как pre-deletion snapshots
-  - Tests становятся pure snapshot tests, не require living MCP
-  - Verify все tests зелёные после conversion
+- [ ] **Verify parity tests already snapshot-based** (conversion moved to task-501):
+  - `cat tests/test_*_mcp_parity.py | grep -E "subprocess|live"` → 0 hits (no live MCP)
+  - `uv run pytest tests/test_*_mcp_parity.py -v` → all green
+  - Если что-то всё ещё references live MCP → task-501 не закрыт правильно; вернуться
 
 - [ ] **Удалить директорию**:
   - `git rm -rf experiments/md-embedding-server/mcp/`

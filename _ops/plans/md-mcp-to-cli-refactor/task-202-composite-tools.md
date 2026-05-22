@@ -1,7 +1,7 @@
-# Composite tools: md_orient, md_edit_context, md_refactor_candidates, md_query_by_type
+# Composite tools: 4 handlers (workflows уже в navigator/workflows/)
 
 ## Цель
-Реализовать 4 composite tools. Каждый — composition нескольких navigator/graph library calls. Critical: composite live в **отдельном** `src/md_cli/composites/` namespace (S1 раunhinged: «conceptual integrity composite-vs-atomic»).
+Реализовать **4 thin CLI handlers** для composite tools (md_orient, md_edit_context, md_refactor_candidates, md_query_by_type). Workflow logic уже implemented в `src/navigator/workflows/` из task-202a. Здесь — только handlers (Layer 3), которые вызывают workflow functions и возвращают ToolResult.
 
 Anchored in: `_ops/PROJECT-ROADMAP.md#md-mcp-to-cli-refactor`
 
@@ -9,10 +9,11 @@ Anchored in: `_ops/PROJECT-ROADMAP.md#md-mcp-to-cli-refactor`
 - `AGENTS.md` (root)
 
 ## Зависимости
-- task-201 закрыт (atomic handlers готовы)
-- task-202a закрыт (navigator public API exposed)
-- task-102 закрыт (envelope)
-- task-104 закрыт (catalog)
+- task-202a закрыт (navigator/workflows/* функции готовы)
+- task-101 закрыт (runner + ToolResult)
+- task-104 закрыт (catalog с workflow_function references)
+- task-106 закрыт (architecture lock — handlers без envelope/print)
+- task-201 параллельно (не блокирует — handlers independent)
 
 ## Navigator public API — закрыто в **task-202a**
 
@@ -28,48 +29,62 @@ Anchored in: `_ops/PROJECT-ROADMAP.md#md-mcp-to-cli-refactor`
 
 ## Подшаги
 
-- [ ] Создать `src/md_cli/composites/__init__.py` пустой.
+## Architectural position
 
-- [ ] Реализовать `src/md_cli/composites/orient.py` (md_orient):
-  - Composition: navigator.status + navigator.map (with link counts) + navigator.importance (top N)
-  - Compact mode: top=3, max_heading_level=1, slim status fields, files limited to path+description (~80% token reduction)
-  - Full mode: status + files (с link counts) + importance + `next` hint string
-  - Все 3 internal calls идут через library API directly (не subprocess), thus shared cache, fast
-  - Returns dict с keys `{workflow: "md_orient", corpus, status, files, importance, next}`
+Workflows (`src/navigator/workflows/`) — implemented in task-202a (Layer 2). Здесь — только thin CLI handlers (Layer 3). Никаких реализаций workflow logic в `md_cli/`. Layer 4 (runner) делает envelope.
 
-- [ ] Реализовать `src/md_cli/composites/edit_context.py` (md_edit_context):
-  - Modes: preview / full / strict
-  - Composition: graph.preflight + navigator.read_related (+ optional navigator.search if mode=full + query)
-  - Strict: returns только blockers (preflight projected)
-  - Preview: short related (token_budget=1200)
-  - Full: long related (token_budget=6000) + optional search
-  - graphBlockers() helper — портировать из composite-tools.js (set BLOCKER_CODES, compute has_blockers)
+## Подшаги
 
-- [ ] Реализовать `src/md_cli/composites/refactor_candidates.py` (md_refactor_candidates):
-  - Single call to navigator.refactor_candidates() with flags
-  - Compact mode: top 3 only, minimal evidence (drop heading_chain/confidence in проprietary), `compact: true` flag в response
-  - Sentinel field `no_automation: true` — never auto-applies
+- [ ] **Verify** что 4 workflow functions готовы в task-202a:
+  - `from navigator.workflows import orient, edit_context, refactor_candidates, query_by_type` — все importable
+  - Если что-то отсутствует — task-202a не закрыт, не продолжать
 
-- [ ] Реализовать `src/md_cli/composites/query_by_type.py` (md_query_by_type):
-  - Single call to navigator.query_by_type() with types array
-  - Compact mode: limit≤10, drop heading_chain/confidence
-  - Validate types argument (one of allowed enum values)
-
-- [ ] Handler shape `src/md_cli/handlers/md_orient.py`:
-  ```python
-  from md_cli.composites.orient import run_orient
-  from md_cli.envelope import wrap
+- [ ] **Workflow logic specifics** (документация для верификации task-202a — если detail отсутствует, return в task-202a):
   
-  def run(args) -> int:
-      result = run_orient(corpus=args.corpus, top=args.top, ...)
-      print(json.dumps(wrap(result, tool_name="md_orient", args=vars(args))))
-      return 0
-  ```
+  **navigator.workflows.orient** (md_orient):
+  - Composition: navigator.status + navigator.ls/map + navigator.importance
+  - Compact mode: top=3, max_heading_level=1, slim status, ~80% token reduction
+  - Returns: `{workflow: "md_orient", corpus, status, files, importance, next}`
+  
+  **navigator.workflows.edit_context** (md_edit_context):
+  - Composition: navigator.preflight + navigator.read_related (+ optional navigator.search if mode=full + query)
+  - Modes: preview / full / strict
+  - graphBlockers() helper — portировать BLOCKER_CODES set
+  
+  **navigator.workflows.refactor_candidates** (md_refactor_candidates):
+  - Wraps navigator.refactor_candidates with compact mode logic
+  - Sentinel `no_automation: true`
+  
+  **navigator.workflows.query_by_type** (md_query_by_type):
+  - Wraps navigator.query_by_type with compact + filter
+  - Validates types argument
 
-- [ ] **Архитектурное правило в `composites/__init__.py`**:
-  - Composites import ONLY navigator (library), never друг друга
-  - Composites не import md_cli.handlers
-  - Это запретит accidental coupling через 6 месяцев
+- [ ] Handler shape `src/md_cli/handlers/md_orient.py` (ToolResult pattern, NO envelope import, NO JSON print):
+  ```python
+  from md_cli.result import ToolResult
+  from navigator.workflows import orient
+  
+  TOOL_NAME = "md_orient"
+  
+  def add_argparse(subparser):
+      ...
+  
+  def run(args) -> ToolResult:
+      payload = orient(
+          corpus=args.corpus, 
+          top=args.top, 
+          max_heading_level=args.max_heading_level,
+          compact=args.compact,
+      )
+      return ToolResult(payload=payload, exit_code=0)
+  ```
+  Runner делает envelope + JSON + exit.
+
+- [ ] **Архитектурное правило в `navigator/workflows/__init__.py`**:
+  - Workflows import ONLY navigator atomic (library), never друг друга
+  - Workflows НЕ import `md_cli.*` (one-way dependency: md_cli depends on navigator, не наоборот)
+  - Workflows возвращают dict, не печатают JSON, не делают envelope
+  - Это enforced через `tests/test_architecture_invariants.py`
 
 - [ ] Tests `tests/test_composite_tools.py`:
   - test: md_orient compact vs full — payload size diff ~80%
@@ -82,11 +97,12 @@ Anchored in: `_ops/PROJECT-ROADMAP.md#md-mcp-to-cli-refactor`
   - Для всех 4 composites — diff CLI vs MCP output (ignoring volatile envelope fields)
 
 ## Готово
-- [ ] `src/md_cli/composites/{orient,edit_context,refactor_candidates,query_by_type}.py` существуют
-- [ ] `src/md_cli/handlers/{md_orient,md_edit_context,md_refactor_candidates,md_query_by_type}.py` существуют
-- [ ] `tests/test_composite_tools.py` — 5+ tests зелёные
-- [ ] `tests/test_composite_mcp_parity.py` — 4/4 matches
-- [ ] Composite module dependency rule следуется (нет cross-composite imports)
+- [ ] `src/navigator/workflows/{orient,edit_context,refactor_candidates,query_by_type}.py` существуют (Layer 2)
+- [ ] `src/md_cli/handlers/{md_orient,md_edit_context,md_refactor_candidates,md_query_by_type}.py` существуют (Layer 3, thin wrappers)
+- [ ] Каждый handler ≤30 LOC, возвращает ToolResult, не импортирует envelope
+- [ ] `tests/test_workflow_orient.py`, ... — 5+ tests зелёные per workflow
+- [ ] `tests/test_composite_mcp_parity.py` (snapshot-based) — 4/4 matches
+- [ ] Architecture invariants: workflows не импортируют md_cli, handlers не импортируют envelope
 
 ## Красные линии
 - [ ] Не вызывать composite из atomic handlers (anti-pattern).
@@ -98,4 +114,5 @@ Anchored in: `_ops/PROJECT-ROADMAP.md#md-mcp-to-cli-refactor`
 2. `md edit-context --path /tmp/file.md --mode strict --json | jq '.blockers'` → есть
 3. `md refactor-candidates --corpus /tmp/test-corpus --json | jq '.no_automation'` → true
 4. `cd experiments/md-embedding-server && uv run pytest tests/test_composite_tools.py tests/test_composite_mcp_parity.py -v` → all green
-5. `grep -r "from md_cli.composites" src/md_cli/composites/` — empty (no cross-composite imports)
+5. `grep -r "from md_cli\|import md_cli" src/navigator/workflows/` → 0 (workflows не depend на md_cli — architecture boundary test)
+6. `find src/md_cli/composites src/md_cli/hybrid 2>/dev/null` → не существуют (workflows только в navigator/workflows/)

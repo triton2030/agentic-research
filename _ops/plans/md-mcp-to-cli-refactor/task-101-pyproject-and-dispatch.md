@@ -13,29 +13,98 @@ Anchored in: `_ops/PROJECT-ROADMAP.md#md-mcp-to-cli-refactor`
 - task-001 закрыт (canonical signatures зафиксированы — нужен для argparse skeleton)
 - task-002 закрыт (framework verdict — argparse vs Typer vs catalog-driven — определён)
 
-## Architectural anchor (code locality)
+## Architectural anchor (code locality + 4-layer)
 
-**Весь код живёт в `experiments/md-embedding-server/`**. Skill folders НЕ получают никаких scripts/Python files. Это invariant: tool — stable, skills — disposable. Пользователь должен иметь возможность удалять/переименовывать skills без поломки CLI.
+**Весь код живёт в `experiments/md-embedding-server/`**. Skill folders НЕ получают никаких scripts/Python files. Это invariant: tool — stable, skills — disposable.
+
+**4-layer architecture** (после architectural review — fundamental):
+
+```
+src/
+├── navigator/                       # LAYER 1 + 2
+│   ├── __init__.py                  # exports 24 atomic functions
+│   ├── {status,search,map,...}.py   # 24 atomic library functions
+│   └── workflows/                   # LAYER 2
+│       ├── __init__.py              # exports 5 workflow functions
+│       ├── orient.py
+│       ├── edit_context.py
+│       ├── refactor_candidates.py
+│       ├── query_by_type.py
+│       └── section_blast_radius.py
+└── md_cli/                          # LAYER 3 + 4
+    ├── __init__.py
+    ├── main.py                      # entry point
+    ├── runner.py                    # LAYER 4: central envelope runner
+    ├── result.py                    # ToolResult dataclass
+    ├── envelope.py                  # envelope.wrap() — called by runner only
+    ├── catalog.py                   # contract map for all 29 tools
+    └── handlers/                    # LAYER 3
+        └── md_<name>.py             # 29 thin handlers, return ToolResult
+```
+
+**Ownership rules**:
+- Handlers (`md_cli/handlers/*`) — only parse args, call library/workflow function, return ToolResult. NEVER print JSON, NEVER import envelope.
+- Runner (`md_cli/runner.py`) — single point of JSON serialization + envelope wrapping + exit.
+- Workflows (`navigator/workflows/*`) — agent-facing composition logic. Import only navigator atomic, не md_cli.
+- Library (`navigator/*.py`) — pure logic. No IO except file/HTTP. No envelope.
 
 ## Подшаги
 
-- [ ] Решить layout. Рекомендуется:
+- [ ] Зафиксировать layout (см. секцию «Architectural anchor» выше):
   ```
   experiments/md-embedding-server/
-  ├── pyproject.toml                  # NEW
+  ├── pyproject.toml
   ├── src/
-  │   ├── navigator/                  # moved from scripts/navigator/
-  │   └── md_cli/                     # NEW
+  │   ├── navigator/
+  │   │   ├── __init__.py             # exports 24 atomic functions
+  │   │   ├── <atomic-modules>.py     # 24 atomic library functions
+  │   │   └── workflows/              # 5 workflow functions
+  │   └── md_cli/
   │       ├── __init__.py
-  │       ├── __main__.py             # entry point
-  │       ├── main.py                 # argparse + lazy dispatch
-  │       └── handlers/               # one module per subcommand (lazy import)
+  │       ├── __main__.py
+  │       ├── main.py                 # entry point
+  │       ├── runner.py               # central envelope runner
+  │       ├── result.py               # ToolResult dataclass
+  │       ├── envelope.py             # called by runner only
+  │       ├── catalog.py              # contract map
+  │       └── handlers/               # 29 thin handlers
   ├── scripts/
   │   ├── md_navigator.py             # kept temporarily для backward use в Phase 1
   │   ├── md_graph.py                 # kept temporarily
-  │   └── sync-skill-docs.py
+  │   ├── sync-skill-docs.py
+  │   └── extract-mcp-usages.py       # task-003
   └── tests/
   ```
+
+- [ ] Реализовать `src/md_cli/result.py`:
+  ```python
+  from dataclasses import dataclass
+  from typing import Any
+  
+  @dataclass
+  class ToolResult:
+      payload: dict | None  # tool-specific JSON payload (без envelope)
+      exit_code: int = 0    # 0=ok, 1=empty, 2=path, 3=dep, 4=warmup
+  ```
+
+- [ ] Реализовать `src/md_cli/runner.py` — central envelope ownership:
+  ```python
+  def run_tool(tool_name: str, handler_run, args) -> int:
+      """
+      Single point of JSON serialization + envelope wrapping + exit.
+      Called by main.py after argparse dispatch + handler import.
+      """
+      result: ToolResult = handler_run(args)
+      envelope_result = envelope.wrap(
+          result.payload, 
+          tool_name=tool_name, 
+          args=vars(args)
+      )
+      print(json.dumps(envelope_result))
+      return result.exit_code
+  ```
+
+- [ ] Handlers НИКОГДА не импортируют `envelope` напрямую. Только runner. Это enforced через grep test в `tests/test_architecture_invariants.py`.
 
 - [ ] Написать `pyproject.toml`:
   - `[project]` name = `md-tools`, version = `0.7.0` (bump from MCP's 0.6.1)
@@ -92,6 +161,8 @@ Anchored in: `_ops/PROJECT-ROADMAP.md#md-mcp-to-cli-refactor`
 - [ ] Не реализовывать ни одного tool handler в этой задаче. Только skeleton.
 - [ ] Не удалять старые `scripts/md_navigator.py` / `md_graph.py` — нужны для Phase 1/2 backward operations.
 - [ ] Не модифицировать `navigator/` внутренности — только переместить и поправить imports.
+- [ ] **Handlers не печатают JSON, не импортируют envelope.** Runner владеет этим. Enforce через `tests/test_architecture_invariants.py`: `grep "print(json" src/md_cli/handlers/` → 0; `grep "from md_cli.envelope" src/md_cli/handlers/` → 0.
+- [ ] Workflows не импортируют `md_cli.*`. Только `navigator.*`. Enforce: `grep "from md_cli" src/navigator/workflows/` → 0.
 
 ## Проверка
 1. `cd experiments/md-embedding-server && uv tool install --editable .`

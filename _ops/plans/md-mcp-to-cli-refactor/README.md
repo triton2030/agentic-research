@@ -54,20 +54,21 @@
 ### Phase 1 — CLI foundation
 | Task | Что закрывает |
 |---|---|
-| `task-101-pyproject-and-dispatch.md` | pyproject, entry `md`, lazy dispatch, `--help` без heavy imports, PEP 723 shebang preservation |
-| `task-102-envelope-module.md` | `envelope.py` — single wrap point; atomic write для cost ledger; Codex session_id fallback chain |
+| `task-101-pyproject-and-dispatch.md` | pyproject, entry `md`, lazy dispatch, runner + ToolResult, PEP 723 shebang preservation |
+| `task-102-envelope-module.md` | `envelope.py` — runner-owned single wrap point; atomic write для cost ledger |
 | `task-103-transactions-module.md` | Stateless fingerprint + intent-binding; TTL race fix |
-| `task-104-tool-catalog.md` | `md tools --json` discovery; size budget; Codex agent default_prompt mention |
-| `task-105-selftest-and-doctor.md` | In-process selftest (не 29×subprocess); `md doctor` |
+| `task-104-tool-catalog.md` | `catalog.py` — contract map для 29 tools (library_function/workflow_function references) |
+| `task-105-selftest-and-doctor.md` | In-process selftest; `md doctor` |
+| `task-106-architecture-lock.md` | NEW (architectural review): GATE — frozen mcp-tool-snapshot.json + boundary/transaction/lazy-import tests перед Phase 2 |
 
-### Phase 2 — Tool migration
+### Phase 2 — Tool migration (REORDERED: 202a первым)
 | Task | Что закрывает |
 |---|---|
-| `task-201-atomic-tools-navigator-graph.md` | 22 navigator + 8 graph atomic; parity tests против golden fixtures (не live MCP) |
-| `task-202a-navigator-public-api-refactor.md` | NEW (audit cycle-2 G7): expose importable Python functions в navigator/__init__.py для composites |
-| `task-202-composite-tools.md` | 4 composite; fail-fast semantics |
-| `task-203-hybrid-tool.md` | 1 hybrid; section-blast-radius parallel |
-| `task-204-mutating-guards.md` | dry-run/confirm/fingerprint; Codex sandbox-mode проверка для mutating |
+| `task-202a-navigator-public-api-refactor.md` | **ПЕРВЫМ**: implement 24 atomic + 5 workflow functions в navigator/. Без этого handlers оборачивают cmd_*. |
+| `task-201-atomic-tools-navigator-graph.md` | 16 navigator + 8 graph atomic handlers (24 total, **не 30**); parity tests против golden fixtures |
+| `task-202-composite-tools.md` | 4 composite handlers (thin wrappers над navigator.workflows.*) |
+| `task-203-hybrid-tool.md` | 1 hybrid handler (thin wrapper над navigator.workflows.section_blast_radius) |
+| `task-204-mutating-guards.md` | 4 mutating handlers (md_init/md_strip/md_index/md_profile_sections) с dry-run/confirm/fingerprint |
 
 ### Phase 3 — Skills migration (большое расширение)
 | Task | Что закрывает |
@@ -106,6 +107,45 @@
 ## Архив
 
 `_archive/` существует. После каждой завершённой task — переезд в `_archive/YYYY-MM-DD-<task-slug>/` capsule.
+
+## Architecture (4-layer, после architectural review)
+
+```
+LAYER 1 — Library functions (pure, importable)
+  src/navigator/{status,search,map,...}.py
+  → 24 atomic functions: typed args in, dict out, no IO кроме file/HTTP, no envelope
+  → navigator/__init__.py exports all 24 в __all__
+
+LAYER 2 — Workflow functions (agent-facing, importable)
+  src/navigator/workflows/{orient,edit_context,refactor_candidates,query_by_type,section_blast_radius}.py
+  → 5 workflows: композируют library functions
+  → import only from navigator (atomic), не из md_cli, не друг из друга
+  → returns dict, не печатает JSON, не строит envelope
+
+LAYER 3 — CLI commands (thin handlers)
+  src/md_cli/handlers/{md_<name>}.py
+  → 29 handlers (24 atomic + 5 workflow)
+  → каждый ≤30 LOC; argparse parsing + call library OR workflow function
+  → returns dataclass ToolResult(payload: dict, exit_code: int)
+  → NEVER prints JSON, NEVER imports envelope module
+
+LAYER 4 — Central runner (single point envelope ownership)
+  src/md_cli/main.py + src/md_cli/runner.py
+  → argparse dispatch
+  → calls handler.run(args) → ToolResult
+  → wraps ToolResult.payload в envelope.wrap()
+  → serializes к JSON, prints to stdout
+  → exits with ToolResult.exit_code
+```
+
+**Почему**: handler-печатает-JSON распределяет envelope creation по 29 файлам → drift; composite в `md_cli/composites/` смешивает agent-logic с CLI mechanics → coupling; navigator без public API forces handlers parse stdout from old CLI → not a real refactor.
+
+**Tool count contract** (точная сверка с MCP `listTools`):
+- 24 atomic = 16 navigator (md_audit, md_corpus_scan, md_extract, md_importance, md_index, md_init, md_ls, md_overlaps, md_ping, md_profile_sections, md_read_related, md_repeated_concepts, md_search, md_status, md_strip, md_toc) + 8 graph (md_changed, md_check, md_cycles, md_deps, md_health, md_impact, md_preflight, md_scan)
+- 5 workflow = 4 composite (md_orient, md_edit_context, md_refactor_candidates, md_query_by_type) + 1 hybrid (md_section_blast_radius)
+- **Total: 29** — соответствует `TOOL_ANNOTATION_ALLOWLIST` в `mcp/src/server.js`
+
+Note: предыдущая версия плана говорила «22 navigator + 8 graph = 30» — **ошибка** (реально 16+8=24). Также `md_ping` defined inline в `server.js` line ~141, не в `tools/*.js` — этот tool нужно явно включить в catalog.
 
 ## Code locality (architectural anchor)
 
@@ -155,3 +195,14 @@
 - task-304 1skill-architect — recursive blast warning + tmpdir testing pattern
 
 **Total task count: 23** (was 18 → 22 → 23 after cycle-2 task-202a split).
+
+## Architectural corrections round (после cycle-2 audit + user review)
+
+User дал architectural-level feedback который пропустили все 3 audit агента (они смотрели «как написано», а не «куда положить ответственность»). 6 правок:
+
+1. **Contract map как single source of truth** — `src/md_cli/catalog.py` (task-104) расширен: для каждого из 29 tools поля `library_function` или `workflow_function`, `handler_module`, `category` (atomic/workflow), `tests_module`. Без этого drift между «29 tools / 30 atomic handlers / 30+ subcommands» начнётся в первый же день.
+2. **4-layer architecture** (см. выше) — workflow layer между library и CLI; central runner владеет envelope; handlers тонкие (`ToolResult` pattern).
+3. **Navigator full public API** — task-202a требует **24 atomic functions** (полное покрытие), не «минимум 10». Все atomic capabilities имеют typed signature.
+4. **Workflow layer в `navigator/workflows/`** — не в `md_cli/composites/`. Композиции — это agent-facing logic, importable, reusable за пределами CLI (например, hook scripts могут импортировать `navigator.workflows.orient`).
+5. **md_profile_sections — cost-bearing** — добавлен в task-204 рядом с md_init/md_strip/md_index (lazy LLM profiling stoит реальных $).
+6. **Deletion gate clean install** — task-501 enhanced: `uv tool install . --force` в temp HOME, cwd вне repo, потом `md ping/status/tools/selftest --json`. Тест на installed package, не editable repo (catches missing deps в pyproject).

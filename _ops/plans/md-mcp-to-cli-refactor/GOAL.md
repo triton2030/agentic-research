@@ -43,6 +43,14 @@ Outcome-first execution contract под `GPT-5.5` и `Claude Opus 4.7`. Само
 
 ## Constraints (invariants)
 
+0. **4-layer architecture** (NEW — architectural review):
+   - Layer 1: 24 atomic library functions в `src/navigator/*.py`, importable
+   - Layer 2: 5 workflow functions в `src/navigator/workflows/*.py`, importable, compose atomic
+   - Layer 3: 29 thin handlers в `src/md_cli/handlers/*.py`, return `ToolResult(payload, exit_code)`, NO JSON printing, NO envelope imports
+   - Layer 4: central runner в `src/md_cli/runner.py` — single point JSON serialization + envelope wrapping + exit
+   - One-way dependency: `md_cli` imports `navigator`. NEVER reverse.
+   - Enforced через `tests/test_architecture_invariants.py`
+
 1. **Code locality**. Весь executable код живёт только в `experiments/md-embedding-server/`. Skill folders (`~/.claude/skills/**`, `~/.codex/skills/**`) — pure declarative. Whitelist для skill folders: `SKILL.md`, `references/*.md`, `agents/openai.yaml`, `assets/*.{png,jpg,svg,gif}`. Любой другой файл — нарушение.
 
 2. **Cross-platform symmetry**. Claude и Codex skills синхронны (за исключением AGENTS.md правила: Codex не правит Claude surfaces и наоборот). Любой intentional drift документируется в evidence file.
@@ -63,9 +71,14 @@ Outcome-first execution contract под `GPT-5.5` и `Claude Opus 4.7`. Само
 |---|---|---|
 | Big-bang без MCP wrapper-моста | User explicit | Cross-project blast принят явно |
 | Python (не Rust/Go) | 3-агентский audit cycle-1 | Pymorphy + NetworkX one-way door; русский lemmatizer без аналогов |
-| Library/CLI split | 3-агентский audit cycle-1 | Conceptual integrity; navigator/ остаётся reusable |
+| 4-layer architecture (library / workflow / handler / runner) | Architectural review | Без workflow layer composite logic смешается с CLI; без central runner envelope drift по 29 файлам |
+| Workflows в `navigator/workflows/`, не `md_cli/composites/` | Architectural review | Workflows — agent-facing logic, importable за пределы CLI |
+| ToolResult dataclass pattern | Architectural review | Handlers thin (≤30 LOC), envelope owned by runner |
+| catalog.py как single source of truth для 29 tools | Architectural review | Каждый tool: cli_name + category + library_function/workflow_function + handler_module + tests_module |
+| Tool count: 24 atomic + 5 workflow = 29 (не «22+8=30») | Architectural review | Точная сверка с MCP `TOOL_ANNOTATION_ALLOWLIST` |
+| `md_profile_sections` тоже cost-bearing (с md_init/md_strip/md_index) | Architectural review | LLM profiling stoит ~$0.0005/section |
 | `uv tool install` distribution | Audit | Установил-раз-работает; isolated venv |
-| Phase 5: smoke (501) до deletion (502) | Audit cycle-1 Smith G9 | Reversibility window |
+| Phase 5: smoke (501) до deletion (502) + clean install test | Audit cycle-1 Smith G9 + arch review | Reversibility + catches pyproject deps issues |
 | task-305 primary target = SKILL.md, не `agents/openai.yaml` | Audit cycle-2 Codex G1 | Real grep показал refs только в SKILL.md |
 | task-202a (navigator public API) — отдельный task до task-202 | Audit cycle-2 Implementation G7 | Hidden balloon разделён |
 | CLI subcommands kebab-case (`md read-related`) | Audit cycle-2 Implementation G1 | Соответствует existing `md_navigator.py` + Unix CLI |
@@ -82,11 +95,11 @@ Outcome-first execution contract под `GPT-5.5` и `Claude Opus 4.7`. Само
 Phase 0 — Preflight (4 tasks, ~1 день)
   task-000 → task-001 → task-002 → task-003
 
-Phase 1 — CLI foundation (5 tasks, ~2 дня)
-  task-101 → {task-102, task-103, task-104, task-105 — parallel}
+Phase 1 — CLI foundation + architecture lock (6 tasks)
+  task-101 → {task-102, task-103, task-104, task-105 — parallel} → task-106 (GATE)
 
-Phase 2 — Tool migration (5 tasks, ~2-3 дня)
-  task-201 → task-202a → task-202 → {task-203, task-204 — parallel}
+Phase 2 — Tool migration (5 tasks, ordered)
+  task-202a (FIRST: public navigator/* API) → {task-201, task-202, task-203 — parallel after 202a} → task-204
 
 Phase 3 — Skills migration (5 tasks, ~1 день)
   task-303 wait for task-104
@@ -117,21 +130,26 @@ Phase X не closed, пока gate не зелёный.
 - `docs/skills-semantic-equivalence.md` — 13 секций; `_ops/findings/YYYY-MM-DD-equivalence-doc-review.md` с verdict от `1fresh-eyes` (task-003)
 - git tag `pre-mcp-refactor-2026-05-22` создан
 
-### Gate 1 → 2
+### Gate 1 → 2 (architecture lock — task-106 — GATE)
 - `md --version` → "0.7.0"
-- `md --help` показывает 29 subcommands без heavy imports
+- `md --help` показывает 29 subcommands без heavy imports (lazy imports verified)
 - `md tools --json | jq '.tools | length'` → 29
 - `md selftest --json | jq '.summary'` → pass (28/29 OK + 1 audit skip)
 - `md doctor` без FAIL
 - `tests/test_envelope_golden.py` зелёный
+- **`tests/test_catalog_contract.py` зелёный** (catalog matches frozen snapshot, 29 entries)
+- **`tests/test_architecture_boundaries.py` зелёный** (handlers без envelope/print/sys.exit; workflows без md_cli; runner единственный envelope owner; library без md_cli)
+- **`tests/test_transactions_adversarial.py` зелёный** (8 scenarios: args mismatch, double confirm, concurrent, corrupt txn, etc.)
+- **`tests/test_lazy_imports.py` зелёный** (6 scenarios: --help paths без heavy deps)
+- `tests/golden/mcp-tool-snapshot.json` существует (frozen, 29 entries)
 
 ### Gate 2 → 3
-- `tests/test_atomic_handlers.py` — 30/30 зелёные
-- `tests/test_mcp_cli_parity.py` (snapshot-based) — 30/30 матчей
+- `tests/test_atomic_handlers.py` — 24/24 зелёные
+- `tests/test_mcp_cli_parity.py` (snapshot-based) — 24/24 матчей (atomic). Composite/hybrid parity тесты — отдельно (5/5)
 - `tests/test_composite_tools.py` + `tests/test_composite_mcp_parity.py` — 4/4 матчей
 - `tests/test_hybrid_section_blast.py` зелёный
 - `tests/test_mutating_handlers.py` — 12+ test cases зелёные
-- Все 30+ CLI subcommands работают через `md <tool> <args>`
+- Все 29 CLI subcommands работают через `md <tool> <args>` (24 atomic + 5 workflow)
 
 ### Gate 3 → 4
 - `grep -rE "md_[a-z_]+\(\{" ~/.claude/skills/ ~/.codex/skills/` → 0 matches
