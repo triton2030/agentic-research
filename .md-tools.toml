@@ -1,0 +1,16 @@
+# Per-project baseline filters for md-tools (md status / md search / md
+# audit / md changed / md health / ...). CLI --path-include /
+# --path-exclude APPEND onto these. Built-in skip (.git, .md-navigator,
+# _archive, runs, node_modules, ...) is non-configurable.
+
+[index]
+# Hook transcript analytics from ~/.claude/hooks/user-prompt-all-messages.py.
+# High-volume prose, no canonical knowledge — drown owner-truth signals in
+# `md search` / `md repeated-concepts` / `md audit`.
+exclude = ["experiments/all-my-messages/*"]
+
+[graph]
+# Same: transcript logs are not part of the documentation graph; including
+# them in `md health` / `md changed` / `md scan` only inflates broken-link
+# and missing-frontmatter findings.
+exclude = ["experiments/all-my-messages/*"]
