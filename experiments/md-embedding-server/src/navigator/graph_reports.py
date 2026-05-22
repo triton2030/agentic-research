@@ -546,4 +546,16 @@ def changed_markdown_paths(root: Path, args: argparse.Namespace) -> list[Path]:
         path = (root / line.strip()).resolve()
         if path.suffix.lower() == ".md":
             paths.append(path)
-    return paths
+    # Apply the same filter contract as load_docs/iter_markdown so
+    # --path-include / --path-exclude / --no-default-excludes (and the
+    # .md-tools.toml baseline appended into them via navigator.api.changed)
+    # actually narrow the report set. Without this, git diff alone decided
+    # the report scope and the flags silently no-op'd.
+    from .graph_core import _path_passes
+    include = list(getattr(args, "path_include", []) or [])
+    exclude = list(getattr(args, "path_exclude", []) or [])
+    use_defaults = not getattr(args, "no_default_excludes", False)
+    return [
+        p for p in paths
+        if _path_passes(p, root, include, exclude, use_defaults)
+    ]
