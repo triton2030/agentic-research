@@ -27,6 +27,9 @@ Owner: `1folder-contract`. Single source of truth о связях папок. Ro
   (он думает + пишет; thinking не делегируется в `1strategy`).
 - `_ops/PROJECT-ROADMAP.md` depends-on `_ops/GOAL.md` — текущая рамка
   работает внутри контракта.
+- `_ops/self-learning/lessons.md` depends-on живой
+  `/Users/triton/.codex/skills/1self-learning/SKILL.md` — формат, лимит и
+  граница с `1findings` / `1user-said` живут в скилле.
 - `_ops/plans/**/task-*.md` depends-on `_ops/PROJECT-ROADMAP.md` +
   релевантные `AGENTS.md` (root + subtree).
 - `experiments/claude-bridge/` depends-on `~/.codex/skills/claude-mcp/`
@@ -40,6 +43,9 @@ Owner: `1folder-contract`. Single source of truth о связях папок. Ro
   embedding backend).
 - `experiments/flowpage-v4-elk/` depends-on локальный
   `experiments/flowpage-v4-elk/AGENTS.md`.
+- `experiments/all-my-messages/*.md` depends-on
+  `/Users/triton/.codex/hooks/user_prompt_all_messages.py` — global per-project
+  prompt analytics logs, не `1user-said` и не source of truth для решений.
 
 ## Темы (related-when — retrieval hint)
 
@@ -68,6 +74,8 @@ Owner: `1folder-contract`. Single source of truth о связях папок. Ro
   раздел про `interviews/`.
 - «важная цитата пользователя» → `1user-said` capture в
   `_ops/user-said/YYYY-MM-DD.md`.
+- «самообучение / модель промахнулась / skill или tool сработал не так» →
+  `1self-learning` и `_ops/self-learning/lessons.md`.
 
 ## Veto-class
 
@@ -78,12 +86,15 @@ Owner: `1folder-contract`. Single source of truth о связях папок. Ro
 
 - `~/.claude/skills/**` — правка задевает все Claude-проекты.
   **Note (post-P7 refactor 2026-05-21)**: skills `1md-navigator` и `1md-graph`
-  теперь pure `SKILL.md` (no `scripts/` folder). Backend живёт в
-  `experiments/md-embedding-server/scripts/navigator/`, MCP — единственный мост.
+  теперь pure `SKILL.md` (no `scripts/` folder).
+  **Note (post-MCP refactor 2026-05-22)**: MCP server удалён; skills
+  используют Python CLI `md`. Backend живёт в
+  `experiments/md-embedding-server/src/navigator/`, CLI — единственная точка
+  вызова.
 - `~/.codex/skills/**` — то же, post-refactor. Skills `1md-navigator` и
   `1md-graph` — pure `SKILL.md`.
 - `~/.claude/CLAUDE.md` — user's private global instruction file.
 - `~/.claude/settings.json` — глобальные hooks / permissions / MCP.
 
 Эти поверхности живут вне репо, но видны отсюда как зависимости при работе
-с `experiments/**` (где MCP server реально живёт параллельно глобальным handle).
+с `experiments/**`, где repo-local backend обслуживает глобальные handles.

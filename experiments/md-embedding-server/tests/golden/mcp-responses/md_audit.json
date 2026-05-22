@@ -1,0 +1,136 @@
+{
+  "tool": "md_audit",
+  "canonical_args": {
+    "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents",
+    "top": 3,
+    "threshold": 0.88
+  },
+  "is_error": false,
+  "payload": {
+    "root": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents",
+    "health": 90,
+    "severity_counts": {
+      "critical": 0,
+      "warning": 2,
+      "info": 1
+    },
+    "thresholds": {
+      "smear": 0.85,
+      "drift_cohesion": 0.65,
+      "drift_inter": 0.4,
+      "template_jaccard": 0.7,
+      "heading_diversity": 0.85,
+      "min_files_in_family": 3,
+      "discovery_gap_warn": 0.25,
+      "discovery_gap_crit": 0.5,
+      "min_sections_per_file": 5,
+      "cluster_k": 8
+    },
+    "stats": {
+      "files_indexed": 5,
+      "sections_indexed": 17,
+      "embeddings_cached": 17,
+      "embeddings_computed": 0
+    },
+    "engine": {
+      "embed_model": "baai/bge-m3",
+      "embedding_api_url": "https://openrouter.ai/api/v1"
+    },
+    "findings": [
+      {
+        "class": "template_family",
+        "severity": "warning",
+        "label": "'проверено' heading shared by 5 files",
+        "evidence": {
+          "shared_heading": "проверено",
+          "file_count": 5,
+          "files": [
+            "evaluation.md",
+            "memory.md",
+            "multi-agent.md",
+            "runtime-layer.md",
+            "tool-design.md"
+          ]
+        },
+        "next_step": "`1ia-audit` — confirm template-by-design or split into function-specific owners"
+      },
+      {
+        "class": "template_family",
+        "severity": "warning",
+        "label": "'опоры' heading shared by 5 files",
+        "evidence": {
+          "shared_heading": "опоры",
+          "file_count": 5,
+          "files": [
+            "evaluation.md",
+            "memory.md",
+            "multi-agent.md",
+            "runtime-layer.md",
+            "tool-design.md"
+          ]
+        },
+        "next_step": "`1ia-audit` — confirm template-by-design or split into function-specific owners"
+      },
+      {
+        "class": "intra_file_drift",
+        "severity": "info",
+        "label": "1 file(s) — headings lexically distant (could be designed structure)",
+        "evidence": {
+          "drift_count": 1,
+          "files": [
+            {
+              "relative_path": "runtime-layer.md",
+              "section_count": 4,
+              "sources": [
+                "heading_lex"
+              ],
+              "heading_diversity": 1,
+              "headings_sample": [
+                "проверено",
+                "ground before action",
+                "рабочие гипотезы",
+                "опоры"
+              ]
+            }
+          ]
+        },
+        "next_step": "`1ia-audit` — split file along topic groups, or confirm template-by-design"
+      }
+    ],
+    "_envelope": {
+      "version": 1,
+      "tool": "md_audit",
+      "corpus_root": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents",
+      "corpus_state": {
+        "state": "HEALTHY",
+        "model": "baai/bge-m3",
+        "index_exists": true,
+        "last_touched": "__VOLATILE__",
+        "added_sections": 5,
+        "removed_sections": 0,
+        "pending_chunks": 5,
+        "drift_count": 0,
+        "metadata_mismatch": false,
+        "delta_too_large": false,
+        "recommended_action": {
+          "tool": "md_index",
+          "args": {
+            "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents",
+            "confirm": true
+          },
+          "reason": "Optional eager warmup; search will auto-embed the small delta otherwise."
+        }
+      },
+      "lock": null,
+      "cost": {
+        "turn_usd": "__VOLATILE__",
+        "session_usd": "__VOLATILE__"
+      },
+      "size_estimate": {
+        "bytes": 1681,
+        "items_returned": 0
+      },
+      "next_step": []
+    }
+  }
+}

@@ -1,0 +1,242 @@
+{
+  "tool": "md_query_by_type",
+  "canonical_args": {
+    "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+    "types": [
+      "definition",
+      "rule"
+    ],
+    "limit": 5
+  },
+  "is_error": false,
+  "payload": {
+    "types": [
+      "definition",
+      "rule"
+    ],
+    "path_include": [],
+    "path_exclude": [],
+    "sections": [
+      {
+        "section_id": "1.1",
+        "relative_path": "agents/evaluation.md",
+        "start_line": 5,
+        "heading_text": "Agents — Evaluation",
+        "heading_chain": "Agents — Evaluation",
+        "profile": {
+          "type": "rule",
+          "subject": "Principles for evaluating agent behavior and correctness",
+          "owns_terms": [
+            "agent evaluation",
+            "acceptance criteria",
+            "testable in isolation",
+            "agent audit",
+            "self-eval"
+          ],
+          "mentions": [
+            "evidence",
+            "trajectory",
+            "runtime guarantees",
+            "memory effectiveness",
+            "formatting constraints",
+            "semantic constraints",
+            "tool constraints",
+            "judge-channel",
+            "deterministic checks",
+            "rubric review"
+          ],
+          "evidence_sources": [
+            "wisdom-agents.md",
+            "runtime-layer.md",
+            "memory.md",
+            "https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices",
+            "/knowledge/practical-guides/how-to-write-skills/"
+          ],
+          "confidence": 0.92,
+          "version": "section-profile-2026-05-21",
+          "model": "anthropic/claude-haiku-4.5",
+          "method": "llm"
+        }
+      },
+      {
+        "section_id": "1.2",
+        "relative_path": "agents/evaluation.md",
+        "start_line": 13,
+        "heading_text": "Проверено",
+        "heading_chain": "Agents — Evaluation > Проверено",
+        "profile": {
+          "type": "rule",
+          "subject": "Verification and evaluation practices for agent behavior and outputs",
+          "owns_terms": [
+            "acceptance criteria",
+            "testable in isolation",
+            "agent audit",
+            "self-eval",
+            "manual prototype"
+          ],
+          "mentions": [
+            "agent",
+            "hypothesis",
+            "evidence",
+            "observable",
+            "deterministic checks",
+            "rubric review",
+            "security review",
+            "judge",
+            "self-enhancement bias",
+            "automation"
+          ],
+          "evidence_sources": [],
+          "confidence": 0.82,
+          "version": "section-profile-2026-05-21",
+          "model": "anthropic/claude-haiku-4.5",
+          "method": "llm"
+        }
+      },
+      {
+        "section_id": "2.1",
+        "relative_path": "agents/memory.md",
+        "start_line": 5,
+        "heading_text": "Agents — Memory & Learnings",
+        "heading_chain": "Agents — Memory & Learnings",
+        "profile": {
+          "type": "rule",
+          "subject": "Agent memory design: forgetting, learnings capture, and self-learning loops",
+          "owns_terms": [
+            "eviction policy",
+            "useful recall",
+            "quality gate",
+            "self-learning criteria layer",
+            "read-before capture-after periodic-prune"
+          ],
+          "mentions": [
+            "agent memory",
+            "learnings",
+            "user corrections",
+            "retention",
+            "runtime guarantees",
+            "evaluation",
+            "context engineering"
+          ],
+          "evidence_sources": [
+            "wisdom-agents.md",
+            "runtime-layer.md",
+            "evaluation.md",
+            "/knowledge/guides/perfect-context-engineering.md"
+          ],
+          "confidence": 0.92,
+          "version": "section-profile-2026-05-21",
+          "model": "anthropic/claude-haiku-4.5",
+          "method": "llm"
+        }
+      },
+      {
+        "section_id": "2.2",
+        "relative_path": "agents/memory.md",
+        "start_line": 13,
+        "heading_text": "Проверено",
+        "heading_chain": "Agents — Memory & Learnings > Проверено",
+        "profile": {
+          "type": "rule",
+          "subject": "Agent memory design principles: eviction, user corrections, and learning gates",
+          "owns_terms": [
+            "eviction policy",
+            "quality gate",
+            "self-learning criteria layer",
+            "read-before",
+            "capture-after"
+          ],
+          "mentions": [
+            "agent memory",
+            "retention",
+            "recall",
+            "user corrections",
+            "learnings",
+            "observation",
+            "context"
+          ],
+          "evidence_sources": [],
+          "confidence": 0.92,
+          "version": "section-profile-2026-05-21",
+          "model": "anthropic/claude-haiku-4.5",
+          "method": "llm"
+        }
+      },
+      {
+        "section_id": "3.2",
+        "relative_path": "agents/multi-agent.md",
+        "start_line": 13,
+        "heading_text": "Проверено",
+        "heading_chain": "Agents — Multi-agent Systems > Проверено",
+        "profile": {
+          "type": "rule",
+          "subject": "Verified patterns and anti-patterns for multi-agent system design",
+          "owns_terms": [
+            "forward_message-паттерн",
+            "sycophantic consensus",
+            "supervisor bottleneck"
+          ],
+          "mentions": [
+            "multi-agent",
+            "worker-agents",
+            "supervisor",
+            "llm-agents",
+            "adversarial role",
+            "parallel agents",
+            "consensus",
+            "fan-out policy"
+          ],
+          "evidence_sources": [
+            "knowledge/wisdom-gpt-5.5.md",
+            "knowledge/wisdom-claude-opus-4.7.md"
+          ],
+          "confidence": 0.85,
+          "version": "section-profile-2026-05-21",
+          "model": "anthropic/claude-haiku-4.5",
+          "method": "llm"
+        }
+      }
+    ],
+    "_envelope": {
+      "version": 1,
+      "tool": "md_query_by_type",
+      "corpus_root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+      "corpus_state": {
+        "state": "HEALTHY",
+        "model": "openai/text-embedding-3-small",
+        "index_exists": true,
+        "last_touched": "__VOLATILE__",
+        "added_sections": 1,
+        "removed_sections": 1,
+        "pending_chunks": 1,
+        "drift_count": 0,
+        "metadata_mismatch": false,
+        "delta_too_large": false,
+        "recommended_action": {
+          "tool": "md_index",
+          "args": {
+            "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+            "confirm": true
+          },
+          "reason": "Optional eager warmup; search will auto-embed the small delta otherwise."
+        }
+      },
+      "lock": null,
+      "cost": {
+        "turn_usd": "__VOLATILE__",
+        "session_usd": "__VOLATILE__"
+      },
+      "size_estimate": {
+        "bytes": 3712,
+        "items_returned": 5,
+        "counted_fields": [
+          {
+            "field": "sections",
+            "count": 5
+          }
+        ]
+      },
+      "next_step": []
+    }
+  }
+}

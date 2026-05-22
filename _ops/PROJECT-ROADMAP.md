@@ -16,10 +16,8 @@
 
 ## Текущие активные фронты
 
-**md-mcp-to-cli-refactor** (`_ops/plans/md-mcp-to-cli-refactor/`):
-- Big-bang рефактор: убрать MCP server (~2228 LOC JS), заменить единым Python CLI `md` с library/CLI split. 17 task-файлов по 6 фазам: preflight → CLI foundation → tool migration → skills migration → repo migration → removal & closeout. Без backward-compat моста; cross-project blast принят явно.
-
 **Archived 2026-05-22**:
+- `md-mcp-to-cli-refactor` — Refactor complete: Node MCP removed, 29 tools mapped to Python CLI `md`, library/CLI split (`navigator/` + `md_cli/`), envelope golden tests, stateless transactions, and Claude/Codex skills migrated. См. `_ops/findings/2026-05-22-mcp-refactor-closeout.md`.
 - `knowledge-description-cleanup` — descoped по запросу пользователя при смене активного фронта на md-mcp-to-cli-refactor.
 
 **Archived 2026-05-21**:

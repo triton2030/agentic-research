@@ -1,0 +1,100 @@
+{
+  "tool": "md_importance",
+  "canonical_args": {
+    "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+    "top": 5
+  },
+  "is_error": false,
+  "payload": {
+    "root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+    "sort_by": "pagerank",
+    "files": [
+      {
+        "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/examples/anthropic-design-generator/takeaways.md",
+        "relative_path": "examples/anthropic-design-generator/takeaways.md",
+        "description": "",
+        "in_degree": 2,
+        "out_degree": 0,
+        "pagerank": 0.066832,
+        "centrality": 0.055556
+      },
+      {
+        "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/research/dev/code-aware-tooling-2026-q2.md",
+        "relative_path": "research/dev/code-aware-tooling-2026-q2.md",
+        "description": "",
+        "in_degree": 1,
+        "out_degree": 0,
+        "pagerank": 0.045792,
+        "centrality": 0.027778
+      },
+      {
+        "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/practical-guides/how-to-write-skills/checklist.md",
+        "relative_path": "practical-guides/how-to-write-skills/checklist.md",
+        "description": "Короткий Go/No-Go checklist перед созданием или правкой skill.",
+        "in_degree": 1,
+        "out_degree": 0,
+        "pagerank": 0.034103,
+        "centrality": 0.027778
+      },
+      {
+        "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/practical-guides/how-to-write-skills/authoring-canon.md",
+        "relative_path": "practical-guides/how-to-write-skills/authoring-canon.md",
+        "description": "Короткий практический канон: когда писать skill, как держать scope, description, body и проверку по риску.",
+        "in_degree": 1,
+        "out_degree": 0,
+        "pagerank": 0.029428,
+        "centrality": 0.027778
+      },
+      {
+        "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/practical-guides/how-to-write-skills/research-2026-mar-may.md",
+        "relative_path": "practical-guides/how-to-write-skills/research-2026-mar-may.md",
+        "description": "Source-backed выводы из официальных docs и исследований марта-мая 2026 о skill authoring.",
+        "in_degree": 1,
+        "out_degree": 0,
+        "pagerank": 0.029428,
+        "centrality": 0.027778
+      }
+    ],
+    "_envelope": {
+      "version": 1,
+      "tool": "md_importance",
+      "corpus_root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+      "corpus_state": {
+        "state": "HEALTHY",
+        "model": "openai/text-embedding-3-small",
+        "index_exists": true,
+        "last_touched": "__VOLATILE__",
+        "added_sections": 1,
+        "removed_sections": 1,
+        "pending_chunks": 1,
+        "drift_count": 0,
+        "metadata_mismatch": false,
+        "delta_too_large": false,
+        "recommended_action": {
+          "tool": "md_index",
+          "args": {
+            "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+            "confirm": true
+          },
+          "reason": "Optional eager warmup; search will auto-embed the small delta otherwise."
+        }
+      },
+      "lock": null,
+      "cost": {
+        "turn_usd": "__VOLATILE__",
+        "session_usd": "__VOLATILE__"
+      },
+      "size_estimate": {
+        "bytes": 1867,
+        "items_returned": 5,
+        "counted_fields": [
+          {
+            "field": "files",
+            "count": 5
+          }
+        ]
+      },
+      "next_step": []
+    }
+  }
+}

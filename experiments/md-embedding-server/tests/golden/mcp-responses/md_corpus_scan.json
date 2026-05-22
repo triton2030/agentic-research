@@ -1,0 +1,76 @@
+{
+  "tool": "md_corpus_scan",
+  "canonical_args": {
+    "root": "/Users/triton/Documents/GitHub/agentic-research"
+  },
+  "is_error": false,
+  "payload": {
+    "repo_root": "/Users/triton/Documents/GitHub/agentic-research",
+    "corpora": [
+      {
+        "root": "/Users/triton/Documents/GitHub/agentic-research",
+        "index_path": "/Users/triton/Documents/GitHub/agentic-research/.md-navigator/index.sqlite",
+        "last_touched": "__VOLATILE__",
+        "index_size_bytes": 21520384
+      },
+      {
+        "root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+        "index_path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/.md-navigator/index.sqlite",
+        "last_touched": "__VOLATILE__",
+        "index_size_bytes": 9621504
+      },
+      {
+        "root": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents",
+        "index_path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/.md-navigator/index.sqlite",
+        "last_touched": "__VOLATILE__",
+        "index_size_bytes": 4468736
+      }
+    ],
+    "unindexed_with_md": [],
+    "excluded_dirs_skipped": [
+      ".cache",
+      ".claude",
+      ".codex",
+      ".git",
+      ".github",
+      ".md-navigator",
+      ".mypy_cache",
+      ".next",
+      ".nuxt",
+      ".pytest_cache",
+      ".ruff_cache",
+      ".venv",
+      "__pycache__",
+      "_archive",
+      "build",
+      "dist",
+      "node_modules",
+      "out",
+      "runs",
+      "target",
+      "venv"
+    ],
+    "_envelope": {
+      "version": 1,
+      "tool": "md_corpus_scan",
+      "corpus_root": null,
+      "corpus_state": null,
+      "lock": null,
+      "cost": {
+        "turn_usd": "__VOLATILE__",
+        "session_usd": "__VOLATILE__"
+      },
+      "size_estimate": {
+        "bytes": 1046,
+        "items_returned": 3,
+        "counted_fields": [
+          {
+            "field": "corpora",
+            "count": 3
+          }
+        ]
+      },
+      "next_step": []
+    }
+  }
+}

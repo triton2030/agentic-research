@@ -1,0 +1,89 @@
+{
+  "tool": "md_scan",
+  "canonical_args": {
+    "paths": [
+      "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents"
+    ]
+  },
+  "is_error": false,
+  "payload": {
+    "command": "scan",
+    "targets": 5,
+    "issues": [
+      {
+        "code": "MISSING_GRAPH_FIELD",
+        "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/evaluation.md",
+        "detail": "read-before-edit"
+      },
+      {
+        "code": "MISSING_GRAPH_FIELD",
+        "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/evaluation.md",
+        "detail": "edit-after-edit"
+      },
+      {
+        "code": "MISSING_GRAPH_FIELD",
+        "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/memory.md",
+        "detail": "read-before-edit"
+      },
+      {
+        "code": "MISSING_GRAPH_FIELD",
+        "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/memory.md",
+        "detail": "edit-after-edit"
+      },
+      {
+        "code": "MISSING_GRAPH_FIELD",
+        "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/multi-agent.md",
+        "detail": "read-before-edit"
+      },
+      {
+        "code": "MISSING_GRAPH_FIELD",
+        "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/multi-agent.md",
+        "detail": "edit-after-edit"
+      },
+      {
+        "code": "MISSING_GRAPH_FIELD",
+        "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/runtime-layer.md",
+        "detail": "read-before-edit"
+      },
+      {
+        "code": "MISSING_GRAPH_FIELD",
+        "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/runtime-layer.md",
+        "detail": "edit-after-edit"
+      },
+      {
+        "code": "MISSING_GRAPH_FIELD",
+        "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/tool-design.md",
+        "detail": "read-before-edit"
+      },
+      {
+        "code": "MISSING_GRAPH_FIELD",
+        "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/tool-design.md",
+        "detail": "edit-after-edit"
+      }
+    ],
+    "has_blockers": true,
+    "self_repair": "Blockers found (missing target / broken link / cycle / missing frontmatter). Resolve via md_preflight self_repair hints or read 1md-graph SKILL.md Default Workflow.",
+    "_envelope": {
+      "version": 1,
+      "tool": "md_scan",
+      "corpus_root": null,
+      "corpus_state": null,
+      "lock": null,
+      "cost": {
+        "turn_usd": "__VOLATILE__",
+        "session_usd": "__VOLATILE__"
+      },
+      "size_estimate": {
+        "bytes": 1709,
+        "items_returned": 10,
+        "counted_fields": [
+          {
+            "field": "issues",
+            "count": 10
+          }
+        ]
+      },
+      "next_step": []
+    }
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "tool": "md_preflight",
+  "canonical_args": {
+    "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/evaluation.md",
+    "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
+  },
+  "is_error": false,
+  "payload": {
+    "command": "preflight",
+    "depth": 2,
+    "file": {
+      "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/evaluation.md",
+      "description": "Оценка агента — trajectory eval, observable acceptance criteria, multi-channel audit, cross-family judge и manual prototype first.",
+      "has_frontmatter": true
+    },
+    "related_reading_command": "uv run --script /Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server/scripts/md_navigator.py read-related /Users/triton/Documents/GitHub/agentic-research/knowledge/agents/evaluation.md --scan /Users/triton/Documents/GitHub/agentic-research/knowledge --token-budget 3000",
+    "must_read": [],
+    "must_update": [],
+    "update_cascade": [],
+    "reverse_holders": [],
+    "check_only_references": {
+      "reverse_edit_after_edit": [],
+      "reverse_read_before_edit": [],
+      "body_wikilinks": [],
+      "body_markdown_links": []
+    },
+    "check_only": [
+      {
+        "code": "MISSING_GRAPH_FIELD",
+        "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/evaluation.md",
+        "detail": "read-before-edit"
+      },
+      {
+        "code": "MISSING_GRAPH_FIELD",
+        "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/evaluation.md",
+        "detail": "edit-after-edit"
+      }
+    ],
+    "cycles": [],
+    "anchor_drift_risk": {},
+    "deferred": [
+      "Semantic completeness is not machine-proven; classify candidate edges in the owning skill.",
+      "No edit-after-edit edges declared; treat this as a positive claim only after semantic audit."
+    ],
+    "has_blockers": false,
+    "_envelope": {
+      "version": 1,
+      "tool": "md_preflight",
+      "corpus_root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+      "corpus_state": {
+        "state": "HEALTHY",
+        "model": "openai/text-embedding-3-small",
+        "index_exists": true,
+        "last_touched": "__VOLATILE__",
+        "added_sections": 1,
+        "removed_sections": 1,
+        "pending_chunks": 1,
+        "drift_count": 0,
+        "metadata_mismatch": false,
+        "delta_too_large": false,
+        "recommended_action": {
+          "tool": "md_index",
+          "args": {
+            "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+            "confirm": true
+          },
+          "reason": "Optional eager warmup; search will auto-embed the small delta otherwise."
+        }
+      },
+      "lock": null,
+      "cost": {
+        "turn_usd": "__VOLATILE__",
+        "session_usd": "__VOLATILE__"
+      },
+      "size_estimate": {
+        "bytes": 1393,
+        "items_returned": 0
+      },
+      "next_step": []
+    }
+  }
+}

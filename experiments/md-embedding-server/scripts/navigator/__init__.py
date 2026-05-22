@@ -1,1 +1,0 @@
-"""Markdown navigator backend package."""

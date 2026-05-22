@@ -1,0 +1,408 @@
+platform,skill,path,line_number,tool,invocation_pattern
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,28,md_navigator,Бэкенд живёт в `experiments/md-embedding-server/scripts/md_navigator.py`
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,43,md_index,"Инструменты, меняющие файлы (`md_index`, `md_init`, `md_strip`,"
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,43,md_init,"Инструменты, меняющие файлы (`md_index`, `md_init`, `md_strip`,"
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,43,md_strip,"Инструменты, меняющие файлы (`md_index`, `md_init`, `md_strip`,"
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,44,md_profile_sections,"`md_profile_sections`), поставляются через MCP с защитой `dry_run` +"
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,52,md_orient,md_orient({ corpus })
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,53,md_corpus_scan,md_corpus_scan({ root })
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,53,md_orient,md_corpus_scan({ root })
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,56,md_audit,**Если нужно глубже**: смысловое здоровье → `md_audit` (медленно). Выбери важный файл → `md_read_related` для соседнего контекста.
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,56,md_read_related,**Если нужно глубже**: смысловое здоровье → `md_audit` (медленно). Выбери важный файл → `md_read_related` для соседнего контекста.
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,62,md_search,"md_search({ corpus, query })"
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,64,md_extract,"md_extract({ map_data, headings, extract: true })"
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,70,md_read_related,"md_read_related({ paths: [file], scan, mode: ""preview"" })"
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,72,md_search,"**Если нужно глубже**: `mode: ""full""`. Semantic radius через `md_search` от текста секции."
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,73,md_edit_context,**Не путать с**: pre-edit context с graph obligations → `md_edit_context` (живёт в `1md-graph`).
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,78,md_audit,md_audit({ corpus })
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,80,md_overlaps,"**Если нужно глубже**: точечные проверки — `md_overlaps` (section pairs), `md_repeated_concepts` (concept-level clustering, главный owner-truth signal)."
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,80,md_repeated_concepts,"**Если нужно глубже**: точечные проверки — `md_overlaps` (section pairs), `md_repeated_concepts` (concept-level clustering, главный owner-truth signal)."
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,81,md_health,**Не путать с**: shape verdict (split/merge/owner-truth) → `1ia-audit`. Graph health (cycles/coverage) → `md_health` в `1md-graph`.
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,86,md_refactor_candidates,"md_refactor_candidates({ corpus, top })"
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,93,md_query_by_type,"md_query_by_type({ corpus, types })"
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,95,md_extract,**Если нужно глубже**: `md_extract` для extracted bodies или `md_search` для уточнения темы.
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,95,md_search,**Если нужно глубже**: `md_extract` для extracted bodies или `md_search` для уточнения темы.
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,100,md_overlaps,"- **Overlaps pairs = кандидаты, не verdicts.** `md_overlaps` поднимает пары секций с высоким cosine; classification (FULL_DUPLICATE / SEMANTIC_SMEAR / TEMPLATE_EFFECT) routes к `1ia-audit`."
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,115,md_search,"`md_search` может принимать arg `rerank` (cross-encoder через OpenRouter, ~$0.001/search, ~300-700ms latency). Используй его, когда:"
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,132,md_search,"- **`md_search` — default для natural-language questions.** Пробуй его даже когда кажется, что хватит `rg`; semantic ranking поднимает релевантные секции, которые `rg` пропускает. Используй `rg` (через `1cli-tools`) только для **точных строк, regex, code symbols, stale refs, link checks** — когда буквально знаешь нужные символы."
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,135,md_search,- Открывай один очевидный Markdown-файл напрямую **только** когда знаешь точный path; иначе начинай с `md_search` даже на маленьких corpora.
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,139,md_orient,"- `cat file.md`, чтобы понять, что в corpus — используй `md_orient` или `md_search`."
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,139,md_search,"- `cat file.md`, чтобы понять, что в corpus — используй `md_orient` или `md_search`."
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,140,md_search,"- Читать 5 файлов по одному, чтобы найти «where is X» — используй `md_search ""X""`."
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,141,md_search,- Выбирать файл по path heuristics — используй `md_search scope=descriptions`.
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,142,md_overlaps,- Верить одной cosine pair из `md_overlaps` как proof — pairs are candidates.
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,143,md_ls,- `ls` + manual `head` frontmatter для inventory folder — используй `md_ls` или `md_orient`.
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,143,md_orient,- `ls` + manual `head` frontmatter для inventory folder — используй `md_ls` или `md_orient`.
+claude,1md-navigator,/Users/triton/.claude/skills/1md-navigator/SKILL.md,150,md_navigator,experiments/md-embedding-server/scripts/md_navigator.py --help
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,27,md_check,"Сначала смысловой навык, потом механика: `md_scan`, `md_check`, `md_cycles`,"
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,27,md_cycles,"Сначала смысловой навык, потом механика: `md_scan`, `md_check`, `md_cycles`,"
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,27,md_scan,"Сначала смысловой навык, потом механика: `md_scan`, `md_check`, `md_cycles`,"
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,28,md_health,"`md_health` доказывают форму и валидность ссылок, не смысловую полноту. Script"
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,39,md_init,"Инструменты, меняющие файлы (`md_init`, `md_strip`), поставляются через MCP с"
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,39,md_strip,"Инструменты, меняющие файлы (`md_init`, `md_strip`), поставляются через MCP с"
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,47,md_edit_context,"md_edit_context({ path, mode: ""preview"" })"
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,49,md_search,"**Если нужно глубже**: для расширения semantic radius (contract-like content, empty cascade claim) — `md_section_blast_radius` или `md_search` через `1md-navigator`."
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,49,md_section_blast_radius,"**Если нужно глубже**: для расширения semantic radius (contract-like content, empty cascade claim) — `md_section_blast_radius` или `md_search` через `1md-navigator`."
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,50,md_read_related,**Не путать с**: semantic neighborhood без graph slice → `md_read_related` (живёт в `1md-navigator`).
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,55,md_preflight,"md_preflight({ path, depth })"
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,57,md_check,**Если нужно глубже**: forward+reverse edges → `md_deps`; полный check → `md_check` для wikilinks/anchors.
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,57,md_deps,**Если нужно глубже**: forward+reverse edges → `md_deps`; полный check → `md_check` для wikilinks/anchors.
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,58,md_edit_context,**Не путать с**: combined context — `md_edit_context`.
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,63,md_impact,md_impact({ path })
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,65,md_deps,md_deps({ depth: N })
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,71,md_section_blast_radius,"md_section_blast_radius({ path, corpus, query })"
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,74,md_impact,**Не путать с**: file-level rename → W5a (`md_impact`).
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,79,md_health,"**Главный tool**: `md_health` — rollup (description coverage, hubs, orphans, cycles, broken links)."
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,82,md_cycles,"- `md_cycles` — edit-after-edit loops (always a bug, Tarjan SCC)."
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,83,md_check,- `md_check` — wikilink/anchor/markdown-link validation.
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,84,md_scan,- `md_scan` — frontmatter form issues (missing / legacy / unknown / malformed).
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,85,md_changed,- `md_changed` — preflight on every `.md` git diff touched (`base` / `staged`).
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,90,md_init,**Главный tool**: `md_init` (add template) или `md_strip` (remove legacy + optional related-docs section).
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,90,md_strip,**Главный tool**: `md_init` (add template) или `md_strip` (remove legacy + optional related-docs section).
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,101,md_preflight,"- `anchor-drift risk` — headings edited file с inbound body wikilinks; rename silently breaks them. Surfaced только `md_preflight`. Signal, not blocker."
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,105,md_changed,**Не суммируй `md_preflight` / `md_changed` как `safe-to-edit: yes/no`.** Граф не может гарантировать смысловую безопасность; он показывает obligations.
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,105,md_preflight,**Не суммируй `md_preflight` / `md_changed` как `safe-to-edit: yes/no`.** Граф не может гарантировать смысловую безопасность; он показывает obligations.
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,127,md_deps,"- Reverse edge («who has me in their `edit-after-edit`») вычисляется во время runtime через `md_deps`, не хранится."
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,129,md_strip,"Removed legacy fields: `owner`, `parents`, `children`, `siblings`, `status`, `source_of_truth`, `updated_at`, `depends_on`. Используй `md_strip` для чистки. Decorative `## Связанные документы` / `## Related documents` section also removed by `md_strip` with `also_related_section`."
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,142,md_deps,"Treat `md_deps`, `md_impact`, `md_preflight` as evidence of recorded graph, **not proof that no edge is missing**. Empty reverse edges не доказывают semantic completeness — search likely neighbors, когда body names a rule with downstream effects, then decide."
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,142,md_impact,"Treat `md_deps`, `md_impact`, `md_preflight` as evidence of recorded graph, **not proof that no edge is missing**. Empty reverse edges не доказывают semantic completeness — search likely neighbors, когда body names a rule with downstream effects, then decide."
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,142,md_preflight,"Treat `md_deps`, `md_impact`, `md_preflight` as evidence of recorded graph, **not proof that no edge is missing**. Empty reverse edges не доказывают semantic completeness — search likely neighbors, когда body names a rule with downstream effects, then decide."
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,155,md_impact,"важные `md_preflight` / `md_impact`, delete/rename, accepted-contract edits, positive empty cascade. Его output никогда сам не создаёт edges; после чтения классифицируй candidates как `read-before-edit`, `edit-after-edit`, `prose-only` или `deferred`."
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,155,md_preflight,"важные `md_preflight` / `md_impact`, delete/rename, accepted-contract edits, positive empty cascade. Его output никогда сам не создаёт edges; после чтения классифицируй candidates как `read-before-edit`, `edit-after-edit`, `prose-only` или `deferred`."
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,157,md_impact,"**Section blast radius is hybrid.** Hard layer here (anchor wikilinks in `md_impact`/`md_preflight`, anchor-drift signal). Soft layer in `1md-navigator` (semantic neighbours via search). `md_section_blast_radius` runs both in one pass — prefer it over manual two-step."
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,157,md_preflight,"**Section blast radius is hybrid.** Hard layer here (anchor wikilinks in `md_impact`/`md_preflight`, anchor-drift signal). Soft layer in `1md-navigator` (semantic neighbours via search). `md_section_blast_radius` runs both in one pass — prefer it over manual two-step."
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,157,md_section_blast_radius,"**Section blast radius is hybrid.** Hard layer here (anchor wikilinks in `md_impact`/`md_preflight`, anchor-drift signal). Soft layer in `1md-navigator` (semantic neighbours via search). `md_section_blast_radius` runs both in one pass — prefer it over manual two-step."
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,161,md_cycles,"`md_health`, `md_impact`, `md_cycles` поднимают graph-shape evidence, которая иногда указывает за пределы graph в container-shape questions. Verdict живёт там; evidence здесь:"
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,161,md_health,"`md_health`, `md_impact`, `md_cycles` поднимают graph-shape evidence, которая иногда указывает за пределы graph в container-shape questions. Verdict живёт там; evidence здесь:"
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,161,md_impact,"`md_health`, `md_impact`, `md_cycles` поднимают graph-shape evidence, которая иногда указывает за пределы graph в container-shape questions. Verdict живёт там; evidence здесь:"
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,177,md_preflight,- UserPromptSubmit hook before substantive `Edit` / `Write` on documentation `.md` — run `md_preflight` and treat cascade as anchors.
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,178,md_preflight,"- `1planning` — when task/roadmap edit targets documentation file with downstream cascade, cite `md_preflight` output in task contract."
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,179,md_changed,"- `1instruction-layer` — when re-routing prose between `AGENTS.md` / `CLAUDE.md` / subtree, run `md_changed` after batch."
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,180,md_changed,"- `1work-review` — at closeout, run `md_changed` to verify every touched `.md` has cascade resolved or explicitly deferred."
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,189,md_graph,experiments/md-embedding-server/scripts/md_graph.py --help
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,196,md_check,"Для semantic graph audit или refactor остановись только когда у каждого changed или retained edge есть evidence-backed decision (`read-before-edit` / `edit-after-edit` / `prose-only` / `deferred`), `md_scan` / `md_check` pass для touched scope, cycles отсутствуют или явно justified, а unchecked downstream помечен как `deferred`, не молча принят как complete."
+claude,1md-graph,/Users/triton/.claude/skills/1md-graph/SKILL.md,196,md_scan,"Для semantic graph audit или refactor остановись только когда у каждого changed или retained edge есть evidence-backed decision (`read-before-edit` / `edit-after-edit` / `prose-only` / `deferred`), `md_scan` / `md_check` pass для touched scope, cycles отсутствуют или явно justified, а unchecked downstream помечен как `deferred`, не молча принят как complete."
+claude,1ia-audit,/Users/triton/.claude/skills/1ia-audit/SKILL.md,54,md_audit,md_audit({ corpus })
+claude,1ia-audit,/Users/triton/.claude/skills/1ia-audit/SKILL.md,54,md_search,md_audit({ corpus })
+claude,1ia-audit,/Users/triton/.claude/skills/1ia-audit/SKILL.md,55,md_audit,md_repeated_concepts({ corpus })
+claude,1ia-audit,/Users/triton/.claude/skills/1ia-audit/SKILL.md,55,md_overlaps,md_repeated_concepts({ corpus })
+claude,1ia-audit,/Users/triton/.claude/skills/1ia-audit/SKILL.md,55,md_repeated_concepts,md_repeated_concepts({ corpus })
+claude,1ia-audit,/Users/triton/.claude/skills/1ia-audit/SKILL.md,56,md_audit,| **Смешанные функции** (`Function split`; canon vs criteria vs example vs task в одном файле) | `md_audit` class `intra_file_drift` + `md_toc` + `md_extract` для multi-section read | Один файл бандлит разные role-of-knowledge. |
+claude,1ia-audit,/Users/triton/.claude/skills/1ia-audit/SKILL.md,56,md_extract,| **Смешанные функции** (`Function split`; canon vs criteria vs example vs task в одном файле) | `md_audit` class `intra_file_drift` + `md_toc` + `md_extract` для multi-section read | Один файл бандлит разные role-of-knowledge. |
+claude,1ia-audit,/Users/triton/.claude/skills/1ia-audit/SKILL.md,56,md_toc,| **Смешанные функции** (`Function split`; canon vs criteria vs example vs task в одном файле) | `md_audit` class `intra_file_drift` + `md_toc` + `md_extract` для multi-section read | Один файл бандлит разные role-of-knowledge. |
+claude,1ia-audit,/Users/triton/.claude/skills/1ia-audit/SKILL.md,57,md_audit,| **Плотные дубли** (`Tight duplicates`) | `md_audit` class `tight_duplicates` + `md_overlaps` точечно | Near-mirror sections в разных файлах. |
+claude,1ia-audit,/Users/triton/.claude/skills/1ia-audit/SKILL.md,57,md_overlaps,| **Плотные дубли** (`Tight duplicates`) | `md_audit` class `tight_duplicates` + `md_overlaps` точечно | Near-mirror sections в разных файлах. |
+claude,1ia-audit,/Users/triton/.claude/skills/1ia-audit/SKILL.md,58,md_audit,| **Template family / view vs truth** | `md_audit` class `template_family` | Один H2+ повторяется в N≥3 файлах — structural template без content. |
+claude,1ia-audit,/Users/triton/.claude/skills/1ia-audit/SKILL.md,59,md_audit,"| **Cluster vs folder** (Container fit, Retrieval) | `md_audit` class `cluster_folder_mismatch` | Topic cluster scattered across folder graph. |"
+claude,1ia-audit,/Users/triton/.claude/skills/1ia-audit/SKILL.md,60,md_search,"md_search({ corpus, query })"
+claude,1ia-audit,/Users/triton/.claude/skills/1ia-audit/SKILL.md,69,md_audit,**Entry probe для corpora ≥ ~30 files**: `md_audit` orchestrates overlaps +
+claude,1ia-audit,/Users/triton/.claude/skills/1ia-audit/SKILL.md,75,md_repeated_concepts,**`md_repeated_concepts` — flagship для owner truth.** Concept-graph: vertices =
+claude,1ia-audit,/Users/triton/.claude/skills/1ia-audit/SKILL.md,82,md_overlaps,"**`md_overlaps` точечно.** Pair-level evidence, когда нужен judgment по двум"
+claude,1ia-audit,/Users/triton/.claude/skills/1ia-audit/SKILL.md,86,md_search,**`md_search --scope descriptions`** как owner-detection probe. Top-1 должен
+claude,1ia-audit,/Users/triton/.claude/skills/1ia-audit/SKILL.md,91,md_audit,**`md_audit --json` → packet для `1fresh-eyes`.** Structured evidence
+claude,1ia-audit,/Users/triton/.claude/skills/1ia-audit/SKILL.md,96,md_refactor_candidates,"**`md_refactor_candidates` через `1md-navigator`** — reading list, не auto-edit."
+claude,1ia-audit,/Users/triton/.claude/skills/1ia-audit/SKILL.md,101,md_toc,Когда probe возвращает 2+ кандидатов на чтение — `md_toc` для headings index →
+claude,1ia-audit,/Users/triton/.claude/skills/1ia-audit/SKILL.md,102,md_extract,"md_extract({ extract: true, headings: [ids] })"
+claude,1ia-audit,/Users/triton/.claude/skills/1ia-audit/SKILL.md,107,md_audit,Когда `md_audit` overkill или вердикт зависит от одного angle:
+claude,1ia-audit,/Users/triton/.claude/skills/1ia-audit/SKILL.md,109,md_search,- `md_search` для retrieval-path probe или owner-detection
+claude,1ia-audit,/Users/triton/.claude/skills/1ia-audit/SKILL.md,110,md_overlaps,- `md_overlaps` для одной pair-question
+claude,1ia-audit,/Users/triton/.claude/skills/1ia-audit/SKILL.md,111,md_repeated_concepts,- `md_repeated_concepts` для owner-truth probe без overlaps overhead
+claude,1ia-audit,/Users/triton/.claude/skills/1ia-audit/SKILL.md,112,md_read_related,- `md_read_related` для linked-neighbourhood evidence
+claude,1ia-audit,/Users/triton/.claude/skills/1ia-audit/SKILL.md,113,md_importance,- `md_importance` для hub-detection (high reverse-holder count = canonical owner candidate)
+claude,1ia-audit,/Users/triton/.claude/skills/1ia-audit/SKILL.md,114,md_deps,- `md_health` / `md_impact` / `md_deps` через `1md-graph` — relation structure
+claude,1ia-audit,/Users/triton/.claude/skills/1ia-audit/SKILL.md,114,md_health,- `md_health` / `md_impact` / `md_deps` через `1md-graph` — relation structure
+claude,1ia-audit,/Users/triton/.claude/skills/1ia-audit/SKILL.md,114,md_impact,- `md_health` / `md_impact` / `md_deps` через `1md-graph` — relation structure
+claude,1instruction-layer,/Users/triton/.claude/skills/1instruction-layer/SKILL.md,50,md_overlaps,md_overlaps({ corpus })
+claude,1instruction-layer,/Users/triton/.claude/skills/1instruction-layer/SKILL.md,50,md_repeated_concepts,md_overlaps({ corpus })
+claude,1instruction-layer,/Users/triton/.claude/skills/1instruction-layer/SKILL.md,52,md_audit,**Глубже**: `md_audit` (обе проверки + кластер + заголовки в индикатор здоровья).
+claude,1instruction-layer,/Users/triton/.claude/skills/1instruction-layer/SKILL.md,58,md_search,"md_search({ corpus, query })"
+claude,1instruction-layer,/Users/triton/.claude/skills/1instruction-layer/SKILL.md,60,md_extract,**Глубже**: `md_extract` для пакета из нескольких секций.
+claude,1instruction-layer,/Users/triton/.claude/skills/1instruction-layer/SKILL.md,66,md_edit_context,"md_edit_context({ path, mode: 'preview' })"
+claude,1instruction-layer,/Users/triton/.claude/skills/1instruction-layer/SKILL.md,68,md_deps,md_deps({ depth: 2 })
+claude,1instruction-layer,/Users/triton/.claude/skills/1instruction-layer/SKILL.md,68,md_preflight,md_deps({ depth: 2 })
+claude,1instruction-layer,/Users/triton/.claude/skills/1instruction-layer/SKILL.md,74,md_section_blast_radius,"md_section_blast_radius({ path, corpus, query })"
+claude,1instruction-layer,/Users/triton/.claude/skills/1instruction-layer/SKILL.md,76,md_impact,"**Глубже**: `md_impact`, если секция уходит с переименованием файла."
+claude,1instruction-layer,/Users/triton/.claude/skills/1instruction-layer/SKILL.md,82,md_changed,md_changed({ base })
+claude,1instruction-layer,/Users/triton/.claude/skills/1instruction-layer/SKILL.md,84,md_audit,"**Глубже**: `md_check` (критично по закону Хайрама: модель пишет ссылки, не проверив); `md_audit` повторно — health не должен упасть."
+claude,1instruction-layer,/Users/triton/.claude/skills/1instruction-layer/SKILL.md,84,md_check,"**Глубже**: `md_check` (критично по закону Хайрама: модель пишет ссылки, не проверив); `md_audit` повторно — health не должен упасть."
+claude,1planning,/Users/triton/.claude/skills/1planning/SKILL.md,63,md_orient,md_orient({ corpus: '_ops' })
+claude,1planning,/Users/triton/.claude/skills/1planning/SKILL.md,65,md_ls,md_ls({ path: '_ops/plans' })
+claude,1planning,/Users/triton/.claude/skills/1planning/SKILL.md,71,md_search,"md_search({ corpus: '_ops/plans', query })"
+claude,1planning,/Users/triton/.claude/skills/1planning/SKILL.md,75,md_extract,**Глубже**: `md_extract` для пакета из нескольких секций.
+claude,1planning,/Users/triton/.claude/skills/1planning/SKILL.md,81,md_preflight,md_preflight({ path })
+claude,1planning,/Users/triton/.claude/skills/1planning/SKILL.md,82,md_edit_context,"md_edit_context({ path, mode: 'preview' })"
+claude,1planning,/Users/triton/.claude/skills/1planning/SKILL.md,85,md_deps,md_deps({ depth: 2 })
+claude,1planning,/Users/triton/.claude/skills/1planning/SKILL.md,91,md_changed,md_changed({ base })
+claude,1planning,/Users/triton/.claude/skills/1planning/SKILL.md,94,md_repeated_concepts,md_repeated_concepts({ corpus: '_ops/plans' })
+claude,1planning,/Users/triton/.claude/skills/1planning/SKILL.md,94,md_scan,md_repeated_concepts({ corpus: '_ops/plans' })
+claude,1planning,/Users/triton/.claude/skills/1planning/SKILL.md,100,md_query_by_type,"md_query_by_type({ corpus: '_ops', types: ['decision'] })"
+claude,1planning,/Users/triton/.claude/skills/1planning/SKILL.md,102,md_search,**Глубже**: `md_search` для тематического поиска.
+claude,1strategy,/Users/triton/.claude/skills/1strategy/SKILL.md,57,md_search,"md_search({ corpus: ""_ops"", query: ""<предлагаемый подход>"" })"
+claude,1strategy,/Users/triton/.claude/skills/1strategy/SKILL.md,60,md_extract,**Если нужно глубже**: `md_extract` пакет секций из топ-3 hits.
+claude,1strategy,/Users/triton/.claude/skills/1strategy/SKILL.md,61,md_search,**Не путать с**: domain prior в knowledge/ — отдельный `md_search` с другим
+claude,1strategy,/Users/triton/.claude/skills/1strategy/SKILL.md,67,md_read_related,"md_read_related({ paths: [""_ops/GOAL.md""], mode: ""preview"" })"
+claude,1strategy,/Users/triton/.claude/skills/1strategy/SKILL.md,75,md_orient,md_orient({ corpus })
+claude,1strategy,/Users/triton/.claude/skills/1strategy/SKILL.md,84,md_query_by_type,"md_query_by_type({ corpus, types: [""decision"", ""open-question""] })"
+claude,1strategy,/Users/triton/.claude/skills/1strategy/SKILL.md,90,md_search,"md_search({ query, rerank: true })"
+claude,1strategy,/Users/triton/.claude/skills/1strategy/SKILL.md,122,md_impact,"Когда approach задевает rename / move / delete конкретного `.md` — `md_impact` или `md_preflight` материализует blocker (cascade holders, anchor-drift risk) как evidence-list. One-way door check становится готовым checklist'ом."
+claude,1strategy,/Users/triton/.claude/skills/1strategy/SKILL.md,122,md_preflight,"Когда approach задевает rename / move / delete конкретного `.md` — `md_impact` или `md_preflight` материализует blocker (cascade holders, anchor-drift risk) как evidence-list. One-way door check становится готовым checklist'ом."
+claude,1strategy-docs,/Users/triton/.claude/skills/1strategy-docs/SKILL.md,,,NO_MD_REFERENCES
+claude,1folder-contract,/Users/triton/.claude/skills/1folder-contract/SKILL.md,65,md_changed,md_changed({ staged: true })
+claude,1folder-contract,/Users/triton/.claude/skills/1folder-contract/SKILL.md,75,md_search,| **Доступность цели** | GOAL#Что делаем процитирована в hook-loaded слое? | `md_search` для цитаты | Цитата не всплывает в top-1 AGENTS / CLAUDE = drift. |
+claude,1folder-contract,/Users/triton/.claude/skills/1folder-contract/SKILL.md,76,md_search,"md_search({ scope: ""descriptions"" })"
+claude,1folder-contract,/Users/triton/.claude/skills/1folder-contract/SKILL.md,77,md_search,| **Обнаруживаемость скила** | Типичный prompt → нужный скил? | `md_search` типичных пользовательских формулировок | Top-1 ≠ ожидаемый owner = description weak. |
+claude,1folder-contract,/Users/triton/.claude/skills/1folder-contract/SKILL.md,78,md_deps,"| **Читаемость папочного графа** | Синхронизирован ли центральный индекс с subtree frontmatter? | `md_repeated_concepts`, `md_deps <key-file>` (через `1md-graph`) | Концепт рядом с папкой, но не в `depends-on`/`related-when` = missing edge. |"
+claude,1folder-contract,/Users/triton/.claude/skills/1folder-contract/SKILL.md,78,md_repeated_concepts,"| **Читаемость папочного графа** | Синхронизирован ли центральный индекс с subtree frontmatter? | `md_repeated_concepts`, `md_deps <key-file>` (через `1md-graph`) | Концепт рядом с папкой, но не в `depends-on`/`related-when` = missing edge. |"
+claude,1folder-contract,/Users/triton/.claude/skills/1folder-contract/SKILL.md,79,md_overlaps,"| **Утечка владения** | Слой держит чужого owner? | `md_repeated_concepts`, `md_overlaps` | Один концепт повторяется на owner-поверхностях (AGENTS, project-graph, skills) = leak. |"
+claude,1folder-contract,/Users/triton/.claude/skills/1folder-contract/SKILL.md,79,md_repeated_concepts,"| **Утечка владения** | Слой держит чужого owner? | `md_repeated_concepts`, `md_overlaps` | Один концепт повторяется на owner-поверхностях (AGENTS, project-graph, skills) = leak. |"
+claude,1folder-contract,/Users/triton/.claude/skills/1folder-contract/SKILL.md,80,md_deps,"md_deps({ path: ""_ops/GOAL.md"", depth: N })"
+claude,1folder-contract,/Users/triton/.claude/skills/1folder-contract/SKILL.md,82,md_cycles,| **Взаимные обязательства** | Два файла размазывают один canon? | `md_cycles` | `edit-after-edit` цикл = кандидат на слияние. |
+claude,1folder-contract,/Users/triton/.claude/skills/1folder-contract/SKILL.md,83,md_health,"| **Системный baseline** (вход) | Снимок до линз | `md_health` | Description coverage %, hubs, orphans, cycles. |"
+claude,1folder-contract,/Users/triton/.claude/skills/1folder-contract/SKILL.md,84,md_changed,md_changed({ staged: true })
+claude,1folder-contract,/Users/triton/.claude/skills/1folder-contract/SKILL.md,85,md_check,| **Owner Map references valid** | Wikilinks Owner Map живые? | `md_check` | Broken wikilinks = stale pointers. |
+claude,1assumption-audit,/Users/triton/.claude/skills/1assumption-audit/SKILL.md,72,md_overlaps,"**Канал B — семантические предпосылки** (MCP `md_search` / `md_overlaps` / `md_read_related`). Применим когда предпосылка — про размытое состояние корпуса, владение смыслом, дубликаты, путь извлечения или прошлые обсуждения. Эти предпосылки `grep` пропускает по природе: они формулируются концептами, не строками."
+claude,1assumption-audit,/Users/triton/.claude/skills/1assumption-audit/SKILL.md,72,md_read_related,"**Канал B — семантические предпосылки** (MCP `md_search` / `md_overlaps` / `md_read_related`). Применим когда предпосылка — про размытое состояние корпуса, владение смыслом, дубликаты, путь извлечения или прошлые обсуждения. Эти предпосылки `grep` пропускает по природе: они формулируются концептами, не строками."
+claude,1assumption-audit,/Users/triton/.claude/skills/1assumption-audit/SKILL.md,72,md_search,"**Канал B — семантические предпосылки** (MCP `md_search` / `md_overlaps` / `md_read_related`). Применим когда предпосылка — про размытое состояние корпуса, владение смыслом, дубликаты, путь извлечения или прошлые обсуждения. Эти предпосылки `grep` пропускает по природе: они формулируются концептами, не строками."
+claude,1assumption-audit,/Users/triton/.claude/skills/1assumption-audit/SKILL.md,76,md_search,"md_search({ corpus: ""_ops"", query: ""X"", scope: ""descriptions"", limit: 3 })"
+claude,1assumption-audit,/Users/triton/.claude/skills/1assumption-audit/SKILL.md,77,md_overlaps,"md_overlaps({ corpus: folder, threshold: 0.85, top: 10 })"
+claude,1assumption-audit,/Users/triton/.claude/skills/1assumption-audit/SKILL.md,78,md_search,"md_search({ corpus, query: ""Y"", limit: 5 })"
+claude,1assumption-audit,/Users/triton/.claude/skills/1assumption-audit/SKILL.md,79,md_search,"md_search({ corpus: ""_ops/GOAL.md _ops/plans/_archive"", query: ""Z"", limit: 5 })"
+claude,1assumption-audit,/Users/triton/.claude/skills/1assumption-audit/SKILL.md,80,md_search,"md_search({ corpus: ""_ops/plans/_archive _ops/findings/_archive"", query: ""<гипотеза>"", limit: 5 })"
+claude,1assumption-audit,/Users/triton/.claude/skills/1assumption-audit/SKILL.md,81,md_search,"md_search({ corpus, query: ""T"", scope: ""descriptions"", limit: 3 })"
+claude,1assumption-audit,/Users/triton/.claude/skills/1assumption-audit/SKILL.md,83,md_navigator,"Холодный корпус — `md_navigator.py index <corpus>` один раз; без прогретого индекса канал B недоступен, помечай как `подтверждения нет` и ставь лейбл соответственно. **Канал B не подменяет A** — оба применяются по типу предпосылки."
+claude,1work-review,/Users/triton/.claude/skills/1work-review/SKILL.md,28,md_changed,md_changed({})
+claude,1work-review,/Users/triton/.claude/skills/1work-review/SKILL.md,28,md_preflight,md_changed({})
+claude,1work-review,/Users/triton/.claude/skills/1work-review/SKILL.md,32,md_check,md_preflight({ path })
+claude,1work-review,/Users/triton/.claude/skills/1work-review/SKILL.md,32,md_health,md_preflight({ path })
+claude,1work-review,/Users/triton/.claude/skills/1work-review/SKILL.md,32,md_preflight,md_preflight({ path })
+claude,1work-review,/Users/triton/.claude/skills/1work-review/SKILL.md,33,md_edit_context,**Не путать с**: pre-edit safety — `md_edit_context` живёт в `1md-graph`.
+claude,1work-review,/Users/triton/.claude/skills/1work-review/SKILL.md,38,md_search,"md_search({ corpus: ""_ops"", query: ""<тема правки>"" })"
+claude,1work-review,/Users/triton/.claude/skills/1work-review/SKILL.md,41,md_extract,**Если нужно глубже**: `md_extract` multi-section batch для full acceptance context.
+claude,1work-review,/Users/triton/.claude/skills/1work-review/SKILL.md,46,md_health,md_health({})
+claude,1work-review,/Users/triton/.claude/skills/1work-review/SKILL.md,48,md_check,"**Если нужно глубже**: atomic — `md_cycles`, `md_check`, `md_scan`."
+claude,1work-review,/Users/triton/.claude/skills/1work-review/SKILL.md,48,md_cycles,"**Если нужно глубже**: atomic — `md_cycles`, `md_check`, `md_scan`."
+claude,1work-review,/Users/triton/.claude/skills/1work-review/SKILL.md,48,md_scan,"**Если нужно глубже**: atomic — `md_cycles`, `md_check`, `md_scan`."
+claude,1work-review,/Users/triton/.claude/skills/1work-review/SKILL.md,49,md_audit,**Не путать с**: corpus health (overlaps / repeated-concepts) → `md_audit` в `1md-navigator`.
+claude,1work-review,/Users/triton/.claude/skills/1work-review/SKILL.md,54,md_impact,md_impact({ path })
+claude,1work-review,/Users/triton/.claude/skills/1work-review/SKILL.md,60,md_read_related,"md_read_related({ paths: [new_file], scan: corpus, mode: ""preview"" })"
+claude,1work-review,/Users/triton/.claude/skills/1work-review/SKILL.md,69,md_status,md_status({ corpus })
+claude,1work-review,/Users/triton/.claude/skills/1work-review/SKILL.md,70,md_index,**Читать output как**: stale → предложить `md_index` в следующей сессии (не
+claude,1skill-architect,/Users/triton/.claude/skills/1skill-architect/SKILL.md,78,md_index,"md_index({ corpus: ""~/.claude/skills"", confirm: true })"
+claude,1skill-architect,/Users/triton/.claude/skills/1skill-architect/SKILL.md,80,md_search,"md_search({ corpus: ""~/.claude/skills"","
+claude,1skill-architect,/Users/triton/.claude/skills/1skill-architect/SKILL.md,87,md_overlaps,"md_overlaps({ corpus: ""~/.claude/skills"", threshold: 0.7, top: 10 })"
+claude,1skill-architect,/Users/triton/.claude/skills/1skill-architect/SKILL.md,92,md_index,После правки переиндексируй (`md_index` again); иначе vectors stale.
+claude,1smart-simple,/Users/triton/.claude/skills/1smart-simple/SKILL.md,130,md_navigator,"md_search({ corpus, query: ""<смысл спана своими словами>"", limit: 3 })"
+claude,1smart-simple,/Users/triton/.claude/skills/1smart-simple/SKILL.md,130,md_search,"md_search({ corpus, query: ""<смысл спана своими словами>"", limit: 3 })"
+claude,1smart-simple,/Users/triton/.claude/skills/1smart-simple/SKILL.md,146,md_index,"md_index({ corpus, dry_run: true })"
+claude,1smart-simple,/Users/triton/.claude/skills/1smart-simple/SKILL.md,147,md_index,"md_index({ corpus, confirm: true })"
+claude,1smart-simple,/Users/triton/.claude/skills/1smart-simple/SKILL.md,183,md_index,"md_index({ corpus, dry_run: true })"
+claude,1smart-simple,/Users/triton/.claude/skills/1smart-simple/SKILL.md,184,md_index,"md_index({ corpus, confirm: true })"
+claude,1smart-simple,/Users/triton/.claude/skills/1smart-simple/SKILL.md,187,md_overlaps,"md_overlaps({ corpus: folder, threshold: 0.85, top: 20 })"
+claude,1smart-simple,/Users/triton/.claude/skills/1smart-simple/SKILL.md,192,md_audit,md_audit({ corpus: folder })
+claude,1smart-simple,/Users/triton/.claude/skills/1smart-simple/SKILL.md,192,md_navigator,md_audit({ corpus: folder })
+claude,1cli-tools,/Users/triton/.claude/skills/1cli-tools/SKILL.md,,,NO_MD_REFERENCES
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,28,md_navigator,Бэкенд живёт в `experiments/md-embedding-server/scripts/md_navigator.py`
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,43,md_index,"Инструменты, меняющие файлы (`md_index`, `md_init`, `md_strip`,"
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,43,md_init,"Инструменты, меняющие файлы (`md_index`, `md_init`, `md_strip`,"
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,43,md_strip,"Инструменты, меняющие файлы (`md_index`, `md_init`, `md_strip`,"
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,44,md_profile_sections,"`md_profile_sections`), поставляются через MCP с защитой `dry_run` +"
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,52,md_orient,md_orient({ corpus })
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,53,md_corpus_scan,md_corpus_scan({ root })
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,53,md_orient,md_corpus_scan({ root })
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,56,md_audit,**Если нужно глубже**: смысловое здоровье → `md_audit` (медленно). Выбери важный файл → `md_read_related` для соседнего контекста.
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,56,md_read_related,**Если нужно глубже**: смысловое здоровье → `md_audit` (медленно). Выбери важный файл → `md_read_related` для соседнего контекста.
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,62,md_search,"md_search({ corpus, query })"
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,64,md_extract,"md_extract({ map_data, headings, extract: true })"
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,70,md_read_related,"md_read_related({ paths: [file], scan, mode: ""preview"" })"
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,72,md_search,"**Если нужно глубже**: `mode: ""full""`. Semantic radius через `md_search` от текста секции."
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,73,md_edit_context,**Не путать с**: pre-edit context с graph obligations → `md_edit_context` (живёт в `$1md-graph`).
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,78,md_audit,md_audit({ corpus })
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,80,md_overlaps,"**Если нужно глубже**: точечные проверки — `md_overlaps` (section pairs), `md_repeated_concepts` (concept-level clustering, главный owner-truth signal)."
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,80,md_repeated_concepts,"**Если нужно глубже**: точечные проверки — `md_overlaps` (section pairs), `md_repeated_concepts` (concept-level clustering, главный owner-truth signal)."
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,81,md_health,**Не путать с**: shape verdict (split/merge/owner-truth) → `$1ia-audit`. Graph health (cycles/coverage) → `md_health` в `$1md-graph`.
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,86,md_refactor_candidates,"md_refactor_candidates({ corpus, top })"
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,93,md_query_by_type,"md_query_by_type({ corpus, types })"
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,95,md_extract,**Если нужно глубже**: `md_extract` для extracted bodies или `md_search` для уточнения темы.
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,95,md_search,**Если нужно глубже**: `md_extract` для extracted bodies или `md_search` для уточнения темы.
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,100,md_overlaps,"- **Overlaps pairs = кандидаты, не verdicts.** `md_overlaps` поднимает пары секций с высоким cosine; classification (FULL_DUPLICATE / SEMANTIC_SMEAR / TEMPLATE_EFFECT) routes к `$1ia-audit`."
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,115,md_search,"`md_search` может принимать arg `rerank` (cross-encoder через OpenRouter, ~$0.001/search, ~300-700ms latency). Используй его, когда:"
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,132,md_search,"- **`md_search` — default для natural-language questions.** Пробуй его даже когда кажется, что хватит `rg`; semantic ranking поднимает релевантные секции, которые `rg` пропускает. Используй `rg` (через `$1cli-tools`) только для **точных строк, regex, code symbols, stale refs, link checks** — когда буквально знаешь нужные символы."
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,135,md_search,- Открывай один очевидный Markdown-файл напрямую **только** когда знаешь точный path; иначе начинай с `md_search` даже на маленьких corpora.
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,139,md_orient,"- `cat file.md`, чтобы понять, что в corpus — используй `md_orient` или `md_search`."
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,139,md_search,"- `cat file.md`, чтобы понять, что в corpus — используй `md_orient` или `md_search`."
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,140,md_search,"- Читать 5 файлов по одному, чтобы найти «where is X» — используй `md_search ""X""`."
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,141,md_search,- Выбирать файл по path heuristics — используй `md_search scope=descriptions`.
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,142,md_overlaps,- Верить одной cosine pair из `md_overlaps` как proof — pairs are candidates.
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,143,md_ls,- `ls` + manual `head` frontmatter для inventory folder — используй `md_ls` или `md_orient`.
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,143,md_orient,- `ls` + manual `head` frontmatter для inventory folder — используй `md_ls` или `md_orient`.
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,147,md_ping,"Перед тем как полагаться на composite recipes в долгой сессии, вызови `md_ping` или проверь `listTools`."
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,149,md_corpus_scan,"- Ожидаемая свежая поверхность: `md-mcp` version `0.6.x`, 28 public tools (включая `md_corpus_scan`, добавлен в Phase 5.2 рефактора)."
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,150,md_ping,"- Если `md_ping` сообщает старую version или composites missing, у сессии stale MCP registry — перезапусти Codex."
+codex,1md-navigator,/Users/triton/.codex/skills/1md-navigator/SKILL.md,158,md_navigator,experiments/md-embedding-server/scripts/md_navigator.py --help
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,31,md_preflight,"Semantic radius — часть работы с blast radius. Для важных `md_preflight`,"
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,32,md_impact,"`md_impact`, delete/rename, пустого `edit-after-edit: []` или contract-like"
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,43,md_init,"Инструменты, меняющие файлы (`md_init`, `md_strip`), поставляются через MCP с"
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,43,md_strip,"Инструменты, меняющие файлы (`md_init`, `md_strip`), поставляются через MCP с"
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,52,md_edit_context,"md_edit_context({ path, mode: ""preview"" })"
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,54,md_search,"**Если нужно глубже**: для расширения semantic radius (contract-like content, empty cascade claim) — `md_section_blast_radius` или `md_search` через `$1md-navigator`."
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,54,md_section_blast_radius,"**Если нужно глубже**: для расширения semantic radius (contract-like content, empty cascade claim) — `md_section_blast_radius` или `md_search` через `$1md-navigator`."
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,55,md_read_related,**Не путать с**: semantic neighborhood без graph slice → `md_read_related` (живёт в `$1md-navigator`).
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,60,md_preflight,"md_preflight({ path, depth })"
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,62,md_check,**Если нужно глубже**: forward+reverse edges → `md_deps`; полный check → `md_check` для wikilinks/anchors.
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,62,md_deps,**Если нужно глубже**: forward+reverse edges → `md_deps`; полный check → `md_check` для wikilinks/anchors.
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,63,md_edit_context,**Не путать с**: combined context — `md_edit_context`.
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,68,md_impact,md_impact({ path })
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,70,md_deps,md_deps({ depth: N })
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,76,md_section_blast_radius,"md_section_blast_radius({ path, corpus, query })"
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,79,md_impact,**Не путать с**: file-level rename → W5a (`md_impact`).
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,84,md_health,"**Главный tool**: `md_health` — rollup (description coverage, hubs, orphans, cycles, broken links)."
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,87,md_cycles,"- `md_cycles` — edit-after-edit loops (always a bug, Tarjan SCC)."
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,88,md_check,- `md_check` — wikilink/anchor/markdown-link validation.
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,89,md_scan,- `md_scan` — frontmatter form issues (missing / legacy / unknown / malformed).
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,90,md_changed,- `md_changed` — preflight on every `.md` git diff touched (`base` / `staged`).
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,95,md_init,**Главный tool**: `md_init` (add template) или `md_strip` (remove legacy + optional related-docs section).
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,95,md_strip,**Главный tool**: `md_init` (add template) или `md_strip` (remove legacy + optional related-docs section).
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,106,md_preflight,"- `anchor-drift risk` — headings edited file с inbound body wikilinks; rename silently breaks them. Surfaced только `md_preflight`. Signal, not blocker."
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,110,md_changed,**Не суммируй `md_preflight` / `md_changed` как `safe-to-edit: yes/no`.** Граф не может гарантировать смысловую безопасность; он показывает obligations.
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,110,md_preflight,**Не суммируй `md_preflight` / `md_changed` как `safe-to-edit: yes/no`.** Граф не может гарантировать смысловую безопасность; он показывает obligations.
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,131,md_deps,"- Reverse edges приходят из `md_deps`; genre comes from path/instructions, not `type:`."
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,133,md_strip,"Legacy fields removed: `owner`, `parents`, `children`, `siblings`, `status`, `source_of_truth`, `updated_at`, `depends_on`. Используй `md_strip`; с `also_related_section` удаляй и decorative related-docs sections."
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,145,md_ping,Перед доверием к graph result в long-running session вызови `md_ping`.
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,147,md_graph,"- Ожидаемая свежая поверхность: `md-mcp` version `0.6.x`, repo-owned `experiments/md-embedding-server/scripts/md_graph.py`."
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,148,md_ping,"- Если `md_ping` сообщает older version или composite tools missing, у сессии stale MCP registry — перезапусти Codex."
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,153,md_impact,"- **`$1md-navigator`** — corpus navigation: folder maps, headings, section-aware search, semantic-overlap scans, related-context reading. Используй его, когда graph evidence может недопокрывать semantic radius (important `md_preflight`/`md_impact`, delete/rename, accepted-contract edits, positive empty cascade). Navigator output никогда сам не создаёт edges; после чтения классифицируй как `read-before-edit`, `edit-after-edit`, `prose-only` или `deferred`."
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,153,md_preflight,"- **`$1md-navigator`** — corpus navigation: folder maps, headings, section-aware search, semantic-overlap scans, related-context reading. Используй его, когда graph evidence может недопокрывать semantic radius (important `md_preflight`/`md_impact`, delete/rename, accepted-contract edits, positive empty cascade). Navigator output никогда сам не создаёт edges; после чтения классифицируй как `read-before-edit`, `edit-after-edit`, `prose-only` или `deferred`."
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,154,md_cycles,"- **`$1ia-audit`** — container-shape verdicts. Evidence из `md_health`/`md_impact`/`md_cycles`, указывающий за пределы graph (hub without owner → smeared owner-truth; orphan with body → unanchored content; persistent cycle → smeared truth), routes there. Возвращайся сюда для graph fix после shape decision."
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,154,md_health,"- **`$1ia-audit`** — container-shape verdicts. Evidence из `md_health`/`md_impact`/`md_cycles`, указывающий за пределы graph (hub without owner → smeared owner-truth; orphan with body → unanchored content; persistent cycle → smeared truth), routes there. Возвращайся сюда для graph fix после shape decision."
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,154,md_impact,"- **`$1ia-audit`** — container-shape verdicts. Evidence из `md_health`/`md_impact`/`md_cycles`, указывающий за пределы graph (hub without owner → smeared owner-truth; orphan with body → unanchored content; persistent cycle → smeared truth), routes there. Возвращайся сюда для graph fix после shape decision."
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,157,md_impact,"**Section blast radius is hybrid.** Hard layer here (anchor wikilinks in `md_impact`/`md_preflight`, anchor-drift signal). Soft layer in `$1md-navigator`. `md_section_blast_radius` runs both in one pass — prefer it over manual two-step."
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,157,md_preflight,"**Section blast radius is hybrid.** Hard layer here (anchor wikilinks in `md_impact`/`md_preflight`, anchor-drift signal). Soft layer in `$1md-navigator`. `md_section_blast_radius` runs both in one pass — prefer it over manual two-step."
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,157,md_section_blast_radius,"**Section blast radius is hybrid.** Hard layer here (anchor wikilinks in `md_impact`/`md_preflight`, anchor-drift signal). Soft layer in `$1md-navigator`. `md_section_blast_radius` runs both in one pass — prefer it over manual two-step."
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,161,md_changed,"`1strategy-docs` — для правок контракта GOAL/README, `1planning` — для радиуса зависимостей task/roadmap, `1folder-contract` — для folder/system contract edits с опорой на граф, `1instruction-layer` — для wording-only instruction edits, `1work-review` — после правок через `md_changed`. Вызывающие скилы сохраняют владение смыслом файла; этот скил сообщает только graph obligations и evidence."
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,168,md_graph,experiments/md-embedding-server/scripts/md_graph.py --help
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,175,md_check,"Для semantic audit/refactor остановись, когда у каждого changed/retained edge есть evidence-backed decision, `md_scan`/`md_check` pass, cycles absent or justified, а unchecked downstream помечен `deferred`."
+codex,1md-graph,/Users/triton/.codex/skills/1md-graph/SKILL.md,175,md_scan,"Для semantic audit/refactor остановись, когда у каждого changed/retained edge есть evidence-backed decision, `md_scan`/`md_check` pass, cycles absent or justified, а unchecked downstream помечен `deferred`."
+codex,1ia-audit,/Users/triton/.codex/skills/1ia-audit/SKILL.md,44,md_audit,"| **Провалы поиска** (`Discovery gaps`, Retrieval) | `md_audit` class `discovery_gaps` + `md_search --scope descriptions` | Files без `description` — cold-start invisible. |"
+codex,1ia-audit,/Users/triton/.codex/skills/1ia-audit/SKILL.md,44,md_search,"| **Провалы поиска** (`Discovery gaps`, Retrieval) | `md_audit` class `discovery_gaps` + `md_search --scope descriptions` | Files без `description` — cold-start invisible. |"
+codex,1ia-audit,/Users/triton/.codex/skills/1ia-audit/SKILL.md,45,md_audit,| **Размазанная owner truth** (`Smeared owner truth`) | `md_repeated_concepts` (flagship) + `md_overlaps` + `md_audit` class `smeared_owner_truth` | Идея в нескольких файлах без owner'а. |
+codex,1ia-audit,/Users/triton/.codex/skills/1ia-audit/SKILL.md,45,md_overlaps,| **Размазанная owner truth** (`Smeared owner truth`) | `md_repeated_concepts` (flagship) + `md_overlaps` + `md_audit` class `smeared_owner_truth` | Идея в нескольких файлах без owner'а. |
+codex,1ia-audit,/Users/triton/.codex/skills/1ia-audit/SKILL.md,45,md_repeated_concepts,| **Размазанная owner truth** (`Smeared owner truth`) | `md_repeated_concepts` (flagship) + `md_overlaps` + `md_audit` class `smeared_owner_truth` | Идея в нескольких файлах без owner'а. |
+codex,1ia-audit,/Users/triton/.codex/skills/1ia-audit/SKILL.md,46,md_audit,| **Смешанные функции** (`Function split`) | `md_audit` class `intra_file_drift` + `md_toc` + `md_extract` | Файл бандлит canon/criteria/examples. |
+codex,1ia-audit,/Users/triton/.codex/skills/1ia-audit/SKILL.md,46,md_extract,| **Смешанные функции** (`Function split`) | `md_audit` class `intra_file_drift` + `md_toc` + `md_extract` | Файл бандлит canon/criteria/examples. |
+codex,1ia-audit,/Users/triton/.codex/skills/1ia-audit/SKILL.md,46,md_toc,| **Смешанные функции** (`Function split`) | `md_audit` class `intra_file_drift` + `md_toc` + `md_extract` | Файл бандлит canon/criteria/examples. |
+codex,1ia-audit,/Users/triton/.codex/skills/1ia-audit/SKILL.md,47,md_audit,| **Плотные дубли** (`Tight duplicates`) | `md_audit` class `tight_duplicates` + `md_overlaps` | Near-mirror sections. |
+codex,1ia-audit,/Users/triton/.codex/skills/1ia-audit/SKILL.md,47,md_overlaps,| **Плотные дубли** (`Tight duplicates`) | `md_audit` class `tight_duplicates` + `md_overlaps` | Near-mirror sections. |
+codex,1ia-audit,/Users/triton/.codex/skills/1ia-audit/SKILL.md,48,md_audit,| **Template family / view vs truth** | `md_audit` class `template_family` | H2+ повторяется N≥3 — template без content. |
+codex,1ia-audit,/Users/triton/.codex/skills/1ia-audit/SKILL.md,49,md_audit,| **Cluster vs folder** | `md_audit` class `cluster_folder_mismatch` | Topic cluster scattered. |
+codex,1ia-audit,/Users/triton/.codex/skills/1ia-audit/SKILL.md,50,md_search,| **Retrieval path** | `md_search` как future agent | Wrong sections top. |
+codex,1ia-audit,/Users/triton/.codex/skills/1ia-audit/SKILL.md,55,md_audit,- **`md_audit`** = entry probe для corpora ≥ ~30 files. 6 IA-classes + severity
+codex,1ia-audit,/Users/triton/.codex/skills/1ia-audit/SKILL.md,57,md_repeated_concepts,- **`md_repeated_concepts`** = flagship owner-truth probe. Concept-graph
+codex,1ia-audit,/Users/triton/.codex/skills/1ia-audit/SKILL.md,60,md_overlaps,- **`md_overlaps`** точечно для pair judgment. One pair = candidate. Calibrate
+codex,1ia-audit,/Users/triton/.codex/skills/1ia-audit/SKILL.md,62,md_search,- **`md_search --scope descriptions`** = owner-detection. Flat top-3 within
+codex,1ia-audit,/Users/triton/.codex/skills/1ia-audit/SKILL.md,64,md_audit,- **`md_audit --json` → `$1fresh-eyes`** = structured packet для
+codex,1ia-audit,/Users/triton/.codex/skills/1ia-audit/SKILL.md,66,md_refactor_candidates,"- **`md_refactor_candidates`** = reading list, не auto-edit."
+codex,1ia-audit,/Users/triton/.codex/skills/1ia-audit/SKILL.md,70,md_extract,"md_extract({ extract: true,"
+codex,1ia-audit,/Users/triton/.codex/skills/1ia-audit/SKILL.md,70,md_toc,"md_extract({ extract: true,"
+codex,1ia-audit,/Users/triton/.codex/skills/1ia-audit/SKILL.md,73,md_audit,"Drilldown, когда `md_audit` overkill: `md_search`, `md_overlaps`,"
+codex,1ia-audit,/Users/triton/.codex/skills/1ia-audit/SKILL.md,73,md_overlaps,"Drilldown, когда `md_audit` overkill: `md_search`, `md_overlaps`,"
+codex,1ia-audit,/Users/triton/.codex/skills/1ia-audit/SKILL.md,73,md_search,"Drilldown, когда `md_audit` overkill: `md_search`, `md_overlaps`,"
+codex,1ia-audit,/Users/triton/.codex/skills/1ia-audit/SKILL.md,74,md_importance,"`md_repeated_concepts`, `md_read_related`, `md_importance` (hub = canonical"
+codex,1ia-audit,/Users/triton/.codex/skills/1ia-audit/SKILL.md,74,md_read_related,"`md_repeated_concepts`, `md_read_related`, `md_importance` (hub = canonical"
+codex,1ia-audit,/Users/triton/.codex/skills/1ia-audit/SKILL.md,74,md_repeated_concepts,"`md_repeated_concepts`, `md_read_related`, `md_importance` (hub = canonical"
+codex,1ia-audit,/Users/triton/.codex/skills/1ia-audit/SKILL.md,75,md_deps,owner candidate); `md_health`/`md_impact`/`md_deps` через `$1md-graph`.
+codex,1ia-audit,/Users/triton/.codex/skills/1ia-audit/SKILL.md,75,md_health,owner candidate); `md_health`/`md_impact`/`md_deps` через `$1md-graph`.
+codex,1ia-audit,/Users/triton/.codex/skills/1ia-audit/SKILL.md,75,md_impact,owner candidate); `md_health`/`md_impact`/`md_deps` через `$1md-graph`.
+codex,1ia-audit,/Users/triton/.codex/skills/1ia-audit/SKILL.md,80,md_audit,"2. Multi-file или ""audit this whole area"" → сначала `md_audit`. Не выдавай"
+codex,1ia-audit,/Users/triton/.codex/skills/1ia-audit/SKILL.md,98,md_audit,Read: <files / folders / md_audit JSON packet>
+codex,1instruction-layer,/Users/triton/.codex/skills/1instruction-layer/SKILL.md,43,md_overlaps,md_overlaps({ corpus })
+codex,1instruction-layer,/Users/triton/.codex/skills/1instruction-layer/SKILL.md,43,md_repeated_concepts,md_overlaps({ corpus })
+codex,1instruction-layer,/Users/triton/.codex/skills/1instruction-layer/SKILL.md,45,md_audit,**Глубже**: `md_audit` (проверки + кластер + заголовки → индикатор здоровья).
+codex,1instruction-layer,/Users/triton/.codex/skills/1instruction-layer/SKILL.md,51,md_search,"md_search({ corpus, query })"
+codex,1instruction-layer,/Users/triton/.codex/skills/1instruction-layer/SKILL.md,53,md_extract,**Глубже**: `md_extract` для пакета из нескольких секций.
+codex,1instruction-layer,/Users/triton/.codex/skills/1instruction-layer/SKILL.md,59,md_edit_context,"md_edit_context({ path, mode: 'preview' })"
+codex,1instruction-layer,/Users/triton/.codex/skills/1instruction-layer/SKILL.md,61,md_deps,md_deps({ depth: 2 })
+codex,1instruction-layer,/Users/triton/.codex/skills/1instruction-layer/SKILL.md,61,md_preflight,md_deps({ depth: 2 })
+codex,1instruction-layer,/Users/triton/.codex/skills/1instruction-layer/SKILL.md,67,md_section_blast_radius,"md_section_blast_radius({ path, corpus, query })"
+codex,1instruction-layer,/Users/triton/.codex/skills/1instruction-layer/SKILL.md,69,md_impact,**Глубже**: `md_impact` при rename файла.
+codex,1instruction-layer,/Users/triton/.codex/skills/1instruction-layer/SKILL.md,75,md_changed,md_changed({ base })
+codex,1instruction-layer,/Users/triton/.codex/skills/1instruction-layer/SKILL.md,77,md_audit,**Глубже**: `md_check` для wikilink validity (Hyrum-critical); повторный `md_audit` — health не должен падать.
+codex,1instruction-layer,/Users/triton/.codex/skills/1instruction-layer/SKILL.md,77,md_check,**Глубже**: `md_check` для wikilink validity (Hyrum-critical); повторный `md_audit` — health не должен падать.
+codex,1instruction-layer,/Users/triton/.codex/skills/1instruction-layer/SKILL.md,88,md_audit,"Целевое поведение, именованный сбой (потеря в середине / постепенное раскрытие / буквальное чтение / поддакивание / конфликт триггеров / непреднамеренный контракт / устаревший контекст), момент, поверхность, граница класс-vs-instance, нет дублей (`md_overlaps` / `md_search` подтвердили), есть доказательство доставки, нет протаскивания структуры. Batch-закрытие: `md_changed` + `md_check` без blockers, `md_audit` health не ниже, cycles чистые."
+codex,1instruction-layer,/Users/triton/.codex/skills/1instruction-layer/SKILL.md,88,md_changed,"Целевое поведение, именованный сбой (потеря в середине / постепенное раскрытие / буквальное чтение / поддакивание / конфликт триггеров / непреднамеренный контракт / устаревший контекст), момент, поверхность, граница класс-vs-instance, нет дублей (`md_overlaps` / `md_search` подтвердили), есть доказательство доставки, нет протаскивания структуры. Batch-закрытие: `md_changed` + `md_check` без blockers, `md_audit` health не ниже, cycles чистые."
+codex,1instruction-layer,/Users/triton/.codex/skills/1instruction-layer/SKILL.md,88,md_check,"Целевое поведение, именованный сбой (потеря в середине / постепенное раскрытие / буквальное чтение / поддакивание / конфликт триггеров / непреднамеренный контракт / устаревший контекст), момент, поверхность, граница класс-vs-instance, нет дублей (`md_overlaps` / `md_search` подтвердили), есть доказательство доставки, нет протаскивания структуры. Batch-закрытие: `md_changed` + `md_check` без blockers, `md_audit` health не ниже, cycles чистые."
+codex,1instruction-layer,/Users/triton/.codex/skills/1instruction-layer/SKILL.md,88,md_overlaps,"Целевое поведение, именованный сбой (потеря в середине / постепенное раскрытие / буквальное чтение / поддакивание / конфликт триггеров / непреднамеренный контракт / устаревший контекст), момент, поверхность, граница класс-vs-instance, нет дублей (`md_overlaps` / `md_search` подтвердили), есть доказательство доставки, нет протаскивания структуры. Batch-закрытие: `md_changed` + `md_check` без blockers, `md_audit` health не ниже, cycles чистые."
+codex,1instruction-layer,/Users/triton/.codex/skills/1instruction-layer/SKILL.md,88,md_search,"Целевое поведение, именованный сбой (потеря в середине / постепенное раскрытие / буквальное чтение / поддакивание / конфликт триггеров / непреднамеренный контракт / устаревший контекст), момент, поверхность, граница класс-vs-instance, нет дублей (`md_overlaps` / `md_search` подтвердили), есть доказательство доставки, нет протаскивания структуры. Batch-закрытие: `md_changed` + `md_check` без blockers, `md_audit` health не ниже, cycles чистые."
+codex,1planning,/Users/triton/.codex/skills/1planning/SKILL.md,88,md_orient,md_orient({ corpus: '_ops' })
+codex,1planning,/Users/triton/.codex/skills/1planning/SKILL.md,90,md_ls,md_ls({ path: '_ops/plans' })
+codex,1planning,/Users/triton/.codex/skills/1planning/SKILL.md,96,md_search,"md_search({ corpus: '_ops/plans', query })"
+codex,1planning,/Users/triton/.codex/skills/1planning/SKILL.md,100,md_extract,**Глубже**: `md_extract` для пакета из нескольких секций.
+codex,1planning,/Users/triton/.codex/skills/1planning/SKILL.md,107,md_preflight,md_preflight({ path })
+codex,1planning,/Users/triton/.codex/skills/1planning/SKILL.md,108,md_edit_context,"md_edit_context({ path, mode: 'preview' })"
+codex,1planning,/Users/triton/.codex/skills/1planning/SKILL.md,111,md_deps,md_deps({ depth: 2 })
+codex,1planning,/Users/triton/.codex/skills/1planning/SKILL.md,117,md_changed,md_changed({ base })
+codex,1planning,/Users/triton/.codex/skills/1planning/SKILL.md,119,md_repeated_concepts,md_repeated_concepts({ corpus: '_ops/plans' })
+codex,1planning,/Users/triton/.codex/skills/1planning/SKILL.md,120,md_scan,md_scan({ paths: ['_ops/plans'] })
+codex,1planning,/Users/triton/.codex/skills/1planning/SKILL.md,126,md_query_by_type,"md_query_by_type({ corpus: '_ops', types: ['decision'] })"
+codex,1planning,/Users/triton/.codex/skills/1planning/SKILL.md,129,md_search,**Глубже**: `md_search` для тематического поиска.
+codex,1strategy,/Users/triton/.codex/skills/1strategy/SKILL.md,,,NO_MD_REFERENCES
+codex,1strategy-docs,/Users/triton/.codex/skills/1strategy-docs/SKILL.md,,,NO_MD_REFERENCES
+codex,1folder-contract,/Users/triton/.codex/skills/1folder-contract/SKILL.md,45,md_changed,"- Правка GOAL → проверить hook-loaded quote. Механический gate: `edit-after-edit: [AGENTS.md, CLAUDE.md]` в `_ops/GOAL.md` frontmatter → `md_changed --staged` блокирует commit при drift. Та же схема для paired shim и central-index ↔ subtree frontmatter."
+codex,1folder-contract,/Users/triton/.codex/skills/1folder-contract/SKILL.md,52,md_index,"md_index({ corpus, confirm: true })"
+codex,1folder-contract,/Users/triton/.codex/skills/1folder-contract/SKILL.md,56,md_check,"| **Системный baseline** (вход) | `md_health` | Покрытие descriptions %, hubs, orphans, cycles — снимок. | `md_cycles` / `md_check` / `md_scan` точечно. |"
+codex,1folder-contract,/Users/triton/.codex/skills/1folder-contract/SKILL.md,56,md_cycles,"| **Системный baseline** (вход) | `md_health` | Покрытие descriptions %, hubs, orphans, cycles — снимок. | `md_cycles` / `md_check` / `md_scan` точечно. |"
+codex,1folder-contract,/Users/triton/.codex/skills/1folder-contract/SKILL.md,56,md_health,"| **Системный baseline** (вход) | `md_health` | Покрытие descriptions %, hubs, orphans, cycles — снимок. | `md_cycles` / `md_check` / `md_scan` точечно. |"
+codex,1folder-contract,/Users/triton/.codex/skills/1folder-contract/SKILL.md,56,md_scan,"| **Системный baseline** (вход) | `md_health` | Покрытие descriptions %, hubs, orphans, cycles — снимок. | `md_cycles` / `md_check` / `md_scan` точечно. |"
+codex,1folder-contract,/Users/triton/.codex/skills/1folder-contract/SKILL.md,57,md_search,| **Доступность цели** | `md_search` по тексту quote | Quote не всплывает top-1 в AGENTS/CLAUDE = drift. | ручной diff vs GOAL. |
+codex,1folder-contract,/Users/triton/.codex/skills/1folder-contract/SKILL.md,58,md_search,"md_search({ scope: ""descriptions"", query: ""<typical prompt>"" })"
+codex,1folder-contract,/Users/triton/.codex/skills/1folder-contract/SKILL.md,59,md_deps,"| **Читаемость папочного графа** | `md_search`, `md_repeated_concepts`; `md_deps <key-file>` через `$1md-graph` | Концепт топологически рядом с папкой, но не в `depends-on`/`related-when` = missing edge. | Форма контейнера → `$1ia-audit`. |"
+codex,1folder-contract,/Users/triton/.codex/skills/1folder-contract/SKILL.md,59,md_repeated_concepts,"| **Читаемость папочного графа** | `md_search`, `md_repeated_concepts`; `md_deps <key-file>` через `$1md-graph` | Концепт топологически рядом с папкой, но не в `depends-on`/`related-when` = missing edge. | Форма контейнера → `$1ia-audit`. |"
+codex,1folder-contract,/Users/triton/.codex/skills/1folder-contract/SKILL.md,59,md_search,"| **Читаемость папочного графа** | `md_search`, `md_repeated_concepts`; `md_deps <key-file>` через `$1md-graph` | Концепт топологически рядом с папкой, но не в `depends-on`/`related-when` = missing edge. | Форма контейнера → `$1ia-audit`. |"
+codex,1folder-contract,/Users/triton/.codex/skills/1folder-contract/SKILL.md,60,md_overlaps,"| **Утечка владения** | `md_repeated_concepts`, `md_overlaps` | Концепт повторяется в AGENTS / project-graph / skill descriptions = leak. | открыть пару файлов. |"
+codex,1folder-contract,/Users/triton/.codex/skills/1folder-contract/SKILL.md,60,md_repeated_concepts,"| **Утечка владения** | `md_repeated_concepts`, `md_overlaps` | Концепт повторяется в AGENTS / project-graph / skill descriptions = leak. | открыть пару файлов. |"
+codex,1folder-contract,/Users/triton/.codex/skills/1folder-contract/SKILL.md,61,md_deps,"md_deps({ path: ""_ops/GOAL.md"", depth: N })"
+codex,1folder-contract,/Users/triton/.codex/skills/1folder-contract/SKILL.md,61,md_impact,"md_deps({ path: ""_ops/GOAL.md"", depth: N })"
+codex,1folder-contract,/Users/triton/.codex/skills/1folder-contract/SKILL.md,62,md_check,| **Ссылки Owner Map живые** | `md_check` | Broken wikilinks в Owner Map = stale pointers. | `md_impact` на referenced file. |
+codex,1folder-contract,/Users/triton/.codex/skills/1folder-contract/SKILL.md,62,md_impact,| **Ссылки Owner Map живые** | `md_check` | Broken wikilinks в Owner Map = stale pointers. | `md_impact` на referenced file. |
+codex,1folder-contract,/Users/triton/.codex/skills/1folder-contract/SKILL.md,63,md_changed,md_changed({ staged: true })
+codex,1folder-contract,/Users/triton/.codex/skills/1folder-contract/SKILL.md,63,md_preflight,md_changed({ staged: true })
+codex,1folder-contract,/Users/triton/.codex/skills/1folder-contract/SKILL.md,64,md_cycles,| **Взаимные обязательства** (Owner truth) | `md_cycles` | `edit-after-edit` cycle = кандидат на слияние. | `md_impact` на каждого участника. |
+codex,1folder-contract,/Users/triton/.codex/skills/1folder-contract/SKILL.md,64,md_impact,| **Взаимные обязательства** (Owner truth) | `md_cycles` | `edit-after-edit` cycle = кандидат на слияние. | `md_impact` на каждого участника. |
+codex,1assumption-audit,/Users/triton/.codex/skills/1assumption-audit/SKILL.md,96,md_search,"md_search({ corpus, query: ""X"", scope: ""descriptions"", limit: 3 })"
+codex,1assumption-audit,/Users/triton/.codex/skills/1assumption-audit/SKILL.md,98,md_overlaps,"md_overlaps({ corpus: folder, threshold: 0.85 })"
+codex,1assumption-audit,/Users/triton/.codex/skills/1assumption-audit/SKILL.md,99,md_search,"md_search({ corpus: ""_ops/GOAL.md"","
+codex,1assumption-audit,/Users/triton/.codex/skills/1assumption-audit/SKILL.md,101,md_search,"md_search({ corpus: ""_ops/plans/_archive _ops/findings/_archive"","
+codex,1assumption-audit,/Users/triton/.codex/skills/1assumption-audit/SKILL.md,103,md_index,"md_index({ corpus, confirm: true })"
+codex,1work-review,/Users/triton/.codex/skills/1work-review/SKILL.md,53,md_changed,md_changed({})
+codex,1work-review,/Users/triton/.codex/skills/1work-review/SKILL.md,53,md_preflight,md_changed({})
+codex,1work-review,/Users/triton/.codex/skills/1work-review/SKILL.md,57,md_check,md_preflight({ path })
+codex,1work-review,/Users/triton/.codex/skills/1work-review/SKILL.md,57,md_health,md_preflight({ path })
+codex,1work-review,/Users/triton/.codex/skills/1work-review/SKILL.md,57,md_preflight,md_preflight({ path })
+codex,1work-review,/Users/triton/.codex/skills/1work-review/SKILL.md,58,md_edit_context,**Не путать с**: pre-edit safety — `md_edit_context` живёт в `$1md-graph`.
+codex,1work-review,/Users/triton/.codex/skills/1work-review/SKILL.md,63,md_search,"md_search({ corpus: ""_ops"", query: ""<тема правки>"" })"
+codex,1work-review,/Users/triton/.codex/skills/1work-review/SKILL.md,66,md_extract,**Если нужно глубже**: `md_extract` multi-section batch.
+codex,1work-review,/Users/triton/.codex/skills/1work-review/SKILL.md,71,md_health,md_health({})
+codex,1work-review,/Users/triton/.codex/skills/1work-review/SKILL.md,73,md_check,"**Если нужно глубже**: atomic — `md_cycles`, `md_check`, `md_scan`."
+codex,1work-review,/Users/triton/.codex/skills/1work-review/SKILL.md,73,md_cycles,"**Если нужно глубже**: atomic — `md_cycles`, `md_check`, `md_scan`."
+codex,1work-review,/Users/triton/.codex/skills/1work-review/SKILL.md,73,md_scan,"**Если нужно глубже**: atomic — `md_cycles`, `md_check`, `md_scan`."
+codex,1work-review,/Users/triton/.codex/skills/1work-review/SKILL.md,74,md_audit,**Не путать с**: corpus health (overlaps / repeated-concepts) → `md_audit` в `$1md-navigator`.
+codex,1work-review,/Users/triton/.codex/skills/1work-review/SKILL.md,79,md_impact,md_impact({ path })
+codex,1work-review,/Users/triton/.codex/skills/1work-review/SKILL.md,85,md_read_related,"md_read_related({ paths: [new_file], scan: corpus, mode: ""preview"" })"
+codex,1work-review,/Users/triton/.codex/skills/1work-review/SKILL.md,94,md_status,md_status({ corpus })
+codex,1work-review,/Users/triton/.codex/skills/1work-review/SKILL.md,95,md_index,**Читать output как**: stale → предложить `md_index` в следующей сессии
+codex,1work-review,/Users/triton/.codex/skills/1work-review/SKILL.md,146,md_changed,"1. Посмотри, что изменилось. **Run `md_changed`**, если был затронут любой `.md`."
+codex,1work-review,/Users/triton/.codex/skills/1work-review/SKILL.md,160,md_index,- md-navigator index freshness → предложить `md_status` / `md_index`.
+codex,1work-review,/Users/triton/.codex/skills/1work-review/SKILL.md,160,md_status,- md-navigator index freshness → предложить `md_status` / `md_index`.
+codex,1skill-architect,/Users/triton/.codex/skills/1skill-architect/SKILL.md,84,md_navigator,`md_navigator` по умолчанию исключает. Не индексируй/не ищи эту папку как
+codex,1skill-architect,/Users/triton/.codex/skills/1skill-architect/SKILL.md,88,md_search,"md_search({ corpus: skills-mirror,"
+codex,1skill-architect,/Users/triton/.codex/skills/1skill-architect/SKILL.md,93,md_overlaps,"md_overlaps({ corpus: skills-mirror, threshold: 0.7 })"
+codex,1skill-architect,/Users/triton/.codex/skills/1skill-architect/SKILL.md,95,md_index,md_index({ corpus:
+codex,1skill-architect,/Users/triton/.codex/skills/1skill-architect/SKILL.md,131,md_overlaps,MCP (`md_search --scope descriptions` + `md_overlaps`) по live skills root.
+codex,1skill-architect,/Users/triton/.codex/skills/1skill-architect/SKILL.md,131,md_search,MCP (`md_search --scope descriptions` + `md_overlaps`) по live skills root.
+codex,1smart-simple,/Users/triton/.codex/skills/1smart-simple/SKILL.md,44,md_search,"md_search({ corpus, query: ""<unit gist>"", limit: 3 })"
+codex,1smart-simple,/Users/triton/.codex/skills/1smart-simple/SKILL.md,46,md_navigator,`experiments/md-embedding-server/scripts/md_navigator.py search <corpus>
+codex,1smart-simple,/Users/triton/.codex/skills/1smart-simple/SKILL.md,78,md_index,"md_index({ corpus, dry_run: true })"
+codex,1smart-simple,/Users/triton/.codex/skills/1smart-simple/SKILL.md,79,md_index,"md_index({ corpus, confirm: true })"
+codex,1smart-simple,/Users/triton/.codex/skills/1smart-simple/SKILL.md,81,md_overlaps,"md_overlaps({ corpus: folder, threshold: 0.85, top: 20 })"
+codex,1smart-simple,/Users/triton/.codex/skills/1smart-simple/SKILL.md,87,md_audit,md_audit({ corpus: folder })
+codex,1smart-simple,/Users/triton/.codex/skills/1smart-simple/SKILL.md,90,md_navigator,`experiments/md-embedding-server/scripts/md_navigator.py cluster <folder>
+codex,1cli-tools,/Users/triton/.codex/skills/1cli-tools/SKILL.md,,,NO_MD_REFERENCES

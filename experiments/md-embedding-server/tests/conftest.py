@@ -1,8 +1,8 @@
 """Shared test fixtures.
 
-Adds the navigator package to sys.path so tests can import without an
-installed package. The script is run via `uv run --script` in normal
-use; tests run via `pytest` in the same uv environment.
+Adds the src layout to sys.path so tests can import without an installed
+package. The script is run via `uv run --script` in normal use; tests run via
+`pytest` in the same uv environment.
 """
 
 from __future__ import annotations
@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-ROOT = Path(__file__).resolve().parents[1] / "scripts"
+ROOT = Path(__file__).resolve().parents[1] / "src"
 sys.path.insert(0, str(ROOT))
 
 

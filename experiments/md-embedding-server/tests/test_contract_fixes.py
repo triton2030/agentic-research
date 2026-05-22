@@ -333,15 +333,16 @@ def test_read_on_directory_surfaces_pre_formed_recipe(tmp_path, capsys):
     assert "--files 1" in err
 
 
-def test_graph_related_reading_recipe_uses_uv_runner():
+def test_graph_related_reading_recipe_uses_md_cli():
     cmd = navigator_read_related_command(
         "knowledge/agents/tool-design.md",
         scan="knowledge",
         token_budget=3000,
     )
 
-    assert cmd.startswith("uv run --script ")
+    assert cmd.startswith("md read-related --paths ")
     assert " python3 " not in f" {cmd} "
-    assert "md_navigator.py read-related knowledge/agents/tool-design.md" in cmd
+    assert "md_navigator.py" not in cmd
+    assert "--paths knowledge/agents/tool-design.md" in cmd
     assert "--scan knowledge" in cmd
     assert "--token-budget 3000" in cmd

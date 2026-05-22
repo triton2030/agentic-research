@@ -1,0 +1,644 @@
+{
+  "tool": "md_repeated_concepts",
+  "canonical_args": {
+    "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+    "top": 3,
+    "threshold": 0.8
+  },
+  "is_error": false,
+  "payload": {
+    "root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+    "threshold": 0.8,
+    "min_tokens": 30,
+    "min_files": 2,
+    "min_sections": 2,
+    "engine": {
+      "embed_model": "openai/text-embedding-3-small",
+      "embedding_api_url": "https://openrouter.ai/api/v1"
+    },
+    "stats": {
+      "files_indexed": 37,
+      "sections_indexed": 302,
+      "sections_eligible": 286,
+      "chunks_compared": 305,
+      "embeddings_cached": 302,
+      "embeddings_computed": 0,
+      "edges_above_threshold": 206,
+      "concepts_surfaced": 3
+    },
+    "concepts": [
+      {
+        "label": "Authoring Canon > Типовые Провалы",
+        "medoid": {
+          "section_id": "18.9",
+          "file_id": 18,
+          "relative_path": "practical-guides/how-to-write-skills/authoring-canon.md",
+          "start_line": 121,
+          "heading_text": "Типовые Провалы",
+          "heading_chain": "Authoring Canon > Типовые Провалы",
+          "token_count": 93
+        },
+        "section_count": 19,
+        "unique_files": 3,
+        "mean_cohesion": 0.181424,
+        "file_breakdown": [
+          {
+            "path": "practical-guides/how-to-write-skills/authoring-canon.md",
+            "section_count": 9,
+            "sections": [
+              {
+                "section_id": "18.2",
+                "file_id": 18,
+                "relative_path": "practical-guides/how-to-write-skills/authoring-canon.md",
+                "start_line": 11,
+                "heading_text": "Когда Писать Скилл",
+                "heading_chain": "Authoring Canon > Когда Писать Скилл",
+                "token_count": 116
+              },
+              {
+                "section_id": "18.3",
+                "file_id": 18,
+                "relative_path": "practical-guides/how-to-write-skills/authoring-canon.md",
+                "start_line": 24,
+                "heading_text": "Scope",
+                "heading_chain": "Authoring Canon > Scope",
+                "token_count": 95
+              },
+              {
+                "section_id": "18.1",
+                "file_id": 18,
+                "relative_path": "practical-guides/how-to-write-skills/authoring-canon.md",
+                "start_line": 6,
+                "heading_text": "Authoring Canon",
+                "heading_chain": "Authoring Canon",
+                "token_count": 1229
+              },
+              {
+                "section_id": "18.4",
+                "file_id": 18,
+                "relative_path": "practical-guides/how-to-write-skills/authoring-canon.md",
+                "start_line": 33,
+                "heading_text": "`description`",
+                "heading_chain": "Authoring Canon > `description`",
+                "token_count": 228
+              },
+              {
+                "section_id": "18.5",
+                "file_id": 18,
+                "relative_path": "practical-guides/how-to-write-skills/authoring-canon.md",
+                "start_line": 54,
+                "heading_text": "Тело `SKILL.md`",
+                "heading_chain": "Authoring Canon > Тело `SKILL.md`",
+                "token_count": 134
+              },
+              {
+                "section_id": "18.6",
+                "file_id": 18,
+                "relative_path": "practical-guides/how-to-write-skills/authoring-canon.md",
+                "start_line": 72,
+                "heading_text": "Progressive Disclosure",
+                "heading_chain": "Authoring Canon > Progressive Disclosure",
+                "token_count": 107
+              },
+              {
+                "section_id": "18.7",
+                "file_id": 18,
+                "relative_path": "practical-guides/how-to-write-skills/authoring-canon.md",
+                "start_line": 85,
+                "heading_text": "Жёсткость",
+                "heading_chain": "Authoring Canon > Жёсткость",
+                "token_count": 105
+              },
+              {
+                "section_id": "18.8",
+                "file_id": 18,
+                "relative_path": "practical-guides/how-to-write-skills/authoring-canon.md",
+                "start_line": 95,
+                "heading_text": "Доказательство",
+                "heading_chain": "Authoring Canon > Доказательство",
+                "token_count": 302
+              },
+              {
+                "section_id": "18.9",
+                "file_id": 18,
+                "relative_path": "practical-guides/how-to-write-skills/authoring-canon.md",
+                "start_line": 121,
+                "heading_text": "Типовые Провалы",
+                "heading_chain": "Authoring Canon > Типовые Провалы",
+                "token_count": 93
+              }
+            ]
+          },
+          {
+            "path": "practical-guides/how-to-write-skills/checklist.md",
+            "section_count": 7,
+            "sections": [
+              {
+                "section_id": "19.1",
+                "file_id": 19,
+                "relative_path": "practical-guides/how-to-write-skills/checklist.md",
+                "start_line": 6,
+                "heading_text": "Checklist",
+                "heading_chain": "Checklist",
+                "token_count": 699
+              },
+              {
+                "section_id": "19.2",
+                "file_id": 19,
+                "relative_path": "practical-guides/how-to-write-skills/checklist.md",
+                "start_line": 12,
+                "heading_text": "Режим Проверки",
+                "heading_chain": "Checklist > Режим Проверки",
+                "token_count": 90
+              },
+              {
+                "section_id": "19.3",
+                "file_id": 19,
+                "relative_path": "practical-guides/how-to-write-skills/checklist.md",
+                "start_line": 21,
+                "heading_text": "Go / No-Go",
+                "heading_chain": "Checklist > Go / No-Go",
+                "token_count": 103
+              },
+              {
+                "section_id": "19.4",
+                "file_id": 19,
+                "relative_path": "practical-guides/how-to-write-skills/checklist.md",
+                "start_line": 31,
+                "heading_text": "Routing",
+                "heading_chain": "Checklist > Routing",
+                "token_count": 110
+              },
+              {
+                "section_id": "19.5",
+                "file_id": 19,
+                "relative_path": "practical-guides/how-to-write-skills/checklist.md",
+                "start_line": 41,
+                "heading_text": "Shape",
+                "heading_chain": "Checklist > Shape",
+                "token_count": 97
+              },
+              {
+                "section_id": "19.6",
+                "file_id": 19,
+                "relative_path": "practical-guides/how-to-write-skills/checklist.md",
+                "start_line": 52,
+                "heading_text": "Platform",
+                "heading_chain": "Checklist > Platform",
+                "token_count": 99
+              },
+              {
+                "section_id": "19.7",
+                "file_id": 19,
+                "relative_path": "practical-guides/how-to-write-skills/checklist.md",
+                "start_line": 61,
+                "heading_text": "Proof",
+                "heading_chain": "Checklist > Proof",
+                "token_count": 144
+              }
+            ]
+          },
+          {
+            "path": "wisdom-skills-plugins.md",
+            "section_count": 3,
+            "sections": [
+              {
+                "section_id": "36.1",
+                "file_id": 36,
+                "relative_path": "wisdom-skills-plugins.md",
+                "start_line": 1,
+                "heading_text": "Wisdom — Skills Plugins",
+                "heading_chain": "Wisdom — Skills Plugins",
+                "token_count": 895
+              },
+              {
+                "section_id": "36.2",
+                "file_id": 36,
+                "relative_path": "wisdom-skills-plugins.md",
+                "start_line": 9,
+                "heading_text": "Проверено",
+                "heading_chain": "Wisdom — Skills Plugins > Проверено",
+                "token_count": 363
+              },
+              {
+                "section_id": "36.5",
+                "file_id": 36,
+                "relative_path": "wisdom-skills-plugins.md",
+                "start_line": 43,
+                "heading_text": "Опоры",
+                "heading_chain": "Wisdom — Skills Plugins > Опоры",
+                "token_count": 193
+              }
+            ]
+          }
+        ],
+        "top_members": [
+          {
+            "similarity": 0.912605,
+            "section": {
+              "section_id": "18.5",
+              "file_id": 18,
+              "relative_path": "practical-guides/how-to-write-skills/authoring-canon.md",
+              "start_line": 54,
+              "heading_text": "Тело `SKILL.md`",
+              "heading_chain": "Authoring Canon > Тело `SKILL.md`",
+              "token_count": 134
+            }
+          },
+          {
+            "similarity": 0.885505,
+            "section": {
+              "section_id": "18.6",
+              "file_id": 18,
+              "relative_path": "practical-guides/how-to-write-skills/authoring-canon.md",
+              "start_line": 72,
+              "heading_text": "Progressive Disclosure",
+              "heading_chain": "Authoring Canon > Progressive Disclosure",
+              "token_count": 107
+            }
+          },
+          {
+            "similarity": 0.86999,
+            "section": {
+              "section_id": "18.4",
+              "file_id": 18,
+              "relative_path": "practical-guides/how-to-write-skills/authoring-canon.md",
+              "start_line": 33,
+              "heading_text": "`description`",
+              "heading_chain": "Authoring Canon > `description`",
+              "token_count": 228
+            }
+          },
+          {
+            "similarity": 0.852832,
+            "section": {
+              "section_id": "18.7",
+              "file_id": 18,
+              "relative_path": "practical-guides/how-to-write-skills/authoring-canon.md",
+              "start_line": 85,
+              "heading_text": "Жёсткость",
+              "heading_chain": "Authoring Canon > Жёсткость",
+              "token_count": 105
+            }
+          },
+          {
+            "similarity": 0.835697,
+            "section": {
+              "section_id": "18.2",
+              "file_id": 18,
+              "relative_path": "practical-guides/how-to-write-skills/authoring-canon.md",
+              "start_line": 11,
+              "heading_text": "Когда Писать Скилл",
+              "heading_chain": "Authoring Canon > Когда Писать Скилл",
+              "token_count": 116
+            }
+          }
+        ]
+      },
+      {
+        "label": "Anthropic Design Generator — Takeaways",
+        "medoid": {
+          "section_id": "9.1",
+          "file_id": 9,
+          "relative_path": "examples/anthropic-design-generator/takeaways.md",
+          "start_line": 1,
+          "heading_text": "Anthropic Design Generator — Takeaways",
+          "heading_chain": "Anthropic Design Generator — Takeaways",
+          "token_count": 688
+        },
+        "section_count": 5,
+        "unique_files": 3,
+        "mean_cohesion": 0.336787,
+        "file_breakdown": [
+          {
+            "path": "examples/anthropic-design-generator/takeaways.md",
+            "section_count": 2,
+            "sections": [
+              {
+                "section_id": "9.1",
+                "file_id": 9,
+                "relative_path": "examples/anthropic-design-generator/takeaways.md",
+                "start_line": 1,
+                "heading_text": "Anthropic Design Generator — Takeaways",
+                "heading_chain": "Anthropic Design Generator — Takeaways",
+                "token_count": 688
+              },
+              {
+                "section_id": "9.2",
+                "file_id": 9,
+                "relative_path": "examples/anthropic-design-generator/takeaways.md",
+                "start_line": 5,
+                "heading_text": "Что ценного",
+                "heading_chain": "Anthropic Design Generator — Takeaways > Что ценного",
+                "token_count": 509
+              }
+            ]
+          },
+          {
+            "path": "guides/perfect-system-prompts.md",
+            "section_count": 2,
+            "sections": [
+              {
+                "section_id": "13.1",
+                "file_id": 13,
+                "relative_path": "guides/perfect-system-prompts.md",
+                "start_line": 1,
+                "heading_text": "Как Писать Системные Промпты",
+                "heading_chain": "Как Писать Системные Промпты",
+                "token_count": 1092
+              },
+              {
+                "section_id": "13.11",
+                "file_id": 13,
+                "relative_path": "guides/perfect-system-prompts.md",
+                "start_line": 80,
+                "heading_text": "Примеры из дикой природы",
+                "heading_chain": "Как Писать Системные Промпты > Примеры из дикой природы",
+                "token_count": 104
+              }
+            ]
+          },
+          {
+            "path": "guides/perfect-context-engineering.md",
+            "section_count": 1,
+            "sections": [
+              {
+                "section_id": "11.1",
+                "file_id": 11,
+                "relative_path": "guides/perfect-context-engineering.md",
+                "start_line": 1,
+                "heading_text": "Как Инженерить Контекст",
+                "heading_chain": "Как Инженерить Контекст",
+                "token_count": 1740
+              }
+            ]
+          }
+        ],
+        "top_members": [
+          {
+            "similarity": 0.934318,
+            "section": {
+              "section_id": "9.2",
+              "file_id": 9,
+              "relative_path": "examples/anthropic-design-generator/takeaways.md",
+              "start_line": 5,
+              "heading_text": "Что ценного",
+              "heading_chain": "Anthropic Design Generator — Takeaways > Что ценного",
+              "token_count": 509
+            }
+          },
+          {
+            "similarity": 0.802086,
+            "section": {
+              "section_id": "11.1",
+              "file_id": 11,
+              "relative_path": "guides/perfect-context-engineering.md",
+              "start_line": 1,
+              "heading_text": "Как Инженерить Контекст",
+              "heading_chain": "Как Инженерить Контекст",
+              "token_count": 1740
+            }
+          }
+        ]
+      },
+      {
+        "label": "Dev — Инвентарь > Codex",
+        "medoid": {
+          "section_id": "26.16",
+          "file_id": 26,
+          "relative_path": "research/dev/inventory.md",
+          "start_line": 91,
+          "heading_text": "Codex",
+          "heading_chain": "Dev — Инвентарь > Codex",
+          "token_count": 160
+        },
+        "section_count": 13,
+        "unique_files": 2,
+        "mean_cohesion": 0.151992,
+        "file_breakdown": [
+          {
+            "path": "research/meta/inventory.md",
+            "section_count": 7,
+            "sections": [
+              {
+                "section_id": "28.1",
+                "file_id": 28,
+                "relative_path": "research/meta/inventory.md",
+                "start_line": 1,
+                "heading_text": "Meta — Инвентарь",
+                "heading_chain": "Meta — Инвентарь",
+                "token_count": 811
+              },
+              {
+                "section_id": "28.2",
+                "file_id": 28,
+                "relative_path": "research/meta/inventory.md",
+                "start_line": 9,
+                "heading_text": "Shared",
+                "heading_chain": "Meta — Инвентарь > Shared",
+                "token_count": 322
+              },
+              {
+                "section_id": "28.3",
+                "file_id": 28,
+                "relative_path": "research/meta/inventory.md",
+                "start_line": 11,
+                "heading_text": "1work-review",
+                "heading_chain": "Meta — Инвентарь > Shared > 1work-review",
+                "token_count": 39
+              },
+              {
+                "section_id": "28.10",
+                "file_id": 28,
+                "relative_path": "research/meta/inventory.md",
+                "start_line": 59,
+                "heading_text": "Claude Code",
+                "heading_chain": "Meta — Инвентарь > Claude Code",
+                "token_count": 174
+              },
+              {
+                "section_id": "28.16",
+                "file_id": 28,
+                "relative_path": "research/meta/inventory.md",
+                "start_line": 89,
+                "heading_text": "Codex",
+                "heading_chain": "Meta — Инвентарь > Codex",
+                "token_count": 206
+              },
+              {
+                "section_id": "28.17",
+                "file_id": 28,
+                "relative_path": "research/meta/inventory.md",
+                "start_line": 91,
+                "heading_text": "1roadmap",
+                "heading_chain": "Meta — Инвентарь > Codex > 1roadmap",
+                "token_count": 44
+              },
+              {
+                "section_id": "28.20",
+                "file_id": 28,
+                "relative_path": "research/meta/inventory.md",
+                "start_line": 109,
+                "heading_text": "1tasks",
+                "heading_chain": "Meta — Инвентарь > Codex > 1tasks",
+                "token_count": 30
+              }
+            ]
+          },
+          {
+            "path": "research/dev/inventory.md",
+            "section_count": 6,
+            "sections": [
+              {
+                "section_id": "26.1",
+                "file_id": 26,
+                "relative_path": "research/dev/inventory.md",
+                "start_line": 1,
+                "heading_text": "Dev — Инвентарь",
+                "heading_chain": "Dev — Инвентарь",
+                "token_count": 867
+              },
+              {
+                "section_id": "26.5",
+                "file_id": 26,
+                "relative_path": "research/dev/inventory.md",
+                "start_line": 23,
+                "heading_text": "Claude Code",
+                "heading_chain": "Dev — Инвентарь > Claude Code",
+                "token_count": 435
+              },
+              {
+                "section_id": "26.15",
+                "file_id": 26,
+                "relative_path": "research/dev/inventory.md",
+                "start_line": 80,
+                "heading_text": "1repo-map",
+                "heading_chain": "Dev — Инвентарь > Claude Code > 1repo-map",
+                "token_count": 137
+              },
+              {
+                "section_id": "26.16",
+                "file_id": 26,
+                "relative_path": "research/dev/inventory.md",
+                "start_line": 91,
+                "heading_text": "Codex",
+                "heading_chain": "Dev — Инвентарь > Codex",
+                "token_count": 160
+              },
+              {
+                "section_id": "26.17",
+                "file_id": 26,
+                "relative_path": "research/dev/inventory.md",
+                "start_line": 93,
+                "heading_text": "subagents",
+                "heading_chain": "Dev — Инвентарь > Codex > subagents",
+                "token_count": 35
+              },
+              {
+                "section_id": "26.18",
+                "file_id": 26,
+                "relative_path": "research/dev/inventory.md",
+                "start_line": 100,
+                "heading_text": "1repo-map",
+                "heading_chain": "Dev — Инвентарь > Codex > 1repo-map",
+                "token_count": 119
+              }
+            ]
+          }
+        ],
+        "top_members": [
+          {
+            "similarity": 0.919636,
+            "section": {
+              "section_id": "26.18",
+              "file_id": 26,
+              "relative_path": "research/dev/inventory.md",
+              "start_line": 100,
+              "heading_text": "1repo-map",
+              "heading_chain": "Dev — Инвентарь > Codex > 1repo-map",
+              "token_count": 119
+            }
+          },
+          {
+            "similarity": 0.879799,
+            "section": {
+              "section_id": "26.17",
+              "file_id": 26,
+              "relative_path": "research/dev/inventory.md",
+              "start_line": 93,
+              "heading_text": "subagents",
+              "heading_chain": "Dev — Инвентарь > Codex > subagents",
+              "token_count": 35
+            }
+          },
+          {
+            "similarity": 0.805711,
+            "section": {
+              "section_id": "26.15",
+              "file_id": 26,
+              "relative_path": "research/dev/inventory.md",
+              "start_line": 80,
+              "heading_text": "1repo-map",
+              "heading_chain": "Dev — Инвентарь > Claude Code > 1repo-map",
+              "token_count": 137
+            }
+          },
+          {
+            "similarity": 0.801365,
+            "section": {
+              "section_id": "26.1",
+              "file_id": 26,
+              "relative_path": "research/dev/inventory.md",
+              "start_line": 1,
+              "heading_text": "Dev — Инвентарь",
+              "heading_chain": "Dev — Инвентарь",
+              "token_count": 867
+            }
+          }
+        ]
+      }
+    ],
+    "_envelope": {
+      "version": 1,
+      "tool": "md_repeated_concepts",
+      "corpus_root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+      "corpus_state": {
+        "state": "HEALTHY",
+        "model": "openai/text-embedding-3-small",
+        "index_exists": true,
+        "last_touched": "__VOLATILE__",
+        "added_sections": 1,
+        "removed_sections": 1,
+        "pending_chunks": 1,
+        "drift_count": 0,
+        "metadata_mismatch": false,
+        "delta_too_large": false,
+        "recommended_action": {
+          "tool": "md_index",
+          "args": {
+            "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+            "confirm": true
+          },
+          "reason": "Optional eager warmup; search will auto-embed the small delta otherwise."
+        }
+      },
+      "lock": null,
+      "cost": {
+        "turn_usd": "__VOLATILE__",
+        "session_usd": "__VOLATILE__"
+      },
+      "size_estimate": {
+        "bytes": 12645,
+        "items_returned": 3,
+        "counted_fields": [
+          {
+            "field": "concepts",
+            "count": 3
+          }
+        ],
+        "large_reply": true
+      },
+      "next_step": []
+    }
+  }
+}

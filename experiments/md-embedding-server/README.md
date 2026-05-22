@@ -1,41 +1,40 @@
-# md_navigator
+# md-tools
 
-Unified Markdown navigator client used by both the Claude and Codex
-`1md-navigator` skills. Reads through an OpenAI-compatible embedding API
+Unified Markdown CLI used by both the Claude and Codex `1md-navigator` /
+`1md-graph` skills. Reads through an OpenAI-compatible embedding API
 (default: OpenRouter / `baai/bge-m3`) — no local
 embedding server, no Metal allocator pressure, no model files on disk.
 
-The scripts in `scripts/md_navigator.py` and `scripts/md_graph.py` are
-the repo-owned backend entry points. `md_navigator.py` is the shared
-navigation/search/profile client; `md_graph.py` is the graph hygiene
-wrapper around `navigator/graph.py`.
+The installed `md` binary is the only agent-facing entry point. The pure
+backend lives in `src/navigator/`; the CLI, envelope, dispatch, transactions
+and command handlers live in `src/md_cli/`.
 
 Skill folders (`~/.claude/skills/1md-{navigator,graph}/`,
-`~/.codex/skills/1md-{navigator,graph}/`) are now pure `SKILL.md` after
-the 2026-05-21 refactor closeout. There are no skill-side scripts or
-symlinks; the MCP server (`mcp/src/server.js`) is the single bridge to
-the in-repo backend. Resolution is `MD_NAVIGATOR_SCRIPT` / `MD_GRAPH_SCRIPT`
-env vars → in-repo `scripts/`. CLI fallback works for direct usage via
-`uv run --script` shebang in `scripts/md_navigator.py`.
+`~/.codex/skills/1md-{navigator,graph}/`) are pure declarative surfaces:
+`SKILL.md`, `references/`, and optional metadata. They call `md ... --json`;
+no skill-side scripts or server bridge are required.
 
 > **Note on the folder name.** Historically this directory hosted a
 > local MLX embedding server. We retired the server when we moved to
 > cloud embeddings; the folder name is kept for path compatibility.
-> The real entry point is the `navigator/` package.
+> The real runtime entry point is the `md` CLI, backed by `src/navigator/`.
 
 ## Unified backend shape
 
-- `navigator/markdown_io.py` owns shared Markdown parsing.
-- `navigator/graph.py` owns graph commands: `preflight`, `impact`,
+- `src/navigator/markdown_io.py` owns shared Markdown parsing.
+- `src/navigator/graph.py` owns graph commands: `preflight`, `impact`,
   `deps`, `health`, `check`, `changed`, and schema cleanup.
-- `navigator/link_graph.py` and `navigator/importance.py` add link
+- `src/navigator/link_graph.py` and `src/navigator/importance.py` add link
   counts and centrality without embeddings.
-- `navigator/section_profile.py`, `originality.py`,
+- `src/navigator/section_profile.py`, `originality.py`,
   `owner_detector.py`, and `refactor_proposals.py` add Tier 2
   refactor signals. Section profiles support explicit OpenRouter LLM mode
   with heuristic fallback; proposals are human-reviewed and never mutate files.
-- `mcp/` exposes read-only typed tools. Mutating and cost-bearing work
-  stays CLI-only.
+- `src/navigator/workflows/` composes atomic functions into agent-facing
+  workflows such as `orient`, `edit-context`, `section-blast-radius`, and
+  `refactor-candidates`.
+- `src/md_cli/` owns the command catalog, thin handlers, envelope wrapping,
+  transaction guard and JSON serialization.
 
 ## Developer workflow
 
@@ -43,25 +42,25 @@ From the repository root:
 
 ```bash
 experiments/md-embedding-server/scripts/run-tests.sh
-cd experiments/md-embedding-server/mcp && npm run smoke
+cd experiments/md-embedding-server && uv run md selftest --json
 ```
 
-Current expected signal: Python tests pass, and MCP smoke reports all tools
-passing with `md_audit` skipped unless `SMOKE_AUDIT=1` is set.
+Current expected signal: Python tests pass, and `md selftest --json` reports
+all required CLI checks passing with expensive audit-style checks skipped
+unless explicitly requested.
 
 Choose the cheapest gate by change type:
 
 | Change | Required check |
 |---|---|
 | Python parser/helper/search/profile/graph code | `experiments/md-embedding-server/scripts/run-tests.sh` |
-| New or changed Python CLI command | `experiments/md-embedding-server/scripts/run-tests.sh` + `uv run --script experiments/md-embedding-server/scripts/md_navigator.py manifest` |
-| New or changed MCP tool/schema/description | `cd experiments/md-embedding-server/mcp && npm run smoke` |
-| `md_audit` behavior | `SMOKE_AUDIT=1 npm run smoke` |
+| New or changed CLI command/catalog/envelope | `experiments/md-embedding-server/scripts/run-tests.sh` + `cd experiments/md-embedding-server && uv run md tools --json` |
+| New or changed workflow/handler behavior | `cd experiments/md-embedding-server && uv run md selftest --json` |
+| `md audit` behavior | targeted pytest + manual `md audit CORPUS --json` on a bounded corpus |
 | Runtime `SKILL.md` workflow text | `python3 experiments/md-embedding-server/scripts/sync-skill-docs.py --check` if Claude/Codex sync is in scope |
 
 `sync-skill-docs.py --check` is not a backend gate. It checks installed skill
-docs, may fail on intentional Claude/Codex drift, and Codex must not repair
-Claude-side files directly.
+docs and generated catalogs for stale CLI guidance.
 
 ## Embedding backend
 
@@ -112,13 +111,12 @@ Override the endpoint for any OpenAI-compatible service:
 --embedding-timeout 60
 ```
 
-## Client (md_navigator.py)
+## CLI (`md`)
 
 Subcommands:
 
-- `map`, `headings` — folder index by frontmatter description + headings
-- `pick` — select files/sections by stable id from a saved JSON map
-- `pick --extract` (or `read`) — return text of selected sections in one packet
+- `ls`, `toc` — folder/file index by frontmatter description and headings
+- `extract` — return selected files/sections in one packet
 - `read-related` — linked Markdown neighborhood for context
 - `importance` — graph centrality ranking (pagerank / centrality / in-degree / out-degree)
 - `profile-sections` — cache section profiles in the index (`--mode llm` for OpenRouter, heuristic default for no-cost runs)
@@ -128,8 +126,8 @@ Subcommands:
 - `status` — freshness check for an existing index; no HTTP and no writes
 - `search` — hybrid section retrieval (BM25F + dense via RRF)
 - `overlaps` — semantic similarity pair detector for IA smells
-- `repeated-concepts`, `cluster` — corpus-level duplicate/topic probes
-- `manifest` — machine-readable command/default contract for docs/skill sync
+- `repeated-concepts`, `audit` — corpus-level duplicate/topic/IA probes
+- `tools`, `ping`, `doctor`, `selftest` — runtime discovery and diagnostics
 
 ## Adding a Python CLI command
 
@@ -137,10 +135,10 @@ Start by choosing the owner surface:
 
 | New behavior | Put it in |
 |---|---|
-| Search/index/audit-style command with shared flags or real logic | dedicated `navigator/<name>.py` with `register_<name>(sub)` and `cmd_<name>` |
-| Tiny map/read/pick-style command with one-off argparse shape | inline block in `navigator/cli.py` |
-| Graph contract, frontmatter, `read-before-edit`, `edit-after-edit`, rename/delete, or link-health logic | `navigator/graph.py` / `scripts/md_graph.py` |
-| Agent workflow over existing primitives | MCP composite/hybrid tool first; add Python only if a backend primitive is missing |
+| Search/index/audit-style primitive with shared flags or real logic | dedicated module in `src/navigator/` plus public function in `navigator.api` |
+| Agent workflow over existing primitives | `src/navigator/workflows/` plus a thin handler in `src/md_cli/handlers/` |
+| Graph contract, frontmatter, `read-before-edit`, `edit-after-edit`, rename/delete, or link-health logic | `src/navigator/graph.py` and graph-facing public API |
+| CLI/envelope/transaction behavior | `src/md_cli/` only |
 
 Checklist:
 
@@ -150,13 +148,13 @@ Checklist:
 3. If the command emits JSON, decide whether it is a stable agent-facing
    contract. Stable contracts get a schema in `navigator/schemas.py`; debug
    JSON must be documented as debug-only.
-4. Ensure the command is registered on the argparse surface; `manifest` is
-   generated from that parser and the test suite catches parser/manifest drift.
+4. Ensure the command is registered in `src/md_cli/catalog.py`; the test suite
+   catches catalog/signature drift.
 5. Add tests close to the changed layer: pure helper tests, command smoke, and
    schema/manifest contract tests when applicable.
-6. Update this README. If the command should be used by agents directly, also
-   update the MCP README/tool surface; if it changes workflow choices, update
-   the relevant runtime `SKILL.md` through the proper runtime owner.
+6. Update this README and regenerate installed catalogs with
+   `python3 experiments/md-embedding-server/scripts/sync-skill-docs.py --regenerate`
+   if agent-facing descriptions changed.
 
 ## Persistent index
 
@@ -183,20 +181,21 @@ Lifecycle commands:
 
 ```bash
 # First-time warmup for a corpus
-md_navigator.py index <corpus>
+md index CORPUS --dry-run --json
+md index CORPUS --confirm --transaction-id <id> --json
 
 # Later orientation — no HTTP, no writes
-md_navigator.py status  <corpus>
+md status CORPUS --json
 
 # After that — near-instant; auto-embeds tiny deltas (≤50 chunks default)
-md_navigator.py search   <corpus> "query"
-md_navigator.py overlaps <corpus>
+md search CORPUS --query "query" --json
+md overlaps CORPUS --json
 
 # Force full rebuild
-md_navigator.py search   <corpus> "query" --no-cache
+md index CORPUS --dry-run --json
 
 # Override location (e.g. shared cache root)
-md_navigator.py index    <corpus> --cache-dir ~/.local/share/md-navigator
+MD_NAVIGATOR_CACHE_ROOT=~/.local/share/md-navigator md index CORPUS --dry-run --json
 ```
 
 Big delta refusal: if `search`/`overlaps`/`repeated-concepts` would have
@@ -220,7 +219,7 @@ parallel Claude/Codex sessions do not race the same SQLite counters.
 
 ## Indexing scope
 
-`md_navigator` is a Markdown-only navigator. Point `index` / `search` /
+`md` is a Markdown-only navigator. Point `index` / `search` /
 `overlaps` at the folder that actually holds your Markdown corpus
 (`knowledge/`, `_ops/`, a subtree) — not at the root of a mixed monorepo.
 

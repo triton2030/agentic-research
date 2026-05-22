@@ -1,0 +1,162 @@
+{
+  "tool": "md_search",
+  "canonical_args": {
+    "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+    "query": "tool design boundaries",
+    "limit": 3
+  },
+  "is_error": false,
+  "payload": {
+    "root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+    "query": "tool design boundaries",
+    "scope": "sections",
+    "engine": {
+      "bm25f": true,
+      "dense": true,
+      "embed_model": "openai/text-embedding-3-small",
+      "embedding_api_url": "https://openrouter.ai/api/v1",
+      "rerank": false,
+      "rerank_model": null,
+      "rerank_top_n": null,
+      "rerank_api_url": null,
+      "path_include": [],
+      "path_exclude": []
+    },
+    "stats": {
+      "files_indexed": 37,
+      "items_indexed": 302,
+      "sections_subchunked": 2,
+      "embeddings_cached": 302,
+      "embeddings_computed": 0,
+      "sections_removed": 0,
+      "bm25_hits": 50,
+      "dense_hits": 50,
+      "dropped_stale_path": 0
+    },
+    "weights": {
+      "description": 5,
+      "title": 4,
+      "heading": 3,
+      "body": 1
+    },
+    "results": [
+      {
+        "rowid": 37,
+        "section_id": "10.11",
+        "file_id": 10,
+        "relative_path": "guides/design-review-playbook.md",
+        "start_line": 81,
+        "level": 2,
+        "heading_text": "Если Снова Делать Отдельный Design-Skill",
+        "heading_chain": "Design Review Playbook > Если Снова Делать Отдельный Design-Skill",
+        "body": "Выбрать одну форму:\n\n1. Art-direction skill: visual thesis, mood, hierarchy, anti-slop, taste defaults.\n2. Brand/theme skill: palette, typography, style system, theme application.\n3. Figma / implementation workflow: prerequisites, boundaries, required order,\n   validation.\n4. Review/signoff layer: тонкий router над уже сильными узкими скиллами.\n\nНе делать omnibus skill для generation + review + browser capture + Figma writes\nи breadth orchestration. Если guide начинает пересказывать live `SKILL.md`,\nоставить принцип или ссылку на owner.",
+        "file_description": "",
+        "file_title": "Design Review Playbook",
+        "content_hash": "94c5055f93ff41992aadb2a5c63935d9324850e781c9dc5dbb71b2380d29bdcf",
+        "token_count": 145,
+        "bm25_score": -6.859892,
+        "dense_distance": 1.067111,
+        "rrf_score": 0.032266,
+        "rerank_score": null,
+        "fields_hit": [
+          "title",
+          "heading",
+          "body"
+        ],
+        "snippet": "...application. 3. Figma / implementation workflow: prerequisites, boundaries, required order,    validation. 4. Review/signoff layer: тонкий router над уже сильными узкими скиллами.  Не делать omnibus..."
+      },
+      {
+        "rowid": 279,
+        "section_id": "5.2",
+        "file_id": 5,
+        "relative_path": "agents/tool-design.md",
+        "start_line": 13,
+        "level": 2,
+        "heading_text": "Проверено",
+        "heading_chain": "Agents — Tool Design > Проверено",
+        "body": "- Активный набор инструментов должен быть маленьким и управляемым. Избыточный tool set повышает шум, drift и число ошибочных ходов.\n- Tool surface: радикальное сокращение (классический кейс — 17 узких инструментов → 2 примитива над файловой системой) обычно повышает качество выбора. Перед добавлением tool в скилл — проверить, не делается ли это уже базовыми примитивами.\n- Tool description (frontmatter скилла, MCP tool) валиден, если отвечает на 4 вопроса: что делает, когда применять, что вернёт, чем отличается от соседнего. Без этого триггеры конфликтуют.\n- Для большого tool surface использовать narrow descriptions и tool search / deferred discovery, а не грузить весь каталог в основной контекст. Model-specific детали — `knowledge/wisdom-gpt-5.5.md`, `knowledge/wisdom-claude-opus-4.7.md`.",
+        "file_description": "Tool surface и tool descriptions у агента — почему меньше инструментов лучше, и какой description реально триггерит правильно.",
+        "file_title": "Agents — Tool Design",
+        "content_hash": "360968a38e0909b70d449dccfd183b71242f70e594c5263037ec85ae07df32ba",
+        "token_count": 201,
+        "bm25_score": -5.641461,
+        "dense_distance": 1.080229,
+        "rrf_score": 0.030798,
+        "rerank_score": null,
+        "fields_hit": [
+          "description",
+          "title",
+          "heading",
+          "body"
+        ],
+        "snippet": "...инструментов должен быть маленьким и управляемым. Избыточный tool set повышает шум, drift и число ошибочных ходов. - Tool surface: радикальное сокращение (классический кейс — 17 узких инструментов..."
+      },
+      {
+        "rowid": 280,
+        "section_id": "5.3",
+        "file_id": 5,
+        "relative_path": "agents/tool-design.md",
+        "start_line": 20,
+        "level": 2,
+        "heading_text": "Опоры",
+        "heading_chain": "Agents — Tool Design > Опоры",
+        "body": "- https://developers.openai.com/api/docs/guides/structured-outputs\n  Schema-constrained outputs как форма контракта инструмента.\n\n- `/knowledge/practical-guides/how-to-write-skills/authoring-canon.md`\n  Authoring canon для skill description и triggering surface.",
+        "file_description": "Tool surface и tool descriptions у агента — почему меньше инструментов лучше, и какой description реально триггерит правильно.",
+        "file_title": "Agents — Tool Design",
+        "content_hash": "592128bc6cab696bd842e2a8874bd92eb4cb97119815e52a45831e5516d34b06",
+        "token_count": 66,
+        "bm25_score": -5.844083,
+        "dense_distance": 1.088829,
+        "rrf_score": 0.029828,
+        "rerank_score": null,
+        "fields_hit": [
+          "description",
+          "title",
+          "heading"
+        ],
+        "snippet": "- https://developers.openai.com/api/docs/guides/structured-outputs   Schema-constrained outputs как форма контракта инструмента.  - `/knowledge/practical-guides/how-to-write-skills/authoring-canon.md`..."
+      }
+    ],
+    "_envelope": {
+      "version": 1,
+      "tool": "md_search",
+      "corpus_root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+      "corpus_state": {
+        "state": "HEALTHY",
+        "model": "openai/text-embedding-3-small",
+        "index_exists": true,
+        "last_touched": "__VOLATILE__",
+        "added_sections": 1,
+        "removed_sections": 1,
+        "pending_chunks": 1,
+        "drift_count": 0,
+        "metadata_mismatch": false,
+        "delta_too_large": false,
+        "recommended_action": {
+          "tool": "md_index",
+          "args": {
+            "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+            "confirm": true
+          },
+          "reason": "Optional eager warmup; search will auto-embed the small delta otherwise."
+        }
+      },
+      "lock": null,
+      "cost": {
+        "turn_usd": "__VOLATILE__",
+        "session_usd": "__VOLATILE__"
+      },
+      "size_estimate": {
+        "bytes": 4800,
+        "items_returned": 3,
+        "counted_fields": [
+          {
+            "field": "results",
+            "count": 3
+          }
+        ]
+      },
+      "next_step": []
+    }
+  }
+}

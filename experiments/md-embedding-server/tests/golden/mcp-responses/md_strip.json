@@ -1,0 +1,35 @@
+{
+  "tool": "md_strip",
+  "canonical_args": {
+    "paths": [
+      "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents"
+    ],
+    "dry_run": true
+  },
+  "is_error": false,
+  "payload": {
+    "dry_run": true,
+    "files_to_modify": [],
+    "file_count": 0,
+    "also_related_section": false,
+    "issues_total": 10,
+    "note": "Frontmatter-only strip. Pass also_related_section:true to also remove related-docs body sections.",
+    "hint": "No legacy fields found — nothing to strip.",
+    "_envelope": {
+      "version": 1,
+      "tool": "md_strip",
+      "corpus_root": null,
+      "corpus_state": null,
+      "lock": null,
+      "cost": {
+        "turn_usd": "__VOLATILE__",
+        "session_usd": "__VOLATILE__"
+      },
+      "size_estimate": {
+        "bytes": 258,
+        "items_returned": 0
+      },
+      "next_step": []
+    }
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "tool": "md_read_related",
+  "canonical_args": {
+    "paths": [
+      "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/evaluation.md"
+    ],
+    "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+    "token_budget": 1500
+  },
+  "is_error": false,
+  "payload": {
+    "root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+    "anchors": [
+      "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/evaluation.md"
+    ],
+    "include": [
+      "backlinks",
+      "frontmatter",
+      "markdown-links",
+      "self",
+      "wikilinks"
+    ],
+    "token_budget": 1500,
+    "token_total": 467,
+    "items": [
+      {
+        "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/evaluation.md",
+        "relative_path": "agents/evaluation.md",
+        "description": "Оценка агента — trajectory eval, observable acceptance criteria, multi-channel audit, cross-family judge и manual prototype first.",
+        "title": "Agents — Evaluation",
+        "headings": [
+          {
+            "line": 5,
+            "level": 1,
+            "text": "Agents — Evaluation"
+          },
+          {
+            "line": 13,
+            "level": 2,
+            "text": "Проверено"
+          },
+          {
+            "line": 23,
+            "level": 2,
+            "text": "Опоры"
+          }
+        ],
+        "reasons": [
+          "self"
+        ],
+        "tokens": 467,
+        "content": "---\ndescription: Оценка агента — trajectory eval, observable acceptance criteria, multi-channel audit, cross-family judge и manual prototype first.\n---\n\n# Agents — Evaluation\n\nСнимок на 20 мая 2026. Снято с `wisdom-agents.md` при function-split refactor.\n\nЗдесь принципы про оценку агента: что считать evidence, как чинить, где\nпроверять траекторию, не только финал. Runtime guarantees — `runtime-layer.md`.\nMemory effectiveness — `memory.md`.\n\n## Проверено\n\n- Оценивать нужно не только финальный ответ, но и траекторию: какие гипотезы строились, где агент повторялся, как менял план и на каких доказательствах основывал вывод.\n- Acceptance criteria сильнее всего работают там, где они observable, unambiguous и non-bypassable. Self-report не считается evidence.\n- Testable in isolation применимо не только к тестам: каждое важное требование лучше проверять отдельным наблюдаемым сигналом.\n- Ограничения для агентов полезно различать по типу: formatting, semantic и tool. Это помогает проверять и чинить ровно тот слой, где агент ошибается.\n- Для серьёзного agent audit слаб один judge-канал: надёжнее сочетать deterministic checks, rubric review и security/scope review; при нехватке evidence честнее вернуть `unknown` или `escalate`, чем симулировать уверенность.\n- Self-eval скилла лучше делать второй рабочей модельной семьёй (`GPT` ↔ `Claude`): same-family judge даёт self-enhancement bias.\n- Перед автоматизацией пайплайна — собрать один пример руками. Без manual prototype скилл-обёртка кодифицирует ошибки, которые ещё не пойманы.\n\n## Опоры\n\n- https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices\n  Prompt engineering guidance: явность инструкций, scope, tool policy.\n\n- `/knowledge/practical-guides/how-to-write-skills/`\n  Authoring canon, checklist, platform-deltas и research evidence для self-eval против."
+      }
+    ],
+    "dropped_by_budget": [],
+    "semantic_status": "not_requested",
+    "semantic_neighbors": [],
+    "suspicious_links": [],
+    "note": "Reading context only; graph obligations belong to 1md-graph.",
+    "_envelope": {
+      "version": 1,
+      "tool": "md_read_related",
+      "corpus_root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+      "corpus_state": {
+        "state": "HEALTHY",
+        "model": "openai/text-embedding-3-small",
+        "index_exists": true,
+        "last_touched": "__VOLATILE__",
+        "added_sections": 1,
+        "removed_sections": 1,
+        "pending_chunks": 1,
+        "drift_count": 0,
+        "metadata_mismatch": false,
+        "delta_too_large": false,
+        "recommended_action": {
+          "tool": "md_index",
+          "args": {
+            "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+            "confirm": true
+          },
+          "reason": "Optional eager warmup; search will auto-embed the small delta otherwise."
+        }
+      },
+      "lock": null,
+      "cost": {
+        "turn_usd": "__VOLATILE__",
+        "session_usd": "__VOLATILE__"
+      },
+      "size_estimate": {
+        "bytes": 2845,
+        "items_returned": 2,
+        "counted_fields": [
+          {
+            "field": "items",
+            "count": 1
+          },
+          {
+            "field": "anchors",
+            "count": 1
+          }
+        ]
+      },
+      "next_step": []
+    }
+  }
+}

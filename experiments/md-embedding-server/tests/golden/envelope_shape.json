@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "tool": "md_ping",
+  "corpus_root": null,
+  "corpus_state": null,
+  "lock": null,
+  "cost": {
+    "turn_usd": "__VOLATILE__",
+    "session_usd": "__VOLATILE__"
+  },
+  "size_estimate": {
+    "bytes": 319,
+    "items_returned": 0
+  },
+  "next_step": []
+}
+

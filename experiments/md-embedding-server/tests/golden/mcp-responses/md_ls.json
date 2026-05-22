@@ -1,0 +1,189 @@
+{
+  "tool": "md_ls",
+  "canonical_args": {
+    "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents"
+  },
+  "is_error": false,
+  "payload": {
+    "root": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents",
+    "file_count": 5,
+    "description_gap_count": 0,
+    "heading_count": 17,
+    "files": [
+      {
+        "id": 1,
+        "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/evaluation.md",
+        "relative_path": "evaluation.md",
+        "description": "Оценка агента — trajectory eval, observable acceptance criteria, multi-channel audit, cross-family judge и manual prototype first.",
+        "title": "Agents — Evaluation",
+        "heading_count": 3,
+        "headings": [
+          {
+            "id": "1.1",
+            "line": 5,
+            "level": 1,
+            "text": "Agents — Evaluation"
+          },
+          {
+            "id": "1.2",
+            "line": 13,
+            "level": 2,
+            "text": "Проверено"
+          },
+          {
+            "id": "1.3",
+            "line": 23,
+            "level": 2,
+            "text": "Опоры"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/memory.md",
+        "relative_path": "memory.md",
+        "description": "Память агента и quality gate для learnings — почему eviction обязателен, и почему user corrections сильнее observations.",
+        "title": "Agents — Memory & Learnings",
+        "heading_count": 3,
+        "headings": [
+          {
+            "id": "2.1",
+            "line": 5,
+            "level": 1,
+            "text": "Agents — Memory & Learnings"
+          },
+          {
+            "id": "2.2",
+            "line": 13,
+            "level": 2,
+            "text": "Проверено"
+          },
+          {
+            "id": "2.3",
+            "line": 20,
+            "level": 2,
+            "text": "Опоры"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/multi-agent.md",
+        "relative_path": "multi-agent.md",
+        "description": "Multi-agent системы — supervisor bottleneck, forward_message и борьба с sycophantic consensus.",
+        "title": "Agents — Multi-agent Systems",
+        "heading_count": 3,
+        "headings": [
+          {
+            "id": "3.1",
+            "line": 5,
+            "level": 1,
+            "text": "Agents — Multi-agent Systems"
+          },
+          {
+            "id": "3.2",
+            "line": 13,
+            "level": 2,
+            "text": "Проверено"
+          },
+          {
+            "id": "3.3",
+            "line": 20,
+            "level": 2,
+            "text": "Опоры"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/runtime-layer.md",
+        "relative_path": "runtime-layer.md",
+        "description": "Runtime-слой агента — где живут критические ограничения, валидация и approvals; почему prompt-only защита хрупка.",
+        "title": "Agents — Runtime Layer",
+        "heading_count": 5,
+        "headings": [
+          {
+            "id": "4.1",
+            "line": 5,
+            "level": 1,
+            "text": "Agents — Runtime Layer"
+          },
+          {
+            "id": "4.2",
+            "line": 15,
+            "level": 2,
+            "text": "Проверено"
+          },
+          {
+            "id": "4.3",
+            "line": 25,
+            "level": 2,
+            "text": "Ground Before Action"
+          },
+          {
+            "id": "4.4",
+            "line": 37,
+            "level": 2,
+            "text": "Рабочие Гипотезы"
+          },
+          {
+            "id": "4.5",
+            "line": 42,
+            "level": 2,
+            "text": "Опоры"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/tool-design.md",
+        "relative_path": "tool-design.md",
+        "description": "Tool surface и tool descriptions у агента — почему меньше инструментов лучше, и какой description реально триггерит правильно.",
+        "title": "Agents — Tool Design",
+        "heading_count": 3,
+        "headings": [
+          {
+            "id": "5.1",
+            "line": 5,
+            "level": 1,
+            "text": "Agents — Tool Design"
+          },
+          {
+            "id": "5.2",
+            "line": 13,
+            "level": 2,
+            "text": "Проверено"
+          },
+          {
+            "id": "5.3",
+            "line": 20,
+            "level": 2,
+            "text": "Опоры"
+          }
+        ]
+      }
+    ],
+    "_envelope": {
+      "version": 1,
+      "tool": "md_ls",
+      "corpus_root": null,
+      "corpus_state": null,
+      "lock": null,
+      "cost": {
+        "turn_usd": "__VOLATILE__",
+        "session_usd": "__VOLATILE__"
+      },
+      "size_estimate": {
+        "bytes": 2734,
+        "items_returned": 5,
+        "counted_fields": [
+          {
+            "field": "files",
+            "count": 5
+          }
+        ]
+      },
+      "next_step": []
+    }
+  }
+}

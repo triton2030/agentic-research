@@ -1,5 +1,11 @@
 # md-mcp → CLI Refactor
 
+## Status
+
+Closed 2026-05-22. Task files moved to `_archive/2026-05-22-*/task.md`.
+Closeout evidence:
+`_ops/findings/2026-05-22-mcp-refactor-closeout.md`.
+
 ## Цель
 
 Убрать Node MCP server (`experiments/md-embedding-server/mcp/`, ~2228 LOC JS, 29 tools), заменить его единым Python CLI `md` с library/CLI split. Skills обновляются механически (find&replace), внешний контракт для агентов остаётся: те же 29 имён tools, та же envelope shape, тот же dry-run/confirm.
@@ -17,7 +23,7 @@
 
 ## Анкор
 
-`_ops/PROJECT-ROADMAP.md#md-mcp-to-cli-refactor` (current path).
+`_ops/PROJECT-ROADMAP.md#Archived 2026-05-22`.
 
 ## Blast scope (исправлено после inventory)
 
@@ -88,7 +94,7 @@
 ### Phase 5 — Removal & closeout
 | Task | Что закрывает |
 |---|---|
-| `task-501-cross-project-smoke-pre-removal.md` | NEW ORDER: cross-project smoke ДО deletion; parity test conversion to snapshot-based |
+| `task-501-cross-project-smoke-pre-removal.md` | NEW ORDER: cross-project smoke ДО deletion; verify parity tests already snapshot-based |
 | `task-502-remove-mcp-and-final-closeout.md` | MCP folder удалён; closeout + archive task capsules; explicit Codex smoke prompt + evidence |
 
 ## Порядок выполнения

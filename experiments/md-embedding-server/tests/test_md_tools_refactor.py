@@ -21,6 +21,20 @@ def test_build_map_with_link_counts(tmp_path):
     assert by_rel["b.md"]["in_degree"] == 1
 
 
+def test_build_map_skips_symlink_targets_outside_corpus(tmp_path):
+    root = tmp_path / "corpus"
+    outside = tmp_path / "outside"
+    root.mkdir()
+    outside.mkdir()
+    (root / "inside.md").write_text("# Inside\n\n", encoding="utf-8")
+    (outside / "outside.md").write_text("# Outside\n\n", encoding="utf-8")
+    (root / "outside-link").symlink_to(outside, target_is_directory=True)
+
+    data = build_map(root, max_heading_level=2)
+
+    assert [item["relative_path"] for item in data["files"]] == ["inside.md"]
+
+
 def test_importance_rows_rank_link_target(tmp_path):
     root = tmp_path / "corpus"
     root.mkdir()

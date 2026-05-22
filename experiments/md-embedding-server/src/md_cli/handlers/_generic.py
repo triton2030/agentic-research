@@ -1,0 +1,149 @@
+from __future__ import annotations
+
+import importlib
+from pathlib import Path
+from typing import Any, Callable
+
+from md_cli.catalog import get_tool
+from md_cli.result import ToolResult
+from md_cli.transactions import (
+    compute_fingerprint,
+    create_transaction,
+    verify_and_consume_transaction,
+    verify_fingerprint,
+)
+
+
+MUTATING_TOOLS = {"md_init", "md_strip", "md_index", "md_profile_sections"}
+
+
+def run_tool(tool_id: str, args: Any) -> ToolResult:
+    spec = get_tool(tool_id)
+    if spec is None:
+        return ToolResult({"error": "unknown_tool", "tool": tool_id}, 2)
+    target = spec.workflow_function or spec.library_function
+    if target is None:
+        return ToolResult({"error": "missing_target", "tool": tool_id}, 3)
+    func = _load_target(target)
+    kwargs = _kwargs(args)
+    if _requires_transaction(tool_id, kwargs):
+        return _run_mutating(tool_id, func, args, kwargs)
+    return _call(func, kwargs)
+
+
+def _load_target(target: str) -> Callable[..., dict[str, Any]]:
+    module_name, attr = target.rsplit(".", 1)
+    module = importlib.import_module(module_name)
+    return getattr(module, attr)
+
+
+def _kwargs(args: Any) -> dict[str, Any]:
+    return {
+        key: value
+        for key, value in vars(args).items()
+        if not key.startswith("_") and key not in {"subcommand", "json"}
+    }
+
+
+def _call(func: Callable[..., dict[str, Any]], kwargs: dict[str, Any]) -> ToolResult:
+    try:
+        payload = func(**kwargs)
+    except FileNotFoundError as exc:
+        return ToolResult({"error": "path_not_found", "detail": str(exc)}, 2)
+    except PermissionError as exc:
+        return ToolResult({"error": "permission_denied", "detail": str(exc)}, 2)
+    except TypeError as exc:
+        return ToolResult({"error": "usage_error", "detail": str(exc)}, 2)
+    if payload is None:
+        payload = {}
+    payload = dict(payload)
+    code = int(payload.pop("_exit_code", 0))
+    return ToolResult(payload, code)
+
+
+def _requires_transaction(tool_id: str, kwargs: dict[str, Any]) -> bool:
+    if tool_id not in MUTATING_TOOLS:
+        return False
+    if tool_id == "md_profile_sections":
+        mode = kwargs.get("mode") or "heuristic"
+        return bool(kwargs.get("dry_run") or kwargs.get("confirm") or mode in {"llm", "auto"})
+    return True
+
+
+def _run_mutating(
+    tool_id: str,
+    func: Callable[..., dict[str, Any]],
+    args: Any,
+    kwargs: dict[str, Any],
+) -> ToolResult:
+    if kwargs.get("dry_run"):
+        result = _call(func, {**kwargs, "dry_run": True, "confirm": False})
+        if result.exit_code != 0:
+            return result
+        payload = dict(result.payload or {})
+        fingerprint, files = compute_fingerprint(_affected_files(payload))
+        txn = create_transaction(tool_id, vars(args), fingerprint, files)
+        payload.update(
+            {
+                "transaction_id": txn["id"],
+                "transaction_expires_at": txn["expires_at"],
+                "fingerprint": fingerprint,
+                "files": files,
+            }
+        )
+        return ToolResult(payload, result.exit_code)
+
+    if kwargs.get("confirm"):
+        transaction_id = kwargs.get("transaction_id")
+        if transaction_id:
+            preview = _call(func, {**kwargs, "dry_run": True, "confirm": False})
+            if preview.exit_code != 0:
+                return preview
+            verified = verify_and_consume_transaction(
+                transaction_id,
+                tool_id,
+                vars(args),
+                confirm_files=_affected_files(preview.payload or {}),
+            )
+            if not verified["ok"]:
+                return ToolResult({"error": verified["reason"], **verified}, 1)
+            return _call(func, {**kwargs, "dry_run": False, "confirm": True})
+        fingerprint = kwargs.get("fingerprint")
+        if fingerprint:
+            preview = _call(func, {**kwargs, "dry_run": True, "confirm": False})
+            checked = verify_fingerprint(_affected_files(preview.payload or {}), fingerprint)
+            if not checked["ok"]:
+                return ToolResult({"error": checked["reason"], **checked}, 1)
+            return _call(func, {**kwargs, "dry_run": False, "confirm": True})
+        return ToolResult(
+            {
+                "error": "transaction_required",
+                "reason": "Confirm requires --transaction-id or --fingerprint.",
+            },
+            1,
+        )
+
+    return ToolResult(
+        {
+            "error": "confirm_required",
+            "reason": "Run with --dry-run first to obtain transaction_id.",
+        },
+        1,
+    )
+
+
+def _affected_files(payload: dict[str, Any]) -> list[str]:
+    candidates = (
+        payload.get("affected_files")
+        or payload.get("files_to_modify")
+        or payload.get("modified")
+        or payload.get("files")
+        or []
+    )
+    files: list[str] = []
+    for item in candidates:
+        if isinstance(item, dict) and "path" in item:
+            files.append(str(item["path"]))
+        elif isinstance(item, (str, Path)):
+            files.append(str(item))
+    return files

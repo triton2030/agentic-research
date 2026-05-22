@@ -1,0 +1,1451 @@
+{
+  "generated_at": "2026-05-22",
+  "source": "live MCP client listTools against experiments/md-embedding-server/mcp/src/server.js",
+  "count": 29,
+  "tools": [
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "cli_name": "audit",
+      "description": "Orchestrated corpus health audit: overlaps + repeated concepts + clusters + heading signals. Slow.\n\nWHEN: 'is this corpus healthy', monthly hygiene pass, before major refactor, suspect IA drift.\nWHY OURS: Bundles 4 IA probes + 6 issue-class scoring + 0-100 health gauge — single call instead of 4-tool sequence.\nINPUT: corpus, path_include/exclude.\nOUTPUT: { classes, findings, health_score, ... } — IA classes with severity ratings.\nALT: For one probe only → md_overlaps / md_repeated_concepts directly. For graph hygiene → md_health.\nCOST: Slow (minutes), 300s timeout. Cloud embeddings if not cached. Auto-skipped in fast smoke (SMOKE_AUDIT=1 to include).",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "corpus": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "path_exclude": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "path_include": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "corpus"
+        ],
+        "type": "object"
+      },
+      "name": "md_audit",
+      "title": "md_audit"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "cli_name": "changed",
+      "description": "Preflight check on every .md file touched by git diff.\n\nWHEN: Pre-commit pass, before opening a PR, batch-validate a feature branch.\nWHY OURS: git diff → list .md files → preflight each — one call. Reports deleted files separately.\nINPUT: scan (default repo root), depth (cascade, default 2), base (git ref) | staged (boolean), path_include/exclude.\nOUTPUT: { command:'changed', changed: [{ path, preflight: {...} }], deleted: [...] }.\nALT: Pre-commit hook. md_preflight for one file by path.\nCOST: Free.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "base": {
+            "description": "Git ref to diff against (e.g. 'main')",
+            "type": "string"
+          },
+          "depth": {
+            "description": "Cascade depth (default 2)",
+            "exclusiveMinimum": 0,
+            "maximum": 10,
+            "type": "integer"
+          },
+          "path_exclude": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "path_include": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "scan": {
+            "description": "Reverse-scan scope (default: repo root)",
+            "type": "string"
+          },
+          "since": {
+            "description": "Git ref to diff against (default: HEAD, includes staged + unstaged)",
+            "type": "string"
+          },
+          "staged": {
+            "description": "Use staged changes from git diff --cached",
+            "type": "boolean"
+          }
+        },
+        "type": "object"
+      },
+      "name": "md_changed",
+      "title": "md_changed"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "cli_name": "check",
+      "description": "Validate wikilinks / anchors / markdown-links across the corpus.\n\nWHEN: 'are any links broken', before committing many .md edits, after rename/move operations.\nWHY OURS: Validates wikilink targets + anchor existence + markdown-link paths in one pass + detects related-docs sections. Bash regex can't resolve [[wikilink]] targets.\nINPUT: paths (default '.'), path_include/exclude.\nOUTPUT: { command:'check', findings: [{ code, path, line, message, ... }] } — codes: BROKEN_WIKILINK / BROKEN_ANCHOR / BROKEN_MARKDOWN_LINK. Non-zero exit when findings.\nALT: md_health rolls up check + scan + cycles. md_preflight for one-file pre-edit.\nCOST: Free.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "path_exclude": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "path_include": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "paths": {
+            "description": "Files or directories (default: current directory)",
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "name": "md_check",
+      "title": "md_check"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "cli_name": "corpus-scan",
+      "description": "Repo-wide scan: find all md-navigator corpora and folders with .md files without a corpus.\n\nWHEN: Cold session start, \"what's indexed where?\" agent question, repo-wide health check before committing to one corpus.\nWHY OURS: Single filesystem walk replaces manually checking every .md-navigator/. Surfaces unindexed .md folders so you know what was NOT covered (intentionally or by oversight).\nINPUT: root (default cwd).\nOUTPUT: { repo_root, corpora: [{root, index_path, last_touched, index_size_bytes}], unindexed_with_md: [{folder, md_files}], excluded_dirs_skipped }.\nALT: md_status for one corpus's freshness state. md_orient for cold-start of one corpus.\nCOST: Free. Filesystem walk only, no subprocess, no HTTP.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "root": {
+            "description": "Repo root to scan from (default: server cwd).",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "md_corpus_scan",
+      "title": "md_corpus_scan"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "cli_name": "cycles",
+      "description": "Find edit-after-edit cycles in the Markdown graph.\n\nWHEN: 'do we have circular dependencies', after add/remove edit-after-edit refs, debugging stuck cascades.\nWHY OURS: Tarjan SCC over graph edges — Bash awk over frontmatter can't traverse transitively.\nINPUT: paths (default '.'), path_include/exclude.\nOUTPUT: { command:'cycles', cycles: [[file1, file2, ...]] } — each cycle as a list. Non-zero exit when cycles present.\nALT: md_health bundles cycles count + hubs + orphans. md_preflight for one-file cycle check.\nCOST: Free.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "path_exclude": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "path_include": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "paths": {
+            "description": "Files or directories (default: current directory)",
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "name": "md_cycles",
+      "title": "md_cycles"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "cli_name": "deps",
+      "description": "Forward edges (read-before-edit / edit-after-edit) + reverse holders for one file.\n\nWHEN: 'what does this file depend on', 'who depends on this file', understand graph position before navigating.\nWHY OURS: Both directions in one call, depth>1 walks transitive cascade. Each row carries target's description.\nINPUT: path, scan, depth (default 1), path_include/exclude.\nOUTPUT: { command:'deps', forward, reverse } — each row has path + description.\nALT: md_impact for delete/rename specifically. md_preflight for edit safety.\nCOST: Free.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "depth": {
+            "description": "Cascade depth (default 1)",
+            "exclusiveMinimum": 0,
+            "maximum": 10,
+            "type": "integer"
+          },
+          "path": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "path_exclude": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "path_include": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "scan": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "type": "object"
+      },
+      "name": "md_deps",
+      "title": "md_deps"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "cli_name": "edit-context",
+      "description": "Smallest useful packet before editing one .md file. Modes: preview / full / strict.\n\nWHEN: Before editing a .md file you don't fully know — anchor file + linked context + (optional) semantic neighbors + graph blockers.\nWHY OURS: Bundles md_preflight + md_read_related (+ optional md_search) — one call instead of 2-3.\nINPUT: path, mode ('preview'|'full'|'strict', default full), scan, depth, query (full mode adds search), corpus (for query).\nOUTPUT (preview): preflight + related (descriptions only).\nOUTPUT (full): preflight + related (bodies) + optional search.\nOUTPUT (strict): preflight only — { blockers: { has_blockers, ... } }.\nALT: md_preflight alone for blocker check. md_section_blast_radius for rename.\nCOST: Free unless full+query (~$0.001 if rerank, normally cached).",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "corpus": {
+            "description": "Corpus root for optional query search",
+            "type": "string"
+          },
+          "depth": {
+            "exclusiveMinimum": 0,
+            "maximum": 10,
+            "type": "integer"
+          },
+          "mode": {
+            "enum": [
+              "preview",
+              "full",
+              "strict"
+            ],
+            "type": "string"
+          },
+          "path": {
+            "description": "Markdown file to edit",
+            "minLength": 1,
+            "type": "string"
+          },
+          "query": {
+            "description": "Optional semantic query to add search results in full mode",
+            "type": "string"
+          },
+          "scan": {
+            "description": "Graph/link scan root (default repo cwd)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "type": "object"
+      },
+      "name": "md_edit_context",
+      "title": "md_edit_context"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "cli_name": "extract",
+      "description": "Extract file metadata or section bodies from a saved map (md_ls / md_toc / md_search output).\n\nWHEN: After md_ls/md_toc/md_search returned a map and you need to pull specific files/headings — metadata only (extract=false) or full text (extract=true).\nWHY OURS: One call instead of pick→cat chain. Heading-aware (extract=true pulls only the section, not whole file). Token-budgeted.\nINPUT: map_data (JSON from md_ls/md_toc/md_search), files (comma ids '1,4'), headings (comma ids '1.2,4.3'), extract (false=metadata, true=bodies), token_budget.\nOUTPUT: { files: [...], headings: [{ id, text, body? }] } — body present only when extract=true.\nALT: For one whole file by path → built-in Read. For semantic-aware extract → md_read_related with paths.\nCOST: Free.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "extract": {
+            "description": "false (default): return metadata only. true: include section text bodies.",
+            "type": "boolean"
+          },
+          "files": {
+            "description": "Comma list of file ids, e.g. '1,4,7'",
+            "type": "string"
+          },
+          "headings": {
+            "description": "Comma list of heading ids, e.g. '1.2,4.3'",
+            "type": "string"
+          },
+          "map_data": {
+            "description": "JSON map object from md_ls / md_toc / md_search"
+          },
+          "token_budget": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "map_data"
+        ],
+        "type": "object"
+      },
+      "name": "md_extract",
+      "title": "md_extract"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "cli_name": "health",
+      "description": "Repo-level graph summary: description coverage, hubs, orphans, broken links, cycles.\n\nWHEN: 'is this repo's md healthy', monthly hygiene, before opening a PR with many .md changes.\nWHY OURS: Rolls up scan + check + doctor + cycles into one summary with percentages, hubs, top issues. Replaces 4-command bash dance.\nINPUT: paths (default '.'), path_include/exclude.\nOUTPUT: { description_coverage, todo_files, files_without_frontmatter, broken_graph_links, orphans, top_hubs, cycles_count, ... }.\nALT: md_scan / md_check / md_cycles for individual probes. md_audit for semantic + structural.\nCOST: Free.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "path_exclude": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "path_include": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "paths": {
+            "description": "Files or directories (default: current directory)",
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "name": "md_health",
+      "title": "md_health"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "cli_name": "impact",
+      "description": "What breaks if a .md file is deleted or renamed.\n\nWHEN: Before rm / mv on a .md file, before merging two files, planning a refactor.\nWHY OURS: Cascade holders + reference holders + body wikilinks + body markdown-links — each row carries the holder's frontmatter description. grep returns matches but not the contract intent.\nINPUT: path, scan, path_include/exclude.\nOUTPUT: { command:'impact', cascade_holders, reference_holders, body_wikilinks, body_markdown_links } — anchor-specific wikilinks marked via #heading.\nALT: md_section_blast_radius for rename of one section (adds semantic layer).\nCOST: Free.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "path": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "path_exclude": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "path_include": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "scan": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "type": "object"
+      },
+      "name": "md_impact",
+      "title": "md_impact"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "cli_name": "importance",
+      "description": "Rank Markdown files by link-graph importance (pagerank / in_degree / out_degree / centrality).\n\nWHEN: 'what are the central docs', orient on new corpus, prioritize reading order, find hubs.\nWHY OURS: NetworkX pagerank over the Markdown link graph in one call. No grep loops, no embedding cost.\nINPUT: corpus, top (default 10), sort_by ('pagerank'|'in_degree'|'out_degree'|'centrality').\nOUTPUT: { files: [{ relative_path, pagerank, in_degree, out_degree }] } ranked.\nALT: md_orient bundles importance + status + map.\nCOST: Free (no embeddings, no HTTP).",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "corpus": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "sort_by": {
+            "enum": [
+              "pagerank",
+              "in_degree",
+              "out_degree",
+              "centrality"
+            ],
+            "type": "string"
+          },
+          "top": {
+            "exclusiveMinimum": 0,
+            "maximum": 100,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "corpus"
+        ],
+        "type": "object"
+      },
+      "name": "md_importance",
+      "title": "md_importance"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "cli_name": "index",
+      "description": "Cold-start or top-up the persistent embedding index for a corpus. MUTATING + COST-BEARING.\n\nWHEN: New corpus / md_search returns index_warmup_required / large delta detected by md_status.\nWHY OURS: One-shot warmup; subsequent md_search / md_overlaps / md_repeated_concepts become instant.\nINPUT: corpus, confirm (required true), dry_run (estimate cost without running), batch_size, batch_pause_ms, path_include/exclude for partial indexes.\nOUTPUT (live): index summary text — chunks embedded, time, cost.\nOUTPUT (dry_run): { dry_run: true, pending_chunks, estimated_cost_usd, status_text }.\nALT: md_status to check state first.\nCOST: ~$0.02 per ~1000 chunks via OpenRouter bge-m3. Use dry_run:true first. Refuses without confirm:true.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "batch_pause_ms": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "batch_size": {
+            "exclusiveMinimum": 0,
+            "maximum": 128,
+            "type": "integer"
+          },
+          "confirm": {
+            "description": "Required true to actually run. Default false rejects with cost warning.",
+            "type": "boolean"
+          },
+          "corpus": {
+            "description": "Markdown corpus folder",
+            "minLength": 1,
+            "type": "string"
+          },
+          "dry_run": {
+            "description": "If true, return estimated cost / pending chunks without embedding.",
+            "type": "boolean"
+          },
+          "max_heading_level": {
+            "maximum": 6,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "path_exclude": {
+            "description": "Exclude matching paths from this index run",
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "path_include": {
+            "description": "Only index paths matching these globs or bare substrings",
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "corpus"
+        ],
+        "type": "object"
+      },
+      "name": "md_index",
+      "title": "md_index"
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "cli_name": "init",
+      "description": "Add graph frontmatter template to .md files missing it. MUTATING (writes to disk).\n\nWHEN: Onboarding new files / folder into graph workflow, after migration scan flagged missing frontmatter.\nWHY OURS: One pass that respects existing frontmatter — adds missing graph fields with canonical defaults. Bash sed can't merge YAML safely.\nINPUT: paths, confirm (required true), dry_run (list affected files without writing), path_include/exclude.\nOUTPUT (live): { command:'init', modified: [...] } — files touched.\nOUTPUT (dry_run): { dry_run: true, files_to_modify, file_count }.\nALT: md_scan first to see what would change.\nCOST: Free but DESTRUCTIVE — modifies .md files in place. Use dry_run first.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "confirm": {
+            "description": "Required true to actually run. Default false rejects with destructive warning.",
+            "type": "boolean"
+          },
+          "dry_run": {
+            "description": "If true, return list of files that would be modified without writing.",
+            "type": "boolean"
+          },
+          "path_exclude": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "path_include": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "paths": {
+            "description": "Files or directories (default: current directory)",
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "transaction_id": {
+            "description": "Token from a prior dry_run. Required for confirm:true to detect file drift.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "md_init",
+      "title": "md_init"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "cli_name": "ls",
+      "description": "List Markdown files with frontmatter descriptions, titles, heading counts.\n\nWHEN: 'what files are in this folder', folder overview, file inventory, before md_search to scope-down.\nWHY OURS: Frontmatter description per file in one packet — Bash ls + cat-loop equivalent at ~10x token cost.\nINPUT: path (folder or .md), max_heading_level, match (substring filter), with_tokens, with_link_counts.\nOUTPUT: { files: [{ id, relative_path, description, title, heading_count, ...optional }] } — used as map_data for md_extract.\nALT: md_orient for full corpus orientation. md_toc when heading-level detail needed.\nCOST: Free (no embedding).",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "match": {
+            "description": "Case-insensitive substring filter over description/title/headings",
+            "type": "string"
+          },
+          "max_heading_level": {
+            "maximum": 6,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "path": {
+            "description": "Folder or .md file path",
+            "minLength": 1,
+            "type": "string"
+          },
+          "with_link_counts": {
+            "description": "Attach in_degree/out_degree per file from the Markdown link graph",
+            "type": "boolean"
+          },
+          "with_tokens": {
+            "description": "Attach approximate token counts per file",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "type": "object"
+      },
+      "name": "md_ls",
+      "title": "md_ls"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "cli_name": "orient",
+      "description": "Cheap corpus orientation: status + map with link counts + top graph-important files.\n\nWHEN: New Markdown corpus / folder, 'orient me in this repo', first call before any md_* deep dive.\nWHY OURS: Three signals (status / files / importance) in one shot, no embeddings, no HTTP. Bash ls + grep + wc loop equivalent at ~3x token cost.\nINPUT: corpus (path), max_heading_level (default 2 in composite), top (default 10), compact (default false — trims to essentials).\nOUTPUT: { workflow:'md_orient', corpus, status, files, importance, next } — files include in_degree/out_degree.\nCOMPACT MODE: top=3, max_heading_level=1, structured status only, files limited to path+description. ~80% token reduction.\nALT: md_status / md_ls / md_importance separately if only one signal needed.\nCOST: Free.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "compact": {
+            "description": "If true, trim output for attention budget: top=3, headings level 1, structured status, no link counts.",
+            "type": "boolean"
+          },
+          "corpus": {
+            "description": "Markdown corpus folder",
+            "minLength": 1,
+            "type": "string"
+          },
+          "max_heading_level": {
+            "maximum": 6,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "top": {
+            "exclusiveMinimum": 0,
+            "maximum": 50,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "corpus"
+        ],
+        "type": "object"
+      },
+      "name": "md_orient",
+      "title": "md_orient"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "cli_name": "overlaps",
+      "description": "Find section pairs with high semantic similarity (smeared-information detector).\n\nWHEN: 'are there duplicate ideas across files', IA audit for owner-truth violation, before merging two files.\nWHY OURS: Section-level cosine pairs ranked by similarity — pinpoints duplicates Bash grep can't catch (paraphrase, different wording).\nINPUT: corpus, threshold (default 0.85), top (default 10), include_same_file (false), min_tokens (30), path_include/exclude.\nOUTPUT: { pairs: [{ similarity, a: {section, path}, b: {section, path} }], stats } ranked.\nALT: md_audit bundles this + repeated_concepts + clusters. md_repeated_concepts groups by connected components.\nCOST: Requires warm index (md_index first). Returns index_warmup_required if cold.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "corpus": {
+            "description": "Corpus root with warm md-navigator index",
+            "minLength": 1,
+            "type": "string"
+          },
+          "include_same_file": {
+            "description": "Include section pairs from the same file (default false)",
+            "type": "boolean"
+          },
+          "max_heading_level": {
+            "maximum": 6,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "min_tokens": {
+            "description": "Skip sections below this token count (default 30)",
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "path_exclude": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "path_include": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "threshold": {
+            "description": "Cosine similarity threshold (default 0.85)",
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "top": {
+            "description": "Top-N pairs to return (default 10)",
+            "exclusiveMinimum": 0,
+            "maximum": 100,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "corpus"
+        ],
+        "type": "object"
+      },
+      "name": "md_overlaps",
+      "title": "md_overlaps"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "cli_name": "ping",
+      "description": "Health check: server name, version, resolved script paths. No backend call.\n\nWHEN: md_* tools throw 'spawn failed', debugging server install, verifying MCP wiring after restart.\nWHY OURS: Confirms server alive + script resolution before deeper tools fail with cryptic errors.\nINPUT: none.\nOUTPUT: { name, version, navigator_script, navigator_error, graph_script, graph_error }.\nALT: claude mcp list / Codex /mcp to verify connection. md_status to check corpus state.\nCOST: Free.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {},
+        "type": "object"
+      },
+      "name": "md_ping",
+      "title": "md_ping"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "cli_name": "preflight",
+      "description": "Pre-edit safety report for one .md file. Sets has_blockers if cycles / broken links / missing frontmatter.\n\nWHEN: Before editing any .md file with frontmatter graph fields, especially when changing title or major sections.\nWHY OURS: One-pass surface of must-read sources + must-update cascade + check-only refs + anchor-drift risk. Bash grep can't synthesize this from frontmatter.\nINPUT: path (.md), scan (reverse-scan root), depth (cascade default 2), path_include/exclude.\nOUTPUT: { command, must_read, must_update, check_only, cycles, anchor_drift_risk, has_blockers } — has_blockers:true if MISSING_TARGET / BROKEN_LINK / cycle.\nALT: md_edit_context composite bundles preflight + read-related + optional search. md_section_blast_radius adds semantic layer.\nCOST: Free.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "depth": {
+            "description": "Cascade depth (default 2)",
+            "exclusiveMinimum": 0,
+            "maximum": 10,
+            "type": "integer"
+          },
+          "path": {
+            "description": "Markdown file path",
+            "minLength": 1,
+            "type": "string"
+          },
+          "path_exclude": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "path_include": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "scan": {
+            "description": "Reverse-scan scope (default: repo root)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "type": "object"
+      },
+      "name": "md_preflight",
+      "title": "md_preflight"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "cli_name": "profile-sections",
+      "description": "Classify indexed sections and cache section profiles in index.sqlite. MUTATING (writes profile rows).\n\nWHEN: Before md_query_by_type / md_refactor_candidates on a fresh index, after large corpus edits.\nWHY OURS: One-pass classifier — heuristic (free) or LLM (~$0.0005/section). Profiles cached, subsequent reads instant.\nINPUT: corpus, confirm (required true), dry_run (estimate), limit, force, mode ('heuristic'|'llm'|'auto'), model, path_include/exclude.\nOUTPUT (live): { stats, sample } — sections profiled, counts per type.\nOUTPUT (dry_run): { dry_run: true, sections_to_profile_estimate, mode, estimated_cost_usd }.\nALT: md_query_by_type / md_refactor_candidates lazy-profile what they need.\nCOST: Heuristic mode free. LLM mode ~$0.0005/section (haiku). Use dry_run first.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "confirm": {
+            "description": "Required true to actually run.",
+            "type": "boolean"
+          },
+          "corpus": {
+            "description": "Corpus root with warm md-navigator index",
+            "minLength": 1,
+            "type": "string"
+          },
+          "dry_run": {
+            "description": "If true, return section count + estimated cost without classifying.",
+            "type": "boolean"
+          },
+          "force": {
+            "description": "Re-profile even cached rows",
+            "type": "boolean"
+          },
+          "limit": {
+            "description": "Max sections to profile (0=all)",
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "mode": {
+            "enum": [
+              "heuristic",
+              "llm",
+              "auto"
+            ],
+            "type": "string"
+          },
+          "model": {
+            "description": "LLM classifier model id for mode=llm/auto",
+            "type": "string"
+          },
+          "path_exclude": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "path_include": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "corpus"
+        ],
+        "type": "object"
+      },
+      "name": "md_profile_sections",
+      "title": "md_profile_sections"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "cli_name": "query-by-type",
+      "description": "List profiled sections by profile.type: open-question, decision, definition, rule, example, uses, external-citation.\n\nWHEN: 'show me all open questions', 'list rules in this corpus', semantic-shape query.\nWHY OURS: Returns only sections that match the type (heuristic or LLM classifier). Bash grep can't classify rule-vs-example.\nINPUT: corpus (warm index), types (array), filter (substring over subject/heading), limit (default 50), path_include/exclude.\nOUTPUT: { types, sections: [{ section_id, path, heading_chain, subject, type, confidence }] }.\nALT: md_refactor_candidates for proposal-level. md_search for free-text query.\nCOST: Lazy-profiles unprofiled sections (heuristic free, llm ~$0.0005/section). Pre-profile via md_profile_sections.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "compact": {
+            "description": "If true, limit=10 and drop heading_chain/confidence — for attention budget.",
+            "type": "boolean"
+          },
+          "corpus": {
+            "description": "Markdown corpus folder with a warm md-navigator index",
+            "minLength": 1,
+            "type": "string"
+          },
+          "filter": {
+            "description": "Optional substring filter over subject/heading",
+            "type": "string"
+          },
+          "limit": {
+            "exclusiveMinimum": 0,
+            "maximum": 200,
+            "type": "integer"
+          },
+          "path_exclude": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "path_include": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "types": {
+            "description": "Profile types to return: open-question, decision, definition, rule, example, uses, external-citation, heading-only",
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": [
+          "corpus",
+          "types"
+        ],
+        "type": "object"
+      },
+      "name": "md_query_by_type",
+      "title": "md_query_by_type"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "cli_name": "read-related",
+      "description": "Read an anchor file and its linked neighborhood.\n\nWHEN: Before editing a file you don't know well, understand its graph dependencies, gather context for a question that spans files.\nWHY OURS: Walks wikilinks + markdown-links + backlinks + (optional) semantic neighbors in one packet. preview mode omits bodies for fast scan.\nINPUT: paths (anchor file(s)), scan (root, default cwd), include (csv: self/frontmatter/wikilinks/markdown-links/backlinks), mode ('preview' | 'full'), anchor_aware (default true), semantic_radius (0=off), check_links, token_budget.\nOUTPUT: { anchors, items: [{ path, kind, content? }] } — content present only in full mode.\nALT: md_edit_context composite bundles this with preflight. md_extract for known sections without graph walk.\nCOST: Free unless semantic_radius>0 or check_links (uses on-disk vecs, no HTTP).",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "anchor_aware": {
+            "description": "If a link points to `file#Heading`, extract only that section instead of whole file. Default true.",
+            "type": "boolean"
+          },
+          "check_links": {
+            "description": "Flag explicit links that are semantically far from the anchor — candidates for off-topic review",
+            "type": "boolean"
+          },
+          "include": {
+            "description": "Comma list: self,frontmatter,wikilinks,markdown-links,backlinks (default all)",
+            "type": "string"
+          },
+          "link_distance_threshold": {
+            "exclusiveMinimum": 0,
+            "type": "number"
+          },
+          "mode": {
+            "description": "preview: descriptions/headings only. full: include content bodies. Default full.",
+            "enum": [
+              "preview",
+              "full"
+            ],
+            "type": "string"
+          },
+          "paths": {
+            "description": "Anchor file path(s) — the document(s) you want enriched",
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "scan": {
+            "description": "Markdown root to scan for backlinks (default: cwd)",
+            "type": "string"
+          },
+          "semantic_radius": {
+            "description": "Append top-K semantic neighbors not in the link graph (0 = off)",
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "token_budget": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "paths"
+        ],
+        "type": "object"
+      },
+      "name": "md_read_related",
+      "title": "md_read_related"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "cli_name": "refactor-candidates",
+      "description": "Generate human-reviewed Markdown refactor proposals. Never edits files.\n\nWHEN: 'find refactor opportunities', IA hygiene pass, before split/merge planning. Output is suggestion list for human review.\nWHY OURS: Combines section profiles + originality + owner candidates into ranked proposals with evidence/confidence/why. Manual heuristic combo is hours; this is one call.\nINPUT: corpus (warm index), top (default 10), uniqueness_threshold (default 0.35), owner_confidence_threshold (default 0.45), path_include/exclude.\nOUTPUT: { proposals: [{ kind, target, evidence, confidence, why }], no_automation:true } — no_automation:true signals 'human reviews, MCP never edits'.\nALT: md_audit for whole-corpus health. md_query_by_type to filter by semantic shape.\nCOST: Requires warm index + profiles. Auto-profiles unprofiled sections lazily.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "compact": {
+            "description": "If true, return top 3 proposals only with minimal evidence — for attention budget.",
+            "type": "boolean"
+          },
+          "corpus": {
+            "description": "Markdown corpus folder with a warm md-navigator index",
+            "minLength": 1,
+            "type": "string"
+          },
+          "owner_confidence_threshold": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "path_exclude": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "path_include": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "top": {
+            "exclusiveMinimum": 0,
+            "maximum": 50,
+            "type": "integer"
+          },
+          "uniqueness_threshold": {
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          }
+        },
+        "required": [
+          "corpus"
+        ],
+        "type": "object"
+      },
+      "name": "md_refactor_candidates",
+      "title": "md_refactor_candidates"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "cli_name": "repeated-concepts",
+      "description": "Find ideas that recur across the corpus via connected components on section-similarity graph.\n\nWHEN: 'what concepts keep coming up', owner-truth probe, recurring topic discovery, before splitting a topic into a dedicated file.\nWHY OURS: Concept-level clustering (not just pair-wise like md_overlaps). Each concept lists files it touches + representative section.\nINPUT: corpus, threshold (default 0.80), top (default 30), min_files (default 2), min_sections, path_include/exclude.\nOUTPUT: { concepts: [{ medoid_section, files, member_sections, cohesion }], stats } + writes <corpus>/.md-navigator/repeated-concepts.md as side-effect report.\nALT: md_audit bundles this + overlaps + clusters. md_overlaps for pair-level only.\nCOST: Requires warm index (md_index first). Writes one Markdown file inside .md-navigator/.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "corpus": {
+            "description": "Corpus root with warm md-navigator index",
+            "minLength": 1,
+            "type": "string"
+          },
+          "min_files": {
+            "description": "Drop concepts spanning fewer than this many files (default 2)",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "min_sections": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          },
+          "min_tokens": {
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "path_exclude": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "path_include": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "threshold": {
+            "description": "Cosine threshold for graph edges (default 0.80)",
+            "maximum": 1,
+            "minimum": 0,
+            "type": "number"
+          },
+          "top": {
+            "description": "Top-N concepts (default 30)",
+            "exclusiveMinimum": 0,
+            "maximum": 200,
+            "type": "integer"
+          },
+          "top_members": {
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "corpus"
+        ],
+        "type": "object"
+      },
+      "name": "md_repeated_concepts",
+      "title": "md_repeated_concepts"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "cli_name": "scan",
+      "description": "Detect frontmatter form issues: missing / legacy / unknown / malformed fields.\n\nWHEN: Onboarding new .md files into graph, after schema change, before md_init/md_strip.\nWHY OURS: One pass over every .md frontmatter with canonical schema check. Replaces grep + yaml-parse loop.\nINPUT: paths (default '.'), path_include/exclude.\nOUTPUT: { command:'scan', issues: [{ code, path, detail }] } — codes: MISSING_FRONTMATTER / LEGACY_FIELD / UNKNOWN_FIELD / FRONTMATTER_INVALID.\nALT: md_health rolls up scan + check + cycles. md_init to add templates. md_strip to remove legacy.\nCOST: Free.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "path_exclude": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "path_include": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "paths": {
+            "description": "Files or directories (default: current directory)",
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "type": "object"
+      },
+      "name": "md_scan",
+      "title": "md_scan"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "cli_name": "search",
+      "description": "Find Markdown sections by natural-language query (BM25F + dense via RRF).\n\nWHEN: 'where is X discussed', 'find sections about Y', any meaning question over .md. Default tool for non-exact searches.\nWHY OURS: Semantic + keyword hybrid ranks heading-bounded sections (not line matches). Beats grep for paraphrased / multi-lingual / morphologically-varied queries.\nINPUT: corpus, query, scope ('sections'|'descriptions'), limit (10), rerank (false), path_include/exclude.\nOUTPUT: { results: [{ path, heading_chain, signals, rrf, snippet }] } ranked. scope='descriptions' returns one item per file.\nALT: Exact strings / regex → rg via Bash. For one file by path → md_extract.\nCOST: First call on cold corpus returns index_warmup_required (exit 4) — run md_index first. Rerank flag adds ~$0.001.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "candidates": {
+            "exclusiveMinimum": 0,
+            "maximum": 500,
+            "type": "integer"
+          },
+          "corpus": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "limit": {
+            "exclusiveMinimum": 0,
+            "maximum": 100,
+            "type": "integer"
+          },
+          "max_heading_level": {
+            "maximum": 6,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "path_exclude": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "path_include": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "query": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "rerank": {
+            "description": "Cross-encoder rerank top-N (~$0.001, ~300-700ms)",
+            "type": "boolean"
+          },
+          "scope": {
+            "description": "sections (default): rank heading-bounded sections. descriptions: rank files by frontmatter description",
+            "enum": [
+              "sections",
+              "descriptions"
+            ],
+            "type": "string"
+          }
+        },
+        "required": [
+          "corpus",
+          "query"
+        ],
+        "type": "object"
+      },
+      "name": "md_search",
+      "title": "md_search"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "cli_name": "section-blast-radius",
+      "description": "Section rename/rewrite radius: graph hard layer + semantic soft layer.\n\nWHEN: Renaming or rewriting a heading, before splitting a section, evaluating contract impact of a paragraph rewrite.\nWHY OURS: Combines author-signed contracts (anchor wikilinks via md_preflight) with paraphrase neighbors (md_search). Two layers in one call — Bash can't synthesize semantic candidates.\nINPUT: path (.md), corpus (semantic root), query (REQUIRED — capture section's contract intent), heading_id (optional, annotation), scan, depth, limit (default 8), path_include/exclude.\nOUTPUT: { path, query, graph, semantic, usage_note } — graph rows = obligations, semantic rows = manual-review candidates.\nALT: md_preflight alone for hard layer. md_search alone for soft layer. md_impact for delete/rename of whole file.\nCOST: Embedding call for semantic layer (free if cached). Returns index_warmup_required if cold corpus.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "corpus": {
+            "description": "Corpus root for semantic search",
+            "minLength": 1,
+            "type": "string"
+          },
+          "depth": {
+            "description": "Graph cascade depth (default 2)",
+            "exclusiveMinimum": 0,
+            "maximum": 10,
+            "type": "integer"
+          },
+          "heading_id": {
+            "description": "Optional stable heading id (e.g. '4.3') — used for annotation only; soft layer queries corpus-wide",
+            "type": "string"
+          },
+          "limit": {
+            "description": "Max semantic neighbors (default 8)",
+            "exclusiveMinimum": 0,
+            "maximum": 50,
+            "type": "integer"
+          },
+          "path": {
+            "description": "Markdown file path to inspect",
+            "minLength": 1,
+            "type": "string"
+          },
+          "path_exclude": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "path_include": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "query": {
+            "description": "Semantic query capturing the section's meaning. Required.",
+            "minLength": 1,
+            "type": "string"
+          },
+          "scan": {
+            "description": "Graph scan scope (default: repo root)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "corpus",
+          "query"
+        ],
+        "type": "object"
+      },
+      "name": "md_section_blast_radius",
+      "title": "md_section_blast_radius"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "cli_name": "status",
+      "description": "Index freshness for a Markdown corpus. Cheap, no HTTP.\n\nWHEN: Before md_search on a corpus you've been editing. To check if md_index is needed.\nWHY OURS: One-call answer — FRESH / HEALTHY / NEEDS WARMUP / NO INDEX with pending-chunk counts. No grep over .md-navigator/.\nINPUT: corpus (path), path_include/exclude to check a deliberately partial index scope.\nOUTPUT: text block with Corpus / Index / Last touched / Status / per-scope deltas.\nALT: md_orient bundles status + map + importance.\nCOST: Free (no embedding calls).",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "corpus": {
+            "description": "Path to Markdown corpus folder",
+            "minLength": 1,
+            "type": "string"
+          },
+          "path_exclude": {
+            "description": "Exclude matching paths from this status check",
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "path_include": {
+            "description": "Only check/index paths matching these globs or bare substrings",
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "corpus"
+        ],
+        "type": "object"
+      },
+      "name": "md_status",
+      "title": "md_status"
+    },
+    {
+      "annotations": {
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": false
+      },
+      "cli_name": "strip",
+      "description": "Remove legacy graph fields (and optionally related-docs body sections). MUTATING.\n\nWHEN: Schema migration cleanup, deprecation of old fields, hygiene pass after rename.\nWHY OURS: One pass over frontmatter — removes only fields flagged by scan as legacy/unknown. Bash sed risks YAML corruption.\nINPUT: paths, confirm (required true), dry_run, also_related_section, path_include/exclude.\nOUTPUT (live): { command:'strip', modified: [...] }.\nOUTPUT (dry_run): { dry_run: true, files_to_modify, file_count, also_related_section }.\nALT: md_scan to see what's flagged. Manual edit for surgical removal.\nCOST: Free but DESTRUCTIVE — modifies .md files. Use dry_run first.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "also_related_section": {
+            "description": "Also remove '## Связанные документы' / '## Related documents' sections from body.",
+            "type": "boolean"
+          },
+          "confirm": {
+            "description": "Required true to actually run.",
+            "type": "boolean"
+          },
+          "dry_run": {
+            "description": "If true, return list of files that would be modified.",
+            "type": "boolean"
+          },
+          "path_exclude": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "path_include": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "paths": {
+            "description": "Files or directories (default: current directory)",
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "transaction_id": {
+            "description": "Token from a prior dry_run. Required for confirm:true to detect file drift.",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "name": "md_strip",
+      "title": "md_strip"
+    },
+    {
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "cli_name": "toc",
+      "description": "Table of contents with stable heading ids usable as md_extract input.\n\nWHEN: 'show me headings of folder', need handles before md_extract, planning which sections to read.\nWHY OURS: Stable ids (1.2, 4.3) survive heading-text edits. grep '^#' returns text, not ids.\nINPUT: path, max_heading_level (default 6), match, with_tokens, with_link_counts.\nOUTPUT: { files: [{ id, headings: [{ id, text, level, line }] }] } — map_data for md_extract.\nALT: md_ls when headings unneeded. md_orient for whole corpus.\nCOST: Free.",
+      "input_schema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "properties": {
+          "match": {
+            "type": "string"
+          },
+          "max_heading_level": {
+            "maximum": 6,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "path": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "with_link_counts": {
+            "type": "boolean"
+          },
+          "with_tokens": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "type": "object"
+      },
+      "name": "md_toc",
+      "title": "md_toc"
+    }
+  ]
+}

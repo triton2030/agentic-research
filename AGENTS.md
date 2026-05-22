@@ -37,11 +37,12 @@ defensive repetition, автоматический fan-out или устарев
 - Живые `SKILL.md` — load-bearing truth layer для skill-owned поведения.
 - Если root-инструкция конфликтует с живым skill contract, выигрывает `SKILL.md`.
 - `AGENTS.md` задаёт repo routing и placement rules, а не дублирует skill bodies.
-- Для Codex поверхности Claude всегда только для чтения: `CLAUDE.md`,
-  `.claude/**`, Claude skills и инструкционные файлы Claude. Codex может читать
-  их как контекст, но никогда не редактирует, не создаёт, не перемещает, не
-  удаляет и не форматирует; если нужна правка на стороне Claude, он
-  останавливается и отдаёт её пользователю или рабочему процессу Claude.
+- По умолчанию Claude-поверхности для Codex только для чтения. Исключение:
+  Claude skills (`~/.claude/skills/**` и project `.claude/skills/**`) можно
+  редактировать из Codex только по явной просьбе пользователя и через
+  `1skill-architect`. `CLAUDE.md`, Claude instruction files, settings, hooks и
+  runtime-конфиги не редактировать без отдельной явной просьбы именно на эти
+  поверхности.
 - OpenAI prompt guidance для `GPT-5.5`: prompts должны быть короче,
   outcome-first, с явными success criteria, constraints, validation и stop
   rules; старый process-heavy prompt stack не переносить по инерции.

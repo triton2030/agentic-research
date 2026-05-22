@@ -1,0 +1,31 @@
+{
+  "tool": "md_check",
+  "canonical_args": {
+    "paths": [
+      "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents"
+    ]
+  },
+  "is_error": false,
+  "payload": {
+    "command": "check",
+    "targets": 5,
+    "issues": [],
+    "has_blockers": false,
+    "_envelope": {
+      "version": 1,
+      "tool": "md_check",
+      "corpus_root": null,
+      "corpus_state": null,
+      "lock": null,
+      "cost": {
+        "turn_usd": "__VOLATILE__",
+        "session_usd": "__VOLATILE__"
+      },
+      "size_estimate": {
+        "bytes": 64,
+        "items_returned": 0
+      },
+      "next_step": []
+    }
+  }
+}
