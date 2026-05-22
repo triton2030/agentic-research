@@ -6,6 +6,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, Iterable
 
+from .config import resolve_filters_for_domain
 from .markdown_io import DEFAULT_EXCLUDED_PARTS
 
 
@@ -224,6 +225,10 @@ def status(
     corpus_root = Path(corpus).expanduser().resolve()
     if not corpus_root.exists():
         return _exit({"command": "status", "error": f"Path does not exist: {corpus_root}", "state": "ERROR"}, 2)
+    path_include, path_exclude = resolve_filters_for_domain(
+        corpus_root, domain="index",
+        path_include=path_include, path_exclude=path_exclude,
+    )
     cache_root = Path(cache_dir).expanduser() if cache_dir else None
     selected_model = resolve_embed_model_for_corpus(corpus_root, embed_model, cache_root=cache_root)
     index_dir = _index_dir_for_corpus(corpus_root, cache_root=cache_root, create=False)
@@ -371,6 +376,10 @@ def scan(
     from . import graph as graph_mod
 
     root = graph_mod.repo_root()
+    path_include, path_exclude = resolve_filters_for_domain(
+        root, domain="graph",
+        path_include=path_include, path_exclude=path_exclude,
+    )
     args = _graph_args(paths, path_include=path_include, path_exclude=path_exclude)
     docs = graph_mod.load_docs(args.paths, root, args)
     findings = [finding for doc in docs for finding in graph_mod.scan_doc(doc)]
@@ -389,6 +398,10 @@ def check(
     from . import graph as graph_mod
 
     root = graph_mod.repo_root()
+    path_include, path_exclude = resolve_filters_for_domain(
+        root, domain="graph",
+        path_include=path_include, path_exclude=path_exclude,
+    )
     args = _graph_args(paths, path_include=path_include, path_exclude=path_exclude)
     docs = graph_mod.load_docs(args.paths, root, args)
     findings = graph_mod.check_graph(docs, root)
@@ -407,6 +420,10 @@ def health(
     from . import graph as graph_mod
 
     root = graph_mod.repo_root()
+    path_include, path_exclude = resolve_filters_for_domain(
+        root, domain="graph",
+        path_include=path_include, path_exclude=path_exclude,
+    )
     args = _graph_args(paths, path_include=path_include, path_exclude=path_exclude)
     docs = graph_mod.load_docs(args.paths, root, args)
     return {"command": "health", **graph_mod.health_report(docs, root)}
@@ -421,6 +438,10 @@ def cycles(
     from . import graph as graph_mod
 
     root = graph_mod.repo_root()
+    path_include, path_exclude = resolve_filters_for_domain(
+        root, domain="graph",
+        path_include=path_include, path_exclude=path_exclude,
+    )
     args = _graph_args(paths, path_include=path_include, path_exclude=path_exclude)
     docs = graph_mod.load_docs(args.paths, root, args)
     found = graph_mod.find_edit_after_edit_cycles(docs, root)
@@ -447,6 +468,10 @@ def deps(
     target = (root / path).resolve() if not Path(path).is_absolute() else Path(path).resolve()
     if not target.exists():
         return _exit({"command": "deps", "error": "path_not_found", "path": path}, 2)
+    path_include, path_exclude = resolve_filters_for_domain(
+        root, domain="graph",
+        path_include=path_include, path_exclude=path_exclude,
+    )
     args = _graph_args(scan or ".", path_include=path_include, path_exclude=path_exclude)
     doc = graph_mod.load_doc(target, root)
     scan_root = (root / scan).resolve() if scan else root
@@ -464,6 +489,10 @@ def impact(
     from . import graph as graph_mod
 
     root = graph_mod.repo_root()
+    path_include, path_exclude = resolve_filters_for_domain(
+        root, domain="graph",
+        path_include=path_include, path_exclude=path_exclude,
+    )
     args = _graph_args(scan or ".", path_include=path_include, path_exclude=path_exclude)
     doc = graph_mod.load_target_doc(path, root)
     scan_root = (root / scan).resolve() if scan else root
@@ -485,6 +514,10 @@ def preflight(
     if selected_depth < 1:
         return _exit({"command": "preflight", "error": "depth_must_be_positive"}, 2)
     root = graph_mod.repo_root()
+    path_include, path_exclude = resolve_filters_for_domain(
+        root, domain="graph",
+        path_include=path_include, path_exclude=path_exclude,
+    )
     args = _graph_args(scan or ".", path_include=path_include, path_exclude=path_exclude)
     doc = graph_mod.load_target_doc(path, root)
     scan_root = (root / scan).resolve() if scan else root
@@ -510,6 +543,10 @@ def changed(
 
     selected_depth = int(depth or 2)
     root = graph_mod.repo_root()
+    path_include, path_exclude = resolve_filters_for_domain(
+        root, domain="graph",
+        path_include=path_include, path_exclude=path_exclude,
+    )
     args = _graph_args(scan or ".", path_include=path_include, path_exclude=path_exclude)
     args.depth = selected_depth
     args.base = base
@@ -652,6 +689,12 @@ def search(corpus: str, query: str, **kwargs: Any) -> dict[str, Any]:
     from .rerank import doc_text_for_rerank, rerank_documents
     from .sections import _should_subchunk
 
+    _corpus_root_for_filters = Path(corpus).expanduser().resolve()
+    kwargs["path_include"], kwargs["path_exclude"] = resolve_filters_for_domain(
+        _corpus_root_for_filters, domain="index",
+        path_include=kwargs.get("path_include"),
+        path_exclude=kwargs.get("path_exclude"),
+    )
     scope = kwargs.get("scope") or search_mod.SEARCH_DEFAULT_SCOPE
     limit = int(kwargs.get("limit") or search_mod.SEARCH_DEFAULT_LIMIT)
     candidates = int(kwargs.get("candidates") or search_mod.SEARCH_DEFAULT_CANDIDATES)
@@ -858,6 +901,12 @@ def overlaps(corpus: str, **kwargs: Any) -> dict[str, Any]:
         return _index_warmup(corpus)
     from .overlaps import compute_overlaps
 
+    _corpus_root_for_filters = Path(corpus).expanduser().resolve()
+    kwargs["path_include"], kwargs["path_exclude"] = resolve_filters_for_domain(
+        _corpus_root_for_filters, domain="index",
+        path_include=kwargs.get("path_include"),
+        path_exclude=kwargs.get("path_exclude"),
+    )
     error, _code, context = _sections_index_context(corpus, scope="sections", **_index_context_kwargs(kwargs))
     if error is not None:
         return error
@@ -885,6 +934,12 @@ def repeated_concepts(corpus: str, **kwargs: Any) -> dict[str, Any]:
         return _index_warmup(corpus)
     from .repeated_concepts import compute_repeated_concepts
 
+    _corpus_root_for_filters = Path(corpus).expanduser().resolve()
+    kwargs["path_include"], kwargs["path_exclude"] = resolve_filters_for_domain(
+        _corpus_root_for_filters, domain="index",
+        path_include=kwargs.get("path_include"),
+        path_exclude=kwargs.get("path_exclude"),
+    )
     error, _code, context = _sections_index_context(corpus, scope="sections", **_index_context_kwargs(kwargs))
     if error is not None:
         return error
@@ -913,6 +968,12 @@ def audit(corpus: str, **kwargs: Any) -> dict[str, Any]:
         return _index_warmup(corpus)
     audit_mod = importlib.import_module("navigator.audit")
 
+    _corpus_root_for_filters = Path(corpus).expanduser().resolve()
+    kwargs["path_include"], kwargs["path_exclude"] = resolve_filters_for_domain(
+        _corpus_root_for_filters, domain="index",
+        path_include=kwargs.get("path_include"),
+        path_exclude=kwargs.get("path_exclude"),
+    )
     error, _code, context = _sections_index_context(corpus, scope="sections", **_index_context_kwargs(kwargs))
     if error is not None:
         return error
@@ -984,6 +1045,10 @@ def init(
     from . import graph as graph_mod
 
     root = graph_mod.repo_root()
+    path_include, path_exclude = resolve_filters_for_domain(
+        root, domain="graph",
+        path_include=path_include, path_exclude=path_exclude,
+    )
     args = _graph_args(paths, path_include=path_include, path_exclude=path_exclude)
     docs = graph_mod.load_docs(args.paths, root, args)
     targets = [doc for doc in docs if not doc.has_frontmatter]
@@ -1021,6 +1086,10 @@ def strip(
     from . import graph as graph_mod
 
     root = graph_mod.repo_root()
+    path_include, path_exclude = resolve_filters_for_domain(
+        root, domain="graph",
+        path_include=path_include, path_exclude=path_exclude,
+    )
     args = _graph_args(paths, path_include=path_include, path_exclude=path_exclude)
     docs = graph_mod.load_docs(args.paths, root, args)
     targets: list[Any] = []
@@ -1090,6 +1159,10 @@ def index(
     from .sections import build_items_from_map
 
     corpus_root = Path(corpus).expanduser().resolve()
+    path_include, path_exclude = resolve_filters_for_domain(
+        corpus_root, domain="index",
+        path_include=path_include, path_exclude=path_exclude,
+    )
     map_data = build_map(corpus_root, max_heading_level or 6, with_tokens=True)
     include_patterns = normalize_path_filter_patterns(path_include, corpus_root)
     exclude_patterns = normalize_path_filter_patterns(path_exclude, corpus_root)
@@ -1148,6 +1221,10 @@ def profile_sections(
     from .section_profile import open_profile_db, profile_corpus, profile_rows
 
     root = Path(corpus).expanduser().resolve()
+    path_include, path_exclude = resolve_filters_for_domain(
+        root, domain="index",
+        path_include=path_include, path_exclude=path_exclude,
+    )
     include_patterns = normalize_path_filter_patterns(path_include, root)
     exclude_patterns = normalize_path_filter_patterns(path_exclude, root)
     if dry_run or (mode in {"llm", "auto"} and not confirm):
@@ -1186,6 +1263,11 @@ def refactor_candidates(corpus: str, *, compact: bool = False, **kwargs: Any) ->
     from .section_profile import open_profile_db
 
     root = Path(corpus).expanduser().resolve()
+    merged_include, merged_exclude = resolve_filters_for_domain(
+        root, domain="index",
+        path_include=kwargs.get("path_include"),
+        path_exclude=kwargs.get("path_exclude"),
+    )
     try:
         conn = open_profile_db(root)
     except RuntimeError as exc:
@@ -1196,8 +1278,8 @@ def refactor_candidates(corpus: str, *, compact: bool = False, **kwargs: Any) ->
         top=3 if compact else int(kwargs.get("top") or 10),
         uniqueness_threshold=float(kwargs.get("uniqueness_threshold") or 0.35),
         owner_confidence_threshold=float(kwargs.get("owner_confidence_threshold") or 0.45),
-        path_include=normalize_path_filter_patterns(kwargs.get("path_include"), root),
-        path_exclude=normalize_path_filter_patterns(kwargs.get("path_exclude"), root),
+        path_include=normalize_path_filter_patterns(merged_include, root),
+        path_exclude=normalize_path_filter_patterns(merged_exclude, root),
     )
     if compact:
         payload["compact"] = True
@@ -1222,6 +1304,10 @@ def query_by_type(
     from .section_profile import open_profile_db, profile_rows, profile_unprofiled_sections
 
     root = Path(corpus).expanduser().resolve()
+    path_include, path_exclude = resolve_filters_for_domain(
+        root, domain="index",
+        path_include=path_include, path_exclude=path_exclude,
+    )
     selected_types = _list(types)
     try:
         conn = open_profile_db(root)
