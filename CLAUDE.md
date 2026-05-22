@@ -129,6 +129,11 @@ instruction file начинай с ближайшего `wisdom-*` и одног
 `knowledge/practical-guides/how-to-write-skills/`, затем live `SKILL.md` и
 platform-specific контекст.
 
+Новые и изменяемые skill-поверхности (`SKILL.md`, `agents/openai.yaml`,
+skill references) писать на русском. Английский оставлять только для кода,
+команд, API/tool names, путей, handles, точных цитат, model/product names и
+trigger words, которые должны остаться английскими.
+
 `_ops/plans/**` — эфемерная execution surface; создавай лениво только под
 активную сложную задачу по явному запросу и не используй как источник истины
 или список задач.

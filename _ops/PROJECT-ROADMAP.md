@@ -16,8 +16,11 @@
 
 ## Текущие активные фронты
 
-**knowledge-description-cleanup** (`_ops/plans/knowledge-description-cleanup/`):
-- ⚠️ 27 из 37 файлов в `knowledge/` без frontmatter `description` (surfaced via `md_orient`). Task created not started.
+**md-mcp-to-cli-refactor** (`_ops/plans/md-mcp-to-cli-refactor/`):
+- Big-bang рефактор: убрать MCP server (~2228 LOC JS), заменить единым Python CLI `md` с library/CLI split. 17 task-файлов по 6 фазам: preflight → CLI foundation → tool migration → skills migration → repo migration → removal & closeout. Без backward-compat моста; cross-project blast принят явно.
+
+**Archived 2026-05-22**:
+- `knowledge-description-cleanup` — descoped по запросу пользователя при смене активного фронта на md-mcp-to-cli-refactor.
 
 **Archived 2026-05-21**:
 - `md-tools-refactor` — Refactor complete: backend unified, MCP 0.5.x, 19 tools, smoke 24/24. См. `_ops/findings/2026-05-21-md-refactor-editorial-verification.md`.

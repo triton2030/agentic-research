@@ -14,3 +14,4 @@
 ## Possible upgrade
 
 Read-list для нового subfolder под существующим subtree должен включать parent `AGENTS.md` явно. Возможный путь — `1start-here` orient контракт можно сделать более explicit про «новая sub-папка = edit parent subtree», или добавить prompt в session-start про «перед созданием subfolder X прочитай X/../AGENTS.md».
+- 2026-05-21 [Claude Opus 4.7]: cross-check round 1 (Batch 1 — Tools & navigation) проверял 1start-here по criteria «stale skill-folder script paths» — отчитался clean. Не искал adjacent staleness категории (CLI subcommand vocabulary в routing prose типа «map / headings / narrow read» — старые 0.1.x MCP tool names). Stale vocabulary дошла до Phase C closeout. Variant: «narrow subagent criteria → adjacent staleness missed». Сходно с «implicit-load illusion» pattern (subtree-agents skip). Mitigation: при design cross-check критериев включать adjacent categories (vocab drift, framing drift), не только exact path/symbol matches.

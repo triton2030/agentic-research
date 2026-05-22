@@ -209,6 +209,10 @@ folder-system contract — не уровни планирования. В Codex 
 - Для создания или правки skills сначала читать
   `knowledge/practical-guides/how-to-write-skills/`, затем уже live `SKILL.md`
   и platform-specific контекст.
+- Новые и изменяемые skill-поверхности (`SKILL.md`, `agents/openai.yaml`,
+  skill references) писать на русском. Английский оставлять только для кода,
+  команд, API/tool names, путей, handles, точных цитат, model/product names и
+  trigger words, которые должны остаться английскими.
 - Чтение расширять только пока оно меняет owner, constraints, validation или
   stop condition; не читать ради полноты.
 - Для skill / prompt / instruction правок сначала сверять модельную рамку:
