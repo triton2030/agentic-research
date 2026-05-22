@@ -3,23 +3,23 @@
 > [!summary] Живой контракт
 > **Owner:** [[_ops/self-learning/README|Self-Learning]]
 > **Skill:** `1self-learning`
-> **Лимит:** до 4000 символов через `wc -m`
-> **Граница:** проектные проблемы -> `1findings`; цитаты -> `1user-said`; routing: [[_ops/AGENTS|_ops]] / [[_ops/project-graph|Graph]].
+> **Лимит:** до 4000 символов через `wc -m`.
+> **Граница:** проектные проблемы -> `1findings`; цитаты -> `1user-said`.
 
 ## GPT-5.5
 
 ### Scope и user workflow
 
 - Сначала фиксируй workflow, consumer map, batch bounds, freshness канона и живые лимиты skill-контракта.
-- Не расширяй "исправь всё", не принимай рамку "сократить" до проверки потребителей и не решай по одному знакомому корпусу.
+- Не расширяй "исправь всё" и не принимай рамку "сократить" до проверки потребителей и owner-поверхности.
+- Для личного agent-tool предпочитай минимальный runtime primitive + умный skill workflow; не добавляй CLI comfort-фичу, пока не доказан повторяемый machine-contract выигрыш.
 - Перед design/role-вариантами восстанови 1-2 сценария: мягкая роль может промахнуться, если нужен жёсткий оппонент.
 - При batch-работе называй scope заранее; перед массовой заменой замораживай target set и проверяй dry-run.
-- В Obsidian-форме `##` / `###` и bullets — основа; callouts и закрытые toggles не оборачивают весь файл.
 
 ### Evidence before blame
 
 - Перед обвинением tool/code проверяй вход: stale map, fixture path/output, temp side effect, cwd/git context, существование пути и валидность данных.
-- Внешние skill-файлы проверяй прямым чтением, валидатором или diff против baseline; для metadata сначала смотри реальную YAML-shape, а не top-level ключи по памяти.
+- Внешние skill-файлы проверяй прямым чтением, валидатором или diff против baseline; для metadata сначала смотри реальную YAML-shape.
 - Для read-only smoke держи temp roots в `/tmp`, иначе проверка портит доверие к слову "read-only".
 
 ### Tools и handoff
@@ -52,7 +52,3 @@
 - При tool error сначала refresh saved state и проверь path из traceback, потом называй tool broken.
 - Structural surfaces (`project-graph`, папки, hooks, settings, paired shims) сначала route/check через `1folder-contract`.
 - Для diagnostic thresholds проверяй минимум два стилистически разных корпуса; cutoff из одного familiar corpus не переносится.
-
-## Other Agent
-
-Пока пусто. Добавляй только переносимые уроки, которых нет в блоках выше.
