@@ -15,6 +15,7 @@ import argparse
 from pathlib import Path
 from typing import Any
 
+from .filters import add_path_filter_args
 from .graph_core import (
     ALLOWED_FIELDS,
     Doc,
@@ -578,28 +579,6 @@ def cmd_changed(args: argparse.Namespace) -> int:
     return 1 if any(report_has_blockers(report) for report in reports) or deleted else 0
 
 
-def add_path_filter_args(cmd: argparse.ArgumentParser) -> None:
-    cmd.add_argument(
-        "--path-include",
-        action="append",
-        default=[],
-        metavar="GLOB",
-        help="Include paths matching GLOB (fnmatch, relative to root). Repeatable.",
-    )
-    cmd.add_argument(
-        "--path-exclude",
-        action="append",
-        default=[],
-        metavar="GLOB",
-        help="Exclude paths matching GLOB (fnmatch, relative to root). Repeatable.",
-    )
-    cmd.add_argument(
-        "--no-default-excludes",
-        action="store_true",
-        help="Disable built-in hidden-directory skip (.git, .venv, .md-navigator, ...).",
-    )
-
-
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Portable Markdown frontmatter graph helper.")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -614,7 +593,7 @@ def build_parser() -> argparse.ArgumentParser:
         cmd = sub.add_parser(name, help=help_text)
         cmd.add_argument("paths", nargs="*", help="Markdown files or directories. Defaults to current directory.")
         cmd.add_argument("--json", action="store_true", help="Print machine-readable JSON.")
-        add_path_filter_args(cmd)
+        add_path_filter_args(cmd, command_name="graph", with_no_default_excludes=True)
         cmd.set_defaults(func=func)
 
     strip = sub.add_parser("strip", help="Remove legacy graph fields and optionally related-docs sections.")
@@ -625,7 +604,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Also remove '## Связанные документы' / '## Related documents' sections from body.",
     )
     strip.add_argument("--json", action="store_true", help="Print machine-readable JSON.")
-    add_path_filter_args(strip)
+    add_path_filter_args(strip, command_name="graph", with_no_default_excludes=True)
     strip.set_defaults(func=cmd_strip)
 
     deps = sub.add_parser(
@@ -645,7 +624,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Maximum edit-after-edit cascade depth to show (default: 1).",
     )
     deps.add_argument("--json", action="store_true", help="Print machine-readable JSON.")
-    add_path_filter_args(deps)
+    add_path_filter_args(deps, command_name="graph", with_no_default_excludes=True)
     deps.set_defaults(func=cmd_deps)
 
     audit = sub.add_parser(
@@ -659,7 +638,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Scope for reverse-scan and cached descriptions (default: repo root).",
     )
     audit.add_argument("--json", action="store_true", help="Print machine-readable JSON.")
-    add_path_filter_args(audit)
+    add_path_filter_args(audit, command_name="graph", with_no_default_excludes=True)
     audit.set_defaults(func=cmd_audit)
 
     impact = sub.add_parser(
@@ -673,7 +652,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Scope for reverse-scan (default: repo root).",
     )
     impact.add_argument("--json", action="store_true", help="Print machine-readable JSON.")
-    add_path_filter_args(impact)
+    add_path_filter_args(impact, command_name="graph", with_no_default_excludes=True)
     impact.set_defaults(func=cmd_impact)
 
     preflight = sub.add_parser(
@@ -693,7 +672,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Maximum edit-after-edit cascade depth to show (default: 2).",
     )
     preflight.add_argument("--json", action="store_true", help="Print machine-readable JSON.")
-    add_path_filter_args(preflight)
+    add_path_filter_args(preflight, command_name="graph", with_no_default_excludes=True)
     preflight.set_defaults(func=cmd_preflight)
 
     changed = sub.add_parser(
@@ -727,7 +706,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Use staged changes from git diff --cached.",
     )
     changed.add_argument("--json", action="store_true", help="Print machine-readable JSON.")
-    add_path_filter_args(changed)
+    add_path_filter_args(changed, command_name="graph", with_no_default_excludes=True)
     changed.set_defaults(func=cmd_changed)
     return parser
 

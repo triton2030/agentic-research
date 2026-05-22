@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable
 
-from .markdown_io import parse_frontmatter
+from .markdown_io import DEFAULT_EXCLUDED_PARTS, parse_frontmatter
 
 try:
     import yaml
@@ -94,9 +94,8 @@ def _path_passes(
     rel = safe_rel(item, root)
     rel_str = str(rel)
     if use_default_excludes:
-        for part in rel.parts[:-1]:
-            if part.startswith(".") and part not in (".", ".."):
-                return False
+        if not DEFAULT_EXCLUDED_PARTS.isdisjoint(rel.parts):
+            return False
     if exclude:
         for pattern in exclude:
             if fnmatch.fnmatchcase(rel_str, pattern):

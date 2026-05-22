@@ -6,6 +6,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, Iterable
 
+from .markdown_io import DEFAULT_EXCLUDED_PARTS
+
 
 def _list(value: Any) -> list[str]:
     if value is None or value == "":
@@ -59,29 +61,6 @@ def ping() -> dict[str, object]:
 
 
 def corpus_scan(root: str | Path = ".") -> dict[str, object]:
-    excluded = {
-        ".git",
-        ".github",
-        ".claude",
-        ".codex",
-        ".md-navigator",
-        ".cache",
-        ".venv",
-        "venv",
-        "__pycache__",
-        ".pytest_cache",
-        ".mypy_cache",
-        ".ruff_cache",
-        "node_modules",
-        ".next",
-        ".nuxt",
-        "dist",
-        "build",
-        "out",
-        "target",
-        "_archive",
-        "runs",
-    }
     repo_root = Path(root).expanduser().resolve()
     corpora: list[dict[str, object]] = []
     unindexed: list[dict[str, object]] = []
@@ -90,7 +69,8 @@ def corpus_scan(root: str | Path = ".") -> dict[str, object]:
         dirnames[:] = [
             name
             for name in dirnames
-            if name not in excluded and not (name.startswith(".") and name not in {".", ".."})
+            if name not in DEFAULT_EXCLUDED_PARTS
+            and not (name.startswith(".") and name not in {".", ".."})
         ]
         current_path = Path(current)
         index_path = current_path / ".md-navigator" / "index.sqlite"
@@ -119,7 +99,7 @@ def corpus_scan(root: str | Path = ".") -> dict[str, object]:
         "repo_root": str(repo_root),
         "corpora": corpora,
         "unindexed_with_md": uncovered,
-        "excluded_dirs_skipped": sorted(excluded),
+        "excluded_dirs_skipped": sorted(DEFAULT_EXCLUDED_PARTS),
     }
 
 
@@ -231,9 +211,14 @@ def status(
     from .cli_common import SEARCH_DEFAULT_EMBEDDING_API_URL, SEARCH_DEFAULT_EMBEDDING_TIMEOUT
     from .filters import apply_path_filters_to_map, normalize_path_filter_patterns
     from .folder_map import build_map
-    from .index_build import DEFAULT_MAX_AUTO_EMBED, _chunks_for_item, ensure_index
+    from .index_build import (
+        DEFAULT_MAX_AUTO_EMBED,
+        _chunks_for_item,
+        ensure_index,
+        pending_files_for_items,
+    )
     from .index_meta import _index_dir_for_corpus, resolve_embed_model_for_corpus
-    from .index_status import _build_folder_breakdown, _detect_excluded, _state_payload
+    from .index_status import _build_folder_breakdown, _combine_file_delta, _detect_excluded, _state_payload
     from .sections import build_items_from_map
 
     corpus_root = Path(corpus).expanduser().resolve()
@@ -260,6 +245,7 @@ def status(
         for scope in ("sections", "descriptions"):
             items = build_items_from_map(scoped, scope=scope)
             pending = sum(len(_chunks_for_item(item)) for item in items)
+            pending_files = pending_files_for_items(items)
             totals["added_sections"] += len(items)
             totals["pending_chunks"] += pending
             scopes_payload.append(
@@ -267,6 +253,8 @@ def status(
                     "scope": scope,
                     "added_sections": len(items),
                     "removed_sections": 0,
+                    "pending_files": pending_files,
+                    "removed_files": [],
                     "reused": 0,
                     "pending_chunks": pending,
                     "total_sections_in_scope": 0,
@@ -289,6 +277,8 @@ def status(
                 "by_path_include": include_patterns or [],
             },
             **totals,
+            "pending_files": _combine_file_delta(scopes_payload, "pending_files", ("added_sections", "pending_chunks")),
+            "removed_files": [],
             "metadata_mismatch": False,
             "delta_too_large": False,
             "max_auto_embed": cap,
@@ -321,6 +311,8 @@ def status(
                 "scope": scope,
                 "added_sections": stats["added_sections"],
                 "removed_sections": stats["removed_sections"],
+                "pending_files": stats.get("pending_files", []),
+                "removed_files": stats.get("removed_files", []),
                 "reused": stats["reused"],
                 "pending_chunks": stats["pending_chunks"],
                 "total_sections_in_scope": stats["total_sections_in_scope"],
@@ -359,6 +351,8 @@ def status(
             "by_path_include": include_patterns or [],
         },
         **totals,
+        "pending_files": _combine_file_delta(scopes_payload, "pending_files", ("added_sections", "pending_chunks")),
+        "removed_files": _combine_file_delta(scopes_payload, "removed_files", ("removed_sections",)),
         "reused": reused,
         "metadata_mismatch": metadata_mismatch,
         "delta_too_large": delta_too_large,
@@ -582,6 +576,7 @@ def _sections_index_context(
     embedding_timeout: float | None = None,
     cache_dir: str | None = None,
     no_cache: bool = False,
+    allow_partial_index: bool = False,
 ) -> tuple[dict[str, Any] | None, int, tuple[Any, ...] | None]:
     from .cli_common import SEARCH_DEFAULT_EMBEDDING_API_URL, SEARCH_DEFAULT_EMBEDDING_TIMEOUT
     from .filters import apply_path_filters_to_map, normalize_path_filter_patterns
@@ -632,7 +627,7 @@ def _sections_index_context(
         )
     except (ModuleNotFoundError, RuntimeError) as exc:
         return _exit({"error": "dependency_failed", "detail": str(exc)}, 3), 3, None
-    if index_stats.get("delta_too_large"):
+    if index_stats.get("delta_too_large") and not allow_partial_index:
         return _index_warmup(corpus_root), 4, None
     return None, 0, (
         corpus_root,
@@ -660,7 +655,12 @@ def search(corpus: str, query: str, **kwargs: Any) -> dict[str, Any]:
     scope = kwargs.get("scope") or search_mod.SEARCH_DEFAULT_SCOPE
     limit = int(kwargs.get("limit") or search_mod.SEARCH_DEFAULT_LIMIT)
     candidates = int(kwargs.get("candidates") or search_mod.SEARCH_DEFAULT_CANDIDATES)
-    error, _code, context = _sections_index_context(corpus, scope=scope, **_index_context_kwargs(kwargs))
+    error, _code, context = _sections_index_context(
+        corpus,
+        scope=scope,
+        allow_partial_index=True,
+        **_index_context_kwargs(kwargs),
+    )
     if error is not None:
         return error
     assert context is not None
@@ -763,7 +763,7 @@ def search(corpus: str, query: str, **kwargs: Any) -> dict[str, Any]:
         row["fields_hit"] = search_mod._fields_hit(conn, rid, query)
         row["snippet"] = search_mod._snippet_for(row["body"], query)
     subchunked_count = sum(1 for item in items if scope == "sections" and _should_subchunk(item["body"] or ""))
-    return {
+    output = {
         "root": str(corpus_root),
         "query": query,
         "scope": scope,
@@ -793,6 +793,10 @@ def search(corpus: str, query: str, **kwargs: Any) -> dict[str, Any]:
         "weights": weights,
         "results": final_results,
     }
+    partial_index = search_mod._partial_index_payload(index_stats, int(kwargs.get("max_auto_embed") or 50))
+    if partial_index:
+        output["partial_index"] = partial_index
+    return output
 
 
 def search_read(corpus: str, query: str, **kwargs: Any) -> dict[str, Any]:
@@ -838,6 +842,7 @@ def search_read(corpus: str, query: str, **kwargs: Any) -> dict[str, Any]:
         "scope": result.get("scope"),
         "engine": result.get("engine"),
         "stats": result.get("stats"),
+        "partial_index": result.get("partial_index"),
         "sections": sections,
         "token_total": running_tokens,
         "token_budget": budget,

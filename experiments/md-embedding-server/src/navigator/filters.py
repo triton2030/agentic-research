@@ -135,9 +135,19 @@ def sqlite_path_filter_sql(
     return " AND " + " AND ".join(clauses), params
 
 
-def add_path_filter_args(parser, command_name: str) -> None:
+def add_path_filter_args(
+    parser,
+    command_name: str,
+    *,
+    with_no_default_excludes: bool = False,
+) -> None:
     """Argparse helper: --path-include / --path-exclude with help text
-    customised for the command. Repeatable; defaults to empty list."""
+    customised for the command. Repeatable; defaults to empty list.
+
+    `with_no_default_excludes=True` also registers `--no-default-excludes`
+    (currently used by graph commands to opt out of the built-in
+    hidden/tooling-directory skip).
+    """
     parser.add_argument(
         "--path-include",
         action="append",
@@ -159,3 +169,13 @@ def add_path_filter_args(parser, command_name: str) -> None:
             f"GLOB. Repeatable. Applied after --path-include."
         ),
     )
+    if with_no_default_excludes:
+        parser.add_argument(
+            "--no-default-excludes",
+            action="store_true",
+            help=(
+                "Disable built-in hidden / tooling directory skip "
+                "(.git, .venv, .md-navigator, node_modules, _archive, "
+                "runs, ...). Use only when you really need to walk them."
+            ),
+        )
