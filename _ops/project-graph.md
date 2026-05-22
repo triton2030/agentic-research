@@ -40,13 +40,23 @@ Owner: `1folder-contract`. Single source of truth о связях папок. Ro
   `experiments/strategy-gallery/AGENTS.md`.
 - `experiments/md-embedding-server/` depends-on
   `~/.claude/skills/1md-navigator/SKILL.md` (server is the navigator's
-  embedding backend).
+  embedding backend). Также owns `.md-tools.toml` per-project filter
+  config schema (sections `[index]` и `[graph]`, append-семантика для
+  CLI поверх baseline, broken TOML → fatal). Mention в обоих
+  `1md-navigator` и `1md-graph` (Claude + Codex) ссылается сюда; правки
+  schema → `experiments/md-embedding-server/src/navigator/config.py`,
+  затем синхронизация skill mentions.
 - `experiments/flowpage-v4-elk/` depends-on локальный
   `experiments/flowpage-v4-elk/AGENTS.md`.
 - `experiments/all-my-messages/*.md` depends-on
   `/Users/triton/.codex/hooks/user_prompt_all_messages.py` — global per-project
   human-thread prompt analytics logs, не `1user-said` и не source of truth для
   решений; subagent/service prompts фильтруются hook-ом.
+- Markdown graph frontmatter (`description`, `read-before-edit`,
+  `edit-after-edit`) используется скриптом
+  `/Users/triton/.codex/hooks/md_graph_pre_edit_reminder.py` — глобальный
+  Codex `PreToolUse` reminder перед Markdown-правками; лёгкий, не блокирует,
+  без широкого semantic search.
 
 ## Темы (related-when — retrieval hint)
 
