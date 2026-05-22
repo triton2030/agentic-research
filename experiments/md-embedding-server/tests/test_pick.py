@@ -109,3 +109,72 @@ def test_pick_files_extract_two_files(tmp_path: Path) -> None:
     )
     head_ids = {h["id"] for h in out["headings"]}
     assert head_ids == {"1.1", "1.2", "1.3", "2.1", "2.2", "2.3"}
+
+
+def test_pick_headings_from_search_results_map(tmp_path: Path) -> None:
+    """`md extract` accepts `md search` output, not only `md ls/toc` maps."""
+    doc = tmp_path / "a.md"
+    doc.write_text(
+        "# A\n\n## A.one\n\nbody a1.\n\n## A.two\n\nbody a2.\n",
+        encoding="utf-8",
+    )
+    data = {
+        "root": str(tmp_path),
+        "query": "body",
+        "scope": "sections",
+        "results": [
+            {
+                "section_id": "1.2",
+                "file_id": 1,
+                "relative_path": "a.md",
+                "start_line": 3,
+                "level": 2,
+                "heading_text": "A.one",
+                "heading_chain": "A > A.one",
+                "body": "body a1.",
+                "file_description": "Doc A",
+                "file_title": "A",
+                "token_count": 4,
+            }
+        ],
+    }
+    out = pick_items(
+        data,
+        file_ids=set(),
+        heading_ids={"1.2"},
+        extract=True,
+    )
+    assert out["missing_heading_ids"] == []
+    assert out["headings"][0]["relative_path"] == "a.md"
+    assert out["headings"][0]["content"] == "## A.one\n\nbody a1."
+
+
+def test_pick_description_search_result_uses_index_body(tmp_path: Path) -> None:
+    """Description-scope search rows are pseudo-sections and have no heading line."""
+    data = {
+        "root": str(tmp_path),
+        "query": "description",
+        "scope": "descriptions",
+        "results": [
+            {
+                "section_id": "1.desc",
+                "file_id": 1,
+                "relative_path": "a.md",
+                "start_line": 1,
+                "level": 0,
+                "heading_text": "(description)",
+                "heading_chain": "",
+                "body": "Short description.",
+                "file_description": "Short description.",
+                "file_title": "A",
+                "token_count": 2,
+            }
+        ],
+    }
+    out = pick_items(
+        data,
+        file_ids=set(),
+        heading_ids={"1.desc"},
+        extract=True,
+    )
+    assert out["headings"][0]["content"] == "Short description."

@@ -45,7 +45,8 @@ Owner: `1folder-contract`. Single source of truth о связях папок. Ro
   `experiments/flowpage-v4-elk/AGENTS.md`.
 - `experiments/all-my-messages/*.md` depends-on
   `/Users/triton/.codex/hooks/user_prompt_all_messages.py` — global per-project
-  prompt analytics logs, не `1user-said` и не source of truth для решений.
+  human-thread prompt analytics logs, не `1user-said` и не source of truth для
+  решений; subagent/service prompts фильтруются hook-ом.
 
 ## Темы (related-when — retrieval hint)
 

@@ -305,9 +305,21 @@
         "readOnlyHint": true
       },
       "cli_name": "extract",
-      "description": "Extract file metadata or section bodies from a saved map (md_ls / md_toc / md_search output).\n\nWHEN: After md_ls/md_toc/md_search returned a map and you need to pull specific files/headings — metadata only (extract=false) or full text (extract=true).\nWHY OURS: One call instead of pick→cat chain. Heading-aware (extract=true pulls only the section, not whole file). Token-budgeted.\nINPUT: map_data (JSON from md_ls/md_toc/md_search), files (comma ids '1,4'), headings (comma ids '1.2,4.3'), extract (false=metadata, true=bodies), token_budget.\nOUTPUT: { files: [...], headings: [{ id, text, body? }] } — body present only when extract=true.\nALT: For one whole file by path → built-in Read. For semantic-aware extract → md_read_related with paths.\nCOST: Free.",
+      "description": "Extract file metadata or section bodies from a saved map (md_ls / md_toc / md_search output).\n\nWHEN: After md_ls/md_toc/md_search returned a map and you need to pull specific files/headings — metadata only (extract=false) or full text (extract=true).\nWHY OURS: One call instead of pick→cat chain. Heading-aware (extract=true pulls only the section, not whole file). Token-budgeted.\nINPUT: map_data (JSON from md_ls/md_toc/md_search) OR --map-stdin to read map from stdin, files (comma ids '1,4'), headings (comma ids '1.2,4.3'), extract (false=metadata, true=bodies), token_budget.\nOUTPUT: { files: [...], headings: [{ id, text, body? }] } — body present only when extract=true.\nALT: For one whole file by path → built-in Read. For semantic-aware extract → md_read_related with paths.\nCOST: Free.",
       "input_schema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
+        "oneOf": [
+          {
+            "required": [
+              "map_data"
+            ]
+          },
+          {
+            "required": [
+              "map_stdin"
+            ]
+          }
+        ],
         "properties": {
           "extract": {
             "description": "false (default): return metadata only. true: include section text bodies.",
@@ -324,15 +336,16 @@
           "map_data": {
             "description": "JSON map object from md_ls / md_toc / md_search"
           },
+          "map_stdin": {
+            "description": "If true, read map_data from stdin (e.g. `md search ... | md extract --map-stdin`).",
+            "type": "boolean"
+          },
           "token_budget": {
             "maximum": 9007199254740991,
             "minimum": 0,
             "type": "integer"
           }
         },
-        "required": [
-          "map_data"
-        ],
         "type": "object"
       },
       "name": "md_extract",

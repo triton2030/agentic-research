@@ -11,7 +11,7 @@ Generated from `tool-signatures-snapshot.json`; refined by task-001 conventions 
 | md_cycles | cycles | `md cycles [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | md_deps | deps | `md deps PATH [--scan SCAN] [--depth DEPTH] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | md_edit_context | edit-context | `md edit-context PATH [--mode MODE] [--scan SCAN] [--depth DEPTH] [--query QUERY] [CORPUS] --json` |
-| md_extract | extract | `md extract --map-data MAP_DATA [--files FILES] [--headings HEADINGS] [--extract] [--token-budget TOKEN_BUDGET] --json` |
+| md_extract | extract | `md extract [--map-data MAP_DATA] [--map-stdin] [--files FILES] [--headings HEADINGS] [--extract] [--token-budget TOKEN_BUDGET] --json` |
 | md_health | health | `md health [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | md_impact | impact | `md impact PATH [--scan SCAN] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | md_importance | importance | `md importance CORPUS [--top TOP] [--sort-by SORT_BY] --json` |

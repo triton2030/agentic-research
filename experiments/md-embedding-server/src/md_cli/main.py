@@ -79,6 +79,12 @@ def _add_signature_args(parser: argparse.ArgumentParser, tool: ToolSpec) -> None
         index += 1
     if "json" not in seen:
         parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON.")
+    if "brief" not in seen:
+        parser.add_argument(
+            "--brief",
+            action="store_true",
+            help="Print compact human-readable rows; envelope next_step.command appended.",
+        )
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -89,6 +95,7 @@ def build_parser() -> argparse.ArgumentParser:
         version=f"md-tools {__version__}",
     )
     parser.add_argument("--json", action="store_true", help=argparse.SUPPRESS)
+    parser.add_argument("--brief", action="store_true", help=argparse.SUPPRESS)
     subparsers = parser.add_subparsers(dest="subcommand", metavar="subcommand")
     tools_parser = subparsers.add_parser(
         "tools",
@@ -97,14 +104,17 @@ def build_parser() -> argparse.ArgumentParser:
     )
     tools_parser.add_argument("tool_name", nargs="?", help="Optional MCP tool id or CLI subcommand.")
     tools_parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON.")
+    tools_parser.add_argument("--brief", action="store_true", help="Print compact rows.")
     tools_parser.set_defaults(_handler_module="md_cli.handlers.tools", _tool_name="md_tools")
     selftest_parser = subparsers.add_parser("selftest", help="Run md-tools self checks.")
     selftest_parser.add_argument("--corpus", default="tests/fixtures/sample-corpus", help="Fixture corpus path.")
     selftest_parser.add_argument("--tool", default=None, help="Run one MCP tool id or CLI subcommand.")
     selftest_parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON.")
+    selftest_parser.add_argument("--brief", action="store_true", help="Print compact rows.")
     selftest_parser.set_defaults(_handler_module="md_cli.handlers.selftest", _tool_name="md_selftest")
     doctor_parser = subparsers.add_parser("doctor", help="Diagnose local md-tools installation.")
     doctor_parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON.")
+    doctor_parser.add_argument("--brief", action="store_true", help="Print compact rows.")
     doctor_parser.set_defaults(_handler_module="md_cli.handlers.doctor", _tool_name="md_doctor")
     for tool in TOOLS:
         _add_placeholder_subparser(subparsers, tool)

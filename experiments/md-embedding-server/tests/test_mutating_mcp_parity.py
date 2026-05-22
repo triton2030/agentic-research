@@ -43,6 +43,9 @@ def test_mutating_dry_runs_share_guard_shape(tmp_path: Path) -> None:
         payload = _run_md(tmp_path, *argv)
         assert payload["_envelope"]["tool"] == tool_id
         assert payload["dry_run"] is True
-        assert payload["transaction_id"].startswith("txn_")
-        assert len(payload["fingerprint"]) == 32
+        # Schema 2.0.0: lock handle lives in envelope; payload keeps only data.
+        lock = payload["_envelope"]["lock"]
+        assert lock["transaction_id"].startswith("txn_")
+        assert len(lock["fingerprint"]) == 32
         assert isinstance(payload["files"], list)
+        assert "transaction_id" not in payload

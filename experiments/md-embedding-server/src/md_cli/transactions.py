@@ -88,9 +88,12 @@ def verify_transaction(
     confirm_args: dict[str, Any] | None = None,
     confirm_files: Iterable[str | Path] | None = None,
 ) -> dict[str, Any]:
-    txn = _read_transaction(transaction_id)
+    path = transaction_path(transaction_id)
+    if not path.exists():
+        return _missing_path_reason(path)
+    txn = _read_transaction_path(path)
     if txn is None:
-        return {"ok": False, "reason": "unknown"}
+        return {"ok": False, "reason": "transaction_not_found"}
     return _verify_loaded_transaction(txn, expected_tool, confirm_args, confirm_files)
 
 
@@ -105,22 +108,65 @@ def verify_and_consume_transaction(
     try:
         path.rename(claimed)
     except FileNotFoundError:
-        return {"ok": False, "reason": "unknown"}
+        return _missing_path_reason(path)
     txn = _read_transaction_path(claimed)
     if txn is None:
         with suppress(FileNotFoundError):
             claimed.unlink()
-        return {"ok": False, "reason": "unknown"}
+        return {"ok": False, "reason": "transaction_not_found"}
     verified = _verify_loaded_transaction(txn, expected_tool, confirm_args, confirm_files)
     if verified["ok"]:
-        with suppress(FileNotFoundError):
-            claimed.unlink()
+        sentinel = _consumed_sentinel(path)
+        try:
+            claimed.rename(sentinel)
+        except OSError as exc:
+            with suppress(OSError):
+                claimed.rename(path)
+            return {
+                "ok": False,
+                "reason": "internal_error",
+                "detail": f"sentinel write failed: {exc}",
+            }
     else:
         try:
             claimed.rename(path)
         except OSError:
             pass
     return verified
+
+
+def _consumed_sentinel(txn_path: Path) -> Path:
+    return txn_path.with_suffix(".consumed")
+
+
+def _missing_path_reason(txn_path: Path) -> dict[str, Any]:
+    """Distinguish ‘never existed’ from ‘another process is mid-consume’.
+
+    Race window: process A does `path.rename(A.claim)` and is about to do
+    `A.claim.rename(.consumed)`. Process B arrives between those two renames,
+    sees no `path`, no `.consumed`, would wrongly answer transaction_not_found.
+    If any `.claim` sibling exists, B waits briefly for it to either land as
+    `.consumed` or roll back to `path`.
+    """
+    sentinel = _consumed_sentinel(txn_path)
+    if sentinel.exists():
+        return {"ok": False, "reason": "transaction_consumed"}
+    claim_glob = f"{txn_path.name}.*.claim"
+    deadline = time.time() + 0.5
+    while any(txn_path.parent.glob(claim_glob)):
+        if sentinel.exists():
+            return {"ok": False, "reason": "transaction_consumed"}
+        if txn_path.exists():
+            # claim rolled back — the transaction is usable again, but our
+            # caller has already lost its rename race, so report not_found and
+            # let them retry.
+            return {"ok": False, "reason": "transaction_not_found"}
+        if time.time() > deadline:
+            break
+        time.sleep(0.01)
+    if sentinel.exists():
+        return {"ok": False, "reason": "transaction_consumed"}
+    return {"ok": False, "reason": "transaction_not_found"}
 
 
 def _verify_loaded_transaction(
@@ -213,6 +259,13 @@ def gc_expired() -> None:
                 path.unlink()
             except FileNotFoundError:
                 pass
+    sentinel_ttl = now - 2 * TXN_TTL_SECONDS
+    for path in directory.glob("txn_*.consumed"):
+        try:
+            if path.stat().st_mtime < sentinel_ttl:
+                path.unlink(missing_ok=True)
+        except FileNotFoundError:
+            pass
 
 
 def transactions_dir() -> Path:

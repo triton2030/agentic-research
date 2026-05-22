@@ -4,7 +4,7 @@
 > **Owner:** [[_ops/self-learning/README|Self-Learning]]
 > **Skill:** `1self-learning`
 > **Лимит:** до 4000 символов через `wc -m`
-> **Граница:** проектные проблемы -> `1findings`; устойчивые цитаты -> `1user-said`; routing смотри в [[_ops/AGENTS|_ops routing]] и [[_ops/project-graph|Project Graph]].
+> **Граница:** проектные проблемы -> `1findings`; цитаты -> `1user-said`; routing: [[_ops/AGENTS|_ops]] / [[_ops/project-graph|Graph]].
 
 ## GPT-5.5
 
@@ -12,9 +12,9 @@
 
 - Сначала фиксируй workflow, consumer map, batch bounds, freshness канона и живые лимиты skill-контракта.
 - Не расширяй "исправь всё", не принимай рамку "сократить" до проверки потребителей и не решай по одному знакомому корпусу.
-- Перед design/role-вариантами восстанови 1-2 реальных сценария: мягкая "полезная" роль может промахнуться, если пользователь ищет жёсткого оппонента.
-- При batch-работе заранее называй включённые/исключённые папки, references и metadata; перед массовой заменой замораживай target set и проверяй dry-run.
-- В Obsidian-форме уровни `##` / `###` и bullets — основа; callouts и закрытые toggles не должны оборачивать весь файл.
+- Перед design/role-вариантами восстанови 1-2 сценария: мягкая роль может промахнуться, если нужен жёсткий оппонент.
+- При batch-работе называй scope заранее; перед массовой заменой замораживай target set и проверяй dry-run.
+- В Obsidian-форме `##` / `###` и bullets — основа; callouts и закрытые toggles не оборачивают весь файл.
 
 ### Evidence before blame
 
@@ -26,7 +26,8 @@
 
 - Если skill/best-practice слой мог измениться, перечитай живой owner/source, а не локальный guide или старый снимок.
 - При `argparse` помни, что тесты могут собирать `Namespace` вручную: используй `getattr(args, ..., default)` или обновляй fixtures.
-- Если bridge relay truncated, восстанавливай полный вывод из durable logs до rerun.
+- Если bridge relay truncated, восстанавливай полный вывод из logs до rerun.
+- В prompt-analytics hook `UserPromptSubmit` не равен человеку: смотри `session_meta.thread_source` и фильтруй service prompts.
 - Когда пользователь спрашивает, почему не был вызван `1findings` или `1self-learning`, не объясняй задним числом вместо действия: классифицируй сигнал и запиши владельцу.
 - Перед запуском named subagents сверяй доступные `agent_type`; если runtime не принимает роль, не имитируй критика, фиксируй mismatch.
 - Для native subagents не смешивай `fork_context` с явным `agent_type`: либо наследуй full-history context, либо запускай named role без fork и дай self-contained brief.

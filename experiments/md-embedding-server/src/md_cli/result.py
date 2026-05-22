@@ -8,4 +8,5 @@ from typing import Any
 class ToolResult:
     payload: dict[str, Any] | None
     exit_code: int = 0
+    lock: dict[str, Any] | None = None
 

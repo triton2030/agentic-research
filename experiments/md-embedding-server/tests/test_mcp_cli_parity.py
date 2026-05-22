@@ -70,5 +70,10 @@ def test_mutating_cli_contract_exposes_transaction_and_fingerprint() -> None:
     result = _run_md("index", str(CORPUS), "--dry-run")
     assert result.returncode == 0
     payload = json.loads(result.stdout)
-    assert payload["transaction_id"].startswith("txn_")
-    assert len(payload["fingerprint"]) == 32
+    # Schema 2.0.0: transaction_id and fingerprint live in _envelope.lock,
+    # not payload root. payload root carries only domain data (files,
+    # pending_chunks, estimated_cost_usd).
+    lock = payload["_envelope"]["lock"]
+    assert lock["transaction_id"].startswith("txn_")
+    assert len(lock["fingerprint"]) == 32
+    assert "transaction_id" not in payload, "transaction_id must not leak into payload root"

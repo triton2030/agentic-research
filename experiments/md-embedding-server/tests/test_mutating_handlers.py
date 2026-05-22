@@ -49,7 +49,7 @@ def test_init_requires_dry_run_then_allows_fingerprint_confirm(tmp_path: Path) -
         "plain.md",
         "--confirm",
         "--fingerprint",
-        str(dry_payload["fingerprint"]),
+        str(dry_payload["_envelope"]["lock"]["fingerprint"]),
     )
     assert confirmed.returncode == 0
     frontmatter = parse_frontmatter(doc.read_text(encoding="utf-8").splitlines())
@@ -81,7 +81,7 @@ def test_strip_detects_fingerprint_drift_and_transaction_confirm(tmp_path: Path)
         "legacy.md",
         "--confirm",
         "--fingerprint",
-        str(dry_payload["fingerprint"]),
+        str(dry_payload["_envelope"]["lock"]["fingerprint"]),
     )
     assert stale.returncode == 1
     assert _json(stale)["error"] == "drift_detected"
@@ -94,7 +94,7 @@ def test_strip_detects_fingerprint_drift_and_transaction_confirm(tmp_path: Path)
         "legacy.md",
         "--confirm",
         "--transaction-id",
-        str(_json(fresh)["transaction_id"]),
+        str(_json(fresh)["_envelope"]["lock"]["transaction_id"]),
     )
     assert confirmed.returncode == 0
     assert "owner:" not in doc.read_text(encoding="utf-8")
@@ -127,7 +127,7 @@ def test_strip_transaction_rejects_changed_path_filter(tmp_path: Path) -> None:
         "b.md",
         "--confirm",
         "--transaction-id",
-        str(_json(dry)["transaction_id"]),
+        str(_json(dry)["_envelope"]["lock"]["transaction_id"]),
     )
     assert changed_scope.returncode == 1
     assert _json(changed_scope)["error"] == "args_mismatch"
