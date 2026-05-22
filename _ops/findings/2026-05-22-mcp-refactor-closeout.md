@@ -52,6 +52,7 @@ complete-with-observed-limits
 - Code-locality hook:
   `_ops/findings/2026-05-22-code-locality-hook.md` documents install and
   positive/negative simulated hook checks.
+- Final removal tag: `mcp-removed-2026-05-22`.
 
 ## Diff Snapshot
 
@@ -79,6 +80,8 @@ complete-with-observed-limits
 ## Rollback
 
 Backup tag remains: `pre-mcp-refactor-2026-05-22`.
+
+Removal tag: `mcp-removed-2026-05-22`.
 
 If an issue appears, restore the removed server with:
 
