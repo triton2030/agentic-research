@@ -91,6 +91,30 @@ def test_public_api_smoke_on_fixture_corpus() -> None:
     assert all(isinstance(payload, dict) for payload in calls)
 
 
+def test_query_by_type_docstring_documents_re_export() -> None:
+    """Brooks F1 anti-regression: workflows/query_by_type.py honestly documents
+    that real composition lives in api.py. If a future maintainer inlines the
+    logic here, this docstring sentinel must be removed deliberately."""
+    import importlib
+
+    module = importlib.import_module("navigator.workflows.query_by_type")
+    doc = module.__doc__ or ""
+    assert "real composition lives in navigator.api" in doc, (
+        "workflows/query_by_type.py docstring must document its re-export nature"
+    )
+
+
+def test_refactor_candidates_docstring_documents_re_export() -> None:
+    """Symmetric sentinel for refactor_candidates workflow."""
+    import importlib
+
+    module = importlib.import_module("navigator.workflows.refactor_candidates")
+    doc = module.__doc__ or ""
+    assert "real composition lives in navigator.api" in doc, (
+        "workflows/refactor_candidates.py docstring must document its re-export nature"
+    )
+
+
 def test_warm_index_tools_filter_tool_specific_kwargs(tiny_corpus: Path, mock_embed) -> None:
     indexed = navigator.index(str(tiny_corpus), confirm=True)
     assert indexed["embedded"] >= 1

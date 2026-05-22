@@ -56,3 +56,49 @@ return dictionaries, and never depend on the CLI package.
 - Legacy `navigator.*.cmd_*` argparse functions remain only for
   `scripts/md_navigator.py` / `scripts/md_graph.py` compatibility during the
   big-bang migration window.
+
+## Proxy magic: rationale & limits
+
+`navigator/__init__.py` installs `_CallableModuleProxy` + `_NavigatorPackage`
+so that every public name behaves as **both** a callable and a module.
+
+**Dual contract obtained:**
+
+- `navigator.search(corpus, query, …)` → calls `api.search` (function form,
+  used by handlers and most tests).
+- `navigator.search.X` → resolves attributes on the `navigator/search.py`
+  module (constants, helpers, things to monkeypatch).
+
+**Why it is load-bearing:**
+
+`tests/test_rerank.py` and `tests/test_contract_fixes.py` install
+``monkeypatch.setattr(search_mod, "rerank_documents", fake)`` after
+``from navigator import search as search_mod``. The proxy's
+``__setattr__`` forwards the assignment to the underlying
+``navigator.search`` module so the patched symbol is visible to the real
+search code path. Without the proxy, ``search_mod`` would be a function
+object and ``setattr`` would silently attach a noop attribute.
+
+**Known limits:**
+
+- `mypy` may not infer attribute access through the proxy correctly;
+  prefer explicit `from navigator.search import X` for type-checked code.
+- Pickling proxy instances is not supported (function + module composite
+  has no portable representation).
+- `inspect.getmembers(navigator.search)` returns proxy attributes, not
+  the underlying module attributes — beware in introspection tooling.
+
+**When safe to remove:**
+
+The proxy can be deleted once **all** callers migrate to explicit forms:
+
+- callable: `from navigator.api import X` (for `X(...)`).
+- module access: `from navigator import X` then `X.helper(...)` — note
+  that after removal, `from navigator import X` will resolve to the
+  module on disk because the function-form alias in `__init__.py` will
+  be gone.
+
+Once monkeypatch fixtures and downstream callers are migrated, drop
+`_CallableModuleProxy` / `_NavigatorPackage`, replace the api re-exports
+in `__init__.py` with `from . import <module>` lines, and remove this
+section.

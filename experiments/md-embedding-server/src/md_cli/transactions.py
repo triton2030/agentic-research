@@ -15,6 +15,25 @@ from .cost_ledger import cache_root
 TXN_TTL_SECONDS = 5 * 60
 CONTROL_KEYS = {"dry_run", "confirm", "transaction_id", "fingerprint", "json", "subcommand"}
 
+# Keys whose values are filesystem paths. Normalized (expanduser + resolve) in
+# `canonical_intent` so dry-run vs confirm intent comparison is path-shape
+# invariant — calling `md init --dry-run docs/` then
+# `md init --confirm /abs/docs/` must not raise `args_mismatch`.
+# Note: `scope` is intentionally excluded — it is a mode (`sections` /
+# `descriptions`), not a path.
+PATH_LIKE_INTENT_KEYS = frozenset({"corpus", "path", "paths", "scan"})
+
+
+def _normalize_path_value(value: Any) -> Any:
+    if isinstance(value, str):
+        try:
+            return str(Path(value).expanduser().resolve(strict=False))
+        except (OSError, ValueError):
+            return value
+    if isinstance(value, (list, tuple)):
+        return [_normalize_path_value(item) for item in value]
+    return value
+
 
 def compute_fingerprint(file_paths: Iterable[str | Path]) -> tuple[str, list[dict[str, str]]]:
     entries = []
@@ -235,11 +254,15 @@ def _jsonable_args(args: dict[str, Any]) -> dict[str, Any]:
 
 def canonical_intent(args: dict[str, Any]) -> dict[str, Any]:
     jsonable = _jsonable_args(args)
-    return {
-        key: jsonable[key]
-        for key in sorted(jsonable)
-        if not key.startswith("_") and key not in CONTROL_KEYS
-    }
+    canonical: dict[str, Any] = {}
+    for key in sorted(jsonable):
+        if key.startswith("_") or key in CONTROL_KEYS:
+            continue
+        value = jsonable[key]
+        if key in PATH_LIKE_INTENT_KEYS:
+            value = _normalize_path_value(value)
+        canonical[key] = value
+    return canonical
 
 
 def _intent_mismatch(original_args: dict[str, Any], confirm_args: dict[str, Any]) -> dict[str, dict[str, Any]]:

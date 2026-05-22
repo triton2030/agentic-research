@@ -54,6 +54,19 @@ def _call(func: Callable[..., dict[str, Any]], kwargs: dict[str, Any]) -> ToolRe
         return ToolResult({"error": "permission_denied", "detail": str(exc)}, 2)
     except TypeError as exc:
         return ToolResult({"error": "usage_error", "detail": str(exc)}, 2)
+    except Exception as exc:
+        # Catch-all fence: any unhandled exception (URLError, socket.timeout,
+        # nx.NetworkXError, etc.) becomes an envelope error instead of a raw
+        # traceback. KeyboardInterrupt and SystemExit inherit from BaseException
+        # and propagate normally.
+        return ToolResult(
+            {
+                "error": "internal_error",
+                "exception": type(exc).__name__,
+                "detail": str(exc),
+            },
+            3,
+        )
     if payload is None:
         payload = {}
     payload = dict(payload)

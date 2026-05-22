@@ -83,6 +83,10 @@ Backup tag remains: `pre-mcp-refactor-2026-05-22`.
 
 Removal tag: `mcp-removed-2026-05-22`.
 
+Earliest safe deletion of `pre-mcp-refactor-2026-05-22`: 2026-06-22 (one month
+after `mcp-removed-2026-05-22`). Recommend retention until 2026-07-22 if a fresh
+Claude UI session smoke run was not performed personally by the user.
+
 If an issue appears, restore the removed server with:
 
 ```bash

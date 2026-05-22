@@ -1,4 +1,28 @@
-"""Public Python API for md-tools navigator capabilities."""
+"""Public Python API for md-tools navigator capabilities.
+
+Proxy notice
+------------
+`_CallableModuleProxy` + `_NavigatorPackage` give every public name dual nature:
+`navigator.search(...)` calls `api.search` (function), while `navigator.search.X`
+routes to attributes of the `navigator/search.py` module (e.g. mocks, constants,
+private helpers).
+
+This is load-bearing — see ``tests/test_rerank.py``:
+``monkeypatch.setattr(search_mod, "rerank_documents", fake)`` requires module
+attribute access to install the monkeypatch. Removing the proxy would break
+those fixtures and any downstream callers doing
+``from navigator import X as mod; mod.helper(...)``.
+
+Known limits / when safe to remove:
+- mypy, pickling, and `inspect.getmembers` may behave unexpectedly on the
+  proxy objects.
+- Removal becomes safe once all callers move to explicit
+  ``from navigator.api import X`` for callable form and
+  ``from navigator import X`` for module-attribute access. Until then, keep.
+
+See ``docs/navigator-public-api.md`` (Proxy magic section) for the full
+rationale.
+"""
 
 import importlib
 import sys
