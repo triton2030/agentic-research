@@ -11,6 +11,7 @@ from argparse import Namespace
 from pathlib import Path
 
 from navigator.index import cmd_index
+from navigator.api import search_read
 from navigator.search import cmd_search
 
 
@@ -99,3 +100,14 @@ def test_search_signals_label_appears_for_bm25_match(tiny_corpus, mock_embed, ca
     assert rc == 0
     # Some result row should have BM25 in its signals
     assert "BM25" in out
+
+
+def test_search_read_returns_section_bodies(tiny_corpus, mock_embed, capsys):
+    assert cmd_index(_index_args(tiny_corpus)) == 0
+    capsys.readouterr()
+
+    payload = search_read(str(tiny_corpus), "embeddings", limit=2)
+    assert "sections" in payload
+    assert payload["sections"], payload
+    assert any("Vector embeddings encode semantic meaning" in row["content"] for row in payload["sections"])
+    assert payload["token_total"] >= 1

@@ -71,59 +71,9 @@ def _sort_id(value: str) -> tuple[int, int | str]:
         return (1, value)
 
 
-def _path_from_search_result(root: str, relative_path: str) -> str:
-    path = Path(relative_path)
-    if path.is_absolute():
-        return str(path)
-    if root:
-        return str(Path(root) / relative_path)
-    return relative_path
-
-
-def _map_search_results(data: dict[str, Any]) -> dict[str, Any]:
-    files_by_id: dict[str, dict[str, Any]] = {}
-    root = str(data.get("root") or "")
-    for result in data.get("results", []):
-        file_id = str(result.get("file_id") or "")
-        section_id = str(result.get("section_id") or "")
-        relative_path = str(result.get("relative_path") or "")
-        if not file_id or not section_id or not relative_path:
-            continue
-        file_item = files_by_id.setdefault(
-            file_id,
-            {
-                "id": result.get("file_id"),
-                "path": result.get("path") or _path_from_search_result(root, relative_path),
-                "relative_path": relative_path,
-                "description": result.get("file_description") or "",
-                "title": result.get("file_title") or "",
-                "heading_count": 0,
-                "headings": [],
-            },
-        )
-        heading: dict[str, Any] = {
-            "id": section_id,
-            "line": int(result.get("start_line") or 1),
-            "level": int(result.get("level") or 0),
-            "text": result.get("heading_text") or result.get("heading_chain") or section_id,
-        }
-        if "token_count" in result:
-            heading["tokens"] = result["token_count"]
-        if "body" in result:
-            heading["body"] = result["body"]
-        file_item["headings"].append(heading)
-        file_item["heading_count"] = len(file_item["headings"])
-    return {
-        "root": root,
-        "files": list(files_by_id.values()),
-    }
-
-
 def normalize_map_data(data: dict[str, Any]) -> dict[str, Any]:
     if "files" in data:
         return data
-    if "results" in data:
-        return _map_search_results(data)
     return {
         "root": data.get("root", ""),
         "files": [],

@@ -25,7 +25,7 @@ def _run_md(*args: str) -> subprocess.CompletedProcess[str]:
     )
 
 
-def test_all_29_cli_subcommands_emit_json_envelope() -> None:
+def test_all_30_cli_subcommands_emit_json_envelope() -> None:
     map_json = json.dumps(_run_json("ls", str(CORPUS)) | {"_envelope": None})
     commands = [
         ("ping",),
@@ -36,6 +36,7 @@ def test_all_29_cli_subcommands_emit_json_envelope() -> None:
         ("importance", str(CORPUS)),
         ("extract", "--map-data", map_json, "--files", "1"),
         ("search", str(CORPUS), "--query", "sample"),
+        ("search-read", str(CORPUS), "--query", "sample"),
         ("overlaps", str(CORPUS)),
         ("repeated-concepts", str(CORPUS)),
         ("audit", str(CORPUS)),
@@ -58,7 +59,7 @@ def test_all_29_cli_subcommands_emit_json_envelope() -> None:
         ("query-by-type", str(CORPUS), "--types", "rule"),
         ("section-blast-radius", str(README), str(CORPUS), "--query", "sample", "--scan", str(CORPUS)),
     ]
-    assert len(commands) == 29
+    assert len(commands) == 30
     for command in commands:
         result = _run_md(*command, "--json")
         assert result.returncode in {0, 1, 4}, (command, result.returncode, result.stderr)

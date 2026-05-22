@@ -47,6 +47,14 @@ def test_search_schema_describes_top_level_fields() -> None:
     }
 
 
+def test_search_read_schema_describes_body_sections() -> None:
+    s = ALL_SCHEMAS["search-read"]
+    required = set(s["required"])
+    assert required >= {"root", "query", "scope", "sections", "token_total"}
+    row = s["properties"]["sections"]["items"]
+    assert set(row["required"]) >= {"section_id", "relative_path", "start_line", "content"}
+
+
 def test_cmd_schema_prints_specific_target(capsys) -> None:
     args = Namespace(target="search")
     rc = cmd_schema(args)

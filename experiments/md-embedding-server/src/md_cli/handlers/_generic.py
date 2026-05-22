@@ -7,9 +7,10 @@ from typing import Any, Callable
 from md_cli.catalog import get_tool
 from md_cli.result import ToolResult
 from md_cli.transactions import (
+    claim_transaction,
     compute_fingerprint,
     create_transaction,
-    verify_and_consume_transaction,
+    finish_transaction_claim,
     verify_fingerprint,
 )
 
@@ -19,7 +20,6 @@ MUTATING_TOOLS = {"md_init", "md_strip", "md_index", "md_profile_sections"}
 
 TRANSACTION_HINTS = {
     "transaction_not_found": "Transaction id not recognized. Run --dry-run to get a fresh id.",
-    "transaction_consumed": "Transaction already applied. Run `md status` to verify state.",
     "expired": "Transaction expired (TTL 5 min). Re-run --dry-run.",
     "args_mismatch": "Args differ between dry-run and confirm. Re-run --dry-run with the final args.",
     "drift_detected": "Affected files changed since dry-run; re-run --dry-run.",
@@ -54,7 +54,7 @@ def _kwargs(args: Any) -> dict[str, Any]:
     return {
         key: value
         for key, value in vars(args).items()
-        if not key.startswith("_") and key not in {"subcommand", "json", "brief"}
+        if not key.startswith("_") and key not in {"subcommand", "json"}
     }
 
 
@@ -127,7 +127,7 @@ def _run_mutating(
             preview = _call(func, {**kwargs, "dry_run": True, "confirm": False})
             if preview.exit_code != 0:
                 return preview
-            verified = verify_and_consume_transaction(
+            verified = claim_transaction(
                 transaction_id,
                 tool_id,
                 vars(args),
@@ -135,7 +135,9 @@ def _run_mutating(
             )
             if not verified["ok"]:
                 return ToolResult(_transaction_error_payload(verified), 1)
-            return _call(func, {**kwargs, "dry_run": False, "confirm": True})
+            result = _call(func, {**kwargs, "dry_run": False, "confirm": True})
+            finish_transaction_claim(verified["claim_path"])
+            return result
         fingerprint = kwargs.get("fingerprint")
         if fingerprint:
             preview = _call(func, {**kwargs, "dry_run": True, "confirm": False})

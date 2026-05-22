@@ -57,6 +57,7 @@ STALE_TOOL_IDS = (
     "md_repeated_concepts",
     "md_scan",
     "md_search",
+    "md_search_read",
     "md_section_blast_radius",
     "md_status",
     "md_strip",

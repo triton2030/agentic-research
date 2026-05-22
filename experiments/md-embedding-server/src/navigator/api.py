@@ -795,6 +795,59 @@ def search(corpus: str, query: str, **kwargs: Any) -> dict[str, Any]:
     }
 
 
+def search_read(corpus: str, query: str, **kwargs: Any) -> dict[str, Any]:
+    result = search(corpus, query, **kwargs)
+    if result.get("error"):
+        return result
+
+    budget = int(kwargs.get("token_budget") or 0)
+    sections: list[dict[str, Any]] = []
+    dropped: list[dict[str, Any]] = []
+    running_tokens = 0
+    for row in result.get("results", []):
+        tokens = int(row.get("token_count") or 0)
+        if budget and running_tokens + tokens > budget:
+            dropped.append(
+                {
+                    "section_id": row.get("section_id"),
+                    "relative_path": row.get("relative_path"),
+                    "tokens": tokens,
+                }
+            )
+            continue
+        running_tokens += tokens
+        sections.append(
+            {
+                "section_id": row.get("section_id"),
+                "file_id": row.get("file_id"),
+                "relative_path": row.get("relative_path"),
+                "start_line": row.get("start_line"),
+                "heading_chain": row.get("heading_chain"),
+                "heading_text": row.get("heading_text"),
+                "token_count": tokens,
+                "rrf_score": row.get("rrf_score"),
+                "rerank_score": row.get("rerank_score"),
+                "snippet": row.get("snippet"),
+                "content": row.get("body") or "",
+            }
+        )
+
+    payload = {
+        "root": result.get("root"),
+        "query": result.get("query"),
+        "scope": result.get("scope"),
+        "engine": result.get("engine"),
+        "stats": result.get("stats"),
+        "sections": sections,
+        "token_total": running_tokens,
+        "token_budget": budget,
+        "dropped_by_budget": dropped,
+    }
+    if not sections:
+        return _exit({**payload, "empty": True}, 1)
+    return payload
+
+
 def overlaps(corpus: str, **kwargs: Any) -> dict[str, Any]:
     if _index_missing(corpus):
         return _index_warmup(corpus)

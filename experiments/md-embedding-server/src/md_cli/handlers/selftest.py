@@ -35,7 +35,7 @@ def run(args) -> ToolResult:
     lines = ["Tool                 Status  Notes"]
     for row in results:
         lines.append(f"{row['tool']:<20} {row['status']:<6} {row.get('reason', '')}")
-    lines.append(f"Pass: {passed}/29, Fail: {failed}, Skip: {skipped}")
+    lines.append(f"Pass: {passed}/{len(results)}, Fail: {failed}, Skip: {skipped}")
     return ToolResult({"_human": "\n".join(lines), **payload}, 0 if failed == 0 else 1)
 
 

@@ -173,6 +173,75 @@ SEARCH_SCHEMA: dict[str, Any] = {
 }
 
 
+_SEARCH_READ_ROW: dict[str, Any] = {
+    "type": "object",
+    "required": [
+        "section_id",
+        "file_id",
+        "relative_path",
+        "start_line",
+        "heading_chain",
+        "token_count",
+        "content",
+    ],
+    "properties": {
+        "section_id": {"type": "string"},
+        "file_id": {"type": "integer", "minimum": 1},
+        "relative_path": {"type": "string"},
+        "start_line": {"type": "integer", "minimum": 1},
+        "heading_chain": {"type": "string"},
+        "heading_text": {"type": "string"},
+        "token_count": {"type": "integer", "minimum": 0},
+        "rrf_score": {"type": ["number", "null"]},
+        "rerank_score": {"type": ["number", "null"]},
+        "snippet": {"type": "string"},
+        "content": {"type": "string"},
+    },
+}
+
+
+SEARCH_READ_SCHEMA: dict[str, Any] = {
+    "$schema": SCHEMA_DIALECT,
+    "$id": "md-navigator/search-read.json",
+    "title": "md-navigator search-read output",
+    "type": "object",
+    "required": [
+        "root",
+        "query",
+        "scope",
+        "engine",
+        "stats",
+        "sections",
+        "token_total",
+        "token_budget",
+        "dropped_by_budget",
+    ],
+    "properties": {
+        "root": {"type": "string"},
+        "query": {"type": "string"},
+        "scope": {"enum": ["sections", "descriptions"]},
+        "engine": SEARCH_SCHEMA["properties"]["engine"],
+        "stats": SEARCH_SCHEMA["properties"]["stats"],
+        "sections": {"type": "array", "items": _SEARCH_READ_ROW},
+        "token_total": {"type": "integer", "minimum": 0},
+        "token_budget": {"type": "integer", "minimum": 0},
+        "dropped_by_budget": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["section_id", "relative_path", "tokens"],
+                "properties": {
+                    "section_id": {"type": "string"},
+                    "relative_path": {"type": "string"},
+                    "tokens": {"type": "integer", "minimum": 0},
+                },
+            },
+        },
+        "empty": {"type": "boolean"},
+    },
+}
+
+
 MAP_SCHEMA: dict[str, Any] = {
     "$schema": SCHEMA_DIALECT,
     "$id": "md-navigator/map.json",
@@ -230,29 +299,56 @@ STATUS_SCHEMA: dict[str, Any] = {
     "$id": "md-navigator/status.json",
     "title": "md-navigator status output (when --json)",
     "type": "object",
-    "required": ["corpus", "index_path", "status", "scopes"],
+    "required": ["corpus", "index_path", "state", "scopes"],
     "properties": {
+        "command": {"type": "string"},
         "corpus": {"type": "string"},
         "index_path": {"type": "string"},
+        "index_exists": {"type": "boolean"},
         "last_touched": {"type": ["string", "null"]},
-        "status": {
-            "enum": ["FRESH", "HEALTHY", "NEEDS WARMUP", "NO INDEX"],
+        "model": {"type": "string"},
+        "path_scope": {
+            "type": "object",
+            "properties": {
+                "include": {"type": ["array", "null"], "items": {"type": "string"}},
+                "exclude": {"type": ["array", "null"], "items": {"type": "string"}},
+            },
+        },
+        "state": {
+            "enum": ["FRESH", "HEALTHY", "NEEDS_WARMUP", "NO_INDEX", "ERROR", "EMPTY", "DEPENDENCY_ERROR"],
         },
         "scopes": {
-            "type": "object",
-            "additionalProperties": {
+            "type": "array",
+            "items": {
                 "type": "object",
-                "required": ["added", "removed", "reused", "total"],
+                "required": [
+                    "scope",
+                    "added_sections",
+                    "removed_sections",
+                    "reused",
+                    "pending_chunks",
+                    "total_sections_in_scope",
+                ],
                 "properties": {
-                    "added": {"type": "integer"},
-                    "removed": {"type": "integer"},
+                    "scope": {"enum": ["sections", "descriptions"]},
+                    "added_sections": {"type": "integer"},
+                    "removed_sections": {"type": "integer"},
                     "reused": {"type": "integer"},
-                    "total": {"type": "integer"},
                     "pending_chunks": {"type": "integer"},
+                    "total_sections_in_scope": {"type": "integer"},
                 },
             },
         },
-        "id_drift_files": {"type": "integer"},
+        "folder_breakdown": {"type": "array"},
+        "excluded": {"type": "object"},
+        "added_sections": {"type": "integer"},
+        "removed_sections": {"type": "integer"},
+        "pending_chunks": {"type": "integer"},
+        "drift_count": {"type": "integer"},
+        "metadata_mismatch": {"type": "boolean"},
+        "delta_too_large": {"type": "boolean"},
+        "max_auto_embed": {"type": "integer"},
+        "recommended_action": {"type": ["object", "null"]},
     },
 }
 
@@ -497,6 +593,7 @@ AUDIT_SCHEMA: dict[str, Any] = {
 
 ALL_SCHEMAS: dict[str, dict[str, Any]] = {
     "search": SEARCH_SCHEMA,
+    "search-read": SEARCH_READ_SCHEMA,
     "map": MAP_SCHEMA,
     "headings": MAP_SCHEMA,  # same shape — headings is `map` with deeper detail
     "status": STATUS_SCHEMA,

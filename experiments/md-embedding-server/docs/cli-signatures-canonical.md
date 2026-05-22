@@ -1,8 +1,8 @@
 # Canonical CLI Signatures
 
-Generated from `tool-signatures-snapshot.json`; refined by task-001 conventions before production implementation.
+Generated from `md_cli.catalog`.
 
-| MCP tool | CLI subcommand | Canonical signature draft |
+| Tool | CLI subcommand | Canonical signature |
 |---|---|---|
 | md_audit | audit | `md audit CORPUS [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | md_changed | changed | `md changed [--scan SCAN] [--depth DEPTH] [--base BASE] [--since SINCE] [--staged] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
@@ -29,6 +29,7 @@ Generated from `tool-signatures-snapshot.json`; refined by task-001 conventions 
 | md_repeated_concepts | repeated-concepts | `md repeated-concepts CORPUS [--threshold THRESHOLD] [--top TOP] [--min-files MIN_FILES] [--min-sections MIN_SECTIONS] [--min-tokens MIN_TOKENS] [--top-members TOP_MEMBERS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | md_scan | scan | `md scan [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | md_search | search | `md search CORPUS --query QUERY [--scope SCOPE] [--limit LIMIT] [--candidates CANDIDATES] [--max-heading-level MAX_HEADING_LEVEL] [--rerank] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
+| md_search_read | search-read | `md search-read CORPUS --query QUERY [--scope SCOPE] [--limit LIMIT] [--candidates CANDIDATES] [--max-heading-level MAX_HEADING_LEVEL] [--rerank] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--token-budget TOKEN_BUDGET] --json` |
 | md_section_blast_radius | section-blast-radius | `md section-blast-radius PATH CORPUS --query QUERY [--heading-id HEADING_ID] [--scan SCAN] [--depth DEPTH] [--limit LIMIT] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | md_status | status | `md status CORPUS [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | md_strip | strip | `md strip [--paths PATHS] [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--also-related-section] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |

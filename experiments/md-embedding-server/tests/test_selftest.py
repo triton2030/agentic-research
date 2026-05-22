@@ -27,7 +27,7 @@ def test_selftest_fixture_corpus_passes() -> None:
     result = _run_md("selftest", "--json")
     assert result.returncode == 0
     payload = json.loads(result.stdout)
-    assert payload["summary"] == {"pass": 28, "fail": 0, "skip": 1, "total": 29}
+    assert payload["summary"] == {"pass": 29, "fail": 0, "skip": 1, "total": 30}
     assert payload["_envelope"]["tool"] == "md_selftest"
 
 
@@ -41,5 +41,4 @@ def test_selftest_single_tool() -> None:
 def test_selftest_human_summary() -> None:
     result = _run_md("selftest")
     assert result.returncode == 0
-    assert "Pass: 28/29" in result.stdout
-
+    assert "Pass: 29/30" in result.stdout

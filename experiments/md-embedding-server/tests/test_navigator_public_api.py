@@ -33,6 +33,7 @@ ATOMIC_NAMES = [
     "repeated_concepts",
     "scan",
     "search",
+    "search_read",
     "status",
     "strip",
     "toc",
@@ -74,6 +75,7 @@ def test_public_api_smoke_on_fixture_corpus() -> None:
         navigator.cycles(paths=[str(CORPUS)]),
         navigator.changed(scan=str(CORPUS), staged=True),
         navigator.search(str(CORPUS), "sample"),
+        navigator.search_read(str(CORPUS), "sample"),
         navigator.overlaps(str(CORPUS)),
         navigator.repeated_concepts(str(CORPUS)),
         navigator.audit(str(CORPUS)),
@@ -87,7 +89,7 @@ def test_public_api_smoke_on_fixture_corpus() -> None:
         workflows.refactor_candidates(str(CORPUS), compact=True),
         workflows.section_blast_radius(str(README), str(CORPUS), "sample", scan=str(CORPUS)),
     ]
-    assert len(calls) == 29
+    assert len(calls) == 30
     assert all(isinstance(payload, dict) for payload in calls)
 
 
