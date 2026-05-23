@@ -23,6 +23,19 @@ def test_catalog_names_match_mcp_snapshot() -> None:
     assert sorted(TOOLS_BY_ID) == sorted(tool["name"] for tool in snapshot["tools"])
 
 
+def test_catalog_values_match_mcp_snapshot_without_runtime_patching() -> None:
+    snapshot = json.loads((ROOT / "tests/golden/mcp-tool-snapshot.json").read_text())
+    for tool in snapshot["tools"]:
+        assert TOOLS_BY_ID[tool["name"]].to_dict() == tool
+
+    source = (ROOT / "src/md_cli/catalog.py").read_text(encoding="utf-8")
+    assert "$schema" not in source
+    assert "object.__setattr__" not in source
+    assert "input_schema.pop" not in source
+    assert "for _tool in TOOLS_BY_ID.values()" not in source
+    assert "setdefault(\"fingerprint\"" not in source
+
+
 def test_catalog_required_fields_and_import_targets() -> None:
     for tool in TOOLS:
         assert tool.name

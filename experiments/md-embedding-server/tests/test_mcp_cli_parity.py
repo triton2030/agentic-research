@@ -78,3 +78,14 @@ def test_mutating_cli_contract_exposes_transaction_and_fingerprint() -> None:
     assert lock["transaction_id"].startswith("txn_")
     assert len(lock["fingerprint"]) == 32
     assert "transaction_id" not in payload, "transaction_id must not leak into payload root"
+    assert payload["_envelope"]["next_step"] == [
+        {
+            "tool": "md_index",
+            "args": {
+                "corpus": str(CORPUS),
+                "confirm": True,
+                "transaction_id": lock["transaction_id"],
+            },
+            "reason": "Apply the dry-run plan with the matching transaction_id.",
+        }
+    ]

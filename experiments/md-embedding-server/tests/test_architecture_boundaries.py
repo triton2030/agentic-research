@@ -49,6 +49,23 @@ def test_runner_owns_envelope_and_json_printing() -> None:
     assert json_printers == ["src/md_cli/runner.py"]
 
 
+def test_envelope_delegates_next_step_policy() -> None:
+    envelope_text = (SRC / "md_cli" / "envelope.py").read_text(encoding="utf-8")
+    next_steps_text = (SRC / "md_cli" / "next_steps.py").read_text(encoding="utf-8")
+
+    assert "from .next_steps import LARGE_REPLY_BYTES, derive_next_step" in envelope_text
+    assert "def derive_next_step" not in envelope_text
+    assert "def _narrow_for_large_reply" not in envelope_text
+    assert "index_warmup_required" not in envelope_text
+    assert "confirm_required" not in envelope_text
+    assert "transaction_not_found" not in envelope_text
+
+    assert "def derive_next_step" in next_steps_text
+    assert "def _narrow_for_large_reply" in next_steps_text
+    assert "from .envelope" not in next_steps_text
+    assert "import md_cli.envelope" not in next_steps_text
+
+
 def test_navigator_library_does_not_import_md_cli() -> None:
     for path in _py_files(SRC / "navigator"):
         text = path.read_text(encoding="utf-8")

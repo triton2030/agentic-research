@@ -29,6 +29,10 @@ def test_selftest_fixture_corpus_passes() -> None:
     payload = json.loads(result.stdout)
     assert payload["summary"] == {"pass": 29, "fail": 0, "skip": 1, "total": 30}
     assert payload["_envelope"]["tool"] == "md_selftest"
+    for row in payload["results"]:
+        if row["status"] == "skip":
+            continue
+        assert any(check["name"] == "cli_json_smoke" and check["ok"] for check in row["checks"])
 
 
 def test_selftest_single_tool() -> None:
@@ -36,6 +40,10 @@ def test_selftest_single_tool() -> None:
     assert result.returncode == 0
     payload = json.loads(result.stdout)
     assert payload["summary"] == {"pass": 1, "fail": 0, "skip": 0, "total": 1}
+    assert any(
+        check["name"] == "cli_json_smoke" and check["ok"]
+        for check in payload["results"][0]["checks"]
+    )
 
 
 def test_selftest_human_summary() -> None:

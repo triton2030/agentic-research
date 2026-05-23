@@ -16,8 +16,10 @@ Complaint index:
   6. `md status --json` всегда 3KB
   7. `md search-read` забивает контекст полным телом по умолчанию
 
-Covered here: 1, 2, 6, 7. Complaints 3, 4, 5 need git fixtures / large
-corpora / transaction probes and are scheduled for follow-up.
+Covered here: 1, 2, 6, 7. Follow-up coverage lives in:
+  * #3: test_changed_path_filter.py
+  * #4: test_envelope_truncation_hint.py
+  * #5: test_mcp_cli_parity.py + mutating transaction tests
 """
 
 from __future__ import annotations

@@ -10,7 +10,7 @@ edit-after-edit: []
 ---
 # Task — Stabilization refactor текущего `md` CLI
 
-Статус: активно.
+Статус: выполнено; broad goal продолжается отдельным scenario-аудитом.
 
 ## Зачем
 
@@ -64,8 +64,10 @@ hints.
 4. До выноса next-step policy принять boundary decision.
    - Сейчас `status` domain payload и envelope имеют разные action surfaces:
      `recommended_action` и `_envelope.next_step`.
-   - Следующий structural step разрешён только после решения, кто единственный
-     владелец executable action policy для agent-facing JSON.
+   - Decision: `md_cli.next_steps` — единственный владелец executable action
+     policy для `_envelope.next_step`; domain payloads вроде
+     `status.recommended_action` остаются доменными подсказками внутри
+     результата.
 5. Условно вынести `md_cli/next_steps.py`.
    - `envelope.wrap` остаётся wrapper-ом.
    - next-step policy живёт в registry по `tool/error/state`.
@@ -86,8 +88,8 @@ hints.
 - [x] Agent-facing golden payloads не содержат `md_navigator.py` в
   `related_reading_command`, `status_text`, `next_step` или аналогичных
   command hints.
-- [ ] `envelope.wrap` не владеет policy next actions после выноса.
-- [ ] `catalog.py` не мутирует `ToolSpec` при import.
+- [x] `envelope.wrap` не владеет policy next actions после выноса.
+- [x] `catalog.py` не мутирует `ToolSpec` при import.
 - [x] Targeted tests и полный `uv run pytest` проходят.
 
 ## Evidence
@@ -106,13 +108,24 @@ hints.
   ловит stale `md_navigator.py` hints в agent-facing goldens.
 - Regression: `test_legacy_status_adapter_does_not_export_core_internals`
   держит `index_status` adapter-only.
+- Implemented: `md_cli.next_steps` теперь владеет `_envelope.next_step`
+  executable action policy; `envelope.wrap` только собирает `_envelope`.
+- Regression: `test_envelope_delegates_next_step_policy` держит next-step
+  policy вне `envelope.py` и не даёт `next_steps.py` импортировать wrapper.
+- Implemented: `catalog.py` пересобран из canonical tool-signatures snapshot:
+  `$schema` cleanup и `fingerprint` fields теперь находятся в source data, а
+  не в import-time mutation loop.
+- Regression: `test_catalog_values_match_mcp_snapshot_without_runtime_patching`
+  сравнивает `ToolSpec.to_dict()` со snapshot и запрещает cleanup / fingerprint
+  injection code в `catalog.py`.
 - Repair: `experiments/md-embedding-server/docs/cli-conventions.md` получил
   graph frontmatter; literal link examples rewritten as prose so graph
   preflight no longer reports fake broken links.
 - `uv run python -m compileall -q src/navigator/status_core.py src/navigator/status_render.py src/navigator/index_status.py src/navigator/api.py src/navigator/index.py` → pass.
 - `uv run pytest tests/test_path_filters.py tests/test_real_world_complaints.py tests/test_catalog_contract.py tests/test_envelope_golden.py` → `31 passed`.
 - `uv run pytest tests/test_agent_hint_contract.py tests/test_corpus_config_parity.py tests/test_path_filters.py tests/test_architecture_boundaries.py tests/test_generated_actions_contract.py` → `32 passed`.
-- `uv run pytest` → `248 passed`.
+- `uv run pytest tests/test_catalog_contract.py tests/test_catalog_signature_match.py tests/test_mcp_cli_parity.py tests/test_generated_actions_contract.py tests/test_envelope_golden.py tests/test_envelope_truncation_hint.py tests/test_architecture_boundaries.py` → `30 passed`.
+- `uv run pytest` → `250 passed`.
 - `uv run --project experiments/md-embedding-server md preflight _ops/plans/md-cli-agent-contract/task-2026-05-23-md-cli-stabilization-refactor.md --scan . --json` → pass.
 - `uv run --project experiments/md-embedding-server md preflight experiments/md-embedding-server/docs/architecture-lock.md --scan . --json` → pass.
 - `uv run --project experiments/md-embedding-server md preflight experiments/md-embedding-server/docs/cli-conventions.md --scan . --json` → pass.
