@@ -77,6 +77,41 @@ def repo_root() -> Path:
     return Path.cwd().resolve()
 
 
+def _resolve_invocation_path(path_value: str, root: Path) -> Path:
+    raw = Path(path_value).expanduser()
+    if raw.is_absolute():
+        return raw.resolve()
+    cwd_candidate = (Path.cwd() / raw).resolve()
+    if cwd_candidate.exists():
+        return cwd_candidate
+    return (root / raw).resolve()
+
+
+def _scan_anchor(scan_path: Path) -> Path:
+    if scan_path.exists() and scan_path.is_file():
+        return scan_path.parent
+    return scan_path
+
+
+def root_for_scan(scan: str | None) -> Path:
+    cwd = repo_root()
+    if not scan:
+        return cwd
+    scan_path = _resolve_invocation_path(scan, cwd)
+    scan_anchor = _scan_anchor(scan_path)
+    try:
+        scan_anchor.relative_to(cwd)
+        return cwd
+    except ValueError:
+        return scan_anchor
+
+
+def scan_scope_path(scan: str | None, root: Path) -> Path:
+    if not scan:
+        return root
+    return _resolve_invocation_path(scan, root)
+
+
 def safe_rel(path: Path, root: Path) -> Path:
     try:
         return path.resolve().relative_to(root)
@@ -186,7 +221,7 @@ def write_doc(doc: Doc, frontmatter: dict, body: str | None = None) -> None:
 
 
 def load_target_doc(path_value: str, root: Path) -> Doc:
-    target_path = (root / path_value).resolve() if not Path(path_value).is_absolute() else Path(path_value).resolve()
+    target_path = _resolve_invocation_path(path_value, root)
     if not target_path.exists():
         raise SystemExit(f"Path not found: {path_value}")
     return load_doc(target_path, root)

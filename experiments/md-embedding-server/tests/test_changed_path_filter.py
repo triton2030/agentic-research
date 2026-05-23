@@ -84,6 +84,43 @@ def test_default_excludes_skip_dot_dirs(tmp_path: Path, monkeypatch) -> None:
     assert rels == ["a.md"]
 
 
+def test_default_excludes_silently_drop_archive_and_runs_folders(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """Жалоба #3 из feedback (2026-05-23): «md changed --base HEAD showed
+    4 files instead of 11». Likely cause — 7 missing files lived under
+    `_archive/` / `runs/` etc., which default-excludes silently drop.
+
+    Probe documents the contract: default-excludes hide non-dot folders
+    too (not just `.git`), and the user must know `--no-default-excludes`
+    is the escape hatch. Lives in `--help` after this fix.
+    """
+    _touch(tmp_path, "a.md")
+    _touch(tmp_path, "_archive/2024/old.md")
+    _touch(tmp_path, "experiments/runs/2026-05-22/dump.md")
+    _touch(tmp_path, "build/generated.md")
+    _stub_git_diff(
+        "a.md\n_archive/2024/old.md\nexperiments/runs/2026-05-22/dump.md\nbuild/generated.md\n",
+        monkeypatch,
+    )
+
+    default_result = changed_markdown_paths(tmp_path, _args())
+    assert sorted(str(p.relative_to(tmp_path)) for p in default_result) == ["a.md"], (
+        "default-excludes должны скрывать _archive/, runs/, build/ — "
+        "это и есть причина жалобы #3 (11 vs 4 файлов)"
+    )
+
+    escape_result = changed_markdown_paths(
+        tmp_path, _args(no_default_excludes=True)
+    )
+    assert sorted(str(p.relative_to(tmp_path)) for p in escape_result) == [
+        "_archive/2024/old.md",
+        "a.md",
+        "build/generated.md",
+        "experiments/runs/2026-05-22/dump.md",
+    ], "--no-default-excludes должен возвращать ВСЁ из git diff"
+
+
 def test_no_default_excludes_lets_dot_dirs_through(
     tmp_path: Path, monkeypatch
 ) -> None:

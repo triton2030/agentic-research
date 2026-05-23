@@ -32,6 +32,27 @@ source/reference слой.
 
 ### Audit And Eval
 
+- [Instruction Adherence in Coding Agent Configuration Files](https://arxiv.org/abs/2605.10039)
+  Факторный эксперимент по структуре instruction-файлов: size, position,
+  architecture и adjacent conflicts не дали надёжного эффекта; сильнее виден
+  within-session drift.
+
+- [Evaluating AGENTS.md](https://arxiv.org/abs/2602.11988)
+  AGENTS/context files могут ухудшать success и увеличивать cost, если несут
+  лишние требования; полезный вывод — минимальные requirements.
+
+- [ContextCov](https://arxiv.org/abs/2603.00822)
+  Natural-language instructions как passive text нарушаются; executable
+  guardrails повышают constraint compliance.
+
+- [RoadmapBench](https://arxiv.org/abs/2605.15846)
+  Long-horizon coding остаётся нерешённым даже для Claude Opus 4.7; нужна
+  декомпозиция, evidence и проверки, а не вера в длинный prompt.
+
+- [SWE-Chain](https://arxiv.org/abs/2605.14415)
+  Release-level upgrade chains показывают, что Claude Opus 4.7 лидирует, но
+  агенты всё ещё ломают inherited functionality.
+
 - [Trajectory-aware evaluation](https://arxiv.org/abs/2602.21230)
   Trajectory-aware evaluation и пределы оценки только по финальному ответу.
 
@@ -42,6 +63,18 @@ source/reference слой.
   Survey по evaluation и benchmarking LLM-агентов.
 
 ### Model Delta
+
+- [Introducing GPT-5.5](https://openai.com/index/introducing-gpt-5-5/)
+  GPT-5.5 в Codex: сильнее в agentic coding, Terminal-Bench, tool use и
+  token efficiency; всё равно требует точных validation loops.
+
+- [GPT-5 for Coding](https://cdn.openai.com/API/docs/gpt-5-for-coding-cheatsheet.pdf)
+  GPT-5-family лучше следует инструкциям, но vague/conflicting `.cursor/rules`
+  и `AGENTS.md` могут backfire.
+
+- [Introducing Claude Opus 4.7](https://www.anthropic.com/news/claude-opus-4-7)
+  Opus 4.7 literal instruction following, `high`/`xhigh` effort для coding,
+  новая tokenizer cost-shape и лучшая file-system memory.
 
 - [OpenAI latest model guide](https://developers.openai.com/api/docs/guides/latest-model)
   GPT-5.5: outcome-first prompts, fresh baseline, `medium` effort,

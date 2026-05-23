@@ -54,3 +54,56 @@ navigation/search, graph evidence and strategy ground-check. Если они т�
 
 Следствие: validation gates должны включать отдельный replay для этих трёх
 скилов до любого runtime switch.
+
+## D-004 - Agent feedback class 2026-05-23: probe-first, без четвёртого contract document
+
+Дата: 2026-05-23.
+
+Решение: отвергли создание нового `docs/llm-cli-contract.md` с 7 правилами
+(stream / budget / projection / schema / confirm / naming / default brief);
+приняли расширение существующих owner-surfaces (`cli-conventions.md`,
+`schemas.py`, `architecture-lock.md`) + bilateral mention в SKILL.md обоих
+skills + cross-project hygiene fixes. Probe-first вместо spec-first.
+
+Причина: внешний агент дал 7 жалоб на md-tools UX/API плюс 4 жалобы на
+discipline gaps. Independent critics (developer / architecture / trajectory)
+указали три риска первоначального плана: (а) `ownership_leak` с существующими
+contract surfaces (`cli-conventions.md` владеет CLI shape, `schemas.py`
+владеет JSON shape, `architecture-lock.md` владеет boundary invariants);
+(б) `method_as_goal` — 7 точек данных компактуются в spec до того, как
+probe подтвердил наличие класса; (в) compliance harness c xfail-списком
+становится cargo-cult и Hyrum-контрактом одновременно.
+
+Probe-первый показал, что три жалобы из семи не bug:
+жалоба «stderr leak в stdout» = harness artifact (caller мерджит
+дескрипторы; `embeddings.py:105` уже `file=sys.stderr`); жалоба «mixed
+int/list types in md health» = schema misunderstanding (counter vs list of
+objects — два разных поля по природе); жалоба «md changed showed 4 vs 11»
+= discoverability gap (default-excludes silently dropped `_archive/` и
+`runs/`, contract правильный, но не документирован в `--help`). Это
+сильный сигнал, что **discoverability ценнее compliance enforcement**:
+fix через `--help`, SKILL.md recipe и docstrings, не через новый
+contract document.
+
+Следствие: закрыты конкретные bugs и UX issues без widening canon:
+sentinel-before-apply (finding #18) — `restore_transaction_claim` в
+`transactions.py`, exit-code-aware finish в `_generic.py:138-140`;
+`cycles_count: int` additive в `health_report` для UX однородности с
+counter-полями; default-excludes документированы в `md changed --help`;
+`envelope.derive_next_step` выдаёт `truncation_hint` для large reply
+(лечит #4/#6/#7 одной точкой); `md impact --help` объясняет
+`cascade_breaks` vs `reference_breaks` vs `body_wikilink_refs` vs
+`body_markdown_refs`; новая секция `## Schema Vocabulary` в
+`cli-conventions.md` фиксирует reverse-relationship словарь и
+companion `_count` field rule; 4 SKILL.md (Claude + Codex, navigator +
+graph) получили pre/post-action discipline (semantic-search-first перед
+structural diagnosis; `md cycles` после frontmatter edits) и stream
+hygiene (stdout = data only). Compliance test harness как класс не
+создаётся; точечные probe-tests в существующем `tests/` стиле.
+
+Следствие за пределы класса: `_path_passes` / default-excludes silently
+dropping non-dot folders — паттерн, который вероятно проявится в
+жалобах на `md scan`, `md check`, `md health`, `md preflight`, `md impact`
+тоже. Future probe — добавить такие же `--help` notes этим командам,
+либо emit warning при значительной части скрытых файлов. Не делается
+сейчас по EVPI: один feedback round пока не оправдывает sweep.

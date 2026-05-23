@@ -35,9 +35,13 @@ edit-after-edit: []
 `description` — главный routing contract. Всё “когда использовать” должно быть
 во frontmatter, потому что body загружается только после выбора скилла.
 
+Первые 120-200 символов — hot zone. Они должны самостоятельно назвать главный
+use case и trigger words. Представь, что всё после первой фразы может быть
+обрезано в длинном списке skills: если начало общее, скилл не сработает.
+
 Хороший `description`:
 
-- начинается с главного use case и trigger words;
+- в первых 120-200 символах несёт главный use case и trigger words;
 - говорит `Use when...`, а не просто “helps with...”;
 - описывает intent пользователя, а не внутреннюю механику;
 - содержит boundaries, skip-cases и adjacent near-misses;

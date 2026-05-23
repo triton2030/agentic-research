@@ -12,7 +12,6 @@ keep working without source changes.
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
 from typing import Any
 
 from .filters import add_path_filter_args
@@ -32,7 +31,9 @@ from .graph_core import (
     load_docs,
     load_target_doc,
     repo_root,
+    root_for_scan,
     safe_rel,
+    scan_scope_path,
     split_frontmatter,
     write_doc,
 )
@@ -145,8 +146,10 @@ __all__ = [
     "reverse_body_wikilink_holders",
     "reverse_edit_after_edit",
     "reverse_field_holders",
+    "root_for_scan",
     "safe_rel",
     "scan_doc",
+    "scan_scope_path",
     "split_frontmatter",
     "strip_related_section",
     "target_candidates",
@@ -296,12 +299,9 @@ def cmd_strip(args: argparse.Namespace) -> int:
 def cmd_deps(args: argparse.Namespace) -> int:
     if args.depth < 1:
         raise SystemExit("--depth must be >= 1")
-    root = repo_root()
-    target_path = (root / args.path).resolve() if not Path(args.path).is_absolute() else Path(args.path).resolve()
-    if not target_path.exists():
-        raise SystemExit(f"Path not found: {args.path}")
-    doc = load_doc(target_path, root)
-    scan_root = (root / args.scan).resolve() if args.scan else root
+    root = root_for_scan(args.scan)
+    doc = load_target_doc(args.path, root)
+    scan_root = scan_scope_path(args.scan, root)
     all_docs = load_docs([str(scan_root)], root, args)
     report = dependency_report(doc, all_docs, root, args.depth)
     if args.json:
@@ -340,12 +340,9 @@ def cmd_deps(args: argparse.Namespace) -> int:
 
 
 def cmd_audit(args: argparse.Namespace) -> int:
-    root = repo_root()
-    target_path = (root / args.path).resolve() if not Path(args.path).is_absolute() else Path(args.path).resolve()
-    if not target_path.exists():
-        raise SystemExit(f"Path not found: {args.path}")
-    doc = load_doc(target_path, root)
-    scan_root = (root / args.scan).resolve() if args.scan else root
+    root = root_for_scan(args.scan)
+    doc = load_target_doc(args.path, root)
+    scan_root = scan_scope_path(args.scan, root)
     all_docs = load_docs([str(scan_root)], root, args)
     index = doc_index(all_docs, root)
     index[doc.path.resolve()] = doc
@@ -374,9 +371,9 @@ def cmd_audit(args: argparse.Namespace) -> int:
 
 
 def cmd_impact(args: argparse.Namespace) -> int:
-    root = repo_root()
+    root = root_for_scan(args.scan)
     doc = load_target_doc(args.path, root)
-    scan_root = (root / args.scan).resolve() if args.scan else root
+    scan_root = scan_scope_path(args.scan, root)
     all_docs = load_docs([str(scan_root)], root, args)
     report = impact_report(doc, all_docs, root, args.scan)
     if args.json:
@@ -483,7 +480,7 @@ def cmd_health(args: argparse.Namespace) -> int:
     print(f"description TODO: {coverage['todo']}")
     print(f"no frontmatter: {coverage['no_frontmatter']}")
     print(f"broken graph links: {report['broken_graph_links']}")
-    print(f"cycles in edit-after-edit: {len(report['cycles'])}")
+    print(f"cycles in edit-after-edit: {report['cycles_count']}")
 
     print(f"\norphans (no in/out graph edges) ({len(report['orphans'])})")
     if not report["orphans"]:
@@ -528,9 +525,9 @@ def cmd_cycles(args: argparse.Namespace) -> int:
 def cmd_preflight(args: argparse.Namespace) -> int:
     if args.depth < 1:
         raise SystemExit("--depth must be >= 1")
-    root = repo_root()
+    root = root_for_scan(args.scan)
     doc = load_target_doc(args.path, root)
-    scan_root = (root / args.scan).resolve() if args.scan else root
+    scan_root = scan_scope_path(args.scan, root)
     all_docs = load_docs([str(scan_root)], root, args)
     report = preflight_report(doc, all_docs, root, args.depth, args.scan)
     if args.json:
@@ -547,8 +544,8 @@ def cmd_changed(args: argparse.Namespace) -> int:
         raise SystemExit("Use either --base or --since, not both.")
     if args.staged and (args.base or args.since):
         raise SystemExit("Use --staged without --base or --since.")
-    root = repo_root()
-    scan_root = (root / args.scan).resolve() if args.scan else root
+    root = root_for_scan(args.scan)
+    scan_root = scan_scope_path(args.scan, root)
     all_docs = load_docs([str(scan_root)], root, args)
     reports: list[dict[str, Any]] = []
     deleted: list[str] = []
@@ -643,7 +640,16 @@ def build_parser() -> argparse.ArgumentParser:
 
     impact = sub.add_parser(
         "impact",
-        help="Show what breaks if a Markdown file is deleted or renamed.",
+        help=(
+            "Show what breaks if a Markdown file is deleted or renamed. "
+            "Output keys: cascade_breaks (reverse edit-after-edit — Stop-hook "
+            "cascade owners), reference_breaks (reverse read-before-edit — "
+            "files that must read this before editing themselves), "
+            "body_wikilink_refs (body [[wikilinks]] pointing here), "
+            "body_markdown_refs (body markdown links pointing here). "
+            "The two *_breaks are contract violations; the two *_refs are "
+            "content links. Full vocabulary in docs/cli-conventions.md."
+        ),
     )
     impact.add_argument("path", help="Markdown file path.")
     impact.add_argument(
@@ -677,7 +683,15 @@ def build_parser() -> argparse.ArgumentParser:
 
     changed = sub.add_parser(
         "changed",
-        help="Report Markdown graph downstream checks for files touched by git diff.",
+        help=(
+            "Report Markdown graph downstream checks for files touched by git diff. "
+            "Default scope = `git diff --name-only HEAD` (working tree vs HEAD, both "
+            "staged and unstaged tracked changes). Untracked files are NOT included "
+            "(git diff ignores them). Files under default-excluded folders "
+            "(_archive/, runs/, .git/, .claude/, .codex/, .venv/, node_modules/, "
+            "dist/, build/, out/, target/, __pycache__/, etc.) are SILENTLY DROPPED — "
+            "if the report seems short, pass --no-default-excludes to see the full set."
+        ),
     )
     changed.add_argument(
         "--scan",

@@ -1,3 +1,8 @@
+---
+description: "CLI conventions for md agent-facing subcommands, JSON output, flags, paths, and schema vocabulary."
+read-before-edit: []
+edit-after-edit: []
+---
 # CLI Conventions
 
 Task-001 decisions for the `md` CLI surface.
@@ -108,3 +113,43 @@ argparse:
 - `md section-blast-radius`
 - `md query-by-type`
 - `md edit-context`
+
+## Schema Vocabulary
+
+Several `--json` outputs use a shared "reverse-relationship" vocabulary that
+trips up first-time agent readers (one external session asked: «cascade_breaks
+vs reference_breaks vs body_wikilink_refs — где разница?»). Settle the
+meaning once, here, so handlers and `--help` text can stay short.
+
+Decision: `md impact` and any future reverse-scan output use these keys with
+fixed semantics.
+
+| Key | What it captures | Caused by which edit |
+|---|---|---|
+| `cascade_breaks` | Files holding `edit-after-edit: [this]` in frontmatter. They expect a downstream update when this file changes; deleting this file orphans their Stop-hook cascade. | edit-after-edit graph |
+| `reference_breaks` | Files holding `read-before-edit: [this]` in frontmatter. They expect to read this file before editing themselves; deleting this file breaks their precondition contract. | read-before-edit graph |
+| `body_wikilink_refs` | Files whose **body text** contains an Obsidian-style wikilink to this file, with or without anchor. No graph contract attached. | hand-written body links |
+| `body_markdown_refs` | Files whose **body text** contains a CommonMark link to this file. No graph contract attached. | hand-written body links |
+
+Rule of thumb: `*_breaks` are **contract** breaks (frontmatter promises
+broken). `*_refs` are **content** breaks (prose references that will produce
+broken links but no obligation cascade). An agent deciding "safe to delete?"
+must look at both classes — contract breaks block the move, content breaks
+just need search-and-replace.
+
+Rationale: shared vocabulary lets `md impact`, `md preflight`, future
+`md unused` and any reverse-scan tool reuse identical keys; agent prompts
+that mention one transfer to all.
+
+Example caller: «if `cascade_breaks` is non-empty, run `md preflight` on each
+listed holder before deleting».
+
+Edge case: a single file can appear in both `cascade_breaks` AND
+`body_wikilink_refs` if it both holds an edit-after-edit and links in body
+prose. Both lists report it independently — dedup is the caller's job.
+
+Companion field for counts: where a list field exists for human inspection
+(e.g. `cycles` in `md health`), the corresponding count field (`cycles_count`)
+exists in the same payload so agents can apply `len()` uniformly across
+count-fields without polymorphic type-checks. Add the `_count` companion when
+introducing a new agent-facing list whose typical caller wants both.

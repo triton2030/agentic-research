@@ -66,10 +66,13 @@ vision, approach, motivation, как читать репо. Не главный 
 Moment layer работает через runtime и инструкционный слой, не через отдельный
 скил-перед-работой:
 
-- **Intent grounding** на 1-м ходу сессии — UserPromptSubmit hook
-  (`~/.claude/skills/1start-here/scripts/prompt-submit-reminder.py`):
-  threshold-based через `session-state.turn_id`, активен только при
-  `turn_id == 1`.
+- **Intent grounding + turn-id tracking** — UserPromptSubmit hook
+  (`~/.claude/hooks/user-prompt-all-messages.py`): на каждом prompt
+  бампает `session-state.turn_id` (так per-turn skill_invocations
+  / markers работают корректно); на `turn_id == 1` инжектит intent
+  directive; параллельно пишет prompt в
+  `experiments/all-my-messages/{slug}.md` analytics log. Три
+  ответственности слиты в один hook после refactor 2026-05-22.
 - **Session-state shared memory** между hooks и skills — JSON в
   `~/.claude/state/session-{session_id}.json` через CLI
   `~/.claude/skills/1start-here/scripts/session-state.py`; schema —

@@ -27,6 +27,15 @@
   опасно для редких, но критичных фактов.
 - Curator-паттерн: отдельный этап извлечения learnings после задачи и
   injection в следующий запуск.
+- Структура instruction-файлов сама по себе не доказана как главный рычаг
+  adherence: свежий факторный эксперимент не нашёл надёжного эффекта от size,
+  position, architecture и adjacent conflicts. Сначала чинить minimal
+  requirements, owner clarity и validation.
+- AGENTS/context files могут ухудшать результат, когда добавляют лишние
+  требования. Контекст должен сокращать поиск и ошибки, а не увеличивать
+  поверхность обязательств.
+- Для автономной работы текстовые ограничения слабее executable guardrails:
+  если нарушение дорогое, нужен validator, hook, test или checkpoint.
 
 ## Promotion Rule
 

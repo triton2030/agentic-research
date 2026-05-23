@@ -50,6 +50,26 @@ SEARCH_SCOPES = ("sections", "descriptions")
 _DEFAULT_MAX_AUTO_EMBED = 50
 
 
+def _partial_index_payload(
+    index_stats: dict[str, Any],
+    max_auto_embed: int | None,
+) -> dict[str, Any] | None:
+    if not index_stats.get("delta_too_large"):
+        return None
+    return {
+        "active": True,
+        "reason": "pending_delta_exceeds_auto_embed_cap",
+        "max_auto_embed": max_auto_embed,
+        "added_sections": index_stats.get("added_sections", 0),
+        "pending_chunks": index_stats.get("pending_chunks", 0),
+        "pending_files": index_stats.get("pending_files", []),
+        "message": (
+            "Search ran against the already indexed subset; pending files "
+            "were not searched."
+        ),
+    }
+
+
 def register_search(sub) -> None:
     """Register the `search` subcommand on the parser-level subparsers
     object. Owns its own argparse so cli.py can stay thin."""
@@ -471,26 +491,6 @@ def cmd_search(args) -> int:
         )
         return 3
 
-    if index_stats.get("delta_too_large"):
-        pending = index_stats["pending_chunks"]
-        added = index_stats["added_sections"]
-        cap = max_auto_embed
-        print(
-            f"Index needs warmup before search can run.\n"
-            f"  {added} new sections / {pending} new chunks pending "
-            f"(cap for auto-embed in `search` = {cap}).\n"
-            f"\n"
-            f"  Next step:\n"
-            f"    md index '{corpus_root}'\n"
-            f"\n"
-            f"  Then re-run your search. One-time cost; subsequent searches "
-            f"reuse the index on disk.\n"
-            f"  Requires OPENROUTER_API_KEY env var or `.openrouter.key` file "
-            f"(see SKILL.md → First-time setup).",
-            file=sys.stderr,
-        )
-        return 4
-
     embedded_count = index_stats["embedded"]
     cached_count = index_stats["reused"]
     removed_count = index_stats["removed_sections"]
@@ -673,6 +673,9 @@ def cmd_search(args) -> int:
         "weights": weights,
         "results": final_results,
     }
+    partial_index = _partial_index_payload(index_stats, max_auto_embed)
+    if partial_index:
+        output["partial_index"] = partial_index
 
     if args.output and scope == "sections":
         pick_map = _sections_to_pick_map(corpus_root, map_data, final_results)
@@ -749,6 +752,20 @@ def render_search(out: dict[str, Any], output_path: str | None = None) -> str:
         lines.append(
             f"Note: dropped {dropped_path} result(s) for stale paths — run `index` to prune."
         )
+        lines.append("")
+    partial_index = out.get("partial_index") or {}
+    if partial_index.get("active"):
+        lines.append(
+            "Warning: partial index — search skipped pending files "
+            f"({partial_index.get('added_sections', 0)} sections / "
+            f"{partial_index.get('pending_chunks', 0)} chunks)."
+        )
+        for item in partial_index.get("pending_files") or []:
+            lines.append(
+                f"- {item['relative_path']} "
+                f"(sections={item['added_sections']}, chunks={item['pending_chunks']})"
+            )
+        lines.append(f"Run: md index '{out['root']}'")
         lines.append("")
     results = out.get("results") or []
     if not results:

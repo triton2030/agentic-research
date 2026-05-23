@@ -141,6 +141,24 @@ def finish_transaction_claim(claim_path: str | Path) -> None:
         Path(claim_path).unlink()
 
 
+def restore_transaction_claim(claim_path: str | Path) -> None:
+    """Rollback a `.claim` file back to `.json` so the transaction can be retried.
+
+    Use when the mutation behind a verified claim raised an exception: without
+    this, the caller sees an error envelope AND loses the transaction id —
+    next confirm with the same id fails with `transaction_not_found`, forcing
+    a fresh `--dry-run`. With this, the agent can re-issue `--confirm
+    --transaction-id <same>` directly; the file fingerprint check at the next
+    claim will catch any partial mutation as `drift_detected`.
+    """
+    claimed = Path(claim_path)
+    target = claimed.with_suffix(".json")
+    try:
+        claimed.rename(target)
+    except (FileNotFoundError, OSError):
+        pass
+
+
 def _verify_loaded_transaction(
     txn: dict[str, Any],
     expected_tool: str,

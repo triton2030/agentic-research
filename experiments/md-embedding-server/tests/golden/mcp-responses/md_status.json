@@ -5,7 +5,7 @@
   },
   "is_error": false,
   "payload": {
-    "text": "Corpus: /Users/triton/Documents/GitHub/agentic-research/knowledge\nIndex:  /Users/triton/Documents/GitHub/agentic-research/knowledge/.md-navigator/index.sqlite\nLast touched: 2026-05-22T14:10:09\n[sections] added=0 removed=0 reused=302 pending_chunks=0 total=302\n[descriptions] added=1 removed=1 reused=9 pending_chunks=1 total=10\nStatus: HEALTHY — 1 new / 1 removed sections, 1 chunks pending. `search` will auto-handle the delta.\n  Optional: md_navigator.py index '/Users/triton/Documents/GitHub/agentic-research/knowledge'  (eagerly warm the index instead of paying inside search)\n",
+    "text": "Corpus: /Users/triton/Documents/GitHub/agentic-research/knowledge\nIndex:  /Users/triton/Documents/GitHub/agentic-research/knowledge/.md-navigator/index.sqlite\nLast touched: 2026-05-22T14:10:09\n[sections] added=0 removed=0 reused=302 pending_chunks=0 total=302\n[descriptions] added=1 removed=1 reused=9 pending_chunks=1 total=10\nStatus: HEALTHY — 1 new / 1 removed sections, 1 chunks pending. `search` will auto-handle the delta.\n  Optional: md index '/Users/triton/Documents/GitHub/agentic-research/knowledge'  (eagerly warm the index instead of paying inside search)\n",
     "stderr": null,
     "_envelope": {
       "version": 1,
@@ -26,9 +26,9 @@
           "tool": "md_index",
           "args": {
             "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
-            "confirm": true
+            "dry_run": true
           },
-          "reason": "Optional eager warmup; search will auto-embed the small delta otherwise."
+          "reason": "Optional eager warmup; dry-run previews cost before embedding the small delta."
         }
       },
       "lock": null,

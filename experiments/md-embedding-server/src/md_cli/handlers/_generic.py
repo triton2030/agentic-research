@@ -11,6 +11,7 @@ from md_cli.transactions import (
     compute_fingerprint,
     create_transaction,
     finish_transaction_claim,
+    restore_transaction_claim,
     verify_fingerprint,
 )
 
@@ -136,7 +137,10 @@ def _run_mutating(
             if not verified["ok"]:
                 return ToolResult(_transaction_error_payload(verified), 1)
             result = _call(func, {**kwargs, "dry_run": False, "confirm": True})
-            finish_transaction_claim(verified["claim_path"])
+            if result.exit_code == 0:
+                finish_transaction_claim(verified["claim_path"])
+            else:
+                restore_transaction_claim(verified["claim_path"])
             return result
         fingerprint = kwargs.get("fingerprint")
         if fingerprint:

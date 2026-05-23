@@ -1,6 +1,6 @@
 # Wisdom — Claude Opus 4.7
 
-Снимок на 29 апреля 2026.
+Снимок на 22 мая 2026.
 
 Здесь живут только правила, которые важны именно для `Claude Opus 4.7`. Общие
 свойства LLM держит `wisdom-llm.md`; платформенные правила Claude Code держит
@@ -18,6 +18,15 @@
 - При `xhigh`/`max` effort нужен большой `max_tokens` headroom, иначе thinking/tool/subagent loop может не поместиться.
 - Для open-ended agentic задач task budget задавать только если нужна самоограниченность по расходу; для quality-first работы budget может ухудшить исследование.
 - Если продукт показывал reasoning/progress из thinking blocks, thinking content может быть скрыт; нужен явный summarized display.
+- Opus 4.7 буквальнее прежних Opus: старые prompt/CLAUDE.md, где модель
+  должна была сама догадаться о scope, нужно ретюнить.
+- Не делать ставку на file-structure variables как на главный рычаг adherence:
+  свежий факторный эксперимент по coding-agent config files не нашёл надёжного
+  эффекта от size, position, architecture и adjacent conflicts; сильнее виден
+  drift по ходу длинной сессии.
+- Для длинных работ важнее chunking, state refresh и validation, чем ещё один
+  слой инструкций. Свежие long-horizon benchmarks показывают, что даже Opus 4.7
+  часто не доводит большие upgrade/roadmap задачи до полного успеха.
 
 ## Что Не Делать
 
@@ -25,6 +34,8 @@
 - Не заменять tool policy общим пожеланием “будь инициативным”.
 - Не тащить старые self-check и periodic-progress правила без свежей проверки.
 - Не делать автоматический fan-out только потому, что модель стала меньше делегировать сама.
+- Не создавать subtree `CLAUDE.md`/`AGENTS.md` только потому, что папка есть:
+  нужен distinct recurring failure или локальный owner.
 
 ## Где Использовать
 
@@ -43,3 +54,13 @@
 
 - https://platform.claude.com/docs/en/about-claude/models/migration-guide
   Migration guidance по literalness, effort, tool use, verbosity и task budgets.
+
+- https://www.anthropic.com/news/claude-opus-4-7
+  Release evidence: literal instruction following, `high`/`xhigh`, tokenizer
+  cost-shape и file-system memory.
+
+- https://arxiv.org/abs/2605.10039
+  Instruction-file structure study with Opus 4.7 descriptively reported.
+
+- https://arxiv.org/abs/2605.15846
+  RoadmapBench: long-horizon coding remains unsolved even for Opus 4.7.

@@ -219,6 +219,42 @@ def _clean_incomplete_sections(conn, scope: str) -> int:
     return len(rows)
 
 
+def pending_files_for_items(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Summarize not-yet-indexed items by file for status and partial search."""
+    by_path: dict[str, dict[str, Any]] = {}
+    for item in items:
+        path = str(item["relative_path"])
+        entry = by_path.setdefault(
+            path,
+            {
+                "relative_path": path,
+                "added_sections": 0,
+                "pending_chunks": 0,
+            },
+        )
+        entry["added_sections"] += 1
+        entry["pending_chunks"] += len(_chunks_for_item(item))
+    return sorted(
+        by_path.values(),
+        key=lambda entry: (-entry["pending_chunks"], entry["relative_path"]),
+    )
+
+
+def removed_files_for_rows(rows: list[tuple[Any, ...]]) -> list[dict[str, Any]]:
+    by_path: dict[str, dict[str, Any]] = {}
+    for row in rows:
+        path = str(row[2])
+        entry = by_path.setdefault(
+            path,
+            {"relative_path": path, "removed_sections": 0},
+        )
+        entry["removed_sections"] += 1
+    return sorted(
+        by_path.values(),
+        key=lambda entry: (-entry["removed_sections"], entry["relative_path"]),
+    )
+
+
 def _index_delta_stats_readonly(
     conn,
     scope: str,
@@ -239,6 +275,8 @@ def _index_delta_stats_readonly(
         "removed": 0,
         "added_sections": 0,
         "removed_sections": 0,
+        "pending_files": [],
+        "removed_files": [],
         "total_sections_in_scope": 0,
         "subchunked_sections": 0,
         "delta_too_large": False,
@@ -276,14 +314,19 @@ def _index_delta_stats_readonly(
         exclude_patterns,
     )
     existing_hash_to_rowid: dict[str, int] = {h: rid for rid, h, _ in existing_rows}
+    existing_hash_to_row = {h: (rid, h, path) for rid, h, path in existing_rows}
     current_hash_to_item: dict[str, dict[str, Any]] = {it["content_hash"]: it for it in items}
     added_hashes = [h for h in current_hash_to_item if h not in existing_hash_to_rowid]
     removed_hashes = [h for h in existing_hash_to_rowid if h not in current_hash_to_item]
+    pending_items = [current_hash_to_item[h] for h in added_hashes]
+    removed_rows = [existing_hash_to_row[h] for h in removed_hashes]
     pending_chunks = sum(len(_chunks_for_item(current_hash_to_item[h])) for h in added_hashes)
 
     stats["reused"] = len(existing_hash_to_rowid) - len(removed_hashes)
     stats["added_sections"] = len(added_hashes)
     stats["removed_sections"] = len(removed_hashes)
+    stats["pending_files"] = pending_files_for_items(pending_items)
+    stats["removed_files"] = removed_files_for_rows(removed_rows)
     stats["pending_chunks"] = pending_chunks
     stats["delta_too_large"] = max_auto_embed is not None and pending_chunks > max_auto_embed
     stats["total_sections_in_scope"] = len(existing_hash_to_rowid)
@@ -450,6 +493,9 @@ def _ensure_index_unlocked(
     added_hashes = [h for h in current_hash_to_item if h not in existing_hash_to_rowid]
     removed_hashes = [h for h in existing_hash_to_rowid if h not in current_hash_to_item]
     removed_rowids = [existing_hash_to_rowid[h] for h in removed_hashes]
+    existing_hash_to_row = {h: (rid, h, path) for rid, h, path in existing_rows}
+    pending_items = [current_hash_to_item[h] for h in added_hashes]
+    removed_rows = [existing_hash_to_row[h] for h in removed_hashes]
 
     stats: dict[str, Any] = {
         "embedded": 0,
@@ -457,6 +503,8 @@ def _ensure_index_unlocked(
         "removed": 0,
         "added_sections": len(added_hashes),
         "removed_sections": len(removed_hashes),
+        "pending_files": pending_files_for_items(pending_items),
+        "removed_files": removed_files_for_rows(removed_rows),
         "total_sections_in_scope": 0,
         "subchunked_sections": 0,
         "delta_too_large": False,

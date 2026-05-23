@@ -209,162 +209,20 @@ def status(
     embedding_timeout: float | None = None,
     cache_dir: str | None = None,
 ) -> dict[str, Any]:
-    from .cli_common import SEARCH_DEFAULT_EMBEDDING_API_URL, SEARCH_DEFAULT_EMBEDDING_TIMEOUT
-    from .filters import apply_path_filters_to_map, normalize_path_filter_patterns
-    from .folder_map import build_map
-    from .index_build import (
-        DEFAULT_MAX_AUTO_EMBED,
-        _chunks_for_item,
-        ensure_index,
-        pending_files_for_items,
-    )
-    from .index_meta import _index_dir_for_corpus, resolve_embed_model_for_corpus
-    from .index_status import _build_folder_breakdown, _combine_file_delta, _detect_excluded, _state_payload
-    from .sections import build_items_from_map
+    from .status_core import status_payload
 
     corpus_root = Path(corpus).expanduser().resolve()
-    if not corpus_root.exists():
-        return _exit({"command": "status", "error": f"Path does not exist: {corpus_root}", "state": "ERROR"}, 2)
-    path_include, path_exclude = resolve_filters_for_domain(
-        corpus_root, domain="index",
-        path_include=path_include, path_exclude=path_exclude,
+    return status_payload(
+        corpus_root,
+        path_include=path_include,
+        path_exclude=path_exclude,
+        max_heading_level=max_heading_level,
+        max_auto_embed=max_auto_embed,
+        embed_model=embed_model,
+        embedding_api_url=embedding_api_url,
+        embedding_timeout=embedding_timeout,
+        cache_dir=cache_dir,
     )
-    cache_root = Path(cache_dir).expanduser() if cache_dir else None
-    selected_model = resolve_embed_model_for_corpus(corpus_root, embed_model, cache_root=cache_root)
-    index_dir = _index_dir_for_corpus(corpus_root, cache_root=cache_root, create=False)
-    db_path = index_dir / "index.sqlite"
-    include_patterns = normalize_path_filter_patterns(path_include, corpus_root)
-    exclude_patterns = normalize_path_filter_patterns(path_exclude, corpus_root)
-    map_data = build_map(corpus_root, max_heading_level or 6, with_tokens=False)
-    if not map_data["files"]:
-        return _exit({"command": "status", "corpus": str(corpus_root), "error": "No Markdown files", "state": "EMPTY"}, 1)
-    scoped = apply_path_filters_to_map(map_data, include_patterns, exclude_patterns)
-    if not scoped["files"]:
-        return _exit({"command": "status", "corpus": str(corpus_root), "error": "Path filters matched no Markdown files", "state": "EMPTY"}, 1)
-
-    cap = DEFAULT_MAX_AUTO_EMBED if max_auto_embed is None else int(max_auto_embed)
-    scopes_payload: list[dict[str, Any]] = []
-    totals = {"added_sections": 0, "removed_sections": 0, "pending_chunks": 0, "drift_count": 0}
-
-    if not db_path.exists():
-        for scope in ("sections", "descriptions"):
-            items = build_items_from_map(scoped, scope=scope)
-            pending = sum(len(_chunks_for_item(item)) for item in items)
-            pending_files = pending_files_for_items(items)
-            totals["added_sections"] += len(items)
-            totals["pending_chunks"] += pending
-            scopes_payload.append(
-                {
-                    "scope": scope,
-                    "added_sections": len(items),
-                    "removed_sections": 0,
-                    "pending_files": pending_files,
-                    "removed_files": [],
-                    "reused": 0,
-                    "pending_chunks": pending,
-                    "total_sections_in_scope": 0,
-                }
-            )
-        state = "NO_INDEX"
-        return {
-            "command": "status",
-            "corpus": str(corpus_root),
-            "index_path": str(db_path),
-            "index_exists": False,
-            "last_touched": None,
-            "model": selected_model,
-            "path_scope": {"include": include_patterns or None, "exclude": exclude_patterns or None},
-            "scopes": scopes_payload,
-            "folder_breakdown": _build_folder_breakdown(scoped, corpus_root, db_path, cache_root),
-            "excluded": {
-                "by_default_present": _detect_excluded(corpus_root),
-                "by_path_exclude": exclude_patterns or [],
-                "by_path_include": include_patterns or [],
-            },
-            **totals,
-            "pending_files": _combine_file_delta(scopes_payload, "pending_files", ("added_sections", "pending_chunks")),
-            "removed_files": [],
-            "metadata_mismatch": False,
-            "delta_too_large": False,
-            "max_auto_embed": cap,
-            "state": state,
-            **_state_payload(state, corpus_root),
-        }
-
-    import datetime
-
-    metadata_mismatch = False
-    delta_too_large = False
-    reused = 0
-    for scope in ("sections", "descriptions"):
-        items = build_items_from_map(scoped, scope=scope)
-        _, stats = ensure_index(
-            corpus_root,
-            scope,
-            items,
-            selected_model,
-            embedding_api_url=embedding_api_url or SEARCH_DEFAULT_EMBEDDING_API_URL,
-            embedding_timeout=float(embedding_timeout or SEARCH_DEFAULT_EMBEDDING_TIMEOUT),
-            cache_root=cache_root,
-            max_auto_embed=None if cap == 0 else cap,
-            dry_run=True,
-            path_include=include_patterns,
-            path_exclude=exclude_patterns,
-        )
-        scopes_payload.append(
-            {
-                "scope": scope,
-                "added_sections": stats["added_sections"],
-                "removed_sections": stats["removed_sections"],
-                "pending_files": stats.get("pending_files", []),
-                "removed_files": stats.get("removed_files", []),
-                "reused": stats["reused"],
-                "pending_chunks": stats["pending_chunks"],
-                "total_sections_in_scope": stats["total_sections_in_scope"],
-                "metadata_mismatch": stats.get("metadata_mismatch", False),
-                "delta_too_large": stats.get("delta_too_large", False),
-            }
-        )
-        totals["added_sections"] += stats["added_sections"]
-        totals["removed_sections"] += stats["removed_sections"]
-        totals["pending_chunks"] += stats["pending_chunks"]
-        reused += stats["reused"]
-        metadata_mismatch = metadata_mismatch or bool(stats.get("metadata_mismatch", False))
-        delta_too_large = delta_too_large or bool(stats.get("delta_too_large", False))
-
-    if metadata_mismatch:
-        state = "NEEDS_REBUILD"
-    elif totals["added_sections"] == 0 and totals["removed_sections"] == 0:
-        state = "FRESH"
-    elif delta_too_large:
-        state = "NEEDS_WARMUP"
-    else:
-        state = "HEALTHY"
-    return {
-        "command": "status",
-        "corpus": str(corpus_root),
-        "index_path": str(db_path),
-        "index_exists": True,
-        "last_touched": datetime.datetime.fromtimestamp(db_path.stat().st_mtime).isoformat(),
-        "model": selected_model,
-        "path_scope": {"include": include_patterns or None, "exclude": exclude_patterns or None},
-        "scopes": scopes_payload,
-        "folder_breakdown": _build_folder_breakdown(scoped, corpus_root, db_path, cache_root),
-        "excluded": {
-            "by_default_present": _detect_excluded(corpus_root),
-            "by_path_exclude": exclude_patterns or [],
-            "by_path_include": include_patterns or [],
-        },
-        **totals,
-        "pending_files": _combine_file_delta(scopes_payload, "pending_files", ("added_sections", "pending_chunks")),
-        "removed_files": _combine_file_delta(scopes_payload, "removed_files", ("removed_sections",)),
-        "reused": reused,
-        "metadata_mismatch": metadata_mismatch,
-        "delta_too_large": delta_too_large,
-        "max_auto_embed": cap,
-        "state": state,
-        **_state_payload(state, corpus_root),
-    }
 
 
 def scan(
@@ -464,19 +322,19 @@ def deps(
     selected_depth = int(depth or 1)
     if selected_depth < 1:
         return _exit({"command": "deps", "error": "depth_must_be_positive"}, 2)
-    root = graph_mod.repo_root()
-    target = (root / path).resolve() if not Path(path).is_absolute() else Path(path).resolve()
-    if not target.exists():
+    root = graph_mod.root_for_scan(scan)
+    try:
+        target = graph_mod.load_target_doc(path, root)
+    except SystemExit:
         return _exit({"command": "deps", "error": "path_not_found", "path": path}, 2)
     path_include, path_exclude = resolve_filters_for_domain(
         root, domain="graph",
         path_include=path_include, path_exclude=path_exclude,
     )
     args = _graph_args(scan or ".", path_include=path_include, path_exclude=path_exclude)
-    doc = graph_mod.load_doc(target, root)
-    scan_root = (root / scan).resolve() if scan else root
+    scan_root = graph_mod.scan_scope_path(scan, root)
     all_docs = graph_mod.load_docs([str(scan_root)], root, args)
-    return {"command": "deps", "depth": selected_depth, **graph_mod.dependency_report(doc, all_docs, root, selected_depth)}
+    return {"command": "deps", "depth": selected_depth, **graph_mod.dependency_report(target, all_docs, root, selected_depth)}
 
 
 def impact(
@@ -488,14 +346,14 @@ def impact(
 ) -> dict[str, Any]:
     from . import graph as graph_mod
 
-    root = graph_mod.repo_root()
+    root = graph_mod.root_for_scan(scan)
     path_include, path_exclude = resolve_filters_for_domain(
         root, domain="graph",
         path_include=path_include, path_exclude=path_exclude,
     )
     args = _graph_args(scan or ".", path_include=path_include, path_exclude=path_exclude)
     doc = graph_mod.load_target_doc(path, root)
-    scan_root = (root / scan).resolve() if scan else root
+    scan_root = graph_mod.scan_scope_path(scan, root)
     all_docs = graph_mod.load_docs([str(scan_root)], root, args)
     return {"command": "impact", **graph_mod.impact_report(doc, all_docs, root, scan)}
 
@@ -513,14 +371,14 @@ def preflight(
     selected_depth = int(depth or 2)
     if selected_depth < 1:
         return _exit({"command": "preflight", "error": "depth_must_be_positive"}, 2)
-    root = graph_mod.repo_root()
+    root = graph_mod.root_for_scan(scan)
     path_include, path_exclude = resolve_filters_for_domain(
         root, domain="graph",
         path_include=path_include, path_exclude=path_exclude,
     )
     args = _graph_args(scan or ".", path_include=path_include, path_exclude=path_exclude)
     doc = graph_mod.load_target_doc(path, root)
-    scan_root = (root / scan).resolve() if scan else root
+    scan_root = graph_mod.scan_scope_path(scan, root)
     all_docs = graph_mod.load_docs([str(scan_root)], root, args)
     report = graph_mod.preflight_report(doc, all_docs, root, selected_depth, scan)
     return _exit(
@@ -542,7 +400,7 @@ def changed(
     from . import graph as graph_mod
 
     selected_depth = int(depth or 2)
-    root = graph_mod.repo_root()
+    root = graph_mod.root_for_scan(scan)
     path_include, path_exclude = resolve_filters_for_domain(
         root, domain="graph",
         path_include=path_include, path_exclude=path_exclude,
@@ -552,7 +410,7 @@ def changed(
     args.base = base
     args.since = since
     args.staged = staged
-    all_docs = graph_mod.load_docs([str((root / scan).resolve() if scan else root)], root, args)
+    all_docs = graph_mod.load_docs([str(graph_mod.scan_scope_path(scan, root))], root, args)
     reports: list[dict[str, Any]] = []
     deleted: list[str] = []
     for changed_path in graph_mod.changed_markdown_paths(root, args):
@@ -594,6 +452,7 @@ _INDEX_CONTEXT_KWARGS = {
     "cache_dir",
     "no_cache",
 }
+DEFAULT_SEARCH_READ_TOKEN_BUDGET = 3000
 
 
 def _index_context_kwargs(kwargs: dict[str, Any]) -> dict[str, Any]:
@@ -847,18 +706,53 @@ def search_read(corpus: str, query: str, **kwargs: Any) -> dict[str, Any]:
     if result.get("error"):
         return result
 
-    budget = int(kwargs.get("token_budget") or 0)
+    raw_budget = kwargs.get("token_budget")
+    budget_defaulted = raw_budget is None
+    budget = DEFAULT_SEARCH_READ_TOKEN_BUDGET if budget_defaulted else int(raw_budget or 0)
     sections: list[dict[str, Any]] = []
     dropped: list[dict[str, Any]] = []
     running_tokens = 0
     for row in result.get("results", []):
         tokens = int(row.get("token_count") or 0)
         if budget and running_tokens + tokens > budget:
+            remaining = max(budget - running_tokens, 0)
+            if remaining > 0:
+                content = row.get("body") or ""
+                truncated = content[: remaining * 4].rstrip()
+                running_tokens += remaining
+                sections.append(
+                    {
+                        "section_id": row.get("section_id"),
+                        "file_id": row.get("file_id"),
+                        "relative_path": row.get("relative_path"),
+                        "start_line": row.get("start_line"),
+                        "heading_chain": row.get("heading_chain"),
+                        "heading_text": row.get("heading_text"),
+                        "token_count": tokens,
+                        "included_token_count": remaining,
+                        "truncated_by_budget": True,
+                        "rrf_score": row.get("rrf_score"),
+                        "rerank_score": row.get("rerank_score"),
+                        "snippet": row.get("snippet"),
+                        "content": f"{truncated}\n\n...[truncated to ~{budget} approx tokens]\n",
+                    }
+                )
+                dropped.append(
+                    {
+                        "section_id": row.get("section_id"),
+                        "relative_path": row.get("relative_path"),
+                        "tokens": tokens,
+                        "included_tokens": remaining,
+                        "reason": "truncated",
+                    }
+                )
+                continue
             dropped.append(
                 {
                     "section_id": row.get("section_id"),
                     "relative_path": row.get("relative_path"),
                     "tokens": tokens,
+                    "reason": "over_budget",
                 }
             )
             continue
@@ -889,6 +783,7 @@ def search_read(corpus: str, query: str, **kwargs: Any) -> dict[str, Any]:
         "sections": sections,
         "token_total": running_tokens,
         "token_budget": budget,
+        "token_budget_defaulted": budget_defaulted,
         "dropped_by_budget": dropped,
     }
     if not sections:

@@ -1555,10 +1555,10 @@
       "description": {
         "when": "'find and read X', default agent path for semantic Markdown questions.",
         "why": "Bundles md search + section bodies in one JSON reply. Avoids fragile search→extract id/pipe handoffs.",
-        "input": "corpus, query, scope ('sections'|'descriptions'), limit (3), token_budget, rerank, path_include/exclude.",
-        "output": "{ sections: [{ section_id, relative_path, start_line, heading_chain, content, ... }], token_total }.",
+        "input": "corpus, query, scope ('sections'|'descriptions'), limit (3), token_budget (default 3000, 0 = unbounded), rerank, path_include/exclude.",
+        "output": "{ sections: [{ section_id, relative_path, start_line, heading_chain, content, truncated_by_budget? }], token_total, token_budget, dropped_by_budget, partial_index?: { pending_files } }.",
         "alt": "md_search for ranking-only. md_read_related for graph/link neighborhood after choosing a file.",
-        "cost": "Same as md_search; first cold corpus returns index_warmup_required."
+        "cost": "Same as md_search: cold corpus blocks, large pending deltas return partial_index and readable sections from the already indexed subset."
       },
       "input_schema": {
         "properties": {
@@ -1612,6 +1612,7 @@
             "type": "string"
           },
           "token_budget": {
+            "description": "Approx output budget for section bodies. Default 3000; pass 0 for unbounded.",
             "maximum": 9007199254740991,
             "minimum": 0,
             "type": "integer"

@@ -346,3 +346,73 @@ def test_graph_related_reading_recipe_uses_md_cli():
     assert "--paths knowledge/agents/tool-design.md" in cmd
     assert "--scan knowledge" in cmd
     assert "--token-budget 3000" in cmd
+
+
+def _write_graph_doc(
+    path: Path,
+    *,
+    description: str,
+    read_before: list[str] | None = None,
+    edit_after: list[str] | None = None,
+) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    read_items = "\n".join(f'  - "{item}"' for item in read_before or [])
+    edit_items = "\n".join(f'  - "{item}"' for item in edit_after or [])
+    path.write_text(
+        "\n".join(
+            [
+                "---",
+                f'description: "{description}"',
+                "read-before-edit:" if read_items else "read-before-edit: []",
+                read_items,
+                "edit-after-edit:" if edit_items else "edit-after-edit: []",
+                edit_items,
+                "---",
+                f"# {description}",
+                "",
+            ]
+        ).replace("\n\n---", "\n---"),
+        encoding="utf-8",
+    )
+
+
+def test_graph_scan_parent_becomes_root_from_nested_cwd(tmp_path, monkeypatch) -> None:
+    """Skill scripts often run from a nested tool folder and pass
+    `--scan ../..`. Graph commands must then resolve repo-root links like
+    `_ops/...` against the scan root, not the process cwd."""
+    from navigator import api
+
+    repo = tmp_path / "repo"
+    nested = repo / "experiments" / "md-embedding-server"
+    nested.mkdir(parents=True)
+    roadmap = repo / "_ops" / "PROJECT-ROADMAP.md"
+    task = repo / "_ops" / "plans" / "demo" / "task.md"
+
+    _write_graph_doc(roadmap, description="Roadmap")
+    _write_graph_doc(
+        task,
+        description="Task",
+        read_before=["[[_ops/PROJECT-ROADMAP.md]]"],
+    )
+
+    monkeypatch.chdir(nested)
+
+    preflight = api.preflight("../../_ops/plans/demo/task.md", scan="../..")
+    assert preflight["_exit_code"] == 0
+    assert preflight["file"]["path"] == "_ops/plans/demo/task.md"
+    assert preflight["must_read"][0]["status"] == "ok"
+    assert preflight["must_read"][0]["path"] == "_ops/PROJECT-ROADMAP.md"
+
+    deps = api.deps("../../_ops/plans/demo/task.md", scan="../..")
+    assert deps["file"]["path"] == "_ops/plans/demo/task.md"
+    assert deps["fields"]["read-before-edit"][0]["status"] == "ok"
+
+    impact = api.impact("../../_ops/PROJECT-ROADMAP.md", scan="../..")
+    assert impact["file"]["path"] == "_ops/PROJECT-ROADMAP.md"
+    assert impact["reference_breaks"] == [
+        {
+            "path": "_ops/plans/demo/task.md",
+            "description": "Task",
+            "has_frontmatter": True,
+        }
+    ]

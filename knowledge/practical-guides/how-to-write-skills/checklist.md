@@ -31,7 +31,7 @@ edit-after-edit: []
 ## Routing
 
 - `description` говорит, когда использовать skill?
-- Первый sentence содержит главный use case и trigger words?
+- Первые 120-200 символов содержат главный use case и trigger words?
 - Есть boundaries и skip-cases?
 - Минимум: есть 2-3 concrete use cases и реальные trigger phrases?
 - Строго: есть 8-10 `should-trigger` и 8-10 `should-not-trigger` prompts?

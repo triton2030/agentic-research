@@ -17,7 +17,11 @@ def run_tool(tool_name: str, handler_run: Callable[[Any], ToolResult], args: Any
         result.payload,
         tool_name=tool_name,
         args=vars(args),
-        corpus_state=quick_corpus_state(envelope.resolve_corpus_root(vars(args))),
+        corpus_state=quick_corpus_state(
+            envelope.resolve_corpus_root(vars(args)),
+            path_include=getattr(args, "path_include", None),
+            path_exclude=getattr(args, "path_exclude", None),
+        ),
         lock=result.lock,
     )
     print(json.dumps(wrapped, ensure_ascii=False, separators=(",", ":")))

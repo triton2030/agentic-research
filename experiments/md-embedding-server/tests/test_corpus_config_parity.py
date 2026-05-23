@@ -1,8 +1,8 @@
 """Parity tests: `.md-tools.toml` applies identically through CLI and MCP.
 
 Critic finding (2026-05-23 review): without an explicit test, config-merge
-on the CLI side could diverge from the MCP side. Both paths terminate at
-`navigator.api.*`, so the merge happens there; this test pins the contract.
+on the CLI side could diverge from the MCP side. Public API, public CLI and
+legacy CLI all terminate at `status_core`; these tests pin the contract.
 """
 
 from __future__ import annotations
@@ -11,9 +11,11 @@ import json
 import os
 import subprocess
 import sys
+from argparse import Namespace
 from pathlib import Path
 
 from navigator.api import status
+from navigator.index_status import cmd_status
 
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG_FILENAME = ".md-tools.toml"
@@ -76,6 +78,29 @@ def test_cli_subprocess_status_applies_config_exclude(tmp_path: Path) -> None:
     excluded = payload.get("excluded", {})
     by_path_exclude = excluded.get("by_path_exclude") or []
     assert "drafts/*" in by_path_exclude
+
+
+def test_legacy_status_json_matches_public_api_with_config(
+    tmp_path: Path, capsys
+) -> None:
+    corpus = _make_corpus_with_config(tmp_path)
+    expected = status(str(corpus))
+    args = Namespace(
+        path=str(corpus),
+        max_heading_level=6,
+        embed_model=None,
+        embedding_api_url=None,
+        embedding_timeout=None,
+        cache_dir=None,
+        max_auto_embed=50,
+        json=True,
+        path_include=[],
+        path_exclude=[],
+    )
+
+    assert cmd_status(args) == 0
+    actual = json.loads(capsys.readouterr().out)
+    assert actual == expected
 
 
 def test_no_config_returns_empty_filters(tmp_path: Path) -> None:

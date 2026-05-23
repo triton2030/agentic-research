@@ -46,6 +46,13 @@ Owner: `1folder-contract`. Single source of truth о связях папок. Ro
   `1md-navigator` и `1md-graph` (Claude + Codex) ссылается сюда; правки
   schema → `experiments/md-embedding-server/src/navigator/config.py`,
   затем синхронизация skill mentions.
+  **Scope note.** Папка — runtime tooling для skills `1md-navigator` /
+  `1md-graph`; работа по CLI shape, schema, UX легитимна как вклад в
+  skill contract, не входит в polygon scope `_ops/GOAL.md` (тот про
+  knowledge / skill design, не про runtime). Owner CLI / schema /
+  envelope правил — backend (`docs/cli-conventions.md`,
+  `docs/architecture-lock.md`, `src/navigator/schemas.py`); skills
+  цитируют как view, не дублируют.
 - `experiments/flowpage-v4-elk/` depends-on локальный
   `experiments/flowpage-v4-elk/AGENTS.md`.
 - `experiments/all-my-messages/*.md` depends-on

@@ -6,7 +6,8 @@ their public symbols so existing callers (`search.py`, `overlaps.py`,
 
   - `index_meta`   — schema, meta, layout, open / probe / sticky model
   - `index_build`  — counters, delta apply, embed pipeline, `cmd_index`
-  - `index_status` — `cmd_status`, corpus root discovery
+  - `status_core`  — shared status state machine and corpus root discovery
+  - `index_status` — legacy `cmd_status` adapter
   - `index_cluster` — K-means clustering, `cmd_cluster`
 
 In addition, two semantic-neighbour utilities live here because they
@@ -56,7 +57,8 @@ from .index_build import (  # noqa: F401
     cmd_index,
     ensure_index,
 )
-from .index_status import cmd_status, find_corpus_root_for  # noqa: F401
+from .index_status import cmd_status  # noqa: F401
+from .status_core import find_corpus_root_for  # noqa: F401
 from .index_cluster import (  # noqa: F401
     _kmeans,
     _kmeans_pp_init,

@@ -32,9 +32,9 @@
           "tool": "md_index",
           "args": {
             "corpus": "/Users/triton/Documents/GitHub/agentic-research",
-            "confirm": true
+            "dry_run": true
           },
-          "reason": "Pending delta exceeds auto-embed cap; index before search."
+          "reason": "Pending delta exceeds auto-embed cap; dry-run index before search."
         }
       },
       "lock": null,

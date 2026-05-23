@@ -388,6 +388,7 @@ def health_report(docs: list[Doc], root: Path) -> dict[str, Any]:
         "orphans": orphans,
         "hubs": hubs,
         "cycles": cycles,
+        "cycles_count": len(cycles),
     }
 
 

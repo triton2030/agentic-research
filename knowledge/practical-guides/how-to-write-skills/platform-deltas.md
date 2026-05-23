@@ -24,7 +24,8 @@ edit-after-edit: []
 
 - Skills — authoring format; plugins — distribution unit.
 - Codex сначала видит `name`, `description`, path. Initial skill list ограничен
-  примерно 2% окна или 8000 символов, поэтому description надо front-load.
+  примерно 2% окна или 8000 символов, поэтому первые 120-200 символов
+  `description` должны нести главный use case и trigger words.
 - Локации docs: `$HOME/.agents/skills`, `.agents/skills`; на этой машине также
   проверять live-root `~/.codex/skills/<name>`.
 - `agents/openai.yaml` optional: UI metadata, `policy.allow_implicit_invocation`,

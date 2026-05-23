@@ -12,6 +12,7 @@ from pathlib import Path
 from navigator.index import cmd_index
 from navigator.index_status import cmd_status
 from navigator.overlaps import cmd_overlaps
+from navigator.api import search_read, status as api_status
 from navigator.search import (
     _apply_path_filters,
     _path_matches_any,
@@ -161,6 +162,7 @@ def _status_args(corpus: Path, **overrides) -> Namespace:
         embedding_timeout=5,
         cache_dir=None,
         max_auto_embed=50,
+        json=False,
         path_include=[],
         path_exclude=[],
     )
@@ -273,8 +275,29 @@ def test_partial_index_scoped_search_ignores_unindexed_skipped_paths(
     assert all(row["relative_path"].startswith("keep/") for row in payload["results"])
 
     unscoped = _search_args(corpus, "partial scoped retrieval", max_auto_embed=1)
-    assert cmd_search(unscoped) == 4
-    assert "Index needs warmup" in capsys.readouterr().err
+    assert cmd_search(unscoped) == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["partial_index"]["active"] is True
+    assert payload["partial_index"]["pending_files"] == [
+        {
+            "relative_path": "skip/many.md",
+            "added_sections": 9,
+            "pending_chunks": 9,
+        }
+    ]
+    assert payload["results"]
+    assert all(row["relative_path"].startswith("keep/") for row in payload["results"])
+
+    read_payload = search_read(
+        str(corpus),
+        "partial scoped retrieval",
+        max_auto_embed=1,
+        embed_model="test/stub-1",
+        embedding_api_url="http://test.local/v1",
+        embedding_timeout=5,
+    )
+    assert read_payload["partial_index"]["active"] is True
+    assert read_payload["sections"]
 
 
 def test_partial_index_scoped_status_is_fresh_when_unscoped_needs_warmup(
@@ -303,6 +326,16 @@ def test_partial_index_scoped_status_is_fresh_when_unscoped_needs_warmup(
     assert cmd_status(_status_args(corpus, max_auto_embed=1)) == 0
     assert "Status: NEEDS WARMUP" in capsys.readouterr().out
 
+    assert cmd_status(_status_args(corpus, max_auto_embed=1, json=True)) == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["pending_files"] == [
+        {
+            "relative_path": "skip/many.md",
+            "added_sections": 9,
+            "pending_chunks": 9,
+        }
+    ]
+
 
 def test_status_no_index_reports_pending_chunks_for_dry_run_estimate(
     tmp_path: Path, capsys
@@ -313,6 +346,36 @@ def test_status_no_index_reports_pending_chunks_for_dry_run_estimate(
     assert "Status: NO INDEX" in out
     assert "pending_chunks=" in out
     assert "pending_chunks=0" not in out
+
+
+def test_status_public_api_and_legacy_json_share_core(
+    tmp_path: Path, mock_embed, capsys
+) -> None:
+    corpus = _partial_corpus(tmp_path)
+    _index(corpus)
+    capsys.readouterr()
+
+    api_payload = api_status(
+        str(corpus),
+        path_include=["keep/*"],
+        max_auto_embed=1,
+        embed_model="test/stub-1",
+        embedding_api_url="http://test.local/v1",
+        embedding_timeout=5,
+        cache_dir=None,
+    )
+
+    assert cmd_status(
+        _status_args(
+            corpus,
+            path_include=["keep/*"],
+            max_auto_embed=1,
+            json=True,
+        )
+    ) == 0
+    legacy_payload = json.loads(capsys.readouterr().out)
+
+    assert legacy_payload == api_payload
 
 
 def test_partial_index_scoped_overlaps_compares_only_included_chunks(

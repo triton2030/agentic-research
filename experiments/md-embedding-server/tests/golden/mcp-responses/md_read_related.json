@@ -76,9 +76,9 @@
           "tool": "md_index",
           "args": {
             "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
-            "confirm": true
+            "dry_run": true
           },
-          "reason": "Optional eager warmup; search will auto-embed the small delta otherwise."
+          "reason": "Optional eager warmup; dry-run previews cost before embedding the small delta."
         }
       },
       "lock": null,

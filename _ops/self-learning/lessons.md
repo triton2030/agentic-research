@@ -1,54 +1,58 @@
 # Self-Learning Lessons
 
-> [!summary] Живой контракт
-> **Owner:** [[_ops/self-learning/README|Self-Learning]]
-> **Skill:** `1self-learning`
-> **Лимит:** до 4000 символов через `wc -m`.
-> **Граница:** проектные проблемы -> `1findings`; цитаты -> `1user-said`.
+> [!summary] Owner: [[_ops/self-learning/README|Self-Learning]] · Skill: `1self-learning` · Лимит 4000 (`wc -m`). Проектное → `1findings`; цитаты → `1user-said`.
 
 ## GPT-5.5
 
-### Scope и user workflow
+### Scope и workflow
 
-- Сначала фиксируй workflow, consumer map, batch bounds, freshness канона и живые лимиты skill-контракта.
-- Не расширяй "исправь всё" и не принимай рамку "сократить" до проверки потребителей и owner-поверхности.
-- Для личного agent-tool предпочитай минимальный runtime primitive + умный skill workflow; не добавляй CLI comfort-фичу, пока не доказан повторяемый machine-contract выигрыш.
-- Перед design/role-вариантами восстанови 1-2 сценария: мягкая роль может промахнуться, если нужен жёсткий оппонент.
-- При batch-работе называй scope заранее; перед массовой заменой замораживай target set и проверяй dry-run.
+- Не навязывай «режимы» outcome'у: scope проверяй через потребителей.
+- Для личного agent-tool — минимальный runtime primitive + умный skill; CLI comfort откладывай до доказанного выигрыша.
+- Перед design/role вариантами — 1-2 сценария; мягкая роль промахнётся, если нужен жёсткий оппонент.
+- Batch: freeze target set + dry-run; scope называй заранее.
 
 ### Evidence before blame
 
-- Перед обвинением tool/code проверяй вход: stale map, fixture path/output, temp side effect, cwd/git context, существование пути и валидность данных.
-- Внешние skill-файлы проверяй прямым чтением, валидатором или diff против baseline; для metadata сначала смотри реальную YAML-shape.
-- Для read-only smoke держи temp roots в `/tmp`, иначе проверка портит доверие к слову "read-only".
+- До обвинения tool/code проверь вход: stale map, fixture, temp side effect, cwd, путь, валидность данных.
+- Внешние skill-файлы — read + validate; YAML с `:` → folded/quoted.
+- Read-only smoke в `/tmp`, иначе доверие к «read-only» сломано.
 
 ### Tools и handoff
 
-- Если skill/best-practice слой мог измениться, перечитай живой owner/source, а не локальный guide или старый снимок.
-- При `argparse` помни, что тесты могут собирать `Namespace` вручную: используй `getattr(args, ..., default)` или обновляй fixtures.
-- Если bridge relay truncated, восстанавливай полный вывод из logs до rerun.
-- В prompt-analytics hook `UserPromptSubmit` не равен человеку: смотри `session_meta.thread_source` и фильтруй service prompts.
-- Когда пользователь спрашивает, почему не был вызван `1findings` или `1self-learning`, не объясняй задним числом вместо действия: классифицируй сигнал и запиши владельцу.
-- Перед запуском named subagents сверяй доступные `agent_type`; если runtime не принимает роль, не имитируй критика, фиксируй mismatch.
-- Для native subagents не смешивай `fork_context` с явным `agent_type`: либо наследуй full-history context, либо запускай named role без fork и дай self-contained brief.
+- Hooks: lifecycle moment явно (`UserPromptSubmit` ≠ `PreToolUse`); analytics — фильтруй service prompts.
+- Code-architecture review: сначала `1repo-map`, потом `1cli-tools`; IA-риски docs/ownership отделяй через `1ia-audit`.
+- На «почему не вызвал X-скил» — не объясняй задним числом, классифицируй и запиши владельцу.
+- Named subagent: сверь `agent_type`; роль не принимается → не имитируй, фиксируй mismatch.
+- `fork_context` ≠ named `agent_type`: либо full-history наследование, либо named без fork + self-contained brief.
+- Bridge relay truncated → восстанови из logs до rerun.
+- Shell one-liner с `$1`/backrefs — только single quotes или `apply_patch`; double quotes тихо съедают группы.
 
 ## Claude Opus 4.7
 
 ### Review и background jobs
 
-- После sensitive/global/structural write сразу запускай `1work-review`; маленький diff, стадия плана, closeout-summary или approval большого плана не закрывают review debt.
-- На долгих background jobs не запускай poll-loop и не kill по low CPU: жди notification, продолжай другую работу, проверяй output/DB/network sockets и expected rate-limit duration.
-- После compaction hook может видеть долг прошлых ходов, которого нет в видимом контексте: закрывай session-level review debt по доступным следам.
+- Background jobs: жди notification, не poll-loop, не kill по low CPU; проверь output/sockets/rate-limit.
+- После compaction hook видит долг прошлых ходов — закрывай по доступным следам.
 
 ### Routing и соседние owner-скилы
 
-- Не думай по аналогии между runtime roots: если файл/feature не найден в ожидаемом месте, расширь поиск по `~/.codex` / `~/.claude`.
-- Новая subfolder внутри subtree = правка parent subtree: явно читай parent `AGENTS.md`, не считай injected/root context достаточным.
-- При работе внутри одного скила спрашивай, какой соседний owner-skill уже владеет частью сигнала; frame активного скила не должен закрывать `1md-navigator`, `1md-graph`, `1ia-audit`.
+- Не аналогируй runtime roots; файл не там, где ждал → расширь поиск (`~/.codex`, `~/.claude`).
+- Внутри скила спроси, какой соседний owner владеет частью сигнала: `1md-navigator`, `1md-graph`, `1ia-audit`.
 
-### Debug и structural contracts
+### Debug
 
-- Перед расширением downstream API трассируй pipeline до ближайшего места, где данные ещё correct; часто чинить надо mid-pipeline, не receiver.
-- При tool error сначала refresh saved state и проверь path из traceback, потом называй tool broken.
-- Structural surfaces (`project-graph`, папки, hooks, settings, paired shims) сначала route/check через `1folder-contract`.
-- Для diagnostic thresholds проверяй минимум два стилистически разных корпуса; cutoff из одного familiar corpus не переносится.
+- Расширяешь downstream API → сначала трассируй pipeline до места, где данные ещё correct; чини mid-pipeline.
+- Tool error → refresh saved state + проверь path из traceback, потом «tool broken».
+- Diagnostic thresholds — ≥2 стилистически разных корпуса; cutoff из familiar corpus не переносится.
+
+### Solution scope: minimal first
+
+- Critic finding ≠ mandate to expand. Patch решает risk, не строит фичу. Минимум → расширяй под давлением.
+- Не закладывай оси гибкости (форматы, frozen dataclasses, source-tracking) под нишевые гипотезы; обычно один список / формат / ось.
+- TOML/JSON/dataclass-валидация — только при втором потребителе схемы; до этого plain text + ~10 LOC parser.
+- Перед commit представь самую короткую форму того же поведения. Короче на >5× → переписать.
+
+### Markdown graph
+
+- После правки `read-before-edit` / `edit-after-edit` frontmatter → ОБЯЗАТЕЛЬНО `md cycles --paths ROOT --json` до closure.
+- Перед claim «owner X отсутствует» — `md search CORPUS --query "X" --scope descriptions --json`; без CLI-probe = vacuum-default.

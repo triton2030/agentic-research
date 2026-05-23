@@ -1,6 +1,6 @@
 # Wisdom — GPT-5.5
 
-Снимок на 29 апреля 2026.
+Снимок на 22 мая 2026.
 
 Здесь живут только правила, которые важны именно для `GPT-5.5`. Общие свойства
 LLM держит `wisdom-llm.md`; платформенные правила Codex держит
@@ -17,6 +17,13 @@ LLM держит `wisdom-llm.md`; платформенные правила Code
 - Для long-running Responses agents сохранять continuation state: completed actions, active assumptions, IDs, tool outcomes, blockers и next concrete goal. Технически — `previous_response_id` или round-trip output items.
 - Для Responses workflows не терять assistant items, `phase` для preambles/final и compaction после больших milestones. Иначе preamble может стать ложным финалом.
 - Compact outcome-first context обычно лучше старого defensive repetition; повторять главное правило в нескольких местах только при доказанном partial-loading risk.
+- В `AGENTS.md` / `.cursor/rules` особенно вредны vague или conflicting
+  instructions: GPT-5.5 лучше следует правилам, поэтому плохая конкретика
+  сильнее backfire-ит.
+- Папочные инструкции должны уменьшать exploration и validation failures, а не
+  добавлять красивые требования. Если правило не меняет решение агента, убрать.
+- Для дорогих ограничений текст не считать enforcement: ставить test,
+  validator, hook или явный checkpoint.
 
 ## Что Не Делать
 
@@ -24,6 +31,8 @@ LLM держит `wisdom-llm.md`; платформенные правила Code
 - Не держать старую историю процесса, если она не меняет следующий ход.
 - Не повышать effort как универсальную ручку качества.
 - Не превращать skill body в длинный ритуал, если GPT-5.5 держит задачу по outcome и evidence.
+- Не оптимизировать folder layout как магическую ручку adherence; свежая
+  эмпирика по coding-agent config files не показывает такого эффекта.
 
 ## Где Использовать
 
@@ -39,3 +48,11 @@ LLM держит `wisdom-llm.md`; платформенные правила Code
 
 - https://platform.openai.com/docs/api-reference/responses
   Responses state, output items и reasoning settings.
+
+- https://cdn.openai.com/API/docs/gpt-5-for-coding-cheatsheet.pdf
+  GPT-5 coding guidance: точность, отсутствие конфликтов и аккуратный
+  reasoning effort.
+
+- https://arxiv.org/abs/2602.11988
+  Empirical warning: unnecessary requirements in AGENTS/context files can lower
+  success and raise cost.
