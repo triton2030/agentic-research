@@ -2474,3 +2474,436 @@ md impact "$1" --scan "$(dirname $1)/.." --json | jq '.cascade_breaks | length'
 ## 2026-05-23T23:53:11+05:00 | agentic-research | turn 08c9f4bb-9a96-4f5f-a5cb-5fc57fcf3371
 
 Советую запушить чтобы было легче работать
+
+
+## 2026-05-25T16:11:22+05:00 | agentic-research | turn 019e5ed5-11f1-71d2-80b3-dda3fe1cb454
+
+Мне надо здесь сделать в папке «Эксперименты новый эксперимент». А-а, я хочу, чтобы у меня был в очень удобном виде HTML-сайт, где я мог бы посмотреть все скиллы, как они написаны, а-а все инструкции агентные, но именно всё глобальное и всё относящееся к клоду и кодексу. 
+
+То есть, это мультистраничный сайт, где будут вкладки скиллы, где будут вкладки глобальные инструкции, но всё про глобальное, то, что будет работать везде. 
+
+Мне надо, чтобы ты именно подтягивал в этом сайте текущую информацию. То есть мы туда не копируем информацию о скиллах, хуках, инструкциях, мы туда кладём именно вот так вот через связи. 
+
+В силу того, что это просто внутренний инструмент лично для меня, внешний вид вообще не важен, важна минимальное количество кода. То есть стилизация самая стандартная, библиотеки самые стандартные, всё, что ускоряет нашу работу.
+
+
+## 2026-05-25T16:12:28+05:00 | agentic-research | turn 019e5ed6-01e7-7f42-bb66-b7476b1182a8
+
+# Overview
+
+Generate 0 to 3 hyperpersonalized suggestions for what this user can do with Codex in this local project: /Users/triton/Documents/GitHub/agentic-research
+
+Get an understanding of the user's intent and goals by deeply viewing their connected apps. Suggest actionable tasks that they would actually act on/click.
+Infer what the user works on and their style from their connected apps.
+Optimize for relief: choose suggestions that make the user's life easier, reduce an open loop, unblock work, or prepare them for something that is about to matter. Do not suggest tasks that merely sound productive or create more work for the user.
+The best suggestions feel like Codex read the user's mind: by synthesizing signals across apps, it discovers something the user did not yet know and proposes the concrete next action they would want to take.
+
+Serve this specific user. Do not suggest generic project-quality, onboarding, exploration, cleanup, refactor, documentation, test-writing, or dependency-update tasks merely because they could be useful to someone who owns this project.
+Your job is to predict what this user specifically needs to get done.
+
+
+# Rules
+
+Use relevant connected apps or MCP sources available in this session, including Vercel when those connectors are installed.
+ Do not use GitHub. Those connectors are not allowed for personalized suggestions in this session.
+ For local project suggestions, make sure suggestions are truly relevant to this project itself. Don't use connected-app context that is unrelated to this project, its repo, or recent project threads. If this folder lives inside a Git repository, inspect recent git history, branch activity, and nearby code so each suggestion is grounded in the repo.
+
+
+    If making suggestions based on Git history, make sure to double check open and closed PRs to make sure you're not suggesting something that's already been done.
+    For git/GitHub related tasks, the task should result in new code changes that move the user forward.
+    Also, if a GitHub PR is blocked due to review, it's not something worth suggesting since it's not something the user can actually act on.
+
+Your suggestions must be based on recent events; e.g. recent Slack messages, unread emails, newly created issues, etc.
+When using Slack, prefer DMs, mentions, threads involving the user, and channels that are clearly connected to the user's active work.
+Before writing suggestions, build an internal shortlist of evidence about the user's active work, then generate suggestions only from the strongest evidence.
+Avoid suggestions that mainly ask the user to supervise Codex, make a plan, rank options, or triage a pile of work. Prefer suggestions where Codex can do most of the work itself and ask the user only for a final decision, approval, or lightweight input.
+Before returning a suggestion, it must pass all four checks:
+- Why this user: the evidence shows the user is directly involved, assigned, mentioned, blocked, or they will need to address it.
+- Why now: there is a fresh event, deadline, active branch, meeting, or unresolved open loop.
+- Why Codex: Codex can actually reduce the work now by coding, triaging, drafting, comparing, or preparing a concrete artifact. Remember that Codex can do both knowledge work and software engineering.
+- Why not already handled: recent PRs, dismissed suggestions, or recent threads do not already cover it.
+
+If any check is weak, delete the candidate.
+Strong signals include DMs, Slack threads where the user is directly involved, non-bot emails, emails from humans the user knows, open review comments on the user's PRs, calendar events that the user needs to prep for soon, unresolved doc comments involving the user, and blockers across connected apps.
+Weak signals include broad channel chatter, generic todos, random stale items, speculative cleanup, work that merely could improve this someday, meetings far away, bot-only notifications, spam emails, and issues unrelated to the user's recent work.
+
+Look for work the user may not already know about: new Slack messages, recently opened PRs with failing CI, emerging incidents, meetings that imply prep work, issue updates that connect to code, or document threads that point to the next useful action. Synthesize deeply and prioritize concrete tasks the user can start immediately in this project.
+
+Use recent Codex threads from this project primarily to avoid suggesting work the user is already doing and infer how they use Codex.
+
+Recent Codex threads in this project:
+[
+  {
+    "id": "019e5ed4-1fe8-7ea0-a142-df0b09d531e9",
+    "title": "Создать каталог скиллов и правил",
+    "preview": "Мне надо здесь сделать в папке «Эксперименты новый эксперимент». А-а, я хочу, чтобы у меня был в очень удобном виде HTML-сайт, где я мог бы посмотреть все скиллы, как они написаны, а-а все инструкции агентные, но именно всё глобальное и всё относящееся к клоду и кодексу. То есть, это мультистраничный сайт, где будут вкладки скиллы, где будут вкладки глобальные инструкции, но всё про глобальное, то, что будет работать везде. Мне надо, чтобы ты именно подтягивал в этом сайте текущую информацию. То есть мы туда не копируем информацию о скиллах, хуках, инструкциях, мы туда кладём именно вот так вот через связи. В силу того, что это просто внутренний инструмент лично для меня, внешний вид вообще не важен, важна минимальное количество кода. То есть стилизация самая стандартная, библиотеки самые стандартные, всё, что ускоряет нашу работу.",
+    "updatedAt": "2026-05-25T11:12:14.000Z"
+  },
+  {
+    "id": "019e55f3-781b-7781-8683-cb12dff80076",
+    "title": "Оцени agent-friendly CLI-контракт",
+    "preview": "/Users/triton/Documents/GitHub/agentic-research/_ops/plans/md-cli-agent-contract/task-2026-05-23-agent-friendly-cli.md Отдай это субагентам критикам",
+    "updatedAt": "2026-05-23T19:11:15.000Z"
+  },
+  {
+    "id": "019e55d5-b7dc-7670-948f-888fc8867019",
+    "title": "Найти исследования CLI для агентов",
+    "preview": "найди исследования как строить CLI инструменты для агентов",
+    "updatedAt": "2026-05-23T18:31:50.000Z"
+  },
+  {
+    "id": "019e55ec-34a0-7f90-94c2-796914040e28",
+    "title": "Передать критикам-субагентам",
+    "preview": "/Users/triton/Documents/GitHub/agentic-research/_ops/plans/md-cli-agent-contract/task-2026-05-23-agent-friendly-cli.md Отдай это субагентам критикам",
+    "updatedAt": "2026-05-23T17:49:15.000Z"
+  },
+  {
+    "id": "019e55cf-5da9-7813-9d4d-52128e21fb90",
+    "title": "Проверить md-tools и hooks",
+    "preview": "Скрипт мд-тулс обновился, проверь теперь всё что он может и видимо нам надо обновить теперь кодекс хуки",
+    "updatedAt": "2026-05-23T17:21:30.000Z"
+  },
+  {
+    "id": "019e5528-c36a-72c2-ab11-25e78356afd2",
+    "title": "Изучи эмбеддинги для бизнес-доков",
+    "preview": "Слушай, у нас есть система эмбедингов, векторная база, получается. Можешь, пожалуйста, поискать, какие теперь трюки мы можем делать? Точнее, какие есть исследования, когда эмбединги помогали при работе с бизнес-документами? И сравни те функции, которые у нас есть и что можно было бы улучшить.",
+    "updatedAt": "2026-05-23T14:11:30.000Z"
+  },
+  {
+    "id": "019e53c0-d03a-7d62-bc43-9a24bc05c119",
+    "title": "Найти лимиты инструкций",
+    "preview": "Слушай, я обнаружил в документации Open i то, что там есть информация по килобайтам, сколько могут быть инструкции? И то, что все инструкции, которые он читает, папочные инструкции, корневые инструкции, есть ограничения по их размеру в документации. Прямо в килобайтах написали. Найди, пожалуйста. И такое же найди по Клоду.",
+    "updatedAt": "2026-05-23T07:44:32.000Z"
+  },
+  {
+    "id": "019e5130-8a2a-7ae2-92e3-63033a8a1046",
+    "title": "Найти автоимпорт в Codex",
+    "preview": "Изучи, пожалуйста, документацию Кодекса. Можно ли в агентских инструкциях через собачку автоматически импортировать какие-то файлы, которые должны загружаться автоматически в память?",
+    "updatedAt": "2026-05-22T19:38:17.000Z"
+  }
+]
+
+Use recent threads to avoid duplicates, understand working style, and identify rare still-live unresolved blockers. Prefer connected apps, repo state, or other fresh external evidence for discovering new candidate suggestions.
+Do not suggest work that is only waiting on CI, review, approval, or another person unless there is a concrete action the user can take immediately.
+
+Avoid repeating these previously dismissed suggestions:
+[]
+
+Use sentence case in the title. Do not use Start Case or Title Case. Keep titles under 16 words, but prefer titles nearing that length. Indeed, prefer longer, more descriptive titles when that helps the user immediately recognize the task, but stay concise.
+Long titles that don't overflow in our limited width to display them can be a powerful way to make Codex feel extremely personalized.
+
+Return 0 to 3 fresh suggestions. Return fewer than 3 when fewer than 3 suggestions clear the bar. Returning no suggestions is better than returning weak suggestions.
+Do not return multiple suggestions that are neighboring views of the same launch, triage, or coordination problem; keep only the strongest one.
+
+# Examples
+
+## Bad examples
+
+### Generic suggestions
+Bad suggestions: "Review your DMs", "Triage your inbox", "Review the <example> doc", "Prep the launch", ...
+These suggestions are way too generic to be useful (and the titles are way too short)
+
+### Suggestions relating to old issues
+Let's say I have a Linear issue assigned directly to me from one month ago
+Don't make a suggestion to do that given that it was created a month ago. We need to focus on recency and the future.
+
+### Suggestions relating to spam/noise
+Let's say I get an email in my inbox from someone trying to sell me shoes
+From: John Smith, john@example.com
+Subject: Try out the shoes this Sunday?
+Body: Hi sir, would you like to try out our company's new shoes this Sunday?
+
+If there is no prior relationship signal (e.g. with John Smith) and if this email seems spammy/promotional, do not suggest anything based on it
+
+### Recently viewed docs are not obligations
+Let's say I recently viewed the "Codex App - Risk Table" doc and it got a few new comments today
+Do not suggest "Refresh the Codex app risk table" just because I looked at it or because people are commenting there
+A recently viewed doc is not enough by itself. Suggest work on a doc only when there is a direct ask, a concrete deadline, or a named decision the user is responsible for.
+
+### Planning or auditing instead of immediate action
+Bad suggestions: "Rank today's launch-adjacent queue", "Prioritize your launch-week Codex queue", "Audit the onboarding flow", ...
+These suggestions ask the user to plan, rank, audit, or summarize work instead of moving a concrete artifact forward.
+Planning and auditing can often already be done asynchronously. Prefer suggestions where Codex can take an immediate concrete action or prepare a fix the user can approve.
+
+### Title that is too exploratory and not forward enough
+
+Bad title: "Debug nightly query devtools reopen"
+The word "Debug" implies that the user will need to actively engage with the thread, which kinda implies active work
+Better title: "Fix nightly query devtools not opening by resetting Electron state"
+This is better because "Fix" implies more action/relief and knowing the fix already relieves the user more.
+
+# Response format
+
+Each suggestion must include:
+- title: concrete and descriptive enough that the user immediately recognizes the artifact, person, issue, branch, PR, meeting, or decision involved. Prefer specific nouns and distinctive context over vague short labels.
+- description: one or two short sentences. Keep it compact and tooltip-like. The title should usually carry more of the specificity, while the description quickly explains the evidence and why this is useful now.
+- prompt: the user message to send
+- appId: the single most relevant app id, such as "690a90ec05c881918afb6a55dc9bbaa1". Choose the one app most central to the suggestion.
+- write the prompt as something that should launch as a new Codex thread in this project
+
+
+## 2026-05-25T16:18:13+05:00 | agentic-research | turn 019e5edb-54ee-7f21-b868-9d2a77e5c951
+
+Я бы ещёвё провл исследования в интернете, чтобы ты поискал какие-то готовые решения, в библиотеке, инструменты, чтобы нам сэкономить время ии предвидеть, где у нас будут ошибки, проблемы и решить это как раз-таки тем, что мы найдём в Интернете.
+
+
+## 2026-05-25T16:21:41+05:00 | agentic-research | turn 019e5ede-81ad-7cd3-b015-06587605aaee
+
+Я думаю, ты не совсем понял задачу в плане минимальное количество кода.Е Я имел в виду минимальное количество работы. Если кода будет очень много, но мы его просто скачаем или сгенерируем, или просто как-то упростим себе жизнь, можно и так. Просто я сейчас замечаю, что из-за всех этих ограничений мы как будто сейчас попадём в ловушку, где будем слишком много писать, а потом развивать проект будет сложно. Давай попробуем переформулировать не минимальное количество кода, а самый лёгкий, надёжный, быстрый, понятный, масштабируемый в будущем путь, который ещё и легко исправлять ошибки, с учётом того, что ты языковая модель.
+
+
+## 2026-05-25T16:24:16+05:00 | agentic-research | turn 019e5ee0-dec7-7253-8a81-2fd4a615f1f4
+
+PLEASE IMPLEMENT THIS PLAN:
+# Global Agent Surface Viewer: Easiest Durable Path
+
+## Summary
+
+Сделать эксперимент как тонкий локальный gateway + готовый docs-viewer.  
+Не писать свой Markdown-renderer и не строить полноценное приложение.
+
+Выбранный путь: **Docsify для UI/Markdown/navigation + маленький Node-сервер для live whitelist-доступа к глобальным файлам**.
+
+## Key Changes
+
+- Создать `experiments/global-agent-surface-viewer/`.
+- Использовать готовое:
+  - `docsify` — готовая многостраничная Markdown-навигация, sidebar, themes, page routing.
+  - `express` — простой локальный сервер.
+  - `fast-glob` — сбор live-каталога файлов.
+- Сервер отдаёт виртуальную docs-структуру:
+  - `/` → `index.html` с Docsify.
+  - `/_sidebar.md` → генерируется из текущих `~/.codex`, `~/.claude`, `~/.agents`.
+  - `/docs/:id.md` → на каждый запрос читает текущий живой файл.
+- Markdown-файлы (`SKILL.md`, `CLAUDE.md`, `AGENTS.md`, references) отдавать как Markdown.
+- Не-Markdown файлы (`.py`, `.toml`, `.json`, `.yaml`) отдавать как сгенерированную Markdown-страницу с fenced code block, не сохраняя копию.
+- Темы в sidebar:
+  - Skills
+  - Global Instructions
+  - Hooks
+  - Agents
+  - Runtime Config
+- Белый список:
+  - `~/.codex/skills/**`
+  - `~/.claude/skills/**`
+  - `~/.agents/skills/**`
+  - `~/.codex/AGENTS.md`
+  - `~/.claude/CLAUDE.md`
+  - `~/.codex/hooks/*.py`
+  - `~/.claude/hooks/*.py`
+  - `~/.codex/agents/*.toml`
+  - `~/.claude/agents/*.md`
+  - `~/.codex/config.toml`
+  - `~/.claude/settings.json`
+  - `~/.claude/settings.local.json`
+- Запуск только на `127.0.0.1`.
+- Исключить `auth`, `history`, `sessions`, `logs`, `state`, `cache`, sqlite/db, backups, `__pycache__`, `node_modules`, `dist`, `runs`.
+- В `_ops/project-graph.md` добавить одну `depends-on` строку для нового эксперимента.
+
+## Why This Path
+
+- Меньше своей логики: Docsify берёт на себя рендер, маршруты и навигацию.
+- Живые данные: сервер читает файлы при запросе, не делает snapshot.
+- Легко чинить: если сломался UI, это Docsify; если сломался доступ, это один маленький server file.
+- Легко расширять: новая тема = новый whitelist-блок и новый раздел sidebar.
+- Хорошо для LLM: стандартный Node-проект, понятные зависимости, мало скрытой магии.
+
+## Test Plan
+
+- `npm install`.
+- `npm run check`: каталог собирается, forbidden paths не попали.
+- `npm run dev`: открыть `http://127.0.0.1:8765`.
+- Проверить страницы из всех тем.
+- Проверить, что `SKILL.md` рендерится как Markdown.
+- Проверить, что `.py/.toml/.json` показываются как code block.
+- Проверить live-поведение: изменить внешний файл и обновить страницу.
+- Проверить, что секретные/runtime-файлы не видны в sidebar и недоступны по URL.
+
+## Assumptions
+
+- Это локальный личный инструмент, не публичный сайт.
+- Поиск пока не нужен.
+- Внешний вид берём стандартный docsify theme.
+- Содержимое глобальных файлов нигде не копируется и не коммитится.
+
+
+## 2026-05-25T16:49:49+05:00 | agentic-research | turn 019e5ef8-46a1-7a60-85fb-b779c3b15a93
+
+Слушай, отлично. А-а, мне в меню навигации не хватает а-а сворачиваемых папок, чтобы я мог контролировать, какие папки развернуть, чтобы посмотреть, что там внутри, а какие свернуть. И чтоб по умолчанию они все были свёрнутые. Ещё мне надо, чтобы ты, используя свои инструменты просмотра браузера, оценил дизайн и подправил шероховатости.
+
+
+## 2026-05-25T16:55:15+05:00 | agentic-research | turn 019e5efd-2f13-76a0-83c5-0c5f85a7e4db
+
+Давай удалим скилл Имpекаble, который у нас здесь лежит. Он слишком огромный и ненужный.
+
+
+## 2026-05-25T16:58:45+05:00 | agentic-research | turn 019e5ef8-46a1-7a60-85fb-b779c3b15a93
+
+Видишь, у нас все файлы скиллов просто простынёй друг за другом идут, без разделения, где какой скилл.
+
+
+## 2026-05-25T17:27:21+05:00 | agentic-research | turn 019e5f1a-a22e-7632-a636-85ff674d7315
+
+Ну, подумай, как это можно исправить.
+
+
+## 2026-05-25T17:29:54+05:00 | agentic-research | turn 019e5f1c-f832-7c33-b9ec-990695d1f1c5
+
+PLEASE IMPLEMENT THIS PLAN:
+# Fix Collapsible Skill Tree And Stale Sidebar
+
+## Summary
+
+Оставляем текущий путь с Docsify, но добавляем защиту от старого sidebar в браузере и проверку, что дерево больше не регрессирует в “простыню”.
+
+## Key Changes
+
+- В `index.html` добавить явную версию viewer-а, например `VIEWER_VERSION = "2026-05-25-sidebar-tree-1"`.
+- Загружать sidebar через версионированный путь:
+  - `loadSidebar: "/_sidebar.md?v=<VIEWER_VERSION>"`
+  - при необходимости так же версионировать `README.md`, чтобы Docsify не держал старую домашнюю страницу.
+- Добавить маленькое действие обновления каталога в интерфейсе: обычная ссылка/кнопка `Refresh`, которая делает reload с новым query-параметром.
+- В `npm run check` добавить регрессионную проверку sidebar:
+  - есть вложенные группы `Skills -> Codex -> <skill> -> SKILL.md`;
+  - в sidebar нет плоских строк вида `impeccable/reference/...` или `gemini-mcp/SKILL.md`;
+  - все ссылки из sidebar ведут только на whitelisted `docs/:id.md`.
+- Оставить текущую архитектуру: сервер читает живые файлы, Docsify рендерит Markdown, sidebar-collapse отвечает за сворачивание.
+
+## Test Plan
+
+- `npm run check` должен подтвердить whitelist, excludes и nested sidebar shape.
+- Через `curl "http://127.0.0.1:8765/_sidebar.md?v=test"` проверить, что sidebar отдаётся деревом.
+- В браузере открыть `http://127.0.0.1:8765`:
+  - по умолчанию видны только верхние свернутые разделы;
+  - `Skills -> Codex -> 1start-here` раскрывается как папка;
+  - внутри skill-а отдельно видны `SKILL.md`, `references`, `scripts`, `agents`, если они есть;
+  - нет длинной плоской простыни `skill/path/file.md`.
+- Проверить “живость”: изменить внешний тестовый файл, обновить страницу, увидеть новое содержимое.
+- Проверить браузером, что нет console errors и 404.
+
+## Assumptions
+
+- Уже открытая старая вкладка может потребовать один ручной reload после правки; новый код не может выполниться в старой DOM-странице до перезагрузки.
+- Не переписываем Docsify sidebar на кастомный React/Vue-дерево: это дороже и пока не нужно.
+- Whitelist и категории не меняем, исправляем только навигацию, cache-busting и проверку регрессии.
+
+
+## 2026-05-25T18:16:21+05:00 | agentic-research | turn 019e5f47-6b13-7ff1-9ecd-12aadca894a4
+
+Слушай, проанализируй, пожалуйста, нашу глобальную инструкцию. Я её вот сейчас читаю и понимаю то, что это всё вокруг да около основной болезни, которую мы пытаемся реактивно решить. Хотя на самом деле глобальный промт мог бы быть гораздо короче и на шаг глубже, покрывая сразу все проблемы, которые описываются в этом глобальном скилле.
+
+
+## 2026-05-25T18:16:27+05:00 | agentic-research | claude | session d0ae7439
+
+Слушай, проанализируй, пожалуйста, нашу глобальную инструкцию. Я её вот сейчас читаю и понимаю то, что это всё вокруг да около основной болезни, которую мы пытаемся реактивно решить. Хотя на самом деле глобальный промт мог бы быть гораздо короче и на шаг глубже, покрывая сразу все проблемы, которые описываются в этом глобальном скилле.
+
+
+## 2026-05-25T18:19:45+05:00 | agentic-research | claude | session d0ae7439
+
+Давай разберём каждую строчку и попытаемся глубже понять, почему я когда-то добавил эти строки одну за одной.
+
+
+## 2026-05-25T18:20:26+05:00 | agentic-research | turn 019e5f4b-3abb-7d23-9354-9f29da304f89
+
+Давай разберём каждую строчку и попытаемся глубже понять, почему я когда-то добавил эти строки одну за одной.
+
+
+## 2026-05-25T18:21:52+05:00 | agentic-research | turn 019e5f4c-89dd-7ec0-abe0-f08e5e547d96
+
+Хорошо, дай тогда структуру, как ты перепишешь полностью этот файл, опираясь на всё, что мы тут обсудили.
+
+
+## 2026-05-25T18:21:55+05:00 | agentic-research | claude | session d0ae7439
+
+Хорошо, дай тогда структуру, как ты перепишешь полностью этот файл, опираясь на всё, что мы тут обсудили.
+
+
+## 2026-05-25T18:22:34+05:00 | agentic-research | turn 019e5f4d-2efb-7ce3-8de3-5b8924dd1dc6
+
+Давай попробуем прочитать ещё раз, как писать промты для GPT 5.5, чтобы это было более эффективно.
+
+
+## 2026-05-25T18:24:25+05:00 | agentic-research | claude | session d0ae7439
+
+Давай прочитаем, как писать самые эффективные и сильные промты для OpUS 4.7. 
+И держа эту информацию о лучших практиках, перепиши полностью нашу новую сжатую глобальную инструкцию. 
+Используя русский язык, и особое внимание удели обязательности того, чтобы модель понимала, что она всегда работает в папке, где очень много контекста. Прям много раз разными словами критически подтверди важность того, что если я что-то говорю, я это говорю в контексте проекта, а не просто из воздуха. Если я что-то прошу сделать абсолютно логично, из этого следует, что я прошу это сделать, отталкиваясь от целей проекта, а не лично для себя. 
+Супер важно подчеркнуть, что контекст зависит от той папки, в которой я работаю. Очень часто модель ошибалась, отвечая напрямую на мой вопрос, не опираясь на контекст проекта. То есть надо прямо жёстко сказать, чтоб модель всё время использовала инструменты чтения, всё время сомневалась в себе, правильно ли она поняла и читала нужные документы в нужный момент.
+
+
+## 2026-05-25T18:24:41+05:00 | agentic-research | turn 019e5f4f-1d78-7a22-953f-b36e5d8f8687
+
+ держа эту информацию о лучших практиках, перепиши полностью нашу новую сжатую глобальную инструкцию. 
+Используя русский язык, и особое внимание удели обязательности того, чтобы модель понимала, что она всегда работает в папке, где очень много контекста. Прям много раз разными словами критически подтверди важность того, что если я что-то говорю, я это говорю в контексте проекта, а не просто из воздуха. Если я что-то прошу сделать абсолютно логично, из этого следует, что я прошу это сделать, отталкиваясь от целей проекта, а не лично для себя. 
+Супер важно подчеркнуть, что контекст зависит от той папки, в которой я работаю. Очень часто модель ошибалась, отвечая напрямую на мой вопрос, не опираясь на контекст проекта. То есть надо прямо жёстко сказать, чтоб модель всё время использовала инструменты чтения, всё время сомневалась в себе, правильно ли она поняла и читала нужные документы в нужный момент.
+
+
+## 2026-05-25T18:26:03+05:00 | agentic-research | turn 019e5f50-5fb7-7af2-9105-5422a44a1952
+
+Да, давай, сделай, как ты рекомендуешь.
+
+
+## 2026-05-25T18:35:27+05:00 | agentic-research | claude | session d0ae7439
+
+Да, перепиши. Но помни, что это глобальная инструкция, и она должна быть гибкая не только под этот проект конкретный, в котором мы работаем сейчас.
+
+
+## 2026-05-25T19:04:34+05:00 | agentic-research | turn 019e5f73-a140-7c90-8bb7-af35995146e3
+
+Нам надо отредактировать глобальную цель этого проекта. Найди этот файл. 
+Цель этого проекта — построить такую систему скиллов, хуков, промтов, которая бы мне помогала построить такую агентную систему, которая бы всегда меня понимала, была в меру автономна, и мы продуктивно с ней работали.
+
+
+## 2026-05-25T20:10:52+05:00 | agentic-research | turn 019e5fb0-574c-77b0-893a-bb8b66e43fcb
+
+А сможем ли мы перейти на реeact vite? Или какие у этого могут быть проблемы?
+
+
+## 2026-05-25T20:13:38+05:00 | agentic-research | turn 019e5fb2-deda-7171-8654-ad6d5f04590d
+
+Хорошо, но давай тогда подумаем, как нам в текущем решении добавить кнопку « обновить» или перезагрузить.
+
+
+## 2026-05-25T20:16:01+05:00 | agentic-research | turn 019e5fb5-0ec1-72c3-904d-9fb9abdd3b91
+
+Да, давай сделаем так.
+
+
+## 2026-05-25T20:17:14+05:00 | agentic-research | turn 019e5fb6-1aed-7ca2-bf9f-9fb900be0829
+
+Взгляни, пожалуйста, на скилл стратегии так, как будто ты впервые его видишь. Мне кажется, цель этого скилла не совпадает с тем, как он предлагает идти к этой цели. 
+
+Скилл стратегии — это в первую очередь такой скилл, чтобы не принимать первое попавшееся решение. То есть, это скилл выбора линзы профессиональной и релевантной к теме обсуждения, которую мы обсуждаем. Это скилл, который, как обычно делают при думаниях о стратегии разных подходов к задаче. Какой подход самый лучший был бы с учётом контекста, с учётом цели и так далее. То есть в этом же вообще смысл слова стратегия.
+
+
+## 2026-05-25T20:18:40+05:00 | agentic-research | turn 019e5fb7-698c-7e01-83bd-aff1fddbf11f
+
+Взгляни, пожалуйста, на скилл стратегии так, как будто ты впервые его видишь. Мне кажется, цель этого скилла не совпадает с тем, как он предлагает идти к этой цели. 
+
+Скилл стратегии — это в первую очередь такой скилл, чтобы не принимать первое попавшееся решение. То есть, это скилл выбора линзы профессиональной и релевантной к теме обсуждения, которую мы обсуждаем. Это скилл, который, как обычно делают при думаниях о стратегии разных подходов к задаче. Какой подход самый лучший был бы с учётом контекста, с учётом цели и так далее. То есть в этом же вообще смысл слова стратегия.
+
+
+## 2026-05-25T20:24:00+05:00 | agentic-research | turn 019e5fbc-5d89-78c3-8fa5-b884da68f090
+
+Да, отлично. Давай изменим обе версии, как вклоде, так и в Кодексе.
+
+
+## 2026-05-25T20:37:49+05:00 | agentic-research | turn 019e5fc8-f443-7e43-b317-16a5b529c895
+
+Using the current thread context and the diff below, generate a single-line git commit message.
+Write the result into the structured response field message.
+message must contain plain commit-message text only, not JSON, field labels, markdown, or code fences.
+If custom instructions mention formatting, apply them to the commit message text only.
+Make 0 tool calls.
+Rules:
+- Use an imperative verb first.
+- Keep the message under 72 characters.
+- Do not add a scope prefix unless the context already clearly uses one.
+- Do not include markdown, quotes, or trailing punctuation.
+
+Diff context:
+Changes:
+Diff too large to include inline.
+Summary: 8 changed files, +2121/-16 lines.
+
+Testing note: If you mention tests, include unit tests or UI testing frameworks only. Skip lint/tsc since CI runs those.

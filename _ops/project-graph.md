@@ -5,10 +5,12 @@ Central index папочного графа: `depends-on` / `related-when` / `ve
 Owner: `1folder-contract`. Single source of truth о связях папок. Root
 `AGENTS.md` держит только одну строку-ссылку сюда; сам граф здесь.
 
-Контекст. `agentic-research` — полигон для skill / agent / instruction
-авторства под `GPT-5.5` и `Claude Opus 4.7`. Нет production-сервисов, бюджета
-и public commitments; veto-class в локальных папках пуст. Cross-project blast
-(правки глобальной скилл-системы) — отдельный блок ниже.
+Контекст. `agentic-research` — полигон для системы `skills`, hooks, prompts,
+инструкций и рабочих контрактов под `GPT-5.5` и `Claude Opus 4.7`, чтобы
+строить агентную среду с лучшим пониманием контекста, умеренной автономностью
+и продуктивной совместной работой. Нет production-сервисов, бюджета и public
+commitments; veto-class в локальных папках пуст. Cross-project blast (правки
+глобальной скилл-системы) — отдельный блок ниже.
 
 ## Папки (depends-on — read-before-edit)
 
@@ -55,6 +57,10 @@ Owner: `1folder-contract`. Single source of truth о связях папок. Ro
   цитируют как view, не дублируют.
 - `experiments/flowpage-v4-elk/` depends-on локальный
   `experiments/flowpage-v4-elk/AGENTS.md`.
+- `experiments/global-agent-surface-viewer/` depends-on global read-only
+  surfaces `~/.codex/{skills,hooks,agents,AGENTS.md,config.toml}`,
+  `~/.claude/{skills,hooks,agents,CLAUDE.md,settings*.json}` and
+  `~/.agents/skills/`; contents are viewed live, not copied into the repo.
 - `experiments/all-my-messages/*.md` depends-on
   `/Users/triton/.codex/hooks/user_prompt_all_messages.py` — global per-project
   human-thread prompt analytics logs, не `1user-said` и не source of truth для

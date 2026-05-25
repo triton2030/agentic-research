@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Global Agent Surface Viewer</title>
+    <link rel="stylesheet" href="/theme.css" />
+    <link rel="stylesheet" href="/vendor/sidebar-collapse/dist/sidebar-folder.min.css" />
+    <style>
+      :root {
+        --theme-color: #2f6feb;
+        --sidebar-width: 24rem;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-size: 15px;
+      }
+
+      code,
+      pre {
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      }
+
+      .sidebar {
+        border-right: 1px solid #e5e7eb;
+      }
+
+      .sidebar-nav {
+        padding-right: 10px;
+      }
+
+      .sidebar-nav ul:not(.app-sub-sidebar) > li {
+        margin-left: 2px;
+      }
+
+      .sidebar-nav li {
+        line-height: 1.55;
+      }
+
+      .sidebar-nav > ul > li {
+        margin-top: 8px;
+      }
+
+      .sidebar-nav a {
+        overflow-wrap: anywhere;
+      }
+
+      .sidebar-nav strong,
+      .sidebar-nav > ul > li > p,
+      .sidebar-nav > ul > li > span {
+        color: #111827;
+        font-weight: 650;
+      }
+
+      .markdown-section {
+        max-width: 1100px;
+        padding-top: 48px;
+      }
+
+      .markdown-section pre {
+        overflow: auto;
+        border-radius: 6px;
+      }
+
+      .app-name-link img {
+        max-width: 24px;
+      }
+
+      .viewer-refresh {
+        display: block;
+        width: calc(100% - 24px);
+        margin: 0 12px 12px;
+        padding: 4px 9px;
+        border: 1px solid #d1d5db;
+        border-radius: 4px;
+        background: #fff;
+        color: #374151;
+        font: inherit;
+        font-size: 13px;
+        cursor: pointer;
+      }
+
+      .viewer-refresh:hover {
+        border-color: #9ca3af;
+        color: #111827;
+      }
+
+      .sidebar .app-name {
+        margin-bottom: 10px;
+      }
+
+      @media (min-width: 769px) {
+        .sidebar-toggle {
+          display: none;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .markdown-section {
+          padding-top: 32px;
+        }
+
+        .viewer-refresh {
+          margin-bottom: 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">Loading global agent surfaces...</div>
+    <script>
+      const VIEWER_VERSION = '2026-05-25-sidebar-tree-1';
+      const VIEWER_VERSION_STORAGE_KEY = 'global-agent-surface-viewer-version';
+
+      window.__GLOBAL_AGENT_SURFACE_VIEWER_VERSION__ = VIEWER_VERSION;
+
+      function versioned(path) {
+        const separator = path.includes('?') ? '&' : '?';
+        return `${path}${separator}viewer=${encodeURIComponent(VIEWER_VERSION)}`;
+      }
+
+      function reloadCatalog() {
+        const url = new URL(window.location.href);
+        url.searchParams.set('viewer', VIEWER_VERSION);
+        url.searchParams.set('refresh', Date.now().toString(36));
+        window.location.assign(url.toString());
+      }
+
+      function mountRefreshButton() {
+        const sidebar = document.querySelector('.sidebar');
+        const sidebarNav = document.querySelector('.sidebar-nav');
+
+        if (!sidebar || !sidebarNav || document.getElementById('refresh-catalog')) {
+          return;
+        }
+
+        const refreshButton = document.createElement('button');
+        refreshButton.id = 'refresh-catalog';
+        refreshButton.className = 'viewer-refresh';
+        refreshButton.type = 'button';
+        refreshButton.textContent = 'Обновить';
+        refreshButton.title = 'Перечитать каталог и текущий файл';
+        refreshButton.addEventListener('click', reloadCatalog);
+
+        sidebar.insertBefore(refreshButton, sidebarNav);
+      }
+
+      try {
+        const previousVersion = window.localStorage.getItem(VIEWER_VERSION_STORAGE_KEY);
+        window.localStorage.setItem(VIEWER_VERSION_STORAGE_KEY, VIEWER_VERSION);
+        const url = new URL(window.location.href);
+
+        if (previousVersion && previousVersion !== VIEWER_VERSION && url.searchParams.get('viewer') !== VIEWER_VERSION) {
+          url.searchParams.set('viewer', VIEWER_VERSION);
+          window.location.replace(url.toString());
+        }
+      } catch {
+        // localStorage can be unavailable in strict browser modes.
+      }
+
+      window.$docsify = {
+        name: 'Global Agent Surface Viewer',
+        homepage: versioned('/README.md'),
+        loadSidebar: versioned('_sidebar.md'),
+        alias: {
+          '/.*/_sidebar\\.md(\\?.*)?': '/_sidebar.md$1'
+        },
+        maxLevel: 3,
+        subMaxLevel: 2,
+        sidebarDisplayLevel: 0,
+        requestHeaders: {
+          'cache-control': 'no-cache'
+        },
+        auto2top: true,
+        executeScript: false,
+        noEmoji: true,
+        plugins: [
+          function refreshPlugin(hook) {
+            hook.mounted(mountRefreshButton);
+            hook.doneEach(mountRefreshButton);
+          }
+        ]
+      };
+    </script>
+    <script src="/vendor/docsify/dist/docsify.min.js"></script>
+    <script src="/vendor/prism/components/prism-markup.min.js"></script>
+    <script src="/vendor/prism/components/prism-markdown.min.js"></script>
+    <script src="/vendor/sidebar-collapse/dist/docsify-sidebar-collapse.min.js"></script>
+  </body>
+</html>

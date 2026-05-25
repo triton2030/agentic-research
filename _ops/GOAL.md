@@ -2,15 +2,22 @@
 
 ## Что делаем
 
-Создаём полигон знаний, критериев и рабочих контрактов, который помогает
-будущей ИИ-сессии проектировать и улучшать skills, agents, prompts и
-instruction files под `GPT-5.5` и `Claude Opus 4.7`.
+Строим систему `skills`, hooks, prompts, инструкций, знаний и рабочих
+контрактов, которая помогает мне создавать агентную среду, способную стабильно
+понимать мой контекст и намерение, действовать в меру автономно и продуктивно
+работать со мной.
+
+Практический фокус проекта — полигон под `GPT-5.5` и `Claude Opus 4.7`: здесь
+мы проверяем, улучшаем и связываем skills, agents, hooks, prompts, instruction
+files, owner-модели, guardrails и критерии так, чтобы будущая ИИ-сессия не
+писала из общего знания, а опиралась на локальную правду и нужный уровень
+автономности.
 
 ## In scope
 
 - Собирать и поддерживать `knowledge/`: wisdom, guides, practical guides,
   examples и research для агентных систем.
-- Улучшать skill contracts, instruction files, routing, prompt-подходы,
+- Улучшать skill contracts, instruction files, routing, prompt-подходы, hooks,
   guardrails и owner-модели.
 - Использовать `_ops/user-said/YYYY-MM-DD.md` как сырой capture важных цитат
   пользователя; обработка цитат manual, отдельным проходом.
@@ -36,8 +43,8 @@ instruction files под `GPT-5.5` и `Claude Opus 4.7`.
 
 ## Definition of done
 
-- Новая ИИ-сессия без устного контекста понимает контракт проекта, текущий
-  режим и нужный owner-маршрут.
+- Новая ИИ-сессия без устного контекста восстанавливает контракт проекта,
+  текущий режим, локальный owner-маршрут и ожидаемый уровень автономности.
 - `README.md`, `_ops/GOAL.md`, `_ops/PROJECT-ROADMAP.md`,
   `_ops/project-graph.md` и живые skills не дублируют source of truth друг друга.
 - Старые model-neutral или process-heavy советы либо удалены, либо сужены, либо
