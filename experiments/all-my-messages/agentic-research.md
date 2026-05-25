@@ -2907,3 +2907,13 @@ Diff too large to include inline.
 Summary: 8 changed files, +2121/-16 lines.
 
 Testing note: If you mention tests, include unit tests or UI testing frameworks only. Skip lint/tsc since CI runs those.
+
+
+## 2026-05-25T20:44:10+05:00 | agentic-research | claude | session e66a3f23
+
+Слушай, у нас должен был Быть хук, который в конце работы анализирует изменённые файлы, смотрит их граф зависимостей и показывает, какие файлы были изменены и какие у них были связи, которые надо по скиллу графа проверить.
+
+
+## 2026-05-25T20:58:39+05:00 | agentic-research | turn 019e5fdc-134c-76c3-87e5-3f51b79ffc41
+
+Слушай, я использую гитхаб как Google Drive, просто как сохранить на компе и в облаке одинаковые версии. Я работаю один. Гитхаб мне не нужен. Поэтому давай просто вчистую запушим, удалим всякие ненужные ворк-три, ветки и так далее.
