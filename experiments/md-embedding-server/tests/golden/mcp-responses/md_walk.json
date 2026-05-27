@@ -1,0 +1,74 @@
+{
+  "tool": "md_walk",
+  "canonical_args": {
+    "path": "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server/tests/fixtures/sample-corpus/README.md",
+    "anchor": "Rule",
+    "scan": "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server/tests/fixtures/sample-corpus",
+    "depth": 1,
+    "token_budget": 3000
+  },
+  "is_error": false,
+  "payload": {
+    "command": "walk",
+    "path": "README.md",
+    "anchor": "Rule",
+    "scan_root": "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server/tests/fixtures/sample-corpus",
+    "depth": 1,
+    "token_budget": 3000,
+    "chain": [
+      {
+        "step": 0,
+        "path": "README.md",
+        "anchor": "Rule",
+        "content": "## Rule\n\nThe selftest fixture is small and safe to copy.",
+        "tokens": 14
+      }
+    ],
+    "text": "<!-- md-walk step=0 path=\"README.md\" anchor=\"Rule\" -->\n## Rule\n\nThe selftest fixture is small and safe to copy.",
+    "stats": {
+      "stopped_reason": "no_anchored_outlink",
+      "blocks": 1,
+      "links_followed": 0,
+      "token_total": 14,
+      "skipped_bare_wikilinks": 0
+    },
+    "_envelope": {
+      "version": 1,
+      "tool": "md_walk",
+      "corpus_root": "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server/tests/fixtures/sample-corpus",
+      "corpus_state": {
+        "state": "NO_INDEX",
+        "model": "baai/bge-m3",
+        "index_exists": false,
+        "last_touched": null,
+        "added_sections": 6,
+        "removed_sections": 0,
+        "pending_chunks": 6,
+        "drift_count": 0,
+        "metadata_mismatch": false,
+        "delta_too_large": false,
+        "recommended_action": {
+          "tool": "md_index",
+          "args": {
+            "corpus": "/Users/triton/Documents/GitHub/agentic-research",
+            "dry_run": true,
+            "path_include": [
+              "experiments/md-embedding-server/tests/fixtures/sample-corpus/**"
+            ]
+          },
+          "reason": "Index does not exist; dry-run warmup before search."
+        }
+      },
+      "lock": null,
+      "cost": {
+        "turn_usd": 0.0,
+        "session_usd": 0.0
+      },
+      "size_estimate": {
+        "bytes": 631,
+        "items_returned": 0
+      },
+      "next_step": []
+    }
+  }
+}

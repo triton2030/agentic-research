@@ -34,6 +34,27 @@ transactions и JSON output.
 - Mutating или cost-bearing операции используют существующие dry-run/confirm и
   transaction patterns; не создавай параллельный safety-механизм.
 
+## `md walk`
+
+- `md walk` — focused reading поверх wikilinks, не semantic search и не
+  `read-related`. Его используют после того, как уже выбран конкретный
+  Markdown-файл и heading anchor.
+- Каноническая команда:
+  `md walk PATH --anchor "HEADING" --scan ROOT --depth 3 --token-budget 3000 --json`.
+- Алгоритм читает только тело текущей heading-bounded секции, берёт первую
+  anchored wikilink в порядке текста и идёт по ней дальше. Same-file anchors
+  `[[#Heading]]` считаются обычным следующим блоком.
+- Bare wikilinks без `#anchor` не раскрываются: tool пропускает их и считает в
+  `stats.skipped_bare_wikilinks`. `no_anchored_outlink` означает конец цепочки
+  или недостаточно точные ссылки, а не доказательство, что темы нет.
+- Output держит два слоя: `chain` для структурного разбора и `text` как один
+  attributed packet с маркерами источника. Не убирай source markers без замены
+  на другой явный attribution.
+- Если меняешь семантику `md walk`, обнови вместе `src/navigator/walk.py`,
+  `src/md_cli/catalog.py`, selftest smoke command, snapshots/docs и ручной
+  пример на реальном corpus. Не добавляй embeddings в `walk`: сходство блоков
+  остаётся задачей `search-read` / future separate signal.
+
 ## Проверки
 
 Default gates живут в `README.md`. Если пользователь явно просит пропустить

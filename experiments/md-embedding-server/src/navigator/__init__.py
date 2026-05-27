@@ -58,6 +58,7 @@ from .api import (
     status,
     strip,
     toc,
+    walk,
 )
 from . import workflows
 
@@ -89,6 +90,7 @@ __all__ = [
     "status",
     "strip",
     "toc",
+    "walk",
     "workflows",
 ]
 
