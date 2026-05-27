@@ -14,6 +14,9 @@ Phase 2 can start only when the lock tests are green.
   executable invariant is the catalog/snapshot test, not a hand-maintained
   prose count. Runtime import must not patch `ToolSpec` values; cleanup and
   fingerprint fields belong in the generated snapshot/source data.
+- `catalog.py` input schemas are the only source for generated CLI `--help`
+  descriptions. Every public `input_schema.properties.*` entry must have a
+  non-empty `description`; `md_cli.main` must not keep fallback help tables.
 - `md_cli.handlers.*` modules return `ToolResult`; they do not print JSON, call
   `sys.exit`, or import `md_cli.envelope`.
 - `md_cli.runner` is the only owner of `envelope.wrap` and `print(json.dumps)`.
@@ -26,6 +29,10 @@ Phase 2 can start only when the lock tests are green.
 - `navigator.status_core` owns status facts/state/deltas and config merge;
   `navigator.status_render` owns human text; `navigator.index_status` is a
   legacy adapter only and must not re-export private core helpers.
+- `navigator.index_guidance` owns agent-facing index warmup command strings:
+  dry-run, confirm and scoped re-run examples. Human guidance must preserve
+  parent-corpus scope plus `path_include` / `path_exclude`; do not hand-build
+  parallel `md index ...` strings in feature modules.
 - `navigator.workflows.*` imports only navigator/library code, never `md_cli`,
   `subprocess`, or serialization.
 - `navigator.*` library modules do not import `md_cli`.

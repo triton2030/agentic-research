@@ -90,8 +90,9 @@ sentinel-before-apply (finding #18) — `restore_transaction_claim` в
 `transactions.py`, exit-code-aware finish в `_generic.py:138-140`;
 `cycles_count: int` additive в `health_report` для UX однородности с
 counter-полями; default-excludes документированы в `md changed --help`;
-`envelope.derive_next_step` выдаёт `truncation_hint` для large reply
-(лечит #4/#6/#7 одной точкой); `md impact --help` объясняет
+`envelope.derive_next_step` выдаёт narrowing `next_step` для large reply
+(лечит #4/#6/#7 одной точкой без запроса большего текста);
+`md impact --help` объясняет
 `cascade_breaks` vs `reference_breaks` vs `body_wikilink_refs` vs
 `body_markdown_refs`; новая секция `## Schema Vocabulary` в
 `cli-conventions.md` фиксирует reverse-relationship словарь и

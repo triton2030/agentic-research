@@ -1,3 +1,8 @@
+---
+description: "Skill workflow equivalence map for MCP-to-CLI migration and live skill docs."
+read-before-edit: []
+edit-after-edit: []
+---
 # Skills Semantic Equivalence
 
 Task-003 reference: MCP -> CLI migration must preserve each affected skill pattern.
@@ -14,6 +19,9 @@ Source inputs:
 - `_envelope` shape stays stable; only invocation syntax changes.
 - Mutating/cost-bearing tools use dry-run first and do not receive runnable confirm directives until a transaction token exists. Gated CLI signatures include `--transaction-id`; migrated skills must not say bare `--confirm`.
 - Path filters become repeated `--path-include` / `--path-exclude` flags.
+- When `_envelope.corpus_state.recommended_action` or `_envelope.next_step[]`
+  provides args, migrated skills must preserve them as-is. This keeps
+  parent-corpus and path-filter scope intact for nested corpus repairs.
 - Enum lists such as `types` may use comma-separated CLI values.
 - Legacy helper names such as `md_navigator.py`, `md_graph.py`, `md_navigator` and `md_graph` are not MCP tools. Do not auto-map them to the nearest `md <subcommand>`; each skill section must choose an explicit replacement or keep the helper as a legacy debug fallback.
 
@@ -34,10 +42,10 @@ Source inputs:
 | `md_read_related` | 4 | `md read-related --paths PATHS [--scan SCAN] [--include INCLUDE] [--mode MODE] [--anchor-aware] [--token-budget TOKEN_BUDGET] [--semantic-radius SEMANTIC_RADIUS] [--check-links] [--link-distance-threshold LINK_DISTANCE_THRESHOLD] [--expanded] --json` |
 | `md_extract` | 4 | `md extract --map-data MAP_DATA [--files FILES] [--headings HEADINGS] [--extract] [--token-budget TOKEN_BUDGET] --json` |
 | `md_corpus_scan` | 3 | `md corpus-scan [ROOT] --json` |
-| `md_index` | 2 | `md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
-| `md_init` | 2 | `md init [--paths PATHS] [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
-| `md_strip` | 2 | `md strip [--paths PATHS] [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--also-related-section] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
-| `md_profile_sections` | 2 | `md profile-sections CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--limit LIMIT] [--force] [--mode MODE] [--model MODEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
+| `md_index` | 2 | `md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--allow-nested-corpus] --json` |
+| `md_init` | 2 | `md init [--paths PATHS] [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
+| `md_strip` | 2 | `md strip [--paths PATHS] [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--also-related-section] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
+| `md_profile_sections` | 2 | `md profile-sections CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--limit LIMIT] [--force] [--mode MODE] [--model MODEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | `md_edit_context` | 2 | `md edit-context PATH [--mode MODE] [--scan SCAN] [--depth DEPTH] [--query QUERY] [CORPUS] [--expanded] --json` |
 | `md_repeated_concepts` | 2 | `md repeated-concepts CORPUS [--threshold THRESHOLD] [--top TOP] [--min-files MIN_FILES] [--min-sections MIN_SECTIONS] [--min-tokens MIN_TOKENS] [--top-members TOP_MEMBERS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--expanded] --json` |
 | `md_health` | 2 | `md health [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
@@ -50,10 +58,10 @@ Legacy helper names also found, not MCP tools: `md_navigator` (4).
 
 **CLI invocations после migration**:
 
-- `md_index` -> `md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
-- `md_init` -> `md init [--paths PATHS] [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
-- `md_strip` -> `md strip [--paths PATHS] [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--also-related-section] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
-- `md_profile_sections` -> `md profile-sections CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--limit LIMIT] [--force] [--mode MODE] [--model MODEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
+- `md_index` -> `md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--allow-nested-corpus] --json`
+- `md_init` -> `md init [--paths PATHS] [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
+- `md_strip` -> `md strip [--paths PATHS] [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--also-related-section] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
+- `md_profile_sections` -> `md profile-sections CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--limit LIMIT] [--force] [--mode MODE] [--model MODEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
 - `md_orient` -> `md orient CORPUS [--max-heading-level MAX_HEADING_LEVEL] [--top TOP] [--compact] [--expanded] --json`
 - `md_corpus_scan` -> `md corpus-scan [ROOT] --json`
 - `md_audit` -> `md audit CORPUS [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--expanded] --json`
@@ -109,12 +117,12 @@ Legacy helper names also found, not MCP tools: `md_navigator` (4).
 | `md_check` | 7 | `md check [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | `md_deps` | 7 | `md deps PATH [--scan SCAN] [--depth DEPTH] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | `md_changed` | 7 | `md changed [--scan SCAN] [--depth DEPTH] [--base BASE] [--since SINCE] [--staged] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
-| `md_strip` | 6 | `md strip [--paths PATHS] [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--also-related-section] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
+| `md_strip` | 6 | `md strip [--paths PATHS] [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--also-related-section] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | `md_section_blast_radius` | 6 | `md section-blast-radius PATH CORPUS --query QUERY [--heading-id HEADING_ID] [--scan SCAN] [--depth DEPTH] [--limit LIMIT] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | `md_cycles` | 5 | `md cycles [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | `md_scan` | 5 | `md scan [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | `md_health` | 5 | `md health [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
-| `md_init` | 4 | `md init [--paths PATHS] [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
+| `md_init` | 4 | `md init [--paths PATHS] [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | `md_edit_context` | 4 | `md edit-context PATH [--mode MODE] [--scan SCAN] [--depth DEPTH] [--query QUERY] [CORPUS] [--expanded] --json` |
 | `md_search` | 2 | `md search CORPUS --query QUERY [--scope SCOPE] [--limit LIMIT] [--candidates CANDIDATES] [--max-heading-level MAX_HEADING_LEVEL] [--rerank] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | `md_read_related` | 2 | `md read-related --paths PATHS [--scan SCAN] [--include INCLUDE] [--mode MODE] [--anchor-aware] [--token-budget TOKEN_BUDGET] [--semantic-radius SEMANTIC_RADIUS] [--check-links] [--link-distance-threshold LINK_DISTANCE_THRESHOLD] [--expanded] --json` |
@@ -128,8 +136,8 @@ Legacy helper names also found, not MCP tools: `md_graph` (3).
 - `md_cycles` -> `md cycles [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
 - `md_scan` -> `md scan [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
 - `md_health` -> `md health [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
-- `md_init` -> `md init [--paths PATHS] [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
-- `md_strip` -> `md strip [--paths PATHS] [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--also-related-section] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
+- `md_init` -> `md init [--paths PATHS] [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
+- `md_strip` -> `md strip [--paths PATHS] [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--also-related-section] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
 - `md_edit_context` -> `md edit-context PATH [--mode MODE] [--scan SCAN] [--depth DEPTH] [--query QUERY] [CORPUS] [--expanded] --json`
 - `md_search` -> `md search CORPUS --query QUERY [--scope SCOPE] [--limit LIMIT] [--candidates CANDIDATES] [--max-heading-level MAX_HEADING_LEVEL] [--rerank] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
 - `md_section_blast_radius` -> `md section-blast-radius PATH CORPUS --query QUERY [--heading-id HEADING_ID] [--scan SCAN] [--depth DEPTH] [--limit LIMIT] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
@@ -444,7 +452,7 @@ Legacy helper names also found, not MCP tools: `md_graph` (3).
 | `md_impact` | 3 | `md impact PATH [--scan SCAN] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | `md_overlaps` | 2 | `md overlaps CORPUS [--threshold THRESHOLD] [--top TOP] [--min-tokens MIN_TOKENS] [--include-same-file] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--expanded] --json` |
 | `md_health` | 2 | `md health [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
-| `md_index` | 1 | `md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
+| `md_index` | 1 | `md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--allow-nested-corpus] --json` |
 | `md_scan` | 1 | `md scan [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | `md_preflight` | 1 | `md preflight PATH [--scan SCAN] [--depth DEPTH] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 
@@ -458,7 +466,7 @@ Legacy helper names also found, not MCP tools: `md_graph` (3).
 - `md_cycles` -> `md cycles [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
 - `md_health` -> `md health [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
 - `md_check` -> `md check [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
-- `md_index` -> `md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
+- `md_index` -> `md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--allow-nested-corpus] --json`
 - `md_scan` -> `md scan [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
 - `md_impact` -> `md impact PATH [--scan SCAN] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
 - `md_preflight` -> `md preflight PATH [--scan SCAN] [--depth DEPTH] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
@@ -498,7 +506,7 @@ Legacy helper names also found, not MCP tools: `md_graph` (3).
 | `md_search` | 9 | `md search CORPUS --query QUERY [--scope SCOPE] [--limit LIMIT] [--candidates CANDIDATES] [--max-heading-level MAX_HEADING_LEVEL] [--rerank] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | `md_overlaps` | 3 | `md overlaps CORPUS [--threshold THRESHOLD] [--top TOP] [--min-tokens MIN_TOKENS] [--include-same-file] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--expanded] --json` |
 | `md_read_related` | 1 | `md read-related --paths PATHS [--scan SCAN] [--include INCLUDE] [--mode MODE] [--anchor-aware] [--token-budget TOKEN_BUDGET] [--semantic-radius SEMANTIC_RADIUS] [--check-links] [--link-distance-threshold LINK_DISTANCE_THRESHOLD] [--expanded] --json` |
-| `md_index` | 1 | `md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
+| `md_index` | 1 | `md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--allow-nested-corpus] --json` |
 
 Legacy helper names also found, not MCP tools: `md_navigator` (1).
 
@@ -507,7 +515,7 @@ Legacy helper names also found, not MCP tools: `md_navigator` (1).
 - `md_overlaps` -> `md overlaps CORPUS [--threshold THRESHOLD] [--top TOP] [--min-tokens MIN_TOKENS] [--include-same-file] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--expanded] --json`
 - `md_read_related` -> `md read-related --paths PATHS [--scan SCAN] [--include INCLUDE] [--mode MODE] [--anchor-aware] [--token-budget TOKEN_BUDGET] [--semantic-radius SEMANTIC_RADIUS] [--check-links] [--link-distance-threshold LINK_DISTANCE_THRESHOLD] [--expanded] --json`
 - `md_search` -> `md search CORPUS --query QUERY [--scope SCOPE] [--limit LIMIT] [--candidates CANDIDATES] [--max-heading-level MAX_HEADING_LEVEL] [--rerank] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
-- `md_index` -> `md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
+- `md_index` -> `md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--allow-nested-corpus] --json`
 - Legacy helper references are not auto-rewritten; each skill section must either name an explicit CLI replacement or keep the helper as a legacy debug fallback/historical reference.
 
 **Semantic patterns preserved**:
@@ -547,7 +555,7 @@ Legacy helper names also found, not MCP tools: `md_navigator` (1).
 | `md_health` | 4 | `md health [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | `md_changed` | 3 | `md changed [--scan SCAN] [--depth DEPTH] [--base BASE] [--since SINCE] [--staged] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | `md_status` | 3 | `md status CORPUS [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
-| `md_index` | 3 | `md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
+| `md_index` | 3 | `md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--allow-nested-corpus] --json` |
 | `md_edit_context` | 2 | `md edit-context PATH [--mode MODE] [--scan SCAN] [--depth DEPTH] [--query QUERY] [CORPUS] [--expanded] --json` |
 | `md_search` | 2 | `md search CORPUS --query QUERY [--scope SCOPE] [--limit LIMIT] [--candidates CANDIDATES] [--max-heading-level MAX_HEADING_LEVEL] [--rerank] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | `md_extract` | 2 | `md extract --map-data MAP_DATA [--files FILES] [--headings HEADINGS] [--extract] [--token-budget TOKEN_BUDGET] --json` |
@@ -572,7 +580,7 @@ Legacy helper names also found, not MCP tools: `md_navigator` (1).
 - `md_impact` -> `md impact PATH [--scan SCAN] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
 - `md_read_related` -> `md read-related --paths PATHS [--scan SCAN] [--include INCLUDE] [--mode MODE] [--anchor-aware] [--token-budget TOKEN_BUDGET] [--semantic-radius SEMANTIC_RADIUS] [--check-links] [--link-distance-threshold LINK_DISTANCE_THRESHOLD] [--expanded] --json`
 - `md_status` -> `md status CORPUS [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
-- `md_index` -> `md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
+- `md_index` -> `md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--allow-nested-corpus] --json`
 
 **Semantic patterns preserved**:
 
@@ -607,7 +615,7 @@ Legacy helper names also found, not MCP tools: `md_navigator` (1).
 
 | Tool | Hits | Representative CLI equivalent |
 |---|---:|---|
-| `md_index` | 3 | `md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
+| `md_index` | 3 | `md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--allow-nested-corpus] --json` |
 | `md_search` | 3 | `md search CORPUS --query QUERY [--scope SCOPE] [--limit LIMIT] [--candidates CANDIDATES] [--max-heading-level MAX_HEADING_LEVEL] [--rerank] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | `md_overlaps` | 3 | `md overlaps CORPUS [--threshold THRESHOLD] [--top TOP] [--min-tokens MIN_TOKENS] [--include-same-file] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--expanded] --json` |
 
@@ -615,7 +623,7 @@ Legacy helper names also found, not MCP tools: `md_navigator` (1).
 
 **CLI invocations после migration**:
 
-- `md_index` -> `md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
+- `md_index` -> `md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--allow-nested-corpus] --json`
 - `md_search` -> `md search CORPUS --query QUERY [--scope SCOPE] [--limit LIMIT] [--candidates CANDIDATES] [--max-heading-level MAX_HEADING_LEVEL] [--rerank] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
 - `md_overlaps` -> `md overlaps CORPUS [--threshold THRESHOLD] [--top TOP] [--min-tokens MIN_TOKENS] [--include-same-file] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--expanded] --json`
 - Legacy helper references are not auto-rewritten; each skill section must either name an explicit CLI replacement or keep the helper as a legacy debug fallback/historical reference.
@@ -652,7 +660,7 @@ Legacy helper names also found, not MCP tools: `md_navigator` (1).
 
 | Tool | Hits | Representative CLI equivalent |
 |---|---:|---|
-| `md_index` | 6 | `md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
+| `md_index` | 6 | `md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--allow-nested-corpus] --json` |
 | `md_search` | 2 | `md search CORPUS --query QUERY [--scope SCOPE] [--limit LIMIT] [--candidates CANDIDATES] [--max-heading-level MAX_HEADING_LEVEL] [--rerank] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | `md_overlaps` | 2 | `md overlaps CORPUS [--threshold THRESHOLD] [--top TOP] [--min-tokens MIN_TOKENS] [--include-same-file] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--expanded] --json` |
 | `md_audit` | 2 | `md audit CORPUS [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--expanded] --json` |
@@ -662,7 +670,7 @@ Legacy helper names also found, not MCP tools: `md_navigator` (4).
 **CLI invocations после migration**:
 
 - `md_search` -> `md search CORPUS --query QUERY [--scope SCOPE] [--limit LIMIT] [--candidates CANDIDATES] [--max-heading-level MAX_HEADING_LEVEL] [--rerank] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
-- `md_index` -> `md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
+- `md_index` -> `md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--allow-nested-corpus] --json`
 - `md_overlaps` -> `md overlaps CORPUS [--threshold THRESHOLD] [--top TOP] [--min-tokens MIN_TOKENS] [--include-same-file] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--expanded] --json`
 - `md_audit` -> `md audit CORPUS [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--expanded] --json`
 - Legacy helper references are not auto-rewritten; each skill section must either name an explicit CLI replacement or keep the helper as a legacy debug fallback/historical reference.

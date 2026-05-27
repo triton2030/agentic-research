@@ -1,3 +1,10 @@
+---
+description: "Overview and development workflow for md-tools, the agent-facing Markdown CLI."
+read-before-edit:
+  - "[[docs/architecture-lock.md]]"
+  - "[[docs/cli-conventions.md]]"
+edit-after-edit: []
+---
 # md-tools
 
 Unified Markdown CLI used by both the Claude and Codex `1md-navigator` /
@@ -61,7 +68,7 @@ Choose the cheapest gate by change type:
 | Change | Required check |
 |---|---|
 | Python parser/helper/search/profile/graph code | `experiments/md-embedding-server/scripts/run-tests.sh` |
-| New or changed CLI command/catalog/envelope | `experiments/md-embedding-server/scripts/run-tests.sh` + `cd experiments/md-embedding-server && uv run md tools --json` |
+| New or changed CLI command/catalog/envelope | `experiments/md-embedding-server/scripts/run-tests.sh` + `cd experiments/md-embedding-server && uv run md tools --json` + regenerated snapshots/catalogs |
 | New or changed workflow/handler behavior | `cd experiments/md-embedding-server && uv run md selftest --json` |
 | `md audit` behavior | targeted pytest + manual `md audit CORPUS --json` on a bounded corpus |
 | Runtime `SKILL.md` workflow text | `python3 experiments/md-embedding-server/scripts/sync-skill-docs.py --check` if Claude/Codex sync is in scope |
@@ -175,14 +182,18 @@ Checklist:
    contract. Stable contracts get a schema in `navigator/schemas.py`; debug
    JSON must be documented as debug-only.
 4. Ensure the command is registered in `src/md_cli/catalog.py`; the test suite
-   catches catalog/signature drift.
+   catches catalog/signature drift. Every public input property needs a
+   non-empty schema `description`, because `md --help` reads catalog schema
+   descriptions directly and has no fallback help table.
 5. Add tests close to the changed layer: pure helper tests, command smoke, and
    schema/manifest contract tests when applicable.
    Path-filter helpers should accept repeated/list values, generators and a
    single string without treating the string as characters.
-6. Update this README and regenerate installed catalogs with
-   `python3 experiments/md-embedding-server/scripts/sync-skill-docs.py --regenerate`
-   if agent-facing descriptions changed.
+6. If catalog signatures or descriptions changed, regenerate mirrors:
+   `docs/tool-signatures-snapshot.json`,
+   `tests/golden/mcp-tool-snapshot.json`, and installed tool catalogs with
+   `python3 experiments/md-embedding-server/scripts/sync-skill-docs.py --regenerate`.
+   Do not hand-edit generated skill `references/tool-catalog.md`.
 
 ## Persistent index
 

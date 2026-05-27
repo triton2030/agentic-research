@@ -14,6 +14,12 @@ normal output is a map/preview (`expanded=False`, `content_included=False`);
 full bodies or full evidence require `expanded=True` or legacy `mode="full"`
 where the mode already existed.
 
+Status and warmup payloads expose the next safe action as structured data:
+`recommended_action` inside status/corpus state, and `suggested_index_args` /
+`suggested_retry_args` on warmup errors. Callers should preserve those args
+as-is, especially when a child corpus is served by an indexed parent via
+translated `path_include` / `path_exclude`.
+
 The package root also exposes the same callable names (`navigator.search`,
 `navigator.preflight`, etc.). Because old tests and scripts still import
 modules like `navigator.search`, the root uses callable module proxies during

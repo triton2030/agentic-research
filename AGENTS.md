@@ -264,19 +264,20 @@ folder-system contract — не уровни планирования. В Codex 
   `agents/openai.yaml` опциональны. `agents/openai.yaml` использовать как
   metadata/policy/dependencies surface, а не как обязательный файл каждого
   скилла.
-- По умолчанию используй `$1md-navigator` перед чтением папки или выбором
-  между несколькими `.md` файлами/секциями. `map`, `headings` и `read-related`
-  дают меню по `description`, заголовкам, ссылкам и объёму, чтобы агент быстрее
-  находил owner, читал точные фрагменты и не забивал контекст шумом.
+- По умолчанию используй `$1md-navigator` как search-skill перед чтением папки
+  или выбором между несколькими `.md` файлами/секциями: он находит owner,
+  тему, секцию и targets. Компактное чтение выбранных `description`,
+  заголовков, секций, `read-related` и `walk` идёт через `$1md-reader`.
 - `$1md-navigator` теперь использует `baai/bge-m3` как глобальный default
   и **sticky** model из index meta (когда `--embed-model` не передан —
   читает recorded из meta). Существующие индексы не пересоздаются на
   default. Подробности и A/B evidence:
   `_ops/findings/_archive/2026-05-18-md-navigator-bm25-russian-stemming.md`.
-- Если один `.md` файл очевиден, читай напрямую. После выбора цели проверки
-  graph/frontmatter/related-docs/dependency-radius идут через `$1md-graph`;
-  смысл файла остаётся за owner: `1planning`, `1user-said`,
-  `1strategy-docs`, `knowledge/` или скиллом.
+- Если один короткий `.md` файл очевиден, читай напрямую. Если выбранный scope
+  шире одного файла или нужны related sections, используй `$1md-reader`. После
+  выбора цели проверки graph/frontmatter/related-docs/dependency-radius идут
+  через `$1md-graph`; смысл файла остаётся за owner: `1planning`,
+  `1user-said`, `1strategy-docs`, `knowledge/` или скиллом.
 - `1step-back` — dialog-time framing и один короткий zoom-out/reframe ход.
 - Codex-only `1fresh-eyes` — когда пользователь явно хочет свежие глаза,
   независимую проверку, субагентов, параллельную проверку или совет ролей.

@@ -32,6 +32,23 @@ Example: `md search knowledge "skill contract" --limit 3 --json`.
 Edge case: `md tools --json` also goes through the runner; the handler returns
 `ToolResult`, not raw JSON.
 
+## Help Text
+
+Decision: `src/md_cli/catalog.py` is the only source for agent-facing argument
+help. Each public `input_schema.properties.*` entry carries a non-empty
+`description`; `md_cli.main` reads that schema description directly.
+
+Rationale: the CLI parser, MCP/catalog snapshot and installed skill catalogs
+must not drift through a second hand-maintained fallback dictionary.
+
+Example: `md search-read --help` explains `--query`, `--limit`,
+`--path-include`, `--token-budget` and `--expanded` from the same schema that
+`md tools md_search_read --json` exposes.
+
+Edge case: when adding a new optional flag, update the catalog property
+description in the same change as the signature. The contract test rejects
+blank descriptions.
+
 ## Booleans
 
 Decision: presence flags such as `--expanded`; negation only when a default true
@@ -50,6 +67,28 @@ Edge case: mutating/cost-bearing gates use explicit mode flags (`--dry-run`,
 `--confirm`) because they represent separate safety states, not cosmetic
 booleans. `--confirm` must be paired with `--transaction-id` for gated tools;
 the only safe next-step before that token exists is a dry-run.
+
+## Index Guidance
+
+Decision: any human-facing warmup hint that prints `md index ...` must use
+the shared index-guidance helper.
+
+Rationale: nested corpora are refused by default; the correct repair is often
+the indexed parent corpus plus translated `--path-include` / `--path-exclude`.
+Hand-built strings are likely to lose that scope and point the agent at the
+wrong corpus.
+
+Example:
+
+```bash
+md index PARENT --path-include child/** --dry-run --json
+md index PARENT --path-include child/** --confirm --transaction-id <id> --json
+md overlaps PARENT --path-include child/** --json
+```
+
+Edge case: `_envelope.corpus_state.recommended_action.args` and
+`_envelope.next_step[].args` are the structured source for agent action. Human
+text can mirror it, but must not widen scope or suggest bare `--confirm`.
 
 ## Arrays
 
