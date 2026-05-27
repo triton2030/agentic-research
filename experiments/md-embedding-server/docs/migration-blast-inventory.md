@@ -1,5 +1,10 @@
 # Migration Blast Inventory
 
+Historical inventory only. This file is not a current CLI contract, not a
+tool catalog, and not a skill recipe. Use `src/md_cli/catalog.py`,
+`docs/cli-signatures-canonical.md`, and live `SKILL.md` files for current
+agent-facing behavior.
+
 Generated during task-000 preflight. Counts are line-hit counts for `md_[a-z_]+`, not semantic equivalence proof.
 
 ## Skill references summary

@@ -1,57 +1,78 @@
 {
-  "error": "index_warmup_required",
-  "corpus": "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server/tests/fixtures/sample-corpus",
-  "self_repair": "Run md index --dry-run, review cost, then confirm.",
-  "_envelope": {
-    "version": 1,
-    "tool": "md_search_read",
-    "corpus_root": "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server/tests/fixtures/sample-corpus",
-    "corpus_state": {
-      "state": "NO_INDEX",
-      "model": "baai/bge-m3",
-      "index_exists": false,
-      "last_touched": null,
-      "added_sections": 6,
-      "removed_sections": 0,
-      "pending_chunks": 6,
-      "drift_count": 0,
-      "metadata_mismatch": false,
-      "delta_too_large": false,
-      "recommended_action": {
-        "tool": "md_index",
-        "args": {
-          "corpus": "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server/tests/fixtures/sample-corpus",
-          "dry_run": true
-        },
-        "reason": "Index does not exist; dry-run warmup before search."
-      }
+    "error": "index_warmup_required",
+    "corpus": "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server/tests/fixtures/sample-corpus",
+    "suggested_index_args": {
+        "corpus": "/Users/triton/Documents/GitHub/agentic-research",
+        "path_include": [
+            "experiments/md-embedding-server/tests/fixtures/sample-corpus/**"
+        ],
+        "dry_run": true
     },
-    "lock": null,
-    "cost": {
-      "turn_usd": 0.0,
-      "session_usd": 0.0
+    "suggested_retry_args": {
+        "corpus": "/Users/triton/Documents/GitHub/agentic-research",
+        "path_include": [
+            "experiments/md-embedding-server/tests/fixtures/sample-corpus/**"
+        ]
     },
-    "size_estimate": {
-      "bytes": 225,
-      "items_returned": 0
-    },
-    "next_step": [
-      {
-        "tool": "md_index",
-        "args": {
-          "corpus": "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server/tests/fixtures/sample-corpus",
-          "dry_run": true
-        },
-        "reason": "Preview embedding cost before warming the index."
-      },
-      {
+    "_envelope": {
+        "version": 1,
         "tool": "md_search_read",
-        "args": {
-          "corpus": "tests/fixtures/sample-corpus",
-          "query": "sample"
+        "corpus_root": "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server/tests/fixtures/sample-corpus",
+        "corpus_state": {
+            "state": "NO_INDEX",
+            "model": "baai/bge-m3",
+            "index_exists": false,
+            "last_touched": null,
+            "added_sections": 6,
+            "removed_sections": 0,
+            "pending_chunks": 6,
+            "drift_count": 0,
+            "metadata_mismatch": false,
+            "delta_too_large": false,
+            "recommended_action": {
+                "tool": "md_index",
+                "args": {
+                    "corpus": "/Users/triton/Documents/GitHub/agentic-research",
+                    "dry_run": true,
+                    "path_include": [
+                        "experiments/md-embedding-server/tests/fixtures/sample-corpus/**"
+                    ]
+                },
+                "reason": "Index does not exist; dry-run warmup before search."
+            }
         },
-        "reason": "Retry the original call once the index is warm."
-      }
-    ]
-  }
+        "lock": null,
+        "cost": {
+            "turn_usd": 0.0,
+            "session_usd": 0.0
+        },
+        "size_estimate": {
+            "bytes": 517,
+            "items_returned": 0
+        },
+        "next_step": [
+            {
+                "tool": "md_index",
+                "args": {
+                    "corpus": "/Users/triton/Documents/GitHub/agentic-research",
+                    "path_include": [
+                        "experiments/md-embedding-server/tests/fixtures/sample-corpus/**"
+                    ],
+                    "dry_run": true
+                },
+                "reason": "Preview embedding cost before warming the parent index for this path scope."
+            },
+            {
+                "tool": "md_search_read",
+                "args": {
+                    "corpus": "/Users/triton/Documents/GitHub/agentic-research",
+                    "query": "sample",
+                    "path_include": [
+                        "experiments/md-embedding-server/tests/fixtures/sample-corpus/**"
+                    ]
+                },
+                "reason": "Retry the original call once the index is warm."
+            }
+        ]
+    }
 }

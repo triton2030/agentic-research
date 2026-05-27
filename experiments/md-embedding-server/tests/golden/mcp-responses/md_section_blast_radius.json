@@ -8,6 +8,7 @@
   },
   "is_error": false,
   "payload": {
+    "workflow": "md_section_blast_radius",
     "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/evaluation.md",
     "heading_id": null,
     "query": "trajectory evaluation observable criteria",
@@ -19,7 +20,7 @@
         "description": "Оценка агента — trajectory eval, observable acceptance criteria, multi-channel audit, cross-family judge и manual prototype first.",
         "has_frontmatter": true
       },
-      "related_reading_command": "md read-related --paths /Users/triton/Documents/GitHub/agentic-research/knowledge/agents/evaluation.md --token-budget 3000",
+      "related_reading_command": "md read-related --paths /Users/triton/Documents/GitHub/agentic-research/knowledge/agents/evaluation.md --token-budget 3000 --expanded",
       "must_read": [],
       "must_update": [],
       "update_cascade": [],
@@ -48,7 +49,7 @@
         "Semantic completeness is not machine-proven; classify candidate edges in the owning skill.",
         "No edit-after-edit edges declared; treat this as a positive claim only after semantic audit."
       ],
-      "has_blockers": false
+      "_exit_code": 0
     },
     "semantic": {
       "root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
@@ -68,9 +69,9 @@
       },
       "stats": {
         "files_indexed": 37,
-        "items_indexed": 302,
+        "items_indexed": 303,
         "sections_subchunked": 2,
-        "embeddings_cached": 302,
+        "embeddings_cached": 303,
         "embeddings_computed": 0,
         "sections_removed": 0,
         "bm25_hits": 45,
@@ -78,10 +79,10 @@
         "dropped_stale_path": 0
       },
       "weights": {
-        "description": 5,
-        "title": 4,
-        "heading": 3,
-        "body": 1
+        "description": 5.0,
+        "title": 4.0,
+        "heading": 3.0,
+        "body": 1.0
       },
       "results": [
         {
@@ -98,9 +99,9 @@
           "file_title": "Agents — Evaluation",
           "content_hash": "c1715aa0925c6cf5da46bb9084d68fabf76464a37f1ec6ddcc5cfb2b2fb287bc",
           "token_count": 80,
-          "bm25_score": -22.427626,
-          "dense_distance": 1.000217,
-          "rrf_score": 0.032787,
+          "bm25_score": -22.52335752550445,
+          "dense_distance": 1.0004063844680786,
+          "rrf_score": 0.03278688524590164,
           "rerank_score": null,
           "fields_hit": [
             "description",
@@ -123,9 +124,9 @@
           "file_title": "Agents — Evaluation",
           "content_hash": "5096ba02d9d98579c8e0bfdc4d6a2c09b272188a7c2d3824ca3115b8eddf9248",
           "token_count": 271,
-          "bm25_score": -20.598471,
-          "dense_distance": 1.05632,
-          "rrf_score": 0.032258,
+          "bm25_score": -20.761834967345138,
+          "dense_distance": 1.0565414428710938,
+          "rrf_score": 0.03225806451612903,
           "rerank_score": null,
           "fields_hit": [
             "description",
@@ -149,9 +150,9 @@
           "file_title": "Agents — Evaluation",
           "content_hash": "dfd7c3ab2b7e290b30483a7d20b5ae2f3a1c1f171331a2e18f932ccb0f788c65",
           "token_count": 427,
-          "bm25_score": -19.571167,
-          "dense_distance": 1.077863,
-          "rrf_score": 0.031498,
+          "bm25_score": -19.76605700684366,
+          "dense_distance": 1.078050136566162,
+          "rrf_score": 0.031746031746031744,
           "rerank_score": null,
           "fields_hit": [
             "description",
@@ -163,30 +164,23 @@
         }
       ]
     },
-    "usage_note": "Hard layer = author-signed contracts (anchor wikilinks). Soft layer = candidate semantic neighbors, manual review not obligations.",
+    "usage_note": "Graph is hard contract impact; semantic is a manual-review radius.",
     "_envelope": {
       "version": 1,
       "tool": "md_section_blast_radius",
       "corpus_root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
       "corpus_state": {
-        "state": "HEALTHY",
+        "state": "FRESH",
         "model": "openai/text-embedding-3-small",
         "index_exists": true,
         "last_touched": "__VOLATILE__",
-        "added_sections": 1,
-        "removed_sections": 1,
-        "pending_chunks": 1,
+        "added_sections": 0,
+        "removed_sections": 0,
+        "pending_chunks": 0,
         "drift_count": 0,
         "metadata_mismatch": false,
         "delta_too_large": false,
-        "recommended_action": {
-          "tool": "md_index",
-          "args": {
-            "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
-            "dry_run": true
-          },
-          "reason": "Optional eager warmup; dry-run previews cost before embedding the small delta."
-        }
+        "recommended_action": null
       },
       "lock": null,
       "cost": {
@@ -194,7 +188,7 @@
         "session_usd": "__VOLATILE__"
       },
       "size_estimate": {
-        "bytes": 8034,
+        "bytes": 8152,
         "items_returned": 0
       },
       "next_step": []

@@ -9,6 +9,50 @@
     "proposals": [
       {
         "proposal_type": "replace_with_wikilink",
+        "confidence": 0.673,
+        "why": "Section is type=external-citation, low uniqueness (0.20) suggests duplicate/context material. Best owner candidate wisdom-claude-opus-4.7.md has score 0.67.",
+        "affected_section": {
+          "path": "research/meta/links.md",
+          "heading_id": "30.2",
+          "line_range": [
+            9,
+            null
+          ],
+          "heading_text": "Knowledge Sources",
+          "profile": {
+            "type": "external-citation",
+            "subject": "Knowledge Sources",
+            "confidence": 0.71
+          }
+        },
+        "target_owner": {
+          "path": "wisdom-claude-opus-4.7.md",
+          "heading_id": "32.1",
+          "heading_text": "Wisdom — Claude Opus 4.7",
+          "profile": {
+            "type": "rule",
+            "subject": "Wisdom — Claude Opus 4.7",
+            "owns_terms": [
+              "claude opus 4.7",
+              "wisdom-llm.md",
+              "wisdom-claude-code.md",
+              "effort",
+              "low"
+            ],
+            "confidence": 0.57
+          }
+        },
+        "evidence_summary": {
+          "cosine": 0.8009,
+          "uniqueness": 0.199,
+          "owner_composite_score": 0.673
+        },
+        "no_automation": true
+      },
+      {
+        "proposal_type": "replace_with_wikilink",
+        "confidence": 0.644,
+        "why": "Section is type=uses, low uniqueness (0.27) suggests duplicate/context material. Best owner candidate wisdom-claude-opus-4.7.md has score 0.64.",
         "affected_section": {
           "path": "wisdom-claude-code.md",
           "heading_id": "31.2",
@@ -25,154 +69,32 @@
         },
         "target_owner": {
           "path": "wisdom-claude-opus-4.7.md",
-          "heading_id": "32.2",
-          "heading_text": "Проверено",
+          "heading_id": "32.1",
+          "heading_text": "Wisdom — Claude Opus 4.7",
           "profile": {
             "type": "rule",
-            "subject": "Guidelines for configuring effort levels and tool policies in agent behavior",
+            "subject": "Wisdom — Claude Opus 4.7",
             "owns_terms": [
-              "effort",
-              "scope",
-              "tool/subagent policy",
-              "max_tokens headroom",
-              "task budget"
-            ],
-            "confidence": 0.92
-          }
-        },
-        "evidence": {
-          "cosine": 0.7362,
-          "uniqueness": 0.264,
-          "owner_composite_score": 0.656,
-          "in_degree_target": 0,
-          "pagerank_target": 0.0248,
-          "centrality_target": 0,
-          "profile": {
-            "type": "uses",
-            "confidence": 0.72
-          },
-          "owner_evidence": {
-            "cosine_similarity": 0.7362,
-            "is_definition_boost": 0.65,
-            "pagerank": 0.0248,
-            "centrality": 0,
-            "in_degree": 0,
-            "profile_confidence": 0.92
-          },
-          "originality": {
-            "section": {
-              "rowid": 335,
-              "section_id": "31.2",
-              "relative_path": "wisdom-claude-code.md",
-              "start_line": 9,
-              "heading_text": "Проверено"
-            },
-            "uniqueness": 0.264,
-            "nearest_neighbor": {
-              "rowid": 287,
-              "section_id": "32.2",
-              "relative_path": "wisdom-claude-opus-4.7.md",
-              "start_line": 9,
-              "heading_text": "Проверено",
-              "heading_chain": "Wisdom — Claude Opus 4.7 > Проверено",
-              "profile_type": "rule",
-              "profile_subject": "Guidelines for configuring effort levels and tool policies in agent behavior",
-              "profile_owns_terms": "[\"effort\", \"scope\", \"tool/subagent policy\", \"max_tokens headroom\", \"task budget\"]",
-              "profile_confidence": 0.92,
-              "token_count": 349,
-              "cosine_similarity": 0.7362
-            },
-            "method": "indexed_embedding_cosine"
-          }
-        },
-        "confidence": 0.656,
-        "why": "Section is type=uses, low uniqueness (0.26) suggests duplicate/context material. Best owner candidate wisdom-claude-opus-4.7.md has score 0.66.",
-        "no_automation": true
-      },
-      {
-        "proposal_type": "replace_with_wikilink",
-        "affected_section": {
-          "path": "practical-guides/how-to-write-skills/research-2026-mar-may.md",
-          "heading_id": "21.3",
-          "line_range": [
-            36,
-            null
-          ],
-          "heading_text": "Что Подтвердили Исследования",
-          "profile": {
-            "type": "external-citation",
-            "subject": "Что Подтвердили Исследования",
-            "confidence": 0.64
-          }
-        },
-        "target_owner": {
-          "path": "practical-guides/how-to-write-skills/authoring-canon.md",
-          "heading_id": "18.1",
-          "heading_text": "Authoring Canon",
-          "profile": {
-            "type": "rule",
-            "subject": "Authoring Canon",
-            "owns_terms": [
-              "gpt-5.5",
               "claude opus 4.7",
-              "agents.md",
-              "description",
-              "use when..."
+              "wisdom-llm.md",
+              "wisdom-claude-code.md",
+              "effort",
+              "low"
             ],
-            "confidence": 0.71
+            "confidence": 0.57
           }
         },
-        "evidence": {
-          "cosine": 0.6588,
-          "uniqueness": 0.323,
-          "owner_composite_score": 0.646,
-          "in_degree_target": 1,
-          "pagerank_target": 0.0294,
-          "centrality_target": 0.0278,
-          "profile": {
-            "type": "external-citation",
-            "confidence": 0.64
-          },
-          "owner_evidence": {
-            "cosine_similarity": 0.6588,
-            "is_definition_boost": 0.65,
-            "pagerank": 0.0294,
-            "centrality": 0.0278,
-            "in_degree": 1,
-            "profile_confidence": 0.71
-          },
-          "originality": {
-            "section": {
-              "rowid": 359,
-              "section_id": "21.3",
-              "relative_path": "practical-guides/how-to-write-skills/research-2026-mar-may.md",
-              "start_line": 36,
-              "heading_text": "Что Подтвердили Исследования"
-            },
-            "uniqueness": 0.323,
-            "nearest_neighbor": {
-              "rowid": 245,
-              "section_id": "36.1",
-              "relative_path": "wisdom-skills-plugins.md",
-              "start_line": 1,
-              "heading_text": "Wisdom — Skills Plugins",
-              "heading_chain": "Wisdom — Skills Plugins",
-              "profile_type": "uses",
-              "profile_subject": "Principles for packaging knowledge as skills and plugins",
-              "profile_owns_terms": "[]",
-              "profile_confidence": 0.72,
-              "token_count": 895,
-              "cosine_similarity": 0.6767
-            },
-            "method": "indexed_embedding_cosine"
-          }
+        "evidence_summary": {
+          "cosine": 0.7164,
+          "uniqueness": 0.27,
+          "owner_composite_score": 0.644
         },
-        "confidence": 0.646,
-        "why": "Section is type=external-citation, low uniqueness (0.32) suggests duplicate/context material. Best owner candidate practical-guides/how-to-write-skills/authoring-canon.md has score 0.65.",
         "no_automation": true
       },
       {
         "proposal_type": "replace_with_wikilink",
+        "confidence": 0.641,
+        "why": "Section is type=external-citation, low uniqueness (0.19) suggests duplicate/context material. Best owner candidate practical-guides/how-to-write-skills/platform-deltas.md has score 0.64.",
         "affected_section": {
           "path": "research/dev/code-aware-tooling-2026-q2.md",
           "heading_id": "25.18",
@@ -193,61 +115,22 @@
           "heading_text": "Platform Deltas",
           "profile": {
             "type": "rule",
-            "subject": "Platform-specific differences in authoring, discovery, packaging, and runtime",
+            "subject": "Platform Deltas",
             "owns_terms": [
-              "platform deltas",
-              "authoring canon"
+              "skill.md",
+              "name",
+              "description",
+              "license",
+              "compatibility"
             ],
-            "confidence": 0.65
+            "confidence": 0.57
           }
         },
-        "evidence": {
-          "cosine": 0.6868,
-          "uniqueness": 0.224,
-          "owner_composite_score": 0.644,
-          "in_degree_target": 1,
-          "pagerank_target": 0.0271,
-          "centrality_target": 0.0278,
-          "profile": {
-            "type": "external-citation",
-            "confidence": 0.95
-          },
-          "owner_evidence": {
-            "cosine_similarity": 0.6868,
-            "is_definition_boost": 0.65,
-            "pagerank": 0.0271,
-            "centrality": 0.0278,
-            "in_degree": 1,
-            "profile_confidence": 0.65
-          },
-          "originality": {
-            "section": {
-              "rowid": 313,
-              "section_id": "25.18",
-              "relative_path": "research/dev/code-aware-tooling-2026-q2.md",
-              "start_line": 248,
-              "heading_text": "Sources"
-            },
-            "uniqueness": 0.224,
-            "nearest_neighbor": {
-              "rowid": 324,
-              "section_id": "26.1",
-              "relative_path": "research/dev/inventory.md",
-              "start_line": 1,
-              "heading_text": "Dev — Инвентарь",
-              "heading_chain": "Dev — Инвентарь",
-              "profile_type": "uses",
-              "profile_subject": "Inventory of dev-facing capabilities, skills, and plugins for Claude Code and Codex",
-              "profile_owns_terms": "[\"skills\", \"plugins\", \"capability\"]",
-              "profile_confidence": 0.72,
-              "token_count": 867,
-              "cosine_similarity": 0.7759
-            },
-            "method": "indexed_embedding_cosine"
-          }
+        "evidence_summary": {
+          "cosine": 0.6885,
+          "uniqueness": 0.191,
+          "owner_composite_score": 0.641
         },
-        "confidence": 0.644,
-        "why": "Section is type=external-citation, low uniqueness (0.22) suggests duplicate/context material. Best owner candidate practical-guides/how-to-write-skills/platform-deltas.md has score 0.64.",
         "no_automation": true
       }
     ],
@@ -259,29 +142,36 @@
     "path_include": [],
     "path_exclude": [],
     "no_automation": true,
+    "expanded": false,
+    "content_included": false,
+    "map_only": true,
+    "read_next": [
+      {
+        "tool": "md_refactor_candidates",
+        "args": {
+          "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+          "expanded": true,
+          "top": 3
+        },
+        "reason": "Return full proposal evidence."
+      }
+    ],
     "_envelope": {
       "version": 1,
       "tool": "md_refactor_candidates",
       "corpus_root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
       "corpus_state": {
-        "state": "HEALTHY",
+        "state": "FRESH",
         "model": "openai/text-embedding-3-small",
         "index_exists": true,
         "last_touched": "__VOLATILE__",
-        "added_sections": 1,
-        "removed_sections": 1,
-        "pending_chunks": 1,
+        "added_sections": 0,
+        "removed_sections": 0,
+        "pending_chunks": 0,
         "drift_count": 0,
         "metadata_mismatch": false,
         "delta_too_large": false,
-        "recommended_action": {
-          "tool": "md_index",
-          "args": {
-            "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
-            "dry_run": true
-          },
-          "reason": "Optional eager warmup; dry-run previews cost before embedding the small delta."
-        }
+        "recommended_action": null
       },
       "lock": null,
       "cost": {
@@ -289,7 +179,7 @@
         "session_usd": "__VOLATILE__"
       },
       "size_estimate": {
-        "bytes": 5809,
+        "bytes": 3267,
         "items_returned": 3,
         "counted_fields": [
           {

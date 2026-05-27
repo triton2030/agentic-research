@@ -5,7 +5,7 @@
       "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents"
     ]
   },
-  "is_error": false,
+  "is_error": true,
   "payload": {
     "command": "scan",
     "targets": 5,
@@ -61,8 +61,6 @@
         "detail": "edit-after-edit"
       }
     ],
-    "has_blockers": true,
-    "self_repair": "Blockers found (missing target / broken link / cycle / missing frontmatter). Resolve via md_preflight self_repair hints or read 1md-graph SKILL.md Default Workflow.",
     "_envelope": {
       "version": 1,
       "tool": "md_scan",
@@ -74,7 +72,7 @@
         "session_usd": "__VOLATILE__"
       },
       "size_estimate": {
-        "bytes": 1709,
+        "bytes": 1572,
         "items_returned": 10,
         "counted_fields": [
           {

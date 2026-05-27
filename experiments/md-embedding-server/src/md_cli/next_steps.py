@@ -17,13 +17,17 @@ def _narrow_for_large_reply(
             narrowed["limit"] = min(int(args_dict.get("limit") or 10), 5)
             extra = "Also: --scope descriptions for higher-level summary."
         else:
-            narrowed["limit"] = min(int(args_dict.get("limit") or 3), 1)
-            narrowed["token_budget"] = min(int(args_dict.get("token_budget") or 1200), 1200)
-            extra = "Also: --token-budget 1200 for a bounded body payload."
+            if args_dict.get("expanded"):
+                narrowed.pop("expanded", None)
+                extra = "Return the normal map first, then expand only chosen read_next targets."
+            else:
+                narrowed["limit"] = min(int(args_dict.get("limit") or 3), 1)
+                extra = "Use read_next for one chosen section instead of widening the map."
+        limit_note = f"Try --limit {narrowed['limit']}. " if "limit" in narrowed else ""
         return {
             "tool": tool_name,
             "args": narrowed,
-            "reason": f"{size_note}. Try --limit {narrowed['limit']}. {extra}",
+            "reason": f"{size_note}. {limit_note}{extra}",
         }
     if tool_name == "md_repeated_concepts":
         return {

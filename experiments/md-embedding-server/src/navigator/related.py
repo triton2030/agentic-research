@@ -149,7 +149,8 @@ def collect_related_items(args) -> dict[str, Any]:
                     break
 
     ordered = list(items.values())
-    if getattr(args, "mode", "full") == "preview":
+    content_included = getattr(args, "mode", "preview") == "full"
+    if not content_included:
         for item in ordered:
             preview_text = "\n".join(
                 [
@@ -239,24 +240,24 @@ def collect_related_items(args) -> dict[str, Any]:
                     text = anchor.read_text(encoding="utf-8", errors="replace")
                     lines = text.splitlines()
                     frontmatter = parse_frontmatter(lines)
-                    targets: list[Path] = []
+                    resolved_targets: list[Path] = []
                     for key in GRAPH_LINK_KEYS:
                         for tgt in normalize_frontmatter_links(frontmatter.get(key)):
                             r = resolve_markdown_target(tgt, anchor, scan_root, lookup)
                             if r and r.resolve() != anchor.resolve():
-                                targets.append(r)
+                                resolved_targets.append(r)
                     for tgt in wikilinks_from_text(text):
                         r = resolve_markdown_target(tgt, anchor, scan_root, lookup)
                         if r and r.resolve() != anchor.resolve():
-                            targets.append(r)
+                            resolved_targets.append(r)
                     for tgt in markdown_links_from_text(text):
                         r = resolve_markdown_target(tgt, anchor, scan_root, lookup)
                         if r and r.resolve() != anchor.resolve():
-                            targets.append(r)
+                            resolved_targets.append(r)
                     # Dedupe while preserving order.
                     seen: set[Path] = set()
                     uniq: list[Path] = []
-                    for t in targets:
+                    for t in resolved_targets:
                         rk = t.resolve()
                         if rk not in seen:
                             seen.add(rk)
@@ -276,6 +277,10 @@ def collect_related_items(args) -> dict[str, Any]:
         "root": str(scan_root),
         "anchors": [str(path) for path in anchors],
         "include": sorted(include),
+        "mode": getattr(args, "mode", "preview"),
+        "expanded": bool(getattr(args, "expanded", content_included)),
+        "map_only": not content_included,
+        "content_included": content_included,
         "token_budget": budget,
         "token_total": running,
         "items": kept,
@@ -283,6 +288,17 @@ def collect_related_items(args) -> dict[str, Any]:
         "semantic_status": semantic_status,
         "semantic_neighbors": semantic_neighbors,
         "suspicious_links": suspicious_links,
+        "read_next": [] if content_included else [
+            {
+                "tool": "md_read_related",
+                "args": {
+                    "paths": [str(path) for path in anchors],
+                    "scan": str(scan_root),
+                    "expanded": True,
+                },
+                "reason": "Read selected related context with content bodies.",
+            }
+        ],
         "note": "Reading context only; graph obligations belong to 1md-graph.",
     }
 

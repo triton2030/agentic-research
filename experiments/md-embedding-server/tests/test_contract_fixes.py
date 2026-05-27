@@ -118,7 +118,7 @@ def test_repeated_concepts_schema_has_concepts_structure():
     s = ALL_SCHEMAS["repeated-concepts"]
     assert "concepts" in s["properties"]
     concept_props = s["properties"]["concepts"]["items"]["properties"]
-    assert {"representative", "unique_files", "section_count", "members"} <= set(
+    assert {"representative", "unique_files", "section_count", "top_handles"} <= set(
         concept_props.keys()
     )
 
@@ -346,6 +346,7 @@ def test_graph_related_reading_recipe_uses_md_cli():
     assert "--paths knowledge/agents/tool-design.md" in cmd
     assert "--scan knowledge" in cmd
     assert "--token-budget 3000" in cmd
+    assert "--expanded" in cmd
 
 
 def _write_graph_doc(

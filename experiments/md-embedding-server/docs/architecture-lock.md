@@ -19,6 +19,10 @@ Phase 2 can start only when the lock tests are green.
 - `md_cli.runner` is the only owner of `envelope.wrap` and `print(json.dumps)`.
 - `md_cli.next_steps` owns executable `_envelope.next_step` action policy;
   `md_cli.envelope` only normalizes args, estimates size and wraps payloads.
+- Agent-facing broad outputs use the context ladder: normal mode returns
+  maps/previews with `expanded:false` and `content_included:false`; full
+  content or evidence is explicit `--expanded`. Legacy `--compact` must not
+  become the documented default language.
 - `navigator.status_core` owns status facts/state/deltas and config merge;
   `navigator.status_render` owns human text; `navigator.index_status` is a
   legacy adapter only and must not re-export private core helpers.

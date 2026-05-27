@@ -39,6 +39,127 @@ def _exit(payload: dict[str, Any], code: int) -> dict[str, Any]:
     return payload
 
 
+def _clean_args(args: dict[str, Any]) -> dict[str, Any]:
+    def should_drop(value: Any) -> bool:
+        return (
+            value is None
+            or value is False
+            or (isinstance(value, (list, tuple, set, dict)) and not value)
+        )
+
+    return {
+        key: value
+        for key, value in args.items()
+        if not should_drop(value)
+    }
+
+
+def _read_next(tool: str, args: dict[str, Any], reason: str) -> dict[str, Any]:
+    return {"tool": tool, "args": _clean_args(args), "reason": reason}
+
+
+_SEARCH_READ_NEXT_KEYS = (
+    "scope",
+    "candidates",
+    "max_heading_level",
+    "rerank",
+    "path_exclude",
+)
+
+
+def _search_read_args(
+    corpus: str,
+    query: str,
+    kwargs: dict[str, Any],
+    *,
+    limit: int,
+    path_include: list[str] | None = None,
+) -> dict[str, Any]:
+    args = {
+        "corpus": corpus,
+        "query": query,
+        "expanded": True,
+        "limit": limit,
+        "token_budget": (
+            kwargs["token_budget"]
+            if "token_budget" in kwargs
+            else DEFAULT_SEARCH_READ_TOKEN_BUDGET
+        ),
+    }
+    for key in _SEARCH_READ_NEXT_KEYS:
+        if key in kwargs:
+            args[key] = kwargs[key]
+    args["path_include"] = path_include if path_include is not None else kwargs.get("path_include")
+    return args
+
+
+def _search_read_next(
+    corpus: str,
+    query: str,
+    row: dict[str, Any],
+    kwargs: dict[str, Any],
+) -> dict[str, Any]:
+    return _read_next(
+        "md_search_read",
+        _search_read_args(
+            corpus,
+            query,
+            kwargs,
+            limit=1,
+            path_include=[row["relative_path"]] if row.get("relative_path") else None,
+        ),
+        "Read the body for this selected section.",
+    )
+
+
+def _search_map_row(
+    corpus: str,
+    query: str,
+    row: dict[str, Any],
+    kwargs: dict[str, Any],
+) -> dict[str, Any]:
+    mapped = {
+        "section_id": row.get("section_id"),
+        "file_id": row.get("file_id"),
+        "relative_path": row.get("relative_path"),
+        "start_line": row.get("start_line"),
+        "heading_chain": row.get("heading_chain"),
+        "heading_text": row.get("heading_text"),
+        "token_count": int(row.get("token_count") or 0),
+        "rrf_score": row.get("rrf_score"),
+        "rerank_score": row.get("rerank_score"),
+        "snippet": row.get("snippet"),
+        "description": row.get("file_description"),
+    }
+    mapped["read_next"] = [_search_read_next(corpus, query, mapped, kwargs)]
+    return mapped
+
+
+def _section_ref(section: dict[str, Any]) -> dict[str, Any]:
+    return {
+        key: section.get(key)
+        for key in ("section_id", "file_id", "relative_path", "start_line", "heading_chain", "heading_text", "token_count")
+        if section.get(key) is not None
+    }
+
+
+def _expand_action(tool: str, corpus: str, kwargs: dict[str, Any], reason: str) -> dict[str, Any]:
+    args = {
+        "corpus": corpus,
+        "expanded": True,
+        "threshold": kwargs.get("threshold"),
+        "top": kwargs.get("top"),
+        "min_tokens": kwargs.get("min_tokens"),
+        "min_files": kwargs.get("min_files"),
+        "min_sections": kwargs.get("min_sections"),
+        "top_members": kwargs.get("top_members"),
+        "include_same_file": kwargs.get("include_same_file"),
+        "path_include": kwargs.get("path_include"),
+        "path_exclude": kwargs.get("path_exclude"),
+    }
+    return _read_next(tool, args, reason)
+
+
 def _index_missing(corpus: str | Path) -> bool:
     root = Path(corpus).expanduser().resolve()
     return not (root / ".md-navigator" / "index.sqlite").exists()
@@ -233,6 +354,7 @@ def read_related(
     scan: str | None = None,
     include: str | None = None,
     mode: str | None = None,
+    expanded: bool = False,
     anchor_aware: bool = False,
     token_budget: int | None = None,
     semantic_radius: int | None = None,
@@ -241,11 +363,13 @@ def read_related(
 ) -> dict[str, Any]:
     from .related import collect_related_items
 
+    selected_mode = "full" if expanded or mode == "full" else "preview"
     args = _ns(
         paths=_list(paths),
         scan=scan or ".",
         include=include or "self,frontmatter,wikilinks,markdown-links,backlinks",
-        mode=mode or "full",
+        mode=selected_mode,
+        expanded=selected_mode == "full",
         anchor_aware=anchor_aware,
         token_budget=int(token_budget or 0),
         semantic_radius=int(semantic_radius or 0),
@@ -537,7 +661,6 @@ def _index_warmup(
         {
             "error": "index_warmup_required",
             "corpus": str(root),
-            "self_repair": "Run md index --dry-run, review cost, then confirm.",
             "suggested_index_args": suggested_index_args,
             "suggested_retry_args": suggested_retry_args,
         },
@@ -823,6 +946,45 @@ def search_read(corpus: str, query: str, **kwargs: Any) -> dict[str, Any]:
     if result.get("error"):
         return result
 
+    expanded = bool(kwargs.get("expanded", False))
+    if not expanded:
+        sections = [
+            _search_map_row(corpus, query, row, kwargs)
+            for row in result.get("results", [])
+        ]
+        payload = {
+            "root": result.get("root"),
+            "query": result.get("query"),
+            "scope": result.get("scope"),
+            "expanded": False,
+            "map_only": True,
+            "content_included": False,
+            "engine": result.get("engine"),
+            "stats": result.get("stats"),
+            "partial_index": result.get("partial_index"),
+            "sections": sections,
+            "candidate_token_total": sum(int(row.get("token_count") or 0) for row in sections),
+            "token_total": 0,
+            "token_budget": 0,
+            "token_budget_defaulted": False,
+            "dropped_by_budget": [],
+            "read_next": [
+                _read_next(
+                    "md_search_read",
+                    _search_read_args(
+                        corpus,
+                        query,
+                        kwargs,
+                        limit=int(kwargs.get("limit") or len(sections) or 1),
+                    ),
+                    "Expand selected search results into section bodies.",
+                )
+            ],
+        }
+        if not sections:
+            return _exit({**payload, "empty": True}, 1)
+        return payload
+
     raw_budget = kwargs.get("token_budget")
     budget_defaulted = raw_budget is None
     budget = DEFAULT_SEARCH_READ_TOKEN_BUDGET if budget_defaulted else int(raw_budget or 0)
@@ -894,6 +1056,9 @@ def search_read(corpus: str, query: str, **kwargs: Any) -> dict[str, Any]:
         "root": result.get("root"),
         "query": result.get("query"),
         "scope": result.get("scope"),
+        "expanded": True,
+        "map_only": False,
+        "content_included": True,
         "engine": result.get("engine"),
         "stats": result.get("stats"),
         "partial_index": result.get("partial_index"),
@@ -906,6 +1071,144 @@ def search_read(corpus: str, query: str, **kwargs: Any) -> dict[str, Any]:
     if not sections:
         return _exit({**payload, "empty": True}, 1)
     return payload
+
+
+def _overlap_map(corpus: str, output: dict[str, Any], kwargs: dict[str, Any]) -> dict[str, Any]:
+    groups: dict[tuple[str, str], dict[str, Any]] = {}
+    for pair in output.get("pairs", []):
+        left = pair.get("a") or {}
+        right = pair.get("b") or {}
+        left_path = str(left.get("relative_path") or "")
+        right_path = str(right.get("relative_path") or "")
+        paths = (left_path, right_path) if left_path <= right_path else (right_path, left_path)
+        group = groups.setdefault(
+            paths,
+            {"paths": list(paths), "count": 0, "best_score": 0.0, "score_total": 0.0, "top_handles": []},
+        )
+        score = float(pair.get("similarity") or 0.0)
+        group["count"] += 1
+        group["score_total"] += score
+        group["best_score"] = max(float(group["best_score"]), score)
+        if len(group["top_handles"]) < 3:
+            group["top_handles"].append(
+                {
+                    "similarity": score,
+                    "a": _section_ref(left),
+                    "b": _section_ref(right),
+                }
+            )
+    overlap_map = []
+    for group in groups.values():
+        count = int(group["count"])
+        group["mean_score"] = group.pop("score_total") / count if count else 0.0
+        overlap_map.append(group)
+    overlap_map.sort(key=lambda item: (-float(item["best_score"]), -int(item["count"])))
+    return {
+        "root": output.get("root"),
+        "threshold": output.get("threshold"),
+        "include_same_file": output.get("include_same_file"),
+        "min_tokens": output.get("min_tokens"),
+        "expanded": False,
+        "map_only": True,
+        "content_included": False,
+        "engine": output.get("engine"),
+        "stats": output.get("stats"),
+        "pair_groups": overlap_map,
+        "pairs_total": len(output.get("pairs", [])),
+        "read_next": [
+            _expand_action("md_overlaps", corpus, kwargs, "Return full overlap pair details.")
+        ],
+    }
+
+
+def _concept_map(corpus: str, output: dict[str, Any], kwargs: dict[str, Any]) -> dict[str, Any]:
+    concepts = []
+    for item in output.get("concepts", []):
+        top_handles = []
+        for member in item.get("top_members", []):
+            top_handles.append(
+                {
+                    "similarity": member.get("similarity"),
+                    "section": _section_ref(member.get("section") or {}),
+                }
+            )
+        concepts.append(
+            {
+                "label": item.get("label"),
+                "representative": _section_ref(item.get("medoid") or {}),
+                "unique_files": item.get("unique_files"),
+                "section_count": item.get("section_count"),
+                "mean_cohesion": item.get("mean_cohesion"),
+                "files": [
+                    {"path": file.get("path"), "section_count": file.get("section_count")}
+                    for file in item.get("file_breakdown", [])
+                ],
+                "top_handles": top_handles,
+            }
+        )
+    return {
+        "root": output.get("root"),
+        "threshold": output.get("threshold"),
+        "min_tokens": output.get("min_tokens"),
+        "min_files": output.get("min_files"),
+        "min_sections": output.get("min_sections"),
+        "expanded": False,
+        "map_only": True,
+        "content_included": False,
+        "engine": output.get("engine"),
+        "stats": output.get("stats"),
+        "concepts": concepts,
+        "read_next": [
+            _expand_action("md_repeated_concepts", corpus, kwargs, "Return full concept members and file breakdown.")
+        ],
+    }
+
+
+def _evidence_summary(evidence: Any) -> dict[str, Any]:
+    if not isinstance(evidence, dict):
+        return {"value": evidence}
+    summary: dict[str, Any] = {}
+    for key, value in evidence.items():
+        if isinstance(value, list):
+            summary[key] = {"count": len(value), "sample": value[:2]}
+        elif isinstance(value, dict):
+            summary[key] = {"keys": sorted(str(item) for item in value.keys())[:8]}
+        else:
+            summary[key] = value
+        if len(summary) >= 5:
+            break
+    return summary
+
+
+def _audit_map(corpus: str, output: dict[str, Any], kwargs: dict[str, Any]) -> dict[str, Any]:
+    findings = output.get("findings", [])
+    top_findings = [
+        {
+            "class": item.get("class"),
+            "severity": item.get("severity"),
+            "label": item.get("label"),
+            "next_step": item.get("next_step"),
+            "evidence_summary": _evidence_summary(item.get("evidence")),
+        }
+        for item in findings[: int(kwargs.get("top_findings") or 10)]
+    ]
+    return {
+        "root": output.get("root"),
+        "health": output.get("health"),
+        "severity_counts": output.get("severity_counts"),
+        "thresholds": output.get("thresholds"),
+        "stats": output.get("stats"),
+        "engine": output.get("engine"),
+        "expanded": False,
+        "map_only": True,
+        "content_included": False,
+        "findings": top_findings,
+        "findings_total": len(findings),
+        "findings_returned": len(top_findings),
+        "read_next": [
+            _expand_action("md_audit", corpus, kwargs, "Return full audit evidence.")
+        ],
+    }
 
 
 def overlaps(corpus: str, **kwargs: Any) -> dict[str, Any]:
@@ -942,7 +1245,12 @@ def overlaps(corpus: str, **kwargs: Any) -> dict[str, Any]:
     output = compute_overlaps(corpus_root, conn, map_data, index_stats, args)
     if output is None:
         return _exit({"empty": True, "reason": "Need at least 2 chunks to compare."}, 1)
-    return output
+    if bool(kwargs.get("expanded", False)):
+        output["expanded"] = True
+        output["map_only"] = False
+        output["content_included"] = False
+        return output
+    return _overlap_map(corpus, output, kwargs)
 
 
 def repeated_concepts(corpus: str, **kwargs: Any) -> dict[str, Any]:
@@ -980,7 +1288,12 @@ def repeated_concepts(corpus: str, **kwargs: Any) -> dict[str, Any]:
     output = compute_repeated_concepts(corpus_root, conn, map_data, index_stats, args)
     if output is None:
         return _exit({"empty": True, "reason": "Need at least 2 chunks to compare."}, 1)
-    return output
+    if bool(kwargs.get("expanded", False)):
+        output["expanded"] = True
+        output["map_only"] = False
+        output["content_included"] = False
+        return output
+    return _concept_map(corpus, output, kwargs)
 
 
 def audit(corpus: str, **kwargs: Any) -> dict[str, Any]:
@@ -1030,7 +1343,7 @@ def audit(corpus: str, **kwargs: Any) -> dict[str, Any]:
     findings.extend(audit_mod._check_cluster_folder_mismatch(corpus_root, args))
     order = {audit_mod.SEVERITY_CRITICAL: 0, audit_mod.SEVERITY_WARNING: 1, audit_mod.SEVERITY_INFO: 2}
     findings.sort(key=lambda item: (order.get(item["severity"], 3), item["class"]))
-    return {
+    output = {
         "root": str(corpus_root),
         "health": audit_mod.compute_health(findings),
         "severity_counts": audit_mod.severity_counts(findings),
@@ -1055,6 +1368,12 @@ def audit(corpus: str, **kwargs: Any) -> dict[str, Any]:
         "engine": {"embed_model": selected_model, "embedding_api_url": embedding_api_url},
         "findings": findings,
     }
+    if bool(kwargs.get("expanded", False)):
+        output["expanded"] = True
+        output["map_only"] = False
+        output["content_included"] = False
+        return output
+    return _audit_map(corpus, output, kwargs)
 
 
 def init(
@@ -1323,7 +1642,43 @@ def profile_sections(
     return {"command": "profile-sections", "root": str(root), **stats, "sample": rows}
 
 
-def refactor_candidates(corpus: str, *, compact: bool = False, **kwargs: Any) -> dict[str, Any]:
+def _refactor_proposal_map(item: dict[str, Any]) -> dict[str, Any]:
+    affected = item.get("affected_section") or {}
+    target = item.get("target_owner") or {}
+    evidence = item.get("evidence") or {}
+    return {
+        "proposal_type": item.get("proposal_type"),
+        "confidence": item.get("confidence"),
+        "why": item.get("why"),
+        "affected_section": {
+            "path": affected.get("path"),
+            "heading_id": affected.get("heading_id"),
+            "line_range": affected.get("line_range"),
+            "heading_text": affected.get("heading_text"),
+            "profile": affected.get("profile"),
+        },
+        "target_owner": {
+            "path": target.get("path"),
+            "heading_id": target.get("heading_id"),
+            "heading_text": target.get("heading_text"),
+            "profile": target.get("profile"),
+        },
+        "evidence_summary": {
+            "cosine": evidence.get("cosine"),
+            "uniqueness": evidence.get("uniqueness"),
+            "owner_composite_score": evidence.get("owner_composite_score"),
+        },
+        "no_automation": item.get("no_automation", True),
+    }
+
+
+def refactor_candidates(
+    corpus: str,
+    *,
+    compact: bool = False,
+    expanded: bool = False,
+    **kwargs: Any,
+) -> dict[str, Any]:
     from .filters import normalize_path_filter_patterns
     from .refactor_proposals import refactor_candidates as compute
     from .section_profile import open_profile_db
@@ -1341,18 +1696,32 @@ def refactor_candidates(corpus: str, *, compact: bool = False, **kwargs: Any) ->
     payload = compute(
         conn,
         corpus_root=root,
-        top=3 if compact else int(kwargs.get("top") or 10),
+        top=int(kwargs.get("top") or (10 if expanded else 3)),
         uniqueness_threshold=float(kwargs.get("uniqueness_threshold") or 0.35),
         owner_confidence_threshold=float(kwargs.get("owner_confidence_threshold") or 0.45),
         path_include=normalize_path_filter_patterns(merged_include, root),
         path_exclude=normalize_path_filter_patterns(merged_exclude, root),
     )
-    if compact:
-        payload["compact"] = True
-        payload["proposals"] = [
-            {"proposal_type": item.get("proposal_type"), "confidence": item.get("confidence"), "why": item.get("why")}
-            for item in payload.get("proposals", [])
+    payload["expanded"] = bool(expanded)
+    payload["content_included"] = False
+    if not expanded:
+        payload["map_only"] = True
+        payload["proposals"] = [_refactor_proposal_map(item) for item in payload.get("proposals", [])]
+        payload["read_next"] = [
+            _read_next(
+                "md_refactor_candidates",
+                {
+                    "corpus": corpus,
+                    "expanded": True,
+                    "top": kwargs.get("top") or 10,
+                    "path_include": kwargs.get("path_include"),
+                    "path_exclude": kwargs.get("path_exclude"),
+                },
+                "Return full proposal evidence.",
+            )
         ]
+    else:
+        payload["map_only"] = False
     return payload
 
 
@@ -1363,6 +1732,7 @@ def query_by_type(
     filter: str | None = None,
     limit: int | None = None,
     compact: bool = False,
+    expanded: bool = False,
     path_include: Iterable[str] | str | None = None,
     path_exclude: Iterable[str] | str | None = None,
 ) -> dict[str, Any]:
@@ -1386,14 +1756,23 @@ def query_by_type(
         conn,
         types=selected_types,
         filter_text=filter,
-        limit=min(int(limit or 50), 10) if compact else int(limit or 50),
+        limit=int(limit or 50) if expanded else min(int(limit or 50), 10),
         corpus_root=root,
         path_include=include_patterns,
         path_exclude=exclude_patterns,
     )
-    if compact:
+    if not expanded:
         rows = [
-            {"path": row["relative_path"], "subject": row["profile"]["subject"], "type": row["profile"]["type"]}
+            {
+                "section_id": row["section_id"],
+                "path": row["relative_path"],
+                "start_line": row["start_line"],
+                "heading_chain": row["heading_chain"],
+                "heading_text": row["heading_text"],
+                "type": row["profile"]["type"],
+                "subject": row["profile"]["subject"],
+                "confidence": row["profile"]["confidence"],
+            }
             for row in rows
         ]
     return {
@@ -1401,5 +1780,22 @@ def query_by_type(
         "path_include": include_patterns,
         "path_exclude": exclude_patterns,
         "sections": rows,
-        "compact": compact,
+        "expanded": bool(expanded),
+        "map_only": not expanded,
+        "content_included": False,
+        "read_next": [] if expanded else [
+            _read_next(
+                "md_query_by_type",
+                {
+                    "corpus": corpus,
+                    "types": selected_types,
+                    "expanded": True,
+                    "filter": filter,
+                    "limit": limit,
+                    "path_include": path_include,
+                    "path_exclude": path_exclude,
+                },
+                "Return full section profile detail.",
+            )
+        ],
     }

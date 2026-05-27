@@ -24,6 +24,7 @@
 - На «почему не вызвал X-скил» — не объясняй задним числом, классифицируй и запиши владельцу.
 - Named subagent: сверь `agent_type`; роль не принимается → не имитируй, фиксируй mismatch.
 - `fork_context` ≠ named `agent_type`: либо full-history наследование, либо named без fork + self-contained brief.
+- Output contract refactor: проверяй generated `read_next` на сохранение narrowing args и числовых `0`; зелёный suite не ловит потерю intent.
 - Bridge relay truncated → восстанови из logs до rerun.
 - Shell one-liner с `$1`/backrefs — только single quotes или `apply_patch`; double quotes тихо съедают группы.
 - Append-only capture в один файл не запускай параллельно; сериализуй вызовы и проверь группировку строк.

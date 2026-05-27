@@ -34,12 +34,17 @@ Edge case: `md tools --json` also goes through the runner; the handler returns
 
 ## Booleans
 
-Decision: presence flags such as `--compact`; negation only when a default true
+Decision: presence flags such as `--expanded`; negation only when a default true
 needs override.
 
 Rationale: avoids `"true"` / `"false"` string ambiguity.
 
-Example: `md orient knowledge --compact --json`.
+Example: `md search-read knowledge --query "skill contract" --expanded --json`.
+
+Context ladder rule: normal output is already the bounded map for
+agent-facing reading commands. Do not call it compact in new docs. Legacy
+`--compact` is accepted only as a compatibility alias where it already
+existed (`orient`, `query-by-type`, `refactor-candidates`).
 
 Edge case: mutating/cost-bearing gates use explicit mode flags (`--dry-run`,
 `--confirm`) because they represent separate safety states, not cosmetic

@@ -8,39 +8,31 @@
   "payload": {
     "command": "impact",
     "file": {
-      "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/evaluation.md",
+      "path": "agents/evaluation.md",
       "description": "Оценка агента — trajectory eval, observable acceptance criteria, multi-channel audit, cross-family judge и manual prototype first.",
       "has_frontmatter": true
     },
-    "related_reading_command": "md read-related --paths /Users/triton/Documents/GitHub/agentic-research/knowledge/agents/evaluation.md --scan /Users/triton/Documents/GitHub/agentic-research/knowledge --token-budget 3000",
+    "related_reading_command": "md read-related --paths agents/evaluation.md --scan /Users/triton/Documents/GitHub/agentic-research/knowledge --token-budget 3000 --expanded",
     "cascade_breaks": [],
     "reference_breaks": [],
     "body_wikilink_refs": [],
     "body_markdown_refs": [],
-    "exit_code": 0,
     "_envelope": {
       "version": 1,
       "tool": "md_impact",
       "corpus_root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
       "corpus_state": {
-        "state": "HEALTHY",
+        "state": "FRESH",
         "model": "openai/text-embedding-3-small",
         "index_exists": true,
         "last_touched": "__VOLATILE__",
-        "added_sections": 1,
-        "removed_sections": 1,
-        "pending_chunks": 1,
+        "added_sections": 0,
+        "removed_sections": 0,
+        "pending_chunks": 0,
         "drift_count": 0,
         "metadata_mismatch": false,
         "delta_too_large": false,
-        "recommended_action": {
-          "tool": "md_index",
-          "args": {
-            "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
-            "dry_run": true
-          },
-          "reason": "Optional eager warmup; dry-run previews cost before embedding the small delta."
-        }
+        "recommended_action": null
       },
       "lock": null,
       "cost": {
@@ -48,7 +40,7 @@
         "session_usd": "__VOLATILE__"
       },
       "size_estimate": {
-        "bytes": 716,
+        "bytes": 506,
         "items_returned": 0
       },
       "next_step": []

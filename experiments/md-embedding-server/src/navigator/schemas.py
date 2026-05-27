@@ -25,7 +25,7 @@ from __future__ import annotations
 from typing import Any
 
 
-SCHEMA_VERSION = "2.0.0"
+SCHEMA_VERSION = "3.0.0"
 SCHEMA_DIALECT = "https://json-schema.org/draft/2020-12/schema"
 
 
@@ -182,7 +182,6 @@ _SEARCH_READ_ROW: dict[str, Any] = {
         "start_line",
         "heading_chain",
         "token_count",
-        "content",
     ],
     "properties": {
         "section_id": {"type": "string"},
@@ -198,6 +197,8 @@ _SEARCH_READ_ROW: dict[str, Any] = {
         "rerank_score": {"type": ["number", "null"]},
         "snippet": {"type": "string"},
         "content": {"type": "string"},
+        "description": {"type": ["string", "null"]},
+        "read_next": {"type": "array"},
     },
 }
 
@@ -214,6 +215,8 @@ SEARCH_READ_SCHEMA: dict[str, Any] = {
         "engine",
         "stats",
         "sections",
+        "expanded",
+        "content_included",
         "token_total",
         "token_budget",
         "dropped_by_budget",
@@ -225,9 +228,14 @@ SEARCH_READ_SCHEMA: dict[str, Any] = {
         "engine": SEARCH_SCHEMA["properties"]["engine"],
         "stats": SEARCH_SCHEMA["properties"]["stats"],
         "sections": {"type": "array", "items": _SEARCH_READ_ROW},
+        "expanded": {"type": "boolean"},
+        "map_only": {"type": "boolean"},
+        "content_included": {"type": "boolean"},
+        "candidate_token_total": {"type": "integer", "minimum": 0},
         "token_total": {"type": "integer", "minimum": 0},
         "token_budget": {"type": "integer", "minimum": 0},
         "token_budget_defaulted": {"type": "boolean"},
+        "read_next": {"type": "array"},
         "dropped_by_budget": {
             "type": "array",
             "items": {
@@ -367,12 +375,15 @@ OVERLAPS_SCHEMA: dict[str, Any] = {
     "$id": "md-navigator/overlaps.json",
     "title": "md-navigator overlaps output (--json)",
     "type": "object",
-    "required": ["root", "threshold", "pairs"],
+    "required": ["root", "threshold"],
     "properties": {
         "root": {"type": "string"},
         "threshold": {"type": "number"},
         "min_tokens": {"type": "integer"},
         "include_same_file": {"type": "boolean"},
+        "expanded": {"type": "boolean"},
+        "map_only": {"type": "boolean"},
+        "content_included": {"type": "boolean"},
         "indexed": {
             "type": "object",
             "properties": {
@@ -393,6 +404,12 @@ OVERLAPS_SCHEMA: dict[str, Any] = {
                 },
             },
         },
+        "pair_groups": {
+            "type": "array",
+            "items": {"type": "object"},
+        },
+        "pairs_total": {"type": "integer"},
+        "read_next": {"type": "array"},
     },
     "$defs": {
         "section_ref": {
@@ -426,8 +443,9 @@ REPEATED_CONCEPTS_SCHEMA: dict[str, Any] = {
             "type": "array",
             "items": {
                 "type": "object",
-                "required": ["representative", "unique_files", "section_count", "members"],
+                "required": ["unique_files", "section_count"],
                 "properties": {
+                    "label": {"type": "string"},
                     "representative": {
                         "type": "object",
                         "description": "Medoid section — highest summed similarity to other members.",
@@ -436,6 +454,10 @@ REPEATED_CONCEPTS_SCHEMA: dict[str, Any] = {
                             "relative_path": {"type": "string"},
                             "heading_chain": {"type": "string"},
                         },
+                    },
+                    "medoid": {
+                        "type": "object",
+                        "description": "Expanded-mode medoid section.",
                     },
                     "unique_files": {"type": "integer"},
                     "section_count": {"type": "integer"},
@@ -453,6 +475,9 @@ REPEATED_CONCEPTS_SCHEMA: dict[str, Any] = {
                             "maxItems": 2,
                         },
                     },
+                    "mean_cohesion": {"type": "number"},
+                    "top_handles": {"type": "array"},
+                    "file_breakdown": {"type": "array"},
                     "members": {
                         "type": "array",
                         "items": {
@@ -468,6 +493,10 @@ REPEATED_CONCEPTS_SCHEMA: dict[str, Any] = {
                 },
             },
         },
+        "expanded": {"type": "boolean"},
+        "map_only": {"type": "boolean"},
+        "content_included": {"type": "boolean"},
+        "read_next": {"type": "array"},
     },
 }
 
@@ -568,7 +597,7 @@ AUDIT_SCHEMA: dict[str, Any] = {
             "type": "array",
             "items": {
                 "type": "object",
-                "required": ["class", "severity", "label", "evidence", "next_step"],
+                "required": ["class", "severity", "label", "next_step"],
                 "properties": {
                     "class": {
                         "enum": [
@@ -589,6 +618,10 @@ AUDIT_SCHEMA: dict[str, Any] = {
                         "type": "object",
                         "description": "Class-specific evidence payload (varies by class).",
                     },
+                    "evidence_summary": {
+                        "type": "object",
+                        "description": "Normal-mode bounded evidence map.",
+                    },
                     "next_step": {
                         "type": "string",
                         "description": "Recommended owner skill or action to remediate.",
@@ -596,6 +629,12 @@ AUDIT_SCHEMA: dict[str, Any] = {
                 },
             },
         },
+        "expanded": {"type": "boolean"},
+        "map_only": {"type": "boolean"},
+        "content_included": {"type": "boolean"},
+        "findings_total": {"type": "integer"},
+        "findings_returned": {"type": "integer"},
+        "read_next": {"type": "array"},
     },
 }
 

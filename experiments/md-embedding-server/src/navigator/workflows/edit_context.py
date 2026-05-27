@@ -10,7 +10,8 @@ def _graph_blockers(preflight_payload: dict[str, object]) -> dict[str, object]:
         "GRAPH_FIELD_NOT_LIST",
         "GRAPH_LINK_NOT_WIKILINK",
     }
-    check_only = preflight_payload.get("check_only") or []
+    check_only_raw = preflight_payload.get("check_only")
+    check_only = check_only_raw if isinstance(check_only_raw, list) else []
     issue_codes = {item.get("code") for item in check_only if isinstance(item, dict)}
     return {
         "has_blockers": bool(
@@ -30,6 +31,7 @@ def edit_context(
     path: str,
     *,
     mode: str | None = None,
+    expanded: bool = False,
     scan: str | None = None,
     depth: int | None = None,
     query: str | None = None,
@@ -37,7 +39,7 @@ def edit_context(
 ) -> dict[str, object]:
     from navigator.api import preflight, read_related, search
 
-    selected_mode = mode or "full"
+    selected_mode = "strict" if mode == "strict" else ("full" if expanded or mode == "full" else "preview")
     preflight_payload = preflight(path, scan=scan, depth=depth)
     if selected_mode == "strict":
         return {
@@ -50,7 +52,8 @@ def edit_context(
     related = read_related(
         paths=[path],
         scan=scan or ".",
-        mode="preview" if selected_mode == "preview" else "full",
+        mode=selected_mode,
+        expanded=selected_mode == "full",
         anchor_aware=True,
         token_budget=1200 if selected_mode == "preview" else 6000,
     )
@@ -60,6 +63,9 @@ def edit_context(
     return {
         "workflow": "md_edit_context",
         "mode": selected_mode,
+        "expanded": selected_mode == "full",
+        "map_only": selected_mode != "full",
+        "content_included": selected_mode == "full",
         "path": path,
         "preflight": preflight_payload,
         "related": related,

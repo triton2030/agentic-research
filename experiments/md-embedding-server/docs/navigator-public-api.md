@@ -9,6 +9,11 @@ edit-after-edit: []
 handlers call these functions directly and return `ToolResult`; they do not
 invoke legacy argparse commands, parse stdout, or build envelopes.
 
+Agent-facing reading functions follow the same context ladder as the CLI:
+normal output is a map/preview (`expanded=False`, `content_included=False`);
+full bodies or full evidence require `expanded=True` or legacy `mode="full"`
+where the mode already existed.
+
 The package root also exposes the same callable names (`navigator.search`,
 `navigator.preflight`, etc.). Because old tests and scripts still import
 modules like `navigator.search`, the root uses callable module proxies during
@@ -34,10 +39,11 @@ is callable.
 - `ping() -> dict`
 - `preflight(path, scan=None, depth=None, path_include=None, path_exclude=None) -> dict`
 - `profile_sections(corpus, dry_run=False, confirm=False, limit=None, force=False, mode=None, model=None, path_include=None, path_exclude=None, **kwargs) -> dict`
-- `read_related(paths, scan=None, include=None, mode=None, anchor_aware=False, token_budget=None, semantic_radius=None, check_links=False, link_distance_threshold=None) -> dict`
+- `read_related(paths, scan=None, include=None, mode=None, expanded=False, anchor_aware=False, token_budget=None, semantic_radius=None, check_links=False, link_distance_threshold=None) -> dict`
 - `repeated_concepts(corpus, **kwargs) -> dict`
 - `scan(paths=None, path_include=None, path_exclude=None) -> dict`
 - `search(corpus, query, **kwargs) -> dict`
+- `search_read(corpus, query, expanded=False, token_budget=None, **kwargs) -> dict`
 - `status(corpus, path_include=None, path_exclude=None, max_heading_level=None, max_auto_embed=None, **kwargs) -> dict`
 - `strip(paths=None, also_related_section=False, dry_run=False, confirm=False, path_include=None, path_exclude=None, **kwargs) -> dict`
 - `toc(path, max_heading_level=None, match=None, with_tokens=False, with_link_counts=False) -> dict`
@@ -47,8 +53,8 @@ is callable.
 Workflow modules live in `navigator.workflows`, compose atomic public functions,
 return dictionaries, and never depend on the CLI package.
 
-- `workflows.orient(corpus, top=None, max_heading_level=None, compact=False) -> dict`
-- `workflows.edit_context(path, mode=None, scan=None, depth=None, query=None, corpus=None) -> dict`
+- `workflows.orient(corpus, top=None, max_heading_level=None, compact=False, expanded=False) -> dict`
+- `workflows.edit_context(path, mode=None, expanded=False, scan=None, depth=None, query=None, corpus=None) -> dict`
 - `workflows.refactor_candidates(corpus, **kwargs) -> dict`
 - `workflows.query_by_type(corpus, types, **kwargs) -> dict`
 - `workflows.section_blast_radius(path, corpus, query, heading_id=None, scan=None, depth=None, limit=None, path_include=None, path_exclude=None) -> dict`

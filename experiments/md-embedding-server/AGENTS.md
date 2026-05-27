@@ -38,6 +38,11 @@ transactions и JSON output.
 - Добавление или изменение публичной команды `md` требует осознанно обновить
   catalog contract: `src/md_cli/catalog.py`, handler, public API target,
   selftest smoke command и frozen snapshots/docs, если они входят в scope.
+- Agent-facing reading/audit commands follow the context ladder: normal output
+  is a bounded map/preview; full bodies or full evidence require explicit
+  `--expanded` (or legacy `--mode full` where the mode already exists).
+  Do not document normal output as `compact`; `--compact` is only a temporary
+  compatibility alias where it already existed.
 - Mutating или cost-bearing операции используют существующие dry-run/confirm и
   transaction patterns; не создавай параллельный safety-механизм.
 

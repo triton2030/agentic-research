@@ -53,8 +53,9 @@ def test_large_search_read_reply_recommends_existing_narrowing_args() -> None:
     step = envelope["next_step"][0]
     assert step["tool"] == "md_search_read"
     assert step["args"]["limit"] == 1
-    assert step["args"]["token_budget"] == 1200
+    assert "token_budget" not in step["args"]
     assert "top" not in step["args"]
+    assert "read_next" in step["reason"]
     assert "--no-body" not in step["reason"]
 
 

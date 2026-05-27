@@ -70,8 +70,37 @@ def test_read_related_preview_omits_content(tmp_path):
     )
 
     assert packet["items"]
+    assert packet["content_included"] is False
+    assert packet["map_only"] is True
+    assert packet["read_next"]
     assert all("content" not in item for item in packet["items"])
     assert all("headings" in item for item in packet["items"])
+
+
+def test_read_related_full_includes_content(tmp_path):
+    root = tmp_path / "corpus"
+    root.mkdir()
+    anchor = root / "a.md"
+    anchor.write_text("# A\n\nSee [B](b.md).\n", encoding="utf-8")
+    (root / "b.md").write_text("# B\n\nBody.\n", encoding="utf-8")
+
+    packet = collect_related_items(
+        Namespace(
+            paths=[str(anchor)],
+            scan=str(root),
+            include="self,markdown-links",
+            token_budget=0,
+            semantic_radius=0,
+            check_links=False,
+            link_distance_threshold=0.4,
+            anchor_aware=True,
+            mode="full",
+            expanded=True,
+        )
+    )
+
+    assert packet["content_included"] is True
+    assert any("content" in item for item in packet["items"])
 
 
 def test_read_related_semantic_status_reports_missing_index(tmp_path):

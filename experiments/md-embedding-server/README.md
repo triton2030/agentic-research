@@ -120,21 +120,36 @@ Override the endpoint for any OpenAI-compatible service:
 
 ## CLI (`md`)
 
+Agent-facing commands use a context ladder. Normal output is a map: paths,
+descriptions, heading handles, snippets, counts, stats and `read_next`
+actions. Full bodies or large evidence lists require explicit `--expanded`
+or deliberate reader flags such as `md extract --extract`.
+
+`--compact` remains accepted on older commands as a compatibility alias for
+the normal map. New docs and skills should say `--expanded` when they need
+full detail.
+
 Subcommands:
 
 - `ls`, `toc` — folder/file index by frontmatter description and headings
 - `extract` — return selected files/sections in one packet
-- `read-related` — linked Markdown neighborhood for context
+- `read-related` — linked Markdown neighborhood as a map by default;
+  `--expanded` / `--mode full` includes bodies
 - `walk` — follow anchored wikilinks from one section as a single text chain
 - `importance` — graph centrality ranking (pagerank / centrality / in-degree / out-degree)
 - `profile-sections` — cache section profiles in the index (`--mode llm` for OpenRouter, heuristic default for no-cost runs)
 - `originality`, `owner-candidates` — embedding-cosine and graph-aware refactor signals
-- `refactor-candidates`, `query-by-type` — human-reviewed refactor/query helpers
+- `refactor-candidates`, `query-by-type` — bounded refactor/query maps by
+  default; `--expanded` includes full evidence/profile detail
 - `index` — cold-start (or top up) the persistent vector index for a corpus
 - `status` — freshness check for an existing index; no HTTP and no writes
 - `search` — hybrid section retrieval (BM25F + dense via RRF)
-- `overlaps` — semantic similarity pair detector for IA smells
-- `repeated-concepts`, `audit` — corpus-level duplicate/topic/IA probes
+- `search-read` — ranked section map/snippets by default; `--expanded`
+  includes section bodies under `--token-budget`
+- `overlaps` — grouped semantic-overlap map by default; `--expanded`
+  returns full pairs
+- `repeated-concepts`, `audit` — corpus-level duplicate/topic/IA maps by
+  default; `--expanded` returns full evidence
 - `tools`, `ping`, `doctor`, `selftest` — runtime discovery and diagnostics
 
 ## Adding a Python CLI command

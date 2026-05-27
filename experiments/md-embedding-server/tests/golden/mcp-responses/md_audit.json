@@ -1,9 +1,7 @@
 {
   "tool": "md_audit",
   "canonical_args": {
-    "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents",
-    "top": 3,
-    "threshold": 0.88
+    "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents"
   },
   "is_error": false,
   "payload": {
@@ -36,65 +34,83 @@
       "embed_model": "baai/bge-m3",
       "embedding_api_url": "https://openrouter.ai/api/v1"
     },
+    "expanded": false,
+    "map_only": true,
+    "content_included": false,
     "findings": [
       {
         "class": "template_family",
         "severity": "warning",
         "label": "'проверено' heading shared by 5 files",
-        "evidence": {
+        "next_step": "`1ia-audit` — confirm template-by-design or split into function-specific owners",
+        "evidence_summary": {
           "shared_heading": "проверено",
           "file_count": 5,
-          "files": [
-            "evaluation.md",
-            "memory.md",
-            "multi-agent.md",
-            "runtime-layer.md",
-            "tool-design.md"
-          ]
-        },
-        "next_step": "`1ia-audit` — confirm template-by-design or split into function-specific owners"
+          "files": {
+            "count": 5,
+            "sample": [
+              "evaluation.md",
+              "memory.md"
+            ]
+          }
+        }
       },
       {
         "class": "template_family",
         "severity": "warning",
         "label": "'опоры' heading shared by 5 files",
-        "evidence": {
+        "next_step": "`1ia-audit` — confirm template-by-design or split into function-specific owners",
+        "evidence_summary": {
           "shared_heading": "опоры",
           "file_count": 5,
-          "files": [
-            "evaluation.md",
-            "memory.md",
-            "multi-agent.md",
-            "runtime-layer.md",
-            "tool-design.md"
-          ]
-        },
-        "next_step": "`1ia-audit` — confirm template-by-design or split into function-specific owners"
+          "files": {
+            "count": 5,
+            "sample": [
+              "evaluation.md",
+              "memory.md"
+            ]
+          }
+        }
       },
       {
         "class": "intra_file_drift",
         "severity": "info",
         "label": "1 file(s) — headings lexically distant (could be designed structure)",
-        "evidence": {
+        "next_step": "`1ia-audit` — split file along topic groups, or confirm template-by-design",
+        "evidence_summary": {
           "drift_count": 1,
-          "files": [
-            {
-              "relative_path": "runtime-layer.md",
-              "section_count": 4,
-              "sources": [
-                "heading_lex"
-              ],
-              "heading_diversity": 1,
-              "headings_sample": [
-                "проверено",
-                "ground before action",
-                "рабочие гипотезы",
-                "опоры"
-              ]
-            }
-          ]
+          "files": {
+            "count": 1,
+            "sample": [
+              {
+                "relative_path": "runtime-layer.md",
+                "section_count": 4,
+                "sources": [
+                  "heading_lex"
+                ],
+                "heading_diversity": 1.0,
+                "headings_sample": [
+                  "проверено",
+                  "ground before action",
+                  "рабочие гипотезы",
+                  "опоры"
+                ]
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "findings_total": 3,
+    "findings_returned": 3,
+    "read_next": [
+      {
+        "tool": "md_audit",
+        "args": {
+          "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents",
+          "expanded": true
         },
-        "next_step": "`1ia-audit` — split file along topic groups, or confirm template-by-design"
+        "reason": "Return full audit evidence."
       }
     ],
     "_envelope": {
@@ -115,8 +131,11 @@
         "recommended_action": {
           "tool": "md_index",
           "args": {
-            "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents",
-            "dry_run": true
+            "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+            "dry_run": true,
+            "path_include": [
+              "agents/**"
+            ]
           },
           "reason": "Optional eager warmup; dry-run previews cost before embedding the small delta."
         }
@@ -127,7 +146,7 @@
         "session_usd": "__VOLATILE__"
       },
       "size_estimate": {
-        "bytes": 1681,
+        "bytes": 2069,
         "items_returned": 0
       },
       "next_step": []

@@ -185,10 +185,9 @@ def test_complaint_7_search_read_default_is_bounded_but_not_empty(
 ):
     """Probe для жалобы #7.
 
-    `md search-read` — default agent path для "find + read", поэтому отсутствие
-    `--token-budget` не должно означать unbounded body dump. Но агенту всё ещё
-    нужен читаемый фрагмент: oversize top section should be truncated, not
-    dropped into an empty result.
+    `md search-read` — default agent path для "find + choose", поэтому default
+    не должен возвращать body dump. Но агенту всё ещё нужен читаемый map item:
+    snippet + read_next, а bounded body path остаётся за явным expanded.
     """
     corpus = tmp_path / "big-corpus"
     corpus.mkdir()
@@ -207,20 +206,36 @@ def test_complaint_7_search_read_default_is_bounded_but_not_empty(
 
     payload = search_read(str(corpus), "needle", limit=1)
 
-    assert payload["token_budget"] == DEFAULT_SEARCH_READ_TOKEN_BUDGET
-    assert payload["token_budget_defaulted"] is True
-    assert payload["token_total"] <= DEFAULT_SEARCH_READ_TOKEN_BUDGET
+    assert payload["expanded"] is False
+    assert payload["map_only"] is True
+    assert payload["content_included"] is False
+    assert payload["token_budget"] == 0
+    assert payload["token_budget_defaulted"] is False
     assert payload["sections"], payload
     top = payload["sections"][0]
+    assert "content" not in top
+    assert "needle" in top["snippet"]
+    assert top["read_next"][0]["args"]["expanded"] is True
+
+    expanded = search_read(str(corpus), "needle", limit=1, expanded=True)
+    assert expanded["token_budget"] == DEFAULT_SEARCH_READ_TOKEN_BUDGET
+    assert expanded["token_budget_defaulted"] is True
+    assert expanded["expanded"] is True
+    assert expanded["content_included"] is True
+    assert expanded["map_only"] is False
+    assert expanded["token_total"] <= DEFAULT_SEARCH_READ_TOKEN_BUDGET
+    assert expanded["sections"], expanded
+    top = expanded["sections"][0]
     assert top["truncated_by_budget"] is True
     assert top["included_token_count"] <= DEFAULT_SEARCH_READ_TOKEN_BUDGET
     assert "needle" in top["content"]
     assert len(top["content"]) < len(large_body)
-    assert payload["dropped_by_budget"][0]["reason"] == "truncated"
+    assert expanded["dropped_by_budget"][0]["reason"] == "truncated"
 
-    unbounded = search_read(str(corpus), "needle", limit=1, token_budget=0)
+    unbounded = search_read(str(corpus), "needle", limit=1, token_budget=0, expanded=True)
     assert unbounded["token_budget"] == 0
     assert unbounded["token_budget_defaulted"] is False
+    assert payload["token_total"] <= DEFAULT_SEARCH_READ_TOKEN_BUDGET
     assert unbounded["sections"][0].get("truncated_by_budget") is not True
     assert len(unbounded["sections"][0]["content"]) >= len(large_body)
 

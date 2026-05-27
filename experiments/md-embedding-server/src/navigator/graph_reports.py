@@ -194,7 +194,7 @@ def navigator_read_related_command(path: str, token_budget: int = 3000, scan: st
     scan_arg = f" --scan {shlex.quote(scan)}" if scan else ""
     return (
         f"md read-related --paths {shlex.quote(path)}"
-        f"{scan_arg} --token-budget {token_budget}"
+        f"{scan_arg} --token-budget {token_budget} --expanded"
     )
 
 

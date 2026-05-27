@@ -10,14 +10,24 @@ CORPUS = ROOT / "tests" / "fixtures" / "sample-corpus"
 README = CORPUS / "README.md"
 
 
-def test_orient_compact_returns_status_map_and_importance() -> None:
-    payload = orient(str(CORPUS), compact=True)
+def test_orient_normal_returns_status_map_and_importance() -> None:
+    payload = orient(str(CORPUS))
 
     assert payload["workflow"] == "md_orient"
-    assert payload["compact"] is True
+    assert payload["expanded"] is False
+    assert payload["map_only"] is True
     assert payload["status"]["state"] in {"NO_INDEX", "FRESH", "HEALTHY", "NEEDS_WARMUP", "NEEDS_REBUILD"}
     assert payload["files"]["file_count"] == 2
+    assert payload["files"]["files"][0]["read_next"]
     assert payload["importance"]["files"]
+
+
+def test_orient_expanded_returns_full_map() -> None:
+    payload = orient(str(CORPUS), expanded=True)
+
+    assert payload["workflow"] == "md_orient"
+    assert payload["expanded"] is True
+    assert payload["files"]["files"][0]["headings"]
 
 
 def test_edit_context_strict_returns_only_blocker_summary() -> None:

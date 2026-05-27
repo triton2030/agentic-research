@@ -20,13 +20,17 @@
       "description": {
         "when": "'is this corpus healthy', monthly hygiene pass, before major refactor, suspect IA drift.",
         "why": "Bundles 4 IA probes + 6 issue-class scoring + 0-100 health gauge — single call instead of 4-tool sequence.",
-        "input": "corpus, path_include/exclude.",
-        "output": "{ classes, findings, health_score, ... } — IA classes with severity ratings.",
+        "input": "corpus, path_include/exclude, expanded for full evidence.",
+        "output": "{ health, severity_counts, findings summary, stats, read_next } by default. --expanded returns full class-specific evidence.",
         "alt": "For one probe only → md_overlaps / md_repeated_concepts directly. For graph hygiene → md_health.",
         "cost": "Slow (minutes), 300s timeout. Cloud embeddings if not cached. Auto-skipped in fast smoke (SMOKE_AUDIT=1 to include)."
       },
       "input_schema": {
         "properties": {
+          "expanded": {
+            "description": "Return full detail/content. Default false returns the normal map.",
+            "type": "boolean"
+          },
           "corpus": {
             "minLength": 1,
             "type": "string"
@@ -51,7 +55,7 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md audit CORPUS [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json"
+      "cli_signature": "md audit CORPUS [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--expanded] --json"
     },
     {
       "name": "md_changed",
@@ -329,13 +333,17 @@
       "description": {
         "when": "Before editing a .md file you don't fully know — anchor file + linked context + (optional) semantic neighbors + graph blockers.",
         "why": "Bundles md_preflight + md_read_related (+ optional md_search) — one call instead of 2-3.",
-        "input": "path, mode ('preview'|'full'|'strict', default full), scan, depth, query (full mode adds search), corpus (for query).",
-        "output": "OUTPUT (preview): preflight + related (descriptions only). OUTPUT (full): preflight + related (bodies) + optional search. OUTPUT (strict): preflight only — { blockers: { has_blockers, ... } }.",
+        "input": "path, mode ('preview'|'full'|'strict', default preview), expanded (alias for full), scan, depth, query (full mode adds search), corpus.",
+        "output": "OUTPUT (normal/preview): preflight + related map, no bodies. OUTPUT (--expanded or mode full): related bodies + optional search. OUTPUT (strict): blockers only.",
         "alt": "md_preflight alone for blocker check. md_section_blast_radius for rename.",
         "cost": "Free unless full+query (~$0.001 if rerank, normally cached)."
       },
       "input_schema": {
         "properties": {
+          "expanded": {
+            "description": "Return full detail/content. Default false returns the normal map.",
+            "type": "boolean"
+          },
           "corpus": {
             "description": "Corpus root for optional query search",
             "type": "string"
@@ -372,7 +380,7 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md edit-context PATH [--mode MODE] [--scan SCAN] [--depth DEPTH] [--query QUERY] [CORPUS] --json"
+      "cli_signature": "md edit-context PATH [--mode MODE] [--scan SCAN] [--depth DEPTH] [--query QUERY] [CORPUS] [--expanded] --json"
     },
     {
       "name": "md_extract",
@@ -815,15 +823,19 @@
       "description": {
         "when": "New Markdown corpus / folder, 'orient me in this repo', first call before any md_* deep dive.",
         "why": "Three signals (status / files / importance) in one shot, no embeddings, no HTTP. Bash ls + grep + wc loop equivalent at ~3x token cost.",
-        "input": "corpus (path), max_heading_level (default 2 in composite), top (default 10), compact (default false — trims to essentials).",
-        "output": "{ workflow:'md_orient', corpus, status, files, importance, next } — files include in_degree/out_degree.",
+        "input": "corpus, top (normal default 3), max_heading_level (normal default 1), expanded for headings/link counts. compact is a legacy no-op alias.",
+        "output": "{ workflow, status, files[{path, description, read_next}], importance, expanded:false } by default. --expanded returns the full orientation packet.",
         "alt": "md_status / md_ls / md_importance separately if only one signal needed.",
-        "cost": "Free."
+        "cost": "Free. Normal mode is bounded for cold-start attention; --expanded can be larger on big corpora."
       },
       "input_schema": {
         "properties": {
+          "expanded": {
+            "description": "Return full detail/content. Default false returns the normal map.",
+            "type": "boolean"
+          },
           "compact": {
-            "description": "If true, trim output for attention budget: top=3, headings level 1, structured status, no link counts.",
+            "description": "Legacy alias for the normal map output; accepted for compatibility.",
             "type": "boolean"
           },
           "corpus": {
@@ -847,7 +859,7 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md orient CORPUS [--max-heading-level MAX_HEADING_LEVEL] [--top TOP] [--compact] --json"
+      "cli_signature": "md orient CORPUS [--max-heading-level MAX_HEADING_LEVEL] [--top TOP] [--compact] [--expanded] --json"
     },
     {
       "name": "md_overlaps",
@@ -866,13 +878,17 @@
       "description": {
         "when": "'are there duplicate ideas across files', IA audit for owner-truth violation, before merging two files.",
         "why": "Section-level cosine pairs ranked by similarity — pinpoints duplicates Bash grep can't catch (paraphrase, different wording).",
-        "input": "corpus, threshold (default 0.85), top (default 10), include_same_file (false), min_tokens (30), path_include/exclude.",
-        "output": "{ pairs: [{ similarity, a: {section, path}, b: {section, path} }], stats } ranked.",
+        "input": "corpus, threshold, top, min_tokens, include_same_file, path_include/exclude, expanded for full pair list.",
+        "output": "{ pair_groups:[{paths,count,best_score,mean_score,top_handles}], stats, read_next } by default. --expanded returns full pairs.",
         "alt": "md_audit bundles this + repeated_concepts + clusters. md_repeated_concepts groups by connected components.",
         "cost": "Requires warm index (md_index first). Returns index_warmup_required if cold."
       },
       "input_schema": {
         "properties": {
+          "expanded": {
+            "description": "Return full detail/content. Default false returns the normal map.",
+            "type": "boolean"
+          },
           "corpus": {
             "description": "Corpus root with warm md-navigator index",
             "minLength": 1,
@@ -925,7 +941,7 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md overlaps CORPUS [--threshold THRESHOLD] [--top TOP] [--min-tokens MIN_TOKENS] [--include-same-file] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json"
+      "cli_signature": "md overlaps CORPUS [--threshold THRESHOLD] [--top TOP] [--min-tokens MIN_TOKENS] [--include-same-file] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--expanded] --json"
     },
     {
       "name": "md_ping",
@@ -1118,15 +1134,19 @@
       "description": {
         "when": "'show me all open questions', 'list rules in this corpus', semantic-shape query.",
         "why": "Returns only sections that match the type (heuristic or LLM classifier). Bash grep can't classify rule-vs-example.",
-        "input": "corpus (warm index), types (array), filter (substring over subject/heading), limit (default 50), path_include/exclude.",
-        "output": "{ types, sections: [{ section_id, path, heading_chain, subject, type, confidence }] }.",
+        "input": "corpus, types, filter, limit (normal capped at 10), path_include/exclude, expanded for full profile detail. compact is a legacy no-op alias.",
+        "output": "{ sections:[{section_id,path,heading,type,subject,confidence}], read_next } by default. --expanded returns full profile rows.",
         "alt": "md_refactor_candidates for proposal-level. md_search for free-text query.",
         "cost": "Lazy-profiles unprofiled sections (heuristic free, llm ~$0.0005/section). Pre-profile via md_profile_sections."
       },
       "input_schema": {
         "properties": {
+          "expanded": {
+            "description": "Return full detail/content. Default false returns the normal map.",
+            "type": "boolean"
+          },
           "compact": {
-            "description": "If true, limit=10 and drop heading_chain/confidence — for attention budget.",
+            "description": "Legacy alias for the normal map output; accepted for compatibility.",
             "type": "boolean"
           },
           "corpus": {
@@ -1173,7 +1193,7 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md query-by-type CORPUS --types TYPES [--filter FILTER] [--limit LIMIT] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--compact] --json"
+      "cli_signature": "md query-by-type CORPUS --types TYPES [--filter FILTER] [--limit LIMIT] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--compact] [--expanded] --json"
     },
     {
       "name": "md_read_related",
@@ -1192,15 +1212,19 @@
       "description": {
         "when": "Before editing a file you don't know well, understand its graph dependencies, gather context for a question that spans files.",
         "why": "Walks wikilinks + markdown-links + backlinks + (optional) semantic neighbors in one packet. preview mode omits bodies for fast scan.",
-        "input": "paths (anchor file(s)), scan (root, default cwd), include (csv: self/frontmatter/wikilinks/markdown-links/backlinks), mode ('preview' | 'full'), anchor_aware (default true), semantic_radius (0=off), check_links, token_budget.",
-        "output": "{ anchors, items: [{ path, kind, content? }] } — content present only in full mode.",
+        "input": "paths, scan, include, mode ('preview'|'full', default preview), expanded (alias for full), anchor_aware, token_budget, semantic_radius, check_links.",
+        "output": "{ items:[{path, description, title, headings, reasons}], content_included:false, read_next }. --expanded/mode full includes content bodies.",
         "alt": "md_edit_context composite bundles this with preflight. md_extract for known sections without graph walk.",
         "cost": "Free unless semantic_radius>0 or check_links (uses on-disk vecs, no HTTP)."
       },
       "input_schema": {
         "properties": {
+          "expanded": {
+            "description": "Return full detail/content. Default false returns the normal map.",
+            "type": "boolean"
+          },
           "anchor_aware": {
-            "description": "If a link points to `file#Heading`, extract only that section instead of whole file. Default true.",
+            "description": "If a link points to `file#Heading`, extract only that section instead of whole file. Default false; pass --anchor-aware to enable section-bounded link extraction.",
             "type": "boolean"
           },
           "check_links": {
@@ -1216,7 +1240,7 @@
             "type": "number"
           },
           "mode": {
-            "description": "preview: descriptions/headings only. full: include content bodies. Default full.",
+            "description": "preview: descriptions/headings only. full: include content bodies. Default preview.",
             "enum": [
               "preview",
               "full"
@@ -1253,7 +1277,7 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md read-related --paths PATHS [--scan SCAN] [--include INCLUDE] [--mode MODE] [--anchor-aware] [--token-budget TOKEN_BUDGET] [--semantic-radius SEMANTIC_RADIUS] [--check-links] [--link-distance-threshold LINK_DISTANCE_THRESHOLD] --json"
+      "cli_signature": "md read-related --paths PATHS [--scan SCAN] [--include INCLUDE] [--mode MODE] [--anchor-aware] [--token-budget TOKEN_BUDGET] [--semantic-radius SEMANTIC_RADIUS] [--check-links] [--link-distance-threshold LINK_DISTANCE_THRESHOLD] [--expanded] --json"
     },
     {
       "name": "md_refactor_candidates",
@@ -1272,15 +1296,19 @@
       "description": {
         "when": "'find refactor opportunities', IA hygiene pass, before split/merge planning. Output is suggestion list for human review.",
         "why": "Combines section profiles + originality + owner candidates into ranked proposals with evidence/confidence/why. Manual heuristic combo is hours; this is one call.",
-        "input": "corpus (warm index), top (default 10), uniqueness_threshold (default 0.35), owner_confidence_threshold (default 0.45), path_include/exclude.",
-        "output": "{ proposals: [{ kind, target, evidence, confidence, why }], no_automation:true } — no_automation:true signals 'human reviews, MCP never edits'.",
+        "input": "corpus (warm index), top (normal default 3), thresholds, path_include/exclude, expanded for full evidence. compact is a legacy no-op alias.",
+        "output": "{ proposals:[{type, affected_section, target_owner, evidence_summary, why}], no_automation:true } by default. --expanded returns full evidence.",
         "alt": "md_audit for whole-corpus health. md_query_by_type to filter by semantic shape.",
         "cost": "Requires warm index + profiles. Auto-profiles unprofiled sections lazily."
       },
       "input_schema": {
         "properties": {
+          "expanded": {
+            "description": "Return full detail/content. Default false returns the normal map.",
+            "type": "boolean"
+          },
           "compact": {
-            "description": "If true, return top 3 proposals only with minimal evidence — for attention budget.",
+            "description": "Legacy alias for the normal map output; accepted for compatibility.",
             "type": "boolean"
           },
           "corpus": {
@@ -1323,7 +1351,7 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md refactor-candidates CORPUS [--top TOP] [--uniqueness-threshold UNIQUENESS_THRESHOLD] [--owner-confidence-threshold OWNER_CONFIDENCE_THRESHOLD] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--compact] --json"
+      "cli_signature": "md refactor-candidates CORPUS [--top TOP] [--uniqueness-threshold UNIQUENESS_THRESHOLD] [--owner-confidence-threshold OWNER_CONFIDENCE_THRESHOLD] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--compact] [--expanded] --json"
     },
     {
       "name": "md_repeated_concepts",
@@ -1342,13 +1370,17 @@
       "description": {
         "when": "'what concepts keep coming up', owner-truth probe, recurring topic discovery, before splitting a topic into a dedicated file.",
         "why": "Concept-level clustering (not just pair-wise like md_overlaps). Each concept lists files it touches + representative section.",
-        "input": "corpus, threshold (default 0.80), top (default 30), min_files (default 2), min_sections, path_include/exclude.",
-        "output": "{ concepts: [{ medoid_section, files, member_sections, cohesion }], stats } + writes <corpus>/.md-navigator/repeated-concepts.md as side-effect report.",
+        "input": "corpus, threshold, top, min_files, min_sections, top_members, path_include/exclude, expanded for full member/file detail.",
+        "output": "{ concepts:[{representative, files, counts, top_handles}], stats, read_next } by default. --expanded returns full concept members and file breakdown.",
         "alt": "md_audit bundles this + overlaps + clusters. md_overlaps for pair-level only.",
         "cost": "Requires warm index (md_index first). Writes one Markdown file inside .md-navigator/."
       },
       "input_schema": {
         "properties": {
+          "expanded": {
+            "description": "Return full detail/content. Default false returns the normal map.",
+            "type": "boolean"
+          },
           "corpus": {
             "description": "Corpus root with warm md-navigator index",
             "minLength": 1,
@@ -1407,7 +1439,7 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md repeated-concepts CORPUS [--threshold THRESHOLD] [--top TOP] [--min-files MIN_FILES] [--min-sections MIN_SECTIONS] [--min-tokens MIN_TOKENS] [--top-members TOP_MEMBERS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json"
+      "cli_signature": "md repeated-concepts CORPUS [--threshold THRESHOLD] [--top TOP] [--min-files MIN_FILES] [--min-sections MIN_SECTIONS] [--min-tokens MIN_TOKENS] [--top-members TOP_MEMBERS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--expanded] --json"
     },
     {
       "name": "md_scan",
@@ -1557,15 +1589,19 @@
         "readOnlyHint": false
       },
       "description": {
-        "when": "'find and read X', default agent path for semantic Markdown questions.",
-        "why": "Bundles md search + section bodies in one JSON reply. Avoids fragile search→extract id/pipe handoffs.",
-        "input": "corpus, query, scope ('sections'|'descriptions'), limit (3), token_budget (default 3000, 0 = unbounded), rerank, path_include/exclude.",
-        "output": "{ sections: [{ section_id, relative_path, start_line, heading_chain, content, truncated_by_budget? }], token_total, token_budget, dropped_by_budget, partial_index?: { pending_files } }.",
-        "alt": "md_search for ranking-only. md_read_related for graph/link neighborhood after choosing a file.",
+        "when": "'find where X is discussed', semantic Markdown question when you need ranked section handles first.",
+        "why": "Bundles md search with a progressive reading ladder: normal output is a section map/snippets; --expanded adds bodies after target selection.",
+        "input": "corpus, query, scope ('sections'|'descriptions'), limit (3), expanded, token_budget for expanded bodies, rerank, path_include/exclude.",
+        "output": "{ sections:[{section_id, path, heading_chain, snippet, scores, read_next}], content_included:false } by default. --expanded restores content bodies with token_budget.",
+        "alt": "md_search for ranking-only. md_extract/read_related after choosing concrete targets.",
         "cost": "Same as md_search: cold corpus blocks, large pending deltas return partial_index and readable sections from the already indexed subset."
       },
       "input_schema": {
         "properties": {
+          "expanded": {
+            "description": "Return full detail/content. Default false returns the normal map.",
+            "type": "boolean"
+          },
           "candidates": {
             "exclusiveMinimum": 0,
             "maximum": 500,
@@ -1628,7 +1664,7 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md search-read CORPUS --query QUERY [--scope SCOPE] [--limit LIMIT] [--candidates CANDIDATES] [--max-heading-level MAX_HEADING_LEVEL] [--rerank] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--token-budget TOKEN_BUDGET] --json"
+      "cli_signature": "md search-read CORPUS --query QUERY [--scope SCOPE] [--limit LIMIT] [--candidates CANDIDATES] [--max-heading-level MAX_HEADING_LEVEL] [--rerank] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--token-budget TOKEN_BUDGET] [--expanded] --json"
     },
     {
       "name": "md_section_blast_radius",
