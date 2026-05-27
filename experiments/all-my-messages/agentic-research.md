@@ -4653,3 +4653,116 @@ PLEASE IMPLEMENT THIS PLAN:
 - “Почини всё” означает: закрыть F1-F3 и F6 из подтверждённой refactor-карты за один проход.
 - Legacy deprecation timeline не входит в эту итерацию, потому что локальные docs прямо держат legacy scripts как compatibility fallback.
 - Если dirty tree изменится до реализации, backup-checkpoint всё равно делается первым по локальному `AGENTS.md`.
+
+
+## 2026-05-27T15:10:45+05:00 | agentic-research | turn 019e68ea-4b81-7ef2-a3c3-c98f38f35e32
+
+Отлично, Теперь нам надо всё задокументировать и обновить инструкции в этой папке, а также описание, как это всё теперь работает, раз мы поменяли.
+
+
+## 2026-05-27T15:12:36+05:00 | agentic-research | turn 019e68ea-4b81-7ef2-a3c3-c98f38f35e32
+
+А также надо обновить скилл навигатора и Графа Скилл.
+
+
+## 2026-05-27T15:24:03+05:00 | agentic-research | turn 019e68f4-cdb1-76f1-ba93-65caad048804
+
+продолжи
+
+
+## 2026-05-27T15:36:39+05:00 | agentic-research | turn 019e6901-fece-75b2-b152-921192329955
+
+Так, теперь нам надо провести аудит этих скиллов, потому что они должны быть полезны для того агента, потому что они глобальные и будут использоваться глобально, а значит, каждое слово там должно помогать использовать этот скилл. То есть надо помнить о цели этих двух скиллов. Зачем они вообще существуют. и чтобы весь скилл был посвящён именно этой цели. Пожалуйста, прочти лучшие практики, как писать скиллы как для кодекса, так и для опус и исправь скиллы.
+
+
+## 2026-05-27T15:38:51+05:00 | agentic-research | turn 019e6904-057a-76f2-9f49-3da4ab0de4fc
+
+Вообще, я, честно говоря, думаю разделить навигатор на два скилла поиска и чтения. Давай пока вот эту идею обсудим.
+
+
+## 2026-05-27T15:39:27+05:00 | agentic-research | turn 019e6904-920a-7230-9dca-4eec739ed804
+
+Отлично. Сделай то же самое вот таким же списком, как ты только что сделал, но обогати его новыми инструментами, которые появились.
+
+
+## 2026-05-27T15:43:11+05:00 | agentic-research | turn 019e6907-fcbe-7ff0-af1a-c6fec2cea217
+
+Так, нет, кстати, важное уточнение. А-а, у нас сейчас проблема, то, что когда агент ищет по эмбедингам, ему часто выдаётся огромное количество контекста, которое забивает его память. И я теперь думаю про другие инструменты, нам надо проанализировать, чей вывод может прям очень сильно забивать контекст, особенно в больших проектах. 
+
+И с этой точки зрения я вот думаю, что нам, наверное, нужны какие-то дополнительные инструменты или стратегии. То есть, если, например, ему надо найти похожие эмбединги, то вместо, например, конкретно всего контента эмбедингов, мы будем скидывать ему адреса на страницы с их коротким описанием и со статистикой, сколько там похожих блоков, с какими параметрами, что ты думаешь насчёт этой идеи?
+
+
+## 2026-05-27T15:48:06+05:00 | agentic-research | turn 019e690c-7b3e-7960-8924-3ae5ba945359
+
+Да, отлично, давай так и сделаем. Но я бы ещё поменял значение по умолчанию. У нас сейчас по умолчанию мы показываем много и можно выбрать компактный режим. А я бы сделал бы по-другому. У нас по умолчанию компактный режим, который мы даже не называем компактным режимом. А мы переделаем то, что можно поставить галочку показать расширенно. То есть у нас по умолчанию будет нормальный режим, который будет просто компактным по умолчанию. Но мы не будем об этом говорить. И мы поменяем то, что если агенту хочется, он может выбрать расширенный режим.
+
+
+## 2026-05-27T15:56:18+05:00 | agentic-research | turn 019e6913-fe87-7900-a81c-be54becf876b
+
+PLEASE IMPLEMENT THIS PLAN:
+# md-tools Context Ladder: Normal Map, Expanded On Demand
+
+## Summary
+
+Перевернуть agent-facing `md` UX: обычный режим по умолчанию отдаёт карту, адреса, описания, статистику и `read_next`, а полный текст появляется только при явном `--expanded` или уже существующем явном чтении. Это следует progressive disclosure-подходу из [OpenAI Agent Skills docs](https://developers.openai.com/codex/skills): сначала дешёвые metadata, затем подробности только по выбору.
+
+Перед правками сделать обязательный backup-checkpoint текущего dirty `main`: `git status --short` → stage → `gitleaks protect --staged --redact` → commit/push. Если secret scan падает, остановиться.
+
+## Key Changes
+
+- **Единый output contract**
+  - Добавить стандартный `--expanded` / `expanded: bool = False` для команд, которые сейчас могут раздувать контекст.
+  - Пользовательская норма: обычный режим не называется compact; старый `--compact` остаётся временным совместимым алиасом/no-op там, где уже был.
+  - В обычном режиме возвращать `map_only: true` или `content_included: false`, `expanded: false`, короткие snippets, paths, descriptions, headings/line ranges, scores/stats и готовые `read_next` команды.
+  - Полные `content`/bodies/member lists возвращать только при `--expanded`, `--mode full` legacy alias или уже явном `md extract --extract`.
+
+- **Команды с новым default**
+  - `md orient`: default = прежний компактный результат; `--expanded` = прежний full.
+  - `md edit-context`: default = `preview`; `--expanded` или `--mode full` = bodies + optional search; `--mode strict` без изменений.
+  - `md read-related`: default = `preview`; `--expanded` или `--mode full` = content bodies.
+  - `md search-read`: default = ranked section map/snippets без `content`; `--expanded` = прежние section bodies с `token_budget`.
+  - `md repeated-concepts` / `md overlaps`: default = grouped semantic map по файлам/темам с counts, best/mean score, top handles/snippets; `--expanded` = полный old-style detail.
+  - `md query-by-type`, `md refactor-candidates`, `md audit`: default = bounded summary/top evidence; `--expanded` = полный detail.
+  - `md extract --extract` и `md walk` остаются deliberate readers, но docs/skills должны требовать token budget и использовать их только после выбора targets.
+
+- **Envelope, catalog, schemas, docs**
+  - Обновить `md_cli.catalog`, schemas, snapshots и `md tools` descriptions: заменить “use --compact” на “use --expanded for full detail”.
+  - `large_reply` next steps должны предлагать сузить scope/top/path filters или выбрать конкретные `read_next`, а не тянуть больше текста.
+  - Обновить README, CLI conventions, public API docs и installed `1md-navigator` / `1md-graph` для Codex + Claude.
+  - В skills заменить default recipe: `status/orient/search map first -> choose 1-3 targets -> extract/read-related/search-read --expanded only when needed`.
+
+## Test Plan
+
+- Targeted unit tests:
+  - Normal mode for changed commands не содержит full `content`/bodies and includes handles/snippets/descriptions/stats/read_next.
+  - `--expanded` restores old full-content behavior.
+  - Legacy `--compact` stays accepted and equals normal mode.
+  - Legacy `--mode full` for `edit-context` / `read-related` equals `--expanded`.
+  - `search-read` normal vs expanded regression: normal no `content`, expanded has `content` and honors `token_budget`.
+
+- Contract tests:
+  - Regenerate/update tool catalog, canonical signatures, response snapshots and schemas.
+  - Add context-budget regression on fixture/large synthetic output: normal mode should not trip `large_reply` for common cases where old full did.
+
+- Full gates:
+  - `experiments/md-embedding-server/scripts/run-tests.sh`
+  - `cd experiments/md-embedding-server && uv run md selftest --json`
+  - `python3 experiments/md-embedding-server/scripts/sync-skill-docs.py --check`
+  - `qv-skill` for Codex + Claude `1md-navigator` / `1md-graph`
+
+## Assumptions
+
+- User approved breaking default output semantics for agent-facing commands: normal = map/preview, full text = explicit `--expanded`.
+- No new split skill in this iteration; first fix the backend output ladder and skill recipes.
+- Keep compatibility aliases for one transition so old scripts fail less often, but update docs/skills to the new `--expanded` language.
+- Do not create a second truth layer: semantic map is evidence/menu only, not a verdict.
+
+
+## 2026-05-27T15:56:45+05:00 | agentic-research | turn 019e6913-fe87-7900-a81c-be54becf876b
+
+серена тебе тут поможет кстати
+
+
+## 2026-05-27T16:02:35+05:00 | agentic-research | turn 019e6918-7377-7fa1-900d-e435971093eb
+
+Продолжи

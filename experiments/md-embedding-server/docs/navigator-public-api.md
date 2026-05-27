@@ -1,3 +1,8 @@
+---
+description: "Importable navigator API boundary and graph wrapper contract for the md CLI."
+read-before-edit: []
+edit-after-edit: []
+---
 # Navigator public API
 
 `navigator.api` is the importable library surface for the new `md` CLI. CLI
@@ -56,6 +61,22 @@ return dictionaries, and never depend on the CLI package.
 - Legacy `navigator.*.cmd_*` argparse functions remain only for
   `scripts/md_navigator.py` / `scripts/md_graph.py` compatibility during the
   big-bang migration window.
+
+## Graph Wrapper Contract
+
+Graph-facing public functions in `navigator.api`
+(`scan`, `check`, `health`, `cycles`, `deps`, `impact`, `preflight`,
+`changed`, `init`, `strip`) are the installed `md` path. They build an
+`argparse.Namespace` with `_graph_args`, then load documents through
+`_graph_docs` or `_graph_scan_docs`.
+
+That facade is also where `.md-tools.toml` `[graph]` filters merge with direct
+`path_include` / `path_exclude` API inputs. Callers may pass a list, other
+iterable, generator or single string; `normalize_path_filter_patterns` keeps a
+single string as one pattern instead of iterating over characters.
+
+Do not bypass this path through legacy `navigator.graph.cmd_*`, and do not pass
+`types.SimpleNamespace` to graph helpers typed for `argparse.Namespace`.
 
 ## Proxy magic: rationale & limits
 

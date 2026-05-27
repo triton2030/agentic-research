@@ -15,6 +15,8 @@ transactions и JSON output.
     `docs/cli-conventions.md`, `src/md_cli/catalog.py`.
   - Library behavior -> целевой модуль в `src/navigator/` и public wrapper в
     `src/navigator/api.py`.
+  - Public API / graph wrapper changes -> `docs/navigator-public-api.md`,
+    `docs/architecture-lock.md`, `tests/test_navigator_public_api.py`.
   - Agent-facing output schema -> `src/navigator/schemas.py` и
     `src/md_cli/envelope.py`.
   - Developer gates -> `README.md`.
@@ -25,6 +27,11 @@ transactions и JSON output.
 ## Локальные Контракты
 
 - `src/navigator/*` не импортирует `md_cli`.
+- `src/navigator/api.py` — callable facade для `md_cli` catalog. Graph-facing
+  wrappers (`scan/check/health/cycles/deps/impact/preflight/changed/init/strip`)
+  строят `argparse.Namespace` через shared helpers (`_graph_args`,
+  `_graph_docs`, `_graph_scan_docs`) и не передают `SimpleNamespace` в
+  `load_docs` / `changed_markdown_paths`.
 - `md_cli.handlers.*` остаются тонкими: возвращают `ToolResult`, не печатают
   JSON, не вызывают `sys.exit` и не оборачивают envelopes.
 - `md_cli.runner` владеет envelope wrapping и JSON printing.

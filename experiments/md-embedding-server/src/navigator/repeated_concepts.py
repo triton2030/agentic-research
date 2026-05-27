@@ -17,7 +17,7 @@ import json
 import shlex
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, TypedDict
 
 from .cli_common import (
     add_auto_embed_args,
@@ -37,6 +37,12 @@ from .folder_map import build_map
 from .index import _index_dir_for_corpus, ensure_index, resolve_embed_model_for_corpus
 from .index_meta import find_parent_indexed_corpus, path_include_for_parent_corpus
 from .sections import build_sections_from_map
+
+
+class FileBreakdownItem(TypedDict):
+    path: str
+    section_count: int
+    sections: list[dict[str, Any]]
 
 
 def register_repeated_concepts(sub) -> None:
@@ -339,15 +345,16 @@ def compute_repeated_concepts(
         for sid in member_ids:
             path = section_meta[sid]["relative_path"]
             per_file.setdefault(path, []).append(section_meta[sid])
+        file_breakdown_items: list[FileBreakdownItem] = [
+            {
+                "path": path,
+                "section_count": len(secs),
+                "sections": secs,
+            }
+            for path, secs in per_file.items()
+        ]
         file_breakdown = sorted(
-            (
-                {
-                    "path": path,
-                    "section_count": len(secs),
-                    "sections": secs,
-                }
-                for path, secs in per_file.items()
-            ),
+            file_breakdown_items,
             key=lambda x: (-x["section_count"], x["path"]),
         )
 

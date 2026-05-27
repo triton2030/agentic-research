@@ -22,8 +22,15 @@ no skill-side scripts or server bridge are required.
 ## Unified backend shape
 
 - `src/navigator/markdown_io.py` owns shared Markdown parsing.
-- `src/navigator/graph.py` owns graph commands: `preflight`, `impact`,
-  `deps`, `health`, `check`, `changed`, and schema cleanup.
+- `src/navigator/graph_core.py` and `src/navigator/graph_reports.py` own
+  graph loading, path filtering, dependency analysis, reports and schema
+  cleanup primitives.
+- `src/navigator/api.py` is the callable facade used by `src/md_cli/`.
+  Graph-facing wrappers build `argparse.Namespace` via shared helpers,
+  merge `.md-tools.toml` graph filters once, and load docs through one path.
+- `src/navigator/graph.py` is legacy argparse compatibility for
+  `scripts/md_graph.py`; the installed `md` command does not dispatch through
+  its `cmd_*` functions.
 - `src/navigator/link_graph.py` and `src/navigator/importance.py` add link
   counts and centrality without embeddings.
 - `src/navigator/section_profile.py`, `originality.py`,
@@ -138,12 +145,15 @@ Start by choosing the owner surface:
 |---|---|
 | Search/index/audit-style primitive with shared flags or real logic | dedicated module in `src/navigator/` plus public function in `navigator.api` |
 | Agent workflow over existing primitives | `src/navigator/workflows/` plus a thin handler in `src/md_cli/handlers/` |
-| Graph contract, frontmatter, `read-before-edit`, `edit-after-edit`, rename/delete, or link-health logic | `src/navigator/graph.py` and graph-facing public API |
+| Graph contract, frontmatter, `read-before-edit`, `edit-after-edit`, rename/delete, or link-health logic | graph primitives in `src/navigator/graph_core.py` / `graph_reports.py` plus graph-facing public API in `navigator.api`; touch legacy `navigator.graph` only for compatibility behavior |
 | CLI/envelope/transaction behavior | `src/md_cli/` only |
 
 Checklist:
 
 1. Add the parser/help text and a pure helper where possible.
+   For graph-facing public API, reuse `_graph_args`, `_graph_docs` and
+   `_graph_scan_docs`; do not hand-build another args object or duplicate
+   `.md-tools.toml` filter merging.
 2. Return `0` for success, `1` for empty/no-result, `2` for usage/path
    errors, `3` for dependency/API failure, and `4` for index warmup refusal.
 3. If the command emits JSON, decide whether it is a stable agent-facing
@@ -153,6 +163,8 @@ Checklist:
    catches catalog/signature drift.
 5. Add tests close to the changed layer: pure helper tests, command smoke, and
    schema/manifest contract tests when applicable.
+   Path-filter helpers should accept repeated/list values, generators and a
+   single string without treating the string as characters.
 6. Update this README and regenerate installed catalogs with
    `python3 experiments/md-embedding-server/scripts/sync-skill-docs.py --regenerate`
    if agent-facing descriptions changed.

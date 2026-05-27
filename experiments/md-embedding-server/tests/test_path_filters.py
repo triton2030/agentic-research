@@ -14,6 +14,7 @@ from navigator.index_status import cmd_status
 from navigator.overlaps import cmd_overlaps
 from navigator.api import index as api_index
 from navigator.api import search_read, status as api_status
+from navigator.filters import normalize_path_filter_patterns
 from navigator.search import (
     _apply_path_filters,
     _path_matches_any,
@@ -83,6 +84,25 @@ def test_apply_path_filters_no_filters_returns_input() -> None:
     results = [{"relative_path": "a.md"}, {"relative_path": "b.md"}]
     out = _apply_path_filters(results, include_patterns=[], exclude_patterns=[])
     assert out == results
+
+
+def test_normalize_path_filter_patterns_accepts_single_string(tmp_path: Path) -> None:
+    root = tmp_path / "corpus"
+    assert normalize_path_filter_patterns("docs/*.md", root) == ["docs/*.md"]
+
+
+def test_normalize_path_filter_patterns_accepts_generator(tmp_path: Path) -> None:
+    root = tmp_path / "corpus"
+    patterns = (item for item in ["docs/*.md", "notes"])
+    assert normalize_path_filter_patterns(patterns, root) == ["docs/*.md", "notes"]
+
+
+def test_normalize_path_filter_patterns_accepts_absolute_path_under_corpus(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / "corpus"
+    absolute = str(root / "docs" / "guide.md")
+    assert normalize_path_filter_patterns([absolute], root) == ["docs/guide.md"]
 
 
 def _index(tiny_corpus: Path) -> None:

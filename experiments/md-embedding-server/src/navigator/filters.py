@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import fnmatch
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable
 
 
 def path_matches_any(rel_path: str, patterns: list[str]) -> bool:
@@ -56,7 +56,7 @@ def apply_path_filters(
 
 
 def normalize_path_filter_patterns(
-    patterns: list[str] | None,
+    patterns: Iterable[str] | str | None,
     corpus_root: Path,
 ) -> list[str]:
     """Convert absolute patterns under `corpus_root` to relative patterns.
@@ -65,12 +65,13 @@ def normalize_path_filter_patterns(
     callers often have absolute paths handy, so accept both forms without
     changing the core matching contract.
     """
-    if not patterns:
+    if patterns is None:
         return []
+    pattern_iter = [patterns] if isinstance(patterns, str) else patterns
     root = str(corpus_root.resolve())
     prefix = root + "/"
     out: list[str] = []
-    for pattern in patterns:
+    for pattern in pattern_iter:
         raw = str(pattern).strip()
         if not raw:
             continue

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import importlib
 import json
 from pathlib import Path
@@ -43,13 +44,79 @@ def _index_missing(corpus: str | Path) -> bool:
     return not (root / ".md-navigator" / "index.sqlite").exists()
 
 
-def _graph_args(paths: Iterable[str] | str | None = None, **kwargs: Any) -> SimpleNamespace:
-    return _ns(
+def _graph_args(paths: Iterable[str] | str | None = None, **kwargs: Any) -> argparse.Namespace:
+    path_include = _list(kwargs.pop("path_include", None))
+    path_exclude = _list(kwargs.pop("path_exclude", None))
+    no_default_excludes = bool(kwargs.pop("no_default_excludes", False))
+    return argparse.Namespace(
         paths=_default_paths(paths),
-        path_include=_list(kwargs.get("path_include")),
-        path_exclude=_list(kwargs.get("path_exclude")),
-        no_default_excludes=bool(kwargs.get("no_default_excludes", False)),
+        path_include=path_include,
+        path_exclude=path_exclude,
+        no_default_excludes=no_default_excludes,
+        **kwargs,
     )
+
+
+def _resolved_graph_args(
+    root: Path,
+    paths: Iterable[str] | str | None = None,
+    *,
+    path_include: Iterable[str] | str | None = None,
+    path_exclude: Iterable[str] | str | None = None,
+    **kwargs: Any,
+) -> argparse.Namespace:
+    resolved_include, resolved_exclude = resolve_filters_for_domain(
+        root,
+        domain="graph",
+        path_include=path_include,
+        path_exclude=path_exclude,
+    )
+    return _graph_args(
+        paths,
+        path_include=resolved_include,
+        path_exclude=resolved_exclude,
+        **kwargs,
+    )
+
+
+def _graph_docs(
+    paths: Iterable[str] | str | None = None,
+    *,
+    path_include: Iterable[str] | str | None = None,
+    path_exclude: Iterable[str] | str | None = None,
+    **kwargs: Any,
+) -> tuple[Any, Path, argparse.Namespace, list[Any]]:
+    from . import graph as graph_mod
+
+    root = graph_mod.repo_root()
+    args = _resolved_graph_args(
+        root,
+        paths,
+        path_include=path_include,
+        path_exclude=path_exclude,
+        **kwargs,
+    )
+    return graph_mod, root, args, graph_mod.load_docs(args.paths, root, args)
+
+
+def _graph_scan_docs(
+    graph_mod: Any,
+    root: Path,
+    scan: str | None,
+    *,
+    path_include: Iterable[str] | str | None = None,
+    path_exclude: Iterable[str] | str | None = None,
+    **kwargs: Any,
+) -> tuple[argparse.Namespace, list[Any]]:
+    args = _resolved_graph_args(
+        root,
+        scan or ".",
+        path_include=path_include,
+        path_exclude=path_exclude,
+        **kwargs,
+    )
+    scan_root = graph_mod.scan_scope_path(scan, root)
+    return args, graph_mod.load_docs([str(scan_root)], root, args)
 
 
 def ping() -> dict[str, object]:
@@ -250,15 +317,11 @@ def scan(
     path_include: Iterable[str] | str | None = None,
     path_exclude: Iterable[str] | str | None = None,
 ) -> dict[str, Any]:
-    from . import graph as graph_mod
-
-    root = graph_mod.repo_root()
-    path_include, path_exclude = resolve_filters_for_domain(
-        root, domain="graph",
-        path_include=path_include, path_exclude=path_exclude,
+    graph_mod, _root, _args, docs = _graph_docs(
+        paths,
+        path_include=path_include,
+        path_exclude=path_exclude,
     )
-    args = _graph_args(paths, path_include=path_include, path_exclude=path_exclude)
-    docs = graph_mod.load_docs(args.paths, root, args)
     findings = [finding for doc in docs for finding in graph_mod.scan_doc(doc)]
     return _exit(
         {"command": "scan", "targets": len(docs), "issues": [graph_mod.finding_data(f) for f in findings]},
@@ -272,15 +335,11 @@ def check(
     path_include: Iterable[str] | str | None = None,
     path_exclude: Iterable[str] | str | None = None,
 ) -> dict[str, Any]:
-    from . import graph as graph_mod
-
-    root = graph_mod.repo_root()
-    path_include, path_exclude = resolve_filters_for_domain(
-        root, domain="graph",
-        path_include=path_include, path_exclude=path_exclude,
+    graph_mod, root, _args, docs = _graph_docs(
+        paths,
+        path_include=path_include,
+        path_exclude=path_exclude,
     )
-    args = _graph_args(paths, path_include=path_include, path_exclude=path_exclude)
-    docs = graph_mod.load_docs(args.paths, root, args)
     findings = graph_mod.check_graph(docs, root)
     return _exit(
         {"command": "check", "targets": len(docs), "issues": [graph_mod.finding_data(f) for f in findings]},
@@ -294,15 +353,11 @@ def health(
     path_include: Iterable[str] | str | None = None,
     path_exclude: Iterable[str] | str | None = None,
 ) -> dict[str, Any]:
-    from . import graph as graph_mod
-
-    root = graph_mod.repo_root()
-    path_include, path_exclude = resolve_filters_for_domain(
-        root, domain="graph",
-        path_include=path_include, path_exclude=path_exclude,
+    graph_mod, root, _args, docs = _graph_docs(
+        paths,
+        path_include=path_include,
+        path_exclude=path_exclude,
     )
-    args = _graph_args(paths, path_include=path_include, path_exclude=path_exclude)
-    docs = graph_mod.load_docs(args.paths, root, args)
     return {"command": "health", **graph_mod.health_report(docs, root)}
 
 
@@ -312,15 +367,11 @@ def cycles(
     path_include: Iterable[str] | str | None = None,
     path_exclude: Iterable[str] | str | None = None,
 ) -> dict[str, Any]:
-    from . import graph as graph_mod
-
-    root = graph_mod.repo_root()
-    path_include, path_exclude = resolve_filters_for_domain(
-        root, domain="graph",
-        path_include=path_include, path_exclude=path_exclude,
+    graph_mod, root, _args, docs = _graph_docs(
+        paths,
+        path_include=path_include,
+        path_exclude=path_exclude,
     )
-    args = _graph_args(paths, path_include=path_include, path_exclude=path_exclude)
-    docs = graph_mod.load_docs(args.paths, root, args)
     found = graph_mod.find_edit_after_edit_cycles(docs, root)
     return _exit(
         {"command": "cycles", "targets": len(docs), "cycles": [[graph_mod.doc_data(doc) for doc in cycle] for cycle in found]},
@@ -346,13 +397,13 @@ def deps(
         target = graph_mod.load_target_doc(path, root)
     except SystemExit:
         return _exit({"command": "deps", "error": "path_not_found", "path": path}, 2)
-    path_include, path_exclude = resolve_filters_for_domain(
-        root, domain="graph",
-        path_include=path_include, path_exclude=path_exclude,
+    _args, all_docs = _graph_scan_docs(
+        graph_mod,
+        root,
+        scan,
+        path_include=path_include,
+        path_exclude=path_exclude,
     )
-    args = _graph_args(scan or ".", path_include=path_include, path_exclude=path_exclude)
-    scan_root = graph_mod.scan_scope_path(scan, root)
-    all_docs = graph_mod.load_docs([str(scan_root)], root, args)
     return {"command": "deps", "depth": selected_depth, **graph_mod.dependency_report(target, all_docs, root, selected_depth)}
 
 
@@ -366,14 +417,14 @@ def impact(
     from . import graph as graph_mod
 
     root = graph_mod.root_for_scan(scan)
-    path_include, path_exclude = resolve_filters_for_domain(
-        root, domain="graph",
-        path_include=path_include, path_exclude=path_exclude,
-    )
-    args = _graph_args(scan or ".", path_include=path_include, path_exclude=path_exclude)
     doc = graph_mod.load_target_doc(path, root)
-    scan_root = graph_mod.scan_scope_path(scan, root)
-    all_docs = graph_mod.load_docs([str(scan_root)], root, args)
+    _args, all_docs = _graph_scan_docs(
+        graph_mod,
+        root,
+        scan,
+        path_include=path_include,
+        path_exclude=path_exclude,
+    )
     return {"command": "impact", **graph_mod.impact_report(doc, all_docs, root, scan)}
 
 
@@ -391,14 +442,14 @@ def preflight(
     if selected_depth < 1:
         return _exit({"command": "preflight", "error": "depth_must_be_positive"}, 2)
     root = graph_mod.root_for_scan(scan)
-    path_include, path_exclude = resolve_filters_for_domain(
-        root, domain="graph",
-        path_include=path_include, path_exclude=path_exclude,
-    )
-    args = _graph_args(scan or ".", path_include=path_include, path_exclude=path_exclude)
     doc = graph_mod.load_target_doc(path, root)
-    scan_root = graph_mod.scan_scope_path(scan, root)
-    all_docs = graph_mod.load_docs([str(scan_root)], root, args)
+    _args, all_docs = _graph_scan_docs(
+        graph_mod,
+        root,
+        scan,
+        path_include=path_include,
+        path_exclude=path_exclude,
+    )
     report = graph_mod.preflight_report(doc, all_docs, root, selected_depth, scan)
     return _exit(
         {"command": "preflight", "depth": selected_depth, **report},
@@ -420,16 +471,17 @@ def changed(
 
     selected_depth = int(depth or 2)
     root = graph_mod.root_for_scan(scan)
-    path_include, path_exclude = resolve_filters_for_domain(
-        root, domain="graph",
-        path_include=path_include, path_exclude=path_exclude,
+    args, all_docs = _graph_scan_docs(
+        graph_mod,
+        root,
+        scan,
+        path_include=path_include,
+        path_exclude=path_exclude,
+        depth=selected_depth,
+        base=base,
+        since=since,
+        staged=staged,
     )
-    args = _graph_args(scan or ".", path_include=path_include, path_exclude=path_exclude)
-    args.depth = selected_depth
-    args.base = base
-    args.since = since
-    args.staged = staged
-    all_docs = graph_mod.load_docs([str(graph_mod.scan_scope_path(scan, root))], root, args)
     reports: list[dict[str, Any]] = []
     deleted: list[str] = []
     for changed_path in graph_mod.changed_markdown_paths(root, args):
@@ -549,8 +601,8 @@ def _sections_index_context(
             None,
         )
 
-    include_patterns = normalize_path_filter_patterns(path_include, corpus_root)
-    exclude_patterns = normalize_path_filter_patterns(path_exclude, corpus_root)
+    include_patterns = normalize_path_filter_patterns(_list(path_include), corpus_root)
+    exclude_patterns = normalize_path_filter_patterns(_list(path_exclude), corpus_root)
     map_data = build_map(corpus_root, max_heading_level or 6, with_tokens=scope != "descriptions")
     scoped_map = apply_path_filters_to_map(map_data, include_patterns, exclude_patterns)
     if not scoped_map["files"]:
@@ -1014,15 +1066,11 @@ def init(
     path_exclude: Iterable[str] | str | None = None,
     **_: Any,
 ) -> dict[str, Any]:
-    from . import graph as graph_mod
-
-    root = graph_mod.repo_root()
-    path_include, path_exclude = resolve_filters_for_domain(
-        root, domain="graph",
-        path_include=path_include, path_exclude=path_exclude,
+    graph_mod, _root, _args, docs = _graph_docs(
+        paths,
+        path_include=path_include,
+        path_exclude=path_exclude,
     )
-    args = _graph_args(paths, path_include=path_include, path_exclude=path_exclude)
-    docs = graph_mod.load_docs(args.paths, root, args)
     targets = [doc for doc in docs if not doc.has_frontmatter]
     target_paths = [str(doc.path) for doc in targets]
     if dry_run or not confirm:
@@ -1055,15 +1103,11 @@ def strip(
     path_exclude: Iterable[str] | str | None = None,
     **_: Any,
 ) -> dict[str, Any]:
-    from . import graph as graph_mod
-
-    root = graph_mod.repo_root()
-    path_include, path_exclude = resolve_filters_for_domain(
-        root, domain="graph",
-        path_include=path_include, path_exclude=path_exclude,
+    graph_mod, _root, _args, docs = _graph_docs(
+        paths,
+        path_include=path_include,
+        path_exclude=path_exclude,
     )
-    args = _graph_args(paths, path_include=path_include, path_exclude=path_exclude)
-    docs = graph_mod.load_docs(args.paths, root, args)
     targets: list[Any] = []
     changes: list[dict[str, Any]] = []
     for doc in docs:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from argparse import Namespace
 from pathlib import Path
 
 import navigator
@@ -92,6 +93,55 @@ def test_public_api_smoke_on_fixture_corpus() -> None:
     ]
     assert len(calls) == 31
     assert all(isinstance(payload, dict) for payload in calls)
+
+
+def test_graph_public_api_builds_argparse_namespace(monkeypatch, tmp_path: Path) -> None:
+    from navigator import api
+    from navigator import graph as graph_mod
+
+    monkeypatch.chdir(tmp_path)
+    seen_args: list[Namespace] = []
+
+    def fake_load_docs(paths, root, args):
+        seen_args.append(args)
+        return []
+
+    monkeypatch.setattr(graph_mod, "load_docs", fake_load_docs)
+
+    payload = api.scan(paths=["."], path_include="docs")
+
+    assert payload["_exit_code"] == 0
+    assert isinstance(seen_args[0], Namespace)
+    assert seen_args[0].paths == ["."]
+    assert seen_args[0].path_include == ["docs"]
+
+
+def test_changed_public_api_reuses_namespace_for_git_diff(monkeypatch, tmp_path: Path) -> None:
+    from navigator import api
+    from navigator import graph as graph_mod
+
+    monkeypatch.chdir(tmp_path)
+    seen_load_args: list[Namespace] = []
+    seen_changed_args: list[Namespace] = []
+
+    def fake_load_docs(paths, root, args):
+        seen_load_args.append(args)
+        return []
+
+    def fake_changed_markdown_paths(root, args):
+        seen_changed_args.append(args)
+        return []
+
+    monkeypatch.setattr(graph_mod, "load_docs", fake_load_docs)
+    monkeypatch.setattr(graph_mod, "changed_markdown_paths", fake_changed_markdown_paths)
+
+    payload = api.changed(scan=".", staged=True, path_include="docs")
+
+    assert payload["_exit_code"] == 0
+    assert seen_changed_args[0] is seen_load_args[0]
+    assert isinstance(seen_changed_args[0], Namespace)
+    assert seen_changed_args[0].staged is True
+    assert seen_changed_args[0].path_include == ["docs"]
 
 
 def test_query_by_type_docstring_documents_re_export() -> None:

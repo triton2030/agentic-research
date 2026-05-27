@@ -25,6 +25,11 @@ Phase 2 can start only when the lock tests are green.
 - `navigator.workflows.*` imports only navigator/library code, never `md_cli`,
   `subprocess`, or serialization.
 - `navigator.*` library modules do not import `md_cli`.
+- `navigator.api` is the installed `md` callable facade. Graph-facing wrappers
+  must use the shared graph helpers (`_graph_args`, `_graph_docs`,
+  `_graph_scan_docs`, or their direct successor) so `.md-tools.toml` graph
+  filters and direct API filters merge in one place. Graph helpers typed for
+  `argparse.Namespace` must not receive `types.SimpleNamespace`.
 - `md --help`, `md tools`, and help paths stay lazy and do not import heavy
   dependencies.
 - Agent-facing response snapshots cover every `TOOLS_BY_ID` entry and must not
