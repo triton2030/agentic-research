@@ -20,6 +20,7 @@ from .filters import (
     normalize_path_filter_patterns,
     sqlite_path_filter_sql,
 )
+from navigator.index_guidance import index_dry_run_command
 from .index_meta import _open_index_readonly
 
 
@@ -298,7 +299,7 @@ def cmd_cluster(args) -> int:
     except FileNotFoundError:
         print(
             f"No index for {corpus_root}.\n"
-            f"  Next: md index '{corpus_root}' --dry-run --json",
+            f"  Next: {index_dry_run_command(corpus_root)}",
             file=sys.stderr,
         )
         return 4

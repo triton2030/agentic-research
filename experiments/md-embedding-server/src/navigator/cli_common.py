@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import argparse
 
+from navigator.index_guidance import INDEX_DRY_RUN_PLACEHOLDER
+
 from .embeddings import (
     SEARCH_DEFAULT_EMBED_MODEL,
     SEARCH_DEFAULT_EMBEDDING_API_URL,
@@ -78,7 +80,7 @@ def add_auto_embed_args(parser: argparse.ArgumentParser, default_cap: int) -> No
         default=default_cap,
         help=(
             f"If the new-section delta needs more than this many chunks to "
-            f"embed, the command refuses and asks you to run `md index CORPUS --dry-run --json` first "
+            f"embed, the command refuses and asks you to run `{INDEX_DRY_RUN_PLACEHOLDER}` first "
             f"(default: {default_cap}). Pass 0 to allow any size."
         ),
     )

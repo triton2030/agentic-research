@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from .embeddings import OpenRouterClient
+from navigator.index_guidance import index_dry_run_command
 from .index_meta import _index_dir_for_corpus
 
 PROFILE_VERSION = "section-profile-2026-05-21"
@@ -494,7 +495,7 @@ def open_profile_db(corpus: Path):
     if not db_path.exists():
         raise RuntimeError(
             f"No md-navigator index at {db_path}; "
-            f"run `md index {corpus} --dry-run --json`, then confirm with the returned --transaction-id."
+            f"run `{index_dry_run_command(corpus)}`, then confirm with the returned --transaction-id."
         )
     conn = sqlite3.connect(db_path, timeout=30.0)
     conn.execute("PRAGMA busy_timeout = 30000")

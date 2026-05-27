@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import hashlib
 from pathlib import Path
+from typing import Literal, TypedDict
 
 from .embeddings import (
     SEARCH_DEFAULT_EMBEDDING_API_URL,
@@ -26,6 +27,20 @@ SCHEMA_VERSION = 4
 SEARCH_CACHE_ROOT = Path.home() / ".cache" / "md-navigator"
 INDEX_DIRNAME = ".md-navigator"
 GITIGNORE_BANNER = "# md-navigator persistent index — do not commit\n*\n"
+
+
+class SuggestedIndexArgs(TypedDict, total=False):
+    corpus: str
+    path_include: list[str]
+    path_exclude: list[str]
+    dry_run: bool
+
+
+class NestedCorpusRefusal(TypedDict):
+    error: Literal["nested_corpus_refused"]
+    requested_corpus: str
+    parent_corpus: str
+    suggested_index_args: SuggestedIndexArgs
 
 
 # --- Cache layout --------------------------------------------------------
@@ -82,8 +97,8 @@ def nested_corpus_refusal(
     parent_corpus: Path,
     path_include: list[str] | None = None,
     path_exclude: list[str] | None = None,
-) -> dict[str, object]:
-    suggested: dict[str, object] = {
+) -> NestedCorpusRefusal:
+    suggested: SuggestedIndexArgs = {
         "corpus": str(parent_corpus),
         "path_include": path_include_for_parent_corpus(
             requested_corpus,
@@ -298,7 +313,7 @@ def _open_index(
     the corpus at `<corpus>/.md-navigator/`. A non-None `cache_root` lays
     out per-corpus subfolders inside that root (legacy and test path)."""
     import sqlite3
-    import sqlite_vec
+    import sqlite_vec  # type: ignore[import-not-found]
 
     cache_dir = _index_dir_for_corpus(corpus_root, cache_root=cache_root, create=True)
     db_path = cache_dir / "index.sqlite"
@@ -389,7 +404,7 @@ def _open_index_readonly(corpus_root: Path, cache_root: Path | None = None):
     Unlike `_open_index_metadata_readonly`, this loads `sqlite_vec` so the
     caller can run vector queries on `sections_vec`."""
     import sqlite3
-    import sqlite_vec
+    import sqlite_vec  # type: ignore[import-not-found]
 
     cache_dir = _index_dir_for_corpus(corpus_root, cache_root=cache_root, create=False)
     db_path = cache_dir / "index.sqlite"

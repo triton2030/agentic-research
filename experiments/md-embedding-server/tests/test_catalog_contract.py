@@ -34,6 +34,7 @@ def test_catalog_values_match_mcp_snapshot_without_runtime_patching() -> None:
     assert "input_schema.pop" not in source
     assert "for _tool in TOOLS_BY_ID.values()" not in source
     assert "setdefault(\"fingerprint\"" not in source
+    assert "COMMON_ARG_HELP" not in (ROOT / "src/md_cli/main.py").read_text(encoding="utf-8")
 
 
 def test_catalog_required_fields_and_import_targets() -> None:
@@ -51,6 +52,16 @@ def test_catalog_required_fields_and_import_targets() -> None:
         assert target is not None
         module_name, attr = target.rsplit(".", 1)
         assert hasattr(importlib.import_module(module_name), attr)
+
+
+def test_catalog_input_properties_have_help_descriptions() -> None:
+    missing = []
+    for tool in TOOLS:
+        properties = tool.input_schema.get("properties") or {}
+        for name, schema in properties.items():
+            if not str(schema.get("description", "")).strip():
+                missing.append(f"{tool.name}.{name}")
+    assert missing == []
 
 
 def _run_md(*args: str) -> subprocess.CompletedProcess[str]:

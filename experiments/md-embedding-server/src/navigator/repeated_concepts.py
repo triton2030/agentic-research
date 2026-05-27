@@ -14,7 +14,6 @@ top-K member sections by similarity to the medoid.
 from __future__ import annotations
 
 import json
-import shlex
 import sys
 from pathlib import Path
 from typing import Any, TypedDict
@@ -35,6 +34,11 @@ from .filters import (
 )
 from .folder_map import build_map
 from .index import _index_dir_for_corpus, ensure_index, resolve_embed_model_for_corpus
+from navigator.index_guidance import (
+    index_confirm_command,
+    index_dry_run_command,
+    scoped_rerun_command,
+)
 from .index_meta import find_parent_indexed_corpus, path_include_for_parent_corpus
 from .sections import build_sections_from_map
 
@@ -450,21 +454,16 @@ def cmd_repeated_concepts(args) -> int:
             if exclude_patterns
             else []
         )
-        filter_args = " ".join(
-            [f"--path-include {shlex.quote(pattern)}" for pattern in parent_include]
-            + [f"--path-exclude {shlex.quote(pattern)}" for pattern in parent_exclude]
-        )
         print(
             f"Index needs warmup before repeated-concepts can run.\n"
             f"  Requested path is inside indexed parent corpus: {parent_corpus}\n"
             f"\n"
             f"  Next step:\n"
-            f"    md index {shlex.quote(str(parent_corpus))} {filter_args} --dry-run --json\n"
-            f"    md index {shlex.quote(str(parent_corpus))} {filter_args} "
-            f"--confirm --transaction-id <id> --json\n"
+            f"    {index_dry_run_command(parent_corpus, path_include=parent_include, path_exclude=parent_exclude)}\n"
+            f"    {index_confirm_command(parent_corpus, path_include=parent_include, path_exclude=parent_exclude)}\n"
             f"\n"
             f"  Then re-run repeated-concepts on the parent corpus with the same path scope:\n"
-            f"    md repeated-concepts {shlex.quote(str(parent_corpus))} {filter_args} --json\n",
+            f"    {scoped_rerun_command('repeated-concepts', parent_corpus, path_include=parent_include, path_exclude=parent_exclude)}\n",
             file=sys.stderr,
         )
         return 4
@@ -523,8 +522,8 @@ def cmd_repeated_concepts(args) -> int:
             f"(cap for auto-embed in `repeated-concepts` = {max_auto_embed}).\n"
             f"\n"
             f"  Next step:\n"
-            f"    md index '{corpus_root}' --dry-run --json\n"
-            f"    md index '{corpus_root}' --confirm --transaction-id <id> --json\n"
+            f"    {index_dry_run_command(corpus_root)}\n"
+            f"    {index_confirm_command(corpus_root)}\n"
             f"\n"
             f"  Then re-run repeated-concepts. One-time cost; subsequent runs "
             f"reuse the index on disk.",

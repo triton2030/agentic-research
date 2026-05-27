@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from navigator.index_guidance import index_dry_run_command
+
 
 def render_status(payload: dict[str, Any]) -> str:
     if payload.get("error"):
@@ -16,6 +18,7 @@ def render_status(payload: dict[str, Any]) -> str:
     scope = payload.get("path_scope") or {}
     include = scope.get("include")
     exclude = scope.get("exclude")
+    dry_run_cmd = _recommended_index_dry_run(payload)
     if include or exclude:
         lines.append(f"Path scope: include={include or '∅'} exclude={exclude or '∅'}")
     if payload.get("last_touched"):
@@ -48,13 +51,13 @@ def render_status(payload: dict[str, Any]) -> str:
             f"Status: NO INDEX — {payload['added_sections']} sections / "
             f"{payload['pending_chunks']} chunks would be embedded."
         )
-        lines.append(f"  Next: md index '{payload['corpus']}' --dry-run --json")
+        lines.append(f"  Next: {dry_run_cmd}")
     elif state == "NEEDS_REBUILD":
         lines.append(
             "Status: NEEDS REBUILD — index metadata/schema does not match the "
             "current model, API URL, or schema version."
         )
-        lines.append(f"  Next: md index '{payload['corpus']}' --dry-run --json")
+        lines.append(f"  Next: {dry_run_cmd}")
     elif state == "FRESH":
         lines.append("Status: FRESH — no pending changes; `search` is instant.")
     elif state == "NEEDS_WARMUP":
@@ -62,7 +65,7 @@ def render_status(payload: dict[str, Any]) -> str:
             f"Status: NEEDS WARMUP — {payload['added_sections']} new sections / "
             f"{payload['pending_chunks']} chunks pending (cap {payload['max_auto_embed']})."
         )
-        lines.append(f"  Next: md index '{payload['corpus']}' --dry-run --json")
+        lines.append(f"  Next: {dry_run_cmd}")
     elif state == "HEALTHY":
         lines.append(
             f"Status: HEALTHY — {payload['added_sections']} new / "
@@ -70,7 +73,7 @@ def render_status(payload: dict[str, Any]) -> str:
             f"{payload['pending_chunks']} chunks pending. `search` will auto-handle the delta."
         )
         lines.append(
-            f"  Optional: md index '{payload['corpus']}' --dry-run --json  "
+            f"  Optional: {dry_run_cmd}  "
             "(preview cost before eager warmup)"
         )
     else:
@@ -83,3 +86,26 @@ def render_status(payload: dict[str, Any]) -> str:
             "`search` auto-remaps to fresh ids; `index` prunes the stale rows."
         )
     return "\n".join(lines)
+
+
+def _recommended_index_dry_run(payload: dict[str, Any]) -> str:
+    action = payload.get("recommended_action")
+    if isinstance(action, dict) and action.get("tool") == "md_index":
+        args = action.get("args")
+        if isinstance(args, dict):
+            corpus = args.get("corpus")
+            path_include = args.get("path_include")
+            path_exclude = args.get("path_exclude")
+            return index_dry_run_command(
+                corpus if isinstance(corpus, str) else payload["corpus"],
+                path_include=path_include if isinstance(path_include, list) else None,
+                path_exclude=path_exclude if isinstance(path_exclude, list) else None,
+            )
+    scope = payload.get("path_scope") or {}
+    path_include = scope.get("include")
+    path_exclude = scope.get("exclude")
+    return index_dry_run_command(
+        payload["corpus"],
+        path_include=path_include if isinstance(path_include, list) else None,
+        path_exclude=path_exclude if isinstance(path_exclude, list) else None,
+    )

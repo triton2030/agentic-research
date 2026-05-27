@@ -27,6 +27,7 @@ from .filters import (
 )
 from .folder_map import build_map
 from .index import ensure_index, resolve_embed_model_for_corpus
+from navigator.index_guidance import index_dry_run_command
 from .lemmatize import lemmatize_text, lemmatize_token
 from .rerank import (
     DEFAULT_RERANK_API_URL,
@@ -751,7 +752,7 @@ def render_search(out: dict[str, Any], output_path: str | None = None) -> str:
     if dropped_path:
         lines.append(
             f"Note: dropped {dropped_path} result(s) for stale paths — "
-            f"preview `md index '{out['root']}' --dry-run --json` before pruning."
+            f"preview `{index_dry_run_command(out['root'])}` before pruning."
         )
         lines.append("")
     partial_index = out.get("partial_index") or {}
@@ -766,7 +767,7 @@ def render_search(out: dict[str, Any], output_path: str | None = None) -> str:
                 f"- {item['relative_path']} "
                 f"(sections={item['added_sections']}, chunks={item['pending_chunks']})"
             )
-        lines.append(f"Next: md index '{out['root']}' --dry-run --json")
+        lines.append(f"Next: {index_dry_run_command(out['root'])}")
         lines.append("")
     results = out.get("results") or []
     if not results:

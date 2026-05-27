@@ -1,14 +1,20 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, TypedDict
 
 
 LARGE_REPLY_BYTES = 10_000
 
 
+class NextStep(TypedDict):
+    tool: str
+    args: dict[str, Any]
+    reason: str
+
+
 def _narrow_for_large_reply(
     tool_name: str, args_dict: dict[str, Any], byte_count: int | None
-) -> dict[str, Any] | None:
+) -> NextStep | None:
     size_note = f"Reply {byte_count} bytes > {LARGE_REPLY_BYTES}" if byte_count else "Reply large"
 
     if tool_name in {"md_search", "md_search_read"}:
@@ -66,9 +72,43 @@ def derive_next_step(
     corpus_state: dict[str, Any] | None = None,
     lock: dict[str, Any] | None = None,
     size_estimate: dict[str, Any] | None = None,
-) -> list[dict[str, Any]]:
+) -> list[NextStep]:
     if not isinstance(result, dict):
         return []
+    handlers = (
+        _handle_dry_run_lock,
+        _handle_index_warmup,
+        _handle_nested_corpus,
+        _handle_transaction_required,
+        _handle_transaction_retry,
+        _handle_empty_search,
+        _handle_large_reply,
+    )
+    for handler in handlers:
+        steps = handler(
+            result,
+            tool_name=tool_name,
+            args_dict=args_dict,
+            corpus_root=corpus_root,
+            corpus_state=corpus_state,
+            lock=lock,
+            size_estimate=size_estimate,
+        )
+        if steps:
+            return steps
+    return []
+
+
+def _handle_dry_run_lock(
+    result: dict[str, Any],
+    *,
+    tool_name: str | None,
+    args_dict: dict[str, Any],
+    corpus_root: str | None,
+    corpus_state: dict[str, Any] | None,
+    lock: dict[str, Any] | None,
+    size_estimate: dict[str, Any] | None,
+) -> list[NextStep]:
     if result.get("dry_run") is True and lock and lock.get("transaction_id") and tool_name:
         confirm_args = dict(args_dict)
         confirm_args.pop("dry_run", None)
@@ -81,8 +121,21 @@ def derive_next_step(
                 "reason": "Apply the dry-run plan with the matching transaction_id.",
             }
         ]
+    return []
+
+
+def _handle_index_warmup(
+    result: dict[str, Any],
+    *,
+    tool_name: str | None,
+    args_dict: dict[str, Any],
+    corpus_root: str | None,
+    corpus_state: dict[str, Any] | None,
+    lock: dict[str, Any] | None,
+    size_estimate: dict[str, Any] | None,
+) -> list[NextStep]:
     if result.get("error") == "index_warmup_required":
-        steps = []
+        steps: list[NextStep] = []
         suggested_index = result.get("suggested_index_args")
         if isinstance(suggested_index, dict):
             index_args = dict(suggested_index)
@@ -116,6 +169,19 @@ def derive_next_step(
                 }
             )
         return steps
+    return []
+
+
+def _handle_nested_corpus(
+    result: dict[str, Any],
+    *,
+    tool_name: str | None,
+    args_dict: dict[str, Any],
+    corpus_root: str | None,
+    corpus_state: dict[str, Any] | None,
+    lock: dict[str, Any] | None,
+    size_estimate: dict[str, Any] | None,
+) -> list[NextStep]:
     if result.get("error") == "nested_corpus_refused":
         suggested_index = result.get("suggested_index_args")
         if isinstance(suggested_index, dict):
@@ -130,6 +196,19 @@ def derive_next_step(
                 }
             ]
         return []
+    return []
+
+
+def _handle_transaction_required(
+    result: dict[str, Any],
+    *,
+    tool_name: str | None,
+    args_dict: dict[str, Any],
+    corpus_root: str | None,
+    corpus_state: dict[str, Any] | None,
+    lock: dict[str, Any] | None,
+    size_estimate: dict[str, Any] | None,
+) -> list[NextStep]:
     if result.get("error") in {"confirm_required", "transaction_required"}:
         if not tool_name:
             return []
@@ -148,6 +227,19 @@ def derive_next_step(
                 "reason": "Run a dry-run first; confirm requires the returned transaction_id or fingerprint.",
             }
         ]
+    return []
+
+
+def _handle_transaction_retry(
+    result: dict[str, Any],
+    *,
+    tool_name: str | None,
+    args_dict: dict[str, Any],
+    corpus_root: str | None,
+    corpus_state: dict[str, Any] | None,
+    lock: dict[str, Any] | None,
+    size_estimate: dict[str, Any] | None,
+) -> list[NextStep]:
     if result.get("error") in {"transaction_not_found", "expired"}:
         if not tool_name:
             return []
@@ -163,6 +255,19 @@ def derive_next_step(
                 "reason": "Re-run --dry-run to obtain a fresh transaction_id.",
             }
         ]
+    return []
+
+
+def _handle_empty_search(
+    result: dict[str, Any],
+    *,
+    tool_name: str | None,
+    args_dict: dict[str, Any],
+    corpus_root: str | None,
+    corpus_state: dict[str, Any] | None,
+    lock: dict[str, Any] | None,
+    size_estimate: dict[str, Any] | None,
+) -> list[NextStep]:
     if result.get("empty") is True and tool_name == "md_search":
         broader_args = dict(args_dict)
         broader_args["scope"] = "descriptions"
@@ -173,13 +278,31 @@ def derive_next_step(
                 "reason": "Retry with scope='descriptions' for higher-level matching.",
             }
         ]
+    return []
+
+
+def _handle_large_reply(
+    result: dict[str, Any],
+    *,
+    tool_name: str | None,
+    args_dict: dict[str, Any],
+    corpus_root: str | None,
+    corpus_state: dict[str, Any] | None,
+    lock: dict[str, Any] | None,
+    size_estimate: dict[str, Any] | None,
+) -> list[NextStep]:
     if (
         tool_name
         and isinstance(size_estimate, dict)
         and size_estimate.get("large_reply")
         and not result.get("error")
     ):
-        hint = _narrow_for_large_reply(tool_name, args_dict, size_estimate.get("bytes"))
+        byte_count = size_estimate.get("bytes")
+        hint = _narrow_for_large_reply(
+            tool_name,
+            args_dict,
+            byte_count if isinstance(byte_count, int) else None,
+        )
         if hint is not None:
             return [hint]
     return []
@@ -188,7 +311,7 @@ def derive_next_step(
 def _recommended_action_for(
     tool_name: str,
     corpus_state: dict[str, Any] | None,
-) -> dict[str, Any] | None:
+) -> NextStep | None:
     if not isinstance(corpus_state, dict):
         return None
     action = corpus_state.get("recommended_action")

@@ -940,6 +940,7 @@ def cmd_audit(args) -> int:
         path_matches_any,  # noqa: F401  (re-export for tests)
     )
     from .folder_map import build_map
+    from navigator.index_guidance import index_dry_run_command
     from .index_meta import (
         _index_dir_for_corpus,
         resolve_embed_model_for_corpus,
@@ -1018,7 +1019,7 @@ def cmd_audit(args) -> int:
             f"Index needs warmup before audit can run.\n"
             f"  {added} new sections / {pending} chunks pending "
             f"(cap = {max_auto_embed}).\n"
-            f"  Next: md index '{corpus_root}' --dry-run --json",
+            f"  Next: {index_dry_run_command(corpus_root)}",
             file=sys.stderr,
         )
         return 4

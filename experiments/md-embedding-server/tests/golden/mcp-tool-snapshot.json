@@ -33,21 +33,24 @@
           },
           "corpus": {
             "minLength": 1,
-            "type": "string"
+            "type": "string",
+            "description": "Markdown corpus root."
           },
           "path_exclude": {
             "items": {
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to exclude."
           },
           "path_include": {
             "items": {
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to include."
           }
         },
         "required": [
@@ -96,14 +99,16 @@
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to exclude."
           },
           "path_include": {
             "items": {
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to include."
           },
           "scan": {
             "description": "Reverse-scan scope (default: repo root)",
@@ -151,14 +156,16 @@
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to exclude."
           },
           "path_include": {
             "items": {
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to include."
           },
           "paths": {
             "description": "Files or directories (default: current directory)",
@@ -235,14 +242,16 @@
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to exclude."
           },
           "path_include": {
             "items": {
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to include."
           },
           "paths": {
             "description": "Files or directories (default: current directory)",
@@ -289,24 +298,28 @@
           },
           "path": {
             "minLength": 1,
-            "type": "string"
+            "type": "string",
+            "description": "Markdown file or folder path."
           },
           "path_exclude": {
             "items": {
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to exclude."
           },
           "path_include": {
             "items": {
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to include."
           },
           "scan": {
-            "type": "string"
+            "type": "string",
+            "description": "Markdown root used for graph/link scanning."
           }
         },
         "required": [
@@ -351,7 +364,8 @@
           "depth": {
             "exclusiveMinimum": 0,
             "maximum": 10,
-            "type": "integer"
+            "type": "integer",
+            "description": "Graph or link-following depth."
           },
           "mode": {
             "enum": [
@@ -359,7 +373,8 @@
               "full",
               "strict"
             ],
-            "type": "string"
+            "type": "string",
+            "description": "Output mode; normal/preview maps first, full/expanded includes bodies."
           },
           "path": {
             "description": "Markdown file to edit",
@@ -428,7 +443,8 @@
           "token_budget": {
             "maximum": 9007199254740991,
             "minimum": 0,
-            "type": "integer"
+            "type": "integer",
+            "description": "Approx output token budget; pass 0 only when you deliberately want unbounded output."
           }
         },
         "oneOf": [
@@ -476,14 +492,16 @@
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to exclude."
           },
           "path_include": {
             "items": {
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to include."
           },
           "paths": {
             "description": "Files or directories (default: current directory)",
@@ -524,24 +542,28 @@
         "properties": {
           "path": {
             "minLength": 1,
-            "type": "string"
+            "type": "string",
+            "description": "Markdown file or folder path."
           },
           "path_exclude": {
             "items": {
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to exclude."
           },
           "path_include": {
             "items": {
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to include."
           },
           "scan": {
-            "type": "string"
+            "type": "string",
+            "description": "Markdown root used for graph/link scanning."
           }
         },
         "required": [
@@ -577,7 +599,8 @@
         "properties": {
           "corpus": {
             "minLength": 1,
-            "type": "string"
+            "type": "string",
+            "description": "Markdown corpus root."
           },
           "sort_by": {
             "enum": [
@@ -586,12 +609,14 @@
               "out_degree",
               "centrality"
             ],
-            "type": "string"
+            "type": "string",
+            "description": "Sort key for the returned ranking."
           },
           "top": {
             "exclusiveMinimum": 0,
             "maximum": 100,
-            "type": "integer"
+            "type": "integer",
+            "description": "Maximum number of top-ranked items to return."
           }
         },
         "required": [
@@ -632,12 +657,14 @@
           "batch_pause_ms": {
             "maximum": 9007199254740991,
             "minimum": 0,
-            "type": "integer"
+            "type": "integer",
+            "description": "Pause between embedding batches in milliseconds."
           },
           "batch_size": {
             "exclusiveMinimum": 0,
             "maximum": 128,
-            "type": "integer"
+            "type": "integer",
+            "description": "Number of chunks to embed per batch."
           },
           "confirm": {
             "description": "Required true to actually run. Default false rejects with cost warning.",
@@ -655,7 +682,8 @@
           "max_heading_level": {
             "maximum": 6,
             "minimum": 1,
-            "type": "integer"
+            "type": "integer",
+            "description": "Deepest heading level to treat as a separate section."
           },
           "path_exclude": {
             "description": "Exclude matching paths from this index run",
@@ -722,14 +750,16 @@
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to exclude."
           },
           "path_include": {
             "items": {
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to include."
           },
           "paths": {
             "description": "Files or directories (default: current directory)",
@@ -783,7 +813,8 @@
           "max_heading_level": {
             "maximum": 6,
             "minimum": 1,
-            "type": "integer"
+            "type": "integer",
+            "description": "Deepest heading level to treat as a separate section."
           },
           "path": {
             "description": "Folder or .md file path",
@@ -846,12 +877,14 @@
           "max_heading_level": {
             "maximum": 6,
             "minimum": 1,
-            "type": "integer"
+            "type": "integer",
+            "description": "Deepest heading level to treat as a separate section."
           },
           "top": {
             "exclusiveMinimum": 0,
             "maximum": 50,
-            "type": "integer"
+            "type": "integer",
+            "description": "Maximum number of top-ranked items to return."
           }
         },
         "required": [
@@ -901,7 +934,8 @@
           "max_heading_level": {
             "maximum": 6,
             "minimum": 1,
-            "type": "integer"
+            "type": "integer",
+            "description": "Deepest heading level to treat as a separate section."
           },
           "min_tokens": {
             "description": "Skip sections below this token count (default 30)",
@@ -914,14 +948,16 @@
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to exclude."
           },
           "path_include": {
             "items": {
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to include."
           },
           "threshold": {
             "description": "Cosine similarity threshold (default 0.85)",
@@ -1011,14 +1047,16 @@
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to exclude."
           },
           "path_include": {
             "items": {
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to include."
           },
           "scan": {
             "description": "Reverse-scan scope (default: repo root)",
@@ -1085,7 +1123,8 @@
               "llm",
               "auto"
             ],
-            "type": "string"
+            "type": "string",
+            "description": "Output mode; normal/preview maps first, full/expanded includes bodies."
           },
           "model": {
             "description": "LLM classifier model id for mode=llm/auto",
@@ -1096,14 +1135,16 @@
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to exclude."
           },
           "path_include": {
             "items": {
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to include."
           },
           "fingerprint": {
             "description": "Stateless fingerprint from a prior dry_run. Alternative to transaction_id for confirm:true.",
@@ -1161,21 +1202,24 @@
           "limit": {
             "exclusiveMinimum": 0,
             "maximum": 200,
-            "type": "integer"
+            "type": "integer",
+            "description": "Maximum number of results to return."
           },
           "path_exclude": {
             "items": {
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to exclude."
           },
           "path_include": {
             "items": {
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to include."
           },
           "types": {
             "description": "Profile types to return: open-question, decision, definition, rule, example, uses, external-citation, heading-only",
@@ -1237,7 +1281,8 @@
           },
           "link_distance_threshold": {
             "exclusiveMinimum": 0,
-            "type": "number"
+            "type": "number",
+            "description": "Distance threshold for --check-links; lower is stricter."
           },
           "mode": {
             "description": "preview: descriptions/headings only. full: include content bodies. Default preview.",
@@ -1269,7 +1314,8 @@
           "token_budget": {
             "maximum": 9007199254740991,
             "minimum": 0,
-            "type": "integer"
+            "type": "integer",
+            "description": "Approx output token budget; pass 0 only when you deliberately want unbounded output."
           }
         },
         "required": [
@@ -1319,31 +1365,36 @@
           "owner_confidence_threshold": {
             "maximum": 1,
             "minimum": 0,
-            "type": "number"
+            "type": "number",
+            "description": "Minimum owner-confidence score for refactor candidates."
           },
           "path_exclude": {
             "items": {
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to exclude."
           },
           "path_include": {
             "items": {
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to include."
           },
           "top": {
             "exclusiveMinimum": 0,
             "maximum": 50,
-            "type": "integer"
+            "type": "integer",
+            "description": "Maximum number of top-ranked items to return."
           },
           "uniqueness_threshold": {
             "maximum": 1,
             "minimum": 0,
-            "type": "number"
+            "type": "number",
+            "description": "Minimum uniqueness score for refactor candidates."
           }
         },
         "required": [
@@ -1395,26 +1446,30 @@
           "min_sections": {
             "exclusiveMinimum": 0,
             "maximum": 9007199254740991,
-            "type": "integer"
+            "type": "integer",
+            "description": "Drop repeated concepts with fewer matching sections."
           },
           "min_tokens": {
             "maximum": 9007199254740991,
             "minimum": 0,
-            "type": "integer"
+            "type": "integer",
+            "description": "Ignore very short sections below this token count."
           },
           "path_exclude": {
             "items": {
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to exclude."
           },
           "path_include": {
             "items": {
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to include."
           },
           "threshold": {
             "description": "Cosine threshold for graph edges (default 0.80)",
@@ -1431,7 +1486,8 @@
           "top_members": {
             "exclusiveMinimum": 0,
             "maximum": 9007199254740991,
-            "type": "integer"
+            "type": "integer",
+            "description": "Maximum representative members to include per repeated concept."
           }
         },
         "required": [
@@ -1470,14 +1526,16 @@
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to exclude."
           },
           "path_include": {
             "items": {
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to include."
           },
           "paths": {
             "description": "Files or directories (default: current directory)",
@@ -1519,39 +1577,46 @@
           "candidates": {
             "exclusiveMinimum": 0,
             "maximum": 500,
-            "type": "integer"
+            "type": "integer",
+            "description": "Candidate pool size before final ranking."
           },
           "corpus": {
             "minLength": 1,
-            "type": "string"
+            "type": "string",
+            "description": "Markdown corpus root."
           },
           "limit": {
             "exclusiveMinimum": 0,
             "maximum": 100,
-            "type": "integer"
+            "type": "integer",
+            "description": "Maximum number of results to return."
           },
           "max_heading_level": {
             "maximum": 6,
             "minimum": 1,
-            "type": "integer"
+            "type": "integer",
+            "description": "Deepest heading level to treat as a separate section."
           },
           "path_exclude": {
             "items": {
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to exclude."
           },
           "path_include": {
             "items": {
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to include."
           },
           "query": {
             "minLength": 1,
-            "type": "string"
+            "type": "string",
+            "description": "Natural-language or keyword query."
           },
           "rerank": {
             "description": "Cross-encoder rerank top-N (~$0.001, ~300-700ms)",
@@ -1605,39 +1670,46 @@
           "candidates": {
             "exclusiveMinimum": 0,
             "maximum": 500,
-            "type": "integer"
+            "type": "integer",
+            "description": "Candidate pool size before final ranking."
           },
           "corpus": {
             "minLength": 1,
-            "type": "string"
+            "type": "string",
+            "description": "Markdown corpus root."
           },
           "limit": {
             "exclusiveMinimum": 0,
             "maximum": 100,
-            "type": "integer"
+            "type": "integer",
+            "description": "Maximum number of results to return."
           },
           "max_heading_level": {
             "maximum": 6,
             "minimum": 1,
-            "type": "integer"
+            "type": "integer",
+            "description": "Deepest heading level to treat as a separate section."
           },
           "path_exclude": {
             "items": {
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to exclude."
           },
           "path_include": {
             "items": {
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to include."
           },
           "query": {
             "minLength": 1,
-            "type": "string"
+            "type": "string",
+            "description": "Natural-language or keyword query."
           },
           "rerank": {
             "description": "Cross-encoder rerank top-N (~$0.001, ~300-700ms)",
@@ -1721,14 +1793,16 @@
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to exclude."
           },
           "path_include": {
             "items": {
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to include."
           },
           "query": {
             "description": "Semantic query capturing the section's meaning. Required.",
@@ -1843,14 +1917,16 @@
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to exclude."
           },
           "path_include": {
             "items": {
               "minLength": 1,
               "type": "string"
             },
-            "type": "array"
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to include."
           },
           "paths": {
             "description": "Files or directories (default: current directory)",
@@ -1898,22 +1974,27 @@
       "input_schema": {
         "properties": {
           "match": {
-            "type": "string"
+            "type": "string",
+            "description": "Only include headings matching this text."
           },
           "max_heading_level": {
             "maximum": 6,
             "minimum": 1,
-            "type": "integer"
+            "type": "integer",
+            "description": "Deepest heading level to treat as a separate section."
           },
           "path": {
             "minLength": 1,
-            "type": "string"
+            "type": "string",
+            "description": "Markdown file or folder path."
           },
           "with_link_counts": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Include link counts in the heading map."
           },
           "with_tokens": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "Include estimated token counts in the heading map."
           }
         },
         "required": [

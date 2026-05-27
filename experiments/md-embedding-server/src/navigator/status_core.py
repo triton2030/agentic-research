@@ -5,7 +5,7 @@ from __future__ import annotations
 import datetime
 import sqlite3
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any, Iterable, TypedDict
 
 from .cli_common import SEARCH_DEFAULT_EMBEDDING_API_URL, SEARCH_DEFAULT_EMBEDDING_TIMEOUT
 from .config import resolve_filters_for_domain
@@ -23,6 +23,23 @@ from .index_meta import (
     resolve_embed_model_for_corpus,
 )
 from .sections import build_items_from_map
+
+
+class IndexActionArgs(TypedDict, total=False):
+    corpus: str
+    dry_run: bool
+    path_include: list[str]
+    path_exclude: list[str]
+
+
+class RecommendedAction(TypedDict):
+    tool: str
+    args: IndexActionArgs
+    reason: str
+
+
+class StatePayload(TypedDict):
+    recommended_action: RecommendedAction | None
 
 
 def status_payload(
@@ -365,12 +382,12 @@ def _state_payload(
     cache_root: Path | None = None,
     path_include: list[str] | None = None,
     path_exclude: list[str] | None = None,
-) -> dict[str, Any]:
+) -> StatePayload:
     from .index_meta import find_parent_indexed_corpus, path_include_for_parent_corpus
 
     if state == "FRESH":
         return {"recommended_action": None}
-    action_args: dict[str, Any] = {"corpus": str(corpus_root), "dry_run": True}
+    action_args: IndexActionArgs = {"corpus": str(corpus_root), "dry_run": True}
     if path_include:
         action_args["path_include"] = path_include
     if path_exclude:
