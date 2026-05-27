@@ -4,11 +4,53 @@ import argparse
 import importlib
 import sys
 import re
-from typing import Sequence
+from typing import Any, Sequence
 
 from . import __version__
 from .catalog import TOOLS, ToolSpec
 from .runner import run_tool
+
+
+COMMON_ARG_HELP = {
+    "anchor": "Heading text or anchor to start from.",
+    "batch_pause_ms": "Pause between embedding batches in milliseconds.",
+    "batch_size": "Number of chunks to embed per batch.",
+    "candidates": "Candidate pool size before final ranking.",
+    "check_links": "Also check graph/link candidates around the related files.",
+    "corpus": "Markdown corpus root.",
+    "depth": "Graph or link-following depth.",
+    "expanded": "Return full detail/content. Default false returns the normal map.",
+    "compact": "Legacy alias for normal map output; accepted for compatibility.",
+    "confirm": "Run the mutation after a dry-run; requires transaction_id or fingerprint.",
+    "dry_run": "Preview cost or affected files without mutating.",
+    "fingerprint": "Stateless confirmation token returned by a previous dry-run.",
+    "include": "Restrict the returned item classes.",
+    "link_distance_threshold": "Distance threshold for --check-links; lower is stricter.",
+    "limit": "Maximum number of results to return.",
+    "match": "Only include headings matching this text.",
+    "max_heading_level": "Deepest heading level to treat as a separate section.",
+    "min_sections": "Drop repeated concepts with fewer matching sections.",
+    "min_tokens": "Ignore very short sections below this token count.",
+    "mode": "Output mode; normal/preview maps first, full/expanded includes bodies.",
+    "owner_confidence_threshold": "Minimum owner-confidence score for refactor candidates.",
+    "path": "Markdown file or folder path.",
+    "paths": "Markdown file or folder path(s).",
+    "path_exclude": "Repeatable path glob/subpath filter to exclude.",
+    "path_include": "Repeatable path glob/subpath filter to include.",
+    "query": "Natural-language or keyword query.",
+    "scan": "Markdown root used for graph/link scanning.",
+    "semantic_radius": "How many semantic neighbors to consider around each seed.",
+    "sort_by": "Sort key for the returned ranking.",
+    "threshold": "Similarity threshold; higher returns fewer, closer matches.",
+    "token_budget": "Approx output token budget; pass 0 only when you deliberately want unbounded output.",
+    "top": "Maximum number of top-ranked items to return.",
+    "top_members": "Maximum representative members to include per repeated concept.",
+    "transaction_id": "Token returned by a previous dry-run.",
+    "uniqueness_threshold": "Minimum uniqueness score for refactor candidates.",
+    "with_link_counts": "Include link counts in the heading map.",
+    "with_tokens": "Include estimated token counts in the heading map.",
+    "json": "Emit machine-readable JSON.",
+}
 
 
 def _add_placeholder_subparser(subparsers: argparse._SubParsersAction, tool: ToolSpec) -> None:
@@ -56,8 +98,13 @@ def _add_signature_args(parser: argparse.ArgumentParser, tool: ToolSpec) -> None
             next_token = tokens[index + 1] if index + 1 < len(tokens) else ""
             next_bare = next_token[1:-1] if next_token.startswith("[") and next_token.endswith("]") else next_token
             schema = properties.get(key, {})
+            help_text = _schema_help(schema, key)
             if next_bare and not next_bare.startswith("--") and next_bare.upper() == next_bare:
-                kwargs = {"dest": key, "required": key in required}
+                kwargs: dict[str, Any] = {
+                    "dest": key,
+                    "required": key in required,
+                    "help": help_text,
+                }
                 if schema.get("type") == "integer":
                     kwargs["type"] = int
                 elif schema.get("type") == "number":
@@ -69,16 +116,25 @@ def _add_signature_args(parser: argparse.ArgumentParser, tool: ToolSpec) -> None
                 parser.add_argument(flag, **kwargs)
                 index += 2
                 continue
-            parser.add_argument(flag, dest=key, action="store_true")
+            parser.add_argument(flag, dest=key, action="store_true", help=help_text)
             index += 1
             continue
         if bare.upper() == bare:
             name = bare.lower()
-            kwargs = {"nargs": "?"} if optional else {}
+            kwargs: dict[str, Any] = {"help": _schema_help(properties.get(name, {}), name)}
+            if optional:
+                kwargs["nargs"] = "?"
             parser.add_argument(name, **kwargs)
         index += 1
     if "json" not in seen:
         parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON.")
+
+
+def _schema_help(schema: dict[str, Any], key: str | None = None) -> str | None:
+    description = schema.get("description")
+    if description:
+        return str(description)
+    return COMMON_ARG_HELP.get(key or "")
 
 
 def build_parser() -> argparse.ArgumentParser:

@@ -750,7 +750,8 @@ def render_search(out: dict[str, Any], output_path: str | None = None) -> str:
     dropped_path = stats.get("dropped_stale_path", 0)
     if dropped_path:
         lines.append(
-            f"Note: dropped {dropped_path} result(s) for stale paths — run `index` to prune."
+            f"Note: dropped {dropped_path} result(s) for stale paths — "
+            f"preview `md index '{out['root']}' --dry-run --json` before pruning."
         )
         lines.append("")
     partial_index = out.get("partial_index") or {}
@@ -765,7 +766,7 @@ def render_search(out: dict[str, Any], output_path: str | None = None) -> str:
                 f"- {item['relative_path']} "
                 f"(sections={item['added_sections']}, chunks={item['pending_chunks']})"
             )
-        lines.append(f"Run: md index '{out['root']}'")
+        lines.append(f"Next: md index '{out['root']}' --dry-run --json")
         lines.append("")
     results = out.get("results") or []
     if not results:

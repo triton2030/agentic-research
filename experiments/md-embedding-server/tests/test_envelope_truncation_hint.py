@@ -73,6 +73,23 @@ def test_large_repeated_concepts_reply_recommends_path_include() -> None:
     assert "--path-include" in step["reason"]
 
 
+def test_large_overlaps_reply_does_not_widen_top() -> None:
+    big_pairs = [
+        {"a": {}, "b": {}, "similarity": 0.9, "content": _padding(LARGE_REPLY_BYTES // 3)}
+        for _ in range(3)
+    ]
+    envelope = wrap(
+        {"pairs": big_pairs},
+        tool_name="md_overlaps",
+        args={"corpus": "knowledge", "top": 5},
+    )["_envelope"]
+
+    step = envelope["next_step"][0]
+    assert step["tool"] == "md_overlaps"
+    assert step["args"]["top"] == 5
+    assert "raise --threshold" in step["reason"]
+
+
 def test_small_reply_keeps_next_step_empty() -> None:
     envelope = wrap(
         {"results": [{"snippet": "tiny"}]},

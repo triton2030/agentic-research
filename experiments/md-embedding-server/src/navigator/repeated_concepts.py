@@ -459,10 +459,12 @@ def cmd_repeated_concepts(args) -> int:
             f"  Requested path is inside indexed parent corpus: {parent_corpus}\n"
             f"\n"
             f"  Next step:\n"
-            f"    md index {shlex.quote(str(parent_corpus))} {filter_args}\n"
+            f"    md index {shlex.quote(str(parent_corpus))} {filter_args} --dry-run --json\n"
+            f"    md index {shlex.quote(str(parent_corpus))} {filter_args} "
+            f"--confirm --transaction-id <id> --json\n"
             f"\n"
             f"  Then re-run repeated-concepts on the parent corpus with the same path scope:\n"
-            f"    md repeated-concepts {shlex.quote(str(parent_corpus))} {filter_args}\n",
+            f"    md repeated-concepts {shlex.quote(str(parent_corpus))} {filter_args} --json\n",
             file=sys.stderr,
         )
         return 4
@@ -521,7 +523,8 @@ def cmd_repeated_concepts(args) -> int:
             f"(cap for auto-embed in `repeated-concepts` = {max_auto_embed}).\n"
             f"\n"
             f"  Next step:\n"
-            f"    md index '{corpus_root}'\n"
+            f"    md index '{corpus_root}' --dry-run --json\n"
+            f"    md index '{corpus_root}' --confirm --transaction-id <id> --json\n"
             f"\n"
             f"  Then re-run repeated-concepts. One-time cost; subsequent runs "
             f"reuse the index on disk.",

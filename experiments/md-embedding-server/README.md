@@ -228,7 +228,8 @@ MD_NAVIGATOR_CACHE_ROOT=~/.local/share/md-navigator md index CORPUS --dry-run --
 
 Big delta refusal: if `search`/`overlaps`/`repeated-concepts` would have
 to embed more than `--max-auto-embed` chunks (default 50), they refuse
-with exit code 4 and ask you to run `index` first. Pass
+with exit code 4 and ask you to run `md index CORPUS --dry-run --json`
+first, then confirm with the returned transaction id. Pass
 `--max-auto-embed 0` to disable the cap.
 
 Indexing tunables:

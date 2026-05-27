@@ -1018,7 +1018,7 @@ def cmd_audit(args) -> int:
             f"Index needs warmup before audit can run.\n"
             f"  {added} new sections / {pending} chunks pending "
             f"(cap = {max_auto_embed}).\n"
-            f"  Run: md index '{corpus_root}'",
+            f"  Next: md index '{corpus_root}' --dry-run --json",
             file=sys.stderr,
         )
         return 4

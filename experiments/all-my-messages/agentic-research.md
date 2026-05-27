@@ -4786,3 +4786,82 @@ PLEASE IMPLEMENT THIS PLAN:
 ## 2026-05-27T17:02:24+05:00 | agentic-research | turn 019e6950-24ea-71e0-a580-fc0b8d6bca2a
 
 И надо их исправить. Если они где-то недостаточно помогающие или вводят в заблуждение формулировки.
+
+
+## 2026-05-27T17:21:47+05:00 | agentic-research | turn 019e6962-3fa0-7983-ae1f-674c082cddef
+
+Отлично видишь ли ты возможности для рефактора?
+
+
+## 2026-05-27T17:25:04+05:00 | agentic-research | turn 019e6965-419b-7780-a4db-a9af44f1a215
+
+проверь при помощи всей мощи серена
+
+
+## 2026-05-27T17:29:50+05:00 | agentic-research | turn 019e6969-9ed1-7743-a79c-c7161b58ff29
+
+Отлично давай сделаем
+
+
+## 2026-05-27T17:32:12+05:00 | agentic-research | turn 019e696b-cb19-7343-9112-d7df040dbf20
+
+PLEASE IMPLEMENT THIS PLAN:
+# md-tools Refactor: Guidance Source of Truth + Next-Step Cleanup
+
+## Summary
+
+Сделать безопасный refactor без изменения public CLI behavior: убрать временный `COMMON_ARG_HELP`, собрать повторяющиеся index-подсказки в один helper, разрезать `derive_next_step` на маленькие policy handlers и типизировать agent-facing payloads. Перед правками обязательно сделать backup-checkpoint текущего dirty `main`.
+
+## Key Changes
+
+- **Backup first**
+  - На `main`: `git status --short` → `git add --all` → `gitleaks protect --staged --redact` → commit `backup: checkpoint before md guidance refactor` → `git push origin main`.
+  - Если `gitleaks` падает, остановиться до любых правок.
+  - Не трогать намеренно `experiments/all-my-messages/**`; если они меняются авто-логом, не считать это частью refactor.
+
+- **Catalog/schema as the only help source**
+  - В `src/md_cli/catalog.py` добавить `description` ко всем public `input_schema.properties`, где её сейчас нет.
+  - В `src/md_cli/main.py` удалить `COMMON_ARG_HELP`; `_schema_help` должен читать только schema description.
+  - Добавить contract test: каждый catalog input property обязан иметь непустой `description`.
+  - Обновить derived surfaces после catalog changes: `docs/tool-signatures-snapshot.json`, `tests/golden/mcp-tool-snapshot.json`, installed skill tool catalogs через `scripts/sync-skill-docs.py --regenerate`.
+
+- **Shared index guidance**
+  - Добавить helper для agent-facing index commands, например `src/navigator/index_guidance.py`.
+  - Helper должен строить одинаковые dry-run/confirm команды с `--json`, `--path-include`, `--path-exclude`, parent-corpus scope и quoted paths.
+  - Заменить ручные строковые подсказки в `overlaps`, `repeated_concepts`, `status_render`, `search`, `audit`, `index_cluster`, `cli_common`, `section_profile`.
+  - Runtime semantics не менять: только текст подсказок и устранение дублирования.
+
+- **Next-step policy split + types**
+  - В `src/md_cli/next_steps.py` добавить `NextStep` `TypedDict` и заменить `list[dict[str, Any]]` на `list[NextStep]` внутри policy layer.
+  - Разбить `derive_next_step` на приватные handlers: dry-run lock, index warmup, nested corpus, transaction required/retry, empty search, large reply.
+  - В `navigator.status_core` и `navigator.index_meta` добавить узкие `TypedDict` для `recommended_action` и `suggested_index_args` без импорта `md_cli` в `navigator`.
+  - Сохранить текущие payload keys, reasons и action args, кроме случаев где helper нормализует уже согласованный dry-run/confirm wording.
+
+## Test Plan
+
+- Targeted:
+  - `python3 -m py_compile` по изменённым Python-файлам.
+  - Serena diagnostics: `src/md_cli/main.py`, `src/md_cli/next_steps.py`, `src/md_cli/envelope.py`, `src/navigator/status_core.py`, `src/navigator/index_meta.py`, `src/navigator/index_guidance.py`, `src/navigator/overlaps.py`, `src/navigator/repeated_concepts.py`.
+  - `uv run pytest tests/test_md_cli_dispatch.py tests/test_envelope_golden.py tests/test_envelope_truncation_hint.py tests/test_generated_actions_contract.py tests/test_catalog_contract.py -q`.
+
+- New/updated tests:
+  - `md search-read --help` still shows useful descriptions from schema.
+  - All catalog args have descriptions; no fallback dict required.
+  - Parent nested-corpus guidance for `overlaps` and `repeated-concepts` includes parent corpus, scoped filters, dry-run command, confirm command, and rerun command.
+  - Large reply hints do not widen output.
+  - Generated `next_step` actions parse against current CLI and never generate bare `--confirm`.
+
+- Full gates:
+  - `experiments/md-embedding-server/scripts/run-tests.sh`
+  - `cd experiments/md-embedding-server && uv run md selftest --json`
+  - `python3 experiments/md-embedding-server/scripts/sync-skill-docs.py --check`
+  - `qv-skill /Users/triton/.codex/skills/1md-navigator /Users/triton/.codex/skills/1md-graph /Users/triton/.claude/skills/1md-navigator /Users/triton/.claude/skills/1md-graph`
+  - `git diff --check`
+  - `md changed --scan /Users/triton/Documents/GitHub/agentic-research --json`
+
+## Assumptions
+
+- Делать все четыре refactor-направления за один проход.
+- Public CLI signatures, exit codes, envelope shape, tool names and payload keys не меняются.
+- `src/md_cli/catalog.py` остаётся source of truth; snapshots and installed skill catalogs are generated mirrors.
+- Финальный implementation diff можно оставить uncommitted после gates; обязательный commit/push относится только к backup-checkpoint перед правками.

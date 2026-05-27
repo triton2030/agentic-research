@@ -298,7 +298,7 @@ def cmd_cluster(args) -> int:
     except FileNotFoundError:
         print(
             f"No index for {corpus_root}.\n"
-            f"  Run: md index '{corpus_root}'",
+            f"  Next: md index '{corpus_root}' --dry-run --json",
             file=sys.stderr,
         )
         return 4

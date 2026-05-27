@@ -30,19 +30,21 @@ def _narrow_for_large_reply(
             "reason": f"{size_note}. {limit_note}{extra}",
         }
     if tool_name == "md_repeated_concepts":
+        narrowed_top = min(int(args_dict.get("top") or 30), 10)
         return {
             "tool": tool_name,
-            "args": {**args_dict, "top": 10},
+            "args": {**args_dict, "top": narrowed_top},
             "reason": (
-                f"{size_note}. Try --top 10 or --path-include 'subpath/*' "
-                f"to narrow the report scope."
+                f"{size_note}. Try --top {narrowed_top} or add --path-include "
+                "for the folder you actually need."
             ),
         }
     if tool_name == "md_overlaps":
+        narrowed_top = min(int(args_dict.get("top") or 10), 10)
         return {
             "tool": tool_name,
-            "args": {**args_dict, "top": 20},
-            "reason": f"{size_note}. Try --top 20 or raise --threshold.",
+            "args": {**args_dict, "top": narrowed_top},
+            "reason": f"{size_note}. Try --top {narrowed_top}, raise --threshold, or add --path-include.",
         }
     if tool_name == "md_audit":
         return {
@@ -61,6 +63,7 @@ def derive_next_step(
     tool_name: str | None,
     args_dict: dict[str, Any],
     corpus_root: str | None,
+    corpus_state: dict[str, Any] | None = None,
     lock: dict[str, Any] | None = None,
     size_estimate: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
@@ -113,17 +116,36 @@ def derive_next_step(
                 }
             )
         return steps
-    if result.get("error") == "confirm_required":
+    if result.get("error") == "nested_corpus_refused":
+        suggested_index = result.get("suggested_index_args")
+        if isinstance(suggested_index, dict):
+            index_args = dict(suggested_index)
+            index_args.pop("confirm", None)
+            index_args["dry_run"] = True
+            return [
+                {
+                    "tool": "md_index",
+                    "args": index_args,
+                    "reason": "Use the existing parent corpus with this path scope, or pass --allow-nested-corpus deliberately.",
+                }
+            ]
+        return []
+    if result.get("error") in {"confirm_required", "transaction_required"}:
         if not tool_name:
             return []
+        recommended = _recommended_action_for(tool_name, corpus_state)
+        if recommended is not None:
+            return [recommended]
         dry_args = dict(args_dict)
         dry_args.pop("confirm", None)
+        dry_args.pop("transaction_id", None)
+        dry_args.pop("fingerprint", None)
         dry_args["dry_run"] = True
         return [
             {
                 "tool": tool_name,
                 "args": dry_args,
-                "reason": "Preview affected files or cost before mutation.",
+                "reason": "Run a dry-run first; confirm requires the returned transaction_id or fingerprint.",
             }
         ]
     if result.get("error") in {"transaction_not_found", "expired"}:
@@ -161,3 +183,25 @@ def derive_next_step(
         if hint is not None:
             return [hint]
     return []
+
+
+def _recommended_action_for(
+    tool_name: str,
+    corpus_state: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    if not isinstance(corpus_state, dict):
+        return None
+    action = corpus_state.get("recommended_action")
+    if not isinstance(action, dict) or action.get("tool") != tool_name:
+        return None
+    args = action.get("args")
+    if not isinstance(args, dict):
+        return None
+    clean_args = dict(args)
+    clean_args.pop("confirm", None)
+    clean_args["dry_run"] = True
+    return {
+        "tool": tool_name,
+        "args": clean_args,
+        "reason": f"{action.get('reason') or 'Run the recommended dry-run first.'} Confirm only after the dry-run returns a transaction_id or fingerprint.",
+    }

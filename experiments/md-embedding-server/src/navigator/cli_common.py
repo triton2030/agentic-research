@@ -78,7 +78,7 @@ def add_auto_embed_args(parser: argparse.ArgumentParser, default_cap: int) -> No
         default=default_cap,
         help=(
             f"If the new-section delta needs more than this many chunks to "
-            f"embed, the command refuses and asks you to run `index` first "
+            f"embed, the command refuses and asks you to run `md index CORPUS --dry-run --json` first "
             f"(default: {default_cap}). Pass 0 to allow any size."
         ),
     )

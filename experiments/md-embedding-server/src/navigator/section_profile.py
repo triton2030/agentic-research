@@ -492,11 +492,14 @@ def open_profile_db(corpus: Path):
 
     db_path = _index_dir_for_corpus(corpus.resolve(), create=False) / "index.sqlite"
     if not db_path.exists():
-        raise RuntimeError(f"No md-navigator index at {db_path}; run `md index {corpus}` first.")
+        raise RuntimeError(
+            f"No md-navigator index at {db_path}; "
+            f"run `md index {corpus} --dry-run --json`, then confirm with the returned --transaction-id."
+        )
     conn = sqlite3.connect(db_path, timeout=30.0)
     conn.execute("PRAGMA busy_timeout = 30000")
     try:
-        import sqlite_vec
+        import sqlite_vec  # type: ignore[import-not-found]
 
         conn.enable_load_extension(True)
         sqlite_vec.load(conn)

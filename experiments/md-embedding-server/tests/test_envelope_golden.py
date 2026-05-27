@@ -89,6 +89,65 @@ def test_confirm_required_next_step_is_dry_run_only() -> None:
     assert "confirm" not in steps[0]["args"]
 
 
+def test_transaction_required_next_step_is_dry_run_only() -> None:
+    result = wrap(
+        {"error": "transaction_required"},
+        tool_name="md_index",
+        args={"corpus": "knowledge", "confirm": True},
+    )
+    steps = result["_envelope"]["next_step"]
+    assert len(steps) == 1
+    assert steps[0]["tool"] == "md_index"
+    assert steps[0]["args"] == {"corpus": "knowledge", "dry_run": True}
+    assert "dry-run" in steps[0]["reason"]
+
+
+def test_transaction_required_prefers_corpus_state_recommended_action() -> None:
+    result = wrap(
+        {"error": "transaction_required"},
+        tool_name="md_index",
+        args={"corpus": "child", "confirm": True},
+        corpus_state={
+            "recommended_action": {
+                "tool": "md_index",
+                "args": {"corpus": "parent", "path_include": ["child/**"], "dry_run": True},
+                "reason": "Index child through parent scope.",
+            }
+        },
+    )
+
+    steps = result["_envelope"]["next_step"]
+    assert steps[0]["args"] == {
+        "corpus": "parent",
+        "path_include": ["child/**"],
+        "dry_run": True,
+    }
+    assert "transaction_id" in steps[0]["reason"]
+
+
+def test_nested_corpus_refused_suggests_parent_scope() -> None:
+    result = wrap(
+        {
+            "error": "nested_corpus_refused",
+            "suggested_index_args": {
+                "corpus": "parent",
+                "path_include": ["child/**"],
+                "dry_run": True,
+            },
+        },
+        tool_name="md_index",
+        args={"corpus": "child", "dry_run": True},
+    )
+
+    assert result["_envelope"]["next_step"] == [
+        {
+            "tool": "md_index",
+            "args": {"corpus": "parent", "path_include": ["child/**"], "dry_run": True},
+            "reason": "Use the existing parent corpus with this path scope, or pass --allow-nested-corpus deliberately.",
+        }
+    ]
+
+
 def test_large_reply_size_estimate() -> None:
     result = wrap({"results": [{"text": "x" * 11_000}]}, tool_name="md_search", args={})
     estimate = result["_envelope"]["size_estimate"]

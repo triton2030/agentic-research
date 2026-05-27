@@ -37,6 +37,15 @@ def test_help_mentions_all_subcommands() -> None:
         assert tool.subcommand in result.stdout
 
 
+def test_subcommand_help_explains_agent_facing_flags() -> None:
+    result = _run_md("search-read", "--help")
+
+    assert result.returncode == 0
+    assert "Return full detail/content" in result.stdout
+    assert "Approx output budget for section bodies" in result.stdout
+    assert "sections (default): rank heading-bounded sections" in result.stdout
+
+
 def test_nonexistent_subcommand_exits_2() -> None:
     result = _run_md("nonexistent_tool")
     assert result.returncode == 2

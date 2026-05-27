@@ -152,7 +152,7 @@ def _run_mutating(
         return ToolResult(
             {
                 "error": "transaction_required",
-                "reason": "Confirm requires --transaction-id or --fingerprint.",
+                "reason": "Confirm was rejected: run --dry-run first, then confirm with the returned --transaction-id or --fingerprint.",
             },
             1,
         )
@@ -160,7 +160,7 @@ def _run_mutating(
     return ToolResult(
         {
             "error": "confirm_required",
-            "reason": "Run with --dry-run first to obtain transaction_id.",
+            "reason": "This command changes files or spends embedding cost; run --dry-run first to preview the plan.",
         },
         1,
     )

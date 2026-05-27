@@ -3232,3 +3232,158 @@ Finding для `1self-learning` (по желанию): Edit на `AGENTS.md` у�
 ---
 
 Смотри, мы сделали так в другом чате через клод. И теперь вклоде есть такой агент. Нам надо сделать зеркально теперь в кодексе такого же агента. и подправить корневые инструкции, чтобы, когда я работаю через кодекс, ты бы вызывал этого субагента тоже по той же инструкции, как это делает Клод. И тоже мог им пользоваться за счёт того, что имена одинаковые, агенты одинаковые, и вызываются они через одинаковый скилл. По идее, и кодекс и клод будут использовать его одинаково, а значит, корневая инструкция будет справедливо для обоих систем.
+
+
+## 2026-05-27T17:02:53+05:00 | MAVO | turn 019e6950-e235-7b61-85c6-a947e23eb163
+
+# Overview
+
+Generate 0 to 3 hyperpersonalized suggestions for what this user can do with Codex in this local project: /Users/triton/Documents/MAVO
+
+Get an understanding of the user's intent and goals by deeply viewing their connected apps. Suggest actionable tasks that they would actually act on/click.
+Infer what the user works on and their style from their connected apps.
+Optimize for relief: choose suggestions that make the user's life easier, reduce an open loop, unblock work, or prepare them for something that is about to matter. Do not suggest tasks that merely sound productive or create more work for the user.
+The best suggestions feel like Codex read the user's mind: by synthesizing signals across apps, it discovers something the user did not yet know and proposes the concrete next action they would want to take.
+
+Serve this specific user. Do not suggest generic project-quality, onboarding, exploration, cleanup, refactor, documentation, test-writing, or dependency-update tasks merely because they could be useful to someone who owns this project.
+Your job is to predict what this user specifically needs to get done.
+
+
+# Rules
+
+Use relevant connected apps or MCP sources available in this session, including Vercel when those connectors are installed.
+ Do not use GitHub. Those connectors are not allowed for personalized suggestions in this session.
+ For local project suggestions, make sure suggestions are truly relevant to this project itself. Don't use connected-app context that is unrelated to this project, its repo, or recent project threads. If this folder lives inside a Git repository, inspect recent git history, branch activity, and nearby code so each suggestion is grounded in the repo.
+
+
+    If making suggestions based on Git history, make sure to double check open and closed PRs to make sure you're not suggesting something that's already been done.
+    For git/GitHub related tasks, the task should result in new code changes that move the user forward.
+    Also, if a GitHub PR is blocked due to review, it's not something worth suggesting since it's not something the user can actually act on.
+
+Your suggestions must be based on recent events; e.g. recent Slack messages, unread emails, newly created issues, etc.
+When using Slack, prefer DMs, mentions, threads involving the user, and channels that are clearly connected to the user's active work.
+Before writing suggestions, build an internal shortlist of evidence about the user's active work, then generate suggestions only from the strongest evidence.
+Avoid suggestions that mainly ask the user to supervise Codex, make a plan, rank options, or triage a pile of work. Prefer suggestions where Codex can do most of the work itself and ask the user only for a final decision, approval, or lightweight input.
+Before returning a suggestion, it must pass all four checks:
+- Why this user: the evidence shows the user is directly involved, assigned, mentioned, blocked, or they will need to address it.
+- Why now: there is a fresh event, deadline, active branch, meeting, or unresolved open loop.
+- Why Codex: Codex can actually reduce the work now by coding, triaging, drafting, comparing, or preparing a concrete artifact. Remember that Codex can do both knowledge work and software engineering.
+- Why not already handled: recent PRs, dismissed suggestions, or recent threads do not already cover it.
+
+If any check is weak, delete the candidate.
+Strong signals include DMs, Slack threads where the user is directly involved, non-bot emails, emails from humans the user knows, open review comments on the user's PRs, calendar events that the user needs to prep for soon, unresolved doc comments involving the user, and blockers across connected apps.
+Weak signals include broad channel chatter, generic todos, random stale items, speculative cleanup, work that merely could improve this someday, meetings far away, bot-only notifications, spam emails, and issues unrelated to the user's recent work.
+
+Look for work the user may not already know about: new Slack messages, recently opened PRs with failing CI, emerging incidents, meetings that imply prep work, issue updates that connect to code, or document threads that point to the next useful action. Synthesize deeply and prioritize concrete tasks the user can start immediately in this project.
+
+Use recent Codex threads from this project primarily to avoid suggesting work the user is already doing and infer how they use Codex.
+
+Recent Codex threads in this project:
+[
+  {
+    "id": "019e6909-acda-7260-8aaa-9991f6b14d07",
+    "title": "Create MAVO keeper agent",
+    "preview": "Понял. Auto-trigger через **внутренний сигнал модели**, не через hook — это значит, что keeper становится **частью route'инга**, к которому я обращаюсь сам, когда чувствую развилку с бизнес-импликацией или подхожу к sensitive surface. Это правильный паттерн — мягче, чем hook, и не дёргает на каждой мелочи. Прежде чем строить — нужно увидеть формат существующих global agents (чтобы соблюсти конвенцию) и точный текст бизнес-фундамента, который keeper будет защищать. Теперь нужно увидеть формат существующего глобального `business-critic` — это ближайший аналог, и я хочу понять, что keeper делает **дополнительно** (project-specific MAVO-память), а не дублирует. Картина собрана. Я готов создать keeper'а в трёх местах синхронно: 1. **`.claude/agents/mavo-keeper.md`** — сам агент (формат как у глобальных `business-critic`/`auditor`/`smith`, но с MAVO-каноном встроенным в характер). 2. **`_ops/skills-map.md`** — строка про keeper'а, чтобы в будущих сессиях я сам себе напоминал его звать. 3. **Корневой `AGENTS.md`** — пункт «когда что подключать» с триггерами вызова. Делаю. Edit корневого `AGENTS.md` сорвался — формально я его не Read'нул в этой сессии (видел только через system-reminder). Читаю и повторяю Edit. Родителей `AGENTS.md` (GOAL.md, project-graph.md) я уже прочитал в этой сессии — каскад чистый. Прогоняю `verify-graph.sh` как требует корневой AGENTS («MUST после серии правок Markdown с frontmatter»). Граф чистый. Готово. ## Что сделано **Изменено (3 файла):** - [.claude/agents/mavo-keeper.md](.claude/agents/mavo-keeper.md) *(new)* — read-only project subagent с MAVO-каноном в характере: 5 файлов фундамента как линза, шесть Принципов как фильтр «отрезаем, если...», два пути модели, защита от инверсий из `Чем_MAVO_не_является`, двойной режим (визионер default / стартапер-критик по запросу), output с вердиктом + findings. - [_ops/skills-map.md](_ops/skills-map.md) — добавлена строка про `mavo-keeper`, чтобы будущие сессии знали, когда его звать. - [AGENTS.md](AGENTS.md) — пункт в «Когда что подключать» с триггерами: substantive бизнес-правка в `Анализ/` или тематических папках, неуверенность в визии, закрытие большой работы по бизнес-content, вопросы «что в этом файле должно быть / не съезжаем ли». **Проверено:** `verify-graph.sh` — `cycles: 0`, `broken_graph_links: 0`, `drift: 0`. Каскад целостен. **Оставшийся долг:** - **Боевая проверка.** Keeper ещё не вызывали ни разу — его описание и output schema могут оказаться кривыми на реальном кейсе. Совет: первая пара вызовов на реальной правке в `Анализ/` покажет, нужно ли подкручивать (триггеры, вес линз, формат findings). - **Self-learning.** Если keeper ведёт себя криво или, наоборот, ловит то, что я бы пропустил — это сигнал в `1self-learning` (`_ops/self-learning/lessons.md`), чтобы тюнить description в будущих правках. - **Файл не закоммичен** — оставил для тебя на ревью. ## Как его вызвать (для следующих сессий и для тебя сейчас) - Прямо: `1fresh-eyes` → `mavo-keeper` с brief'ом «оцени правку X / закрытие задачи Y» — визионер по умолчанию. - Стартапер-режим: «mavo-keeper startup» в brief'е — резкий founder с вопросом «что я бы вырезал, чтобы быстрее до первого заказа». - Сам себе: `mavo-keeper` теперь appears в `Task` под `subagent_type` — модель в любой будущей сессии его найдёт через description, если задача задевает бизнес-визию. Хочешь сразу испытать его на чём-то реальном — например, на последней крупной правке `04_Как_запустим/` (Привлечение_клиентов / FAQ merge из последних коммитов)? Или предпочтёшь сначала почитать сам файл агента и поправить характер/линзы, если что-то звучит не так? Граф чист: `must_update` пусто, `broken_graph_links: 0`, `cycles: 0`, 100% description coverage. Reverse-читатели AGENTS не задеты — правка чисто аддитивная, новый пункт в \"Когда что подключать\" не меняет идентичность router'а. Запускаю `1work-review`. Создан project subagent `mavo-keeper` + проводки в `_ops/skills-map.md` и корневом `AGENTS.md` / `md changed` + `md health` чисты (broken=0, cycles=0, must_update пусто); GOAL / Roadmap / project-graph не задеты, идентичность AGENTS не меняется — пункт аддитивный. Finding для `1self-learning` (по желанию): Edit на `AGENTS.md` упал без локального Read хотя содержимое было в system-reminder — нужно класть Read корневого AGENTS в параллель с первыми reads, когда впереди ожидается Edit. 1work-review: да --- Смотри, мы сделали так в другом чате через клод. И теперь вклоде есть такой агент. Нам надо сделать зеркально теперь в кодексе такого же агента. и подправить корневые инструкции, чтобы, когда я работаю через кодекс, ты бы вызывал этого субагента тоже по той же инструкции, как это делает Клод. И тоже мог им пользоваться за счёт того, что имена одинаковые, агенты одинаковые, и вызываются они через одинаковый скилл. По идее, и кодекс и клод будут использовать его одинаково, а значит, корневая инструкция будет справедливо для обоих систем.",
+    "updatedAt": "2026-05-27T10:53:55.000Z"
+  },
+  {
+    "id": "019e67ea-be8b-78a3-90a0-d4e8f3de6954",
+    "title": "Проверь и исправь инструкции",
+    "preview": "Проверь все агентные инструкции в проекте на битые ссылки и логические ошибки, проверь также все цели, карты итд и сразу исправь",
+    "updatedAt": "2026-05-27T05:54:35.000Z"
+  },
+  {
+    "id": "019e6518-6112-7422-be0b-f55ea3f3fcc9",
+    "title": "Обогатить анализ запуска",
+    "preview": "/Users/triton/Documents/MAVO/_workspace/Старые версии документов/legacy-system-mavo-v1/4_Запуск Надо взять самое лучшее из этой папки и найти что мы упустили в этой папке /Users/triton/Documents/MAVO/Анализ/04_Как_запустим Затем взять и обогатить информацией, если возникает спорный момент не спрашивай меня, в этом проекте огромное количество контекста уже есть и ты всегда сможешь вычислить наиболее правильное решение. Сначала придумай какие стратегии использования этих инструментов тебе помогут: Сейчас живых agent-facing инструментов `md` — **30**. Все вызываются как `md <command> ... --json`; почти каждый ответ содержит `_envelope`: состояние корпуса, подсказку следующего шага, размер ответа и cost. Важное общее правило: всё, что **меняет файлы или индекс**, делается через `--dry-run` → взять `_envelope.lock.transaction_id` → `--confirm --transaction-id <id>`. **Ориентация и чтение** - `md orient` — быстрый обзор корпуса: статус индекса, список файлов, важные узлы. - `md corpus-scan` — находит все Markdown-корпуса и неиндексированные папки в репо. - `md status` — показывает, свежий ли индекс и нужно ли запускать `md index`. - `md ls` — список файлов с `description`, title и числом заголовков. - `md toc` — оглавление с устойчивыми id секций, например `1.2`. - `md extract` — достаёт выбранные файлы/секции из результата `ls` или `toc`. - `md search-read` — главный новый путь: найти по смыслу и сразу вернуть тексты секций. - `md search` — поиск по смыслу, но только handles/snippets без полного чтения. - `md read-related` — читает соседний контекст файла: ссылки, backlinks, связанные материалы. - `md importance` — ранжирует файлы по важности в графе ссылок. **Граф, ссылки и безопасность правок** - `md preflight` — перед правкой файла показывает must-read, must-update, blockers. - `md edit-context` — composite: preflight + related context перед редактированием. - `md impact` — что сломается при удалении/переименовании файла. - `md section-blast-radius` — радиус последствий для секции: граф + семантические соседи. - `md deps` — прямые и обратные зависимости одного файла. - `md check` — битые wikilinks, anchors и markdown links. - `md scan` — проблемы frontmatter: missing, legacy, unknown, invalid. - `md health` — общий graph-health: coverage, hubs, orphans, cycles, broken links. - `md cycles` — циклы в graph-зависимостях. - `md changed` — проверяет изменённые `.md` файлы через preflight, удобно перед commit. **Семантика, дубли и IA** - `md overlaps` — пары похожих секций, хорошо для дублей и смыслового размазывания. - `md repeated-concepts` — recurring concepts: где одна идея повторяется по корпусу. - `md audit` — большой аудит корпуса: дубли, smeared owner truth, clusters, health score. - `md query-by-type` — найти секции определённого типа: rules, decisions, definitions, open questions. - `md refactor-candidates` — предложения по реорганизации, только для human review. - `md profile-sections` — классифицирует секции по типам; нужно для `query-by-type` и refactor proposals. **Изменяющие инструменты** - `md index` — прогревает/обновляет embedding index для поиска и overlaps. - `md init` — добавляет недостающий graph-frontmatter в Markdown-файлы. - `md strip` — удаляет legacy/unknown frontmatter поля и, опционально, старые related-docs секции. **Диагностика** - `md ping` — проверяет, что CLI и backend живы. Служебно, поверх этих 30, есть ещё `md tools --json` для каталога, `md selftest --json` для проверки установки, `md doctor` для диагностики и `md --version`.",
+    "updatedAt": "2026-05-26T16:35:28.000Z"
+  },
+  {
+    "id": "019e64b5-6701-7bb3-8f3a-040165e06946",
+    "title": "Проверь дубли и противоречия",
+    "preview": "/Users/triton/Documents/MAVO/Анализ/01_Что_такое_МАВО Надо проверить, нет ли здесь внутри файлов дублей или отсутствующих ссылок либо логических противоречий.",
+    "updatedAt": "2026-05-26T16:29:25.000Z"
+  },
+  {
+    "id": "019e645a-71a8-75e3-8a23-998a7449a084",
+    "title": "Создать 4 посадочные страницы",
+    "preview": "/Users/triton/Documents/MAVO/_workspace/HTML_docs Смотри, в этой папке я бы хотел бы создать сайт React вайт Но цель — это сделать максимально легко, с минимальным количеством нашего кода, чтобы всё было максимально стандартно сгенерировано. То есть, чтобы нам потом в будущем было легко редактировать и так далее. И тут мы будем использовать шад сиен тайлвинд Ну, то есть всё самое стандартное, то, что даёт уже готовые инструменты, потому что здесь лично для себя, только для личного пользования. я бы хотел бы сделать две посадочные страницы на основе документов и информации, которые у нас есть. Одна посадочная страница — как будут видеть это люди, другая посадочная страница — как это будут видеть студии, которые могли бы ко мне подключиться. Подробные посадочные страницы. А также там будет две страницы. Одна страница для инвесторов. Что-то вроде презентации для инвесторов А также страница, тоже как посадочная страница, но она уже для студий, более детальная, как им подключиться и что требуется от них, чтобы подключиться ко мне. Твоя цель сделать эти 4 страницы так чтобы. Клиенту захотелось как будто что то купить и он был в восторге как же это круто. Студиям очень захотелось узнать подробнее и перейти на страницу подключения, а на странице подключения мы их добили дополинетльной информацией. Страница для инвесторов заставляла был инвесторов впечатлится идее и захотеть инвестировать. Всё это в максимально простом интерфейсе, готовые стандартные цветовые палитры от шад СН, никаких кастомных компонентов, плоская архитектруа, сверху навигация по страницам. Страницы должны иметь короткие заголовки, короткие блоки, креативные решения и текста, чтобы результат не выглядел как документация а как настоящие маркетинговые продукты публичные. Опираемся ТОЛЬКО на документацию в этом проекте ничего сами не придумываем. Количество текста и контекнта должно быть таким чтобы достичь цели. Я это делаю чтобы понять как я буду презентовать проект и посмотреть какие есть дыры в документации.",
+    "updatedAt": "2026-05-26T14:48:14.000Z"
+  },
+  {
+    "id": "019e63b0-fbbb-7e20-92b5-4256a6f48918",
+    "title": "Уточнить корневую инструкцию",
+    "preview": "В нашей главной корневой инструкции надо сказать, чтобы писать легко и с юмором на человеческом разговорном языке. Надо сказать, что если дерево грязное, то надо камитить сразу всё и чисто. И надо сказать, что если индекс не прогрет, то надо смело прогревать.",
+    "updatedAt": "2026-05-26T10:01:14.000Z"
+  },
+  {
+    "id": "019e63a2-9f95-7a03-98d5-56205dd9bc51",
+    "title": "Проверить дубли и ссылки",
+    "preview": "/Users/triton/Documents/MAVO/Анализ/03_Как_это_работает Надо эту папку проверить на дубли. У нас система такая, то что должен быть файл один, который содержит знания, а остальные файлы на него ссылаются. В этой папке у нас не хватает ссылок между параграфами, кто на что ссылается. А также некоторые файлы дублируют то, что на самом деле лежит уже в других файлах. Поэтому надо провести тщательную чистку.",
+    "updatedAt": "2026-05-26T09:46:27.000Z"
+  },
+  {
+    "id": "019e6362-1987-7ad0-9786-287e6a13934c",
+    "title": "Перестроить Как_это_работает",
+    "preview": "В этой папке /Users/triton/Documents/MAVO/Анализ/03_Как_это_работает мы создадим новые файлы и новые папки-подпапки так чтобы не было дублей и всё было чисто Берём информацию из этой папки /Users/triton/Documents/MAVO/как_это_работает_исходники --- Да это большой рефактор, сделай сразу и ничего не спрашивай, не удаляй исходную папку мы будем потом проверять. Очень важно писать с юмором, понятно, просто, живо и чисто на русском языке не смешивая англиские словечки. Сылки в инструкциях устарели. Проблемма которую хочу решить, то что файлов слишком много, разбиты слишком мелко, смысл размазан по множеству файлов. Папки должны называться просто, используем принцип прогрессивного раскрытия информации, мелкие бюрократические детали должны быть в подпапках, важные вещи сверху. Сами имена папок и файлов должны быть понятны холодному читателю. Ещё поможет срезать дубли проверка других папок /Users/triton/Documents/MAVO/Анализ/01_Что_такое_МАВО /Users/triton/Documents/MAVO/Анализ/04_Как_запустим [$1md-navigator](/Users/triton/.codex/skills/1md-navigator/SKILL.md) пригодится прогреть эмбединги",
+    "updatedAt": "2026-05-26T09:29:29.000Z"
+  }
+]
+
+Use recent threads to avoid duplicates, understand working style, and identify rare still-live unresolved blockers. Prefer connected apps, repo state, or other fresh external evidence for discovering new candidate suggestions.
+Do not suggest work that is only waiting on CI, review, approval, or another person unless there is a concrete action the user can take immediately.
+
+Avoid repeating these previously dismissed suggestions:
+[]
+
+Use sentence case in the title. Do not use Start Case or Title Case. Keep titles under 16 words, but prefer titles nearing that length. Indeed, prefer longer, more descriptive titles when that helps the user immediately recognize the task, but stay concise.
+Long titles that don't overflow in our limited width to display them can be a powerful way to make Codex feel extremely personalized.
+
+Return 0 to 3 fresh suggestions. Return fewer than 3 when fewer than 3 suggestions clear the bar. Returning no suggestions is better than returning weak suggestions.
+Do not return multiple suggestions that are neighboring views of the same launch, triage, or coordination problem; keep only the strongest one.
+
+# Examples
+
+## Bad examples
+
+### Generic suggestions
+Bad suggestions: "Review your DMs", "Triage your inbox", "Review the <example> doc", "Prep the launch", ...
+These suggestions are way too generic to be useful (and the titles are way too short)
+
+### Suggestions relating to old issues
+Let's say I have a Linear issue assigned directly to me from one month ago
+Don't make a suggestion to do that given that it was created a month ago. We need to focus on recency and the future.
+
+### Suggestions relating to spam/noise
+Let's say I get an email in my inbox from someone trying to sell me shoes
+From: John Smith, john@example.com
+Subject: Try out the shoes this Sunday?
+Body: Hi sir, would you like to try out our company's new shoes this Sunday?
+
+If there is no prior relationship signal (e.g. with John Smith) and if this email seems spammy/promotional, do not suggest anything based on it
+
+### Recently viewed docs are not obligations
+Let's say I recently viewed the "Codex App - Risk Table" doc and it got a few new comments today
+Do not suggest "Refresh the Codex app risk table" just because I looked at it or because people are commenting there
+A recently viewed doc is not enough by itself. Suggest work on a doc only when there is a direct ask, a concrete deadline, or a named decision the user is responsible for.
+
+### Planning or auditing instead of immediate action
+Bad suggestions: "Rank today's launch-adjacent queue", "Prioritize your launch-week Codex queue", "Audit the onboarding flow", ...
+These suggestions ask the user to plan, rank, audit, or summarize work instead of moving a concrete artifact forward.
+Planning and auditing can often already be done asynchronously. Prefer suggestions where Codex can take an immediate concrete action or prepare a fix the user can approve.
+
+### Title that is too exploratory and not forward enough
+
+Bad title: "Debug nightly query devtools reopen"
+The word "Debug" implies that the user will need to actively engage with the thread, which kinda implies active work
+Better title: "Fix nightly query devtools not opening by resetting Electron state"
+This is better because "Fix" implies more action/relief and knowing the fix already relieves the user more.
+
+# Response format
+
+Each suggestion must include:
+- title: concrete and descriptive enough that the user immediately recognizes the artifact, person, issue, branch, PR, meeting, or decision involved. Prefer specific nouns and distinctive context over vague short labels.
+- description: one or two short sentences. Keep it compact and tooltip-like. The title should usually carry more of the specificity, while the description quickly explains the evidence and why this is useful now.
+- prompt: the user message to send
+- appId: the single most relevant app id, such as "690a90ec05c881918afb6a55dc9bbaa1". Choose the one app most central to the suggestion.
+- write the prompt as something that should launch as a new Codex thread in this project

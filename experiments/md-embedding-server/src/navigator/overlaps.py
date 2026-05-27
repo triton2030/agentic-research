@@ -270,10 +270,12 @@ def cmd_overlaps(args) -> int:
             f"  Requested path is inside indexed parent corpus: {parent_corpus}\n"
             f"\n"
             f"  Next step:\n"
-            f"    md index {shlex.quote(str(parent_corpus))} {filter_args}\n"
+            f"    md index {shlex.quote(str(parent_corpus))} {filter_args} --dry-run --json\n"
+            f"    md index {shlex.quote(str(parent_corpus))} {filter_args} "
+            f"--confirm --transaction-id <id> --json\n"
             f"\n"
             f"  Then re-run overlaps on the parent corpus with the same path scope:\n"
-            f"    md overlaps {shlex.quote(str(parent_corpus))} {filter_args}\n",
+            f"    md overlaps {shlex.quote(str(parent_corpus))} {filter_args} --json\n",
             file=sys.stderr,
         )
         return 4
@@ -332,7 +334,8 @@ def cmd_overlaps(args) -> int:
             f"(cap for auto-embed in `overlaps` = {max_auto_embed}).\n"
             f"\n"
             f"  Next step:\n"
-            f"    md index '{corpus_root}'\n"
+            f"    md index '{corpus_root}' --dry-run --json\n"
+            f"    md index '{corpus_root}' --confirm --transaction-id <id> --json\n"
             f"\n"
             f"  Then re-run overlaps. One-time cost; subsequent runs reuse "
             f"the index on disk.\n"

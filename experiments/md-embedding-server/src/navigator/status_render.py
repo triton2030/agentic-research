@@ -48,13 +48,13 @@ def render_status(payload: dict[str, Any]) -> str:
             f"Status: NO INDEX — {payload['added_sections']} sections / "
             f"{payload['pending_chunks']} chunks would be embedded."
         )
-        lines.append(f"  Run: md index '{payload['corpus']}'")
+        lines.append(f"  Next: md index '{payload['corpus']}' --dry-run --json")
     elif state == "NEEDS_REBUILD":
         lines.append(
             "Status: NEEDS REBUILD — index metadata/schema does not match the "
             "current model, API URL, or schema version."
         )
-        lines.append(f"  Run: md index '{payload['corpus']}'")
+        lines.append(f"  Next: md index '{payload['corpus']}' --dry-run --json")
     elif state == "FRESH":
         lines.append("Status: FRESH — no pending changes; `search` is instant.")
     elif state == "NEEDS_WARMUP":
@@ -62,7 +62,7 @@ def render_status(payload: dict[str, Any]) -> str:
             f"Status: NEEDS WARMUP — {payload['added_sections']} new sections / "
             f"{payload['pending_chunks']} chunks pending (cap {payload['max_auto_embed']})."
         )
-        lines.append(f"  Run: md index '{payload['corpus']}'")
+        lines.append(f"  Next: md index '{payload['corpus']}' --dry-run --json")
     elif state == "HEALTHY":
         lines.append(
             f"Status: HEALTHY — {payload['added_sections']} new / "
@@ -70,8 +70,8 @@ def render_status(payload: dict[str, Any]) -> str:
             f"{payload['pending_chunks']} chunks pending. `search` will auto-handle the delta."
         )
         lines.append(
-            f"  Optional: md index '{payload['corpus']}'  "
-            "(eagerly warm the index instead of paying inside search)"
+            f"  Optional: md index '{payload['corpus']}' --dry-run --json  "
+            "(preview cost before eager warmup)"
         )
     else:
         lines.append(f"Status: {state}")

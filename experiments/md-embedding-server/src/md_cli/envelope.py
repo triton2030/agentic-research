@@ -126,6 +126,7 @@ def wrap(
             tool_name=tool_name,
             args_dict=args_dict,
             corpus_root=corpus_root,
+            corpus_state=corpus_state,
             lock=lock,
             size_estimate=size_estimate,
         ),
