@@ -4195,3 +4195,461 @@ Return exactly CLAUDE_TURBO_OK. Do not edit files. Do not run tools unless neces
 ## 2026-05-27T12:28:36+05:00 | agentic-research | turn 019e6855-090b-7560-9147-7fefcb04a68f
 
 Да сори паралельно работал
+
+
+## 2026-05-27T12:33:54+05:00 | agentic-research | turn 019e685a-b145-7f42-8ffe-594a9eef867a
+
+Хм серена же можем помочь в целом по всему коду не только питон, наверное стоит установить и посмоотреть может она делает уже что то что заменяет другое
+
+
+## 2026-05-27T12:37:44+05:00 | agentic-research | turn 019e685a-b145-7f42-8ffe-594a9eef867a
+
+/Users/triton/Documents/GitHub/agentic-research/experiments/flowpage-v4-elk
+Можешь использовать эту папку чтобы протестировать
+
+
+## 2026-05-27T12:39:18+05:00 | agentic-research | turn 019e6855-090b-7560-9147-7fefcb04a68f
+
+/Users/triton/Documents/MAVO/Анализ/01_Что_такое_МАВО/Для_студий/Психология_студии.md
+Протестируй инструмент тут
+
+
+## 2026-05-27T12:40:00+05:00 | agentic-research | turn 019e6860-4444-7680-a9c8-d51b84f7df7d
+
+у нас текст стоп хука выглядит так:
+
+Changed since `1work-review`: 14.
+- `experiments/md-embedding-server/AGENTS.md` — md-embedding-server Instructions
+  must-read: нет
+  must-update: нет
+- `experiments/md-embedding-server/README.md` — md-tools
+  must-read: нет
+  must-update: нет
+  semantic: `experiments/md-embedding-server/docs/skills-semantic-equivalence.md#Skills Semantic Equivalence > 1md-navigator`, `_ops/plans/md-mcp-to-cli-refactor/GOAL.md#GOAL — md-mcp → CLI Refactor`, `experiments/md-embedding-server/docs/migration-blast-inventory.md#Migration Blast Inventory > Raw repo Markdown hits`
+- `experiments/md-embedding-server/docs/architecture-lock.md` — Architecture invariants for md CLI catalog, handler, runner, and library boundaries.
+  must-read: нет
+  must-update: нет
+  related: `_ops/plans/md-cli-agent-contract/task-2026-05-23-agent-friendly-cli.md` — Active handoff task for fixing agent-facing md CLI contracts after research-backed review., `_ops/plans/md-cli-agent-contract/task-2026-05-23-md-cli-scenario-selftest.md` — Active task for proving md CLI tools work through agent-like scenario smoke checks., `_ops/plans/md-cli-agent-contract/task-2026-05-23-md-cli-stabilization-refactor.md` — Active task for stabilizing md CLI ownership: status core, legacy boundary, snapshots, ne…
+- `experiments/md-embedding-server/src/navigator/walk.py` — non-MD/unknown; graph skipped
+- `experiments/md-embedding-server/src/navigator/markdown_io.py` — non-MD/unknown; graph skipped
+- `experiments/md-embedding-server/src/navigator/api.py` — non-MD/unknown; graph skipped
+- `experiments/md-embedding-server/src/md_cli/handlers/md_walk.py` — non-MD/unknown; graph skipped
+- ещё 7 non-MD/unknown
+Index: NEEDS_WARMUP; semantic may be stale.
+
+1work-review: после существенных правок проверь: просьба выполнена, есть наблюдаемая проверка, важный риск назван. Для Markdown diff сначала `md changed --json`; при graph/link риске — `md health --paths . --json`. Если всё ок — компактный финал + `<!-- 1work-review: да -->`; если нет — продолжи или сообщи. Не разворачивай acceptance/instructions без запроса или failed checks. Перед финалом: реальные «не сходится» по проекту → `1findings`; уроки о поведении ИИ → `1self-learning`.
+
+---
+
+Мне кажется количество текста можно оптимизировать
+
+
+## 2026-05-27T12:44:01+05:00 | agentic-research | turn 019e6863-f283-7aa0-9d95-ef5b863d355b
+
+Отлично обнови тогда скилы [$1cli-tools](/Users/triton/.codex/skills/1cli-tools/SKILL.md)  и [$1repo-map](/Users/triton/.codex/skills/1repo-map/SKILL.md) 
+Кстати давай обсудим как их стоит обновить ведь это возможно много нового даёт
+
+
+## 2026-05-27T12:44:34+05:00 | agentic-research | turn 019e6864-72a7-78f3-8137-6abc5b35f41d
+
+А было ли это полезно? Ну ты прочитал два блока и как тебе смысл?
+
+
+## 2026-05-27T12:44:47+05:00 | agentic-research | claude | session 4359bc8a
+
+Сделал, проверь код
+
+
+## 2026-05-27T12:45:47+05:00 | agentic-research | turn 019e6865-922f-7b80-9140-3b2497fa4590
+
+Исправь также в клод версии, советую прочитать в интернете документацию
+
+
+## 2026-05-27T12:46:20+05:00 | agentic-research | turn 019e6866-1223-73f3-a059-db4c8cb588f7
+
+Отлично тогда внеси изменения в кодекс скилах и клод скилах тоже
+
+
+## 2026-05-27T12:46:41+05:00 | agentic-research | turn 019e6866-63e0-7b23-aee6-d618a3ce80e4
+
+Отлично обнови тогда инструкции тоже
+
+
+## 2026-05-27T12:48:24+05:00 | agentic-research | turn 019e6866-63e0-7b23-aee6-d618a3ce80e4
+
+Я имел ввиду инструкции там где описывается как этот инструмент работает, папочные инструкции
+
+
+## 2026-05-27T12:49:43+05:00 | agentic-research | turn 019e6866-63e0-7b23-aee6-d618a3ce80e4
+
+Что хорошо
+walk.py — все strict-defaults реализованы (cycle, anchor_not_found, token_budget, depth_reached, no_anchored_outlink, ambiguous_target, target_not_found)
+Маркеры в output text (<!-- md-walk step=N path=... anchor=... -->) — attribution для агента не теряется
+_resolve_target_with_collision_check — collision check изолирован в walk, общий resolve_markdown_target не trogается
+markdown_io.py:326 — if path_clean or anchor_clean — корректный fix critic #3
+catalog ToolSpec и snapshot consistent, count=31 везде
+Что красное
+1. navigator.walk не экспортирован
+experiments/md-embedding-server/src/navigator/__init__.py:33 — walk отсутствует в from .api import (...) и в __all__. Из-за этого public_api_smoke падает с AttributeError: module 'navigator' has no attribute 'walk'.
+
+Правка: добавить walk, в импорт и "walk", в __all__. Две строки.
+
+2-3. tests/test_selftest.py — hardcoded 30
+test_selftest.py:30: {"pass": 29, ..., "total": 30} → должно быть {"pass": 30, ..., "total": 31}
+test_selftest.py:52: "Pass: 29/30" → "Pass: 30/31"
+4. Отсутствует golden response snapshot
+test_agent_hint_contract.py:14 требует чтобы в tests/golden/mcp-responses/ лежал JSON для каждого tool из catalog. md_walk.json там нет. Нужно создать (либо вручную записать пример response, либо есть generator script — проверю).
+
+---
+
+Это правильные комменатрии или у нас так и задуманно?
+
+
+## 2026-05-27T12:50:13+05:00 | agentic-research | turn 019e6869-a14c-7ba0-8401-79fdd1a6538b
+
+проверь хуки в кодексе и клоде которые перед записью говорят о том что есть связанные файлы
+
+
+## 2026-05-27T12:53:49+05:00 | agentic-research | turn 019e6869-a14c-7ba0-8401-79fdd1a6538b
+
+Просто тут проблемма что у меня не очень отношения с гитхабом
+
+
+## 2026-05-27T12:55:30+05:00 | agentic-research | claude | session 1bafc9c4
+
+Проверь наш инструмент /Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server
+При помощи серена /1repo-map
+
+
+## 2026-05-27T12:56:58+05:00 | agentic-research | claude | session 1bafc9c4
+
+используй серена
+
+
+## 2026-05-27T12:57:31+05:00 | agentic-research | turn 019e6870-4f33-74d0-b6f6-03588b20baab
+
+Мне кажется какие то особо ценные функции серена стоит прям указать в скилах
+
+
+## 2026-05-27T12:58:05+05:00 | agentic-research | claude | session 1bafc9c4
+
+https://github.com/oraios/serena установи тогда себе MCP
+
+
+## 2026-05-27T12:59:59+05:00 | agentic-research | claude | session 1bafc9c4
+
+<task-notification>
+<task-id>b1v27sbva</task-id>
+<tool-use-id>toolu_0151WvJZurf9ctuwSzkTQAFc</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-triton-Documents-GitHub-agentic-research/1bafc9c4-0880-4c60-a610-d91d70df3c6a/tasks/b1v27sbva.output</output-file>
+<status>completed</status>
+<summary>Background command "Pre-warm uvx Serena package" completed (exit code 0)</summary>
+</task-notification>
+
+
+## 2026-05-27T13:00:32+05:00 | agentic-research | claude | session 17ee4bb0
+
+Проверь наш инструмент /Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server
+При помощи серена /1cli-tools
+
+
+## 2026-05-27T13:02:03+05:00 | agentic-research | claude | session 17ee4bb0
+
+Перезапустил клод чтобы МСР работало
+
+
+## 2026-05-27T14:39:50+05:00 | agentic-research | turn 019e68cd-fac4-7b70-a091-0e2db08c9efa
+
+Убери, пожалуйста, штуку, которая вызывает у него браузер у серена
+
+
+## 2026-05-27T14:40:57+05:00 | agentic-research | claude | session 17ee4bb0
+
+Попробуй разглядеть возможности рефактора используя всю мощь серена
+
+
+## 2026-05-27T14:42:02+05:00 | agentic-research | claude | session 123a378c
+
+https://github.com/oraios/serena
+Найди в инетренет как включить МСР для клода
+
+
+## 2026-05-27T14:43:08+05:00 | agentic-research | claude | session 123a378c
+
+Установи
+
+
+## 2026-05-27T14:43:42+05:00 | agentic-research | turn 019e68d1-84ef-7da0-a4b6-0322a8a66bf7
+
+проверь доки их правильно ли мы установили мср для кодекс?
+
+
+## 2026-05-27T14:45:46+05:00 | agentic-research | claude | session 123a378c
+
+Да давай сделай как рекомендуешь
+
+
+## 2026-05-27T14:45:56+05:00 | agentic-research | claude | session 17ee4bb0
+
+<task-notification>
+<task-id>b2hp21n3r</task-id>
+<tool-use-id>toolu_015m6iqKUBK9ZajWmHqXGw5c</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-triton-Documents-GitHub-agentic-research/092f0bf9-f60c-480c-866d-cdf600148f64/tasks/b2hp21n3r.output</output-file>
+<status>killed</status>
+<summary>Background command "Wait for Serena project server to start" was stopped</summary>
+</task-notification>
+
+
+## 2026-05-27T14:46:08+05:00 | agentic-research | claude | session 17ee4bb0
+
+Всё теперь МСР должен работать
+
+
+## 2026-05-27T14:46:39+05:00 | agentic-research | turn 019e68d1-84ef-7da0-a4b6-0322a8a66bf7
+
+Я имел ввиду что доки самой серены говорят про кодекс и установку тоже
+
+
+## 2026-05-27T14:52:32+05:00 | agentic-research | turn 019e68d9-9d07-77d3-9651-a9cd1080d1be
+
+✓ 1start-here загружен
+
+Serena MCP подключилась — вижу 21 `mcp__serena__*` инструмент. Сначала остановлю лишний project-server, который запускал в обход, и загружу схемы Serena tools.
+
+Сначала прочту инструкцию Serena (она просит это явно) и параллельно посмотрю накопленные memory.
+
+Инструкции Serena прочитаны (ключевое: **избегать Read/Edit на code files, использовать Serena-tools**). Проект активирован. Onboarding пропущу — он для будущих сессий, refactor analysis от него не зависит.
+
+**План анализа** (видимый ход, линза dev-критика):
+
+1. **Symbol overview** двух крупнейших модулей (`api.py` 1361 строк, `audit.py` 1380 строк) — понять, что внутри.
+2. **Diagnostics** Pyright на крупные модули — unused imports, type errors, dead code.
+3. **Reference analysis** на public API — кто реально использует функции `navigator.api`. Малое число references = inline candidate.
+4. **Implementations** на ключевые интерфейсы — найти over-abstraction.
+
+Запускаю параллельно overview двух крупнейших + diagnostics на них.
+
+Серьёзные находки уже на первом шаге.
+
+**Diagnostic-карта `api.py` (Pyright)**:
+- 10 одинаковых type errors: передача `SimpleNamespace` в `load_docs(args: Namespace | None)` — функции `scan`, `check`, `health`, `cycles`, `deps`, `impact`, `preflight`, `changed`, `init`, `strip`
+- 2 type errors в `_sections_index_context`: `Iterable[str] | str | None` → `list[str] | None`
+
+**Diagnostic-карта `audit.py`**: **zero issues** в 1380 строках. Типизация чистая.
+
+**Структурно**:
+- `api.py` — плоский dispatcher (36 функций) — каждая CLI-команда вызывает `load_docs(SimpleNamespace(...))`. Систематический pattern → нужен общий helper.
+- `audit.py` — 30 функций в 4 cohesive группах (constants/detect/severity_for_*/cmd). 8 функций `severity_for_*` имеют похожий shape — кандидат на mapping-таблицу.
+
+Расширяю карту: diagnostics на следующие крупные модули + структурный обзор `cli.py` legacy.
+
+**Type drift локализован в `api.py`** — остальные крупные модули чистые (search/index_build/graph/cli — все `{}`). `cli.py` legacy имеет всего 7 функций (argparse parser + dispatch). Подтверждаю dead status грузим Serena-ом.
+
+Параллельно: проверяю dead candidates через `find_referencing_symbols` + diagnostics на оставшиеся модули.
+
+**Большой улов:**
+
+- **`cli.py` legacy — `main` имеет 0 references** в кодовой базе. `build_parser` только внутри `cli.py`. AGENTS.md уже маркирует его legacy → весь 797-строчный модуль может быть удалён.
+- **`repeated_concepts.py` line 350** — type error: `"-" not supported for "str | int | list[dict[str, Any]]"`. Runtime crash потенциал на edge case.
+- `schemas.py`, `graph_reports.py` — чисто.
+
+Подтверждаю legacy cli.py через grep на потенциальные entry points + смотрю проблемную строку 350 + ищу `load_docs` declaration.
+
+Ошибка с параметром (имя `name_path_pattern` для `find_symbol`). И важная корректировка: `cli.py` НЕ полностью dead — `tests/test_contract_fixes.py` импортирует из него `build_manifest, parser_commands, _dispatch_pick_or_read`, а `scripts/md_navigator.py` импортирует `main`. Это **legacy boundary**, не dead. Повторяю запросы с правильным именем.
+
+**Finding `load_docs`**: декларация в `graph_core.py:192`, сигнатура `args: Namespace | None = None`. Это первоисточник 10 errors в api.py — приходит `SimpleNamespace`, ожидается `Namespace`.
+
+Чтобы локализовать error на line 350 в `repeated_concepts.py`, прочту 3 строки точечно (Serena разрешает small-region read поверх уже понятой функции).
+
+**Огромная находка**: `load_docs` имеет **23 call sites** — 10 в `api.py` (через SimpleNamespace, ошибки) и 12 в `graph.py` (через настоящий Namespace, чисто). Это **два параллельных dispatcher-слоя** для тех же команд (`scan/check/health/cycles/deps/impact/preflight/changed/init/strip`).
+
+И line 350 — это `(-x["section_count"], x["path"])` в sorted key. Pyright не знает что `section_count` — int (dict is generic `dict[str, Any]`). Mild typing issue.
+
+Финальная проверка: насколько `graph.py` активно используется новым layer (md_cli/handlers), или это пара legacy ↔ legacy.
+
+Финальное подтверждение: `graph.py` — legacy CLI слой (со своим `build_parser`), `md_cli/` его не импортирует. `cmd_scan` имеет 1 reference (внутри собственного `build_parser`).
+
+---
+
+# Refactor-карта md-embedding-server (Serena LSP-анализ)
+
+## Что использовал
+
+Serena MCP подключилась после второго перезапуска. Прогнал на крупнейших модулях:
+- `get_symbols_overview` — структурный анализ
+- `get_diagnostics_for_file` (Pyright) — типовые ошибки
+- `find_referencing_symbols` — call-graph для dead-code и blast radius
+- `find_symbol` — поиск декларации `load_docs`
+
+## Критические находки (приоритет 1 — типовые ошибки)
+
+### F1. `api.py` × 10: `SimpleNamespace` → `load_docs(args: Namespace | None)`
+
+**Что**: 10 идентичных Pyright errors во всех функциях dispatcher-слоя (`scan`, `check`, `health`, `cycles`, `deps`, `impact`, `preflight`, `changed`, `init`, `strip`).
+
+**Корень**: `graph_core.py:192` объявляет `load_docs(paths, root, args: Namespace | None = None) -> list[Doc]`. `api.py` строит `args = SimpleNamespace(...)` через helper `_graph_args` и передаёт. Runtime работает через duck-typing, но Pyright прав — это разные типы.
+
+**Refactor**: ввести Protocol в `graph_core.py`:
+
+```python
+class LoadDocsArgs(Protocol):
+    paths: list[str]
+    path_include: list[str] | None
+    path_exclude: list[str] | None
+    # ...нужные атрибуты
+```
+
+Заменить `args: Namespace | None` → `args: LoadDocsArgs | None`. Затрагивает **23 call sites** (10 в `api.py` + 12 в `graph.py` + 1 fixture в graph.py). Один-shot правка, риск низкий.
+
+### F2. `api.py` × 2: `_sections_index_context` — `Iterable[str]` vs `list[str]`
+
+Lines 551–552: `normalize_path_filter_patterns` принимает `list[str] | None`, получает `Iterable[str] | str | None`. **Refactor**: либо расширить сигнатуру `normalize_path_filter_patterns(patterns: Iterable[str] | None)`, либо `list(patterns)` перед вызовом.
+
+### F3. `repeated_concepts.py:350` — typing hole в sorted key
+
+Строка `key=lambda x: (-x["section_count"], x["path"])`. Pyright не выводит тип `x["section_count"]` (dict значения `Any`). **Refactor**: TypedDict для `file_breakdown` items:
+
+```python
+class FileBreakdownItem(TypedDict):
+    path: str
+    section_count: int
+    sections: list[dict[str, Any]]
+```
+
+## Архитектурные находки (приоритет 2)
+
+### F4. Параллельные dispatcher-слои `api.py` (1361) и `graph.py` (735)
+
+**Наблюдение**: оба содержат функции с теми же именами команд — `scan/check/health/cycles/deps/impact/preflight/changed/init/strip`. Оба вызывают `graph_core.load_docs`. Никто из `md_cli/` не импортирует `graph.py`.
+
+**Текущее состояние**: `graph.py` — legacy CLI с собственным `build_parser`, используется только через `navigator.cli` + scripts/md_navigator.py.
+
+**Refactor варианты** (требует решения пользователя):
+- **A. Маркировать explicit**: переименовать `graph.py` → `_legacy_graph_cli.py` или вынести в `navigator/legacy/`, чтобы граница была явной.
+- **B. Consolidate**: убедиться, что вся уникальная логика `graph.py` живёт в `graph_core` / `api.py`, и `graph.py` чисто re-export + cmd_* для legacy entry.
+- **C. Status quo**: оставить как есть, но довести до zero diagnostics (уже так).
+
+### F5. `navigator/cli.py` (797) — legacy boundary
+
+**Не dead**, как казалось сначала. Tests импортируют `build_manifest, parser_commands, _dispatch_pick_or_read`. `scripts/md_navigator.py:27` импортирует `main`. AGENTS.md прямо говорит «не редактируй для основного `md` CLI».
+
+**Refactor**: вопрос — нужен ли вообще legacy boundary? Если он только для backward-compatibility смены `md_navigator.py` → `md`, у него ясный finite lifespan. Можно создать deprecation timeline.
+
+## Maintainability-находки (приоритет 3)
+
+### F6. `api.py` — repeated boilerplate в 10 функциях
+
+Тот же шаблон: `args = _graph_args(...) → docs = load_docs(args.paths, root, args) → report = graph_mod.<op>(docs, root)`. 
+
+**Refactor**: helper
+
+```python
+def _run_graph_op(paths, root, op_fn, **kwargs):
+    args = _graph_args(paths, **kwargs)
+    docs = graph_mod.load_docs(args.paths, root, args)
+    return op_fn(docs, root)
+```
+
+Сократит ~30–40 строк, центральная точка для F1-fix.
+
+### F7. `audit.py` — 8 функций `severity_for_*` одной формы
+
+Дублирующий shape для разных видов IA-smells. **Refactor**: dispatch table:
+
+```python
+SEVERITY_RULES: dict[str, Callable[[dict], int]] = {
+    "smeared_concept": severity_for_smeared_concept,
+    "classified_pair": severity_for_classified_pair,
+    # ...
+}
+```
+
+Скорее **косметика**, не приоритет.
+
+## Сильные позитивные сигналы
+
+- **Zero diagnostics** в `audit.py` (1380), `search.py` (830), `index_build.py` (875), `graph.py` (735), `cli.py` (797), `schemas.py` (662), `graph_reports.py` (562). Type drift локализован **только в `api.py` и единичной строке `repeated_concepts.py`**. Это значит refactor F1+F2+F3 покрывают практически весь typing-долг.
+- Контракты AGENTS.md/architecture-lock держатся: `navigator/*` не импортирует `md_cli` (0 violations), `md_cli/handlers/` не вызывают `sys.exit`/`print(json)` (0 violations).
+- 255 unit-тестов pass, `md selftest` 30/31 pass (1 deliberately skip).
+
+---
+
+## Приоритеты для следующего шага
+
+Если хочешь сделать одну правку с максимальным эффектом — **F1 (Protocol для load_docs)**. Она:
+- Закрывает 10 из 13 Pyright-ошибок (77%) одной правкой
+- Затрагивает один файл декларации (`graph_core.py`) + 23 call sites через safe ast-rename
+- Низкий риск (Protocol = compile-time only, runtime поведение не меняется)
+- Открывает дверь к F6 (helper `_run_graph_op` — естественное место для type-safe args builder)
+
+Какую находку хочешь раскрутить дальше? Могу либо углубить (например, прочитать сигнатуры всех 23 call sites через Serena), либо собрать explicit refactor plan для F1 со всеми edit-точками.
+
+
+---
+
+Проверь
+
+
+## 2026-05-27T14:58:04+05:00 | agentic-research | turn 019e68de-af3b-77a3-be38-44d84cac32ce
+
+Давай всё запланируем и сделаем качественно
+
+
+## 2026-05-27T14:59:05+05:00 | agentic-research | turn 019e68de-af3b-77a3-be38-44d84cac32ce
+
+Почини всё за один раз, закрой все пробелы и доведи до конца
+
+
+## 2026-05-27T15:01:44+05:00 | agentic-research | turn 019e68e2-0ab0-7e53-be63-0f573a5498c6
+
+PLEASE IMPLEMENT THIS PLAN:
+# md-tools Refactor: Zero Diagnostics + Graph Helper
+
+## Summary
+
+Сделать одну цельную итерацию: сначала backup-checkpoint текущего dirty `main`, затем закрыть все подтверждённые Pyright-пробелы в `experiments/md-embedding-server` и убрать повторяющийся boilerplate graph-команд в `navigator.api`, не трогая legacy `navigator.cli` / `navigator.graph` переезд.
+
+## Key Changes
+
+- **Backup first**
+  - На `main` перед правками: `git status --short`, stage текущего non-ignored состояния, `gitleaks protect --staged --redact`, commit `backup: checkpoint before md tools refactor`, push `origin main`.
+  - Если secret scan падает — остановиться до правок.
+
+- **Type fixes**
+  - В `src/navigator/api.py` заменить `_graph_args(...) -> SimpleNamespace` на `argparse.Namespace`, сохранив `_ns` для не-graph helper paths.
+  - Это должно закрыть `load_docs(..., args)` и `changed_markdown_paths(root, args)` без изменения runtime-поведения.
+  - В `src/navigator/filters.py` расширить `normalize_path_filter_patterns` до `Iterable[str] | str | None`, чтобы single string не превращался в итерацию по символам.
+  - В `src/navigator/repeated_concepts.py` добавить узкий `TypedDict` для `file_breakdown` items и типизировать список перед `sorted`.
+
+- **Graph helper cleanup**
+  - В `src/navigator/api.py` добавить внутренние helper-ы для повторяющегося pattern:
+    - build graph args;
+    - load docs for direct `paths`;
+    - load scan-scope docs for `deps/impact/preflight/changed`.
+  - Применить helper к `scan/check/health/cycles/deps/impact/preflight/changed/init/strip`.
+  - Не менять public API payloads, exit codes, catalog, CLI signatures или envelope behavior.
+
+- **Legacy boundary**
+  - Не переименовывать `navigator.cli` / `navigator.graph`.
+  - Оставить их как documented compatibility layer для `scripts/md_navigator.py` / `scripts/md_graph.py`.
+
+## Test Plan
+
+- Targeted diagnostics:
+  - Serena/Pyright diagnostics: `api.py`, `filters.py`, `graph_core.py`, `graph_reports.py`, `repeated_concepts.py` должны быть zero errors.
+- Targeted tests:
+  - Добавить/обновить тест на `normalize_path_filter_patterns` для `str`, iterable/generator и absolute path under corpus.
+  - Добавить regression smoke, что public `navigator.changed(..., staged=True)` и graph API calls больше не создают type drift через `Namespace`.
+- Full gates:
+  - `experiments/md-embedding-server/scripts/run-tests.sh`
+  - `cd experiments/md-embedding-server && uv run md selftest --json`
+- Acceptance:
+  - 255+ pytest pass.
+  - `md selftest` summary остаётся `fail: 0`, slow `md_audit` skip допустим.
+  - `git diff` не содержит изменений catalog/snapshots/docs, если public CLI contract не менялся.
+
+## Assumptions
+
+- “Почини всё” означает: закрыть F1-F3 и F6 из подтверждённой refactor-карты за один проход.
+- Legacy deprecation timeline не входит в эту итерацию, потому что локальные docs прямо держат legacy scripts как compatibility fallback.
+- Если dirty tree изменится до реализации, backup-checkpoint всё равно делается первым по локальному `AGENTS.md`.

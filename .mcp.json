@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "serena": {
+      "command": "/Users/triton/.local/bin/serena",
+      "args": [
+        "start-mcp-server",
+        "--context", "claude-code",
+        "--project", "/Users/triton/Documents/GitHub/agentic-research",
+        "--enable-web-dashboard", "false"
+      ]
+    }
+  }
+}
