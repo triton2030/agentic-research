@@ -9,8 +9,10 @@ interface:
     sources, criteria, unknowns, read-only boundaries, evidence requirements,
     output shape, and stop condition. Default to read-only: Claude reports
     findings/patch suggestions and stops; Codex applies changes after local
-    criteria. Observe long runs with peek/observe, report observable
-    tool/file/log/tmux progress rather than private thinking, and include
+    criteria. Use the default full-power `normal` profile unless the task
+    explicitly needs the tool-limited `read-only` profile. Observe long runs
+    with peek/observe, report observable tool/file/log/tmux progress rather
+    than private thinking, and include
     agent_behavior, full relay file, warnings, and tail status in closeout. If
     MCP transport is missing or closed, use the repo-local controlled runner
     fallback once and say this was recovery, not a clean MCP call. Never replace

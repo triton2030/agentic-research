@@ -1,6 +1,13 @@
 ---
 name: claude-mcp
-description: Use when Codex should run Claude Code as a controlled External Peer Review agent for a project/folder/diff: second opinion, code/opinion check, bug hunt, architecture or instruction audit, behavior comparison with Gemini, web research, or any long observable Claude Bridge run with run/peek/wait/kill, logs, full relay, agent-behavior evidence, and tail cleanup; skip ordinary inline answers and raw `claude` calls that do not need bridge control.
+description: >
+  Use when Codex should run Claude Code as a controlled External Peer
+  Review agent for a project/folder/diff: second opinion, code/opinion
+  check, bug hunt, architecture or instruction audit, behavior
+  comparison with Gemini, web research, or any long observable Claude
+  Bridge run with run/peek/wait/kill, logs, full relay, agent-behavior
+  evidence, and tail cleanup; skip ordinary inline answers and raw
+  `claude` calls that do not need bridge control.
 ---
 
 # Claude MCP
@@ -64,7 +71,7 @@ mode and `Read,Bash` are the intended limit.
 9. Treat Claude's findings as external evidence, not automatic task scope. If a
    finding describes a real current problem but strategy has not decided action,
    Codex may stage it in `_ops/findings/**` after local review instead of
-   promoting it directly to `_ops/plans/**` or `_ops/criteria/*.md`.
+   promoting it directly to `_ops/plans/**`.
 
 ## External Peer Review
 
@@ -107,8 +114,7 @@ state:
 - **Codex claim:** the plan, diff, conclusion, or risk assessment to check.
 - **Sources:** `cwd`/`addDir`, key files, diffs, logs, URLs, screenshots, or
   docs Claude should inspect directly.
-- **Criteria:** relevant instructions, `_ops/criteria/*.md`, task files, or
-  acceptance rules.
+- **Criteria:** relevant instructions, task files, or acceptance rules.
 - **Unknowns:** assumptions, unresolved questions, and what Claude must not
   invent.
 - **Boundaries:** read-only by default; ask for findings, patch suggestions, or

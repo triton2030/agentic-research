@@ -40,7 +40,8 @@ commitments; veto-class в локальных папках пуст. Cross-proje
   локальный `experiments/gemini-mcp/AGENTS.md`.
 - `experiments/strategy-gallery/` depends-on локальный
   `experiments/strategy-gallery/AGENTS.md`.
-- `experiments/md-embedding-server/` depends-on
+- `experiments/md-embedding-server/` depends-on локальный
+  `experiments/md-embedding-server/AGENTS.md` +
   `~/.claude/skills/1md-navigator/SKILL.md` (server is the navigator's
   embedding backend). Также owns `.md-tools.toml` per-project filter
   config schema (sections `[index]` и `[graph]`, append-семантика для
