@@ -26,7 +26,7 @@ ATOMIC_COMMANDS = {
     "md_repeated_concepts": ["repeated-concepts", str(CORPUS), "--json"],
     "md_audit": ["audit", str(CORPUS), "--json"],
     "md_corpus_scan": ["corpus-scan", str(CORPUS), "--json"],
-    "md_index": ["index", str(CORPUS), "--dry-run", "--json"],
+    "md_index": ["index", str(CORPUS), "--dry-run", "--allow-nested-corpus", "--json"],
     "md_init": ["init", "--paths", str(CORPUS), "--dry-run", "--json"],
     "md_strip": ["strip", "--paths", str(CORPUS), "--dry-run", "--json"],
     "md_profile_sections": ["profile-sections", str(CORPUS), "--dry-run", "--mode", "llm", "--json"],

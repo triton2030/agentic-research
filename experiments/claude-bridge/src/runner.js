@@ -1698,6 +1698,7 @@ export function doctor() {
   const helpText = `${help.stdout || ""}\n${help.stderr || ""}`;
   const requiredFlags = [
     "--model",
+    "--effort",
     "--dangerously-skip-permissions",
     "--output-format",
     "--include-partial-messages",

@@ -3,6 +3,8 @@ export const MODEL = "opus";
 const commonStreamFlags = [
   "--model",
   MODEL,
+  "--effort",
+  "max",
   "--dangerously-skip-permissions",
   "--output-format",
   "stream-json",
@@ -13,12 +15,12 @@ const commonStreamFlags = [
 
 export const PROFILES = {
   normal: {
-    description: "Default Opus run with dangerous permissions and stream-json logs.",
+    description: "Default full-power Opus run with max effort, dangerous permissions, and stream-json logs.",
     flags: [...commonStreamFlags],
     unsupported: false
   },
   "no-memory": {
-    description: "Opus run with Claude auto memory disabled via CLAUDE_CODE_DISABLE_AUTO_MEMORY=1.",
+    description: "Full-power Opus run with Claude auto memory disabled via CLAUDE_CODE_DISABLE_AUTO_MEMORY=1.",
     flags: [...commonStreamFlags],
     unsupported: false,
     env: {
@@ -26,7 +28,7 @@ export const PROFILES = {
     }
   },
   "no-skills": {
-    description: "Opus run with slash-command skills disabled.",
+    description: "Full-power Opus run with slash-command skills disabled.",
     flags: [...commonStreamFlags, "--disable-slash-commands"],
     unsupported: false
   },
@@ -35,6 +37,8 @@ export const PROFILES = {
     flags: [
       "--model",
       MODEL,
+      "--effort",
+      "max",
       "--permission-mode",
       "plan",
       "--tools",
@@ -48,8 +52,8 @@ export const PROFILES = {
     unsupported: false
   },
   turbo: {
-    description: "Full-power Opus run with max effort and dangerous permission skip.",
-    flags: [...commonStreamFlags, "--effort", "max"],
+    description: "Compatibility alias for the full-power default Opus run.",
+    flags: [...commonStreamFlags],
     unsupported: false
   },
   "skill-audit": {
@@ -62,7 +66,7 @@ export const PROFILES = {
     unsupported: false
   },
   "streaming-observe": {
-    description: "Verbose observation profile for long runs.",
+    description: "Full-power verbose observation profile for long runs.",
     flags: [...commonStreamFlags],
     unsupported: false
   }

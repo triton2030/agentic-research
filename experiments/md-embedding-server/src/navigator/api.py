@@ -430,12 +430,45 @@ def changed(
     )
 
 
-def _index_warmup(corpus: str | Path) -> dict[str, Any]:
+def _index_warmup(
+    corpus: str | Path,
+    *,
+    path_include: Iterable[str] | str | None = None,
+    path_exclude: Iterable[str] | str | None = None,
+    cache_root: Path | None = None,
+) -> dict[str, Any]:
+    from .index_meta import find_parent_indexed_corpus, path_include_for_parent_corpus
+
+    root = Path(corpus).expanduser().resolve()
+    parent = find_parent_indexed_corpus(root, cache_root=cache_root)
+    suggested_index_args: dict[str, Any] = {"corpus": str(root), "dry_run": True}
+    suggested_retry_args: dict[str, Any] = {"corpus": str(root)}
+    if parent is not None:
+        parent_include = path_include_for_parent_corpus(root, parent, _list(path_include))
+        parent_exclude = (
+            path_include_for_parent_corpus(root, parent, _list(path_exclude))
+            if path_exclude
+            else []
+        )
+        suggested_index_args = {
+            "corpus": str(parent),
+            "path_include": parent_include,
+            "dry_run": True,
+        }
+        suggested_retry_args = {
+            "corpus": str(parent),
+            "path_include": parent_include,
+        }
+        if parent_exclude:
+            suggested_index_args["path_exclude"] = parent_exclude
+            suggested_retry_args["path_exclude"] = parent_exclude
     return _exit(
         {
             "error": "index_warmup_required",
-            "corpus": str(Path(corpus).expanduser().resolve()),
+            "corpus": str(root),
             "self_repair": "Run md index --dry-run, review cost, then confirm.",
+            "suggested_index_args": suggested_index_args,
+            "suggested_retry_args": suggested_retry_args,
         },
         4,
     )
@@ -484,8 +517,18 @@ def _sections_index_context(
     corpus_root = Path(corpus).expanduser().resolve()
     if not corpus_root.exists():
         return _exit({"error": "path_not_found", "corpus": str(corpus_root)}, 2), 2, None
+    cache_root = Path(cache_dir).expanduser() if cache_dir else None
     if _index_missing(corpus_root):
-        return _index_warmup(corpus_root), 4, None
+        return (
+            _index_warmup(
+                corpus_root,
+                path_include=path_include,
+                path_exclude=path_exclude,
+                cache_root=cache_root,
+            ),
+            4,
+            None,
+        )
 
     include_patterns = normalize_path_filter_patterns(path_include, corpus_root)
     exclude_patterns = normalize_path_filter_patterns(path_exclude, corpus_root)
@@ -500,7 +543,6 @@ def _sections_index_context(
     if not items:
         return _exit({"error": "empty", "reason": "No sections to index.", "corpus": str(corpus_root)}, 1), 1, None
 
-    cache_root = Path(cache_dir).expanduser() if cache_dir else None
     selected_model = resolve_embed_model_for_corpus(corpus_root, embed_model, cache_root=cache_root)
     if no_cache:
         target = _index_dir_for_corpus(corpus_root, cache_root=cache_root)
@@ -541,7 +583,11 @@ def _sections_index_context(
 
 def search(corpus: str, query: str, **kwargs: Any) -> dict[str, Any]:
     if _index_missing(corpus):
-        return _index_warmup(corpus)
+        return _index_warmup(
+            corpus,
+            path_include=kwargs.get("path_include"),
+            path_exclude=kwargs.get("path_exclude"),
+        )
     search_mod = importlib.import_module("navigator.search")
     from .filters import apply_path_filters as apply_row_filters
     from .rerank import DEFAULT_RERANK_API_URL, DEFAULT_RERANK_MODEL, DEFAULT_RERANK_TIMEOUT, DEFAULT_RERANK_TOP_N
@@ -793,7 +839,11 @@ def search_read(corpus: str, query: str, **kwargs: Any) -> dict[str, Any]:
 
 def overlaps(corpus: str, **kwargs: Any) -> dict[str, Any]:
     if _index_missing(corpus):
-        return _index_warmup(corpus)
+        return _index_warmup(
+            corpus,
+            path_include=kwargs.get("path_include"),
+            path_exclude=kwargs.get("path_exclude"),
+        )
     from .overlaps import compute_overlaps
 
     _corpus_root_for_filters = Path(corpus).expanduser().resolve()
@@ -826,7 +876,11 @@ def overlaps(corpus: str, **kwargs: Any) -> dict[str, Any]:
 
 def repeated_concepts(corpus: str, **kwargs: Any) -> dict[str, Any]:
     if _index_missing(corpus):
-        return _index_warmup(corpus)
+        return _index_warmup(
+            corpus,
+            path_include=kwargs.get("path_include"),
+            path_exclude=kwargs.get("path_exclude"),
+        )
     from .repeated_concepts import compute_repeated_concepts
 
     _corpus_root_for_filters = Path(corpus).expanduser().resolve()
@@ -860,7 +914,11 @@ def repeated_concepts(corpus: str, **kwargs: Any) -> dict[str, Any]:
 
 def audit(corpus: str, **kwargs: Any) -> dict[str, Any]:
     if _index_missing(corpus):
-        return _index_warmup(corpus)
+        return _index_warmup(
+            corpus,
+            path_include=kwargs.get("path_include"),
+            path_exclude=kwargs.get("path_exclude"),
+        )
     audit_mod = importlib.import_module("navigator.audit")
 
     _corpus_root_for_filters = Path(corpus).expanduser().resolve()
@@ -1035,6 +1093,7 @@ def index(
     *,
     dry_run: bool = False,
     confirm: bool = False,
+    allow_nested_corpus: bool = False,
     batch_size: int | None = None,
     batch_pause_ms: int | None = None,
     max_heading_level: int | None = None,
@@ -1050,14 +1109,35 @@ def index(
     from .filters import apply_path_filters_to_map, normalize_path_filter_patterns
     from .folder_map import build_map
     from .index_build import _chunks_for_item, ensure_index
-    from .index_meta import resolve_embed_model_for_corpus
+    from .index_meta import (
+        _index_dir_for_corpus,
+        find_parent_indexed_corpus,
+        nested_corpus_refusal,
+        resolve_embed_model_for_corpus,
+    )
     from .sections import build_items_from_map
 
     corpus_root = Path(corpus).expanduser().resolve()
+    if not corpus_root.exists():
+        return _exit({"error": "path_not_found", "corpus": str(corpus_root)}, 2)
+    cache_root = Path(cache_dir).expanduser() if cache_dir else None
     path_include, path_exclude = resolve_filters_for_domain(
         corpus_root, domain="index",
         path_include=path_include, path_exclude=path_exclude,
     )
+    include_values = _list(path_include)
+    exclude_values = _list(path_exclude)
+    parent_corpus = find_parent_indexed_corpus(corpus_root, cache_root=cache_root)
+    if parent_corpus is not None and not allow_nested_corpus:
+        return _exit(
+            nested_corpus_refusal(
+                corpus_root,
+                parent_corpus,
+                path_include=include_values,
+                path_exclude=exclude_values,
+            ),
+            1,
+        )
     map_data = build_map(corpus_root, max_heading_level or 6, with_tokens=True)
     include_patterns = normalize_path_filter_patterns(path_include, corpus_root)
     exclude_patterns = normalize_path_filter_patterns(path_exclude, corpus_root)
@@ -1065,6 +1145,35 @@ def index(
     items_by_scope = {scope: build_items_from_map(scoped, scope=scope) for scope in ("sections", "descriptions")}
     pending_chunks = sum(len(_chunks_for_item(item)) for items in items_by_scope.values() for item in items)
     affected_files = [str(Path(file["path"]).resolve()) for file in scoped.get("files", [])]
+    index_exists = (_index_dir_for_corpus(corpus_root, cache_root=cache_root, create=False) / "index.sqlite").exists()
+    if (dry_run or not confirm) and index_exists:
+        selected_model = resolve_embed_model_for_corpus(corpus_root, embed_model, cache_root=cache_root)
+        totals = {"pending_chunks": 0, "added_sections": 0, "removed_sections": 0}
+        for scope, items in items_by_scope.items():
+            conn, stats = ensure_index(
+                corpus_root,
+                scope,
+                items,
+                selected_model,
+                embedding_api_url=embedding_api_url or SEARCH_DEFAULT_EMBEDDING_API_URL,
+                embedding_timeout=float(embedding_timeout or SEARCH_DEFAULT_EMBEDDING_TIMEOUT),
+                cache_root=cache_root,
+                max_auto_embed=None,
+                dry_run=True,
+                path_include=include_patterns,
+                path_exclude=exclude_patterns,
+            )
+            conn.close()
+            totals["pending_chunks"] += stats.get("pending_chunks", 0)
+            totals["added_sections"] += stats.get("added_sections", 0)
+            totals["removed_sections"] += stats.get("removed_sections", 0)
+        return {
+            "command": "index",
+            "dry_run": bool(dry_run),
+            **totals,
+            "estimated_cost_usd": round(totals["pending_chunks"] * 0.00002, 4),
+            "affected_files": affected_files,
+        }
     if dry_run or not confirm:
         return {
             "command": "index",
@@ -1074,7 +1183,6 @@ def index(
             "estimated_cost_usd": round(pending_chunks * 0.00002, 4),
             "affected_files": affected_files,
         }
-    cache_root = Path(cache_dir).expanduser() if cache_dir else None
     selected_model = resolve_embed_model_for_corpus(corpus_root, embed_model, cache_root=cache_root)
     totals = {"embedded": 0, "reused": 0, "removed_sections": 0}
     for scope, items in items_by_scope.items():

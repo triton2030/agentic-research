@@ -12,6 +12,7 @@ from pathlib import Path
 from navigator.index import cmd_index
 from navigator.index_status import cmd_status
 from navigator.overlaps import cmd_overlaps
+from navigator.api import index as api_index
 from navigator.api import search_read, status as api_status
 from navigator.search import (
     _apply_path_filters,
@@ -406,3 +407,89 @@ def test_partial_index_scoped_overlaps_compares_only_included_chunks(
         and pair["b"]["relative_path"].startswith("keep/")
         for pair in payload["pairs"]
     )
+
+
+def test_index_allow_nested_corpus_escape_hatch(tmp_path: Path, mock_embed) -> None:
+    corpus = _partial_corpus(tmp_path)
+    child = corpus / "keep"
+    api_index(
+        str(corpus),
+        confirm=True,
+        embed_model="test/stub-1",
+        embedding_api_url="http://test.local/v1",
+    )
+
+    refused = api_index(
+        str(child),
+        dry_run=True,
+        embed_model="test/stub-1",
+        embedding_api_url="http://test.local/v1",
+    )
+    assert refused["error"] == "nested_corpus_refused"
+    assert not (child / ".md-navigator").exists()
+
+    allowed = api_index(
+        str(child),
+        dry_run=True,
+        allow_nested_corpus=True,
+        embed_model="test/stub-1",
+        embedding_api_url="http://test.local/v1",
+    )
+    assert allowed["pending_chunks"] >= 1
+
+    confirmed = api_index(
+        str(child),
+        confirm=True,
+        allow_nested_corpus=True,
+        embed_model="test/stub-1",
+        embedding_api_url="http://test.local/v1",
+    )
+    assert confirmed["embedded"] >= 1
+    assert (child / ".md-navigator" / "index.sqlite").exists()
+
+
+def test_legacy_cmd_index_refuses_nested_corpus(tmp_path: Path, capsys) -> None:
+    parent = tmp_path / "parent"
+    child = parent / "child"
+    child.mkdir(parents=True)
+    (child / "doc.md").write_text("# Doc\n\n## Topic\n\nBody.\n", encoding="utf-8")
+    (parent / ".md-navigator").mkdir()
+    (parent / ".md-navigator" / "index.sqlite").write_bytes(b"")
+
+    args = Namespace(
+        path=str(child),
+        max_heading_level=6,
+        embed_model="test/stub-1",
+        embedding_api_url="http://test.local/v1",
+        embedding_timeout=5,
+        cache_dir=None,
+        batch_size=32,
+        batch_pause_ms=0,
+        path_include=[],
+        path_exclude=[],
+    )
+    assert cmd_index(args) == 1
+    assert "Nested corpus refused" in capsys.readouterr().err
+    assert not (child / ".md-navigator").exists()
+
+
+def test_index_dry_run_reports_zero_delta_for_fresh_index(
+    tmp_path: Path,
+    mock_embed,
+) -> None:
+    corpus = _partial_corpus(tmp_path)
+    api_index(
+        str(corpus),
+        confirm=True,
+        embed_model="test/stub-1",
+        embedding_api_url="http://test.local/v1",
+    )
+
+    dry = api_index(
+        str(corpus),
+        dry_run=True,
+        embed_model="test/stub-1",
+        embedding_api_url="http://test.local/v1",
+    )
+    assert dry["pending_chunks"] == 0
+    assert dry["added_sections"] == 0

@@ -91,6 +91,11 @@ def register_index(sub) -> None:
             f"(default: {int(DEFAULT_INDEX_PAUSE_S * 1000)}). 0 disables the pause."
         ),
     )
+    p.add_argument(
+        "--allow-nested-corpus",
+        action="store_true",
+        help="Allow creating an index under an already-indexed parent corpus.",
+    )
     p.set_defaults(func=lambda args: cmd_index(args))
 
 
@@ -763,6 +768,7 @@ def cmd_index(args) -> int:
     triggers it explicitly when they have time. `search` and `overlaps`
     afterwards are near-instant on the same corpus."""
     from .folder_map import build_map
+    from .index_meta import find_parent_indexed_corpus, nested_corpus_refusal
     from .sections import build_items_from_map
 
     corpus_root = Path(args.path).expanduser().resolve()
@@ -770,21 +776,39 @@ def cmd_index(args) -> int:
         print(f"Path does not exist: {corpus_root}", file=sys.stderr)
         return 2
 
+    cache_root = (
+        Path(args.cache_dir).expanduser() if getattr(args, "cache_dir", None) else None
+    )
+    include_patterns: list[str] = list(getattr(args, "path_include", None) or [])
+    exclude_patterns: list[str] = list(getattr(args, "path_exclude", None) or [])
+    parent_corpus = find_parent_indexed_corpus(corpus_root, cache_root=cache_root)
+    if parent_corpus is not None and not getattr(args, "allow_nested_corpus", False):
+        payload = nested_corpus_refusal(
+            corpus_root,
+            parent_corpus,
+            path_include=include_patterns,
+            path_exclude=exclude_patterns,
+        )
+        print(
+            "Nested corpus refused: "
+            f"{payload['requested_corpus']} is inside indexed parent "
+            f"{payload['parent_corpus']}. Use parent corpus with --path-include "
+            "or pass --allow-nested-corpus.",
+            file=sys.stderr,
+        )
+        print(f"Suggested args: {payload['suggested_index_args']}", file=sys.stderr)
+        return 1
+
     map_data = build_map(corpus_root, args.max_heading_level, with_tokens=True)
     if not map_data["files"]:
         print(f"No Markdown files under {corpus_root}", file=sys.stderr)
         return 1
 
-    cache_root = (
-        Path(args.cache_dir).expanduser() if getattr(args, "cache_dir", None) else None
-    )
     args.embed_model = resolve_embed_model_for_corpus(
         corpus_root, args.embed_model, cache_root=cache_root
     )
 
     totals = {"embedded": 0, "reused": 0, "removed": 0}
-    include_patterns: list[str] = list(getattr(args, "path_include", None) or [])
-    exclude_patterns: list[str] = list(getattr(args, "path_exclude", None) or [])
     if include_patterns or exclude_patterns:
         print(
             f"Path scope: include={include_patterns or '∅'} "

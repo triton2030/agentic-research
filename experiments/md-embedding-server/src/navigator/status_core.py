@@ -122,6 +122,7 @@ def status_payload(
             **_state_payload(
                 state,
                 corpus_root,
+                cache_root=cache_root,
                 path_include=include_patterns,
                 path_exclude=exclude_patterns,
             ),
@@ -233,6 +234,7 @@ def status_payload(
         **_state_payload(
             state,
             corpus_root,
+            cache_root=cache_root,
             path_include=include_patterns,
             path_exclude=exclude_patterns,
         ),
@@ -360,9 +362,12 @@ def _state_payload(
     state: str,
     corpus_root: Path,
     *,
+    cache_root: Path | None = None,
     path_include: list[str] | None = None,
     path_exclude: list[str] | None = None,
 ) -> dict[str, Any]:
+    from .index_meta import find_parent_indexed_corpus, path_include_for_parent_corpus
+
     if state == "FRESH":
         return {"recommended_action": None}
     action_args: dict[str, Any] = {"corpus": str(corpus_root), "dry_run": True}
@@ -370,6 +375,20 @@ def _state_payload(
         action_args["path_include"] = path_include
     if path_exclude:
         action_args["path_exclude"] = path_exclude
+    parent_corpus = find_parent_indexed_corpus(corpus_root, cache_root=cache_root)
+    if parent_corpus is not None:
+        action_args["corpus"] = str(parent_corpus)
+        action_args["path_include"] = path_include_for_parent_corpus(
+            corpus_root,
+            parent_corpus,
+            path_include,
+        )
+        if path_exclude:
+            action_args["path_exclude"] = path_include_for_parent_corpus(
+                corpus_root,
+                parent_corpus,
+                path_exclude,
+            )
     if state == "HEALTHY":
         return {
             "recommended_action": {

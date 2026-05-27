@@ -114,6 +114,7 @@ async function waitForPidExit(pid, label, timeoutMs = 5000) {
 const doctorReport = doctor();
 assert.equal(doctorReport.ok, true);
 assert.equal(doctorReport.stream_json_supported, true);
+assert.equal(doctorReport.flags["--effort"], true);
 assert.equal(doctorReport.flags["--dangerously-skip-permissions"], true);
 assert.equal(doctorReport.flags["--permission-mode"], true);
 assert.equal(doctorReport.flags["--json-schema"], true);
@@ -126,6 +127,15 @@ assert.ok(profileList.some((profile) => profile.name === "no-skills" && profile.
 assert.ok(profileList.some((profile) => profile.name === "no-memory"));
 assert.equal(profileList.some((profile) => profile.name === "clean"), false);
 assert.equal(profileList.some((profile) => profile.name === "subagent"), false);
+for (const profileName of ["normal", "no-memory", "no-skills", "read-only", "turbo", "skill-audit", "streaming-observe"]) {
+  const profile = profileList.find((candidate) => candidate.name === profileName);
+  assert.ok(profile, `${profileName} profile should exist`);
+  assert.deepEqual(
+    profile.flags.slice(profile.flags.indexOf("--effort"), profile.flags.indexOf("--effort") + 2),
+    ["--effort", "max"],
+    `${profileName} must use max effort`
+  );
+}
 for (const profile of profileList) {
   if (profile.flags.includes("stream-json")) {
     assert.ok(profile.flags.includes("--verbose"), `${profile.name} must include --verbose with stream-json`);

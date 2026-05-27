@@ -16,6 +16,11 @@ a compact context packet, inspects the real sources, returns findings with
 evidence, and stops. Codex then judges the answer, applies any changes locally,
 and reports both the findings and Claude's agent behavior.
 
+Bridge default is full-power: `claude_run` profile `normal` requests the `opus`
+alias with max effort, stream-json logs, permission bypass, and no bridge-side
+tool allowlist. Use `read-only` only as the explicit exception when planning
+mode and `Read,Bash` are the intended limit.
+
 ## Active Contract
 
 - **Entry:** controlled External Peer Review: independent review, advice,

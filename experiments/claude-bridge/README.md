@@ -7,7 +7,10 @@ text, and skill-read evidence.
 The server can be registered in Codex as `claude-mcp`. It does not edit
 `~/.claude` or Claude skills.
 
-Default runs are account-backed Claude Code CLI runs. The bridge strips
+Default runs are account-backed Claude Code CLI runs on the `opus` alias with
+`--effort max`, stream-json logs, and permission bypass. The bridge does not
+add a tool allowlist for full-power profiles, so Claude receives the current
+default CLI/MCP tool surface from its settings and plugins. The bridge strips
 `ANTHROPIC_API_KEY` and `CLAUDE_API_KEY` from Claude child-process
 environments, so a stray shell variable cannot silently move a review onto API
 credits.
@@ -49,15 +52,16 @@ claude-mcp
 
 ## Profiles
 
-- `normal` — default Opus run with stream-json logs.
-- `no-memory` — disables Claude auto memory with
+- `normal` — default full-power Opus run with max effort and stream-json logs.
+- `no-memory` — full-power run that disables Claude auto memory with
   `CLAUDE_CODE_DISABLE_AUTO_MEMORY=1`.
-- `no-skills` — disables slash-command skills.
-- `read-only` — uses plan permission mode and read-oriented tools.
-- `turbo` — full-power Opus run with dangerous permission skip.
+- `no-skills` — full-power run that disables slash-command skills.
+- `read-only` — max-effort exception that uses plan permission mode and
+  read-oriented tools.
+- `turbo` — compatibility alias for the full-power default.
 - `skill-audit` — asks Claude to read a target skill/context and records
   evidence from tool/debug/stream logs.
-- `streaming-observe` — verbose observation profile for long runs.
+- `streaming-observe` — full-power verbose observation profile for long runs.
 
 ## MCP Tools
 
@@ -181,6 +185,7 @@ that matter to bridge work:
 - memory: `disableAutoMemory` or the `no-memory` profile
 - MCP: `mcpConfig`, `strictMcpConfig`, `mcpTimeout`, `maxMcpOutputTokens`,
   `permissionPromptTool`
+- model/effort: full-power profiles request `--model opus --effort max`
 - permissions/tools: `tools`, `allowedTools`, `disallowedTools`,
   `permissionMode`, `allowDangerouslySkipPermissions`
 - structured/agent controls: `jsonSchema`, `agent`, `agents`, `brief`,

@@ -31,6 +31,81 @@ GITIGNORE_BANNER = "# md-navigator persistent index — do not commit\n*\n"
 # --- Cache layout --------------------------------------------------------
 
 
+def _index_anchor_for_corpus(corpus_root: Path) -> Path:
+    return corpus_root if corpus_root.is_dir() else corpus_root.parent
+
+
+def find_parent_indexed_corpus(
+    corpus_root: Path,
+    cache_root: Path | None = None,
+) -> Path | None:
+    """Return an indexed ancestor, excluding the requested corpus itself.
+
+    This protects the in-corpus layout from accidentally creating
+    `<parent>/<child>/.md-navigator/` when `<parent>/.md-navigator/` already
+    owns retrieval for that subtree. `cache_root` keeps its legacy hashed layout
+    and therefore has no in-tree parent index to guard.
+    """
+    if cache_root is not None:
+        return None
+    anchor = _index_anchor_for_corpus(corpus_root)
+    for parent in anchor.parents:
+        if (parent / INDEX_DIRNAME / "index.sqlite").exists():
+            return parent
+    return None
+
+
+def path_include_for_parent_corpus(
+    requested_corpus: Path,
+    parent_corpus: Path,
+    path_include: list[str] | None = None,
+) -> list[str]:
+    """Translate a child-corpus request into parent-corpus path filters."""
+    anchor = _index_anchor_for_corpus(requested_corpus)
+    rel = anchor.relative_to(parent_corpus).as_posix()
+    if requested_corpus.is_file():
+        return [rel]
+    if not path_include:
+        return [f"{rel}/**"]
+    out: list[str] = []
+    for pattern in path_include:
+        cleaned = pattern.strip().lstrip("/")
+        if not cleaned or cleaned in {"*", "**", "**/*"}:
+            out.append(f"{rel}/**")
+        else:
+            out.append(f"{rel}/{cleaned}")
+    return out
+
+
+def nested_corpus_refusal(
+    requested_corpus: Path,
+    parent_corpus: Path,
+    path_include: list[str] | None = None,
+    path_exclude: list[str] | None = None,
+) -> dict[str, object]:
+    suggested: dict[str, object] = {
+        "corpus": str(parent_corpus),
+        "path_include": path_include_for_parent_corpus(
+            requested_corpus,
+            parent_corpus,
+            path_include,
+        ),
+        "dry_run": True,
+    }
+    if path_exclude:
+        suggested["path_exclude"] = path_include_for_parent_corpus(
+            requested_corpus,
+            parent_corpus,
+            path_exclude,
+        )
+    return {
+        "error": "nested_corpus_refused",
+        "requested_corpus": str(requested_corpus),
+        "parent_corpus": str(parent_corpus),
+        "suggested_index_args": suggested,
+    }
+
+
 def _index_dir_for_corpus(
     corpus_root: Path,
     cache_root: Path | None = None,
@@ -45,7 +120,7 @@ def _index_dir_for_corpus(
         digest = hashlib.sha256(str(corpus_root).encode("utf-8")).hexdigest()[:16]
         d = Path(cache_root) / digest
     else:
-        anchor = corpus_root if corpus_root.is_dir() else corpus_root.parent
+        anchor = _index_anchor_for_corpus(corpus_root)
         d = anchor / INDEX_DIRNAME
     if create:
         d.mkdir(parents=True, exist_ok=True)

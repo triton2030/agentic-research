@@ -76,7 +76,19 @@ def derive_next_step(
         ]
     if result.get("error") == "index_warmup_required":
         steps = []
-        if corpus_root:
+        suggested_index = result.get("suggested_index_args")
+        if isinstance(suggested_index, dict):
+            index_args = dict(suggested_index)
+            index_args.pop("confirm", None)
+            index_args["dry_run"] = True
+            steps.append(
+                {
+                    "tool": "md_index",
+                    "args": index_args,
+                    "reason": "Preview embedding cost before warming the parent index for this path scope.",
+                }
+            )
+        elif corpus_root:
             steps.append(
                 {
                     "tool": "md_index",
@@ -85,10 +97,14 @@ def derive_next_step(
                 }
             )
         if tool_name and args_dict:
+            retry_args = dict(args_dict)
+            suggested_retry = result.get("suggested_retry_args")
+            if isinstance(suggested_retry, dict):
+                retry_args.update(suggested_retry)
             steps.append(
                 {
                     "tool": tool_name,
-                    "args": args_dict,
+                    "args": retry_args,
                     "reason": "Retry the original call once the index is warm.",
                 }
             )

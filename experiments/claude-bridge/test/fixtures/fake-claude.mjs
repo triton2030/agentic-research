@@ -12,6 +12,7 @@ if (args.includes("--version")) {
 if (args.includes("--help")) {
   console.log(`Usage: claude [options] [command] [prompt]
   --model <model>
+  --effort <level>
   --dangerously-skip-permissions
   --output-format <format>
   --include-partial-messages

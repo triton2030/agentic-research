@@ -152,7 +152,7 @@ def _smoke_command(tool_name: str, *, corpus: Path, readme: Path, map_json: str)
         "md_changed": ("changed", "--scan", c, "--staged"),
         "md_init": ("init", "--paths", c, "--dry-run"),
         "md_strip": ("strip", "--paths", c, "--dry-run"),
-        "md_index": ("index", c, "--dry-run"),
+        "md_index": ("index", c, "--dry-run", "--allow-nested-corpus"),
         "md_profile_sections": ("profile-sections", c, "--dry-run", "--mode", "llm"),
         "md_orient": ("orient", c, "--compact"),
         "md_edit_context": ("edit-context", r, "--scan", c, "--mode", "strict"),

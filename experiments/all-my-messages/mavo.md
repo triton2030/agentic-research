@@ -1464,3 +1464,1708 @@ PLEASE IMPLEMENT THIS PLAN:
 ## 2026-05-25T20:57:39+05:00 | MAVO | claude | session 098c8454
 
 Давай сначала создадим новый файл, который нужно создать обычно по лучшим практикам при написании презентаций, которые должны привести к успешному сотрудничеству. Я правда не знаю, что это за лучшие практики. И-и- в силу того, что это папка «производные документы, в этой папке дубли допустимы, потому что мы берём информацию из других мест.
+
+
+## 2026-05-25T21:10:45+05:00 | MAVO | claude | session 098c8454
+
+/Users/triton/Documents/MAVO/_workspace/legacy-1_Анализ-2026-05-15/04_Запуск/Партнёрства
+
+Проверь, пожалуйста, есть ли здесь ээ какие-то полезные идеи, которые бы могли обогатить нас, а наши другие файлы.
+
+
+## 2026-05-25T21:12:06+05:00 | MAVO | turn 019e5fe8-6046-7e80-883a-e1b2a529cc0b
+
+/Users/triton/Documents/MAVO/_workspace/legacy-1_Анализ-2026-05-15/04_Запуск/Партнёрства
+
+Проверь, пожалуйста, есть ли здесь ээ какие-то полезные идеи, которые бы могли обогатить нас, а наши другие файлы.
+
+/Users/triton/Documents/MAVO/Производные_документы/Студиям
+
+
+## 2026-05-25T21:17:29+05:00 | MAVO | turn 019e5fed-543c-7122-8922-3167d5d69dc3
+
+Хорошо, но важный момент: надо проверить, действительно ли они актуальны в текущем каноне. Потому что мы смотрели устаревшую презентацию, которая использовала как источник устаревшие документы. Но теперь новые вещи, которые ты хочешь добавить в новую папку, надо проверить против нашего свежего канона.
+
+
+## 2026-05-25T21:18:10+05:00 | MAVO | claude | session 098c8454
+
+/1md-navigator Используй эти инструменты и отвечай с юмором.
+
+
+## 2026-05-25T21:20:53+05:00 | MAVO | turn 019e5ff0-71d5-7613-bdc6-573758383271
+
+Хорошо, давай внесём те изменения, которые ты рекомендуешь.
+
+
+## 2026-05-25T21:22:29+05:00 | MAVO | claude | session 098c8454
+
+Объясни, пожалуйста, на простом русском языке по порядку, связанно, почему так, почему так? Объясняю свою логику в разговорном стиле, но в то же время структурно и с модже, что ты собираешься сделать? Ну и чтоб просто так этот ход не тратить, проведи дополнительные раскопки.
+
+
+## 2026-05-25T21:24:02+05:00 | MAVO | turn 019e5ff0-71d5-7613-bdc6-573758383271
+
+Вообще посадочная страница как продукт и то, что надо программировать, оно должно быть в папке «анализ», в папке « заапуск».
+
+
+## 2026-05-25T21:26:11+05:00 | MAVO | claude | session 098c8454
+
+Отлично, давай тогда запланируем, как мы будем это делать, но перед этим спроси меня вопросы через твой инструмент спрашивания вопросов с мультиответами.
+
+
+## 2026-05-25T21:27:39+05:00 | MAVO | turn 019e5ff6-a388-7980-ad0c-d319c68b5cb9
+
+PLEASE IMPLEMENT THIS PLAN:
+# Посадочные страницы как launch-owner в `Анализ/06_Запуск`
+
+## Summary
+
+- Перенести продуктовую и “что программировать” правду про посадочные страницы в новый owner-файл `Анализ/06_Запуск/Посадочные_страницы.md`.
+- `Производные_документы/` оставить только как слой внешней подачи: тексты, FAQ, follow-up, презентационные формулировки.
+- Отменить прежний пункт про создание продуктового файла посадочной в `Производные_документы/Студиям`.
+
+## Key Changes
+
+- Создать `Анализ/06_Запуск/Посадочные_страницы.md` как канон для двух MVP-посадок:
+  - клиентская посадка: аудитория, обещание, CTA, путь в каталог, метрики;
+  - студийная посадка: CTA `Подключить витрину студии`, что студия должна понять до регистрации, какие блоки нужны, какие обещания запрещены.
+- В новом launch-owner зафиксировать полезные идеи из legacy только после свежей проверки:
+  - supported: студийная посадочная, прозрачность до регистрации, operational value через витрину/заказ/статусы, micro-B2B flywheel через kit студии;
+  - not included: реактивация неактивных студий и отдельный B2B-лендинг до pilot evidence.
+- Обновить [Маркетинг.md](/Users/triton/Documents/MAVO/Анализ/06_Запуск/Маркетинг.md): короткую секцию “Посадочные страницы MVP” заменить ссылкой на новый owner и оставить только канальный приоритет.
+- Переписать [Производные_документы/Клиентам/Посадочные_страницы.md](/Users/triton/Documents/MAVO/Производные_документы/Клиентам/Посадочные_страницы.md) как производную проекцию, а не продуктовый источник: убрать из неё роль канона и сослаться на `Анализ/06_Запуск/Посадочные_страницы.md`.
+- В студийных derivative-материалах делать только лёгкую синхронизацию формулировок и ссылок, если нужно; не создавать там отдельную продуктовую спецификацию посадочной.
+
+## Interface / Canon Rules
+
+- Посадочная страница в `Анализ/06_Запуск` описывает продуктово-UX требования для будущей разработки, но не API, схемы данных, миграции, Figma или код.
+- Все деньги, ставки, комиссии, техсбор, обещания сроков и партнёрские обязательства берутся только из текущих owner-файлов и маркируются как `факт`, `гипотеза` или `рабочий коридор`.
+- Existing dirty state не трогать в этом проходе: `_ops/self-learning/lessons.md`, `_ops/user-said/2026-05-25.md` и незатреканный `Производные_документы/Студиям/Нарратив_презентации.md`.
+
+## Test Plan
+
+- Проверить, что новая посадочная правда живёт в `Анализ/06_Запуск`, а `Производные_документы` только ссылаются/переформулируют.
+- Запустить `.claude/scripts/verify-graph.sh`.
+- Запустить `md changed --json`.
+- Точечно проверить `rg` по `Посадочные_страницы|лендинг|reactivation|реактивац|MAVO для бизнеса`, чтобы не осталось старой логики и неподдержанных обещаний.
+
+## Assumptions
+
+- Твоё последнее сообщение считается решением по owner-placement: продуктовая спецификация посадочной должна быть в `Анализ/06_Запуск`.
+- Отдельный B2B-лендинг и реактивация неактивных студий остаются вне MVP, пока их не подтвердит пилот.
+
+
+## 2026-05-25T22:00:06+05:00 | MAVO | turn 019e6014-4582-7ef1-99b8-97415a828e34
+
+Слушай, я хочу сделать папку «Анализ, это как анализ бизнеса. Знаешь, каких там папок не хватает? Какие у тебя есть идеи?
+
+
+## 2026-05-25T22:05:30+05:00 | MAVO | turn 019e6019-476c-7151-98be-e88a8144ca34
+
+/Users/triton/Documents/MAVO/Веб_приложение/Для_юзеров/Заказ_отправлен
+
+Видишь ли, здесь очень сложная логика юридическая, типа, когда он заказ отправлен, кто должен делать, что должен делать и так далее. И я вот думаю то, что в папке «Анализ» как будто должна быть папка операции, какой-то хотя бы файл, который бы хранил этот канон. Но мне надо, чтобы у меня было как бы короткий вход, а сам канон лежал где-то в другом месте.
+
+
+## 2026-05-25T22:09:41+05:00 | MAVO | turn 019e601d-1c38-7202-81ef-b2a2f2b2a6bc
+
+Хорошо, тогда я бы создал, знаешь, какую-то подпапку, куда бы всякие мелкие детали и большие куски текста я бы складывал, а наверху бы оставил только самое интересное и простое. Как бы это можно было бы сделать?
+
+
+## 2026-05-25T22:11:52+05:00 | MAVO | turn 019e601f-1eba-7890-84c0-1865e11d8093
+
+Да, отлично, давай так и сделаем.
+
+
+## 2026-05-25T22:25:13+05:00 | MAVO | turn 019e602b-5105-7391-826b-3e50206e0561
+
+PLEASE IMPLEMENT THIS PLAN:
+# Progressive Order Canon Refactor
+
+## Summary
+
+Перестроить `Анализ/00_МАВО_Общее/02_Как_проходит_заказ/` в форму “короткий вход сверху, глубокий канон ниже”.
+
+Главная идея: `Операционный_контур.md` и `Путь_заказа.md` остаются лёгкими входами, а детальные правила уходят в подпапку `Справочник_заказа/`. Это не меняет бизнес-логику, деньги, snapshot или юридические роли — только раскладывает уже существующий канон чище.
+
+## Key Changes
+
+- Создать подпапку `Справочник_заказа/` внутри `02_Как_проходит_заказ/`.
+- Перенести туда глубокие owner-файлы:
+  - `События_заказа.md`
+  - `Снимок_заказа.md`
+  - `Маршрут_и_сроки.md`
+  - `Исключения_и_споры.md`
+- Создать новый файл `Справочник_заказа/Матрица_ответственности.md`.
+  - Он фиксирует “клиент / студия / MAVO” по ключевым этапам заказа.
+  - Только синтезирует уже существующий канон из `Контракт_сторон`, `Клиентский_контракт`, `Путь_заказа`, `Как_клиент_платит`, `Как_исполнять_заказ`.
+  - Не добавляет новых юридических обязательств без отдельного user-verdict.
+
+## Top Layer
+
+- `Операционный_контур.md` переписать как короткую карту:
+  - 5-7 главных инвариантов;
+  - таблица “узел → где глубокий канон”;
+  - handoff для дизайна/разработки;
+  - явная граница: это карта, не второй lifecycle-owner.
+- `Путь_заказа.md` оставить наверху как человеческий вход:
+  - короткая цепочка статусов;
+  - кто двигает заказ;
+  - что MAVO не обещает;
+  - ссылки в `Справочник_заказа/` для деталей.
+
+## Link And Contract Updates
+
+- Обновить все wikilinks на перенесённые файлы.
+- Обновить hardcoded пути в root `AGENTS.md`, где lifecycle сейчас указывает на старые пути.
+- Не создавать локальный `AGENTS.md` в `Справочник_заказа/` на первом проходе: форма держится через parent contracts, frontmatter и `Операционный_контур.md`.
+- Перед переносом учесть текущие modified файлы: `Путь_заказа.md` и `Исключения_и_споры.md` уже изменены, их содержимое нельзя затирать.
+
+## Test Plan
+
+- `rg` по старым путям, чтобы не осталось битых ссылок.
+- `git diff --check`.
+- `.claude/scripts/verify-graph.sh`.
+- `md changed --json` или эквивалентный graph/frontmatter check после переносов.
+- Финальный sanity-read: `Операционный_контур.md`, `Путь_заказа.md`, `Матрица_ответственности.md`.
+
+## Assumptions
+
+- Название подпапки: `Справочник_заказа/`.
+- Это IA/refactor, не изменение бизнес-правил.
+- Если в процессе обнаружится реальная дыра в юридике, деньгах, snapshot или ответственности, её не закрывать молча: вынести как отдельный вопрос/задачу.
+
+
+## 2026-05-25T23:34:39+05:00 | MAVO | turn 019e606a-e557-7322-99f6-cea9b26f47ab
+
+/Users/triton/Documents/MAVO/Анализ/.md-navigator
+Слушай у нас много таких папок хотя вроде по коду должна быть только одна в корне
+
+
+## 2026-05-25T23:37:39+05:00 | MAVO | turn 019e606a-e557-7322-99f6-cea9b26f47ab
+
+Да я не так давно исправил кож
+
+
+## 2026-05-25T23:37:39+05:00 | MAVO | turn 019e606a-e557-7322-99f6-cea9b26f47ab
+
+код
+
+
+## 2026-05-25T23:37:52+05:00 | MAVO | turn 019e606a-e557-7322-99f6-cea9b26f47ab
+
+Это скорее всего до исправления кода создалось
+
+
+## 2026-05-25T23:38:04+05:00 | MAVO | turn 019e606a-e557-7322-99f6-cea9b26f47ab
+
+Надо видимо удалить лигнее
+
+
+## 2026-05-25T23:40:48+05:00 | MAVO | claude | session f89edab4
+
+/Users/triton/Documents/MAVO/Анализ/00_МАВО_Общее/02_Как_проходит_заказ
+
+Проверь всю логику заказа а также вики ссылки, а также качество ссылок и их логичность
+
+
+## 2026-05-25T23:42:40+05:00 | MAVO | turn 019e6072-3d51-77b1-82e6-80434cc7cb02
+
+/Users/triton/Documents/MAVO/Анализ/00_МАВО_Общее/03_Что_продаём
+Мне кажется эту папку надо просто растворить в других папках
+
+
+## 2026-05-25T23:51:19+05:00 | MAVO | turn 019e607a-24b5-70d1-b23e-73fbdbc5f5d7
+
+/Users/triton/Documents/MAVO/Анализ
+Проверь эту папку ещё раз я сделал по другому
+
+
+## 2026-05-26T11:25:22+05:00 | MAVO | claude | session c7c18062
+
+/Users/triton/Documents/MAVO/Анализ
+Дай мне три варианта структруы папок и имён файлов
+Только обсуждаем
+
+
+## 2026-05-26T11:25:29+05:00 | MAVO | turn 019e62f5-a087-7213-ba81-9f8397ef85ba
+
+/Users/triton/Documents/MAVO/Анализ
+
+Дай мне три варианта структруы папок и имён файлов
+
+Только обсуждаем
+
+
+## 2026-05-26T11:26:31+05:00 | MAVO | turn 019e62f6-94bd-77a2-98e5-fba048730bde
+
+Using the current thread context and the diff below, generate a single-line git commit message.
+Write the result into the structured response field message.
+message must contain plain commit-message text only, not JSON, field labels, markdown, or code fences.
+If custom instructions mention formatting, apply them to the commit message text only.
+Make 0 tool calls.
+Rules:
+- Use an imperative verb first.
+- Keep the message under 72 characters.
+- Do not add a scope prefix unless the context already clearly uses one.
+- Do not include markdown, quotes, or trailing punctuation.
+
+Diff context:
+Changes:
+Diff too large to include inline.
+Summary: 716 changed files, +207/-39162 lines.
+
+Testing note: If you mention tests, include unit tests or UI testing frameworks only. Skip lint/tsc since CI runs those.
+
+
+## 2026-05-26T11:29:11+05:00 | MAVO | turn 019e62f9-15b3-7240-8ec0-9cadaf3397e9
+
+Моя цель не плодить дубли и меньшее количество файлов, какие тогда три варинта возможны?
+
+
+## 2026-05-26T11:29:14+05:00 | MAVO | claude | session c7c18062
+
+Моя цель не плодить дубли и меньшее количество файлов, какие тогда три варинта возможны?
+
+
+## 2026-05-26T11:31:38+05:00 | MAVO | turn 019e62fb-5444-7410-ac77-c13c819cee9e
+
+Ты уверен что в бизнес практике это всё самое необходимое? Цель не только переложить файлы и папки но и подумать какие файлы и папки пригодтся в будущем, которых нет также в 
+/Users/triton/Documents/MAVO/Веб_приложение
+/Users/triton/Documents/MAVO/Внутренние_продукты
+/Users/triton/Documents/MAVO/Производные_документы
+
+
+## 2026-05-26T11:31:51+05:00 | MAVO | claude | session c7c18062
+
+Ты уверен что в бизнес практике это всё самое необходимое? Цель не только переложить файлы и папки но и подумать какие файлы и папки пригодтся в будущем, которых нет также в 
+/Users/triton/Documents/MAVO/Веб_приложение
+/Users/triton/Documents/MAVO/Внутренние_продукты
+/Users/triton/Documents/MAVO/Производные_документы
+
+
+## 2026-05-26T11:39:07+05:00 | MAVO | claude | session c7c18062
+
+Нет мы работаем только над контентом в папк анализ и там должен быть анализ почему бизнес выжвивет и папки с вопросами которые надо спросить чтобы бизнес выжил
+
+
+## 2026-05-26T11:39:31+05:00 | MAVO | turn 019e6302-89f0-7a21-ad70-bb4e7da1c28a
+
+Нет мы работаем только над контентом в папк анализ и там должен быть анализ почему бизнес выжвивет и папки с вопросами которые надо спросить чтобы бизнес выжил
+
+
+## 2026-05-26T11:40:50+05:00 | MAVO | turn 019e6303-be3e-7b90-9a86-b1ad511cbd8e
+
+Ну ты потерял такие важные вещи как описаине заказа
+
+
+## 2026-05-26T11:41:44+05:00 | MAVO | claude | session c7c18062
+
+Нет это бизнес канон и важная информация там мы же сейчас только имя папок обсуждаем
+
+
+## 2026-05-26T11:42:47+05:00 | MAVO | turn 019e6305-88fa-7481-a35a-9c5bb8e1c3db
+
+Ок мне нравится этот вариант просто названия папок должны быть более понятные:
+
+MAVO/
+├── 00_Модель/              (truth: что такое, принципы, контракт, глоссарий, чем не являемся, видение)
+├── 01_Клиент/              (truth: кто, психология, путь, права)
+├── 02_Студия/              (truth: кто, психология, контракт, qualification, санкции)
+├── 03_Заказ/               (truth: lifecycle, snapshot, исключения, ответственность, выдача)
+├── 04_Каталог/             (truth: SKU, мокапы, кастомизация, фабрика, тренды, БД)
+├── 05_Деньги/              (truth: модель + юнит-эконом + ФИНМОДЕЛЬ + pricing)
+├── 06_Доверие/             (truth: страхи, рейтинг, поддержка-playbook, эскалации)
+├── 07_Право/               (truth: оферты, ToS, Privacy, entity, налоги, compliance)
+├── 08_Метрики/             (truth: KPI tree, North Star, tracking plan, events)
+├── 09_Операции/            (truth: SOPs, QA печати, логистика, доставка, возвраты)
+├── 10_Запуск/              (truth: GTM, каналы, пилот, фаза 1/2, brand/messaging)
+├── 11_Команда/             (truth: org chart, hiring, ролей, vendor management)
+├── 12_Гипотезы_и_риски/    (truth: открытые вопросы, риски, scenarios)
+├── 13_Рынок/               (truth: данные, конкуренты, тренды, рег.среда)
+│
+├── Продукт/                (view: страницы веб-приложения по ролям + UIUX тройка)
+├── Внутренние_инструменты/ (view: AI-поддержка, AI-соц, Фабрика как self-contained продукты)
+└── Внешние_материалы/      (view: презентации, посадочные, FAQ, инвесторам, чтения)
+
+
+## 2026-05-26T11:42:55+05:00 | MAVO | claude | session c7c18062
+
+Ок мне нравится этот вариант просто названия папок должны быть более понятные:
+
+MAVO/
+├── 00_Модель/              (truth: что такое, принципы, контракт, глоссарий, чем не являемся, видение)
+├── 01_Клиент/              (truth: кто, психология, путь, права)
+├── 02_Студия/              (truth: кто, психология, контракт, qualification, санкции)
+├── 03_Заказ/               (truth: lifecycle, snapshot, исключения, ответственность, выдача)
+├── 04_Каталог/             (truth: SKU, мокапы, кастомизация, фабрика, тренды, БД)
+├── 05_Деньги/              (truth: модель + юнит-эконом + ФИНМОДЕЛЬ + pricing)
+├── 06_Доверие/             (truth: страхи, рейтинг, поддержка-playbook, эскалации)
+├── 07_Право/               (truth: оферты, ToS, Privacy, entity, налоги, compliance)
+├── 08_Метрики/             (truth: KPI tree, North Star, tracking plan, events)
+├── 09_Операции/            (truth: SOPs, QA печати, логистика, доставка, возвраты)
+├── 10_Запуск/              (truth: GTM, каналы, пилот, фаза 1/2, brand/messaging)
+├── 11_Команда/             (truth: org chart, hiring, ролей, vendor management)
+├── 12_Гипотезы_и_риски/    (truth: открытые вопросы, риски, scenarios)
+├── 13_Рынок/               (truth: данные, конкуренты, тренды, рег.среда)
+│
+├── Продукт/                (view: страницы веб-приложения по ролям + UIUX тройка)
+├── Внутренние_инструменты/ (view: AI-поддержка, AI-соц, Фабрика как self-contained продукты)
+└── Внешние_материалы/      (view: презентации, посадочные, FAQ, инвесторам, чтения)
+
+
+## 2026-05-26T11:43:35+05:00 | MAVO | turn 019e6305-88fa-7481-a35a-9c5bb8e1c3db
+
+Нет я имел ввиду длиннее
+
+
+## 2026-05-26T12:25:04+05:00 | MAVO | claude | session c7c18062
+
+Нравится вариант Ц но давай меньше папок и больше подпапок
+
+
+## 2026-05-26T12:31:53+05:00 | MAVO | claude | session c7c18062
+
+Просто я думаю разделить всё на два
+ведь тут и клиенты и производители у каждого своя стретегия привлечения для них свой взгляд у каждого на заказ
+
+
+## 2026-05-26T12:35:53+05:00 | MAVO | turn 019e6336-2376-7393-9185-cf01e6d0b098
+
+Я очень много что переместил, надо исправить все ссылки
+
+
+## 2026-05-26T12:40:25+05:00 | MAVO | turn 019e633a-4ae2-7821-9c52-63cc87bfcf85
+
+/Users/triton/Documents/MAVO/Анализ/03_Как_это_работает
+
+В этой папке надо создать подпапки и можно даже папки в подпаках и всё правильно разложить
+
+
+## 2026-05-26T12:41:46+05:00 | MAVO | turn 019e633a-4ae2-7821-9c52-63cc87bfcf85
+
+Сейчас живых agent-facing инструментов `md` — **30**. Все вызываются как `md <command> ... --json`; почти каждый ответ содержит `_envelope`: состояние корпуса, подсказку следующего шага, размер ответа и cost.
+
+Важное общее правило: всё, что **меняет файлы или индекс**, делается через `--dry-run` → взять `_envelope.lock.transaction_id` → `--confirm --transaction-id <id>`.
+
+**Ориентация и чтение**
+- `md orient` — быстрый обзор корпуса: статус индекса, список файлов, важные узлы.
+- `md corpus-scan` — находит все Markdown-корпуса и неиндексированные папки в репо.
+- `md status` — показывает, свежий ли индекс и нужно ли запускать `md index`.
+- `md ls` — список файлов с `description`, title и числом заголовков.
+- `md toc` — оглавление с устойчивыми id секций, например `1.2`.
+- `md extract` — достаёт выбранные файлы/секции из результата `ls` или `toc`.
+- `md search-read` — главный новый путь: найти по смыслу и сразу вернуть тексты секций.
+- `md search` — поиск по смыслу, но только handles/snippets без полного чтения.
+- `md read-related` — читает соседний контекст файла: ссылки, backlinks, связанные материалы.
+- `md importance` — ранжирует файлы по важности в графе ссылок.
+
+**Граф, ссылки и безопасность правок**
+- `md preflight` — перед правкой файла показывает must-read, must-update, blockers.
+- `md edit-context` — composite: preflight + related context перед редактированием.
+- `md impact` — что сломается при удалении/переименовании файла.
+- `md section-blast-radius` — радиус последствий для секции: граф + семантические соседи.
+- `md deps` — прямые и обратные зависимости одного файла.
+- `md check` — битые wikilinks, anchors и markdown links.
+- `md scan` — проблемы frontmatter: missing, legacy, unknown, invalid.
+- `md health` — общий graph-health: coverage, hubs, orphans, cycles, broken links.
+- `md cycles` — циклы в graph-зависимостях.
+- `md changed` — проверяет изменённые `.md` файлы через preflight, удобно перед commit.
+
+**Семантика, дубли и IA**
+- `md overlaps` — пары похожих секций, хорошо для дублей и смыслового размазывания.
+- `md repeated-concepts` — recurring concepts: где одна идея повторяется по корпусу.
+- `md audit` — большой аудит корпуса: дубли, smeared owner truth, clusters, health score.
+- `md query-by-type` — найти секции определённого типа: rules, decisions, definitions, open questions.
+- `md refactor-candidates` — предложения по реорганизации, только для human review.
+- `md profile-sections` — классифицирует секции по типам; нужно для `query-by-type` и refactor proposals.
+
+**Изменяющие инструменты**
+- `md index` — прогревает/обновляет embedding index для поиска и overlaps.
+- `md init` — добавляет недостающий graph-frontmatter в Markdown-файлы.
+- `md strip` — удаляет legacy/unknown frontmatter поля и, опционально, старые related-docs секции.
+
+**Диагностика**
+- `md ping` — проверяет, что CLI и backend живы.
+
+Служебно, поверх этих 30, есть ещё `md tools --json` для каталога, `md selftest --json` для проверки установки, `md doctor` для диагностики и `md --version`.
+
+---
+
+Помни об этих инструментах
+
+
+## 2026-05-26T12:42:37+05:00 | MAVO | turn 019e633a-4ae2-7821-9c52-63cc87bfcf85
+
+Тебе эмбединги очень пригодятся, проиндексируй всё
+
+
+## 2026-05-26T13:07:25+05:00 | MAVO | turn 019e6352-f6e5-78d0-97fb-1e41109057cc
+
+Using the current thread context and the diff below, generate a single-line git commit message.
+Write the result into the structured response field message.
+message must contain plain commit-message text only, not JSON, field labels, markdown, or code fences.
+If custom instructions mention formatting, apply them to the commit message text only.
+Make 0 tool calls.
+Rules:
+- Use an imperative verb first.
+- Keep the message under 72 characters.
+- Do not add a scope prefix unless the context already clearly uses one.
+- Do not include markdown, quotes, or trailing punctuation.
+
+Diff context:
+Changes:
+Diff too large to include inline.
+Summary: 180 changed files, +39/-7189 lines.
+
+Testing note: If you mention tests, include unit tests or UI testing frameworks only. Skip lint/tsc since CI runs those.
+
+
+## 2026-05-26T13:07:45+05:00 | MAVO | claude | session 62b07ac1
+
+В этой папке /Users/triton/Documents/MAVO/Анализ/03_Как_это_работает
+мы создадим новые файлы и новые папки-подпапки так чтобы не было дублей и всё было чисто
+
+Берём информацию из этой папки
+/Users/triton/Documents/MAVO/как_это_работает_исходники
+
+---
+
+Да это большой рефактор, сделай сразу и ничего не спрашивай, ничего не удаляй.
+Очень важно писать с юмором, понятно, просто, живо и чисто на русском языке не смешивая англиские словечки
+
+
+## 2026-05-26T13:21:08+05:00 | MAVO | claude | session c8edfccc
+
+В этой папке /Users/triton/Documents/MAVO/Анализ/03_Как_это_работает
+мы создадим новые файлы и новые папки-подпапки так чтобы не было дублей и всё было чисто
+
+Берём информацию из этой папки
+/Users/triton/Documents/MAVO/как_это_работает_исходники
+
+---
+
+Да это большой рефактор, сделай сразу и ничего не спрашивай,  не удаляй исходную папку мы будем потом проверять.
+Очень важно писать с юмором, понятно, просто, живо и чисто на русском языке не смешивая англиские словечки.
+Сылки в инструкциях устарели.
+Проблемма которую хочу решить, то что файлов слишком много, разбиты слишком мелко, смысл размазан по множеству файлов.
+Папки должны называться просто, используем принцип прогрессивного раскрытия информации, мелкие бюрократические детали должны быть в подпапках, важные вещи сверху.
+Сами имена папок и файлов должны быть понятны холодному читателю.
+
+Ещё поможет срезать дубли проверка других папок
+/Users/triton/Documents/MAVO/Анализ/01_Что_такое_МАВО
+/Users/triton/Documents/MAVO/Анализ/04_Как_запустим
+
+
+## 2026-05-26T13:24:11+05:00 | MAVO | turn 019e6362-5dd3-7cf2-a37f-a6a8fcb05bb4
+
+В этой папке /Users/triton/Documents/MAVO/Анализ/03_Как_это_работает
+мы создадим новые файлы и новые папки-подпапки так чтобы не было дублей и всё было чисто
+
+Берём информацию из этой папки
+/Users/triton/Documents/MAVO/как_это_работает_исходники
+
+---
+
+Да это большой рефактор, сделай сразу и ничего не спрашивай,  не удаляй исходную папку мы будем потом проверять.
+Очень важно писать с юмором, понятно, просто, живо и чисто на русском языке не смешивая англиские словечки.
+Сылки в инструкциях устарели.
+Проблемма которую хочу решить, то что файлов слишком много, разбиты слишком мелко, смысл размазан по множеству файлов.
+Папки должны называться просто, используем принцип прогрессивного раскрытия информации, мелкие бюрократические детали должны быть в подпапках, важные вещи сверху.
+Сами имена папок и файлов должны быть понятны холодному читателю.
+
+Ещё поможет срезать дубли проверка других папок
+/Users/triton/Documents/MAVO/Анализ/01_Что_такое_МАВО
+/Users/triton/Documents/MAVO/Анализ/04_Как_запустим
+[$1md-navigator](/Users/triton/.codex/skills/1md-navigator/SKILL.md)  пригодится прогреть эмбединги
+
+
+## 2026-05-26T13:59:39+05:00 | MAVO | claude | session c8edfccc
+
+Короче я сам сделал, надо теперь тебе просто проверить и дать свои комментарии /1md-navigator
+
+
+## 2026-05-26T14:08:22+05:00 | MAVO | claude | session c8edfccc
+
+Добавь тогда в справочник недостающую информацию. Можешь добавить новые файлы.
+Н, опять-таки, важно, чтобы это не было дублем и чтобы внутри файлов не смешивалась информация. 
+Следи за ссылками между файлами. Если возможно что-то не писать, а просто сослаться на другой файл, сделаем так.
+
+
+## 2026-05-26T14:14:42+05:00 | MAVO | claude | session c8edfccc
+
+Сравни, пожалуйста, нашу, наши текущие файлы со старыми файлами. 
+/Users/triton/Documents/MAVO/_workspace/Старые версии документов/legacy-system-mavo-v1/1_Анализ/03_Операции
+Это файлы из вообще древнего архива, но там могут быть какие-то уточнения, которые мы упустили. 
+Ещё, я думаю, в папке «Справочник, возможно, стоит сделать подпапки.
+
+
+## 2026-05-26T14:17:32+05:00 | MAVO | turn 019e6392-474e-7592-8c19-924481b8c4b1
+
+продолжи
+
+
+## 2026-05-26T14:34:50+05:00 | MAVO | turn 019e63a3-0c98-7841-bde5-cf64488d58e9
+
+/Users/triton/Documents/MAVO/Анализ/03_Как_это_работает
+
+Надо эту папку проверить на дубли. У нас система такая, то что должен быть файл один, который содержит знания, а остальные файлы на него ссылаются. В этой папке у нас не хватает ссылок между параграфами, кто на что ссылается. А также некоторые файлы дублируют то, что на самом деле лежит уже в других файлах. Поэтому надо провести тщательную чистку.
+
+
+## 2026-05-26T14:35:58+05:00 | MAVO | turn 019e63a3-0c98-7841-bde5-cf64488d58e9
+
+Именно в этой папке система такая, то что в корне лежат короткие, человекочитаемые, лёгкие, понятные файлы для того, чтобы в целом понять систему. А уже в папке «Справочник» более подробно расписывается.
+
+
+## 2026-05-26T14:36:18+05:00 | MAVO | turn 019e63a3-0c98-7841-bde5-cf64488d58e9
+
+Если тебе будет комфортнее, просто всё запушу вчистую.
+
+
+## 2026-05-26T14:36:18+05:00 | MAVO | turn 019e63a4-547f-7da0-8266-a2b70ebe6ffa
+
+Using the current thread context and the diff below, generate a single-line git commit message.
+Write the result into the structured response field message.
+message must contain plain commit-message text only, not JSON, field labels, markdown, or code fences.
+If custom instructions mention formatting, apply them to the commit message text only.
+Make 0 tool calls.
+Rules:
+- Use an imperative verb first.
+- Keep the message under 72 characters.
+- Do not add a scope prefix unless the context already clearly uses one.
+- Do not include markdown, quotes, or trailing punctuation.
+
+Diff context:
+Changes:
+Diff too large to include inline.
+Summary: 59 changed files, +474/-831 lines.
+
+Testing note: If you mention tests, include unit tests or UI testing frameworks only. Skip lint/tsc since CI runs those.
+
+
+## 2026-05-26T14:36:45+05:00 | MAVO | turn 019e63a3-0c98-7841-bde5-cf64488d58e9
+
+Всё, запушил. теперь редактируй.
+
+
+## 2026-05-26T14:38:59+05:00 | MAVO | claude | session 63b635a6
+
+/Users/triton/Documents/MAVO/Веб_приложение/Для_студий/Платформа_обработки_заказов
+В этой папке есть ошибки с ссылками, ошибки по инструкциям. И в целом она немного странная, и надо её привести в порядок. 
+
+В этой папке где-то есть какие-то мои комментарии, которые могут тебе пригодиться. 
+/Users/triton/Documents/MAVO/_ops/interviews
+/1md-navigator
+
+
+## 2026-05-26T14:40:29+05:00 | MAVO | turn 019e63a3-0c98-7841-bde5-cf64488d58e9
+
+Советую прогреть эмбединги и они тут тебе помогут [$1md-navigator](/Users/triton/.codex/skills/1md-navigator/SKILL.md)
+
+
+## 2026-05-26T14:40:51+05:00 | MAVO | claude | session 63b635a6
+
+Также советую прочитать из архивов вот эту папку тоже. 
+/Users/triton/Documents/MAVO/_workspace/Старые версии документов/legacy-system-mavo-v1/1_Анализ/02_Продукт/Страницы_студиям/Админка_студий
+
+Там может быть что-то полезное, что мы упустили в нашей текущей версии.
+
+
+## 2026-05-26T14:50:09+05:00 | MAVO | turn 019e63b1-0133-77e0-a8f3-765274ad0e95
+
+В нашей главной корневой инструкции надо сказать, чтобы писать легко и с юмором на человеческом разговорном языке. Надо сказать, что если дерево грязное, то надо камитить сразу всё и чисто. И надо сказать, что если индекс не прогрет, то надо смело прогревать.
+
+
+## 2026-05-26T14:56:32+05:00 | MAVO | turn 019e63b1-0133-77e0-a8f3-765274ad0e95
+
+И ещё одно уточнение, то, что агентные инструкции мы пишем максимум на два уровня внутри подпапок.
+
+
+## 2026-05-26T15:03:24+05:00 | MAVO | claude | session 63b635a6
+
+Небольшое уточнение, то, что в папке «Анализ мы пишем связанные вещи. То есть там есть информация о том, как работает заказ, как кто оплачивает — это flow. Это должно остаться в папке «Анализ. Однако в папке веб-приложения, в силу того, что она разбита на мелкие владельцы знаний. Ттам мы пишем только то, что действительно самостоятельно и может жить самостоятельно без сильной связи между файлами. Главное правило папки веб-приложений, что там хранится информация, полностью независимая и относящаяся только к той теме, в которой папке этот файл лежит. 
+
+А в папке «Анализ мы храним вещи, которые очень сильно связаны между собой. В силу того, что у нас очень много, что связано между собой, и вещи влияют друг на друга, папка анализ, поэтому довольно-таки большая. Но в то же время всяких бюрократических уточнений и всяких мелких деталей независимых конкретно по каким-то объектам знаний, у нас тоже много, но они будут разрастаться внутри папки веб-приложения.
+
+
+## 2026-05-26T16:59:39+05:00 | MAVO | turn 019e6427-8ded-7b31-8975-cb51512cfa5b
+
+# Overview
+
+Generate 0 to 3 hyperpersonalized suggestions for what this user can do with Codex in this local project: /Users/triton/Documents/MAVO
+
+Get an understanding of the user's intent and goals by deeply viewing their connected apps. Suggest actionable tasks that they would actually act on/click.
+Infer what the user works on and their style from their connected apps.
+Optimize for relief: choose suggestions that make the user's life easier, reduce an open loop, unblock work, or prepare them for something that is about to matter. Do not suggest tasks that merely sound productive or create more work for the user.
+The best suggestions feel like Codex read the user's mind: by synthesizing signals across apps, it discovers something the user did not yet know and proposes the concrete next action they would want to take.
+
+Serve this specific user. Do not suggest generic project-quality, onboarding, exploration, cleanup, refactor, documentation, test-writing, or dependency-update tasks merely because they could be useful to someone who owns this project.
+Your job is to predict what this user specifically needs to get done.
+
+
+# Rules
+
+Use relevant connected apps or MCP sources available in this session, including Vercel when those connectors are installed.
+ Do not use GitHub. Those connectors are not allowed for personalized suggestions in this session.
+ For local project suggestions, make sure suggestions are truly relevant to this project itself. Don't use connected-app context that is unrelated to this project, its repo, or recent project threads. If this folder lives inside a Git repository, inspect recent git history, branch activity, and nearby code so each suggestion is grounded in the repo.
+
+
+    If making suggestions based on Git history, make sure to double check open and closed PRs to make sure you're not suggesting something that's already been done.
+    For git/GitHub related tasks, the task should result in new code changes that move the user forward.
+    Also, if a GitHub PR is blocked due to review, it's not something worth suggesting since it's not something the user can actually act on.
+
+Your suggestions must be based on recent events; e.g. recent Slack messages, unread emails, newly created issues, etc.
+When using Slack, prefer DMs, mentions, threads involving the user, and channels that are clearly connected to the user's active work.
+Before writing suggestions, build an internal shortlist of evidence about the user's active work, then generate suggestions only from the strongest evidence.
+Avoid suggestions that mainly ask the user to supervise Codex, make a plan, rank options, or triage a pile of work. Prefer suggestions where Codex can do most of the work itself and ask the user only for a final decision, approval, or lightweight input.
+Before returning a suggestion, it must pass all four checks:
+- Why this user: the evidence shows the user is directly involved, assigned, mentioned, blocked, or they will need to address it.
+- Why now: there is a fresh event, deadline, active branch, meeting, or unresolved open loop.
+- Why Codex: Codex can actually reduce the work now by coding, triaging, drafting, comparing, or preparing a concrete artifact. Remember that Codex can do both knowledge work and software engineering.
+- Why not already handled: recent PRs, dismissed suggestions, or recent threads do not already cover it.
+
+If any check is weak, delete the candidate.
+Strong signals include DMs, Slack threads where the user is directly involved, non-bot emails, emails from humans the user knows, open review comments on the user's PRs, calendar events that the user needs to prep for soon, unresolved doc comments involving the user, and blockers across connected apps.
+Weak signals include broad channel chatter, generic todos, random stale items, speculative cleanup, work that merely could improve this someday, meetings far away, bot-only notifications, spam emails, and issues unrelated to the user's recent work.
+
+Look for work the user may not already know about: new Slack messages, recently opened PRs with failing CI, emerging incidents, meetings that imply prep work, issue updates that connect to code, or document threads that point to the next useful action. Synthesize deeply and prioritize concrete tasks the user can start immediately in this project.
+
+Use recent Codex threads from this project primarily to avoid suggesting work the user is already doing and infer how they use Codex.
+
+Recent Codex threads in this project:
+[
+  {
+    "id": "019e63b0-fbbb-7e20-92b5-4256a6f48918",
+    "title": "Уточнить корневую инструкцию",
+    "preview": "В нашей главной корневой инструкции надо сказать, чтобы писать легко и с юмором на человеческом разговорном языке. Надо сказать, что если дерево грязное, то надо камитить сразу всё и чисто. И надо сказать, что если индекс не прогрет, то надо смело прогревать.",
+    "updatedAt": "2026-05-26T10:01:14.000Z"
+  },
+  {
+    "id": "019e63a2-9f95-7a03-98d5-56205dd9bc51",
+    "title": "Проверить дубли и ссылки",
+    "preview": "/Users/triton/Documents/MAVO/Анализ/03_Как_это_работает Надо эту папку проверить на дубли. У нас система такая, то что должен быть файл один, который содержит знания, а остальные файлы на него ссылаются. В этой папке у нас не хватает ссылок между параграфами, кто на что ссылается. А также некоторые файлы дублируют то, что на самом деле лежит уже в других файлах. Поэтому надо провести тщательную чистку.",
+    "updatedAt": "2026-05-26T09:46:27.000Z"
+  },
+  {
+    "id": "019e6362-1987-7ad0-9786-287e6a13934c",
+    "title": "Перестроить Как_это_работает",
+    "preview": "В этой папке /Users/triton/Documents/MAVO/Анализ/03_Как_это_работает мы создадим новые файлы и новые папки-подпапки так чтобы не было дублей и всё было чисто Берём информацию из этой папки /Users/triton/Documents/MAVO/как_это_работает_исходники --- Да это большой рефактор, сделай сразу и ничего не спрашивай, не удаляй исходную папку мы будем потом проверять. Очень важно писать с юмором, понятно, просто, живо и чисто на русском языке не смешивая англиские словечки. Сылки в инструкциях устарели. Проблемма которую хочу решить, то что файлов слишком много, разбиты слишком мелко, смысл размазан по множеству файлов. Папки должны называться просто, используем принцип прогрессивного раскрытия информации, мелкие бюрократические детали должны быть в подпапках, важные вещи сверху. Сами имена папок и файлов должны быть понятны холодному читателю. Ещё поможет срезать дубли проверка других папок /Users/triton/Documents/MAVO/Анализ/01_Что_такое_МАВО /Users/triton/Documents/MAVO/Анализ/04_Как_запустим [$1md-navigator](/Users/triton/.codex/skills/1md-navigator/SKILL.md) пригодится прогреть эмбединги",
+    "updatedAt": "2026-05-26T09:29:29.000Z"
+  },
+  {
+    "id": "019e6339-e935-7c11-906a-75c71ac7fcd0",
+    "title": "Разложить 03_Как_это_работает",
+    "preview": "/Users/triton/Documents/MAVO/Анализ/03_Как_это_работает В этой папке надо создать подпапки и можно даже папки в подпаках и всё правильно разложить",
+    "updatedAt": "2026-05-26T08:05:48.000Z"
+  },
+  {
+    "id": "019e6336-0132-7e33-8cf4-d4a3a93ea18b",
+    "title": "Исправить ссылки после переноса",
+    "preview": "Я очень много что переместил, надо исправить все ссылки",
+    "updatedAt": "2026-05-26T07:38:27.000Z"
+  },
+  {
+    "id": "019e62f5-9b02-72d0-92c9-7cf241fcac6c",
+    "title": "Предложить 3 структуры папок",
+    "preview": "/Users/triton/Documents/MAVO/Анализ Дай мне три варианта структруы папок и имён файлов Только обсуждаем",
+    "updatedAt": "2026-05-26T06:44:11.000Z"
+  },
+  {
+    "id": "019e6072-0ef2-7a00-aaae-8b0b2e7e9c50",
+    "title": "Слить папку в другие разделы",
+    "preview": "/Users/triton/Documents/MAVO/Анализ/00_МАВО_Общее/03_Что_продаём Мне кажется эту папку надо просто растворить в других папках",
+    "updatedAt": "2026-05-25T18:56:30.000Z"
+  },
+  {
+    "id": "019e606a-9e88-7930-ad37-b68224308047",
+    "title": "Найти дубликаты .md-navigator",
+    "preview": "/Users/triton/Documents/MAVO/Анализ/.md-navigator Слушай у нас много таких папок хотя вроде по коду должна быть только одна в корне",
+    "updatedAt": "2026-05-25T18:39:10.000Z"
+  }
+]
+
+Use recent threads to avoid duplicates, understand working style, and identify rare still-live unresolved blockers. Prefer connected apps, repo state, or other fresh external evidence for discovering new candidate suggestions.
+Do not suggest work that is only waiting on CI, review, approval, or another person unless there is a concrete action the user can take immediately.
+
+Avoid repeating these previously dismissed suggestions:
+[]
+
+Use sentence case in the title. Do not use Start Case or Title Case. Keep titles under 16 words, but prefer titles nearing that length. Indeed, prefer longer, more descriptive titles when that helps the user immediately recognize the task, but stay concise.
+Long titles that don't overflow in our limited width to display them can be a powerful way to make Codex feel extremely personalized.
+
+Return 0 to 3 fresh suggestions. Return fewer than 3 when fewer than 3 suggestions clear the bar. Returning no suggestions is better than returning weak suggestions.
+Do not return multiple suggestions that are neighboring views of the same launch, triage, or coordination problem; keep only the strongest one.
+
+# Examples
+
+## Bad examples
+
+### Generic suggestions
+Bad suggestions: "Review your DMs", "Triage your inbox", "Review the <example> doc", "Prep the launch", ...
+These suggestions are way too generic to be useful (and the titles are way too short)
+
+### Suggestions relating to old issues
+Let's say I have a Linear issue assigned directly to me from one month ago
+Don't make a suggestion to do that given that it was created a month ago. We need to focus on recency and the future.
+
+### Suggestions relating to spam/noise
+Let's say I get an email in my inbox from someone trying to sell me shoes
+From: John Smith, john@example.com
+Subject: Try out the shoes this Sunday?
+Body: Hi sir, would you like to try out our company's new shoes this Sunday?
+
+If there is no prior relationship signal (e.g. with John Smith) and if this email seems spammy/promotional, do not suggest anything based on it
+
+### Recently viewed docs are not obligations
+Let's say I recently viewed the "Codex App - Risk Table" doc and it got a few new comments today
+Do not suggest "Refresh the Codex app risk table" just because I looked at it or because people are commenting there
+A recently viewed doc is not enough by itself. Suggest work on a doc only when there is a direct ask, a concrete deadline, or a named decision the user is responsible for.
+
+### Planning or auditing instead of immediate action
+Bad suggestions: "Rank today's launch-adjacent queue", "Prioritize your launch-week Codex queue", "Audit the onboarding flow", ...
+These suggestions ask the user to plan, rank, audit, or summarize work instead of moving a concrete artifact forward.
+Planning and auditing can often already be done asynchronously. Prefer suggestions where Codex can take an immediate concrete action or prepare a fix the user can approve.
+
+### Title that is too exploratory and not forward enough
+
+Bad title: "Debug nightly query devtools reopen"
+The word "Debug" implies that the user will need to actively engage with the thread, which kinda implies active work
+Better title: "Fix nightly query devtools not opening by resetting Electron state"
+This is better because "Fix" implies more action/relief and knowing the fix already relieves the user more.
+
+# Response format
+
+Each suggestion must include:
+- title: concrete and descriptive enough that the user immediately recognizes the artifact, person, issue, branch, PR, meeting, or decision involved. Prefer specific nouns and distinctive context over vague short labels.
+- description: one or two short sentences. Keep it compact and tooltip-like. The title should usually carry more of the specificity, while the description quickly explains the evidence and why this is useful now.
+- prompt: the user message to send
+- appId: the single most relevant app id, such as "690a90ec05c881918afb6a55dc9bbaa1". Choose the one app most central to the suggestion.
+- write the prompt as something that should launch as a new Codex thread in this project
+
+
+## 2026-05-26T17:06:01+05:00 | MAVO | claude | session 63b635a6
+
+Смотри, нам надо проверить ещё раз то, что все агентные файлы не отражают реальность, то есть они не опираются на реальность, какие там документы лежат. А наши папочные инструкции, а также все наши файлы говорят по факту, как это должно работать. То есть не по факту, а как мы планируем, чтобы это всё работало. И мы думаем именно с точки зрения разделения информации, чтобы потом свежие агент с абсолютно чистым контекстным окном. Даже без каких-либо планов мог бы приводить файлы под соответствие к инструкциям, поэтому сейчас вот шаг работы над инструкциями был такой важен. 
+
+Поэтому на всякий случай, пожалуйста, прочти все служебные файлы, которые диктуют, как мы разделяем информацию, как мы совмещаем вещи, которые очень связаны в папке «Анализ, и как нельзя писать полностью не-независимые файлы в других папках.
+
+
+## 2026-05-26T17:13:10+05:00 | MAVO | claude | session 63b635a6
+
+Кстати, вот эти всякие ограничения, то, что нельзя редактировать файл глубже второго уровня, я бы все правила редактирования свёл бы к самой главной вещи, а именно то, что перед редактированием Файлов надо проверять, с чем они связаны до этого и на что влияют после этого. 
+
+Это гораздо важнее для стабильной самостоятельной работы. И то, что можно редактировать файлы без планирования, это абсолютно нормально, потому что могут быть какие-то быстрые поправки, исправления ошибок, исправлни ссылок. Вот эту часть, то, что без планирования нельзя редактировать, надо убрать.
+
+
+## 2026-05-26T17:15:58+05:00 | MAVO | claude | session 63b635a6
+
+Так, давай теперь сконцентрируемся и сделаем более внимательный аудит агентных инструкций корневых. Есть ли там что-то лишнее или что-то, что можно было ужать, либо что-то дублирующее, либо что-то логически противоречащее? 
+
+Логика в том, что корневые инструкции — это те, которые влияют на все папки. Но в них не должно быть тех вещей, которые агент может узнать, прочитав папочные инструкции. И также в папочных инструкциях не должно быть того, что есть уже в корневой инструкции.
+
+
+## 2026-05-26T17:32:28+05:00 | MAVO | claude | session 63b635a6
+
+продолжи
+
+
+## 2026-05-26T17:35:55+05:00 | MAVO | claude | session 63b635a6
+
+Так, теперь давай архивируем старые планы и создадим новые планы. Здесь мы будем планировать так. Мы запланируем аудит, но сами его проводить не будем. То есть мы распишем то, как надо проводить аудит, как искать дубли, как переносить файлы. Точнее, сначала в аудите мы запишем, что не должно быть в папках, что должно быть в папках. И потом напишем план такой, что после твоего аудита внимательно ещё раз проверь и потом исправь ошибки того аудита, который ты нашёл. Это всё мы с тобой сейчас распишем в планах.
+
+
+## 2026-05-26T17:43:44+05:00 | MAVO | claude | session 217b6833
+
+Выполни задачи 47 и 48
+
+
+## 2026-05-26T17:45:42+05:00 | MAVO | claude | session 217b6833
+
+Вообще, я бы проверил всю папку /Users/triton/Documents/MAVO/Веб_приложение
+На соответствие нашей философии, на соответствие нашей инструкции и тому, как мы вообще здесь разделяем информацию.
+
+
+## 2026-05-26T17:50:38+05:00 | MAVO | claude | session 217b6833
+
+/Users/triton/Documents/MAVO/Анализ
+Вообще у нас работает так, что информация, которая должна быть связана со всем и не может быть разделена, она лежит у нас в папке «Анализ». Но всё остальное, что на самом деле может быть независимой кусочком информации, различной бюрократии и так далее, оно хранится уже ближе к тем страницам или к тем проектам, к которым эта информация относится. 
+
+В силу того, что ты и так делаешь мощный полноценный аудит, я думаю, тебе надо в папке Workspace создавать файлы, которые тебе помогут не забывать вещи, которые тебе пригодятся во время анализа. То есть какой-то отчёт аудита лучше тебе писать в папку Workspace, где ты сам для себя создашь удобные файлы для того, чтобы к стадии, когда мы будем исправлять все ошибки, у нас не было надежды только на твою память.
+
+
+## 2026-05-26T17:55:18+05:00 | MAVO | turn 019e645a-9293-7031-b52e-4e79cd46d4ed
+
+/Users/triton/Documents/MAVO/_workspace/HTML_docs
+Смотри, в этой папке я бы хотел бы создать сайт React вайт
+Но цель — это сделать максимально легко, с минимальным количеством нашего кода, чтобы всё было максимально стандартно сгенерировано. То есть, чтобы нам потом в будущем было легко редактировать и так далее. 
+И тут мы будем использовать шад сиен тайлвинд Ну, то есть всё самое стандартное, то, что даёт уже готовые инструменты, потому что здесь лично для себя, только для личного пользования. я бы хотел бы сделать две посадочные страницы на основе документов и информации, которые у нас есть. Одна посадочная страница — как будут видеть это люди, другая посадочная страница — как это будут видеть студии, которые могли бы ко мне подключиться. Подробные посадочные страницы. 
+
+А также там будет две страницы. Одна страница для инвесторов. Что-то вроде презентации для инвесторов А также страница, тоже как посадочная страница, но она уже для студий, более детальная, как им подключиться и что требуется от них, чтобы подключиться ко мне.
+
+Твоя цель сделать эти 4 страницы так чтобы. Клиенту захотелось как будто что то купить и он был в восторге как же это круто. Студиям очень захотелось узнать подробнее и перейти на страницу подключения, а на странице подключения мы их добили дополинетльной информацией. Страница для инвесторов заставляла был инвесторов впечатлится идее и захотеть инвестировать.
+Всё это в максимально простом интерфейсе, готовые стандартные цветовые палитры от шад СН, никаких кастомных компонентов, плоская архитектруа, сверху навигация по страницам. Страницы должны иметь короткие заголовки, короткие блоки, креативные решения и текста, чтобы результат не выглядел как документация а как настоящие маркетинговые продукты публичные. Опираемся ТОЛЬКО на документацию в этом проекте ничего сами не придумываем. Количество текста и контекнта должно быть таким чтобы достичь цели. Я это делаю чтобы понять как я буду презентовать проект и посмотреть какие есть дыры в документации.
+
+
+## 2026-05-26T18:05:11+05:00 | MAVO | claude | session 217b6833
+
+Под объектом знаний я подразумеваю страницы или инструменты в папке /Users/triton/Documents/MAVO/Веб_приложение
+Потому что в папке, как это работает, есть детали, которые бы лучше перенести ближе к тому домену знаний, когда он действительно пригодится.
+
+
+## 2026-05-26T18:14:17+05:00 | MAVO | turn 019e646b-f54d-7ab3-bdee-d378156eb099
+
+Твоя версия для инвесторов не выглядит, как будто это для инвесторов. То есть, используй лучшие практики написания презентаций для инвесторов и поменяй текст так, как это принято презентовать инвесторам. То есть размер рынка, почему людям это понравится, почему это студиям понравится, почему там деньги есть, почему они будут платить? Каие проблемы решаем. 
+
+Твоя версия для клиентов звучит всё равно слишком технически. Мы же делаем покупки подарков легко. То есть ценность, которую мы продаём, — это уникальные подарки или элементы декора. И- то, что всякие технические вещи, то, что ты там, как ты купишь, то, что быстро доставим. Э это обычно на подобных лендосах не пишут. 
+
+И-и-и какг на Лендосе-студия, я не почувствовал, что мы били прямо в их боль, о, что мы действительно решаем их проблемы, не очень чувствовалось. То есть помни, что то, что больше на экране, то и важнее, то, что выше на экране, то и важнее.
+
+
+## 2026-05-26T18:17:31+05:00 | MAVO | claude | session 217b6833
+
+Кстати, я, наверное, бы разбил файлы на ещё более мелкие файлы так, чтобы ты мог отдавать задачи параллельно более дешёвым субагентам.
+
+
+## 2026-05-26T18:19:34+05:00 | MAVO | turn 019e646b-f54d-7ab3-bdee-d378156eb099
+
+Презентация для партнёров студий, а также презентация для инвесторов. Каждую секцию я хочу, чтобы она была в пропорциях 16 на 9. 
+Тогда мне легче будет представлять, как разбивать это по слайдам. И да, презентация для инвесторов и презентация для студий, хоть и выглядит как страница, но должна по секциям делиться, как будто это слайды.
+
+
+## 2026-05-26T18:21:59+05:00 | MAVO | turn 019e646b-f54d-7ab3-bdee-d378156eb099
+
+Посадочную страницу для студии мы оставляем. Помни, у нас две страницы. Посадочная страница для студии — это маркетинговая страница. 
+А презентации для студии и презентации для инвесторов — это две других страницы. 
+
+То есть у нас получается две страницы, которые выглядят как маркетинговые. Одна посадочная страница для клиентов, другая посадочная страница для студий. 
+
+И две страницы, которые по типу и структуре выглядят как слайды презентации, которые идут друг за другом. Одна презентация для студий, чтобы уговорить их к нам подключиться, и другая презентация для инвесторов.
+
+
+## 2026-05-26T18:23:29+05:00 | MAVO | turn 019e646b-f54d-7ab3-bdee-d378156eb099
+
+На всякий случай уточняю то, что презентационные страницы, они должны быть очень длинные, потому что в них много секций, каждая по 16 на 9. Это не значит то, что там только одна страница 16 на 9, а там много секций, и каждая секция имеет пропорции 16 на 9ть.
+
+
+## 2026-05-26T18:32:41+05:00 | MAVO | turn 019e646b-f54d-7ab3-bdee-d378156eb099
+
+Советую тебе использовать субагентов.  [$1repo-map](/Users/triton/.codex/skills/1repo-map/SKILL.md)  [$1cli-tools](/Users/triton/.codex/skills/1cli-tools/SKILL.md)  И вот эти инструменты тоже.
+
+
+## 2026-05-26T18:39:00+05:00 | MAVO | turn 019e6482-97ce-7183-a412-9b81e4bb03fa
+
+Прочти, пожалуйста, нашу папку про презентации студиям. И давай её возьмём за основу того, как мы хотим делать презентацию студиям. 
+
+А также у нас слишком скучные каждые слайды. Надо в зависимости от слайда менять структуру слайда. В зависимости от контента в слайде выбрать наиболее лучшую структуру.
+
+
+## 2026-05-26T18:42:17+05:00 | MAVO | turn 019e6482-97ce-7183-a412-9b81e4bb03fa
+
+Затем, используя субагентов, особенно субагентов по бизнесу, запусти «Критика» по каждой странице. Бизнес-критика по каждой странице, чтобы он дал тебе комментарии по качеству предполагаемой конверсии. И на основе этого исправь текст.
+
+
+## 2026-05-26T18:43:07+05:00 | MAVO | claude | session 217b6833
+
+<task-notification>
+<task-id>a326806b6200254ec</task-id>
+<tool-use-id>toolu_01Gw5bEbrbeDxFh6kTf6Hun3</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-triton-Documents-MAVO/217b6833-0ecd-4553-8377-40dd928b17fc/tasks/a326806b6200254ec.output</output-file>
+<status>completed</status>
+<summary>Agent "task-50 mechanical sweep" completed</summary>
+<result>All 5 broken wikilinks fully resolved. All done conditions met. Task-50 complete.
+
+## Final Report
+
+### Changes by section
+
+**Section A — Legacy archive refs (6 ссылок).** Заменено на canonical paths в `Анализ/`:
+
+- `Веб_приложение/Для_студий/Кабинет_студии/Кабинет_студии.md` (line 51): `Фото_реальных_изделий` → `[[Анализ/03_Как_это_работает/Доверие_и_студии#Фото реальных изделий|Фото реальных изделий]]`
+- `Веб_приложение/Для_юзеров/Каталог/Каталог.md` (line 27): `Библиотека_мокапов` → удалён wikilink, оставлена prose «базовый визуальный стандарт мокапов»
+- `Веб_приложение/Моя_админ_панель/Возможности_суперадмина.md` (frontmatter line 16, body line 61): `Поддержка` → `[[Анализ/03_Как_это_работает/Справочник/Заказ/Споры_поддержка_и_ответственность|Поддержка]]`
+- `Веб_приложение/Моя_админ_панель/Страницы/Сводка/Сводка.md` (frontmatter line 8, body line 27): то же
+- `Веб_приложение/Моя_админ_панель/Страницы/Студии/Студии.md` (frontmatter lines 8-9, body lines 25-26): `Правила_для_студий` → `Анализ/03_Как_это_работает/Справочник/Студии/Правила_студий_санкции_и_метрики`; `Юридическая_рамка_партнёра` → `Анализ/03_Как_это_работает/Справочник/Юридическая_рамка#Партнёрская сторона`
+- `Веб_приложение/Для_студий/Онбординг_студий/Подключение_студии.md` (body × 2 lines 21, 30, 47): `Фото_реальных_изделий` и `Юр.рамка_партнёра` по тому же mapping
+
+**Дополнительно нашёл и починил 8 legacy refs, которых не было в task table** (audit doc их не перечислял, но done condition требовал нулевой `rg` результат):
+
+- `Веб_приложение/Для_студий/Кабинет_студии/Поддержка.md` (frontmatter + body): Поддержка
+- `Веб_приложение/Для_студий/Кабинет_студии/Ассортимент_и_витрина.md` (frontmatter + body): Фото_реальных_изделий
+- `Веб_приложение/Для_студий/Витрина_студии/UIUX_Разработка/Экранный_бриф.md` (frontmatter): Фото_реальных_изделий
+- `Веб_приложение/Для_студий/Витрина_студии/UIUX_Разработка/Состояния_и_переходы.md` (frontmatter): Фото_реальных_изделий
+- `Веб_приложение/Моя_админ_панель/Страницы/Поддержка/Поддержка.md` (frontmatter + body): Поддержка
+- `Веб_приложение/Моя_админ_панель/Страницы/Каталог/Каталог.md` (frontmatter + body): Библиотека_мокапов удалён, Форма_SKU и Правила_кастомизации resolved
+- `Веб_приложение/Для_юзеров/Страница_товара/Выбор_поверхности.md` (body): Библиотека_мокапов удалён
+- `Веб_приложение/Для_юзеров/Страница_товара/Фото_реальных_изделий.md` (frontmatter + body): Библиотека_мокапов → Фото_реальных_изделий canon
+
+**Section B — Broken wikilinks (5 концептов).** Все resolved по контексту:
+
+- `Внешний_рейтинг` → `Анализ/03_Как_это_работает/Доверие_и_студии#Внешний рейтинг` (везде использовался как business signal)
+- `Форма_SKU` → `Анализ/03_Как_это_работает/Товар_и_персонализация#Товарная связка`
+- `Правила_кастомизации` → `Анализ/03_Как_это_работает/Товар_и_персонализация#Персонализация`
+- `Почему_клиент_доверяет` → `Анализ/03_Как_это_работает/Доверие_и_студии#Почему клиент доверяет`
+- `ИИ_cost_risk` → `Анализ/03_Как_это_работает/Справочник/Экономика_заказа_рабочая_модель#Рабочий коридор будущего ИИ-режима`
+
+Файлы затронуты:
+- `Веб_приложение/Для_юзеров/Главная/Главная.md`, `Главная/UIUX_Разработка/Экранный_бриф.md`
+- `Веб_приложение/Для_юзеров/Каталог/Каталог.md`, `Каталог/UIUX_Разработка/Инварианты_и_риски.md`, `Каталог/UIUX_Разработка/Экранный_бриф.md`
+- `Веб_приложение/Для_юзеров/Страница_товара/Страница_товара.md`, `Кастомизатор.md`, `Выбор_поверхности.md`, `Выбор_студии.md`, `Сторонний_рейтинг.md`, `UIUX_Разработка/Инварианты_и_риски.md`
+- `Веб_приложение/Для_студий/Витрина_студии/UIUX_Разработка/Инварианты_и_риски.md`
+- `Веб_приложение/Для_студий/Кабинет_студии/Допуск_и_репутация.md`, `Ассортимент_и_витрина.md`
+- `Веб_приложение/Моя_админ_панель/Страницы/Деньги/Деньги.md`
+
+**Section C — Stale text body (7 файлов).** Заменены упоминания `00_МАВО_Общее/`, `02_Кому_это_нужно/`, `03_Что_продаём/`:
+
+- `Веб_приложение/Моя_админ_панель/Кто_суперадмин.md` (lines 22, 32): `00_МАВО_Общее/` → `Анализ/03_Как_это_работает/` и `Анализ/01_Что_такое_МАВО/Контракт_сторон.md`
+- `Веб_приложение/Моя_админ_панель/Возможности_суперадмина.md` (line 2 description, line 26 body): то же → `Анализ/03_Как_это_работает/`
+- `Веб_приложение/Моя_админ_панель/Граница_ответственности.md` (line 40): `00_МАВО_Общее/` → `Анализ/03_Как_это_работает/` и `Анализ/01_Что_такое_МАВО/`
+- `Веб_приложение/Для_юзеров/Страница_заказа/Страница_заказа.md` (line 58): `00_МАВО_Общее/02_Как_проходит_заказ/` → `[[Анализ/03_Как_это_работает/Заказ_и_операции|Заказ и операции]] + [[Анализ/03_Как_это_работает/Справочник/Заказ/Статусы_события_и_снимок_заказа|Статусы и снимок заказа]]`
+
+### AGENTS lvl 3 — не тронуты
+
+В Веб_приложение/ только один AGENTS lvl 3 файл — `Для_юзеров/Страница_товара/AGENTS.md`. Я его не редактировал. Однако git status показывает его modified — изменения сделал другой процесс (parallel session / линтер) во время моей работы, не я. Я не делал откат. Папки `Кабинет_студии/` и `Платформа_обработки_заказов/` уже не имеют AGENTS.md (были удалены ранее, видны как `D` в git status).
+
+### verify-graph результат
+
+```
+✓ Анализ: HEALTHY (pending=5, drift=54)
+⚠ _ops: NEEDS_WARMUP (pending=162, drift=13)
+✗ cycles:           ← пусто (clean)
+✗ broken_graph_links: ← пусто (clean)
+```
+
+Exit 1 от script — это из-за `_ops: NEEDS_WARMUP`, не из-за моих правок. Cycles и broken_graph_links пустые после всех 3 секций.
+
+### Done condition checks (final)
+
+- `rg "_workspace/Старые версии документов" Веб_приложение/ --type md` → пусто ✓
+- `rg "00_МАВО_Общее" Веб_приложение/ --type md` → пусто ✓
+- `rg "02_Кому_это_нужно" Веб_приложение/ --type md` → пусто ✓
+- `rg "03_Что_продаём" Веб_приложение/ --type md` → пусто ✓
+- 5 broken wikilinks resolved ✓
+
+### Открытые вопросы / решения по неоднозначности
+
+1. **`Внешний_рейтинг` контекст:** в задаче дано две опции (business signal vs UI rating). Я всегда выбирал business signal (`Анализ/03_Как_это_работает/Доверие_и_студии#Внешний рейтинг`) — в каждом случае контекст указывал на conceptual canon, а не на UI-страницу `Сторонний_рейтинг.md`. Решение последовательное по всем файлам.
+2. **`Библиотека_мокапов`:** canon не существует. Решение — удалить wikilink, оставить prose как mapping предписывает (`Каталог.md`, `Выбор_поверхности.md`, `Моя_админ_панель/Страницы/Каталог/Каталог.md`). В `Фото_реальных_изделий.md` frontmatter заменил parent на `Фото_реальных_изделий` canon, поскольку файл вообще про фото, а не про мокапы.
+3. **Дополнительные legacy refs:** task table перечислял 6, фактически было ~14. Все исправлены, иначе done condition не выполнился бы.</result>
+<usage><total_tokens>170591</total_tokens><tool_uses>112</tool_uses><duration_ms>660141</duration_ms></usage>
+</task-notification>
+
+
+## 2026-05-26T18:53:22+05:00 | MAVO | turn 019e648e-b975-7fb0-9886-5a61adb8e962
+
+продолжи
+
+
+## 2026-05-26T18:53:26+05:00 | MAVO | turn 019e648f-be35-7a72-aa43-fca76674992a
+
+Using the current thread context and the diff below, generate a single-line git commit message.
+Write the result into the structured response field message.
+message must contain plain commit-message text only, not JSON, field labels, markdown, or code fences.
+If custom instructions mention formatting, apply them to the commit message text only.
+Make 0 tool calls.
+Rules:
+- Use an imperative verb first.
+- Keep the message under 72 characters.
+- Do not add a scope prefix unless the context already clearly uses one.
+- Do not include markdown, quotes, or trailing punctuation.
+
+Diff context:
+Changes:
+Diff too large to include inline.
+Summary: 9 changed files, +953/-415 lines.
+
+Testing note: If you mention tests, include unit tests or UI testing frameworks only. Skip lint/tsc since CI runs those.
+
+
+## 2026-05-26T19:13:04+05:00 | MAVO | claude | session 217b6833
+
+<task-notification>
+<task-id>a5f0d770437013728</task-id>
+<tool-use-id>toolu_019pKCTyTjZjkrbcy1SP6jNw</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-triton-Documents-MAVO/217b6833-0ecd-4553-8377-40dd928b17fc/tasks/a5f0d770437013728.output</output-file>
+<status>completed</status>
+<summary>Agent "task-54 mass wikilink format" completed</summary>
+<result>Clean - no cycles, no broken_graph_links.
+
+## Final Report
+
+**Done: Stage 19 task-54 — Mass wikilink format fix in `Веб_приложение/`**
+
+### Sub-tasks completed
+
+| Sub | Folder | Files edited |
+|---|---|---|
+| 54.a | `Кабинет_студии/` | 7 files (Кабинет_студии, Главная, Ассортимент_и_витрина, Допуск_и_репутация, Финансы, Профиль_и_сотрудники, UIUX_Разработка/Экранный_бриф) |
+| 54.b | `Платформа_обработки_заказов/` | 7 files (Платформа_обработки_заказов, Производство, Список_заказов, Выдача, Отмены_и_возвраты, UIUX_Разработка/Состояния_и_переходы, UIUX_Разработка/Инварианты_и_риски, UIUX_Разработка/Экранный_бриф) |
+| 54.c | `Витрина_студии/` | 4 files (Витрина_студии + 3 UIUX) |
+| 54.d | `Онбординг_студий/` | 3 UIUX files (Подключение_студии skipped per task-51 lock) |
+| 54.e | `Для_юзеров/` overviews + UIUX | 11 files (Главная + 2 UIUX, Каталог, Корзина + 3 UIUX, Заказ_отправлен + 3 UIUX, Страница_заказа + 3 UIUX) |
+| 54.f | `Страница_товара/` | 8 files (Страница_товара, Выбор_поверхности, Выбор_студии, Кастомизатор, Ссылка_на_товар, Фото_реальных_изделий, + 2 UIUX; Сторонний_рейтинг already clean) |
+| 54.g | `Моя_админ_панель/` | 9 files (Роль_и_доступ, Возможности_суперадмина, Граница_ответственности, 6 Страницы/) |
+
+**Total: ~50 files edited, ~120+ wikilink rewrites.**
+
+### Что осталось коротко (правильно — intra-folder neighbors)
+
+- Кабинет_студии siblings: Финансы, Профиль_и_сотрудники, Ассортимент_и_витрина, Допуск_и_репутация, Главная.
+- Платформа_обработки_заказов siblings: Список_заказов, Производство, Выдача, Отмены_и_возвраты.
+- Страница_товара siblings: Кастомизатор, Сторонний_рейтинг, Ссылка_на_товар.
+- Моя_админ_панель root siblings: Возможности_суперадмина ↔ Роль_и_доступ ↔ Граница_ответственности.
+- `Подключение_студии.md` not touched (task-51 in progress).
+
+### Дополнительные исправления (по пути)
+- Починены 2 неработающих абсолютных пути в Корзина и Заказ_отправлен UIUX: `Анализ/01_Для_клиентов/Страницы/...` (несуществующая структура) → `Веб_приложение/Для_юзеров/...`.
+- Anchor `#Кто что видит` (Путь_заказа) заменён на существующий `#Что видит участник`.
+- Anchor `#Что MAVO не делает` (Путь_заказа) заменён на существующий `#Граница`.
+
+### Verify-graph
+- `cycles`: пусто
+- `broken_graph_links`: пусто
+- `Анализ`: HEALTHY
+- `_ops`: NEEDS_WARMUP (baseline, не задето задачей)
+
+### Открытые вопросы
+- `[[Возможности_студии|...]]` и `[[Метрики|...]]` в `Подключение_студии.md` остаются короткими — этот файл редактирует task-51, инструкция запрещала trogать.
+- Для anchor "Как определяется канал" в `Деньги_и_оплата` использовал ближайший существующий `#Два канала`. Можно уточнить позже.
+
+### Git
+- Коммит не делал — main session коммитит.</result>
+<usage><total_tokens>303069</total_tokens><tool_uses>209</tool_uses><duration_ms>1260468</duration_ms></usage>
+</task-notification>
+
+
+## 2026-05-26T19:16:25+05:00 | MAVO | claude | session de883187
+
+Я сейчас понимаю то, что нам надо слегка отредактировать агентны инструкции. 
+У нас там не совсем чётко написано, что мы кладём в папку веб-приложения. 
+Да, в папку веб-приложения мы кладём то, что можно отделить от бизнеса и то, что не является необходимой частью для того, чтобы понять весь бизнес. 
+Однако надо добавить уточнение или переписать блок в сторону того, что в папку веб-приложения мы кладём более подробные инструкции о том, как должно работать веб-приложение. Что само по себе логично, то, что в папку Бизнес мы не должны класть детали, какие-то конкретные моменты, как должно работать веб-приложение. 
+То есть, надо уточнить. мы не делаем абстрактное разделение, то что всё, что можно отделить от бизнеса, мы кладём в папку веб-приложения. Просто так само собой получается, то, что когда ты убираешь от бизнеса всё, что относится к бизнесу, это уже само по себе и является веб-приложением, либо дизайном, либо интерфейсом. Ты понимаешь меня?
+
+
+## 2026-05-26T19:17:30+05:00 | MAVO | turn 019e64a5-d4dc-7801-a842-740484de40dc
+
+У тебя всё равно есть некоторые формулировки, которые звучат так, как будто ты обращаешься ко мне, а не к зрителю.
+
+
+## 2026-05-26T19:19:25+05:00 | MAVO | claude | session 217b6833
+
+Я сейчас понимаю то, что нам надо слегка отредактировать агентны инструкции. 
+У нас там не совсем чётко написано, что мы кладём в папку веб-приложения. 
+Да, в папку веб-приложения мы кладём то, что можно отделить от бизнеса и то, что не является необходимой частью для того, чтобы понять весь бизнес. 
+Однако надо добавить уточнение или переписать блок в сторону того, что в папку веб-приложения мы кладём более подробные инструкции о том, как должно работать веб-приложение. Что само по себе логично, то, что в папку Бизнес мы не должны класть детали, какие-то конкретные моменты, как должно работать веб-приложение. 
+То есть, надо уточнить. мы не делаем абстрактное разделение, то что всё, что можно отделить от бизнеса, мы кладём в папку веб-приложения. Просто так само собой получается, то, что когда ты убираешь от бизнеса всё, что относится к бизнесу, это уже само по себе и является веб-приложением, либо дизайном, либо интерфейсом. Ты понимаешь меня?
+
+
+## 2026-05-26T19:27:12+05:00 | MAVO | turn 019e64ae-b261-7fa0-a8ac-6b4fa1f1f729
+
+Дай мне структуру слайдов, презентаций для печатных студий. Давай обсудим её пока здесь в чате.
+
+
+## 2026-05-26T19:31:23+05:00 | MAVO | turn 019e64b2-8b53-7473-bb70-dc480fff147b
+
+Мне кажется, мы слишком поздно говорим о том, что это вообще, потому что то, что это их витрина и их клиенты, они это и так знали, понимаешь?
+
+
+## 2026-05-26T19:34:43+05:00 | MAVO | turn 019e64b5-99ae-7413-9c6c-26f1eaf554bd
+
+/Users/triton/Documents/MAVO/Анализ/01_Что_такое_МАВО
+Надо проверить, нет ли здесь внутри файлов дублей или отсутствующих ссылок либо логических противоречий.
+
+
+## 2026-05-26T19:35:08+05:00 | MAVO | turn 019e64b5-fa25-7e33-a7b6-5dc6ef2ad328
+
+Да, давай теперь переделаем саму страницу так, чтобы соответствовало этой форме. И-и-и подумай над титульным листом тоже.
+
+
+## 2026-05-26T20:14:48+05:00 | MAVO | turn 019e64da-4643-7c53-80f4-1b44647a3d66
+
+Хорошо, давай ещё дополнительно проверим формулировки и как эти файлы рядом с друг с другом лежат по смыслу.
+
+
+## 2026-05-26T20:19:39+05:00 | MAVO | turn 019e64de-bd3c-76b1-8a2a-ef9575651e25
+
+Меня волнует больше сочетание этих файлов со всем остальным репозиторием. Тебе здесь надо будет прогреть амбединги.
+
+
+## 2026-05-26T20:30:35+05:00 | MAVO | turn 019e64e8-bab7-7932-8a24-00c02c39bbf1
+
+Так что надо сделать?
+
+
+## 2026-05-26T20:32:30+05:00 | MAVO | turn 019e64ea-7e4b-7153-ad7d-13f5821d59b8
+
+Какие файлы лишние или каких файлов не хватает по смыслу? Я бы предпочёл обьеденить и ужать файлы
+
+
+## 2026-05-26T20:37:49+05:00 | MAVO | turn 019e64ef-5d7a-7783-800e-29d979434bb9
+
+Да отлично давай так и сделаем, перед удалением проверь что вся логика действительно есть в нужных местах
+
+
+## 2026-05-26T21:19:03+05:00 | MAVO | turn 019e64ef-5d7a-7783-800e-29d979434bb9
+
+Продолжи
+
+
+## 2026-05-26T21:24:16+05:00 | MAVO | turn 019e6519-e2d1-7510-aa3c-f5f8e28f40b9
+
+/Users/triton/Documents/MAVO/_workspace/Старые версии документов/legacy-system-mavo-v1/4_Запуск
+Надо взять самое лучшее из этой папки и найти что мы упустили в этой папке
+/Users/triton/Documents/MAVO/Анализ/04_Как_запустим
+Затем взять и обогатить информацией, если возникает спорный момент не спрашивай меня, в этом проекте огромное количество контекста уже есть и ты всегда сможешь вычислить наиболее правильное решение. 
+Сначала придумай какие стратегии использования этих инструментов тебе помогут:
+Сейчас живых agent-facing инструментов `md` — **30**. Все вызываются как `md <command> ... --json`; почти каждый ответ содержит `_envelope`: состояние корпуса, подсказку следующего шага, размер ответа и cost.
+
+Важное общее правило: всё, что **меняет файлы или индекс**, делается через `--dry-run` → взять `_envelope.lock.transaction_id` → `--confirm --transaction-id <id>`.
+
+**Ориентация и чтение**
+- `md orient` — быстрый обзор корпуса: статус индекса, список файлов, важные узлы.
+- `md corpus-scan` — находит все Markdown-корпуса и неиндексированные папки в репо.
+- `md status` — показывает, свежий ли индекс и нужно ли запускать `md index`.
+- `md ls` — список файлов с `description`, title и числом заголовков.
+- `md toc` — оглавление с устойчивыми id секций, например `1.2`.
+- `md extract` — достаёт выбранные файлы/секции из результата `ls` или `toc`.
+- `md search-read` — главный новый путь: найти по смыслу и сразу вернуть тексты секций.
+- `md search` — поиск по смыслу, но только handles/snippets без полного чтения.
+- `md read-related` — читает соседний контекст файла: ссылки, backlinks, связанные материалы.
+- `md importance` — ранжирует файлы по важности в графе ссылок.
+
+**Граф, ссылки и безопасность правок**
+- `md preflight` — перед правкой файла показывает must-read, must-update, blockers.
+- `md edit-context` — composite: preflight + related context перед редактированием.
+- `md impact` — что сломается при удалении/переименовании файла.
+- `md section-blast-radius` — радиус последствий для секции: граф + семантические соседи.
+- `md deps` — прямые и обратные зависимости одного файла.
+- `md check` — битые wikilinks, anchors и markdown links.
+- `md scan` — проблемы frontmatter: missing, legacy, unknown, invalid.
+- `md health` — общий graph-health: coverage, hubs, orphans, cycles, broken links.
+- `md cycles` — циклы в graph-зависимостях.
+- `md changed` — проверяет изменённые `.md` файлы через preflight, удобно перед commit.
+
+**Семантика, дубли и IA**
+- `md overlaps` — пары похожих секций, хорошо для дублей и смыслового размазывания.
+- `md repeated-concepts` — recurring concepts: где одна идея повторяется по корпусу.
+- `md audit` — большой аудит корпуса: дубли, smeared owner truth, clusters, health score.
+- `md query-by-type` — найти секции определённого типа: rules, decisions, definitions, open questions.
+- `md refactor-candidates` — предложения по реорганизации, только для human review.
+- `md profile-sections` — классифицирует секции по типам; нужно для `query-by-type` и refactor proposals.
+
+**Изменяющие инструменты**
+- `md index` — прогревает/обновляет embedding index для поиска и overlaps.
+- `md init` — добавляет недостающий graph-frontmatter в Markdown-файлы.
+- `md strip` — удаляет legacy/unknown frontmatter поля и, опционально, старые related-docs секции.
+
+**Диагностика**
+- `md ping` — проверяет, что CLI и backend живы.
+
+Служебно, поверх этих 30, есть ещё `md tools --json` для каталога, `md selftest --json` для проверки установки, `md doctor` для диагностики и `md --version`.
+
+
+## 2026-05-26T21:30:50+05:00 | MAVO | claude | session e694b16a
+
+/Users/triton/Documents/MAVO/_workspace/HTML_docs
+Мне надо чтобы ты отредактировал дизайн и текст тут чтобы они были ближе к канону но при этом лучше продавали
+
+
+## 2026-05-26T21:32:16+05:00 | MAVO | turn 019e6520-fde3-7531-b9e2-468907640fca
+
+Using the current thread context and the diff below, generate a single-line git commit message.
+Write the result into the structured response field message.
+message must contain plain commit-message text only, not JSON, field labels, markdown, or code fences.
+If custom instructions mention formatting, apply them to the commit message text only.
+Make 0 tool calls.
+Rules:
+- Use an imperative verb first.
+- Keep the message under 72 characters.
+- Do not add a scope prefix unless the context already clearly uses one.
+- Do not include markdown, quotes, or trailing punctuation.
+
+Diff context:
+Changes:
+Diff too large to include inline.
+Summary: 55 changed files, +973/-676 lines.
+
+Testing note: If you mention tests, include unit tests or UI testing frameworks only. Skip lint/tsc since CI runs those.
+
+
+## 2026-05-26T21:46:17+05:00 | MAVO | claude | session e694b16a
+
+Сразу сделай как ты рекомендуешь, это сайт лично для меня чисто для понимания так что можешь смело редактировать его. Но не канон
+
+
+## 2026-05-26T21:54:16+05:00 | MAVO | claude | session e694b16a
+
+<task-notification>
+<task-id>bonbk94x1</task-id>
+<tool-use-id>toolu_01CPrpEyqEdzm2waooaJY6hx</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-triton-Documents-MAVO/e694b16a-0c5c-44dd-a33e-add5f7af466f/tasks/bonbk94x1.output</output-file>
+<status>completed</status>
+<summary>Background command "Find screenshot anywhere" completed (exit code 0)</summary>
+</task-notification>
+
+
+## 2026-05-26T22:07:49+05:00 | MAVO | claude | session e694b16a
+
+Давай подумаем с точки зрения лучших практик написания презентаций
+Мне кажется наша фишка для студий это то что люди сами могут без студий кастомизировать текст, дизайн и главное примерно уже видеть на первю как это будет выглядеть на разных поверхностях
+Это прям такого они точне не видели
+Пока тут обсуждаем
+И прочти папку с презентацми
+
+
+## 2026-05-26T22:14:02+05:00 | MAVO | claude | session e694b16a
+
+Дай мне не правки и полностью три идеи разных пактов слайдов и выбери лучший
+
+
+## 2026-05-26T22:55:04+05:00 | MAVO | claude | session e694b16a
+
+Ок да но давай ещё сделаем инструкции к этом сайту, чтобы ты никогда не старался сделать его красивее или усложнить код, всё должно быть максимально легко чтобы ты мог бытсро редактировать сайт, минимум всяких там заранее созданных компонетов или чего либо что ограничивает креатив и эксперементы с дизайном, если надо то сделай рефактор. Используем шад сн, тэйлыинд итд
+
+
+## 2026-05-26T23:09:52+05:00 | MAVO | claude | session e694b16a
+
+Важное уточнение которое также должно быть в инструкции
+Две презетации для студии и для инвесторов состоит из скеций каждая 16 на 9
+То есть презентации хоть и сайт но это для меня чтобы я понимал как делать дизайн слайдов
+
+
+## 2026-05-26T23:14:24+05:00 | MAVO | claude | session 2a3797c7
+
+/Users/triton/Documents/MAVO/Анализ/04_Как_запустим
+Нам надо подумать какие файлы удалить или обьеденить или переместить согласно инструкциям
+Сначала продумай какие стратегии и разные комбинации команд тебе помогут выполнить задачу:
+Сейчас живых agent-facing инструментов `md` — **30**. Все вызываются как `md <command> ... --json`; почти каждый ответ содержит `_envelope`: состояние корпуса, подсказку следующего шага, размер ответа и cost.
+
+Важное общее правило: всё, что **меняет файлы или индекс**, делается через `--dry-run` → взять `_envelope.lock.transaction_id` → `--confirm --transaction-id <id>`.
+
+**Ориентация и чтение**
+- `md orient` — быстрый обзор корпуса: статус индекса, список файлов, важные узлы.
+- `md corpus-scan` — находит все Markdown-корпуса и неиндексированные папки в репо.
+- `md status` — показывает, свежий ли индекс и нужно ли запускать `md index`.
+- `md ls` — список файлов с `description`, title и числом заголовков.
+- `md toc` — оглавление с устойчивыми id секций, например `1.2`.
+- `md extract` — достаёт выбранные файлы/секции из результата `ls` или `toc`.
+- `md search-read` — главный новый путь: найти по смыслу и сразу вернуть тексты секций.
+- `md search` — поиск по смыслу, но только handles/snippets без полного чтения.
+- `md read-related` — читает соседний контекст файла: ссылки, backlinks, связанные материалы.
+- `md importance` — ранжирует файлы по важности в графе ссылок.
+
+**Граф, ссылки и безопасность правок**
+- `md preflight` — перед правкой файла показывает must-read, must-update, blockers.
+- `md edit-context` — composite: preflight + related context перед редактированием.
+- `md impact` — что сломается при удалении/переименовании файла.
+- `md section-blast-radius` — радиус последствий для секции: граф + семантические соседи.
+- `md deps` — прямые и обратные зависимости одного файла.
+- `md check` — битые wikilinks, anchors и markdown links.
+- `md scan` — проблемы frontmatter: missing, legacy, unknown, invalid.
+- `md health` — общий graph-health: coverage, hubs, orphans, cycles, broken links.
+- `md cycles` — циклы в graph-зависимостях.
+- `md changed` — проверяет изменённые `.md` файлы через preflight, удобно перед commit.
+
+**Семантика, дубли и IA**
+- `md overlaps` — пары похожих секций, хорошо для дублей и смыслового размазывания.
+- `md repeated-concepts` — recurring concepts: где одна идея повторяется по корпусу.
+- `md audit` — большой аудит корпуса: дубли, smeared owner truth, clusters, health score.
+- `md query-by-type` — найти секции определённого типа: rules, decisions, definitions, open questions.
+- `md refactor-candidates` — предложения по реорганизации, только для human review.
+- `md profile-sections` — классифицирует секции по типам; нужно для `query-by-type` и refactor proposals.
+
+**Изменяющие инструменты**
+- `md index` — прогревает/обновляет embedding index для поиска и overlaps.
+- `md init` — добавляет недостающий graph-frontmatter в Markdown-файлы.
+- `md strip` — удаляет legacy/unknown frontmatter поля и, опционально, старые related-docs секции.
+
+**Диагностика**
+- `md ping` — проверяет, что CLI и backend живы.
+
+Служебно, поверх этих 30, есть ещё `md tools --json` для каталога, `md selftest --json` для проверки установки, `md doctor` для диагностики и `md --version`.
+
+
+## 2026-05-26T23:17:18+05:00 | MAVO | claude | session e694b16a
+
+3 4 5 слайды не красивые
+И мне кажется если студия впервые увидит титульный слайд и первый слайд, он не поймёт о чём это вообще штука
+Это касается презентации для инвесторов тоже, мы вообще не говорим что это и как это работает
+Точнее говорим но странно поздно, мне кажется не так пишут презетации продуктов
+
+
+## 2026-05-26T23:18:41+05:00 | MAVO | claude | session 2a3797c7
+
+Проведи полный аудит и скажи что нужно сделать, простым и понятным языком, можно с юмором чтобы легче читалось и понятнее было
+
+
+## 2026-05-26T23:30:03+05:00 | MAVO | claude | session 2a3797c7
+
+1 да давай положим в папку что такое маво без подпапки
+2 Возрврат и привлечение клиентов мне кажется это всё маркетинг, удержание, привлечение итд
+3 производных документов нет, видимо надо прогреть индекс
+4 можно удалить если нет другого места
+
+И ещё надо проверить формулировки внутри файлов, потому что они изначально лежали в разных папках и рядом друг с другом могут читаться странно и кстати разрешаю менять имена файлов и папок а также предлагать новые папки или перемещать между папками если так будет лучше
+
+
+## 2026-05-26T23:32:31+05:00 | MAVO | claude | session e694b16a
+
+Надо убрать англиский слова
+Личная витрина у нас там есть много крутых преимуществ у своей витрины, найди информацию о том что витирина это марктеинговый инструмент
+Платформа обработки заказов тоже огромная часть, ведь это система управления обработки заказов онлайн, прочти внимательно и это должен быть отдельный слайд
+
+"Клиент впервые сам видит свою кружку до заказа." очень странно и не понятно звучит как самое первое что увидит холодный клиент, как то не по русский
+
+
+## 2026-05-26T23:39:29+05:00 | MAVO | claude | session 2a3797c7
+
+07_Почему_это_может_вырасти
+аааа это папка со множеством файлов.... тогда да ты прав надо было создать папку преимущества в что_такое_маво и туда переложить
+
+
+## 2026-05-26T23:42:13+05:00 | MAVO | claude | session e694b16a
+
+Отлично пока так оставим и напоследок, давай проведём полный рефактор всех остальных страниц тоже и уточни инструкции чтобы в следующий раз нам было легко быстро и понятно менять дизайны на других страницах тоже и если надо установи нужные инструменты которые помогут с такого рода задачами в будущем и заяви о них в инструкциях тоже
+
+
+## 2026-05-26T23:48:56+05:00 | MAVO | claude | session e694b16a
+
+Кстати мы используем шад сн, может у них в документации будет что то полезное для нас? Посмотри в интернете
+
+
+## 2026-05-26T23:52:50+05:00 | MAVO | claude | session 2a3797c7
+
+Да, сделай всё, как ты рекомендуешь. Мне нравится.
+
+
+## 2026-05-26T23:53:17+05:00 | MAVO | claude | session e694b16a
+
+А есть ли какие-то тесты красоты? Не могу понять. Какие-то терминальные, командные, процедурные тесты красоты, которые мы могли бы установить, чтобы не визуально проверять, а как-то через код проверять красоту.
+
+
+## 2026-05-26T23:58:07+05:00 | MAVO | claude | session e694b16a
+
+eslint-plugin-tailwindcss — ловит конфликты классов и hardcoded значения. После refactor'ов классы перемешиваются, плагин их сортирует и валидирует. Дополняет prettier-plugin-tailwindcss (тот форматирует, этот валидирует).
+
+---
+
+Да только это ну Было бы полезно отлавливать, когда текст выходит за границы своего бокса. Это явно не то поведение, которое нам надо.  Или когда есть конфликты, когда текст вылезает даже за паддинги, это тоже говорит о какой-то ошибке. 
+Или боксы вылазат за пределы своих родителей. 
+
+Или когда реальное расстояние между блоками меньше того, что по факту указано,то означает то, что они не поместились на экран и начинают как-то конфликтовать. Ну и подобного рода правила.
+
+
+## 2026-05-27T00:17:22+05:00 | MAVO | claude | session 2a3797c7
+
+Да давай всё закончим
+
+
+## 2026-05-27T00:19:20+05:00 | MAVO | claude | session e694b16a
+
+# Ландшафт инструментов для автоматической проверки визуального качества веб-дизайна через CLI/API (2024–2026)
+## TL;DR
+- На сегодня **не существует одного готового инструмента**, который через CLI выдавал бы надёжную оценку «красоты» лендинга. Лучшая практическая архитектура на 2026 — это многослойный пайплайн: процедурный лайт-слой (Stylelint + Lighthouse CI + axe-core/Pa11y + design-tokens-линтер типа `stylelint-plugin-rhythmguard`) → визуальный регресс-слой (Playwright `toHaveScreenshot` + Argos или Lost Pixel) → AI-критика через Claude Code + Playwright MCP с Vercel `web-interface-guidelines` skill и кастомной рубрикой.
+- Из «AI-критиков» через CLI реально работают только три класса: (а) **Vercel `web-interface-guidelines`** skill + **AccessLint** Claude-плагин + **Stark** CLI — открытые/полу-открытые; (б) DIY-связка **Playwright screenshot → GPT-5 / Claude Sonnet 4.5 vision API** с собственным промптом-рубрикой; (в) предиктивные eye-tracking сервисы (**Neurons Predict API**, **Brainsight**, **Attention Insight**) — у них есть полноценные REST API, но они дают heatmap/attention-метрики, не дизайн-критику. Продукты вроде **Galileo/Stitch, v0, Webcrumbs, Anima, Locofy** — это генераторы, а не ревьюверы; Webcrumbs Frontend AI закрывается.
+- VLM-критика через GPT-4V/Claude действительно даёт «мутные» результаты, но в 2025–2026 ситуация улучшилась благодаря (1) специализированным UI-моделям (**Ferret-UI Lite 3B**, **UI-TARS-1.5**, **ScreenSpot-Pro** бенчмарки), (2) extended-thinking режимам в Claude Sonnet 4.5/Opus, (3) фреймворкам типа **UI-Bench** для пэйрвайз-сравнения, (4) Anthropic **frontend-design skill** (277 000+ установок к марту 2026 — подтверждено независимыми источниками paddo.dev и Medium/unicodeveloper) с явной формализацией «AI-slop»-антипаттернов. Реалистичная стратегия — не один промпт «оцени дизайн», а ансамбль: процедурные правила покрывают большую часть типичных косяков, VLM ловит оставшееся при правильной рубрике.
+## Key Findings
+1. **Чисто-«красота»-CLI не существует**. Все попытки оценить эстетику кода (без рендера и LLM) сводятся к проверке консистентности дизайн-токенов и spacing-шкал — это полезный сигнал, но не «красота».
+2. **Самый свежий стек 2025–2026 — Claude Code + Playwright MCP + рубрика-skill**. Это де-факто стандарт у тех, кто действительно строит «AI design QA» в CI.
+3. **Anthropic выпустил официальный `frontend-design` skill** (плагин в `anthropics/claude-code`) — он формализует, что считается «AI slop» (Inter+градиент), и используется в обе стороны: для генерации и для критики (через инверсию рубрики). 277K+ установок.
+4. **Vercel выпустил `web-interface-guidelines`** — открытый MD-спек правил веб-дизайна, который AI-агенты могут применять как линтер.
+5. **Apple Ferret-UI Lite (3B, сентябрь 2025)** и **ByteDance UI-TARS-1.5** — это первые модели, оптимизированные специально под UI grounding (ScreenSpot-Pro 53.3%). Пока они скорее «понимают», что на скриншоте, чем оценивают красоту, — но это база для будущих критиков.
+6. **Eye-tracking-симуляторы стали зрелыми и через API**. Neurons Predict (обучен на >100 млрд точек данных от 120 000+ участников eye-tracking/brain-scanning исследований — подтверждено в партнёрском описании Neurons на сайте Eskimi), Attention Insight, Brainsight предоставляют REST API с heatmap, clarity-score и cognitive-demand метриками.
+7. **Visual regression — это база, без которой остальное не работает**. В 2025–2026 фактический выбор: Playwright `toHaveScreenshot` (free) + Argos для review UI, или Chromatic если уже на Storybook, или Lost Pixel для self-hosted.
+8. **Lighthouse 12+ убрал PWA-категорию, но Best Practices и Accessibility-категории остались** и их можно использовать как прокси для базовой визуальной гигиены (контраст, target sizes, mobile viewport).
+9. **OverlayQA, Testers.ai, Galileo/Stitch, Anima, Locofy, Webcrumbs, v0** — мисс-категоризированы в популярных обзорах как «AI design review». В реальности: Testers.ai крутится вокруг автономного QA-агента (без публичного API), OverlayQA — браузерный extension (без CI), остальные — генераторы или sunset.
+---
+## Details — по 10 запрошенным категориям
+### 1. CSS/HTML линтеры и анализаторы качества стилей
+| Инструмент | Что проверяет | CLI/API | Цена | Свежесть | Полезность для CI |
+|---|---|---|---|---|---|
+| **Stylelint** (core) | Синтаксис, дубликаты, нежелательные паттерны | CLI/Node | OSS | Активен, v16+ | Базовый must-have |
+| **stylelint-plugin-rhythmguard** | Spacing scale, token-first values, Tailwind arbitrary values (`p-[13px] → p-[12px]`), motion на spacing-шкале | Stylelint CLI | OSS | Активен 2025 | ⭐⭐⭐⭐⭐ Точно решает задачу «ругаться на несогласованные отступы» |
+| **stylelint-plugin-carbon-tokens** (IBM) | Использование Carbon design tokens (`carbon/theme-use`, `carbon/type-use`, `carbon/motion-duration-use`) | Stylelint CLI | OSS | Активен | Только если на Carbon |
+| **@kong/design-tokens stylelint-plugin** | `use-proper-token` — правильный токен для свойства (нельзя `kui-color-text-primary` в `background-color`) | Stylelint CLI | OSS | Активен | Хороший пример для своих токенов |
+| **WordPress `no-unknown-ds-tokens`** | Проверка ссылок на несуществующие CSS-переменные DS, запрет переопределения токенов | Stylelint CLI | OSS (внутри Gutenberg) | Merged Dec 2025 | Образец для копирования |
+| **Atlassian Design Stylelint plugin** | Соответствие ADS | Stylelint CLI | OSS | Активен | Только если на ADS |
+| **Tempera postcss-scorecard** (Michael Mangialardi) | «Scorecard» процента использования дизайн-токенов | OCLIF CLI | OSS | 2024 | Полезный паттерн для отчёта |
+| **stylelint-design-tokens-plugin** (LasaleFamine) | Проверка использования токенов из JSON | Stylelint CLI | OSS | Старый (4 года), но работает | Простой baseline |
+**Вердикт**: чистого «эстетического» линтера CSS нет. Самый близкий — `stylelint-plugin-rhythmguard` (Petri Lahdelma). Установка: `npm install --save-dev stylelint stylelint-plugin-rhythmguard`. Поддерживает CSS, Tailwind v4 `@theme`-блоки, JSX/TSX через ESLint-вариант.
+### 2. Accessibility как прокси для визуального качества
+| Инструмент | Что | CLI | Цена | 2025-фишки |
+|---|---|---|---|---|
+| **axe-core / @axe-core/cli** (Deque) | WCAG, контраст, ARIA, target size | `axe-core` + интеграции с Playwright/WDIO/Jest | OSS (engine), axe DevTools — платный | AI-фильтрация ложных срабатываний; mobile а11y |
+| **Pa11y / Pa11y-CI** | WCAG2A/AA/AAA через HTMLCS или axe runner | `pa11y https://url --runner axe --threshold 5` | OSS | Поддерживает axe runner |
+| **AccessLint** (GitHub App + CLI + Claude MCP plugin) | WCAG в PR, инлайн-комменты, Storybook addon, Vitest `toBeAccessible()`, Playwright integration | `accesslint-ci scan <dev-server>` | Free для OSS / paid для private | Новейший — Claude Code MCP плагин (`claude plugin marketplace add accesslint/claude-marketplace`) |
+| **Stark accessibility-cli** | WCAG, контраст, color-blindness, EAA, VPAT | `npm i -g @stark-lab-inc/accessibility-cli && stark-accessibility scan` | Free/Pro/Team | AI Code Remediation через MCP, GitHub Action `stark-contrast/accessibility-check-action@1.3.0` |
+| **Lighthouse `accessibility`-категория** | Подмножество axe-core | `lighthouse https://url --only-categories=accessibility` | OSS | Часть Lighthouse 12.6 |
+| **Polypane** (devtool, не CLI) | Live contrast, focus order, dyslexia/glaucoma simulation, color-blindness | GUI, но есть MCP-интеграция через `chrome-devtools-mcp` на порту `5858` | $99/год | Полезно как локальный QA-комплимент, не CI |
+**Реальные числа охвата автоматизации** (важно для трезвой оценки):
+- По исследованию Deque Systems (март 2021, на данных 2 000+ аудитов, 13 000+ страниц и ~300 000 issues): «Deque found that, on average, 57 percent of accessibility issues were completely covered by this automated testing».
+- По аудиту GDS accessibility team (alphagov.github.io/accessibility-tool-audit/): лучший из 13 протестированных инструментов обнаружил ровно **40% из 142 намеренно введённых барьеров** (худший — 13%): «The best performing tool in this category found 40% of the problems we introduced».
+**Пересечение с визуальным качеством**:
+- **Contrast ratio** (WCAG AA 4.5:1, AAA 7:1) — лучший процедурный сигнал «плохого визуального решения».
+- **Target sizes** (≥24×24 px в WCAG 2.2) — ловит много мобильных косяков.
+- **Touch target spacing** — также мобильный визуал.
+- **Heading hierarchy** (`h1→h2→h3`) — прокси для визуальной иерархии.
+### 3. Lighthouse и его экосистема
+- **Lighthouse CLI**: `npm i -g lighthouse && lighthouse https://url --output=html --view`. Текущая версия 12.x; **PWA-категория удалена в Lighthouse 12 (май 2024)**. Lighthouse 13 ещё не поддерживается `@lhci/cli`, требует Node 22.19+.
+- **Lighthouse CI (`@lhci/cli`)**: `npm i -g @lhci/cli@0.15.x` (на Lighthouse 12.6.1), затем `lhci autorun`. ~2M скачиваний/месяц в npm. GitHub Action `treosh/lighthouse-ci-action` — стандарт для CI.
+- **Unlighthouse**: то же самое, но crawl-итерируется по всему сайту. `npx unlighthouse --site https://example.com`.
+- **Sitespeed.io 41+**: более мощный мониторинг, поддерживает Lighthouse и GPSI плагины (`sitespeedio/sitespeed.io:41.1.0-plus1` docker image), Graphite/InfluxDB интеграция.
+- **PageSpeed Insights API**: бесплатное API от Google, добавляет CrUX field data (real-user INP).
+**Что из Lighthouse Best Practices/Accessibility релевантно для «дизайн-QA»**:
+- `color-contrast` — нарушения WCAG-контраста
+- `tap-targets` — мобильные тач-таргеты
+- `font-size` (legible font sizes ≥12px на мобильных)
+- `meta-viewport` — корректный viewport meta tag
+- `image-aspect-ratio` — искажения изображений
+- `image-size-responsive` — растянутые изображения
+- `total-byte-weight` / `unused-css-rules` — индикаторы раздутого дизайна
+**Lighthouse не измеряет INP в lab-режиме** (использует TBT как прокси). Для реального INP — только PageSpeed Insights CrUX или собственный RUM.
+### 4. Visual regression testing — базовая инфраструктура
+| Инструмент | Тип | CLI-first? | Цена | Заметки 2026 |
+|---|---|---|---|---|
+| **Playwright `toHaveScreenshot()`** | Open-source, встроенный | ✅ Полностью | Free | Стандарт по умолчанию; нулевая настройка |
+| **Argos CI** | OSS + SaaS | ✅ | Free tier + paid | Открытый review UI, plug-in поверх Playwright/Cypress |
+| **Lost Pixel** | OSS + SaaS | ✅ Docker | Free OSS, paid cloud | Self-hosted альтернатива Chromatic, поддерживает Storybook/Ladle/Histoire + full-page |
+| **Chromatic** | SaaS (Storybook-команда) | ✅ `npx chromatic` | Free 5K snapshots/mo Chrome | Лучший выбор если используете Storybook |
+| **Percy (BrowserStack)** | SaaS | ✅ `percySnapshot()` | Paid | **Percy Visual Review Agent запущен в октябре 2025** — официальные release notes BrowserStack: «filtering out up to 40% of visual changes so you can focus on the ones that actually impact your users» и «reducing review time by 3x» |
+| **Applitools Eyes** | SaaS | ✅ | Paid (есть free tier) | Самый сильный AI-diff, но дорогой |
+| **Reg-suit** | OSS | ✅ | Free | Японский OSS, требует ручной настройки |
+| **BackstopJS** | OSS | ✅ | Free | Жив с 2014, для full-page без cloud |
+| **Sauce Visual / Vizzly** | SaaS | ✅ | Paid | Vizzly — pricing per-user (~$12/мес/user), DOM-agnostic |
+**Практика 2026**: для лендингов на Next.js — Playwright `toHaveScreenshot` (free) + Argos для review UI поверх. Если у вас Storybook — Chromatic или Lost Pixel.
+### 5. AI/ML-based design quality assessment
+**5.1. Open-source эстетические скореры (запускаются локально на скриншотах)**
+| Модель | Что | Установка | Применимость к веб-дизайну |
+|---|---|---|---|
+| **LAION-Aesthetics** | Linear estimator поверх CLIP, обучен на AVA-датасете (фотография!) | `pip install`, веса с GitHub LAION-AI/aesthetic-predictor | ⚠️ Обучен на фотографиях, не на UI — даёт мусорные оценки веб-дизайна |
+| **CLIP+MLP Aesthetic Score Predictor** (christophschuhmann) | То же, но standalone | Скрипты из репо | ⚠️ То же ограничение |
+| **simple-aesthetics-predictor** (shunk031) | `pip install simple-aesthetics-predictor`, `AestheticsPredictorV1.from_pretrained(...)` | PyPI | Подходит как baseline |
+| **ImageReward** (THUDM, NeurIPS 2023) | RM на 137K пар экспертных сравнений text-to-image | `pip install image-reward`, `RM.load("ImageReward-v1.0")` | ⚠️ Обучен на T2I-генерациях, не на UI |
+| **HPSv2/HPSv2.1/HPSv3** (Wu et al.) | Human Preference Score, обучен на ~798K пар | `pip install hpsv2`, `python img_score.py --image-path ... --prompt ...` | ⚠️ Тоже T2I |
+| **imscore** (RE-N-Y) | Унифицированный набор скореров: ShadowAesthetic, LAIONAesthetic, HPSv2/v3, MPS, PickScore, CLIPScore, ImageReward, VQAScore, EvalMuse | `pip install imscore` | Удобная обёртка, но всё ещё фото-bias |
+**Главный честный вывод**: все open-source эстетические скореры обучены на **фотографиях** (AVA) или **T2I-генерациях**, а не на UI-скриншотах. Применять их к лендингам можно как очень грубый сигнал «изображение красиво/безобразно вообще», но они системно дают перекошенные результаты на скриншотах веб-страниц (особенно недооценивают минималистичные сайты с большим количеством белого пространства).
+**5.2. Специализированные UI-модели**
+| Модель | Параметры | Что умеет | Бенчмарки |
+|---|---|---|---|
+| **Ferret-UI Lite** (Apple, Sep 2025) | 3B | GUI grounding + navigation, on-device | ScreenSpot-V2 91.6%, ScreenSpot-Pro 53.3%, OSWorld-G 61.2%, AndroidWorld 28.0%, OSWorld 19.8% |
+| **UI-TARS-1.5** (ByteDance Seed) | 7B | GUI grounding + agent navigation | Базовая модель для сравнений в 2025 |
+| **ScreenSpot-Pro** | Бенчмарк | Высокоразрешённые desktop GUI grounding задачи | Создан в ICLR 2025 |
+| **OSWorld / OSWorld-G** | Бенчмарк | Multi-step UI navigation | — |
+| **WebSight** (HuggingFace, Laurençon et al.) | Датасет (не модель) | Screenshot → HTML/Tailwind | Тренировочные данные |
+| **Design2Code dataset / benchmark** (Si et al.) | Бенчмарк | 484 реальных вебстраницы для оценки MLLM | GPT-4V, Gemini, Claude сравнения |
+| **WebCode2M** (Gui et al., 2025) | 2.56M пар design-code | Webpage code generation | — |
+| **UI-Bench** (arXiv 2508.20410, Arcada Labs YC S25) | Benchmark | Pairwise expert preference на 4000+ суждений по 10 AI-text-to-app инструментам | Открытый leaderboard |
+| **CANVAS** (arXiv 2511.20737) | Benchmark | Tool-based UI design VLM | Свежий, ноябрь 2025 |
+**Эти модели пока не предназначены для оценки «красоты»** — они оценивают, способна ли VLM правильно «понять» UI (нажать на кнопку, прочитать поле). Но это фундамент, на котором будут построены критики дизайна в 2026–2027.
+**5.3. Предиктивные eye-tracking / attention сервисы (есть REST API)**
+| Сервис | Что даёт | API | Цена |
+|---|---|---|---|
+| **Neurons Predict** | Attention heatmap, Start/End/Total Attention, Cognitive Demand score, Clarity, Engagement, Focus Score. По официальному партнёрскому описанию (eskimi.com/blog/eskimi-partners-with-neurons): «over 100 billion data points collected from over 120,000 participants» | ✅ REST API + Chrome extension | Платный enterprise; Chrome ext с API ключом |
+| **Attention Insight** | Heatmaps, Clarity Score, Focus Score, Contrast Map, AI Recommendations — обучен на 5.5M фиксаций. Согласно attentioninsight.com/technology/: «MIT scientists concluded that our heatmaps match actual eye tracking heatmaps with 92.5% accuracy for general images. Across all types of designs, our heatmap accuracy is up to 96%» | ✅ API + Chrome extension | 14-day free trial, paid plans |
+| **Brainsight** | Predictive heatmaps, attention/clarity scores, gaze plots, brand visibility | ✅ REST API | Enterprise |
+| **VisualEyes** (Loceye) | Heatmaps + attention | API ограничен | — |
+| **3M VAS** | Старый, корпоративный | Корпоративный | — |
+| **EyeQuant** | Доп. метрики | API | Корпоративный |
+**Это самый практичный класс AI-инструментов для лендинга**: дёшево интегрируется, выдаёт чёткие метрики, можно встроить в CI как «attention score < 60 → fail».
+**5.4. VLM-based design review продукты (с CLI/API)**
+| Продукт | Тип | CLI/API | Реалистичность |
+|---|---|---|---|
+| **Testers.ai** | Автономный QA-агент, public reports | Только внутренний/ops API, не публичный dev API | ⚠️ Pricing непрозрачный, требует unlock code |
+| **OverlayQA** | Browser extension + Figma overlay | ❌ Нет публичного API/CLI | Не CI-интегрируемое |
+| **AI Design Reviewer (onBeacon, Figma)** | Figma plugin (Siri team alumni), GPT-5/Claude Sonnet/Opus | Только Figma | Не для веб-URL |
+| **UX Pilot** | Figma plugin + AI heuristic eval | Только Figma | Не для веб |
+| **Design Buddy** | Figma/Canva/Adobe Express add-on | Cross-platform API key, но привязан к design-tool | Не для веб-URL |
+| **Galileo AI → Google Stitch** | Generation only (не review) | MCP для генерации, не для оценки | Только генерация |
+| **Webcrumbs Frontend AI** | Generation, **закрывается** | — | Sunset |
+| **v0 by Vercel** | Generation, не оценка | API через Vercel | Только генерация |
+| **Anima, Locofy** | Design→code, не review | Plugins, не review API | Только конвертация |
+| **Vercel `web-interface-guidelines`** | Agent skill, ревью UI-кода через AI | ✅ Через Claude Code / Cursor / Codex / Gemini CLI | ⭐⭐⭐⭐ Реально работает, open-source MIT |
+| **Anthropic `frontend-design` skill** | Skill для генерации (но рубрику можно инвертировать) | ✅ В Claude Code | ⭐⭐⭐⭐ 277K+ installs к марту 2026 |
+| **Interface Aesthetics Evaluator** (aesthetic-evaluator.vercel.app) | Demo-сайт ensemble нескольких LLM | Demo only | Прототип, не production |
+### 6. Свежие API и продукты 2024–2026 для design review
+**Frontier-модели и их применимость к screenshot critique**:
+- **Claude Sonnet 4.5 / Opus 4** (Anthropic) + vision: лучший выбор для подробной критики, длинного контекста, JSON-structured output, "extended thinking". С Computer Use beta — может сам нажимать кнопки на странице.
+- **GPT-5 / o3 with vision** (OpenAI): сильнее в геометрических задачах (см. EPFL fm-vision-evals), но дороже и медленнее.
+- **Gemini 2.5 Pro / Flash** (Google): дешевле, лучше работает на high-resolution скриншотах (Stitch построен на нём).
+- **Qwen2-VL** (Alibaba), **Molmo** (Allen AI): open-source альтернативы для self-hosted критики.
+**Бенчмарк EPFL (arXiv 2507.01955) показал**: GPT-4o лучший среди non-reasoning моделей (4 из 6 задач), но **ни одна frontier-MFM не близка к state-of-the-art в специализированных vision задачах**. Семантические задачи (что на скриншоте) — да; геометрические (точные позиции, alignment) — нет. Это объясняет, почему пользователь чувствует, что VLM-критика «работает некачественно».
+**Anthropic Computer Use** (декабрь 2024 beta) позволяет Claude взаимодействовать с браузером (открывать URL, клики, скроллы) — это превращает критику из «один скриншот в моменте» в «полный аудит user-flow». Через Playwright MCP: `claude mcp add playwright npx @playwright/mcp@latest`.
+**Anthropic frontend-design skill** (репозиторий `anthropics/claude-code/plugins/frontend-design`): задаёт рубрику «избегать AI-slop» — Inter+градиенты, generic карточки. Инверсия этой рубрики даёт критика: подаёте скриншот и просите «насколько этот дизайн соответствует AI-slop паттернам, оценка от 0 до 10».
+**YC startups 2024-2026 в области design review**: явных «screenshot → AI critique CLI» из последних батчей нет; есть Arcada Labs (YC S25) с design-arena.ai — это benchmark/leaderboard, а не персональный ревьюер. Testers.ai позиционируется как «autonomous QA agent».
+### 7. Терминальные инструменты «screenshot → AI critique»
+Готовых end-to-end npm-пакетов под эту задачу нет. Шаблон, который собирают разработчики:
+```bash
+# 1. Установить Claude Code + Playwright MCP
+npm i -g @anthropic-ai/claude-code
+claude mcp add playwright npx @playwright/mcp@latest
+# 2. Установить ревью-skill
+curl -fsSL https://vercel.com/design/guidelines/install | bash
+# или
+npx skills add anthropics/claude-code --skill frontend-design
+# 3. Запустить через slash-command в Claude Code сессии:
+# /web-interface-guidelines <component-file>
+# /frontend-design <prompt>
+```
+**Альтернативные CLI-обёртки**:
+- **microsoft/playwright-cli**: новый low-token CLI для агентов, `playwright-cli show --annotate # launch dashboard for UI review / design feedback`.
+- **@executeautomation/playwright-mcp-server**: MCP-сервер с 143 device profiles.
+- **claude-design-mcp** (Evilander): персистентный «design studio» с версионированием и Playwright-рендерингом мобильных/планшетных/desktop/wide/HD скриншотов.
+- **shortest** (Antiwork): не для критики, а для функционального E2E на естественном языке через Claude API (`shortest init`, `shortest`).
+- **lackeyjb/playwright-skill**: Claude skill для произвольной Playwright-автоматизации.
+**Browserless / BrowserCat**: cloud Chromium для CI без локального headless. Подходит для масштабирования screenshot-генерации перед отправкой в LLM.
+### 8. Метрики дизайна и code-based проверки «красоты»
+Академические работы (Ngo et al. 2003 — symmetry/balance/rhythm rules; Lu et al. 2014 — neural predictors на постерах) дают теоретическую базу, но **готовых opensource-пакетов с CLI для этих метрик мало**. Что реально есть:
+**Color harmony / palette**:
+- `npm i -g colour-contrast-cli` → `contrast black white` (WCAG ratio + grade).
+- `color` (npm, Qix) — `.contrast(other)`, `.isLight()`.
+- `get-contrast` — WCAG-балл для пар.
+- `@iyashasgowda/color-harmony` — рассчитывает complement/triadic/analogous/tetradic от базового цвета.
+- `@evilmartians/harmony` — OKLCH+APCA-based палитра для design system (можно использовать как reference).
+- `@phun-ky/moebius` — генерирует «приятные» палитры из base color.
+**Vertical rhythm / typography scale**:
+- Старый Compass `vertical-rhythm` mixin, или CSS-only расчёт `line-height/font-size`. Готового CLI-линтера vertical rhythm на 2026 нет.
+- **Rhythmguard** (см. §1) — единственный плагин, который покрывает spacing scale enforcement.
+**Visual complexity / clutter**:
+- **Neurons Cognitive Demand score** через API даёт самую достоверную числовую оценку «визуального шума» (validated через eye-tracking).
+- Опенсорсный аналог — нет.
+**Grid alignment**:
+- Galen Framework — DSL для проверки layout-правил, работает через Selenium. Не AI, но процедурный.
+- В DevTools Chrome 12X+ есть Layout Shift Insights — индикатор для CLS/grid drift.
+**Visual hierarchy strength**:
+- Прокси: heading hierarchy (axe-core), font-size variance (свой скрипт), Neurons Focus Score.
+### 9. DevTools-based анализаторы
+- **Chrome DevTools Performance + Lighthouse + Insights sidebar** — теперь объединены, Lighthouse-режимы Navigation/Timespan/Snapshot.
+- **chrome-devtools-mcp** — MCP-сервер для AI-агентов: `npx chrome-devtools-mcp@latest --browserUrl=http://127.0.0.1:9222`. Запускается с Polypane (порт 5858) для multi-viewport ревью.
+- **Firefox** — `web-ext lint` для расширений, нет аналога Lighthouse в CI.
+- **Edge DevTools** — почти полная копия Chrome DevTools, доступно через `edge-devtools-vscode`.
+- **Polypane** — отдельный браузер для разработки, GUI; интегрируется с chrome-devtools-mcp для AI-агентов; $99/год, не CLI-инструмент.
+### 10. Frameworks/платформы для сборки своего «красота-CI»
+**Канонический паттерн пайплайна 2026** (по статьям TestDino, alexop.dev, wmedia.es):
+```
+[Push to PR]
+   ↓
+[GitHub Actions]
+   ├─ Stylelint (rhythmguard + design-tokens-plugin) → fail on hardcoded values
+   ├─ ESLint (eslint-plugin-import + custom rules) → fail on imports of raw colors
+   ├─ Lighthouse CI (lhci autorun) → assert accessibility ≥0.95, best-practices ≥0.9
+   ├─ axe-core / Pa11y-CI / AccessLint → fail on WCAG errors
+   ├─ Playwright toHaveScreenshot → visual regression
+   │     └─ Argos / Lost Pixel → reviewable PR diff
+   ├─ Predictive eye-tracking (Neurons/Attention Insight API) → assert clarity_score ≥ X
+   └─ Claude Code agent (Playwright MCP + frontend-design + web-interface-guidelines skill)
+         → JSON-structured rubric output → comment on PR
+```
+**Готовые шаблоны на GitHub**:
+- `treosh/lighthouse-ci-action`
+- `stark-contrast/accessibility-check-action@1.3.0`
+- `testdino-hq/playwright-skill` (70+ guides, 5 skill packs: core/ci/pom/migration/playwright-cli)
+- `anthropics/claude-code/plugins/frontend-design`
+- `vercel-labs/agent-skills` (web-design-guidelines)
+- `wmedia.es` blog — пример кастомной команды `/review-component <path> <live-url> <reference-image>` для Claude Code
+**Готовые best-practices статьи**:
+- alexop.dev: «Building an AI QA Engineer with Claude Code and Playwright MCP»
+- TestDino: «Claude Code with Playwright: 4-agent test generation pipeline» (Exploration → Test Case Gen → Automation → Maintenance)
+- snyk.io: «Top 8 Claude Skills for UI/UX Engineers» (Anthropic frontend-design, Vercel web-design-guidelines, UI/UX Pro Max, AccessLint, React patterns)
+- Adam Fard: «Design Feedback With AI» — рубрика-промпты для CTA/proofreading/compliance/contrast
+---
+## Recommendations — практический стек на 2026 для лендинга ComfyDeploy
+### Фаза 1: «Поставить за вечер, ругаться сразу» (минимум жизнеспособный)
+```bash
+# 1. Линтинг CSS/токенов
+npm i -D stylelint stylelint-plugin-rhythmguard
+# stylelint.config.js: rules: { 'rhythmguard/use-scale': [true, { scale: [0,4,8,12,16,24,32,48,64] }] }
+# 2. Accessibility CI
+npm i -D pa11y-ci  # либо @axe-core/cli
+# Добавить в package.json: "a11y": "pa11y-ci --sitemap https://localhost:3000/sitemap.xml"
+# 3. Lighthouse CI
+npm i -D @lhci/cli@0.15.x
+# .lighthouserc.js с assertions: { 'categories:accessibility': ['error', {minScore: 0.95}], 'categories:best-practices': ['error', {minScore: 0.9}] }
+# 4. Visual regression baseline
+# В Playwright tests: await expect(page).toHaveScreenshot({maxDiffPixelRatio: 0.01})
+# Подключить Argos: npm i -D @argos-ci/cli
+```
+**Триггеры fail в CI**:
+- Lighthouse accessibility < 0.95 OR best-practices < 0.9
+- axe-core: 0 errors (warnings разрешены)
+- Stylelint rhythmguard: 0 violations
+- Playwright screenshot diff > 0.5%
+### Фаза 2: «AI-критик для лендинга» (через 1 день настройки)
+```bash
+# Установить Claude Code
+npm i -g @anthropic-ai/claude-code
+# Playwright MCP для агентного просмотра
+claude mcp add playwright npx @playwright/mcp@latest
+# Vercel web-interface-guidelines
+curl -fsSL https://vercel.com/design/guidelines/install | bash
+# Anthropic frontend-design (для рубрики anti-AI-slop)
+npx skills add anthropics/claude-code --skill frontend-design
+```
+Кастомная команда `.claude/commands/review-landing.md`:
+```markdown
+Use Playwright MCP to:
+1. Open https://comfydeploy.com (and staging URL passed as $1)
+2. Take screenshots at 375px, 768px, 1280px, 1920px viewports
+3. Compare against the rubric in @anthropic/frontend-design skill:
+   - Typography: are fonts distinctive or generic (Inter/Roboto)?
+   - Color: is the palette coherent and bold, or default purple-gradient-on-white?
+   - Hierarchy: do CTAs dominate? Is the F-pattern or Z-pattern respected?
+   - Spacing: are vertical rhythms on an 8px scale?
+   - Differentiation: what would someone REMEMBER about this page?
+4. Run @vercel/web-interface-guidelines on the component files in src/
+5. Output JSON: { issues: [{severity, category, location, fix}], scores: {typography, color, hierarchy, spacing, memorability} }
+6. Fail CI if any score < 7/10 OR severity=critical issues > 0
+```
+### Фаза 3: «Эмпирический attention-сигнал» (если есть бюджет)
+- Подключить **Neurons Predict API** или **Attention Insight API**.
+- Загружать в CI скриншоты основных viewports.
+- Assert: `clarity_score ≥ 70`, `cognitive_demand ≤ 50`, `CTA AOI attention ≥ 8%`.
+- Стоимость: enterprise pricing, нужно запрашивать; для одного лендинга — экономически оправдано.
+### Фаза 4: «Visual regression review» (когда лендинг стабилизирован)
+- **Argos** (free tier приличный) поверх Playwright `toHaveScreenshot`. Если Storybook — Chromatic или Lost Pixel.
+- Включить PR-комментарии с before/after diff.
+### Чего НЕ делать
+- **Не использовать LAION-Aesthetics / ImageReward / HPSv2 для оценки веб-дизайна** — они обучены на фотографиях/T2I, дают мусорные оценки на UI-скриншотах.
+- **Не полагаться на одиночный промпт «оцени дизайн» к GPT-4V/Claude** — это и есть тот «некачественный» подход. Нужна структурированная рубрика и Playwright MCP для multi-viewport.
+- **Не платить за OverlayQA/Testers.ai в качестве CI-инструмента** — они не для CI (OverlayQA — браузер, Testers.ai — без публичного API).
+- **Не путать v0/Stitch/Galileo с ревьюверами** — это генераторы.
+### Бенчмарки, которые изменили бы рекомендации
+- Если на ScreenSpot-Pro появится open-source модель >75% — стоит её взять как локальный «AI second opinion» для критики.
+- Если Anthropic выпустит **первоклассный официальный design-review SKU** (сейчас только skills) — переходить на него.
+- Если Vercel выпустит SaaS-версию `web-interface-guidelines` с PR-комментариями — заменит DIY-пайплайн.
+- Если **Polypane** выпустит CLI/headless mode — это идеальная multi-viewport платформа.
+---
+## Caveats
+- **«Красота» дизайна — субъективна**. Любая автоматизированная оценка ловит только пересечение объективных правил (контраст, hierarchy, spacing) с одной субъективной школой («Anthropic anti-AI-slop», «Vercel web guidelines», «Carbon»). Если ваш дизайн намеренно брутальный или экспериментальный, рубрика может его «зарубить».
+- **VLM-оценки нестабильны между запусками**. Claude Sonnet 4.5 даёт разный фидбэк на тот же скриншот при temperature>0. Решение: temperature=0, structured output (JSON schema), ансамбль из 3 запусков с медианой.
+- **Eye-tracking-предсказания (Neurons, Attention Insight) обучены преимущественно на западных дашбордах, рекламе, e-commerce** — на нестандартных нишах (например, AI-инфраструктура для художников) могут давать перекошенный fixation pattern.
+- **Pa11y / axe-core находят 40–57% реальных WCAG-нарушений** автоматически (Deque study 2021: 57% issues covered; GDS audit: лучший инструмент нашёл 40% из 142 намеренных барьеров). Manual testing с screen reader остаётся необходимым.
+- **Lighthouse score на локальной машине ≠ PageSpeed Insights** (разный CPU/RAM, simulated vs applied throttling). Использовать LHCI на CI-раннере для воспроизводимости.
+- **Webcrumbs Frontend AI закрывается** (платформа sunset, репозиторий микро-фронтенд-обёртки остался без поддержки). Не закладываться.
+- **GPT-5/Claude vision API stability — beta**. Computer Use всё ещё помечен как beta у Anthropic; API цены могут расти.
+- **Стоимость agentic AI-критики**: один полный прогон Claude Code с Playwright MCP на лендинг — ориентировочно $0.10–0.50 (зависит от модели и глубины рассуждений). На каждый PR в large team — заметная сумма, использовать с кэшированием.
+- **Pricing-непрозрачность**: Testers.ai, Neurons, Brainsight, Stark — все требуют sales-touch для точной цены, что усложняет включение в индивидуальный workflow.
+
+
+## 2026-05-27T00:22:57+05:00 | MAVO | claude | session e694b16a
+
+Playwright boundingBox / scrollWidth тесты
+давай это установим а скилы просто в инструкции к этому проекту положим
+
+
+## 2026-05-27T10:29:08+05:00 | MAVO | claude | session e694b16a
+
+Сейчас сайт ушёл дальше чем документы тут
+/Users/triton/Documents/MAVO/Анализ/04_Как_запустим/Привлечение_студий/Презентация_Студиям
+обнови документы
+
+
+## 2026-05-27T10:32:09+05:00 | MAVO | turn 019e67eb-376b-70f0-8ac8-0d8e143df936
+
+Проверь все агентные инструкции в проекте на битые ссылки и логические ошибки, проверь также все цели, карты итд и сразу исправь
+
+
+## 2026-05-27T10:40:29+05:00 | MAVO | claude | session e694b16a
+
+Давай сделаем инструкции и связи так чтобы эта презентация влияла на сайт а сайт на презентацию

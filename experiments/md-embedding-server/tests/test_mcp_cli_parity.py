@@ -25,7 +25,7 @@ ATOMIC_COMMANDS = {
     "md_repeated_concepts": ["repeated-concepts", str(CORPUS)],
     "md_audit": ["audit", str(CORPUS)],
     "md_corpus_scan": ["corpus-scan", str(CORPUS)],
-    "md_index": ["index", str(CORPUS), "--dry-run"],
+    "md_index": ["index", str(CORPUS), "--dry-run", "--allow-nested-corpus"],
     "md_init": ["init", "--paths", str(CORPUS), "--dry-run"],
     "md_strip": ["strip", "--paths", str(CORPUS), "--dry-run"],
     "md_profile_sections": ["profile-sections", str(CORPUS), "--dry-run", "--mode", "llm"],
@@ -68,7 +68,7 @@ def test_atomic_cli_surface_matches_frozen_mcp_tool_names() -> None:
 
 
 def test_mutating_cli_contract_exposes_transaction_and_fingerprint() -> None:
-    result = _run_md("index", str(CORPUS), "--dry-run")
+    result = _run_md("index", str(CORPUS), "--dry-run", "--allow-nested-corpus")
     assert result.returncode == 0
     payload = json.loads(result.stdout)
     # Schema 2.0.0: transaction_id and fingerprint live in _envelope.lock,
@@ -84,6 +84,7 @@ def test_mutating_cli_contract_exposes_transaction_and_fingerprint() -> None:
             "args": {
                 "corpus": str(CORPUS),
                 "confirm": True,
+                "allow_nested_corpus": True,
                 "transaction_id": lock["transaction_id"],
             },
             "reason": "Apply the dry-run plan with the matching transaction_id.",

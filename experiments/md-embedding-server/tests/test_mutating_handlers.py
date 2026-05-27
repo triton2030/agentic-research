@@ -146,3 +146,33 @@ def test_index_dry_run_returns_cost_and_profile_llm_requires_confirm(tmp_path: P
     profile = _run_md(tmp_path, "profile-sections", str(tmp_path), "--mode", "llm")
     assert profile.returncode == 1
     assert _json(profile)["error"] == "confirm_required"
+
+
+def test_index_refuses_nested_corpus_when_parent_index_exists(tmp_path: Path) -> None:
+    parent = tmp_path / "parent"
+    child = parent / "child"
+    child.mkdir(parents=True)
+    (child / "doc.md").write_text("# Doc\n\n## Topic\n\nBody.\n", encoding="utf-8")
+    (parent / ".md-navigator").mkdir()
+    (parent / ".md-navigator" / "index.sqlite").write_bytes(b"")
+
+    blocked = _run_md(tmp_path, "index", str(child), "--dry-run")
+    assert blocked.returncode == 1
+    payload = _json(blocked)
+    assert payload["error"] == "nested_corpus_refused"
+    assert payload["requested_corpus"] == str(child)
+    assert payload["parent_corpus"] == str(parent)
+    assert payload["suggested_index_args"]["corpus"] == str(parent)
+    assert payload["suggested_index_args"]["path_include"] == ["child/**"]
+    assert not (child / ".md-navigator").exists()
+
+    allowed = _run_md(
+        tmp_path,
+        "index",
+        str(child),
+        "--dry-run",
+        "--allow-nested-corpus",
+    )
+    assert allowed.returncode == 0
+    assert _json(allowed)["pending_chunks"] >= 1
+    assert not (child / ".md-navigator").exists()

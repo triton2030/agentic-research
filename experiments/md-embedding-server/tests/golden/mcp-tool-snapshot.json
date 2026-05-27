@@ -610,13 +610,17 @@
       "description": {
         "when": "New corpus / md_search returns index_warmup_required / large delta detected by md_status.",
         "why": "One-shot warmup; subsequent md_search / md_overlaps / md_repeated_concepts become instant.",
-        "input": "corpus, confirm (required true), dry_run (estimate cost without running), batch_size, batch_pause_ms, path_include/exclude for partial indexes.",
+        "input": "corpus, confirm (required true), dry_run (estimate cost without running), batch_size, batch_pause_ms, path_include/exclude for partial indexes, allow_nested_corpus escape hatch.",
         "output": "OUTPUT (live): index summary text — chunks embedded, time, cost. OUTPUT (dry_run): { dry_run: true, pending_chunks, estimated_cost_usd, status_text }.",
         "alt": "md_status to check state first.",
         "cost": "~$0.02 per ~1000 chunks via OpenRouter bge-m3. Use dry_run:true first. Refuses without confirm:true."
       },
       "input_schema": {
         "properties": {
+          "allow_nested_corpus": {
+            "description": "Allow indexing a folder inside an already-indexed parent corpus.",
+            "type": "boolean"
+          },
           "batch_pause_ms": {
             "maximum": 9007199254740991,
             "minimum": 0,
@@ -671,7 +675,7 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json"
+      "cli_signature": "md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--allow-nested-corpus] --json"
     },
     {
       "name": "md_init",

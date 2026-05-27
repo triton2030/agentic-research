@@ -49,10 +49,12 @@ shape aligned with `SKILL.md`:
   effort. Say what should happen instead of relying on implication.
 - If reasoning looks shallow on a complex task, raise effort/profile rather
   than adding a long step-by-step ritual.
-- Use `high` or `xhigh` effort for intelligence-sensitive agentic work when
-  the runtime exposes effort. The bridge `turbo` profile uses max effort.
+- Use max effort for intelligence-sensitive agentic work when the runtime
+  exposes effort. The bridge full-power profiles (`normal`, `turbo`,
+  `skill-audit`, and `streaming-observe`) request max effort.
 - Opus 4.7 may use tools less often by default. If tools are required, say when
-  and why to use them.
+  and why to use them. Full-power bridge profiles do not add a tool allowlist;
+  `read-only` is the deliberate tool-limited exception.
 - For multiple independent operations, explicitly request parallel tool use.
 - Opus 4.7 has better progress updates during long agentic traces. Ask for
   shorter or differently shaped updates only when the default is wrong.

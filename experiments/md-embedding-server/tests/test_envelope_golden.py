@@ -45,6 +45,38 @@ def test_index_warmup_next_step_has_no_runnable_confirm() -> None:
     assert steps[-1]["tool"] == "md_search"
 
 
+def test_warmup_next_step_uses_parent_path_include(tmp_path: Path) -> None:
+    from navigator.api import search
+
+    parent = tmp_path / "parent"
+    child = parent / "child"
+    child.mkdir(parents=True)
+    (child / "doc.md").write_text("# Doc\n\n## Topic\n\nBody.\n", encoding="utf-8")
+    (parent / ".md-navigator").mkdir()
+    (parent / ".md-navigator" / "index.sqlite").write_bytes(b"")
+
+    result = wrap(
+        search(str(child), "topic"),
+        tool_name="md_search",
+        args={"corpus": str(child), "query": "topic"},
+    )
+
+    steps = result["_envelope"]["next_step"]
+    assert steps[0] == {
+        "tool": "md_index",
+        "args": {
+            "corpus": str(parent),
+            "path_include": ["child/**"],
+            "dry_run": True,
+        },
+        "reason": "Preview embedding cost before warming the parent index for this path scope.",
+    }
+    assert steps[1]["tool"] == "md_search"
+    assert steps[1]["args"]["corpus"] == str(parent)
+    assert steps[1]["args"]["path_include"] == ["child/**"]
+    assert steps[1]["args"]["query"] == "topic"
+
+
 def test_confirm_required_next_step_is_dry_run_only() -> None:
     result = wrap(
         {"error": "confirm_required"},
@@ -77,4 +109,3 @@ def test_empty_search_suggests_broader_scope() -> None:
             "reason": "Retry with scope='descriptions' for higher-level matching.",
         }
     ]
-

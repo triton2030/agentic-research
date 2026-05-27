@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import shlex
 import sys
 from pathlib import Path
 from typing import Any
@@ -21,6 +22,11 @@ from .filters import (
 )
 from .folder_map import build_map
 from .index import ensure_index, resolve_embed_model_for_corpus
+from .index_meta import (
+    _index_dir_for_corpus,
+    find_parent_indexed_corpus,
+    path_include_for_parent_corpus,
+)
 from .sections import build_sections_from_map
 
 
@@ -246,12 +252,35 @@ def cmd_overlaps(args) -> int:
         return 1
 
     cache_root = Path(args.cache_dir).expanduser() if args.cache_dir else None
+    parent_corpus = find_parent_indexed_corpus(corpus_root, cache_root=cache_root)
+    index_exists = (_index_dir_for_corpus(corpus_root, cache_root=cache_root, create=False) / "index.sqlite").exists()
+    if parent_corpus is not None and not index_exists:
+        parent_include = path_include_for_parent_corpus(corpus_root, parent_corpus, include_patterns)
+        parent_exclude = (
+            path_include_for_parent_corpus(corpus_root, parent_corpus, exclude_patterns)
+            if exclude_patterns
+            else []
+        )
+        filter_args = " ".join(
+            [f"--path-include {shlex.quote(pattern)}" for pattern in parent_include]
+            + [f"--path-exclude {shlex.quote(pattern)}" for pattern in parent_exclude]
+        )
+        print(
+            f"Index needs warmup before overlaps can run.\n"
+            f"  Requested path is inside indexed parent corpus: {parent_corpus}\n"
+            f"\n"
+            f"  Next step:\n"
+            f"    md index {shlex.quote(str(parent_corpus))} {filter_args}\n"
+            f"\n"
+            f"  Then re-run overlaps on the parent corpus with the same path scope:\n"
+            f"    md overlaps {shlex.quote(str(parent_corpus))} {filter_args}\n",
+            file=sys.stderr,
+        )
+        return 4
     args.embed_model = resolve_embed_model_for_corpus(
         corpus_root, args.embed_model, cache_root=cache_root
     )
     if args.no_cache:
-        from .index import _index_dir_for_corpus
-
         target = _index_dir_for_corpus(corpus_root, cache_root=cache_root)
         for name in ("index.sqlite", "index.sqlite-wal", "index.sqlite-shm"):
             (target / name).unlink(missing_ok=True)
