@@ -83,6 +83,10 @@ def derive_next_step(
         _handle_transaction_retry,
         _handle_empty_search,
         _handle_large_reply,
+        _handle_embedded_read_next,
+        _handle_status_guidance,
+        _handle_map_guidance,
+        _handle_walk_guidance,
     )
     for handler in handlers:
         steps = handler(
@@ -306,6 +310,150 @@ def _handle_large_reply(
         if hint is not None:
             return [hint]
     return []
+
+
+def _handle_embedded_read_next(
+    result: dict[str, Any],
+    *,
+    tool_name: str | None,
+    args_dict: dict[str, Any],
+    corpus_root: str | None,
+    corpus_state: dict[str, Any] | None,
+    lock: dict[str, Any] | None,
+    size_estimate: dict[str, Any] | None,
+) -> list[NextStep]:
+    if tool_name not in {
+        "md_search_read",
+        "md_read_related",
+        "md_overlaps",
+        "md_repeated_concepts",
+        "md_query_by_type",
+        "md_refactor_candidates",
+    }:
+        return []
+    read_next = result.get("read_next")
+    if not isinstance(read_next, list):
+        return []
+    steps: list[NextStep] = []
+    for item in read_next:
+        if not isinstance(item, dict):
+            continue
+        tool = item.get("tool")
+        args = item.get("args")
+        reason = item.get("reason")
+        if not isinstance(tool, str) or not isinstance(args, dict):
+            continue
+        reason_text = str(reason or "Use this next reading step.")
+        if tool_name == "md_search_read" and result.get("scope") == "descriptions":
+            reason_text += " Descriptions are routing hints; expand only selected targets before writing."
+        elif tool_name == "md_read_related":
+            reason_text += " This is graph context; use md_search_read separately for semantic business context."
+        steps.append({"tool": tool, "args": dict(args), "reason": reason_text})
+        if len(steps) >= 2:
+            break
+    return steps
+
+
+def _handle_status_guidance(
+    result: dict[str, Any],
+    *,
+    tool_name: str | None,
+    args_dict: dict[str, Any],
+    corpus_root: str | None,
+    corpus_state: dict[str, Any] | None,
+    lock: dict[str, Any] | None,
+    size_estimate: dict[str, Any] | None,
+) -> list[NextStep]:
+    if tool_name != "md_status":
+        return []
+    action = result.get("recommended_action")
+    if not isinstance(action, dict):
+        action = corpus_state.get("recommended_action") if isinstance(corpus_state, dict) else None
+    if not isinstance(action, dict) or action.get("tool") != "md_index":
+        return []
+    args = action.get("args")
+    if not isinstance(args, dict):
+        return []
+    index_args = dict(args)
+    index_args.pop("confirm", None)
+    index_args["dry_run"] = True
+    state = str(result.get("state") or "")
+    reason = str(action.get("reason") or "Preview index warmup cost before search.")
+    if state in {"FRESH", "HEALTHY"} and (index_args.get("path_include") or index_args.get("path_exclude")):
+        reason += " The scoped status is usable; preserve these path filters and do not warm a wider corpus unless needed."
+    return [{"tool": "md_index", "args": index_args, "reason": reason}]
+
+
+def _handle_map_guidance(
+    result: dict[str, Any],
+    *,
+    tool_name: str | None,
+    args_dict: dict[str, Any],
+    corpus_root: str | None,
+    corpus_state: dict[str, Any] | None,
+    lock: dict[str, Any] | None,
+    size_estimate: dict[str, Any] | None,
+) -> list[NextStep]:
+    if tool_name == "md_ls" and isinstance(args_dict.get("path"), str):
+        toc_args: dict[str, Any] = {"path": args_dict["path"], "with_tokens": True}
+        if args_dict.get("match"):
+            toc_args["match"] = args_dict["match"]
+        return [
+            {
+                "tool": "md_toc",
+                "args": toc_args,
+                "reason": (
+                    "This is a file/menu map. Use heading ids and token counts before choosing "
+                    "which sections to read."
+                ),
+            }
+        ]
+    if tool_name == "md_toc" and result.get("heading_count"):
+        return [
+            {
+                "tool": "md_extract",
+                "args": {"map_stdin": True, "extract": True, "token_budget": 3000},
+                "reason": (
+                    "Choose the file ids or heading ids from this map, then pipe this JSON to "
+                    "md extract with --files/--headings. Headings are routing hints; bodies "
+                    "come from md_extract."
+                ),
+            }
+        ]
+    return []
+
+
+def _handle_walk_guidance(
+    result: dict[str, Any],
+    *,
+    tool_name: str | None,
+    args_dict: dict[str, Any],
+    corpus_root: str | None,
+    corpus_state: dict[str, Any] | None,
+    lock: dict[str, Any] | None,
+    size_estimate: dict[str, Any] | None,
+) -> list[NextStep]:
+    if tool_name != "md_walk":
+        return []
+    stats = result.get("stats")
+    if not isinstance(stats, dict) or stats.get("stopped_reason") != "no_anchored_outlink":
+        return []
+    path = args_dict.get("path")
+    if not isinstance(path, str):
+        return []
+    args: dict[str, Any] = {"paths": [path]}
+    if isinstance(args_dict.get("scan"), str):
+        args["scan"] = args_dict["scan"]
+    return [
+        {
+            "tool": "md_read_related",
+            "args": args,
+            "reason": (
+                "Walk reached the end of anchored wikilinks. Use read-related for the "
+                "one-level graph neighborhood; use search-read separately for semantic matches."
+            ),
+        }
+    ]
 
 
 def _recommended_action_for(

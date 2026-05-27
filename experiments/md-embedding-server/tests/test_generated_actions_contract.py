@@ -139,6 +139,60 @@ def test_large_reply_next_steps_parse_against_current_cli() -> None:
             _assert_action_contract(action)
 
 
+def test_success_guidance_next_steps_parse_against_current_cli() -> None:
+    payloads = [
+        wrap(
+            {"root": "knowledge", "file_count": 2, "heading_count": 3, "files": []},
+            tool_name="md_ls",
+            args={"path": "knowledge"},
+        ),
+        wrap(
+            {"root": "knowledge", "file_count": 2, "heading_count": 3, "files": []},
+            tool_name="md_toc",
+            args={"path": "knowledge"},
+        ),
+        wrap(
+            {
+                "scope": "descriptions",
+                "read_next": [
+                    {
+                        "tool": "md_search_read",
+                        "args": {"corpus": "knowledge", "query": "agent", "expanded": True},
+                        "reason": "Expand selected search results into section bodies.",
+                    }
+                ],
+            },
+            tool_name="md_search_read",
+            args={"corpus": "knowledge", "query": "agent", "scope": "descriptions"},
+        ),
+        wrap(
+            {
+                "stats": {"stopped_reason": "no_anchored_outlink"},
+                "chain": [],
+            },
+            tool_name="md_walk",
+            args={"path": "knowledge/example.md", "anchor": "Start", "scan": "knowledge"},
+        ),
+        wrap(
+            {
+                "state": "HEALTHY",
+                "recommended_action": {
+                    "tool": "md_index",
+                    "args": {"corpus": "knowledge", "path_include": ["guides/**"]},
+                    "reason": "Optional eager warmup; dry-run previews cost before embedding the small delta.",
+                },
+            },
+            tool_name="md_status",
+            args={"corpus": "knowledge", "path_include": ["guides/**"]},
+        ),
+    ]
+    for payload in payloads:
+        actions = list(_iter_generated_actions(payload["_envelope"]["next_step"]))
+        assert actions
+        for action in actions:
+            _assert_action_contract(action)
+
+
 def test_status_recommended_action_is_safe_and_preserves_scope(tmp_path: Path) -> None:
     corpus = tmp_path / "corpus"
     keep = corpus / "keep"
