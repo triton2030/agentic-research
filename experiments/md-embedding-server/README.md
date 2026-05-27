@@ -118,6 +118,7 @@ Subcommands:
 - `ls`, `toc` — folder/file index by frontmatter description and headings
 - `extract` — return selected files/sections in one packet
 - `read-related` — linked Markdown neighborhood for context
+- `walk` — follow anchored wikilinks from one section as a single text chain
 - `importance` — graph centrality ranking (pagerank / centrality / in-degree / out-degree)
 - `profile-sections` — cache section profiles in the index (`--mode llm` for OpenRouter, heuristic default for no-cost runs)
 - `originality`, `owner-candidates` — embedding-cosine and graph-aware refactor signals

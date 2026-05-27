@@ -134,6 +134,7 @@ def _smoke_command(tool_name: str, *, corpus: Path, readme: Path, map_json: str)
         "md_ls": ("ls", c),
         "md_toc": ("toc", c),
         "md_read_related": ("read-related", "--paths", r, "--scan", c, "--mode", "preview"),
+        "md_walk": ("walk", r, "--anchor", "Rule", "--scan", c, "--depth", "1"),
         "md_importance": ("importance", c),
         "md_extract": ("extract", "--map-data", map_json, "--files", "1"),
         "md_search": ("search", c, "--query", "sample"),

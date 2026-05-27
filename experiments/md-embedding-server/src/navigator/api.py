@@ -188,6 +188,25 @@ def read_related(
     return collect_related_items(args)
 
 
+def walk(
+    path: str,
+    *,
+    anchor: str,
+    scan: str | None = None,
+    depth: int | None = None,
+    token_budget: int | None = None,
+) -> dict[str, Any]:
+    from .walk import walk_chain
+
+    return walk_chain(
+        path,
+        anchor=anchor,
+        scan=scan,
+        depth=depth,
+        token_budget=token_budget,
+    )
+
+
 def importance(corpus: str, *, top: int | None = None, sort_by: str | None = None) -> dict[str, Any]:
     from .importance import importance_rows
 

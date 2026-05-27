@@ -308,7 +308,8 @@ def wikilinks_with_anchors_from_text(text: str) -> list[tuple[str, str | None]]:
     """Same as wikilinks_from_text but preserves the `#anchor` part.
 
     Returns (target_path, anchor_or_None) tuples. `[[file#Heading Name]]`
-    becomes ("file", "Heading Name"); plain `[[file]]` becomes ("file", None).
+    becomes ("file", "Heading Name"); `[[#Heading Name]]` becomes
+    ("", "Heading Name"); plain `[[file]]` becomes ("file", None).
     """
     results: list[tuple[str, str | None]] = []
     for match in WIKILINK_RE.finditer(text):
@@ -322,7 +323,7 @@ def wikilinks_with_anchors_from_text(text: str) -> list[tuple[str, str | None]]:
             path_part, anchor_part = target.split("#", 1)
             path_clean = split_link_target(path_part)
             anchor_clean = anchor_part.split("?", 1)[0].strip()
-            if path_clean:
+            if path_clean or anchor_clean:
                 results.append((path_clean, anchor_clean or None))
         else:
             path_clean = split_link_target(target)

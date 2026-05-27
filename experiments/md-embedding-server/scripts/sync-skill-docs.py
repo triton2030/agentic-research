@@ -62,6 +62,7 @@ STALE_TOOL_IDS = (
     "md_status",
     "md_strip",
     "md_toc",
+    "md_walk",
 )
 
 STALE_PATTERN = re.compile(

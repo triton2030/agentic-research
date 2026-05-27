@@ -10,7 +10,7 @@ Phase 2 can start only when the lock tests are green.
 ## Invariants
 
 - `catalog.py` matches the MCP snapshot names, schemas, annotations and
-  canonical signatures. Current generated snapshot count is 30 tools; the
+  canonical signatures. Current generated snapshot count is 31 tools; the
   executable invariant is the catalog/snapshot test, not a hand-maintained
   prose count. Runtime import must not patch `ToolSpec` values; cleanup and
   fingerprint fields belong in the generated snapshot/source data.

@@ -15,7 +15,7 @@ Generated from `md_cli.catalog`.
 | md_health | health | `md health [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | md_impact | impact | `md impact PATH [--scan SCAN] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | md_importance | importance | `md importance CORPUS [--top TOP] [--sort-by SORT_BY] --json` |
-| md_index | index | `md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
+| md_index | index | `md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--allow-nested-corpus] --json` |
 | md_init | init | `md init [--paths PATHS] [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | md_ls | ls | `md ls PATH [--max-heading-level MAX_HEADING_LEVEL] [--match MATCH] [--with-tokens] [--with-link-counts] --json` |
 | md_orient | orient | `md orient CORPUS [--max-heading-level MAX_HEADING_LEVEL] [--top TOP] [--compact] --json` |
@@ -34,3 +34,4 @@ Generated from `md_cli.catalog`.
 | md_status | status | `md status CORPUS [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | md_strip | strip | `md strip [--paths PATHS] [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--also-related-section] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | md_toc | toc | `md toc PATH [--max-heading-level MAX_HEADING_LEVEL] [--match MATCH] [--with-tokens] [--with-link-counts] --json` |
+| md_walk | walk | `md walk PATH --anchor ANCHOR [--scan SCAN] [--depth DEPTH] [--token-budget TOKEN_BUDGET] --json` |

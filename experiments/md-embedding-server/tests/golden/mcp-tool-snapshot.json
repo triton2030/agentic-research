@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-05-22",
+  "generated_at": "2026-05-27",
   "source": "md_cli.catalog TOOLS_BY_ID",
-  "count": 30,
+  "count": 31,
   "tools": [
     {
       "name": "md_audit",
@@ -1886,6 +1886,65 @@
         "type": "object"
       },
       "cli_signature": "md toc PATH [--max-heading-level MAX_HEADING_LEVEL] [--match MATCH] [--with-tokens] [--with-link-counts] --json"
+    },
+    {
+      "name": "md_walk",
+      "cli_name": "walk",
+      "category": "atomic",
+      "library_function": "navigator.api.walk",
+      "workflow_function": null,
+      "handler_module": "md_cli.handlers.md_walk",
+      "tests_module": "tests.test_catalog_contract",
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "description": {
+        "when": "After choosing a concrete Markdown section, read the linked thought-chain by following anchored wikilinks from block to block.",
+        "why": "Pure link-graph reading without embeddings: extracts the start section, follows the first anchored wikilink in each section, and returns one attributed text packet.",
+        "input": "path, anchor, scan root, depth (link hops, default 3), token_budget (default 3000, 0=unbounded). Bare wikilinks are skipped.",
+        "output": "{ command:'walk', chain:[{path, anchor, content, tokens}], text, stats:{stopped_reason,...} }.",
+        "alt": "md_read_related for one-level graph neighborhood. md_search_read for semantic retrieval. Future unfold mode for inline page expansion.",
+        "cost": "Free. Filesystem reads only; no embeddings or network."
+      },
+      "input_schema": {
+        "properties": {
+          "anchor": {
+            "description": "Heading text to start from inside PATH.",
+            "minLength": 1,
+            "type": "string"
+          },
+          "depth": {
+            "description": "Max anchored wikilink hops after the starting section. Default 3.",
+            "maximum": 20,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "path": {
+            "description": "Markdown file that contains the starting block.",
+            "minLength": 1,
+            "type": "string"
+          },
+          "scan": {
+            "description": "Markdown root used for wikilink resolution. Default cwd.",
+            "type": "string"
+          },
+          "token_budget": {
+            "description": "Approx output budget. Default 3000; pass 0 for unbounded.",
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "path",
+          "anchor"
+        ],
+        "type": "object"
+      },
+      "cli_signature": "md walk PATH --anchor ANCHOR [--scan SCAN] [--depth DEPTH] [--token-budget TOKEN_BUDGET] --json"
     }
   ]
 }

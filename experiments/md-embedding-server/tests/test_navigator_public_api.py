@@ -76,6 +76,7 @@ def test_public_api_smoke_on_fixture_corpus() -> None:
         navigator.changed(scan=str(CORPUS), staged=True),
         navigator.search(str(CORPUS), "sample"),
         navigator.search_read(str(CORPUS), "sample"),
+        navigator.walk(str(README), anchor="Rule", scan=str(CORPUS), depth=1),
         navigator.overlaps(str(CORPUS)),
         navigator.repeated_concepts(str(CORPUS)),
         navigator.audit(str(CORPUS)),
@@ -89,7 +90,7 @@ def test_public_api_smoke_on_fixture_corpus() -> None:
         workflows.refactor_candidates(str(CORPUS), compact=True),
         workflows.section_blast_radius(str(README), str(CORPUS), "sample", scan=str(CORPUS)),
     ]
-    assert len(calls) == 30
+    assert len(calls) == 31
     assert all(isinstance(payload, dict) for payload in calls)
 
 
