@@ -31,7 +31,7 @@ commitments; veto-class в локальных папках пуст. Cross-proje
   работает внутри контракта.
 - `_ops/self-learning/lessons.md` depends-on живой
   `/Users/triton/.codex/skills/1self-learning/SKILL.md` — формат, лимит и
-  граница с `1findings` / `1user-said` живут в скилле.
+  граница с `1findings` / `_ops/user-said` живут в скилле.
 - `_ops/plans/**/task-*.md` depends-on `_ops/PROJECT-ROADMAP.md` +
   релевантные `AGENTS.md` (root + subtree).
 - `experiments/claude-bridge/` depends-on `~/.codex/skills/claude-mcp/`
@@ -62,10 +62,10 @@ commitments; veto-class в локальных папках пуст. Cross-proje
   surfaces `~/.codex/{skills,hooks,agents,AGENTS.md,config.toml}`,
   `~/.claude/{skills,hooks,agents,CLAUDE.md,settings*.json}` and
   `~/.agents/skills/`; contents are viewed live, not copied into the repo.
-- `experiments/all-my-messages/*.md` depends-on
-  `/Users/triton/.codex/hooks/user_prompt_all_messages.py` — global per-project
-  human-thread prompt analytics logs, не `1user-said` и не source of truth для
-  решений; subagent/service prompts фильтруются hook-ом.
+- `_ops/user-said/*.md` depends-on
+  `/Users/triton/.codex/hooks/user_prompt_long_user_said.py` — global
+  `UserPromptSubmit` auto-capture длинных человеческих prompts (>500 символов)
+  в каждом проекте; это raw дневник, не source of truth для решений.
 - Markdown graph frontmatter (`description`, `read-before-edit`,
   `edit-after-edit`) используется скриптом
   `/Users/triton/.codex/hooks/md_graph_pre_edit_reminder.py` — глобальный
@@ -97,8 +97,8 @@ commitments; veto-class в локальных папках пуст. Cross-proje
 - «design subagents / fresh eyes» → `1fresh-eyes` skill.
 - «интервью / длинные вопросники» → `1interview-tool` skill, `_ops/AGENTS.md`
   раздел про `interviews/`.
-- «важная цитата пользователя» → `1user-said` capture в
-  `_ops/user-said/YYYY-MM-DD.md`.
+- «длинные слова пользователя» → global `UserPromptSubmit` hook пишет в
+  `_ops/user-said/YYYY-MM-DD.md`; manual processing отдельно.
 - «самообучение / модель промахнулась / skill или tool сработал не так» →
   `1self-learning` и `_ops/self-learning/lessons.md`.
 

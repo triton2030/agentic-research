@@ -1,11 +1,20 @@
 # Агентные Инструкции
 
+## Роль
+
+Работай как технический партнёр и хранитель системы `agentic-research`:
+защищай реальный результат проекта, локальную правду и понятность
+owner-цепочки.
+
 ## Цель
 
-Строим систему `skills`, hooks, prompts, инструкций, знаний и рабочих
-контрактов, которая помогает мне создавать агентную среду, способную стабильно
-понимать мой контекст и намерение, действовать в меру автономно и продуктивно
-работать со мной.
+Помогай строить систему `skills`, hooks, prompts, инструкций, знаний и рабочих
+контрактов, где будущий ИИ быстро понимает мой контекст и намерение, действует
+в меру автономно и продуктивно работает со мной.
+
+Хороший результат каждой сессии: правильный owner найден, второй source of
+truth не создан, сделан минимальный проверяемый шаг, а система осталась
+понятнее, чем была.
 
 Источник: `_ops/GOAL.md#Что делаем`. Контракт синхронизации цитаты ведёт
 `1folder-contract`.
@@ -59,8 +68,10 @@ defensive repetition, автоматический fan-out или устарев
   файла (формат, что туда идёт) — `1strategy-docs`; content updates (current
   path сдвинулся, Stage closed) — `1planning`. Это не список стадий и не
   обязательная дорожная карта.
-- `_ops/user-said/YYYY-MM-DD.md` — сырые цитаты пользователя по дням. Capture
-  через `1user-said` (`add.sh`); обработка manual.
+- `_ops/user-said/YYYY-MM-DD.md` — сырой дневник длинных слов пользователя.
+  Глобальный Codex `UserPromptSubmit` hook создаёт эту папку в любом новом
+  проекте и пишет туда человеческие prompts длиннее 500 символов; обработка
+  manual.
 - `_ops/interviews/**` — временные интерактивные вопросники для длинного сбора
   ответов пользователя. Создавать через `1start-here` / `1folder-contract`,
   wording маршрута чинить через `1instruction-layer`, оформлять через
@@ -91,7 +102,8 @@ defensive repetition, автоматический fan-out или устарев
 - По умолчанию `_ops/` содержит `AGENTS.md`, `GOAL.md`, `PROJECT-ROADMAP.md`,
   `project-graph.md`, `user-said/`, `interviews/`, `findings/` и ленивый `plans/`.
 - `_ops/AGENTS.md` объясняет, как пользоваться папками `_ops/` и какие скилы
-  вызывать для planning, user-said capture, interviews и findings.
+  вызывать для planning, interviews и findings; `user-said/` наполняет
+  глобальный hook.
 - `INTERVIEW.md` и `LEARNINGS.md` не являются живыми рабочими поверхностями; не
   восстанавливать их. Для длинных вопросов использовать `_ops/interviews/**`,
   но только как временный вход, а не как постоянную память.
@@ -116,10 +128,11 @@ defensive repetition, автоматический fan-out или устарев
 - **Рамка — `_ops/PROJECT-ROADMAP.md`**:
   текущая рамка проекта без обязательной цепочки стадий. Shape файла —
   `1strategy-docs`; content updates — `1planning`.
-- **Цитаты пользователя — `_ops/user-said/YYYY-MM-DD.md`** (owner `1user-said`):
-  сырой capture важных цитат пользователя одной командой `add.sh`. Один файл
-  на день, append-only, без классификации. Дальнейшая обработка (поменять ли
-  инструкции, обновить ли GOAL, завести ли decision) — отдельным manual проходом.
+- **Длинные слова пользователя — `_ops/user-said/YYYY-MM-DD.md`**:
+  сырой auto-capture человеческих prompts длиннее 500 символов через глобальный
+  Codex `UserPromptSubmit` hook. Один файл на день, append-only, без
+  классификации. Дальнейшая обработка (поменять ли инструкции, обновить ли
+  GOAL, завести ли decision) — отдельным manual проходом.
 - **Интервью — `_ops/interviews/**`** (route owner `1start-here` /
   `1folder-contract`, wording owner `1instruction-layer`):
   временные интерактивные вопросники, когда агенту нужно много ответов от
@@ -151,8 +164,10 @@ folder-system contract — не уровни планирования. В Codex 
 
 ## _ops/user-said/
 
-- Сырые цитаты пользователя по дням: `_ops/user-said/YYYY-MM-DD.md`.
-- Capture одной командой `~/.claude/skills/1user-said/scripts/add.sh "<цитата>" "<контекст>"`.
+- Сырой auto-capture длинных слов пользователя по дням:
+  `_ops/user-said/YYYY-MM-DD.md`.
+- Глобальный Codex `UserPromptSubmit` hook создаёт `_ops/user-said/` в любом
+  новом проекте и пишет туда человеческие prompts длиннее 500 символов.
 - Append-only, без классификации и интерпретации в момент записи.
 - Дальнейшая обработка — отдельным manual проходом: пользователь сам решает,
   что превратить в правило AGENTS/CLAUDE, decision в GOAL, или просто оставить
@@ -189,10 +204,9 @@ folder-system contract — не уровни планирования. В Codex 
   `_ops/findings/**`.
 - Описательные anti-goals / границы проекта → `_ops/GOAL.md` через
   `1strategy-docs`, если это выбранный scope-контракт.
-- Важная durable цитата пользователя (red line, default, taste) →
-  `_ops/user-said/YYYY-MM-DD.md` через `1user-said` capture. Дальнейшая
-  обработка (что превратить в правило AGENTS/CLAUDE или decision в GOAL) —
-  manual, отдельным проходом.
+- Длинные слова пользователя → `_ops/user-said/YYYY-MM-DD.md` через глобальный
+  hook. Дальнейшая обработка (что превратить в правило AGENTS/CLAUDE или
+  decision в GOAL) — manual, отдельным проходом.
 - Объём активной задачи, подшаги и доказательства закрытия →
   `_ops/plans/**/task-*.md` через `1planning` только по явному запросу или
   когда без task-файла работа станет мутной.
@@ -248,10 +262,10 @@ folder-system contract — не уровни планирования. В Codex 
 - Unresolved approach branches при выполнении задачи / domain prerequisites /
   missing-middle questions → `1strategy`. Unresolved goal/scope/done shape →
   `1strategy-docs`.
-- Важная цитата пользователя (durable preference, red line, default, taste,
-  явная коррекция) → `1user-said` capture в `_ops/user-said/YYYY-MM-DD.md`.
-  Без классификации в момент записи. Дальнейшая обработка (поменять ли AGENTS /
-  CLAUDE / GOAL) — отдельным manual проходом.
+- Длинные слова пользователя автоматически попадают в
+  `_ops/user-said/YYYY-MM-DD.md` через глобальный hook. Не классифицировать их
+  в момент записи; дальнейшая обработка (поменять ли AGENTS / CLAUDE / GOAL) —
+  отдельным manual проходом.
 - Вопрос “как сформулировать или куда положить маленькое правило” →
   `1instruction-layer`. Вопрос “какой механизм/папочный контракт/guardrail
   ведёт агента к цели” → `1folder-contract`. Уже выбранная skill-работа
@@ -277,7 +291,7 @@ folder-system contract — не уровни планирования. В Codex 
   шире одного файла или нужны related sections, используй `$1md-reader`. После
   выбора цели проверки graph/frontmatter/related-docs/dependency-radius идут
   через `$1md-graph`; смысл файла остаётся за owner: `1planning`,
-  `1user-said`, `1strategy-docs`, `knowledge/` или скиллом.
+  `_ops/user-said/`, `1strategy-docs`, `knowledge/` или скиллом.
 - `1step-back` — dialog-time framing и один короткий zoom-out/reframe ход.
 - Codex-only `1fresh-eyes` — когда пользователь явно хочет свежие глаза,
   независимую проверку, субагентов, параллельную проверку или совет ролей.

@@ -12,9 +12,11 @@
 - `PROJECT-ROADMAP.md` — текущий режим, путь или стадия проекта. Shape файла —
   `1strategy-docs`; content updates (current path сдвинулся, Stage closed) —
   `1planning`; основной контракт не дублировать, ссылаться на `GOAL.md`.
-- `user-said/` — сырые цитаты пользователя по дням (`YYYY-MM-DD.md`). Capture
-  через `1user-said` (`add.sh`); append-only, без классификации. Дальнейшая
-  обработка цитат — manual, отдельным проходом.
+- `user-said/` — сырой auto-capture длинных слов пользователя по дням
+  (`YYYY-MM-DD.md`). Глобальный Codex `UserPromptSubmit` hook создаёт эту
+  папку в любом новом проекте и пишет туда человеческие prompts длиннее 500
+  символов; append-only, без классификации. Дальнейшая обработка — manual,
+  отдельным проходом.
 - `self-learning/` — один живой файл `lessons.md` с короткими уроками о
   поведении ИИ. Владелец: `1self-learning`; старые тематические файлы,
   счётчики и архивы не восстанавливать.
@@ -65,9 +67,8 @@ dependency-radius — проверяет `$1md-graph`. Смысл файла п�
   блоки, элементы Meta Bind из `1obsidian`, а агентные подсказки — под
   сворачиваемым блоком.
 - Когда пользователь ответил и сказал “проверь”, агент читает интервью и
-  переносит смысл к владельцам: durable цитата → `1user-said` capture,
-  план/task scope через `1planning`, GOAL/README через `1strategy-docs`,
-  знания в `knowledge/`.
+  переносит смысл к владельцам: план/task scope через `1planning`,
+  GOAL/README через `1strategy-docs`, знания в `knowledge/`.
 - После полного разбора переместить файл в `interviews/_archive/`. Активная
   папка показывает только незавершённые или ещё неразобранные интервью.
 
@@ -94,9 +95,9 @@ dependency-radius — проверяет `$1md-graph`. Смысл файла п�
   `1planning` для reconcile/archive; если противоречит выбранному подходу
   для задачи — `1strategy`; если задевает goal/scope shape — `1strategy-docs`.
 - Если проблема содержит устойчивое правило пользователя или красную линию,
-  цитата идёт в `_ops/user-said/YYYY-MM-DD.md` через `1user-said` capture;
-  превращение цитаты в правило AGENTS/CLAUDE или decision в GOAL — manual,
-  отдельным проходом, не здесь.
+  не записывай интерпретацию в `user-said/` вручную: эта папка наполняется
+  глобальным hook-ом длинных prompts. Превращение записи в правило AGENTS /
+  CLAUDE или decision в GOAL — manual, отдельным проходом, не здесь.
 - Если проблема меняет roadmap content (current path сдвинулся, Stage closed),
   передать в `1planning`. Если меняет roadmap shape или goal/scope —
   `1strategy-docs`.

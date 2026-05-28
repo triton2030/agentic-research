@@ -5004,3 +5004,207 @@ PLEASE IMPLEMENT THIS PLAN:
 ## 2026-05-28T01:11:38+05:00 | agentic-research | turn 019e6b10-687e-77d1-9267-5c50807a5805
 
 Да отлично давай так и сделаем
+
+
+## 2026-05-28T01:20:22+05:00 | agentic-research | turn 019e6b18-66c2-7280-bb28-6a7e024462b6
+
+Нам надо сделат хук который на первый раз чтения когда агент в первый раз читает чтобы мы ему сказали что "Есть более лучший способ чтения [$1md-reader](/Users/triton/.codex/skills/1md-reader/SKILL.md)"
+
+А когда агент впервые за сесию начинает редактировать AGENTS.MD сказать ему чтобы он использовал скил [$1folder-contract](/Users/triton/.codex/skills/1folder-contract/SKILL.md) 
+
+А если он также впревые за сессию начинает редактировать GOAL README ROADMAP то тогда он напомним также один раз за сессию про [$1strategy-docs](/Users/triton/.codex/skills/1strategy-docs/SKILL.md)
+
+
+## 2026-05-28T01:22:40+05:00 | agentic-research | turn 019e6b1a-84c9-7cc2-9c99-8a6ec22fc6ef
+
+Раскажи что делает скил ворк ревью
+
+
+## 2026-05-28T01:23:16+05:00 | agentic-research | turn 019e6b1a-ff02-73b3-8f1e-6ea330144fc4
+
+# Overview
+
+Generate 0 to 3 hyperpersonalized suggestions for what this user can do with Codex in this local project: /Users/triton/Documents/GitHub/agentic-research
+
+Get an understanding of the user's intent and goals by deeply viewing their connected apps. Suggest actionable tasks that they would actually act on/click.
+Infer what the user works on and their style from their connected apps.
+Optimize for relief: choose suggestions that make the user's life easier, reduce an open loop, unblock work, or prepare them for something that is about to matter. Do not suggest tasks that merely sound productive or create more work for the user.
+The best suggestions feel like Codex read the user's mind: by synthesizing signals across apps, it discovers something the user did not yet know and proposes the concrete next action they would want to take.
+
+Serve this specific user. Do not suggest generic project-quality, onboarding, exploration, cleanup, refactor, documentation, test-writing, or dependency-update tasks merely because they could be useful to someone who owns this project.
+Your job is to predict what this user specifically needs to get done.
+
+
+# Rules
+
+Use relevant connected apps or MCP sources available in this session, including Vercel when those connectors are installed.
+ Do not use GitHub. Those connectors are not allowed for personalized suggestions in this session.
+ For local project suggestions, make sure suggestions are truly relevant to this project itself. Don't use connected-app context that is unrelated to this project, its repo, or recent project threads. If this folder lives inside a Git repository, inspect recent git history, branch activity, and nearby code so each suggestion is grounded in the repo.
+
+
+    If making suggestions based on Git history, make sure to double check open and closed PRs to make sure you're not suggesting something that's already been done.
+    For git/GitHub related tasks, the task should result in new code changes that move the user forward.
+    Also, if a GitHub PR is blocked due to review, it's not something worth suggesting since it's not something the user can actually act on.
+
+Your suggestions must be based on recent events; e.g. recent Slack messages, unread emails, newly created issues, etc.
+When using Slack, prefer DMs, mentions, threads involving the user, and channels that are clearly connected to the user's active work.
+Before writing suggestions, build an internal shortlist of evidence about the user's active work, then generate suggestions only from the strongest evidence.
+Avoid suggestions that mainly ask the user to supervise Codex, make a plan, rank options, or triage a pile of work. Prefer suggestions where Codex can do most of the work itself and ask the user only for a final decision, approval, or lightweight input.
+Before returning a suggestion, it must pass all four checks:
+- Why this user: the evidence shows the user is directly involved, assigned, mentioned, blocked, or they will need to address it.
+- Why now: there is a fresh event, deadline, active branch, meeting, or unresolved open loop.
+- Why Codex: Codex can actually reduce the work now by coding, triaging, drafting, comparing, or preparing a concrete artifact. Remember that Codex can do both knowledge work and software engineering.
+- Why not already handled: recent PRs, dismissed suggestions, or recent threads do not already cover it.
+
+If any check is weak, delete the candidate.
+Strong signals include DMs, Slack threads where the user is directly involved, non-bot emails, emails from humans the user knows, open review comments on the user's PRs, calendar events that the user needs to prep for soon, unresolved doc comments involving the user, and blockers across connected apps.
+Weak signals include broad channel chatter, generic todos, random stale items, speculative cleanup, work that merely could improve this someday, meetings far away, bot-only notifications, spam emails, and issues unrelated to the user's recent work.
+
+Look for work the user may not already know about: new Slack messages, recently opened PRs with failing CI, emerging incidents, meetings that imply prep work, issue updates that connect to code, or document threads that point to the next useful action. Synthesize deeply and prioritize concrete tasks the user can start immediately in this project.
+
+Use recent Codex threads from this project primarily to avoid suggesting work the user is already doing and infer how they use Codex.
+
+Recent Codex threads in this project:
+[
+  {
+    "id": "019e6b1a-4c6c-7472-8c78-4f285acf34f2",
+    "title": "Поясни work-review",
+    "preview": "Раскажи что делает скил ворк ревью",
+    "updatedAt": "2026-05-27T20:23:05.000Z"
+  },
+  {
+    "id": "019e6b14-d8da-7f01-bd72-ec8dda3bc7ed",
+    "title": "Добавить хук чтения и правок",
+    "preview": "Нам надо сделат хук который на первый раз чтения когда агент в первый раз читает чтобы мы ему сказали что \"Есть более лучший способ чтения [$1md-reader](/Users/triton/.codex/skills/1md-reader/SKILL.md)\" А когда агент впервые за сесию начинает редактировать AGENTS.MD сказать ему чтобы он использовал скил [$1folder-contract](/Users/triton/.codex/skills/1folder-contract/SKILL.md) А если он также впревые за сессию начинает редактировать GOAL README ROADMAP то тогда он напомним также один раз за сессию про [$1strategy-docs](/Users/triton/.codex/skills/1strategy-docs/SKILL.md)",
+    "updatedAt": "2026-05-27T20:22:49.000Z"
+  },
+  {
+    "id": "019e6802-27da-7ec2-b0a5-d0e31563ac73",
+    "title": "Изучить wikilinks и embeddings",
+    "preview": "Это substantive вопрос про реальную систему — нужно читать код, не догадываться. Запускаю параллельное чтение чтобы понять текущую архитектуру. Игнорирую напоминание про TaskCreate — это понимание системы, а не execution. Читаю ключевые модули: как сейчас chunking и как живут wikilinks. Чтоб понять связь paragraph-level wikilinks с embeddings — читаю как сейчас представлены edges с anchors и какой shape у chunks в индексе: Прочитал ключевое. Картина яснее, чем казалось — и в ней реально есть пропущенный слой. --- ## Как сейчас устроена векторная база Через архитекторскую линзу, три уровня: **Уровень chunking** — единица embedding это **heading-bounded секция** (каждый `##` создаёт секцию). Длинные секции (>2000 tokens) дробятся на параграфы→предложения. То есть в случае с `Психология_студии.md` индексируется не файл целиком, а ~25 отдельных секций (страхи БС1-БС7, желания, JTBD, anti-segment отдельно). **Уровень обогащения текста перед embedding** ([sections.py:263](experiments/md-embedding-server/src/navigator/sections.py:263)) — каждой секции к телу клеится `file_description + file_title + heading_chain`. Это Anthropic Contextual Retrieval, но без LLM-вызова — structural context бесплатно. То есть БС2 встраивается как: ``` Психология студии MAVO: страхи, желания, JTBD... Психология_студии Психология студии > Страхи > БС2 — «Потеряю клиентов...» [тело параграфа] ``` **Уровень графа** ([link_graph.py:59](experiments/md-embedding-server/src/navigator/link_graph.py:59)) — wikilinks парсятся **уже с anchors**. В edge хранится `anchor=Снимок заказа`, **но используется только** для file-to-file графа (PageRank, `read-related`, blast radius). Embedding ничего про эту связь не знает. --- ## Где пропущенный слой Anchors **уже в данных**, но **не доходят до embedding text**. Это асимметрия — графовая инфраструктура читает paragraph-level wikilinks, а семантический поиск работает с секциями как изолированными островами. Три честных варианта обогащения: ### Вариант 1 — обогатить prefix перед embedding (cheap probe) К текущему `description + title + heading_chain` добавить: - **Out-links context**: для секции БС2, которая ссылается на `[[Снимок заказа]]`, в prefix падают 1-2 строки из этой целевой секции (description или первая фраза). - **In-links context**: если на БС2 ссылаются 3 других места — короткий список «упоминается из X, Y». **Цена:** низкая. Граф уже строится. Embedding text растёт на ~100-200 токенов, далеко от 8192-cap BGE-M3. **Выигрыш:** запрос «как защититься от утечки клиентов в каталоге» матчится через embedding не только по словам в БС2, но и через близость к терминам из Snapshot заказа. Свободный gain в dense retrieval. **Риск:** обогащение симметрично — может «размыть» уникальную семантику секции. Лечится: ограничивать prefix N=2 ближайшими hops + только description/title целевой секции, не тело. ### Вариант 2 — graph-proximity как re-ranking сигнал (без переиндексации) Уже работает hybrid BM25F + dense через RRF. Добавить третью компоненту: «насколько результат K близок графом к другим топ-результатам». То есть если в top-10 dense появилось 3 секции одного кластера wikilink-связности — они поднимаются. **Цена:** ноль на индекс, search-time hop computation. Полностью обратимо. **Выигрыш:** ловит latent topic clusters. Минус — работает только во время запроса. ### Вариант 3 — anchors как first-class nodes в графе (структурный) Сейчас граф: `file_A → file_B (anchor=БС2)`. Что если: `file_A#БС2 → file_B#Снимок_заказа` — секция-к-секции? Это самый дорогой и самый правильный. Текущий `Психология_студии.md` уже **пишет** wikilinks с anchors корректно — значит данные есть, переход чисто на стороне графа. Тогда: - blast radius: «правишь БС2 → влияет только на секции которые на неё ссылаются», не «весь файл влияет на весь файл». - importance: PageRank на уровне секций, не файлов. Это **тот самый 1-к-1 граф который ты упомянул в прошлом сообщении**, но на правильном уровне — на секциях, не файлах. На уровне файла 1-к-1 нереалистично; на уровне секции вполне. --- ## Моя позиция Я бы пошёл **1 → 3, минуя 2** (вариант 2 это локальный hack, который потом мешает чистому переходу). Старт: **Вариант 1** в обозримом времени — это правка `_contextual_passage()` в sections.py, обогащающая prefix данными из уже построенного графа. Один день работы, измеримый эффект на retrieval (можно A/B replay как делали для BGE-M3). Цель: **Вариант 3** как следующий шаг, если 1 показал, что paragraph-level wikilinks реально несут retrieval signal. --- Что ты думаешь на счёт этой идеи?",
+    "updatedAt": "2026-05-27T20:18:34.000Z"
+  },
+  {
+    "id": "019e6990-e95f-7ce0-b520-89174bcf2b39",
+    "title": "Разделить навигатор и чтение",
+    "preview": "Мне кажется, нам надо наш скилл навигатора разделить на навигатора и скилл чтения. Потому что скилл чтения на самом деле очень крутой. Он позволяет читать по заголовкам, позволяет читать сразу множество файлов чисто по их заголовкам, компактным образом. Он позволяет читать множество файлов, например, чисто их короткое описание. Это тоже другой режим, очень полезный. Он позволяет читать и заголовки, и короткое описание, например. Позволяет экономить контекст. А также он позволяет читать блоки текста по связям. То есть прочитать все связанные блоки текста, которые связаны именно с этим текстом. Ну вот, правда, я не знаю, куда положить. У нас есть скилл Граф, у нас есть скилл «Навигатор. И если мы создадим скилл чтения, куда положить скилл, который читает связанные блоки текста?",
+    "updatedAt": "2026-05-27T13:39:16.000Z"
+  },
+  {
+    "id": "019e68d9-8628-75d3-9573-c6d518d2399b",
+    "title": "Исправить type errors в api.py",
+    "preview": "✓ 1start-here загружен Serena MCP подключилась — вижу 21 `mcp__serena__*` инструмент. Сначала остановлю лишний project-server, который запускал в обход, и загружу схемы Serena tools. Сначала прочту инструкцию Serena (она просит это явно) и параллельно посмотрю накопленные memory. Инструкции Serena прочитаны (ключевое: **избегать Read/Edit на code files, использовать Serena-tools**). Проект активирован. Onboarding пропущу — он для будущих сессий, refactor analysis от него не зависит. **План анализа** (видимый ход, линза dev-критика): 1. **Symbol overview** двух крупнейших модулей (`api.py` 1361 строк, `audit.py` 1380 строк) — понять, что внутри. 2. **Diagnostics** Pyright на крупные модули — unused imports, type errors, dead code. 3. **Reference analysis** на public API — кто реально использует функции `navigator.api`. Малое число references = inline candidate. 4. **Implementations** на ключевые интерфейсы — найти over-abstraction. Запускаю параллельно overview двух крупнейших + diagnostics на них. Серьёзные находки уже на первом шаге. **Diagnostic-карта `api.py` (Pyright)**: - 10 одинаковых type errors: передача `SimpleNamespace` в `load_docs(args: Namespace | None)` — функции `scan`, `check`, `health`, `cycles`, `deps`, `impact`, `preflight`, `changed`, `init`, `strip` - 2 type errors в `_sections_index_context`: `Iterable[str] | str | None` → `list[str] | None` **Diagnostic-карта `audit.py`**: **zero issues** в 1380 строках. Типизация чистая. **Структурно**: - `api.py` — плоский dispatcher (36 функций) — каждая CLI-команда вызывает `load_docs(SimpleNamespace(...))`. Систематический pattern → нужен общий helper. - `audit.py` — 30 функций в 4 cohesive группах (constants/detect/severity_for_*/cmd). 8 функций `severity_for_*` имеют похожий shape — кандидат на mapping-таблицу. Расширяю карту: diagnostics на следующие крупные модули + структурный обзор `cli.py` legacy. **Type drift локализован в `api.py`** — остальные крупные модули чистые (search/index_build/graph/cli — все `{}`). `cli.py` legacy имеет всего 7 функций (argparse parser + dispatch). Подтверждаю dead status грузим Serena-ом. Параллельно: проверяю dead candidates через `find_referencing_symbols` + diagnostics на оставшиеся модули. **Большой улов:** - **`cli.py` legacy — `main` имеет 0 references** в кодовой базе. `build_parser` только внутри `cli.py`. AGENTS.md уже маркирует его legacy → весь 797-строчный модуль может быть удалён. - **`repeated_concepts.py` line 350** — type error: `\"-\" not supported for \"str | int | list[dict[str, Any]]\"`. Runtime crash потенциал на edge case. - `schemas.py`, `graph_reports.py` — чисто. Подтверждаю legacy cli.py через grep на потенциальные entry points + смотрю проблемную строку 350 + ищу `load_docs` declaration. Ошибка с параметром (имя `name_path_pattern` для `find_symbol`). И важная корректировка: `cli.py` НЕ полностью dead — `tests/test_contract_fixes.py` импортирует из него `build_manifest, parser_commands, _dispatch_pick_or_read`, а `scripts/md_navigator.py` импортирует `main`. Это **legacy boundary**, не dead. Повторяю запросы с правильным именем. **Finding `load_docs`**: декларация в `graph_core.py:192`, сигнатура `args: Namespace | None = None`. Это первоисточник 10 errors в api.py — приходит `SimpleNamespace`, ожидается `Namespace`. Чтобы локализовать error на line 350 в `repeated_concepts.py`, прочту 3 строки точечно (Serena разрешает small-region read поверх уже понятой функции). **Огромная находка**: `load_docs` имеет **23 call sites** — 10 в `api.py` (через SimpleNamespace, ошибки) и 12 в `graph.py` (через настоящий Namespace, чисто). Это **два параллельных dispatcher-слоя** для тех же команд (`scan/check/health/cycles/deps/impact/preflight/changed/init/strip`). И line 350 — это `(-x[\"section_count\"], x[\"path\"])` в sorted key. Pyright не знает что `section_count` — int (dict is generic `dict[str, Any]`). Mild typing issue. Финальная проверка: насколько `graph.py` активно используется новым layer (md_cli/handlers), или это пара legacy ↔ legacy. Финальное подтверждение: `graph.py` — legacy CLI слой (со своим `build_parser`), `md_cli/` его не импортирует. `cmd_scan` имеет 1 reference (внутри собственного `build_parser`). --- # Refactor-карта md-embedding-server (Serena LSP-анализ) ## Что использовал Serena MCP подключилась после второго перезапуска. Прогнал на крупнейших модулях: - `get_symbols_overview` — структурный анализ - `get_diagnostics_for_file` (Pyright) — типовые ошибки - `find_referencing_symbols` — call-graph для dead-code и blast radius - `find_symbol` — поиск декларации `load_docs` ## Критические находки (приоритет 1 — типовые ошибки) ### F1. `api.py` × 10: `SimpleNamespace` → `load_docs(args: Namespace | None)` **Что**: 10 идентичных Pyright errors во всех функциях dispatcher-слоя (`scan`, `check`, `health`, `cycles`, `deps`, `impact`, `preflight`, `changed`, `init`, `strip`). **Корень**: `graph_core.py:192` объявляет `load_docs(paths, root, args: Namespace | None = None) -> list[Doc]`. `api.py` строит `args = SimpleNamespace(...)` через helper `_graph_args` и передаёт. Runtime работает через duck-typing, но Pyright прав — это разные типы. **Refactor**: ввести Protocol в `graph_core.py`: ```python class LoadDocsArgs(Protocol): paths: list[str] path_include: list[str] | None path_exclude: list[str] | None # ...нужные атрибуты ``` Заменить `args: Namespace | None` → `args: LoadDocsArgs | None`. Затрагивает **23 call sites** (10 в `api.py` + 12 в `graph.py` + 1 fixture в graph.py). Один-shot правка, риск низкий. ### F2. `api.py` × 2: `_sections_index_context` — `Iterable[str]` vs `list[str]` Lines 551–552: `normalize_path_filter_patterns` принимает `list[str] | None`, получает `Iterable[str] | str | None`. **Refactor**: либо расширить сигнатуру `normalize_path_filter_patterns(patterns: Iterable[str] | None)`, либо `list(patterns)` перед вызовом. ### F3. `repeated_concepts.py:350` — typing hole в sorted key Строка `key=lambda x: (-x[\"section_count\"], x[\"path\"])`. Pyright не выводит тип `x[\"section_count\"]` (dict значения `Any`). **Refactor**: TypedDict для `file_breakdown` items: ```python class FileBreakdownItem(TypedDict): path: str section_count: int sections: list[dict[str, Any]] ``` ## Архитектурные находки (приоритет 2) ### F4. Параллельные dispatcher-слои `api.py` (1361) и `graph.py` (735) **Наблюдение**: оба содержат функции с теми же именами команд — `scan/check/health/cycles/deps/impact/preflight/changed/init/strip`. Оба вызывают `graph_core.load_docs`. Никто из `md_cli/` не импортирует `graph.py`. **Текущее состояние**: `graph.py` — legacy CLI с собственным `build_parser`, используется только через `navigator.cli` + scripts/md_navigator.py. **Refactor варианты** (требует решения пользователя): - **A. Маркировать explicit**: переименовать `graph.py` → `_legacy_graph_cli.py` или вынести в `navigator/legacy/`, чтобы граница была явной. - **B. Consolidate**: убедиться, что вся уникальная логика `graph.py` живёт в `graph_core` / `api.py`, и `graph.py` чисто re-export + cmd_* для legacy entry. - **C. Status quo**: оставить как есть, но довести до zero diagnostics (уже так). ### F5. `navigator/cli.py` (797) — legacy boundary **Не dead**, как казалось сначала. Tests импортируют `build_manifest, parser_commands, _dispatch_pick_or_read`. `scripts/md_navigator.py:27` импортирует `main`. AGENTS.md прямо говорит «не редактируй для основного `md` CLI». **Refactor**: вопрос — нужен ли вообще legacy boundary? Если он только для backward-compatibility смены `md_navigator.py` → `md`, у него ясный finite lifespan. Можно создать deprecation timeline. ## Maintainability-находки (приоритет 3) ### F6. `api.py` — repeated boilerplate в 10 функциях Тот же шаблон: `args = _graph_args(...) → docs = load_docs(args.paths, root, args) → report = graph_mod.<op>(docs, root)`. **Refactor**: helper ```python def _run_graph_op(paths, root, op_fn, **kwargs): args = _graph_args(paths, **kwargs) docs = graph_mod.load_docs(args.paths, root, args) return op_fn(docs, root) ``` Сократит ~30–40 строк, центральная точка для F1-fix. ### F7. `audit.py` — 8 функций `severity_for_*` одной формы Дублирующий shape для разных видов IA-smells. **Refactor**: dispatch table: ```python SEVERITY_RULES: dict[str, Callable[[dict], int]] = { \"smeared_concept\": severity_for_smeared_concept, \"classified_pair\": severity_for_classified_pair, # ... } ``` Скорее **косметика**, не приоритет. ## Сильные позитивные сигналы - **Zero diagnostics** в `audit.py` (1380), `search.py` (830), `index_build.py` (875), `graph.py` (735), `cli.py` (797), `schemas.py` (662), `graph_reports.py` (562). Type drift локализован **только в `api.py` и единичной строке `repeated_concepts.py`**. Это значит refactor F1+F2+F3 покрывают практически весь typing-долг. - Контракты AGENTS.md/architecture-lock держатся: `navigator/*` не импортирует `md_cli` (0 violations), `md_cli/handlers/` не вызывают `sys.exit`/`print(json)` (0 violations). - 255 unit-тестов pass, `md selftest` 30/31 pass (1 deliberately skip). --- ## Приоритеты для следующего шага Если хочешь сделать одну правку с максимальным эффектом — **F1 (Protocol для load_docs)**. Она: - Закрывает 10 из 13 Pyright-ошибок (77%) одной правкой - Затрагивает один файл декларации (`graph_core.py`) + 23 call sites через safe ast-rename - Низкий риск (Protocol = compile-time only, runtime поведение не меняется) - Открывает дверь к F6 (helper `_run_graph_op` — естественное место для type-safe args builder) Какую находку хочешь раскрутить дальше? Могу либо углубить (например, прочитать сигнатуры всех 23 call sites через Serena), либо собрать explicit refactor plan для F1 со всеми edit-точками. --- Проверь",
+    "updatedAt": "2026-05-27T13:11:43.000Z"
+  },
+  {
+    "id": "019e4f93-c621-7812-8edc-12145c7d6ffb",
+    "title": "Покажи примеры навигатора",
+    "preview": "Посмотри, как у тебя использовать скилл навигатора на реальных примерах.",
+    "updatedAt": "2026-05-27T13:09:27.000Z"
+  },
+  {
+    "id": "019e6851-73dd-7d93-b89c-6823280108d2",
+    "title": "Подобрать инструменты для Python",
+    "preview": "У нас много работы по питону, найди в интеренте инструменты которые можно было бы установить чтобы ИИ было легче, быстрее или качественнее работать и писать питон код",
+    "updatedAt": "2026-05-27T07:59:29.000Z"
+  },
+  {
+    "id": "019e685f-bc3b-7420-9a0e-e3dd6360825e",
+    "title": "Уточнить текст stop hook",
+    "preview": "у нас текст стоп хука выглядит так: Changed since `1work-review`: 14. - `experiments/md-embedding-server/AGENTS.md` — md-embedding-server Instructions must-read: нет must-update: нет - `experiments/md-embedding-server/README.md` — md-tools must-read: нет must-update: нет semantic: `experiments/md-embedding-server/docs/skills-semantic-equivalence.md#Skills Semantic Equivalence > 1md-navigator`, `_ops/plans/md-mcp-to-cli-refactor/GOAL.md#GOAL — md-mcp → CLI Refactor`, `experiments/md-embedding-server/docs/migration-blast-inventory.md#Migration Blast Inventory > Raw repo Markdown hits` - `experiments/md-embedding-server/docs/architecture-lock.md` — Architecture invariants for md CLI catalog, handler, runner, and library boundaries. must-read: нет must-update: нет related: `_ops/plans/md-cli-agent-contract/task-2026-05-23-agent-friendly-cli.md` — Active handoff task for fixing agent-facing md CLI contracts after research-backed review., `_ops/plans/md-cli-agent-contract/task-2026-05-23-md-cli-scenario-selftest.md` — Active task for proving md CLI tools work through agent-like scenario smoke checks., `_ops/plans/md-cli-agent-contract/task-2026-05-23-md-cli-stabilization-refactor.md` — Active task for stabilizing md CLI ownership: status core, legacy boundary, snapshots, ne… - `experiments/md-embedding-server/src/navigator/walk.py` — non-MD/unknown; graph skipped - `experiments/md-embedding-server/src/navigator/markdown_io.py` — non-MD/unknown; graph skipped - `experiments/md-embedding-server/src/navigator/api.py` — non-MD/unknown; graph skipped - `experiments/md-embedding-server/src/md_cli/handlers/md_walk.py` — non-MD/unknown; graph skipped - ещё 7 non-MD/unknown Index: NEEDS_WARMUP; semantic may be stale. 1work-review: после существенных правок проверь: просьба выполнена, есть наблюдаемая проверка, важный риск назван. Для Markdown diff сначала `md changed --json`; при graph/link риске — `md health --paths . --json`. Если всё ок — компактный финал + `<!-- 1work-review: да -->`; если нет — продолжи или сообщи. Не разворачивай acceptance/instructions без запроса или failed checks. Перед финалом: реальные «не сходится» по проекту → `1findings`; уроки о поведении ИИ → `1self-learning`. --- Мне кажется количество текста можно оптимизировать",
+    "updatedAt": "2026-05-27T07:54:49.000Z"
+  }
+]
+
+Use recent threads to avoid duplicates, understand working style, and identify rare still-live unresolved blockers. Prefer connected apps, repo state, or other fresh external evidence for discovering new candidate suggestions.
+Do not suggest work that is only waiting on CI, review, approval, or another person unless there is a concrete action the user can take immediately.
+
+Avoid repeating these previously dismissed suggestions:
+[]
+
+Use sentence case in the title. Do not use Start Case or Title Case. Keep titles under 16 words, but prefer titles nearing that length. Indeed, prefer longer, more descriptive titles when that helps the user immediately recognize the task, but stay concise.
+Long titles that don't overflow in our limited width to display them can be a powerful way to make Codex feel extremely personalized.
+
+Return 0 to 3 fresh suggestions. Return fewer than 3 when fewer than 3 suggestions clear the bar. Returning no suggestions is better than returning weak suggestions.
+Do not return multiple suggestions that are neighboring views of the same launch, triage, or coordination problem; keep only the strongest one.
+
+# Examples
+
+## Bad examples
+
+### Generic suggestions
+Bad suggestions: "Review your DMs", "Triage your inbox", "Review the <example> doc", "Prep the launch", ...
+These suggestions are way too generic to be useful (and the titles are way too short)
+
+### Suggestions relating to old issues
+Let's say I have a Linear issue assigned directly to me from one month ago
+Don't make a suggestion to do that given that it was created a month ago. We need to focus on recency and the future.
+
+### Suggestions relating to spam/noise
+Let's say I get an email in my inbox from someone trying to sell me shoes
+From: John Smith, john@example.com
+Subject: Try out the shoes this Sunday?
+Body: Hi sir, would you like to try out our company's new shoes this Sunday?
+
+If there is no prior relationship signal (e.g. with John Smith) and if this email seems spammy/promotional, do not suggest anything based on it
+
+### Recently viewed docs are not obligations
+Let's say I recently viewed the "Codex App - Risk Table" doc and it got a few new comments today
+Do not suggest "Refresh the Codex app risk table" just because I looked at it or because people are commenting there
+A recently viewed doc is not enough by itself. Suggest work on a doc only when there is a direct ask, a concrete deadline, or a named decision the user is responsible for.
+
+### Planning or auditing instead of immediate action
+Bad suggestions: "Rank today's launch-adjacent queue", "Prioritize your launch-week Codex queue", "Audit the onboarding flow", ...
+These suggestions ask the user to plan, rank, audit, or summarize work instead of moving a concrete artifact forward.
+Planning and auditing can often already be done asynchronously. Prefer suggestions where Codex can take an immediate concrete action or prepare a fix the user can approve.
+
+### Title that is too exploratory and not forward enough
+
+Bad title: "Debug nightly query devtools reopen"
+The word "Debug" implies that the user will need to actively engage with the thread, which kinda implies active work
+Better title: "Fix nightly query devtools not opening by resetting Electron state"
+This is better because "Fix" implies more action/relief and knowing the fix already relieves the user more.
+
+# Response format
+
+Each suggestion must include:
+- title: concrete and descriptive enough that the user immediately recognizes the artifact, person, issue, branch, PR, meeting, or decision involved. Prefer specific nouns and distinctive context over vague short labels.
+- description: one or two short sentences. Keep it compact and tooltip-like. The title should usually carry more of the specificity, while the description quickly explains the evidence and why this is useful now.
+- prompt: the user message to send
+- appId: the single most relevant app id, such as "690a90ec05c881918afb6a55dc9bbaa1". Choose the one app most central to the suggestion.
+- write the prompt as something that should launch as a new Codex thread in this project
+
+
+## 2026-05-28T01:29:48+05:00 | agentic-research | turn 019e6b21-0a41-71b2-83fe-70532f0fd04a
+
+Тогда полностью не то, надо переделать.
+Скил воркревью должен заставить агента в очень коротком виде честно признаться о каких папочных и корневых инструкциях он забыл что должен был сделовать. И какие скилы он упустил хотя надо было их использовать. А также сказать в чём он реально сомневается в контексте цели проекта, то есть на сколько близко то что он сделал к цели проекта или на сколько он не уверен вообще в правильности своей работы.
+
+Это надо переделать и в кодексе и клоде
+
+
+## 2026-05-28T01:31:24+05:00 | agentic-research | turn 019e6b22-83a6-7751-a05d-6d2f05f8f4ee
+
+Отлично теперь я хочу что если агент использовал больше 5 команд редактирования файлов, то должно появится напоминание "Ты отредактировал уже 5 файлов! Срочно запусти [$1work-review](/Users/triton/.codex/skills/1work-review/SKILL.md) !"
+
+
+## 2026-05-28T01:52:09+05:00 | agentic-research | turn 019e6b35-82b8-7a61-8282-2d9765359fc5
+
+нам надо в глобальной инструкции сказать чтобы ты прям вслух писал свой ход мыслей и главное мотивы твоего поведения которые должны быть основаны на инструкциях как корневых так и папочных
+
+То есть такие фразы типа
+"По GOAL.MD мы должны помнить о..."
+"Я буду работать в папке "бла-бла" а значит буду следовать по AGENTS.MD..."
+"Надо исправить этот файл но инструкция говорит что надо сначала прочитать, значит..."
+
+
+## 2026-05-28T01:59:01+05:00 | agentic-research | turn 019e6b3b-ca09-7120-8a40-3cbb1ae3858f
+
+Наш скил [$1instruction-layer](/Users/triton/.codex/skills/1instruction-layer/SKILL.md) должен более жёстко говорить что такое вообще файл инструкций, у меня очень частая проблемма что файлы инструкций превращаются в документы с информацией а не набор влияющих на поведение вещей
+
+
+## 2026-05-28T15:03:41+05:00 | agentic-research | turn 019e6e0a-2dca-7173-8a2c-bc54cc52137d
+
+Сделаем две вещи. Во-первых, скилл того, что я сказал, мы полностью удаляем и вместо этого сделаем хук автоматический, который бы в эту папку записывал мои слова, которые были больше пятиста символов. 
+
+И мы теперь Должны в скилле по инструкциям сказать то, что в папке Ops будет новая папка, которая называется «Правила». И туда мы будем записывать все правила. Но здесь мне нужно твоё мнение, потому что я считаю, что по лучшим практикам написания инструкций для агентов,не кажется, инструкции для агентов — это в первую очередь инструкции. Хотя, с другой стороны. Ну то есть, короче, идея в том, что инструкции для агентов, они эффективнее, чем меньше они по размеру. А вот в папке правил, особенно если касается огромного проекта, где очень много правил, то тогда папка инструкций будет раздуваться. Вообще посмотри в интернете, как решают проблему, по идее, скиллами, но тогда и количество скиллов, ну, по идее, да, скиллами, но проблема в том, что скиллы сложно редактировать особенно глобально.

@@ -28,6 +28,7 @@
 - Bridge relay truncated → восстанови из logs до rerun.
 - Shell one-liner с `$1`/backrefs — только single quotes или `apply_patch`; double quotes тихо съедают группы.
 - Append-only capture в один файл не запускай параллельно; сериализуй вызовы и проверь группировку строк.
+- Выбранный Markdown-target читай через `1md-reader` (`md toc/extract`), если нужен bounded scope; прямой `sed` оставляй для короткого файла.
 
 ## Claude Opus 4.7
 
