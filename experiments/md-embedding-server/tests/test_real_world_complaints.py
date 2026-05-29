@@ -10,14 +10,14 @@ complaint was not a CLI bug) or they fail and direct the next fix.
 Complaint index:
   1. stderr leak в stdout (`using OpenRouter key from ...`)
   2. Mixed types in `md health --json` (broken_graph_links int, cycles list)
-  3. `md changed --base HEAD` returned 4 files instead of 11
+  3. Removed changed-file helper returned 4 files instead of 11
   4. `md repeated-concepts` без `--path-include` = 270KB
   5. `md index --confirm` workflow требует 3 запусков
   6. `md status --json` всегда 3KB
   7. `md search-read` забивает контекст полным телом по умолчанию
 
 Covered here: 1, 2, 6, 7. Follow-up coverage lives in:
-  * #3: test_changed_path_filter.py
+  * #3: retired with the changed-file helper; git-diff file selection is outside the md CLI
   * #4: test_envelope_truncation_hint.py
   * #5: test_mcp_cli_parity.py + mutating transaction tests
 """

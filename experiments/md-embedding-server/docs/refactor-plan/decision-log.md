@@ -78,8 +78,8 @@ Probe-первый показал, что три жалобы из семи не
 жалоба «stderr leak в stdout» = harness artifact (caller мерджит
 дескрипторы; `embeddings.py:105` уже `file=sys.stderr`); жалоба «mixed
 int/list types in md health» = schema misunderstanding (counter vs list of
-objects — два разных поля по природе); жалоба «md changed showed 4 vs 11»
-= discoverability gap (default-excludes silently dropped `_archive/` и
+objects — два разных поля по природе); жалоба «old changed-file helper showed
+4 vs 11» = discoverability gap (default-excludes silently dropped `_archive/` и
 `runs/`, contract правильный, но не документирован в `--help`). Это
 сильный сигнал, что **discoverability ценнее compliance enforcement**:
 fix через `--help`, SKILL.md recipe и docstrings, не через новый
@@ -89,7 +89,7 @@ contract document.
 sentinel-before-apply (finding #18) — `restore_transaction_claim` в
 `transactions.py`, exit-code-aware finish в `_generic.py:138-140`;
 `cycles_count: int` additive в `health_report` для UX однородности с
-counter-полями; default-excludes документированы в `md changed --help`;
+counter-полями; default-excludes были документированы в help старого helper;
 `envelope.derive_next_step` выдаёт narrowing `next_step` для large reply
 (лечит #4/#6/#7 одной точкой без запроса большего текста);
 `md impact --help` объясняет
