@@ -19,7 +19,7 @@ skill workflows.
 | contract tests | public capabilities держат schema and output shape |
 | MCP smoke | agent transport works end-to-end |
 | skill workflow replay | текущие Codex/Claude recipes still work |
-| fixture corpora | RU/EN Markdown, broken links, duplicate concepts, stale index |
+| fixture corpora | RU/EN Markdown, broken links, duplicate concepts, warm-index clusters, stale index |
 | failure-mode tests | missing key, API failure, stale index, confirm required |
 | migration tests | aliases and old index behavior work or fail clearly |
 

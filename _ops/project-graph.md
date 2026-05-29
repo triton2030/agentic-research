@@ -29,9 +29,9 @@ commitments; veto-class в локальных папках пуст. Cross-proje
   (он думает + пишет; thinking не делегируется в `1strategy`).
 - `_ops/PROJECT-ROADMAP.md` depends-on `_ops/GOAL.md` — текущая рамка
   работает внутри контракта.
-- `_ops/self-learning/lessons.md` depends-on живой
-  `/Users/triton/.codex/skills/1self-learning/SKILL.md` — формат, лимит и
-  граница с `1findings` / `_ops/user-said` живут в скилле.
+- `_ops/self-learning/lessons.md` — legacy/read-only поверхность старого
+  self-learning маршрута. Новые model/skill/tool miss факты идут через
+  `1findings` в `_ops/findings/**` с префиксом `self-learning:`.
 - `_ops/plans/**/task-*.md` depends-on `_ops/PROJECT-ROADMAP.md` +
   релевантные `AGENTS.md` (root + subtree).
 - `experiments/claude-bridge/` depends-on `~/.codex/skills/claude-mcp/`
@@ -62,10 +62,9 @@ commitments; veto-class в локальных папках пуст. Cross-proje
   surfaces `~/.codex/{skills,hooks,agents,AGENTS.md,config.toml}`,
   `~/.claude/{skills,hooks,agents,CLAUDE.md,settings*.json}` and
   `~/.agents/skills/`; contents are viewed live, not copied into the repo.
-- `_ops/user-said/*.md` depends-on
-  `/Users/triton/.codex/hooks/user_prompt_long_user_said.py` — global
-  `UserPromptSubmit` auto-capture длинных человеческих prompts (>500 символов)
-  в каждом проекте; это raw дневник, не source of truth для решений.
+- `_ops/user-said/*.md` — legacy/manual сырой архив цитат пользователя; прежний
+  global `UserPromptSubmit` auto-capture hook отключён и не является
+  dependency.
 - Markdown graph frontmatter (`description`, `read-before-edit`,
   `edit-after-edit`) используется скриптом
   `/Users/triton/.codex/hooks/md_graph_pre_edit_reminder.py` — глобальный
@@ -97,10 +96,11 @@ commitments; veto-class в локальных папках пуст. Cross-proje
 - «design subagents / fresh eyes» → `1fresh-eyes` skill.
 - «интервью / длинные вопросники» → `1interview-tool` skill, `_ops/AGENTS.md`
   раздел про `interviews/`.
-- «длинные слова пользователя» → global `UserPromptSubmit` hook пишет в
-  `_ops/user-said/YYYY-MM-DD.md`; manual processing отдельно.
+- «длинные слова пользователя» → не автозаписываются; существующие записи в
+  `_ops/user-said/YYYY-MM-DD.md` обрабатываются manual отдельно.
 - «самообучение / модель промахнулась / skill или tool сработал не так» →
-  `1self-learning` и `_ops/self-learning/lessons.md`.
+  `1findings` как `self-learning:` факт в `_ops/findings/**`;
+  `_ops/self-learning/lessons.md` — legacy/read-only контекст.
 
 ## Veto-class
 

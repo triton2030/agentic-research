@@ -29,8 +29,8 @@ is callable.
 ## Atomic functions
 
 - `audit(corpus, **kwargs) -> dict`
-- `changed(scan=None, depth=None, base=None, since=None, staged=False, path_include=None, path_exclude=None) -> dict`
 - `check(paths=None, path_include=None, path_exclude=None) -> dict`
+- `cluster(corpus, k=None, seed=None, path_include=None, path_exclude=None, cache_dir=None) -> dict`
 - `corpus_scan(root=".") -> dict`
 - `cycles(paths=None, path_include=None, path_exclude=None) -> dict`
 - `deps(path, scan=None, depth=None, path_include=None, path_exclude=None) -> dict`
@@ -78,9 +78,13 @@ return dictionaries, and never depend on the CLI package.
 
 Graph-facing public functions in `navigator.api`
 (`scan`, `check`, `health`, `cycles`, `deps`, `impact`, `preflight`,
-`changed`, `init`, `strip`) are the installed `md` path. They build an
+`init`, `strip`) are the installed `md` path. They build an
 `argparse.Namespace` with `_graph_args`, then load documents through
 `_graph_docs` or `_graph_scan_docs`.
+
+`navigator.api` imports graph primitives from `graph_core`, `graph_edges`, and
+`graph_reports`; it does not import legacy `navigator.graph`. Git-diff file
+selection is not owned by `md`.
 
 That facade is also where `.md-tools.toml` `[graph]` filters merge with direct
 `path_include` / `path_exclude` API inputs. Callers may pass a list, other

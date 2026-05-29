@@ -36,7 +36,8 @@ ATOMIC_COMMANDS = {
     "md_deps": ["deps", str(README), "--scan", str(CORPUS)],
     "md_impact": ["impact", str(README), "--scan", str(CORPUS)],
     "md_preflight": ["preflight", str(README), "--scan", str(CORPUS)],
-    "md_changed": ["changed", "--scan", str(CORPUS), "--staged"],
+    "md_cluster": ["cluster", str(CORPUS)],
+    "md_coherence_audit": ["coherence-audit", str(README), "--scan", str(CORPUS)],
 }
 
 
@@ -58,7 +59,7 @@ def test_atomic_cli_surface_matches_frozen_mcp_tool_names() -> None:
     snapshot_names = {tool["name"] for tool in snapshot["tools"]}
 
     assert set(ATOMIC_COMMANDS) <= snapshot_names
-    assert len(ATOMIC_COMMANDS) == 25
+    assert len(ATOMIC_COMMANDS) == 26
     for tool_id, argv in ATOMIC_COMMANDS.items():
         result = _run_md(*argv)
         assert result.returncode in {0, 1, 4}, (tool_id, result.stderr)

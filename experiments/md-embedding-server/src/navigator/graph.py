@@ -65,7 +65,6 @@ from .graph_edges import (
 from .graph_reports import (
     PREFLIGHT_BLOCKERS,
     canonical_cycle,
-    changed_markdown_paths,
     check_graph,
     cycles_for_doc,
     dependency_report,
@@ -100,7 +99,6 @@ __all__ = [
     "REQUIRED_FIELDS",
     "build_parser",
     "canonical_cycle",
-    "changed_markdown_paths",
     "check_graph",
     "cycles_for_doc",
     "dependency_report",
@@ -537,45 +535,6 @@ def cmd_preflight(args: argparse.Namespace) -> int:
     return 1 if report_has_blockers(report) else 0
 
 
-def cmd_changed(args: argparse.Namespace) -> int:
-    if args.depth < 1:
-        raise SystemExit("--depth must be >= 1")
-    if args.base and args.since:
-        raise SystemExit("Use either --base or --since, not both.")
-    if args.staged and (args.base or args.since):
-        raise SystemExit("Use --staged without --base or --since.")
-    root = root_for_scan(args.scan)
-    scan_root = scan_scope_path(args.scan, root)
-    all_docs = load_docs([str(scan_root)], root, args)
-    reports: list[dict[str, Any]] = []
-    deleted: list[str] = []
-    for path in changed_markdown_paths(root, args):
-        if not path.exists():
-            deleted.append(str(safe_rel(path, root)))
-            continue
-        reports.append(preflight_report(load_doc(path, root), all_docs, root, args.depth, args.scan))
-
-    if args.json:
-        emit_json(
-            {
-                "command": "changed",
-                "since": "STAGED" if args.staged else (args.since or args.base or "HEAD"),
-                "depth": args.depth,
-                "reports": reports,
-                "deleted": deleted,
-            }
-        )
-    else:
-        since = "STAGED" if args.staged else (args.since or args.base or "HEAD")
-        print(f"CHANGED | since={since} markdown_files={len(reports)} deleted={len(deleted)}")
-        for path in deleted:
-            print(f"\nDELETED | {path} | downstream unknown; search references before finalizing")
-        for report in reports:
-            print()
-            print(render_preflight_report(report, title="CHANGED-FILE"))
-    return 1 if any(report_has_blockers(report) for report in reports) or deleted else 0
-
-
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Portable Markdown frontmatter graph helper.")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -681,47 +640,6 @@ def build_parser() -> argparse.ArgumentParser:
     add_path_filter_args(preflight, command_name="graph", with_no_default_excludes=True)
     preflight.set_defaults(func=cmd_preflight)
 
-    changed = sub.add_parser(
-        "changed",
-        help=(
-            "Report Markdown graph downstream checks for files touched by git diff. "
-            "Default scope = `git diff --name-only HEAD` (working tree vs HEAD, both "
-            "staged and unstaged tracked changes). Untracked files are NOT included "
-            "(git diff ignores them). Files under default-excluded folders "
-            "(_archive/, runs/, .git/, .claude/, .codex/, .venv/, node_modules/, "
-            "dist/, build/, out/, target/, __pycache__/, etc.) are SILENTLY DROPPED — "
-            "if the report seems short, pass --no-default-excludes to see the full set."
-        ),
-    )
-    changed.add_argument(
-        "--scan",
-        default=None,
-        help="Scope for reverse-scan and cycle checks (default: repo root).",
-    )
-    changed.add_argument(
-        "--depth",
-        type=int,
-        default=2,
-        help="Maximum edit-after-edit cascade depth to show (default: 2).",
-    )
-    changed.add_argument(
-        "--base",
-        default=None,
-        help="Compare against a git base ref. Prefer --since in new workflows.",
-    )
-    changed.add_argument(
-        "--since",
-        default=None,
-        help="Git ref to diff against (default: HEAD, including staged and unstaged changes).",
-    )
-    changed.add_argument(
-        "--staged",
-        action="store_true",
-        help="Use staged changes from git diff --cached.",
-    )
-    changed.add_argument("--json", action="store_true", help="Print machine-readable JSON.")
-    add_path_filter_args(changed, command_name="graph", with_no_default_excludes=True)
-    changed.set_defaults(func=cmd_changed)
     return parser
 
 

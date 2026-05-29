@@ -52,7 +52,8 @@ link-switch compatible.
 
 Перед switch обязательно прогнать три привычных workflow набора:
 
-- `1md-navigator`: orient -> search -> extract -> read-related -> audit probe.
-- `1md-graph`: edit-context -> preflight -> impact -> changed -> check/scan.
+- `1md-navigator`: orient -> search -> extract -> read-related -> audit/cluster probe.
+- `1md-graph`: edit-context -> preflight -> impact -> explicit-path
+  check/scan.
 - `1strategy`: search `_ops` -> extract -> read-related GOAL -> query decisions
   -> one-way door impact/preflight.

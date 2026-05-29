@@ -32,8 +32,9 @@ from typing import Any
 
 from .api import (
     audit,
-    changed,
     check,
+    cluster,
+    coherence_audit,
     corpus_scan,
     cycles,
     deps,
@@ -64,8 +65,9 @@ from . import workflows
 
 __all__ = [
     "audit",
-    "changed",
     "check",
+    "cluster",
+    "coherence_audit",
     "corpus_scan",
     "cycles",
     "deps",

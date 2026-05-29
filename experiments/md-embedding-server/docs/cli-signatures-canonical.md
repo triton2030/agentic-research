@@ -3,8 +3,9 @@
 | MCP tool | CLI subcommand | Signature |
 |---|---|---|
 | md_audit | audit | `md audit CORPUS [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--expanded] --json` |
-| md_changed | changed | `md changed [--scan SCAN] [--depth DEPTH] [--base BASE] [--since SINCE] [--staged] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
+| md_coherence_audit | coherence-audit | `md coherence-audit PATH [--anchor ANCHOR] [--scan SCAN] [--depth DEPTH] [--token-budget TOKEN_BUDGET] --json` |
 | md_check | check | `md check [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
+| md_cluster | cluster | `md cluster CORPUS [--k K] [--seed SEED] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--cache-dir CACHE_DIR] --json` |
 | md_corpus_scan | corpus-scan | `md corpus-scan [ROOT] --json` |
 | md_cycles | cycles | `md cycles [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | md_deps | deps | `md deps PATH [--scan SCAN] [--depth DEPTH] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |

@@ -5,6 +5,6 @@ from md_cli.handlers._generic import run_tool
 from md_cli.result import ToolResult
 
 
-@from_catalog('md_changed')
+@from_catalog('md_coherence_audit')
 def run(args) -> ToolResult:
-    return run_tool('md_changed', args)
+    return run_tool('md_coherence_audit', args)

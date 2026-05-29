@@ -116,7 +116,6 @@ Legacy helper names also found, not MCP tools: `md_navigator` (4).
 | `md_impact` | 12 | `md impact PATH [--scan SCAN] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | `md_check` | 7 | `md check [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | `md_deps` | 7 | `md deps PATH [--scan SCAN] [--depth DEPTH] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
-| `md_changed` | 7 | `md changed [--scan SCAN] [--depth DEPTH] [--base BASE] [--since SINCE] [--staged] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | `md_strip` | 6 | `md strip [--paths PATHS] [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--also-related-section] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | `md_section_blast_radius` | 6 | `md section-blast-radius PATH CORPUS --query QUERY [--heading-id HEADING_ID] [--scan SCAN] [--depth DEPTH] [--limit LIMIT] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | `md_cycles` | 5 | `md cycles [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
@@ -145,21 +144,18 @@ Legacy helper names also found, not MCP tools: `md_graph` (3).
 - `md_preflight` -> `md preflight PATH [--scan SCAN] [--depth DEPTH] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
 - `md_deps` -> `md deps PATH [--scan SCAN] [--depth DEPTH] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
 - `md_impact` -> `md impact PATH [--scan SCAN] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
-- `md_changed` -> `md changed [--scan SCAN] [--depth DEPTH] [--base BASE] [--since SINCE] [--staged] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
 - `md_ping` -> `md ping  --json`
 - Legacy helper references are not auto-rewritten; each skill section must either name an explicit CLI replacement or keep the helper as a legacy debug fallback/historical reference.
 
 **Representative calls to preserve**:
 
 - `md edit-context PATH --mode preview --json`; switch to `--expanded` only when preview shows real obligations; use `--mode strict` only for blockers and anchor-drift risk.
-- `md preflight PATH --scan SCAN --depth DEPTH --json` and `md changed --staged --json` are evidence packets with action labels, never binary `safe-to-edit` verdicts.
 - `md init --paths PATH --dry-run --json` then `md init --paths PATH --confirm --transaction-id <id> --json`; same transaction pattern for `md strip`.
 
 **Semantic patterns preserved**:
 
 - query/scope/limit patterns become explicit CLI flags with `--json`.
 - graph hygiene commands keep path/scan/depth semantics and output-reading discipline: `must-read`, `must-update`, `check-only`, `anchor-drift risk`, `cycles`, `deferred`.
-- `md_preflight` / `md_changed` must never be summarized as safe/unsafe; they expose obligations and signals only.
 - mutating/cost-bearing flow keeps dry-run/confirm/fingerprint safety, with `transaction_required` on `md_init` / `md_strip` confirm.
 - workflow tools stay agent-facing via `navigator.workflows` and thin CLI wrappers.
 
@@ -251,7 +247,6 @@ Legacy helper names also found, not MCP tools: `md_graph` (3).
 | `md_audit` | 5 | `md audit CORPUS [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--expanded] --json` |
 | `md_overlaps` | 3 | `md overlaps CORPUS [--threshold THRESHOLD] [--top TOP] [--min-tokens MIN_TOKENS] [--include-same-file] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--expanded] --json` |
 | `md_search` | 3 | `md search CORPUS --query QUERY [--scope SCOPE] [--limit LIMIT] [--candidates CANDIDATES] [--max-heading-level MAX_HEADING_LEVEL] [--rerank] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
-| `md_changed` | 3 | `md changed [--scan SCAN] [--depth DEPTH] [--base BASE] [--since SINCE] [--staged] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | `md_check` | 3 | `md check [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | `md_repeated_concepts` | 2 | `md repeated-concepts CORPUS [--threshold THRESHOLD] [--top TOP] [--min-files MIN_FILES] [--min-sections MIN_SECTIONS] [--min-tokens MIN_TOKENS] [--top-members TOP_MEMBERS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--expanded] --json` |
 | `md_extract` | 2 | `md extract --map-data MAP_DATA [--files FILES] [--headings HEADINGS] [--extract] [--token-budget TOKEN_BUDGET] --json` |
@@ -273,7 +268,6 @@ Legacy helper names also found, not MCP tools: `md_graph` (3).
 - `md_preflight` -> `md preflight PATH [--scan SCAN] [--depth DEPTH] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
 - `md_section_blast_radius` -> `md section-blast-radius PATH CORPUS --query QUERY [--heading-id HEADING_ID] [--scan SCAN] [--depth DEPTH] [--limit LIMIT] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
 - `md_impact` -> `md impact PATH [--scan SCAN] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
-- `md_changed` -> `md changed [--scan SCAN] [--depth DEPTH] [--base BASE] [--since SINCE] [--staged] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
 - `md_check` -> `md check [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
 
 **Semantic patterns preserved**:
@@ -314,7 +308,6 @@ Legacy helper names also found, not MCP tools: `md_graph` (3).
 | `md_preflight` | 2 | `md preflight PATH [--scan SCAN] [--depth DEPTH] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | `md_edit_context` | 2 | `md edit-context PATH [--mode MODE] [--scan SCAN] [--depth DEPTH] [--query QUERY] [CORPUS] [--expanded] --json` |
 | `md_deps` | 2 | `md deps PATH [--scan SCAN] [--depth DEPTH] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
-| `md_changed` | 2 | `md changed [--scan SCAN] [--depth DEPTH] [--base BASE] [--since SINCE] [--staged] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | `md_repeated_concepts` | 2 | `md repeated-concepts CORPUS [--threshold THRESHOLD] [--top TOP] [--min-files MIN_FILES] [--min-sections MIN_SECTIONS] [--min-tokens MIN_TOKENS] [--top-members TOP_MEMBERS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--expanded] --json` |
 | `md_scan` | 2 | `md scan [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | `md_query_by_type` | 2 | `md query-by-type CORPUS --types TYPES [--filter FILTER] [--limit LIMIT] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--compact] [--expanded] --json` |
@@ -328,7 +321,6 @@ Legacy helper names also found, not MCP tools: `md_graph` (3).
 - `md_preflight` -> `md preflight PATH [--scan SCAN] [--depth DEPTH] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
 - `md_edit_context` -> `md edit-context PATH [--mode MODE] [--scan SCAN] [--depth DEPTH] [--query QUERY] [CORPUS] [--expanded] --json`
 - `md_deps` -> `md deps PATH [--scan SCAN] [--depth DEPTH] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
-- `md_changed` -> `md changed [--scan SCAN] [--depth DEPTH] [--base BASE] [--since SINCE] [--staged] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
 - `md_repeated_concepts` -> `md repeated-concepts CORPUS [--threshold THRESHOLD] [--top TOP] [--min-files MIN_FILES] [--min-sections MIN_SECTIONS] [--min-tokens MIN_TOKENS] [--top-members TOP_MEMBERS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--expanded] --json`
 - `md_scan` -> `md scan [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
 - `md_query_by_type` -> `md query-by-type CORPUS --types TYPES [--filter FILTER] [--limit LIMIT] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--compact] [--expanded] --json`
@@ -444,7 +436,6 @@ Legacy helper names also found, not MCP tools: `md_graph` (3).
 | Tool | Hits | Representative CLI equivalent |
 |---|---:|---|
 | `md_search` | 6 | `md search CORPUS --query QUERY [--scope SCOPE] [--limit LIMIT] [--candidates CANDIDATES] [--max-heading-level MAX_HEADING_LEVEL] [--rerank] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
-| `md_changed` | 4 | `md changed [--scan SCAN] [--depth DEPTH] [--base BASE] [--since SINCE] [--staged] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | `md_deps` | 4 | `md deps PATH [--scan SCAN] [--depth DEPTH] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | `md_repeated_concepts` | 4 | `md repeated-concepts CORPUS [--threshold THRESHOLD] [--top TOP] [--min-files MIN_FILES] [--min-sections MIN_SECTIONS] [--min-tokens MIN_TOKENS] [--top-members TOP_MEMBERS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--expanded] --json` |
 | `md_cycles` | 3 | `md cycles [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
@@ -458,7 +449,6 @@ Legacy helper names also found, not MCP tools: `md_graph` (3).
 
 **CLI invocations после migration**:
 
-- `md_changed` -> `md changed [--scan SCAN] [--depth DEPTH] [--base BASE] [--since SINCE] [--staged] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
 - `md_search` -> `md search CORPUS --query QUERY [--scope SCOPE] [--limit LIMIT] [--candidates CANDIDATES] [--max-heading-level MAX_HEADING_LEVEL] [--rerank] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
 - `md_deps` -> `md deps PATH [--scan SCAN] [--depth DEPTH] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
 - `md_repeated_concepts` -> `md repeated-concepts CORPUS [--threshold THRESHOLD] [--top TOP] [--min-files MIN_FILES] [--min-sections MIN_SECTIONS] [--min-tokens MIN_TOKENS] [--top-members TOP_MEMBERS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--expanded] --json`
@@ -553,7 +543,6 @@ Legacy helper names also found, not MCP tools: `md_navigator` (1).
 | `md_preflight` | 4 | `md preflight PATH [--scan SCAN] [--depth DEPTH] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | `md_check` | 4 | `md check [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | `md_health` | 4 | `md health [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
-| `md_changed` | 3 | `md changed [--scan SCAN] [--depth DEPTH] [--base BASE] [--since SINCE] [--staged] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | `md_status` | 3 | `md status CORPUS [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | `md_index` | 3 | `md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--allow-nested-corpus] --json` |
 | `md_edit_context` | 2 | `md edit-context PATH [--mode MODE] [--scan SCAN] [--depth DEPTH] [--query QUERY] [CORPUS] [--expanded] --json` |
@@ -567,7 +556,6 @@ Legacy helper names also found, not MCP tools: `md_navigator` (1).
 
 **CLI invocations после migration**:
 
-- `md_changed` -> `md changed [--scan SCAN] [--depth DEPTH] [--base BASE] [--since SINCE] [--staged] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
 - `md_preflight` -> `md preflight PATH [--scan SCAN] [--depth DEPTH] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
 - `md_check` -> `md check [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
 - `md_health` -> `md health [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json`
@@ -681,7 +669,7 @@ Legacy helper names also found, not MCP tools: `md_navigator` (4).
 - Folder optimization warmup: `md index FOLDER --dry-run --json`; after dry-run returns `transaction_id`, use `md index FOLDER --confirm --transaction-id <id> --json`. Do not migrate to bare `--confirm`.
 - Duplicate probe: `md overlaps FOLDER --threshold 0.85 --top 20 --json`; both numbers are live skill thresholds.
 - Audit orchestration: `md audit FOLDER --json` remains the product path for cluster + overlaps signals.
-- Legacy-only cluster fallback: keep `experiments/md-embedding-server/scripts/md_navigator.py cluster <folder> --k <expected-topics>` as a debug fallback until a real `md cluster` subcommand exists; do not rewrite it to `md audit` as if it were equivalent.
+- Cluster topology: use `md cluster FOLDER --k N --json` when a standalone read-only cluster signal is needed; keep `md audit` for the broader health packet.
 
 **Semantic patterns preserved**:
 

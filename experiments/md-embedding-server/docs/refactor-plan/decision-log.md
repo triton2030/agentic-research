@@ -108,3 +108,22 @@ dropping non-dot folders — паттерн, который вероятно п�
 тоже. Future probe — добавить такие же `--help` notes этим командам,
 либо emit warning при значительной части скрытых файлов. Не делается
 сейчас по EVPI: один feedback round пока не оправдывает sweep.
+
+## D-005 - `md` не владеет git-diff selection
+
+Дата: 2026-05-29.
+
+Решение: убрать публичную git-diff based changed-file review команду из
+installed `md` path. Callers and skills own file selection; `md` принимает
+явные paths/scopes и возвращает graph/index evidence через `preflight`,
+`check`, `health`, `status` and related tools.
+
+Причина: рабочая среда часто живёт с грязным git tree and GitHub используется
+как backup, not collaboration flow. Команда, которая притворяется canonical
+diff owner-ом, создаёт шум и подталкивает agents к git/GitHub-dependent
+логике вместо явного локального scope.
+
+Следствие: `md_cluster` занимает освободившееся место в catalog-driven CLI как
+самостоятельный read-only IA/topology tool. Legacy graph wrappers remain only
+for compatibility; `navigator.api` imports graph primitives directly and does
+not depend on legacy `navigator.graph`.

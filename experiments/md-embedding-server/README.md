@@ -142,6 +142,9 @@ Subcommands:
 - `extract` — return selected files/sections in one packet
 - `read-related` — linked Markdown neighborhood as a map by default;
   `--expanded` / `--mode full` includes bodies
+- `coherence-audit` — after editing a file/section, keep inline anchored
+  wikilinks in place and insert each referenced block immediately after its
+  link for a coherence reread; frontmatter is ignored
 - `walk` — follow anchored wikilinks from one section as a single text chain
 - `importance` — graph centrality ranking (pagerank / centrality / in-degree / out-degree)
 - `profile-sections` — cache section profiles in the index (`--mode llm` for OpenRouter, heuristic default for no-cost runs)
@@ -155,6 +158,8 @@ Subcommands:
   includes section bodies under `--token-budget`
 - `overlaps` — grouped semantic-overlap map by default; `--expanded`
   returns full pairs
+- `cluster` — read-only K-means topic clusters from an already warm vector
+  index; returns `index_warmup_required` when cold
 - `repeated-concepts`, `audit` — corpus-level duplicate/topic/IA maps by
   default; `--expanded` returns full evidence
 - `tools`, `ping`, `doctor`, `selftest` — runtime discovery and diagnostics

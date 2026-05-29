@@ -25,7 +25,7 @@ compatibility contract.
 | `read-context` | Собрать контекст вокруг файла/секции | read, extract, related |
 | `edit-context` | Подготовить правку `.md` | preflight, related, semantic radius |
 | `graph-check` | Проверить graph/schema/link health | check, scan, cycles, deps, impact |
-| `audit` | Найти IA-проблемы корпуса | overlaps, repeated concepts, clusters |
+| `audit` | Найти IA-проблемы корпуса | overlaps, repeated concepts, clusters (`md_cluster` when standalone) |
 | `admin` | Управлять index/profile/frontmatter state | index, status, init, strip, profile |
 
 ## Правило

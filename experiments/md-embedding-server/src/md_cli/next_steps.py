@@ -82,6 +82,7 @@ def derive_next_step(
         _handle_transaction_required,
         _handle_transaction_retry,
         _handle_empty_search,
+        _handle_coherence_guidance,
         _handle_large_reply,
         _handle_embedded_read_next,
         _handle_status_guidance,
@@ -451,6 +452,66 @@ def _handle_walk_guidance(
             "reason": (
                 "Walk reached the end of anchored wikilinks. Use read-related for the "
                 "one-level graph neighborhood; use search-read separately for semantic matches."
+            ),
+        }
+    ]
+
+
+def _handle_coherence_guidance(
+    result: dict[str, Any],
+    *,
+    tool_name: str | None,
+    args_dict: dict[str, Any],
+    corpus_root: str | None,
+    corpus_state: dict[str, Any] | None,
+    lock: dict[str, Any] | None,
+    size_estimate: dict[str, Any] | None,
+) -> list[NextStep]:
+    if tool_name != "md_coherence_audit" or result.get("error"):
+        return []
+    issues = result.get("issues")
+    if isinstance(issues, list) and issues:
+        first = next((item for item in issues if isinstance(item, dict)), {})
+        target = first.get("target_path") or first.get("source_path")
+        reason = (
+            f"{len(issues)} coherence issue(s); first: {first.get('code')} on {first.get('link')}. "
+            "An anchored wikilink did not resolve to a heading. Run md toc on the target to see its "
+            "real anchors, then fix the link text or the heading."
+        )
+        if isinstance(target, str):
+            return [{"tool": "md_toc", "args": {"path": target, "with_tokens": False}, "reason": reason}]
+        return [{"tool": tool_name, "args": dict(args_dict), "reason": reason}]
+    if not (isinstance(size_estimate, dict) and size_estimate.get("large_reply")):
+        return []
+    byte_count = size_estimate.get("bytes")
+    size_note = f"Reply {byte_count} bytes" if isinstance(byte_count, int) else "Reply large"
+    stats = result.get("stats")
+    expanded = stats.get("blocks_expanded") if isinstance(stats, dict) else None
+    if expanded == 0:
+        path = args_dict.get("path")
+        if not isinstance(path, str):
+            return []
+        return [
+            {
+                "tool": "md_toc",
+                "args": {"path": path, "with_tokens": True},
+                "reason": (
+                    f"{size_note} with 0 inline expansions: the size is the source body itself, not "
+                    "link packets, so lowering depth or token_budget will not help. Pick a heading "
+                    "from this map and re-run coherence-audit with --anchor to audit one section."
+                ),
+            }
+        ]
+    narrowed = dict(args_dict)
+    narrowed["depth"] = min(int(args_dict.get("depth") or 2), 1)
+    narrowed["token_budget"] = min(int(args_dict.get("token_budget") or 6000), 3000)
+    return [
+        {
+            "tool": tool_name,
+            "args": narrowed,
+            "reason": (
+                f"{size_note} from {expanded} inline expansion(s). Try depth 1 and a smaller token "
+                "budget, then expand only if the inline link packet is still too thin."
             ),
         }
     ]

@@ -1,6 +1,6 @@
 # Self-Learning Lessons
 
-> [!summary] Owner: [[_ops/self-learning/README|Self-Learning]] · Skill: `1self-learning` · Лимит 4000 (`wc -m`). Проектное → `1findings`; цитаты → `1user-said`.
+> [!summary] Legacy/read-only. Новые self-learning факты → `1findings` с префиксом `self-learning:`; цитаты пользователя → manual `user-said`.
 
 ## GPT-5.5
 

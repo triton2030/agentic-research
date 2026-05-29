@@ -85,7 +85,8 @@ families, same warm-index and cost-guard behavior.
 - forward/reverse edges: `md_deps`;
 - section rewrite radius: `md_section_blast_radius`;
 - repo graph health: `md_health`, `md_cycles`, `md_check`, `md_scan`;
-- changed-file review: `md_changed`;
+- changed-file review: caller selects explicit paths, then uses `md_preflight`
+  / `md_check` / `md_status`;
 - schema cleanup: `md_init`, `md_strip`;
 - runtime check: `md_ping`.
 
@@ -135,7 +136,6 @@ behavior and rerank metadata.
 | `md_impact` | delete/rename blast radius for file links, graph edges and body links | `1md-graph`, `1strategy`, `1ia-audit`, `1instruction-layer`, `1folder-contract`, `1work-review` |
 | `md_deps` | forward and reverse graph edges with depth | `1md-graph`, `1planning`, `1ia-audit`, `1instruction-layer`, `1folder-contract` |
 | `md_section_blast_radius` | hard graph layer + soft semantic layer for section rewrite | `1md-graph`, `1instruction-layer` |
-| `md_changed` | git-diff-driven preflight for touched `.md` files | `1md-graph`, `1planning`, `1instruction-layer`, `1folder-contract`, `1work-review` |
 | `md_health` | repo-level graph health summary | `1md-graph`, `1folder-contract`, `1ia-audit`, `1work-review` |
 | `md_cycles` | edit-after-edit cycle detection | `1md-graph`, `1folder-contract`, `1work-review` |
 | `md_check` | wikilink, anchor and markdown-link validation | `1md-graph`, `1instruction-layer`, `1folder-contract`, `1work-review` |
@@ -152,6 +152,7 @@ Compatibility note: graph output must keep action labels. Skills read
 | `md_audit` | corpus health packet: discovery gaps, smeared owner truth, tight duplicates, template family, intra-file drift, cluster-folder mismatch | `1md-navigator`, `1ia-audit`, `1instruction-layer`, `1smart-simple`, `1work-review` |
 | `md_overlaps` | pair-level semantic overlap candidates with threshold and top controls | `1md-navigator`, `1ia-audit`, `1instruction-layer`, `1folder-contract`, `1skill-architect`, `1smart-simple` |
 | `md_repeated_concepts` | concept graph over repeated meaning across files | `1md-navigator`, `1ia-audit`, `1instruction-layer`, `1folder-contract`, `1planning` |
+| `md_cluster` | standalone read-only topic clusters from an already warm vector index | `1md-navigator`, `1ia-audit`, `1smart-simple` |
 | `md_refactor_candidates` | human-reviewed refactor proposal candidates, never auto-edit | `1md-navigator`, `1ia-audit` |
 | `md_query_by_type` | section profile query by open-question, decision, definition, rule, example and related types | `1md-navigator`, `1strategy`, `1planning` |
 | `md_profile_sections` | profile cache creation, heuristic or LLM mode, cost guarded | `1md-navigator` |
@@ -186,7 +187,7 @@ provide a shim:
 - `md_navigator.py read-related`
 - `md_navigator.py overlaps`
 - `md_navigator.py repeated-concepts`
-- `md_navigator.py cluster`
+- `md_navigator.py cluster` (legacy fallback; public replacement is `md cluster`)
 - `md_navigator.py audit`
 - `md_navigator.py index`
 - `md_navigator.py status`
@@ -201,7 +202,6 @@ provide a shim:
 - `md_graph.py cycles`
 - `md_graph.py check`
 - `md_graph.py scan`
-- `md_graph.py changed`
 - `md_graph.py init`
 - `md_graph.py strip`
 

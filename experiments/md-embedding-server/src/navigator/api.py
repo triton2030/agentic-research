@@ -8,7 +8,49 @@ from types import SimpleNamespace
 from typing import Any, Iterable
 
 from .config import resolve_filters_for_domain
+from .graph_core import (
+    ALLOWED_FIELDS,
+    load_docs,
+    load_target_doc,
+    repo_root,
+    root_for_scan,
+    scan_scope_path,
+    strip_related_section,
+    write_doc,
+)
+from .graph_edges import doc_data, finding_data, scan_doc
+from .graph_reports import (
+    check_graph,
+    dependency_report,
+    find_edit_after_edit_cycles,
+    health_report,
+    impact_report,
+    preflight_report,
+    report_has_blockers,
+)
 from .markdown_io import DEFAULT_EXCLUDED_PARTS
+
+
+_GRAPH = SimpleNamespace(
+    ALLOWED_FIELDS=ALLOWED_FIELDS,
+    check_graph=check_graph,
+    dependency_report=dependency_report,
+    doc_data=doc_data,
+    find_edit_after_edit_cycles=find_edit_after_edit_cycles,
+    finding_data=finding_data,
+    health_report=health_report,
+    impact_report=impact_report,
+    load_docs=load_docs,
+    load_target_doc=load_target_doc,
+    preflight_report=preflight_report,
+    repo_root=repo_root,
+    report_has_blockers=report_has_blockers,
+    root_for_scan=root_for_scan,
+    scan_doc=scan_doc,
+    scan_scope_path=scan_scope_path,
+    strip_related_section=strip_related_section,
+    write_doc=write_doc,
+)
 
 
 def _list(value: Any) -> list[str]:
@@ -207,8 +249,7 @@ def _graph_docs(
     path_exclude: Iterable[str] | str | None = None,
     **kwargs: Any,
 ) -> tuple[Any, Path, argparse.Namespace, list[Any]]:
-    from . import graph as graph_mod
-
+    graph_mod = _GRAPH
     root = graph_mod.repo_root()
     args = _resolved_graph_args(
         root,
@@ -245,7 +286,7 @@ def ping() -> dict[str, object]:
         "name": "md-tools",
         "version": "0.7.0",
         "navigator_package": "navigator",
-        "graph_package": "navigator.graph",
+        "graph_package": "navigator.graph_core+navigator.graph_reports",
     }
 
 
@@ -377,6 +418,25 @@ def read_related(
         link_distance_threshold=float(link_distance_threshold or 0.4),
     )
     return collect_related_items(args)
+
+
+def coherence_audit(
+    path: str,
+    *,
+    anchor: str | None = None,
+    scan: str | None = None,
+    depth: int | None = None,
+    token_budget: int | None = None,
+) -> dict[str, Any]:
+    from .coherence_audit import coherence_audit as _coherence_audit
+
+    return _coherence_audit(
+        path,
+        anchor=anchor,
+        scan=scan,
+        depth=depth,
+        token_budget=token_budget,
+    )
 
 
 def walk(
@@ -511,8 +571,7 @@ def deps(
     path_include: Iterable[str] | str | None = None,
     path_exclude: Iterable[str] | str | None = None,
 ) -> dict[str, Any]:
-    from . import graph as graph_mod
-
+    graph_mod = _GRAPH
     selected_depth = int(depth or 1)
     if selected_depth < 1:
         return _exit({"command": "deps", "error": "depth_must_be_positive"}, 2)
@@ -538,8 +597,7 @@ def impact(
     path_include: Iterable[str] | str | None = None,
     path_exclude: Iterable[str] | str | None = None,
 ) -> dict[str, Any]:
-    from . import graph as graph_mod
-
+    graph_mod = _GRAPH
     root = graph_mod.root_for_scan(scan)
     doc = graph_mod.load_target_doc(path, root)
     _args, all_docs = _graph_scan_docs(
@@ -560,8 +618,7 @@ def preflight(
     path_include: Iterable[str] | str | None = None,
     path_exclude: Iterable[str] | str | None = None,
 ) -> dict[str, Any]:
-    from . import graph as graph_mod
-
+    graph_mod = _GRAPH
     selected_depth = int(depth or 2)
     if selected_depth < 1:
         return _exit({"command": "preflight", "error": "depth_must_be_positive"}, 2)
@@ -578,50 +635,6 @@ def preflight(
     return _exit(
         {"command": "preflight", "depth": selected_depth, **report},
         1 if graph_mod.report_has_blockers(report) else 0,
-    )
-
-
-def changed(
-    *,
-    scan: str | None = None,
-    depth: int | None = None,
-    base: str | None = None,
-    since: str | None = None,
-    staged: bool = False,
-    path_include: Iterable[str] | str | None = None,
-    path_exclude: Iterable[str] | str | None = None,
-) -> dict[str, Any]:
-    from . import graph as graph_mod
-
-    selected_depth = int(depth or 2)
-    root = graph_mod.root_for_scan(scan)
-    args, all_docs = _graph_scan_docs(
-        graph_mod,
-        root,
-        scan,
-        path_include=path_include,
-        path_exclude=path_exclude,
-        depth=selected_depth,
-        base=base,
-        since=since,
-        staged=staged,
-    )
-    reports: list[dict[str, Any]] = []
-    deleted: list[str] = []
-    for changed_path in graph_mod.changed_markdown_paths(root, args):
-        if not changed_path.exists():
-            deleted.append(str(graph_mod.safe_rel(changed_path, root)))
-            continue
-        reports.append(graph_mod.preflight_report(graph_mod.load_doc(changed_path, root), all_docs, root, selected_depth, scan))
-    return _exit(
-        {
-            "command": "changed",
-            "since": "STAGED" if staged else (since or base or "HEAD"),
-            "depth": selected_depth,
-            "reports": reports,
-            "deleted": deleted,
-        },
-        1 if any(graph_mod.report_has_blockers(report) for report in reports) or deleted else 0,
     )
 
 
@@ -666,6 +679,48 @@ def _index_warmup(
         },
         4,
     )
+
+
+def cluster(
+    corpus: str,
+    *,
+    k: int | None = None,
+    seed: int | None = None,
+    path_include: Iterable[str] | str | None = None,
+    path_exclude: Iterable[str] | str | None = None,
+    cache_dir: str | None = None,
+) -> dict[str, Any]:
+    from .index_cluster import cluster_sections
+
+    corpus_root = Path(corpus).expanduser().resolve()
+    if not corpus_root.exists():
+        return _exit({"command": "cluster", "error": "path_not_found", "corpus": str(corpus_root)}, 2)
+    selected_k = int(k or 8)
+    if selected_k < 1:
+        return _exit({"command": "cluster", "error": "k_must_be_positive", "k": selected_k}, 2)
+    cache_root = Path(cache_dir).expanduser() if cache_dir else None
+    try:
+        result = cluster_sections(
+            corpus_root,
+            k=selected_k,
+            cache_root=cache_root,
+            seed=int(seed or 42),
+            path_include=_list(path_include),
+            path_exclude=_list(path_exclude),
+        )
+    except FileNotFoundError:
+        return _index_warmup(
+            corpus_root,
+            path_include=path_include,
+            path_exclude=path_exclude,
+            cache_root=cache_root,
+        ) | {"command": "cluster"}
+    except (ModuleNotFoundError, RuntimeError) as exc:
+        return _exit({"command": "cluster", "error": "dependency_failed", "detail": str(exc)}, 3)
+
+    for item in result.get("clusters", []):
+        item["top_files"] = [list(pair) for pair in item.get("top_files", [])]
+    return {"command": "cluster", "root": str(corpus_root), **result}
 
 
 _INDEX_CONTEXT_KWARGS = {

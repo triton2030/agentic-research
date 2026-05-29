@@ -16,8 +16,8 @@
    остановиться и вернуться к стратегии.
 4. `_ops/PROJECT-ROADMAP.md` — текущий режим движения. Это не backlog и не
    обязательная дорожная карта.
-5. `_ops/user-said/` — сырые цитаты пользователя по дням (capture через
-   `1user-said`); обработка manual.
+5. `_ops/user-said/` — legacy/manual сырой архив цитат пользователя по дням;
+   обработка только отдельным manual проходом.
 6. `knowledge/` — wisdom, guides, practical guides, examples и research.
    Для написания скиллов начинать с
    `knowledge/practical-guides/how-to-write-skills/`.

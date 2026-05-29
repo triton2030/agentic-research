@@ -19,9 +19,8 @@ files, owner-модели, guardrails и критерии так, чтобы б�
   examples и research для агентных систем.
 - Улучшать skill contracts, instruction files, routing, prompt-подходы, hooks,
   guardrails и owner-модели.
-- Использовать `_ops/user-said/YYYY-MM-DD.md` как сырой auto-capture длинных
-  слов пользователя через глобальный hook; обработка записей manual, отдельным
-  проходом.
+- Использовать `_ops/user-said/YYYY-MM-DD.md` только как legacy/manual сырой
+  архив цитат пользователя; глобальная автозапись hook-ом отключена.
 - Использовать `_ops/findings/**` только для актуальных проблем до стратегии,
   задачи или решения.
 - Использовать `_ops/interviews/**` как временный вход для длинного сбора

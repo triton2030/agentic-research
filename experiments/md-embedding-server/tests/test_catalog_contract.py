@@ -13,9 +13,9 @@ from md_cli.catalog import TOOLS, TOOLS_BY_ID
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_catalog_contains_31_entries() -> None:
-    assert len(TOOLS) == 31
-    assert len(TOOLS_BY_ID) == 31
+def test_catalog_contains_32_entries() -> None:
+    assert len(TOOLS) == 32
+    assert len(TOOLS_BY_ID) == 32
 
 
 def test_catalog_names_match_mcp_snapshot() -> None:
@@ -81,7 +81,7 @@ def test_md_tools_json_returns_catalog_with_envelope() -> None:
     result = _run_md("tools", "--json")
     assert result.returncode == 0
     payload = json.loads(result.stdout)
-    assert len(payload["tools"]) == 31
+    assert len(payload["tools"]) == 32
     assert payload["_envelope"]["tool"] == "md_tools"
 
 

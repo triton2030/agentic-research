@@ -1,7 +1,4 @@
 {
-  "generated_at": "2026-05-27",
-  "source": "md_cli.catalog TOOLS_BY_ID",
-  "count": 31,
   "tools": [
     {
       "name": "md_audit",
@@ -61,13 +58,13 @@
       "cli_signature": "md audit CORPUS [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--expanded] --json"
     },
     {
-      "name": "md_changed",
-      "cli_name": "changed",
+      "name": "md_coherence_audit",
+      "cli_name": "coherence-audit",
       "category": "atomic",
-      "library_function": "navigator.api.changed",
+      "library_function": "navigator.api.coherence_audit",
       "workflow_function": null,
-      "handler_module": "md_cli.handlers.md_changed",
-      "tests_module": "tests.test_contract_fixes",
+      "handler_module": "md_cli.handlers.md_coherence_audit",
+      "tests_module": "tests.test_coherence_audit",
       "annotations": {
         "destructiveHint": false,
         "idempotentHint": true,
@@ -75,57 +72,47 @@
         "readOnlyHint": true
       },
       "description": {
-        "when": "Pre-commit pass, before opening a PR, batch-validate a feature branch.",
-        "why": "git diff → list .md files → preflight each — one call. Reports deleted files separately.",
-        "input": "scan (default repo root), depth (cascade, default 2), base (git ref) | staged (boolean), path_include/exclude.",
-        "output": "{ command:'changed', changed: [{ path, preflight: {...} }], deleted: [...] }.",
-        "alt": "Pre-commit hook. md_preflight for one file by path.",
-        "cost": "Free."
+        "when": "After editing a selected Markdown file or section, audit thought flow by expanding inline anchored wikilinks in place.",
+        "why": "Ignores frontmatter: preserves source prose, keeps each [[...#...]] link, inserts the target heading-bounded block immediately after that link, and returns one attributed packet for a coherence reread.",
+        "input": "path, optional anchor, scan root, depth for nested inline expansions (default 2), token_budget (default 6000, 0=unbounded). Bare wikilinks are kept but not expanded.",
+        "output": "{ command:'coherence-audit', source, blocks, issues, text, stats }.",
+        "alt": "md_walk for the old first-link chain reader. md_read_related for a neighborhood map. md_search_read for semantic retrieval.",
+        "cost": "Free. Filesystem reads only; no embeddings or network."
       },
       "input_schema": {
         "properties": {
-          "base": {
-            "description": "Git ref to diff against (e.g. 'main')",
+          "anchor": {
+            "description": "Optional heading text inside PATH; omit to audit the whole file body after stripping frontmatter.",
             "type": "string"
           },
           "depth": {
-            "description": "Cascade depth (default 2)",
-            "exclusiveMinimum": 0,
+            "description": "Nested anchored-wikilink expansion depth after the source text. Default 2.",
             "maximum": 10,
+            "minimum": 0,
             "type": "integer"
           },
-          "path_exclude": {
-            "items": {
-              "minLength": 1,
-              "type": "string"
-            },
-            "type": "array",
-            "description": "Repeatable path glob/subpath filter to exclude."
-          },
-          "path_include": {
-            "items": {
-              "minLength": 1,
-              "type": "string"
-            },
-            "type": "array",
-            "description": "Repeatable path glob/subpath filter to include."
+          "path": {
+            "description": "Markdown file to audit.",
+            "minLength": 1,
+            "type": "string"
           },
           "scan": {
-            "description": "Reverse-scan scope (default: repo root)",
+            "description": "Markdown root used for wikilink resolution. Default cwd.",
             "type": "string"
           },
-          "since": {
-            "description": "Git ref to diff against (default: HEAD, includes staged + unstaged)",
-            "type": "string"
-          },
-          "staged": {
-            "description": "Use staged changes from git diff --cached",
-            "type": "boolean"
+          "token_budget": {
+            "description": "Approx output budget. Default 6000; pass 0 for unbounded.",
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
           }
         },
+        "required": [
+          "path"
+        ],
         "type": "object"
       },
-      "cli_signature": "md changed [--scan SCAN] [--depth DEPTH] [--base BASE] [--since SINCE] [--staged] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json"
+      "cli_signature": "md coherence-audit PATH [--anchor ANCHOR] [--scan SCAN] [--depth DEPTH] [--token-budget TOKEN_BUDGET] --json"
     },
     {
       "name": "md_check",
@@ -179,6 +166,73 @@
         "type": "object"
       },
       "cli_signature": "md check [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json"
+    },
+    {
+      "name": "md_cluster",
+      "cli_name": "cluster",
+      "category": "atomic",
+      "library_function": "navigator.api.cluster",
+      "workflow_function": null,
+      "handler_module": "md_cli.handlers.md_cluster",
+      "tests_module": "tests.test_navigator_public_api",
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "description": {
+        "when": "IA audit or corpus topology review when a warm index exists and you need topic clusters.",
+        "why": "K-means over existing section vectors; no git, no writes, no embedding calls. common_parent vs centroid_path mismatch is an IA signal.",
+        "input": "corpus, k, seed, path_include/exclude, cache_dir.",
+        "output": "{ command:'cluster', root, k, n_sections, n_chunks, clusters:[...] }. Returns index_warmup_required when cold.",
+        "alt": "md_audit for full health. md_overlaps / md_repeated_concepts for duplicate meaning.",
+        "cost": "Free after index warmup; reads the on-disk vector index only."
+      },
+      "input_schema": {
+        "properties": {
+          "cache_dir": {
+            "description": "Optional index cache root.",
+            "type": "string"
+          },
+          "corpus": {
+            "description": "Markdown corpus root with an existing index.",
+            "minLength": 1,
+            "type": "string"
+          },
+          "k": {
+            "description": "Number of clusters. Default 8.",
+            "exclusiveMinimum": 0,
+            "maximum": 100,
+            "type": "integer"
+          },
+          "path_exclude": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to exclude."
+          },
+          "path_include": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to include."
+          },
+          "seed": {
+            "description": "K-means seed for reproducible runs. Default 42.",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "corpus"
+        ],
+        "type": "object"
+      },
+      "cli_signature": "md cluster CORPUS [--k K] [--seed SEED] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--cache-dir CACHE_DIR] --json"
     },
     {
       "name": "md_corpus_scan",

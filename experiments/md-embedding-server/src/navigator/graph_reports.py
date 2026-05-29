@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import argparse
 import shlex
-import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -529,34 +528,3 @@ def render_preflight_report(report: dict[str, Any], title: str = "PREFLIGHT") ->
     lines.append(report["related_reading_command"])
 
     return "\n".join(lines)
-
-
-def changed_markdown_paths(root: Path, args: argparse.Namespace) -> list[Path]:
-    if args.staged:
-        command = ["git", "diff", "--cached", "--name-only", "--"]
-    else:
-        ref = args.since or args.base or "HEAD"
-        command = ["git", "diff", "--name-only", ref, "--"]
-    result = subprocess.run(command, cwd=root, text=True, capture_output=True)
-    if result.returncode != 0:
-        raise SystemExit(result.stderr.strip() or "git diff failed")
-    paths: list[Path] = []
-    for line in result.stdout.splitlines():
-        if not line.strip():
-            continue
-        path = (root / line.strip()).resolve()
-        if path.suffix.lower() == ".md":
-            paths.append(path)
-    # Apply the same filter contract as load_docs/iter_markdown so
-    # --path-include / --path-exclude / --no-default-excludes (and the
-    # .md-tools.toml baseline appended into them via navigator.api.changed)
-    # actually narrow the report set. Without this, git diff alone decided
-    # the report scope and the flags silently no-op'd.
-    from .graph_core import _path_passes
-    include = list(getattr(args, "path_include", []) or [])
-    exclude = list(getattr(args, "path_exclude", []) or [])
-    use_defaults = not getattr(args, "no_default_excludes", False)
-    return [
-        p for p in paths
-        if _path_passes(p, root, include, exclude, use_defaults)
-    ]

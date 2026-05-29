@@ -220,6 +220,14 @@ def write_doc(doc: Doc, frontmatter: dict, body: str | None = None) -> None:
     doc.path.write_text(new_text, encoding="utf-8")
 
 
+def strip_related_section(body: str) -> tuple[str, bool]:
+    new_body, count = RELATED_SECTION_RE.subn("", body)
+    if count == 0:
+        return body, False
+    new_body = new_body.rstrip() + ("\n" if body.endswith("\n") else "")
+    return new_body, True
+
+
 def load_target_doc(path_value: str, root: Path) -> Doc:
     target_path = _resolve_invocation_path(path_value, root)
     if not target_path.exists():

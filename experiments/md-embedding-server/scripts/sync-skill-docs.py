@@ -35,6 +35,8 @@ STALE_TOOL_IDS = (
     "md_audit",
     "md_changed",
     "md_check",
+    "md_cluster",
+    "md_coherence_audit",
     "md_corpus_scan",
     "md_cycles",
     "md_deps",
@@ -69,7 +71,7 @@ STALE_PATTERN = re.compile(
     r"\b(?:" + "|".join(re.escape(name) for name in STALE_TOOL_IDS) + r")\b|"
     r"mcp__md-mcp|md-mcp|MD_NAVIGATOR_SCRIPT|md_navigator\.py|md_graph\.py|"
     r"experiments/md-embedding-server/mcp/README\.md|listTools|"
-    r"\bmd\s+(?:map|headings|read(?!-related)|cluster|md_[a-z_]+)\b"
+    r"\bmd\s+(?:changed|map|headings|read(?!-related)|md_[a-z_]+)\b"
 )
 
 

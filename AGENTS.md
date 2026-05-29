@@ -69,9 +69,8 @@ defensive repetition, автоматический fan-out или устарев
   path сдвинулся, Stage closed) — `1planning`. Это не список стадий и не
   обязательная дорожная карта.
 - `_ops/user-said/YYYY-MM-DD.md` — сырой дневник длинных слов пользователя.
-  Глобальный Codex `UserPromptSubmit` hook создаёт эту папку в любом новом
-  проекте и пишет туда человеческие prompts длиннее 500 символов; обработка
-  manual.
+  Автозапись `UserPromptSubmit` отключена; не рассчитывать, что prompts
+  пишутся туда автоматически. Обработка существующих записей — manual.
 - `_ops/interviews/**` — временные интерактивные вопросники для длинного сбора
   ответов пользователя. Создавать через `1start-here` / `1folder-contract`,
   wording маршрута чинить через `1instruction-layer`, оформлять через
@@ -102,8 +101,8 @@ defensive repetition, автоматический fan-out или устарев
 - По умолчанию `_ops/` содержит `AGENTS.md`, `GOAL.md`, `PROJECT-ROADMAP.md`,
   `project-graph.md`, `user-said/`, `interviews/`, `findings/` и ленивый `plans/`.
 - `_ops/AGENTS.md` объясняет, как пользоваться папками `_ops/` и какие скилы
-  вызывать для planning, interviews и findings; `user-said/` наполняет
-  глобальный hook.
+  вызывать для planning, interviews и findings; `user-said/` остаётся
+  legacy/manual raw archive.
 - `INTERVIEW.md` и `LEARNINGS.md` не являются живыми рабочими поверхностями; не
   восстанавливать их. Для длинных вопросов использовать `_ops/interviews/**`,
   но только как временный вход, а не как постоянную память.
@@ -129,10 +128,10 @@ defensive repetition, автоматический fan-out или устарев
   текущая рамка проекта без обязательной цепочки стадий. Shape файла —
   `1strategy-docs`; content updates — `1planning`.
 - **Длинные слова пользователя — `_ops/user-said/YYYY-MM-DD.md`**:
-  сырой auto-capture человеческих prompts длиннее 500 символов через глобальный
-  Codex `UserPromptSubmit` hook. Один файл на день, append-only, без
-  классификации. Дальнейшая обработка (поменять ли инструкции, обновить ли
-  GOAL, завести ли decision) — отдельным manual проходом.
+  legacy/manual сырой архив цитат пользователя. Автозапись отключена; не
+  классифицировать существующие записи автономно. Дальнейшая обработка
+  (поменять ли инструкции, обновить ли GOAL, завести ли decision) — отдельным
+  manual проходом.
 - **Интервью — `_ops/interviews/**`** (route owner `1start-here` /
   `1folder-contract`, wording owner `1instruction-layer`):
   временные интерактивные вопросники, когда агенту нужно много ответов от
@@ -164,10 +163,10 @@ folder-system contract — не уровни планирования. В Codex 
 
 ## _ops/user-said/
 
-- Сырой auto-capture длинных слов пользователя по дням:
+- Legacy/manual сырой архив цитат пользователя по дням:
   `_ops/user-said/YYYY-MM-DD.md`.
-- Глобальный Codex `UserPromptSubmit` hook создаёт `_ops/user-said/` в любом
-  новом проекте и пишет туда человеческие prompts длиннее 500 символов.
+- Глобальная автозапись `UserPromptSubmit` отключена; не рассчитывать,
+  что папка наполняется автоматически.
 - Append-only, без классификации и интерпретации в момент записи.
 - Дальнейшая обработка — отдельным manual проходом: пользователь сам решает,
   что превратить в правило AGENTS/CLAUDE, decision в GOAL, или просто оставить
@@ -204,9 +203,8 @@ folder-system contract — не уровни планирования. В Codex 
   `_ops/findings/**`.
 - Описательные anti-goals / границы проекта → `_ops/GOAL.md` через
   `1strategy-docs`, если это выбранный scope-контракт.
-- Длинные слова пользователя → `_ops/user-said/YYYY-MM-DD.md` через глобальный
-  hook. Дальнейшая обработка (что превратить в правило AGENTS/CLAUDE или
-  decision в GOAL) — manual, отдельным проходом.
+- Длинные слова пользователя → не автозаписывать. Уже существующие записи в
+  `_ops/user-said/YYYY-MM-DD.md` обрабатывать только manual, отдельным проходом.
 - Объём активной задачи, подшаги и доказательства закрытия →
   `_ops/plans/**/task-*.md` через `1planning` только по явному запросу или
   когда без task-файла работа станет мутной.
@@ -262,10 +260,9 @@ folder-system contract — не уровни планирования. В Codex 
 - Unresolved approach branches при выполнении задачи / domain prerequisites /
   missing-middle questions → `1strategy`. Unresolved goal/scope/done shape →
   `1strategy-docs`.
-- Длинные слова пользователя автоматически попадают в
-  `_ops/user-said/YYYY-MM-DD.md` через глобальный hook. Не классифицировать их
-  в момент записи; дальнейшая обработка (поменять ли AGENTS / CLAUDE / GOAL) —
-  отдельным manual проходом.
+- Длинные слова пользователя не автозаписываются. Уже существующие записи в
+  `_ops/user-said/YYYY-MM-DD.md` не классифицировать автономно; дальнейшая
+  обработка (поменять ли AGENTS / CLAUDE / GOAL) — отдельным manual проходом.
 - Вопрос “как сформулировать или куда положить маленькое правило” →
   `1instruction-layer`. Вопрос “какой механизм/папочный контракт/guardrail
   ведёт агента к цели” → `1folder-contract`. Уже выбранная skill-работа

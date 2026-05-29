@@ -49,14 +49,16 @@ importance and heading map.
 - `md_deps`: `1md-graph`, `1planning`, `1ia-audit`,
   `1instruction-layer`, `1folder-contract`.
 - `md_section_blast_radius`: `1md-graph`, `1instruction-layer`.
-- `md_changed`: `1md-graph`, `1planning`, `1instruction-layer`,
-  `1folder-contract`, `1work-review`.
 - `md_health`, `md_cycles`, `md_check`, `md_scan`: `1md-graph`,
   `1folder-contract`, `1work-review`, plus shape/audit skills.
 
 Вывод: graph tools - не декоративная обвязка. Они закрывают разные риски:
 pre-edit obligations, rename/delete impact, reverse edges, post-change review,
 health and schema checks.
+
+Retired: git-diff-driven changed-file review is no longer an `md`
+responsibility. Callers own changed file selection and then pass explicit
+paths/scopes to `md_preflight`, `md_check`, `md_health` or `md_status`.
 
 ## Audit, IA И Повторяющиеся Идеи
 
@@ -66,6 +68,7 @@ health and schema checks.
   `1folder-contract`, `1skill-architect`, `1smart-simple`.
 - `md_repeated_concepts`: `1md-navigator`, `1ia-audit`,
   `1instruction-layer`, `1folder-contract`, `1planning`.
+- `md_cluster`: `1md-navigator`, `1ia-audit`, `1smart-simple`.
 - `md_refactor_candidates`: `1md-navigator`, `1ia-audit`.
 - `md_query_by_type`: `1md-navigator`, `1strategy`, `1planning`.
 - `md_profile_sections`: `1md-navigator`.

@@ -53,15 +53,16 @@ vision, approach, motivation, как читать репо. Не главный 
 - `_ops/GOAL.md`: outcome-first контракт.
 - `_ops/PROJECT-ROADMAP.md`: текущая рамка движения без обязательной цепочки стадий.
 - `_ops/user-said/YYYY-MM-DD.md`: сырые цитаты пользователя по дням.
-  Capture через `1user-said` (`add.sh`). Обработка manual — пользователь сам
-  решает, что превращать в правило, инструкцию или decision.
+  Это legacy/manual архив; auto-capture отключён. Обработка manual —
+  пользователь сам решает, что превращать в правило, инструкцию или decision.
 - `_ops/plans/**`: временная task-поверхность только по явному запросу для
   активной сложной работы.
 
 `INTERVIEW.md` и `LEARNINGS.md` больше не являются live owner surfaces. Не
-восстанавливай их. Важная durable цитата пользователя → `1user-said` capture
-в `_ops/user-said/`; дальнейшая обработка (поменять ли AGENTS / CLAUDE,
-обновить ли GOAL, завести ли decision) — отдельным manual проходом.
+восстанавливай их. Важная durable цитата пользователя может остаться в
+`_ops/user-said/` только как manual raw archive; дальнейшая обработка
+(поменять ли AGENTS / CLAUDE, обновить ли GOAL, завести ли decision) —
+отдельным manual проходом.
 
 Moment layer работает через runtime и инструкционный слой, не через отдельный
 скил-перед-работой:

@@ -13,6 +13,7 @@ COUNTABLE_LIST_FIELDS = (
     "results",
     "files",
     "items",
+    "blocks",
     "pairs",
     "proposals",
     "sections",

@@ -153,8 +153,8 @@ GC: 14 дней.
 Использовать когда: cross-hook / cross-skill ratio truth, idempotent
 re-firing, threshold logic, mtime-based freshness, composability detection.
 Не использовать как durable storage для user quotes (это
-`_ops/user-said/YYYY-MM-DD.md` через `1user-said`) или для task contracts
-(`_ops/plans/**/task-*.md` через `1planning`).
+manual-only legacy archive в `_ops/user-said/YYYY-MM-DD.md`) или для task
+contracts (`_ops/plans/**/task-*.md` через `1planning`).
 
 ## Sources
 

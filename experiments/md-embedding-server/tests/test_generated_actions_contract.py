@@ -131,6 +131,11 @@ def test_large_reply_next_steps_parse_against_current_cli() -> None:
             tool_name="md_repeated_concepts",
             args={"corpus": "knowledge", "top": 50},
         ),
+        wrap(
+            {"blocks": [{"content": "x" * (LARGE_REPLY_BYTES + 100)}]},
+            tool_name="md_coherence_audit",
+            args={"path": "knowledge/example.md", "scan": "knowledge", "depth": 2},
+        ),
     ]
     for payload in payloads:
         actions = list(_iter_generated_actions(payload["_envelope"]["next_step"]))

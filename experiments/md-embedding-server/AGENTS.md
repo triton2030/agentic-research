@@ -7,9 +7,9 @@ transactions и JSON output.
 
 ## Перед Работой
 
-- Перед содержательной работой в этой подпапке, если в repo есть uncommitted
-  changes, сначала сделай backup commit и push текущего локального состояния.
-  Потом продолжай от checkpoint, чтобы новые правки были отделимы.
+- Грязное git-дерево здесь нормально: не требуй backup commit/push и не
+  привязывай runtime проверки к GitHub. Работай с текущим содержимым файлов и
+  не откатывай чужие правки.
 - Читай минимальную owner-поверхность, которая может изменить маршрут:
   - CLI/catalog/envelope changes -> `docs/architecture-lock.md`,
     `docs/cli-conventions.md`, `src/md_cli/catalog.py`.
@@ -28,10 +28,9 @@ transactions и JSON output.
 
 - `src/navigator/*` не импортирует `md_cli`.
 - `src/navigator/api.py` — callable facade для `md_cli` catalog. Graph-facing
-  wrappers (`scan/check/health/cycles/deps/impact/preflight/changed/init/strip`)
-  строят `argparse.Namespace` через shared helpers (`_graph_args`,
-  `_graph_docs`, `_graph_scan_docs`) и не передают `SimpleNamespace` в
-  `load_docs` / `changed_markdown_paths`.
+  wrappers (`scan/check/health/cycles/deps/impact/preflight/init/strip`) строят
+  `argparse.Namespace` через shared helpers (`_graph_args`, `_graph_docs`,
+  `_graph_scan_docs`) и не импортируют legacy `navigator.graph`.
 - `md_cli.handlers.*` остаются тонкими: возвращают `ToolResult`, не печатают
   JSON, не вызывают `sys.exit` и не оборачивают envelopes.
 - `md_cli.runner` владеет envelope wrapping и JSON printing.
@@ -46,11 +45,23 @@ transactions и JSON output.
 - Mutating или cost-bearing операции используют существующие dry-run/confirm и
   transaction patterns; не создавай параллельный safety-механизм.
 
-## `md walk`
+## `md coherence-audit` и `md walk`
+
+- `md coherence-audit` — post-edit reader/audit для выбранного Markdown-файла
+  или heading. Он игнорирует frontmatter, сохраняет inline `[[...#...]]`
+  ссылки на месте и вставляет раскрытый heading-bounded блок сразу после
+  каждой такой ссылки. Bare wikilinks без `#anchor` не раскрываются.
+- Каноническая команда:
+  `md coherence-audit PATH --scan ROOT --depth 2 --token-budget 6000 --json`.
+- Если меняешь семантику `coherence-audit`, обнови вместе
+  `src/navigator/coherence_audit.py`, `src/navigator/api.py`,
+  `src/md_cli/catalog.py`, selftest smoke command, snapshots/docs, `1md-reader`
+  и пример на реальном corpus.
 
 - `md walk` — focused reading поверх wikilinks, не semantic search и не
-  `read-related`. Его используют после того, как уже выбран конкретный
-  Markdown-файл и heading anchor.
+  `read-related`. Это legacy chain-reader: его используют после того, как уже
+  выбран конкретный Markdown-файл и heading anchor, когда нужна цепочка первой
+  якорной ссылки, а не inline coherence audit.
 - Каноническая команда:
   `md walk PATH --anchor "HEADING" --scan ROOT --depth 3 --token-budget 3000 --json`.
 - Алгоритм читает только тело текущей heading-bounded секции, берёт первую

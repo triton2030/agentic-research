@@ -47,17 +47,7 @@
         "drift_count": 0,
         "metadata_mismatch": false,
         "delta_too_large": false,
-        "recommended_action": {
-          "tool": "md_index",
-          "args": {
-            "corpus": "/Users/triton/Documents/GitHub/agentic-research",
-            "dry_run": true,
-            "path_include": [
-              "experiments/md-embedding-server/tests/fixtures/sample-corpus/**"
-            ]
-          },
-          "reason": "Index does not exist; dry-run warmup before search."
-        }
+        "recommended_action": null
       },
       "lock": null,
       "cost": {

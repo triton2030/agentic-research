@@ -35,14 +35,7 @@
         "drift_count": 0,
         "metadata_mismatch": false,
         "delta_too_large": false,
-        "recommended_action": {
-          "tool": "md_index",
-          "args": {
-            "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
-            "dry_run": true
-          },
-          "reason": "Optional eager warmup; dry-run previews cost before embedding the small delta."
-        }
+        "recommended_action": null
       },
       "lock": null,
       "cost": {

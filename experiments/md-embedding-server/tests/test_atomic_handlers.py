@@ -37,13 +37,14 @@ ATOMIC_COMMANDS = {
     "md_deps": ["deps", str(README), "--scan", str(CORPUS), "--json"],
     "md_impact": ["impact", str(README), "--scan", str(CORPUS), "--json"],
     "md_preflight": ["preflight", str(README), "--scan", str(CORPUS), "--json"],
-    "md_changed": ["changed", "--scan", str(CORPUS), "--staged", "--json"],
+    "md_cluster": ["cluster", str(CORPUS), "--json"],
+    "md_coherence_audit": ["coherence-audit", str(README), "--scan", str(CORPUS), "--json"],
 }
 
 
-def test_24_atomic_handlers_return_tool_result() -> None:
+def test_25_atomic_handlers_return_tool_result() -> None:
     parser = build_parser()
-    assert len(ATOMIC_COMMANDS) == 24
+    assert len(ATOMIC_COMMANDS) == 25
     for tool_id, argv in ATOMIC_COMMANDS.items():
         args = parser.parse_args(argv)
         module = importlib.import_module(TOOLS_BY_ID[tool_id].handler_module)
@@ -65,7 +66,7 @@ def test_atomic_handlers_are_thin() -> None:
         assert "sys.exit" not in text
 
 
-def test_atomic_help_works_for_all_24() -> None:
+def test_atomic_help_works_for_all_25() -> None:
     parser = build_parser()
     for _tool_id, argv in ATOMIC_COMMANDS.items():
         try:
