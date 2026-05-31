@@ -5,7 +5,7 @@
 | md_audit | audit | `md audit CORPUS [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--expanded] --json` |
 | md_coherence_audit | coherence-audit | `md coherence-audit PATH [--anchor ANCHOR] [--scan SCAN] [--depth DEPTH] [--token-budget TOKEN_BUDGET] --json` |
 | md_check | check | `md check [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
-| md_cluster | cluster | `md cluster CORPUS [--k K] [--seed SEED] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--cache-dir CACHE_DIR] --json` |
+| md_cluster | cluster | `md cluster CORPUS [--k K] [--seed SEED] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--cache-dir CACHE_DIR] [--expanded] --json` |
 | md_corpus_scan | corpus-scan | `md corpus-scan [ROOT] --json` |
 | md_cycles | cycles | `md cycles [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | md_deps | deps | `md deps PATH [--scan SCAN] [--depth DEPTH] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
@@ -16,7 +16,7 @@
 | md_importance | importance | `md importance CORPUS [--top TOP] [--sort-by SORT_BY] --json` |
 | md_index | index | `md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--allow-nested-corpus] --json` |
 | md_init | init | `md init [--paths PATHS] [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
-| md_ls | ls | `md ls PATH [--max-heading-level MAX_HEADING_LEVEL] [--match MATCH] [--with-tokens] [--with-link-counts] --json` |
+| md_ls | ls | `md ls PATH [--max-heading-level MAX_HEADING_LEVEL] [--match MATCH] [--with-tokens] [--with-link-counts] [--expanded] --json` |
 | md_orient | orient | `md orient CORPUS [--max-heading-level MAX_HEADING_LEVEL] [--top TOP] [--compact] [--expanded] --json` |
 | md_overlaps | overlaps | `md overlaps CORPUS [--threshold THRESHOLD] [--top TOP] [--min-tokens MIN_TOKENS] [--include-same-file] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--expanded] --json` |
 | md_ping | ping | `md ping  --json` |
@@ -30,7 +30,7 @@
 | md_search | search | `md search CORPUS --query QUERY [--scope SCOPE] [--limit LIMIT] [--candidates CANDIDATES] [--max-heading-level MAX_HEADING_LEVEL] [--rerank] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | md_search_read | search-read | `md search-read CORPUS --query QUERY [--scope SCOPE] [--limit LIMIT] [--candidates CANDIDATES] [--max-heading-level MAX_HEADING_LEVEL] [--rerank] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--token-budget TOKEN_BUDGET] [--expanded] --json` |
 | md_section_blast_radius | section-blast-radius | `md section-blast-radius PATH CORPUS --query QUERY [--heading-id HEADING_ID] [--scan SCAN] [--depth DEPTH] [--limit LIMIT] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
-| md_status | status | `md status CORPUS [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
+| md_status | status | `md status CORPUS [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--expanded] --json` |
 | md_strip | strip | `md strip [--paths PATHS] [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--also-related-section] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | md_toc | toc | `md toc PATH [--max-heading-level MAX_HEADING_LEVEL] [--match MATCH] [--with-tokens] [--with-link-counts] --json` |
 | md_walk | walk | `md walk PATH --anchor ANCHOR [--scan SCAN] [--depth DEPTH] [--token-budget TOKEN_BUDGET] --json` |

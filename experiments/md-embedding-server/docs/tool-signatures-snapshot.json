@@ -193,6 +193,10 @@
       },
       "input_schema": {
         "properties": {
+          "expanded": {
+            "description": "Include full per-cluster section_ids; default folds each cluster to top files.",
+            "type": "boolean"
+          },
           "cache_dir": {
             "description": "Optional index cache root.",
             "type": "string"
@@ -234,7 +238,7 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md cluster CORPUS [--k K] [--seed SEED] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--cache-dir CACHE_DIR] --json",
+      "cli_signature": "md cluster CORPUS [--k K] [--seed SEED] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--cache-dir CACHE_DIR] [--expanded] --json",
       "transaction_required": false,
       "cost_bearing": false
     },
@@ -873,6 +877,10 @@
       },
       "input_schema": {
         "properties": {
+          "expanded": {
+            "description": "Return the full flat file list with per-file headings; default is a bounded top-N map + folded summary.",
+            "type": "boolean"
+          },
           "match": {
             "description": "Case-insensitive substring filter over description/title/headings",
             "type": "string"
@@ -902,7 +910,7 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md ls PATH [--max-heading-level MAX_HEADING_LEVEL] [--match MATCH] [--with-tokens] [--with-link-counts] --json",
+      "cli_signature": "md ls PATH [--max-heading-level MAX_HEADING_LEVEL] [--match MATCH] [--with-tokens] [--with-link-counts] [--expanded] --json",
       "transaction_required": false,
       "cost_bearing": false
     },
@@ -1928,6 +1936,10 @@
       },
       "input_schema": {
         "properties": {
+          "expanded": {
+            "description": "Include per-scope, pending-file and folder-breakdown detail; default returns the headline state + recommended_action.",
+            "type": "boolean"
+          },
           "corpus": {
             "description": "Path to Markdown corpus folder",
             "minLength": 1,
@@ -1955,7 +1967,7 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md status CORPUS [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json",
+      "cli_signature": "md status CORPUS [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--expanded] --json",
       "transaction_required": false,
       "cost_bearing": false
     },
