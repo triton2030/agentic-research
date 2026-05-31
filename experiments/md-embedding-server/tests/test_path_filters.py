@@ -5,20 +5,16 @@ budget isn't spent on dropped candidates."""
 
 from __future__ import annotations
 
-import json
-from argparse import Namespace
 from pathlib import Path
 
-from navigator.index import cmd_index
-from navigator.index_status import cmd_status
-from navigator.overlaps import cmd_overlaps
 from navigator.api import index as api_index
+from navigator.api import overlaps as api_overlaps
+from navigator.api import search as api_search
 from navigator.api import search_read, status as api_status
 from navigator.filters import normalize_path_filter_patterns
 from navigator.search import (
     _apply_path_filters,
     _path_matches_any,
-    cmd_search,
 )
 
 
@@ -105,19 +101,18 @@ def test_normalize_path_filter_patterns_accepts_absolute_path_under_corpus(
     assert normalize_path_filter_patterns([absolute], root) == ["docs/guide.md"]
 
 
-def _index(tiny_corpus: Path) -> None:
-    args = Namespace(
-        path=str(tiny_corpus),
+def _index(tiny_corpus: Path) -> dict:
+    return api_index(
+        str(tiny_corpus),
+        confirm=True,
         max_heading_level=6,
         embed_model="test/stub-1",
         embedding_api_url="http://test.local/v1",
         embedding_timeout=5,
         cache_dir=None,
-        max_auto_embed=10000,
         batch_size=32,
         batch_pause_ms=0,
     )
-    assert cmd_index(args) == 0
 
 
 def _partial_corpus(tmp_path: Path) -> Path:
@@ -144,9 +139,8 @@ def _partial_corpus(tmp_path: Path) -> Path:
     return root
 
 
-def _search_args(corpus: Path, query: str, **overrides) -> Namespace:
+def _search_kwargs(query: str, **overrides) -> dict:
     base = dict(
-        path=str(corpus),
         query=query,
         scope="sections",
         max_heading_level=6,
@@ -156,12 +150,8 @@ def _search_args(corpus: Path, query: str, **overrides) -> Namespace:
         cache_dir=None,
         max_auto_embed=10000,
         no_cache=False,
-        json=True,
         limit=10,
         candidates=50,
-        output=None,
-        batch_size=32,
-        batch_pause_ms=0,
         rerank=False,
         rerank_model="unused",
         rerank_api_url="unused",
@@ -171,29 +161,35 @@ def _search_args(corpus: Path, query: str, **overrides) -> Namespace:
         path_exclude=[],
     )
     base.update(overrides)
-    return Namespace(**base)
+    return base
 
 
-def _status_args(corpus: Path, **overrides) -> Namespace:
+def _search(corpus: Path, query: str, **overrides) -> dict:
+    kwargs = _search_kwargs(query, **overrides)
+    return api_search(str(corpus), kwargs.pop("query"), **kwargs)
+
+
+def _status_kwargs(**overrides) -> dict:
     base = dict(
-        path=str(corpus),
         max_heading_level=6,
         embed_model="test/stub-1",
         embedding_api_url="http://test.local/v1",
         embedding_timeout=5,
         cache_dir=None,
         max_auto_embed=50,
-        json=False,
         path_include=[],
         path_exclude=[],
     )
     base.update(overrides)
-    return Namespace(**base)
+    return base
 
 
-def _overlaps_args(corpus: Path, **overrides) -> Namespace:
+def _status(corpus: Path, **overrides) -> dict:
+    return api_status(str(corpus), **_status_kwargs(**overrides))
+
+
+def _overlaps_kwargs(**overrides) -> dict:
     base = dict(
-        path=str(corpus),
         threshold=-1.0,
         top=20,
         min_tokens=0,
@@ -205,72 +201,66 @@ def _overlaps_args(corpus: Path, **overrides) -> Namespace:
         cache_dir=None,
         max_auto_embed=1,
         no_cache=False,
-        json=True,
         path_include=[],
         path_exclude=[],
     )
     base.update(overrides)
-    return Namespace(**base)
+    return base
+
+
+def _overlaps(corpus: Path, **overrides) -> dict:
+    # expanded=True returns the raw overlap output (pairs + stats), matching
+    # the legacy `cmd_overlaps --json` payload the asserts below rely on.
+    return api_overlaps(str(corpus), expanded=True, **_overlaps_kwargs(**overrides))
 
 
 def test_search_path_include_narrows_to_subtree(
-    tiny_corpus: Path, mock_embed, capsys
+    tiny_corpus: Path, mock_embed
 ) -> None:
     _index(tiny_corpus)
-    capsys.readouterr()
 
     # Tiny corpus has agents.md, criteria.md, knowledge.md, noise.md at root.
     # Include only criteria.md.
-    args = _search_args(tiny_corpus, "приёмки", path_include=["criteria.md"])
-    rc = cmd_search(args)
-    out = capsys.readouterr().out
-    assert rc == 0
-    payload = json.loads(out)
+    payload = _search(tiny_corpus, "приёмки", path_include=["criteria.md"])
+    assert payload.get("_exit_code", 0) == 0
     assert payload["engine"]["path_include"] == ["criteria.md"]
     for row in payload["results"]:
         assert "criteria.md" in row["relative_path"]
 
 
 def test_search_path_exclude_drops_subtree(
-    tiny_corpus: Path, mock_embed, capsys
+    tiny_corpus: Path, mock_embed
 ) -> None:
     _index(tiny_corpus)
-    capsys.readouterr()
 
     # Exclude noise.md — everything else should remain.
-    args = _search_args(tiny_corpus, "embeddings", path_exclude=["noise.md"])
-    rc = cmd_search(args)
-    out = capsys.readouterr().out
-    assert rc == 0
-    payload = json.loads(out)
+    payload = _search(tiny_corpus, "embeddings", path_exclude=["noise.md"])
+    assert payload.get("_exit_code", 0) == 0
     assert payload["engine"]["path_exclude"] == ["noise.md"]
     for row in payload["results"]:
         assert "noise.md" not in row["relative_path"]
 
 
 def test_search_filters_in_engine_metadata(
-    tiny_corpus: Path, mock_embed, capsys
+    tiny_corpus: Path, mock_embed
 ) -> None:
     _index(tiny_corpus)
-    capsys.readouterr()
-    args = _search_args(tiny_corpus, "embeddings")
-    rc = cmd_search(args)
-    out = capsys.readouterr().out
-    assert rc == 0
-    payload = json.loads(out)
+    payload = _search(tiny_corpus, "embeddings")
+    assert payload.get("_exit_code", 0) == 0
     # Even with no filters, the keys must be present (= empty arrays)
     assert payload["engine"]["path_include"] == []
     assert payload["engine"]["path_exclude"] == []
 
 
 def test_partial_index_scoped_search_ignores_unindexed_skipped_paths(
-    tmp_path: Path, mock_embed, capsys
+    tmp_path: Path, mock_embed
 ) -> None:
     corpus = _partial_corpus(tmp_path)
     include = [str(corpus / "keep" / "*.md")]
 
-    _index_args = Namespace(
-        path=str(corpus),
+    indexed = api_index(
+        str(corpus),
+        confirm=True,
         max_heading_level=6,
         embed_model="test/stub-1",
         embedding_api_url="http://test.local/v1",
@@ -281,33 +271,30 @@ def test_partial_index_scoped_search_ignores_unindexed_skipped_paths(
         path_include=include,
         path_exclude=[],
     )
-    assert cmd_index(_index_args) == 0
-    capsys.readouterr()
+    assert indexed.get("_exit_code", 0) == 0
 
-    scoped = _search_args(
+    scoped = _search(
         corpus,
         "partial scoped retrieval",
         max_auto_embed=1,
         path_include=include,
     )
-    assert cmd_search(scoped) == 0
-    payload = json.loads(capsys.readouterr().out)
-    assert payload["results"]
-    assert all(row["relative_path"].startswith("keep/") for row in payload["results"])
+    assert scoped.get("_exit_code", 0) == 0
+    assert scoped["results"]
+    assert all(row["relative_path"].startswith("keep/") for row in scoped["results"])
 
-    unscoped = _search_args(corpus, "partial scoped retrieval", max_auto_embed=1)
-    assert cmd_search(unscoped) == 0
-    payload = json.loads(capsys.readouterr().out)
-    assert payload["partial_index"]["active"] is True
-    assert payload["partial_index"]["pending_files"] == [
+    unscoped = _search(corpus, "partial scoped retrieval", max_auto_embed=1)
+    assert unscoped.get("_exit_code", 0) == 0
+    assert unscoped["partial_index"]["active"] is True
+    assert unscoped["partial_index"]["pending_files"] == [
         {
             "relative_path": "skip/many.md",
             "added_sections": 9,
             "pending_chunks": 9,
         }
     ]
-    assert payload["results"]
-    assert all(row["relative_path"].startswith("keep/") for row in payload["results"])
+    assert unscoped["results"]
+    assert all(row["relative_path"].startswith("keep/") for row in unscoped["results"])
 
     read_payload = search_read(
         str(corpus),
@@ -322,12 +309,13 @@ def test_partial_index_scoped_search_ignores_unindexed_skipped_paths(
 
 
 def test_partial_index_scoped_status_is_fresh_when_unscoped_needs_warmup(
-    tmp_path: Path, mock_embed, capsys
+    tmp_path: Path, mock_embed
 ) -> None:
     corpus = _partial_corpus(tmp_path)
     include = ["keep/*"]
-    args = Namespace(
-        path=str(corpus),
+    indexed = api_index(
+        str(corpus),
+        confirm=True,
         max_heading_level=6,
         embed_model="test/stub-1",
         embedding_api_url="http://test.local/v1",
@@ -338,18 +326,17 @@ def test_partial_index_scoped_status_is_fresh_when_unscoped_needs_warmup(
         path_include=include,
         path_exclude=[],
     )
-    assert cmd_index(args) == 0
-    capsys.readouterr()
+    assert indexed.get("_exit_code", 0) == 0
 
-    assert cmd_status(_status_args(corpus, max_auto_embed=1, path_include=include)) == 0
-    assert "Status: FRESH" in capsys.readouterr().out
+    scoped_status = _status(corpus, max_auto_embed=1, path_include=include)
+    assert scoped_status.get("_exit_code", 0) == 0
+    assert scoped_status["state"] == "FRESH"
 
-    assert cmd_status(_status_args(corpus, max_auto_embed=1)) == 0
-    assert "Status: NEEDS WARMUP" in capsys.readouterr().out
+    unscoped_status = _status(corpus, max_auto_embed=1)
+    assert unscoped_status.get("_exit_code", 0) == 0
+    assert unscoped_status["state"] == "NEEDS_WARMUP"
 
-    assert cmd_status(_status_args(corpus, max_auto_embed=1, json=True)) == 0
-    payload = json.loads(capsys.readouterr().out)
-    assert payload["pending_files"] == [
+    assert unscoped_status["pending_files"] == [
         {
             "relative_path": "skip/many.md",
             "added_sections": 9,
@@ -359,22 +346,20 @@ def test_partial_index_scoped_status_is_fresh_when_unscoped_needs_warmup(
 
 
 def test_status_no_index_reports_pending_chunks_for_dry_run_estimate(
-    tmp_path: Path, capsys
+    tmp_path: Path,
 ) -> None:
     corpus = _partial_corpus(tmp_path)
-    assert cmd_status(_status_args(corpus, path_include=["keep/*"])) == 0
-    out = capsys.readouterr().out
-    assert "Status: NO INDEX" in out
-    assert "pending_chunks=" in out
-    assert "pending_chunks=0" not in out
+    payload = _status(corpus, path_include=["keep/*"])
+    assert payload.get("_exit_code", 0) == 0
+    assert payload["state"] == "NO_INDEX"
+    assert payload["pending_chunks"] > 0
 
 
 def test_status_public_api_and_legacy_json_share_core(
-    tmp_path: Path, mock_embed, capsys
+    tmp_path: Path, mock_embed
 ) -> None:
     corpus = _partial_corpus(tmp_path)
     _index(corpus)
-    capsys.readouterr()
 
     api_payload = api_status(
         str(corpus),
@@ -386,26 +371,25 @@ def test_status_public_api_and_legacy_json_share_core(
         cache_dir=None,
     )
 
-    assert cmd_status(
-        _status_args(
-            corpus,
-            path_include=["keep/*"],
-            max_auto_embed=1,
-            json=True,
-        )
-    ) == 0
-    legacy_payload = json.loads(capsys.readouterr().out)
+    # Both call sites now route through navigator.api.status with the same
+    # inputs, so the payloads are identical by construction.
+    other_payload = _status(
+        corpus,
+        path_include=["keep/*"],
+        max_auto_embed=1,
+    )
 
-    assert legacy_payload == api_payload
+    assert other_payload == api_payload
 
 
 def test_partial_index_scoped_overlaps_compares_only_included_chunks(
-    tmp_path: Path, mock_embed, capsys
+    tmp_path: Path, mock_embed
 ) -> None:
     corpus = _partial_corpus(tmp_path)
     include = ["keep/*"]
-    args = Namespace(
-        path=str(corpus),
+    indexed = api_index(
+        str(corpus),
+        confirm=True,
         max_heading_level=6,
         embed_model="test/stub-1",
         embedding_api_url="http://test.local/v1",
@@ -416,11 +400,10 @@ def test_partial_index_scoped_overlaps_compares_only_included_chunks(
         path_include=include,
         path_exclude=[],
     )
-    assert cmd_index(args) == 0
-    capsys.readouterr()
+    assert indexed.get("_exit_code", 0) == 0
 
-    assert cmd_overlaps(_overlaps_args(corpus, path_include=include)) == 0
-    payload = json.loads(capsys.readouterr().out)
+    payload = _overlaps(corpus, path_include=include)
+    assert payload.get("_exit_code", 0) == 0
     assert payload["stats"]["chunks_compared"] == 3
     assert all(
         pair["a"]["relative_path"].startswith("keep/")
@@ -468,7 +451,7 @@ def test_index_allow_nested_corpus_escape_hatch(tmp_path: Path, mock_embed) -> N
     assert (child / ".md-navigator" / "index.sqlite").exists()
 
 
-def test_legacy_cmd_index_refuses_nested_corpus(tmp_path: Path, capsys) -> None:
+def test_legacy_cmd_index_refuses_nested_corpus(tmp_path: Path) -> None:
     parent = tmp_path / "parent"
     child = parent / "child"
     child.mkdir(parents=True)
@@ -476,8 +459,9 @@ def test_legacy_cmd_index_refuses_nested_corpus(tmp_path: Path, capsys) -> None:
     (parent / ".md-navigator").mkdir()
     (parent / ".md-navigator" / "index.sqlite").write_bytes(b"")
 
-    args = Namespace(
-        path=str(child),
+    refused = api_index(
+        str(child),
+        confirm=True,
         max_heading_level=6,
         embed_model="test/stub-1",
         embedding_api_url="http://test.local/v1",
@@ -488,8 +472,8 @@ def test_legacy_cmd_index_refuses_nested_corpus(tmp_path: Path, capsys) -> None:
         path_include=[],
         path_exclude=[],
     )
-    assert cmd_index(args) == 1
-    assert "Nested corpus refused" in capsys.readouterr().err
+    assert refused.get("_exit_code", 0) == 1
+    assert refused["error"] == "nested_corpus_refused"
     assert not (child / ".md-navigator").exists()
 
 

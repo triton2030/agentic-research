@@ -22,42 +22,21 @@ from pathlib import Path
 from typing import Any
 
 
-# --- Severity primitives -------------------------------------------------
-
-
-SEVERITY_CRITICAL = "critical"
-SEVERITY_WARNING = "warning"
-SEVERITY_INFO = "info"
-
-SEVERITY_BADGE = {
-    SEVERITY_CRITICAL: "🔴",
-    SEVERITY_WARNING: "🟡",
-    SEVERITY_INFO: "ℹ️",
-}
-
-# Health gauge: deduct per finding by severity. Floor at 0.
-SEVERITY_WEIGHTS = {
-    SEVERITY_CRITICAL: 15,
-    SEVERITY_WARNING: 5,
-    SEVERITY_INFO: 0,
-}
-
-
-def compute_health(findings: list[dict[str, Any]]) -> int:
-    """0-100 score: start at 100, subtract per finding by severity, floor at 0."""
-    health = 100
-    for f in findings:
-        health -= SEVERITY_WEIGHTS.get(f.get("severity", SEVERITY_INFO), 0)
-    return max(0, health)
-
-
-def severity_counts(findings: list[dict[str, Any]]) -> dict[str, int]:
-    counts = {SEVERITY_CRITICAL: 0, SEVERITY_WARNING: 0, SEVERITY_INFO: 0}
-    for f in findings:
-        sev = f.get("severity", SEVERITY_INFO)
-        if sev in counts:
-            counts[sev] += 1
-    return counts
+from .audit_severity import (
+    SEVERITY_BADGE,
+    SEVERITY_CRITICAL,
+    SEVERITY_INFO,
+    SEVERITY_WARNING,
+    compute_health,
+    severity_counts,
+    severity_for_classified_pair,
+    severity_for_cluster_mismatch,
+    severity_for_discovery_gap,
+    severity_for_heading_family,
+    severity_for_heading_lex_drift,
+    severity_for_intra_file_drift,
+    severity_for_smeared_concept,
+)
 
 
 # --- New primitive: heading-skeleton classification ----------------------
@@ -436,75 +415,6 @@ def detect_heading_lex_drift(
         )
     drifting.sort(key=lambda d: -d["heading_diversity"])
     return drifting
-
-
-# --- Per-class severity logic --------------------------------------------
-
-
-def severity_for_smeared_concept(unique_files: int, cohesion: float) -> str | None:
-    """Repeated-concepts entry → severity. None = drop (not surfaced)."""
-    if unique_files >= 4 and cohesion >= 0.7:
-        return SEVERITY_CRITICAL
-    if unique_files in (2, 3) and cohesion >= 0.55:
-        return SEVERITY_WARNING
-    return None
-
-
-def severity_for_classified_pair(classification: str) -> str | None:
-    if classification == "FULL_DUPLICATE":
-        return SEVERITY_CRITICAL
-    if classification == "SEMANTIC_SMEAR":
-        return SEVERITY_WARNING
-    if classification == "TEMPLATE_EFFECT":
-        return SEVERITY_INFO
-    return None
-
-
-def severity_for_discovery_gap(ratio: float) -> str | None:
-    if ratio > 0.50:
-        return SEVERITY_CRITICAL
-    if ratio >= 0.25:
-        return SEVERITY_WARNING
-    if ratio >= 0.10:
-        return SEVERITY_INFO
-    return None
-
-
-def severity_for_intra_file_drift(drift_count: int) -> str | None:
-    if drift_count >= 2:
-        return SEVERITY_CRITICAL
-    if drift_count == 1:
-        return SEVERITY_WARNING
-    return None
-
-
-def severity_for_cluster_mismatch(common_parent: str, size: int) -> str | None:
-    if not common_parent and size >= 5:
-        return SEVERITY_WARNING
-    return SEVERITY_INFO
-
-
-def severity_for_heading_family(file_count: int) -> str | None:
-    """Heading appearing in many files is a template-family signal.
-    INFO by default — templates can be by design (parallel-structure
-    `_research/{category}/inventory.md`). WARNING when family is broad
-    enough that splitting / consolidating warrants attention."""
-    if file_count >= 5:
-        return SEVERITY_WARNING
-    if file_count >= 3:
-        return SEVERITY_INFO
-    return None
-
-
-def severity_for_heading_lex_drift(diversity: float) -> str | None:
-    """Mean (1 − Jaccard) between H2+ headings inside one file.
-    0.85+ = headings share almost no tokens — strong drift signal even
-    when section bodies are embed-tight under the file's H1 title."""
-    if diversity >= 0.92:
-        return SEVERITY_WARNING
-    if diversity >= 0.85:
-        return SEVERITY_INFO
-    return None
 
 
 # --- Orchestrators per detection class -----------------------------------
@@ -925,108 +835,16 @@ def _check_cluster_folder_mismatch(corpus_root: Path, args) -> list[dict[str, An
     return findings
 
 
-# --- cmd_audit + register ------------------------------------------------
-
-
-def cmd_audit(args) -> int:
-    """Orchestrate all five detection classes, classify findings by
-    severity, render a doctor's-report-style Markdown summary."""
-    import json
-    import sys
-
-    from .filters import (
-        apply_path_filters_to_map,
-        normalize_path_filter_patterns,
-        path_matches_any,  # noqa: F401  (re-export for tests)
-    )
-    from .folder_map import build_map
-    from navigator.index_guidance import index_dry_run_command
-    from .index_meta import (
-        _index_dir_for_corpus,
-        resolve_embed_model_for_corpus,
-    )
-    from .index_build import ensure_index
-    from .sections import build_sections_from_map
-
-    corpus_root = Path(args.path).expanduser().resolve()
-    if not corpus_root.exists():
-        print(f"Path does not exist: {corpus_root}", file=sys.stderr)
-        return 2
-
-    include_patterns = normalize_path_filter_patterns(
-        getattr(args, "path_include", None),
-        corpus_root,
-    )
-    exclude_patterns = normalize_path_filter_patterns(
-        getattr(args, "path_exclude", None),
-        corpus_root,
-    )
-
-    map_data = build_map(corpus_root, args.max_heading_level, with_tokens=False)
-    if not map_data["files"]:
-        print(f"No Markdown files under {corpus_root}", file=sys.stderr)
-        return 1
-
-    map_data = apply_path_filters_to_map(map_data, include_patterns, exclude_patterns)
-    if not map_data["files"]:
-        print(
-            f"Path filters matched no Markdown files under {corpus_root}",
-            file=sys.stderr,
-        )
-        return 1
-    args.path_include = include_patterns
-    args.path_exclude = exclude_patterns
-
-    sections = build_sections_from_map(map_data)
-    if not sections:
-        print(f"No sections extracted from {corpus_root}", file=sys.stderr)
-        return 1
-
-    cache_root = Path(args.cache_dir).expanduser() if args.cache_dir else None
-    args.embed_model = resolve_embed_model_for_corpus(
-        corpus_root, args.embed_model, cache_root=cache_root
-    )
-    if args.no_cache:
-        target = _index_dir_for_corpus(corpus_root, cache_root=cache_root)
-        for name in ("index.sqlite", "index.sqlite-wal", "index.sqlite-shm"):
-            (target / name).unlink(missing_ok=True)
-
-    max_auto_embed = (
-        None if args.max_auto_embed == 0 else int(args.max_auto_embed)
-    )
-
-    try:
-        conn, index_stats = ensure_index(
-            corpus_root,
-            "sections",
-            sections,
-            args.embed_model,
-            embedding_api_url=args.embedding_api_url,
-            embedding_timeout=args.embedding_timeout,
-            cache_root=cache_root,
-            max_auto_embed=max_auto_embed,
-            path_include=include_patterns,
-            path_exclude=exclude_patterns,
-        )
-    except (ModuleNotFoundError, RuntimeError) as exc:
-        print(f"Index open failed: {exc}", file=sys.stderr)
-        return 3
-
-    if index_stats.get("delta_too_large"):
-        pending = index_stats["pending_chunks"]
-        added = index_stats["added_sections"]
-        print(
-            f"Index needs warmup before audit can run.\n"
-            f"  {added} new sections / {pending} chunks pending "
-            f"(cap = {max_auto_embed}).\n"
-            f"  Next: {index_dry_run_command(corpus_root)}",
-            file=sys.stderr,
-        )
-        return 4
-
-    # Run all detection classes. Heading-side primitives (template_family,
-    # heading-lex co-signal in intra_file_drift) run on map_data without
-    # extra embedding calls — they read what `headings` already contain.
+def audit_payload(
+    *,
+    corpus_root: Path,
+    conn: Any,
+    map_data: dict[str, Any],
+    sections: list[dict[str, Any]],
+    index_stats: dict[str, Any],
+    args: Any,
+) -> dict[str, Any]:
+    """Build the canonical audit JSON payload used by CLI and public API."""
     findings: list[dict[str, Any]] = []
     findings.extend(_check_discovery_gaps(map_data, args))
     findings.extend(_check_smeared_owner_truth(corpus_root, conn, map_data, index_stats, args))
@@ -1035,11 +853,10 @@ def cmd_audit(args) -> int:
     findings.extend(_check_intra_file_drift(conn, map_data, args))
     findings.extend(_check_cluster_folder_mismatch(corpus_root, args))
 
-    # Sort findings by severity (critical first), then by class for stability.
     severity_order = {SEVERITY_CRITICAL: 0, SEVERITY_WARNING: 1, SEVERITY_INFO: 2}
     findings.sort(key=lambda f: (severity_order.get(f["severity"], 3), f["class"]))
 
-    output = {
+    return {
         "root": str(corpus_root),
         "health": compute_health(findings),
         "severity_counts": severity_counts(findings),
@@ -1067,315 +884,3 @@ def cmd_audit(args) -> int:
         },
         "findings": findings,
     }
-
-    # Output routing — same contract as repeated_concepts (per the recent
-    # contract-drift fix): --json → ALWAYS stdout, --output FILE writes,
-    # --stdout prints Markdown, default writes Markdown file + summary.
-    if args.json:
-        payload = json.dumps(output, ensure_ascii=False, indent=2, default=str)
-        if args.output:
-            out_path = Path(args.output).expanduser().resolve()
-            out_path.parent.mkdir(parents=True, exist_ok=True)
-            out_path.write_text(payload + "\n", encoding="utf-8")
-            print(f"JSON audit → {out_path}")
-        else:
-            print(payload)
-        return 0
-
-    rendered = render_audit(output)
-    if args.stdout:
-        print(rendered, end="")
-        return 0
-
-    if args.output:
-        out_path = Path(args.output).expanduser().resolve()
-    else:
-        index_dir = _index_dir_for_corpus(corpus_root, cache_root=cache_root)
-        out_path = index_dir / "audit.md"
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(rendered, encoding="utf-8")
-    counts = output["severity_counts"]
-    print(
-        f"Audit → {out_path}  "
-        f"(health {output['health']}/100  "
-        f"🔴 {counts['critical']}  🟡 {counts['warning']}  ℹ️ {counts['info']})"
-    )
-    return 0
-
-
-def render_audit(out: dict[str, Any]) -> str:
-    """Doctor's-report-style Markdown: severity-grouped sections, each
-    finding with badge / label / evidence / next-step."""
-    counts = out["severity_counts"]
-    health = out["health"]
-    if health >= 80:
-        health_emoji = "🟢"
-    elif health >= 50:
-        health_emoji = "🟡"
-    else:
-        health_emoji = "🔴"
-
-    lines = [
-        f"# Markdown audit: {out['root']}",
-        "",
-        f"**Health: {health}/100** {health_emoji}  "
-        f"(🔴 {counts['critical']} · 🟡 {counts['warning']} · ℹ️ {counts['info']})",
-        "",
-        f"Indexed: {out['stats']['files_indexed']} files / "
-        f"{out['stats']['sections_indexed']} sections  "
-        f"(engine: `{out['engine']['embed_model']}`)",
-        "",
-    ]
-
-    findings = out.get("findings") or []
-    if not findings:
-        lines.append("_No findings above thresholds. Corpus looks structurally healthy._")
-        lines.append("")
-        return "\n".join(lines) + "\n"
-
-    # Group by severity.
-    by_sev: dict[str, list[dict[str, Any]]] = {
-        SEVERITY_CRITICAL: [],
-        SEVERITY_WARNING: [],
-        SEVERITY_INFO: [],
-    }
-    for f in findings:
-        by_sev[f["severity"]].append(f)
-
-    sev_titles = {
-        SEVERITY_CRITICAL: f"## 🔴 Critical ({len(by_sev[SEVERITY_CRITICAL])})",
-        SEVERITY_WARNING: f"## 🟡 Warning ({len(by_sev[SEVERITY_WARNING])})",
-        SEVERITY_INFO: f"## ℹ️ Info ({len(by_sev[SEVERITY_INFO])})",
-    }
-
-    for sev in (SEVERITY_CRITICAL, SEVERITY_WARNING, SEVERITY_INFO):
-        bucket = by_sev[sev]
-        if not bucket:
-            continue
-        lines.append(sev_titles[sev])
-        lines.append("")
-        for f in bucket:
-            lines.append(f"### {f['class']} — {f['label']}")
-            lines.append("")
-            lines.extend(_render_evidence(f))
-            lines.append("")
-            lines.append(f"**Next step:** {f.get('next_step') or '_(no specific action)_'}")
-            lines.append("")
-
-    lines.append("## Thresholds")
-    lines.append("")
-    for k, v in out["thresholds"].items():
-        lines.append(f"- `{k}`: {v}")
-    lines.append("")
-    return "\n".join(lines) + "\n"
-
-
-def _render_evidence(f: dict[str, Any]) -> list[str]:
-    """Class-specific evidence rendering. Keeps the report compact but
-    surfaces the top items per finding."""
-    ev = f.get("evidence") or {}
-    out: list[str] = []
-    cls = f["class"]
-
-    if cls == "discovery_gaps":
-        out.append(
-            f"- Coverage gap: {ev['files_without_description']}/{ev['files_total']} files "
-            f"({int(ev['gap_ratio'] * 100)}%)"
-        )
-        for path in ev.get("examples", []):
-            out.append(f"  - `{path}`")
-
-    elif cls == "smeared_owner_truth":
-        rep = ev["representative"]
-        out.append(
-            f"- Across **{ev['unique_files']} files**, {ev['section_count']} sections, "
-            f"cohesion {ev['cohesion']}"
-        )
-        out.append(f"- Representative: `{rep['relative_path']}` — {rep['heading_chain']}")
-        for path in ev.get("files", [])[:4]:
-            out.append(f"  - `{path}`")
-
-    elif cls == "tight_duplicates":
-        out.append(
-            f"- Classification: **{ev['classification']}**, {ev['pair_count']} pair(s)"
-        )
-        for pair in ev.get("top_pairs", [])[:3]:
-            out.append(
-                f"  - sim {pair['similarity']}, heading-jaccard {pair['heading_jaccard']}  "
-                f"`{pair['a']['relative_path']}` ↔ `{pair['b']['relative_path']}`"
-            )
-
-    elif cls == "intra_file_drift":
-        for fdrift in ev.get("files", []):
-            sources = fdrift.get("sources", [])
-            src_tag = "+".join(s.replace("_", " ") for s in sources) or "?"
-            line = (
-                f"- `{fdrift['relative_path']}` — {fdrift['section_count']} sections "
-                f"(via {src_tag})"
-            )
-            extras: list[str] = []
-            if "tight_clusters" in fdrift:
-                extras.append(
-                    f"{fdrift['tight_clusters']} embed-clusters, "
-                    f"inter-cluster sim {fdrift.get('inter_cluster_sim')}"
-                )
-            if "heading_diversity" in fdrift:
-                extras.append(
-                    f"heading-lex diversity {fdrift['heading_diversity']}"
-                )
-            if extras:
-                line += "; " + "; ".join(extras)
-            out.append(line)
-            for g in fdrift.get("topic_groups", [])[:3]:
-                if g.get("heading_chain"):
-                    out.append(f"  - embed-cluster of {g['size']}: {g['heading_chain']}")
-            for h in fdrift.get("headings_sample", [])[:4]:
-                out.append(f"  - heading: {h}")
-
-    elif cls == "template_family":
-        out.append(
-            f"- Shared H2+ heading `'{ev['shared_heading']}'` appears in "
-            f"**{ev['file_count']} files**"
-        )
-        for path in ev.get("files", [])[:6]:
-            out.append(f"  - `{path}`")
-
-    elif cls == "cluster_folder_mismatch":
-        out.append(
-            f"- Cluster of {ev['cluster_size']} sections, cohesion {ev['cohesion']}, "
-            f"no shared folder"
-        )
-        out.append(f"- Centroid: `{ev['centroid_path']}`")
-        for top in ev.get("top_files", [])[:3]:
-            out.append(f"  - `{top['path']}` ({top['section_count']} sections)")
-
-    else:
-        # Generic dump for unknown classes.
-        out.append(f"- {ev}")
-
-    return out
-
-
-def register_audit(sub) -> None:
-    """Register the `audit` subcommand."""
-    from .cli_common import (
-        add_auto_embed_args,
-        add_cache_arg,
-        add_embedding_args,
-        add_max_heading_level_arg,
-    )
-    from .filters import add_path_filter_args
-
-    p = sub.add_parser(
-        "audit",
-        help=(
-            "Diagnose corpus structural health. Orchestrates "
-            "search-side primitives (overlaps, repeated-concepts, cluster) "
-            "plus intra-file drift and template-effect detection. Outputs "
-            "a severity-tagged report (🔴 / 🟡 / ℹ️) with next-step owner "
-            "skill recommendations per finding."
-        ),
-    )
-    p.add_argument("path", help="Corpus root (must have an existing index).")
-    add_max_heading_level_arg(p)
-    add_embedding_args(p)
-    add_cache_arg(p)
-    add_auto_embed_args(p, default_cap=50)
-    add_path_filter_args(p, command_name="audit")
-
-    p.add_argument(
-        "--threshold-smear",
-        type=float,
-        default=0.85,
-        help="Cosine threshold for smeared concept / tight-duplicate edges (default: 0.85).",
-    )
-    p.add_argument(
-        "--threshold-drift",
-        type=float,
-        default=0.65,
-        help="Intra-cluster cohesion floor for 'tight' classification (default: 0.65).",
-    )
-    p.add_argument(
-        "--threshold-inter",
-        type=float,
-        default=0.40,
-        help="Inter-cluster centroid similarity ceiling to flag drift (default: 0.40).",
-    )
-    p.add_argument(
-        "--threshold-template",
-        type=float,
-        default=0.70,
-        help="Heading-Jaccard threshold for TEMPLATE_EFFECT pair classification (default: 0.70).",
-    )
-    p.add_argument(
-        "--threshold-heading-diversity",
-        type=float,
-        default=0.85,
-        help=(
-            "Mean (1 − Jaccard) over H2+ heading token sets inside one file "
-            "that flags intra-file heading-lex drift (default: 0.85). "
-            "Independent co-signal to embedding k-means drift."
-        ),
-    )
-    p.add_argument(
-        "--min-files-in-family",
-        type=int,
-        default=3,
-        help=(
-            "Minimum files sharing one H2+ heading to surface as a "
-            "template_family finding (default: 3)."
-        ),
-    )
-    p.add_argument(
-        "--min-sections-per-file",
-        type=int,
-        default=5,
-        help="Minimum sections a file needs to be drift-checked (default: 5).",
-    )
-    p.add_argument(
-        "--max-concepts",
-        type=int,
-        default=10,
-        help="Cap on smeared-owner-truth concepts emitted (default: 10).",
-    )
-    p.add_argument(
-        "--cluster-k",
-        type=int,
-        default=8,
-        help="K for the cluster_sections check (default: 8).",
-    )
-    p.add_argument(
-        "--discovery-gap-warn",
-        type=float,
-        default=0.25,
-        help="Description-gap ratio that escalates to 🟡 (default: 0.25).",
-    )
-    p.add_argument(
-        "--discovery-gap-crit",
-        type=float,
-        default=0.50,
-        help="Description-gap ratio that escalates to 🔴 (default: 0.50).",
-    )
-    p.add_argument(
-        "--output",
-        default=None,
-        metavar="FILE",
-        help=(
-            "Write the audit report to FILE instead of the default "
-            "`<corpus>/.md-navigator/audit.md`."
-        ),
-    )
-    p.add_argument(
-        "--stdout",
-        action="store_true",
-        help="Print the full Markdown report to stdout instead of writing the file.",
-    )
-    p.add_argument(
-        "--json",
-        action="store_true",
-        help=(
-            "Print JSON to stdout (machine-consumer contract). Combine with "
-            "--output FILE to write JSON to a specific path instead."
-        ),
-    )
-    p.set_defaults(func=lambda args: cmd_audit(args))

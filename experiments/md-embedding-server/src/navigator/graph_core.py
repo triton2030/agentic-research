@@ -7,11 +7,11 @@ layers (link resolution, report builders, CLI) import from here.
 
 from __future__ import annotations
 
-import argparse
 import fnmatch
+import os
 import re
-import sys
-from dataclasses import dataclass
+import tempfile
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Iterable
 
@@ -19,9 +19,23 @@ from .markdown_io import DEFAULT_EXCLUDED_PARTS, parse_frontmatter
 
 try:
     import yaml
-except ImportError:  # pragma: no cover - environment guard
-    print("PyYAML is required: python3 -m pip install pyyaml", file=sys.stderr)
-    sys.exit(2)
+except ImportError as exc:  # pragma: no cover - environment guard
+    raise ImportError(
+        "PyYAML is required: python3 -m pip install pyyaml"
+    ) from exc
+
+
+class PathNotFound(Exception):
+    """A requested Markdown path/scan target does not exist on disk.
+
+    Raised by the loaders below instead of ``SystemExit`` so the CLI runner's
+    exception fence (``md_cli.handlers._generic._call``) can turn it into a
+    normal error envelope. Carries the original path value for the payload.
+    """
+
+    def __init__(self, path_value: str) -> None:
+        self.path_value = path_value
+        super().__init__(f"Path not found: {path_value}")
 
 
 GRAPH_FIELDS = ("read-before-edit", "edit-after-edit")
@@ -71,6 +85,35 @@ class Edge:
     target: Doc | None
     target_raw: str
     anchor: str | None
+
+
+@dataclass(frozen=True)
+class DocWrite:
+    doc: Doc
+    text: str
+
+    @classmethod
+    def from_frontmatter(cls, doc: Doc, frontmatter: dict, body: str) -> DocWrite:
+        return cls(doc=doc, text=_doc_text(frontmatter, body))
+
+    @classmethod
+    def from_text(cls, doc: Doc, text: str) -> DocWrite:
+        return cls(doc=doc, text=text)
+
+
+@dataclass
+class GraphArgs:
+    """Explicit load filters for the graph backend.
+
+    Replaces the fabricated ``argparse.Namespace`` the api layer used to build
+    just to carry path filters into :func:`load_docs`. No parser, no CLI shape —
+    only the four fields ``load_docs`` actually reads.
+    """
+
+    paths: list[str] = field(default_factory=lambda: ["."])
+    path_include: list[str] = field(default_factory=list)
+    path_exclude: list[str] = field(default_factory=list)
+    no_default_excludes: bool = False
 
 
 def repo_root() -> Path:
@@ -157,7 +200,7 @@ def iter_markdown(
     for raw in raw_paths:
         path = (root / raw).resolve() if not Path(raw).is_absolute() else Path(raw).resolve()
         if not path.exists():
-            raise SystemExit(f"Path not found: {raw}")
+            raise PathNotFound(raw)
         if path.is_file():
             if path.suffix.lower() == ".md":
                 if _path_passes(path, root, include_patterns, exclude_patterns, use_default_excludes):
@@ -190,10 +233,10 @@ def load_doc(path: Path, root: Path) -> Doc:
     return Doc(path=path, rel=safe_rel(path, root), has_frontmatter=has_frontmatter, frontmatter=frontmatter, body=body)
 
 
-def load_docs(paths: Iterable[str], root: Path, args: argparse.Namespace | None = None) -> list[Doc]:
-    include = getattr(args, "path_include", None) or []
-    exclude = getattr(args, "path_exclude", None) or []
-    use_defaults = not getattr(args, "no_default_excludes", False)
+def load_docs(paths: Iterable[str], root: Path, args: GraphArgs | None = None) -> list[Doc]:
+    include = list(args.path_include) if args else []
+    exclude = list(args.path_exclude) if args else []
+    use_defaults = not (args.no_default_excludes if args else False)
     return [
         load_doc(path, root)
         for path in iter_markdown(
@@ -214,10 +257,60 @@ def dump_frontmatter(data: dict) -> str:
 
 def write_doc(doc: Doc, frontmatter: dict, body: str | None = None) -> None:
     body_text = doc.body if body is None else body
+    _atomic_replace_text(doc.path, _doc_text(frontmatter, body_text))
+
+
+def _doc_text(frontmatter: dict, body: str) -> str:
     new_text = f"---\n{dump_frontmatter(frontmatter)}\n---\n"
-    if body_text:
-        new_text += body_text if body_text.startswith("\n") else body_text
-    doc.path.write_text(new_text, encoding="utf-8")
+    if body:
+        new_text += body if body.startswith("\n") else body
+    return new_text
+
+
+def _atomic_replace_text(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.NamedTemporaryFile(
+        "w",
+        encoding="utf-8",
+        dir=path.parent,
+        prefix=f".{path.name}.",
+        suffix=".tmp",
+        delete=False,
+    ) as handle:
+        tmp_path = Path(handle.name)
+        handle.write(text)
+        handle.flush()
+        os.fsync(handle.fileno())
+    os.replace(tmp_path, path)
+
+
+def write_doc_plan(plan: Iterable[DocWrite]) -> None:
+    entries = list(plan)
+    originals = {entry.doc.path: entry.doc.path.read_text(encoding="utf-8") for entry in entries}
+    staged: list[tuple[Path, Path]] = []
+    try:
+        for entry in entries:
+            with tempfile.NamedTemporaryFile(
+                "w",
+                encoding="utf-8",
+                dir=entry.doc.path.parent,
+                prefix=f".{entry.doc.path.name}.",
+                suffix=".tmp",
+                delete=False,
+            ) as handle:
+                tmp_path = Path(handle.name)
+                handle.write(entry.text)
+                handle.flush()
+                os.fsync(handle.fileno())
+                staged.append((tmp_path, entry.doc.path))
+        for tmp_path, target in staged:
+            os.replace(tmp_path, target)
+    except Exception:
+        for tmp_path, _target in staged:
+            tmp_path.unlink(missing_ok=True)
+        for path, text in originals.items():
+            _atomic_replace_text(path, text)
+        raise
 
 
 def strip_related_section(body: str) -> tuple[str, bool]:
@@ -231,5 +324,5 @@ def strip_related_section(body: str) -> tuple[str, bool]:
 def load_target_doc(path_value: str, root: Path) -> Doc:
     target_path = _resolve_invocation_path(path_value, root)
     if not target_path.exists():
-        raise SystemExit(f"Path not found: {path_value}")
+        raise PathNotFound(path_value)
     return load_doc(target_path, root)

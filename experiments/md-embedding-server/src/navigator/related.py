@@ -1,24 +1,19 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 
+from .link_graph import iter_explicit_link_edges
 from .markdown_io import (
     GRAPH_LINK_KEYS,
     approx_tokens,
     collect_headings,
     extract_section_by_anchor,
     iter_markdown,
-    markdown_links_from_text,
-    markdown_links_with_anchors_from_text,
     markdown_lookup,
-    normalize_frontmatter_links,
     parse_frontmatter,
     relative_path,
     resolve_input_path,
-    resolve_markdown_target,
-    wikilinks_from_text,
-    wikilinks_with_anchors_from_text,
 )
 from .pick import parse_csv
 
@@ -76,6 +71,61 @@ def add_related_item(
         items[key]["reasons"].append(reason)
 
 
+def _resolved_explicit_link_targets(
+    anchor: Path,
+    scan_root: Path,
+    lookup: dict[str, list[Path]],
+) -> list[Path]:
+    resolved_targets: list[Path] = []
+    for edge in iter_explicit_link_edges(anchor, scan_root, lookup):
+        if edge.target.resolve() != anchor.resolve():
+            resolved_targets.append(edge.target)
+
+    seen: set[Path] = set()
+    unique: list[Path] = []
+    for target in resolved_targets:
+        resolved = target.resolve()
+        if resolved not in seen:
+            seen.add(resolved)
+            unique.append(target)
+    return unique
+
+
+def _iter_related_link_items(
+    anchor: Path,
+    scan_root: Path,
+    lookup: dict[str, list[Path]],
+    include: set[str],
+    *,
+    anchor_aware: bool,
+) -> Iterator[tuple[Path, str, str | None]]:
+    for edge in iter_explicit_link_edges(anchor, scan_root, lookup):
+        if edge.edge_type in GRAPH_LINK_KEYS:
+            if "frontmatter" in include:
+                yield edge.target, edge.edge_type, None
+            continue
+        if edge.edge_type == "wikilink":
+            if "wikilinks" in include:
+                yield edge.target, "wikilink", edge.anchor if anchor_aware else None
+            continue
+        if edge.edge_type == "markdown-link" and "markdown-links" in include:
+            yield edge.target, "markdown-link", edge.anchor if anchor_aware else None
+
+
+def _links_to_any_anchor(
+    candidate: Path,
+    scan_root: Path,
+    lookup: dict[str, list[Path]],
+    anchor_set: set[Path],
+) -> bool:
+    for edge in iter_explicit_link_edges(candidate, scan_root, lookup):
+        if edge.edge_type in GRAPH_LINK_KEYS:
+            continue
+        if edge.target.resolve() in anchor_set:
+            return True
+    return False
+
+
 def collect_related_items(args) -> dict[str, Any]:
     scan_root = Path(args.scan).expanduser().resolve()
     if not scan_root.exists():
@@ -92,61 +142,25 @@ def collect_related_items(args) -> dict[str, Any]:
     items: dict[tuple[Path, str | None], dict[str, Any]] = {}
 
     for anchor in anchors:
-        text = anchor.read_text(encoding="utf-8", errors="replace")
-        lines = text.splitlines()
-        frontmatter = parse_frontmatter(lines)
-
         if "self" in include:
             add_related_item(items, anchor, scan_root, "self")
 
-        if "frontmatter" in include:
-            for key in GRAPH_LINK_KEYS:
-                for target in normalize_frontmatter_links(frontmatter.get(key)):
-                    resolved = resolve_markdown_target(target, anchor, scan_root, lookup)
-                    if resolved:
-                        add_related_item(items, resolved, scan_root, key)
-
-        if "wikilinks" in include:
-            if anchor_aware:
-                for target, link_anchor in wikilinks_with_anchors_from_text(text):
-                    resolved = resolve_markdown_target(target, anchor, scan_root, lookup)
-                    if resolved:
-                        add_related_item(items, resolved, scan_root, "wikilink", anchor=link_anchor)
-            else:
-                for target in wikilinks_from_text(text):
-                    resolved = resolve_markdown_target(target, anchor, scan_root, lookup)
-                    if resolved:
-                        add_related_item(items, resolved, scan_root, "wikilink")
-
-        if "markdown-links" in include:
-            if anchor_aware:
-                for target, link_anchor in markdown_links_with_anchors_from_text(text):
-                    resolved = resolve_markdown_target(target, anchor, scan_root, lookup)
-                    if resolved:
-                        add_related_item(items, resolved, scan_root, "markdown-link", anchor=link_anchor)
-            else:
-                for target in markdown_links_from_text(text):
-                    resolved = resolve_markdown_target(target, anchor, scan_root, lookup)
-                    if resolved:
-                        add_related_item(items, resolved, scan_root, "markdown-link")
+        for target, reason, target_anchor in _iter_related_link_items(
+            anchor,
+            scan_root,
+            lookup,
+            include,
+            anchor_aware=anchor_aware,
+        ):
+            add_related_item(items, target, scan_root, reason, anchor=target_anchor)
 
     if "backlinks" in include:
         for candidate in iter_markdown(scan_root):
             resolved_candidate = candidate.resolve()
             if resolved_candidate in anchor_set:
                 continue
-            try:
-                text = resolved_candidate.read_text(encoding="utf-8", errors="replace")
-            except OSError:
-                continue
-            targets = wikilinks_from_text(text) + markdown_links_from_text(text)
-            for target in targets:
-                resolved = resolve_markdown_target(
-                    target, resolved_candidate, scan_root, lookup
-                )
-                if resolved and resolved in anchor_set:
-                    add_related_item(items, resolved_candidate, scan_root, "backlink")
-                    break
+            if _links_to_any_anchor(resolved_candidate, scan_root, lookup, anchor_set):
+                add_related_item(items, resolved_candidate, scan_root, "backlink")
 
     ordered = list(items.values())
     content_included = getattr(args, "mode", "preview") == "full"
@@ -232,41 +246,13 @@ def collect_related_items(args) -> dict[str, Any]:
                 )
 
             if check_links:
-                # Resolve explicit link targets again (frontmatter +
-                # wikilinks + markdown-links) — same logic as above but
-                # we only need the resolved paths, not full items.
                 threshold = float(getattr(args, "link_distance_threshold", 0.4))
                 for anchor in anchors:
-                    text = anchor.read_text(encoding="utf-8", errors="replace")
-                    lines = text.splitlines()
-                    frontmatter = parse_frontmatter(lines)
-                    resolved_targets: list[Path] = []
-                    for key in GRAPH_LINK_KEYS:
-                        for tgt in normalize_frontmatter_links(frontmatter.get(key)):
-                            r = resolve_markdown_target(tgt, anchor, scan_root, lookup)
-                            if r and r.resolve() != anchor.resolve():
-                                resolved_targets.append(r)
-                    for tgt in wikilinks_from_text(text):
-                        r = resolve_markdown_target(tgt, anchor, scan_root, lookup)
-                        if r and r.resolve() != anchor.resolve():
-                            resolved_targets.append(r)
-                    for tgt in markdown_links_from_text(text):
-                        r = resolve_markdown_target(tgt, anchor, scan_root, lookup)
-                        if r and r.resolve() != anchor.resolve():
-                            resolved_targets.append(r)
-                    # Dedupe while preserving order.
-                    seen: set[Path] = set()
-                    uniq: list[Path] = []
-                    for t in resolved_targets:
-                        rk = t.resolve()
-                        if rk not in seen:
-                            seen.add(rk)
-                            uniq.append(t)
                     suspicious_links.extend(
                         check_explicit_link_coherence(
                             corpus_root=corpus_root,
                             anchor=anchor,
-                            linked_targets=uniq,
+                            linked_targets=_resolved_explicit_link_targets(anchor, scan_root, lookup),
                             threshold=threshold,
                         )
                     )

@@ -1,8 +1,8 @@
-"""Index build layer: counters, delta apply, embed pipeline, and the
-`index` CLI command. Owns every write path against `<corpus>/.md-navigator/`.
+"""Index build layer: counters, delta apply, embed pipeline. Owns every
+write path against `<corpus>/.md-navigator/`.
 
 Read paths (open-readonly, meta-readonly, sticky model resolution) live
-in `index_meta`. Status reporting (`cmd_status`) lives in `index_status`.
+in `index_meta`. Status reporting lives in `index_status`.
 Clustering lives in `index_cluster`."""
 
 from __future__ import annotations
@@ -11,11 +11,6 @@ import sys
 from pathlib import Path
 from typing import Any, Callable
 
-from .cli_common import (
-    add_cache_arg,
-    add_embedding_args,
-    add_max_heading_level_arg,
-)
 from .embeddings import (
     SEARCH_DEFAULT_EMBEDDING_API_URL,
     SEARCH_DEFAULT_EMBEDDING_TIMEOUT,
@@ -34,7 +29,6 @@ from .index_meta import (
     resolve_embed_model_for_corpus,
 )
 from .filters import (
-    add_path_filter_args,
     apply_path_filters,
     normalize_path_filter_patterns,
     path_matches_any,
@@ -59,44 +53,6 @@ DEFAULT_INDEX_PAUSE_S = 0.0
 # but a true new-corpus delta (hundreds of chunks) should still require an
 # explicit `index` run. 50 fits a typical mid-edit session.
 DEFAULT_MAX_AUTO_EMBED = 50
-
-
-def register_index(sub) -> None:
-    p = sub.add_parser(
-        "index",
-        help=(
-            "Build / top up the persistent vector index for a corpus. "
-            "Heavy operation: writes cloud embeddings to disk in batches. "
-            "Run this once when you start working with a project; `search` "
-            "and `overlaps` after that are near-instant."
-        ),
-    )
-    p.add_argument("path", help="Folder or Markdown file to index.")
-    add_max_heading_level_arg(p)
-    add_embedding_args(p)
-    add_cache_arg(p)
-    add_path_filter_args(p, command_name="indexed sections")
-    p.add_argument(
-        "--batch-size",
-        type=int,
-        default=DEFAULT_INDEX_BATCH,
-        help=f"Embedding batch size (default: {DEFAULT_INDEX_BATCH}).",
-    )
-    p.add_argument(
-        "--batch-pause-ms",
-        type=int,
-        default=int(DEFAULT_INDEX_PAUSE_S * 1000),
-        help=(
-            f"Sleep between batches in milliseconds "
-            f"(default: {int(DEFAULT_INDEX_PAUSE_S * 1000)}). 0 disables the pause."
-        ),
-    )
-    p.add_argument(
-        "--allow-nested-corpus",
-        action="store_true",
-        help="Allow creating an index under an already-indexed parent corpus.",
-    )
-    p.set_defaults(func=lambda args: cmd_index(args))
 
 
 # --- Monotonic counters ---------------------------------------------------
@@ -397,7 +353,6 @@ def ensure_index(
             max_auto_embed=max_auto_embed,
             batch_size=batch_size,
             batch_pause_s=batch_pause_s,
-            dry_run=False,
             path_include=include_patterns,
             path_exclude=exclude_patterns,
         )
@@ -417,7 +372,6 @@ def _ensure_index_unlocked(
     max_auto_embed: int | None = DEFAULT_MAX_AUTO_EMBED,
     batch_size: int = DEFAULT_INDEX_BATCH,
     batch_pause_s: float = DEFAULT_INDEX_PAUSE_S,
-    dry_run: bool = False,
     path_include: list[str] | None = None,
     path_exclude: list[str] | None = None,
 ) -> tuple[Any, dict[str, Any]]:
@@ -434,9 +388,9 @@ def _ensure_index_unlocked(
     If `max_auto_embed` is not None and the new-section delta would
     require more than that many chunks of embedding work, the function
     returns *without* embedding and sets `stats["delta_too_large"] = True`
-    plus `stats["pending_chunks"]`. Callers like `cmd_search` use that to
-    nudge the user to run `index` explicitly. Pass `max_auto_embed=None`
-    from `cmd_index` to force a full run.
+    plus `stats["pending_chunks"]`. Read-path callers (`search_payload`,
+    `overlaps`) use that to nudge the user to run `index` explicitly. Pass
+    `max_auto_embed=None` from the index warmup path to force a full run.
 
     `cache_root=None` puts the index inside the corpus at
     `<corpus>/.md-navigator/` (default). Pass a Path to override (legacy
@@ -453,17 +407,12 @@ def _ensure_index_unlocked(
         else:
             print(msg, file=sys.stderr)
 
-    # 1. Decide vec_dim. Re-open path: read recorded dim from meta. Cold
-    #    path: probe the server (skipped in dry_run — no embedding work).
+    # 1. Decide vec_dim. Re-open path reads recorded dim from meta; cold
+    #    write path probes the server before creating the schema.
     cache_dir = _index_dir_for_corpus(corpus_root, cache_root=cache_root, create=True)
     db_path = cache_dir / "index.sqlite"
     if db_path.exists():
         vec_dim = None  # _open_index will recover from meta
-    elif dry_run:
-        # No on-disk index yet and we are not going to embed. Use a
-        # placeholder dim — the only thing we touch is meta + sections
-        # bookkeeping for the count, vectors will never be written.
-        vec_dim = 1
     else:
         vec_dim = probe_embedding_dim(
             embed_model,
@@ -475,12 +424,10 @@ def _ensure_index_unlocked(
     conn = _open_index(cache_root, corpus_root, embed_model, embedding_api_url, vec_dim)
 
     # 2. Heal anything a previous interrupted run left half-written.
-    #    Skipped in dry_run — we report state without mutating it.
-    if not dry_run:
-        healed = _clean_incomplete_sections(conn, scope)
-        if healed:
-            _say(f"Healed {healed} incomplete sections from a prior interrupted run (scope={scope}).")
-            conn.commit()
+    healed = _clean_incomplete_sections(conn, scope)
+    if healed:
+        _say(f"Healed {healed} incomplete sections from a prior interrupted run (scope={scope}).")
+        conn.commit()
 
     # 3. Build (scope, content_hash) → rowid map for existing sections.
     existing_rows = conn.execute(
@@ -516,7 +463,7 @@ def _ensure_index_unlocked(
         "pending_chunks": 0,
     }
 
-    if removed_rowids and not dry_run:
+    if removed_rowids:
         _say(f"Pruning {len(removed_rowids)} stale sections (scope={scope})...")
         stats["removed"] = _delete_section_rowids(conn, removed_rowids)
         conn.commit()
@@ -527,48 +474,47 @@ def _ensure_index_unlocked(
     # change with frontmatter or H1 edits that don't touch this section's
     # body. Without this refresh those fields stay at index-time values and
     # downstream consumers that resolve against a fresh map see drift.
-    if not dry_run:
-        surviving_hashes = [
-            h for h in current_hash_to_item if h in existing_hash_to_rowid
-        ]
-        if surviving_hashes:
-            section_updates = []
-            fts_updates = []
-            for h in surviving_hashes:
-                it = current_hash_to_item[h]
-                rowid = existing_hash_to_rowid[h]
-                section_updates.append(
-                    (
-                        it["section_id"],
-                        it["file_id"],
-                        it["file_description"],
-                        it["file_title"],
-                        rowid,
-                    )
+    surviving_hashes = [
+        h for h in current_hash_to_item if h in existing_hash_to_rowid
+    ]
+    if surviving_hashes:
+        section_updates = []
+        fts_updates = []
+        for h in surviving_hashes:
+            it = current_hash_to_item[h]
+            rowid = existing_hash_to_rowid[h]
+            section_updates.append(
+                (
+                    it["section_id"],
+                    it["file_id"],
+                    it["file_description"],
+                    it["file_title"],
+                    rowid,
                 )
-                chain = (
-                    " > ".join(it["heading_chain"]) if it["heading_chain"] else ""
-                )
-                chain_for_fts = (chain + " " + it["heading_text"]).strip()
-                fts_updates.append(
-                    (
-                        it["file_description"],
-                        it["file_title"],
-                        lemmatize_text(chain_for_fts),
-                        rowid,
-                    )
-                )
-            conn.executemany(
-                "UPDATE sections SET section_id=?, file_id=?, "
-                "file_description=?, file_title=? WHERE rowid=?",
-                section_updates,
             )
-            conn.executemany(
-                "UPDATE sections_fts SET description=?, title=?, "
-                "heading_chain=? WHERE rowid=?",
-                fts_updates,
+            chain = (
+                " > ".join(it["heading_chain"]) if it["heading_chain"] else ""
             )
-            conn.commit()
+            chain_for_fts = (chain + " " + it["heading_text"]).strip()
+            fts_updates.append(
+                (
+                    it["file_description"],
+                    it["file_title"],
+                    lemmatize_text(chain_for_fts),
+                    rowid,
+                )
+            )
+        conn.executemany(
+            "UPDATE sections SET section_id=?, file_id=?, "
+            "file_description=?, file_title=? WHERE rowid=?",
+            section_updates,
+        )
+        conn.executemany(
+            "UPDATE sections_fts SET description=?, title=?, "
+            "heading_chain=? WHERE rowid=?",
+            fts_updates,
+        )
+        conn.commit()
 
     # 4. Build a chunk plan for added sections so we can decide whether the
     #    delta is small enough to embed inline, or too large and should
@@ -628,18 +574,6 @@ def _ensure_index_unlocked(
 
         stats["subchunked_sections"] = subchunked_count
         stats["pending_chunks"] = len(plan)
-
-        if dry_run:
-            # Report-only path used by `cmd_status`. Compute counts above,
-            # then return without touching the DB. `delta_too_large` is
-            # still set so callers can show the same NEEDS-WARMUP message.
-            stats["delta_too_large"] = (
-                max_auto_embed is not None and len(plan) > max_auto_embed
-            )
-            stats["total_sections_in_scope"] = int(
-                _count_sections_in_path_scope(conn, scope, include_patterns, exclude_patterns)
-            )
-            return conn, stats
 
         if max_auto_embed is not None and len(plan) > max_auto_embed:
             stats["delta_too_large"] = True
@@ -747,7 +681,7 @@ def _ensure_index_unlocked(
     stats["total_sections_in_scope"] = int(
         _count_sections_in_path_scope(conn, scope, include_patterns, exclude_patterns)
     )
-    if not dry_run and scope == "sections":
+    if scope == "sections":
         profiled = profile_unprofiled_sections(
             conn,
             corpus_root=corpus_root,
@@ -757,119 +691,3 @@ def _ensure_index_unlocked(
         if profiled:
             stats["profiled_sections"] = profiled
     return conn, stats
-
-
-# --- Warmup command ------------------------------------------------------
-
-
-def cmd_index(args) -> int:
-    """Cold-start (or top-up) the persistent index for a corpus across both
-    scopes (`sections` and `descriptions`). Heavy operation — the user
-    triggers it explicitly when they have time. `search` and `overlaps`
-    afterwards are near-instant on the same corpus."""
-    from .folder_map import build_map
-    from .index_meta import find_parent_indexed_corpus, nested_corpus_refusal
-    from .sections import build_items_from_map
-
-    corpus_root = Path(args.path).expanduser().resolve()
-    if not corpus_root.exists():
-        print(f"Path does not exist: {corpus_root}", file=sys.stderr)
-        return 2
-
-    cache_root = (
-        Path(args.cache_dir).expanduser() if getattr(args, "cache_dir", None) else None
-    )
-    include_patterns: list[str] = list(getattr(args, "path_include", None) or [])
-    exclude_patterns: list[str] = list(getattr(args, "path_exclude", None) or [])
-    parent_corpus = find_parent_indexed_corpus(corpus_root, cache_root=cache_root)
-    if parent_corpus is not None and not getattr(args, "allow_nested_corpus", False):
-        payload = nested_corpus_refusal(
-            corpus_root,
-            parent_corpus,
-            path_include=include_patterns,
-            path_exclude=exclude_patterns,
-        )
-        print(
-            "Nested corpus refused: "
-            f"{payload['requested_corpus']} is inside indexed parent "
-            f"{payload['parent_corpus']}. Use parent corpus with --path-include "
-            "or pass --allow-nested-corpus.",
-            file=sys.stderr,
-        )
-        print(f"Suggested args: {payload['suggested_index_args']}", file=sys.stderr)
-        return 1
-
-    map_data = build_map(corpus_root, args.max_heading_level, with_tokens=True)
-    if not map_data["files"]:
-        print(f"No Markdown files under {corpus_root}", file=sys.stderr)
-        return 1
-
-    args.embed_model = resolve_embed_model_for_corpus(
-        corpus_root, args.embed_model, cache_root=cache_root
-    )
-
-    totals = {"embedded": 0, "reused": 0, "removed": 0}
-    if include_patterns or exclude_patterns:
-        print(
-            f"Path scope: include={include_patterns or '∅'} "
-            f"exclude={exclude_patterns or '∅'}",
-            file=sys.stderr,
-        )
-    for scope in ("sections", "descriptions"):
-        items = build_items_from_map(map_data, scope=scope)
-        if not items:
-            print(f"(no items for scope={scope}; skipping)", file=sys.stderr)
-            continue
-        try:
-            _, stats = ensure_index(
-                corpus_root,
-                scope,
-                items,
-                args.embed_model,
-                embedding_api_url=args.embedding_api_url,
-                embedding_timeout=args.embedding_timeout,
-                cache_root=cache_root,
-                max_auto_embed=None,  # explicit warmup: no cap
-                batch_size=args.batch_size,
-                batch_pause_s=args.batch_pause_ms / 1000.0,
-                path_include=include_patterns,
-                path_exclude=exclude_patterns,
-            )
-        except ModuleNotFoundError as exc:
-            print(
-                f"Missing Python dependency: {exc}.\n"
-                f"  This script needs uv to resolve its inline deps "
-                f"(`numpy`, `sqlite-vec`, `pyyaml`).\n"
-                f"  Verify the installed CLI with:\n"
-                f"    md --version && md tools --json\n"
-                f"  Install uv if missing: `brew install uv` (macOS) or "
-                f"https://docs.astral.sh/uv.",
-                file=sys.stderr,
-            )
-            return 3
-        except RuntimeError as exc:
-            print(
-                f"Embedding API call failed: {exc}\n"
-                f"  Check OPENROUTER_API_KEY env var or `.openrouter.key` file "
-                f"(see SKILL.md → First-time setup).",
-                file=sys.stderr,
-            )
-            return 3
-        print(
-            f"[{scope}] embedded={stats['embedded']} reused={stats['reused']} "
-            f"removed={stats['removed_sections']} "
-            f"total_in_scope={stats['total_sections_in_scope']}",
-            file=sys.stderr,
-        )
-        totals["embedded"] += stats["embedded"]
-        totals["reused"] += stats["reused"]
-        totals["removed"] += stats["removed_sections"]
-
-    index_dir = _index_dir_for_corpus(corpus_root, cache_root=cache_root, create=False)
-    print(
-        f"Index ready at {index_dir / 'index.sqlite'}\n"
-        f"  embedded: {totals['embedded']} (newly computed this run)\n"
-        f"  reused:   {totals['reused']} (already on disk, unchanged)\n"
-        f"  removed:  {totals['removed']} (deleted or rewritten files)"
-    )
-    return 0

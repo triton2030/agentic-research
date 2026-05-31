@@ -1,0 +1,62 @@
+---
+description: "Условные правила размещения файлов, папок, разделов и знаний без второго source of truth."
+read-before-edit:
+  - "[[AGENTS.md]]"
+  - "[[_ops/AGENTS.md]]"
+  - "[[_ops/GOAL.md]]"
+  - "[[_ops/project-graph.md]]"
+edit-after-edit:
+  - "[[AGENTS.md]]"
+  - "[[_ops/AGENTS.md]]"
+  - "[[_ops/project-graph.md]]"
+---
+
+# Placement Rules
+
+Trigger: создаёшь, двигаешь, переименовываешь или делишь файл, папку, раздел,
+правило, заметку, задачу или знание.
+
+Owner: container shape и папочные границы держит `1folder-contract`; IA-выбор
+file-vs-folder и truth-vs-view держит `1ia-audit`; формулировку правила держит
+`1instruction-layer`.
+
+Check: один owner truth, понятный retrieval path, нет второго source of truth,
+нет нового файла без функции.
+
+## Минимальный След
+
+- Сначала обновляй существующий owner-файл.
+- Новый файл создавай только после названной функции, reader-а, owner-а и check.
+- Side-doc, summary, handoff note или explainer не создавай без явного запроса.
+- Retired/superseded artifacts не храни ради архива; важный урок переноси в
+  правильный owner.
+
+## Куда Класть
+
+- Общие выводы для агентов, skills, LLM или платформ -> `knowledge/`.
+- Короткие практические гайды -> `knowledge/practical-guides/`.
+- Канонические guides/playbooks/pattern studies -> `knowledge/guides/`.
+- Эталонные артефакты -> `knowledge/examples/`.
+- Категорийные learnings/inventories -> `knowledge/research/{business,design,dev,meta}/`.
+- Reader on-ramp -> `README.md` через `1strategy-docs`.
+- Scope, NOT in scope, definition of done, stop rules -> `_ops/GOAL.md` через
+  `1strategy-docs`.
+- Текущая рамка движения -> `_ops/PROJECT-ROADMAP.md` через `1planning`.
+- Активная сложная задача -> `_ops/plans/**` через `1planning`, только когда
+  task-файл реально нужен.
+- Актуальная проблема до решения -> `_ops/findings/**` через `1findings`.
+- Длинный сбор ответов пользователя -> `_ops/interviews/**` через
+  `1start-here` / `1folder-contract`.
+- Длинные слова пользователя -> не автозаписывать; существующий
+  `_ops/user-said/YYYY-MM-DD.md` обрабатывать только manual, отдельным проходом.
+
+## Folder Shape
+
+- В корне `knowledge/` держать только `wisdom-*.md`.
+- Новые подпапки в `knowledge/guides/` не создавать.
+- Новые подпапки в `knowledge/research/{category}/` не создавать.
+- `_ops/` — не склад заметок, идей, research или backlog.
+- `INTERVIEW.md`, `LEARNINGS.md` и `projects/` не восстанавливать как живые
+  поверхности.
+- Новый project shape не собирать руками: запускать Codex init-скрипт из
+  `1start-here`.

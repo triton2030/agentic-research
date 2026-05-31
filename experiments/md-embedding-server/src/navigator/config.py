@@ -28,6 +28,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable
 
+from .value_coercion import coerce_string_list
+
 CONFIG_FILENAME = ".md-tools.toml"
 
 
@@ -135,23 +137,7 @@ def merge_cli_with_config(
 
 
 def _normalize_to_list(value: Any) -> list[str]:
-    """Mirror navigator.api._list (kept here to avoid circular import).
-
-    Accepts None, '', a comma-separated string, or any iterable of strings
-    (some of which may themselves carry comma-separated values), and
-    returns a flat list of non-empty stripped strings.
-    """
-    if value is None or value == "":
-        return []
-    if isinstance(value, str):
-        return [part.strip() for part in value.split(",") if part.strip()]
-    out: list[str] = []
-    for item in value:
-        if isinstance(item, str) and "," in item:
-            out.extend(part.strip() for part in item.split(",") if part.strip())
-        elif item:
-            out.append(str(item))
-    return out
+    return coerce_string_list(value)
 
 
 def resolve_filters_for_domain(

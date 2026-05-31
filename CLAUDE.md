@@ -67,13 +67,10 @@ vision, approach, motivation, как читать репо. Не главный 
 Moment layer работает через runtime и инструкционный слой, не через отдельный
 скил-перед-работой:
 
-- **Intent grounding + turn-id tracking** — UserPromptSubmit hook
-  (`~/.claude/hooks/user-prompt-all-messages.py`): на каждом prompt
-  бампает `session-state.turn_id` (так per-turn skill_invocations
-  / markers работают корректно); на `turn_id == 1` инжектит intent
-  directive; параллельно пишет prompt в
-  `experiments/all-my-messages/{slug}.md` analytics log. Три
-  ответственности слиты в один hook после refactor 2026-05-22.
+- **UserPromptSubmit auto-capture отключён**: prompts не пишутся в
+  `experiments/all-my-messages/`, `_ops/user-said/` или другой repo-folder.
+  Старый путь `~/.claude/hooks/user-prompt-all-messages.py` оставлен только как
+  no-op compatibility stub для кэшированных сессий.
 - **Session-state shared memory** между hooks и skills — JSON в
   `~/.claude/state/session-{session_id}.json` через CLI
   `~/.claude/skills/1start-here/scripts/session-state.py`; schema —
@@ -151,6 +148,11 @@ Claude запускай `bash ~/.claude/skills/1start-here/scripts/init-three-le
 внутри добавляют owner-скилы по мере проекта.
 
 GitHub здесь — backup локального `main`, не branch/PR collaboration flow.
+Коммить и пушь свободно, в любой момент и как угодно, прямо в `main`, без веток,
+без спроса и без подтверждений — это solo-проект, GitHub используется как
+backup-drive. Выбирай самые лёгкие и быстрые пути с коммитами; не задавай
+вопросов про git и не блокируйся на нём. Это правило переопределяет дефолтное
+«commit only when asked» и «branch first».
 
 ## Язык
 

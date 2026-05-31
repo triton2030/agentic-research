@@ -1,14 +1,13 @@
 """Façade module for the index layer.
 
-The implementation lives in four focused modules; this file re-exports
-their public symbols so existing callers (`search.py`, `overlaps.py`,
-`repeated_concepts.py`, `cli.py`) keep working with no edits:
+The implementation lives in focused modules; this file re-exports their
+public symbols so existing callers (`search.py`, `overlaps.py`,
+`repeated_concepts.py`) keep working with no edits:
 
   - `index_meta`   — schema, meta, layout, open / probe / sticky model
-  - `index_build`  — counters, delta apply, embed pipeline, `cmd_index`
+  - `index_build`  — counters, delta apply, embed pipeline
   - `status_core`  — shared status state machine and corpus root discovery
-  - `index_status` — legacy `cmd_status` adapter
-  - `index_cluster` — K-means clustering, `cmd_cluster`
+  - `index_cluster` — K-means clustering primitives, `cluster_sections`
 
 In addition, two semantic-neighbour utilities live here because they
 are used only by `related.py` (read-related feature) and don't fit
@@ -20,6 +19,7 @@ This shim exists only for backward compatibility."""
 
 from __future__ import annotations
 
+import sqlite3
 from pathlib import Path
 from typing import Any
 
@@ -54,17 +54,14 @@ from .index_build import (  # noqa: F401
     _index_delta_stats_readonly,
     _next_id,
     _set_counter,
-    cmd_index,
     ensure_index,
 )
-from .index_status import cmd_status  # noqa: F401
 from .status_core import find_corpus_root_for  # noqa: F401
 from .index_cluster import (  # noqa: F401
     _kmeans,
     _kmeans_pp_init,
     _longest_common_parent,
     cluster_sections,
-    cmd_cluster,
 )
 
 
@@ -96,7 +93,7 @@ def find_semantic_neighbors(
     the best (lowest-distance) section per other-file is kept."""
     try:
         conn = _open_index_readonly(corpus_root, cache_root=cache_root)
-    except (FileNotFoundError, Exception):
+    except (FileNotFoundError, ModuleNotFoundError, RuntimeError, sqlite3.Error):
         return []
 
     try:
@@ -202,7 +199,7 @@ def check_explicit_link_coherence(
     target_section}."""
     try:
         conn = _open_index_readonly(corpus_root, cache_root=cache_root)
-    except (FileNotFoundError, Exception):
+    except (FileNotFoundError, ModuleNotFoundError, RuntimeError, sqlite3.Error):
         return []
 
     try:

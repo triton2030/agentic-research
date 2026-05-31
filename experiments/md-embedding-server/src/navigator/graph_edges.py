@@ -9,10 +9,18 @@ from __future__ import annotations
 
 import json
 import re
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-from .markdown_io import MD_LINK_RE, WIKILINK_RE, collect_headings
+from .markdown_io import (
+    collect_headings,
+    markdown_links_from_text,
+    markdown_lookup,
+    resolve_markdown_target,
+    split_link_target,
+    wikilinks_with_anchors_from_text,
+)
 
 from .graph_core import (
     ALLOWED_FIELDS,
@@ -49,15 +57,19 @@ def parse_wikilink(raw: str) -> tuple[str, str | None]:
     inner = raw.strip()
     if inner.startswith("[[") and inner.endswith("]]"):
         inner = inner[2:-2]
-    target = inner.split("|", 1)[0].strip()
+    target = inner.split("|", 1)[0].strip().strip("<>").strip()
     if "#" in target:
         path_part, anchor = target.split("#", 1)
-        return path_part.strip(), anchor.strip()
-    return target, None
+        return split_link_target(path_part), anchor.split("?", 1)[0].strip() or None
+    return split_link_target(target), None
 
 
 def wikilinks_from_text(text: str) -> list[str]:
-    return [match.group(1) for match in WIKILINK_RE.finditer(text) if match.group(1)]
+    return [
+        f"{target}#{anchor}" if anchor else target
+        for target, anchor in wikilinks_with_anchors_from_text(text)
+        if target or anchor
+    ]
 
 
 def normalize_anchor(text: str) -> str:
@@ -73,52 +85,28 @@ def headings(body: str) -> set[str]:
     }
 
 
-def target_candidates(target: str, source: Path, root: Path) -> list[Path]:
-    target = target.strip()
-    if not target or re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", target):
-        return []
-    raw = Path(target)
-    variants = [raw]
-    if raw.suffix == "":
-        variants.append(Path(str(raw) + ".md"))
-    bases = [root]
-    if not raw.is_absolute():
-        bases.append(source.parent)
-    candidates: list[Path] = []
-    for base in bases:
-        for variant in variants:
-            path = variant if variant.is_absolute() else base / variant
-            candidates.append(path.resolve())
-    return candidates
+@lru_cache(maxsize=64)
+def _markdown_lookup_for_root(root: str) -> dict[str, list[Path]]:
+    return markdown_lookup(Path(root))
 
 
 def resolve_target(target: str, source: Path, root: Path) -> Path | None:
-    for candidate in target_candidates(target, source, root):
-        if candidate.exists():
-            return candidate
-    return None
+    return resolve_markdown_target(target, source, root, _markdown_lookup_for_root(str(root.resolve())))
+
+
+def target_candidates(target: str, source: Path, root: Path) -> list[Path]:
+    resolved = resolve_target(target, source, root)
+    return [resolved] if resolved is not None else []
 
 
 def markdown_links(body: str) -> list[str]:
-    results: list[str] = []
-    for match in MD_LINK_RE.finditer(body):
-        target = match.group(1).strip()
-        if not target or target.startswith("#"):
-            continue
-        if re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*:", target):
-            continue
-        results.append(target)
-    return results
+    return markdown_links_from_text(body)
 
 
 def resolve_markdown_link(target: str, source: Path, root: Path) -> Path | None:
-    path_part = target.split("#", 1)[0].strip()
-    if not path_part:
+    if target.strip().startswith("#"):
         return source
-    for candidate in target_candidates(path_part, source, root):
-        if candidate.exists():
-            return candidate
-    return None
+    return resolve_target(target, source, root)
 
 
 def doc_index(docs: list[Doc], root: Path) -> dict[Path, Doc]:

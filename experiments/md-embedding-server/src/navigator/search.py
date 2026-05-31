@@ -4,21 +4,13 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from .embeddings import (
     _embed_texts_http,
     _vec_to_blob,
 )
-from .cli_common import (
-    add_auto_embed_args,
-    add_cache_arg,
-    add_embedding_args,
-    add_json_arg,
-    add_max_heading_level_arg,
-)
 from .filters import (
-    add_path_filter_args,
     apply_path_filters_to_map,
     apply_path_filters as _apply_path_filters,
     normalize_path_filter_patterns,
@@ -69,91 +61,6 @@ def _partial_index_payload(
             "were not searched."
         ),
     }
-
-
-def register_search(sub) -> None:
-    """Register the `search` subcommand on the parser-level subparsers
-    object. Owns its own argparse so cli.py can stay thin."""
-    p = sub.add_parser(
-        "search",
-        help=(
-            "Hybrid section search: BM25F (lemmatized) + dense fusion via "
-            "RRF, optional cross-encoder rerank. Outputs ranked Markdown "
-            "sections, not line matches."
-        ),
-    )
-    p.add_argument("path", help="Folder or Markdown file to search.")
-    p.add_argument("query", help="Search query (natural language or keywords).")
-    add_max_heading_level_arg(p)
-    p.add_argument(
-        "--scope",
-        default=SEARCH_DEFAULT_SCOPE,
-        choices=SEARCH_SCOPES,
-        help=(
-            f"What to rank (default: {SEARCH_DEFAULT_SCOPE}). `sections` ranks "
-            "heading-bounded sections; `descriptions` ranks files by their "
-            "frontmatter `description`."
-        ),
-    )
-    p.add_argument(
-        "--limit",
-        type=int,
-        default=SEARCH_DEFAULT_LIMIT,
-        help=f"How many results to print (default: {SEARCH_DEFAULT_LIMIT}).",
-    )
-    p.add_argument(
-        "--candidates",
-        type=int,
-        default=SEARCH_DEFAULT_CANDIDATES,
-        help=(
-            f"How many fused candidates to consider before trimming to "
-            f"--limit (default: {SEARCH_DEFAULT_CANDIDATES})."
-        ),
-    )
-    add_embedding_args(p)
-    add_cache_arg(p)
-    add_auto_embed_args(p, default_cap=_DEFAULT_MAX_AUTO_EMBED)
-    p.add_argument(
-        "--output",
-        help="Write the section map (compatible with pick) to this JSON file.",
-    )
-    add_json_arg(p)
-    p.add_argument(
-        "--rerank",
-        action="store_true",
-        help=(
-            "Apply cross-encoder rerank to top-N RRF candidates before "
-            "limiting. Lifts top-1 precision on business docs by ~10-15%%. "
-            "Reuses OPENROUTER_API_KEY (or `.openrouter.key` file)."
-        ),
-    )
-    p.add_argument(
-        "--rerank-model",
-        default=DEFAULT_RERANK_MODEL,
-        help=f"Rerank model id (default: {DEFAULT_RERANK_MODEL}).",
-    )
-    p.add_argument(
-        "--rerank-api-url",
-        default=DEFAULT_RERANK_API_URL,
-        help=f"Cohere-compatible rerank endpoint (default: {DEFAULT_RERANK_API_URL}).",
-    )
-    p.add_argument(
-        "--rerank-timeout",
-        type=float,
-        default=DEFAULT_RERANK_TIMEOUT,
-        help=f"Rerank API timeout in seconds (default: {DEFAULT_RERANK_TIMEOUT}).",
-    )
-    p.add_argument(
-        "--rerank-top-n",
-        type=int,
-        default=DEFAULT_RERANK_TOP_N,
-        help=(
-            f"How many RRF candidates to send for cross-encoder rerank "
-            f"(default: {DEFAULT_RERANK_TOP_N}). Latency scales with N."
-        ),
-    )
-    add_path_filter_args(p, command_name="search")
-    p.set_defaults(func=lambda args: cmd_search(args))
 
 
 def _fts5_query(query: str) -> str:
@@ -385,8 +292,8 @@ def _sections_to_pick_map(
 
     Filters by `relative_path` (stable) rather than `file_id` (positional from
     `iter_markdown` order). file_id alignment between index and a fresh map
-    is enforced by the remap step in cmd_search; this path-based filter is
-    defense in depth in case that remap is bypassed or regresses."""
+    is enforced by the remap step in `search_payload`; this path-based filter
+    is defense in depth in case that remap is bypassed or regresses."""
     paths_kept = {r["relative_path"] for r in final_results}
     files_kept = [f for f in map_data["files"] if f["relative_path"] in paths_kept]
     return {
@@ -398,265 +305,138 @@ def _sections_to_pick_map(
     }
 
 
-def cmd_search(args) -> int:
-    corpus_root = Path(args.path).expanduser().resolve()
-    if not corpus_root.exists():
-        print(f"Path does not exist: {corpus_root}", file=sys.stderr)
-        return 2
-
-    scope = getattr(args, "scope", SEARCH_DEFAULT_SCOPE)
-    if scope not in SEARCH_SCOPES:
-        print(
-            f"Unknown --scope '{scope}'. Choices: {', '.join(SEARCH_SCOPES)}",
-            file=sys.stderr,
-        )
-        return 2
-
-    include_patterns = normalize_path_filter_patterns(
-        getattr(args, "path_include", None),
-        corpus_root,
+def search_payload(
+    *,
+    corpus_root: Path,
+    conn,
+    map_data: dict[str, Any],
+    items: list[dict[str, Any]],
+    index_stats: dict[str, Any],
+    selected_model: str,
+    include_patterns: list[str],
+    exclude_patterns: list[str],
+    embedding_api_url: str,
+    embedding_timeout: float,
+    query: str,
+    scope: str = SEARCH_DEFAULT_SCOPE,
+    limit: int = SEARCH_DEFAULT_LIMIT,
+    candidates: int = SEARCH_DEFAULT_CANDIDATES,
+    rerank: bool = False,
+    rerank_model: str = DEFAULT_RERANK_MODEL,
+    rerank_api_url: str = DEFAULT_RERANK_API_URL,
+    rerank_timeout: float = DEFAULT_RERANK_TIMEOUT,
+    rerank_top_n: int = DEFAULT_RERANK_TOP_N,
+    max_auto_embed: int | None = _DEFAULT_MAX_AUTO_EMBED,
+    rerank_error_handler: Callable[[RuntimeError], None] | None = None,
+) -> dict[str, Any]:
+    weights = (
+        {"description": 5.0, "title": 0.0, "heading": 0.0, "body": 1.0}
+        if scope == "descriptions"
+        else dict(SEARCH_DEFAULT_WEIGHTS)
     )
-    exclude_patterns = normalize_path_filter_patterns(
-        getattr(args, "path_exclude", None),
-        corpus_root,
-    )
-
-    map_data = build_map(corpus_root, args.max_heading_level, with_tokens=True)
-    if not map_data["files"]:
-        print(f"No Markdown files under {corpus_root}", file=sys.stderr)
-        return 1
-
-    scoped_map_data = apply_path_filters_to_map(map_data, include_patterns, exclude_patterns)
-    if not scoped_map_data["files"]:
-        print(
-            f"Path filters matched no Markdown files under {corpus_root}",
-            file=sys.stderr,
-        )
-        return 1
-
-    items = build_items_from_map(scoped_map_data, scope=scope)
-    if not items:
-        gap = "no frontmatter descriptions" if scope == "descriptions" else "no sections"
-        print(f"No items to index under selected path scope ({gap})", file=sys.stderr)
-        return 1
-
-    cache_root = Path(args.cache_dir).expanduser() if args.cache_dir else None
-    args.embed_model = resolve_embed_model_for_corpus(
-        corpus_root, args.embed_model, cache_root=cache_root
-    )
-
-    if args.no_cache:
-        # User explicitly asked to recompute. Wipe the on-disk index file for
-        # this corpus so `ensure_index` builds from scratch.
-        from .index import _index_dir_for_corpus
-
-        target = _index_dir_for_corpus(corpus_root, cache_root=cache_root)
-        for name in ("index.sqlite", "index.sqlite-wal", "index.sqlite-shm"):
-            (target / name).unlink(missing_ok=True)
-
-    max_auto_embed = (
-        None if args.max_auto_embed == 0 else int(args.max_auto_embed)
-    )
-
-    try:
-        conn, index_stats = ensure_index(
-            corpus_root,
-            scope,
-            items,
-            args.embed_model,
-            embedding_api_url=args.embedding_api_url,
-            embedding_timeout=args.embedding_timeout,
-            cache_root=cache_root,
-            max_auto_embed=max_auto_embed,
-            path_include=include_patterns,
-            path_exclude=exclude_patterns,
-        )
-    except ModuleNotFoundError as exc:
-        print(
-            f"Missing Python dependency: {exc}.\n"
-            f"  This script needs uv to resolve its inline deps "
-            f"(`numpy`, `sqlite-vec`, `pyyaml`).\n"
-            f"  Verify the installed CLI with:\n"
-            f"    md --version && md tools --json\n"
-            f"  Install uv if missing: `brew install uv` (macOS) or "
-            f"https://docs.astral.sh/uv.",
-            file=sys.stderr,
-        )
-        return 3
-    except RuntimeError as exc:
-        print(
-            f"Embedding API call failed: {exc}\n"
-            f"  Check OPENROUTER_API_KEY env var or `.openrouter.key` file "
-            f"(see SKILL.md → First-time setup).",
-            file=sys.stderr,
-        )
-        return 3
-
-    embedded_count = index_stats["embedded"]
-    cached_count = index_stats["reused"]
-    removed_count = index_stats["removed_sections"]
-
-    # For descriptions scope, only description column carries content; collapse
-    # the other field weights so BM25 ranks on the right signal.
-    if scope == "descriptions":
-        weights = {"description": 5.0, "title": 0.0, "heading": 0.0, "body": 1.0}
-    else:
-        weights = dict(SEARCH_DEFAULT_WEIGHTS)
     bm25_results = _search_bm25(
         conn,
-        args.query,
+        query,
         scope,
         weights,
-        args.candidates,
+        candidates,
         path_include=include_patterns,
         path_exclude=exclude_patterns,
     )
-
-    try:
-        dense_results = _search_dense(
-            conn,
-            args.embed_model,
-            args.query,
-            scope,
-            args.candidates,
-            args.embedding_api_url,
-            args.embedding_timeout,
-            corpus_root=corpus_root,
-            path_include=include_patterns,
-            path_exclude=exclude_patterns,
-        )
-    except RuntimeError as exc:
-        print(f"Dense query failed: {exc}", file=sys.stderr)
-        return 3
-
+    dense_results = _search_dense(
+        conn,
+        selected_model,
+        query,
+        scope,
+        candidates,
+        embedding_api_url,
+        embedding_timeout,
+        corpus_root=corpus_root,
+        path_include=include_patterns,
+        path_exclude=exclude_patterns,
+    )
     rrf_scores = _rrf_merge(bm25_results, dense_results, k=SEARCH_RRF_K)
-    fused_sorted = sorted(rrf_scores.items(), key=lambda x: -x[1])
-    fused_rowids = [rid for rid, _ in fused_sorted[: args.candidates]]
-    # If `--rerank` is set, hydrate more candidates than the final limit so
-    # the cross-encoder has a real reordering pool. Path filters might
-    # also drop candidates, so hydrate from the full fused pool before
-    # filtering — we don't know which paths will pass until we look.
-    rerank_on = bool(getattr(args, "rerank", False))
+    fused_rowids = [rid for rid, _ in sorted(rrf_scores.items(), key=lambda item: -item[1])[:candidates]]
     filter_on = bool(include_patterns or exclude_patterns)
-    if rerank_on or filter_on:
-        # Pull the whole candidates pool — filters / rerank shrink it.
-        hydrate_n = len(fused_rowids)
-    else:
-        hydrate_n = args.limit
+    hydrate_n = len(fused_rowids) if rerank or filter_on else limit
     hydrated = _hydrate_rows(conn, fused_rowids)[:hydrate_n]
-
-    # Apply path filters BEFORE rerank so the cross-encoder budget isn't
-    # spent on candidates the user is going to drop anyway.
     if filter_on:
-        before = len(hydrated)
         hydrated = _apply_path_filters(hydrated, include_patterns, exclude_patterns)
-        if not hydrated:
-            print(
-                f"Path filters excluded all {before} candidates "
-                f"(include={include_patterns or '∅'}, exclude={exclude_patterns or '∅'}).",
-                file=sys.stderr,
-            )
-    if rerank_on:
-        # After filter; cap to rerank_top_n.
-        hydrated = hydrated[: getattr(args, "rerank_top_n", args.limit)]
-    else:
-        hydrated = hydrated[: args.limit]
+    hydrated = hydrated[:rerank_top_n] if rerank else hydrated[:limit]
 
     rerank_scores: dict[int, float] = {}
     rerank_applied = False
-    if rerank_on and hydrated:
+    if rerank and hydrated:
         docs = [
-            doc_text_for_rerank(r["relative_path"], r["heading_chain"], r["body"])
-            for r in hydrated
+            doc_text_for_rerank(row["relative_path"], row["heading_chain"], row["body"])
+            for row in hydrated
         ]
         try:
             ordered = rerank_documents(
-                args.query,
+                query,
                 docs,
-                model=args.rerank_model,
-                api_url=args.rerank_api_url,
-                timeout=args.rerank_timeout,
+                model=rerank_model,
+                api_url=rerank_api_url,
+                timeout=rerank_timeout,
                 corpus_root=corpus_root,
             )
         except RuntimeError as exc:
-            print(
-                f"Rerank failed: {exc}\n  Falling back to RRF order.",
-                file=sys.stderr,
-            )
+            if rerank_error_handler is not None:
+                rerank_error_handler(exc)
             ordered = []
         if ordered:
-            new_order: list[dict[str, Any]] = []
+            reordered: list[dict[str, Any]] = []
             for idx, score in ordered:
                 if 0 <= idx < len(hydrated):
-                    r = hydrated[idx]
-                    rerank_scores[r["rowid"]] = score
-                    new_order.append(r)
-            if new_order:
-                hydrated = new_order
+                    row = hydrated[idx]
+                    rerank_scores[row["rowid"]] = score
+                    reordered.append(row)
+            if reordered:
+                hydrated = reordered
                 rerank_applied = True
+    hydrated = hydrated[:limit]
 
-    # Final trim to user's requested limit (rerank may have reordered).
-    hydrated = hydrated[: args.limit]
-
-    # Remap hydrated rows from index-time positional ids to fresh map ids.
-    # file_id is positional from `iter_markdown` order at index time; corpus
-    # reorders since then drift it away from a fresh build_map. Downstream
-    # `pick` resolves against a fresh map, so we must hand it fresh ids.
-    #
-    # section_id has shape "<file_id>.<suffix>" where suffix is heading_idx,
-    # "0" (no-headings file), or "desc". The suffix is stable for surviving
-    # rows: _section_hash(rel, start_line, body) is the diff key, so any
-    # within-file reshuffle (heading add/remove, line shift) rewrites the
-    # hash and reindexes the row. Surviving rows match their fresh-map
-    # counterpart at the same heading_idx; we rebuild the full id with the
-    # fresh prefix and keep the original suffix.
-    fresh_file_id_by_path = {f["relative_path"]: f["id"] for f in map_data["files"]}
-
+    fresh_file_id_by_path = {file["relative_path"]: file["id"] for file in map_data["files"]}
     final_results: list[dict[str, Any]] = []
     dropped_stale_path = 0
-    for r in hydrated:
-        path = r["relative_path"]
+    for row in hydrated:
+        path = row["relative_path"]
         fresh_fid = fresh_file_id_by_path.get(path)
         if fresh_fid is None:
             dropped_stale_path += 1
             continue
-        r["file_id"] = fresh_fid
-        old_sid = str(r.get("section_id") or "")
-        if "." in old_sid:
-            suffix = old_sid.split(".", 1)[1]
-            r["section_id"] = f"{fresh_fid}.{suffix}"
-        else:
-            r["section_id"] = str(fresh_fid)
-        final_results.append(r)
+        row["file_id"] = fresh_fid
+        old_sid = str(row.get("section_id") or "")
+        row["section_id"] = f"{fresh_fid}.{old_sid.split('.', 1)[1]}" if "." in old_sid else str(fresh_fid)
+        final_results.append(row)
 
     bm25_map = dict(bm25_results)
     dense_map = dict(dense_results)
-    for r in final_results:
-        rid = r["rowid"]
-        r["bm25_score"] = bm25_map.get(rid)
-        r["dense_distance"] = dense_map.get(rid)
-        r["rrf_score"] = rrf_scores.get(rid, 0.0)
-        r["rerank_score"] = rerank_scores.get(rid)
-        r["fields_hit"] = _fields_hit(conn, rid, args.query)
-        r["snippet"] = _snippet_for(r["body"], args.query)
+    for row in final_results:
+        rid = row["rowid"]
+        row["bm25_score"] = bm25_map.get(rid)
+        row["dense_distance"] = dense_map.get(rid)
+        row["rrf_score"] = rrf_scores.get(rid, 0.0)
+        row["rerank_score"] = rerank_scores.get(rid)
+        row["fields_hit"] = _fields_hit(conn, rid, query)
+        row["snippet"] = _snippet_for(row["body"], query)
 
     subchunked_count = sum(
-        1 for s in items if scope == "sections" and _should_subchunk(s["body"] or "")
+        1 for item in items if scope == "sections" and _should_subchunk(item["body"] or "")
     )
-
     output = {
         "root": str(corpus_root),
-        "query": args.query,
+        "query": query,
         "scope": scope,
         "engine": {
             "bm25f": True,
             "dense": True,
-            "embed_model": args.embed_model,
-            "embedding_api_url": args.embedding_api_url,
+            "embed_model": selected_model,
+            "embedding_api_url": embedding_api_url,
             "rerank": rerank_applied,
-            "rerank_model": getattr(args, "rerank_model", None) if rerank_applied else None,
-            "rerank_top_n": getattr(args, "rerank_top_n", None) if rerank_applied else None,
-            "rerank_api_url": getattr(args, "rerank_api_url", None) if rerank_applied else None,
+            "rerank_model": rerank_model if rerank_applied else None,
+            "rerank_top_n": rerank_top_n if rerank_applied else None,
+            "rerank_api_url": rerank_api_url if rerank_applied else None,
             "path_include": include_patterns,
             "path_exclude": exclude_patterns,
         },
@@ -664,9 +444,9 @@ def cmd_search(args) -> int:
             "files_indexed": map_data["file_count"],
             "items_indexed": len(items),
             "sections_subchunked": subchunked_count,
-            "embeddings_cached": cached_count,
-            "embeddings_computed": embedded_count,
-            "sections_removed": removed_count,
+            "embeddings_cached": index_stats["reused"],
+            "embeddings_computed": index_stats["embedded"],
+            "sections_removed": index_stats["removed_sections"],
             "bm25_hits": len(bm25_results),
             "dense_hits": len(dense_results),
             "dropped_stale_path": dropped_stale_path,
@@ -677,19 +457,7 @@ def cmd_search(args) -> int:
     partial_index = _partial_index_payload(index_stats, max_auto_embed)
     if partial_index:
         output["partial_index"] = partial_index
-
-    if args.output and scope == "sections":
-        pick_map = _sections_to_pick_map(corpus_root, map_data, final_results)
-        Path(args.output).write_text(
-            json.dumps(pick_map, ensure_ascii=False, indent=2) + "\n",
-            encoding="utf-8",
-        )
-
-    if args.json:
-        print(json.dumps(output, ensure_ascii=False, indent=2, default=str))
-    else:
-        print(render_search(output, output_path=args.output), end="")
-    return 0
+    return output
 
 
 def _script_invocation_path() -> str:

@@ -12,8 +12,8 @@ Task-001 decisions for the `md` CLI surface.
 Decision: MCP `md_read_related` maps to CLI `md read-related`; no `md_`
 prefix in CLI.
 
-Rationale: matches existing `md_navigator.py` kebab-case commands and keeps
-agent prompts readable.
+Rationale: kebab-case keeps agent prompts readable and matched the original
+`md_navigator.py` command naming.
 
 Example: `md section-blast-radius PATH CORPUS --query "owner rule" --json`.
 

@@ -1,57 +1,77 @@
-"""Tests for the 5 agent-contract drifts surfaced by independent review:
+"""Tests for the agent-contract drifts surfaced by independent review.
 
-  1. `repeated-concepts --json` now ALWAYS prints to stdout (used to
-     silently write a file unless `--stdout` was also passed).
-  2. `schemas.ALL_SCHEMAS` covers overlaps + repeated-concepts +
-     cluster (used to be missing).
-  3. Search engine.rerank_top_n + engine.rerank_api_url surfaced in
-     JSON when rerank applied (only model was visible before).
-  4. Single-file corpus → `relative_path` is the filename, not the
-     absolute path (used to leak the absolute path).
-  5. `read-related --token-budget` help text now flags best-effort
-     semantics (anchor never trimmed).
-  6. Graph-generated related-reading recipes use the uv script runner
-     instead of raw `python3`, so inline script dependencies resolve.
+Retargeted onto the canonical ``navigator.api`` surface: index / search /
+repeated-concepts go through ``api.index`` / ``api.search`` /
+``api.repeated_concepts`` (dict payloads with ``_exit_code``), not legacy
+``cmd_index`` / ``cmd_search`` / ``cmd_repeated_concepts`` (argparse
+Namespace + stdout JSON). The graph recipe builder is imported from its
+canonical home ``navigator.graph_reports`` instead of the legacy
+``navigator.graph`` re-export shim. No import from ``navigator.cli`` or
+``navigator.graph`` remains.
+
+Contract checks preserved:
+
+  1. ``repeated-concepts`` payload carries the machine contract directly —
+     ``concepts`` + ``root`` on the returned dict. (The legacy ``--json``
+     "always print to stdout, never write a file" behavior was a CLI
+     presentation concern; the importable API just returns the dict.)
+  2. ``schemas.ALL_SCHEMAS`` covers overlaps + repeated-concepts + cluster.
+  3. Search ``engine.rerank_top_n`` + ``engine.rerank_api_url`` surface in
+     the payload when rerank applied (only model was visible before).
+  4. Single-file corpus → ``relative_path`` is the filename, not the
+     absolute path.
+  6. Graph-generated related-reading recipes use the ``md`` CLI runner.
+
+Two legacy-CLI-internal tests were dropped (see the inline notes where they
+used to live): the argparse manifest/parser-surface consistency check and
+the pick/read directory-misuse stderr-recipe checks. Both asserted behavior
+that lives only in the legacy ``navigator.cli`` presentation/argument layer
+and has no ``navigator.api`` analog.
 """
 
 from __future__ import annotations
 
-import json
-from argparse import Namespace
 from pathlib import Path
 
-from navigator.cli import build_manifest, parser_commands
+from navigator import api
 from navigator.folder_map import build_map
-from navigator.graph import navigator_read_related_command
-from navigator.index import cmd_index
+from navigator.graph_reports import navigator_read_related_command
 from navigator.schemas import ALL_SCHEMAS
-from navigator.search import cmd_search
 
 
-# --- 1. repeated-concepts --json ----------------------------------
-
-
-def test_repeated_concepts_json_prints_to_stdout(tiny_corpus, mock_embed, capsys):
-    """`--json` must print JSON to stdout regardless of --stdout."""
-    from navigator.repeated_concepts import cmd_repeated_concepts
-
-    # Build the index first.
-    index_args = Namespace(
-        path=str(tiny_corpus),
+def _index(corpus: Path) -> None:
+    """Build the index through the canonical API. Mirrors the helper in
+    ``tests/test_rerank.py``: ``confirm=True`` to actually embed, success is
+    ``_exit_code`` 0 (absent key defaults to 0)."""
+    payload = api.index(
+        str(corpus),
+        confirm=True,
         max_heading_level=6,
         embed_model="test/stub-1",
         embedding_api_url="http://test.local/v1",
         embedding_timeout=5,
         cache_dir=None,
-        max_auto_embed=10000,
         batch_size=32,
         batch_pause_ms=0,
     )
-    assert cmd_index(index_args) == 0
-    capsys.readouterr()
+    assert payload.get("_exit_code", 0) == 0
 
-    rc_args = Namespace(
-        path=str(tiny_corpus),
+
+# --- 1. repeated-concepts --json ----------------------------------
+
+
+def test_repeated_concepts_payload_carries_machine_contract(tiny_corpus, mock_embed):
+    """The repeated-concepts payload must expose the machine contract
+    directly — ``concepts`` + ``root`` on the returned dict.
+
+    Originally this asserted ``--json`` printed JSON to stdout (never a
+    "JSON report → file" marker). That stdout-vs-file behavior was a CLI
+    presentation concern; ``api.repeated_concepts`` returns the dict, so the
+    check is the same contract minus the stdout-capture machinery."""
+    _index(tiny_corpus)
+
+    payload = api.repeated_concepts(
+        str(tiny_corpus),
         threshold=0.0,
         top=10,
         min_tokens=0,
@@ -65,18 +85,10 @@ def test_repeated_concepts_json_prints_to_stdout(tiny_corpus, mock_embed, capsys
         cache_dir=None,
         max_auto_embed=10000,
         no_cache=False,
-        json=True,
-        stdout=False,
-        output=None,
         path_include=[],
         path_exclude=[],
     )
-    rc = cmd_repeated_concepts(rc_args)
-    captured = capsys.readouterr()
-    assert rc == 0
-    # Stdout must contain a parseable JSON object — NOT a "JSON report → ..." marker.
-    assert "JSON report →" not in captured.out
-    payload = json.loads(captured.out)
+    assert payload.get("_exit_code", 0) == 0
     assert "concepts" in payload
     assert "root" in payload
 
@@ -101,10 +113,14 @@ def test_all_schemas_cover_stable_machine_contracts():
     assert not missing, f"Schemas missing for: {missing}"
 
 
-def test_manifest_commands_are_generated_from_parser_surface():
-    """The manifest must not drift from argparse choices when a command is
-    added or removed."""
-    assert build_manifest()["commands"] == parser_commands()
+# NOTE (dropped): ``test_manifest_commands_are_generated_from_parser_surface``
+# asserted ``build_manifest()["commands"] == parser_commands()`` — pure
+# internal consistency of the legacy ``navigator.cli`` argparse manifest.
+# Both functions are legacy-CLI internals with no ``navigator.api`` analog
+# (the canonical tool surface is the static ``md_cli`` catalog, covered by
+# ``tests/golden/mcp-tool-snapshot.json`` and ``test_navigator_public_api``).
+# Removing the ``navigator.cli`` import is the goal of this refactor, and the
+# assert had no public-surface meaning, so it was deleted rather than reframed.
 
 
 def test_overlaps_schema_has_pairs_structure():
@@ -134,26 +150,14 @@ def test_cluster_schema_has_clusters_structure():
 
 
 def test_search_json_includes_rerank_top_n_when_applied(
-    tiny_corpus, mock_embed, monkeypatch, capsys
+    tiny_corpus, mock_embed, monkeypatch
 ):
     """When rerank fires, engine.rerank_top_n must reflect the cap actually
     used. Was missing — only `rerank_model` was surfaced."""
     from navigator import rerank as rerank_module
     from navigator import search as search_mod
 
-    index_args = Namespace(
-        path=str(tiny_corpus),
-        max_heading_level=6,
-        embed_model="test/stub-1",
-        embedding_api_url="http://test.local/v1",
-        embedding_timeout=5,
-        cache_dir=None,
-        max_auto_embed=10000,
-        batch_size=32,
-        batch_pause_ms=0,
-    )
-    assert cmd_index(index_args) == 0
-    capsys.readouterr()
+    _index(tiny_corpus)
 
     monkeypatch.setattr(
         rerank_module,
@@ -166,9 +170,9 @@ def test_search_json_includes_rerank_top_n_when_applied(
         lambda q, docs, **kw: [(i, 1.0 - i * 0.1) for i in range(len(docs))],
     )
 
-    args = Namespace(
-        path=str(tiny_corpus),
-        query="embeddings",
+    payload = api.search(
+        str(tiny_corpus),
+        "embeddings",
         scope="sections",
         max_heading_level=6,
         embed_model="test/stub-1",
@@ -177,12 +181,8 @@ def test_search_json_includes_rerank_top_n_when_applied(
         cache_dir=None,
         max_auto_embed=10000,
         no_cache=False,
-        json=True,
         limit=5,
         candidates=50,
-        output=None,
-        batch_size=32,
-        batch_pause_ms=0,
         rerank=True,
         rerank_model="test-rr",
         rerank_api_url="http://test.local/rerank",
@@ -191,33 +191,19 @@ def test_search_json_includes_rerank_top_n_when_applied(
         path_include=[],
         path_exclude=[],
     )
-    assert cmd_search(args) == 0
-    out = capsys.readouterr().out
-    payload = json.loads(out)
+    assert payload.get("_exit_code", 0) == 0
     assert payload["engine"]["rerank"] is True
     assert payload["engine"]["rerank_top_n"] == 15
     assert payload["engine"]["rerank_api_url"] == "http://test.local/rerank"
 
 
-def test_search_json_rerank_metadata_null_when_off(tiny_corpus, mock_embed, capsys):
-    """Without --rerank, the metadata fields are null (not silently absent)."""
-    index_args = Namespace(
-        path=str(tiny_corpus),
-        max_heading_level=6,
-        embed_model="test/stub-1",
-        embedding_api_url="http://test.local/v1",
-        embedding_timeout=5,
-        cache_dir=None,
-        max_auto_embed=10000,
-        batch_size=32,
-        batch_pause_ms=0,
-    )
-    assert cmd_index(index_args) == 0
-    capsys.readouterr()
+def test_search_json_rerank_metadata_null_when_off(tiny_corpus, mock_embed):
+    """Without rerank, the metadata fields are null (not silently absent)."""
+    _index(tiny_corpus)
 
-    args = Namespace(
-        path=str(tiny_corpus),
-        query="embeddings",
+    payload = api.search(
+        str(tiny_corpus),
+        "embeddings",
         scope="sections",
         max_heading_level=6,
         embed_model="test/stub-1",
@@ -226,12 +212,8 @@ def test_search_json_rerank_metadata_null_when_off(tiny_corpus, mock_embed, caps
         cache_dir=None,
         max_auto_embed=10000,
         no_cache=False,
-        json=True,
         limit=5,
         candidates=50,
-        output=None,
-        batch_size=32,
-        batch_pause_ms=0,
         rerank=False,
         rerank_model="unused",
         rerank_api_url="unused",
@@ -240,8 +222,7 @@ def test_search_json_rerank_metadata_null_when_off(tiny_corpus, mock_embed, caps
         path_include=[],
         path_exclude=[],
     )
-    assert cmd_search(args) == 0
-    payload = json.loads(capsys.readouterr().out)
+    assert payload.get("_exit_code", 0) == 0
     assert payload["engine"]["rerank"] is False
     assert payload["engine"]["rerank_top_n"] is None
     assert payload["engine"]["rerank_api_url"] is None
@@ -263,74 +244,22 @@ def test_single_file_corpus_relative_path_is_filename(tmp_path):
     assert not Path(rel).is_absolute()
 
 
-# --- 6. pick/read on a directory: helpful error, not IsADirectoryError ----
+# NOTE (dropped): ``test_pick_on_directory_surfaces_pre_formed_recipe`` and
+# ``test_read_on_directory_surfaces_pre_formed_recipe`` exercised
+# ``navigator.cli._dispatch_pick_or_read`` — a legacy-CLI argument-resolution
+# helper. Their asserts checked stderr wording, ``rc == 2``, and
+# copy-pasteable ``md_navigator.py`` two-step recipes with the user's flags
+# carried over. That directory-misuse recipe is a CLI presentation contract
+# with no ``navigator.api`` analog: ``api.extract`` takes already-parsed map
+# data (dict / JSON string) and a known section selection — it never receives
+# a directory and never emits ``md_navigator.py`` recipes. Reframing onto the
+# public surface would test a different thing, so (like the rerank stderr
+# warning dropped in ``tests/test_rerank.py``, which is owned by the
+# ``cmd_search`` presentation layer) these were deleted, not migrated. The
+# directory-resolution guard itself stays exercised by the legacy CLI tests.
 
 
-def test_pick_on_directory_surfaces_pre_formed_recipe(tmp_path, capsys):
-    """Passing a directory where a JSON map is expected used to crash with
-    `IsADirectoryError` from `read_text`. The dispatcher must instead name
-    the surface confusion (`map`/`headings` take directories, `pick` takes
-    their JSON output) and pre-form both next commands with the user's
-    actual flags, so the recipe is copy-pasteable."""
-    from navigator.cli import _dispatch_pick_or_read
-
-    d = tmp_path / "some-folder"
-    d.mkdir()
-    (d / "a.md").write_text("# A\n\nbody\n", encoding="utf-8")
-
-    args = Namespace(
-        command="pick",
-        map_json=str(d),
-        map_alias=None,
-        files="",
-        headings="5.1,4.1,2.1",
-        extract=True,
-        token_budget=0,
-        json=False,
-    )
-    rc = _dispatch_pick_or_read(args)
-    err = capsys.readouterr().err
-
-    assert rc == 2
-    assert "expects a JSON map" in err
-    assert "not a directory" in err
-    # Two-step recipe present.
-    assert "md_navigator.py headings" in err
-    assert "md_navigator.py pick" in err
-    # User's flags carried over verbatim.
-    assert "--headings 5.1,4.1,2.1" in err
-    assert "--extract" in err
-
-
-def test_read_on_directory_surfaces_pre_formed_recipe(tmp_path, capsys):
-    """Same guard for `read`: directory input must not crash with
-    IsADirectoryError; recipe must propose `read` (not `pick`) as the
-    second step."""
-    from navigator.cli import _dispatch_pick_or_read
-
-    d = tmp_path / "another-folder"
-    d.mkdir()
-    (d / "a.md").write_text("# A\n\nbody\n", encoding="utf-8")
-
-    args = Namespace(
-        command="read",
-        map_json=str(d),
-        map_alias=None,
-        files="1",
-        headings="",
-        token_budget=0,
-        json=False,
-        output=None,
-        offset=1,
-        limit=2000,
-        line_numbers=False,
-    )
-    rc = _dispatch_pick_or_read(args)
-    err = capsys.readouterr().err
-
-    assert rc == 2
-    assert "md_navigator.py read" in err
-    assert "--files 1" in err
+# --- 6. graph related-reading recipe uses the md CLI runner ----
 
 
 def test_graph_related_reading_recipe_uses_md_cli():

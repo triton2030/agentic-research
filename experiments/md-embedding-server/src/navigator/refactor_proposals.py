@@ -5,7 +5,6 @@ from typing import Any
 
 from .originality import originality_for_section
 from .owner_detector import owner_candidates
-from .section_profile import profile_unprofiled_sections
 from .filters import normalize_path_filter_patterns, sqlite_path_filter_sql
 
 
@@ -18,12 +17,6 @@ def refactor_candidates(
     path_include: list[str] | None = None,
     path_exclude: list[str] | None = None,
 ) -> dict[str, Any]:
-    profile_unprofiled_sections(
-        conn,
-        corpus_root=corpus_root,
-        path_include=path_include,
-        path_exclude=path_exclude,
-    )
     if corpus_root is not None:
         include_patterns = normalize_path_filter_patterns(path_include, corpus_root)
         exclude_patterns = normalize_path_filter_patterns(path_exclude, corpus_root)

@@ -46,7 +46,8 @@ def test_catalog_required_fields_and_import_targets() -> None:
         assert tool.description["output"]
         assert tool.input_schema["type"] == "object"
         assert bool(tool.library_function) ^ bool(tool.workflow_function)
-        importlib.import_module(tool.handler_module)
+        if tool.handler_module:
+            importlib.import_module(tool.handler_module)
         importlib.import_module(tool.tests_module)
         target = tool.library_function or tool.workflow_function
         assert target is not None

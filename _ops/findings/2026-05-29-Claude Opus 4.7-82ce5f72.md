@@ -1,0 +1,3 @@
+# Findings — 2026-05-29 — Claude Opus 4.7 — sess:82ce5f72
+
+- 16:20 — md-embedding-server catalog: md_index и md_profile_sections несут --transaction-id в cli_signature, но НЕ в input_schema.properties (там только fingerprint), тогда как md_init/md_strip имеют transaction_id и там, и там. CLI принимает флаг (Wave D: _add_signature_args выводит его из transaction_required), но MCP wire-схема двух инструментов не объявляет transaction_id как параметр. Рассинхрон cli_signature vs input_schema — кандидат на выравнивание владельцем каталога (либо добавить transaction_id в schema, либо убрать из сигнатуры).

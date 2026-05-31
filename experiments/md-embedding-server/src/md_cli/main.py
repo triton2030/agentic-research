@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import importlib
 import sys
-import re
 from typing import Any, Sequence
 
 from . import __version__
@@ -23,69 +22,60 @@ def _add_placeholder_subparser(subparsers: argparse._SubParsersAction, tool: Too
 
 
 def _add_signature_args(parser: argparse.ArgumentParser, tool: ToolSpec) -> None:
+    """Build argparse arguments from structural catalog data.
+
+    Positional arguments and their order come from ``tool.positional_args``;
+    everything else (types, required, enum choices, array repetition, help)
+    is read straight from ``tool.input_schema``. No prose parsing — the
+    human-readable ``cli_signature`` is rendered from this same structure for
+    docs/help, never parsed back to reconstruct it.
+    """
     required = set(tool.input_schema.get("required") or [])
     properties = tool.input_schema.get("properties") or {}
-    seen: set[str] = set()
-    body = tool.cli_signature.removeprefix("md ").split(maxsplit=1)
-    if len(body) < 2:
-        parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON.")
-        return
-    raw_tokens = re.findall(r"\[[^\]]+\]|\S+", body[1])
-    tokens: list[str] = []
-    for raw in raw_tokens:
-        if raw.startswith("[") and raw.endswith("]"):
-            parts = raw[1:-1].split()
-            if len(parts) > 1:
-                tokens.extend(f"[{part}]" for part in parts)
-            else:
-                tokens.append(raw)
-        else:
-            tokens.append(raw)
-    index = 0
-    while index < len(tokens):
-        token = tokens[index]
-        optional = token.startswith("[") and token.endswith("]")
-        bare = token[1:-1] if optional else token
-        if bare.startswith("--"):
-            flag = bare
-            key = flag[2:].replace("-", "_")
-            if key in seen:
-                index += 1
-                continue
-            seen.add(key)
-            next_token = tokens[index + 1] if index + 1 < len(tokens) else ""
-            next_bare = next_token[1:-1] if next_token.startswith("[") and next_token.endswith("]") else next_token
-            schema = properties.get(key, {})
-            help_text = _schema_help(schema)
-            if next_bare and not next_bare.startswith("--") and next_bare.upper() == next_bare:
-                kwargs: dict[str, Any] = {
-                    "dest": key,
-                    "required": key in required,
-                    "help": help_text,
-                }
-                if schema.get("type") == "integer":
-                    kwargs["type"] = int
-                elif schema.get("type") == "number":
-                    kwargs["type"] = float
-                if schema.get("type") == "array":
-                    kwargs["action"] = "append"
-                if "enum" in schema:
-                    kwargs["choices"] = schema["enum"]
-                parser.add_argument(flag, **kwargs)
-                index += 2
-                continue
-            parser.add_argument(flag, dest=key, action="store_true", help=help_text)
-            index += 1
+    positional = tool.positional_args
+
+    for name in positional:
+        schema = properties.get(name, {})
+        kwargs: dict[str, Any] = {"help": _schema_help(schema)}
+        if name not in required:
+            kwargs["nargs"] = "?"
+        parser.add_argument(name, **kwargs)
+
+    for key, schema in properties.items():
+        if key in positional:
             continue
-        if bare.upper() == bare:
-            name = bare.lower()
-            kwargs: dict[str, Any] = {"help": _schema_help(properties.get(name, {}))}
-            if optional:
-                kwargs["nargs"] = "?"
-            parser.add_argument(name, **kwargs)
-        index += 1
-    if "json" not in seen:
-        parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON.")
+        flag = f"--{key.replace('_', '-')}"
+        if schema.get("type") == "boolean":
+            parser.add_argument(flag, dest=key, action="store_true", help=_schema_help(schema))
+            continue
+        kwargs = {
+            "dest": key,
+            "required": key in required,
+            "help": _schema_help(schema),
+        }
+        if schema.get("type") == "integer":
+            kwargs["type"] = int
+        elif schema.get("type") == "number":
+            kwargs["type"] = float
+        if schema.get("type") == "array":
+            kwargs["action"] = "append"
+        if "enum" in schema:
+            kwargs["choices"] = schema["enum"]
+        parser.add_argument(flag, **kwargs)
+
+    # Transactional mutators accept --transaction-id as a CLI safety token.
+    # A few specs (md_index, md_profile_sections) carry the token in their
+    # signature but not in input_schema (the MCP layer takes `fingerprint`
+    # instead), so derive it from the structural `transaction_required` flag
+    # rather than from any one of those two sources.
+    if tool.transaction_required and "transaction_id" not in properties:
+        parser.add_argument(
+            "--transaction-id",
+            dest="transaction_id",
+            help="Token from a prior dry_run; required for confirm:true to detect file drift.",
+        )
+
+    parser.add_argument("--json", action="store_true", help="Emit machine-readable JSON.")
 
 
 def _schema_help(schema: dict[str, Any]) -> str | None:
@@ -141,6 +131,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     if tool is None:
         parser.print_help()
         return 0
+    if tool.handler_module is None:
+        # Generic dispatch: no bespoke handler module, route straight through
+        # the shared generic runner keyed by tool id.
+        from .handlers import _generic
+
+        return run_tool(tool.tool_id, lambda a: _generic.run_tool(tool.tool_id, a), args)
     try:
         module = importlib.import_module(tool.handler_module)
     except ModuleNotFoundError as exc:

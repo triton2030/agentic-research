@@ -16,9 +16,6 @@ from md_cli.transactions import (
 )
 
 
-MUTATING_TOOLS = {"md_init", "md_strip", "md_index", "md_profile_sections"}
-
-
 TRANSACTION_HINTS = {
     "transaction_not_found": "Transaction id not recognized. Run --dry-run to get a fresh id.",
     "expired": "Transaction expired (TTL 5 min). Re-run --dry-run.",
@@ -29,6 +26,8 @@ TRANSACTION_HINTS = {
     "cwd_mismatch": "Transaction was created from a different cwd.",
     "internal_error": "Internal failure during consume; retry or check logs.",
 }
+
+TARGET_CONTROL_KWARGS = {"transaction_id", "fingerprint"}
 
 
 def run_tool(tool_id: str, args: Any) -> ToolResult:
@@ -61,7 +60,7 @@ def _kwargs(args: Any) -> dict[str, Any]:
 
 def _call(func: Callable[..., dict[str, Any]], kwargs: dict[str, Any]) -> ToolResult:
     try:
-        payload = func(**kwargs)
+        payload = func(**_target_kwargs(kwargs))
     except FileNotFoundError as exc:
         return ToolResult({"error": "path_not_found", "detail": str(exc)}, 2)
     except PermissionError as exc:
@@ -89,12 +88,16 @@ def _call(func: Callable[..., dict[str, Any]], kwargs: dict[str, Any]) -> ToolRe
 
 
 def _requires_transaction(tool_id: str, kwargs: dict[str, Any]) -> bool:
-    if tool_id not in MUTATING_TOOLS:
-        return False
-    if tool_id == "md_profile_sections":
-        mode = kwargs.get("mode") or "heuristic"
-        return bool(kwargs.get("dry_run") or kwargs.get("confirm") or mode in {"llm", "auto"})
-    return True
+    spec = get_tool(tool_id)
+    return bool(spec and spec.requires_transaction(kwargs))
+
+
+def _target_kwargs(kwargs: dict[str, Any]) -> dict[str, Any]:
+    return {
+        key: value
+        for key, value in kwargs.items()
+        if key not in TARGET_CONTROL_KWARGS
+    }
 
 
 def _run_mutating(
@@ -145,6 +148,8 @@ def _run_mutating(
         fingerprint = kwargs.get("fingerprint")
         if fingerprint:
             preview = _call(func, {**kwargs, "dry_run": True, "confirm": False})
+            if preview.exit_code != 0:
+                return preview
             checked = verify_fingerprint(_affected_files(preview.payload or {}), fingerprint)
             if not checked["ok"]:
                 return ToolResult(_transaction_error_payload(checked), 1)
@@ -175,13 +180,7 @@ def _transaction_error_payload(verified: dict[str, Any]) -> dict[str, Any]:
 
 
 def _affected_files(payload: dict[str, Any]) -> list[str]:
-    candidates = (
-        payload.get("affected_files")
-        or payload.get("files_to_modify")
-        or payload.get("modified")
-        or payload.get("files")
-        or []
-    )
+    candidates = payload.get("affected_files") or payload.get("files_to_modify") or []
     files: list[str] = []
     for item in candidates:
         if isinstance(item, dict) and "path" in item:

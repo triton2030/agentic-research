@@ -6,7 +6,7 @@ from typing import Any
 
 from .importance import importance_rows
 from .originality import nearest_neighbors
-from .section_profile import classify_section_heuristic, profile_unprofiled_sections
+from .section_profile import classify_section_heuristic
 
 OWNER_TYPES = {"definition", "rule", "decision"}
 
@@ -68,7 +68,6 @@ def owner_candidates(
     section_id: str | None = None,
     limit: int = 5,
 ) -> list[dict[str, Any]]:
-    profile_unprofiled_sections(conn, corpus_root=corpus_root)
     if text is not None:
         return _fallback_text_candidates(conn, text, limit)
     if not section_id:

@@ -15,9 +15,8 @@ Versioning rule: bump `SCHEMA_VERSION` on any change that removes a
 field, renames a field, or tightens a type. Adding optional fields is
 non-breaking and does not bump.
 
-To print a schema:
-    md_navigator.py schema --for search   # one schema
-    md_navigator.py schema --for all      # JSON map of all schemas
+Consumers read these schemas as data: `ALL_SCHEMAS[name]` for one schema,
+`ALL_SCHEMAS` for the whole map, plus `SCHEMA_VERSION` / `SCHEMA_DIALECT`.
 """
 
 from __future__ import annotations
@@ -650,52 +649,3 @@ ALL_SCHEMAS: dict[str, dict[str, Any]] = {
     "cluster": CLUSTER_SCHEMA,
     "audit": AUDIT_SCHEMA,
 }
-
-
-def register_schema(sub) -> None:
-    p = sub.add_parser(
-        "schema",
-        help=(
-            "Print the JSON Schema for `--json` outputs. Agent consumers "
-            "use this to validate parsed results and detect contract drift "
-            "after navigator upgrades."
-        ),
-    )
-    p.add_argument(
-        "--for",
-        dest="target",
-        default="all",
-        choices=sorted(ALL_SCHEMAS.keys()) + ["all"],
-        help="Which command's output schema to print (default: all).",
-    )
-    p.set_defaults(func=lambda args: cmd_schema(args))
-
-
-def cmd_schema(args) -> int:
-    """Print the JSON Schema for the requested command's `--json` output."""
-    import json
-    import sys
-
-    target = args.target
-    if target == "all":
-        out: dict[str, Any] = {
-            "version": SCHEMA_VERSION,
-            "dialect": SCHEMA_DIALECT,
-            "schemas": ALL_SCHEMAS,
-        }
-    else:
-        if target not in ALL_SCHEMAS:
-            available = ", ".join(sorted(ALL_SCHEMAS.keys()))
-            print(
-                f"Unknown schema target: {target!r}. Available: {available}, all.",
-                file=sys.stderr,
-            )
-            return 2
-        out = {
-            "version": SCHEMA_VERSION,
-            "dialect": SCHEMA_DIALECT,
-            "for": target,
-            "schema": ALL_SCHEMAS[target],
-        }
-    print(json.dumps(out, ensure_ascii=False, indent=2))
-    return 0

@@ -22,6 +22,11 @@ Phase 2 can start only when the lock tests are green.
 - `md_cli.runner` is the only owner of `envelope.wrap` and `print(json.dumps)`.
 - `md_cli.next_steps` owns executable `_envelope.next_step` action policy;
   `md_cli.envelope` only normalizes args, estimates size and wraps payloads.
+- `md_cli.catalog.ToolSpec` owns explicit safety fields and predicates.
+  Transaction gating reads `ToolSpec.transaction_required`; cost-bearing
+  awareness reads `ToolSpec.cost_bearing`. Derived reporting sets may exist,
+  but handlers must not recreate broad `MUTATING_TOOLS` checks or infer safety
+  only from category labels.
 - Agent-facing broad outputs use the context ladder: normal mode returns
   maps/previews with `expanded:false` and `content_included:false`; full
   content or evidence is explicit `--expanded`. Legacy `--compact` must not
@@ -33,14 +38,41 @@ Phase 2 can start only when the lock tests are green.
   dry-run, confirm and scoped re-run examples. Human guidance must preserve
   parent-corpus scope plus `path_include` / `path_exclude`; do not hand-build
   parallel `md index ...` strings in feature modules.
+- `navigator.index_build.ensure_index(dry_run=True)` is the only readonly
+  index estimate path. `_ensure_index_unlocked` is a write-path helper and must
+  not grow a second dry-run branch.
+- Read APIs never delete or rebuild vector indexes. If a caller asks for
+  `no_cache`, the public API returns a structured `md_index` dry-run
+  `read_next` instead of mutating cache state inside a read path.
 - `navigator.workflows.*` imports only navigator/library code, never `md_cli`,
-  `subprocess`, or serialization.
+  `subprocess`, or serialization. Workflow modules may compose public
+  primitives or delegate to a domain adapter, but they must not lazy-write
+  profile caches or import backend internals directly.
 - `navigator.*` library modules do not import `md_cli`.
-- `navigator.api` is the installed `md` callable facade. Graph-facing wrappers
-  must use the shared graph helpers (`_graph_args`, `_graph_docs`,
-  `_graph_scan_docs`, or their direct successor) so `.md-tools.toml` graph
-  filters and direct API filters merge in one place. Graph helpers typed for
-  `argparse.Namespace` must not receive `types.SimpleNamespace`.
+- `navigator.api` is the installed `md` callable facade for atomic tools, not a
+  second backend owner. Domain adapters live in focused modules
+  (`api_graph.py`, `api_search.py`, `api_audit.py`, `api_profile.py`) and
+  `api.py` re-exports the stable atomic public call surface.
+- Audit detection lives in `navigator.audit`. CLI routing, Markdown rendering
+  and severity scoring stay split into `audit_cli.py`, `audit_render.py` and
+  `audit_severity.py`; do not grow `audit.py` back into a 1000-line catch-all.
+- `navigator.markdown_io` is the canonical Markdown/link parser. Graph modules
+  may resolve graph-specific edges, but must not maintain a second wikilink or
+  markdown-link parser.
+- `navigator.link_graph.iter_explicit_link_edges` is the canonical explicit
+  Markdown edge iterator for frontmatter links, wikilinks and Markdown links.
+  `read-related --check-links` reuses it instead of resolving the same edge
+  families again.
+- Graph-facing wrappers live in `navigator.api_graph` and must use the shared
+  graph helpers (`_graph_args`, `_graph_docs`, `_graph_scan_docs`, or their
+  direct successor) so `.md-tools.toml` graph filters and direct API filters
+  merge in one place. Graph helpers typed for `GraphArgs` must not receive
+  `types.SimpleNamespace` or other ad-hoc namespaces; construct `GraphArgs`
+  explicitly.
+- Graph writes use named `navigator.graph_core.DocWrite` entries and
+  `write_doc_plan`, which stages all target documents before replacing them
+  and restores originals on failure. `api_graph` mutators must not grow
+  per-file write loops for related graph updates.
 - `md --help`, `md tools`, and help paths stay lazy and do not import heavy
   dependencies.
 - Agent-facing response snapshots cover every `TOOLS_BY_ID` entry and must not

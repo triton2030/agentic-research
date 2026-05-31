@@ -5,20 +5,25 @@ offline; the focus is on:
   - Search integration (rerank reorders results, scores attached, engine
     metadata reflects rerank usage)
   - Failure mode (rerank API error → fall back to RRF order, exit code 0)
+
+Retargeted onto the canonical ``navigator.api`` surface: index/search go
+through ``api.index`` / ``api.search`` (dict payloads), not legacy
+``cmd_index`` / ``cmd_search`` (argparse Namespace + stdout JSON). The
+monkeypatch on ``from navigator import search as search_mod`` is kept
+verbatim — after the package proxy is retired it resolves to the real
+``navigator.search`` module on disk, which is the module ``api.search``
+calls through to via ``search_payload``.
 """
 
 from __future__ import annotations
 
-import json
-from argparse import Namespace
 from pathlib import Path
 
 import pytest
 
+from navigator import api
 from navigator import rerank as rerank_module
-from navigator.index import cmd_index
 from navigator.rerank import doc_text_for_rerank
-from navigator.search import cmd_search
 
 
 def test_doc_text_for_rerank_includes_heading_chain() -> None:
@@ -45,24 +50,24 @@ def test_doc_text_for_rerank_falls_back_to_path_when_no_heading() -> None:
 
 
 def _index(tiny_corpus: Path) -> None:
-    args = Namespace(
-        path=str(tiny_corpus),
+    payload = api.index(
+        str(tiny_corpus),
+        confirm=True,
         max_heading_level=6,
         embed_model="test/stub-1",
         embedding_api_url="http://test.local/v1",
         embedding_timeout=5,
         cache_dir=None,
-        max_auto_embed=10000,
         batch_size=32,
         batch_pause_ms=0,
     )
-    assert cmd_index(args) == 0
+    assert payload.get("_exit_code", 0) == 0
 
 
-def _search_with_rerank(corpus: Path, query: str, mock_returns) -> Namespace:
-    return Namespace(
-        path=str(corpus),
-        query=query,
+def _search_with_rerank(corpus: Path, query: str) -> dict:
+    return api.search(
+        str(corpus),
+        query,
         scope="sections",
         max_heading_level=6,
         embed_model="test/stub-1",
@@ -71,12 +76,8 @@ def _search_with_rerank(corpus: Path, query: str, mock_returns) -> Namespace:
         cache_dir=None,
         max_auto_embed=10000,
         no_cache=False,
-        json=True,
         limit=5,
         candidates=50,
-        output=None,
-        batch_size=32,
-        batch_pause_ms=0,
         rerank=True,
         rerank_model="test-reranker",
         rerank_api_url="http://test.local/rerank",
@@ -86,10 +87,9 @@ def _search_with_rerank(corpus: Path, query: str, mock_returns) -> Namespace:
 
 
 def test_search_with_rerank_reorders_and_scores(
-    tiny_corpus: Path, mock_embed, monkeypatch, capsys
+    tiny_corpus: Path, mock_embed, monkeypatch
 ) -> None:
     _index(tiny_corpus)
-    capsys.readouterr()
 
     # Reverse the RRF order to prove rerank reorders. Cohere returns
     # results sorted by score desc. We map last input to highest score.
@@ -103,10 +103,8 @@ def test_search_with_rerank_reorders_and_scores(
 
     monkeypatch.setattr(search_mod, "rerank_documents", fake_rerank)
 
-    rc = cmd_search(_search_with_rerank(tiny_corpus, "embeddings", fake_rerank))
-    out = capsys.readouterr().out
-    assert rc == 0
-    payload = json.loads(out)
+    payload = _search_with_rerank(tiny_corpus, "embeddings")
+    assert payload.get("_exit_code", 0) == 0
     # Engine reports rerank applied
     assert payload["engine"]["rerank"] is True
     assert payload["engine"]["rerank_model"] == "test-reranker"
@@ -117,10 +115,9 @@ def test_search_with_rerank_reorders_and_scores(
 
 
 def test_search_rerank_failure_falls_back(
-    tiny_corpus: Path, mock_embed, monkeypatch, capsys
+    tiny_corpus: Path, mock_embed, monkeypatch
 ) -> None:
     _index(tiny_corpus)
-    capsys.readouterr()
 
     def boom(*a, **kw):
         raise RuntimeError("Rerank API returned 500: simulated outage")
@@ -130,24 +127,24 @@ def test_search_rerank_failure_falls_back(
 
     monkeypatch.setattr(search_mod, "rerank_documents", boom)
 
-    rc = cmd_search(_search_with_rerank(tiny_corpus, "embeddings", boom))
-    captured = capsys.readouterr()
-    # Search still succeeds — fall back to RRF order with a stderr warning.
-    assert rc == 0
-    assert "Rerank failed" in captured.err
-    payload = json.loads(captured.out)
+    payload = _search_with_rerank(tiny_corpus, "embeddings")
+    # Search still succeeds — fall back to RRF order. The legacy CLI also
+    # printed a "Rerank failed" stderr warning, but that warning is owned by
+    # the cmd_search presentation layer (its rerank_error_handler); the
+    # canonical api.search swallows the RuntimeError and signals fallback
+    # purely through engine.rerank=False, so the stderr assert is dropped.
+    assert payload.get("_exit_code", 0) == 0
     assert payload["engine"]["rerank"] is False
 
 
-def test_search_without_rerank_unchanged(tiny_corpus: Path, mock_embed, capsys) -> None:
-    """Sanity check: omitting --rerank keeps engine.rerank=false and no
+def test_search_without_rerank_unchanged(tiny_corpus: Path, mock_embed) -> None:
+    """Sanity check: omitting rerank keeps engine.rerank=false and no
     rerank_score on rows."""
     _index(tiny_corpus)
-    capsys.readouterr()
 
-    args = Namespace(
-        path=str(tiny_corpus),
-        query="embeddings",
+    payload = api.search(
+        str(tiny_corpus),
+        "embeddings",
         scope="sections",
         max_heading_level=6,
         embed_model="test/stub-1",
@@ -156,22 +153,15 @@ def test_search_without_rerank_unchanged(tiny_corpus: Path, mock_embed, capsys) 
         cache_dir=None,
         max_auto_embed=10000,
         no_cache=False,
-        json=True,
         limit=5,
         candidates=50,
-        output=None,
-        batch_size=32,
-        batch_pause_ms=0,
         rerank=False,
         rerank_model="unused",
         rerank_api_url="unused",
         rerank_timeout=5,
         rerank_top_n=10,
     )
-    rc = cmd_search(args)
-    out = capsys.readouterr().out
-    assert rc == 0
-    payload = json.loads(out)
+    assert payload.get("_exit_code", 0) == 0
     assert payload["engine"]["rerank"] is False
     if payload["results"]:
         for row in payload["results"]:

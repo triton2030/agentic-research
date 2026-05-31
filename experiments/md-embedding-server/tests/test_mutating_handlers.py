@@ -147,6 +147,10 @@ def test_index_dry_run_returns_cost_and_profile_llm_requires_confirm(tmp_path: P
     assert profile.returncode == 1
     assert _json(profile)["error"] == "confirm_required"
 
+    heuristic_profile = _run_md(tmp_path, "profile-sections", str(tmp_path), "--mode", "heuristic")
+    assert heuristic_profile.returncode == 1
+    assert _json(heuristic_profile)["error"] == "confirm_required"
+
 
 def test_index_refuses_nested_corpus_when_parent_index_exists(tmp_path: Path) -> None:
     parent = tmp_path / "parent"

@@ -9,49 +9,14 @@ is monotone with cosine similarity.
 
 from __future__ import annotations
 
-import json
-import sys
 from pathlib import Path
 from typing import Any
 
-from .cli_common import add_cache_arg, add_json_arg
 from .filters import (
-    add_path_filter_args,
     normalize_path_filter_patterns,
     sqlite_path_filter_sql,
 )
-from navigator.index_guidance import index_dry_run_command
 from .index_meta import _open_index_readonly
-
-
-def register_cluster(sub) -> None:
-    p = sub.add_parser(
-        "cluster",
-        help=(
-            "Group all sections of a corpus into K semantic clusters via "
-            "K-means on the on-disk vectors. Each cluster suggests a "
-            "topic; common_parent vs centroid_path mismatch is an IA "
-            "signal for `1ia-audit`. Read-only; no HTTP calls."
-        ),
-    )
-    p.add_argument("path", help="Corpus root (must have an existing index).")
-    p.add_argument(
-        "--k",
-        type=int,
-        default=8,
-        metavar="N",
-        help="Number of clusters (default: 8).",
-    )
-    p.add_argument(
-        "--seed",
-        type=int,
-        default=42,
-        help="K-means seed for reproducible runs (default: 42).",
-    )
-    add_path_filter_args(p, command_name="cluster")
-    add_cache_arg(p)
-    add_json_arg(p)
-    p.set_defaults(func=lambda args: cmd_cluster(args))
 
 
 def _kmeans_pp_init(X, k: int, rng) -> Any:
@@ -270,71 +235,3 @@ def cluster_sections(
         }
     finally:
         conn.close()
-
-
-def cmd_cluster(args) -> int:
-    """Group all sections of a corpus into K semantic clusters. Useful
-    for IA-audit: each cluster suggests a coherent topic; the
-    `common_parent` field hints at whether the existing folder layout
-    matches the embedding-based topology. Read-only — no embedding work,
-    just K-means on vectors already on disk."""
-    corpus_root = Path(args.path).expanduser().resolve()
-    if not corpus_root.exists():
-        print(f"Path does not exist: {corpus_root}", file=sys.stderr)
-        return 2
-
-    cache_root = (
-        Path(args.cache_dir).expanduser() if getattr(args, "cache_dir", None) else None
-    )
-
-    try:
-        result = cluster_sections(
-            corpus_root,
-            k=args.k,
-            cache_root=cache_root,
-            seed=args.seed,
-            path_include=getattr(args, "path_include", None),
-            path_exclude=getattr(args, "path_exclude", None),
-        )
-    except FileNotFoundError:
-        print(
-            f"No index for {corpus_root}.\n"
-            f"  Next: {index_dry_run_command(corpus_root)}",
-            file=sys.stderr,
-        )
-        return 4
-    except ModuleNotFoundError as exc:
-        print(
-            f"Missing Python dependency: {exc}.\n"
-            f"  Verify the CLI install with `md --version` and `md tools --json`.",
-            file=sys.stderr,
-        )
-        return 3
-
-    if getattr(args, "json", False):
-        # Counter tuples → lists for JSON.
-        for c in result["clusters"]:
-            c["top_files"] = [list(t) for t in c["top_files"]]
-        print(json.dumps(result, ensure_ascii=False, indent=2))
-        return 0
-
-    print(f"# Markdown clusters: {corpus_root}")
-    print(f"K = {result['k']}, sections = {result['n_sections']}, chunks = {result['n_chunks']}")
-    print(
-        "Read-only clustering of on-disk vectors. Each cluster suggests one "
-        "topic; mismatched common_parent vs centroid_path is an IA signal."
-    )
-    print()
-    for c in result["clusters"]:
-        head_chain = c["centroid_heading_chain"]
-        print(f"## Cluster {c['id'] + 1} — {c['size']} sections (cohesion {c['cohesion']:.3f})")
-        if c["common_parent"]:
-            print(f"  common_parent: {c['common_parent']}/")
-        print(f"  centroid:      [{c['centroid_section']}] {c['centroid_path']}")
-        if head_chain:
-            print(f"                 {head_chain}")
-        print("  top files:")
-        for path, count in c["top_files"]:
-            print(f"    - {path} ({count} sections)")
-        print()
-    return 0

@@ -18,15 +18,7 @@ import sys
 from pathlib import Path
 from typing import Any, TypedDict
 
-from .cli_common import (
-    add_auto_embed_args,
-    add_cache_arg,
-    add_embedding_args,
-    add_json_arg,
-    add_max_heading_level_arg,
-)
 from .filters import (
-    add_path_filter_args,
     apply_path_filters_to_map,
     normalize_path_filter_patterns,
     path_matches_any,
@@ -47,94 +39,6 @@ class FileBreakdownItem(TypedDict):
     path: str
     section_count: int
     sections: list[dict[str, Any]]
-
-
-def register_repeated_concepts(sub) -> None:
-    p = sub.add_parser(
-        "repeated-concepts",
-        help=(
-            "Find ideas that recur across the corpus via connected "
-            "components on the section-similarity graph. Each concept "
-            "lists the files it touches and the representative section. "
-            "Writes a persistent Markdown report to "
-            "`<corpus>/.md-navigator/repeated-concepts.md`. The primary "
-            "concept-level evidence probe for `1ia-audit` owner-truth "
-            "questions. Read-only HTTP-wise after `index`."
-        ),
-    )
-    p.add_argument("path", help="Corpus root (must have an existing index).")
-    p.add_argument(
-        "--threshold",
-        type=float,
-        default=0.80,
-        help=(
-            "Cosine similarity threshold for graph edges between sections "
-            "(default: 0.80). Lower = larger / fuzzier concepts; higher = "
-            "tighter / fewer."
-        ),
-    )
-    p.add_argument(
-        "--top",
-        type=int,
-        default=30,
-        help="Top-N concepts to keep in the report (default: 30).",
-    )
-    p.add_argument(
-        "--min-tokens",
-        type=int,
-        default=30,
-        help="Skip sections below this token count to ignore stubs (default: 30).",
-    )
-    p.add_argument(
-        "--min-files",
-        type=int,
-        default=2,
-        help=(
-            "Drop concepts that live in fewer than this many distinct files "
-            "(default: 2 — recurrence across files is the point; raise to 3+ "
-            "for stronger owner-truth signals)."
-        ),
-    )
-    p.add_argument(
-        "--min-sections",
-        type=int,
-        default=2,
-        help="Drop concepts with fewer than this many member sections (default: 2).",
-    )
-    p.add_argument(
-        "--top-members",
-        type=int,
-        default=5,
-        help="How many member sections to list per concept, ranked by similarity to representative (default: 5).",
-    )
-    add_max_heading_level_arg(p)
-    add_embedding_args(p)
-    add_cache_arg(p)
-    add_auto_embed_args(p, default_cap=50)
-    add_path_filter_args(p, command_name="concept")
-    p.add_argument(
-        "--output",
-        default=None,
-        metavar="FILE",
-        help=(
-            "Write the report to FILE instead of the default "
-            "`<corpus>/.md-navigator/repeated-concepts.md`."
-        ),
-    )
-    p.add_argument(
-        "--stdout",
-        action="store_true",
-        help="Print the full Markdown report to stdout instead of writing the default file.",
-    )
-    p.add_argument(
-        "--json",
-        action="store_true",
-        help=(
-            "Print JSON to stdout (machine-consumer contract). Combine with "
-            "--output FILE to write JSON to a specific path instead."
-        ),
-    )
-    p.set_defaults(func=lambda args: cmd_repeated_concepts(args))
 
 
 class _UnionFind:
@@ -171,10 +75,9 @@ def compute_repeated_concepts(
     args,
 ) -> dict[str, Any] | None:
     """Pure compute over an already-open index. Builds the concept-graph
-    output dict so audit and `cmd_repeated_concepts` share one path. The
-    caller is responsible for `ensure_index`, error handling, the
-    `delta_too_large` warmup signal, and output routing (--json / --stdout
-    / --output / default file).
+    output dict so audit and the public `repeated_concepts` API share one
+    compute path. The caller is responsible for `ensure_index`, error
+    handling, the `delta_too_large` warmup signal, and output routing.
 
     Returns the output dict, or `None` when fewer than 2 chunks are
     available to compare (caller should exit 1 with a friendly message)."""
@@ -407,174 +310,6 @@ def compute_repeated_concepts(
     }
 
     return output
-
-
-def cmd_repeated_concepts(args) -> int:
-    corpus_root = Path(args.path).expanduser().resolve()
-    if not corpus_root.exists():
-        print(f"Path does not exist: {corpus_root}", file=sys.stderr)
-        return 2
-
-    include_patterns = normalize_path_filter_patterns(
-        getattr(args, "path_include", None),
-        corpus_root,
-    )
-    exclude_patterns = normalize_path_filter_patterns(
-        getattr(args, "path_exclude", None),
-        corpus_root,
-    )
-
-    map_data = build_map(corpus_root, args.max_heading_level, with_tokens=False)
-    if not map_data["files"]:
-        print(f"No Markdown files under {corpus_root}", file=sys.stderr)
-        return 1
-
-    map_data = apply_path_filters_to_map(map_data, include_patterns, exclude_patterns)
-    if not map_data["files"]:
-        print(
-            f"Path filters matched no Markdown files under {corpus_root}",
-            file=sys.stderr,
-        )
-        return 1
-    args.path_include = include_patterns
-    args.path_exclude = exclude_patterns
-
-    sections = build_sections_from_map(map_data)
-    if not sections:
-        print(f"No sections extracted from {corpus_root}", file=sys.stderr)
-        return 1
-
-    cache_root = Path(args.cache_dir).expanduser() if args.cache_dir else None
-    parent_corpus = find_parent_indexed_corpus(corpus_root, cache_root=cache_root)
-    index_exists = (_index_dir_for_corpus(corpus_root, cache_root=cache_root, create=False) / "index.sqlite").exists()
-    if parent_corpus is not None and not index_exists:
-        parent_include = path_include_for_parent_corpus(corpus_root, parent_corpus, include_patterns)
-        parent_exclude = (
-            path_include_for_parent_corpus(corpus_root, parent_corpus, exclude_patterns)
-            if exclude_patterns
-            else []
-        )
-        print(
-            f"Index needs warmup before repeated-concepts can run.\n"
-            f"  Requested path is inside indexed parent corpus: {parent_corpus}\n"
-            f"\n"
-            f"  Next step:\n"
-            f"    {index_dry_run_command(parent_corpus, path_include=parent_include, path_exclude=parent_exclude)}\n"
-            f"    {index_confirm_command(parent_corpus, path_include=parent_include, path_exclude=parent_exclude)}\n"
-            f"\n"
-            f"  Then re-run repeated-concepts on the parent corpus with the same path scope:\n"
-            f"    {scoped_rerun_command('repeated-concepts', parent_corpus, path_include=parent_include, path_exclude=parent_exclude)}\n",
-            file=sys.stderr,
-        )
-        return 4
-    args.embed_model = resolve_embed_model_for_corpus(
-        corpus_root, args.embed_model, cache_root=cache_root
-    )
-    if args.no_cache:
-        target = _index_dir_for_corpus(corpus_root, cache_root=cache_root)
-        for name in ("index.sqlite", "index.sqlite-wal", "index.sqlite-shm"):
-            (target / name).unlink(missing_ok=True)
-
-    max_auto_embed = (
-        None if args.max_auto_embed == 0 else int(args.max_auto_embed)
-    )
-
-    try:
-        conn, index_stats = ensure_index(
-            corpus_root,
-            "sections",
-            sections,
-            args.embed_model,
-            embedding_api_url=args.embedding_api_url,
-            embedding_timeout=args.embedding_timeout,
-            cache_root=cache_root,
-            max_auto_embed=max_auto_embed,
-            path_include=include_patterns,
-            path_exclude=exclude_patterns,
-        )
-    except ModuleNotFoundError as exc:
-        print(
-            f"Missing Python dependency: {exc}.\n"
-            f"  This script needs uv to resolve its inline deps "
-            f"(`numpy`, `sqlite-vec`, `pyyaml`).\n"
-            f"  Verify the installed CLI with:\n"
-            f"    md --version && md tools --json\n"
-            f"  Install uv if missing: `brew install uv` (macOS) or "
-            f"https://docs.astral.sh/uv.",
-            file=sys.stderr,
-        )
-        return 3
-    except RuntimeError as exc:
-        print(
-            f"Embedding API call failed: {exc}\n"
-            f"  Check OPENROUTER_API_KEY env var or `.openrouter.key` file "
-            f"(see SKILL.md → First-time setup).",
-            file=sys.stderr,
-        )
-        return 3
-
-    if index_stats.get("delta_too_large"):
-        pending = index_stats["pending_chunks"]
-        added = index_stats["added_sections"]
-        print(
-            f"Index needs warmup before repeated-concepts can run.\n"
-            f"  {added} new sections / {pending} new chunks pending "
-            f"(cap for auto-embed in `repeated-concepts` = {max_auto_embed}).\n"
-            f"\n"
-            f"  Next step:\n"
-            f"    {index_dry_run_command(corpus_root)}\n"
-            f"    {index_confirm_command(corpus_root)}\n"
-            f"\n"
-            f"  Then re-run repeated-concepts. One-time cost; subsequent runs "
-            f"reuse the index on disk.",
-            file=sys.stderr,
-        )
-        return 4
-
-    output = compute_repeated_concepts(
-        corpus_root, conn, map_data, index_stats, args
-    )
-    if output is None:
-        print("Need at least 2 chunks to compare.", file=sys.stderr)
-        return 1
-
-    # Output routing — fixed semantics so the `--json` contract matches
-    # the help text and behaves like every other navigator command:
-    #
-    #   `--json`           → ALWAYS print JSON to stdout (machine consumer
-    #                        contract; never writes to disk implicitly).
-    #   `--stdout`         → print human Markdown report to stdout instead
-    #                        of writing the default file.
-    #   `--output FILE`    → write to FILE (Markdown if no --json, JSON if
-    #                        --json). Overrides default file location.
-    #   (no flag)          → write Markdown report to
-    #                        `<corpus>/.md-navigator/repeated-concepts.md`
-    #                        and print a one-line summary to stdout.
-    if args.json:
-        payload = json.dumps(output, ensure_ascii=False, indent=2, default=str)
-        if args.output:
-            out_path = Path(args.output).expanduser().resolve()
-            out_path.parent.mkdir(parents=True, exist_ok=True)
-            out_path.write_text(payload + "\n", encoding="utf-8")
-            print(f"JSON report → {out_path}")
-        else:
-            print(payload)
-        return 0
-
-    rendered = render_repeated_concepts(output)
-    if args.stdout:
-        print(rendered, end="")
-        return 0
-
-    if args.output:
-        out_path = Path(args.output).expanduser().resolve()
-    else:
-        index_dir = _index_dir_for_corpus(corpus_root, cache_root=cache_root)
-        out_path = index_dir / "repeated-concepts.md"
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(rendered, encoding="utf-8")
-    _print_summary(output, out_path)
-    return 0
 
 
 def _concept_label(medoid_meta: dict[str, Any]) -> str:

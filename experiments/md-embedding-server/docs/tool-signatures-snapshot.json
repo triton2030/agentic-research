@@ -6,7 +6,6 @@
       "category": "atomic",
       "library_function": "navigator.api.audit",
       "workflow_function": null,
-      "handler_module": "md_cli.handlers.md_audit",
       "tests_module": "tests.test_audit",
       "annotations": {
         "destructiveHint": false,
@@ -55,7 +54,9 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md audit CORPUS [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--expanded] --json"
+      "cli_signature": "md audit CORPUS [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--expanded] --json",
+      "transaction_required": false,
+      "cost_bearing": true
     },
     {
       "name": "md_coherence_audit",
@@ -63,7 +64,6 @@
       "category": "atomic",
       "library_function": "navigator.api.coherence_audit",
       "workflow_function": null,
-      "handler_module": "md_cli.handlers.md_coherence_audit",
       "tests_module": "tests.test_coherence_audit",
       "annotations": {
         "destructiveHint": false,
@@ -112,7 +112,9 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md coherence-audit PATH [--anchor ANCHOR] [--scan SCAN] [--depth DEPTH] [--token-budget TOKEN_BUDGET] --json"
+      "cli_signature": "md coherence-audit PATH [--anchor ANCHOR] [--scan SCAN] [--depth DEPTH] [--token-budget TOKEN_BUDGET] --json",
+      "transaction_required": false,
+      "cost_bearing": false
     },
     {
       "name": "md_check",
@@ -120,7 +122,6 @@
       "category": "atomic",
       "library_function": "navigator.api.check",
       "workflow_function": null,
-      "handler_module": "md_cli.handlers.md_check",
       "tests_module": "tests.test_graph_mutators",
       "annotations": {
         "destructiveHint": false,
@@ -165,7 +166,9 @@
         },
         "type": "object"
       },
-      "cli_signature": "md check [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json"
+      "cli_signature": "md check [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json",
+      "transaction_required": false,
+      "cost_bearing": false
     },
     {
       "name": "md_cluster",
@@ -173,7 +176,6 @@
       "category": "atomic",
       "library_function": "navigator.api.cluster",
       "workflow_function": null,
-      "handler_module": "md_cli.handlers.md_cluster",
       "tests_module": "tests.test_navigator_public_api",
       "annotations": {
         "destructiveHint": false,
@@ -232,7 +234,9 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md cluster CORPUS [--k K] [--seed SEED] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--cache-dir CACHE_DIR] --json"
+      "cli_signature": "md cluster CORPUS [--k K] [--seed SEED] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--cache-dir CACHE_DIR] --json",
+      "transaction_required": false,
+      "cost_bearing": false
     },
     {
       "name": "md_corpus_scan",
@@ -240,7 +244,6 @@
       "category": "atomic",
       "library_function": "navigator.api.corpus_scan",
       "workflow_function": null,
-      "handler_module": "md_cli.handlers.md_corpus_scan",
       "tests_module": "tests.test_catalog_contract",
       "annotations": {
         "destructiveHint": false,
@@ -265,7 +268,9 @@
         },
         "type": "object"
       },
-      "cli_signature": "md corpus-scan [ROOT] --json"
+      "cli_signature": "md corpus-scan [ROOT] --json",
+      "transaction_required": false,
+      "cost_bearing": false
     },
     {
       "name": "md_cycles",
@@ -273,7 +278,6 @@
       "category": "atomic",
       "library_function": "navigator.api.cycles",
       "workflow_function": null,
-      "handler_module": "md_cli.handlers.md_cycles",
       "tests_module": "tests.test_contract_fixes",
       "annotations": {
         "destructiveHint": false,
@@ -318,7 +322,9 @@
         },
         "type": "object"
       },
-      "cli_signature": "md cycles [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json"
+      "cli_signature": "md cycles [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json",
+      "transaction_required": false,
+      "cost_bearing": false
     },
     {
       "name": "md_deps",
@@ -326,7 +332,6 @@
       "category": "atomic",
       "library_function": "navigator.api.deps",
       "workflow_function": null,
-      "handler_module": "md_cli.handlers.md_deps",
       "tests_module": "tests.test_contract_fixes",
       "annotations": {
         "destructiveHint": false,
@@ -381,7 +386,9 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md deps PATH [--scan SCAN] [--depth DEPTH] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json"
+      "cli_signature": "md deps PATH [--scan SCAN] [--depth DEPTH] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json",
+      "transaction_required": false,
+      "cost_bearing": false
     },
     {
       "name": "md_edit_context",
@@ -389,7 +396,6 @@
       "category": "workflow",
       "library_function": null,
       "workflow_function": "navigator.workflows.edit_context",
-      "handler_module": "md_cli.handlers.md_edit_context",
       "tests_module": "tests.test_catalog_contract",
       "annotations": {
         "destructiveHint": false,
@@ -449,7 +455,9 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md edit-context PATH [--mode MODE] [--scan SCAN] [--depth DEPTH] [--query QUERY] [CORPUS] [--expanded] --json"
+      "cli_signature": "md edit-context PATH [--mode MODE] [--scan SCAN] [--depth DEPTH] [--query QUERY] [CORPUS] [--expanded] --json",
+      "transaction_required": false,
+      "cost_bearing": true
     },
     {
       "name": "md_extract",
@@ -457,7 +465,6 @@
       "category": "atomic",
       "library_function": "navigator.api.extract",
       "workflow_function": null,
-      "handler_module": "md_cli.handlers.md_extract",
       "tests_module": "tests.test_pick",
       "annotations": {
         "destructiveHint": false,
@@ -515,7 +522,9 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md extract [--map-data MAP_DATA] [--map-stdin] [--files FILES] [--headings HEADINGS] [--extract] [--token-budget TOKEN_BUDGET] --json"
+      "cli_signature": "md extract [--map-data MAP_DATA] [--map-stdin] [--files FILES] [--headings HEADINGS] [--extract] [--token-budget TOKEN_BUDGET] --json",
+      "transaction_required": false,
+      "cost_bearing": false
     },
     {
       "name": "md_health",
@@ -523,7 +532,6 @@
       "category": "atomic",
       "library_function": "navigator.api.health",
       "workflow_function": null,
-      "handler_module": "md_cli.handlers.md_health",
       "tests_module": "tests.test_contract_fixes",
       "annotations": {
         "destructiveHint": false,
@@ -568,7 +576,9 @@
         },
         "type": "object"
       },
-      "cli_signature": "md health [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json"
+      "cli_signature": "md health [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json",
+      "transaction_required": false,
+      "cost_bearing": false
     },
     {
       "name": "md_impact",
@@ -576,7 +586,6 @@
       "category": "atomic",
       "library_function": "navigator.api.impact",
       "workflow_function": null,
-      "handler_module": "md_cli.handlers.md_impact",
       "tests_module": "tests.test_contract_fixes",
       "annotations": {
         "destructiveHint": false,
@@ -625,7 +634,9 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md impact PATH [--scan SCAN] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json"
+      "cli_signature": "md impact PATH [--scan SCAN] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json",
+      "transaction_required": false,
+      "cost_bearing": false
     },
     {
       "name": "md_importance",
@@ -633,7 +644,6 @@
       "category": "atomic",
       "library_function": "navigator.api.importance",
       "workflow_function": null,
-      "handler_module": "md_cli.handlers.md_importance",
       "tests_module": "tests.test_md_tools_refactor",
       "annotations": {
         "destructiveHint": false,
@@ -678,7 +688,9 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md importance CORPUS [--top TOP] [--sort-by SORT_BY] --json"
+      "cli_signature": "md importance CORPUS [--top TOP] [--sort-by SORT_BY] --json",
+      "transaction_required": false,
+      "cost_bearing": false
     },
     {
       "name": "md_index",
@@ -686,7 +698,6 @@
       "category": "mutating",
       "library_function": "navigator.api.index",
       "workflow_function": null,
-      "handler_module": "md_cli.handlers.md_index",
       "tests_module": "tests.test_search_smoke",
       "annotations": {
         "destructiveHint": false,
@@ -765,7 +776,9 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--allow-nested-corpus] --json"
+      "cli_signature": "md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--allow-nested-corpus] --json",
+      "transaction_required": true,
+      "cost_bearing": true
     },
     {
       "name": "md_init",
@@ -773,7 +786,6 @@
       "category": "mutating",
       "library_function": "navigator.api.init",
       "workflow_function": null,
-      "handler_module": "md_cli.handlers.md_init",
       "tests_module": "tests.test_graph_mutators",
       "annotations": {
         "destructiveHint": true,
@@ -834,7 +846,9 @@
         },
         "type": "object"
       },
-      "cli_signature": "md init [--paths PATHS] [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json"
+      "cli_signature": "md init [--paths PATHS] [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json",
+      "transaction_required": true,
+      "cost_bearing": false
     },
     {
       "name": "md_ls",
@@ -842,7 +856,6 @@
       "category": "atomic",
       "library_function": "navigator.api.ls",
       "workflow_function": null,
-      "handler_module": "md_cli.handlers.md_ls",
       "tests_module": "tests.test_md_tools_refactor",
       "annotations": {
         "destructiveHint": false,
@@ -889,7 +902,9 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md ls PATH [--max-heading-level MAX_HEADING_LEVEL] [--match MATCH] [--with-tokens] [--with-link-counts] --json"
+      "cli_signature": "md ls PATH [--max-heading-level MAX_HEADING_LEVEL] [--match MATCH] [--with-tokens] [--with-link-counts] --json",
+      "transaction_required": false,
+      "cost_bearing": false
     },
     {
       "name": "md_orient",
@@ -897,7 +912,6 @@
       "category": "workflow",
       "library_function": null,
       "workflow_function": "navigator.workflows.orient",
-      "handler_module": "md_cli.handlers.md_orient",
       "tests_module": "tests.test_catalog_contract",
       "annotations": {
         "destructiveHint": false,
@@ -946,7 +960,9 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md orient CORPUS [--max-heading-level MAX_HEADING_LEVEL] [--top TOP] [--compact] [--expanded] --json"
+      "cli_signature": "md orient CORPUS [--max-heading-level MAX_HEADING_LEVEL] [--top TOP] [--compact] [--expanded] --json",
+      "transaction_required": false,
+      "cost_bearing": false
     },
     {
       "name": "md_overlaps",
@@ -954,7 +970,6 @@
       "category": "atomic",
       "library_function": "navigator.api.overlaps",
       "workflow_function": null,
-      "handler_module": "md_cli.handlers.md_overlaps",
       "tests_module": "tests.test_path_filters",
       "annotations": {
         "destructiveHint": false,
@@ -1031,7 +1046,9 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md overlaps CORPUS [--threshold THRESHOLD] [--top TOP] [--min-tokens MIN_TOKENS] [--include-same-file] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--expanded] --json"
+      "cli_signature": "md overlaps CORPUS [--threshold THRESHOLD] [--top TOP] [--min-tokens MIN_TOKENS] [--include-same-file] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--expanded] --json",
+      "transaction_required": false,
+      "cost_bearing": true
     },
     {
       "name": "md_ping",
@@ -1039,7 +1056,6 @@
       "category": "atomic",
       "library_function": "navigator.api.ping",
       "workflow_function": null,
-      "handler_module": "md_cli.handlers.md_ping",
       "tests_module": "tests.test_catalog_contract",
       "annotations": {
         "destructiveHint": false,
@@ -1059,7 +1075,9 @@
         "properties": {},
         "type": "object"
       },
-      "cli_signature": "md ping  --json"
+      "cli_signature": "md ping  --json",
+      "transaction_required": false,
+      "cost_bearing": false
     },
     {
       "name": "md_preflight",
@@ -1067,7 +1085,6 @@
       "category": "atomic",
       "library_function": "navigator.api.preflight",
       "workflow_function": null,
-      "handler_module": "md_cli.handlers.md_preflight",
       "tests_module": "tests.test_contract_fixes",
       "annotations": {
         "destructiveHint": false,
@@ -1122,7 +1139,9 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md preflight PATH [--scan SCAN] [--depth DEPTH] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json"
+      "cli_signature": "md preflight PATH [--scan SCAN] [--depth DEPTH] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json",
+      "transaction_required": false,
+      "cost_bearing": false
     },
     {
       "name": "md_profile_sections",
@@ -1130,7 +1149,6 @@
       "category": "mutating",
       "library_function": "navigator.api.profile_sections",
       "workflow_function": null,
-      "handler_module": "md_cli.handlers.md_profile_sections",
       "tests_module": "tests.test_section_profile_cache",
       "annotations": {
         "destructiveHint": false,
@@ -1143,7 +1161,7 @@
         "why": "One-pass classifier — heuristic (free) or LLM (~$0.0005/section). Profiles cached, subsequent reads instant.",
         "input": "corpus, confirm (required true), dry_run (estimate), limit, force, mode ('heuristic'|'llm'|'auto'), model, path_include/exclude.",
         "output": "OUTPUT (live): { stats, sample } — sections profiled, counts per type. OUTPUT (dry_run): { dry_run: true, sections_to_profile_estimate, mode, estimated_cost_usd }.",
-        "alt": "md_query_by_type / md_refactor_candidates lazy-profile what they need.",
+        "alt": "md_query_by_type / md_refactor_candidates return profile_required until this cache exists.",
         "cost": "Heuristic mode free. LLM mode ~$0.0005/section (haiku). Use dry_run first."
       },
       "input_schema": {
@@ -1210,7 +1228,9 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md profile-sections CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--limit LIMIT] [--force] [--mode MODE] [--model MODEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json"
+      "cli_signature": "md profile-sections CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--limit LIMIT] [--force] [--mode MODE] [--model MODEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json",
+      "transaction_required": true,
+      "cost_bearing": true
     },
     {
       "name": "md_query_by_type",
@@ -1218,7 +1238,6 @@
       "category": "workflow",
       "library_function": null,
       "workflow_function": "navigator.workflows.query_by_type",
-      "handler_module": "md_cli.handlers.md_query_by_type",
       "tests_module": "tests.test_catalog_contract",
       "annotations": {
         "destructiveHint": false,
@@ -1232,7 +1251,7 @@
         "input": "corpus, types, filter, limit (normal capped at 10), path_include/exclude, expanded for full profile detail. compact is a legacy no-op alias.",
         "output": "{ sections:[{section_id,path,heading,type,subject,confidence}], read_next } by default. --expanded returns full profile rows.",
         "alt": "md_refactor_candidates for proposal-level. md_search for free-text query.",
-        "cost": "Lazy-profiles unprofiled sections (heuristic free, llm ~$0.0005/section). Pre-profile via md_profile_sections."
+        "cost": "Requires warm index + profiles. If profiles are missing, returns profile_required with md_profile_sections read_next."
       },
       "input_schema": {
         "properties": {
@@ -1291,7 +1310,9 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md query-by-type CORPUS --types TYPES [--filter FILTER] [--limit LIMIT] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--compact] [--expanded] --json"
+      "cli_signature": "md query-by-type CORPUS --types TYPES [--filter FILTER] [--limit LIMIT] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--compact] [--expanded] --json",
+      "transaction_required": false,
+      "cost_bearing": false
     },
     {
       "name": "md_read_related",
@@ -1299,7 +1320,6 @@
       "category": "atomic",
       "library_function": "navigator.api.read_related",
       "workflow_function": null,
-      "handler_module": "md_cli.handlers.md_read_related",
       "tests_module": "tests.test_md_tools_refactor",
       "annotations": {
         "destructiveHint": false,
@@ -1377,7 +1397,9 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md read-related --paths PATHS [--scan SCAN] [--include INCLUDE] [--mode MODE] [--anchor-aware] [--token-budget TOKEN_BUDGET] [--semantic-radius SEMANTIC_RADIUS] [--check-links] [--link-distance-threshold LINK_DISTANCE_THRESHOLD] [--expanded] --json"
+      "cli_signature": "md read-related --paths PATHS [--scan SCAN] [--include INCLUDE] [--mode MODE] [--anchor-aware] [--token-budget TOKEN_BUDGET] [--semantic-radius SEMANTIC_RADIUS] [--check-links] [--link-distance-threshold LINK_DISTANCE_THRESHOLD] [--expanded] --json",
+      "transaction_required": false,
+      "cost_bearing": false
     },
     {
       "name": "md_refactor_candidates",
@@ -1385,7 +1407,6 @@
       "category": "workflow",
       "library_function": null,
       "workflow_function": "navigator.workflows.refactor_candidates",
-      "handler_module": "md_cli.handlers.md_refactor_candidates",
       "tests_module": "tests.test_catalog_contract",
       "annotations": {
         "destructiveHint": false,
@@ -1399,7 +1420,7 @@
         "input": "corpus (warm index), top (normal default 3), thresholds, path_include/exclude, expanded for full evidence. compact is a legacy no-op alias.",
         "output": "{ proposals:[{type, affected_section, target_owner, evidence_summary, why}], no_automation:true } by default. --expanded returns full evidence.",
         "alt": "md_audit for whole-corpus health. md_query_by_type to filter by semantic shape.",
-        "cost": "Requires warm index + profiles. Auto-profiles unprofiled sections lazily."
+        "cost": "Requires warm index + profiles. If profiles are missing, returns profile_required with md_profile_sections read_next."
       },
       "input_schema": {
         "properties": {
@@ -1456,7 +1477,9 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md refactor-candidates CORPUS [--top TOP] [--uniqueness-threshold UNIQUENESS_THRESHOLD] [--owner-confidence-threshold OWNER_CONFIDENCE_THRESHOLD] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--compact] [--expanded] --json"
+      "cli_signature": "md refactor-candidates CORPUS [--top TOP] [--uniqueness-threshold UNIQUENESS_THRESHOLD] [--owner-confidence-threshold OWNER_CONFIDENCE_THRESHOLD] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--compact] [--expanded] --json",
+      "transaction_required": false,
+      "cost_bearing": false
     },
     {
       "name": "md_repeated_concepts",
@@ -1464,7 +1487,6 @@
       "category": "atomic",
       "library_function": "navigator.api.repeated_concepts",
       "workflow_function": null,
-      "handler_module": "md_cli.handlers.md_repeated_concepts",
       "tests_module": "tests.test_contract_fixes",
       "annotations": {
         "destructiveHint": false,
@@ -1549,7 +1571,9 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md repeated-concepts CORPUS [--threshold THRESHOLD] [--top TOP] [--min-files MIN_FILES] [--min-sections MIN_SECTIONS] [--min-tokens MIN_TOKENS] [--top-members TOP_MEMBERS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--expanded] --json"
+      "cli_signature": "md repeated-concepts CORPUS [--threshold THRESHOLD] [--top TOP] [--min-files MIN_FILES] [--min-sections MIN_SECTIONS] [--min-tokens MIN_TOKENS] [--top-members TOP_MEMBERS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--expanded] --json",
+      "transaction_required": false,
+      "cost_bearing": true
     },
     {
       "name": "md_scan",
@@ -1557,7 +1581,6 @@
       "category": "atomic",
       "library_function": "navigator.api.scan",
       "workflow_function": null,
-      "handler_module": "md_cli.handlers.md_scan",
       "tests_module": "tests.test_graph_mutators",
       "annotations": {
         "destructiveHint": false,
@@ -1602,7 +1625,9 @@
         },
         "type": "object"
       },
-      "cli_signature": "md scan [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json"
+      "cli_signature": "md scan [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json",
+      "transaction_required": false,
+      "cost_bearing": false
     },
     {
       "name": "md_search",
@@ -1610,7 +1635,6 @@
       "category": "atomic",
       "library_function": "navigator.api.search",
       "workflow_function": null,
-      "handler_module": "md_cli.handlers.md_search",
       "tests_module": "tests.test_search_smoke",
       "annotations": {
         "destructiveHint": false,
@@ -1691,7 +1715,9 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md search CORPUS --query QUERY [--scope SCOPE] [--limit LIMIT] [--candidates CANDIDATES] [--max-heading-level MAX_HEADING_LEVEL] [--rerank] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json"
+      "cli_signature": "md search CORPUS --query QUERY [--scope SCOPE] [--limit LIMIT] [--candidates CANDIDATES] [--max-heading-level MAX_HEADING_LEVEL] [--rerank] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json",
+      "transaction_required": false,
+      "cost_bearing": true
     },
     {
       "name": "md_search_read",
@@ -1699,7 +1725,6 @@
       "category": "atomic",
       "library_function": "navigator.api.search_read",
       "workflow_function": null,
-      "handler_module": "md_cli.handlers.md_search_read",
       "tests_module": "tests.test_search_smoke",
       "annotations": {
         "destructiveHint": false,
@@ -1790,7 +1815,9 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md search-read CORPUS --query QUERY [--scope SCOPE] [--limit LIMIT] [--candidates CANDIDATES] [--max-heading-level MAX_HEADING_LEVEL] [--rerank] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--token-budget TOKEN_BUDGET] [--expanded] --json"
+      "cli_signature": "md search-read CORPUS --query QUERY [--scope SCOPE] [--limit LIMIT] [--candidates CANDIDATES] [--max-heading-level MAX_HEADING_LEVEL] [--rerank] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--token-budget TOKEN_BUDGET] [--expanded] --json",
+      "transaction_required": false,
+      "cost_bearing": true
     },
     {
       "name": "md_section_blast_radius",
@@ -1798,7 +1825,6 @@
       "category": "workflow",
       "library_function": null,
       "workflow_function": "navigator.workflows.section_blast_radius",
-      "handler_module": "md_cli.handlers.md_section_blast_radius",
       "tests_module": "tests.test_catalog_contract",
       "annotations": {
         "destructiveHint": false,
@@ -1875,7 +1901,9 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md section-blast-radius PATH CORPUS --query QUERY [--heading-id HEADING_ID] [--scan SCAN] [--depth DEPTH] [--limit LIMIT] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json"
+      "cli_signature": "md section-blast-radius PATH CORPUS --query QUERY [--heading-id HEADING_ID] [--scan SCAN] [--depth DEPTH] [--limit LIMIT] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json",
+      "transaction_required": false,
+      "cost_bearing": true
     },
     {
       "name": "md_status",
@@ -1883,7 +1911,6 @@
       "category": "atomic",
       "library_function": "navigator.api.status",
       "workflow_function": null,
-      "handler_module": "md_cli.handlers.md_status",
       "tests_module": "tests.test_path_filters",
       "annotations": {
         "destructiveHint": false,
@@ -1928,7 +1955,9 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md status CORPUS [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json"
+      "cli_signature": "md status CORPUS [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json",
+      "transaction_required": false,
+      "cost_bearing": false
     },
     {
       "name": "md_strip",
@@ -1936,7 +1965,6 @@
       "category": "mutating",
       "library_function": "navigator.api.strip",
       "workflow_function": null,
-      "handler_module": "md_cli.handlers.md_strip",
       "tests_module": "tests.test_graph_mutators",
       "annotations": {
         "destructiveHint": true,
@@ -2001,7 +2029,9 @@
         },
         "type": "object"
       },
-      "cli_signature": "md strip [--paths PATHS] [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--also-related-section] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json"
+      "cli_signature": "md strip [--paths PATHS] [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--also-related-section] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json",
+      "transaction_required": true,
+      "cost_bearing": false
     },
     {
       "name": "md_toc",
@@ -2009,7 +2039,6 @@
       "category": "atomic",
       "library_function": "navigator.api.toc",
       "workflow_function": null,
-      "handler_module": "md_cli.handlers.md_toc",
       "tests_module": "tests.test_md_tools_refactor",
       "annotations": {
         "destructiveHint": false,
@@ -2056,7 +2085,9 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md toc PATH [--max-heading-level MAX_HEADING_LEVEL] [--match MATCH] [--with-tokens] [--with-link-counts] --json"
+      "cli_signature": "md toc PATH [--max-heading-level MAX_HEADING_LEVEL] [--match MATCH] [--with-tokens] [--with-link-counts] --json",
+      "transaction_required": false,
+      "cost_bearing": false
     },
     {
       "name": "md_walk",
@@ -2064,7 +2095,6 @@
       "category": "atomic",
       "library_function": "navigator.api.walk",
       "workflow_function": null,
-      "handler_module": "md_cli.handlers.md_walk",
       "tests_module": "tests.test_catalog_contract",
       "annotations": {
         "destructiveHint": false,
@@ -2115,7 +2145,9 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md walk PATH --anchor ANCHOR [--scan SCAN] [--depth DEPTH] [--token-budget TOKEN_BUDGET] --json"
+      "cli_signature": "md walk PATH --anchor ANCHOR [--scan SCAN] [--depth DEPTH] [--token-budget TOKEN_BUDGET] --json",
+      "transaction_required": false,
+      "cost_bearing": false
     }
   ]
 }

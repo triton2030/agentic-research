@@ -23,7 +23,7 @@ Source inputs:
   provides args, migrated skills must preserve them as-is. This keeps
   parent-corpus and path-filter scope intact for nested corpus repairs.
 - Enum lists such as `types` may use comma-separated CLI values.
-- Legacy helper names such as `md_navigator.py`, `md_graph.py`, `md_navigator` and `md_graph` are not MCP tools. Do not auto-map them to the nearest `md <subcommand>`; each skill section must choose an explicit replacement or keep the helper as a legacy debug fallback.
+- Legacy helper names such as `md_navigator.py`, `md_graph.py`, `md_navigator` and `md_graph` were removed and are not MCP tools. Do not auto-map them to the nearest `md <subcommand>`; each skill section must choose an explicit `md <subcommand>` replacement.
 
 ## 1md-navigator
 

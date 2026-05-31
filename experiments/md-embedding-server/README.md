@@ -28,18 +28,25 @@ no skill-side scripts or server bridge are required.
 
 ## Unified backend shape
 
-- `src/navigator/markdown_io.py` owns shared Markdown parsing.
+- `src/navigator/markdown_io.py` owns shared Markdown and link parsing.
 - `src/navigator/graph_core.py` and `src/navigator/graph_reports.py` own
   graph loading, path filtering, dependency analysis, reports and schema
-  cleanup primitives.
-- `src/navigator/api.py` is the callable facade used by `src/md_cli/`.
-  Graph-facing wrappers build `argparse.Namespace` via shared helpers,
-  merge `.md-tools.toml` graph filters once, and load docs through one path.
-- `src/navigator/graph.py` is legacy argparse compatibility for
-  `scripts/md_graph.py`; the installed `md` command does not dispatch through
-  its `cmd_*` functions.
-- `src/navigator/link_graph.py` and `src/navigator/importance.py` add link
-  counts and centrality without embeddings.
+  cleanup primitives. `graph_edges.py` resolves graph edges on top of
+  `markdown_io`; it must not redefine link parsing semantics. Multi-file
+  graph updates use named `graph_core.DocWrite` plans so `init`/`strip` either
+  apply together or restore originals.
+- `src/navigator/api.py` is the thin callable facade used by `src/md_cli/`.
+  Domain adapters live next to it: `api_graph.py` for graph wrappers,
+  `api_search.py` for search/read output shaping, `api_audit.py` for
+  semantic audit maps, and `api_profile.py` for index/profile commands.
+- `src/navigator/audit.py` owns the audit detection payload. CLI routing,
+  Markdown rendering and severity scoring are split into `audit_cli.py`,
+  `audit_render.py` and `audit_severity.py`.
+- Graph-facing wrappers build `GraphArgs` (dataclass) in `api_graph.py`, merge
+  `.md-tools.toml` graph filters once, and load docs through one path.
+- `src/navigator/link_graph.py` owns the explicit edge iterator used by link
+  counts, centrality and `read-related --check-links`; do not re-resolve
+  frontmatter/wikilink/Markdown-link families in another module.
 - `src/navigator/section_profile.py`, `originality.py`,
   `owner_detector.py`, and `refactor_proposals.py` add Tier 2
   refactor signals. Section profiles support explicit OpenRouter LLM mode
@@ -48,7 +55,8 @@ no skill-side scripts or server bridge are required.
   workflows such as `orient`, `edit-context`, `section-blast-radius`, and
   `refactor-candidates`.
 - `src/md_cli/` owns the command catalog, thin handlers, envelope wrapping,
-  transaction guard and JSON serialization.
+  transaction guard and JSON serialization. Transaction and cost awareness are
+  explicit `ToolSpec` fields/predicates, not ad-hoc handler-side command lists.
 
 ## Developer workflow
 
@@ -170,9 +178,9 @@ Start by choosing the owner surface:
 
 | New behavior | Put it in |
 |---|---|
-| Search/index/audit-style primitive with shared flags or real logic | dedicated module in `src/navigator/` plus public function in `navigator.api` |
-| Agent workflow over existing primitives | `src/navigator/workflows/` plus a thin handler in `src/md_cli/handlers/` |
-| Graph contract, frontmatter, `read-before-edit`, `edit-after-edit`, rename/delete, or link-health logic | graph primitives in `src/navigator/graph_core.py` / `graph_reports.py` plus graph-facing public API in `navigator.api`; touch legacy `navigator.graph` only for compatibility behavior |
+| Search/index/audit-style primitive with shared flags or real logic | dedicated module in `src/navigator/` plus a thin public function or re-export in `navigator.api` |
+| Agent workflow over existing primitives | `src/navigator/workflows/` plus a thin handler in `src/md_cli/handlers/`; keep domain/index/cache logic in the owning `api_*.py` adapter |
+| Graph contract, frontmatter, `read-before-edit`, `edit-after-edit`, rename/delete, or link-health logic | graph primitives in `src/navigator/graph_core.py` / `graph_reports.py` plus graph-facing adapters in `api_graph.py` |
 | CLI/envelope/transaction behavior | `src/md_cli/` only |
 
 Checklist:
@@ -180,7 +188,10 @@ Checklist:
 1. Add the parser/help text and a pure helper where possible.
    For graph-facing public API, reuse `_graph_args`, `_graph_docs` and
    `_graph_scan_docs`; do not hand-build another args object or duplicate
-   `.md-tools.toml` filter merging.
+   `.md-tools.toml` filter merging. For index-backed semantic tools, route
+   through the named `IndexContext` helper instead of repeating warmup/filter
+   setup. Read APIs must return a `md_index` dry-run `read_next` when cache
+   rebuild is requested; they do not delete or rebuild indexes themselves.
 2. Return `0` for success, `1` for empty/no-result, `2` for usage/path
    errors, `3` for dependency/API failure, and `4` for index warmup refusal.
 3. If the command emits JSON, decide whether it is a stable agent-facing

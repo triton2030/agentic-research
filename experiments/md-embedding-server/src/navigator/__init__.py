@@ -1,35 +1,37 @@
 """Public Python API for md-tools navigator capabilities.
 
-Proxy notice
-------------
-`_CallableModuleProxy` + `_NavigatorPackage` give every public name dual nature:
-`navigator.search(...)` calls `api.search` (function), while `navigator.search.X`
-routes to attributes of the `navigator/search.py` module (e.g. mocks, constants,
-private helpers).
+Dual nature of module-backed public names
+------------------------------------------
+Most public names (`check`, `cluster`, `status`, …) live only in
+`navigator.api` and are re-exported here as plain callables. A handful
+(`search`, `audit`, `index`, `overlaps`, `repeated_concepts`,
+`importance`, `coherence_audit`, `corpus_scan`, `walk`) also have a
+backing module on disk (`navigator/search.py`, …). For those, the public
+name resolves to the **real module object**, made callable by delegating
+`__call__` to the matching `navigator.api` function.
 
-This is load-bearing — see ``tests/test_rerank.py``:
-``monkeypatch.setattr(search_mod, "rerank_documents", fake)`` requires module
-attribute access to install the monkeypatch. Removing the proxy would break
-those fixtures and any downstream callers doing
-``from navigator import X as mod; mod.helper(...)``.
+This keeps two contracts working at once:
 
-Known limits / when safe to remove:
-- mypy, pickling, and `inspect.getmembers` may behave unexpectedly on the
-  proxy objects.
-- Removal becomes safe once all callers move to explicit
-  ``from navigator.api import X`` for callable form and
-  ``from navigator import X`` for module-attribute access. Until then, keep.
+- `navigator.search(corpus, query, …)` calls `api.search` (function form,
+  used by handlers and most tests).
+- `from navigator import search as search_mod` then
+  `monkeypatch.setattr(search_mod, "rerank_documents", fake)` patches the
+  symbol on the actual `navigator/search.py` module that the search code
+  path reads (see `tests/test_rerank.py`, `tests/test_contract_fixes.py`,
+  `tests/conftest.py`).
 
-See ``docs/navigator-public-api.md`` (Proxy magic section) for the full
-rationale.
+Because the public name *is* the on-disk module, module-attribute access,
+monkeypatching, and introspection all behave like a normal module — no
+proxy object stands in between. The only addition is a callable
+`__class__` so the function form keeps working.
 """
 
-import importlib
-import sys
+from __future__ import annotations
+
 import types
-from collections.abc import Callable
 from typing import Any
 
+from . import workflows
 from .api import (
     audit,
     check,
@@ -49,9 +51,7 @@ from .api import (
     ping,
     preflight,
     profile_sections,
-    query_by_type,
     read_related,
-    refactor_candidates,
     repeated_concepts,
     scan,
     search,
@@ -61,7 +61,6 @@ from .api import (
     toc,
     walk,
 )
-from . import workflows
 
 __all__ = [
     "audit",
@@ -82,9 +81,7 @@ __all__ = [
     "ping",
     "preflight",
     "profile_sections",
-    "query_by_type",
     "read_related",
-    "refactor_candidates",
     "repeated_concepts",
     "scan",
     "search",
@@ -96,40 +93,54 @@ __all__ = [
     "workflows",
 ]
 
-_PUBLIC_API = {name: globals()[name] for name in __all__ if name != "workflows"}
-_PUBLIC_PROXY_CACHE: dict[str, object] = {}
 
+class _CallableModule(types.ModuleType):
+    """A real module that is also callable, delegating to a bound api func.
 
-class _CallableModuleProxy:
-    def __init__(self, func: Callable[..., Any], module: types.ModuleType) -> None:
-        object.__setattr__(self, "_func", func)
-        object.__setattr__(self, "_module", module)
+    Used for public names that have a backing `navigator/<name>.py` module
+    so that `from navigator import <name>` yields the module on disk
+    (module attributes, monkeypatching) while `navigator.<name>(...)` still
+    calls the corresponding `navigator.api.<name>` function."""
+
+    _api_func: Any
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
-        return self._func(*args, **kwargs)
-
-    def __getattr__(self, name: str) -> Any:
-        return getattr(self._module, name)
-
-    def __setattr__(self, name: str, value: Any) -> None:
-        setattr(self._module, name, value)
+        return type(self)._api_func(*args, **kwargs)
 
 
-class _NavigatorPackage(types.ModuleType):
-    def __getattribute__(self, name: str):
-        public = types.ModuleType.__getattribute__(self, "_PUBLIC_API")
-        if name in public:
-            cache = types.ModuleType.__getattribute__(self, "_PUBLIC_PROXY_CACHE")
-            if name in cache:
-                return cache[name]
-            try:
-                module = importlib.import_module(f"{__name__}.{name}")
-            except ModuleNotFoundError:
-                return public[name]
-            proxy = _CallableModuleProxy(public[name], module)
-            cache[name] = proxy
-            return proxy
-        return types.ModuleType.__getattribute__(self, name)
+def _bind_callable_module(name: str, api_func: Any) -> None:
+    """Make `navigator/<name>.py` callable and bind it as the public name.
+
+    Leaves the real module object in place — only swaps its class to a
+    callable subclass carrying the api delegate. Function-only public names
+    (no backing module) keep the plain `from .api import <name>` binding."""
+    from importlib import import_module
+
+    module = import_module(f"{__name__}.{name}")
+    callable_cls = type(
+        f"_Callable_{name}",
+        (_CallableModule,),
+        {"_api_func": staticmethod(api_func)},
+    )
+    module.__class__ = callable_cls
+    globals()[name] = module
 
 
-sys.modules[__name__].__class__ = _NavigatorPackage
+# Public names that ALSO have a backing module on disk. They must stay
+# callable (function form) yet resolve to the real module (attribute access
+# / monkeypatch). The remaining public names live only in `navigator.api`
+# and are already bound as plain callables by the import above.
+for _name, _func in (
+    ("audit", audit),
+    ("coherence_audit", coherence_audit),
+    ("corpus_scan", corpus_scan),
+    ("importance", importance),
+    ("index", index),
+    ("overlaps", overlaps),
+    ("repeated_concepts", repeated_concepts),
+    ("search", search),
+    ("walk", walk),
+):
+    _bind_callable_module(_name, _func)
+
+del _name, _func

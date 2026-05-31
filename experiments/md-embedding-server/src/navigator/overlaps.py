@@ -5,15 +5,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from .cli_common import (
-    add_auto_embed_args,
-    add_cache_arg,
-    add_embedding_args,
-    add_json_arg,
-    add_max_heading_level_arg,
-)
 from .filters import (
-    add_path_filter_args,
     apply_path_filters_to_map,
     normalize_path_filter_patterns,
     path_matches_any,
@@ -34,44 +26,6 @@ from .index_meta import (
 from .sections import build_sections_from_map
 
 
-def register_overlaps(sub) -> None:
-    p = sub.add_parser(
-        "overlaps",
-        help="Find section pairs with high semantic similarity (smeared-information detector).",
-    )
-    p.add_argument("path", help="Folder or Markdown file to scan.")
-    p.add_argument(
-        "--threshold",
-        type=float,
-        default=0.85,
-        help="Cosine similarity threshold for surfaced pairs (default: 0.85).",
-    )
-    p.add_argument(
-        "--top",
-        type=int,
-        default=20,
-        help="Top-N pairs to return (default: 20).",
-    )
-    p.add_argument(
-        "--min-tokens",
-        type=int,
-        default=30,
-        help="Skip sections below this token count to ignore stubs (default: 30, 0 = no filter).",
-    )
-    p.add_argument(
-        "--include-same-file",
-        action="store_true",
-        help="Include section pairs from the same file (default: cross-file only).",
-    )
-    add_max_heading_level_arg(p)
-    add_embedding_args(p)
-    add_cache_arg(p)
-    add_auto_embed_args(p, default_cap=50)
-    add_path_filter_args(p, command_name="overlap pairs")
-    add_json_arg(p)
-    p.set_defaults(func=lambda args: cmd_overlaps(args))
-
-
 def compute_overlaps(
     corpus_root: Path,
     conn,
@@ -80,7 +34,8 @@ def compute_overlaps(
     args,
 ) -> dict[str, Any] | None:
     """Pure compute over an already-open index. Builds the section-pair
-    overlap output dict so audit and `cmd_overlaps` share one path. The
+    overlap output dict so audit and the public `overlaps` API share one
+    compute path. The
     caller is responsible for `ensure_index`, error handling, the
     `delta_too_large` warmup signal, and output routing.
 
@@ -218,142 +173,6 @@ def compute_overlaps(
     }
 
     return output
-
-
-def cmd_overlaps(args) -> int:
-    corpus_root = Path(args.path).expanduser().resolve()
-    if not corpus_root.exists():
-        print(f"Path does not exist: {corpus_root}", file=sys.stderr)
-        return 2
-
-    include_patterns = normalize_path_filter_patterns(
-        getattr(args, "path_include", None),
-        corpus_root,
-    )
-    exclude_patterns = normalize_path_filter_patterns(
-        getattr(args, "path_exclude", None),
-        corpus_root,
-    )
-
-    map_data = build_map(corpus_root, args.max_heading_level, with_tokens=False)
-    if not map_data["files"]:
-        print(f"No Markdown files under {corpus_root}", file=sys.stderr)
-        return 1
-
-    map_data = apply_path_filters_to_map(map_data, include_patterns, exclude_patterns)
-    if not map_data["files"]:
-        print(
-            f"Path filters matched no Markdown files under {corpus_root}",
-            file=sys.stderr,
-        )
-        return 1
-    args.path_include = include_patterns
-    args.path_exclude = exclude_patterns
-
-    sections = build_sections_from_map(map_data)
-    if not sections:
-        print(f"No sections extracted from {corpus_root}", file=sys.stderr)
-        return 1
-
-    cache_root = Path(args.cache_dir).expanduser() if args.cache_dir else None
-    parent_corpus = find_parent_indexed_corpus(corpus_root, cache_root=cache_root)
-    index_exists = (_index_dir_for_corpus(corpus_root, cache_root=cache_root, create=False) / "index.sqlite").exists()
-    if parent_corpus is not None and not index_exists:
-        parent_include = path_include_for_parent_corpus(corpus_root, parent_corpus, include_patterns)
-        parent_exclude = (
-            path_include_for_parent_corpus(corpus_root, parent_corpus, exclude_patterns)
-            if exclude_patterns
-            else []
-        )
-        print(
-            f"Index needs warmup before overlaps can run.\n"
-            f"  Requested path is inside indexed parent corpus: {parent_corpus}\n"
-            f"\n"
-            f"  Next step:\n"
-            f"    {index_dry_run_command(parent_corpus, path_include=parent_include, path_exclude=parent_exclude)}\n"
-            f"    {index_confirm_command(parent_corpus, path_include=parent_include, path_exclude=parent_exclude)}\n"
-            f"\n"
-            f"  Then re-run overlaps on the parent corpus with the same path scope:\n"
-            f"    {scoped_rerun_command('overlaps', parent_corpus, path_include=parent_include, path_exclude=parent_exclude)}\n",
-            file=sys.stderr,
-        )
-        return 4
-    args.embed_model = resolve_embed_model_for_corpus(
-        corpus_root, args.embed_model, cache_root=cache_root
-    )
-    if args.no_cache:
-        target = _index_dir_for_corpus(corpus_root, cache_root=cache_root)
-        for name in ("index.sqlite", "index.sqlite-wal", "index.sqlite-shm"):
-            (target / name).unlink(missing_ok=True)
-
-    max_auto_embed = (
-        None if args.max_auto_embed == 0 else int(args.max_auto_embed)
-    )
-
-    try:
-        conn, index_stats = ensure_index(
-            corpus_root,
-            "sections",
-            sections,
-            args.embed_model,
-            embedding_api_url=args.embedding_api_url,
-            embedding_timeout=args.embedding_timeout,
-            cache_root=cache_root,
-            max_auto_embed=max_auto_embed,
-            path_include=include_patterns,
-            path_exclude=exclude_patterns,
-        )
-    except ModuleNotFoundError as exc:
-        print(
-            f"Missing Python dependency: {exc}.\n"
-            f"  This script needs uv to resolve its inline deps "
-            f"(`numpy`, `sqlite-vec`, `pyyaml`).\n"
-            f"  Verify the installed CLI with:\n"
-            f"    md --version && md tools --json\n"
-            f"  Install uv if missing: `brew install uv` (macOS) or "
-            f"https://docs.astral.sh/uv.",
-            file=sys.stderr,
-        )
-        return 3
-    except RuntimeError as exc:
-        print(
-            f"Embedding API call failed: {exc}\n"
-            f"  Check OPENROUTER_API_KEY env var or `.openrouter.key` file "
-            f"(see SKILL.md → First-time setup).",
-            file=sys.stderr,
-        )
-        return 3
-
-    if index_stats.get("delta_too_large"):
-        pending = index_stats["pending_chunks"]
-        added = index_stats["added_sections"]
-        print(
-            f"Index needs warmup before overlaps can run.\n"
-            f"  {added} new sections / {pending} new chunks pending "
-            f"(cap for auto-embed in `overlaps` = {max_auto_embed}).\n"
-            f"\n"
-            f"  Next step:\n"
-            f"    {index_dry_run_command(corpus_root)}\n"
-            f"    {index_confirm_command(corpus_root)}\n"
-            f"\n"
-            f"  Then re-run overlaps. One-time cost; subsequent runs reuse "
-            f"the index on disk.\n"
-            f"  Requires OPENROUTER_API_KEY env var or `.openrouter.key` file "
-            f"(see SKILL.md → First-time setup).",
-            file=sys.stderr,
-        )
-        return 4
-
-    output = compute_overlaps(corpus_root, conn, map_data, index_stats, args)
-    if output is None:
-        print("Need at least 2 chunks to compare.", file=sys.stderr)
-        return 1
-
-    if args.json:
-        print(json.dumps(output, ensure_ascii=False, indent=2, default=str))
-    else:
-        print(render_overlaps(output), end="")
-    return 0
 
 
 def render_overlaps(out: dict[str, Any]) -> str:

@@ -13,24 +13,37 @@ transactions и JSON output.
 - Читай минимальную owner-поверхность, которая может изменить маршрут:
   - CLI/catalog/envelope changes -> `docs/architecture-lock.md`,
     `docs/cli-conventions.md`, `src/md_cli/catalog.py`.
-  - Library behavior -> целевой модуль в `src/navigator/` и public wrapper в
-    `src/navigator/api.py`.
+  - Library behavior -> целевой модуль в `src/navigator/` и public adapter в
+    `src/navigator/api_*.py` / facade `src/navigator/api.py`.
   - Public API / graph wrapper changes -> `docs/navigator-public-api.md`,
     `docs/architecture-lock.md`, `tests/test_navigator_public_api.py`.
   - Agent-facing output schema -> `src/navigator/schemas.py` и
     `src/md_cli/envelope.py`.
   - Developer gates -> `README.md`.
-- Не редактируй legacy `src/navigator/cli.py` для установленной команды `md`,
-  если задача явно не про legacy CLI. Package entry point:
-  `md_cli.main:main`.
+- Установленная команда `md` имеет единственный entry point
+  `md_cli.main:main` (`src/md_cli/main.py`); библиотечное поведение живёт в
+  `src/navigator/`, обёрнутое domain-адаптерами `src/navigator/api*.py`.
 
 ## Локальные Контракты
 
 - `src/navigator/*` не импортирует `md_cli`.
-- `src/navigator/api.py` — callable facade для `md_cli` catalog. Graph-facing
-  wrappers (`scan/check/health/cycles/deps/impact/preflight/init/strip`) строят
-  `argparse.Namespace` через shared helpers (`_graph_args`, `_graph_docs`,
-  `_graph_scan_docs`) и не импортируют legacy `navigator.graph`.
+- `src/navigator/api.py` — thin callable facade для `md_cli` catalog.
+  Domain adapters живут в `src/navigator/api_graph.py`, `api_search.py`,
+  `api_audit.py` и `api_profile.py`. Graph-facing wrappers
+  (`scan/check/health/cycles/deps/impact/preflight/init/strip`) строят
+  `GraphArgs` (dataclass из `graph_core.py`) через shared helpers (`_graph_args`,
+  `_graph_docs`, `_graph_scan_docs`) в `api_graph.py`; graph-примитивы берут из
+  `graph_core` / `graph_reports` (legacy `navigator.graph` удалён). Profile-backed
+  workflow commands stay as thin
+  `navigator.workflows` aliases; profile/query/refactor DB ownership lives in
+  `api_profile.py`, not in workflow modules.
+- `src/navigator/markdown_io.py` — единственный владелец Markdown/link
+  parsing. `graph_edges.py` может строить graph-specific edges, но не держит
+  второй wikilink/markdown-link parser.
+- `src/navigator/audit.py` — audit detection/payload owner. CLI adapter,
+  Markdown render и severity-policy живут в `audit_cli.py`,
+  `audit_render.py`, `audit_severity.py`; не раздувай `audit.py` обратно за
+  1000 строк.
 - `md_cli.handlers.*` остаются тонкими: возвращают `ToolResult`, не печатают
   JSON, не вызывают `sys.exit` и не оборачивают envelopes.
 - `md_cli.runner` владеет envelope wrapping и JSON printing.

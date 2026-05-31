@@ -7,6 +7,12 @@ bugs vs which are harness artifacts or schema misunderstandings — they
 should NOT be silenced with xfail; either they pass (proving the
 complaint was not a CLI bug) or they fail and direct the next fix.
 
+These probes now exercise the canonical `navigator.api` boundary
+directly (the library surface CLI handlers call), not the legacy
+argparse `cmd_*` shims. Functions return payload dictionaries; the data
+the agent ultimately consumes is the dict, so assertions work against the
+payload instead of parsed stdout.
+
 Complaint index:
   1. stderr leak в stdout (`using OpenRouter key from ...`)
   2. Mixed types in `md health --json` (broken_graph_links int, cycles list)
@@ -25,45 +31,41 @@ Covered here: 1, 2, 6, 7. Follow-up coverage lives in:
 from __future__ import annotations
 
 import json
-from argparse import Namespace
 
 import pytest
 
-from navigator.graph import cmd_health
-from navigator.index_build import cmd_index
-from navigator.index_status import cmd_status
-from navigator.api import DEFAULT_SEARCH_READ_TOKEN_BUDGET, search_read
+from navigator.api import (
+    DEFAULT_SEARCH_READ_TOKEN_BUDGET,
+    health,
+    index,
+    search_read,
+    status,
+)
 
 
-def test_complaint_1_health_json_keeps_stdout_pure(tiny_corpus, monkeypatch, capsys):
+def test_complaint_1_health_payload_carries_no_diagnostic_leak(tiny_corpus, monkeypatch):
     """Probe для жалобы #1.
 
-    `embeddings.py:105` уже использует `file=sys.stderr` для key-path
-    diagnostic. Если этот тест проходит — диагностика в stderr,
-    жалоба = harness artifact (caller-агент мерджит stdout+stderr,
-    например `subprocess.run(..., stderr=STDOUT)` или Codex tool
-    merge). Если падает — есть реальный leak на этом пути, и contract
-    `stream: stdout = data only` должен попасть в cli-conventions.md.
+    На уровне CLI жалоба была про diagnostic, утёкший в stdout
+    (`embeddings.py:105` пишет key-path в `sys.stderr`). На каноническом
+    `navigator.api` боундари stdout/stderr вообще нет — handler получает
+    payload-словарь. Эквивалентный контракт: данные, которые агент
+    потребляет (payload), должны быть чистым JSON-сериализуемым объектом
+    без вкраплённых diagnostic-строк. Если этот тест проходит — payload
+    чистый, а исходная жалоба = harness artifact на уровне процесса
+    (caller-агент мерджит stdout+stderr). Если падает — diagnostic
+    просочился в сами данные, и это реальный contract-баг.
     """
     monkeypatch.chdir(tiny_corpus)
-    args = Namespace(
-        paths=[str(tiny_corpus)],
-        json=True,
-        path_include=[],
-        path_exclude=[],
-        no_default_excludes=False,
-    )
-    rc = cmd_health(args)
-    captured = capsys.readouterr()
-    assert rc == 0
+    payload = health(paths=[str(tiny_corpus)])
+    assert payload.get("_exit_code", 0) == 0
 
     try:
-        json.loads(captured.out)
-    except json.JSONDecodeError as exc:
-        pytest.fail(
-            f"stdout не valid JSON: {exc}\n"
-            f"---stdout (first 800 bytes)---\n{captured.out[:800]}"
-        )
+        serialized = json.dumps(payload, ensure_ascii=False)
+    except (TypeError, ValueError) as exc:
+        pytest.fail(f"health payload не JSON-сериализуем: {exc}\npayload={payload!r}")
+    # Round-trip обратно — данные должны выживать сериализацию без потерь.
+    json.loads(serialized)
 
     forbidden = [
         "using OpenRouter",
@@ -73,15 +75,13 @@ def test_complaint_1_health_json_keeps_stdout_pure(tiny_corpus, monkeypatch, cap
         "DEBUG ",
     ]
     for marker in forbidden:
-        assert marker not in captured.out, (
-            f"diagnostic {marker!r} leaked to stdout — JSON-parsing agents "
-            f"will break without `2>/dev/null`"
+        assert marker not in serialized, (
+            f"diagnostic {marker!r} просочился в health payload — "
+            f"JSON-parsing агенты сломаются на грязных данных"
         )
 
 
-def test_complaint_2_md_health_schema_field_types_are_stable(
-    tiny_corpus, monkeypatch, capsys
-):
+def test_complaint_2_md_health_schema_field_types_are_stable(tiny_corpus, monkeypatch):
     """Probe для жалобы #2.
 
     Agent применил `len()` к health JSON и упал TypeError —
@@ -93,16 +93,7 @@ def test_complaint_2_md_health_schema_field_types_are_stable(
     единообразно к count-fields.
     """
     monkeypatch.chdir(tiny_corpus)
-    args = Namespace(
-        paths=[str(tiny_corpus)],
-        json=True,
-        path_include=[],
-        path_exclude=[],
-        no_default_excludes=False,
-    )
-    cmd_health(args)
-    captured = capsys.readouterr()
-    payload = json.loads(captured.out)
+    payload = health(paths=[str(tiny_corpus)])
 
     assert "broken_graph_links" in payload, "broken_graph_links отсутствует"
     assert isinstance(payload["broken_graph_links"], int), (
@@ -129,9 +120,7 @@ def test_complaint_2_md_health_schema_field_types_are_stable(
     )
 
 
-def test_complaint_6_md_status_default_size_baseline(
-    tiny_corpus, mock_embed, capsys
-):
+def test_complaint_6_md_status_default_size_baseline(tiny_corpus, mock_embed):
     """Probe для жалобы #6.
 
     `md status --json` жалуется на 3KB output на каждом запросе.
@@ -139,37 +128,18 @@ def test_complaint_6_md_status_default_size_baseline(
     corpus уже выходит ≥2KB — shape избыточен в principle и жалоба
     подтверждается. Если меньше — баг scale-dependent (зависит от
     числа секций), нужен отдельный probe на большом corpus.
+
+    Размер меряем как сериализованный JSON payload — это байты, которые
+    CLI печатает в stdout (`json.dumps(..., ensure_ascii=False,
+    indent=2)`), без служебного `_exit_code`.
     """
-    idx_args = Namespace(
-        path=str(tiny_corpus),
-        max_heading_level=6,
-        embed_model="test/stub-1",
-        embedding_api_url="http://test.local/v1",
-        embedding_timeout=5,
-        cache_dir=None,
-        max_auto_embed=10000,
-        batch_size=32,
-        batch_pause_ms=0,
-    )
-    assert cmd_index(idx_args) == 0
-    capsys.readouterr()
+    assert index(str(tiny_corpus), confirm=True).get("_exit_code", 0) == 0
 
-    status_args = Namespace(
-        path=str(tiny_corpus),
-        max_heading_level=6,
-        embed_model="test/stub-1",
-        embedding_api_url="http://test.local/v1",
-        embedding_timeout=5,
-        cache_dir=None,
-        json=True,
-        path_include=[],
-        path_exclude=[],
-    )
-    cmd_status(status_args)
-    captured = capsys.readouterr()
-    payload = json.loads(captured.out)
+    payload = status(str(tiny_corpus))
+    payload.pop("_exit_code", None)
+    serialized = json.dumps(payload, ensure_ascii=False, indent=2)
 
-    size = len(captured.out)
+    size = len(serialized)
     keys = list(payload.keys())
 
     assert size < 2000, (
@@ -180,9 +150,7 @@ def test_complaint_6_md_status_default_size_baseline(
     )
 
 
-def test_complaint_7_search_read_default_is_bounded_but_not_empty(
-    tmp_path, mock_embed, capsys
-):
+def test_complaint_7_search_read_default_is_bounded_but_not_empty(tmp_path, mock_embed):
     """Probe для жалобы #7.
 
     `md search-read` — default agent path для "find + choose", поэтому default
@@ -201,8 +169,7 @@ def test_complaint_7_search_read_default_is_bounded_but_not_empty(
         encoding="utf-8",
     )
 
-    assert cmd_index(_index_args(corpus)) == 0
-    capsys.readouterr()
+    assert index(str(corpus), confirm=True).get("_exit_code", 0) == 0
 
     payload = search_read(str(corpus), "needle", limit=1)
 
@@ -238,17 +205,3 @@ def test_complaint_7_search_read_default_is_bounded_but_not_empty(
     assert payload["token_total"] <= DEFAULT_SEARCH_READ_TOKEN_BUDGET
     assert unbounded["sections"][0].get("truncated_by_budget") is not True
     assert len(unbounded["sections"][0]["content"]) >= len(large_body)
-
-
-def _index_args(corpus):
-    return Namespace(
-        path=str(corpus),
-        max_heading_level=6,
-        embed_model="test/stub-1",
-        embedding_api_url="http://test.local/v1",
-        embedding_timeout=5,
-        cache_dir=None,
-        max_auto_embed=10000,
-        batch_size=32,
-        batch_pause_ms=0,
-    )

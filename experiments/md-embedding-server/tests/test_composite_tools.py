@@ -47,3 +47,36 @@ def test_profile_backed_workflows_fail_closed_on_cold_corpus() -> None:
     ):
         assert payload["error"] == "index_warmup_required"
         assert payload["_exit_code"] == 4
+
+
+def test_refactor_candidates_read_next_preserves_thresholds(monkeypatch) -> None:
+    import navigator.api_profile as api_profile
+    import navigator.refactor_proposals as refactor_proposals
+    import navigator.section_profile as section_profile
+
+    monkeypatch.setattr(section_profile, "open_profile_db", lambda _root: object())
+    monkeypatch.setattr(api_profile, "_profiled_section_count", lambda *_args, **_kwargs: 1)
+
+    def fake_compute(_conn, **kwargs):
+        assert kwargs["top"] == 4
+        assert kwargs["uniqueness_threshold"] == 0.22
+        assert kwargs["owner_confidence_threshold"] == 0.66
+        return {"proposals": [], "method": "fake", "thresholds": {}, "no_automation": True}
+
+    monkeypatch.setattr(refactor_proposals, "refactor_candidates", fake_compute)
+
+    payload = refactor_candidates(
+        "corpus",
+        top=4,
+        uniqueness_threshold=0.22,
+        owner_confidence_threshold=0.66,
+        path_include=["docs/**"],
+        path_exclude=["old/**"],
+    )
+
+    args = payload["read_next"][0]["args"]
+    assert args["top"] == 4
+    assert args["uniqueness_threshold"] == 0.22
+    assert args["owner_confidence_threshold"] == 0.66
+    assert args["path_include"] == ["docs/**"]
+    assert args["path_exclude"] == ["old/**"]

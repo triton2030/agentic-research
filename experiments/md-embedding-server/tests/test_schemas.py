@@ -3,18 +3,14 @@ match the actual `--json` output of search/map commands."""
 
 from __future__ import annotations
 
-import json
-from argparse import Namespace
 from pathlib import Path
 
-from navigator.index import cmd_index
+from navigator.api import index, search
 from navigator.schemas import (
     ALL_SCHEMAS,
     SCHEMA_DIALECT,
     SCHEMA_VERSION,
-    cmd_schema,
 )
-from navigator.search import cmd_search
 
 
 def test_schema_version_is_semver_like() -> None:
@@ -56,45 +52,53 @@ def test_search_read_schema_describes_body_sections() -> None:
     assert "content" in row["properties"]
 
 
-def test_cmd_schema_prints_specific_target(capsys) -> None:
-    args = Namespace(target="search")
-    rc = cmd_schema(args)
-    out = capsys.readouterr().out
-    assert rc == 0
-    payload = json.loads(out)
-    assert payload["version"] == SCHEMA_VERSION
-    assert payload["for"] == "search"
+def test_specific_schema_is_retrievable_by_target() -> None:
+    """A named schema is reachable as data and carries its dialect/title.
+    (Replaces the retired `md schema --for search` CLI test — same intent:
+    one schema is extractable by key.)"""
+    schema = ALL_SCHEMAS["search"]
+    assert schema["$schema"] == SCHEMA_DIALECT
+    assert schema["title"] == "md-navigator search output"
 
 
-def test_cmd_schema_all_returns_map(capsys) -> None:
-    args = Namespace(target="all")
-    rc = cmd_schema(args)
-    out = capsys.readouterr().out
-    assert rc == 0
-    payload = json.loads(out)
-    assert payload["version"] == SCHEMA_VERSION
-    assert "schemas" in payload
-    for key in ALL_SCHEMAS:
-        assert key in payload["schemas"]
+def test_all_schemas_map_covers_every_target() -> None:
+    """The whole-schema map exposes every documented target alongside the
+    version constant. (Replaces the retired `md schema --for all` CLI test —
+    same intent: the map of all schemas is available.)"""
+    assert SCHEMA_VERSION  # version constant published for consumers
+    assert set(ALL_SCHEMAS) >= {
+        "search",
+        "search-read",
+        "map",
+        "headings",
+        "status",
+        "overlaps",
+        "repeated-concepts",
+        "cluster",
+        "audit",
+    }
+    for name, schema in ALL_SCHEMAS.items():
+        assert schema["$schema"] == SCHEMA_DIALECT, f"{name} missing dialect"
 
 
-def test_cmd_schema_unknown_target_returns_2(capsys) -> None:
-    args = Namespace(target="nonexistent")
-    rc = cmd_schema(args)
-    err = capsys.readouterr().err
-    assert rc == 2
-    assert "Unknown schema target" in err
+# Dropped: test_cmd_schema_unknown_target_returns_2. Its intent was purely
+# CLI behaviour ("md schema" prints "Unknown schema target" + returns exit
+# code 2). With the legacy CLI gone there is no product equivalent — an
+# unknown key is just a dict miss, already implied by the membership checks
+# above. No data-level contract to assert, so the test is removed.
 
 
 def test_search_json_output_matches_schema_required_keys(
-    tiny_corpus: Path, mock_embed, capsys
+    tiny_corpus: Path, mock_embed
 ) -> None:
-    """Build index, run search --json, verify the result has every
-    required field from the schema. Catches drift where a render change
-    forgets a field."""
-    # Build the index first.
-    index_args = Namespace(
-        path=str(tiny_corpus),
+    """Build index, run search, verify the result has every required
+    field from the schema. Catches drift where a render change forgets
+    a field."""
+    # Build the index first. `confirm=True` performs the real embed pass;
+    # the default dry-run would not produce a searchable index.
+    index_payload = index(
+        str(tiny_corpus),
+        confirm=True,
         max_heading_level=6,
         embed_model="test/stub-1",
         embedding_api_url="http://test.local/v1",
@@ -104,12 +108,11 @@ def test_search_json_output_matches_schema_required_keys(
         batch_size=32,
         batch_pause_ms=0,
     )
-    assert cmd_index(index_args) == 0
-    capsys.readouterr()
+    assert index_payload.get("_exit_code", 0) == 0
 
-    search_args = Namespace(
-        path=str(tiny_corpus),
-        query="embeddings",
+    payload = search(
+        str(tiny_corpus),
+        "embeddings",
         scope="sections",
         max_heading_level=6,
         embed_model="test/stub-1",
@@ -118,16 +121,10 @@ def test_search_json_output_matches_schema_required_keys(
         cache_dir=None,
         max_auto_embed=10000,
         no_cache=False,
-        json=True,
         limit=5,
         candidates=50,
-        output=None,
-        batch_size=32,
-        batch_pause_ms=0,
     )
-    assert cmd_search(search_args) == 0
-    out = capsys.readouterr().out
-    payload = json.loads(out)
+    assert payload.get("_exit_code", 0) == 0
 
     required_top = set(ALL_SCHEMAS["search"]["required"])
     assert required_top <= set(payload.keys()), (

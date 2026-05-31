@@ -16,15 +16,19 @@ where the mode already existed.
 
 Status and warmup payloads expose the next safe action as structured data:
 `recommended_action` inside status/corpus state, and `suggested_index_args` /
-`suggested_retry_args` on warmup errors. Callers should preserve those args
-as-is, especially when a child corpus is served by an indexed parent via
-translated `path_include` / `path_exclude`.
+`suggested_retry_args` plus `read_next` on warmup errors. Callers should
+preserve those args as-is, especially when a child corpus is served by an
+indexed parent via translated `path_include` / `path_exclude`. Read APIs do
+not honor `no_cache` by deleting/rebuilding indexes; they return a
+`cache_rebuild_requires_index` payload that points at a `md_index` dry-run.
 
-The package root also exposes the same callable names (`navigator.search`,
-`navigator.preflight`, etc.). Because old tests and scripts still import
-modules like `navigator.search`, the root uses callable module proxies during
-the transition: module attributes stay reachable, while the package-level name
-is callable.
+The package root also exposes the same atomic callable names (`navigator.search`,
+`navigator.preflight`, etc.) re-exported from `navigator.api`. Nine names that
+also have a backing module on disk (`search`, `audit`, `index`, `overlaps`,
+`repeated_concepts`, `importance`, `coherence_audit`, `corpus_scan`, `walk`)
+resolve to the **real module object** made callable, so `from navigator import
+search` yields the module (attributes and monkeypatching stay reachable) while
+`navigator.search(...)` still calls `api.search`. See "Callable modules" below.
 
 ## Atomic functions
 
@@ -57,7 +61,9 @@ is callable.
 ## Workflows
 
 Workflow modules live in `navigator.workflows`, compose atomic public functions,
-return dictionaries, and never depend on the CLI package.
+return dictionaries, and never depend on the CLI package. Profile-backed
+workflows are thin aliases over the profile domain adapter; they return
+`profile_required` instead of lazily writing profile cache rows.
 
 - `workflows.orient(corpus, top=None, max_heading_level=None, compact=False, expanded=False) -> dict`
 - `workflows.edit_context(path, mode=None, expanded=False, scan=None, depth=None, query=None, corpus=None) -> dict`
@@ -70,72 +76,70 @@ return dictionaries, and never depend on the CLI package.
 - `src/md_cli/handlers/*.py` imports catalog targets and returns `ToolResult`.
 - `src/md_cli/runner.py` is the single JSON + envelope writer.
 - `navigator.api` and `navigator.workflows` never import `md_cli`.
-- Legacy `navigator.*.cmd_*` argparse functions remain only for
-  `scripts/md_navigator.py` / `scripts/md_graph.py` compatibility during the
-  big-bang migration window.
 
 ## Graph Wrapper Contract
 
 Graph-facing public functions in `navigator.api`
 (`scan`, `check`, `health`, `cycles`, `deps`, `impact`, `preflight`,
-`init`, `strip`) are the installed `md` path. They build an
-`argparse.Namespace` with `_graph_args`, then load documents through
-`_graph_docs` or `_graph_scan_docs`.
+`init`, `strip`) are the installed `md` path. The public names are re-exported
+through `navigator.api`, while implementation lives in `navigator.api_graph`.
+They build a `GraphArgs` dataclass with `_graph_args`, then load documents
+through `_graph_docs` or `_graph_scan_docs`.
 
-`navigator.api` imports graph primitives from `graph_core`, `graph_edges`, and
-`graph_reports`; it does not import legacy `navigator.graph`. Git-diff file
-selection is not owned by `md`.
+`navigator.api_graph` imports graph primitives from `graph_core`,
+`graph_edges`, and `graph_reports`. Git-diff file selection is not owned by `md`.
 
-That facade is also where `.md-tools.toml` `[graph]` filters merge with direct
-`path_include` / `path_exclude` API inputs. Callers may pass a list, other
-iterable, generator or single string; `normalize_path_filter_patterns` keeps a
-single string as one pattern instead of iterating over characters.
+That adapter is also where `.md-tools.toml` `[graph]` filters merge with
+direct `path_include` / `path_exclude` API inputs. Callers may pass a list,
+other iterable, generator or single string; `normalize_path_filter_patterns`
+keeps a single string as one pattern instead of iterating over characters.
 
-Do not bypass this path through legacy `navigator.graph.cmd_*`, and do not pass
-`types.SimpleNamespace` to graph helpers typed for `argparse.Namespace`.
+Graph mutators (`init`, `strip`) write through
+`navigator.graph_core.write_doc_plan`, not per-file write loops. The plan
+stages every target first and restores originals if any replacement fails.
 
-## Proxy magic: rationale & limits
+Graph mutators route through `navigator.api` / `api_graph` and `write_doc_plan`,
+not per-file write loops. Do not pass `types.SimpleNamespace` or other ad-hoc
+namespaces to graph helpers typed for `GraphArgs`; construct `GraphArgs`
+explicitly.
 
-`navigator/__init__.py` installs `_CallableModuleProxy` + `_NavigatorPackage`
-so that every public name behaves as **both** a callable and a module.
+## Callable modules: rationale & limits
+
+`navigator/__init__.py` keeps most public names as plain callables re-exported
+from `navigator.api`. Nine names that also have a backing module on disk
+(`search`, `audit`, `index`, `overlaps`, `repeated_concepts`, `importance`,
+`coherence_audit`, `corpus_scan`, `walk`) are bound via `_bind_callable_module`,
+which swaps the real module's `__class__` to a `_CallableModule` subclass whose
+`__call__` delegates to the matching `navigator.api` function.
 
 **Dual contract obtained:**
 
 - `navigator.search(corpus, query, …)` → calls `api.search` (function form,
   used by handlers and most tests).
-- `navigator.search.X` → resolves attributes on the `navigator/search.py`
-  module (constants, helpers, things to monkeypatch).
+- `from navigator import search as search_mod` → yields the actual
+  `navigator/search.py` module; `search_mod.X` resolves real module attributes
+  (constants, helpers, symbols to monkeypatch).
 
 **Why it is load-bearing:**
 
-`tests/test_rerank.py` and `tests/test_contract_fixes.py` install
-``monkeypatch.setattr(search_mod, "rerank_documents", fake)`` after
-``from navigator import search as search_mod``. The proxy's
-``__setattr__`` forwards the assignment to the underlying
-``navigator.search`` module so the patched symbol is visible to the real
-search code path. Without the proxy, ``search_mod`` would be a function
-object and ``setattr`` would silently attach a noop attribute.
+`tests/test_rerank.py`, `tests/test_contract_fixes.py` and `tests/conftest.py`
+install ``monkeypatch.setattr(search_mod, "rerank_documents", fake)`` after
+``from navigator import search as search_mod``. Because the public name *is* the
+on-disk module (only its `__class__` is swapped), the patched symbol is the one
+the real search code path reads. The callable `__class__` is the only addition;
+module-attribute access, monkeypatching and introspection otherwise behave like
+a normal module — no proxy object stands in between.
 
 **Known limits:**
 
-- `mypy` may not infer attribute access through the proxy correctly;
-  prefer explicit `from navigator.search import X` for type-checked code.
-- Pickling proxy instances is not supported (function + module composite
-  has no portable representation).
-- `inspect.getmembers(navigator.search)` returns proxy attributes, not
-  the underlying module attributes — beware in introspection tooling.
+- `mypy` may not infer the callable signature through the swapped `__class__`;
+  prefer explicit `from navigator.api import X` for type-checked call sites.
+- Pickling a callable-module public name is not supported.
 
 **When safe to remove:**
 
-The proxy can be deleted once **all** callers migrate to explicit forms:
-
-- callable: `from navigator.api import X` (for `X(...)`).
-- module access: `from navigator import X` then `X.helper(...)` — note
-  that after removal, `from navigator import X` will resolve to the
-  module on disk because the function-form alias in `__init__.py` will
-  be gone.
-
-Once monkeypatch fixtures and downstream callers are migrated, drop
-`_CallableModuleProxy` / `_NavigatorPackage`, replace the api re-exports
-in `__init__.py` with `from . import <module>` lines, and remove this
-section.
+The `_CallableModule` mechanism can be dropped once all callers use explicit
+forms — callable: `from navigator.api import X`; module access: `from navigator
+import X` (which, after removal, resolves to the on-disk module directly because
+the `__class__` swap is gone). Then delete `_CallableModule` /
+`_bind_callable_module` and the binding loop in `__init__.py`, and this section.

@@ -42,21 +42,35 @@ ATOMIC_COMMANDS = {
 }
 
 
+def _dispatch(tool_id: str, args) -> ToolResult:
+    """Single dispatch path matching md_cli.main: bespoke handler module when
+    one is declared, otherwise the shared generic runner keyed by tool id."""
+    handler_module = TOOLS_BY_ID[tool_id].handler_module
+    if handler_module:
+        return importlib.import_module(handler_module).run(args)
+    from md_cli.handlers import _generic
+
+    return _generic.run_tool(tool_id, args)
+
+
 def test_25_atomic_handlers_return_tool_result() -> None:
     parser = build_parser()
     assert len(ATOMIC_COMMANDS) == 25
     for tool_id, argv in ATOMIC_COMMANDS.items():
         args = parser.parse_args(argv)
-        module = importlib.import_module(TOOLS_BY_ID[tool_id].handler_module)
-        result = module.run(args)
+        result = _dispatch(tool_id, args)
         assert isinstance(result, ToolResult), tool_id
         assert isinstance(result.payload, dict), tool_id
         assert result.exit_code in {0, 1, 2, 3, 4}, tool_id
 
 
 def test_atomic_handlers_are_thin() -> None:
+    # After Wave B only tools with a bespoke handler_module own a handler file;
+    # generic-dispatch tools (handler_module is None) have no file to size.
     for tool_id in ATOMIC_COMMANDS:
         spec = TOOLS_BY_ID[tool_id]
+        if not spec.handler_module:
+            continue
         path = ROOT / "src" / Path(spec.handler_module.replace(".", "/")).with_suffix(".py")
         lines = [line for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
         assert len(lines) <= 30, spec.handler_module

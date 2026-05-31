@@ -61,12 +61,13 @@ def run(args) -> ToolResult:
 def _check_tool(tool, *, corpus: Path, readme: Path, map_json: str) -> list[dict[str, object]]:
     checks = []
     checks.append(_check("catalog", bool(tool.input_schema and tool.cli_signature)))
-    try:
-        importlib.import_module(tool.handler_module)
-    except Exception as exc:
-        checks.append(_check("handler_import", False, str(exc)))
-    else:
-        checks.append(_check("handler_import", True))
+    if tool.handler_module:
+        try:
+            importlib.import_module(tool.handler_module)
+        except Exception as exc:
+            checks.append(_check("handler_import", False, str(exc)))
+        else:
+            checks.append(_check("handler_import", True))
     target = tool.library_function or tool.workflow_function
     try:
         assert target is not None

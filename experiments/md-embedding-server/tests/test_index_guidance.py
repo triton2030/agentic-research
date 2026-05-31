@@ -1,10 +1,8 @@
 from __future__ import annotations
 
-from argparse import Namespace
 from pathlib import Path
 
-from navigator.overlaps import cmd_overlaps
-from navigator.repeated_concepts import cmd_repeated_concepts
+from navigator.api import overlaps, repeated_concepts
 
 
 def _nested_corpus(tmp_path: Path) -> tuple[Path, Path]:
@@ -18,59 +16,77 @@ def _nested_corpus(tmp_path: Path) -> tuple[Path, Path]:
     return parent, child
 
 
-def _args(child: Path) -> Namespace:
-    return Namespace(
-        path=str(child),
-        path_include=None,
-        path_exclude=["drafts/**"],
-        max_heading_level=6,
-        cache_dir=None,
-    )
+def _call_kwargs(child: Path) -> dict[str, object]:
+    return {
+        "corpus": str(child),
+        "path_exclude": ["drafts/**"],
+        "max_heading_level": 6,
+    }
 
 
 def test_overlaps_parent_guidance_includes_scoped_index_and_rerun(
     tmp_path: Path,
-    capsys,
 ) -> None:
     parent, child = _nested_corpus(tmp_path)
 
-    assert cmd_overlaps(_args(child)) == 4
+    kwargs = _call_kwargs(child)
+    payload = overlaps(kwargs.pop("corpus"), **kwargs)
 
-    stderr = capsys.readouterr().err
-    assert f"Requested path is inside indexed parent corpus: {parent}" in stderr
-    assert (
-        f"md index '{parent}' --path-include 'child corpus/**' "
-        "--path-exclude 'child corpus/drafts/**' --dry-run --json"
-    ) in stderr
-    assert (
-        f"md index '{parent}' --path-include 'child corpus/**' "
-        "--path-exclude 'child corpus/drafts/**' --confirm --transaction-id <id> --json"
-    ) in stderr
-    assert (
-        f"md overlaps '{parent}' --path-include 'child corpus/**' "
-        "--path-exclude 'child corpus/drafts/**' --json"
-    ) in stderr
+    assert payload.get("_exit_code", 0) == 4
+    assert payload["error"] == "index_warmup_required"
+
+    # The requested path is inside an indexed parent corpus, so the suggested
+    # index/rerun corpus flips from the child to the parent.
+    assert payload["suggested_index_args"]["corpus"] == str(parent)
+    assert payload["suggested_retry_args"]["corpus"] == str(parent)
+
+    # Scoped index args mirror the legacy `md index ... --dry-run` guidance:
+    # parent corpus + translated child-relative path filters.
+    assert payload["suggested_index_args"] == {
+        "corpus": str(parent),
+        "path_include": ["child corpus/**"],
+        "path_exclude": ["child corpus/drafts/**"],
+        "dry_run": True,
+    }
+
+    # Scoped retry args mirror the legacy `md overlaps ... --json` re-run line:
+    # same parent corpus and same translated path scope.
+    assert payload["suggested_retry_args"] == {
+        "corpus": str(parent),
+        "path_include": ["child corpus/**"],
+        "path_exclude": ["child corpus/drafts/**"],
+    }
 
 
 def test_repeated_concepts_parent_guidance_includes_scoped_index_and_rerun(
     tmp_path: Path,
-    capsys,
 ) -> None:
     parent, child = _nested_corpus(tmp_path)
 
-    assert cmd_repeated_concepts(_args(child)) == 4
+    kwargs = _call_kwargs(child)
+    payload = repeated_concepts(kwargs.pop("corpus"), **kwargs)
 
-    stderr = capsys.readouterr().err
-    assert f"Requested path is inside indexed parent corpus: {parent}" in stderr
-    assert (
-        f"md index '{parent}' --path-include 'child corpus/**' "
-        "--path-exclude 'child corpus/drafts/**' --dry-run --json"
-    ) in stderr
-    assert (
-        f"md index '{parent}' --path-include 'child corpus/**' "
-        "--path-exclude 'child corpus/drafts/**' --confirm --transaction-id <id> --json"
-    ) in stderr
-    assert (
-        f"md repeated-concepts '{parent}' --path-include 'child corpus/**' "
-        "--path-exclude 'child corpus/drafts/**' --json"
-    ) in stderr
+    assert payload.get("_exit_code", 0) == 4
+    assert payload["error"] == "index_warmup_required"
+
+    # The requested path is inside an indexed parent corpus, so the suggested
+    # index/rerun corpus flips from the child to the parent.
+    assert payload["suggested_index_args"]["corpus"] == str(parent)
+    assert payload["suggested_retry_args"]["corpus"] == str(parent)
+
+    # Scoped index args mirror the legacy `md index ... --dry-run` guidance:
+    # parent corpus + translated child-relative path filters.
+    assert payload["suggested_index_args"] == {
+        "corpus": str(parent),
+        "path_include": ["child corpus/**"],
+        "path_exclude": ["child corpus/drafts/**"],
+        "dry_run": True,
+    }
+
+    # Scoped retry args mirror the legacy `md repeated-concepts ... --json`
+    # re-run line: same parent corpus and same translated path scope.
+    assert payload["suggested_retry_args"] == {
+        "corpus": str(parent),
+        "path_include": ["child corpus/**"],
+        "path_exclude": ["child corpus/drafts/**"],
+    }

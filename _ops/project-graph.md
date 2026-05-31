@@ -32,6 +32,10 @@ commitments; veto-class в локальных папках пуст. Cross-proje
 - `_ops/self-learning/lessons.md` — legacy/read-only поверхность старого
   self-learning маршрута. Новые model/skill/tool miss факты идут через
   `1findings` в `_ops/findings/**` с префиксом `self-learning:`.
+- `_ops/rules/**` depends-on `AGENTS.md`, `_ops/AGENTS.md` и `_ops/GOAL.md` —
+  условные rule-docs с trigger/owner/check. Это не новый канон рядом с root:
+  root даёт hot-path trigger, rule-doc даёт редкую глубину, owner truth остаётся
+  в GOAL, skills, project graph, knowledge или runtime-механизме.
 - `_ops/plans/**/task-*.md` depends-on `_ops/PROJECT-ROADMAP.md` +
   релевантные `AGENTS.md` (root + subtree).
 - `experiments/claude-bridge/` depends-on `~/.codex/skills/claude-mcp/`
@@ -90,6 +94,8 @@ commitments; veto-class в локальных папках пуст. Cross-proje
   релевантный skill контракт (`claude-mcp`, `gemini-mcp`).
 - «routing / placement / naming инструкций» → `1instruction-layer` skill,
   `1folder-contract` skill.
+- «условное локальное правило / rule-doc / вынести из root-инструкции» →
+  `_ops/rules/**`, `1instruction-layer` skill, `1folder-contract` skill.
 - «закрытие работы / verify done» → `1work-review` skill.
 - «git push / backup» → GitHub здесь — backup локального `main`,
   не collaboration flow.
