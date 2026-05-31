@@ -44,6 +44,13 @@ def _read_next(tool: str, args: dict[str, Any], reason: str) -> dict[str, Any]:
     return {"tool": tool, "args": _clean_args(args), "reason": reason}
 
 
+def _read_next_template(tool: str, args: dict[str, Any], reason: str) -> list[dict[str, Any]]:
+    """The ONE payload-level next-action channel. Tools attach a single template
+    here instead of a per-item `read_next` on every row (that scaffolding was up
+    to 44% of an orient payload)."""
+    return [_read_next(tool, args, reason)]
+
+
 def _reject_unknown_kwargs(name: str, kwargs: dict[str, Any], allowed: set[str]) -> None:
     unknown = sorted(set(kwargs) - allowed)
     if unknown:

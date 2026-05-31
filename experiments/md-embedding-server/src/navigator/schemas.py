@@ -24,7 +24,7 @@ from __future__ import annotations
 from typing import Any
 
 
-SCHEMA_VERSION = "3.0.0"
+SCHEMA_VERSION = "4.0.0"
 SCHEMA_DIALECT = "https://json-schema.org/draft/2020-12/schema"
 
 
@@ -55,19 +55,12 @@ _SEARCH_RESULT_ROW: dict[str, Any] = {
             "type": "string",
             "description": "`A > B > C` chain of ancestor headings.",
         },
-        "body": {"type": "string"},
         "file_description": {"type": "string"},
         "file_title": {"type": "string"},
-        "content_hash": {"type": "string"},
         "token_count": {"type": "integer", "minimum": 0},
-        "bm25_score": {
-            "type": ["number", "null"],
-            "description": "FTS5 BM25F log-likelihood. Negative; closer to 0 = better. "
-                           "`null` means BM25 didn't surface this row.",
-        },
-        "dense_distance": {
-            "type": ["number", "null"],
-            "description": "L2 distance after normalisation. Lower = closer.",
+        "score_sources": {
+            "type": "object",
+            "description": "Per-engine raw scores (bm25, dense). Present only with --expanded.",
         },
         "rrf_score": {
             "type": "number",
@@ -197,7 +190,6 @@ _SEARCH_READ_ROW: dict[str, Any] = {
         "snippet": {"type": "string"},
         "content": {"type": "string"},
         "description": {"type": ["string", "null"]},
-        "read_next": {"type": "array"},
     },
 }
 
@@ -215,7 +207,6 @@ SEARCH_READ_SCHEMA: dict[str, Any] = {
         "stats",
         "sections",
         "expanded",
-        "content_included",
         "token_total",
         "token_budget",
         "dropped_by_budget",
@@ -228,8 +219,7 @@ SEARCH_READ_SCHEMA: dict[str, Any] = {
         "stats": SEARCH_SCHEMA["properties"]["stats"],
         "sections": {"type": "array", "items": _SEARCH_READ_ROW},
         "expanded": {"type": "boolean"},
-        "map_only": {"type": "boolean"},
-        "content_included": {"type": "boolean"},
+        "view": {"enum": ["map", "expanded"]},
         "candidate_token_total": {"type": "integer", "minimum": 0},
         "token_total": {"type": "integer", "minimum": 0},
         "token_budget": {"type": "integer", "minimum": 0},
@@ -266,6 +256,12 @@ MAP_SCHEMA: dict[str, Any] = {
         "description_gap_count": {"type": "integer"},
         "heading_count": {"type": "integer"},
         "token_count": {"type": "integer"},
+        "expanded": {"type": "boolean"},
+        "view": {"enum": ["map", "expanded"]},
+        "summary": {
+            "type": "object",
+            "description": "Folded corpus shape: file_count, description_gaps, folders[].",
+        },
         "match": {"type": "string"},
         "match_terms": {"type": "array", "items": {"type": "string"}},
         "files": {
@@ -311,7 +307,7 @@ STATUS_SCHEMA: dict[str, Any] = {
     "$id": "md-navigator/status.json",
     "title": "md-navigator status output (when --json)",
     "type": "object",
-    "required": ["corpus", "index_path", "state", "scopes"],
+    "required": ["corpus", "index_path", "state"],
     "properties": {
         "command": {"type": "string"},
         "corpus": {"type": "string"},
@@ -381,8 +377,7 @@ OVERLAPS_SCHEMA: dict[str, Any] = {
         "min_tokens": {"type": "integer"},
         "include_same_file": {"type": "boolean"},
         "expanded": {"type": "boolean"},
-        "map_only": {"type": "boolean"},
-        "content_included": {"type": "boolean"},
+        "view": {"enum": ["map", "expanded"]},
         "indexed": {
             "type": "object",
             "properties": {
@@ -493,8 +488,7 @@ REPEATED_CONCEPTS_SCHEMA: dict[str, Any] = {
             },
         },
         "expanded": {"type": "boolean"},
-        "map_only": {"type": "boolean"},
-        "content_included": {"type": "boolean"},
+        "view": {"enum": ["map", "expanded"]},
         "read_next": {"type": "array"},
     },
 }
@@ -545,6 +539,9 @@ CLUSTER_SCHEMA: dict[str, Any] = {
                 },
             },
         },
+        "expanded": {"type": "boolean"},
+        "view": {"enum": ["map", "expanded"]},
+        "read_next": {"type": "array"},
     },
 }
 
@@ -629,8 +626,7 @@ AUDIT_SCHEMA: dict[str, Any] = {
             },
         },
         "expanded": {"type": "boolean"},
-        "map_only": {"type": "boolean"},
-        "content_included": {"type": "boolean"},
+        "view": {"enum": ["map", "expanded"]},
         "findings_total": {"type": "integer"},
         "findings_returned": {"type": "integer"},
         "read_next": {"type": "array"},

@@ -82,6 +82,25 @@ def build_map(
     return data
 
 
+def fold_by_folder(files: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Collapse a flat file list into one row per top-level folder, for compact
+    orient/ls maps. Repetitive folders (findings/, user-said/) become one row
+    `{folder, files, sample_desc}` instead of N near-identical entries."""
+    groups: dict[str, dict[str, Any]] = {}
+    order: list[str] = []
+    for item in files:
+        rel = item.get("relative_path", "") or ""
+        top = (rel.split("/", 1)[0] + "/") if "/" in rel else "<root>"
+        if top not in groups:
+            groups[top] = {"folder": top, "files": 0, "sample_desc": ""}
+            order.append(top)
+        group = groups[top]
+        group["files"] += 1
+        if not group["sample_desc"] and item.get("description"):
+            group["sample_desc"] = item["description"]
+    return sorted((groups[k] for k in order), key=lambda g: -g["files"])
+
+
 def query_terms(query: str) -> list[str]:
     return [term.lower() for term in query.split() if term.strip()]
 

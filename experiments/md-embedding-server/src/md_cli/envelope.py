@@ -38,7 +38,68 @@ COUNTABLE_LIST_FIELDS = (
     "candidates",
     "folder_breakdown",
     "scopes",
+    "folders",
+    "start_here",
 )
+
+# --- Agent-view projection -------------------------------------------------
+# Internal/engine fields no agent consumes; dropped from every payload before
+# it reaches the wire. NOT applied to `_envelope` (it is attached after wrap).
+INTERNAL_FIELDS = frozenset({"rowid", "content_hash"})
+# Path-valued keys to relativize against corpus_root for compactness.
+PATH_STRING_FIELDS = frozenset({"path", "centroid_path"})
+PATH_LIST_FIELDS = frozenset({"affected_files", "files_to_modify"})
+# Anchor paths stay absolute (skills resolve other paths against them).
+ANCHOR_PATH_FIELDS = frozenset({"root", "corpus_root", "corpus", "index_path", "scan", "repo_root"})
+
+
+def _relativize(value: str, corpus_root: str) -> str:
+    try:
+        p = Path(value)
+        if p.is_absolute():
+            return str(p.relative_to(corpus_root))
+    except (ValueError, TypeError, OSError):
+        pass
+    return value
+
+
+def _project_node(node: Any, corpus_root: str | None) -> Any:
+    if isinstance(node, dict):
+        out: dict[str, Any] = {}
+        for key, val in node.items():
+            if key in INTERNAL_FIELDS:
+                continue
+            if corpus_root and key in PATH_STRING_FIELDS and isinstance(val, str) and val:
+                out[key] = _relativize(val, corpus_root)
+            elif corpus_root and key in PATH_LIST_FIELDS and isinstance(val, list):
+                out[key] = [
+                    _relativize(v, corpus_root) if isinstance(v, str) else _project_node(v, corpus_root)
+                    for v in val
+                ]
+            else:
+                out[key] = _project_node(val, corpus_root)
+        return out
+    if isinstance(node, list):
+        return [_project_node(item, corpus_root) for item in node]
+    return node
+
+
+def project_payload(result: Any, *, tool_name: str | None = None, corpus_root: str | None = None) -> Any:
+    """Agent-view projection: drop internal fields, relativize non-anchor paths,
+    collapse the legacy view-flag trio (map_only/content_included/expanded) into a
+    single `expanded` bool + derived `view`. Pure dict->dict; runs inside wrap()
+    before the size estimate, so size reflects the projected payload. Never sees
+    `_envelope` (attached after wrap), so `recommended_action` is untouched."""
+    if not isinstance(result, dict):
+        return result
+    projected = _project_node(result, corpus_root)
+    if "map_only" in projected or "content_included" in projected or "expanded" in projected:
+        expanded = bool(projected.get("expanded"))
+        projected.pop("map_only", None)
+        projected.pop("content_included", None)
+        projected["expanded"] = expanded
+        projected.setdefault("view", "expanded" if expanded else "map")
+    return projected
 
 
 def _as_args_dict(args: dict[str, Any] | Any | None) -> dict[str, Any]:
@@ -113,6 +174,7 @@ def wrap(
         return result
     args_dict = _as_args_dict(args)
     corpus_root = resolve_corpus_root(args_dict)
+    result = project_payload(result, tool_name=tool_name, corpus_root=corpus_root)
     size_estimate = compute_size_estimate(result)
     envelope = {
         "version": ENVELOPE_VERSION,
