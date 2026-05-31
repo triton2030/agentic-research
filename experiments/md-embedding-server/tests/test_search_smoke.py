@@ -110,9 +110,10 @@ def test_search_read_normal_returns_section_map(tiny_corpus, mock_embed):
     assert "sections" in payload
     assert payload["sections"], payload
     assert payload["expanded"] is False
-    assert payload["content_included"] is False
+    assert payload["view"] == "map"
     assert all("content" not in row for row in payload["sections"])
-    assert all(row["read_next"] for row in payload["sections"])
+    assert all("read_next" not in row for row in payload["sections"])
+    assert payload["read_next"]
     assert payload["candidate_token_total"] >= 1
 
 
@@ -138,7 +139,7 @@ def test_search_read_read_next_preserves_contract_args(monkeypatch):
             ],
         }
 
-    monkeypatch.setattr("navigator.api_search.search", fake_search)
+    monkeypatch.setattr("navigator.api_search._search_rich", fake_search)
 
     payload = search_read(
         "corpus",
@@ -162,18 +163,12 @@ def test_search_read_read_next_preserves_contract_args(monkeypatch):
     assert top_args["path_exclude"] == ["old/*"]
     assert top_args["token_budget"] == 0
 
-    row_args = payload["sections"][0]["read_next"][0]["args"]
-    assert row_args["scope"] == "descriptions"
-    assert row_args["path_include"] == ["docs/a.md"]
-    assert row_args["path_exclude"] == ["old/*"]
-    assert row_args["token_budget"] == 0
-
 
 def test_search_read_expanded_returns_section_bodies(tiny_corpus, mock_embed):
     assert _build_index(tiny_corpus).get("_exit_code", 0) == 0
 
     payload = search_read(str(tiny_corpus), "embeddings", limit=2, expanded=True)
     assert payload["expanded"] is True
-    assert payload["content_included"] is True
+    assert payload["view"] == "expanded"
     assert any("Vector embeddings encode semantic meaning" in row["content"] for row in payload["sections"])
     assert payload["token_total"] >= 1

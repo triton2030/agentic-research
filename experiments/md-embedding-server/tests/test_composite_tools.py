@@ -15,11 +15,10 @@ def test_orient_normal_returns_status_map_and_importance() -> None:
 
     assert payload["workflow"] == "md_orient"
     assert payload["expanded"] is False
-    assert payload["map_only"] is True
     assert payload["status"]["state"] in {"NO_INDEX", "FRESH", "HEALTHY", "NEEDS_WARMUP", "NEEDS_REBUILD"}
-    assert payload["files"]["file_count"] == 2
-    assert payload["files"]["files"][0]["read_next"]
-    assert payload["importance"]["files"]
+    assert payload["shape"]["file_count"] == 2
+    assert payload["shape"]["folders"]
+    assert "start_here" in payload
 
 
 def test_orient_expanded_returns_full_map() -> None:

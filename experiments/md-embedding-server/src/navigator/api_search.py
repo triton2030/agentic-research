@@ -65,24 +65,6 @@ def _search_read_args(
     args["path_include"] = path_include if path_include is not None else kwargs.get("path_include")
     return args
 
-def _search_read_next(
-    corpus: str,
-    query: str,
-    row: dict[str, Any],
-    kwargs: dict[str, Any],
-) -> dict[str, Any]:
-    return _read_next(
-        "md_search_read",
-        _search_read_args(
-            corpus,
-            query,
-            kwargs,
-            limit=1,
-            path_include=[row["relative_path"]] if row.get("relative_path") else None,
-        ),
-        "Read the body for this selected section.",
-    )
-
 def _search_map_row(
     corpus: str,
     query: str,
@@ -102,10 +84,55 @@ def _search_map_row(
         "snippet": row.get("snippet"),
         "description": row.get("file_description"),
     }
-    mapped["read_next"] = [_search_read_next(corpus, query, mapped, kwargs)]
     return mapped
 
+
+def _lean_search_row(row: dict[str, Any]) -> dict[str, Any]:
+    """Agent-facing search row: locators + one relevance signal + snippet. No
+    body (that is search-read --expanded's job), no raw engine scores."""
+    return {
+        "section_id": row.get("section_id"),
+        "file_id": row.get("file_id"),
+        "relative_path": row.get("relative_path"),
+        "start_line": row.get("start_line"),
+        "heading_chain": row.get("heading_chain"),
+        "heading_text": row.get("heading_text"),
+        "file_description": row.get("file_description"),
+        "token_count": int(row.get("token_count") or 0),
+        "rrf_score": row.get("rrf_score"),
+        "rerank_score": row.get("rerank_score"),
+        "fields_hit": row.get("fields_hit"),
+        "snippet": row.get("snippet"),
+    }
+
+
+def _render_search(rows: list[dict[str, Any]]) -> str:
+    """Compact human-readable ranking summary carried in the JSON payload."""
+    from .search import _signal_label
+
+    lines: list[str] = []
+    for index, row in enumerate(rows[:10], start=1):
+        loc = f"{row.get('relative_path')}:L{row.get('start_line') or '?'}"
+        chain = row.get("heading_chain") or row.get("heading_text") or ""
+        rrf = row.get("rrf_score") or 0.0
+        snippet = (row.get("snippet") or "").replace("\n", " ").strip()[:120]
+        lines.append(f"{index}. {loc}  {chain}  [{_signal_label(row)} rrf {rrf:.3f}]\n   {snippet}")
+    return "\n".join(lines)
+
+
 def search(corpus: str, query: str, **kwargs: Any) -> dict[str, Any]:
+    """Atomic ranked search. Returns lean handles (no bodies, no raw scores) plus
+    a compact `render`. Rich rows stay internal for search_read to read bodies."""
+    result = _search_rich(corpus, query, **kwargs)
+    if not isinstance(result, dict) or result.get("error"):
+        return result
+    rows = result.get("results", [])
+    result["render"] = _render_search(rows)
+    result["results"] = [_lean_search_row(row) for row in rows]
+    return result
+
+
+def _search_rich(corpus: str, query: str, **kwargs: Any) -> dict[str, Any]:
     from .search import (
         DEFAULT_RERANK_API_URL,
         DEFAULT_RERANK_MODEL,
@@ -159,7 +186,7 @@ def search(corpus: str, query: str, **kwargs: Any) -> dict[str, Any]:
 def search_read(corpus: str, query: str, **kwargs: Any) -> dict[str, Any]:
     _reject_unknown_kwargs("search_read", kwargs, _SEARCH_READ_KWARGS)
     search_kwargs = {key: value for key, value in kwargs.items() if key in _SEARCH_KWARGS}
-    result = search(corpus, query, **search_kwargs)
+    result = _search_rich(corpus, query, **search_kwargs)
     if result.get("error"):
         return result
 
@@ -174,8 +201,7 @@ def search_read(corpus: str, query: str, **kwargs: Any) -> dict[str, Any]:
             "query": result.get("query"),
             "scope": result.get("scope"),
             "expanded": False,
-            "map_only": True,
-            "content_included": False,
+            "view": "map",
             "engine": result.get("engine"),
             "stats": result.get("stats"),
             "partial_index": result.get("partial_index"),
@@ -274,8 +300,7 @@ def search_read(corpus: str, query: str, **kwargs: Any) -> dict[str, Any]:
         "query": result.get("query"),
         "scope": result.get("scope"),
         "expanded": True,
-        "map_only": False,
-        "content_included": True,
+        "view": "expanded",
         "engine": result.get("engine"),
         "stats": result.get("stats"),
         "partial_index": result.get("partial_index"),

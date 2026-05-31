@@ -157,6 +157,10 @@ SEARCH_SCHEMA: dict[str, Any] = {
             "type": "object",
             "additionalProperties": {"type": "number"},
         },
+        "render": {
+            "type": "string",
+            "description": "Compact human-readable ranking summary (top rows).",
+        },
         "results": {
             "type": "array",
             "items": _SEARCH_RESULT_ROW,

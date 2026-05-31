@@ -76,6 +76,9 @@ def corpus_scan(root: str | Path = ".") -> dict[str, object]:
     }
 
 
+LS_DEFAULT_TOP = 50
+
+
 def ls(
     path: str,
     *,
@@ -83,8 +86,9 @@ def ls(
     match: str | None = None,
     with_tokens: bool = False,
     with_link_counts: bool = False,
+    expanded: bool = False,
 ) -> dict[str, Any]:
-    from .folder_map import apply_match_filter, build_map
+    from .folder_map import apply_match_filter, build_map, fold_by_folder
 
     data = build_map(
         Path(path),
@@ -92,7 +96,18 @@ def ls(
         with_tokens=with_tokens,
         with_link_counts=with_link_counts,
     )
-    return apply_match_filter(data, match or "")
+    data = apply_match_filter(data, match or "")
+    files = data.get("files", [])
+    data["expanded"] = bool(expanded)
+    data["summary"] = {
+        "file_count": data.get("file_count", len(files)),
+        "description_gaps": data.get("description_gap_count", 0),
+        "folders": fold_by_folder(files),
+    }
+    if not expanded and len(files) > LS_DEFAULT_TOP:
+        data["files"] = files[:LS_DEFAULT_TOP]
+        data["files_truncated"] = True
+    return data
 
 
 def toc(
@@ -103,12 +118,15 @@ def toc(
     with_tokens: bool = False,
     with_link_counts: bool = False,
 ) -> dict[str, Any]:
+    # toc is the heading-detail view of a chosen path — keep it full (expanded),
+    # the breadth cap is for corpus-wide `ls`.
     return ls(
         path,
         max_heading_level=max_heading_level,
         match=match,
         with_tokens=with_tokens,
         with_link_counts=with_link_counts,
+        expanded=True,
     )
 
 
@@ -221,6 +239,7 @@ def status(
     embedding_api_url: str | None = None,
     embedding_timeout: float | None = None,
     cache_dir: str | None = None,
+    expanded: bool = False,
 ) -> dict[str, Any]:
     from .status_core import status_payload
 
@@ -235,4 +254,5 @@ def status(
         embedding_api_url=embedding_api_url,
         embedding_timeout=embedding_timeout,
         cache_dir=cache_dir,
+        expanded=expanded,
     )

@@ -174,22 +174,20 @@ def test_complaint_7_search_read_default_is_bounded_but_not_empty(tmp_path, mock
     payload = search_read(str(corpus), "needle", limit=1)
 
     assert payload["expanded"] is False
-    assert payload["map_only"] is True
-    assert payload["content_included"] is False
+    assert payload["view"] == "map"
     assert payload["token_budget"] == 0
     assert payload["token_budget_defaulted"] is False
     assert payload["sections"], payload
     top = payload["sections"][0]
     assert "content" not in top
     assert "needle" in top["snippet"]
-    assert top["read_next"][0]["args"]["expanded"] is True
+    assert payload["read_next"][0]["args"]["expanded"] is True
 
     expanded = search_read(str(corpus), "needle", limit=1, expanded=True)
     assert expanded["token_budget"] == DEFAULT_SEARCH_READ_TOKEN_BUDGET
     assert expanded["token_budget_defaulted"] is True
     assert expanded["expanded"] is True
-    assert expanded["content_included"] is True
-    assert expanded["map_only"] is False
+    assert expanded["view"] == "expanded"
     assert expanded["token_total"] <= DEFAULT_SEARCH_READ_TOKEN_BUDGET
     assert expanded["sections"], expanded
     top = expanded["sections"][0]

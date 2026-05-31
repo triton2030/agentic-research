@@ -53,6 +53,7 @@ def status_payload(
     embedding_api_url: str | None = None,
     embedding_timeout: float | None = None,
     cache_dir: str | None = None,
+    expanded: bool = False,
 ) -> dict[str, Any]:
     corpus_root = Path(corpus).expanduser().resolve()
     if not corpus_root.exists():
@@ -216,7 +217,7 @@ def status_payload(
     else:
         state = "HEALTHY"
 
-    return {
+    payload = {
         "command": "status",
         "corpus": str(corpus_root),
         "index_path": str(db_path),
@@ -256,6 +257,14 @@ def status_payload(
             path_exclude=exclude_patterns,
         ),
     }
+    payload["expanded"] = bool(expanded)
+    if not expanded:
+        # Headline by default: state + recommended_action + counts. The heavy
+        # per-scope / per-folder / pending-file detail is index-warmup material,
+        # reachable via --expanded.
+        for heavy in ("scopes", "folder_breakdown", "pending_files", "removed_files", "excluded"):
+            payload.pop(heavy, None)
+    return payload
 
 
 def _exit(payload: dict[str, Any], code: int) -> dict[str, Any]:

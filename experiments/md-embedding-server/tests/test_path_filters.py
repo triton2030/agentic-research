@@ -332,7 +332,7 @@ def test_partial_index_scoped_status_is_fresh_when_unscoped_needs_warmup(
     assert scoped_status.get("_exit_code", 0) == 0
     assert scoped_status["state"] == "FRESH"
 
-    unscoped_status = _status(corpus, max_auto_embed=1)
+    unscoped_status = _status(corpus, max_auto_embed=1, expanded=True)
     assert unscoped_status.get("_exit_code", 0) == 0
     assert unscoped_status["state"] == "NEEDS_WARMUP"
 

@@ -82,6 +82,7 @@ def cluster(
     path_include: Iterable[str] | str | None = None,
     path_exclude: Iterable[str] | str | None = None,
     cache_dir: str | None = None,
+    expanded: bool = False,
 ) -> dict[str, Any]:
     from .index_cluster import cluster_sections
 
@@ -113,7 +114,17 @@ def cluster(
 
     for item in result.get("clusters", []):
         item["top_files"] = [list(pair) for pair in item.get("top_files", [])]
-    return {"command": "cluster", "root": str(corpus_root), **result}
+        if not expanded:
+            item.pop("section_ids", None)
+    payload = {"command": "cluster", "root": str(corpus_root), **result, "expanded": bool(expanded)}
+    payload["read_next"] = [
+        _read_next(
+            "md_cluster",
+            {"corpus": str(corpus_root), "expanded": True},
+            "Full per-cluster section_ids and members.",
+        )
+    ]
+    return payload
 
 def _overlap_map(corpus: str, output: dict[str, Any], kwargs: dict[str, Any]) -> dict[str, Any]:
     groups: dict[tuple[str, str], dict[str, Any]] = {}
