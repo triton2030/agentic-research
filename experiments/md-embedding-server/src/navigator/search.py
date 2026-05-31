@@ -55,7 +55,9 @@ def _partial_index_payload(
         "max_auto_embed": max_auto_embed,
         "added_sections": index_stats.get("added_sections", 0),
         "pending_chunks": index_stats.get("pending_chunks", 0),
-        "pending_files": index_stats.get("pending_files", []),
+        "pending_files": (index_stats.get("pending_files", []) or [])[:10],
+        "pending_files_total": len(index_stats.get("pending_files", []) or []),
+        "pending_files_truncated": len(index_stats.get("pending_files", []) or []) > 10,
         "message": (
             "Search ran against the already indexed subset; pending files "
             "were not searched."

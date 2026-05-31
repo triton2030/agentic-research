@@ -54,6 +54,12 @@ def orient(
             }
             for row in importance_payload.get("files", [])[:3]
         ]
+        owner_docs = [
+            {"relative_path": f.get("relative_path"), "gist": f.get("description") or f.get("title") or ""}
+            for f in files
+            if (f.get("relative_path") or "").rsplit("/", 1)[-1] in ("AGENTS.md", "README.md")
+            and (f.get("relative_path") or "").count("/") <= 1
+        ][:8]
         shape = {
             "file_count": files_payload.get("file_count", len(files)),
             "description_gaps": files_payload.get("description_gap_count", 0),
@@ -65,6 +71,7 @@ def orient(
             "expanded": False,
             "status": slim_status,
             "start_here": start_here,
+            "owner_docs": owner_docs,
             "shape": shape,
             "read_next": [
                 {
