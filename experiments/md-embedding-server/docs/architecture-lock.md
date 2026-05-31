@@ -7,6 +7,8 @@ edit-after-edit: []
 
 Phase 2 can start only when the lock tests are green.
 
+Решения, стоящие за этими инвариантами, и их история — в [`docs/adr/`](adr/README.md).
+
 ## Invariants
 
 - `catalog.py` matches the MCP snapshot names, schemas, annotations and
@@ -27,10 +29,27 @@ Phase 2 can start only when the lock tests are green.
   awareness reads `ToolSpec.cost_bearing`. Derived reporting sets may exist,
   but handlers must not recreate broad `MUTATING_TOOLS` checks or infer safety
   only from category labels.
-- Agent-facing broad outputs use the context ladder: normal mode returns
-  maps/previews with `expanded:false` and `content_included:false`; full
-  content or evidence is explicit `--expanded`. Legacy `--compact` must not
-  become the documented default language.
+- Agent-facing broad outputs use the context ladder: normal mode returns a
+  bounded map/preview tagged `expanded:false` + `view:"map"`; full content or
+  evidence is explicit `--expanded` (or a `read_next` hop). Everything the
+  bounded default hides MUST stay reachable via `--expanded`/`read_next` — no
+  dead ends. Legacy `map_only` / `content_included` / `--compact` are retired in
+  favour of the single `view` flag.
+- `md_cli.envelope.project_payload` is the single agent-view projection, applied
+  inside `wrap()` before the size estimate: it drops `INTERNAL_FIELDS`
+  (`rowid`, `content_hash`) everywhere except `_envelope`, relativizes
+  non-anchor paths against `corpus_root`, and collapses `map_only`/
+  `content_included` into `view`. Tools shape their own rows (field selection +
+  fold); the central pass only does the generic scrub. `read_next` is one
+  payload-level channel — never attached per item.
+- `navigator.api.search` returns lean rows: locators + `snippet` + `rrf_score`
+  (the one kept ranking signal) + `fields_hit`. No `body`, no raw
+  `bm25_score`/`dense_distance` in agent rows; full bodies are
+  `search_read --expanded`. `md status` returns the headline (state +
+  `recommended_action` + counts) by default; `scopes`/`pending_files`/
+  `folder_breakdown` move behind `--expanded`. `navigator.pick` re-derives
+  per-file headings from disk when a map omits them, so `md ls` can drop heading
+  trees from its bounded default while `md extract` still works on any map.
 - `navigator.status_core` owns status facts/state/deltas and config merge;
   `navigator.status_render` owns human text; `navigator.index_status` is a
   legacy adapter only and must not re-export private core helpers.

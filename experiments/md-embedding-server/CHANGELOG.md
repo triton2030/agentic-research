@@ -1,5 +1,34 @@
 # Changelog
 
+## 3.0.0 — Agent-view output projection
+
+Bounded-by-default outputs with guaranteed progressive disclosure. On a
+2000-file corpus this took `md orient` 502KB→7KB, `md ls` 884KB→22KB,
+`md status` 30KB→2KB. Verified by consumer-simulation + adversarial agents:
+no information is unreachable.
+
+### Breaking
+
+- `SCHEMA_VERSION` → `4.0.0`. `search` rows drop `body`, `content_hash`,
+  `rowid`, and raw `bm25_score`/`dense_distance` (use `rrf_score`; raw scores
+  only as `score_sources` under `--expanded`). `search-read` drops `map_only`/
+  `content_included`; `status` no longer requires `scopes` (headline default).
+- `map_only` / `content_included` flags retired across tools → one `view`
+  field (`"map"` | `"expanded"`). Per-item `read_next` collapsed to a single
+  payload-level channel.
+
+### Added
+
+- `md_cli.envelope.project_payload`: central agent-view projection (internal-
+  field denylist, path relativization, flag collapse) applied in `wrap()`.
+- `md orient` default: `start_here` (ranked entry files + why) + `owner_docs`
+  (root/top-folder AGENTS/README) + folded `shape`; full list via `--expanded`.
+- `md ls` default: folded `summary` + bounded top-N (full headings via
+  `--expanded` / `md toc`). `md status`, `md ls`, `md cluster` gained
+  `--expanded`. `md search` payload gained a compact `render` string.
+- `navigator.pick` re-derives per-file headings on demand, so `md extract`
+  works on any map (lean or full).
+
 ## 2.0.0 — Simpler agent-facing CLI
 
 Breaking changes from the agent DX cleanup pass. The CLI now keeps safety/data

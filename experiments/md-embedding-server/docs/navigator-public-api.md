@@ -9,10 +9,20 @@ edit-after-edit: []
 handlers call these functions directly and return `ToolResult`; they do not
 invoke legacy argparse commands, parse stdout, or build envelopes.
 
-Agent-facing reading functions follow the same context ladder as the CLI:
-normal output is a map/preview (`expanded=False`, `content_included=False`);
-full bodies or full evidence require `expanded=True` or legacy `mode="full"`
-where the mode already existed.
+Agent-facing reading functions follow the context ladder: normal output is a
+bounded map/preview tagged `view="map"` (`expanded=False`); full bodies or
+evidence require `expanded=True` (or `mode="full"` where that mode already
+existed). The central `md_cli.envelope.project_payload` pass (applied by the
+runner) drops internal fields (`rowid`, `content_hash`), relativizes non-anchor
+paths, and collapses the old `map_only`/`content_included` flags into `view`.
+Everything the bounded default hides stays reachable via `expanded`/`read_next`.
+
+`search` rows are lean (locators + `snippet` + `rrf_score` + `fields_hit`, plus a
+top-level `render` string); `body` and raw `bm25`/`dense` scores are gone from
+agent rows. `status` returns the headline by default (`--expanded` for
+`scopes`/`pending_files`/`folder_breakdown`). `workflows.orient` returns
+`start_here` (ranked entry files) + `owner_docs` (root/top-folder AGENTS/README)
++ a folded `shape`; the full flat file list is `--expanded`.
 
 Status and warmup payloads expose the next safe action as structured data:
 `recommended_action` inside status/corpus state, and `suggested_index_args` /
@@ -34,7 +44,7 @@ search` yields the module (attributes and monkeypatching stay reachable) while
 
 - `audit(corpus, **kwargs) -> dict`
 - `check(paths=None, path_include=None, path_exclude=None) -> dict`
-- `cluster(corpus, k=None, seed=None, path_include=None, path_exclude=None, cache_dir=None) -> dict`
+- `cluster(corpus, k=None, seed=None, path_include=None, path_exclude=None, cache_dir=None, expanded=False) -> dict`
 - `corpus_scan(root=".") -> dict`
 - `cycles(paths=None, path_include=None, path_exclude=None) -> dict`
 - `deps(path, scan=None, depth=None, path_include=None, path_exclude=None) -> dict`
@@ -44,7 +54,7 @@ search` yields the module (attributes and monkeypatching stay reachable) while
 - `importance(corpus, top=None, sort_by=None) -> dict`
 - `index(corpus, dry_run=False, confirm=False, batch_size=None, batch_pause_ms=None, max_heading_level=None, path_include=None, path_exclude=None, **kwargs) -> dict`
 - `init(paths=None, dry_run=False, confirm=False, path_include=None, path_exclude=None, **kwargs) -> dict`
-- `ls(path, max_heading_level=None, match=None, with_tokens=False, with_link_counts=False) -> dict`
+- `ls(path, max_heading_level=None, match=None, with_tokens=False, with_link_counts=False, expanded=False) -> dict`
 - `overlaps(corpus, **kwargs) -> dict`
 - `ping() -> dict`
 - `preflight(path, scan=None, depth=None, path_include=None, path_exclude=None) -> dict`
@@ -54,7 +64,7 @@ search` yields the module (attributes and monkeypatching stay reachable) while
 - `scan(paths=None, path_include=None, path_exclude=None) -> dict`
 - `search(corpus, query, **kwargs) -> dict`
 - `search_read(corpus, query, expanded=False, token_budget=None, **kwargs) -> dict`
-- `status(corpus, path_include=None, path_exclude=None, max_heading_level=None, max_auto_embed=None, **kwargs) -> dict`
+- `status(corpus, path_include=None, path_exclude=None, max_heading_level=None, max_auto_embed=None, expanded=False, **kwargs) -> dict`
 - `strip(paths=None, also_related_section=False, dry_run=False, confirm=False, path_include=None, path_exclude=None, **kwargs) -> dict`
 - `toc(path, max_heading_level=None, match=None, with_tokens=False, with_link_counts=False) -> dict`
 
