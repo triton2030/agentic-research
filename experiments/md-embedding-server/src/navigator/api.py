@@ -104,9 +104,13 @@ def ls(
         "description_gaps": data.get("description_gap_count", 0),
         "folders": fold_by_folder(files),
     }
-    if not expanded and len(files) > LS_DEFAULT_TOP:
-        data["files"] = files[:LS_DEFAULT_TOP]
-        data["files_truncated"] = True
+    if not expanded:
+        kept = files[:LS_DEFAULT_TOP]
+        if len(files) > LS_DEFAULT_TOP:
+            data["files_truncated"] = True
+        # Bounded map: drop per-file heading trees (md extract re-derives them
+        # on demand). Full headings via --expanded / md toc.
+        data["files"] = [{k: v for k, v in f.items() if k != "headings"} for f in kept]
     return data
 
 

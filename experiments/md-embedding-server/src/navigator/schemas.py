@@ -272,7 +272,7 @@ MAP_SCHEMA: dict[str, Any] = {
             "type": "array",
             "items": {
                 "type": "object",
-                "required": ["id", "relative_path", "description", "title", "headings"],
+                "required": ["id", "relative_path", "description", "title"],
                 "properties": {
                     "id": {"type": "integer", "minimum": 1},
                     "path": {"type": "string"},

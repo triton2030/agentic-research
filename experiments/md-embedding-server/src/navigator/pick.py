@@ -90,6 +90,30 @@ def heading_content(item: dict[str, Any], heading: dict[str, Any]) -> str:
     return content or str(heading.get("body") or "")
 
 
+def _ensure_headings(item: dict[str, Any]) -> list[dict[str, Any]]:
+    """Headings for a file map entry. Bounded `md ls` output omits per-file
+    heading trees; re-derive them from disk on demand so `md extract` works on
+    any map (lean or full). IDs match build_map's `<file_id>.<idx>` scheme."""
+    existing = item.get("headings")
+    if existing:
+        return existing
+    path = item.get("path")
+    if not path:
+        return []
+    try:
+        from .markdown_io import collect_headings
+        lines = Path(path).read_text(encoding="utf-8", errors="replace").splitlines()
+        raw = collect_headings(lines, 6)
+    except OSError:
+        return []
+    derived = [
+        {"id": f"{item['id']}.{idx}", "line": h["line"], "level": h["level"], "text": h["text"]}
+        for idx, h in enumerate(raw, start=1)
+    ]
+    item["headings"] = derived
+    return derived
+
+
 def pick_items(
     data: dict[str, Any],
     file_ids: set[str],
@@ -106,11 +130,11 @@ def pick_items(
     # file. Explicit --headings remain additive — union, not override.
     if extract and picked_files:
         heading_ids = set(heading_ids) | {
-            h["id"] for f in picked_files for h in f["headings"]
+            h["id"] for f in picked_files for h in _ensure_headings(f)
         }
     picked_headings = []
     for item in data["files"]:
-        for heading in item["headings"]:
+        for heading in item.get("headings", []):
             if heading["id"] not in heading_ids:
                 continue
             selected: dict[str, Any] = {
@@ -138,7 +162,7 @@ def pick_items(
         "token_budget": token_budget,
         "dropped_by_budget": dropped,
         "missing_file_ids": sorted(file_ids - set(files_by_id)),
-        "missing_heading_ids": sorted(heading_ids - {h["id"] for f in data["files"] for h in f["headings"]}),
+        "missing_heading_ids": sorted(heading_ids - {h["id"] for f in data["files"] for h in f.get("headings", [])}),
     }
 
 
