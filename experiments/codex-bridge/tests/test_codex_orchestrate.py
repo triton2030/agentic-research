@@ -19,6 +19,7 @@ from codex_orchestrate_contract import (  # noqa: E402
     worker_status_from_codex_status,
 )
 from codex_orchestrate_state import (  # noqa: E402
+    append_heartbeat,
     capture_git_snapshot,
     compare_scope,
     prepare_run_dir,
@@ -86,6 +87,26 @@ class CodexOrchestrateCliTests(unittest.TestCase):
             self.assertEqual(payload["codex"]["worker_sandbox"], "workspace_write")
             self.assertEqual(payload["codex"]["worker_approval_mode"], "auto_review")
 
+    def test_summary_stdout_is_compact_but_result_json_keeps_plan(self) -> None:
+        with self.temp_project() as tmp:
+            root = Path(tmp)
+            self.write(root, "a.md")
+            proc = run_cli(
+                root,
+                [{"id": "t1", "prompt": "touch a", "files": ["a.md"]}],
+                "--summary-stdout",
+            )
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            payload = json.loads(proc.stdout)
+            self.assertEqual(payload["status"], "validated")
+            self.assertEqual(payload["task_count"], 1)
+            self.assertNotIn("tasks", payload)
+            self.assertNotIn("results", payload)
+
+            result_path = Path(payload["paths"]["result"])
+            full = json.loads(result_path.read_text())
+            self.assertEqual(full["tasks"][0]["id"], "t1")
+
     def test_model_and_effort_overrides_are_recorded(self) -> None:
         with self.temp_project() as tmp:
             root = Path(tmp)
@@ -110,6 +131,26 @@ class CodexOrchestrateCliTests(unittest.TestCase):
             proc = run_cli(root, [{"prompt": "x", "files": ["a.md"]}], "--effort", "extreme")
             self.assertEqual(proc.returncode, 2)
             self.assertIn("invalid choice", proc.stderr)
+
+    def test_heartbeat_zero_does_not_emit_dry_run_heartbeat(self) -> None:
+        with self.temp_project() as tmp:
+            root = Path(tmp)
+            self.write(root, "a.md")
+            proc = run_cli(root, [{"prompt": "x", "files": ["a.md"]}], "--heartbeat-sec", "0")
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            payload = json.loads(proc.stdout)
+            events = Path(payload["run_dir"], "events.jsonl").read_text()
+            self.assertNotIn('"event": "heartbeat"', events)
+
+    def test_append_heartbeat_records_progress_without_sleeping(self) -> None:
+        with self.temp_project() as tmp:
+            run_dir = Path(tmp)
+            append_heartbeat(run_dir, 0.0, completed=2, total=5)
+            event = json.loads((run_dir / "events.jsonl").read_text())
+            self.assertEqual(event["event"], "heartbeat")
+            self.assertEqual(event["completed"], 2)
+            self.assertEqual(event["total"], 5)
+            self.assertIsInstance(event["elapsed_sec"], int)
 
     def test_overlapping_files_rejected(self) -> None:
         with self.temp_project() as tmp:

@@ -6,6 +6,7 @@ import json
 import os
 import stat
 import subprocess
+import time
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -242,3 +243,16 @@ def append_jsonl(path: Path, data: Any) -> None:
 
 def append_event(run_dir: Path, event: str, **data: Any) -> None:
     append_jsonl(run_dir / "events.jsonl", {"ts": utc_now(), "event": event, **data})
+
+
+def append_heartbeat(
+    run_dir: Path,
+    started_monotonic: float,
+    **data: Any,
+) -> None:
+    append_event(
+        run_dir,
+        "heartbeat",
+        elapsed_sec=int(time.monotonic() - started_monotonic),
+        **data,
+    )

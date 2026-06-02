@@ -15,6 +15,20 @@
 
 Управляется глобальным скиллом **`1codex`** (`~/.claude/skills/1codex/`).
 
+## Long-run control
+
+Долгие запуски должны быть Claude-native background Bash jobs. Backend не
+управляет процессами Claude: он пишет свежий `run_dir`, компактный stdout и
+файловые результаты, чтобы Claude мог продолжать работу и по необходимости
+читать `events.jsonl` / `result.json`.
+
+Для background-safe режима используй `--summary-stdout --run-dir PATH`.
+`PATH` должен быть свежим: каталог создаёт backend. Stdout будет коротким JSON
+с `run_id`, `run_dir`, статусами и путями; полный ответ лежит на диске.
+`--heartbeat-sec N` пишет `heartbeat` events во время Codex-run-а (`0`
+отключает). `Monitor` можно включать только как filtered watcher поверх
+`events.jsonl`; raw stdout/stderr не мониторить.
+
 ## Модель и runtime-доступ
 
 Backend явно закрепляет Codex turn defaults: `model=gpt-5.5`,
@@ -66,6 +80,9 @@ SDK тянет собственный пиннутый бинарь `codex`; о�
 #   --transcript FILE     явный .jsonl (по умолчанию — текущая сессия)
 #   --model gpt-5.5       default закреплён backend-ом
 #   --effort xhigh        Extra High reasoning по умолчанию
+#   --run-dir PATH        свежий ledger/result каталог
+#   --summary-stdout      короткий JSON в stdout, полный ответ в final.md/result.json
+#   --heartbeat-sec 120   heartbeat events; 0 отключает
 #   --include-thinking    добавить блоки размышлений Claude
 #   --max-chars N         бюджет транскрипта (хвост сохраняется)
 #   --dry-run             собрать промпт без вызова Codex (бесплатно)
@@ -75,6 +92,9 @@ SDK тянет собственный пиннутый бинарь `codex`; о�
 (иначе — свежайший `.jsonl` в `~/.claude/projects/<кодированный-путь>/`).
 Рендер сжимает лог: реплики целиком, вызовы инструментов — одной строкой,
 дампы результатов усечены.
+
+Если задан `--run-dir`, reviewer пишет `manifest.json`, `events.jsonl`,
+`prompt.md`, `result.json`, а после реального Codex-run-а — `final.md`.
 
 ## Флот воркеров
 
@@ -89,6 +109,8 @@ echo '[
 #   --dry-run               validate + ledger без запуска Codex
 #   --model gpt-5.5          default закреплён backend-ом
 #   --effort xhigh           Extra High reasoning по умолчанию
+#   --summary-stdout         короткий JSON в stdout, полный result.json на диске
+#   --heartbeat-sec 120      heartbeat events во время Codex workers
 #   --verify "pytest ..."   команда проверки после workers и scope-check
 ```
 
@@ -99,9 +121,10 @@ echo '[
 overlap между задачами и `concurrency < 1` падают до импорта Codex и до любых
 трат.
 
-Выход в stdout — JSON object с `run_id`, `run_dir`, `codex`, `worker_status`,
-`scope_status`, `verification_status`, `fully_verified`, `ok`, списком
-результатов и postflight changed files. Ledger пишется в свежий `runs/<run_id>/`
+Выход в stdout — JSON object. По умолчанию он остаётся полным и включает
+результаты воркеров. С `--summary-stdout` stdout становится компактным:
+`run_id`, `run_dir`, статусы, `codex`, `paths`, счётчики и postflight summary
+без worker responses. Полный ledger пишется в свежий `runs/<run_id>/`
 (`manifest.json`, `events.jsonl`, `results.jsonl`, `result.json`) или в свежий
 `--run-dir PATH`; существующий каталог считается ошибкой.
 

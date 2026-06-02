@@ -31,6 +31,7 @@ from codex_orchestrate_contract import (
 from codex_orchestrate_state import (
     GitSnapshot,
     append_event,
+    append_heartbeat,
     append_jsonl,
     capture_git_snapshot,
     compare_scope,
@@ -113,19 +114,51 @@ async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict
             duration_ms=record["duration_ms"],
         )
         append_jsonl(run_dir / "results.jsonl", record)
+        defaults["progress"]["completed"] += 1
         return record
+
+
+async def _heartbeat_loop(
+    run_dir: Path,
+    heartbeat_sec: int,
+    started_monotonic: float,
+    progress: dict[str, int],
+) -> None:
+    try:
+        while True:
+            await asyncio.sleep(heartbeat_sec)
+            append_heartbeat(
+                run_dir,
+                started_monotonic,
+                completed=progress["completed"],
+                total=progress["total"],
+            )
+    except asyncio.CancelledError:
+        return
 
 
 async def _run_fleet(
     tasks: list[TaskSpec],
     defaults: dict[str, Any],
     concurrency: int,
+    heartbeat_sec: int,
 ) -> list[dict[str, Any]]:
     from openai_codex import AsyncCodex, CodexConfig
 
     sem = asyncio.Semaphore(concurrency)
-    async with AsyncCodex(CodexConfig(cwd=defaults["cwd"])) as codex:
-        return await asyncio.gather(*(_run_one(codex, sem, task, defaults) for task in tasks))
+    defaults["progress"] = {"completed": 0, "total": len(tasks)}
+    heartbeat_task: asyncio.Task[None] | None = None
+    if heartbeat_sec > 0:
+        heartbeat_task = asyncio.create_task(
+            _heartbeat_loop(defaults["run_dir"], heartbeat_sec, time.monotonic(), defaults["progress"])
+        )
+    try:
+        async with AsyncCodex(CodexConfig(cwd=defaults["cwd"])) as codex:
+            return await asyncio.gather(*(_run_one(codex, sem, task, defaults) for task in tasks))
+    finally:
+        if heartbeat_task is not None:
+            heartbeat_task.cancel()
+            await asyncio.gather(heartbeat_task, return_exceptions=True)
 
 
 def run_verification(commands: list[str], project: Path, run_dir: Path) -> tuple[str, list[dict[str, Any]]]:
@@ -188,6 +221,39 @@ def build_manifest(
     }
 
 
+def _orchestrate_paths(run_dir: Path) -> dict[str, str]:
+    return {
+        "manifest": str(run_dir / "manifest.json"),
+        "events": str(run_dir / "events.jsonl"),
+        "results": str(run_dir / "results.jsonl"),
+        "result": str(run_dir / "result.json"),
+    }
+
+
+def _compact_orchestrate_payload(payload: dict[str, Any]) -> dict[str, Any]:
+    return {
+        key: payload[key]
+        for key in (
+            "run_id",
+            "run_dir",
+            "dry_run",
+            "status",
+            "ok",
+            "fully_verified",
+            "worker_status",
+            "scope_status",
+            "verification_status",
+            "codex",
+            "paths",
+            "task_count",
+            "postflight_changed_files",
+            "out_of_scope_files",
+            "git_head_changed",
+        )
+        if key in payload
+    }
+
+
 def _load_tasks(args: argparse.Namespace) -> Any:
     raw = Path(args.tasks).read_text() if args.tasks else sys.stdin.read()
     try:
@@ -211,6 +277,8 @@ def main() -> int:
     parser.add_argument("--verify", action="append", default=[], help="Verification command to run after workers and scope check.")
     parser.add_argument("--run-dir", help="Ledger directory override (default: experiments/codex-bridge/runs/<run_id>).")
     parser.add_argument("--allow-dirty-overlap", action="store_true", help="Allow launch when existing dirty files overlap task files.")
+    parser.add_argument("--summary-stdout", action="store_true", help="Print compact JSON to stdout; full results stay in result.json/results.jsonl.")
+    parser.add_argument("--heartbeat-sec", type=int, default=120, help="Seconds between ledger heartbeat events while Codex workers run; 0 disables.")
     parser.add_argument("--dry-run", action="store_true", help="Validate tasks and write ledger without invoking Codex.")
     args = parser.parse_args()
 
@@ -219,6 +287,8 @@ def main() -> int:
     try:
         if args.concurrency < 1:
             raise UsageError("--concurrency must be >= 1.")
+        if args.heartbeat_sec < 0:
+            raise UsageError("--heartbeat-sec must be >= 0.")
         if not project.is_dir():
             raise UsageError(f"--project must be an existing directory: {project}")
 
@@ -237,8 +307,10 @@ def main() -> int:
             "effort": args.effort,
             "worker_sandbox": WORKER_SANDBOX,
             "worker_approval_mode": WORKER_APPROVAL_MODE,
+            "heartbeat_sec": args.heartbeat_sec,
         }
         run_id, run_dir = prepare_run_dir(args.run_dir)
+        paths = _orchestrate_paths(run_dir)
         manifest = build_manifest(
             run_id=run_id,
             run_dir=run_dir,
@@ -251,6 +323,7 @@ def main() -> int:
             dry_run=args.dry_run,
             codex_runtime=codex_runtime,
         )
+        manifest["paths"] = paths
         write_json(run_dir / "manifest.json", manifest)
         append_event(run_dir, "validated", task_count=len(tasks), dry_run=args.dry_run)
     except OSError as exc:
@@ -265,13 +338,18 @@ def main() -> int:
             "run_id": run_id,
             "run_dir": str(run_dir),
             "dry_run": True,
+            "status": "validated",
+            "ok": True,
             "codex": codex_runtime,
+            "paths": paths,
+            "task_count": len(tasks),
             "git": initial_git.to_json(),
             "tasks": [task.to_json() for task in tasks],
         }
         write_json(run_dir / "result.json", payload)
         print(f"[orch dry-run] {len(tasks)} tasks, concurrency={args.concurrency}, run_dir={run_dir}", file=sys.stderr)
-        print(json.dumps(payload, ensure_ascii=False, indent=2))
+        stdout_payload = _compact_orchestrate_payload(payload) if args.summary_stdout else payload
+        print(json.dumps(stdout_payload, ensure_ascii=False, indent=2))
         return 0
 
     removed = scrub_billing_env()
@@ -285,7 +363,7 @@ def main() -> int:
     append_event(run_dir, "codex_start", task_count=len(tasks))
 
     defaults = {"cwd": str(project), "model": args.model, "effort": args.effort, "run_dir": run_dir}
-    results = asyncio.run(_run_fleet(tasks, defaults, args.concurrency))
+    results = asyncio.run(_run_fleet(tasks, defaults, args.concurrency, args.heartbeat_sec))
 
     worker_status = "completed" if all(r["worker_status"] == "completed" for r in results) else "failed"
     after_git = capture_git_snapshot(project, required=True)
@@ -318,6 +396,8 @@ def main() -> int:
         "ok": ok,
         "fully_verified": verification_status == "passed",
         "codex": codex_runtime,
+        "paths": paths,
+        "task_count": len(tasks),
         "worker_status": worker_status,
         "scope_status": scope_status,
         "verification_status": verification_status,
@@ -343,7 +423,8 @@ def main() -> int:
         f"verify={verification_status} ok={ok}",
         file=sys.stderr,
     )
-    print(json.dumps(payload, ensure_ascii=False, indent=2))
+    stdout_payload = _compact_orchestrate_payload(payload) if args.summary_stdout else payload
+    print(json.dumps(stdout_payload, ensure_ascii=False, indent=2))
     return 0 if ok else 1
 
 

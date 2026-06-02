@@ -26,6 +26,10 @@
   для real run, dirty fingerprint snapshot, run ledger, aggregate postflight
   allowlist и optional verification. Skill `1codex` — router/operator guide, не
   источник runtime enforcement.
+- **Claude владеет background lifecycle.** Не добавляй Python daemon/process
+  manager для долгих runs. Backend только пишет compact stdout, heartbeat events
+  и `run_dir` files; Claude skill решает, когда стартовать background Bash,
+  читать status/tail или останавливать task.
 - **Воркер пишет под контрактом.** `codex_orchestrate.py` — `workspace_write` +
   `auto_review`; `files` обязательны и enforced preflight/postflight. Не ставь
   `Sandbox.full_access` default-ом: изменения вне project/git scope нельзя

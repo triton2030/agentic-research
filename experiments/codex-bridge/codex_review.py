@@ -26,6 +26,8 @@ import argparse
 import json
 import os
 import sys
+import threading
+import time
 from pathlib import Path
 
 from cbcommon import scrub_billing_env
@@ -35,6 +37,14 @@ from codex_defaults import (
     REASONING_EFFORTS,
     REVIEW_APPROVAL_MODE,
     REVIEW_SANDBOX,
+)
+from codex_orchestrate_contract import UsageError, codex_status_value
+from codex_orchestrate_state import (
+    append_event,
+    append_heartbeat,
+    prepare_run_dir,
+    utc_now,
+    write_json,
 )
 
 CLAUDE_PROJECTS = Path.home() / ".claude" / "projects"
@@ -163,6 +173,54 @@ def build_prompt(mode: str, transcript_md: str, question: str | None) -> str:
     )
 
 
+def _review_paths(run_dir: Path) -> dict[str, str]:
+    return {
+        "manifest": str(run_dir / "manifest.json"),
+        "events": str(run_dir / "events.jsonl"),
+        "prompt": str(run_dir / "prompt.md"),
+        "final": str(run_dir / "final.md"),
+        "result": str(run_dir / "result.json"),
+    }
+
+
+def _compact_review_payload(payload: dict[str, object]) -> dict[str, object]:
+    return {
+        key: payload[key]
+        for key in (
+            "run_id",
+            "run_dir",
+            "dry_run",
+            "mode",
+            "status",
+            "ok",
+            "codex",
+            "paths",
+            "prompt_chars",
+        )
+        if key in payload
+    }
+
+
+def _start_heartbeat(
+    run_dir: Path | None,
+    heartbeat_sec: int,
+    started_monotonic: float,
+    *,
+    mode: str,
+) -> tuple[threading.Event, threading.Thread | None]:
+    stop = threading.Event()
+    if run_dir is None or heartbeat_sec <= 0:
+        return stop, None
+
+    def loop() -> None:
+        while not stop.wait(heartbeat_sec):
+            append_heartbeat(run_dir, started_monotonic, mode=mode)
+
+    thread = threading.Thread(target=loop, name="codex-review-heartbeat", daemon=True)
+    thread.start()
+    return stop, thread
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Вызвать Codex как ревьюера/консультанта из Claude Code.")
     parser.add_argument("--mode", choices=("review", "ask"), default="review")
@@ -178,11 +236,17 @@ def main() -> int:
     )
     parser.add_argument("--include-thinking", action="store_true", help="Включить блоки размышлений Claude в транскрипт.")
     parser.add_argument("--max-chars", type=int, default=200_000, help="Бюджет транскрипта; при превышении остаётся свежий хвост.")
+    parser.add_argument("--run-dir", help="Fresh ledger directory for background-safe runs.")
+    parser.add_argument("--summary-stdout", action="store_true", help="Print compact JSON to stdout; full data is written to --run-dir.")
+    parser.add_argument("--heartbeat-sec", type=int, default=120, help="Seconds between ledger heartbeat events; 0 disables.")
     parser.add_argument("--dry-run", action="store_true", help="Собрать промпт и вывести его, НЕ вызывая Codex (не тратит кредиты).")
     args = parser.parse_args()
 
     if args.mode == "ask" and not args.question:
         print("Режим ask требует --question.", file=sys.stderr)
+        return 2
+    if args.heartbeat_sec < 0:
+        print("--heartbeat-sec must be >= 0.", file=sys.stderr)
         return 2
 
     project_cwd = Path(args.project).expanduser().resolve()
@@ -203,12 +267,59 @@ def main() -> int:
         transcript_md = f"{head}\n\n… [середина транскрипта оборвана для бюджета] …\n\n{tail}"
 
     prompt = build_prompt(args.mode, transcript_md, args.question)
+    run_id: str | None = None
+    run_dir: Path | None = None
+    paths: dict[str, str] | None = None
+    if args.run_dir or args.summary_stdout:
+        try:
+            run_id, run_dir = prepare_run_dir(args.run_dir)
+        except UsageError as exc:
+            print(f"[codex-bridge] {exc}", file=sys.stderr)
+            return 2
+        paths = _review_paths(run_dir)
+        manifest = {
+            "run_id": run_id,
+            "run_dir": str(run_dir),
+            "created_at": utc_now(),
+            "dry_run": args.dry_run,
+            "mode": args.mode,
+            "project": str(project_cwd),
+            "transcript": str(transcript_path),
+            "prompt_chars": len(prompt),
+            "codex": {"model": args.model, "effort": args.effort},
+            "runtime": {
+                "sandbox": REVIEW_SANDBOX,
+                "approval_mode": REVIEW_APPROVAL_MODE,
+                "heartbeat_sec": args.heartbeat_sec,
+            },
+            "paths": paths,
+        }
+        write_json(run_dir / "manifest.json", manifest)
+        (run_dir / "prompt.md").write_text(prompt, encoding="utf-8")
+        append_event(run_dir, "validated", dry_run=args.dry_run, mode=args.mode)
 
     if args.dry_run:
         print(f"[codex-bridge dry-run] транскрипт={transcript_path.name} "
               f"промпт={len(prompt)} симв. режим={args.mode} "
               f"model={args.model} effort={args.effort} "
               f"sandbox={REVIEW_SANDBOX} approval={REVIEW_APPROVAL_MODE}", file=sys.stderr)
+        if run_dir is not None and run_id is not None and paths is not None:
+            payload = {
+                "run_id": run_id,
+                "run_dir": str(run_dir),
+                "dry_run": True,
+                "mode": args.mode,
+                "status": "validated",
+                "ok": True,
+                "codex": {"model": args.model, "effort": args.effort},
+                "paths": paths,
+                "prompt_chars": len(prompt),
+            }
+            write_json(run_dir / "result.json", payload)
+            append_event(run_dir, "done", dry_run=True, ok=True)
+            if args.summary_stdout:
+                print(json.dumps(_compact_review_payload(payload), ensure_ascii=False, indent=2))
+                return 0
         print(prompt)
         return 0
 
@@ -234,8 +345,17 @@ def main() -> int:
         + (f" | вырезаны из env: {', '.join(removed)}" if removed else " | env чист"),
         file=sys.stderr,
     )
+    if run_dir is not None:
+        append_event(run_dir, "codex_start", mode=args.mode)
 
     config = CodexConfig(cwd=str(project_cwd))
+    started_monotonic = time.monotonic()
+    heartbeat_stop, heartbeat_thread = _start_heartbeat(
+        run_dir,
+        args.heartbeat_sec,
+        started_monotonic,
+        mode=args.mode,
+    )
     try:
         with Codex(config) as codex:
             thread = codex.thread_start(
@@ -252,21 +372,86 @@ def main() -> int:
                 approval_mode=ApprovalMode.deny_all,
             )
     except Exception as exc:  # noqa: BLE001 — показать пользователю причину как есть
+        heartbeat_stop.set()
+        if heartbeat_thread is not None:
+            heartbeat_thread.join(timeout=1)
+        if run_dir is not None and run_id is not None and paths is not None:
+            payload = {
+                "run_id": run_id,
+                "run_dir": str(run_dir),
+                "dry_run": False,
+                "mode": args.mode,
+                "status": "exception",
+                "ok": False,
+                "error": str(exc),
+                "codex": {"model": args.model, "effort": args.effort},
+                "paths": paths,
+                "prompt_chars": len(prompt),
+            }
+            write_json(run_dir / "result.json", payload)
+            append_event(run_dir, "failed", status="exception", error=str(exc))
+            if args.summary_stdout:
+                print(json.dumps(_compact_review_payload(payload), ensure_ascii=False, indent=2))
         print(f"[codex-bridge] ошибка вызова Codex: {exc}", file=sys.stderr)
         return 1
+    finally:
+        heartbeat_stop.set()
+        if heartbeat_thread is not None:
+            heartbeat_thread.join(timeout=1)
 
     if getattr(result, "error", None):
+        if run_dir is not None and run_id is not None and paths is not None:
+            payload = {
+                "run_id": run_id,
+                "run_dir": str(run_dir),
+                "dry_run": False,
+                "mode": args.mode,
+                "status": codex_status_value(getattr(result, "status", "failed")),
+                "ok": False,
+                "error": str(result.error),
+                "codex": {"model": args.model, "effort": args.effort},
+                "paths": paths,
+                "prompt_chars": len(prompt),
+            }
+            write_json(run_dir / "result.json", payload)
+            append_event(run_dir, "failed", status=payload["status"], error=str(result.error))
+            if args.summary_stdout:
+                print(json.dumps(_compact_review_payload(payload), ensure_ascii=False, indent=2))
         print(f"[codex-bridge] Codex вернул ошибку: {result.error}", file=sys.stderr)
         return 1
 
     usage = getattr(result, "usage", None)
+    status = codex_status_value(getattr(result, "status", "?"))
     print(
-        f"[codex-bridge] статус={getattr(result, 'status', '?')} "
+        f"[codex-bridge] статус={status} "
         f"время={getattr(result, 'duration_ms', '?')}мс usage={usage}",
         file=sys.stderr,
     )
 
-    print(result.final_response or "[пустой ответ Codex]")
+    final_response = result.final_response or "[пустой ответ Codex]"
+    if run_dir is not None and run_id is not None and paths is not None:
+        (run_dir / "final.md").write_text(final_response, encoding="utf-8")
+        payload = {
+            "run_id": run_id,
+            "run_dir": str(run_dir),
+            "dry_run": False,
+            "mode": args.mode,
+            "status": status,
+            "ok": True,
+            "codex": {"model": args.model, "effort": args.effort},
+            "paths": paths,
+            "prompt_chars": len(prompt),
+            "duration_ms": getattr(result, "duration_ms", None),
+            "usage": str(usage),
+            "final_response": final_response,
+        }
+        write_json(run_dir / "result.json", payload)
+        append_event(run_dir, "done", status=status, ok=True)
+        if args.summary_stdout:
+            print(json.dumps(_compact_review_payload(payload), ensure_ascii=False, indent=2))
+            return 0
+
+    print(final_response)
     return 0
 
 
