@@ -40,6 +40,9 @@ commitments; veto-class в локальных папках пуст. Cross-proje
   релевантные `AGENTS.md` (root + subtree).
 - `experiments/claude-bridge/` depends-on `~/.codex/skills/claude-mcp/`
   (skill it serves) + локальный `experiments/claude-bridge/AGENTS.md`.
+- `experiments/codex-bridge/` depends-on `~/.claude/skills/1codex/SKILL.md`
+  (global Claude skill it serves) + локальный
+  `experiments/codex-bridge/AGENTS.md`.
 - `experiments/gemini-mcp/` depends-on `~/.codex/skills/gemini-mcp/` +
   локальный `experiments/gemini-mcp/AGENTS.md`.
 - `experiments/strategy-gallery/` depends-on локальный
@@ -91,7 +94,7 @@ commitments; veto-class в локальных папках пуст. Cross-proje
   Codex синхронизирует только Codex-editable surfaces и отдаёт Claude-side handoff.
 - «новый knowledge / wisdom / guide» → `knowledge/wisdom-systems-thinking.md`.
 - «правка `experiments/**` subtree» → локальный `AGENTS.md` сабтри +
-  релевантный skill контракт (`claude-mcp`, `gemini-mcp`).
+  релевантный skill контракт (`claude-mcp`, `1codex`, `gemini-mcp`).
 - «routing / placement / naming инструкций» → `1instruction-layer` skill,
   `1folder-contract` skill.
 - «условное локальное правило / rule-doc / вынести из root-инструкции» →

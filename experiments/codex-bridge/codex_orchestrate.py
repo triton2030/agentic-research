@@ -1,141 +1,316 @@
 #!/usr/bin/env python3
-"""codex-bridge orchestrator — флот параллельных Codex-воркеров.
-
-Claude — оркестратор: он генерирует список file-disjoint задач, этот скрипт гонит
-их параллельно через AsyncCodex с лимитом concurrency и собирает сводку.
-
-Каждый воркер: sandbox=workspace-write, cwd=корень проекта — он РЕДАКТИРУЕТ файлы.
-Биллинг идёт через ChatGPT-аккаунт (env вычищен от API-ключей).
-
-КОНТРАКТ (обязателен, иначе гонки и потеря данных):
-  • Задачи должны быть FILE-DISJOINT — два воркера не правят один файл.
-  • Git — сеть безопасности: коммить/стейдж до запуска, чтобы можно было откатить.
-  • НЕ верь самоотчётам воркеров — оркестратор обязан перепроверить результат
-    (git diff, тесты, или отдельный проход codex_review.py по изменениям).
-
-Вход (--tasks FILE или stdin) — JSON-массив:
-  [
-    {"id": "t1", "prompt": "что сделать", "files": ["path/a.md"], "cwd": "опц"},
-    ...
-  ]
-  prompt — обязателен; id, files, cwd — опциональны. files добавляется в промпт
-  как жёсткое ограничение «правь только эти файлы».
-
-Выход (stdout) — JSON-массив результатов по задачам; прогресс — в stderr.
-Код возврата 0 только если ВСЕ задачи завершились успешно.
-"""
+"""codex-bridge orchestrator — guarded shared-worktree Codex workers."""
 from __future__ import annotations
 
 import argparse
 import asyncio
 import json
+import os
+import subprocess
 import sys
 import time
 from pathlib import Path
+from typing import Any
 
 from cbcommon import scrub_billing_env
+from codex_orchestrate_contract import (
+    TaskSpec,
+    UsageError,
+    codex_status_value,
+    dirty_overlaps,
+    normalize_tasks,
+    worker_status_from_codex_status,
+)
+from codex_orchestrate_state import (
+    GitSnapshot,
+    append_event,
+    append_jsonl,
+    capture_git_snapshot,
+    compare_scope,
+    prepare_run_dir,
+    utc_now,
+    write_json,
+)
 
 
-def _files_constraint(files: list[str]) -> str:
+def _files_constraint(files: tuple[str, ...]) -> str:
     joined = ", ".join(files)
     return (
         f"Тебе разрешено создавать и редактировать ТОЛЬКО эти файлы: {joined}. "
-        f"Не трогай никакие другие файлы. Если задача требует иного — опиши это в ответе, но не делай.\n\n"
+        "Не трогай никакие другие файлы. Если задача требует иного — опиши это "
+        "в ответе, но не делай.\n\n"
     )
 
 
-async def _run_one(codex, sem, task: dict, defaults: dict) -> dict:
+async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict[str, Any]:
     from openai_codex import ApprovalMode, Sandbox  # импорт после scrub_billing_env
 
-    tid = str(task.get("id", "?"))
-    cwd = task.get("cwd") or defaults["cwd"]
-    prompt = task["prompt"]
-    if task.get("files"):
-        prompt = _files_constraint(task["files"]) + prompt
+    prompt = _files_constraint(task.files) + task.prompt
+    run_dir: Path = defaults["run_dir"]
 
     async with sem:
         t0 = time.monotonic()
+        append_event(run_dir, "worker_start", id=task.id)
         try:
             thread = await codex.thread_start(
-                cwd=cwd,
+                cwd=defaults["cwd"],
                 sandbox=Sandbox.workspace_write,
                 approval_mode=ApprovalMode.auto_review,
                 model=defaults["model"],
             )
             result = await thread.run(prompt)
-            dt = int((time.monotonic() - t0) * 1000)
-            status = str(getattr(result, "status", ""))
-            ok = status.endswith("completed") and not result.error
-            print(f"[orch] {'✓' if ok else '✗'} {tid} ({dt}мс)"
-                  + ("" if ok else f" — {result.error}"), file=sys.stderr)
-            return {
-                "id": tid,
-                "ok": ok,
-                "status": status,
+            duration_ms = int((time.monotonic() - t0) * 1000)
+            codex_status = codex_status_value(getattr(result, "status", ""))
+            worker_status = worker_status_from_codex_status(codex_status, result.error)
+            worker_ok = worker_status == "completed"
+            print(
+                f"[orch] {'✓' if worker_ok else '✗'} {task.id} ({duration_ms}мс)"
+                + ("" if worker_ok else f" — {result.error}"),
+                file=sys.stderr,
+            )
+            record = {
+                "id": task.id,
+                "worker_status": worker_status,
+                "codex_status": codex_status,
                 "error": str(result.error) if result.error else None,
                 "response": result.final_response,
-                "duration_ms": dt,
+                "duration_ms": duration_ms,
                 "usage": str(getattr(result, "usage", None)),
             }
         except Exception as exc:  # noqa: BLE001 — одна упавшая задача не валит флот
-            dt = int((time.monotonic() - t0) * 1000)
-            print(f"[orch] ✗ {tid} — исключение: {exc}", file=sys.stderr)
-            return {"id": tid, "ok": False, "status": "exception", "error": str(exc),
-                    "response": None, "duration_ms": dt, "usage": None}
+            duration_ms = int((time.monotonic() - t0) * 1000)
+            print(f"[orch] ✗ {task.id} — исключение: {exc}", file=sys.stderr)
+            record = {
+                "id": task.id,
+                "worker_status": "exception",
+                "codex_status": "exception",
+                "error": str(exc),
+                "response": None,
+                "duration_ms": duration_ms,
+                "usage": None,
+            }
+
+        append_event(
+            run_dir,
+            "worker_done",
+            id=task.id,
+            worker_status=record["worker_status"],
+            duration_ms=record["duration_ms"],
+        )
+        append_jsonl(run_dir / "results.jsonl", record)
+        return record
 
 
-async def _run_fleet(tasks: list[dict], defaults: dict, concurrency: int) -> list[dict]:
+async def _run_fleet(
+    tasks: list[TaskSpec],
+    defaults: dict[str, Any],
+    concurrency: int,
+) -> list[dict[str, Any]]:
     from openai_codex import AsyncCodex, CodexConfig
 
     sem = asyncio.Semaphore(concurrency)
     async with AsyncCodex(CodexConfig(cwd=defaults["cwd"])) as codex:
-        return await asyncio.gather(*(_run_one(codex, sem, t, defaults) for t in tasks))
+        return await asyncio.gather(*(_run_one(codex, sem, task, defaults) for task in tasks))
+
+
+def run_verification(commands: list[str], project: Path, run_dir: Path) -> tuple[str, list[dict[str, Any]]]:
+    if not commands:
+        return "not_requested", []
+
+    results: list[dict[str, Any]] = []
+    status = "passed"
+    for index, command in enumerate(commands, start=1):
+        started = time.monotonic()
+        append_event(run_dir, "verify_start", index=index, command=command)
+        proc = subprocess.run(
+            command,
+            cwd=project,
+            shell=True,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+        item = {
+            "command": command,
+            "exit_code": proc.returncode,
+            "duration_ms": int((time.monotonic() - started) * 1000),
+            "stdout": proc.stdout[-4000:],
+            "stderr": proc.stderr[-4000:],
+        }
+        results.append(item)
+        append_event(run_dir, "verify_done", index=index, exit_code=proc.returncode)
+        if proc.returncode != 0:
+            status = "failed"
+            break
+    return status, results
+
+
+def build_manifest(
+    run_id: str,
+    run_dir: Path,
+    project: Path,
+    tasks: list[TaskSpec],
+    allowlist: set[str],
+    initial_git: GitSnapshot,
+    verify_commands: list[str],
+    concurrency: int,
+    dry_run: bool,
+) -> dict[str, Any]:
+    return {
+        "run_id": run_id,
+        "run_dir": str(run_dir),
+        "created_at": utc_now(),
+        "dry_run": dry_run,
+        "project": str(project),
+        "git": initial_git.to_json(),
+        "concurrency": concurrency,
+        "verify": verify_commands,
+        "allowlist": sorted(allowlist),
+        "tasks": [task.to_json() for task in tasks],
+    }
+
+
+def _load_tasks(args: argparse.Namespace) -> Any:
+    raw = Path(args.tasks).read_text() if args.tasks else sys.stdin.read()
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise UsageError(f"Invalid task JSON: {exc}") from exc
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Флот параллельных Codex-воркеров под оркестрацией Claude.")
-    parser.add_argument("--tasks", help="JSON-файл со списком задач (иначе читается из stdin).")
-    parser.add_argument("--project", default=None, help="Корень проекта = cwd воркеров (по умолчанию текущая папка).")
-    parser.add_argument("--concurrency", type=int, default=6, help="Сколько воркеров одновременно (волны). По умолчанию 6.")
-    parser.add_argument("--model", help="Модель Codex (по умолчанию из ~/.codex/config.toml).")
-    parser.add_argument("--dry-run", action="store_true", help="Показать план задач, НЕ запуская Codex (не тратит кредиты).")
+    parser = argparse.ArgumentParser(description="Guarded fleet of parallel Codex workers under Claude orchestration.")
+    parser.add_argument("--tasks", help="JSON task file (otherwise stdin).")
+    parser.add_argument("--project", default=None, help="Project root = worker cwd (default: current directory).")
+    parser.add_argument("--concurrency", type=int, default=4, help="Concurrent workers. Default: 4.")
+    parser.add_argument("--model", help="Codex model (default from ~/.codex/config.toml).")
+    parser.add_argument("--verify", action="append", default=[], help="Verification command to run after workers and scope check.")
+    parser.add_argument("--run-dir", help="Ledger directory override (default: experiments/codex-bridge/runs/<run_id>).")
+    parser.add_argument("--allow-dirty-overlap", action="store_true", help="Allow launch when existing dirty files overlap task files.")
+    parser.add_argument("--dry-run", action="store_true", help="Validate tasks and write ledger without invoking Codex.")
     args = parser.parse_args()
 
-    import os
-    project = str(Path(args.project or os.getcwd()).expanduser().resolve())
+    project = Path(args.project or os.getcwd()).expanduser().resolve()
 
-    raw = Path(args.tasks).read_text() if args.tasks else sys.stdin.read()
     try:
-        tasks = json.loads(raw)
-    except json.JSONDecodeError as exc:
-        print(f"[orch] невалидный JSON задач: {exc}", file=sys.stderr)
-        return 2
-    if not isinstance(tasks, list) or not tasks:
-        print("[orch] ожидается непустой JSON-массив задач.", file=sys.stderr)
-        return 2
-    bad = [i for i, t in enumerate(tasks) if not isinstance(t, dict) or not t.get("prompt")]
-    if bad:
-        print(f"[orch] задачи без обязательного поля prompt: индексы {bad}", file=sys.stderr)
-        return 2
+        if args.concurrency < 1:
+            raise UsageError("--concurrency must be >= 1.")
+        if not project.is_dir():
+            raise UsageError(f"--project must be an existing directory: {project}")
 
-    defaults = {"cwd": project, "model": args.model}
+        tasks = normalize_tasks(project, _load_tasks(args))
+        allowlist = {path for task in tasks for path in task.files}
+        initial_git = capture_git_snapshot(project, required=not args.dry_run)
+        dirty_overlap = dirty_overlaps(initial_git.dirty_files, allowlist)
+        if dirty_overlap and not args.allow_dirty_overlap:
+            raise UsageError(
+                "Dirty files overlap task files; commit/stage them or pass --allow-dirty-overlap: "
+                + ", ".join(dirty_overlap)
+            )
+
+        run_id, run_dir = prepare_run_dir(args.run_dir)
+        manifest = build_manifest(
+            run_id=run_id,
+            run_dir=run_dir,
+            project=project,
+            tasks=tasks,
+            allowlist=allowlist,
+            initial_git=initial_git,
+            verify_commands=args.verify,
+            concurrency=args.concurrency,
+            dry_run=args.dry_run,
+        )
+        write_json(run_dir / "manifest.json", manifest)
+        append_event(run_dir, "validated", task_count=len(tasks), dry_run=args.dry_run)
+    except OSError as exc:
+        print(f"[orch] filesystem error: {exc}", file=sys.stderr)
+        return 1
+    except UsageError as exc:
+        print(f"[orch] {exc}", file=sys.stderr)
+        return 2
 
     if args.dry_run:
-        print(f"[orch dry-run] {len(tasks)} задач, concurrency={args.concurrency}, project={project}", file=sys.stderr)
-        for t in tasks:
-            print(f"  - {t.get('id', '?')}: {t['prompt'][:80].strip()}…  files={t.get('files')}", file=sys.stderr)
+        payload = {
+            "run_id": run_id,
+            "run_dir": str(run_dir),
+            "dry_run": True,
+            "git": initial_git.to_json(),
+            "tasks": [task.to_json() for task in tasks],
+        }
+        write_json(run_dir / "result.json", payload)
+        print(f"[orch dry-run] {len(tasks)} tasks, concurrency={args.concurrency}, run_dir={run_dir}", file=sys.stderr)
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
         return 0
 
     removed = scrub_billing_env()
-    print(f"[orch] старт: {len(tasks)} задач, лимит {args.concurrency} одновременно, project={project}"
-          + (f" | вырезано из env: {', '.join(removed)}" if removed else " | env чист"), file=sys.stderr)
+    print(
+        f"[orch] старт: {len(tasks)} задач, лимит {args.concurrency}, project={project}, run_dir={run_dir}"
+        + (f" | вырезано из env: {', '.join(removed)}" if removed else " | env чист"),
+        file=sys.stderr,
+    )
+    append_event(run_dir, "codex_start", task_count=len(tasks))
 
+    defaults = {"cwd": str(project), "model": args.model, "run_dir": run_dir}
     results = asyncio.run(_run_fleet(tasks, defaults, args.concurrency))
 
-    ok = sum(1 for r in results if r.get("ok"))
-    print(f"[orch] готово: {ok}/{len(results)} успешно", file=sys.stderr)
-    print(json.dumps(results, ensure_ascii=False, indent=2))
-    return 0 if ok == len(results) else 1
+    worker_status = "completed" if all(r["worker_status"] == "completed" for r in results) else "failed"
+    after_git = capture_git_snapshot(project, required=True)
+    scope = compare_scope(initial_git, after_git, allowlist)
+    scope_status = "passed" if scope.passed else "failed"
+    append_event(
+        run_dir,
+        "scope_done",
+        scope_status=scope_status,
+        changed_files=list(scope.changed_files),
+        out_of_scope_files=list(scope.out_of_scope_files),
+        git_head_changed=scope.head_changed,
+    )
+
+    if worker_status == "completed" and scope_status == "passed":
+        verification_status, verification_results = run_verification(args.verify, project, run_dir)
+    elif args.verify:
+        verification_status, verification_results = "skipped", []
+    else:
+        verification_status, verification_results = "not_requested", []
+
+    ok = (
+        worker_status == "completed"
+        and scope_status == "passed"
+        and verification_status in {"passed", "not_requested"}
+    )
+    payload = {
+        "run_id": run_id,
+        "run_dir": str(run_dir),
+        "ok": ok,
+        "fully_verified": verification_status == "passed",
+        "worker_status": worker_status,
+        "scope_status": scope_status,
+        "verification_status": verification_status,
+        "postflight_changed_files": list(scope.changed_files),
+        "out_of_scope_files": list(scope.out_of_scope_files),
+        "git_head_changed": scope.head_changed,
+        "git": {"initial": initial_git.to_json(), "after": after_git.to_json()},
+        "results": results,
+        "verification_results": verification_results,
+    }
+    write_json(run_dir / "result.json", payload)
+    append_event(
+        run_dir,
+        "done",
+        ok=ok,
+        worker_status=worker_status,
+        scope_status=scope_status,
+        verification_status=verification_status,
+    )
+
+    print(
+        f"[orch] готово: worker={worker_status} scope={scope_status} "
+        f"verify={verification_status} ok={ok}",
+        file=sys.stderr,
+    )
+    print(json.dumps(payload, ensure_ascii=False, indent=2))
+    return 0 if ok else 1
 
 
 if __name__ == "__main__":

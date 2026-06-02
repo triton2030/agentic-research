@@ -8,10 +8,10 @@
 - **Ревьюер / консультант** (`codex_review.py`) — read-only. Codex видит весь
   проект и транскрипт текущей сессии Claude, но ничего не пишет. Даёт стороннее
   ревью хода работы или отвечает на свободный вопрос.
-- **Флот воркеров** (`codex_orchestrate.py`) — workspace-write. Claude как
-  оркестратор раздаёт file-disjoint задачи, скрипт гонит N Codex параллельно
-  (`AsyncCodex` + лимит concurrency) и собирает сводку. Каждый воркер
-  редактирует свои файлы.
+- **Флот воркеров** (`codex_orchestrate.py`) — guarded shared-worktree
+  workspace-write. Claude как оркестратор раздаёт file-disjoint задачи, backend
+  валидирует контракт до запуска Codex, гонит N Codex параллельно (`AsyncCodex`
+  + лимит concurrency), пишет run ledger и проверяет aggregate postflight scope.
 
 Управляется глобальным скиллом **`1codex`** (`~/.claude/skills/1codex/`).
 
@@ -63,30 +63,49 @@ SDK тянет собственный пиннутый бинарь `codex`; о�
 echo '[
   {"id":"f1","prompt":"Перепиши краткое описание вверху файла короче и яснее","files":["docs/a.md"]},
   {"id":"f2","prompt":"То же для второго файла","files":["docs/b.md"]}
-]' | .venv/bin/python codex_orchestrate.py --concurrency 6 --project "$PWD"
+]' | .venv/bin/python codex_orchestrate.py --concurrency 4 --project "$PWD"
 
 # или из файла:
 .venv/bin/python codex_orchestrate.py --tasks tasks.json --project "$PWD"
-#   --dry-run   показать план задач без запуска
+#   --dry-run               validate + ledger без запуска Codex
+#   --verify "pytest ..."   команда проверки после workers и scope-check
 ```
 
-Вход — JSON-массив задач (`prompt` обязателен; `id`, `files`, `cwd` —
-опционально). `files` добавляется в промпт как жёсткое «правь только эти файлы».
-Выход в stdout — JSON-массив результатов (`id`, `ok`, `status`, `error`,
-`response`, `duration_ms`, `usage`). Код возврата `0` только если все задачи `ok`.
+Вход — JSON-массив задач. `prompt` и `files` обязательны; `id` опционален;
+`allow_create: true` разрешает создание отсутствующего файла. `cwd` в задаче
+больше не поддерживается: все воркеры запускаются из `--project`. Unknown keys,
+не-bool `allow_create`, не-string `id`, absolute paths, `..`, пустые `files`,
+overlap между задачами и `concurrency < 1` падают до импорта Codex и до любых
+трат.
+
+Выход в stdout — JSON object с `run_id`, `run_dir`, `worker_status`,
+`scope_status`, `verification_status`, `fully_verified`, `ok`, списком
+результатов и postflight changed files. Ledger пишется в свежий `runs/<run_id>/`
+(`manifest.json`, `events.jsonl`, `results.jsonl`, `result.json`) или в свежий
+`--run-dir PATH`; существующий каталог считается ошибкой.
 
 ### Контракт оркестрации (обязателен)
 
-- **File-disjoint.** Два воркера не должны править один файл — иначе гонки и
-  потеря правок. Оркестратор (Claude) обязан резать работу по файлам.
-- **Git — сеть безопасности.** Застейдж/закоммить до запуска флота, чтобы любой
-  результат можно было откатить.
-- **Не верь самоотчётам.** После флота оркестратор перепроверяет результат:
-  `git diff`, тесты, или проход `codex_review.py` по изменениям. «Воркер сказал
-  готово» — не доказательство.
+- **File-disjoint enforced.** Backend нормализует `files` и reject-ит overlap
+  до запуска Codex. `files` — exact file paths, не directory/prefix scopes.
+- **Git safety fail-closed.** Реальный write-run требует рабочий git worktree.
+  `--dry-run` может работать вне git, но помечает `git.available=false`.
+- **Dirty-overlap gate + fingerprint snapshot.** По умолчанию запуск блокируется,
+  если текущие dirty files пересекаются с `files` задач. Override:
+  `--allow-dirty-overlap`. Все initial dirty files fingerprint-ятся; если
+  воркер меняет любой non-allowlisted dirty file, `scope_status=failed`.
+- **Scope-check после запуска.** Изменённые path fingerprints и смена `HEAD`
+  проверяются после workers; changed files должны входить в union declared
+  `files`, иначе `scope_status=failed`.
+- **Verification отдельно.** `worker_status=completed` не равно done.
+  `--verify CMD` даёт `verification_status=passed`; без verify статус
+  `not_requested`, а `fully_verified=false`.
+- **Shared-worktree limitation.** Этот режим не доказывает, какой именно worker
+  изменил файл. Worktree isolation и patch reducer — следующий слой, не v1.
 
 ## Статус
 
-v1, проверено на этой машине: read-only ревью, headless-запись воркера и
-параллельный флот (3/3, реальная параллельность) работают через аккаунт-биллинг.
-Пути в скилле `1codex` абсолютные и привязаны к расположению этого репо.
+v1 hardening: read-only reviewer сохранён; write-fleet стал guarded
+shared-worktree orchestrator с strict schema, git snapshot scope-check, ledger и
+no-spend тестами. Пути в скилле `1codex` абсолютные и привязаны к расположению
+этого репо.

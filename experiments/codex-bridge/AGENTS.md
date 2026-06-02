@@ -13,21 +13,35 @@
 - **Биллинг через аккаунт.** `cbcommon.scrub_billing_env()` вызывается ДО запуска
   любого codex-процесса. Не убирай и не обходи — это защита от ухода на платный
   API. Любой новый вход (скрипт/режим) обязан звать его первым.
-- **Ревьюер пишать не должен.** `codex_review.py` — всегда `Sandbox.read_only` +
+- **Ревьюер писать не должен.** `codex_review.py` — всегда `Sandbox.read_only` +
   `ApprovalMode.deny_all`.
+- **Backend владеет safety.** `codex_orchestrate.py` — не thin launcher, а
+  entrypoint guarded shared-worktree orchestrator. Runtime safety живёт в backend:
+  strict schema/preflight до импорта Codex, exact file allowlist, git fail-closed
+  для real run, dirty fingerprint snapshot, run ledger, aggregate postflight
+  allowlist и optional verification. Skill `1codex` — router/operator guide, не
+  источник runtime enforcement.
 - **Воркер пишет под контрактом.** `codex_orchestrate.py` — `workspace_write` +
-  `auto_review`; file-disjoint задачи, git как откат, перепроверка результатов.
-  Контракт описан в `README.md`, продублирован в скилле и в промпте воркера.
+  `auto_review`; `files` обязательны и enforced preflight/postflight. Shared
+  worktree не доказывает per-worker attribution; worktree isolation остаётся
+  Stage 2.
 
 ## Карта файлов
 
 - `cbcommon.py` — общая биллинг-гигиена (одна правда).
 - `codex_review.py` — ревьюер/консультант, поиск и рендер транскрипта Claude.
-- `codex_orchestrate.py` — асинхронный пул воркеров (`AsyncCodex` + semaphore).
-- `requirements.txt` — `openai-codex`. venv в `.venv/` (git-ignored).
+- `codex_orchestrate.py` — entrypoint/runner для guarded shared-worktree пула
+  воркеров (`AsyncCodex` + semaphore).
+- `codex_orchestrate_contract.py` — pure schema/path/status contract:
+  обязательные `prompt`/`files`, exact file allowlist, overlap и status mapping.
+- `codex_orchestrate_state.py` — git snapshot/scope-check и ledger primitives.
+- `requirements.txt` — pinned `openai-codex` SDK + bundled CLI bin. venv в
+  `.venv/` (git-ignored).
 
 ## Проверка
 
-`--dry-run` есть у обоих скриптов — гоняет рендер/план без трат. Реальные
-прогоны тратят кредиты аккаунта; тестируй на временных подпапках (`_ftest/`,
-`_wtest/` — git-ignored) и чисти за собой.
+`--dry-run` есть у обоих скриптов — гоняет рендер/план без трат. Для оркестрации
+запускай `python -m unittest discover experiments/codex-bridge/tests` и
+`python -m py_compile experiments/codex-bridge/*.py`. Реальные прогоны тратят
+кредиты аккаунта; тестируй на временных подпапках (`_ftest/`, `_wtest/` —
+git-ignored) и чисти за собой.
