@@ -13,6 +13,13 @@ from pathlib import Path
 from typing import Any
 
 from cbcommon import scrub_billing_env
+from codex_defaults import (
+    DEFAULT_CODEX_EFFORT,
+    DEFAULT_CODEX_MODEL,
+    REASONING_EFFORTS,
+    WORKER_APPROVAL_MODE,
+    WORKER_SANDBOX,
+)
 from codex_orchestrate_contract import (
     TaskSpec,
     UsageError,
@@ -44,9 +51,11 @@ def _files_constraint(files: tuple[str, ...]) -> str:
 
 async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict[str, Any]:
     from openai_codex import ApprovalMode, Sandbox  # импорт после scrub_billing_env
+    from openai_codex.generated.v2_all import ReasoningEffort
 
     prompt = _files_constraint(task.files) + task.prompt
     run_dir: Path = defaults["run_dir"]
+    effort = ReasoningEffort(defaults["effort"])
 
     async with sem:
         t0 = time.monotonic()
@@ -58,7 +67,13 @@ async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict
                 approval_mode=ApprovalMode.auto_review,
                 model=defaults["model"],
             )
-            result = await thread.run(prompt)
+            result = await thread.run(
+                prompt,
+                approval_mode=ApprovalMode.auto_review,
+                effort=effort,
+                model=defaults["model"],
+                sandbox=Sandbox.workspace_write,
+            )
             duration_ms = int((time.monotonic() - t0) * 1000)
             codex_status = codex_status_value(getattr(result, "status", ""))
             worker_status = worker_status_from_codex_status(codex_status, result.error)
@@ -156,6 +171,7 @@ def build_manifest(
     verify_commands: list[str],
     concurrency: int,
     dry_run: bool,
+    codex_runtime: dict[str, Any],
 ) -> dict[str, Any]:
     return {
         "run_id": run_id,
@@ -165,6 +181,7 @@ def build_manifest(
         "project": str(project),
         "git": initial_git.to_json(),
         "concurrency": concurrency,
+        "codex": codex_runtime,
         "verify": verify_commands,
         "allowlist": sorted(allowlist),
         "tasks": [task.to_json() for task in tasks],
@@ -184,7 +201,13 @@ def main() -> int:
     parser.add_argument("--tasks", help="JSON task file (otherwise stdin).")
     parser.add_argument("--project", default=None, help="Project root = worker cwd (default: current directory).")
     parser.add_argument("--concurrency", type=int, default=4, help="Concurrent workers. Default: 4.")
-    parser.add_argument("--model", help="Codex model (default from ~/.codex/config.toml).")
+    parser.add_argument("--model", default=DEFAULT_CODEX_MODEL, help=f"Codex model. Default: {DEFAULT_CODEX_MODEL}.")
+    parser.add_argument(
+        "--effort",
+        choices=REASONING_EFFORTS,
+        default=DEFAULT_CODEX_EFFORT,
+        help=f"Reasoning effort for every Codex turn. Default: {DEFAULT_CODEX_EFFORT}.",
+    )
     parser.add_argument("--verify", action="append", default=[], help="Verification command to run after workers and scope check.")
     parser.add_argument("--run-dir", help="Ledger directory override (default: experiments/codex-bridge/runs/<run_id>).")
     parser.add_argument("--allow-dirty-overlap", action="store_true", help="Allow launch when existing dirty files overlap task files.")
@@ -209,6 +232,12 @@ def main() -> int:
                 + ", ".join(dirty_overlap)
             )
 
+        codex_runtime = {
+            "model": args.model,
+            "effort": args.effort,
+            "worker_sandbox": WORKER_SANDBOX,
+            "worker_approval_mode": WORKER_APPROVAL_MODE,
+        }
         run_id, run_dir = prepare_run_dir(args.run_dir)
         manifest = build_manifest(
             run_id=run_id,
@@ -220,6 +249,7 @@ def main() -> int:
             verify_commands=args.verify,
             concurrency=args.concurrency,
             dry_run=args.dry_run,
+            codex_runtime=codex_runtime,
         )
         write_json(run_dir / "manifest.json", manifest)
         append_event(run_dir, "validated", task_count=len(tasks), dry_run=args.dry_run)
@@ -235,6 +265,7 @@ def main() -> int:
             "run_id": run_id,
             "run_dir": str(run_dir),
             "dry_run": True,
+            "codex": codex_runtime,
             "git": initial_git.to_json(),
             "tasks": [task.to_json() for task in tasks],
         }
@@ -245,13 +276,15 @@ def main() -> int:
 
     removed = scrub_billing_env()
     print(
-        f"[orch] старт: {len(tasks)} задач, лимит {args.concurrency}, project={project}, run_dir={run_dir}"
+        f"[orch] старт: {len(tasks)} задач, лимит {args.concurrency}, project={project}, "
+        f"run_dir={run_dir}, model={args.model}, effort={args.effort}, "
+        f"sandbox={WORKER_SANDBOX}, approval={WORKER_APPROVAL_MODE}"
         + (f" | вырезано из env: {', '.join(removed)}" if removed else " | env чист"),
         file=sys.stderr,
     )
     append_event(run_dir, "codex_start", task_count=len(tasks))
 
-    defaults = {"cwd": str(project), "model": args.model, "run_dir": run_dir}
+    defaults = {"cwd": str(project), "model": args.model, "effort": args.effort, "run_dir": run_dir}
     results = asyncio.run(_run_fleet(tasks, defaults, args.concurrency))
 
     worker_status = "completed" if all(r["worker_status"] == "completed" for r in results) else "failed"
@@ -284,6 +317,7 @@ def main() -> int:
         "run_dir": str(run_dir),
         "ok": ok,
         "fully_verified": verification_status == "passed",
+        "codex": codex_runtime,
         "worker_status": worker_status,
         "scope_status": scope_status,
         "verification_status": verification_status,

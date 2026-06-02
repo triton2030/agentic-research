@@ -15,6 +15,23 @@
 
 Управляется глобальным скиллом **`1codex`** (`~/.claude/skills/1codex/`).
 
+## Модель и runtime-доступ
+
+Backend явно закрепляет Codex turn defaults: `model=gpt-5.5`,
+`effort=xhigh` (Extra High). Это больше не зависит от текущего
+`~/.codex/config.toml`; флаги `--model` и `--effort` остаются только для
+осознанного override.
+
+Permissions тоже задаются backend-ом явно:
+
+- reviewer: `Sandbox.read_only` + `ApprovalMode.deny_all`;
+- write-fleet: `Sandbox.workspace_write` + `ApprovalMode.auto_review`.
+
+`Sandbox.full_access` не является default: он может менять файлы вне git/project
+scope, а значит backend не сможет честно доказать postflight allowlist. Максимум
+для v1 — свободная работа внутри workspace-write под declared `files`,
+dirty-gate, ledger и scope-check.
+
 ## Биллинг: только ChatGPT-аккаунт, не API
 
 Оба скрипта перед запуском дочернего codex-процесса вырезают из окружения
@@ -47,6 +64,8 @@ SDK тянет собственный пиннутый бинарь `codex`; о�
 # Полезные флаги:
 #   --project PATH        корень проекта (по умолчанию cwd)
 #   --transcript FILE     явный .jsonl (по умолчанию — текущая сессия)
+#   --model gpt-5.5       default закреплён backend-ом
+#   --effort xhigh        Extra High reasoning по умолчанию
 #   --include-thinking    добавить блоки размышлений Claude
 #   --max-chars N         бюджет транскрипта (хвост сохраняется)
 #   --dry-run             собрать промпт без вызова Codex (бесплатно)
@@ -68,6 +87,8 @@ echo '[
 # или из файла:
 .venv/bin/python codex_orchestrate.py --tasks tasks.json --project "$PWD"
 #   --dry-run               validate + ledger без запуска Codex
+#   --model gpt-5.5          default закреплён backend-ом
+#   --effort xhigh           Extra High reasoning по умолчанию
 #   --verify "pytest ..."   команда проверки после workers и scope-check
 ```
 
@@ -78,7 +99,7 @@ echo '[
 overlap между задачами и `concurrency < 1` падают до импорта Codex и до любых
 трат.
 
-Выход в stdout — JSON object с `run_id`, `run_dir`, `worker_status`,
+Выход в stdout — JSON object с `run_id`, `run_dir`, `codex`, `worker_status`,
 `scope_status`, `verification_status`, `fully_verified`, `ok`, списком
 результатов и postflight changed files. Ledger пишется в свежий `runs/<run_id>/`
 (`manifest.json`, `events.jsonl`, `results.jsonl`, `result.json`) или в свежий

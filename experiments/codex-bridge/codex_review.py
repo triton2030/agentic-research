@@ -29,6 +29,13 @@ import sys
 from pathlib import Path
 
 from cbcommon import scrub_billing_env
+from codex_defaults import (
+    DEFAULT_CODEX_EFFORT,
+    DEFAULT_CODEX_MODEL,
+    REASONING_EFFORTS,
+    REVIEW_APPROVAL_MODE,
+    REVIEW_SANDBOX,
+)
 
 CLAUDE_PROJECTS = Path.home() / ".claude" / "projects"
 
@@ -162,7 +169,13 @@ def main() -> int:
     parser.add_argument("--question", help="Вопрос для режима ask.")
     parser.add_argument("--project", default=os.getcwd(), help="Корень проекта (по умолчанию cwd).")
     parser.add_argument("--transcript", help="Путь к .jsonl транскрипту (по умолчанию — автопоиск текущей сессии).")
-    parser.add_argument("--model", help="Модель Codex (по умолчанию из ~/.codex/config.toml, обычно gpt-5.5).")
+    parser.add_argument("--model", default=DEFAULT_CODEX_MODEL, help=f"Модель Codex (default: {DEFAULT_CODEX_MODEL}).")
+    parser.add_argument(
+        "--effort",
+        choices=REASONING_EFFORTS,
+        default=DEFAULT_CODEX_EFFORT,
+        help=f"Reasoning effort для Codex turn (default: {DEFAULT_CODEX_EFFORT}).",
+    )
     parser.add_argument("--include-thinking", action="store_true", help="Включить блоки размышлений Claude в транскрипт.")
     parser.add_argument("--max-chars", type=int, default=200_000, help="Бюджет транскрипта; при превышении остаётся свежий хвост.")
     parser.add_argument("--dry-run", action="store_true", help="Собрать промпт и вывести его, НЕ вызывая Codex (не тратит кредиты).")
@@ -193,7 +206,9 @@ def main() -> int:
 
     if args.dry_run:
         print(f"[codex-bridge dry-run] транскрипт={transcript_path.name} "
-              f"промпт={len(prompt)} симв. режим={args.mode}", file=sys.stderr)
+              f"промпт={len(prompt)} симв. режим={args.mode} "
+              f"model={args.model} effort={args.effort} "
+              f"sandbox={REVIEW_SANDBOX} approval={REVIEW_APPROVAL_MODE}", file=sys.stderr)
         print(prompt)
         return 0
 
@@ -202,6 +217,7 @@ def main() -> int:
 
     try:
         from openai_codex import ApprovalMode, Codex, CodexConfig, Sandbox
+        from openai_codex.generated.v2_all import ReasoningEffort
     except ImportError:
         print(
             "Пакет openai-codex не установлен. Активируй venv: "
@@ -212,7 +228,9 @@ def main() -> int:
 
     print(
         f"[codex-bridge] режим={args.mode} транскрипт={transcript_path.name} "
-        f"({len(transcript_md)} симв.) project={project_cwd}"
+        f"({len(transcript_md)} симв.) project={project_cwd} "
+        f"model={args.model} effort={args.effort} "
+        f"sandbox={REVIEW_SANDBOX} approval={REVIEW_APPROVAL_MODE}"
         + (f" | вырезаны из env: {', '.join(removed)}" if removed else " | env чист"),
         file=sys.stderr,
     )
@@ -226,7 +244,13 @@ def main() -> int:
                 approval_mode=ApprovalMode.deny_all,
                 model=args.model,
             )
-            result = thread.run(prompt)
+            result = thread.run(
+                prompt,
+                model=args.model,
+                effort=ReasoningEffort(args.effort),
+                sandbox=Sandbox.read_only,
+                approval_mode=ApprovalMode.deny_all,
+            )
     except Exception as exc:  # noqa: BLE001 — показать пользователю причину как есть
         print(f"[codex-bridge] ошибка вызова Codex: {exc}", file=sys.stderr)
         return 1

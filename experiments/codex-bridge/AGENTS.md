@@ -13,8 +13,13 @@
 - **Биллинг через аккаунт.** `cbcommon.scrub_billing_env()` вызывается ДО запуска
   любого codex-процесса. Не убирай и не обходи — это защита от ухода на платный
   API. Любой новый вход (скрипт/режим) обязан звать его первым.
+- **Модель фиксируется backend-ом.** Default для всех Codex turns:
+  `model=gpt-5.5`, `effort=xhigh` (Extra High). Не полагайся только на
+  `~/.codex/config.toml`; если добавляешь новый вход, используй
+  `codex_defaults.py` и передавай model/effort в `thread.run`.
 - **Ревьюер писать не должен.** `codex_review.py` — всегда `Sandbox.read_only` +
-  `ApprovalMode.deny_all`.
+  `ApprovalMode.deny_all`, даже если пользователь просит "максимальные"
+  permissions.
 - **Backend владеет safety.** `codex_orchestrate.py` — не thin launcher, а
   entrypoint guarded shared-worktree orchestrator. Runtime safety живёт в backend:
   strict schema/preflight до импорта Codex, exact file allowlist, git fail-closed
@@ -22,13 +27,16 @@
   allowlist и optional verification. Skill `1codex` — router/operator guide, не
   источник runtime enforcement.
 - **Воркер пишет под контрактом.** `codex_orchestrate.py` — `workspace_write` +
-  `auto_review`; `files` обязательны и enforced preflight/postflight. Shared
-  worktree не доказывает per-worker attribution; worktree isolation остаётся
-  Stage 2.
+  `auto_review`; `files` обязательны и enforced preflight/postflight. Не ставь
+  `Sandbox.full_access` default-ом: изменения вне project/git scope нельзя
+  честно проверить postflight allowlist. Shared worktree не доказывает
+  per-worker attribution; worktree isolation остаётся Stage 2.
 
 ## Карта файлов
 
 - `cbcommon.py` — общая биллинг-гигиена (одна правда).
+- `codex_defaults.py` — общий runtime default: `gpt-5.5`, `xhigh`, sandbox и
+  approval labels для ledger/docs.
 - `codex_review.py` — ревьюер/консультант, поиск и рендер транскрипта Claude.
 - `codex_orchestrate.py` — entrypoint/runner для guarded shared-worktree пула
   воркеров (`AsyncCodex` + semaphore).

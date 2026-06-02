@@ -81,6 +81,35 @@ class CodexOrchestrateCliTests(unittest.TestCase):
             self.assertTrue(payload["dry_run"])
             self.assertFalse(payload["git"]["available"])
             self.assertEqual(payload["tasks"][0]["files"], ["a.md"])
+            self.assertEqual(payload["codex"]["model"], "gpt-5.5")
+            self.assertEqual(payload["codex"]["effort"], "xhigh")
+            self.assertEqual(payload["codex"]["worker_sandbox"], "workspace_write")
+            self.assertEqual(payload["codex"]["worker_approval_mode"], "auto_review")
+
+    def test_model_and_effort_overrides_are_recorded(self) -> None:
+        with self.temp_project() as tmp:
+            root = Path(tmp)
+            self.write(root, "a.md")
+            proc = run_cli(
+                root,
+                [{"prompt": "x", "files": ["a.md"]}],
+                "--model",
+                "gpt-5.4",
+                "--effort",
+                "high",
+            )
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            payload = json.loads(proc.stdout)
+            self.assertEqual(payload["codex"]["model"], "gpt-5.4")
+            self.assertEqual(payload["codex"]["effort"], "high")
+
+    def test_invalid_effort_rejected_before_codex(self) -> None:
+        with self.temp_project() as tmp:
+            root = Path(tmp)
+            self.write(root, "a.md")
+            proc = run_cli(root, [{"prompt": "x", "files": ["a.md"]}], "--effort", "extreme")
+            self.assertEqual(proc.returncode, 2)
+            self.assertIn("invalid choice", proc.stderr)
 
     def test_overlapping_files_rejected(self) -> None:
         with self.temp_project() as tmp:
