@@ -197,5 +197,5 @@ def wrap(
     if result is None:
         return {"_envelope": envelope}
     if not isinstance(result, dict):
-        return {"value": result, "_envelope": envelope}
-    return {**result, "_envelope": envelope}
+        return {"_envelope": envelope, "value": result}
+    return {"_envelope": envelope, **result}

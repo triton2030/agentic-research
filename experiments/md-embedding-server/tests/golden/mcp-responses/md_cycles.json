@@ -7,10 +7,6 @@
   },
   "is_error": false,
   "payload": {
-    "command": "cycles",
-    "targets": 5,
-    "cycles": [],
-    "has_blockers": false,
     "_envelope": {
       "version": 1,
       "tool": "md_cycles",
@@ -22,10 +18,13 @@
         "session_usd": "__VOLATILE__"
       },
       "size_estimate": {
-        "bytes": 65,
+        "bytes": 49,
         "items_returned": 0
       },
       "next_step": []
-    }
+    },
+    "command": "cycles",
+    "targets": 5,
+    "cycles": []
   }
 }

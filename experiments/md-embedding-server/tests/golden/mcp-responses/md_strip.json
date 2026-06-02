@@ -8,28 +8,44 @@
   },
   "is_error": false,
   "payload": {
-    "dry_run": true,
-    "files_to_modify": [],
-    "file_count": 0,
-    "also_related_section": false,
-    "issues_total": 10,
-    "note": "Frontmatter-only strip. Pass also_related_section:true to also remove related-docs body sections.",
-    "hint": "No legacy fields found — nothing to strip.",
     "_envelope": {
       "version": 1,
       "tool": "md_strip",
       "corpus_root": null,
       "corpus_state": null,
-      "lock": null,
+      "lock": {
+        "transaction_id": "__VOLATILE__",
+        "expires_at": "__VOLATILE__",
+        "fingerprint": "__VOLATILE__"
+      },
       "cost": {
         "turn_usd": "__VOLATILE__",
         "session_usd": "__VOLATILE__"
       },
       "size_estimate": {
-        "bytes": 258,
+        "bytes": 136,
         "items_returned": 0
       },
-      "next_step": []
-    }
+      "next_step": [
+        {
+          "tool": "md_strip",
+          "args": {
+            "paths": [
+              "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents"
+            ],
+            "confirm": true,
+            "transaction_id": "__VOLATILE__"
+          },
+          "reason": "Apply the dry-run plan with the matching transaction_id."
+        }
+      ]
+    },
+    "command": "strip",
+    "dry_run": true,
+    "files_to_modify": [],
+    "file_count": 0,
+    "also_related_section": false,
+    "changes": [],
+    "files": []
   }
 }

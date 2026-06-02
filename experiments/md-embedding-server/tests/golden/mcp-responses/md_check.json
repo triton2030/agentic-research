@@ -7,10 +7,6 @@
   },
   "is_error": false,
   "payload": {
-    "command": "check",
-    "targets": 5,
-    "issues": [],
-    "has_blockers": false,
     "_envelope": {
       "version": 1,
       "tool": "md_check",
@@ -22,10 +18,13 @@
         "session_usd": "__VOLATILE__"
       },
       "size_estimate": {
-        "bytes": 64,
+        "bytes": 48,
         "items_returned": 0
       },
       "next_step": []
-    }
+    },
+    "command": "check",
+    "targets": 5,
+    "issues": []
   }
 }

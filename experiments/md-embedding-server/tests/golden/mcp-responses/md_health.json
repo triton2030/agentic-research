@@ -7,6 +7,28 @@
   },
   "is_error": false,
   "payload": {
+    "_envelope": {
+      "version": 1,
+      "tool": "md_health",
+      "corpus_root": null,
+      "corpus_state": null,
+      "lock": null,
+      "cost": {
+        "turn_usd": "__VOLATILE__",
+        "session_usd": "__VOLATILE__"
+      },
+      "size_estimate": {
+        "bytes": 1493,
+        "items_returned": 5,
+        "counted_fields": [
+          {
+            "field": "orphans",
+            "count": 5
+          }
+        ]
+      },
+      "next_step": []
+    },
     "command": "health",
     "targets": 5,
     "description_coverage": {
@@ -46,28 +68,6 @@
     ],
     "hubs": [],
     "cycles": [],
-    "exit_code": 0,
-    "_envelope": {
-      "version": 1,
-      "tool": "md_health",
-      "corpus_root": null,
-      "corpus_state": null,
-      "lock": null,
-      "cost": {
-        "turn_usd": "__VOLATILE__",
-        "session_usd": "__VOLATILE__"
-      },
-      "size_estimate": {
-        "bytes": 1437,
-        "items_returned": 5,
-        "counted_fields": [
-          {
-            "field": "orphans",
-            "count": 5
-          }
-        ]
-      },
-      "next_step": []
-    }
+    "cycles_count": 0
   }
 }

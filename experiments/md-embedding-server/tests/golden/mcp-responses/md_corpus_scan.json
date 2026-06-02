@@ -5,25 +5,47 @@
   },
   "is_error": false,
   "payload": {
+    "_envelope": {
+      "version": 1,
+      "tool": "md_corpus_scan",
+      "corpus_root": null,
+      "corpus_state": null,
+      "lock": null,
+      "cost": {
+        "turn_usd": "__VOLATILE__",
+        "session_usd": "__VOLATILE__"
+      },
+      "size_estimate": {
+        "bytes": 1069,
+        "items_returned": 3,
+        "counted_fields": [
+          {
+            "field": "corpora",
+            "count": 3
+          }
+        ]
+      },
+      "next_step": []
+    },
     "repo_root": "/Users/triton/Documents/GitHub/agentic-research",
     "corpora": [
       {
         "root": "/Users/triton/Documents/GitHub/agentic-research",
         "index_path": "/Users/triton/Documents/GitHub/agentic-research/.md-navigator/index.sqlite",
         "last_touched": "__VOLATILE__",
-        "index_size_bytes": 21520384
+        "index_size_bytes": 31199232
       },
       {
         "root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
         "index_path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/.md-navigator/index.sqlite",
         "last_touched": "__VOLATILE__",
-        "index_size_bytes": 9621504
+        "index_size_bytes": 9883648
       },
       {
         "root": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents",
         "index_path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/.md-navigator/index.sqlite",
         "last_touched": "__VOLATILE__",
-        "index_size_bytes": 4468736
+        "index_size_bytes": 4534272
       }
     ],
     "unindexed_with_md": [],
@@ -49,28 +71,6 @@
       "runs",
       "target",
       "venv"
-    ],
-    "_envelope": {
-      "version": 1,
-      "tool": "md_corpus_scan",
-      "corpus_root": null,
-      "corpus_state": null,
-      "lock": null,
-      "cost": {
-        "turn_usd": "__VOLATILE__",
-        "session_usd": "__VOLATILE__"
-      },
-      "size_estimate": {
-        "bytes": 1046,
-        "items_returned": 3,
-        "counted_fields": [
-          {
-            "field": "corpora",
-            "count": 3
-          }
-        ]
-      },
-      "next_step": []
-    }
+    ]
   }
 }

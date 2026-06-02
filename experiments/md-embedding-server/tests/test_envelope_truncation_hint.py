@@ -22,6 +22,13 @@ def _padding(target_bytes: int) -> str:
     return "x" * (target_bytes + 200)
 
 
+def _assert_shell_filter_guard(reason: str) -> None:
+    assert "compact UTF-8 JSON" in reason
+    assert "python3 -m json.tool" in reason
+    assert "head -N" in reason
+    assert "next_step.args" in reason
+
+
 def test_large_search_reply_adds_limit_narrowing_hint() -> None:
     big_results = [{"snippet": _padding(LARGE_REPLY_BYTES // 5)} for _ in range(5)]
     envelope = wrap(
@@ -39,6 +46,7 @@ def test_large_search_reply_adds_limit_narrowing_hint() -> None:
     assert "top" not in step["args"]
     assert "Try --limit 5" in step["reason"]
     assert "descriptions" in step["reason"]
+    _assert_shell_filter_guard(step["reason"])
 
 
 def test_large_search_read_reply_recommends_existing_narrowing_args() -> None:
@@ -57,6 +65,7 @@ def test_large_search_read_reply_recommends_existing_narrowing_args() -> None:
     assert "top" not in step["args"]
     assert "read_next" in step["reason"]
     assert "--no-body" not in step["reason"]
+    _assert_shell_filter_guard(step["reason"])
 
 
 def test_large_repeated_concepts_reply_recommends_path_include() -> None:
@@ -71,6 +80,7 @@ def test_large_repeated_concepts_reply_recommends_path_include() -> None:
     assert step["tool"] == "md_repeated_concepts"
     assert step["args"]["top"] == 10
     assert "--path-include" in step["reason"]
+    _assert_shell_filter_guard(step["reason"])
 
 
 def test_large_overlaps_reply_does_not_widen_top() -> None:
@@ -88,6 +98,7 @@ def test_large_overlaps_reply_does_not_widen_top() -> None:
     assert step["tool"] == "md_overlaps"
     assert step["args"]["top"] == 5
     assert "raise --threshold" in step["reason"]
+    _assert_shell_filter_guard(step["reason"])
 
 
 def test_small_reply_keeps_next_step_empty() -> None:

@@ -60,6 +60,8 @@ def _action_to_argv(action: dict[str, Any]) -> list[str]:
     assert tool is not None, f"unknown generated tool: {action['tool']}"
     args = dict(action.get("args") or {})
     known = set(tool.input_schema.get("properties") or {})
+    if tool.transaction_required:
+        known.add("transaction_id")
     unknown = set(args) - known
     assert not unknown, f"{tool.name} generated unknown args: {sorted(unknown)}"
 

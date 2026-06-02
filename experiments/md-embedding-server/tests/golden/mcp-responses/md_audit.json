@@ -5,6 +5,44 @@
   },
   "is_error": false,
   "payload": {
+    "_envelope": {
+      "version": 1,
+      "tool": "md_audit",
+      "corpus_root": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents",
+      "corpus_state": {
+        "state": "HEALTHY",
+        "model": "baai/bge-m3",
+        "index_exists": true,
+        "last_touched": "__VOLATILE__",
+        "added_sections": 5,
+        "removed_sections": 0,
+        "pending_chunks": 5,
+        "drift_count": 0,
+        "metadata_mismatch": false,
+        "delta_too_large": false,
+        "recommended_action": {
+          "tool": "md_index",
+          "args": {
+            "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+            "dry_run": true,
+            "path_include": [
+              "agents/**"
+            ]
+          },
+          "reason": "Optional eager warmup; dry-run previews cost before embedding the small delta."
+        }
+      },
+      "lock": null,
+      "cost": {
+        "turn_usd": "__VOLATILE__",
+        "session_usd": "__VOLATILE__"
+      },
+      "size_estimate": {
+        "bytes": 2039,
+        "items_returned": 0
+      },
+      "next_step": []
+    },
     "root": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents",
     "health": 90,
     "severity_counts": {
@@ -35,8 +73,6 @@
       "embedding_api_url": "https://openrouter.ai/api/v1"
     },
     "expanded": false,
-    "map_only": true,
-    "content_included": false,
     "findings": [
       {
         "class": "template_family",
@@ -113,43 +149,6 @@
         "reason": "Return full audit evidence."
       }
     ],
-    "_envelope": {
-      "version": 1,
-      "tool": "md_audit",
-      "corpus_root": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents",
-      "corpus_state": {
-        "state": "HEALTHY",
-        "model": "baai/bge-m3",
-        "index_exists": true,
-        "last_touched": "__VOLATILE__",
-        "added_sections": 5,
-        "removed_sections": 0,
-        "pending_chunks": 5,
-        "drift_count": 0,
-        "metadata_mismatch": false,
-        "delta_too_large": false,
-        "recommended_action": {
-          "tool": "md_index",
-          "args": {
-            "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
-            "dry_run": true,
-            "path_include": [
-              "agents/**"
-            ]
-          },
-          "reason": "Optional eager warmup; dry-run previews cost before embedding the small delta."
-        }
-      },
-      "lock": null,
-      "cost": {
-        "turn_usd": "__VOLATILE__",
-        "session_usd": "__VOLATILE__"
-      },
-      "size_estimate": {
-        "bytes": 2069,
-        "items_returned": 0
-      },
-      "next_step": []
-    }
+    "view": "map"
   }
 }

@@ -7,13 +7,50 @@
   },
   "is_error": false,
   "payload": {
+    "_envelope": {
+      "version": 1,
+      "tool": "md_overlaps",
+      "corpus_root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+      "corpus_state": {
+        "state": "FRESH",
+        "model": "openai/text-embedding-3-small",
+        "index_exists": true,
+        "last_touched": "__VOLATILE__",
+        "added_sections": 0,
+        "removed_sections": 0,
+        "pending_chunks": 0,
+        "drift_count": 0,
+        "metadata_mismatch": false,
+        "delta_too_large": false,
+        "recommended_action": null
+      },
+      "lock": null,
+      "cost": {
+        "turn_usd": "__VOLATILE__",
+        "session_usd": "__VOLATILE__"
+      },
+      "size_estimate": {
+        "bytes": 1476,
+        "items_returned": 0
+      },
+      "next_step": [
+        {
+          "tool": "md_overlaps",
+          "args": {
+            "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+            "expanded": true,
+            "threshold": 0.85,
+            "top": 3
+          },
+          "reason": "Return full overlap pair details."
+        }
+      ]
+    },
     "root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
     "threshold": 0.85,
     "include_same_file": false,
     "min_tokens": 30,
     "expanded": false,
-    "map_only": true,
-    "content_included": false,
     "engine": {
       "embed_model": "openai/text-embedding-3-small",
       "embedding_api_url": "https://openrouter.ai/api/v1"
@@ -74,33 +111,6 @@
         "reason": "Return full overlap pair details."
       }
     ],
-    "_envelope": {
-      "version": 1,
-      "tool": "md_overlaps",
-      "corpus_root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
-      "corpus_state": {
-        "state": "FRESH",
-        "model": "openai/text-embedding-3-small",
-        "index_exists": true,
-        "last_touched": "__VOLATILE__",
-        "added_sections": 0,
-        "removed_sections": 0,
-        "pending_chunks": 0,
-        "drift_count": 0,
-        "metadata_mismatch": false,
-        "delta_too_large": false,
-        "recommended_action": null
-      },
-      "lock": null,
-      "cost": {
-        "turn_usd": "__VOLATILE__",
-        "session_usd": "__VOLATILE__"
-      },
-      "size_estimate": {
-        "bytes": 1506,
-        "items_returned": 0
-      },
-      "next_step": []
-    }
+    "view": "map"
   }
 }

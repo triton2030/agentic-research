@@ -7,307 +7,6 @@
   },
   "is_error": false,
   "payload": {
-    "root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
-    "threshold": 0.8,
-    "min_tokens": 30,
-    "min_files": 2,
-    "min_sections": 2,
-    "expanded": false,
-    "map_only": true,
-    "content_included": false,
-    "engine": {
-      "embed_model": "openai/text-embedding-3-small",
-      "embedding_api_url": "https://openrouter.ai/api/v1"
-    },
-    "stats": {
-      "files_indexed": 37,
-      "sections_indexed": 303,
-      "sections_eligible": 287,
-      "chunks_compared": 306,
-      "embeddings_cached": 303,
-      "embeddings_computed": 0,
-      "edges_above_threshold": 208,
-      "concepts_surfaced": 3
-    },
-    "concepts": [
-      {
-        "label": "Code-aware tooling — research snapshot Q2 2026",
-        "representative": {
-          "section_id": "25.1",
-          "file_id": 25,
-          "relative_path": "research/dev/code-aware-tooling-2026-q2.md",
-          "start_line": 1,
-          "heading_chain": "Code-aware tooling — research snapshot Q2 2026",
-          "heading_text": "Code-aware tooling — research snapshot Q2 2026",
-          "token_count": 4577
-        },
-        "unique_files": 4,
-        "section_count": 24,
-        "mean_cohesion": 0.08310234049956004,
-        "files": [
-          {
-            "path": "research/dev/code-aware-tooling-2026-q2.md",
-            "section_count": 9
-          },
-          {
-            "path": "research/meta/links.md",
-            "section_count": 7
-          },
-          {
-            "path": "wisdom-claude-code.md",
-            "section_count": 4
-          },
-          {
-            "path": "wisdom-claude-opus-4.7.md",
-            "section_count": 4
-          }
-        ],
-        "top_handles": [
-          {
-            "similarity": 0.9567952156066895,
-            "section": {
-              "section_id": "25.18",
-              "file_id": 25,
-              "relative_path": "research/dev/code-aware-tooling-2026-q2.md",
-              "start_line": 248,
-              "heading_chain": "Code-aware tooling — research snapshot Q2 2026 > Sources",
-              "heading_text": "Sources",
-              "token_count": 1700
-            }
-          },
-          {
-            "similarity": 0.8914743065834045,
-            "section": {
-              "section_id": "25.28",
-              "file_id": 25,
-              "relative_path": "research/dev/code-aware-tooling-2026-q2.md",
-              "start_line": 313,
-              "heading_chain": "Code-aware tooling — research snapshot Q2 2026 > Sources > Claude Code skills / plugins ecosystem",
-              "heading_text": "Claude Code skills / plugins ecosystem",
-              "token_count": 194
-            }
-          },
-          {
-            "similarity": 0.8612275123596191,
-            "section": {
-              "section_id": "25.3",
-              "file_id": 25,
-              "relative_path": "research/dev/code-aware-tooling-2026-q2.md",
-              "start_line": 17,
-              "heading_chain": "Code-aware tooling — research snapshot Q2 2026 > Topline findings",
-              "heading_text": "Topline findings",
-              "token_count": 604
-            }
-          },
-          {
-            "similarity": 0.8438320159912109,
-            "section": {
-              "section_id": "25.13",
-              "file_id": 25,
-              "relative_path": "research/dev/code-aware-tooling-2026-q2.md",
-              "start_line": 157,
-              "heading_chain": "Code-aware tooling — research snapshot Q2 2026 > Where embeddings still win for code (narrow scenarios)",
-              "heading_text": "Where embeddings still win for code (narrow scenarios)",
-              "token_count": 231
-            }
-          },
-          {
-            "similarity": 0.8350405097007751,
-            "section": {
-              "section_id": "25.26",
-              "file_id": 25,
-              "relative_path": "research/dev/code-aware-tooling-2026-q2.md",
-              "start_line": 298,
-              "heading_chain": "Code-aware tooling — research snapshot Q2 2026 > Sources > LSP integration",
-              "heading_text": "LSP integration",
-              "token_count": 191
-            }
-          }
-        ]
-      },
-      {
-        "label": "Authoring Canon > Типовые Провалы",
-        "representative": {
-          "section_id": "18.9",
-          "file_id": 18,
-          "relative_path": "practical-guides/how-to-write-skills/authoring-canon.md",
-          "start_line": 125,
-          "heading_chain": "Authoring Canon > Типовые Провалы",
-          "heading_text": "Типовые Провалы",
-          "token_count": 93
-        },
-        "unique_files": 4,
-        "section_count": 23,
-        "mean_cohesion": 0.14202726900341953,
-        "files": [
-          {
-            "path": "practical-guides/how-to-write-skills/authoring-canon.md",
-            "section_count": 9
-          },
-          {
-            "path": "practical-guides/how-to-write-skills/checklist.md",
-            "section_count": 7
-          },
-          {
-            "path": "practical-guides/how-to-write-skills/research-2026-mar-may.md",
-            "section_count": 4
-          },
-          {
-            "path": "wisdom-skills-plugins.md",
-            "section_count": 3
-          }
-        ],
-        "top_handles": [
-          {
-            "similarity": 0.9126047492027283,
-            "section": {
-              "section_id": "18.5",
-              "file_id": 18,
-              "relative_path": "practical-guides/how-to-write-skills/authoring-canon.md",
-              "start_line": 58,
-              "heading_chain": "Authoring Canon > Тело `SKILL.md`",
-              "heading_text": "Тело `SKILL.md`",
-              "token_count": 134
-            }
-          },
-          {
-            "similarity": 0.8855048418045044,
-            "section": {
-              "section_id": "18.6",
-              "file_id": 18,
-              "relative_path": "practical-guides/how-to-write-skills/authoring-canon.md",
-              "start_line": 76,
-              "heading_chain": "Authoring Canon > Progressive Disclosure",
-              "heading_text": "Progressive Disclosure",
-              "token_count": 107
-            }
-          },
-          {
-            "similarity": 0.8528316020965576,
-            "section": {
-              "section_id": "18.7",
-              "file_id": 18,
-              "relative_path": "practical-guides/how-to-write-skills/authoring-canon.md",
-              "start_line": 89,
-              "heading_chain": "Authoring Canon > Жёсткость",
-              "heading_text": "Жёсткость",
-              "token_count": 105
-            }
-          },
-          {
-            "similarity": 0.850378155708313,
-            "section": {
-              "section_id": "18.4",
-              "file_id": 18,
-              "relative_path": "practical-guides/how-to-write-skills/authoring-canon.md",
-              "start_line": 33,
-              "heading_chain": "Authoring Canon > `description`",
-              "heading_text": "`description`",
-              "token_count": 290
-            }
-          },
-          {
-            "similarity": 0.8356971740722656,
-            "section": {
-              "section_id": "18.2",
-              "file_id": 18,
-              "relative_path": "practical-guides/how-to-write-skills/authoring-canon.md",
-              "start_line": 11,
-              "heading_chain": "Authoring Canon > Когда Писать Скилл",
-              "heading_text": "Когда Писать Скилл",
-              "token_count": 116
-            }
-          }
-        ]
-      },
-      {
-        "label": "Dev — Инвентарь > Codex",
-        "representative": {
-          "section_id": "26.16",
-          "file_id": 26,
-          "relative_path": "research/dev/inventory.md",
-          "start_line": 91,
-          "heading_chain": "Dev — Инвентарь > Codex",
-          "heading_text": "Codex",
-          "token_count": 160
-        },
-        "unique_files": 2,
-        "section_count": 13,
-        "mean_cohesion": 0.1519917952708709,
-        "files": [
-          {
-            "path": "research/meta/inventory.md",
-            "section_count": 7
-          },
-          {
-            "path": "research/dev/inventory.md",
-            "section_count": 6
-          }
-        ],
-        "top_handles": [
-          {
-            "similarity": 0.919636070728302,
-            "section": {
-              "section_id": "26.18",
-              "file_id": 26,
-              "relative_path": "research/dev/inventory.md",
-              "start_line": 100,
-              "heading_chain": "Dev — Инвентарь > Codex > 1repo-map",
-              "heading_text": "1repo-map",
-              "token_count": 119
-            }
-          },
-          {
-            "similarity": 0.8797988891601562,
-            "section": {
-              "section_id": "26.17",
-              "file_id": 26,
-              "relative_path": "research/dev/inventory.md",
-              "start_line": 93,
-              "heading_chain": "Dev — Инвентарь > Codex > subagents",
-              "heading_text": "subagents",
-              "token_count": 35
-            }
-          },
-          {
-            "similarity": 0.8057109117507935,
-            "section": {
-              "section_id": "26.15",
-              "file_id": 26,
-              "relative_path": "research/dev/inventory.md",
-              "start_line": 80,
-              "heading_chain": "Dev — Инвентарь > Claude Code > 1repo-map",
-              "heading_text": "1repo-map",
-              "token_count": 137
-            }
-          },
-          {
-            "similarity": 0.801365077495575,
-            "section": {
-              "section_id": "26.1",
-              "file_id": 26,
-              "relative_path": "research/dev/inventory.md",
-              "start_line": 1,
-              "heading_chain": "Dev — Инвентарь",
-              "heading_text": "Dev — Инвентарь",
-              "token_count": 867
-            }
-          }
-        ]
-      }
-    ],
-    "read_next": [
-      {
-        "tool": "md_repeated_concepts",
-        "args": {
-          "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
-          "expanded": true,
-          "threshold": 0.8,
-          "top": 3
-        },
-        "reason": "Return full concept members and file breakdown."
-      }
-    ],
     "_envelope": {
       "version": 1,
       "tool": "md_repeated_concepts",
@@ -331,7 +30,7 @@
         "session_usd": "__VOLATILE__"
       },
       "size_estimate": {
-        "bytes": 6831,
+        "bytes": 4301,
         "items_returned": 3,
         "counted_fields": [
           {
@@ -340,7 +39,206 @@
           }
         ]
       },
-      "next_step": []
-    }
+      "next_step": [
+        {
+          "tool": "md_repeated_concepts",
+          "args": {
+            "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+            "expanded": true,
+            "threshold": 0.8,
+            "top": 3
+          },
+          "reason": "Return full concept members and file breakdown."
+        }
+      ]
+    },
+    "root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+    "threshold": 0.8,
+    "min_tokens": 30,
+    "min_files": 2,
+    "min_sections": 2,
+    "expanded": false,
+    "engine": {
+      "embed_model": "openai/text-embedding-3-small",
+      "embedding_api_url": "https://openrouter.ai/api/v1"
+    },
+    "stats": {
+      "files_indexed": 37,
+      "sections_indexed": 303,
+      "sections_eligible": 287,
+      "chunks_compared": 306,
+      "embeddings_cached": 303,
+      "embeddings_computed": 0,
+      "edges_above_threshold": 208,
+      "concepts_surfaced": 3
+    },
+    "concepts": [
+      {
+        "label": "Civic-Chain — Project guide > Expandable pattern",
+        "representative": {
+          "section_id": "7.4",
+          "file_id": 7,
+          "relative_path": "examples/anthropic-design-generator/CLAUDE.md",
+          "start_line": 51,
+          "heading_chain": "Civic-Chain — Project guide > Expandable pattern",
+          "heading_text": "Expandable pattern",
+          "token_count": 241
+        },
+        "unique_files": 2,
+        "section_count": 2,
+        "mean_cohesion": 0.9430674910545349,
+        "files": [
+          {
+            "path": "examples/anthropic-design-generator/CLAUDE.md",
+            "section_count": 1
+          },
+          {
+            "path": "examples/anthropic-design-generator/ds/README.md",
+            "section_count": 1
+          }
+        ],
+        "top_handles": [
+          {
+            "similarity": 0.9430674910545349,
+            "section": {
+              "section_id": "8.6",
+              "file_id": 8,
+              "relative_path": "examples/anthropic-design-generator/ds/README.md",
+              "start_line": 86,
+              "heading_chain": "Civic-Chain Design System > Expandable mechanism",
+              "heading_text": "Expandable mechanism",
+              "token_count": 204
+            }
+          }
+        ]
+      },
+      {
+        "label": "Civic-Chain — Project guide",
+        "representative": {
+          "section_id": "7.1",
+          "file_id": 7,
+          "relative_path": "examples/anthropic-design-generator/CLAUDE.md",
+          "start_line": 1,
+          "heading_chain": "Civic-Chain — Project guide",
+          "heading_text": "Civic-Chain — Project guide",
+          "token_count": 1397
+        },
+        "unique_files": 2,
+        "section_count": 2,
+        "mean_cohesion": 0.8142035603523254,
+        "files": [
+          {
+            "path": "examples/anthropic-design-generator/CLAUDE.md",
+            "section_count": 1
+          },
+          {
+            "path": "examples/anthropic-design-generator/ds/README.md",
+            "section_count": 1
+          }
+        ],
+        "top_handles": [
+          {
+            "similarity": 0.8142035603523254,
+            "section": {
+              "section_id": "8.1",
+              "file_id": 8,
+              "relative_path": "examples/anthropic-design-generator/ds/README.md",
+              "start_line": 1,
+              "heading_chain": "Civic-Chain Design System",
+              "heading_text": "Civic-Chain Design System",
+              "token_count": 1391
+            }
+          }
+        ]
+      },
+      {
+        "label": "Civic-Chain Design System > Layering",
+        "representative": {
+          "section_id": "8.2",
+          "file_id": 8,
+          "relative_path": "examples/anthropic-design-generator/ds/README.md",
+          "start_line": 7,
+          "heading_chain": "Civic-Chain Design System > Layering",
+          "heading_text": "Layering",
+          "token_count": 215
+        },
+        "unique_files": 2,
+        "section_count": 5,
+        "mean_cohesion": 0.40963396430015564,
+        "files": [
+          {
+            "path": "examples/anthropic-design-generator/ds/README.md",
+            "section_count": 3
+          },
+          {
+            "path": "examples/anthropic-design-generator/CLAUDE.md",
+            "section_count": 2
+          }
+        ],
+        "top_handles": [
+          {
+            "similarity": 0.845552921295166,
+            "section": {
+              "section_id": "7.3",
+              "file_id": 7,
+              "relative_path": "examples/anthropic-design-generator/CLAUDE.md",
+              "start_line": 31,
+              "heading_chain": "Civic-Chain — Project guide > The layering rule (read this before editing CSS)",
+              "heading_text": "The layering rule (read this before editing CSS)",
+              "token_count": 261
+            }
+          },
+          {
+            "similarity": 0.8048067688941956,
+            "section": {
+              "section_id": "7.2",
+              "file_id": 7,
+              "relative_path": "examples/anthropic-design-generator/CLAUDE.md",
+              "start_line": 7,
+              "heading_chain": "Civic-Chain — Project guide > Files",
+              "heading_text": "Files",
+              "token_count": 288
+            }
+          },
+          {
+            "similarity": 0.8040602207183838,
+            "section": {
+              "section_id": "8.3",
+              "file_id": 8,
+              "relative_path": "examples/anthropic-design-generator/ds/README.md",
+              "start_line": 27,
+              "heading_chain": "Civic-Chain Design System > Primitive catalogue (quick reference)",
+              "heading_text": "Primitive catalogue (quick reference)",
+              "token_count": 318
+            }
+          },
+          {
+            "similarity": 0.8006589412689209,
+            "section": {
+              "section_id": "8.4",
+              "file_id": 8,
+              "relative_path": "examples/anthropic-design-generator/ds/README.md",
+              "start_line": 46,
+              "heading_chain": "Civic-Chain Design System > Pattern catalogue",
+              "heading_text": "Pattern catalogue",
+              "token_count": 290
+            }
+          }
+        ]
+      }
+    ],
+    "read_next": [
+      {
+        "tool": "md_repeated_concepts",
+        "args": {
+          "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+          "expanded": true,
+          "threshold": 0.8,
+          "top": 3
+        },
+        "reason": "Return full concept members and file breakdown."
+      }
+    ],
+    "view": "map"
   }
 }

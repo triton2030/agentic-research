@@ -1,6 +1,11 @@
+---
+description: "Generated index of MCP response golden snapshots."
+read-before-edit: []
+edit-after-edit: []
+---
 # MCP Response Snapshots
 
-Generated 2026-05-29 from live CLI. Count: 32.
+Generated 2026-06-02 from live CLI. Count: 32.
 
 | Tool | File | is_error |
 |---|---|---|
@@ -16,7 +21,7 @@ Generated 2026-05-29 from live CLI. Count: 32.
 | md_health | tests/golden/mcp-responses/md_health.json | false |
 | md_impact | tests/golden/mcp-responses/md_impact.json | false |
 | md_importance | tests/golden/mcp-responses/md_importance.json | false |
-| md_index | tests/golden/mcp-responses/md_index.json | false |
+| md_index | tests/golden/mcp-responses/md_index.json | true |
 | md_init | tests/golden/mcp-responses/md_init.json | false |
 | md_ls | tests/golden/mcp-responses/md_ls.json | false |
 | md_orient | tests/golden/mcp-responses/md_orient.json | false |

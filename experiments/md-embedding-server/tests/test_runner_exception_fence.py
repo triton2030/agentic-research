@@ -79,6 +79,7 @@ def test_runner_emits_envelope_for_internal_error(capsys) -> None:
     assert code == 3
     captured = capsys.readouterr().out.strip()
     assert captured, "runner must print JSON envelope to stdout"
+    assert captured.startswith('{"_envelope":')
     parsed = json.loads(captured)
     assert parsed["error"] == "internal_error"
     assert parsed["exception"] == "RuntimeError"

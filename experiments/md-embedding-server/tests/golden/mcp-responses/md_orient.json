@@ -6,677 +6,6 @@
   },
   "is_error": false,
   "payload": {
-    "workflow": "md_orient",
-    "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
-    "expanded": false,
-    "map_only": true,
-    "content_included": false,
-    "status": {
-      "state": "FRESH",
-      "model": "openai/text-embedding-3-small",
-      "pending_chunks": 0,
-      "drift_count": 0,
-      "recommended_action": null
-    },
-    "files": {
-      "files": [
-        {
-          "relative_path": "agents/evaluation.md",
-          "description": "Оценка агента — trajectory eval, observable acceptance criteria, multi-channel audit, cross-family judge и manual prototype first.",
-          "title": "Agents — Evaluation",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/evaluation.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "agents/memory.md",
-          "description": "Память агента и quality gate для learnings — почему eviction обязателен, и почему user corrections сильнее observations.",
-          "title": "Agents — Memory & Learnings",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/memory.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "agents/multi-agent.md",
-          "description": "Multi-agent системы — supervisor bottleneck, forward_message и борьба с sycophantic consensus.",
-          "title": "Agents — Multi-agent Systems",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/multi-agent.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "agents/runtime-layer.md",
-          "description": "Runtime-слой агента — где живут критические ограничения, валидация и approvals; почему prompt-only защита хрупка.",
-          "title": "Agents — Runtime Layer",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/runtime-layer.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "agents/tool-design.md",
-          "description": "Tool surface и tool descriptions у агента — почему меньше инструментов лучше, и какой description реально триггерит правильно.",
-          "title": "Agents — Tool Design",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/tool-design.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "examples/README.md",
-          "description": "",
-          "title": "Examples",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/examples/README.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "examples/anthropic-design-generator/CLAUDE.md",
-          "description": "",
-          "title": "Civic-Chain — Project guide",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/examples/anthropic-design-generator/CLAUDE.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "examples/anthropic-design-generator/ds/README.md",
-          "description": "",
-          "title": "Civic-Chain Design System",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/examples/anthropic-design-generator/ds/README.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "examples/anthropic-design-generator/takeaways.md",
-          "description": "",
-          "title": "Anthropic Design Generator — Takeaways",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/examples/anthropic-design-generator/takeaways.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "guides/design-review-playbook.md",
-          "description": "",
-          "title": "Design Review Playbook",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/guides/design-review-playbook.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "guides/perfect-context-engineering.md",
-          "description": "",
-          "title": "Как Инженерить Контекст",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/guides/perfect-context-engineering.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "guides/perfect-project-shape.md",
-          "description": "",
-          "title": "Как Строить Системы Которые Сами Знают Куда Класть Новое",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/guides/perfect-project-shape.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "guides/perfect-system-prompts.md",
-          "description": "",
-          "title": "Как Писать Системные Промпты",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/guides/perfect-system-prompts.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "guides/progressive-task-planning-playbook.md",
-          "description": "",
-          "title": "Progressive Task Planning Playbook",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/guides/progressive-task-planning-playbook.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "guides/structural-critique-playbook.md",
-          "description": "",
-          "title": "Structural Critique Playbook",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/guides/structural-critique-playbook.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "practical-guides/hooks-runtime-guardrails.md",
-          "description": "",
-          "title": "Hooks Runtime Guardrails",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/practical-guides/hooks-runtime-guardrails.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "practical-guides/how-to-write-skills/README.md",
-          "description": "Единый вход в компактный канон написания эффективных skills.",
-          "title": "Как Писать Скиллы",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/practical-guides/how-to-write-skills/README.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "practical-guides/how-to-write-skills/authoring-canon.md",
-          "description": "Короткий практический канон: когда писать skill, как держать scope, description, body и проверку по риску.",
-          "title": "Authoring Canon",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/practical-guides/how-to-write-skills/authoring-canon.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "practical-guides/how-to-write-skills/checklist.md",
-          "description": "Короткий Go/No-Go checklist перед созданием или правкой skill.",
-          "title": "Checklist",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/practical-guides/how-to-write-skills/checklist.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "practical-guides/how-to-write-skills/platform-deltas.md",
-          "description": "Различия Agent Skills standard, Codex, Claude Code, MCP и API/runtime при упаковке skills.",
-          "title": "Platform Deltas",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/practical-guides/how-to-write-skills/platform-deltas.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "practical-guides/how-to-write-skills/research-2026-mar-may.md",
-          "description": "Source-backed выводы из официальных docs и исследований марта-мая 2026 о skill authoring.",
-          "title": "Research 2026 Mar-May",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/practical-guides/how-to-write-skills/research-2026-mar-may.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "research/business/inventory.md",
-          "description": "",
-          "title": "Business — Инвентарь",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/research/business/inventory.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "research/design/inventory.md",
-          "description": "",
-          "title": "Design — Инвентарь",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/research/design/inventory.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "research/design/learnings.md",
-          "description": "",
-          "title": "Design — Learnings",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/research/design/learnings.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "research/dev/code-aware-tooling-2026-q2.md",
-          "description": "",
-          "title": "Code-aware tooling — research snapshot Q2 2026",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/research/dev/code-aware-tooling-2026-q2.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "research/dev/inventory.md",
-          "description": "",
-          "title": "Dev — Инвентарь",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/research/dev/inventory.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "research/dev/learnings.md",
-          "description": "",
-          "title": "Dev — Learnings",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/research/dev/learnings.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "research/meta/inventory.md",
-          "description": "",
-          "title": "Meta — Инвентарь",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/research/meta/inventory.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "research/meta/learnings.md",
-          "description": "",
-          "title": "Meta — Learnings",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/research/meta/learnings.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "research/meta/links.md",
-          "description": "",
-          "title": "Meta — Links",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/research/meta/links.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "wisdom-claude-code.md",
-          "description": "",
-          "title": "Wisdom — Claude Code",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/wisdom-claude-code.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "wisdom-claude-opus-4.7.md",
-          "description": "",
-          "title": "Wisdom — Claude Opus 4.7",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/wisdom-claude-opus-4.7.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "wisdom-codex.md",
-          "description": "",
-          "title": "Wisdom — Codex",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/wisdom-codex.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "wisdom-gpt-5.5.md",
-          "description": "",
-          "title": "Wisdom — GPT-5.5",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/wisdom-gpt-5.5.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "wisdom-llm.md",
-          "description": "",
-          "title": "Wisdom — LLM",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/wisdom-llm.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "wisdom-skills-plugins.md",
-          "description": "",
-          "title": "Wisdom — Skills Plugins",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/wisdom-skills-plugins.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        },
-        {
-          "relative_path": "wisdom-systems-thinking.md",
-          "description": "",
-          "title": "Wisdom — Systems Thinking",
-          "heading_count": 1,
-          "read_next": [
-            {
-              "tool": "md_edit_context",
-              "args": {
-                "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/wisdom-systems-thinking.md",
-                "scan": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
-              },
-              "reason": "Inspect graph obligations and related context for this file."
-            }
-          ]
-        }
-      ],
-      "file_count": 37
-    },
-    "importance": {
-      "root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
-      "sort_by": "pagerank",
-      "files": [
-        {
-          "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/examples/anthropic-design-generator/takeaways.md",
-          "relative_path": "examples/anthropic-design-generator/takeaways.md",
-          "description": "",
-          "in_degree": 2,
-          "out_degree": 0,
-          "pagerank": 0.06683194397567592,
-          "centrality": 0.05555555555555555
-        },
-        {
-          "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/research/dev/code-aware-tooling-2026-q2.md",
-          "relative_path": "research/dev/code-aware-tooling-2026-q2.md",
-          "description": "",
-          "in_degree": 1,
-          "out_degree": 0,
-          "pagerank": 0.04579220215996152,
-          "centrality": 0.027777777777777776
-        },
-        {
-          "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/practical-guides/how-to-write-skills/checklist.md",
-          "relative_path": "practical-guides/how-to-write-skills/checklist.md",
-          "description": "Короткий Go/No-Go checklist перед созданием или правкой skill.",
-          "in_degree": 1,
-          "out_degree": 0,
-          "pagerank": 0.03410345670678685,
-          "centrality": 0.027777777777777776
-        },
-        {
-          "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/practical-guides/how-to-write-skills/authoring-canon.md",
-          "relative_path": "practical-guides/how-to-write-skills/authoring-canon.md",
-          "description": "Короткий практический канон: когда писать skill, как держать scope, description, body и проверку по риску.",
-          "in_degree": 1,
-          "out_degree": 0,
-          "pagerank": 0.029427958525516985,
-          "centrality": 0.027777777777777776
-        },
-        {
-          "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/practical-guides/how-to-write-skills/research-2026-mar-may.md",
-          "relative_path": "practical-guides/how-to-write-skills/research-2026-mar-may.md",
-          "description": "Source-backed выводы из официальных docs и исследований марта-мая 2026 о skill authoring.",
-          "in_degree": 1,
-          "out_degree": 0,
-          "pagerank": 0.029427958525516985,
-          "centrality": 0.027777777777777776
-        }
-      ]
-    },
-    "read_next": [
-      {
-        "tool": "md_orient",
-        "args": {
-          "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
-          "expanded": true
-        },
-        "reason": "Return headings and link counts for the full orientation packet."
-      }
-    ],
-    "next": "Choose 1-3 files, then use md edit-context or md extract for selected targets.",
     "_envelope": {
       "version": 1,
       "tool": "md_orient",
@@ -700,11 +29,100 @@
         "session_usd": "__VOLATILE__"
       },
       "size_estimate": {
-        "bytes": 19415,
-        "items_returned": 0,
-        "large_reply": true
+        "bytes": 1699,
+        "items_returned": 3,
+        "counted_fields": [
+          {
+            "field": "start_here",
+            "count": 3
+          }
+        ]
       },
       "next_step": []
-    }
+    },
+    "workflow": "md_orient",
+    "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+    "expanded": false,
+    "status": {
+      "state": "FRESH",
+      "model": "openai/text-embedding-3-small",
+      "pending_chunks": 0,
+      "drift_count": 0,
+      "recommended_action": null
+    },
+    "start_here": [
+      {
+        "relative_path": "examples/anthropic-design-generator/takeaways.md",
+        "pagerank": 0.0668,
+        "in_degree": 2,
+        "why": "hub: 2 inbound"
+      },
+      {
+        "relative_path": "research/dev/code-aware-tooling-2026-q2.md",
+        "pagerank": 0.0458,
+        "in_degree": 1,
+        "why": "hub: 1 inbound"
+      },
+      {
+        "relative_path": "practical-guides/how-to-write-skills/checklist.md",
+        "pagerank": 0.0341,
+        "in_degree": 1,
+        "why": "hub: 1 inbound — Короткий Go/No-Go checklist перед созданием или правкой skill."
+      }
+    ],
+    "owner_docs": [
+      {
+        "relative_path": "examples/README.md",
+        "gist": "Examples"
+      }
+    ],
+    "shape": {
+      "file_count": 37,
+      "description_gaps": 27,
+      "folders": [
+        {
+          "folder": "research/",
+          "files": 9,
+          "sample_desc": ""
+        },
+        {
+          "folder": "<root>",
+          "files": 7,
+          "sample_desc": ""
+        },
+        {
+          "folder": "guides/",
+          "files": 6,
+          "sample_desc": ""
+        },
+        {
+          "folder": "practical-guides/",
+          "files": 6,
+          "sample_desc": "Единый вход в компактный канон написания эффективных skills."
+        },
+        {
+          "folder": "agents/",
+          "files": 5,
+          "sample_desc": "Оценка агента — trajectory eval, observable acceptance criteria, multi-channel audit, cross-family judge и manual prototype first."
+        },
+        {
+          "folder": "examples/",
+          "files": 4,
+          "sample_desc": ""
+        }
+      ]
+    },
+    "read_next": [
+      {
+        "tool": "md_orient",
+        "args": {
+          "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+          "expanded": true
+        },
+        "reason": "Full flat file list with headings and link counts."
+      }
+    ],
+    "next": "Pick a start_here file → md edit-context or md search-read for that target.",
+    "view": "map"
   }
 }

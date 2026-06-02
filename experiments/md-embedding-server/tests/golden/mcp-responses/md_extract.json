@@ -2,211 +2,12 @@
   "tool": "md_extract",
   "canonical_args": {
     "map_data": {
-      "root": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents",
-      "file_count": 5,
-      "description_gap_count": 0,
-      "heading_count": 17,
-      "files": [
-        {
-          "id": 1,
-          "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/evaluation.md",
-          "relative_path": "evaluation.md",
-          "description": "Оценка агента — trajectory eval, observable acceptance criteria, multi-channel audit, cross-family judge и manual prototype first.",
-          "title": "Agents — Evaluation",
-          "heading_count": 3,
-          "headings": [
-            {
-              "id": "1.1",
-              "line": 5,
-              "level": 1,
-              "text": "Agents — Evaluation"
-            },
-            {
-              "id": "1.2",
-              "line": 13,
-              "level": 2,
-              "text": "Проверено"
-            },
-            {
-              "id": "1.3",
-              "line": 23,
-              "level": 2,
-              "text": "Опоры"
-            }
-          ]
-        },
-        {
-          "id": 2,
-          "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/memory.md",
-          "relative_path": "memory.md",
-          "description": "Память агента и quality gate для learnings — почему eviction обязателен, и почему user corrections сильнее observations.",
-          "title": "Agents — Memory & Learnings",
-          "heading_count": 3,
-          "headings": [
-            {
-              "id": "2.1",
-              "line": 5,
-              "level": 1,
-              "text": "Agents — Memory & Learnings"
-            },
-            {
-              "id": "2.2",
-              "line": 13,
-              "level": 2,
-              "text": "Проверено"
-            },
-            {
-              "id": "2.3",
-              "line": 20,
-              "level": 2,
-              "text": "Опоры"
-            }
-          ]
-        },
-        {
-          "id": 3,
-          "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/multi-agent.md",
-          "relative_path": "multi-agent.md",
-          "description": "Multi-agent системы — supervisor bottleneck, forward_message и борьба с sycophantic consensus.",
-          "title": "Agents — Multi-agent Systems",
-          "heading_count": 3,
-          "headings": [
-            {
-              "id": "3.1",
-              "line": 5,
-              "level": 1,
-              "text": "Agents — Multi-agent Systems"
-            },
-            {
-              "id": "3.2",
-              "line": 13,
-              "level": 2,
-              "text": "Проверено"
-            },
-            {
-              "id": "3.3",
-              "line": 20,
-              "level": 2,
-              "text": "Опоры"
-            }
-          ]
-        },
-        {
-          "id": 4,
-          "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/runtime-layer.md",
-          "relative_path": "runtime-layer.md",
-          "description": "Runtime-слой агента — где живут критические ограничения, валидация и approvals; почему prompt-only защита хрупка.",
-          "title": "Agents — Runtime Layer",
-          "heading_count": 5,
-          "headings": [
-            {
-              "id": "4.1",
-              "line": 5,
-              "level": 1,
-              "text": "Agents — Runtime Layer"
-            },
-            {
-              "id": "4.2",
-              "line": 15,
-              "level": 2,
-              "text": "Проверено"
-            },
-            {
-              "id": "4.3",
-              "line": 25,
-              "level": 2,
-              "text": "Ground Before Action"
-            },
-            {
-              "id": "4.4",
-              "line": 37,
-              "level": 2,
-              "text": "Рабочие Гипотезы"
-            },
-            {
-              "id": "4.5",
-              "line": 42,
-              "level": 2,
-              "text": "Опоры"
-            }
-          ]
-        },
-        {
-          "id": 5,
-          "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/tool-design.md",
-          "relative_path": "tool-design.md",
-          "description": "Tool surface и tool descriptions у агента — почему меньше инструментов лучше, и какой description реально триггерит правильно.",
-          "title": "Agents — Tool Design",
-          "heading_count": 3,
-          "headings": [
-            {
-              "id": "5.1",
-              "line": 5,
-              "level": 1,
-              "text": "Agents — Tool Design"
-            },
-            {
-              "id": "5.2",
-              "line": 13,
-              "level": 2,
-              "text": "Проверено"
-            },
-            {
-              "id": "5.3",
-              "line": 20,
-              "level": 2,
-              "text": "Опоры"
-            }
-          ]
-        }
-      ],
-      "_envelope": {
-        "version": 1,
-        "tool": "md_toc",
-        "corpus_root": null,
-        "corpus_state": null,
-        "lock": null,
-        "cost": {
-          "turn_usd": "__VOLATILE__",
-          "session_usd": "__VOLATILE__"
-        },
-        "size_estimate": {
-          "bytes": 2734,
-          "items_returned": 5,
-          "counted_fields": [
-            {
-              "field": "files",
-              "count": 5
-            }
-          ]
-        },
-        "next_step": []
-      }
-    },
-    "headings": "1.1",
-    "extract": true
+      "root": "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server/tests/fixtures/sample-corpus",
+      "files": []
+    }
   },
   "is_error": false,
   "payload": {
-    "root": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents",
-    "files": [],
-    "headings": [
-      {
-        "id": "1.1",
-        "file_id": 1,
-        "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/evaluation.md",
-        "relative_path": "evaluation.md",
-        "line": 5,
-        "level": 1,
-        "text": "Agents — Evaluation",
-        "content": "# Agents — Evaluation\n\nСнимок на 20 мая 2026. Снято с `wisdom-agents.md` при function-split refactor.\n\nЗдесь принципы про оценку агента: что считать evidence, как чинить, где\nпроверять траекторию, не только финал. Runtime guarantees — `runtime-layer.md`.\nMemory effectiveness — `memory.md`.\n\n## Проверено\n\n- Оценивать нужно не только финальный ответ, но и траекторию: какие гипотезы строились, где агент повторялся, как менял план и на каких доказательствах основывал вывод.\n- Acceptance criteria сильнее всего работают там, где они observable, unambiguous и non-bypassable. Self-report не считается evidence.\n- Testable in isolation применимо не только к тестам: каждое важное требование лучше проверять отдельным наблюдаемым сигналом.\n- Ограничения для агентов полезно различать по типу: formatting, semantic и tool. Это помогает проверять и чинить ровно тот слой, где агент ошибается.\n- Для серьёзного agent audit слаб один judge-канал: надёжнее сочетать deterministic checks, rubric review и security/scope review; при нехватке evidence честнее вернуть `unknown` или `escalate`, чем симулировать уверенность.\n- Self-eval скилла лучше делать второй рабочей модельной семьёй (`GPT` ↔ `Claude`): same-family judge даёт self-enhancement bias.\n- Перед автоматизацией пайплайна — собрать один пример руками. Без manual prototype скилл-обёртка кодифицирует ошибки, которые ещё не пойманы.\n\n## Опоры\n\n- https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices\n  Prompt engineering guidance: явность инструкций, scope, tool policy.\n\n- `/knowledge/practical-guides/how-to-write-skills/`\n  Authoring canon, checklist, platform-deltas и research evidence для self-eval против."
-      }
-    ],
-    "token_total": 0,
-    "token_budget": 0,
-    "dropped_by_budget": [],
-    "missing_file_ids": [],
-    "missing_heading_ids": [],
     "_envelope": {
       "version": 1,
       "tool": "md_extract",
@@ -218,16 +19,18 @@
         "session_usd": "__VOLATILE__"
       },
       "size_estimate": {
-        "bytes": 2148,
-        "items_returned": 1,
-        "counted_fields": [
-          {
-            "field": "headings",
-            "count": 1
-          }
-        ]
+        "bytes": 262,
+        "items_returned": 0
       },
       "next_step": []
-    }
+    },
+    "root": "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server/tests/fixtures/sample-corpus",
+    "files": [],
+    "headings": [],
+    "token_total": 0,
+    "token_budget": 0,
+    "dropped_by_budget": [],
+    "missing_file_ids": [],
+    "missing_heading_ids": []
   }
 }

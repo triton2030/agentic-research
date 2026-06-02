@@ -8,19 +8,53 @@
   },
   "is_error": false,
   "payload": {
+    "_envelope": {
+      "version": 1,
+      "tool": "md_section_blast_radius",
+      "corpus_root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+      "corpus_state": {
+        "state": "FRESH",
+        "model": "openai/text-embedding-3-small",
+        "index_exists": true,
+        "last_touched": "__VOLATILE__",
+        "added_sections": 0,
+        "removed_sections": 0,
+        "pending_chunks": 0,
+        "drift_count": 0,
+        "metadata_mismatch": false,
+        "delta_too_large": false,
+        "recommended_action": null
+      },
+      "lock": null,
+      "cost": {
+        "turn_usd": "__VOLATILE__",
+        "session_usd": "__VOLATILE__"
+      },
+      "size_estimate": {
+        "bytes": 4910,
+        "items_returned": 0
+      },
+      "next_step": []
+    },
     "workflow": "md_section_blast_radius",
-    "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/evaluation.md",
+    "path": "agents/evaluation.md",
     "heading_id": null,
     "query": "trajectory evaluation observable criteria",
     "graph": {
       "command": "preflight",
       "depth": 2,
       "file": {
-        "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/evaluation.md",
+        "path": "agents/evaluation.md",
         "description": "Оценка агента — trajectory eval, observable acceptance criteria, multi-channel audit, cross-family judge и manual prototype first.",
         "has_frontmatter": true
       },
       "related_reading_command": "md read-related --paths /Users/triton/Documents/GitHub/agentic-research/knowledge/agents/evaluation.md --token-budget 3000 --expanded",
+      "edit_plan": {
+        "must_update": [],
+        "also_check": [],
+        "must_read": [],
+        "to_clear": 0
+      },
       "must_read": [],
       "must_update": [],
       "update_cascade": [],
@@ -34,12 +68,12 @@
       "check_only": [
         {
           "code": "MISSING_GRAPH_FIELD",
-          "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/evaluation.md",
+          "path": "agents/evaluation.md",
           "detail": "read-before-edit"
         },
         {
           "code": "MISSING_GRAPH_FIELD",
-          "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/evaluation.md",
+          "path": "agents/evaluation.md",
           "detail": "edit-after-edit"
         }
       ],
@@ -86,21 +120,14 @@
       },
       "results": [
         {
-          "rowid": 266,
           "section_id": "1.3",
           "file_id": 1,
           "relative_path": "agents/evaluation.md",
           "start_line": 23,
-          "level": 2,
-          "heading_text": "Опоры",
           "heading_chain": "Agents — Evaluation > Опоры",
-          "body": "- https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices\n  Prompt engineering guidance: явность инструкций, scope, tool policy.\n\n- `/knowledge/practical-guides/how-to-write-skills/`\n  Authoring canon, checklist, platform-deltas и research evidence для self-eval против.",
+          "heading_text": "Опоры",
           "file_description": "Оценка агента — trajectory eval, observable acceptance criteria, multi-channel audit, cross-family judge и manual prototype first.",
-          "file_title": "Agents — Evaluation",
-          "content_hash": "c1715aa0925c6cf5da46bb9084d68fabf76464a37f1ec6ddcc5cfb2b2fb287bc",
           "token_count": 80,
-          "bm25_score": -22.52335752550445,
-          "dense_distance": 1.0004063844680786,
           "rrf_score": 0.03278688524590164,
           "rerank_score": null,
           "fields_hit": [
@@ -111,21 +138,14 @@
           "snippet": "- https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices   Prompt engineering guidance: явность инструкций, scope, tool policy.  - `/knowledge/practic..."
         },
         {
-          "rowid": 265,
           "section_id": "1.2",
           "file_id": 1,
           "relative_path": "agents/evaluation.md",
           "start_line": 13,
-          "level": 2,
-          "heading_text": "Проверено",
           "heading_chain": "Agents — Evaluation > Проверено",
-          "body": "- Оценивать нужно не только финальный ответ, но и траекторию: какие гипотезы строились, где агент повторялся, как менял план и на каких доказательствах основывал вывод.\n- Acceptance criteria сильнее всего работают там, где они observable, unambiguous и non-bypassable. Self-report не считается evidence.\n- Testable in isolation применимо не только к тестам: каждое важное требование лучше проверять отдельным наблюдаемым сигналом.\n- Ограничения для агентов полезно различать по типу: formatting, semantic и tool. Это помогает проверять и чинить ровно тот слой, где агент ошибается.\n- Для серьёзного agent audit слаб один judge-канал: надёжнее сочетать deterministic checks, rubric review и security/scope review; при нехватке evidence честнее вернуть `unknown` или `escalate`, чем симулировать уверенность.\n- Self-eval скилла лучше делать второй рабочей модельной семьёй (`GPT` ↔ `Claude`): same-family judge даёт self-enhancement bias.\n- Перед автоматизацией пайплайна — собрать один пример руками. Без manual prototype скилл-обёртка кодифицирует ошибки, которые ещё не пойманы.",
+          "heading_text": "Проверено",
           "file_description": "Оценка агента — trajectory eval, observable acceptance criteria, multi-channel audit, cross-family judge и manual prototype first.",
-          "file_title": "Agents — Evaluation",
-          "content_hash": "5096ba02d9d98579c8e0bfdc4d6a2c09b272188a7c2d3824ca3115b8eddf9248",
           "token_count": 271,
-          "bm25_score": -20.761834967345138,
-          "dense_distance": 1.0565414428710938,
           "rrf_score": 0.03225806451612903,
           "rerank_score": null,
           "fields_hit": [
@@ -137,21 +157,14 @@
           "snippet": "...план и на каких доказательствах основывал вывод. - Acceptance criteria сильнее всего работают там, где они observable, unambiguous и non-bypassable. Self-report не считается evidence. - Testable in..."
         },
         {
-          "rowid": 264,
           "section_id": "1.1",
           "file_id": 1,
           "relative_path": "agents/evaluation.md",
           "start_line": 5,
-          "level": 1,
-          "heading_text": "Agents — Evaluation",
           "heading_chain": "Agents — Evaluation",
-          "body": "Снимок на 20 мая 2026. Снято с `wisdom-agents.md` при function-split refactor.\n\nЗдесь принципы про оценку агента: что считать evidence, как чинить, где\nпроверять траекторию, не только финал. Runtime guarantees — `runtime-layer.md`.\nMemory effectiveness — `memory.md`.\n\n## Проверено\n\n- Оценивать нужно не только финальный ответ, но и траекторию: какие гипотезы строились, где агент повторялся, как менял план и на каких доказательствах основывал вывод.\n- Acceptance criteria сильнее всего работают там, где они observable, unambiguous и non-bypassable. Self-report не считается evidence.\n- Testable in isolation применимо не только к тестам: каждое важное требование лучше проверять отдельным наблюдаемым сигналом.\n- Ограничения для агентов полезно различать по типу: formatting, semantic и tool. Это помогает проверять и чинить ровно тот слой, где агент ошибается.\n- Для серьёзного agent audit слаб один judge-канал: надёжнее сочетать deterministic checks, rubric review и security/scope review; при нехватке evidence честнее вернуть `unknown` или `escalate`, чем симулировать уверенность.\n- Self-eval скилла лучше делать второй рабочей модельной семьёй (`GPT` ↔ `Claude`): same-family judge даёт self-enhancement bias.\n- Перед автоматизацией пайплайна — собрать один пример руками. Без manual prototype скилл-обёртка кодифицирует ошибки, которые ещё не пойманы.\n\n## Опоры\n\n- https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices\n  Prompt engineering guidance: явность инструкций, scope, tool policy.\n\n- `/knowledge/practical-guides/how-to-write-skills/`\n  Authoring canon, checklist, platform-deltas и research evidence для self-eval против.",
+          "heading_text": "Agents — Evaluation",
           "file_description": "Оценка агента — trajectory eval, observable acceptance criteria, multi-channel audit, cross-family judge и manual prototype first.",
-          "file_title": "Agents — Evaluation",
-          "content_hash": "dfd7c3ab2b7e290b30483a7d20b5ae2f3a1c1f171331a2e18f932ccb0f788c65",
           "token_count": 427,
-          "bm25_score": -19.76605700684366,
-          "dense_distance": 1.078050136566162,
           "rrf_score": 0.031746031746031744,
           "rerank_score": null,
           "fields_hit": [
@@ -162,36 +175,9 @@
           ],
           "snippet": "...план и на каких доказательствах основывал вывод. - Acceptance criteria сильнее всего работают там, где они observable, unambiguous и non-bypassable. Self-report не считается evidence. - Testable in..."
         }
-      ]
+      ],
+      "render": "1. agents/evaluation.md:L23  Agents — Evaluation > Опоры  [BM25+Dense (description,title,heading) rrf 0.033]\n   - https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices   Prompt engi\n2. agents/evaluation.md:L13  Agents — Evaluation > Проверено  [BM25+Dense (description,title,heading,body) rrf 0.032]\n   ...план и на каких доказательствах основывал вывод. - Acceptance criteria сильнее всего работают там, где они observable\n3. agents/evaluation.md:L5  Agents — Evaluation  [BM25+Dense (description,title,heading,body) rrf 0.032]\n   ...план и на каких доказательствах основывал вывод. - Acceptance criteria сильнее всего работают там, где они observable"
     },
-    "usage_note": "Graph is hard contract impact; semantic is a manual-review radius.",
-    "_envelope": {
-      "version": 1,
-      "tool": "md_section_blast_radius",
-      "corpus_root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
-      "corpus_state": {
-        "state": "FRESH",
-        "model": "openai/text-embedding-3-small",
-        "index_exists": true,
-        "last_touched": "__VOLATILE__",
-        "added_sections": 0,
-        "removed_sections": 0,
-        "pending_chunks": 0,
-        "drift_count": 0,
-        "metadata_mismatch": false,
-        "delta_too_large": false,
-        "recommended_action": null
-      },
-      "lock": null,
-      "cost": {
-        "turn_usd": "__VOLATILE__",
-        "session_usd": "__VOLATILE__"
-      },
-      "size_estimate": {
-        "bytes": 8152,
-        "items_returned": 0
-      },
-      "next_step": []
-    }
+    "usage_note": "Graph is hard contract impact; semantic is a manual-review radius."
   }
 }

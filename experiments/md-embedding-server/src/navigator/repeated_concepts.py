@@ -3,8 +3,10 @@ section-similarity graph.
 
 Vertices = sections (token_count >= min_tokens), edges = cosine
 similarity >= threshold (max over chunk pairs). Connected components
-are "concepts" — ideas that recur across the corpus. Sort by number of
-unique files the concept touches, then by total section count.
+are "concepts" — ideas that recur across the corpus. Ranked by
+cohesion-weighted spread (mean_cohesion x sqrt(unique_files)): tight
+cross-file duplicates surface first, while degenerate transitive blobs —
+many files bridged at near-zero cohesion — sink to the bottom.
 
 Output is concept-centric: each concept lists the medoid section as its
 label, the files it appears in (with section count per file), and the
@@ -277,9 +279,10 @@ def compute_repeated_concepts(
             }
         )
 
-    items.sort(
-        key=lambda x: (-x["unique_files"], -x["section_count"], -x["mean_cohesion"])
-    )
+    # Rank by cohesion-weighted spread (see _concept_rank_score): tight
+    # cross-file duplicates surface first; degenerate transitive blobs —
+    # many files bridged at near-zero cohesion — score ~0 and sink.
+    items.sort(key=_concept_sort_key)
     items = items[:top_n]
 
     eligible_section_count = sum(
@@ -310,6 +313,29 @@ def compute_repeated_concepts(
     }
 
     return output
+
+
+def _concept_rank_score(concept: dict[str, Any]) -> float:
+    """Cohesion-weighted spread: ``mean_cohesion * sqrt(unique_files)``.
+
+    This is the ranking signal that keeps ``repeated-concepts`` useful for
+    deduplication. ``unique_files`` still counts (sqrt-damped) so a genuine
+    cross-file smear outranks a one-off pair, but near-zero cohesion can no
+    longer win on breadth alone: a degenerate transitive blob (e.g. 146
+    files bridged at cohesion 0.006) scores ~0.07 and sinks, while a tight
+    2-file duplicate at 0.83 scores ~1.18 and surfaces. Regression-locked in
+    ``tests/test_repeated_concepts_ranking.py``."""
+    return concept["mean_cohesion"] * (concept["unique_files"] ** 0.5)
+
+
+def _concept_sort_key(concept: dict[str, Any]) -> tuple[float, int, int]:
+    """Sort key: rank score first, then breadth then section count as
+    stable tie-breaks (all descending via negation)."""
+    return (
+        -_concept_rank_score(concept),
+        -concept["unique_files"],
+        -concept["section_count"],
+    )
 
 
 def _concept_label(medoid_meta: dict[str, Any]) -> str:
@@ -383,7 +409,7 @@ def render_repeated_concepts(out: dict[str, Any]) -> str:
         "file is filtered out by `--min-files` — that's intra-file "
         "repetition, not duplication of idea across the repo.",
         "",
-        "## Concepts (ranked by unique files, then section count)",
+        "## Concepts (ranked by cohesion-weighted spread: mean_cohesion x sqrt(files))",
         "",
     ]
     if not out["concepts"]:

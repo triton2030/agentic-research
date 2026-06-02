@@ -6,46 +6,247 @@
   },
   "is_error": false,
   "payload": {
-    "dry_run": true,
-    "sections_to_profile_estimate": 302,
-    "mode": "heuristic",
-    "estimated_cost_usd": 0,
-    "note": "Heuristic mode runs locally — no API cost. Cost only for --mode llm/auto.",
-    "hint": "Pass confirm:true to profile 302 sections (mode=heuristic).",
     "_envelope": {
       "version": 1,
       "tool": "md_profile_sections",
       "corpus_root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
       "corpus_state": {
-        "state": "HEALTHY",
+        "state": "FRESH",
         "model": "openai/text-embedding-3-small",
         "index_exists": true,
         "last_touched": "__VOLATILE__",
-        "added_sections": 1,
-        "removed_sections": 1,
-        "pending_chunks": 1,
+        "added_sections": 0,
+        "removed_sections": 0,
+        "pending_chunks": 0,
         "drift_count": 0,
         "metadata_mismatch": false,
         "delta_too_large": false,
-        "recommended_action": {
-          "tool": "md_index",
-          "args": {
-            "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
-            "dry_run": true
-          },
-          "reason": "Optional eager warmup; dry-run previews cost before embedding the small delta."
-        }
+        "recommended_action": null
       },
-      "lock": null,
+      "lock": {
+        "transaction_id": "__VOLATILE__",
+        "expires_at": "__VOLATILE__",
+        "fingerprint": "__VOLATILE__"
+      },
       "cost": {
         "turn_usd": "__VOLATILE__",
         "session_usd": "__VOLATILE__"
       },
       "size_estimate": {
-        "bytes": 245,
-        "items_returned": 0
+        "bytes": 4218,
+        "items_returned": 37,
+        "counted_fields": [
+          {
+            "field": "files",
+            "count": 37
+          }
+        ]
       },
-      "next_step": []
-    }
+      "next_step": [
+        {
+          "tool": "md_profile_sections",
+          "args": {
+            "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+            "confirm": true,
+            "transaction_id": "__VOLATILE__"
+          },
+          "reason": "Apply the dry-run plan with the matching transaction_id."
+        }
+      ]
+    },
+    "command": "profile-sections",
+    "dry_run": true,
+    "sections_to_profile_estimate": 303,
+    "mode": "heuristic",
+    "estimated_cost_usd": 0,
+    "affected_files": [
+      "agents/evaluation.md",
+      "agents/memory.md",
+      "agents/multi-agent.md",
+      "agents/runtime-layer.md",
+      "agents/tool-design.md",
+      "examples/README.md",
+      "examples/anthropic-design-generator/CLAUDE.md",
+      "examples/anthropic-design-generator/ds/README.md",
+      "examples/anthropic-design-generator/takeaways.md",
+      "guides/design-review-playbook.md",
+      "guides/perfect-context-engineering.md",
+      "guides/perfect-project-shape.md",
+      "guides/perfect-system-prompts.md",
+      "guides/progressive-task-planning-playbook.md",
+      "guides/structural-critique-playbook.md",
+      "practical-guides/hooks-runtime-guardrails.md",
+      "practical-guides/how-to-write-skills/README.md",
+      "practical-guides/how-to-write-skills/authoring-canon.md",
+      "practical-guides/how-to-write-skills/checklist.md",
+      "practical-guides/how-to-write-skills/platform-deltas.md",
+      "practical-guides/how-to-write-skills/research-2026-mar-may.md",
+      "research/business/inventory.md",
+      "research/design/inventory.md",
+      "research/design/learnings.md",
+      "research/dev/code-aware-tooling-2026-q2.md",
+      "research/dev/inventory.md",
+      "research/dev/learnings.md",
+      "research/meta/inventory.md",
+      "research/meta/learnings.md",
+      "research/meta/links.md",
+      "wisdom-claude-code.md",
+      "wisdom-claude-opus-4.7.md",
+      "wisdom-codex.md",
+      "wisdom-gpt-5.5.md",
+      "wisdom-llm.md",
+      "wisdom-skills-plugins.md",
+      "wisdom-systems-thinking.md"
+    ],
+    "files": [
+      {
+        "path": "agents/evaluation.md",
+        "hash": "43351e0f029cc77d"
+      },
+      {
+        "path": "agents/memory.md",
+        "hash": "c43b839a7d3e8507"
+      },
+      {
+        "path": "agents/multi-agent.md",
+        "hash": "7e007324f5952778"
+      },
+      {
+        "path": "agents/runtime-layer.md",
+        "hash": "f3933af6891af801"
+      },
+      {
+        "path": "agents/tool-design.md",
+        "hash": "a28db0c9bfac1b71"
+      },
+      {
+        "path": "examples/README.md",
+        "hash": "b0dd00e7e1dd895d"
+      },
+      {
+        "path": "examples/anthropic-design-generator/CLAUDE.md",
+        "hash": "df91c795c9a6a769"
+      },
+      {
+        "path": "examples/anthropic-design-generator/ds/README.md",
+        "hash": "4a4958806cae90a2"
+      },
+      {
+        "path": "examples/anthropic-design-generator/takeaways.md",
+        "hash": "8caf6c06a53df60a"
+      },
+      {
+        "path": "guides/design-review-playbook.md",
+        "hash": "c91dc13f19b2214b"
+      },
+      {
+        "path": "guides/perfect-context-engineering.md",
+        "hash": "d3fcc7633880f8a0"
+      },
+      {
+        "path": "guides/perfect-project-shape.md",
+        "hash": "dec404fc44c9163d"
+      },
+      {
+        "path": "guides/perfect-system-prompts.md",
+        "hash": "9bf127935be31bf1"
+      },
+      {
+        "path": "guides/progressive-task-planning-playbook.md",
+        "hash": "a7fc4153b64dd353"
+      },
+      {
+        "path": "guides/structural-critique-playbook.md",
+        "hash": "c657aa56105b85a7"
+      },
+      {
+        "path": "practical-guides/hooks-runtime-guardrails.md",
+        "hash": "f1b1a8afeeb692e4"
+      },
+      {
+        "path": "practical-guides/how-to-write-skills/README.md",
+        "hash": "96ef13bb55fc45fe"
+      },
+      {
+        "path": "practical-guides/how-to-write-skills/authoring-canon.md",
+        "hash": "1a3504fb0c49e988"
+      },
+      {
+        "path": "practical-guides/how-to-write-skills/checklist.md",
+        "hash": "810cd86905f079bf"
+      },
+      {
+        "path": "practical-guides/how-to-write-skills/platform-deltas.md",
+        "hash": "d749273e35b579f4"
+      },
+      {
+        "path": "practical-guides/how-to-write-skills/research-2026-mar-may.md",
+        "hash": "6996c64b362e7ab1"
+      },
+      {
+        "path": "research/business/inventory.md",
+        "hash": "66359abc5cd96245"
+      },
+      {
+        "path": "research/design/inventory.md",
+        "hash": "233f7264461df7bc"
+      },
+      {
+        "path": "research/design/learnings.md",
+        "hash": "efe43b35864698fe"
+      },
+      {
+        "path": "research/dev/code-aware-tooling-2026-q2.md",
+        "hash": "9787d1624522fb0a"
+      },
+      {
+        "path": "research/dev/inventory.md",
+        "hash": "912de0210b6dda4f"
+      },
+      {
+        "path": "research/dev/learnings.md",
+        "hash": "ff46fc88e33022c0"
+      },
+      {
+        "path": "research/meta/inventory.md",
+        "hash": "a6aa10e312cc708e"
+      },
+      {
+        "path": "research/meta/learnings.md",
+        "hash": "9d40b9deb62d57aa"
+      },
+      {
+        "path": "research/meta/links.md",
+        "hash": "77c951f0c6e33f93"
+      },
+      {
+        "path": "wisdom-claude-code.md",
+        "hash": "a3ed6f73dee9c2e1"
+      },
+      {
+        "path": "wisdom-claude-opus-4.7.md",
+        "hash": "a3eea732f1d402e2"
+      },
+      {
+        "path": "wisdom-codex.md",
+        "hash": "d9316603e4264038"
+      },
+      {
+        "path": "wisdom-gpt-5.5.md",
+        "hash": "812b400220b572a8"
+      },
+      {
+        "path": "wisdom-llm.md",
+        "hash": "4424c221d7918368"
+      },
+      {
+        "path": "wisdom-skills-plugins.md",
+        "hash": "c6c7f2f7d7ba512b"
+      },
+      {
+        "path": "wisdom-systems-thinking.md",
+        "hash": "05efe21e8655a3e5"
+      }
+    ]
   }
 }

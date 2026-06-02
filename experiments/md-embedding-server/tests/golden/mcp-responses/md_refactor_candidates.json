@@ -6,6 +6,52 @@
   },
   "is_error": false,
   "payload": {
+    "_envelope": {
+      "version": 1,
+      "tool": "md_refactor_candidates",
+      "corpus_root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+      "corpus_state": {
+        "state": "FRESH",
+        "model": "openai/text-embedding-3-small",
+        "index_exists": true,
+        "last_touched": "__VOLATILE__",
+        "added_sections": 0,
+        "removed_sections": 0,
+        "pending_chunks": 0,
+        "drift_count": 0,
+        "metadata_mismatch": false,
+        "delta_too_large": false,
+        "recommended_action": null
+      },
+      "lock": null,
+      "cost": {
+        "turn_usd": "__VOLATILE__",
+        "session_usd": "__VOLATILE__"
+      },
+      "size_estimate": {
+        "bytes": 3303,
+        "items_returned": 3,
+        "counted_fields": [
+          {
+            "field": "proposals",
+            "count": 3
+          }
+        ]
+      },
+      "next_step": [
+        {
+          "tool": "md_refactor_candidates",
+          "args": {
+            "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+            "expanded": true,
+            "top": 3,
+            "uniqueness_threshold": 0.35,
+            "owner_confidence_threshold": 0.45
+          },
+          "reason": "Return full proposal evidence."
+        }
+      ]
+    },
     "proposals": [
       {
         "proposal_type": "replace_with_wikilink",
@@ -143,52 +189,19 @@
     "path_exclude": [],
     "no_automation": true,
     "expanded": false,
-    "content_included": false,
-    "map_only": true,
     "read_next": [
       {
         "tool": "md_refactor_candidates",
         "args": {
           "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
           "expanded": true,
-          "top": 3
+          "top": 3,
+          "uniqueness_threshold": 0.35,
+          "owner_confidence_threshold": 0.45
         },
         "reason": "Return full proposal evidence."
       }
     ],
-    "_envelope": {
-      "version": 1,
-      "tool": "md_refactor_candidates",
-      "corpus_root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
-      "corpus_state": {
-        "state": "FRESH",
-        "model": "openai/text-embedding-3-small",
-        "index_exists": true,
-        "last_touched": "__VOLATILE__",
-        "added_sections": 0,
-        "removed_sections": 0,
-        "pending_chunks": 0,
-        "drift_count": 0,
-        "metadata_mismatch": false,
-        "delta_too_large": false,
-        "recommended_action": null
-      },
-      "lock": null,
-      "cost": {
-        "turn_usd": "__VOLATILE__",
-        "session_usd": "__VOLATILE__"
-      },
-      "size_estimate": {
-        "bytes": 3267,
-        "items_returned": 3,
-        "counted_fields": [
-          {
-            "field": "proposals",
-            "count": 3
-          }
-        ]
-      },
-      "next_step": []
-    }
+    "view": "map"
   }
 }

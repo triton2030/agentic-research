@@ -6,17 +6,6 @@
   },
   "is_error": false,
   "payload": {
-    "command": "impact",
-    "file": {
-      "path": "agents/evaluation.md",
-      "description": "Оценка агента — trajectory eval, observable acceptance criteria, multi-channel audit, cross-family judge и manual prototype first.",
-      "has_frontmatter": true
-    },
-    "related_reading_command": "md read-related --paths agents/evaluation.md --scan /Users/triton/Documents/GitHub/agentic-research/knowledge --token-budget 3000 --expanded",
-    "cascade_breaks": [],
-    "reference_breaks": [],
-    "body_wikilink_refs": [],
-    "body_markdown_refs": [],
     "_envelope": {
       "version": 1,
       "tool": "md_impact",
@@ -44,6 +33,17 @@
         "items_returned": 0
       },
       "next_step": []
-    }
+    },
+    "command": "impact",
+    "file": {
+      "path": "agents/evaluation.md",
+      "description": "Оценка агента — trajectory eval, observable acceptance criteria, multi-channel audit, cross-family judge и manual prototype first.",
+      "has_frontmatter": true
+    },
+    "related_reading_command": "md read-related --paths agents/evaluation.md --scan /Users/triton/Documents/GitHub/agentic-research/knowledge --token-budget 3000 --expanded",
+    "cascade_breaks": [],
+    "reference_breaks": [],
+    "body_wikilink_refs": [],
+    "body_markdown_refs": []
   }
 }

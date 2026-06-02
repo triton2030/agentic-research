@@ -29,6 +29,12 @@ def test_envelope_shape_matches_golden_keys_and_types() -> None:
         assert isinstance(actual[key], type(value))
 
 
+def test_wrap_places_envelope_first_for_agent_visible_truncation() -> None:
+    result = wrap({"text": "x" * 12_000}, tool_name="md_ping", args={})
+
+    assert list(result.keys())[:2] == ["_envelope", "text"]
+
+
 def test_index_warmup_next_step_has_no_runnable_confirm() -> None:
     result = wrap(
         {"error": "index_warmup_required"},

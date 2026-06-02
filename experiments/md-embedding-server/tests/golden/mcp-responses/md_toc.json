@@ -6,6 +6,38 @@
   },
   "is_error": false,
   "payload": {
+    "_envelope": {
+      "version": 1,
+      "tool": "md_toc",
+      "corpus_root": null,
+      "corpus_state": null,
+      "lock": null,
+      "cost": {
+        "turn_usd": "__VOLATILE__",
+        "session_usd": "__VOLATILE__"
+      },
+      "size_estimate": {
+        "bytes": 3230,
+        "items_returned": 5,
+        "counted_fields": [
+          {
+            "field": "files",
+            "count": 5
+          }
+        ]
+      },
+      "next_step": [
+        {
+          "tool": "md_extract",
+          "args": {
+            "map_stdin": true,
+            "extract": true,
+            "token_budget": 3000
+          },
+          "reason": "Choose the file ids or heading ids from this map, then pass the exact JSON to md extract --map-stdin with --files/--headings. Do not pretty-print or truncate it first. Headings are routing hints; bodies come from md_extract."
+        }
+      ]
+    },
     "root": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents",
     "file_count": 5,
     "description_gap_count": 0,
@@ -164,27 +196,18 @@
         ]
       }
     ],
-    "_envelope": {
-      "version": 1,
-      "tool": "md_toc",
-      "corpus_root": null,
-      "corpus_state": null,
-      "lock": null,
-      "cost": {
-        "turn_usd": "__VOLATILE__",
-        "session_usd": "__VOLATILE__"
-      },
-      "size_estimate": {
-        "bytes": 2734,
-        "items_returned": 5,
-        "counted_fields": [
-          {
-            "field": "files",
-            "count": 5
-          }
-        ]
-      },
-      "next_step": []
-    }
+    "expanded": true,
+    "summary": {
+      "file_count": 5,
+      "description_gaps": 0,
+      "folders": [
+        {
+          "folder": "<root>",
+          "files": 5,
+          "sample_desc": "Оценка агента — trajectory eval, observable acceptance criteria, multi-channel audit, cross-family judge и manual prototype first."
+        }
+      ]
+    },
+    "view": "expanded"
   }
 }

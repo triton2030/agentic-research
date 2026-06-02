@@ -4,6 +4,10 @@ from typing import Any, TypedDict
 
 
 LARGE_REPLY_BYTES = 10_000
+LARGE_REPLY_AGENT_NOTE = (
+    "Stdout is already compact UTF-8 JSON; do not run python3 -m json.tool "
+    "or head -N. Follow this next_step.args/native narrowing flags instead."
+)
 
 
 class NextStep(TypedDict):
@@ -16,6 +20,7 @@ def _narrow_for_large_reply(
     tool_name: str, args_dict: dict[str, Any], byte_count: int | None
 ) -> NextStep | None:
     size_note = f"Reply {byte_count} bytes > {LARGE_REPLY_BYTES}" if byte_count else "Reply large"
+    prefix = f"{size_note}. {LARGE_REPLY_AGENT_NOTE} "
 
     if tool_name in {"md_search", "md_search_read"}:
         narrowed = {key: value for key, value in args_dict.items() if key != "top"}
@@ -33,7 +38,7 @@ def _narrow_for_large_reply(
         return {
             "tool": tool_name,
             "args": narrowed,
-            "reason": f"{size_note}. {limit_note}{extra}",
+            "reason": f"{prefix}{limit_note}{extra}",
         }
     if tool_name == "md_repeated_concepts":
         narrowed_top = min(int(args_dict.get("top") or 30), 10)
@@ -41,7 +46,7 @@ def _narrow_for_large_reply(
             "tool": tool_name,
             "args": {**args_dict, "top": narrowed_top},
             "reason": (
-                f"{size_note}. Try --top {narrowed_top} or add --path-include "
+                f"{prefix}Try --top {narrowed_top} or add --path-include "
                 "for the folder you actually need."
             ),
         }
@@ -50,14 +55,14 @@ def _narrow_for_large_reply(
         return {
             "tool": tool_name,
             "args": {**args_dict, "top": narrowed_top},
-            "reason": f"{size_note}. Try --top {narrowed_top}, raise --threshold, or add --path-include.",
+            "reason": f"{prefix}Try --top {narrowed_top}, raise --threshold, or add --path-include.",
         }
     if tool_name == "md_audit":
         return {
             "tool": tool_name,
             "args": dict(args_dict),
             "reason": (
-                f"{size_note}. Try --path-include 'subpath/*' to narrow the audit scope."
+                f"{prefix}Try --path-include 'subpath/*' to narrow the audit scope."
             ),
         }
     return None
@@ -415,9 +420,9 @@ def _handle_map_guidance(
                 "tool": "md_extract",
                 "args": {"map_stdin": True, "extract": True, "token_budget": 3000},
                 "reason": (
-                    "Choose the file ids or heading ids from this map, then pipe this JSON to "
-                    "md extract with --files/--headings. Headings are routing hints; bodies "
-                    "come from md_extract."
+                    "Choose the file ids or heading ids from this map, then pass the exact JSON "
+                    "to md extract --map-stdin with --files/--headings. Do not pretty-print or "
+                    "truncate it first. Headings are routing hints; bodies come from md_extract."
                 ),
             }
         ]

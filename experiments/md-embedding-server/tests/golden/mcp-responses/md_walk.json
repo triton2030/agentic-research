@@ -9,6 +9,45 @@
   },
   "is_error": false,
   "payload": {
+    "_envelope": {
+      "version": 1,
+      "tool": "md_walk",
+      "corpus_root": "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server/tests/fixtures/sample-corpus",
+      "corpus_state": {
+        "state": "NO_INDEX",
+        "model": "baai/bge-m3",
+        "index_exists": false,
+        "last_touched": null,
+        "added_sections": 6,
+        "removed_sections": 0,
+        "pending_chunks": 6,
+        "drift_count": 0,
+        "metadata_mismatch": false,
+        "delta_too_large": false,
+        "recommended_action": null
+      },
+      "lock": null,
+      "cost": {
+        "turn_usd": "__VOLATILE__",
+        "session_usd": "__VOLATILE__"
+      },
+      "size_estimate": {
+        "bytes": 631,
+        "items_returned": 0
+      },
+      "next_step": [
+        {
+          "tool": "md_read_related",
+          "args": {
+            "paths": [
+              "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server/tests/fixtures/sample-corpus/README.md"
+            ],
+            "scan": "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server/tests/fixtures/sample-corpus"
+          },
+          "reason": "Walk reached the end of anchored wikilinks. Use read-related for the one-level graph neighborhood; use search-read separately for semantic matches."
+        }
+      ]
+    },
     "command": "walk",
     "path": "README.md",
     "anchor": "Rule",
@@ -31,34 +70,6 @@
       "links_followed": 0,
       "token_total": 14,
       "skipped_bare_wikilinks": 0
-    },
-    "_envelope": {
-      "version": 1,
-      "tool": "md_walk",
-      "corpus_root": "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server/tests/fixtures/sample-corpus",
-      "corpus_state": {
-        "state": "NO_INDEX",
-        "model": "baai/bge-m3",
-        "index_exists": false,
-        "last_touched": null,
-        "added_sections": 6,
-        "removed_sections": 0,
-        "pending_chunks": 6,
-        "drift_count": 0,
-        "metadata_mismatch": false,
-        "delta_too_large": false,
-        "recommended_action": null
-      },
-      "lock": null,
-      "cost": {
-        "turn_usd": 0.0,
-        "session_usd": 0.0
-      },
-      "size_estimate": {
-        "bytes": 631,
-        "items_returned": 0
-      },
-      "next_step": []
     }
   }
 }

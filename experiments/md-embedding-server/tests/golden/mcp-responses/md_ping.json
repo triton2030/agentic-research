@@ -3,12 +3,6 @@
   "canonical_args": {},
   "is_error": false,
   "payload": {
-    "name": "md-mcp",
-    "version": "0.6.1",
-    "navigator_script": "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server/scripts/md_navigator.py",
-    "navigator_error": null,
-    "graph_script": "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server/scripts/md_graph.py",
-    "graph_error": null,
     "_envelope": {
       "version": 1,
       "tool": "md_ping",
@@ -20,10 +14,14 @@
         "session_usd": "__VOLATILE__"
       },
       "size_estimate": {
-        "bytes": 319,
+        "bytes": 139,
         "items_returned": 0
       },
       "next_step": []
-    }
+    },
+    "name": "md-tools",
+    "version": "0.7.0",
+    "navigator_package": "navigator",
+    "graph_package": "navigator.graph_core+navigator.graph_reports"
   }
 }

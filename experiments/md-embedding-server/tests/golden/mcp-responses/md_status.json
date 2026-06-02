@@ -5,31 +5,22 @@
   },
   "is_error": false,
   "payload": {
-    "text": "Corpus: /Users/triton/Documents/GitHub/agentic-research/knowledge\nIndex:  /Users/triton/Documents/GitHub/agentic-research/knowledge/.md-navigator/index.sqlite\nLast touched: 2026-05-22T14:10:09\n[sections] added=0 removed=0 reused=302 pending_chunks=0 total=302\n[descriptions] added=1 removed=1 reused=9 pending_chunks=1 total=10\nStatus: HEALTHY — 1 new / 1 removed sections, 1 chunks pending. `search` will auto-handle the delta.\n  Optional: md index '/Users/triton/Documents/GitHub/agentic-research/knowledge'  (eagerly warm the index instead of paying inside search)\n",
-    "stderr": null,
     "_envelope": {
       "version": 1,
       "tool": "md_status",
       "corpus_root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
       "corpus_state": {
-        "state": "HEALTHY",
+        "state": "FRESH",
         "model": "openai/text-embedding-3-small",
         "index_exists": true,
         "last_touched": "__VOLATILE__",
-        "added_sections": 1,
-        "removed_sections": 1,
-        "pending_chunks": 1,
+        "added_sections": 0,
+        "removed_sections": 0,
+        "pending_chunks": 0,
         "drift_count": 0,
         "metadata_mismatch": false,
         "delta_too_large": false,
-        "recommended_action": {
-          "tool": "md_index",
-          "args": {
-            "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
-            "dry_run": true
-          },
-          "reason": "Optional eager warmup; dry-run previews cost before embedding the small delta."
-        }
+        "recommended_action": null
       },
       "lock": null,
       "cost": {
@@ -37,10 +28,32 @@
         "session_usd": "__VOLATILE__"
       },
       "size_estimate": {
-        "bytes": 613,
+        "bytes": 601,
         "items_returned": 0
       },
       "next_step": []
-    }
+    },
+    "command": "status",
+    "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+    "index_path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/.md-navigator/index.sqlite",
+    "index_exists": true,
+    "last_touched": "__VOLATILE__",
+    "model": "openai/text-embedding-3-small",
+    "path_scope": {
+      "include": null,
+      "exclude": null
+    },
+    "added_sections": 0,
+    "removed_sections": 0,
+    "pending_chunks": 0,
+    "reused": 313,
+    "drift_count": 0,
+    "metadata_mismatch": false,
+    "delta_too_large": false,
+    "max_auto_embed": 50,
+    "state": "FRESH",
+    "recommended_action": null,
+    "expanded": false,
+    "view": "map"
   }
 }

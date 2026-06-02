@@ -402,6 +402,53 @@ def preflight_deferred_notes(doc: Doc) -> list[str]:
     return notes
 
 
+def build_edit_plan(
+    must_read: list[dict[str, Any]],
+    must_update: list[dict[str, Any]],
+    update_cascade: list[dict[str, Any]],
+    check_only_references: dict[str, Any],
+) -> dict[str, Any]:
+    """Flatten the scattered preflight edges into one actionable propagation list.
+
+    The raw preflight fields hold the same files in several deep places
+    (``must_update``, ``update_cascade``, ``check_only_references.reverse_*``).
+    An agent editing a file needs the single question answered: *which other files
+    must I now touch?* This collapses those into three flat, de-duplicated buckets
+    of ``{path, description}`` so the obligation to edit parents/children is plain.
+
+    Reverse holders (``also_check``) are the high-value case: their bodies often
+    share no keyword with the edit, so grep never finds them — only the graph does.
+    """
+    seen: set[str] = set()
+
+    def collect(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        rows: list[dict[str, Any]] = []
+        for item in items:
+            path = item.get("path")
+            if not path or path in seen or item.get("status") == "missing":
+                continue
+            seen.add(path)
+            rows.append({"path": path, "description": item.get("description", "")})
+        return rows
+
+    # Order matters: a file claimed as a downstream child should not reappear as a
+    # reverse holder, so must_update wins the shared `seen` set first.
+    must_update_rows = collect([*must_update, *update_cascade])
+    also_check_rows = collect(
+        [
+            *check_only_references.get("reverse_read_before_edit", []),
+            *check_only_references.get("reverse_edit_after_edit", []),
+        ]
+    )
+    must_read_rows = collect(must_read)
+    return {
+        "must_update": must_update_rows,
+        "also_check": also_check_rows,
+        "must_read": must_read_rows,
+        "to_clear": len(must_update_rows) + len(also_check_rows),
+    }
+
+
 def preflight_report(
     doc: Doc,
     all_docs: list[Doc],
@@ -428,12 +475,16 @@ def preflight_report(
         ],
     }
     anchor_drift = inbound_anchors_by_heading(doc, all_docs, root)
+    must_read = deps["fields"]["read-before-edit"]
+    must_update = deps["fields"]["edit-after-edit"]
+    update_cascade = deps["edit_after_edit_cascade"]
     return {
         "file": doc_data(doc),
         "related_reading_command": navigator_read_related_command(str(doc.rel), scan=scan),
-        "must_read": deps["fields"]["read-before-edit"],
-        "must_update": deps["fields"]["edit-after-edit"],
-        "update_cascade": deps["edit_after_edit_cascade"],
+        "edit_plan": build_edit_plan(must_read, must_update, update_cascade, check_only_references),
+        "must_read": must_read,
+        "must_update": must_update,
+        "update_cascade": update_cascade,
         "reverse_holders": deps["reverse_edit_after_edit"],
         "check_only_references": check_only_references,
         "check_only": [finding_data(finding) for finding in findings],
@@ -450,6 +501,16 @@ def report_has_blockers(report: dict[str, Any]) -> bool:
 
 def render_preflight_report(report: dict[str, Any], title: str = "PREFLIGHT") -> str:
     lines = [f"{title} | {report['file']['path']} | {report['file']['description']}"]
+
+    plan = report.get("edit_plan", {})
+    lines.append(
+        f"\nedit-plan | {plan.get('to_clear', 0)} dependent file(s) to clear before done"
+    )
+    for label, key in (("MUST-UPDATE", "must_update"), ("ALSO-CHECK", "also_check"), ("MUST-READ", "must_read")):
+        rows = plan.get(key, [])
+        if rows:
+            lines.append(f"  {label}:")
+            lines.extend(f"    - {row['path']} | {row['description']}" for row in rows)
 
     lines.append(f"\nmust-read ({len(report['must_read'])})")
     lines.extend(render_edge_data(item) for item in report["must_read"])

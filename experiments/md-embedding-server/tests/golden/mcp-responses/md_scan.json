@@ -5,8 +5,30 @@
       "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents"
     ]
   },
-  "is_error": true,
+  "is_error": false,
   "payload": {
+    "_envelope": {
+      "version": 1,
+      "tool": "md_scan",
+      "corpus_root": null,
+      "corpus_state": null,
+      "lock": null,
+      "cost": {
+        "turn_usd": "__VOLATILE__",
+        "session_usd": "__VOLATILE__"
+      },
+      "size_estimate": {
+        "bytes": 1572,
+        "items_returned": 10,
+        "counted_fields": [
+          {
+            "field": "issues",
+            "count": 10
+          }
+        ]
+      },
+      "next_step": []
+    },
     "command": "scan",
     "targets": 5,
     "issues": [
@@ -60,28 +82,6 @@
         "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/tool-design.md",
         "detail": "edit-after-edit"
       }
-    ],
-    "_envelope": {
-      "version": 1,
-      "tool": "md_scan",
-      "corpus_root": null,
-      "corpus_state": null,
-      "lock": null,
-      "cost": {
-        "turn_usd": "__VOLATILE__",
-        "session_usd": "__VOLATILE__"
-      },
-      "size_estimate": {
-        "bytes": 1572,
-        "items_returned": 10,
-        "counted_fields": [
-          {
-            "field": "issues",
-            "count": 10
-          }
-        ]
-      },
-      "next_step": []
-    }
+    ]
   }
 }
