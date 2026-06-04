@@ -14,6 +14,7 @@ from typing import Any
 
 from cbcommon import scrub_billing_env
 from codex_defaults import (
+    BRIDGE_THREAD_EPHEMERAL,
     DEFAULT_CODEX_EFFORT,
     DEFAULT_CODEX_MODEL,
     REASONING_EFFORTS,
@@ -67,6 +68,7 @@ async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict
                 sandbox=Sandbox.workspace_write,
                 approval_mode=ApprovalMode.auto_review,
                 model=defaults["model"],
+                ephemeral=BRIDGE_THREAD_EPHEMERAL,
             )
             result = await thread.run(
                 prompt,
@@ -307,6 +309,7 @@ def main() -> int:
             "effort": args.effort,
             "worker_sandbox": WORKER_SANDBOX,
             "worker_approval_mode": WORKER_APPROVAL_MODE,
+            "thread_ephemeral": BRIDGE_THREAD_EPHEMERAL,
             "heartbeat_sec": args.heartbeat_sec,
         }
         run_id, run_dir = prepare_run_dir(args.run_dir)

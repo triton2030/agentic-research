@@ -29,6 +29,18 @@
 отключает). `Monitor` можно включать только как filtered watcher поверх
 `events.jsonl`; raw stdout/stderr не мониторить.
 
+## Audit surface — только `runs/`
+
+Единственный audit/debug owner прогона — каталог `runs/<run_id>/` (`manifest.json`,
+`events.jsonl`, `results.jsonl`, `result.json`). Bridge стартует Codex-threads с
+`ephemeral=True`, поэтому они не материализуются в общий `~/.codex` session store.
+
+**История Codex Desktop НЕ является audit surface для bridge** — не ищи прогоны
+там. SDK под капотом запускает тот же локальный движок `codex app-server`, что и
+Desktop, и делит с ним `~/.codex`; без `ephemeral` каждый вызов всплывал бы там
+как новый чат. `~/.codex` остаётся общим owner-ом только для auth/config/runtime.
+Доказательство в каждом прогоне — поле `codex.thread_ephemeral` в `result.json`.
+
 ## Модель и runtime-доступ
 
 Backend явно закрепляет Codex turn defaults: `model=gpt-5.5`,

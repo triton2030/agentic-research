@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import subprocess
 import sys
 import tempfile
+import types
 import unittest
 import uuid
 from pathlib import Path
@@ -15,6 +17,7 @@ sys.path.insert(0, str(BACKEND))
 
 from codex_orchestrate_contract import (  # noqa: E402
     UsageError,
+    normalize_tasks,
     path_allowed,
     worker_status_from_codex_status,
 )
@@ -24,6 +27,45 @@ from codex_orchestrate_state import (  # noqa: E402
     compare_scope,
     prepare_run_dir,
 )
+
+
+def _install_fake_openai_codex(captured: dict) -> list[str]:
+    """Put a fake `openai_codex` into sys.modules so the worker's lazy SDK import
+    resolves to a stub that records thread_start kwargs instead of launching a
+    real Codex process. Returns the module names to pop in teardown."""
+
+    class _Sandbox:
+        read_only = "read_only"
+        workspace_write = "workspace_write"
+
+    class _ApprovalMode:
+        deny_all = "deny_all"
+        auto_review = "auto_review"
+
+    class _FakeThread:
+        async def run(self, prompt, **kwargs):  # noqa: ANN001
+            return types.SimpleNamespace(
+                status="completed", error=None, final_response="done", usage=None
+            )
+
+    class _FakeCodex:
+        async def thread_start(self, **kwargs):  # noqa: ANN003
+            captured.update(kwargs)
+            return _FakeThread()
+
+    mod = types.ModuleType("openai_codex")
+    mod.Sandbox = _Sandbox
+    mod.ApprovalMode = _ApprovalMode
+    mod.FakeCodex = _FakeCodex
+    gen = types.ModuleType("openai_codex.generated")
+    v2 = types.ModuleType("openai_codex.generated.v2_all")
+    v2.ReasoningEffort = lambda value: value
+    gen.v2_all = v2
+    names = ["openai_codex", "openai_codex.generated", "openai_codex.generated.v2_all"]
+    sys.modules["openai_codex"] = mod
+    sys.modules["openai_codex.generated"] = gen
+    sys.modules["openai_codex.generated.v2_all"] = v2
+    return names
 
 
 def run_cli(
@@ -86,6 +128,7 @@ class CodexOrchestrateCliTests(unittest.TestCase):
             self.assertEqual(payload["codex"]["effort"], "xhigh")
             self.assertEqual(payload["codex"]["worker_sandbox"], "workspace_write")
             self.assertEqual(payload["codex"]["worker_approval_mode"], "auto_review")
+            self.assertTrue(payload["codex"]["thread_ephemeral"])
 
     def test_summary_stdout_is_compact_but_result_json_keeps_plan(self) -> None:
         with self.temp_project() as tmp:
@@ -298,6 +341,40 @@ class CodexOrchestrateCliTests(unittest.TestCase):
             run_dir.mkdir()
             with self.assertRaises(UsageError):
                 prepare_run_dir(str(run_dir))
+
+    def test_worker_thread_start_passes_ephemeral(self) -> None:
+        """SDK call contract: workers must start threads ephemerally so bridge
+        runs never materialize into the shared ~/.codex session store."""
+        import codex_orchestrate
+
+        captured: dict = {}
+        fake_names = _install_fake_openai_codex(captured)
+        try:
+            with self.temp_project() as tmp:
+                root = Path(tmp).resolve()  # CLI resolves --project; match it (macOS /tmp symlink)
+                self.write(root, "a.md")
+                tasks = normalize_tasks(root, [{"id": "t1", "prompt": "hi", "files": ["a.md"]}])
+                run_dir = root / "run"
+                run_dir.mkdir()
+                defaults = {
+                    "cwd": str(root),
+                    "model": "gpt-5.5",
+                    "effort": "high",
+                    "run_dir": run_dir,
+                    "progress": {"completed": 0, "total": 1},
+                }
+                fake_codex = sys.modules["openai_codex"].FakeCodex()
+                record = asyncio.run(
+                    codex_orchestrate._run_one(
+                        fake_codex, asyncio.Semaphore(1), tasks[0], defaults
+                    )
+                )
+            self.assertIs(captured.get("ephemeral"), True)
+            self.assertEqual(captured.get("sandbox"), "workspace_write")
+            self.assertEqual(record["worker_status"], "completed")
+        finally:
+            for name in fake_names:
+                sys.modules.pop(name, None)
 
 
 if __name__ == "__main__":

@@ -30,6 +30,13 @@
   manager для долгих runs. Backend только пишет compact stdout, heartbeat events
   и `run_dir` files; Claude skill решает, когда стартовать background Bash,
   читать status/tail или останавливать task.
+- **Bridge threads эфемерны.** Оба входа стартуют thread с
+  `ephemeral=BRIDGE_THREAD_EPHEMERAL` (`codex_defaults.py`, =`True`). `~/.codex` —
+  owner auth/config/runtime, общий с Codex Desktop, который рисует каждый
+  материализованный thread как чат. Единственный audit/debug owner прогона —
+  `runs/<run_id>/`; Desktop history audit surface'ом НЕ является. Ledger пишет
+  `codex.thread_ephemeral` как доказательство. Не убирай флаг и не заводи второй
+  `CODEX_HOME` (это клонирует auth/config/hooks и даёт profile-drift).
 - **Воркер пишет под контрактом.** `codex_orchestrate.py` — `workspace_write` +
   `auto_review`; `files` обязательны и enforced preflight/postflight. Не ставь
   `Sandbox.full_access` default-ом: изменения вне project/git scope нельзя
@@ -40,7 +47,7 @@
 
 - `cbcommon.py` — общая биллинг-гигиена (одна правда).
 - `codex_defaults.py` — общий runtime default: `gpt-5.5`, `xhigh`, sandbox и
-  approval labels для ledger/docs.
+  approval labels для ledger/docs, `BRIDGE_THREAD_EPHEMERAL`.
 - `codex_review.py` — ревьюер/консультант, поиск и рендер транскрипта Claude.
 - `codex_orchestrate.py` — entrypoint/runner для guarded shared-worktree пула
   воркеров (`AsyncCodex` + semaphore).

@@ -32,6 +32,7 @@ from pathlib import Path
 
 from cbcommon import scrub_billing_env
 from codex_defaults import (
+    BRIDGE_THREAD_EPHEMERAL,
     DEFAULT_CODEX_EFFORT,
     DEFAULT_CODEX_MODEL,
     REASONING_EFFORTS,
@@ -267,6 +268,13 @@ def main() -> int:
         transcript_md = f"{head}\n\n… [середина транскрипта оборвана для бюджета] …\n\n{tail}"
 
     prompt = build_prompt(args.mode, transcript_md, args.question)
+    # Single source for the codex block written to every ledger payload, so the
+    # audit owner (runs/) records thread_ephemeral uniformly: result["codex"].
+    codex_runtime = {
+        "model": args.model,
+        "effort": args.effort,
+        "thread_ephemeral": BRIDGE_THREAD_EPHEMERAL,
+    }
     run_id: str | None = None
     run_dir: Path | None = None
     paths: dict[str, str] | None = None
@@ -286,7 +294,7 @@ def main() -> int:
             "project": str(project_cwd),
             "transcript": str(transcript_path),
             "prompt_chars": len(prompt),
-            "codex": {"model": args.model, "effort": args.effort},
+            "codex": dict(codex_runtime),
             "runtime": {
                 "sandbox": REVIEW_SANDBOX,
                 "approval_mode": REVIEW_APPROVAL_MODE,
@@ -311,7 +319,7 @@ def main() -> int:
                 "mode": args.mode,
                 "status": "validated",
                 "ok": True,
-                "codex": {"model": args.model, "effort": args.effort},
+                "codex": dict(codex_runtime),
                 "paths": paths,
                 "prompt_chars": len(prompt),
             }
@@ -363,6 +371,7 @@ def main() -> int:
                 sandbox=Sandbox.read_only,
                 approval_mode=ApprovalMode.deny_all,
                 model=args.model,
+                ephemeral=BRIDGE_THREAD_EPHEMERAL,
             )
             result = thread.run(
                 prompt,
@@ -384,7 +393,7 @@ def main() -> int:
                 "status": "exception",
                 "ok": False,
                 "error": str(exc),
-                "codex": {"model": args.model, "effort": args.effort},
+                "codex": dict(codex_runtime),
                 "paths": paths,
                 "prompt_chars": len(prompt),
             }
@@ -409,7 +418,7 @@ def main() -> int:
                 "status": codex_status_value(getattr(result, "status", "failed")),
                 "ok": False,
                 "error": str(result.error),
-                "codex": {"model": args.model, "effort": args.effort},
+                "codex": dict(codex_runtime),
                 "paths": paths,
                 "prompt_chars": len(prompt),
             }
@@ -438,7 +447,7 @@ def main() -> int:
             "mode": args.mode,
             "status": status,
             "ok": True,
-            "codex": {"model": args.model, "effort": args.effort},
+            "codex": dict(codex_runtime),
             "paths": paths,
             "prompt_chars": len(prompt),
             "duration_ms": getattr(result, "duration_ms", None),
