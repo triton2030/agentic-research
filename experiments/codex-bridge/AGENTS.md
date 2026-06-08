@@ -48,7 +48,9 @@
 - `cbcommon.py` — общая биллинг-гигиена (одна правда).
 - `codex_defaults.py` — общий runtime default: `gpt-5.5`, `xhigh`, sandbox и
   approval labels для ledger/docs, `BRIDGE_THREAD_EPHEMERAL`.
-- `codex_review.py` — ревьюер/консультант, поиск и рендер транскрипта Claude.
+- `codex_review.py` — консультант/ревьюер read-only. Default режим `task`:
+  самодостаточное задание без транскрипта (вызов «как субагент»). Режимы
+  `review`/`ask` дополнительно ищут и рендерят транскрипт сессии Claude.
 - `codex_orchestrate.py` — entrypoint/runner для guarded shared-worktree пула
   воркеров (`AsyncCodex` + semaphore).
 - `codex_orchestrate_contract.py` — pure schema/path/status contract:

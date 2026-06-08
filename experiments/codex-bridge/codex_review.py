@@ -13,10 +13,13 @@ Codex запускается в sandbox read-only c рабочей папкой 
 он ВИДИТ все файлы проекта, но ничего не пишет.
 
 Режимы:
+  task "..."            задание/вопрос БЕЗ транскрипта (DEFAULT) — Codex видит
+                        файлы проекта, как вызов субагента; самый дешёвый и быстрый
   review               сторонний ревьюер хода работы (транскрипт + файлы)
   ask --question "..."  произвольный вопрос с транскриптом и файлами как контекстом
 
-Транскрипт текущей сессии Claude Code находится автоматически
+Транскрипт нужен только режимам review/ask; режим task его не подхватывает.
+Когда транскрипт нужен, он находится автоматически
 (CLAUDE_CODE_SESSION_ID → <id>.jsonl, иначе свежайший .jsonl проекта)
 или задаётся явно через --transcript.
 """
@@ -77,6 +80,15 @@ def _truncate(text: str, limit: int) -> str:
     if len(text) <= limit:
         return text
     return text[:limit] + f"… [+{len(text) - limit} символов оборвано]"
+
+
+def _first_nonblank(*values: str | None) -> str | None:
+    """Первое значение, непустое после strip. Защищает от задания из одних
+    пробелов ('   '): оно truthy, но по смыслу пустое и жгло бы кредиты впустую."""
+    for value in values:
+        if value and value.strip():
+            return value.strip()
+    return None
 
 
 def render_transcript(path: Path, include_thinking: bool) -> str:
@@ -143,6 +155,13 @@ def render_transcript(path: Path, include_thinking: bool) -> str:
     return "\n".join(lines)
 
 
+TASK_ROLE = """\
+Ты — независимый старший инженер. У тебя read-only доступ ко всем файлам этого
+проекта — открывай и проверяй реальный код и документы, ничего не домысливай.
+Выполни задание ниже: будь конкретным, опирайся на реальные файлы и точные пути,
+не пересказывай очевидное."""
+
+
 REVIEW_ROLE = """\
 Ты — независимый старший инженер-ревьюер. Ниже транскрипт рабочей сессии другого
 ИИ-агента (Claude Code) с пользователем. У тебя есть read-only доступ ко всем
@@ -156,7 +175,9 @@ REVIEW_ROLE = """\
 Будь конкретным и опирайся на файлы. Не пересказывай транскрипт."""
 
 
-def build_prompt(mode: str, transcript_md: str, question: str | None) -> str:
+def build_prompt(mode: str, transcript_md: str, payload: str | None) -> str:
+    if mode == "task":
+        return f"{TASK_ROLE}\n\n===== ЗАДАНИЕ =====\n{payload}"
     if mode == "review":
         return (
             f"{REVIEW_ROLE}\n\n"
@@ -170,7 +191,7 @@ def build_prompt(mode: str, transcript_md: str, question: str | None) -> str:
         "как контекст. У тебя read-only доступ ко всем файлам проекта — сверяйся с ними.\n\n"
         f"===== ТРАНСКРИПТ СЕССИИ (контекст) =====\n{transcript_md}\n"
         f"===== КОНЕЦ ТРАНСКРИПТА =====\n\n"
-        f"===== ВОПРОС =====\n{question}"
+        f"===== ВОПРОС =====\n{payload}"
     )
 
 
@@ -224,7 +245,19 @@ def _start_heartbeat(
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Вызвать Codex как ревьюера/консультанта из Claude Code.")
-    parser.add_argument("--mode", choices=("review", "ask"), default="review")
+    parser.add_argument(
+        "task_text",
+        nargs="?",
+        metavar="ЗАДАНИЕ",
+        help="Задание для режима task (позиционно). Эквивалент --task.",
+    )
+    parser.add_argument(
+        "--mode",
+        choices=("task", "review", "ask"),
+        default="task",
+        help="task (default): задание без транскрипта; review/ask: с транскриптом сессии.",
+    )
+    parser.add_argument("--task", help="Задание для режима task (как вызов субагента, без транскрипта).")
     parser.add_argument("--question", help="Вопрос для режима ask.")
     parser.add_argument("--project", default=os.getcwd(), help="Корень проекта (по умолчанию cwd).")
     parser.add_argument("--transcript", help="Путь к .jsonl транскрипту (по умолчанию — автопоиск текущей сессии).")
@@ -243,8 +276,15 @@ def main() -> int:
     parser.add_argument("--dry-run", action="store_true", help="Собрать промпт и вывести его, НЕ вызывая Codex (не тратит кредиты).")
     args = parser.parse_args()
 
-    if args.mode == "ask" and not args.question:
-        print("Режим ask требует --question.", file=sys.stderr)
+    # Задание/вопрос берём из любого источника, чтобы вызов не падал из-за того,
+    # каким флагом он записан: --task, --question или позиционный аргумент.
+    payload = _first_nonblank(args.task, args.question, args.task_text)
+
+    if args.mode == "task" and not payload:
+        print('Режим task требует задание: --task "..." или позиционный аргумент.', file=sys.stderr)
+        return 2
+    if args.mode == "ask" and not payload:
+        print("Режим ask требует --question (или --task / позиционный аргумент).", file=sys.stderr)
         return 2
     if args.heartbeat_sec < 0:
         print("--heartbeat-sec must be >= 0.", file=sys.stderr)
@@ -252,22 +292,28 @@ def main() -> int:
 
     project_cwd = Path(args.project).expanduser().resolve()
 
-    transcript_path = find_transcript(project_cwd, args.transcript)
-    if transcript_path is None:
-        print(
-            f"Транскрипт не найден. Искал по CLAUDE_CODE_SESSION_ID и в "
-            f"{CLAUDE_PROJECTS / encode_project_dir(project_cwd)}. Передай --transcript явно.",
-            file=sys.stderr,
-        )
-        return 1
+    # Транскрипт нужен только режимам с контекстом сессии. Режим task его не тянет
+    # — это и есть его смысл: дешёвый, быстрый вызов «как субагент».
+    transcript_path: Path | None = None
+    transcript_md = ""
+    if args.mode in ("review", "ask"):
+        transcript_path = find_transcript(project_cwd, args.transcript)
+        if transcript_path is None:
+            print(
+                f"Транскрипт не найден. Искал по CLAUDE_CODE_SESSION_ID и в "
+                f"{CLAUDE_PROJECTS / encode_project_dir(project_cwd)}. Передай --transcript явно.",
+                file=sys.stderr,
+            )
+            return 1
 
-    transcript_md = render_transcript(transcript_path, include_thinking=args.include_thinking)
-    if len(transcript_md) > args.max_chars:
-        head = transcript_md[: args.max_chars // 5]
-        tail = transcript_md[-(args.max_chars * 4 // 5):]
-        transcript_md = f"{head}\n\n… [середина транскрипта оборвана для бюджета] …\n\n{tail}"
+        transcript_md = render_transcript(transcript_path, include_thinking=args.include_thinking)
+        if len(transcript_md) > args.max_chars:
+            head = transcript_md[: args.max_chars // 5]
+            tail = transcript_md[-(args.max_chars * 4 // 5):]
+            transcript_md = f"{head}\n\n… [середина транскрипта оборвана для бюджета] …\n\n{tail}"
 
-    prompt = build_prompt(args.mode, transcript_md, args.question)
+    prompt = build_prompt(args.mode, transcript_md, payload)
+    transcript_name = transcript_path.name if transcript_path else "—"
     # Single source for the codex block written to every ledger payload, so the
     # audit owner (runs/) records thread_ephemeral uniformly: result["codex"].
     codex_runtime = {
@@ -292,7 +338,7 @@ def main() -> int:
             "dry_run": args.dry_run,
             "mode": args.mode,
             "project": str(project_cwd),
-            "transcript": str(transcript_path),
+            "transcript": str(transcript_path) if transcript_path else None,
             "prompt_chars": len(prompt),
             "codex": dict(codex_runtime),
             "runtime": {
@@ -307,7 +353,7 @@ def main() -> int:
         append_event(run_dir, "validated", dry_run=args.dry_run, mode=args.mode)
 
     if args.dry_run:
-        print(f"[codex-bridge dry-run] транскрипт={transcript_path.name} "
+        print(f"[codex-bridge dry-run] транскрипт={transcript_name} "
               f"промпт={len(prompt)} симв. режим={args.mode} "
               f"model={args.model} effort={args.effort} "
               f"sandbox={REVIEW_SANDBOX} approval={REVIEW_APPROVAL_MODE}", file=sys.stderr)
@@ -346,7 +392,7 @@ def main() -> int:
         return 1
 
     print(
-        f"[codex-bridge] режим={args.mode} транскрипт={transcript_path.name} "
+        f"[codex-bridge] режим={args.mode} транскрипт={transcript_name} "
         f"({len(transcript_md)} симв.) project={project_cwd} "
         f"model={args.model} effort={args.effort} "
         f"sandbox={REVIEW_SANDBOX} approval={REVIEW_APPROVAL_MODE}"

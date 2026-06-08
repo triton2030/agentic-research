@@ -200,6 +200,104 @@ class CodexReviewCliTests(unittest.TestCase):
                     os.environ.pop(key, None)
                 else:
                     os.environ[key] = value
+    def test_task_mode_needs_no_transcript(self) -> None:
+        """Режим task (default) не подхватывает транскрипт: вызов проходит даже
+        когда .jsonl сессии нет, а собранный prompt не содержит блока транскрипта."""
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            run_dir = root / ".runs" / uuid.uuid4().hex
+            proc = subprocess.run(
+                [
+                    sys.executable,
+                    str(SCRIPT),
+                    "Проверь паттерн ABC в модуле XYZ",
+                    "--project",
+                    str(root),
+                    "--dry-run",
+                    "--run-dir",
+                    str(run_dir),
+                    "--summary-stdout",
+                ],
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False,
+            )
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            payload = json.loads(proc.stdout)
+            self.assertEqual(payload["mode"], "task")
+
+            prompt_text = Path(payload["paths"]["prompt"]).read_text()
+            self.assertIn("Проверь паттерн ABC", prompt_text)
+            self.assertNotIn("ТРАНСКРИПТ", prompt_text)
+
+            manifest = json.loads(Path(payload["paths"]["manifest"]).read_text())
+            self.assertIsNone(manifest["transcript"])
+
+    def test_task_mode_requires_a_task(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            proc = subprocess.run(
+                [sys.executable, str(SCRIPT), "--project", str(root), "--dry-run"],
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False,
+            )
+            self.assertEqual(proc.returncode, 2)
+            self.assertIn("task", proc.stderr.lower())
+
+    def test_task_mode_rejects_blank_task(self) -> None:
+        """Задание из одних пробелов truthy, но по смыслу пусто — не должно
+        уйти в Codex и сжечь кредиты (нашёл Codex-ревьюер)."""
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            proc = subprocess.run(
+                [sys.executable, str(SCRIPT), "   ", "--project", str(root), "--dry-run"],
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False,
+            )
+            self.assertEqual(proc.returncode, 2)
+            self.assertIn("task", proc.stderr.lower())
+
+    def test_task_mode_thread_start_ephemeral_readonly(self) -> None:
+        """Новый дефолтный режим обязан держать тот же инвариант, что reviewer:
+        thread стартует ephemeral + read_only, без всякого транскрипта."""
+        import codex_review
+
+        captured: dict = {}
+        fake_names = _install_fake_openai_codex(captured)
+        saved_argv = sys.argv[:]
+        billing_keys = ("OPENAI_API_KEY", "CODEX_API_KEY", "OPENAI_BASE_URL")
+        saved_env = {key: os.environ.get(key) for key in billing_keys}
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                sys.argv = [
+                    "codex_review.py",
+                    "--task",
+                    "посмотри на codex_review.py",
+                    "--project",
+                    str(root),
+                ]
+                buf = io.StringIO()
+                with contextlib.redirect_stdout(buf):
+                    rc = codex_review.main()
+            self.assertEqual(rc, 0)
+            self.assertIs(captured.get("ephemeral"), True)
+            self.assertEqual(captured.get("sandbox"), "read_only")
+            self.assertIn("REVIEW-OK", buf.getvalue())
+        finally:
+            sys.argv = saved_argv
+            for name in fake_names:
+                sys.modules.pop(name, None)
+            for key, value in saved_env.items():
+                if value is None:
+                    os.environ.pop(key, None)
+                else:
+                    os.environ[key] = value
 
 
 if __name__ == "__main__":
