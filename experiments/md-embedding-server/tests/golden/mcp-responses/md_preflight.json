@@ -10,26 +10,14 @@
       "version": 1,
       "tool": "md_preflight",
       "corpus_root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
-      "corpus_state": {
-        "state": "FRESH",
-        "model": "openai/text-embedding-3-small",
-        "index_exists": true,
-        "last_touched": "__VOLATILE__",
-        "added_sections": 0,
-        "removed_sections": 0,
-        "pending_chunks": 0,
-        "drift_count": 0,
-        "metadata_mismatch": false,
-        "delta_too_large": false,
-        "recommended_action": null
-      },
+      "corpus_state": null,
       "lock": null,
       "cost": {
         "turn_usd": "__VOLATILE__",
         "session_usd": "__VOLATILE__"
       },
       "size_estimate": {
-        "bytes": 1175,
+        "bytes": 1062,
         "items_returned": 0
       },
       "next_step": []
@@ -51,10 +39,10 @@
     "must_read": [],
     "must_update": [],
     "update_cascade": [],
+    "dependent_cascade": [],
     "reverse_holders": [],
     "check_only_references": {
-      "reverse_edit_after_edit": [],
-      "reverse_read_before_edit": [],
+      "reverse_depends_on": [],
       "body_wikilinks": [],
       "body_markdown_links": []
     },
@@ -62,19 +50,14 @@
       {
         "code": "MISSING_GRAPH_FIELD",
         "path": "agents/evaluation.md",
-        "detail": "read-before-edit"
-      },
-      {
-        "code": "MISSING_GRAPH_FIELD",
-        "path": "agents/evaluation.md",
-        "detail": "edit-after-edit"
+        "detail": "depends-on"
       }
     ],
     "cycles": [],
     "anchor_drift_risk": {},
     "deferred": [
       "Semantic completeness is not machine-proven; classify candidate edges in the owning skill.",
-      "No edit-after-edit edges declared; treat this as a positive claim only after semantic audit."
+      "No depends-on edges declared; treat this as a local-source claim only after semantic audit."
     ]
   }
 }

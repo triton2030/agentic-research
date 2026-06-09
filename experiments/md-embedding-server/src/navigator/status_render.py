@@ -53,10 +53,18 @@ def render_status(payload: dict[str, Any]) -> str:
         )
         lines.append(f"  Next: {dry_run_cmd}")
     elif state == "NEEDS_REBUILD":
-        lines.append(
-            "Status: NEEDS REBUILD — index metadata/schema does not match the "
-            "current model, API URL, or schema version."
-        )
+        integrity = payload.get("index_integrity")
+        if isinstance(integrity, dict) and integrity.get("ok") is False:
+            issues = ", ".join(str(issue) for issue in integrity.get("issues", [])[:3])
+            lines.append(
+                "Status: NEEDS REBUILD — index table integrity failed"
+                f"{f' ({issues})' if issues else ''}."
+            )
+        else:
+            lines.append(
+                "Status: NEEDS REBUILD — index metadata/schema does not match the "
+                "current model, API URL, or schema version."
+            )
         lines.append(f"  Next: {dry_run_cmd}")
     elif state == "FRESH":
         lines.append("Status: FRESH — no pending changes; `search` is instant.")

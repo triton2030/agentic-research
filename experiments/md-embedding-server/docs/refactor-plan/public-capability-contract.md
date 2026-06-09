@@ -1,12 +1,9 @@
 ---
-description: "Public capability contract for md-tools-v2 before implementation."
-read-before-edit:
-  - "[[jobs-and-moments.md]]"
-  - "[[current-skill-usage-map.md]]"
-  - "[[full-functionality-contract.md]]"
-edit-after-edit:
-  - "[[compatibility-and-migration.md]]"
-  - "[[validation-and-release-gates.md]]"
+description: Public capability contract for md-tools-v2 before implementation.
+depends-on:
+- '[[jobs-and-moments.md]]'
+- '[[current-skill-usage-map.md]]'
+- '[[full-functionality-contract.md]]'
 ---
 # Public Capability Contract
 

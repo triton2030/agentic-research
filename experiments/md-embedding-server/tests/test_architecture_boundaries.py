@@ -195,6 +195,12 @@ def test_index_write_path_has_no_dead_dry_run_branch() -> None:
     assert "dry_run" not in args
 
 
+def test_index_lifecycle_uses_storage_owner_not_index_build() -> None:
+    text = (SRC / "navigator" / "index_lifecycle.py").read_text(encoding="utf-8")
+    assert "from .index_store import" in text
+    assert "from .index_build import" not in text
+
+
 def test_profile_backed_workflows_do_not_lazy_write_profiles() -> None:
     for name in ("query_by_type.py", "refactor_candidates.py"):
         text = (SRC / "navigator" / "workflows" / name).read_text(encoding="utf-8")

@@ -24,6 +24,7 @@ def _graph_blockers(preflight_payload: dict[str, object]) -> dict[str, object]:
         "anchor_drift_risk": preflight_payload.get("anchor_drift_risk") or {},
         "must_update": preflight_payload.get("must_update") or [],
         "update_cascade": preflight_payload.get("update_cascade") or [],
+        "dependent_cascade": preflight_payload.get("dependent_cascade") or [],
     }
 
 

@@ -61,8 +61,7 @@ def test_strip_detects_fingerprint_drift_and_transaction_confirm(tmp_path: Path)
     doc.write_text(
         "---\n"
         "description: Legacy\n"
-        "read-before-edit: []\n"
-        "edit-after-edit: []\n"
+        "depends-on: []\n"
         "owner: old\n"
         "---\n"
         "\n"
@@ -106,8 +105,7 @@ def test_strip_transaction_rejects_changed_path_filter(tmp_path: Path) -> None:
     content = (
         "---\n"
         "description: Legacy\n"
-        "read-before-edit: []\n"
-        "edit-after-edit: []\n"
+        "depends-on: []\n"
         "owner: old\n"
         "---\n\n"
         "# Legacy\n"
@@ -150,6 +148,43 @@ def test_index_dry_run_returns_cost_and_profile_llm_requires_confirm(tmp_path: P
     heuristic_profile = _run_md(tmp_path, "profile-sections", str(tmp_path), "--mode", "heuristic")
     assert heuristic_profile.returncode == 1
     assert _json(heuristic_profile)["error"] == "confirm_required"
+
+
+def test_index_dry_run_vacuum_returns_preview(tmp_path: Path) -> None:
+    (tmp_path / "doc.md").write_text("# Doc\n\n## Topic\n\nBody.\n", encoding="utf-8")
+
+    result = _run_md(tmp_path, "index", str(tmp_path), "--dry-run", "--vacuum")
+
+    assert result.returncode == 0
+    payload = _json(result)
+    assert payload["vacuum"]["requested"] is True
+    assert payload["vacuum"]["would_run"] is False
+    assert payload["vacuum"]["reason"] == "no_index"
+
+
+def test_index_detects_config_drift_between_dry_run_and_confirm(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / "doc.md").write_text("# Doc\n\n## Topic\n\nBody.\n", encoding="utf-8")
+
+    dry = _run_md(tmp_path, "index", str(tmp_path), "--dry-run")
+    assert dry.returncode == 0
+    payload = _json(dry)
+    files = payload["files"]
+    assert {"path": ".md-tools.toml", "hash": "MISSING"} in files
+
+    (tmp_path / ".md-tools.toml").write_text("[index]\n", encoding="utf-8")
+
+    stale = _run_md(
+        tmp_path,
+        "index",
+        str(tmp_path),
+        "--confirm",
+        "--transaction-id",
+        str(payload["_envelope"]["lock"]["transaction_id"]),
+    )
+    assert stale.returncode == 1
+    assert _json(stale)["error"] == "drift_detected"
 
 
 def test_index_refuses_nested_corpus_when_parent_index_exists(tmp_path: Path) -> None:

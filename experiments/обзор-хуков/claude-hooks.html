@@ -3,25 +3,25 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Codex Hooks</title>
+    <title>Claude Hooks</title>
     <style>
       :root {
         color-scheme: light;
-        --bg: #f6f7f2;
-        --ink: #17211b;
-        --muted: #5d6a61;
-        --line: #dfe5dc;
+        --bg: #f7f6f1;
+        --ink: #201d18;
+        --muted: #686158;
+        --line: #e3ded3;
         --panel: #ffffff;
-        --panel-soft: #fbfcf8;
-        --blue: #2f6feb;
-        --blue-soft: #e8f0ff;
-        --green: #1d7d58;
-        --green-soft: #e7f5ee;
-        --amber: #9a6500;
-        --amber-soft: #fff2d7;
-        --coral: #b94a36;
-        --coral-soft: #ffe8e1;
-        --shadow: 0 14px 42px rgba(30, 45, 33, 0.08);
+        --panel-soft: #fbfaf6;
+        --blue: #2c6ccc;
+        --blue-soft: #eaf2ff;
+        --green: #247a5a;
+        --green-soft: #e8f4ed;
+        --amber: #946400;
+        --amber-soft: #fff0cd;
+        --coral: #b8553e;
+        --coral-soft: #ffe7df;
+        --shadow: 0 14px 42px rgba(48, 39, 25, 0.08);
       }
 
       * {
@@ -47,8 +47,8 @@
         padding: 0.1rem 0.28rem;
         border: 1px solid var(--line);
         border-radius: 5px;
-        background: #f7f9f4;
-        color: #233229;
+        background: #f8f7f2;
+        color: #2d2821;
         font: 0.92em "SFMono-Regular", Consolas, monospace;
       }
 
@@ -80,9 +80,9 @@
       }
 
       .topnav a[aria-current="page"] {
-        border-color: #a8c2ff;
-        background: var(--blue-soft);
-        color: #123c94;
+        border-color: #f0b896;
+        background: #fff0e7;
+        color: #7d331f;
       }
 
       .page-head {
@@ -93,7 +93,7 @@
         padding: 28px;
         border: 1px solid var(--line);
         border-radius: 8px;
-        background: linear-gradient(135deg, #ffffff 0%, #f9fbf4 100%);
+        background: linear-gradient(135deg, #ffffff 0%, #fbfaf4 100%);
         box-shadow: var(--shadow);
       }
 
@@ -165,7 +165,8 @@
       .source-grid,
       .timeline,
       .hooks,
-      .legacy-grid {
+      .legacy-grid,
+      .examples {
         display: grid;
         gap: 12px;
       }
@@ -200,11 +201,11 @@
       }
 
       .timeline {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
       }
 
       .time-card {
-        min-height: 132px;
+        min-height: 124px;
         padding: 15px;
       }
 
@@ -245,11 +246,6 @@
         white-space: nowrap;
       }
 
-      .event.submit {
-        background: var(--blue-soft);
-        color: #123c94;
-      }
-
       .event.session {
         background: var(--green-soft);
         color: #126142;
@@ -260,18 +256,18 @@
         color: #765000;
       }
 
-      .event.post {
-        background: #e9f6ff;
-        color: #0b557f;
-      }
-
       .event.stop {
         background: var(--coral-soft);
         color: #8b3023;
       }
 
+      .event.plugin {
+        background: var(--blue-soft);
+        color: #173f86;
+      }
+
       .timeout {
-        background: #f2f4ef;
+        background: #f2efe8;
         color: var(--muted);
       }
 
@@ -310,6 +306,10 @@
         grid-template-columns: repeat(3, minmax(0, 1fr));
       }
 
+      .examples {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
       .legacy-card {
         padding: 14px;
       }
@@ -322,6 +322,24 @@
       .legacy-card p {
         overflow-wrap: anywhere;
         color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      .example-card {
+        display: grid;
+        gap: 9px;
+        padding: 14px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+      }
+
+      .sample {
+        padding: 11px;
+        border-left: 3px solid #f0b896;
+        border-radius: 6px;
+        background: #fff8f3;
+        color: #604033;
         font-size: 0.92rem;
       }
 
@@ -372,7 +390,8 @@
         .source-grid,
         .timeline,
         .hooks,
-        .legacy-grid {
+        .legacy-grid,
+        .examples {
           grid-template-columns: 1fr;
         }
 
@@ -397,7 +416,7 @@
           z-index: 2;
           margin: 0 -9px 12px;
           padding: 8px 9px;
-          background: rgba(246, 247, 242, 0.94);
+          background: rgba(247, 246, 241, 0.94);
           backdrop-filter: blur(10px);
         }
 
@@ -416,7 +435,8 @@
 
         .hook-card,
         .source-card,
-        .legacy-card {
+        .legacy-card,
+        .example-card {
           padding: 13px;
         }
 
@@ -440,19 +460,19 @@
   <body>
     <main>
       <nav class="topnav" aria-label="Runtime pages">
-        <a href="./codex-hooks.html" aria-current="page">Codex</a>
-        <a href="./claude-hooks.html">Claude</a>
+        <a href="./codex-hooks.html">Codex</a>
+        <a href="./claude-hooks.html" aria-current="page">Claude</a>
       </nav>
 
       <header class="page-head">
         <div>
-          <h1>Карта hooks Codex</h1>
+          <h1>Карта hooks Claude</h1>
           <p class="lead">Какие hooks сейчас активны, когда они срабатывают и что делают.</p>
         </div>
         <div class="snapshot" aria-label="Snapshot">
           <span><b>Снимок</b> 2026-06-02</span>
-          <span><b>Hooks</b> 8 active entries</span>
-          <span><b>Формат</b> TOML + JSON overlay</span>
+          <span><b>Hooks</b> 4 active entries</span>
+          <span><b>Формат</b> settings JSON + plugin hooks</span>
         </div>
       </header>
 
@@ -463,19 +483,19 @@
         <div class="source-grid">
           <article class="source-card">
             <strong>Wiring</strong>
-            <p><code>/Users/triton/.codex/config.toml</code></p>
+            <p><code>/Users/triton/.claude/settings.json</code></p>
           </article>
           <article class="source-card">
-            <strong>Overlay</strong>
-            <p><code>/Users/triton/.codex/hooks.json</code></p>
+            <strong>Plugin wiring</strong>
+            <p><code>~/.claude/plugins/cache/supermemory-plugins/claude-supermemory/0.0.4/hooks/hooks.json</code></p>
           </article>
           <article class="source-card">
-            <strong>Hook files</strong>
-            <p><code>/Users/triton/.codex/hooks</code></p>
+            <strong>Hook bodies</strong>
+            <p><code>/Users/triton/.claude/hooks</code></p>
           </article>
           <article class="source-card">
-            <strong>State</strong>
-            <p><code>~/.codex/state/hooks</code> и <code>session_state.py</code></p>
+            <strong>Supermemory bodies</strong>
+            <p><code>claude-supermemory/0.0.4/scripts/*.cjs</code></p>
           </article>
         </div>
       </section>
@@ -483,44 +503,40 @@
       <section aria-labelledby="order-title">
         <div class="section-head">
           <h2 id="order-title">События</h2>
-          <p class="note">Порядок по lifecycle Codex.</p>
+          <p class="note">Сейчас задействованы три lifecycle точки.</p>
         </div>
         <div class="timeline">
           <article class="time-card">
-            <span class="event submit">UserPromptSubmit</span>
-            <p>Новое сообщение пользователя.</p>
+            <span class="event session">SessionStart</span>
+            <p>Старт сессии: Supermemory context (plugin).</p>
           </article>
           <article class="time-card">
             <span class="event pre">PreToolUse</span>
-            <p>Перед чтением, shell-командой или write tool.</p>
-          </article>
-          <article class="time-card">
-            <span class="event post">PostToolUse</span>
-            <p>После write tool.</p>
+            <p>Перед edit/write tool и перед Grep.</p>
           </article>
           <article class="time-card">
             <span class="event stop">Stop</span>
-            <p>Перед финалом turn-а.</p>
+            <p>Перед завершением turn-а: Supermemory summary.</p>
           </article>
         </div>
       </section>
 
       <section aria-labelledby="active-title">
         <div class="section-head">
-          <h2 id="active-title">Активные hooks</h2>
+          <h2 id="active-title">Активные hooks из settings.json</h2>
         </div>
         <div class="hooks">
           <article class="hook-card">
             <div class="hook-top">
-              <span class="event submit">UserPromptSubmit</span>
+              <span class="event pre">PreToolUse</span>
               <span class="timeout">10s</span>
             </div>
-            <h3>Локальный context reminder</h3>
+            <h3>Markdown graph pre-edit</h3>
             <dl>
               <dt>Matcher</dt>
-              <dd class="compact">нет</dd>
+              <dd><code>Edit|Write|MultiEdit|NotebookEdit</code></dd>
               <dt>Делает</dt>
-              <dd>Если cwd похож на проект, добавляет короткий якорь про owner-файлы и <code>_ops/user-said</code>.</dd>
+              <dd>Для Markdown-файлов читает graph frontmatter, разворачивает <code>read-before-edit</code> и <code>edit-after-edit</code>.</dd>
               <dt>Вывод</dt>
               <dd><code>hookSpecificOutput.additionalContext</code></dd>
             </dl>
@@ -531,98 +547,34 @@
               <span class="event pre">PreToolUse</span>
               <span class="timeout">10s</span>
             </div>
-            <h3>Markdown graph pre-edit</h3>
+            <h3>Markdown search pre-grep</h3>
             <dl>
               <dt>Matcher</dt>
-              <dd><code>apply_patch|Edit|Write</code></dd>
+              <dd><code>Grep</code></dd>
               <dt>Делает</dt>
-              <dd>Для <code>.md</code>/<code>.mdx</code> запускает <code>md preflight</code> и <code>md cycles</code>; показывает must-read, must-update, cascade и cycles.</dd>
+              <dd>Если Grep идёт по индексированному Markdown-корпусу (<code>.md-navigator/</code>) и паттерн похож на понятие, советует <code>md search-read</code> вместо строкового grep.</dd>
               <dt>Вывод</dt>
-              <dd><code>additionalContext</code>; при cycle добавляет <code>systemMessage</code>.</dd>
-            </dl>
-          </article>
-
-          <article class="hook-card">
-            <div class="hook-top">
-              <span class="event pre">PreToolUse</span>
-              <span class="timeout">5s</span>
-            </div>
-            <h3>First-touch skill reminder: read</h3>
-            <dl>
-              <dt>Matcher</dt>
-              <dd><code>Bash|exec_command|functions.exec_command|Read|mcp__fs__read|mcp__filesystem__read_file|mcp__filesystem__read_multiple_files</code></dd>
-              <dt>Делает</dt>
-              <dd>При первом прямом чтении Markdown предлагает <code>1md-reader</code>, если bounded reading уместнее.</dd>
-              <dt>Вывод</dt>
-              <dd>Одноразовый <code>additionalContext</code> на session.</dd>
-            </dl>
-          </article>
-
-          <article class="hook-card">
-            <div class="hook-top">
-              <span class="event pre">PreToolUse</span>
-              <span class="timeout">5s</span>
-            </div>
-            <h3>First-touch owner-doc reminder</h3>
-            <dl>
-              <dt>Matcher</dt>
-              <dd><code>apply_patch|Edit|Write|MultiEdit</code></dd>
-              <dt>Делает</dt>
-              <dd>Перед первой правкой <code>AGENTS.md</code> напоминает про <code>1folder-contract</code>; перед <code>README</code>, <code>GOAL</code>, <code>PROJECT-ROADMAP</code> про <code>1strategy-docs</code>.</dd>
-              <dt>State</dt>
-              <dd><code>~/.codex/state/hooks/session-*.json</code></dd>
-            </dl>
-          </article>
-
-          <article class="hook-card">
-            <div class="hook-top">
-              <span class="event post">PostToolUse</span>
-              <span class="timeout">5s</span>
-            </div>
-            <h3>Markdown touched-files collector</h3>
-            <dl>
-              <dt>Matcher</dt>
-              <dd><code>apply_patch|Edit|Write|MultiEdit</code></dd>
-              <dt>Делает</dt>
-              <dd>Если write tool тронул Markdown, добавляет путь в <code>touched_md_files</code>.</dd>
-              <dt>Вывод</dt>
-              <dd>Обычно без видимого вывода.</dd>
-            </dl>
-          </article>
-
-          <article class="hook-card">
-            <div class="hook-top">
-              <span class="event stop">Stop</span>
-              <span class="timeout">30s</span>
-            </div>
-            <h3>Markdown graph rollup</h3>
-            <dl>
-              <dt>Matcher</dt>
-              <dd class="compact">нет</dd>
-              <dt>Делает</dt>
-              <dd>Читает <code>touched_md_files</code>, запускает <code>md preflight</code>, <code>md cycles</code>, <code>md check</code>, сообщает риски по тронутым файлам.</dd>
-              <dt>State</dt>
-              <dd>После rollup очищает список touched files.</dd>
+              <dd><code>hookSpecificOutput.additionalContext</code></dd>
             </dl>
           </article>
         </div>
       </section>
 
-      <section aria-labelledby="overlay-title">
+      <section aria-labelledby="plugin-title">
         <div class="section-head">
-          <h2 id="overlay-title">Overlay: Supermemory</h2>
-          <p class="note"><code>~/.codex/hooks.json</code></p>
+          <h2 id="plugin-title">Plugin hooks: Claude Supermemory</h2>
+          <p class="note">Plugin включён в <code>enabledPlugins</code>.</p>
         </div>
         <div class="hooks">
           <article class="hook-card">
             <div class="hook-top">
-              <span class="event submit">UserPromptSubmit</span>
-              <span class="timeout">90s</span>
+              <span class="event plugin">SessionStart</span>
+              <span class="timeout">30s</span>
             </div>
-            <h3>Memory recall</h3>
+            <h3>Supermemory context</h3>
             <dl>
               <dt>Делает</dt>
-              <dd>Ищет релевантные memory/profile записи и добавляет <code>[SUPERMEMORY CONTEXT]</code>.</dd>
+              <dd>Берёт personal и repo memory profiles, добавляет <code>&lt;supermemory-context&gt;</code>.</dd>
               <dt>Вывод</dt>
               <dd><code>additionalContext</code></dd>
             </dl>
@@ -631,15 +583,44 @@
           <article class="hook-card">
             <div class="hook-top">
               <span class="event stop">Stop</span>
-              <span class="timeout">60s</span>
+              <span class="timeout">30s</span>
             </div>
-            <h3>Memory flush</h3>
+            <h3>Supermemory summary</h3>
             <dl>
               <dt>Делает</dt>
-              <dd>Читает transcript path, сохраняет новые session chunks в Supermemory.</dd>
+              <dd>Читает transcript, форматирует новые entries после tracker-а и сохраняет <code>session_turn</code>.</dd>
               <dt>Вывод</dt>
-              <dd>Обычно silent / continue.</dd>
+              <dd><code>continue: true</code></dd>
             </dl>
+          </article>
+        </div>
+      </section>
+
+      <section aria-labelledby="examples-title">
+        <div class="section-head">
+          <h2 id="examples-title">Что видит агент</h2>
+          <p class="note">Короткие examples результата hook-а, не код.</p>
+        </div>
+        <div class="examples">
+          <article class="example-card">
+            <span class="event session">SessionStart</span>
+            <h3>1start-here</h3>
+            <p class="sample">[session-start] Ниже автоматически загружена ориентационная часть `1start-here/SKILL.md`.</p>
+          </article>
+          <article class="example-card">
+            <span class="event plugin">SessionStart</span>
+            <h3>Supermemory context</h3>
+            <p class="sample">&lt;supermemory-context&gt; Personal Memories + Project Knowledge, если profile lookup вернул данные.</p>
+          </article>
+          <article class="example-card">
+            <span class="event pre">PreToolUse</span>
+            <h3>Markdown graph</h3>
+            <p class="sample">1md-graph reminder перед правкой: файл уже участвует в Markdown-графе. Сначала прочитай родителей, после правки проверь детей.</p>
+          </article>
+          <article class="example-card">
+            <span class="event stop">Stop</span>
+            <h3>Supermemory summary</h3>
+            <p class="sample">Агент обычно не получает новый текст; hook сохраняет transcript chunk и продолжает turn.</p>
           </article>
         </div>
       </section>
@@ -649,10 +630,9 @@
           <h2 id="flow-title">Короткая схема</h2>
         </div>
         <div class="flow">
-          <div class="flow-row"><strong>UserPromptSubmit</strong><span>Локальный owner-якорь + Supermemory recall.</span></div>
-          <div class="flow-row"><strong>PreToolUse</strong><span>Markdown graph preflight и first-touch reminders.</span></div>
-          <div class="flow-row"><strong>PostToolUse</strong><span>Сбор тронутых Markdown файлов.</span></div>
-          <div class="flow-row"><strong>Stop</strong><span>Markdown graph rollup + Supermemory flush.</span></div>
+          <div class="flow-row"><strong>SessionStart</strong><span>Supermemory context (plugin).</span></div>
+          <div class="flow-row"><strong>PreToolUse</strong><span>Markdown graph reminder перед edit/write; semantic-search nudge перед Grep.</span></div>
+          <div class="flow-row"><strong>Stop</strong><span>Supermemory summary сохраняет новые transcript chunks.</span></div>
         </div>
       </section>
 
@@ -662,16 +642,16 @@
         </div>
         <div class="legacy-grid">
           <article class="legacy-card">
-            <strong><code>root_cause_hook.py</code></strong>
-            <p>Файл есть в <code>~/.codex/hooks</code>, но не указан в текущих <code>config.toml</code> или <code>hooks.json</code>.</p>
+            <strong><code>user-prompt-all-messages.py</code></strong>
+            <p>Retired no-op stub: висит на старом пути для кэшированных сессий, в <code>settings.json</code> не подключён.</p>
           </article>
           <article class="legacy-card">
-            <strong><code>pre_tool_skill_code_locality.py</code></strong>
-            <p>Retired/no-op stub; wiring удалён из <code>config.toml</code>.</p>
+            <strong><code>~/.claude/settings.local.json</code></strong>
+            <p>Файл пустой: hook wiring в нём нет.</p>
           </article>
           <article class="legacy-card">
-            <strong><code>stop_work_review_reminder.py</code></strong>
-            <p>Retired compatibility shim; текущий Stop hook его не вызывает.</p>
+            <strong><code>.claude/settings.local.json</code></strong>
+            <p>Repo-local файл содержит permissions allow-list, не hooks.</p>
           </article>
         </div>
       </section>

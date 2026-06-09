@@ -8,12 +8,12 @@
 
 ## Shared
 
-### 1work-review
+### Evidence-closeout
 
-- Тип: skill
-- Где есть: Claude Code, Codex
-- Что делает: сверяет результат с criteria/evidence и держит repair loop до
-  качественного закрытия.
+- Тип: рабочий момент, не отдельный live skill
+- Где есть: Claude Code, Codex через текущего execution owner-а
+- Что делает: сверяет результат с просьбой, owner-документами, evidence и
+  остаточным риском перед claim "готово".
 
 ### 1skill-architect
 
@@ -43,11 +43,13 @@
 - Где есть: Claude Code, Codex
 - Что делает: короткий zoom-out / reframe при reasoning drift.
 
-### repo-power-tools
+### 1cli-tools
 
 - Тип: skill
 - Где есть: Claude Code, Codex
-- Что делает: fast CLI evidence для code/docs/package/security work.
+- Что делает: fast CLI evidence для code/docs/package/security work. Старое
+  имя `repo-power-tools` встречается только как historical/probe-banner alias,
+  не live route.
 
 ### Retired Pre-Work Gate
 
@@ -73,7 +75,8 @@
 
 - Тип: skill
 - Что делает: legacy/reference handle для user-signal capture; durable signals
-  сейчас идут в instructions, `_ops/criteria/` или planning surfaces.
+  сейчас идут в owner-инструкции, `_ops/rules/`, planning surfaces или memory
+  layer по явной просьбе пользователя.
 
 ### ops-sync
 
@@ -100,11 +103,12 @@
 - Что делает: раскрывает approach branches, hidden tradeoffs и questions до
   planning/execution.
 
-### user-truth
+### owner-truth routing
 
-- Тип: skill
-- Что делает: маршрутизирует durable user signals в instruction layer,
-  criteria, strategy или task detail.
+- Тип: рабочий маршрут, не отдельный live skill
+- Что делает: durable user signals закрепляются только у правильного owner-а:
+  instruction layer, GOAL/roadmap/task, findings или memory layer по явной
+  просьбе пользователя.
 
 ### 1tasks
 

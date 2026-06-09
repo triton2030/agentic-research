@@ -147,7 +147,7 @@ def test_graph_init_rolls_back_partial_write(monkeypatch, tmp_path: Path) -> Non
             [
                 graph_core.DocWrite.from_frontmatter(
                     doc,
-                    {"description": "TODO", "read-before-edit": [], "edit-after-edit": []},
+                    {"description": "TODO", "depends-on": []},
                     doc.body,
                 )
                 for doc in docs

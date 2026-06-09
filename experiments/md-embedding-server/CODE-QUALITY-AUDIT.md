@@ -1,7 +1,7 @@
 ---
-description: "Thermo-nuclear code-quality audit of md-embedding-server: structural findings, code-judo moves, remediation sequence."
-read-before-edit: []
-edit-after-edit: []
+description: 'Thermo-nuclear code-quality audit of md-embedding-server: structural
+  findings, code-judo moves, remediation sequence.'
+depends-on: []
 ---
 # Code Quality Audit — md-embedding-server
 

@@ -31,8 +31,8 @@ approvals, hooks, sandbox и orient-before-act. Tool design — отдельны
 - Паттерн защищает от `vacuum-default`, `stale-anchor`, `obvious-skip`,
   `domain-bypass` и `frame capture`.
 - Реализация этого принципа живёт в instruction/runtime layer: `AGENTS.md`,
-  `_ops/project-graph.md`, criteria gate, hooks и routing skills. Wisdom держит
-  принцип, а не операционную схему.
+  `_ops/project-graph.md`, owner/rule checks, hooks и routing skills. Wisdom
+  держит принцип, а не операционную схему.
 
 ## Рабочие Гипотезы
 

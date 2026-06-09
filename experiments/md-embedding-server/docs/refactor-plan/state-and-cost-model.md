@@ -1,10 +1,7 @@
 ---
-description: "State, cost and side-effect model for md-tools-v2."
-read-before-edit:
-  - "[[architecture-boundaries.md]]"
-edit-after-edit:
-  - "[[public-capability-contract.md]]"
-  - "[[validation-and-release-gates.md]]"
+description: State, cost and side-effect model for md-tools-v2.
+depends-on:
+- '[[architecture-boundaries.md]]'
 ---
 # State And Cost Model
 

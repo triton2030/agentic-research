@@ -40,7 +40,8 @@ Closeout evidence:
 - `1strategy-docs` (Claude 6, Codex 9 refs) — частично already CLI-shaped (`1md-navigator status _ops/`)
 - `1folder-contract` — md_changed (staged), md_search
 - `1assumption-audit` — md_search, md_overlaps, md_read_related
-- `1work-review` — md_changed, md_preflight, md_health, md_check, md_edit_context
+- evidence-closeout callers (historically `1work-review`) — md_changed,
+  md_preflight, md_health, md_check, md_edit_context
 - `1skill-architect` — md_index (dry-run/confirm), md_search, md_overlaps
 - `1smart-simple` — md_search, md_index с dry-run/confirm
 - `1cli-tools` (только references) — Claude+Codex
@@ -82,7 +83,7 @@ Closeout evidence:
 | `task-301-claude-md-skills-migration.md` | Claude `1md-navigator` + `1md-graph` (core); evidence file; Claude-only execution marker |
 | `task-302-codex-md-skills-migration.md` | Codex `1md-navigator` + `1md-graph`; `agents/openai.yaml.default_prompt` rewrite; Codex-only execution marker |
 | `task-303-references-and-catalog-sync.md` | Generated tool-catalog.md mirrored на обе платформы |
-| `task-304-claude-extended-skills-migration.md` | NEW: Claude 11 extended skills (1ia-audit, 1instruction-layer, 1planning, 1strategy, 1strategy-docs, 1folder-contract, 1assumption-audit, 1work-review, 1skill-architect, 1smart-simple, 1cli-tools) |
+| `task-304-claude-extended-skills-migration.md` | Historical migration scope: Claude extended skills plus then-live `1work-review`; current live closeout is evidence-closeout by execution owner |
 | `task-305-codex-extended-skills-migration.md` | NEW: Codex 11 extended skills (те же) |
 
 ### Phase 4 — Repo migration

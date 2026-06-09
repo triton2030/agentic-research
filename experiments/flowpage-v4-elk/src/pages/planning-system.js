@@ -4,7 +4,7 @@
 export default {
   id: "planning-system",
   title: "Система планирования",
-  description: "README → roadmap → tasks → criteria → review (петля)",
+  description: "README → roadmap → tasks → owner rules → evidence-closeout",
   nodes: [
     {
       id: "userVision",
@@ -37,9 +37,9 @@ export default {
       id: "roadmapSkill",
       kind: "skill",
       weight: 2,
-      title: "1roadmap",
+      title: "1strategy-docs / 1planning",
       kicker: "stage keeper",
-      body: "Owner-скил для PROJECT-ROADMAP. Превращает выбранный approach в цепочку стадий + текущую позицию.",
+      body: "Shape roadmap держит 1strategy-docs; текущий roadmap/task content держит 1planning.",
       bullets: ["Goal", "Stages", "position"]
     },
     {
@@ -55,9 +55,9 @@ export default {
       id: "tasksSkill",
       kind: "skill",
       weight: 2,
-      title: "1tasks",
+      title: "1planning",
       kicker: "scope keeper",
-      body: "Owner-скил для task-файлов внутри текущей стадии. Формирует scope, цитирует applicable criteria и agent instructions.",
+      body: "Owner task-файлов внутри текущего фронта. Формирует scope, применимые owner rules и done/evidence.",
       bullets: ["scope", "applicable criteria", "done state"]
     },
     {
@@ -82,18 +82,18 @@ export default {
       id: "criteria",
       kind: "memory",
       weight: 2,
-      title: "_ops/criteria",
+      title: "Owner rules",
       kicker: "rule layer",
-      body: "Durable правила приёмки по сфере работы. Пишет 1user-truth по сигналу пользователя; читают tasks, гейты и review.",
-      bullets: ["durable", "user-backed", "cross-task"]
+      body: "Durable правила приёмки живут у владельца: AGENTS, GOAL, rule-doc, skill contract или memory layer по явной просьбе.",
+      bullets: ["durable", "user-backed", "owned"]
     },
     {
       id: "review",
       kind: "review",
       weight: 2,
-      title: "1work-review",
+      title: "Evidence-closeout",
       kicker: "closeout",
-      body: "Сверяет artifact с goal, criteria и agent-instructions. Поднимает stale-anchor сигналы обратно в roadmap и criteria.",
+      body: "Текущий execution owner сверяет artifact с goal, owner rules и evidence. Stale-anchor сигналы возвращаются в правильный owner.",
       bullets: ["evidence", "residual risk", "stale anchor"]
     }
   ],

@@ -1,7 +1,7 @@
 ---
-description: "Architecture invariants for md CLI catalog, handler, runner, and library boundaries."
-read-before-edit: []
-edit-after-edit: []
+description: Architecture invariants for md CLI catalog, handler, runner, and library
+  boundaries.
+depends-on: []
 ---
 # Architecture Lock
 

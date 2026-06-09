@@ -105,7 +105,7 @@ Planning skills:
 - `plan-drift-watch`: stale referenced stage, drift coupling.
 - `strategy-trace`: artifact not serving goal, phantom prerequisite.
 
-`1work-review` and `pulse-check`:
+Direct evidence-closeout and `pulse-check`:
 
 - use only the universal stop-rule.
 
@@ -138,7 +138,7 @@ Never use Brooks/Smith:
 - `task-contract`: Smith-light; `smith` available.
 - `plan-drift-watch`: Smith-light; `smith` available.
 - `strategy-trace`: Brooks + Smith light; both available.
-- `1work-review`: stop-rule only; manual fallback.
+- direct evidence-closeout: stop-rule only; manual fallback.
 - `pulse-check`: stop-rule only.
 
 ## Promotion

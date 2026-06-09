@@ -17,7 +17,8 @@ Trigger: выбираешь проверку, собираешь CLI-evidence, �
 deps, dead code, docs drift, package/security signals или готовишь closeout.
 
 Owner: `1cli-tools` держит быстрые CLI-подтверждения; `1md-graph` держит
-Markdown graph/preflight; `1work-review` держит финальную сверку после правок.
+Markdown graph/preflight; финальную сверку после правок держит текущий
+execution owner через прямой evidence-closeout.
 
 Check: evidence repo-local, scope явный, чужие изменения не откатываются,
 вердикт не подменён метрикой.

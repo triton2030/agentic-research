@@ -57,7 +57,7 @@ Flash; API/SDK/Vertex fallbacks are not part of this skill.
 10. Treat Gemini's findings as external evidence, not automatic task scope. If a
    finding describes a real current problem but strategy has not decided action,
    Codex may stage it in `_ops/findings/**` after local review instead of
-   promoting it directly to `_ops/plans/**` or `_ops/criteria/*.md`.
+   promoting it directly to `_ops/plans/**` or owner rule documents.
 
 ## External Peer Review
 

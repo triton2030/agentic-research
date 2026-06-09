@@ -282,21 +282,17 @@ def _write_graph_doc(
     path: Path,
     *,
     description: str,
-    read_before: list[str] | None = None,
-    edit_after: list[str] | None = None,
+    depends_on: list[str] | None = None,
 ) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    read_items = "\n".join(f'  - "{item}"' for item in read_before or [])
-    edit_items = "\n".join(f'  - "{item}"' for item in edit_after or [])
+    depends_items = "\n".join(f'  - "{item}"' for item in depends_on or [])
     path.write_text(
         "\n".join(
             [
                 "---",
                 f'description: "{description}"',
-                "read-before-edit:" if read_items else "read-before-edit: []",
-                read_items,
-                "edit-after-edit:" if edit_items else "edit-after-edit: []",
-                edit_items,
+                "depends-on:" if depends_items else "depends-on: []",
+                depends_items,
                 "---",
                 f"# {description}",
                 "",
@@ -322,7 +318,7 @@ def test_graph_scan_parent_becomes_root_from_nested_cwd(tmp_path, monkeypatch) -
     _write_graph_doc(
         task,
         description="Task",
-        read_before=["[[_ops/PROJECT-ROADMAP.md]]"],
+        depends_on=["[[_ops/PROJECT-ROADMAP.md]]"],
     )
 
     monkeypatch.chdir(nested)
@@ -335,11 +331,11 @@ def test_graph_scan_parent_becomes_root_from_nested_cwd(tmp_path, monkeypatch) -
 
     deps = api.deps("../../_ops/plans/demo/task.md", scan="../..")
     assert deps["file"]["path"] == "_ops/plans/demo/task.md"
-    assert deps["fields"]["read-before-edit"][0]["status"] == "ok"
+    assert deps["fields"]["depends-on"][0]["status"] == "ok"
 
     impact = api.impact("../../_ops/PROJECT-ROADMAP.md", scan="../..")
     assert impact["file"]["path"] == "_ops/PROJECT-ROADMAP.md"
-    assert impact["reference_breaks"] == [
+    assert impact["dependent_breaks"] == [
         {
             "path": "_ops/plans/demo/task.md",
             "description": "Task",

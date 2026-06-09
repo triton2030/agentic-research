@@ -23,7 +23,7 @@ from .graph_edges import doc_data, finding_data, scan_doc
 from .graph_reports import (
     check_graph,
     dependency_report,
-    find_edit_after_edit_cycles,
+    find_depends_on_cycles,
     health_report,
     impact_report,
     preflight_report,
@@ -176,7 +176,7 @@ def cycles(
         path_include=path_include,
         path_exclude=path_exclude,
     )
-    found = find_edit_after_edit_cycles(docs, root)
+    found = find_depends_on_cycles(docs, root)
     return _exit(
         {"command": "cycles", "targets": len(docs), "cycles": [[doc_data(doc) for doc in cycle] for cycle in found]},
         1 if found else 0,
@@ -275,7 +275,7 @@ def init(
             "file_count": len(targets),
             "targets": len(docs),
         }
-    template = {"description": "TODO", "read-before-edit": [], "edit-after-edit": []}
+    template = {"description": "TODO", "depends-on": []}
     write_doc_plan([DocWrite.from_frontmatter(doc, template, doc.body) for doc in targets])
     return {
         "command": "init",

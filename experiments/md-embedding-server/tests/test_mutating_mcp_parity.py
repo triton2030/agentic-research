@@ -32,7 +32,7 @@ def _run_md(cwd: Path, *args: str) -> dict[str, object]:
 def test_mutating_dry_runs_share_guard_shape(tmp_path: Path) -> None:
     (tmp_path / "plain.md").write_text("# Plain\n", encoding="utf-8")
     (tmp_path / "legacy.md").write_text(
-        "---\ndescription: Legacy\nread-before-edit: []\nedit-after-edit: []\nowner: old\n---\n\n# Legacy\n",
+        "---\ndescription: Legacy\ndepends-on: []\nowner: old\n---\n\n# Legacy\n",
         encoding="utf-8",
     )
 

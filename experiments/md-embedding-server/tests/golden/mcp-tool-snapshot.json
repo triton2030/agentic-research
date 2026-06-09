@@ -1,4 +1,21 @@
 {
+  "_envelope": {
+    "version": 1,
+    "tool": "md_tools",
+    "corpus_root": null,
+    "corpus_state": null,
+    "lock": null,
+    "cost": {
+      "turn_usd": 0.0,
+      "session_usd": 0.0
+    },
+    "size_estimate": {
+      "bytes": 65621,
+      "items_returned": 0,
+      "large_reply": true
+    },
+    "next_step": []
+  },
   "tools": [
     {
       "name": "md_audit",
@@ -290,7 +307,7 @@
         "readOnlyHint": true
       },
       "description": {
-        "when": "'do we have circular dependencies', after add/remove edit-after-edit refs, debugging stuck cascades.",
+        "when": "'do we have circular dependencies', after add/remove depends-on refs, debugging dependency cycles.",
         "why": "Tarjan SCC over graph edges — Bash awk over frontmatter can't traverse transitively.",
         "input": "paths (default '.'), path_include/exclude.",
         "output": "{ command:'cycles', cycles: [[file1, file2, ...]] } — each cycle as a list. Non-zero exit when cycles present.",
@@ -345,9 +362,9 @@
       },
       "description": {
         "when": "'what does this file depend on', 'who depends on this file', understand graph position before navigating.",
-        "why": "Both directions in one call, depth>1 walks transitive cascade. Each row carries target's description.",
+        "why": "Both directions in one call, depth>1 walks dependency cascades. Each row carries target's description.",
         "input": "path, scan, depth (default 1), path_include/exclude.",
-        "output": "{ command:'deps', forward, reverse } — each row has path + description.",
+        "output": "{ command:'deps', depends_on_cascade, reverse_depends_on, dependent_cascade } — each row has path + description.",
         "alt": "md_impact for delete/rename specifically. md_preflight for edit safety.",
         "cost": "Free."
       },
@@ -599,9 +616,9 @@
       },
       "description": {
         "when": "Before rm / mv on a .md file, before merging two files, planning a refactor.",
-        "why": "Cascade holders + reference holders + body wikilinks + body markdown-links — each row carries the holder's frontmatter description. grep returns matches but not the contract intent.",
+        "why": "Reverse depends-on holders + body wikilinks + body markdown-links — each row carries the holder's frontmatter description. grep returns matches but not the contract intent.",
         "input": "path, scan, path_include/exclude.",
-        "output": "{ command:'impact', cascade_holders, reference_holders, body_wikilinks, body_markdown_links } — anchor-specific wikilinks marked via #heading.",
+        "output": "{ command:'impact', dependent_breaks, body_wikilink_refs, body_markdown_refs } — anchor-specific wikilinks marked via #heading.",
         "alt": "md_section_blast_radius for rename of one section (adds semantic layer).",
         "cost": "Free."
       },
@@ -712,8 +729,8 @@
       "description": {
         "when": "New corpus / md_search returns index_warmup_required / large delta detected by md_status.",
         "why": "One-shot warmup; subsequent md_search / md_overlaps / md_repeated_concepts become instant.",
-        "input": "corpus, confirm (required true), dry_run (estimate cost without running), batch_size, batch_pause_ms, path_include/exclude for partial indexes, allow_nested_corpus escape hatch.",
-        "output": "OUTPUT (live): index summary text — chunks embedded, time, cost. OUTPUT (dry_run): { dry_run: true, pending_chunks, estimated_cost_usd, status_text }.",
+        "input": "corpus, confirm (required true), dry_run (estimate cost without running), batch_size, batch_pause_ms, path_include/exclude for partial indexes, allow_nested_corpus escape hatch, vacuum for explicit SQLite compaction.",
+        "output": "OUTPUT (live): { embedded, reused, removed_sections, cleanup_sections, cleanup_chunks, vacuum? }. OUTPUT (dry_run): { dry_run: true, pending_chunks, estimated_cost_usd, cleanup_sections, cleanup_chunks, vacuum? }.",
         "alt": "md_status to check state first.",
         "cost": "~$0.02 per ~1000 chunks via OpenRouter bge-m3. Use dry_run:true first. Refuses without confirm:true."
       },
@@ -770,6 +787,10 @@
             },
             "type": "array"
           },
+          "vacuum": {
+            "description": "Explicitly compact the SQLite index after confirmed cleanup/index work.",
+            "type": "boolean"
+          },
           "fingerprint": {
             "description": "Stateless fingerprint from a prior dry_run. Alternative to transaction_id for confirm:true.",
             "type": "string"
@@ -780,7 +801,7 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--allow-nested-corpus] --json",
+      "cli_signature": "md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--allow-nested-corpus] [--vacuum] --json",
       "transaction_required": true,
       "cost_bearing": true
     },
@@ -1102,9 +1123,9 @@
       },
       "description": {
         "when": "Before editing any .md file with frontmatter graph fields, especially when changing title or major sections.",
-        "why": "One-pass surface of must-read sources + must-update cascade + check-only refs + anchor-drift risk. Bash grep can't synthesize this from frontmatter.",
+        "why": "One-pass surface of must-read sources + must-update reverse dependency cascade + check-only refs + anchor-drift risk. Bash grep can't synthesize this from frontmatter.",
         "input": "path (.md), scan (reverse-scan root), depth (cascade default 2), path_include/exclude.",
-        "output": "{ command, must_read, must_update, check_only, cycles, anchor_drift_risk, has_blockers } — has_blockers:true if MISSING_TARGET / BROKEN_LINK / cycle.",
+        "output": "{ command, edit_plan, must_read, must_update, check_only_references, cycles, anchor_drift_risk } — edit_plan contains must_read/must_update/also_check/to_clear.",
         "alt": "md_edit_context composite bundles preflight + read-related + optional search. md_section_blast_radius adds semantic layer.",
         "cost": "Free."
       },
@@ -1930,7 +1951,7 @@
         "when": "Before md_search on a corpus you've been editing. To check if md_index is needed.",
         "why": "One-call answer — FRESH / HEALTHY / NEEDS WARMUP / NO INDEX with pending-chunk counts. No grep over .md-navigator/.",
         "input": "corpus (path), path_include/exclude to check a deliberately partial index scope.",
-        "output": "text block with Corpus / Index / Last touched / Status / per-scope deltas.",
+        "output": "{ state, pending_chunks, removed_sections, cleanup_sections, cleanup_chunks, recommended_action }. Adds index_integrity when unhealthy; --expanded always includes per-scope/file details and index_integrity.",
         "alt": "md_orient bundles status + map + importance.",
         "cost": "Free (no embedding calls)."
       },

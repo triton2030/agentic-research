@@ -5,240 +5,25 @@
     "top": 3,
     "threshold": 0.8
   },
-  "is_error": false,
+  "is_error": true,
   "payload": {
     "_envelope": {
       "version": 1,
       "tool": "md_repeated_concepts",
       "corpus_root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
-      "corpus_state": {
-        "state": "FRESH",
-        "model": "openai/text-embedding-3-small",
-        "index_exists": true,
-        "last_touched": "__VOLATILE__",
-        "added_sections": 0,
-        "removed_sections": 0,
-        "pending_chunks": 0,
-        "drift_count": 0,
-        "metadata_mismatch": false,
-        "delta_too_large": false,
-        "recommended_action": null
-      },
+      "corpus_state": null,
       "lock": null,
       "cost": {
         "turn_usd": "__VOLATILE__",
         "session_usd": "__VOLATILE__"
       },
       "size_estimate": {
-        "bytes": 4301,
-        "items_returned": 3,
-        "counted_fields": [
-          {
-            "field": "concepts",
-            "count": 3
-          }
-        ]
+        "bytes": 72,
+        "items_returned": 0
       },
-      "next_step": [
-        {
-          "tool": "md_repeated_concepts",
-          "args": {
-            "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
-            "expanded": true,
-            "threshold": 0.8,
-            "top": 3
-          },
-          "reason": "Return full concept members and file breakdown."
-        }
-      ]
+      "next_step": []
     },
-    "root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
-    "threshold": 0.8,
-    "min_tokens": 30,
-    "min_files": 2,
-    "min_sections": 2,
-    "expanded": false,
-    "engine": {
-      "embed_model": "openai/text-embedding-3-small",
-      "embedding_api_url": "https://openrouter.ai/api/v1"
-    },
-    "stats": {
-      "files_indexed": 37,
-      "sections_indexed": 303,
-      "sections_eligible": 287,
-      "chunks_compared": 306,
-      "embeddings_cached": 303,
-      "embeddings_computed": 0,
-      "edges_above_threshold": 208,
-      "concepts_surfaced": 3
-    },
-    "concepts": [
-      {
-        "label": "Civic-Chain — Project guide > Expandable pattern",
-        "representative": {
-          "section_id": "7.4",
-          "file_id": 7,
-          "relative_path": "examples/anthropic-design-generator/CLAUDE.md",
-          "start_line": 51,
-          "heading_chain": "Civic-Chain — Project guide > Expandable pattern",
-          "heading_text": "Expandable pattern",
-          "token_count": 241
-        },
-        "unique_files": 2,
-        "section_count": 2,
-        "mean_cohesion": 0.9430674910545349,
-        "files": [
-          {
-            "path": "examples/anthropic-design-generator/CLAUDE.md",
-            "section_count": 1
-          },
-          {
-            "path": "examples/anthropic-design-generator/ds/README.md",
-            "section_count": 1
-          }
-        ],
-        "top_handles": [
-          {
-            "similarity": 0.9430674910545349,
-            "section": {
-              "section_id": "8.6",
-              "file_id": 8,
-              "relative_path": "examples/anthropic-design-generator/ds/README.md",
-              "start_line": 86,
-              "heading_chain": "Civic-Chain Design System > Expandable mechanism",
-              "heading_text": "Expandable mechanism",
-              "token_count": 204
-            }
-          }
-        ]
-      },
-      {
-        "label": "Civic-Chain — Project guide",
-        "representative": {
-          "section_id": "7.1",
-          "file_id": 7,
-          "relative_path": "examples/anthropic-design-generator/CLAUDE.md",
-          "start_line": 1,
-          "heading_chain": "Civic-Chain — Project guide",
-          "heading_text": "Civic-Chain — Project guide",
-          "token_count": 1397
-        },
-        "unique_files": 2,
-        "section_count": 2,
-        "mean_cohesion": 0.8142035603523254,
-        "files": [
-          {
-            "path": "examples/anthropic-design-generator/CLAUDE.md",
-            "section_count": 1
-          },
-          {
-            "path": "examples/anthropic-design-generator/ds/README.md",
-            "section_count": 1
-          }
-        ],
-        "top_handles": [
-          {
-            "similarity": 0.8142035603523254,
-            "section": {
-              "section_id": "8.1",
-              "file_id": 8,
-              "relative_path": "examples/anthropic-design-generator/ds/README.md",
-              "start_line": 1,
-              "heading_chain": "Civic-Chain Design System",
-              "heading_text": "Civic-Chain Design System",
-              "token_count": 1391
-            }
-          }
-        ]
-      },
-      {
-        "label": "Civic-Chain Design System > Layering",
-        "representative": {
-          "section_id": "8.2",
-          "file_id": 8,
-          "relative_path": "examples/anthropic-design-generator/ds/README.md",
-          "start_line": 7,
-          "heading_chain": "Civic-Chain Design System > Layering",
-          "heading_text": "Layering",
-          "token_count": 215
-        },
-        "unique_files": 2,
-        "section_count": 5,
-        "mean_cohesion": 0.40963396430015564,
-        "files": [
-          {
-            "path": "examples/anthropic-design-generator/ds/README.md",
-            "section_count": 3
-          },
-          {
-            "path": "examples/anthropic-design-generator/CLAUDE.md",
-            "section_count": 2
-          }
-        ],
-        "top_handles": [
-          {
-            "similarity": 0.845552921295166,
-            "section": {
-              "section_id": "7.3",
-              "file_id": 7,
-              "relative_path": "examples/anthropic-design-generator/CLAUDE.md",
-              "start_line": 31,
-              "heading_chain": "Civic-Chain — Project guide > The layering rule (read this before editing CSS)",
-              "heading_text": "The layering rule (read this before editing CSS)",
-              "token_count": 261
-            }
-          },
-          {
-            "similarity": 0.8048067688941956,
-            "section": {
-              "section_id": "7.2",
-              "file_id": 7,
-              "relative_path": "examples/anthropic-design-generator/CLAUDE.md",
-              "start_line": 7,
-              "heading_chain": "Civic-Chain — Project guide > Files",
-              "heading_text": "Files",
-              "token_count": 288
-            }
-          },
-          {
-            "similarity": 0.8040602207183838,
-            "section": {
-              "section_id": "8.3",
-              "file_id": 8,
-              "relative_path": "examples/anthropic-design-generator/ds/README.md",
-              "start_line": 27,
-              "heading_chain": "Civic-Chain Design System > Primitive catalogue (quick reference)",
-              "heading_text": "Primitive catalogue (quick reference)",
-              "token_count": 318
-            }
-          },
-          {
-            "similarity": 0.8006589412689209,
-            "section": {
-              "section_id": "8.4",
-              "file_id": 8,
-              "relative_path": "examples/anthropic-design-generator/ds/README.md",
-              "start_line": 46,
-              "heading_chain": "Civic-Chain Design System > Pattern catalogue",
-              "heading_text": "Pattern catalogue",
-              "token_count": 290
-            }
-          }
-        ]
-      }
-    ],
-    "read_next": [
-      {
-        "tool": "md_repeated_concepts",
-        "args": {
-          "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
-          "expanded": true,
-          "threshold": 0.8,
-          "top": 3
-        },
-        "reason": "Return full concept members and file breakdown."
-      }
-    ],
-    "view": "map"
+    "error": "dependency_failed",
+    "detail": "No module named 'sqlite_vec'"
   }
 }

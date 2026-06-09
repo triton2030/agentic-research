@@ -357,6 +357,24 @@ STATUS_SCHEMA: dict[str, Any] = {
         "excluded": {"type": "object"},
         "added_sections": {"type": "integer"},
         "removed_sections": {"type": "integer"},
+        "cleanup_enabled": {"type": "boolean"},
+        "cleanup_sections": {"type": "integer"},
+        "cleanup_chunks": {"type": "integer"},
+        "cleanup_files": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["relative_path", "cleanup_sections", "cleanup_chunks", "cleanup_reasons"],
+                "properties": {
+                    "relative_path": {"type": "string"},
+                    "cleanup_sections": {"type": "integer"},
+                    "cleanup_chunks": {"type": "integer"},
+                    "cleanup_reasons": {"type": "object"},
+                },
+            },
+        },
+        "cleanup_reasons": {"type": "object"},
+        "cleanup_disabled_reason": {"type": ["string", "null"]},
         "pending_chunks": {"type": "integer"},
         "pending_files": {"type": "array"},
         "removed_files": {"type": "array"},
@@ -365,6 +383,27 @@ STATUS_SCHEMA: dict[str, Any] = {
         "delta_too_large": {"type": "boolean"},
         "max_auto_embed": {"type": "integer"},
         "recommended_action": {"type": ["object", "null"]},
+        "index_integrity": {
+            "type": "object",
+            "required": ["ok", "counts", "issues"],
+            "properties": {
+                "ok": {"type": "boolean"},
+                "counts": {
+                    "type": "object",
+                    "required": ["sections", "chunks", "sections_fts", "sections_vec"],
+                    "properties": {
+                        "sections": {"type": "integer"},
+                        "chunks": {"type": "integer"},
+                        "sections_fts": {"type": "integer"},
+                        "sections_vec": {"type": "integer"},
+                    },
+                },
+                "issues": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                },
+            },
+        },
     },
 }
 

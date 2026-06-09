@@ -6,36 +6,36 @@ direction: down
   shape: oval
 }
 
-"1start-here": {
+"Context pass": {
   shape: hexagon
 }
 
 "Direct answer"
 "1strategy"
 "1planning"
-"1user-truth"
+"Owner truth"
 "1instruction-layer"
 "1obsidian"
-"Instruction/criteria gates"
+"Owner/write checks"
 "Artifacts": {
   shape: cylinder
 }
-"1work-review"
+"Evidence-closeout"
 
-"User request" -> "1start-here"
-"1start-here" -> "Direct answer"
-"1start-here" -> "1strategy"
-"1start-here" -> "1user-truth"
-"1start-here" -> "1instruction-layer"
-"1start-here" -> "1obsidian"
+"User request" -> "Context pass"
+"Context pass" -> "Direct answer"
+"Context pass" -> "1strategy"
+"Context pass" -> "Owner truth"
+"Context pass" -> "1instruction-layer"
+"Context pass" -> "1obsidian"
 
 "1strategy" -> "1planning"
-"1planning" -> "Instruction/criteria gates"
+"1planning" -> "Owner/write checks"
 
-"1user-truth" -> "Instruction/criteria gates"
-"1instruction-layer" -> "Instruction/criteria gates"
+"Owner truth" -> "Owner/write checks"
+"1instruction-layer" -> "Owner/write checks"
 "1obsidian" -> "Artifacts"
 
-"Instruction/criteria gates" -> "Artifacts"
-"Artifacts" -> "1work-review"
-"1work-review" -> "1start-here"
+"Owner/write checks" -> "Artifacts"
+"Artifacts" -> "Evidence-closeout"
+"Evidence-closeout" -> "Context pass"

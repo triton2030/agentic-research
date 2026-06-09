@@ -1,7 +1,7 @@
 # Codex-версия
 
-Снимок на 18 мая 2026. Это карта текущей Codex-системы, а не источник
-рабочего поведения.
+Снимок обновлён 2 июня 2026 по живой Codex-поверхности. Это карта системы, а
+не источник рабочего поведения.
 
 Если этот файл расходится с живой системой, выигрывают:
 
@@ -11,11 +11,12 @@
 - `/Users/triton/.codex/config.toml` - модель, features, plugins и hooks;
 - plugin/system skill bodies - встроенные и плагинные навыки Codex;
 - `README.md`, `_ops/GOAL.md`, `_ops/PROJECT-ROADMAP.md`,
-  `_ops/criteria/*.md` - текущая правда этого репозитория.
+  `_ops/project-graph.md` и `_ops/rules/*.md` - текущая правда этого
+  репозитория.
 
-Главная модель сейчас: один активный owner на момент работы. `1start-here`
-восстанавливает намерение, локальную почву и выбирает маршрут; соседние скилы
-остаются handoff-поверхностями, а не параллельными алгоритмами.
+Главная модель сейчас: один активный owner на момент работы. Стартовый маршрут
+держат root-инструкции, локальные owner-файлы и live skill contracts; соседние
+скилы остаются handoff-поверхностями, а не параллельными алгоритмами.
 
 ## Актуальный Контур
 
@@ -24,40 +25,32 @@
 Apps, Browser и Chrome. Плагинные скилы не принадлежат этой папке: их надо
 читать по live plugin contracts, когда они реально триггерятся.
 
-Активные hooks:
+Активные hooks из `/Users/triton/.codex/config.toml`:
 
-- `SessionStart` - на `startup`, `resume`, `clear` загружает полный
-  `/Users/triton/.codex/skills/1start-here/SKILL.md` как дополнительный
-  контекст;
-- `UserPromptSubmit` - даёт короткий якорь: не работать в вакууме, читать
-  локальные инструкции и применимые `_ops/criteria/*.md`, если они могут
-  изменить ответ;
-- `Stop` - после чувствительных правок или 3+ изменённых файлов требует
-  компактный `1work-review`; обычные маленькие правки не превращает в
-  церемонию.
+- `PreToolUse` -> `md_graph_pre_edit_reminder.py`: reminder перед Markdown-
+  правками через `apply_patch` / write tools;
+- `PostToolUse` -> `post_tool_md_graph_collect.py`: собирает Markdown-правки;
+- `Stop` -> `stop_md_graph_rollup.py`: делает graph rollup после Markdown-
+  правок.
 
 Hooks усиливают скилы, но не заменяют их. Старые pre-write идеи не считать
 живым runtime, если их нет в текущем `config.toml`.
 
-Локальные `1*`-скилы:
+Локальные installed `1*`-скилы:
 
-- `1start-here` - стартовый system-steward router: intent, SoT/owner/criteria,
-  radius и один следующий owner;
 - `1strategy` - выбор подхода до планирования: цель против метода, развилки,
   цена решений, ground check и handoff;
 - `1strategy-docs` - форма и правки `README.md`, `_ops/GOAL.md`,
   `_ops/PROJECT-ROADMAP.md`: context, contract, current path без дублирования;
 - `1planning` - рекурсивное планирование: L1 roadmap/current path, L2 task,
   L3 subtasks, archive/reconcile;
-- `1user-truth` - durable user truth и `_ops/criteria/*.md`; пишет только из
-  прямого пользовательского сигнала или утверждённой проектной правды;
 - `1interview-tool` - временные intake-формы в `_ops/interviews/**`, когда
   после context triage осталось 4+ user-only неизвестных;
 - `1assumption-audit` - ручной `ground-check` уже выбранного подхода: какие
   предпосылки должны быть true, что доказано, где blocker/assumption/revision;
-- `1work-review` - пропорциональная финальная сверка: просьба, качество,
-  evidence, applied criteria/instructions/radius; видимый отчёт короткий, если
-  риск маленький;
+- Финальная сверка - прямой evidence-closeout текущего owner-а: просьба,
+  качество, evidence, applied criteria/instructions/radius; видимый отчёт
+  короткий, если риск маленький;
 - `1findings` - горячие "что-то не так" находки и актуальные проблемы до
   стратегии, задачи, критерия или решения;
 - `1fresh-eyes` - независимая проверка и нативные Codex subagents только по
@@ -84,6 +77,11 @@ Hooks усиливают скилы, но не заменяют их. Стары
   load-bearing смысла;
 - `1cli-tools` - быстрые CLI evidence: `rg`/`fd`, links, cleanup, deps,
   security, JSON, token budget, repo pack.
+
+Durable user truth сейчас не держит отдельный installed skill. Устойчивые
+правила идут в owner-документы проекта или Codex Memories только по явной
+просьбе пользователя; рабочие self-learning/finding факты идут через
+`1findings`.
 
 Специализированные локальные маршруты:
 
@@ -135,8 +133,9 @@ rules, это не обычная planning-правка.
 подзадачи внутри task-файла как L3. В этом репозитории roadmap не обязан быть
 стадийной дорожной картой: он может быть короткой рамкой текущего режима.
 
-`1work-review`, `smith` и `auditor` проверяют не "красиво ли звучит", а
-приблизила ли работа к цели, доказана ли готовность и не поехала ли траектория.
+Прямой evidence-closeout, `smith` и `auditor` проверяют не "красиво ли звучит",
+а приблизила ли работа к цели, доказана ли готовность и не поехала ли
+траектория.
 
 ## 2
 
@@ -148,25 +147,26 @@ rules, это не обычная planning-правка.
 
 ### Текущие решения для критериев
 
-`1user-truth` пишет устойчивую пользовательскую правду в `_ops/criteria/*.md`:
-предпочтения, красные линии, цели, факты проекта, workflow corrections и
-критерии качества. Правило нельзя додумывать: нужен прямой user signal или
-явно утверждённая project truth.
+Отдельного live `1user-truth` и обязательного `_ops/criteria` слоя сейчас нет.
+Устойчивую пользовательскую правду нельзя додумывать: нужен прямой user signal
+и правильный owner. В зависимости от природы сигнала это project owner-док,
+Codex Memories по явной просьбе пользователя или временная находка через
+`1findings`.
 
-Перед записью `1user-truth` делает semantic check по существующим criteria:
-если смысл уже есть, это confirmation или merge, а не новый файл и не новая
-строка. Если правило похоже на wording/placement инструкции, сначала route в
-`1instruction-layer`; если на routing, hook, permission, system contract или
-глобальный default — в `1folder-contract`.
+Перед закреплением durable truth агент проверяет, не живёт ли смысл уже в
+`AGENTS.md`, `_ops/GOAL.md`, `_ops/project-graph.md`, `_ops/rules/**`, skill
+contract или памяти. Если правило похоже на wording/placement инструкции,
+route в `1instruction-layer`; если на routing, hook, permission, system
+contract или глобальный default — в `1folder-contract`.
 
 `1interview-tool` включается только когда после чтения локального контекста
 остаётся 4+ user-only неизвестных, batch decisions или per-item ответы. Он
 строит временную форму в `_ops/interviews/**`; смысл потом возвращается
-caller-скилу: durable truth в `1user-truth`, task scope в `1planning`, wording
-правил в `1instruction-layer`, системный маршрут в `1folder-contract`.
+caller-скилу: durable truth в правильный owner, task scope в `1planning`,
+wording правил в `1instruction-layer`, системный маршрут в `1folder-contract`.
 
-`UserPromptSubmit` и root-инструкции доставляют критерии в момент работы, но не
-пишут их за пользователя. Если подходящего критерия нет, правильный ход -
+Root-инструкции и локальный owner pass дают context reminder в момент работы, но
+не пишут правила за пользователя. Если подходящего owner-а нет, правильный ход -
 остановиться и получить user-backed truth, а не импровизировать criteria.
 
 ## 3
@@ -189,7 +189,8 @@ owner route. Декоративные варианты не нужны; один
 - `1assumption-audit` делает ручной глубокий `ground-check` выбранного подхода;
 - `1planning` сохраняет blocker/assumption/order там, где это нужно для
   исполнения;
-- `1work-review` проверяет, применялись ли эти criteria и assumptions в работе.
+- текущий execution owner проверяет, применялись ли эти criteria и assumptions
+  в работе.
 
 `1step-back` нужен, когда может быть неверна сама рамка мышления. `1fresh-eyes`
 нужен, когда риск в inherited context: поддакивание, frame lock,
@@ -234,10 +235,10 @@ scope-контракт.
 
 ### Текущие решения для исполнения
 
-`1start-here` запускает проектную работу: восстанавливает intent, SoT/owner,
-criteria, RAID, dependency radius и выбирает один активный owner. Он не делает
-ритуал из простого ответа, но не даёт отвечать из вакуума, когда локальная
-система может изменить решение.
+Проектную работу запускает локальный context/owner pass: восстановить intent,
+SoT/owner, применимые инструкции, dependency radius и один активный owner. Это
+не отдельный installed skill и не ритуал для простого ответа, но защита от
+ответа из вакуума, когда локальная система может изменить решение.
 
 Перед исполнением:
 
@@ -250,14 +251,14 @@ criteria, RAID, dependency radius и выбирает один активный 
 - `1cli-tools` даёт bounded CLI evidence: ссылки, stale refs, deps, security,
   cleanup, package/code/docs facts.
 
-`1work-review` закрывает работу через evidence. Он проверяет, выполнена ли
-исходная просьба, насколько качественно, какие сомнения остались и были ли
-criteria/instructions/radius реально применены во время работы. Маленькие
-успешные правки закрываются коротко; большой audit можно отдать `auditor`.
+Прямой evidence-closeout закрывает работу через evidence. Текущий owner
+проверяет, выполнена ли исходная просьба, насколько качественно, какие сомнения
+остались и были ли criteria/instructions/radius реально применены во время
+работы. Маленькие успешные правки закрываются коротко; большой audit можно
+отдать `auditor`.
 
-Runtime hooks держат горячие моменты: старт сессии через `1start-here`, новый
-prompt через лёгкий criteria/local-instructions anchor, финал после
-чувствительных или широких правок через `1work-review`.
+Runtime hooks держат горячие моменты: Markdown graph reminder перед write, сбор
+Markdown-правок после write и graph rollup на Stop.
 
 ## 6
 
@@ -273,7 +274,7 @@ prompt через лёгкий criteria/local-instructions anchor, финал п
 `1instruction-layer` решает формулировку и placement правила: какое поведение
 должен увидеть будущий агент, какой language failure закрываем, где живёт
 короткая инструкция и чем delivery доказывается. Он не копирует тела скилов в
-инструкции и не пишет criteria вместо `1user-truth`.
+инструкции и не пишет durable user truth вместо правильного owner-а.
 
 `1folder-contract` держит системный контракт: ведут ли папочный граф, criteria,
 hooks, runtime guardrails, review и root shims агента к `_ops/GOAL.md`.
@@ -300,15 +301,15 @@ drift-point. `1md-navigator` даёт карту/поиск/overlaps, `1md-graph
 - `1roadmap` и `1tasks` - заменены единым `1planning`.
 - `1criteria-council` - удалён; generic fresh-context маршрут теперь
   `1fresh-eyes`, large closeout audit - `auditor`.
-- `criteria-generator` - не текущая модель этого репозитория; устойчивые
-  критерии живут в `_ops/criteria/*.md` через `1user-truth`.
+- `criteria-generator` и отдельный `1user-truth` - не текущая live-модель этого
+  репозитория; устойчивые правила закрепляются только у правильного owner-а.
 - `interview через 1obsidian` - устарело; structured intake ведёт
   `1interview-tool`, а `1obsidian` остаётся Obsidian UX-слоем.
 - `1repo-shape` как отдельный live owner не используется; structural controls
   принадлежат `1folder-contract`.
 - `1before-work` / `1before-write` не являются живыми установленными скилами;
-  их прежний смысл распределён между `1start-here`, owner/criteria checks,
-  hooks и `1work-review`.
+  их прежний смысл распределён между локальным context/owner pass, owner checks,
+  hooks и прямым evidence-closeout.
 - `1md-graph` больше не владеет reading map: карту, heading index, semantic
   search и related reading держит `1md-navigator`.
 - `INTERVIEW.md`, `LEARNINGS.md` и `projects/` - не live owner surfaces этого

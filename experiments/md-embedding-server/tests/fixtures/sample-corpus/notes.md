@@ -1,5 +1,7 @@
 ---
 description: Supporting note for selftest
+depends-on:
+  - "[[README]]"
 ---
 
 # Notes
@@ -7,4 +9,3 @@ description: Supporting note for selftest
 ## Decision
 
 Keep Phase 1 selftest architectural until real handlers land.
-

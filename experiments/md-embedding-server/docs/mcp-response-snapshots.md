@@ -1,15 +1,14 @@
 ---
 description: "Generated index of MCP response golden snapshots."
-read-before-edit: []
-edit-after-edit: []
+depends-on: []
 ---
 # MCP Response Snapshots
 
-Generated 2026-06-02 from live CLI. Count: 32.
+Generated 2026-06-05 from live CLI. Count: 32.
 
 | Tool | File | is_error |
 |---|---|---|
-| md_audit | tests/golden/mcp-responses/md_audit.json | false |
+| md_audit | tests/golden/mcp-responses/md_audit.json | true |
 | md_check | tests/golden/mcp-responses/md_check.json | false |
 | md_cluster | tests/golden/mcp-responses/md_cluster.json | true |
 | md_coherence_audit | tests/golden/mcp-responses/md_coherence_audit.json | false |
@@ -24,20 +23,20 @@ Generated 2026-06-02 from live CLI. Count: 32.
 | md_index | tests/golden/mcp-responses/md_index.json | true |
 | md_init | tests/golden/mcp-responses/md_init.json | false |
 | md_ls | tests/golden/mcp-responses/md_ls.json | false |
-| md_orient | tests/golden/mcp-responses/md_orient.json | false |
-| md_overlaps | tests/golden/mcp-responses/md_overlaps.json | false |
+| md_orient | tests/golden/mcp-responses/md_orient.json | true |
+| md_overlaps | tests/golden/mcp-responses/md_overlaps.json | true |
 | md_ping | tests/golden/mcp-responses/md_ping.json | false |
 | md_preflight | tests/golden/mcp-responses/md_preflight.json | false |
 | md_profile_sections | tests/golden/mcp-responses/md_profile_sections.json | false |
 | md_query_by_type | tests/golden/mcp-responses/md_query_by_type.json | false |
 | md_read_related | tests/golden/mcp-responses/md_read_related.json | false |
 | md_refactor_candidates | tests/golden/mcp-responses/md_refactor_candidates.json | false |
-| md_repeated_concepts | tests/golden/mcp-responses/md_repeated_concepts.json | false |
+| md_repeated_concepts | tests/golden/mcp-responses/md_repeated_concepts.json | true |
 | md_scan | tests/golden/mcp-responses/md_scan.json | false |
-| md_search | tests/golden/mcp-responses/md_search.json | false |
+| md_search | tests/golden/mcp-responses/md_search.json | true |
 | md_search_read | tests/golden/mcp-responses/md_search_read.json | true |
 | md_section_blast_radius | tests/golden/mcp-responses/md_section_blast_radius.json | false |
-| md_status | tests/golden/mcp-responses/md_status.json | false |
+| md_status | tests/golden/mcp-responses/md_status.json | true |
 | md_strip | tests/golden/mcp-responses/md_strip.json | false |
 | md_toc | tests/golden/mcp-responses/md_toc.json | false |
 | md_walk | tests/golden/mcp-responses/md_walk.json | false |

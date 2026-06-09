@@ -177,8 +177,7 @@ def collect_related_items(args) -> dict[str, Any]:
             item.pop("content", None)
     reason_rank = {
         "self": 0,
-        "read-before-edit": 1,
-        "edit-after-edit": 2,
+        "depends-on": 1,
         "wikilink": 3,
         "markdown-link": 4,
         "backlink": 5,

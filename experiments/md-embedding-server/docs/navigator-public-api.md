@@ -1,7 +1,7 @@
 ---
-description: "Importable navigator API boundary and graph wrapper contract for the md CLI."
-read-before-edit: []
-edit-after-edit: []
+description: Importable navigator API boundary and graph wrapper contract for the
+  md CLI.
+depends-on: []
 ---
 # Navigator public API
 

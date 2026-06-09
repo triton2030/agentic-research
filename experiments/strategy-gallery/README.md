@@ -7,7 +7,8 @@
 3. `03-strategy-choice.md` — синтез трёх галерей и выбор победителя.
 
 Это рабочая поверхность для стратегии, но не канон проекта. Устойчивые выводы
-переносятся в правильный owner: `knowledge/`, `_ops/criteria/` или живой skill.
+переносятся в правильный owner: локальные инструкции, `_ops/rules/`,
+`knowledge/` или живой skill.
 
 Свежий агент начинает с локального `AGENTS.md`.
 
@@ -95,10 +96,8 @@ Codex читает три галереи и заполняет `03-strategy-choi
 только в `sessions/`. Перенеси смысл в правильный owner через соответствующий
 скилл или инструкционный слой.
 
-## Критерии
+## Проверка
 
-Перед правкой этой папки читать:
-
-- `_ops/criteria/strategy-gallery-workflow.md`
-- `_ops/criteria/repo-structure-and-runtime-guards.md`
-- `_ops/criteria/work-review-and-evidence.md`
+Перед правкой этой папки читай локальный `AGENTS.md`. Условные rules из
+`_ops/rules/` применяй только по их trigger: placement, instruction/runtime или
+CLI/evidence.

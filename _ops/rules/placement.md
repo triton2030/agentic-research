@@ -46,7 +46,7 @@ Check: один owner truth, понятный retrieval path, нет второ�
   task-файл реально нужен.
 - Актуальная проблема до решения -> `_ops/findings/**` через `1findings`.
 - Длинный сбор ответов пользователя -> `_ops/interviews/**` через
-  `1start-here` / `1folder-contract`.
+  `1interview-tool` / `1folder-contract`.
 - Длинные слова пользователя -> не автозаписывать; существующий
   `_ops/user-said/YYYY-MM-DD.md` обрабатывать только manual, отдельным проходом.
 
@@ -58,5 +58,7 @@ Check: один owner truth, понятный retrieval path, нет второ�
 - `_ops/` — не склад заметок, идей, research или backlog.
 - `INTERVIEW.md`, `LEARNINGS.md` и `projects/` не восстанавливать как живые
   поверхности.
-- Новый project shape не собирать руками: запускать Codex init-скрипт из
-  `1start-here`.
+- Новый project shape не собирать глобальным bootstrap-скриптом: GOAL/README/ROADMAP
+  маршрутизировать через `1strategy-docs`, graph/frontmatter — через
+  `1folder-contract`, локальный project-owned bootstrap использовать только если
+  он уже есть.

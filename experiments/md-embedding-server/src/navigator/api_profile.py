@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from .api_utils import _exit, _list, _read_next
-from .config import resolve_filters_for_domain
+from .config import CONFIG_FILENAME, resolve_filter_layers_for_domain, resolve_filters_for_domain
 
 def index(
     corpus: str,
@@ -17,6 +17,7 @@ def index(
     max_heading_level: int | None = None,
     path_include: Iterable[str] | str | None = None,
     path_exclude: Iterable[str] | str | None = None,
+    vacuum: bool = False,
     embed_model: str | None = None,
     embedding_api_url: str | None = None,
     embedding_timeout: float | None = None,
@@ -26,6 +27,13 @@ def index(
     from .cli_common import SEARCH_DEFAULT_EMBEDDING_API_URL, SEARCH_DEFAULT_EMBEDDING_TIMEOUT
     from .filters import apply_path_filters_to_map, normalize_path_filter_patterns
     from .folder_map import build_map
+    from .index_lifecycle import (
+        apply_cleanup,
+        cleanup_enabled_for_operation,
+        plan_cleanup,
+        vacuum_index,
+        vacuum_preview,
+    )
     from .index_build import _chunks_for_item, ensure_index
     from .index_meta import (
         _index_dir_for_corpus,
@@ -39,12 +47,12 @@ def index(
     if not corpus_root.exists():
         return _exit({"error": "path_not_found", "corpus": str(corpus_root)}, 2)
     cache_root = Path(cache_dir).expanduser() if cache_dir else None
-    path_include, path_exclude = resolve_filters_for_domain(
+    filter_layers = resolve_filter_layers_for_domain(
         corpus_root, domain="index",
         path_include=path_include, path_exclude=path_exclude,
     )
-    include_values = _list(path_include)
-    exclude_values = _list(path_exclude)
+    include_values = _list(filter_layers.effective_include)
+    exclude_values = _list(filter_layers.effective_exclude)
     parent_corpus = find_parent_indexed_corpus(corpus_root, cache_root=cache_root)
     if parent_corpus is not None and not allow_nested_corpus:
         return _exit(
@@ -57,13 +65,28 @@ def index(
             1,
         )
     map_data = build_map(corpus_root, max_heading_level or 6, with_tokens=True)
-    include_patterns = normalize_path_filter_patterns(path_include, corpus_root)
-    exclude_patterns = normalize_path_filter_patterns(path_exclude, corpus_root)
+    include_patterns = normalize_path_filter_patterns(filter_layers.effective_include, corpus_root)
+    exclude_patterns = normalize_path_filter_patterns(filter_layers.effective_exclude, corpus_root)
+    config_include_patterns = normalize_path_filter_patterns(filter_layers.config_include, corpus_root)
+    config_exclude_patterns = normalize_path_filter_patterns(filter_layers.config_exclude, corpus_root)
+    cleanup_enabled = cleanup_enabled_for_operation(
+        filter_layers.operation_include,
+        filter_layers.operation_exclude,
+    )
+    cleanup_disabled_reason = None if cleanup_enabled else "operation_scope"
     scoped = apply_path_filters_to_map(map_data, include_patterns, exclude_patterns)
     items_by_scope = {scope: build_items_from_map(scoped, scope=scope) for scope in ("sections", "descriptions")}
     pending_chunks = sum(len(_chunks_for_item(item)) for items in items_by_scope.values() for item in items)
-    affected_files = [str(Path(file["path"]).resolve()) for file in scoped.get("files", [])]
+    affected_files = _index_affected_files(scoped, corpus_root)
     index_exists = (_index_dir_for_corpus(corpus_root, cache_root=cache_root, create=False) / "index.sqlite").exists()
+    cleanup_plan = plan_cleanup(
+        corpus_root,
+        cache_root=cache_root,
+        config_include=config_include_patterns,
+        config_exclude=config_exclude_patterns,
+        enabled=cleanup_enabled,
+        disabled_reason=cleanup_disabled_reason,
+    )
     if (dry_run or not confirm) and index_exists:
         selected_model = resolve_embed_model_for_corpus(corpus_root, embed_model, cache_root=cache_root)
         totals = {"pending_chunks": 0, "added_sections": 0, "removed_sections": 0}
@@ -80,31 +103,50 @@ def index(
                 dry_run=True,
                 path_include=include_patterns,
                 path_exclude=exclude_patterns,
+                skip_existing_rowids=cleanup_plan.rowids,
             )
             conn.close()
             totals["pending_chunks"] += stats.get("pending_chunks", 0)
             totals["added_sections"] += stats.get("added_sections", 0)
             totals["removed_sections"] += stats.get("removed_sections", 0)
-        return {
+        payload = {
             "command": "index",
             "dry_run": bool(dry_run),
             **totals,
             "estimated_cost_usd": round(totals["pending_chunks"] * 0.00002, 4),
             "affected_files": affected_files,
+            **cleanup_plan.public_payload(),
         }
+        if vacuum:
+            payload["vacuum"] = vacuum_preview(corpus_root, cache_root=cache_root)
+        return payload
     if dry_run or not confirm:
-        return {
+        payload = {
             "command": "index",
             "dry_run": bool(dry_run),
             "pending_chunks": pending_chunks,
             "added_sections": sum(len(items) for items in items_by_scope.values()),
             "estimated_cost_usd": round(pending_chunks * 0.00002, 4),
             "affected_files": affected_files,
+            **cleanup_plan.public_payload(),
         }
+        if vacuum:
+            payload["vacuum"] = vacuum_preview(corpus_root, cache_root=cache_root)
+        return payload
     selected_model = resolve_embed_model_for_corpus(corpus_root, embed_model, cache_root=cache_root)
+    cleanup_result = apply_cleanup(
+        corpus_root,
+        cache_root=cache_root,
+        embed_model=selected_model,
+        embedding_api_url=embedding_api_url or SEARCH_DEFAULT_EMBEDDING_API_URL,
+        config_include=config_include_patterns,
+        config_exclude=config_exclude_patterns,
+        enabled=cleanup_enabled,
+        disabled_reason=cleanup_disabled_reason,
+    )
     totals = {"embedded": 0, "reused": 0, "removed_sections": 0}
     for scope, items in items_by_scope.items():
-        _, stats = ensure_index(
+        conn, stats = ensure_index(
             corpus_root,
             scope,
             items,
@@ -118,10 +160,27 @@ def index(
             path_include=include_patterns,
             path_exclude=exclude_patterns,
         )
+        conn.close()
         totals["embedded"] += stats.get("embedded", 0)
         totals["reused"] += stats.get("reused", 0)
         totals["removed_sections"] += stats.get("removed_sections", 0)
-    return {"command": "index", "corpus": str(corpus_root), **totals}
+    payload = {
+        "command": "index",
+        "corpus": str(corpus_root),
+        **totals,
+        **cleanup_result.public_payload(),
+    }
+    if vacuum:
+        payload["vacuum"] = vacuum_index(corpus_root, cache_root=cache_root)
+    return payload
+
+
+def _index_affected_files(scoped_map: dict[str, Any], corpus_root: Path) -> list[str]:
+    files = {str(Path(file["path"]).resolve()) for file in scoped_map.get("files", [])}
+    # Include the config path even when missing so adding it between dry-run and
+    # confirm is caught by the transaction fingerprint.
+    files.add(str((corpus_root / CONFIG_FILENAME).resolve()))
+    return sorted(files)
 
 def profile_sections(
     corpus: str,

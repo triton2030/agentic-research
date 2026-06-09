@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any, Iterable, TypedDict
 
 from .cli_common import SEARCH_DEFAULT_EMBEDDING_API_URL, SEARCH_DEFAULT_EMBEDDING_TIMEOUT
-from .config import resolve_filters_for_domain
+from .config import resolve_filter_layers_for_domain
 from .filters import apply_path_filters_to_map, normalize_path_filter_patterns
 from .folder_map import build_map
 from .index_build import (
@@ -17,11 +17,13 @@ from .index_build import (
     ensure_index,
     pending_files_for_items,
 )
+from .index_lifecycle import cleanup_enabled_for_operation, plan_cleanup
 from .index_meta import (
     _index_dir_for_corpus,
     _open_index_readonly,
     resolve_embed_model_for_corpus,
 )
+from .index_store import index_integrity_summary
 from .sections import build_items_from_map
 
 
@@ -65,7 +67,7 @@ def status_payload(
             },
             2,
         )
-    path_include, path_exclude = resolve_filters_for_domain(
+    filter_layers = resolve_filter_layers_for_domain(
         corpus_root,
         domain="index",
         path_include=path_include,
@@ -80,8 +82,15 @@ def status_payload(
     )
     index_dir = _index_dir_for_corpus(corpus_root, cache_root=cache_root, create=False)
     db_path = index_dir / "index.sqlite"
-    include_patterns = normalize_path_filter_patterns(path_include, corpus_root)
-    exclude_patterns = normalize_path_filter_patterns(path_exclude, corpus_root)
+    include_patterns = normalize_path_filter_patterns(filter_layers.effective_include, corpus_root)
+    exclude_patterns = normalize_path_filter_patterns(filter_layers.effective_exclude, corpus_root)
+    config_include_patterns = normalize_path_filter_patterns(filter_layers.config_include, corpus_root)
+    config_exclude_patterns = normalize_path_filter_patterns(filter_layers.config_exclude, corpus_root)
+    cleanup_enabled = cleanup_enabled_for_operation(
+        filter_layers.operation_include,
+        filter_layers.operation_exclude,
+    )
+    cleanup_disabled_reason = None if cleanup_enabled else "operation_scope"
 
     map_data = build_map(corpus_root, max_heading_level or 6, with_tokens=False)
     if not map_data["files"]:
@@ -95,7 +104,15 @@ def status_payload(
             1,
         )
     scoped = apply_path_filters_to_map(map_data, include_patterns, exclude_patterns)
-    if not scoped["files"]:
+    cleanup_plan = plan_cleanup(
+        corpus_root,
+        cache_root=cache_root,
+        config_include=config_include_patterns,
+        config_exclude=config_exclude_patterns,
+        enabled=cleanup_enabled,
+        disabled_reason=cleanup_disabled_reason,
+    )
+    if not scoped["files"] and cleanup_plan.sections == 0:
         return _exit(
             {
                 "command": "status",
@@ -125,6 +142,7 @@ def status_payload(
             "excluded": _excluded_payload(corpus_root, include_patterns, exclude_patterns),
             "added_sections": sum(int(scope["added_sections"]) for scope in scopes_payload),
             "removed_sections": 0,
+            **cleanup_plan.public_payload(),
             "pending_chunks": sum(int(scope["pending_chunks"]) for scope in scopes_payload),
             "pending_files": _combine_file_delta(
                 scopes_payload,
@@ -172,6 +190,7 @@ def status_payload(
                 dry_run=True,
                 path_include=include_patterns,
                 path_exclude=exclude_patterns,
+                skip_existing_rowids=cleanup_plan.rowids,
             )
         except ModuleNotFoundError as exc:
             return _exit(
@@ -208,9 +227,14 @@ def status_payload(
             stats.get("delta_too_large", False)
         )
 
-    if totals["metadata_mismatch"]:
+    integrity = _index_integrity_for_status(corpus_root, cache_root)
+    if totals["metadata_mismatch"] or not integrity["ok"]:
         state = "NEEDS_REBUILD"
-    elif totals["added_sections"] == 0 and totals["removed_sections"] == 0:
+    elif (
+        totals["added_sections"] == 0
+        and totals["removed_sections"] == 0
+        and cleanup_plan.sections == 0
+    ):
         state = "FRESH"
     elif totals["delta_too_large"]:
         state = "NEEDS_WARMUP"
@@ -232,6 +256,7 @@ def status_payload(
         "excluded": _excluded_payload(corpus_root, include_patterns, exclude_patterns),
         "added_sections": totals["added_sections"],
         "removed_sections": totals["removed_sections"],
+        **cleanup_plan.public_payload(),
         "pending_chunks": totals["pending_chunks"],
         "pending_files": _combine_file_delta(
             scopes_payload,
@@ -255,14 +280,18 @@ def status_payload(
             cache_root=cache_root,
             path_include=include_patterns,
             path_exclude=exclude_patterns,
+            cleanup_sections=cleanup_plan.sections,
+            integrity_ok=bool(integrity["ok"]),
         ),
     }
+    if expanded or not integrity["ok"]:
+        payload["index_integrity"] = integrity
     payload["expanded"] = bool(expanded)
     if not expanded:
         # Headline by default: state + recommended_action + counts. The heavy
         # per-scope / per-folder / pending-file detail is index-warmup material,
         # reachable via --expanded.
-        for heavy in ("scopes", "folder_breakdown", "pending_files", "removed_files", "excluded"):
+        for heavy in ("scopes", "folder_breakdown", "pending_files", "removed_files", "cleanup_files", "excluded"):
             payload.pop(heavy, None)
     return payload
 
@@ -384,6 +413,30 @@ def _combine_file_delta(
     )
 
 
+def _index_integrity_for_status(
+    corpus_root: Path,
+    cache_root: Path | None,
+) -> dict[str, Any]:
+    try:
+        conn = _open_index_readonly(corpus_root, cache_root=cache_root)
+    except (FileNotFoundError, ModuleNotFoundError, RuntimeError, sqlite3.Error) as exc:
+        return {
+            "ok": False,
+            "counts": {"sections": 0, "chunks": 0, "sections_fts": 0, "sections_vec": 0},
+            "issues": [f"index_unreadable:{type(exc).__name__}"],
+        }
+    try:
+        return index_integrity_summary(conn)
+    except sqlite3.Error as exc:
+        return {
+            "ok": False,
+            "counts": {"sections": 0, "chunks": 0, "sections_fts": 0, "sections_vec": 0},
+            "issues": [f"integrity_query_failed:{type(exc).__name__}"],
+        }
+    finally:
+        conn.close()
+
+
 def _state_payload(
     state: str,
     corpus_root: Path,
@@ -391,6 +444,8 @@ def _state_payload(
     cache_root: Path | None = None,
     path_include: list[str] | None = None,
     path_exclude: list[str] | None = None,
+    cleanup_sections: int = 0,
+    integrity_ok: bool = True,
 ) -> StatePayload:
     from .index_meta import find_parent_indexed_corpus, path_include_for_parent_corpus
 
@@ -416,21 +471,31 @@ def _state_payload(
                 path_exclude,
             )
     if state == "HEALTHY":
+        reason = (
+            "Cleanup stale index rows; dry-run previews the cleanup before confirming."
+            if cleanup_sections
+            else "Optional eager warmup; dry-run previews cost before embedding the small delta."
+        )
         return {
             "recommended_action": {
                 "tool": "md_index",
                 "args": action_args,
-                "reason": "Optional eager warmup; dry-run previews cost before embedding the small delta.",
+                "reason": reason,
             }
         }
     if state in ("NEEDS_WARMUP", "NEEDS_REBUILD", "NO_INDEX"):
+        rebuild_reason = (
+            "Index table integrity mismatch; rebuild the derived index before search."
+            if not integrity_ok
+            else "Index metadata/schema mismatch; dry-run rebuild before confirming."
+        )
         return {
             "recommended_action": {
                 "tool": "md_index",
                 "args": action_args,
                 "reason": {
                     "NEEDS_WARMUP": "Pending delta exceeds auto-embed cap; dry-run index before search.",
-                    "NEEDS_REBUILD": "Index metadata/schema mismatch; dry-run rebuild before confirming.",
+                    "NEEDS_REBUILD": rebuild_reason,
                     "NO_INDEX": "Index does not exist; dry-run warmup before search.",
                 }[state],
             }

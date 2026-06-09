@@ -174,10 +174,11 @@ outcome.
 - `1planning` owns roadmap/task-files and task prerequisites. См.
   `/Users/triton/.codex/skills/1planning/SKILL.md`.
 - Substantive-write discipline is distributed through local instructions,
-  criteria delivery, owner skills, and `1work-review`.
-- `1work-review` owns post-action review. См. `/Users/triton/.codex/skills/1work-review/SKILL.md`.
-- `1user-truth` owns durable user truth. См.
-  `/Users/triton/.codex/skills/1user-truth/SKILL.md`.
+  criteria delivery, owner skills, and direct evidence-closeout by the current
+  execution owner.
+- Durable user truth не держит отдельный installed skill. Закрепляй её у
+  правильного project owner-а или в memory layer только по явной просьбе
+  пользователя.
 - `1skill-architect` owns skill control-surface changes; `1folder-contract`
   owns structural folder/runtime controls; `1instruction-layer` owns wording
   and placement of instruction prose.

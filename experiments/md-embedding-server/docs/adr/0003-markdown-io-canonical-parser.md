@@ -1,7 +1,7 @@
 ---
-description: "ADR-0003: markdown_io — единственный канонический парсер Markdown-ссылок (консолидация graph_edges pending)."
-read-before-edit: []
-edit-after-edit: []
+description: 'ADR-0003: markdown_io — единственный канонический парсер Markdown-ссылок
+  (консолидация graph_edges pending).'
+depends-on: []
 ---
 # ADR-0003 — `markdown_io` — канонический парсер ссылок
 

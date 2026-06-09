@@ -55,8 +55,7 @@ def test_init_json_live_returns_machine_json_and_respects_include(
     }
     assert parse_frontmatter((tmp_path / "keep.md").read_text(encoding="utf-8").splitlines()) == {
         "description": "TODO",
-        "read-before-edit": [],
-        "edit-after-edit": [],
+        "depends-on": [],
     }
     assert (tmp_path / "skip.md").read_text(encoding="utf-8") == "# Skip\n"
 
@@ -68,8 +67,10 @@ def test_strip_json_removes_legacy_and_unknown_fields_preserving_allowed_fields(
     doc.write_text(
         "---\n"
         "description: Keep me\n"
-        "read-before-edit:\n"
+        "depends-on:\n"
         '  - "[[source.md]]"\n'
+        "read-before-edit:\n"
+        '  - "[[legacy-source.md]]"\n'
         "edit-after-edit: []\n"
         "owner: old-owner\n"
         "custom: remove-me\n"
@@ -104,7 +105,7 @@ def test_strip_json_removes_legacy_and_unknown_fields_preserving_allowed_fields(
     assert payload["changes"] == [
         {
             "path": "doc.md",
-            "removed_fields": ["owner", "custom", "depends_on"],
+            "removed_fields": ["read-before-edit", "edit-after-edit", "owner", "custom", "depends_on"],
             "related_section_removed": False,
         }
     ]
@@ -112,9 +113,10 @@ def test_strip_json_removes_legacy_and_unknown_fields_preserving_allowed_fields(
     frontmatter = parse_frontmatter(text.splitlines())
     assert frontmatter == {
         "description": "Keep me",
-        "read-before-edit": ["[[source.md]]"],
-        "edit-after-edit": [],
+        "depends-on": ["[[source.md]]"],
     }
+    assert "read-before-edit:" not in text
+    assert "edit-after-edit:" not in text
     assert "owner:" not in text
     assert "custom:" not in text
     assert "depends_on:" not in text
@@ -130,8 +132,7 @@ def test_strip_related_section_removes_only_related_section_body(
     doc.write_text(
         "---\n"
         "description: Related cleanup\n"
-        "read-before-edit: []\n"
-        "edit-after-edit: []\n"
+        "depends-on: []\n"
         "---\n"
         "\n"
         "# Title\n\n"
@@ -212,8 +213,7 @@ def test_strip_json_respects_include_and_exclude_filters(
         (tmp_path / name).write_text(
             "---\n"
             f"description: {name}\n"
-            "read-before-edit: []\n"
-            "edit-after-edit: []\n"
+            "depends-on: []\n"
             "owner: old\n"
             "---\n"
             "\n"

@@ -12,6 +12,7 @@ from navigator.config import (
     DomainFilters,
     load_corpus_config,
     merge_cli_with_config,
+    resolve_filter_layers_for_domain,
     resolve_filters_for_domain,
 )
 
@@ -174,6 +175,32 @@ def test_resolve_appends_cli_onto_config_baseline(tmp_path: Path) -> None:
     )
     assert inc == []
     assert exc == ["experiments/all-my-messages/*", "drafts/*"]
+
+
+def test_resolve_filter_layers_separates_config_and_operation(
+    tmp_path: Path,
+) -> None:
+    (tmp_path / CONFIG_FILENAME).write_text(
+        "[index]\n"
+        'include = ["canon/*"]\n'
+        'exclude = ["legacy/*"]\n',
+        encoding="utf-8",
+    )
+
+    layers = resolve_filter_layers_for_domain(
+        tmp_path,
+        domain="index",
+        path_include="scratch/*",
+        path_exclude=["tmp/*"],
+    )
+
+    assert layers.config_include == ["canon/*"]
+    assert layers.config_exclude == ["legacy/*"]
+    assert layers.operation_include == ["scratch/*"]
+    assert layers.operation_exclude == ["tmp/*"]
+    assert layers.effective_include == ["canon/*", "scratch/*"]
+    assert layers.effective_exclude == ["legacy/*", "tmp/*"]
+    assert layers.source == (tmp_path / CONFIG_FILENAME).resolve()
 
 
 def test_resolve_graph_uses_graph_section(tmp_path: Path) -> None:

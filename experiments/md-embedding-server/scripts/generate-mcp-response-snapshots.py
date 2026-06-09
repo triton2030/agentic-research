@@ -145,8 +145,7 @@ def write_doc(rows: list[tuple[str, bool]]) -> None:
     lines = [
         "---",
         'description: "Generated index of MCP response golden snapshots."',
-        "read-before-edit: []",
-        "edit-after-edit: []",
+        "depends-on: []",
         "---",
         "# MCP Response Snapshots",
         "",

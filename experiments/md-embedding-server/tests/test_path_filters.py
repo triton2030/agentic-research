@@ -5,6 +5,7 @@ budget isn't spent on dropped candidates."""
 
 from __future__ import annotations
 
+import sqlite3
 from pathlib import Path
 
 from navigator.api import index as api_index
@@ -12,6 +13,7 @@ from navigator.api import overlaps as api_overlaps
 from navigator.api import search as api_search
 from navigator.api import search_read, status as api_status
 from navigator.filters import normalize_path_filter_patterns
+from navigator.markdown_io import iter_markdown
 from navigator.search import (
     _apply_path_filters,
     _path_matches_any,
@@ -101,6 +103,48 @@ def test_normalize_path_filter_patterns_accepts_absolute_path_under_corpus(
     assert normalize_path_filter_patterns([absolute], root) == ["docs/guide.md"]
 
 
+def test_iter_markdown_allows_corpus_hosted_under_agent_worktrees(
+    tmp_path: Path,
+) -> None:
+    roots = [
+        tmp_path / ".codex" / "worktrees" / "abc" / "repo",
+        tmp_path / ".claude" / "worktrees" / "abc" / "repo",
+    ]
+    for root in roots:
+        root.mkdir(parents=True)
+        readme = root / "README.md"
+        readme.write_text("# Worktree\n", encoding="utf-8")
+
+        assert iter_markdown(root) == [readme]
+
+
+def test_iter_markdown_default_excludes_apply_inside_corpus_only(
+    tmp_path: Path,
+) -> None:
+    root = tmp_path / ".codex" / "worktrees" / "abc" / "repo"
+    for dirname in (".codex", ".claude"):
+        nested = root / dirname
+        nested.mkdir(parents=True)
+        hidden = nested / "hidden.md"
+        hidden.write_text("# Hidden\n", encoding="utf-8")
+    visible = root / "visible.md"
+    visible.write_text("# Visible\n", encoding="utf-8")
+
+    assert iter_markdown(root) == [visible]
+
+
+def test_iter_markdown_keeps_default_excluded_root_empty(
+    tmp_path: Path,
+) -> None:
+    for dirname in (".codex", ".claude"):
+        root = tmp_path / dirname
+        root.mkdir()
+        hidden = root / "hidden.md"
+        hidden.write_text("# Hidden\n", encoding="utf-8")
+
+        assert iter_markdown(root) == []
+
+
 def _index(tiny_corpus: Path) -> dict:
     return api_index(
         str(tiny_corpus),
@@ -137,6 +181,48 @@ def _partial_corpus(tmp_path: Path) -> Path:
         encoding="utf-8",
     )
     return root
+
+
+def _write_index_config(corpus: Path, body: str) -> None:
+    (corpus / ".md-tools.toml").write_text(body, encoding="utf-8")
+
+
+def _index_counts(corpus: Path) -> dict[str, int]:
+    import sqlite_vec  # type: ignore[import-not-found]
+
+    conn = sqlite3.connect(corpus / ".md-navigator" / "index.sqlite")
+    conn.enable_load_extension(True)
+    sqlite_vec.load(conn)
+    conn.enable_load_extension(False)
+    try:
+        return {
+            "sections": int(conn.execute("SELECT COUNT(*) FROM sections").fetchone()[0]),
+            "chunks": int(conn.execute("SELECT COUNT(*) FROM chunks").fetchone()[0]),
+            "sections_vec": int(conn.execute("SELECT COUNT(*) FROM sections_vec").fetchone()[0]),
+            "sections_fts": int(conn.execute("SELECT COUNT(*) FROM sections_fts").fetchone()[0]),
+            "skip_sections": int(
+                conn.execute(
+                    "SELECT COUNT(*) FROM sections WHERE relative_path GLOB 'skip/*'"
+                ).fetchone()[0]
+            ),
+        }
+    finally:
+        conn.close()
+
+
+def _delete_one_vector_row(corpus: Path) -> None:
+    import sqlite_vec  # type: ignore[import-not-found]
+
+    conn = sqlite3.connect(corpus / ".md-navigator" / "index.sqlite")
+    conn.enable_load_extension(True)
+    sqlite_vec.load(conn)
+    conn.enable_load_extension(False)
+    try:
+        rowid = conn.execute("SELECT MIN(chunk_id) FROM chunks").fetchone()[0]
+        conn.execute("DELETE FROM sections_vec WHERE rowid = ?", (rowid,))
+        conn.commit()
+    finally:
+        conn.close()
 
 
 def _search_kwargs(query: str, **overrides) -> dict:
@@ -497,3 +583,337 @@ def test_index_dry_run_reports_zero_delta_for_fresh_index(
     )
     assert dry["pending_chunks"] == 0
     assert dry["added_sections"] == 0
+
+
+def test_config_exclude_cleanup_prunes_persistent_rows(
+    tmp_path: Path,
+    mock_embed,
+) -> None:
+    corpus = _partial_corpus(tmp_path)
+    _index(corpus)
+    before = _index_counts(corpus)
+    assert before["skip_sections"] > 0
+
+    _write_index_config(corpus, '[index]\nexclude = ["skip/*"]\n')
+
+    dry = api_index(
+        str(corpus),
+        dry_run=True,
+        embed_model="test/stub-1",
+        embedding_api_url="http://test.local/v1",
+    )
+    assert dry["pending_chunks"] == 0
+    assert dry["removed_sections"] == 0
+    assert dry["cleanup_sections"] == before["skip_sections"]
+    assert dry["cleanup_reasons"] == {"config_excluded": before["skip_sections"]}
+    assert [item["relative_path"] for item in dry["cleanup_files"]] == ["skip/many.md"]
+
+    confirmed = api_index(
+        str(corpus),
+        confirm=True,
+        embed_model="test/stub-1",
+        embedding_api_url="http://test.local/v1",
+        batch_pause_ms=0,
+    )
+    assert confirmed["cleanup_sections"] == before["skip_sections"]
+    after = _index_counts(corpus)
+    assert after["skip_sections"] == 0
+    assert after["sections"] == before["sections"] - confirmed["cleanup_sections"]
+    assert after["chunks"] == before["chunks"] - confirmed["cleanup_chunks"]
+    assert after["sections_vec"] == after["chunks"]
+    assert after["sections_fts"] == after["sections"]
+
+
+def test_cli_path_exclude_does_not_prune_unrelated_rows(
+    tmp_path: Path,
+    mock_embed,
+) -> None:
+    corpus = _partial_corpus(tmp_path)
+    _index(corpus)
+    before = _index_counts(corpus)
+
+    dry = api_index(
+        str(corpus),
+        dry_run=True,
+        path_exclude=["skip/*"],
+        embed_model="test/stub-1",
+        embedding_api_url="http://test.local/v1",
+    )
+    assert dry["cleanup_enabled"] is False
+    assert dry["cleanup_disabled_reason"] == "operation_scope"
+    assert dry["cleanup_sections"] == 0
+
+    confirmed = api_index(
+        str(corpus),
+        confirm=True,
+        path_exclude=["skip/*"],
+        embed_model="test/stub-1",
+        embedding_api_url="http://test.local/v1",
+        batch_pause_ms=0,
+    )
+    assert confirmed["cleanup_sections"] == 0
+    after = _index_counts(corpus)
+    assert after["skip_sections"] == before["skip_sections"]
+
+
+def test_config_exclude_cleanup_prunes_missing_rows_in_excluded_scope(
+    tmp_path: Path,
+    mock_embed,
+) -> None:
+    corpus = _partial_corpus(tmp_path)
+    _index(corpus)
+    before = _index_counts(corpus)
+    (corpus / "skip" / "many.md").unlink()
+
+    _write_index_config(corpus, '[index]\nexclude = ["skip/*"]\n')
+
+    dry = api_index(
+        str(corpus),
+        dry_run=True,
+        embed_model="test/stub-1",
+        embedding_api_url="http://test.local/v1",
+    )
+    assert dry["removed_sections"] == 0
+    assert dry["cleanup_sections"] == before["skip_sections"]
+    assert dry["cleanup_reasons"] == {"config_excluded": before["skip_sections"]}
+
+
+def test_config_include_cleanup_prunes_rows_outside_canonical_scope(
+    tmp_path: Path,
+    mock_embed,
+) -> None:
+    corpus = _partial_corpus(tmp_path)
+    _index(corpus)
+    before = _index_counts(corpus)
+
+    _write_index_config(corpus, '[index]\ninclude = ["keep/*"]\n')
+
+    dry = api_index(
+        str(corpus),
+        dry_run=True,
+        embed_model="test/stub-1",
+        embedding_api_url="http://test.local/v1",
+    )
+    assert dry["cleanup_sections"] == before["skip_sections"]
+    assert dry["cleanup_reasons"] == {"config_not_included": before["skip_sections"]}
+
+
+def test_partial_path_include_does_not_cleanup_missing_sibling_rows(
+    tmp_path: Path,
+    mock_embed,
+) -> None:
+    corpus = _partial_corpus(tmp_path)
+    _index(corpus)
+    (corpus / "skip" / "many.md").unlink()
+    before = _index_counts(corpus)
+    assert before["skip_sections"] > 0
+
+    dry = api_index(
+        str(corpus),
+        dry_run=True,
+        path_include=["keep/*"],
+        embed_model="test/stub-1",
+        embedding_api_url="http://test.local/v1",
+    )
+    assert dry["cleanup_enabled"] is False
+    assert dry["cleanup_sections"] == 0
+
+    confirmed = api_index(
+        str(corpus),
+        confirm=True,
+        path_include=["keep/*"],
+        embed_model="test/stub-1",
+        embedding_api_url="http://test.local/v1",
+        batch_pause_ms=0,
+    )
+    assert confirmed["cleanup_sections"] == 0
+    after = _index_counts(corpus)
+    assert after["skip_sections"] == before["skip_sections"]
+
+
+def test_nested_parent_suggestion_scope_does_not_cleanup_siblings(
+    tmp_path: Path,
+    mock_embed,
+) -> None:
+    parent = tmp_path / "parent"
+    child = parent / "child"
+    sibling = parent / "sibling"
+    child.mkdir(parents=True)
+    sibling.mkdir()
+    (child / "doc.md").write_text("# Child\n\n## Topic\n\nBody.\n", encoding="utf-8")
+    (sibling / "doc.md").write_text("# Sibling\n\n## Topic\n\nBody.\n", encoding="utf-8")
+
+    api_index(
+        str(parent),
+        confirm=True,
+        embed_model="test/stub-1",
+        embedding_api_url="http://test.local/v1",
+        batch_pause_ms=0,
+    )
+    (sibling / "doc.md").unlink()
+    before = _index_counts(parent)
+
+    scoped = api_index(
+        str(parent),
+        dry_run=True,
+        path_include=["child/**"],
+        embed_model="test/stub-1",
+        embedding_api_url="http://test.local/v1",
+    )
+    assert scoped["cleanup_enabled"] is False
+    assert scoped["cleanup_sections"] == 0
+
+    confirmed = api_index(
+        str(parent),
+        confirm=True,
+        path_include=["child/**"],
+        embed_model="test/stub-1",
+        embedding_api_url="http://test.local/v1",
+        batch_pause_ms=0,
+    )
+    assert confirmed["cleanup_sections"] == 0
+    after = _index_counts(parent)
+    assert after["sections"] == before["sections"]
+
+
+def test_status_expanded_reports_cleanup_separately_from_removed_files(
+    tmp_path: Path,
+    mock_embed,
+) -> None:
+    corpus = _partial_corpus(tmp_path)
+    _index(corpus)
+    before = _index_counts(corpus)
+    _write_index_config(corpus, '[index]\nexclude = ["skip/*"]\n')
+
+    payload = _status(corpus, expanded=True)
+    assert payload["cleanup_sections"] == before["skip_sections"]
+    assert payload["removed_sections"] == 0
+    assert payload["pending_chunks"] == 0
+    assert [item["relative_path"] for item in payload["cleanup_files"]] == ["skip/many.md"]
+    assert payload["removed_files"] == []
+
+
+def test_status_expanded_reports_healthy_index_integrity(
+    tmp_path: Path,
+    mock_embed,
+) -> None:
+    corpus = _partial_corpus(tmp_path)
+    _index(corpus)
+
+    payload = _status(corpus, expanded=True)
+
+    assert payload["index_integrity"]["ok"] is True
+    assert payload["index_integrity"]["issues"] == []
+    assert payload["index_integrity"]["counts"]["sections"] == _index_counts(corpus)["sections"]
+
+
+def test_status_default_omits_healthy_index_integrity(
+    tmp_path: Path,
+    mock_embed,
+) -> None:
+    corpus = _partial_corpus(tmp_path)
+    _index(corpus)
+
+    payload = _status(corpus)
+
+    assert "index_integrity" not in payload
+
+
+def test_status_reports_vector_integrity_issue_in_default_output(
+    tmp_path: Path,
+    mock_embed,
+) -> None:
+    corpus = _partial_corpus(tmp_path)
+    _index(corpus)
+    _delete_one_vector_row(corpus)
+
+    payload = _status(corpus)
+
+    assert payload["state"] == "NEEDS_REBUILD"
+    assert payload["index_integrity"]["ok"] is False
+    assert "sections_vec_count_mismatch" in payload["index_integrity"]["issues"]
+    assert any(
+        issue.startswith("chunks_without_vector:")
+        for issue in payload["index_integrity"]["issues"]
+    )
+    assert payload["recommended_action"]["tool"] == "md_index"
+    assert "integrity mismatch" in payload["recommended_action"]["reason"]
+
+
+def test_missing_file_uses_ordinary_removed_sections_not_lifecycle_cleanup(
+    tmp_path: Path,
+    mock_embed,
+) -> None:
+    corpus = _partial_corpus(tmp_path)
+    _index(corpus)
+    before = _index_counts(corpus)
+    (corpus / "skip" / "many.md").unlink()
+
+    payload = _status(corpus, expanded=True)
+    assert payload["removed_sections"] == before["skip_sections"]
+    assert payload["cleanup_sections"] == 0
+    assert payload["cleanup_reasons"] == {}
+    assert [item["relative_path"] for item in payload["removed_files"]] == ["skip/many.md"]
+
+    dry = api_index(
+        str(corpus),
+        dry_run=True,
+        embed_model="test/stub-1",
+        embedding_api_url="http://test.local/v1",
+    )
+    assert dry["removed_sections"] == before["skip_sections"]
+    assert dry["cleanup_sections"] == 0
+
+    confirmed = api_index(
+        str(corpus),
+        confirm=True,
+        embed_model="test/stub-1",
+        embedding_api_url="http://test.local/v1",
+        batch_pause_ms=0,
+    )
+    assert confirmed["removed_sections"] == before["skip_sections"]
+    assert confirmed["cleanup_sections"] == 0
+    after = _index_counts(corpus)
+    assert after["skip_sections"] == 0
+    assert after["sections"] == before["sections"] - confirmed["removed_sections"]
+
+
+def test_status_reports_cleanup_when_config_excludes_all_live_files(
+    tmp_path: Path,
+    mock_embed,
+) -> None:
+    corpus = _partial_corpus(tmp_path)
+    _index(corpus)
+    before = _index_counts(corpus)
+    _write_index_config(corpus, '[index]\nexclude = ["*.md"]\n')
+
+    payload = _status(corpus, expanded=True)
+    assert payload.get("_exit_code", 0) == 0
+    assert payload["state"] == "HEALTHY"
+    assert payload["removed_sections"] == 0
+    assert payload["cleanup_sections"] == before["sections"]
+    assert payload["cleanup_reasons"] == {"config_excluded": before["sections"]}
+    assert payload["pending_chunks"] == 0
+
+
+def test_index_vacuum_returns_before_after_metadata(
+    tmp_path: Path,
+    mock_embed,
+) -> None:
+    corpus = _partial_corpus(tmp_path)
+    _index(corpus)
+    _write_index_config(corpus, '[index]\nexclude = ["skip/*"]\n')
+
+    payload = api_index(
+        str(corpus),
+        confirm=True,
+        vacuum=True,
+        embed_model="test/stub-1",
+        embedding_api_url="http://test.local/v1",
+        batch_pause_ms=0,
+    )
+
+    assert payload["vacuum"]["requested"] is True
+    assert payload["vacuum"]["ran"] is True
+    assert payload["vacuum"]["before"]["freelist_count"] >= payload["vacuum"]["after"]["freelist_count"]
+    assert payload["vacuum"]["reclaimed_bytes"] >= 0

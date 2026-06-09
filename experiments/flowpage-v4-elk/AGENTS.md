@@ -37,15 +37,12 @@ ELK-пересчётом. Контент графов пишет агент в `
 `src/pages/_helpers.js`. `icon` — точное Material Symbol name, `label` и
 `tooltip` — по-русски.
 
-## Критерии Перед Работой
+## Проверка Перед Работой
 
-- Код, структура, cleanup, runtime boundaries:
-  `_ops/criteria/repo-structure-and-runtime-guards.md`.
-- Формулировка instruction-файлов и language quality routing rules:
-  `_ops/criteria/instruction-layer.md`.
-- Folder graph, paired shim, system coherence, structural mechanism:
-  `_ops/criteria/folder-contract.md`.
-- Агентная дисциплина и чтение локального контекста:
-  `_ops/criteria/agent-discipline.md`.
-- Closeout и evidence:
-  `_ops/criteria/work-review-and-evidence.md`.
+- Для кода, структуры и runtime boundaries читай локальные `README.md`,
+  `TECHNICAL.md`, root `AGENTS.md` и, если меняешь routing/runtime,
+  `_ops/rules/instruction-and-runtime.md`.
+- Для создания, перемещения или переименования файлов применяй
+  `_ops/rules/placement.md`.
+- Для CLI/evidence и финальной проверки применяй `_ops/rules/local-tools.md`
+  и прямой evidence-closeout текущего owner-а.

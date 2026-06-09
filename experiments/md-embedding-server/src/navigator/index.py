@@ -49,13 +49,13 @@ from .index_build import (  # noqa: F401
     DEFAULT_MAX_AUTO_EMBED,
     _chunks_for_item,
     _clean_incomplete_sections,
-    _delete_section_rowids,
     _ensure_index_unlocked,
     _index_delta_stats_readonly,
     _next_id,
     _set_counter,
     ensure_index,
 )
+from .index_store import delete_section_rowids as _delete_section_rowids  # noqa: F401
 from .status_core import find_corpus_root_for  # noqa: F401
 from .index_cluster import (  # noqa: F401
     _kmeans,

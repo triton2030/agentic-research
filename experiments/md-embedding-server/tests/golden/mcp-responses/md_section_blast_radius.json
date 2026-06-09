@@ -12,26 +12,14 @@
       "version": 1,
       "tool": "md_section_blast_radius",
       "corpus_root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
-      "corpus_state": {
-        "state": "FRESH",
-        "model": "openai/text-embedding-3-small",
-        "index_exists": true,
-        "last_touched": "__VOLATILE__",
-        "added_sections": 0,
-        "removed_sections": 0,
-        "pending_chunks": 0,
-        "drift_count": 0,
-        "metadata_mismatch": false,
-        "delta_too_large": false,
-        "recommended_action": null
-      },
+      "corpus_state": null,
       "lock": null,
       "cost": {
         "turn_usd": "__VOLATILE__",
         "session_usd": "__VOLATILE__"
       },
       "size_estimate": {
-        "bytes": 4910,
+        "bytes": 1415,
         "items_returned": 0
       },
       "next_step": []
@@ -58,10 +46,10 @@
       "must_read": [],
       "must_update": [],
       "update_cascade": [],
+      "dependent_cascade": [],
       "reverse_holders": [],
       "check_only_references": {
-        "reverse_edit_after_edit": [],
-        "reverse_read_before_edit": [],
+        "reverse_depends_on": [],
         "body_wikilinks": [],
         "body_markdown_links": []
       },
@@ -69,114 +57,21 @@
         {
           "code": "MISSING_GRAPH_FIELD",
           "path": "agents/evaluation.md",
-          "detail": "read-before-edit"
-        },
-        {
-          "code": "MISSING_GRAPH_FIELD",
-          "path": "agents/evaluation.md",
-          "detail": "edit-after-edit"
+          "detail": "depends-on"
         }
       ],
       "cycles": [],
       "anchor_drift_risk": {},
       "deferred": [
         "Semantic completeness is not machine-proven; classify candidate edges in the owning skill.",
-        "No edit-after-edit edges declared; treat this as a positive claim only after semantic audit."
+        "No depends-on edges declared; treat this as a local-source claim only after semantic audit."
       ],
       "_exit_code": 0
     },
     "semantic": {
-      "root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
-      "query": "trajectory evaluation observable criteria",
-      "scope": "sections",
-      "engine": {
-        "bm25f": true,
-        "dense": true,
-        "embed_model": "openai/text-embedding-3-small",
-        "embedding_api_url": "https://openrouter.ai/api/v1",
-        "rerank": false,
-        "rerank_model": null,
-        "rerank_top_n": null,
-        "rerank_api_url": null,
-        "path_include": [],
-        "path_exclude": []
-      },
-      "stats": {
-        "files_indexed": 37,
-        "items_indexed": 303,
-        "sections_subchunked": 2,
-        "embeddings_cached": 303,
-        "embeddings_computed": 0,
-        "sections_removed": 0,
-        "bm25_hits": 45,
-        "dense_hits": 50,
-        "dropped_stale_path": 0
-      },
-      "weights": {
-        "description": 5.0,
-        "title": 4.0,
-        "heading": 3.0,
-        "body": 1.0
-      },
-      "results": [
-        {
-          "section_id": "1.3",
-          "file_id": 1,
-          "relative_path": "agents/evaluation.md",
-          "start_line": 23,
-          "heading_chain": "Agents — Evaluation > Опоры",
-          "heading_text": "Опоры",
-          "file_description": "Оценка агента — trajectory eval, observable acceptance criteria, multi-channel audit, cross-family judge и manual prototype first.",
-          "token_count": 80,
-          "rrf_score": 0.03278688524590164,
-          "rerank_score": null,
-          "fields_hit": [
-            "description",
-            "title",
-            "heading"
-          ],
-          "snippet": "- https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices   Prompt engineering guidance: явность инструкций, scope, tool policy.  - `/knowledge/practic..."
-        },
-        {
-          "section_id": "1.2",
-          "file_id": 1,
-          "relative_path": "agents/evaluation.md",
-          "start_line": 13,
-          "heading_chain": "Agents — Evaluation > Проверено",
-          "heading_text": "Проверено",
-          "file_description": "Оценка агента — trajectory eval, observable acceptance criteria, multi-channel audit, cross-family judge и manual prototype first.",
-          "token_count": 271,
-          "rrf_score": 0.03225806451612903,
-          "rerank_score": null,
-          "fields_hit": [
-            "description",
-            "title",
-            "heading",
-            "body"
-          ],
-          "snippet": "...план и на каких доказательствах основывал вывод. - Acceptance criteria сильнее всего работают там, где они observable, unambiguous и non-bypassable. Self-report не считается evidence. - Testable in..."
-        },
-        {
-          "section_id": "1.1",
-          "file_id": 1,
-          "relative_path": "agents/evaluation.md",
-          "start_line": 5,
-          "heading_chain": "Agents — Evaluation",
-          "heading_text": "Agents — Evaluation",
-          "file_description": "Оценка агента — trajectory eval, observable acceptance criteria, multi-channel audit, cross-family judge и manual prototype first.",
-          "token_count": 427,
-          "rrf_score": 0.031746031746031744,
-          "rerank_score": null,
-          "fields_hit": [
-            "description",
-            "title",
-            "heading",
-            "body"
-          ],
-          "snippet": "...план и на каких доказательствах основывал вывод. - Acceptance criteria сильнее всего работают там, где они observable, unambiguous и non-bypassable. Self-report не считается evidence. - Testable in..."
-        }
-      ],
-      "render": "1. agents/evaluation.md:L23  Agents — Evaluation > Опоры  [BM25+Dense (description,title,heading) rrf 0.033]\n   - https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices   Prompt engi\n2. agents/evaluation.md:L13  Agents — Evaluation > Проверено  [BM25+Dense (description,title,heading,body) rrf 0.032]\n   ...план и на каких доказательствах основывал вывод. - Acceptance criteria сильнее всего работают там, где они observable\n3. agents/evaluation.md:L5  Agents — Evaluation  [BM25+Dense (description,title,heading,body) rrf 0.032]\n   ...план и на каких доказательствах основывал вывод. - Acceptance criteria сильнее всего работают там, где они observable"
+      "error": "dependency_failed",
+      "detail": "No module named 'sqlite_vec'",
+      "_exit_code": 3
     },
     "usage_note": "Graph is hard contract impact; semantic is a manual-review radius."
   }

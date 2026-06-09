@@ -69,6 +69,11 @@ commitments; veto-class в локальных папках пуст. Cross-proje
   surfaces `~/.codex/{skills,hooks,agents,AGENTS.md,config.toml}`,
   `~/.claude/{skills,hooks,agents,CLAUDE.md,settings*.json}` and
   `~/.agents/skills/`; contents are viewed live, not copied into the repo.
+- `experiments/обзор-хуков/` depends-on global hook/runtime surfaces
+  `~/.codex/{config.toml,hooks.json,hooks/**,supermemory/**}`,
+  `~/.claude/{settings.json,hooks/**,skills/**}` and enabled plugin hook
+  bundles; contents are snapshot explanations and agent-visible examples, not
+  live truth.
 - `_ops/user-said/*.md` — legacy/manual сырой архив цитат пользователя; прежний
   global `UserPromptSubmit` auto-capture hook отключён и не является
   dependency.
@@ -88,7 +93,9 @@ commitments; veto-class в локальных папках пуст. Cross-proje
   `1instruction-layer` skill, `1folder-contract` skill.
 - «правка hook / runtime / settings.json» →
   `knowledge/practical-guides/hooks-runtime-guardrails.md`,
-  `1start-here` (runtime delegate), `1folder-contract` skill.
+  live config/settings/hook pass, `1folder-contract` skill.
+- «обзор / карта текущих hooks» → `experiments/обзор-хуков/` как snapshot view;
+  live truth остаётся в global config/settings/plugin hook bundles.
 - «изменение GOAL / scope / Definition of done» → `1strategy-docs` skill;
   Goal-цитаты в `AGENTS.md` и `CLAUDE.md` проверяются через `1folder-contract`;
   Codex синхронизирует только Codex-editable surfaces и отдаёт Claude-side handoff.
@@ -99,7 +106,7 @@ commitments; veto-class в локальных папках пуст. Cross-proje
   `1folder-contract` skill.
 - «условное локальное правило / rule-doc / вынести из root-инструкции» →
   `_ops/rules/**`, `1instruction-layer` skill, `1folder-contract` skill.
-- «закрытие работы / verify done» → `1work-review` skill.
+- «закрытие работы / verify done» → прямой evidence-closeout текущего owner-а.
 - «git push / backup» → GitHub здесь — backup локального `main`,
   не collaboration flow.
 - «design subagents / fresh eyes» → `1fresh-eyes` skill.

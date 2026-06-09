@@ -1,9 +1,9 @@
 ---
-description: "Refactor plan for md-mcp — scenario-driven strategy that drives live changes in md-embedding-server."
-read-before-edit:
-  - "[[minimum-document-set.md]]"
-  - "[[current-skill-usage-map.md]]"
-edit-after-edit: []
+description: Refactor plan for md-mcp — scenario-driven strategy that drives live
+  changes in md-embedding-server.
+depends-on:
+- '[[minimum-document-set.md]]'
+- '[[current-skill-usage-map.md]]'
 ---
 # md-mcp Refactor Plan
 

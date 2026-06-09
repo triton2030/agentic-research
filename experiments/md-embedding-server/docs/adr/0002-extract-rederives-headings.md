@@ -1,8 +1,8 @@
 ---
-description: "ADR-0002: md extract до-читывает headings с диска, развязывая его от формы ls/orient карты."
-read-before-edit:
-  - "[[0001-agent-view-output-projection.md]]"
-edit-after-edit: []
+description: 'ADR-0002: md extract до-читывает headings с диска, развязывая его от
+  формы ls/orient карты.'
+depends-on:
+- '[[0001-agent-view-output-projection.md]]'
 ---
 # ADR-0002 — `md extract` до-читывает headings с диска
 

@@ -5,7 +5,7 @@
 export default {
   id: "hooks-system",
   title: "Хуки — зачем",
-  description: "Проблема дисциплины LLM → runtime gates в settings.json → надёжность",
+  description: "Проблема дисциплины LLM → runtime reminders/gates → надёжность",
   nodes: [
     {
       id: "problem",
@@ -29,10 +29,10 @@ export default {
       id: "sessionStart",
       kind: "gate",
       weight: 2,
-      title: "SessionStart",
-      kicker: "загрузка контракта",
-      body: "В начале сессии хук инжектит подсказку: «открой 1start-here, прочти карту скилов, mandatory cases». Модель не может пропустить — текст уже в первом сообщении системы.",
-      bullets: ["context injection", "first-turn contract"]
+      title: "No live SessionStart",
+      kicker: "не текущий runtime",
+      body: "Стартовая дисциплина сейчас живёт в инструкциях и локальном context/owner pass. Не ссылаться на не wired SessionStart как на гарантию.",
+      bullets: ["instructions", "context pass"]
     },
     {
       id: "userPromptSubmit",
@@ -40,8 +40,8 @@ export default {
       weight: 2,
       title: "UserPromptSubmit",
       kicker: "intent guard",
-      body: "Перед обработкой каждого user-запроса хук добавляет напоминание: «сначала фразой назови что услышал». Это перехватывает paraphrase theater до того как ответ начнёт формироваться.",
-      bullets: ["per-turn reminder", "intent capture"]
+      body: "В Codex live config это короткий context reminder. Это не auto-capture и не criteria writer; Claude settings сейчас не wired на UserPromptSubmit.",
+      bullets: ["context reminder", "no auto-capture"]
     },
     {
       id: "preToolUse",
@@ -49,8 +49,8 @@ export default {
       weight: 2,
       title: "PreToolUse",
       kicker: "ground-check",
-      body: "Перед substantive Edit/Write хук может проверить что applicable criteria прочитан, заблокировать запись если нет, или инжектить путь к нужному файлу.",
-      bullets: ["write-gate validation", "criteria gate"]
+      body: "Текущие live examples: Markdown graph reminder перед write и search reminder перед grep. Это reminder/guardrail, не старый criteria write-gate.",
+      bullets: ["md graph", "search reminder"]
     },
     {
       id: "stop",
@@ -58,17 +58,17 @@ export default {
       weight: 2,
       title: "Stop hook",
       kicker: "финальная проверка",
-      body: "На завершении turn'а хук проверяет вывод модели: есть ли маркер «1work-review: да» после file-changes, есть ли verbatim-цитата из anchor-docs, есть ли «1user-truth: да» при правке criteria.",
-      bullets: ["output validation", "marker enforcement"]
+      body: "В Codex live config Stop делает Markdown graph rollup. Старые review/user-truth маркеры не являются текущим контрактом.",
+      bullets: ["graph rollup", "no review markers"]
     },
     {
       id: "markers",
       kind: "review",
       weight: 2,
-      title: "Маркеры в выводе",
-      kicker: "verifiable compliance",
-      body: "Хуки требуют конкретных строк в финале ответа. Маркер — это контракт между моделью и runtime: «я сделал X, вот доказательство». Без маркера turn не закрывается.",
-      bullets: ["1work-review: да", "verbatim quote", "1user-truth: да"]
+      title: "Evidence вместо маркеров",
+      kicker: "verifiable closeout",
+      body: "Финал доказывается changed/checked/risk и конкретными verifier outputs. Строковый маркер без проверки не считается evidence.",
+      bullets: ["changed", "checked", "risk"]
     },
     {
       id: "effect",
@@ -87,8 +87,8 @@ export default {
     ["mechanism", "preToolUse", "тип: до правки"],
     ["mechanism", "stop", "тип: на финале"],
     ["stop", "markers", "что требует"],
-    ["sessionStart", "effect", "контракт загружен"],
-    ["userPromptSubmit", "effect", "intent зафиксирован"],
+    ["sessionStart", "effect", "не выдумывать hook"],
+    ["userPromptSubmit", "effect", "context напомнен"],
     ["preToolUse", "effect", "правка обоснована"],
     ["markers", "effect", "compliance доказана"]
   ]

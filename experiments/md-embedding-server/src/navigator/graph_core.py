@@ -38,9 +38,11 @@ class PathNotFound(Exception):
         super().__init__(f"Path not found: {path_value}")
 
 
-GRAPH_FIELDS = ("read-before-edit", "edit-after-edit")
+GRAPH_FIELDS = ("depends-on",)
 REQUIRED_FIELDS = ("description",)
 LEGACY_FIELDS = (
+    "read-before-edit",
+    "edit-after-edit",
     "owner",
     "parents",
     "children",
@@ -50,7 +52,7 @@ LEGACY_FIELDS = (
     "updated_at",
     "depends_on",
 )
-ALLOWED_FIELDS = {"description", "read-before-edit", "edit-after-edit"}
+ALLOWED_FIELDS = {"description", "depends-on"}
 RELATED_SECTION_RE = re.compile(
     r"(?ms)^##\s+(?:Связанные документы|Related documents)\s*\n.*?(?=^#{1,2}\s|\Z)"
 )

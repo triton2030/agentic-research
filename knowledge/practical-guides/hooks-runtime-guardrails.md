@@ -120,9 +120,9 @@ agent loop и может влиять на действия модели.
 - Hook stateless или нужна память сессии? Stateful enforcement (повторное
   чтение, проверка факта применения, threshold-based firing) — через
   shared session-state, не in-memory tracking, не через transcript re-parse
-  каждый ход. Pattern: `~/.claude/state/session-{session_id}.json` + CLI
-  `~/.claude/skills/1start-here/scripts/session-state.py`; schema —
-  `~/.claude/skills/1start-here/references/session-state-schema.md`.
+  каждый ход. Pattern: `~/.<runtime>/state/session-{session_id}.json` +
+  hook-owned CLI. Текущий Codex helper: `~/.codex/hooks/session_state.py`;
+  не хранить state helper в удаляемой skill-папке.
 - Hook делает свою cognitive проверку или композирует skill? Composability
   паттерн: hook detect structural fact → inject directive «прогони skill X»
   → skill body владеет smysl'ом проверки. Hook не дублирует skill logic.

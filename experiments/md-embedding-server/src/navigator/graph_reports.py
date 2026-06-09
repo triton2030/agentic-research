@@ -69,8 +69,8 @@ def reverse_field_holders(target_doc: Doc, all_docs: list[Doc], root: Path, fiel
     return holders
 
 
-def reverse_edit_after_edit(target_doc: Doc, all_docs: list[Doc], root: Path) -> list[Doc]:
-    return reverse_field_holders(target_doc, all_docs, root, "edit-after-edit")
+def reverse_depends_on(target_doc: Doc, all_docs: list[Doc], root: Path) -> list[Doc]:
+    return reverse_field_holders(target_doc, all_docs, root, "depends-on")
 
 
 def reverse_body_wikilink_holders(
@@ -138,7 +138,7 @@ def reverse_body_markdown_link_holders(target_doc: Doc, all_docs: list[Doc], roo
     return holders
 
 
-def edit_after_edit_cascade(doc: Doc, index: dict[Path, Doc], root: Path, max_depth: int) -> list[dict[str, Any]]:
+def depends_on_cascade(doc: Doc, index: dict[Path, Doc], root: Path, max_depth: int) -> list[dict[str, Any]]:
     if max_depth < 1:
         return []
     cascade: list[dict[str, Any]] = []
@@ -150,7 +150,7 @@ def edit_after_edit_cascade(doc: Doc, index: dict[Path, Doc], root: Path, max_de
         if depth >= max_depth:
             continue
         next_depth = depth + 1
-        for raw_link in graph_values(current, "edit-after-edit"):
+        for raw_link in graph_values(current, "depends-on"):
             edge = resolve_graph_edge(raw_link, current, index, root)
             target_path = edge.target.path.resolve() if edge.target is not None else None
             is_cycle = target_path in path_stack if target_path else False
@@ -171,6 +171,38 @@ def edit_after_edit_cascade(doc: Doc, index: dict[Path, Doc], root: Path, max_de
     return cascade
 
 
+def dependent_cascade(doc: Doc, all_docs: list[Doc], root: Path, max_depth: int) -> list[dict[str, Any]]:
+    if max_depth < 1:
+        return []
+    cascade: list[dict[str, Any]] = []
+    start = doc.path.resolve()
+    queue: list[tuple[Doc, int, list[Path]]] = [(doc, 0, [start])]
+    expanded: set[Path] = {start}
+    while queue:
+        current, depth, path_stack = queue.pop(0)
+        if depth >= max_depth:
+            continue
+        next_depth = depth + 1
+        for holder in reverse_depends_on(current, all_docs, root):
+            holder_path = holder.path.resolve()
+            is_cycle = holder_path in path_stack
+            item = doc_data(holder)
+            item.update(
+                {
+                    "depth": next_depth,
+                    "from": str(current.rel),
+                    "cycle": is_cycle,
+                }
+            )
+            cascade.append(item)
+            if is_cycle:
+                continue
+            if next_depth < max_depth and holder_path not in expanded:
+                expanded.add(holder_path)
+                queue.append((holder, next_depth, [*path_stack, holder_path]))
+    return cascade
+
+
 def dependency_report(doc: Doc, all_docs: list[Doc], root: Path, depth: int) -> dict[str, Any]:
     index = doc_index(all_docs, root)
     index[doc.path.resolve()] = doc
@@ -180,12 +212,13 @@ def dependency_report(doc: Doc, all_docs: list[Doc], root: Path, depth: int) -> 
             edge_data(resolve_graph_edge(raw_link, doc, index, root))
             for raw_link in graph_values(doc, field)
         ]
-    holders = reverse_edit_after_edit(doc, all_docs, root)
+    holders = reverse_depends_on(doc, all_docs, root)
     return {
         "file": doc_data(doc),
         "fields": fields,
-        "reverse_edit_after_edit": [doc_data(holder) for holder in holders],
-        "edit_after_edit_cascade": edit_after_edit_cascade(doc, index, root, depth),
+        "reverse_depends_on": [doc_data(holder) for holder in holders],
+        "depends_on_cascade": depends_on_cascade(doc, index, root, depth),
+        "dependent_cascade": dependent_cascade(doc, all_docs, root, depth),
     }
 
 
@@ -201,13 +234,9 @@ def impact_report(doc: Doc, all_docs: list[Doc], root: Path, scan: str | None = 
     return {
         "file": doc_data(doc),
         "related_reading_command": navigator_read_related_command(str(doc.rel), scan=scan),
-        "cascade_breaks": [
+        "dependent_breaks": [
             doc_data(holder)
-            for holder in reverse_field_holders(doc, all_docs, root, "edit-after-edit")
-        ],
-        "reference_breaks": [
-            doc_data(holder)
-            for holder in reverse_field_holders(doc, all_docs, root, "read-before-edit")
+            for holder in reverse_depends_on(doc, all_docs, root)
         ],
         "body_wikilink_refs": [
             {**doc_data(holder), "anchors": anchors}
@@ -258,13 +287,13 @@ def check_graph(docs: list[Doc], root: Path) -> list[Finding]:
     return findings
 
 
-def edit_after_edit_adjacency(docs: list[Doc], root: Path) -> dict[Path, list]:
+def depends_on_adjacency(docs: list[Doc], root: Path) -> dict[Path, list]:
     index = doc_index(docs, root)
     scope = {doc.path.resolve() for doc in docs}
     adjacency: dict[Path, list] = {}
     for doc in docs:
         edges = []
-        for raw_link in graph_values(doc, "edit-after-edit"):
+        for raw_link in graph_values(doc, "depends-on"):
             edge = resolve_graph_edge(raw_link, doc, index, root)
             if edge.target is not None and edge.target.path.resolve() in scope:
                 edges.append(edge)
@@ -282,13 +311,18 @@ def canonical_cycle(paths: list[Path], index: dict[Path, Doc]) -> tuple[str, ...
     return tuple([*best, best[0]])
 
 
-def find_edit_after_edit_cycles(docs: list[Doc], root: Path) -> list[list[Doc]]:
+def find_depends_on_cycles(docs: list[Doc], root: Path) -> list[list[Doc]]:
     index = doc_index(docs, root)
     docs_by_rel = {str(doc.rel): doc for doc in docs}
-    adjacency = edit_after_edit_adjacency(docs, root)
+    adjacency = depends_on_adjacency(docs, root)
     found: dict[tuple[str, ...], list[Doc]] = {}
+    visited: set[Path] = set()
+    active: set[Path] = set()
+    stack: list[Path] = []
 
-    def visit(node: Path, stack: list[Path], active: set[Path]) -> None:
+    def visit(node: Path) -> None:
+        if node in visited:
+            return
         active.add(node)
         stack.append(node)
         for edge in adjacency.get(node, []):
@@ -300,13 +334,17 @@ def find_edit_after_edit_cycles(docs: list[Doc], root: Path) -> list[list[Doc]]:
                 cycle_paths = [*stack[start:], target_path]
                 key = canonical_cycle(cycle_paths, index)
                 found[key] = [docs_by_rel[label] for label in key]
-            elif target_path not in stack:
-                visit(target_path, stack, active)
+            elif target_path not in visited:
+                visit(target_path)
         stack.pop()
         active.remove(node)
+        visited.add(node)
 
     for doc in docs:
-        visit(doc.path.resolve(), [], set())
+        node = doc.path.resolve()
+        if node not in visited:
+            visit(node)
+
     return [found[key] for key in sorted(found)]
 
 
@@ -314,7 +352,7 @@ def cycles_for_doc(doc: Doc, docs: list[Doc], root: Path) -> list[list[Doc]]:
     target = doc.path.resolve()
     return [
         cycle
-        for cycle in find_edit_after_edit_cycles(docs, root)
+        for cycle in find_depends_on_cycles(docs, root)
         if any(item.path.resolve() == target for item in cycle)
     ]
 
@@ -372,7 +410,7 @@ def health_report(docs: list[Doc], root: Path) -> dict[str, Any]:
                 }
             )
 
-    cycles = [[doc_data(item) for item in cycle] for cycle in find_edit_after_edit_cycles(docs, root)]
+    cycles = [[doc_data(item) for item in cycle] for cycle in find_depends_on_cycles(docs, root)]
     percent = round(100 * with_description / total) if total else 0
     return {
         "targets": total,
@@ -397,8 +435,8 @@ def preflight_deferred_notes(doc: Doc) -> list[str]:
     ]
     if not doc.has_frontmatter:
         notes.append("No graph frontmatter: read/update obligations are unknown.")
-    elif not graph_values(doc, "edit-after-edit"):
-        notes.append("No edit-after-edit edges declared; treat this as a positive claim only after semantic audit.")
+    elif not graph_values(doc, "depends-on"):
+        notes.append("No depends-on edges declared; treat this as a local-source claim only after semantic audit.")
     return notes
 
 
@@ -431,13 +469,14 @@ def build_edit_plan(
             rows.append({"path": path, "description": item.get("description", "")})
         return rows
 
-    # Order matters: a file claimed as a downstream child should not reappear as a
-    # reverse holder, so must_update wins the shared `seen` set first.
+    # `must_update` is the propagation worklist: reverse depends-on files that
+    # must be cleared after a source changes. The old downstream field is gone,
+    # but downstream behavior still exists through reverse traversal.
     must_update_rows = collect([*must_update, *update_cascade])
     also_check_rows = collect(
         [
-            *check_only_references.get("reverse_read_before_edit", []),
-            *check_only_references.get("reverse_edit_after_edit", []),
+            *check_only_references.get("body_wikilinks", []),
+            *check_only_references.get("body_markdown_links", []),
         ]
     )
     must_read_rows = collect(must_read)
@@ -460,11 +499,7 @@ def preflight_report(
     findings = [*scan_doc(doc), *check_graph([doc], root)]
     cycles = cycles_for_doc(doc, all_docs, root)
     check_only_references = {
-        "reverse_edit_after_edit": deps["reverse_edit_after_edit"],
-        "reverse_read_before_edit": [
-            doc_data(holder)
-            for holder in reverse_field_holders(doc, all_docs, root, "read-before-edit")
-        ],
+        "reverse_depends_on": deps["reverse_depends_on"],
         "body_wikilinks": [
             {**doc_data(holder), "anchors": anchors}
             for holder, anchors in reverse_body_wikilink_holders(doc, all_docs, root)
@@ -475,17 +510,24 @@ def preflight_report(
         ],
     }
     anchor_drift = inbound_anchors_by_heading(doc, all_docs, root)
-    must_read = deps["fields"]["read-before-edit"]
-    must_update = deps["fields"]["edit-after-edit"]
-    update_cascade = deps["edit_after_edit_cascade"]
+    must_read = deps["fields"]["depends-on"]
+    must_update = deps["reverse_depends_on"]
+    dependent_cascade_rows = deps["dependent_cascade"]
+    update_cascade = dependent_cascade_rows
     return {
         "file": doc_data(doc),
         "related_reading_command": navigator_read_related_command(str(doc.rel), scan=scan),
-        "edit_plan": build_edit_plan(must_read, must_update, update_cascade, check_only_references),
+        "edit_plan": build_edit_plan(
+            must_read,
+            must_update,
+            update_cascade,
+            check_only_references,
+        ),
         "must_read": must_read,
         "must_update": must_update,
         "update_cascade": update_cascade,
-        "reverse_holders": deps["reverse_edit_after_edit"],
+        "dependent_cascade": dependent_cascade_rows,
+        "reverse_holders": deps["reverse_depends_on"],
         "check_only_references": check_only_references,
         "check_only": [finding_data(finding) for finding in findings],
         "cycles": [[doc_data(item) for item in cycle] for cycle in cycles],
@@ -523,18 +565,15 @@ def render_preflight_report(report: dict[str, Any], title: str = "PREFLIGHT") ->
         lines.append("OK")
 
     cascade = report["update_cascade"]
-    lines.append(f"\nupdate-cascade ({len(cascade)})")
+    lines.append(f"\nupdate-cascade reverse depends-on ({len(cascade)})")
     if not cascade:
         lines.append("OK")
     for item in cascade:
         marker = " | CYCLE" if item.get("cycle") else ""
-        if item.get("status") == "missing":
-            lines.append(f"- depth {item['depth']}: {item['from']} -> MISSING_TARGET {item['raw']}{marker}")
-        else:
-            lines.append(f"- depth {item['depth']}: {item['from']} -> {item['path']} | {item['description']}{marker}")
+        lines.append(f"- depth {item['depth']}: {item['from']} <- {item['path']} | {item['description']}{marker}")
 
     holders = report["reverse_holders"]
-    lines.append(f"\ncheck-only reverse edit-after-edit ({len(holders)})")
+    lines.append(f"\nreverse depends-on direct ({len(holders)})")
     if not holders:
         lines.append("OK")
     for holder in holders:
@@ -542,7 +581,6 @@ def render_preflight_report(report: dict[str, Any], title: str = "PREFLIGHT") ->
 
     references = report.get("check_only_references", {})
     reference_sections = (
-        ("reverse read-before-edit", references.get("reverse_read_before_edit", [])),
         ("body wikilinks", references.get("body_wikilinks", [])),
         ("body markdown links", references.get("body_markdown_links", [])),
     )

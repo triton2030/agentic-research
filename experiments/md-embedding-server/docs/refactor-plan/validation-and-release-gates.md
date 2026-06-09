@@ -1,10 +1,9 @@
 ---
-description: "Validation gates required before md-tools-v2 can replace current backend behavior."
-read-before-edit:
-  - "[[compatibility-and-migration.md]]"
-  - "[[state-and-cost-model.md]]"
-edit-after-edit:
-  - "[[decision-log.md]]"
+description: Validation gates required before md-tools-v2 can replace current backend
+  behavior.
+depends-on:
+- '[[compatibility-and-migration.md]]'
+- '[[state-and-cost-model.md]]'
 ---
 # Validation And Release Gates
 

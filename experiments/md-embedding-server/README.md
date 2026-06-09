@@ -1,9 +1,9 @@
 ---
-description: "Overview and development workflow for md-tools, the agent-facing Markdown CLI."
-read-before-edit:
-  - "[[docs/architecture-lock.md]]"
-  - "[[docs/cli-conventions.md]]"
-edit-after-edit: []
+description: Overview and development workflow for md-tools, the agent-facing Markdown
+  CLI.
+depends-on:
+- '[[docs/architecture-lock.md]]'
+- '[[docs/cli-conventions.md]]'
 ---
 # md-tools
 
@@ -180,7 +180,7 @@ Start by choosing the owner surface:
 |---|---|
 | Search/index/audit-style primitive with shared flags or real logic | dedicated module in `src/navigator/` plus a thin public function or re-export in `navigator.api` |
 | Agent workflow over existing primitives | `src/navigator/workflows/` plus a thin handler in `src/md_cli/handlers/`; keep domain/index/cache logic in the owning `api_*.py` adapter |
-| Graph contract, frontmatter, `read-before-edit`, `edit-after-edit`, rename/delete, or link-health logic | graph primitives in `src/navigator/graph_core.py` / `graph_reports.py` plus graph-facing adapters in `api_graph.py` |
+| Graph contract, frontmatter `depends-on`, rename/delete, or link-health logic | graph primitives in `src/navigator/graph_core.py` / `graph_reports.py` plus graph-facing adapters in `api_graph.py` |
 | CLI/envelope/transaction behavior | `src/md_cli/` only |
 
 Checklist:

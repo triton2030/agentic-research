@@ -18,12 +18,12 @@
         "session_usd": "__VOLATILE__"
       },
       "size_estimate": {
-        "bytes": 1572,
-        "items_returned": 10,
+        "bytes": 781,
+        "items_returned": 5,
         "counted_fields": [
           {
             "field": "issues",
-            "count": 10
+            "count": 5
           }
         ]
       },
@@ -35,52 +35,27 @@
       {
         "code": "MISSING_GRAPH_FIELD",
         "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/evaluation.md",
-        "detail": "read-before-edit"
-      },
-      {
-        "code": "MISSING_GRAPH_FIELD",
-        "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/evaluation.md",
-        "detail": "edit-after-edit"
+        "detail": "depends-on"
       },
       {
         "code": "MISSING_GRAPH_FIELD",
         "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/memory.md",
-        "detail": "read-before-edit"
-      },
-      {
-        "code": "MISSING_GRAPH_FIELD",
-        "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/memory.md",
-        "detail": "edit-after-edit"
+        "detail": "depends-on"
       },
       {
         "code": "MISSING_GRAPH_FIELD",
         "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/multi-agent.md",
-        "detail": "read-before-edit"
-      },
-      {
-        "code": "MISSING_GRAPH_FIELD",
-        "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/multi-agent.md",
-        "detail": "edit-after-edit"
+        "detail": "depends-on"
       },
       {
         "code": "MISSING_GRAPH_FIELD",
         "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/runtime-layer.md",
-        "detail": "read-before-edit"
-      },
-      {
-        "code": "MISSING_GRAPH_FIELD",
-        "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/runtime-layer.md",
-        "detail": "edit-after-edit"
+        "detail": "depends-on"
       },
       {
         "code": "MISSING_GRAPH_FIELD",
         "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/tool-design.md",
-        "detail": "read-before-edit"
-      },
-      {
-        "code": "MISSING_GRAPH_FIELD",
-        "path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/tool-design.md",
-        "detail": "edit-after-edit"
+        "detail": "depends-on"
       }
     ]
   }

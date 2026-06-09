@@ -21,7 +21,7 @@ def _write_coherence_corpus(tmp_path: Path) -> tuple[Path, Path]:
             [
                 "---",
                 "description: ignored by coherence audit",
-                "read-before-edit:",
+                "depends-on:",
                 "  - [[target#Alpha]]",
                 "---",
                 "# Source",

@@ -1,11 +1,7 @@
 ---
-description: "Initial evidence map of current skills that use md_* capabilities."
-read-before-edit:
-  - "[[minimum-document-set.md]]"
-edit-after-edit:
-  - "[[full-functionality-contract.md]]"
-  - "[[jobs-and-moments.md]]"
-  - "[[public-capability-contract.md]]"
+description: Initial evidence map of current skills that use md_* capabilities.
+depends-on:
+- '[[minimum-document-set.md]]'
 ---
 # Current Skill Usage Map
 
@@ -25,11 +21,11 @@ rg -o 'md_[a-z_]+' /Users/triton/.codex/skills /Users/triton/.claude/skills \
 - `md_orient`: `1md-navigator`, `1planning`, `1strategy`.
 - `md_search`: `1md-navigator`, `1md-graph`, `1strategy`,
   `1planning`, `1ia-audit`, `1instruction-layer`, `1folder-contract`,
-  `1skill-architect`, `1smart-simple`, `1work-review`.
+  `1skill-architect`, `1smart-simple`, evidence-closeout callers.
 - `md_extract`: `1md-navigator`, `1strategy`, `1planning`,
-  `1ia-audit`, `1instruction-layer`, `1work-review`.
+  `1ia-audit`, `1instruction-layer`, evidence-closeout callers.
 - `md_read_related`: `1md-navigator`, `1md-graph`, `1strategy`,
-  `1ia-audit`, `1work-review`.
+  `1ia-audit`, evidence-closeout callers.
 - `md_ls`: `1md-navigator`, `1planning`.
 - `md_toc`: `1ia-audit`.
 - `md_importance`: `1ia-audit`.
@@ -41,16 +37,16 @@ importance and heading map.
 ## Graph И Радиус Последствий
 
 - `md_edit_context`: `1md-graph`, `1md-navigator`, `1planning`,
-  `1instruction-layer`, `1work-review`.
+  `1instruction-layer`, evidence-closeout callers.
 - `md_preflight`: `1md-graph`, `1strategy`, `1planning`,
-  `1instruction-layer`, `1folder-contract`, `1work-review`.
+  `1instruction-layer`, `1folder-contract`, evidence-closeout callers.
 - `md_impact`: `1md-graph`, `1strategy`, `1ia-audit`,
-  `1instruction-layer`, `1folder-contract`, `1work-review`.
+  `1instruction-layer`, `1folder-contract`, evidence-closeout callers.
 - `md_deps`: `1md-graph`, `1planning`, `1ia-audit`,
   `1instruction-layer`, `1folder-contract`.
 - `md_section_blast_radius`: `1md-graph`, `1instruction-layer`.
 - `md_health`, `md_cycles`, `md_check`, `md_scan`: `1md-graph`,
-  `1folder-contract`, `1work-review`, plus shape/audit skills.
+  `1folder-contract`, evidence-closeout callers, plus shape/audit skills.
 
 Вывод: graph tools - не декоративная обвязка. Они закрывают разные риски:
 pre-edit obligations, rename/delete impact, reverse edges, post-change review,
@@ -63,7 +59,7 @@ paths/scopes to `md_preflight`, `md_check`, `md_health` or `md_status`.
 ## Audit, IA И Повторяющиеся Идеи
 
 - `md_audit`: `1md-navigator`, `1ia-audit`, `1instruction-layer`,
-  `1smart-simple`, `1work-review`.
+  `1smart-simple`, evidence-closeout callers.
 - `md_overlaps`: `1md-navigator`, `1ia-audit`, `1instruction-layer`,
   `1folder-contract`, `1skill-architect`, `1smart-simple`.
 - `md_repeated_concepts`: `1md-navigator`, `1ia-audit`,
@@ -80,8 +76,8 @@ paths/scopes to `md_preflight`, `md_check`, `md_health` or `md_status`.
 ## Index, Mutations И Runtime
 
 - `md_index`: `1md-navigator`, `1skill-architect`, `1smart-simple`,
-  `1work-review`, `1folder-contract`.
-- `md_status`: `1work-review`.
+  evidence-closeout callers, `1folder-contract`.
+- `md_status`: evidence-closeout callers.
 - `md_init`, `md_strip`: `1md-graph`, `1md-navigator`.
 - `md_ping`: `1md-navigator`, `1md-graph`.
 

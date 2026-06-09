@@ -14,7 +14,7 @@
 | md_health | health | `md health [--paths PATHS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | md_impact | impact | `md impact PATH [--scan SCAN] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | md_importance | importance | `md importance CORPUS [--top TOP] [--sort-by SORT_BY] --json` |
-| md_index | index | `md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--allow-nested-corpus] --json` |
+| md_index | index | `md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--allow-nested-corpus] [--vacuum] --json` |
 | md_init | init | `md init [--paths PATHS] [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] --json` |
 | md_ls | ls | `md ls PATH [--max-heading-level MAX_HEADING_LEVEL] [--match MATCH] [--with-tokens] [--with-link-counts] [--expanded] --json` |
 | md_orient | orient | `md orient CORPUS [--max-heading-level MAX_HEADING_LEVEL] [--top TOP] [--compact] [--expanded] --json` |

@@ -1,12 +1,9 @@
 ---
-description: "Full functionality contract that md-tools-v2 must preserve for current skills."
-read-before-edit:
-  - "[[current-skill-usage-map.md]]"
-  - "[[compatibility-and-migration.md]]"
-edit-after-edit:
-  - "[[jobs-and-moments.md]]"
-  - "[[public-capability-contract.md]]"
-  - "[[validation-and-release-gates.md]]"
+description: Full functionality contract that md-tools-v2 must preserve for current
+  skills.
+depends-on:
+- '[[current-skill-usage-map.md]]'
+- '[[compatibility-and-migration.md]]'
 ---
 # Full Functionality Contract
 
@@ -113,14 +110,14 @@ interpretable. v2 cannot turn these into broad slow audits by default.
 
 ## Navigation And Reading
 
-| Tool | Required functionality | Skill consumers |
+| Tool | Required functionality | Skill / workflow consumers |
 |---|---|---|
 | `md_orient` | status + map + importance for cold-start corpus orientation, no embeddings | `1md-navigator`, `1planning`, `1strategy` |
 | `md_ls` | list Markdown files with descriptions, heading counts and optional link counts | `1md-navigator`, `1planning` |
 | `md_toc` | heading ids for later extraction | `1ia-audit` |
-| `md_search` | semantic + lexical search, `scope: descriptions`, optional rerank, path filters | `1md-navigator`, `1strategy`, `1planning`, `1ia-audit`, `1instruction-layer`, `1folder-contract`, `1skill-architect`, `1smart-simple`, `1work-review` |
-| `md_extract` | extract selected files/sections from map/search output | `1md-navigator`, `1strategy`, `1planning`, `1ia-audit`, `1instruction-layer`, `1work-review` |
-| `md_read_related` | linked-neighborhood packet, preview/full modes | `1md-navigator`, `1md-graph`, `1strategy`, `1ia-audit`, `1work-review` |
+| `md_search` | semantic + lexical search, `scope: descriptions`, optional rerank, path filters | `1md-navigator`, `1strategy`, `1planning`, `1ia-audit`, `1instruction-layer`, `1folder-contract`, `1skill-architect`, `1smart-simple`, evidence-closeout callers |
+| `md_extract` | extract selected files/sections from map/search output | `1md-navigator`, `1strategy`, `1planning`, `1ia-audit`, `1instruction-layer`, evidence-closeout callers |
+| `md_read_related` | linked-neighborhood packet, preview/full modes | `1md-navigator`, `1md-graph`, `1strategy`, `1ia-audit`, evidence-closeout callers |
 | `md_importance` | graph centrality / hub candidates without embeddings | `1ia-audit` |
 
 Compatibility note: `md_search` is the highest-blast tool. It must preserve
@@ -129,17 +126,17 @@ behavior and rerank metadata.
 
 ## Graph And Edit Safety
 
-| Tool | Required functionality | Skill consumers |
+| Tool | Required functionality | Skill / workflow consumers |
 |---|---|---|
-| `md_edit_context` | combined pre-edit packet: graph obligations + related context; modes `preview`, `full`, `strict` | `1md-graph`, `1md-navigator`, `1planning`, `1instruction-layer`, `1work-review` |
-| `md_preflight` | graph-only blockers, must-read, must-update, anchor-drift signal | `1md-graph`, `1strategy`, `1planning`, `1instruction-layer`, `1folder-contract`, `1work-review` |
-| `md_impact` | delete/rename blast radius for file links, graph edges and body links | `1md-graph`, `1strategy`, `1ia-audit`, `1instruction-layer`, `1folder-contract`, `1work-review` |
+| `md_edit_context` | combined pre-edit packet: graph obligations + related context; modes `preview`, `full`, `strict` | `1md-graph`, `1md-navigator`, `1planning`, `1instruction-layer`, evidence-closeout callers |
+| `md_preflight` | graph-only blockers, must-read, must-update, anchor-drift signal | `1md-graph`, `1strategy`, `1planning`, `1instruction-layer`, `1folder-contract`, evidence-closeout callers |
+| `md_impact` | delete/rename blast radius for file links, graph edges and body links | `1md-graph`, `1strategy`, `1ia-audit`, `1instruction-layer`, `1folder-contract`, evidence-closeout callers |
 | `md_deps` | forward and reverse graph edges with depth | `1md-graph`, `1planning`, `1ia-audit`, `1instruction-layer`, `1folder-contract` |
 | `md_section_blast_radius` | hard graph layer + soft semantic layer for section rewrite | `1md-graph`, `1instruction-layer` |
-| `md_health` | repo-level graph health summary | `1md-graph`, `1folder-contract`, `1ia-audit`, `1work-review` |
-| `md_cycles` | edit-after-edit cycle detection | `1md-graph`, `1folder-contract`, `1work-review` |
-| `md_check` | wikilink, anchor and markdown-link validation | `1md-graph`, `1instruction-layer`, `1folder-contract`, `1work-review` |
-| `md_scan` | frontmatter schema and legacy-field issues | `1md-graph`, `1planning`, `1folder-contract`, `1work-review` |
+| `md_health` | repo-level graph health summary | `1md-graph`, `1folder-contract`, `1ia-audit`, evidence-closeout callers |
+| `md_cycles` | depends-on cycle detection | `1md-graph`, `1folder-contract`, evidence-closeout callers |
+| `md_check` | wikilink, anchor and markdown-link validation | `1md-graph`, `1instruction-layer`, `1folder-contract`, evidence-closeout callers |
+| `md_scan` | frontmatter schema and legacy-field issues | `1md-graph`, `1planning`, `1folder-contract`, evidence-closeout callers |
 
 Compatibility note: graph output must keep action labels. Skills read
 `must-read`, `must-update`, `check-only`, `anchor-drift`, `cycles`,
@@ -147,9 +144,9 @@ Compatibility note: graph output must keep action labels. Skills read
 
 ## Audit, IA And Semantic Health
 
-| Tool | Required functionality | Skill consumers |
+| Tool | Required functionality | Skill / workflow consumers |
 |---|---|---|
-| `md_audit` | corpus health packet: discovery gaps, smeared owner truth, tight duplicates, template family, intra-file drift, cluster-folder mismatch | `1md-navigator`, `1ia-audit`, `1instruction-layer`, `1smart-simple`, `1work-review` |
+| `md_audit` | corpus health packet: discovery gaps, smeared owner truth, tight duplicates, template family, intra-file drift, cluster-folder mismatch | `1md-navigator`, `1ia-audit`, `1instruction-layer`, `1smart-simple`, evidence-closeout callers |
 | `md_overlaps` | pair-level semantic overlap candidates with threshold and top controls | `1md-navigator`, `1ia-audit`, `1instruction-layer`, `1folder-contract`, `1skill-architect`, `1smart-simple` |
 | `md_repeated_concepts` | concept graph over repeated meaning across files | `1md-navigator`, `1ia-audit`, `1instruction-layer`, `1folder-contract`, `1planning` |
 | `md_cluster` | standalone read-only topic clusters from an already warm vector index | `1md-navigator`, `1ia-audit`, `1smart-simple` |
@@ -163,11 +160,11 @@ expect them as evidence-gathering tools.
 
 ## Index, Runtime And Mutations
 
-| Tool | Required functionality | Skill consumers |
+| Tool | Required functionality | Skill / workflow consumers |
 |---|---|---|
 | `md_ping` | server health, version and resolved script paths | `1md-navigator`, `1md-graph` |
-| `md_status` | index freshness without HTTP or writes | `1work-review` |
-| `md_index` | dry-run estimate, confirm-required live indexing, sticky model behavior, path filters | `1md-navigator`, `1skill-architect`, `1smart-simple`, `1work-review`, `1folder-contract` |
+| `md_status` | index freshness without HTTP or writes | evidence-closeout callers |
+| `md_index` | dry-run estimate, confirm-required live indexing, sticky model behavior, path filters | `1md-navigator`, `1skill-architect`, `1smart-simple`, evidence-closeout callers, `1folder-contract` |
 | `md_init` | add graph frontmatter template with dry-run/confirm | `1md-graph`, `1md-navigator` |
 | `md_strip` | remove legacy/unknown graph fields and optional related section with dry-run/confirm | `1md-graph`, `1md-navigator` |
 

@@ -13,14 +13,16 @@ except ImportError:  # pragma: no cover - fallback keeps the script dependency-l
 HEADING_RE = re.compile(r"^(#{1,6})\s+(.+?)\s*#*\s*$")
 WIKILINK_RE = re.compile(r"!\[\[[^\]]+\]\]|\[\[([^\]]+)\]\]")
 MD_LINK_RE = re.compile(r"(?<!!)\[[^\]]+\]\(([^)]+)\)")
-GRAPH_LINK_KEYS = ("read-before-edit", "edit-after-edit")
+GRAPH_LINK_KEYS = ("depends-on",)
 
-# Walked-past path parts. These contain either (a) tooling state that holds a
-# full copy of the corpus (claude-code worktrees, codex worktrees), or (b)
-# generated / vendored artefacts that double indexing cost without adding
-# useful retrieval signal. Hidden / dotted dirs are skipped by default — if
-# you really want to index `.docs` or similar, point `iter_markdown` directly
-# at it.
+# Walked-past path parts inside the selected corpus. These contain either (a)
+# tooling state that holds a full copy of the corpus, or (b) generated /
+# vendored artefacts that double indexing cost without adding useful retrieval
+# signal. Ancestors of the selected corpus are not part of the corpus; linked
+# worktrees may legitimately live under hosting folders such as `~/.codex` or
+# `~/.claude`.
+# Hidden / dotted dirs are skipped by default — if you really want to index
+# `.docs` or similar, point `iter_markdown` directly at it.
 DEFAULT_EXCLUDED_PARTS = frozenset(
     {
         ".git",
@@ -60,16 +62,16 @@ def iter_markdown(path: Path) -> list[Path]:
     if not path.exists():
         raise SystemExit(f"Path does not exist: {path}")
     root = path.resolve()
-    # Heads-up: if the target itself sits in (or under) a default-excluded
-    # folder, the disjoint filter below silently drops every result and the
-    # user gets `Files: 0` with no clue why. Warn once to stderr so the
-    # exclusion is visible without changing the contract or polluting stdout
-    # (downstream JSON parsers stay clean).
-    try:
-        resolved_parts = path.resolve().parts
-    except (OSError, RuntimeError):
-        resolved_parts = path.parts
-    excluded_in_target = DEFAULT_EXCLUDED_PARTS.intersection(resolved_parts)
+    walk_root = path.absolute()
+    # Heads-up: if the selected root itself is a default-excluded folder, the
+    # walk below will drop every result and the user gets `Files: 0` with no
+    # clue why. Ancestors such as `~/.codex` / `~/.claude` are ignored so
+    # linked worktrees hosted there still behave like normal corpora.
+    excluded_in_target = (
+        {root.name}
+        if root.name in DEFAULT_EXCLUDED_PARTS
+        else set()
+    )
     if excluded_in_target:
         import sys
 
@@ -82,24 +84,29 @@ def iter_markdown(path: Path) -> list[Path]:
             f"excluded set. Default exclusions: "
             f"{sorted(DEFAULT_EXCLUDED_PARTS)}\n"
         )
+        return []
     files: list[Path] = []
     for p in path.rglob("*"):
         if not p.is_file() or p.suffix.lower() not in {".md", ".mdx"}:
             continue
         try:
+            walked_relative_parts = p.absolute().relative_to(walk_root).parts
+        except ValueError:
+            walked_relative_parts = p.parts
+        try:
             resolved = p.resolve()
         except (OSError, RuntimeError):
             continue
         try:
-            resolved.relative_to(root)
+            resolved_relative_parts = resolved.relative_to(root).parts
         except ValueError:
             # Avoid indexing symlink targets outside the selected corpus root.
             # This keeps broad scans such as `/tmp` from walking visible skill
             # mirrors that point back into `~/.codex` / `~/.claude`.
             continue
-        if not DEFAULT_EXCLUDED_PARTS.isdisjoint(p.parts):
+        if not DEFAULT_EXCLUDED_PARTS.isdisjoint(walked_relative_parts):
             continue
-        if not DEFAULT_EXCLUDED_PARTS.isdisjoint(resolved.parts):
+        if not DEFAULT_EXCLUDED_PARTS.isdisjoint(resolved_relative_parts):
             continue
         files.append(p)
     return sorted(files)

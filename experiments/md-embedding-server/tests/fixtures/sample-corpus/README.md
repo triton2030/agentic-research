@@ -1,5 +1,6 @@
 ---
 description: Sample corpus for md-tools selftest
+depends-on: []
 ---
 
 # Sample Corpus
@@ -7,4 +8,3 @@ description: Sample corpus for md-tools selftest
 ## Rule
 
 The selftest fixture is small and safe to copy.
-

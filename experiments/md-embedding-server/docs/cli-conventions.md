@@ -1,7 +1,7 @@
 ---
-description: "CLI conventions for md agent-facing subcommands, JSON output, flags, paths, and schema vocabulary."
-read-before-edit: []
-edit-after-edit: []
+description: CLI conventions for md agent-facing subcommands, JSON output, flags,
+  paths, and schema vocabulary.
+depends-on: []
 ---
 # CLI Conventions
 
@@ -161,8 +161,7 @@ argparse:
 ## Schema Vocabulary
 
 Several `--json` outputs use a shared "reverse-relationship" vocabulary that
-trips up first-time agent readers (one external session asked: «cascade_breaks
-vs reference_breaks vs body_wikilink_refs — где разница?»). Settle the
+trips up first-time agent readers. Settle the
 meaning once, here, so handlers and `--help` text can stay short.
 
 Decision: `md impact` and any future reverse-scan output use these keys with
@@ -170,8 +169,7 @@ fixed semantics.
 
 | Key | What it captures | Caused by which edit |
 |---|---|---|
-| `cascade_breaks` | Files holding `edit-after-edit: [this]` in frontmatter. They expect a downstream update when this file changes; deleting this file orphans their Stop-hook cascade. | edit-after-edit graph |
-| `reference_breaks` | Files holding `read-before-edit: [this]` in frontmatter. They expect to read this file before editing themselves; deleting this file breaks their precondition contract. | read-before-edit graph |
+| `dependent_breaks` | Files holding `depends-on: [this]` in frontmatter. They consume this file as a source; editing/deleting this file creates a propagation worklist. | reverse depends-on graph |
 | `body_wikilink_refs` | Files whose **body text** contains an Obsidian-style wikilink to this file, with or without anchor. No graph contract attached. | hand-written body links |
 | `body_markdown_refs` | Files whose **body text** contains a CommonMark link to this file. No graph contract attached. | hand-written body links |
 
@@ -185,11 +183,11 @@ Rationale: shared vocabulary lets `md impact`, `md preflight`, future
 `md unused` and any reverse-scan tool reuse identical keys; agent prompts
 that mention one transfer to all.
 
-Example caller: «if `cascade_breaks` is non-empty, run `md preflight` on each
+Example caller: «if `dependent_breaks` is non-empty, run `md preflight` on each
 listed holder before deleting».
 
-Edge case: a single file can appear in both `cascade_breaks` AND
-`body_wikilink_refs` if it both holds an edit-after-edit and links in body
+Edge case: a single file can appear in both `dependent_breaks` AND
+`body_wikilink_refs` if it both holds reverse `depends-on` and links in body
 prose. Both lists report it independently — dedup is the caller's job.
 
 Companion field for counts: where a list field exists for human inspection

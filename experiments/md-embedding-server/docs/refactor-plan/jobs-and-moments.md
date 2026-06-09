@@ -1,10 +1,8 @@
 ---
-description: "Agent jobs and moments that md-tools-v2 must support."
-read-before-edit:
-  - "[[current-skill-usage-map.md]]"
-  - "[[minimum-document-set.md]]"
-edit-after-edit:
-  - "[[public-capability-contract.md]]"
+description: Agent jobs and moments that md-tools-v2 must support.
+depends-on:
+- '[[current-skill-usage-map.md]]'
+- '[[minimum-document-set.md]]'
 ---
 # Jobs And Moments
 

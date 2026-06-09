@@ -1,7 +1,7 @@
 ---
-description: "Architecture Decision Records (ADR) для md-embedding-server: индекс и практика."
-read-before-edit: []
-edit-after-edit: []
+description: 'Architecture Decision Records (ADR) для md-embedding-server: индекс
+  и практика.'
+depends-on: []
 ---
 # Architecture Decision Records
 

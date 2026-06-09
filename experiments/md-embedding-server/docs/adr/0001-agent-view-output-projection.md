@@ -1,8 +1,8 @@
 ---
-description: "ADR-0001: agent-view проекция вывода md CLI — bounded-by-default + прогрессивное раскрытие."
-read-before-edit:
-  - "[[../architecture-lock.md]]"
-edit-after-edit: []
+description: 'ADR-0001: agent-view проекция вывода md CLI — bounded-by-default + прогрессивное
+  раскрытие.'
+depends-on:
+- '[[../architecture-lock.md]]'
 ---
 # ADR-0001 — Agent-view проекция вывода
 

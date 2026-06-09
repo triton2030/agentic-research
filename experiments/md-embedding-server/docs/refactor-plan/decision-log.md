@@ -1,9 +1,8 @@
 ---
-description: "Decision log for md-tools-v2 architecture and compatibility choices."
-read-before-edit:
-  - "[[minimum-document-set.md]]"
-  - "[[compatibility-and-migration.md]]"
-edit-after-edit: []
+description: Decision log for md-tools-v2 architecture and compatibility choices.
+depends-on:
+- '[[minimum-document-set.md]]'
+- '[[compatibility-and-migration.md]]'
 ---
 # Decision Log
 
@@ -93,8 +92,7 @@ counter-полями; default-excludes были документированы �
 `envelope.derive_next_step` выдаёт narrowing `next_step` для large reply
 (лечит #4/#6/#7 одной точкой без запроса большего текста);
 `md impact --help` объясняет
-`cascade_breaks` vs `reference_breaks` vs `body_wikilink_refs` vs
-`body_markdown_refs`; новая секция `## Schema Vocabulary` в
+`dependent_breaks` vs `body_wikilink_refs` vs `body_markdown_refs`; новая секция `## Schema Vocabulary` в
 `cli-conventions.md` фиксирует reverse-relationship словарь и
 companion `_count` field rule; 4 SKILL.md (Claude + Codex, navigator +
 graph) получили pre/post-action discipline (semantic-search-first перед

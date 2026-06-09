@@ -4,10 +4,9 @@
 # _archive, runs, node_modules, ...) is non-configurable.
 
 [index]
-# Hook transcript analytics from ~/.claude/hooks/user-prompt-all-messages.py.
-# High-volume prose, no canonical knowledge — drown owner-truth signals in
-# `md search` / `md repeated-concepts` / `md audit`.
-exclude = ["experiments/all-my-messages/*"]
+# Canonical knowledge corpus for semantic index/search/audit.
+# Code, runtime experiments, plans and scratch docs stay outside retrieval.
+include = ["knowledge/**"]
 
 [graph]
 # Same: transcript logs are not part of the documentation graph; including

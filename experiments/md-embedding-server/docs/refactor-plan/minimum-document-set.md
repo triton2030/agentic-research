@@ -1,15 +1,8 @@
 ---
-description: "Minimum documentation set required before building a complex Markdown tools backend."
-read-before-edit:
-  - "[[README.md]]"
-edit-after-edit:
-  - "[[full-functionality-contract.md]]"
-  - "[[jobs-and-moments.md]]"
-  - "[[public-capability-contract.md]]"
-  - "[[architecture-boundaries.md]]"
-  - "[[state-and-cost-model.md]]"
-  - "[[compatibility-and-migration.md]]"
-  - "[[validation-and-release-gates.md]]"
+description: Minimum documentation set required before building a complex Markdown
+  tools backend.
+depends-on:
+- '[[README.md]]'
 ---
 # Минимальный Набор Документов
 

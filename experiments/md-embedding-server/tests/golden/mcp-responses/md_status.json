@@ -3,57 +3,26 @@
   "canonical_args": {
     "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge"
   },
-  "is_error": false,
+  "is_error": true,
   "payload": {
     "_envelope": {
       "version": 1,
       "tool": "md_status",
       "corpus_root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
-      "corpus_state": {
-        "state": "FRESH",
-        "model": "openai/text-embedding-3-small",
-        "index_exists": true,
-        "last_touched": "__VOLATILE__",
-        "added_sections": 0,
-        "removed_sections": 0,
-        "pending_chunks": 0,
-        "drift_count": 0,
-        "metadata_mismatch": false,
-        "delta_too_large": false,
-        "recommended_action": null
-      },
+      "corpus_state": null,
       "lock": null,
       "cost": {
         "turn_usd": "__VOLATILE__",
         "session_usd": "__VOLATILE__"
       },
       "size_estimate": {
-        "bytes": 601,
+        "bytes": 105,
         "items_returned": 0
       },
       "next_step": []
     },
-    "command": "status",
-    "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
-    "index_path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/.md-navigator/index.sqlite",
-    "index_exists": true,
-    "last_touched": "__VOLATILE__",
-    "model": "openai/text-embedding-3-small",
-    "path_scope": {
-      "include": null,
-      "exclude": null
-    },
-    "added_sections": 0,
-    "removed_sections": 0,
-    "pending_chunks": 0,
-    "reused": 313,
-    "drift_count": 0,
-    "metadata_mismatch": false,
-    "delta_too_large": false,
-    "max_auto_embed": 50,
-    "state": "FRESH",
-    "recommended_action": null,
-    "expanded": false,
-    "view": "map"
+    "error": "internal_error",
+    "exception": "ModuleNotFoundError",
+    "detail": "No module named 'sqlite_vec'"
   }
 }

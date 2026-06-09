@@ -15,15 +15,13 @@
 Сначала прочитай:
 
 - `README.md` в этой папке;
-- `_ops/criteria/strategy-gallery-workflow.md`;
-- `_ops/criteria/repo-structure-and-runtime-guards.md`;
-- `_ops/criteria/work-review-and-evidence.md`;
 - root `AGENTS.md`, если меняешь правила этой папки.
 
-Если меняешь формулировку локальных инструкций или criteria-ссылок, применяй
-`_ops/criteria/instruction-layer.md`. Если меняешь folder graph (`depends-on` /
-`related-when` / `veto-class`), paired shim или routing chain — применяй
-`_ops/criteria/folder-contract.md`. Не копируй criteria-текст в этот файл.
+Если меняешь формулировку локальных инструкций, routing или runtime-ссылок,
+применяй `_ops/rules/instruction-and-runtime.md`. Если создаёшь или двигаешь
+файл/папку/раздел — применяй `_ops/rules/placement.md`. Если выбираешь CLI
+evidence или финальную проверку — применяй `_ops/rules/local-tools.md`. Не
+копируй rule-текст в этот файл.
 
 ## Разметка Шаблонов
 
@@ -93,7 +91,8 @@
 - Не выдавай финальный выбор без явной цены: чем жертвуем и ради какого
   выигрыша.
 - Не переносить постоянные правила в `sessions/`. Для durable truth используй
-  `_ops/criteria/`, `knowledge/` или живой skill через их owner.
+  правильный owner: локальные инструкции, `_ops/rules/`, `knowledge/` или живой
+  skill через его owner.
 
 ## Evidence
 

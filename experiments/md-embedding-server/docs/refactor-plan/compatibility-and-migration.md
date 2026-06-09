@@ -1,11 +1,9 @@
 ---
-description: "Compatibility and migration contract for moving from current md backend to md-tools-v2."
-read-before-edit:
-  - "[[current-skill-usage-map.md]]"
-  - "[[public-capability-contract.md]]"
-edit-after-edit:
-  - "[[validation-and-release-gates.md]]"
-  - "[[decision-log.md]]"
+description: Compatibility and migration contract for moving from current md backend
+  to md-tools-v2.
+depends-on:
+- '[[current-skill-usage-map.md]]'
+- '[[public-capability-contract.md]]'
 ---
 # Compatibility And Migration
 

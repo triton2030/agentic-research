@@ -28,6 +28,7 @@ from .index_meta import (
     probe_embedding_dim,
     resolve_embed_model_for_corpus,
 )
+from .index_store import delete_section_rowids
 from .filters import (
     apply_path_filters,
     normalize_path_filter_patterns,
@@ -132,35 +133,7 @@ def _chunks_for_item(item: dict[str, Any]) -> list[tuple[int, str, str, str]]:
     return out
 
 
-def _delete_section_rowids(conn, rowids: list[int]) -> int:
-    """Drop sections + their FTS + chunks + vec rows. Returns number of vec
-    rows removed."""
-    if not rowids:
-        return 0
-    # Walk in batches to stay clear of SQLite variable limits.
-    batch = 400
-    removed_vecs = 0
-    for start in range(0, len(rowids), batch):
-        sub = rowids[start : start + batch]
-        placeholders = ",".join("?" * len(sub))
-        chunk_ids = [
-            r[0]
-            for r in conn.execute(
-                f"SELECT chunk_id FROM chunks WHERE section_rowid IN ({placeholders})",
-                sub,
-            ).fetchall()
-        ]
-        if chunk_ids:
-            cb = 400
-            for s2 in range(0, len(chunk_ids), cb):
-                sub2 = chunk_ids[s2 : s2 + cb]
-                ph2 = ",".join("?" * len(sub2))
-                conn.execute(f"DELETE FROM sections_vec WHERE rowid IN ({ph2})", sub2)
-                conn.execute(f"DELETE FROM chunks WHERE chunk_id IN ({ph2})", sub2)
-                removed_vecs += len(sub2)
-        conn.execute(f"DELETE FROM sections_fts WHERE rowid IN ({placeholders})", sub)
-        conn.execute(f"DELETE FROM sections WHERE rowid IN ({placeholders})", sub)
-    return removed_vecs
+_delete_section_rowids = delete_section_rowids
 
 
 def _clean_incomplete_sections(conn, scope: str) -> int:
@@ -176,7 +149,7 @@ def _clean_incomplete_sections(conn, scope: str) -> int:
     ).fetchall()
     if not rows:
         return 0
-    _delete_section_rowids(conn, [r[0] for r in rows])
+    delete_section_rowids(conn, [r[0] for r in rows])
     return len(rows)
 
 
@@ -225,6 +198,7 @@ def _index_delta_stats_readonly(
     max_auto_embed: int | None,
     path_include: list[str] | None = None,
     path_exclude: list[str] | None = None,
+    skip_existing_rowids: list[int] | None = None,
 ) -> dict[str, Any]:
     """Compute freshness stats without schema creation, meta writes, or pruning."""
     include_patterns = list(path_include or [])
@@ -269,6 +243,9 @@ def _index_delta_stats_readonly(
         stats["metadata_mismatch"] = True
         return stats
 
+    if skip_existing_rowids:
+        skipped = set(skip_existing_rowids)
+        existing_rows = [row for row in existing_rows if int(row[0]) not in skipped]
     existing_rows = _filter_existing_rows_by_path(
         existing_rows,
         include_patterns,
@@ -315,6 +292,7 @@ def ensure_index(
     dry_run: bool = False,
     path_include: list[str] | None = None,
     path_exclude: list[str] | None = None,
+    skip_existing_rowids: list[int] | None = None,
 ) -> tuple[Any, dict[str, Any]]:
     """Public index entrypoint. Write paths are serialised by a lock file.
 
@@ -334,6 +312,7 @@ def ensure_index(
             max_auto_embed,
             path_include=include_patterns,
             path_exclude=exclude_patterns,
+            skip_existing_rowids=skip_existing_rowids,
         )
         return conn, stats
 
@@ -355,6 +334,7 @@ def ensure_index(
             batch_pause_s=batch_pause_s,
             path_include=include_patterns,
             path_exclude=exclude_patterns,
+            skip_existing_rowids=skip_existing_rowids,
         )
     finally:
         _release_index_write_lock(lock_handle)
@@ -374,6 +354,7 @@ def _ensure_index_unlocked(
     batch_pause_s: float = DEFAULT_INDEX_PAUSE_S,
     path_include: list[str] | None = None,
     path_exclude: list[str] | None = None,
+    skip_existing_rowids: list[int] | None = None,
 ) -> tuple[Any, dict[str, Any]]:
     """Open the persistent index for `corpus_root` and reconcile against
     `items` for the given `scope`. Only new sections cost embedding work;
@@ -434,6 +415,9 @@ def _ensure_index_unlocked(
         "SELECT rowid, content_hash, relative_path FROM sections WHERE scope = ?",
         (scope,),
     ).fetchall()
+    if skip_existing_rowids:
+        skipped = set(skip_existing_rowids)
+        existing_rows = [row for row in existing_rows if int(row[0]) not in skipped]
     existing_rows = _filter_existing_rows_by_path(
         existing_rows,
         include_patterns,
@@ -465,7 +449,7 @@ def _ensure_index_unlocked(
 
     if removed_rowids:
         _say(f"Pruning {len(removed_rowids)} stale sections (scope={scope})...")
-        stats["removed"] = _delete_section_rowids(conn, removed_rowids)
+        stats["removed"] = delete_section_rowids(conn, removed_rowids)
         conn.commit()
 
     # Refresh metadata on surviving rows. content_hash (= rel + start_line +

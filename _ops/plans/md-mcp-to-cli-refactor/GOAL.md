@@ -11,9 +11,20 @@ Outcome-first execution contract под `GPT-5.5` и `Claude Opus 4.7`. Само
 1. **Node MCP server удалён**: `experiments/md-embedding-server/mcp/` не существует. ~2228 LOC JavaScript удалены из репо.
 2. **Python CLI `md` работает глобально**: `uv tool install` ставит binary в `~/.local/bin/`. Все 29 MCP tool names доступны как subcommands (`md orient`, `md search`, `md edit-context`, etc.).
 3. **Library/CLI split реализован**: `experiments/md-embedding-server/src/navigator/` — pure library (importable Python), `experiments/md-embedding-server/src/md_cli/` — CLI слой с envelope + composites + transactions + dispatch.
-4. **13 skills мигрированы** на CLI invocation syntax (Claude + Codex × {1md-navigator, 1md-graph, 1ia-audit, 1instruction-layer, 1planning, 1strategy, 1strategy-docs, 1folder-contract, 1assumption-audit, 1work-review, 1skill-architect, 1smart-simple, 1cli-tools}). Skills остались **pure declarative** (SKILL.md + references/ + agents/openai.yaml).
+4. **13 historical migration targets мигрированы** на CLI invocation syntax
+   (Claude + Codex × {1md-navigator, 1md-graph, 1ia-audit,
+   1instruction-layer, 1planning, 1strategy, 1strategy-docs,
+   1folder-contract, 1assumption-audit, 1work-review, 1skill-architect,
+   1smart-simple, 1cli-tools}). Это snapshot исходного scope, а не live skill
+   catalog. Skills остались **pure declarative** (SKILL.md + references/ +
+   agents/openai.yaml).
 5. **MCP registrations удалены** из всех конфигов (`~/.codex/config.toml` `[mcp_servers.md-mcp]`; Claude если есть).
 6. **Cross-project smoke зелёный**: Claude и Codex sessions в как минимум 2-х разных репо успешно используют CLI через skills.
+
+Live-surface caveat (2026-06-02): `1work-review` был частью исходного
+migration scope, но сейчас не является installed Codex/Claude skill. Текущие
+closeout-проверки держит execution owner через прямой evidence-closeout; этот
+план не использовать как live skill catalog.
 
 Главная инвариант: **внешний контракт для skills остался идентичным** — те же 29 tool names, та же envelope shape (`_envelope.{version, tool, corpus_root, corpus_state, lock, cost, size_estimate, next_step}`), тот же dry-run/confirm protocol. Skills получили только syntax replacement.
 

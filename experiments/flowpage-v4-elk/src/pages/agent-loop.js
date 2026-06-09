@@ -1,4 +1,4 @@
-// Каноническая цепочка из 1start-here. Узлы — обязательные точки маршрута,
+// Каноническая цепочка из локального context/owner pass. Узлы — обязательные точки маршрута,
 // рёбра — реальные передачи смысла, не контекстная рамка.
 
 export default {
@@ -19,10 +19,10 @@ export default {
       id: "userTruth",
       kind: "truth",
       weight: 2,
-      title: "1user-truth",
+      title: "Owner truth",
       kicker: "durable signal",
-      body: "Ловит «хочу / не люблю / всегда / никогда / make this default» и переводит сигнал в durable правило в criteria.",
-      bullets: ["red line", "taste", "criteria writer"]
+      body: "Ловит «хочу / не люблю / всегда / никогда / make this default» и передаёт сигнал правильному owner-у или memory layer по явной просьбе.",
+      bullets: ["red line", "taste", "owner route"]
     },
     {
       id: "strategy",
@@ -37,27 +37,27 @@ export default {
       id: "criteria",
       kind: "memory",
       weight: 3,
-      title: "_ops/criteria",
-      kicker: "durable rules",
-      body: "Критерии приёмки по сфере работы. Их пишет 1user-truth, читают гейты и review.",
-      bullets: ["user-backed", "read at gates", "verified at review"]
+      title: "Owner rules",
+      kicker: "durable checks",
+      body: "Правила приёмки живут у владельца: AGENTS, GOAL, rule-doc, skill contract или memory layer. Их читают перед правкой и сверяют на closeout.",
+      bullets: ["user-backed", "owned", "verified"]
     },
     {
       id: "router",
-      kind: "skill",
+      kind: "gate",
       weight: 2,
-      title: "1start-here",
+      title: "Context pass",
       kicker: "orientation",
-      body: "Карта скилов, mandatory cases, runtime delegate. Помогает выбрать один маршрут под форму запроса.",
-      bullets: ["orient", "choose one", "no preload"]
+      body: "Локальные инструкции, owner-файлы и live skill contracts помогают выбрать один маршрут под форму запроса.",
+      bullets: ["orient", "choose one", "live surface"]
     },
     {
       id: "beforeWork",
       kind: "gate",
       weight: 2,
-      title: "1before-work",
+      title: "Owner/write check",
       kicker: "почва и запись",
-      body: "Anchor-check перед нетривиальным execution и Write Gate перед substantive Edit/Write.",
+      body: "Проверка owner-а, применимых инструкций и graph/radius перед substantive Edit/Write.",
       bullets: ["blocker", "criteria", "owner check"]
     },
     {
@@ -75,16 +75,16 @@ export default {
       weight: 3,
       title: "Артефакт",
       kicker: "результат",
-      body: "Заметка, граф, скрипт, страница, criterion, instruction. Любая поверхность куда уходит работа.",
+      body: "Заметка, граф, скрипт, страница или инструкция. Любая поверхность куда уходит работа.",
       bullets: ["readable", "owned", "verifiable"]
     },
     {
       id: "review",
       kind: "review",
       weight: 2,
-      title: "1work-review",
+      title: "Evidence-closeout",
       kicker: "закрытие",
-      body: "Сравнивает diff/артефакт с goal, applicable criteria, agent instructions и evidence.",
+      body: "Текущий execution owner сравнивает artifact с просьбой, owner-инструкциями и evidence.",
       bullets: ["diff", "evidence", "residual risk"]
     }
   ],
@@ -92,8 +92,8 @@ export default {
     ["request", "userTruth", "durable signal?"],
     ["request", "strategy", "hidden branch?"],
     ["request", "router", "выбрать маршрут"],
-    ["strategy", "userTruth", "durable → правда"],
-    ["userTruth", "criteria", "write rule"],
+    ["strategy", "userTruth", "durable → owner"],
+    ["userTruth", "criteria", "route rule"],
     ["router", "beforeWork", "anchor check"],
     ["criteria", "beforeWork", "ground-check"],
     ["beforeWork", "active", "если почва ок"],
@@ -101,7 +101,7 @@ export default {
     ["criteria", "beforeWork", "applicable rules"],
     ["beforeWork", "artifact", "создать / изменить"],
     ["artifact", "review", "проверить"],
-    ["criteria", "review", "verify against rules"],
+    ["criteria", "review", "verify against owner rules"],
     ["review", "request", "новый цикл"]
   ]
 };

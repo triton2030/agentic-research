@@ -58,6 +58,17 @@ class CorpusConfig:
         )
 
 
+@dataclass(frozen=True)
+class FilterLayers:
+    config_include: list[str]
+    config_exclude: list[str]
+    operation_include: list[str]
+    operation_exclude: list[str]
+    effective_include: list[str]
+    effective_exclude: list[str]
+    source: Path | None
+
+
 def _read_glob_list(
     section: dict, key: str, section_name: str, source: Path
 ) -> tuple[str, ...]:
@@ -155,11 +166,37 @@ def resolve_filters_for_domain(
     (user decision 2026-05-23) so the config never silently disables
     explicit narrowing.
     """
+    layers = resolve_filter_layers_for_domain(
+        corpus_root,
+        domain=domain,
+        path_include=path_include,
+        path_exclude=path_exclude,
+    )
+    return layers.effective_include, layers.effective_exclude
+
+
+def resolve_filter_layers_for_domain(
+    corpus_root: str | Path,
+    *,
+    domain: str,
+    path_include: Any = None,
+    path_exclude: Any = None,
+) -> FilterLayers:
+    """Return config, operation, and effective filter layers separately."""
     if domain not in {"index", "graph"}:
         raise ValueError(f"unknown filter domain: {domain!r}")
     cfg = load_corpus_config(Path(corpus_root))
     section = cfg.index if domain == "index" else cfg.graph
-    return (
-        merge_cli_with_config(section.include, _normalize_to_list(path_include)),
-        merge_cli_with_config(section.exclude, _normalize_to_list(path_exclude)),
+    operation_include = _normalize_to_list(path_include)
+    operation_exclude = _normalize_to_list(path_exclude)
+    config_include = list(section.include)
+    config_exclude = list(section.exclude)
+    return FilterLayers(
+        config_include=config_include,
+        config_exclude=config_exclude,
+        operation_include=operation_include,
+        operation_exclude=operation_exclude,
+        effective_include=merge_cli_with_config(section.include, operation_include),
+        effective_exclude=merge_cli_with_config(section.exclude, operation_exclude),
+        source=cfg.source,
     )

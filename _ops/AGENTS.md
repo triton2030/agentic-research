@@ -22,10 +22,11 @@
   восстанавливать.
 - `rules/` — условные холодные rule-docs для редких правил с явным trigger,
   owner и check. Wording держит `1instruction-layer`, механизм папки держит
-  `1folder-contract`. Читать только по конкретному trigger из `AGENTS.md` или
-  owner-файла, не как preload.
+  `1folder-contract`. Если route/owner rule-doc меняется, синхронизировать
+  root `AGENTS.md` и `_ops/project-graph.md`. Читать только по конкретному
+  trigger из `AGENTS.md` или owner-файла, не как preload.
 - `interviews/` — временные интерактивные вопросники для случаев, когда агенту
-  нужно много ответов пользователя. Маршрут задают `1start-here` и
+  нужно много ответов пользователя. Маршрут задают `1interview-tool` и
   `1folder-contract`, wording маршрута чинит `1instruction-layer`, форму в
   Obsidian берёт `1obsidian`. После разбора смысл переносится к владельцам
   (task-файлы, roadmap, GOAL/README, knowledge).

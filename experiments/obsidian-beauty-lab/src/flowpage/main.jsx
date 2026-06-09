@@ -69,33 +69,33 @@ const rawNodes = [
   {
     id: "criteria",
     kind: "memory",
-    title: "_ops/criteria",
+    title: "Owner rules",
     kicker: "память качества",
-    body: "Критерии выбираются по типу работы. Они отвечают не за красивый текст, а за повторяемые правила приёмки.",
+    body: "Правила выбираются по owner-у работы. Они отвечают не за красивый текст, а за повторяемые правила приёмки.",
     bullets: ["user-backed", "будущие проверки", "без backlog"]
   },
   {
     id: "router",
-    kind: "skill",
-    title: "1start-here",
+    kind: "gate",
+    title: "Context pass",
     kicker: "маршрутизатор",
-    body: "Классифицирует форму запроса и выбирает один активный маршрут: разговор, стратегия, правка, ревью или системная работа.",
-    bullets: ["один active skill", "без preload", "ясная граница"]
+    body: "Локальные инструкции, owner-файлы и live skill contracts выбирают один активный маршрут: разговор, стратегия, правка, ревью или системная работа.",
+    bullets: ["один active owner", "без preload", "живая поверхность"]
   },
   {
     id: "active",
     kind: "skill",
     title: "Активный скилл",
     kicker: "рабочий слой",
-    body: "Ведёт конкретный тип работы: Obsidian UX, instruction layer, task scope, user truth, roadmap или review.",
+    body: "Ведёт конкретный тип работы: Obsidian UX, instruction layer, task scope, strategy docs, planning или review.",
     bullets: ["owner", "stop rule", "verification"]
   },
   {
     id: "writeGate",
     kind: "gate",
-    title: "Instruction/criteria gate",
+    title: "Owner/write check",
     kicker: "перед записью",
-    body: "Перед содержательной правкой связывает owner, target files, применимые criteria и риск рассинхрона.",
+    body: "Перед содержательной правкой связывает owner, target files, применимые правила и риск рассинхрона.",
     bullets: ["owner", "criteria", "drift risk"]
   },
   {
@@ -117,9 +117,9 @@ const rawNodes = [
   {
     id: "review",
     kind: "review",
-    title: "1work-review",
+    title: "Evidence-closeout",
     kicker: "закрытие",
-    body: "Сравнивает цель, инструкции, критерии и evidence. Если проверка не держится, работа продолжается, а не закрывается словами.",
+    body: "Текущий owner сравнивает цель, инструкции, правила и evidence. Если проверка не держится, работа продолжается, а не закрывается словами.",
     bullets: ["diff", "evidence", "residual risk"]
   }
 ];
