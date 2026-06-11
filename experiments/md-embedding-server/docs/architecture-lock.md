@@ -12,10 +12,10 @@ Phase 2 can start only when the lock tests are green.
 ## Invariants
 
 - `catalog.py` matches the MCP snapshot names, schemas, annotations and
-  canonical signatures. Current generated snapshot count is 32 tools; the
-  executable invariant is the catalog/snapshot test, not a hand-maintained
-  prose count. Runtime import must not patch `ToolSpec` values; cleanup and
-  fingerprint fields belong in the generated snapshot/source data.
+  canonical signatures. The executable invariant is the catalog/snapshot test,
+  not a hand-maintained prose tool count. Runtime import must not patch
+  `ToolSpec` values; cleanup and fingerprint fields belong in the generated
+  snapshot/source data.
 - `catalog.py` input schemas are the only source for generated CLI `--help`
   descriptions. Every public `input_schema.properties.*` entry must have a
   non-empty `description`; `md_cli.main` must not keep fallback help tables.
@@ -63,6 +63,11 @@ Phase 2 can start only when the lock tests are green.
 - Read APIs never delete or rebuild vector indexes. If a caller asks for
   `no_cache`, the public API returns a structured `md_index` dry-run
   `read_next` instead of mutating cache state inside a read path.
+- `md semantic-neighbors` is the only target-based semantic-neighbor surface.
+  It reads an explicit corpus index read-only, refuses conflicting nested
+  indexes, and returns candidates only (`obligation:false`, `graph_edge:false`).
+  `read-related --semantic-radius` is a retired compatibility route to that
+  tool, not a second semantic retrieval path.
 - `navigator.workflows.*` imports only navigator/library code, never `md_cli`,
   `subprocess`, or serialization. Workflow modules may compose public
   primitives or delegate to a domain adapter, but they must not lazy-write

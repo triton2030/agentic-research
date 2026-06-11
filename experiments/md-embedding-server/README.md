@@ -149,7 +149,8 @@ Subcommands:
 - `ls`, `toc` — folder/file index by frontmatter description and headings
 - `extract` — return selected files/sections in one packet
 - `read-related` — linked Markdown neighborhood as a map by default;
-  `--expanded` / `--mode full` includes bodies
+  `--expanded` / `--mode full` includes bodies; `--semantic-radius` is retired
+  and routes to `semantic-neighbors`
 - `coherence-audit` — after editing a file/section, keep inline anchored
   wikilinks in place and insert each referenced block immediately after its
   link for a coherence reread; frontmatter is ignored
@@ -164,6 +165,8 @@ Subcommands:
 - `search` — hybrid section retrieval (BM25F + dense via RRF)
 - `search-read` — ranked section map/snippets by default; `--expanded`
   includes section bodies under `--token-budget`
+- `semantic-neighbors` — read-only target-vs-corpus block candidates:
+  `md semantic-neighbors TARGET CORPUS --json`; candidates are not graph obligations
 - `overlaps` — grouped semantic-overlap map by default; `--expanded`
   returns full pairs
 - `cluster` — read-only K-means topic clusters from an already warm vector
@@ -248,6 +251,10 @@ md overlaps CORPUS --json
 
 # Force full rebuild
 md index CORPUS --dry-run --json
+
+# Explicit cleanup of shadowed nested indexes
+md index CORPUS --cleanup-shadowed --dry-run --json
+md index CORPUS --cleanup-shadowed --confirm --transaction-id <id> --json
 
 # Override location (e.g. shared cache root)
 MD_NAVIGATOR_CACHE_ROOT=~/.local/share/md-navigator md index CORPUS --dry-run --json

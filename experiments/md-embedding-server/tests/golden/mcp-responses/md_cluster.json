@@ -23,10 +23,10 @@
         "recommended_action": {
           "tool": "md_index",
           "args": {
-            "corpus": "/Users/triton/Documents/GitHub/agentic-research",
+            "corpus": "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server",
             "dry_run": true,
             "path_include": [
-              "experiments/md-embedding-server/tests/fixtures/sample-corpus/**"
+              "tests/fixtures/sample-corpus/**"
             ]
           },
           "reason": "Index does not exist; dry-run warmup before search."
@@ -38,13 +38,61 @@
         "session_usd": "__VOLATILE__"
       },
       "size_estimate": {
-        "bytes": 94,
+        "bytes": 813,
         "items_returned": 0
       },
-      "next_step": []
+      "next_step": [
+        {
+          "tool": "md_index",
+          "args": {
+            "corpus": "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server",
+            "path_include": [
+              "tests/fixtures/sample-corpus/**"
+            ],
+            "dry_run": true
+          },
+          "reason": "Preview embedding cost before warming the parent index for this path scope."
+        },
+        {
+          "tool": "md_cluster",
+          "args": {
+            "corpus": "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server",
+            "path_include": [
+              "tests/fixtures/sample-corpus/**"
+            ]
+          },
+          "reason": "Retry the original call once the index is warm."
+        }
+      ]
     },
-    "command": "cluster",
-    "error": "dependency_failed",
-    "detail": "No module named 'sqlite_vec'"
+    "error": "index_warmup_required",
+    "corpus": "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server/tests/fixtures/sample-corpus",
+    "suggested_index_args": {
+      "corpus": "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server",
+      "path_include": [
+        "tests/fixtures/sample-corpus/**"
+      ],
+      "dry_run": true
+    },
+    "suggested_retry_args": {
+      "corpus": "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server",
+      "path_include": [
+        "tests/fixtures/sample-corpus/**"
+      ]
+    },
+    "read_next": [
+      {
+        "tool": "md_index",
+        "args": {
+          "corpus": "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server",
+          "path_include": [
+            "tests/fixtures/sample-corpus/**"
+          ],
+          "dry_run": true
+        },
+        "reason": "Warm the semantic index before retrying this read."
+      }
+    ],
+    "command": "cluster"
   }
 }

@@ -1,0 +1,63 @@
+{
+  "tool": "md_canon_check",
+  "canonical_args": {
+    "file": "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server/tests/fixtures/sample-corpus/README.md",
+    "corpus": "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server/tests/fixtures/sample-corpus"
+  },
+  "is_error": false,
+  "payload": {
+    "_envelope": {
+      "version": 1,
+      "tool": "md_canon_check",
+      "corpus_root": "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server/tests/fixtures/sample-corpus",
+      "corpus_state": {
+        "state": "NO_INDEX",
+        "model": "baai/bge-m3",
+        "index_exists": false,
+        "last_touched": null,
+        "added_sections": 6,
+        "removed_sections": 0,
+        "pending_chunks": 6,
+        "drift_count": 0,
+        "metadata_mismatch": false,
+        "delta_too_large": false,
+        "recommended_action": {
+          "tool": "md_index",
+          "args": {
+            "corpus": "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server",
+            "dry_run": true,
+            "path_include": [
+              "tests/fixtures/sample-corpus/**"
+            ]
+          },
+          "reason": "Index does not exist; dry-run warmup before search."
+        }
+      },
+      "lock": null,
+      "cost": {
+        "turn_usd": "__VOLATILE__",
+        "session_usd": "__VOLATILE__"
+      },
+      "size_estimate": {
+        "bytes": 306,
+        "items_returned": 0
+      },
+      "next_step": []
+    },
+    "workflow": "md_canon_check",
+    "file": "README.md",
+    "mode": "single",
+    "stats": {
+      "claims_total": 0,
+      "claims_checked": 0,
+      "queries_run": 0,
+      "elapsed_ms": 0
+    },
+    "pairs": [],
+    "quality_flags": [
+      "no_normative_claims"
+    ],
+    "advice": "No normative claims found; canon-check has no evidence to gather.",
+    "read_next": []
+  }
+}

@@ -42,6 +42,16 @@ def edit_context(
 
     selected_mode = "strict" if mode == "strict" else ("full" if expanded or mode == "full" else "preview")
     preflight_payload = preflight(path, scan=scan, depth=depth)
+    preflight_exit = int(preflight_payload.get("_exit_code", 0) or 0)
+    if preflight_exit >= 2:
+        return {
+            "workflow": "md_edit_context",
+            "mode": selected_mode,
+            "path": path,
+            "error": "preflight_failed",
+            "preflight": preflight_payload,
+            "_exit_code": preflight_exit,
+        }
     if selected_mode == "strict":
         return {
             "workflow": "md_edit_context",

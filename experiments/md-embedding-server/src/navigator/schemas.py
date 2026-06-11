@@ -589,6 +589,76 @@ CLUSTER_SCHEMA: dict[str, Any] = {
 }
 
 
+SEMANTIC_NEIGHBORS_SCHEMA: dict[str, Any] = {
+    "$schema": SCHEMA_DIALECT,
+    "$id": "md-navigator/semantic-neighbors.json",
+    "title": "md-navigator semantic-neighbors output",
+    "type": "object",
+    "required": ["target", "candidates", "usage_note", "read_next"],
+    "properties": {
+        "command": {"const": "semantic-neighbors"},
+        "corpus": {"type": "string"},
+        "target": {
+            "type": "object",
+            "required": ["path", "relative_path", "kind"],
+            "properties": {
+                "path": {"type": "string"},
+                "relative_path": {"type": "string"},
+                "kind": {"enum": ["file", "folder"]},
+            },
+        },
+        "expanded": {"type": "boolean"},
+        "view": {"enum": ["map", "expanded"]},
+        "limit": {"type": "integer", "minimum": 1},
+        "target_sections": {"type": "integer", "minimum": 0},
+        "candidate_token_total": {"type": "integer", "minimum": 0},
+        "token_total": {"type": "integer", "minimum": 0},
+        "token_budget": {"type": "integer", "minimum": 0},
+        "token_budget_defaulted": {"type": "boolean"},
+        "dropped_by_budget": {"type": "array"},
+        "usage_note": {"const": "candidate only, not graph obligation"},
+        "read_next": {"type": "array"},
+        "candidates": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": [
+                    "relative_path",
+                    "heading_chain",
+                    "start_line",
+                    "snippet",
+                    "matched_target",
+                    "mdref",
+                    "candidate_class",
+                    "obligation",
+                    "graph_edge",
+                ],
+                "properties": {
+                    "rank": {"type": "integer", "minimum": 1},
+                    "section_id": {"type": "string"},
+                    "mdref": {"type": "string"},
+                    "relative_path": {"type": "string"},
+                    "heading_chain": {"type": "string"},
+                    "heading_text": {"type": "string"},
+                    "start_line": {"type": "integer", "minimum": 1},
+                    "token_count": {"type": "integer", "minimum": 0},
+                    "snippet": {"type": "string"},
+                    "content": {"type": "string"},
+                    "matched_target": {
+                        "type": "object",
+                        "required": ["relative_path", "heading_chain", "start_line"],
+                    },
+                    "candidate_class": {"const": "semantic_neighbor"},
+                    "source_layer": {"const": "semantic_index"},
+                    "obligation": {"const": False},
+                    "graph_edge": {"const": False},
+                },
+            },
+        },
+    },
+}
+
+
 AUDIT_SCHEMA: dict[str, Any] = {
     "$schema": SCHEMA_DIALECT,
     "$id": "md-navigator/audit.json",
@@ -686,5 +756,6 @@ ALL_SCHEMAS: dict[str, dict[str, Any]] = {
     "overlaps": OVERLAPS_SCHEMA,
     "repeated-concepts": REPEATED_CONCEPTS_SCHEMA,
     "cluster": CLUSTER_SCHEMA,
+    "semantic-neighbors": SEMANTIC_NEIGHBORS_SCHEMA,
     "audit": AUDIT_SCHEMA,
 }

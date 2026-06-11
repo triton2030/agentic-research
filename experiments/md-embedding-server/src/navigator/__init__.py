@@ -56,6 +56,7 @@ from .api import (
     scan,
     search,
     search_read,
+    semantic_neighbors,
     status,
     strip,
     toc,
@@ -86,6 +87,7 @@ __all__ = [
     "scan",
     "search",
     "search_read",
+    "semantic_neighbors",
     "status",
     "strip",
     "toc",
@@ -139,6 +141,7 @@ for _name, _func in (
     ("overlaps", overlaps),
     ("repeated_concepts", repeated_concepts),
     ("search", search),
+    ("semantic_neighbors", semantic_neighbors),
     ("walk", walk),
 ):
     _bind_callable_module(_name, _func)

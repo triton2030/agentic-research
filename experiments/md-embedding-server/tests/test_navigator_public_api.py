@@ -36,12 +36,14 @@ ATOMIC_NAMES = [
     "scan",
     "search",
     "search_read",
+    "semantic_neighbors",
     "status",
     "strip",
     "toc",
 ]
 
 WORKFLOW_NAMES = [
+    "canon_check",
     "edit_context",
     "orient",
     "query_by_type",
@@ -50,9 +52,9 @@ WORKFLOW_NAMES = [
 ]
 
 
-def test_public_api_exports_26_atomic_and_5_workflows() -> None:
-    assert len(ATOMIC_NAMES) == 26
-    assert len(WORKFLOW_NAMES) == 5
+def test_public_api_exports_atomic_and_workflow_surfaces() -> None:
+    assert len(ATOMIC_NAMES) == 27
+    assert len(WORKFLOW_NAMES) == 6
     for name in ATOMIC_NAMES:
         assert callable(getattr(navigator, name))
     for name in WORKFLOW_NAMES:
@@ -81,6 +83,7 @@ def test_public_api_smoke_on_fixture_corpus() -> None:
         navigator.cluster(str(CORPUS)),
         navigator.search(str(CORPUS), "sample"),
         navigator.search_read(str(CORPUS), "sample"),
+        navigator.semantic_neighbors(str(README), str(CORPUS)),
         navigator.walk(str(README), anchor="Rule", scan=str(CORPUS), depth=1),
         navigator.overlaps(str(CORPUS)),
         navigator.repeated_concepts(str(CORPUS)),
@@ -89,13 +92,14 @@ def test_public_api_smoke_on_fixture_corpus() -> None:
         navigator.strip(paths=[str(CORPUS)], dry_run=True),
         navigator.index(str(CORPUS), dry_run=True),
         navigator.profile_sections(str(CORPUS), dry_run=True, mode="llm"),
+        workflows.canon_check(str(README), str(CORPUS)),
         workflows.orient(str(CORPUS), compact=True),
         workflows.edit_context(str(README), scan=str(CORPUS), mode="strict"),
         workflows.query_by_type(str(CORPUS), ["rule"]),
         workflows.refactor_candidates(str(CORPUS), compact=True),
         workflows.section_blast_radius(str(README), str(CORPUS), "sample", scan=str(CORPUS)),
     ]
-    assert len(calls) == 32
+    assert len(calls) == len(ATOMIC_NAMES) + len(WORKFLOW_NAMES) + 1
     assert all(isinstance(payload, dict) for payload in calls)
 
 

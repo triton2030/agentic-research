@@ -33,3 +33,5 @@ selftest и smoke-пайплайн `ls → extract`.
 - `extract` развязан от формы карты: единственный источник headings — диск, а не
   дублирование в каждой карте. Архитектурно чище и устойчивее к будущим
   изменениям формы `ls`/`orient`.
+- `semantic-neighbors` не становится новым `map_data` owner-ом для `extract`:
+  его candidate rows раскрываются собственным payload-level `read_next`.

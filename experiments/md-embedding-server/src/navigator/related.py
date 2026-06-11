@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any, Iterator
 
+from .api_utils import _exit, _read_next
 from .link_graph import iter_explicit_link_edges
 from .markdown_io import (
     GRAPH_LINK_KEYS,
@@ -129,7 +130,7 @@ def _links_to_any_anchor(
 def collect_related_items(args) -> dict[str, Any]:
     scan_root = Path(args.scan).expanduser().resolve()
     if not scan_root.exists():
-        raise SystemExit(f"Scan root does not exist: {scan_root}")
+        return _exit({"command": "read-related", "error": "path_not_found", "scan": str(scan_root)}, 2)
 
     include = parse_csv(args.include)
     if not include:
@@ -137,9 +138,34 @@ def collect_related_items(args) -> dict[str, Any]:
 
     anchor_aware = bool(getattr(args, "anchor_aware", False))
     lookup = markdown_lookup(scan_root)
-    anchors = [resolve_input_path(path, scan_root) for path in args.paths]
+    try:
+        anchors = [resolve_input_path(path, scan_root) for path in args.paths]
+    except FileNotFoundError as exc:
+        return _exit({"command": "read-related", "error": "path_not_found", "detail": str(exc)}, 2)
     anchor_set = {path.resolve() for path in anchors}
     items: dict[tuple[Path, str | None], dict[str, Any]] = {}
+    semantic_radius = int(getattr(args, "semantic_radius", 0) or 0)
+    if semantic_radius > 0:
+        return _exit(
+            {
+                "command": "read-related",
+                "error": "semantic_radius_retired",
+                "reason": "read-related is graph/link context only; target-based semantic candidates live in md semantic-neighbors.",
+                "anchors": [str(path) for path in anchors],
+                "read_next": [
+                    _read_next(
+                        "md_semantic_neighbors",
+                        {
+                            "target": str(anchors[0]),
+                            "corpus": str(scan_root),
+                            "limit": semantic_radius,
+                        },
+                        "Use the single target-based semantic-neighbors tool for external semantic candidate blocks.",
+                    )
+                ],
+            },
+            2,
+        )
 
     for anchor in anchors:
         if "self" in include:
@@ -208,7 +234,6 @@ def collect_related_items(args) -> dict[str, Any]:
                 }
             )
 
-    semantic_radius = int(getattr(args, "semantic_radius", 0) or 0)
     check_links = bool(getattr(args, "check_links", False))
     semantic_neighbors: list[dict[str, Any]] = []
     suspicious_links: list[dict[str, Any]] = []

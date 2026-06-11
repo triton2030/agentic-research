@@ -16,7 +16,7 @@
         "session_usd": "__VOLATILE__"
       },
       "size_estimate": {
-        "bytes": 1070,
+        "bytes": 5323,
         "items_returned": 3,
         "counted_fields": [
           {
@@ -33,19 +33,87 @@
         "root": "/Users/triton/Documents/GitHub/agentic-research",
         "index_path": "/Users/triton/Documents/GitHub/agentic-research/.md-navigator/index.sqlite",
         "last_touched": "__VOLATILE__",
-        "index_size_bytes": 31199232
+        "index_size_bytes": 31199232,
+        "shadowed_by": null,
+        "shadowed": false,
+        "metadata": {
+          "schema_version": "4",
+          "embed_model": "baai/bge-m3",
+          "embedding_api_url": "https://openrouter.ai/api/v1",
+          "vec_dim": "1024"
+        },
+        "shadowed_indexes": [
+          {
+            "root": "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server",
+            "relative_root": "experiments/md-embedding-server",
+            "index_path": "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server/.md-navigator/index.sqlite",
+            "shadowed_by": "/Users/triton/Documents/GitHub/agentic-research",
+            "conflicting": true,
+            "conflict_reasons": [
+              "nested_index_metadata_unreadable"
+            ],
+            "metadata": {},
+            "generated_files": [
+              "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server/.md-navigator/index.sqlite"
+            ],
+            "metadata_error": "OperationalError",
+            "detail": "no such table: meta"
+          },
+          {
+            "root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+            "relative_root": "knowledge",
+            "index_path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/.md-navigator/index.sqlite",
+            "shadowed_by": "/Users/triton/Documents/GitHub/agentic-research",
+            "conflicting": true,
+            "conflict_reasons": [
+              "embed_model_mismatch",
+              "vec_dim_mismatch"
+            ],
+            "metadata": {
+              "schema_version": "4",
+              "embed_model": "openai/text-embedding-3-small",
+              "embedding_api_url": "https://openrouter.ai/api/v1",
+              "vec_dim": "1536"
+            },
+            "generated_files": [
+              "/Users/triton/Documents/GitHub/agentic-research/knowledge/.md-navigator/index.sqlite",
+              "/Users/triton/Documents/GitHub/agentic-research/knowledge/.md-navigator/index.sqlite-wal",
+              "/Users/triton/Documents/GitHub/agentic-research/knowledge/.md-navigator/index.sqlite-shm",
+              "/Users/triton/Documents/GitHub/agentic-research/knowledge/.md-navigator/index.lock"
+            ]
+          }
+        ]
+      },
+      {
+        "root": "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server",
+        "index_path": "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server/.md-navigator/index.sqlite",
+        "last_touched": "__VOLATILE__",
+        "index_size_bytes": 0,
+        "shadowed_by": "/Users/triton/Documents/GitHub/agentic-research",
+        "shadowed": true,
+        "metadata": {},
+        "metadata_error": "OperationalError",
+        "detail": "no such table: meta"
       },
       {
         "root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
         "index_path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/.md-navigator/index.sqlite",
         "last_touched": "__VOLATILE__",
-        "index_size_bytes": 9883648
-      },
+        "index_size_bytes": 9883648,
+        "shadowed_by": "/Users/triton/Documents/GitHub/agentic-research",
+        "shadowed": true,
+        "metadata": {
+          "schema_version": "4",
+          "embed_model": "openai/text-embedding-3-small",
+          "embedding_api_url": "https://openrouter.ai/api/v1",
+          "vec_dim": "1536"
+        }
+      }
+    ],
+    "configured_index_roots": [
       {
-        "root": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents",
-        "index_path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents/.md-navigator/index.sqlite",
-        "last_touched": "__VOLATILE__",
-        "index_size_bytes": 4534272
+        "root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+        "pattern": "knowledge/**"
       }
     ],
     "unindexed_with_md": [],
@@ -71,6 +139,65 @@
       "runs",
       "target",
       "venv"
+    ],
+    "conflicts": [
+      {
+        "root": "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server",
+        "relative_root": "experiments/md-embedding-server",
+        "index_path": "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server/.md-navigator/index.sqlite",
+        "shadowed_by": "/Users/triton/Documents/GitHub/agentic-research",
+        "conflicting": true,
+        "conflict_reasons": [
+          "nested_index_metadata_unreadable"
+        ],
+        "metadata": {},
+        "generated_files": [
+          "/Users/triton/Documents/GitHub/agentic-research/experiments/md-embedding-server/.md-navigator/index.sqlite"
+        ],
+        "metadata_error": "OperationalError",
+        "detail": "no such table: meta"
+      },
+      {
+        "root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+        "relative_root": "knowledge",
+        "index_path": "/Users/triton/Documents/GitHub/agentic-research/knowledge/.md-navigator/index.sqlite",
+        "shadowed_by": "/Users/triton/Documents/GitHub/agentic-research",
+        "conflicting": true,
+        "conflict_reasons": [
+          "embed_model_mismatch",
+          "vec_dim_mismatch"
+        ],
+        "metadata": {
+          "schema_version": "4",
+          "embed_model": "openai/text-embedding-3-small",
+          "embedding_api_url": "https://openrouter.ai/api/v1",
+          "vec_dim": "1536"
+        },
+        "generated_files": [
+          "/Users/triton/Documents/GitHub/agentic-research/knowledge/.md-navigator/index.sqlite",
+          "/Users/triton/Documents/GitHub/agentic-research/knowledge/.md-navigator/index.sqlite-wal",
+          "/Users/triton/Documents/GitHub/agentic-research/knowledge/.md-navigator/index.sqlite-shm",
+          "/Users/triton/Documents/GitHub/agentic-research/knowledge/.md-navigator/index.lock"
+        ]
+      }
+    ],
+    "read_next": [
+      {
+        "tool": "md_corpus_scan",
+        "args": {
+          "root": "/Users/triton/Documents/GitHub/agentic-research"
+        },
+        "reason": "Narrow to the intended corpus before choosing which shadowed indexes to clean."
+      },
+      {
+        "tool": "md_index",
+        "args": {
+          "corpus": "/Users/triton/Documents/GitHub/agentic-research",
+          "cleanup_shadowed": true,
+          "dry_run": true
+        },
+        "reason": "Preview cleanup only after confirming this is the intended corpus owner."
+      }
     ]
   }
 }

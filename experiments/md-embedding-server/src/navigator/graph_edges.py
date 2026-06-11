@@ -221,6 +221,8 @@ def scan_doc(doc: Doc) -> list[Finding]:
     for key in LEGACY_FIELDS:
         if key in doc.frontmatter:
             findings.append(Finding("LEGACY_FIELD", doc.rel, key))
+    if "zone" in doc.frontmatter and not isinstance(doc.frontmatter.get("zone"), str):
+        findings.append(Finding("ZONE_NOT_STRING", doc.rel, "zone must be a string"))
     for key in doc.frontmatter:
         if key not in ALLOWED_FIELDS and key not in LEGACY_FIELDS:
             findings.append(Finding("UNKNOWN_FIELD", doc.rel, key))

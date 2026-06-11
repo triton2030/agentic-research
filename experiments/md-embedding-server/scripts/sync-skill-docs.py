@@ -60,6 +60,7 @@ STALE_TOOL_IDS = (
     "md_scan",
     "md_search",
     "md_search_read",
+    "md_semantic_neighbors",
     "md_section_blast_radius",
     "md_status",
     "md_strip",

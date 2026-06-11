@@ -18,6 +18,7 @@ def index(
     path_include: Iterable[str] | str | None = None,
     path_exclude: Iterable[str] | str | None = None,
     vacuum: bool = False,
+    cleanup_shadowed: bool = False,
     embed_model: str | None = None,
     embedding_api_url: str | None = None,
     embedding_timeout: float | None = None,
@@ -34,6 +35,7 @@ def index(
         vacuum_index,
         vacuum_preview,
     )
+    from .index_resolution import cleanup_shadowed_indexes
     from .index_build import _chunks_for_item, ensure_index
     from .index_meta import (
         _index_dir_for_corpus,
@@ -47,6 +49,13 @@ def index(
     if not corpus_root.exists():
         return _exit({"error": "path_not_found", "corpus": str(corpus_root)}, 2)
     cache_root = Path(cache_dir).expanduser() if cache_dir else None
+    if cleanup_shadowed:
+        return cleanup_shadowed_indexes(
+            corpus_root,
+            dry_run=dry_run,
+            confirm=confirm,
+            cache_root=cache_root,
+        )
     filter_layers = resolve_filter_layers_for_domain(
         corpus_root, domain="index",
         path_include=path_include, path_exclude=path_exclude,

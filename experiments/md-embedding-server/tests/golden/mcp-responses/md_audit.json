@@ -9,19 +9,89 @@
       "version": 1,
       "tool": "md_audit",
       "corpus_root": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents",
-      "corpus_state": null,
+      "corpus_state": {
+        "state": "NO_INDEX",
+        "model": "baai/bge-m3",
+        "index_exists": false,
+        "last_touched": null,
+        "added_sections": 22,
+        "removed_sections": 0,
+        "pending_chunks": 22,
+        "drift_count": 0,
+        "metadata_mismatch": false,
+        "delta_too_large": false,
+        "recommended_action": {
+          "tool": "md_index",
+          "args": {
+            "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+            "dry_run": true,
+            "path_include": [
+              "agents/**"
+            ]
+          },
+          "reason": "Index does not exist; dry-run warmup before search."
+        }
+      },
       "lock": null,
       "cost": {
         "turn_usd": "__VOLATILE__",
         "session_usd": "__VOLATILE__"
       },
       "size_estimate": {
-        "bytes": 72,
+        "bytes": 615,
         "items_returned": 0
       },
-      "next_step": []
+      "next_step": [
+        {
+          "tool": "md_index",
+          "args": {
+            "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+            "path_include": [
+              "agents/**"
+            ],
+            "dry_run": true
+          },
+          "reason": "Preview embedding cost before warming the parent index for this path scope."
+        },
+        {
+          "tool": "md_audit",
+          "args": {
+            "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+            "path_include": [
+              "agents/**"
+            ]
+          },
+          "reason": "Retry the original call once the index is warm."
+        }
+      ]
     },
-    "error": "dependency_failed",
-    "detail": "No module named 'sqlite_vec'"
+    "error": "index_warmup_required",
+    "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge/agents",
+    "suggested_index_args": {
+      "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+      "path_include": [
+        "agents/**"
+      ],
+      "dry_run": true
+    },
+    "suggested_retry_args": {
+      "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+      "path_include": [
+        "agents/**"
+      ]
+    },
+    "read_next": [
+      {
+        "tool": "md_index",
+        "args": {
+          "corpus": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
+          "path_include": [
+            "agents/**"
+          ],
+          "dry_run": true
+        },
+        "reason": "Warm the semantic index before retrying this read."
+      }
+    ]
   }
 }

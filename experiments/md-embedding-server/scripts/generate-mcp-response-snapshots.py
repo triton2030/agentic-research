@@ -22,10 +22,12 @@ from md_cli.catalog import TOOLS_BY_ID  # noqa: E402
 
 
 CANONICAL_OVERRIDES: dict[str, dict[str, Any]] = {
+    "md_canon_check": {"file": str(FIXTURE / "README.md"), "corpus": str(FIXTURE)},
     "md_cluster": {"corpus": str(FIXTURE)},
     "md_coherence_audit": {"path": str(ROOT / "README.md"), "scan": str(FIXTURE)},
     "md_extract": {"map_data": {"root": str(FIXTURE), "files": []}},
     "md_search_read": {"corpus": str(FIXTURE), "query": "sample"},
+    "md_semantic_neighbors": {"target": str(FIXTURE / "README.md"), "corpus": str(FIXTURE)},
 }
 
 

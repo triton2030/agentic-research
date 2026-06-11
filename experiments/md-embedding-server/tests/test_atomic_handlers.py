@@ -22,6 +22,8 @@ ATOMIC_COMMANDS = {
     "md_importance": ["importance", str(CORPUS), "--json"],
     "md_extract": ["extract", "--map-data", json.dumps({"root": str(CORPUS), "files": []}), "--json"],
     "md_search": ["search", str(CORPUS), "--query", "sample", "--json"],
+    "md_search_read": ["search-read", str(CORPUS), "--query", "sample", "--json"],
+    "md_semantic_neighbors": ["semantic-neighbors", str(README), str(CORPUS), "--json"],
     "md_overlaps": ["overlaps", str(CORPUS), "--json"],
     "md_repeated_concepts": ["repeated-concepts", str(CORPUS), "--json"],
     "md_audit": ["audit", str(CORPUS), "--json"],
@@ -39,6 +41,7 @@ ATOMIC_COMMANDS = {
     "md_preflight": ["preflight", str(README), "--scan", str(CORPUS), "--json"],
     "md_cluster": ["cluster", str(CORPUS), "--json"],
     "md_coherence_audit": ["coherence-audit", str(README), "--scan", str(CORPUS), "--json"],
+    "md_walk": ["walk", str(README), "--anchor", "Rule", "--scan", str(CORPUS), "--depth", "1", "--json"],
 }
 
 
@@ -53,9 +56,9 @@ def _dispatch(tool_id: str, args) -> ToolResult:
     return _generic.run_tool(tool_id, args)
 
 
-def test_25_atomic_handlers_return_tool_result() -> None:
+def test_atomic_handlers_return_tool_result() -> None:
     parser = build_parser()
-    assert len(ATOMIC_COMMANDS) == 25
+    assert set(ATOMIC_COMMANDS) <= set(TOOLS_BY_ID)
     for tool_id, argv in ATOMIC_COMMANDS.items():
         args = parser.parse_args(argv)
         result = _dispatch(tool_id, args)
@@ -80,7 +83,7 @@ def test_atomic_handlers_are_thin() -> None:
         assert "sys.exit" not in text
 
 
-def test_atomic_help_works_for_all_25() -> None:
+def test_atomic_help_works_for_all() -> None:
     parser = build_parser()
     for _tool_id, argv in ATOMIC_COMMANDS.items():
         try:

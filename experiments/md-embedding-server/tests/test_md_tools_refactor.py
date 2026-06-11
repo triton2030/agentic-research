@@ -103,7 +103,7 @@ def test_read_related_full_includes_content(tmp_path):
     assert any("content" in item for item in packet["items"])
 
 
-def test_read_related_semantic_status_reports_missing_index(tmp_path):
+def test_read_related_semantic_radius_routes_to_semantic_neighbors(tmp_path):
     root = tmp_path / "corpus"
     root.mkdir()
     anchor = root / "a.md"
@@ -124,8 +124,9 @@ def test_read_related_semantic_status_reports_missing_index(tmp_path):
         )
     )
 
-    assert packet["semantic_status"] == "no_index"
-    assert packet["semantic_neighbors"] == []
+    assert packet["_exit_code"] == 2
+    assert packet["error"] == "semantic_radius_retired"
+    assert packet["read_next"][0]["tool"] == "md_semantic_neighbors"
 
 
 def test_section_profile_classifies_rule_and_question():

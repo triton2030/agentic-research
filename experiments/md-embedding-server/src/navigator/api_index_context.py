@@ -13,7 +13,7 @@ def _index_missing(corpus: str | Path, *, cache_root: Path | None = None) -> boo
     from .index import _index_dir_for_corpus
 
     root = Path(corpus).expanduser().resolve()
-    return not (_index_dir_for_corpus(root, cache_root=cache_root) / "index.sqlite").exists()
+    return not (_index_dir_for_corpus(root, cache_root=cache_root, create=False) / "index.sqlite").exists()
 
 
 def _index_warmup(

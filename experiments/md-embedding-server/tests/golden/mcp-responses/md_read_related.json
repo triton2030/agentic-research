@@ -13,7 +13,29 @@
       "version": 1,
       "tool": "md_read_related",
       "corpus_root": "/Users/triton/Documents/GitHub/agentic-research/knowledge",
-      "corpus_state": null,
+      "corpus_state": {
+        "state": "NEEDS_WARMUP",
+        "model": "openai/text-embedding-3-small",
+        "index_exists": true,
+        "last_touched": "__VOLATILE__",
+        "added_sections": 55,
+        "removed_sections": 0,
+        "pending_chunks": 58,
+        "drift_count": 0,
+        "metadata_mismatch": false,
+        "delta_too_large": true,
+        "recommended_action": {
+          "tool": "md_index",
+          "args": {
+            "corpus": "/Users/triton/Documents/GitHub/agentic-research",
+            "dry_run": true,
+            "path_include": [
+              "knowledge/**"
+            ]
+          },
+          "reason": "Pending delta exceeds auto-embed cap; dry-run index before search."
+        }
+      },
       "lock": null,
       "cost": {
         "turn_usd": "__VOLATILE__",

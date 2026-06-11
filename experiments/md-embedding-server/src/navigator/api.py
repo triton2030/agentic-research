@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -21,7 +20,8 @@ from .api_index_context import DEFAULT_SEARCH_READ_TOKEN_BUDGET
 from .api_profile import index, profile_sections
 from .api_search import search, search_read
 from .api_utils import _list, _ns
-from .markdown_io import DEFAULT_EXCLUDED_PARTS
+from .corpus_scan import corpus_scan
+from .semantic_neighbors import semantic_neighbors
 
 
 def ping() -> dict[str, object]:
@@ -30,49 +30,6 @@ def ping() -> dict[str, object]:
         "version": "0.7.0",
         "navigator_package": "navigator",
         "graph_package": "navigator.graph_core+navigator.graph_reports",
-    }
-
-
-def corpus_scan(root: str | Path = ".") -> dict[str, object]:
-    repo_root = Path(root).expanduser().resolve()
-    corpora: list[dict[str, object]] = []
-    unindexed: list[dict[str, object]] = []
-
-    for current, dirnames, filenames in os.walk(repo_root):
-        dirnames[:] = [
-            name
-            for name in dirnames
-            if name not in DEFAULT_EXCLUDED_PARTS
-            and not (name.startswith(".") and name not in {".", ".."})
-        ]
-        current_path = Path(current)
-        index_path = current_path / ".md-navigator" / "index.sqlite"
-        has_index = index_path.exists()
-        if has_index:
-            stat = index_path.stat()
-            corpora.append(
-                {
-                    "root": str(current_path),
-                    "index_path": str(index_path),
-                    "last_touched": stat.st_mtime,
-                    "index_size_bytes": stat.st_size,
-                }
-            )
-        md_count = sum(1 for name in filenames if name.endswith((".md", ".mdx")))
-        if md_count and not has_index:
-            unindexed.append({"folder": str(current_path), "md_files": md_count})
-
-    corpus_roots = [Path(str(item["root"])) for item in corpora]
-    uncovered = [
-        item
-        for item in unindexed
-        if not any(Path(str(item["folder"])).is_relative_to(corpus) for corpus in corpus_roots)
-    ]
-    return {
-        "repo_root": str(repo_root),
-        "corpora": corpora,
-        "unindexed_with_md": uncovered,
-        "excluded_dirs_skipped": sorted(DEFAULT_EXCLUDED_PARTS),
     }
 
 

@@ -52,7 +52,7 @@ LEGACY_FIELDS = (
     "updated_at",
     "depends_on",
 )
-ALLOWED_FIELDS = {"description", "depends-on"}
+ALLOWED_FIELDS = {"description", "depends-on", "zone"}
 RELATED_SECTION_RE = re.compile(
     r"(?ms)^##\s+(?:Связанные документы|Related documents)\s*\n.*?(?=^#{1,2}\s|\Z)"
 )
@@ -325,6 +325,10 @@ def strip_related_section(body: str) -> tuple[str, bool]:
 
 def load_target_doc(path_value: str, root: Path) -> Doc:
     target_path = _resolve_invocation_path(path_value, root)
-    if not target_path.exists():
+    if (
+        not target_path.exists()
+        or not target_path.is_file()
+        or target_path.suffix.lower() not in {".md", ".mdx"}
+    ):
         raise PathNotFound(path_value)
     return load_doc(target_path, root)

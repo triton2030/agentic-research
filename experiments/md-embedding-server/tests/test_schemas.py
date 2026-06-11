@@ -52,6 +52,23 @@ def test_search_read_schema_describes_body_sections() -> None:
     assert "content" in row["properties"]
 
 
+def test_semantic_neighbors_schema_marks_candidates_non_obligations() -> None:
+    s = ALL_SCHEMAS["semantic-neighbors"]
+    required = set(s["required"])
+    assert required >= {"target", "candidates", "usage_note", "read_next"}
+    row = s["properties"]["candidates"]["items"]
+    assert set(row["required"]) >= {
+        "relative_path",
+        "heading_chain",
+        "start_line",
+        "snippet",
+        "matched_target",
+        "mdref",
+    }
+    assert row["properties"]["obligation"]["const"] is False
+    assert row["properties"]["graph_edge"]["const"] is False
+
+
 def test_specific_schema_is_retrievable_by_target() -> None:
     """A named schema is reachable as data and carries its dialect/title.
     (Replaces the retired `md schema --for search` CLI test — same intent:
@@ -75,6 +92,7 @@ def test_all_schemas_map_covers_every_target() -> None:
         "overlaps",
         "repeated-concepts",
         "cluster",
+        "semantic-neighbors",
         "audit",
     }
     for name, schema in ALL_SCHEMAS.items():

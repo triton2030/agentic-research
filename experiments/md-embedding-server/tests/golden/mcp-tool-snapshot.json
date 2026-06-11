@@ -10,7 +10,7 @@
       "session_usd": 0.0
     },
     "size_estimate": {
-      "bytes": 65621,
+      "bytes": 71693,
       "items_returned": 0,
       "large_reply": true
     },
@@ -292,6 +292,94 @@
       "cli_signature": "md corpus-scan [ROOT] --json",
       "transaction_required": false,
       "cost_bearing": false
+    },
+    {
+      "name": "md_canon_check",
+      "cli_name": "canon-check",
+      "category": "workflow",
+      "library_function": null,
+      "workflow_function": "navigator.workflows.canon_check",
+      "tests_module": "tests.test_canon_check_workflow",
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true,
+        "readOnlyHint": false
+      },
+      "description": {
+        "when": "Before or after editing normative Markdown claim candidates that may contradict a declared canon root.",
+        "why": "Splits a file into deterministic claim candidates, runs authority-first retrieval plus broad discovery, and separates authority, dependent-context, and parking quotes in one command instead of a manual search sequence.",
+        "input": "file, optional corpus, mode single|pack|pack-graph|pack-graph-rerank, limit, max_claims, path_include/exclude, rerank, expanded.",
+        "output": "{ workflow, file, mode, scope_policy, stats, pairs, quality_flags, advice, read_next }. Each pair has authority_quotes, dependent_quotes, parking_quotes, plus compatibility quotes. Evidence is not a verdict.",
+        "alt": "Use md_search_read for ordinary semantic lookup. Use md_preflight/md_check for graph/link safety.",
+        "cost": "Cold corpus returns index_warmup_required. Warm default uses authority + discovery channels, so cost is roughly claims x projections x channels; default max_claims=20, single uses 1 projection, pack modes use up to 4. Rerank flag adds external API cost if available."
+      },
+      "input_schema": {
+        "properties": {
+          "file": {
+            "description": "Markdown file whose normative claim candidates should be checked.",
+            "minLength": 1,
+            "type": "string"
+          },
+          "corpus": {
+            "description": "Markdown corpus root. Default is the file parent when omitted.",
+            "type": "string"
+          },
+          "mode": {
+            "description": "Retrieval mode: raw claim only, query pack, query pack plus graph bonus, or graph plus rerank.",
+            "enum": [
+              "single",
+              "pack",
+              "pack-graph",
+              "pack-graph-rerank"
+            ],
+            "type": "string"
+          },
+          "limit": {
+            "description": "Maximum candidate sections per claim before pair construction. Default 10.",
+            "exclusiveMinimum": 0,
+            "maximum": 50,
+            "type": "integer"
+          },
+          "max_claims": {
+            "description": "Maximum claim candidates to check from the file. Default 20.",
+            "exclusiveMinimum": 0,
+            "maximum": 100,
+            "type": "integer"
+          },
+          "path_include": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to use as an explicit authority scope instead of the [canon] default policy."
+          },
+          "path_exclude": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "type": "array",
+            "description": "Repeatable path glob/subpath filter to exclude. The source file and instruction files are always excluded from evidence quotes."
+          },
+          "rerank": {
+            "description": "Apply cross-encoder rerank after retrieval, falling back to RRF order if unavailable.",
+            "type": "boolean"
+          },
+          "expanded": {
+            "description": "Include longer quote text instead of snippets.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "type": "object"
+      },
+      "cli_signature": "md canon-check FILE [CORPUS] [--mode MODE] [--limit LIMIT] [--max-claims MAX_CLAIMS] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--rerank] [--expanded] --json",
+      "transaction_required": false,
+      "cost_bearing": true
     },
     {
       "name": "md_cycles",
@@ -729,10 +817,10 @@
       "description": {
         "when": "New corpus / md_search returns index_warmup_required / large delta detected by md_status.",
         "why": "One-shot warmup; subsequent md_search / md_overlaps / md_repeated_concepts become instant.",
-        "input": "corpus, confirm (required true), dry_run (estimate cost without running), batch_size, batch_pause_ms, path_include/exclude for partial indexes, allow_nested_corpus escape hatch, vacuum for explicit SQLite compaction.",
-        "output": "OUTPUT (live): { embedded, reused, removed_sections, cleanup_sections, cleanup_chunks, vacuum? }. OUTPUT (dry_run): { dry_run: true, pending_chunks, estimated_cost_usd, cleanup_sections, cleanup_chunks, vacuum? }.",
-        "alt": "md_status to check state first.",
-        "cost": "~$0.02 per ~1000 chunks via OpenRouter bge-m3. Use dry_run:true first. Refuses without confirm:true."
+        "input": "corpus, confirm (required true), dry_run (estimate cost without running), batch_size, batch_pause_ms, path_include/exclude for partial indexes, allow_nested_corpus escape hatch, cleanup_shadowed for explicit nested-index cleanup, vacuum for explicit SQLite compaction.",
+        "output": "OUTPUT (live): { embedded, reused, removed_sections, cleanup_sections, cleanup_chunks, vacuum? } or cleanup-shadowed deleted files. OUTPUT (dry_run): { dry_run: true, pending_chunks, estimated_cost_usd, cleanup_sections, cleanup_chunks, vacuum? } or shadowed generated files.",
+        "alt": "md_status to check state first; md_corpus_scan to inspect nested/shadowed indexes.",
+        "cost": "~$0.02 per ~1000 chunks via OpenRouter bge-m3. cleanup_shadowed is filesystem-only. Use dry_run:true first. Refuses without confirm:true."
       },
       "input_schema": {
         "properties": {
@@ -751,6 +839,10 @@
             "maximum": 128,
             "type": "integer",
             "description": "Number of chunks to embed per batch."
+          },
+          "cleanup_shadowed": {
+            "description": "Explicit maintenance mode: dry-run/confirm deletion of generated nested .md-navigator index files shadowed by this corpus.",
+            "type": "boolean"
           },
           "confirm": {
             "description": "Required true to actually run. Default false rejects with cost warning.",
@@ -801,7 +893,7 @@
         ],
         "type": "object"
       },
-      "cli_signature": "md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--allow-nested-corpus] [--vacuum] --json",
+      "cli_signature": "md index CORPUS [--confirm] [--dry-run] [--transaction-id TRANSACTION_ID] [--fingerprint FINGERPRINT] [--batch-size BATCH_SIZE] [--batch-pause-ms BATCH_PAUSE_MS] [--max-heading-level MAX_HEADING_LEVEL] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--allow-nested-corpus] [--cleanup-shadowed] [--vacuum] --json",
       "transaction_required": true,
       "cost_bearing": true
     },
@@ -1358,11 +1450,11 @@
       },
       "description": {
         "when": "Before editing a file you don't know well, understand its graph dependencies, gather context for a question that spans files.",
-        "why": "Walks wikilinks + markdown-links + backlinks + (optional) semantic neighbors in one packet. preview mode omits bodies for fast scan.",
-        "input": "paths, scan, include, mode ('preview'|'full', default preview), expanded (alias for full), anchor_aware, token_budget, semantic_radius, check_links.",
-        "output": "{ items:[{path, description, title, headings, reasons}], content_included:false, read_next }. --expanded/mode full includes content bodies.",
-        "alt": "md_edit_context composite bundles this with preflight. md_extract for known sections without graph walk.",
-        "cost": "Free unless semantic_radius>0 or check_links (uses on-disk vecs, no HTTP)."
+        "why": "Walks wikilinks + markdown-links + backlinks as graph/link context. --semantic-radius is retired and returns a route to md_semantic_neighbors.",
+        "input": "paths, scan, include, mode ('preview'|'full', default preview), expanded (alias for full), anchor_aware, token_budget, retired semantic_radius, check_links.",
+        "output": "{ items:[{path, description, title, headings, reasons}], content_included:false, read_next }. --expanded/mode full includes content bodies. --semantic-radius returns semantic_radius_retired.",
+        "alt": "md_edit_context composite bundles this with preflight. md_semantic_neighbors for target-based semantic candidates. md_extract for known sections without graph walk.",
+        "cost": "Free unless check_links (uses on-disk vecs, no HTTP). semantic_radius no longer performs retrieval."
       },
       "input_schema": {
         "properties": {
@@ -1409,7 +1501,7 @@
             "type": "string"
           },
           "semantic_radius": {
-            "description": "Append top-K semantic neighbors not in the link graph (0 = off)",
+            "description": "Retired compatibility flag. If >0, returns a structured route to md semantic-neighbors instead of doing retrieval here.",
             "maximum": 9007199254740991,
             "minimum": 0,
             "type": "integer"
@@ -1847,6 +1939,70 @@
       "cli_signature": "md search-read CORPUS --query QUERY [--scope SCOPE] [--limit LIMIT] [--candidates CANDIDATES] [--max-heading-level MAX_HEADING_LEVEL] [--rerank] [--path-include PATH_INCLUDE] [--path-exclude PATH_EXCLUDE] [--token-budget TOKEN_BUDGET] [--expanded] --json",
       "transaction_required": false,
       "cost_bearing": true
+    },
+    {
+      "name": "md_semantic_neighbors",
+      "cli_name": "semantic-neighbors",
+      "category": "atomic",
+      "library_function": "navigator.api.semantic_neighbors",
+      "workflow_function": null,
+      "tests_module": "tests.test_semantic_neighbors",
+      "annotations": {
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false,
+        "readOnlyHint": true
+      },
+      "description": {
+        "when": "Given a Markdown file or folder, find external indexed blocks that may be useful to it.",
+        "why": "Target-based semantic neighbor lookup over an already-warm explicit corpus index. No HTTP, no writes, no graph obligation, and refuses nested index conflicts instead of choosing silently.",
+        "input": "target file/folder, explicit corpus, limit, expanded/token_budget for bodies.",
+        "output": "{ target, candidates:[{relative_path, heading_chain, start_line, snippet, matched_target, mdref}], usage_note, read_next }. candidates are not graph obligations.",
+        "alt": "md_read_related for explicit link/backlink context. md_search_read for free-text query retrieval.",
+        "cost": "Free after index warmup. Reads existing sqlite/vec index only; returns index_warmup_required if cold."
+      },
+      "input_schema": {
+        "properties": {
+          "target": {
+            "description": "Markdown file or folder to compare against the corpus.",
+            "minLength": 1,
+            "type": "string"
+          },
+          "corpus": {
+            "description": "Explicit Markdown corpus root with a warm md-navigator index.",
+            "minLength": 1,
+            "type": "string"
+          },
+          "limit": {
+            "description": "Maximum number of external candidate blocks to return. Default 8.",
+            "exclusiveMinimum": 0,
+            "maximum": 50,
+            "type": "integer"
+          },
+          "expanded": {
+            "description": "Include candidate section bodies under token_budget. Default false returns snippets only.",
+            "type": "boolean"
+          },
+          "token_budget": {
+            "description": "Approx output budget for expanded bodies. Default 3000 when expanded; pass 0 for unbounded.",
+            "maximum": 9007199254740991,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "cache_dir": {
+            "description": "Optional index cache root override.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target",
+          "corpus"
+        ],
+        "type": "object"
+      },
+      "cli_signature": "md semantic-neighbors TARGET CORPUS [--limit LIMIT] [--expanded] [--token-budget TOKEN_BUDGET] [--cache-dir CACHE_DIR] --json",
+      "transaction_required": false,
+      "cost_bearing": false
     },
     {
       "name": "md_section_blast_radius",

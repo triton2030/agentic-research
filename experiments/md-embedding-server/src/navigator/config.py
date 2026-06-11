@@ -44,9 +44,20 @@ class DomainFilters:
 
 
 @dataclass(frozen=True)
+class CanonConfig:
+    root: tuple[str, ...]
+    future: tuple[str, ...]
+
+    @classmethod
+    def empty(cls) -> "CanonConfig":
+        return cls(root=(), future=())
+
+
+@dataclass(frozen=True)
 class CorpusConfig:
     index: DomainFilters
     graph: DomainFilters
+    canon: CanonConfig
     source: Path | None  # config file path, or None for empty/missing
 
     @classmethod
@@ -54,6 +65,7 @@ class CorpusConfig:
         return cls(
             index=DomainFilters.empty(),
             graph=DomainFilters.empty(),
+            canon=CanonConfig.empty(),
             source=None,
         )
 
@@ -105,6 +117,17 @@ def _read_domain(
     )
 
 
+def _read_canon(data: dict, source: Path) -> CanonConfig:
+    section_name = "canon"
+    section = data.get(section_name, {}) or {}
+    if not isinstance(section, dict):
+        raise SystemExit(f"{source}: [{section_name}] must be a table")
+    return CanonConfig(
+        root=_read_glob_list(section, "root", section_name, source),
+        future=_read_glob_list(section, "future", section_name, source),
+    )
+
+
 def load_corpus_config(corpus_root: Path) -> CorpusConfig:
     """Read `<corpus_root>/.md-tools.toml`. Missing file → empty config.
 
@@ -125,6 +148,7 @@ def load_corpus_config(corpus_root: Path) -> CorpusConfig:
     return CorpusConfig(
         index=_read_domain(data, "index", config_path),
         graph=_read_domain(data, "graph", config_path),
+        canon=_read_canon(data, config_path),
         source=config_path,
     )
 

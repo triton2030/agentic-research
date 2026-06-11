@@ -473,7 +473,7 @@ def resolve_input_path(value: str, scan_root: Path) -> Path:
     for candidate in candidates:
         if candidate.exists() and candidate.is_file():
             return candidate.resolve()
-    raise SystemExit(f"Markdown file does not exist: {value}")
+    raise FileNotFoundError(f"Markdown file does not exist: {value}")
 
 
 def relative_path(path: Path, root: Path) -> str:

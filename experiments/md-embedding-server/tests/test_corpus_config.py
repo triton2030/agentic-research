@@ -7,6 +7,7 @@ from pathlib import Path
 import pytest
 
 from navigator.config import (
+    CanonConfig,
     CONFIG_FILENAME,
     CorpusConfig,
     DomainFilters,
@@ -27,6 +28,7 @@ def test_missing_file_returns_empty_config(tmp_path: Path) -> None:
     assert cfg.source is None
     assert cfg.index.include == ()
     assert cfg.graph.exclude == ()
+    assert cfg.canon == CanonConfig.empty()
 
 
 def test_empty_toml_returns_empty_filters_but_records_source(
@@ -37,6 +39,7 @@ def test_empty_toml_returns_empty_filters_but_records_source(
     cfg = load_corpus_config(tmp_path)
     assert cfg.index == DomainFilters.empty()
     assert cfg.graph == DomainFilters.empty()
+    assert cfg.canon == CanonConfig.empty()
     assert cfg.source == config_path.resolve()
 
 
@@ -48,7 +51,11 @@ def test_loads_both_sections(tmp_path: Path) -> None:
         "\n"
         "[graph]\n"
         "include = []\n"
-        'exclude = ["_ops/plans/*", "drafts/**"]\n',
+        'exclude = ["_ops/plans/*", "drafts/**"]\n'
+        "\n"
+        "[canon]\n"
+        'root = ["01_*"]\n'
+        'future = ["05_*"]\n',
         encoding="utf-8",
     )
     cfg = load_corpus_config(tmp_path)
@@ -56,6 +63,8 @@ def test_loads_both_sections(tmp_path: Path) -> None:
     assert cfg.index.exclude == ("experiments/all-my-messages/*",)
     assert cfg.graph.include == ()
     assert cfg.graph.exclude == ("_ops/plans/*", "drafts/**")
+    assert cfg.canon.root == ("01_*",)
+    assert cfg.canon.future == ("05_*",)
 
 
 def test_only_index_section_present(tmp_path: Path) -> None:
@@ -65,6 +74,7 @@ def test_only_index_section_present(tmp_path: Path) -> None:
     cfg = load_corpus_config(tmp_path)
     assert cfg.index.exclude == ("foo/*",)
     assert cfg.graph == DomainFilters.empty()
+    assert cfg.canon == CanonConfig.empty()
 
 
 def test_strips_whitespace_and_drops_empty_entries(tmp_path: Path) -> None:
@@ -115,6 +125,16 @@ def test_section_not_a_table_exits(tmp_path: Path) -> None:
     with pytest.raises(SystemExit) as exc:
         load_corpus_config(tmp_path)
     assert "[index] must be a table" in str(exc.value)
+
+
+def test_canon_wrong_type_exits(tmp_path: Path) -> None:
+    (tmp_path / CONFIG_FILENAME).write_text(
+        '[canon]\nroot = "01_*"\n',
+        encoding="utf-8",
+    )
+    with pytest.raises(SystemExit) as exc:
+        load_corpus_config(tmp_path)
+    assert "[canon].root" in str(exc.value)
 
 
 def test_frozen_dataclass_rejects_mutation() -> None:

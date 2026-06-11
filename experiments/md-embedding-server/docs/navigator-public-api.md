@@ -33,12 +33,13 @@ not honor `no_cache` by deleting/rebuilding indexes; they return a
 `cache_rebuild_requires_index` payload that points at a `md_index` dry-run.
 
 The package root also exposes the same atomic callable names (`navigator.search`,
-`navigator.preflight`, etc.) re-exported from `navigator.api`. Nine names that
+`navigator.preflight`, etc.) re-exported from `navigator.api`. Ten names that
 also have a backing module on disk (`search`, `audit`, `index`, `overlaps`,
-`repeated_concepts`, `importance`, `coherence_audit`, `corpus_scan`, `walk`)
-resolve to the **real module object** made callable, so `from navigator import
-search` yields the module (attributes and monkeypatching stay reachable) while
-`navigator.search(...)` still calls `api.search`. See "Callable modules" below.
+`repeated_concepts`, `importance`, `coherence_audit`, `corpus_scan`,
+`semantic_neighbors`, `walk`) resolve to the **real module object** made
+callable, so `from navigator import search` yields the module (attributes and
+monkeypatching stay reachable) while `navigator.search(...)` still calls
+`api.search`. See "Callable modules" below.
 
 ## Atomic functions
 
@@ -64,6 +65,7 @@ search` yields the module (attributes and monkeypatching stay reachable) while
 - `scan(paths=None, path_include=None, path_exclude=None) -> dict`
 - `search(corpus, query, **kwargs) -> dict`
 - `search_read(corpus, query, expanded=False, token_budget=None, **kwargs) -> dict`
+- `semantic_neighbors(target, corpus, limit=None, expanded=False, token_budget=None, cache_dir=None) -> dict`
 - `status(corpus, path_include=None, path_exclude=None, max_heading_level=None, max_auto_embed=None, expanded=False, **kwargs) -> dict`
 - `strip(paths=None, also_related_section=False, dry_run=False, confirm=False, path_include=None, path_exclude=None, **kwargs) -> dict`
 - `toc(path, max_heading_level=None, match=None, with_tokens=False, with_link_counts=False) -> dict`
@@ -76,10 +78,18 @@ workflows are thin aliases over the profile domain adapter; they return
 `profile_required` instead of lazily writing profile cache rows.
 
 - `workflows.orient(corpus, top=None, max_heading_level=None, compact=False, expanded=False) -> dict`
+- `workflows.canon_check(file, corpus=None, mode=None, limit=None, max_claims=None, path_include=None, path_exclude=None, rerank=False, expanded=False) -> dict`
 - `workflows.edit_context(path, mode=None, expanded=False, scan=None, depth=None, query=None, corpus=None) -> dict`
 - `workflows.refactor_candidates(corpus, **kwargs) -> dict`
 - `workflows.query_by_type(corpus, types, **kwargs) -> dict`
 - `workflows.section_blast_radius(path, corpus, query, heading_id=None, scan=None, depth=None, limit=None, path_include=None, path_exclude=None) -> dict`
+
+`workflows.canon_check` is an evidence collector, not a semantic judge. With
+`[canon]` configured, default lookup is authority-first: `[canon].root` quotes
+are returned as `authority_quotes`, product-zone echoes as `dependent_quotes`,
+and `[canon].future` evidence as `parking_quotes`. Compatibility `quotes`
+remains a bounded merged view; callers that need owner-safe behavior must read
+the role-specific fields.
 
 ## Boundary
 
@@ -116,11 +126,12 @@ explicitly.
 ## Callable modules: rationale & limits
 
 `navigator/__init__.py` keeps most public names as plain callables re-exported
-from `navigator.api`. Nine names that also have a backing module on disk
+from `navigator.api`. Ten names that also have a backing module on disk
 (`search`, `audit`, `index`, `overlaps`, `repeated_concepts`, `importance`,
-`coherence_audit`, `corpus_scan`, `walk`) are bound via `_bind_callable_module`,
-which swaps the real module's `__class__` to a `_CallableModule` subclass whose
-`__call__` delegates to the matching `navigator.api` function.
+`coherence_audit`, `corpus_scan`, `semantic_neighbors`, `walk`) are bound via
+`_bind_callable_module`, which swaps the real module's `__class__` to a
+`_CallableModule` subclass whose `__call__` delegates to the matching
+`navigator.api` function.
 
 **Dual contract obtained:**
 

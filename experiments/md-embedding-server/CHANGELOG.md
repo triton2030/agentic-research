@@ -1,5 +1,27 @@
 # Changelog
 
+## Unreleased — Canon-check workflow
+
+### Added
+
+- `md canon-check FILE [CORPUS]` gathers deterministic claim-to-canon evidence:
+  claim splitting, query-pack retrieval, graph bonus, optional rerank fallback,
+  `pairs`, `quality_flags`, `advice`, and payload-level `read_next`.
+- Canon-check evidence is role-aware: `authority_quotes` come from the canon
+  root, `dependent_quotes` from product-zone echoes, and `parking_quotes` from
+  future evidence. `AGENTS.md`/`CLAUDE.md` remain metadata sources but are not
+  evidence quotes.
+- `.md-tools.toml` supports `[canon] root = [...]` and `future = [...]`; folder
+  `AGENTS.md` may declare `zone:` for canon/product/future badges.
+
+### Deferred
+
+- Rerank-by-default and sparse/multi-vector tuning stay behind eval numbers;
+  live MAVO eval on 2026-06-11 did not clear the fixed default threshold
+  (owner-hit@10 >= 80% with zero clean false alarms) or the latency gate, so
+  the default mode is the cheaper `single` until a new eval set justifies
+  query-pack/graph/rerank.
+
 ## 3.0.0 — Agent-view output projection
 
 Bounded-by-default outputs with guaranteed progressive disclosure. On a

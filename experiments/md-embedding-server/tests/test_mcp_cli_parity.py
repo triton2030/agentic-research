@@ -21,6 +21,7 @@ ATOMIC_COMMANDS = {
     "md_extract": ["extract", "--map-data", json.dumps({"root": str(CORPUS), "files": []})],
     "md_search": ["search", str(CORPUS), "--query", "sample"],
     "md_search_read": ["search-read", str(CORPUS), "--query", "sample"],
+    "md_semantic_neighbors": ["semantic-neighbors", str(README), str(CORPUS)],
     "md_overlaps": ["overlaps", str(CORPUS)],
     "md_repeated_concepts": ["repeated-concepts", str(CORPUS)],
     "md_audit": ["audit", str(CORPUS)],
@@ -38,6 +39,7 @@ ATOMIC_COMMANDS = {
     "md_preflight": ["preflight", str(README), "--scan", str(CORPUS)],
     "md_cluster": ["cluster", str(CORPUS)],
     "md_coherence_audit": ["coherence-audit", str(README), "--scan", str(CORPUS)],
+    "md_walk": ["walk", str(README), "--anchor", "Rule", "--scan", str(CORPUS), "--depth", "1"],
 }
 
 
@@ -59,7 +61,11 @@ def test_atomic_cli_surface_matches_frozen_mcp_tool_names() -> None:
     snapshot_names = {tool["name"] for tool in snapshot["tools"]}
 
     assert set(ATOMIC_COMMANDS) <= snapshot_names
-    assert len(ATOMIC_COMMANDS) == 26
+    assert set(ATOMIC_COMMANDS) == {
+        tool["name"]
+        for tool in snapshot["tools"]
+        if tool["category"] in {"atomic", "mutating"}
+    }
     for tool_id, argv in ATOMIC_COMMANDS.items():
         result = _run_md(*argv)
         assert result.returncode in {0, 1, 4}, (tool_id, result.stderr)

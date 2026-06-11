@@ -93,6 +93,8 @@ def derive_next_step(
         _handle_status_guidance,
         _handle_map_guidance,
         _handle_walk_guidance,
+        _handle_owner_blind_search,
+        _handle_profiles_silent_zero,
     )
     for handler in handlers:
         steps = handler(
@@ -335,6 +337,8 @@ def _handle_embedded_read_next(
         "md_repeated_concepts",
         "md_query_by_type",
         "md_refactor_candidates",
+        "md_semantic_neighbors",
+        "md_canon_check",
     }:
         return []
     read_next = result.get("read_next")
@@ -520,6 +524,82 @@ def _handle_coherence_guidance(
             ),
         }
     ]
+
+
+def _handle_owner_blind_search(
+    result: dict[str, Any],
+    *,
+    tool_name: str | None,
+    args_dict: dict[str, Any],
+    corpus_root: str | None,
+    corpus_state: dict[str, Any] | None,
+    lock: dict[str, Any] | None,
+    size_estimate: dict[str, Any] | None,
+) -> list[NextStep]:
+    if tool_name not in {"md_search", "md_search_read"} or result.get("error") or args_dict.get("path_include"):
+        return []
+    if not corpus_root:
+        return []
+    try:
+        from navigator.config import load_corpus_config
+    except Exception:
+        return []
+    try:
+        cfg = load_corpus_config(corpus_root)
+    except Exception:
+        return []
+    if not cfg.canon.root:
+        return []
+    narrowed = dict(args_dict)
+    narrowed["path_include"] = list(cfg.canon.root)
+    return [
+        {
+            "tool": tool_name,
+            "args": narrowed,
+            "reason": (
+                "Corpus declares a [canon] root. For ownership or normative questions, "
+                "repeat scoped to the canon root or run md canon-check FILE for claim-level evidence."
+            ),
+        }
+    ]
+
+
+def _handle_profiles_silent_zero(
+    result: dict[str, Any],
+    *,
+    tool_name: str | None,
+    args_dict: dict[str, Any],
+    corpus_root: str | None,
+    corpus_state: dict[str, Any] | None,
+    lock: dict[str, Any] | None,
+    size_estimate: dict[str, Any] | None,
+) -> list[NextStep]:
+    if tool_name != "md_query_by_type" or result.get("error") or result.get("sections") != []:
+        return []
+    corpus = args_dict.get("corpus") or corpus_root
+    if not isinstance(corpus, str) or not corpus:
+        return []
+    steps: list[NextStep] = [
+        {
+            "tool": "md_profile_sections",
+            "args": {"corpus": corpus, "dry_run": True},
+            "reason": (
+                "Zero sections can mean partial profile coverage, not absence of rules. "
+                "Preview profiling before trusting the empty result."
+            ),
+        }
+    ]
+    if args_dict.get("types"):
+        retry_args = dict(args_dict)
+        retry_args.pop("types", None)
+        steps.append(
+            {
+                "tool": "md_query_by_type",
+                "args": retry_args,
+                "reason": "Retry without type filters if profiling coverage is uncertain.",
+            }
+        )
+    return steps
 
 
 def _recommended_action_for(

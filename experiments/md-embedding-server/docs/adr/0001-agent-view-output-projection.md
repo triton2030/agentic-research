@@ -33,7 +33,8 @@ depends-on:
 2. **Поинструментные шейперы** (в navigator-слое) выбирают поля и сворачивают:
    `orient` → `start_here` + `owner_docs` + folded `shape`; `ls` → folded
    `summary` + bounded top-N; `status` → headline + `recommended_action`;
-   `search` → lean-строки + `render`.
+   `search` → lean-строки + `render`; `semantic-neighbors` → candidate rows
+   with locators/snippets/no-obligation flags and payload-level `read_next`.
 
 Жёсткие инварианты:
 

@@ -38,10 +38,12 @@ def _smoke_commands(corpus: str, readme: str, map_json: str) -> list[tuple[str, 
         ("extract", "--map-data", map_json, "--files", "1"),
         ("search", corpus, "--query", "sample"),
         ("search-read", corpus, "--query", "sample"),
+        ("semantic-neighbors", readme, corpus),
         ("overlaps", corpus),
         ("repeated-concepts", corpus),
         ("audit", corpus),
         ("corpus-scan", corpus),
+        ("canon-check", readme, corpus),
         ("preflight", readme, "--scan", corpus),
         ("impact", readme, "--scan", corpus),
         ("deps", readme, "--scan", corpus),
@@ -62,10 +64,10 @@ def _smoke_commands(corpus: str, readme: str, map_json: str) -> list[tuple[str, 
     ]
 
 
-def test_all_32_cli_subcommands_emit_json_envelope() -> None:
+def test_all_cli_subcommands_emit_json_envelope() -> None:
     map_json = json.dumps(_run_json("ls", str(CORPUS)) | {"_envelope": None})
     commands = _smoke_commands(str(CORPUS), str(README), map_json)
-    assert len(commands) == 32
+    assert len(commands) >= 33
     for command in commands:
         result = _run_md(*command, "--json")
         assert result.returncode in {0, 1, 4}, (command, result.returncode, result.stderr)
@@ -73,7 +75,7 @@ def test_all_32_cli_subcommands_emit_json_envelope() -> None:
         assert payload["_envelope"]["tool"].startswith("md_")
 
 
-def test_all_32_cli_subcommands_emit_json_from_nested_cwd_with_relative_paths() -> None:
+def test_all_cli_subcommands_emit_json_from_nested_cwd_with_relative_paths() -> None:
     nested_cwd = ROOT / "src"
     corpus = "../tests/fixtures/sample-corpus"
     readme = "../tests/fixtures/sample-corpus/README.md"
@@ -81,7 +83,7 @@ def test_all_32_cli_subcommands_emit_json_from_nested_cwd_with_relative_paths() 
         _run_json("ls", corpus, cwd=nested_cwd) | {"_envelope": None}
     )
     commands = _smoke_commands(corpus, readme, map_json)
-    assert len(commands) == 32
+    assert len(commands) >= 33
     for command in commands:
         result = _run_md(*command, "--json", cwd=nested_cwd)
         assert result.returncode in {0, 1, 4}, (command, result.returncode, result.stderr)
