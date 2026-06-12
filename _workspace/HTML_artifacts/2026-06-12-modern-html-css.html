@@ -1,0 +1,826 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HTML и CSS 2026 - нативные фичи</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  :root {
+    --demo-ink: oklch(0.18 0.035 260);
+    --demo-blue: oklch(0.52 0.17 255);
+    --demo-cyan: oklch(0.72 0.13 195);
+    --demo-lime: oklch(0.76 0.16 135);
+    --demo-rose: oklch(0.64 0.18 20);
+    --demo-violet: oklch(0.56 0.18 305);
+    --demo-yellow: oklch(0.84 0.15 82);
+    --demo-line: color-mix(in oklch, var(--accent) 24%, var(--border));
+  }
+
+  body {
+    --measure: 48rem;
+    --container: 68rem;
+  }
+
+  .demo-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(18rem, 0.85fr);
+    gap: clamp(1.2rem, 4vw, 2.4rem);
+    align-items: end;
+    margin-block: 1.2rem 2.2rem;
+  }
+
+  .hero-panel {
+    border: 1px solid var(--demo-line);
+    border-radius: 0.7rem;
+    background:
+      linear-gradient(135deg, color-mix(in oklch, var(--demo-blue) 16%, transparent), transparent 46%),
+      linear-gradient(315deg, color-mix(in oklch, var(--demo-lime) 16%, transparent), transparent 42%),
+      var(--surface);
+    padding: 1.2rem;
+  }
+
+  .hero-stack {
+    display: grid;
+    gap: 0.7rem;
+  }
+
+  .native-chip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 0.55rem;
+    background: color-mix(in oklch, var(--surface) 92%, var(--demo-cyan));
+    font-size: 0.88rem;
+  }
+
+  .native-chip strong {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+  }
+
+  .native-chip span:last-child {
+    color: var(--muted);
+    text-align: right;
+  }
+
+  .feature-card {
+    position: relative;
+    overflow: clip;
+    border: 1px solid var(--demo-line);
+    border-radius: 0.75rem;
+    background: var(--surface);
+    padding: clamp(1rem, 3vw, 1.35rem);
+    margin: 1.4rem 0;
+  }
+
+  .feature-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 0.35rem;
+    background: linear-gradient(90deg, var(--demo-blue), var(--demo-cyan), var(--demo-lime));
+  }
+
+  .feature-card > :first-child {
+    margin-top: 0.5rem;
+  }
+
+  .feature-head {
+    display: flex;
+    gap: 0.85rem;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+
+  .feature-head h2 {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    max-width: 42rem;
+  }
+
+  .feature-head p {
+    margin: 0.35rem 0 0;
+    max-width: 42rem;
+    color: var(--muted);
+  }
+
+  .support-badge {
+    flex: 0 0 auto;
+    border: 1px solid color-mix(in oklch, var(--demo-blue) 35%, var(--border));
+    border-radius: 100px;
+    padding: 0.2rem 0.65rem;
+    color: color-mix(in oklch, var(--demo-blue) 85%, var(--text));
+    background: color-mix(in oklch, var(--demo-blue) 11%, var(--surface));
+    font-size: 0.76rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .support-badge.caution {
+    border-color: color-mix(in oklch, var(--warn) 40%, var(--border));
+    color: color-mix(in oklch, var(--warn) 80%, var(--text));
+    background: color-mix(in oklch, var(--warn) 15%, var(--surface));
+  }
+
+  .demo-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    align-items: center;
+    margin: 1.1rem 0;
+  }
+
+  .demo-button {
+    appearance: none;
+    border: 1px solid color-mix(in oklch, var(--demo-blue) 45%, var(--border));
+    border-radius: 0.45rem;
+    background: var(--demo-blue);
+    color: white;
+    padding: 0.58rem 0.82rem;
+    font: 700 0.9rem/1.2 var(--font);
+    cursor: pointer;
+    box-shadow: 0 0.55rem 1.4rem color-mix(in oklch, var(--demo-blue) 22%, transparent);
+  }
+
+  .demo-button:hover {
+    background: color-mix(in oklch, var(--demo-blue) 88%, black);
+  }
+
+  .demo-button.secondary {
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: none;
+  }
+
+  .demo-button.small {
+    padding: 0.45rem 0.62rem;
+    font-size: 0.78rem;
+  }
+
+  .anchor-trigger {
+    anchor-name: --native-trigger;
+  }
+
+  .demo-popover,
+  .demo-dialog {
+    max-width: min(32rem, calc(100vw - 2rem));
+    border: 1px solid color-mix(in oklch, var(--demo-blue) 35%, var(--border));
+    border-radius: 0.75rem;
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 1.2rem 3.2rem oklch(0 0 0 / 0.22);
+    padding: 1rem;
+    opacity: 0;
+    transform: translateY(0.65rem) scale(0.985);
+    transition:
+      opacity 180ms ease,
+      transform 180ms ease,
+      overlay 180ms ease allow-discrete,
+      display 180ms ease allow-discrete;
+  }
+
+  .demo-popover {
+    position: fixed;
+    inset: auto auto 2rem 50%;
+    translate: -50% 0;
+    margin: 0;
+  }
+
+  .demo-popover:popover-open,
+  .demo-dialog:open {
+    opacity: 1;
+    transform: none;
+  }
+
+  .demo-popover::backdrop,
+  .demo-dialog::backdrop {
+    background: oklch(0 0 0 / 0.18);
+    opacity: 0;
+    transition:
+      opacity 180ms ease,
+      overlay 180ms ease allow-discrete,
+      display 180ms ease allow-discrete;
+  }
+
+  .demo-popover:popover-open::backdrop,
+  .demo-dialog:open::backdrop {
+    opacity: 1;
+  }
+
+  @starting-style {
+    .demo-popover:popover-open,
+    .demo-dialog:open {
+      opacity: 0;
+      transform: translateY(0.65rem) scale(0.985);
+    }
+
+    .demo-popover:popover-open::backdrop,
+    .demo-dialog:open::backdrop {
+      opacity: 0;
+    }
+  }
+
+  @supports (position-area: bottom center) {
+    .demo-popover {
+      position: absolute;
+      position-anchor: --native-trigger;
+      position-area: bottom center;
+      inset: auto;
+      translate: 0;
+      margin-block-start: 0.8rem;
+    }
+  }
+
+  .popover-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .popover-title h3 {
+    margin: 0;
+    font-size: 1rem;
+  }
+
+  .demo-dialog {
+    margin: auto;
+  }
+
+  .code-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+    gap: 1rem;
+  }
+
+  .code-strip figure {
+    margin: 0;
+  }
+
+  .scroll-demo {
+    max-height: 31rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    background:
+      linear-gradient(180deg, color-mix(in oklch, var(--demo-cyan) 9%, transparent), transparent 18rem),
+      var(--surface);
+    scroll-timeline-name: --feature-scroll;
+    scroll-timeline-axis: block;
+  }
+
+  .scroll-top {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: grid;
+    gap: 0.4rem;
+    padding: 0.8rem;
+    border-bottom: 1px solid var(--border);
+    background: color-mix(in oklch, var(--surface) 92%, transparent);
+    backdrop-filter: blur(14px);
+  }
+
+  .scroll-top strong {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+  }
+
+  .scroll-track {
+    height: 0.45rem;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--surface-2);
+  }
+
+  .scroll-fill {
+    display: block;
+    height: 100%;
+    transform-origin: left center;
+    transform: scaleX(0);
+    background: linear-gradient(90deg, var(--demo-blue), var(--demo-cyan), var(--demo-lime));
+    animation: grow-x linear both;
+    animation-timeline: --feature-scroll;
+  }
+
+  .scroll-content {
+    display: grid;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .reveal-card {
+    min-height: 9rem;
+    border: 1px solid var(--border);
+    border-radius: 0.65rem;
+    background: var(--surface);
+    padding: 1rem;
+  }
+
+  .reveal-card h3 {
+    margin: 0 0 0.4rem;
+  }
+
+  @supports (animation-timeline: view()) {
+    .reveal-card {
+      opacity: 0.28;
+      transform: translateY(1rem) scale(0.985);
+      animation: reveal-card linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 42%;
+    }
+  }
+
+  @keyframes grow-x {
+    to { transform: scaleX(1); }
+  }
+
+  @keyframes reveal-card {
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .color-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+    gap: 0.8rem;
+    margin: 1rem 0 1.4rem;
+  }
+
+  .color-chip {
+    min-height: 6.8rem;
+    display: grid;
+    align-content: space-between;
+    gap: 1rem;
+    border-radius: 0.7rem;
+    padding: 0.85rem;
+    background: var(--tone);
+    color: white;
+    border: 1px solid oklch(1 0 0 / 0.24);
+    text-shadow: 0 1px 1px oklch(0 0 0 / 0.25);
+  }
+
+  .color-chip.light {
+    color: oklch(0.16 0.02 260);
+    text-shadow: none;
+  }
+
+  @supports (color: contrast-color(red)) {
+    .color-chip {
+      color: contrast-color(var(--tone));
+      text-shadow: none;
+    }
+  }
+
+  .color-chip strong {
+    font-family: var(--mono);
+    font-size: 0.86rem;
+  }
+
+  .color-chip small {
+    color: currentColor;
+    opacity: 0.78;
+  }
+
+  .tone-ink { --tone: #172033; }
+  .tone-sky { --tone: #45a7df; }
+  .tone-leaf { --tone: #97d65c; }
+  .tone-plum { --tone: #6a31c8; }
+
+  .query-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+    gap: 1rem;
+    margin: 1rem 0;
+  }
+
+  .query-scope {
+    container-name: mood-scope;
+    border: 1px solid var(--border);
+    border-radius: 0.7rem;
+    padding: 1rem;
+    background: var(--surface);
+  }
+
+  .query-scope.calm { --mood: calm; }
+  .query-scope.alert { --mood: alert; }
+
+  .query-result {
+    margin-top: 0.8rem;
+    border-radius: 0.55rem;
+    padding: 0.8rem;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+  }
+
+  @container mood-scope style(--mood: alert) {
+    .query-result {
+      background: color-mix(in oklch, var(--demo-rose) 18%, var(--surface));
+      border-color: color-mix(in oklch, var(--demo-rose) 40%, var(--border));
+    }
+
+    .query-result strong {
+      color: color-mix(in oklch, var(--demo-rose) 84%, var(--text));
+    }
+  }
+
+  .open-lab {
+    display: grid;
+    gap: 0.8rem;
+    margin: 1rem 0;
+  }
+
+  .open-lab details {
+    max-width: none;
+    border-radius: 0.7rem;
+    transition:
+      background 180ms ease,
+      border-color 180ms ease,
+      transform 180ms ease;
+  }
+
+  .open-lab details:open {
+    background: color-mix(in oklch, var(--demo-violet) 12%, var(--surface));
+    border-color: color-mix(in oklch, var(--demo-violet) 45%, var(--border));
+    transform: translateY(-0.08rem);
+  }
+
+  .state-dot {
+    display: inline-grid;
+    place-items: center;
+    min-width: 4.4rem;
+    margin-left: 0.5rem;
+    border-radius: 100px;
+    padding: 0.1rem 0.5rem;
+    color: var(--muted);
+    background: var(--surface-2);
+    font-size: 0.72rem;
+    font-weight: 700;
+  }
+
+  .state-dot::before {
+    content: "closed";
+  }
+
+  details:open .state-dot {
+    color: white;
+    background: var(--demo-violet);
+  }
+
+  details:open .state-dot::before {
+    content: "open";
+  }
+
+  .bonus-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+    gap: 1rem;
+    align-items: start;
+  }
+
+  .source-list {
+    columns: 2;
+    column-gap: 2rem;
+  }
+
+  .source-list li {
+    break-inside: avoid;
+  }
+
+  @media (max-width: 760px) {
+    .demo-hero,
+    .bonus-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .feature-head {
+      display: grid;
+    }
+
+    .support-badge {
+      justify-self: start;
+    }
+
+    .source-list {
+      columns: 1;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .code-strip,
+    figure.code-file,
+    pre {
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    figure.code-file pre code {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    table {
+      display: block;
+      max-width: 100%;
+      overflow-x: auto;
+      white-space: normal;
+    }
+
+    th,
+    td {
+      min-width: 8.5rem;
+    }
+  }
+</style>
+</head>
+<body>
+  <span class="kicker">HTML/CSS 2026</span>
+  <h1>Нативная платформа снова делает работу, за которую раньше тащили библиотеку</h1>
+  <p class="lead">Не всё ниже родилось именно в 2026 году. Честная картина такая: часть фич стала Baseline в 2026, часть дозрела в конце 2025, а часть всё ещё требует проверки поддержки. Но вместе они хорошо показывают сдвиг: браузер берёт на себя всё больше поведения, позиционирования и анимаций.</p>
+  <p class="meta">Локальный demo-файл. Открой в свежем Chrome, Safari или Firefox: интерактив ниже работает без сборки и без пользовательского JavaScript.</p>
+
+  <div class="demo-hero">
+    <div>
+      <div class="callout info">
+        <strong>Главная идея:</strong> современный HTML/CSS уже не только про разметку и цвет. Он умеет открывать интерфейсные слои, привязывать их к элементам, анимировать появление из <code>display: none</code>, реагировать на scroll и выбирать читаемый цвет текста.
+      </div>
+      <p>Я выбрал не весь каталог новинок, а несколько вещей, которые реально меняют повседневную верстку: меньше JS-обработчиков, меньше ручной геометрии, меньше “магии” вокруг модалок и dropdown.</p>
+    </div>
+
+    <aside class="hero-panel" aria-label="Короткая карта фич">
+      <div class="hero-stack">
+        <div class="native-chip"><strong>commandfor</strong><span>кнопка управляет UI</span></div>
+        <div class="native-chip"><strong>anchor positioning</strong><span>слой держится у якоря</span></div>
+        <div class="native-chip"><strong>@starting-style</strong><span>вход/выход без прыжка</span></div>
+        <div class="native-chip"><strong>scroll timeline</strong><span>анимация от прокрутки</span></div>
+        <div class="native-chip"><strong>contrast-color()</strong><span>контраст выбирает браузер</span></div>
+      </div>
+    </aside>
+  </div>
+
+  <section class="feature-card" id="commands-popover">
+    <div class="feature-head">
+      <div>
+        <h2><span class="ic accent">ads_click</span> Кнопки-команды, popover и dialog без JS-обработчика</h2>
+        <p><code>commandfor</code> и <code>command</code> позволяют кнопке декларативно управлять popover или dialog. Это не “визуальный трюк”, а встроенное поведение с клавиатурой и доступностью.</p>
+      </div>
+      <span class="support-badge">Baseline 2025/2026</span>
+    </div>
+
+    <div class="demo-buttons">
+      <button class="demo-button anchor-trigger" commandfor="native-popover" command="toggle-popover">Открыть popover</button>
+      <button class="demo-button secondary" commandfor="native-dialog" command="show-modal">Открыть dialog</button>
+    </div>
+
+    <div class="callout warn">
+      Если эти две кнопки ничего не делают, страница открыта в браузере без Popover API или Invoker Commands API. Это не ошибка HTML: именно такие фичи и надо проверять по Baseline/MDN перед production-решением.
+    </div>
+
+    <div id="native-popover" class="demo-popover" popover>
+      <div class="popover-title">
+        <h3>Popover в top layer</h3>
+        <button class="demo-button small secondary" commandfor="native-popover" command="hide-popover">Закрыть</button>
+      </div>
+      <p>Если браузер поддерживает CSS Anchor Positioning, этот слой привязан к кнопке через <code>anchor-name</code>, <code>position-anchor</code> и <code>position-area</code>. Если нет - он всё равно откроется как обычный popover.</p>
+    </div>
+
+    <dialog id="native-dialog" class="demo-dialog" closedby="any">
+      <div class="popover-title">
+        <h3>Dialog тоже управляется HTML-командой</h3>
+        <button class="demo-button small secondary" commandfor="native-dialog" command="close">Закрыть</button>
+      </div>
+      <p><code>closedby="any"</code> просит браузер закрывать модалку по light dismiss. По MDN у этой части пока не идеальная поддержка, поэтому это хороший пример “круто, но проверять”.</p>
+    </dialog>
+
+    <div class="code-strip">
+      <figure class="code-file">
+        <figcaption>HTML</figcaption>
+<pre><code>&lt;button commandfor="native-popover" command="toggle-popover"&gt;
+  Открыть popover
+&lt;/button&gt;
+
+&lt;div id="native-popover" popover&gt;...&lt;/div&gt;</code></pre>
+      </figure>
+      <figure class="code-file">
+        <figcaption>CSS anchor</figcaption>
+<pre><code>.anchor-trigger { anchor-name: --native-trigger; }
+
+.demo-popover {
+  position-anchor: --native-trigger;
+  position-area: bottom center;
+}</code></pre>
+      </figure>
+    </div>
+  </section>
+
+  <section class="feature-card" id="entry-exit">
+    <div class="feature-head">
+      <div>
+        <h2><span class="ic accent">motion_photos_auto</span> Плавное появление из <code>display: none</code></h2>
+        <p><code>@starting-style</code> и <code>transition-behavior: allow-discrete</code> закрывают старую боль: top-layer элементы больше не обязаны резко исчезать, потому что браузер умеет отложить дискретные свойства.</p>
+      </div>
+      <span class="support-badge">Baseline 2024+, полезно сейчас</span>
+    </div>
+
+    <figure class="code-file">
+      <figcaption>Именно это анимирует popover/dialog выше</figcaption>
+<pre><code>.demo-popover,
+.demo-dialog {
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease,
+    overlay 180ms ease allow-discrete,
+    display 180ms ease allow-discrete;
+}
+
+@starting-style {
+  .demo-popover:popover-open,
+  .demo-dialog:open {
+    opacity: 0;
+    transform: translateY(.65rem) scale(.985);
+  }
+}</code></pre>
+    </figure>
+  </section>
+
+  <section class="feature-card" id="scroll-driven">
+    <div class="feature-head">
+      <div>
+        <h2><span class="ic accent">swipe_vertical</span> Scroll-driven animations без IntersectionObserver</h2>
+        <p>Прогресс-бар и карточки ниже завязаны на прокрутку контейнера. В коде нет обработчика <code>scroll</code>: только <code>scroll-timeline</code>, <code>animation-timeline</code> и <code>view()</code>.</p>
+      </div>
+      <span class="support-badge caution">поддержка ещё неровная</span>
+    </div>
+
+    <div class="scroll-demo" tabindex="0" aria-label="Прокручиваемая демонстрация scroll-driven animations">
+      <div class="scroll-top">
+        <strong>Прокрути этот блок</strong>
+        <span class="scroll-track"><span class="scroll-fill"></span></span>
+      </div>
+      <div class="scroll-content">
+        <article class="reveal-card">
+          <h3>1. Контейнер задаёт timeline</h3>
+          <p><code>scroll-timeline-name: --feature-scroll</code> превращает прокрутку блока в источник времени.</p>
+        </article>
+        <article class="reveal-card">
+          <h3>2. Полоса прогресса слушает timeline</h3>
+          <p><code>animation-timeline: --feature-scroll</code> растягивает fill от начала до конца прокрутки.</p>
+        </article>
+        <article class="reveal-card">
+          <h3>3. Карточки слушают собственную видимость</h3>
+          <p><code>animation-timeline: view()</code> анимирует элемент, когда он входит в область просмотра.</p>
+        </article>
+        <article class="reveal-card">
+          <h3>4. Fallback простой</h3>
+          <p>Если браузер не умеет scroll-driven animations, карточки просто остаются видимыми. Это нормальная progressive enhancement модель.</p>
+        </article>
+        <article class="reveal-card">
+          <h3>5. Практический эффект</h3>
+          <p>Меньше JS в лендингах, документации, scroll-презентациях, sticky-панелях и product tours.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="feature-card" id="colors-style-queries">
+    <div class="feature-head">
+      <div>
+        <h2><span class="ic accent">palette</span> CSS начинает принимать решения, а не только хранить значения</h2>
+        <p><code>contrast-color()</code> выбирает белый или чёрный текст под фон. Container style queries позволяют дочернему компоненту реагировать на вычисленный стиль родителя, а не на ручную пачку классов.</p>
+      </div>
+      <span class="support-badge">Baseline 2026</span>
+    </div>
+
+    <h3>Контраст текста выбирает браузер</h3>
+    <div class="color-grid" aria-label="Демонстрация contrast-color">
+      <div class="color-chip tone-ink"><strong>#172033</strong><small>color: contrast-color(var(--tone))</small></div>
+      <div class="color-chip tone-sky light"><strong>#45a7df</strong><small>без пары foreground/background вручную</small></div>
+      <div class="color-chip tone-leaf light"><strong>#97d65c</strong><small>браузер считает контраст</small></div>
+      <div class="color-chip tone-plum"><strong>#6a31c8</strong><small>удобно для theme engines</small></div>
+    </div>
+
+    <h3>Компонент реагирует на стиль контейнера</h3>
+    <div class="query-grid">
+      <section class="query-scope calm">
+        <strong>Контейнер: <code>--mood: calm</code></strong>
+        <p class="muted">Дочерний блок остаётся нейтральным.</p>
+        <div class="query-result"><strong>style query не сработала</strong><br>Обычный режим.</div>
+      </section>
+      <section class="query-scope alert">
+        <strong>Контейнер: <code>--mood: alert</code></strong>
+        <p class="muted">Дочерний блок меняется через <code>@container style(...)</code>.</p>
+        <div class="query-result"><strong>style query сработала</strong><br>Не нужен отдельный modifier-класс на дочернем элементе.</div>
+      </section>
+    </div>
+  </section>
+
+  <section class="feature-card" id="open-selector">
+    <div class="feature-head">
+      <div>
+        <h2><span class="ic accent">expand_circle_down</span> <code>:open</code> для настоящих открытых состояний</h2>
+        <p>В 2026 <code>:open</code> стал нормальным способом стилизовать элементы, у которых есть семантическое состояние “открыт”: <code>details</code>, <code>dialog</code>, picker-элементы.</p>
+      </div>
+      <span class="support-badge">Baseline May 2026</span>
+    </div>
+
+    <div class="open-lab">
+      <details>
+        <summary>Открой меня: CSS увидит состояние <span class="state-dot"></span></summary>
+        <p>Этот блок покрасился через <code>details:open</code>. Раньше часто писали <code>details[open]</code> или JS-класс; теперь состояние выражается напрямую.</p>
+      </details>
+      <details>
+        <summary>Ещё один независимый элемент <span class="state-dot"></span></summary>
+        <p>Плюс в том, что это не привязано к конкретному тегу. Один селектор описывает “открытость” как UI-состояние.</p>
+      </details>
+    </div>
+  </section>
+
+  <section class="feature-card" id="bonus">
+    <div class="feature-head">
+      <div>
+        <h2><span class="ic accent">auto_awesome_motion</span> Бонус: View Transitions стали почти обычной платформенной вещью</h2>
+        <p>Same-document View Transitions стали Baseline Newly available в октябре 2025. Для MPA-навигации есть декларативная часть, но это уже отдельная демка на несколько страниц.</p>
+      </div>
+      <span class="support-badge">Baseline 2025</span>
+    </div>
+
+    <div class="bonus-grid">
+      <div class="callout warn">
+        <strong>Почему здесь только сниппет:</strong> нормальная демонстрация page transitions требует хотя бы двух HTML-документов или DOM-изменения. В этом файле я держу обещание “без JS”, поэтому показываю минимальный CSS-кусок.
+      </div>
+      <figure class="code-file">
+        <figcaption>MPA opt-in</figcaption>
+<pre><code>@view-transition {
+  navigation: auto;
+}</code></pre>
+      </figure>
+    </div>
+  </section>
+
+  <h2><span class="ic accent">fact_check</span> Что я бы реально использовал</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Фича</th>
+        <th>Где полезна</th>
+        <th>Осторожность</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>popover</code> + <code>commandfor</code></td>
+        <td>dropdown, меню, лёгкие панели, command UI</td>
+        <td>Проверить старые браузеры; для сложной логики всё равно понадобится JS.</td>
+      </tr>
+      <tr>
+        <td>CSS Anchor Positioning</td>
+        <td>tooltip, flyout, attached panel, contextual controls</td>
+        <td>Держать fallback, потому что поддержка отдельных частей всё ещё догоняет.</td>
+      </tr>
+      <tr>
+        <td><code>@starting-style</code> + discrete transitions</td>
+        <td>dialog/popover/toast enter-exit</td>
+        <td>Отличная progressive enhancement: без поддержки просто нет плавного выхода.</td>
+      </tr>
+      <tr>
+        <td>Scroll-driven animations</td>
+        <td>документация, story pages, sticky progress, reveal</td>
+        <td>Пока особенно важно тестировать Safari/Firefox и reduced motion.</td>
+      </tr>
+      <tr>
+        <td><code>contrast-color()</code>, style queries, <code>:open</code></td>
+        <td>темизация, дизайн-системы, меньше state-классов</td>
+        <td><code>contrast-color()</code> не магия WCAG для всех средних цветов; дизайн всё равно проверяется глазами и аудитом.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2><span class="ic accent">link</span> Источники</h2>
+  <ul class="source-list">
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Invoker_Commands_API">MDN: Invoker Commands API</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/popover">MDN: HTML <code>popover</code></a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLDialogElement/closedBy">MDN: <code>dialog closedby</code></a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Anchor_positioning">MDN: CSS Anchor Positioning</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/%40starting-style">MDN: <code>@starting-style</code></a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Scroll-driven_animations">MDN: CSS Scroll-driven Animations</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/color_value/contrast-color">MDN: <code>contrast-color()</code></a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/%40container">MDN: container style queries</a></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Selectors/:open">MDN: <code>:open</code></a></li>
+    <li><a href="https://web.dev/blog/baseline-digest-may-2026">web.dev: May 2026 Baseline digest</a></li>
+    <li><a href="https://web.dev/blog/baseline-digest-apr-2026">web.dev: April 2026 Baseline digest</a></li>
+    <li><a href="https://web.dev/blog/same-document-view-transitions-are-now-baseline-newly-available">web.dev: View Transitions Baseline</a></li>
+  </ul>
+</body>
+</html>
