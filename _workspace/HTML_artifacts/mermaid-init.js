@@ -8,8 +8,9 @@
          A[Заявка] --> B[Оплата]</pre>
 
    Тема (цвета, крупный шрифт, тёмный режим) живёт здесь — в файлах-ответах
-   её настраивать не нужно. Масштаб «по ширине рамки» включён через
-   useMaxWidth + .mermaid в styles.css.
+   её настраивать не нужно. Используй flowchart, sequenceDiagram,
+   quadrantChart, pie, gitGraph, kanban и mindmap; масштаб «по ширине рамки»
+   включён через useMaxWidth + .mermaid в styles.css.
    ===================================================================== */
 import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs')
   .then(({ default: mermaid }) => {
@@ -42,8 +43,11 @@ import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs')
       flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis',
                    padding: 14, nodeSpacing: 40, rankSpacing: 50 },
       sequence: { useMaxWidth: true },
-      gantt: { useMaxWidth: true },
       pie: { useMaxWidth: true },
+      gitGraph: { useMaxWidth: true },
+      quadrantChart: { useMaxWidth: true },
+      mindmap: { useMaxWidth: true },
+      kanban: { useMaxWidth: true },
     });
 
     mermaid.run();

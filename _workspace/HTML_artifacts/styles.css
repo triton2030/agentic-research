@@ -258,14 +258,19 @@ details > :last-child { padding-bottom: 0.9rem; }
 .callout > .ic:first-child, summary > .ic:first-child, h1 > .ic:first-child,
 h2 > .ic:first-child, h3 > .ic:first-child { margin-right: 0.15em; }
 
-/* ---------- mermaid (диаграммы, всегда по ширине рамки, без скролла) ---------- */
+/* ---------- mermaid (диаграммы, всегда по ширине рамки) ---------- */
+.diagram { max-width: none; margin: 1.6rem 0; }
+.diagram > .mermaid { margin: 0; }
+.diagram > figcaption { padding: 0.5rem 0.15rem 0; font-size: 0.85rem; color: var(--muted); }
+.diagram-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); margin: 1.6rem 0; }
+.diagram-grid > .diagram { margin: 0; min-width: 0; }
 .mermaid { margin: 1.6rem 0; padding: 1.1rem 1rem; background: var(--surface);
            border: 1px solid var(--border); border-radius: var(--radius);
            text-align: center; overflow: hidden; }
-.mermaid svg { max-width: 100%; height: auto; }
+.mermaid svg { display: block; max-width: 100%; height: auto; margin: 0 auto; font-family: var(--font); }
 /* пока скрипт не отрисовал — показываем исходник мелким моно, а не прыгающим текстом */
 .mermaid:not([data-processed]) { display: block; white-space: pre; text-align: left;
-  font-family: var(--mono); font-size: 0.8rem; color: var(--muted); }
+  overflow-x: auto; font-family: var(--mono); font-size: 0.8rem; color: var(--muted); }
 
 /* ---------- media ---------- */
 img, svg, video { max-width: 100%; height: auto; }
@@ -278,5 +283,5 @@ figure > figcaption { font-size: 0.85rem; color: var(--muted); margin-top: 0.5re
   body { max-width: none; padding: 0; font-size: 11pt; }
   h2 { border-top-color: #ccc; }
   a { color: #000; }
-  .card, .stat, .callout, pre, .files, details, figure.code-file, table { break-inside: avoid; border-color: #ddd; }
+  .card, .stat, .callout, pre, .files, details, figure.code-file, table, .diagram, .mermaid { break-inside: avoid; border-color: #ddd; }
 }
