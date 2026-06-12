@@ -39,6 +39,9 @@ owner-файлах и `_ops/rules/`.
 - GOAL/README/ROADMAP shape -> `1strategy-docs`; roadmap/tasks -> `1planning`.
 - Подход в моменте задачи / варианты -> `1strategy`.
 - Markdown поиск/связи -> `1md-navigator` / `1md-reader` / `1md-graph`.
+- HTML-артефакт из ответа или темы -> `$1html-artifact`
+  (`.agents/skills/1html-artifact`), только по явному вызову; результат в
+  `_workspace/HTML_artifacts/`.
 - После правок -> прямой evidence-closeout текущего owner-а.
 
 ## Условные Правила

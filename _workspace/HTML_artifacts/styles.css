@@ -1,0 +1,282 @@
+/* =====================================================================
+   agentic-research · artifact styles
+   ---------------------------------------------------------------------
+   Один общий лист для HTML-отчётов агента. Пиши голый смысловой HTML
+   (<h1>, <p>, <table>, <ul>…) — внешний вид берётся отсюда, стили в
+   самом файле-ответе писать не нужно.
+
+   Классы ниже — инструменты под реальные кейсы: дашборд, отчёт о работе,
+   список изменённых файлов, предложение правок, мини-график. Любая вёрстка
+   сверх этого — свободна: см. AGENTS.md рядом.
+
+   Палитра — тёплая нейтральная тема для рабочих HTML-отчётов.
+   ===================================================================== */
+
+/* Иконки — Material Symbols Rounded (CDN). Офлайн иконка покажется словом. */
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200');
+
+:root {
+  color-scheme: light dark;
+
+  --bg:            oklch(0.995 0.004 80);   /* тёплый кремовый фон */
+  --surface:       oklch(1 0 0);            /* карточки, блоки */
+  --surface-2:     oklch(0.972 0.006 70);   /* шапки, hover, треки */
+  --code-bg:       oklch(0.965 0.006 70);
+  --text:          oklch(0.21 0.012 50);    /* тёплый charcoal */
+  --muted:         oklch(0.50 0.012 50);
+  --border:        oklch(0.90 0.008 60);
+  --border-strong: oklch(0.83 0.01 60);
+
+  --accent:        oklch(0.55 0.13 38);     /* терракота */
+  --accent-strong: oklch(0.45 0.13 35);
+  --accent-soft:   oklch(0.93 0.04 50);     /* clay tint */
+
+  --ok:            oklch(0.52 0.12 150);
+  --ok-soft:       oklch(0.93 0.05 155);
+  --warn:          oklch(0.62 0.13 72);
+  --warn-soft:     oklch(0.94 0.06 85);
+  --danger:        oklch(0.53 0.18 25);
+  --danger-soft:   oklch(0.94 0.05 25);
+
+  --radius:   0.7rem;
+  --radius-s: 0.4rem;
+  --measure:   44rem;   /* читаемая ширина прозы */
+  --container: 58rem;   /* ширина под дашборды и ряды */
+
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, system-ui, sans-serif;
+  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, "JetBrains Mono", Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:            oklch(0.205 0.008 60);
+    --surface:       oklch(0.245 0.01 60);
+    --surface-2:     oklch(0.285 0.012 60);
+    --code-bg:       oklch(0.255 0.01 60);
+    --text:          oklch(0.92 0.006 80);
+    --muted:         oklch(0.68 0.012 70);
+    --border:        oklch(1 0 0 / 0.12);
+    --border-strong: oklch(1 0 0 / 0.22);
+
+    --accent:        oklch(0.74 0.11 45);
+    --accent-strong: oklch(0.82 0.10 50);
+    --accent-soft:   oklch(0.32 0.04 45);
+
+    --ok:            oklch(0.74 0.12 155);
+    --ok-soft:       oklch(0.32 0.05 155);
+    --warn:          oklch(0.80 0.12 82);
+    --warn-soft:     oklch(0.34 0.05 82);
+    --danger:        oklch(0.72 0.15 25);
+    --danger-soft:   oklch(0.33 0.07 25);
+  }
+}
+
+/* ---------- base ---------- */
+* { box-sizing: border-box; }
+html { background: var(--bg); -webkit-text-size-adjust: 100%; }
+body {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: clamp(2.5rem, 6vw, 4.5rem) clamp(1.2rem, 4vw, 2.5rem) 6rem;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Проза держит читаемую ширину; дашборды, таблицы, ряды — во всю колонку */
+p, ul, ol, dl, blockquote,
+h1, h2, h3, h4, h5, h6,
+.lead, .meta, .kicker, .callout, .card {
+  max-width: var(--measure);
+}
+.row, .grid, .grid-2, .grid-3, .grid-4, .split, .stats, .bars,
+.files, details, table, pre, figure.code-file, figure, .mermaid, img, video, hr {
+  max-width: none;
+}
+
+/* ---------- typography ---------- */
+h1, h2, h3, h4 { font-weight: 680; line-height: 1.2; letter-spacing: -0.018em; }
+h1 { font-size: clamp(1.9rem, 4vw, 2.45rem); letter-spacing: -0.026em; margin: 0 0 0.6rem; }
+h2 { font-size: 1.5rem; margin: 2.6rem 0 0.9rem; padding-top: 1.6rem; border-top: 1px solid var(--border); }
+h3 { font-size: 1.2rem; margin: 2rem 0 0.6rem; }
+h4 { font-size: 1.02rem; margin: 1.6rem 0 0.5rem; }
+h1 + h2, .lead + h2, .meta + h2, .kicker + h2 { border-top: 0; padding-top: 0; margin-top: 1.6rem; }
+h1 + p, h2 + p, h3 + p, h4 + p { margin-top: 0; }
+
+p { margin: 0 0 1rem; }
+a { color: var(--accent-strong); text-decoration: underline; text-underline-offset: 2px;
+    text-decoration-thickness: 0.06em; text-decoration-color: color-mix(in oklch, var(--accent) 45%, transparent); }
+a:hover { color: var(--accent); text-decoration-color: currentColor; }
+strong { font-weight: 650; }
+small { font-size: 0.85em; color: var(--muted); }
+
+ul, ol { margin: 0 0 1rem; padding-left: 1.4rem; }
+li { margin: 0.3rem 0; }
+li::marker { color: var(--accent); }
+li > ul, li > ol { margin: 0.3rem 0; }
+
+hr { border: 0; border-top: 1px solid var(--border); margin: 2.5rem 0; }
+
+blockquote { margin: 1.4rem 0; padding: 0.2rem 0 0.2rem 1.1rem; border-left: 3px solid var(--accent); color: var(--muted); }
+blockquote p:last-child { margin-bottom: 0; }
+
+/* цитата из дока базы: точный кусок канона + источник (не пересказ) */
+figure.quote { margin: 1.4rem 0; }
+figure.quote > blockquote { margin: 0; }
+figure.quote > figcaption { margin-top: 0.45rem; font-family: var(--mono); font-size: 0.8rem; color: var(--muted); }
+figure.quote > figcaption::before { content: "↳ источник: "; color: var(--accent); }
+
+/* ---------- типографские утилиты ---------- */
+.kicker { display: block; font-size: 0.78rem; font-weight: 680; text-transform: uppercase;
+          letter-spacing: 0.09em; color: var(--accent-strong); margin: 0 0 0.5rem; }
+.lead  { font-size: 1.22rem; line-height: 1.55; color: var(--muted); margin: 0 0 1.8rem; }
+.meta  { font-size: 0.86rem; color: var(--muted); margin: 0 0 2rem; }
+.muted { color: var(--muted); }
+.center { text-align: center; }
+
+/* ---------- code ---------- */
+code { font-family: var(--mono); font-size: 0.88em; background: var(--code-bg);
+       padding: 0.12em 0.4em; border-radius: var(--radius-s); border: 1px solid var(--border); }
+pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 1rem 1.1rem; overflow-x: auto; margin: 1.3rem 0; line-height: 1.5; }
+pre code { background: none; border: 0; padding: 0; font-size: 0.84rem; }
+
+/* блок «правка файла»: имя файла + код под ним */
+figure.code-file { margin: 1.4rem 0; border: 1px solid var(--border); border-radius: var(--radius);
+                   overflow: hidden; background: var(--surface); }
+figure.code-file > figcaption { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
+  padding: 0.55rem 0.9rem; background: var(--surface-2); border-bottom: 1px solid var(--border);
+  font-family: var(--mono); font-size: 0.82rem; color: var(--muted); margin: 0; }
+figure.code-file > pre { margin: 0; border: 0; border-radius: 0; }
+
+/* diff: оберни строку в <ins> (добавлено) или <del> (удалено) */
+pre ins, pre del { display: block; text-decoration: none; padding: 0 1.1rem; margin: 0 -1.1rem; }
+pre ins { background: color-mix(in oklch, var(--ok) 16%, transparent); }
+pre del { background: color-mix(in oklch, var(--danger) 14%, transparent); }
+pre ins::before { content: "+ "; color: var(--ok); }
+pre del::before { content: "− "; color: var(--danger); }
+
+/* ---------- tables ---------- */
+table { width: 100%; border-collapse: collapse; margin: 1.4rem 0; font-size: 0.96rem; }
+th, td { text-align: left; padding: 0.55rem 0.8rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+thead th { background: var(--surface-2); font-weight: 650; border-bottom: 2px solid var(--border-strong); white-space: nowrap; }
+tbody tr:hover { background: color-mix(in oklch, var(--accent-soft) 35%, transparent); }
+td code { font-size: 0.84em; }
+
+/* ---------- layout primitives (горизонтальные блоки, колонки) ---------- */
+.row { display: flex; flex-wrap: wrap; gap: 1rem; margin: 1.4rem 0; }
+.row > * { flex: 1 1 0; min-width: min(100%, 14rem); margin-top: 0; margin-bottom: 0; }
+
+.grid, .grid-2, .grid-3, .grid-4 { display: grid; gap: 1rem; margin: 1.4rem 0; }
+.grid   { grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); }
+.grid-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-4 { grid-template-columns: repeat(4, 1fr); }
+.split  { display: grid; gap: 1.5rem; grid-template-columns: 1fr 1fr; margin: 1.4rem 0; }
+@media (max-width: 640px) { .grid-2, .grid-3, .grid-4, .split { grid-template-columns: 1fr; } }
+
+/* ---------- cards ---------- */
+.card { padding: 1.1rem 1.2rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.card > :first-child { margin-top: 0; }
+.card > :last-child  { margin-bottom: 0; }
+.card h3, .card h4 { border: 0; padding: 0; margin-top: 0; }
+
+/* ---------- stats / большие цифры ---------- */
+.stats { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); margin: 1.6rem 0; }
+.stat  { padding: 1.2rem 1.3rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.stat .num   { display: block; font-size: 2.6rem; line-height: 1; font-weight: 720; letter-spacing: -0.03em; }
+.stat .label { display: block; margin-top: 0.5rem; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.stat.accent { background: var(--accent-soft); border-color: color-mix(in oklch, var(--accent) 30%, var(--border)); }
+.stat.accent .num { color: var(--accent-strong); }
+
+/* одиночная цифра-фокус во весь рост */
+.bignum { font-size: clamp(3.5rem, 12vw, 6rem); line-height: 0.95; font-weight: 750;
+          letter-spacing: -0.04em; color: var(--accent-strong); margin: 0.4rem 0 0.2rem; }
+
+/* ---------- badges (статусы) ---------- */
+.badge { display: inline-block; font-size: 0.74rem; font-weight: 640; line-height: 1.5;
+  padding: 0.05em 0.55em; border-radius: 100px; background: var(--surface-2); color: var(--muted);
+  border: 1px solid var(--border); white-space: nowrap; vertical-align: middle; }
+.badge.add    { background: var(--ok-soft);     color: var(--ok);            border-color: color-mix(in oklch, var(--ok) 30%, transparent); }
+.badge.mod    { background: var(--warn-soft);   color: color-mix(in oklch, var(--warn) 72%, var(--text)); border-color: color-mix(in oklch, var(--warn) 35%, transparent); }
+.badge.del    { background: var(--danger-soft); color: var(--danger);        border-color: color-mix(in oklch, var(--danger) 30%, transparent); }
+.badge.accent { background: var(--accent-soft); color: var(--accent-strong); border-color: color-mix(in oklch, var(--accent) 30%, transparent); }
+
+/* ---------- список изменённых файлов ---------- */
+.files { list-style: none; padding: 0; margin: 1.4rem 0; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.files li { display: flex; align-items: center; gap: 0.7rem; margin: 0; padding: 0.55rem 0.9rem; border-top: 1px solid var(--border); }
+.files li:first-child { border-top: 0; }
+.files li:hover { background: var(--surface-2); }
+.files .path { font-family: var(--mono); font-size: 0.86rem; word-break: break-all; }
+.files .desc { color: var(--muted); font-size: 0.9rem; margin-left: auto; text-align: right; }
+
+/* ---------- callouts (выделить мысль) ---------- */
+.callout { margin: 1.4rem 0; padding: 0.85rem 1.1rem; border: 1px solid var(--border);
+           border-left: 3px solid var(--accent); border-radius: var(--radius-s); background: var(--surface); }
+.callout > :first-child { margin-top: 0; }
+.callout > :last-child  { margin-bottom: 0; }
+.callout.info   { border-left-color: var(--accent); background: color-mix(in oklch, var(--accent-soft) 45%, var(--surface)); }
+.callout.ok     { border-left-color: var(--ok);     background: color-mix(in oklch, var(--ok-soft) 55%, var(--surface)); }
+.callout.warn   { border-left-color: var(--warn);   background: color-mix(in oklch, var(--warn-soft) 55%, var(--surface)); }
+.callout.danger { border-left-color: var(--danger); background: color-mix(in oklch, var(--danger-soft) 55%, var(--surface)); }
+
+/* ---------- раскрытие по клику (нативно, без JS) ---------- */
+details { margin: 1.3rem 0; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); overflow: hidden; }
+details > summary { cursor: pointer; padding: 0.75rem 1rem; font-weight: 600; list-style: none;
+                    display: flex; align-items: center; gap: 0.5rem; }
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before { content: "▸"; color: var(--accent); font-size: 0.8em; transition: transform 0.15s ease; }
+details[open] > summary::before { transform: rotate(90deg); }
+details > summary:hover { background: var(--surface-2); }
+details[open] > summary { border-bottom: 1px solid var(--border); margin-bottom: 0.9rem; }
+details > :not(summary) { padding-left: 1rem; padding-right: 1rem; }
+details > :last-child { padding-bottom: 0.9rem; }
+
+/* ---------- мини-график: горизонтальные полосы ---------- */
+.bars { margin: 1.4rem 0; display: grid; gap: 0.6rem; }
+.bar { display: grid; grid-template-columns: 9rem 1fr auto; align-items: center; gap: 0.7rem; font-size: 0.9rem; }
+.bar .track { height: 0.6rem; background: var(--surface-2); border-radius: 100px; overflow: hidden; }
+.bar .fill  { display: block; height: 100%; background: var(--accent); border-radius: 100px; }
+.bar .val   { color: var(--muted); font-variant-numeric: tabular-nums; }
+@media (max-width: 520px) { .bar { grid-template-columns: 1fr auto; } .bar .track { grid-column: 1 / -1; } }
+
+/* ---------- иконки (Material Symbols Rounded) ---------- */
+.ic { font-family: 'Material Symbols Rounded'; font-weight: normal; font-style: normal;
+      font-size: 1.25em; line-height: 1; letter-spacing: normal; text-transform: none;
+      display: inline-block; white-space: nowrap; direction: ltr; vertical-align: -0.18em;
+      -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+.ic.fill   { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+.ic.accent { color: var(--accent); }
+.ic.ok     { color: var(--ok); }
+.ic.warn   { color: var(--warn); }
+.ic.danger { color: var(--danger); }
+.callout > .ic:first-child, summary > .ic:first-child, h1 > .ic:first-child,
+h2 > .ic:first-child, h3 > .ic:first-child { margin-right: 0.15em; }
+
+/* ---------- mermaid (диаграммы, всегда по ширине рамки, без скролла) ---------- */
+.mermaid { margin: 1.6rem 0; padding: 1.1rem 1rem; background: var(--surface);
+           border: 1px solid var(--border); border-radius: var(--radius);
+           text-align: center; overflow: hidden; }
+.mermaid svg { max-width: 100%; height: auto; }
+/* пока скрипт не отрисовал — показываем исходник мелким моно, а не прыгающим текстом */
+.mermaid:not([data-processed]) { display: block; white-space: pre; text-align: left;
+  font-family: var(--mono); font-size: 0.8rem; color: var(--muted); }
+
+/* ---------- media ---------- */
+img, svg, video { max-width: 100%; height: auto; }
+figure { margin: 1.4rem 0; }
+figure > figcaption { font-size: 0.85rem; color: var(--muted); margin-top: 0.5rem; }
+
+/* ---------- print / экспорт в PDF ---------- */
+@media print {
+  html, body { background: #fff; color: #000; }
+  body { max-width: none; padding: 0; font-size: 11pt; }
+  h2 { border-top-color: #ccc; }
+  a { color: #000; }
+  .card, .stat, .callout, pre, .files, details, figure.code-file, table { break-inside: avoid; border-color: #ddd; }
+}
