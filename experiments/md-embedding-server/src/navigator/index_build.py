@@ -293,11 +293,14 @@ def ensure_index(
     path_include: list[str] | None = None,
     path_exclude: list[str] | None = None,
     skip_existing_rowids: list[int] | None = None,
+    wait_for_lock: bool = True,
 ) -> tuple[Any, dict[str, Any]]:
     """Public index entrypoint. Write paths are serialised by a lock file.
 
     `dry_run=True` is strictly read-only: no directory creation, no schema
-    creation, no meta writes. It is used by `status`.
+    creation, no meta writes. It is used by `status`. Index-backed read APIs
+    pass `wait_for_lock=False` so a concurrent writer returns index_busy
+    instead of blocking; explicit index runs keep the blocking default.
     """
     if dry_run:
         include_patterns = normalize_path_filter_patterns(path_include, corpus_root)
@@ -318,7 +321,11 @@ def ensure_index(
 
     include_patterns = normalize_path_filter_patterns(path_include, corpus_root)
     exclude_patterns = normalize_path_filter_patterns(path_exclude, corpus_root)
-    lock_handle = _acquire_index_write_lock(corpus_root, cache_root=cache_root)
+    lock_handle = _acquire_index_write_lock(
+        corpus_root,
+        cache_root=cache_root,
+        blocking=wait_for_lock,
+    )
     try:
         return _ensure_index_unlocked(
             corpus_root,

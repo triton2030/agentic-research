@@ -8,7 +8,12 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from navigator.canon.evalkit import load_cases, render_markdown, run_case  # noqa: E402
+from navigator.canon.evalkit import (  # noqa: E402
+    load_cases,
+    prepare_eval_query_vectors,
+    render_markdown,
+    run_case,
+)
 
 
 def main() -> int:
@@ -24,6 +29,12 @@ def main() -> int:
     cases_path = Path(args.cases).expanduser() if args.cases else corpus / "_workspace/eval/canon-cases.json"
     cases = load_cases(cases_path)
     modes = [mode.strip() for mode in args.modes.split(",") if mode.strip()]
+    query_vectors, query_stats, dense_index = prepare_eval_query_vectors(corpus, cases, modes)
+    print(
+        "canon eval query vectors: "
+        f"cached={query_stats['cached']} computed={query_stats['computed']}",
+        file=sys.stderr,
+    )
 
     results = []
     command = " ".join(sys.argv)
@@ -37,7 +48,16 @@ def main() -> int:
     for mode in modes:
         for case in cases:
             try:
-                results.append(run_case(corpus, case, mode, limit=args.limit))
+                results.append(
+                    run_case(
+                        corpus,
+                        case,
+                        mode,
+                        limit=args.limit,
+                        query_vectors=query_vectors,
+                        dense_index=dense_index,
+                    )
+                )
             except RuntimeError as exc:
                 print(exc, file=sys.stderr)
                 write_report()

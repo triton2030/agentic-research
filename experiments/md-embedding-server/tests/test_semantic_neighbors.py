@@ -100,6 +100,20 @@ def test_semantic_neighbors_folder_target_excludes_target_folder(tmp_path: Path,
     assert all(not row["relative_path"].startswith("agents/") for row in payload["candidates"])
 
 
+def test_semantic_neighbors_expanded_omits_rows_without_body_content(tmp_path: Path, mock_embed) -> None:
+    corpus, _target_folder, target_file = _corpus_with_folder(tmp_path)
+    assert _build_index(corpus).get("_exit_code", 0) == 0
+
+    payload = semantic_neighbors(str(target_file), str(corpus), limit=2, expanded=True, token_budget=1)
+
+    assert payload.get("_exit_code", 0) == 0, payload
+    assert payload["expanded"] is True
+    assert payload["candidates"], payload
+    assert all(row.get("content") for row in payload["candidates"])
+    assert all("content_omitted_reason" not in row for row in payload["candidates"])
+    assert any(row["reason"] == "over_budget" for row in payload["dropped_by_budget"])
+
+
 def test_semantic_neighbors_refuses_conflicting_nested_index(tmp_path: Path, mock_embed) -> None:
     corpus, target_folder, _target_file = _corpus_with_folder(tmp_path)
     assert _build_index(corpus, embed_model="test/root").get("_exit_code", 0) == 0

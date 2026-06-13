@@ -10,7 +10,7 @@
       "session_usd": 0.0
     },
     "size_estimate": {
-      "bytes": 71693,
+      "bytes": 71835,
       "items_returned": 0,
       "large_reply": true
     },
@@ -308,11 +308,11 @@
       },
       "description": {
         "when": "Before or after editing normative Markdown claim candidates that may contradict a declared canon root.",
-        "why": "Splits a file into deterministic claim candidates, runs authority-first retrieval plus broad discovery, and separates authority, dependent-context, and parking quotes in one command instead of a manual search sequence.",
+        "why": "Splits a file into deterministic claim candidates, runs authority-first retrieval, and adds broad discovery only when authority is missing or weak, or --expanded is requested.",
         "input": "file, optional corpus, mode single|pack|pack-graph|pack-graph-rerank, limit, max_claims, path_include/exclude, rerank, expanded.",
         "output": "{ workflow, file, mode, scope_policy, stats, pairs, quality_flags, advice, read_next }. Each pair has authority_quotes, dependent_quotes, parking_quotes, plus compatibility quotes. Evidence is not a verdict.",
         "alt": "Use md_search_read for ordinary semantic lookup. Use md_preflight/md_check for graph/link safety.",
-        "cost": "Cold corpus returns index_warmup_required. Warm default uses authority + discovery channels, so cost is roughly claims x projections x channels; default max_claims=20, single uses 1 projection, pack modes use up to 4. Rerank flag adds external API cost if available."
+        "cost": "Cold corpus returns index_warmup_required. Warm default searches the canon root first; query embeddings are batched per canon-check run and cached in the corpus sqlite index. Cost is roughly unique claim-projections, with discovery adding another search channel only when authority is missing or weak, or --expanded is requested. Default max_claims=20, single uses 1 projection, pack modes use up to 4. Rerank flag adds external API cost if available."
       },
       "input_schema": {
         "properties": {

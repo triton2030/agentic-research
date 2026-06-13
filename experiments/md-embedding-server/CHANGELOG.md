@@ -11,6 +11,11 @@
   root, `dependent_quotes` from product-zone echoes, and `parking_quotes` from
   future evidence. `AGENTS.md`/`CLAUDE.md` remain metadata sources but are not
   evidence quotes.
+- Canon-check default lookup is authority-first with lazy discovery: broad
+  product/future search opens only when current authority evidence is
+  missing/weak, or when `--expanded` asks for context.
+- Canon-check and eval now batch all claim/query-pack embeddings at the start
+  of a run and cache query vectors in the corpus sqlite index for repeat runs.
 - `.md-tools.toml` supports `[canon] root = [...]` and `future = [...]`; folder
   `AGENTS.md` may declare `zone:` for canon/product/future badges.
 

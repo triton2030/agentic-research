@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from .embeddings import (
-    _embed_texts_http,
+    _embed_texts_http,  # Backward-compatible test/monkeypatch surface.
     _vec_to_blob,
 )
 from .filters import (
@@ -21,6 +21,7 @@ from .folder_map import build_map
 from .index import ensure_index, resolve_embed_model_for_corpus
 from navigator.index_guidance import index_dry_run_command
 from .lemmatize import lemmatize_text, lemmatize_token
+from .query_vectors import get_query_vectors
 from .rerank import (
     DEFAULT_RERANK_API_URL,
     DEFAULT_RERANK_MODEL,
@@ -136,20 +137,30 @@ def _search_dense(
     corpus_root: Path | None = None,
     path_include: list[str] | None = None,
     path_exclude: list[str] | None = None,
+    query_vector: Any | None = None,
+    query_vector_stats: dict[str, Any] | None = None,
 ) -> list[tuple[int, float]]:
     """Dense KNN at chunk granularity, then dedupe to best chunk per section
     inside the requested scope. Over-fetches because many chunks belong to
     the same section and because we post-filter by scope."""
-    q_vec_list = _embed_texts_http(
-        model_name,
-        [query],
-        embedding_api_url,
-        embedding_timeout,
-        corpus_root=corpus_root,
-    )
-    if not q_vec_list:
+    if query_vector is None:
+        batch = get_query_vectors(
+            conn,
+            model_name,
+            [query],
+            embedding_api_url,
+            embedding_timeout,
+            corpus_root=corpus_root,
+        )
+        query_vector = batch.vectors.get(query)
+        if query_vector_stats is not None:
+            query_vector_stats["cached"] = query_vector_stats.get("cached", 0) + batch.cached
+            query_vector_stats["computed"] = query_vector_stats.get("computed", 0) + batch.computed
+            if batch.cache_error:
+                query_vector_stats["cache_error"] = batch.cache_error
+    if query_vector is None:
         return []
-    q_blob = _vec_to_blob(q_vec_list[0])
+    q_blob = _vec_to_blob(query_vector)
     over_fetch = max(candidates * 8, candidates + 100)
     path_clause, path_params = sqlite_path_filter_sql(
         "s.relative_path",
@@ -330,7 +341,11 @@ def search_payload(
     rerank_top_n: int = DEFAULT_RERANK_TOP_N,
     max_auto_embed: int | None = _DEFAULT_MAX_AUTO_EMBED,
     rerank_error_handler: Callable[[RuntimeError], None] | None = None,
+    query_vector: Any | None = None,
+    query_vector_stats: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    if query_vector_stats is None:
+        query_vector_stats = {}
     weights = (
         {"description": 5.0, "title": 0.0, "heading": 0.0, "body": 1.0}
         if scope == "descriptions"
@@ -356,6 +371,8 @@ def search_payload(
         corpus_root=corpus_root,
         path_include=include_patterns,
         path_exclude=exclude_patterns,
+        query_vector=query_vector,
+        query_vector_stats=query_vector_stats,
     )
     rrf_scores = _rrf_merge(bm25_results, dense_results, k=SEARCH_RRF_K)
     fused_rowids = [rid for rid, _ in sorted(rrf_scores.items(), key=lambda item: -item[1])[:candidates]]
@@ -448,6 +465,8 @@ def search_payload(
             "sections_subchunked": subchunked_count,
             "embeddings_cached": index_stats["reused"],
             "embeddings_computed": index_stats["embedded"],
+            "query_embeddings_cached": int((query_vector_stats or {}).get("cached", 0)),
+            "query_embeddings_computed": int((query_vector_stats or {}).get("computed", 0)),
             "sections_removed": index_stats["removed_sections"],
             "bm25_hits": len(bm25_results),
             "dense_hits": len(dense_results),
@@ -459,6 +478,8 @@ def search_payload(
     partial_index = _partial_index_payload(index_stats, max_auto_embed)
     if partial_index:
         output["partial_index"] = partial_index
+    if query_vector_stats and query_vector_stats.get("cache_error"):
+        output["query_vector_cache_error"] = query_vector_stats["cache_error"]
     return output
 
 

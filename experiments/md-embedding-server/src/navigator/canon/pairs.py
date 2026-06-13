@@ -93,12 +93,9 @@ def build_pairs(
         if quotes and all("low_score" in (quote.get("flags") or []) for quote in quotes):
             flags.append("low_score")
             quality_flags.append("low_score")
-        if quote_buckets[DEPENDENT_CONTEXT]:
-            flags.append("surface_projection")
-            quality_flags.append("surface_projection")
-        if quote_buckets[PARKING]:
-            flags.append("future_zone_hit")
-            quality_flags.append("future_zone_hit")
+        if quote_buckets[PARKING] and not quote_buckets[AUTHORITY]:
+            flags.append("future_only")
+            quality_flags.append("future_only")
         pairs.append(
             {
                 "claim": {
@@ -122,7 +119,7 @@ def build_pairs(
 def _advice(flags: list[str]) -> str:
     if "no_owner_found" in flags:
         return "Some claims have no owner quote; check wording against the canon root before editing."
-    if "future_zone_hit" in flags:
+    if "future_only" in flags:
         return "A claim is closest to future-layer evidence; do not promote future language into current canon without an ADR."
     if "low_score" in flags:
         return "Evidence is weak; repeat with a narrower path_include or inspect owners manually."

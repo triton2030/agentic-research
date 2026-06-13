@@ -200,6 +200,33 @@ def test_success_guidance_next_steps_parse_against_current_cli() -> None:
             _assert_action_contract(action)
 
 
+def test_index_busy_next_steps_parse_against_current_cli() -> None:
+    payload = wrap(
+        {
+            "error": "index_busy",
+            "read_next": [
+                {
+                    "tool": "md_status",
+                    "args": {"corpus": "knowledge", "path_include": ["guides/**"]},
+                    "reason": "Check whether the current index writer has finished.",
+                },
+                {
+                    "tool": "md_index",
+                    "args": {"corpus": "knowledge", "path_include": ["guides/**"], "dry_run": True},
+                    "reason": "Preview remaining index warmup work after the lock clears.",
+                },
+            ],
+        },
+        tool_name="md_search",
+        args={"corpus": "knowledge", "query": "agent", "path_include": ["guides/**"]},
+    )
+
+    actions = list(_iter_generated_actions(payload["_envelope"]["next_step"]))
+    assert actions
+    for action in actions:
+        _assert_action_contract(action)
+
+
 def test_status_recommended_action_is_safe_and_preserves_scope(tmp_path: Path) -> None:
     corpus = tmp_path / "corpus"
     keep = corpus / "keep"

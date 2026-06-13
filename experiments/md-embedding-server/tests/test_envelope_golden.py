@@ -83,6 +83,34 @@ def test_warmup_next_step_uses_parent_path_include(tmp_path: Path) -> None:
     assert steps[1]["args"]["query"] == "topic"
 
 
+def test_index_busy_next_step_for_search_uses_embedded_read_next() -> None:
+    result = wrap(
+        {
+            "error": "index_busy",
+            "read_next": [
+                {
+                    "tool": "md_status",
+                    "args": {"corpus": "knowledge", "path_include": ["guides/**"]},
+                    "reason": "Check whether the current index writer has finished.",
+                },
+                {
+                    "tool": "md_index",
+                    "args": {"corpus": "knowledge", "path_include": ["guides/**"], "dry_run": True},
+                    "reason": "Preview remaining index warmup work after the lock clears.",
+                },
+            ],
+        },
+        tool_name="md_search",
+        args={"corpus": "knowledge", "query": "agent", "path_include": ["guides/**"]},
+    )
+
+    steps = result["_envelope"]["next_step"]
+    assert steps[0]["tool"] == "md_status"
+    assert steps[0]["args"]["path_include"] == ["guides/**"]
+    assert steps[1]["tool"] == "md_index"
+    assert steps[1]["args"]["dry_run"] is True
+
+
 def test_confirm_required_next_step_is_dry_run_only() -> None:
     result = wrap(
         {"error": "confirm_required"},

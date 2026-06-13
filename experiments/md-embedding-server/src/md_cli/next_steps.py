@@ -82,6 +82,7 @@ def derive_next_step(
         return []
     handlers = (
         _handle_dry_run_lock,
+        _handle_index_busy,
         _handle_index_warmup,
         _handle_nested_corpus,
         _handle_transaction_required,
@@ -131,6 +132,60 @@ def _handle_dry_run_lock(
                 "tool": tool_name,
                 "args": confirm_args,
                 "reason": "Apply the dry-run plan with the matching transaction_id.",
+            }
+        ]
+    return []
+
+
+def _steps_from_read_next(
+    result: dict[str, Any],
+    *,
+    tool_name: str | None,
+) -> list[NextStep]:
+    read_next = result.get("read_next")
+    if not isinstance(read_next, list):
+        return []
+    steps: list[NextStep] = []
+    for item in read_next:
+        if not isinstance(item, dict):
+            continue
+        tool = item.get("tool")
+        args = item.get("args")
+        reason = item.get("reason")
+        if not isinstance(tool, str) or not isinstance(args, dict):
+            continue
+        reason_text = str(reason or "Use this next reading step.")
+        if tool_name == "md_search_read" and result.get("scope") == "descriptions":
+            reason_text += " Descriptions are routing hints; expand only selected targets before writing."
+        elif tool_name == "md_read_related":
+            reason_text += " This is graph context; use md_search_read separately for semantic business context."
+        steps.append({"tool": tool, "args": dict(args), "reason": reason_text})
+        if len(steps) >= 2:
+            break
+    return steps
+
+
+def _handle_index_busy(
+    result: dict[str, Any],
+    *,
+    tool_name: str | None,
+    args_dict: dict[str, Any],
+    corpus_root: str | None,
+    corpus_state: dict[str, Any] | None,
+    lock: dict[str, Any] | None,
+    size_estimate: dict[str, Any] | None,
+) -> list[NextStep]:
+    if result.get("error") != "index_busy":
+        return []
+    steps = _steps_from_read_next(result, tool_name=tool_name)
+    if steps:
+        return steps
+    if corpus_root:
+        return [
+            {
+                "tool": "md_status",
+                "args": {"corpus": corpus_root},
+                "reason": "Check whether the current index writer has finished.",
             }
         ]
     return []
@@ -341,27 +396,7 @@ def _handle_embedded_read_next(
         "md_canon_check",
     }:
         return []
-    read_next = result.get("read_next")
-    if not isinstance(read_next, list):
-        return []
-    steps: list[NextStep] = []
-    for item in read_next:
-        if not isinstance(item, dict):
-            continue
-        tool = item.get("tool")
-        args = item.get("args")
-        reason = item.get("reason")
-        if not isinstance(tool, str) or not isinstance(args, dict):
-            continue
-        reason_text = str(reason or "Use this next reading step.")
-        if tool_name == "md_search_read" and result.get("scope") == "descriptions":
-            reason_text += " Descriptions are routing hints; expand only selected targets before writing."
-        elif tool_name == "md_read_related":
-            reason_text += " This is graph context; use md_search_read separately for semantic business context."
-        steps.append({"tool": tool, "args": dict(args), "reason": reason_text})
-        if len(steps) >= 2:
-            break
-    return steps
+    return _steps_from_read_next(result, tool_name=tool_name)
 
 
 def _handle_status_guidance(

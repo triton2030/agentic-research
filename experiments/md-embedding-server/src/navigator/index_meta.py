@@ -29,6 +29,10 @@ INDEX_DIRNAME = ".md-navigator"
 GITIGNORE_BANNER = "# md-navigator persistent index — do not commit\n*\n"
 
 
+class IndexLockBusy(RuntimeError):
+    """Raised when a caller explicitly requested a non-blocking index lock."""
+
+
 class SuggestedIndexArgs(TypedDict, total=False):
     corpus: str
     path_include: list[str]
@@ -152,13 +156,23 @@ def _cache_dir_for_root(cache_root: Path, corpus_root: Path) -> Path:
     return _index_dir_for_corpus(corpus_root, cache_root=cache_root)
 
 
-def _acquire_index_write_lock(corpus_root: Path, cache_root: Path | None = None):
+def _acquire_index_write_lock(
+    corpus_root: Path,
+    cache_root: Path | None = None,
+    *,
+    blocking: bool = True,
+):
     """Serialise writers for one corpus index across parallel agent sessions."""
     import fcntl
 
     lock_dir = _index_dir_for_corpus(corpus_root, cache_root=cache_root, create=True)
     handle = (lock_dir / "index.lock").open("a+", encoding="utf-8")
-    fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+    flags = fcntl.LOCK_EX if blocking else fcntl.LOCK_EX | fcntl.LOCK_NB
+    try:
+        fcntl.flock(handle.fileno(), flags)
+    except BlockingIOError as exc:
+        handle.close()
+        raise IndexLockBusy(f"Index is locked for writing: {lock_dir / 'index.lock'}") from exc
     return handle
 
 

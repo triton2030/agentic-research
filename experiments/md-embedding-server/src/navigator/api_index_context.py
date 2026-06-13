@@ -66,6 +66,52 @@ def _index_warmup(
     )
 
 
+def _index_busy(
+    corpus: str | Path,
+    *,
+    path_include: Iterable[str] | str | None = None,
+    path_exclude: Iterable[str] | str | None = None,
+    cache_root: Path | None = None,
+) -> dict[str, Any]:
+    from .index_meta import _index_dir_for_corpus
+
+    root = Path(corpus).expanduser().resolve()
+    lock_path = _index_dir_for_corpus(root, cache_root=cache_root, create=False) / "index.lock"
+    status_args: dict[str, Any] = {"corpus": str(root)}
+    index_args: dict[str, Any] = {"corpus": str(root), "dry_run": True}
+    include_values = _list(path_include)
+    exclude_values = _list(path_exclude)
+    if include_values:
+        status_args["path_include"] = include_values
+        index_args["path_include"] = include_values
+    if exclude_values:
+        status_args["path_exclude"] = exclude_values
+        index_args["path_exclude"] = exclude_values
+    return _exit(
+        {
+            "error": "index_busy",
+            "corpus": str(root),
+            "lock_path": str(lock_path),
+            "reason": "Another md index writer holds the corpus index lock; retry after it finishes.",
+            "suggested_status_args": status_args,
+            "suggested_index_args": index_args,
+            "read_next": [
+                _read_next(
+                    "md_status",
+                    status_args,
+                    "Check whether the current index writer has finished.",
+                ),
+                _read_next(
+                    "md_index",
+                    index_args,
+                    "Preview remaining index warmup work after the lock clears.",
+                ),
+            ],
+        },
+        4,
+    )
+
+
 _INDEX_CONTEXT_KWARGS = {
     "max_heading_level",
     "max_auto_embed",
@@ -113,12 +159,13 @@ def _sections_index_context(
     cache_dir: str | None = None,
     no_cache: bool = False,
     allow_partial_index: bool = False,
+    wait_for_index_lock: bool = False,
 ) -> tuple[dict[str, Any] | None, int, IndexContext | None]:
     from .cli_common import SEARCH_DEFAULT_EMBEDDING_API_URL, SEARCH_DEFAULT_EMBEDDING_TIMEOUT
     from .filters import apply_path_filters_to_map, normalize_path_filter_patterns
     from .folder_map import build_map
     from .index import ensure_index
-    from .index_meta import resolve_embed_model_for_corpus
+    from .index_meta import IndexLockBusy, resolve_embed_model_for_corpus
     from .sections import build_items_from_map, build_sections_from_map
 
     corpus_root = Path(corpus).expanduser().resolve()
@@ -184,6 +231,18 @@ def _sections_index_context(
             max_auto_embed=None if cap == 0 else cap,
             path_include=include_patterns,
             path_exclude=exclude_patterns,
+            wait_for_lock=wait_for_index_lock,
+        )
+    except IndexLockBusy:
+        return (
+            _index_busy(
+                corpus_root,
+                path_include=include_patterns,
+                path_exclude=exclude_patterns,
+                cache_root=cache_root,
+            ),
+            4,
+            None,
         )
     except (ModuleNotFoundError, RuntimeError) as exc:
         return _exit({"error": "dependency_failed", "detail": str(exc)}, 3), 3, None

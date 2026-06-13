@@ -9,9 +9,15 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
+from navigator.api import audit as api_audit
 from navigator.api import index as api_index
+from navigator.api import overlaps as api_overlaps
+from navigator.api import repeated_concepts as api_repeated_concepts
 from navigator.api import search as api_search
 from navigator.api import search_read
+from navigator.index_meta import _acquire_index_write_lock, _release_index_write_lock
 
 # Embedding/model knobs the old argparse Namespace carried. The mock_embed
 # fixture stubs the HTTP call, so the URL/timeout are inert but still passed
@@ -86,6 +92,79 @@ def test_search_descriptions_scope_finds_file_by_frontmatter(tiny_corpus, mock_e
     payload = _search(tiny_corpus, "критерии приёмки задач", scope="descriptions")
     assert payload.get("_exit_code", 0) == 0
     assert any("criteria.md" in path for path in _paths(payload)), _paths(payload)
+
+
+def test_search_returns_index_busy_when_writer_lock_is_held(tiny_corpus, mock_embed):
+    assert _build_index(tiny_corpus).get("_exit_code", 0) == 0
+
+    lock = _acquire_index_write_lock(tiny_corpus)
+    try:
+        payload = _search(tiny_corpus, "критериев приёмки")
+    finally:
+        _release_index_write_lock(lock)
+
+    assert payload.get("_exit_code") == 4
+    assert payload["error"] == "index_busy"
+    assert payload["suggested_status_args"]["corpus"] == str(tiny_corpus.resolve())
+    assert payload["read_next"][0]["tool"] == "md_status"
+
+
+def test_search_read_returns_index_busy_when_writer_lock_is_held(tiny_corpus, mock_embed):
+    assert _build_index(tiny_corpus).get("_exit_code", 0) == 0
+
+    lock = _acquire_index_write_lock(tiny_corpus)
+    try:
+        payload = search_read(str(tiny_corpus), "критериев приёмки", **_EMBED_KWARGS)
+    finally:
+        _release_index_write_lock(lock)
+
+    assert payload.get("_exit_code") == 4
+    assert payload["error"] == "index_busy"
+    assert payload["read_next"][0]["tool"] == "md_status"
+
+
+def test_index_busy_preserves_path_scope_in_guidance(tiny_corpus, mock_embed):
+    assert _build_index(tiny_corpus).get("_exit_code", 0) == 0
+
+    lock = _acquire_index_write_lock(tiny_corpus)
+    try:
+        payload = api_search(
+            str(tiny_corpus),
+            "критериев приёмки",
+            path_include=["criteria.md"],
+            path_exclude=["noise.md"],
+            **_EMBED_KWARGS,
+        )
+    finally:
+        _release_index_write_lock(lock)
+
+    assert payload["error"] == "index_busy"
+    assert payload["suggested_status_args"]["path_include"] == ["criteria.md"]
+    assert payload["suggested_status_args"]["path_exclude"] == ["noise.md"]
+    assert payload["suggested_index_args"]["path_include"] == ["criteria.md"]
+    assert payload["suggested_index_args"]["path_exclude"] == ["noise.md"]
+
+
+@pytest.mark.parametrize(
+    "call",
+    [
+        lambda corpus: api_overlaps(str(corpus), **_EMBED_KWARGS),
+        lambda corpus: api_repeated_concepts(str(corpus), **_EMBED_KWARGS),
+        lambda corpus: api_audit(str(corpus), **_EMBED_KWARGS),
+    ],
+)
+def test_index_backed_read_apis_fail_fast_when_writer_lock_is_held(tiny_corpus, mock_embed, call):
+    assert _build_index(tiny_corpus).get("_exit_code", 0) == 0
+
+    lock = _acquire_index_write_lock(tiny_corpus)
+    try:
+        payload = call(tiny_corpus)
+    finally:
+        _release_index_write_lock(lock)
+
+    assert payload.get("_exit_code") == 4
+    assert payload["error"] == "index_busy"
+    assert payload["read_next"][0]["tool"] == "md_status"
 
 
 def test_search_signals_label_appears_for_bm25_match(tiny_corpus, mock_embed):
@@ -172,3 +251,15 @@ def test_search_read_expanded_returns_section_bodies(tiny_corpus, mock_embed):
     assert payload["view"] == "expanded"
     assert any("Vector embeddings encode semantic meaning" in row["content"] for row in payload["sections"])
     assert payload["token_total"] >= 1
+
+
+def test_search_read_reports_query_embedding_cache_stats(tiny_corpus, mock_embed):
+    assert _build_index(tiny_corpus).get("_exit_code", 0) == 0
+
+    first = search_read(str(tiny_corpus), "telemetry query embeddings", limit=1)
+    assert first["stats"]["query_embeddings_computed"] == 1
+    assert first["stats"]["query_embeddings_cached"] == 0
+
+    second = search_read(str(tiny_corpus), "telemetry query embeddings", limit=1)
+    assert second["stats"]["query_embeddings_computed"] == 0
+    assert second["stats"]["query_embeddings_cached"] == 1

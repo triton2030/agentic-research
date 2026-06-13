@@ -85,11 +85,14 @@ workflows are thin aliases over the profile domain adapter; they return
 - `workflows.section_blast_radius(path, corpus, query, heading_id=None, scan=None, depth=None, limit=None, path_include=None, path_exclude=None) -> dict`
 
 `workflows.canon_check` is an evidence collector, not a semantic judge. With
-`[canon]` configured, default lookup is authority-first: `[canon].root` quotes
-are returned as `authority_quotes`, product-zone echoes as `dependent_quotes`,
-and `[canon].future` evidence as `parking_quotes`. Compatibility `quotes`
-remains a bounded merged view; callers that need owner-safe behavior must read
-the role-specific fields.
+`[canon]` configured, default lookup searches `[canon].root` first and opens
+broad discovery only when authority evidence is missing/weak or `expanded=True`.
+Current-canon evidence is returned as `authority_quotes`, product-zone echoes as
+`dependent_quotes`, and `[canon].future` evidence as `parking_quotes`.
+Compatibility `quotes` remains a bounded merged view; callers that need
+owner-safe behavior must read the role-specific fields. Query embeddings are
+batched once per run and cached in the corpus sqlite index, so repeated
+canon-check/eval passes do not pay one embedding round-trip per claim.
 
 ## Boundary
 

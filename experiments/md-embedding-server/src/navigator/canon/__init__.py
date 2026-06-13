@@ -23,7 +23,10 @@ from .retrieval import (
     apply_graph_bonus,
     apply_rerank,
     fused_search,
+    flag_row,
     open_retrieval_context,
+    prepare_dense_index,
+    prepare_query_vectors,
 )
 from .zones import build_zone_map, load_zone_config, make_zone_resolver
 
@@ -41,8 +44,17 @@ def _search_rows(
     limit: int,
     use_graph: bool,
     use_rerank: bool,
+    query_vectors: dict[str, Any] | None = None,
+    dense_index=None,
 ) -> tuple[list[dict[str, Any]], bool]:
-    rows = fused_search(context, queries, limit=limit, candidates=max(40, limit * 8))
+    rows = fused_search(
+        context,
+        queries,
+        limit=limit,
+        candidates=max(40, limit * 8),
+        query_vectors=query_vectors,
+        dense_index=dense_index,
+    )
     if use_graph:
         rows = apply_graph_bonus(corpus_root, source, rows)
     rerank_applied = False
@@ -60,6 +72,21 @@ def _split_rows(
     return role_buckets(
         annotate_rows(rows, zone_resolver, has_canon_config=has_canon_config)
     )
+
+
+def _needs_discovery(
+    buckets: dict[str, list[dict[str, Any]]],
+    *,
+    expanded: bool,
+    top_quotes: int = 3,
+) -> bool:
+    if expanded:
+        return True
+    authority_rows = buckets.get(AUTHORITY) or []
+    if not authority_rows:
+        return True
+    head = authority_rows[:top_quotes]
+    return bool(head) and all("low_score" in flag_row(row) for row in head)
 
 
 def run_canon_check(
@@ -114,17 +141,10 @@ def run_canon_check(
         path_exclude=scope.path_exclude,
     )
     if error is not None:
-        return error
-    assert context is not None
-    discovery_context = None
-    if scope.discovery_enabled:
-        error, _code, discovery_context = open_retrieval_context(
-            str(corpus_root),
-            path_include=scope.discovery_include,
-            path_exclude=scope.path_exclude,
-        )
-        if error is not None:
+        if not (scope.discovery_enabled and error.get("error") == "empty"):
             return error
+        context = None
+    discovery_context = None
 
     started = perf_counter()
     per_claim: list[dict[str, list[dict[str, Any]]]] = []
@@ -135,33 +155,69 @@ def run_canon_check(
     use_pack = selected_mode in {"pack", "pack-graph", "pack-graph-rerank"}
     use_graph = selected_mode in {"pack-graph", "pack-graph-rerank"}
     use_rerank = bool(rerank or selected_mode == "pack-graph-rerank")
+    claim_queries = [
+        build_query_pack(claim.text, claim.heading_chain) if use_pack else [claim.text]
+        for claim in claim_result.claims
+    ]
+    query_vectors: dict[str, Any] = {}
+    query_embedding_cached = 0
+    query_embedding_computed = 0
+    authority_dense_index = None
+    if context is not None:
+        query_vectors, query_stats = prepare_query_vectors(
+            context,
+            [query for queries in claim_queries for query in queries],
+        )
+        query_embedding_cached += query_stats["cached"]
+        query_embedding_computed += query_stats["computed"]
+        authority_dense_index = prepare_dense_index(context)
+    discovery_dense_index = None
     zone_map = build_zone_map(corpus_root)
     zone_resolver = make_zone_resolver(corpus_root, zone_map, cfg)
 
-    for claim in claim_result.claims:
-        queries = build_query_pack(claim.text, claim.heading_chain) if use_pack else [claim.text]
+    for claim, queries in zip(claim_result.claims, claim_queries):
         query_count = len(queries)
         claim_limit = int(limit or 10)
-        authority_rows, rerank_applied = _search_rows(
-            context=context,
-            claim_text=claim.text,
-            queries=queries,
-            corpus_root=corpus_root,
-            source=source,
-            mode=selected_mode,
-            limit=claim_limit,
-            use_graph=use_graph,
-            use_rerank=use_rerank,
-        )
-        authority_queries_run += query_count
-        rerank_unavailable = rerank_unavailable or (use_rerank and bool(authority_rows) and not rerank_applied)
+        authority_rows: list[dict[str, Any]] = []
+        if context is not None:
+            authority_rows, rerank_applied = _search_rows(
+                context=context,
+                claim_text=claim.text,
+                queries=queries,
+                corpus_root=corpus_root,
+                source=source,
+                mode=selected_mode,
+                limit=claim_limit,
+                use_graph=use_graph,
+                use_rerank=use_rerank,
+                query_vectors=query_vectors,
+                dense_index=authority_dense_index,
+            )
+            authority_queries_run += query_count
+            rerank_unavailable = rerank_unavailable or (use_rerank and bool(authority_rows) and not rerank_applied)
         authority_buckets = _split_rows(
             authority_rows[:claim_limit],
             zone_resolver,
             has_canon_config=scope.has_canon_config,
         )
         discovery_buckets = {AUTHORITY: [], DEPENDENT_CONTEXT: [], PARKING: []}
-        if discovery_context is not None:
+        if scope.discovery_enabled and _needs_discovery(authority_buckets, expanded=expanded):
+            if discovery_context is None:
+                error, _code, discovery_context = open_retrieval_context(
+                    str(corpus_root),
+                    path_include=scope.discovery_include,
+                    path_exclude=scope.path_exclude,
+                )
+                if error is not None:
+                    return error
+                if not query_vectors:
+                    query_vectors, query_stats = prepare_query_vectors(
+                        discovery_context,
+                        [query for items in claim_queries for query in items],
+                    )
+                    query_embedding_cached += query_stats["cached"]
+                    query_embedding_computed += query_stats["computed"]
+                discovery_dense_index = prepare_dense_index(discovery_context)
             discovery_rows, discovery_rerank_applied = _search_rows(
                 context=discovery_context,
                 claim_text=claim.text,
@@ -172,6 +228,8 @@ def run_canon_check(
                 limit=max(claim_limit * 3, 20),
                 use_graph=use_graph,
                 use_rerank=use_rerank,
+                query_vectors=query_vectors,
+                dense_index=discovery_dense_index,
             )
             discovery_queries_run += query_count
             rerank_unavailable = rerank_unavailable or (
@@ -183,7 +241,6 @@ def run_canon_check(
                 has_canon_config=scope.has_canon_config,
             )
             discovery_buckets[AUTHORITY] = []
-            discovery_buckets[PARKING] = []
         per_claim.append(merge_buckets(authority_buckets, discovery_buckets))
     queries_run = authority_queries_run + discovery_queries_run
 
@@ -198,7 +255,8 @@ def run_canon_check(
         quality_flags.append("no_canon_config")
     if claim_result.truncated:
         quality_flags.append("claims_truncated")
-    if context.index_stats.get("delta_too_large"):
+    stats_context = context or discovery_context
+    if stats_context is not None and stats_context.index_stats.get("delta_too_large"):
         quality_flags.append("partial_index")
     if rerank_unavailable:
         quality_flags.append("rerank_unavailable")
@@ -241,6 +299,8 @@ def run_canon_check(
             "queries_run": queries_run,
             "authority_queries_run": authority_queries_run,
             "discovery_queries_run": discovery_queries_run,
+            "query_embeddings_cached": query_embedding_cached,
+            "query_embeddings_computed": query_embedding_computed,
             "elapsed_ms": int((perf_counter() - started) * 1000),
         },
         "pairs": pairs,

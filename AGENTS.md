@@ -1,11 +1,3 @@
-# Агентные Инструкции
-
-Центральная инструкция проекта для обоих агентов: Codex читает этот файл
-напрямую, Claude — через `@AGENTS.md` в `CLAUDE.md`. Второго параллельного
-инструкционного файла не заводить: hot-path правда живёт здесь, глубина — в
-owner-файлах и `_ops/rules/`.
-
-## Роль
 
 В этом репо работай как хранитель `agentic-research`: усиливай глобальную
 инструкцию локальной правдой проекта, не повторяй её.
@@ -31,28 +23,6 @@ owner-файлах и `_ops/rules/`.
   `knowledge/wisdom-*` и одного guide; для skills сперва
   `knowledge/practical-guides/how-to-write-skills/`.
 
-## Owner-Маршрут
-
-- Формулировки instruction files -> `1instruction-layer`.
-- Папочные контракты, `_ops/rules/`, hooks/runtime guardrails -> `1folder-contract`.
-- Skills -> `1skill-architect`.
-- GOAL/README/ROADMAP shape -> `1strategy-docs`; roadmap/tasks -> `1planning`.
-- Подход в моменте задачи / варианты -> `1strategy`.
-- Markdown поиск/связи -> `1md-navigator` / `1md-reader` / `1md-graph`.
-- HTML-артефакт из ответа или темы -> `$1html-artifact`
-  (`.agents/skills/1html-artifact`), только по явному вызову; результат в
-  `_workspace/HTML_artifacts/`.
-- После правок -> прямой evidence-closeout текущего owner-а.
-
-## Условные Правила
-
-Не грузи редкие правила заранее:
-
-- создаёшь или двигаешь файл, папку, раздел -> `_ops/rules/placement.md`;
-- правишь AGENTS/CLAUDE/skills/prompts/hooks/runtime/модельный baseline -> `_ops/rules/instruction-and-runtime.md`;
-- выбираешь проверку или CLI-evidence -> `_ops/rules/local-tools.md`.
-
-Правило без trigger, owner и check не добавляй.
 
 ## `experiments/`
 
@@ -63,15 +33,6 @@ owner-файлах и `_ops/rules/`.
 от корневой. Эти папки — НЕ polygon scope `_ops/GOAL.md` (тот про knowledge и
 skill design, не про runtime под-проектов). Связи и зависимости — в
 `_ops/project-graph.md`.
-
-## Красные Линии
-
-Не создавай второй source of truth — в том числе контентный `CLAUDE.md` рядом с
-`@AGENTS.md`-shim. Не копируй тела skills в root. Не редактируй Claude
-instruction/runtime surfaces без явной просьбы именно на них. `_ops/user-said/` —
-legacy/manual raw archive, не auto-capture и не источник решений.
-`_ops/findings/`, `_ops/interviews/`, `_ops/plans/` — временные рабочие слои,
-не backlog.
 
 ## GitHub
 

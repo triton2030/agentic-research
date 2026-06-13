@@ -11,6 +11,12 @@ LOW_SCORE_THRESHOLD = 0.008
 GRAPH_BONUS = 1.0 / 60.0
 
 
+class DenseIndex:
+    def __init__(self, section_rowids: list[int], vectors: Any) -> None:
+        self.section_rowids = section_rowids
+        self.vectors = vectors
+
+
 def open_retrieval_context(
     corpus: str,
     *,
@@ -41,6 +47,23 @@ def _merge_fields(existing: dict[str, Any], row: dict[str, Any]) -> None:
 
 
 def search_one(ctx, query: str, *, limit: int = 10, candidates: int = 80) -> list[dict[str, Any]]:
+    return search_one_with_vector(
+        ctx,
+        query,
+        limit=limit,
+        candidates=candidates,
+        query_vector=None,
+    )
+
+
+def search_one_with_vector(
+    ctx,
+    query: str,
+    *,
+    limit: int = 10,
+    candidates: int = 80,
+    query_vector: Any | None = None,
+) -> list[dict[str, Any]]:
     from navigator.search import search_payload
 
     payload = search_payload(
@@ -57,16 +80,174 @@ def search_one(ctx, query: str, *, limit: int = 10, candidates: int = 80) -> lis
         query=query,
         limit=limit,
         candidates=candidates,
+        query_vector=query_vector,
     )
     return list(payload.get("results") or [])
 
 
-def fused_search(ctx, queries: list[str], *, limit: int = 10, candidates: int = 80) -> list[dict[str, Any]]:
+def prepare_dense_index(ctx) -> DenseIndex:
+    from navigator.filters import sqlite_path_filter_sql
+    import numpy as np
+
+    path_clause, path_params = sqlite_path_filter_sql(
+        "s.relative_path",
+        ctx.include_patterns,
+        ctx.exclude_patterns,
+    )
+    rows = ctx.conn.execute(
+        "SELECT chunks.section_rowid, vec.embedding "
+        "FROM sections_vec vec "
+        "JOIN chunks ON chunks.chunk_id = vec.rowid "
+        "JOIN sections AS s ON s.rowid = chunks.section_rowid "
+        "WHERE s.scope = ? "
+        f"{path_clause}",
+        ("sections", *path_params),
+    ).fetchall()
+    if not rows:
+        return DenseIndex([], np.zeros((0, 0), dtype=np.float32))
+    section_rowids = [int(rowid) for rowid, _blob in rows]
+    vectors = np.stack(
+        [np.frombuffer(blob, dtype=np.float32) for _rowid, blob in rows]
+    ).astype(np.float32)
+    return DenseIndex(section_rowids, vectors)
+
+
+def _dense_matrix_search(
+    dense_index: DenseIndex,
+    query_vector: Any,
+    *,
+    candidates: int,
+) -> list[tuple[int, float]]:
+    if query_vector is None or not dense_index.section_rowids:
+        return []
+    import numpy as np
+
+    q = np.asarray(query_vector, dtype=np.float32)
+    if q.ndim != 1 or dense_index.vectors.shape[1] != q.shape[0]:
+        return []
+    scores = dense_index.vectors @ q
+    over_fetch = min(len(scores), max(candidates * 8, candidates + 100))
+    if over_fetch <= 0:
+        return []
+    idx = np.argpartition(-scores, over_fetch - 1)[:over_fetch]
+    idx = idx[np.argsort(-scores[idx])]
+    best_per_section: dict[int, float] = {}
+    for pos in idx:
+        rowid = dense_index.section_rowids[int(pos)]
+        score = float(scores[int(pos)])
+        if rowid not in best_per_section or score > best_per_section[rowid]:
+            best_per_section[rowid] = score
+    ordered = sorted(best_per_section.items(), key=lambda item: -item[1])[:candidates]
+    return [(rowid, 2.0 - 2.0 * score) for rowid, score in ordered]
+
+
+def search_one_matrix(
+    ctx,
+    query: str,
+    *,
+    query_vector: Any,
+    dense_index: DenseIndex,
+    limit: int = 10,
+    candidates: int = 80,
+) -> list[dict[str, Any]]:
+    from navigator.search import (
+        SEARCH_DEFAULT_WEIGHTS,
+        SEARCH_RRF_K,
+        _fields_hit,
+        _hydrate_rows,
+        _rrf_merge,
+        _search_bm25,
+        _snippet_for,
+    )
+
+    bm25_results = _search_bm25(
+        ctx.conn,
+        query,
+        "sections",
+        dict(SEARCH_DEFAULT_WEIGHTS),
+        candidates,
+        path_include=ctx.include_patterns,
+        path_exclude=ctx.exclude_patterns,
+    )
+    dense_results = _dense_matrix_search(
+        dense_index,
+        query_vector,
+        candidates=candidates,
+    )
+    rrf_scores = _rrf_merge(bm25_results, dense_results, k=SEARCH_RRF_K)
+    rowids = [rid for rid, _score in sorted(rrf_scores.items(), key=lambda item: -item[1])[:limit]]
+    rows = _hydrate_rows(ctx.conn, rowids)
+    fresh_file_id_by_path = {file["relative_path"]: file["id"] for file in ctx.map_data["files"]}
+    bm25_map = dict(bm25_results)
+    dense_map = dict(dense_results)
+    out: list[dict[str, Any]] = []
+    for row in rows:
+        path = row["relative_path"]
+        fresh_fid = fresh_file_id_by_path.get(path)
+        if fresh_fid is None:
+            continue
+        rid = int(row["rowid"])
+        item = dict(row)
+        item["file_id"] = fresh_fid
+        old_sid = str(item.get("section_id") or "")
+        item["section_id"] = f"{fresh_fid}.{old_sid.split('.', 1)[1]}" if "." in old_sid else str(fresh_fid)
+        item["bm25_score"] = bm25_map.get(rid)
+        item["dense_distance"] = dense_map.get(rid)
+        item["rrf_score"] = rrf_scores.get(rid, 0.0)
+        item["rerank_score"] = None
+        item["fields_hit"] = _fields_hit(ctx.conn, rid, query)
+        item["snippet"] = _snippet_for(str(item.get("body") or ""), query)
+        out.append(item)
+    return out
+
+
+def prepare_query_vectors(ctx, queries: list[str]) -> tuple[dict[str, Any], dict[str, int]]:
+    from navigator.query_vectors import get_query_vectors
+
+    batch = get_query_vectors(
+        ctx.conn,
+        ctx.selected_model,
+        queries,
+        ctx.embedding_api_url,
+        ctx.embedding_timeout,
+        corpus_root=ctx.corpus_root,
+    )
+    stats = {"cached": batch.cached, "computed": batch.computed}
+    return batch.vectors, stats
+
+
+def fused_search(
+    ctx,
+    queries: list[str],
+    *,
+    limit: int = 10,
+    candidates: int = 80,
+    query_vectors: dict[str, Any] | None = None,
+    dense_index: DenseIndex | None = None,
+) -> list[dict[str, Any]]:
     rows_by_id: dict[int, dict[str, Any]] = {}
     fused: dict[int, float] = {}
     ranks: dict[int, list[dict[str, Any]]] = {}
     for query in queries:
-        rows = search_one(ctx, query, limit=candidates, candidates=candidates)
+        if query_vectors is None:
+            rows = search_one(ctx, query, limit=candidates, candidates=candidates)
+        elif dense_index is not None:
+            rows = search_one_matrix(
+                ctx,
+                query,
+                query_vector=query_vectors.get(query),
+                dense_index=dense_index,
+                limit=candidates,
+                candidates=candidates,
+            )
+        else:
+            rows = search_one_with_vector(
+                ctx,
+                query,
+                limit=candidates,
+                candidates=candidates,
+                query_vector=query_vectors.get(query),
+            )
         for rank, row in enumerate(rows, start=1):
             rowid = int(row["rowid"])
             fused[rowid] = fused.get(rowid, 0.0) + 1.0 / (CANON_RRF_K + rank)

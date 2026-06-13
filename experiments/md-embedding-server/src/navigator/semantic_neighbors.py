@@ -278,7 +278,6 @@ def _shape_payload(
                         }
                     )
                 else:
-                    row["content_omitted_reason"] = "over_budget"
                     dropped.append(
                         {
                             "section_id": raw["section_id"],
@@ -287,6 +286,7 @@ def _shape_payload(
                             "reason": "over_budget",
                         }
                     )
+                    continue
             else:
                 row["content"] = body
                 row["included_token_count"] = tokens

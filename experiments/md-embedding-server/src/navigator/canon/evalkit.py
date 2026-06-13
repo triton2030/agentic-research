@@ -5,7 +5,7 @@ import statistics
 from dataclasses import dataclass
 from pathlib import Path
 from time import perf_counter
-from typing import Callable
+from typing import Any, Callable
 
 from navigator.filters import path_matches_any
 
@@ -19,7 +19,15 @@ from .evidence import (
     role_buckets,
 )
 from .query_pack import build_query_pack
-from .retrieval import apply_graph_bonus, apply_rerank, fused_search, open_retrieval_context
+from .retrieval import (
+    apply_graph_bonus,
+    apply_rerank,
+    flag_row,
+    fused_search,
+    open_retrieval_context,
+    prepare_dense_index,
+    prepare_query_vectors,
+)
 from .zones import build_zone_map, load_zone_config, make_zone_resolver
 
 MODES = ("A", "B", "C", "D")
@@ -94,7 +102,15 @@ def load_cases(path: str | Path) -> list[EvalCase]:
     return cases
 
 
-def run_case(corpus_root: Path, case: EvalCase, mode: str, *, limit: int = 10) -> CaseResult:
+def run_case(
+    corpus_root: Path,
+    case: EvalCase,
+    mode: str,
+    *,
+    limit: int = 10,
+    query_vectors: dict[str, Any] | None = None,
+    dense_index=None,
+) -> CaseResult:
     if mode not in MODES:
         raise ValueError(f"unknown mode: {mode}")
     queries = [case.claim_text] if mode == "A" else build_query_pack(case.claim_text)
@@ -111,10 +127,33 @@ def run_case(corpus_root: Path, case: EvalCase, mode: str, *, limit: int = 10) -
         path_exclude=scope.path_exclude,
     )
     if error is not None:
-        raise RuntimeError(str(error))
-    assert ctx is not None
+        if not (scope.discovery_enabled and error.get("error") == "empty"):
+            raise RuntimeError(str(error))
+        ctx = None
     discovery_ctx = None
-    if scope.discovery_enabled:
+    authority_dense_index = prepare_dense_index(ctx) if ctx is not None else None
+    started = perf_counter()
+    zone_resolver = make_zone_resolver(corpus_root, build_zone_map(corpus_root), cfg)
+    authority_rows: list[dict] = []
+    authority_queries = 0
+    if ctx is not None:
+        authority_rows, _rerank_applied = _search_rows(
+            ctx,
+            corpus_root,
+            case,
+            queries,
+            mode,
+            limit=limit,
+            query_vectors=query_vectors,
+            dense_index=dense_index or authority_dense_index,
+        )
+        authority_queries = len(queries)
+    authority_buckets = role_buckets(
+        annotate_rows(authority_rows, zone_resolver, has_canon_config=scope.has_canon_config)
+    )
+    discovery_buckets = {AUTHORITY: [], DEPENDENT_CONTEXT: [], PARKING: []}
+    discovery_queries = 0
+    if scope.discovery_enabled and _needs_discovery(authority_buckets):
         error, _code, discovery_ctx = open_retrieval_context(
             str(corpus_root),
             path_include=scope.discovery_include,
@@ -122,15 +161,8 @@ def run_case(corpus_root: Path, case: EvalCase, mode: str, *, limit: int = 10) -
         )
         if error is not None:
             raise RuntimeError(str(error))
-    started = perf_counter()
-    zone_resolver = make_zone_resolver(corpus_root, build_zone_map(corpus_root), cfg)
-    authority_rows, _rerank_applied = _search_rows(ctx, corpus_root, case, queries, mode, limit=limit)
-    authority_buckets = role_buckets(
-        annotate_rows(authority_rows, zone_resolver, has_canon_config=scope.has_canon_config)
-    )
-    discovery_buckets = {AUTHORITY: [], DEPENDENT_CONTEXT: [], PARKING: []}
-    discovery_queries = 0
-    if discovery_ctx is not None:
+        assert discovery_ctx is not None
+        discovery_dense_index = prepare_dense_index(discovery_ctx)
         discovery_rows, _discovery_rerank = _search_rows(
             discovery_ctx,
             corpus_root,
@@ -138,13 +170,14 @@ def run_case(corpus_root: Path, case: EvalCase, mode: str, *, limit: int = 10) -
             queries,
             mode,
             limit=max(limit * 3, 20),
+            query_vectors=query_vectors,
+            dense_index=discovery_dense_index,
         )
         discovery_queries = len(queries)
         discovery_buckets = role_buckets(
             annotate_rows(discovery_rows, zone_resolver, has_canon_config=scope.has_canon_config)
         )
         discovery_buckets[AUTHORITY] = []
-        discovery_buckets[PARKING] = []
     buckets = merge_buckets(authority_buckets, discovery_buckets)
     rows = [*buckets[AUTHORITY], *buckets[DEPENDENT_CONTEXT], *buckets[PARKING]]
     return CaseResult(
@@ -153,9 +186,56 @@ def run_case(corpus_root: Path, case: EvalCase, mode: str, *, limit: int = 10) -
         rows=rows[:limit],
         elapsed_ms=int((perf_counter() - started) * 1000),
         buckets=buckets,
-        queries_run=len(queries) + discovery_queries,
+        queries_run=authority_queries + discovery_queries,
         scope_policy=scope.policy,
     )
+
+
+def prepare_eval_query_vectors(
+    corpus_root: Path,
+    cases: list[EvalCase],
+    modes: list[str],
+) -> tuple[dict[str, Any], dict[str, int], Any]:
+    all_queries: list[str] = []
+    for mode in modes:
+        for case in cases:
+            all_queries.extend([case.claim_text] if mode == "A" else build_query_pack(case.claim_text))
+    if not all_queries:
+        return {}, {"cached": 0, "computed": 0}, None
+    cfg = load_zone_config(corpus_root)
+    source_rel = cases[0].source_file if cases else ""
+    scope = build_evidence_scope(
+        cfg,
+        source_rel=source_rel,
+        path_include=None,
+        path_exclude=None,
+    )
+    error, _code, ctx = open_retrieval_context(
+        str(corpus_root),
+        path_include=scope.authority_include,
+        path_exclude=scope.path_exclude,
+    )
+    if error is not None:
+        if not (scope.discovery_enabled and error.get("error") == "empty"):
+            raise RuntimeError(str(error))
+        error, _code, ctx = open_retrieval_context(
+            str(corpus_root),
+            path_include=scope.discovery_include,
+            path_exclude=scope.path_exclude,
+        )
+        if error is not None:
+            raise RuntimeError(str(error))
+    assert ctx is not None
+    vectors, stats = prepare_query_vectors(ctx, all_queries)
+    return vectors, stats, prepare_dense_index(ctx)
+
+
+def _needs_discovery(buckets: dict[str, list[dict]], *, top_quotes: int = 3) -> bool:
+    authority_rows = buckets.get(AUTHORITY) or []
+    if not authority_rows:
+        return True
+    head = authority_rows[:top_quotes]
+    return bool(head) and all("low_score" in flag_row(row) for row in head)
 
 
 def _search_rows(
@@ -166,8 +246,17 @@ def _search_rows(
     mode: str,
     *,
     limit: int,
+    query_vectors: dict[str, Any] | None = None,
+    dense_index=None,
 ) -> tuple[list[dict], bool]:
-    rows = fused_search(ctx, queries, limit=limit, candidates=max(80, limit * 8))
+    rows = fused_search(
+        ctx,
+        queries,
+        limit=limit,
+        candidates=max(80, limit * 8),
+        query_vectors=query_vectors,
+        dense_index=dense_index,
+    )
     if mode in {"C", "D"}:
         rows = apply_graph_bonus(corpus_root, corpus_root / case.source_file, rows)
     rerank_applied = False
@@ -215,6 +304,7 @@ def summarize(results: list[CaseResult]) -> dict[str, dict[str, float]]:
 
 def render_markdown(results: list[CaseResult], *, command: str | None = None) -> str:
     summary = summarize(results)
+    reported_modes = [mode for mode in MODES if any(result.mode == mode for result in results)]
     lines = [
         "# Canon Eval",
         "",
@@ -233,7 +323,7 @@ def render_markdown(results: list[CaseResult], *, command: str | None = None) ->
         "| Mode | owner-hit@5 | owner-hit@10 | clean-miss | role-hit@10 | AGENTS/CLAUDE excluded | median ms | p95 ms | median queries |",
         "|---|---:|---:|---:|---:|---:|---:|---:|---:|",
     ])
-    for mode in MODES:
+    for mode in reported_modes:
         row = summary.get(mode, {})
         lines.append(
             f"| {mode} ({MODE_LABELS[mode]}) | {row.get('owner_hit_at_5', 0):.2f} | "

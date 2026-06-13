@@ -22,6 +22,7 @@ DEFAULT_EVIDENCE_EXCLUDES = (
     "CLAUDE.md",
     "**/CLAUDE.md",
 )
+NO_AUTHORITY_ROOT_INCLUDE = ["__md_tools_no_canon_root__"]
 
 
 @dataclass(frozen=True)
@@ -65,13 +66,13 @@ def build_evidence_scope(
         )
     if has_config:
         return EvidenceScope(
-            authority_include=[*cfg.root, *cfg.future],
+            authority_include=list(cfg.root) or NO_AUTHORITY_ROOT_INCLUDE,
             discovery_include=None,
             discovery_enabled=True,
             default_scope_applied=True,
             has_canon_config=True,
             path_exclude=exclude,
-            policy="authority_first_broad_discovery",
+            policy="authority_first_lazy_discovery",
         )
     return EvidenceScope(
         authority_include=[],

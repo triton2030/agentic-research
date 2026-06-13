@@ -44,5 +44,6 @@ def test_metrics_and_markdown_render() -> None:
     assert false_alarm(clean) is True
     report = render_markdown([result, clean])
     assert "| A (single) |" in report
+    assert "| B (pack) |" not in report
     assert "Acceptance Matrix" in report
     assert "c1" in report
