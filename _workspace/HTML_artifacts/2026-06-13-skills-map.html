@@ -1,0 +1,874 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>agentic-research — карта skills</title>
+<link rel="icon" href="data:,">
+<script>
+  (function () {
+    var saved = localStorage.getItem('skills-map-theme');
+    var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    var dark = saved ? saved === 'dark' : prefersDark;
+    document.documentElement.classList.toggle('dark', dark);
+  })();
+</script>
+<link rel="stylesheet" href="styles.css">
+<style>
+  :root {
+    --map-bg: #f8f6ef;
+    --map-surface: #ffffff;
+    --map-surface-2: #efebe0;
+    --map-ink: #171717;
+    --map-body: #383835;
+    --map-muted: #7c7a72;
+    --map-line: #d7d2c4;
+    --map-line-soft: #e8e3d6;
+    --map-clay: #c86647;
+    --map-clay-soft: rgba(200, 102, 71, 0.13);
+    --map-olive: #718755;
+    --map-olive-soft: rgba(113, 135, 85, 0.14);
+    --map-blue: #557f9b;
+    --map-blue-soft: rgba(85, 127, 155, 0.13);
+    --map-gold: #b98e3e;
+    --map-gold-soft: rgba(185, 142, 62, 0.14);
+    --map-violet: #7666a3;
+    --map-violet-soft: rgba(118, 102, 163, 0.13);
+    --map-danger: #b85656;
+    --map-shadow: rgba(21, 20, 18, 0.12);
+    --map-zone: rgba(23, 23, 23, 0.025);
+    --map-zone-line: rgba(23, 23, 23, 0.14);
+    --map-serif: ui-serif, Georgia, "Times New Roman", serif;
+    --map-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --map-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+
+  html.dark {
+    --map-bg: #141412;
+    --map-surface: #20201d;
+    --map-surface-2: #2b2a26;
+    --map-ink: #fbfaf5;
+    --map-body: #d8d2c4;
+    --map-muted: #aaa397;
+    --map-line: #47443d;
+    --map-line-soft: #33312c;
+    --map-clay: #e18a6d;
+    --map-clay-soft: rgba(225, 138, 109, 0.16);
+    --map-olive: #a3b87b;
+    --map-olive-soft: rgba(163, 184, 123, 0.15);
+    --map-blue: #83abc5;
+    --map-blue-soft: rgba(131, 171, 197, 0.15);
+    --map-gold: #d0ad65;
+    --map-gold-soft: rgba(208, 173, 101, 0.16);
+    --map-violet: #a496d2;
+    --map-violet-soft: rgba(164, 150, 210, 0.15);
+    --map-danger: #df8d8d;
+    --map-shadow: rgba(0, 0, 0, 0.34);
+    --map-zone: rgba(251, 250, 245, 0.035);
+    --map-zone-line: rgba(251, 250, 245, 0.14);
+  }
+
+  html,
+  body {
+    min-height: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--map-bg);
+    color: var(--map-body);
+    font-family: var(--map-sans);
+    overflow: hidden;
+  }
+
+  .skill-map {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background:
+      linear-gradient(90deg, transparent 0, transparent 31px, var(--map-line-soft) 32px),
+      linear-gradient(180deg, transparent 0, transparent 31px, var(--map-line-soft) 32px),
+      var(--map-bg);
+    background-size: 32px 32px;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 14px 20px 12px;
+    border-bottom: 1px solid var(--map-line-soft);
+    background: color-mix(in srgb, var(--map-bg) 92%, transparent);
+    flex: none;
+  }
+
+  .title-block {
+    min-width: 280px;
+  }
+
+  h1 {
+    margin: 0;
+    color: var(--map-ink);
+    font-family: var(--map-serif);
+    font-size: 21px;
+    font-weight: 560;
+    line-height: 1.1;
+    letter-spacing: 0;
+  }
+
+  .sub {
+    margin-top: 5px;
+    color: var(--map-muted);
+    font-family: var(--map-mono);
+    font-size: 10.5px;
+    line-height: 1.4;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .counts {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-left: auto;
+  }
+
+  .pill,
+  .chip,
+  #themeToggle {
+    border: 1px solid var(--map-line);
+    border-radius: 999px;
+    background: var(--map-surface);
+    color: var(--map-muted);
+    font-family: var(--map-mono);
+    font-size: 11px;
+    line-height: 1;
+  }
+
+  .pill {
+    padding: 7px 10px;
+  }
+
+  .chips {
+    display: flex;
+    gap: 7px;
+    flex-wrap: wrap;
+    width: 100%;
+    order: 2;
+  }
+
+  .chip,
+  #themeToggle {
+    cursor: pointer;
+    padding: 7px 11px;
+    transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+  }
+
+  .chip:hover,
+  #themeToggle:hover {
+    color: var(--map-ink);
+    border-color: var(--map-muted);
+    transform: translateY(-1px);
+  }
+
+  .chip.on {
+    background: var(--map-ink);
+    border-color: var(--map-ink);
+    color: var(--map-bg);
+  }
+
+  .stage {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .diagram-canvas {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .diagram-canvas svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .zone rect {
+    fill: var(--map-zone);
+    stroke: var(--map-zone-line);
+    stroke-width: 1.2;
+    stroke-dasharray: 6 5;
+    rx: 18;
+  }
+
+  .zone .zt {
+    fill: var(--map-muted);
+    font-family: var(--map-mono);
+    font-size: 12px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  .zone .zs {
+    fill: var(--map-muted);
+    font-family: var(--map-mono);
+    font-size: 10.5px;
+    opacity: 0.8;
+  }
+
+  .node {
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+  }
+
+  .node rect {
+    fill: var(--map-surface);
+    stroke: var(--map-line);
+    stroke-width: 1.5;
+    rx: 11;
+    transition: fill 0.16s ease, stroke 0.16s ease, filter 0.16s ease;
+  }
+
+  .node:hover rect,
+  .node.sel rect {
+    stroke: var(--map-clay);
+    filter: drop-shadow(0 10px 18px var(--map-shadow));
+  }
+
+  .node .t {
+    fill: var(--map-ink);
+    font-family: var(--map-sans);
+    font-size: 15px;
+    font-weight: 690;
+    pointer-events: none;
+  }
+
+  .node .m {
+    fill: var(--map-muted);
+    font-family: var(--map-mono);
+    font-size: 10.5px;
+    pointer-events: none;
+  }
+
+  .node .k {
+    fill: var(--map-clay);
+    font-family: var(--map-mono);
+    font-size: 9.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+
+  .node.owner rect {
+    fill: var(--map-clay-soft);
+    stroke: var(--map-clay);
+  }
+
+  .node.md rect {
+    fill: var(--map-blue-soft);
+    stroke: var(--map-blue);
+  }
+
+  .node.skill rect {
+    fill: var(--map-olive-soft);
+    stroke: var(--map-olive);
+  }
+
+  .node.output rect {
+    fill: var(--map-gold-soft);
+    stroke: var(--map-gold);
+  }
+
+  .node.ext rect {
+    fill: var(--map-violet-soft);
+    stroke: var(--map-violet);
+    stroke-dasharray: 6 3;
+  }
+
+  .node.warn rect {
+    stroke: var(--map-danger);
+  }
+
+  .edge {
+    fill: none;
+    stroke: var(--map-muted);
+    stroke-width: 1.7;
+    marker-end: url(#arrow-muted);
+    transition: opacity 0.2s ease, stroke 0.2s ease;
+  }
+
+  .edge.dash {
+    stroke-dasharray: 6 5;
+  }
+
+  .edge.strong {
+    stroke-width: 2.4;
+  }
+
+  .edge-label {
+    fill: var(--map-muted);
+    font-family: var(--map-mono);
+    font-size: 10.5px;
+    transition: opacity 0.2s ease, fill 0.2s ease;
+  }
+
+  .arrow-muted {
+    fill: var(--map-muted);
+  }
+
+  .arrow-hot {
+    fill: var(--map-clay);
+  }
+
+  .stage.flowing .edge,
+  .stage.flowing .edge-label,
+  .stage.flowing .node,
+  .stage.flowing .zone {
+    opacity: 0.2;
+  }
+
+  .stage.flowing .node.lit,
+  .stage.flowing .edge-label.lit,
+  .stage.flowing .zone.lit {
+    opacity: 1;
+  }
+
+  .stage.flowing .edge.lit {
+    opacity: 1;
+    stroke: var(--map-clay);
+    marker-end: url(#arrow-hot);
+    stroke-dasharray: 8 5;
+    animation: path-march 0.85s linear infinite;
+  }
+
+  .stage.flowing .edge-label.lit {
+    fill: var(--map-clay);
+  }
+
+  @keyframes path-march {
+    to { stroke-dashoffset: -13; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .stage.flowing .edge.lit {
+      animation: none;
+    }
+  }
+
+  .detail {
+    width: min(410px, 100%);
+    padding: 15px 17px;
+    border: 1px solid var(--map-line);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--map-surface) 96%, transparent);
+    box-shadow: 0 10px 28px var(--map-shadow);
+    flex: none;
+  }
+
+  .detail h2 {
+    margin: 0 0 4px;
+    color: var(--map-ink);
+    font-family: var(--map-serif);
+    font-size: 19px;
+    font-weight: 560;
+    line-height: 1.2;
+    letter-spacing: 0;
+  }
+
+  .detail .meta {
+    margin: 0 0 9px;
+    color: var(--map-clay);
+    font-family: var(--map-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .detail p {
+    margin: 0;
+    color: var(--map-body);
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  .detail code {
+    color: var(--map-clay);
+    font-family: var(--map-mono);
+    font-size: 12px;
+  }
+
+  .source {
+    padding: 10px 12px;
+    border: 1px solid var(--map-line-soft);
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--map-bg) 88%, transparent);
+    color: var(--map-muted);
+    font-family: var(--map-mono);
+    font-size: 10.5px;
+    line-height: 1.45;
+    flex: 1;
+  }
+
+  .bottom-dock {
+    display: flex;
+    align-items: stretch;
+    gap: 14px;
+    padding: 12px 18px 16px;
+    border-top: 1px solid var(--map-line-soft);
+    background: color-mix(in srgb, var(--map-bg) 94%, transparent);
+    flex: none;
+  }
+
+  @media (max-width: 980px) {
+    body {
+      overflow: auto;
+    }
+
+    .skill-map {
+      min-height: 100vh;
+    }
+
+    .stage {
+      min-height: 760px;
+      overflow-x: auto;
+    }
+
+    .diagram-canvas {
+      min-height: 620px;
+    }
+
+    .diagram-canvas svg {
+      width: 1280px;
+      max-width: none;
+    }
+
+    .bottom-dock {
+      flex-direction: column;
+      padding: 12px 16px 16px;
+    }
+
+    .detail {
+      width: auto;
+      margin: 12px 16px;
+    }
+
+    .source {
+      margin: 0 16px;
+    }
+  }
+</style>
+</head>
+<body>
+<main class="skill-map">
+  <header class="topbar">
+    <div class="title-block">
+      <h1>Карта связей skills</h1>
+      <div class="sub">agentic-research · глобальные Codex skills · 2026-06-13</div>
+    </div>
+    <div class="counts">
+      <span class="pill">41 global</span>
+      <span class="pill">5 system</span>
+      <span class="pill">0 local .agents</span>
+      <button id="themeToggle" type="button">Theme</button>
+    </div>
+    <nav class="chips" aria-label="Маршруты">
+      <button class="chip on" type="button" data-flow="all">Все связи</button>
+      <button class="chip" type="button" data-flow="owner">Owner route</button>
+      <button class="chip" type="button" data-flow="markdown">Markdown stack</button>
+      <button class="chip" type="button" data-flow="skill">Skill package</button>
+      <button class="chip" type="button" data-flow="artifact">HTML output</button>
+      <button class="chip" type="button" data-flow="critic">Critic loop</button>
+      <button class="chip" type="button" data-flow="memory">Memory trail</button>
+    </nav>
+  </header>
+
+  <section class="stage" id="stage" aria-label="Схема связей между skills">
+    <div class="diagram-canvas">
+    <svg viewBox="0 0 1600 930" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="svg-title svg-desc">
+      <title id="svg-title">Карта связей между skills в agentic-research</title>
+      <desc id="svg-desc">Запрос проходит через локальную правду и skill matcher, затем маршрутизируется к owner skills, рабочим стекам, внешним критикам, HTML-артефактам, памяти и evidence closeout.</desc>
+      <defs>
+        <marker id="arrow-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+          <path class="arrow-muted" d="M 0 0 L 10 5 L 0 10 Z"></path>
+        </marker>
+        <marker id="arrow-hot" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+          <path class="arrow-hot" d="M 0 0 L 10 5 L 0 10 Z"></path>
+        </marker>
+      </defs>
+
+      <g class="zone" data-zone="entry">
+        <rect x="34" y="92" width="276" height="740"></rect>
+        <text class="zt" x="56" y="124">Entry</text>
+        <text class="zs" x="56" y="144">prompt, local truth, live surfaces</text>
+      </g>
+      <g class="zone" data-zone="owner">
+        <rect x="350" y="92" width="382" height="740"></rect>
+        <text class="zt" x="372" y="124">Owner layer</text>
+        <text class="zs" x="372" y="144">who has the right to decide</text>
+      </g>
+      <g class="zone" data-zone="work">
+        <rect x="772" y="92" width="470" height="740"></rect>
+        <text class="zt" x="794" y="124">Work stacks</text>
+        <text class="zs" x="794" y="144">Markdown, skill packages, tools</text>
+      </g>
+      <g class="zone" data-zone="outer">
+        <rect x="1282" y="92" width="284" height="740"></rect>
+        <text class="zt" x="1304" y="124">Outputs & peers</text>
+        <text class="zs" x="1304" y="144">artifacts, critics, memory, browser</text>
+      </g>
+
+      <path class="edge strong" id="e-request-agents" d="M 250 182 C 294 182 312 185 356 187"></path>
+      <path class="edge strong" id="e-agents-matcher" d="M 172 228 L 172 278"></path>
+      <path class="edge strong" id="e-matcher-owner" d="M 250 318 C 314 320 318 250 374 222"></path>
+      <path class="edge" id="e-matcher-strategy" d="M 250 318 C 318 318 322 172 374 172"></path>
+      <path class="edge" id="e-matcher-md" d="M 250 318 C 430 320 590 185 796 184"></path>
+      <path class="edge" id="e-matcher-skill" d="M 250 318 C 480 356 650 550 796 544"></path>
+      <path class="edge" id="e-matcher-output" d="M 250 318 C 620 220 1030 185 1304 184"></path>
+      <path class="edge dash" id="e-live-owner" d="M 250 442 C 315 450 326 510 374 514"></path>
+      <path class="edge dash" id="e-live-cli" d="M 250 442 C 470 448 660 440 1010 442"></path>
+      <path class="edge" id="e-owner-instruction" d="M 556 242 L 556 292"></path>
+      <path class="edge" id="e-owner-skillarch" d="M 556 362 L 556 412"></path>
+      <path class="edge" id="e-owner-docs" d="M 556 242 C 635 263 650 576 579 628"></path>
+      <path class="edge" id="e-owner-ia" d="M 556 242 C 625 270 650 485 579 512"></path>
+      <path class="edge" id="e-owner-planning" d="M 579 667 C 675 675 721 690 797 704"></path>
+      <path class="edge" id="e-instruction-mdgraph" d="M 738 332 C 785 338 795 382 815 402"></path>
+      <path class="edge" id="e-skillarch-creator" d="M 738 452 C 775 468 785 510 797 546"></path>
+      <path class="edge" id="e-skillarch-installer" d="M 738 452 C 890 470 955 548 1010 546"></path>
+      <path class="edge" id="e-nav-reader" d="M 946 205 L 946 255"></path>
+      <path class="edge" id="e-reader-graph" d="M 946 325 L 946 375"></path>
+      <path class="edge" id="e-md-obsidian" d="M 1096 205 C 1136 227 1138 287 1106 304"></path>
+      <path class="edge" id="e-md-mermaid" d="M 946 445 C 965 486 1020 492 1050 488"></path>
+      <path class="edge" id="e-cli-closeout" d="M 1160 442 C 1265 450 1280 727 1304 746"></path>
+      <path class="edge" id="e-skill-installed" d="M 946 566 L 946 618"></path>
+      <path class="edge" id="e-installer-installed" d="M 1098 566 C 1090 611 1050 636 1098 650"></path>
+      <path class="edge" id="e-installed-output" d="M 1100 650 C 1205 625 1250 210 1304 204"></path>
+      <path class="edge" id="e-output-html" d="M 1446 224 L 1446 274"></path>
+      <path class="edge dash" id="e-mermaid-html" d="M 1140 488 C 1245 460 1270 342 1304 324"></path>
+      <path class="edge" id="e-fresh-peers" d="M 556 562 C 860 574 1120 358 1304 346"></path>
+      <path class="edge" id="e-peers-closeout" d="M 1446 386 L 1446 720"></path>
+      <path class="edge" id="e-findings-memory" d="M 250 568 C 650 610 930 492 1304 484"></path>
+      <path class="edge" id="e-memory-route" d="M 1304 524 C 1000 575 740 230 556 222"></path>
+      <path class="edge" id="e-closeout-evidence" d="M 250 704 C 560 784 1090 785 1304 746"></path>
+      <path class="edge" id="e-front-browser" d="M 1098 704 C 1190 704 1240 630 1304 626"></path>
+
+      <text class="edge-label" data-edge="e-request-agents" x="286" y="170">локальная правда</text>
+      <text class="edge-label" data-edge="e-matcher-owner" x="292" y="285">право слоя</text>
+      <text class="edge-label" data-edge="e-matcher-md" x="545" y="218">смысловой поиск</text>
+      <text class="edge-label" data-edge="e-matcher-skill" x="574" y="482">workflow в skill</text>
+      <text class="edge-label" data-edge="e-matcher-output" x="840" y="176">one-file artifact</text>
+      <text class="edge-label" data-edge="e-live-cli" x="570" y="431">не prompt enforcement</text>
+      <text class="edge-label" data-edge="e-owner-instruction" x="568" y="276">text owner</text>
+      <text class="edge-label" data-edge="e-owner-docs" x="645" y="420">GOAL / README</text>
+      <text class="edge-label" data-edge="e-skillarch-creator" x="745" y="492">baseline</text>
+      <text class="edge-label" data-edge="e-nav-reader" x="958" y="240">selected target</text>
+      <text class="edge-label" data-edge="e-reader-graph" x="958" y="360">impact</text>
+      <text class="edge-label" data-edge="e-cli-closeout" x="1190" y="592">evidence</text>
+      <text class="edge-label" data-edge="e-mermaid-html" x="1214" y="416">visual layer</text>
+      <text class="edge-label" data-edge="e-memory-route" x="1070" y="562">stale? verify live</text>
+
+      <g class="node" data-node="request" transform="translate(64 156)">
+        <rect width="186" height="72"></rect>
+        <text class="t" x="18" y="27">Запрос</text>
+        <text class="m" x="18" y="49">гипотеза, не приказ</text>
+      </g>
+      <g class="node" data-node="agents" transform="translate(64 278)">
+        <rect width="186" height="80"></rect>
+        <text class="t" x="18" y="27">AGENTS.md</text>
+        <text class="m" x="18" y="49">root + local truth</text>
+        <text class="m" x="18" y="66">owner, evidence, guardrails</text>
+      </g>
+      <g class="node" data-node="matcher" transform="translate(64 402)">
+        <rect width="186" height="80"></rect>
+        <text class="t" x="18" y="27">Skill matcher</text>
+        <text class="m" x="18" y="49">41 global + 5 system</text>
+        <text class="m" x="18" y="66">live SKILL.md wins</text>
+      </g>
+      <g class="node warn" data-node="live" transform="translate(64 524)">
+        <rect width="186" height="80"></rect>
+        <text class="t" x="18" y="27">Live surfaces</text>
+        <text class="m" x="18" y="49">config, hooks, CLI help</text>
+        <text class="m" x="18" y="66">память не канон</text>
+      </g>
+      <g class="node" data-node="closeout" transform="translate(64 662)">
+        <rect width="186" height="84"></rect>
+        <text class="t" x="18" y="29">Closeout</text>
+        <text class="m" x="18" y="52">changed · checked · risk</text>
+        <text class="m" x="18" y="69">observable result</text>
+      </g>
+
+      <g class="node owner" data-node="strategy" transform="translate(374 150)">
+        <rect width="182" height="82"></rect>
+        <text class="k" x="18" y="20">choice</text>
+        <text class="t" x="18" y="43">1strategy</text>
+        <text class="m" x="18" y="65">подход, цена, линза</text>
+      </g>
+      <g class="node owner" data-node="folder" transform="translate(374 268)">
+        <rect width="182" height="84"></rect>
+        <text class="k" x="18" y="20">owner law</text>
+        <text class="t" x="18" y="43">1folder-contract</text>
+        <text class="m" x="18" y="65">право слоя, handoff</text>
+      </g>
+      <g class="node owner" data-node="instruction" transform="translate(374 388)">
+        <rect width="182" height="84"></rect>
+        <text class="k" x="18" y="20">wording</text>
+        <text class="t" x="18" y="43">1instruction-layer</text>
+        <text class="m" x="18" y="65">AGENTS / CLAUDE prose</text>
+      </g>
+      <g class="node owner skill" data-node="skillarch" transform="translate(374 508)">
+        <rect width="182" height="84"></rect>
+        <text class="k" x="18" y="20">skill owner</text>
+        <text class="t" x="18" y="43">1skill-architect</text>
+        <text class="m" x="18" y="65">contract + resources</text>
+      </g>
+      <g class="node owner" data-node="strategydocs" transform="translate(374 628)">
+        <rect width="182" height="82"></rect>
+        <text class="k" x="18" y="20">project docs</text>
+        <text class="t" x="18" y="43">1strategy-docs</text>
+        <text class="m" x="18" y="65">GOAL / README / roadmap</text>
+      </g>
+      <g class="node owner" data-node="ia" transform="translate(574 508)">
+        <rect width="138" height="84"></rect>
+        <text class="k" x="16" y="20">shape</text>
+        <text class="t" x="16" y="43">1ia-audit</text>
+        <text class="m" x="16" y="65">split / merge</text>
+      </g>
+
+      <g class="node md" data-node="mdnav" transform="translate(796 162)">
+        <rect width="150" height="84"></rect>
+        <text class="k" x="16" y="20">find</text>
+        <text class="t" x="16" y="43">1md-navigator</text>
+        <text class="m" x="16" y="65">search-read evidence</text>
+      </g>
+      <g class="node md" data-node="mdreader" transform="translate(796 282)">
+        <rect width="150" height="84"></rect>
+        <text class="k" x="16" y="20">read</text>
+        <text class="t" x="16" y="43">1md-reader</text>
+        <text class="m" x="16" y="65">bounded target</text>
+      </g>
+      <g class="node md" data-node="mdgraph" transform="translate(796 402)">
+        <rect width="150" height="84"></rect>
+        <text class="k" x="16" y="20">impact</text>
+        <text class="t" x="16" y="43">1md-graph</text>
+        <text class="m" x="16" y="65">deps, anchors, cycles</text>
+      </g>
+      <g class="node skill" data-node="creator" transform="translate(796 526)">
+        <rect width="150" height="82"></rect>
+        <text class="k" x="16" y="20">system</text>
+        <text class="t" x="16" y="43">skill-creator</text>
+        <text class="m" x="16" y="65">quick_validate baseline</text>
+      </g>
+      <g class="node skill" data-node="planning" transform="translate(796 686)">
+        <rect width="150" height="82"></rect>
+        <text class="k" x="16" y="20">tasks</text>
+        <text class="t" x="16" y="43">1planning</text>
+        <text class="m" x="16" y="65">plans, stages, reconcile</text>
+      </g>
+
+      <g class="node md" data-node="obsidian" transform="translate(1010 162)">
+        <rect width="150" height="82"></rect>
+        <text class="k" x="16" y="20">ux</text>
+        <text class="t" x="16" y="43">1obsidian</text>
+        <text class="m" x="16" y="65">bases, callouts, links</text>
+      </g>
+      <g class="node md" data-node="mermaid" transform="translate(1010 282)">
+        <rect width="150" height="82"></rect>
+        <text class="k" x="16" y="20">diagram</text>
+        <text class="t" x="16" y="43">1mermaid</text>
+        <text class="m" x="16" y="65">Obsidian Mermaid safety</text>
+      </g>
+      <g class="node" data-node="cli" transform="translate(1010 402)">
+        <rect width="150" height="82"></rect>
+        <text class="k" x="16" y="20">proof</text>
+        <text class="t" x="16" y="43">1cli-tools</text>
+        <text class="m" x="16" y="65">rg, LSP, diagnostics</text>
+      </g>
+      <g class="node skill" data-node="installer" transform="translate(1010 526)">
+        <rect width="150" height="82"></rect>
+        <text class="k" x="16" y="20">system</text>
+        <text class="t" x="16" y="43">skill-installer</text>
+        <text class="m" x="16" y="65">GitHub → global skills</text>
+      </g>
+      <g class="node skill" data-node="installed" transform="translate(1010 648)">
+        <rect width="150" height="82"></rect>
+        <text class="k" x="16" y="20">surface</text>
+        <text class="t" x="16" y="43">installed skills</text>
+        <text class="m" x="16" y="65">live SKILL.md packages</text>
+      </g>
+
+      <g class="node output" data-node="html" transform="translate(1304 162)">
+        <rect width="142" height="82"></rect>
+        <text class="k" x="16" y="20">artifact</text>
+        <text class="t" x="16" y="43">html family</text>
+        <text class="m" x="16" y="65">html / plan / diagram</text>
+      </g>
+      <g class="node output" data-node="smart" transform="translate(1304 284)">
+        <rect width="142" height="82"></rect>
+        <text class="k" x="16" y="20">clarify</text>
+        <text class="t" x="16" y="43">1smart-simple</text>
+        <text class="m" x="16" y="65">same meaning, shorter</text>
+      </g>
+      <g class="node ext" data-node="critics" transform="translate(1304 406)">
+        <rect width="142" height="82"></rect>
+        <text class="k" x="16" y="20">peer review</text>
+        <text class="t" x="16" y="43">1fresh-eyes</text>
+        <text class="m" x="16" y="65">Claude / Gemini / critics</text>
+      </g>
+      <g class="node ext" data-node="memory" transform="translate(1304 528)">
+        <rect width="142" height="82"></rect>
+        <text class="k" x="16" y="20">recall</text>
+        <text class="t" x="16" y="43">memory skills</text>
+        <text class="m" x="16" y="65">search / save / forget</text>
+      </g>
+      <g class="node output" data-node="front" transform="translate(1304 650)">
+        <rect width="142" height="82"></rect>
+        <text class="k" x="16" y="20">frontend</text>
+        <text class="t" x="16" y="43">UI / browser</text>
+        <text class="m" x="16" y="65">impeccable, playwright</text>
+      </g>
+      <g class="node" data-node="evidence" transform="translate(1304 772)">
+        <rect width="142" height="48"></rect>
+        <text class="t" x="16" y="30">Evidence</text>
+      </g>
+    </svg>
+    </div>
+
+    <div class="bottom-dock">
+      <div class="source">
+        Основано на live `SKILL.md` в `/Users/triton/.codex/skills`, system skills в `.system`, root `AGENTS.md` и текущей проверке: локальный `.agents/skills` пуст, старый `1html-artifact` удалён.
+      </div>
+      <aside class="detail" id="detail">
+        <h2>Связность, не каталог</h2>
+        <p class="meta">working map</p>
+        <p>Главная ось такая: запрос проходит через локальную правду и matcher, затем owner skills решают право слоя. Рабочие stacks дают evidence или артефакт, а финал закрывается наблюдаемой проверкой.</p>
+      </aside>
+    </div>
+  </section>
+</main>
+
+<script>
+  const details = {
+    request: ['Запрос', 'entry', 'Фраза пользователя сначала читается как гипотеза: отделяем эффект, предложенный метод, цену и owner. Это защищает систему от послушного, но неверного маршрута.'],
+    agents: ['AGENTS.md', 'local truth', 'Root и локальные инструкции задают роль, границы, evidence-closeout и правило: живой owner важнее общего совета.'],
+    matcher: ['Skill matcher', 'installed surface', 'Сопоставляет задачу с установленными skill-ами. В этой сессии живая глобальная поверхность: 41 обычный skill и 5 system skill-ов.'],
+    live: ['Live surfaces', 'runtime truth', 'Для runtime-sensitive тем проверяются `config.toml`, hooks, CLI help, validators и текущие файлы. Память помогает стартовать, но не заменяет live evidence.'],
+    closeout: ['Closeout', 'observable result', 'Финал должен сказать, что реально изменилось, чем проверено, и какой риск остался. Согласие или красивый план не считаются результатом.'],
+    strategy: ['1strategy', 'approach choice', 'Используется на развилках: выбрать профессиональную линзу, сравнить подходы и не хватать первый метод из prompt.'],
+    folder: ['1folder-contract', 'owner law', 'Судья права слоя: решает, кто владеет правилом, frontmatter-графом, shim, Goal-sync или runtime-механизмом.'],
+    instruction: ['1instruction-layer', 'instruction prose', 'Владеет placement и формулировкой `AGENTS.md`, `CLAUDE.md` и rule prose. Не владеет runtime и skill package.'],
+    skillarch: ['1skill-architect', 'skill package owner', 'Владеет `SKILL.md`, description, references/scripts/assets, `agents/openai.yaml`, validation и split/merge/move skill package.'],
+    strategydocs: ['1strategy-docs', 'project docs', 'Держит README, GOAL и ROADMAP как разные bounded contexts: on-ramp, scope contract и current path shape.'],
+    ia: ['1ia-audit', 'information architecture', 'Проверяет split/merge/move и owner truth в Markdown-корпусе. После IA-решения передаёт graph/frontmatter в folder-contract.'],
+    mdnav: ['1md-navigator', 'semantic evidence', '`md search-read`, overlaps, repeated-concepts и cluster выбирают targets. Даёт evidence, не semantic verdict.'],
+    mdreader: ['1md-reader', 'bounded reading', 'Читает уже выбранный файл, секцию или related context без жадного чтения всего корпуса.'],
+    mdgraph: ['1md-graph', 'graph safety', 'Показывает `depends-on`, reverse dependents, anchor drift, cycles и blast radius. Green graph не равен semantic closure.'],
+    creator: ['skill-creator', 'system baseline', 'Официальный structural owner для создания skill package и `quick_validate.py`. Локальный `1skill-architect` добавляет дисциплину intent и evidence.'],
+    planning: ['1planning', 'task shape', 'Владеет планами, roadmap-подшагами, task contracts и reconcile. Не подменяет GOAL/README/ROADMAP.'],
+    obsidian: ['1obsidian', 'Obsidian UX', 'Включается для Bases, callouts, wikilinks, visual Markdown и интерактивных project notes.'],
+    mermaid: ['1mermaid', 'Mermaid safety', 'Перед Mermaid в Obsidian держит совместимость и читаемость. В HTML-артефактах Mermaid остаётся визуальным слоем, не owner truth.'],
+    cli: ['1cli-tools', 'external evidence', 'Подключает real CLI/LSP signals: symbol references, broken links, dependency drift, diagnostics, security scans.'],
+    installer: ['skill-installer', 'GitHub install', 'Ставит skills из curated list или GitHub repo в `$CODEX_HOME/skills`, как мы сделали с `effective-html`.'],
+    installed: ['installed skills', 'live packages', 'Текущая истина skill-а живёт в его `SKILL.md`; старые notes и память сверяются с ним.'],
+    html: ['html family', 'effective HTML', 'Новые `html`, `html-plan`, `html-diagram` создают self-contained HTML artifacts; диаграммы используют hand-rolled SVG и dark mode.'],
+    smart: ['1smart-simple', 'compression', 'Сжимает текст без потери смысла. Если нужен именно HTML-файл, маршрут уходит в html family.'],
+    critics: ['1fresh-eyes + peers', 'independent review', 'Для реального риска или прямого запроса запускаются critic lenses: Claude/Gemini/MCP, developer, architecture, business или auditor.'],
+    memory: ['memory skills', 'recall layer', '`supermemory-search/save/forget` и `1findings` помогают помнить, но drift-prone факты всё равно проверяются live.'],
+    front: ['UI / browser skills', 'visual verification', 'Frontend/design/browser route: impeccable, screenshot-design, playwright, Browser/Vercel skills, когда задача про интерфейс или проверку в браузере.'],
+    evidence: ['Evidence', 'done-state', 'Артефакт, команда, проверка, commit/push или снятый риск. Это место, куда сходятся все маршруты.']
+  };
+
+  const flows = {
+    owner: {
+      zones: ['entry', 'owner'],
+      nodes: ['request', 'agents', 'matcher', 'strategy', 'folder', 'instruction', 'skillarch', 'strategydocs', 'ia', 'closeout'],
+      edges: ['e-request-agents', 'e-agents-matcher', 'e-matcher-owner', 'e-matcher-strategy', 'e-owner-instruction', 'e-owner-skillarch', 'e-owner-docs', 'e-owner-ia', 'e-closeout-evidence'],
+      caption: ['Owner route', 'Запрос не прыгает сразу в правку: сначала выясняется право слоя, затем handoff уходит к точному owner-у.']
+    },
+    markdown: {
+      zones: ['entry', 'owner', 'work'],
+      nodes: ['request', 'matcher', 'mdnav', 'mdreader', 'mdgraph', 'obsidian', 'mermaid', 'ia', 'instruction', 'cli', 'closeout'],
+      edges: ['e-matcher-md', 'e-nav-reader', 'e-reader-graph', 'e-md-obsidian', 'e-md-mermaid', 'e-instruction-mdgraph', 'e-cli-closeout', 'e-closeout-evidence'],
+      caption: ['Markdown stack', '`1md-navigator` выбирает target, `1md-reader` читает выбранное, `1md-graph` проверяет связи и blast radius.']
+    },
+    skill: {
+      zones: ['entry', 'owner', 'work'],
+      nodes: ['request', 'matcher', 'skillarch', 'creator', 'installer', 'installed', 'cli', 'closeout'],
+      edges: ['e-matcher-skill', 'e-skillarch-creator', 'e-skillarch-installer', 'e-skill-installed', 'e-installer-installed', 'e-cli-closeout', 'e-closeout-evidence'],
+      caption: ['Skill package', '`1skill-architect` владеет контрактом, `$skill-creator` даёт structural baseline, `$skill-installer` ставит внешние packages.']
+    },
+    artifact: {
+      zones: ['entry', 'work', 'outer'],
+      nodes: ['request', 'matcher', 'html', 'smart', 'mermaid', 'installed', 'front', 'evidence', 'closeout'],
+      edges: ['e-matcher-output', 'e-output-html', 'e-mermaid-html', 'e-installed-output', 'e-front-browser', 'e-closeout-evidence'],
+      caption: ['HTML output', '`html-diagram` делает визуальный one-file artifact; `1mermaid` помогает только там, где Mermaid уместнее SVG.']
+    },
+    critic: {
+      zones: ['owner', 'outer'],
+      nodes: ['request', 'strategy', 'folder', 'skillarch', 'critics', 'evidence', 'closeout'],
+      edges: ['e-fresh-peers', 'e-peers-closeout', 'e-closeout-evidence'],
+      caption: ['Critic loop', 'Свежие глаза подключаются на рискованных развилках или по явной просьбе; они возвращают finding плюс альтернативу.']
+    },
+    memory: {
+      zones: ['entry', 'owner', 'outer'],
+      nodes: ['live', 'memory', 'folder', 'strategy', 'closeout', 'evidence'],
+      edges: ['e-findings-memory', 'e-memory-route', 'e-live-owner', 'e-closeout-evidence'],
+      caption: ['Memory trail', 'Память ускоряет старт, но owner-sensitive и runtime-sensitive claims проверяются по живым files/tools.']
+    }
+  };
+
+  const stage = document.getElementById('stage');
+  const detail = document.getElementById('detail');
+  const chips = document.querySelectorAll('.chip');
+  const nodes = document.querySelectorAll('.node');
+  const edges = document.querySelectorAll('.edge');
+  const labels = document.querySelectorAll('.edge-label');
+  const zones = document.querySelectorAll('.zone');
+
+  function setDetail(key) {
+    const item = details[key] || details.request;
+    detail.innerHTML = '<h2>' + item[0] + '</h2><p class="meta">' + item[1] + '</p><p>' + item[2] + '</p>';
+    nodes.forEach((node) => node.classList.toggle('sel', node.dataset.node === key));
+  }
+
+  function clearLit() {
+    stage.classList.remove('flowing');
+    nodes.forEach((node) => node.classList.remove('lit', 'sel'));
+    edges.forEach((edge) => edge.classList.remove('lit'));
+    labels.forEach((label) => label.classList.remove('lit'));
+    zones.forEach((zone) => zone.classList.remove('lit'));
+    detail.innerHTML = '<h2>Связность, не каталог</h2><p class="meta">working map</p><p>Главная ось такая: запрос проходит через локальную правду и matcher, затем owner skills решают право слоя. Рабочие stacks дают evidence или артефакт, а финал закрывается наблюдаемой проверкой.</p>';
+  }
+
+  function setFlow(name) {
+    chips.forEach((chip) => chip.classList.toggle('on', chip.dataset.flow === name));
+    if (name === 'all') {
+      clearLit();
+      return;
+    }
+
+    const flow = flows[name];
+    stage.classList.add('flowing');
+    nodes.forEach((node) => node.classList.toggle('lit', flow.nodes.includes(node.dataset.node)));
+    edges.forEach((edge) => edge.classList.toggle('lit', flow.edges.includes(edge.id)));
+    labels.forEach((label) => label.classList.toggle('lit', flow.edges.includes(label.dataset.edge)));
+    zones.forEach((zone) => zone.classList.toggle('lit', flow.zones.includes(zone.dataset.zone)));
+    detail.innerHTML = '<h2>' + flow.caption[0] + '</h2><p class="meta">highlighted route</p><p>' + flow.caption[1] + '</p>';
+  }
+
+  chips.forEach((chip) => chip.addEventListener('click', () => setFlow(chip.dataset.flow)));
+  nodes.forEach((node) => node.addEventListener('click', () => setDetail(node.dataset.node)));
+
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    const nextDark = !document.documentElement.classList.contains('dark');
+    document.documentElement.classList.toggle('dark', nextDark);
+    localStorage.setItem('skills-map-theme', nextDark ? 'dark' : 'light');
+  });
+</script>
+</body>
+</html>
