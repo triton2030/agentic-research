@@ -31,6 +31,8 @@ RULEISH_HEADINGS = {
 ABBREVIATIONS = ("т.д.", "т.п.", "т.к.", "др.", "см.", "стр.", "напр.", "e.g.", "i.e.")
 TOKEN_RE = re.compile(r"\w+", re.UNICODE)
 LIST_RE = re.compile(r"^\s*(?:[-*+]\s+|\d+[.)]\s+)(.+)$")
+BLOCKQUOTE_PREFIX_RE = re.compile(r"^\s*(?:>\s?)+")
+CALLOUT_MARKER_RE = re.compile(r"^\[!([A-Za-z][\w-]*)\][-+]?\s*(.*)$")
 
 
 @dataclass(frozen=True)
@@ -125,6 +127,7 @@ def extract_claims(text: str, *, max_claims: int | None = None) -> ClaimExtracti
     paragraph: list[str] = []
     paragraph_line = 0
     in_fence = False
+    callout_heading = ""
 
     def heading_chain() -> str:
         return " > ".join(title for _level, title in heading_stack)
@@ -143,6 +146,9 @@ def extract_claims(text: str, *, max_claims: int | None = None) -> ClaimExtracti
 
     for idx, raw in enumerate(body_lines, start=offset + 1):
         line = raw.rstrip()
+        is_blockquote = bool(BLOCKQUOTE_PREFIX_RE.match(line))
+        if not is_blockquote:
+            callout_heading = ""
         if line.strip().startswith("```"):
             flush_paragraph()
             in_fence = not in_fence
@@ -162,6 +168,38 @@ def extract_claims(text: str, *, max_claims: int | None = None) -> ClaimExtracti
             continue
         if line.lstrip().startswith("|"):
             flush_paragraph()
+            continue
+        if is_blockquote:
+            # Obsidian-callout / blockquote: strip `>` prefixes and the
+            # `[!type]` marker, then run the inner line through the same claim
+            # rules. Without this the `>` lines fall into `paragraph`, blob past
+            # MAX_CLAIM_LEN and get dropped. An inner heading scopes the
+            # following inner claims via `callout_heading` (reset on the first
+            # non-blockquote line) without mutating the document heading_stack.
+            flush_paragraph()
+            inner = BLOCKQUOTE_PREFIX_RE.sub("", line, count=1).strip()
+            marker = CALLOUT_MARKER_RE.match(inner)
+            if marker:
+                inner = marker.group(2).strip()
+            if not inner:
+                continue
+            inner_heading = HEADING_RE.match(inner)
+            if inner_heading:
+                callout_heading = inner_heading.group(2).strip()
+                continue
+            chain = heading_chain()
+            if callout_heading:
+                chain = f"{chain} > {callout_heading}" if chain else callout_heading
+            inner_listed = LIST_RE.match(inner)
+            if inner_listed:
+                item = _claim(inner_listed.group(1), idx, chain)
+                if item is not None:
+                    claims.append(item)
+            else:
+                for sentence in _split_sentences(inner):
+                    item = _claim(sentence, idx, chain)
+                    if item is not None:
+                        claims.append(item)
             continue
         listed = LIST_RE.match(line)
         if listed:

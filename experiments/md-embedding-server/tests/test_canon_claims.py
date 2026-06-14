@@ -67,3 +67,80 @@ def test_claim_cap_sets_truncated_flag() -> None:
 
     assert len(result.claims) == 2
     assert result.truncated is True
+
+
+def test_callout_title_and_list_items_are_claims() -> None:
+    text = (
+        "> [!example] Принять заявку можно только после проверки данных.\n"
+        "> - Заявка должна содержать телефон клиента.\n"
+        "> - Нельзя списывать деньги до Принять.\n"
+        "> - Студия должна подтвердить канал входа.\n"
+    )
+
+    claims = split_into_claims(text)
+    texts = [claim.text for claim in claims]
+
+    assert len(claims) == 4
+    assert all(">" not in t and "[!example]" not in t for t in texts)
+    assert any("телефон" in t for t in texts)
+    assert any("списывать" in t for t in texts)
+
+
+def test_callout_inner_prose_splits_into_claims() -> None:
+    text = (
+        "> [!failure] Почему мусор не платный\n"
+        "> Если заявка не дошла до рубежа, она разбирается как спор по строке реестра.\n"
+        "> Деньги всегда возвращаются по строке финансового реестра.\n"
+    )
+
+    claims = split_into_claims(text)
+
+    assert len(claims) >= 2
+    assert all(">" not in claim.text for claim in claims)
+    assert any("process:разбираться" in claim.signals for claim in claims)
+
+
+def test_plain_blockquote_list_items_are_claims() -> None:
+    text = (
+        "> - Заявка должна содержать телефон клиента.\n"
+        "> - Нельзя списывать деньги до Принять.\n"
+    )
+
+    claims = split_into_claims(text)
+
+    assert len(claims) == 2
+    assert "телефон" in claims[0].text
+    assert ">" not in claims[0].text
+
+
+def test_callout_marker_only_line_yields_no_claim() -> None:
+    assert split_into_claims("> [!note]\n") == []
+
+
+def test_callout_does_not_merge_with_preceding_paragraph() -> None:
+    text = (
+        "Нейтральное вступление для контекста страницы.\n"
+        "> [!warning] Студия должна нажать Принять только после проверки.\n"
+    )
+
+    claims = split_into_claims(text)
+
+    assert len(claims) == 1
+    assert "Студия должна" in claims[0].text
+    assert "вступление" not in claims[0].text
+
+
+def test_callout_inner_heading_scopes_list_without_leaking() -> None:
+    text = (
+        "> [!info] Контроль качества\n"
+        "> ## Условия качественной заявки\n"
+        "> - закреплена конкретная студия и канал входа;\n"
+        "\n"
+        "Свободный абзац после callout для контекста.\n"
+    )
+
+    claims = split_into_claims(text)
+
+    assert len(claims) == 1
+    assert claims[0].text == "закреплена конкретная студия и канал входа;"
+    assert "heading:условия" in claims[0].signals
