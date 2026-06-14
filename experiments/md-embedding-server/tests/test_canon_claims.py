@@ -95,9 +95,11 @@ def test_callout_inner_prose_splits_into_claims() -> None:
 
     claims = split_into_claims(text)
 
-    assert len(claims) >= 2
+    assert len(claims) == 2
+    assert claims[0].text.startswith("Если заявка")
+    assert claims[1].text.startswith("Деньги всегда")
+    assert "process:разбираться" in claims[0].signals
     assert all(">" not in claim.text for claim in claims)
-    assert any("process:разбираться" in claim.signals for claim in claims)
 
 
 def test_plain_blockquote_list_items_are_claims() -> None:
@@ -144,3 +146,48 @@ def test_callout_inner_heading_scopes_list_without_leaking() -> None:
     assert len(claims) == 1
     assert claims[0].text == "закреплена конкретная студия и канал входа;"
     assert "heading:условия" in claims[0].signals
+
+
+def test_callout_table_rows_are_not_claims() -> None:
+    text = (
+        "> [!info] Тарифы\n"
+        "> | поле | значение |\n"
+        "> | Заявка должна содержать телефон | да |\n"
+    )
+
+    claims = split_into_claims(text)
+
+    assert all("|" not in claim.text for claim in claims)
+
+
+def test_callout_multiline_prose_is_one_claim() -> None:
+    # A sentence wrapped across several `>` lines must stay ONE claim, not be
+    # fragmented per physical line. Regression guard for the callout segmenter.
+    text = (
+        "> [!note] Контекст\n"
+        "> Студия обязана подтвердить канал входа\n"
+        "> только после ручной проверки заявки клиента.\n"
+    )
+
+    claims = split_into_claims(text)
+
+    assert len(claims) == 1
+    assert "подтвердить канал входа" in claims[0].text
+    assert "ручной проверки" in claims[0].text
+
+
+def test_callout_list_continuation_matches_main_loop() -> None:
+    # A list item wrapped onto a continuation line fragments identically inside
+    # a callout and at the top level — the callout introduces no new gap.
+    # Merging list continuations is a separate, segmenter-wide concern.
+    main = split_into_claims(
+        "# H\n\n- Студия должна нажать Принять и открыть\nполный комплект для печати."
+    )
+    callout = split_into_claims(
+        "> [!x] T\n> - Студия должна нажать Принять и открыть\n>   полный комплект для печати."
+    )
+
+    assert [c.text for c in main if "должна" in c.text] == [
+        c.text for c in callout if "должна" in c.text
+    ]
+    assert len(callout) >= 1

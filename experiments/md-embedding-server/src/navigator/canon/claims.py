@@ -128,9 +128,18 @@ def extract_claims(text: str, *, max_claims: int | None = None) -> ClaimExtracti
     paragraph_line = 0
     in_fence = False
     callout_heading = ""
+    callout_prose: list[str] = []
+    callout_prose_line = 0
+    callout_fence = False
 
     def heading_chain() -> str:
         return " > ".join(title for _level, title in heading_stack)
+
+    def callout_chain() -> str:
+        base = heading_chain()
+        if callout_heading:
+            return f"{base} > {callout_heading}" if base else callout_heading
+        return base
 
     def flush_paragraph() -> None:
         nonlocal paragraph, paragraph_line
@@ -144,11 +153,25 @@ def extract_claims(text: str, *, max_claims: int | None = None) -> ClaimExtracti
         paragraph = []
         paragraph_line = 0
 
+    def flush_callout_prose() -> None:
+        nonlocal callout_prose, callout_prose_line
+        if not callout_prose:
+            return
+        body = " ".join(callout_prose)
+        for sentence in _split_sentences(body):
+            item = _claim(sentence, callout_prose_line, callout_chain())
+            if item is not None:
+                claims.append(item)
+        callout_prose = []
+        callout_prose_line = 0
+
     for idx, raw in enumerate(body_lines, start=offset + 1):
         line = raw.rstrip()
         is_blockquote = bool(BLOCKQUOTE_PREFIX_RE.match(line))
         if not is_blockquote:
+            flush_callout_prose()
             callout_heading = ""
+            callout_fence = False
         if line.strip().startswith("```"):
             flush_paragraph()
             in_fence = not in_fence
@@ -170,36 +193,54 @@ def extract_claims(text: str, *, max_claims: int | None = None) -> ClaimExtracti
             flush_paragraph()
             continue
         if is_blockquote:
-            # Obsidian-callout / blockquote: strip `>` prefixes and the
-            # `[!type]` marker, then run the inner line through the same claim
-            # rules. Without this the `>` lines fall into `paragraph`, blob past
-            # MAX_CLAIM_LEN and get dropped. An inner heading scopes the
-            # following inner claims via `callout_heading` (reset on the first
-            # non-blockquote line) without mutating the document heading_stack.
+            # Obsidian-callout / blockquote: strip the `>` prefixes, then
+            # classify the inner line exactly as the main loop does (fence,
+            # table, heading, list, prose). Without this the `>` lines fall into
+            # `paragraph`, blob past MAX_CLAIM_LEN and get dropped. Inner prose
+            # accumulates in `callout_prose` so a sentence wrapped across several
+            # `>` lines stays one claim (mirrors the main loop's paragraph join).
+            # An inner heading scopes following inner claims via `callout_heading`
+            # without touching heading_stack. The `[!type] Title` marker line is
+            # its own unit, like a heading label.
+            # NOTE: like the main loop, a list item whose text wraps onto a
+            # continuation line is not merged with that continuation; that is a
+            # segmenter-wide limitation, not callout-specific.
             flush_paragraph()
             inner = BLOCKQUOTE_PREFIX_RE.sub("", line, count=1).strip()
             marker = CALLOUT_MARKER_RE.match(inner)
             if marker:
-                inner = marker.group(2).strip()
-            if not inner:
+                flush_callout_prose()
+                title = marker.group(2).strip()
+                if title:
+                    for sentence in _split_sentences(title):
+                        item = _claim(sentence, idx, callout_chain())
+                        if item is not None:
+                            claims.append(item)
+                continue
+            if inner.startswith("```"):
+                flush_callout_prose()
+                callout_fence = not callout_fence
+                continue
+            if callout_fence:
+                continue
+            if not inner or inner.startswith("|"):
+                flush_callout_prose()
                 continue
             inner_heading = HEADING_RE.match(inner)
             if inner_heading:
+                flush_callout_prose()
                 callout_heading = inner_heading.group(2).strip()
                 continue
-            chain = heading_chain()
-            if callout_heading:
-                chain = f"{chain} > {callout_heading}" if chain else callout_heading
             inner_listed = LIST_RE.match(inner)
             if inner_listed:
-                item = _claim(inner_listed.group(1), idx, chain)
+                flush_callout_prose()
+                item = _claim(inner_listed.group(1), idx, callout_chain())
                 if item is not None:
                     claims.append(item)
-            else:
-                for sentence in _split_sentences(inner):
-                    item = _claim(sentence, idx, chain)
-                    if item is not None:
-                        claims.append(item)
+                continue
+            if not callout_prose:
+                callout_prose_line = idx
+            callout_prose.append(inner)
             continue
         listed = LIST_RE.match(line)
         if listed:
@@ -212,6 +253,7 @@ def extract_claims(text: str, *, max_claims: int | None = None) -> ClaimExtracti
             paragraph_line = idx
         paragraph.append(line)
     flush_paragraph()
+    flush_callout_prose()
     truncated = len(claims) > limit
     return ClaimExtraction(claims=claims[:limit], truncated=truncated)
 
