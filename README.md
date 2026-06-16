@@ -20,7 +20,7 @@
 5. `_ops/user-said/` — legacy/manual сырой архив цитат пользователя по дням;
    обработка только отдельным manual проходом.
 6. `knowledge/` — wisdom, guides, practical guides, examples и research.
-   Для написания скиллов начинать с
+   Для написания скилов начинать с
    `knowledge/practical-guides/how-to-write-skills/`.
 7. `_ops/findings/`, `_ops/interviews/`, `_ops/plans/` — временные рабочие
    поверхности; открывать их только когда текущая задача на них указывает.
