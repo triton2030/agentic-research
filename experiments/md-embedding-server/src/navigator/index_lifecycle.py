@@ -8,6 +8,7 @@ from `.md-tools.toml`.
 
 from __future__ import annotations
 
+import sqlite3
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -144,10 +145,16 @@ def plan_cleanup(
     enabled: bool,
     disabled_reason: str | None = None,
 ) -> CleanupPlan:
-    db_path = _index_dir_for_corpus(corpus_root, cache_root=cache_root, create=False) / "index.sqlite"
+    db_path = (
+        _index_dir_for_corpus(corpus_root, cache_root=cache_root, create=False)
+        / "index.sqlite"
+    )
     if not db_path.exists():
         return empty_cleanup_plan(enabled=enabled, disabled_reason=disabled_reason)
-    conn = _open_index_metadata_readonly(corpus_root, cache_root=cache_root)
+    try:
+        conn = _open_index_metadata_readonly(corpus_root, cache_root=cache_root)
+    except sqlite3.Error:
+        return empty_cleanup_plan(enabled=False, disabled_reason="index_unreadable")
     try:
         return plan_cleanup_from_connection(
             conn,
@@ -157,6 +164,8 @@ def plan_cleanup(
             enabled=enabled,
             disabled_reason=disabled_reason,
         )
+    except sqlite3.Error:
+        return empty_cleanup_plan(enabled=False, disabled_reason="index_unreadable")
     finally:
         conn.close()
 

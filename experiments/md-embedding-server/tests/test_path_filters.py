@@ -563,6 +563,32 @@ def test_legacy_cmd_index_refuses_nested_corpus(tmp_path: Path) -> None:
     assert not (child / ".md-navigator").exists()
 
 
+def test_status_classifies_unreadable_nested_index_instead_of_crashing(
+    tmp_path: Path,
+) -> None:
+    parent = tmp_path / "parent"
+    child = parent / "child"
+    child.mkdir(parents=True)
+    (child / "doc.md").write_text("# Doc\n\n## Topic\n\nBody.\n", encoding="utf-8")
+    (parent / ".md-navigator").mkdir()
+    (parent / ".md-navigator" / "index.sqlite").write_bytes(b"")
+    (child / ".md-navigator").mkdir()
+    (child / ".md-navigator" / "index.sqlite").write_bytes(b"")
+
+    payload = _status(child)
+
+    assert payload.get("_exit_code", 0) == 0
+    assert payload["state"] == "NEEDS_REBUILD"
+    assert payload["index_exists"] is True
+    assert payload["metadata_mismatch"] is True
+    assert payload["cleanup_enabled"] is False
+    assert payload["cleanup_disabled_reason"] == "index_unreadable"
+    assert payload["index_integrity"]["ok"] is False
+    assert payload["recommended_action"]["tool"] == "md_index"
+    assert payload["recommended_action"]["args"]["corpus"] == str(parent)
+    assert payload["recommended_action"]["args"]["path_include"] == ["child/**"]
+
+
 def test_index_dry_run_reports_zero_delta_for_fresh_index(
     tmp_path: Path,
     mock_embed,
