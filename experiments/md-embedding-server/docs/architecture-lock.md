@@ -80,9 +80,11 @@ Phase 2 can start only when the lock tests are green.
 - Audit detection lives in `navigator.audit`. CLI routing, Markdown rendering
   and severity scoring stay split into `audit_cli.py`, `audit_render.py` and
   `audit_severity.py`; do not grow `audit.py` back into a 1000-line catch-all.
-- `navigator.markdown_io` is the canonical Markdown/link parser. Graph modules
-  may resolve graph-specific edges, but must not maintain a second wikilink or
-  markdown-link parser.
+- `navigator.markdown_io` is the canonical Markdown/link parser and
+  heading-bounded section reader. Selection adapters such as `pick.py` may
+  choose ids and token budgets, but must not own section boundary semantics.
+  Graph modules may resolve graph-specific edges, but must not maintain a
+  second wikilink or markdown-link parser.
 - `navigator.link_graph.iter_explicit_link_edges` is the canonical explicit
   Markdown edge iterator for frontmatter links, wikilinks and Markdown links.
   `read-related --check-links` reuses it instead of resolving the same edge

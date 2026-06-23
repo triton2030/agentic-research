@@ -25,6 +25,11 @@ selftest и smoke-пайплайн `ls → extract`.
 `md extract` работает на **любой** карте — lean или полной — и больше не зависит
 от того, несёт ли карта heading-деревья.
 
+2026-06-18 уточнение границы: `pick` остаётся adapter-ом выбора file/heading ids
+и token budget, а чтение heading-bounded section body (`extract_section_by_line`)
+принадлежит `navigator.markdown_io`. Это сохраняет решение ADR-0002, но переносит
+семантику границ секций в тот же deep module, который владеет Markdown parsing.
+
 ## Последствия
 
 - `md ls` non-expanded дефолт теперь сбрасывает heading-деревья (ADR-0001);
@@ -33,5 +38,7 @@ selftest и smoke-пайплайн `ls → extract`.
 - `extract` развязан от формы карты: единственный источник headings — диск, а не
   дублирование в каждой карте. Архитектурно чище и устойчивее к будущим
   изменениям формы `ls`/`orient`.
+- Границы извлекаемого тела секции теперь едины для `extract`, `read-related`
+  anchor-aware, `walk` и `coherence-audit`: все идут через `markdown_io`.
 - `semantic-neighbors` не становится новым `map_data` owner-ом для `extract`:
   его candidate rows раскрываются собственным payload-level `read_next`.

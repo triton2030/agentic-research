@@ -25,6 +25,10 @@ Markdown/link. `graph_edges` может строить graph-specific edges (`Ed
 `scan_doc`), но не должен держать второй wikilink/markdown-link parser.
 Зафиксировано инвариантом в `architecture-lock.md` и `AGENTS.md`.
 
+2026-06-18 уточнение: `markdown_io` также владеет heading-bounded section
+reading. Это усиливает locality Markdown-reader слоя, но **не закрывает**
+отдельный долг консолидации link parser-а в `graph_edges`.
+
 ## Последствия / текущий разрыв (честно)
 
 - **Инвариант пока не доведён до кода:** `graph_edges` всё ещё определяет

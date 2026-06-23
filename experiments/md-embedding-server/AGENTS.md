@@ -38,8 +38,9 @@ transactions и JSON output.
   `navigator.workflows` aliases; profile/query/refactor DB ownership lives in
   `api_profile.py`, not in workflow modules.
 - `src/navigator/markdown_io.py` — единственный владелец Markdown/link
-  parsing. `graph_edges.py` может строить graph-specific edges, но не держит
-  второй wikilink/markdown-link parser.
+  parsing и heading-bounded section reading. `pick.py` выбирает ids/token
+  budget, но не владеет границами секций. `graph_edges.py` может строить
+  graph-specific edges, но не держит второй wikilink/markdown-link parser.
 - `src/navigator/audit.py` — audit detection/payload owner. CLI adapter,
   Markdown render и severity-policy живут в `audit_cli.py`,
   `audit_render.py`, `audit_severity.py`; не раздувай `audit.py` обратно за

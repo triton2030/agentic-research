@@ -145,6 +145,17 @@ def test_graph_edges_reuses_markdown_io_link_parser() -> None:
     assert "resolve_markdown_target" in text
 
 
+def test_markdown_io_owns_section_reading_without_pick_import() -> None:
+    markdown_text = (SRC / "navigator" / "markdown_io.py").read_text(encoding="utf-8")
+    pick_text = (SRC / "navigator" / "pick.py").read_text(encoding="utf-8")
+
+    assert "class MarkdownSection" in markdown_text
+    assert "def extract_section_by_line" in markdown_text
+    assert "def find_section_by_anchor" in markdown_text
+    assert "from .pick" not in markdown_text
+    assert "extract_section_by_line" in pick_text
+
+
 def test_search_and_audit_api_delegate_to_domain_payloads() -> None:
     search_text = (SRC / "navigator" / "api_search.py").read_text(encoding="utf-8")
     assert "search_payload" in search_text
@@ -186,6 +197,30 @@ def test_read_related_reuses_link_graph_iterator() -> None:
 def test_semantic_index_open_does_not_swallow_all_exceptions() -> None:
     text = (SRC / "navigator" / "index.py").read_text(encoding="utf-8")
     assert "except (FileNotFoundError, Exception)" not in text
+
+
+def test_index_facade_has_no_runtime_semantic_helpers() -> None:
+    text = (SRC / "navigator" / "index.py").read_text(encoding="utf-8")
+    tree = ast.parse(text)
+    function_names = {
+        node.name for node in tree.body if isinstance(node, ast.FunctionDef)
+    }
+
+    assert "find_semantic_neighbors" not in function_names
+    assert "check_explicit_link_coherence" not in function_names
+    assert "sqlite3" not in text
+
+
+def test_related_and_index_context_import_focused_index_owners() -> None:
+    related_text = (SRC / "navigator" / "related.py").read_text(encoding="utf-8")
+    index_context_text = (SRC / "navigator" / "api_index_context.py").read_text(encoding="utf-8")
+
+    assert "from .index import" not in related_text
+    assert "from .index import" not in index_context_text
+    assert "from .semantic_neighbors import _check_explicit_link_coherence" in related_text
+    assert "from .status_core import find_corpus_root_for" in related_text
+    assert "from .index_build import ensure_index" in index_context_text
+    assert "from .index_meta import _index_dir_for_corpus" in index_context_text
 
 
 def test_index_write_path_has_no_dead_dry_run_branch() -> None:

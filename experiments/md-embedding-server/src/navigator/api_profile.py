@@ -25,7 +25,7 @@ def index(
     cache_dir: str | None = None,
     **_: Any,
 ) -> dict[str, Any]:
-    from .cli_common import SEARCH_DEFAULT_EMBEDDING_API_URL, SEARCH_DEFAULT_EMBEDDING_TIMEOUT
+    from .cli_common import SEARCH_DEFAULT_EMBEDDING_TIMEOUT
     from .filters import apply_path_filters_to_map, normalize_path_filter_patterns
     from .folder_map import build_map
     from .index_lifecycle import (
@@ -41,8 +41,10 @@ def index(
         _index_dir_for_corpus,
         find_parent_indexed_corpus,
         nested_corpus_refusal,
+        resolve_embedding_api_url_for_corpus,
         resolve_embed_model_for_corpus,
     )
+    from .index_readiness import IndexReadinessKind, classify_index_readiness
     from .sections import build_items_from_map
 
     corpus_root = Path(corpus).expanduser().resolve()
@@ -96,8 +98,43 @@ def index(
         enabled=cleanup_enabled,
         disabled_reason=cleanup_disabled_reason,
     )
+    selected_model = resolve_embed_model_for_corpus(corpus_root, embed_model, cache_root=cache_root)
+    selected_api_url = resolve_embedding_api_url_for_corpus(
+        corpus_root,
+        embedding_api_url,
+        cache_root=cache_root,
+    )
+    readiness = classify_index_readiness(
+        corpus_root,
+        cache_root=cache_root,
+        expected_embed_model=selected_model,
+        expected_embedding_api_url=selected_api_url,
+        check_integrity=True,
+    )
     if (dry_run or not confirm) and index_exists:
-        selected_model = resolve_embed_model_for_corpus(corpus_root, embed_model, cache_root=cache_root)
+        if readiness.kind is not IndexReadinessKind.READY:
+            payload = {
+                "command": "index",
+                "dry_run": bool(dry_run),
+                "pending_chunks": pending_chunks,
+                "added_sections": sum(len(items) for items in items_by_scope.values()),
+                "removed_sections": 0,
+                "estimated_cost_usd": round(pending_chunks * 0.00002, 4),
+                "affected_files": affected_files,
+                "index_readiness": readiness.kind.value,
+                "metadata_mismatch": readiness.kind is not IndexReadinessKind.INTEGRITY_MISMATCH,
+                **cleanup_plan.public_payload(),
+            }
+            if readiness.integrity is not None or readiness.issues:
+                payload["index_integrity"] = {
+                    "ok": False,
+                    "counts": {"sections": 0, "chunks": 0, "sections_fts": 0, "sections_vec": 0},
+                    "issues": readiness.issues,
+                    **(readiness.integrity or {}),
+                }
+            if vacuum:
+                payload["vacuum"] = vacuum_preview(corpus_root, cache_root=cache_root)
+            return payload
         totals = {"pending_chunks": 0, "added_sections": 0, "removed_sections": 0}
         for scope, items in items_by_scope.items():
             conn, stats = ensure_index(
@@ -105,7 +142,7 @@ def index(
                 scope,
                 items,
                 selected_model,
-                embedding_api_url=embedding_api_url or SEARCH_DEFAULT_EMBEDDING_API_URL,
+                embedding_api_url=selected_api_url,
                 embedding_timeout=float(embedding_timeout or SEARCH_DEFAULT_EMBEDDING_TIMEOUT),
                 cache_root=cache_root,
                 max_auto_embed=None,
@@ -142,12 +179,11 @@ def index(
         if vacuum:
             payload["vacuum"] = vacuum_preview(corpus_root, cache_root=cache_root)
         return payload
-    selected_model = resolve_embed_model_for_corpus(corpus_root, embed_model, cache_root=cache_root)
     cleanup_result = apply_cleanup(
         corpus_root,
         cache_root=cache_root,
         embed_model=selected_model,
-        embedding_api_url=embedding_api_url or SEARCH_DEFAULT_EMBEDDING_API_URL,
+        embedding_api_url=selected_api_url,
         config_include=config_include_patterns,
         config_exclude=config_exclude_patterns,
         enabled=cleanup_enabled,
@@ -160,7 +196,7 @@ def index(
             scope,
             items,
             selected_model,
-            embedding_api_url=embedding_api_url or SEARCH_DEFAULT_EMBEDDING_API_URL,
+            embedding_api_url=selected_api_url,
             embedding_timeout=float(embedding_timeout or SEARCH_DEFAULT_EMBEDDING_TIMEOUT),
             cache_root=cache_root,
             max_auto_embed=None,

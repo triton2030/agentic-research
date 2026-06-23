@@ -6,7 +6,7 @@ from typing import Any
 
 from .api_utils import _exit, _read_next
 from .index_meta import _open_index_readonly
-from .index_resolution import index_conflict_payload, index_exists
+from .index_readiness import IndexReadinessKind, classify_index_readiness
 
 
 DEFAULT_LIMIT = 8
@@ -30,18 +30,30 @@ def semantic_neighbors(
     validation_error = _validate_target(target_path, corpus_root)
     if validation_error is not None:
         return validation_error
-    if not index_exists(corpus_root, cache_root=cache_root):
+    readiness = classify_index_readiness(
+        corpus_root,
+        cache_root=cache_root,
+        mode="vector",
+        check_shadowed=True,
+    )
+    if readiness.kind is IndexReadinessKind.MISSING:
         return _index_warmup_required(corpus_root, target_path)
-    conflict = index_conflict_payload(corpus_root, cache_root=cache_root)
-    if conflict is not None:
-        return conflict
+    if readiness.kind is IndexReadinessKind.SHADOWED_CONFLICT:
+        return _index_conflict_payload(corpus_root, readiness.conflicts)
+    if readiness.kind is not IndexReadinessKind.READY:
+        return _index_rebuild_required(corpus_root, target_path, readiness.kind.value)
 
     try:
         conn = _open_index_readonly(corpus_root, cache_root=cache_root)
     except FileNotFoundError:
         return _index_warmup_required(corpus_root, target_path)
     except (ModuleNotFoundError, RuntimeError, sqlite3.Error) as exc:
-        return _exit({"error": "dependency_failed", "detail": str(exc)}, 3)
+        return _index_rebuild_required(
+            corpus_root,
+            target_path,
+            "open_failed",
+            reason=f"Index became unreadable while opening it: {type(exc).__name__}",
+        )
 
     try:
         target_chunks = _target_chunks(conn, corpus_root, target_path)
@@ -128,6 +140,137 @@ def _index_warmup_required(
         },
         4,
     )
+
+
+def _index_rebuild_required(
+    corpus_root: Path,
+    target_path: Path,
+    readiness: str,
+    *,
+    reason: str = "Index is not readable enough for semantic-neighbors.",
+) -> dict[str, Any]:
+    payload = _index_warmup_required(corpus_root, target_path, reason=reason)
+    payload["error"] = "index_rebuild_required"
+    payload["index_readiness"] = readiness
+    return payload
+
+
+def _index_conflict_payload(
+    corpus_root: Path,
+    conflicts: list[dict[str, Any]],
+) -> dict[str, Any]:
+    return _exit(
+        {
+            "error": "INDEX_CONFLICT",
+            "corpus": str(corpus_root),
+            "message": "Nested md-navigator indexes conflict with the explicit corpus index; semantic reads refuse to choose silently.",
+            "conflicts": conflicts,
+            "read_next": [
+                _read_next(
+                    "md_corpus_scan",
+                    {"root": str(corpus_root)},
+                    "Inspect indexed corpora and shadowed nested indexes.",
+                ),
+                _read_next(
+                    "md_index",
+                    {"corpus": str(corpus_root), "cleanup_shadowed": True, "dry_run": True},
+                    "Preview cleanup of shadowed generated index files before retrying semantic reads.",
+                ),
+            ],
+        },
+        2,
+    )
+
+
+def _check_explicit_link_coherence(
+    corpus_root: Path,
+    anchor: Path,
+    linked_targets: list[Path],
+    threshold: float = 0.4,
+    cache_root: Path | None = None,
+) -> list[dict[str, Any]]:
+    """Dense-distance check for read-related --check-links.
+
+    Returns only explicit links whose best anchor-section to target-section
+    distance exceeds threshold. It is read-only and never embeds text.
+    """
+    try:
+        conn = _open_index_readonly(corpus_root, cache_root=cache_root)
+    except (FileNotFoundError, ModuleNotFoundError, RuntimeError, sqlite3.Error):
+        return []
+
+    try:
+        try:
+            anchor_rel = str(anchor.resolve().relative_to(corpus_root.resolve()))
+        except ValueError:
+            return []
+
+        anchor_chunks = conn.execute(
+            "SELECT chunks.chunk_id, sections.section_id "
+            "FROM chunks "
+            "JOIN sections ON sections.rowid = chunks.section_rowid "
+            "WHERE sections.scope = 'sections' AND sections.relative_path = ?",
+            (anchor_rel,),
+        ).fetchall()
+        if not anchor_chunks:
+            return []
+
+        suspicious: list[dict[str, Any]] = []
+        for target in linked_targets:
+            try:
+                target_rel = str(target.resolve().relative_to(corpus_root.resolve()))
+            except ValueError:
+                continue
+
+            target_chunks = conn.execute(
+                "SELECT chunks.chunk_id, sections.section_id "
+                "FROM chunks "
+                "JOIN sections ON sections.rowid = chunks.section_rowid "
+                "WHERE sections.scope = 'sections' AND sections.relative_path = ?",
+                (target_rel,),
+            ).fetchall()
+            if not target_chunks:
+                continue
+
+            best = None
+            best_pair: tuple[str, str] | None = None
+            for a_chunk_id, a_section_id in anchor_chunks:
+                vec_row = conn.execute(
+                    "SELECT embedding FROM sections_vec WHERE rowid = ?",
+                    (a_chunk_id,),
+                ).fetchone()
+                if not vec_row:
+                    continue
+                rows = conn.execute(
+                    "SELECT vec.distance, sections.section_id "
+                    "FROM sections_vec vec "
+                    "JOIN chunks c ON c.chunk_id = vec.rowid "
+                    "JOIN sections ON sections.rowid = c.section_rowid "
+                    "WHERE vec.embedding MATCH ? AND vec.k = ? "
+                    "  AND sections.scope = 'sections' "
+                    "  AND sections.relative_path = ? "
+                    "ORDER BY vec.distance LIMIT 1",
+                    (vec_row[0], max(5, len(target_chunks)), target_rel),
+                ).fetchall()
+                for distance, t_section_id in rows:
+                    d = float(distance)
+                    if best is None or d < best:
+                        best = d
+                        best_pair = (a_section_id, t_section_id)
+
+            if best is not None and best > threshold:
+                suspicious.append(
+                    {
+                        "target_relative_path": target_rel,
+                        "best_distance": best,
+                        "anchor_section": best_pair[0] if best_pair else "",
+                        "target_section": best_pair[1] if best_pair else "",
+                    }
+                )
+
+        return suspicious
+    finally:
+        conn.close()
 
 
 def _target_chunks(conn, corpus_root: Path, target_path: Path) -> list[dict[str, Any]]:

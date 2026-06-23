@@ -218,6 +218,49 @@ def test_read_related_semantic_radius_is_retired_route(tmp_path: Path) -> None:
     assert payload["read_next"][0]["tool"] == "md_semantic_neighbors"
 
 
+def test_read_related_check_links_uses_existing_index_without_embedding_calls(
+    tmp_path: Path,
+    mock_embed,
+    monkeypatch,
+) -> None:
+    corpus = tmp_path / "corpus"
+    corpus.mkdir()
+    source = corpus / "source.md"
+    target = corpus / "target.md"
+    source.write_text(
+        "# Source\n\n## Alpha\n\nExplicit link to [[target]].\n",
+        encoding="utf-8",
+    )
+    target.write_text(
+        "# Target\n\n## Beta\n\nDifferent linked topic.\n",
+        encoding="utf-8",
+    )
+    assert _build_index(corpus).get("_exit_code", 0) == 0
+
+    from navigator import embeddings, index_build, index_meta, search as search_mod
+
+    def fail_embed(*_args, **_kwargs):
+        raise AssertionError("read-related --check-links must not call embeddings")
+
+    monkeypatch.setattr(embeddings, "_embed_texts_http", fail_embed)
+    monkeypatch.setattr(index_meta, "_embed_texts_http", fail_embed)
+    monkeypatch.setattr(index_build, "_embed_texts_http", fail_embed)
+    monkeypatch.setattr(search_mod, "_embed_texts_http", fail_embed)
+
+    payload = read_related(
+        paths=[str(source)],
+        scan=str(corpus),
+        check_links=True,
+        link_distance_threshold=-1.0,
+    )
+
+    assert payload.get("_exit_code", 0) == 0, payload
+    assert payload["semantic_status"] == "ok"
+    assert payload["semantic_neighbors"] == []
+    assert payload["suspicious_links"]
+    assert payload["suspicious_links"][0]["target_relative_path"] == "target.md"
+
+
 def test_read_related_and_edit_context_return_structured_target_errors(tmp_path: Path) -> None:
     corpus, target_folder, _target_file = _corpus_with_folder(tmp_path)
 

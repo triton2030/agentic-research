@@ -1,5 +1,5 @@
 """Index metadata layer: schema, on-disk layout, meta key/value, sticky
-model resolution, and the three flavours of `open` (write, readonly,
+embedding metadata resolution, and the three flavours of `open` (write, readonly,
 metadata-only-readonly).
 
 This module has no knowledge of the embed pipeline (`index_build.py`),
@@ -460,5 +460,31 @@ def resolve_embed_model_for_corpus(
         return recorded or SEARCH_DEFAULT_EMBED_MODEL
     except Exception:
         return SEARCH_DEFAULT_EMBED_MODEL
+    finally:
+        conn.close()
+
+
+def resolve_embedding_api_url_for_corpus(
+    corpus_root: Path,
+    cli_value: str | None,
+    cache_root: Path | None = None,
+) -> str:
+    """Pick the embedding API URL for this invocation.
+
+    Explicit CLI/API input wins. Otherwise reuse the recorded endpoint from
+    index meta so read paths do not report a false metadata mismatch or rebuild
+    a custom-endpoint corpus merely because the caller omitted the flag.
+    """
+    if cli_value:
+        return cli_value
+    try:
+        conn = _open_index_metadata_readonly(corpus_root, cache_root=cache_root)
+    except Exception:
+        return SEARCH_DEFAULT_EMBEDDING_API_URL
+    try:
+        recorded = _meta_get(conn, "embedding_api_url")
+        return recorded or SEARCH_DEFAULT_EMBEDDING_API_URL
+    except Exception:
+        return SEARCH_DEFAULT_EMBEDDING_API_URL
     finally:
         conn.close()

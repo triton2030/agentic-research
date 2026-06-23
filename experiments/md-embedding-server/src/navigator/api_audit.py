@@ -85,6 +85,7 @@ def cluster(
     expanded: bool = False,
 ) -> dict[str, Any]:
     from .index_cluster import cluster_sections
+    from .index_readiness import IndexReadinessKind, classify_index_readiness
 
     corpus_root = Path(corpus).expanduser().resolve()
     if not corpus_root.exists():
@@ -93,6 +94,30 @@ def cluster(
     if selected_k < 1:
         return _exit({"command": "cluster", "error": "k_must_be_positive", "k": selected_k}, 2)
     cache_root = Path(cache_dir).expanduser() if cache_dir else None
+    readiness = classify_index_readiness(corpus_root, cache_root=cache_root, mode="vector")
+    if readiness.kind is IndexReadinessKind.MISSING:
+        return _index_warmup(
+            corpus_root,
+            path_include=path_include,
+            path_exclude=path_exclude,
+            cache_root=cache_root,
+        ) | {"command": "cluster"}
+    if readiness.kind is not IndexReadinessKind.READY:
+        payload = _index_warmup(
+            corpus_root,
+            path_include=path_include,
+            path_exclude=path_exclude,
+            cache_root=cache_root,
+        )
+        payload.update(
+            {
+                "command": "cluster",
+                "error": "index_rebuild_required",
+                "index_readiness": readiness.kind.value,
+                "reason": "Index is not readable enough for clustering.",
+            }
+        )
+        return payload
     try:
         result = cluster_sections(
             corpus_root,

@@ -327,7 +327,16 @@ STATUS_SCHEMA: dict[str, Any] = {
             },
         },
         "state": {
-            "enum": ["FRESH", "HEALTHY", "NEEDS_WARMUP", "NO_INDEX", "ERROR", "EMPTY", "DEPENDENCY_ERROR"],
+            "enum": [
+                "FRESH",
+                "HEALTHY",
+                "NEEDS_WARMUP",
+                "NEEDS_REBUILD",
+                "NO_INDEX",
+                "ERROR",
+                "EMPTY",
+                "DEPENDENCY_ERROR",
+            ],
         },
         "scopes": {
             "type": "array",

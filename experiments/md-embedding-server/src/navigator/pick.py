@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from .markdown_io import HEADING_RE
+from .markdown_io import collect_headings, extract_section_by_line
 
 
 def parse_csv(value: str) -> set[str]:
@@ -11,28 +11,7 @@ def parse_csv(value: str) -> set[str]:
 
 
 def section_lines(path: Path, start_line: int) -> str:
-    lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
-    if start_line < 1 or start_line > len(lines):
-        return ""
-    start_index = start_line - 1
-    match = HEADING_RE.match(lines[start_index].rstrip())
-    if not match:
-        return lines[start_index]
-    level = len(match.group(1))
-    end_index = len(lines)
-    in_fence = False
-    for index in range(start_index + 1, len(lines)):
-        stripped = lines[index].strip()
-        if stripped.startswith("```") or stripped.startswith("~~~"):
-            in_fence = not in_fence
-            continue
-        if in_fence:
-            continue
-        next_match = HEADING_RE.match(lines[index].rstrip())
-        if next_match and len(next_match.group(1)) <= level:
-            end_index = index
-            break
-    return "\n".join(lines[start_index:end_index]).strip()
+    return extract_section_by_line(path, start_line)
 
 
 def apply_token_budget(
@@ -84,7 +63,7 @@ def heading_content(item: dict[str, Any], heading: dict[str, Any]) -> str:
     if int(heading.get("level") or 0) <= 0 and "body" in heading:
         return str(heading["body"])
     try:
-        content = section_lines(Path(item["path"]), int(heading.get("line") or 1))
+        content = extract_section_by_line(Path(item["path"]), int(heading.get("line") or 1))
     except OSError:
         content = ""
     return content or str(heading.get("body") or "")
@@ -101,7 +80,6 @@ def _ensure_headings(item: dict[str, Any]) -> list[dict[str, Any]]:
     if not path:
         return []
     try:
-        from .markdown_io import collect_headings
         lines = Path(path).read_text(encoding="utf-8", errors="replace").splitlines()
         raw = collect_headings(lines, 6)
     except OSError:

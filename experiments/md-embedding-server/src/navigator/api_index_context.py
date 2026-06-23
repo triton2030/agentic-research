@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
 from sqlite3 import Connection
@@ -10,7 +11,7 @@ from .config import resolve_filters_for_domain
 
 
 def _index_missing(corpus: str | Path, *, cache_root: Path | None = None) -> bool:
-    from .index import _index_dir_for_corpus
+    from .index_meta import _index_dir_for_corpus
 
     root = Path(corpus).expanduser().resolve()
     return not (_index_dir_for_corpus(root, cache_root=cache_root, create=False) / "index.sqlite").exists()
@@ -112,6 +113,32 @@ def _index_busy(
     )
 
 
+def _index_rebuild_required(
+    corpus: str | Path,
+    *,
+    path_include: Iterable[str] | str | None = None,
+    path_exclude: Iterable[str] | str | None = None,
+    cache_root: Path | None = None,
+    readiness: str | None = None,
+    reason: str = "Index is not readable enough for semantic reads; rebuild it with md_index.",
+) -> dict[str, Any]:
+    payload = _index_warmup(
+        corpus,
+        path_include=path_include,
+        path_exclude=path_exclude,
+        cache_root=cache_root,
+    )
+    payload.update(
+        {
+            "error": "index_rebuild_required",
+            "reason": reason,
+        }
+    )
+    if readiness:
+        payload["index_readiness"] = readiness
+    return payload
+
+
 _INDEX_CONTEXT_KWARGS = {
     "max_heading_level",
     "max_auto_embed",
@@ -161,11 +188,16 @@ def _sections_index_context(
     allow_partial_index: bool = False,
     wait_for_index_lock: bool = False,
 ) -> tuple[dict[str, Any] | None, int, IndexContext | None]:
-    from .cli_common import SEARCH_DEFAULT_EMBEDDING_API_URL, SEARCH_DEFAULT_EMBEDDING_TIMEOUT
+    from .cli_common import SEARCH_DEFAULT_EMBEDDING_TIMEOUT
     from .filters import apply_path_filters_to_map, normalize_path_filter_patterns
     from .folder_map import build_map
-    from .index import ensure_index
-    from .index_meta import IndexLockBusy, resolve_embed_model_for_corpus
+    from .index_build import ensure_index
+    from .index_meta import (
+        IndexLockBusy,
+        resolve_embedding_api_url_for_corpus,
+        resolve_embed_model_for_corpus,
+    )
+    from .index_readiness import IndexReadinessKind, classify_index_readiness
     from .sections import build_items_from_map, build_sections_from_map
 
     corpus_root = Path(corpus).expanduser().resolve()
@@ -192,13 +224,37 @@ def _sections_index_context(
             }
         )
         return payload, 4, None
-    if _index_missing(corpus_root, cache_root=cache_root) and not no_cache:
+    selected_model = resolve_embed_model_for_corpus(corpus_root, embed_model, cache_root=cache_root)
+    selected_api_url = resolve_embedding_api_url_for_corpus(
+        corpus_root,
+        embedding_api_url,
+        cache_root=cache_root,
+    )
+    readiness = classify_index_readiness(
+        corpus_root,
+        cache_root=cache_root,
+        expected_embed_model=selected_model,
+        expected_embedding_api_url=selected_api_url,
+    )
+    if readiness.kind is IndexReadinessKind.MISSING:
         return (
             _index_warmup(
                 corpus_root,
                 path_include=path_include,
                 path_exclude=path_exclude,
                 cache_root=cache_root,
+            ),
+            4,
+            None,
+        )
+    if readiness.kind is not IndexReadinessKind.READY:
+        return (
+            _index_rebuild_required(
+                corpus_root,
+                path_include=path_include,
+                path_exclude=path_exclude,
+                cache_root=cache_root,
+                readiness=readiness.kind.value,
             ),
             4,
             None,
@@ -217,7 +273,6 @@ def _sections_index_context(
     if not items:
         return _exit({"error": "empty", "reason": "No sections to index.", "corpus": str(corpus_root)}, 1), 1, None
 
-    selected_model = resolve_embed_model_for_corpus(corpus_root, embed_model, cache_root=cache_root)
     cap = 50 if max_auto_embed is None else int(max_auto_embed)
     try:
         conn, index_stats = ensure_index(
@@ -225,7 +280,7 @@ def _sections_index_context(
             scope,
             items,
             selected_model,
-            embedding_api_url=embedding_api_url or SEARCH_DEFAULT_EMBEDDING_API_URL,
+            embedding_api_url=selected_api_url,
             embedding_timeout=float(embedding_timeout or SEARCH_DEFAULT_EMBEDDING_TIMEOUT),
             cache_root=cache_root,
             max_auto_embed=None if cap == 0 else cap,
@@ -246,6 +301,18 @@ def _sections_index_context(
         )
     except (ModuleNotFoundError, RuntimeError) as exc:
         return _exit({"error": "dependency_failed", "detail": str(exc)}, 3), 3, None
+    except sqlite3.Error as exc:
+        return (
+            _index_rebuild_required(
+                corpus_root,
+                path_include=include_patterns,
+                path_exclude=exclude_patterns,
+                cache_root=cache_root,
+                reason=f"Index became unreadable while opening it: {type(exc).__name__}",
+            ),
+            4,
+            None,
+        )
     if index_stats.get("delta_too_large") and not allow_partial_index:
         return _index_warmup(corpus_root), 4, None
     return None, 0, IndexContext(
@@ -257,6 +324,6 @@ def _sections_index_context(
         selected_model=selected_model,
         include_patterns=include_patterns,
         exclude_patterns=exclude_patterns,
-        embedding_api_url=embedding_api_url or SEARCH_DEFAULT_EMBEDDING_API_URL,
+        embedding_api_url=selected_api_url,
         embedding_timeout=float(embedding_timeout or SEARCH_DEFAULT_EMBEDDING_TIMEOUT),
     )

@@ -44,6 +44,9 @@ depends-on:
 - Проекция трогает только `result`, никогда `_envelope` (поэтому
   `recommended_action` гарантированно сохранён); `runner` остаётся единственным
   владельцем `envelope.wrap` и JSON-печати.
+- Границы heading-bounded секций принадлежат `navigator.markdown_io`, а не
+  projection/envelope и не selection adapter-ам. Bounded output может прятать
+  тела секций, но не должен менять то, где секция начинается и заканчивается.
 
 ## Последствия
 

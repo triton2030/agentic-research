@@ -10,6 +10,7 @@ from .markdown_io import (
     markdown_lookup,
     relative_path,
     split_link_target,
+    strip_frontmatter_text,
 )
 from .walk import _resolve_start_path, _resolve_target_with_collision_check
 
@@ -292,17 +293,7 @@ def _read_source_text(path: Path, anchor: str | None) -> str | None:
         text = path.read_text(encoding="utf-8", errors="replace")
     except OSError:
         return None
-    return _strip_frontmatter(text).strip()
-
-
-def _strip_frontmatter(text: str) -> str:
-    lines = text.splitlines()
-    if not lines or lines[0].strip() != "---":
-        return text
-    for index, line in enumerate(lines[1:], 1):
-        if line.strip() == "---":
-            return "\n".join(lines[index + 1 :]).lstrip("\n")
-    return text
+    return strip_frontmatter_text(text).strip()
 
 
 def _normalize_anchor(value: str) -> str:

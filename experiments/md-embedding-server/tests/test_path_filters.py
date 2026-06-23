@@ -589,6 +589,57 @@ def test_status_classifies_unreadable_nested_index_instead_of_crashing(
     assert payload["recommended_action"]["args"]["path_include"] == ["child/**"]
 
 
+def test_index_dry_run_corrupt_index_returns_rebuild_preview_without_mutation(
+    tmp_path: Path,
+) -> None:
+    corpus = _partial_corpus(tmp_path)
+    index_dir = corpus / ".md-navigator"
+    index_dir.mkdir()
+    db_path = index_dir / "index.sqlite"
+    db_path.write_bytes(b"")
+    before = db_path.stat().st_mtime_ns
+
+    payload = api_index(
+        str(corpus),
+        dry_run=True,
+        embed_model="test/stub-1",
+        embedding_api_url="http://test.local/v1",
+    )
+
+    assert payload.get("_exit_code", 0) == 0
+    assert payload["index_readiness"] == "metadata_unreadable"
+    assert payload["pending_chunks"] > 0
+    assert payload["added_sections"] > 0
+    assert db_path.stat().st_mtime_ns == before
+    assert db_path.read_bytes() == b""
+
+
+def test_search_corrupt_index_returns_rebuild_route_without_embedding(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    corpus = _partial_corpus(tmp_path)
+    (corpus / ".md-navigator").mkdir()
+    (corpus / ".md-navigator" / "index.sqlite").write_bytes(b"")
+
+    from navigator import embeddings, index_build, index_meta, search as search_mod
+
+    def fail_embed(*_args, **_kwargs):
+        raise AssertionError("corrupt index should be routed to md_index before embedding")
+
+    monkeypatch.setattr(embeddings, "_embed_texts_http", fail_embed)
+    monkeypatch.setattr(index_meta, "_embed_texts_http", fail_embed)
+    monkeypatch.setattr(index_build, "_embed_texts_http", fail_embed)
+    monkeypatch.setattr(search_mod, "_embed_texts_http", fail_embed)
+
+    payload = _search(corpus, "partial scoped retrieval")
+
+    assert payload["_exit_code"] == 4
+    assert payload["error"] == "index_rebuild_required"
+    assert payload["index_readiness"] == "metadata_unreadable"
+    assert payload["read_next"][0]["tool"] == "md_index"
+
+
 def test_index_dry_run_reports_zero_delta_for_fresh_index(
     tmp_path: Path,
     mock_embed,

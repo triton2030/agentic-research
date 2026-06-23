@@ -7,7 +7,7 @@ import sqlite3
 from pathlib import Path
 from typing import Any, Iterable, TypedDict
 
-from .cli_common import SEARCH_DEFAULT_EMBEDDING_API_URL, SEARCH_DEFAULT_EMBEDDING_TIMEOUT
+from .cli_common import SEARCH_DEFAULT_EMBEDDING_TIMEOUT
 from .config import resolve_filter_layers_for_domain
 from .filters import apply_path_filters_to_map, normalize_path_filter_patterns
 from .folder_map import build_map
@@ -21,9 +21,10 @@ from .index_lifecycle import cleanup_enabled_for_operation, plan_cleanup
 from .index_meta import (
     _index_dir_for_corpus,
     _open_index_readonly,
+    resolve_embedding_api_url_for_corpus,
     resolve_embed_model_for_corpus,
 )
-from .index_store import index_integrity_summary
+from .index_readiness import IndexReadiness, IndexReadinessKind, classify_index_readiness
 from .sections import build_items_from_map
 
 
@@ -80,16 +81,22 @@ def status_payload(
         embed_model,
         cache_root=cache_root,
     )
+    selected_api_url = resolve_embedding_api_url_for_corpus(
+        corpus_root,
+        embedding_api_url,
+        cache_root=cache_root,
+    )
     index_dir = _index_dir_for_corpus(corpus_root, cache_root=cache_root, create=False)
     db_path = index_dir / "index.sqlite"
     include_patterns = normalize_path_filter_patterns(filter_layers.effective_include, corpus_root)
     exclude_patterns = normalize_path_filter_patterns(filter_layers.effective_exclude, corpus_root)
     config_include_patterns = normalize_path_filter_patterns(filter_layers.config_include, corpus_root)
     config_exclude_patterns = normalize_path_filter_patterns(filter_layers.config_exclude, corpus_root)
-    cleanup_enabled = cleanup_enabled_for_operation(
+    operation_cleanup_enabled = cleanup_enabled_for_operation(
         filter_layers.operation_include,
         filter_layers.operation_exclude,
     )
+    cleanup_enabled = operation_cleanup_enabled
     cleanup_disabled_reason = None if cleanup_enabled else "operation_scope"
 
     map_data = build_map(corpus_root, max_heading_level or 6, with_tokens=False)
@@ -104,6 +111,20 @@ def status_payload(
             1,
         )
     scoped = apply_path_filters_to_map(map_data, include_patterns, exclude_patterns)
+    readiness = classify_index_readiness(
+        corpus_root,
+        cache_root=cache_root,
+        expected_embed_model=selected_model,
+        expected_embedding_api_url=selected_api_url,
+        check_integrity=True,
+    )
+    if readiness.kind in {
+        IndexReadinessKind.METADATA_UNREADABLE,
+        IndexReadinessKind.SCHEMA_INVALID,
+        IndexReadinessKind.DEPENDENCY_UNAVAILABLE,
+    }:
+        cleanup_enabled = False
+        cleanup_disabled_reason = "index_unreadable"
     cleanup_plan = plan_cleanup(
         corpus_root,
         cache_root=cache_root,
@@ -126,7 +147,7 @@ def status_payload(
     raw_cap = DEFAULT_MAX_AUTO_EMBED if max_auto_embed is None else int(max_auto_embed)
     ensure_cap = None if raw_cap == 0 else raw_cap
 
-    if not db_path.exists():
+    if not readiness.index_exists:
         scopes_payload = _scopes_for_missing_index(scoped)
         state = "NO_INDEX"
         return {
@@ -164,6 +185,60 @@ def status_payload(
             ),
         }
 
+    if readiness.kind is not IndexReadinessKind.READY:
+        integrity = _index_integrity_from_readiness(readiness)
+        state = (
+            "DEPENDENCY_ERROR"
+            if readiness.kind is IndexReadinessKind.DEPENDENCY_UNAVAILABLE
+            else "NEEDS_REBUILD"
+        )
+        payload = {
+            "command": "status",
+            "corpus": str(corpus_root),
+            "index_path": str(db_path),
+            "index_exists": True,
+            "last_touched": datetime.datetime.fromtimestamp(db_path.stat().st_mtime).isoformat(
+                timespec="seconds"
+            ),
+            "model": selected_model,
+            "path_scope": {"include": include_patterns or None, "exclude": exclude_patterns or None},
+            "scopes": [],
+            "folder_breakdown": _build_folder_breakdown(scoped, corpus_root, db_path, cache_root),
+            "excluded": _excluded_payload(corpus_root, include_patterns, exclude_patterns),
+            "added_sections": 0,
+            "removed_sections": 0,
+            **cleanup_plan.public_payload(),
+            "pending_chunks": 0,
+            "pending_files": [],
+            "removed_files": [],
+            "reused": 0,
+            "drift_count": 0,
+            "metadata_mismatch": readiness.kind
+            in {
+                IndexReadinessKind.METADATA_UNREADABLE,
+                IndexReadinessKind.SCHEMA_INVALID,
+                IndexReadinessKind.METADATA_MISMATCH,
+            },
+            "delta_too_large": False,
+            "max_auto_embed": raw_cap,
+            "state": state,
+            **_state_payload(
+                state,
+                corpus_root,
+                cache_root=cache_root,
+                path_include=include_patterns,
+                path_exclude=exclude_patterns,
+                cleanup_sections=cleanup_plan.sections,
+                integrity_ok=False,
+            ),
+            "index_integrity": integrity,
+            "expanded": bool(expanded),
+        }
+        if not expanded:
+            for heavy in ("scopes", "folder_breakdown", "pending_files", "removed_files", "cleanup_files", "excluded"):
+                payload.pop(heavy, None)
+        return _exit(payload, 3) if state == "DEPENDENCY_ERROR" else payload
+
     scopes_payload: list[dict[str, Any]] = []
     totals = {
         "added_sections": 0,
@@ -183,7 +258,7 @@ def status_payload(
                 scope,
                 items,
                 selected_model,
-                embedding_api_url=embedding_api_url or SEARCH_DEFAULT_EMBEDDING_API_URL,
+                embedding_api_url=selected_api_url,
                 embedding_timeout=float(embedding_timeout or SEARCH_DEFAULT_EMBEDDING_TIMEOUT),
                 cache_root=cache_root,
                 max_auto_embed=ensure_cap,
@@ -227,7 +302,7 @@ def status_payload(
             stats.get("delta_too_large", False)
         )
 
-    integrity = _index_integrity_for_status(corpus_root, cache_root)
+    integrity = _index_integrity_from_readiness(readiness)
     if totals["metadata_mismatch"] or not integrity["ok"]:
         state = "NEEDS_REBUILD"
     elif (
@@ -413,28 +488,20 @@ def _combine_file_delta(
     )
 
 
-def _index_integrity_for_status(
-    corpus_root: Path,
-    cache_root: Path | None,
-) -> dict[str, Any]:
-    try:
-        conn = _open_index_readonly(corpus_root, cache_root=cache_root)
-    except (FileNotFoundError, ModuleNotFoundError, RuntimeError, sqlite3.Error) as exc:
+def _index_integrity_from_readiness(readiness: IndexReadiness) -> dict[str, Any]:
+    if readiness.integrity is not None:
+        return readiness.integrity
+    if readiness.kind is IndexReadinessKind.READY:
         return {
-            "ok": False,
+            "ok": True,
             "counts": {"sections": 0, "chunks": 0, "sections_fts": 0, "sections_vec": 0},
-            "issues": [f"index_unreadable:{type(exc).__name__}"],
+            "issues": [],
         }
-    try:
-        return index_integrity_summary(conn)
-    except sqlite3.Error as exc:
-        return {
-            "ok": False,
-            "counts": {"sections": 0, "chunks": 0, "sections_fts": 0, "sections_vec": 0},
-            "issues": [f"integrity_query_failed:{type(exc).__name__}"],
-        }
-    finally:
-        conn.close()
+    return {
+        "ok": False,
+        "counts": {"sections": 0, "chunks": 0, "sections_fts": 0, "sections_vec": 0},
+        "issues": readiness.issues or [f"index_not_ready:{readiness.kind.value}"],
+    }
 
 
 def _state_payload(

@@ -6,6 +6,7 @@ from typing import Any
 
 from .api_utils import _read_next
 from .config import load_corpus_config
+from .index_readiness import classify_index_readiness
 from .index_resolution import iter_index_roots, read_index_metadata, shadowed_indexes
 from .markdown_io import DEFAULT_EXCLUDED_PARTS
 
@@ -59,6 +60,7 @@ def _corpora(repo_root: Path) -> list[dict[str, Any]]:
         stat = index_path.stat()
         ancestor = _nearest_indexed_ancestor(index_root, roots)
         meta = read_index_metadata(index_root)
+        readiness = classify_index_readiness(index_root)
         entry: dict[str, Any] = {
             "root": str(index_root),
             "index_path": str(index_path),
@@ -71,6 +73,7 @@ def _corpora(repo_root: Path) -> list[dict[str, Any]]:
                 for key in ("schema_version", "embed_model", "embedding_api_url", "vec_dim")
                 if meta.get(key) is not None
             },
+            "readiness": readiness.kind.value,
         }
         if meta.get("metadata_error"):
             entry["metadata_error"] = meta.get("metadata_error")

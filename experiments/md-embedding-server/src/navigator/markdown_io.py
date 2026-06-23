@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -54,6 +55,17 @@ DEFAULT_EXCLUDED_PARTS = frozenset(
         "runs",
     }
 )
+
+
+@dataclass(frozen=True)
+class MarkdownSection:
+    path: Path
+    line: int
+    level: int
+    text: str
+    anchor: str
+    content: str
+    tokens: int
 
 
 def iter_markdown(path: Path) -> list[Path]:
@@ -235,6 +247,16 @@ def parse_frontmatter(lines: list[str]) -> dict[str, Any]:
     return data
 
 
+def strip_frontmatter_text(text: str) -> str:
+    lines = text.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return text
+    for index, line in enumerate(lines[1:], 1):
+        if line.strip() == "---":
+            return "\n".join(lines[index + 1 :]).lstrip("\n")
+    return text
+
+
 def collect_headings(lines: list[str], max_level: int) -> list[dict[str, Any]]:
     headings: list[dict[str, Any]] = []
     in_fence = False
@@ -261,12 +283,44 @@ def collect_headings(lines: list[str], max_level: int) -> list[dict[str, Any]]:
     return headings
 
 
+def normalize_heading_anchor(value: str) -> str:
+    return "".join(value.strip().lstrip("#").lower().split())
+
+
 def approx_tokens(text: str) -> int:
     # Char-based approximation. ~4 chars/token is the standard rough estimate
     # for mixed Latin/Cyrillic prose; precise enough for navigation budgeting.
     if not text:
         return 0
     return max(1, len(text) // 4)
+
+
+def extract_section_by_line(file_path: Path, start_line: int) -> str:
+    try:
+        lines = file_path.read_text(encoding="utf-8", errors="replace").splitlines()
+    except OSError:
+        return ""
+    if start_line < 1 or start_line > len(lines):
+        return ""
+    start_index = start_line - 1
+    match = HEADING_RE.match(lines[start_index].rstrip())
+    if not match:
+        return lines[start_index]
+    level = len(match.group(1))
+    end_index = len(lines)
+    in_fence = False
+    for index in range(start_index + 1, len(lines)):
+        stripped = lines[index].strip()
+        if stripped.startswith("```") or stripped.startswith("~~~"):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
+        next_match = HEADING_RE.match(lines[index].rstrip())
+        if next_match and len(next_match.group(1)) <= level:
+            end_index = index
+            break
+    return "\n".join(lines[start_index:end_index]).strip()
 
 
 def section_token_count(lines: list[str], start_line: int, level: int) -> int:
@@ -287,6 +341,29 @@ def section_token_count(lines: list[str], start_line: int, level: int) -> int:
             end_index = index
             break
     return approx_tokens("\n".join(lines[start_index:end_index]))
+
+
+def find_section_by_anchor(file_path: Path, anchor: str) -> MarkdownSection | None:
+    try:
+        text = file_path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return None
+    headings = collect_headings(text.splitlines(), max_level=6)
+    normalized_anchor = normalize_heading_anchor(anchor)
+    for heading in headings:
+        if normalized_anchor != normalize_heading_anchor(str(heading["text"])):
+            continue
+        content = extract_section_by_line(file_path, int(heading["line"]))
+        return MarkdownSection(
+            path=file_path,
+            line=int(heading["line"]),
+            level=int(heading["level"]),
+            text=str(heading["text"]),
+            anchor=normalized_anchor,
+            content=content,
+            tokens=approx_tokens(content),
+        )
+    return None
 
 
 def split_link_target(target: str) -> str:
@@ -393,19 +470,8 @@ def extract_section_by_anchor(file_path: Path, anchor: str) -> str | None:
     Returns the section body (from the heading line through the next
     sibling-or-higher heading) or None when no heading matches.
     """
-    try:
-        text = file_path.read_text(encoding="utf-8", errors="replace")
-    except OSError:
-        return None
-    lines = text.splitlines()
-    headings = collect_headings(lines, max_level=6)
-    normalized_anchor = "".join(anchor.lower().split())
-    for heading in headings:
-        normalized_heading = "".join(heading["text"].lower().split())
-        if normalized_anchor == normalized_heading:
-            from .pick import section_lines
-            return section_lines(file_path, heading["line"])
-    return None
+    section = find_section_by_anchor(file_path, anchor)
+    return section.content if section is not None else None
 
 
 def markdown_lookup(root: Path) -> dict[str, list[Path]]:

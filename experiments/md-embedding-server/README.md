@@ -28,7 +28,9 @@ no skill-side scripts or server bridge are required.
 
 ## Unified backend shape
 
-- `src/navigator/markdown_io.py` owns shared Markdown and link parsing.
+- `src/navigator/markdown_io.py` owns shared Markdown/link parsing and
+  heading-bounded section reading. `pick.py` selects ids and token budgets; it
+  does not own section boundary semantics.
 - `src/navigator/graph_core.py` and `src/navigator/graph_reports.py` own
   graph loading, path filtering, dependency analysis, reports and schema
   cleanup primitives. `graph_edges.py` resolves graph edges on top of
@@ -99,11 +101,11 @@ BGE-M3 wins on multilingual retrieval, ties on English (after corpus
 hygiene), is 2× cheaper, and uses smaller 1024-dim vectors. Evidence:
 `_ops/findings/_archive/2026-05-18-md-navigator-bm25-russian-stemming.md`.
 
-**Sticky model behavior.** When `--embed-model` is omitted, the navigator
-reads the recorded model from the existing index meta and uses that.
-This prevents accidental drop+reindex when a corpus was indexed on a
-non-default model. The fallback (no meta yet) is the global default
-above. Explicit `--embed-model X` always wins and triggers reindex on
+**Sticky embedding metadata.** When `--embed-model` or `--embedding-api-url`
+is omitted, the navigator reads the recorded value from the existing index meta
+and uses that. This prevents accidental drop+reindex when a corpus was indexed
+on a non-default model or endpoint. The fallback (no meta yet) is the global
+default above. Explicit flags always win and trigger rebuild guidance on
 mismatch.
 
 API key lookup order:

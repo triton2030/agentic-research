@@ -239,47 +239,26 @@ def collect_related_items(args) -> dict[str, Any]:
     suspicious_links: list[dict[str, Any]] = []
     semantic_status = "not_requested"
 
-    if semantic_radius > 0 or check_links:
+    if check_links:
         # Local-import: these helpers pull in sqlite_vec, which is a heavy
         # uv-shebang dep. read-related stays import-light unless one of
         # the semantic flags is on.
-        from .index import (
-            check_explicit_link_coherence,
-            find_corpus_root_for,
-            find_semantic_neighbors,
-        )
+        from .semantic_neighbors import _check_explicit_link_coherence
+        from .status_core import find_corpus_root_for
 
         corpus_root = find_corpus_root_for(anchors[0])
         if corpus_root is not None:
             semantic_status = "ok"
-            already_linked = {
-                relative_path(Path(item["path"]), corpus_root)
-                for item in items.values()
-            }
-            anchor_rel_set = {
-                relative_path(anchor.resolve(), corpus_root) for anchor in anchors
-            }
-            excluded = already_linked | anchor_rel_set
-
-            if semantic_radius > 0:
-                semantic_neighbors = find_semantic_neighbors(
-                    corpus_root=corpus_root,
-                    anchor_paths=anchors,
-                    k=semantic_radius,
-                    excluded_relative_paths=excluded,
-                )
-
-            if check_links:
-                threshold = float(getattr(args, "link_distance_threshold", 0.4))
-                for anchor in anchors:
-                    suspicious_links.extend(
-                        check_explicit_link_coherence(
-                            corpus_root=corpus_root,
-                            anchor=anchor,
-                            linked_targets=_resolved_explicit_link_targets(anchor, scan_root, lookup),
-                            threshold=threshold,
-                        )
+            threshold = float(getattr(args, "link_distance_threshold", 0.4))
+            for anchor in anchors:
+                suspicious_links.extend(
+                    _check_explicit_link_coherence(
+                        corpus_root=corpus_root,
+                        anchor=anchor,
+                        linked_targets=_resolved_explicit_link_targets(anchor, scan_root, lookup),
+                        threshold=threshold,
                     )
+                )
         else:
             semantic_status = "no_index"
 
