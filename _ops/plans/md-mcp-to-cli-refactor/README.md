@@ -8,7 +8,7 @@ Closeout evidence:
 
 ## Цель
 
-Убрать Node MCP server (`experiments/md-embedding-server/mcp/`, ~2228 LOC JS, 29 tools), заменить его единым Python CLI `md` с library/CLI split. Skills обновляются механически (find&replace), внешний контракт для агентов остаётся: те же 29 имён tools, та же envelope shape, тот же dry-run/confirm.
+Убрать Node MCP server (`experiments/md-tools/mcp/`, ~2228 LOC JS, 29 tools), заменить его единым Python CLI `md` с library/CLI split. Skills обновляются механически (find&replace), внешний контракт для агентов остаётся: те же 29 имён tools, та же envelope shape, тот же dry-run/confirm.
 
 ## Почему refactor в polygon-проекте
 
@@ -156,7 +156,7 @@ Note: предыдущая версия плана говорила «22 navigat
 
 ## Code locality (architectural anchor)
 
-**Весь executable код живёт в `experiments/md-embedding-server/`** — pyproject, library, CLI, tests, fixtures, scripts, spike. Skill folders (`~/.claude/skills/**` и `~/.codex/skills/**`) — **pure declarative**.
+**Весь executable код живёт в `experiments/md-tools/`** — pyproject, library, CLI, tests, fixtures, scripts, spike. Skill folders (`~/.claude/skills/**` и `~/.codex/skills/**`) — **pure declarative**.
 
 **Whitelist для skill folders** (audit cycle-2 Smith G8 — verification through whitelist, не black list):
 - `SKILL.md`

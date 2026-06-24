@@ -27,7 +27,7 @@
 ## `experiments/`
 
 Полигон самостоятельных под-проектов (`claude-bridge`, `gemini-mcp`,
-`md-embedding-server`, `flowpage-v4-elk`, `strategy-gallery`,
+`md-tools`, `flowpage-v4-elk`, `strategy-gallery`,
 `global-agent-surface-viewer` и др.). Каждый существенный под-проект держит свою
 правду в локальном `README.md` / `AGENTS.md`; правь субтри от его инструкции, не
 от корневой. Эти папки — НЕ polygon scope `_ops/GOAL.md` (тот про knowledge и

@@ -47,14 +47,14 @@ commitments; veto-class в локальных папках пуст. Cross-proje
   локальный `experiments/gemini-mcp/AGENTS.md`.
 - `experiments/strategy-gallery/` depends-on локальный
   `experiments/strategy-gallery/AGENTS.md`.
-- `experiments/md-embedding-server/` depends-on локальный
-  `experiments/md-embedding-server/AGENTS.md` +
+- `experiments/md-tools/` depends-on локальный
+  `experiments/md-tools/AGENTS.md` +
   `~/.claude/skills/1md-navigator/SKILL.md` (server is the Markdown search /
   reader / graph CLI backend). Также owns `.md-tools.toml` per-project filter
   config schema (sections `[index]` и `[graph]`, append-семантика для
   CLI поверх baseline, broken TOML → fatal). Mention в
   `1md-navigator`, `1md-reader` и `1md-graph` (Claude + Codex) ссылается
-  сюда; правки schema → `experiments/md-embedding-server/src/navigator/config.py`,
+  сюда; правки schema → `experiments/md-tools/src/navigator/config.py`,
   затем синхронизация skill mentions.
   **Scope note.** Папка — runtime tooling для skills `1md-navigator` /
   `1md-reader` / `1md-graph`; работа по CLI shape, schema, UX легитимна как вклад в
@@ -131,7 +131,7 @@ commitments; veto-class в локальных папках пуст. Cross-proje
   instruction-only формой.
   **Note (post-MCP refactor 2026-05-22)**: MCP server удалён; skills
   используют Python CLI `md`. Backend живёт в
-  `experiments/md-embedding-server/src/navigator/`, CLI — единственная точка
+  `experiments/md-tools/src/navigator/`, CLI — единственная точка
   вызова.
 - `~/.codex/skills/**` — то же, post-refactor. Skills `1md-navigator`,
   `1md-reader` и `1md-graph` — pure `SKILL.md` (+ Codex `agents/openai.yaml`

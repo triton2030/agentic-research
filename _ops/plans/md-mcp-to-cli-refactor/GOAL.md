@@ -8,9 +8,9 @@ Outcome-first execution contract под `GPT-5.5` и `Claude Opus 4.7`. Само
 
 В конце работы:
 
-1. **Node MCP server удалён**: `experiments/md-embedding-server/mcp/` не существует. ~2228 LOC JavaScript удалены из репо.
+1. **Node MCP server удалён**: `experiments/md-tools/mcp/` не существует. ~2228 LOC JavaScript удалены из репо.
 2. **Python CLI `md` работает глобально**: `uv tool install` ставит binary в `~/.local/bin/`. Все 29 MCP tool names доступны как subcommands (`md orient`, `md search`, `md edit-context`, etc.).
-3. **Library/CLI split реализован**: `experiments/md-embedding-server/src/navigator/` — pure library (importable Python), `experiments/md-embedding-server/src/md_cli/` — CLI слой с envelope + composites + transactions + dispatch.
+3. **Library/CLI split реализован**: `experiments/md-tools/src/navigator/` — pure library (importable Python), `experiments/md-tools/src/md_cli/` — CLI слой с envelope + composites + transactions + dispatch.
 4. **13 historical migration targets мигрированы** на CLI invocation syntax
    (Claude + Codex × {1md-navigator, 1md-graph, 1ia-audit,
    1instruction-layer, 1planning, 1strategy, 1strategy-docs,
@@ -32,12 +32,12 @@ closeout-проверки держит execution owner через прямой e
 
 ## In scope
 
-- Создание Python пакета `md-tools` в `experiments/md-embedding-server/`
+- Создание Python пакета `md-tools` в `experiments/md-tools/`
 - Удаление Node MCP server вместе со всеми его файлами
 - Обновление 16 SKILL.md (13 skills × Claude/Codex минус 1cli-tools-Codex которая отсутствует или есть only references)
 - Обновление `agents/openai.yaml.default_prompt` где он содержит MCP refs (на самом деле в большинстве yaml refs нет — только SKILL.md)
 - Удаление MCP registration из `~/.codex/config.toml`
-- Обновление repo docs: `CLAUDE.md`, `AGENTS.md`, `_ops/project-graph.md`, `experiments/md-embedding-server/README.md`
+- Обновление repo docs: `CLAUDE.md`, `AGENTS.md`, `_ops/project-graph.md`, `experiments/md-tools/README.md`
 - Pre-commit hook для code locality enforcement
 
 ## NOT in scope
@@ -62,7 +62,7 @@ closeout-проверки держит execution owner через прямой e
    - One-way dependency: `md_cli` imports `navigator`. NEVER reverse.
    - Enforced через `tests/test_architecture_invariants.py`
 
-1. **Code locality**. Весь executable код живёт только в `experiments/md-embedding-server/`. Skill folders (`~/.claude/skills/**`, `~/.codex/skills/**`) — pure declarative. Whitelist для skill folders: `SKILL.md`, `references/*.md`, `agents/openai.yaml`, `assets/*.{png,jpg,svg,gif}`. Любой другой файл — нарушение.
+1. **Code locality**. Весь executable код живёт только в `experiments/md-tools/`. Skill folders (`~/.claude/skills/**`, `~/.codex/skills/**`) — pure declarative. Whitelist для skill folders: `SKILL.md`, `references/*.md`, `agents/openai.yaml`, `assets/*.{png,jpg,svg,gif}`. Любой другой файл — нарушение.
 
 2. **Cross-platform symmetry**. Claude и Codex skills синхронны (за исключением AGENTS.md правила: Codex не правит Claude surfaces и наоборот). Любой intentional drift документируется в evidence file.
 
@@ -172,12 +172,12 @@ Phase X не closed, пока gate не зелёный.
 ### Gate 4 → 5
 - MCP registration убран из `~/.codex/config.toml` (`grep "md-mcp" ~/.codex/config.toml` → 0 matches)
 - `python3 -c "import tomllib; tomllib.loads(open('/Users/triton/.codex/config.toml').read())"` → ok
-- `CLAUDE.md`, `AGENTS.md`, `_ops/project-graph.md`, `experiments/md-embedding-server/README.md` обновлены (нет MCP wording)
+- `CLAUDE.md`, `AGENTS.md`, `_ops/project-graph.md`, `experiments/md-tools/README.md` обновлены (нет MCP wording)
 - Pre-commit hook для code locality установлен
 
 ### Gate 5 (final, перед закрытием refactor)
 - task-501 evidence файл содержит явный verdict "GO"
-- `experiments/md-embedding-server/mcp/` не существует
+- `experiments/md-tools/mcp/` не существует
 - `md selftest` зелёный после deletion
 - `_ops/PROJECT-ROADMAP.md` — refactor в Archived
 - git tag `mcp-removed-YYYY-MM-DD` создан
@@ -215,8 +215,8 @@ Phase X не closed, пока gate не зелёный.
 - Fix CLI issue → re-apply task-401 → re-run task-501
 
 ### Если task-502 deletion проходит но что-то ломается через неделю
-- `git checkout pre-mcp-refactor-2026-05-22 -- experiments/md-embedding-server/mcp/`
-- Reinstall Node deps: `cd experiments/md-embedding-server/mcp && npm install`
+- `git checkout pre-mcp-refactor-2026-05-22 -- experiments/md-tools/mcp/`
+- Reinstall Node deps: `cd experiments/md-tools/mcp && npm install`
 - Re-register MCP в `~/.codex/config.toml`
 - Investigate root cause, fix, retry phase 5
 
@@ -225,19 +225,19 @@ Phase X не closed, пока gate не зелёный.
 ## Reference paths
 
 ### Read first
-- `experiments/md-embedding-server/README.md` — package overview
-- `experiments/md-embedding-server/scripts/navigator/` — existing library (которая move в `src/`)
-- `experiments/md-embedding-server/mcp/src/envelope.js` — current envelope shape (source for task-102)
-- `experiments/md-embedding-server/mcp/src/transaction.js` — current transaction logic
-- `experiments/md-embedding-server/mcp/src/tools/*.js` — current 29 tool definitions
+- `experiments/md-tools/README.md` — package overview
+- `experiments/md-tools/scripts/navigator/` — existing library (которая move в `src/`)
+- `experiments/md-tools/mcp/src/envelope.js` — current envelope shape (source for task-102)
+- `experiments/md-tools/mcp/src/transaction.js` — current transaction logic
+- `experiments/md-tools/mcp/src/tools/*.js` — current 29 tool definitions
 - `~/.claude/skills/1md-navigator/SKILL.md` — current Claude skill shape
 - `~/.codex/skills/1md-navigator/SKILL.md` — current Codex skill shape
 
 ### Write only here
-- `experiments/md-embedding-server/src/**` — new code
-- `experiments/md-embedding-server/tests/**` — new tests + golden fixtures
-- `experiments/md-embedding-server/docs/**` — new documentation
-- `experiments/md-embedding-server/pyproject.toml` — package config
+- `experiments/md-tools/src/**` — new code
+- `experiments/md-tools/tests/**` — new tests + golden fixtures
+- `experiments/md-tools/docs/**` — new documentation
+- `experiments/md-tools/pyproject.toml` — package config
 - `~/.claude/skills/1*/{SKILL.md, references/*.md}` — declarative migration
 - `~/.codex/skills/1*/{SKILL.md, references/*.md, agents/openai.yaml}` — declarative migration
 - `_ops/findings/2026-MM-DD-*.md` — evidence files

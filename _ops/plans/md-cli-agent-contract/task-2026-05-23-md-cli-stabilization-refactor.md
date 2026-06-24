@@ -4,8 +4,8 @@ read-before-edit:
   - "[[_ops/PROJECT-ROADMAP.md]]"
   - "[[_ops/project-graph.md]]"
   - "[[_ops/AGENTS.md]]"
-  - "[[experiments/md-embedding-server/docs/cli-conventions.md]]"
-  - "[[experiments/md-embedding-server/docs/architecture-lock.md]]"
+  - "[[experiments/md-tools/docs/cli-conventions.md]]"
+  - "[[experiments/md-tools/docs/architecture-lock.md]]"
 edit-after-edit: []
 ---
 # Task — Stabilization refactor текущего `md` CLI
@@ -118,7 +118,7 @@ hints.
 - Regression: `test_catalog_values_match_mcp_snapshot_without_runtime_patching`
   сравнивает `ToolSpec.to_dict()` со snapshot и запрещает cleanup / fingerprint
   injection code в `catalog.py`.
-- Repair: `experiments/md-embedding-server/docs/cli-conventions.md` получил
+- Repair: `experiments/md-tools/docs/cli-conventions.md` получил
   graph frontmatter; literal link examples rewritten as prose so graph
   preflight no longer reports fake broken links.
 - `uv run python -m compileall -q src/navigator/status_core.py src/navigator/status_render.py src/navigator/index_status.py src/navigator/api.py src/navigator/index.py` → pass.
@@ -126,11 +126,11 @@ hints.
 - `uv run pytest tests/test_agent_hint_contract.py tests/test_corpus_config_parity.py tests/test_path_filters.py tests/test_architecture_boundaries.py tests/test_generated_actions_contract.py` → `32 passed`.
 - `uv run pytest tests/test_catalog_contract.py tests/test_catalog_signature_match.py tests/test_mcp_cli_parity.py tests/test_generated_actions_contract.py tests/test_envelope_golden.py tests/test_envelope_truncation_hint.py tests/test_architecture_boundaries.py` → `30 passed`.
 - `uv run pytest` → `250 passed`.
-- `uv run --project experiments/md-embedding-server md preflight _ops/plans/md-cli-agent-contract/task-2026-05-23-md-cli-stabilization-refactor.md --scan . --json` → pass.
-- `uv run --project experiments/md-embedding-server md preflight experiments/md-embedding-server/docs/architecture-lock.md --scan . --json` → pass.
-- `uv run --project experiments/md-embedding-server md preflight experiments/md-embedding-server/docs/cli-conventions.md --scan . --json` → pass.
-- `uv run --project experiments/md-embedding-server md changed --scan . --path-include '_ops/plans/md-cli-agent-contract/*' --path-include 'experiments/md-embedding-server/docs/*' --json` → pass.
-- `git diff --check -- experiments/md-embedding-server _ops/plans/md-cli-agent-contract` → pass.
+- `uv run --project experiments/md-tools md preflight _ops/plans/md-cli-agent-contract/task-2026-05-23-md-cli-stabilization-refactor.md --scan . --json` → pass.
+- `uv run --project experiments/md-tools md preflight experiments/md-tools/docs/architecture-lock.md --scan . --json` → pass.
+- `uv run --project experiments/md-tools md preflight experiments/md-tools/docs/cli-conventions.md --scan . --json` → pass.
+- `uv run --project experiments/md-tools md changed --scan . --path-include '_ops/plans/md-cli-agent-contract/*' --path-include 'experiments/md-tools/docs/*' --json` → pass.
+- `git diff --check -- experiments/md-tools _ops/plans/md-cli-agent-contract` → pass.
 - Fresh-eyes synthesis:
   `trajectory-critic` accepted → scenario gates before structural work;
   `developer-critic` accepted → golden hint guard and config parity first;
@@ -157,9 +157,9 @@ uv run pytest
 Markdown gates после правок task/docs:
 
 ```bash
-uv run --project experiments/md-embedding-server md preflight _ops/plans/md-cli-agent-contract/task-2026-05-23-md-cli-stabilization-refactor.md --scan . --json
-uv run --project experiments/md-embedding-server md changed --scan . --path-include '_ops/plans/md-cli-agent-contract/*' --path-include 'experiments/md-embedding-server/docs/*' --json
-git diff --check -- experiments/md-embedding-server _ops/plans/md-cli-agent-contract
+uv run --project experiments/md-tools md preflight _ops/plans/md-cli-agent-contract/task-2026-05-23-md-cli-stabilization-refactor.md --scan . --json
+uv run --project experiments/md-tools md changed --scan . --path-include '_ops/plans/md-cli-agent-contract/*' --path-include 'experiments/md-tools/docs/*' --json
+git diff --check -- experiments/md-tools _ops/plans/md-cli-agent-contract
 ```
 
 ## Открытое сомнение

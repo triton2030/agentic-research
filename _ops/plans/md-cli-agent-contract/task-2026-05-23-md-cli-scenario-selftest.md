@@ -4,8 +4,8 @@ read-before-edit:
   - "[[_ops/PROJECT-ROADMAP.md]]"
   - "[[_ops/project-graph.md]]"
   - "[[_ops/AGENTS.md]]"
-  - "[[experiments/md-embedding-server/docs/cli-conventions.md]]"
-  - "[[experiments/md-embedding-server/docs/architecture-lock.md]]"
+  - "[[experiments/md-tools/docs/cli-conventions.md]]"
+  - "[[experiments/md-tools/docs/architecture-lock.md]]"
 edit-after-edit: []
 ---
 # Task — `md` CLI scenario selftest

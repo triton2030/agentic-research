@@ -4,8 +4,8 @@ read-before-edit:
   - "[[_ops/PROJECT-ROADMAP.md]]"
   - "[[_ops/project-graph.md]]"
   - "[[_ops/AGENTS.md]]"
-  - "[[experiments/md-embedding-server/docs/cli-conventions.md]]"
-  - "[[experiments/md-embedding-server/docs/architecture-lock.md]]"
+  - "[[experiments/md-tools/docs/cli-conventions.md]]"
+  - "[[experiments/md-tools/docs/architecture-lock.md]]"
 edit-after-edit: []
 ---
 # Task — Сделать `md` CLI исполняемым для агентов
@@ -93,9 +93,9 @@ research-backed рамку: агентный CLI должен быть
 ids, коротким stdout и исполняемыми next steps.
 
 Потом пользователь попросил: «Проверь наш код, что стоит добавить?». Мы
-проверили `experiments/md-embedding-server`, потому что `_ops/project-graph.md`
+проверили `experiments/md-tools`, потому что `_ops/project-graph.md`
 определяет эту папку как runtime tooling для `1md-navigator` / `1md-graph`.
-Полный тестовый прогон в `experiments/md-embedding-server` прошёл: `235
+Полный тестовый прогон в `experiments/md-tools` прошёл: `235
 passed`. Узкий smoke тоже прошёл. Поэтому речь не о падении suite, а о
 контрактных багах agent-facing подсказок.
 
@@ -121,7 +121,7 @@ Smith. Их общий verdict: направление правильное, н�
 
 ### 1. `_envelope.next_step` предлагает несуществующие flags
 
-Файл: `experiments/md-embedding-server/src/md_cli/envelope.py`.
+Файл: `experiments/md-tools/src/md_cli/envelope.py`.
 
 Факты:
 
@@ -130,7 +130,7 @@ Smith. Их общий verdict: направление правильное, н�
 - Реальный `md search` / `md search-read` использует `--limit`, не `--top`.
 - Для `md_search_read` reason предлагает `--no-body`, но такого flag нет.
 - Текущий test file
-  `experiments/md-embedding-server/tests/test_envelope_truncation_hint.py`
+  `experiments/md-tools/tests/test_envelope_truncation_hint.py`
   закрепляет неправильное поведение: ждёт `top` и `--no-body`.
 
 Почему это важно:
@@ -149,15 +149,15 @@ Smith. Их общий verdict: направление правильное, н�
 
 ### 2. `recommended_action` предлагает небезопасный bare confirm
 
-Файл: `experiments/md-embedding-server/src/navigator/index_status.py`.
+Файл: `experiments/md-tools/src/navigator/index_status.py`.
 
 Факты:
 
 - `_state_payload` возвращает `recommended_action` вида
   `{"tool": "md_index", "args": {"corpus": ..., "confirm": true}}`.
-- Но `experiments/md-embedding-server/docs/cli-conventions.md` говорит:
+- Но `experiments/md-tools/docs/cli-conventions.md` говорит:
   `--confirm` должен быть paired with `--transaction-id` для gated tools.
-- `experiments/md-embedding-server/src/md_cli/handlers/_generic.py` блокирует
+- `experiments/md-tools/src/md_cli/handlers/_generic.py` блокирует
   bare confirm и возвращает `transaction_required`.
 - Прямая проверка дала:
   `uv run md index tests/fixtures/sample-corpus --confirm --json` ->
@@ -193,7 +193,7 @@ Smith. Их общий verdict: направление правильное, н�
 
 ### 4. Scoped `status` не должен расширять blast radius
 
-Файл: `experiments/md-embedding-server/src/navigator/index_status.py`.
+Файл: `experiments/md-tools/src/navigator/index_status.py`.
 
 Факты из developer-critic:
 
@@ -217,9 +217,9 @@ blast-radius surprise.
 
 ### 5. `recommended_action` шире, чем прямой `md status`
 
-Файлы: `experiments/md-embedding-server/src/md_cli/runner.py`,
-`experiments/md-embedding-server/src/md_cli/corpus_state.py`,
-`experiments/md-embedding-server/src/navigator/workflows/orient.py`.
+Файлы: `experiments/md-tools/src/md_cli/runner.py`,
+`experiments/md-tools/src/md_cli/corpus_state.py`,
+`experiments/md-tools/src/navigator/workflows/orient.py`.
 
 Факты из Brooks / Smith / developer-critic:
 
@@ -238,7 +238,7 @@ blast-radius surprise.
 
 ### 6. `architecture-lock.md` stale по числу tools
 
-Файл: `experiments/md-embedding-server/docs/architecture-lock.md`.
+Файл: `experiments/md-tools/docs/architecture-lock.md`.
 
 Факты из Brooks / Smith / developer-critic:
 
@@ -253,14 +253,14 @@ blast-radius surprise.
 
 ### 7. Graph-команды ломаются из вложенной папки с `--scan ../..`
 
-Файлы: `experiments/md-embedding-server/src/navigator/graph_core.py`,
-`experiments/md-embedding-server/src/navigator/api.py`,
-`experiments/md-embedding-server/src/navigator/graph.py`.
+Файлы: `experiments/md-tools/src/navigator/graph_core.py`,
+`experiments/md-tools/src/navigator/api.py`,
+`experiments/md-tools/src/navigator/graph.py`.
 
 Факты после проверки:
 
 - Из корня проекта `md preflight ... --scan .` проходит clean.
-- Из `experiments/md-embedding-server` команда
+- Из `experiments/md-tools` команда
   `md preflight ../../_ops/plans/... --scan ../.. --json` раньше давала ложные
   `MISSING_TARGET` по ссылкам `_ops/...`.
 - Причина: graph root брался из `Path.cwd()`, а не из scan scope, когда scan
@@ -282,7 +282,7 @@ Skill scripts и локальные tool wrappers часто запускают�
 
 ### 8. `search-read` не должен заливать агенту полный body без лимита
 
-Файл: `experiments/md-embedding-server/src/navigator/api.py`.
+Файл: `experiments/md-tools/src/navigator/api.py`.
 
 Факты после step-back / repo-map / IA-аудита:
 
@@ -320,8 +320,8 @@ Skill scripts и локальные tool wrappers часто запускают�
 
 - [x] Прочитать live owner files перед правкой:
   `_ops/project-graph.md`,
-  `experiments/md-embedding-server/docs/cli-conventions.md`,
-  `experiments/md-embedding-server/docs/architecture-lock.md`.
+  `experiments/md-tools/docs/cli-conventions.md`,
+  `experiments/md-tools/docs/architecture-lock.md`.
 - [x] Сначала добавить failing contract probe/test: собрать generated actions
   из `_envelope.next_step`, вложенных `recommended_action` и golden payloads.
 - [x] Проверять generated action через real parser round-trip:
@@ -354,7 +354,7 @@ Skill scripts и локальные tool wrappers часто запускают�
   пустого результата.
 - [x] Обновить schema/catalog/snapshot описание `md_search_read`.
 - [x] Прогнать targeted tests.
-- [x] Прогнать полный `uv run pytest` в `experiments/md-embedding-server`.
+- [x] Прогнать полный `uv run pytest` в `experiments/md-tools`.
 - [x] Проверить `git diff --check`.
 - [x] Только после pass решить, нужен ли отдельный task на lightweight
   `search-read`.
@@ -377,13 +377,13 @@ Skill scripts и локальные tool wrappers часто запускают�
 - [x] Golden payloads не содержат bare confirm в generated actions.
 - [x] `architecture-lock.md` не конфликтует с live catalog/snapshot count.
 - [x] `md preflight` / `md deps` / `md impact` корректно разрешают repo-root
-  links при запуске из `experiments/md-embedding-server` с `--scan ../..`.
+  links при запуске из `experiments/md-tools` с `--scan ../..`.
 - [x] Все 30 CLI subcommands возвращают JSON envelope не только из package root,
   но и из вложенного cwd с относительными путями.
 - [x] `md search-read` без `--token-budget` больше не является unbounded body
   dump; oversize section возвращается усечённой, а не пустой.
 - [x] `md search-read --token-budget 0` сохраняет старый unbounded escape hatch.
-- [x] `uv run pytest` проходит в `experiments/md-embedding-server`.
+- [x] `uv run pytest` проходит в `experiments/md-tools`.
 - [x] Новый агент может продолжить без устного контекста из этого файла.
 
 ## Evidence
@@ -396,13 +396,13 @@ Skill scripts и локальные tool wrappers часто запускают�
 - `uv run pytest tests/test_real_world_complaints.py tests/test_search_smoke.py tests/test_schemas.py tests/test_catalog_contract.py tests/test_envelope_golden.py tests/test_mcp_cli_parity.py` → `30 passed`.
 - `uv run md tools md_search_read --json` → catalog mentions `token_budget`
   default 3000 and `0 = unbounded`.
-- `git diff --check -- experiments/md-embedding-server _ops/plans/md-cli-agent-contract` → pass.
+- `git diff --check -- experiments/md-tools _ops/plans/md-cli-agent-contract` → pass.
 - `rg '"confirm": true|--no-body|Try --top 5|has exactly 29 tool' ...` →
   no matches on production/golden/lock surfaces.
 - Manual probes passed:
   `md search`, `md search-read`, `md status`, scoped `md status`, and blocked
   bare `md index --confirm`.
-- Nested graph probes passed from `experiments/md-embedding-server`:
+- Nested graph probes passed from `experiments/md-tools`:
   `md preflight ../../_ops/plans/... --scan ../.. --json`,
   `md deps ../../_ops/plans/... --scan ../.. --json`,
   `md impact ../../_ops/PROJECT-ROADMAP.md --scan ../.. --json`, and
@@ -410,12 +410,12 @@ Skill scripts и локальные tool wrappers часто запускают�
 
 ## Проверка
 
-Запускать из `experiments/md-embedding-server`:
+Запускать из `experiments/md-tools`:
 
 ```bash
 uv run pytest tests/test_generated_actions_contract.py tests/test_envelope_truncation_hint.py tests/test_envelope_golden.py tests/test_mutating_handlers.py
 uv run pytest
-git diff --check -- experiments/md-embedding-server _ops/plans/md-cli-agent-contract
+git diff --check -- experiments/md-tools _ops/plans/md-cli-agent-contract
 ```
 
 Полезные ручные probes:

@@ -1,2 +1,0 @@
-"""Thin md CLI handlers."""
-
