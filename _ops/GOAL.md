@@ -45,8 +45,8 @@ files, owner-модели, guardrails и критерии так, чтобы б�
 
 - Новая ИИ-сессия без устного контекста восстанавливает контракт проекта,
   текущий режим, локальный owner-маршрут и ожидаемый уровень автономности.
-- `README.md`, `_ops/GOAL.md`, `_ops/PROJECT-ROADMAP.md`,
-  `_ops/project-graph.md` и живые skills не дублируют source of truth друг друга.
+- `README.md`, `_ops/GOAL.md`, `_ops/project-graph.md` и живые skills не
+  дублируют source of truth друг друга.
 - Старые model-neutral или process-heavy советы либо удалены, либо сужены, либо
   оставлены только как research evidence.
 - Работа над skill / prompt / instruction file начинается от локальных знаний
@@ -56,8 +56,8 @@ files, owner-модели, guardrails и критерии так, чтобы б�
 
 - Меняется основной outcome, scope, NOT in scope или definition of done проекта.
 - Новый файл, папка, скилл, hook или guardrail создаёт второй source of truth.
-- Roadmap, instruction file или skill начинает владеть тем, что
-  должен держать `_ops/GOAL.md`.
+- Instruction file или skill начинает владеть тем, что должен держать
+  `_ops/GOAL.md`.
 - Нужно расширить модельную рамку за пределы `GPT-5.5` / `Claude Opus 4.7`.
 - Для продолжения не хватает прямого пользовательского сигнала о цели,
   красной линии или definition of done.

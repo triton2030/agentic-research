@@ -9,9 +9,6 @@
 - `GOAL.md` — короткий контракт проекта: что делаем, что не делаем, definition
   of done и stop rules. Владелец: `1strategy-docs` (он думает goal-formation
   internal работой и пишет; thinking не делегируется в `1strategy`).
-- `PROJECT-ROADMAP.md` — текущий режим, путь или стадия проекта. Shape файла —
-  `1strategy-docs`; content updates (current path сдвинулся, Stage closed) —
-  `1planning`; основной контракт не дублировать, ссылаться на `GOAL.md`.
 - `user-said/` — legacy/manual сырой архив цитат пользователя по дням
   (`YYYY-MM-DD.md`). Автозапись `UserPromptSubmit` отключена; не
   рассчитывать, что папка наполняется автоматически. Дальнейшая обработка —
@@ -46,8 +43,7 @@
 
 ## Рекурсивное Планирование
 
-- Планирование ведёт `1planning`: Level 1 `PROJECT-ROADMAP.md` → Level 2
-  task-файлы → Level 3 подшаги.
+- Планирование ведёт `1planning`: Level 1 task-файлы → Level 2 подшаги.
 - План создаётся постепенно: агент сужает фокус до активного уровня и не
   раскрывает всё дерево заранее.
 - Если верхний уровень меняется, старые нижние task-файлы сначала
