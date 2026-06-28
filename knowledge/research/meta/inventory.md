@@ -95,13 +95,13 @@
 
 - Тип: legacy/renamed skill reference
 - Что делает: старый Codex owner для roadmap-level framing; текущая модель
-  разделяет `1strategy`, `1strategy-docs` и `1planning`.
+  разделяет approach-choice pass, `1goal` и `1planning`.
 
-### 1strategy
+### approach-choice routing
 
-- Тип: skill
-- Что делает: раскрывает approach branches, hidden tradeoffs и questions до
-  planning/execution.
+- Тип: routing pattern, не отдельный live skill
+- Что делает: раскрывает approach branches, hidden tradeoffs и questions в
+  текущем owner/context pass до planning/execution.
 
 ### owner-truth routing
 

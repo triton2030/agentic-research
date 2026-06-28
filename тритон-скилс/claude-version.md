@@ -29,9 +29,10 @@ skills.
 
 ## Работа От 0 До Готово
 
-`1strategy` выбирает подход и развилки. `1strategy-docs` держит shape
-`README.md`, `_ops/GOAL.md` и `_ops/PROJECT-ROADMAP.md`. `1planning` держит
-roadmap/task content и L1/L2/L3 decomposition.
+Approach-choice держится текущим owner/context pass: цель против метода,
+развилки и цена решений до заморозки scope. `1goal` держит shape `README.md`,
+`_ops/GOAL.md` и `_ops/PROJECT-ROADMAP.md`. `1planning` держит roadmap/task
+content и L1/L2/L3 decomposition.
 
 Финальная сверка не является отдельным installed `1work-review`: текущий
 execution owner закрывает работу через прямой evidence-closeout. Для большой
@@ -47,7 +48,7 @@ execution owner закрывает работу через прямой evidence
 
 - project/instruction rule -> `AGENTS.md`, `_ops/rules/**`,
   `1instruction-layer` или `1folder-contract`;
-- scope/done/stop -> `_ops/GOAL.md` через `1strategy-docs`;
+- scope/done/stop -> `_ops/GOAL.md` через `1goal`;
 - planning/task state -> `_ops/PROJECT-ROADMAP.md` / `_ops/plans/**` через
   `1planning`;
 - временная проблема или self-learning finding -> `_ops/findings/**` через
@@ -60,10 +61,10 @@ execution owner закрывает работу через прямой evidence
 
 ## Выбор Подхода
 
-`1strategy` раскрывает consequential options до плана: цель против метода,
-скрытая цена, риски, reversibility и owner route. `1assumption-audit` остаётся
-ручным ground-check уже выбранного подхода. `1step-back` нужен, когда неверна
-сама рамка.
+Текущий owner/context pass раскрывает consequential options до плана: цель
+против метода, скрытая цена, риски, reversibility и owner route.
+`1assumption-audit` остаётся ручным ground-check уже выбранного подхода.
+`1step-back` нужен, когда неверна сама рамка.
 
 ## Планирование
 
@@ -74,7 +75,7 @@ execution owner закрывает работу через прямой evidence
 - L3 -> подшаги внутри task-файла.
 
 Старые `1roadmap` и `1tasks` не являются live skills; их прежний смысл
-распределён между `1strategy-docs` и `1planning`.
+распределён между `1goal` и `1planning`.
 
 ## Исполнение
 

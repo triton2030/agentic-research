@@ -38,9 +38,9 @@ Check: один owner truth, понятный retrieval path, нет второ�
 - Канонические guides/playbooks/pattern studies -> `knowledge/guides/`.
 - Эталонные артефакты -> `knowledge/examples/`.
 - Категорийные learnings/inventories -> `knowledge/research/{business,design,dev,meta}/`.
-- Reader on-ramp -> `README.md` через `1strategy-docs`.
+- Reader on-ramp -> `README.md` через `1goal`.
 - Scope, NOT in scope, definition of done, stop rules -> `_ops/GOAL.md` через
-  `1strategy-docs`.
+  `1goal`.
 - Текущая рамка движения -> `_ops/PROJECT-ROADMAP.md` через `1planning`.
 - Активная сложная задача -> `_ops/plans/**` через `1planning`, только когда
   task-файл реально нужен.
@@ -59,6 +59,6 @@ Check: один owner truth, понятный retrieval path, нет второ�
 - `INTERVIEW.md`, `LEARNINGS.md` и `projects/` не восстанавливать как живые
   поверхности.
 - Новый project shape не собирать глобальным bootstrap-скриптом: GOAL/README/ROADMAP
-  маршрутизировать через `1strategy-docs`, graph/frontmatter — через
+  маршрутизировать через `1goal`, graph/frontmatter — через
   `1folder-contract`, локальный project-owned bootstrap использовать только если
   он уже есть.

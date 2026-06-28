@@ -19,9 +19,9 @@ export default {
       id: "strategySkill",
       kind: "branch",
       weight: 2,
-      title: "1strategy",
-      kicker: "vision keeper",
-      body: "Owner-скил для README. Переводит видение в approach: что делаем, чего не делаем, какие развилки выбраны.",
+      title: "Approach pass",
+      kicker: "vision to method",
+      body: "Текущий owner/context pass переводит видение в approach: что делаем, чего не делаем, какие развилки выбраны.",
       bullets: ["vision", "approach", "anti-goals"]
     },
     {
@@ -37,9 +37,9 @@ export default {
       id: "roadmapSkill",
       kind: "skill",
       weight: 2,
-      title: "1strategy-docs / 1planning",
+      title: "1goal / 1planning",
       kicker: "stage keeper",
-      body: "Shape roadmap держит 1strategy-docs; текущий roadmap/task content держит 1planning.",
+      body: "Shape roadmap держит 1goal; текущий roadmap/task content держит 1planning.",
       bullets: ["Goal", "Stages", "position"]
     },
     {

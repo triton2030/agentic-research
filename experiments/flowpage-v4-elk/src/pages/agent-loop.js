@@ -28,9 +28,9 @@ export default {
       id: "strategy",
       kind: "branch",
       weight: 2,
-      title: "1strategy",
+      title: "Approach pass",
       kicker: "hidden branch",
-      body: "Срабатывает на raw desire, сомнение, развилку, «что выбрать». Раскрывает 2-3 варианта через экспертную линзу до того, как scope замёрзнет.",
+      body: "Срабатывает на raw desire, сомнение, развилку, «что выбрать». Текущий owner/context pass раскрывает 2-3 варианта до того, как scope замёрзнет.",
       bullets: ["raw desire", "approach options", "fresh-session"]
     },
     {

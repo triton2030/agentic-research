@@ -21,8 +21,8 @@
 ## Локальная Правда
 
 Если это меняет маршрут, риск или проверку, стартуй от `_ops/GOAL.md`
-(scope/done/stop), `_ops/project-graph.md` (граф папок, depends-on, veto-class)
-и живых `SKILL.md`. `README.md` — входной контекст.
+(scope/done/stop) и живых `SKILL.md`. `README.md` — входной контекст. Граф зон —
+`depends-on` в шапках subtree `AGENTS.md` (читает `1md-graph`).
 
 ## Приоритеты
 
@@ -40,8 +40,8 @@
 `global-agent-surface-viewer` и др.). Каждый существенный под-проект держит свою
 правду в локальном `README.md` / `AGENTS.md`; правь субтри от его инструкции, не
 от корневой. Эти папки — НЕ polygon scope `_ops/GOAL.md` (тот про knowledge и
-skill design, не про runtime под-проектов). Связи и зависимости — в
-`_ops/project-graph.md`.
+skill design, не про runtime под-проектов). Связи и зависимости — в локальных
+`AGENTS.md` сабтри.
 
 ## GitHub
 

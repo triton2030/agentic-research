@@ -45,8 +45,8 @@ files, owner-модели, guardrails и критерии так, чтобы б�
 
 - Новая ИИ-сессия без устного контекста восстанавливает контракт проекта,
   текущий режим, локальный owner-маршрут и ожидаемый уровень автономности.
-- `README.md`, `_ops/GOAL.md`, `_ops/project-graph.md` и живые skills не
-  дублируют source of truth друг друга.
+- `README.md`, `_ops/GOAL.md` и живые skills не дублируют source of truth
+  друг друга.
 - Старые model-neutral или process-heavy советы либо удалены, либо сужены, либо
   оставлены только как research evidence.
 - Работа над skill / prompt / instruction file начинается от локальных знаний

@@ -7,8 +7,8 @@
 ## Папки
 
 - `GOAL.md` — короткий контракт проекта: что делаем, что не делаем, definition
-  of done и stop rules. Владелец: `1strategy-docs` (он думает goal-formation
-  internal работой и пишет; thinking не делегируется в `1strategy`).
+  of done и stop rules. Владелец: `1goal` (он думает goal-formation
+  internal работой и пишет; thinking не делегируется в отдельный strategy skill).
 - `user-said/` — legacy/manual сырой архив цитат пользователя по дням
   (`YYYY-MM-DD.md`). Автозапись `UserPromptSubmit` отключена; не
   рассчитывать, что папка наполняется автоматически. Дальнейшая обработка —
@@ -18,13 +18,13 @@
   `self-learning:`; старые тематические файлы, счётчики и архивы не
   восстанавливать.
 - `rules/` — условные холодные rule-docs для редких правил с явным trigger,
-  owner и check. Wording держит `1instruction-layer`, механизм папки держит
-  `1folder-contract`. Если route/owner rule-doc меняется, синхронизировать
-  root `AGENTS.md` и `_ops/project-graph.md`. Читать только по конкретному
+  owner и check. Wording держит `1instruction-layer`; механизм — live settings/hook
+  pass. Если route/owner rule-doc меняется, синхронизировать root `AGENTS.md`.
+  Читать только по конкретному
   trigger из `AGENTS.md` или owner-файла, не как preload.
 - `interviews/` — временные интерактивные вопросники для случаев, когда агенту
-  нужно много ответов пользователя. Маршрут задают `1interview-tool` и
-  `1folder-contract`, wording маршрута чинит `1instruction-layer`, форму в
+  нужно много ответов пользователя. Маршрут задаёт `1interview-tool`, wording
+  маршрута чинит `1instruction-layer`, форму в
   Obsidian берёт `1obsidian`. После разбора смысл переносится к владельцам
   (task-файлы, roadmap, GOAL/README, knowledge).
 - `interviews/_archive/` — архив полностью разобранных интервью.
@@ -69,7 +69,7 @@ dependency-radius — проверяет `$1md-graph`. Смысл файла п�
   сворачиваемым блоком.
 - Когда пользователь ответил и сказал “проверь”, агент читает интервью и
   переносит смысл к владельцам: план/task scope через `1planning`,
-  GOAL/README через `1strategy-docs`, знания в `knowledge/`.
+  GOAL/README через `1goal`, знания в `knowledge/`.
 - После полного разбора переместить файл в `interviews/_archive/`. Активная
   папка показывает только незавершённые или ещё неразобранные интервью.
 
@@ -89,20 +89,21 @@ dependency-radius — проверяет `$1md-graph`. Смысл файла п�
   должно случиться, чтобы убрать её из активной папки. Он не содержит план
   работ, чекбоксы, критерии приёмки или финальное решение.
 - Если проблема становится направлением работы, сначала выбор лица:
-  goal/scope/done меняются → `1strategy-docs` (он думает + пишет
-  GOAL/README/ROADMAP); approach-choice в моменте задачи без задевания goal →
-  `1strategy` (momentum). Потом `1planning` делает task-файл только если
-  задача реально нужна.
+  goal/scope/done меняются → `1goal` (он думает + пишет
+  GOAL/README/ROADMAP); approach-choice в моменте задачи без задевания goal
+  остаётся коротким decision pass текущего owner-а. Потом `1planning` делает
+  task-файл только если задача реально нужна.
 - Если находка противоречит текущему roadmap/task/stage, передать в
   `1planning` для reconcile/archive; если противоречит выбранному подходу
-  для задачи — `1strategy`; если задевает goal/scope shape — `1strategy-docs`.
+  для задачи — пересмотреть подход в текущем owner-контексте; если задевает
+  goal/scope shape — `1goal`.
 - Если проблема содержит устойчивое правило пользователя или красную линию,
   не записывай интерпретацию в `user-said/` автономно: автозапись отключена,
   а превращение цитаты в правило AGENTS / CLAUDE или decision в GOAL —
   manual, отдельным проходом, не здесь.
 - Если проблема меняет roadmap content (current path сдвинулся, Stage closed),
   передать в `1planning`. Если меняет roadmap shape или goal/scope —
-  `1strategy-docs`.
+  `1goal`.
 - Если проблема стала знанием, гайдом или примером, перенести смысл в
   `knowledge/`.
 - Когда все находки в файле решены или перенесены в правильные owner-файлы,

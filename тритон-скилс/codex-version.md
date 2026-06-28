@@ -38,9 +38,7 @@ Hooks усиливают скилы, но не заменяют их. Стары
 
 Локальные installed `1*`-скилы:
 
-- `1strategy` - выбор подхода до планирования: цель против метода, развилки,
-  цена решений, ground check и handoff;
-- `1strategy-docs` - форма и правки `README.md`, `_ops/GOAL.md`,
+- `1goal` - форма и правки `README.md`, `_ops/GOAL.md`,
   `_ops/PROJECT-ROADMAP.md`: context, contract, current path без дублирования;
 - `1planning` - рекурсивное планирование: L1 roadmap/current path, L2 task,
   L3 subtasks, archive/reconcile;
@@ -119,14 +117,15 @@ Durable user truth сейчас не держит отдельный installed s
 
 ### Текущие решения для динамичной карты
 
-`1strategy` больше не пишет roadmap сам. Он выбирает подход: отделяет желание
-от метода, показывает реальные развилки, цену решений, слабые предпосылки и
-вариант "сделать меньше / отложить / не делать", если это защищает цель.
+Approach-choice больше не живёт в отдельном skill-owner-е. Текущий
+owner/context pass отделяет желание от метода, показывает реальные развилки,
+цену решений, слабые предпосылки и вариант "сделать меньше / отложить / не
+делать", если это защищает цель.
 
-`1strategy-docs` держит стратегические поверхности чистыми: `README.md` -
-короткий on-ramp, `_ops/GOAL.md` - главный scope-контракт, roadmap - current
-path. Если меняется outcome, scope, NOT in scope, definition of done или stop
-rules, это не обычная planning-правка.
+`1goal` держит стратегические поверхности чистыми: `README.md` - короткий
+on-ramp, `_ops/GOAL.md` - главный scope-контракт, roadmap - current path. Если
+меняется outcome, scope, NOT in scope, definition of done или stop rules, это
+не обычная planning-правка.
 
 `1planning` держит динамичную карту после выбранной стратегии:
 `_ops/PROJECT-ROADMAP.md` как L1, task-файлы в `_ops/plans/**` как L2 и
@@ -178,14 +177,15 @@ Root-инструкции и локальный owner pass дают context remi
 
 ### Текущие решения для выбора подхода
 
-`1strategy` - главный владелец развилок. Он показывает только те варианты,
+Развилки держит текущий owner/context pass. Он показывает только те варианты,
 которые реально меняют cost, risk, scope, future constraint, reversibility или
 owner route. Декоративные варианты не нужны; один сильный путь лучше трёх
 псевдоальтернатив.
 
 Проверка почвы теперь распределена:
 
-- `1strategy` проверяет ключевые предпосылки до заморозки подхода;
+- текущий owner/context pass проверяет ключевые предпосылки до заморозки
+  подхода;
 - `1assumption-audit` делает ручной глубокий `ground-check` выбранного подхода;
 - `1planning` сохраняет blocker/assumption/order там, где это нужно для
   исполнения;
@@ -209,8 +209,8 @@ auto-close, пропущенная связь. `1findings` удерживает 
 
 Живой owner один: `1planning`. `1roadmap` и `1tasks` больше не нужны.
 
-`1strategy-docs` держит границу между стратегическими документами: `GOAL` не
-становится roadmap, `README` не становится task tracker, roadmap не дублирует
+`1goal` держит границу между стратегическими документами: `GOAL` не становится
+roadmap, `README` не становится task tracker, roadmap не дублирует
 scope-контракт.
 
 `1planning` держит:
@@ -242,7 +242,7 @@ SoT/owner, применимые инструкции, dependency radius и од�
 
 Перед исполнением:
 
-- `1strategy` держит approach/scope checkpoint;
+- текущий owner/context pass держит approach/scope checkpoint;
 - `1planning` держит task prerequisites и active frontier;
 - локальные owner/criteria checks перед substantive write проверяют, какой
   файл владеет смыслом и какие criteria должны применяться;

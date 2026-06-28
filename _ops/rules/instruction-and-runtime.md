@@ -18,7 +18,7 @@ guardrail, `config.toml`, skill reference или модельный baseline.
 
 Owner: wording держит `1instruction-layer`; механизм и folder/runtime contract
 держит `1folder-contract`; `SKILL.md`/metadata держит `1skill-architect`;
-GOAL-sync держит `1strategy-docs` + `1folder-contract`.
+GOAL-sync держит `1goal` + `1folder-contract`.
 
 Check: правило меняет следующий ход агента, не дублирует skill body, не держит
 дорогой запрет prompt-only, не расходится с `GPT-5.5` / `Claude Opus 4.7`.

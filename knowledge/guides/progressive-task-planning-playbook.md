@@ -167,10 +167,9 @@ outcome.
 
 ## Skill Touchpoints
 
-- `1strategy` owns strategy truth. См. `/Users/triton/.codex/skills/1strategy/SKILL.md`.
-- `1strategy` owns unresolved approach branches and consequential
-  domain questions. См.
-  `/Users/triton/.codex/skills/1strategy/SKILL.md`.
+- Approach-choice truth stays in the current owner/context pass: separate goal
+  from method, surface consequential branches, and do not freeze scope before
+  the decision is clear.
 - `1planning` owns roadmap/task-files and task prerequisites. См.
   `/Users/triton/.codex/skills/1planning/SKILL.md`.
 - Substantive-write discipline is distributed through local instructions,
