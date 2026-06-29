@@ -11,6 +11,9 @@ model-neutral советы держатся только если они под�
 - `knowledge/wisdom-gpt-5.5.md` — GPT-5.5 baseline.
 - `knowledge/wisdom-claude-opus-4.7.md` — Claude Opus 4.7 baseline.
 
+Глубинная модель — *почему* эти свойства именно такие (вероятностная машина и её
+следствия) — `knowledge/how-llms-think.md`.
+
 ## Проверено
 
 - Prompt-only защита хрупка. Если модель работает с инструментами и недоверенным контентом, контроль должен строиться через права, sandbox, approvals, validation и проверки после действия.
