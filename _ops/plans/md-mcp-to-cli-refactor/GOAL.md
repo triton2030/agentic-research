@@ -13,7 +13,7 @@ Outcome-first execution contract под `GPT-5.5` и `Claude Opus 4.7`. Само
 3. **Library/CLI split реализован**: `experiments/md-tools/src/navigator/` — pure library (importable Python), `experiments/md-tools/src/md_cli/` — CLI слой с envelope + composites + transactions + dispatch.
 4. **13 historical migration targets мигрированы** на CLI invocation syntax
    (Claude + Codex × {1md-navigator, 1md-graph, 1ia-audit,
-   1instruction-layer, 1planning, 1strategy, 1strategy-docs,
+   1instruction-layer, 1planning, retired approach/doc skills,
    1folder-contract, 1assumption-audit, 1work-review, 1skill-architect,
    1smart-simple, 1cli-tools}). Это snapshot исходного scope, а не live skill
    catalog. Skills остались **pure declarative** (SKILL.md + references/ +
@@ -47,7 +47,7 @@ closeout-проверки держит execution owner через прямой e
 - Смена языка на Rust/Go/Bun (Python оставляем — pymorphy/NetworkX/markdown ecosystem one-way door)
 - Изменение MCP envelope semantics (зеркальное копирование текущей shape)
 - Добавление новых tools (refactor только формы, не функций)
-- Правки `_ops/GOAL.md`, `README.md`, `_ops/PROJECT-ROADMAP.md` shape (это owner `1strategy-docs`)
+- Правки `_ops/GOAL.md`, `README.md`, `_ops/PROJECT-ROADMAP.md` shape (это owner `1goal`)
 - Перенос existing Codex `scripts/` папок других skills в repo (out of scope; только md-related, если найдутся)
 
 ---
@@ -193,7 +193,7 @@ Phase X не closed, пока gate не зелёный.
 4. **Cross-project blast обнаружен в неожиданном месте**: если `grep "md_orient\|md_search\|..." /Users/triton/Documents/GitHub/<other-repo>/` показывает MCP refs которых не было в task-000 inventory — escalate, audit blast scope заново.
 5. **Codex sandbox блокирует CLI binary access**: если `md` недоступен в Codex session, не путём sandbox config — escalate, это deeper Codex setup issue.
 6. **Goal-цитата sync conflict**: если правки CLAUDE.md/AGENTS.md задевают hook-loaded Goal-цитату, передать в `1folder-contract` (NOT редактировать самостоятельно).
-7. **Любое изменение `_ops/GOAL.md`**: это owner `1strategy-docs`, не этого refactor. Если что-то требует scope change — escalate.
+7. **Любое изменение `_ops/GOAL.md`**: это owner `1goal`, не этого refactor. Если что-то требует scope change — escalate.
 
 ---
 
@@ -244,9 +244,9 @@ Phase X не closed, пока gate не зелёный.
 - `_ops/plans/md-mcp-to-cli-refactor/_archive/YYYY-MM-DD-<task-slug>/` — closed task capsules
 
 ### Never write
-- `_ops/GOAL.md` — owner `1strategy-docs`
+- `_ops/GOAL.md` — owner `1goal`
 - `_ops/PROJECT-ROADMAP.md` (кроме task-502 archive update — content update is `1planning` owner)
-- `README.md` корневой — owner `1strategy-docs`
+- `README.md` корневой — owner `1goal`
 - Hook-loaded Goal-цитаты в `CLAUDE.md` / `AGENTS.md` — sync через `1folder-contract`
 
 ---

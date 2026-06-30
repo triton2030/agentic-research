@@ -36,8 +36,8 @@ Closeout evidence:
 - `1ia-audit` (22 refs) — md_audit, md_search, md_repeated_concepts, md_overlaps, md_toc, md_extract
 - `1instruction-layer` (14 refs) — md_overlaps, md_repeated_concepts, md_audit, md_search (+rerank)
 - `1planning` (11 refs) — md_orient, md_ls, md_search, md_extract, md_query_by_type
-- `1strategy` (8 refs) — md_search, md_extract
-- `1strategy-docs` (Claude 6, Codex 9 refs) — частично already CLI-shaped (`1md-navigator status _ops/`)
+- retired approach-choice skill (8 refs) — md_search, md_extract
+- retired docs-shape skill (Claude 6, Codex 9 refs) — частично already CLI-shaped (`1md-navigator status _ops/`)
 - `1folder-contract` — md_changed (staged), md_search
 - `1assumption-audit` — md_search, md_overlaps, md_read_related
 - evidence-closeout callers (historically `1work-review`) — md_changed,

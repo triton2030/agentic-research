@@ -24,15 +24,13 @@ settings не подключены. Файл `~/.claude/hooks/user-prompt-all-me
 
 Корневой проектный `CLAUDE.md` остаётся shim-ом `@AGENTS.md`; hot-path правда
 про этот репозиторий живёт в `AGENTS.md`, `_ops/GOAL.md`,
-`_ops/PROJECT-ROADMAP.md`, `_ops/project-graph.md`, `_ops/rules/**` и живых
-skills.
+`_ops/project-graph.md`, `_ops/rules/**`, `_ops/plans/**` и живых skills.
 
 ## Работа От 0 До Готово
 
 Approach-choice держится текущим owner/context pass: цель против метода,
-развилки и цена решений до заморозки scope. `1goal` держит shape `README.md`,
-`_ops/GOAL.md` и `_ops/PROJECT-ROADMAP.md`. `1planning` держит roadmap/task
-content и L1/L2/L3 decomposition.
+развилки и цена решений до заморозки scope. `1goal` держит shape `README.md`
+и `_ops/GOAL.md`. `1planning` держит task content и task/subtask decomposition.
 
 Финальная сверка не является отдельным installed `1work-review`: текущий
 execution owner закрывает работу через прямой evidence-closeout. Для большой
@@ -49,7 +47,7 @@ execution owner закрывает работу через прямой evidence
 - project/instruction rule -> `AGENTS.md`, `_ops/rules/**`,
   `1instruction-layer` или `1folder-contract`;
 - scope/done/stop -> `_ops/GOAL.md` через `1goal`;
-- planning/task state -> `_ops/PROJECT-ROADMAP.md` / `_ops/plans/**` через
+- planning/task state -> `_ops/plans/**` через
   `1planning`;
 - временная проблема или self-learning finding -> `_ops/findings/**` через
   `1findings`;
@@ -68,14 +66,13 @@ execution owner закрывает работу через прямой evidence
 
 ## Планирование
 
-Единый live owner трёх уровней — `1planning`:
+Единый live owner task-планирования — `1planning`:
 
-- L1 -> `_ops/PROJECT-ROADMAP.md`;
-- L2 -> task-файлы в `_ops/plans/**`;
-- L3 -> подшаги внутри task-файла.
+- task-файлы в `_ops/plans/**`;
+- подшаги внутри task-файла.
 
-Старые `1roadmap` и `1tasks` не являются live skills; их прежний смысл
-распределён между `1goal` и `1planning`.
+Старые отдельные planning/task handles не являются live skills; их прежний смысл
+сведён к `1goal` и `1planning`.
 
 ## Исполнение
 
