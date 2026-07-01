@@ -7,7 +7,7 @@
 
 ## Shared
 
-### pitch-coherence-audit
+### 1pitch-coherence-audit
 
 - Тип: skill
 - Источник: наш
@@ -50,11 +50,11 @@
 ## Codex
 
 Пока отдельный business-facing слой тонкий: live Codex handle из этой категории
-только `pitch-coherence-audit`.
+только `1pitch-coherence-audit`.
 
 ## Missing
 
-- Codex-совместимые business skills beyond `pitch-coherence-audit`.
+- Codex-совместимые business skills beyond `1pitch-coherence-audit`.
 - Автоматизации и регулярные проверки.
 - Документооборот для Codex: `xlsx`, `pdf`, `docx`.
 - Notion / CRM / почта / календарь / BI / support connectors.

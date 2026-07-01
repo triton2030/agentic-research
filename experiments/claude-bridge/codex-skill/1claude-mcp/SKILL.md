@@ -1,5 +1,5 @@
 ---
-name: claude-mcp
+name: 1claude-mcp
 description: >
   Use when Codex should run Claude Code as a controlled External Peer
   Review agent for a project/folder/diff: second opinion, code/opinion

@@ -1,6 +1,13 @@
 ---
-name: gemini-mcp
-description: Use when Codex should run Gemini as a controlled External Peer Review agent through repo MCP/Antigravity CLI: second opinion, code/opinion check, bug hunt, architecture or instruction audit, web/file research, Gemini 3.5 Flash via Antigravity CLI, behavior comparison with Claude, or observable run/peek/wait/kill work with logs, full relay, agent-behavior evidence, and tail cleanup; skip ordinary web lookup, generic Gemini docs questions, and raw `agy`/`gemini` calls that do not need control.
+name: 1gemini-mcp
+description: >
+  Use when Codex should run Gemini as a controlled External Peer Review agent
+  through repo MCP/Antigravity CLI: second opinion, code/opinion check, bug
+  hunt, architecture or instruction audit, web/file research, Gemini 3.5 Flash
+  via Antigravity CLI, behavior comparison with Claude, or observable
+  run/peek/wait/kill work with logs, full relay, agent-behavior evidence, and
+  tail cleanup; skip ordinary web lookup, generic Gemini docs questions, and raw
+  `agy`/`gemini` calls that do not need control.
 ---
 
 # Gemini MCP

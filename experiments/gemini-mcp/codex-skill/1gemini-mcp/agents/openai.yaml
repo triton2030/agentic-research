@@ -1,8 +1,8 @@
 interface:
-  display_name: "Gemini MCP"
+  display_name: "1gemini-mcp"
   short_description: "Run controlled Gemini External Peer Reviews"
   default_prompt: >
-    Use $gemini-mcp only when Gemini should run as a controlled External Peer
+    Use $1gemini-mcp only when Gemini should run as a controlled External Peer
     Review agent through account-backed Antigravity/Gemini CLI: second opinion,
     bug hunt, architecture/instruction audit, web/file research, Gemini 3.5
     Flash review, or comparison with Claude. Start with gemini_status. For

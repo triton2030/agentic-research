@@ -1,8 +1,8 @@
 interface:
-  display_name: "Claude MCP"
+  display_name: "1claude-mcp"
   short_description: "Run controlled Claude External Peer Reviews"
   default_prompt: >
-    Use $claude-mcp when Codex should run Claude Code as a controlled External
+    Use $1claude-mcp when Codex should run Claude Code as a controlled External
     Peer Review agent: second opinion, bug hunt, architecture/instruction
     audit, research, or claim-checking over real project files. Give Claude a
     compact context packet with role, lens, task, goal/current state, claim,

@@ -85,23 +85,23 @@ Durable user truth сейчас не держит отдельный installed s
 
 Специализированные локальные маршруты:
 
-- `claude-mcp` - controlled Claude Bridge: независимый reviewer/advisor,
+- `1claude-mcp` - controlled Claude Bridge: независимый reviewer/advisor,
   run/peek/wait/kill, logs, relay и evidence;
-- `gemini-mcp` - controlled Gemini peer: second opinion, web/file research,
+- `1gemini-mcp` - controlled Gemini peer: second opinion, web/file research,
   model comparison, managed runs и process-tail checks;
-- `claude-skill` - только прямой запрос запускать Claude Code CLI или `claude`;
-- `impeccable` - frontend design/polish с обязательными product/design/shape
+- `1claude-skill` - только прямой запрос запускать Claude Code CLI или `claude`;
+- `1impeccable` - frontend design/polish с обязательными product/design/shape
   gates перед UI-правками;
-- `screenshot-design` - standalone визуальная критика UI-скриншота;
-- `design-subagents` - параллельная эстетическая критика конкретных UI-crops
+- `1screenshot-design` - standalone визуальная критика UI-скриншота;
+- `1design-subagents` - параллельная эстетическая критика конкретных UI-crops
   только по явному запросу;
-- `pitch-coherence-audit` - аудит coherence и investor appeal после правок
+- `1pitch-coherence-audit` - аудит coherence и investor appeal после правок
   существующих pitch materials;
-- `playwright` - browser automation через CLI-wrapper и свежие snapshots;
-- `pdf` - чтение/создание/review PDF с render-first проверкой;
-- `vercel-composition-patterns` - React composition: API shape, boolean props,
+- `1playwright` - browser automation через CLI-wrapper и свежие snapshots;
+- `1pdf` - чтение/создание/review PDF с render-first проверкой;
+- `1vercel-composition-patterns` - React composition: API shape, boolean props,
   shared state, context boundaries;
-- `vercel-react-view-transitions` - React/Next.js View Transition API только
+- `1vercel-react-view-transitions` - React/Next.js View Transition API только
   для transitions, где есть понятная пространственная связь.
 
 Нативные read-only агенты Codex:
@@ -293,7 +293,7 @@ drift-point. `1md-navigator` даёт карту/поиск/overlaps, `1md-graph
 в owner-файлах. `.base`, Meta Bind, callouts и links не должны становиться
 второй правдой.
 
-`brooks`, `smith`, `auditor`, `claude-mcp` и `gemini-mcp` дают внешний или
+`brooks`, `smith`, `auditor`, `1claude-mcp` и `1gemini-mcp` дают внешний или
 свежий взгляд, но Codex main context отвечает за синтез, решение и repair.
 
 ## Устаревшие Маршруты

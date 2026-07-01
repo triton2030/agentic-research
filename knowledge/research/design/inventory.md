@@ -7,7 +7,7 @@
 
 ## Shared
 
-### screenshot-design
+### 1screenshot-design
 
 - Тип: skill
 - Источник: наш
@@ -31,7 +31,7 @@
 
 ## Codex
 
-### impeccable
+### 1impeccable
 
 - Тип: skill
 - Источник: Anthropic / локальная установка

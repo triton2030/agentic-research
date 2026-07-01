@@ -22,14 +22,14 @@ review, browser evidence, несколько линз и remediation, поэто
 
 ## Быстрый Выбор
 
-- Скриншот + визуальный вопрос: `screenshot-design`; full pass только для
+- Скриншот + визуальный вопрос: `1screenshot-design`; full pass только для
   полноценной critique, comparison или high-risk polish.
 - Живой URL + визуальный verdict: browser/verification для фактов, затем
-  `screenshot-design`.
+  `1screenshot-design`.
 - Живой URL + техника: browser/verification для responsive,
   console/layout issues, a11y, perf и contrast.
-- «Шаблонно», «нет личности», `AI slop`: `impeccable`.
-- Починить типографику, цвет, layout, polish: `impeccable` с конкретным
+- «Шаблонно», «нет личности», `AI slop`: `1impeccable`.
+- Починить типографику, цвет, layout, polish: `1impeccable` с конкретным
   reference.
 - Один клик, один скриншот, один DOM-read: browser/verification tool напрямую.
 - Нужно несколько независимых ролей или свежих окон: только по явному запросу
@@ -41,33 +41,33 @@ review, browser evidence, несколько линз и remediation, поэто
 
 1. Собрать только факты, которые меняют вывод: скриншот, responsive state,
    очевидные console/layout issues, contrast или a11y numbers при необходимости.
-2. Отдать скриншоты в `screenshot-design`.
-3. Добавить `impeccable` только если нужен слой вкуса, бренда, уникальности или
+2. Отдать скриншоты в `1screenshot-design`.
+3. Добавить `1impeccable` только если нужен слой вкуса, бренда, уникальности или
    `AI slop`.
 
 ### Только скриншоты
 
-1. `screenshot-design`.
-2. `impeccable`, если вопрос про шаблонность, настроение или distinctiveness.
+1. `1screenshot-design`.
+2. `1impeccable`, если вопрос про шаблонность, настроение или distinctiveness.
 
 ### Независимое второе мнение
 
 Не запускать три prose-агента по умолчанию.
 
-1. Первый проход: `screenshot-design` с evidence anchors.
-2. Второй слой: `impeccable`, если нужна distinctiveness / `AI slop` critique.
+1. Первый проход: `1screenshot-design` с evidence anchors.
+2. Второй слой: `1impeccable`, если нужна distinctiveness / `AI slop` critique.
 3. Несколько субагентов: только когда пользователь явно просит свежие глаза,
    совет ролей или многокритериальный разбор через `1fresh-eyes`.
 
 ### Слепой вкусовой взгляд
 
 Редкий режим. Если нужен критик без измерений и предварительных якорей, начать с
-`impeccable` blind taste / `AI slop` lens. Это опция, не дефолт.
+`1impeccable` blind taste / `AI slop` lens. Это опция, не дефолт.
 
 ### Быстрая проверка после CSS-правки
 
 - Живой dev-server: browser/verification tool напрямую и один скриншот глазами.
-- `screenshot-design` подключать только если правка визуально значимая.
+- `1screenshot-design` подключать только если правка визуально значимая.
 
 ## Не Делать
 
