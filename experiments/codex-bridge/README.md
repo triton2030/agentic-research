@@ -64,10 +64,12 @@ Backend явно закрепляет Codex turn defaults: `model=gpt-5.5`,
 `~/.codex/config.toml`; флаги `--model` и `--effort` остаются только для
 осознанного override.
 
-`--effort minimal` использовать нельзя: turn'у по умолчанию доступны инструменты
-(`web_search`/`image_gen`), а Codex отвечает `HTTP 400 — "The following tools
-cannot be used with reasoning.effort 'minimal': image_gen, web_search"`. Нижний
-рабочий порог — `low`.
+Нижний рабочий порог — `low`, и он enforced: `--effort` ниже (`minimal`/`none`)
+отсекается на валидации флагов (`REASONING_EFFORTS` в `codex_defaults.py`).
+Причина: turn'у по умолчанию доступны инструменты (`web_search`/`image_gen`), и
+Codex на `minimal` отвечает `HTTP 400 — "The following tools cannot be used with
+reasoning.effort 'minimal': image_gen, web_search"` — валидация превращает этот
+поздний runtime-фейл в мгновенный.
 
 Permissions тоже задаются backend-ом явно:
 

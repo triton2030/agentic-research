@@ -8,7 +8,10 @@ from __future__ import annotations
 DEFAULT_CODEX_MODEL = "gpt-5.5"
 DEFAULT_CODEX_EFFORT = "xhigh"
 
-REASONING_EFFORTS = ("none", "minimal", "low", "medium", "high", "xhigh")
+# Floor is "low": default turn tools (web_search/image_gen) reject lower
+# efforts at Codex runtime (HTTP 400), so "none"/"minimal" are cut here to fail
+# fast at flag validation. See README "Модель и runtime-доступ".
+REASONING_EFFORTS = ("low", "medium", "high", "xhigh")
 
 REVIEW_SANDBOX = "read_only"
 REVIEW_APPROVAL_MODE = "deny_all"
