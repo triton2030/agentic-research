@@ -27,10 +27,14 @@ write `не проверено по скриншотам`.
 1. Is the screen overloaded with text for its job?
 2. Can a user understand the screen in 3-5 seconds from headings, labels, and
    visible structure?
-3. Are paragraphs, helper text, badges, captions, or labels competing for
+3. Do headings and subheadings form a correct meaning structure: page promise,
+   section idea, supporting explanation, then details?
+4. Does the subheading clarify the heading, or does it introduce a competing
+   message?
+5. Are paragraphs, helper text, badges, captions, or labels competing for
    attention?
-4. Does the amount of text change logically between desktop and mobile?
-5. Are there repeated phrases or explanatory text blocks that should become
+6. Does the amount of text change logically between desktop and mobile?
+7. Are there repeated phrases or explanatory text blocks that should become
    labels, shorter copy, or progressive disclosure?
 
 ## Hierarchy And Typography
@@ -43,6 +47,19 @@ write `не проверено по скриншотам`.
 5. Are font weights, sizes, and spacing used to create hierarchy, or are they
    used decoratively?
 
+## Visual Weight And Attention
+
+1. Does visual weight match semantic priority: size, contrast, position, color,
+   depth, and motion should make the most important thing feel most important?
+2. Is every large element large for a reason, or is it visually louder than its
+   meaning deserves?
+3. Does any secondary text, decoration, badge, card, illustration, metric, or
+   control compete with the main message or primary action?
+4. Does the design guide attention through the intended sequence of reading,
+   understanding, and action?
+5. Are hierarchy exceptions intentional and useful in context, or do they look
+   like accidental emphasis?
+
 ## Composition
 
 1. Is there a clear primary focal point in each viewport?
@@ -51,6 +68,21 @@ write `не проверено по скриншотам`.
 4. Do repeated components have stable dimensions, or do they visually jump?
 5. Are section transitions understandable in the bridge screenshots between
    sections?
+
+## Gestalt Grouping And Alignment
+
+1. Are related elements grouped by proximity, similarity, common region,
+   alignment, or continuity in a way that matches their meaning?
+2. Are unrelated elements separated clearly enough, or do they appear to belong
+   together by accident?
+3. Do section starts, content columns, card edges, and text blocks share stable
+   alignment axes across the scroll?
+4. Is there subtle alignment drift between sections, such as one section being
+   slightly offset from the previous one without a clear reason?
+5. Are there floating or orphaned elements that do not visually belong to a
+   group?
+6. Are asymmetries, broken grids, or unusual spacing choices justified by the
+   content, or do they weaken the structure?
 
 ## Visual Noise
 
@@ -63,6 +95,31 @@ write `не проверено по скриншотам`.
 4. Is the palette balanced, or does the page collapse into one dominant hue
    family?
 5. Are icons meaningful and recognizable, or are they used as decoration?
+
+## Consistency And System Logic
+
+1. Are repeated colors, components, spacing values, borders, shadows, icons, and
+   typographic treatments used consistently for the same meaning?
+2. Do similar things look similar and different things look different enough?
+3. Are there one-off visual decisions that do not connect to the rest of the
+   system?
+4. Does repetition create a predictable design language, or does it make the
+   page feel monotonous and undifferentiated?
+5. Where consistency is broken, is the break justified by a real change in
+   meaning, state, importance, or task?
+
+## Spatial Balance
+
+1. Is the screen balanced vertically and horizontally, or does one side/top/bottom
+   feel accidentally heavy or empty?
+2. Are top and bottom spacing, left and right padding, and section insets
+   symmetrical where symmetry is expected?
+3. When spacing is intentionally asymmetrical, does it improve hierarchy,
+   grouping, or flow?
+4. Do sticky headers, sidebars, cards, and floating controls create balanced
+   negative space, or do they leave awkward gaps?
+5. Does the visual center of the composition match the user's intended focus, or
+   is attention pulled to an unimportant area?
 
 ## Interaction States
 
@@ -116,7 +173,8 @@ write `не проверено по скриншотам`.
 
 1. List concrete fixes in priority order.
 2. For each fix, say whether it is a spacing, typography, layout, content,
-   color, component, interaction, or responsive fix.
+   color, component, hierarchy, alignment, grouping, consistency, interaction,
+   or responsive fix.
 3. Name the screenshots where the issue is visible.
 4. Say what should stay unchanged because it is already working.
 5. Say what would require another screenshot pass after implementation.
