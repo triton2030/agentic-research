@@ -305,7 +305,7 @@ def main() -> int:
     paths: dict[str, str] | None = None
     if args.run_dir or args.summary_stdout:
         try:
-            run_id, run_dir = prepare_run_dir(args.run_dir)
+            run_id, run_dir = prepare_run_dir(args.run_dir, project=project_cwd)
         except UsageError as exc:
             print(f"[codex-bridge] {exc}", file=sys.stderr)
             return 2

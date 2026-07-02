@@ -40,10 +40,15 @@
 отключает). `Monitor` можно включать только как filtered watcher поверх
 `events.jsonl`; raw stdout/stderr не мониторить.
 
-## Audit surface — только `runs/`
+## Audit surface — только run_dir прогона
 
-Единственный audit/debug owner прогона — каталог `runs/<run_id>/` (`manifest.json`,
-`events.jsonl`, `results.jsonl`, `result.json`). Bridge стартует Codex-threads с
+Единственный audit/debug owner прогона — его `run_dir` (`manifest.json`,
+`events.jsonl`, `results.jsonl`, `result.json`). Default для всех трёх входов —
+**локально в проекте работы**: `<project>/_workspace/codex-artifacts/<run_id>/`
+(создаёт backend; артефакты не сыплются в чужое репо, субагентам это рабочая
+зона — подпапки/архив свободно; при желании добавь `_workspace/` в `.gitignore`
+проекта). `--run-dir PATH` — явный override; legacy `<backend>/runs/` остаётся
+только fallback-ом без `--project`. Bridge стартует Codex-threads с
 `ephemeral=True`, поэтому они не материализуются в общий `~/.codex` session store.
 
 **История Codex Desktop НЕ является audit surface для bridge** — не ищи прогоны
@@ -142,9 +147,11 @@ SDK тянет собственный пиннутый бинарь `codex`; о�
 #   --dry-run   собрать промпт без вызова Codex
 ```
 
-`run_dir` создаётся всегда (в нём живёт `out/`). Codex видит в промпте
+`run_dir` создаётся всегда (в нём живёт `out/`); default —
+`<project>/_workspace/codex-artifacts/<run_id>/`. Codex видит в промпте
 sandbox-контракт: читать весь диск свободно, складывать артефакты в `cwd`
-(=`out/`) и в конце `result.md`, проект не править. Backend пишет уникальный
+(=`out/`, подпапки и своя структура — свободно) и в конце `result.md`, проект
+не править. Backend пишет уникальный
 `result.json`: `status`, `artifacts` (файлы, реально созданные в `out/`),
 `scope_status` (второе, независимое доказательство «проект не тронут»; из
 проверки исключены `out/` и ledger-файлы; `scope=failed` роняет `ok` в false),
@@ -159,6 +166,12 @@ enforced-writable множество под `workspace_write` = `cwd` (out) + с
 есть гарантия, на которую мы опираемся, — «проект недостижим для записи», а не
 «пишет исключительно в out/». Для проекта это безопасно (temp эфемерен и не
 является deliverable-поверхностью).
+
+Вторая граница: **MCP-серверы Codex живут вне sandbox** (отдельные процессы
+движка) и могут писать в проект. Наблюдалось вживую: serena при онбординге
+чужого проекта создала `.serena/` — sandbox это не блокировал, а `scope_status`
+поймал (`failed` с точными путями). Поэтому scope-чек — не формальность, а
+второй, независимый слой доказательства.
 
 Разделение профилей: ревьюер — только смотрит; исследователь — смотрит и пишет
 СЕБЕ (проект не трогает); флот — пишет В ПРОЕКТ под file-disjoint контрактом.
@@ -191,9 +204,12 @@ overlap между задачами и `concurrency < 1` падают до им�
 Выход в stdout — JSON object. По умолчанию он остаётся полным и включает
 результаты воркеров. С `--summary-stdout` stdout становится компактным:
 `run_id`, `run_dir`, статусы, `codex`, `paths`, счётчики и postflight summary
-без worker responses. Полный ledger пишется в свежий `runs/<run_id>/`
-(`manifest.json`, `events.jsonl`, `results.jsonl`, `result.json`) или в свежий
-`--run-dir PATH`; существующий каталог считается ошибкой.
+без worker responses. Полный ledger пишется в свежий run_dir
+(default `<project>/_workspace/codex-artifacts/<run_id>/`; `manifest.json`,
+`events.jsonl`, `results.jsonl`, `result.json`) или в свежий `--run-dir PATH`;
+существующий каталог считается ошибкой. Постфлайт scope-чек исключает сам
+run_dir и его collapsed-предков (`_workspace/`) — своя площадка прогона не
+считается правкой проекта.
 
 ### Контракт оркестрации (обязателен)
 

@@ -36,6 +36,7 @@ from codex_orchestrate_state import (
     append_jsonl,
     capture_git_snapshot,
     compare_scope,
+    is_scope_noise,
     prepare_run_dir,
     utc_now,
     write_json,
@@ -312,7 +313,7 @@ def main() -> int:
             "thread_ephemeral": BRIDGE_THREAD_EPHEMERAL,
             "heartbeat_sec": args.heartbeat_sec,
         }
-        run_id, run_dir = prepare_run_dir(args.run_dir)
+        run_id, run_dir = prepare_run_dir(args.run_dir, project=project)
         paths = _orchestrate_paths(run_dir)
         manifest = build_manifest(
             run_id=run_id,
@@ -371,13 +372,18 @@ def main() -> int:
     worker_status = "completed" if all(r["worker_status"] == "completed" for r in results) else "failed"
     after_git = capture_git_snapshot(project, required=True)
     scope = compare_scope(initial_git, after_git, allowlist)
-    scope_status = "passed" if scope.passed else "failed"
+    # run_dir теперь по умолчанию живёт внутри проекта (_workspace/codex-artifacts):
+    # его ledger/файлы — собственная площадка прогона, не правка проекта, иначе
+    # каждый прогон ложно валил бы scope об собственный журнал.
+    changed_files = [f for f in scope.changed_files if not is_scope_noise(project, run_dir, f)]
+    out_of_scope_files = [f for f in scope.out_of_scope_files if not is_scope_noise(project, run_dir, f)]
+    scope_status = "passed" if (not out_of_scope_files and not scope.head_changed) else "failed"
     append_event(
         run_dir,
         "scope_done",
         scope_status=scope_status,
-        changed_files=list(scope.changed_files),
-        out_of_scope_files=list(scope.out_of_scope_files),
+        changed_files=changed_files,
+        out_of_scope_files=out_of_scope_files,
         git_head_changed=scope.head_changed,
     )
 
@@ -404,8 +410,8 @@ def main() -> int:
         "worker_status": worker_status,
         "scope_status": scope_status,
         "verification_status": verification_status,
-        "postflight_changed_files": list(scope.changed_files),
-        "out_of_scope_files": list(scope.out_of_scope_files),
+        "postflight_changed_files": changed_files,
+        "out_of_scope_files": out_of_scope_files,
         "git_head_changed": scope.head_changed,
         "git": {"initial": initial_git.to_json(), "after": after_git.to_json()},
         "results": results,

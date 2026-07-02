@@ -63,7 +63,9 @@ def build_prompt(task: str, project_cwd: Path, out_dir: Path) -> str:
         f"- ЧИТАТЬ можно свободно весь проект ({project_cwd}) и файловую систему.\n"
         f"- Твоя выходная папка — cwd ({out_dir}). Файлы проекта править НЕЛЬЗЯ "
         "(запись в проект заблокирована sandbox).\n"
-        "- Все артефакты (отчёты, находки, черновики, данные) складывай в cwd.\n"
+        "- Все артефакты (отчёты, находки, черновики, данные) складывай в cwd — "
+        "это твоё рабочее место: свободно создавай подпапки и структуру под "
+        "задачу (drafts/, data/, archive/ …), переписывай и архивируй своё.\n"
         "- Обязательно в конце запиши `result.md` в cwd — краткое резюме находок "
         "с указателями на созданные артефакты.\n\n"
         f"===== ЗАДАНИЕ =====\n{task}"
@@ -153,7 +155,7 @@ def main() -> int:
 
     # Investigator ВСЕГДА нуждается в run_dir — out/ живёт внутри него.
     try:
-        run_id, run_dir = prepare_run_dir(args.run_dir)
+        run_id, run_dir = prepare_run_dir(args.run_dir, project=project_cwd)
     except UsageError as exc:
         print(f"[codex-bridge] {exc}", file=sys.stderr)
         return 2
@@ -314,6 +316,20 @@ def main() -> int:
                 return True
             try:
                 abs_path.relative_to(out_abs)
+                return True
+            except ValueError:
+                pass
+            # run_dir теперь по умолчанию внутри проекта: git status сворачивает
+            # свежий untracked каталог в одну запись — сам run_dir или его
+            # предок (`_workspace/`). Обе записи — своя площадка: в run_dir вне
+            # out/ пишет только backend (Codex из cwd=out туда не дотянется —
+            # вне workspace). Отдельные файлы-соседи внутри run_dir по-прежнему
+            # НЕ своё (выше отфильтрованы только out/ и известный ledger).
+            run_abs = run_dir.resolve()
+            if abs_path == run_abs:
+                return True
+            try:
+                run_abs.relative_to(abs_path)
                 return True
             except ValueError:
                 return False

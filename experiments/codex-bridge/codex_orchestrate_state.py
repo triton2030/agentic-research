@@ -222,14 +222,47 @@ def make_run_id() -> str:
     return datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "-" + uuid.uuid4().hex[:8]
 
 
-def prepare_run_dir(raw_run_dir: str | None) -> tuple[str, Path]:
+# Артефакты прогонов живут В ПРОЕКТЕ работы, не в backend-репо: иначе каждый
+# вызов из чужого проекта сыплет мусор в codex-bridge/runs/. Это и рабочее
+# место субагентов (заметки, архив, findings между кругами цикла).
+PROJECT_ARTIFACTS_SUBDIR = Path("_workspace") / "codex-artifacts"
+
+
+def prepare_run_dir(raw_run_dir: str | None, *, project: Path | None = None) -> tuple[str, Path]:
+    """Свежий run_dir. Default — <project>/_workspace/codex-artifacts/<run_id>;
+    без project (не должен случаться из штатных входов) — legacy backend runs/."""
     run_id = make_run_id()
-    run_dir = Path(raw_run_dir).expanduser().resolve() if raw_run_dir else BACKEND_DIR / "runs" / run_id
+    if raw_run_dir:
+        run_dir = Path(raw_run_dir).expanduser().resolve()
+    elif project is not None:
+        run_dir = (project / PROJECT_ARTIFACTS_SUBDIR / run_id).resolve()
+    else:
+        run_dir = BACKEND_DIR / "runs" / run_id
     try:
         run_dir.mkdir(parents=True, exist_ok=False)
     except FileExistsError as exc:
         raise UsageError(f"Run dir already exists; choose a fresh --run-dir: {run_dir}") from exc
     return run_id, run_dir
+
+
+def is_scope_noise(project: Path, run_dir: Path, rel_path: str) -> bool:
+    """True, если changed-путь из scope-сравнения — собственная площадка прогона,
+    а не правка проекта: сам run_dir, что-то под ним, или его предок (git status
+    сворачивает свежий untracked каталог в одну запись вида `_workspace/`)."""
+    abs_path = (project / rel_path).resolve()
+    run_abs = run_dir.resolve()
+    if abs_path == run_abs:
+        return True
+    try:
+        abs_path.relative_to(run_abs)
+        return True
+    except ValueError:
+        pass
+    try:
+        run_abs.relative_to(abs_path)
+        return True
+    except ValueError:
+        return False
 
 
 def write_json(path: Path, data: Any) -> None:
