@@ -3,7 +3,7 @@
 Вызов Codex (ChatGPT) из Claude Code. Зеркало `claude-bridge` (тот гоняет Claude
 из Codex; этот — Codex из Claude).
 
-Два профиля:
+Три профиля — по оси «что Codex может ПИСАТЬ» (читает во всех весь диск):
 
 - **Консультант / ревьюер** (`codex_review.py`) — read-only, ничего не пишет.
   Два способа дать контекст:
@@ -13,6 +13,12 @@
   - **`review` / `ask`** — с транскриптом текущей сессии Claude: стороннее ревью
     ХОДА работы или вопрос «по нашему диалогу». Дороже; бери, только когда Codex
     реально нужна история, а не файлы проекта.
+- **Исследователь** (`codex_investigate.py`) — читает весь проект и диск; ПРОЕКТ
+  для записи недостижим на уровне sandbox (cwd=out, `workspace_write`), не
+  постфактум-проверкой. Выходная папка Codex — `run_dir/out/`. Для «изучи X,
+  собери данные, напиши отчёт»: Codex складывает артефакты в `out/`, Claude
+  забирает `result.json` (uniform-контракт) и сливает фан-аут кодом. Как вызов
+  субагента: транскрипт не тянется.
 - **Флот воркеров** (`codex_orchestrate.py`) — guarded shared-worktree
   workspace-write. Claude как оркестратор раздаёт file-disjoint задачи, backend
   валидирует контракт до запуска Codex, гонит N Codex параллельно (`AsyncCodex`
@@ -123,6 +129,39 @@ SDK тянет собственный пиннутый бинарь `codex`; о�
 
 Если задан `--run-dir`, reviewer пишет `manifest.json`, `events.jsonl`,
 `prompt.md`, `result.json`, а после реального Codex-run-а — `final.md`.
+
+## Исследователь
+
+```bash
+# Codex читает проект, пишет только в свою run_dir/out; ответ забираешь из result.json:
+.venv/bin/python codex_investigate.py "Изучи X в проекте и напиши отчёт в out/" --project "$PWD"
+
+# Фоном + компактный stdout (штатный режим под фан-аут):
+.venv/bin/python codex_investigate.py "..." --project "$PWD" \
+  --run-dir "$B/runs/$(date -u +%Y%m%dT%H%M%SZ)-inv" --summary-stdout --heartbeat-sec 120
+#   --dry-run   собрать промпт без вызова Codex
+```
+
+`run_dir` создаётся всегда (в нём живёт `out/`). Codex видит в промпте
+sandbox-контракт: читать весь диск свободно, складывать артефакты в `cwd`
+(=`out/`) и в конце `result.md`, проект не править. Backend пишет уникальный
+`result.json`: `status`, `artifacts` (файлы, реально созданные в `out/`),
+`scope_status` (второе, независимое доказательство «проект не тронут»; из
+проверки исключены `out/` и ledger-файлы; `scope=failed` роняет `ok` в false),
+`final_response`.
+
+**Гарантия и её граница (проверено эмпирически).** Запись в ПРОЕКТ блокируется
+sandbox (`operation not permitted`); чтение вне workspace проходит. Но
+enforced-writable множество под `workspace_write` = `cwd` (out) + системный temp
+(`/tmp`, `$TMPDIR`) — не только `out/`. Сузить до одного `out/` этим SDK нельзя:
+для enum-`Sandbox` он шлёт фиксированную per-turn политику, и
+`writable_roots`/`exclude_slash_tmp` через `config_overrides` игнорируются. То
+есть гарантия, на которую мы опираемся, — «проект недостижим для записи», а не
+«пишет исключительно в out/». Для проекта это безопасно (temp эфемерен и не
+является deliverable-поверхностью).
+
+Разделение профилей: ревьюер — только смотрит; исследователь — смотрит и пишет
+СЕБЕ (проект не трогает); флот — пишет В ПРОЕКТ под file-disjoint контрактом.
 
 ## Флот воркеров
 

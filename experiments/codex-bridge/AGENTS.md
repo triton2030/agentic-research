@@ -20,6 +20,11 @@
 - **Ревьюер писать не должен.** `codex_review.py` — всегда `Sandbox.read_only` +
   `ApprovalMode.deny_all`, даже если пользователь просит "максимальные"
   permissions.
+- **Исследователь пишет только себе.** `codex_investigate.py` —
+  `Sandbox.workspace_write` c cwd=`run_dir/out`; писать в проект запрещено
+  sandbox-ом (не постфактум-чеком). Не переводи cwd на корень проекта и не давай
+  `full_access` — это стёрло бы границу между исследователем и флотом. Scope-чек
+  исключает поддерево `run_dir` (свой scratch/ledger ≠ правка проекта).
 - **Backend владеет safety.** `codex_orchestrate.py` — не thin launcher, а
   entrypoint guarded shared-worktree orchestrator. Runtime safety живёт в backend:
   strict schema/preflight до импорта Codex, exact file allowlist, git fail-closed
@@ -51,6 +56,9 @@
 - `codex_review.py` — консультант/ревьюер read-only. Default режим `task`:
   самодостаточное задание без транскрипта (вызов «как субагент»). Режимы
   `review`/`ask` дополнительно ищут и рендерят транскрипт сессии Claude.
+- `codex_investigate.py` — исследователь: читает проект/диск, пишет только в
+  `run_dir/out`. Uniform `result.json` c `artifacts` и `scope_status`. Общий
+  `start_heartbeat` и ledger-примитивы из `codex_orchestrate_state.py`.
 - `codex_orchestrate.py` — entrypoint/runner для guarded shared-worktree пула
   воркеров (`AsyncCodex` + semaphore).
 - `codex_orchestrate_contract.py` — pure schema/path/status contract:

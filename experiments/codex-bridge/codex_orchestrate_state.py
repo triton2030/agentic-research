@@ -1,4 +1,5 @@
-"""Git snapshot and run-ledger helpers for codex_orchestrate."""
+"""Git snapshot, run-ledger and heartbeat helpers shared by every bridge
+entrypoint (codex_review, codex_investigate, codex_orchestrate)."""
 from __future__ import annotations
 
 import hashlib
@@ -6,6 +7,7 @@ import json
 import os
 import stat
 import subprocess
+import threading
 import time
 import uuid
 from dataclasses import dataclass
@@ -256,3 +258,29 @@ def append_heartbeat(
         elapsed_sec=int(time.monotonic() - started_monotonic),
         **data,
     )
+
+
+def start_heartbeat(
+    run_dir: Path | None,
+    heartbeat_sec: int,
+    started_monotonic: float,
+    *,
+    thread_name: str = "codex-heartbeat",
+    **fields: Any,
+) -> tuple[threading.Event, threading.Thread | None]:
+    """Background ledger heartbeat shared by every bridge entrypoint.
+
+    Returns (stop_event, thread). No-op (thread is None) when there is no run_dir
+    or heartbeat is disabled, so callers can always .set()/.join() the pair.
+    """
+    stop = threading.Event()
+    if run_dir is None or heartbeat_sec <= 0:
+        return stop, None
+
+    def loop() -> None:
+        while not stop.wait(heartbeat_sec):
+            append_heartbeat(run_dir, started_monotonic, **fields)
+
+    thread = threading.Thread(target=loop, name=thread_name, daemon=True)
+    thread.start()
+    return stop, thread

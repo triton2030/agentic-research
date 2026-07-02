@@ -15,6 +15,18 @@ REVIEW_APPROVAL_MODE = "deny_all"
 WORKER_SANDBOX = "workspace_write"
 WORKER_APPROVAL_MODE = "auto_review"
 
+# Investigator: reads the whole disk; the PROJECT is not writable. cwd = its
+# run_dir/out scratch. Empirically-enforced writable set under workspace_write =
+# cwd (out) + system temp (/tmp, $TMPDIR); everything else — the project, run_dir
+# siblings — is BLOCKED by the sandbox, not merely audited (verified: project
+# write BLOCKED, read outside workspace SUCCEEDS). deny_all = no approval
+# escalation; in-workspace writes still succeed. Note: this SDK sends a fixed
+# per-turn policy for the Sandbox enum, so writable_roots/exclude_slash_tmp via
+# config_overrides do NOT take effect — /tmp cannot be excluded here. The
+# guarantee we rely on is "project unreachable", not "only out/".
+INVESTIGATE_SANDBOX = "workspace_write"
+INVESTIGATE_APPROVAL_MODE = "deny_all"
+
 # Bridge threads must NOT persist into the shared ~/.codex session store. That
 # store is the runtime owner (auth/config/runtime) shared with Codex Desktop,
 # which renders every materialized thread as a chat. The bridge's only

@@ -29,7 +29,6 @@ import argparse
 import json
 import os
 import sys
-import threading
 import time
 from pathlib import Path
 
@@ -45,8 +44,8 @@ from codex_defaults import (
 from codex_orchestrate_contract import UsageError, codex_status_value
 from codex_orchestrate_state import (
     append_event,
-    append_heartbeat,
     prepare_run_dir,
+    start_heartbeat,
     utc_now,
     write_json,
 )
@@ -223,26 +222,6 @@ def _compact_review_payload(payload: dict[str, object]) -> dict[str, object]:
     }
 
 
-def _start_heartbeat(
-    run_dir: Path | None,
-    heartbeat_sec: int,
-    started_monotonic: float,
-    *,
-    mode: str,
-) -> tuple[threading.Event, threading.Thread | None]:
-    stop = threading.Event()
-    if run_dir is None or heartbeat_sec <= 0:
-        return stop, None
-
-    def loop() -> None:
-        while not stop.wait(heartbeat_sec):
-            append_heartbeat(run_dir, started_monotonic, mode=mode)
-
-    thread = threading.Thread(target=loop, name="codex-review-heartbeat", daemon=True)
-    thread.start()
-    return stop, thread
-
-
 def main() -> int:
     parser = argparse.ArgumentParser(description="Вызвать Codex как ревьюера/консультанта из Claude Code.")
     parser.add_argument(
@@ -404,10 +383,11 @@ def main() -> int:
 
     config = CodexConfig(cwd=str(project_cwd))
     started_monotonic = time.monotonic()
-    heartbeat_stop, heartbeat_thread = _start_heartbeat(
+    heartbeat_stop, heartbeat_thread = start_heartbeat(
         run_dir,
         args.heartbeat_sec,
         started_monotonic,
+        thread_name="codex-review-heartbeat",
         mode=args.mode,
     )
     try:
