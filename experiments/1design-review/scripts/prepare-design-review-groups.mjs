@@ -169,6 +169,9 @@ async function prepareGroups(options) {
 
   for (const group of manifest.groups) {
     const shots = manifest.screenshots.filter((shot) => shot.groupId === group.id);
+    if (Number.isInteger(group.shotCount) && shots.length !== group.shotCount) {
+      throw new Error(`group "${group.id}" has ${shots.length} captured screenshots; expected planned count ${group.shotCount}`);
+    }
     if (shots.length < 2 || shots.length > 3) {
       throw new Error(`group "${group.id}" has ${shots.length} screenshots; expected 2-3`);
     }

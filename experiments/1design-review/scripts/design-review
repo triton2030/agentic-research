@@ -30,7 +30,8 @@ Options:
   --settle-ms N              Wait after load/scroll/click. Default: 1200.
   --max-shots-per-profile N  Capture cap per profile before interactions. Default: 36.
   --max-images N             Images attached to the clean agent. Default: 28.
-  --parallel N               Group reviewers to run at once. Default: 3.
+  --parallel N               Group reviewers to run at once. Default: 6.
+  --progress-interval N      Seconds between review progress heartbeats. Default: 10.
   --model NAME               Codex model for clean reviewer. Default: gpt-5.5.
   --effort LEVEL             model_reasoning_effort. Default: high.
   --capture-only             Only capture screenshots and ledgers.
@@ -94,7 +95,8 @@ PROFILES="desktop-1440,mobile-iphone,mobile-android"
 SETTLE_MS="1200"
 MAX_SHOTS_PER_PROFILE="36"
 MAX_IMAGES="28"
-PARALLEL="3"
+PARALLEL="6"
+PROGRESS_INTERVAL="10"
 MODEL="${DESIGN_REVIEW_MODEL:-gpt-5.5}"
 EFFORT="${DESIGN_REVIEW_EFFORT:-high}"
 CAPTURE_ONLY=0
@@ -117,6 +119,7 @@ while [[ $# -gt 0 ]]; do
     --max-shots-per-profile) MAX_SHOTS_PER_PROFILE="${2:-}"; shift 2 ;;
     --max-images) MAX_IMAGES="${2:-}"; shift 2 ;;
     --parallel) PARALLEL="${2:-}"; shift 2 ;;
+    --progress-interval) PROGRESS_INTERVAL="${2:-}"; shift 2 ;;
     --model) MODEL="${2:-}"; shift 2 ;;
     --effort) EFFORT="${2:-}"; shift 2 ;;
     --capture-only) CAPTURE_ONLY=1; shift ;;
@@ -131,6 +134,10 @@ done
 [[ "$AUTO_CAPTURE" == "1" && -n "$PLAN" ]] && die "choose --plan or --auto-capture, not both"
 [[ "$AUTO_CAPTURE" == "1" && "$CAPTURE_ONLY" == "0" ]] && die "--auto-capture is capture-only fallback; write --plan for clean review"
 [[ -f "$QUESTIONS" ]] || die "questions file not found: $QUESTIONS"
+[[ "$PARALLEL" =~ ^[0-9]+$ ]] || die "--parallel must be a positive integer"
+[[ "$PARALLEL" -gt 0 ]] || die "--parallel must be > 0"
+[[ "$PROGRESS_INTERVAL" =~ ^[0-9]+$ ]] || die "--progress-interval must be a positive integer"
+[[ "$PROGRESS_INTERVAL" -gt 0 ]] || die "--progress-interval must be > 0"
 
 PROJECT="$(cd "$PROJECT" && pwd)"
 
@@ -177,8 +184,8 @@ if [[ -n "$PLAN" ]]; then
 fi
 
 if [[ "$DRY_RUN" == "1" ]]; then
-  printf '[design-review] dry_run: capture_only=%s review_only=%s auto_capture=%s url=%s profiles=%s parallel=%s\n' \
-    "$CAPTURE_ONLY" "$REVIEW_ONLY" "$AUTO_CAPTURE" "${URL:-"(none)"}" "$PROFILES" "$PARALLEL"
+  printf '[design-review] dry_run: capture_only=%s review_only=%s auto_capture=%s url=%s profiles=%s parallel=%s progress_interval=%s\n' \
+    "$CAPTURE_ONLY" "$REVIEW_ONLY" "$AUTO_CAPTURE" "${URL:-"(none)"}" "$PROFILES" "$PARALLEL" "$PROGRESS_INTERVAL"
   exit 0
 fi
 
@@ -190,6 +197,7 @@ if [[ "$REVIEW_ONLY" == "0" ]]; then
     --url "$URL"
     --out-dir "$RUN_DIR"
     --settle-ms "$SETTLE_MS"
+    --progress-interval "$PROGRESS_INTERVAL"
   )
   if [[ -n "$PLAN" ]]; then
     capture_cmd+=(--plan "$PLAN")
@@ -219,4 +227,5 @@ fi
   --model "$MODEL" \
   --effort "$EFFORT" \
   --max-images "$MAX_IMAGES" \
-  --parallel "$PARALLEL"
+  --parallel "$PARALLEL" \
+  --progress-interval "$PROGRESS_INTERVAL"

@@ -44,6 +44,8 @@ Options:
                               Default: desktop-1440,mobile-iphone,mobile-android
   --interactions FILE         JSON interaction plan.
   --settle-ms N               Wait after load/scroll/click. Default: 1200.
+  --progress-interval N       Seconds between capture progress heartbeats.
+                              Default: 10.
   --step-ratio N              Scroll step as viewport fraction. Default: 0.5.
   --max-shots-per-profile N   Base screenshot cap before interactions. Default: 36.
   --timeout-ms N              Navigation/action timeout. Default: 45000.
@@ -66,6 +68,7 @@ function parseArgs(argv) {
     profiles: ["desktop-1440", "mobile-iphone", "mobile-android"],
     interactions: "",
     settleMs: 1200,
+    progressInterval: 10,
     stepRatio: 0.5,
     maxShotsPerProfile: 36,
     timeoutMs: 45_000,
@@ -106,6 +109,10 @@ function parseArgs(argv) {
         options.settleMs = Number(value);
         index += 1;
         break;
+      case "--progress-interval":
+        options.progressInterval = Number(value);
+        index += 1;
+        break;
       case "--step-ratio":
         options.stepRatio = Number(value);
         index += 1;
@@ -139,6 +146,9 @@ function parseArgs(argv) {
   if (!Number.isFinite(options.settleMs) || options.settleMs < 0) {
     throw new Error("--settle-ms must be >= 0");
   }
+  if (!Number.isInteger(options.progressInterval) || options.progressInterval < 1) {
+    throw new Error("--progress-interval must be an integer >= 1");
+  }
   if (!Number.isFinite(options.stepRatio) || options.stepRatio <= 0 || options.stepRatio > 1) {
     throw new Error("--step-ratio must be > 0 and <= 1");
   }
@@ -170,6 +180,169 @@ function padded(number, width = 3) {
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
+}
+
+function now() {
+  return new Date().toISOString();
+}
+
+function plannedShotId(groupId, shotIndex) {
+  return `${groupId}-${padded(shotIndex + 1)}`;
+}
+
+function captureProgressPaths(outDir) {
+  return {
+    json: path.join(outDir, "capture-progress.json"),
+    markdown: path.join(outDir, "capture-progress.md"),
+  };
+}
+
+let captureWriteChain = Promise.resolve();
+
+function serializeCaptureWrite(task) {
+  const run = captureWriteChain.then(task, task);
+  captureWriteChain = run.catch(() => {});
+  return run;
+}
+
+function captureStatusCounts(shots) {
+  const counts = { pending: 0, running: 0, done: 0, failed: 0 };
+  for (const shot of shots) {
+    counts[shot.status] = (counts[shot.status] ?? 0) + 1;
+  }
+  return counts;
+}
+
+function renderCaptureProgress(progress) {
+  const counts = captureStatusCounts(progress.shots);
+  const total = progress.shots.length;
+  const running = progress.shots.filter((shot) => shot.status === "running").map((shot) => shot.id);
+  const lines = [
+    "# Capture Progress",
+    "",
+    `Run directory: ${progress.runDir}`,
+    `Stage: ${progress.stage}`,
+    `Mode: ${progress.mode}`,
+    `Started: ${progress.startedAt}`,
+    `Updated: ${progress.updatedAt}`,
+    `Last heartbeat: ${progress.lastHeartbeatAt || ""}`,
+    `URL: ${progress.url}`,
+    `Fatal error: ${progress.fatalError || ""}`,
+    "",
+    "## Summary",
+    "",
+    `- Shots: ${counts.done}/${total} done, ${counts.running} running, ${counts.pending} pending, ${counts.failed} failed`,
+    `- Running: ${running.join(", ") || "none"}`,
+    "",
+    "## Shots",
+    "",
+    "| shot | group | status | profile | selector | click | y | file | error |",
+    "| --- | --- | --- | --- | --- | --- | ---: | --- | --- |",
+  ];
+
+  for (const shot of progress.shots) {
+    lines.push(
+      `| ${shot.id} | ${shot.groupId} | ${shot.status} | ${shot.profile} | ${shot.selector || ""} | ${shot.click || ""} | ${shot.y ?? ""} | ${shot.file || ""} | ${shot.error || ""} |`,
+    );
+  }
+
+  return `${lines.join("\n")}\n`;
+}
+
+async function writeCaptureProgress(outDir, progress) {
+  await serializeCaptureWrite(async () => {
+    progress.updatedAt = now();
+    const paths = captureProgressPaths(outDir);
+    const jsonTmp = `${paths.json}.${process.pid}.${Date.now()}.tmp`;
+    await fs.writeFile(jsonTmp, `${JSON.stringify(progress, null, 2)}\n`, "utf8");
+    await fs.rename(jsonTmp, paths.json);
+    await fs.writeFile(paths.markdown, renderCaptureProgress(progress), "utf8");
+  });
+}
+
+function printCaptureSummary(progress, label = "progress") {
+  const counts = captureStatusCounts(progress.shots);
+  const total = progress.shots.length;
+  const running = progress.shots.filter((shot) => shot.status === "running").map((shot) => shot.id);
+  console.error(
+    `[capture-design-screenshots] ${label} stage=${progress.stage} shots=${counts.done}/${total} done running=${counts.running} pending=${counts.pending} failed=${counts.failed} current=${running.join(",") || "none"} file=${captureProgressPaths(progress.runDir).markdown}`,
+  );
+}
+
+function plannedProgressShots(plan) {
+  return plan.groups.flatMap((group) =>
+    group.shots.map((shot, shotIndex) => ({
+      id: plannedShotId(group.id, shotIndex),
+      groupId: group.id,
+      shotName: shot.name,
+      status: "pending",
+      profile: shot.profile,
+      selector: shot.selector || "",
+      click: shot.click || "",
+      file: "",
+      y: null,
+      error: "",
+      startedAt: null,
+      endedAt: null,
+    })),
+  );
+}
+
+async function initCaptureProgress(outDir, { url, mode, shots = [] }) {
+  const runDir = path.resolve(outDir);
+  const startedAt = now();
+  const progress = {
+    version: 1,
+    runDir,
+    url,
+    mode,
+    stage: "capture",
+    startedAt,
+    updatedAt: startedAt,
+    lastHeartbeatAt: startedAt,
+    fatalError: "",
+    shots,
+  };
+  await writeCaptureProgress(outDir, progress);
+  printCaptureSummary(progress, "init");
+  return progress;
+}
+
+async function upsertCaptureShot(outDir, progress, shotId, defaults, updates = {}) {
+  const shot = progress.shots.find((item) => item.id === shotId);
+  const target = shot ?? {
+    id: shotId,
+    groupId: "",
+    shotName: "",
+    status: "pending",
+    profile: "",
+    selector: "",
+    click: "",
+    file: "",
+    y: null,
+    error: "",
+    startedAt: null,
+    endedAt: null,
+    ...defaults,
+  };
+  Object.assign(target, updates);
+  if (updates.status === "running" && !target.startedAt) target.startedAt = now();
+  if (updates.status === "done" || updates.status === "failed") target.endedAt = now();
+  if (!shot) progress.shots.push(target);
+  await writeCaptureProgress(outDir, progress);
+  printCaptureSummary(progress, updates.status || "progress");
+}
+
+async function updateCaptureShot(outDir, progress, shotId, updates) {
+  const shot = progress.shots.find((item) => item.id === shotId);
+  if (!shot) throw new Error(`unknown capture shot: ${shotId}`);
+  await upsertCaptureShot(outDir, progress, shotId, {}, updates);
+}
+
+async function recordCaptureHeartbeat(outDir, progress) {
+  progress.lastHeartbeatAt = now();
+  await writeCaptureProgress(outDir, progress);
+  printCaptureSummary(progress, "heartbeat");
 }
 
 async function readInteractions(filePath) {
@@ -594,7 +767,7 @@ async function writeLedgers(outDir, manifest) {
   await fs.writeFile(markdownPath, `${lines.join("\n")}\n`, "utf8");
 }
 
-async function captureProfile(browser, options, profileName, interactions) {
+async function captureProfile(browser, options, profileName, interactions, captureProgress) {
   const preset = PROFILE_PRESETS[profileName];
   const screenshotDir = path.join(options.outDir, "screenshots", profileName);
   await fs.mkdir(screenshotDir, { recursive: true });
@@ -619,7 +792,44 @@ async function captureProfile(browser, options, profileName, interactions) {
     const points = buildCapturePoints(metrics, anchors, options.stepRatio, options.maxShotsPerProfile);
 
     for (const point of points) {
-      screenshots.push(await captureAtPoint(page, screenshotDir, profileName, point, sequence, options.settleMs));
+      const progressShotId = `${profileName}-${padded(sequence)}`;
+      const progressDefaults = {
+        groupId: profileName,
+        shotName: point.modes.join("+"),
+        profile: profileName,
+        selector: "",
+        click: "",
+      };
+      try {
+        if (captureProgress) {
+          await upsertCaptureShot(options.outDir, captureProgress, progressShotId, progressDefaults, {
+            status: "running",
+          });
+        }
+        const capturedShot = await captureAtPoint(page, screenshotDir, profileName, point, sequence, options.settleMs);
+        screenshots.push(capturedShot);
+        if (captureProgress) {
+          await upsertCaptureShot(options.outDir, captureProgress, progressShotId, progressDefaults, {
+            status: "done",
+            file: capturedShot.filename,
+            y: capturedShot.y,
+          });
+        }
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        failures.push({
+          profile: profileName,
+          interaction: "",
+          phase: "auto-capture-point",
+          error: message,
+        });
+        if (captureProgress) {
+          await upsertCaptureShot(options.outDir, captureProgress, progressShotId, progressDefaults, {
+            status: "failed",
+            error: message,
+          });
+        }
+      }
       sequence += 1;
     }
 
@@ -627,16 +837,46 @@ async function captureProfile(browser, options, profileName, interactions) {
       (interaction) => !interaction.profile || interaction.profile === profileName,
     );
     for (const interaction of profileInteractions) {
+      const progressShotId = `${profileName}-${padded(sequence)}`;
+      const progressDefaults = {
+        groupId: profileName,
+        shotName: interaction.name,
+        profile: profileName,
+        selector: interaction.beforeSelector || "",
+        click: interaction.selector || "",
+      };
       try {
-        screenshots.push(await captureInteraction(page, options, screenshotDir, profileName, interaction, sequence));
+        if (captureProgress) {
+          await upsertCaptureShot(options.outDir, captureProgress, progressShotId, progressDefaults, {
+            status: "running",
+          });
+        }
+        const capturedShot = await captureInteraction(page, options, screenshotDir, profileName, interaction, sequence);
+        screenshots.push(capturedShot);
+        if (captureProgress) {
+          await upsertCaptureShot(options.outDir, captureProgress, progressShotId, progressDefaults, {
+            status: "done",
+            file: capturedShot.filename,
+            y: capturedShot.y,
+          });
+        }
         sequence += 1;
       } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
         failures.push({
           profile: profileName,
           interaction: interaction.name,
           selector: interaction.selector,
-          error: error instanceof Error ? error.message : String(error),
+          phase: "auto-capture-interaction",
+          error: message,
         });
+        if (captureProgress) {
+          await upsertCaptureShot(options.outDir, captureProgress, progressShotId, progressDefaults, {
+            status: "failed",
+            error: message,
+          });
+        }
+        sequence += 1;
       }
     }
 
@@ -664,8 +904,13 @@ async function main() {
   }
   const interactions = await readInteractions(options.interactions);
   const { chromium } = await loadPlaywright();
-
-  const browser = await chromium.launch({ headless: !options.headed });
+  const captureProgress = await initCaptureProgress(options.outDir, {
+    url: options.url,
+    mode: plan ? "curated-plan" : "auto-capture",
+    shots: plan ? plannedProgressShots(plan) : [],
+  });
+  let browser = null;
+  let heartbeat = null;
   const manifest = {
     url: options.url,
     createdAt: new Date().toISOString(),
@@ -695,22 +940,53 @@ async function main() {
   };
 
   try {
+    browser = await chromium.launch({ headless: !options.headed });
+    let heartbeatBusy = false;
+    heartbeat = setInterval(() => {
+      if (heartbeatBusy) return;
+      heartbeatBusy = true;
+      recordCaptureHeartbeat(options.outDir, captureProgress)
+        .catch((error) => {
+          console.error(`capture-design-screenshots heartbeat: ${error instanceof Error ? error.message : String(error)}`);
+        })
+        .finally(() => {
+          heartbeatBusy = false;
+        });
+    }, options.progressInterval * 1000);
+
     if (plan) {
       for (const group of plan.groups) {
         for (let shotIndex = 0; shotIndex < group.shots.length; shotIndex += 1) {
           const shot = group.shots[shotIndex];
+          const progressShotId = plannedShotId(group.id, shotIndex);
           try {
-            manifest.screenshots.push(
-              await capturePlannedShot(browser, options, plan, group, shot, shotIndex),
-            );
+            if (captureProgress) {
+              await updateCaptureShot(options.outDir, captureProgress, progressShotId, { status: "running" });
+            }
+            const capturedShot = await capturePlannedShot(browser, options, plan, group, shot, shotIndex);
+            manifest.screenshots.push(capturedShot);
+            if (captureProgress) {
+              await updateCaptureShot(options.outDir, captureProgress, progressShotId, {
+                status: "done",
+                file: capturedShot.filename,
+                y: capturedShot.y,
+              });
+            }
           } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
             manifest.failures.push({
               phase: "planned-shot",
               groupId: group.id,
               shotName: shot.name,
               profile: shot.profile,
-              error: error instanceof Error ? error.message : String(error),
+              error: message,
             });
+            if (captureProgress) {
+              await updateCaptureShot(options.outDir, captureProgress, progressShotId, {
+                status: "failed",
+                error: message,
+              });
+            }
           }
         }
       }
@@ -726,7 +1002,7 @@ async function main() {
       }
     } else {
       for (const profileName of options.profiles) {
-        const profileRun = await captureProfile(browser, options, profileName, interactions);
+        const profileRun = await captureProfile(browser, options, profileName, interactions, captureProgress);
         manifest.profileRuns.push({
           profile: profileRun.profile,
           viewport: profileRun.viewport,
@@ -738,9 +1014,23 @@ async function main() {
         manifest.failures.push(...profileRun.failures);
       }
     }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    captureProgress.stage = "failed";
+    captureProgress.fatalError = message;
+    await writeCaptureProgress(options.outDir, captureProgress);
+    printCaptureSummary(captureProgress, "failed");
+    throw error;
   } finally {
-    await browser.close();
+    if (heartbeat) clearInterval(heartbeat);
+    if (browser) {
+      await browser.close().catch(() => {});
+    }
   }
+
+  captureProgress.stage = manifest.failures.length === 0 ? "complete" : "failed";
+  await writeCaptureProgress(options.outDir, captureProgress);
+  printCaptureSummary(captureProgress, captureProgress.stage);
 
   await writeLedgers(options.outDir, manifest);
   console.log(
@@ -755,6 +1045,10 @@ async function main() {
       2,
     ),
   );
+
+  if (manifest.failures.length > 0) {
+    process.exitCode = 1;
+  }
 }
 
 main().catch((error) => {

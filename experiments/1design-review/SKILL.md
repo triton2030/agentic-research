@@ -3,10 +3,10 @@ name: 1design-review
 description: >
   Use after frontend implementation work is complete when Codex should inspect
   the live UI, write a curated screenshot plan, capture 2-3 related screenshots
-  per group, then run multiple clean terminal design reviewers. Creates
-  project-local `_workspace/design-review/` evidence. Skip blind auto-scroll
-  audits, mid-implementation tweaks, Figma work, and technical browser QA that
-  does not need visual design judgment.
+  per group, then fan out many clean terminal design reviewers with progress
+  tracking. Creates project-local `_workspace/design-review/` evidence. Skip
+  blind auto-scroll audits, mid-implementation tweaks, Figma work, and technical
+  browser QA that does not need visual design judgment.
 ---
 
 # Design Review
@@ -17,8 +17,10 @@ Produce a design signoff from curated visual evidence:
 
 - the main agent first inspects the page and decides which moments matter;
 - screenshots are captured from a written `screenshot-plan.json`;
+- capture writes `capture-progress.md` and `capture-progress.json`;
 - each plan group contains 2-3 related screenshots;
 - multiple clean terminal Codex reviewers run in parallel, one per group;
+- the reviewer runner writes `progress.md` and `progress.json` while agents run;
 - a clean aggregate reviewer answers `questions.md` from the group outputs.
 
 The clean reviewers must not inherit chat history, project `AGENTS.md`, global
@@ -32,7 +34,9 @@ attached screenshots, manifest, group context, and question contract.
    transitions, sticky-header edge cases, dense areas, and interaction states.
 2. Write `<project>/_workspace/design-review/<label>/screenshot-plan.json`.
    Plan groups by judgment unit, not by scroll distance. Each group must contain
-   2-3 related screenshots.
+   2-3 related screenshots. For nontrivial pages, separate independent visual
+   questions into separate groups; 4-8 groups is normal when the page has that
+   much meaningful surface.
 3. Run:
 
    ```bash
@@ -43,8 +47,15 @@ attached screenshots, manifest, group context, and question contract.
      --plan _workspace/design-review/design-pass/screenshot-plan.json
    ```
 
-4. Read `design-review.md`, group logs, manifest, and screenshot ledger. Report
-   both the design verdict and whether the evidence plan was sufficient.
+4. During capture, watch the terminal heartbeat or open `capture-progress.md`.
+   If capture is slow, identify the running shot there before deciding whether
+   to keep waiting, narrow the plan, or fix a selector/click.
+5. While the agents run, watch the runner heartbeat or open `progress.md` in the
+   run directory. Do not poll group logs by hand unless progress reports a
+   failure or stall.
+6. Read `design-review.md`, group logs, manifest, screenshot ledger, and
+   `progress.md`. Report both the design verdict and whether the evidence plan
+   was sufficient.
 
 ## Planning Rule
 
@@ -62,6 +73,10 @@ A good group compares one visual question across adjacent or responsive states:
 Do not make one group per whole page, per arbitrary viewport, or per every scroll
 position. If you cannot name why 2-3 screenshots belong together, inspect the
 page again before running the clean agents.
+
+Do not collapse a broad page into one or two giant groups. Group count follows
+the number of independent visual questions. The runner parallelizes those
+groups; do not create artificial groups just to occupy reviewer slots.
 
 Plan format: read `references/screenshot-plan-format.md` when writing or
 debugging a plan.
@@ -97,10 +112,26 @@ use it for final clean design judgment.
 
 ## Clean Agent Fanout
 
+Before launching clean reviewers, check `capture-progress.md` and `manifest.json`.
+If planned shots failed or the captured files do not match the intended moments,
+fix the plan and rerun capture. Do not ask reviewers to judge incomplete or
+mis-targeted evidence.
+
 `scripts/run-clean-design-agent.sh` prepares `group-reviews/<group-id>/` and
-starts multiple `codex exec` reviewers with `--parallel 3` by default. Each
+starts multiple `codex exec` reviewers with `--parallel 6` by default. Each
 reviewer sees only its 2-3 screenshots. After group reviewers finish, an
 aggregate clean reviewer answers `questions.md` from their outputs.
+
+The runner writes:
+
+- `progress.md` for human-readable waiting and handoff;
+- `progress.json` for scripts/tools;
+- heartbeat lines every `--progress-interval` seconds, default `10`.
+
+Use those progress files instead of repeatedly checking each group log. If a
+run is slow, the main agent should keep waiting while `progress.md` shows
+running reviewers. Investigate only failed groups, missing outputs, or a stale
+heartbeat.
 
 If any group reviewer fails, stop and report the failed group and log path. Do
 not silently merge partial reviews into a final verdict.
@@ -126,6 +157,7 @@ python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py \
 /path/to/1design-review/scripts/design-review --help
 /path/to/1design-review/scripts/run-clean-design-agent.sh --help
 node --check /path/to/1design-review/scripts/capture-design-screenshots.mjs
+node --check /path/to/1design-review/scripts/design-review-progress.mjs
 node --check /path/to/1design-review/scripts/prepare-design-review-groups.mjs
 ```
 
@@ -133,7 +165,10 @@ For a real frontend, verify:
 
 - the plan has 2-3 shots per group;
 - captured screenshots match the intended moments;
+- `capture-progress.md` reached `complete` or clearly names the stuck/failed
+  planned shot;
 - every group produced a review;
+- `progress.md` reached `complete` or clearly names the failed stage;
 - the aggregate explicitly names uncovered questions.
 
 ## Stop

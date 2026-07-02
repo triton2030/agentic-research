@@ -8,6 +8,10 @@ Use this when writing `<project>/_workspace/design-review/<label>/screenshot-pla
 - `groups` is required.
 - Each group must contain 2-3 related screenshots.
 - Group by visual question, not by scroll distance.
+- For nontrivial pages, create several groups when there are several independent
+  visual questions. Four to eight groups is normal when the page has enough
+  meaningful sections, responsive states, or interactions. Do not split groups
+  only to occupy reviewer slots.
 - Every shot needs `profile` and either `scrollY`, `selector`, or both.
 - Use `click` only for the state that must be reviewed after interaction.
 
