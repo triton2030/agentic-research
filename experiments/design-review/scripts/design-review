@@ -1,0 +1,177 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SKILL_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+usage() {
+  cat <<'USAGE'
+Usage:
+  design-review --url URL [--project DIR] [--label NAME]
+  design-review --review-only --run-dir DIR
+  design-review --capture-only --url URL [--project DIR]
+
+Captures UI screenshot evidence into:
+  <project>/_workspace/design-review/<timestamp>-<label>/
+
+Then runs a clean terminal Codex design reviewer over those screenshots.
+
+Options:
+  --url URL                  Live page URL to capture.
+  --project DIR              Project under review. Default: current directory.
+  --run-dir DIR              Existing or target run directory.
+  --label NAME               Optional run label used in the directory name.
+  --questions FILE           Markdown question contract. Default: skill questions.md.
+  --interactions FILE        JSON interaction plan for clicked/expanded states.
+  --profiles LIST            Comma-separated profiles. Default: desktop-1440,mobile-iphone,mobile-android.
+  --settle-ms N              Wait after load/scroll/click. Default: 1200.
+  --max-shots-per-profile N  Capture cap per profile before interactions. Default: 36.
+  --max-images N             Images attached to the clean agent. Default: 28.
+  --model NAME               Codex model for clean reviewer. Default: gpt-5.5.
+  --effort LEVEL             model_reasoning_effort. Default: high.
+  --capture-only             Only capture screenshots and ledgers.
+  --review-only              Only run the clean reviewer on an existing run-dir.
+  --dry-run                  Print planned paths/commands without capture or review.
+  -h, --help                 Show this help.
+
+Interaction plan format:
+  [
+    {"name":"mobile-menu","profile":"mobile-iphone","selector":"button[aria-label='Menu']"},
+    {"name":"pricing-tab","selector":"text=Pricing","scrollY":0}
+  ]
+USAGE
+}
+
+die() {
+  printf 'design-review: %s\n' "$*" >&2
+  exit 2
+}
+
+run_capture_script() {
+  if node -e "require.resolve('playwright')" >/dev/null 2>&1; then
+    node "${capture_cmd[@]}"
+    return
+  fi
+
+  command -v npm >/dev/null 2>&1 || die "npm not found; install Node.js/npm or install Playwright in the project"
+  runner_dir="$RUN_DIR/.playwright-runner"
+  mkdir -p "$runner_dir"
+  if [[ ! -d "$runner_dir/node_modules/playwright" ]]; then
+    printf '[design-review] installing private Playwright runner in %s\n' "$runner_dir" >&2
+    (
+      cd "$runner_dir"
+      if [[ ! -f package.json ]]; then
+        printf '%s\n' '{"private":true,"name":"design-review-playwright-runner","version":"0.0.0"}' > package.json
+      fi
+      npm install playwright@latest --no-audit --no-fund
+    )
+  fi
+  PLAYWRIGHT_MODULE_ROOT="$runner_dir" node "${capture_cmd[@]}"
+}
+
+PROJECT="$(pwd)"
+URL=""
+RUN_DIR=""
+LABEL=""
+QUESTIONS="$SKILL_DIR/questions.md"
+INTERACTIONS=""
+PROFILES="desktop-1440,mobile-iphone,mobile-android"
+SETTLE_MS="1200"
+MAX_SHOTS_PER_PROFILE="36"
+MAX_IMAGES="28"
+MODEL="${DESIGN_REVIEW_MODEL:-gpt-5.5}"
+EFFORT="${DESIGN_REVIEW_EFFORT:-high}"
+CAPTURE_ONLY=0
+REVIEW_ONLY=0
+DRY_RUN=0
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --url) URL="${2:-}"; shift 2 ;;
+    --project) PROJECT="${2:-}"; shift 2 ;;
+    --run-dir) RUN_DIR="${2:-}"; shift 2 ;;
+    --label) LABEL="${2:-}"; shift 2 ;;
+    --questions) QUESTIONS="${2:-}"; shift 2 ;;
+    --interactions) INTERACTIONS="${2:-}"; shift 2 ;;
+    --profiles) PROFILES="${2:-}"; shift 2 ;;
+    --settle-ms) SETTLE_MS="${2:-}"; shift 2 ;;
+    --max-shots-per-profile) MAX_SHOTS_PER_PROFILE="${2:-}"; shift 2 ;;
+    --max-images) MAX_IMAGES="${2:-}"; shift 2 ;;
+    --model) MODEL="${2:-}"; shift 2 ;;
+    --effort) EFFORT="${2:-}"; shift 2 ;;
+    --capture-only) CAPTURE_ONLY=1; shift ;;
+    --review-only) REVIEW_ONLY=1; shift ;;
+    --dry-run) DRY_RUN=1; shift ;;
+    -h|--help) usage; exit 0 ;;
+    *) die "unknown argument: $1" ;;
+  esac
+done
+
+[[ "$CAPTURE_ONLY" == "1" && "$REVIEW_ONLY" == "1" ]] && die "choose capture-only or review-only, not both"
+[[ -f "$QUESTIONS" ]] || die "questions file not found: $QUESTIONS"
+
+PROJECT="$(cd "$PROJECT" && pwd)"
+
+if [[ -z "$RUN_DIR" ]]; then
+  stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+  safe_label="$(printf '%s' "$LABEL" | tr -cs '[:alnum:]_.-' '-' | sed 's/^-//; s/-$//')"
+  if [[ -n "$safe_label" ]]; then
+    RUN_DIR="$PROJECT/_workspace/design-review/$stamp-$safe_label"
+  else
+    RUN_DIR="$PROJECT/_workspace/design-review/$stamp"
+  fi
+else
+  case "$RUN_DIR" in
+    /*) ;;
+    *) RUN_DIR="$PROJECT/$RUN_DIR" ;;
+  esac
+fi
+
+if [[ "$REVIEW_ONLY" == "0" && -z "$URL" ]]; then
+  die "--url is required unless --review-only is used"
+fi
+
+if [[ "$REVIEW_ONLY" == "1" && ! -d "$RUN_DIR" ]]; then
+  die "--review-only requires an existing --run-dir"
+fi
+
+printf '[design-review] project: %s\n' "$PROJECT"
+printf '[design-review] run_dir: %s\n' "$RUN_DIR"
+printf '[design-review] questions: %s\n' "$QUESTIONS"
+
+if [[ "$DRY_RUN" == "1" ]]; then
+  printf '[design-review] dry_run: capture_only=%s review_only=%s url=%s profiles=%s\n' \
+    "$CAPTURE_ONLY" "$REVIEW_ONLY" "${URL:-"(none)"}" "$PROFILES"
+  exit 0
+fi
+
+mkdir -p "$RUN_DIR"
+
+if [[ "$REVIEW_ONLY" == "0" ]]; then
+  capture_cmd=(
+    "$SCRIPT_DIR/capture-design-screenshots.mjs"
+    --url "$URL"
+    --out-dir "$RUN_DIR"
+    --profiles "$PROFILES"
+    --settle-ms "$SETTLE_MS"
+    --max-shots-per-profile "$MAX_SHOTS_PER_PROFILE"
+  )
+  if [[ -n "$INTERACTIONS" ]]; then
+    capture_cmd+=(--interactions "$INTERACTIONS")
+  fi
+
+  run_capture_script
+fi
+
+if [[ "$CAPTURE_ONLY" == "1" ]]; then
+  printf '[design-review] capture complete: %s\n' "$RUN_DIR"
+  exit 0
+fi
+
+"$SCRIPT_DIR/run-clean-design-agent.sh" \
+  --run-dir "$RUN_DIR" \
+  --questions "$QUESTIONS" \
+  --url "$URL" \
+  --model "$MODEL" \
+  --effort "$EFFORT" \
+  --max-images "$MAX_IMAGES"

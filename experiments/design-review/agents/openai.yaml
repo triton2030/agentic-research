@@ -1,0 +1,6 @@
+interface:
+  display_name: "Design Review"
+  short_description: "Screenshots plus clean terminal design review."
+  default_prompt: "Use $design-review after frontend work is complete to capture screenshots and run the clean terminal design reviewer."
+policy:
+  allow_implicit_invocation: true

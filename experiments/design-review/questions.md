@@ -1,0 +1,122 @@
+# Design Review Questions
+
+Answer in Russian. Keep the structure below. Use screenshot filenames or
+manifest ids as evidence. If a question is not answerable from the screenshots,
+write `не проверено по скриншотам`.
+
+## Verdict
+
+1. Is this screen ready to ship visually, or does it need another design pass?
+2. What are the top 3 issues by user-visible severity?
+3. What should be fixed first if only one hour is available?
+
+## Space And Density
+
+1. How much free space is visible on each major screen state: too little, enough,
+   too much, or uneven?
+2. Is the empty space doing useful grouping and hierarchy work, or does it look
+   accidental?
+3. Are there places where whitespace is large but the screen still feels busy?
+4. Are vertical rhythm, section spacing, and edge padding consistent across the
+   scroll?
+5. Does any content feel cramped against viewport edges, cards, toolbars, or
+   neighboring elements?
+
+## Text Load
+
+1. Is the screen overloaded with text for its job?
+2. Can a user understand the screen in 3-5 seconds from headings, labels, and
+   visible structure?
+3. Are paragraphs, helper text, badges, captions, or labels competing for
+   attention?
+4. Does the amount of text change logically between desktop and mobile?
+5. Are there repeated phrases or explanatory text blocks that should become
+   labels, shorter copy, or progressive disclosure?
+
+## Hierarchy And Typography
+
+1. Is the ratio between headline size, subhead size, body text, captions, and
+   controls logical?
+2. Are headings oversized inside compact panels, cards, sidebars, or dashboards?
+3. Are there weak headings that should be stronger because they own a section?
+4. Is line length comfortable on desktop and mobile?
+5. Are font weights, sizes, and spacing used to create hierarchy, or are they
+   used decoratively?
+
+## Composition
+
+1. Is there a clear primary focal point in each viewport?
+2. Does the eye path move through the screen in the intended order?
+3. Are groups aligned and sized consistently?
+4. Do repeated components have stable dimensions, or do they visually jump?
+5. Are section transitions understandable in the bridge screenshots between
+   sections?
+
+## Visual Noise
+
+1. Are there too many colors, gradients, shadows, borders, outlines, badges,
+   icons, dividers, or decorative elements?
+2. Is there card-inside-card nesting or stacked framed surfaces that make the UI
+   feel heavy?
+3. Do backgrounds, images, or effects help the task, or are they ornamental
+   noise?
+4. Is the palette balanced, or does the page collapse into one dominant hue
+   family?
+5. Are icons meaningful and recognizable, or are they used as decoration?
+
+## Interaction States
+
+1. For each clicked/expanded screenshot, is the changed state obvious?
+2. Do menus, dialogs, drawers, tabs, and selected states feel spatially connected
+   to the trigger?
+3. Does the interaction introduce layout shift, crowding, or accidental overlap?
+4. Are pressed, selected, disabled, loading, empty, and error states visually
+   plausible where captured?
+5. Does the UI still make sense after animation settles?
+
+## Mobile Scroll
+
+1. Does each mobile viewport work as a real human scroll moment, not just as a
+   cropped desktop layout?
+2. Are tap targets, sticky bars, nav, drawers, and primary actions comfortable?
+3. Does any text wrap badly, overflow, or create awkward isolated words?
+4. Are section starts and ends clear while scrolling?
+5. Are important actions visible at the right time, or do they disappear below
+   the fold too early?
+
+## Responsiveness
+
+1. What changes between desktop and mobile are improvements, and what changes
+   are regressions?
+2. Does the design preserve the same information hierarchy across viewports?
+3. Are images, tables, charts, cards, and grids resized deliberately?
+4. Does any layout rely on desktop-only horizontal space?
+5. Are there desktop screenshots that look good only because the viewport is
+   wide?
+
+## Brand And Taste
+
+1. Does the interface feel specific to its product/domain, or generic?
+2. Does it look like a usable product surface rather than a marketing collage?
+3. Is the style restrained where the workflow needs scanning and repetition?
+4. Is there any obvious AI-generated sameness: decorative gradients, generic
+   cards, vague icons, empty polish, or visual filler?
+5. What one design decision gives the screen the most character?
+
+## Accessibility From Visual Evidence
+
+1. Are contrast risks visible?
+2. Are focus order, keyboard support, and screen-reader behavior not checkable
+   from screenshots? Name those gaps instead of guessing.
+3. Are text sizes, target sizes, and hit areas visually safe?
+4. Are important states communicated by more than color alone where visible?
+5. Is motion likely to distract or obscure the settled state?
+
+## Fix Recommendations
+
+1. List concrete fixes in priority order.
+2. For each fix, say whether it is a spacing, typography, layout, content,
+   color, component, interaction, or responsive fix.
+3. Name the screenshots where the issue is visible.
+4. Say what should stay unchanged because it is already working.
+5. Say what would require another screenshot pass after implementation.
