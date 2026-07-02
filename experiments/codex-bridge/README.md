@@ -83,11 +83,13 @@ dirty-gate, ledger и scope-check.
 
 ## Биллинг: только ChatGPT-аккаунт, не API
 
-Оба скрипта перед запуском дочернего codex-процесса вырезают из окружения
-`OPENAI_API_KEY` / `CODEX_API_KEY` / `OPENAI_BASE_URL` (см. `cbcommon.py`),
-чтобы случайная переменная не увела вызов на платный API. Codex использует твой
-`codex login` (`auth_mode=chatgpt`) — ту же подписку, что и интерактивный
-терминал. В логах строка `env чист` или `вырезано из env: …` подтверждает это.
+Все три entrypoint'а (review / investigate / orchestrate) перед запуском
+дочернего codex-процесса вырезают из окружения `OPENAI_API_KEY` /
+`CODEX_API_KEY` / `OPENAI_BASE_URL` (см. `cbcommon.py`), чтобы случайная
+переменная не увела вызов на платный API. Строка `env чист` / `вырезано из
+env: …` в логах подтверждает именно вычистку ключей; сам ChatGPT-login backend
+не проверяет — auth берётся из твоего `codex login` (`auth_mode=chatgpt`), той
+же подписки, что у интерактивного терминала.
 
 Это прямое зеркало того, как `claude-bridge` вырезает `ANTHROPIC_API_KEY`.
 
@@ -140,7 +142,8 @@ SDK тянет собственный пиннутый бинарь `codex`; о�
 ## Исследователь
 
 ```bash
-# Codex читает проект, пишет только в свою run_dir/out; ответ забираешь из result.json:
+# Codex читает проект; для записи проект недостижим — пишет себе в run_dir/out
+# (+ системный temp); ответ забираешь из result.json:
 .venv/bin/python codex_investigate.py "Изучи X в проекте и напиши отчёт в out/" --project "$PWD"
 
 # Фоном + компактный stdout (штатный режим под фан-аут):

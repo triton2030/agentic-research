@@ -116,7 +116,7 @@ def _compact_payload(payload: dict[str, object]) -> dict[str, object]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Вызвать Codex как исследователя (читает проект, пишет только в run_dir/out)."
+        description="Вызвать Codex как исследователя (читает проект; пишет себе в run_dir/out — проект для записи недостижим)."
     )
     parser.add_argument(
         "task_text",
