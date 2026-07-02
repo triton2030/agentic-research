@@ -1,5 +1,5 @@
 ---
-name: design-review
+name: 1design-review
 description: >
   Use after frontend implementation work is complete when Codex should inspect
   the live UI, write a curated screenshot plan, capture 2-3 related screenshots
@@ -36,7 +36,7 @@ attached screenshots, manifest, group context, and question contract.
 3. Run:
 
    ```bash
-   /path/to/design-review/scripts/design-review \
+   /path/to/1design-review/scripts/design-review \
      --url http://localhost:3000 \
      --project "$PWD" \
      --label design-pass \
@@ -121,12 +121,12 @@ Before trusting changes to this skill package:
 
 ```bash
 python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py \
-  /path/to/design-review
+  /path/to/1design-review
 
-/path/to/design-review/scripts/design-review --help
-/path/to/design-review/scripts/run-clean-design-agent.sh --help
-node --check /path/to/design-review/scripts/capture-design-screenshots.mjs
-node --check /path/to/design-review/scripts/prepare-design-review-groups.mjs
+/path/to/1design-review/scripts/design-review --help
+/path/to/1design-review/scripts/run-clean-design-agent.sh --help
+node --check /path/to/1design-review/scripts/capture-design-screenshots.mjs
+node --check /path/to/1design-review/scripts/prepare-design-review-groups.mjs
 ```
 
 For a real frontend, verify:

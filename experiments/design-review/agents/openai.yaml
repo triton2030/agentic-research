@@ -1,6 +1,0 @@
-interface:
-  display_name: "Design Review"
-  short_description: "Plan-first screenshot groups plus clean reviewers."
-  default_prompt: "Use $design-review after frontend work is complete: inspect the UI, write a screenshot plan, then run clean grouped reviewers."
-policy:
-  allow_implicit_invocation: true
