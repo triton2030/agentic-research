@@ -64,6 +64,12 @@ Backend явно закрепляет Codex turn defaults: `model=gpt-5.5`,
 `~/.codex/config.toml`; флаги `--model` и `--effort` остаются только для
 осознанного override.
 
+Это **потолок Codex под ChatGPT-биллингом**, проверено живым пробником
+2026-07-02: `--model gpt-5.5-pro` → `HTTP 400 — "The 'gpt-5.5-pro' model is
+not supported when using Codex with a ChatGPT account"`; шкала reasoning
+effort заканчивается на `xhigh`. «Мощнее» существует только через API-ключ —
+что ломает биллинг-инвариант, поэтому не вариант.
+
 Нижний рабочий порог — `low`, и он enforced: `--effort` ниже (`minimal`/`none`)
 отсекается на валидации флагов (`REASONING_EFFORTS` в `codex_defaults.py`).
 Причина: turn'у по умолчанию доступны инструменты (`web_search`/`image_gen`), и
