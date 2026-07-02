@@ -46,6 +46,8 @@ write `не проверено по скриншотам`.
 4. Is line length comfortable on desktop and mobile?
 5. Are font weights, sizes, and spacing used to create hierarchy, or are they
    used decoratively?
+6. Are there too many nearby font sizes, weights, letter-spaced labels, numerals,
+   and body styles, creating visual dirt instead of clear hierarchy?
 
 ## Visual Weight And Attention
 
@@ -59,6 +61,23 @@ write `не проверено по скриншотам`.
    understanding, and action?
 5. Are hierarchy exceptions intentional and useful in context, or do they look
    like accidental emphasis?
+6. Do equal-sized cards, panels, or modules imply equal importance, and is that
+   implication true for the content?
+
+## Information Model And Containers
+
+1. Is the chosen container model right for the information: card grid, list,
+   table, priority stack, timeline, split panel, or dashboard module?
+2. If the design uses many similar cards, do those cards actually carry similar
+   kinds of information, actions, density, and urgency?
+3. Are semantically related items placed near each other, or are similar items
+   separated by unrelated modules that interrupt comparison and scanning?
+4. Do some containers feel empty while others are text-heavy, chart-heavy, or
+   action-heavy without a clear reason?
+5. Does the layout let the user compare and triage information quickly, or does
+   every card require a separate decoding effort?
+6. If the selected pattern is wrong for the content, say so directly and explain
+   why the structure is a poor fit rather than only listing local polish fixes.
 
 ## Composition
 
@@ -95,6 +114,19 @@ write `не проверено по скриншотам`.
 4. Is the palette balanced, or does the page collapse into one dominant hue
    family?
 5. Are icons meaningful and recognizable, or are they used as decoration?
+
+## Surface Details And Badges
+
+1. Do badges, pills, chips, buttons, and small status elements have radius,
+   padding, height, and text size proportions that feel intentional?
+2. When a badge or pill has a large corner radius, is there enough inner padding
+   and vertical breathing room to support that radius?
+3. Do rounded corners on cards, panels, buttons, and badges match their scale and
+   internal spacing, or do they make the element feel pinched or inflated?
+4. Are borders, shadows, fills, and outlines consistent with the element's
+   meaning and interaction state?
+5. Do small decorative surfaces add useful status, grouping, or affordance, or
+   do they create local noise that distracts from the content?
 
 ## Consistency And System Logic
 
@@ -178,3 +210,5 @@ write `не проверено по скриншотам`.
 3. Name the screenshots where the issue is visible.
 4. Say what should stay unchanged because it is already working.
 5. Say what would require another screenshot pass after implementation.
+6. If the biggest fix is structural, name the unsuitable design decision and the
+   better direction at the level of information architecture, not just CSS.
