@@ -1,105 +1,119 @@
 ---
 name: design-review
 description: >
-  Use after frontend implementation work is complete when Codex should capture
-  desktop 16:9 and mobile scroll screenshots, then call a clean terminal design
-  review agent. Creates project-local `_workspace/design-review/` evidence.
-  Skip mid-implementation tweaks, static screenshot-only critique, Figma work,
-  and technical browser QA that does not need visual design judgment.
+  Use after frontend implementation work is complete when Codex should inspect
+  the live UI, write a curated screenshot plan, capture 2-3 related screenshots
+  per group, then run multiple clean terminal design reviewers. Creates
+  project-local `_workspace/design-review/` evidence. Skip blind auto-scroll
+  audits, mid-implementation tweaks, Figma work, and technical browser QA that
+  does not need visual design judgment.
 ---
 
 # Design Review
 
 ## Outcome
 
-Produce a visual design signoff packet after frontend work is finished:
+Produce a design signoff from curated visual evidence:
 
-- screenshot evidence in the target project's `_workspace/design-review/<run>/`;
-- overlapping desktop 16:9 and mobile viewport screenshots;
-- optional clicked/expanded state screenshots from an interaction plan;
-- a clean `codex exec` design-agent answer based on `questions.md`.
+- the main agent first inspects the page and decides which moments matter;
+- screenshots are captured from a written `screenshot-plan.json`;
+- each plan group contains 2-3 related screenshots;
+- multiple clean terminal Codex reviewers run in parallel, one per group;
+- a clean aggregate reviewer answers `questions.md` from the group outputs.
 
-The terminal design agent must not inherit the current chat, project `AGENTS.md`,
-global skills, or source-code context by default. It reviews screenshots,
-manifest data, and the editable question list only.
+The clean reviewers must not inherit chat history, project `AGENTS.md`, global
+skills, source code, or the main agent's interpretation. They judge only the
+attached screenshots, manifest, group context, and question contract.
 
 ## Default Path
 
-1. Confirm the frontend is in a reviewable state and a live URL exists.
-2. Run the bundled command from the project being reviewed:
-
-   ```bash
-   /path/to/design-review/scripts/design-review \
-     --url http://localhost:3000 \
-     --project "$PWD"
-   ```
-
-3. If the UI has important menus, tabs, dialogs, hoverless mobile drawers, or
-   post-click states, create an interaction plan and pass it:
+1. Open the live page yourself before running the skill command. Inspect desktop
+   and mobile, scroll through the important flow, and identify section starts,
+   transitions, sticky-header edge cases, dense areas, and interaction states.
+2. Write `<project>/_workspace/design-review/<label>/screenshot-plan.json`.
+   Plan groups by judgment unit, not by scroll distance. Each group must contain
+   2-3 related screenshots.
+3. Run:
 
    ```bash
    /path/to/design-review/scripts/design-review \
      --url http://localhost:3000 \
      --project "$PWD" \
-     --interactions ./design-review-interactions.json
+     --label design-pass \
+     --plan _workspace/design-review/design-pass/screenshot-plan.json
    ```
 
-4. Report only the useful evidence: run directory, screenshot counts, review
-   output path, failed captures, and residual risk.
+4. Read `design-review.md`, group logs, manifest, and screenshot ledger. Report
+   both the design verdict and whether the evidence plan was sufficient.
+
+## Planning Rule
+
+Do not let the script choose the page for you. The script executes the plan; the
+main agent owns the plan.
+
+A good group compares one visual question across adjacent or responsive states:
+
+- first fold + bridge into next section;
+- desktop section + mobile equivalent;
+- dense component before/after scroll;
+- sticky header edge + section anchor;
+- closed state + opened state + settled state.
+
+Do not make one group per whole page, per arbitrary viewport, or per every scroll
+position. If you cannot name why 2-3 screenshots belong together, inspect the
+page again before running the clean agents.
+
+Plan format: read `references/screenshot-plan-format.md` when writing or
+debugging a plan.
 
 ## Workspace Rule
 
-Always keep artifacts inside the project under review:
+Keep all artifacts inside the reviewed project:
 
 ```text
-<project>/_workspace/design-review/<timestamp>-<label>/
+<project>/_workspace/design-review/<timestamp-or-label>/
 ```
 
 Do not scatter screenshots in the repository root, desktop, downloads, or the
-skill folder. The skill folder is the reusable tool; `_workspace` is the per-run
-evidence owner.
+skill folder. The skill folder is reusable tooling; `_workspace` is per-run
+evidence.
 
-## Screenshot Contract
+## Command Modes
 
-Desktop captures default to `1440x810` CSS pixels: 16:9, standard laptop-like
-viewing, and easier visual comparison than full-page stitched screenshots.
+Plan-first review:
 
-Mobile captures default to common human-scroll profiles:
+```bash
+scripts/design-review --url URL --project PROJECT --plan PLAN_JSON
+```
 
-- `mobile-iphone`: `390x844`;
-- `mobile-android`: `412x915`.
+Capture-only broad fallback:
 
-The capture script records:
+```bash
+scripts/design-review --auto-capture --capture-only --url URL --project PROJECT
+```
 
-- half-screen overlapping scroll positions, not isolated full viewport jumps;
-- section-top screenshots for semantic anchors;
-- bridge screenshots between adjacent sections so transitions can be judged;
-- optional interaction screenshots after clicking configured selectors;
-- a `manifest.json` and `screenshots.md` ledger.
+Use broad auto-capture only to explore or debug the capture machinery. Do not
+use it for final clean design judgment.
 
-The script waits for load, fonts, images, network idle when available, and a
-settle delay after each scroll/click so animations have time to finish. Do not
-disable animations unless the task is specifically about reduced-motion output.
+## Clean Agent Fanout
 
-## Question Contract
+`scripts/run-clean-design-agent.sh` prepares `group-reviews/<group-id>/` and
+starts multiple `codex exec` reviewers with `--parallel 3` by default. Each
+reviewer sees only its 2-3 screenshots. After group reviewers finish, an
+aggregate clean reviewer answers `questions.md` from their outputs.
 
-Edit `questions.md` when the design lens changes. The clean agent must answer
-through that Markdown structure instead of inventing a new rubric.
+If any group reviewer fails, stop and report the failed group and log path. Do
+not silently merge partial reviews into a final verdict.
 
-Useful additions belong in `questions.md` when they change the review outcome.
-Implementation details, CLI flags, and runtime caveats belong in this file or
-the scripts, not in the questions.
+## Clean Runtime Boundary
 
-## Clean Agent Boundary
-
-`scripts/run-clean-design-agent.sh` creates a temporary `CODEX_HOME`, links only
+Each terminal reviewer uses a temporary `CODEX_HOME`, links only
 `~/.codex/auth.json`, unsets API-key environment variables, runs from a neutral
 temporary cwd, passes `--ignore-user-config`, `--ignore-rules`, `--ephemeral`,
-and attaches screenshots with `codex exec -i`.
+and attaches only the group's screenshots.
 
-This is intentionally stricter than native same-thread subagents. If the review
-needs source-code access, say that explicitly and run a separate technical
-review. Do not quietly widen the design review agent into a code reviewer.
+If source-code access is needed, run a separate technical review. Do not widen
+this design review into a code reviewer.
 
 ## Validation
 
@@ -112,10 +126,15 @@ python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py \
 /path/to/design-review/scripts/design-review --help
 /path/to/design-review/scripts/run-clean-design-agent.sh --help
 node --check /path/to/design-review/scripts/capture-design-screenshots.mjs
+node --check /path/to/design-review/scripts/prepare-design-review-groups.mjs
 ```
 
-For a real frontend, run `scripts/design-review` against a local URL and inspect
-the generated `screenshots.md` before accepting the agent's verdict.
+For a real frontend, verify:
+
+- the plan has 2-3 shots per group;
+- captured screenshots match the intended moments;
+- every group produced a review;
+- the aggregate explicitly names uncovered questions.
 
 ## Stop
 

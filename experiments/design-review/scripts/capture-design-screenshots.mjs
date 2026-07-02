@@ -34,9 +34,12 @@ const PROFILE_PRESETS = {
 
 function usage() {
   console.log(`Usage:
-  capture-design-screenshots.mjs --url URL --out-dir DIR [options]
+  capture-design-screenshots.mjs --plan screenshot-plan.json --out-dir DIR [--url URL]
+  capture-design-screenshots.mjs --auto-capture --url URL --out-dir DIR [options]
 
 Options:
+  --plan FILE                 Curated screenshot plan written after page inspection.
+  --auto-capture              Fallback: broad scroll/section capture without a plan.
   --profiles LIST             Comma-separated profiles.
                               Default: desktop-1440,mobile-iphone,mobile-android
   --interactions FILE         JSON interaction plan.
@@ -58,6 +61,8 @@ function parseArgs(argv) {
   const options = {
     url: "",
     outDir: "",
+    plan: "",
+    autoCapture: false,
     profiles: ["desktop-1440", "mobile-iphone", "mobile-android"],
     interactions: "",
     settleMs: 1200,
@@ -74,6 +79,13 @@ function parseArgs(argv) {
       case "--url":
         options.url = value ?? "";
         index += 1;
+        break;
+      case "--plan":
+        options.plan = value ?? "";
+        index += 1;
+        break;
+      case "--auto-capture":
+        options.autoCapture = true;
         break;
       case "--out-dir":
         options.outDir = value ?? "";
@@ -119,7 +131,10 @@ function parseArgs(argv) {
     }
   }
 
-  if (!options.url) throw new Error("--url is required");
+  if (!options.plan && !options.autoCapture) {
+    throw new Error("--plan is required unless --auto-capture is explicitly used");
+  }
+  if (!options.url && !options.plan) throw new Error("--url is required");
   if (!options.outDir) throw new Error("--out-dir is required");
   if (!Number.isFinite(options.settleMs) || options.settleMs < 0) {
     throw new Error("--settle-ms must be >= 0");
@@ -172,6 +187,51 @@ async function readInteractions(filePath) {
     scrollY: item.scrollY,
     beforeSelector: item.beforeSelector ?? "",
   }));
+}
+
+async function readScreenshotPlan(filePath, fallbackUrl) {
+  if (!filePath) return null;
+  const raw = await fs.readFile(filePath, "utf8");
+  const plan = JSON.parse(raw);
+  const groups = Array.isArray(plan.groups) ? plan.groups : [];
+  if (groups.length === 0) {
+    throw new Error("screenshot plan must contain a non-empty groups array");
+  }
+
+  const normalizedGroups = groups.map((group, groupIndex) => {
+    const id = slug(group.id ?? `group-${groupIndex + 1}`);
+    const shots = Array.isArray(group.shots) ? group.shots : [];
+    if (shots.length < 2 || shots.length > 3) {
+      throw new Error(`group "${id}" must contain 2-3 related shots`);
+    }
+    return {
+      id,
+      purpose: String(group.purpose ?? group.notes ?? "").trim(),
+      questions: Array.isArray(group.questions) ? group.questions.map(String) : [],
+      shots: shots.map((shot, shotIndex) => {
+        const profile = shot.profile ?? group.profile ?? "desktop-1440";
+        if (!PROFILE_PRESETS[profile]) {
+          throw new Error(`group "${id}" shot ${shotIndex + 1} uses unknown profile "${profile}"`);
+        }
+        return {
+          name: slug(shot.name ?? `shot-${shotIndex + 1}`),
+          profile,
+          selector: shot.selector ?? "",
+          scrollY: shot.scrollY,
+          scrollBy: shot.scrollBy,
+          click: shot.click ?? "",
+          waitMs: shot.waitMs,
+          notes: String(shot.notes ?? "").trim(),
+        };
+      }),
+    };
+  });
+
+  return {
+    url: plan.url || fallbackUrl,
+    notes: String(plan.notes ?? "").trim(),
+    groups: normalizedGroups,
+  };
 }
 
 async function loadPlaywright() {
@@ -419,6 +479,77 @@ async function captureInteraction(page, options, screenshotDir, profileName, int
   };
 }
 
+async function positionForPlannedShot(page, shot, settleMs) {
+  if (shot.selector) {
+    await page.locator(shot.selector).first().scrollIntoViewIfNeeded({ timeout: 8000 });
+    await waitForStablePage(page, settleMs);
+  }
+
+  if (Number.isFinite(Number(shot.scrollY))) {
+    await page.evaluate((y) => window.scrollTo(0, y), Number(shot.scrollY));
+    await waitForStablePage(page, settleMs);
+  }
+
+  if (Number.isFinite(Number(shot.scrollBy))) {
+    await page.evaluate((delta) => window.scrollBy(0, delta), Number(shot.scrollBy));
+    await waitForStablePage(page, settleMs);
+  }
+
+  if (shot.click) {
+    await page.locator(shot.click).first().click({ timeout: 8000 });
+    await waitForStablePage(page, settleMs);
+  }
+
+  if (Number.isFinite(Number(shot.waitMs)) && Number(shot.waitMs) > 0) {
+    await page.waitForTimeout(Number(shot.waitMs));
+  }
+}
+
+async function capturePlannedShot(browser, options, plan, group, shot, shotIndex) {
+  const preset = PROFILE_PRESETS[shot.profile];
+  const screenshotDir = path.join(options.outDir, "screenshots", group.id);
+  await fs.mkdir(screenshotDir, { recursive: true });
+
+  const context = await browser.newContext({
+    viewport: preset.viewport,
+    deviceScaleFactor: preset.deviceScaleFactor,
+    isMobile: preset.isMobile,
+    hasTouch: preset.hasTouch,
+  });
+  const page = await context.newPage();
+  page.setDefaultTimeout(options.timeoutMs);
+
+  try {
+    await gotoAndSettle(page, plan.url, options.timeoutMs, options.settleMs);
+    await positionForPlannedShot(page, shot, options.settleMs);
+    const y = await page.evaluate(() => Math.round(window.scrollY));
+    const fileName = `${padded(shotIndex + 1)}-${shot.profile}-${shot.name}-y${padded(y, 6)}.png`;
+    const filePath = path.join(screenshotDir, fileName);
+    await page.screenshot({
+      path: filePath,
+      fullPage: false,
+      caret: "hide",
+      animations: "allow",
+    });
+    return {
+      id: `${group.id}-${padded(shotIndex + 1)}`,
+      groupId: group.id,
+      groupPurpose: group.purpose,
+      shotName: shot.name,
+      file: filePath,
+      filename: path.join(group.id, fileName),
+      profile: shot.profile,
+      y,
+      modes: ["planned"],
+      labels: [shot.notes].filter(Boolean),
+      selector: shot.selector || null,
+      click: shot.click || null,
+    };
+  } finally {
+    await context.close();
+  }
+}
+
 async function writeLedgers(outDir, manifest) {
   const manifestPath = path.join(outDir, "manifest.json");
   const markdownPath = path.join(outDir, "screenshots.md");
@@ -430,16 +561,26 @@ async function writeLedgers(outDir, manifest) {
     `URL: ${manifest.url}`,
     `Created: ${manifest.createdAt}`,
     `Profiles: ${manifest.profiles.join(", ")}`,
+  ];
+
+  if (manifest.groups?.length) {
+    lines.push("", "## Review Groups", "");
+    for (const group of manifest.groups) {
+      lines.push(`- ${group.id}: ${group.purpose || "no purpose recorded"}`);
+    }
+  }
+
+  lines.push(
     "",
     "## Screenshots",
     "",
-    "| id | profile | y | modes | file |",
-    "| --- | --- | ---: | --- | --- |",
-  ];
+    "| id | group | profile | y | modes | file |",
+    "| --- | --- | --- | ---: | --- | --- |",
+  );
 
   for (const shot of manifest.screenshots) {
     lines.push(
-      `| ${shot.id} | ${shot.profile} | ${shot.y} | ${shot.modes.join(", ")} | ${shot.filename} |`,
+      `| ${shot.id} | ${shot.groupId || "-"} | ${shot.profile} | ${shot.y} | ${shot.modes.join(", ")} | ${shot.filename} |`,
     );
   }
 
@@ -514,6 +655,13 @@ async function captureProfile(browser, options, profileName, interactions) {
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   await fs.mkdir(options.outDir, { recursive: true });
+  const plan = await readScreenshotPlan(options.plan, options.url);
+  if (plan?.url) {
+    options.url = plan.url;
+  }
+  if (!options.url) {
+    throw new Error("url is required either in --url or in the screenshot plan");
+  }
   const interactions = await readInteractions(options.interactions);
   const { chromium } = await loadPlaywright();
 
@@ -522,13 +670,23 @@ async function main() {
     url: options.url,
     createdAt: new Date().toISOString(),
     outDir: path.resolve(options.outDir),
-    profiles: options.profiles,
+    profiles: plan
+      ? [...new Set(plan.groups.flatMap((group) => group.shots.map((shot) => shot.profile)))]
+      : options.profiles,
+    groups: plan?.groups.map((group) => ({
+      id: group.id,
+      purpose: group.purpose,
+      questions: group.questions,
+      shotCount: group.shots.length,
+    })) ?? [],
+    planNotes: plan?.notes ?? "",
     screenshotContract: {
       desktop: "16:9 viewport screenshots",
-      scroll: `overlap step ${options.stepRatio} of viewport height`,
+      mode: plan ? "curated-plan" : "auto-capture",
+      scroll: plan ? "main-agent planned shots" : `overlap step ${options.stepRatio} of viewport height`,
       settleMs: options.settleMs,
-      sectionAnchors: true,
-      bridgeShots: true,
+      sectionAnchors: !plan,
+      bridgeShots: !plan,
       interactions: interactions.length,
     },
     profileRuns: [],
@@ -537,17 +695,48 @@ async function main() {
   };
 
   try {
-    for (const profileName of options.profiles) {
-      const profileRun = await captureProfile(browser, options, profileName, interactions);
-      manifest.profileRuns.push({
-        profile: profileRun.profile,
-        viewport: profileRun.viewport,
-        metrics: profileRun.metrics,
-        screenshotCount: profileRun.screenshots.length,
-        failureCount: profileRun.failures.length,
-      });
-      manifest.screenshots.push(...profileRun.screenshots);
-      manifest.failures.push(...profileRun.failures);
+    if (plan) {
+      for (const group of plan.groups) {
+        for (let shotIndex = 0; shotIndex < group.shots.length; shotIndex += 1) {
+          const shot = group.shots[shotIndex];
+          try {
+            manifest.screenshots.push(
+              await capturePlannedShot(browser, options, plan, group, shot, shotIndex),
+            );
+          } catch (error) {
+            manifest.failures.push({
+              phase: "planned-shot",
+              groupId: group.id,
+              shotName: shot.name,
+              profile: shot.profile,
+              error: error instanceof Error ? error.message : String(error),
+            });
+          }
+        }
+      }
+      for (const profileName of manifest.profiles) {
+        const profileShots = manifest.screenshots.filter((shot) => shot.profile === profileName);
+        manifest.profileRuns.push({
+          profile: profileName,
+          viewport: PROFILE_PRESETS[profileName].viewport,
+          metrics: null,
+          screenshotCount: profileShots.length,
+          failureCount: manifest.failures.filter((failure) => failure.profile === profileName).length,
+        });
+      }
+    } else {
+      for (const profileName of options.profiles) {
+        const profileRun = await captureProfile(browser, options, profileName, interactions);
+        manifest.profileRuns.push({
+          profile: profileRun.profile,
+          viewport: profileRun.viewport,
+          metrics: profileRun.metrics,
+          screenshotCount: profileRun.screenshots.length,
+          failureCount: profileRun.failures.length,
+        });
+        manifest.screenshots.push(...profileRun.screenshots);
+        manifest.failures.push(...profileRun.failures);
+      }
     }
   } finally {
     await browser.close();

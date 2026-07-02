@@ -7,17 +7,20 @@ SKILL_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 usage() {
   cat <<'USAGE'
 Usage:
-  design-review --url URL [--project DIR] [--label NAME]
+  design-review --url URL --plan screenshot-plan.json [--project DIR] [--label NAME]
   design-review --review-only --run-dir DIR
-  design-review --capture-only --url URL [--project DIR]
+  design-review --capture-only --url URL --plan screenshot-plan.json [--project DIR]
+  design-review --auto-capture --capture-only --url URL [--project DIR]
 
 Captures UI screenshot evidence into:
   <project>/_workspace/design-review/<timestamp>-<label>/
 
-Then runs a clean terminal Codex design reviewer over those screenshots.
+Then runs multiple clean terminal Codex design reviewers over 2-3 screenshot groups.
 
 Options:
   --url URL                  Live page URL to capture.
+  --plan FILE                Main-agent curated screenshot plan. Required unless --auto-capture or --review-only.
+  --auto-capture             Explicit capture-only fallback: broad scroll capture without a plan.
   --project DIR              Project under review. Default: current directory.
   --run-dir DIR              Existing or target run directory.
   --label NAME               Optional run label used in the directory name.
@@ -27,6 +30,7 @@ Options:
   --settle-ms N              Wait after load/scroll/click. Default: 1200.
   --max-shots-per-profile N  Capture cap per profile before interactions. Default: 36.
   --max-images N             Images attached to the clean agent. Default: 28.
+  --parallel N               Group reviewers to run at once. Default: 3.
   --model NAME               Codex model for clean reviewer. Default: gpt-5.5.
   --effort LEVEL             model_reasoning_effort. Default: high.
   --capture-only             Only capture screenshots and ledgers.
@@ -34,11 +38,21 @@ Options:
   --dry-run                  Print planned paths/commands without capture or review.
   -h, --help                 Show this help.
 
-Interaction plan format:
-  [
-    {"name":"mobile-menu","profile":"mobile-iphone","selector":"button[aria-label='Menu']"},
-    {"name":"pricing-tab","selector":"text=Pricing","scrollY":0}
-  ]
+Plan shape:
+  {
+    "url": "http://localhost:3000",
+    "groups": [
+      {
+        "id": "hero-to-color",
+        "purpose": "first fold and transition into token overview",
+        "shots": [
+          {"name":"desktop-hero","profile":"desktop-1440","scrollY":0},
+          {"name":"desktop-bridge","profile":"desktop-1440","scrollY":420},
+          {"name":"mobile-hero","profile":"mobile-iphone","scrollY":0}
+        ]
+      }
+    ]
+  }
 USAGE
 }
 
@@ -49,7 +63,7 @@ die() {
 
 run_capture_script() {
   if node -e "require.resolve('playwright')" >/dev/null 2>&1; then
-    node "${capture_cmd[@]}"
+    PLAYWRIGHT_MODULE_ROOT="$(pwd)" node "${capture_cmd[@]}"
     return
   fi
 
@@ -71,6 +85,7 @@ run_capture_script() {
 
 PROJECT="$(pwd)"
 URL=""
+PLAN=""
 RUN_DIR=""
 LABEL=""
 QUESTIONS="$SKILL_DIR/questions.md"
@@ -79,15 +94,19 @@ PROFILES="desktop-1440,mobile-iphone,mobile-android"
 SETTLE_MS="1200"
 MAX_SHOTS_PER_PROFILE="36"
 MAX_IMAGES="28"
+PARALLEL="3"
 MODEL="${DESIGN_REVIEW_MODEL:-gpt-5.5}"
 EFFORT="${DESIGN_REVIEW_EFFORT:-high}"
 CAPTURE_ONLY=0
 REVIEW_ONLY=0
+AUTO_CAPTURE=0
 DRY_RUN=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --url) URL="${2:-}"; shift 2 ;;
+    --plan) PLAN="${2:-}"; shift 2 ;;
+    --auto-capture) AUTO_CAPTURE=1; shift ;;
     --project) PROJECT="${2:-}"; shift 2 ;;
     --run-dir) RUN_DIR="${2:-}"; shift 2 ;;
     --label) LABEL="${2:-}"; shift 2 ;;
@@ -97,6 +116,7 @@ while [[ $# -gt 0 ]]; do
     --settle-ms) SETTLE_MS="${2:-}"; shift 2 ;;
     --max-shots-per-profile) MAX_SHOTS_PER_PROFILE="${2:-}"; shift 2 ;;
     --max-images) MAX_IMAGES="${2:-}"; shift 2 ;;
+    --parallel) PARALLEL="${2:-}"; shift 2 ;;
     --model) MODEL="${2:-}"; shift 2 ;;
     --effort) EFFORT="${2:-}"; shift 2 ;;
     --capture-only) CAPTURE_ONLY=1; shift ;;
@@ -108,6 +128,8 @@ while [[ $# -gt 0 ]]; do
 done
 
 [[ "$CAPTURE_ONLY" == "1" && "$REVIEW_ONLY" == "1" ]] && die "choose capture-only or review-only, not both"
+[[ "$AUTO_CAPTURE" == "1" && -n "$PLAN" ]] && die "choose --plan or --auto-capture, not both"
+[[ "$AUTO_CAPTURE" == "1" && "$CAPTURE_ONLY" == "0" ]] && die "--auto-capture is capture-only fallback; write --plan for clean review"
 [[ -f "$QUESTIONS" ]] || die "questions file not found: $QUESTIONS"
 
 PROJECT="$(cd "$PROJECT" && pwd)"
@@ -131,6 +153,18 @@ if [[ "$REVIEW_ONLY" == "0" && -z "$URL" ]]; then
   die "--url is required unless --review-only is used"
 fi
 
+if [[ "$REVIEW_ONLY" == "0" && "$AUTO_CAPTURE" == "0" && -z "$PLAN" ]]; then
+  die "--plan is required. Inspect the page first, write a curated screenshot plan, or pass --auto-capture explicitly as a fallback."
+fi
+
+if [[ -n "$PLAN" ]]; then
+  case "$PLAN" in
+    /*) ;;
+    *) PLAN="$PROJECT/$PLAN" ;;
+  esac
+  [[ -f "$PLAN" ]] || die "plan file not found: $PLAN"
+fi
+
 if [[ "$REVIEW_ONLY" == "1" && ! -d "$RUN_DIR" ]]; then
   die "--review-only requires an existing --run-dir"
 fi
@@ -138,10 +172,13 @@ fi
 printf '[design-review] project: %s\n' "$PROJECT"
 printf '[design-review] run_dir: %s\n' "$RUN_DIR"
 printf '[design-review] questions: %s\n' "$QUESTIONS"
+if [[ -n "$PLAN" ]]; then
+  printf '[design-review] plan: %s\n' "$PLAN"
+fi
 
 if [[ "$DRY_RUN" == "1" ]]; then
-  printf '[design-review] dry_run: capture_only=%s review_only=%s url=%s profiles=%s\n' \
-    "$CAPTURE_ONLY" "$REVIEW_ONLY" "${URL:-"(none)"}" "$PROFILES"
+  printf '[design-review] dry_run: capture_only=%s review_only=%s auto_capture=%s url=%s profiles=%s parallel=%s\n' \
+    "$CAPTURE_ONLY" "$REVIEW_ONLY" "$AUTO_CAPTURE" "${URL:-"(none)"}" "$PROFILES" "$PARALLEL"
   exit 0
 fi
 
@@ -152,11 +189,18 @@ if [[ "$REVIEW_ONLY" == "0" ]]; then
     "$SCRIPT_DIR/capture-design-screenshots.mjs"
     --url "$URL"
     --out-dir "$RUN_DIR"
-    --profiles "$PROFILES"
     --settle-ms "$SETTLE_MS"
-    --max-shots-per-profile "$MAX_SHOTS_PER_PROFILE"
   )
-  if [[ -n "$INTERACTIONS" ]]; then
+  if [[ -n "$PLAN" ]]; then
+    capture_cmd+=(--plan "$PLAN")
+  else
+    capture_cmd+=(
+      --auto-capture
+      --profiles "$PROFILES"
+      --max-shots-per-profile "$MAX_SHOTS_PER_PROFILE"
+    )
+  fi
+  if [[ -n "$INTERACTIONS" && "$AUTO_CAPTURE" == "1" ]]; then
     capture_cmd+=(--interactions "$INTERACTIONS")
   fi
 
@@ -174,4 +218,5 @@ fi
   --url "$URL" \
   --model "$MODEL" \
   --effort "$EFFORT" \
-  --max-images "$MAX_IMAGES"
+  --max-images "$MAX_IMAGES" \
+  --parallel "$PARALLEL"
