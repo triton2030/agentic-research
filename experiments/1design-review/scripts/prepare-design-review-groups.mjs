@@ -10,8 +10,42 @@ function usage() {
 
 Builds per-group clean-agent prompts from manifest.json. Each review group must
 contain 2-3 screenshots because the main agent is expected to curate related
-evidence after inspecting the page.`);
+evidence after inspecting the page. Questions are split into focused lens
+packets so each clean reviewer handles a narrower design judgment.`);
 }
+
+const QUESTION_LENSES = [
+  {
+    id: "spatial-composition",
+    title: "Spatial composition",
+    headings: ["Space And Density", "Composition", "Gestalt Grouping And Alignment", "Spatial Balance"],
+  },
+  {
+    id: "content-typography",
+    title: "Content and typography",
+    headings: ["Text Load", "Hierarchy And Typography", "Surface Details And Badges"],
+  },
+  {
+    id: "information-model",
+    title: "Information model and attention",
+    headings: ["Visual Weight And Attention", "Information Model And Containers", "Consistency And System Logic"],
+  },
+  {
+    id: "taste-creativity",
+    title: "Taste, creativity, and visual noise",
+    headings: ["Visual Noise", "Brand And Taste", "Beauty And Creative Vitality"],
+  },
+  {
+    id: "states-responsive",
+    title: "States, mobile, and accessibility",
+    headings: ["Interaction States", "Mobile Scroll", "Responsiveness", "Accessibility From Visual Evidence"],
+  },
+  {
+    id: "fixes",
+    title: "Fix recommendations",
+    headings: ["Fix Recommendations"],
+  },
+];
 
 function parseArgs(argv) {
   const options = {
@@ -67,16 +101,18 @@ Use only the 2-3 attached screenshots, the group context, and the question
 contract pasted below.
 
 Task:
-Review this screenshot group only. Return concise findings that the aggregate
-design reviewer can use later. Do not answer the whole global questionnaire.
-Ground every claim in screenshot filenames or ids. If evidence is missing, say
-so. Output in Russian.
+Review this screenshot group only through the assigned question lens. Return
+concise findings that the aggregate design reviewer can use later. Do not answer
+the whole global questionnaire. Ground every claim in screenshot filenames or
+ids. If evidence is missing, say so. Output in Russian.
 
 Captured URL: ${url || manifest.url}
 Run directory: ${manifest.outDir}
 Group: ${group.id}
 Group purpose: ${group.purpose || "(not recorded)"}
 Group questions: ${(group.questions || []).join(" | ") || "(none)"}
+Question lens: ${group.focusTitle}
+Source screenshot group: ${group.sourceGroupId || group.id}
 
 <attached_images>
 ${imageList}
@@ -95,10 +131,13 @@ Return this shape:
 # GROUP_REVIEW ${group.id}
 
 ## Verdict
-- ready/needs-pass for this group only
+- ready/needs-pass for this group and question lens only
 
 ## Findings
 - Severity: high|medium|low. Evidence: screenshot id/file. Finding.
+
+## Out Of Focus Risk
+- One line only if a severe issue is visible outside this lens.
 
 ## What Works
 - Evidence-backed positives worth preserving.
@@ -108,7 +147,7 @@ Return this shape:
 `;
 }
 
-function aggregatePrompt({ manifest, groupOutputs, questionsMarkdown, url }) {
+function aggregatePrompt({ manifest, groupOutputs, questionsMarkdown, url, reviewTasks }) {
   return `You are a clean visual design aggregate reviewer.
 
 You are intentionally running from a neutral cwd. Do not search for or follow
@@ -125,6 +164,7 @@ If a question was not covered by the screenshot groups, write
 Captured URL: ${url || manifest.url}
 Run directory: ${manifest.outDir}
 Groups: ${manifest.groups.map((group) => group.id).join(", ")}
+Review tasks: ${reviewTasks.map((task) => `${task.id} (${task.focusTitle || "all questions"})`).join(", ")}
 
 <questions_markdown>
 ${questionsMarkdown}
@@ -137,6 +177,7 @@ ${JSON.stringify(
     screenshotContract: manifest.screenshotContract,
     profiles: manifest.profiles,
     groups: manifest.groups,
+    reviewTasks,
     screenshotCount: manifest.screenshots.length,
     failures: manifest.failures,
   },
@@ -155,10 +196,80 @@ async function readJson(filePath) {
   return JSON.parse(await fs.readFile(filePath, "utf8"));
 }
 
+function parseQuestionSections(markdown) {
+  const lines = markdown.split(/\r?\n/);
+  const intro = [];
+  const sections = [];
+  let current = null;
+
+  for (const line of lines) {
+    const heading = /^##\s+(.+?)\s*$/.exec(line);
+    if (heading) {
+      current = { title: heading[1], lines: [line] };
+      sections.push(current);
+      continue;
+    }
+    if (current) {
+      current.lines.push(line);
+    } else {
+      intro.push(line);
+    }
+  }
+
+  return {
+    intro: intro.join("\n").trim(),
+    sections: sections.map((section) => ({
+      title: section.title,
+      markdown: section.lines.join("\n").trim(),
+    })),
+  };
+}
+
+function buildQuestionBundles(questionsMarkdown) {
+  const parsed = parseQuestionSections(questionsMarkdown);
+  const sectionByTitle = new Map(parsed.sections.map((section) => [section.title, section]));
+  const usedTitles = new Set();
+  const bundles = [];
+
+  for (const lens of QUESTION_LENSES) {
+    const sections = lens.headings.map((heading) => sectionByTitle.get(heading)).filter(Boolean);
+    if (sections.length === 0) continue;
+    for (const section of sections) usedTitles.add(section.title);
+    bundles.push({
+      id: lens.id,
+      title: lens.title,
+      sections: sections.map((section) => section.title),
+      markdown: [parsed.intro, ...sections.map((section) => section.markdown)].filter(Boolean).join("\n\n"),
+    });
+  }
+
+  const leftovers = parsed.sections.filter((section) => !usedTitles.has(section.title) && section.title !== "Verdict");
+  if (leftovers.length > 0) {
+    bundles.push({
+      id: "other",
+      title: "Other design questions",
+      sections: leftovers.map((section) => section.title),
+      markdown: [parsed.intro, ...leftovers.map((section) => section.markdown)].filter(Boolean).join("\n\n"),
+    });
+  }
+
+  if (bundles.length === 0) {
+    bundles.push({
+      id: "all-questions",
+      title: "All design questions",
+      sections: parsed.sections.map((section) => section.title),
+      markdown: questionsMarkdown,
+    });
+  }
+
+  return bundles;
+}
+
 async function prepareGroups(options) {
   const runDir = path.resolve(options.runDir);
   const manifest = await readJson(path.join(runDir, "manifest.json"));
   const questionsMarkdown = await fs.readFile(options.questions, "utf8");
+  const questionBundles = buildQuestionBundles(questionsMarkdown);
   if (!Array.isArray(manifest.groups) || manifest.groups.length === 0) {
     throw new Error("manifest has no review groups; run capture with --plan first");
   }
@@ -175,25 +286,39 @@ async function prepareGroups(options) {
     if (shots.length < 2 || shots.length > 3) {
       throw new Error(`group "${group.id}" has ${shots.length} screenshots; expected 2-3`);
     }
-    const groupDir = path.join(groupsDir, group.id);
-    await fs.mkdir(groupDir, { recursive: true });
-    const promptPath = path.join(groupDir, "prompt.md");
-    const outputPath = path.join(groupDir, "review.md");
-    const logPath = path.join(groupDir, "codex.log");
-    const imagesPath = path.join(groupDir, "images.txt");
-    await fs.writeFile(imagesPath, `${shots.map((shot) => shot.file).join("\n")}\n`, "utf8");
-    await fs.writeFile(
-      promptPath,
-      groupPrompt({ manifest, group, shots, questionsMarkdown, url: options.url }),
-      "utf8",
-    );
-    groupEntries.push({
-      id: group.id,
-      prompt: promptPath,
-      output: outputPath,
-      log: logPath,
-      images: shots.map((shot) => shot.file),
-    });
+    for (const questionBundle of questionBundles) {
+      const reviewTask = {
+        ...group,
+        id: `${group.id}--${questionBundle.id}`,
+        sourceGroupId: group.id,
+        focusId: questionBundle.id,
+        focusTitle: questionBundle.title,
+        focusSections: questionBundle.sections,
+      };
+      const groupDir = path.join(groupsDir, reviewTask.id);
+      await fs.mkdir(groupDir, { recursive: true });
+      const promptPath = path.join(groupDir, "prompt.md");
+      const outputPath = path.join(groupDir, "review.md");
+      const logPath = path.join(groupDir, "codex.log");
+      const imagesPath = path.join(groupDir, "images.txt");
+      await fs.writeFile(imagesPath, `${shots.map((shot) => shot.file).join("\n")}\n`, "utf8");
+      await fs.writeFile(
+        promptPath,
+        groupPrompt({ manifest, group: reviewTask, shots, questionsMarkdown: questionBundle.markdown, url: options.url }),
+        "utf8",
+      );
+      groupEntries.push({
+        id: reviewTask.id,
+        sourceGroupId: reviewTask.sourceGroupId,
+        focusId: reviewTask.focusId,
+        focusTitle: reviewTask.focusTitle,
+        focusSections: reviewTask.focusSections,
+        prompt: promptPath,
+        output: outputPath,
+        log: logPath,
+        images: shots.map((shot) => shot.file),
+      });
+    }
   }
 
   const indexPath = path.join(groupsDir, "index.json");
@@ -218,6 +343,7 @@ async function prepareAggregate(options) {
       groupOutputs: outputs.join("\n\n---\n\n"),
       questionsMarkdown,
       url: options.url,
+      reviewTasks: index.groups,
     }),
     "utf8",
   );

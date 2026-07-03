@@ -177,16 +177,16 @@ function renderMarkdown(progress) {
     `Started: ${progress.startedAt}`,
     `Updated: ${progress.updatedAt}`,
     `Last heartbeat: ${progress.lastHeartbeatAt || ""}`,
-    `Parallel group reviewers: ${progress.parallel}`,
+    `Parallel focused reviewers: ${progress.parallel}`,
     "",
     "## Summary",
     "",
-    `- Groups: ${counts.done}/${total} done, ${counts.running} running, ${counts.pending} pending, ${counts.failed} failed`,
+    `- Review tasks: ${counts.done}/${total} done, ${counts.running} running, ${counts.pending} pending, ${counts.failed} failed`,
     `- Aggregate: ${progress.aggregate.status}`,
     "",
-    "## Groups",
+    "## Review Tasks",
     "",
-    "| group | status | images | pid | exit | started | ended | log | output |",
+    "| task | status | images | pid | exit | started | ended | log | output |",
     "| --- | --- | ---: | ---: | ---: | --- | --- | --- | --- |",
   ];
 
@@ -335,7 +335,7 @@ async function printSummary(options) {
   const counts = statusCounts(progress.groups);
   const total = progress.groups.length;
   console.log(
-    `[design-review-progress] stage=${progress.stage} groups=${counts.done}/${total} done running=${counts.running} pending=${counts.pending} failed=${counts.failed} aggregate=${progress.aggregate.status} file=${progressPaths(runDir).markdown}`,
+    `[design-review-progress] stage=${progress.stage} tasks=${counts.done}/${total} done running=${counts.running} pending=${counts.pending} failed=${counts.failed} aggregate=${progress.aggregate.status} file=${progressPaths(runDir).markdown}`,
   );
 }
 

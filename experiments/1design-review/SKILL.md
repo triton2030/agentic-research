@@ -19,9 +19,10 @@ Produce a design signoff from curated visual evidence:
 - screenshots are captured from a written `screenshot-plan.json`;
 - capture writes `capture-progress.md` and `capture-progress.json`;
 - each plan group contains 2-3 related screenshots;
-- multiple clean terminal Codex reviewers run in parallel, one per group;
+- multiple clean terminal Codex reviewers run in parallel by screenshot group
+  and focused question lens;
 - the reviewer runner writes `progress.md` and `progress.json` while agents run;
-- a clean aggregate reviewer answers `questions.md` from the group outputs.
+- a clean aggregate reviewer answers `questions.md` from focused review outputs.
 
 The clean reviewers must not inherit chat history, project `AGENTS.md`, global
 skills, source code, or the main agent's interpretation. They judge only the
@@ -117,10 +118,19 @@ If planned shots failed or the captured files do not match the intended moments,
 fix the plan and rerun capture. Do not ask reviewers to judge incomplete or
 mis-targeted evidence.
 
-`scripts/run-clean-design-agent.sh` prepares `group-reviews/<group-id>/` and
-starts multiple `codex exec` reviewers with `--parallel 6` by default. Each
-reviewer sees only its 2-3 screenshots. After group reviewers finish, an
-aggregate clean reviewer answers `questions.md` from their outputs.
+`scripts/run-clean-design-agent.sh` prepares `group-reviews/<task-id>/` and
+starts multiple `codex exec` reviewers with `--parallel 6` by default. It splits
+`questions.md` into focused design lenses, then runs those lenses against each
+2-3 screenshot group. This is intentionally more expensive than asking one
+reviewer to answer the whole question list, but it preserves judgment quality.
+After focused reviewers finish, an aggregate clean reviewer answers the full
+`questions.md` from their outputs.
+
+Each focused reviewer sees:
+
+- only one screenshot group;
+- only one focused question lens;
+- enough group context to ground findings in screenshot ids/files.
 
 The runner writes:
 
@@ -133,7 +143,7 @@ run is slow, the main agent should keep waiting while `progress.md` shows
 running reviewers. Investigate only failed groups, missing outputs, or a stale
 heartbeat.
 
-If any group reviewer fails, stop and report the failed group and log path. Do
+If any focused reviewer fails, stop and report the failed task and log path. Do
 not silently merge partial reviews into a final verdict.
 
 ## Clean Runtime Boundary
@@ -167,7 +177,7 @@ For a real frontend, verify:
 - captured screenshots match the intended moments;
 - `capture-progress.md` reached `complete` or clearly names the stuck/failed
   planned shot;
-- every group produced a review;
+- every focused review task produced a review;
 - `progress.md` reached `complete` or clearly names the failed stage;
 - the aggregate explicitly names uncovered questions.
 

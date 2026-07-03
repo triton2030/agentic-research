@@ -48,6 +48,11 @@ write `не проверено по скриншотам`.
    used decoratively?
 6. Are there too many nearby font sizes, weights, letter-spaced labels, numerals,
    and body styles, creating visual dirt instead of clear hierarchy?
+7. Do font family, font face, weight, width, style, and optical size choices feel
+   like one coherent type system, or do weight changes read like unrelated
+   fonts?
+8. Is there enough typographic variety to create hierarchy and character without
+   making the interface feel like it uses many typefaces?
 
 ## Visual Weight And Attention
 
@@ -192,6 +197,19 @@ write `не проверено по скриншотам`.
    cards, vague icons, empty polish, or visual filler?
 5. What one design decision gives the screen the most character?
 
+## Beauty And Creative Vitality
+
+1. Is the interface visually alive, memorable, and desirable enough for its
+   product context, or is it merely clean and correct?
+2. Does restraint improve trust and scanning, or has it become blandness,
+   sameness, or low-energy design?
+3. Is there a purposeful creative idea in composition, typography, color,
+   interaction, imagery, data display, or rhythm?
+4. Do recommendations preserve or strengthen character, or would they flatten the
+   screen into a generic dashboard?
+5. Is boredom itself a user-visible design problem here? If yes, explain what
+   kind of creative move would add energy without harming usability.
+
 ## Accessibility From Visual Evidence
 
 1. Are contrast risks visible?
@@ -212,3 +230,5 @@ write `не проверено по скриншотам`.
 5. Say what would require another screenshot pass after implementation.
 6. If the biggest fix is structural, name the unsuitable design decision and the
    better direction at the level of information architecture, not just CSS.
+7. If the screen is competent but boring, recommend one concrete creative
+   direction, not only cleanup.

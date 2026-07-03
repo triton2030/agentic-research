@@ -9,8 +9,8 @@ Usage:
   run-clean-design-agent.sh --run-dir DIR --questions FILE [--url URL]
 
 Runs clean Codex terminal design reviewers:
-  1. one clean reviewer per planned screenshot group (2-3 images each);
-  2. one clean aggregate reviewer over the group outputs.
+  1. multiple focused reviewers per planned screenshot group (2-3 images each);
+  2. one clean aggregate reviewer over the focused outputs.
 
 Options:
   --run-dir DIR       Existing design-review run directory with manifest.json.
@@ -18,7 +18,7 @@ Options:
   --url URL           Captured page URL, added to prompts.
   --model NAME        Codex model. Default: gpt-5.5.
   --effort LEVEL      model_reasoning_effort. Default: high.
-  --parallel N        Group reviewers to run at once. Default: 6.
+  --parallel N        Focused reviewers to run at once. Default: 6.
   --progress-interval N
                      Seconds between progress heartbeats. Default: 10.
   --out FILE          Aggregate output markdown. Default: <run-dir>/design-review.md.
@@ -251,7 +251,7 @@ if [[ "$failures" -gt 0 ]]; then
   progress_update stage --stage failed
   stop_heartbeat
   progress_summary
-  printf '[run-clean-design-agent] %s group reviewer(s) failed\n' "$failures" >&2
+  printf '[run-clean-design-agent] %s focused reviewer(s) failed\n' "$failures" >&2
   find "$RUN_DIR/group-reviews" -name codex.log -maxdepth 3 -print >&2
   exit 1
 fi
