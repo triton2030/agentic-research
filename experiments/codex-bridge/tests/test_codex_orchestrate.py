@@ -23,6 +23,7 @@ from codex_orchestrate_contract import (  # noqa: E402
 )
 from codex_orchestrate_state import (  # noqa: E402
     append_heartbeat,
+    append_jsonl,
     capture_git_snapshot,
     compare_scope,
     prepare_run_dir,
@@ -375,6 +376,48 @@ class CodexOrchestrateCliTests(unittest.TestCase):
         finally:
             for name in fake_names:
                 sys.modules.pop(name, None)
+
+
+class TelemetryResilienceTest(unittest.TestCase):
+    """Телеметрия (журнал, прогресс-принты) не имеет права ронять флот:
+    реальные случаи — чужой cleanup _workspace во время прогона (md-tools)
+    и закрытый пайп (… 2>&1 | head -1)."""
+
+    def test_append_jsonl_recreates_deleted_run_dir(self):
+        import shutil
+
+        with tempfile.TemporaryDirectory() as td:
+            run_dir = Path(td) / "run"
+            run_dir.mkdir()
+            path = run_dir / "events.jsonl"
+            append_jsonl(path, {"event": "one"})
+            shutil.rmtree(run_dir)
+            append_jsonl(path, {"event": "two"})  # не должно поднять OSError
+            lines = path.read_text(encoding="utf-8").strip().splitlines()
+            self.assertEqual(json.loads(lines[-1])["event"], "two")
+
+    def test_append_jsonl_swallows_unrecoverable_oserror(self):
+        with tempfile.TemporaryDirectory() as td:
+            blocker = Path(td) / "blocker"
+            blocker.write_text("", encoding="utf-8")
+            # mkdir родителя невозможен: на его месте файл
+            append_jsonl(blocker / "sub" / "events.jsonl", {"event": "x"})
+
+    def test_safe_print_survives_closed_pipe(self):
+        import os
+
+        import codex_orchestrate
+
+        read_fd, write_fd = os.pipe()
+        os.close(read_fd)
+        stream = os.fdopen(write_fd, "w", buffering=1)
+        try:
+            codex_orchestrate._safe_print("hello", stream=stream)  # не должно поднять
+        finally:
+            try:
+                stream.close()
+            except OSError:
+                pass
 
 
 if __name__ == "__main__":

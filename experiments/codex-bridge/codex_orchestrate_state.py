@@ -7,6 +7,7 @@ import json
 import os
 import stat
 import subprocess
+import sys
 import threading
 import time
 import uuid
@@ -265,15 +266,33 @@ def is_scope_noise(project: Path, run_dir: Path, rel_path: str) -> bool:
         return False
 
 
+def _warn_stderr(message: str) -> None:
+    # Журнал — телеметрия: его отказ не должен ронять флот; и само
+    # предупреждение обязано пережить закрытый stderr (SIGPIPE/head).
+    try:
+        print(message, file=sys.stderr)
+    except OSError:
+        pass
+
+
 def write_json(path: Path, data: Any) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_name(f".{path.name}.{os.getpid()}.tmp")
     tmp.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     tmp.replace(path)
 
 
 def append_jsonl(path: Path, data: Any) -> None:
-    with path.open("a", encoding="utf-8") as handle:
-        handle.write(json.dumps(data, ensure_ascii=False) + "\n")
+    # run_dir может исчезнуть под ногами (чужой cleanup _workspace во время
+    # прогона — реальный случай md-tools): пересоздаём и не поднимаем OSError,
+    # иначе журнальная запись убивает флот и теряет готовые результаты воркеров.
+    line = json.dumps(data, ensure_ascii=False) + "\n"
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with path.open("a", encoding="utf-8") as handle:
+            handle.write(line)
+    except OSError as exc:
+        _warn_stderr(f"[bridge] журнал недоступен ({path}): {exc}; запись пропущена")
 
 
 def append_event(run_dir: Path, event: str, **data: Any) -> None:

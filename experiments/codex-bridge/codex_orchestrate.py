@@ -43,6 +43,16 @@ from codex_orchestrate_state import (
 )
 
 
+def _safe_print(message: str, *, stream: Any = None) -> None:
+    # Прогресс и финальный дамп — телеметрия поверх канонического результата
+    # на диске: закрытый пайп (| head, оборванный терминал) не должен ронять
+    # флот и подменять готовые записи воркеров exception-записями.
+    try:
+        print(message, file=stream if stream is not None else sys.stderr)
+    except OSError:
+        pass
+
+
 def _files_constraint(files: tuple[str, ...]) -> str:
     joined = ", ".join(files)
     return (
@@ -82,10 +92,9 @@ async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict
             codex_status = codex_status_value(getattr(result, "status", ""))
             worker_status = worker_status_from_codex_status(codex_status, result.error)
             worker_ok = worker_status == "completed"
-            print(
+            _safe_print(
                 f"[orch] {'✓' if worker_ok else '✗'} {task.id} ({duration_ms}мс)"
-                + ("" if worker_ok else f" — {result.error}"),
-                file=sys.stderr,
+                + ("" if worker_ok else f" — {result.error}")
             )
             record = {
                 "id": task.id,
@@ -98,7 +107,7 @@ async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict
             }
         except Exception as exc:  # noqa: BLE001 — одна упавшая задача не валит флот
             duration_ms = int((time.monotonic() - t0) * 1000)
-            print(f"[orch] ✗ {task.id} — исключение: {exc}", file=sys.stderr)
+            _safe_print(f"[orch] ✗ {task.id} — исключение: {exc}")
             record = {
                 "id": task.id,
                 "worker_status": "exception",
@@ -427,13 +436,12 @@ def main() -> int:
         verification_status=verification_status,
     )
 
-    print(
+    _safe_print(
         f"[orch] готово: worker={worker_status} scope={scope_status} "
-        f"verify={verification_status} ok={ok}",
-        file=sys.stderr,
+        f"verify={verification_status} ok={ok}"
     )
     stdout_payload = _compact_orchestrate_payload(payload) if args.summary_stdout else payload
-    print(json.dumps(stdout_payload, ensure_ascii=False, indent=2))
+    _safe_print(json.dumps(stdout_payload, ensure_ascii=False, indent=2), stream=sys.stdout)
     return 0 if ok else 1
 
 
