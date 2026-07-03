@@ -19,14 +19,19 @@ packets so each clean reviewer handles a narrower design judgment.`);
 
 const QUESTION_LENSES = [
   {
+    id: "spacing-padding",
+    title: "Spacing and padding",
+    headings: ["Space And Density", "Spacing And Padding Logic", "Surface Details And Badges"],
+  },
+  {
     id: "spatial-composition",
     title: "Spatial composition",
-    headings: ["Space And Density", "Composition", "Gestalt Grouping And Alignment", "Spatial Balance"],
+    headings: ["Composition", "Gestalt Grouping And Alignment", "Spatial Balance"],
   },
   {
     id: "content-typography",
     title: "Content and typography",
-    headings: ["Text Load", "Hierarchy And Typography", "Surface Details And Badges"],
+    headings: ["Text Load", "Hierarchy And Typography"],
   },
   {
     id: "information-model",

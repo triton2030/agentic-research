@@ -22,6 +22,29 @@ write `не проверено по скриншотам`.
 5. Does any content feel cramped against viewport edges, cards, toolbars, or
    neighboring elements?
 
+## Spacing And Padding Logic
+
+1. Do spacing and padding values look like a deliberate scale or token system,
+   or do they look like unrelated one-off numbers?
+2. Are related elements closer to each other than to unrelated elements, so
+   proximity supports the meaning instead of flattening all content into equal
+   distance?
+3. Do larger gaps clearly signal a section break, priority shift, or breathing
+   room, or do they create accidental holes between content that should stay
+   connected?
+4. Does each container's internal padding match its scale, density, corner
+   radius, and content weight?
+5. Are cards, pills, badges, chips, and buttons given enough inner breathing
+   room for their rounded corners, or do large radii make the content feel
+   pinched against the curved edges?
+6. Is the dashboard or dense surface using a chosen density mode, such as
+   compact, comfortable, or spacious, or is density changing randomly between
+   modules?
+7. Are gaps inside a semantic group smaller than gaps between groups, and are
+   section gaps larger than card/content gaps?
+8. Are touch or click targets visually large enough and separated enough for
+   their context, especially on mobile and dense dashboards?
+
 ## Text Load
 
 1. Is the screen overloaded with text for its job?
