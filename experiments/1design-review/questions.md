@@ -24,26 +24,30 @@ write `не проверено по скриншотам`.
 
 ## Spacing And Padding Logic
 
-1. Do spacing and padding values look like a deliberate scale or token system,
+1. For each spacing problem, is the right fix to add air, reduce dead air,
+   redistribute gaps, align/symmetrize edges, or standardize the rhythm?
+2. Do spacing and padding values look like a deliberate scale or token system,
    or do they look like unrelated one-off numbers?
-2. Are related elements closer to each other than to unrelated elements, so
+3. Are related elements closer to each other than to unrelated elements, so
    proximity supports the meaning instead of flattening all content into equal
    distance?
-3. Do larger gaps clearly signal a section break, priority shift, or breathing
+4. Do repeated cards, rows, sections, and controls follow a stable spacing
+   rhythm, or do similar blocks drift by a few pixels without intent?
+5. Are left/right and top/bottom insets symmetrical where symmetry is expected,
+   and intentionally asymmetrical where the composition needs it?
+6. Do larger gaps clearly signal a section break, priority shift, or breathing
    room, or do they create accidental holes between content that should stay
    connected?
-4. Does each container's internal padding match its scale, density, corner
+7. Does each container's internal padding match its scale, density, corner
    radius, and content weight?
-5. Are cards, pills, badges, chips, and buttons given enough inner breathing
+8. Are cards, pills, badges, chips, and buttons given enough inner breathing
    room for their rounded corners, or do large radii make the content feel
    pinched against the curved edges?
-6. Is the dashboard or dense surface using a chosen density mode, such as
+9. Is the dashboard or dense surface using a chosen density mode, such as
    compact, comfortable, or spacious, or is density changing randomly between
    modules?
-7. Are gaps inside a semantic group smaller than gaps between groups, and are
+10. Are gaps inside a semantic group smaller than gaps between groups, and are
    section gaps larger than card/content gaps?
-8. Are touch or click targets visually large enough and separated enough for
-   their context, especially on mobile and dense dashboards?
 
 ## Text Load
 
@@ -145,20 +149,20 @@ write `не проверено по скриншотам`.
 
 ## Surface Details And Badges
 
-1. Do badges, pills, chips, buttons, and small status elements have radius,
-   padding, height, and text size proportions that feel intentional?
-2. When a badge or pill has a large corner radius, is there enough inner padding
-   and vertical breathing room to support that radius?
-3. Do rounded corners on cards, panels, buttons, and badges match their scale and
-   internal spacing, or do they make the element feel pinched or inflated?
-4. Are borders, shadows, fills, and outlines consistent with the element's
+1. Do badges, pills, chips, buttons, and small status elements communicate
+   status, action, selection, or metadata clearly?
+2. Are local details crisp and proportionate to the component's role, or are
+   they visually louder than the information they support?
+3. Are borders, shadows, fills, and outlines consistent with the element's
    meaning and interaction state?
+4. Do hover, selected, disabled, loading, and inactive affordances look plausible
+   where they are visible?
 5. Do small decorative surfaces add useful status, grouping, or affordance, or
    do they create local noise that distracts from the content?
 
 ## Consistency And System Logic
 
-1. Are repeated colors, components, spacing values, borders, shadows, icons, and
+1. Are repeated colors, components, borders, shadows, icons, and
    typographic treatments used consistently for the same meaning?
 2. Do similar things look similar and different things look different enough?
 3. Are there one-off visual decisions that do not connect to the rest of the
@@ -248,10 +252,12 @@ write `не проверено по скриншотам`.
 2. For each fix, say whether it is a spacing, typography, layout, content,
    color, component, hierarchy, alignment, grouping, consistency, interaction,
    or responsive fix.
-3. Name the screenshots where the issue is visible.
-4. Say what should stay unchanged because it is already working.
-5. Say what would require another screenshot pass after implementation.
-6. If the biggest fix is structural, name the unsuitable design decision and the
+3. For spacing fixes, say whether the move is to add air, reduce dead air,
+   redistribute gaps, align/symmetrize edges, or standardize the rhythm.
+4. Name the screenshots where the issue is visible.
+5. Say what should stay unchanged because it is already working.
+6. Say what would require another screenshot pass after implementation.
+7. If the biggest fix is structural, name the unsuitable design decision and the
    better direction at the level of information architecture, not just CSS.
-7. If the screen is competent but boring, recommend one concrete creative
+8. If the screen is competent but boring, recommend one concrete creative
    direction, not only cleanup.

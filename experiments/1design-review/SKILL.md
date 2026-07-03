@@ -125,11 +125,13 @@ mis-targeted evidence.
 
 `scripts/run-clean-design-agent.sh` prepares `group-reviews/<task-id>/` and
 starts multiple `codex exec` reviewers with `--parallel 6` by default. It splits
-`questions.md` into focused design lenses, then runs those lenses against each
-2-3 screenshot group. This is intentionally more expensive than asking one
-reviewer to answer the whole question list, but it preserves judgment quality.
-After focused reviewers finish, an aggregate clean reviewer answers the full
-`questions.md` from their outputs.
+`questions.md` into focused, non-synthetic design lenses, then runs those lenses
+against each 2-3 screenshot group. Verdict and fix recommendations are aggregate
+only because they synthesize the focused reviewers instead of owning a separate
+visual lens. This is intentionally more expensive than asking one reviewer to
+answer the whole question list, but it preserves judgment quality. After focused
+reviewers finish, an aggregate clean reviewer answers the full `questions.md`
+from their outputs.
 
 Each focused reviewer sees:
 

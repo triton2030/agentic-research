@@ -19,13 +19,13 @@ packets so each clean reviewer handles a narrower design judgment.`);
 
 const QUESTION_LENSES = [
   {
-    id: "spacing-padding",
-    title: "Spacing and padding",
-    headings: ["Space And Density", "Spacing And Padding Logic", "Surface Details And Badges"],
+    id: "spacing-rhythm",
+    title: "Spacing rhythm",
+    headings: ["Space And Density", "Spacing And Padding Logic"],
   },
   {
-    id: "spatial-composition",
-    title: "Spatial composition",
+    id: "composition-alignment",
+    title: "Composition and alignment",
     headings: ["Composition", "Gestalt Grouping And Alignment", "Spatial Balance"],
   },
   {
@@ -36,7 +36,12 @@ const QUESTION_LENSES = [
   {
     id: "information-model",
     title: "Information model and attention",
-    headings: ["Visual Weight And Attention", "Information Model And Containers", "Consistency And System Logic"],
+    headings: ["Visual Weight And Attention", "Information Model And Containers"],
+  },
+  {
+    id: "system-components",
+    title: "System and components",
+    headings: ["Surface Details And Badges", "Consistency And System Logic"],
   },
   {
     id: "taste-creativity",
@@ -44,16 +49,18 @@ const QUESTION_LENSES = [
     headings: ["Visual Noise", "Brand And Taste", "Beauty And Creative Vitality"],
   },
   {
-    id: "states-responsive",
-    title: "States, mobile, and accessibility",
-    headings: ["Interaction States", "Mobile Scroll", "Responsiveness", "Accessibility From Visual Evidence"],
+    id: "interaction-accessibility",
+    title: "Interaction and accessibility",
+    headings: ["Interaction States", "Accessibility From Visual Evidence"],
   },
   {
-    id: "fixes",
-    title: "Fix recommendations",
-    headings: ["Fix Recommendations"],
+    id: "responsive-mobile",
+    title: "Responsive and mobile",
+    headings: ["Mobile Scroll", "Responsiveness"],
   },
 ];
+
+const AGGREGATE_ONLY_SECTIONS = new Set(["Verdict", "Fix Recommendations"]);
 
 function parseArgs(argv) {
   const options = {
@@ -280,7 +287,7 @@ function buildQuestionBundles(questionsMarkdown) {
     });
   }
 
-  const leftovers = parsed.sections.filter((section) => !usedTitles.has(section.title) && section.title !== "Verdict");
+  const leftovers = parsed.sections.filter((section) => !usedTitles.has(section.title) && !AGGREGATE_ONLY_SECTIONS.has(section.title));
   if (leftovers.length > 0) {
     bundles.push({
       id: "other",
