@@ -8,6 +8,9 @@ function usage() {
   prepare-design-review-groups.mjs --run-dir DIR --questions FILE [--url URL]
   prepare-design-review-groups.mjs --aggregate --run-dir DIR --questions FILE [--url URL]
 
+Options:
+  --brief FILE   Optional design direction brief. Default: <run-dir>/design-brief.md
+
 Builds per-group clean-agent prompts from manifest.json. Each review group must
 contain 2-3 screenshots because the main agent is expected to curate related
 evidence after inspecting the page. Questions are split into focused lens
@@ -51,6 +54,7 @@ function parseArgs(argv) {
   const options = {
     runDir: "",
     questions: "",
+    brief: "",
     url: "",
     aggregate: false,
   };
@@ -64,6 +68,10 @@ function parseArgs(argv) {
         break;
       case "--questions":
         options.questions = value ?? "";
+        index += 1;
+        break;
+      case "--brief":
+        options.brief = value ?? "";
         index += 1;
         break;
       case "--url":
@@ -87,7 +95,7 @@ function parseArgs(argv) {
   return options;
 }
 
-function groupPrompt({ manifest, group, shots, questionsMarkdown, url }) {
+function groupPrompt({ manifest, group, shots, questionsMarkdown, designBrief, url }) {
   const imageList = shots.map((shot) => shot.file).join("\n");
   const shotLedger = shots
     .map((shot) => `- ${shot.id}: ${shot.filename}; ${shot.profile}; y=${shot.y}; ${shot.labels?.join("; ") || ""}`)
@@ -105,6 +113,8 @@ Review this screenshot group only through the assigned question lens. Return
 concise findings that the aggregate design reviewer can use later. Do not answer
 the whole global questionnaire. Ground every claim in screenshot filenames or
 ids. If evidence is missing, say so. Output in Russian.
+If a design brief is provided, judge taste, creativity, and restraint against
+that intended character instead of pushing the screen toward generic neatness.
 
 Captured URL: ${url || manifest.url}
 Run directory: ${manifest.outDir}
@@ -125,6 +135,10 @@ ${shotLedger}
 <questions_markdown>
 ${questionsMarkdown}
 </questions_markdown>
+
+<design_brief>
+${designBrief || "No design brief was provided. Judge taste and creativity from the screenshots and product context only."}
+</design_brief>
 
 Return this shape:
 
@@ -147,7 +161,7 @@ Return this shape:
 `;
 }
 
-function aggregatePrompt({ manifest, groupOutputs, questionsMarkdown, url, reviewTasks }) {
+function aggregatePrompt({ manifest, groupOutputs, questionsMarkdown, designBrief, url, reviewTasks }) {
   return `You are a clean visual design aggregate reviewer.
 
 You are intentionally running from a neutral cwd. Do not search for or follow
@@ -160,6 +174,8 @@ Answer the questions in the same Markdown structure as the question contract.
 Be direct and critical. Ground claims in group ids and screenshot filenames.
 If a question was not covered by the screenshot groups, write
 \`не проверено по скриншотам\`. Output in Russian.
+If a design brief is provided, preserve the intended character when ranking
+fixes; do not flatten the design into generic cleanliness.
 
 Captured URL: ${url || manifest.url}
 Run directory: ${manifest.outDir}
@@ -169,6 +185,10 @@ Review tasks: ${reviewTasks.map((task) => `${task.id} (${task.focusTitle || "all
 <questions_markdown>
 ${questionsMarkdown}
 </questions_markdown>
+
+<design_brief>
+${designBrief || "No design brief was provided. Judge taste and creativity from the screenshots and product context only."}
+</design_brief>
 
 <manifest_summary>
 ${JSON.stringify(
@@ -194,6 +214,18 @@ ${groupOutputs}
 
 async function readJson(filePath) {
   return JSON.parse(await fs.readFile(filePath, "utf8"));
+}
+
+async function readOptionalDesignBrief(runDir, explicitBriefPath) {
+  const briefPath = explicitBriefPath || path.join(runDir, "design-brief.md");
+  try {
+    const stat = await fs.stat(briefPath);
+    if (!stat.isFile()) return "";
+    return (await fs.readFile(briefPath, "utf8")).trim();
+  } catch (error) {
+    if (error?.code === "ENOENT" && !explicitBriefPath) return "";
+    throw error;
+  }
 }
 
 function parseQuestionSections(markdown) {
@@ -269,6 +301,7 @@ async function prepareGroups(options) {
   const runDir = path.resolve(options.runDir);
   const manifest = await readJson(path.join(runDir, "manifest.json"));
   const questionsMarkdown = await fs.readFile(options.questions, "utf8");
+  const designBrief = await readOptionalDesignBrief(runDir, options.brief);
   const questionBundles = buildQuestionBundles(questionsMarkdown);
   if (!Array.isArray(manifest.groups) || manifest.groups.length === 0) {
     throw new Error("manifest has no review groups; run capture with --plan first");
@@ -304,7 +337,14 @@ async function prepareGroups(options) {
       await fs.writeFile(imagesPath, `${shots.map((shot) => shot.file).join("\n")}\n`, "utf8");
       await fs.writeFile(
         promptPath,
-        groupPrompt({ manifest, group: reviewTask, shots, questionsMarkdown: questionBundle.markdown, url: options.url }),
+        groupPrompt({
+          manifest,
+          group: reviewTask,
+          shots,
+          questionsMarkdown: questionBundle.markdown,
+          designBrief,
+          url: options.url,
+        }),
         "utf8",
       );
       groupEntries.push({
@@ -330,6 +370,7 @@ async function prepareAggregate(options) {
   const runDir = path.resolve(options.runDir);
   const manifest = await readJson(path.join(runDir, "manifest.json"));
   const questionsMarkdown = await fs.readFile(options.questions, "utf8");
+  const designBrief = await readOptionalDesignBrief(runDir, options.brief);
   const index = await readJson(path.join(runDir, "group-reviews", "index.json"));
   const outputs = [];
   for (const group of index.groups) {
@@ -342,6 +383,7 @@ async function prepareAggregate(options) {
       manifest,
       groupOutputs: outputs.join("\n\n---\n\n"),
       questionsMarkdown,
+      designBrief,
       url: options.url,
       reviewTasks: index.groups,
     }),

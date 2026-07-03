@@ -15,6 +15,7 @@ Runs clean Codex terminal design reviewers:
 Options:
   --run-dir DIR       Existing design-review run directory with manifest.json.
   --questions FILE    Markdown questions file.
+  --brief FILE        Optional design direction brief. Default: <run-dir>/design-brief.md if present.
   --url URL           Captured page URL, added to prompts.
   --model NAME        Codex model. Default: gpt-5.5.
   --effort LEVEL      model_reasoning_effort. Default: high.
@@ -34,6 +35,7 @@ die() {
 
 RUN_DIR=""
 QUESTIONS=""
+BRIEF=""
 URL=""
 MODEL="${DESIGN_REVIEW_MODEL:-gpt-5.5}"
 EFFORT="${DESIGN_REVIEW_EFFORT:-high}"
@@ -46,6 +48,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --run-dir) RUN_DIR="${2:-}"; shift 2 ;;
     --questions) QUESTIONS="${2:-}"; shift 2 ;;
+    --brief) BRIEF="${2:-}"; shift 2 ;;
     --url) URL="${2:-}"; shift 2 ;;
     --model) MODEL="${2:-}"; shift 2 ;;
     --effort) EFFORT="${2:-}"; shift 2 ;;
@@ -63,6 +66,10 @@ done
 [[ -n "$QUESTIONS" ]] || die "--questions is required"
 [[ -d "$RUN_DIR" ]] || die "run-dir not found: $RUN_DIR"
 [[ -f "$QUESTIONS" ]] || die "questions file not found: $QUESTIONS"
+if [[ -z "$BRIEF" && -f "$RUN_DIR/design-brief.md" ]]; then
+  BRIEF="$RUN_DIR/design-brief.md"
+fi
+[[ -z "$BRIEF" || -f "$BRIEF" ]] || die "brief file not found: $BRIEF"
 [[ "$PARALLEL" =~ ^[0-9]+$ ]] || die "--parallel must be a positive integer"
 [[ "$PARALLEL" -gt 0 ]] || die "--parallel must be > 0"
 [[ "$PROGRESS_INTERVAL" =~ ^[0-9]+$ ]] || die "--progress-interval must be a positive integer"
@@ -71,6 +78,9 @@ command -v codex >/dev/null 2>&1 || die "codex CLI not found"
 
 RUN_DIR="$(cd "$RUN_DIR" && pwd)"
 QUESTIONS="$(cd "$(dirname "$QUESTIONS")" && pwd)/$(basename "$QUESTIONS")"
+if [[ -n "$BRIEF" ]]; then
+  BRIEF="$(cd "$(dirname "$BRIEF")" && pwd)/$(basename "$BRIEF")"
+fi
 OUT_FILE="${OUT_FILE:-$RUN_DIR/design-review.md}"
 AUTH_SOURCE="${CODEX_AUTH_JSON:-$HOME/.codex/auth.json}"
 [[ -f "$AUTH_SOURCE" ]] || die "Codex auth file not found: $AUTH_SOURCE"
@@ -86,10 +96,14 @@ if (failures.length > 0) {
 }
 ' "$RUN_DIR" || die "manifest contains capture failures"
 
-GROUP_INDEX="$("$SCRIPT_DIR/prepare-design-review-groups.mjs" \
-  --run-dir "$RUN_DIR" \
-  --questions "$QUESTIONS" \
-  ${URL:+--url "$URL"})"
+prepare_group_args=(--run-dir "$RUN_DIR" --questions "$QUESTIONS")
+if [[ -n "$BRIEF" ]]; then
+  prepare_group_args+=(--brief "$BRIEF")
+fi
+if [[ -n "$URL" ]]; then
+  prepare_group_args+=(--url "$URL")
+fi
+GROUP_INDEX="$("$SCRIPT_DIR/prepare-design-review-groups.mjs" "${prepare_group_args[@]}")"
 PROGRESS_SCRIPT="$SCRIPT_DIR/design-review-progress.mjs"
 PROGRESS_MD="$("$PROGRESS_SCRIPT" init \
   --run-dir "$RUN_DIR" \
@@ -256,11 +270,14 @@ if [[ "$failures" -gt 0 ]]; then
   exit 1
 fi
 
-AGGREGATE_PROMPT="$("$SCRIPT_DIR/prepare-design-review-groups.mjs" \
-  --aggregate \
-  --run-dir "$RUN_DIR" \
-  --questions "$QUESTIONS" \
-  ${URL:+--url "$URL"})"
+prepare_aggregate_args=(--aggregate --run-dir "$RUN_DIR" --questions "$QUESTIONS")
+if [[ -n "$BRIEF" ]]; then
+  prepare_aggregate_args+=(--brief "$BRIEF")
+fi
+if [[ -n "$URL" ]]; then
+  prepare_aggregate_args+=(--url "$URL")
+fi
+AGGREGATE_PROMPT="$("$SCRIPT_DIR/prepare-design-review-groups.mjs" "${prepare_aggregate_args[@]}")"
 
 AGGREGATE_LOG="$RUN_DIR/aggregate-codex.log"
 progress_update stage --stage aggregate-review

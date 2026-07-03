@@ -17,6 +17,7 @@ Produce a design signoff from curated visual evidence:
 
 - the main agent first inspects the page and decides which moments matter;
 - screenshots are captured from a written `screenshot-plan.json`;
+- optional `design-brief.md` gives reviewers a positive taste/character target;
 - capture writes `capture-progress.md` and `capture-progress.json`;
 - each plan group contains 2-3 related screenshots;
 - multiple clean terminal Codex reviewers run in parallel by screenshot group
@@ -38,7 +39,11 @@ attached screenshots, manifest, group context, and question contract.
    2-3 related screenshots. For nontrivial pages, separate independent visual
    questions into separate groups; 4-8 groups is normal when the page has that
    much meaningful surface.
-3. Run:
+3. If the design has a desired character beyond "clean and correct", write a
+   short `<run-dir>/design-brief.md` or pass `--brief FILE`. Keep it concrete:
+   intended feeling, what must not be flattened, and 2-4 creative/taste
+   constraints. Skip it for ordinary utility checks.
+4. Run:
 
    ```bash
    /path/to/1design-review/scripts/design-review \
@@ -48,13 +53,13 @@ attached screenshots, manifest, group context, and question contract.
      --plan _workspace/design-review/design-pass/screenshot-plan.json
    ```
 
-4. During capture, watch the terminal heartbeat or open `capture-progress.md`.
+5. During capture, watch the terminal heartbeat or open `capture-progress.md`.
    If capture is slow, identify the running shot there before deciding whether
    to keep waiting, narrow the plan, or fix a selector/click.
-5. While the agents run, watch the runner heartbeat or open `progress.md` in the
+6. While the agents run, watch the runner heartbeat or open `progress.md` in the
    run directory. Do not poll group logs by hand unless progress reports a
    failure or stall.
-6. Read `design-review.md`, group logs, manifest, screenshot ledger, and
+7. Read `design-review.md`, group logs, manifest, screenshot ledger, and
    `progress.md`. Report both the design verdict and whether the evidence plan
    was sufficient.
 
@@ -99,7 +104,7 @@ evidence.
 Plan-first review:
 
 ```bash
-scripts/design-review --url URL --project PROJECT --plan PLAN_JSON
+scripts/design-review --url URL --project PROJECT --plan PLAN_JSON [--brief BRIEF_MD]
 ```
 
 Capture-only broad fallback:
@@ -130,6 +135,8 @@ Each focused reviewer sees:
 
 - only one screenshot group;
 - only one focused question lens;
+- optional design brief content when `--brief FILE` is passed or
+  `<run-dir>/design-brief.md` exists;
 - enough group context to ground findings in screenshot ids/files.
 
 The runner writes:

@@ -25,6 +25,7 @@ Options:
   --run-dir DIR              Existing or target run directory.
   --label NAME               Optional run label used in the directory name.
   --questions FILE           Markdown question contract. Default: skill questions.md.
+  --brief FILE               Optional design direction brief. Default: <run-dir>/design-brief.md if present.
   --interactions FILE        JSON interaction plan for clicked/expanded states.
   --profiles LIST            Comma-separated profiles. Default: desktop-1440,mobile-iphone,mobile-android.
   --settle-ms N              Wait after load/scroll/click. Default: 1200.
@@ -90,6 +91,7 @@ PLAN=""
 RUN_DIR=""
 LABEL=""
 QUESTIONS="$SKILL_DIR/questions.md"
+BRIEF=""
 INTERACTIONS=""
 PROFILES="desktop-1440,mobile-iphone,mobile-android"
 SETTLE_MS="1200"
@@ -113,6 +115,7 @@ while [[ $# -gt 0 ]]; do
     --run-dir) RUN_DIR="${2:-}"; shift 2 ;;
     --label) LABEL="${2:-}"; shift 2 ;;
     --questions) QUESTIONS="${2:-}"; shift 2 ;;
+    --brief) BRIEF="${2:-}"; shift 2 ;;
     --interactions) INTERACTIONS="${2:-}"; shift 2 ;;
     --profiles) PROFILES="${2:-}"; shift 2 ;;
     --settle-ms) SETTLE_MS="${2:-}"; shift 2 ;;
@@ -134,6 +137,7 @@ done
 [[ "$AUTO_CAPTURE" == "1" && -n "$PLAN" ]] && die "choose --plan or --auto-capture, not both"
 [[ "$AUTO_CAPTURE" == "1" && "$CAPTURE_ONLY" == "0" ]] && die "--auto-capture is capture-only fallback; write --plan for clean review"
 [[ -f "$QUESTIONS" ]] || die "questions file not found: $QUESTIONS"
+[[ -z "$BRIEF" || -f "$BRIEF" ]] || die "brief file not found: $BRIEF"
 [[ "$PARALLEL" =~ ^[0-9]+$ ]] || die "--parallel must be a positive integer"
 [[ "$PARALLEL" -gt 0 ]] || die "--parallel must be > 0"
 [[ "$PROGRESS_INTERVAL" =~ ^[0-9]+$ ]] || die "--progress-interval must be a positive integer"
@@ -179,6 +183,7 @@ fi
 printf '[design-review] project: %s\n' "$PROJECT"
 printf '[design-review] run_dir: %s\n' "$RUN_DIR"
 printf '[design-review] questions: %s\n' "$QUESTIONS"
+printf '[design-review] brief: %s\n' "${BRIEF:-"(none; auto-uses run-dir design-brief.md if present)"}"
 if [[ -n "$PLAN" ]]; then
   printf '[design-review] plan: %s\n' "$PLAN"
 fi
@@ -220,12 +225,21 @@ if [[ "$CAPTURE_ONLY" == "1" ]]; then
   exit 0
 fi
 
-"$SCRIPT_DIR/run-clean-design-agent.sh" \
-  --run-dir "$RUN_DIR" \
-  --questions "$QUESTIONS" \
-  --url "$URL" \
-  --model "$MODEL" \
-  --effort "$EFFORT" \
-  --max-images "$MAX_IMAGES" \
-  --parallel "$PARALLEL" \
+review_cmd=(
+  "$SCRIPT_DIR/run-clean-design-agent.sh"
+  --run-dir "$RUN_DIR"
+  --questions "$QUESTIONS"
+)
+if [[ -n "$BRIEF" ]]; then
+  review_cmd+=(--brief "$BRIEF")
+fi
+review_cmd+=(
+  --url "$URL"
+  --model "$MODEL"
+  --effort "$EFFORT"
+  --max-images "$MAX_IMAGES"
+  --parallel "$PARALLEL"
   --progress-interval "$PROGRESS_INTERVAL"
+)
+
+"${review_cmd[@]}"
