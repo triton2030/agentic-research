@@ -2,58 +2,70 @@
 
 Снимок на 28 апреля 2026.
 
-Здесь только платформенные наблюдения про Claude Code. Модельные различия для
-Opus 4.7 держит `knowledge/wisdom-claude-opus-4.7.md`; доменные выводы держим в
-`knowledge/research/{category}/`.
+Только platform-level поведение Claude Code.
+
+Opus 4.7 держит `knowledge/wisdom-claude-opus-4.7.md`.
+Доменные выводы — `knowledge/research/{category}/`.
+Skill deltas —
+`knowledge/practical-guides/how-to-write-skills/platform-deltas.md`.
+
+Главная рамка:
+Claude Code — reference-среда для внешнего контроля,
+packaging и управляемых agents,
+не просто chat/coding surface.
 
 ## Проверено
 
-- Claude Code особенно полезен как reference-среда для внешнего слоя контроля: hooks, approvals и ограничений на действия.
-- Hooks — наиболее наглядный путь вынести критические ограничения из текста prompt в слой исполнения.
-- Human approval в workflows с внешними действиями нужно трактовать как часть архитектуры, а не как необязательную UX-деталь.
-- Для Opus 4.7-specific scope, effort, tool policy и progress guidance читать
-  `knowledge/wisdom-claude-opus-4.7.md`.
-- В Claude Code свободные скиллы и plugin-скиллы — это разные слои упаковки: свободные видит модель, но не UI `/plugin`; plugin-скиллы имеют namespace, версию, источник и toggle.
-- Быстрый личный workflow разумно держать как свободный skill, а sharable и управляемую связку skills и agents — как plugin.
-- Raw user-said capture (`_ops/user-said/YYYY-MM-DD.md` или аналог в репо)
-  фиксирует важные цитаты пользователя без классификации в момент записи.
-  Превращение цитат в правила, инструкции или decisions — отдельным manual
-  проходом, не автономно агентом.
-- Self-learning capture слой должен быть связкой из трёх петель: read-before,
-  capture-after и periodic-prune. Любая из трёх без остальных деградирует файл:
-  без read — контекст не влияет, без capture — не обновляется, без prune —
-  превращается в мусор.
+### Control surface
+
+- Hooks выносят hard limits из prompt в execution layer.
+- Human approval для внешних действий — архитектурная граница, не UX-деталь.
+- Raw user-said capture (`_ops/user-said/YYYY-MM-DD.md` или аналог)
+  фиксирует цитаты без классификации;
+  rules/instructions/decisions — только manual pass.
+- Self-learning требует петлю
+  `read-before → capture-after → periodic-prune`;
+  убрать одну часть — слой деградирует.
+
+### Skills and plugins
+
+- Free skills видит модель, но не UI `/plugin`.
+  Plugin skills имеют namespace, version, source и toggle.
+- Быстрый личный workflow — free skill.
+  Sharable управляемая связка skills/agents/hooks/MCP/commands — plugin.
 
 ### Agent tool
 
-- Agent tool поддерживает специализированные `subagent_type`: `Explore` (поиск по кодовой базе), `Plan` (архитектурный дизайн), `general-purpose`, design-auditor-варианты и plugin-dev-варианты — у каждого свой набор инструментов.
-- Parallel agents включать только когда есть независимые файлы, evidence
-  streams или leaf implementation; модельная причина и anti-fan-out правило
-  живут в `knowledge/wisdom-claude-opus-4.7.md`.
-- Параллельные агенты запускаются в одном сообщении несколькими `Agent` tool call — они выполняются одновременно.
-- `run_in_background: true` — агент не блокирует ход работы; результат приходит уведомлением. Никакого polling или sleep.
-- `isolation: "worktree"` — создаётся изолированный git worktree; очищается автоматически, если агент не делал изменений.
-- Агент не видит текущий разговор. Промпт должен быть self-contained: пути к файлам, номера строк, что именно изменить, что уже проверено.
-- "Never delegate understanding": нельзя писать "по результатам исследования исправь баг" — агент получает конкретику, синтез остаётся в главном контексте.
-- Результат агента не виден пользователю напрямую — нужно явно пересказывать находки в текстовом ответе.
-- Subagent для исследования: `Explore` достаточно для поиска файлов по паттернам или ключевым словам; `general-purpose` — для многошаговых открытых исследований.
+- `subagent_type` выбирает tool surface:
+  `Explore` для codebase search,
+  `Plan` для архитектуры,
+  `general-purpose` для открытого исследования,
+  плюс design-auditor/plugin-dev варианты.
+- Parallel agents — только для независимых файлов,
+  evidence streams или leaf implementation;
+  запуск — несколькими `Agent` calls в одном сообщении.
+- `run_in_background: true` даёт уведомление, без polling/sleep.
+  `isolation: "worktree"` создаёт worktree и чистит его, если изменений не было.
+- Агент не видит текущий разговор;
+  prompt включает paths, lines, task и checked evidence.
+- Never delegate understanding:
+  главный контекст синтезирует;
+  агент получает конкретный search/change request.
+- Результат агента не виден пользователю напрямую — находки пересказать.
 
-### Deferred Tools
+### Deferred tools
 
-- Часть инструментов (TodoWrite, WebFetch, WebSearch, EnterPlanMode и др.) не загружена по умолчанию. Вызов без загрузки → `InputValidationError`.
-- Перед вызовом такого инструмента: `ToolSearch("select:ToolName")` — получить полную JSON-схему параметров.
-- Паттерн: `ToolSearch → получить схему → вызвать инструмент`.
+- `TodoWrite`, `WebFetch`, `WebSearch`, `EnterPlanMode`
+  и похожие tools могут не быть загружены.
+  Вызов без загрузки даёт `InputValidationError`.
+- Паттерн: `ToolSearch("select:ToolName") → schema → tool call`.
 
 ## Опоры
 
-- `knowledge/wisdom-claude-opus-4.7.md`
-  Модельный baseline для Opus 4.7.
-
-- https://docs.anthropic.com/en/docs/claude-code/hooks-guide
-  Практика hooks как внешнего слоя контроля.
-
-- https://docs.anthropic.com/en/docs/build-with-claude/computer-use
-  Approval, уровни риска и контроль внешних действий.
-
-- `/knowledge/practical-guides/how-to-write-skills/platform-deltas.md`
-  Операционная памятка по Claude Code skills, free skills и plugin packaging.
+- `knowledge/wisdom-claude-opus-4.7.md` — model-level baseline для Opus 4.7.
+- `knowledge/practical-guides/how-to-write-skills/platform-deltas.md` —
+  Claude Code skills, free skills и plugin packaging.
+- https://docs.anthropic.com/en/docs/claude-code/hooks-guide — hooks как внешний
+  слой контроля.
+- https://docs.anthropic.com/en/docs/build-with-claude/computer-use — approvals,
+  risk levels и контроль внешних действий.

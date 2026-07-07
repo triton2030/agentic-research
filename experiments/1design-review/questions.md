@@ -1,8 +1,35 @@
 # Design Review Questions
 
-Answer in Russian. Keep the structure below. Use screenshot filenames or
-manifest ids as evidence. If a question is not answerable from the screenshots,
-write `не проверено по скриншотам`.
+Answer in Russian. Aggregate reviews should keep the structure below. Focused
+group reviewers may use the runner's shorter output shape. Use screenshot
+filenames, manifest ids, or group ids as evidence. If a question is not
+answerable from the provided evidence, write `не проверено по скриншотам`.
+
+## Evidence And Severity Rules
+
+- Start from what is visible and its effect. Do not treat a question as proof
+  that the defect exists.
+- A finding is actionable only when the visible issue harms comprehension,
+  trust, task flow, responsiveness, accessibility, or the intended character.
+- Focused group reviewers see only 2-3 screenshots. For page-wide wording such
+  as "across the scroll", "system logic", or desktop/mobile consistency, answer
+  only for the attached group and mark global claims as not checkable.
+- Aggregate reviewers do not see images directly. Make page-wide claims only
+  when multiple group outputs show the same pattern; otherwise mark the broader
+  question as not checked.
+- If audience, primary action, or semantic priority is not provided, state the
+  assumption before judging it. Do not punish the design for an invented goal.
+- Treat visual measurements as visual risk, not measured fact. Contrast ratios,
+  exact spacing, tap target size, and line length need deterministic checks for
+  closure.
+- Deduplicate overlapping comments. One underlying visual problem should become
+  one finding, even if several sections mention it.
+- Severity rubric:
+  - high: blocks or seriously misleads the primary action, comprehension,
+    trust, accessibility, or mobile usability;
+  - medium: slows scanning, weakens hierarchy, creates repeated friction, or
+    makes the intended character noticeably weaker;
+  - low: polish issue with limited user-visible harm.
 
 ## Verdict
 

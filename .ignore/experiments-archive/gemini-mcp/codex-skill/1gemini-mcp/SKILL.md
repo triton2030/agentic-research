@@ -117,10 +117,10 @@ external review with Codex's own answer.
 
 ## References
 
-- Read [references/antigravity-cli-and-gemini-3.5-flash.md](references/antigravity-cli-and-gemini-3.5-flash.md)
+- Read [references/antigravity-cli-and-gemini-3.5-flash.md](antigravity-cli-and-gemini-3.5-flash.md)
   for current Antigravity CLI / Gemini 3.5 Flash calls and model-control limits.
-- Read [references/managed-runs-and-tmux.md](references/managed-runs-and-tmux.md)
+- Read [references/managed-runs-and-tmux.md](managed-runs-and-tmux.md)
   for role-fit, audit briefs, `run/peek/wait/result/kill`, tmux, timeout, or
   process-tail work.
-- Read [references/mcp-failure-handling.md](references/mcp-failure-handling.md)
+- Read [references/mcp-failure-handling.md](.ignore/experiments-archive/gemini-mcp/codex-skill/1gemini-mcp/references/mcp-failure-handling.md)
   when tools, backend/auth/config, direct recovery, or empty `text` fail.

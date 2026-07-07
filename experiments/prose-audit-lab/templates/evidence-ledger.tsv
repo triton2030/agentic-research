@@ -1,0 +1,2 @@
+claim_id	question_id	artifact_ref	modality	locator_type	locator	capture_ref	source_strength	source_role	text_excerpt	notes	anchor_quote
+CLAIM-001	Q-001	/path/or/url	markdown	line_range	12-18		self_canon	claim_anchor	short paraphrase or quote	why this source matters	optional verbatim fragment for load-bearing rows

@@ -26,6 +26,7 @@ Options:
   --label NAME               Optional run label used in the directory name.
   --questions FILE           Markdown question contract. Default: skill questions.md.
   --brief FILE               Optional design direction brief. Default: <run-dir>/design-brief.md if present.
+  --comments-ledger FILE     Optional project-local review-comment ledger for aggregate iteration memory.
   --interactions FILE        JSON interaction plan for clicked/expanded states.
   --profiles LIST            Comma-separated profiles. Default: desktop-1440,mobile-iphone,mobile-android.
   --settle-ms N              Wait after load/scroll/click. Default: 1200.
@@ -92,6 +93,7 @@ RUN_DIR=""
 LABEL=""
 QUESTIONS="$SKILL_DIR/questions.md"
 BRIEF=""
+COMMENTS_LEDGER=""
 INTERACTIONS=""
 PROFILES="desktop-1440,mobile-iphone,mobile-android"
 SETTLE_MS="1200"
@@ -116,6 +118,7 @@ while [[ $# -gt 0 ]]; do
     --label) LABEL="${2:-}"; shift 2 ;;
     --questions) QUESTIONS="${2:-}"; shift 2 ;;
     --brief) BRIEF="${2:-}"; shift 2 ;;
+    --comments-ledger) COMMENTS_LEDGER="${2:-}"; shift 2 ;;
     --interactions) INTERACTIONS="${2:-}"; shift 2 ;;
     --profiles) PROFILES="${2:-}"; shift 2 ;;
     --settle-ms) SETTLE_MS="${2:-}"; shift 2 ;;
@@ -176,6 +179,14 @@ if [[ -n "$PLAN" ]]; then
   [[ -f "$PLAN" ]] || die "plan file not found: $PLAN"
 fi
 
+if [[ -n "$COMMENTS_LEDGER" ]]; then
+  case "$COMMENTS_LEDGER" in
+    /*) ;;
+    *) COMMENTS_LEDGER="$PROJECT/$COMMENTS_LEDGER" ;;
+  esac
+  [[ -f "$COMMENTS_LEDGER" ]] || die "comments ledger not found: $COMMENTS_LEDGER"
+fi
+
 if [[ "$REVIEW_ONLY" == "1" && ! -d "$RUN_DIR" ]]; then
   die "--review-only requires an existing --run-dir"
 fi
@@ -184,6 +195,7 @@ printf '[design-review] project: %s\n' "$PROJECT"
 printf '[design-review] run_dir: %s\n' "$RUN_DIR"
 printf '[design-review] questions: %s\n' "$QUESTIONS"
 printf '[design-review] brief: %s\n' "${BRIEF:-"(none; auto-uses run-dir design-brief.md if present)"}"
+printf '[design-review] comments_ledger: %s\n' "${COMMENTS_LEDGER:-"(none)"}"
 if [[ -n "$PLAN" ]]; then
   printf '[design-review] plan: %s\n' "$PLAN"
 fi
@@ -232,6 +244,9 @@ review_cmd=(
 )
 if [[ -n "$BRIEF" ]]; then
   review_cmd+=(--brief "$BRIEF")
+fi
+if [[ -n "$COMMENTS_LEDGER" ]]; then
+  review_cmd+=(--comments-ledger "$COMMENTS_LEDGER")
 fi
 review_cmd+=(
   --url "$URL"

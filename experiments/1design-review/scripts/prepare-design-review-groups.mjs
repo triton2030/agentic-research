@@ -10,6 +10,8 @@ function usage() {
 
 Options:
   --brief FILE   Optional design direction brief. Default: <run-dir>/design-brief.md
+  --comments-ledger FILE
+                 Optional review-comment ledger, used only for aggregate iteration memory.
 
 Builds per-group clean-agent prompts from manifest.json. Each review group must
 contain 2-3 screenshots because the main agent is expected to curate related
@@ -60,13 +62,14 @@ const QUESTION_LENSES = [
   },
 ];
 
-const AGGREGATE_ONLY_SECTIONS = new Set(["Verdict", "Fix Recommendations"]);
+const AGGREGATE_ONLY_SECTIONS = new Set(["Verdict", "Fix Recommendations", "Evidence And Severity Rules"]);
 
 function parseArgs(argv) {
   const options = {
     runDir: "",
     questions: "",
     brief: "",
+    commentsLedger: "",
     url: "",
     aggregate: false,
   };
@@ -84,6 +87,10 @@ function parseArgs(argv) {
         break;
       case "--brief":
         options.brief = value ?? "";
+        index += 1;
+        break;
+      case "--comments-ledger":
+        options.commentsLedger = value ?? "";
         index += 1;
         break;
       case "--url":
@@ -127,6 +134,13 @@ the whole global questionnaire. Ground every claim in screenshot filenames or
 ids. If evidence is missing, say so. Output in Russian.
 If a design brief is provided, judge taste, creativity, and restraint against
 that intended character instead of pushing the screen toward generic neatness.
+Use local evidence only: if a question asks about full-page scroll, system-wide
+consistency, or desktop/mobile behavior beyond this group, answer only for the
+attached screenshots and mark the broader claim as not checkable. Start with the
+visible condition and user-visible effect; do not hunt for a defect just because
+the question names one. Severity means: high blocks or seriously misleads the
+primary action, comprehension, trust, accessibility, or mobile usability; medium
+creates repeated friction or weakens hierarchy/character; low is limited polish.
 
 Captured URL: ${url || manifest.url}
 Run directory: ${manifest.outDir}
@@ -173,7 +187,7 @@ Return this shape:
 `;
 }
 
-function aggregatePrompt({ manifest, groupOutputs, questionsMarkdown, designBrief, url, reviewTasks }) {
+function aggregatePrompt({ manifest, groupOutputs, questionsMarkdown, designBrief, commentsLedger, url, reviewTasks }) {
   return `You are a clean visual design aggregate reviewer.
 
 You are intentionally running from a neutral cwd. Do not search for or follow
@@ -188,6 +202,16 @@ If a question was not covered by the screenshot groups, write
 \`не проверено по скриншотам\`. Output in Russian.
 If a design brief is provided, preserve the intended character when ranking
 fixes; do not flatten the design into generic cleanliness.
+You cannot see the screenshots directly. Make page-wide or system-wide claims
+only from converging evidence across group outputs; otherwise mark them not
+checked. Deduplicate overlapping comments before ranking severity. Do not answer
+every subquestion at equal length: expand high/medium evidence-backed issues,
+keep low-risk or not-checkable answers compact.
+If a comments ledger is provided, use it as iteration memory, not as design law:
+map repeated findings to existing rows, treat fixed/rejected/deferred/routed rows
+as non-work unless fresh screenshot evidence contradicts the row, and propose
+new row candidates for durable new issues. Prepend a short "## Iteration Memory"
+section before the question sections when a ledger is provided.
 
 Captured URL: ${url || manifest.url}
 Run directory: ${manifest.outDir}
@@ -201,6 +225,10 @@ ${questionsMarkdown}
 <design_brief>
 ${designBrief || "No design brief was provided. Judge taste and creativity from the screenshots and product context only."}
 </design_brief>
+
+<comments_ledger>
+${commentsLedger || "No comments ledger was provided. Treat this as a first-pass review with no iteration memory."}
+</comments_ledger>
 
 <manifest_summary>
 ${JSON.stringify(
@@ -238,6 +266,11 @@ async function readOptionalDesignBrief(runDir, explicitBriefPath) {
     if (error?.code === "ENOENT" && !explicitBriefPath) return "";
     throw error;
   }
+}
+
+async function readOptionalCommentsLedger(explicitLedgerPath) {
+  if (!explicitLedgerPath) return "";
+  return (await fs.readFile(explicitLedgerPath, "utf8")).trim();
 }
 
 function parseQuestionSections(markdown) {
@@ -383,6 +416,7 @@ async function prepareAggregate(options) {
   const manifest = await readJson(path.join(runDir, "manifest.json"));
   const questionsMarkdown = await fs.readFile(options.questions, "utf8");
   const designBrief = await readOptionalDesignBrief(runDir, options.brief);
+  const commentsLedger = await readOptionalCommentsLedger(options.commentsLedger);
   const index = await readJson(path.join(runDir, "group-reviews", "index.json"));
   const outputs = [];
   for (const group of index.groups) {
@@ -396,6 +430,7 @@ async function prepareAggregate(options) {
       groupOutputs: outputs.join("\n\n---\n\n"),
       questionsMarkdown,
       designBrief,
+      commentsLedger,
       url: options.url,
       reviewTasks: index.groups,
     }),

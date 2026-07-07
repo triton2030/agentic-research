@@ -1,0 +1,7 @@
+role_id	raw_file	status	independence_label	notes
+md-scout	raw/md-scout.md	completed	role-heterogeneous	Native subagent 019f3c1d-6e13-7670-ba1a-bcba8d806bd1
+business-critic	raw/business-critic.md	completed	role-heterogeneous	Native subagent 019f3c1d-7a69-7802-847e-01efa879170e
+architecture-critic	raw/architecture-critic.md	completed	role-heterogeneous	Native subagent 019f3c1d-8625-7831-b406-50c0bc784e26
+local-defender	raw/local-defender.md	completed	main-authored-not-independent	Positive case, explicitly not independent
+auditor	raw/auditor.md	completed	role-heterogeneous	Native subagent 019f3c26-c1ac-73e0-8fe8-28c8c9502825; initially failed, blockers resolved in checks/auditor-resolution.md
+judge	report.md	completed	main-synthesis	Main-thread synthesis owner

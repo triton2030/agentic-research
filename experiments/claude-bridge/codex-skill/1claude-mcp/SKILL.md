@@ -174,5 +174,5 @@ uncontrolled raw `claude` command for work that needs observation or proof.
 - Read [references/managed-runs-and-relay.md](references/managed-runs-and-relay.md)
   for role-fit, audit briefs, `run/peek/wait/result/kill`, relay, timeout,
   logs, or process-tail work.
-- Read [references/mcp-failure-handling.md](references/mcp-failure-handling.md)
+- Read [references/mcp-failure-handling.md](experiments/claude-bridge/codex-skill/1claude-mcp/references/mcp-failure-handling.md)
   when tools, bridge/backend/auth/config, direct recovery, or relay text fail.

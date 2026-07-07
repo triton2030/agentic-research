@@ -18,6 +18,8 @@ Produce a design signoff from curated visual evidence:
 - the main agent first inspects the page and decides which moments matter;
 - screenshots are captured from a written `screenshot-plan.json`;
 - optional `design-brief.md` gives reviewers a positive taste/character target;
+- optional project-local comments ledger gives the aggregate reviewer iteration
+  memory without contaminating clean focused reviewers;
 - capture writes `capture-progress.md` and `capture-progress.json`;
 - each plan group contains 2-3 related screenshots;
 - multiple clean terminal Codex reviewers run in parallel by screenshot group
@@ -38,28 +40,36 @@ attached screenshots, manifest, group context, and question contract.
    Plan groups by judgment unit, not by scroll distance. Each group must contain
    2-3 related screenshots. For nontrivial pages, separate independent visual
    questions into separate groups; 4-8 groups is normal when the page has that
-   much meaningful surface.
-3. If the design has a desired character beyond "clean and correct", write a
+   much meaningful surface. Group purpose should name the visual question and,
+   when known, the user's intended action or decision.
+3. If this is a repeated pass or the project tracks reviewer comments, identify
+   the project-local comments ledger and pass it with `--comments-ledger FILE`.
+   Use a compact tracked owner when background worktrees must see it; keep
+   long screenshot/run evidence in ignored workspace files.
+4. If the design has a desired character beyond "clean and correct", write a
    short `<run-dir>/design-brief.md` or pass `--brief FILE`. Keep it concrete:
-   intended feeling, what must not be flattened, and 2-4 creative/taste
-   constraints. Skip it for ordinary utility checks.
-4. Run:
+   audience, primary action, intended feeling, what must not be flattened, and
+   2-4 creative/taste constraints. Skip it for ordinary utility checks.
+5. Run:
 
    ```bash
    /path/to/1design-review/scripts/design-review \
      --url http://localhost:3000 \
      --project "$PWD" \
      --label design-pass \
+     --comments-ledger _ops/design-review-agent-comments.md \
      --plan _workspace/design-review/design-pass/screenshot-plan.json
    ```
 
-5. During capture, watch the terminal heartbeat or open `capture-progress.md`.
+   Omit `--comments-ledger` when the project has no durable review-comment
+   memory.
+6. During capture, watch the terminal heartbeat or open `capture-progress.md`.
    If capture is slow, identify the running shot there before deciding whether
    to keep waiting, narrow the plan, or fix a selector/click.
-6. While the agents run, watch the runner heartbeat or open `progress.md` in the
+7. While the agents run, watch the runner heartbeat or open `progress.md` in the
    run directory. Do not poll group logs by hand unless progress reports a
    failure or stall.
-7. Read `design-review.md`, group logs, manifest, screenshot ledger, and
+8. Read `design-review.md`, group logs, manifest, screenshot ledger, and
    `progress.md`. Report both the design verdict and whether the evidence plan
    was sufficient.
 
@@ -106,6 +116,21 @@ Plan-first review:
 ```bash
 scripts/design-review --url URL --project PROJECT --plan PLAN_JSON [--brief BRIEF_MD]
 ```
+
+Lightweight follow-up after fixes or for open ledger rows:
+
+```bash
+scripts/design-review \
+  --url URL \
+  --project PROJECT \
+  --plan PLAN_JSON \
+  --comments-ledger PROJECT_LEDGER.md \
+  --questions /path/to/1design-review/references/follow-up-questions.md
+```
+
+Use follow-up mode for tight rechecks. Use the full `questions.md` fanout for
+milestone signoff, broad redesign review, or when new surface area is being
+judged.
 
 Capture-only broad fallback:
 
@@ -155,6 +180,30 @@ heartbeat.
 If any focused reviewer fails, stop and report the failed task and log path. Do
 not silently merge partial reviews into a final verdict.
 
+## Iteration Memory
+
+Clean focused reviewers are stateless by design. They must not inherit previous
+review passes, accepted fixes, rejected comments, implementation progress, or
+project code.
+
+The main agent owns iteration memory. For repeated passes on the same surface,
+use a project-local comments ledger with only durable decisions: issue, source
+run/screenshot, decision, reason, and the next evidence gate. Keep it
+project-independent in shape: ids and statuses are fine; project-specific design
+law belongs to that project's own design skill or instructions.
+
+Pass the ledger with `--comments-ledger FILE`. The runner sends it only to the
+aggregate reviewer, not the focused reviewers. The aggregate must map findings
+to existing rows, mark repeated closed/deferred/routed comments as non-work
+unless fresh screenshot evidence contradicts the row, and propose new row
+candidates instead of turning every reviewer sentence into a UI patch.
+
+Do not rely on reviewer repetition as progress tracking. If reviewers keep
+rediscovering the same class of issue, stop the loop and decide whether the row
+is fixed, rejected, deferred, routed, or still a real blocker. A
+`needs-final-pass` row should shape the next curated screenshot plan, not trigger
+blind micro-edits.
+
 ## Clean Runtime Boundary
 
 Each terminal reviewer uses a temporary `CODEX_HOME`, links only
@@ -189,6 +238,8 @@ For a real frontend, verify:
 - every focused review task produced a review;
 - `progress.md` reached `complete` or clearly names the failed stage;
 - the aggregate explicitly names uncovered questions.
+- follow-up runs use `references/follow-up-questions.md` only when the reviewed
+  surface is already narrowed by ledger rows or a specific post-fix question.
 
 ## Stop
 

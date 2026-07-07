@@ -1,0 +1,4 @@
+role_id	raw_file	status	independence_label	notes
+trace-auditor	raw/md-scout.md	pending	role-heterogeneous	Markdown evidence scout
+challenger	raw/business-critic.md	pending	role-heterogeneous	Refutation role
+judge	report.md	pending	main-synthesis	Synthesis owner

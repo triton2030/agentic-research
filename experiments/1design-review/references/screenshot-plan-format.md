@@ -7,7 +7,9 @@ Use this when writing `<project>/_workspace/design-review/<label>/screenshot-pla
 - `url` may be in the plan or passed by CLI.
 - `groups` is required.
 - Each group must contain 2-3 related screenshots.
-- Group by visual question, not by scroll distance.
+- Group by visual question, not by scroll distance. When known, include the
+  user's intended action or decision in the group purpose so reviewers do not
+  invent the semantic goal.
 - For nontrivial pages, create several groups when there are several independent
   visual questions. Four to eight groups is normal when the page has enough
   meaningful sections, responsive states, or interactions. Do not split groups
@@ -24,7 +26,7 @@ Use this when writing `<project>/_workspace/design-review/<label>/screenshot-pla
   "groups": [
     {
       "id": "first-fold-to-color",
-      "purpose": "Judge first viewport hierarchy and transition into token overview.",
+      "purpose": "Judge first viewport hierarchy and transition into token overview for a user deciding whether to keep reading.",
       "questions": ["hero hierarchy", "section bridge", "sticky header"],
       "shots": [
         {
