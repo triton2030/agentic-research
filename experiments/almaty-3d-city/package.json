@@ -1,0 +1,26 @@
+{
+  "name": "almaty-3d-city",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Mobile-first interactive 3D web app about Almaty.",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 5194",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 4194",
+    "test:smoke": "playwright test tests/smoke.spec.js --reporter=list --workers=1"
+  },
+  "dependencies": {
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.1",
+    "@vitejs/plugin-react": "^6.0.3",
+    "lucide-react": "^1.23.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "three": "^0.185.1",
+    "vite": "^8.1.4"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1"
+  }
+}
