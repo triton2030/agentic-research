@@ -40,6 +40,7 @@ from codex_defaults import (
     REASONING_EFFORTS,
     REVIEW_APPROVAL_MODE,
     REVIEW_SANDBOX,
+    resolve_codex_bin,
 )
 from codex_orchestrate_contract import UsageError, codex_status_value
 from codex_orchestrate_state import (
@@ -381,7 +382,7 @@ def main() -> int:
     if run_dir is not None:
         append_event(run_dir, "codex_start", mode=args.mode)
 
-    config = CodexConfig(cwd=str(project_cwd))
+    config = CodexConfig(cwd=str(project_cwd), codex_bin=resolve_codex_bin())
     started_monotonic = time.monotonic()
     heartbeat_stop, heartbeat_thread = start_heartbeat(
         run_dir,

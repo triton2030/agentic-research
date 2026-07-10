@@ -125,7 +125,7 @@ class CodexOrchestrateCliTests(unittest.TestCase):
             self.assertTrue(payload["dry_run"])
             self.assertFalse(payload["git"]["available"])
             self.assertEqual(payload["tasks"][0]["files"], ["a.md"])
-            self.assertEqual(payload["codex"]["model"], "gpt-5.5")
+            self.assertEqual(payload["codex"]["model"], "gpt-5.6-sol")
             self.assertEqual(payload["codex"]["effort"], "xhigh")
             self.assertEqual(payload["codex"]["worker_sandbox"], "workspace_write")
             self.assertEqual(payload["codex"]["worker_approval_mode"], "auto_review")
@@ -359,7 +359,7 @@ class CodexOrchestrateCliTests(unittest.TestCase):
                 run_dir.mkdir()
                 defaults = {
                     "cwd": str(root),
-                    "model": "gpt-5.5",
+                    "model": "gpt-5.6-sol",
                     "effort": "high",
                     "run_dir": run_dir,
                     "progress": {"completed": 0, "total": 1},

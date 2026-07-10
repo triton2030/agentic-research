@@ -14,7 +14,7 @@
   любого codex-процесса. Не убирай и не обходи — это защита от ухода на платный
   API. Любой новый вход (скрипт/режим) обязан звать его первым.
 - **Модель фиксируется backend-ом.** Default для всех Codex turns:
-  `model=gpt-5.5`, `effort=xhigh` (Extra High). Не полагайся только на
+  `model=gpt-5.6-sol`, `effort=xhigh` (Extra High). Не полагайся только на
   `~/.codex/config.toml`; если добавляешь новый вход, используй
   `codex_defaults.py` и передавай model/effort в `thread.run`.
 - **Ревьюер писать не должен.** `codex_review.py` — всегда `Sandbox.read_only` +
@@ -53,7 +53,7 @@
 ## Карта файлов
 
 - `cbcommon.py` — общая биллинг-гигиена (одна правда).
-- `codex_defaults.py` — общий runtime default: `gpt-5.5`, `xhigh`, sandbox и
+- `codex_defaults.py` — общий runtime default: `gpt-5.6-sol`, `xhigh`, sandbox и
   approval labels для ledger/docs, `BRIDGE_THREAD_EPHEMERAL`.
 - `codex_review.py` — консультант/ревьюер read-only. Default режим `task`:
   самодостаточное задание без транскрипта (вызов «как субагент»). Режимы

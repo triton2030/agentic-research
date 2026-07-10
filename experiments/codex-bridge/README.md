@@ -59,16 +59,30 @@ Desktop, и делит с ним `~/.codex`; без `ephemeral` каждый в�
 
 ## Модель и runtime-доступ
 
-Backend явно закрепляет Codex turn defaults: `model=gpt-5.5`,
+Backend явно закрепляет Codex turn defaults: `model=gpt-5.6-sol`,
 `effort=xhigh` (Extra High). Это больше не зависит от текущего
 `~/.codex/config.toml`; флаги `--model` и `--effort` остаются только для
 осознанного override.
 
-Это **потолок Codex под ChatGPT-биллингом**, проверено живым пробником
-2026-07-02: `--model gpt-5.5-pro` → `HTTP 400 — "The 'gpt-5.5-pro' model is
-not supported when using Codex with a ChatGPT account"`; шкала reasoning
-effort заканчивается на `xhigh`. «Мощнее» существует только через API-ключ —
-что ломает биллинг-инвариант, поэтому не вариант.
+Это текущий потолок под ChatGPT-биллингом, проверено живыми пробниками
+2026-07-10: `gpt-5.6-pro` и `gpt-5.6` (без суффикса) возвращают `HTTP 400 —
+"not supported when using Codex with a ChatGPT account"`; работает только
+`gpt-5.6-sol` — тот же model ID, что в живом `~/.codex/config.toml`.
+(Исторический probe 2026-07-02 аналогично отсёк `gpt-5.5-pro`.)
+
+**Codex binary.** `gpt-5.6-sol` требует более новый движок, чем пинит SDK:
+бандл-бинарь `codex-cli 0.137.0a4` (openai-codex 0.1.0b3) отвечает `HTTP 400 —
+"requires a newer version of Codex"`. Поэтому `resolve_codex_bin()` в
+`codex_defaults.py` подставляет в `CodexConfig.codex_bin` бинарь ChatGPT
+Desktop (`/Applications/ChatGPT.app/Contents/Resources/codex`, на 2026-07-10 —
+`0.144.0a4`; авто-обновляется вместе с приложением), с fallback на бандл SDK,
+если приложения нет. Fallback означает возврат старого движка — свежие модели
+на нём снова 400.
+
+Шкала reasoning effort для bridge заканчивается на `xhigh`: живой
+`config.toml` уже использует `ultra`, но wire-схема SDK (enum
+`ReasoningEffort`) его не знает — `ultra` режется pydantic-валидацией даже
+через `config_overrides` (проверено 2026-07-10). Появится в SDK — поднять.
 
 Нижний рабочий порог — `low`, и он enforced: `--effort` ниже (`minimal`/`none`)
 отсекается на валидации флагов (`REASONING_EFFORTS` в `codex_defaults.py`).
@@ -126,7 +140,7 @@ SDK тянет собственный пиннутый бинарь `codex`; о�
 #   --task "..."          задание для режима task (или позиционный аргумент)
 #   --project PATH        корень проекта (по умолчанию cwd)
 #   --transcript FILE     явный .jsonl (review/ask; по умолчанию — текущая сессия)
-#   --model gpt-5.5       default закреплён backend-ом
+#   --model gpt-5.6-sol   default закреплён backend-ом
 #   --effort xhigh        Extra High reasoning по умолчанию
 #   --run-dir PATH        свежий ledger/result каталог
 #   --summary-stdout      короткий JSON в stdout, полный ответ в final.md/result.json
@@ -198,7 +212,7 @@ echo '[
 # или из файла:
 .venv/bin/python codex_orchestrate.py --tasks tasks.json --project "$PWD"
 #   --dry-run               validate + ledger без запуска Codex
-#   --model gpt-5.5          default закреплён backend-ом
+#   --model gpt-5.6-sol      default закреплён backend-ом
 #   --effort xhigh           Extra High reasoning по умолчанию
 #   --summary-stdout         короткий JSON в stdout, полный result.json на диске
 #   --heartbeat-sec 120      heartbeat events во время Codex workers

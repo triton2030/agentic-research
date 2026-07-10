@@ -20,6 +20,7 @@ from codex_defaults import (
     REASONING_EFFORTS,
     WORKER_APPROVAL_MODE,
     WORKER_SANDBOX,
+    resolve_codex_bin,
 )
 from codex_orchestrate_contract import (
     TaskSpec,
@@ -165,7 +166,9 @@ async def _run_fleet(
             _heartbeat_loop(defaults["run_dir"], heartbeat_sec, time.monotonic(), defaults["progress"])
         )
     try:
-        async with AsyncCodex(CodexConfig(cwd=defaults["cwd"])) as codex:
+        async with AsyncCodex(
+            CodexConfig(cwd=defaults["cwd"], codex_bin=resolve_codex_bin())
+        ) as codex:
             return await asyncio.gather(*(_run_one(codex, sem, task, defaults) for task in tasks))
     finally:
         if heartbeat_task is not None:

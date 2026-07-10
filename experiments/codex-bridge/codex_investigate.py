@@ -33,6 +33,7 @@ from codex_defaults import (
     INVESTIGATE_APPROVAL_MODE,
     INVESTIGATE_SANDBOX,
     REASONING_EFFORTS,
+    resolve_codex_bin,
 )
 from codex_orchestrate_contract import UsageError, codex_status_value
 from codex_orchestrate_state import (
@@ -239,7 +240,7 @@ def main() -> int:
         thread_name="codex-investigate-heartbeat",
         profile="investigate",
     )
-    config = CodexConfig(cwd=str(out_dir))
+    config = CodexConfig(cwd=str(out_dir), codex_bin=resolve_codex_bin())
     try:
         with Codex(config) as codex:
             thread = codex.thread_start(

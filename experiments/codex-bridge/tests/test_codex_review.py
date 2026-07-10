@@ -135,7 +135,7 @@ class CodexReviewCliTests(unittest.TestCase):
             self.assertTrue(payload["dry_run"])
             self.assertEqual(payload["status"], "validated")
             self.assertEqual(payload["mode"], "ask")
-            self.assertEqual(payload["codex"]["model"], "gpt-5.5")
+            self.assertEqual(payload["codex"]["model"], "gpt-5.6-sol")
             self.assertEqual(payload["codex"]["effort"], "xhigh")
             self.assertTrue(payload["codex"]["thread_ephemeral"])
             self.assertNotIn("final_response", payload)

@@ -5,8 +5,25 @@ or import the Codex runtime.
 """
 from __future__ import annotations
 
-DEFAULT_CODEX_MODEL = "gpt-5.5"
+from pathlib import Path
+
+DEFAULT_CODEX_MODEL = "gpt-5.6-sol"
 DEFAULT_CODEX_EFFORT = "xhigh"
+
+# gpt-5.6-sol requires a newer codex binary than the SDK pins (0.1.0b3 pins
+# codex-cli 0.137.0a4 → HTTP 400 "requires a newer version of Codex"). The
+# ChatGPT desktop app bundles a current binary and auto-updates it, so the
+# bridge prefers it and falls back to the SDK bundle only if the app is gone
+# (verified live 2026-07-10: bundled 0.137.0a4 rejects the model, app binary
+# 0.144.0a4 serves it).
+CHATGPT_APP_CODEX_BIN = "/Applications/ChatGPT.app/Contents/Resources/codex"
+
+
+def resolve_codex_bin() -> str | None:
+    """Path to the preferred codex binary, or None for the SDK bundle."""
+    if Path(CHATGPT_APP_CODEX_BIN).is_file():
+        return CHATGPT_APP_CODEX_BIN
+    return None
 
 # Floor is "low": default turn tools (web_search/image_gen) reject lower
 # efforts at Codex runtime (HTTP 400), so "none"/"minimal" are cut here to fail
