@@ -33,6 +33,8 @@ from codex_defaults import (
     INVESTIGATE_APPROVAL_MODE,
     INVESTIGATE_SANDBOX,
     REASONING_EFFORTS,
+    SDK_BUNDLE_WARNING,
+    codex_bin_source,
     resolve_codex_bin,
 )
 from codex_orchestrate_contract import UsageError, codex_status_value
@@ -165,9 +167,14 @@ def main() -> int:
 
     prompt = build_prompt(task, project_cwd, out_dir)
     paths = _investigate_paths(run_dir, out_dir)
+    codex_bin = resolve_codex_bin()
+    if codex_bin is None:
+        print(SDK_BUNDLE_WARNING, file=sys.stderr)
     codex_runtime = {
         "model": args.model,
         "effort": args.effort,
+        "codex_bin": codex_bin,
+        "binary_source": codex_bin_source(codex_bin),
         "thread_ephemeral": BRIDGE_THREAD_EPHEMERAL,
     }
     (run_dir / "prompt.md").write_text(prompt, encoding="utf-8")
@@ -193,6 +200,7 @@ def main() -> int:
         print(
             f"[codex-bridge] DRY-RUN investigate project={project_cwd} out={out_dir} "
             f"model={args.model} effort={args.effort} "
+            f"binary={codex_runtime['binary_source']} "
             f"sandbox={INVESTIGATE_SANDBOX} approval={INVESTIGATE_APPROVAL_MODE}"
             + (f" | вырезаны из env: {', '.join(removed)}" if removed else " | env чист"),
             file=sys.stderr,
@@ -226,6 +234,7 @@ def main() -> int:
     print(
         f"[codex-bridge] profile=investigate project={project_cwd} out={out_dir} "
         f"model={args.model} effort={args.effort} "
+        f"binary={codex_runtime['binary_source']} "
         f"sandbox={INVESTIGATE_SANDBOX} approval={INVESTIGATE_APPROVAL_MODE}"
         + (f" | вырезаны из env: {', '.join(removed)}" if removed else " | env чист"),
         file=sys.stderr,
@@ -240,7 +249,7 @@ def main() -> int:
         thread_name="codex-investigate-heartbeat",
         profile="investigate",
     )
-    config = CodexConfig(cwd=str(out_dir), codex_bin=resolve_codex_bin())
+    config = CodexConfig(cwd=str(out_dir), codex_bin=codex_bin)
     try:
         with Codex(config) as codex:
             thread = codex.thread_start(

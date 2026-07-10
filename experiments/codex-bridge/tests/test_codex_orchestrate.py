@@ -54,10 +54,27 @@ def _install_fake_openai_codex(captured: dict) -> list[str]:
             captured.update(kwargs)
             return _FakeThread()
 
+    class _CodexConfig:
+        def __init__(self, **kwargs):  # noqa: ANN003
+            self.kwargs = kwargs
+            captured["codex_config"] = kwargs
+
+    class _AsyncCodex:
+        def __init__(self, config=None):  # noqa: ANN001
+            self.config = config
+
+        async def __aenter__(self):
+            return _FakeCodex()
+
+        async def __aexit__(self, *exc):  # noqa: ANN002
+            return False
+
     mod = types.ModuleType("openai_codex")
     mod.Sandbox = _Sandbox
     mod.ApprovalMode = _ApprovalMode
     mod.FakeCodex = _FakeCodex
+    mod.CodexConfig = _CodexConfig
+    mod.AsyncCodex = _AsyncCodex
     gen = types.ModuleType("openai_codex.generated")
     v2 = types.ModuleType("openai_codex.generated.v2_all")
     v2.ReasoningEffort = lambda value: value
@@ -373,6 +390,39 @@ class CodexOrchestrateCliTests(unittest.TestCase):
             self.assertIs(captured.get("ephemeral"), True)
             self.assertEqual(captured.get("sandbox"), "workspace_write")
             self.assertEqual(record["worker_status"], "completed")
+        finally:
+            for name in fake_names:
+                sys.modules.pop(name, None)
+
+    def test_run_fleet_passes_codex_bin_to_codex_config(self) -> None:
+        """SDK call contract: the fleet must launch Codex with the binary chosen
+        by resolve_codex_bin(); losing it silently reverts to the stale SDK
+        bundle that rejects the default model."""
+        import codex_orchestrate
+
+        captured: dict = {}
+        fake_names = _install_fake_openai_codex(captured)
+        try:
+            with self.temp_project() as tmp:
+                root = Path(tmp).resolve()
+                self.write(root, "a.md")
+                tasks = normalize_tasks(root, [{"id": "t1", "prompt": "hi", "files": ["a.md"]}])
+                run_dir = root / "run"
+                run_dir.mkdir()
+                defaults = {
+                    "cwd": str(root),
+                    "model": "gpt-5.6-sol",
+                    "effort": "high",
+                    "run_dir": run_dir,
+                    "codex_bin": "/fake/chatgpt/codex",
+                }
+                results = asyncio.run(
+                    codex_orchestrate._run_fleet(tasks, defaults, concurrency=1, heartbeat_sec=0)
+                )
+            self.assertEqual(results[0]["worker_status"], "completed")
+            self.assertEqual(
+                captured["codex_config"].get("codex_bin"), "/fake/chatgpt/codex"
+            )
         finally:
             for name in fake_names:
                 sys.modules.pop(name, None)

@@ -20,6 +20,8 @@ from codex_defaults import (
     REASONING_EFFORTS,
     WORKER_APPROVAL_MODE,
     WORKER_SANDBOX,
+    SDK_BUNDLE_WARNING,
+    codex_bin_source,
     resolve_codex_bin,
 )
 from codex_orchestrate_contract import (
@@ -167,7 +169,7 @@ async def _run_fleet(
         )
     try:
         async with AsyncCodex(
-            CodexConfig(cwd=defaults["cwd"], codex_bin=resolve_codex_bin())
+            CodexConfig(cwd=defaults["cwd"], codex_bin=defaults["codex_bin"])
         ) as codex:
             return await asyncio.gather(*(_run_one(codex, sem, task, defaults) for task in tasks))
     finally:
@@ -317,9 +319,14 @@ def main() -> int:
                 + ", ".join(dirty_overlap)
             )
 
+        codex_bin = resolve_codex_bin()
+        if codex_bin is None:
+            print(SDK_BUNDLE_WARNING, file=sys.stderr)
         codex_runtime = {
             "model": args.model,
             "effort": args.effort,
+            "codex_bin": codex_bin,
+            "binary_source": codex_bin_source(codex_bin),
             "worker_sandbox": WORKER_SANDBOX,
             "worker_approval_mode": WORKER_APPROVAL_MODE,
             "thread_ephemeral": BRIDGE_THREAD_EPHEMERAL,
@@ -372,13 +379,20 @@ def main() -> int:
     print(
         f"[orch] старт: {len(tasks)} задач, лимит {args.concurrency}, project={project}, "
         f"run_dir={run_dir}, model={args.model}, effort={args.effort}, "
+        f"binary={codex_runtime['binary_source']}, "
         f"sandbox={WORKER_SANDBOX}, approval={WORKER_APPROVAL_MODE}"
         + (f" | вырезано из env: {', '.join(removed)}" if removed else " | env чист"),
         file=sys.stderr,
     )
     append_event(run_dir, "codex_start", task_count=len(tasks))
 
-    defaults = {"cwd": str(project), "model": args.model, "effort": args.effort, "run_dir": run_dir}
+    defaults = {
+        "cwd": str(project),
+        "model": args.model,
+        "effort": args.effort,
+        "run_dir": run_dir,
+        "codex_bin": codex_bin,
+    }
     results = asyncio.run(_run_fleet(tasks, defaults, args.concurrency, args.heartbeat_sec))
 
     worker_status = "completed" if all(r["worker_status"] == "completed" for r in results) else "failed"

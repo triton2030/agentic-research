@@ -57,6 +57,7 @@ def _install_fake_openai_codex(captured: dict) -> list[str]:
     class _CodexConfig:
         def __init__(self, **kwargs):  # noqa: ANN003
             self.kwargs = kwargs
+            captured["codex_config"] = kwargs
 
     mod = types.ModuleType("openai_codex")
     mod.Sandbox = _Sandbox
@@ -190,6 +191,11 @@ class CodexReviewCliTests(unittest.TestCase):
             self.assertEqual(rc, 0)
             self.assertIs(captured.get("ephemeral"), True)
             self.assertEqual(captured.get("sandbox"), "read_only")
+            from codex_defaults import resolve_codex_bin
+
+            self.assertEqual(
+                captured["codex_config"].get("codex_bin"), resolve_codex_bin()
+            )
             self.assertIn("REVIEW-OK", buf.getvalue())
         finally:
             sys.argv = saved_argv
@@ -288,6 +294,11 @@ class CodexReviewCliTests(unittest.TestCase):
             self.assertEqual(rc, 0)
             self.assertIs(captured.get("ephemeral"), True)
             self.assertEqual(captured.get("sandbox"), "read_only")
+            from codex_defaults import resolve_codex_bin
+
+            self.assertEqual(
+                captured["codex_config"].get("codex_bin"), resolve_codex_bin()
+            )
             self.assertIn("REVIEW-OK", buf.getvalue())
         finally:
             sys.argv = saved_argv

@@ -25,6 +25,20 @@ def resolve_codex_bin() -> str | None:
         return CHATGPT_APP_CODEX_BIN
     return None
 
+
+def codex_bin_source(codex_bin: str | None) -> str:
+    """Ledger/stderr label for the engine the bridge is about to launch."""
+    return "chatgpt-app" if codex_bin else "sdk-bundle"
+
+
+# The fallback engine is not a silent equivalent: the default model fails on it.
+SDK_BUNDLE_WARNING = (
+    "[codex-bridge] ChatGPT.app не найден — запуск на бандл-бинаре SDK; "
+    f"default-модель {DEFAULT_CODEX_MODEL} на нём отвечает HTTP 400 "
+    "'requires a newer version of Codex' (поставь ChatGPT.app или передай "
+    "--model, который старый движок ещё знает)."
+)
+
 # Floor is "low": default turn tools (web_search/image_gen) reject lower
 # efforts at Codex runtime (HTTP 400), so "none"/"minimal" are cut here to fail
 # fast at flag validation. See README "Модель и runtime-доступ".

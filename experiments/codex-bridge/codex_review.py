@@ -40,6 +40,8 @@ from codex_defaults import (
     REASONING_EFFORTS,
     REVIEW_APPROVAL_MODE,
     REVIEW_SANDBOX,
+    SDK_BUNDLE_WARNING,
+    codex_bin_source,
     resolve_codex_bin,
 )
 from codex_orchestrate_contract import UsageError, codex_status_value
@@ -296,9 +298,14 @@ def main() -> int:
     transcript_name = transcript_path.name if transcript_path else "—"
     # Single source for the codex block written to every ledger payload, so the
     # audit owner (runs/) records thread_ephemeral uniformly: result["codex"].
+    codex_bin = resolve_codex_bin()
+    if codex_bin is None:
+        print(SDK_BUNDLE_WARNING, file=sys.stderr)
     codex_runtime = {
         "model": args.model,
         "effort": args.effort,
+        "codex_bin": codex_bin,
+        "binary_source": codex_bin_source(codex_bin),
         "thread_ephemeral": BRIDGE_THREAD_EPHEMERAL,
     }
     run_id: str | None = None
@@ -336,6 +343,7 @@ def main() -> int:
         print(f"[codex-bridge dry-run] транскрипт={transcript_name} "
               f"промпт={len(prompt)} симв. режим={args.mode} "
               f"model={args.model} effort={args.effort} "
+              f"binary={codex_runtime['binary_source']} "
               f"sandbox={REVIEW_SANDBOX} approval={REVIEW_APPROVAL_MODE}", file=sys.stderr)
         if run_dir is not None and run_id is not None and paths is not None:
             payload = {
@@ -375,6 +383,7 @@ def main() -> int:
         f"[codex-bridge] режим={args.mode} транскрипт={transcript_name} "
         f"({len(transcript_md)} симв.) project={project_cwd} "
         f"model={args.model} effort={args.effort} "
+        f"binary={codex_runtime['binary_source']} "
         f"sandbox={REVIEW_SANDBOX} approval={REVIEW_APPROVAL_MODE}"
         + (f" | вырезаны из env: {', '.join(removed)}" if removed else " | env чист"),
         file=sys.stderr,
@@ -382,7 +391,7 @@ def main() -> int:
     if run_dir is not None:
         append_event(run_dir, "codex_start", mode=args.mode)
 
-    config = CodexConfig(cwd=str(project_cwd), codex_bin=resolve_codex_bin())
+    config = CodexConfig(cwd=str(project_cwd), codex_bin=codex_bin)
     started_monotonic = time.monotonic()
     heartbeat_stop, heartbeat_thread = start_heartbeat(
         run_dir,

@@ -77,7 +77,10 @@ Backend явно закрепляет Codex turn defaults: `model=gpt-5.6-sol`,
 Desktop (`/Applications/ChatGPT.app/Contents/Resources/codex`, на 2026-07-10 —
 `0.144.0a4`; авто-обновляется вместе с приложением), с fallback на бандл SDK,
 если приложения нет. Fallback означает возврат старого движка — свежие модели
-на нём снова 400.
+на нём снова 400, поэтому он не молчаливый: entrypoint печатает
+`SDK_BUNDLE_WARNING` в stderr, а фактический движок фиксируется в ledger —
+`codex_bin` + `binary_source` (`chatgpt-app` | `sdk-bundle`) в блоке `codex`
+каждого manifest/result и в stderr-banner (`binary=…`).
 
 Шкала reasoning effort для bridge заканчивается на `xhigh`: живой
 `config.toml` уже использует `ultra`, но wire-схема SDK (enum
