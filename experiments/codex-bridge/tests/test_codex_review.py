@@ -11,6 +11,7 @@ import types
 import unittest
 import uuid
 from pathlib import Path
+from unittest import mock
 
 
 BACKEND = Path(__file__).resolve().parents[1]
@@ -186,15 +187,18 @@ class CodexReviewCliTests(unittest.TestCase):
                     "--transcript", str(transcript),
                 ]
                 buf = io.StringIO()
-                with contextlib.redirect_stdout(buf):
+                # Sentinel вместо среды: на машине без ChatGPT.app обе стороны
+                # сравнения были бы None и потеря kwarg осталась бы зелёной.
+                with contextlib.redirect_stdout(buf), mock.patch.object(
+                    codex_review, "resolve_codex_bin",
+                    return_value="/sentinel/chatgpt/codex",
+                ):
                     rc = codex_review.main()
             self.assertEqual(rc, 0)
             self.assertIs(captured.get("ephemeral"), True)
             self.assertEqual(captured.get("sandbox"), "read_only")
-            from codex_defaults import resolve_codex_bin
-
             self.assertEqual(
-                captured["codex_config"].get("codex_bin"), resolve_codex_bin()
+                captured["codex_config"].get("codex_bin"), "/sentinel/chatgpt/codex"
             )
             self.assertIn("REVIEW-OK", buf.getvalue())
         finally:
@@ -206,6 +210,48 @@ class CodexReviewCliTests(unittest.TestCase):
                     os.environ.pop(key, None)
                 else:
                     os.environ[key] = value
+    def test_sdk_bundle_fallback_warns_and_lands_in_ledger(self) -> None:
+        """Fallback contract: без ChatGPT.app entrypoint предупреждает в stderr,
+        а ledger фиксирует codex_bin=None + binary_source=sdk-bundle — тихий
+        откат на старый движок оставлял бы ложную runtime-картину."""
+        import codex_review
+        from codex_defaults import SDK_BUNDLE_WARNING
+
+        saved_argv = sys.argv[:]
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                transcript = root / "session.jsonl"
+                write_transcript(transcript)
+                run_dir = root / ".runs" / uuid.uuid4().hex
+                sys.argv = [
+                    "codex_review.py",
+                    "--mode", "ask",
+                    "--question", "dry?",
+                    "--project", str(root),
+                    "--transcript", str(transcript),
+                    "--dry-run",
+                    "--run-dir", str(run_dir),
+                    "--summary-stdout",
+                ]
+                out = io.StringIO()
+                err = io.StringIO()
+                with contextlib.redirect_stdout(out), contextlib.redirect_stderr(
+                    err
+                ), mock.patch.object(
+                    codex_review, "resolve_codex_bin", return_value=None
+                ):
+                    rc = codex_review.main()
+                result = json.loads(
+                    (run_dir / "result.json").read_text(encoding="utf-8")
+                )
+            self.assertEqual(rc, 0)
+            self.assertIn(SDK_BUNDLE_WARNING, err.getvalue())
+            self.assertIsNone(result["codex"]["codex_bin"])
+            self.assertEqual(result["codex"]["binary_source"], "sdk-bundle")
+        finally:
+            sys.argv = saved_argv
+
     def test_task_mode_needs_no_transcript(self) -> None:
         """Режим task (default) не подхватывает транскрипт: вызов проходит даже
         когда .jsonl сессии нет, а собранный prompt не содержит блока транскрипта."""
@@ -289,15 +335,18 @@ class CodexReviewCliTests(unittest.TestCase):
                     str(root),
                 ]
                 buf = io.StringIO()
-                with contextlib.redirect_stdout(buf):
+                # Sentinel вместо среды: на машине без ChatGPT.app обе стороны
+                # сравнения были бы None и потеря kwarg осталась бы зелёной.
+                with contextlib.redirect_stdout(buf), mock.patch.object(
+                    codex_review, "resolve_codex_bin",
+                    return_value="/sentinel/chatgpt/codex",
+                ):
                     rc = codex_review.main()
             self.assertEqual(rc, 0)
             self.assertIs(captured.get("ephemeral"), True)
             self.assertEqual(captured.get("sandbox"), "read_only")
-            from codex_defaults import resolve_codex_bin
-
             self.assertEqual(
-                captured["codex_config"].get("codex_bin"), resolve_codex_bin()
+                captured["codex_config"].get("codex_bin"), "/sentinel/chatgpt/codex"
             )
             self.assertIn("REVIEW-OK", buf.getvalue())
         finally:

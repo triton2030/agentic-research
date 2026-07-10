@@ -370,7 +370,11 @@ def main() -> int:
             "tasks": [task.to_json() for task in tasks],
         }
         write_json(run_dir / "result.json", payload)
-        print(f"[orch dry-run] {len(tasks)} tasks, concurrency={args.concurrency}, run_dir={run_dir}", file=sys.stderr)
+        print(
+            f"[orch dry-run] {len(tasks)} tasks, concurrency={args.concurrency}, "
+            f"run_dir={run_dir}, binary={codex_runtime['binary_source']}",
+            file=sys.stderr,
+        )
         stdout_payload = _compact_orchestrate_payload(payload) if args.summary_stdout else payload
         print(json.dumps(stdout_payload, ensure_ascii=False, indent=2))
         return 0

@@ -10,6 +10,7 @@ import types
 import unittest
 import uuid
 from pathlib import Path
+from unittest import mock
 
 BACKEND = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(BACKEND))
@@ -79,7 +80,6 @@ class CodexInvestigateSdkContractTests(unittest.TestCase):
         launches Codex with the resolve_codex_bin() engine, and the ledger
         records which binary source served the run."""
         import codex_investigate
-        from codex_defaults import codex_bin_source, resolve_codex_bin
 
         captured: dict = {}
         fake_names = _install_fake_openai_codex(captured)
@@ -98,18 +98,21 @@ class CodexInvestigateSdkContractTests(unittest.TestCase):
                     "--heartbeat-sec", "0",
                 ]
                 buf = io.StringIO()
-                with contextlib.redirect_stdout(buf):
+                # Sentinel вместо среды: на машине без ChatGPT.app обе стороны
+                # сравнения были бы None и потеря kwarg осталась бы зелёной.
+                with contextlib.redirect_stdout(buf), mock.patch.object(
+                    codex_investigate, "resolve_codex_bin",
+                    return_value="/sentinel/chatgpt/codex",
+                ):
                     rc = codex_investigate.main()
                 result = json.loads((run_dir / "result.json").read_text(encoding="utf-8"))
             self.assertEqual(rc, 0)
             self.assertIs(captured.get("ephemeral"), True)
             self.assertEqual(captured.get("sandbox"), "workspace_write")
-            expected_bin = resolve_codex_bin()
+            expected_bin = "/sentinel/chatgpt/codex"
             self.assertEqual(captured["codex_config"].get("codex_bin"), expected_bin)
             self.assertEqual(result["codex"]["codex_bin"], expected_bin)
-            self.assertEqual(
-                result["codex"]["binary_source"], codex_bin_source(expected_bin)
-            )
+            self.assertEqual(result["codex"]["binary_source"], "chatgpt-app")
             self.assertIn("INVESTIGATE-OK", buf.getvalue())
         finally:
             sys.argv = saved_argv

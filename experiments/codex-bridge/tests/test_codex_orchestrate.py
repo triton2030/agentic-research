@@ -147,6 +147,12 @@ class CodexOrchestrateCliTests(unittest.TestCase):
             self.assertEqual(payload["codex"]["worker_sandbox"], "workspace_write")
             self.assertEqual(payload["codex"]["worker_approval_mode"], "auto_review")
             self.assertTrue(payload["codex"]["thread_ephemeral"])
+            # Значение зависит от машины (есть ли ChatGPT.app) — контракт в том,
+            # что dry-run ledger вообще фиксирует источник движка.
+            self.assertIn(
+                payload["codex"]["binary_source"], ("chatgpt-app", "sdk-bundle")
+            )
+            self.assertIn("binary=", proc.stderr)
 
     def test_summary_stdout_is_compact_but_result_json_keeps_plan(self) -> None:
         with self.temp_project() as tmp:
