@@ -32,7 +32,10 @@ def _install_fake_openai_codex(captured: dict) -> list[str]:
         auto_review = "auto_review"
 
     class _FakeThread:
+        id = "thread-fake-1"
+
         def run(self, prompt, **kwargs):  # noqa: ANN001
+            captured["run_prompt"] = prompt
             return types.SimpleNamespace(
                 error=None,
                 status="completed",
@@ -52,6 +55,12 @@ def _install_fake_openai_codex(captured: dict) -> list[str]:
             return False
 
         def thread_start(self, **kwargs):  # noqa: ANN003
+            captured["thread_start_called"] = True
+            captured.update(kwargs)
+            return _FakeThread()
+
+        def thread_resume(self, thread_id, **kwargs):  # noqa: ANN001, ANN003
+            captured["resumed_thread_id"] = thread_id
             captured.update(kwargs)
             return _FakeThread()
 
@@ -210,6 +219,81 @@ class CodexReviewCliTests(unittest.TestCase):
                     os.environ.pop(key, None)
                 else:
                     os.environ[key] = value
+    def test_dialog_starts_persistent_thread(self) -> None:
+        """--dialog обязан выключить ephemeral (resume работает только по rollout
+        на диске) и объявить thread_id в stderr — иначе диалог не продолжить."""
+        import codex_review
+
+        captured: dict = {}
+        fake_names = _install_fake_openai_codex(captured)
+        saved_argv = sys.argv[:]
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                sys.argv = [
+                    "codex_review.py",
+                    "--task", "вопрос советнику",
+                    "--project", tmp,
+                    "--dialog",
+                ]
+                out, err = io.StringIO(), io.StringIO()
+                with contextlib.redirect_stdout(out), contextlib.redirect_stderr(
+                    err
+                ), mock.patch.object(
+                    codex_review, "resolve_codex_bin",
+                    return_value="/sentinel/chatgpt/codex",
+                ):
+                    rc = codex_review.main()
+            self.assertEqual(rc, 0)
+            self.assertIs(captured.get("ephemeral"), False)
+            self.assertIn("thread_id=thread-fake-1", err.getvalue())
+            self.assertIn("--continue thread-fake-1", err.getvalue())
+        finally:
+            sys.argv = saved_argv
+            for name in fake_names:
+                sys.modules.pop(name, None)
+
+    def test_continue_resumes_thread_without_role_wrap(self) -> None:
+        """--continue должен звать thread_resume с переданным id и слать реплику
+        как есть: повторная обёртка TASK_ROLE ломала бы диалог сменой роли."""
+        import codex_review
+
+        captured: dict = {}
+        fake_names = _install_fake_openai_codex(captured)
+        saved_argv = sys.argv[:]
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                sys.argv = [
+                    "codex_review.py",
+                    "--task", "уточни пункт два",
+                    "--project", tmp,
+                    "--continue", "thread-abc",
+                ]
+                out = io.StringIO()
+                with contextlib.redirect_stdout(out), contextlib.redirect_stderr(
+                    io.StringIO()
+                ), mock.patch.object(
+                    codex_review, "resolve_codex_bin",
+                    return_value="/sentinel/chatgpt/codex",
+                ):
+                    rc = codex_review.main()
+            self.assertEqual(rc, 0)
+            self.assertEqual(captured.get("resumed_thread_id"), "thread-abc")
+            self.assertNotIn("thread_start_called", captured)
+            self.assertEqual(captured.get("run_prompt"), "уточни пункт два")
+        finally:
+            sys.argv = saved_argv
+            for name in fake_names:
+                sys.modules.pop(name, None)
+
+    def test_continue_rejects_transcript_modes(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            transcript = root / "session.jsonl"
+            write_transcript(transcript)
+            proc = run_review(root, transcript, "--continue", "thread-abc")
+            self.assertEqual(proc.returncode, 2)
+            self.assertIn("--continue несовместим", proc.stderr)
+
     def test_sdk_bundle_fallback_warns_and_lands_in_ledger(self) -> None:
         """Fallback contract: без ChatGPT.app entrypoint предупреждает в stderr,
         а ledger фиксирует codex_bin=None + binary_source=sdk-bundle — тихий

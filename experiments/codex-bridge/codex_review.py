@@ -258,6 +258,17 @@ def main() -> int:
     parser.add_argument("--summary-stdout", action="store_true", help="Print compact JSON to stdout; full data is written to --run-dir.")
     parser.add_argument("--heartbeat-sec", type=int, default=120, help="Seconds between ledger heartbeat events; 0 disables.")
     parser.add_argument("--dry-run", action="store_true", help="Собрать промпт и вывести его, НЕ вызывая Codex (не тратит кредиты).")
+    parser.add_argument(
+        "--dialog",
+        action="store_true",
+        help="Персистентный тред: thread_id в ledger/stderr, разговор можно продолжить через --continue (след в Desktop-истории).",
+    )
+    parser.add_argument(
+        "--continue",
+        dest="continue_thread",
+        metavar="THREAD_ID",
+        help="Продолжить существующий тред: задание уходит следующей репликой, роль и контекст уже в треде.",
+    )
     args = parser.parse_args()
 
     # Задание/вопрос берём из любого источника, чтобы вызов не падал из-за того,
@@ -269,6 +280,12 @@ def main() -> int:
         return 2
     if args.mode == "ask" and not payload:
         print("Режим ask требует --question (или --task / позиционный аргумент).", file=sys.stderr)
+        return 2
+    if args.continue_thread and args.mode != "task":
+        print(
+            "--continue несовместим с --mode review/ask: тред уже несёт контекст, транскрипт не подмешивается.",
+            file=sys.stderr,
+        )
         return 2
     if args.heartbeat_sec < 0:
         print("--heartbeat-sec must be >= 0.", file=sys.stderr)
@@ -296,19 +313,28 @@ def main() -> int:
             tail = transcript_md[-(args.max_chars * 4 // 5):]
             transcript_md = f"{head}\n\n… [середина транскрипта оборвана для бюджета] …\n\n{tail}"
 
-    prompt = build_prompt(args.mode, transcript_md, payload)
+    if args.continue_thread:
+        # Продолжение диалога: роль и контекст первой реплики уже в треде.
+        prompt = payload
+    else:
+        prompt = build_prompt(args.mode, transcript_md, payload)
     transcript_name = transcript_path.name if transcript_path else "—"
     # Single source for the codex block written to every ledger payload, so the
     # audit owner (runs/) records thread_ephemeral uniformly: result["codex"].
     codex_bin = resolve_codex_bin()
     if codex_bin is None:
         print(SDK_BUNDLE_WARNING, file=sys.stderr)
+    # Диалог требует персистентный тред: resume работает только по rollout на
+    # диске («no rollout found» для эфемерных — проверено живым пробником).
+    thread_persistent = bool(args.dialog or args.continue_thread)
     codex_runtime = {
         "model": args.model,
         "effort": args.effort,
         "codex_bin": codex_bin,
         "binary_source": codex_bin_source(codex_bin),
-        "thread_ephemeral": BRIDGE_THREAD_EPHEMERAL,
+        "thread_ephemeral": BRIDGE_THREAD_EPHEMERAL and not thread_persistent,
+        "thread_persistent": thread_persistent,
+        "resumed_from_thread": args.continue_thread,
     }
     run_id: str | None = None
     run_dir: Path | None = None
@@ -404,13 +430,36 @@ def main() -> int:
     )
     try:
         with Codex(config) as codex:
-            thread = codex.thread_start(
-                cwd=str(project_cwd),
-                sandbox=Sandbox.read_only,
-                approval_mode=ApprovalMode.deny_all,
-                model=args.model,
-                ephemeral=BRIDGE_THREAD_EPHEMERAL,
-            )
+            if args.continue_thread:
+                thread = codex.thread_resume(
+                    args.continue_thread,
+                    cwd=str(project_cwd),
+                    sandbox=Sandbox.read_only,
+                    approval_mode=ApprovalMode.deny_all,
+                    model=args.model,
+                )
+            else:
+                thread = codex.thread_start(
+                    cwd=str(project_cwd),
+                    sandbox=Sandbox.read_only,
+                    approval_mode=ApprovalMode.deny_all,
+                    model=args.model,
+                    ephemeral=codex_runtime["thread_ephemeral"],
+                )
+            codex_runtime["thread_id"] = getattr(thread, "id", None)
+            if thread_persistent:
+                print(
+                    f"[codex-bridge] thread_id={codex_runtime['thread_id']} "
+                    f"(persistent; продолжение: --continue {codex_runtime['thread_id']})",
+                    file=sys.stderr,
+                )
+                if run_dir is not None:
+                    append_event(
+                        run_dir,
+                        "thread",
+                        thread_id=codex_runtime["thread_id"],
+                        persistent=True,
+                    )
             result = thread.run(
                 prompt,
                 model=args.model,

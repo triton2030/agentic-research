@@ -139,6 +139,10 @@ SDK тянет собственный пиннутый бинарь `codex`; о�
 # Вопрос «по нашему диалогу» (нужен транскрипт):
 .venv/bin/python codex_review.py --mode ask --question "Где здесь дыра в подходе?"
 
+# Диалог: персистентный тред → уточнения/возражения следующей репликой:
+.venv/bin/python codex_review.py "ВОПРОС СОВЕТНИКУ" --dialog        # печатает thread_id
+.venv/bin/python codex_review.py "УТОЧНЕНИЕ" --continue THREAD_ID   # контекст цел
+
 # Полезные флаги:
 #   --task "..."          задание для режима task (или позиционный аргумент)
 #   --project PATH        корень проекта (по умолчанию cwd)
@@ -151,6 +155,8 @@ SDK тянет собственный пиннутый бинарь `codex`; о�
 #   --include-thinking    добавить блоки размышлений Claude (review/ask)
 #   --max-chars N         бюджет транскрипта (review/ask; хвост сохраняется)
 #   --dry-run             собрать промпт без вызова Codex (бесплатно)
+#   --dialog              персистентный тред: thread_id в stderr/ledger, можно --continue
+#   --continue THREAD_ID  следующая реплика в существующий тред (только task-режим)
 ```
 
 Режим `task` (default) транскрипт не подхватывает — это и есть смысл: вызов «как
@@ -161,6 +167,14 @@ SDK тянет собственный пиннутый бинарь `codex`; о�
 
 Если задан `--run-dir`, reviewer пишет `manifest.json`, `events.jsonl`,
 `prompt.md`, `result.json`, а после реального Codex-run-а — `final.md`.
+
+Диалог (`--dialog` / `--continue`) — исключение из ephemeral-дефолта: resume
+работает только по rollout на диске (эфемерный тред → «no rollout found»,
+проверено живыми пробниками 2026-07-12), поэтому диалоговые треды персистентны
+и видны в Desktop-истории. Ledger фиксирует `thread_id`, `thread_persistent`,
+`resumed_from_thread`; sandbox/approval переприбиваются на каждом turn'е —
+resume не ослабляет read-only. Реплика в `--continue` уходит без повторной
+обёртки ролью: роль и контекст уже в треде.
 
 ## Исследователь
 
