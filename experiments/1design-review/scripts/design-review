@@ -15,7 +15,7 @@ Usage:
 Captures UI screenshot evidence into:
   <project>/_workspace/design-review/<timestamp>-<label>/
 
-Then runs multiple clean terminal Codex design reviewers over 2-3 screenshot groups.
+Without --capture-only, runs clean terminal Codex reviewers over planned 2-3 screenshot groups.
 
 Options:
   --url URL                  Live page URL to capture.
@@ -32,9 +32,9 @@ Options:
   --settle-ms N              Wait after load/scroll/click. Default: 1200.
   --max-shots-per-profile N  Capture cap per profile before interactions. Default: 36.
   --max-images N             Images attached to the clean agent. Default: 28.
-  --parallel N               Group reviewers to run at once. Default: 6.
+  --parallel N               Focused reviewers to run at once. Default: 3.
   --progress-interval N      Seconds between review progress heartbeats. Default: 10.
-  --model NAME               Codex model for clean reviewer. Default: gpt-5.5.
+  --model NAME               Codex model for clean reviewer. Default: gpt-5.6-sol.
   --effort LEVEL             model_reasoning_effort. Default: high.
   --capture-only             Only capture screenshots and ledgers.
   --review-only              Only run the clean reviewer on an existing run-dir.
@@ -99,9 +99,9 @@ PROFILES="desktop-1440,mobile-iphone,mobile-android"
 SETTLE_MS="1200"
 MAX_SHOTS_PER_PROFILE="36"
 MAX_IMAGES="28"
-PARALLEL="6"
+PARALLEL="3"
 PROGRESS_INTERVAL="10"
-MODEL="${DESIGN_REVIEW_MODEL:-gpt-5.5}"
+MODEL="${DESIGN_REVIEW_MODEL:-gpt-5.6-sol}"
 EFFORT="${DESIGN_REVIEW_EFFORT:-high}"
 CAPTURE_ONLY=0
 REVIEW_ONLY=0

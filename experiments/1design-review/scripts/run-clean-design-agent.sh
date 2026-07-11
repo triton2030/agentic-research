@@ -19,9 +19,9 @@ Options:
   --comments-ledger FILE
                      Optional project-local review-comment ledger, passed only to the aggregate reviewer.
   --url URL           Captured page URL, added to prompts.
-  --model NAME        Codex model. Default: gpt-5.5.
+  --model NAME        Codex model. Default: gpt-5.6-sol.
   --effort LEVEL      model_reasoning_effort. Default: high.
-  --parallel N        Focused reviewers to run at once. Default: 6.
+  --parallel N        Focused reviewers to run at once. Default: 3.
   --progress-interval N
                      Seconds between progress heartbeats. Default: 10.
   --out FILE          Aggregate output markdown. Default: <run-dir>/design-review.md.
@@ -40,9 +40,9 @@ QUESTIONS=""
 BRIEF=""
 COMMENTS_LEDGER=""
 URL=""
-MODEL="${DESIGN_REVIEW_MODEL:-gpt-5.5}"
+MODEL="${DESIGN_REVIEW_MODEL:-gpt-5.6-sol}"
 EFFORT="${DESIGN_REVIEW_EFFORT:-high}"
-PARALLEL="6"
+PARALLEL="3"
 PROGRESS_INTERVAL="10"
 OUT_FILE=""
 DRY_RUN=0
