@@ -36,6 +36,7 @@ def _install_fake_openai_codex(captured: dict) -> list[str]:
 
         def run(self, prompt, **kwargs):  # noqa: ANN001
             captured["run_prompt"] = prompt
+            captured["run_kwargs"] = dict(kwargs)
             return types.SimpleNamespace(
                 error=None,
                 status="completed",
@@ -61,6 +62,7 @@ def _install_fake_openai_codex(captured: dict) -> list[str]:
 
         def thread_resume(self, thread_id, **kwargs):  # noqa: ANN001, ANN003
             captured["resumed_thread_id"] = thread_id
+            captured["thread_resume_kwargs"] = dict(kwargs)
             captured.update(kwargs)
             return _FakeThread()
 
@@ -83,6 +85,12 @@ def _install_fake_openai_codex(captured: dict) -> list[str]:
     sys.modules["openai_codex.generated"] = gen
     sys.modules["openai_codex.generated.v2_all"] = v2
     return names
+
+
+def _seed_dialog_registry(project: Path, thread_id: str) -> None:
+    reg = project / "_workspace" / "codex-artifacts" / "dialog-threads.jsonl"
+    reg.parent.mkdir(parents=True, exist_ok=True)
+    reg.write_text(json.dumps({"thread_id": thread_id}) + "\n", encoding="utf-8")
 
 
 def write_transcript(path: Path) -> None:
@@ -254,7 +262,8 @@ class CodexReviewCliTests(unittest.TestCase):
 
     def test_continue_resumes_thread_without_role_wrap(self) -> None:
         """--continue должен звать thread_resume с переданным id и слать реплику
-        как есть: повторная обёртка TASK_ROLE ломала бы диалог сменой роли."""
+        как есть (повторная обёртка TASK_ROLE ломала бы диалог сменой роли), а
+        каждый resumed turn обязан заново получить read-only sandbox/approval."""
         import codex_review
 
         captured: dict = {}
@@ -262,6 +271,7 @@ class CodexReviewCliTests(unittest.TestCase):
         saved_argv = sys.argv[:]
         try:
             with tempfile.TemporaryDirectory() as tmp:
+                _seed_dialog_registry(Path(tmp), "thread-abc")
                 sys.argv = [
                     "codex_review.py",
                     "--task", "уточни пункт два",
@@ -280,6 +290,126 @@ class CodexReviewCliTests(unittest.TestCase):
             self.assertEqual(captured.get("resumed_thread_id"), "thread-abc")
             self.assertNotIn("thread_start_called", captured)
             self.assertEqual(captured.get("run_prompt"), "уточни пункт два")
+            resume_kwargs = captured.get("thread_resume_kwargs") or {}
+            self.assertEqual(resume_kwargs.get("sandbox"), "read_only")
+            self.assertEqual(resume_kwargs.get("approval_mode"), "deny_all")
+            run_kwargs = captured.get("run_kwargs") or {}
+            self.assertEqual(run_kwargs.get("sandbox"), "read_only")
+            self.assertEqual(run_kwargs.get("approval_mode"), "deny_all")
+            self.assertEqual(run_kwargs.get("model"), "gpt-5.6-sol")
+            self.assertEqual(run_kwargs.get("effort"), "xhigh")
+        finally:
+            sys.argv = saved_argv
+            for name in fake_names:
+                sys.modules.pop(name, None)
+
+    def test_continue_blank_id_fails_closed(self) -> None:
+        """Пустой $THREAD_ID молча запускал бы НОВЫЙ ephemeral-тред вместо
+        продолжения — потеря контекста без ошибки. Отказ до любых SDK-вызовов."""
+        import codex_review
+
+        captured: dict = {}
+        fake_names = _install_fake_openai_codex(captured)
+        saved_argv = sys.argv[:]
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                for blank in ("", "   "):
+                    sys.argv = [
+                        "codex_review.py",
+                        "--task", "уточнение",
+                        "--project", tmp,
+                        "--continue", blank,
+                    ]
+                    err = io.StringIO()
+                    with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(err):
+                        rc = codex_review.main()
+                    self.assertEqual(rc, 2)
+                    self.assertIn("пустой THREAD_ID", err.getvalue())
+            self.assertNotIn("thread_start_called", captured)
+            self.assertNotIn("resumed_thread_id", captured)
+        finally:
+            sys.argv = saved_argv
+            for name in fake_names:
+                sys.modules.pop(name, None)
+
+    def test_continue_requires_registry_or_explicit_override(self) -> None:
+        """Provenance fail-closed: чужой thread_id (не из dialog-threads.jsonl
+        проекта) отклоняется; --continue-foreign — осознанный override."""
+        import codex_review
+
+        captured: dict = {}
+        fake_names = _install_fake_openai_codex(captured)
+        saved_argv = sys.argv[:]
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                sys.argv = [
+                    "codex_review.py",
+                    "--task", "уточнение",
+                    "--project", tmp,
+                    "--continue", "thread-foreign",
+                ]
+                err = io.StringIO()
+                with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(err):
+                    rc = codex_review.main()
+                self.assertEqual(rc, 2)
+                self.assertIn("реестре диалогов", err.getvalue())
+                self.assertNotIn("resumed_thread_id", captured)
+
+                sys.argv.append("--continue-foreign")
+                with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(
+                    io.StringIO()
+                ), mock.patch.object(
+                    codex_review, "resolve_codex_bin",
+                    return_value="/sentinel/chatgpt/codex",
+                ):
+                    rc = codex_review.main()
+                self.assertEqual(rc, 0)
+                self.assertEqual(captured.get("resumed_thread_id"), "thread-foreign")
+        finally:
+            sys.argv = saved_argv
+            for name in fake_names:
+                sys.modules.pop(name, None)
+
+    def test_dialog_auto_creates_run_dir_and_registers_thread(self) -> None:
+        """Персистентный диалог без audit owner запрещён: --dialog обязан сам
+        создать project-local run_dir и вписать тред в provenance-реестр."""
+        import codex_review
+
+        captured: dict = {}
+        fake_names = _install_fake_openai_codex(captured)
+        saved_argv = sys.argv[:]
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                sys.argv = [
+                    "codex_review.py",
+                    "--task", "вопрос советнику",
+                    "--project", tmp,
+                    "--dialog",
+                ]
+                with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(
+                    io.StringIO()
+                ), mock.patch.object(
+                    codex_review, "resolve_codex_bin",
+                    return_value="/sentinel/chatgpt/codex",
+                ):
+                    rc = codex_review.main()
+                self.assertEqual(rc, 0)
+
+                artifacts = root / "_workspace" / "codex-artifacts"
+                registry = artifacts / "dialog-threads.jsonl"
+                self.assertTrue(registry.exists(), "dialog-threads.jsonl не создан")
+                entry = json.loads(registry.read_text().splitlines()[0])
+                self.assertEqual(entry["thread_id"], "thread-fake-1")
+
+                run_dirs = [p for p in artifacts.iterdir() if p.is_dir()]
+                self.assertEqual(len(run_dirs), 1, "авто-run_dir не создан")
+                result = json.loads((run_dirs[0] / "result.json").read_text())
+                self.assertEqual(result["codex"]["thread_id"], "thread-fake-1")
+                self.assertTrue(result["codex"]["thread_persistent"])
+                self.assertFalse(result["codex"]["thread_ephemeral"])
+                events = (run_dirs[0] / "events.jsonl").read_text()
+                self.assertIn('"thread"', events)
         finally:
             sys.argv = saved_argv
             for name in fake_names:
@@ -293,6 +423,20 @@ class CodexReviewCliTests(unittest.TestCase):
             proc = run_review(root, transcript, "--continue", "thread-abc")
             self.assertEqual(proc.returncode, 2)
             self.assertIn("--continue несовместим", proc.stderr)
+
+            command = [
+                sys.executable, str(SCRIPT),
+                "--mode", "review",
+                "--project", str(root),
+                "--transcript", str(transcript),
+                "--continue", "thread-abc",
+            ]
+            proc2 = subprocess.run(
+                command, text=True,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False,
+            )
+            self.assertEqual(proc2.returncode, 2)
+            self.assertIn("--continue несовместим", proc2.stderr)
 
     def test_sdk_bundle_fallback_warns_and_lands_in_ledger(self) -> None:
         """Fallback contract: без ChatGPT.app entrypoint предупреждает в stderr,

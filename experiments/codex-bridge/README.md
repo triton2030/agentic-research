@@ -49,7 +49,10 @@
 зона — подпапки/архив свободно; при желании добавь `_workspace/` в `.gitignore`
 проекта). `--run-dir PATH` — явный override; legacy `<backend>/runs/` остаётся
 только fallback-ом без `--project`. Bridge стартует Codex-threads с
-`ephemeral=True`, поэтому они не материализуются в общий `~/.codex` session store.
+`ephemeral=True`, поэтому они не материализуются в общий `~/.codex` session
+store. Единственное исключение — диалог ревьюера (`--dialog` / `--continue`):
+такой тред персистентен (иначе resume невозможен), а run_dir для него
+создаётся автоматически даже без флагов — audit owner обязателен.
 
 **История Codex Desktop НЕ является audit surface для bridge** — не ищи прогоны
 там. SDK под капотом запускает тот же локальный движок `codex app-server`, что и
@@ -171,10 +174,21 @@ SDK тянет собственный пиннутый бинарь `codex`; о�
 Диалог (`--dialog` / `--continue`) — исключение из ephemeral-дефолта: resume
 работает только по rollout на диске (эфемерный тред → «no rollout found»,
 проверено живыми пробниками 2026-07-12), поэтому диалоговые треды персистентны
-и видны в Desktop-истории. Ledger фиксирует `thread_id`, `thread_persistent`,
-`resumed_from_thread`; sandbox/approval переприбиваются на каждом turn'е —
-resume не ослабляет read-only. Реплика в `--continue` уходит без повторной
-обёртки ролью: роль и контекст уже в треде.
+и видны в Desktop-истории. Контракты:
+
+- run_dir создаётся автоматически (audit owner обязателен); ledger фиксирует
+  `thread_id`, `thread_persistent`, `resumed_from_thread`, событие `thread`.
+- Provenance: `--dialog` регистрирует тред в
+  `<project>/_workspace/codex-artifacts/dialog-threads.jsonl`; `--continue`
+  по умолчанию принимает только треды из этого реестра — чужой
+  Desktop/API-тред несёт непроверенные роль и контекст. Осознанный override —
+  `--continue-foreign`.
+- Пустой THREAD_ID (потерянная `$VAR`) — отказ с кодом 2, не молчаливый новый
+  тред. `--dry-run` валидирует CLI/prompt/реестр, но НЕ существование треда
+  (`resume_checked=false` в ledger).
+- Sandbox/approval переприбиваются на каждом turn'е — resume не ослабляет
+  read-only. Реплика в `--continue` уходит без повторной обёртки ролью: роль
+  и контекст уже в треде.
 
 ## Исследователь
 

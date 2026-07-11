@@ -209,6 +209,39 @@ def _review_paths(run_dir: Path) -> dict[str, str]:
     }
 
 
+DIALOG_REGISTRY_NAME = "dialog-threads.jsonl"
+
+
+def _dialog_registry_path(project_cwd: Path) -> Path:
+    return project_cwd / "_workspace" / "codex-artifacts" / DIALOG_REGISTRY_NAME
+
+
+def _register_dialog_thread(project_cwd: Path, thread_id: str | None, run_id: str | None) -> None:
+    """Реестр provenance: --continue по умолчанию доверяет только тредам,
+    созданным --dialog в этом же проекте (чужой Desktop/API-тред несёт
+    непроверенные роль и контекст)."""
+    if not thread_id:
+        return
+    path = _dialog_registry_path(project_cwd)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    entry = {"thread_id": thread_id, "run_id": run_id, "created_at": utc_now()}
+    with path.open("a", encoding="utf-8") as fh:
+        fh.write(json.dumps(entry, ensure_ascii=False) + "\n")
+
+
+def _dialog_thread_known(project_cwd: Path, thread_id: str) -> bool:
+    path = _dialog_registry_path(project_cwd)
+    if not path.is_file():
+        return False
+    for line in path.read_text(encoding="utf-8").splitlines():
+        try:
+            if json.loads(line).get("thread_id") == thread_id:
+                return True
+        except json.JSONDecodeError:
+            continue
+    return False
+
+
 def _compact_review_payload(payload: dict[str, object]) -> dict[str, object]:
     return {
         key: payload[key]
@@ -269,6 +302,11 @@ def main() -> int:
         metavar="THREAD_ID",
         help="Продолжить существующий тред: задание уходит следующей репликой, роль и контекст уже в треде.",
     )
+    parser.add_argument(
+        "--continue-foreign",
+        action="store_true",
+        help="Осознанный override: продолжить тред НЕ из реестра диалогов этого проекта (чужой контекст и роль не проверены).",
+    )
     args = parser.parse_args()
 
     # Задание/вопрос берём из любого источника, чтобы вызов не падал из-за того,
@@ -281,6 +319,17 @@ def main() -> int:
     if args.mode == "ask" and not payload:
         print("Режим ask требует --question (или --task / позиционный аргумент).", file=sys.stderr)
         return 2
+    if args.continue_thread is not None:
+        # Пустая переменная ($THREAD_ID) молча превращала бы продолжение в НОВЫЙ
+        # ephemeral-тред — потеря контекста без ошибки. Fail closed.
+        args.continue_thread = args.continue_thread.strip()
+        if not args.continue_thread:
+            print(
+                "--continue получил пустой THREAD_ID (потерянная переменная?) — отказ, "
+                "иначе вместо продолжения молча начался бы новый тред.",
+                file=sys.stderr,
+            )
+            return 2
     if args.continue_thread and args.mode != "task":
         print(
             "--continue несовместим с --mode review/ask: тред уже несёт контекст, транскрипт не подмешивается.",
@@ -292,6 +341,19 @@ def main() -> int:
         return 2
 
     project_cwd = Path(args.project).expanduser().resolve()
+
+    if (
+        args.continue_thread
+        and not args.continue_foreign
+        and not _dialog_thread_known(project_cwd, args.continue_thread)
+    ):
+        print(
+            f"--continue {args.continue_thread}: тред не найден в реестре диалогов проекта "
+            f"({_dialog_registry_path(project_cwd)}). По умолчанию продолжаются только треды, "
+            f"созданные --dialog в этом проекте; чужой тред — осознанно через --continue-foreign.",
+            file=sys.stderr,
+        )
+        return 2
 
     # Транскрипт нужен только режимам с контекстом сессии. Режим task его не тянет
     # — это и есть его смысл: дешёвый, быстрый вызов «как субагент».
@@ -339,7 +401,9 @@ def main() -> int:
     run_id: str | None = None
     run_dir: Path | None = None
     paths: dict[str, str] | None = None
-    if args.run_dir or args.summary_stdout:
+    # Персистентный диалог обязан иметь audit owner: run_dir создаётся даже без
+    # явных флагов, иначе rollout жил бы только в Desktop store без ledger.
+    if args.run_dir or args.summary_stdout or thread_persistent:
         try:
             run_id, run_dir = prepare_run_dir(args.run_dir, project=project_cwd)
         except UsageError as exc:
@@ -385,6 +449,10 @@ def main() -> int:
                 "paths": paths,
                 "prompt_chars": len(prompt),
             }
+            if thread_persistent:
+                # Dry-run валидирует CLI/prompt/реестр, но НЕ существование
+                # треда и не создание нового — не выдаём сильных заявлений.
+                payload["resume_checked"] = False
             write_json(run_dir / "result.json", payload)
             append_event(run_dir, "done", dry_run=True, ok=True)
             if args.summary_stdout:
@@ -417,7 +485,13 @@ def main() -> int:
         file=sys.stderr,
     )
     if run_dir is not None:
-        append_event(run_dir, "codex_start", mode=args.mode)
+        append_event(
+            run_dir,
+            "codex_start",
+            mode=args.mode,
+            operation="thread_resume" if args.continue_thread else "thread_start",
+            requested_thread_id=args.continue_thread,
+        )
 
     config = CodexConfig(cwd=str(project_cwd), codex_bin=codex_bin)
     started_monotonic = time.monotonic()
@@ -447,6 +521,8 @@ def main() -> int:
                     ephemeral=codex_runtime["thread_ephemeral"],
                 )
             codex_runtime["thread_id"] = getattr(thread, "id", None)
+            if args.dialog and not args.continue_thread:
+                _register_dialog_thread(project_cwd, codex_runtime["thread_id"], run_id)
             if thread_persistent:
                 print(
                     f"[codex-bridge] thread_id={codex_runtime['thread_id']} "
@@ -485,7 +561,13 @@ def main() -> int:
                 "prompt_chars": len(prompt),
             }
             write_json(run_dir / "result.json", payload)
-            append_event(run_dir, "failed", status="exception", error=str(exc))
+            append_event(
+                run_dir,
+                "failed",
+                status="exception",
+                error=str(exc),
+                requested_thread_id=args.continue_thread,
+            )
             if args.summary_stdout:
                 print(json.dumps(_compact_review_payload(payload), ensure_ascii=False, indent=2))
         print(f"[codex-bridge] ошибка вызова Codex: {exc}", file=sys.stderr)
@@ -510,7 +592,13 @@ def main() -> int:
                 "prompt_chars": len(prompt),
             }
             write_json(run_dir / "result.json", payload)
-            append_event(run_dir, "failed", status=payload["status"], error=str(result.error))
+            append_event(
+                run_dir,
+                "failed",
+                status=payload["status"],
+                error=str(result.error),
+                requested_thread_id=args.continue_thread,
+            )
             if args.summary_stdout:
                 print(json.dumps(_compact_review_payload(payload), ensure_ascii=False, indent=2))
         print(f"[codex-bridge] Codex вернул ошибку: {result.error}", file=sys.stderr)

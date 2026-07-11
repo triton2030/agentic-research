@@ -43,7 +43,10 @@
   проекте работы; legacy `runs/` — fallback без project); Desktop history audit
   surface'ом НЕ является. Ledger пишет `codex.thread_ephemeral` как
   доказательство. Не убирай флаг и не заводи второй `CODEX_HOME` (это клонирует
-  auth/config/hooks и даёт profile-drift).
+  auth/config/hooks и даёт profile-drift). Единственное санкционированное
+  исключение — диалог ревьюера `--dialog`/`--continue`: персистентный тред
+  (resume требует rollout на диске), обязательный авто-run_dir и
+  provenance-реестр `dialog-threads.jsonl`; см. README «Консультант / ревьюер».
 - **Воркер пишет под контрактом.** `codex_orchestrate.py` — `workspace_write` +
   `auto_review`; `files` обязательны и enforced preflight/postflight. Не ставь
   `Sandbox.full_access` default-ом: изменения вне project/git scope нельзя
