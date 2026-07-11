@@ -140,14 +140,15 @@ Obsidian хорош, когда рабочая заметка остаётся �
 
 ## Связанные Файлы
 
-* \[\[README|README эксперимента]]
-* \[\[01-beauty-board.canvas|Canvas-доска]]
-* \[\[02-iframe-and-clever-paths|Iframe и хитрые пути]]
-* \[\[03-meta-bind-and-obsidian-primitives|Meta Bind и Obsidian-примитивы]]
-* \[\[04-custom-js-diagram|Кастомная JS-диаграмма]]
-* \[\[05-elk-square-svg|AtlasGrid]]
-* \[\[06-skillmap-d2|SkillMap]]
-* \[\[07-instruction-map-d2|InstructionMap]]
-* \[\[08-flowpage-react-flow-elk|FlowPage]]
-* \[\[iframe-and-html.base|Base-вид]]
-* `snippets/obsidian-beauty-lab.css`
+- [[README|README эксперимента]]
+- [[01-beauty-board.canvas|Canvas-доска]]
+- [[02-iframe-and-clever-paths|Iframe и хитрые пути]]
+- [[03-meta-bind-and-obsidian-primitives|Meta Bind и Obsidian-примитивы]]
+- [[04-custom-js-diagram|Кастомная JS-диаграмма]]
+- [[05-elk-square-svg|AtlasGrid]]
+- [[06-skillmap-d2|SkillMap]]
+- [[07-instruction-map-d2|InstructionMap]]
+- [[08-flowpage-react-flow-elk|FlowPage]]
+- [[09-svg-file-embed|SVG File Embed]]
+- [[iframe-and-html.base|Base-вид]]
+- `snippets/obsidian-beauty-lab.css`

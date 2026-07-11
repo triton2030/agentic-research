@@ -20,6 +20,8 @@
   работу инструкций, скилов, критериев и Obsidian-поверхности.
 - `08-flowpage-react-flow-elk.md` — `FlowPage`: отдельная React Flow страница
   с zoom/pan, крупными HTML-узлами и ELK-раскладкой.
+- `09-svg-file-embed.md` — красивый SVG лежит отдельным asset-файлом, а
+  заметка встраивает его коротким wikilink.
 - `01-beauty-board.canvas` — Canvas-вид той же идеи.
 - `iframe-and-html.base` — Base-вид с формулой `html()`.
 - `controls/meta-bind-mini-panel.md` — reusable control block для
