@@ -1,0 +1,10 @@
+node_id	zveno	gate_role	group	status	source_strength	p_low	p_base	p_high	kill_criterion	lever_evidence	evidence_stage	source
+Z1	Привычка каталога	contributor	pilot	гипотеза	self_canon	0.55	0.72	0.88		пилот: open→personalization→submitted	pilot	Ставка_MAVO.md:46
+Z2	Трафик студии	soft_gate	pilot	гипотеза	self_canon	0.35	0.55	0.75		2+ студии реально шарят ссылку; submitted из их каналов	pilot	Ставка_MAVO.md:47
+Z3	Платное Принять	hard_gate	pilot	гипотеза	self_canon	0.30	0.50	0.70	студии не платят после пробных открытий при живом спросе	повторные платные Принять + пополнения баланса	pilot	Ставка_MAVO.md:48
+Z4	Доверие к оплате	hard_gate	pilot	гипотеза	self_canon	0.40	0.60	0.78	обрывы на прямой оплате не лечатся митигациями	доля обрывов на шаге оплаты в пилоте	pilot	Ставка_MAVO.md:49
+Z5	Фабрика SKU	soft_gate	unit	гипотеза	self_canon	0.45	0.65	0.82		ручной прогон: 20 тем → N SKU → заявки; стоимость/SKU	pre_pilot	Ставка_MAVO.md:50
+Z6	Печатаемость	hard_gate	pilot	допущение	self_canon	0.55	0.75	0.90		ручная print-ready проба на первой студии	pre_pilot	Ставка_MAVO.md:51
+Z7	Экономика	hard_gate	unit	гипотеза	self_canon	0.30	0.50	0.70	contribution устойчиво отрицательный / ни один уровень сбора не покрывает V+A+B	pessimistic unit table по трём уровням сбора	pre_pilot	Ставка_MAVO.md:52
+Z8	Исполнимость соло	hard_gate	pilot	допущение	self_canon	0.55	0.72	0.88		минимальный pipeline из готовых инструментов; первый вывод каталога	pre_pilot	Ставка_MAVO.md:53
+Z9	Защита связки	long_horizon	scale	гипотеза	self_canon	0.25	0.45	0.68		до пилота не доказывается; следим за копиями связки и скоростью набора студий	post_pilot	Ставка_MAVO.md:54
