@@ -9,4 +9,4 @@
 **/__pycache__/
 *.pyc
 **/.repomap.tags.cache.v1/
-experiments/supermemory/env.md
+_workspace/
