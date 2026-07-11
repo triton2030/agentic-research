@@ -14,6 +14,25 @@ Default to **External Peer Review** for project/folder/diff checks: Claude gets 
 
 Bridge default is full-power: `claude_run` profile `normal` requests the `opus` alias with max effort, stream-json logs, permission bypass, and no bridge-side tool allowlist. Use `read-only` only as the explicit exception when planning mode and `Read,Bash` are the intended limit.
 
+## Direct CLI Requests
+
+Direct `claude` command templates are no longer a separate skill route. If the
+user only asks for CLI syntax, install/help, or flags and no managed external
+run is needed, answer inline after checking live `claude --help`, version, or
+auth state when those details matter. Do not start a Bridge run just to explain
+syntax.
+
+Preserved CLI guardrails:
+
+- CLI flags move faster than copied examples; verify uncommon flags on the
+  target machine.
+- Do not add `--model` unless the user explicitly asks for a model override or
+  reproducibility requires pinning.
+- Distinguish tool availability from approval: `--tools` restricts tools;
+  `--allowedTools` pre-approves tool rules.
+- Reserve permission bypass for explicitly accepted isolated/unattended
+  contexts; do not use it merely to suppress prompts.
+
 ## Active Contract
 
 * **Entry:** controlled External Peer Review: independent review, advice, audit, research, bug hunt, or Codex claim-checking, not ordinary inline answering.
@@ -97,6 +116,10 @@ If bridge MCP tools are unavailable or return `Transport closed`, use the repo-l
 
 ## References
 
-* Read [references/opus-4-7-prompting.md](references/opus-4-7-prompting.md) for complex briefs, profiles, or model/prompt-control changes.
-* Read [references/managed-runs-and-relay.md](references/managed-runs-and-relay.md) for role-fit, audit briefs, `run/peek/wait/result/kill`, relay, timeout, logs, or process-tail work.
-* Read [references/mcp-failure-handling.md](experiments/claude-bridge/codex-skill/1claude-mcp/references/mcp-failure-handling.md) when tools, bridge/backend/auth/config, direct recovery, or relay text fail.
+- Read [references/opus-4-7-prompting.md](references/opus-4-7-prompting.md)
+  for complex briefs, profiles, or model/prompt-control changes.
+- Read [references/managed-runs-and-relay.md](references/managed-runs-and-relay.md)
+  for role-fit, audit briefs, `run/peek/wait/result/kill`, relay, timeout,
+  logs, or process-tail work.
+- Read [references/mcp-failure-handling.md](references/mcp-failure-handling.md)
+  when tools, bridge/backend/auth/config, direct recovery, or relay text fail.

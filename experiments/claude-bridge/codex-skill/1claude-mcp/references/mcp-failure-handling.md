@@ -19,6 +19,8 @@ with Codex's own reasoning or a weaker local summary.
   fallback, and report that the answer came through recovery rather than clean
   MCP.
 - Runtime: run `claude_doctor` or CLI `doctor` and report the failing layer.
+- CLI shape: before uncommon fallback flags, inspect the target machine's
+  `claude --help`; flags and permission-rule syntax drift faster than examples.
 - Local installs: prefer the native `~/.local/bin/claude` that the bridge
   resolves first. A stale lower-priority Homebrew cask can trigger Claude's
   multiple-install warning without breaking bridge runs.
@@ -46,6 +48,9 @@ with Codex's own reasoning or a weaker local summary.
 - Use the controlled CLI bridge fallback when MCP tools are absent.
 - Use the controlled CLI bridge fallback when MCP transport is stale in the
   current session.
+- In fallback command construction, avoid implicit model overrides, keep
+  `--tools` (availability) separate from `--allowedTools` (approval), and
+  reserve permission bypass for an explicitly accepted isolated context.
 - Recover a long answer from logs, and say that the visible relay was
   truncated.
 - Narrow the external review only if the user agrees or the task was already
