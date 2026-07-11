@@ -1,14 +1,9 @@
 ---
 description: "Условные правила для instruction files, skills, prompts, hooks и runtime guardrails."
-read-before-edit:
+depends-on:
   - "[[AGENTS.md]]"
   - "[[_ops/AGENTS.md]]"
   - "[[_ops/GOAL.md]]"
-  - "[[_ops/project-graph.md]]"
-edit-after-edit:
-  - "[[AGENTS.md]]"
-  - "[[_ops/AGENTS.md]]"
-  - "[[_ops/project-graph.md]]"
 ---
 
 # Instruction And Runtime Rules
@@ -16,12 +11,13 @@ edit-after-edit:
 Trigger: правишь `AGENTS.md`, `CLAUDE.md`, `SKILL.md`, prompt, hook, runtime
 guardrail, `config.toml`, skill reference или модельный baseline.
 
-Owner: wording держит `1instruction-layer`; механизм и folder/runtime contract
-держит `1folder-contract`; `SKILL.md`/metadata держит `1skill-architect`;
-GOAL-sync держит `1goal` + `1folder-contract`.
+Owner: wording, instruction placement и folder criteria держит
+`1instruction-layer`; `SKILL.md`/metadata и skill/hook surface держит
+`1skill-architect`; GOAL/README держит `1goal`; runtime settings, permissions и
+CLI wiring держит отдельный live settings/hook pass.
 
 Check: правило меняет следующий ход агента, не дублирует skill body, не держит
-дорогой запрет prompt-only, не расходится с `GPT-5.5` / `Claude Opus 4.7`.
+дорогой запрет prompt-only, не расходится с `GPT-5.6` / `Claude Opus 4.7`.
 
 ## Instruction Files
 

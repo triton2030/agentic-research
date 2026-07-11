@@ -13,8 +13,8 @@
   subagents ускоряют независимые evidence/implementation streams, skills
   фиксируют workflow, plugins пакуют workflow вместе с integrations и MCP.
   Синтез, blocking step и integration остаются в main context.
-- Для GPT-5.5 в Codex-подобных coding agents применять
-  `knowledge/wisdom-gpt-5.5.md`; здесь держать только Codex-specific выводы.
+- Для GPT-5.6 в Codex-подобных coding agents применять
+  `knowledge/wisdom-gpt-5.6.md`; здесь держать только Codex-specific выводы.
 - Для большого tool surface использовать narrow descriptions и tool search,
   а не грузить весь каталог в системный контекст.
 - Внешние обвязки вокруг Codex полезны как источник паттернов, но не как замена официальному стеку по умолчанию.
@@ -24,8 +24,8 @@
 - https://developers.openai.com/codex/sdk
   Основная опора для thread-based orchestration.
 
-- https://developers.openai.com/api/docs/guides/latest-model
-  GPT-5.5 migration posture для coding, tool-heavy agents и prompt tuning.
+- https://developers.openai.com/api/docs/guides/latest-model?model=gpt-5.6
+  GPT-5.6 migration posture для coding, tool-heavy agents и prompt tuning.
 
 - https://developers.openai.com/codex/use-cases/agent-friendly-clis
   Подход к CLI, которые удобны для агентной работы.

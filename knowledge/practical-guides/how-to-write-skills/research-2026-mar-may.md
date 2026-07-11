@@ -14,18 +14,31 @@ Recheck 2026-05-22: текущие OpenAI Codex docs и Agent Skills docs по-�
 surface, 2-3 concrete use cases как старт и более широкий trigger eval для
 важных/спорных skill descriptions.
 
+Recheck 2026-07-10: текущий Codex Build Skills contract явно добавил budget
+initial skill list (до 2% context или 8000 символов при неизвестном окне),
+shortening descriptions, возможный omission skills, skill-vs-plugin boundary,
+instruction-only default и dependencies в `agents/openai.yaml`. OpenAI требует
+front-load первой фразы, но не задаёт `120-200` как platform limit.
+
 ## Official Baseline
 
-- OpenAI Codex docs: skills — reusable workflows; plugins — distribution.
-  Codex выбирает skill по `name`/`description`/path, а full `SKILL.md` читает
-  только после выбора. Из-за context budget description нужно front-load.
-  Source: [OpenAI Codex skills](https://developers.openai.com/codex/skills)
-- OpenAI Codex best practices: начинать с 2-3 конкретных use cases, clear
-  inputs/outputs, user trigger phrases; не покрывать все edge cases заранее.
-  Source: [OpenAI Codex best practices](https://developers.openai.com/codex/learn/best-practices)
-- OpenAI GPT-5.5 guidance: outcome-first prompts, success criteria, stop rules,
-  осторожность с `reasoning.effort`; старые process-heavy stacks не переносить
-  автоматически. Source: [OpenAI GPT-5.5 guidance](https://developers.openai.com/api/docs/guides/latest-model)
+- OpenAI Codex Build Skills: skills — authoring, plugins — distribution;
+  initial skill list budgeted, descriptions могут сокращаться, skills —
+  пропускаться. Front-load use case/trigger words; instruction-only — default;
+  scripts нужны для deterministic behavior или external tooling.
+  Source: [OpenAI Codex Build Skills](https://developers.openai.com/codex/build-skills)
+- OpenAI Save workflows as skills: начинать с рабочего trace, runbook, command и
+  accepted output; после следующего реального использования переносить correction
+  обратно в skill.
+  Source: [OpenAI Save workflows as skills](https://learn.chatgpt.com/use-cases/reusable-codex-skills)
+- OpenAI GPT-5.6 guidance: outcome, constraints, evidence, completion bar,
+  output shape и stop сохранять; повтор, obsolete process и нерелевантные tools
+  сначала удалять; prompt менять по одному failure mode с тем же eval.
+  Source: [OpenAI GPT-5.6 guidance](https://developers.openai.com/api/docs/guides/prompt-guidance-gpt-5p6)
+- Historical OpenAI GPT-5.5 guidance, superseded в активном каноне моделью
+  GPT-5.6: outcome-first prompts, success criteria, stop rules, осторожность с
+  `reasoning.effort`; старые process-heavy stacks не переносить автоматически.
+  Source: [OpenAI GPT-5.5 guidance](https://developers.openai.com/api/docs/guides/latest-model?model=gpt-5.5)
 - Anthropic / Agent Skills: progressive disclosure — frontmatter, body, bundled
   files; scripts полезны там, где нужна repeatable deterministic execution.
   Source: [Anthropic Agent Skills](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills)

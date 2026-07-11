@@ -10,7 +10,7 @@ description: Runtime-слой агента — где живут критиче�
 approvals, hooks, sandbox и orient-before-act. Tool design — отдельный
 файл `tool-design.md`. Multi-agent runtime — `multi-agent.md`. Memory —
 `memory.md`. Evaluation — `evaluation.md`. Model-specific deltas —
-`knowledge/wisdom-gpt-5.5.md`, `knowledge/wisdom-claude-opus-4.7.md`.
+`knowledge/wisdom-gpt-5.6.md`, `knowledge/wisdom-claude-opus-4.7.md`.
 
 ## Проверено
 

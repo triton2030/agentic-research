@@ -24,8 +24,9 @@ edit-after-edit: []
 
 - Skills — authoring format; plugins — distribution unit.
 - Codex сначала видит `name`, `description`, path. Initial skill list ограничен
-  примерно 2% окна или 8000 символов, поэтому первые 120-200 символов
-  `description` должны нести главный use case и trigger words.
+  примерно 2% окна или 8000 символов; descriptions сначала сокращаются, а при
+  большом наборе skills могут быть пропущены. Поэтому первая фраза должна нести
+  главный use case и trigger words; `120-200` символов — локальная эвристика.
 - Локации docs: `$HOME/.agents/skills`, `.agents/skills`; на этой машине также
   проверять live-root `~/.codex/skills/<name>`.
 - `agents/openai.yaml` optional: UI metadata, `policy.allow_implicit_invocation`,
@@ -47,7 +48,10 @@ python3 ~/.codex/skills/.system/skill-creator/scripts/generate_openai_yaml.py \
   --interface short_description="Short UI text" \
   --interface default_prompt="Use $my-skill to ..."
 
-uv run --python 3.12 --with PyYAML python \
+qv-skill /path/to/skill
+
+# Fallback без project discovery и без implicit Python download:
+uv tool run --python 3.13 --no-python-downloads --from 'PyYAML==6.0.3' python \
   ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py \
   /path/to/skill
 ```
@@ -56,6 +60,10 @@ uv run --python 3.12 --with PyYAML python \
 
 - Skills грузятся через progressive disclosure: metadata всегда доступна,
   `SKILL.md` читается при активации, bundled files — по ссылке.
+- В Claude Code combined `description + when_to_use` сейчас сокращается после
+  1536 символов. Это runtime delta, не новый portable standard: cross-surface
+  skill следует лимиту Agent Skills выше. Front-load use case и проверяй live
+  docs после обновлений runtime.
 - Claude чаще undertrigger, чем overtrigger, поэтому description может быть
   немного “pushy”: реальные фразы пользователя, неявные случаи, boundaries.
 - Free skills живут в `~/.claude/skills/<name>/SKILL.md`.

@@ -3,12 +3,12 @@
 Снимок на 28 апреля 2026.
 
 Здесь только общие свойства текущей рабочей пары моделей и повторяющиеся режимы
-сбоя. Рабочий baseline этого проекта — `GPT-5.5` и `Claude Opus 4.7`; старые
+сбоя. Рабочий baseline этого проекта — `GPT-5.6` и `Claude Opus 4.7`; старые
 model-neutral советы держатся только если они подтверждены заново.
 
 Модельные различия не держать здесь:
 
-- `knowledge/wisdom-gpt-5.5.md` — GPT-5.5 baseline.
+- `knowledge/wisdom-gpt-5.6.md` — GPT-5.6 baseline.
 - `knowledge/wisdom-claude-opus-4.7.md` — Claude Opus 4.7 baseline.
 
 Глубинная модель — *почему* эти свойства именно такие (вероятностная машина и её
@@ -77,8 +77,8 @@ model-neutral советы держатся только если они под�
 - https://direct.mit.edu/coli/article/50/3/1053/121669/Large-Language-Model-Instruction-Following-A
   Обзор того, где модели систематически теряют инструкции.
 
-- `knowledge/wisdom-gpt-5.5.md`
-  GPT-5.5-specific baseline.
+- `knowledge/wisdom-gpt-5.6.md`
+  GPT-5.6-specific baseline.
 
 - `knowledge/wisdom-claude-opus-4.7.md`
   Claude Opus 4.7-specific baseline.

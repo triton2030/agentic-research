@@ -2,7 +2,7 @@
 
 > [!summary] Legacy/read-only. Новые self-learning факты → `1findings` с префиксом `self-learning:`; цитаты пользователя → manual `user-said`.
 
-## GPT-5.5
+## GPT-5.5 — исторический baseline
 
 ### Scope и workflow
 
@@ -28,7 +28,7 @@
 - Bridge relay truncated → восстанови из logs до rerun.
 - Shell one-liner с `$1`/backrefs — только single quotes или `apply_patch`; double quotes тихо съедают группы.
 - Append-only capture в один файл не запускай параллельно; сериализуй вызовы и проверь группировку строк.
-- Выбранный Markdown-target читай через `1md-reader` (`md toc/extract`), если нужен bounded scope; прямой `sed` оставляй для короткого файла.
+- После semantic hit раскрывай Markdown-target в bounded branch `1md-navigator` (`md toc/extract`); короткий known file читай напрямую.
 
 ## Claude Opus 4.7
 

@@ -64,9 +64,14 @@ source/reference слой.
 
 ### Model Delta
 
-- [Introducing GPT-5.5](https://openai.com/index/introducing-gpt-5-5/)
+- [GPT-5.6 prompting guidance](https://developers.openai.com/api/docs/guides/prompt-guidance-gpt-5p6)
+  Текущий OpenAI baseline: prompt pruning, outcome/stop, concrete response
+  controls, permission policy, tool routing, retrieval budgets, state и effort.
+
+- Historical: [Introducing GPT-5.5](https://openai.com/index/introducing-gpt-5-5/)
   GPT-5.5 в Codex: сильнее в agentic coding, Terminal-Bench, tool use и
-  token efficiency; всё равно требует точных validation loops.
+  token efficiency; всё равно требует точных validation loops. Сохранено как
+  launch evidence, не как текущая guidance.
 
 - [GPT-5 for Coding](https://cdn.openai.com/API/docs/gpt-5-for-coding-cheatsheet.pdf)
   GPT-5-family лучше следует инструкциям, но vague/conflicting `.cursor/rules`
@@ -76,9 +81,9 @@ source/reference слой.
   Opus 4.7 literal instruction following, `high`/`xhigh` effort для coding,
   новая tokenizer cost-shape и лучшая file-system memory.
 
-- [OpenAI latest model guide](https://developers.openai.com/api/docs/guides/latest-model)
-  GPT-5.5: outcome-first prompts, fresh baseline, `medium` effort,
-  Responses API, tool descriptions, `phase`, compaction.
+- Historical GPT-5.5-era snapshot: [OpenAI model guide](https://developers.openai.com/api/docs/guides/latest-model?model=gpt-5.5)
+  Outcome-first prompts, `medium` effort, Responses API, tool descriptions,
+  `phase`, compaction. Не использовать как активный baseline вместо GPT-5.6.
 
 - [OpenAI reasoning guide](https://developers.openai.com/api/docs/guides/reasoning)
   Reasoning effort, state handling, reasoning items и `phase`.

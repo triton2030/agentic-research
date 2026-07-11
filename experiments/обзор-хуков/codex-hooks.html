@@ -471,13 +471,13 @@
 
       <header class="page-head">
         <div>
-          <h1>Карта hooks Codex</h1>
-          <p class="lead">Какие hooks сейчас активны, когда они срабатывают и что делают.</p>
+          <h1>Архивная карта hooks Codex</h1>
+          <p class="lead">Исторический снимок 2026-06-02. Supermemory удалён 2026-07-10; не использовать эту схему как live truth.</p>
         </div>
         <div class="snapshot" aria-label="Snapshot">
-          <span><b>Снимок</b> 2026-06-02</span>
+          <span><b>Архивный снимок</b> 2026-06-02</span>
           <span><b>Hooks</b> 10 active entries</span>
-          <span><b>Формат</b> TOML + JSON overlay</span>
+          <span><b>Статус</b> historical evidence, not live wiring</span>
         </div>
       </header>
 
@@ -574,22 +574,6 @@
           <article class="hook-card">
             <div class="hook-top">
               <span class="event pre">PreToolUse</span>
-              <span class="timeout">10s</span>
-            </div>
-            <h3>Markdown graph pre-edit</h3>
-            <dl>
-              <dt>Matcher</dt>
-              <dd><code>apply_patch|Edit|Write</code></dd>
-              <dt>Делает</dt>
-              <dd>Для <code>.md</code>/<code>.mdx</code> запускает <code>md preflight</code> и <code>md cycles</code>; показывает must-read, must-update, cascade и cycles.</dd>
-              <dt>Вывод</dt>
-              <dd><code>additionalContext</code>; при cycle добавляет <code>systemMessage</code>.</dd>
-            </dl>
-          </article>
-
-          <article class="hook-card">
-            <div class="hook-top">
-              <span class="event pre">PreToolUse</span>
               <span class="timeout">5s</span>
             </div>
             <h3>First-touch skill reminder: read</h3>
@@ -600,6 +584,22 @@
               <dd>При первом прямом чтении Markdown предлагает <code>1md-reader</code>, если bounded reading уместнее.</dd>
               <dt>Вывод</dt>
               <dd>Одноразовый <code>additionalContext</code> на session.</dd>
+            </dl>
+          </article>
+
+          <article class="hook-card">
+            <div class="hook-top">
+              <span class="event pre">PreToolUse</span>
+              <span class="timeout">10s</span>
+            </div>
+            <h3>Markdown graph pre-edit</h3>
+            <dl>
+              <dt>Matcher</dt>
+              <dd><code>apply_patch|Edit|Write</code></dd>
+              <dt>Делает</dt>
+              <dd>Для <code>.md</code>/<code>.mdx</code> запускает <code>md preflight</code> и <code>md cycles</code>; показывает must-read, must-update, cascade и cycles.</dd>
+              <dt>Вывод</dt>
+              <dd><code>additionalContext</code>; при cycle добавляет <code>systemMessage</code>.</dd>
             </dl>
           </article>
 

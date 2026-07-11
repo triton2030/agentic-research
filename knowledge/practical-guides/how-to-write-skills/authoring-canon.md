@@ -6,7 +6,7 @@ edit-after-edit: []
 # Authoring Canon
 
 Практический канон написания скиллов под текущую рамку проекта:
-`GPT-5.5` и `Claude Opus 4.7`.
+`GPT-5.6` и `Claude Opus 4.7`.
 
 ## Когда Писать Скилл
 
@@ -35,19 +35,22 @@ edit-after-edit: []
 `description` — главный routing contract. Всё “когда использовать” должно быть
 во frontmatter, потому что body загружается только после выбора скилла.
 
-Первые 120-200 символов — hot zone. Они должны самостоятельно назвать главный
-use case и trigger words. Представь, что всё после первой фразы может быть
-обрезано в длинном списке skills: если начало общее, скилл не сработает.
+Первая фраза — hot zone: она должна самостоятельно назвать главный use case и
+trigger words. Codex может сократить `description` или не включить skill в
+budgeted initial list. `120-200` символов — наша эвристика для сильного opening,
+не platform limit.
 
 Хороший `description`:
 
-- в первых 120-200 символах несёт главный use case и trigger words;
+- в первой фразе несёт главный use case и trigger words;
 - говорит `Use when...`, а не просто “helps with...”;
 - описывает intent пользователя, а не внутреннюю механику;
 - содержит boundaries, skip-cases и adjacent near-misses;
 - достаточно настойчивый, чтобы не undertrigger;
 - достаточно точный, чтобы не перетриггерить соседние задачи;
-- остаётся до 1024 символов и переживает shortening в больших skill lists.
+- использует `120-200` символов opening как локальную эвристику, а не цель;
+- остаётся в portable ceiling 1024 символа; platform-specific discovery limits
+  и shortening держит `platform-deltas.md`.
 
 Минимальная проверка: 2-3 concrete use cases и реальные trigger phrases,
 которые пользователь мог бы сказать. Для глобальных, частых, рискованных или
@@ -94,8 +97,10 @@ use case и trigger words. Представь, что всё после перв
 скила это значит: outcome, критерии и stop идут раньше шагов, а проверку
 результата закладывай гейтом, а не надеждой, что модель вспомнит.
 
-Для `GPT-5.5` особенно опасны старые process-heavy тела: outcome, evidence,
-stop rules и короткие defaults обычно сильнее, чем длинный self-check stack.
+Для `GPT-5.6` сначала удаляй obsolete scaffolding, повторы, generic brevity и
+process для уже надёжного поведения. Outcome, evidence, stop rules и короткие
+defaults сильнее длинного self-check stack; новое правило добавляй только под
+измеренный failure mode.
 Для `Claude Opus 4.7` важнее явно назвать scope, tool/subagent policy и где
 правило распространяется на весь набор артефактов.
 

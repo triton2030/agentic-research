@@ -50,10 +50,9 @@
   reconciled/archived, а не продолжают управлять работой по инерции.
 
 Markdown-поиск по папке — owner, тема, section targets, related files,
-duplicates и выбор файлов/секций — идёт через `$1md-navigator`.
-
-Компактное чтение уже выбранных `description`, заголовков, секций,
-`read-related` и `walk` — через `$1md-reader`.
+duplicates и выбор файлов/секций — идёт через `$1md-navigator`. Внутри уже
+начатого route он же bounded раскрывает выбранные `description`, заголовки,
+секции, `read-related` и `walk`; короткий known file читай напрямую.
 
 Связи Markdown-документов внутри `_ops` — YAML frontmatter,
 `read-before-edit`, `edit-after-edit`, related-docs sections и

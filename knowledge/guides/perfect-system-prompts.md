@@ -1,7 +1,7 @@
 # Как Писать Системные Промпты
 
-Канон этого репо рассчитан на `GPT-5.5` и `Claude Opus 4.7`. Модельные
-различия читать в `knowledge/wisdom-gpt-5.5.md` и
+Канон этого репо рассчитан на `GPT-5.6` и `Claude Opus 4.7`. Модельные
+различия читать в `knowledge/wisdom-gpt-5.6.md` и
 `knowledge/wisdom-claude-opus-4.7.md`; здесь только правила самого системного
 промпта.
 
@@ -20,7 +20,7 @@
 
 ## Модельная Дельта
 
-- Для `GPT-5.5` сначала прочитать `knowledge/wisdom-gpt-5.5.md`.
+- Для `GPT-5.6` сначала прочитать `knowledge/wisdom-gpt-5.6.md`.
 - Для `Claude Opus 4.7` сначала прочитать `knowledge/wisdom-claude-opus-4.7.md`.
 - В этом guide не дублировать модельный baseline; переносить сюда только
   правила, которые верны для системных промптов независимо от модели.
@@ -78,4 +78,4 @@
   `effort`, verbosity, schema, tool description или state handling?
 
 ## Примеры из дикой природы
-- [anthropic-design-generator](../examples/anthropic-design-generator/takeaways.md) — двухуровневая агентная инструкция (корневой `CLAUDE.md` + доменный `ds/README.md` + живой визуальный канон). Приёмы: инварианты в топе, WRONG/RIGHT пары, `Deliberate non-goals`, copy-paste сниппеты. Повтор архитектурного правила там — partial-loading pattern, не default для новых GPT-5.5/Opus 4.7 инструкций.
+- [anthropic-design-generator](../examples/anthropic-design-generator/takeaways.md) — двухуровневая агентная инструкция (корневой `CLAUDE.md` + доменный `ds/README.md` + живой визуальный канон). Приёмы: инварианты в топе, WRONG/RIGHT пары, `Deliberate non-goals`, copy-paste сниппеты. Повтор архитектурного правила там — partial-loading pattern, не default для новых GPT-5.6/Opus 4.7 инструкций.

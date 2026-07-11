@@ -1,14 +1,9 @@
 ---
 description: "Условные правила выбора локальных CLI-проверок и evidence без отката чужих изменений."
-read-before-edit:
+depends-on:
   - "[[AGENTS.md]]"
   - "[[_ops/AGENTS.md]]"
   - "[[_ops/GOAL.md]]"
-  - "[[_ops/project-graph.md]]"
-edit-after-edit:
-  - "[[AGENTS.md]]"
-  - "[[_ops/AGENTS.md]]"
-  - "[[_ops/project-graph.md]]"
 ---
 
 # Local Tools Rules

@@ -101,8 +101,9 @@
 
 - Тип: skill
 - Источник: наш (Codex-side mirror)
-- Что делает: то же, что и Claude-side `1repo-map`, но через
-  GPT-5.5-shaped `SKILL.md` (outcome-first, без process stack) +
+- Что делает: то же, что и Claude-side `1repo-map`, но через исторически
+  GPT-5.5-shaped `SKILL.md` (outcome-first, без process stack; это provenance,
+  не текущий model baseline) +
   `agents/openai.yaml` с `policy.allow_implicit_invocation: true` для
   bare-prompt auto-trigger. `scripts/`, `references/`, `ATTRIBUTION.md`
   — symlinks на Claude SoT; venv (`~/.cache/1repo-map/`) и vendored

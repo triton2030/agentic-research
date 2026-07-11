@@ -80,7 +80,8 @@ execution owner закрывает работу через прямой evidence
 маршрут, риск или проверку. Для Markdown:
 
 - broad navigation/search -> `1md-navigator`;
-- bounded reading selected files/sections -> `1md-reader`;
+- post-discovery bounded reading selected files/sections остаётся в
+  `1md-navigator`; короткий known file читается напрямую;
 - graph/frontmatter/blast-radius -> `1md-graph`;
 - exact stale references / CLI evidence -> `1cli-tools`.
 
@@ -96,8 +97,8 @@ instructions, owner skills и evidence-closeout, а не в retired hooks.
 agents metadata и hook-script structure. Runtime/settings правятся только после
 live settings/hook pass.
 
-`1md-navigator`, `1md-reader` и `1md-graph` имеют разные owners и не заменяют
-друг друга: search/IA-refactor, bounded reading и graph safety соответственно.
+`1md-navigator` владеет semantic search/IA-refactor и bounded раскрытием уже
+выбранных hits; `1md-graph` отдельно владеет graph safety.
 
 ## Retired Routes
 

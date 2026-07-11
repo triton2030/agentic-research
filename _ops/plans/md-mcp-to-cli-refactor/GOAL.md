@@ -1,6 +1,6 @@
 # GOAL — md-mcp → CLI Refactor
 
-Outcome-first execution contract под `GPT-5.5` и `Claude Opus 4.7`. Самодостаточный документ для автономного исполнения 23 task-файлов от начала до closeout.
+Outcome-first execution contract под `GPT-5.6` и `Claude Opus 4.7`. Самодостаточный документ для автономного исполнения 23 task-файлов от начала до closeout.
 
 ---
 

@@ -1,14 +1,9 @@
 ---
 description: "Условные правила размещения файлов, папок, разделов и знаний без второго source of truth."
-read-before-edit:
+depends-on:
   - "[[AGENTS.md]]"
   - "[[_ops/AGENTS.md]]"
   - "[[_ops/GOAL.md]]"
-  - "[[_ops/project-graph.md]]"
-edit-after-edit:
-  - "[[AGENTS.md]]"
-  - "[[_ops/AGENTS.md]]"
-  - "[[_ops/project-graph.md]]"
 ---
 
 # Placement Rules
@@ -16,9 +11,9 @@ edit-after-edit:
 Trigger: создаёшь, двигаешь, переименовываешь или делишь файл, папку, раздел,
 правило, заметку, задачу или знание.
 
-Owner: container shape и папочные границы держит `1folder-contract`; IA-выбор
-file-vs-folder и truth-vs-view держит `1ia-audit`; формулировку правила держит
-`1instruction-layer`.
+Owner: container shape, split/merge/move, file-vs-folder и truth-vs-view держит
+`1ia-audit`; folder criteria и формулировку инструкции держит
+`1instruction-layer`; GOAL/README shape держит `1goal`.
 
 Check: один owner truth, понятный retrieval path, нет второго source of truth,
 нет нового файла без функции.
@@ -46,7 +41,7 @@ Check: один owner truth, понятный retrieval path, нет второ�
   task-файл реально нужен.
 - Актуальная проблема до решения -> `_ops/findings/**` через `1findings`.
 - Длинный сбор ответов пользователя -> `_ops/interviews/**` через
-  `1interview-tool` / `1folder-contract`.
+  `1interview-tool`.
 - Длинные слова пользователя -> не автозаписывать; существующий
   `_ops/user-said/YYYY-MM-DD.md` обрабатывать только manual, отдельным проходом.
 
@@ -60,5 +55,5 @@ Check: один owner truth, понятный retrieval path, нет второ�
   поверхности.
 - Новый project shape не собирать глобальным bootstrap-скриптом: GOAL/README/ROADMAP
   маршрутизировать через `1goal`, graph/frontmatter — через
-  `1folder-contract`, локальный project-owned bootstrap использовать только если
+  `1md-graph`, локальный project-owned bootstrap использовать только если
   он уже есть.

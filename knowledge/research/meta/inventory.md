@@ -1,6 +1,12 @@
+---
+description: "Снимок live meta/control handles, routing patterns и gaps."
+depends-on: []
+---
+
 # Meta — Инвентарь
 
-Снимок после cleanup 18 мая 2026.
+Базовый снимок после cleanup 18 мая 2026; live owner-routing точечно сверен
+10 июля 2026.
 
 Инвентарь перечисляет meta/control handles и gaps. Если нужен код live skill,
 проверять установленный handle: Claude Code через marketplace/cache, Codex через
@@ -29,13 +35,13 @@
 - Что делает: отвечает за language-quality и placement текста инструкций:
   wording, links-over-inline, lost-in-middle, literal scope и duplicated prose.
 
-### 1folder-contract
+### Folder/control routing
 
-- Тип: skill
-- Где есть: Codex; Claude-side mirror ведётся отдельно.
-- Что делает: держит Owner Decision Map, `_ops/project-graph.md`, folder graph,
-  criteria delivery chain, system coherence, structural guardrails и Goal-quote
-  sync.
+- Тип: routing pattern, не отдельный live skill.
+- Где есть: `1instruction-layer`, `1ia-audit`, `1skill-architect`, `1goal`,
+  `1md-graph` и live settings/hook pass.
+- Что делает: разводит wording/folder criteria, container shape, skill/hook
+  surface, GOAL/README, graph/frontmatter и runtime wiring по их владельцам.
 
 ### 1step-back
 

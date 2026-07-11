@@ -1,6 +1,6 @@
 # Codex-версия
 
-Снимок обновлён 28 июня 2026 по живой Codex-поверхности. Это карта системы, а
+Снимок обновлён 9 июля 2026 по живой Codex-поверхности. Это карта системы, а
 не источник рабочего поведения.
 
 Если этот файл расходится с живой системой, выигрывают:
@@ -20,7 +20,7 @@
 
 ## Актуальный Контур
 
-В глобальном конфиге Codex указан `gpt-5.5`; включены `multi_agent`,
+В глобальном конфиге Codex указан `gpt-5.6-sol`; включены `multi_agent`,
 `memories`, `hooks` и `goals`. Из плагинов включены GitHub, Vercel, Build Web
 Apps, Browser и Chrome. Плагинные скилы не принадлежат этой папке: их надо
 читать по live plugin contracts, когда они реально триггерятся.
@@ -42,7 +42,7 @@ Hooks усиливают скилы, но не заменяют их. Стары
   contract без дублирования;
 - `1planning` - task-планирование: task contracts, subtasks,
   archive/reconcile;
-- `1break-down` - in-session разбивка тяжёлой или многошаговой задачи до
+- `1break-down` - явная in-session разбивка тяжёлой или многошаговой задачи до
   правильной формы и ближайшего проверяемого фронтира без записи task-файла;
 - `1interview-tool` - временные intake-формы в `_ops/interviews/**`, когда
   после context triage осталось 4+ user-only неизвестных;
@@ -55,7 +55,7 @@ Hooks усиливают скилы, но не заменяют их. Стары
   стратегии, задачи, критерия или решения;
 - `1fresh-eyes` - независимая проверка и нативные Codex subagents только по
   прямому запросу или подтверждённому brief;
-- `1step-back` - разговорный reframe, когда сама рамка цели, метода или
+- `1step-back` - явный разговорный reframe, когда сама рамка цели, метода или
   допущения может быть неверной;
 - `1instruction-layer` - language-quality и placement текста инструкций:
   AGENTS, папочные инструкции, wording, criteria links, links-over-inline,
@@ -64,13 +64,13 @@ Hooks усиливают скилы, но не заменяют их. Стары
   `_ops/project-graph.md`, folder graph, criteria delivery chain, hooks,
   validators, permissions, MCP/apps, runtime guardrails, Goal-quote sync;
 - `1skill-architect` - устройство скилов: `SKILL.md`, `description`,
-  references, scripts, `agents/openai.yaml`, validation, GPT-5.5 migration;
+  references, scripts, `agents/openai.yaml`, validation, GPT-5.6 migration;
 - `1ia-audit` - IA Markdown/docs/knowledge: owner truth, container fit,
   naming, retrieval path, section/file/folder shape;
 - `1md-navigator` - semantic-first чтение Markdown-корпуса: `map`,
   `headings`, `search`, `overlaps`, `cluster`, `read`, `read-related`;
-- `1md-graph` - graph/frontmatter/blast-radius: `description`,
-  `read-before-edit`, `edit-after-edit`, wikilinks, preflight/changed/impact;
+- `1md-graph` - только graph-bearing frontmatter/claims/headings/anchors,
+  wikilinks и destructive blast-radius: preflight/changed/impact/cycles;
 - `1obsidian` - Obsidian-facing Markdown UX: Bases, callouts, links, Meta Bind,
   kanban, без второй правды;
 - `1smart-simple` - сокращение и усиление уже существующего текста без потери
@@ -89,9 +89,10 @@ Durable user truth сейчас не держит отдельный installed s
   run/peek/wait/kill, logs, relay и evidence;
 - `1gemini-mcp` - controlled Gemini peer: second opinion, web/file research,
   model comparison, managed runs и process-tail checks;
-- `1claude-skill` - только прямой запрос запускать Claude Code CLI или `claude`;
-- `1impeccable` - frontend design/polish с обязательными product/design/shape
-  gates перед UI-правками;
+- `1impeccable` - frontend design/polish с product context и rendered
+  verification; material product forks требуют подтверждения;
+- `1design-review` - обычный main-agent визуальный review; clean-room fanout
+  только по явному запросу, milestone или high-risk сигналу;
 - `1screenshot-design` - standalone визуальная критика UI-скриншота;
 - `1design-subagents` - параллельная эстетическая критика конкретных UI-crops
   только по явному запросу;
@@ -281,8 +282,8 @@ hooks, runtime guardrails, review и root shims агента к `_ops/GOAL.md`.
 
 `1skill-architect` чинит сами скилы: trigger surface, `description`,
 body, references, scripts, `agents/openai.yaml`, validation и stop condition.
-Для GPT-5.5 контракт должен быть outcome-first; старый process-heavy prompt
-stack не переносится по инерции.
+Для GPT-5.6 контракт должен быть outcome-first и минимальным; старый
+process-heavy prompt stack и generic brevity не переносятся по инерции.
 
 `1ia-audit` проверяет форму знания: правильный ли container, не размазан ли
 owner truth, найдёт ли будущий агент нужный файл, не создаём ли мы новый
