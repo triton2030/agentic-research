@@ -1,0 +1,25 @@
+{
+  "name": "logical-map-lab",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "React Flow experiment for readable causal maps extracted from prose business context.",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 5182",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 4182",
+    "test:smoke": "playwright test tests/smoke.spec.js --reporter=list --workers=1"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^6.0.1",
+    "@xyflow/react": "^12.10.2",
+    "elkjs": "^0.11.1",
+    "lucide-react": "^0.556.0",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "vite": "^8.0.12"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.61.1"
+  }
+}
