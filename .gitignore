@@ -2,10 +2,16 @@
 .claude/
 .obsidian/
 .openrouter.key
+experiments/clickup-tool/api_key.md
+experiments/clickup-tool/.env
+experiments/clickup-tool/.state/
 .lycheecache
 .playwright-mcp/
 **/.playwright-cli/
 **/node_modules/
+**/.venv/
+**/.pytest_cache/
+**/.ruff_cache/
 **/__pycache__/
 *.pyc
 **/.repomap.tags.cache.v1/

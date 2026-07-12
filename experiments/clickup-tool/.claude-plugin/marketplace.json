@@ -1,0 +1,15 @@
+{
+  "name": "triton-clickup",
+  "owner": {"name": "Triton"},
+  "metadata": {
+    "description": "Private ClickUp control plane for Codex and Claude.",
+    "version": "0.1.2"
+  },
+  "plugins": [
+    {
+      "name": "clickup-control",
+      "source": "./plugins/clickup-control",
+      "description": "Use the ClickUp Public API through a guarded local MCP server."
+    }
+  ]
+}

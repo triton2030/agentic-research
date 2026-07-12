@@ -1,0 +1,20 @@
+{
+  "name": "triton-clickup",
+  "interface": {
+    "displayName": "Triton ClickUp"
+  },
+  "plugins": [
+    {
+      "name": "clickup-control",
+      "source": {
+        "source": "local",
+        "path": "./plugins/clickup-control"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

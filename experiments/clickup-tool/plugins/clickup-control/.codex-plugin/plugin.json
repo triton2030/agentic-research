@@ -1,0 +1,40 @@
+{
+  "name": "clickup-control",
+  "version": "0.1.0+codex.20260712113756",
+  "description": "Private ClickUp Public API control plane for Codex.",
+  "author": {
+    "name": "Triton"
+  },
+  "homepage": "https://github.com/triton/agentic-research/tree/main/experiments/clickup-tool",
+  "repository": "https://github.com/triton/agentic-research",
+  "license": "MIT",
+  "keywords": [
+    "clickup",
+    "tasks",
+    "api",
+    "mcp",
+    "automation"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "ClickUp Control",
+    "shortDescription": "Control ClickUp through its private API client.",
+    "longDescription": "A guarded local ClickUp control plane for deterministic task, hierarchy, reporting, Goal, View, webhook, time, and generic Public API operations. Complements the official OAuth connector.",
+    "developerName": "Triton",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write",
+      "Automation"
+    ],
+    "websiteURL": "https://developer.clickup.com/",
+    "privacyPolicyURL": "https://clickup.com/privacy",
+    "termsOfServiceURL": "https://clickup.com/terms",
+    "defaultPrompt": [
+      "Audit my ClickUp workspace and flag work at risk.",
+      "Use the ClickUp API to perform this task safely.",
+      "Show the complete ClickUp hierarchy and stale work."
+    ]
+  },
+  "mcpServers": "./.mcp.json"
+}

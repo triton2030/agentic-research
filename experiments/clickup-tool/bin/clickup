@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+
+CLICKUP_TOOL_HOME="${CLICKUP_TOOL_HOME:-/Users/triton/Documents/GitHub/agentic-research/experiments/clickup-tool}"
+exec uv run --project "$CLICKUP_TOOL_HOME" clickup-control "$@"

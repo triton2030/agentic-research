@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "clickup-control": {
+      "command": "/Users/triton/Documents/GitHub/agentic-research/experiments/clickup-tool/bin/clickup-mcp",
+      "args": [],
+      "cwd": "/Users/triton/Documents/GitHub/agentic-research/experiments/clickup-tool"
+    }
+  }
+}
