@@ -11,8 +11,9 @@ endpoint family.
 
 ## Discovery Order
 
-1. Inspect the live official ClickUp MCP tools. Prefer a typed tool when it
-   directly owns the operation.
+1. Inspect the live official ClickUp MCP tools. In Claude Code the
+   deferred-tool list is the live catalog; ToolSearch loads schemas. Prefer a
+   typed tool when it directly owns the operation.
 2. Run `clickup capabilities` and inspect the named `clickup-control` tools.
 3. Search the internet, restricted to current official ClickUp developer/help
    documentation, for product semantics, plan/role limits, and the endpoint

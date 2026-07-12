@@ -5,7 +5,7 @@ from collections.abc import Mapping
 import pytest
 
 from clickup_control.client import ApiResponse, ClickUpApiError
-from clickup_control.views import configure_view, create_view, delete_view
+from clickup_control.views import configure_view, create_view, delete_view, get_view_tasks
 
 
 def _response(data: object, status: int = 200) -> ApiResponse:
@@ -142,3 +142,21 @@ def test_configure_view_rejects_response_only_fields_before_http() -> None:
         configure_view(client, "view-1", {"orderindex": 10})  # type: ignore[arg-type]
 
     assert client.calls == []
+
+
+def test_get_view_tasks_all_pages_uses_pagination_owner() -> None:
+    client = ViewClient(
+        [
+            _response({"tasks": [{"id": "1"}]}),
+            _response({"tasks": [], "last_page": True}),
+        ]
+    )
+
+    result = get_view_tasks(  # type: ignore[arg-type]
+        client,
+        "view-1",
+        all_pages=True,
+    )
+
+    assert result["data"]["pages_read"] == 2  # type: ignore[index]
+    assert [call[2] for call in client.calls] == [{"page": 0}, {"page": 1}]

@@ -5,11 +5,13 @@ from typing import Any
 
 from mcp.server.fastmcp import FastMCP
 
+from .audit import audit_portfolio
 from .auth import resolve_token, token_file_mode
 from .capabilities import CAPABILITY_MAP
 from .client import ClickUpClient, normalize_api_path
 from .diagnostics import live_diagnostics, workspace_directory
 from .operations import execute_mutation
+from .pagination import collect_task_pages
 from .views import configure_view, create_view, delete_view, get_view, get_view_tasks, list_views
 
 mcp = FastMCP(
@@ -117,6 +119,7 @@ def clickup_control_search_tasks(
     page: int = 0,
     include_closed: bool = False,
     subtasks: bool = True,
+    all_pages: bool = False,
 ) -> dict[str, object]:
     """Retrieve Workspace tasks with pagination and closed/subtask controls."""
     query = {
@@ -124,6 +127,12 @@ def clickup_control_search_tasks(
         "include_closed": str(include_closed).lower(),
         "subtasks": str(subtasks).lower(),
     }
+    if all_pages:
+        return collect_task_pages(
+            ClickUpClient(),
+            f"/v2/team/{workspace_id}/task",
+            query,
+        )
     return ClickUpClient().get(f"/v2/team/{workspace_id}/task", query).as_dict()
 
 
@@ -231,9 +240,29 @@ def clickup_control_delete_view(view_id: str) -> dict[str, object]:
 
 
 @mcp.tool()
-def clickup_control_get_view_tasks(view_id: str, page: int = 0) -> dict[str, object]:
+def clickup_control_get_view_tasks(
+    view_id: str,
+    page: int = 0,
+    all_pages: bool = False,
+) -> dict[str, object]:
     """Get the tasks currently visible through a View's saved filters and sorting."""
-    return get_view_tasks(ClickUpClient(), view_id, page)
+    return get_view_tasks(ClickUpClient(), view_id, page, all_pages=all_pages)
+
+
+@mcp.tool()
+def clickup_control_audit_portfolio(
+    workspace_id: str,
+    list_id: str,
+    expected_json: str = "{}",
+) -> dict[str, object]:
+    """Audit a List-backed portfolio and compare it with an optional expected manifest."""
+    expected = _object(expected_json)
+    return audit_portfolio(
+        ClickUpClient(),
+        workspace_id,
+        list_id,
+        expected if expected else None,
+    )
 
 
 def main() -> None:

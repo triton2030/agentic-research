@@ -31,6 +31,13 @@ operations keep their dedicated routes. The current v3 attachment schema does
 not expose a usable binary field, so File Custom Field upload remains a known
 gap rather than an inferred implementation.
 
+Named exhaustive task reads stop on an explicit last page, an empty page, or a
+repeated page and deduplicate task IDs. The read-only portfolio audit combines
+that pagination with saved View configuration, visible task sets, checklist
+state, Goals, templates, Docs, statuses, fields, and task types. Optional
+expected manifests make acceptance explicit without hard-coding one workspace
+model into the runtime.
+
 ## Sources
 
 - https://developer.clickup.com/llms.txt

@@ -5,6 +5,7 @@ from copy import deepcopy
 from typing import Any
 
 from .client import ClickUpApiError, ClickUpClient
+from .pagination import collect_task_pages
 
 VIEW_PARENT_PATHS = {
     "workspace": "team",
@@ -257,7 +258,15 @@ def delete_view(client: ClickUpClient, view_id: str) -> dict[str, object]:
     raise ValueError(f"View {view_id} still exists after deletion: {remaining}")
 
 
-def get_view_tasks(client: ClickUpClient, view_id: str, page: int = 0) -> dict[str, object]:
+def get_view_tasks(
+    client: ClickUpClient,
+    view_id: str,
+    page: int = 0,
+    *,
+    all_pages: bool = False,
+) -> dict[str, object]:
+    if all_pages:
+        return collect_task_pages(client, f"/v2/view/{view_id}/task")
     if page < 0:
         raise ValueError("View task page cannot be negative")
     return client.get(f"/v2/view/{view_id}/task", {"page": page}).as_dict()

@@ -17,6 +17,7 @@ CAPABILITY_MAP: dict[str, list[str]] = {
         "hierarchy, tasks, fields, tags, checklists, links, dependencies",
         "comments, attachments, Docs, Goals and Key Results",
         "named task View lifecycle, configuration, and visible-task reads",
+        "exhaustive task pagination and persistence-backed portfolio audits",
         "time tracking, time in status, webhooks and templates",
         "experimental Chat v3 and plan-dependent administration",
         "adaptive generic v2/v3 JSON endpoint access for current documented APIs",

@@ -5,11 +5,13 @@ import json
 import sys
 from typing import Any
 
+from .audit import audit_portfolio
 from .auth import DEFAULT_TOKEN_FILE, TokenNotFoundError, resolve_token, token_file_mode
 from .capabilities import CAPABILITY_MAP
 from .client import ClickUpApiError, ClickUpClient, normalize_api_path
 from .diagnostics import live_diagnostics, workspace_directory
 from .operations import execute_mutation
+from .pagination import collect_task_pages
 from .views import configure_view, create_view, delete_view, get_view, get_view_tasks, list_views
 
 
@@ -62,6 +64,7 @@ def _build_parser() -> argparse.ArgumentParser:
     task_search.add_argument("--page", type=int, default=0)
     task_search.add_argument("--include-closed", action="store_true")
     task_search.add_argument("--subtasks", action=argparse.BooleanOptionalAction, default=True)
+    task_search.add_argument("--all", action="store_true", dest="all_pages")
 
     task_create = task_subparsers.add_parser("create")
     task_create.add_argument("list_id")
@@ -109,6 +112,14 @@ def _build_parser() -> argparse.ArgumentParser:
     view_tasks = view_subparsers.add_parser("tasks")
     view_tasks.add_argument("view_id")
     view_tasks.add_argument("--page", type=int, default=0)
+    view_tasks.add_argument("--all", action="store_true", dest="all_pages")
+
+    audit = subparsers.add_parser("audit", help="Read-only persistence audits")
+    audit_subparsers = audit.add_subparsers(dest="audit_command", required=True)
+    portfolio_audit = audit_subparsers.add_parser("portfolio")
+    portfolio_audit.add_argument("workspace_id")
+    portfolio_audit.add_argument("list_id")
+    portfolio_audit.add_argument("--expect", type=_json_object)
     return parser
 
 
@@ -136,10 +147,16 @@ def _task_command(args: argparse.Namespace, client: ClickUpClient) -> object:
         return client.get(f"/v2/task/{args.task_id}", query).as_dict()
     if args.task_command == "search":
         query = {
-            "page": args.page,
             "include_closed": str(args.include_closed).lower(),
             "subtasks": str(args.subtasks).lower(),
         }
+        if args.all_pages:
+            return collect_task_pages(
+                client,
+                f"/v2/team/{args.workspace_id}/task",
+                query,
+            )
+        query["page"] = args.page
         return client.get(f"/v2/team/{args.workspace_id}/task", query).as_dict()
     if args.task_command == "create":
         path = normalize_api_path(f"/v2/list/{args.list_id}/task")
@@ -207,7 +224,12 @@ def _view_command(args: argparse.Namespace, client: ClickUpClient) -> object:
     if args.view_command == "delete":
         return delete_view(client, args.view_id)
     if args.view_command == "tasks":
-        return get_view_tasks(client, args.view_id, args.page)
+        return get_view_tasks(
+            client,
+            args.view_id,
+            args.page,
+            all_pages=args.all_pages,
+        )
     raise ValueError(f"Unsupported View command: {args.view_command}")
 
 
@@ -234,6 +256,8 @@ def run(args: argparse.Namespace) -> object:
         return _task_command(args, client)
     if args.command == "view":
         return _view_command(args, client)
+    if args.command == "audit" and args.audit_command == "portfolio":
+        return audit_portfolio(client, args.workspace_id, args.list_id, args.expect)
     raise ValueError(f"Unsupported command: {args.command}")
 
 

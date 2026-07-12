@@ -3,8 +3,9 @@
 ## System Boundary
 
 This project owns a private ClickUp Public API client, direct-write CLI, stdio
-MCP server, and shared `1clickup` skill distributed to Codex and Claude. It
-complements ClickUp's official OAuth MCP and does not own UI-only features.
+MCP server, and the `1clickup` skill distributed to Codex and Claude as
+host-tuned forks. It complements ClickUp's official OAuth MCP and does not own
+UI-only features.
 
 ## Runtime Entry Points
 
@@ -20,10 +21,12 @@ complements ClickUp's official OAuth MCP and does not own UI-only features.
 | HTTP/API | `src/clickup_control/client.py` | Validate paths, requests, errors and rate metadata |
 | Mutation flow | `src/clickup_control/operations.py` | Execute requested API mutations directly |
 | Task Views | `src/clickup_control/views.py` | Create, merge-configure, verify, query, and delete Views |
+| Pagination | `src/clickup_control/pagination.py` | Exhaust task/View pages and deduplicate IDs |
+| Portfolio audit | `src/clickup_control/audit.py` | Persistence report and expected-manifest comparison |
 | CLI | `src/clickup_control/cli.py` | Stable human/skill-facing commands |
 | Diagnostics | `src/clickup_control/diagnostics.py` | Redacted health summary |
 | MCP | `src/clickup_control/mcp_server.py` | Thin typed tools over the same owners |
-| Workflow | `plugins/clickup-control/skills/1clickup/SKILL.md` | Route official MCP, API, and UI fallback |
+| Workflow | `plugins/clickup-control/skills/1clickup/SKILL.md` (Codex), `.../skills-claude/1clickup/SKILL.md` (Claude) | Route official MCP, API, and UI fallback |
 
 ## Main Flow
 
@@ -46,6 +49,9 @@ identity or current state, then verifies the result.
   request bodies may be any JSON value; query parameters remain JSON objects.
 - View configuration is allowlisted read-modify-write: preserve unknown nested
   settings, omit response-only metadata, then re-read the requested patch.
+- Exhaustive task reads stop safely on a declared last page, an empty page, or
+  a repeated page; portfolio acceptance compares persisted state with explicit
+  invariants instead of inferring semantics from names.
 - Multipart upload stays with the official MCP attachment tool. This runtime
   manages webhook registrations/status but does not receive or verify inbound
   webhook deliveries.

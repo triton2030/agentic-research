@@ -88,6 +88,9 @@ For a custom ID, include both flags on named update/delete commands:
 
 ## MCP Equivalents
 
+In Claude Code these tools are usually deferred: load every schema you need
+with one ToolSearch `select:` call before invoking any of them.
+
 - `clickup_control_api_get`: generic JSON read.
 - `clickup_control_api_write`: execute a generic JSON mutation; supports
   `query_json` and `body_json`.

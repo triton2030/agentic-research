@@ -1,12 +1,12 @@
 {
   "name": "clickup-control",
-  "version": "0.1.7",
+  "version": "0.2.0",
   "description": "Private ClickUp Public API control plane for Claude Code.",
   "author": {"name": "Triton"},
   "homepage": "https://github.com/triton/agentic-research/tree/main/experiments/clickup-tool",
   "repository": "https://github.com/triton/agentic-research",
   "license": "MIT",
   "keywords": ["clickup", "tasks", "api", "mcp", "automation"],
-  "skills": "./skills",
+  "skills": "./skills-claude",
   "mcpServers": "./.mcp.json"
 }

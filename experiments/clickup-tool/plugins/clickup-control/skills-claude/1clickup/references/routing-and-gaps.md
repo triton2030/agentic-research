@@ -28,9 +28,11 @@ materially cross-checks hierarchy, permissions, or a high-cost decision.
 - Namespaced private MCP tools can be missing from one host session while the
   installed launcher remains healthy. Fall back to `bin/clickup`; do not route
   to brittle UI work merely because tool injection lagged.
-- Current official docs describe 48 capability rows while the connected Codex
-  catalog exposes 32 tools. Treat a documented-but-missing tool as unavailable
-  and route to the public API or UI.
+- Official docs and the live connector catalog drift in both directions:
+  against ~48 documented capability rows, observed session catalogs range from
+  32 tools (Codex) to ~53 (Claude Code). Trust this session's live tool list;
+  treat a documented-but-missing tool as unavailable and route to the public
+  API or UI.
 - Official ClickUp MCP does not currently expose task View management. Its Chat
   channel "views" are not List/Board/Table task Views.
 - View updates use a complete PUT body. Preserve unknown nested settings during

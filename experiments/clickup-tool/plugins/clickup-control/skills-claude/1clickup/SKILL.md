@@ -1,8 +1,10 @@
 ---
 name: 1clickup
 description: >
-  Use when reading, organizing, or changing work in ClickUp. Choose the right
-  object and live surface, complete the requested outcome, and verify it.
+  Use when reading, organizing, or changing work in ClickUp — «закинь в кликап»,
+  «поставь в кликап задачу», «наведи порядок в кликапе», «что у меня в кликапе»,
+  «обнови в ClickUp», tasks, Views, Docs, Goals. Choose the right object and
+  live surface, complete the requested outcome, and verify it.
 ---
 
 # ClickUp Control
@@ -15,10 +17,23 @@ for semantic search and common composites; use `clickup-control` for broader or
 deterministic Public API work; use desktop/browser control only for UI-only
 features.
 
-Runtime owner:
+Runtime owner: `$CLICKUP_TOOL_HOME`, default
 `/Users/triton/Documents/GitHub/agentic-research/experiments/clickup-tool`.
 Never read or print its token file. Invoke the stable launcher or namespaced MCP
 tools; credential resolution belongs to the runtime.
+
+## Claude Session Notes
+
+- MCP tools usually arrive deferred. Load every schema you expect to need in
+  one ToolSearch call (comma-separated `select:` list), not one call per tool.
+- Recognize surfaces by tool name, not server prefix: official connector tools
+  are `clickup_*` (e.g. `clickup_search`), private control tools are
+  `clickup_control_*`. Server prefixes vary per session (named or UUID) and the
+  official connector can appear under two prefixes at once; pick one instance
+  and continue.
+- If `clickup_control_*` tools are absent, run the launcher through Bash
+  ([api-recipes.md](references/api-recipes.md)); do not fall back to UI work
+  because tool injection lagged.
 
 ## Default Path
 

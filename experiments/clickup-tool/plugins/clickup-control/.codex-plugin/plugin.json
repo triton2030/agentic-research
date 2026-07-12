@@ -1,6 +1,6 @@
 {
   "name": "clickup-control",
-  "version": "0.1.0+codex.20260712134500",
+  "version": "0.1.0+codex.20260712133026",
   "description": "Private ClickUp Public API control plane for Codex.",
   "author": {
     "name": "Triton"
