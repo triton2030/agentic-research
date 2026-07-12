@@ -286,10 +286,18 @@ class CodexReviewCliTests(unittest.TestCase):
                     return_value="/sentinel/chatgpt/codex",
                 ):
                     rc = codex_review.main()
+                registry_lines = [
+                    json.loads(line)
+                    for line in (
+                        Path(tmp) / "_workspace" / "codex-artifacts" / "dialog-threads.jsonl"
+                    ).read_text().splitlines()
+                ]
             self.assertEqual(rc, 0)
             self.assertEqual(captured.get("resumed_thread_id"), "thread-abc")
             self.assertNotIn("thread_start_called", captured)
             self.assertEqual(captured.get("run_prompt"), "уточни пункт два")
+            self.assertEqual(registry_lines[-1]["event"], "continue")
+            self.assertEqual(registry_lines[-1]["thread_id"], "thread-abc")
             resume_kwargs = captured.get("thread_resume_kwargs") or {}
             self.assertEqual(resume_kwargs.get("sandbox"), "read_only")
             self.assertEqual(resume_kwargs.get("approval_mode"), "deny_all")
@@ -386,6 +394,7 @@ class CodexReviewCliTests(unittest.TestCase):
                     "--task", "вопрос советнику",
                     "--project", tmp,
                     "--dialog",
+                    "--topic", "дизайн реестра",
                 ]
                 with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(
                     io.StringIO()
@@ -401,6 +410,8 @@ class CodexReviewCliTests(unittest.TestCase):
                 self.assertTrue(registry.exists(), "dialog-threads.jsonl не создан")
                 entry = json.loads(registry.read_text().splitlines()[0])
                 self.assertEqual(entry["thread_id"], "thread-fake-1")
+                self.assertEqual(entry["event"], "start")
+                self.assertEqual(entry["topic"], "дизайн реестра")
 
                 run_dirs = [p for p in artifacts.iterdir() if p.is_dir()]
                 self.assertEqual(len(run_dirs), 1, "авто-run_dir не создан")

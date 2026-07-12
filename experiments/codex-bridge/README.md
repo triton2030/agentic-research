@@ -159,6 +159,7 @@ SDK тянет собственный пиннутый бинарь `codex`; о�
 #   --max-chars N         бюджет транскрипта (review/ask; хвост сохраняется)
 #   --dry-run             собрать промпт без вызова Codex (бесплатно)
 #   --dialog              персистентный тред: thread_id в stderr/ledger, можно --continue
+#   --topic "..."         тема диалога для реестра (видна другим агентам в codex_threads.py list)
 #   --continue THREAD_ID  следующая реплика в существующий тред (только task-режим)
 ```
 
@@ -178,11 +179,17 @@ SDK тянет собственный пиннутый бинарь `codex`; о�
 
 - run_dir создаётся автоматически (audit owner обязателен); ledger фиксирует
   `thread_id`, `thread_persistent`, `resumed_from_thread`, событие `thread`.
-- Provenance: `--dialog` регистрирует тред в
-  `<project>/_workspace/codex-artifacts/dialog-threads.jsonl`; `--continue`
-  по умолчанию принимает только треды из этого реестра — чужой
-  Desktop/API-тред несёт непроверенные роль и контекст. Осознанный override —
-  `--continue-foreign`.
+- Provenance и статусная доска: `--dialog` пишет в
+  `<project>/_workspace/codex-artifacts/dialog-threads.jsonl` событие `start`
+  (тема из `--topic` или головы задания, короткий id сессии), `--continue` —
+  событие `continue`; `--continue` по умолчанию принимает только треды из
+  этого реестра — чужой Desktop/API-тред несёт непроверенные роль и контекст.
+  Осознанный override — `--continue-foreign` (после него тред «усыновлён»
+  реестром). Свёртка реестра и чистка — `codex_threads.py`:
+  `list --project PATH` (тема/ходы/активность/сессия на тред) и
+  `archive THREAD_ID | --stale [--older-hours 48]` (штатный SDK
+  `thread_archive`, обратимо через `thread_unarchive`; руками `~/.codex` не
+  чистить).
 - Пустой THREAD_ID (потерянная `$VAR`) — отказ с кодом 2, не молчаливый новый
   тред. `--dry-run` валидирует CLI/prompt/реестр, но НЕ существование треда
   (`resume_checked=false` в ledger).

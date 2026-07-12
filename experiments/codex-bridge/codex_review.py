@@ -216,17 +216,26 @@ def _dialog_registry_path(project_cwd: Path) -> Path:
     return project_cwd / "_workspace" / "codex-artifacts" / DIALOG_REGISTRY_NAME
 
 
-def _register_dialog_thread(project_cwd: Path, thread_id: str | None, run_id: str | None) -> None:
-    """Реестр provenance: --continue по умолчанию доверяет только тредам,
-    созданным --dialog в этом же проекте (чужой Desktop/API-тред несёт
-    непроверенные роль и контекст)."""
-    if not thread_id:
-        return
+def _session_short() -> str | None:
+    sid = os.environ.get("CLAUDE_CODE_SESSION_ID") or os.environ.get("CLAUDE_SESSION_ID")
+    return sid[:8] if sid else None
+
+
+def _topic_from_payload(payload: str | None) -> str:
+    return " ".join((payload or "").split())[:80]
+
+
+def _append_registry_event(project_cwd: Path, event: dict) -> None:
+    """Append-only реестр диалогов: provenance для --continue (доверяем только
+    тредам этого проекта) + статусная доска для других агентов (тема, сессия,
+    последняя активность). События start/continue/archive; legacy-строки без
+    "event" читаются как start. Продолжение чужого треда через
+    --continue-foreign оставляет continue-событие — тред «усыновляется»
+    проектом, дальше --continue работает без override."""
     path = _dialog_registry_path(project_cwd)
     path.parent.mkdir(parents=True, exist_ok=True)
-    entry = {"thread_id": thread_id, "run_id": run_id, "created_at": utc_now()}
     with path.open("a", encoding="utf-8") as fh:
-        fh.write(json.dumps(entry, ensure_ascii=False) + "\n")
+        fh.write(json.dumps(event, ensure_ascii=False) + "\n")
 
 
 def _dialog_thread_known(project_cwd: Path, thread_id: str) -> bool:
@@ -306,6 +315,10 @@ def main() -> int:
         "--continue-foreign",
         action="store_true",
         help="Осознанный override: продолжить тред НЕ из реестра диалогов этого проекта (чужой контекст и роль не проверены).",
+    )
+    parser.add_argument(
+        "--topic",
+        help="Тема диалога для реестра (--dialog): видна другим агентам в codex_threads.py list; default — первые 80 симв. задания.",
     )
     args = parser.parse_args()
 
@@ -521,8 +534,23 @@ def main() -> int:
                     ephemeral=codex_runtime["thread_ephemeral"],
                 )
             codex_runtime["thread_id"] = getattr(thread, "id", None)
-            if args.dialog and not args.continue_thread:
-                _register_dialog_thread(project_cwd, codex_runtime["thread_id"], run_id)
+            if args.continue_thread:
+                _append_registry_event(project_cwd, {
+                    "event": "continue",
+                    "thread_id": args.continue_thread,
+                    "run_id": run_id,
+                    "at": utc_now(),
+                    "session": _session_short(),
+                })
+            elif args.dialog and codex_runtime["thread_id"]:
+                _append_registry_event(project_cwd, {
+                    "event": "start",
+                    "thread_id": codex_runtime["thread_id"],
+                    "run_id": run_id,
+                    "created_at": utc_now(),
+                    "topic": args.topic or _topic_from_payload(payload),
+                    "session": _session_short(),
+                })
             if thread_persistent:
                 print(
                     f"[codex-bridge] thread_id={codex_runtime['thread_id']} "
