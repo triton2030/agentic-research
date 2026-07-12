@@ -9,8 +9,7 @@ from .auth import DEFAULT_TOKEN_FILE, TokenNotFoundError, resolve_token, token_f
 from .capabilities import CAPABILITY_MAP
 from .client import ClickUpApiError, ClickUpClient, normalize_api_path
 from .diagnostics import live_diagnostics, workspace_directory
-from .operations import mutate_with_preview
-from .safety import ConfirmationRequiredError, is_read_method
+from .operations import execute_mutation
 
 
 def _json_object(value: str | None) -> dict[str, Any]:
@@ -45,7 +44,6 @@ def _build_parser() -> argparse.ArgumentParser:
     api.add_argument("path")
     api.add_argument("--query", type=_json_object, default={})
     api.add_argument("--body", type=_json_object)
-    api.add_argument("--confirm")
 
     task = subparsers.add_parser("task", help="Frequent task operations")
     task_subparsers = task.add_subparsers(dest="task_command", required=True)
@@ -67,20 +65,17 @@ def _build_parser() -> argparse.ArgumentParser:
     task_create.add_argument("--assignees", nargs="*", type=int)
     task_create.add_argument("--status")
     task_create.add_argument("--priority", type=int, choices=[1, 2, 3, 4])
-    task_create.add_argument("--confirm")
 
     task_update = task_subparsers.add_parser("update")
     task_update.add_argument("task_id")
     task_update.add_argument("--body", type=_json_object, required=True)
     task_update.add_argument("--workspace-id")
     task_update.add_argument("--custom-id", action="store_true")
-    task_update.add_argument("--confirm")
 
     task_delete = task_subparsers.add_parser("delete")
     task_delete.add_argument("task_id")
     task_delete.add_argument("--workspace-id")
     task_delete.add_argument("--custom-id", action="store_true")
-    task_delete.add_argument("--confirm")
     return parser
 
 
@@ -115,7 +110,6 @@ def _task_command(args: argparse.Namespace, client: ClickUpClient) -> object:
         return client.get(f"/v2/team/{args.workspace_id}/task", query).as_dict()
     if args.task_command == "create":
         path = normalize_api_path(f"/v2/list/{args.list_id}/task")
-        list_path = normalize_api_path(f"/v2/list/{args.list_id}")
         body = {
             key: value
             for key, value in {
@@ -127,13 +121,11 @@ def _task_command(args: argparse.Namespace, client: ClickUpClient) -> object:
             }.items()
             if value is not None
         }
-        return mutate_with_preview(
+        return execute_mutation(
             client,
             "POST",
             path,
             body=body,
-            before=client.get(list_path).as_dict() if not args.confirm else None,
-            confirmation_token=args.confirm,
         )
     if args.task_command == "update":
         path = normalize_api_path(f"/v2/task/{args.task_id}")
@@ -141,13 +133,12 @@ def _task_command(args: argparse.Namespace, client: ClickUpClient) -> object:
             "custom_task_ids": str(args.custom_id).lower(),
             "team_id": args.workspace_id,
         }
-        return mutate_with_preview(
+        return execute_mutation(
             client,
             "PUT",
             path,
             query=query,
             body=args.body,
-            confirmation_token=args.confirm,
         )
     if args.task_command == "delete":
         path = normalize_api_path(f"/v2/task/{args.task_id}")
@@ -155,12 +146,11 @@ def _task_command(args: argparse.Namespace, client: ClickUpClient) -> object:
             "custom_task_ids": str(args.custom_id).lower(),
             "team_id": args.workspace_id,
         }
-        return mutate_with_preview(
+        return execute_mutation(
             client,
             "DELETE",
             path,
             query=query,
-            confirmation_token=args.confirm,
         )
     raise ValueError(f"Unsupported task command: {args.task_command}")
 
@@ -178,16 +168,12 @@ def run(args: argparse.Namespace) -> object:
         return client.workspace_tree(args.workspace_id, args.include_archived)
     if args.command == "api":
         path = normalize_api_path(args.path)
-        if is_read_method(args.method):
-            return client.request(args.method, path, query=args.query, body=args.body).as_dict()
-        return mutate_with_preview(
-            client,
+        return client.request(
             args.method,
             path,
             query=args.query,
             body=args.body,
-            confirmation_token=args.confirm,
-        )
+        ).as_dict()
     if args.command == "task":
         return _task_command(args, client)
     raise ValueError(f"Unsupported command: {args.command}")
@@ -199,7 +185,6 @@ def main() -> None:
         _emit(run(parser.parse_args()))
     except (
         ClickUpApiError,
-        ConfirmationRequiredError,
         TokenNotFoundError,
         ValueError,
         json.JSONDecodeError,

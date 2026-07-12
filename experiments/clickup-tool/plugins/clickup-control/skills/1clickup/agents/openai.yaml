@@ -1,7 +1,7 @@
 interface:
   display_name: "ClickUp Control"
   short_description: "Control ClickUp through the private API"
-  default_prompt: "Use $1clickup to inspect my ClickUp workspace and take the requested action safely."
+  default_prompt: "Use $1clickup to complete the requested ClickUp outcome autonomously and verify the result."
 
 policy:
   allow_implicit_invocation: true

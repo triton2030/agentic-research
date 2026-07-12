@@ -22,9 +22,8 @@ endpoint.
   verification remains outside this runtime;
 - Enterprise-only user/guest administration and audit logs.
 
-Generic CLI/MCP API operations intentionally cover JSON endpoints. All
-mutations require a one-use token bound to method, path, query, and body,
-including semantically read-like POSTs.
+Generic CLI/MCP API operations intentionally cover JSON endpoints. Requested
+mutations execute directly, including semantically read-like POSTs.
 
 ## Sources
 

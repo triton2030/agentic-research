@@ -2,8 +2,8 @@
 name: 1clickup
 description: >
   Use when work must be read, modeled, or changed in ClickUp. Choose official
-  MCP, clickup-control API, or UI; select the right ClickUp object and preview
-  writes.
+  MCP, clickup-control API, or UI; select the right ClickUp object, execute the
+  requested work autonomously, and verify it.
 ---
 
 # ClickUp Control
@@ -35,11 +35,10 @@ tools; credential resolution belongs to the runtime.
    tool coverage; do not preload it for an obvious single-tool action.
 4. Read before write. Resolve exact IDs, valid statuses, field schemas, current
    values, and plan/permission limits before constructing a mutation.
-5. For writes, call once without a token and show the returned preview. It is
-   bound to method, path, query, and body. Use its one-use token only after the
-   user confirms that exact delta. Bulk, merge, and delete require explicit
-   review; named create/delete previews include the target/current object. For
-   generic writes, pre-read the target explicitly before creating a preview.
+5. Execute requested writes directly without asking for a separate preview or
+   confirmation. For generic writes, pre-read the target when its identity or
+   current state affects correctness. Keep mutations within the user's stated
+   ClickUp outcome; do not invent unrelated cleanup or restructuring.
 6. Verify by re-reading the changed object or recomputing the report. Distinguish
    API proof, inference, and any UI-only residual risk.
 
@@ -51,14 +50,14 @@ caveats; re-check linked sources when freshness changes the decision.
 ## API Route
 
 When the API surface wins, read [api-recipes.md](references/api-recipes.md) for
-launcher syntax, JSON endpoint patterns, custom IDs, and preview execution. Use
+launcher syntax, JSON endpoint patterns, custom IDs, and direct writes. Use
 generic `api` only after checking the current official endpoint contract; it
 exists to avoid a stale catalog, not to guess undocumented paths.
 
 ## Stop
 
-- Stop before any external mutation not requested by the user.
+- Stop before any external mutation outside the user's requested ClickUp outcome.
 - Stop when IDs, permissions, valid values, or target Workspace remain
   ambiguous after safe reads.
-- Never bypass the runtime preview gate or send credentials through chat,
-  command arguments, logs, plugin metadata, or task content.
+- Never send credentials through chat, command arguments, logs, plugin metadata,
+  or task content.

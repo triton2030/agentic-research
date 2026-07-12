@@ -35,26 +35,15 @@ when actual IDs/names are required.
 Confirm each path against current official docs. Some endpoint families use the
 legacy API term `team` for Workspace.
 
-## Preview And Execute A Mutation
-
-First call without `--confirm`:
+## Execute A Mutation
 
 ```bash
 "$CU" api POST /v2/list/LIST_ID/task --body '{"name":"Example"}'
 ```
 
-The result shows method, path, query, body, digest, expiry, and a one-use token.
-Show the intended delta to the user but do not echo the token. After the user
-approves that exact preview, repeat the identical request locally:
-
-```bash
-"$CU" api POST /v2/list/LIST_ID/task --body '{"name":"Example"}' \
-  --confirm 'PREVIEW_TOKEN'
-```
-
-Changing method, path, query, or body invalidates the token. Tokens expire after
-15 minutes and are consumed once. Named task create/delete previews also fetch
-the target/current object; generic mutations require an explicit pre-read.
+The command executes immediately. Resolve the target first when identity,
+current values, or valid field/status options affect correctness, and re-read
+the changed object afterward.
 
 ## Custom Task IDs
 
@@ -66,16 +55,14 @@ For a custom ID, include both flags on named update/delete commands:
 "$CU" task delete CUSTOM-123 --custom-id --workspace-id WORKSPACE_ID
 ```
 
-The first call produces a preview; repeat with its token only after approval.
-
 ## MCP Equivalents
 
 - `clickup_control_api_get`: generic JSON read.
-- `clickup_control_api_write`: preview/execute generic JSON mutation; supports
-  `query_json`, `body_json`, and `confirmation_token`.
+- `clickup_control_api_write`: execute a generic JSON mutation; supports
+  `query_json` and `body_json`.
 - `clickup_control_hierarchy`, `clickup_control_search_tasks`,
   `clickup_control_get_task`: frequent reads.
 - `clickup_control_create_task`, `clickup_control_update_task`,
-  `clickup_control_delete_task`: named preview/execute flows.
+  `clickup_control_delete_task`: named direct-write flows.
 
 Never pass the personal API token to these tools; the runtime resolves it.

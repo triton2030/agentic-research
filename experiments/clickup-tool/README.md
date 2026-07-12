@@ -2,7 +2,7 @@
 
 Private ClickUp control plane shared by Codex and Claude:
 
-- deterministic CLI over ClickUp's Public API;
+- deterministic CLI over ClickUp's Public API with direct mutations;
 - local stdio MCP server with namespaced tools;
 - one shared `1clickup` workflow skill;
 - dual Codex/Claude plugin manifests and marketplaces.
@@ -10,7 +10,7 @@ Private ClickUp control plane shared by Codex and Claude:
 The official ClickUp OAuth connector remains the default for semantic workspace
 search and common composite actions. This project owns broader deterministic API
 work: hierarchy, task CRUD, Goals, checklists, Views, webhooks, reporting, and a
-guarded generic endpoint escape hatch. Desktop/browser control remains the
+generic endpoint escape hatch. Desktop/browser control remains the
 fallback for Automations, Dashboards, Whiteboards, and other UI-only areas.
 
 ## Setup
@@ -36,13 +36,10 @@ bin/clickup task search WORKSPACE_ID --include-closed
 bin/clickup api GET /v2/team/WORKSPACE_ID/goal
 ```
 
-The first mutation call creates a short-lived preview. Re-run the identical
-request with its one-use token only after reviewing the displayed query/body:
+Requested mutations execute immediately:
 
 ```bash
 bin/clickup api POST /v2/list/LIST_ID/task --body '{"name":"Example"}'
-bin/clickup api POST /v2/list/LIST_ID/task --body '{"name":"Example"}' \
-  --confirm 'PREVIEW_TOKEN'
 ```
 
 The repository root is a dual-runtime marketplace. Both runtimes receive the

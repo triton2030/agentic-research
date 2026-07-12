@@ -1,6 +1,6 @@
 {
   "name": "clickup-control",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Private ClickUp Public API control plane for Claude Code.",
   "author": {"name": "Triton"},
   "homepage": "https://github.com/triton/agentic-research/tree/main/experiments/clickup-tool",

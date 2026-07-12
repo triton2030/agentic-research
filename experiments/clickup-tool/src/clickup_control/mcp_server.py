@@ -9,14 +9,14 @@ from .auth import resolve_token, token_file_mode
 from .capabilities import CAPABILITY_MAP
 from .client import ClickUpClient, normalize_api_path
 from .diagnostics import live_diagnostics, workspace_directory
-from .operations import mutate_with_preview
+from .operations import execute_mutation
 
 mcp = FastMCP(
     "ClickUp Control",
     instructions=(
         "Use namespaced tools for deterministic ClickUp Public API access. "
-        "Prefer the official ClickUp connector for semantic search. Every mutation "
-        "requires a one-use token from a body-bound preview."
+        "Prefer the official ClickUp connector for semantic search. Execute requested "
+        "mutations directly and verify their result."
     ),
     json_response=True,
 )
@@ -64,17 +64,15 @@ def clickup_control_api_write(
     path: str,
     query_json: str = "{}",
     body_json: str = "{}",
-    confirmation_token: str = "",
 ) -> dict[str, object]:
-    """Preview or execute a JSON mutation using a transaction-scoped token."""
+    """Execute a JSON mutation against an official ClickUp v2/v3 endpoint."""
     normalized_path = normalize_api_path(path)
-    return mutate_with_preview(
+    return execute_mutation(
         ClickUpClient(),
         method,
         normalized_path,
         query=_object(query_json),
         body=_object(body_json),
-        confirmation_token=confirmation_token,
     )
 
 
@@ -129,21 +127,16 @@ def clickup_control_create_task(
     list_id: str,
     name: str,
     body_json: str = "{}",
-    confirmation_token: str = "",
 ) -> dict[str, object]:
-    """Preview or create a task using a transaction-scoped token."""
+    """Create a task directly in the selected List."""
     path = normalize_api_path(f"/v2/list/{list_id}/task")
-    list_path = normalize_api_path(f"/v2/list/{list_id}")
     body = _object(body_json)
     body["name"] = name
-    client = ClickUpClient()
-    return mutate_with_preview(
-        client,
+    return execute_mutation(
+        ClickUpClient(),
         "POST",
         path,
         body=body,
-        before=client.get(list_path).as_dict() if not confirmation_token else None,
-        confirmation_token=confirmation_token,
     )
 
 
@@ -153,21 +146,19 @@ def clickup_control_update_task(
     body_json: str,
     custom_task_id: bool = False,
     workspace_id: str | None = None,
-    confirmation_token: str = "",
 ) -> dict[str, object]:
-    """Preview or update a regular/custom task using a transaction-scoped token."""
+    """Update a regular or custom task directly."""
     path = normalize_api_path(f"/v2/task/{task_id}")
     query = {
         "custom_task_ids": str(custom_task_id).lower(),
         "team_id": workspace_id,
     }
-    return mutate_with_preview(
+    return execute_mutation(
         ClickUpClient(),
         "PUT",
         path,
         query=query,
         body=_object(body_json),
-        confirmation_token=confirmation_token,
     )
 
 
@@ -176,20 +167,18 @@ def clickup_control_delete_task(
     task_id: str,
     custom_task_id: bool = False,
     workspace_id: str | None = None,
-    confirmation_token: str = "",
 ) -> dict[str, object]:
-    """Preview (including current task) or delete a regular/custom task."""
+    """Delete a regular or custom task directly."""
     path = normalize_api_path(f"/v2/task/{task_id}")
     query = {
         "custom_task_ids": str(custom_task_id).lower(),
         "team_id": workspace_id,
     }
-    return mutate_with_preview(
+    return execute_mutation(
         ClickUpClient(),
         "DELETE",
         path,
         query=query,
-        confirmation_token=confirmation_token,
     )
 
 
