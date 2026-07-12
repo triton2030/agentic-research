@@ -1,9 +1,9 @@
 ---
 name: 1clickup
 description: >
-  Use when the user asks to read or change ClickUp. Choose official MCP,
-  clickup-control API, or UI fallback; preserve hierarchy and preview writes.
-  Skip non-ClickUp planning.
+  Use when work must be read, modeled, or changed in ClickUp. Choose official
+  MCP, clickup-control API, or UI; select the right ClickUp object and preview
+  writes.
 ---
 
 # ClickUp Control
@@ -23,43 +23,37 @@ tools; credential resolution belongs to the runtime.
 
 ## Default Path
 
-1. Establish the target Workspace and requested outcome. For hierarchy-sensitive
+1. Establish the target Workspace and requested outcome. When the user says
+   broadly "put this in ClickUp", organize a workflow, or create a control
+   system, read [work-model.md](references/work-model.md) before choosing an
+   object. Do not default every result to a Task.
+2. For hierarchy-sensitive
    work, rebuild parent/child truth from IDs instead of trusting visual nesting
    or aggregate `subtasks_count` alone.
-2. Choose the surface:
-   - official `clickup_*` MCP tools for semantic search, Docs/Chat, assignee
-     resolution, and supported composites;
-   - `clickup_control_*` tools or `bin/clickup` for Goals/KRs, checklists, Views,
-     templates, webhooks, deterministic reporting, missing MCP operations, or a
-     newly documented v2/v3 endpoint;
-   - ClickUp desktop/browser only for Automations, Dashboards, Whiteboards,
-     settings, and other API-absent UI flows.
-   The official hierarchy tool currently has a `max_depth` schema mismatch;
-   omit that argument or use `clickup_control_hierarchy` / `bin/clickup tree`.
-3. Read before write. Resolve exact IDs, valid statuses, field schemas, current
+3. Choose the surface from [routing-and-gaps.md](references/routing-and-gaps.md).
+   Read it when the request crosses MCP/API/UI boundaries or depends on current
+   tool coverage; do not preload it for an obvious single-tool action.
+4. Read before write. Resolve exact IDs, valid statuses, field schemas, current
    values, and plan/permission limits before constructing a mutation.
-4. For writes, call once without a token and show the returned preview. It is
+5. For writes, call once without a token and show the returned preview. It is
    bound to method, path, query, and body. Use its one-use token only after the
    user confirms that exact delta. Bulk, merge, and delete require explicit
    review; named create/delete previews include the target/current object. For
    generic writes, pre-read the target explicitly before creating a preview.
-5. Verify by re-reading the changed object or recomputing the report. Distinguish
+6. Verify by re-reading the changed object or recomputing the report. Distinguish
    API proof, inference, and any UI-only residual risk.
 
-## Runtime Commands
+For workspace structure, views, Goals/OKRs, Forms, Automations, Dashboards, or
+Whiteboards, consult [official-practices.md](references/official-practices.md)
+after choosing the object. It captures current ClickUp guidance and plan/UI
+caveats; re-check linked sources when freshness changes the decision.
 
-```bash
-CLICKUP_TOOL_HOME="${CLICKUP_TOOL_HOME:-/Users/triton/Documents/GitHub/agentic-research/experiments/clickup-tool}"
-"$CLICKUP_TOOL_HOME/bin/clickup" doctor --live
-"$CLICKUP_TOOL_HOME/bin/clickup" workspaces
-"$CLICKUP_TOOL_HOME/bin/clickup" tree WORKSPACE_ID
-"$CLICKUP_TOOL_HOME/bin/clickup" task get TASK_ID
-"$CLICKUP_TOOL_HOME/bin/clickup" api GET /v2/ENDPOINT
-```
+## API Route
 
-Use generic `api` only after checking the current official ClickUp JSON endpoint
-contract. It exists to prevent the skill from becoming a stale copy of the API
-catalog, not to guess undocumented paths.
+When the API surface wins, read [api-recipes.md](references/api-recipes.md) for
+launcher syntax, JSON endpoint patterns, custom IDs, and preview execution. Use
+generic `api` only after checking the current official endpoint contract; it
+exists to avoid a stale catalog, not to guess undocumented paths.
 
 ## Stop
 

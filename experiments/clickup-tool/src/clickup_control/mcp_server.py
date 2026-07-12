@@ -8,7 +8,7 @@ from mcp.server.fastmcp import FastMCP
 from .auth import resolve_token, token_file_mode
 from .capabilities import CAPABILITY_MAP
 from .client import ClickUpClient, normalize_api_path
-from .diagnostics import live_diagnostics
+from .diagnostics import live_diagnostics, workspace_directory
 from .operations import mutate_with_preview
 
 mcp = FastMCP(
@@ -80,8 +80,8 @@ def clickup_control_api_write(
 
 @mcp.tool()
 def clickup_control_workspaces() -> dict[str, object]:
-    """List Workspaces authorized for the personal ClickUp token."""
-    return ClickUpClient().get("/v2/team").as_dict()
+    """List authorized Workspace IDs and names without member profile data."""
+    return workspace_directory(ClickUpClient())
 
 
 @mcp.tool()

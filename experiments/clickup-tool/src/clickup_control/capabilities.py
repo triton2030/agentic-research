@@ -1,6 +1,13 @@
 from __future__ import annotations
 
 CAPABILITY_MAP: dict[str, list[str]] = {
+    "work_model": [
+        "Tasks and subtasks for accountable work with independent lifecycle",
+        "Docs/Wikis for narrative knowledge and Goals/Targets for outcomes",
+        "Views and Dashboards for lenses/reporting without duplicating work",
+        "Forms for intake, Automations for repeated reactions, Whiteboards for ideation",
+        "Custom task types, fields, relationships, and dependencies for structure",
+    ],
     "official_mcp": [
         "semantic workspace search",
         "assignee resolution",

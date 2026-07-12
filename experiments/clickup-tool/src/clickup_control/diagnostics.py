@@ -17,3 +17,14 @@ def live_diagnostics(client: ClickUpClient) -> dict[str, object]:
         "workspace_status": workspace_response.status,
         "workspace_count": len(teams),
     }
+
+
+def workspace_directory(client: ClickUpClient) -> dict[str, object]:
+    response = client.get("/v2/team")
+    teams = response.data.get("teams", []) if isinstance(response.data, dict) else []
+    workspaces = [
+        {"id": team.get("id"), "name": team.get("name")}
+        for team in teams
+        if isinstance(team, dict)
+    ]
+    return {"status": response.status, "workspaces": workspaces}

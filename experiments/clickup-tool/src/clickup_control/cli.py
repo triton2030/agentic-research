@@ -8,7 +8,7 @@ from typing import Any
 from .auth import DEFAULT_TOKEN_FILE, TokenNotFoundError, resolve_token, token_file_mode
 from .capabilities import CAPABILITY_MAP
 from .client import ClickUpApiError, ClickUpClient, normalize_api_path
-from .diagnostics import live_diagnostics
+from .diagnostics import live_diagnostics, workspace_directory
 from .operations import mutate_with_preview
 from .safety import ConfirmationRequiredError, is_read_method
 
@@ -173,7 +173,7 @@ def run(args: argparse.Namespace) -> object:
 
     client = ClickUpClient()
     if args.command == "workspaces":
-        return client.get("/v2/team").as_dict()
+        return workspace_directory(client)
     if args.command == "tree":
         return client.workspace_tree(args.workspace_id, args.include_archived)
     if args.command == "api":
