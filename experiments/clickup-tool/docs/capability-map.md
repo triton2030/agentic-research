@@ -6,7 +6,7 @@ endpoint.
 | Surface | Best use | Material limits |
 |---|---|---|
 | Official ClickUp MCP | Semantic search, assignee resolution, common task/Doc/Chat composites | OAuth-only; live tools can lag docs |
-| ClickUp Public API | Deterministic CRUD, Goals/KRs, checklists, Views, templates, webhooks, time data | Personal token inherits the user's permissions; plan/rate limits apply |
+| ClickUp Public API | Deterministic CRUD, Goals/KRs, checklists, named Views, templates, webhooks, time data, adaptive JSON endpoints | Personal token inherits the user's permissions; plan/rate limits apply |
 | ClickUp desktop/browser | Automations, Dashboards, Whiteboards, settings, UI-only work | UI automation is slower and more brittle |
 
 ## Public API Families
@@ -18,12 +18,18 @@ endpoint.
 - Goals and Key Results;
 - timers, time entries, time-in-status and reporting;
 - Docs and experimental Chat v3;
+- v3 task moves, per-user estimates, and object privacy/access through generic
+  JSON routes after checking current schemas;
 - webhook registration and health/status; inbound delivery/signature
   verification remains outside this runtime;
 - Enterprise-only user/guest administration and audit logs.
 
-Generic CLI/MCP API operations intentionally cover JSON endpoints. Requested
-mutations execute directly, including semantically read-like POSTs.
+Named View commands cover the full task-View lifecycle and preserve unknown
+nested settings through verified read-modify-write. Generic CLI/MCP operations
+accept any JSON body for current documented endpoints. Multipart and UI-only
+operations keep their dedicated routes. The current v3 attachment schema does
+not expose a usable binary field, so File Custom Field upload remains a known
+gap rather than an inferred implementation.
 
 ## Sources
 

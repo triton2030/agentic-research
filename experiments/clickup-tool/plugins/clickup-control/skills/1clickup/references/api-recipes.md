@@ -27,13 +27,31 @@ when actual IDs/names are required.
 
 ```bash
 "$CU" api GET /v2/team/WORKSPACE_ID/goal
-"$CU" api GET /v2/team/WORKSPACE_ID/view
 "$CU" api GET /v2/team/WORKSPACE_ID/webhook
 "$CU" api GET /v2/task/TASK_ID/time_in_status
 ```
 
 Confirm each path against current official docs. Some endpoint families use the
 legacy API term `team` for Workspace.
+
+For Views, use [views.md](views.md) and named View commands. Do not hand-build a
+partial generic PUT.
+
+## Task Views
+
+```bash
+"$CU" view list list LIST_ID
+"$CU" view get VIEW_ID
+"$CU" view create list LIST_ID --name "Delivery" --type board \
+  --config '{"sorting":{"fields":[{"field":"priority","dir":1}]}}'
+"$CU" view configure VIEW_ID \
+  --patch '{"settings":{"show_images":false}}'
+"$CU" view tasks VIEW_ID --page 0
+"$CU" view delete VIEW_ID
+```
+
+Named configure performs full read-modify-write and verification while
+preserving unknown nested settings.
 
 ## Execute A Mutation
 
@@ -64,5 +82,9 @@ For a custom ID, include both flags on named update/delete commands:
   `clickup_control_get_task`: frequent reads.
 - `clickup_control_create_task`, `clickup_control_update_task`,
   `clickup_control_delete_task`: named direct-write flows.
+- `clickup_control_list_views`, `clickup_control_get_view`,
+  `clickup_control_create_view`, `clickup_control_configure_view`,
+  `clickup_control_delete_view`, `clickup_control_get_view_tasks`: named View
+  lifecycle and visible-task flows.
 
 Never pass the personal API token to these tools; the runtime resolves it.

@@ -1,6 +1,6 @@
 {
   "name": "clickup-control",
-  "version": "0.1.0+codex.20260712121500",
+  "version": "0.1.0+codex.20260712134500",
   "description": "Private ClickUp Public API control plane for Codex.",
   "author": {
     "name": "Triton"
@@ -19,7 +19,7 @@
   "interface": {
     "displayName": "ClickUp Control",
     "shortDescription": "Control ClickUp through its private API client.",
-    "longDescription": "A direct-write local ClickUp control plane for deterministic task, hierarchy, reporting, Goal, View, webhook, time, and generic Public API operations. Complements the official OAuth connector.",
+    "longDescription": "A direct-write local ClickUp control plane with deep View management and adaptive access to current documented JSON APIs. Complements the official OAuth connector.",
     "developerName": "Triton",
     "category": "Productivity",
     "capabilities": [

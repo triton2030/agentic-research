@@ -15,15 +15,16 @@ CAPABILITY_MAP: dict[str, list[str]] = {
     ],
     "public_api": [
         "hierarchy, tasks, fields, tags, checklists, links, dependencies",
-        "comments, attachments, Docs, Views, Goals and Key Results",
+        "comments, attachments, Docs, Goals and Key Results",
+        "named task View lifecycle, configuration, and visible-task reads",
         "time tracking, time in status, webhooks and templates",
         "experimental Chat v3 and plan-dependent administration",
-        "generic v2/v3 endpoint access through guarded API operations",
+        "adaptive generic v2/v3 JSON endpoint access for current documented APIs",
     ],
     "desktop_fallback": [
         "Automations",
         "Dashboards",
         "Whiteboards",
-        "workspace settings and other UI-only flows",
+        "View governance, manual ordering, visual settings, and other UI-only flows",
     ],
 }

@@ -10,6 +10,7 @@ from .capabilities import CAPABILITY_MAP
 from .client import ClickUpClient, normalize_api_path
 from .diagnostics import live_diagnostics, workspace_directory
 from .operations import execute_mutation
+from .views import configure_view, create_view, delete_view, get_view, get_view_tasks, list_views
 
 mcp = FastMCP(
     "ClickUp Control",
@@ -29,6 +30,10 @@ def _object(value: str | None) -> dict[str, Any]:
     if not isinstance(parsed, dict):
         raise ValueError("Expected a JSON object")
     return parsed
+
+
+def _json_value(value: str | None) -> Any:
+    return None if value is None else json.loads(value)
 
 
 @mcp.tool()
@@ -54,7 +59,7 @@ def clickup_control_doctor(live: bool = False) -> dict[str, object]:
 
 @mcp.tool()
 def clickup_control_api_get(path: str, query_json: str = "{}") -> dict[str, object]:
-    """Read any official ClickUp v2/v3 endpoint using a relative API path."""
+    """Read a documented JSON ClickUp v2/v3 endpoint using a relative API path."""
     return ClickUpClient().get(normalize_api_path(path), _object(query_json)).as_dict()
 
 
@@ -72,7 +77,7 @@ def clickup_control_api_write(
         method,
         normalized_path,
         query=_object(query_json),
-        body=_object(body_json),
+        body=_json_value(body_json),
     )
 
 
@@ -180,6 +185,55 @@ def clickup_control_delete_task(
         path,
         query=query,
     )
+
+
+@mcp.tool()
+def clickup_control_list_views(parent_type: str, parent_id: str) -> dict[str, object]:
+    """List Views attached to a Workspace, Space, Folder, or List."""
+    return list_views(ClickUpClient(), parent_type, parent_id)
+
+
+@mcp.tool()
+def clickup_control_get_view(view_id: str) -> dict[str, object]:
+    """Get a View including grouping, sorting, filters, columns, and settings."""
+    return get_view(ClickUpClient(), view_id)
+
+
+@mcp.tool()
+def clickup_control_create_view(
+    parent_type: str,
+    parent_id: str,
+    name: str,
+    view_type: str,
+    config_json: str = "{}",
+) -> dict[str, object]:
+    """Create and verify a List, Board, Table, Calendar, Gantt, or other task View."""
+    return create_view(
+        ClickUpClient(),
+        parent_type,
+        parent_id,
+        name,
+        view_type,
+        _object(config_json),
+    )
+
+
+@mcp.tool()
+def clickup_control_configure_view(view_id: str, patch_json: str) -> dict[str, object]:
+    """Merge grouping, sorting, filters, columns, or settings into a View and verify it."""
+    return configure_view(ClickUpClient(), view_id, _object(patch_json))
+
+
+@mcp.tool()
+def clickup_control_delete_view(view_id: str) -> dict[str, object]:
+    """Delete a task View and verify that it no longer exists."""
+    return delete_view(ClickUpClient(), view_id)
+
+
+@mcp.tool()
+def clickup_control_get_view_tasks(view_id: str, page: int = 0) -> dict[str, object]:
+    """Get the tasks currently visible through a View's saved filters and sorting."""
+    return get_view_tasks(ClickUpClient(), view_id, page)
 
 
 def main() -> None:

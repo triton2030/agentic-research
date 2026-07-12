@@ -66,3 +66,23 @@ def test_generic_cli_api_executes_requested_method(monkeypatch: object) -> None:
             {"status": "done"},
         )
     ]
+
+
+def test_generic_cli_api_accepts_top_level_json_array(monkeypatch: object) -> None:
+    client = RecordingClient()
+    monkeypatch.setattr(cli, "ClickUpClient", lambda: client)  # type: ignore[attr-defined]
+    parser = cli._build_parser()
+
+    cli.run(
+        parser.parse_args(
+            [
+                "api",
+                "PATCH",
+                "/v3/workspaces/42/time_estimates_by_user",
+                "--body",
+                '[{"user_id": 7, "time_estimate": 3600000}]',
+            ]
+        )
+    )
+
+    assert client.calls[0][3] == [{"user_id": 7, "time_estimate": 3600000}]

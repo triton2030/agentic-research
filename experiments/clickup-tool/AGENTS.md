@@ -14,6 +14,8 @@ or the shared skill contract. Update it when those facts change.
 - Never print, commit, copy, or place the ClickUp token in plugin/skill files.
 - Keep `src/clickup_control/` and `bin/` as the runtime owner. Plugin and skill
   surfaces stay thin and call this runtime.
+- Keep task View read-modify-write in `views.py`; CLI/MCP must not rebuild full
+  View PUT bodies independently.
 - Requested ClickUp mutations run directly without a separate preview or
   confirmation round. Resolve exact Workspace/object IDs and verify the result.
 - Keep the official OAuth ClickUp connector for semantic search and common

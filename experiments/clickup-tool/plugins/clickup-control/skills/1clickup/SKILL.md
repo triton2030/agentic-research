@@ -1,9 +1,8 @@
 ---
 name: 1clickup
 description: >
-  Use when work must be read, modeled, or changed in ClickUp. Choose official
-  MCP, clickup-control API, or UI; select the right ClickUp object, execute the
-  requested work autonomously, and verify it.
+  Use when reading, organizing, or changing work in ClickUp. Choose the right
+  object and live surface, complete the requested outcome, and verify it.
 ---
 
 # ClickUp Control
@@ -33,6 +32,9 @@ tools; credential resolution belongs to the runtime.
 3. Choose the surface from [routing-and-gaps.md](references/routing-and-gaps.md).
    Read it when the request crosses MCP/API/UI boundaries or depends on current
    tool coverage; do not preload it for an obvious single-tool action.
+   If a capability is missing, new, or uncertain, read
+   [api-discovery.md](references/api-discovery.md) and check current official
+   docs/OpenAPI before concluding it is unavailable.
 4. Read before write. Resolve exact IDs, valid statuses, field schemas, current
    values, and plan/permission limits before constructing a mutation.
 5. Execute requested writes directly without asking for a separate preview or
@@ -42,21 +44,28 @@ tools; credential resolution belongs to the runtime.
 6. Verify by re-reading the changed object or recomputing the report. Distinguish
    API proof, inference, and any UI-only residual risk.
 
-For workspace structure, views, Goals/OKRs, Forms, Automations, Dashboards, or
-Whiteboards, consult [official-practices.md](references/official-practices.md)
-after choosing the object. It captures current ClickUp guidance and plan/UI
-caveats; re-check linked sources when freshness changes the decision.
+When deciding which workspace object or View type should represent the outcome,
+consult [official-practices.md](references/official-practices.md). Do not load it
+when the object and requested configuration are already explicit.
+
+For task Views such as List, Board/Kanban, Table, Calendar, or Gantt, read
+[views.md](references/views.md). It owns View discovery, creation,
+configuration, visible-task reads, and the API/UI boundary. Prefer named View
+commands over generic `api` calls.
 
 ## API Route
 
-When the API surface wins, read [api-recipes.md](references/api-recipes.md) for
-launcher syntax, JSON endpoint patterns, custom IDs, and direct writes. Use
-generic `api` only after checking the current official endpoint contract; it
-exists to avoid a stale catalog, not to guess undocumented paths.
+When a generic API route or launcher syntax is needed, read
+[api-recipes.md](references/api-recipes.md). Named View work uses `views.md`
+without also loading generic recipes. Use generic `api` only after checking the
+current official endpoint contract; it exists to avoid a stale catalog, not to
+guess undocumented paths.
 
 ## Stop
 
 - Stop before any external mutation outside the user's requested ClickUp outcome.
+- Stop and ask before a write that may create a charge or purchase unless the
+  user explicitly authorized that cost.
 - Stop when IDs, permissions, valid values, or target Workspace remain
   ambiguous after safe reads.
 - Never send credentials through chat, command arguments, logs, plugin metadata,
