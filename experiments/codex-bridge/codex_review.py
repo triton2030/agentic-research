@@ -242,12 +242,19 @@ def _dialog_thread_known(project_cwd: Path, thread_id: str) -> bool:
     path = _dialog_registry_path(project_cwd)
     if not path.is_file():
         return False
-    for line in path.read_text(encoding="utf-8").splitlines():
+    for line in path.read_text(encoding="utf-8", errors="replace").splitlines():
         try:
-            if json.loads(line).get("thread_id") == thread_id:
-                return True
+            entry = json.loads(line)
         except json.JSONDecodeError:
             continue
+        if not isinstance(entry, dict):
+            continue
+        # Доверие дают только start/legacy/continue: archive чужого треда не
+        # должен «легализовать» его для --continue без --continue-foreign.
+        if entry.get("event") in ("archive", "unarchive"):
+            continue
+        if entry.get("thread_id") == thread_id:
+            return True
     return False
 
 
@@ -535,18 +542,25 @@ def main() -> int:
                 )
             codex_runtime["thread_id"] = getattr(thread, "id", None)
             if args.continue_thread:
-                _append_registry_event(project_cwd, {
+                event = {
                     "event": "continue",
                     "thread_id": args.continue_thread,
                     "run_id": run_id,
+                    "run_dir": str(run_dir) if run_dir else None,
                     "at": utc_now(),
                     "session": _session_short(),
-                })
+                }
+                if args.continue_foreign:
+                    # Усыновлённый тред должен получить тему — иначе доска
+                    # покажет его следующему агенту безымянным.
+                    event["topic"] = args.topic or _topic_from_payload(payload)
+                _append_registry_event(project_cwd, event)
             elif args.dialog and codex_runtime["thread_id"]:
                 _append_registry_event(project_cwd, {
                     "event": "start",
                     "thread_id": codex_runtime["thread_id"],
                     "run_id": run_id,
+                    "run_dir": str(run_dir) if run_dir else None,
                     "created_at": utc_now(),
                     "topic": args.topic or _topic_from_payload(payload),
                     "session": _session_short(),

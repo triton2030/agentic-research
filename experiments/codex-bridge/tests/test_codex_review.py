@@ -373,10 +373,39 @@ class CodexReviewCliTests(unittest.TestCase):
                     rc = codex_review.main()
                 self.assertEqual(rc, 0)
                 self.assertEqual(captured.get("resumed_thread_id"), "thread-foreign")
+                registry_lines = [
+                    json.loads(line)
+                    for line in (
+                        Path(tmp) / "_workspace" / "codex-artifacts" / "dialog-threads.jsonl"
+                    ).read_text().splitlines()
+                ]
+                self.assertEqual(registry_lines[-1]["event"], "continue")
+                # усыновлённый foreign-тред получает тему для доски статусов
+                self.assertEqual(registry_lines[-1]["topic"], "уточнение")
         finally:
             sys.argv = saved_argv
             for name in fake_names:
                 sys.modules.pop(name, None)
+
+    def test_archive_event_does_not_legalize_thread(self) -> None:
+        """archive-событие в реестре не даёт provenance: иначе архивация чужого
+        треда «легализовала» бы его для --continue без --continue-foreign."""
+        import codex_review
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            reg = root / "_workspace" / "codex-artifacts" / "dialog-threads.jsonl"
+            reg.parent.mkdir(parents=True, exist_ok=True)
+            reg.write_text(
+                json.dumps({"event": "archive", "thread_id": "t-x"}) + "\n",
+                encoding="utf-8",
+            )
+            self.assertFalse(codex_review._dialog_thread_known(root, "t-x"))
+            reg.write_text(
+                json.dumps({"event": "continue", "thread_id": "t-y"}) + "\n",
+                encoding="utf-8",
+            )
+            self.assertTrue(codex_review._dialog_thread_known(root, "t-y"))
 
     def test_dialog_auto_creates_run_dir_and_registers_thread(self) -> None:
         """Персистентный диалог без audit owner запрещён: --dialog обязан сам

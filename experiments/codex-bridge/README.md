@@ -109,8 +109,9 @@ dirty-gate, ledger и scope-check.
 
 ## Биллинг: только ChatGPT-аккаунт, не API
 
-Все три entrypoint'а (review / investigate / orchestrate) перед запуском
-дочернего codex-процесса вырезают из окружения `OPENAI_API_KEY` /
+Все SDK-входы (review / investigate / orchestrate, а также
+`codex_threads.py archive/unarchive`; `list` SDK не запускает вовсе) перед
+запуском дочернего codex-процесса вырезают из окружения `OPENAI_API_KEY` /
 `CODEX_API_KEY` / `OPENAI_BASE_URL` (см. `cbcommon.py`), чтобы случайная
 переменная не увела вызов на платный API. Строка `env чист` / `вырезано из
 env: …` в логах подтверждает именно вычистку ключей; сам ChatGPT-login backend
@@ -186,10 +187,14 @@ SDK тянет собственный пиннутый бинарь `codex`; о�
   этого реестра — чужой Desktop/API-тред несёт непроверенные роль и контекст.
   Осознанный override — `--continue-foreign` (после него тред «усыновлён»
   реестром). Свёртка реестра и чистка — `codex_threads.py`:
-  `list --project PATH` (тема/ходы/активность/сессия на тред) и
+  `list --project PATH` (тема/ходы/активность/сессия/run на тред; события
+  несут `run_dir` — точный путь даже при custom `--run-dir`),
   `archive THREAD_ID | --stale [--older-hours 48]` (штатный SDK
-  `thread_archive`, обратимо через `thread_unarchive`; руками `~/.codex` не
-  чистить).
+  `thread_archive`; per-target ошибки не обрывают батч, rc=1 при частичном
+  провале; `--stale` fail closed на битом реестре) и `unarchive THREAD_ID`.
+  Руками `~/.codex` не чистить. Archive-событие provenance НЕ даёт — чужой
+  тред нельзя «легализовать» его архивацией. Реестр append-only без локов:
+  «чужой живой тред не трогай» — дисциплина агента, не backend-гарантия.
 - Пустой THREAD_ID (потерянная `$VAR`) — отказ с кодом 2, не молчаливый новый
   тред. `--dry-run` валидирует CLI/prompt/реестр, но НЕ существование треда
   (`resume_checked=false` в ledger).
