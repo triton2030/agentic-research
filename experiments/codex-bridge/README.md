@@ -69,9 +69,17 @@ Backend явно закрепляет Codex turn defaults: `model=gpt-5.6-sol`,
 
 Это текущий потолок под ChatGPT-биллингом, проверено живыми пробниками
 2026-07-10: `gpt-5.6-pro` и `gpt-5.6` (без суффикса) возвращают `HTTP 400 —
-"not supported when using Codex with a ChatGPT account"`; работает только
-`gpt-5.6-sol` — тот же model ID, что в живом `~/.codex/config.toml`.
+"not supported when using Codex with a ChatGPT account"`; наверху работает
+только `gpt-5.6-sol` — тот же model ID, что в живом `~/.codex/config.toml`.
 (Исторический probe 2026-07-02 аналогично отсёк `gpt-5.5-pro`.)
+
+Вниз шкала есть. Движок несёт три слага 5.6-семейства — `gpt-5.6-sol` /
+`gpt-5.6-terra` / `gpt-5.6-luna` (strings бинаря 0.144.2); `luna` и `terra`
+проверены живыми пробниками 2026-07-13: `completed` под ChatGPT-auth, ~5-6 с
+на `--effort low`. Это осознанный downgrade через `--model` для быстрых и
+массовых прогонов: `luna` — экстра-быстрая неглубокая (широкий поиск/разведка
+роем параллельных агентов), `terra` — средняя. Default остаётся
+`gpt-5.6-sol`: на глубоких одиночных прогонах луной не экономить.
 
 **Codex binary.** `gpt-5.6-sol` требует более новый движок, чем пинит SDK:
 бандл-бинарь `codex-cli 0.137.0a4` (openai-codex 0.1.0b3) отвечает `HTTP 400 —
