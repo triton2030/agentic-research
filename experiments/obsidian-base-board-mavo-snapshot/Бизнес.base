@@ -1,0 +1,21 @@
+views:
+  - type: table
+    name: Бизнес
+    filters:
+      and:
+        - or:
+            - file.inFolder("Задачи")
+            - file.inFolder("experiments/obsidian-base-board-mavo-snapshot/Задачи")
+        - контур == "Бизнес"
+    groupBy:
+      property: проект
+      direction: ASC
+    order:
+      - статус
+      - стадия
+      - тип
+      - проект
+      - file.name
+    sort:
+      - property: проект
+        direction: ASC

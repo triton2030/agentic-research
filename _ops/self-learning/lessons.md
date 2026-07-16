@@ -20,7 +20,6 @@
 ### Tools и handoff
 
 - Hooks: lifecycle moment явно (`UserPromptSubmit` ≠ `PreToolUse`); analytics — фильтруй service prompts.
-- Code-architecture review: сначала `1repo-map`, потом `1cli-tools`; IA-риски docs/ownership отделяй через `1ia-audit`.
 - На «почему не вызвал X-скил» — не объясняй задним числом, классифицируй и запиши владельцу.
 - Named subagent: сверь `agent_type`; роль не принимается → не имитируй, фиксируй mismatch.
 - `fork_context` ≠ named `agent_type`: либо full-history наследование, либо named без fork + self-contained brief.

@@ -1,6 +1,6 @@
 # Wisdom — GPT-5.6
 
-Снимок на 9 июля 2026.
+Снимок на 13 июля 2026.
 
 Здесь живут только правила, которые важны именно для `GPT-5.6`. Общие свойства
 LLM держит `wisdom-llm.md`; платформенные правила Codex держит
@@ -18,12 +18,18 @@ LLM держит `wisdom-llm.md`; платформенные правила Code
   Противоречащие правила опаснее недостающей второстепенной детали.
 - `ALWAYS`, `NEVER`, `must`, `only` оставлять для настоящих инвариантов. Для
   поиска, уточнений, tool use и итераций задавать decision rules.
+- Явные значения пользователя сохранять как заданные. Если правильный выбор
+  неявен, давать критерии решения; не подменять domain judgment универсальными
+  defaults, keyword maps или широкими semantic shortcuts.
 - Personality и collaboration style разделять и держать короткими: первая
   управляет тоном, вторая — вопросами, допущениями, инициативой, tradeoffs,
   проверкой и неопределённостью.
 - Не задавать generic brevity: GPT-5.6 уже склонна к компрессии и может потерять
   обязательный evidence или часть артефакта. Указывать, что сохранить, а резать
   сначала introductions, repetition, reassurance и optional background.
+- Если API surface поддерживает `text.verbosity`, общей подробностью управлять
+  этой ручкой, а prompt использовать для task-specific содержания, структуры и
+  того, что нельзя потерять при сжатии.
 - Permissions задавать один раз по типу запроса: answer/review/diagnose/plan —
   read-only inspection без внедрения; change/build/fix — in-scope local edits и
   non-destructive validation; external writes, destructive actions и material
@@ -47,6 +53,11 @@ LLM держит `wisdom-llm.md`; платформенные правила Code
   `xhigh` / `max` — только по измеренному выигрышу, не глобальный default.
 - До повышения effort проверить success criteria, dependency rules, tool
   routing и validation loop.
+- Внутри GPT-5.6 family использовать `Sol` для root/synthesis и сложной
+  неоднозначной работы, а `Terra` — для более быстрых и дешёвых read-heavy
+  scans, exploration и supporting workers. Не считать это жёстким глобальным
+  mapping: model/effort подтверждать representative evals, а доступный slug —
+  в живом runtime конкретной платформы.
 - В prompt явно назвать значимую проверку результата. Для кода — targeted
   tests/build/smoke по риску; для frontend и visual artifacts — render и
   визуальная инспекция перед финалом.

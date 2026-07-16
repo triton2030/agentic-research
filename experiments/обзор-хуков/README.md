@@ -1,7 +1,7 @@
 ---
 read-before-edit:
   - '[[AGENTS.md]]'
-  - '[[_ops/project-graph.md]]'
+  - '[[_ops/GOAL.md]]'
 edit-after-edit: []
 description: Snapshot-пакет карт hook surfaces для Codex и Claude.
 ---
@@ -37,4 +37,6 @@ description: Snapshot-пакет карт hook surfaces для Codex и Claude.
 2. Проверить hook files только чтобы понять behavior и agent-visible output.
 3. Обновить HTML-карту конкретного runtime.
 4. Проверить desktop и mobile rendering.
-5. Если появились новые active hooks, обновить `_ops/project-graph.md`, только если меняется folder dependency или retrieval route.
+5. Если новый active hook меняет project scope, done или stop rule,
+   остановиться и сверить `_ops/GOAL.md`; обычное runtime wiring остаётся
+   в live config/settings, а не во втором project registry.

@@ -1,5 +1,0 @@
-{"ts": "2026-07-02T16:57:07+00:00", "event": "validated", "dry_run": false, "mode": "task"}
-{"ts": "2026-07-02T16:57:07+00:00", "event": "codex_start", "mode": "task"}
-{"ts": "2026-07-02T16:59:07+00:00", "event": "heartbeat", "elapsed_sec": 120, "mode": "task"}
-{"ts": "2026-07-02T17:01:08+00:00", "event": "heartbeat", "elapsed_sec": 240, "mode": "task"}
-{"ts": "2026-07-02T17:02:32+00:00", "event": "done", "status": "completed", "ok": true}

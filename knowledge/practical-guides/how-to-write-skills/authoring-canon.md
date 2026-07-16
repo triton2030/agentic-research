@@ -104,6 +104,25 @@ defaults сильнее длинного self-check stack; новое прави
 Для `Claude Opus 4.7` важнее явно назвать scope, tool/subagent policy и где
 правило распространяется на весь набор артефактов.
 
+## Если Скилл Делегирует
+
+Subagents — не generic quality mode. Включай их в skill contract, только если у
+повторяемого workflow есть независимые evidence streams, files или leaf
+implementation и fan-out меняет latency, context hygiene или качество.
+
+Orchestrating skill должен определить:
+
+- критерий разделения и какие потоки независимы;
+- какие результаты обязательны и должен ли root ждать все потоки;
+- worker return contract: summary, адресуемый evidence, gaps и blockers;
+- write ownership/isolation для каждого worker;
+- root как owner conflict resolution, synthesis, integration и final validation.
+
+Если состав потоков зависит от задачи, задавай decision rule, а не фиксированное
+число агентов. Model/effort routing держи в platform/model delta, не в portable
+skill core. Общий operational baseline — `knowledge/agents/multi-agent.md`;
+GPT-5.6 routing — `knowledge/wisdom-gpt-5.6.md`.
+
 ## Доказательство
 
 Скилл нельзя считать хорошим по тексту, но proof loop должен соответствовать

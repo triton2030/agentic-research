@@ -16,3 +16,4 @@ experiments/clickup-tool/.state/
 *.pyc
 **/.repomap.tags.cache.v1/
 _workspace/
+experiments/flowpage-v4-elk/dist/

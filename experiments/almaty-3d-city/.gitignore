@@ -1,7 +1,0 @@
-node_modules/
-dist/
-.vercel/
-output/
-.playwright-cli/
-test-results/
-.vercel

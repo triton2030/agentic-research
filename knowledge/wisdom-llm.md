@@ -1,6 +1,6 @@
 # Wisdom — LLM
 
-Снимок на 28 апреля 2026.
+Снимок на 14 июля 2026.
 
 Здесь только общие свойства текущей рабочей пары моделей и повторяющиеся режимы
 сбоя. Рабочий baseline этого проекта — `GPT-5.6` и `Claude Opus 4.7`; старые
@@ -38,6 +38,18 @@ model-neutral советы держатся только если они под�
   overthinking и лишний поиск.
 - Clarifying agents работают лучше, когда уточнения отбираются по EVPI, а не по любой замеченной двусмысленности.
 - Богатый discovery снимает часть EVPI-вопросов до их задания: хороший контекст уменьшает шум уточнений.
+- Reasoning не гарантирует распознавание ложной предпосылки: свежий ACL 2026
+  benchmark показывает, что reasoning-модели всё ещё пропускают значимую долю
+  false presuppositions, особенно при уверенном пользовательском framing.
+- Обнаружить missing premise и остановиться — разные способности. Reasoning-модель
+  может рано заметить нехватку данных, затем продолжить self-doubt loop и
+  додумать ответ; поэтому stop/abstention должен быть отдельным решением.
+- Ошибочный draft в контексте создаёт contextual drag: поздний feedback и даже
+  успешная self-verification не гарантируют освобождение от старой структуры.
+  После invalidating evidence надёжнее re-anchor из чистого набора owner facts.
+- Статус знания и рабочее последствие нельзя кодировать одним label:
+  `confirmed / contradicted / insufficient / conflicting` — про evidence,
+  `none / accepted assumption / blocker / reframe` — про решение.
 
 ## Полезные Приёмы
 
@@ -73,6 +85,24 @@ model-neutral советы держатся только если они под�
 
 - https://openreview.net/forum?id=dc8ebScygC
   EVPI-подход к уточняющим вопросам.
+
+- https://aclanthology.org/2026.findings-acl.1201/
+  Reasoning-модели продолжают принимать ложные presuppositions; сила framing
+  влияет на результат.
+
+- https://arxiv.org/abs/2604.03058
+  Допущения о желаемом пользователем ответе как механизм social sycophancy.
+
+- https://arxiv.org/abs/2504.06514
+  Missing premise усиливает overthinking вместо своевременной остановки.
+
+- https://arxiv.org/abs/2506.09038
+  AbstentionBench: answerability/abstention остаётся отдельной слабой
+  способностью reasoning-моделей.
+
+- https://arxiv.org/abs/2602.04288
+  Contextual drag от ошибочных попыток сохраняется после feedback и
+  self-verification.
 
 - https://direct.mit.edu/coli/article/50/3/1053/121669/Large-Language-Model-Instruction-Following-A
   Обзор того, где модели систематически теряют инструкции.

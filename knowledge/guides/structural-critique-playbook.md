@@ -91,9 +91,9 @@ Smith finding должен назвать scoped repair: как переформ
 - red flags: lost-in-middle, accidental contract, literal scope, duplicated
   prose, new rule without owner check.
 
-`1folder-contract`:
+`1ia-audit`:
 
-- central model: goal-to-structure contract;
+- central model: authority, truth-vs-view and independent owner seams;
 - shallow: folder groups files without contract;
 - red flags: config explosion, pass-through hook, ownerless folder,
   new-in-legacy, ownership leak.
@@ -133,7 +133,7 @@ Never use Brooks/Smith:
 
 - `1skill-architect`: Brooks full-domain; `brooks` primary fallback.
 - `instruction-layer`: language-quality critique; `brooks` available.
-- `1folder-contract`: structural contract critique; `brooks` available.
+- `1ia-audit`: structural owner/shape critique; `brooks` available.
 - `project-roadmap`: Smith full-domain; `smith` primary fallback.
 - `task-contract`: Smith-light; `smith` available.
 - `plan-drift-watch`: Smith-light; `smith` available.

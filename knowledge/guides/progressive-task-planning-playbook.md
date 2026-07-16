@@ -14,13 +14,13 @@
 ## Слойная Модель
 
 ```text
-PROJECT-ROADMAP.md
--> _ops/plans/phase-NN-*/task-MM-*.md
+_ops/GOAL.md
+-> _ops/plans/**/task-*.md (только когда нужен durable state)
 -> Подшаги внутри task-файла
 -> Более глубокая декомпозиция только as-needed
 ```
 
-- Strategy: куда и почему идём.
+- Project contract: outcome, scope, done и stop rules.
 - Task-файл: эфемерная execution surface — какой bounded outcome сейчас создаём и как проверим готовность.
 - Подшаги: ближайшие исполнимые ходы.
 - Более глубокие уровни: только при блокере, риске или отдельном evidence.
@@ -29,12 +29,13 @@ PROJECT-ROADMAP.md
 
 ## Plays
 
-### Когда Захожу В Stage
+### Когда Вхожу В Работу
 
-Сверься с `PROJECT-ROADMAP.md`: какой Stage задаёт смысл текущей работы и
-какие Anti-goals запрещают удобные shortcuts.
+Сверься с `_ops/GOAL.md`: какой outcome задаёт смысл текущей работы, что вне
+scope и какие stop rules запрещают удобные shortcuts.
 
-Не ищи execution status в strategy. Статусы живут в task-файлах.
+Не ищи execution status в project contract. Если работе нужен durable state,
+он живёт в task-файле; обычная in-chat разбивка остаётся в разговоре.
 
 ### Когда Начинаю Task
 
@@ -58,7 +59,7 @@ PROJECT-ROADMAP.md
 
 Выбери task, который:
 
-- ближе всего продвигает текущий Stage;
+- ближе всего продвигает текущий project outcome;
 - реально выполним текущими skills, tools и context;
 - даст наблюдаемый evidence;
 - не требует учитывать то, что пока можно оставить неизвестным.
@@ -150,8 +151,8 @@ outcome.
 **Fake task chain:** агент пишет длинную цепочку задач, чтобы выглядеть
 организованным, но следующий проверяемый ход не становится яснее.
 
-**Status creep into strategy:** чекбоксы, queues, commands или evidence попадают
-в `PROJECT-ROADMAP.md`.
+**Status creep into project contract:** чекбоксы, queues, commands или evidence
+попадают в `_ops/GOAL.md`.
 
 **Evidence-before-action:** в task-файле появляется доказательство до
 фактической проверки.
@@ -170,17 +171,19 @@ outcome.
 - Approach-choice truth stays in the current owner/context pass: separate goal
   from method, surface consequential branches, and do not freeze scope before
   the decision is clear.
-- `1planning` owns roadmap/task-files and task prerequisites. См.
+- `1planning` owns durable active/deferred task state and task prerequisites. См.
   `/Users/triton/.codex/skills/1planning/SKILL.md`.
+- `1goal` owns project-level goal, scope, done/stop and README on-ramp;
+  `1break-down` owns the first in-chat verifiable frontier.
 - Substantive-write discipline is distributed through local instructions,
   criteria delivery, owner skills, and direct evidence-closeout by the current
   execution owner.
 - Durable user truth не держит отдельный installed skill. Закрепляй её у
   правильного project owner-а или в memory layer только по явной просьбе
   пользователя.
-- `1skill-architect` owns skill control-surface changes; `1folder-contract`
-  owns structural folder/runtime controls; `1instruction-layer` owns wording
-  and placement of instruction prose.
+- `1skill-architect` owns skill control-surface changes; `1ia-audit` owns
+  structural owner/shape decisions; `1instruction-layer` owns wording and
+  placement of instruction prose.
 
 ## Research Tie-Back
 

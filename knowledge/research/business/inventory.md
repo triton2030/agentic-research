@@ -1,19 +1,9 @@
 # Business — Инвентарь
 
-Снимок после cleanup 18 мая 2026.
+Снимок после cleanup 14 июля 2026.
 
 Инвентарь фиксирует business-facing handles и gaps. Общие выводы не держать
 здесь: promoted principles уходят в `knowledge/wisdom-*` или guides.
-
-## Shared
-
-### 1pitch-coherence-audit
-
-- Тип: skill
-- Источник: наш
-- Где есть: Claude Code, Codex
-- Что делает: проверяет investor pitch materials на нарративную связность и
-  инвесторский посыл после правок.
 
 ## Claude Code
 
@@ -49,12 +39,12 @@
 
 ## Codex
 
-Пока отдельный business-facing слой тонкий: live Codex handle из этой категории
-только `1pitch-coherence-audit`.
+Отдельного business-facing skill сейчас нет. Business-задачи идут через owner
+конкретной работы и установленные document/data/plugin surfaces.
 
 ## Missing
 
-- Codex-совместимые business skills beyond `1pitch-coherence-audit`.
+- Codex-совместимый business skill с доказанным повторяемым workflow и owner.
 - Автоматизации и регулярные проверки.
 - Документооборот для Codex: `xlsx`, `pdf`, `docx`.
 - Notion / CRM / почта / календарь / BI / support connectors.

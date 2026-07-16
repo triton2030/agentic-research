@@ -1,3 +1,0 @@
-{"ts": "2026-07-02T18:21:52+00:00", "event": "validated", "dry_run": false, "mode": "task"}
-{"ts": "2026-07-02T18:21:53+00:00", "event": "codex_start", "mode": "task"}
-{"ts": "2026-07-02T18:22:01+00:00", "event": "failed", "status": "exception", "error": "{\"type\":\"error\",\"status\":400,\"error\":{\"type\":\"invalid_request_error\",\"message\":\"The 'gpt-5.5-pro' model is not supported when using Codex with a ChatGPT account.\"}}"}

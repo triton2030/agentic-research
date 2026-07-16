@@ -1,0 +1,15 @@
+views:
+  - type: table
+    name: Разработка
+    filters:
+      and:
+        - or:
+            - file.inFolder("Задачи")
+            - file.inFolder("experiments/obsidian-base-board-mavo-snapshot/Задачи")
+        - контур == "Разработка"
+    order:
+      - статус
+      - стадия
+      - тип
+      - проект
+      - file.name
