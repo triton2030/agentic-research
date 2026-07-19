@@ -35,6 +35,10 @@ warn if Fable switches to Opus. This proves the credential route. To
 guarantee no out-of-plan charge, also decline API credits when Claude Code
 offers them at the subscription limit.
 
+Maintainer details and official sources live in
+[`docs/subscription-billing.md`](docs/subscription-billing.md); this runtime
+guard is intentionally outside the task-time Codex skill.
+
 ## Install And Verify
 
 ```bash
@@ -49,10 +53,9 @@ controls use live `claude --help` plus non-spending parser probes through
 `claude auth status`; the CLI intentionally omits some supported flags from
 help.
 
-The installed Codex skill contains separate current references for subscription
-billing, Fable prompting, Opus prompting, Claude subagents/agent teams, managed
-run lifecycle, and failure recovery. Agent teams remain experimental and are
-not enabled by normal bridge profiles.
+The installed Codex skill keeps only task-time references for model prompting,
+Claude subagents/agent teams, managed-run recovery, and failed-call recovery.
+Agent teams remain experimental and are not enabled by normal bridge profiles.
 
 Every read-only run also records a before/after Git-worktree footprint. This can
 detect persistent local mutation during the run, but cannot attribute it when

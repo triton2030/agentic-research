@@ -1,7 +1,7 @@
 interface:
   display_name: "Claude MCP"
   short_description: "Independent Claude reviews and second opinions"
-  default_prompt: "Use $1claude-mcp to get an independent Claude, Opus, or Fable perspective through the managed bridge and return model, billing, thread, and evidence status."
+  default_prompt: "Use $1claude-mcp to get an independent Claude, Opus, or Fable perspective through the managed bridge and return a compact evidence-backed verdict."
 
 dependencies:
   tools:
