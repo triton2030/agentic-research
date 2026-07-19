@@ -1,134 +1,106 @@
-# Managed Runs And Relay
+# Managed Runs, Threads, And Relay
 
-Use Claude Bridge when Claude should be a controlled external agent, not a raw
-one-off `claude` command.
+Use the bridge as the control plane around Claude Code. Codex owns the user task
+and synthesis; Claude owns only the role named in the brief.
 
-## Role Fit
+## Tool Map
 
-Use Claude when the work benefits from a careful external reviewer that can read
-files, follow a structured brief, inspect logs, and produce evidence-bound
-findings. Good Claude runs usually check one claim, one subsystem, or one
-instruction contract.
+- `claude_doctor`: CLI compatibility plus live auth readiness.
+- `claude_profiles`: current bridge profiles and exact CLI flags.
+- `claude_run`: one managed invocation with a saved Claude session by default;
+  use thread tools for bridge-owned durable continuation.
+- `claude_thread_start`: create one named bridge-owned Claude conversation.
+- `claude_thread_send`: resume that conversation by its stable `thread_id`.
+- `claude_threads`: recover thread handles and last status after restart or
+  context compaction.
+- `claude_thread_archive`: hide/unhide a handle without deleting Claude's store.
+- `claude_peek` / `claude_observe`: visible activity, warnings, and relay cursor.
+- `claude_wait` / `claude_result`: bounded wait or current/final report.
+- `claude_kill`: stop only the saved process group or tmux session.
+- `claude_audit_skill`: prove an exact target path appeared in a structured tool
+  event.
+- `claude_cleanup_runs`: dry-run or remove old terminal run logs; active runs are
+  skipped.
 
-Do not call Claude just to make an ordinary Codex answer feel more validated.
-If the task has no distinct external role, answer inline and save the bridge for
-work where observation, context access, or independent judgment changes quality.
+## Run And Thread Identity
 
-## Before The Run
+`run_id` identifies one process invocation and its logs. `thread_id` identifies
+one persistent Claude conversation and normally equals its Claude `session_id`.
+One thread can therefore have many run IDs.
 
-Check these assumptions before spending a live run:
+The append-only thread registry stores topic, cwd, requested model/profile,
+Git worktree/common-dir/ref identity, turn count, archive state, and last run.
+It does not duplicate Claude's chat contents; Claude Code owns those. A bridge
+archive is reversible and is not a delete operation.
 
-- Role: Claude has a named lens, not "look at everything".
-- Claim: the prompt says what Codex believes or wants checked.
-- Access: `cwd`/`addDir` points at the real files, not only a summary.
-- Evidence: the answer must cite files, logs, tool evidence, or missing
-  evidence.
-- Stop: Claude knows when to stop and what not to start in the background.
-- Tail: Codex will check `result`/process state before final closeout.
+Use continuation only when inherited context is useful. Start a fresh thread
+when the user wants a blind reviewer, a second opinion, or a different framing.
+Multiple independent threads can run concurrently; wait for and close every run.
+Different Codex agents and Git worktrees share the registry safely: each
+conversation has a UUID, each send takes an atomic cross-process lease, and a
+resume must match the original cwd/worktree/ref. Use a new thread after changing
+branches rather than importing stale branch context.
 
-If any item is missing and changes the outcome, fix the brief before `run`.
+## Run Lifecycle
 
-## Managed Run Flow
+1. Start and retain `run_id`, `session_id`/`thread_id`, and `log_dir`.
+2. For long work, poll `claude_observe` with the previous `next_cursor`.
+3. Use `claude_wait` with a bounded timeout. Timeout means the process may still
+   be live.
+4. Read `claude_result`; if the run is wrong or unwanted, use `claude_kill`.
+5. Close only at a terminal status: `completed`, `failed`, `killed`, or safely
+   explained `orphaned`.
 
-- `claude_doctor`: check local bridge/CLI capability before setup-sensitive work.
-- `claude_profiles`: inspect available control profiles when default is not
-  enough.
-- `claude_run`: start a controlled run with profile, cwd/addDir, prompt, and
-  first-class controls. Use `useTmux: true` for long human-observable terminal
-  sessions.
-- `claude_peek` / `claude_observe`: observe milestones, relay updates,
-  activity trace, tool/file/command events, warnings, and cursor.
-- `claude_wait` or `claude_result`: get the final report and chat-ready answer.
-- `claude_kill`: stop a looping or wrong run.
-- `claude_cleanup_runs`: dry-run first; delete only with confirmation.
+`running_orphaned` means the bridge can still fingerprint the saved live
+process after its original controller disappeared. It is not complete. A second
+kill call may escalate a fingerprint-matched process group that ignored TERM.
 
-## Cost Tail Check
+For `useTmux: true`, the bridge records one exact tmux session, captures the
+pane, tees stdout/stderr, strips Claude API key environment variables, and kills
+only that saved session. A Codex-held `server.js` process is MCP plumbing, not a
+paid model tail.
 
-After using Claude as an external agent, do not close the conversation while the
-managed run is still `running`, `running_orphaned`, or `killing`.
+## Relay And Evidence
 
-- After `claude_wait` or `claude_result`, confirm the status is terminal:
-  `completed`, `failed`, `killed`, or safely `orphaned`.
-- If the run is still alive, use `claude_kill` and then re-check with
-  `claude_result`.
-- If status stays `killing` after a short re-check, call `claude_kill` once
-  more; the bridge may escalate the saved process group instead of broad
-  killing by process name.
-- Do not ask Claude to start background dev servers or detached daemons inside
-  an ordinary review run. If a task truly needs a long service, make the
-  service lifecycle explicit in the brief and keep the run open until the
-  saved run/process tail is stopped or accounted for.
-- If the MCP server was launched as a direct stdio process, confirm the
-  matching `node .../experiments/claude-bridge/src/server.js` process exits
-  after the client closes.
-- If the same `server.js` process is held under Codex app-server, it is an
-  active MCP transport, not a Claude model run or paid tail.
-- For tmux runs, confirm the saved `tmux_session` is gone with
-  `tmux has-session -t <tmux_session>` or an equivalent session listing.
-- After restart, kill only when the bridge fingerprint matches the saved run;
-  never kill broad `claude`, tmux, or bridge processes by name.
-- Include the final process-tail status in Codex closeout when Claude was used.
+Final reports provide:
 
-## Brief Shape
+- `chat_relay.text` and `.markdown` for the user-visible Claude answer;
+- `chat_relay.truncated` and `.full_text_file` for long output;
+- requested `model`, stream-derived `resolved_model`, and `effort`;
+- `activity`, warnings, files, status, and `agent_behavior`;
+- `write_scope` for guarded workers.
 
-Give Claude a complete brief: role, lens, task, goal/current state, claim,
-project sources, criteria, unknowns, boundaries, expected evidence, output
-shape, and stop condition. Do not ask Claude to judge only a Codex summary when
-files or logs matter.
+`activity` exposes stream/tool/file/log/tmux observations, not private
+chain-of-thought. Relay Claude's actual answer when requested, then distinguish
+Claude's finding from Codex's acceptance judgment.
 
-Prefer narrow audit prompts:
+## Guarded Writes
 
-```xml
-<role>Read-only external reviewer.</role>
-<lens>Lifecycle, status truth, and process-tail safety.</lens>
-<task>Audit these files for real bugs only.</task>
-<goal>User goal and current project state.</goal>
-<claim>Codex believes kill/status/report are now safe.</claim>
-<sources>List exact files or addDir roots.</sources>
-<criteria>List the relevant criteria files.</criteria>
-<unknowns>List assumptions and facts Claude must treat as unknown if not evidenced.</unknowns>
-<boundaries>Allowed moves, read/write policy, tools, and must-not rules.</boundaries>
-<evidence>For each finding, cite file/function/log evidence or say missing evidence.</evidence>
-<output>Findings first; no broad rewrite; stop after P0-P2 issues.</output>
-```
+`worker` requires exact `writeFiles` inside a Git worktree. Before launch, the
+bridge rejects allowed targets with pre-existing dirty edits. The prompt forbids
+other files and Git-history operations. Terminal reporting compares dirty-file
+fingerprints, ignored-path state, filesystem observations, and HEAD movement
+with the baseline. Symlink targets are rejected before launch, and a path that
+becomes a symlink is a violation.
 
-Avoid prompts like "review the whole bridge" unless the user explicitly wants a
-broad exploratory run and accepts the cost/noise tradeoff.
+`write_scope.status: passed` proves only the detected persistent Git footprint
+stayed inside the exact list. It is not an OS sandbox and cannot prove that
+Claude never read or temporarily touched another path. `failed` or `unknown`
+requires local inspection; the bridge never auto-reverts.
+If the watcher cannot reach a complete terminal handoff, including a guarded
+tmux worker, the verdict is `unknown`.
 
-## Chat Relay
+`unrestricted` has no allowed-file boundary, but the bridge still snapshots a
+Git worktree when available and reports only persistent changes relative to
+that baseline. `observed` is footprint evidence, not a safety pass. `unknown`
+means a Git baseline was unavailable.
 
-MCP cannot push directly into Codex chat. Bridge reports include
-`chat_relay.text`, `chat_relay.markdown`, `chat_relay.truncated`, and
-`chat_relay.full_text_file`. Relay `chat_relay.text` when the user needs
-Claude's answer. If it is truncated or visibly cut, read `full_text_file`
-before falling back to raw logs.
+## Logs And Cleanup
 
-`agent_behavior` is the closeout card for reusable external reviews: it reports
-observable trace availability, relay/full-text state, warnings, and process or
-tmux tail status. Codex should use it to judge the agent run, not just the
-agent's findings.
+Each run stores prompt, command/profile, state, events, stdout/stderr, debug log,
+final output, and report under `experiments/claude-bridge/runs/`. These files can
+contain sensitive prompt/tool content and are ignored by Git.
 
-## Activity Trace
-
-For hour-scale runs, poll `claude_observe` with the last `next_cursor`. Use the
-`activity` object to check elapsed time, recent tool calls, touched paths,
-model-visible updates, tmux capture, warnings, and the current stop hint. Do
-not describe it as Claude's private thinking; it is only the observable work
-trail.
-
-## Tmux Behavior
-
-`useTmux: true` creates a detached session named `claude-bridge-<run_id>`.
-The pane waits on a start channel, the server attaches `pipe-pane -o` to
-`tmux-pane.log`, then releases Claude. stdout/stderr are still tee'd into
-repo-local logs so final answer extraction keeps working. `claude_kill` closes
-only the saved session; never kill broad tmux state.
-
-## Evidence And Failure
-
-Do not treat Claude self-report as proof that a skill or context was read.
-Use `claude_audit_skill` or logs when evidence matters.
-
-If MCP tools are absent, treat it as registration/session exposure. Use the
-controlled repo CLI fallback only; do not silently switch to an unmanaged raw
-`claude` command for work that needs observation or evidence.
+Cleanup is dry-run by default. Confirm deletion only for resolved run IDs; the
+bridge refreshes old waitable state and skips anything still active. Never use a
+broad process-name kill or broad filesystem deletion as cleanup.

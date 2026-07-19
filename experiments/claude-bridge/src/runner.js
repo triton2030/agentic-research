@@ -1,5 +1,5 @@
 import { spawn, spawnSync } from "node:child_process";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
@@ -8,12 +8,15 @@ import { getProfile, listProfiles, MODEL } from "./profiles.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 export const BRIDGE_ROOT = path.resolve(__dirname, "..");
-export const RUNS_DIR = path.join(BRIDGE_ROOT, "runs");
+export const RUNS_DIR = path.resolve(process.env.CLAUDE_BRIDGE_RUNS_DIR || path.join(BRIDGE_ROOT, "runs"));
+export const THREADS_FILE = path.join(RUNS_DIR, "dialog-threads.jsonl");
+export const THREAD_LEASES_DIR = path.join(RUNS_DIR, "thread-leases");
 export const DEFAULT_CLEANUP_DAYS = 14;
 
 const activeRuns = new Map();
 const TERMINAL_STATUSES = new Set(["completed", "failed", "killed", "orphaned"]);
 const WAITABLE_STATUSES = new Set(["running", "running_orphaned", "killing"]);
+const GUARDED_WRITE_ENFORCEMENT = "prompt_boundary_plus_git_and_filesystem_postflight";
 
 function isTerminalStatus(status) {
   return TERMINAL_STATUSES.has(status);
@@ -24,6 +27,7 @@ function isManagedRun(run) {
 }
 
 function markTerminal(run) {
+  stopWriteObservation(run);
   run.child = null;
   run.managed = false;
   activeRuns.delete(run.runId);
@@ -175,6 +179,307 @@ function stripClaudeApiCredentials(runEnv) {
   return runEnv;
 }
 
+function gitOutput(cwd, args) {
+  const result = spawnSync("git", args, { cwd, encoding: "buffer" });
+  if (result.status !== 0) {
+    throw new Error(`Git write-scope check failed: ${shortText(result.stderr?.toString() || result.stdout?.toString(), 600)}`);
+  }
+  return result.stdout;
+}
+
+function gitWorktreeRoot(cwd) {
+  return gitOutput(cwd, ["rev-parse", "--show-toplevel"]).toString("utf8").trim();
+}
+
+function gitWorkspaceContext(cwd) {
+  try {
+    const worktreeRoot = fs.realpathSync(gitWorktreeRoot(cwd));
+    const commonDirRaw = gitOutput(cwd, ["rev-parse", "--git-common-dir"]).toString("utf8").trim();
+    const commonDir = fs.realpathSync(path.resolve(worktreeRoot, commonDirRaw));
+    const head = gitOutput(cwd, ["rev-parse", "HEAD"]).toString("utf8").trim();
+    const branchResult = spawnSync("git", ["symbolic-ref", "--quiet", "--short", "HEAD"], {
+      cwd,
+      encoding: "utf8"
+    });
+    const branch = branchResult.status === 0 ? branchResult.stdout.trim() : null;
+    return {
+      kind: "git",
+      worktree_root: worktreeRoot,
+      common_dir: commonDir,
+      branch,
+      head,
+      ref: branch || `detached:${head}`
+    };
+  } catch {
+    return { kind: "directory", worktree_root: path.resolve(cwd), common_dir: null, branch: null, head: null, ref: null };
+  }
+}
+
+function assertThreadWorkspace(thread, cwd) {
+  const requestedCwd = path.resolve(cwd || thread.cwd);
+  if (path.resolve(thread.cwd) !== requestedCwd) {
+    throw new Error(
+      `Claude thread ${thread.thread_id} belongs to cwd ${thread.cwd}, not ${requestedCwd}. Start a new thread for another worktree.`
+    );
+  }
+  const expected = thread.workspace;
+  const current = gitWorkspaceContext(requestedCwd);
+  if (expected?.common_dir && current.common_dir !== expected.common_dir) {
+    throw new Error(`Claude thread ${thread.thread_id} belongs to a different Git project/worktree family.`);
+  }
+  if (expected?.worktree_root && current.worktree_root !== expected.worktree_root) {
+    throw new Error(`Claude thread ${thread.thread_id} belongs to worktree ${expected.worktree_root}.`);
+  }
+  if (expected?.ref && current.ref !== expected.ref) {
+    throw new Error(
+      `Claude thread ${thread.thread_id} belongs to Git ref ${expected.ref}, but cwd is now ${current.ref || "unknown"}. Start a new branch-specific thread.`
+    );
+  }
+  return { cwd: requestedCwd, workspace: current };
+}
+
+function parsePorcelainZ(buffer) {
+  const records = buffer.toString("utf8").split("\0");
+  const entries = [];
+  for (let index = 0; index < records.length; index += 1) {
+    const record = records[index];
+    if (!record) continue;
+    const status = record.slice(0, 2);
+    const file = record.slice(3);
+    entries.push({ status, file });
+    if (/[RC]/u.test(status) && records[index + 1]) {
+      entries.push({ status: `${status}:source`, file: records[index + 1] });
+      index += 1;
+    }
+  }
+  return entries;
+}
+
+function fileFingerprint(root, relativeFile) {
+  const absoluteFile = path.join(root, relativeFile);
+  try {
+    const stat = fs.lstatSync(absoluteFile);
+    if (stat.isSymbolicLink()) return `symlink:${fs.readlinkSync(absoluteFile)}`;
+    if (!stat.isFile()) return `type:${stat.mode}:${stat.size}:${stat.mtimeMs}:${stat.ctimeMs}`;
+    return `file:${createHash("sha256").update(fs.readFileSync(absoluteFile)).digest("hex")}`;
+  } catch (error) {
+    if (error?.code === "ENOENT") return "missing";
+    return `error:${error?.code || error?.message || "unknown"}`;
+  }
+}
+
+function gitDirtySnapshot(root) {
+  const entries = parsePorcelainZ(
+    gitOutput(root, ["status", "--porcelain=v1", "-z", "--untracked-files=all", "--ignored=matching"])
+  );
+  const relativeRunsDir = path.relative(root, RUNS_DIR).split(path.sep).join("/").replace(/\/$/u, "");
+  const visibleEntries = entries.filter(({ file }) => {
+    if (!relativeRunsDir || relativeRunsDir.startsWith("..") || path.isAbsolute(relativeRunsDir)) return true;
+    const normalizedFile = file.replace(/\/$/u, "");
+    return normalizedFile !== relativeRunsDir && !normalizedFile.startsWith(`${relativeRunsDir}/`);
+  });
+  return Object.fromEntries(
+    visibleEntries.map(({ status, file }) => [file, { status, fingerprint: fileFingerprint(root, file) }])
+  );
+}
+
+function normalizeWriteFiles(cwd, writeFiles) {
+  const root = fs.realpathSync(gitWorktreeRoot(cwd));
+  const resolvedCwd = fs.realpathSync(cwd);
+  const files = [...new Set([].concat(writeFiles || []).map((file) => String(file).trim()).filter(Boolean))];
+  if (!files.length) {
+    throw new Error("The worker profile requires writeFiles with one or more exact project-relative file paths.");
+  }
+  const normalized = files.map((file) => {
+    if (path.isAbsolute(file)) {
+      throw new Error(`writeFiles entries must be relative to cwd, not absolute: ${file}`);
+    }
+    const absolute = path.resolve(resolvedCwd, file);
+    const relativeToRoot = path.relative(root, absolute);
+    if (!relativeToRoot || relativeToRoot.startsWith("..") || path.isAbsolute(relativeToRoot)) {
+      throw new Error(`writeFiles entry must resolve to a file inside the Git worktree: ${file}`);
+    }
+    let cursor = root;
+    for (const segment of relativeToRoot.split(path.sep)) {
+      cursor = path.join(cursor, segment);
+      try {
+        if (fs.lstatSync(cursor).isSymbolicLink()) {
+          throw new Error(`Worker write scope cannot contain symlinks: ${file}`);
+        }
+      } catch (error) {
+        if (error?.code !== "ENOENT") throw error;
+      }
+    }
+    return relativeToRoot.split(path.sep).join("/");
+  });
+  const baseline = gitDirtySnapshot(root);
+  const dirtyOverlap = normalized.filter((file) => baseline[file]);
+  if (dirtyOverlap.length) {
+    throw new Error(
+      `Worker write scope overlaps pre-existing dirty files: ${dirtyOverlap.join(", ")}. ` +
+        "Preserve the user's edits and use a clean target or an explicitly unrestricted profile."
+    );
+  }
+  return {
+    mode: "guarded",
+    root,
+    allowed_files: normalized,
+    baseline,
+    baseline_head: gitOutput(root, ["rev-parse", "HEAD"]).toString("utf8").trim(),
+    observed_files: [],
+    observation_complete: false,
+    observation_error: null
+  };
+}
+
+function snapshotUnrestrictedFootprint(cwd) {
+  try {
+    const root = fs.realpathSync(gitWorktreeRoot(cwd));
+    return {
+      mode: "unrestricted_observation",
+      root,
+      allowed_files: null,
+      baseline: gitDirtySnapshot(root),
+      baseline_head: gitOutput(root, ["rev-parse", "HEAD"]).toString("utf8").trim()
+    };
+  } catch (error) {
+    return {
+      mode: "unrestricted_observation",
+      root: null,
+      allowed_files: null,
+      baseline: null,
+      baseline_head: null,
+      baseline_error: error.message
+    };
+  }
+}
+
+function gitChangedBetween(root, beforeHead, afterHead) {
+  if (!beforeHead || !afterHead || beforeHead === afterHead) return [];
+  return gitOutput(root, ["diff", "--name-only", "-z", `${beforeHead}..${afterHead}`])
+    .toString("utf8")
+    .split("\0")
+    .filter(Boolean);
+}
+
+function evaluateWriteScope(writeScope) {
+  if (!writeScope) return null;
+  if (!writeScope.root || !writeScope.baseline) {
+    return {
+      status: "unknown",
+      enforcement: "unrestricted_git_footprint_observation",
+      error: writeScope.baseline_error || "No Git baseline is available.",
+      note: "Unrestricted execution was allowed, but its persistent file footprint could not be isolated."
+    };
+  }
+  try {
+    const current = gitDirtySnapshot(writeScope.root);
+    const currentHead = gitOutput(writeScope.root, ["rev-parse", "HEAD"]).toString("utf8").trim();
+    const candidates = new Set([...Object.keys(writeScope.baseline), ...Object.keys(current)]);
+    const changedFiles = [...candidates].filter((file) => {
+      const before = writeScope.baseline[file];
+      const after = current[file];
+      return before?.status !== after?.status || before?.fingerprint !== after?.fingerprint;
+    });
+    for (const file of gitChangedBetween(writeScope.root, writeScope.baseline_head, currentHead)) {
+      changedFiles.push(file);
+    }
+    const uniqueChanged = [...new Set([...changedFiles, ...(writeScope.observed_files || [])])].sort();
+    const guarded = writeScope.mode === "guarded";
+    const allowed = new Set(writeScope.allowed_files || []);
+    const outOfScope = guarded ? uniqueChanged.filter((file) => !allowed.has(file)) : [];
+    const headChanged = writeScope.baseline_head !== currentHead;
+    const symlinkFiles = guarded
+      ? writeScope.allowed_files.filter((file) => {
+          try {
+            return fs.lstatSync(path.join(writeScope.root, file)).isSymbolicLink();
+          } catch {
+            return false;
+          }
+        })
+      : [];
+    const violations = guarded
+      ? [
+          ...(outOfScope.length ? ["out_of_scope_files"] : []),
+          ...(headChanged ? ["git_head_changed"] : []),
+          ...(symlinkFiles.length ? ["allowed_path_became_symlink"] : [])
+        ]
+      : [];
+    if (guarded && writeScope.observation_complete !== true) {
+      return {
+        status: "unknown",
+        enforcement: GUARDED_WRITE_ENFORCEMENT,
+        worktree_root: writeScope.root,
+        allowed_files: writeScope.allowed_files,
+        changed_files: uniqueChanged,
+        out_of_scope_files: outOfScope,
+        head_changed: headChanged,
+        symlink_files: symlinkFiles,
+        violations,
+        error: writeScope.observation_error || "Filesystem observation did not reach a complete terminal handoff.",
+        note: "The guarded worker footprint cannot be proven after observation loss."
+      };
+    }
+    return {
+      status: guarded ? (violations.length ? "failed" : "passed") : "observed",
+      enforcement: guarded ? GUARDED_WRITE_ENFORCEMENT : "unrestricted_git_footprint_observation",
+      worktree_root: writeScope.root,
+      allowed_files: writeScope.allowed_files || null,
+      changed_files: uniqueChanged,
+      out_of_scope_files: outOfScope,
+      head_changed: headChanged,
+      symlink_files: symlinkFiles,
+      violations,
+      note: "Postflight detection does not sandbox the Claude process or revert files."
+    };
+  } catch (error) {
+    return {
+      status: "unknown",
+      enforcement: GUARDED_WRITE_ENFORCEMENT,
+      allowed_files: writeScope.allowed_files,
+      error: error.message,
+      note: "Postflight detection could not prove the final write footprint."
+    };
+  }
+}
+
+function startWriteObservation(run) {
+  const scope = run.writeScope;
+  if (scope?.mode !== "guarded") return;
+  if (run.useTmux) {
+    scope.observation_error = "Guarded filesystem observation is unavailable for tmux worker runs.";
+    return;
+  }
+  const ignoredPrefixes = [".git"];
+  const relativeRunsDir = path.relative(scope.root, RUNS_DIR).split(path.sep).join("/");
+  if (relativeRunsDir && !relativeRunsDir.startsWith("..") && !path.isAbsolute(relativeRunsDir)) {
+    ignoredPrefixes.push(relativeRunsDir);
+  }
+  try {
+    run.writeWatcher = fs.watch(scope.root, { recursive: true }, (_eventType, filename) => {
+      if (!filename) {
+        scope.observation_error = "Filesystem watcher emitted an event without a path.";
+        return;
+      }
+      const relativeFile = String(filename).split(path.sep).join("/");
+      if (ignoredPrefixes.some((prefix) => relativeFile === prefix || relativeFile.startsWith(`${prefix}/`))) return;
+      if (!scope.observed_files.includes(relativeFile)) scope.observed_files.push(relativeFile);
+    });
+    run.writeWatcher.on("error", (error) => {
+      scope.observation_error = error.message;
+    });
+  } catch (error) {
+    scope.observation_error = error.message;
+  }
+}
+
+function stopWriteObservation(run) {
+  if (!run.writeWatcher) return;
+  run.writeWatcher.close();
+  run.writeWatcher = null;
+  run.writeScope.observation_complete = !run.writeScope.observation_error;
+}
+
 function tmuxVersion() {
   try {
     const result = spawnSync("tmux", ["-V"], { encoding: "utf8" });
@@ -240,8 +545,60 @@ function claudeHelpText() {
   return `${help.stdout || ""}\n${help.stderr || ""}`;
 }
 
+const HIDDEN_FLAG_PROBES = new Map([
+  ["--max-turns", ["--max-turns", "1"]],
+  ["--system-prompt-file", ["--system-prompt-file", os.devNull]],
+  ["--append-system-prompt-file", ["--append-system-prompt-file", os.devNull]],
+  ["--permission-prompt-tool", ["--permission-prompt-tool", "claude_bridge_parser_probe"]],
+  ["--append-subagent-system-prompt", ["--append-subagent-system-prompt", "claude_bridge_parser_probe"]]
+]);
+
+function probeHiddenClaudeFlag(flag) {
+  const probeArgs = HIDDEN_FLAG_PROBES.get(flag);
+  if (!probeArgs) {
+    return { supported: false, evidence: "not_advertised_or_probeable" };
+  }
+  const { command, prefixArgs } = resolveClaudeCommand();
+  const probe = spawnSync(command, [...prefixArgs, ...probeArgs, "auth", "status"], {
+    encoding: "utf8",
+    env: stripClaudeApiCredentials({ ...process.env })
+  });
+  const output = `${probe.stdout || ""}\n${probe.stderr || ""}`;
+  const parserRejected = /(?:unknown|invalid|unrecognized) (?:option|argument)/iu.test(output);
+  return {
+    supported: !probe.error && !parserRejected,
+    evidence: !probe.error && !parserRejected ? "parser_probe" : "parser_rejected",
+    status_code: probe.status,
+    error: probe.error?.code || probe.error?.message || (parserRejected ? shortText(output, 300) : null)
+  };
+}
+
+function claudeFlagCapability(flag, helpText) {
+  if (helpText.includes(flag)) {
+    return { supported: true, evidence: "advertised" };
+  }
+  return probeHiddenClaudeFlag(flag);
+}
+
 function cliJsonValue(value) {
   return typeof value === "string" ? value : JSON.stringify(value);
+}
+
+function setFlagValue(flags, flag, value) {
+  if (value === undefined || value === null || value === "") return flags;
+  const next = [...flags];
+  const index = next.indexOf(flag);
+  if (index === -1) {
+    next.unshift(flag, String(value));
+  } else {
+    next.splice(index, 2, flag, String(value));
+  }
+  return next;
+}
+
+function flagValue(flags, flag, fallback = null) {
+  const index = flags.indexOf(flag);
+  return index === -1 ? fallback : flags[index + 1] ?? fallback;
 }
 
 function assertSupportedOptions(options) {
@@ -259,18 +616,66 @@ function assertSupportedOptions(options) {
     ["brief", "--brief"],
     ["file", "--file"],
     ["inputFormat", "--input-format"],
-    ["replayUserMessages", "--replay-user-messages"]
+    ["replayUserMessages", "--replay-user-messages"],
+    ["appendSubagentSystemPrompt", "--append-subagent-system-prompt"],
+    ["forwardSubagentText", "--forward-subagent-text"],
+    ["safeMode", "--safe-mode"]
   ].filter(([key]) => options[key] !== undefined && options[key] !== false);
 
   if (!requestedFlags.length) return;
 
   const helpText = claudeHelpText();
-  const missing = requestedFlags.map(([, flag]) => flag).filter((flag) => !helpText.includes(flag));
+  const missing = requestedFlags
+    .map(([, flag]) => ({ flag, capability: claudeFlagCapability(flag, helpText) }))
+    .filter(({ capability }) => !capability.supported);
   if (missing.length) {
     throw new Error(
-      `Installed claude does not advertise required option(s): ${missing.join(", ")}. ` +
-        "Run `npm run doctor` in experiments/claude-bridge to compare official docs with this local CLI."
+      `Installed claude does not support required option(s): ${missing.map(({ flag }) => flag).join(", ")}. ` +
+        "The bridge checked live help plus non-spending parser probes; run `npm run doctor` for evidence."
     );
+  }
+}
+
+function assertProfileInvariants(profileName, profileConfig, options) {
+  const profileModel = flagValue(profileConfig.flags, "--model", MODEL);
+  const profileEffort = flagValue(profileConfig.flags, "--effort", null);
+  const profilePermission = flagValue(profileConfig.flags, "--permission-mode", null);
+  const isUnrestricted = profileName === "unrestricted";
+  const extraArgs = [].concat(options.extraArgs || []);
+  const reservedExtraFlags = new Set([
+    "--model",
+    "--effort",
+    "--permission-mode",
+    "--dangerously-skip-permissions",
+    "--allow-dangerously-skip-permissions",
+    "--allowedTools",
+    "--disallowedTools",
+    "--tools"
+  ]);
+  const reservedOverrides = extraArgs.filter((value) => reservedExtraFlags.has(String(value).split("=")[0]));
+  if (reservedOverrides.length) {
+    throw new Error(`extraArgs cannot override bridge-owned controls: ${[...new Set(reservedOverrides)].join(", ")}`);
+  }
+  if (extraArgs.length) {
+    throw new Error("extraArgs is disabled; use a typed bridge option so command and report stay identical.");
+  }
+  if (!isUnrestricted && options.model !== undefined && options.model !== profileModel) {
+    throw new Error(`Profile ${profileName} fixes model=${profileModel}; use unrestricted for a model override.`);
+  }
+  if (!isUnrestricted && options.effort !== undefined && options.effort !== profileEffort) {
+    throw new Error(`Profile ${profileName} fixes effort=${profileEffort}; use unrestricted for an effort override.`);
+  }
+  if (!isUnrestricted && options.fallbackModel !== undefined) {
+    throw new Error(`Profile ${profileName} does not allow silent model fallback; start a fresh explicit thread instead.`);
+  }
+  if (!isUnrestricted && options.permissionMode !== undefined && options.permissionMode !== profilePermission) {
+    throw new Error(`Profile ${profileName} fixes permissionMode=${profilePermission || "none"}.`);
+  }
+  if (isUnrestricted && options.permissionMode !== undefined) {
+    throw new Error("Profile unrestricted fixes permission bypass; do not add a second permission mode.");
+  }
+  if (!isUnrestricted && options.allowDangerouslySkipPermissions) {
+    throw new Error(`Profile ${profileName} cannot enable permission bypass.`);
   }
 }
 
@@ -279,7 +684,10 @@ function buildArgs({
   profileName,
   debugFile,
   extraArgs = [],
+  model,
+  effort,
   appendSystemPrompt,
+  appendSubagentSystemPrompt,
   appendSystemPromptFile,
   systemPrompt,
   systemPromptFile,
@@ -310,13 +718,21 @@ function buildArgs({
   brief,
   file,
   inputFormat,
-  replayUserMessages
+  replayUserMessages,
+  forwardSubagentText,
+  safeMode
 }) {
   const profile = getProfile(profileName);
-  const args = [...profile.flags, "--debug-file", debugFile];
+  let args = [...profile.flags];
+  args = setFlagValue(args, "--model", model);
+  args = setFlagValue(args, "--effort", effort);
+  args.push("--debug-file", debugFile);
 
   if (appendSystemPrompt) {
     args.push("--append-system-prompt", appendSystemPrompt);
+  }
+  if (appendSubagentSystemPrompt) {
+    args.push("--append-subagent-system-prompt", appendSubagentSystemPrompt);
   }
   if (appendSystemPromptFile) {
     args.push("--append-system-prompt-file", appendSystemPromptFile);
@@ -362,7 +778,7 @@ function buildArgs({
     args.push("--permission-prompt-tool", permissionPromptTool);
   }
   if (permissionMode) {
-    args.push("--permission-mode", permissionMode);
+    args = setFlagValue(args, "--permission-mode", permissionMode);
   }
   if (jsonSchema) {
     args.push("--json-schema", cliJsonValue(jsonSchema));
@@ -385,8 +801,13 @@ function buildArgs({
   for (const value of [].concat(allowedTools || [])) {
     args.push("--allowedTools", value);
   }
-  for (const value of [].concat(disallowedTools || [])) {
-    args.push("--disallowedTools", value);
+  const profileDisallowedTools = String(flagValue(args, "--disallowedTools", ""))
+    .split(",")
+    .filter(Boolean);
+  const requestedDisallowedTools = [].concat(disallowedTools || []).flatMap((value) => String(value).split(","));
+  const mergedDisallowedTools = [...new Set([...profileDisallowedTools, ...requestedDisallowedTools].filter(Boolean))];
+  if (mergedDisallowedTools.length) {
+    args = setFlagValue(args, "--disallowedTools", mergedDisallowedTools.join(","));
   }
   for (const value of [].concat(addDir || [])) {
     args.push("--add-dir", value);
@@ -412,6 +833,12 @@ function buildArgs({
   }
   if (replayUserMessages) {
     args.push("--replay-user-messages");
+  }
+  if (forwardSubagentText) {
+    args.push("--forward-subagent-text");
+  }
+  if (safeMode) {
+    args.push("--safe-mode");
   }
   args.push(...extraArgs);
   args.push("-p", prompt);
@@ -581,6 +1008,18 @@ function detectWarnings(events, cwd) {
   const errorText = texts.find((text) => /stuck|loop|cannot|permission|denied|failed|error|wrong/iu.test(text));
   if (errorText) {
     warnings.push({ type: "possible_wrong_direction_or_error", detail: shortText(errorText, 240) });
+  }
+  const authText = texts.find((text) => /authenticate|oauth session expired|not logged in/iu.test(text));
+  if (authText) {
+    warnings.push({ type: "authentication_failed", detail: shortText(authText, 240) });
+  }
+  const refusalText = texts.find((text) => /stop_reason.?refusal|request (?:was )?refused|safety classifier/iu.test(text));
+  if (refusalText) {
+    warnings.push({
+      type: "model_refusal",
+      detail: shortText(refusalText, 240),
+      recovery: "Start a fresh Opus advisor thread; do not treat a continued Fable thread as an independent fallback."
+    });
   }
 
   const allowedRoots = [cwd, path.join(os.homedir(), ".claude"), path.join(os.homedir(), ".codex")];
@@ -794,11 +1233,48 @@ function runFiles(run) {
   };
 }
 
+function runtimeFactsFromEvents(events) {
+  let sessionId = null;
+  let resolvedModel = null;
+  let fallbackModel = null;
+  for (const event of events) {
+    const core = event?.event && typeof event.event === "object" ? event.event : event;
+    sessionId = sessionId || core?.session_id || core?.sessionId || null;
+    const candidate =
+      core?.model ||
+      core?.model_id ||
+      core?.modelId ||
+      core?.message?.model ||
+      null;
+    if (!candidate || candidate === "<synthetic>") continue;
+    const type = String(core?.type || event?.type || "").toLowerCase();
+    const subtype = String(core?.subtype || event?.subtype || "").toLowerCase();
+    if (!resolvedModel && (type === "system" || subtype === "init")) resolvedModel = candidate;
+    if (!fallbackModel) fallbackModel = candidate;
+  }
+  return { sessionId, resolvedModel: resolvedModel || fallbackModel };
+}
+
+function refreshRunRuntimeFacts(run, events) {
+  const facts = runtimeFactsFromEvents(events);
+  if (facts.sessionId) {
+    run.sessionId = facts.sessionId;
+    run.sessionObserved = true;
+  }
+  if (facts.resolvedModel) run.resolvedModel = facts.resolvedModel;
+  return run;
+}
+
 function writeState(run) {
   const state = {
     run_id: run.runId,
     profile: run.profileName,
-    model: MODEL,
+    model: run.model || MODEL,
+    resolved_model: run.resolvedModel || null,
+    effort: run.effort || null,
+    topic: run.topic || null,
+    session_persistence: run.sessionPersistence !== false,
+    auto_memory: run.autoMemory !== false,
     cwd: run.cwd,
     pid: run.child?.pid ?? run.pid ?? null,
     process_group_pid: run.processGroupPid ?? run.child?.pid ?? run.pid ?? null,
@@ -806,6 +1282,7 @@ function writeState(run) {
     exit_code: run.exitCode ?? null,
     signal: run.signal ?? null,
     session_id: run.sessionId ?? null,
+    session_observed: run.sessionObserved === true,
     started_at: run.startedAt,
     updated_at: new Date().toISOString(),
     command: run.commandSummary,
@@ -817,7 +1294,8 @@ function writeState(run) {
     tmux_target: run.tmuxTarget || null,
     tmux_start_channel: run.tmuxStartChannel || null,
     tmux_go_channel: run.tmuxGoChannel || null,
-    tmux_done_channel: run.tmuxDoneChannel || null
+    tmux_done_channel: run.tmuxDoneChannel || null,
+    write_scope: run.writeScope || null
   };
   writeJsonAtomic(run.stateFile, state);
   return state;
@@ -935,12 +1413,18 @@ function refreshInactiveRun(run) {
   if (!WAITABLE_STATUSES.has(run.status)) return run;
   const match = processMatchesRun(run);
   run.managed = false;
+  const startedAtMs = Date.parse(run.startedAt || "");
+  const inStartupGrace =
+    run.status !== "killing" && Number.isFinite(startedAtMs) && Date.now() - startedAtMs < 2_000;
   if (match.alive && match.matched) {
     run.status = run.status === "killing" ? "killing" : "running_orphaned";
     run.orphanReason =
       run.status === "killing"
         ? "Kill was requested; process group is still alive and fingerprint matches this run."
         : "Process group is alive and fingerprint matches this run, but current MCP server does not own the child handle.";
+  } else if (inStartupGrace) {
+    run.status = run.status === "killing" ? "killing" : "running_orphaned";
+    run.orphanReason = "Run is inside startup grace; process fingerprint is not stable yet.";
   } else if (match.alive) {
     run.status = "orphaned";
     markTerminal(run);
@@ -963,6 +1447,12 @@ function buildRunFromState(runId, logDir, state) {
   return {
     runId,
     profileName: state.profile || "unknown",
+    model: state.model || MODEL,
+    resolvedModel: state.resolved_model || null,
+    effort: state.effort || null,
+    topic: state.topic || null,
+    sessionPersistence: state.session_persistence !== false,
+    autoMemory: state.auto_memory !== false,
     cwd: state.cwd || process.cwd(),
     logDir,
     promptFile: files.prompt,
@@ -983,6 +1473,7 @@ function buildRunFromState(runId, logDir, state) {
     exitCode: state.exit_code ?? null,
     signal: state.signal ?? null,
     sessionId: state.session_id ?? null,
+    sessionObserved: state.session_observed === true,
     startedAt: state.started_at || null,
     pid: state.pid ?? null,
     processGroupPid: state.process_group_pid ?? state.pid ?? null,
@@ -994,7 +1485,8 @@ function buildRunFromState(runId, logDir, state) {
     tmuxTarget: state.tmux_target || null,
     tmuxStartChannel: state.tmux_start_channel || null,
     tmuxGoChannel: state.tmux_go_channel || null,
-    tmuxDoneChannel: state.tmux_done_channel || null
+    tmuxDoneChannel: state.tmux_done_channel || null,
+    writeScope: state.write_scope || null
   };
 }
 
@@ -1004,6 +1496,12 @@ function buildRunFromLegacyReport(runId, logDir, report) {
   return {
     runId,
     profileName: report.profile || "unknown",
+    model: report.model || MODEL,
+    resolvedModel: report.resolved_model || null,
+    effort: report.effort || null,
+    topic: report.topic || null,
+    sessionPersistence: report.session_persistence !== false,
+    autoMemory: report.auto_memory !== false,
     cwd: report.cwd || process.cwd(),
     logDir,
     promptFile: files.prompt,
@@ -1024,6 +1522,7 @@ function buildRunFromLegacyReport(runId, logDir, report) {
     exitCode: report.exit_code ?? null,
     signal: report.signal ?? null,
     sessionId: report.session_id ?? null,
+    sessionObserved: report.session_observed === true,
     startedAt: null,
     pid: report.pid ?? null,
     processGroupPid: report.process_group_pid ?? report.pid ?? null,
@@ -1035,21 +1534,60 @@ function buildRunFromLegacyReport(runId, logDir, report) {
     tmuxTarget: report.tmux_target || null,
     tmuxStartChannel: report.tmux_start_channel || null,
     tmuxGoChannel: report.tmux_go_channel || null,
-    tmuxDoneChannel: report.tmux_done_channel || null
+    tmuxDoneChannel: report.tmux_done_channel || null,
+    writeScope: report.write_scope || null
   };
 }
 
 function buildReport(run) {
   const events = readRunEvents(run);
+  refreshRunRuntimeFacts(run, events);
   const warnings = detectWarnings(events, run.cwd);
   const milestones = summarizeMilestones(events);
   const activity = activitySummary(events, run);
   const chatRelay = buildFinalChatRelay(events, run);
+  const writeScope = isTerminalStatus(run.status)
+    ? evaluateWriteScope(run.writeScope)
+    : run.writeScope
+      ? {
+          status: "pending",
+          enforcement: GUARDED_WRITE_ENFORCEMENT,
+          allowed_files: run.writeScope.allowed_files
+        }
+      : null;
+  if (writeScope?.status === "failed") {
+    const details = [
+      writeScope.out_of_scope_files?.length
+        ? `out-of-scope files: ${writeScope.out_of_scope_files.join(", ")}`
+        : null,
+      writeScope.head_changed ? "Git HEAD changed" : null,
+      writeScope.symlink_files?.length
+        ? `allowed paths became symlinks: ${writeScope.symlink_files.join(", ")}`
+        : null
+    ].filter(Boolean);
+    warnings.push({
+      kind: "write_scope_violation",
+      detail: `Claude worker violated its authorized scope (${details.join("; ")}).`,
+      recovery: "Inspect the working tree. Do not revert user changes automatically; repair or restore only with explicit authorization."
+    });
+  } else if (writeScope?.status === "unknown") {
+    warnings.push({
+      kind: "write_scope_unknown",
+      detail: writeScope.error || "The final worker write footprint could not be proven.",
+      recovery: "Inspect git status and diff before accepting the worker result."
+    });
+  }
 
   return {
     run_id: run.runId,
     profile: run.profileName,
-    model: MODEL,
+    model: run.model || MODEL,
+    resolved_model: run.resolvedModel || null,
+    effort: run.effort || null,
+    topic: run.topic || null,
+    session_persistence: run.sessionPersistence !== false,
+    auto_memory: run.autoMemory !== false,
+    write_scope: writeScope,
     cwd: run.cwd,
     pid: run.child?.pid ?? run.pid ?? null,
     status: run.status,
@@ -1058,6 +1596,7 @@ function buildReport(run) {
     exit_code: run.exitCode ?? null,
     signal: run.signal ?? null,
     session_id: run.sessionId ?? null,
+    session_observed: run.sessionObserved === true,
     log_dir: run.logDir,
     command: run.commandSummary,
     use_tmux: run.useTmux || false,
@@ -1092,7 +1631,8 @@ function buildReport(run) {
         cleanup_needed: WAITABLE_STATUSES.has(run.status),
         tmux_session: run.tmuxSession || null
       },
-      warnings_count: warnings.length
+      warnings_count: warnings.length,
+      write_scope_status: writeScope?.status || null
     },
     files: runFiles(run)
   };
@@ -1100,6 +1640,7 @@ function buildReport(run) {
 
 function writeReport(run) {
   const report = buildReport(run);
+  writeState(run);
   writeJsonAtomic(run.reportFile, report);
   return report;
 }
@@ -1107,6 +1648,10 @@ function writeReport(run) {
 function writeRunScript(files, run, command, args, runEnv) {
   const commandLine = [
     "env",
+    "-u",
+    "ANTHROPIC_API_KEY",
+    "-u",
+    "CLAUDE_API_KEY",
     ...scopedRunEnvAssignments(run.runId, runEnv),
     shellQuote(command),
     ...args.map(shellQuote)
@@ -1153,11 +1698,15 @@ function writeRunScript(files, run, command, args, runEnv) {
 export function startRun(options = {}) {
   const {
     prompt,
-    profile = "normal",
+    profile = "advisor",
     cwd = process.cwd(),
     title,
+    topic,
     extraArgs,
+    model,
+    effort,
     appendSystemPrompt,
+    appendSubagentSystemPrompt,
     appendSystemPromptFile,
     systemPrompt,
     systemPromptFile,
@@ -1189,6 +1738,9 @@ export function startRun(options = {}) {
     file,
     inputFormat,
     replayUserMessages,
+    forwardSubagentText,
+    safeMode,
+    writeFiles,
     useTmux,
     tmuxMode
   } = options || {};
@@ -1202,6 +1754,43 @@ export function startRun(options = {}) {
   if (profileConfig.unsupported) {
     throw new Error(`Profile ${profile} is marked unsupported.`);
   }
+  assertProfileInvariants(profile, profileConfig, options);
+  const profilePermissionMode = flagValue(profileConfig.flags, "--permission-mode");
+  const effectivePermissionMode = permissionMode || profilePermissionMode;
+  const bypassRequested =
+    profileConfig.flags.includes("--dangerously-skip-permissions") ||
+    allowDangerouslySkipPermissions ||
+    effectivePermissionMode === "bypassPermissions";
+  if (["plan", "manual", "default"].includes(effectivePermissionMode) && bypassRequested) {
+    throw new Error(`Conflicting permission controls: ${effectivePermissionMode} cannot be combined with permission bypass.`);
+  }
+  if (resume && sessionId) {
+    throw new Error("Use either resume or sessionId, not both.");
+  }
+  if (writeFiles !== undefined && profile !== "worker") {
+    throw new Error("writeFiles is available only with the worker profile.");
+  }
+  const writeScope =
+    profile === "worker"
+      ? normalizeWriteFiles(cwd, writeFiles)
+      : profile === "unrestricted"
+        ? snapshotUnrestrictedFootprint(cwd)
+        : null;
+  const workerBoundary = writeScope?.mode === "guarded"
+    ? [
+        "Authorized write scope:",
+        ...writeScope.allowed_files.map((file) => `- ${file}`),
+        "Modify only those exact files. Preserve all pre-existing changes. Do not commit, reset, rebase, stash, or change Git configuration.",
+        "If the task requires any other file, stop and report the missing authorization instead of writing it."
+      ].join("\n")
+    : null;
+  const effectiveAppendSystemPrompt = [appendSystemPrompt, workerBoundary].filter(Boolean).join("\n\n") || undefined;
+
+  const requestedModel = model || flagValue(profileConfig.flags, "--model", MODEL);
+  const requestedEffort = effort || flagValue(profileConfig.flags, "--effort", null);
+  const cliSessionId = sessionId || (!resume && !noSessionPersistence ? randomUUID() : null);
+  const requestedSessionId = cliSessionId || (typeof resume === "string" && !forkSession ? resume : null);
+  const threadTopic = String(topic || name || title || String(prompt).slice(0, 80)).trim();
 
   ensureDir(RUNS_DIR);
   const runId = `${nowIsoForPath()}-${randomUUID().slice(0, 8)}`;
@@ -1210,7 +1799,14 @@ export function startRun(options = {}) {
   const files = filesForLogDir(logDir);
 
   fs.writeFileSync(files.prompt, String(prompt));
-  fs.writeFileSync(files.profile, JSON.stringify({ name: profile, ...profileConfig }, null, 2));
+  fs.writeFileSync(
+    files.profile,
+    JSON.stringify(
+      { name: profile, ...profileConfig, requested_model: requestedModel, requested_effort: requestedEffort },
+      null,
+      2
+    )
+  );
 
   const { command, prefixArgs } = resolveClaudeCommand();
   const runEnv = {
@@ -1236,14 +1832,17 @@ export function startRun(options = {}) {
       profileName: profile,
       debugFile: files.debug,
       extraArgs,
-      appendSystemPrompt,
+      model: requestedModel,
+      effort: requestedEffort,
+      appendSystemPrompt: effectiveAppendSystemPrompt,
+      appendSubagentSystemPrompt,
       appendSystemPromptFile,
       systemPrompt,
       systemPromptFile,
       maxBudgetUsd,
       maxTurns,
       fallbackModel,
-      sessionId,
+      sessionId: cliSessionId,
       resume,
       forkSession,
       name,
@@ -1267,7 +1866,9 @@ export function startRun(options = {}) {
       brief,
       file,
       inputFormat,
-      replayUserMessages
+      replayUserMessages,
+      forwardSubagentText,
+      safeMode
     })
   ];
   const selectedUseTmux = Boolean(useTmux || tmuxMode);
@@ -1288,6 +1889,12 @@ export function startRun(options = {}) {
   const run = {
     runId,
     profileName: profile,
+    model: requestedModel,
+    resolvedModel: null,
+    effort: requestedEffort,
+    topic: threadTopic,
+    sessionPersistence: !noSessionPersistence,
+    autoMemory: !options.disableAutoMemory && profile !== "no-memory",
     cwd,
     logDir,
     promptFile: files.prompt,
@@ -1307,7 +1914,8 @@ export function startRun(options = {}) {
     status: "running",
     exitCode: null,
     signal: null,
-    sessionId: null,
+    sessionId: requestedSessionId,
+    sessionObserved: false,
     startedAt: new Date().toISOString(),
     pid: null,
     processGroupPid: null,
@@ -1319,8 +1927,11 @@ export function startRun(options = {}) {
     tmuxTarget,
     tmuxStartChannel,
     tmuxGoChannel,
-    tmuxDoneChannel
+    tmuxDoneChannel,
+    writeScope
   };
+
+  startWriteObservation(run);
 
   if (selectedUseTmux) {
     writeRunScript(files, run, command, claudeArgs, runEnv);
@@ -1337,6 +1948,9 @@ export function startRun(options = {}) {
         claude_args: claudeArgs,
         cwd,
         title,
+        topic: threadTopic,
+        requested_model: requestedModel,
+        requested_effort: requestedEffort,
         use_tmux: selectedUseTmux,
         tmux_session: tmuxSession,
         tmux_target: tmuxTarget,
@@ -1404,6 +2018,10 @@ export function startRun(options = {}) {
       run_id: runId,
       pid: null,
       profile,
+      model: requestedModel,
+      effort: requestedEffort,
+      topic: threadTopic,
+      session_id: requestedSessionId,
       cwd,
       log_dir: logDir,
       status: run.status,
@@ -1438,8 +2056,9 @@ export function startRun(options = {}) {
     for (const line of lines.filter(Boolean)) {
       try {
         const event = JSON.parse(line);
-        if ((event.session_id || event.sessionId) && !run.sessionId) {
+        if (event.session_id || event.sessionId) {
           run.sessionId = event.session_id || event.sessionId;
+          run.sessionObserved = true;
           writeState(run);
         }
         jsonLine(files.events, event);
@@ -1485,6 +2104,10 @@ export function startRun(options = {}) {
     run_id: runId,
     pid: child.pid,
     profile,
+    model: requestedModel,
+    effort: requestedEffort,
+    topic: threadTopic,
+    session_id: requestedSessionId,
     cwd,
     log_dir: logDir,
     status: run.status,
@@ -1689,13 +2312,261 @@ export function profiles() {
   return listProfiles();
 }
 
+function appendThreadEvent(event) {
+  ensureDir(RUNS_DIR);
+  jsonLine(THREADS_FILE, event);
+}
+
+function threadLeaseFile(threadId) {
+  return path.join(THREAD_LEASES_DIR, `${String(threadId).replace(/[^A-Za-z0-9_-]/gu, "-")}.json`);
+}
+
+function acquireThreadLease(threadId) {
+  ensureDir(THREAD_LEASES_DIR);
+  const file = threadLeaseFile(threadId);
+  const token = randomUUID();
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const descriptor = fs.openSync(file, "wx", 0o600);
+      fs.writeFileSync(
+        descriptor,
+        JSON.stringify({ thread_id: threadId, token, owner_pid: process.pid, acquired_at: new Date().toISOString() })
+      );
+      fs.closeSync(descriptor);
+      return { file, token };
+    } catch (error) {
+      if (error?.code !== "EEXIST") throw error;
+      const existing = safeReadJson(file, {});
+      const acquiredAt = Date.parse(existing.acquired_at || "");
+      const fileAge = (() => {
+        try {
+          return Date.now() - fs.statSync(file).mtimeMs;
+        } catch {
+          return Number.POSITIVE_INFINITY;
+        }
+      })();
+      const fresh =
+        (Number.isFinite(acquiredAt) && Date.now() - acquiredAt < 30_000) || fileAge < 30_000;
+      if (fresh) {
+        throw new Error(`Claude thread ${threadId} is being claimed by another bridge process.`);
+      }
+      fs.rmSync(file, { force: true });
+    }
+  }
+  throw new Error(`Could not acquire Claude thread lease: ${threadId}`);
+}
+
+function releaseThreadLease(lease) {
+  if (!lease?.file) return;
+  const existing = safeReadJson(lease.file, {});
+  if (existing.token === lease.token) fs.rmSync(lease.file, { force: true });
+}
+
+function foldThreads() {
+  const threads = new Map();
+  for (const event of readJsonLines(THREADS_FILE)) {
+    const threadId = event.thread_id;
+    if (!threadId) continue;
+    const previous = threads.get(threadId) || {
+      thread_id: threadId,
+      topic: null,
+      cwd: null,
+      workspace: null,
+      profile: "advisor",
+      model: MODEL,
+      effort: null,
+      created_at: event.observed_at || null,
+      last_active_at: event.observed_at || null,
+      last_run_id: null,
+      run_ids: [],
+      turns: 0,
+      archived: false
+    };
+    if (event.type === "start") {
+      previous.topic = event.topic || previous.topic;
+      previous.cwd = event.cwd || previous.cwd;
+      previous.workspace = event.workspace || previous.workspace;
+      previous.profile = event.profile || previous.profile;
+      previous.model = event.model || previous.model;
+      previous.effort = event.effort || previous.effort;
+      previous.created_at = event.observed_at || previous.created_at;
+      previous.archived = false;
+    }
+    if (event.type === "start" || event.type === "send") {
+      previous.last_run_id = event.run_id || previous.last_run_id;
+      if (event.run_id && !previous.run_ids.includes(event.run_id)) previous.run_ids.push(event.run_id);
+      previous.last_active_at = event.observed_at || previous.last_active_at;
+      previous.turns += 1;
+      previous.profile = event.profile || previous.profile;
+      previous.model = event.model || previous.model;
+      previous.effort = event.effort || previous.effort;
+    }
+    if (event.type === "archive") previous.archived = true;
+    if (event.type === "unarchive") previous.archived = false;
+    threads.set(threadId, previous);
+  }
+  return threads;
+}
+
+function requireThread(threadId) {
+  const thread = foldThreads().get(threadId);
+  if (!thread) throw new Error(`Unknown Claude thread_id: ${threadId}`);
+  return thread;
+}
+
+export function listThreads({ cwd, includeArchived = false } = {}) {
+  const expectedCwd = cwd ? path.resolve(cwd) : null;
+  const threads = [...foldThreads().values()]
+    .filter((thread) => includeArchived || !thread.archived)
+    .filter((thread) => !expectedCwd || path.resolve(thread.cwd || "") === expectedCwd)
+    .map((thread) => {
+      const reports = thread.run_ids.map((runId) => {
+        try {
+          return resultRun(runId);
+        } catch {
+          return null;
+        }
+      });
+      const run = reports.at(-1) || null;
+      const currentWorkspace = gitWorkspaceContext(thread.cwd);
+      const hasReadySession = reports.some(
+        (report) => report?.status === "completed" && report?.session_observed === true
+      );
+      const lastBusy = WAITABLE_STATUSES.has(run?.status);
+      const workspaceMatch =
+        !thread.workspace ||
+        (thread.workspace.worktree_root === currentWorkspace.worktree_root &&
+          thread.workspace.ref === currentWorkspace.ref);
+      const lifecycle = lastBusy
+        ? "busy"
+        : hasReadySession
+          ? run?.status === "completed"
+            ? "ready"
+            : "ready_with_failed_last_turn"
+          : run
+            ? "failed"
+            : "unknown";
+      return {
+        ...thread,
+        last_status: run?.status || "unknown",
+        lifecycle,
+        current_workspace: currentWorkspace,
+        workspace_match: workspaceMatch,
+        session_observed: run?.session_observed === true,
+        resolved_model: run?.resolved_model || null,
+        resumable: !thread.archived && hasReadySession && !lastBusy && workspaceMatch,
+        last_output_file: run?.files?.final_output || null
+      };
+    })
+    .sort((left, right) => String(right.last_active_at).localeCompare(String(left.last_active_at)));
+  return { registry: THREADS_FILE, count: threads.length, threads };
+}
+
+export function startThread({ prompt, topic, cwd = process.cwd(), profile = "advisor", ...options } = {}) {
+  if (!topic || !String(topic).trim()) {
+    throw new Error("claude_thread_start requires a non-empty topic.");
+  }
+  if (options.noSessionPersistence) {
+    throw new Error("Persistent Claude threads cannot use noSessionPersistence.");
+  }
+  const started = startRun({
+    ...options,
+    prompt,
+    topic: String(topic).trim(),
+    name: options.name || String(topic).trim(),
+    cwd,
+    profile,
+    noSessionPersistence: false
+  });
+  appendThreadEvent({
+    type: "start",
+    thread_id: started.session_id,
+    topic: started.topic,
+    cwd: started.cwd,
+    workspace: gitWorkspaceContext(started.cwd),
+    profile: started.profile,
+    model: started.model,
+    effort: started.effort,
+    run_id: started.run_id
+  });
+  return { ...started, thread_id: started.session_id };
+}
+
+export function sendThread({ thread_id: threadId, prompt, cwd, profile, model, effort, ...options } = {}) {
+  const lease = acquireThreadLease(threadId);
+  try {
+    const thread = requireThread(threadId);
+    if (thread.archived) throw new Error(`Claude thread ${threadId} is archived.`);
+    const threadWorkspace = assertThreadWorkspace(thread, cwd || thread.cwd);
+    const status = listThreads({ includeArchived: true }).threads.find(
+      (candidate) => candidate.thread_id === threadId
+    );
+    if (status?.lifecycle === "busy") {
+      throw new Error(`Claude thread ${threadId} already has a live turn (${status.last_run_id}).`);
+    }
+    if (!status?.resumable) {
+      throw new Error(`Claude thread ${threadId} has no completed, stream-observed session to resume.`);
+    }
+    const started = startRun({
+      ...options,
+      prompt,
+      topic: thread.topic,
+      cwd: threadWorkspace.cwd,
+      profile: profile || thread.profile,
+      model: model || thread.model,
+      effort: effort || thread.effort,
+      resume: threadId,
+      noSessionPersistence: false
+    });
+    appendThreadEvent({
+      type: "send",
+      thread_id: threadId,
+      topic: thread.topic,
+      cwd: started.cwd,
+      workspace: threadWorkspace.workspace,
+      profile: started.profile,
+      model: started.model,
+      effort: started.effort,
+      run_id: started.run_id
+    });
+    return { ...started, thread_id: threadId };
+  } finally {
+    releaseThreadLease(lease);
+  }
+}
+
+export function archiveThread({ thread_id: threadId, archived = true } = {}) {
+  const lease = acquireThreadLease(threadId);
+  try {
+    requireThread(threadId);
+    const status = listThreads({ includeArchived: true }).threads.find(
+      (candidate) => candidate.thread_id === threadId
+    );
+    if (status?.lifecycle === "busy") {
+      throw new Error(`Claude thread ${threadId} has a live turn and cannot change archive state.`);
+    }
+    appendThreadEvent({ type: archived ? "archive" : "unarchive", thread_id: threadId });
+    return { thread_id: threadId, archived };
+  } finally {
+    releaseThreadLease(lease);
+  }
+}
+
 export function doctor() {
   const { command, prefixArgs } = resolveClaudeCommand();
   const version = spawnSync(command, [...prefixArgs, "--version"], { encoding: "utf8" });
   const help = spawnSync(command, [...prefixArgs, "--help"], { encoding: "utf8" });
+  const auth = spawnSync(command, [...prefixArgs, "auth", "status"], { encoding: "utf8" });
   const npm = spawnSync("npm", ["--version"], { encoding: "utf8" });
   const node = process.version;
   const helpText = `${help.stdout || ""}\n${help.stderr || ""}`;
+  const authStatus = (() => {
+    try {
+      return JSON.parse(auth.stdout || auth.stderr || "{}");
+    } catch {
+      return { loggedIn: false, error: shortText(auth.stdout || auth.stderr || "unparseable auth status") };
+    }
+  })();
   const requiredFlags = [
     "--model",
     "--effort",
@@ -1731,19 +2602,58 @@ export function doctor() {
     "--max-budget-usd",
     "--no-session-persistence",
     "--fork-session",
-    "--name"
+    "--name",
+    "--session-id",
+    "--resume",
+    "--safe-mode",
+    "--forward-subagent-text",
+    "--append-subagent-system-prompt"
   ];
+  const coreFlags = [
+    "--model",
+    "--effort",
+    "--output-format",
+    "--debug-file",
+    "--permission-mode",
+    "--disallowedTools",
+    "--verbose",
+    "--include-partial-messages",
+    "--include-hook-events",
+    "--session-id",
+    "--resume"
+  ];
+  const cliCompatible =
+    version.status === 0 && help.status === 0 && coreFlags.every((flag) => helpText.includes(flag));
+  const authenticated = authStatus.loggedIn === true;
+  const flagCapabilities = Object.fromEntries(
+    requiredFlags.map((flag) => [flag, claudeFlagCapability(flag, helpText)])
+  );
   return {
-    ok: version.status === 0 && help.status === 0,
+    ok: cliCompatible && authenticated,
+    cli_compatible: cliCompatible,
+    ready_for_live_runs: cliCompatible && authenticated,
     claude_command: commandSummary(command, prefixArgs),
     claude_version: shortText(version.stdout || version.stderr),
+    auth: {
+      logged_in: authenticated,
+      method: authStatus.authMethod || null,
+      provider: authStatus.apiProvider || null,
+      status_code: auth.status,
+      error: authStatus.error || null
+    },
     node,
     npm_version: shortText(npm.stdout || npm.stderr),
     stream_json_supported: helpText.includes("stream-json"),
     opus_requested_by_profiles: MODEL,
-    flags: Object.fromEntries(requiredFlags.map((flag) => [flag, helpText.includes(flag)])),
+    model_aliases: {
+      fable: helpText.includes("fable"),
+      opus: helpText.includes("opus"),
+      sonnet: helpText.includes("sonnet")
+    },
+    flags: Object.fromEntries(requiredFlags.map((flag) => [flag, flagCapabilities[flag].supported])),
+    flag_evidence: Object.fromEntries(requiredFlags.map((flag) => [flag, flagCapabilities[flag].evidence])),
     mcp_server: "stdio",
-    note: "This check is read-only and does not register global MCP config."
+    note: "Read-only readiness check. ok means CLI compatibility plus live authentication; hidden documented flags use non-spending parser probes because claude --help is incomplete."
   };
 }
 
@@ -1766,23 +2676,55 @@ export function discoverSkills({ cwd = process.cwd() } = {}) {
   }));
 }
 
-function strictStreamToolEvidence(events, targetPath) {
-  return events.filter((event) => {
-    const normalized = normalizeEvent(event);
-    return (
-      normalized &&
-      ["tool_use", "tool_result"].includes(normalized.kind) &&
-      eventMentionsPath(event, targetPath)
-    );
+function toolEventFacts(event, eventIndex) {
+  const core = event?.event && typeof event.event === "object" ? event.event : event;
+  const contentSources = [core?.content, core?.message?.content];
+  if (core !== event) contentSources.push(event?.message?.content);
+  const contentBlocks = contentSources
+    .flatMap((content) => (Array.isArray(content) ? content : []))
+    .filter((block) => block && typeof block === "object" && /tool_(?:use|result)/iu.test(String(block.type || "")));
+  return [core, ...contentBlocks].map((source) => {
+    const type = String(source?.type || "").toLowerCase();
+    const name = String(toolNameFromEvent(source) || "").toLowerCase();
+    const input = source?.input || source?.tool_input || {};
+    const filePath = input.file_path || input.path || source?.file_path || source?.path || null;
+    return {
+      event,
+      block: source,
+      event_index: eventIndex,
+      type,
+      name,
+      file_path: filePath,
+      tool_use_id: source?.tool_use_id || null,
+      id: source?.id || null,
+      is_error: source?.is_error === true || Boolean(source?.error),
+      text: extractEventText(source) || extractEventText(event)
+    };
   });
 }
 
-function strictDebugEvidence(debugFile, targetPath) {
-  if (!fs.existsSync(debugFile)) return [];
-  const text = fs.readFileSync(debugFile, "utf8");
-  if (!text.includes(targetPath)) return [];
-  if (!/(tool|read|file_path|bash)/iu.test(text)) return [];
-  return [{ type: "debug", text: shortText(text, 500) }];
+function strictStreamToolEvidence(events, targetPath) {
+  const facts = events.flatMap(toolEventFacts);
+  const uses = facts.filter(
+    (fact) =>
+      (fact.type.includes("tool_use") || fact.type.includes("tool_call")) &&
+      fact.name === "read" &&
+      fact.file_path &&
+      path.resolve(fact.file_path) === path.resolve(targetPath)
+  );
+  const successful = [];
+  for (const use of uses) {
+    const result = facts.find(
+      (fact) =>
+        fact.event_index > use.event_index &&
+        fact.type.includes("tool_result") &&
+        ((use.id && fact.tool_use_id === use.id) || (!use.id && eventMentionsPath(fact.event, targetPath)))
+    );
+    if (!result) continue;
+    const knownFailure = result.is_error || /\b(?:enoent|permission denied|read failed)\b/iu.test(result.text);
+    if (!knownFailure) successful.push({ tool_use: use.event, tool_result: result.event });
+  }
+  return { attempts: uses, successful };
 }
 
 export async function auditSkill({ skillPath, prompt, cwd = process.cwd(), timeoutMs = 120000 }) {
@@ -1802,25 +2744,50 @@ export async function auditSkill({ skillPath, prompt, cwd = process.cwd(), timeo
     cwd,
     title: `skill-audit ${resolvedSkillPath}`
   });
-  const report = await waitRun(started.run_id, { timeoutMs });
+  let report = await waitRun(started.run_id, { timeoutMs });
+  if (report.timed_out) {
+    killRun(started.run_id);
+    report = await waitRun(started.run_id, { timeoutMs: 10000 });
+    if (!isTerminalStatus(report.status)) {
+      killRun(started.run_id);
+      report = await waitRun(started.run_id, { timeoutMs: 10000 });
+    }
+    const tailTerminal = isTerminalStatus(report.status);
+    const audit = {
+      evidence: "timed_out",
+      reason: tailTerminal
+        ? "Skill audit exceeded its timeout and the managed Claude run reached a terminal state after kill."
+        : "Skill audit exceeded its timeout; kill was requested, but terminal process-tail evidence is still missing.",
+      tail_terminal: tailTerminal,
+      target_path: resolvedSkillPath,
+      run: report,
+      matching_events: []
+    };
+    fs.writeFileSync(path.join(started.log_dir, "skill-audit.json"), JSON.stringify(audit, null, 2));
+    return audit;
+  }
   const events = readJsonLines(report.files.events);
   const streamEvidence = strictStreamToolEvidence(events, resolvedSkillPath);
-  const debugEvidence = strictDebugEvidence(report.files.debug, resolvedSkillPath);
-  const toolEvidence = [...streamEvidence, ...debugEvidence];
+  const toolEvidence = streamEvidence.successful;
   const selfReportOnly =
-    events.some((event) => eventMentionsPath(event, resolvedSkillPath)) && toolEvidence.length === 0;
+    events.some((event) => eventMentionsPath(event, resolvedSkillPath)) &&
+    toolEvidence.length === 0 &&
+    streamEvidence.attempts.length === 0;
   const evidence = toolEvidence.length ? "passed" : selfReportOnly ? "unknown" : "failed";
   const audit = {
     evidence,
     reason:
       evidence === "passed"
-        ? "Tool/debug/stream evidence includes a tool-like event and the exact target path."
+        ? "Structured stream evidence pairs an exact-path Read call with a successful tool result."
         : evidence === "unknown"
-          ? "The target path appears only in message-like output, not strict tool/debug evidence."
-          : "No strict tool/debug/stream evidence mentioned the target path.",
+          ? "The target path appears only in message-like output, not structured tool evidence."
+          : streamEvidence.attempts.length
+            ? "An exact-path Read was attempted, but no successful paired tool result proved the file was read."
+            : "No exact-path Read call with a successful paired tool result was observed.",
     target_path: resolvedSkillPath,
     run: report,
-    matching_events: toolEvidence.slice(0, 10)
+    matching_events: toolEvidence.slice(0, 10),
+    read_attempts: streamEvidence.attempts.slice(0, 10).map((attempt) => attempt.event)
   };
   fs.writeFileSync(path.join(started.log_dir, "skill-audit.json"), JSON.stringify(audit, null, 2));
   return audit;
@@ -1833,21 +2800,58 @@ export function cleanupRuns({ olderThanDays = DEFAULT_CLEANUP_DAYS, confirm = fa
     .readdirSync(RUNS_DIR, { withFileTypes: true })
     .filter((entry) => entry.isDirectory() && !entry.name.startsWith("_"));
   const candidates = [];
+  const skippedActive = [];
+  const skippedUnknown = [];
 
   for (const entry of entries) {
     const runId = entry.name;
     const runDir = path.join(RUNS_DIR, runId);
-    const state = safeReadJson(path.join(runDir, "state.json"), {});
+    const stateFile = path.join(runDir, "state.json");
+    const reportFile = path.join(runDir, "report.json");
+    const state = safeReadJson(stateFile, null);
+    const legacyReport = safeReadJson(reportFile, null);
     const stat = fs.statSync(runDir);
-    const startedAtMs = state.started_at ? Date.parse(state.started_at) : Number.NaN;
+    const startedAtMs = state?.started_at ? Date.parse(state.started_at) : Number.NaN;
     const ageBaseMs = Number.isFinite(startedAtMs) ? startedAtMs : stat.mtimeMs;
     if (ageBaseMs > cutoffMs) continue;
     const ageDays = Math.floor((Date.now() - ageBaseMs) / (24 * 60 * 60 * 1000));
+    if (fs.existsSync(stateFile) && !state) {
+      skippedUnknown.push({ run_id: runId, path: runDir, age_days: ageDays, reason: "corrupt state.json" });
+      continue;
+    }
+    if (!state && fs.existsSync(reportFile) && !legacyReport) {
+      skippedUnknown.push({ run_id: runId, path: runDir, age_days: ageDays, reason: "corrupt report.json" });
+      continue;
+    }
+    if (!state && !fs.existsSync(reportFile)) {
+      skippedUnknown.push({ run_id: runId, path: runDir, age_days: ageDays, reason: "missing state and report" });
+      continue;
+    }
+    let refreshed;
+    try {
+      refreshed = resultRun(runId);
+    } catch (error) {
+      skippedUnknown.push({ run_id: runId, path: runDir, age_days: ageDays, reason: error.message });
+      continue;
+    }
+    if (WAITABLE_STATUSES.has(refreshed.status)) {
+      skippedActive.push({ run_id: runId, path: runDir, age_days: ageDays, status: refreshed.status });
+      continue;
+    }
+    if (!TERMINAL_STATUSES.has(refreshed.status)) {
+      skippedUnknown.push({
+        run_id: runId,
+        path: runDir,
+        age_days: ageDays,
+        reason: `unproven terminal status: ${refreshed.status || "unknown"}`
+      });
+      continue;
+    }
     candidates.push({
       run_id: runId,
       path: runDir,
       age_days: ageDays,
-      status: state.status || "unknown"
+      status: refreshed.status || state?.status || "unknown"
     });
   }
 
@@ -1861,6 +2865,8 @@ export function cleanupRuns({ olderThanDays = DEFAULT_CLEANUP_DAYS, confirm = fa
     olderThanDays: Number(olderThanDays),
     dry_run: !confirm,
     deleted_count: confirm ? candidates.length : 0,
-    candidates
+    candidates,
+    skipped_active: skippedActive,
+    skipped_unknown: skippedUnknown
   };
 }

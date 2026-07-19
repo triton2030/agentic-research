@@ -1,22 +1,13 @@
 interface:
-  display_name: "1claude-mcp"
-  short_description: "Run controlled Claude External Peer Reviews"
-  default_prompt: >
-    Use $1claude-mcp when Codex should run Claude Code as a controlled External
-    Peer Review agent: second opinion, bug hunt, architecture/instruction
-    audit, research, or claim-checking over real project files. Give Claude a
-    compact context packet with role, lens, task, goal/current state, claim,
-    sources, criteria, unknowns, read-only boundaries, evidence requirements,
-    output shape, and stop condition. Default to read-only: Claude reports
-    findings/patch suggestions and stops; Codex applies changes after local
-    criteria. Use the default full-power `normal` profile unless the task
-    explicitly needs the tool-limited `read-only` profile. Observe long runs
-    with peek/observe, report observable tool/file/log/tmux progress rather
-    than private thinking, and include
-    agent_behavior, full relay file, warnings, and tail status in closeout. If
-    MCP transport is missing or closed, use the repo-local controlled runner
-    fallback once and say this was recovery, not a clean MCP call. Never replace
-    the external review with Codex's own answer.
+  display_name: "Claude MCP"
+  short_description: "Run Claude advisors, threads, audits, and scoped workers"
+  default_prompt: "Use $1claude-mcp to call Claude through the managed bridge, choose the safe model/profile, preserve resumable thread state, and return evidence plus a terminal tail."
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "claude-mcp"
+      description: "Managed Claude Code bridge"
 
 policy:
   allow_implicit_invocation: true

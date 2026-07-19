@@ -1,14 +1,18 @@
 #!/usr/bin/env node
 import {
+  archiveThread,
   auditSkill,
   cleanupRuns,
   discoverSkills,
   doctor,
   killRun,
+  listThreads,
   peekRun,
   profiles,
   resultRun,
+  sendThread,
   startRun,
+  startThread,
   waitRun
 } from "./runner.js";
 
@@ -32,13 +36,22 @@ function getArgs(name) {
   return values;
 }
 
+function getJsonArg(name) {
+  const value = getArg(name);
+  return value === undefined ? undefined : JSON.parse(value);
+}
+
 const command = process.argv[2] || "help";
 
 if (command === "help") {
   process.stdout.write(`Usage:
   node src/cli.js doctor
   node src/cli.js profiles
-  node src/cli.js run --prompt "..." [--profile normal] [--cwd /path]
+  node src/cli.js run --prompt "..." [--profile advisor] [--model opus] [--effort max] [--cwd /path]
+  node src/cli.js thread-start --topic "..." --prompt "..." [--profile advisor]
+  node src/cli.js thread-send --thread-id <id> --prompt "..."
+  node src/cli.js threads [--cwd /path] [--include-archived]
+  node src/cli.js thread-archive --thread-id <id> [--unarchive]
   node src/cli.js peek --run-id <id>
   node src/cli.js wait --run-id <id>
   node src/cli.js kill --run-id <id>
@@ -55,14 +68,23 @@ if (command === "help") {
   print(
     startRun({
       prompt: getArg("prompt", ""),
-      profile: getArg("profile", "normal"),
+      profile: getArg("profile", "advisor"),
       cwd: getArg("cwd", process.cwd()),
       title: getArg("title"),
+      topic: getArg("topic"),
+      model: getArg("model"),
+      effort: getArg("effort"),
       maxTurns: getArg("max-turns"),
+      fallbackModel: getArg("fallback-model"),
+      sessionId: getArg("session-id"),
+      resume: getArg("resume"),
+      forkSession: process.argv.includes("--fork-session"),
+      name: getArg("name"),
+      noSessionPersistence: process.argv.includes("--no-session-persistence"),
       permissionMode: getArg("permission-mode"),
-      jsonSchema: getArg("json-schema"),
+      jsonSchema: getJsonArg("json-schema"),
       agent: getArg("agent"),
-      agents: getArg("agents"),
+      agents: getJsonArg("agents"),
       pluginUrl: getArgs("plugin-url"),
       allowedTools: getArgs("allowed-tools"),
       disallowedTools: getArgs("disallowed-tools"),
@@ -70,10 +92,46 @@ if (command === "help") {
       file: getArgs("file"),
       inputFormat: getArg("input-format"),
       brief: process.argv.includes("--brief"),
-      allowDangerouslySkipPermissions: process.argv.includes("--allow-dangerously-skip-permissions"),
       replayUserMessages: process.argv.includes("--replay-user-messages"),
+      forwardSubagentText: process.argv.includes("--forward-subagent-text"),
+      safeMode: process.argv.includes("--safe-mode"),
+      writeFiles: getArgs("write-file"),
       useTmux: process.argv.includes("--tmux") || process.argv.includes("--use-tmux"),
       disableAutoMemory: process.argv.includes("--disable-auto-memory")
+    })
+  );
+} else if (command === "thread-start") {
+  print(
+    startThread({
+      prompt: getArg("prompt", ""),
+      topic: getArg("topic", ""),
+      profile: getArg("profile", "advisor"),
+      cwd: getArg("cwd", process.cwd()),
+      useTmux: process.argv.includes("--tmux") || process.argv.includes("--use-tmux")
+    })
+  );
+} else if (command === "thread-send") {
+  print(
+    sendThread({
+      thread_id: getArg("thread-id"),
+      prompt: getArg("prompt", ""),
+      cwd: getArg("cwd"),
+      profile: getArg("profile"),
+      useTmux: process.argv.includes("--tmux") || process.argv.includes("--use-tmux")
+    })
+  );
+} else if (command === "threads") {
+  print(
+    listThreads({
+      cwd: getArg("cwd"),
+      includeArchived: process.argv.includes("--include-archived")
+    })
+  );
+} else if (command === "thread-archive") {
+  print(
+    archiveThread({
+      thread_id: getArg("thread-id"),
+      archived: !process.argv.includes("--unarchive")
     })
   );
 } else if (command === "peek") {

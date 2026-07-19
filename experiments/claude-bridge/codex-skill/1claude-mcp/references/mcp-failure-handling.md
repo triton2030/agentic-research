@@ -1,72 +1,62 @@
-# MCP Failure Handling
+# Claude Bridge Failure Handling
 
-Use this when Claude cannot perform the role requested by the user or by Codex.
+Preserve the requested Claude role. Do not silently replace it with Codex's own
+reasoning or an uncontrolled raw CLI call.
 
-Goal: make the Claude run work as an external agent. Do not silently replace it
-with Codex's own reasoning or a weaker local summary.
+## Classify First
 
-## Check First
+- **Tool visibility:** MCP tools are absent in the current Codex window.
+- **Transport:** tool exists but the transport is closed/stale.
+- **CLI compatibility:** native CLI/version/help lacks a core or requested flag.
+- **Auth:** `claude auth status` is not logged in or OAuth refresh failed.
+- **Context:** cwd/addDir/file permissions do not expose the real sources.
+- **Permission:** advisor cannot perform an authorized write, or worker scope is
+  missing/dirty.
+- **Model:** alias unavailable, rate limit, or Fable refusal.
+- **Evidence/output:** self-report without tool evidence, truncated relay, or
+  malformed stream.
+- **Lifecycle:** timeout, orphaned controller, ignored TERM, or lingering tmux.
 
-- Failure class: decide whether this is tool visibility, runtime/auth,
-  context access, answer quality, or lifecycle/tail state before blaming Claude
-  or replacing the review.
-- Tool surface: are `claude_run`, `peek`, `wait`, `result`, and `kill`
-  callable? If not, treat it as MCP registration or current-session tool
-  exposure, then try the repo-local CLI bridge.
-- Transport closed: if the current Codex tool handle returns `Transport
-  closed`, do not broad-kill `server.js` processes by name. Treat the live tool
-  handle as stale for this window, use the repo-local controlled runner
-  fallback, and report that the answer came through recovery rather than clean
-  MCP.
-- Runtime: run `claude_doctor` or CLI `doctor` and report the failing layer.
-- CLI shape: before uncommon fallback flags, inspect the target machine's
-  `claude --help`; flags and permission-rule syntax drift faster than examples.
-- Local installs: prefer the native `~/.local/bin/claude` that the bridge
-  resolves first. A stale lower-priority Homebrew cask can trigger Claude's
-  multiple-install warning without breaking bridge runs.
-- Profile: switch to the profile that matches the task before downgrading the
-  task: `normal`, `read-only`, `skill-audit`, `no-memory`, or `turbo`.
-- Context: fix `cwd`, `addDir`, prompt files, tools, permissions, or budget so
-  Claude can inspect the required files itself.
-- Read-only context: if an external folder is read-only, Claude returns
-  findings, text, patches, or edit instructions; Codex writes only after local
-  criteria are applied.
-- Capability: local verification showed Claude Code can read outside the repo
-  with `--add-dir` and access the web through `Bash`.
-- Evidence: use bridge logs or `claude_audit_skill` when the task depends on
-  proving that Claude read a target path.
-- Long output: if `chat_relay.truncated` is true or the visible answer is cut,
-  inspect `stdout.log`, `events.ndjson`, or other bridge artifacts before
-  reporting Claude's final answer.
-- Tail check: treat Codex-held `server.js` MCP transports as tool plumbing, not
-  model work. The expensive tail to stop is the saved `claude` run/process
-  group surfaced by `result`, not every bridge server process in `ps`.
+Run `claude_doctor` for setup/auth/flag failures. Its `ok` is intentionally false
+when CLI syntax is compatible but the account is not ready for live runs. Read
+`flag_evidence`: `advertised` comes from help and `parser_probe` from a
+non-spending `auth status` parse, because help does not expose every live flag.
 
-## Allowed Recovery
+## Recovery Ladder
 
-- Rerun with corrected profile, context roots, tools, or budget.
-- Use the controlled CLI bridge fallback when MCP tools are absent.
-- Use the controlled CLI bridge fallback when MCP transport is stale in the
-  current session.
-- In fallback command construction, avoid implicit model overrides, keep
-  `--tools` (availability) separate from `--allowedTools` (approval), and
-  reserve permission bypass for an explicitly accepted isolated context.
-- Recover a long answer from logs, and say that the visible relay was
-  truncated.
-- Narrow the external review only if the user agrees or the task was already
-  intentionally evidence-bounded.
+1. Correct the profile, context roots, exact write scope, or supported option.
+2. If MCP registration/transport is the problem, compare the visible tools with
+   the repo's current server schema. An already-open Codex task may retain an old
+   MCP process and schema after a bridge update. Use the repo-local controlled
+   CLI once, then restart Codex Desktop before judging the installed MCP surface.
+   The CLI shares the same runner, logs, threads, and stop rules.
+3. If auth is false, stop and ask the user to complete `claude auth login` in
+   their terminal. Do not claim fake/smoke execution as a live Claude result.
+4. If Fable refuses a valid task, preserve the refusal and create a fresh Opus
+   advisor thread. Label it as fallback evidence.
+5. If relay is truncated, read the recorded full-output file before raw logs.
+6. If a wait times out, observe or kill the still-live run; timeout is not stop.
+7. If a saved process ignores TERM, a second bridge kill may escalate only the
+   fingerprint-matched process group.
 
-## Not Allowed
+Do not broad-kill Claude, tmux, or all bridge servers. Do not pass hidden API
+keys to force a different billing path. The runner strips `ANTHROPIC_API_KEY`
+and `CLAUDE_API_KEY` from direct and tmux child environments.
 
-- Do not present Codex's own file reading as Claude's review.
-- Do not paste a tiny excerpt and call it equivalent to Claude inspecting the
-  project when full project access was needed.
-- Do not use an uncontrolled raw `claude` command for work that needs logs,
-  observation, or read evidence.
-- Do not treat a missing MCP tool list as a Claude reasoning failure.
+## Skill And Memory Failures
 
-## Report
+Claude's configured skills and auto memory remain available by default. If a
+task depends on one skill, use `claude_audit_skill` for exact-path read evidence
+and check the resulting behavior separately. `unknown` means Claude mentioned
+the path without a structured tool event. `timed_out` means the audit was stopped
+and provides no read proof.
 
-Return: requested role, failing layer, recovery tried, current status, and the
-next concrete fix. If recovery fails, mark the external review blocked instead
-of completing it locally.
+`no-skills` and `no-memory` intentionally change Claude's environment while
+keeping the read-only advisor boundary; use them only to isolate a suspected
+skill/memory problem.
+
+## Report A Blocker
+
+State the requested Claude role, failed layer, evidence, recovery attempted,
+whether a live process remains, and the next concrete user/system action. A
+blocked Claude review is not a completed review.

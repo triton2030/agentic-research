@@ -3,21 +3,25 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import {
+  archiveThread,
   auditSkill,
   cleanupRuns,
   discoverSkills,
   doctor,
   killRun,
+  listThreads,
   peekRun,
   profiles,
   resultRun,
+  sendThread,
   startRun,
+  startThread,
   waitRun
 } from "./runner.js";
 
 const server = new McpServer({
   name: "claude-bridge-control",
-  version: "0.1.0"
+  version: "0.2.0"
 });
 
 function exitOnClosedStdio() {
@@ -71,10 +75,14 @@ registerTool(
   "Start a controlled Claude Code run. Use useTmux for long human-observable terminal sessions. Returns run_id, saved pid/session, profile, cwd, and log_dir for later observe/peek/wait/result/kill.",
   {
     prompt: z.string().min(1),
-    profile: z.string().optional().default("normal"),
-    cwd: z.string().optional(),
+    profile: z.string().optional().default("advisor"),
+    cwd: z.string().min(1),
     title: z.string().optional(),
+    topic: z.string().optional(),
+    model: z.string().optional(),
+    effort: z.enum(["low", "medium", "high", "xhigh", "max"]).optional(),
     appendSystemPrompt: z.string().optional(),
+    appendSubagentSystemPrompt: z.string().optional(),
     appendSystemPromptFile: z.string().optional(),
     systemPrompt: z.string().optional(),
     systemPromptFile: z.string().optional(),
@@ -89,7 +97,7 @@ registerTool(
     mcpConfig: z.union([z.string(), z.array(z.string())]).optional(),
     strictMcpConfig: z.boolean().optional(),
     permissionPromptTool: z.string().optional(),
-    permissionMode: z.enum(["acceptEdits", "auto", "bypassPermissions", "default", "dontAsk", "plan"]).optional(),
+    permissionMode: z.enum(["acceptEdits", "auto", "bypassPermissions", "default", "manual", "dontAsk", "plan"]).optional(),
     jsonSchema: z.union([z.string(), z.record(z.string(), z.unknown())]).optional(),
     agent: z.string().optional(),
     agents: z.union([z.string(), z.record(z.string(), z.unknown())]).optional(),
@@ -101,20 +109,77 @@ registerTool(
     addDir: z.union([z.string(), z.array(z.string())]).optional(),
     pluginDir: z.union([z.string(), z.array(z.string())]).optional(),
     pluginUrl: z.union([z.string(), z.array(z.string())]).optional(),
-    allowDangerouslySkipPermissions: z.boolean().optional(),
     brief: z.boolean().optional(),
     file: z.union([z.string(), z.array(z.string())]).optional(),
     inputFormat: z.enum(["text", "stream-json"]).optional(),
     replayUserMessages: z.boolean().optional(),
+    forwardSubagentText: z.boolean().optional(),
+    safeMode: z.boolean().optional(),
+    writeFiles: z.union([z.string(), z.array(z.string())]).optional(),
     useTmux: z.boolean().optional(),
     tmuxMode: z.boolean().optional(),
     disableAutoMemory: z.boolean().optional(),
     mcpTimeout: z.number().int().positive().optional(),
-    maxMcpOutputTokens: z.number().int().positive().optional(),
-    env: z.record(z.string(), z.string()).optional(),
-    extraArgs: z.array(z.string()).optional()
+    maxMcpOutputTokens: z.number().int().positive().optional()
   },
   (args) => startRun(args)
+);
+
+registerTool(
+  "claude_thread_start",
+  "Start a named cwd/Git-ref-bound Claude advisor conversation. Returns thread_id plus run_id; use claude_thread_send to continue it and claude_threads to recover it after restart or compaction.",
+  {
+    prompt: z.string().min(1),
+    topic: z.string().min(1),
+    cwd: z.string().min(1),
+    profile: z.enum(["advisor", "fable-advisor"]).optional().default("advisor"),
+    addDir: z.union([z.string(), z.array(z.string())]).optional(),
+    mcpConfig: z.union([z.string(), z.array(z.string())]).optional(),
+    allowedTools: z.union([z.string(), z.array(z.string())]).optional(),
+    disallowedTools: z.union([z.string(), z.array(z.string())]).optional(),
+    appendSystemPrompt: z.string().optional(),
+    appendSubagentSystemPrompt: z.string().optional(),
+    forwardSubagentText: z.boolean().optional(),
+    useTmux: z.boolean().optional()
+  },
+  (args) => startThread(args)
+);
+
+registerTool(
+  "claude_thread_send",
+  "Continue one persistent Claude advisor conversation after matching its cwd/worktree/ref and acquiring an atomic lease. This is not an independent fresh opinion.",
+  {
+    thread_id: z.string().min(1),
+    prompt: z.string().min(1),
+    cwd: z.string().min(1),
+    profile: z.enum(["advisor", "fable-advisor"]).optional(),
+    addDir: z.union([z.string(), z.array(z.string())]).optional(),
+    appendSystemPrompt: z.string().optional(),
+    appendSubagentSystemPrompt: z.string().optional(),
+    forwardSubagentText: z.boolean().optional(),
+    useTmux: z.boolean().optional()
+  },
+  (args) => sendThread(args)
+);
+
+registerTool(
+  "claude_threads",
+  "List bridge-owned persistent Claude conversations with topic, project, model, turns, last run, status, and resumability.",
+  {
+    cwd: z.string().optional(),
+    includeArchived: z.boolean().optional().default(false)
+  },
+  (args) => listThreads(args)
+);
+
+registerTool(
+  "claude_thread_archive",
+  "Archive or unarchive a bridge conversation handle without deleting Claude's underlying session store.",
+  {
+    thread_id: z.string().min(1),
+    archived: z.boolean().optional().default(true)
+  },
+  (args) => archiveThread(args)
 );
 
 registerTool(
@@ -169,7 +234,12 @@ registerTool(
 
 registerTool("claude_profiles", "List available Claude bridge profiles and real CLI flags.", {}, () => profiles());
 
-registerTool("claude_doctor", "Check local Claude/Node/npm support without registering global MCP config.", {}, () => doctor());
+registerTool(
+  "claude_doctor",
+  "Check Claude CLI compatibility and live authentication readiness without changing config or auth state.",
+  {},
+  () => doctor()
+);
 
 registerTool(
   "claude_discover_skills",
@@ -182,7 +252,7 @@ registerTool(
 
 registerTool(
   "claude_audit_skill",
-  "Run Claude in skill-audit mode and mark whether tool/debug/stream evidence proves the target path was read.",
+  "Run Claude in skill-audit mode and mark whether structured tool-stream evidence proves the target path was read.",
   {
     skillPath: z.string().min(1),
     prompt: z.string().optional(),
