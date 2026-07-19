@@ -12,9 +12,18 @@ export const RUNS_DIR = path.resolve(process.env.CLAUDE_BRIDGE_RUNS_DIR || path.
 export const THREADS_FILE = path.join(RUNS_DIR, "dialog-threads.jsonl");
 export const THREAD_LEASES_DIR = path.join(RUNS_DIR, "thread-leases");
 export const DEFAULT_CLEANUP_DAYS = 14;
+export const CLAUDE_WIRE_LIMITS = Object.freeze({
+  observeEvents: 3,
+  maxObserveEvents: 8,
+  relayChars: 8000,
+  maxRelayChars: 16000,
+  waitTimeoutMs: 600000
+});
+
+const CLAUDE_WIRE_SCHEMA = "claude-bridge.control.v2";
 
 const activeRuns = new Map();
-const TERMINAL_STATUSES = new Set(["completed", "failed", "killed", "orphaned"]);
+const TERMINAL_STATUSES = new Set(["completed", "completed_unknown", "failed", "killed", "orphaned"]);
 const WAITABLE_STATUSES = new Set(["running", "running_orphaned", "killing"]);
 const GUARDED_WRITE_ENFORCEMENT = "prompt_boundary_plus_git_and_filesystem_postflight";
 
@@ -726,6 +735,40 @@ function tmuxWait(channel, timeoutMs) {
     stdout: result.stdout || "",
     stderr: result.stderr || ""
   };
+}
+
+function tmuxWaitAsync(channel, timeoutMs) {
+  if (!channel) return Promise.resolve({ status: 1, error: "missing channel" });
+  return new Promise((resolve) => {
+    const waiter = spawn("tmux", ["wait-for", channel], {
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    let stdout = "";
+    let stderr = "";
+    let settled = false;
+    const finish = (result) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve({ ...result, stdout, stderr });
+    };
+    waiter.stdout.on("data", (chunk) => {
+      stdout += chunk.toString();
+    });
+    waiter.stderr.on("data", (chunk) => {
+      stderr += chunk.toString();
+    });
+    waiter.once("error", (error) => {
+      finish({ status: null, signal: null, error: error.code || error.message });
+    });
+    waiter.once("close", (status, signal) => {
+      finish({ status, signal, error: null });
+    });
+    const timer = setTimeout(() => {
+      waiter.kill("SIGTERM");
+      finish({ status: null, signal: "SIGTERM", error: "ETIMEDOUT" });
+    }, timeoutMs);
+  });
 }
 
 function tmuxCapturePane(run) {
@@ -1504,52 +1547,21 @@ function finalOutputDetails(events, max = 8000) {
   };
 }
 
-function finalOutputSummary(events) {
-  return finalOutputDetails(events, 1200).text;
-}
-
-function relayTextFromMilestones(milestones, max = 4000) {
-  const lines = [];
-  for (const event of milestones) {
-    if (!["assistant_text", "result", "error"].includes(event.kind)) continue;
-    const text = shortText(event.text, 1000);
-    if (!text || lines.at(-1) === text) continue;
-    lines.push(text);
-  }
-  const text = lines.join("\n");
-  return text.length > max ? `${text.slice(0, max - 3)}...` : text;
-}
-
 function writeFinalOutputFile(run, fullText) {
   if (!run.finalOutputFile || !fullText) return null;
   fs.writeFileSync(run.finalOutputFile, fullText);
   return run.finalOutputFile;
 }
 
-function buildFinalChatRelay(events, run) {
+function buildFinalOutputReference(events, run) {
   const finalOutput = finalOutputDetails(events);
   const fullTextFile = writeFinalOutputFile(run, finalOutput.full_text);
   return {
-    text: finalOutput.text,
-    markdown: finalOutput.text ? `Claude:\n${finalOutput.text}` : "",
+    available: Boolean(fullTextFile && finalOutput.full_text_chars > 0),
     source: finalOutput.source,
-    truncated: finalOutput.truncated,
     full_text_chars: finalOutput.full_text_chars,
     full_text_file: fullTextFile,
-    event_index: finalOutput.event_index,
-    instruction: "Relay this text to the user in chat when the user needs Claude's answer."
-  };
-}
-
-function buildPeekChatRelay(milestones, nextCursor) {
-  const text = relayTextFromMilestones(milestones);
-  return {
-    text,
-    markdown: text ? `Claude update:\n${text}` : "",
-    source: "peek",
-    truncated: text.endsWith("..."),
-    next_cursor: nextCursor,
-    instruction: "Relay this update in chat instead of raw stream-json when observing a Claude run."
+    event_index: finalOutput.event_index
   };
 }
 
@@ -1614,6 +1626,14 @@ function refreshRunRuntimeFacts(run, events) {
   return run;
 }
 
+function latestErrorDetail(events) {
+  for (let index = events.length - 1; index >= 0; index -= 1) {
+    const normalized = normalizeEvent(events[index]);
+    if (normalized?.kind === "error" && normalized.text) return shortText(normalized.text, 200);
+  }
+  return null;
+}
+
 function writeState(run) {
   const state = {
     run_id: run.runId,
@@ -1636,6 +1656,7 @@ function writeState(run) {
     status: run.status,
     exit_code: run.exitCode ?? null,
     signal: run.signal ?? null,
+    error: run.error || null,
     session_id: run.sessionId ?? null,
     session_observed: run.sessionObserved === true,
     started_at: run.startedAt,
@@ -1834,6 +1855,7 @@ function buildRunFromState(runId, logDir, state) {
     status: state.status || "completed_unknown",
     exitCode: state.exit_code ?? null,
     signal: state.signal ?? null,
+    error: state.error || null,
     sessionId: state.session_id ?? null,
     sessionObserved: state.session_observed === true,
     startedAt: state.started_at || null,
@@ -1889,6 +1911,7 @@ function buildRunFromLegacyReport(runId, logDir, report) {
     status,
     exitCode: report.exit_code ?? null,
     signal: report.signal ?? null,
+    error: report.error || null,
     sessionId: report.session_id ?? null,
     sessionObserved: report.session_observed === true,
     startedAt: null,
@@ -1911,9 +1934,15 @@ function buildReport(run) {
   const events = readRunEvents(run);
   refreshRunRuntimeFacts(run, events);
   const warnings = detectWarnings(events, run.cwd);
-  const milestones = summarizeMilestones(events);
+  if (run.status === "completed_unknown") {
+    warnings.push({
+      kind: "legacy_terminal_status_unknown",
+      detail: "Legacy run is terminal, but its exact completion status was not durably recorded.",
+      recovery: "Use the retained output and report as evidence; do not claim a verified successful exit."
+    });
+  }
   const activity = activitySummary(events, run);
-  const chatRelay = buildFinalChatRelay(events, run);
+  const finalOutput = buildFinalOutputReference(events, run);
   const writeScope = isTerminalStatus(run.status)
     ? run.writeScope?.final_evaluation || (run.writeScope ? terminalWriteScopeUnknown(run.writeScope) : null)
     : run.writeScope
@@ -1985,6 +2014,7 @@ function buildReport(run) {
     orphan_reason: run.orphanReason || null,
     exit_code: run.exitCode ?? null,
     signal: run.signal ?? null,
+    error: run.error || latestErrorDetail(events),
     session_id: run.sessionId ?? null,
     session_observed: run.sessionObserved === true,
     log_dir: run.logDir,
@@ -1995,35 +2025,7 @@ function buildReport(run) {
     tmux_capture: tmuxCapturePane(run),
     warnings,
     activity,
-    milestones,
-    events: milestones,
-    chat_relay: chatRelay,
-    final_output_summary: finalOutputSummary(events),
-    agent_behavior: {
-      role: "controlled_external_claude",
-      control_surface: run.useTmux ? "tmux_managed_run" : "managed_process",
-      observable_trace: {
-        available: true,
-        activity_note: activity.note,
-        recent_tool_trace_count: activity.recent_tool_trace.length,
-        recent_path_count: activity.recent_paths.length,
-        tmux_capture_available: activity.tmux_capture_available
-      },
-      relay: {
-        source: chatRelay.source,
-        truncated: chatRelay.truncated,
-        full_text_chars: chatRelay.full_text_chars,
-        full_text_file: chatRelay.full_text_file
-      },
-      tail: {
-        status: run.status,
-        terminal: isTerminalStatus(run.status),
-        cleanup_needed: WAITABLE_STATUSES.has(run.status),
-        tmux_session: run.tmuxSession || null
-      },
-      warnings_count: warnings.length,
-      write_scope_status: writeScope?.status || null
-    },
+    final_output: finalOutput,
     files: runFiles(run)
   };
 }
@@ -2033,6 +2035,124 @@ function writeReport(run) {
   writeState(run);
   writeJsonAtomic(run.reportFile, report);
   return report;
+}
+
+function compactWarnings(warnings = []) {
+  const kinds = [
+    ...new Set(
+      warnings
+        .map((warning) => warning?.kind || warning?.type || "warning")
+        .filter(Boolean)
+    )
+  ];
+  if (!kinds.length) return null;
+  return { count: warnings.length, kinds };
+}
+
+function compactWriteScope(writeScope) {
+  if (!writeScope) return null;
+  const compact = { status: writeScope.status || "unknown" };
+  if (writeScope.enforcement) compact.enforcement = writeScope.enforcement;
+  if (writeScope.status === "failed" || writeScope.status === "unknown") {
+    compact.changed_files = writeScope.changed_files?.length || 0;
+    compact.out_of_scope_files = writeScope.out_of_scope_files?.length || 0;
+    compact.head_changed = writeScope.head_changed === true;
+  }
+  return compact;
+}
+
+function relayNextStep(runId, cursor = 0) {
+  return {
+    tool: "claude_relay",
+    arguments: {
+      run_id: runId,
+      cursor,
+      maxChars: CLAUDE_WIRE_LIMITS.relayChars
+    }
+  };
+}
+
+function waitNextStep(runId) {
+  return {
+    tool: "claude_wait",
+    arguments: {
+      run_id: runId,
+      timeoutMs: CLAUDE_WIRE_LIMITS.waitTimeoutMs
+    }
+  };
+}
+
+function compactResult(report) {
+  const result = {
+    profile: report.profile,
+    requested_model: report.model,
+    resolved_model: report.resolved_model,
+    resolved_model_history: report.model_switch_observed ? report.resolved_model_history : undefined,
+    effort: report.effort,
+    topic: report.topic,
+    session_id: report.session_id,
+    session_observed: report.session_observed,
+    billing: report.billing || undefined,
+    output: report.final_output,
+    report_file: report.files.report
+  };
+  if (report.status !== "completed") {
+    result.termination = {
+      exit_code: report.exit_code,
+      signal: report.signal,
+      detail: shortText(report.error || report.orphan_reason || "terminal status is not a verified successful exit", 200)
+    };
+  }
+  return result;
+}
+
+function compactRunWire(report, { timedOut = false, cursor, nextCursor, updates, updatesOmitted = 0 } = {}) {
+  const terminal = isTerminalStatus(report.status);
+  const warnings = compactWarnings(report.warnings);
+  const writeScope = compactWriteScope(report.write_scope);
+  const wire = {
+    run_id: report.run_id,
+    status: report.status,
+    terminal,
+    managed: report.managed,
+    elapsed_seconds: report.activity.elapsed_seconds,
+    event_count: report.activity.event_count
+  };
+  if (timedOut) wire.timed_out = true;
+  if (cursor !== undefined) wire.cursor = cursor;
+  if (nextCursor !== undefined) {
+    wire.next_cursor = nextCursor;
+    wire.new_events = Math.max(0, nextCursor - (cursor || 0));
+  }
+  if (updates?.length) wire.updates = updates;
+  if (updatesOmitted > 0) wire.updates_omitted = updatesOmitted;
+  if (report.activity.tmux_capture_available) wire.tmux_capture_available = true;
+  if (warnings) wire.warnings = warnings;
+  if (writeScope) wire.write_scope = writeScope;
+  if (report.orphan_reason) wire.orphan_reason = shortText(report.orphan_reason, 300);
+  if (terminal) wire.result = compactResult(report);
+
+  const nextStep = terminal
+    ? report.final_output?.available
+      ? relayNextStep(report.run_id)
+      : null
+    : waitNextStep(report.run_id);
+  wire._envelope = {
+    schema: CLAUDE_WIRE_SCHEMA,
+    ...(nextStep ? { next_step: nextStep } : {})
+  };
+  return wire;
+}
+
+function compactMilestone(event) {
+  const compact = {
+    event_index: event.event_index,
+    kind: event.kind
+  };
+  if (event.tool_name) compact.tool_name = event.tool_name;
+  if (event.file_path) compact.file_path = shortText(event.file_path, 300);
+  if (event.text) compact.text = shortText(event.text, 300);
+  return compact;
 }
 
 function writeRunScript(files, run, command, args, runEnv) {
@@ -2555,66 +2675,90 @@ export function getRun(runId) {
   throw new Error(`Unknown run_id: ${runId}`);
 }
 
-export function peekRun(runId, { limit = 12, cursor = 0 } = {}) {
+export function peekRun(runId, { limit = CLAUDE_WIRE_LIMITS.observeEvents, cursor = 0 } = {}) {
   const run = getRun(runId);
   const events = readRunEvents(run);
   const report = buildReport(run);
   const nextCursor = events.length;
-  const relayUpdates = summarizeMilestones(events, limit, { cursor, includeSessions: false });
-  return {
-    run_id: runId,
-    status: run.status,
-    managed: report.managed,
-    orphan_reason: report.orphan_reason,
-    cursor: Math.max(0, Number(cursor) || 0),
-    next_cursor: nextCursor,
-    milestones: summarizeMilestones(events, limit),
-    relay_updates: relayUpdates,
-    chat_relay: buildPeekChatRelay(relayUpdates, nextCursor),
-    activity: activitySummary(events, run, { limit, cursor }),
-    tmux_capture: tmuxCapturePane(run),
-    warnings: report.warnings,
-    log_dir: run.logDir
-  };
+  const startCursor = Math.min(nextCursor, Math.max(0, Number(cursor) || 0));
+  const boundedLimit = Math.min(
+    CLAUDE_WIRE_LIMITS.maxObserveEvents,
+    Math.max(1, Number(limit) || CLAUDE_WIRE_LIMITS.observeEvents)
+  );
+  const allUpdates = summarizeMilestones(events, events.length || 1, {
+    cursor: startCursor,
+    includeSessions: false
+  });
+  const updates = allUpdates.slice(-boundedLimit).map(compactMilestone);
+  return compactRunWire(report, {
+    cursor: startCursor,
+    nextCursor,
+    updates,
+    updatesOmitted: Math.max(0, allUpdates.length - updates.length)
+  });
 }
 
-function waitForTmuxRun(runId, timeoutMs) {
+async function waitForTmuxRun(runId, timeoutMs) {
   let run = getRun(runId);
-  if (!WAITABLE_STATUSES.has(run.status)) return writeReport(run);
-  if (fs.existsSync(run.exitCodeFile)) return writeReport(refreshTmuxRun(run));
+  if (!WAITABLE_STATUSES.has(run.status)) return compactRunWire(writeReport(run));
+  if (fs.existsSync(run.exitCodeFile)) return compactRunWire(writeReport(refreshTmuxRun(run)));
 
-  const wait = tmuxWait(run.tmuxDoneChannel, timeoutMs);
+  const wait = await tmuxWaitAsync(run.tmuxDoneChannel, timeoutMs);
   run = getRun(runId);
-  if (fs.existsSync(run.exitCodeFile)) return writeReport(refreshTmuxRun(run));
-  if (!WAITABLE_STATUSES.has(run.status)) return writeReport(run);
+  if (fs.existsSync(run.exitCodeFile)) return compactRunWire(writeReport(refreshTmuxRun(run)));
+  if (!WAITABLE_STATUSES.has(run.status)) return compactRunWire(writeReport(run));
 
-  return {
-    ...buildReport(run),
-    status: run.status,
-    timed_out: true,
-    wait_error: wait.error || null
-  };
+  const result = compactRunWire(buildReport(run), { timedOut: true });
+  if (wait.error) result.wait_error = shortText(wait.error, 300);
+  return result;
 }
 
-export function waitRun(runId, { timeoutMs = 120000 } = {}) {
+async function waitForInactiveRun(runId, timeoutMs) {
+  const deadline = Date.now() + timeoutMs;
+  let run = getRun(runId);
+  while (WAITABLE_STATUSES.has(run.status)) {
+    const remainingMs = deadline - Date.now();
+    if (remainingMs <= 0) return compactRunWire(buildReport(run), { timedOut: true });
+    await new Promise((resolve) => setTimeout(resolve, Math.min(1000, remainingMs)));
+    run = getRun(runId);
+  }
+  return compactRunWire(writeReport(run));
+}
+
+export function waitRun(runId, { timeoutMs = CLAUDE_WIRE_LIMITS.waitTimeoutMs } = {}) {
   const run = getRun(runId);
   if (!WAITABLE_STATUSES.has(run.status)) {
-    return Promise.resolve(writeReport(run));
+    return Promise.resolve(compactRunWire(writeReport(run)));
   }
   if (run.useTmux) {
-    return Promise.resolve(waitForTmuxRun(runId, timeoutMs));
+    return waitForTmuxRun(runId, timeoutMs);
   }
   if (!run.child) {
-    return Promise.resolve(writeReport(refreshInactiveRun(run)));
+    return waitForInactiveRun(runId, timeoutMs);
   }
   return new Promise((resolve) => {
-    const timer = setTimeout(() => {
-      resolve({ ...buildReport(run), status: run.status, timed_out: true });
-    }, timeoutMs);
-    run.child.once("close", () => {
+    const child = run.child;
+    let settled = false;
+    let timer;
+    const finish = (value) => {
+      if (settled) return;
+      settled = true;
       clearTimeout(timer);
-      resolve(writeReport(refreshInactiveRun(run)));
-    });
+      child.off("close", onClose);
+      child.off("error", onError);
+      resolve(value);
+    };
+    const onClose = () => {
+      finish(compactRunWire(writeReport(refreshInactiveRun(run))));
+    };
+    const onError = () => {
+      finish(compactRunWire(writeReport(run)));
+    };
+    timer = setTimeout(() => {
+      finish(compactRunWire(buildReport(run), { timedOut: true }));
+    }, timeoutMs);
+    child.once("close", onClose);
+    child.once("error", onError);
   });
 }
 
@@ -2728,9 +2872,48 @@ export function killRun(runId) {
   return { run_id: runId, status: run.status, killed: false };
 }
 
-export function resultRun(runId) {
+export function reportRun(runId) {
   const run = getRun(runId);
   return writeReport(run);
+}
+
+export function resultRun(runId) {
+  return compactRunWire(reportRun(runId));
+}
+
+export function relayRun(
+  runId,
+  { cursor = 0, maxChars = CLAUDE_WIRE_LIMITS.relayChars } = {}
+) {
+  const run = getRun(runId);
+  if (!isTerminalStatus(run.status)) {
+    throw new Error(`Claude run ${runId} is ${run.status}; wait for a terminal status before relay.`);
+  }
+  const report = writeReport(run);
+  const events = readRunEvents(run);
+  const finalOutput = finalOutputDetails(events, Number.MAX_SAFE_INTEGER);
+  const startCursor = Math.min(finalOutput.full_text_chars, Math.max(0, Number(cursor) || 0));
+  const boundedChars = Math.min(
+    CLAUDE_WIRE_LIMITS.maxRelayChars,
+    Math.max(1, Number(maxChars) || CLAUDE_WIRE_LIMITS.relayChars)
+  );
+  const text = finalOutput.full_text.slice(startCursor, startCursor + boundedChars);
+  const nextCursor = startCursor + text.length;
+  const hasMore = nextCursor < finalOutput.full_text_chars;
+  return {
+    run_id: runId,
+    status: report.status,
+    cursor: startCursor,
+    next_cursor: nextCursor,
+    has_more: hasMore,
+    text,
+    full_text_chars: finalOutput.full_text_chars,
+    full_text_file: report.final_output.full_text_file,
+    _envelope: {
+      schema: CLAUDE_WIRE_SCHEMA,
+      ...(hasMore ? { next_step: relayNextStep(runId, nextCursor) } : {})
+    }
+  };
 }
 
 export function profiles() {
@@ -2749,33 +2932,63 @@ function threadLeaseFile(threadId) {
 function acquireThreadLease(threadId) {
   ensureDir(THREAD_LEASES_DIR);
   const file = threadLeaseFile(threadId);
+  const recoveryFile = `${file}.recovery`;
   const token = randomUUID();
-  for (let attempt = 0; attempt < 2; attempt += 1) {
+  const leaseFresh = (candidate, candidateFile) => {
+    const acquiredAt = Date.parse(candidate.acquired_at || "");
+    const fileAge = (() => {
+      try {
+        return Date.now() - fs.statSync(candidateFile).mtimeMs;
+      } catch {
+        return Number.POSITIVE_INFINITY;
+      }
+    })();
+    return (Number.isFinite(acquiredAt) && Date.now() - acquiredAt < 30_000) || fileAge < 30_000;
+  };
+  const writeLease = (target) => {
+    const descriptor = fs.openSync(target, "wx", 0o600);
+    fs.writeFileSync(
+      descriptor,
+      JSON.stringify({ thread_id: threadId, token, owner_pid: process.pid, acquired_at: new Date().toISOString() })
+    );
+    fs.closeSync(descriptor);
+  };
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const recovery = safeReadJson(recoveryFile, null);
+    if (recovery && leaseFresh(recovery, recoveryFile)) {
+      throw new Error(`Claude thread ${threadId} is being claimed by another bridge process.`);
+    }
+    if (recovery) fs.rmSync(recoveryFile, { force: true });
     try {
-      const descriptor = fs.openSync(file, "wx", 0o600);
-      fs.writeFileSync(
-        descriptor,
-        JSON.stringify({ thread_id: threadId, token, owner_pid: process.pid, acquired_at: new Date().toISOString() })
-      );
-      fs.closeSync(descriptor);
+      writeLease(file);
       return { file, token };
     } catch (error) {
       if (error?.code !== "EEXIST") throw error;
       const existing = safeReadJson(file, {});
-      const acquiredAt = Date.parse(existing.acquired_at || "");
-      const fileAge = (() => {
-        try {
-          return Date.now() - fs.statSync(file).mtimeMs;
-        } catch {
-          return Number.POSITIVE_INFINITY;
-        }
-      })();
-      const fresh =
-        (Number.isFinite(acquiredAt) && Date.now() - acquiredAt < 30_000) || fileAge < 30_000;
-      if (fresh) {
+      if (leaseFresh(existing, file)) {
         throw new Error(`Claude thread ${threadId} is being claimed by another bridge process.`);
       }
-      fs.rmSync(file, { force: true });
+      let recoveryLease;
+      try {
+        writeLease(recoveryFile);
+        recoveryLease = { file: recoveryFile, token };
+      } catch (recoveryError) {
+        if (recoveryError?.code === "EEXIST") {
+          throw new Error(`Claude thread ${threadId} is being claimed by another bridge process.`);
+        }
+        throw recoveryError;
+      }
+      try {
+        const current = safeReadJson(file, {});
+        if (leaseFresh(current, file)) {
+          throw new Error(`Claude thread ${threadId} is being claimed by another bridge process.`);
+        }
+        fs.rmSync(file, { force: true });
+        writeLease(file);
+        return { file, token };
+      } finally {
+        releaseThreadLease(recoveryLease);
+      }
     }
   }
   throw new Error(`Could not acquire Claude thread lease: ${threadId}`);
@@ -2847,7 +3060,7 @@ export function listThreads({ cwd, includeArchived = false } = {}) {
     .map((thread) => {
       const reports = thread.run_ids.map((runId) => {
         try {
-          return resultRun(runId);
+          return reportRun(runId);
         } catch {
           return null;
         }
@@ -2880,7 +3093,7 @@ export function listThreads({ cwd, includeArchived = false } = {}) {
         session_observed: run?.session_observed === true,
         resolved_model: run?.resolved_model || null,
         resumable: !thread.archived && hasReadySession && !lastBusy && workspaceMatch,
-        last_output_file: run?.files?.final_output || null
+        last_output_file: run?.final_output?.full_text_file || run?.files?.final_output || null
       };
     })
     .sort((left, right) => String(right.last_active_at).localeCompare(String(left.last_active_at)));
@@ -3194,15 +3407,15 @@ export async function auditSkill({ skillPath, prompt, cwd = process.cwd(), timeo
     cwd,
     title: `skill-audit ${resolvedSkillPath}`
   });
-  let report = await waitRun(started.run_id, { timeoutMs });
-  if (report.timed_out) {
+  let control = await waitRun(started.run_id, { timeoutMs });
+  if (control.timed_out) {
     killRun(started.run_id);
-    report = await waitRun(started.run_id, { timeoutMs: 10000 });
-    if (!isTerminalStatus(report.status)) {
+    control = await waitRun(started.run_id, { timeoutMs: 10000 });
+    if (!isTerminalStatus(control.status)) {
       killRun(started.run_id);
-      report = await waitRun(started.run_id, { timeoutMs: 10000 });
+      control = await waitRun(started.run_id, { timeoutMs: 10000 });
     }
-    const tailTerminal = isTerminalStatus(report.status);
+    const tailTerminal = isTerminalStatus(control.status);
     const audit = {
       evidence: "timed_out",
       reason: tailTerminal
@@ -3210,12 +3423,13 @@ export async function auditSkill({ skillPath, prompt, cwd = process.cwd(), timeo
         : "Skill audit exceeded its timeout; kill was requested, but terminal process-tail evidence is still missing.",
       tail_terminal: tailTerminal,
       target_path: resolvedSkillPath,
-      run: report,
+      run: control,
       matching_events: []
     };
     fs.writeFileSync(path.join(started.log_dir, "skill-audit.json"), JSON.stringify(audit, null, 2));
     return audit;
   }
+  const report = reportRun(started.run_id);
   const events = readJsonLines(report.files.events);
   const streamEvidence = strictStreamToolEvidence(events, resolvedSkillPath);
   const toolEvidence = streamEvidence.successful;
@@ -3235,7 +3449,7 @@ export async function auditSkill({ skillPath, prompt, cwd = process.cwd(), timeo
             ? "An exact-path Read was attempted, but no successful paired tool result proved the file was read."
             : "No exact-path Read call with a successful paired tool result was observed.",
     target_path: resolvedSkillPath,
-    run: report,
+    run: resultRun(started.run_id),
     matching_events: toolEvidence.slice(0, 10),
     read_attempts: streamEvidence.attempts.slice(0, 10).map((attempt) => attempt.event)
   };

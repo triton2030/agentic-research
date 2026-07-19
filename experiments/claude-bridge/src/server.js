@@ -3,6 +3,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import {
+  CLAUDE_WIRE_LIMITS,
   archiveThread,
   auditSkill,
   cleanupRuns,
@@ -12,6 +13,7 @@ import {
   listThreads,
   peekRun,
   profiles,
+  relayRun,
   resultRun,
   sendThread,
   startRun,
@@ -21,7 +23,7 @@ import {
 
 const server = new McpServer({
   name: "claude-bridge-control",
-  version: "0.2.0"
+  version: "0.3.0"
 });
 
 function exitOnClosedStdio() {
@@ -72,7 +74,7 @@ function registerTool(name, description, inputSchema, handler) {
 
 registerTool(
   "claude_run",
-  "Start a controlled Claude Code run. Use useTmux for long human-observable terminal sessions. Returns run_id, saved pid/session, profile, cwd, and log_dir for later observe/peek/wait/result/kill.",
+  "Start a controlled Claude Code run. Returns a compact handle for later observe/wait/result/relay/kill; full evidence stays in the run log directory.",
   {
     prompt: z.string().min(1),
     profile: z.string().optional().default("advisor"),
@@ -186,10 +188,10 @@ registerTool(
 
 registerTool(
   "claude_peek",
-  "Observe a Claude run without stopping it: recent milestones, warnings, relay updates, and cursor for evidence/timeouts.",
+  "Return a bounded delta of model-visible Claude activity after a caller-owned cursor. It never returns the cumulative report or final answer.",
   {
     run_id: z.string().min(1),
-    limit: z.number().int().positive().max(50).optional(),
+    limit: z.number().int().positive().max(CLAUDE_WIRE_LIMITS.maxObserveEvents).optional(),
     cursor: z.number().int().nonnegative().optional()
   },
   (args) => peekRun(args.run_id, { limit: args.limit, cursor: args.cursor })
@@ -197,10 +199,10 @@ registerTool(
 
 registerTool(
   "claude_observe",
-  "Observe a long Claude run: elapsed time, recent tool/file/command trace, model-visible updates, warnings, cursor, and stop hint.",
+  "Observe a long Claude run through the same bounded cursor delta as claude_peek. Use only when progress evidence is needed while one wait remains active.",
   {
     run_id: z.string().min(1),
-    limit: z.number().int().positive().max(50).optional(),
+    limit: z.number().int().positive().max(CLAUDE_WIRE_LIMITS.maxObserveEvents).optional(),
     cursor: z.number().int().nonnegative().optional()
   },
   (args) => peekRun(args.run_id, { limit: args.limit, cursor: args.cursor })
@@ -208,7 +210,7 @@ registerTool(
 
 registerTool(
   "claude_wait",
-  "Wait for a Claude run report. timeoutMs stops waiting, not the live Claude process; use peek/result/kill if not terminal.",
+  "Wait for terminal state and return only a compact control envelope. Prefer one long wait; timeoutMs stops waiting, not Claude, and never emits the cumulative report.",
   {
     run_id: z.string().min(1),
     timeoutMs: z.number().int().positive().optional()
@@ -227,11 +229,28 @@ registerTool(
 
 registerTool(
   "claude_result",
-  "Return current/final Claude report, relay/log files, status, and tail-check evidence for deciding whether the run is terminal.",
+  "Return a compact current/final acceptance packet with status, model, warnings, write-scope status, and report/output file handles. It never emits Claude's answer.",
   {
     run_id: z.string().min(1)
   },
   (args) => resultRun(args.run_id)
+);
+
+registerTool(
+  "claude_relay",
+  "Read one bounded chunk of the terminal Claude answer. Pass next_cursor to continue; each Codex consumer owns its cursor independently.",
+  {
+    run_id: z.string().min(1),
+    cursor: z.number().int().nonnegative().optional().default(0),
+    maxChars: z
+      .number()
+      .int()
+      .positive()
+      .max(CLAUDE_WIRE_LIMITS.maxRelayChars)
+      .optional()
+      .default(CLAUDE_WIRE_LIMITS.relayChars)
+  },
+  (args) => relayRun(args.run_id, { cursor: args.cursor, maxChars: args.maxChars })
 );
 
 registerTool("claude_profiles", "List available Claude bridge profiles and real CLI flags.", {}, () => profiles());

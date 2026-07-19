@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import {
+  CLAUDE_WIRE_LIMITS,
   archiveThread,
   auditSkill,
   cleanupRuns,
@@ -9,6 +10,8 @@ import {
   listThreads,
   peekRun,
   profiles,
+  relayRun,
+  reportRun,
   resultRun,
   sendThread,
   startRun,
@@ -57,10 +60,12 @@ if (command === "help") {
   node src/cli.js thread-send --thread-id <id> --prompt "..."
   node src/cli.js threads [--cwd /path] [--include-archived]
   node src/cli.js thread-archive --thread-id <id> [--unarchive]
-  node src/cli.js peek --run-id <id>
-  node src/cli.js wait --run-id <id>
+  node src/cli.js peek --run-id <id> [--cursor 0] [--limit 3]
+  node src/cli.js wait --run-id <id> [--timeout-ms 600000]
   node src/cli.js kill --run-id <id>
   node src/cli.js result --run-id <id>
+  node src/cli.js relay --run-id <id> [--cursor 0] [--max-chars 8000]
+  node src/cli.js report --run-id <id>
   node src/cli.js discover-skills [--cwd /path]
   node src/cli.js audit-skill --skill-path /path/to/SKILL.md [--prompt "..."]
   node src/cli.js cleanup [--days 14] [--confirm]
@@ -144,16 +149,29 @@ if (command === "help") {
 } else if (command === "peek") {
   print(
     peekRun(getArg("run-id"), {
-      limit: Number(getArg("limit", 12)),
+      limit: Number(getArg("limit", CLAUDE_WIRE_LIMITS.observeEvents)),
       cursor: Number(getArg("cursor", 0))
     })
   );
 } else if (command === "wait") {
-  print(await waitRun(getArg("run-id")));
+  print(
+    await waitRun(getArg("run-id"), {
+      timeoutMs: Number(getArg("timeout-ms", CLAUDE_WIRE_LIMITS.waitTimeoutMs))
+    })
+  );
 } else if (command === "kill") {
   print(killRun(getArg("run-id")));
 } else if (command === "result") {
   print(resultRun(getArg("run-id")));
+} else if (command === "relay") {
+  print(
+    relayRun(getArg("run-id"), {
+      cursor: Number(getArg("cursor", 0)),
+      maxChars: Number(getArg("max-chars", CLAUDE_WIRE_LIMITS.relayChars))
+    })
+  );
+} else if (command === "report") {
+  print(reportRun(getArg("run-id")));
 } else if (command === "discover-skills") {
   print(discoverSkills({ cwd: getArg("cwd", process.cwd()) }));
 } else if (command === "audit-skill") {

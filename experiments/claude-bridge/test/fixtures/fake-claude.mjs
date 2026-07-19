@@ -206,6 +206,9 @@ if (/SLEEP_BRIDGE/u.test(prompt)) {
   spawnTrackedChild();
   await new Promise((resolve) => setTimeout(resolve, 60000));
 }
+if (/POLL_BRIDGE/u.test(prompt)) {
+  await new Promise((resolve) => setTimeout(resolve, 400));
+}
 if (/IGNORE_TERM_BRIDGE/u.test(prompt)) {
   process.on("SIGTERM", () => {});
   spawnTrackedChild({ ignoreTerm: true });
@@ -213,6 +216,10 @@ if (/IGNORE_TERM_BRIDGE/u.test(prompt)) {
 }
 if (/DAEMON_BRIDGE/u.test(prompt)) {
   spawnTrackedChild();
+}
+if (/FAIL_BRIDGE/u.test(prompt)) {
+  emit({ type: "error", text: "FAKE_BRIDGE_FAILURE" });
+  process.exit(7);
 }
 
 if (/SELF_REPORT_ONLY/u.test(prompt) && targetPath) {
@@ -240,5 +247,8 @@ if (/SELF_REPORT_ONLY/u.test(prompt) && targetPath) {
     emit(toolResult);
   }
 }
-emit({ type: "assistant_delta", text: "BRIDGE_OK" });
-emit({ type: "result", text: "BRIDGE_OK" });
+const finalText = /LONG_OUTPUT_BRIDGE/u.test(prompt)
+  ? `LONG_OUTPUT_BEGIN\n${"0123456789".repeat(2000)}\nLONG_OUTPUT_END`
+  : "BRIDGE_OK";
+emit({ type: "assistant_delta", text: finalText });
+emit({ type: "result", text: finalText });

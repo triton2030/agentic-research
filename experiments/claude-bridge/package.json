@@ -1,6 +1,6 @@
 {
   "name": "claude-bridge-control",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "description": "Repo-contained Claude Code runner and MCP bridge prototype for Codex.",

@@ -16,6 +16,7 @@ const smokeTmuxSessions = new Set();
 process.env.CLAUDE_BRIDGE_CLAUDE_BIN = fakeClaude;
 process.env.CLAUDE_BRIDGE_RUNS_DIR = runsDir;
 const {
+  CLAUDE_WIRE_LIMITS,
   archiveThread,
   auditSkill,
   cleanupRuns,
@@ -24,12 +25,25 @@ const {
   listThreads,
   peekRun,
   profiles,
-  resultRun,
+  relayRun,
+  reportRun,
+  resultRun: resultControl,
   sendThread,
   startRun,
   startThread,
-  waitRun
+  waitRun: waitControl
 } = await import("../src/runner.js");
+
+async function waitRun(runId, options) {
+  const control = await waitControl(runId, options);
+  const report = reportRun(runId);
+  if (control.timed_out) report.timed_out = true;
+  return report;
+}
+
+function resultRun(runId) {
+  return reportRun(runId);
+}
 
 function cleanupSmokeTmuxSessions() {
   for (const session of smokeTmuxSessions) {
@@ -244,7 +258,8 @@ assert.ok(fs.existsSync(started.log_dir));
 
 const peek = peekRun(started.run_id);
 assert.equal(peek.run_id, started.run_id);
-assert.ok(Array.isArray(peek.milestones));
+assert.ok(peek.next_cursor >= peek.cursor);
+assert.equal(peek._envelope.schema, "claude-bridge.control.v2");
 
 const report = await waitRun(started.run_id, { timeoutMs: 10000 });
 const startedCommand = JSON.parse(fs.readFileSync(report.files.command, "utf8"));
@@ -275,15 +290,105 @@ assert.deepEqual(report.model_env_overrides_stripped.sort(), [...modelOverrideEn
 assert.equal(report.session_id, started.session_id);
 assert.equal(report.session_observed, true);
 assert.equal(report.managed, false);
-assert.match(report.final_output_summary, /BRIDGE_OK/);
-assert.match(report.chat_relay.text, /BRIDGE_OK/);
-assert.match(report.chat_relay.markdown, /Claude:\nBRIDGE_OK/);
-assert.equal(report.chat_relay.full_text_file, report.files.final_output);
+assert.equal(report.final_output.full_text_file, report.files.final_output);
 assert.match(fs.readFileSync(report.files.final_output, "utf8"), /BRIDGE_OK/);
-assert.equal(report.agent_behavior.role, "controlled_external_claude");
-assert.equal(report.agent_behavior.tail.terminal, true);
+assert.match(relayRun(started.run_id).text, /BRIDGE_OK/);
 assert.ok(fs.existsSync(report.files.state));
-assert.ok(report.milestones.some((event) => event.kind === "assistant_text" && /BRIDGE_OK/u.test(event.text)));
+assert.ok(report.activity.recent_text.some((event) => /BRIDGE_OK/u.test(event.text)));
+
+const compactPollingRun = startRun({
+  prompt: "POLL_BRIDGE LONG_OUTPUT_BRIDGE",
+  profile: "normal",
+  cwd: bridgeRoot
+});
+let compactPollingBytes = 0;
+for (let index = 0; index < 10; index += 1) {
+  const timeoutControl = await waitControl(compactPollingRun.run_id, { timeoutMs: 15 });
+  assert.equal(timeoutControl.timed_out, true);
+  assert.equal(timeoutControl.terminal, false);
+  assert.equal(Object.hasOwn(timeoutControl, "activity"), false);
+  assert.equal(Object.hasOwn(timeoutControl, "command"), false);
+  assert.equal(Object.hasOwn(timeoutControl, "files"), false);
+  const timeoutBytes = Buffer.byteLength(JSON.stringify(timeoutControl), "utf8");
+  assert.ok(timeoutBytes < 1024, `timeout control used ${timeoutBytes} bytes`);
+  compactPollingBytes += timeoutBytes;
+}
+const compactTerminal = await waitControl(compactPollingRun.run_id, { timeoutMs: 10000 });
+const compactTerminalBytes = Buffer.byteLength(JSON.stringify(compactTerminal), "utf8");
+assert.ok(compactTerminalBytes < 4096, `terminal control used ${compactTerminalBytes} bytes`);
+compactPollingBytes += compactTerminalBytes;
+assert.equal(compactTerminal.status, "completed");
+assert.equal(compactTerminal.terminal, true);
+assert.ok(compactPollingBytes < 7000, `compact polling used ${compactPollingBytes} bytes`);
+
+const compactReport = reportRun(compactPollingRun.run_id);
+for (const removedDuplicate of ["events", "milestones", "chat_relay", "final_output_summary", "agent_behavior"]) {
+  assert.equal(Object.hasOwn(compactReport, removedDuplicate), false, `${removedDuplicate} must stay off report v2`);
+}
+const reportFinalText = fs.readFileSync(compactReport.final_output.full_text_file, "utf8");
+let relayCursor = 0;
+let relayedText = "";
+let relayChunks = 0;
+while (relayCursor < reportFinalText.length) {
+  const relay = relayRun(compactPollingRun.run_id, { cursor: relayCursor, maxChars: 8000 });
+  assert.equal(relay.cursor, relayCursor);
+  assert.ok(relay.text.length <= 8000);
+  relayedText += relay.text;
+  relayCursor = relay.next_cursor;
+  relayChunks += 1;
+}
+assert.equal(relayedText, reportFinalText);
+assert.equal(relayChunks, 3);
+const relayConsumerA = relayRun(compactPollingRun.run_id, { cursor: 0, maxChars: 120 });
+const relayConsumerB = relayRun(compactPollingRun.run_id, { cursor: 0, maxChars: 120 });
+assert.equal(relayConsumerA.text, relayConsumerB.text);
+assert.equal(relayConsumerA.next_cursor, relayConsumerB.next_cursor);
+const noDelta = peekRun(compactPollingRun.run_id, { cursor: compactTerminal.event_count });
+assert.equal(noDelta.new_events, 0);
+assert.equal(Object.hasOwn(noDelta, "updates"), false);
+
+const failedCompactRun = startRun({
+  prompt: "FAIL_BRIDGE",
+  profile: "normal",
+  cwd: bridgeRoot
+});
+const failedCompactControl = await waitControl(failedCompactRun.run_id, { timeoutMs: 10000 });
+assert.equal(failedCompactControl.status, "failed");
+assert.equal(failedCompactControl.result.termination.exit_code, 7);
+assert.match(failedCompactControl.result.termination.detail, /FAKE_BRIDGE_FAILURE/u);
+
+const legacyUnknownRunId = `legacy-completed-unknown-${Date.now()}`;
+const legacyUnknownDir = path.join(runsDir, legacyUnknownRunId);
+fs.mkdirSync(legacyUnknownDir, { recursive: true });
+const legacyUnknownFiles = {
+  prompt: path.join(legacyUnknownDir, "prompt.txt"),
+  profile: path.join(legacyUnknownDir, "profile.json"),
+  command: path.join(legacyUnknownDir, "command.json"),
+  events: path.join(legacyUnknownDir, "events.ndjson"),
+  stdout: path.join(legacyUnknownDir, "stdout.log"),
+  stderr: path.join(legacyUnknownDir, "stderr.log"),
+  debug: path.join(legacyUnknownDir, "debug.log"),
+  final_output: path.join(legacyUnknownDir, "final-output.md"),
+  report: path.join(legacyUnknownDir, "report.json"),
+  state: path.join(legacyUnknownDir, "state.json")
+};
+fs.writeFileSync(legacyUnknownFiles.events, `${JSON.stringify({ type: "result", text: "LEGACY_BRIDGE_OK" })}\n`);
+fs.writeFileSync(
+  legacyUnknownFiles.report,
+  JSON.stringify({
+    run_id: legacyUnknownRunId,
+    profile: "normal",
+    model: "opus",
+    status: "running",
+    cwd: bridgeRoot,
+    files: legacyUnknownFiles
+  })
+);
+const legacyUnknownControl = resultControl(legacyUnknownRunId);
+assert.equal(legacyUnknownControl.status, "completed_unknown");
+assert.equal(legacyUnknownControl.terminal, true);
+assert.ok(legacyUnknownControl.warnings.kinds.includes("legacy_terminal_status_unknown"));
+assert.match(relayRun(legacyUnknownRunId).text, /LEGACY_BRIDGE_OK/u);
 
 const cliAdvisorRun = cliJson([
   "run",
@@ -352,16 +457,20 @@ assert.equal(syntheticModelReport.resolved_model, "claude-opus-4-8");
 
 const separateResult = cliJson(["result", "--run-id", started.run_id]);
 assert.equal(separateResult.status, "completed");
-assert.equal(separateResult.managed, false);
-assert.match(separateResult.final_output_summary, /BRIDGE_OK/);
-assert.match(separateResult.chat_relay.text, /BRIDGE_OK/);
-assert.match(fs.readFileSync(separateResult.files.final_output, "utf8"), /BRIDGE_OK/);
+assert.equal(separateResult.terminal, true);
+assert.equal(separateResult.result.output.full_text_file, report.files.final_output);
+assert.equal(Object.hasOwn(separateResult, "activity"), false);
+assert.equal(Object.hasOwn(separateResult, "command"), false);
+const separateRelay = cliJson(["relay", "--run-id", started.run_id]);
+assert.match(separateRelay.text, /BRIDGE_OK/);
+const separateReport = cliJson(["report", "--run-id", started.run_id]);
+assert.equal(separateReport.status, "completed");
+assert.ok(separateReport.activity);
 const separatePeek = cliJson(["peek", "--run-id", started.run_id, "--cursor", "0"]);
 assert.equal(separatePeek.status, "completed");
-assert.equal(separatePeek.managed, false);
 assert.ok(separatePeek.next_cursor > 0);
-assert.ok(Array.isArray(separatePeek.relay_updates));
-assert.match(separatePeek.chat_relay.text, /BRIDGE_OK/);
+assert.ok(Array.isArray(separatePeek.updates));
+assert.equal(Object.hasOwn(separatePeek, "activity"), false);
 
 const noMemoryRun = startRun({
   prompt: "Return exactly BRIDGE_OK.",
@@ -431,13 +540,23 @@ assert.deepEqual(switchedModelReport.resolved_model_history, ["claude-fable-5", 
 assert.equal(switchedModelReport.model_switch_observed, true);
 assert.ok(switchedModelReport.warnings.some((warning) => warning.kind === "model_switch_observed"));
 
+const workerRepo = fs.mkdtempSync(path.join(os.tmpdir(), "claude-bridge-worker-"));
+assert.equal(spawnSync("git", ["init", "-q"], { cwd: workerRepo }).status, 0);
+assert.equal(spawnSync("git", ["config", "user.email", "bridge@example.invalid"], { cwd: workerRepo }).status, 0);
+assert.equal(spawnSync("git", ["config", "user.name", "Claude Bridge Smoke"], { cwd: workerRepo }).status, 0);
+fs.writeFileSync(path.join(workerRepo, "allowed.txt"), "baseline\n");
+fs.writeFileSync(path.join(workerRepo, "outside.txt"), "baseline\n");
+fs.writeFileSync(path.join(workerRepo, ".gitignore"), "ignored.txt\n");
+assert.equal(spawnSync("git", ["add", "."], { cwd: workerRepo }).status, 0);
+assert.equal(spawnSync("git", ["commit", "-qm", "baseline"], { cwd: workerRepo }).status, 0);
+
 const boundedFableWorker = startRun({
   prompt: "Return BRIDGE_OK without edits.",
   profile: "worker",
   model: "fable",
   effort: "high",
-  writeFiles: ["package.json"],
-  cwd: bridgeRoot
+  writeFiles: ["allowed.txt"],
+  cwd: workerRepo
 });
 const boundedFableWorkerReport = await waitRun(boundedFableWorker.run_id, { timeoutMs: 10000 });
 assert.equal(boundedFableWorkerReport.model, "fable");
@@ -525,6 +644,19 @@ const raceArgs = [
   "--prompt",
   "SLEEP_BRIDGE"
 ];
+const staleLeaseFile = path.join(runsDir, "thread-leases", `${opusThread.thread_id}.json`);
+fs.mkdirSync(path.dirname(staleLeaseFile), { recursive: true });
+fs.writeFileSync(
+  staleLeaseFile,
+  JSON.stringify({
+    thread_id: opusThread.thread_id,
+    token: "stale-smoke-lease",
+    owner_pid: 999999,
+    acquired_at: new Date(Date.now() - 60_000).toISOString()
+  })
+);
+const staleLeaseTime = new Date(Date.now() - 60_000);
+fs.utimesSync(staleLeaseFile, staleLeaseTime, staleLeaseTime);
 const raceEnv = { ...process.env, CLAUDE_BRIDGE_CLAUDE_BIN: fakeClaude };
 const raceOne = spawn(process.execPath, raceArgs, { cwd: bridgeRoot, env: raceEnv, stdio: ["ignore", "pipe", "pipe"] });
 const raceTwo = spawn(process.execPath, raceArgs, { cwd: bridgeRoot, env: raceEnv, stdio: ["ignore", "pipe", "pipe"] });
@@ -549,16 +681,8 @@ while (Date.now() < raceStopDeadline && !["killed", "failed"].includes(resultRun
 }
 const raceExitCodes = (await Promise.all(raceExits)).sort();
 assert.deepEqual(raceExitCodes, [0, 1]);
+assert.equal(fs.existsSync(`${staleLeaseFile}.recovery`), false);
 
-const workerRepo = fs.mkdtempSync(path.join(os.tmpdir(), "claude-bridge-worker-"));
-assert.equal(spawnSync("git", ["init", "-q"], { cwd: workerRepo }).status, 0);
-assert.equal(spawnSync("git", ["config", "user.email", "bridge@example.invalid"], { cwd: workerRepo }).status, 0);
-assert.equal(spawnSync("git", ["config", "user.name", "Claude Bridge Smoke"], { cwd: workerRepo }).status, 0);
-fs.writeFileSync(path.join(workerRepo, "allowed.txt"), "baseline\n");
-fs.writeFileSync(path.join(workerRepo, "outside.txt"), "baseline\n");
-fs.writeFileSync(path.join(workerRepo, ".gitignore"), "ignored.txt\n");
-assert.equal(spawnSync("git", ["add", "."], { cwd: workerRepo }).status, 0);
-assert.equal(spawnSync("git", ["commit", "-qm", "baseline"], { cwd: workerRepo }).status, 0);
 const branchThread = startThread({
   prompt: "Return BRIDGE_OK for branch identity.",
   topic: `branch-identity-${threadSuffix}`,
@@ -625,7 +749,6 @@ assert.equal(
 );
 assert.deepEqual(workerReport.write_scope.changed_files, ["allowed.txt"]);
 assert.deepEqual(workerReport.write_scope.out_of_scope_files, []);
-assert.equal(workerReport.agent_behavior.write_scope_status, "passed");
 assert.match(fs.readFileSync(path.join(workerRepo, "allowed.txt"), "utf8"), /changed by fake Claude/u);
 assert.equal(spawnSync("git", ["restore", "allowed.txt"], { cwd: workerRepo }).status, 0);
 const atomicWorkerRun = startRun({
@@ -658,7 +781,7 @@ assert.equal(atomicWorkerReport.activity.counts.tool_use, 2);
 assert.equal(atomicWorkerReport.activity.counts.tool_result, 2);
 fs.writeFileSync(path.join(workerRepo, "outside.txt"), "concurrent change after terminal report\n");
 const frozenWorkerPeek = peekRun(atomicWorkerRun.run_id);
-assert.ok(!frozenWorkerPeek.warnings.some((warning) => warning.kind === "write_scope_violation"));
+assert.ok(!frozenWorkerPeek.warnings?.kinds.includes("write_scope_violation"));
 assert.equal(resultRun(atomicWorkerRun.run_id).write_scope.status, "passed");
 assert.equal(spawnSync("git", ["restore", "outside.txt"], { cwd: workerRepo }).status, 0);
 
@@ -918,6 +1041,10 @@ await new Promise((resolve) => setTimeout(resolve, 250));
 const restartedLongReport = cliJson(["result", "--run-id", longRun.run_id]);
 assert.equal(restartedLongReport.status, "running_orphaned");
 assert.equal(restartedLongReport.managed, false);
+const restartedWaitStarted = Date.now();
+const restartedLongWait = cliJson(["wait", "--run-id", longRun.run_id, "--timeout-ms", "120"]);
+assert.equal(restartedLongWait.timed_out, true);
+assert.ok(Date.now() - restartedWaitStarted >= 100, "restarted non-tmux wait must honor timeout instead of spinning");
 const restartedLongKill = cliJson(["kill", "--run-id", longRun.run_id]);
 assert.equal(restartedLongKill.killed, true);
 const localKilledReport = await waitRun(longRun.run_id, { timeoutMs: 10000 });
@@ -990,8 +1117,7 @@ if (spawnSync("tmux", ["-V"], { encoding: "utf8" }).status === 0) {
   assert.equal(tmuxReport.status, "completed");
   assert.equal(tmuxReport.use_tmux, true);
   assert.equal(tmuxReport.managed, false);
-  assert.match(tmuxReport.final_output_summary, /BRIDGE_OK/u);
-  assert.match(tmuxReport.chat_relay.text, /BRIDGE_OK/u);
+  assert.match(relayRun(tmuxRun.run_id).text, /BRIDGE_OK/u);
   assert.ok(tmuxReport.files.tmux_pane);
   assert.match(fs.readFileSync(tmuxReport.files.stdout, "utf8"), /BRIDGE_OK/u);
   assert.match(fs.readFileSync(tmuxReport.files.tmux_pane, "utf8"), /BRIDGE_OK/u);
@@ -1007,6 +1133,21 @@ if (spawnSync("tmux", ["-V"], { encoding: "utf8" }).status === 0) {
     spawnSync("tmux", ["has-session", "-t", tmuxRun.tmux_session], { encoding: "utf8" }).status,
     0
   );
+
+  const concurrentTmuxRun = startRun({
+    prompt: "POLL_BRIDGE",
+    profile: "normal",
+    cwd: bridgeRoot,
+    useTmux: true
+  });
+  trackTmuxSession(concurrentTmuxRun);
+  const waitCallStarted = Date.now();
+  const concurrentTmuxWait = waitRun(concurrentTmuxRun.run_id, { timeoutMs: 10000 });
+  assert.ok(Date.now() - waitCallStarted < 150, "tmux wait must not block the MCP event loop");
+  const concurrentTmuxPeek = peekRun(concurrentTmuxRun.run_id, { cursor: 0 });
+  assert.equal(concurrentTmuxPeek.terminal, false);
+  const concurrentTmuxReport = await concurrentTmuxWait;
+  assert.equal(concurrentTmuxReport.status, "completed");
 
   fs.rmSync(fakeParentPidFile, { force: true });
   fs.rmSync(fakeChildPidFile, { force: true });
@@ -1025,9 +1166,8 @@ if (spawnSync("tmux", ["-V"], { encoding: "utf8" }).status === 0) {
   const liveChildPid = readPidFile(fakeChildPidFile);
   await new Promise((resolve) => setTimeout(resolve, 500));
   const livePeek = peekRun(liveTmuxRun.run_id, { cursor: 0 });
-  assert.equal(livePeek.tmux_capture.available, true);
-  assert.match(livePeek.tmux_capture.text, /Reading context/u);
-  assert.equal(livePeek.activity.tmux_capture_available, true);
+  assert.equal(livePeek.tmux_capture_available, true);
+  assert.ok(livePeek.updates.some((update) => /Reading context/u.test(update.text || "")));
   const liveKill = killRun(liveTmuxRun.run_id);
   assert.equal(liveKill.killed, true);
   await waitForPidExit(liveParentPid, "Claude tmux parent");
@@ -1166,6 +1306,7 @@ const tools = await client.listTools();
 const toolNames = tools.tools.map((tool) => tool.name);
 assert.ok(toolNames.includes("claude_run"));
 assert.ok(toolNames.includes("claude_observe"));
+assert.ok(toolNames.includes("claude_relay"));
 assert.ok(toolNames.includes("claude_cleanup_runs"));
 assert.ok(toolNames.includes("claude_thread_start"));
 assert.ok(toolNames.includes("claude_thread_send"));
@@ -1204,8 +1345,24 @@ const mcpWait = await client.callTool({
 });
 const mcpWaitPayload = JSON.parse(mcpWait.content[0].text);
 assert.equal(mcpWaitPayload.status, "completed");
-assert.match(mcpWaitPayload.final_output_summary, /BRIDGE_OK/);
-assert.match(mcpWaitPayload.chat_relay.text, /BRIDGE_OK/);
+assert.equal(mcpWaitPayload.terminal, true);
+assert.equal(Object.hasOwn(mcpWaitPayload, "activity"), false);
+assert.equal(Object.hasOwn(mcpWaitPayload, "text"), false);
+assert.ok(Buffer.byteLength(mcpWait.content[0].text, "utf8") < 4096);
+const mcpResult = await client.callTool({
+  name: "claude_result",
+  arguments: { run_id: mcpRunPayload.run_id }
+});
+const mcpResultPayload = JSON.parse(mcpResult.content[0].text);
+assert.equal(mcpResultPayload.terminal, true);
+assert.equal(Object.hasOwn(mcpResultPayload, "activity"), false);
+assert.ok(Buffer.byteLength(mcpResult.content[0].text, "utf8") < 4096);
+const mcpRelay = await client.callTool({
+  name: "claude_relay",
+  arguments: { run_id: mcpRunPayload.run_id }
+});
+const mcpRelayPayload = JSON.parse(mcpRelay.content[0].text);
+assert.match(mcpRelayPayload.text, /BRIDGE_OK/);
 const mcpPeek = await client.callTool({
   name: "claude_peek",
   arguments: {
@@ -1215,9 +1372,9 @@ const mcpPeek = await client.callTool({
 });
 const mcpPeekPayload = JSON.parse(mcpPeek.content[0].text);
 assert.ok(mcpPeekPayload.next_cursor > 0);
-assert.match(mcpPeekPayload.chat_relay.text, /BRIDGE_OK/);
-assert.ok(mcpPeekPayload.activity);
-assert.ok(Array.isArray(mcpPeekPayload.activity.recent_text));
+assert.ok(Array.isArray(mcpPeekPayload.updates));
+assert.equal(Object.hasOwn(mcpPeekPayload, "activity"), false);
+assert.ok(Buffer.byteLength(mcpPeek.content[0].text, "utf8") < 4096);
 const mcpObserve = await client.callTool({
   name: "claude_observe",
   arguments: {
@@ -1226,8 +1383,8 @@ const mcpObserve = await client.callTool({
   }
 });
 const mcpObservePayload = JSON.parse(mcpObserve.content[0].text);
-assert.ok(mcpObservePayload.activity);
-assert.match(mcpObservePayload.activity.note, /Observable trace only/u);
+assert.equal(mcpObservePayload._envelope.schema, "claude-bridge.control.v2");
+assert.equal(Object.hasOwn(mcpObservePayload, "activity"), false);
 const mcpThreadStart = await client.callTool({
   name: "claude_thread_start",
   arguments: {
@@ -1259,6 +1416,10 @@ await client.close();
 const directResult = resultRun(started.run_id);
 assert.equal(directResult.status, "completed");
 assert.equal(directResult.managed, false);
+const directControl = resultControl(started.run_id);
+assert.equal(directControl.terminal, true);
+assert.equal(Object.hasOwn(directControl, "activity"), false);
+assert.ok(Buffer.byteLength(JSON.stringify(directControl), "utf8") < 4096);
 const directKill = killRun(started.run_id);
 assert.equal(directKill.killed, false);
 

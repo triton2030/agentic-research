@@ -56,12 +56,15 @@ For material work use this compact packet:
 <sources>Exact files, logs, URLs, cwd, or addDir roots.</sources>
 <boundaries>Read/write/tools authority and must-not actions.</boundaries>
 <evidence>Evidence required; separate verified fact from inference.</evidence>
-<output>Answer shape, with the verdict first.</output>
+<output>Verdict first; default to a compact decision handoff, with detail only in an evidence appendix.</output>
 ```
 
 State the intent behind material constraints and facts Claude must not invent.
 Ask for findings, evidence, uncertainty, and a direct verdict, never private
-reasoning. Put large source context before the final ask.
+reasoning. Put large source context before the final ask. Unless the user needs a
+long-form deliverable, keep the decision handoff within about 1200 words; Claude
+may place decision-relevant depth after `## Evidence appendix` for selective
+relay.
 
 ## Models
 
@@ -141,15 +144,28 @@ is `unknown`, and read access alone does not prove correct skill application.
 
 ## Finish Or Recover
 
-Use `claude_peek`/`claude_observe` for visible activity, `claude_wait` for a
-bounded wait, `claude_result` for the report, and `claude_kill` only for the
-saved fingerprinted process group or tmux session. A wait timeout does not stop
-Claude. Never broad-kill processes by name.
+Start one long `claude_wait` per run. If the host yields a continuation/cell
+handle, keep waiting on that same host call; do not start another bridge wait.
+Use `claude_peek`/`claude_observe` only when progress evidence is useful, always
+passing that consumer's previous `next_cursor`. A wait timeout does not stop
+Claude.
 
-Relay `chat_relay.text`; if truncated, read `chat_relay.full_text_file`. Finish
-only at `completed`, `failed`, `killed`, or a safely explained `orphaned` state.
-Report profile, requested and resolved model history, topic/thread, status,
-billing, warnings, sources, and write-scope evidence when relevant.
+The terminal wait already returns the compact acceptance packet. Use
+`claude_result` only to recover current/final state after restart, compaction, or
+a lost wait; it never returns Claude's answer. Use `claude_relay` once for the
+bounded final answer and follow its `next_cursor` only when the omitted remainder
+is decision-relevant or the user requested the full Claude response. Do not open
+`report_file` or `full_text_file` by default; inspect a targeted report field when
+warnings, failure, model switching, or write-scope evidence requires it.
+
+Use `claude_kill` only for the saved fingerprinted process group or tmux session;
+never broad-kill processes by name. Finish only at a terminal state:
+`completed`; legacy `completed_unknown`; `failed`; `killed`; or safely explained
+`orphaned`. Treat `completed_unknown` as terminal but never as verified success:
+relay is allowed, and closure must preserve the
+`legacy_terminal_status_unknown` warning. Report profile, requested and resolved
+model history, topic/thread, status, billing, warnings, sources, and write-scope
+evidence when relevant.
 
 If MCP tools are absent or stale, use the repo-controlled CLI once and report
 the fallback; never use raw Claude. Classify the failed layer before recovery.

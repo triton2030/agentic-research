@@ -3,6 +3,15 @@
 Use the bridge as the control plane around Claude Code. Codex owns the user task
 and synthesis; Claude owns only the role named in the brief.
 
+## Contents
+
+- Tool Map
+- Run And Thread Identity
+- Run Lifecycle
+- Compact Wire, Relay, And Evidence
+- Guarded Writes
+- Logs And Cleanup
+
 ## Tool Map
 
 - `claude_doctor`: CLI compatibility plus live auth readiness.
@@ -14,8 +23,11 @@ and synthesis; Claude owns only the role named in the brief.
 - `claude_threads`: recover thread handles and last status after restart or
   context compaction.
 - `claude_thread_archive`: hide/unhide a handle without deleting Claude's store.
-- `claude_peek` / `claude_observe`: visible activity, warnings, and relay cursor.
-- `claude_wait` / `claude_result`: bounded wait or current/final report.
+- `claude_peek` / `claude_observe`: bounded activity delta after a caller-owned
+  cursor.
+- `claude_wait`: one long wait returning only a compact control envelope.
+- `claude_result`: recover the compact current/final acceptance packet.
+- `claude_relay`: read the terminal Claude answer in bounded cursor chunks.
 - `claude_kill`: stop only the saved process group or tmux session.
 - `claude_audit_skill`: prove an exact target path appeared in a structured tool
   event.
@@ -44,12 +56,19 @@ branches rather than importing stale branch context.
 ## Run Lifecycle
 
 1. Start and retain `run_id`, `session_id`/`thread_id`, and `log_dir`.
-2. For long work, poll `claude_observe` with the previous `next_cursor`.
-3. Use `claude_wait` with a bounded timeout. Timeout means the process may still
-   be live.
-4. Read `claude_result`; if the run is wrong or unwanted, use `claude_kill`.
-5. Close only at a terminal status: `completed`, `failed`, `killed`, or safely
-   explained `orphaned`.
+2. Start one long `claude_wait`. If Codex receives a host continuation/cell
+   handle, wait on that same handle instead of launching another bridge wait.
+3. Only when progress matters, call `claude_observe` with that consumer's
+   previous `next_cursor`; it returns recent bounded updates, never history.
+4. At terminal status, inspect the wait acceptance packet. Use `claude_result`
+   only after restart, compaction, or a lost wait.
+5. Call `claude_relay` for the answer. Follow `next_cursor` selectively; do not
+   read the full output/report file by default.
+6. If the trajectory is wrong or unwanted, use `claude_kill`.
+7. Close only at a terminal status: `completed`, legacy `completed_unknown`,
+   `failed`, `killed`, or safely explained `orphaned`. `completed_unknown`
+   permits relay but is not verified success; preserve its
+   `legacy_terminal_status_unknown` warning in the handoff.
 
 `running_orphaned` means the bridge can still fingerprint the saved live
 process after its original controller disappeared. It is not complete. A second
@@ -60,20 +79,29 @@ pane, tees stdout/stderr, strips every higher-precedence Claude auth/provider
 environment, and kills only that saved session. A Codex-held `server.js` process
 is MCP plumbing, not a paid model tail.
 
-## Relay And Evidence
+## Compact Wire, Relay, And Evidence
 
-Final reports provide:
+The bridge separates three planes:
 
-- `chat_relay.text` and `.markdown` for the user-visible Claude answer;
-- `chat_relay.truncated` and `.full_text_file` for long output;
-- requested `model`, stream-derived `resolved_model`, and `effort`;
-- primary `resolved_model_history`, switch warning, and all `modelUsage` models;
-- `activity`, warnings, files, status, and `agent_behavior`;
-- `write_scope` for guarded workers.
+- **control:** `wait`, `observe`, and `result` return status, cursor, warning
+  kinds, model/output handles, and one `_envelope.next_step`;
+- **relay:** `claude_relay` returns only one bounded answer chunk plus
+  `next_cursor`/`has_more`;
+- **evidence:** command, raw stream, activity, files, full answer, and report stay
+  under the run directory.
 
-`activity` exposes stream/tool/file/log/tmux observations, not private
-chain-of-thought. Relay Claude's actual answer when requested, then distinguish
-Claude's finding from Codex's acceptance judgment.
+Control responses never contain the cumulative report or Claude's answer.
+`claude_observe` defaults to three updates and is capped at eight. A caller owns
+its cursor: different Codex agents can inspect the same run without mutating a
+shared "already read" state. `claude_relay` behaves the same way for final text.
+
+The terminal acceptance packet exposes requested/resolved model, model-switch
+history when relevant, effort, session/topic, billing, warnings, output/report
+handles, and compact `write_scope`. Read targeted full-report fields only when a
+warning or acceptance decision requires them. Observable events contain
+tool/file/log/tmux and model-visible updates, not private chain-of-thought.
+Relay Claude's answer when requested, then distinguish Claude's finding from
+Codex's acceptance judgment.
 
 ## Guarded Writes
 

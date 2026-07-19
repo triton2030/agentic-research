@@ -67,7 +67,7 @@ The repo CLI is the controlled fallback during that reload boundary.
 ## MCP Tools
 
 - run lifecycle: `claude_run`, `claude_peek`, `claude_observe`, `claude_wait`,
-  `claude_result`, `claude_kill`
+  `claude_result`, `claude_relay`, `claude_kill`
 - conversations: `claude_thread_start`, `claude_thread_send`, `claude_threads`,
   `claude_thread_archive`
 - capability/evidence: `claude_profiles`, `claude_doctor`,
@@ -113,9 +113,12 @@ Each run writes prompt, profile, command, durable state, stream events,
 stdout/stderr, debug log, final output, and report under ignored `runs/`. These
 artifacts may contain sensitive content.
 
-Reports include requested/resolved model, effort, session/topic, warnings,
-observable activity, chat-ready relay, and worker scope status. If relay is
-truncated, use its full-output file. A wait timeout does not stop Claude; close
+Agent-facing lifecycle tools use compact wire v2. `wait` returns status rather
+than the cumulative report, `peek`/`observe` return bounded cursor deltas,
+`result` returns a compact acceptance packet, and `relay` returns the final
+answer in bounded chunks. Full command, event, activity, output, and report
+evidence remains in the run directory; CLI `report` is the explicit full-report
+escape hatch for targeted debugging. A wait timeout does not stop Claude; close
 only after a terminal status or an honestly explained orphan.
 
 `useTmux: true` adds a saved, observable terminal session while retaining the
