@@ -1,7 +1,7 @@
 interface:
   display_name: "Claude MCP"
-  short_description: "Run Claude advisors, threads, audits, and scoped workers"
-  default_prompt: "Use $1claude-mcp to call Claude through the managed bridge, choose the safe model/profile, preserve resumable thread state, and return evidence plus a terminal tail."
+  short_description: "Independent Claude reviews and second opinions"
+  default_prompt: "Use $1claude-mcp to get an independent Claude, Opus, or Fable perspective through the managed bridge and return model, billing, thread, and evidence status."
 
 dependencies:
   tools:

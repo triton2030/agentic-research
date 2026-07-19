@@ -1,18 +1,20 @@
 ---
 name: 1claude-mcp
 description: >-
-  Use when Codex must call Claude Code as a managed external advisor or scoped
-  worker, continue several Claude conversations, use Fable on an exceptional
-  hard problem, or prove Claude read a skill or project source.
+  Когда нужно независимое ревью, второе мнение или совет от принципиально другой
+  модели, либо пользователь прямо просит Claude, Opus или Fable: используй
+  managed Claude Bridge. Native Codex fresh eyes → `1fresh-eyes`.
 ---
 
 # Claude MCP
 
-Use the managed Claude Bridge, never a raw `claude` subprocess, when Claude must
-act as an external agent. The bridge owns profile/model controls, subscription
-auth, process/session state, resumable threads, logs, observation, stop control,
-relay, and local footprint evidence. Codex owns scope, synthesis, user
-communication, and acceptance; Claude's answer is evidence, not a verdict.
+Use Claude when the distinct value is a genuinely different model-family
+perspective, retained Claude context, or Claude-side tools, skills, and memory.
+Always use the managed Claude Bridge, never a raw `claude` subprocess. The bridge
+owns profile/model controls, subscription auth, process/session state, resumable
+threads, logs, observation, stop control, relay, and local footprint evidence.
+Codex owns scope, synthesis, user communication, and acceptance; Claude's answer
+is evidence, not a verdict.
 
 Default to read-only `advisor` on `opus`. Use `fable-advisor` only for a rare
 capability-sensitive, long-horizon judgment. Use `worker` plus exact
@@ -40,9 +42,7 @@ user must still decline optional API credits at the plan limit.
 | Prove a skill/source read | `claude_audit_skill` |
 | Long visible terminal work | `useTmux: true` |
 
-Use native Codex subagents for ordinary Codex delegation. Use Claude when the
-distinct value is its model, retained Claude context, or Claude-side tools,
-skills, and memory.
+Use native Codex subagents for ordinary Codex delegation.
 
 ## Brief Claude
 
