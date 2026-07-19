@@ -8,7 +8,7 @@ const commonStreamFlags = [
   "--include-hook-events"
 ];
 
-function fullPowerFlags(model = MODEL, effort = "max") {
+function fullPowerFlags(model = MODEL, effort = "xhigh") {
   return [
     "--model",
     model,
@@ -19,7 +19,7 @@ function fullPowerFlags(model = MODEL, effort = "max") {
   ];
 }
 
-function advisorFlags(model = MODEL, effort = "max") {
+function advisorFlags(model = MODEL, effort = "xhigh") {
   return [
     "--model",
     model,
@@ -33,7 +33,7 @@ function advisorFlags(model = MODEL, effort = "max") {
   ];
 }
 
-function workerFlags(model = MODEL, effort = "max") {
+function workerFlags(model = MODEL, effort = "xhigh") {
   return [
     "--model",
     model,
@@ -90,7 +90,7 @@ export const PROFILES = {
       "--model",
       MODEL,
       "--effort",
-      "max",
+      "xhigh",
       "--permission-mode",
       "plan",
       "--disallowedTools",

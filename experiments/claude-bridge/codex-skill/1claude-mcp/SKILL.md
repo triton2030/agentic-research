@@ -1,218 +1,158 @@
 ---
 name: 1claude-mcp
 description: >-
-  Use when Codex specifically needs Claude's model or Claude Code runtime: call
-  Claude as an external advisor or authorized worker, continue or manage
-  several Claude conversations, use Fable for an exceptional hard problem, or
-  prove Claude read a skill or project source.
+  Use when Codex must call Claude Code as a managed external advisor or scoped
+  worker, continue several Claude conversations, use Fable on an exceptional
+  hard problem, or prove Claude read a skill or project source.
 ---
 
 # Claude MCP
 
-Use the managed Claude Bridge, not a raw `claude` subprocess, when Claude must
-act as a controlled external agent. The bridge owns model/profile selection,
-persistent conversation handles, logs, observation, stop control, relay, and
-read evidence.
+Use the managed Claude Bridge, never a raw `claude` subprocess, when Claude must
+act as an external agent. The bridge owns profile/model controls, subscription
+auth, process/session state, resumable threads, logs, observation, stop control,
+relay, and local footprint evidence. Codex owns scope, synthesis, user
+communication, and acceptance; Claude's answer is evidence, not a verdict.
 
-Default to a read-only `advisor` on the moving `opus` alias. Choose
-`fable-advisor` only for a genuinely exceptional long-horizon judgment. Give
-Claude write authority only through `worker` with exact `writeFiles`, or through
-the explicitly dangerous `unrestricted` profile after the user authorized that
-scope.
+Default to read-only `advisor` on `opus`. Use `fable-advisor` only for a rare
+capability-sensitive, long-horizon judgment. Use `worker` plus exact
+`writeFiles` only after edits were authorized. `unrestricted` requires explicit
+broad authority.
 
-Use native Codex subagents for ordinary delegation inside Codex. Use this skill
-when the distinct value is Claude's model, Claude's own session continuity, or
-Claude-side tools and skills. If the user only asks how the Claude CLI works,
-check live help/version/auth and answer inline.
+## Gate And Route
 
-## Contract
-
-- **Entry:** Claude adds a named external role: advisor, independent reviewer,
-  persistent specialist, skill auditor, or authorized worker.
-- **Owner:** the bridge owns Claude process/session state; Codex owns task scope,
-  synthesis, user communication, and acceptance.
-- **Handoff:** use Claude's `chat_relay.text` or full-output file, then judge it
-  against local evidence. Claude's answer is evidence, not an automatic verdict.
-- **Stop:** the run is terminal, or the exact failed layer and live tail are
-  reported. Never broad-kill `claude`, `tmux`, or bridge processes by name.
-
-## Readiness Gate
-
-Call `claude_doctor` before the first live run in the current task unless this
-task already has fresh readiness evidence. Continue only when
-`ready_for_live_runs` is true.
-
-`ok` means both:
-
-1. the installed CLI advertises the bridge's core controls; and
-2. `claude auth status` reports an authenticated account.
-
-Optional CLI flags are capability-gated per call. The bridge combines live
-`claude --help` with non-spending parser probes through `claude auth status`
-because Claude's help is not exhaustive. If neither proves support, the bridge
-fails before spending a run. `model` is the requested alias; `resolved_model`
-is runtime evidence from Claude's stream when available.
-
-## Choose The Route
+Run `claude_doctor` once per task unless fresh readiness evidence exists. Start
+only when `ready_for_live_runs` is true and billing mode is
+`subscription_oauth`. Read
+[subscription-billing.md](references/subscription-billing.md) before the first
+live run or any auth/billing change. The bridge proves the credential route; the
+user must still decline optional API credits at the plan limit.
 
 | Need | Route |
 | --- | --- |
 | One independent review | `claude_run(profile: "advisor")` |
-| Continue one specialist | `claude_thread_start` then `claude_thread_send` |
-| Several independent advisors | start several named threads concurrently |
-| Hardest strategic/technical judgment | `fable-advisor`, `xhigh` |
-| Scoped file edits | `worker` plus exact `writeFiles` |
-| Explicit unrestricted execution | `unrestricted` |
-| Prove a Claude skill/source was read | `claude_audit_skill` |
-| Long visible terminal work | add `useTmux: true` |
+| Retained specialist | `claude_thread_start`, then `claude_thread_send` |
+| Several independent opinions | separate named threads, started concurrently |
+| Hardest long-horizon judgment | `fable-advisor`, `xhigh`, normally a thread |
+| Helpers inside one Claude answer | safe inspectable `agents` definitions |
+| Scoped edits | `worker` plus exact `writeFiles` |
+| Broad authorized edits/execution | `unrestricted` |
+| Prove a skill/source read | `claude_audit_skill` |
+| Long visible terminal work | `useTmux: true` |
 
-Do not use Claude's internal `agents` option as a substitute for several
-independent conversations. Codex starts and owns each bridge thread, can resume
-each one separately, and synthesizes disagreements without voting.
+Use native Codex subagents for ordinary Codex delegation. Use Claude when the
+distinct value is its model, retained Claude context, or Claude-side tools,
+skills, and memory.
 
-## Model Routing
+## Brief Claude
 
-Use aliases so the live Claude installation resolves the current model:
-
-- `advisor`: `opus`, `max` — normal complex work, implementation review,
-  architecture, debugging, and ongoing specialist conversations.
-- `fable-advisor`: `fable`, `xhigh` — rare highest-stakes or longest-horizon
-  tasks where the extra capability justifies cost and latency.
-
-Fable is a super-advisor, not the routine default. Give it a complete problem,
-explicit authority boundaries, durable sources, and a stop condition. If Fable
-declines a valid task, preserve the refusal as evidence and start a **fresh**
-Opus advisor thread; do not silently pretend the fallback is the same opinion.
-Use `claude_thread_start` for the usual long-horizon Fable consultation; use a
-one-shot `claude_run` only when no continuation will be useful.
-
-Read [references/current-model-routing.md](references/current-model-routing.md)
-before changing model policy or composing a Fable brief.
-
-## One-Shot Advisor
-
-Start `claude_run` with `profile: "advisor"`, the real `cwd`/`addDir`, and a
-compact context packet. The profile uses plan mode and removes Bash/Edit/Write
-tools. It is the safe default for reviews and advice.
-
-For material work, structure the brief:
+Pass the current decision state and exact owner sources, not a raw chat dump.
+For material work use this compact packet:
 
 ```xml
-<role>The external role Claude owns.</role>
-<lens>The specific judgment Claude should provide.</lens>
-<task>The exact outcome to produce.</task>
-<goal>User goal and current state.</goal>
-<claim>Codex's plan, diff, conclusion, or risk assessment to challenge.</claim>
-<sources>Exact files, logs, URLs, or cwd/addDir roots to inspect.</sources>
-<criteria>Owner instructions and acceptance rules.</criteria>
-<unknowns>Facts Claude must not invent.</unknowns>
-<boundaries>Read/write authority, tools, and must-not actions.</boundaries>
-<evidence>Evidence required for each finding.</evidence>
-<output>Answer shape and stop condition.</output>
+<role>External role and authority.</role>
+<task>Exact deliverable and stop condition.</task>
+<claim>Plan, diff, conclusion, or risk to challenge.</claim>
+<sources>Exact files, logs, URLs, cwd, or addDir roots.</sources>
+<boundaries>Read/write/tools authority and must-not actions.</boundaries>
+<evidence>Evidence required; separate verified fact from inference.</evidence>
+<output>Answer shape, with the verdict first.</output>
 ```
 
-Pass the current decision state, not a raw long-chat dump. Anchor Claude in the
-same owner files Codex used. Ask for evidence before conclusions and findings
-before prose.
+State the intent behind material constraints and facts Claude must not invent.
+Ask for findings, evidence, uncertainty, and a direct verdict, never private
+reasoning. Put large source context before the final ask.
 
-## Persistent Advisors
+## Models
 
-Use first-class thread tools when future turns should retain Claude's own
-conversation context:
+- `advisor`: moving `opus`, `xhigh`; normal coding, architecture, debugging,
+  review, and ongoing specialist work.
+- `fable-advisor`: moving `fable`, `xhigh`; exceptional hardest/longest work.
+- `advisor` and `worker` may use only bounded `opus`/`fable` and explicit effort
+  overrides; their permission boundary never widens. `fable-advisor` is fixed.
 
-1. `claude_thread_start(topic, prompt, profile, cwd)` returns `thread_id` and
-   `run_id`.
-2. Finish that turn with `claude_wait` or `claude_result`.
-3. `claude_thread_send(thread_id, prompt)` resumes the same Claude session.
-4. `claude_threads` recovers topics, projects, models, turn counts, last run,
-   status, and output after Codex compaction or bridge restart.
-5. `claude_thread_archive` hides a handle without deleting Claude's underlying
-   session store; unarchive it explicitly before resuming.
+Inspect `resolved_model_history`, `resolved_model`, and
+`model_switch_observed`, not only the requested alias. Fable can automatically
+continue on Opus after a classifier fallback; attribute the answer to the final
+model. A missing resolved identity is unknown.
 
-Always pass the current `cwd` to MCP start/send calls. A thread is bound to its
-exact directory plus Git worktree/ref identity. If another Codex task uses a
-different branch/worktree, start a new thread there; the bridge rejects a resume
-across that boundary.
+Read [current-model-routing.md](references/current-model-routing.md) before a
+policy change, [fable-agent-prompting.md](references/fable-agent-prompting.md)
+before a Fable brief, and
+[opus-agent-prompting.md](references/opus-agent-prompting.md) before tuning Opus.
 
-A continuation is not an independent second opinion: it inherits the earlier
-conversation and framing. Start a fresh thread for blind review or disagreement.
-Use clear topics such as `auth-architecture` or `pricing-risk`, not generic
-labels such as `advisor-1`.
+## Persistent And Parallel Advisors
 
-Several advisors may run concurrently when their questions are independent.
-Keep their `thread_id`/`run_id` pairs separate, wait for every live tail, compare
-evidence, and synthesize yourself. Do not let one advisor summarize the others.
-The registry is shared across Codex agents, while UUID thread IDs and atomic
-per-thread leases prevent two processes from claiming one conversation turn.
+Start one named topic per retained specialist. Always pass the current `cwd` on
+start/send. A thread is bound to its UUID, profile, model, effort, exact cwd,
+Git worktree, and ref. Use a new thread after a branch/worktree or model-policy
+change. Per-thread atomic leases prevent different Codex processes from claiming
+the same turn; the shared registry lets multiple Codex tasks recover their own
+handles after restart or compaction.
 
-## Writable Subagent
+A continuation inherits earlier context and framing. Start a fresh thread for a
+blind review, disagreement, or different role. Several independent threads may
+run concurrently: keep every `thread_id`/`run_id` pair separate, wait for each
+live tail, and let Codex synthesize without voting or asking one advisor to
+summarize another.
 
-Use `profile: "worker"` only after the user authorized edits. Supply exact paths
-relative to `cwd` through `writeFiles`.
+Use `claude_threads` to recover handles and `claude_thread_archive` to hide one
+without deleting Claude's session. Read
+[managed-runs-and-relay.md](references/managed-runs-and-relay.md) for identity,
+lifecycle, evidence, and cleanup.
 
-The worker gate:
+## Claude Subagents And Teams
 
-- requires a Git worktree and at least one exact file;
-- refuses targets that already contain dirty user edits;
-- tells Claude not to touch any other file or Git state;
-- combines the final Git footprint with live filesystem observation, including
-  ignored paths;
-- reports `write_scope.status`, changed files, and any out-of-scope files.
+Bridge threads, Claude subagents, and agent teams are different control planes.
+Use subagents only when one Claude lead should own independent fan-out, noisy
+tool work, or fresh verification. Give each a self-contained deliverable,
+sources, tool/write boundary, and return format; non-fork subagents do not inherit
+the lead's full chat.
 
-This is prompt control plus postflight detection, not an OS sandbox. It never
-auto-reverts a violation because that could destroy user work. If the task truly
-requires broad write authority, use `unrestricted` only when that material scope
-was explicit. The bridge captures a Git baseline when possible and reports an
-observed persistent footprint; inspect that evidence and the final diff yourself.
+Named safe profiles reject opaque `--agent` files, permission/model/effort drift,
+write-capable advisor definitions, hooks, and arbitrary MCP additions. They add
+the bridge boundary to every subagent, including ambient definitions. For
+workers, keep ownership disjoint and inside the same exact `writeFiles` scope.
 
-Named safe profiles own their model, effort, and permission boundary. Do not try
-to override `advisor`, `fable-advisor`, or `worker`; the runtime rejects such
-drift. Only `unrestricted` accepts model/effort overrides, and even there raw
-extra arguments cannot replace bridge-owned model/permission/tool controls.
-Run guarded workers without tmux: if filesystem observation is unavailable or
-lost, the bridge returns `write_scope.status: unknown`, never a safety pass.
+Agent teams are experimental and disabled by normal profiles. Use them only
+after explicit opt-in and a dedicated tested profile when peer messaging and a
+shared task list are essential. Read
+[claude-agent-orchestration.md](references/claude-agent-orchestration.md) before
+using `agents`, nesting, or teams.
 
-Claude may read project sources and use its normal configured skills, plugins,
-MCP tools, and auto memory unless the chosen profile/arguments disable them.
-`no-skills` and `no-memory` are diagnostic exceptions, not defaults. Session
-persistence and Claude auto memory are separate: a thread preserves chat
-context; auto memory is Claude's own cross-session feature.
+## Writes, Skills, And Memory
 
-## Observe, Relay, Stop
+`worker` requires a Git worktree, exact project-relative `writeFiles`, and clean
+targets. It injects the boundary into lead and supplied subagents, observes the
+filesystem, and compares the final Git footprint. `passed` proves only the
+detected persistent footprint stayed inside the list; it is not an OS sandbox.
+The bridge never auto-reverts violations.
 
-- `claude_peek` / `claude_observe`: recent visible events, files/tools, warnings,
-  relay cursor, and tmux capture. This is observable work, not private reasoning.
-- `claude_wait`: bounded wait. A timeout stops waiting, not the Claude process.
-- `claude_result`: current/final report and full-output file.
-- `claude_kill`: stop only the saved fingerprinted process group or tmux session.
-- `claude_cleanup_runs`: dry-run first; it skips runs still proved active.
+Read-only runs also compare the persistent Git-worktree footprint and fail that
+evidence check on change. Attribution is unknown when concurrent agents share a
+worktree. This cannot prove no temporary write or external MCP mutation, so
+inspect warnings and the final diff. Run guarded workers without
+tmux; lost observation yields `unknown`, never a safety pass.
 
-Relay `chat_relay.text` when the user asked for Claude's answer. If truncated,
-read `chat_relay.full_text_file`. Before closeout, require a terminal status:
-`completed`, `failed`, `killed`, or safely explained `orphaned`. Report requested
-and resolved model, profile, topic/thread, sources, status, warnings, write-scope
-result when relevant, and whether the relay was complete.
+Claude's configured skills, plugins, MCP tools, and auto memory remain available
+unless a diagnostic profile disables them. Thread continuity and auto memory are
+separate. Use `claude_audit_skill` for exact structured Read evidence; self-report
+is `unknown`, and read access alone does not prove correct skill application.
 
-## Skills And Memory Evidence
+## Finish Or Recover
 
-Do not treat Claude saying "I read the skill" as proof. Use
-`claude_audit_skill`; `passed` requires a structured tool event with the exact
-target path paired with a successful tool result. A failed/permission-denied
-Read is `failed`; plain answer text is `unknown`; timeout stops the managed run
-and reports `timed_out`.
+Use `claude_peek`/`claude_observe` for visible activity, `claude_wait` for a
+bounded wait, `claude_result` for the report, and `claude_kill` only for the
+saved fingerprinted process group or tmux session. A wait timeout does not stop
+Claude. Never broad-kill processes by name.
 
-For a real skill-use check, ask Claude to use a distinctive behavior from the
-target skill, then separately inspect tool evidence and outcome quality. The
-read audit proves access, not correct application.
+Relay `chat_relay.text`; if truncated, read `chat_relay.full_text_file`. Finish
+only at `completed`, `failed`, `killed`, or a safely explained `orphaned` state.
+Report profile, requested and resolved model history, topic/thread, status,
+billing, warnings, sources, and write-scope evidence when relevant.
 
-## Failure And Recovery
-
-If tools are missing or the MCP transport is stale, use the repo-controlled CLI
-runner once and report that fallback. Do not replace a managed run with raw
-`claude`. Classify failures as registration, CLI compatibility, auth, flag,
-context, permission, model refusal, output, or process tail.
-
-Read [references/managed-runs-and-relay.md](references/managed-runs-and-relay.md)
-for lifecycle details and
-[references/mcp-failure-handling.md](references/mcp-failure-handling.md) for
-recovery. If both MCP and controlled CLI fail, stop with the exact missing layer.
+If MCP tools are absent or stale, use the repo-controlled CLI once and report
+the fallback; never use raw Claude. Classify the failed layer before recovery.
+Read [mcp-failure-handling.md](references/mcp-failure-handling.md) for the exact
+ladder. If both managed surfaces fail, stop with the missing layer and any live
+tail.

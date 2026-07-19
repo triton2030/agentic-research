@@ -133,6 +133,8 @@ registerTool(
     topic: z.string().min(1),
     cwd: z.string().min(1),
     profile: z.enum(["advisor", "fable-advisor"]).optional().default("advisor"),
+    model: z.enum(["opus", "fable"]).optional(),
+    effort: z.enum(["low", "medium", "high", "xhigh", "max"]).optional(),
     addDir: z.union([z.string(), z.array(z.string())]).optional(),
     mcpConfig: z.union([z.string(), z.array(z.string())]).optional(),
     allowedTools: z.union([z.string(), z.array(z.string())]).optional(),

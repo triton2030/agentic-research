@@ -28,6 +28,9 @@ function isManagedRun(run) {
 
 function markTerminal(run) {
   stopWriteObservation(run);
+  if (run.writeScope && !run.writeScope.final_evaluation) {
+    run.writeScope.final_evaluation = evaluateWriteScope(run.writeScope);
+  }
   run.child = null;
   run.managed = false;
   activeRuns.delete(run.runId);
@@ -173,10 +176,176 @@ function scopedRunEnvAssignments(runId, runEnv = {}) {
   return assignments;
 }
 
-function stripClaudeApiCredentials(runEnv) {
-  delete runEnv.ANTHROPIC_API_KEY;
-  delete runEnv.CLAUDE_API_KEY;
+const CLAUDE_AUTH_OVERRIDE_ENV = [
+  "ANTHROPIC_AUTH_TOKEN",
+  "ANTHROPIC_API_KEY",
+  "ANTHROPIC_BASE_URL",
+  "CLAUDE_API_KEY",
+  "CLAUDE_CODE_OAUTH_TOKEN",
+  "CLAUDE_CODE_USE_BEDROCK",
+  "CLAUDE_CODE_USE_VERTEX",
+  "CLAUDE_CODE_USE_FOUNDRY"
+];
+
+const CLAUDE_MODEL_OVERRIDE_ENV = [
+  "ANTHROPIC_DEFAULT_FABLE_MODEL",
+  "ANTHROPIC_DEFAULT_OPUS_MODEL",
+  "ANTHROPIC_DEFAULT_SONNET_MODEL",
+  "ANTHROPIC_DEFAULT_HAIKU_MODEL",
+  "CLAUDE_CODE_SUBAGENT_MODEL"
+];
+
+function stripClaudeAuthOverrides(runEnv) {
+  for (const name of CLAUDE_AUTH_OVERRIDE_ENV) delete runEnv[name];
   return runEnv;
+}
+
+function stripClaudeModelOverrides(runEnv) {
+  for (const name of CLAUDE_MODEL_OVERRIDE_ENV) delete runEnv[name];
+  return runEnv;
+}
+
+function objectHasApiKeyHelper(value) {
+  if (!value || typeof value !== "object") return false;
+  return Object.entries(value).some(
+    ([key, child]) => (key === "apiKeyHelper" && Boolean(child)) || objectHasApiKeyHelper(child)
+  );
+}
+
+function settingsHasApiKeyHelper(raw) {
+  if (!String(raw || "").trim()) return false;
+  try {
+    return objectHasApiKeyHelper(JSON.parse(raw));
+  } catch {
+    return /["']apiKeyHelper["']\s*:/u.test(String(raw));
+  }
+}
+
+function settingsDocuments(cwd = process.cwd(), explicitSettings) {
+  const candidates = new Set([
+    path.join(os.homedir(), ".claude", "settings.json"),
+    path.join(os.homedir(), ".claude", "settings.local.json"),
+    path.join(cwd, ".claude", "settings.json"),
+    path.join(cwd, ".claude", "settings.local.json"),
+    "/Library/Application Support/ClaudeCode/managed-settings.json"
+  ]);
+  try {
+    const root = gitWorktreeRoot(cwd);
+    candidates.add(path.join(root, ".claude", "settings.json"));
+    candidates.add(path.join(root, ".claude", "settings.local.json"));
+  } catch {
+    // Non-Git cwd still uses the direct project candidates above.
+  }
+  const documents = [];
+  for (const file of candidates) {
+    if (fs.existsSync(file)) documents.push({ source: file, content: safeRead(file) });
+  }
+  if (explicitSettings) {
+    const raw = String(explicitSettings).trim();
+    const file = raw.startsWith("{") ? null : path.resolve(cwd, raw);
+    const content = file && fs.existsSync(file) ? safeRead(file) : raw;
+    documents.push({ source: file || "<inline --settings>", content });
+  }
+  return [...new Map(documents.map((document) => [document.source, document])).values()];
+}
+
+function apiKeyHelperSources(cwd = process.cwd(), explicitSettings) {
+  return settingsDocuments(cwd, explicitSettings)
+    .filter(({ content }) => settingsHasApiKeyHelper(content))
+    .map(({ source }) => source);
+}
+
+function objectKeysPresent(value, keys, found = new Set()) {
+  if (!value || typeof value !== "object") return found;
+  for (const [key, child] of Object.entries(value)) {
+    if (keys.has(key) && child !== undefined && child !== null && child !== "") found.add(key);
+    objectKeysPresent(child, keys, found);
+  }
+  return found;
+}
+
+function settingsOverrideKeys(raw, names) {
+  const keys = new Set(names);
+  try {
+    return [...objectKeysPresent(JSON.parse(raw), keys)].sort();
+  } catch {
+    return names.filter((name) => new RegExp(`["']${name}["']\\s*:`, "u").test(String(raw))).sort();
+  }
+}
+
+function settingsOverrideSources(cwd, explicitSettings, names) {
+  return settingsDocuments(cwd, explicitSettings)
+    .map(({ source, content }) => ({ source, keys: settingsOverrideKeys(content, names) }))
+    .filter(({ keys }) => keys.length > 0);
+}
+
+function bridgeAuthStatus({ cwd = process.cwd(), env = {} } = {}) {
+  const { command, prefixArgs } = resolveClaudeCommand();
+  const probeEnv = { ...process.env, ...env };
+  const strippedEnv = CLAUDE_AUTH_OVERRIDE_ENV.filter((name) => probeEnv[name] !== undefined);
+  const result = spawnSync(command, [...prefixArgs, "auth", "status"], {
+    cwd,
+    encoding: "utf8",
+    env: stripClaudeAuthOverrides(probeEnv)
+  });
+  let status;
+  try {
+    status = JSON.parse(result.stdout || result.stderr || "{}");
+  } catch {
+    status = {
+      loggedIn: false,
+      error: shortText(result.stdout || result.stderr || "unparseable auth status")
+    };
+  }
+  const subscriptionReady =
+    status.loggedIn === true &&
+    status.authMethod === "claude.ai" &&
+    status.apiProvider === "firstParty" &&
+    Boolean(status.subscriptionType);
+  return { result, status, subscriptionReady, strippedEnv };
+}
+
+function assertSubscriptionBilling(options = {}) {
+  const cwd = options.cwd || process.cwd();
+  const helpers = apiKeyHelperSources(cwd, options.settings);
+  const settingsAuthOverrides = settingsOverrideSources(cwd, options.settings, CLAUDE_AUTH_OVERRIDE_ENV);
+  const settingsModelOverrides = settingsOverrideSources(cwd, options.settings, CLAUDE_MODEL_OVERRIDE_ENV);
+  if (helpers.length) {
+    throw new Error(
+      `Subscription-only Claude bridge refuses apiKeyHelper settings: ${helpers.join(", ")}. ` +
+        "Remove the helper before using this bridge."
+    );
+  }
+  if (settingsAuthOverrides.length) {
+    throw new Error(
+      `Subscription-only Claude bridge refuses auth/provider overrides in settings: ` +
+        settingsAuthOverrides.map(({ source, keys }) => `${source} (${keys.join(", ")})`).join("; ")
+    );
+  }
+  if (settingsModelOverrides.length) {
+    throw new Error(
+      `Claude bridge refuses model alias redirects in settings: ` +
+        settingsModelOverrides.map(({ source, keys }) => `${source} (${keys.join(", ")})`).join("; ")
+    );
+  }
+  const auth = bridgeAuthStatus({ cwd, env: options.env || {} });
+  if (!auth.subscriptionReady) {
+    throw new Error(
+      `Subscription-only Claude bridge requires Claude.ai plan OAuth; active auth is ` +
+        `${auth.status.authMethod || "none"}/${auth.status.apiProvider || "none"}/${auth.status.subscriptionType || "none"}. ` +
+        "Run `claude auth login` without --console."
+    );
+  }
+  return {
+    mode: "subscription_oauth",
+    auth_method: auth.status.authMethod,
+    api_provider: auth.status.apiProvider || null,
+    subscription_type: auth.status.subscriptionType,
+    auth_env_overrides_stripped: auth.strippedEnv,
+    api_key_helper_sources: [],
+    settings_auth_override_sources: [],
+    settings_model_override_sources: []
+  };
 }
 
 function gitOutput(cwd, args) {
@@ -332,11 +501,11 @@ function normalizeWriteFiles(cwd, writeFiles) {
   };
 }
 
-function snapshotUnrestrictedFootprint(cwd) {
+function snapshotGitFootprint(cwd, mode = "unrestricted_observation") {
   try {
     const root = fs.realpathSync(gitWorktreeRoot(cwd));
     return {
-      mode: "unrestricted_observation",
+      mode,
       root,
       allowed_files: null,
       baseline: gitDirtySnapshot(root),
@@ -344,7 +513,7 @@ function snapshotUnrestrictedFootprint(cwd) {
     };
   } catch (error) {
     return {
-      mode: "unrestricted_observation",
+      mode,
       root: null,
       allowed_files: null,
       baseline: null,
@@ -362,14 +531,42 @@ function gitChangedBetween(root, beforeHead, afterHead) {
     .filter(Boolean);
 }
 
+function isTransientClaudeAtomicWrite(file, allowedFiles, root) {
+  if (fs.existsSync(path.join(root, file))) return false;
+  return allowedFiles.some((allowedFile) => {
+    const prefix = `${allowedFile}.tmp.`;
+    if (!file.startsWith(prefix)) return false;
+    return /^\d+\.[0-9a-f]{8,}$/iu.test(file.slice(prefix.length));
+  });
+}
+
+function terminalWriteScopeUnknown(writeScope) {
+  const readOnly = writeScope?.mode === "read_only_observation";
+  const guarded = writeScope?.mode === "guarded";
+  return {
+    status: "unknown",
+    enforcement: guarded
+      ? GUARDED_WRITE_ENFORCEMENT
+      : readOnly
+        ? "read_only_git_footprint_observation"
+        : "unrestricted_git_footprint_observation",
+    allowed_files: writeScope?.allowed_files || null,
+    error: "Terminal run has no frozen write-scope report from its completion window.",
+    note: "Current worktree state cannot reconstruct historical write-scope evidence."
+  };
+}
+
 function evaluateWriteScope(writeScope) {
   if (!writeScope) return null;
   if (!writeScope.root || !writeScope.baseline) {
+    const readOnly = writeScope.mode === "read_only_observation";
     return {
       status: "unknown",
-      enforcement: "unrestricted_git_footprint_observation",
+      enforcement: readOnly ? "read_only_git_footprint_observation" : "unrestricted_git_footprint_observation",
       error: writeScope.baseline_error || "No Git baseline is available.",
-      note: "Unrestricted execution was allowed, but its persistent file footprint could not be isolated."
+      note: readOnly
+        ? "The read-only run's persistent Git footprint could not be isolated."
+        : "Unrestricted execution was allowed, but its persistent file footprint could not be isolated."
     };
   }
   try {
@@ -384,9 +581,13 @@ function evaluateWriteScope(writeScope) {
     for (const file of gitChangedBetween(writeScope.root, writeScope.baseline_head, currentHead)) {
       changedFiles.push(file);
     }
-    const uniqueChanged = [...new Set([...changedFiles, ...(writeScope.observed_files || [])])].sort();
     const guarded = writeScope.mode === "guarded";
+    const readOnly = writeScope.mode === "read_only_observation";
     const allowed = new Set(writeScope.allowed_files || []);
+    const observedFiles = (writeScope.observed_files || []).filter(
+      (file) => !guarded || !isTransientClaudeAtomicWrite(file, writeScope.allowed_files, writeScope.root)
+    );
+    const uniqueChanged = [...new Set([...changedFiles, ...observedFiles])].sort();
     const outOfScope = guarded ? uniqueChanged.filter((file) => !allowed.has(file)) : [];
     const headChanged = writeScope.baseline_head !== currentHead;
     const symlinkFiles = guarded
@@ -404,7 +605,12 @@ function evaluateWriteScope(writeScope) {
           ...(headChanged ? ["git_head_changed"] : []),
           ...(symlinkFiles.length ? ["allowed_path_became_symlink"] : [])
         ]
-      : [];
+      : readOnly
+        ? [
+            ...(uniqueChanged.length ? ["persistent_files_changed"] : []),
+            ...(headChanged ? ["git_head_changed"] : [])
+          ]
+        : [];
     if (guarded && writeScope.observation_complete !== true) {
       return {
         status: "unknown",
@@ -421,8 +627,12 @@ function evaluateWriteScope(writeScope) {
       };
     }
     return {
-      status: guarded ? (violations.length ? "failed" : "passed") : "observed",
-      enforcement: guarded ? GUARDED_WRITE_ENFORCEMENT : "unrestricted_git_footprint_observation",
+      status: guarded || readOnly ? (violations.length ? "failed" : "passed") : "observed",
+      enforcement: guarded
+        ? GUARDED_WRITE_ENFORCEMENT
+        : readOnly
+          ? "read_only_git_footprint_observation"
+          : "unrestricted_git_footprint_observation",
       worktree_root: writeScope.root,
       allowed_files: writeScope.allowed_files || null,
       changed_files: uniqueChanged,
@@ -430,7 +640,8 @@ function evaluateWriteScope(writeScope) {
       head_changed: headChanged,
       symlink_files: symlinkFiles,
       violations,
-      note: "Postflight detection does not sandbox the Claude process or revert files."
+      attribution: readOnly ? "unknown_shared_worktree" : guarded ? "claude_worker_run" : "unrestricted_run_window",
+      note: "Postflight detection covers the persistent Git-worktree footprint; it does not sandbox Claude, prove no temporary write, or observe external-service mutations."
     };
   } catch (error) {
     return {
@@ -561,7 +772,7 @@ function probeHiddenClaudeFlag(flag) {
   const { command, prefixArgs } = resolveClaudeCommand();
   const probe = spawnSync(command, [...prefixArgs, ...probeArgs, "auth", "status"], {
     encoding: "utf8",
-    env: stripClaudeApiCredentials({ ...process.env })
+    env: stripClaudeAuthOverrides({ ...process.env })
   });
   const output = `${probe.stdout || ""}\n${probe.stderr || ""}`;
   const parserRejected = /(?:unknown|invalid|unrecognized) (?:option|argument)/iu.test(output);
@@ -636,11 +847,76 @@ function assertSupportedOptions(options) {
   }
 }
 
+function parsedAgentDefinitions(agents) {
+  if (agents === undefined || agents === null) return null;
+  if (typeof agents === "string") {
+    try {
+      return JSON.parse(agents);
+    } catch {
+      throw new Error("agents must be valid inspectable JSON for a named bridge profile.");
+    }
+  }
+  return agents;
+}
+
+function agentToolNames(value) {
+  return [].concat(value || []).flatMap((item) => String(item).split(",")).map((item) => item.trim()).filter(Boolean);
+}
+
+function assertAgentDefinitions(profileName, profileConfig, options) {
+  if (profileName === "unrestricted") return;
+  if (options.agent !== undefined) {
+    throw new Error(
+      `Profile ${profileName} cannot load an opaque --agent definition. Pass inspectable agents JSON or use unrestricted.`
+    );
+  }
+  if (options.agents === undefined) return;
+
+  const definitions = parsedAgentDefinitions(options.agents);
+  if (!definitions || Array.isArray(definitions) || typeof definitions !== "object") {
+    throw new Error("agents must be an object keyed by subagent name.");
+  }
+
+  const profileModel = options.model || flagValue(profileConfig.flags, "--model", MODEL);
+  const profileEffort = options.effort || flagValue(profileConfig.flags, "--effort", null);
+  const profilePermission = flagValue(profileConfig.flags, "--permission-mode", null);
+  const writeCapable = new Set(["Bash", "Edit", "Write", "NotebookEdit"]);
+  for (const [name, definition] of Object.entries(definitions)) {
+    if (!definition || Array.isArray(definition) || typeof definition !== "object") {
+      throw new Error(`Agent ${name} must be an object definition.`);
+    }
+    const forbiddenConfig = ["hooks", "mcpServers"].filter((key) => definition[key] !== undefined);
+    if (forbiddenConfig.length) {
+      throw new Error(
+        `Agent ${name} cannot set ${forbiddenConfig.join(", ")} inside named profile ${profileName}; use audited project config or unrestricted.`
+      );
+    }
+    if (definition.permissionMode !== undefined && definition.permissionMode !== profilePermission) {
+      throw new Error(
+        `Agent ${name} cannot override permissionMode=${profilePermission || "none"} in profile ${profileName}.`
+      );
+    }
+    if (definition.model !== undefined && !["inherit", profileModel].includes(definition.model)) {
+      throw new Error(`Agent ${name} cannot override model=${profileModel} in profile ${profileName}.`);
+    }
+    if (definition.effort !== undefined && definition.effort !== profileEffort) {
+      throw new Error(`Agent ${name} cannot override effort=${profileEffort || "none"} in profile ${profileName}.`);
+    }
+    if (profileName !== "worker") {
+      const unsafeTools = agentToolNames(definition.tools).filter((tool) => writeCapable.has(tool));
+      if (unsafeTools.length) {
+        throw new Error(`Read-only agent ${name} cannot enable write-capable tools: ${unsafeTools.join(", ")}.`);
+      }
+    }
+  }
+}
+
 function assertProfileInvariants(profileName, profileConfig, options) {
   const profileModel = flagValue(profileConfig.flags, "--model", MODEL);
   const profileEffort = flagValue(profileConfig.flags, "--effort", null);
   const profilePermission = flagValue(profileConfig.flags, "--permission-mode", null);
   const isUnrestricted = profileName === "unrestricted";
+  const acceptsBoundedCapabilityOverride = ["advisor", "worker"].includes(profileName);
   const extraArgs = [].concat(options.extraArgs || []);
   const reservedExtraFlags = new Set([
     "--model",
@@ -659,10 +935,13 @@ function assertProfileInvariants(profileName, profileConfig, options) {
   if (extraArgs.length) {
     throw new Error("extraArgs is disabled; use a typed bridge option so command and report stay identical.");
   }
-  if (!isUnrestricted && options.model !== undefined && options.model !== profileModel) {
+  if (acceptsBoundedCapabilityOverride && options.model !== undefined && !["opus", "fable"].includes(options.model)) {
+    throw new Error(`Profile ${profileName} allows only moving model aliases opus or fable.`);
+  }
+  if (!isUnrestricted && !acceptsBoundedCapabilityOverride && options.model !== undefined && options.model !== profileModel) {
     throw new Error(`Profile ${profileName} fixes model=${profileModel}; use unrestricted for a model override.`);
   }
-  if (!isUnrestricted && options.effort !== undefined && options.effort !== profileEffort) {
+  if (!isUnrestricted && !acceptsBoundedCapabilityOverride && options.effort !== undefined && options.effort !== profileEffort) {
     throw new Error(`Profile ${profileName} fixes effort=${profileEffort}; use unrestricted for an effort override.`);
   }
   if (!isUnrestricted && options.fallbackModel !== undefined) {
@@ -677,6 +956,7 @@ function assertProfileInvariants(profileName, profileConfig, options) {
   if (!isUnrestricted && options.allowDangerouslySkipPermissions) {
     throw new Error(`Profile ${profileName} cannot enable permission bypass.`);
   }
+  assertAgentDefinitions(profileName, profileConfig, options);
 }
 
 function buildArgs({
@@ -903,11 +1183,27 @@ function toolNameFromEvent(event) {
   return event.name || event.tool_name || event.toolName || event.message?.name || event.message?.tool_name || null;
 }
 
+function toolBlocksFromEvent(event) {
+  const core = event.event && typeof event.event === "object" ? event.event : event;
+  const blocks = [
+    core,
+    core.content_block,
+    ...(Array.isArray(core.content) ? core.content : []),
+    ...(Array.isArray(core.message?.content) ? core.message.content : [])
+  ];
+  return blocks.filter((block) => {
+    const type = String(block?.type || "").toLowerCase();
+    return type.includes("tool_use") || type.includes("tool_call") || type.includes("tool_result");
+  });
+}
+
 function normalizeEvent(event) {
   const core = event.event && typeof event.event === "object" ? event.event : event;
   const type = String(core.type || event.type || "").toLowerCase();
   const outerType = String(event.type || "").toLowerCase();
-  const name = toolNameFromEvent(core) || toolNameFromEvent(event);
+  const toolBlock = toolBlocksFromEvent(event)[0];
+  const toolType = String(toolBlock?.type || "").toLowerCase();
+  const name = toolNameFromEvent(toolBlock || {}) || toolNameFromEvent(core) || toolNameFromEvent(event);
   const text = shortText(extractEventText(event), 500);
 
   if (type.includes("rate") || outerType.includes("rate")) {
@@ -916,15 +1212,22 @@ function normalizeEvent(event) {
   if (type.includes("error") || outerType === "stderr" || core.error || event.error) {
     return { kind: "error", text: text || "error event" };
   }
-  if (type.includes("tool_use") || type.includes("tool_call") || name) {
+  const isToolUse =
+    toolType.includes("tool_use") ||
+    toolType.includes("tool_call") ||
+    type.includes("tool_use") ||
+    type.includes("tool_call") ||
+    Boolean(name);
+  if (isToolUse) {
+    const input = toolBlock?.input || core.input || event.input || {};
     return {
       kind: "tool_use",
       tool_name: name || "tool",
-      file_path: core.input?.file_path || event.input?.file_path || core.file_path || event.file_path || core.path || event.path || null,
+      file_path: input.file_path || input.path || core.file_path || event.file_path || core.path || event.path || null,
       text: text || `${name || "tool"} called`
     };
   }
-  if (type.includes("tool_result")) {
+  if (toolType.includes("tool_result") || type.includes("tool_result")) {
     return { kind: "tool_result", text: text || "tool result" };
   }
   if (type.includes("result")) {
@@ -1046,9 +1349,35 @@ function elapsedSeconds(startedAt) {
   return Math.max(0, Math.round((Date.now() - started) / 1000));
 }
 
-function toolTraceFromEvent(event, eventIndex) {
+function toolTracesFromEvent(event, eventIndex) {
+  const toolBlocks = toolBlocksFromEvent(event);
+  if (toolBlocks.length) {
+    return toolBlocks.map((toolBlock) => {
+      const toolType = String(toolBlock.type || "").toLowerCase();
+      const kind = toolType.includes("tool_result") ? "tool_result" : "tool_use";
+      const input = toolBlock.input || toolBlock.tool_input || {};
+      const command = input.command || input.cmd || null;
+      return {
+        event_index: eventIndex,
+        observed_at: eventObservedAt(event),
+        kind,
+        tool_name: kind === "tool_use" ? toolNameFromEvent(toolBlock) || "tool" : null,
+        file_path:
+          input.file_path ||
+          input.path ||
+          input.absolute_path ||
+          toolBlock.file_path ||
+          toolBlock.path ||
+          null,
+        command: command ? shortText(command, 500) : null,
+        text:
+          shortText(extractEventText(toolBlock), 500) ||
+          (kind === "tool_use" ? `${toolNameFromEvent(toolBlock) || "tool"} called` : "tool result")
+      };
+    });
+  }
   const normalized = normalizeEvent(event);
-  if (!normalized || !["tool_use", "tool_result"].includes(normalized.kind)) return null;
+  if (!normalized || !["tool_use", "tool_result"].includes(normalized.kind)) return [];
   const core = event.event && typeof event.event === "object" ? event.event : event;
   const input = core.input || event.input || core.tool_input || event.tool_input || {};
   const command = input.command || input.cmd || null;
@@ -1062,26 +1391,35 @@ function toolTraceFromEvent(event, eventIndex) {
     event.file_path ||
     event.path ||
     null;
-  return {
-    event_index: eventIndex,
-    observed_at: eventObservedAt(event),
-    kind: normalized.kind,
-    tool_name: normalized.tool_name || core.name || event.name || null,
-    file_path: filePath,
-    command: command ? shortText(command, 500) : null,
-    text: shortText(normalized.text || extractEventText(event), 500)
-  };
+  return [
+    {
+      event_index: eventIndex,
+      observed_at: eventObservedAt(event),
+      kind: normalized.kind,
+      tool_name: normalized.tool_name || core.name || event.name || null,
+      file_path: filePath,
+      command: command ? shortText(command, 500) : null,
+      text: shortText(normalized.text || extractEventText(event), 500)
+    }
+  ];
 }
 
 function activitySummary(events, run, { limit = 12, cursor = 0 } = {}) {
   const startIndex = Math.max(0, Number(cursor) || 0);
   const tmux = tmuxCapturePane(run);
   const tool_trace = events
-    .map((event, eventIndex) => toolTraceFromEvent(event, eventIndex))
-    .filter(Boolean);
+    .flatMap((event, eventIndex) => toolTracesFromEvent(event, eventIndex));
   const recent_tool_trace = tool_trace.filter((event) => event.event_index >= startIndex).slice(-limit);
   const counts = {};
   for (const event of events) {
+    const toolBlocks = toolBlocksFromEvent(event);
+    if (toolBlocks.length) {
+      for (const toolBlock of toolBlocks) {
+        const kind = String(toolBlock.type || "").toLowerCase().includes("tool_result") ? "tool_result" : "tool_use";
+        counts[kind] = (counts[kind] || 0) + 1;
+      }
+      continue;
+    }
     const normalized = normalizeEvent(event);
     if (!normalized?.kind) continue;
     counts[normalized.kind] = (counts[normalized.kind] || 0) + 1;
@@ -1235,11 +1573,12 @@ function runFiles(run) {
 
 function runtimeFactsFromEvents(events) {
   let sessionId = null;
-  let resolvedModel = null;
-  let fallbackModel = null;
+  const primaryModels = [];
+  const usageModels = new Set();
   for (const event of events) {
     const core = event?.event && typeof event.event === "object" ? event.event : event;
     sessionId = sessionId || core?.session_id || core?.sessionId || null;
+    for (const model of Object.keys(core?.modelUsage || event?.modelUsage || {})) usageModels.add(model);
     const candidate =
       core?.model ||
       core?.model_id ||
@@ -1247,12 +1586,18 @@ function runtimeFactsFromEvents(events) {
       core?.message?.model ||
       null;
     if (!candidate || candidate === "<synthetic>") continue;
-    const type = String(core?.type || event?.type || "").toLowerCase();
-    const subtype = String(core?.subtype || event?.subtype || "").toLowerCase();
-    if (!resolvedModel && (type === "system" || subtype === "init")) resolvedModel = candidate;
-    if (!fallbackModel) fallbackModel = candidate;
+    const parentToolUseId = event?.parent_tool_use_id || core?.parent_tool_use_id || null;
+    if (parentToolUseId) continue;
+    if (primaryModels.at(-1) !== candidate) primaryModels.push(candidate);
   }
-  return { sessionId, resolvedModel: resolvedModel || fallbackModel };
+  return {
+    sessionId,
+    initialResolvedModel: primaryModels[0] || null,
+    resolvedModel: primaryModels.at(-1) || null,
+    resolvedModelHistory: primaryModels,
+    modelSwitchObserved: primaryModels.length > 1,
+    modelUsageModels: [...usageModels].sort()
+  };
 }
 
 function refreshRunRuntimeFacts(run, events) {
@@ -1262,6 +1607,10 @@ function refreshRunRuntimeFacts(run, events) {
     run.sessionObserved = true;
   }
   if (facts.resolvedModel) run.resolvedModel = facts.resolvedModel;
+  run.initialResolvedModel = facts.initialResolvedModel;
+  run.resolvedModelHistory = facts.resolvedModelHistory;
+  run.modelSwitchObserved = facts.modelSwitchObserved;
+  run.modelUsageModels = facts.modelUsageModels;
   return run;
 }
 
@@ -1270,11 +1619,17 @@ function writeState(run) {
     run_id: run.runId,
     profile: run.profileName,
     model: run.model || MODEL,
+    initial_resolved_model: run.initialResolvedModel || null,
     resolved_model: run.resolvedModel || null,
+    resolved_model_history: run.resolvedModelHistory || [],
+    model_switch_observed: run.modelSwitchObserved === true,
+    model_usage_models: run.modelUsageModels || [],
+    model_env_overrides_stripped: run.modelEnvOverridesStripped || [],
     effort: run.effort || null,
     topic: run.topic || null,
     session_persistence: run.sessionPersistence !== false,
     auto_memory: run.autoMemory !== false,
+    billing: run.billing || null,
     cwd: run.cwd,
     pid: run.child?.pid ?? run.pid ?? null,
     process_group_pid: run.processGroupPid ?? run.child?.pid ?? run.pid ?? null,
@@ -1401,6 +1756,7 @@ function refreshInactiveRun(run) {
     const match = processMatchesRun(run);
     if (match.alive && match.matched) {
       run.status = run.status === "killed" ? "killing" : "running_orphaned";
+      if (run.writeScope) delete run.writeScope.final_evaluation;
       run.orphanReason =
         run.status === "killing"
           ? "Run recorded killed status, but its fingerprint-matched process group still has live members."
@@ -1448,11 +1804,17 @@ function buildRunFromState(runId, logDir, state) {
     runId,
     profileName: state.profile || "unknown",
     model: state.model || MODEL,
+    initialResolvedModel: state.initial_resolved_model || null,
     resolvedModel: state.resolved_model || null,
+    resolvedModelHistory: state.resolved_model_history || [],
+    modelSwitchObserved: state.model_switch_observed === true,
+    modelUsageModels: state.model_usage_models || [],
+    modelEnvOverridesStripped: state.model_env_overrides_stripped || [],
     effort: state.effort || null,
     topic: state.topic || null,
     sessionPersistence: state.session_persistence !== false,
     autoMemory: state.auto_memory !== false,
+    billing: state.billing || null,
     cwd: state.cwd || process.cwd(),
     logDir,
     promptFile: files.prompt,
@@ -1497,11 +1859,17 @@ function buildRunFromLegacyReport(runId, logDir, report) {
     runId,
     profileName: report.profile || "unknown",
     model: report.model || MODEL,
+    initialResolvedModel: report.initial_resolved_model || null,
     resolvedModel: report.resolved_model || null,
+    resolvedModelHistory: report.resolved_model_history || [],
+    modelSwitchObserved: report.model_switch_observed === true,
+    modelUsageModels: report.model_usage_models || [],
+    modelEnvOverridesStripped: report.model_env_overrides_stripped || [],
     effort: report.effort || null,
     topic: report.topic || null,
     sessionPersistence: report.session_persistence !== false,
     autoMemory: report.auto_memory !== false,
+    billing: report.billing || null,
     cwd: report.cwd || process.cwd(),
     logDir,
     promptFile: files.prompt,
@@ -1535,7 +1903,7 @@ function buildRunFromLegacyReport(runId, logDir, report) {
     tmuxStartChannel: report.tmux_start_channel || null,
     tmuxGoChannel: report.tmux_go_channel || null,
     tmuxDoneChannel: report.tmux_done_channel || null,
-    writeScope: report.write_scope || null
+    writeScope: report.write_scope ? { final_evaluation: report.write_scope } : null
   };
 }
 
@@ -1547,11 +1915,16 @@ function buildReport(run) {
   const activity = activitySummary(events, run);
   const chatRelay = buildFinalChatRelay(events, run);
   const writeScope = isTerminalStatus(run.status)
-    ? evaluateWriteScope(run.writeScope)
+    ? run.writeScope?.final_evaluation || (run.writeScope ? terminalWriteScopeUnknown(run.writeScope) : null)
     : run.writeScope
       ? {
           status: "pending",
-          enforcement: GUARDED_WRITE_ENFORCEMENT,
+          enforcement:
+            run.writeScope.mode === "guarded"
+              ? GUARDED_WRITE_ENFORCEMENT
+              : run.writeScope.mode === "read_only_observation"
+                ? "read_only_git_footprint_observation"
+                : "unrestricted_git_footprint_observation",
           allowed_files: run.writeScope.allowed_files
         }
       : null;
@@ -1565,16 +1938,27 @@ function buildReport(run) {
         ? `allowed paths became symlinks: ${writeScope.symlink_files.join(", ")}`
         : null
     ].filter(Boolean);
+    const readOnlyViolation = writeScope.enforcement === "read_only_git_footprint_observation";
     warnings.push({
-      kind: "write_scope_violation",
-      detail: `Claude worker violated its authorized scope (${details.join("; ")}).`,
+      kind: readOnlyViolation ? "read_only_footprint_changed" : "write_scope_violation",
+      detail: readOnlyViolation
+        ? `The shared Git worktree changed during Claude's read-only run: ${(writeScope.changed_files || []).join(", ") || "HEAD changed"}. Attribution is unknown; another concurrent agent may be responsible.`
+        : `Claude worker violated its authorized scope (${details.join("; ")}).`,
       recovery: "Inspect the working tree. Do not revert user changes automatically; repair or restore only with explicit authorization."
     });
   } else if (writeScope?.status === "unknown") {
+    const readOnlyUnknown = writeScope.enforcement === "read_only_git_footprint_observation";
     warnings.push({
-      kind: "write_scope_unknown",
-      detail: writeScope.error || "The final worker write footprint could not be proven.",
-      recovery: "Inspect git status and diff before accepting the worker result."
+      kind: readOnlyUnknown ? "read_only_footprint_unknown" : "write_scope_unknown",
+      detail: writeScope.error || "The final Git footprint could not be proven.",
+      recovery: "Inspect git status and diff before accepting the result."
+    });
+  }
+  if (run.modelSwitchObserved) {
+    warnings.push({
+      kind: "model_switch_observed",
+      detail: `Claude's primary model changed during this run: ${(run.resolvedModelHistory || []).join(" -> ")}.`,
+      recovery: "Treat the final answer as produced by the last resolved model and preserve the switch as routing evidence."
     });
   }
 
@@ -1582,11 +1966,17 @@ function buildReport(run) {
     run_id: run.runId,
     profile: run.profileName,
     model: run.model || MODEL,
+    initial_resolved_model: run.initialResolvedModel || null,
     resolved_model: run.resolvedModel || null,
+    resolved_model_history: run.resolvedModelHistory || [],
+    model_switch_observed: run.modelSwitchObserved === true,
+    model_usage_models: run.modelUsageModels || [],
+    model_env_overrides_stripped: run.modelEnvOverridesStripped || [],
     effort: run.effort || null,
     topic: run.topic || null,
     session_persistence: run.sessionPersistence !== false,
     auto_memory: run.autoMemory !== false,
+    billing: run.billing || null,
     write_scope: writeScope,
     cwd: run.cwd,
     pid: run.child?.pid ?? run.pid ?? null,
@@ -1648,10 +2038,7 @@ function writeReport(run) {
 function writeRunScript(files, run, command, args, runEnv) {
   const commandLine = [
     "env",
-    "-u",
-    "ANTHROPIC_API_KEY",
-    "-u",
-    "CLAUDE_API_KEY",
+    ...[...CLAUDE_AUTH_OVERRIDE_ENV, ...CLAUDE_MODEL_OVERRIDE_ENV].flatMap((name) => ["-u", name]),
     ...scopedRunEnvAssignments(run.runId, runEnv),
     shellQuote(command),
     ...args.map(shellQuote)
@@ -1748,7 +2135,12 @@ export function startRun(options = {}) {
   if (!prompt || !String(prompt).trim()) {
     throw new Error("claude_run requires a non-empty prompt.");
   }
-  assertSupportedOptions(options);
+  const billing = assertSubscriptionBilling({ ...options, cwd });
+  assertSupportedOptions(
+    profile === "unrestricted"
+      ? options
+      : { ...options, appendSubagentSystemPrompt: appendSubagentSystemPrompt || "bridge-owned boundary" }
+  );
 
   const profileConfig = getProfile(profile);
   if (profileConfig.unsupported) {
@@ -1774,8 +2166,8 @@ export function startRun(options = {}) {
     profile === "worker"
       ? normalizeWriteFiles(cwd, writeFiles)
       : profile === "unrestricted"
-        ? snapshotUnrestrictedFootprint(cwd)
-        : null;
+        ? snapshotGitFootprint(cwd)
+        : snapshotGitFootprint(cwd, "read_only_observation");
   const workerBoundary = writeScope?.mode === "guarded"
     ? [
         "Authorized write scope:",
@@ -1785,6 +2177,15 @@ export function startRun(options = {}) {
       ].join("\n")
     : null;
   const effectiveAppendSystemPrompt = [appendSystemPrompt, workerBoundary].filter(Boolean).join("\n\n") || undefined;
+  const subagentBoundary =
+    profile === "unrestricted"
+      ? null
+      : profile === "worker"
+        ? workerBoundary
+        : "This bridge run is read-only. Do not use Bash, Edit, Write, NotebookEdit, hooks, or external write actions. Return evidence to the lead without changing state.";
+  const effectiveAppendSubagentSystemPrompt = [appendSubagentSystemPrompt, subagentBoundary]
+    .filter(Boolean)
+    .join("\n\n") || undefined;
 
   const requestedModel = model || flagValue(profileConfig.flags, "--model", MODEL);
   const requestedEffort = effort || flagValue(profileConfig.flags, "--effort", null);
@@ -1815,7 +2216,9 @@ export function startRun(options = {}) {
     ...(profileConfig.env || {}),
     ...(options.env || {})
   };
-  stripClaudeApiCredentials(runEnv);
+  const modelEnvOverridesStripped = CLAUDE_MODEL_OVERRIDE_ENV.filter((name) => runEnv[name] !== undefined);
+  stripClaudeAuthOverrides(runEnv);
+  stripClaudeModelOverrides(runEnv);
   if (options.disableAutoMemory) {
     runEnv.CLAUDE_CODE_DISABLE_AUTO_MEMORY = "1";
   }
@@ -1835,7 +2238,7 @@ export function startRun(options = {}) {
       model: requestedModel,
       effort: requestedEffort,
       appendSystemPrompt: effectiveAppendSystemPrompt,
-      appendSubagentSystemPrompt,
+      appendSubagentSystemPrompt: effectiveAppendSubagentSystemPrompt,
       appendSystemPromptFile,
       systemPrompt,
       systemPromptFile,
@@ -1890,11 +2293,17 @@ export function startRun(options = {}) {
     runId,
     profileName: profile,
     model: requestedModel,
+    initialResolvedModel: null,
     resolvedModel: null,
+    resolvedModelHistory: [],
+    modelSwitchObserved: false,
+    modelUsageModels: [],
+    modelEnvOverridesStripped,
     effort: requestedEffort,
     topic: threadTopic,
     sessionPersistence: !noSessionPersistence,
     autoMemory: !options.disableAutoMemory && profile !== "no-memory",
+    billing,
     cwd,
     logDir,
     promptFile: files.prompt,
@@ -1961,7 +2370,8 @@ export function startRun(options = {}) {
           CLAUDE_CODE_DISABLE_AUTO_MEMORY: runEnv.CLAUDE_CODE_DISABLE_AUTO_MEMORY || null,
           MCP_TIMEOUT: runEnv.MCP_TIMEOUT || null,
           MAX_MCP_OUTPUT_TOKENS: runEnv.MAX_MCP_OUTPUT_TOKENS || null,
-          api_key_env_stripped: true
+          subscription_billing_guard: billing,
+          model_env_overrides_stripped: modelEnvOverridesStripped
         }
       },
       null,
@@ -2122,7 +2532,22 @@ export function getRun(runId) {
   const logDir = path.join(RUNS_DIR, runId);
   const files = filesForLogDir(logDir);
   if (fs.existsSync(files.state)) {
-    return refreshInactiveRun(buildRunFromState(runId, logDir, safeReadJson(files.state, {})));
+    const run = refreshInactiveRun(buildRunFromState(runId, logDir, safeReadJson(files.state, {})));
+    if (
+      isTerminalStatus(run.status) &&
+      run.writeScope &&
+      !run.writeScope.final_evaluation &&
+      fs.existsSync(files.report)
+    ) {
+      const savedWriteScope = safeReadJson(files.report, {})?.write_scope;
+      if (savedWriteScope?.status && savedWriteScope.status !== "pending") {
+        run.writeScope.final_evaluation = savedWriteScope;
+      }
+    }
+    if (isTerminalStatus(run.status) && run.writeScope && !run.writeScope.final_evaluation) {
+      run.writeScope.final_evaluation = terminalWriteScopeUnknown(run.writeScope);
+    }
+    return run;
   }
   if (fs.existsSync(files.report)) {
     return buildRunFromLegacyReport(runId, logDir, safeReadJson(files.report, {}));
@@ -2507,14 +2932,29 @@ export function sendThread({ thread_id: threadId, prompt, cwd, profile, model, e
     if (!status?.resumable) {
       throw new Error(`Claude thread ${threadId} has no completed, stream-observed session to resume.`);
     }
+    if (profile !== undefined && profile !== thread.profile) {
+      throw new Error(
+        `Claude thread ${threadId} is bound to profile=${thread.profile}; start a fresh thread for profile=${profile}.`
+      );
+    }
+    if (model !== undefined && model !== thread.model) {
+      throw new Error(
+        `Claude thread ${threadId} is bound to model=${thread.model}; start a fresh thread for model=${model}.`
+      );
+    }
+    if (effort !== undefined && effort !== thread.effort) {
+      throw new Error(
+        `Claude thread ${threadId} is bound to effort=${thread.effort}; start a fresh thread for effort=${effort}.`
+      );
+    }
     const started = startRun({
       ...options,
       prompt,
       topic: thread.topic,
       cwd: threadWorkspace.cwd,
-      profile: profile || thread.profile,
-      model: model || thread.model,
-      effort: effort || thread.effort,
+      profile: thread.profile,
+      model: thread.model,
+      effort: thread.effort,
       resume: threadId,
       noSessionPersistence: false
     });
@@ -2556,17 +2996,15 @@ export function doctor() {
   const { command, prefixArgs } = resolveClaudeCommand();
   const version = spawnSync(command, [...prefixArgs, "--version"], { encoding: "utf8" });
   const help = spawnSync(command, [...prefixArgs, "--help"], { encoding: "utf8" });
-  const auth = spawnSync(command, [...prefixArgs, "auth", "status"], { encoding: "utf8" });
+  const auth = bridgeAuthStatus();
   const npm = spawnSync("npm", ["--version"], { encoding: "utf8" });
   const node = process.version;
   const helpText = `${help.stdout || ""}\n${help.stderr || ""}`;
-  const authStatus = (() => {
-    try {
-      return JSON.parse(auth.stdout || auth.stderr || "{}");
-    } catch {
-      return { loggedIn: false, error: shortText(auth.stdout || auth.stderr || "unparseable auth status") };
-    }
-  })();
+  const authStatus = auth.status;
+  const helperSources = apiKeyHelperSources(process.cwd());
+  const settingsAuthOverrides = settingsOverrideSources(process.cwd(), undefined, CLAUDE_AUTH_OVERRIDE_ENV);
+  const settingsModelOverrides = settingsOverrideSources(process.cwd(), undefined, CLAUDE_MODEL_OVERRIDE_ENV);
+  const modelEnvOverrides = CLAUDE_MODEL_OVERRIDE_ENV.filter((name) => process.env[name] !== undefined);
   const requiredFlags = [
     "--model",
     "--effort",
@@ -2625,21 +3063,31 @@ export function doctor() {
   const cliCompatible =
     version.status === 0 && help.status === 0 && coreFlags.every((flag) => helpText.includes(flag));
   const authenticated = authStatus.loggedIn === true;
+  const subscriptionReady =
+    auth.subscriptionReady && helperSources.length === 0 && settingsAuthOverrides.length === 0;
+  const runtimeReady = cliCompatible && subscriptionReady && settingsModelOverrides.length === 0;
   const flagCapabilities = Object.fromEntries(
     requiredFlags.map((flag) => [flag, claudeFlagCapability(flag, helpText)])
   );
   return {
-    ok: cliCompatible && authenticated,
+    ok: runtimeReady,
     cli_compatible: cliCompatible,
-    ready_for_live_runs: cliCompatible && authenticated,
+    ready_for_live_runs: runtimeReady,
     claude_command: commandSummary(command, prefixArgs),
     claude_version: shortText(version.stdout || version.stderr),
     auth: {
       logged_in: authenticated,
       method: authStatus.authMethod || null,
       provider: authStatus.apiProvider || null,
-      status_code: auth.status,
+      subscription_type: authStatus.subscriptionType || null,
+      status_code: auth.result.status,
       error: authStatus.error || null
+    },
+    billing: {
+      mode: subscriptionReady ? "subscription_oauth" : "not_subscription_safe",
+      auth_env_overrides_stripped: auth.strippedEnv,
+      api_key_helper_sources: helperSources,
+      settings_auth_override_sources: settingsAuthOverrides
     },
     node,
     npm_version: shortText(npm.stdout || npm.stderr),
@@ -2650,10 +3098,12 @@ export function doctor() {
       opus: helpText.includes("opus"),
       sonnet: helpText.includes("sonnet")
     },
+    model_env_overrides_stripped_on_run: modelEnvOverrides,
+    settings_model_override_sources: settingsModelOverrides,
     flags: Object.fromEntries(requiredFlags.map((flag) => [flag, flagCapabilities[flag].supported])),
     flag_evidence: Object.fromEntries(requiredFlags.map((flag) => [flag, flagCapabilities[flag].evidence])),
     mcp_server: "stdio",
-    note: "Read-only readiness check. ok means CLI compatibility plus live authentication; hidden documented flags use non-spending parser probes because claude --help is incomplete."
+    note: "Read-only readiness check. ok requires CLI compatibility plus Claude.ai subscription OAuth after stripping higher-precedence API, gateway, cloud, and token environments. Live runs also strip model-family and subagent alias redirects; hidden documented flags use non-spending parser probes."
   };
 }
 

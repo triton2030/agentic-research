@@ -56,9 +56,9 @@ process after its original controller disappeared. It is not complete. A second
 kill call may escalate a fingerprint-matched process group that ignored TERM.
 
 For `useTmux: true`, the bridge records one exact tmux session, captures the
-pane, tees stdout/stderr, strips Claude API key environment variables, and kills
-only that saved session. A Codex-held `server.js` process is MCP plumbing, not a
-paid model tail.
+pane, tees stdout/stderr, strips every higher-precedence Claude auth/provider
+environment, and kills only that saved session. A Codex-held `server.js` process
+is MCP plumbing, not a paid model tail.
 
 ## Relay And Evidence
 
@@ -67,6 +67,7 @@ Final reports provide:
 - `chat_relay.text` and `.markdown` for the user-visible Claude answer;
 - `chat_relay.truncated` and `.full_text_file` for long output;
 - requested `model`, stream-derived `resolved_model`, and `effort`;
+- primary `resolved_model_history`, switch warning, and all `modelUsage` models;
 - `activity`, warnings, files, status, and `agent_behavior`;
 - `write_scope` for guarded workers.
 
@@ -94,6 +95,12 @@ tmux worker, the verdict is `unknown`.
 Git worktree when available and reports only persistent changes relative to
 that baseline. `observed` is footprint evidence, not a safety pass. `unknown`
 means a Git baseline was unavailable.
+
+Read-only profiles also snapshot the Git-worktree footprint and fail their
+evidence check if a persistent local change appears. Attribution stays unknown
+when concurrent agents share a worktree. This catches some subagent/MCP
+mutation, but cannot prove there was no temporary write or external-service
+side effect.
 
 ## Logs And Cleanup
 

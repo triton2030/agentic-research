@@ -9,15 +9,19 @@ Official sources:
 - https://platform.claude.com/docs/en/about-claude/models/choosing-a-model
 - https://platform.claude.com/docs/en/about-claude/models/introducing-claude-fable-5-and-claude-mythos-5
 - https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5
+- https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-4-8
 - https://code.claude.com/docs/en/cli-usage
+- https://code.claude.com/docs/en/model-config
 
 ## Aliases And Evidence
 
 - `opus` is the bridge's normal high-capability advisor/worker alias.
 - `fable` is reserved for the hardest long-horizon advisor tasks.
 - The bridge records the requested alias as `model` and the stream-reported
-  identity as `resolved_model`. A missing resolved identity is unknown, not
-  proof that the alias selected a particular release.
+  primary identities as `resolved_model_history`. `resolved_model` is the last
+  one. A missing identity is unknown, not proof that an alias selected a release.
+- Fable can automatically continue on Opus after a safety-classifier fallback.
+  A history change is routing evidence; attribute the answer to the final model.
 - Check `claude_doctor` when aliases or controls may have changed.
 
 ## Fable
@@ -41,8 +45,9 @@ this is a fallback, not a continuation or confirmation.
 ## Opus
 
 Opus is the default for complex coding, architecture, debugging, implementation,
-and ongoing project advice. Use `max` effort for intelligence-sensitive bridge
-work. Prefer a short structured brief over a long ritual:
+and ongoing project advice. Use `xhigh` effort for normal coding and agentic
+work. Treat `max` as a measured exception because it can add diminishing returns
+and overthinking. Prefer a short structured brief over a long ritual:
 
 - say the desired outcome, evidence, boundaries, and stop condition;
 - put large source context before the final ask;

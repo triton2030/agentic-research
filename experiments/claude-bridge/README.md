@@ -11,7 +11,7 @@ Claude's skills or settings.
 
 ## Current Defaults
 
-- `advisor`: moving `opus` alias, `max` effort, plan mode, no Bash/Edit/Write.
+- `advisor`: moving `opus` alias, `xhigh` effort, plan mode, no Bash/Edit/Write.
 - `fable-advisor`: `fable`, `xhigh`, same read-only boundary; exceptional hard
   problems only.
 - `worker`: Opus with auto permissions, exact `writeFiles`, clean-target gate,
@@ -19,10 +19,21 @@ Claude's skills or settings.
 - `unrestricted`: explicit permission bypass plus Git-footprint observation
   when available. `normal` and `turbo` are safe advisor compatibility aliases.
 
+`advisor` and `worker` accept only bounded `opus`/`fable` plus effort overrides;
+the permission boundary does not change with the model. Persistent threads keep
+their original profile, model, effort, cwd, worktree, and ref for every turn.
+
 Claude's configured skills, plugins, MCP tools, session persistence, and auto
 memory remain available unless a diagnostic profile disables them. The bridge
-strips `ANTHROPIC_API_KEY` and `CLAUDE_API_KEY` from direct and tmux children so
-ambient shell variables cannot silently move work onto API billing.
+requires a live Claude.ai subscription login and strips higher-precedence API,
+gateway, cloud-provider, and token environments from direct and tmux children.
+It also refuses `apiKeyHelper`, so a shell or settings override cannot silently
+replace the subscription account. Model-family and subagent alias environment
+redirects are stripped as well; settings that reintroduce auth or model
+redirects are refused. Reports retain the primary model history and
+warn if Fable switches to Opus. This proves the credential route. To
+guarantee no out-of-plan charge, also decline API credits when Claude Code
+offers them at the subscription limit.
 
 ## Install And Verify
 
@@ -33,9 +44,20 @@ npm run smoke
 ```
 
 `doctor.ok` and `ready_for_live_runs` require both compatible core CLI flags and
-live Claude authentication. Optional controls use live `claude --help` plus
-non-spending parser probes through `claude auth status`; the CLI intentionally
-omits some supported flags from help.
+live Claude.ai subscription OAuth with no detected settings helper. Optional
+controls use live `claude --help` plus non-spending parser probes through
+`claude auth status`; the CLI intentionally omits some supported flags from
+help.
+
+The installed Codex skill contains separate current references for subscription
+billing, Fable prompting, Opus prompting, Claude subagents/agent teams, managed
+run lifecycle, and failure recovery. Agent teams remain experimental and are
+not enabled by normal bridge profiles.
+
+Every read-only run also records a before/after Git-worktree footprint. This can
+detect persistent local mutation during the run, but cannot attribute it when
+other agents share the worktree. It is evidence, not an OS sandbox, and cannot
+observe external-service writes.
 
 After changing `src/server.js` or its MCP schemas, restart Codex Desktop before
 judging the installed MCP surface. Already-open Codex tasks can retain an older

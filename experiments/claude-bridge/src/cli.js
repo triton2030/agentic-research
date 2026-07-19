@@ -36,6 +36,11 @@ function getArgs(name) {
   return values;
 }
 
+function getOptionalArgs(name) {
+  const values = getArgs(name);
+  return values.length ? values : undefined;
+}
+
 function getJsonArg(name) {
   const value = getArg(name);
   return value === undefined ? undefined : JSON.parse(value);
@@ -47,8 +52,8 @@ if (command === "help") {
   process.stdout.write(`Usage:
   node src/cli.js doctor
   node src/cli.js profiles
-  node src/cli.js run --prompt "..." [--profile advisor] [--model opus] [--effort max] [--cwd /path]
-  node src/cli.js thread-start --topic "..." --prompt "..." [--profile advisor]
+  node src/cli.js run --prompt "..." [--profile advisor] [--model opus] [--effort xhigh] [--cwd /path]
+  node src/cli.js thread-start --topic "..." --prompt "..." [--profile advisor] [--model opus] [--effort xhigh]
   node src/cli.js thread-send --thread-id <id> --prompt "..."
   node src/cli.js threads [--cwd /path] [--include-archived]
   node src/cli.js thread-archive --thread-id <id> [--unarchive]
@@ -95,7 +100,7 @@ if (command === "help") {
       replayUserMessages: process.argv.includes("--replay-user-messages"),
       forwardSubagentText: process.argv.includes("--forward-subagent-text"),
       safeMode: process.argv.includes("--safe-mode"),
-      writeFiles: getArgs("write-file"),
+      writeFiles: getOptionalArgs("write-file"),
       useTmux: process.argv.includes("--tmux") || process.argv.includes("--use-tmux"),
       disableAutoMemory: process.argv.includes("--disable-auto-memory")
     })
@@ -106,6 +111,8 @@ if (command === "help") {
       prompt: getArg("prompt", ""),
       topic: getArg("topic", ""),
       profile: getArg("profile", "advisor"),
+      model: getArg("model"),
+      effort: getArg("effort"),
       cwd: getArg("cwd", process.cwd()),
       useTmux: process.argv.includes("--tmux") || process.argv.includes("--use-tmux")
     })

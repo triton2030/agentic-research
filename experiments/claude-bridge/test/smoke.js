@@ -124,6 +124,9 @@ const doctorReport = doctor();
 assert.equal(doctorReport.ok, true);
 assert.equal(doctorReport.ready_for_live_runs, true);
 assert.equal(doctorReport.auth.logged_in, true);
+assert.equal(doctorReport.auth.method, "claude.ai");
+assert.equal(doctorReport.auth.subscription_type, "max");
+assert.equal(doctorReport.billing.mode, "subscription_oauth");
 assert.equal(doctorReport.stream_json_supported, true);
 assert.equal(doctorReport.flags["--effort"], true);
 assert.equal(doctorReport.flags["--dangerously-skip-permissions"], true);
@@ -151,8 +154,8 @@ for (const profileName of ["advisor", "worker", "normal", "no-memory", "no-skill
   assert.ok(profile, `${profileName} profile should exist`);
   assert.deepEqual(
     profile.flags.slice(profile.flags.indexOf("--effort"), profile.flags.indexOf("--effort") + 2),
-    ["--effort", "max"],
-    `${profileName} must use max effort`
+    ["--effort", "xhigh"],
+    `${profileName} must use xhigh effort`
   );
 }
 const fableProfile = profileList.find((profile) => profile.name === "fable-advisor");
@@ -213,8 +216,24 @@ assert.throws(
 const fakeEnvCaptureFile = path.join(runsDir, "_fake-claude-env.json");
 fs.rmSync(fakeEnvCaptureFile, { force: true });
 process.env.FAKE_CLAUDE_ENV_CAPTURE = fakeEnvCaptureFile;
-process.env.ANTHROPIC_API_KEY = "should-not-leak";
-process.env.CLAUDE_API_KEY = "should-not-leak";
+const authOverrideEnv = [
+  "ANTHROPIC_AUTH_TOKEN",
+  "ANTHROPIC_API_KEY",
+  "ANTHROPIC_BASE_URL",
+  "CLAUDE_API_KEY",
+  "CLAUDE_CODE_OAUTH_TOKEN",
+  "CLAUDE_CODE_USE_BEDROCK",
+  "CLAUDE_CODE_USE_VERTEX",
+  "CLAUDE_CODE_USE_FOUNDRY"
+];
+const modelOverrideEnv = [
+  "ANTHROPIC_DEFAULT_FABLE_MODEL",
+  "ANTHROPIC_DEFAULT_OPUS_MODEL",
+  "ANTHROPIC_DEFAULT_SONNET_MODEL",
+  "ANTHROPIC_DEFAULT_HAIKU_MODEL",
+  "CLAUDE_CODE_SUBAGENT_MODEL"
+];
+for (const name of [...authOverrideEnv, ...modelOverrideEnv]) process.env[name] = "should-not-leak";
 const started = startRun({
   prompt: "Return exactly BRIDGE_OK.",
   profile: "normal",
@@ -232,15 +251,27 @@ const startedCommand = JSON.parse(fs.readFileSync(report.files.command, "utf8"))
 assert.equal(startedCommand.args.filter((value) => value === "--model").length, 1);
 assert.equal(startedCommand.args.filter((value) => value === "--effort").length, 1);
 assert.equal(startedCommand.args.filter((value) => value === "--permission-mode").length, 1);
+assert.equal(startedCommand.args.filter((value) => value === "--append-subagent-system-prompt").length, 1);
 const fakeEnvCapture = JSON.parse(fs.readFileSync(fakeEnvCaptureFile, "utf8"));
-assert.equal(startedCommand.env.api_key_env_stripped, true);
-assert.deepEqual(fakeEnvCapture, { ANTHROPIC_API_KEY: null, CLAUDE_API_KEY: null });
+assert.equal(startedCommand.env.subscription_billing_guard.mode, "subscription_oauth");
+assert.deepEqual(
+  startedCommand.env.subscription_billing_guard.auth_env_overrides_stripped.sort(),
+  [...authOverrideEnv].sort()
+);
+assert.deepEqual(startedCommand.env.model_env_overrides_stripped.sort(), [...modelOverrideEnv].sort());
+assert.deepEqual(
+  fakeEnvCapture,
+  Object.fromEntries([...authOverrideEnv, ...modelOverrideEnv].map((name) => [name, null]))
+);
 delete process.env.FAKE_CLAUDE_ENV_CAPTURE;
-delete process.env.ANTHROPIC_API_KEY;
-delete process.env.CLAUDE_API_KEY;
+for (const name of [...authOverrideEnv, ...modelOverrideEnv]) delete process.env[name];
 assert.equal(report.status, "completed");
+assert.equal(report.billing.mode, "subscription_oauth");
 assert.equal(report.model, "opus");
 assert.equal(report.resolved_model, "claude-opus-4-8");
+assert.deepEqual(report.resolved_model_history, ["claude-opus-4-8"]);
+assert.equal(report.model_switch_observed, false);
+assert.deepEqual(report.model_env_overrides_stripped.sort(), [...modelOverrideEnv].sort());
 assert.equal(report.session_id, started.session_id);
 assert.equal(report.session_observed, true);
 assert.equal(report.managed, false);
@@ -253,6 +284,63 @@ assert.equal(report.agent_behavior.role, "controlled_external_claude");
 assert.equal(report.agent_behavior.tail.terminal, true);
 assert.ok(fs.existsSync(report.files.state));
 assert.ok(report.milestones.some((event) => event.kind === "assistant_text" && /BRIDGE_OK/u.test(event.text)));
+
+const cliAdvisorRun = cliJson([
+  "run",
+  "--prompt",
+  "Return BRIDGE_OK through the CLI advisor path.",
+  "--profile",
+  "advisor",
+  "--cwd",
+  bridgeRoot
+]);
+const cliAdvisorReport = await waitRun(cliAdvisorRun.run_id, { timeoutMs: 10000 });
+assert.equal(cliAdvisorReport.status, "completed");
+assert.equal(cliAdvisorReport.write_scope.status, "passed");
+
+process.env.FAKE_CLAUDE_AUTH_METHOD = "console";
+assert.throws(
+  () => startRun({ prompt: "PAYG auth must be rejected.", profile: "advisor", cwd: bridgeRoot }),
+  /requires Claude\.ai plan OAuth/u
+);
+assert.equal(doctor().ready_for_live_runs, false);
+delete process.env.FAKE_CLAUDE_AUTH_METHOD;
+
+process.env.FAKE_CLAUDE_API_PROVIDER = "gateway";
+assert.throws(
+  () => startRun({ prompt: "Gateway auth must be rejected.", profile: "advisor", cwd: bridgeRoot }),
+  /claude\.ai\/gateway\/max/u
+);
+assert.equal(doctor().ready_for_live_runs, false);
+delete process.env.FAKE_CLAUDE_API_PROVIDER;
+
+const helperSettingsCwd = fs.mkdtempSync(path.join(os.tmpdir(), "claude-bridge-helper-settings-"));
+fs.mkdirSync(path.join(helperSettingsCwd, ".claude"));
+fs.writeFileSync(
+  path.join(helperSettingsCwd, ".claude", "settings.json"),
+  JSON.stringify({ apiKeyHelper: "/tmp/not-executed-helper" })
+);
+assert.throws(
+  () => startRun({ prompt: "apiKeyHelper must be rejected.", profile: "advisor", cwd: helperSettingsCwd }),
+  /refuses apiKeyHelper settings/u
+);
+fs.writeFileSync(
+  path.join(helperSettingsCwd, ".claude", "settings.json"),
+  JSON.stringify({ env: { ANTHROPIC_API_KEY: "not-used" } })
+);
+assert.throws(
+  () => startRun({ prompt: "Settings API key must be rejected.", profile: "advisor", cwd: helperSettingsCwd }),
+  /refuses auth\/provider overrides in settings/u
+);
+fs.writeFileSync(
+  path.join(helperSettingsCwd, ".claude", "settings.json"),
+  JSON.stringify({ env: { ANTHROPIC_DEFAULT_OPUS_MODEL: "claude-opus-old" } })
+);
+assert.throws(
+  () => startRun({ prompt: "Settings model pin must be rejected.", profile: "advisor", cwd: helperSettingsCwd }),
+  /refuses model alias redirects in settings/u
+);
+fs.rmSync(helperSettingsCwd, { recursive: true, force: true });
 
 const syntheticModelRun = startRun({
   prompt: "SYNTHETIC_MODEL_AFTER_INIT",
@@ -311,6 +399,56 @@ assert.equal(fableThreadReport.effort, "xhigh");
 assert.equal(fableThreadReport.resolved_model, "claude-fable-5");
 assert.notEqual(opusThread.thread_id, fableThread.thread_id);
 
+const tunedThread = cliJson([
+  "thread-start",
+  "--prompt",
+  "Return BRIDGE_OK for a tuned persistent advisor.",
+  "--topic",
+  `tuned-thread-${threadSuffix}-bounded`,
+  "--profile",
+  "advisor",
+  "--model",
+  "fable",
+  "--effort",
+  "high",
+  "--cwd",
+  bridgeRoot
+]);
+const tunedThreadReport = await waitRun(tunedThread.run_id, { timeoutMs: 10000 });
+assert.equal(tunedThreadReport.model, "fable");
+assert.equal(tunedThreadReport.effort, "high");
+assert.equal(tunedThreadReport.resolved_model, "claude-fable-5");
+
+const switchedModelRun = startRun({
+  prompt: "MODEL_SWITCH_BRIDGE",
+  profile: "fable-advisor",
+  cwd: bridgeRoot
+});
+const switchedModelReport = await waitRun(switchedModelRun.run_id, { timeoutMs: 10000 });
+assert.equal(switchedModelReport.initial_resolved_model, "claude-fable-5");
+assert.equal(switchedModelReport.resolved_model, "claude-opus-4-8");
+assert.deepEqual(switchedModelReport.resolved_model_history, ["claude-fable-5", "claude-opus-4-8"]);
+assert.equal(switchedModelReport.model_switch_observed, true);
+assert.ok(switchedModelReport.warnings.some((warning) => warning.kind === "model_switch_observed"));
+
+const boundedFableWorker = startRun({
+  prompt: "Return BRIDGE_OK without edits.",
+  profile: "worker",
+  model: "fable",
+  effort: "high",
+  writeFiles: ["package.json"],
+  cwd: bridgeRoot
+});
+const boundedFableWorkerReport = await waitRun(boundedFableWorker.run_id, { timeoutMs: 10000 });
+assert.equal(boundedFableWorkerReport.model, "fable");
+assert.equal(boundedFableWorkerReport.effort, "high");
+assert.equal(boundedFableWorkerReport.resolved_model, "claude-fable-5");
+assert.equal(boundedFableWorkerReport.write_scope.status, "passed");
+assert.throws(
+  () => startRun({ prompt: "Reject weak alias.", profile: "advisor", model: "sonnet", cwd: bridgeRoot }),
+  /allows only moving model aliases opus or fable/u
+);
+
 const continuedOpus = sendThread({
   thread_id: opusThread.thread_id,
   prompt: "Continue this same conversation and return BRIDGE_OK.",
@@ -322,6 +460,16 @@ const resumeIndex = continuedCommand.args.indexOf("--resume");
 assert.ok(resumeIndex >= 0);
 assert.equal(continuedCommand.args[resumeIndex + 1], opusThread.thread_id);
 assert.equal(continuedOpusReport.session_id, opusThread.thread_id);
+assert.throws(
+  () =>
+    sendThread({
+      thread_id: opusThread.thread_id,
+      prompt: "Do not change this thread's profile.",
+      cwd: bridgeRoot,
+      profile: "fable-advisor"
+    }),
+  /bound to profile=advisor/u
+);
 const cliThreadList = cliJson(["threads", "--cwd", bridgeRoot, "--include-archived"]);
 assert.ok(cliThreadList.threads.some((thread) => thread.thread_id === opusThread.thread_id));
 
@@ -417,7 +565,9 @@ const branchThread = startThread({
   profile: "advisor",
   cwd: workerRepo
 });
-await waitRun(branchThread.run_id, { timeoutMs: 10000 });
+const branchThreadReport = await waitRun(branchThread.run_id, { timeoutMs: 10000 });
+assert.equal(branchThreadReport.write_scope.status, "passed");
+assert.equal(branchThreadReport.write_scope.enforcement, "read_only_git_footprint_observation");
 const branchThreadEntry = listThreads({ cwd: workerRepo, includeArchived: true }).threads.find(
   (thread) => thread.thread_id === branchThread.thread_id
 );
@@ -437,6 +587,17 @@ assert.throws(
   () => sendThread({ thread_id: branchThread.thread_id, prompt: "Wrong branch.", cwd: workerRepo }),
   /belongs to Git ref/u
 );
+const readOnlyMutationRun = startRun({
+  prompt: "WRITE_OUT_OF_SCOPE_BRIDGE",
+  profile: "advisor",
+  cwd: workerRepo
+});
+const readOnlyMutationReport = await waitRun(readOnlyMutationRun.run_id, { timeoutMs: 10000 });
+assert.equal(readOnlyMutationReport.write_scope.status, "failed");
+assert.ok(readOnlyMutationReport.write_scope.changed_files.includes("outside.txt"));
+assert.equal(readOnlyMutationReport.write_scope.attribution, "unknown_shared_worktree");
+assert.ok(readOnlyMutationReport.warnings.some((warning) => warning.kind === "read_only_footprint_changed"));
+assert.equal(spawnSync("git", ["restore", "outside.txt"], { cwd: workerRepo }).status, 0);
 const externalSymlinkDir = fs.mkdtempSync(path.join(os.tmpdir(), "claude-bridge-symlink-"));
 const externalSymlinkTarget = path.join(externalSymlinkDir, "target.txt");
 fs.symlinkSync(externalSymlinkTarget, path.join(workerRepo, "link.txt"));
@@ -466,6 +627,120 @@ assert.deepEqual(workerReport.write_scope.changed_files, ["allowed.txt"]);
 assert.deepEqual(workerReport.write_scope.out_of_scope_files, []);
 assert.equal(workerReport.agent_behavior.write_scope_status, "passed");
 assert.match(fs.readFileSync(path.join(workerRepo, "allowed.txt"), "utf8"), /changed by fake Claude/u);
+assert.equal(spawnSync("git", ["restore", "allowed.txt"], { cwd: workerRepo }).status, 0);
+const atomicWorkerRun = startRun({
+  prompt: "WRITE_ATOMIC_ALLOWED_BRIDGE",
+  profile: "worker",
+  writeFiles: ["allowed.txt"],
+  cwd: workerRepo
+});
+const atomicWorkerReport = await waitRun(atomicWorkerRun.run_id, { timeoutMs: 10000 });
+assert.equal(atomicWorkerReport.write_scope.status, "passed");
+assert.deepEqual(atomicWorkerReport.write_scope.changed_files, ["allowed.txt"]);
+assert.deepEqual(atomicWorkerReport.write_scope.out_of_scope_files, []);
+assert.match(fs.readFileSync(path.join(workerRepo, "allowed.txt"), "utf8"), /changed atomically by fake Claude/u);
+assert.ok(
+  atomicWorkerReport.activity.recent_tool_trace.some(
+    (event) => event.kind === "tool_use" && event.tool_name === "Write" && event.file_path === "allowed.txt"
+  )
+);
+assert.deepEqual(
+  atomicWorkerReport.activity.recent_tool_trace
+    .filter((event) => event.kind === "tool_use")
+    .map((event) => event.tool_name),
+  ["Write", "Read"]
+);
+assert.equal(
+  atomicWorkerReport.activity.recent_tool_trace.filter((event) => event.kind === "tool_result").length,
+  2
+);
+assert.equal(atomicWorkerReport.activity.counts.tool_use, 2);
+assert.equal(atomicWorkerReport.activity.counts.tool_result, 2);
+fs.writeFileSync(path.join(workerRepo, "outside.txt"), "concurrent change after terminal report\n");
+const frozenWorkerPeek = peekRun(atomicWorkerRun.run_id);
+assert.ok(!frozenWorkerPeek.warnings.some((warning) => warning.kind === "write_scope_violation"));
+assert.equal(resultRun(atomicWorkerRun.run_id).write_scope.status, "passed");
+assert.equal(spawnSync("git", ["restore", "outside.txt"], { cwd: workerRepo }).status, 0);
+
+const lifecycleRepo = fs.mkdtempSync(path.join(os.tmpdir(), "claude-bridge-lifecycle-"));
+assert.equal(spawnSync("git", ["init", "-q"], { cwd: lifecycleRepo }).status, 0);
+assert.equal(spawnSync("git", ["config", "user.email", "bridge@example.invalid"], { cwd: lifecycleRepo }).status, 0);
+assert.equal(spawnSync("git", ["config", "user.name", "Claude Bridge Smoke"], { cwd: lifecycleRepo }).status, 0);
+fs.writeFileSync(path.join(lifecycleRepo, "allowed.txt"), "baseline\n");
+fs.writeFileSync(path.join(lifecycleRepo, "outside.txt"), "baseline\n");
+assert.equal(spawnSync("git", ["add", "."], { cwd: lifecycleRepo }).status, 0);
+assert.equal(spawnSync("git", ["commit", "-qm", "baseline"], { cwd: lifecycleRepo }).status, 0);
+const lifecycleHead = spawnSync("git", ["rev-parse", "HEAD"], { cwd: lifecycleRepo, encoding: "utf8" }).stdout.trim();
+const lifecycleWriteScope = () => ({
+  mode: "guarded",
+  root: lifecycleRepo,
+  allowed_files: ["allowed.txt"],
+  baseline: {},
+  baseline_head: lifecycleHead,
+  observed_files: [],
+  observation_complete: true,
+  observation_error: null
+});
+
+const revivedRunId = `revived-terminal-${Date.now()}`;
+const revivedRun = writeSyntheticState(revivedRunId, {
+  cwd: lifecycleRepo,
+  pid: null,
+  process_group_pid: null,
+  status: "completed",
+  write_scope: {
+    ...lifecycleWriteScope(),
+    final_evaluation: { status: "passed", enforcement: "prompt_boundary_plus_git_and_filesystem_postflight" }
+  }
+});
+const revivedProcess = spawn(process.execPath, ["-e", "setInterval(() => {}, 1000)", revivedRun.runDir], {
+  detached: true,
+  stdio: "ignore"
+});
+revivedProcess.unref();
+const revivedState = JSON.parse(fs.readFileSync(revivedRun.files.state, "utf8"));
+revivedState.pid = revivedProcess.pid;
+revivedState.process_group_pid = revivedProcess.pid;
+fs.writeFileSync(revivedRun.files.state, JSON.stringify(revivedState, null, 2));
+await new Promise((resolve) => setTimeout(resolve, 100));
+const revivedReport = resultRun(revivedRunId);
+assert.equal(revivedReport.status, "running_orphaned");
+assert.equal(revivedReport.write_scope.status, "pending");
+const reopenedState = JSON.parse(fs.readFileSync(revivedRun.files.state, "utf8"));
+assert.equal(reopenedState.write_scope.final_evaluation, undefined);
+fs.writeFileSync(path.join(lifecycleRepo, "outside.txt"), "mutation after revival\n");
+process.kill(-revivedProcess.pid, "SIGKILL");
+await waitForPidExit(revivedProcess.pid, "revived terminal fixture");
+let refrozenReport;
+const refreezeDeadline = Date.now() + 5000;
+while (Date.now() < refreezeDeadline) {
+  refrozenReport = resultRun(revivedRunId);
+  if (refrozenReport.status === "orphaned") break;
+  await new Promise((resolve) => setTimeout(resolve, 50));
+}
+assert.equal(refrozenReport.status, "orphaned");
+assert.equal(refrozenReport.write_scope.status, "failed");
+assert.ok(refrozenReport.write_scope.out_of_scope_files.includes("outside.txt"));
+assert.equal(spawnSync("git", ["restore", "outside.txt"], { cwd: lifecycleRepo }).status, 0);
+
+for (const reportKind of ["missing", "corrupt", "pending"]) {
+  const legacyRunId = `legacy-terminal-${reportKind}-${Date.now()}`;
+  const legacyRun = writeSyntheticState(legacyRunId, {
+    cwd: lifecycleRepo,
+    pid: null,
+    process_group_pid: null,
+    status: "completed",
+    write_scope: lifecycleWriteScope()
+  });
+  if (reportKind === "corrupt") fs.writeFileSync(legacyRun.files.report, "{not-json");
+  if (reportKind === "pending") {
+    fs.writeFileSync(legacyRun.files.report, JSON.stringify({ write_scope: { status: "pending" } }));
+  }
+  const legacyReport = resultRun(legacyRunId);
+  assert.equal(legacyReport.write_scope.status, "unknown");
+  assert.match(legacyReport.write_scope.error, /no frozen write-scope report/u);
+}
+fs.rmSync(lifecycleRepo, { recursive: true, force: true });
 assert.throws(
   () =>
     startRun({
@@ -546,8 +821,16 @@ const newCliControlsRun = startRun({
   cwd: bridgeRoot,
   permissionMode: "plan",
   jsonSchema: { type: "object", properties: { ok: { type: "boolean" } }, required: ["ok"] },
-  agent: "reviewer",
-  agents: { reviewer: { description: "Reviews bridge smoke runs", prompt: "Review only." } },
+  agents: {
+    reviewer: {
+      description: "Reviews bridge smoke runs",
+      prompt: "Review only.",
+      tools: ["Read", "Glob", "Grep"],
+      permissionMode: "plan",
+      model: "inherit",
+      effort: "xhigh"
+    }
+  },
   pluginUrl: ["https://example.invalid/plugin.zip"],
   brief: true,
   file: ["file_abc:doc.txt"],
@@ -559,14 +842,49 @@ const newCliControlsCommand = JSON.parse(fs.readFileSync(newCliControlsReport.fi
 assert.ok(newCliControlsCommand.args.includes("--permission-mode"));
 assert.equal(newCliControlsCommand.args.filter((value) => value === "--permission-mode").length, 1);
 assert.ok(newCliControlsCommand.args.includes("--json-schema"));
-assert.ok(newCliControlsCommand.args.includes("--agent"));
 assert.ok(newCliControlsCommand.args.includes("--agents"));
+assert.ok(newCliControlsCommand.args.includes("--append-subagent-system-prompt"));
 assert.ok(newCliControlsCommand.args.includes("--plugin-url"));
 assert.equal(newCliControlsCommand.args.includes("--allow-dangerously-skip-permissions"), false);
 assert.ok(newCliControlsCommand.args.includes("--brief"));
 assert.ok(newCliControlsCommand.args.includes("--file"));
 assert.ok(newCliControlsCommand.args.includes("--input-format"));
 assert.ok(newCliControlsCommand.args.includes("--replay-user-messages"));
+
+assert.throws(
+  () => startRun({ prompt: "Opaque agent.", profile: "advisor", cwd: bridgeRoot, agent: "reviewer" }),
+  /cannot load an opaque --agent/u
+);
+assert.throws(
+  () =>
+    startRun({
+      prompt: "Unsafe subagent.",
+      profile: "advisor",
+      cwd: bridgeRoot,
+      agents: { reviewer: { description: "Unsafe", prompt: "Write.", tools: ["Read", "Write"] } }
+    }),
+  /cannot enable write-capable tools/u
+);
+assert.throws(
+  () =>
+    startRun({
+      prompt: "Bypass subagent.",
+      profile: "advisor",
+      cwd: bridgeRoot,
+      agents: { reviewer: { description: "Unsafe", prompt: "Review.", permissionMode: "bypassPermissions" } }
+    }),
+  /cannot override permissionMode/u
+);
+assert.throws(
+  () =>
+    startRun({
+      prompt: "Model drift subagent.",
+      profile: "advisor",
+      cwd: bridgeRoot,
+      agents: { reviewer: { description: "Drifts", prompt: "Review.", model: "fable" } }
+    }),
+  /cannot override model/u
+);
 
 const orphanId = `orphan-no-fingerprint-${Date.now()}`;
 writeSyntheticState(orphanId, { started_at: new Date(Date.now() - 5000).toISOString() });
@@ -658,8 +976,7 @@ if (spawnSync("tmux", ["-V"], { encoding: "utf8" }).status === 0) {
   const tmuxEnvCaptureFile = path.join(runsDir, "_fake-claude-tmux-env.json");
   fs.rmSync(tmuxEnvCaptureFile, { force: true });
   process.env.FAKE_CLAUDE_ENV_CAPTURE = tmuxEnvCaptureFile;
-  process.env.ANTHROPIC_API_KEY = "must-not-leak-via-tmux";
-  process.env.CLAUDE_API_KEY = "must-not-leak-via-tmux";
+  for (const name of [...authOverrideEnv, ...modelOverrideEnv]) process.env[name] = "must-not-leak-via-tmux";
   const tmuxRun = startRun({
     prompt: "Return exactly BRIDGE_OK via tmux.",
     profile: "normal",
@@ -678,14 +995,13 @@ if (spawnSync("tmux", ["-V"], { encoding: "utf8" }).status === 0) {
   assert.ok(tmuxReport.files.tmux_pane);
   assert.match(fs.readFileSync(tmuxReport.files.stdout, "utf8"), /BRIDGE_OK/u);
   assert.match(fs.readFileSync(tmuxReport.files.tmux_pane, "utf8"), /BRIDGE_OK/u);
-  assert.deepEqual(JSON.parse(fs.readFileSync(tmuxEnvCaptureFile, "utf8")), {
-    ANTHROPIC_API_KEY: null,
-    CLAUDE_API_KEY: null
-  });
+  assert.deepEqual(
+    JSON.parse(fs.readFileSync(tmuxEnvCaptureFile, "utf8")),
+    Object.fromEntries([...authOverrideEnv, ...modelOverrideEnv].map((name) => [name, null]))
+  );
   assert.equal(tmuxReport.session_id, tmuxRun.session_id);
   delete process.env.FAKE_CLAUDE_ENV_CAPTURE;
-  delete process.env.ANTHROPIC_API_KEY;
-  delete process.env.CLAUDE_API_KEY;
+  for (const name of [...authOverrideEnv, ...modelOverrideEnv]) delete process.env[name];
   await new Promise((resolve) => setTimeout(resolve, 250));
   assert.notEqual(
     spawnSync("tmux", ["has-session", "-t", tmuxRun.tmux_session], { encoding: "utf8" }).status,

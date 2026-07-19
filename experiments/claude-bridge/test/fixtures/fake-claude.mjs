@@ -16,7 +16,14 @@ if (authIndex !== -1 && args[authIndex + 1] === "status") {
     console.error(`error: unknown option '${rejectedOption}'`);
     process.exit(1);
   }
-  console.log(JSON.stringify({ loggedIn: true, authMethod: "oauth", apiProvider: "firstParty" }));
+  console.log(
+    JSON.stringify({
+      loggedIn: process.env.FAKE_CLAUDE_LOGGED_IN !== "false",
+      authMethod: process.env.FAKE_CLAUDE_AUTH_METHOD || "claude.ai",
+      apiProvider: process.env.FAKE_CLAUDE_API_PROVIDER || "firstParty",
+      subscriptionType: process.env.FAKE_CLAUDE_SUBSCRIPTION_TYPE || "max"
+    })
+  );
   process.exit(0);
 }
 
@@ -64,8 +71,19 @@ if (process.env.FAKE_CLAUDE_ENV_CAPTURE) {
     process.env.FAKE_CLAUDE_ENV_CAPTURE,
     JSON.stringify(
       {
+        ANTHROPIC_AUTH_TOKEN: process.env.ANTHROPIC_AUTH_TOKEN || null,
         ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY || null,
-        CLAUDE_API_KEY: process.env.CLAUDE_API_KEY || null
+        ANTHROPIC_BASE_URL: process.env.ANTHROPIC_BASE_URL || null,
+        CLAUDE_API_KEY: process.env.CLAUDE_API_KEY || null,
+        CLAUDE_CODE_OAUTH_TOKEN: process.env.CLAUDE_CODE_OAUTH_TOKEN || null,
+        CLAUDE_CODE_USE_BEDROCK: process.env.CLAUDE_CODE_USE_BEDROCK || null,
+        CLAUDE_CODE_USE_VERTEX: process.env.CLAUDE_CODE_USE_VERTEX || null,
+        CLAUDE_CODE_USE_FOUNDRY: process.env.CLAUDE_CODE_USE_FOUNDRY || null,
+        ANTHROPIC_DEFAULT_FABLE_MODEL: process.env.ANTHROPIC_DEFAULT_FABLE_MODEL || null,
+        ANTHROPIC_DEFAULT_OPUS_MODEL: process.env.ANTHROPIC_DEFAULT_OPUS_MODEL || null,
+        ANTHROPIC_DEFAULT_SONNET_MODEL: process.env.ANTHROPIC_DEFAULT_SONNET_MODEL || null,
+        ANTHROPIC_DEFAULT_HAIKU_MODEL: process.env.ANTHROPIC_DEFAULT_HAIKU_MODEL || null,
+        CLAUDE_CODE_SUBAGENT_MODEL: process.env.CLAUDE_CODE_SUBAGENT_MODEL || null
       },
       null,
       2
@@ -98,6 +116,12 @@ const resolvedModel =
       : requestedModel;
 if (/WRITE_ALLOWED_BRIDGE/u.test(prompt)) {
   fs.writeFileSync("allowed.txt", "changed by fake Claude\n");
+}
+if (/WRITE_ATOMIC_ALLOWED_BRIDGE/u.test(prompt)) {
+  const atomicTemp = `allowed.txt.tmp.${process.pid}.abcdef012345`;
+  fs.writeFileSync(atomicTemp, "changed atomically by fake Claude\n");
+  fs.renameSync(atomicTemp, "allowed.txt");
+  await new Promise((resolve) => setTimeout(resolve, 25));
 }
 if (/WRITE_OUT_OF_SCOPE_BRIDGE/u.test(prompt)) {
   fs.writeFileSync("outside.txt", "outside authorized scope\n");
@@ -140,8 +164,41 @@ function spawnTrackedChild({ ignoreTerm = false, stdio = "ignore" } = {}) {
 }
 
 emit({ type: "system", session_id: sessionId, model: resolvedModel, message: "fake claude started" });
+if (/WRITE_ATOMIC_ALLOWED_BRIDGE/u.test(prompt)) {
+  emit({
+    type: "assistant",
+    message: {
+      content: [
+        {
+          type: "tool_use",
+          id: "fake-write",
+          name: "Write",
+          input: { file_path: "allowed.txt" }
+        },
+        {
+          type: "tool_use",
+          id: "fake-read",
+          name: "Read",
+          input: { file_path: "allowed.txt" }
+        }
+      ]
+    }
+  });
+  emit({
+    type: "user",
+    message: {
+      content: [
+        { type: "tool_result", tool_use_id: "fake-write", content: "File written" },
+        { type: "tool_result", tool_use_id: "fake-read", content: "File read" }
+      ]
+    }
+  });
+}
 if (/SYNTHETIC_MODEL_AFTER_INIT/u.test(prompt)) {
   emit({ type: "assistant", message: { model: "<synthetic>", content: "synthetic auth error" } });
+}
+if (/MODEL_SWITCH_BRIDGE/u.test(prompt)) {
+  emit({ type: "assistant", message: { model: "claude-opus-4-8", content: "automatic fallback" } });
 }
 emit({ type: "assistant_delta", text: "Reading context and preparing response." });
 

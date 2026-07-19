@@ -30,8 +30,9 @@ non-spending `auth status` parse, because help does not expose every live flag.
    MCP process and schema after a bridge update. Use the repo-local controlled
    CLI once, then restart Codex Desktop before judging the installed MCP surface.
    The CLI shares the same runner, logs, threads, and stop rules.
-3. If auth is false, stop and ask the user to complete `claude auth login` in
-   their terminal. Do not claim fake/smoke execution as a live Claude result.
+3. If subscription auth is false, stop and ask the user to complete
+   `claude auth login` with their Claude.ai plan. Do not claim fake/smoke
+   execution as a live Claude result.
 4. If Fable refuses a valid task, preserve the refusal and create a fresh Opus
    advisor thread. Label it as fallback evidence.
 5. If relay is truncated, read the recorded full-output file before raw logs.
@@ -40,8 +41,11 @@ non-spending `auth status` parse, because help does not expose every live flag.
    fingerprint-matched process group.
 
 Do not broad-kill Claude, tmux, or all bridge servers. Do not pass hidden API
-keys to force a different billing path. The runner strips `ANTHROPIC_API_KEY`
-and `CLAUDE_API_KEY` from direct and tmux child environments.
+keys or provider/gateway credentials to force a different billing path. The
+runner removes all higher-precedence auth environments and refuses
+`apiKeyHelper` before direct or tmux launch. A subscription rate limit is not
+authority to switch to paid credits; wait for reset unless the user explicitly
+changes the billing scope.
 
 ## Skill And Memory Failures
 
