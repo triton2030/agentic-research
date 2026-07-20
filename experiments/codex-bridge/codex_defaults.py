@@ -71,8 +71,11 @@ SDK_BUNDLE_WARNING = (
 
 # Floor is "low": default turn tools (web_search/image_gen) reject lower
 # efforts at Codex runtime (HTTP 400), so "none"/"minimal" are cut here to fail
-# fast at flag validation. See README "Модель и runtime-доступ".
-REASONING_EFFORTS = ("low", "medium", "high", "xhigh")
+# fast at flag validation. Ceiling is "ultra": accepted end-to-end under
+# ChatGPT-auth (live probe 2026-07-21, sol, completed) — but it needs the
+# venv's locally patched ReasoningEffort enum; a plain SDK reinstall drops the
+# patch and ReasoningEffort("ultra") raises. See README "Модель и runtime-доступ".
+REASONING_EFFORTS = ("low", "medium", "high", "xhigh", "ultra")
 
 REVIEW_SANDBOX = "read_only"
 REVIEW_APPROVAL_MODE = "deny_all"

@@ -128,10 +128,19 @@ Desktop (`/Applications/ChatGPT.app/Contents/Resources/codex`, на 2026-07-10 �
 `codex_bin` + `binary_source` (`chatgpt-app` | `sdk-bundle`) в блоке `codex`
 каждого manifest/result и в stderr-banner (`binary=…`).
 
-Шкала reasoning effort для bridge заканчивается на `xhigh`: живой
-`config.toml` уже использует `ultra`, но wire-схема SDK (enum
-`ReasoningEffort`) его не знает — `ultra` режется pydantic-валидацией даже
-через `config_overrides` (проверено 2026-07-10). Появится в SDK — поднять.
+Шкала reasoning effort для bridge заканчивается на `ultra` (поднято
+2026-07-21): живой пробник — точная копия боевого вызова с `effort=ultra` на
+`gpt-5.6-sol` — вернул `completed` под ChatGPT-auth (движок
+`0.145.0-alpha.18`). Дефолт остаётся `xhigh`; `--effort ultra` — осознанный
+opt-in. Две оговорки: (1) как и у `service_tier`, это ЗАПРОШЕННЫЙ effort —
+применение сервером ledger не доказывает; (2) проходимость держится на
+локальном патче enum `ReasoningEffort` в venv (site-packages, помечен
+`# local patch`): установленный SDK `0.1.0b3` слова `ultra` не знал, патч
+добавлен вручную. Переустановка SDK патч сотрёт и `--effort ultra` начнёт
+падать на валидации; лечение — вернуть строку в enum или перейти на SDK
+>= 0.144.x, где enum открытый (`_missing_` принимает любую строку).
+Историческая заметка: до патча `ultra` резался pydantic-валидацией даже через
+`config_overrides` (проверено 2026-07-10).
 
 Нижний рабочий порог — `low`, и он enforced: `--effort` ниже (`minimal`/`none`)
 отсекается на валидации флагов (`REASONING_EFFORTS` в `codex_defaults.py`).
