@@ -38,6 +38,7 @@ from codex_defaults import (
     DEFAULT_CODEX_EFFORT,
     DEFAULT_CODEX_MODEL,
     DEFAULT_CODEX_SERVICE_TIER,
+    FAST_MODE_CONFIG_OVERRIDES,
     REASONING_EFFORTS,
     REVIEW_APPROVAL_MODE,
     REVIEW_SANDBOX,
@@ -469,7 +470,7 @@ def main() -> int:
     if args.dry_run:
         print(f"[codex-bridge dry-run] транскрипт={transcript_name} "
               f"промпт={len(prompt)} симв. режим={args.mode} "
-              f"model={args.model} effort={args.effort} tier={args.service_tier}"
+              f"model={args.model} effort={args.effort} tier={args.service_tier} "
               f"binary={codex_runtime['binary_source']} "
               f"run_dir={run_dir} "
               f"sandbox={REVIEW_SANDBOX} approval={REVIEW_APPROVAL_MODE}", file=sys.stderr)
@@ -544,7 +545,11 @@ def main() -> int:
         requested_thread_id=args.continue_thread,
     )
 
-    config = CodexConfig(cwd=str(project_cwd), codex_bin=codex_bin)
+    config = CodexConfig(
+        cwd=str(project_cwd),
+        codex_bin=codex_bin,
+        config_overrides=FAST_MODE_CONFIG_OVERRIDES,
+    )
     started_monotonic = time.monotonic()
     heartbeat_stop, heartbeat_thread = start_heartbeat(
         run_dir,

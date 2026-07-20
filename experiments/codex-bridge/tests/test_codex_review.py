@@ -255,6 +255,10 @@ class CodexReviewCliTests(unittest.TestCase):
             self.assertEqual(
                 captured["codex_config"].get("codex_bin"), "/sentinel/chatgpt/codex"
             )
+            self.assertIn(
+                "features.fast_mode=true",
+                captured["codex_config"].get("config_overrides") or (),
+            )
             self.assertIn("REVIEW-OK", buf.getvalue())
         finally:
             sys.argv = saved_argv
@@ -657,6 +661,10 @@ class CodexReviewCliTests(unittest.TestCase):
             self.assertEqual(captured.get("service_tier"), "priority")
             self.assertEqual(
                 captured["codex_config"].get("codex_bin"), "/sentinel/chatgpt/codex"
+            )
+            self.assertIn(
+                "features.fast_mode=true",
+                captured["codex_config"].get("config_overrides") or (),
             )
             self.assertIn("REVIEW-OK", buf.getvalue())
         finally:

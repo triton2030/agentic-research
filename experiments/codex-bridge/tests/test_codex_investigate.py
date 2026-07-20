@@ -35,6 +35,7 @@ def _install_fake_openai_codex(
 
     class _FakeThread:
         def run(self, prompt, **kwargs):  # noqa: ANN001
+            captured["run_kwargs"] = dict(kwargs)
             return types.SimpleNamespace(
                 error=None,
                 status=status,
@@ -114,8 +115,13 @@ class CodexInvestigateSdkContractTests(unittest.TestCase):
             self.assertIs(captured.get("ephemeral"), True)
             self.assertEqual(captured.get("sandbox"), "workspace_write")
             self.assertEqual(captured.get("service_tier"), "priority")
+            self.assertEqual((captured.get("run_kwargs") or {}).get("service_tier"), "priority")
             expected_bin = "/sentinel/chatgpt/codex"
             self.assertEqual(captured["codex_config"].get("codex_bin"), expected_bin)
+            self.assertIn(
+                "features.fast_mode=true",
+                captured["codex_config"].get("config_overrides") or (),
+            )
             self.assertEqual(result["codex"]["codex_bin"], expected_bin)
             self.assertEqual(result["codex"]["binary_source"], "chatgpt-app")
             self.assertEqual(result["codex"]["service_tier"], "priority")

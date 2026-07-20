@@ -11,17 +11,34 @@ DEFAULT_CODEX_MODEL = "gpt-5.6-sol"
 DEFAULT_CODEX_EFFORT = "xhigh"
 
 # Fast mode ("быстрый режим"): ~1.5x speed, ~2.5x credit burn on gpt-5.6. The
-# bridge ALWAYS runs fast — standing rule "умнейшая модель на самом быстром
-# режиме". This MUST be passed explicitly on every thread_start/resume/run: the
-# SDK/app-server path does NOT inherit `service_tier` from ~/.codex/config.toml
-# (open bug openai/codex#26391 "fast mode not working in Automations"; #15853 —
-# the client sends service_tier=None, wiping the config default). "priority" is
-# what the current Codex Desktop engine (0.144+) writes into config.toml when
-# fast mode is ON; verified live 2026-07-20 that both "priority" and "fast" are
-# accepted (completed, not HTTP 400). Rollout/telemetry does NOT record the tier,
-# so the bridge is the only local proof — it logs it to the ledger + stderr
-# banner. Override per run with --service-tier.
+# bridge ALWAYS REQUESTS fast — standing rule "умнейшая модель на самом быстром
+# режиме". Fast has TWO independent switches; the bridge forces BOTH so it does
+# not depend on the user's ~/.codex/config.toml (which drifts — Desktop rewrites
+# it):
+#   1. the request tier — passed on every thread_start/resume/run. Do NOT justify
+#      this with "the SDK does not inherit config": it does. The SDK dumps params
+#      with exclude_none=True (openai_codex/client.py), so service_tier=None is
+#      OMITTED, not sent as null — core then falls back to config.service_tier.
+#      (Issues openai/codex#15853/#26391 are VS Code / Automations, a different
+#      client sending an explicit null — NOT evidence about this Python SDK.) The
+#      real reason to pass it explicitly is independence from config drift.
+#   2. the feature gate — `features.fast_mode`. Core only routes Fast when it is
+#      on; the tier alone is a no-op otherwise. Forced at app-server launch via
+#      FAST_MODE_CONFIG_OVERRIDES below.
+# "priority" is the canonical wire value for Fast on gpt-5.6 — the "fast" alias in
+# the docs normalizes to "priority" in the engine's model catalog; live probe
+# 2026-07-20 accepted both (completed, not HTTP 400). CAVEAT (do not overclaim):
+# the ledger + banner record the REQUESTED tier (built from args before the SDK
+# call) — a self-report of intent, NOT proof the server applied Fast or billed
+# it; that is only visible on the credit dashboard. Override per run with
+# --service-tier.
 DEFAULT_CODEX_SERVICE_TIER = "priority"
+
+# The feature gate for switch #2 above, forced at app-server launch so "always
+# fast" does not depend on the user's config.toml keeping features.fast_mode on.
+# Passed as CodexConfig.config_overrides → `--config` on the app-server process
+# (openai_codex/client.py start()).
+FAST_MODE_CONFIG_OVERRIDES = ("features.fast_mode=true",)
 
 # gpt-5.6-sol requires a newer codex binary than the SDK pins (0.1.0b3 pins
 # codex-cli 0.137.0a4 → HTTP 400 "requires a newer version of Codex"). The

@@ -87,22 +87,34 @@ override.
 ~5 с). Default остаётся `gpt-5.6-sol`: на глубоких одиночных прогонах луной
 не экономить.
 
-Fast mode («быстрый режим») закреплён backend-ом на КАЖДЫЙ turn: bridge шлёт
-`service_tier=priority` явно в `thread_start`/`thread_resume`/`thread.run`
-(флаг `--service-tier` — только для осознанного override). Это НЕ наследуется
-из `~/.codex/config.toml`: в SDK/app-server-контексте тир не подхватывается —
-открытый баг OpenAI (`openai/codex#26391` «fast mode not working in
-Automations»; `#15853` — клиент шлёт `service_tier=None`, затирая config-дефолт).
-Раньше мост полагался на config.toml и молча шёл на standard; теперь всегда
-быстрый. `priority` — то значение, которое текущий движок Codex Desktop
-(0.144+) пишет в config при включённом fast mode; живой пробник 2026-07-20
-принял и `priority`, и `fast` (`completed`, не 400), выбран `priority` под
-живой движок. Даёт ~1.5x скорость под ChatGPT-auth ценой ускоренного расхода
-кредитов (~2.5x у 5.6-моделей) — осознанно: кредиты не жалеем. Rollout и
-телеметрия тир НЕ пишут, поэтому bridge — единственное локальное
-доказательство: `service_tier` фиксируется в блоке `codex` каждого
-manifest/result и в stderr-banner (`tier=…`). Фактическую серверную
-тарификацию можно сверить только по расходу кредитов на дашборде.
+Fast mode («быстрый режим»): backend всегда ЗАПРАШИВАЕТ его на каждый turn,
+форсируя ОБА переключателя fast независимо от `~/.codex/config.toml` (тот
+дрейфует — Desktop его переписывает):
+1. request tier — `service_tier=priority` в `thread_start`/`thread_resume`/
+   `thread.run` (флаг `--service-tier` — только для осознанного override);
+2. feature gate — `features.fast_mode=true` через `config_overrides` при запуске
+   app-server; без него tier — no-op (core не маршрутизирует Fast).
+
+Поправка round-2 (аудит Codex опроверг первую версию): config из SDK-пути ВСЁ
+ЖЕ наследуется — SDK сериализует параметры с `exclude_none=True`, поэтому
+`service_tier=None` опускается (не шлётся как `null`), и core падает на
+`config.service_tier`. Баги `openai/codex#15853`/`#26391` — про VS Code /
+Automations (другой клиент, слал явный `null`), НЕ про этот Python SDK; не
+цитируй их как доказательство. Значит раньше мост НАСЛЕДОВАЛ tier из config, а
+не «молча шёл на standard». Реальная причина слать явно — независимость от
+дрейфа config и закрытие feature gate, не «SDK не наследует».
+
+`priority` — каноническое wire-значение Fast для gpt-5.6 (алиас `fast` из доки
+движок нормализует в `priority` через model catalog); живой пробник 2026-07-20
+принял оба (`completed`, не 400). Даёт ~1.5x скорость под ChatGPT-auth ценой
+~2.5x расхода кредитов у 5.6-моделей — осознанно: кредиты не жалеем.
+
+ГРАНИЦА requested vs applied (не переоценивай доказательство): `service_tier` в
+блоке `codex` каждого manifest/result и в stderr-banner (`tier=…`) строится из
+`args` ДО SDK-вызова — это self-report ЗАПРОШЕННОГО тира («мост попросил»), НЕ
+доказательство, что сервер применил Fast и списал по нему. Rollout/телеметрия
+тир не пишут; фактическое применение и тарификацию видно только по расходу
+кредитов на дашборде.
 
 **Codex binary.** `gpt-5.6-sol` требует более новый движок, чем пинит SDK:
 бандл-бинарь `codex-cli 0.137.0a4` (openai-codex 0.1.0b3) отвечает `HTTP 400 —

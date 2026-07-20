@@ -18,6 +18,7 @@ from codex_defaults import (
     DEFAULT_CODEX_EFFORT,
     DEFAULT_CODEX_MODEL,
     DEFAULT_CODEX_SERVICE_TIER,
+    FAST_MODE_CONFIG_OVERRIDES,
     REASONING_EFFORTS,
     WORKER_APPROVAL_MODE,
     WORKER_SANDBOX,
@@ -172,7 +173,11 @@ async def _run_fleet(
         )
     try:
         async with AsyncCodex(
-            CodexConfig(cwd=defaults["cwd"], codex_bin=defaults["codex_bin"])
+            CodexConfig(
+                cwd=defaults["cwd"],
+                codex_bin=defaults["codex_bin"],
+                config_overrides=FAST_MODE_CONFIG_OVERRIDES,
+            )
         ) as codex:
             return await asyncio.gather(*(_run_one(codex, sem, task, defaults) for task in tasks))
     finally:

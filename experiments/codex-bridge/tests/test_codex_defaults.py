@@ -42,6 +42,13 @@ class ServiceTierDefaultTests(unittest.TestCase):
         # every background run. "priority" = how the current engine encodes fast.
         self.assertEqual(codex_defaults.DEFAULT_CODEX_SERVICE_TIER, "priority")
 
+    def test_fast_mode_feature_gate_forced(self) -> None:
+        # Tier alone is a no-op unless features.fast_mode is on; the bridge must
+        # force the gate so "always fast" does not depend on the user's config.
+        self.assertIn(
+            "features.fast_mode=true", codex_defaults.FAST_MODE_CONFIG_OVERRIDES
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -15,10 +15,13 @@
   API. Любой новый вход (скрипт/режим) обязан звать его первым.
 - **Модель и режим фиксируются backend-ом.** Default для всех Codex turns:
   `model=gpt-5.6-sol`, `effort=xhigh` (Extra High), `service_tier=priority`
-  (быстрый режим). Не полагайся только на `~/.codex/config.toml`: в
-  SDK-контексте тир НЕ наследуется (баг `openai/codex#26391`), поэтому мост
-  шлёт его явно. Если добавляешь новый вход, используй `codex_defaults.py` и
-  передавай model/effort/service_tier в `thread_start` + `thread.run`.
+  (быстрый режим) + `features.fast_mode=true` через `config_overrides`. Мост
+  форсит оба явно ради независимости от дрейфа `~/.codex/config.toml` (config
+  из SDK-пути наследуется — SDK опускает None-параметры, `exclude_none`; но
+  Desktop его переписывает, поэтому не полагайся на него). НЕ цитируй issues
+  `#15853`/`#26391` как «SDK не наследует» — они про другой клиент. Новый вход:
+  используй `codex_defaults.py`, передавай model/effort/service_tier в
+  `thread_start` + `thread_resume` + `thread.run`.
 - **Ревьюер не правит проект.** Codex в `codex_review.py` — всегда
   `Sandbox.read_only` + `ApprovalMode.deny_all`, даже если пользователь просит
   "максимальные" permissions. Сам backend всегда пишет audit ledger в отдельный

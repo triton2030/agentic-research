@@ -46,6 +46,7 @@ def _install_fake_openai_codex(captured: dict) -> list[str]:
 
     class _FakeThread:
         async def run(self, prompt, **kwargs):  # noqa: ANN001
+            captured["run_kwargs"] = dict(kwargs)
             return types.SimpleNamespace(
                 status="completed", error=None, final_response="done", usage=None
             )
@@ -403,6 +404,7 @@ class CodexOrchestrateCliTests(unittest.TestCase):
             self.assertIs(captured.get("ephemeral"), True)
             self.assertEqual(captured.get("sandbox"), "workspace_write")
             self.assertEqual(captured.get("service_tier"), "priority")
+            self.assertEqual((captured.get("run_kwargs") or {}).get("service_tier"), "priority")
             self.assertEqual(record["worker_status"], "completed")
         finally:
             for name in fake_names:
@@ -437,6 +439,10 @@ class CodexOrchestrateCliTests(unittest.TestCase):
             self.assertEqual(results[0]["worker_status"], "completed")
             self.assertEqual(
                 captured["codex_config"].get("codex_bin"), "/fake/chatgpt/codex"
+            )
+            self.assertIn(
+                "features.fast_mode=true",
+                captured["codex_config"].get("config_overrides") or (),
             )
         finally:
             for name in fake_names:
