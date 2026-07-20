@@ -1,146 +1,155 @@
-# Claude Bridge Control
+# Claude Advisor Bridge
 
-Repo-owned control plane for calling Claude Code from Codex. It provides safe
-advisor defaults, current model aliases, resumable named conversations, parallel
-independent advisors, guarded writes, logs/relay, skill-read evidence, and
-restart-tolerant process control.
+This project lets Codex ask Claude for an independent Opus or Fable opinion
+while using the owner's Claude.ai subscription and Claude's native session
+history.
 
-The global Codex MCP name is `claude-mcp`; its server is this project's
-`src/server.js`. The bridge prefers native `~/.local/bin/claude` and never edits
-Claude's skills or settings.
+The product is deliberately small. It is an adapter around Claude Code, not a
+second agent runtime: it owns no durable run registry, conversation database,
+tmux session, event log, report store, relay protocol, worker sandbox, or model
+routing system.
 
-## Current Defaults
+The exact-pinned Claude Agent SDK owns execution, typed events, process cleanup,
+and native session semantics. It is pointed at the owner's installed Claude Code
+executable and uses that executable's Claude.ai login. The bridge adds only the
+Codex-facing MCP seam, a small subscription preflight, request lifetime, and a
+bounded result. There is no provider abstraction or alternate billing route.
 
-- `advisor`: moving `opus` alias, `xhigh` effort, plan mode, no Bash/Edit/Write.
-- `fable-advisor`: `fable`, `xhigh`, same read-only boundary; exceptional hard
-  problems only.
-- `worker`: Opus with auto permissions, exact `writeFiles`, clean-target gate,
-  and Git postflight reporting.
-- `unrestricted`: explicit permission bypass plus Git-footprint observation
-  when available. `normal` and `turbo` are safe advisor compatibility aliases.
+The live cutover and its evidence are tracked in
+[`_ops/plans/bridge-maintainability/claude-ask-cutover/task.md`](_ops/plans/bridge-maintainability/claude-ask-cutover/task.md).
+That Task proves activation; this README owns the supported runtime contract.
 
-`advisor` and `worker` accept only bounded `opus`/`fable` plus effort overrides;
-the permission boundary does not change with the model. Persistent threads keep
-their original profile, model, effort, cwd, worktree, ref, and additional
-`addDir` roots for every turn.
+## Supported Interface
 
-Claude's configured skills, plugins, MCP tools, session persistence, and auto
-memory remain available unless a diagnostic profile disables them. The bridge
-requires a live Claude.ai subscription login and strips higher-precedence API,
-gateway, cloud-provider, and token environments from direct and tmux children.
-It also refuses `apiKeyHelper`, so a shell or settings override cannot silently
-replace the subscription account. Model-family and subagent alias environment
-redirects are stripped as well; settings that reintroduce auth or model
-redirects are refused. Reports retain the primary model history and
-warn if Fable switches to Opus. This proves the credential route. To
-guarantee no out-of-plan charge, also decline API credits when Claude Code
-offers them at the subscription limit.
+The MCP entrypoint is `src/ask-server.js`. It exposes one blocking tool:
+`claude_ask` runs one advisor turn and returns one bounded terminal packet.
 
-Maintainer details and official sources live in
-[`docs/subscription-billing.md`](docs/subscription-billing.md); this runtime
-guard is intentionally outside the task-time Codex skill.
+`claude_ask` accepts:
 
-## Install And Verify
+- a non-empty `prompt`;
+- fixed `opus_advisor` or `fable_advisor` profile;
+- an existing `cwd`;
+- an optional native Claude `session_id` for continuation.
 
-```bash
-npm install
-npm run doctor
-npm run smoke
-```
+The terminal packet contains bounded `text`, native `session_id`, requested and
+resolved models, duration, and warnings. A Fable request that Claude resolves to
+Opus is not a bridge failure, but the resolution must remain visible and the
+bridge must not invent a cause that Claude did not report.
 
-`doctor.ok` and `ready_for_live_runs` require both compatible core CLI flags and
-live Claude.ai subscription OAuth with no detected settings helper. Optional
-controls use live `claude --help` plus non-spending parser probes through
-`claude auth status`; the CLI intentionally omits some supported flags from
-help.
+Claude owns the conversation through `session_id`; this bridge does not persist
+or index it. A resumed session also owns its model, so `requested_model` is
+`null` on continuation. Host cancellation is forwarded through the SDK's
+`AbortController`. External-data approval happens in the Codex host before
+dispatch and is explicitly configured as `prompt`; the host may retain a prior
+authorization instead of showing a new prompt.
 
-The installed Codex skill keeps only task-time references for model prompting,
-Claude subagents/agent teams, managed-run recovery, and failed-call recovery.
-Agent teams remain experimental and are not enabled by normal bridge profiles.
+## Runtime Boundaries
 
-Every read-only run also records a before/after Git-worktree footprint. This can
-detect persistent local mutation during the run, but cannot attribute it when
-other agents share the worktree. It is evidence, not an OS sandbox, and cannot
-observe external-service writes.
+### Local authority
 
-After changing `src/server.js` or its MCP schemas, restart Codex Desktop before
-judging the installed MCP surface. Already-open Codex tasks can retain an older
-server process and tool schema even though the configured file path is current.
-The repo CLI is the controlled fallback during that reload boundary.
+Advisor runs receive broad local access, subject to the permissions that macOS
+and the Claude process actually have. They retain Claude's native tools,
+commands, skills, hooks, and settings so Claude can use Bash and other local
+analysis workflows when useful.
 
-## MCP Tools
+The advisor prompt says to investigate and advise without changing anything.
+That is a behavioral instruction, not an enforced read-only sandbox: a native
+command or tool can write or delete local data if Claude ignores the instruction.
+The owner accepts that residual risk. Do not recreate a pseudo-sandbox with
+folder allowlists, command classification, write detection, hook suppression, or
+tool deny lists; those controls would add code without providing the chosen
+trust boundary. macOS privacy controls remain the real outer boundary.
 
-- run lifecycle: `claude_run`, `claude_peek`, `claude_observe`, `claude_wait`,
-  `claude_result`, `claude_relay`, `claude_kill`
-- conversations: `claude_thread_start`, `claude_thread_send`, `claude_threads`,
-  `claude_thread_archive`
-- capability/evidence: `claude_profiles`, `claude_doctor`,
-  `claude_discover_skills`, `claude_audit_skill`
-- retention: `claude_cleanup_runs`
+### Subscription route
 
-The CLI exposes equivalent `run`, `thread-start`, `thread-send`, `threads`,
-`thread-archive`, lifecycle, audit, doctor, and cleanup commands.
+Every request removes explicit API/provider route variables from the SDK query
+environment and runs `claude auth status` in that same environment. The request
+starts only when the receipt reports a logged-in `claude.ai` / `firstParty`
+subscription. The bridge exposes no API key, provider, base URL, or fallback
+parameter. Native Claude settings remain active and are intentionally not
+scanned; this is personal-tool hygiene, not an adversarial configuration guard.
 
-## Persistent Conversations
+That proves the observed credential route, not the account's Usage credits
+setting. The owner must disable Usage credits in Claude Settings to make
+out-of-plan spend unavailable. Claude exposes no documented machine-readable
+switch for that account state, so the bridge must not invent billing accounting
+or claim to verify it.
+See [`docs/subscription-billing.md`](docs/subscription-billing.md) for the exact
+maintainer checklist and official sources.
 
-`run_id` identifies one process invocation. `thread_id` identifies one Claude
-conversation and can span many runs. Start with `claude_thread_start`, finish the
-turn with `wait`, continue with `claude_thread_send`, and recover handles with
-`claude_threads`. Archiving the bridge handle does not delete Claude's session.
+### Process lifetime
 
-Use absolute `addDir` paths to expose exact read roots outside `cwd`. A thread
-records and inherits that root set on every continuation; `claude_threads`
-shows its canonical roots and Git identities. Continuations cannot replace the
-runtime-owned root manifest, so use a fresh thread when external scope changes.
+Each request has a 30-minute lifetime. The auth preflight is asynchronous; the
+Agent SDK owns its Claude process tree and typed event stream. Timeout, host
+cancellation, and MCP shutdown abort the same query, and terminal success or
+failure is compact. The live regression observes the SDK root plus descendants
+during cancellation and requires all of them to disappear afterward.
 
-Several named threads can run concurrently and remain independently resumable.
-Continuation inherits earlier framing, so use a fresh thread for a blind second
-opinion. Threads also record exact cwd plus Git worktree/common-dir/ref identity;
-cross-process leases serialize turns, and a different branch/worktree must use a
-different thread.
+There is no restart recovery. If the MCP server exits, it cancels its live
+children. Start a new advisor request; reuse a known native `session_id` only
+when the earlier Claude turn completed.
 
-## Guarded Worker
+## Code Owners
 
-`worker` requires a Git worktree and exact paths relative to `cwd`:
+The public surface stays small while independent failure reasons remain local:
 
-```json
-{
-  "profile": "worker",
-  "writeFiles": ["src/auth.js", "test/auth.test.js"]
-}
-```
+| Module | Owns | Must not own |
+| --- | --- | --- |
+| `src/ask-server.js` | the single MCP schema, annotations, host cancellation, shutdown, and transport mapping | Claude policy, execution, durable request state |
+| `src/claude-ask.js` | the deep `askClaude(request, signal)` composition seam and request lifetime | MCP schema or SDK event details |
+| `src/claude-policy.js` | request/cwd/session/profile validation, explicit route-env hygiene, and subscription preflight | settings governance, SDK execution, or result formatting |
+| `src/claude-sdk.js` | the exact Agent SDK query, advisor instruction, native resume, and top-level model evidence | public packet shape or billing policy |
+| `src/claude-result.js` | compact typed failures and the bounded public packet | auth or SDK process ownership |
 
-Dirty target files are rejected before launch. The final report compares Git
-status/fingerprints, ignored paths, live filesystem observations, and HEAD
-movement with the baseline. This detects persistent out-of-scope changes but is
-not an OS sandbox and never auto-reverts files. Guarded tmux runs report
-`unknown` because their filesystem observation cannot be proven complete.
+Do not split files for symmetry and do not merge independently failing request
+policy, SDK execution, transport state, and formatting into a god module. Add
+an abstraction only when current complexity makes the seam real.
 
-## Logs, Relay, And Tail
+## Develop And Verify
 
-Each run writes prompt, profile, command, durable state, stream events,
-stdout/stderr, debug log, final output, and report under ignored `runs/`. These
-artifacts may contain sensitive content.
-
-Agent-facing lifecycle tools use compact wire v2. `wait` returns status rather
-than the cumulative report, `peek`/`observe` return bounded cursor deltas,
-`result` returns a compact acceptance packet, and `relay` returns the final
-answer in bounded chunks. Full command, event, activity, output, and report
-evidence remains in the run directory; CLI `report` is the explicit full-report
-escape hatch for targeted debugging. A wait timeout does not stop Claude; close
-only after a terminal status or an honestly explained orphan.
-
-`useTmux: true` adds a saved, observable terminal session while retaining the
-same logs and exact-session kill behavior. Never broad-kill Claude, tmux, or MCP
-server processes by name.
-
-Cleanup is dry-run by default and skips runs still proved active:
+Install the exact lockfile and run the deterministic contract suite:
 
 ```bash
-node src/cli.js cleanup --days 14
-node src/cli.js cleanup --days 14 --confirm
+npm ci
+npm run ask:test
 ```
 
-`claude_audit_skill` passes only when an exact-path Read event is paired with a
-successful tool result. Claude's self-report alone is `unknown`; a failed Read
-does not pass.
+The local `.npmrc` omits optional packages because the SDK is deliberately
+pointed at the already installed Claude Code executable. A clean install must
+not download the SDK's duplicate native Claude binary.
+
+Run live acceptance only when its subscription usage and local side effects are
+intended:
+
+```bash
+npm run ask:live
+```
+
+The live suite exercises parallel Opus and Fable calls, both native resumes,
+broad cwd/home/system reads, and cancellation with no observed SDK process tail.
+A schema or entrypoint change also requires discovery and one real request from
+a fresh Codex process; an already-open task may retain an old MCP server, schema,
+or authorization state.
+
+Before release, also run syntax and diff checks. Source and installed copies of
+`1claude-mcp` must match, and the Codex MCP configuration must point to
+`src/ask-server.js` with a 30-minute timeout and per-tool
+`approval_mode = "prompt"`.
+
+## Change Rule
+
+Do not add a tool, mode, flag, persistent store, background protocol, or worker
+path because it might be useful later. First record the exact acceptance story
+that fails without it and prove the failure with the current adapter. Prefer a
+smaller repair inside an existing owner.
+
+Before writing a wrapper, check the current official Claude Code, Agent SDK,
+Codex, and MCP documentation plus the installed runtime. Claude already owns
+native sessions, resume, typed SDK events, background agents (`--bg`), agent
+monitoring, logs, stop/respawn, worktrees, permissions, and MCP isolation. If a
+future story genuinely needs one of those capabilities, adapt the native owner
+instead of recreating its state machine here.
+
+The former control plane and handwritten CLI stream/process implementation are
+not supported rollback paths. Git owns source rollback; ignored historical
+`runs/` remain local evidence, not active runtime truth.

@@ -1,20 +1,16 @@
 {
-  "name": "claude-bridge-control",
+  "name": "claude-advisor-bridge",
   "version": "0.3.0",
   "private": true,
   "type": "module",
-  "description": "Repo-contained Claude Code runner and MCP bridge prototype for Codex.",
-  "bin": {
-    "claude-bridge": "./src/cli.js",
-    "claude-bridge-mcp": "./src/server.js"
-  },
+  "description": "One-tool Claude Agent SDK advisor bridge for Codex.",
   "scripts": {
-    "doctor": "node ./src/cli.js doctor",
-    "profiles": "node ./src/cli.js profiles",
-    "smoke": "node ./test/smoke.js",
-    "mcp": "node ./src/server.js"
+    "ask:mcp": "node ./src/ask-server.js",
+    "ask:live": "node ./test/live-claude-ask.js",
+    "ask:test": "NODE_ENV=test node --test ./test/claude-ask.test.js"
   },
   "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "0.3.215",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "zod": "^4.4.1"
   },

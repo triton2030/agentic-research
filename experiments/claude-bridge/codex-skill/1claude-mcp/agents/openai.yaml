@@ -1,13 +1,13 @@
 interface:
-  display_name: "Claude MCP"
-  short_description: "Independent Claude reviews and second opinions"
-  default_prompt: "Use $1claude-mcp to get an independent Claude, Opus, or Fable perspective through the managed bridge and return a compact evidence-backed verdict."
+  display_name: "Claude Advisor"
+  short_description: "Independent Claude review or second opinion"
+  default_prompt: "Use $1claude-mcp to get a compact independent Claude perspective on this decision."
 
 dependencies:
   tools:
     - type: "mcp"
       value: "claude-mcp"
-      description: "Managed Claude Code bridge"
+      description: "Subscription-backed native Claude advisor"
 
 policy:
   allow_implicit_invocation: true

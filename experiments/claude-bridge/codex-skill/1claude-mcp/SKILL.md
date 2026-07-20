@@ -1,123 +1,89 @@
 ---
 name: 1claude-mcp
 description: >-
-  Когда нужно независимое ревью, второе мнение или совет от принципиально другой
-  модели, либо пользователь прямо просит Claude, Opus или Fable: используй
-  managed Claude Bridge. Native Codex fresh eyes → `1fresh-eyes`.
+  Когда нужен независимый review, second opinion или совет принципиально другой
+  model family — либо пользователь просит Claude, Opus или Fable — вызови Claude
+  advisor. Native Codex fresh eyes → `1fresh-eyes`.
 ---
 
-# Claude MCP
+# Claude Advisor
 
-Use Claude for a genuinely different model-family perspective, a retained
-Claude specialist, or explicitly authorized Claude-side work. Always use the
-managed bridge, never a raw `claude` subprocess. Codex owns scope, synthesis,
-user communication, and acceptance; Claude's answer is evidence, not a verdict.
+## Outcome
 
-## Default Route
+Получить один компактный, evidence-backed взгляд Claude через managed
+`claude_ask`. Codex остаётся owner scope, проверки, синтеза и ответа
+пользователю; Claude — внешний советник, не acceptance owner. Никогда не запускай
+сырой `claude` subprocess и не восстанавливай старые run/thread/tmux tools.
 
-- One review or answer: `claude_run(profile: "advisor")` on `opus`.
-- Retained specialist: `claude_thread_start`, then `claude_thread_send`.
-- Independent opinions: separate fresh named threads, which may run in parallel.
-- Exceptional hardest/longest judgment: `fable-advisor`, normally a thread.
-- Authorized edits: `worker` plus exact project-relative `writeFiles`.
-- Long terminal work: add `useTmux: true`.
+## Default Path
 
-Use native Codex subagents for ordinary Codex delegation. Use `unrestricted`
-only with explicit broad execution/write authority.
+1. Выбери `opus_advisor` по умолчанию. `fable_advisor` оставь для самых сложных
+   long-horizon, multi-system или high-stakes решений.
+2. Передай реальный project/worktree `cwd` и короткий self-contained prompt:
+   outcome, текущий claim/decision, точные sources, material boundaries,
+   требуемое evidence, output и stop condition. Не копируй сырой chat dump.
+3. Вызови один blocking `claude_ask`. Он может работать несколько минут;
+   продолжай тот же host call, не запускай параллельный retry или polling.
+4. Прочитай `requested_model`, `resolved_model`, `warnings` и `session_id`.
+   Fable → Opus — успешное изменение model resolution, если оно явно видно в
+   result; не выдумывай причину.
+5. Проверь существенные claims локально и синтезируй ответ как мнение Claude,
+   а не как собственный доказанный verdict.
 
-Every start validates Claude.ai subscription auth and refuses an unsafe route.
-Use `claude_doctor` only for setup, auth, model, or CLI compatibility failures.
-
-## Brief Claude
-
-Pass the current decision state and exact owner sources, not a raw chat dump:
+Рабочая форма brief:
 
 ```xml
 <role>External role and authority.</role>
 <task>Exact deliverable and stop condition.</task>
-<claim>Plan, diff, conclusion, or risk to challenge.</claim>
-<sources>Exact files, logs, URLs, cwd, or addDir roots.</sources>
-<boundaries>Read/write/tools authority and must-not actions.</boundaries>
-<evidence>Required evidence; separate verified fact from inference.</evidence>
-<output>Verdict first; compact decision handoff, optional evidence appendix.</output>
+<claim>Decision, plan, diff, or risk to challenge.</claim>
+<sources>Exact local paths or public URLs to inspect.</sources>
+<boundaries>Investigate/do-not-modify instruction and accepted native authority.</boundaries>
+<evidence>Required facts, gaps, and uncertainty.</evidence>
+<output>Verdict first; compact handoff.</output>
 ```
 
-State the intent behind material constraints and facts Claude must not invent.
-Ask for findings, evidence, uncertainty, and a direct verdict, never private
-reasoning. Default to about 1200 words unless the user needs a long deliverable;
-put optional depth after `## Evidence appendix` for selective relay.
+## Sessions, Paths, And Skills
 
-Use `cwd` for the main project or worktree. For exact sources outside it, pass
-their absolute directory roots through `addDir` and name the exact files in
-`<sources>`; do not copy, anonymize, or omit owners merely because they live in
-another folder. Use cross-folder `addDir` only with read-only advisor profiles;
-for writes, choose the authorized worktree as `cwd`. Persistent threads inherit
-their starting root manifest. Start a fresh thread when that scope changes.
+- Продолжай полезный разговор, передавая returned `session_id` и тот же `cwd`.
+  Для blind review, другой ветки/проекта или независимого мнения начни fresh call
+  без `session_id`.
+- Несколько Codex agents могут параллельно держать отдельные Claude sessions:
+  не переиспользуй чужой UUID; каждый caller хранит собственный `session_id`.
+- Ручной `add_dirs` не нужен. Advisor может читать любой OS-accessible локальный
+  путь; macOS privacy permissions всё ещё могут закрыть Desktop/Documents/другие
+  protected zones.
+- Claude сохраняет native tools, Bash/Edit/Write, settings, skills, hooks и MCP.
+  Bridge сам добавляет поведенческую инструкцию исследовать и не менять state,
+  но технического read-only sandbox нет: остаточный риск записи/удаления принят
+  owner-ом для personal-local advisor.
+- Когда outcome зависит от конкретного Claude skill, прямо попроси вызвать его;
+  финальный self-report сам по себе не является structured tool-event proof.
 
-## Models And Threads
+## External And Billing Boundaries
 
-`advisor` is the normal read-only Opus route. Reserve fixed read-only
-`fable-advisor` at `xhigh` for capability-sensitive long-horizon judgment.
-Inspect `resolved_model_history` and `resolved_model`: a Fable request may end
-on Opus after a classifier fallback, and a missing identity is unknown.
+`claude_ask` честно помечен `openWorld`: named local material будет отправлено в
+Anthropic Claude service. Если host требует отдельное external-data approval,
+назови точный scope и продолжай только после подтверждения пользователя. Не
+анонимизируй owners и не обходи gate. Cancellation до dispatch означает, что
+Claude run не стартовал; это не timeout Bridge.
 
-Keep every `thread_id`/`run_id` pair separate and always pass the current `cwd`.
-A thread is bound to its UUID, profile, model, effort, cwd, `addDir` roots, Git
-worktree, and ref. Continue only when inherited context is useful; start fresh
-for a blind review, disagreement, new role, branch/worktree, root scope, or
-model policy.
+Bridge удаляет уже присутствующие явные API/provider route env vars и в том же
+environment требует `claude.ai` / `firstParty` subscription auth. Он не сканирует
+native settings как hostile config и не имеет API/provider fallback. Не
+подставляй key/token/base URL и не меняй billing route ради восстановления.
+Детали account setup и Usage credits читай в owner-файле
+[`subscription-billing.md`](/Users/triton/Documents/GitHub/agentic-research/experiments/claude-bridge/docs/subscription-billing.md)
+только при auth/billing diagnosis — не загружай его в обычный advisor call.
 
-Use these references only for the named non-routine branch:
+## Conditional Routes And Stop
 
-- [current-model-routing.md](references/current-model-routing.md) — model-policy
-  changes or routing diagnosis;
-- [fable-agent-prompting.md](references/fable-agent-prompting.md) — unusually
-  long Fable work, delegation, refusal, or fallback;
-- [opus-agent-prompting.md](references/opus-agent-prompting.md) — tuning Opus
-  effort or delegation beyond the default brief.
+- Необычно сложный Fable brief или fallback →
+  [fable-agent-prompting.md](references/fable-agent-prompting.md).
+- Тонкая настройка обычного Opus review →
+  [opus-agent-prompting.md](references/opus-agent-prompting.md).
+- Tool missing/stale, approval, auth, malformed output или cancellation →
+  [mcp-failure-handling.md](references/mcp-failure-handling.md).
 
-## Authority And Claude-Side Capabilities
-
-`worker` requires a Git worktree, clean targets, and exact `writeFiles`. Its
-terminal check proves only the detected persistent footprint stayed in scope;
-it is not an OS sandbox and never auto-reverts. Read-only runs also flag a
-persistent worktree change, but attribution is unknown in a shared worktree.
-Inspect warnings and the final diff before accepting edits.
-
-Claude's configured skills, plugins, MCP tools, and auto memory remain available
-unless a diagnostic profile disables them. Use `claude_audit_skill` only when
-exact structured Read evidence matters; self-report is not read proof.
-
-Claude-internal subagents belong to one Claude lead and do not create independent
-Codex-owned opinions. Define them only for valuable independent fan-out, with a
-self-contained deliverable and read/write/tool boundary. Read
-[claude-agent-orchestration.md](references/claude-agent-orchestration.md) before
-using supplied `agents`, nesting, or experimental teams.
-
-## Finish Or Recover
-
-Start one long `claude_wait`. If the host returns a continuation/session handle,
-continue that same host call rather than launching another bridge wait. Observe
-only when progress matters, passing that consumer's previous `next_cursor`.
-A timeout does not stop Claude.
-
-The terminal wait is the acceptance packet. Use `claude_result` only after
-restart, compaction, or a lost wait. Read the answer once through
-`claude_relay`; follow `next_cursor` only when the remainder matters. Do not open
-the full report/output by default; inspect targeted evidence for warnings,
-failure, model switching, or write-scope acceptance.
-
-Close only at `completed`, legacy `completed_unknown`, `failed`, `killed`, or a
-safely explained `orphaned`. `completed_unknown` permits relay but is not
-verified success. Kill only the saved run/process/tmux session, never by broad
-process name.
-
-If a call is rejected before it returns `run_id`, the bridge never started. Do
-not call that a bridge failure or silently weaken the task; preserve the exact
-sources and follow the external-data approval branch below.
-
-Read [managed-runs-and-relay.md](references/managed-runs-and-relay.md) only for
-orphan recovery, legacy state, cleanup, or lifecycle debugging. If MCP is absent
-or stale, use the repo-controlled CLI once; never raw Claude. Read
-[mcp-failure-handling.md](references/mcp-failure-handling.md) only after a
-managed call fails, and stop if neither controlled surface can prove a live tail.
+Stop после одного bounded result и локальной проверки нужных claims. Если tool
+не виден, уже открытая Codex task может держать старую MCP schema: проверь в
+fresh task. Не объявляй Claude review выполненным без terminal result.
