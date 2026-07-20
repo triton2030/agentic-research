@@ -1,89 +1,66 @@
 ---
 name: 1claude-mcp
 description: >-
-  Когда нужен независимый review, second opinion или совет принципиально другой
-  model family — либо пользователь просит Claude, Opus или Fable — вызови Claude
-  advisor. Native Codex fresh eyes → `1fresh-eyes`.
+  Когда нужно независимое ревью, второе мнение или совет другой model family —
+  либо явный вызов Claude, Opus или Fable — вызови advisor. Не для вопросов о
+  Claude; native Codex review → `1fresh-eyes`.
 ---
 
 # Claude Advisor
 
 ## Outcome
 
-Получить один компактный, evidence-backed взгляд Claude через managed
-`claude_ask`. Codex остаётся owner scope, проверки, синтеза и ответа
-пользователю; Claude — внешний советник, не acceptance owner. Никогда не запускай
-сырой `claude` subprocess и не восстанавливай старые run/thread/tmux tools.
+Получить один компактный evidence-backed взгляд Claude через `claude_ask`.
+Codex остаётся owner scope, проверки, синтеза и ответа пользователю; Claude —
+внешний советник, не acceptance owner.
 
 ## Default Path
 
 1. Выбери `opus_advisor` по умолчанию. `fable_advisor` оставь для самых сложных
    long-horizon, multi-system или high-stakes решений.
-2. Передай реальный project/worktree `cwd` и короткий self-contained prompt:
-   outcome, текущий claim/decision, точные sources, material boundaries,
-   требуемое evidence, output и stop condition. Не копируй сырой chat dump.
+2. Передай реальный project/worktree `cwd` и короткий self-contained brief:
+   outcome; claim/decision; точные paths или URLs; material boundaries; evidence
+   bar; compact verdict-first output; stop condition. Не копируй сырой chat dump.
 3. Вызови один blocking `claude_ask`. Он может работать несколько минут;
-   продолжай тот же host call, не запускай параллельный retry или polling.
+   продолжай тот же host call, не запускай polling или параллельный retry.
 4. Прочитай `requested_model`, `resolved_model`, `warnings` и `session_id`.
    Fable → Opus — успешное изменение model resolution, если оно явно видно в
    result; не выдумывай причину.
 5. Проверь существенные claims локально и синтезируй ответ как мнение Claude,
    а не как собственный доказанный verdict.
 
-Рабочая форма brief:
-
-```xml
-<role>External role and authority.</role>
-<task>Exact deliverable and stop condition.</task>
-<claim>Decision, plan, diff, or risk to challenge.</claim>
-<sources>Exact local paths or public URLs to inspect.</sources>
-<boundaries>Investigate/do-not-modify instruction and accepted native authority.</boundaries>
-<evidence>Required facts, gaps, and uncertainty.</evidence>
-<output>Verdict first; compact handoff.</output>
-```
-
 ## Sessions, Paths, And Skills
 
-- Продолжай полезный разговор, передавая returned `session_id` и тот же `cwd`.
-  Для blind review, другой ветки/проекта или независимого мнения начни fresh call
-  без `session_id`.
+- Продолжай полезный разговор через returned `session_id` и тот же `cwd`.
+  Native session сохраняет свою модель: resume profile её не переключает. Для
+  blind review, другой ветки/проекта или нового frame начни fresh call.
 - Несколько Codex agents могут параллельно держать отдельные Claude sessions:
   не переиспользуй чужой UUID; каждый caller хранит собственный `session_id`.
-- Ручной `add_dirs` не нужен. Advisor может читать любой OS-accessible локальный
-  путь; macOS privacy permissions всё ещё могут закрыть Desktop/Documents/другие
-  protected zones.
-- Claude сохраняет native tools, Bash/Edit/Write, settings, skills, hooks и MCP.
-  Bridge сам добавляет поведенческую инструкцию исследовать и не менять state,
-  но технического read-only sandbox нет: остаточный риск записи/удаления принят
-  owner-ом для personal-local advisor.
+- Ручной `add_dirs` не нужен. Claude сохраняет native tools, Bash/Edit/Write,
+  settings, skills, hooks, MCP и доступ к любому OS-accessible пути. Инструкция
+  исследовать и не менять state — поведенческая, не read-only sandbox.
 - Когда outcome зависит от конкретного Claude skill, прямо попроси вызвать его;
   финальный self-report сам по себе не является structured tool-event proof.
 
 ## External And Billing Boundaries
 
-`claude_ask` честно помечен `openWorld`: named local material будет отправлено в
-Anthropic Claude service. Если host требует отдельное external-data approval,
-назови точный scope и продолжай только после подтверждения пользователя. Не
-анонимизируй owners и не обходи gate. Cancellation до dispatch означает, что
-Claude run не стартовал; это не timeout Bridge.
+`claude_ask` отправляет переданный prompt и прочитанный material в Anthropic.
+Следуй host approval; не обходи его, но и не изобретай дополнительный запрет на
+локальные/project files после разрешения scope.
 
-Bridge удаляет уже присутствующие явные API/provider route env vars и в том же
-environment требует `claude.ai` / `firstParty` subscription auth. Он не сканирует
-native settings как hostile config и не имеет API/provider fallback. Не
-подставляй key/token/base URL и не меняй billing route ради восстановления.
-Детали account setup и Usage credits читай в owner-файле
+Не подставляй API key/token/provider/base URL ради recovery. При auth или billing
+ошибке читай единственный owner-файл
 [`subscription-billing.md`](/Users/triton/Documents/GitHub/agentic-research/experiments/claude-bridge/docs/subscription-billing.md)
-только при auth/billing diagnosis — не загружай его в обычный advisor call.
+— не загружай его в обычный advisor call.
 
 ## Conditional Routes And Stop
 
-- Необычно сложный Fable brief или fallback →
+- Сложный Fable brief или model-resolution mismatch →
   [fable-agent-prompting.md](references/fable-agent-prompting.md).
-- Тонкая настройка обычного Opus review →
+- Когда качество Opus review зависит от роли, sources или output shape →
   [opus-agent-prompting.md](references/opus-agent-prompting.md).
 - Tool missing/stale, approval, auth, malformed output или cancellation →
   [mcp-failure-handling.md](references/mcp-failure-handling.md).
 
-Stop после одного bounded result и локальной проверки нужных claims. Если tool
-не виден, уже открытая Codex task может держать старую MCP schema: проверь в
-fresh task. Не объявляй Claude review выполненным без terminal result.
+Stop после одного bounded result и локальной проверки material claims. Не
+объявляй Claude review выполненным без terminal result.
