@@ -13,13 +13,16 @@
 - **Биллинг через аккаунт.** `cbcommon.scrub_billing_env()` вызывается ДО запуска
   любого codex-процесса. Не убирай и не обходи — это защита от ухода на платный
   API. Любой новый вход (скрипт/режим) обязан звать его первым.
-- **Модель фиксируется backend-ом.** Default для всех Codex turns:
-  `model=gpt-5.6-sol`, `effort=xhigh` (Extra High). Не полагайся только на
-  `~/.codex/config.toml`; если добавляешь новый вход, используй
-  `codex_defaults.py` и передавай model/effort в `thread.run`.
-- **Ревьюер писать не должен.** `codex_review.py` — всегда `Sandbox.read_only` +
-  `ApprovalMode.deny_all`, даже если пользователь просит "максимальные"
-  permissions.
+- **Модель и режим фиксируются backend-ом.** Default для всех Codex turns:
+  `model=gpt-5.6-sol`, `effort=xhigh` (Extra High), `service_tier=priority`
+  (быстрый режим). Не полагайся только на `~/.codex/config.toml`: в
+  SDK-контексте тир НЕ наследуется (баг `openai/codex#26391`), поэтому мост
+  шлёт его явно. Если добавляешь новый вход, используй `codex_defaults.py` и
+  передавай model/effort/service_tier в `thread_start` + `thread.run`.
+- **Ревьюер не правит проект.** Codex в `codex_review.py` — всегда
+  `Sandbox.read_only` + `ApprovalMode.deny_all`, даже если пользователь просит
+  "максимальные" permissions. Сам backend всегда пишет audit ledger в отдельный
+  `run_dir`; это служебный след, а не правка Codex.
 - **Исследователь пишет только себе.** `codex_investigate.py` —
   `Sandbox.workspace_write` c cwd=`run_dir/out`; писать в проект запрещено
   sandbox-ом (не постфактум-чеком). Не переводи cwd на корень проекта и не давай
@@ -52,6 +55,10 @@
   `Sandbox.full_access` default-ом: изменения вне project/git scope нельзя
   честно проверить postflight allowlist. Shared worktree не доказывает
   per-worker attribution; worktree isolation остаётся Stage 2.
+- **Успех turn-а точный.** Для review / investigate / worker только SDK-статус
+  `completed` при отсутствии `error` означает успех. `interrupted`,
+  `inProgress` и любой неизвестный статус — `ok=false` + ненулевой exit code;
+  не восстанавливай успех по наличию partial response.
 
 ## Карта файлов
 

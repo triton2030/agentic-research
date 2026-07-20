@@ -17,6 +17,7 @@ from codex_defaults import (
     BRIDGE_THREAD_EPHEMERAL,
     DEFAULT_CODEX_EFFORT,
     DEFAULT_CODEX_MODEL,
+    DEFAULT_CODEX_SERVICE_TIER,
     REASONING_EFFORTS,
     WORKER_APPROVAL_MODE,
     WORKER_SANDBOX,
@@ -82,6 +83,7 @@ async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict
                 sandbox=Sandbox.workspace_write,
                 approval_mode=ApprovalMode.auto_review,
                 model=defaults["model"],
+                service_tier=defaults["service_tier"],
                 ephemeral=BRIDGE_THREAD_EPHEMERAL,
             )
             result = await thread.run(
@@ -89,6 +91,7 @@ async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict
                 approval_mode=ApprovalMode.auto_review,
                 effort=effort,
                 model=defaults["model"],
+                service_tier=defaults["service_tier"],
                 sandbox=Sandbox.workspace_write,
             )
             duration_ms = int((time.monotonic() - t0) * 1000)
@@ -291,8 +294,17 @@ def main() -> int:
         default=DEFAULT_CODEX_EFFORT,
         help=f"Reasoning effort for every Codex turn. Default: {DEFAULT_CODEX_EFFORT}.",
     )
+    parser.add_argument(
+        "--service-tier",
+        default=DEFAULT_CODEX_SERVICE_TIER,
+        help=f"Codex service tier — fast mode for every worker (default: {DEFAULT_CODEX_SERVICE_TIER}). "
+        "Sent explicitly per turn: config.toml is not inherited in the SDK path.",
+    )
     parser.add_argument("--verify", action="append", default=[], help="Verification command to run after workers and scope check.")
-    parser.add_argument("--run-dir", help="Ledger directory override (default: experiments/codex-bridge/runs/<run_id>).")
+    parser.add_argument(
+        "--run-dir",
+        help="Ledger directory override (default: <project>/_workspace/codex-artifacts/<run_id>).",
+    )
     parser.add_argument("--allow-dirty-overlap", action="store_true", help="Allow launch when existing dirty files overlap task files.")
     parser.add_argument("--summary-stdout", action="store_true", help="Print compact JSON to stdout; full results stay in result.json/results.jsonl.")
     parser.add_argument("--heartbeat-sec", type=int, default=120, help="Seconds between ledger heartbeat events while Codex workers run; 0 disables.")
@@ -325,6 +337,7 @@ def main() -> int:
         codex_runtime = {
             "model": args.model,
             "effort": args.effort,
+            "service_tier": args.service_tier,
             "codex_bin": codex_bin,
             "binary_source": codex_bin_source(codex_bin),
             "worker_sandbox": WORKER_SANDBOX,
@@ -382,7 +395,7 @@ def main() -> int:
     removed = scrub_billing_env()
     print(
         f"[orch] старт: {len(tasks)} задач, лимит {args.concurrency}, project={project}, "
-        f"run_dir={run_dir}, model={args.model}, effort={args.effort}, "
+        f"run_dir={run_dir}, model={args.model}, effort={args.effort}, tier={args.service_tier}, "
         f"binary={codex_runtime['binary_source']}, "
         f"sandbox={WORKER_SANDBOX}, approval={WORKER_APPROVAL_MODE}"
         + (f" | вырезано из env: {', '.join(removed)}" if removed else " | env чист"),
@@ -394,6 +407,7 @@ def main() -> int:
         "cwd": str(project),
         "model": args.model,
         "effort": args.effort,
+        "service_tier": args.service_tier,
         "run_dir": run_dir,
         "codex_bin": codex_bin,
     }

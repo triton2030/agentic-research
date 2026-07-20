@@ -16,7 +16,11 @@ BACKEND = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(BACKEND))
 
 
-def _install_fake_openai_codex(captured: dict) -> list[str]:
+def _install_fake_openai_codex(
+    captured: dict,
+    *,
+    status: str = "completed",
+) -> list[str]:
     """Stub `openai_codex` in sys.modules so main()'s lazy SDK import resolves to
     a fake that records thread_start/CodexConfig kwargs instead of launching a
     real Codex."""
@@ -33,7 +37,7 @@ def _install_fake_openai_codex(captured: dict) -> list[str]:
         def run(self, prompt, **kwargs):  # noqa: ANN001
             return types.SimpleNamespace(
                 error=None,
-                status="completed",
+                status=status,
                 usage=None,
                 duration_ms=5,
                 final_response="INVESTIGATE-OK",
@@ -109,10 +113,12 @@ class CodexInvestigateSdkContractTests(unittest.TestCase):
             self.assertEqual(rc, 0)
             self.assertIs(captured.get("ephemeral"), True)
             self.assertEqual(captured.get("sandbox"), "workspace_write")
+            self.assertEqual(captured.get("service_tier"), "priority")
             expected_bin = "/sentinel/chatgpt/codex"
             self.assertEqual(captured["codex_config"].get("codex_bin"), expected_bin)
             self.assertEqual(result["codex"]["codex_bin"], expected_bin)
             self.assertEqual(result["codex"]["binary_source"], "chatgpt-app")
+            self.assertEqual(result["codex"]["service_tier"], "priority")
             self.assertIn("INVESTIGATE-OK", buf.getvalue())
         finally:
             sys.argv = saved_argv
@@ -123,6 +129,47 @@ class CodexInvestigateSdkContractTests(unittest.TestCase):
                     os.environ.pop(key, None)
                 else:
                     os.environ[key] = value
+
+    def test_in_progress_turn_is_failed_and_returns_nonzero(self) -> None:
+        import codex_investigate
+
+        captured: dict = {}
+        fake_names = _install_fake_openai_codex(captured, status="inProgress")
+        saved_argv = sys.argv[:]
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp).resolve()
+                sys.argv = [
+                    "codex_investigate.py",
+                    "--task",
+                    "изучи статус",
+                    "--project",
+                    str(root),
+                    "--heartbeat-sec",
+                    "0",
+                    "--summary-stdout",
+                ]
+                out = io.StringIO()
+                with contextlib.redirect_stdout(out), contextlib.redirect_stderr(
+                    io.StringIO()
+                ), mock.patch.object(
+                    codex_investigate,
+                    "resolve_codex_bin",
+                    return_value="/sentinel/chatgpt/codex",
+                ):
+                    rc = codex_investigate.main()
+                payload = json.loads(out.getvalue())
+                full = json.loads(Path(payload["paths"]["result"]).read_text())
+                events = Path(payload["paths"]["events"]).read_text()
+            self.assertEqual(rc, 1)
+            self.assertEqual(payload["status"], "inProgress")
+            self.assertFalse(payload["ok"])
+            self.assertIn("did not complete", full["error"])
+            self.assertIn('"event": "failed"', events)
+        finally:
+            sys.argv = saved_argv
+            for name in fake_names:
+                sys.modules.pop(name, None)
 
 
 if __name__ == "__main__":

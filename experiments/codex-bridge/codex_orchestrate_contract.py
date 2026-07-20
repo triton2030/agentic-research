@@ -36,10 +36,13 @@ def codex_status_value(status: Any) -> str:
     return str(status)
 
 
+def codex_turn_completed(status: Any, error: Any) -> bool:
+    """Only an explicit completed status is a successful Codex turn."""
+    return not error and codex_status_value(status) == COMPLETED_CODEX_STATUS
+
+
 def worker_status_from_codex_status(status: Any, error: Any) -> str:
-    if error:
-        return "failed"
-    return "completed" if codex_status_value(status) == COMPLETED_CODEX_STATUS else "failed"
+    return "completed" if codex_turn_completed(status, error) else "failed"
 
 
 def paths_overlap(left: str, right: str) -> bool:

@@ -30,6 +30,7 @@ from codex_defaults import (
     BRIDGE_THREAD_EPHEMERAL,
     DEFAULT_CODEX_EFFORT,
     DEFAULT_CODEX_MODEL,
+    DEFAULT_CODEX_SERVICE_TIER,
     INVESTIGATE_APPROVAL_MODE,
     INVESTIGATE_SANDBOX,
     REASONING_EFFORTS,
@@ -37,7 +38,11 @@ from codex_defaults import (
     codex_bin_source,
     resolve_codex_bin,
 )
-from codex_orchestrate_contract import UsageError, codex_status_value
+from codex_orchestrate_contract import (
+    UsageError,
+    codex_status_value,
+    codex_turn_completed,
+)
 from codex_orchestrate_state import (
     append_event,
     capture_git_snapshot,
@@ -136,6 +141,12 @@ def main() -> int:
         default=DEFAULT_CODEX_EFFORT,
         help=f"Reasoning effort для Codex turn (default: {DEFAULT_CODEX_EFFORT}).",
     )
+    parser.add_argument(
+        "--service-tier",
+        default=DEFAULT_CODEX_SERVICE_TIER,
+        help=f"Codex service tier — быстрый режим (default: {DEFAULT_CODEX_SERVICE_TIER}). "
+        "Мост шлёт его явно в каждый turn: config.toml в SDK-контексте не наследуется.",
+    )
     parser.add_argument("--run-dir", help="Fresh ledger directory. out/ создаётся внутри как writable scratch.")
     parser.add_argument("--summary-stdout", action="store_true", help="Компактный JSON в stdout; полный ответ — на диске.")
     parser.add_argument("--heartbeat-sec", type=int, default=120, help="Секунды между heartbeat-событиями; 0 отключает.")
@@ -173,6 +184,7 @@ def main() -> int:
     codex_runtime = {
         "model": args.model,
         "effort": args.effort,
+        "service_tier": args.service_tier,
         "codex_bin": codex_bin,
         "binary_source": codex_bin_source(codex_bin),
         "thread_ephemeral": BRIDGE_THREAD_EPHEMERAL,
@@ -199,7 +211,7 @@ def main() -> int:
     if args.dry_run:
         print(
             f"[codex-bridge] DRY-RUN investigate project={project_cwd} out={out_dir} "
-            f"model={args.model} effort={args.effort} "
+            f"model={args.model} effort={args.effort} tier={args.service_tier}"
             f"binary={codex_runtime['binary_source']} "
             f"sandbox={INVESTIGATE_SANDBOX} approval={INVESTIGATE_APPROVAL_MODE}"
             + (f" | вырезаны из env: {', '.join(removed)}" if removed else " | env чист"),
@@ -233,7 +245,7 @@ def main() -> int:
 
     print(
         f"[codex-bridge] profile=investigate project={project_cwd} out={out_dir} "
-        f"model={args.model} effort={args.effort} "
+        f"model={args.model} effort={args.effort} tier={args.service_tier} "
         f"binary={codex_runtime['binary_source']} "
         f"sandbox={INVESTIGATE_SANDBOX} approval={INVESTIGATE_APPROVAL_MODE}"
         + (f" | вырезаны из env: {', '.join(removed)}" if removed else " | env чист"),
@@ -257,12 +269,14 @@ def main() -> int:
                 sandbox=Sandbox.workspace_write,
                 approval_mode=ApprovalMode.deny_all,
                 model=args.model,
+                service_tier=args.service_tier,
                 ephemeral=BRIDGE_THREAD_EPHEMERAL,
             )
             result = thread.run(
                 prompt,
                 model=args.model,
                 effort=ReasoningEffort(args.effort),
+                service_tier=args.service_tier,
                 sandbox=Sandbox.workspace_write,
                 approval_mode=ApprovalMode.deny_all,
             )
@@ -365,11 +379,17 @@ def main() -> int:
         file=sys.stderr,
     )
 
-    # Fail-closed: scope=failed означает, что проект всё-таки изменился вне
-    # области investigator'а — это тревога, а не успех, даже если Codex завершил
-    # turn. not_checked (нет git) успех не роняет: гарантию несёт sandbox, scope —
+    # Fail-closed по двум независимым осям: turn считается успешным только при
+    # точном completed, а scope=failed означает запись вне области investigator.
+    # not_checked (нет git) успех не роняет: гарантию несёт sandbox, scope —
     # лишь второе доказательство.
-    ok = scope_status != "failed"
+    completed = codex_turn_completed(status, None)
+    ok = completed and scope_status != "failed"
+    failure_reasons: list[str] = []
+    if not completed:
+        failure_reasons.append(f"Codex turn did not complete (status={status}).")
+    if scope_status == "failed":
+        failure_reasons.append("Investigator changed project scope.")
     payload = {
         "run_id": run_id,
         "run_dir": str(run_dir),
@@ -387,12 +407,24 @@ def main() -> int:
         "prompt_chars": len(prompt),
         "final_response": final_response,
     }
+    if failure_reasons:
+        payload["error"] = " ".join(failure_reasons)
     write_json(run_dir / "result.json", payload)
-    append_event(run_dir, "done", status=status, ok=ok, scope_status=scope_status)
+    append_event(
+        run_dir,
+        "done" if ok else "failed",
+        status=status,
+        ok=ok,
+        scope_status=scope_status,
+        **({"error": payload["error"]} if failure_reasons else {}),
+    )
 
     if args.summary_stdout:
         print(json.dumps(_compact_payload(payload), ensure_ascii=False, indent=2))
-        return 0
+        return 0 if ok else 1
+    if not ok:
+        print(f"[codex-bridge] {payload['error']}", file=sys.stderr)
+        return 1
     print(final_response)
     return 0
 

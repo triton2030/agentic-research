@@ -19,7 +19,11 @@ SCRIPT = BACKEND / "codex_review.py"
 sys.path.insert(0, str(BACKEND))
 
 
-def _install_fake_openai_codex(captured: dict) -> list[str]:
+def _install_fake_openai_codex(
+    captured: dict,
+    *,
+    status: str = "completed",
+) -> list[str]:
     """Stub `openai_codex` in sys.modules so main()'s lazy SDK import resolves to
     a fake that records thread_start kwargs instead of launching a real Codex."""
 
@@ -39,7 +43,7 @@ def _install_fake_openai_codex(captured: dict) -> list[str]:
             captured["run_kwargs"] = dict(kwargs)
             return types.SimpleNamespace(
                 error=None,
-                status="completed",
+                status=status,
                 usage=None,
                 duration_ms=5,
                 final_response="REVIEW-OK",
@@ -141,6 +145,32 @@ def run_review(
 
 
 class CodexReviewCliTests(unittest.TestCase):
+    def test_default_run_auto_creates_project_local_audit_dir(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            proc = subprocess.run(
+                [
+                    sys.executable,
+                    str(SCRIPT),
+                    "Проверь audit owner",
+                    "--project",
+                    str(root),
+                    "--dry-run",
+                ],
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False,
+            )
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            artifacts_root = root.resolve() / "_workspace" / "codex-artifacts"
+            run_dirs = [path for path in artifacts_root.iterdir() if path.is_dir()]
+            self.assertEqual(len(run_dirs), 1)
+            result = json.loads((run_dirs[0] / "result.json").read_text())
+            self.assertEqual(result["run_dir"], str(run_dirs[0]))
+            self.assertTrue((run_dirs[0] / "manifest.json").exists())
+            self.assertTrue((run_dirs[0] / "events.jsonl").exists())
+
     def test_dry_run_summary_stdout_writes_ledger(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -156,6 +186,7 @@ class CodexReviewCliTests(unittest.TestCase):
             self.assertEqual(payload["mode"], "ask")
             self.assertEqual(payload["codex"]["model"], "gpt-5.6-sol")
             self.assertEqual(payload["codex"]["effort"], "xhigh")
+            self.assertEqual(payload["codex"]["service_tier"], "priority")
             self.assertTrue(payload["codex"]["thread_ephemeral"])
             self.assertNotIn("final_response", payload)
 
@@ -211,9 +242,16 @@ class CodexReviewCliTests(unittest.TestCase):
                     return_value="/sentinel/chatgpt/codex",
                 ):
                     rc = codex_review.main()
+                artifacts_root = root / "_workspace" / "codex-artifacts"
+                run_dirs = [path for path in artifacts_root.iterdir() if path.is_dir()]
+                self.assertEqual(len(run_dirs), 1)
+                result = json.loads((run_dirs[0] / "result.json").read_text())
             self.assertEqual(rc, 0)
+            self.assertEqual(result["status"], "completed")
+            self.assertTrue(result["ok"])
             self.assertIs(captured.get("ephemeral"), True)
             self.assertEqual(captured.get("sandbox"), "read_only")
+            self.assertEqual(captured.get("service_tier"), "priority")
             self.assertEqual(
                 captured["codex_config"].get("codex_bin"), "/sentinel/chatgpt/codex"
             )
@@ -227,6 +265,7 @@ class CodexReviewCliTests(unittest.TestCase):
                     os.environ.pop(key, None)
                 else:
                     os.environ[key] = value
+
     def test_dialog_starts_persistent_thread(self) -> None:
         """--dialog обязан выключить ephemeral (resume работает только по rollout
         на диске) и объявить thread_id в stderr — иначе диалог не продолжить."""
@@ -301,11 +340,13 @@ class CodexReviewCliTests(unittest.TestCase):
             resume_kwargs = captured.get("thread_resume_kwargs") or {}
             self.assertEqual(resume_kwargs.get("sandbox"), "read_only")
             self.assertEqual(resume_kwargs.get("approval_mode"), "deny_all")
+            self.assertEqual(resume_kwargs.get("service_tier"), "priority")
             run_kwargs = captured.get("run_kwargs") or {}
             self.assertEqual(run_kwargs.get("sandbox"), "read_only")
             self.assertEqual(run_kwargs.get("approval_mode"), "deny_all")
             self.assertEqual(run_kwargs.get("model"), "gpt-5.6-sol")
             self.assertEqual(run_kwargs.get("effort"), "xhigh")
+            self.assertEqual(run_kwargs.get("service_tier"), "priority")
         finally:
             sys.argv = saved_argv
             for name in fake_names:
@@ -613,6 +654,7 @@ class CodexReviewCliTests(unittest.TestCase):
             self.assertEqual(rc, 0)
             self.assertIs(captured.get("ephemeral"), True)
             self.assertEqual(captured.get("sandbox"), "read_only")
+            self.assertEqual(captured.get("service_tier"), "priority")
             self.assertEqual(
                 captured["codex_config"].get("codex_bin"), "/sentinel/chatgpt/codex"
             )
@@ -626,6 +668,46 @@ class CodexReviewCliTests(unittest.TestCase):
                     os.environ.pop(key, None)
                 else:
                     os.environ[key] = value
+
+    def test_interrupted_turn_is_failed_and_recorded(self) -> None:
+        import codex_review
+
+        captured: dict = {}
+        fake_names = _install_fake_openai_codex(captured, status="interrupted")
+        saved_argv = sys.argv[:]
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                sys.argv = [
+                    "codex_review.py",
+                    "проверь статус",
+                    "--project",
+                    str(root),
+                    "--heartbeat-sec",
+                    "0",
+                    "--summary-stdout",
+                ]
+                out = io.StringIO()
+                with contextlib.redirect_stdout(out), contextlib.redirect_stderr(
+                    io.StringIO()
+                ), mock.patch.object(
+                    codex_review,
+                    "resolve_codex_bin",
+                    return_value="/sentinel/chatgpt/codex",
+                ):
+                    rc = codex_review.main()
+                payload = json.loads(out.getvalue())
+                full = json.loads(Path(payload["paths"]["result"]).read_text())
+                events = Path(payload["paths"]["events"]).read_text()
+            self.assertEqual(rc, 1)
+            self.assertEqual(payload["status"], "interrupted")
+            self.assertFalse(payload["ok"])
+            self.assertIn("did not complete", full["error"])
+            self.assertIn('"event": "failed"', events)
+        finally:
+            sys.argv = saved_argv
+            for name in fake_names:
+                sys.modules.pop(name, None)
 
 
 if __name__ == "__main__":

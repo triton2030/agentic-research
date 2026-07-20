@@ -37,6 +37,7 @@ from codex_defaults import (
     BRIDGE_THREAD_EPHEMERAL,
     DEFAULT_CODEX_EFFORT,
     DEFAULT_CODEX_MODEL,
+    DEFAULT_CODEX_SERVICE_TIER,
     REASONING_EFFORTS,
     REVIEW_APPROVAL_MODE,
     REVIEW_SANDBOX,
@@ -44,7 +45,11 @@ from codex_defaults import (
     codex_bin_source,
     resolve_codex_bin,
 )
-from codex_orchestrate_contract import UsageError, codex_status_value
+from codex_orchestrate_contract import (
+    UsageError,
+    codex_status_value,
+    codex_turn_completed,
+)
 from codex_orchestrate_state import (
     append_event,
     prepare_run_dir,
@@ -301,10 +306,23 @@ def main() -> int:
         default=DEFAULT_CODEX_EFFORT,
         help=f"Reasoning effort для Codex turn (default: {DEFAULT_CODEX_EFFORT}).",
     )
+    parser.add_argument(
+        "--service-tier",
+        default=DEFAULT_CODEX_SERVICE_TIER,
+        help=f"Codex service tier — быстрый режим (default: {DEFAULT_CODEX_SERVICE_TIER}). "
+        "Мост шлёт его явно в каждый turn: config.toml в SDK-контексте не наследуется.",
+    )
     parser.add_argument("--include-thinking", action="store_true", help="Включить блоки размышлений Claude в транскрипт.")
     parser.add_argument("--max-chars", type=int, default=200_000, help="Бюджет транскрипта; при превышении остаётся свежий хвост.")
-    parser.add_argument("--run-dir", help="Fresh ledger directory for background-safe runs.")
-    parser.add_argument("--summary-stdout", action="store_true", help="Print compact JSON to stdout; full data is written to --run-dir.")
+    parser.add_argument(
+        "--run-dir",
+        help="Fresh ledger directory override (default: <project>/_workspace/codex-artifacts/<run_id>).",
+    )
+    parser.add_argument(
+        "--summary-stdout",
+        action="store_true",
+        help="Print compact JSON to stdout; full data is written to the run_dir.",
+    )
     parser.add_argument("--heartbeat-sec", type=int, default=120, help="Seconds between ledger heartbeat events; 0 disables.")
     parser.add_argument("--dry-run", action="store_true", help="Собрать промпт и вывести его, НЕ вызывая Codex (не тратит кредиты).")
     parser.add_argument(
@@ -402,7 +420,7 @@ def main() -> int:
         prompt = build_prompt(args.mode, transcript_md, payload)
     transcript_name = transcript_path.name if transcript_path else "—"
     # Single source for the codex block written to every ledger payload, so the
-    # audit owner (runs/) records thread_ephemeral uniformly: result["codex"].
+    # audit owner (run_dir) records thread_ephemeral uniformly: result["codex"].
     codex_bin = resolve_codex_bin()
     if codex_bin is None:
         print(SDK_BUNDLE_WARNING, file=sys.stderr)
@@ -412,72 +430,69 @@ def main() -> int:
     codex_runtime = {
         "model": args.model,
         "effort": args.effort,
+        "service_tier": args.service_tier,
         "codex_bin": codex_bin,
         "binary_source": codex_bin_source(codex_bin),
         "thread_ephemeral": BRIDGE_THREAD_EPHEMERAL and not thread_persistent,
         "thread_persistent": thread_persistent,
         "resumed_from_thread": args.continue_thread,
     }
-    run_id: str | None = None
-    run_dir: Path | None = None
-    paths: dict[str, str] | None = None
-    # Персистентный диалог обязан иметь audit owner: run_dir создаётся даже без
-    # явных флагов, иначе rollout жил бы только в Desktop store без ledger.
-    if args.run_dir or args.summary_stdout or thread_persistent:
-        try:
-            run_id, run_dir = prepare_run_dir(args.run_dir, project=project_cwd)
-        except UsageError as exc:
-            print(f"[codex-bridge] {exc}", file=sys.stderr)
-            return 2
-        paths = _review_paths(run_dir)
-        manifest = {
-            "run_id": run_id,
-            "run_dir": str(run_dir),
-            "created_at": utc_now(),
-            "dry_run": args.dry_run,
-            "mode": args.mode,
-            "project": str(project_cwd),
-            "transcript": str(transcript_path) if transcript_path else None,
-            "prompt_chars": len(prompt),
-            "codex": dict(codex_runtime),
-            "runtime": {
-                "sandbox": REVIEW_SANDBOX,
-                "approval_mode": REVIEW_APPROVAL_MODE,
-                "heartbeat_sec": args.heartbeat_sec,
-            },
-            "paths": paths,
-        }
-        write_json(run_dir / "manifest.json", manifest)
-        (run_dir / "prompt.md").write_text(prompt, encoding="utf-8")
-        append_event(run_dir, "validated", dry_run=args.dry_run, mode=args.mode)
+    # Every reviewer turn gets one audit owner. --run-dir is only an override;
+    # ordinary foreground calls use the project-local default.
+    try:
+        run_id, run_dir = prepare_run_dir(args.run_dir, project=project_cwd)
+    except UsageError as exc:
+        print(f"[codex-bridge] {exc}", file=sys.stderr)
+        return 2
+    paths = _review_paths(run_dir)
+    manifest = {
+        "run_id": run_id,
+        "run_dir": str(run_dir),
+        "created_at": utc_now(),
+        "dry_run": args.dry_run,
+        "mode": args.mode,
+        "project": str(project_cwd),
+        "transcript": str(transcript_path) if transcript_path else None,
+        "prompt_chars": len(prompt),
+        "codex": dict(codex_runtime),
+        "runtime": {
+            "sandbox": REVIEW_SANDBOX,
+            "approval_mode": REVIEW_APPROVAL_MODE,
+            "heartbeat_sec": args.heartbeat_sec,
+        },
+        "paths": paths,
+    }
+    write_json(run_dir / "manifest.json", manifest)
+    (run_dir / "prompt.md").write_text(prompt, encoding="utf-8")
+    append_event(run_dir, "validated", dry_run=args.dry_run, mode=args.mode)
 
     if args.dry_run:
         print(f"[codex-bridge dry-run] транскрипт={transcript_name} "
               f"промпт={len(prompt)} симв. режим={args.mode} "
-              f"model={args.model} effort={args.effort} "
+              f"model={args.model} effort={args.effort} tier={args.service_tier}"
               f"binary={codex_runtime['binary_source']} "
+              f"run_dir={run_dir} "
               f"sandbox={REVIEW_SANDBOX} approval={REVIEW_APPROVAL_MODE}", file=sys.stderr)
-        if run_dir is not None and run_id is not None and paths is not None:
-            payload = {
-                "run_id": run_id,
-                "run_dir": str(run_dir),
-                "dry_run": True,
-                "mode": args.mode,
-                "status": "validated",
-                "ok": True,
-                "codex": dict(codex_runtime),
-                "paths": paths,
-                "prompt_chars": len(prompt),
-            }
-            if thread_persistent:
-                # Dry-run валидирует CLI/prompt/реестр, но НЕ существование
-                # треда и не создание нового — не выдаём сильных заявлений.
-                payload["resume_checked"] = False
-            write_json(run_dir / "result.json", payload)
-            append_event(run_dir, "done", dry_run=True, ok=True)
-            if args.summary_stdout:
-                print(json.dumps(_compact_review_payload(payload), ensure_ascii=False, indent=2))
-                return 0
+        payload = {
+            "run_id": run_id,
+            "run_dir": str(run_dir),
+            "dry_run": True,
+            "mode": args.mode,
+            "status": "validated",
+            "ok": True,
+            "codex": dict(codex_runtime),
+            "paths": paths,
+            "prompt_chars": len(prompt),
+        }
+        if thread_persistent:
+            # Dry-run валидирует CLI/prompt/реестр, но НЕ существование
+            # треда и не создание нового — не выдаём сильных заявлений.
+            payload["resume_checked"] = False
+        write_json(run_dir / "result.json", payload)
+        append_event(run_dir, "done", dry_run=True, ok=True)
+        if args.summary_stdout:
+            print(json.dumps(_compact_review_payload(payload), ensure_ascii=False, indent=2))
+            return 0
         print(prompt)
         return 0
 
@@ -487,31 +502,47 @@ def main() -> int:
     try:
         from openai_codex import ApprovalMode, Codex, CodexConfig, Sandbox
         from openai_codex.generated.v2_all import ReasoningEffort
-    except ImportError:
-        print(
+    except ImportError as exc:
+        error = (
             "Пакет openai-codex не установлен. Активируй venv: "
-            "experiments/codex-bridge/.venv (pip install openai-codex).",
-            file=sys.stderr,
+            "experiments/codex-bridge/.venv (pip install openai-codex)."
         )
+        payload = {
+            "run_id": run_id,
+            "run_dir": str(run_dir),
+            "dry_run": False,
+            "mode": args.mode,
+            "status": "unavailable",
+            "ok": False,
+            "error": f"{error} ({exc})",
+            "codex": dict(codex_runtime),
+            "paths": paths,
+            "prompt_chars": len(prompt),
+        }
+        write_json(run_dir / "result.json", payload)
+        append_event(run_dir, "failed", status="unavailable", error=str(exc))
+        if args.summary_stdout:
+            print(json.dumps(_compact_review_payload(payload), ensure_ascii=False, indent=2))
+        print(error, file=sys.stderr)
         return 1
 
     print(
         f"[codex-bridge] режим={args.mode} транскрипт={transcript_name} "
         f"({len(transcript_md)} симв.) project={project_cwd} "
-        f"model={args.model} effort={args.effort} "
+        f"model={args.model} effort={args.effort} tier={args.service_tier} "
         f"binary={codex_runtime['binary_source']} "
+        f"run_dir={run_dir} "
         f"sandbox={REVIEW_SANDBOX} approval={REVIEW_APPROVAL_MODE}"
         + (f" | вырезаны из env: {', '.join(removed)}" if removed else " | env чист"),
         file=sys.stderr,
     )
-    if run_dir is not None:
-        append_event(
-            run_dir,
-            "codex_start",
-            mode=args.mode,
-            operation="thread_resume" if args.continue_thread else "thread_start",
-            requested_thread_id=args.continue_thread,
-        )
+    append_event(
+        run_dir,
+        "codex_start",
+        mode=args.mode,
+        operation="thread_resume" if args.continue_thread else "thread_start",
+        requested_thread_id=args.continue_thread,
+    )
 
     config = CodexConfig(cwd=str(project_cwd), codex_bin=codex_bin)
     started_monotonic = time.monotonic()
@@ -531,6 +562,7 @@ def main() -> int:
                     sandbox=Sandbox.read_only,
                     approval_mode=ApprovalMode.deny_all,
                     model=args.model,
+                    service_tier=args.service_tier,
                 )
             else:
                 thread = codex.thread_start(
@@ -538,6 +570,7 @@ def main() -> int:
                     sandbox=Sandbox.read_only,
                     approval_mode=ApprovalMode.deny_all,
                     model=args.model,
+                    service_tier=args.service_tier,
                     ephemeral=codex_runtime["thread_ephemeral"],
                 )
             codex_runtime["thread_id"] = getattr(thread, "id", None)
@@ -546,7 +579,7 @@ def main() -> int:
                     "event": "continue",
                     "thread_id": args.continue_thread,
                     "run_id": run_id,
-                    "run_dir": str(run_dir) if run_dir else None,
+                    "run_dir": str(run_dir),
                     "at": utc_now(),
                     "session": _session_short(),
                 }
@@ -560,7 +593,7 @@ def main() -> int:
                     "event": "start",
                     "thread_id": codex_runtime["thread_id"],
                     "run_id": run_id,
-                    "run_dir": str(run_dir) if run_dir else None,
+                    "run_dir": str(run_dir),
                     "created_at": utc_now(),
                     "topic": args.topic or _topic_from_payload(payload),
                     "session": _session_short(),
@@ -571,17 +604,17 @@ def main() -> int:
                     f"(persistent; продолжение: --continue {codex_runtime['thread_id']})",
                     file=sys.stderr,
                 )
-                if run_dir is not None:
-                    append_event(
-                        run_dir,
-                        "thread",
-                        thread_id=codex_runtime["thread_id"],
-                        persistent=True,
-                    )
+                append_event(
+                    run_dir,
+                    "thread",
+                    thread_id=codex_runtime["thread_id"],
+                    persistent=True,
+                )
             result = thread.run(
                 prompt,
                 model=args.model,
                 effort=ReasoningEffort(args.effort),
+                service_tier=args.service_tier,
                 sandbox=Sandbox.read_only,
                 approval_mode=ApprovalMode.deny_all,
             )
@@ -589,29 +622,28 @@ def main() -> int:
         heartbeat_stop.set()
         if heartbeat_thread is not None:
             heartbeat_thread.join(timeout=1)
-        if run_dir is not None and run_id is not None and paths is not None:
-            payload = {
-                "run_id": run_id,
-                "run_dir": str(run_dir),
-                "dry_run": False,
-                "mode": args.mode,
-                "status": "exception",
-                "ok": False,
-                "error": str(exc),
-                "codex": dict(codex_runtime),
-                "paths": paths,
-                "prompt_chars": len(prompt),
-            }
-            write_json(run_dir / "result.json", payload)
-            append_event(
-                run_dir,
-                "failed",
-                status="exception",
-                error=str(exc),
-                requested_thread_id=args.continue_thread,
-            )
-            if args.summary_stdout:
-                print(json.dumps(_compact_review_payload(payload), ensure_ascii=False, indent=2))
+        payload = {
+            "run_id": run_id,
+            "run_dir": str(run_dir),
+            "dry_run": False,
+            "mode": args.mode,
+            "status": "exception",
+            "ok": False,
+            "error": str(exc),
+            "codex": dict(codex_runtime),
+            "paths": paths,
+            "prompt_chars": len(prompt),
+        }
+        write_json(run_dir / "result.json", payload)
+        append_event(
+            run_dir,
+            "failed",
+            status="exception",
+            error=str(exc),
+            requested_thread_id=args.continue_thread,
+        )
+        if args.summary_stdout:
+            print(json.dumps(_compact_review_payload(payload), ensure_ascii=False, indent=2))
         print(f"[codex-bridge] ошибка вызова Codex: {exc}", file=sys.stderr)
         return 1
     finally:
@@ -620,29 +652,28 @@ def main() -> int:
             heartbeat_thread.join(timeout=1)
 
     if getattr(result, "error", None):
-        if run_dir is not None and run_id is not None and paths is not None:
-            payload = {
-                "run_id": run_id,
-                "run_dir": str(run_dir),
-                "dry_run": False,
-                "mode": args.mode,
-                "status": codex_status_value(getattr(result, "status", "failed")),
-                "ok": False,
-                "error": str(result.error),
-                "codex": dict(codex_runtime),
-                "paths": paths,
-                "prompt_chars": len(prompt),
-            }
-            write_json(run_dir / "result.json", payload)
-            append_event(
-                run_dir,
-                "failed",
-                status=payload["status"],
-                error=str(result.error),
-                requested_thread_id=args.continue_thread,
-            )
-            if args.summary_stdout:
-                print(json.dumps(_compact_review_payload(payload), ensure_ascii=False, indent=2))
+        payload = {
+            "run_id": run_id,
+            "run_dir": str(run_dir),
+            "dry_run": False,
+            "mode": args.mode,
+            "status": codex_status_value(getattr(result, "status", "failed")),
+            "ok": False,
+            "error": str(result.error),
+            "codex": dict(codex_runtime),
+            "paths": paths,
+            "prompt_chars": len(prompt),
+        }
+        write_json(run_dir / "result.json", payload)
+        append_event(
+            run_dir,
+            "failed",
+            status=payload["status"],
+            error=str(result.error),
+            requested_thread_id=args.continue_thread,
+        )
+        if args.summary_stdout:
+            print(json.dumps(_compact_review_payload(payload), ensure_ascii=False, indent=2))
         print(f"[codex-bridge] Codex вернул ошибку: {result.error}", file=sys.stderr)
         return 1
 
@@ -655,27 +686,39 @@ def main() -> int:
     )
 
     final_response = result.final_response or "[пустой ответ Codex]"
-    if run_dir is not None and run_id is not None and paths is not None:
-        (run_dir / "final.md").write_text(final_response, encoding="utf-8")
-        payload = {
-            "run_id": run_id,
-            "run_dir": str(run_dir),
-            "dry_run": False,
-            "mode": args.mode,
-            "status": status,
-            "ok": True,
-            "codex": dict(codex_runtime),
-            "paths": paths,
-            "prompt_chars": len(prompt),
-            "duration_ms": getattr(result, "duration_ms", None),
-            "usage": str(usage),
-            "final_response": final_response,
-        }
-        write_json(run_dir / "result.json", payload)
-        append_event(run_dir, "done", status=status, ok=True)
-        if args.summary_stdout:
-            print(json.dumps(_compact_review_payload(payload), ensure_ascii=False, indent=2))
-            return 0
+    completed = codex_turn_completed(status, None)
+    error = None if completed else f"Codex turn did not complete (status={status})."
+    (run_dir / "final.md").write_text(final_response, encoding="utf-8")
+    payload = {
+        "run_id": run_id,
+        "run_dir": str(run_dir),
+        "dry_run": False,
+        "mode": args.mode,
+        "status": status,
+        "ok": completed,
+        "codex": dict(codex_runtime),
+        "paths": paths,
+        "prompt_chars": len(prompt),
+        "duration_ms": getattr(result, "duration_ms", None),
+        "usage": str(usage),
+        "final_response": final_response,
+    }
+    if error:
+        payload["error"] = error
+    write_json(run_dir / "result.json", payload)
+    append_event(
+        run_dir,
+        "done" if completed else "failed",
+        status=status,
+        ok=completed,
+        **({"error": error} if error else {}),
+    )
+    if args.summary_stdout:
+        print(json.dumps(_compact_review_payload(payload), ensure_ascii=False, indent=2))
+        return 0 if completed else 1
+    if not completed:
+        print(f"[codex-bridge] {error}", file=sys.stderr)
+        return 1
 
     print(final_response)
     return 0

@@ -36,5 +36,12 @@ class ResolveCodexBinTests(unittest.TestCase):
         self.assertEqual(codex_defaults.codex_bin_source(None), "sdk-bundle")
 
 
+class ServiceTierDefaultTests(unittest.TestCase):
+    def test_default_service_tier_is_priority(self) -> None:
+        # The bridge must ALWAYS run fast; a drift of this default silently slows
+        # every background run. "priority" = how the current engine encodes fast.
+        self.assertEqual(codex_defaults.DEFAULT_CODEX_SERVICE_TIER, "priority")
+
+
 if __name__ == "__main__":
     unittest.main()

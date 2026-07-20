@@ -5,7 +5,8 @@
 
 Три профиля — по оси «что Codex может ПИСАТЬ» (читает во всех весь диск):
 
-- **Консультант / ревьюер** (`codex_review.py`) — read-only, ничего не пишет.
+- **Консультант / ревьюер** (`codex_review.py`) — Codex read-only и не правит
+  проект; backend пишет только служебный audit ledger в `run_dir`.
   Два способа дать контекст:
   - **`task` (default)** — задание/вопрос БЕЗ транскрипта, как вызов субагента.
     Codex видит файлы проекта, но не историю сессии. Дёшево и быстро — основной
@@ -42,8 +43,9 @@
 
 ## Audit surface — только run_dir прогона
 
-Единственный audit/debug owner прогона — его `run_dir` (`manifest.json`,
-`events.jsonl`, `results.jsonl`, `result.json`). Default для всех трёх входов —
+Единственный audit/debug owner прогона — его `run_dir`. Все входы пишут
+`manifest.json`, `events.jsonl` и `result.json`; reviewer/investigator также
+держат `prompt.md`/`final.md`, fleet — `results.jsonl`. Default для всех трёх входов —
 **локально в проекте работы**: `<project>/_workspace/codex-artifacts/<run_id>/`
 (создаёт backend; артефакты не сыплются в чужое репо, субагентам это рабочая
 зона — подпапки/архив свободно; при желании добавь `_workspace/` в `.gitignore`
@@ -63,9 +65,10 @@ Desktop, и делит с ним `~/.codex`; без `ephemeral` каждый в�
 ## Модель и runtime-доступ
 
 Backend явно закрепляет Codex turn defaults: `model=gpt-5.6-sol`,
-`effort=xhigh` (Extra High). Это больше не зависит от текущего
-`~/.codex/config.toml`; флаги `--model` и `--effort` остаются только для
-осознанного override.
+`effort=xhigh` (Extra High), `service_tier=priority` (быстрый режим — см.
+ниже). Это больше не зависит от текущего `~/.codex/config.toml`; флаги
+`--model`, `--effort` и `--service-tier` остаются только для осознанного
+override.
 
 Это текущий потолок под ChatGPT-биллингом, проверено живыми пробниками
 2026-07-10: `gpt-5.6-pro` и `gpt-5.6` (без суффикса) возвращают `HTTP 400 —
@@ -84,13 +87,22 @@ Backend явно закрепляет Codex turn defaults: `model=gpt-5.6-sol`,
 ~5 с). Default остаётся `gpt-5.6-sol`: на глубоких одиночных прогонах луной
 не экономить.
 
-Fast mode (терминальный Codex): в `~/.codex/config.toml` закреплено
-`service_tier = "fast"` + `[features] fast_mode = true` (официальные ключи,
-learn.chatgpt.com/docs/agent-configuration/speed; 2026-07-13). Даёт ~1.5x
-скорость под ChatGPT-auth ценой ускоренного расхода кредитов (2-2.5x у
-поддерживаемых моделей) — осознанно: кредиты не жалеем. Наследует ли
-SDK-bridge тир из config.toml — не доказано (rollout и ledger тир не пишут);
-bridge после включения живо проверен, работает.
+Fast mode («быстрый режим») закреплён backend-ом на КАЖДЫЙ turn: bridge шлёт
+`service_tier=priority` явно в `thread_start`/`thread_resume`/`thread.run`
+(флаг `--service-tier` — только для осознанного override). Это НЕ наследуется
+из `~/.codex/config.toml`: в SDK/app-server-контексте тир не подхватывается —
+открытый баг OpenAI (`openai/codex#26391` «fast mode not working in
+Automations»; `#15853` — клиент шлёт `service_tier=None`, затирая config-дефолт).
+Раньше мост полагался на config.toml и молча шёл на standard; теперь всегда
+быстрый. `priority` — то значение, которое текущий движок Codex Desktop
+(0.144+) пишет в config при включённом fast mode; живой пробник 2026-07-20
+принял и `priority`, и `fast` (`completed`, не 400), выбран `priority` под
+живой движок. Даёт ~1.5x скорость под ChatGPT-auth ценой ускоренного расхода
+кредитов (~2.5x у 5.6-моделей) — осознанно: кредиты не жалеем. Rollout и
+телеметрия тир НЕ пишут, поэтому bridge — единственное локальное
+доказательство: `service_tier` фиксируется в блоке `codex` каждого
+manifest/result и в stderr-banner (`tier=…`). Фактическую серверную
+тарификацию можно сверить только по расходу кредитов на дашборде.
 
 **Codex binary.** `gpt-5.6-sol` требует более новый движок, чем пинит SDK:
 бандл-бинарь `codex-cli 0.137.0a4` (openai-codex 0.1.0b3) отвечает `HTTP 400 —
@@ -172,7 +184,7 @@ SDK тянет собственный пиннутый бинарь `codex`; о�
 #   --transcript FILE     явный .jsonl (review/ask; по умолчанию — текущая сессия)
 #   --model gpt-5.6-sol   default закреплён backend-ом
 #   --effort xhigh        Extra High reasoning по умолчанию
-#   --run-dir PATH        свежий ledger/result каталог
+#   --run-dir PATH        override свежего ledger/result каталога; default создаётся автоматически
 #   --summary-stdout      короткий JSON в stdout, полный ответ в final.md/result.json
 #   --heartbeat-sec 120   heartbeat events; 0 отключает
 #   --include-thinking    добавить блоки размышлений Claude (review/ask)
@@ -189,8 +201,9 @@ SDK тянет собственный пиннутый бинарь `codex`; о�
 `.jsonl` в `~/.claude/projects/<кодированный-путь>/`); рендер сжимает лог:
 реплики целиком, вызовы инструментов — одной строкой, дампы результатов усечены.
 
-Если задан `--run-dir`, reviewer пишет `manifest.json`, `events.jsonl`,
+Reviewer всегда создаёт `run_dir` и пишет `manifest.json`, `events.jsonl`,
 `prompt.md`, `result.json`, а после реального Codex-run-а — `final.md`.
+`--run-dir` только переопределяет project-local default.
 
 Диалог (`--dialog` / `--continue`) — исключение из ephemeral-дефолта: resume
 работает только по rollout на диске (эфемерный тред → «no rollout found»,
@@ -321,5 +334,7 @@ run_dir и его collapsed-предков (`_workspace/`) — своя площ
 
 v1 hardening: read-only reviewer сохранён; write-fleet стал guarded
 shared-worktree orchestrator с strict schema, git snapshot scope-check, ledger и
-no-spend тестами. Пути в скилле `1codex` абсолютные и привязаны к расположению
-этого репо.
+no-spend тестами. Review / investigate / worker считают успехом только точный
+SDK-статус `completed` без `error`; `interrupted`, `inProgress` и неизвестные
+статусы дают `ok=false` и ненулевой exit code. Пути в скилле `1codex` абсолютные
+и привязаны к расположению этого репо.

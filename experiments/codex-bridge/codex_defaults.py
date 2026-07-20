@@ -10,6 +10,19 @@ from pathlib import Path
 DEFAULT_CODEX_MODEL = "gpt-5.6-sol"
 DEFAULT_CODEX_EFFORT = "xhigh"
 
+# Fast mode ("быстрый режим"): ~1.5x speed, ~2.5x credit burn on gpt-5.6. The
+# bridge ALWAYS runs fast — standing rule "умнейшая модель на самом быстром
+# режиме". This MUST be passed explicitly on every thread_start/resume/run: the
+# SDK/app-server path does NOT inherit `service_tier` from ~/.codex/config.toml
+# (open bug openai/codex#26391 "fast mode not working in Automations"; #15853 —
+# the client sends service_tier=None, wiping the config default). "priority" is
+# what the current Codex Desktop engine (0.144+) writes into config.toml when
+# fast mode is ON; verified live 2026-07-20 that both "priority" and "fast" are
+# accepted (completed, not HTTP 400). Rollout/telemetry does NOT record the tier,
+# so the bridge is the only local proof — it logs it to the ledger + stderr
+# banner. Override per run with --service-tier.
+DEFAULT_CODEX_SERVICE_TIER = "priority"
+
 # gpt-5.6-sol requires a newer codex binary than the SDK pins (0.1.0b3 pins
 # codex-cli 0.137.0a4 → HTTP 400 "requires a newer version of Codex"). The
 # ChatGPT desktop app bundles a current binary and auto-updates it, so the
@@ -64,7 +77,7 @@ INVESTIGATE_APPROVAL_MODE = "deny_all"
 # Bridge threads must NOT persist into the shared ~/.codex session store. That
 # store is the runtime owner (auth/config/runtime) shared with Codex Desktop,
 # which renders every materialized thread as a chat. The bridge's only
-# audit/debug owner is runs/<run_id>/. Passing ephemeral=True keeps the thread
-# off disk — SDK wire schema: "should not be materialized on disk".
+# audit/debug owner is the project-local _workspace/codex-artifacts/<run_id>/.
+# Passing ephemeral=True keeps the thread off disk — SDK wire schema: "should
+# not be materialized on disk".
 BRIDGE_THREAD_EPHEMERAL = True
-

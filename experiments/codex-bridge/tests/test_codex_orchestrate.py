@@ -17,6 +17,7 @@ sys.path.insert(0, str(BACKEND))
 
 from codex_orchestrate_contract import (  # noqa: E402
     UsageError,
+    codex_turn_completed,
     normalize_tasks,
     path_allowed,
     worker_status_from_codex_status,
@@ -144,6 +145,7 @@ class CodexOrchestrateCliTests(unittest.TestCase):
             self.assertEqual(payload["tasks"][0]["files"], ["a.md"])
             self.assertEqual(payload["codex"]["model"], "gpt-5.6-sol")
             self.assertEqual(payload["codex"]["effort"], "xhigh")
+            self.assertEqual(payload["codex"]["service_tier"], "priority")
             self.assertEqual(payload["codex"]["worker_sandbox"], "workspace_write")
             self.assertEqual(payload["codex"]["worker_approval_mode"], "auto_review")
             self.assertTrue(payload["codex"]["thread_ephemeral"])
@@ -355,6 +357,10 @@ class CodexOrchestrateCliTests(unittest.TestCase):
             self.assertIn("тест.md", snapshot.dirty_files)
 
     def test_worker_status_requires_exact_completed(self) -> None:
+        self.assertTrue(codex_turn_completed("completed", None))
+        self.assertFalse(codex_turn_completed("interrupted", None))
+        self.assertFalse(codex_turn_completed("inProgress", None))
+        self.assertFalse(codex_turn_completed("completed", "late error"))
         self.assertEqual(worker_status_from_codex_status("completed", None), "completed")
         self.assertEqual(worker_status_from_codex_status("not_completed", None), "failed")
         self.assertEqual(worker_status_from_codex_status("partially_completed", None), "failed")
@@ -384,6 +390,7 @@ class CodexOrchestrateCliTests(unittest.TestCase):
                     "cwd": str(root),
                     "model": "gpt-5.6-sol",
                     "effort": "high",
+                    "service_tier": "priority",
                     "run_dir": run_dir,
                     "progress": {"completed": 0, "total": 1},
                 }
@@ -395,6 +402,7 @@ class CodexOrchestrateCliTests(unittest.TestCase):
                 )
             self.assertIs(captured.get("ephemeral"), True)
             self.assertEqual(captured.get("sandbox"), "workspace_write")
+            self.assertEqual(captured.get("service_tier"), "priority")
             self.assertEqual(record["worker_status"], "completed")
         finally:
             for name in fake_names:
@@ -419,6 +427,7 @@ class CodexOrchestrateCliTests(unittest.TestCase):
                     "cwd": str(root),
                     "model": "gpt-5.6-sol",
                     "effort": "high",
+                    "service_tier": "priority",
                     "run_dir": run_dir,
                     "codex_bin": "/fake/chatgpt/codex",
                 }
