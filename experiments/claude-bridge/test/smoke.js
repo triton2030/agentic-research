@@ -481,12 +481,38 @@ const noMemoryReport = await waitRun(noMemoryRun.run_id, { timeoutMs: 10000 });
 const noMemoryCommand = JSON.parse(fs.readFileSync(noMemoryReport.files.command, "utf8"));
 assert.equal(noMemoryCommand.env.CLAUDE_CODE_DISABLE_AUTO_MEMORY, "1");
 
-const threadSuffix = `${process.pid}-${Date.now()}`;
-const opusThread = startThread({
-  prompt: "Return exactly BRIDGE_OK for the persistent Opus thread.",
-  topic: `smoke-opus-${threadSuffix}`,
+const syntheticExternalRoot = path.resolve(bridgeRoot, "../..");
+const syntheticExternalTarget = path.join(syntheticExternalRoot, "README.md");
+const scopedExternalRun = startRun({
+  prompt: `Target path: ${syntheticExternalTarget}`,
+  profile: "advisor",
+  cwd: bridgeRoot,
+  addDir: syntheticExternalRoot
+});
+await waitRun(scopedExternalRun.run_id, { timeoutMs: 10000 });
+const scopedExternalReport = reportRun(scopedExternalRun.run_id);
+assert.deepEqual(scopedExternalReport.add_dirs, [syntheticExternalRoot]);
+assert.equal(scopedExternalReport.warnings.some((warning) => warning.type === "boundary_suspicion"), false);
+const unscopedExternalRun = startRun({
+  prompt: `Target path: ${syntheticExternalTarget}`,
   profile: "advisor",
   cwd: bridgeRoot
+});
+await waitRun(unscopedExternalRun.run_id, { timeoutMs: 10000 });
+const unscopedExternalReport = reportRun(unscopedExternalRun.run_id);
+assert.equal(unscopedExternalReport.warnings.some((warning) => warning.type === "boundary_suspicion"), true);
+
+const threadSuffix = `${process.pid}-${Date.now()}`;
+const crossFolderRoot = fs.mkdtempSync(path.join(os.tmpdir(), "claude-bridge-cross-folder-"));
+const crossFolderCanonicalRoot = fs.realpathSync.native(crossFolderRoot);
+const crossFolderOwner = path.join(crossFolderRoot, "owner.txt");
+fs.writeFileSync(crossFolderOwner, "CROSS_FOLDER_OWNER_MARKER\n");
+const opusThread = startThread({
+  prompt: `Target path: ${crossFolderOwner}`,
+  topic: `smoke-opus-${threadSuffix}`,
+  profile: "advisor",
+  cwd: bridgeRoot,
+  addDir: crossFolderRoot
 });
 const fableThread = startThread({
   prompt: "Return exactly BRIDGE_OK for the independent Fable thread.",
@@ -501,6 +527,21 @@ const [opusThreadReport, fableThreadReport] = await Promise.all([
 assert.equal(opusThreadReport.session_id, opusThread.thread_id);
 assert.equal(opusThreadReport.session_observed, true);
 assert.equal(opusThreadReport.resolved_model, "claude-opus-4-8");
+assert.deepEqual(opusThread.add_dirs, [crossFolderCanonicalRoot]);
+assert.deepEqual(opusThread.add_dir_contexts, [
+  {
+    root: crossFolderCanonicalRoot,
+    workspace: {
+      kind: "directory",
+      worktree_root: crossFolderCanonicalRoot,
+      common_dir: null,
+      branch: null,
+      head: null,
+      ref: null
+    }
+  }
+]);
+assert.ok(reportRun(opusThread.run_id).activity.recent_paths.includes(crossFolderOwner));
 assert.equal(fableThreadReport.session_id, fableThread.thread_id);
 assert.equal(fableThreadReport.session_observed, true);
 assert.equal(fableThreadReport.model, "fable");
@@ -520,6 +561,8 @@ const tunedThread = cliJson([
   "fable",
   "--effort",
   "high",
+  "--add-dir",
+  crossFolderRoot,
   "--cwd",
   bridgeRoot
 ]);
@@ -527,6 +570,18 @@ const tunedThreadReport = await waitRun(tunedThread.run_id, { timeoutMs: 10000 }
 assert.equal(tunedThreadReport.model, "fable");
 assert.equal(tunedThreadReport.effort, "high");
 assert.equal(tunedThreadReport.resolved_model, "claude-fable-5");
+assert.deepEqual(tunedThread.add_dirs, [crossFolderCanonicalRoot]);
+const tunedContinuation = cliJson([
+  "thread-send",
+  "--thread-id",
+  tunedThread.thread_id,
+  "--prompt",
+  "Return BRIDGE_OK from the same tuned thread.",
+  "--cwd",
+  bridgeRoot
+]);
+await waitRun(tunedContinuation.run_id, { timeoutMs: 10000 });
+assert.deepEqual(tunedContinuation.add_dirs, [crossFolderCanonicalRoot]);
 
 const switchedModelRun = startRun({
   prompt: "MODEL_SWITCH_BRIDGE",
@@ -549,6 +604,17 @@ fs.writeFileSync(path.join(workerRepo, "outside.txt"), "baseline\n");
 fs.writeFileSync(path.join(workerRepo, ".gitignore"), "ignored.txt\n");
 assert.equal(spawnSync("git", ["add", "."], { cwd: workerRepo }).status, 0);
 assert.equal(spawnSync("git", ["commit", "-qm", "baseline"], { cwd: workerRepo }).status, 0);
+assert.throws(
+  () =>
+    startRun({
+      prompt: "Guarded workers cannot read an unobserved external root.",
+      profile: "worker",
+      writeFiles: ["allowed.txt"],
+      cwd: workerRepo,
+      addDir: crossFolderRoot
+    }),
+  /guarded worker profile cannot use addDir/u
+);
 
 const boundedFableWorker = startRun({
   prompt: "Return BRIDGE_OK without edits.",
@@ -578,7 +644,21 @@ const continuedCommand = JSON.parse(fs.readFileSync(continuedOpusReport.files.co
 const resumeIndex = continuedCommand.args.indexOf("--resume");
 assert.ok(resumeIndex >= 0);
 assert.equal(continuedCommand.args[resumeIndex + 1], opusThread.thread_id);
+const continuedAddDirIndex = continuedCommand.args.indexOf("--add-dir");
+assert.ok(continuedAddDirIndex >= 0);
+assert.equal(continuedCommand.args[continuedAddDirIndex + 1], crossFolderCanonicalRoot);
 assert.equal(continuedOpusReport.session_id, opusThread.thread_id);
+assert.deepEqual(continuedOpus.add_dirs, [crossFolderCanonicalRoot]);
+assert.throws(
+  () =>
+    sendThread({
+      thread_id: opusThread.thread_id,
+      prompt: "Do not widen this thread's context roots.",
+      cwd: bridgeRoot,
+      addDir: bridgeRoot
+    }),
+  /owns its immutable addDir manifest/u
+);
 assert.throws(
   () =>
     sendThread({
@@ -589,6 +669,34 @@ assert.throws(
     }),
   /bound to profile=advisor/u
 );
+const retargetRoot = fs.mkdtempSync(path.join(os.tmpdir(), "claude-bridge-retarget-"));
+const retargetOriginal = path.join(retargetRoot, "original");
+const retargetReplacement = path.join(retargetRoot, "replacement");
+const retargetAlias = path.join(retargetRoot, "alias");
+fs.mkdirSync(retargetOriginal);
+fs.mkdirSync(retargetReplacement);
+fs.symlinkSync(retargetOriginal, retargetAlias);
+const retargetThread = startThread({
+  prompt: "Return BRIDGE_OK for immutable external scope.",
+  topic: `scope-retarget-${threadSuffix}-guard`,
+  profile: "advisor",
+  cwd: bridgeRoot,
+  addDir: retargetAlias
+});
+await waitRun(retargetThread.run_id, { timeoutMs: 10000 });
+assert.deepEqual(retargetThread.add_dirs, [fs.realpathSync.native(retargetOriginal)]);
+fs.rmSync(retargetOriginal, { recursive: true, force: true });
+fs.symlinkSync(retargetReplacement, retargetOriginal);
+assert.throws(
+  () =>
+    sendThread({
+      thread_id: retargetThread.thread_id,
+      prompt: "A replaced root must not be followed.",
+      cwd: bridgeRoot
+    }),
+  /addDir root moved/u
+);
+fs.rmSync(retargetRoot, { recursive: true, force: true });
 const cliThreadList = cliJson(["threads", "--cwd", bridgeRoot, "--include-archived"]);
 assert.ok(cliThreadList.threads.some((thread) => thread.thread_id === opusThread.thread_id));
 
@@ -597,6 +705,10 @@ const smokeThreads = listThreads({ cwd: bridgeRoot, includeArchived: true }).thr
 );
 assert.equal(smokeThreads.length, 2);
 assert.equal(smokeThreads.find((thread) => thread.thread_id === opusThread.thread_id)?.turns, 2);
+assert.deepEqual(
+  smokeThreads.find((thread) => thread.thread_id === opusThread.thread_id)?.add_dirs,
+  [crossFolderCanonicalRoot]
+);
 assert.equal(smokeThreads.find((thread) => thread.thread_id === fableThread.thread_id)?.turns, 1);
 assert.equal(smokeThreads.every((thread) => thread.last_status === "completed"), true);
 assert.equal(smokeThreads.every((thread) => thread.lifecycle === "ready" && thread.resumable), true);
@@ -1391,11 +1503,13 @@ const mcpThreadStart = await client.callTool({
     prompt: "Return exactly BRIDGE_OK from a persistent MCP thread.",
     topic: `mcp-thread-${threadSuffix}`,
     profile: "advisor",
-    cwd: bridgeRoot
+    cwd: bridgeRoot,
+    addDir: crossFolderRoot
   }
 });
 const mcpThreadPayload = JSON.parse(mcpThreadStart.content[0].text);
 assert.ok(mcpThreadPayload.thread_id);
+assert.deepEqual(mcpThreadPayload.add_dirs, [crossFolderCanonicalRoot]);
 const mcpThreadWait = await client.callTool({
   name: "claude_wait",
   arguments: { run_id: mcpThreadPayload.run_id, timeoutMs: 10000 }
@@ -1405,7 +1519,10 @@ const mcpThreads = await client.callTool({
   name: "claude_threads",
   arguments: { cwd: bridgeRoot, includeArchived: true }
 });
-assert.ok(JSON.parse(mcpThreads.content[0].text).threads.some((thread) => thread.thread_id === mcpThreadPayload.thread_id));
+const mcpThreadEntry = JSON.parse(mcpThreads.content[0].text).threads.find(
+  (thread) => thread.thread_id === mcpThreadPayload.thread_id
+);
+assert.deepEqual(mcpThreadEntry.add_dirs, [crossFolderCanonicalRoot]);
 const mcpCleanup = await client.callTool({
   name: "claude_cleanup_runs",
   arguments: { olderThanDays: 14 }
@@ -1422,5 +1539,7 @@ assert.equal(Object.hasOwn(directControl, "activity"), false);
 assert.ok(Buffer.byteLength(JSON.stringify(directControl), "utf8") < 4096);
 const directKill = killRun(started.run_id);
 assert.equal(directKill.killed, false);
+
+fs.rmSync(crossFolderRoot, { recursive: true, force: true });
 
 process.stdout.write("claude-bridge smoke ok\n");

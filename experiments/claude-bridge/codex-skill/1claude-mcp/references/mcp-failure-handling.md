@@ -12,6 +12,8 @@ reasoning or an uncontrolled raw CLI call.
 - **Context:** cwd/addDir/file permissions do not expose the real sources.
 - **Permission:** advisor cannot perform an authorized write, or worker scope is
   missing/dirty.
+- **Upstream external-data approval:** Codex rejects the tool call before a
+  `run_id` exists because local material would be sent to Claude's service.
 - **Model:** alias unavailable, rate limit, or Fable refusal.
 - **Evidence/output:** self-report without tool evidence, truncated relay, or
   malformed stream.
@@ -25,19 +27,29 @@ non-spending `auth status` parse, because help does not expose every live flag.
 ## Recovery Ladder
 
 1. Correct the profile, context roots, exact write scope, or supported option.
-2. If MCP registration/transport is the problem, compare the visible tools with
+2. If an upstream gate rejects external-data transfer before the bridge starts,
+   name the failed layer accurately. Preserve the requested file-level task,
+   state the minimum exact `addDir` roots made readable, the exact requested
+   files, and that content Claude reads would be sent to Anthropic's service;
+   then ask for explicit user confirmation after that warning. On approval,
+   retry the original managed call with the same `cwd`, `addDir`, role, and
+   sources. Do not silently strip owners, anonymize the brief, or substitute
+   native agents. If the user declines or the platform rejects the confirmed
+   retry, stop the Claude route. Offer a sanitized/meta review only as a new
+   user choice; do not start it automatically.
+3. If MCP registration/transport is the problem, compare the visible tools with
    the repo's current server schema. An already-open Codex task may retain an old
    MCP process and schema after a bridge update. Use the repo-local controlled
    CLI once, then restart Codex Desktop before judging the installed MCP surface.
    The CLI shares the same runner, logs, threads, and stop rules.
-3. If subscription auth is false, stop and ask the user to complete
+4. If subscription auth is false, stop and ask the user to complete
    `claude auth login` with their Claude.ai plan. Do not claim fake/smoke
    execution as a live Claude result.
-4. If Fable refuses a valid task, preserve the refusal and create a fresh Opus
+5. If Fable refuses a valid task, preserve the refusal and create a fresh Opus
    advisor thread. Label it as fallback evidence.
-5. If relay is truncated, read the recorded full-output file before raw logs.
-6. If a wait times out, observe or kill the still-live run; timeout is not stop.
-7. If a saved process ignores TERM, a second bridge kill may escalate only the
+6. If relay is truncated, read the recorded full-output file before raw logs.
+7. If a wait times out, observe or kill the still-live run; timeout is not stop.
+8. If a saved process ignores TERM, a second bridge kill may escalate only the
    fingerprint-matched process group.
 
 Do not broad-kill Claude, tmux, or all bridge servers. Do not pass hidden API

@@ -47,6 +47,13 @@ Ask for findings, evidence, uncertainty, and a direct verdict, never private
 reasoning. Default to about 1200 words unless the user needs a long deliverable;
 put optional depth after `## Evidence appendix` for selective relay.
 
+Use `cwd` for the main project or worktree. For exact sources outside it, pass
+their absolute directory roots through `addDir` and name the exact files in
+`<sources>`; do not copy, anonymize, or omit owners merely because they live in
+another folder. Use cross-folder `addDir` only with read-only advisor profiles;
+for writes, choose the authorized worktree as `cwd`. Persistent threads inherit
+their starting root manifest. Start a fresh thread when that scope changes.
+
 ## Models And Threads
 
 `advisor` is the normal read-only Opus route. Reserve fixed read-only
@@ -55,9 +62,10 @@ Inspect `resolved_model_history` and `resolved_model`: a Fable request may end
 on Opus after a classifier fallback, and a missing identity is unknown.
 
 Keep every `thread_id`/`run_id` pair separate and always pass the current `cwd`.
-A thread is bound to its UUID, profile, model, effort, cwd, Git worktree, and
-ref. Continue only when inherited context is useful; start fresh for a blind
-review, disagreement, new role, branch/worktree, or model policy.
+A thread is bound to its UUID, profile, model, effort, cwd, `addDir` roots, Git
+worktree, and ref. Continue only when inherited context is useful; start fresh
+for a blind review, disagreement, new role, branch/worktree, root scope, or
+model policy.
 
 Use these references only for the named non-routine branch:
 
@@ -103,6 +111,10 @@ Close only at `completed`, legacy `completed_unknown`, `failed`, `killed`, or a
 safely explained `orphaned`. `completed_unknown` permits relay but is not
 verified success. Kill only the saved run/process/tmux session, never by broad
 process name.
+
+If a call is rejected before it returns `run_id`, the bridge never started. Do
+not call that a bridge failure or silently weaken the task; preserve the exact
+sources and follow the external-data approval branch below.
 
 Read [managed-runs-and-relay.md](references/managed-runs-and-relay.md) only for
 orphan recovery, legacy state, cleanup, or lifecycle debugging. If MCP is absent

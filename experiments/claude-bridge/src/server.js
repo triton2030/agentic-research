@@ -129,7 +129,7 @@ registerTool(
 
 registerTool(
   "claude_thread_start",
-  "Start a named cwd/Git-ref-bound Claude advisor conversation. Returns thread_id plus run_id; use claude_thread_send to continue it and claude_threads to recover it after restart or compaction.",
+  "Start a named cwd/Git-ref/addDir-bound Claude advisor conversation. Additional roots are inherited by every turn. Returns thread_id plus run_id; use claude_thread_send to continue it and claude_threads to recover it after restart or compaction.",
   {
     prompt: z.string().min(1),
     topic: z.string().min(1),
@@ -151,13 +151,12 @@ registerTool(
 
 registerTool(
   "claude_thread_send",
-  "Continue one persistent Claude advisor conversation after matching its cwd/worktree/ref and acquiring an atomic lease. This is not an independent fresh opinion.",
+  "Continue one persistent Claude advisor conversation after validating its runtime-owned cwd/worktree/ref/addDir manifest and acquiring an atomic lease. The root manifest is inherited and cannot be changed. This is not an independent fresh opinion.",
   {
     thread_id: z.string().min(1),
     prompt: z.string().min(1),
     cwd: z.string().min(1),
     profile: z.enum(["advisor", "fable-advisor"]).optional(),
-    addDir: z.union([z.string(), z.array(z.string())]).optional(),
     appendSystemPrompt: z.string().optional(),
     appendSubagentSystemPrompt: z.string().optional(),
     forwardSubagentText: z.boolean().optional(),

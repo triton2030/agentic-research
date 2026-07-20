@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { spawn, spawnSync } from "node:child_process";
 import fs from "node:fs";
+import path from "node:path";
 
 const args = process.argv.slice(2);
 
@@ -62,6 +63,7 @@ if (args.includes("--help")) {
   --tools <tools...>
   --allowedTools <tools...>
   --disallowedTools <tools...>
+  --add-dir <path>
   -p, --print`);
   process.exit(0);
 }
@@ -139,6 +141,20 @@ if (/RENAME_OUTSIDE_BRIDGE/u.test(prompt)) {
 }
 const targetMatch = prompt.match(/Target path:\s*(.+)/);
 const targetPath = targetMatch ? targetMatch[1].trim() : null;
+const addDirs = args.flatMap((value, index) => (value === "--add-dir" && args[index + 1] ? [args[index + 1]] : []));
+
+function canonicalExistingPath(candidate) {
+  try {
+    return fs.realpathSync.native(candidate);
+  } catch {
+    return null;
+  }
+}
+
+function isInside(candidate, root) {
+  const relative = path.relative(root, candidate);
+  return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
+}
 
 function emit(event) {
   console.log(JSON.stringify(event));
@@ -233,11 +249,17 @@ if (/SELF_REPORT_ONLY/u.test(prompt) && targetPath) {
 } else if (targetPath) {
   const toolUseId = "fake-read-1";
   const toolUse = { type: "tool_use", id: toolUseId, name: "Read", input: { file_path: targetPath } };
+  const canonicalTarget = canonicalExistingPath(targetPath);
+  const readableRoots = [process.cwd(), ...addDirs].map(canonicalExistingPath).filter(Boolean);
+  const readFailed =
+    /READ_ERROR/u.test(prompt) ||
+    !canonicalTarget ||
+    !readableRoots.some((root) => isInside(canonicalTarget, root));
   const toolResult = {
     type: "tool_result",
     tool_use_id: toolUseId,
-    is_error: /READ_ERROR/u.test(prompt),
-    text: /READ_ERROR/u.test(prompt) ? "ENOENT: read failed" : "SAMPLE_SKILL_MARKER"
+    is_error: readFailed,
+    text: readFailed ? "ENOENT or outside declared roots: read failed" : fs.readFileSync(canonicalTarget, "utf8")
   };
   if (/NESTED_TOOL_EVENTS/u.test(prompt)) {
     emit({ type: "assistant", message: { role: "assistant", content: [toolUse] } });

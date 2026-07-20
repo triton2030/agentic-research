@@ -56,7 +56,7 @@ if (command === "help") {
   node src/cli.js doctor
   node src/cli.js profiles
   node src/cli.js run --prompt "..." [--profile advisor] [--model opus] [--effort xhigh] [--cwd /path]
-  node src/cli.js thread-start --topic "..." --prompt "..." [--profile advisor] [--model opus] [--effort xhigh]
+  node src/cli.js thread-start --topic "..." --prompt "..." [--profile advisor] [--model opus] [--effort xhigh] [--add-dir /path]
   node src/cli.js thread-send --thread-id <id> --prompt "..."
   node src/cli.js threads [--cwd /path] [--include-archived]
   node src/cli.js thread-archive --thread-id <id> [--unarchive]
@@ -98,7 +98,7 @@ if (command === "help") {
       pluginUrl: getArgs("plugin-url"),
       allowedTools: getArgs("allowed-tools"),
       disallowedTools: getArgs("disallowed-tools"),
-      addDir: getArgs("add-dir"),
+      addDir: getOptionalArgs("add-dir"),
       file: getArgs("file"),
       inputFormat: getArg("input-format"),
       brief: process.argv.includes("--brief"),
@@ -119,6 +119,7 @@ if (command === "help") {
       model: getArg("model"),
       effort: getArg("effort"),
       cwd: getArg("cwd", process.cwd()),
+      addDir: getOptionalArgs("add-dir"),
       useTmux: process.argv.includes("--tmux") || process.argv.includes("--use-tmux")
     })
   );

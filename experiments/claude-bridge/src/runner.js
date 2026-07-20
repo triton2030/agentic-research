@@ -58,6 +58,23 @@ function shortText(value, max = 600) {
   return text.length > max ? `${text.slice(0, max - 3)}...` : text;
 }
 
+function normalizeAddDirs(cwd, addDir) {
+  const normalized = [].concat(addDir || []).filter(Boolean).map((root) => {
+    const resolved = path.resolve(cwd, String(root));
+    try {
+      const canonical = fs.realpathSync.native(resolved);
+      if (!fs.statSync(canonical).isDirectory()) {
+        throw new Error(`Claude addDir root is not a directory: ${resolved}`);
+      }
+      return canonical;
+    } catch (error) {
+      if (error?.message?.startsWith("Claude addDir root is not a directory:")) throw error;
+      throw new Error(`Claude addDir root is unavailable: ${resolved}`);
+    }
+  });
+  return [...new Set(normalized)].sort();
+}
+
 function safeRead(file, fallback = "") {
   try {
     return fs.existsSync(file) ? fs.readFileSync(file, "utf8") : fallback;
@@ -414,6 +431,40 @@ function assertThreadWorkspace(thread, cwd) {
     );
   }
   return { cwd: requestedCwd, workspace: current };
+}
+
+function addDirContexts(addDirs) {
+  return addDirs.map((root) => ({ root, workspace: gitWorkspaceContext(root) }));
+}
+
+function assertThreadAddDirContexts(thread) {
+  const expectedContexts = thread.add_dir_contexts?.length
+    ? thread.add_dir_contexts
+    : (thread.add_dirs || []).map((root) => ({ root, workspace: null }));
+  const currentContexts = [];
+  for (const expectedContext of expectedContexts) {
+    const [currentRoot] = normalizeAddDirs(thread.cwd, expectedContext.root);
+    if (currentRoot !== expectedContext.root) {
+      throw new Error(
+        `Claude thread ${thread.thread_id} addDir root moved from ${expectedContext.root} to ${currentRoot}. Start a fresh thread.`
+      );
+    }
+    const currentWorkspace = gitWorkspaceContext(currentRoot);
+    const expectedWorkspace = expectedContext.workspace;
+    if (expectedWorkspace?.common_dir && currentWorkspace.common_dir !== expectedWorkspace.common_dir) {
+      throw new Error(`Claude thread ${thread.thread_id} addDir ${currentRoot} belongs to a different Git project.`);
+    }
+    if (expectedWorkspace?.worktree_root && currentWorkspace.worktree_root !== expectedWorkspace.worktree_root) {
+      throw new Error(`Claude thread ${thread.thread_id} addDir belongs to worktree ${expectedWorkspace.worktree_root}.`);
+    }
+    if (expectedWorkspace?.ref && currentWorkspace.ref !== expectedWorkspace.ref) {
+      throw new Error(
+        `Claude thread ${thread.thread_id} addDir ${currentRoot} belongs to Git ref ${expectedWorkspace.ref}, but is now ${currentWorkspace.ref || "unknown"}. Start a fresh thread.`
+      );
+    }
+    currentContexts.push({ root: currentRoot, workspace: currentWorkspace });
+  }
+  return currentContexts;
 }
 
 function parsePorcelainZ(buffer) {
@@ -873,8 +924,12 @@ function assertSupportedOptions(options) {
     ["replayUserMessages", "--replay-user-messages"],
     ["appendSubagentSystemPrompt", "--append-subagent-system-prompt"],
     ["forwardSubagentText", "--forward-subagent-text"],
-    ["safeMode", "--safe-mode"]
-  ].filter(([key]) => options[key] !== undefined && options[key] !== false);
+    ["safeMode", "--safe-mode"],
+    ["addDir", "--add-dir"]
+  ].filter(([key]) => {
+    const value = options[key];
+    return Array.isArray(value) ? value.length > 0 : value !== undefined && value !== false;
+  });
 
   if (!requestedFlags.length) return;
 
@@ -1333,7 +1388,7 @@ function collectPathStrings(value, output = []) {
   return output;
 }
 
-function detectWarnings(events, cwd) {
+function detectWarnings(events, cwd, addDirs = []) {
   const warnings = [];
   const milestones = summarizeMilestones(events, events.length || 1);
   const texts = milestones
@@ -1368,13 +1423,13 @@ function detectWarnings(events, cwd) {
     });
   }
 
-  const allowedRoots = [cwd, path.join(os.homedir(), ".claude"), path.join(os.homedir(), ".codex")];
+  const allowedRoots = [cwd, ...addDirs, path.join(os.homedir(), ".claude"), path.join(os.homedir(), ".codex")];
   const observedPaths = [...new Set(events.flatMap((event) => collectPathStrings(event)))];
   const outside = observedPaths.filter((candidate) => !allowedRoots.some((root) => isInside(candidate, root)));
   if (outside.length) {
     warnings.push({
       type: "boundary_suspicion",
-      detail: "Claude mentioned or used paths outside cwd, ~/.claude, and ~/.codex.",
+      detail: "Claude mentioned or used paths outside cwd, declared addDir roots, ~/.claude, and ~/.codex.",
       paths: outside.slice(0, 20)
     });
   }
@@ -1651,6 +1706,7 @@ function writeState(run) {
     auto_memory: run.autoMemory !== false,
     billing: run.billing || null,
     cwd: run.cwd,
+    add_dirs: run.addDirs || [],
     pid: run.child?.pid ?? run.pid ?? null,
     process_group_pid: run.processGroupPid ?? run.child?.pid ?? run.pid ?? null,
     status: run.status,
@@ -1837,6 +1893,7 @@ function buildRunFromState(runId, logDir, state) {
     autoMemory: state.auto_memory !== false,
     billing: state.billing || null,
     cwd: state.cwd || process.cwd(),
+    addDirs: Array.isArray(state.add_dirs) ? state.add_dirs : [],
     logDir,
     promptFile: files.prompt,
     profileFile: files.profile,
@@ -1893,6 +1950,7 @@ function buildRunFromLegacyReport(runId, logDir, report) {
     autoMemory: report.auto_memory !== false,
     billing: report.billing || null,
     cwd: report.cwd || process.cwd(),
+    addDirs: Array.isArray(report.add_dirs) ? report.add_dirs : [],
     logDir,
     promptFile: files.prompt,
     profileFile: files.profile,
@@ -1933,7 +1991,7 @@ function buildRunFromLegacyReport(runId, logDir, report) {
 function buildReport(run) {
   const events = readRunEvents(run);
   refreshRunRuntimeFacts(run, events);
-  const warnings = detectWarnings(events, run.cwd);
+  const warnings = detectWarnings(events, run.cwd, run.addDirs || []);
   if (run.status === "completed_unknown") {
     warnings.push({
       kind: "legacy_terminal_status_unknown",
@@ -2008,6 +2066,7 @@ function buildReport(run) {
     billing: run.billing || null,
     write_scope: writeScope,
     cwd: run.cwd,
+    add_dirs: run.addDirs || [],
     pid: run.child?.pid ?? run.pid ?? null,
     status: run.status,
     managed: isManagedRun(run),
@@ -2093,6 +2152,7 @@ function compactResult(report) {
     session_id: report.session_id,
     session_observed: report.session_observed,
     billing: report.billing || undefined,
+    add_dirs: report.add_dirs || [],
     output: report.final_output,
     report_file: report.files.report
   };
@@ -2255,6 +2315,12 @@ export function startRun(options = {}) {
   if (!prompt || !String(prompt).trim()) {
     throw new Error("claude_run requires a non-empty prompt.");
   }
+  const addDirs = normalizeAddDirs(cwd, addDir);
+  if (profile === "worker" && addDirs.length) {
+    throw new Error(
+      "The guarded worker profile cannot use addDir because external roots are outside writeFiles postflight. Use an advisor for cross-folder evidence or choose the writable worktree as cwd."
+    );
+  }
   const billing = assertSubscriptionBilling({ ...options, cwd });
   assertSupportedOptions(
     profile === "unrestricted"
@@ -2382,7 +2448,7 @@ export function startRun(options = {}) {
       tools,
       allowedTools,
       disallowedTools,
-      addDir,
+      addDir: addDirs,
       pluginDir,
       pluginUrl,
       allowDangerouslySkipPermissions,
@@ -2425,6 +2491,7 @@ export function startRun(options = {}) {
     autoMemory: !options.disableAutoMemory && profile !== "no-memory",
     billing,
     cwd,
+    addDirs,
     logDir,
     promptFile: files.prompt,
     profileFile: files.profile,
@@ -2476,6 +2543,7 @@ export function startRun(options = {}) {
         claude_command: command,
         claude_args: claudeArgs,
         cwd,
+        add_dirs: addDirs,
         title,
         topic: threadTopic,
         requested_model: requestedModel,
@@ -2553,6 +2621,7 @@ export function startRun(options = {}) {
       topic: threadTopic,
       session_id: requestedSessionId,
       cwd,
+      add_dirs: addDirs,
       log_dir: logDir,
       status: run.status,
       use_tmux: true,
@@ -2639,6 +2708,7 @@ export function startRun(options = {}) {
     topic: threadTopic,
     session_id: requestedSessionId,
     cwd,
+    add_dirs: addDirs,
     log_dir: logDir,
     status: run.status,
     use_tmux: false
@@ -3013,6 +3083,8 @@ function foldThreads() {
       profile: "advisor",
       model: MODEL,
       effort: null,
+      add_dirs: [],
+      add_dir_contexts: [],
       created_at: event.observed_at || null,
       last_active_at: event.observed_at || null,
       last_run_id: null,
@@ -3027,6 +3099,10 @@ function foldThreads() {
       previous.profile = event.profile || previous.profile;
       previous.model = event.model || previous.model;
       previous.effort = event.effort || previous.effort;
+      previous.add_dirs = Array.isArray(event.add_dirs) ? [...event.add_dirs] : previous.add_dirs;
+      previous.add_dir_contexts = Array.isArray(event.add_dir_contexts)
+        ? [...event.add_dir_contexts]
+        : previous.add_dir_contexts;
       previous.created_at = event.observed_at || previous.created_at;
       previous.archived = false;
     }
@@ -3107,8 +3183,11 @@ export function startThread({ prompt, topic, cwd = process.cwd(), profile = "adv
   if (options.noSessionPersistence) {
     throw new Error("Persistent Claude threads cannot use noSessionPersistence.");
   }
+  const addDirs = normalizeAddDirs(cwd, options.addDir);
+  const externalContexts = addDirContexts(addDirs);
   const started = startRun({
     ...options,
+    addDir: addDirs,
     prompt,
     topic: String(topic).trim(),
     name: options.name || String(topic).trim(),
@@ -3125,12 +3204,24 @@ export function startThread({ prompt, topic, cwd = process.cwd(), profile = "adv
     profile: started.profile,
     model: started.model,
     effort: started.effort,
+    add_dirs: addDirs,
+    add_dir_contexts: externalContexts,
     run_id: started.run_id
   });
-  return { ...started, thread_id: started.session_id };
+  return {
+    ...started,
+    thread_id: started.session_id,
+    add_dirs: addDirs,
+    add_dir_contexts: externalContexts
+  };
 }
 
-export function sendThread({ thread_id: threadId, prompt, cwd, profile, model, effort, ...options } = {}) {
+export function sendThread({ thread_id: threadId, prompt, cwd, profile, model, effort, addDir, ...options } = {}) {
+  if (addDir !== undefined) {
+    throw new Error(
+      `Claude thread ${threadId} owns its immutable addDir manifest; start a fresh thread instead of changing or restating it.`
+    );
+  }
   const lease = acquireThreadLease(threadId);
   try {
     const thread = requireThread(threadId);
@@ -3160,8 +3251,11 @@ export function sendThread({ thread_id: threadId, prompt, cwd, profile, model, e
         `Claude thread ${threadId} is bound to effort=${thread.effort}; start a fresh thread for effort=${effort}.`
       );
     }
+    const externalContexts = assertThreadAddDirContexts(thread);
+    const boundAddDirs = externalContexts.map(({ root }) => root);
     const started = startRun({
       ...options,
+      addDir: boundAddDirs,
       prompt,
       topic: thread.topic,
       cwd: threadWorkspace.cwd,
@@ -3180,9 +3274,16 @@ export function sendThread({ thread_id: threadId, prompt, cwd, profile, model, e
       profile: started.profile,
       model: started.model,
       effort: started.effort,
+      add_dirs: boundAddDirs,
+      add_dir_contexts: externalContexts,
       run_id: started.run_id
     });
-    return { ...started, thread_id: threadId };
+    return {
+      ...started,
+      thread_id: threadId,
+      add_dirs: boundAddDirs,
+      add_dir_contexts: externalContexts
+    };
   } finally {
     releaseThreadLease(lease);
   }
@@ -3405,6 +3506,10 @@ export async function auditSkill({ skillPath, prompt, cwd = process.cwd(), timeo
     prompt: auditPrompt,
     profile: "skill-audit",
     cwd,
+    // The audited skill is frequently a global control file outside the caller's
+    // project. Bind its parent as an explicit read root instead of relying on the
+    // process working directory or copying the file into a temporary brief.
+    addDir: [path.dirname(resolvedSkillPath)],
     title: `skill-audit ${resolvedSkillPath}`
   });
   let control = await waitRun(started.run_id, { timeoutMs });

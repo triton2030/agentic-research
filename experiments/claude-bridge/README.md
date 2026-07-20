@@ -21,7 +21,8 @@ Claude's skills or settings.
 
 `advisor` and `worker` accept only bounded `opus`/`fable` plus effort overrides;
 the permission boundary does not change with the model. Persistent threads keep
-their original profile, model, effort, cwd, worktree, and ref for every turn.
+their original profile, model, effort, cwd, worktree, ref, and additional
+`addDir` roots for every turn.
 
 Claude's configured skills, plugins, MCP tools, session persistence, and auto
 memory remain available unless a diagnostic profile disables them. The bridge
@@ -86,6 +87,11 @@ The CLI exposes equivalent `run`, `thread-start`, `thread-send`, `threads`,
 conversation and can span many runs. Start with `claude_thread_start`, finish the
 turn with `wait`, continue with `claude_thread_send`, and recover handles with
 `claude_threads`. Archiving the bridge handle does not delete Claude's session.
+
+Use absolute `addDir` paths to expose exact read roots outside `cwd`. A thread
+records and inherits that root set on every continuation; `claude_threads`
+shows its canonical roots and Git identities. Continuations cannot replace the
+runtime-owned root manifest, so use a fresh thread when external scope changes.
 
 Several named threads can run concurrently and remain independently resumable.
 Continuation inherits earlier framing, so use a fresh thread for a blind second
