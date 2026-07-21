@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zerde Business Solutions — независимое досье</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b27;
+    --surface2: #1c2333;
+    --border: #2a3348;
+    --text: #e6ebf4;
+    --muted: #8b98b3;
+    --accent: #4f8ef7;
+    --green: #3fb970;
+    --amber: #e0a63c;
+    --red: #e05c5c;
+    --radius: 14px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 0 24px; }
+
+  /* HERO */
+  header {
+    padding: 64px 0 40px;
+    background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(79,142,247,.18), transparent);
+    border-bottom: 1px solid var(--border);
+  }
+  .badge {
+    display: inline-block; font-size: 12px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--accent); border: 1px solid rgba(79,142,247,.4); border-radius: 99px;
+    padding: 4px 14px; margin-bottom: 18px;
+  }
+  h1 { font-size: clamp(28px, 5vw, 44px); font-weight: 800; letter-spacing: -.02em; }
+  .sub { color: var(--muted); margin-top: 10px; max-width: 640px; font-size: 17px; }
+
+  /* VERDICT */
+  .verdict {
+    display: flex; gap: 28px; align-items: center; flex-wrap: wrap;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 28px; margin-top: 36px;
+  }
+  .gauge { position: relative; width: 150px; height: 150px; flex-shrink: 0; }
+  .gauge svg { transform: rotate(-90deg); }
+  .gauge .num { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .gauge .num b { font-size: 34px; }
+  .gauge .num span { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+  .verdict-text h2 { font-size: 22px; margin-bottom: 8px; }
+  .verdict-text h2 em { color: var(--green); font-style: normal; }
+  .verdict-text p { color: var(--muted); max-width: 560px; }
+
+  /* KPI STRIP */
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin: 28px 0 0; }
+  .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; }
+  .kpi b { font-size: 22px; display: block; }
+  .kpi span { font-size: 13px; color: var(--muted); }
+
+  /* SECTIONS */
+  section { padding: 48px 0 8px; }
+  h3.sec { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin-bottom: 20px; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+  .tab {
+    background: var(--surface); border: 1px solid var(--border); color: var(--muted);
+    border-radius: 99px; padding: 8px 18px; font-size: 14px; cursor: pointer; transition: .15s;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .pane { display: none; animation: fade .25s ease; }
+  .pane.active { display: block; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 700px) { .grid2 { grid-template-columns: 1fr; } }
+  dl.facts div { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-bottom: 1px dashed var(--border); }
+  dl.facts div:last-child { border-bottom: 0; }
+  dl.facts dt { color: var(--muted); font-size: 14px; }
+  dl.facts dd { text-align: right; font-weight: 600; font-size: 14px; }
+
+  /* CHECKLIST */
+  .check { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px dashed var(--border); }
+  .check:last-child { border-bottom: 0; }
+  .dot { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  .dot.ok { background: rgba(63,185,112,.15); color: var(--green); }
+  .dot.warn { background: rgba(224,166,60,.15); color: var(--amber); }
+  .check small { color: var(--muted); display: block; }
+
+  /* TAX CHART */
+  .chart { display: flex; align-items: flex-end; gap: 18px; height: 220px; padding: 10px 6px 0; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; justify-content: flex-end; }
+  .bar { width: 100%; max-width: 72px; border-radius: 8px 8px 4px 4px;
+    background: linear-gradient(180deg, var(--accent), rgba(79,142,247,.45));
+    transition: height 1s cubic-bezier(.2,.8,.2,1); position: relative; cursor: pointer; height: 0; }
+  .bar:hover { filter: brightness(1.2); }
+  .bar .tip { position: absolute; top: -30px; left: 50%; transform: translateX(-50%);
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 6px;
+    font-size: 12px; padding: 2px 8px; white-space: nowrap; opacity: 0; transition: .15s; pointer-events: none; }
+  .bar:hover .tip { opacity: 1; }
+  .bar-col label { font-size: 13px; color: var(--muted); }
+  .bar.partial { background: linear-gradient(180deg, var(--amber), rgba(224,166,60,.4)); }
+
+  /* TIMELINE */
+  .tl { position: relative; padding-left: 26px; }
+  .tl::before { content: ""; position: absolute; left: 7px; top: 6px; bottom: 6px; width: 2px; background: var(--border); }
+  .tl-item { position: relative; padding: 0 0 22px; }
+  .tl-item::before { content: ""; position: absolute; left: -25px; top: 6px; width: 12px; height: 12px;
+    border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px rgba(79,142,247,.15); }
+  .tl-item b { display: block; }
+  .tl-item span { color: var(--muted); font-size: 14px; }
+
+  /* CHIPS */
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 6px 12px; font-size: 13px; color: var(--text); }
+
+  /* RISKS */
+  .risk { border-left: 3px solid var(--amber); padding: 4px 0 4px 16px; margin-bottom: 16px; }
+  .risk b { display: block; }
+  .risk span { color: var(--muted); font-size: 14px; }
+
+  /* SOURCES */
+  .src a { color: var(--accent); text-decoration: none; font-size: 14px; }
+  .src a:hover { text-decoration: underline; }
+  .src li { padding: 6px 0; border-bottom: 1px dashed var(--border); list-style: none; }
+
+  footer { padding: 40px 0 60px; color: var(--muted); font-size: 13px; border-top: 1px solid var(--border); margin-top: 48px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="badge">Независимое досье · открытые источники · 21.07.2026</div>
+    <h1>Zerde Business Solutions</h1>
+    <p class="sub">ТОО «Zerde Business Solutions» (zbs.kz) — IT-интегратор из Алматы. Что о компании говорят государственные реестры Казахстана — за пределами её собственного сайта.</p>
+
+    <div class="verdict">
+      <div class="gauge">
+        <svg width="150" height="150" viewBox="0 0 150 150">
+          <circle cx="75" cy="75" r="64" fill="none" stroke="var(--surface2)" stroke-width="12"/>
+          <circle id="gaugeArc" cx="75" cy="75" r="64" fill="none" stroke="var(--green)" stroke-width="12"
+                  stroke-linecap="round" stroke-dasharray="402" stroke-dashoffset="402"/>
+        </svg>
+        <div class="num"><b id="gaugeNum">0</b><span>из 100</span></div>
+      </div>
+      <div class="verdict-text">
+        <h2>Вердикт: <em>доверять можно</em> — с двумя оговорками</h2>
+        <p>19 лет на рынке, нулевая налоговая задолженность, ни одного попадания в чёрные списки, стабильные многомиллионные налоговые отчисления. Оговорки: состав учредителей не раскрыт в бесплатных источниках, а название легко спутать с государственным холдингом «Зерде», к которому компания отношения не имеет.</p>
+      </div>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi"><b>19 лет</b><span>на рынке (с 2007)</span></div>
+      <div class="kpi"><b>0 ₸</b><span>налоговая задолженность</span></div>
+      <div class="kpi"><b>253 млн ₸</b><span>налогов за 2025 год</span></div>
+      <div class="kpi"><b>31–40</b><span>сотрудников</span></div>
+      <div class="kpi"><b>0</b><span>чёрных списков</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<section>
+  <h3 class="sec">Досье по источникам</h3>
+  <div class="tabs">
+    <button class="tab active" data-pane="reg">Регистрация</button>
+    <button class="tab" data-pane="tax">Налоги</button>
+    <button class="tab" data-pane="clean">Чёрные списки</button>
+    <button class="tab" data-pane="gov">Госзакупки</button>
+    <button class="tab" data-pane="self">Сама о себе</button>
+  </div>
+
+  <div class="pane active" id="reg">
+    <div class="grid2">
+      <div class="card">
+        <dl class="facts">
+          <div><dt>Полное имя</dt><dd>ТОО «Zerde Business Solutions»</dd></div>
+          <div><dt>БИН</dt><dd>070340001645</dd></div>
+          <div><dt>Регистрация</dt><dd>март–апрель 2007</dd></div>
+          <div><dt>Адрес</dt><dd>Алматы, пр. Н. Назарбаева, 103</dd></div>
+          <div><dt>Руководитель</dt><dd>Дюнин Роман Николаевич</dd></div>
+          <div><dt>ОКЭД</dt><dd>оптовая торговля компьютерами и ПО</dd></div>
+          <div><dt>Размер</dt><dd>малое предприятие, 31–40 чел.</dd></div>
+          <div><dt>Госучастие</dt><dd>нет — частная компания</dd></div>
+        </dl>
+      </div>
+      <div class="card">
+        <div class="tl">
+          <div class="tl-item"><b>2007</b><span>Регистрация ТОО; с мая — плательщик НДС</span></div>
+          <div class="tl-item"><b>2016</b><span>Регистрация поставщиком на портале госзакупок</span></div>
+          <div class="tl-item"><b>~2020-е</b><span>Смена руководителя: Маховиков В.А. → Дюнин Р.Н.</span></div>
+          <div class="tl-item"><b>2025</b><span>Пик налоговых отчислений — 253 млн ₸ (+120%)</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pane" id="tax">
+    <div class="card">
+      <p style="color:var(--muted); font-size:14px; margin-bottom:14px;">Налоговые отчисления по данным КГД (через ba.prg.kz), млн ₸. Наведи на столбец.</p>
+      <div class="chart" id="taxChart"></div>
+      <p style="color:var(--muted); font-size:13px; margin-top:14px;">2026 — неполный год. Волатильность (−52% в 2023, +120% в 2025) типична для интегратора: выручка привязана к крупным проектным поставкам.</p>
+    </div>
+  </div>
+
+  <div class="pane" id="clean">
+    <div class="card">
+      <div class="check"><div class="dot ok">✓</div><div><b>Налоговая задолженность</b><small>0 ₸ — отсутствует в реестре должников КГД</small></div></div>
+      <div class="check"><div class="dot ok">✓</div><div><b>Банкротство</b><small>не числится в списке банкротов</small></div></div>
+      <div class="check"><div class="dot ok">✓</div><div><b>Лжепредприятия</b><small>не входит в список лжепредприятий</small></div></div>
+      <div class="check"><div class="dot ok">✓</div><div><b>Реестр недобросовестных поставщиков</b><small>отсутствует — допущена к госзакупкам</small></div></div>
+      <div class="check"><div class="dot ok">✓</div><div><b>Исполнительные производства</b><small>в реестре взысканий не найдена</small></div></div>
+      <div class="check"><div class="dot ok">✓</div><div><b>Суды и скандалы в СМИ</b><small>публичных судебных дел и негативных публикаций не найдено</small></div></div>
+      <div class="check"><div class="dot warn">!</div><div><b>Учредители</b><small>состав и доли не раскрыты в бесплатных открытых источниках</small></div></div>
+    </div>
+  </div>
+
+  <div class="pane" id="gov">
+    <div class="grid2">
+      <div class="card">
+        <dl class="facts">
+          <div><dt>Статус на goszakup.gov.kz</dt><dd>действующий поставщик</dd></div>
+          <div><dt>Поставщик с</dt><dd>25.01.2016</dd></div>
+          <div><dt>Роль</dt><dd>только поставщик, не заказчик</dd></div>
+          <div><dt>Недобросовестный?</dt><dd style="color:var(--green)">нет</dd></div>
+          <div><dt>Контакт закупок</dt><dd>zakup@zbs.kz</dd></div>
+        </dl>
+      </div>
+      <div class="card">
+        <b>Сертификация</b>
+        <p style="color:var(--muted); font-size:14px; margin:8px 0 14px;">Заявленные стандарты менеджмента:</p>
+        <div class="chips">
+          <span class="chip">ISO 27001 · ИБ</span>
+          <span class="chip">ISO 9001 · качество</span>
+          <span class="chip">ISO 14001 · экология</span>
+          <span class="chip">ISO 45001 · охрана труда</span>
+        </div>
+        <p style="color:var(--muted); font-size:13px; margin-top:14px;">Один сертификат CT-KZ (ноутбук ZBS LP 1) — истёк.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="pane" id="self">
+    <div class="grid2">
+      <div class="card">
+        <b>Услуги (по zbs.kz)</b>
+        <div class="chips" style="margin-top:12px;">
+          <span class="chip">Информационная безопасность</span>
+          <span class="chip">Серверы и СХД</span>
+          <span class="chip">Резервное копирование</span>
+          <span class="chip">Виртуализация</span>
+          <span class="chip">SIEM / NAC / PAM</span>
+          <span class="chip">Дата-центры</span>
+          <span class="chip">Сети</span>
+          <span class="chip">Техподдержка</span>
+        </div>
+      </div>
+      <div class="card">
+        <b>Партнёры и клиенты (заявлено компанией)</b>
+        <div class="chips" style="margin-top:12px;">
+          <span class="chip">Cisco</span><span class="chip">Dell</span><span class="chip">HP</span>
+          <span class="chip">Huawei</span><span class="chip">Palo Alto</span><span class="chip">Fortinet</span>
+          <span class="chip">VMware</span><span class="chip">Veeam</span><span class="chip">Splunk</span>
+        </div>
+        <p style="color:var(--muted); font-size:14px; margin-top:14px;">Клиенты: WorleyParsons, Мангистаумунайгаз, Сбербанк, Русский регистр. Статусы партнёрств независимо не проверялись.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h3 class="sec">Что стоит знать перед сделкой</h3>
+  <div class="card">
+    <div class="risk"><b>Это не холдинг «Зерде»</b><span>Название перекликается с АО «Национальный инфокоммуникационный холдинг „Зерде"», но по реестрам это частное ТОО без госучастия. Связь не подтверждена — не переносите репутацию госхолдинга на компанию (и наоборот).</span></div>
+    <div class="risk"><b>Сайт непрозрачен по реквизитам</b><span>На zbs.kz нет БИН, юр. адреса и имён руководства — для B2B-поставщика это минус к открытости, хотя реестровые данные чистые.</span></div>
+    <div class="risk"><b>Учредители в тени бесплатных источников</b><span>Полный состав участников доступен только в платных выписках (adata.kz, kompra.kz) или еGov-справке — для крупного контракта стоит заказать.</span></div>
+  </div>
+</section>
+
+<section>
+  <h3 class="sec">Источники</h3>
+  <div class="card src">
+    <ul>
+      <li><a href="https://ba.prg.kz/710000000-astana/070340001645-too-zerde-business-solutions/" target="_blank">ba.prg.kz — карточка контрагента: налоги, риски, реестры</a></li>
+      <li><a href="https://goszakup.gov.kz/ru/registry/show_supplier/48510" target="_blank">goszakup.gov.kz — реестр поставщиков госзакупок РК</a></li>
+      <li><a href="https://pk.uchet.kz/c/bin/070340001645/" target="_blank">pk.uchet.kz — проверка контрагента</a></li>
+      <li><a href="https://statsnet.co/companies/kz/40924477" target="_blank">statsnet.co — регистрационные данные</a></li>
+      <li><a href="https://adata.kz/counterparty/detail/70340001645" target="_blank">adata.kz — карточка (полная — платно)</a></li>
+      <li><a href="https://zbs.kz" target="_blank">zbs.kz — собственный сайт компании</a></li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  <div>Досье собрано автоматически из открытых источников 21.07.2026. Не является юридическим заключением; для сделок с высокой ставкой закажите официальную выписку еGov и платную проверку контрагента.</div>
+</footer>
+
+</div>
+
+<script>
+  // tabs
+  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.pane').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById(t.dataset.pane).classList.add('active');
+  }));
+
+  // gauge animation → 78/100
+  const target = 78, arc = document.getElementById('gaugeArc'), num = document.getElementById('gaugeNum');
+  let v = 0;
+  const iv = setInterval(() => {
+    v++;
+    num.textContent = v;
+    arc.style.strokeDashoffset = 402 - (402 * v / 100);
+    if (v >= target) clearInterval(iv);
+  }, 18);
+
+  // tax chart
+  const taxes = [
+    { y: '2022', v: 192.4 }, { y: '2023', v: 93.0 }, { y: '2024', v: 115.1 },
+    { y: '2025', v: 252.9 }, { y: '2026*', v: 149.9, partial: true },
+  ];
+  const max = Math.max(...taxes.map(t => t.v));
+  const chart = document.getElementById('taxChart');
+  taxes.forEach(t => {
+    const col = document.createElement('div');
+    col.className = 'bar-col';
+    col.innerHTML = `<div class="bar${t.partial ? ' partial' : ''}" data-h="${Math.round(t.v / max * 100)}">
+        <span class="tip">${t.v.toFixed(1)} млн ₸</span></div><label>${t.y}</label>`;
+    chart.appendChild(col);
+  });
+  requestAnimationFrame(() => requestAnimationFrame(() =>
+    document.querySelectorAll('.bar').forEach(b => b.style.height = b.dataset.h + '%')));
+</script>
+</body>
+</html>
