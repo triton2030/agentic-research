@@ -7,8 +7,8 @@
 проекта: они существуют как ответ на свойства, описанные здесь.
 
 Здесь — только модель и её следствия. Не здесь: измеренные прикладные свойства
-текущей пары моделей (`wisdom-llm.md`), модель-специфика (`wisdom-gpt-5.6.md`,
-`wisdom-claude-opus-4.7.md`), рабочие списки перекосов в момент действия (каталоги
+текущего model set (`wisdom-llm.md`), модель-специфика (`wisdom-gpt-5.6.md`,
+`wisdom-claude-opus-4.8.md`, `wisdom-claude-fable-5.md`), рабочие списки перекосов в момент действия (каталоги
 в скилах `1expert-lens`, `1step-back`, `1break-down`), runtime-контроль и детекция
 (`agents/runtime-layer.md`, `agents/evaluation.md`).
 
@@ -168,4 +168,5 @@
   анти-сикофантный приём.
 
 Связанные owner-файлы: `wisdom-llm.md`, `wisdom-gpt-5.6.md`,
-`wisdom-claude-opus-4.7.md`, `agents/runtime-layer.md`, `agents/evaluation.md`.
+`wisdom-claude-opus-4.8.md`, `wisdom-claude-fable-5.md`,
+`agents/runtime-layer.md`, `agents/evaluation.md`.

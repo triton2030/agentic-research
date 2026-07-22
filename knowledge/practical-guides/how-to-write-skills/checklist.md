@@ -3,6 +3,7 @@ description: "Короткий Go/No-Go checklist перед созданием 
 read-before-edit: []
 edit-after-edit: []
 ---
+
 # Checklist
 
 Пройди сверху вниз. Если первые ответы слабые — скилл пока не писать. Сначала
@@ -55,7 +56,8 @@ edit-after-edit: []
 - Codex: проверен `~/.codex/skills/<name>` и, если нужна переносимость,
   `$HOME/.agents/skills/<name>`?
 - Codex: `agents/openai.yaml` нужен по функции, сгенерирован и синхронизирован?
-- Claude: `description` достаточно явный для undertrigger risk?
+- Claude: `description` прошло trigger и near-miss probe на фактически resolved
+  target model без предположения, что undertrigger/overtrigger одинаковы?
 - Claude: нет Codex-only metadata вроде `agents/openai.yaml`?
 - Mixed-runtime: body держит нижний общий bound, а platform deltas не смешаны.
 

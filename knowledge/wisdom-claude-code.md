@@ -1,10 +1,11 @@
 # Wisdom — Claude Code
 
-Снимок на 28 апреля 2026.
+Снимок на 22 июля 2026.
 
 Только platform-level поведение Claude Code.
 
-Opus 4.7 держит `knowledge/wisdom-claude-opus-4.7.md`.
+Model-level baselines держат `knowledge/wisdom-claude-opus-4.8.md` и
+`knowledge/wisdom-claude-fable-5.md`.
 Доменные выводы — `knowledge/research/{category}/`.
 Skill deltas —
 `knowledge/practical-guides/how-to-write-skills/platform-deltas.md`.
@@ -41,11 +42,17 @@ packaging и управляемых agents,
   `Plan` для архитектуры,
   `general-purpose` для открытого исследования,
   плюс design-auditor/plugin-dev варианты.
-- Parallel agents — только для независимых файлов,
-  evidence streams или leaf implementation;
-  запуск — несколькими `Agent` calls в одном сообщении.
+- Parallel agents — только для независимых файлов, evidence streams или leaf
+  implementation; write ownership и root synthesis остаются обязательными.
+- Для custom/general-purpose subagents отсутствие `background` не означает
+  старый blocking default: runtime обычно запускает их в фоне. Workflow должен
+  явно решить, продолжает ли root параллельно и когда result обязателен для
+  synthesis.
 - `run_in_background: true` даёт уведомление, без polling/sleep.
   `isolation: "worktree"` создаёт worktree и чистит его, если изменений не было.
+- Завершённый custom/general-purpose subagent продолжать через
+  `SendMessage(to: agent_id|name)`; новый `Agent` создаёт fresh context.
+  Built-in Explore/Plan не возвращают resumable ID.
 - Агент не видит текущий разговор;
   prompt включает paths, lines, task и checked evidence.
 - Never delegate understanding:
@@ -55,17 +62,23 @@ packaging и управляемых agents,
 
 ### Deferred tools
 
-- `TodoWrite`, `WebFetch`, `WebSearch`, `EnterPlanMode`
-  и похожие tools могут не быть загружены.
+- Deferred tools могут не быть загружены в текущий tool surface.
   Вызов без загрузки даёт `InputValidationError`.
 - Паттерн: `ToolSearch("select:ToolName") → schema → tool call`.
 
 ## Опоры
 
-- `knowledge/wisdom-claude-opus-4.7.md` — model-level baseline для Opus 4.7.
+- `knowledge/wisdom-claude-opus-4.8.md` — model-level baseline для Opus 4.8.
+- `knowledge/wisdom-claude-fable-5.md` — отдельный Fable 5 baseline.
 - `knowledge/practical-guides/how-to-write-skills/platform-deltas.md` —
   Claude Code skills, free skills и plugin packaging.
 - https://docs.anthropic.com/en/docs/claude-code/hooks-guide — hooks как внешний
   слой контроля.
 - https://docs.anthropic.com/en/docs/build-with-claude/computer-use — approvals,
   risk levels и контроль внешних действий.
+- https://code.claude.com/docs/en/model-config — live model aliases, overrides и
+  фактически resolved model в machine-readable output.
+- https://code.claude.com/docs/en/slash-commands — Claude skill discovery,
+  frontmatter, invocation и runtime semantics.
+- https://code.claude.com/docs/en/sub-agents — background defaults, IDs,
+  `SendMessage` resume и current custom-agent runtime.

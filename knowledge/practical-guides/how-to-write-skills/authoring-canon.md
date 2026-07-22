@@ -3,10 +3,10 @@ description: "Короткий практический канон: когда �
 read-before-edit: []
 edit-after-edit: []
 ---
+
 # Authoring Canon
 
-Практический канон написания скиллов под текущую рамку проекта:
-`GPT-5.6` и `Claude Opus 4.7`.
+Практический канон написания скиллов под рабочий model set из `_ops/GOAL.md`.
 
 ## Когда Писать Скилл
 
@@ -101,8 +101,12 @@ budgeted initial list. `120-200` символов — наша эвристик�
 process для уже надёжного поведения. Outcome, evidence, stop rules и короткие
 defaults сильнее длинного self-check stack; новое правило добавляй только под
 измеренный failure mode.
-Для `Claude Opus 4.7` важнее явно назвать scope, tool/subagent policy и где
-правило распространяется на весь набор артефактов.
+Общий Claude skill core должен работать на `Claude Opus 4.8` и `Claude Fable
+5`; model routing остаётся в вызывающем prompt/runtime, не в portable body.
+Для обоих явно называть scope, authority, обязательный tool/subagent policy,
+evidence, output и stop только там, где они меняют ход. Для Fable-brief
+добавлять реальный outcome и причину constraints; старый process scaffolding
+сначала удалять и возвращать только под измеренный failure mode.
 
 ## Если Скилл Делегирует
 
@@ -148,6 +152,10 @@ GPT-5.6 routing — `knowledge/wisdom-gpt-5.6.md`.
    если он есть.
 5. После первого реального использования вырезать всё, что не улучшило
    routing, качество, скорость или надёжность.
+
+Для глобального Claude skill strict gate включает representative trigger,
+near-miss и output probe на обеих целевых Claude-моделях. Записывай фактически
+resolved model: alias или requested model сам по себе не доказывает runtime.
 
 ## Типовые Провалы
 

@@ -5,9 +5,9 @@
 контекст, действует в меру автономно и не пишет из общего знания, когда есть
 локальные знания, критерии и owner-маршрут.
 
-Рабочая модельная пара проекта — строго `GPT-5.6` и `Claude Opus 4.7`.
-Предыдущие OpenAI-модели остаются только историческим research evidence, не
-рабочим baseline.
+Точный рабочий набор моделей и их роли задаёт `_ops/GOAL.md`. Предыдущие
+OpenAI-модели остаются только историческим research evidence, не рабочим
+baseline.
 
 ## Как Читать
 
@@ -23,7 +23,9 @@
 5. `knowledge/` — wisdom, guides, practical guides, examples и research.
    Для написания скилов начинать с
    `knowledge/practical-guides/how-to-write-skills/`.
-6. `_ops/findings/`, `_ops/interviews/`, `_ops/plans/` — временные рабочие
+6. `skills/claude/` — tracked source глобальных Claude skills;
+   `~/.claude/skills/` — их installed projection.
+7. `_ops/findings/`, `_ops/interviews/`, `_ops/plans/` — временные рабочие
    поверхности; открывать их только когда текущая задача на них указывает.
 
 ## Подход

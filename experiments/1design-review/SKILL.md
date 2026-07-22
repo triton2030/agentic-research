@@ -30,7 +30,7 @@ Use the existing browser or screenshot tooling directly for an ordinary pass.
 If repeatable capture is useful, write a plan and run capture-only mode:
 
 ```bash
-scripts/design-review \
+"${CODEX_HOME:-$HOME/.codex}/skills/1design-review/scripts/design-review" \
   --capture-only \
   --url URL \
   --project PROJECT \
@@ -80,7 +80,7 @@ Optional inputs:
 ## Fanout Command
 
 ```bash
-scripts/design-review \
+"${CODEX_HOME:-$HOME/.codex}/skills/1design-review/scripts/design-review" \
   --url URL \
   --project PROJECT \
   --plan PLAN_JSON \
@@ -126,14 +126,14 @@ checkpoint, not between routine CSS edits.
 ## Validation
 
 ```bash
-python3 ~/.codex/skills/.system/skill-creator/scripts/quick_validate.py \
+python3 "${CODEX_HOME:-$HOME/.codex}/skills/.system/skill-creator/scripts/quick_validate.py" \
   /path/to/1design-review
 
-scripts/design-review --help
-scripts/run-clean-design-agent.sh --help
-node --check scripts/capture-design-screenshots.mjs
-node --check scripts/design-review-progress.mjs
-node --check scripts/prepare-design-review-groups.mjs
+"${CODEX_HOME:-$HOME/.codex}/skills/1design-review/scripts/design-review" --help
+"${CODEX_HOME:-$HOME/.codex}/skills/1design-review/scripts/run-clean-design-agent.sh" --help
+node --check "${CODEX_HOME:-$HOME/.codex}/skills/1design-review/scripts/capture-design-screenshots.mjs"
+node --check "${CODEX_HOME:-$HOME/.codex}/skills/1design-review/scripts/design-review-progress.mjs"
+node --check "${CODEX_HOME:-$HOME/.codex}/skills/1design-review/scripts/prepare-design-review-groups.mjs"
 ```
 
 For a live fanout, verify that captured files match the plan, all focused tasks

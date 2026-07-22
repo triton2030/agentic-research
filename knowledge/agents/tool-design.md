@@ -15,7 +15,7 @@ Skill authoring canon — `knowledge/practical-guides/how-to-write-skills/`.
 - Активный набор инструментов должен быть маленьким и управляемым. Избыточный tool set повышает шум, drift и число ошибочных ходов.
 - Tool surface: радикальное сокращение (классический кейс — 17 узких инструментов → 2 примитива над файловой системой) обычно повышает качество выбора. Перед добавлением tool в скилл — проверить, не делается ли это уже базовыми примитивами.
 - Tool description (frontmatter скилла, MCP tool) валиден, если отвечает на 4 вопроса: что делает, когда применять, что вернёт, чем отличается от соседнего. Без этого триггеры конфликтуют.
-- Для большого tool surface использовать narrow descriptions и tool search / deferred discovery, а не грузить весь каталог в основной контекст. Model-specific детали — `knowledge/wisdom-gpt-5.6.md`, `knowledge/wisdom-claude-opus-4.7.md`.
+- Для большого tool surface использовать narrow descriptions и tool search / deferred discovery, а не грузить весь каталог в основной контекст. Model-specific детали — `knowledge/wisdom-gpt-5.6.md`, `knowledge/wisdom-claude-opus-4.8.md`, `knowledge/wisdom-claude-fable-5.md`.
 
 ## Опоры
 

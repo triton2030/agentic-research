@@ -77,7 +77,7 @@ source/reference слой.
   GPT-5-family лучше следует инструкциям, но vague/conflicting `.cursor/rules`
   и `AGENTS.md` могут backfire.
 
-- [Introducing Claude Opus 4.7](https://www.anthropic.com/news/claude-opus-4-7)
+- Historical: [Introducing Claude Opus 4.7](https://www.anthropic.com/news/claude-opus-4-7)
   Opus 4.7 literal instruction following, `high`/`xhigh` effort для coding,
   новая tokenizer cost-shape и лучшая file-system memory.
 
@@ -89,11 +89,15 @@ source/reference слой.
   Reasoning effort, state handling, reasoning items и `phase`.
 
 - [Claude migration guide](https://platform.claude.com/docs/en/about-claude/models/migration-guide)
-  Claude Opus 4.7 migration: literal scope, effort, progress, fewer
-  tools/subagents, tokenization and task budgets.
+  API-level migration details between current Claude model generations.
 
-- [Claude prompting best practices](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices)
-  Claude Opus 4.7 prompt tuning, tool triggering and long-horizon agentic work.
+- [Prompting Claude Opus 4.8](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-4-8)
+  Current Opus guidance: effort, literal scope, tool/subagent policy, progress,
+  review harnesses and frontend defaults.
+
+- [Prompting Claude Fable 5](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5)
+  Fable-specific long-run guidance: effort, bounded autonomy, evidence-grounded
+  progress, parallel subagents, memory and skill/prompt simplification.
 
 ## Tools / Frameworks
 

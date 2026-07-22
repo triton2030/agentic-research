@@ -1,11 +1,11 @@
 # Как Писать Системные Промпты
 
-Канон этого репо рассчитан на `GPT-5.6` и `Claude Opus 4.7`. Модельные
-различия читать в `knowledge/wisdom-gpt-5.6.md` и
-`knowledge/wisdom-claude-opus-4.7.md`; здесь только правила самого системного
-промпта.
+Точный model set задаёт `_ops/GOAL.md`. Модельные различия читать в
+`knowledge/wisdom-gpt-5.6.md`, `knowledge/wisdom-claude-opus-4.8.md` и
+`knowledge/wisdom-claude-fable-5.md`; здесь только правила системного промпта.
 
 ## Для Чего Нужен Системный Промпт
+
 Системный промпт задаёт устойчивую рабочую рамку: роль, приоритеты, планку качества, границы и поведение по умолчанию, когда есть неопределённость. Его задача не описать одну задачу, а сделать хорошие решения более вероятными в разных задачах.
 Если платформа позволяет, стабильную системную часть лучше держать отдельно от меняющейся task-spec части.
 
@@ -21,7 +21,8 @@
 ## Модельная Дельта
 
 - Для `GPT-5.6` сначала прочитать `knowledge/wisdom-gpt-5.6.md`.
-- Для `Claude Opus 4.7` сначала прочитать `knowledge/wisdom-claude-opus-4.7.md`.
+- Для `Claude Opus 4.8` прочитать `knowledge/wisdom-claude-opus-4.8.md`.
+- Для `Claude Fable 5` прочитать `knowledge/wisdom-claude-fable-5.md`.
 - В этом guide не дублировать модельный baseline; переносить сюда только
   правила, которые верны для системных промптов независимо от модели.
 
@@ -68,6 +69,7 @@
   достаточно outcome и критериев результата.
 
 ## Быстрая Проверка
+
 Перед тем как оставлять системный промпт, стоит спросить:
 - Понятно ли из него, что должно оставаться правдой во многих задачах?
 - Помогает ли он выбирать, когда возникает компромисс?
@@ -78,4 +80,4 @@
   `effort`, verbosity, schema, tool description или state handling?
 
 ## Примеры из дикой природы
-- [anthropic-design-generator](../examples/anthropic-design-generator/takeaways.md) — двухуровневая агентная инструкция (корневой `CLAUDE.md` + доменный `ds/README.md` + живой визуальный канон). Приёмы: инварианты в топе, WRONG/RIGHT пары, `Deliberate non-goals`, copy-paste сниппеты. Повтор архитектурного правила там — partial-loading pattern, не default для новых GPT-5.6/Opus 4.7 инструкций.
+- [anthropic-design-generator](../examples/anthropic-design-generator/takeaways.md) — двухуровневая агентная инструкция (корневой `CLAUDE.md` + доменный `ds/README.md` + живой визуальный канон). Приёмы: инварианты в топе, WRONG/RIGHT пары, `Deliberate non-goals`, copy-paste сниппеты. Повтор архитектурного правила там — partial-loading pattern, не default для инструкций под текущие target models.

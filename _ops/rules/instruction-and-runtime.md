@@ -17,7 +17,7 @@ Owner: wording, instruction placement и folder criteria держит
 CLI wiring держит отдельный live settings/hook pass.
 
 Check: правило меняет следующий ход агента, не дублирует skill body, не держит
-дорогой запрет prompt-only, не расходится с `GPT-5.6` / `Claude Opus 4.7`.
+дорогой запрет prompt-only, не расходится с model set из `_ops/GOAL.md`.
 
 ## Instruction Files
 

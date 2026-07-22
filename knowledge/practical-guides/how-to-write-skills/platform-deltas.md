@@ -3,6 +3,7 @@ description: "Различия Agent Skills standard, Codex, Claude Code, MCP и
 read-before-edit: []
 edit-after-edit: []
 ---
+
 # Platform Deltas
 
 Коротко: общий authoring canon один, но discovery, packaging и runtime разные.
@@ -64,8 +65,9 @@ uv tool run --python 3.13 --no-python-downloads --from 'PyYAML==6.0.3' python \
   1536 символов. Это runtime delta, не новый portable standard: cross-surface
   skill следует лимиту Agent Skills выше. Front-load use case и проверяй live
   docs после обновлений runtime.
-- Claude чаще undertrigger, чем overtrigger, поэтому description может быть
-  немного “pushy”: реальные фразы пользователя, неявные случаи, boundaries.
+- Не считать undertrigger или overtrigger общим свойством всех Claude-моделей.
+  Description проверять representative trigger/near-miss prompts на фактически
+  resolved target model; front-load use case, реальные фразы и boundaries.
 - Free skills живут в `~/.claude/skills/<name>/SKILL.md`.
 - Plugin skills живут в marketplace/plugin package, имеют namespace, version,
   source и toggle; подходят для sharable bundles: skills, agents, hooks, MCP,
@@ -73,6 +75,9 @@ uv tool run --python 3.13 --no-python-downloads --from 'PyYAML==6.0.3' python \
 - В installed skill не класть `README.md`, `CHANGELOG.md`, `QUICK_REFERENCE.md`
   и историю создания. Human-doc живёт в `knowledge/`.
 - `agents/openai.yaml` не использовать для Claude Code skills.
+- Task-like skill с explicit-only запуском задаёт
+  `disable-model-invocation: true`; это Claude-native runtime contract, а не
+  перенос Codex metadata.
 
 ## Skills + MCP
 

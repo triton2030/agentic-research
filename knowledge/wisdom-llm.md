@@ -2,14 +2,15 @@
 
 Снимок на 14 июля 2026.
 
-Здесь только общие свойства текущей рабочей пары моделей и повторяющиеся режимы
-сбоя. Рабочий baseline этого проекта — `GPT-5.6` и `Claude Opus 4.7`; старые
-model-neutral советы держатся только если они подтверждены заново.
+Здесь только общие свойства текущего model set и повторяющиеся режимы сбоя.
+Точный baseline задаёт `_ops/GOAL.md`; старые model-neutral советы держатся
+только если они подтверждены заново.
 
 Модельные различия не держать здесь:
 
 - `knowledge/wisdom-gpt-5.6.md` — GPT-5.6 baseline.
-- `knowledge/wisdom-claude-opus-4.7.md` — Claude Opus 4.7 baseline.
+- `knowledge/wisdom-claude-opus-4.8.md` — Claude Opus 4.8 baseline.
+- `knowledge/wisdom-claude-fable-5.md` — Claude Fable 5 baseline.
 
 Глубинная модель — *почему* эти свойства именно такие (вероятностная машина и её
 следствия) — `knowledge/how-llms-think.md`.
@@ -110,5 +111,8 @@ model-neutral советы держатся только если они под�
 - `knowledge/wisdom-gpt-5.6.md`
   GPT-5.6-specific baseline.
 
-- `knowledge/wisdom-claude-opus-4.7.md`
-  Claude Opus 4.7-specific baseline.
+- `knowledge/wisdom-claude-opus-4.8.md`
+  Claude Opus 4.8-specific baseline.
+
+- `knowledge/wisdom-claude-fable-5.md`
+  Claude Fable 5-specific baseline.
