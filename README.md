@@ -17,8 +17,9 @@
 2. `CLAUDE.md` — shim из одной строки `@AGENTS.md`; отдельной правды не держит.
 3. `_ops/GOAL.md` — рабочий контракт проекта: что делаем, что не делаем, когда
    остановиться и вернуться к стратегии.
-4. `_ops/user-said/` — legacy/manual сырой архив цитат пользователя по дням;
-   обработка только отдельным manual проходом.
+4. `_ops/chat-recall/` — дневной лог слов владельца дословно, пишет
+   `1chat-recall` в момент, когда прозвучало; `_ops/user-said/` — его
+   замороженный предшественник, только для чтения.
 5. `knowledge/` — wisdom, guides, practical guides, examples и research.
    Для написания скилов начинать с
    `knowledge/practical-guides/how-to-write-skills/`.
