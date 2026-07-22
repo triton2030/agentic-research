@@ -9,6 +9,7 @@ import os
 import sys
 import uuid
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -25,6 +26,18 @@ class Item:
     label: str
     body: str | None
     note: str | None = None
+    when: str | None = None
+
+
+def record_when(record: dict[str, Any]) -> str | None:
+    raw = record.get("timestamp")
+    if not isinstance(raw, str) or not raw:
+        return None
+    try:
+        parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return parsed.astimezone().strftime("%Y-%m-%d %H:%M")
 
 
 def canonical_session_id(raw: str) -> str:
@@ -147,10 +160,11 @@ def active_chain(
 
 def direct_item(record: dict[str, Any]) -> Item:
     value = content(record)
+    when = record_when(record)
     if isinstance(value, str):
         if not value:
             raise RecallError("empty user message")
-        return Item("User message", value)
+        return Item("User message", value, when=when)
     if not isinstance(value, list) or not value:
         raise RecallError("invalid user message")
 
@@ -169,7 +183,7 @@ def direct_item(record: dict[str, Any]) -> Item:
         else:
             raise RecallError(f"unsupported user content: {block['type']}")
     note = f"{images} image block(s) omitted" if images else None
-    return Item("User message", "\n".join(texts) or None, note)
+    return Item("User message", "\n".join(texts) or None, note, when=when)
 
 
 def ask_sources(chain: list[dict[str, Any]]) -> dict[str, str]:
@@ -235,7 +249,7 @@ def answer_item(record: dict[str, Any], sources: dict[str, str]) -> Item | None:
                 f"Recorded answer: {', '.join(values)}",
             )
         )
-    return Item("AskUserQuestion response", "\n".join(lines))
+    return Item("AskUserQuestion response", "\n".join(lines), when=record_when(record))
 
 
 def recall(records: list[dict[str, Any]]) -> list[Item]:
@@ -257,7 +271,8 @@ def render(items: list[Item], *, show_all: bool) -> str:
     selected = items if show_all else items[-DEFAULT_LIMIT:]
     lines = [f"Prior user input: {len(selected)}/{len(items)}; current turn excluded"]
     for item in selected:
-        lines.extend(("", f"--- {item.label} ---"))
+        header = f"{item.label} · {item.when}" if item.when else item.label
+        lines.extend(("", f"--- {header} ---"))
         lines.append(item.body or "[no text; image content omitted]")
         if item.note:
             lines.append(f"Note: {item.note}")
