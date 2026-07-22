@@ -22,8 +22,8 @@ target для самых сложных long-horizon, ambiguous и high-stakes �
   examples и research для агентных систем.
 - Улучшать skill contracts, instruction files, routing, prompt-подходы, hooks,
   guardrails и owner-модели.
-- Держать `_ops/chat-recall/YYYY-MM-DD.md` как дневной лог дословных слов
-  владельца; пишет `1chat-recall`, hook не участвует. `_ops/user-said/` —
+- Держать `_ops/chat-recall/` как руду дословных слов владельца — файл на
+  разговор; пишет `1chat-recall`, hook не участвует. `_ops/user-said/` —
   замороженный предшественник, read-only.
 - Использовать `_ops/findings/**` только для актуальных проблем до стратегии,
   задачи или решения.
