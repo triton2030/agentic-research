@@ -33,6 +33,7 @@ class ChatCaptureTests(unittest.TestCase):
         self, quote: str, type_: str, topic: str,
         agent: str | None = None,
         env: dict[str, str] | None = None,
+        session: str | None = None,
         expect_ok: bool = True,
     ) -> subprocess.CompletedProcess[str]:
         clean_env = {k: v for k, v in os.environ.items() if k not in SESSION_ENV_VARS}
@@ -45,6 +46,8 @@ class ChatCaptureTests(unittest.TestCase):
         ]
         if agent:
             command += ["--agent", agent]
+        if session:
+            command += ["--session", session]
         result = subprocess.run(command, capture_output=True, text=True, env=clean_env)
         if expect_ok:
             self.assertEqual(result.returncode, 0, result.stderr)
@@ -135,6 +138,18 @@ class ChatCaptureTests(unittest.TestCase):
         result = self.run_capture("Без сессии", "решение", "1codex", expect_ok=False)
         self.assertEqual(result.returncode, 2)
         self.assertIn("session id unknown", result.stderr)
+        self.assertEqual(self.recall_files(), [])
+
+    def test_invalid_explicit_session_is_rejected(self) -> None:
+        result = self.run_capture(
+            "Чужой путь",
+            "решение",
+            "1codex",
+            session="../../../../../escape",
+            expect_ok=False,
+        )
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("session must be a canonical UUID", result.stderr)
         self.assertEqual(self.recall_files(), [])
 
     def test_foreign_file_is_left_alone(self) -> None:

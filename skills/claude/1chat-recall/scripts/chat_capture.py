@@ -16,6 +16,7 @@ import argparse
 import os
 import re
 import sys
+import uuid
 from datetime import datetime
 from pathlib import Path
 
@@ -61,13 +62,24 @@ def handle(value: str, field: str) -> str:
     return collapsed
 
 
+def canonical_session(value: str) -> str:
+    collapsed = one_line(value, "session")
+    try:
+        canonical = str(uuid.UUID(collapsed))
+    except ValueError as error:
+        raise CaptureError("session must be a canonical UUID") from error
+    if collapsed != canonical:
+        raise CaptureError(f"session must be canonical: {canonical}")
+    return canonical
+
+
 def resolve_session(explicit: str | None, agent: str) -> str | None:
     if explicit and explicit.strip():
-        return explicit.strip()
+        return canonical_session(explicit)
     for name in ENV_BY_AGENT.get(agent, ()):
         value = os.environ.get(name, "").strip()
         if value:
-            return value
+            return canonical_session(value)
     return None
 
 

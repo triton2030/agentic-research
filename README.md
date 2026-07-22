@@ -17,9 +17,9 @@ baseline.
 2. `CLAUDE.md` — shim из одной строки `@AGENTS.md`; отдельной правды не держит.
 3. `_ops/GOAL.md` — рабочий контракт проекта: что делаем, что не делаем, когда
    остановиться и вернуться к стратегии.
-4. `_ops/chat-recall/` — руда слов владельца дословно, файл на разговор; пишет
-   `1chat-recall` в момент, когда прозвучало; `_ops/user-said/` — его
-   замороженный предшественник, только для чтения.
+4. `_ops/chat-recall/` — руда source-bound выдержек слов владельца, файл на
+   разговор; пишет `1chat-recall` в момент, когда прозвучало;
+   `_ops/user-said/` — его замороженный предшественник, только для чтения.
 5. `knowledge/` — wisdom, guides, practical guides, examples и research.
    Для написания скилов начинать с
    `knowledge/practical-guides/how-to-write-skills/`.
