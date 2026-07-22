@@ -89,6 +89,19 @@ class ChatCaptureTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("invalid choice", result.stderr)
 
+    def test_refuses_foreign_file_without_frontmatter(self) -> None:
+        self.run_capture("Первое", "решение", "1codex", session=self.session)
+        target = self.recall_files()[0]
+        target.write_text("просто заметка без шапки\n", encoding="utf-8")
+        result = self.run_capture(
+            "Второе", "решение", "1codex", session=self.session, expect_ok=False
+        )
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("no frontmatter", result.stderr)
+        self.assertEqual(
+            target.read_text(encoding="utf-8"), "просто заметка без шапки\n"
+        )
+
     def test_without_session_uses_one_day_file_per_agent(self) -> None:
         self.run_capture("Первое", "решение", "1codex")
         self.run_capture("Второе", "идея", "1codex")

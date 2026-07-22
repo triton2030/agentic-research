@@ -77,10 +77,12 @@ def entry_line(quote: str, type_: str, topic: str, now: datetime) -> str:
 
 
 def frontmatter_end(lines: list[str]) -> int:
-    if not lines or lines[0] != "---":
-        raise CaptureError("recall file has no frontmatter")
+    if not lines or lines[0].strip() != "---":
+        raise CaptureError(
+            "recall file has no frontmatter — foreign file? refuse to edit it"
+        )
     for index in range(1, len(lines)):
-        if lines[index] == "---":
+        if lines[index].strip() == "---":
             return index
     raise CaptureError("recall file frontmatter is not closed")
 
@@ -137,7 +139,7 @@ def create_file(
 
 
 def append_entry(path: Path, type_: str, topic: str, quote: str, now: datetime) -> bool:
-    text = path.read_text(encoding="utf-8")
+    text = path.read_text(encoding="utf-8-sig")
     if f'"{quote}"' in text:
         return False
     lines = text.splitlines()
