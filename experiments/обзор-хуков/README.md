@@ -1,8 +1,4 @@
 ---
-read-before-edit:
-  - '[[AGENTS.md]]'
-  - '[[_ops/GOAL.md]]'
-edit-after-edit: []
 description: Snapshot-пакет карт hook surfaces для Codex и Claude.
 ---
 
