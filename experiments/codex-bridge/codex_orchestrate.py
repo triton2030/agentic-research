@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from cbcommon import scrub_billing_env
+from codex_sdk_compat import harden_sdk_enums
 from codex_defaults import (
     BRIDGE_THREAD_EPHEMERAL,
     DEFAULT_CODEX_EFFORT,
@@ -164,6 +165,10 @@ async def _run_fleet(
 ) -> list[dict[str, Any]]:
     from openai_codex import AsyncCodex, CodexConfig
 
+    # Дрейф движка ChatGPT.app под запиненным SDK: новые enum-значения в
+    # ответах не должны ронять воркеров (см. codex_sdk_compat.py).
+    harden_sdk_enums()
+
     sem = asyncio.Semaphore(concurrency)
     defaults["progress"] = {"completed": 0, "total": len(tasks)}
     heartbeat_task: asyncio.Task[None] | None = None
@@ -303,7 +308,7 @@ def main() -> int:
         "--service-tier",
         default=DEFAULT_CODEX_SERVICE_TIER,
         help=f"Codex service tier — fast mode for every worker (default: {DEFAULT_CODEX_SERVICE_TIER}). "
-        "Sent explicitly per turn: config.toml is not inherited in the SDK path.",
+        "Sent explicitly per turn so behavior does not depend on inherited config.toml drift.",
     )
     parser.add_argument("--verify", action="append", default=[], help="Verification command to run after workers and scope check.")
     parser.add_argument(

@@ -5,8 +5,10 @@
 
 ## Что это
 
-Вызов Codex из Claude Code: ревьюер (read-only) и флот воркеров (workspace-write)
-под оркестрацией Claude. Backend здесь; декларативный скилл — `~/.claude/skills/1codex/`.
+Вызов Codex из Claude Code в трёх профилях: reviewer (built-in filesystem
+read-only), investigator (артефакты в `out/`, project drift ловит postflight) и
+fleet (workspace-write в проект). Backend здесь; operator/router —
+`~/.claude/skills/1codex/`.
 
 ## Инварианты (не ломать)
 
@@ -22,15 +24,16 @@
   `#15853`/`#26391` как «SDK не наследует» — они про другой клиент. Новый вход:
   используй `codex_defaults.py`, передавай model/effort/service_tier в
   `thread_start` + `thread_resume` + `thread.run`.
-- **Ревьюер не правит проект.** Codex в `codex_review.py` — всегда
-  `Sandbox.read_only` + `ApprovalMode.deny_all`, даже если пользователь просит
-  "максимальные" permissions. Сам backend всегда пишет audit ledger в отдельный
-  `run_dir`; это служебный след, а не правка Codex.
-- **Исследователь пишет только себе.** `codex_investigate.py` —
-  `Sandbox.workspace_write` c cwd=`run_dir/out`; писать в проект запрещено
-  sandbox-ом (не постфактум-чеком). Не переводи cwd на корень проекта и не давай
-  `full_access` — это стёрло бы границу между исследователем и флотом. Scope-чек
-  исключает поддерево `run_dir` (свой scratch/ledger ≠ правка проекта).
+- **Ревьюер не получает права править проект.** `codex_review.py` всегда задаёт
+  built-in filesystem `Sandbox.read_only` + `ApprovalMode.deny_all`; backend
+  пишет только audit ledger в отдельный `run_dir`. Внешние MCP живут вне этого
+  sandbox, поэтому их наличие не является разрешением на side effects.
+- **Исследователь пишет deliverables себе.** `codex_investigate.py` задаёт
+  `Sandbox.workspace_write` c cwd=`run_dir/out`: built-in filesystem пишет в
+  `out/` + system temp, а project path блокируется. Внешние MCP находятся вне
+  sandbox; postflight scope-check обнаруживает project drift и роняет `ok`.
+  Не переводи cwd в проект и не давай `full_access`. Scope-чек исключает
+  поддерево `run_dir` (свой scratch/ledger ≠ правка проекта).
 - **Backend владеет safety.** `codex_orchestrate.py` — не thin launcher, а
   entrypoint guarded shared-worktree orchestrator. Runtime safety живёт в backend:
   strict schema/preflight до импорта Codex, exact file allowlist, git fail-closed
@@ -58,6 +61,13 @@
   `Sandbox.full_access` default-ом: изменения вне project/git scope нельзя
   честно проверить postflight allowlist. Shared worktree не доказывает
   per-worker attribution; worktree isolation остаётся Stage 2.
+- **Дрейф движка не роняет мост.** ChatGPT.app авто-обновляется, SDK запинен —
+  неизвестные enum-значения ломали pydantic-валидацию в обоих направлениях:
+  исходящий `--effort ultra` (07.2026) и `max` в ответе `thread_start`
+  (2026-07-24, падение до старта Codex). Каждый вход зовёт `harden_sdk_enums()`
+  из `codex_sdk_compat.py` сразу после импорта SDK (open-enum `_missing_`,
+  warning-once на неизвестное значение); новый вход обязан тоже. Ручных патчей
+  в `.venv` не держим — reinstall их стирает.
 - **Успех turn-а точный.** Для review / investigate / worker только SDK-статус
   `completed` при отсутствии `error` означает успех. `interrupted`,
   `inProgress` и любой неизвестный статус — `ok=false` + ненулевой exit code;
@@ -66,13 +76,17 @@
 ## Карта файлов
 
 - `cbcommon.py` — общая биллинг-гигиена (одна правда).
+- `codex_sdk_compat.py` — open-enum hardening запиненного SDK: дрейф движка
+  ChatGPT.app не роняет мост.
 - `codex_defaults.py` — общий runtime default: `gpt-5.6-sol`, `xhigh`, sandbox и
   approval labels для ledger/docs, `BRIDGE_THREAD_EPHEMERAL`.
-- `codex_review.py` — консультант/ревьюер read-only. Default режим `task`:
+- `codex_review.py` — консультант/ревьюер с built-in filesystem read-only.
+  Default режим `task`:
   самодостаточное задание без транскрипта (вызов «как субагент»). Режимы
   `review`/`ask` дополнительно ищут и рендерят транскрипт сессии Claude.
-- `codex_investigate.py` — исследователь: читает проект/диск, пишет только в
-  `run_dir/out`. Uniform `result.json` c `artifacts` и `scope_status`. Общий
+- `codex_investigate.py` — исследователь: deliverables в `run_dir/out`,
+  built-in filesystem также допускает system temp; project drift ловит
+  postflight. Uniform `result.json` c `artifacts` и `scope_status`. Общий
   `start_heartbeat` и ledger-примитивы из `codex_orchestrate_state.py`.
 - `codex_orchestrate.py` — entrypoint/runner для guarded shared-worktree пула
   воркеров (`AsyncCodex` + semaphore).

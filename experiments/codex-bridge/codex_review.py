@@ -33,6 +33,7 @@ import time
 from pathlib import Path
 
 from cbcommon import scrub_billing_env
+from codex_sdk_compat import harden_sdk_enums
 from codex_defaults import (
     BRIDGE_THREAD_EPHEMERAL,
     DEFAULT_CODEX_EFFORT,
@@ -311,7 +312,7 @@ def main() -> int:
         "--service-tier",
         default=DEFAULT_CODEX_SERVICE_TIER,
         help=f"Codex service tier — быстрый режим (default: {DEFAULT_CODEX_SERVICE_TIER}). "
-        "Мост шлёт его явно в каждый turn: config.toml в SDK-контексте не наследуется.",
+        "Мост шлёт его явно в каждый turn, чтобы не зависеть от дрейфа наследуемого config.toml.",
     )
     parser.add_argument("--include-thinking", action="store_true", help="Включить блоки размышлений Claude в транскрипт.")
     parser.add_argument("--max-chars", type=int, default=200_000, help="Бюджет транскрипта; при превышении остаётся свежий хвост.")
@@ -526,6 +527,10 @@ def main() -> int:
             print(json.dumps(_compact_review_payload(payload), ensure_ascii=False, indent=2))
         print(error, file=sys.stderr)
         return 1
+
+    # Дрейф движка ChatGPT.app под запиненным SDK: новые enum-значения в
+    # ответах не должны ронять мост (см. codex_sdk_compat.py).
+    harden_sdk_enums()
 
     print(
         f"[codex-bridge] режим={args.mode} транскрипт={transcript_name} "

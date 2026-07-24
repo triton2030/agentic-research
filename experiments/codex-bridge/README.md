@@ -3,10 +3,11 @@
 Вызов Codex (ChatGPT) из Claude Code. Зеркало `claude-bridge` (тот гоняет Claude
 из Codex; этот — Codex из Claude).
 
-Три профиля — по оси «что Codex может ПИСАТЬ» (читает во всех весь диск):
+Три профиля — по месту deliverables и built-in filesystem boundary (читает во
+всех весь диск; внешние MCP — отдельная граница ниже):
 
-- **Консультант / ревьюер** (`codex_review.py`) — Codex read-only и не правит
-  проект; backend пишет только служебный audit ledger в `run_dir`.
+- **Консультант / ревьюер** (`codex_review.py`) — built-in filesystem read-only;
+  project edits не разрешены, backend пишет служебный audit ledger в `run_dir`.
   Два способа дать контекст:
   - **`task` (default)** — задание/вопрос БЕЗ транскрипта, как вызов субагента.
     Codex видит файлы проекта, но не историю сессии. Дёшево и быстро — основной
@@ -14,12 +15,11 @@
   - **`review` / `ask`** — с транскриптом текущей сессии Claude: стороннее ревью
     ХОДА работы или вопрос «по нашему диалогу». Дороже; бери, только когда Codex
     реально нужна история, а не файлы проекта.
-- **Исследователь** (`codex_investigate.py`) — читает весь проект и диск; ПРОЕКТ
-  для записи недостижим на уровне sandbox (cwd=out, `workspace_write`), не
-  постфактум-проверкой. Выходная папка Codex — `run_dir/out/`. Для «изучи X,
-  собери данные, напиши отчёт»: Codex складывает артефакты в `out/`, Claude
-  забирает `result.json` (uniform-контракт) и сливает фан-аут кодом. Как вызов
-  субагента: транскрипт не тянется.
+- **Исследователь** (`codex_investigate.py`) — built-in filesystem пишет в
+  `run_dir/out/` + system temp, а project path блокируется sandbox-ом;
+  postflight ловит project drift. Для «изучи X, собери данные, напиши отчёт»
+  Codex складывает deliverables в `out/`, Claude забирает `result.json` и сливает
+  фан-аут кодом. Как вызов субагента: транскрипт не тянется.
 - **Флот воркеров** (`codex_orchestrate.py`) — guarded shared-worktree
   workspace-write. Claude как оркестратор раздаёт file-disjoint задачи, backend
   валидирует контракт до запуска Codex, гонит N Codex параллельно (`AsyncCodex`
@@ -132,14 +132,24 @@ Desktop (`/Applications/ChatGPT.app/Contents/Resources/codex`, на 2026-07-10 �
 2026-07-21): живой пробник — точная копия боевого вызова с `effort=ultra` на
 `gpt-5.6-sol` — вернул `completed` под ChatGPT-auth (движок
 `0.145.0-alpha.18`). Дефолт остаётся `xhigh`; `--effort ultra` — осознанный
-opt-in. Две оговорки: (1) как и у `service_tier`, это ЗАПРОШЕННЫЙ effort —
-применение сервером ledger не доказывает; (2) проходимость держится на
-локальном патче enum `ReasoningEffort` в venv (site-packages, помечен
-`# local patch`): установленный SDK `0.1.0b3` слова `ultra` не знал, патч
-добавлен вручную. Переустановка SDK патч сотрёт и `--effort ultra` начнёт
-падать на валидации; лечение — вернуть строку в enum или перейти на SDK
->= 0.144.x, где enum открытый (`_missing_` принимает любую строку).
-Историческая заметка: до патча `ultra` резался pydantic-валидацией даже через
+opt-in. Оговорка: как и у `service_tier`, это ЗАПРОШЕННЫЙ effort — применение
+сервером ledger не доказывает.
+
+**Дрейф enum под запиненным SDK.** ChatGPT.app авто-обновляет движок, а SDK
+запинен (`0.1.0b3`) — wire-протокол дрейфует под замороженной схемой. Дважды
+это роняло мост, в обоих направлениях: исходящем — `--effort ultra` падал на
+нашем же `ReasoningEffort(args.effort)` (07.2026); входящем — движок стал
+слать `max` в ответе `thread_start`, и его pydantic-валидация роняла каждый
+запуск до старта Codex (2026-07-24). Устойчивость
+живёт в коде репо: `codex_sdk_compat.harden_sdk_enums()` вызывается каждым
+входом сразу после импорта SDK и делает все строковые enum'ы сгенерённой
+схемы открытыми — тот же механизм `_missing_`, которым это решили SDK
+>= 0.144.x. Неизвестное значение принимается дословно как pseudo-member, в
+stderr печатается warning-once (дрейф виден, но не роняет; живой пробник
+2026-07-24: движок шлёт `max`, `thread_start` проходит с warning). Ручные
+патчи `.venv/site-packages` сняты и больше не нужны — переустановка SDK
+безопасна; `--effort ultra` работает на pristine SDK тем же механизмом.
+Историческая заметка: до этого `ultra` резался pydantic-валидацией даже через
 `config_overrides` (проверено 2026-07-10).
 
 Нижний рабочий порог — `low`, и он enforced: `--effort` ниже (`minimal`/`none`)
@@ -258,8 +268,8 @@ Reviewer всегда создаёт `run_dir` и пишет `manifest.json`, `e
 ## Исследователь
 
 ```bash
-# Codex читает проект; для записи проект недостижим — пишет себе в run_dir/out
-# (+ системный temp); ответ забираешь из result.json:
+# Codex читает проект; built-in filesystem пишет в run_dir/out + system temp,
+# project path блокируется; ответ забираешь из result.json:
 .venv/bin/python codex_investigate.py "Изучи X в проекте и напиши отчёт в out/" --project "$PWD"
 
 # Фоном + компактный stdout (штатный режим под фан-аут):
@@ -278,15 +288,14 @@ sandbox-контракт: читать весь диск свободно, ск�
 проверки исключены `out/` и ledger-файлы; `scope=failed` роняет `ok` в false),
 `final_response`.
 
-**Гарантия и её граница (проверено эмпирически).** Запись в ПРОЕКТ блокируется
-sandbox (`operation not permitted`); чтение вне workspace проходит. Но
-enforced-writable множество под `workspace_write` = `cwd` (out) + системный temp
+**Гарантия и её граница (проверено эмпирически).** Built-in filesystem запись в
+ПРОЕКТ блокируется sandbox (`operation not permitted`); чтение вне workspace
+проходит. Но enforced-writable множество под `workspace_write` = `cwd` (out) + системный temp
 (`/tmp`, `$TMPDIR`) — не только `out/`. Сузить до одного `out/` этим SDK нельзя:
 для enum-`Sandbox` он шлёт фиксированную per-turn политику, и
 `writable_roots`/`exclude_slash_tmp` через `config_overrides` игнорируются. То
-есть гарантия, на которую мы опираемся, — «проект недостижим для записи», а не
-«пишет исключительно в out/». Для проекта это безопасно (temp эфемерен и не
-является deliverable-поверхностью).
+есть гарантия sandbox-а — «built-in filesystem не пишет в project path», а не
+«пишет исключительно в out/». Temp эфемерен и не является deliverable surface.
 
 Вторая граница: **MCP-серверы Codex живут вне sandbox** (отдельные процессы
 движка) и могут писать в проект. Наблюдалось вживую: serena при онбординге
@@ -294,8 +303,10 @@ enforced-writable множество под `workspace_write` = `cwd` (out) + с
 поймал (`failed` с точными путями). Поэтому scope-чек — не формальность, а
 второй, независимый слой доказательства.
 
-Разделение профилей: ревьюер — только смотрит; исследователь — смотрит и пишет
-СЕБЕ (проект не трогает); флот — пишет В ПРОЕКТ под file-disjoint контрактом.
+Разделение профилей: reviewer не получает project-write authority;
+investigator складывает deliverables в `out/` и валит project drift postflight;
+fleet пишет в проект под file-disjoint контрактом. Внешние MCP — исключение из
+sandbox-enforcement, не из permission contract.
 
 ## Флот воркеров
 

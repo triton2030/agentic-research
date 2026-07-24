@@ -26,6 +26,7 @@ import time
 from pathlib import Path
 
 from cbcommon import scrub_billing_env
+from codex_sdk_compat import harden_sdk_enums
 from codex_defaults import (
     BRIDGE_THREAD_EPHEMERAL,
     DEFAULT_CODEX_EFFORT,
@@ -146,7 +147,7 @@ def main() -> int:
         "--service-tier",
         default=DEFAULT_CODEX_SERVICE_TIER,
         help=f"Codex service tier — быстрый режим (default: {DEFAULT_CODEX_SERVICE_TIER}). "
-        "Мост шлёт его явно в каждый turn: config.toml в SDK-контексте не наследуется.",
+        "Мост шлёт его явно в каждый turn, чтобы не зависеть от дрейфа наследуемого config.toml.",
     )
     parser.add_argument("--run-dir", help="Fresh ledger directory. out/ создаётся внутри как writable scratch.")
     parser.add_argument("--summary-stdout", action="store_true", help="Компактный JSON в stdout; полный ответ — на диске.")
@@ -238,6 +239,10 @@ def main() -> int:
             file=sys.stderr,
         )
         return 1
+
+    # Дрейф движка ChatGPT.app под запиненным SDK: новые enum-значения в
+    # ответах не должны ронять мост (см. codex_sdk_compat.py).
+    harden_sdk_enums()
 
     # Scope-снимок проекта ДО прогона: sandbox уже блокирует запись вне out/, но
     # снимок даёт независимое доказательство «проект не тронут» в ledger (uniform

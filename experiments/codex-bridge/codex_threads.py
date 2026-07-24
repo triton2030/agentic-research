@@ -25,6 +25,7 @@ from pathlib import Path
 
 from cbcommon import scrub_billing_env
 from codex_defaults import resolve_codex_bin
+from codex_sdk_compat import harden_sdk_enums
 from codex_review import _append_registry_event, _dialog_registry_path
 
 STALE_HOURS_DEFAULT = 48  # правило владельца: диалог старше двух дней можно архивировать
@@ -163,6 +164,9 @@ def _open_sdk(project_cwd: Path):
     scrub_billing_env()
     from openai_codex import Codex, CodexConfig
 
+    # Дрейф движка ChatGPT.app под запиненным SDK: новые enum-значения в
+    # ответах не должны ронять archive/unarchive (см. codex_sdk_compat.py).
+    harden_sdk_enums()
     return Codex(CodexConfig(cwd=str(project_cwd), codex_bin=resolve_codex_bin()))
 
 
