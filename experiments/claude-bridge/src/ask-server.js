@@ -38,7 +38,7 @@ export function createClaudeAskServer(ask = askClaude) {
     {
       title: "Ask Claude",
       description:
-        "Ask native Claude Opus or Fable for a blocking independent review through the logged-in Claude.ai subscription. " +
+        "Ask native Claude Opus 5 or Fable 5 for a blocking independent review through the logged-in Claude.ai subscription. " +
         "Claude retains native local tools, skills, hooks, settings and MCP integrations; instruct it not to modify state. " +
         "Returns one bounded answer and native session_id.",
       inputSchema: claudeAskInputSchema,

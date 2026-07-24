@@ -119,6 +119,8 @@ try {
   assert.notEqual(opus.session_id, fable.session_id);
   assert.equal(opus.requested_model, "opus");
   assert.equal(fable.requested_model, "fable");
+  assert.equal(opus.resolved_model, "claude-opus-5");
+  assert.match(fable.resolved_model, /^claude-(?:fable|opus)-5(?:$|-)/u);
 
   const [opusResume, fableResume] = await Promise.all([
     askClaude({

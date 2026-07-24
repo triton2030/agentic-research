@@ -30,7 +30,7 @@ Tool surface каждого worker — `tool-design.md`.
 - Sycophantic consensus: при голосовании или iterative discussion несколько LLM-агентов сходятся к согласию даже при ошибочной позиции одного. Если нужна реальная проверка — встраивать adversarial роль с мандатом «искать дыры», не консенсус.
 - Parallel agents включать только когда есть независимые файлы, evidence streams
   или leaf implementation. Model-specific routing —
-  `knowledge/wisdom-gpt-5.6.md`, `knowledge/wisdom-claude-opus-4.8.md` и
+  `knowledge/wisdom-gpt-5.6.md`, `knowledge/wisdom-claude-opus-5.md` и
   `knowledge/wisdom-claude-fable-5.md`.
 
 ## Контракт Делегирования

@@ -44,12 +44,12 @@ export function formatClaudeResult(raw, launch) {
   if (!resolvedModel) throw new ClaudeAskError("missing_model", "Claude SDK did not identify the session model.");
 
   const bounded = boundText(raw.result.result, MAX_RESULT_CHARS);
-  const requestedModel = launch.sessionId ? null : launch.profile.model;
+  const requestedModel = launch.sessionId ? null : launch.profile.requestedModel;
   const warnings = [];
   if (launch.stripped.length) warnings.push(`environment_overrides_stripped:${launch.stripped.toSorted().join(",")}`);
   if (raw.primaryModels.length > 1) warnings.push(`model_history:${raw.primaryModels.join("->")}`);
-  if (requestedModel && !resolvedModel.toLowerCase().includes(requestedModel)) {
-    warnings.push(`model_resolution_mismatch:requested=${requestedModel},resolved=${resolvedModel}`);
+  if (!launch.sessionId && !resolvedModel.toLowerCase().includes(launch.profile.model)) {
+    warnings.push(`model_resolution_mismatch:requested=${launch.profile.model},resolved=${resolvedModel}`);
   }
   if (launch.sessionId) warnings.push("resume_session_owns_model");
   if (bounded.truncated) warnings.push(`result_truncated_at:${MAX_RESULT_CHARS}`);

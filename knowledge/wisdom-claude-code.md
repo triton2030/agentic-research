@@ -4,7 +4,7 @@
 
 Только platform-level поведение Claude Code.
 
-Model-level baselines держат `knowledge/wisdom-claude-opus-4.8.md` и
+Model-level baselines держат `knowledge/wisdom-claude-opus-5.md` и
 `knowledge/wisdom-claude-fable-5.md`.
 Доменные выводы — `knowledge/research/{category}/`.
 Skill deltas —
@@ -68,7 +68,7 @@ packaging и управляемых agents,
 
 ## Опоры
 
-- `knowledge/wisdom-claude-opus-4.8.md` — model-level baseline для Opus 4.8.
+- `knowledge/wisdom-claude-opus-5.md` — model-level baseline для Opus 5.
 - `knowledge/wisdom-claude-fable-5.md` — отдельный Fable 5 baseline.
 - `knowledge/practical-guides/how-to-write-skills/platform-deltas.md` —
   Claude Code skills, free skills и plugin packaging.

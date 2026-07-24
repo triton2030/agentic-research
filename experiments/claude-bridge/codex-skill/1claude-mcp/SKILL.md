@@ -16,8 +16,9 @@ Codex остаётся owner scope, проверки, синтеза и отве
 
 ## Default Path
 
-1. Выбери `opus_advisor` по умолчанию. `fable_advisor` оставь для самых сложных
-   long-horizon, multi-system или high-stakes решений.
+1. Выбери `opus_advisor` (`claude-opus-5`) по умолчанию. `fable_advisor`
+   (`claude-fable-5`) оставь для самых сложных long-horizon, multi-system или
+   high-stakes решений.
 2. Передай реальный project/worktree `cwd` и короткий self-contained brief:
    outcome; claim/decision; точные paths или URLs; material boundaries; evidence
    bar; compact verdict-first output; stop condition. Не копируй сырой chat dump.
@@ -36,11 +37,13 @@ Codex остаётся owner scope, проверки, синтеза и отве
   blind review, другой ветки/проекта или нового frame начни fresh call.
 - Несколько Codex agents могут параллельно держать отдельные Claude sessions:
   не переиспользуй чужой UUID; каждый caller хранит собственный `session_id`.
-- Ручной `add_dirs` не нужен. Claude сохраняет native tools, Bash/Edit/Write,
-  settings, skills, hooks, MCP и доступ к любому OS-accessible пути. Инструкция
-  исследовать и не менять state — поведенческая, не read-only sandbox.
-- Когда outcome зависит от конкретного Claude skill, прямо попроси вызвать его;
-  финальный self-report сам по себе не является structured tool-event proof.
+- Ручной `add_dirs` не нужен. Claude сохраняет session-local native tools,
+  settings, skills, hooks, MCP, deferred tool discovery и доступ к любому
+  OS-accessible пути. Точный tool set зависит от runtime; не копируй в brief
+  статический каталог. Инструкция исследовать и не менять state —
+  поведенческая, не read-only sandbox.
+- Когда outcome зависит от конкретного Claude skill, tool или orchestration
+  mode, читай [claude-native-tools.md](references/claude-native-tools.md).
 
 ## External And Billing Boundaries
 
@@ -59,6 +62,8 @@ Codex остаётся owner scope, проверки, синтеза и отве
   [fable-agent-prompting.md](references/fable-agent-prompting.md).
 - Когда качество Opus review зависит от роли, sources или output shape →
   [opus-agent-prompting.md](references/opus-agent-prompting.md).
+- Конкретный Claude `Skill`, MCP capability, subagent, monitor или workflow →
+  [claude-native-tools.md](references/claude-native-tools.md).
 - Tool missing/stale, approval, auth, malformed output или cancellation →
   [mcp-failure-handling.md](references/mcp-failure-handling.md).
 

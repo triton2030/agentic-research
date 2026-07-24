@@ -8,7 +8,7 @@ description: "Claude Fable 5-specific routing, brief, autonomy, evidence and del
 
 Здесь живут только правила, которые меняют работу именно с `Claude Fable 5`.
 Fable — target для самых сложных long-horizon, ambiguous и high-stakes задач,
-не универсальная замена `Claude Opus 4.8`. Общие свойства LLM держит
+не универсальная замена `Claude Opus 5`. Общие свойства LLM держит
 `wisdom-llm.md`, платформу — `wisdom-claude-code.md`.
 
 ## Когда Выбирать Fable

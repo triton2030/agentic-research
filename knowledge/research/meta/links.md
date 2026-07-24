@@ -91,9 +91,9 @@ source/reference слой.
 - [Claude migration guide](https://platform.claude.com/docs/en/about-claude/models/migration-guide)
   API-level migration details between current Claude model generations.
 
-- [Prompting Claude Opus 4.8](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-4-8)
-  Current Opus guidance: effort, literal scope, tool/subagent policy, progress,
-  review harnesses and frontend defaults.
+- [Prompting Claude Opus 5](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5)
+  Current Opus guidance: effort, scope, verbosity, over-verification, tool use
+  and subagent delegation.
 
 - [Prompting Claude Fable 5](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5)
   Fable-specific long-run guidance: effort, bounded autonomy, evidence-grounded

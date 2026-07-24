@@ -101,7 +101,7 @@ budgeted initial list. `120-200` символов — наша эвристик�
 process для уже надёжного поведения. Outcome, evidence, stop rules и короткие
 defaults сильнее длинного self-check stack; новое правило добавляй только под
 измеренный failure mode.
-Общий Claude skill core должен работать на `Claude Opus 4.8` и `Claude Fable
+Общий Claude skill core должен работать на `Claude Opus 5` и `Claude Fable
 5`; model routing остаётся в вызывающем prompt/runtime, не в portable body.
 Для обоих явно называть scope, authority, обязательный tool/subagent policy,
 evidence, output и stop только там, где они меняют ход. Для Fable-brief

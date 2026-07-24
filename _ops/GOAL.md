@@ -8,10 +8,10 @@
 работать со мной.
 
 Практический фокус проекта — полигон под рабочий набор `GPT-5.6`, `Claude Opus
-4.8` и `Claude Fable 5`: здесь мы проверяем, улучшаем и связываем skills,
+5` и `Claude Fable 5`: здесь мы проверяем, улучшаем и связываем skills,
 agents, hooks, prompts, instruction files, owner-модели, guardrails и критерии
 так, чтобы будущая ИИ-сессия не писала из общего знания, а опиралась на
-локальную правду и нужный уровень автономности. `Claude Opus 4.8` — основной
+локальную правду и нужный уровень автономности. `Claude Opus 5` — основной
 Claude-target для повседневной agentic-работы; `Claude Fable 5` — отдельный
 target для самых сложных long-horizon, ambiguous и high-stakes задач, а не
 универсальная замена Opus.
@@ -42,6 +42,8 @@ target для самых сложных long-horizon, ambiguous и high-stakes �
 - Model-neutral канон под все модели сразу.
 - Compatibility, tuning или fallback для `GPT-5.5` и более старых
   OpenAI-моделей; они остаются только историческим research evidence.
+- Compatibility, tuning или fallback для Claude 4.x и более старых
+  Claude-моделей; они остаются только историческим research evidence.
 - Рост instruction-процесса вместо более точных scope, evidence, validation и
   stop rules.
 - Восстановление `INTERVIEW.md`, `LEARNINGS.md` или `projects/` как живых

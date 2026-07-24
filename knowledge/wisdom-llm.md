@@ -9,7 +9,7 @@
 Модельные различия не держать здесь:
 
 - `knowledge/wisdom-gpt-5.6.md` — GPT-5.6 baseline.
-- `knowledge/wisdom-claude-opus-4.8.md` — Claude Opus 4.8 baseline.
+- `knowledge/wisdom-claude-opus-5.md` — Claude Opus 5 baseline.
 - `knowledge/wisdom-claude-fable-5.md` — Claude Fable 5 baseline.
 
 Глубинная модель — *почему* эти свойства именно такие (вероятностная машина и её
@@ -111,8 +111,8 @@
 - `knowledge/wisdom-gpt-5.6.md`
   GPT-5.6-specific baseline.
 
-- `knowledge/wisdom-claude-opus-4.8.md`
-  Claude Opus 4.8-specific baseline.
+- `knowledge/wisdom-claude-opus-5.md`
+  Claude Opus 5-specific baseline.
 
 - `knowledge/wisdom-claude-fable-5.md`
   Claude Fable 5-specific baseline.

@@ -17,7 +17,7 @@ const FABLE_SESSION = "22222222-2222-4222-8222-222222222222";
 
 function sdkMessages({
   sessionId = OPUS_SESSION,
-  initModel = "claude-opus-4-8",
+  initModel = "claude-opus-5",
   mainModel = initModel,
   auxiliaryModel,
   text = "ADVICE_OK",
@@ -32,7 +32,7 @@ function sdkMessages({
       apiKeySource,
       model: initModel,
       session_id: sessionId,
-      claude_code_version: "2.1.215"
+      claude_code_version: "2.1.219"
     },
     ...(auxiliaryModel ? [{
       type: "assistant",
@@ -118,13 +118,13 @@ test("one-shot uses fixed profile and native SDK authority", async () => {
     text: "ADVICE_OK",
     session_id: OPUS_SESSION,
     requested_model: "opus",
-    resolved_model: "claude-opus-4-8",
+    resolved_model: "claude-opus-5",
     duration_ms: 123,
     warnings: []
   });
   assert.match(capture.prompt, /do not modify files/iu);
   assert.match(capture.prompt, /Challenge this design/u);
-  assert.equal(capture.options.model, "opus");
+  assert.equal(capture.options.model, "claude-opus-5");
   assert.equal(capture.options.effort, "xhigh");
   assert.deepEqual(capture.options.additionalDirectories, ["/"]);
   assert.equal(capture.options.persistSession, true);
@@ -144,7 +144,7 @@ test("resume keeps the native session model and omits caller model routing", asy
   assert.equal(capture.options.model, undefined);
   assert.equal(capture.options.effort, undefined);
   assert.equal(result.requested_model, null);
-  assert.equal(result.resolved_model, "claude-opus-4-8");
+  assert.equal(result.resolved_model, "claude-opus-5");
   assert.match(result.warnings.join(" "), /resume_session_owns_model/u);
 });
 
@@ -152,18 +152,31 @@ test("parallel subscription preflights and sessions remain independent", async (
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "claude-sdk-parallel-"));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
   const env = { FAKE_AUTH_BARRIER_DIR: path.join(root, "barrier") };
+  const opusCapture = {};
+  const fableCapture = {};
   const [left, right] = await Promise.all([
     askTest(
       { prompt: "LEFT", profile: "opus_advisor", cwd: bridgeRoot },
-      fakeOptions(sdkMessages({ text: "LEFT", sessionId: OPUS_SESSION }), { env })
+      fakeOptions(sdkMessages({ text: "LEFT", sessionId: OPUS_SESSION }), {
+        env,
+        queryFactory: queryFactoryFor(sdkMessages({ text: "LEFT", sessionId: OPUS_SESSION }), opusCapture)
+      })
     ),
     askTest(
       { prompt: "RIGHT", profile: "fable_advisor", cwd: bridgeRoot },
-      fakeOptions(sdkMessages({ text: "RIGHT", sessionId: FABLE_SESSION, initModel: "claude-fable-5" }), { env })
+      fakeOptions(sdkMessages({ text: "RIGHT", sessionId: FABLE_SESSION, initModel: "claude-fable-5" }), {
+        env,
+        queryFactory: queryFactoryFor(
+          sdkMessages({ text: "RIGHT", sessionId: FABLE_SESSION, initModel: "claude-fable-5" }),
+          fableCapture
+        )
+      })
     )
   ]);
   assert.deepEqual([left.text, right.text], ["LEFT", "RIGHT"]);
   assert.notEqual(left.session_id, right.session_id);
+  assert.equal(opusCapture.options.model, "claude-opus-5");
+  assert.equal(fableCapture.options.model, "claude-fable-5");
   assert.equal(fs.readdirSync(path.join(root, "barrier")).length, 2);
 });
 
@@ -338,15 +351,18 @@ test("bounded result reports main-model resolution without auxiliary-model corru
     fakeOptions(sdkMessages({
       initModel: "claude-fable-5",
       auxiliaryModel: "claude-haiku-4-5-20251001",
-      mainModel: "claude-opus-4-8",
+      mainModel: "claude-opus-5",
       text: `BEGIN\n${"0123456789".repeat(2000)}\nEND`
     }))
   );
   assert.ok(result.text.length <= 12000);
   assert.match(result.text, /chars omitted/u);
-  assert.equal(result.resolved_model, "claude-opus-4-8");
-  assert.match(result.warnings.join(" "), /model_history:claude-fable-5->claude-opus-4-8/u);
-  assert.match(result.warnings.join(" "), /model_resolution_mismatch/u);
+  assert.equal(result.resolved_model, "claude-opus-5");
+  assert.match(result.warnings.join(" "), /model_history:claude-fable-5->claude-opus-5/u);
+  assert.match(
+    result.warnings.join(" "),
+    /model_resolution_mismatch:requested=claude-fable-5,resolved=claude-opus-5/u
+  );
   assert.doesNotMatch(result.warnings.join(" "), /haiku/u);
   assert.doesNotMatch(result.warnings.join(" "), /safety/u);
 });
@@ -356,7 +372,7 @@ test("MCP exposes exactly one honest blocking claude_ask schema", async () => {
     text: "MCP_OK",
     session_id: OPUS_SESSION,
     requested_model: null,
-    resolved_model: "claude-opus-4-8",
+    resolved_model: "claude-opus-5",
     duration_ms: 5,
     warnings: ["resume_session_owns_model"]
   };
@@ -368,6 +384,7 @@ test("MCP exposes exactly one honest blocking claude_ask schema", async () => {
   try {
     const tools = await client.listTools();
     assert.deepEqual(tools.tools.map((tool) => tool.name), ["claude_ask"]);
+    assert.match(tools.tools[0].description, /Opus 5 or Fable 5/u);
     assert.deepEqual(tools.tools[0].annotations, {
       readOnlyHint: false,
       destructiveHint: true,

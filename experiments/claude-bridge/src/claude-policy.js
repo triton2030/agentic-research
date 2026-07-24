@@ -9,8 +9,16 @@ const execFileAsync = promisify(execFile);
 export const CLAUDE_EXECUTABLE = "/Users/triton/.local/bin/claude";
 
 const PROFILES = Object.freeze({
-  opus_advisor: Object.freeze({ model: "opus", effort: "xhigh" }),
-  fable_advisor: Object.freeze({ model: "fable", effort: "xhigh" })
+  opus_advisor: Object.freeze({
+    requestedModel: "opus",
+    model: "claude-opus-5",
+    effort: "xhigh"
+  }),
+  fable_advisor: Object.freeze({
+    requestedModel: "fable",
+    model: "claude-fable-5",
+    effort: "xhigh"
+  })
 });
 
 export const claudeAskInputSchema = Object.freeze({

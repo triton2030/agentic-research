@@ -1,6 +1,6 @@
 # Claude Advisor Bridge
 
-This project lets Codex ask Claude for an independent Opus or Fable opinion
+This project lets Codex ask Claude for an independent Opus 5 or Fable 5 opinion
 while using the owner's Claude.ai subscription and Claude's native session
 history.
 
@@ -31,6 +31,10 @@ The MCP entrypoint is `src/ask-server.js`. It exposes one blocking tool:
 - an existing `cwd`;
 - an optional native Claude `session_id` for continuation.
 
+Fresh calls pin the profiles to exact `claude-opus-5` and `claude-fable-5`
+model IDs. The compact public `requested_model` field remains `opus` or `fable`;
+`resolved_model` carries Claude's exact runtime evidence.
+
 The terminal packet contains bounded `text`, native `session_id`, requested and
 resolved models, duration, and warnings. A Fable request that Claude resolves to
 Opus is not a bridge failure, but the resolution must remain visible and the
@@ -48,9 +52,10 @@ authorization instead of showing a new prompt.
 ### Local authority
 
 Advisor runs receive broad local access, subject to the permissions that macOS
-and the Claude process actually have. They retain Claude's native tools,
-commands, skills, hooks, and settings so Claude can use Bash and other local
-analysis workflows when useful.
+and the Claude process actually have. They retain the current Claude session's
+native tools, commands, skills, hooks, settings and deferred tool discovery.
+The exact tool set is runtime-owned and can vary with version, provider, mode
+and settings.
 
 The advisor prompt says to investigate and advise without changing anything.
 That is a behavioral instruction, not an enforced read-only sandbox: a native

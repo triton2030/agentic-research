@@ -1,7 +1,7 @@
 # Как Писать Системные Промпты
 
 Точный model set задаёт `_ops/GOAL.md`. Модельные различия читать в
-`knowledge/wisdom-gpt-5.6.md`, `knowledge/wisdom-claude-opus-4.8.md` и
+`knowledge/wisdom-gpt-5.6.md`, `knowledge/wisdom-claude-opus-5.md` и
 `knowledge/wisdom-claude-fable-5.md`; здесь только правила системного промпта.
 
 ## Для Чего Нужен Системный Промпт
@@ -21,7 +21,7 @@
 ## Модельная Дельта
 
 - Для `GPT-5.6` сначала прочитать `knowledge/wisdom-gpt-5.6.md`.
-- Для `Claude Opus 4.8` прочитать `knowledge/wisdom-claude-opus-4.8.md`.
+- Для `Claude Opus 5` прочитать `knowledge/wisdom-claude-opus-5.md`.
 - Для `Claude Fable 5` прочитать `knowledge/wisdom-claude-fable-5.md`.
 - В этом guide не дублировать модельный baseline; переносить сюда только
   правила, которые верны для системных промптов независимо от модели.
