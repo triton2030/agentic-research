@@ -25,19 +25,21 @@ class RecallError(RuntimeError):
 class Item:
     label: str
     body: str | None
+    source_timestamp: str
     note: str | None = None
-    when: str | None = None
 
 
-def record_when(record: dict[str, Any]) -> str | None:
+def record_timestamp(record: dict[str, Any]) -> str:
     raw = record.get("timestamp")
     if not isinstance(raw, str) or not raw:
-        return None
+        raise RecallError("user evidence has no source timestamp")
     try:
         parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
-    except ValueError:
-        return None
-    return parsed.astimezone().strftime("%Y-%m-%d %H:%M")
+    except ValueError as error:
+        raise RecallError("user evidence has an invalid source timestamp") from error
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        raise RecallError("user evidence source timestamp has no timezone")
+    return parsed.isoformat()
 
 
 def canonical_session_id(raw: str) -> str:
@@ -160,11 +162,11 @@ def active_chain(
 
 def direct_item(record: dict[str, Any]) -> Item:
     value = content(record)
-    when = record_when(record)
+    timestamp = record_timestamp(record)
     if isinstance(value, str):
         if not value:
             raise RecallError("empty user message")
-        return Item("User message", value, when=when)
+        return Item("User message", value, timestamp)
     if not isinstance(value, list) or not value:
         raise RecallError("invalid user message")
 
@@ -183,7 +185,7 @@ def direct_item(record: dict[str, Any]) -> Item:
         else:
             raise RecallError(f"unsupported user content: {block['type']}")
     note = f"{images} image block(s) omitted" if images else None
-    return Item("User message", "\n".join(texts) or None, note, when=when)
+    return Item("User message", "\n".join(texts) or None, timestamp, note)
 
 
 def ask_sources(chain: list[dict[str, Any]]) -> dict[str, str]:
@@ -249,16 +251,24 @@ def answer_item(record: dict[str, Any], sources: dict[str, str]) -> Item | None:
                 f"Recorded answer: {', '.join(values)}",
             )
         )
-    return Item("AskUserQuestion response", "\n".join(lines), when=record_when(record))
+    return Item(
+        "AskUserQuestion response",
+        "\n".join(lines),
+        record_timestamp(record),
+    )
 
 
-def recall(records: list[dict[str, Any]]) -> list[Item]:
+def recall(
+    records: list[dict[str, Any]],
+    *,
+    include_current_turn: bool,
+) -> list[Item]:
     chain, anchor = active_chain(records)
     sources = ask_sources(chain)
     items: list[Item] = []
     for record in chain:
         if is_direct_user(record):
-            if record.get("uuid") != anchor:
+            if include_current_turn or record.get("uuid") != anchor:
                 items.append(direct_item(record))
             continue
         answer = answer_item(record, sources)
@@ -267,11 +277,22 @@ def recall(records: list[dict[str, Any]]) -> list[Item]:
     return items
 
 
-def render(items: list[Item], *, show_all: bool) -> str:
+def render(
+    items: list[Item],
+    *,
+    show_all: bool,
+    include_current_turn: bool,
+) -> str:
     selected = items if show_all else items[-DEFAULT_LIMIT:]
-    lines = [f"Prior user input: {len(selected)}/{len(items)}; current turn excluded"]
+    current_state = "included" if include_current_turn else "excluded"
+    label = "User input" if include_current_turn else "Prior user input"
+    lines = [
+        f"{label}: {len(selected)}/{len(items)}; current turn {current_state}"
+    ]
     for item in selected:
-        header = f"{item.label} · {item.when}" if item.when else item.label
+        header = (
+            f"{item.label} · source_timestamp: {item.source_timestamp}"
+        )
         lines.extend(("", f"--- {header} ---"))
         lines.append(item.body or "[no text; image content omitted]")
         if item.note:
@@ -283,11 +304,22 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--session-id", required=True)
     parser.add_argument("--all", action="store_true", dest="show_all")
+    parser.add_argument("--include-current-turn", action="store_true")
     args = parser.parse_args()
     try:
         session_id = canonical_session_id(args.session_id)
         records = load_records(resolve_transcript(session_id), session_id)
-        print(render(recall(records), show_all=args.show_all))
+        items = recall(
+            records,
+            include_current_turn=args.include_current_turn,
+        )
+        print(
+            render(
+                items,
+                show_all=args.show_all,
+                include_current_turn=args.include_current_turn,
+            )
+        )
     except (OSError, RecallError) as exc:
         print(f"chat-recall: error: {exc}", file=sys.stderr)
         return 2

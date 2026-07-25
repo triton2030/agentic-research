@@ -14,6 +14,7 @@ allowed-tools: Bash(${CLAUDE_SKILL_DIR}/scripts/chat_recall.py *), Bash(${CLAUDE
 Слова владельца точны только в момент, когда прозвучали: контекст выцветает и
 пересказывается. Два скрипта сохраняют источник: capture копит датированную
 руду source-bound выдержек, recall читает transcript текущего разговора.
+Дата принадлежит исходной transcript record, а не ходу запуска скила.
 
 ## Запись — автоматически, в момент, когда прозвучало
 
@@ -25,8 +26,20 @@ allowed-tools: Bash(${CLAUDE_SKILL_DIR}/scripts/chat_recall.py *), Bash(${CLAUDE
 записывается, а хвост про Y — записывается. Пиши сразу в том же ходе, одной
 командой, и продолжай работу — это не отдельная задача и не повод для вопроса.
 
+Сначала получи точный `source_timestamp` этой же пользовательской record.
+Для свежей реплики включи текущий ход; при восстановлении древнего разговора
+используй `--all` и timestamp рядом с выбранной цитатой:
+
 ```bash
-"${CLAUDE_SKILL_DIR}/scripts/chat_capture.py" --quote "<source-bound выдержка его слов>" --type решение --topic 1codex --project "$PWD"
+CLAUDE_RECALL_SESSION="${CLAUDE_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-}}"
+"${CLAUDE_SKILL_DIR}/scripts/chat_recall.py" --session-id "$CLAUDE_RECALL_SESSION" --include-current-turn
+```
+
+Копируй timestamp только из блока с тем же исходным текстом; соседняя реплика
+того же turn не является допустимым источником времени.
+
+```bash
+"${CLAUDE_SKILL_DIR}/scripts/chat_capture.py" --quote "<source-bound выдержка его слов>" --source-timestamp "<source_timestamp той же record>" --type решение --topic 1codex --project "$PWD" --session "${CLAUDE_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-}}"
 ```
 
 - `--type` — из закрытого списка: `решение`, `коррекция`, `предпочтение`,
@@ -39,9 +52,16 @@ allowed-tools: Bash(${CLAUDE_SKILL_DIR}/scripts/chat_recall.py *), Bash(${CLAUDE
   оставь поле отсутствующим, не угадывай alias или семейство.
 
 Скрипт сам ведёт файл этого разговора
-`_ops/chat-recall/<дата>-<время>-<агент>-<session8>.md` (session id своего
-агента из env; не нашёл — откажет: передай `--session`, общий файл смешал бы
-разговоры) и обновляет инвентарь `types`/`topics` в его шапке.
+`_ops/chat-recall/<дата>-<время>-<агент>-<session8>.md`: имя и `date` берутся
+из самой ранней сохранённой цитаты, каждая строка содержит полный source
+timestamp. Если позже добавлена более старая цитата, helper переименует этот же
+session-файл. Session id берётся из env; не найден — helper откажет: передай
+`--session`, общий файл смешал бы разговоры.
+
+`--source-timestamp` обязателен и должен быть timezone-aware ISO 8601 из
+native transcript. Не подставляй часы запуска, дату файла или память. Transcript
+удалён retention-ом, timestamp отсутствует либо schema изменилась — не
+записывай цитату и назови отказ.
 
 Что попадает в `--quote`:
 
@@ -84,11 +104,13 @@ credentials и токены.
 ## Чтение — когда результат опирается на сказанное
 
 ```bash
-"${CLAUDE_SKILL_DIR}/scripts/chat_recall.py" --session-id "${CLAUDE_CODE_SESSION_ID}"
+CLAUDE_RECALL_SESSION="${CLAUDE_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-}}"
+"${CLAUDE_SKILL_DIR}/scripts/chat_recall.py" --session-id "$CLAUDE_RECALL_SESSION"
 ```
 
 Возвращает последние 10 реплик владельца из активной ветки текущей session с
-датой и временем, текущий turn исключён. Нужна полнота — повтори с `--all`.
+точным `source_timestamp`, текущий turn исключён. Нужна полнота — повтори с
+`--all`. Для записи свежей реплики добавь `--include-current-turn`.
 
 Используй только прямые сообщения и подтверждённые ответы `AskUserQuestion`.
 Формулировка вопроса и option label принадлежат Claude; считай их

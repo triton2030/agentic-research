@@ -12,6 +12,7 @@ from typing import Any
 
 
 SCRIPT = Path(__file__).parents[1] / "scripts" / "chat_recall.py"
+DEFAULT_TIMESTAMP = "2001-02-03T04:05:06.789Z"
 
 
 class ChatRecallTests(unittest.TestCase):
@@ -33,10 +34,12 @@ class ChatRecallTests(unittest.TestCase):
         message: dict[str, Any],
         **extra: Any,
     ) -> dict[str, Any]:
+        timestamp = extra.pop("timestamp", DEFAULT_TIMESTAMP)
         return {
             "sessionId": self.session,
             "uuid": record_uuid,
             "parentUuid": parent,
+            "timestamp": timestamp,
             "type": record_type,
             "message": message,
             **extra,
@@ -130,10 +133,18 @@ class ChatRecallTests(unittest.TestCase):
         output = self.call().stdout
         self.assertIn("Prior user input: 1/1", output)
         self.assertIn("Keep 42 exact.", output)
+        self.assertIn(
+            "source_timestamp: 2001-02-03T04:05:06.789000+00:00",
+            output,
+        )
         self.assertIn("1 image block(s) omitted", output)
         self.assertNotIn("skill expansion", output)
         self.assertNotIn("Run recall", output)
         self.assertNotIn("noise", output)
+
+        with_current = self.call("--include-current-turn").stdout
+        self.assertIn("User input: 2/2; current turn included", with_current)
+        self.assertIn("Run recall.", with_current)
 
     def test_keeps_active_branch_and_verified_question_answer(self) -> None:
         root, ask, answer, discarded, current = (str(uuid.uuid4()) for _ in range(5))
@@ -245,6 +256,26 @@ class ChatRecallTests(unittest.TestCase):
         unknown["sessionId"] = str(uuid.uuid4())
         self.write([unknown])
         self.assertIn("session mismatch", self.call(ok=False).stderr)
+
+    def test_missing_or_invalid_source_timestamp_fails_closed(self) -> None:
+        old = self.record(
+            str(uuid.uuid4()),
+            None,
+            "user",
+            {"role": "user", "content": "Old evidence."},
+            timestamp="not-a-timestamp",
+        )
+        current = self.record(
+            str(uuid.uuid4()),
+            old["uuid"],
+            "user",
+            {"role": "user", "content": "Current turn."},
+        )
+        self.write([old, current])
+
+        result = self.call(ok=False)
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("invalid source timestamp", result.stderr)
 
 
 if __name__ == "__main__":
