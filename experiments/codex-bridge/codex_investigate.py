@@ -32,7 +32,6 @@ from codex_defaults import (
     DEFAULT_CODEX_EFFORT,
     DEFAULT_CODEX_MODEL,
     DEFAULT_CODEX_SERVICE_TIER,
-    FAST_MODE_CONFIG_OVERRIDES,
     INVESTIGATE_APPROVAL_MODE,
     INVESTIGATE_SANDBOX,
     REASONING_EFFORTS,
@@ -146,8 +145,8 @@ def main() -> int:
     parser.add_argument(
         "--service-tier",
         default=DEFAULT_CODEX_SERVICE_TIER,
-        help=f"Codex service tier — быстрый режим (default: {DEFAULT_CODEX_SERVICE_TIER}). "
-        "Мост шлёт его явно в каждый turn, чтобы не зависеть от дрейфа наследуемого config.toml.",
+        help="Codex service tier (default: наследуется из ~/.codex/config.toml). "
+        "Явное значение, например 'priority', — осознанный opt-in fast на этот прогон.",
     )
     parser.add_argument("--run-dir", help="Fresh ledger directory. out/ создаётся внутри как writable scratch.")
     parser.add_argument("--summary-stdout", action="store_true", help="Компактный JSON в stdout; полный ответ — на диске.")
@@ -213,7 +212,7 @@ def main() -> int:
     if args.dry_run:
         print(
             f"[codex-bridge] DRY-RUN investigate project={project_cwd} out={out_dir} "
-            f"model={args.model} effort={args.effort} tier={args.service_tier} "
+            f"model={args.model} effort={args.effort} tier={args.service_tier or 'inherit'} "
             f"binary={codex_runtime['binary_source']} "
             f"sandbox={INVESTIGATE_SANDBOX} approval={INVESTIGATE_APPROVAL_MODE}"
             + (f" | вырезаны из env: {', '.join(removed)}" if removed else " | env чист"),
@@ -251,7 +250,7 @@ def main() -> int:
 
     print(
         f"[codex-bridge] profile=investigate project={project_cwd} out={out_dir} "
-        f"model={args.model} effort={args.effort} tier={args.service_tier} "
+        f"model={args.model} effort={args.effort} tier={args.service_tier or 'inherit'} "
         f"binary={codex_runtime['binary_source']} "
         f"sandbox={INVESTIGATE_SANDBOX} approval={INVESTIGATE_APPROVAL_MODE}"
         + (f" | вырезаны из env: {', '.join(removed)}" if removed else " | env чист"),
@@ -270,7 +269,6 @@ def main() -> int:
     config = CodexConfig(
         cwd=str(out_dir),
         codex_bin=codex_bin,
-        config_overrides=FAST_MODE_CONFIG_OVERRIDES,
     )
     try:
         with Codex(config) as codex:

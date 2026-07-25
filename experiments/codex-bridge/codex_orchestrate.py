@@ -19,7 +19,6 @@ from codex_defaults import (
     DEFAULT_CODEX_EFFORT,
     DEFAULT_CODEX_MODEL,
     DEFAULT_CODEX_SERVICE_TIER,
-    FAST_MODE_CONFIG_OVERRIDES,
     REASONING_EFFORTS,
     WORKER_APPROVAL_MODE,
     WORKER_SANDBOX,
@@ -181,7 +180,6 @@ async def _run_fleet(
             CodexConfig(
                 cwd=defaults["cwd"],
                 codex_bin=defaults["codex_bin"],
-                config_overrides=FAST_MODE_CONFIG_OVERRIDES,
             )
         ) as codex:
             return await asyncio.gather(*(_run_one(codex, sem, task, defaults) for task in tasks))
@@ -307,8 +305,8 @@ def main() -> int:
     parser.add_argument(
         "--service-tier",
         default=DEFAULT_CODEX_SERVICE_TIER,
-        help=f"Codex service tier — fast mode for every worker (default: {DEFAULT_CODEX_SERVICE_TIER}). "
-        "Sent explicitly per turn so behavior does not depend on inherited config.toml drift.",
+        help="Codex service tier (default: inherit from ~/.codex/config.toml). "
+        "Explicit value, e.g. 'priority', is a deliberate per-run fast opt-in.",
     )
     parser.add_argument("--verify", action="append", default=[], help="Verification command to run after workers and scope check.")
     parser.add_argument(
@@ -405,7 +403,7 @@ def main() -> int:
     removed = scrub_billing_env()
     print(
         f"[orch] старт: {len(tasks)} задач, лимит {args.concurrency}, project={project}, "
-        f"run_dir={run_dir}, model={args.model}, effort={args.effort}, tier={args.service_tier}, "
+        f"run_dir={run_dir}, model={args.model}, effort={args.effort}, tier={args.service_tier or 'inherit'}, "
         f"binary={codex_runtime['binary_source']}, "
         f"sandbox={WORKER_SANDBOX}, approval={WORKER_APPROVAL_MODE}"
         + (f" | вырезано из env: {', '.join(removed)}" if removed else " | env чист"),

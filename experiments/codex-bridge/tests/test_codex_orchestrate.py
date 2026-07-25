@@ -146,7 +146,7 @@ class CodexOrchestrateCliTests(unittest.TestCase):
             self.assertEqual(payload["tasks"][0]["files"], ["a.md"])
             self.assertEqual(payload["codex"]["model"], "gpt-5.6-sol")
             self.assertEqual(payload["codex"]["effort"], "xhigh")
-            self.assertEqual(payload["codex"]["service_tier"], "priority")
+            self.assertIsNone(payload["codex"]["service_tier"])
             self.assertEqual(payload["codex"]["worker_sandbox"], "workspace_write")
             self.assertEqual(payload["codex"]["worker_approval_mode"], "auto_review")
             self.assertTrue(payload["codex"]["thread_ephemeral"])
@@ -391,7 +391,7 @@ class CodexOrchestrateCliTests(unittest.TestCase):
                     "cwd": str(root),
                     "model": "gpt-5.6-sol",
                     "effort": "high",
-                    "service_tier": "priority",
+                    "service_tier": None,
                     "run_dir": run_dir,
                     "progress": {"completed": 0, "total": 1},
                 }
@@ -403,8 +403,8 @@ class CodexOrchestrateCliTests(unittest.TestCase):
                 )
             self.assertIs(captured.get("ephemeral"), True)
             self.assertEqual(captured.get("sandbox"), "workspace_write")
-            self.assertEqual(captured.get("service_tier"), "priority")
-            self.assertEqual((captured.get("run_kwargs") or {}).get("service_tier"), "priority")
+            self.assertIsNone(captured.get("service_tier"))
+            self.assertIsNone((captured.get("run_kwargs") or {}).get("service_tier"))
             self.assertEqual(record["worker_status"], "completed")
         finally:
             for name in fake_names:
@@ -429,7 +429,7 @@ class CodexOrchestrateCliTests(unittest.TestCase):
                     "cwd": str(root),
                     "model": "gpt-5.6-sol",
                     "effort": "high",
-                    "service_tier": "priority",
+                    "service_tier": None,
                     "run_dir": run_dir,
                     "codex_bin": "/fake/chatgpt/codex",
                 }
@@ -440,7 +440,7 @@ class CodexOrchestrateCliTests(unittest.TestCase):
             self.assertEqual(
                 captured["codex_config"].get("codex_bin"), "/fake/chatgpt/codex"
             )
-            self.assertIn(
+            self.assertNotIn(
                 "features.fast_mode=true",
                 captured["codex_config"].get("config_overrides") or (),
             )

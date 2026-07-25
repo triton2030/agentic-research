@@ -37,17 +37,15 @@ class ResolveCodexBinTests(unittest.TestCase):
 
 
 class ServiceTierDefaultTests(unittest.TestCase):
-    def test_default_service_tier_is_priority(self) -> None:
-        # The bridge must ALWAYS run fast; a drift of this default silently slows
-        # every background run. "priority" = how the current engine encodes fast.
-        self.assertEqual(codex_defaults.DEFAULT_CODEX_SERVICE_TIER, "priority")
+    def test_default_service_tier_not_sent(self) -> None:
+        # Owner reversal 2026-07-25: the bridge no longer requests fast. None →
+        # the SDK omits the param (exclude_none) and the engine falls back to
+        # ~/.codex/config.toml; explicit --service-tier stays a per-run opt-in.
+        self.assertIsNone(codex_defaults.DEFAULT_CODEX_SERVICE_TIER)
 
-    def test_fast_mode_feature_gate_forced(self) -> None:
-        # Tier alone is a no-op unless features.fast_mode is on; the bridge must
-        # force the gate so "always fast" does not depend on the user's config.
-        self.assertIn(
-            "features.fast_mode=true", codex_defaults.FAST_MODE_CONFIG_OVERRIDES
-        )
+    def test_fast_mode_feature_gate_not_forced(self) -> None:
+        # The fast_mode gate must not be forced at app-server launch anymore.
+        self.assertFalse(hasattr(codex_defaults, "FAST_MODE_CONFIG_OVERRIDES"))
 
 
 if __name__ == "__main__":

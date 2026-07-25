@@ -15,15 +15,16 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
 - **Биллинг через аккаунт.** `cbcommon.scrub_billing_env()` вызывается ДО запуска
   любого codex-процесса. Не убирай и не обходи — это защита от ухода на платный
   API. Любой новый вход (скрипт/режим) обязан звать его первым.
-- **Модель и режим фиксируются backend-ом.** Default для всех Codex turns:
-  `model=gpt-5.6-sol`, `effort=xhigh` (Extra High), `service_tier=priority`
-  (быстрый режим) + `features.fast_mode=true` через `config_overrides`. Мост
-  форсит оба явно ради независимости от дрейфа `~/.codex/config.toml` (config
-  из SDK-пути наследуется — SDK опускает None-параметры, `exclude_none`; но
-  Desktop его переписывает, поэтому не полагайся на него). НЕ цитируй issues
-  `#15853`/`#26391` как «SDK не наследует» — они про другой клиент. Новый вход:
-  используй `codex_defaults.py`, передавай model/effort/service_tier в
-  `thread_start` + `thread_resume` + `thread.run`.
+- **Модель и effort фиксируются backend-ом; tier — нет.** Default для всех
+  Codex turns: `model=gpt-5.6-sol`, `effort=xhigh` (Extra High) — явно в каждом
+  `thread_start` + `thread_resume` + `thread.run`, независимо от дрейфа
+  `~/.codex/config.toml`. Service tier мост по умолчанию НЕ шлёт (вердикт
+  владельца 2026-07-25, снят форсинг fast от 2026-07-20): `None` опускается
+  SDK (`exclude_none`), движок наследует tier из config; `features.fast_mode`
+  через `config_overrides` тоже не форсится. `--service-tier` — только
+  осознанный per-run opt-in. НЕ цитируй issues `#15853`/`#26391` как «SDK не
+  наследует» — они про другой клиент. Новый вход: используй
+  `codex_defaults.py`.
 - **Ревьюер не получает права править проект.** `codex_review.py` всегда задаёт
   built-in filesystem `Sandbox.read_only` + `ApprovalMode.deny_all`; backend
   пишет только audit ledger в отдельный `run_dir`. Внешние MCP живут вне этого

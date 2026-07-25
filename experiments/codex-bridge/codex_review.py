@@ -39,7 +39,6 @@ from codex_defaults import (
     DEFAULT_CODEX_EFFORT,
     DEFAULT_CODEX_MODEL,
     DEFAULT_CODEX_SERVICE_TIER,
-    FAST_MODE_CONFIG_OVERRIDES,
     REASONING_EFFORTS,
     REVIEW_APPROVAL_MODE,
     REVIEW_SANDBOX,
@@ -311,8 +310,8 @@ def main() -> int:
     parser.add_argument(
         "--service-tier",
         default=DEFAULT_CODEX_SERVICE_TIER,
-        help=f"Codex service tier — быстрый режим (default: {DEFAULT_CODEX_SERVICE_TIER}). "
-        "Мост шлёт его явно в каждый turn, чтобы не зависеть от дрейфа наследуемого config.toml.",
+        help="Codex service tier (default: наследуется из ~/.codex/config.toml). "
+        "Явное значение, например 'priority', — осознанный opt-in fast на этот прогон.",
     )
     parser.add_argument("--include-thinking", action="store_true", help="Включить блоки размышлений Claude в транскрипт.")
     parser.add_argument("--max-chars", type=int, default=200_000, help="Бюджет транскрипта; при превышении остаётся свежий хвост.")
@@ -471,7 +470,7 @@ def main() -> int:
     if args.dry_run:
         print(f"[codex-bridge dry-run] транскрипт={transcript_name} "
               f"промпт={len(prompt)} симв. режим={args.mode} "
-              f"model={args.model} effort={args.effort} tier={args.service_tier} "
+              f"model={args.model} effort={args.effort} tier={args.service_tier or 'inherit'} "
               f"binary={codex_runtime['binary_source']} "
               f"run_dir={run_dir} "
               f"sandbox={REVIEW_SANDBOX} approval={REVIEW_APPROVAL_MODE}", file=sys.stderr)
@@ -535,7 +534,7 @@ def main() -> int:
     print(
         f"[codex-bridge] режим={args.mode} транскрипт={transcript_name} "
         f"({len(transcript_md)} симв.) project={project_cwd} "
-        f"model={args.model} effort={args.effort} tier={args.service_tier} "
+        f"model={args.model} effort={args.effort} tier={args.service_tier or 'inherit'} "
         f"binary={codex_runtime['binary_source']} "
         f"run_dir={run_dir} "
         f"sandbox={REVIEW_SANDBOX} approval={REVIEW_APPROVAL_MODE}"
@@ -553,7 +552,6 @@ def main() -> int:
     config = CodexConfig(
         cwd=str(project_cwd),
         codex_bin=codex_bin,
-        config_overrides=FAST_MODE_CONFIG_OVERRIDES,
     )
     started_monotonic = time.monotonic()
     heartbeat_stop, heartbeat_thread = start_heartbeat(

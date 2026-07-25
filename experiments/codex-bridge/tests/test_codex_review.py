@@ -186,7 +186,7 @@ class CodexReviewCliTests(unittest.TestCase):
             self.assertEqual(payload["mode"], "ask")
             self.assertEqual(payload["codex"]["model"], "gpt-5.6-sol")
             self.assertEqual(payload["codex"]["effort"], "xhigh")
-            self.assertEqual(payload["codex"]["service_tier"], "priority")
+            self.assertIsNone(payload["codex"]["service_tier"])
             self.assertTrue(payload["codex"]["thread_ephemeral"])
             self.assertNotIn("final_response", payload)
 
@@ -251,11 +251,11 @@ class CodexReviewCliTests(unittest.TestCase):
             self.assertTrue(result["ok"])
             self.assertIs(captured.get("ephemeral"), True)
             self.assertEqual(captured.get("sandbox"), "read_only")
-            self.assertEqual(captured.get("service_tier"), "priority")
+            self.assertIsNone(captured.get("service_tier"))
             self.assertEqual(
                 captured["codex_config"].get("codex_bin"), "/sentinel/chatgpt/codex"
             )
-            self.assertIn(
+            self.assertNotIn(
                 "features.fast_mode=true",
                 captured["codex_config"].get("config_overrides") or (),
             )
@@ -344,13 +344,13 @@ class CodexReviewCliTests(unittest.TestCase):
             resume_kwargs = captured.get("thread_resume_kwargs") or {}
             self.assertEqual(resume_kwargs.get("sandbox"), "read_only")
             self.assertEqual(resume_kwargs.get("approval_mode"), "deny_all")
-            self.assertEqual(resume_kwargs.get("service_tier"), "priority")
+            self.assertIsNone(resume_kwargs.get("service_tier"))
             run_kwargs = captured.get("run_kwargs") or {}
             self.assertEqual(run_kwargs.get("sandbox"), "read_only")
             self.assertEqual(run_kwargs.get("approval_mode"), "deny_all")
             self.assertEqual(run_kwargs.get("model"), "gpt-5.6-sol")
             self.assertEqual(run_kwargs.get("effort"), "xhigh")
-            self.assertEqual(run_kwargs.get("service_tier"), "priority")
+            self.assertIsNone(run_kwargs.get("service_tier"))
         finally:
             sys.argv = saved_argv
             for name in fake_names:
@@ -658,11 +658,11 @@ class CodexReviewCliTests(unittest.TestCase):
             self.assertEqual(rc, 0)
             self.assertIs(captured.get("ephemeral"), True)
             self.assertEqual(captured.get("sandbox"), "read_only")
-            self.assertEqual(captured.get("service_tier"), "priority")
+            self.assertIsNone(captured.get("service_tier"))
             self.assertEqual(
                 captured["codex_config"].get("codex_bin"), "/sentinel/chatgpt/codex"
             )
-            self.assertIn(
+            self.assertNotIn(
                 "features.fast_mode=true",
                 captured["codex_config"].get("config_overrides") or (),
             )

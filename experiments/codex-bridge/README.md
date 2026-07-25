@@ -65,10 +65,9 @@ Desktop, и делит с ним `~/.codex`; без `ephemeral` каждый в�
 ## Модель и runtime-доступ
 
 Backend явно закрепляет Codex turn defaults: `model=gpt-5.6-sol`,
-`effort=xhigh` (Extra High), `service_tier=priority` (быстрый режим — см.
-ниже). Это больше не зависит от текущего `~/.codex/config.toml`; флаги
-`--model`, `--effort` и `--service-tier` остаются только для осознанного
-override.
+`effort=xhigh` (Extra High). Модель и effort не зависят от текущего
+`~/.codex/config.toml`; флаги `--model` и `--effort` остаются только для
+осознанного override. Service tier мост по умолчанию НЕ шлёт (см. ниже).
 
 Это текущий потолок под ChatGPT-биллингом, проверено живыми пробниками
 2026-07-10: `gpt-5.6-pro` и `gpt-5.6` (без суффикса) возвращают `HTTP 400 —
@@ -87,34 +86,24 @@ override.
 collaboration-субагентов движка), но рекомендованного применения во внешних
 вызовах не имеет. Default — `gpt-5.6-sol`.
 
-Fast mode («быстрый режим»): backend всегда ЗАПРАШИВАЕТ его на каждый turn,
-форсируя ОБА переключателя fast независимо от `~/.codex/config.toml` (тот
-дрейфует — Desktop его переписывает):
-1. request tier — `service_tier=priority` в `thread_start`/`thread_resume`/
-   `thread.run` (флаг `--service-tier` — только для осознанного override);
-2. feature gate — `features.fast_mode=true` через `config_overrides` при запуске
-   app-server; без него tier — no-op (core не маршрутизирует Fast).
+Service tier / fast mode: вердикт владельца 2026-07-25 — мост fast НЕ
+запрашивает (снят прежний форсинг «всегда fast» от 2026-07-20). По умолчанию
+`--service-tier` пуст: параметр не шлётся вовсе (SDK сериализует с
+`exclude_none=True`, `None` опускается), и движок берёт tier из живого
+`~/.codex/config.toml`. Feature gate `features.fast_mode` мост тоже больше не
+форсит через `config_overrides`. В stderr-banner это видно как `tier=inherit`,
+в ledger — `service_tier: null`.
 
-Поправка round-2 (аудит Codex опроверг первую версию): config из SDK-пути ВСЁ
-ЖЕ наследуется — SDK сериализует параметры с `exclude_none=True`, поэтому
-`service_tier=None` опускается (не шлётся как `null`), и core падает на
-`config.service_tier`. Баги `openai/codex#15853`/`#26391` — про VS Code /
-Automations (другой клиент, слал явный `null`), НЕ про этот Python SDK; не
-цитируй их как доказательство. Значит раньше мост НАСЛЕДОВАЛ tier из config, а
-не «молча шёл на standard». Реальная причина слать явно — независимость от
-дрейфа config и закрытие feature gate, не «SDK не наследует».
-
-`priority` — каноническое wire-значение Fast для gpt-5.6 (алиас `fast` из доки
-движок нормализует в `priority` через model catalog); живой пробник 2026-07-20
-принял оба (`completed`, не 400). Даёт ~1.5x скорость под ChatGPT-auth ценой
-~2.5x расхода кредитов у 5.6-моделей — осознанно: кредиты не жалеем.
-
-ГРАНИЦА requested vs applied (не переоценивай доказательство): `service_tier` в
-блоке `codex` каждого manifest/result и в stderr-banner (`tier=…`) строится из
-`args` ДО SDK-вызова — это self-report ЗАПРОШЕННОГО тира («мост попросил»), НЕ
-доказательство, что сервер применил Fast и списал по нему. Rollout/телеметрия
-тир не пишут; фактическое применение и тарификацию видно только по расходу
-кредитов на дашборде.
+Явный `--service-tier priority` остаётся осознанным opt-in на прогон
+(`priority` — каноническое wire-значение Fast для gpt-5.6; алиас `fast` движок
+нормализует в `priority`, живой пробник 2026-07-20 принял оба). Оговорки:
+(1) без включённого в config feature gate `features.fast_mode` один только tier
+может не маршрутизировать Fast; (2) ГРАНИЦА requested vs applied — ledger и
+banner фиксируют ЗАПРОШЕННЫЙ тир из `args` до SDK-вызова, а не применение
+сервером; тарификация видна только на дашборде кредитов. Историческая справка:
+наследование через `exclude_none` подтверждено round-2 аудитом Codex
+2026-07-20 (баги `openai/codex#15853`/`#26391` — про другой клиент, не про
+этот SDK; не цитируй их как «SDK не наследует»).
 
 **Codex binary.** `gpt-5.6-sol` требует более новый движок, чем пинит SDK:
 бандл-бинарь `codex-cli 0.137.0a4` (openai-codex 0.1.0b3) отвечает `HTTP 400 —

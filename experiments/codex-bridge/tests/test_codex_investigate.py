@@ -114,17 +114,17 @@ class CodexInvestigateSdkContractTests(unittest.TestCase):
             self.assertEqual(rc, 0)
             self.assertIs(captured.get("ephemeral"), True)
             self.assertEqual(captured.get("sandbox"), "workspace_write")
-            self.assertEqual(captured.get("service_tier"), "priority")
-            self.assertEqual((captured.get("run_kwargs") or {}).get("service_tier"), "priority")
+            self.assertIsNone(captured.get("service_tier"))
+            self.assertIsNone((captured.get("run_kwargs") or {}).get("service_tier"))
             expected_bin = "/sentinel/chatgpt/codex"
             self.assertEqual(captured["codex_config"].get("codex_bin"), expected_bin)
-            self.assertIn(
+            self.assertNotIn(
                 "features.fast_mode=true",
                 captured["codex_config"].get("config_overrides") or (),
             )
             self.assertEqual(result["codex"]["codex_bin"], expected_bin)
             self.assertEqual(result["codex"]["binary_source"], "chatgpt-app")
-            self.assertEqual(result["codex"]["service_tier"], "priority")
+            self.assertIsNone(result["codex"]["service_tier"])
             self.assertIn("INVESTIGATE-OK", buf.getvalue())
         finally:
             sys.argv = saved_argv
