@@ -171,8 +171,10 @@ find . -path './references/*/*' -type f
   descriptions --limit 5 --json` → top-1 = candidate; unrelated skill в top-3 =
   collision, переписывай пока dominance не держится.
 - should-not-trigger (≥3): candidate отсутствует в top-3.
-- `md overlaps /tmp/skills-test --threshold 0.7 --top 10 --json` → кто делит
-  trigger surface; сведи к одному owner или задокументируй dual-fire.
+- `md overlaps` для этого не бери: он сравнивает retrieval-enriched section
+  vectors (в них подмешаны description, title и heading-chain), а не
+  model-invoked trigger surface. Кто делит момент — решай по should-trigger
+  прогонам выше: сведи к одному owner или задокументируй dual-fire.
 
 Semantic-proxy, не замена `run_loop.py` (`skill-creator`: train/test split,
 held-out выбор) — измеренная оптимизация триггеринга там.
