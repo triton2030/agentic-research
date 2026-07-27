@@ -22,12 +22,14 @@ from codex_orchestrate_contract import (  # noqa: E402
     path_allowed,
     worker_status_from_codex_status,
 )
-from codex_orchestrate_state import (  # noqa: E402
+from codex_run_ledger import (
     append_heartbeat,
     append_jsonl,
+    prepare_run_dir,
+)
+from codex_git_scope import (
     capture_git_snapshot,
     compare_scope,
-    prepare_run_dir,
 )
 
 
@@ -44,12 +46,41 @@ def _install_fake_openai_codex(captured: dict) -> list[str]:
         deny_all = "deny_all"
         auto_review = "auto_review"
 
+    def _fake_result():
+        return types.SimpleNamespace(
+            status="completed", error=None, final_response="done", usage=None
+        )
+
+    class _FakeHandle:
+        id = "turn-fake-1"
+
+        async def stream(self):
+            captured["stream_consumed"] = True
+            yield types.SimpleNamespace(
+                method="item/completed",
+                payload=types.SimpleNamespace(
+                    item=types.SimpleNamespace(
+                        type="fileChange",
+                        changes=[types.SimpleNamespace(path="a.md")],
+                    )
+                ),
+            )
+            yield types.SimpleNamespace(
+                method="turn/completed", payload=types.SimpleNamespace()
+            )
+
+        async def run(self):
+            captured["handle_run_fallback"] = True
+            return _fake_result()
+
     class _FakeThread:
+        async def turn(self, prompt, **kwargs):  # noqa: ANN001
+            captured["run_kwargs"] = dict(kwargs)
+            return _FakeHandle()
+
         async def run(self, prompt, **kwargs):  # noqa: ANN001
             captured["run_kwargs"] = dict(kwargs)
-            return types.SimpleNamespace(
-                status="completed", error=None, final_response="done", usage=None
-            )
+            return _fake_result()
 
     class _FakeCodex:
         async def thread_start(self, **kwargs):  # noqa: ANN003
@@ -81,7 +112,24 @@ def _install_fake_openai_codex(captured: dict) -> list[str]:
     v2 = types.ModuleType("openai_codex.generated.v2_all")
     v2.ReasoningEffort = lambda value: value
     gen.v2_all = v2
-    names = ["openai_codex", "openai_codex.generated", "openai_codex.generated.v2_all"]
+
+    async def _collect_async(stream, *, turn_id):  # noqa: ANN001 — сигнатура SDK
+        collected = []
+        async for event in stream:
+            collected.append(getattr(event, "method", None))
+        captured["collected"] = collected
+        return _fake_result()
+
+    run_mod = types.ModuleType("openai_codex._run")
+    run_mod._collect_async_turn_result = _collect_async
+    run_mod._collect_turn_result = _collect_async
+    sys.modules["openai_codex._run"] = run_mod
+    names = [
+        "openai_codex",
+        "openai_codex.generated",
+        "openai_codex.generated.v2_all",
+        "openai_codex._run",
+    ]
     sys.modules["openai_codex"] = mod
     sys.modules["openai_codex.generated"] = gen
     sys.modules["openai_codex.generated.v2_all"] = v2

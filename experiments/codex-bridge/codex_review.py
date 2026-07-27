@@ -51,13 +51,14 @@ from codex_orchestrate_contract import (
     codex_status_value,
     codex_turn_completed,
 )
-from codex_orchestrate_state import (
+from codex_run_ledger import (
     append_event,
     prepare_run_dir,
     start_heartbeat,
     utc_now,
     write_json,
 )
+from codex_progress import ProgressTracker, run_turn
 
 CLAUDE_PROJECTS = Path.home() / ".claude" / "projects"
 
@@ -554,11 +555,13 @@ def main() -> int:
         codex_bin=codex_bin,
     )
     started_monotonic = time.monotonic()
+    progress = ProgressTracker()
     heartbeat_stop, heartbeat_thread = start_heartbeat(
         run_dir,
         args.heartbeat_sec,
         started_monotonic,
         thread_name="codex-review-heartbeat",
+        snapshot=progress.snapshot,
         mode=args.mode,
     )
     try:
@@ -618,7 +621,10 @@ def main() -> int:
                     thread_id=codex_runtime["thread_id"],
                     persistent=True,
                 )
-            result = thread.run(
+            # turn() вместо run(): тот же ход, но с доступом к потоку
+            # нотификаций — активность уезжает в ledger, heartbeat перестаёт
+            # быть слепым. TurnResult собирает штатный сборщик SDK.
+            handle = thread.turn(
                 prompt,
                 model=args.model,
                 effort=ReasoningEffort(args.effort),
@@ -626,6 +632,7 @@ def main() -> int:
                 sandbox=Sandbox.read_only,
                 approval_mode=ApprovalMode.deny_all,
             )
+            result = run_turn(handle, run_dir=run_dir, tracker=progress)
     except Exception as exc:  # noqa: BLE001 — показать пользователю причину как есть
         heartbeat_stop.set()
         if heartbeat_thread is not None:

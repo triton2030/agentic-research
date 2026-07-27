@@ -34,18 +34,21 @@ from codex_orchestrate_contract import (
     normalize_tasks,
     worker_status_from_codex_status,
 )
-from codex_orchestrate_state import (
-    GitSnapshot,
+from codex_run_ledger import (
     append_event,
     append_heartbeat,
     append_jsonl,
-    capture_git_snapshot,
-    compare_scope,
-    is_scope_noise,
     prepare_run_dir,
     utc_now,
     write_json,
 )
+from codex_git_scope import (
+    GitSnapshot,
+    capture_git_snapshot,
+    compare_scope,
+    is_scope_noise,
+)
+from codex_progress import ProgressRegistry, ProgressTracker, run_async_turn
 
 
 def _safe_print(message: str, *, stream: Any = None) -> None:
@@ -74,6 +77,10 @@ async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict
     prompt = _files_constraint(task.files) + task.prompt
     run_dir: Path = defaults["run_dir"]
     effort = ReasoningEffort(defaults["effort"])
+    # registry ставит _run_fleet; при прямом вызове воркера его может не быть —
+    # тогда прогресс локальный, но ход не падает.
+    registry = defaults.get("registry")
+    tracker = registry.tracker(task.id) if registry is not None else ProgressTracker()
 
     async with sem:
         t0 = time.monotonic()
@@ -87,13 +94,19 @@ async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict
                 service_tier=defaults["service_tier"],
                 ephemeral=BRIDGE_THREAD_EPHEMERAL,
             )
-            result = await thread.run(
+            handle = await thread.turn(
                 prompt,
                 approval_mode=ApprovalMode.auto_review,
                 effort=effort,
                 model=defaults["model"],
                 service_tier=defaults["service_tier"],
                 sandbox=Sandbox.workspace_write,
+            )
+            result = await run_async_turn(
+                handle,
+                run_dir=run_dir,
+                tracker=tracker,
+                extra={"worker": task.id},
             )
             duration_ms = int((time.monotonic() - t0) * 1000)
             codex_status = codex_status_value(getattr(result, "status", ""))
@@ -133,6 +146,8 @@ async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict
             duration_ms=record["duration_ms"],
         )
         append_jsonl(run_dir / "results.jsonl", record)
+        if registry is not None:
+            registry.finish(task.id)
         defaults["progress"]["completed"] += 1
         return record
 
@@ -142,15 +157,20 @@ async def _heartbeat_loop(
     heartbeat_sec: int,
     started_monotonic: float,
     progress: dict[str, int],
+    registry: ProgressRegistry | None = None,
 ) -> None:
     try:
         while True:
             await asyncio.sleep(heartbeat_sec)
+            # Сводка по живым воркерам: без неё пульс флота говорил только
+            # «сколько закрыто», а зависший воркер был неотличим от думающего.
+            extra = registry.snapshot() if registry is not None else {}
             append_heartbeat(
                 run_dir,
                 started_monotonic,
                 completed=progress["completed"],
                 total=progress["total"],
+                **extra,
             )
     except asyncio.CancelledError:
         return
@@ -170,10 +190,17 @@ async def _run_fleet(
 
     sem = asyncio.Semaphore(concurrency)
     defaults["progress"] = {"completed": 0, "total": len(tasks)}
+    defaults["registry"] = ProgressRegistry()
     heartbeat_task: asyncio.Task[None] | None = None
     if heartbeat_sec > 0:
         heartbeat_task = asyncio.create_task(
-            _heartbeat_loop(defaults["run_dir"], heartbeat_sec, time.monotonic(), defaults["progress"])
+            _heartbeat_loop(
+                defaults["run_dir"],
+                heartbeat_sec,
+                time.monotonic(),
+                defaults["progress"],
+                defaults["registry"],
+            )
         )
     try:
         async with AsyncCodex(

@@ -33,16 +33,42 @@ def _install_fake_openai_codex(
         deny_all = "deny_all"
         auto_review = "auto_review"
 
+    def _fake_result():
+        return types.SimpleNamespace(
+            error=None,
+            status=status,
+            usage=None,
+            duration_ms=5,
+            final_response="INVESTIGATE-OK",
+        )
+
+    class _FakeHandle:
+        id = "turn-fake-1"
+
+        def stream(self):
+            captured["stream_consumed"] = True
+            yield types.SimpleNamespace(
+                method="item/completed",
+                payload=types.SimpleNamespace(
+                    item=types.SimpleNamespace(type="commandExecution", command="ls")
+                ),
+            )
+            yield types.SimpleNamespace(
+                method="turn/completed", payload=types.SimpleNamespace()
+            )
+
+        def run(self):
+            captured["handle_run_fallback"] = True
+            return _fake_result()
+
     class _FakeThread:
+        def turn(self, prompt, **kwargs):  # noqa: ANN001
+            captured["run_kwargs"] = dict(kwargs)
+            return _FakeHandle()
+
         def run(self, prompt, **kwargs):  # noqa: ANN001
             captured["run_kwargs"] = dict(kwargs)
-            return types.SimpleNamespace(
-                error=None,
-                status=status,
-                usage=None,
-                duration_ms=5,
-                final_response="INVESTIGATE-OK",
-            )
+            return _fake_result()
 
     class _FakeCodex:
         def __init__(self, config=None):  # noqa: ANN001
@@ -72,10 +98,24 @@ def _install_fake_openai_codex(
     v2 = types.ModuleType("openai_codex.generated.v2_all")
     v2.ReasoningEffort = lambda value: value
     gen.v2_all = v2
-    names = ["openai_codex", "openai_codex.generated", "openai_codex.generated.v2_all"]
+
+    def _collect(stream, *, turn_id):  # noqa: ANN001 — сигнатура SDK
+        captured["collected"] = [getattr(ev, "method", None) for ev in stream]
+        return _fake_result()
+
+    run_mod = types.ModuleType("openai_codex._run")
+    run_mod._collect_turn_result = _collect
+    run_mod._collect_async_turn_result = _collect
+    names = [
+        "openai_codex",
+        "openai_codex.generated",
+        "openai_codex.generated.v2_all",
+        "openai_codex._run",
+    ]
     sys.modules["openai_codex"] = mod
     sys.modules["openai_codex.generated"] = gen
     sys.modules["openai_codex.generated.v2_all"] = v2
+    sys.modules["openai_codex._run"] = run_mod
     return names
 
 

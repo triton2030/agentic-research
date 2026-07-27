@@ -35,19 +35,56 @@ def _install_fake_openai_codex(
         deny_all = "deny_all"
         auto_review = "auto_review"
 
+    def _fake_result():
+        return types.SimpleNamespace(
+            error=None,
+            status=status,
+            usage=None,
+            duration_ms=5,
+            final_response="REVIEW-OK",
+        )
+
+    def _fake_notification(method, item=None):
+        payload = types.SimpleNamespace(item=item) if item is not None else types.SimpleNamespace()
+        return types.SimpleNamespace(method=method, payload=payload)
+
+    class _FakeHandle:
+        """Модель настоящего TurnHandle: поток нотификаций + control-методы."""
+
+        id = "turn-fake-1"
+
+        def stream(self):
+            captured["stream_consumed"] = True
+            yield _fake_notification(
+                "item/started",
+                types.SimpleNamespace(type="commandExecution", command="rg -n probe"),
+            )
+            yield _fake_notification(
+                "item/completed",
+                types.SimpleNamespace(type="commandExecution", command="rg -n probe"),
+            )
+            yield _fake_notification("item/reasoning/textDelta")
+            yield _fake_notification("turn/completed")
+
+        def run(self):
+            captured["handle_run_fallback"] = True
+            return _fake_result()
+
+        def interrupt(self):
+            captured["interrupted"] = True
+
     class _FakeThread:
         id = "thread-fake-1"
+
+        def turn(self, prompt, **kwargs):  # noqa: ANN001
+            captured["run_prompt"] = prompt
+            captured["run_kwargs"] = dict(kwargs)
+            return _FakeHandle()
 
         def run(self, prompt, **kwargs):  # noqa: ANN001
             captured["run_prompt"] = prompt
             captured["run_kwargs"] = dict(kwargs)
-            return types.SimpleNamespace(
-                error=None,
-                status=status,
-                usage=None,
-                duration_ms=5,
-                final_response="REVIEW-OK",
-            )
+            return _fake_result()
 
     class _FakeCodex:
         def __init__(self, config=None):  # noqa: ANN001
@@ -75,6 +112,19 @@ def _install_fake_openai_codex(
             self.kwargs = kwargs
             captured["codex_config"] = kwargs
 
+    def _collect(stream, *, turn_id):  # noqa: ANN001 — сигнатура SDK
+        captured["collected"] = [getattr(ev, "method", None) for ev in stream]
+        captured["collect_turn_id"] = turn_id
+        return _fake_result()
+
+    async def _collect_async(stream, *, turn_id):  # noqa: ANN001
+        collected = []
+        async for event in stream:
+            collected.append(getattr(event, "method", None))
+        captured["collected"] = collected
+        captured["collect_turn_id"] = turn_id
+        return _fake_result()
+
     mod = types.ModuleType("openai_codex")
     mod.Sandbox = _Sandbox
     mod.ApprovalMode = _ApprovalMode
@@ -84,10 +134,21 @@ def _install_fake_openai_codex(
     v2 = types.ModuleType("openai_codex.generated.v2_all")
     v2.ReasoningEffort = lambda value: value
     gen.v2_all = v2
-    names = ["openai_codex", "openai_codex.generated", "openai_codex.generated.v2_all"]
+    # `_run` держит штатные сборщики TurnResult: без него codex_progress уходит
+    # в fallback и потоковый путь в тестах не проверялся бы вовсе.
+    run_mod = types.ModuleType("openai_codex._run")
+    run_mod._collect_turn_result = _collect
+    run_mod._collect_async_turn_result = _collect_async
+    names = [
+        "openai_codex",
+        "openai_codex.generated",
+        "openai_codex.generated.v2_all",
+        "openai_codex._run",
+    ]
     sys.modules["openai_codex"] = mod
     sys.modules["openai_codex.generated"] = gen
     sys.modules["openai_codex.generated.v2_all"] = v2
+    sys.modules["openai_codex._run"] = run_mod
     return names
 
 
@@ -676,6 +737,87 @@ class CodexReviewCliTests(unittest.TestCase):
                     os.environ.pop(key, None)
                 else:
                     os.environ[key] = value
+
+    def test_turn_activity_lands_in_ledger(self) -> None:
+        """Ход обязан идти через turn()+stream(): активность Codex попадает в
+        events.jsonl, а не выбрасывается вместе с потоком, как делал run()."""
+        import codex_review
+
+        captured: dict = {}
+        fake_names = _install_fake_openai_codex(captured)
+        saved_argv = sys.argv[:]
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                sys.argv = [
+                    "codex_review.py",
+                    "--task",
+                    "посмотри на codex_review.py",
+                    "--project",
+                    str(root),
+                ]
+                with contextlib.redirect_stdout(io.StringIO()):
+                    rc = codex_review.main()
+                self.assertEqual(rc, 0)
+                # Поток реально потреблён, а не обойдён через handle.run().
+                self.assertIs(captured.get("stream_consumed"), True)
+                self.assertNotIn("handle_run_fallback", captured)
+                self.assertEqual(captured.get("collect_turn_id"), "turn-fake-1")
+
+                events = [
+                    json.loads(line)
+                    for line in (
+                        next(
+                            (root / "_workspace" / "codex-artifacts").glob("*/events.jsonl")
+                        )
+                    ).read_text(encoding="utf-8").splitlines()
+                ]
+                activity = [e for e in events if e.get("event") == "codex"]
+                methods = {e["method"] for e in activity}
+                self.assertIn("item/started", methods)
+                self.assertIn("item/completed", methods)
+                # Дельты — шум: считаются, но в журнал не пишутся.
+                self.assertNotIn("item/reasoning/textDelta", methods)
+                completed = next(e for e in activity if e["method"] == "item/completed")
+                self.assertEqual(completed.get("kind"), "commandExecution")
+                self.assertEqual(completed.get("detail"), "rg -n probe")
+        finally:
+            sys.argv = saved_argv
+            for name in fake_names:
+                sys.modules.pop(name, None)
+
+    def test_progress_snapshot_reports_activity_and_idle(self) -> None:
+        """Пульс должен говорить «чем занят», а не только «жив»."""
+        import types
+
+        from codex_progress import ProgressTracker
+
+        tracker = ProgressTracker()
+        self.assertEqual(tracker.snapshot()["steps"], 0)
+
+        item = types.SimpleNamespace(type="fileChange", changes=[
+            types.SimpleNamespace(path="a.md"), types.SimpleNamespace(path="b.md"),
+        ])
+        record = tracker.observe(
+            types.SimpleNamespace(
+                method="item/completed", payload=types.SimpleNamespace(item=item)
+            )
+        )
+        self.assertEqual(record["kind"], "fileChange")
+        self.assertEqual(record["detail"], "a.md, b.md")
+
+        self.assertIsNone(
+            tracker.observe(
+                types.SimpleNamespace(
+                    method="item/reasoning/textDelta", payload=types.SimpleNamespace()
+                )
+            )
+        )
+        snap = tracker.snapshot()
+        self.assertEqual(snap["steps"], 1)
+        self.assertEqual(snap["last"], "fileChange")
+        self.assertEqual(snap["deltas"], 1)
+        self.assertIn("idle_sec", snap)
 
     def test_interrupted_turn_is_failed_and_recorded(self) -> None:
         import codex_review

@@ -1,5 +1,12 @@
-"""Git snapshot, run-ledger and heartbeat helpers shared by every bridge
-entrypoint (codex_review, codex_investigate, codex_orchestrate)."""
+"""Git-скоуп прогона: снимок дерева до и после, вердикт «писали ли лишнее».
+
+Второй слой доказательства рядом с песочницей: sandbox запрещает запись, а
+здесь мы проверяем ПОСТФАКТУМ, что изменилось ровно объявленное. Ловит и то,
+что песочница не видит, — внешние MCP, вотчеры, посторонние процессы.
+
+Модуль SDK-free. Выделен из `codex_orchestrate_state.py`, где лежал вместе с
+журналом прогона; журнал теперь в `codex_run_ledger.py`.
+"""
 from __future__ import annotations
 
 import hashlib
@@ -7,19 +14,12 @@ import json
 import os
 import stat
 import subprocess
-import sys
-import threading
-import time
-import uuid
 from dataclasses import dataclass
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from codex_orchestrate_contract import UsageError, path_allowed
-
-BACKEND_DIR = Path(__file__).resolve().parent
-
+from codex_run_ledger import PROJECT_ARTIFACTS_SUBDIR
 
 @dataclass(frozen=True)
 class GitSnapshot:
@@ -50,9 +50,6 @@ class ScopeCheck:
     def passed(self) -> bool:
         return not self.out_of_scope_files and not self.head_changed
 
-
-def utc_now() -> str:
-    return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
 def _git_text(cwd: Path, *args: str) -> subprocess.CompletedProcess[str]:
@@ -219,32 +216,6 @@ def compare_scope(initial: GitSnapshot, after: GitSnapshot, allowlist: set[str])
     )
 
 
-def make_run_id() -> str:
-    return datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "-" + uuid.uuid4().hex[:8]
-
-
-# Артефакты прогонов живут В ПРОЕКТЕ работы, не в backend-репо: иначе каждый
-# вызов из чужого проекта сыплет мусор в codex-bridge/runs/. Это и рабочее
-# место субагентов (заметки, архив, findings между кругами цикла).
-PROJECT_ARTIFACTS_SUBDIR = Path("_workspace") / "codex-artifacts"
-
-
-def prepare_run_dir(raw_run_dir: str | None, *, project: Path | None = None) -> tuple[str, Path]:
-    """Свежий run_dir. Default — <project>/_workspace/codex-artifacts/<run_id>;
-    без project (не должен случаться из штатных входов) — legacy backend runs/."""
-    run_id = make_run_id()
-    if raw_run_dir:
-        run_dir = Path(raw_run_dir).expanduser().resolve()
-    elif project is not None:
-        run_dir = (project / PROJECT_ARTIFACTS_SUBDIR / run_id).resolve()
-    else:
-        run_dir = BACKEND_DIR / "runs" / run_id
-    try:
-        run_dir.mkdir(parents=True, exist_ok=False)
-    except FileExistsError as exc:
-        raise UsageError(f"Run dir already exists; choose a fresh --run-dir: {run_dir}") from exc
-    return run_id, run_dir
-
 
 def is_scope_noise(project: Path, run_dir: Path, rel_path: str) -> bool:
     """True, если changed-путь из scope-сравнения — собственная площадка прогона,
@@ -266,73 +237,3 @@ def is_scope_noise(project: Path, run_dir: Path, rel_path: str) -> bool:
         return False
 
 
-def _warn_stderr(message: str) -> None:
-    # Журнал — телеметрия: его отказ не должен ронять флот; и само
-    # предупреждение обязано пережить закрытый stderr (SIGPIPE/head).
-    try:
-        print(message, file=sys.stderr)
-    except OSError:
-        pass
-
-
-def write_json(path: Path, data: Any) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_name(f".{path.name}.{os.getpid()}.tmp")
-    tmp.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    tmp.replace(path)
-
-
-def append_jsonl(path: Path, data: Any) -> None:
-    # run_dir может исчезнуть под ногами (чужой cleanup _workspace во время
-    # прогона — реальный случай md-tools): пересоздаём и не поднимаем OSError,
-    # иначе журнальная запись убивает флот и теряет готовые результаты воркеров.
-    line = json.dumps(data, ensure_ascii=False) + "\n"
-    try:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        with path.open("a", encoding="utf-8") as handle:
-            handle.write(line)
-    except OSError as exc:
-        _warn_stderr(f"[bridge] журнал недоступен ({path}): {exc}; запись пропущена")
-
-
-def append_event(run_dir: Path, event: str, **data: Any) -> None:
-    append_jsonl(run_dir / "events.jsonl", {"ts": utc_now(), "event": event, **data})
-
-
-def append_heartbeat(
-    run_dir: Path,
-    started_monotonic: float,
-    **data: Any,
-) -> None:
-    append_event(
-        run_dir,
-        "heartbeat",
-        elapsed_sec=int(time.monotonic() - started_monotonic),
-        **data,
-    )
-
-
-def start_heartbeat(
-    run_dir: Path | None,
-    heartbeat_sec: int,
-    started_monotonic: float,
-    *,
-    thread_name: str = "codex-heartbeat",
-    **fields: Any,
-) -> tuple[threading.Event, threading.Thread | None]:
-    """Background ledger heartbeat shared by every bridge entrypoint.
-
-    Returns (stop_event, thread). No-op (thread is None) when there is no run_dir
-    or heartbeat is disabled, so callers can always .set()/.join() the pair.
-    """
-    stop = threading.Event()
-    if run_dir is None or heartbeat_sec <= 0:
-        return stop, None
-
-    def loop() -> None:
-        while not stop.wait(heartbeat_sec):
-            append_heartbeat(run_dir, started_monotonic, **fields)
-
-    thread = threading.Thread(target=loop, name=thread_name, daemon=True)
-    thread.start()
-    return stop, thread

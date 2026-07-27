@@ -44,15 +44,18 @@ from codex_orchestrate_contract import (
     codex_status_value,
     codex_turn_completed,
 )
-from codex_orchestrate_state import (
+from codex_run_ledger import (
     append_event,
-    capture_git_snapshot,
-    compare_scope,
     prepare_run_dir,
     start_heartbeat,
     utc_now,
     write_json,
 )
+from codex_git_scope import (
+    capture_git_snapshot,
+    compare_scope,
+)
+from codex_progress import ProgressTracker, run_turn
 
 
 def _first_nonblank(*values: str | None) -> str | None:
@@ -259,11 +262,13 @@ def main() -> int:
     append_event(run_dir, "codex_start", profile="investigate")
 
     started_monotonic = time.monotonic()
+    progress = ProgressTracker()
     heartbeat_stop, heartbeat_thread = start_heartbeat(
         run_dir,
         args.heartbeat_sec,
         started_monotonic,
         thread_name="codex-investigate-heartbeat",
+        snapshot=progress.snapshot,
         profile="investigate",
     )
     config = CodexConfig(
@@ -280,7 +285,7 @@ def main() -> int:
                 service_tier=args.service_tier,
                 ephemeral=BRIDGE_THREAD_EPHEMERAL,
             )
-            result = thread.run(
+            handle = thread.turn(
                 prompt,
                 model=args.model,
                 effort=ReasoningEffort(args.effort),
@@ -288,6 +293,7 @@ def main() -> int:
                 sandbox=Sandbox.workspace_write,
                 approval_mode=ApprovalMode.deny_all,
             )
+            result = run_turn(handle, run_dir=run_dir, tracker=progress)
     except Exception as exc:  # noqa: BLE001 — показать пользователю причину как есть
         heartbeat_stop.set()
         if heartbeat_thread is not None:
