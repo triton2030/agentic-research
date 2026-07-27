@@ -329,7 +329,7 @@ def main() -> int:
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="Компактная сводка идущего или завершённого Codex-прогона."
+        description="Сводка идущего или завершённого Codex-прогона."
     )
     parser.add_argument("run_dir", help="Путь к run_dir прогона")
     parser.add_argument(
