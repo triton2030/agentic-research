@@ -16,9 +16,12 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
   любого codex-процесса. Не убирай и не обходи — это защита от ухода на платный
   API. Любой новый вход (скрипт/режим) обязан звать его первым.
 - **Модель и effort фиксируются backend-ом; tier — нет.** Default для всех
-  Codex turns: `model=gpt-5.6-sol`, `effort=xhigh` (Extra High) — явно в каждом
-  `thread_start` + `thread_resume` + `thread.run`, независимо от дрейфа
-  `~/.codex/config.toml`. Service tier мост по умолчанию НЕ шлёт (вердикт
+  Codex turns: `model=gpt-5.6-sol`, `effort=medium` — явно в каждом
+  `thread_start` + `thread_resume` + `thread.turn`, независимо от дрейфа
+  `~/.codex/config.toml`. Ярусы вызова (владелец, 2026-07-27):
+  `sol`+`medium` — основной, писать и работать параллельно; `sol`+`xhigh` и
+  выше — только сложное, где надо думать; `terra`+`medium` — простая механика
+  (перестал быть исключением `md-scout`). Service tier мост по умолчанию НЕ шлёт (вердикт
   владельца 2026-07-25, снят форсинг fast от 2026-07-20): `None` опускается
   SDK (`exclude_none`), движок наследует tier из config; `features.fast_mode`
   через `config_overrides` тоже не форсится. `--service-tier` — только
@@ -54,6 +57,11 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
   по умолчанию:** смысл субагента — беречь контекстное окно, поэтому stdout
   прогона не растёт, а заглядывают через `codex_progress.py RUN_DIR` (сводка на
   несколько строк). Сырой `events.jsonl` в окно оркестратора не читают.
+- **Тяжёлое усилие — разговор, а не выстрел.** На пути ревьюера
+  `--effort` из `HEAVY_EFFORTS` (`xhigh`/`max`/`ultra`) сам включает
+  персистентный тред: такой прогон долго читает и думает, и ценность приходит
+  во втором обмене — поправить курс или углубить. Отказ осознанный:
+  `--no-dialog`. Не делай это молчаливым — вход печатает причину в stderr.
 - **Bridge threads эфемерны.** Все входы стартуют thread с
   `ephemeral=BRIDGE_THREAD_EPHEMERAL` (`codex_defaults.py`, =`True`). `~/.codex` —
   owner auth/config/runtime, общий с Codex Desktop, который рисует каждый

@@ -246,7 +246,7 @@ class CodexReviewCliTests(unittest.TestCase):
             self.assertEqual(payload["status"], "validated")
             self.assertEqual(payload["mode"], "ask")
             self.assertEqual(payload["codex"]["model"], "gpt-5.6-sol")
-            self.assertEqual(payload["codex"]["effort"], "xhigh")
+            self.assertEqual(payload["codex"]["effort"], "medium")
             self.assertIsNone(payload["codex"]["service_tier"])
             self.assertTrue(payload["codex"]["thread_ephemeral"])
             self.assertNotIn("final_response", payload)
@@ -410,7 +410,7 @@ class CodexReviewCliTests(unittest.TestCase):
             self.assertEqual(run_kwargs.get("sandbox"), "read_only")
             self.assertEqual(run_kwargs.get("approval_mode"), "deny_all")
             self.assertEqual(run_kwargs.get("model"), "gpt-5.6-sol")
-            self.assertEqual(run_kwargs.get("effort"), "xhigh")
+            self.assertEqual(run_kwargs.get("effort"), "medium")
             self.assertIsNone(run_kwargs.get("service_tier"))
         finally:
             sys.argv = saved_argv
@@ -737,6 +737,54 @@ class CodexReviewCliTests(unittest.TestCase):
                     os.environ.pop(key, None)
                 else:
                     os.environ[key] = value
+
+    def test_heavy_effort_turns_into_dialog_and_no_dialog_opts_out(self) -> None:
+        """Ярусы вызова: тяжёлое усилие — разговор, а не выстрел.
+
+        xhigh/max/ultra долго читают и думают, ценность приходит во втором
+        обмене, поэтому такой прогон сам заводит персистентный тред. Дефолтный
+        medium остаётся эфемерным одиночным вызовом."""
+        import codex_review
+
+        for effort, expect_persistent in (("medium", False), ("xhigh", True), ("max", True)):
+            captured: dict = {}
+            fake_names = _install_fake_openai_codex(captured)
+            saved_argv = sys.argv[:]
+            try:
+                with tempfile.TemporaryDirectory() as tmp:
+                    sys.argv = [
+                        "codex_review.py", "--task", "вопрос",
+                        "--project", tmp, "--effort", effort,
+                    ]
+                    with contextlib.redirect_stdout(io.StringIO()):
+                        rc = codex_review.main()
+                    self.assertEqual(rc, 0, effort)
+                    self.assertIs(
+                        captured.get("ephemeral"), not expect_persistent, effort
+                    )
+            finally:
+                sys.argv = saved_argv
+                for name in fake_names:
+                    sys.modules.pop(name, None)
+
+        # --no-dialog возвращает одиночный эфемерный выстрел на том же усилии.
+        captured = {}
+        fake_names = _install_fake_openai_codex(captured)
+        saved_argv = sys.argv[:]
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                sys.argv = [
+                    "codex_review.py", "--task", "вопрос",
+                    "--project", tmp, "--effort", "xhigh", "--no-dialog",
+                ]
+                with contextlib.redirect_stdout(io.StringIO()):
+                    rc = codex_review.main()
+                self.assertEqual(rc, 0)
+                self.assertIs(captured.get("ephemeral"), True)
+        finally:
+            sys.argv = saved_argv
+            for name in fake_names:
+                sys.modules.pop(name, None)
 
     def test_turn_activity_lands_in_ledger(self) -> None:
         """Ход обязан идти через turn()+stream(): активность Codex попадает в

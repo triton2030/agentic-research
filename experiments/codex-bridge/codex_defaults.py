@@ -7,8 +7,26 @@ from __future__ import annotations
 
 from pathlib import Path
 
+# Ярусы вызова (решение владельца 2026-07-27). Раньше мост всегда гонял
+# sol+xhigh — «самое умное по умолчанию»; это оказалось не бесплатно не в
+# кредитах, а во времени и в неуправляемости: xhigh долго читает и долго
+# думает, и одиночный выстрел таким усилием почти всегда хочется поправить.
+#
+#   sol + xhigh (и выше)  — сложное, где надо ДУМАТЬ. На пути ревьюера идёт
+#                           диалогом: см. HEAVY_EFFORTS ниже.
+#   sol + medium          — ОСНОВНОЙ ярус: писать, делать, работать параллельно.
+#   terra + medium        — простая механика. Перестал быть исключением
+#                           md-scout и стал штатным ярусом.
 DEFAULT_CODEX_MODEL = "gpt-5.6-sol"
-DEFAULT_CODEX_EFFORT = "xhigh"
+DEFAULT_CODEX_EFFORT = "medium"
+
+# Быстрая модель для механической работы; выбирается явным --model.
+LIGHT_CODEX_MODEL = "gpt-5.6-terra"
+
+# Усилия, на которых одиночный выстрел — плохая форма: прогон длинный, читает
+# много, и ценность появляется во втором-третьем обмене. На пути ревьюера они
+# включают персистентный тред автоматически (`--no-dialog` снимает).
+HEAVY_EFFORTS = ("xhigh", "max", "ultra")
 
 # Service tier: the bridge does NOT request fast anymore (owner reversal
 # 2026-07-25 of the 2026-07-20 "always fast" rule — the priority flag was
