@@ -56,13 +56,21 @@ SDK_BUNDLE_WARNING = (
 
 # Floor is "low": default turn tools (web_search/image_gen) reject lower
 # efforts at Codex runtime (HTTP 400), so "none"/"minimal" are cut here to fail
-# fast at flag validation. Ceiling is "ultra": accepted end-to-end under
-# ChatGPT-auth (live probe 2026-07-21, sol, completed). The pinned SDK's closed
-# ReasoningEffort enum knows neither "ultra" nor newer engine values ("max",
-# 2026-07-24); entrypoints call codex_sdk_compat.harden_sdk_enums() so unknown
-# values — ours outbound and the engine's inbound — parse anyway, with no
-# hand-patches in .venv. See README "Модель и runtime-доступ".
-REASONING_EFFORTS = ("low", "medium", "high", "xhigh", "ultra")
+# fast at flag validation.
+#
+# The upper scale mirrors the engine's own catalogue
+# (~/.codex/models_cache.json → supported_reasoning_levels), read 2026-07-27 for
+# gpt-5.6-sol/terra. Its wording is the contract:
+#   "max"   — "Maximum reasoning depth for the hardest problems"
+#   "ultra" — "Maximum reasoning with automatic task delegation"
+# So "max" is depth for ONE run and "ultra" is that depth plus internal
+# sub-agent delegation. "max" used to be missing here, which left no way to ask
+# for maximum depth without delegation. (luna tops out at "max".)
+#
+# The pinned SDK's ReasoningEffort enum stops at "xhigh"; entrypoints call
+# codex_sdk_compat.harden_sdk_enums() so both our outbound values and the
+# engine's inbound ones parse anyway. See README "Модель и runtime-доступ".
+REASONING_EFFORTS = ("low", "medium", "high", "xhigh", "max", "ultra")
 
 REVIEW_SANDBOX = "read_only"
 REVIEW_APPROVAL_MODE = "deny_all"

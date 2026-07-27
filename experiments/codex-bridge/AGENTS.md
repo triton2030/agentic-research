@@ -45,6 +45,15 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
   manager для долгих runs. Backend только пишет compact stdout, heartbeat events
   и `run_dir` files; Claude skill решает, когда стартовать background Bash,
   читать status/tail или останавливать task.
+- **Ход идёт через `turn()`+`stream()`, активность — на диск.** `thread.run()`
+  потребляет поток нотификаций и выбрасывает его: пульс тогда говорит «жив», но
+  не «движется». Каждый вход стартует ход через `thread.turn()` и отдаёт handle
+  в `codex_progress.run_turn` / `run_async_turn`; `TurnResult` собирает штатный
+  сборщик SDK, приёмка не меняется. Активность пишется в `events.jsonl` как
+  `event=codex` (дельты только считаются — в журнал не идут). **Прогресс скрыт
+  по умолчанию:** смысл субагента — беречь контекстное окно, поэтому stdout
+  прогона не растёт, а заглядывают через `codex_progress.py RUN_DIR` (сводка на
+  несколько строк). Сырой `events.jsonl` в окно оркестратора не читают.
 - **Bridge threads эфемерны.** Все входы стартуют thread с
   `ephemeral=BRIDGE_THREAD_EPHEMERAL` (`codex_defaults.py`, =`True`). `~/.codex` —
   owner auth/config/runtime, общий с Codex Desktop, который рисует каждый
@@ -68,7 +77,11 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
   (2026-07-24, падение до старта Codex). Каждый вход зовёт `harden_sdk_enums()`
   из `codex_sdk_compat.py` сразу после импорта SDK (open-enum `_missing_`,
   warning-once на неизвестное значение); новый вход обязан тоже. Ручных патчей
-  в `.venv` не держим — reinstall их стирает.
+  в `.venv` не держим — reinstall их стирает. **Апгрейд SDK шим не отменяет:**
+  в `0.144.4` открыты 2 enum-класса из 104 (`ReasoningEffort`, `ThreadSource`),
+  остальные 102 закрыты; дрейф наблюдается живьём (движок 0.146 присылает в
+  `CollabAgentTool` значения `search_openai_docs` и `fetch_openai_doc`,
+  замер 2026-07-27).
 - **Успех turn-а точный.** Для review / investigate / worker только SDK-статус
   `completed` при отсутствии `error` означает успех. `interrupted`,
   `inProgress` и любой неизвестный статус — `ok=false` + ненулевой exit code;
@@ -87,13 +100,16 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
   `review`/`ask` дополнительно ищут и рендерят транскрипт сессии Claude.
 - `codex_investigate.py` — исследователь: deliverables в `run_dir/out`,
   built-in filesystem также допускает system temp; project drift ловит
-  postflight. Uniform `result.json` c `artifacts` и `scope_status`. Общий
-  `start_heartbeat` и ledger-примитивы из `codex_orchestrate_state.py`.
+  postflight. Uniform `result.json` c `artifacts` и `scope_status`.
 - `codex_orchestrate.py` — entrypoint/runner для guarded shared-worktree пула
   воркеров (`AsyncCodex` + semaphore).
 - `codex_orchestrate_contract.py` — pure schema/path/status contract:
   обязательные `prompt`/`files`, exact file allowlist, overlap и status mapping.
-- `codex_orchestrate_state.py` — git snapshot/scope-check и ledger primitives.
+- `codex_run_ledger.py` — журнал прогона: `run_dir`, события, пульс, атомарная
+  запись. Общий для всех трёх входов.
+- `codex_git_scope.py` — git snapshot и постфлайт-вердикт «писали ли лишнее».
+- `codex_progress.py` — живая активность хода: tee потока нотификаций в журнал,
+  `ProgressTracker`/`ProgressRegistry` для пульса, `digest()` и CLI-сводка.
 - `requirements.txt` — pinned `openai-codex` SDK + bundled CLI bin. venv в
   `.venv/` (git-ignored).
 
