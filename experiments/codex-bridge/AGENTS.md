@@ -100,7 +100,8 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
 - `cbcommon.py` — общая биллинг-гигиена (одна правда).
 - `codex_sdk_compat.py` — open-enum hardening запиненного SDK: дрейф движка
   ChatGPT.app не роняет мост.
-- `codex_defaults.py` — общий runtime default: `gpt-5.6-sol`, `xhigh`, sandbox и
+- `codex_defaults.py` — ярусы вызова и runtime default (`gpt-5.6-sol`+`medium`),
+  `HEAVY_EFFORTS`, sandbox и
   approval labels для ledger/docs, `BRIDGE_THREAD_EPHEMERAL`.
 - `codex_review.py` — консультант/ревьюер с built-in filesystem read-only.
   Default режим `task`:

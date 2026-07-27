@@ -76,6 +76,9 @@ def _install_fake_openai_codex(
     class _FakeThread:
         id = "thread-fake-1"
 
+        def set_name(self, name):  # noqa: ANN001
+            captured["thread_name"] = name
+
         def turn(self, prompt, **kwargs):  # noqa: ANN001
             captured["run_prompt"] = prompt
             captured["run_kwargs"] = dict(kwargs)
@@ -359,6 +362,9 @@ class CodexReviewCliTests(unittest.TestCase):
             self.assertIs(captured.get("ephemeral"), False)
             self.assertIn("thread_id=thread-fake-1", err.getvalue())
             self.assertIn("--continue thread-fake-1", err.getvalue())
+            # Тема уходит в движок, а не только в наш реестр: без имени
+            # персистентный тред виден в Desktop и thread/list безымянным.
+            self.assertTrue(captured.get("thread_name"))
         finally:
             sys.argv = saved_argv
             for name in fake_names:

@@ -1,0 +1,139 @@
+"""Проверка здоровья движка без единого оплаченного turn-а.
+
+Зачем. Мост наследует часть runtime не из своего кода, а из общего `~/.codex`,
+который делит с Codex Desktop: авторизацию, эффективный конфиг и — что важнее
+всего — `service_tier`, потому что его мы намеренно НЕ шлём. Ledger фиксирует
+запрошенное, а не применённое, поэтому вопрос «на каком тире и под каким
+аккаунтом мы сейчас работаем» до этого модуля не имел ответа вообще.
+
+Оба вызова (`account/read`, `config/read`) — служебные RPC, кредиты не тратят.
+
+Ответы читаются СЫРЫМИ (`_request_raw`), без pydantic-моделей: движок
+ChatGPT.app опережает запиненную схему (см. `codex_sdk_compat.py`), и
+диагностика обязана переживать дрейф, а не падать на нём первой.
+"""
+from __future__ import annotations
+
+from typing import Any
+
+from codex_defaults import (
+    DEFAULT_CODEX_MODEL,
+    codex_bin_source,
+    resolve_codex_bin,
+)
+
+
+def _dig(node: Any, *path: str) -> Any:
+    """Достать вложенное поле, не веря в форму ответа."""
+    for key in path:
+        if not isinstance(node, dict):
+            return None
+        node = node.get(key)
+    return node
+
+
+def check(*, cwd: str, codex_bin: str | None = None) -> dict[str, Any]:
+    """Снимок runtime: авторизация, эффективный конфиг, движок, предупреждения."""
+    from openai_codex import Codex, CodexConfig  # импорт после scrub_billing_env
+
+    from codex_sdk_compat import harden_sdk_enums
+
+    harden_sdk_enums()
+
+    if codex_bin is None:
+        codex_bin = resolve_codex_bin()
+
+    report: dict[str, Any] = {
+        "engine": {"codex_bin": codex_bin, "binary_source": codex_bin_source(codex_bin)},
+        "auth": {},
+        "config": {},
+        "warnings": [],
+        "ok": False,
+    }
+
+    try:
+        with Codex(CodexConfig(cwd=cwd, codex_bin=codex_bin)) as codex:
+            client = codex._client  # noqa: SLF001 — сырой RPC нужен ради дрейфа схемы
+            account = client._request_raw("account/read", {"refreshToken": False})  # noqa: SLF001
+            config = client._request_raw(  # noqa: SLF001
+                "config/read", {"cwd": cwd, "includeLayers": False}
+            )
+    except Exception as exc:  # noqa: BLE001 — диагностика не имеет права падать
+        report["error"] = str(exc)
+        report["warnings"].append(
+            "движок не ответил на служебные RPC — до платного прогона дело не дойдёт"
+        )
+        return report
+
+    acc = _dig(account, "account") or {}
+    report["auth"] = {
+        "present": bool(acc),
+        # Живая форма ответа (замер 2026-07-28): {"account": {"type": "chatgpt",
+        # "email": …, "planType": "plus"}, "requiresOpenaiAuth": true}.
+        # `requiresOpenaiAuth` — норма, НЕ признак проблемы: не заводи на него
+        # предупреждение, ложная тревога хуже её отсутствия.
+        "mode": acc.get("type") or acc.get("authMode"),
+        "plan": acc.get("planType") or acc.get("plan_type"),
+        "email": acc.get("email"),
+    }
+
+    cfg = _dig(config, "config") or config or {}
+    effective_tier = cfg.get("serviceTier") or cfg.get("service_tier")
+    report["config"] = {
+        "model": cfg.get("model"),
+        "effort": cfg.get("modelReasoningEffort") or cfg.get("model_reasoning_effort"),
+        # Единственное поле, которое мост реально НАСЛЕДУЕТ, а не задаёт сам.
+        "inherited_service_tier": effective_tier,
+        "sandbox_mode": cfg.get("sandboxMode") or cfg.get("sandbox_mode"),
+        "approval_policy": cfg.get("approvalPolicy") or cfg.get("approval_policy"),
+    }
+
+    warnings: list[str] = report["warnings"]
+    mode = report["auth"]["mode"]
+    blocking = False
+    if not report["auth"]["present"]:
+        warnings.append("аккаунт не прочитан — вероятно, требуется вход в Codex")
+        blocking = True
+    elif mode != "chatgpt":
+        warnings.append(
+            f"account.type={mode!r}, а не 'chatgpt' — инвариант биллинга под угрозой: "
+            "прогоны могут уйти на платный API"
+        )
+        blocking = True
+    if effective_tier and effective_tier not in {"default", "standard"}:
+        warnings.append(
+            f"наследуемый service_tier={effective_tier!r} — прогоны пойдут не на "
+            "стандартном тире (мост тир не шлёт, он берётся отсюда)"
+        )
+
+    report["ok"] = not blocking
+    return report
+
+
+def render(report: dict[str, Any]) -> str:
+    """Человекочитаемая сводка: несколько строк, не дамп."""
+    lines = []
+    auth = report.get("auth", {})
+    cfg = report.get("config", {})
+    engine = report.get("engine", {})
+
+    lines.append(f"движок: {engine.get('binary_source')} ({engine.get('codex_bin') or 'бандл SDK'})")
+    if report.get("error"):
+        lines.append(f"ОШИБКА: {report['error']}")
+    else:
+        lines.append(
+            f"аккаунт: mode={auth.get('mode')} plan={auth.get('plan')} "
+            f"{auth.get('email') or ''}".rstrip()
+        )
+        lines.append(
+            f"конфиг: model={cfg.get('model')} effort={cfg.get('effort')} "
+            f"sandbox={cfg.get('sandbox_mode')} approval={cfg.get('approval_policy')}"
+        )
+        lines.append(
+            f"наследуемый service_tier: {cfg.get('inherited_service_tier') or '—'} "
+            f"(мост его не шлёт; модель мост задаёт сам: {DEFAULT_CODEX_MODEL})"
+        )
+    for warning in report.get("warnings", []):
+        lines.append(f"  ⚠ {warning}")
+    lines.append(f"итог: {'ok' if report.get('ok') else 'ТРЕБУЕТ ВНИМАНИЯ'}")
+    return "\n".join(lines)

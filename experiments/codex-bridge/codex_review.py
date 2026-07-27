@@ -187,6 +187,22 @@ REVIEW_ROLE = """\
 Будь конкретным и опирайся на файлы. Не пересказывай транскрипт."""
 
 
+
+def _review_target(args, payload: str | None) -> dict:
+    """git-таргет для нативного `review/start`.
+
+    Четыре формы поддерживает сам движок; `custom` с инструкциями — то, от чего
+    официальный плагин OpenAI отказывается, а мы отдаём.
+    """
+    if args.commit:
+        return {"type": "commit", "sha": args.commit}
+    if args.base:
+        return {"type": "baseBranch", "branch": args.base}
+    if payload:
+        return {"type": "custom", "instructions": payload}
+    return {"type": "uncommittedChanges"}
+
+
 def build_prompt(mode: str, transcript_md: str, payload: str | None) -> str:
     if mode == "task":
         return f"{TASK_ROLE}\n\n===== ЗАДАНИЕ =====\n{payload}"
@@ -294,10 +310,15 @@ def main() -> int:
     )
     parser.add_argument(
         "--mode",
-        choices=("task", "review", "ask"),
+        choices=("task", "review", "ask", "diff"),
         default="task",
-        help="task (default): задание без транскрипта; review/ask: с транскриптом сессии.",
+        help=(
+            "task (default): задание без транскрипта; review/ask: с транскриптом сессии; "
+            "diff: НАТИВНЫЙ code review движка по git-таргету (не промпт)."
+        ),
     )
+    parser.add_argument("--base", metavar="REF", help="mode=diff: ревью против базовой ветки.")
+    parser.add_argument("--commit", metavar="SHA", help="mode=diff: ревью одного коммита.")
     parser.add_argument("--task", help="Задание для режима task (как вызов субагента, без транскрипта).")
     parser.add_argument("--question", help="Вопрос для режима ask.")
     parser.add_argument("--project", default=os.getcwd(), help="Корень проекта (по умолчанию cwd).")
@@ -339,6 +360,11 @@ def main() -> int:
         help="Снять авто-диалог на тяжёлом усилии (xhigh/max/ultra): одиночный эфемерный выстрел.",
     )
     parser.add_argument(
+        "--doctor",
+        action="store_true",
+        help="Проверить движок без прогона: аккаунт, эффективный конфиг, наследуемый tier. Кредиты не тратит.",
+    )
+    parser.add_argument(
         "--continue",
         dest="continue_thread",
         metavar="THREAD_ID",
@@ -355,10 +381,23 @@ def main() -> int:
     )
     args = parser.parse_args()
 
+    if args.doctor:
+        # Проверка здоровья движка идёт ДО всякой валидации задания: спрашивают
+        # её как раз тогда, когда прогон не получается.
+        scrub_billing_env()
+        from codex_preflight import check, render  # noqa: PLC0415 — после scrub
+
+        report = check(cwd=str(Path(args.project).expanduser().resolve()))
+        print(render(report))
+        return 0 if report.get("ok") else 1
+
     # Задание/вопрос берём из любого источника, чтобы вызов не падал из-за того,
     # каким флагом он записан: --task, --question или позиционный аргумент.
     payload = _first_nonblank(args.task, args.question, args.task_text)
 
+    if args.mode == "diff" and args.base and args.commit:
+        print("mode=diff: --base и --commit взаимоисключимы.", file=sys.stderr)
+        return 2
     if args.mode == "task" and not payload:
         print('Режим task требует задание: --task "..." или позиционный аргумент.', file=sys.stderr)
         return 2
@@ -421,7 +460,11 @@ def main() -> int:
             tail = transcript_md[-(args.max_chars * 4 // 5):]
             transcript_md = f"{head}\n\n… [середина транскрипта оборвана для бюджета] …\n\n{tail}"
 
-    if args.continue_thread:
+    if args.mode == "diff":
+        # Промпта нет вовсе: контракт ревью несёт сам движок. В prompt.md
+        # кладём таргет, чтобы audit-владелец не врал пустотой.
+        prompt = f"[нативный review/start] target={json.dumps(_review_target(args, payload), ensure_ascii=False)}"
+    elif args.continue_thread:
         # Продолжение диалога: роль и контекст первой реплики уже в треде.
         prompt = payload
     else:
@@ -624,13 +667,25 @@ def main() -> int:
                     event["topic"] = args.topic or _topic_from_payload(payload)
                 _append_registry_event(project_cwd, event)
             elif args.dialog and codex_runtime["thread_id"]:
+                topic = args.topic or _topic_from_payload(payload)
+                # Тема уходит и в движок: персистентный тред виден в Codex
+                # Desktop и в нативном thread/list, и без имени он там —
+                # безымянный чат. Наш реестр остаётся владельцем связки
+                # thread → run_dir, которой движок не знает.
+                try:
+                    thread.set_name(topic)
+                except Exception as exc:  # noqa: BLE001 — имя не критично для хода
+                    print(
+                        f"[codex-bridge] имя треда не задано ({exc}); в реестре тема есть",
+                        file=sys.stderr,
+                    )
                 _append_registry_event(project_cwd, {
                     "event": "start",
                     "thread_id": codex_runtime["thread_id"],
                     "run_id": run_id,
                     "run_dir": str(run_dir),
                     "created_at": utc_now(),
-                    "topic": args.topic or _topic_from_payload(payload),
+                    "topic": topic,
                     "session": _session_short(),
                 })
             if thread_persistent:
@@ -645,17 +700,42 @@ def main() -> int:
                     thread_id=codex_runtime["thread_id"],
                     persistent=True,
                 )
-            # turn() вместо run(): тот же ход, но с доступом к потоку
-            # нотификаций — активность уезжает в ledger, heartbeat перестаёт
-            # быть слепым. TurnResult собирает штатный сборщик SDK.
-            handle = thread.turn(
-                prompt,
-                model=args.model,
-                effort=ReasoningEffort(args.effort),
-                service_tier=args.service_tier,
-                sandbox=Sandbox.read_only,
-                approval_mode=ApprovalMode.deny_all,
-            )
+            if args.mode == "diff":
+                # НАТИВНЫЙ ревьюер движка (`review/start`), а не наш промпт:
+                # у Codex для дифов есть выделенный режим со своим контрактом.
+                # Высокоуровневого метода в SDK нет — зовём RPC и собираем
+                # TurnHandle руками, чтобы переиспользовать поток, прогресс и
+                # штатный interrupt.
+                from openai_codex.api import TurnHandle  # noqa: PLC0415
+
+                target = _review_target(args, payload)
+                append_event(run_dir, "review_target", target=target)
+                response = codex._client._request_raw(  # noqa: SLF001
+                    "review/start",
+                    {
+                        "threadId": codex_runtime["thread_id"],
+                        "delivery": "inline",
+                        "target": target,
+                    },
+                )
+                review_thread_id = response.get("reviewThreadId") or codex_runtime["thread_id"]
+                turn_id = (response.get("turn") or {}).get("id")
+                if not turn_id:
+                    raise RuntimeError("review/start не вернул turn.id")
+                codex_runtime["review_thread_id"] = review_thread_id
+                handle = TurnHandle(codex._client, review_thread_id, turn_id)  # noqa: SLF001
+            else:
+                # turn() вместо run(): тот же ход, но с доступом к потоку
+                # нотификаций — активность уезжает в ledger, heartbeat перестаёт
+                # быть слепым. TurnResult собирает штатный сборщик SDK.
+                handle = thread.turn(
+                    prompt,
+                    model=args.model,
+                    effort=ReasoningEffort(args.effort),
+                    service_tier=args.service_tier,
+                    sandbox=Sandbox.read_only,
+                    approval_mode=ApprovalMode.deny_all,
+                )
             result = run_turn(handle, run_dir=run_dir, tracker=progress)
     except Exception as exc:  # noqa: BLE001 — показать пользователю причину как есть
         heartbeat_stop.set()

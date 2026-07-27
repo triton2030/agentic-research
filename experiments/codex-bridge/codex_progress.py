@@ -282,6 +282,52 @@ def digest(run_dir: Any, *, tail: int = 6) -> str:
     return "\n".join(lines)
 
 
+class _InterruptOnSignal:
+    """SIGINT/SIGTERM → `turn/interrupt`, а не смерть процесса на полуслове.
+
+    Раньше остановка долгого прогона означала убийство процесса: движок
+    продолжал турн, а мы теряли и `TurnResult`, и `result.json`. Штатный
+    interrupt закрывает ход по протоколу, поток отдаёт terminal-событие, и
+    приёмка получает честный не-`completed` статус вместо пустоты.
+    """
+
+    def __init__(self, handle: Any, run_dir: Any | None) -> None:
+        self._handle = handle
+        self._run_dir = run_dir
+        self._previous: dict[int, Any] = {}
+        self._fired = False
+
+    def _on_signal(self, signum: int, _frame: Any) -> None:
+        if not self._fired:
+            self._fired = True
+            try:
+                self._handle.interrupt()
+                if self._run_dir is not None:
+                    append_event(self._run_dir, "interrupt_requested", signal=signum)
+            except Exception:  # noqa: BLE001 — на выходе не мешаем остановке
+                pass
+
+    def __enter__(self) -> _InterruptOnSignal:
+        import signal
+
+        for sig in (signal.SIGINT, signal.SIGTERM):
+            try:
+                self._previous[sig] = signal.signal(sig, self._on_signal)
+            except ValueError:
+                # Не главный поток — обработчики недоступны, это не ошибка.
+                pass
+        return self
+
+    def __exit__(self, *_exc: Any) -> None:
+        import signal
+
+        for sig, previous in self._previous.items():
+            try:
+                signal.signal(sig, previous)
+            except ValueError:
+                pass
+
+
 def run_turn(
     handle: Any,
     *,
@@ -295,7 +341,8 @@ def run_turn(
         return handle.run()
     stream = handle.stream()
     try:
-        return collect(_tee(stream, tracker, run_dir, extra), turn_id=handle.id)
+        with _InterruptOnSignal(handle, run_dir):
+            return collect(_tee(stream, tracker, run_dir, extra), turn_id=handle.id)
     finally:
         stream.close()
 
