@@ -10,9 +10,11 @@ description: >-
 
 ## Outcome
 
-Получить один компактный evidence-backed взгляд Claude через `claude_ask`.
-Codex остаётся owner scope, проверки, синтеза и ответа пользователю; Claude —
-внешний советник, не acceptance owner.
+Получить компактный evidence-backed взгляд Claude. По умолчанию используй
+blocking `claude_ask`; transient session lane включай только когда полезны
+параллельная работа, follow-up, steer или проверка живости. Codex остаётся owner
+scope, проверки, синтеза и ответа пользователю; Claude — внешний советник, не
+acceptance owner.
 
 ## Default Path
 
@@ -22,12 +24,17 @@ Codex остаётся owner scope, проверки, синтеза и отве
 2. Передай реальный project/worktree `cwd` и короткий self-contained brief:
    outcome; claim/decision; точные paths или URLs; material boundaries; evidence
    bar; compact verdict-first output; stop condition. Не копируй сырой chat dump.
-3. Вызови один blocking `claude_ask`. Он может работать несколько минут;
+3. Оставь `xhigh` default; выбери `effort: max` только когда цена решения
+   оправдывает более долгий максимально глубокий fresh turn.
+4. Вызови один blocking `claude_ask`. Он может работать несколько минут;
    продолжай тот же host call, не запускай polling или параллельный retry.
-4. Прочитай `requested_model`, `resolved_model`, `warnings` и `session_id`.
+5. Прочитай `requested_model`, `requested_effort`, `resolved_model`, `warnings`
+   и `session_id`.
    Fable → Opus — успешное изменение model resolution, если оно явно видно в
-   result; не выдумывай причину.
-5. Проверь существенные claims локально и синтезируй ответ как мнение Claude,
+   result; не выдумывай причину. `warnings` может компактно показать нативный
+   model-refusal fallback, subscription overage/credits или имя отклонённого
+   инструмента, но не его arguments/output.
+6. Проверь существенные claims локально и синтезируй ответ как мнение Claude,
    а не как собственный доказанный verdict.
 
 ## Sessions, Paths, And Skills
@@ -37,6 +44,10 @@ Codex остаётся owner scope, проверки, синтеза и отве
   blind review, другой ветки/проекта или нового frame начни fresh call.
 - Несколько Codex agents могут параллельно держать отдельные Claude sessions:
   не переиспользуй чужой UUID; каждый caller хранит собственный `session_id`.
+- Когда blocking path мешает полезно работать параллельно, нужен mid-turn steer
+  или пользователь просит видеть progress, читай
+  [session-adapter.md](references/session-adapter.md). Не включай session lane
+  только ради «полноты возможностей».
 - Ручной `add_dirs` не нужен. Claude сохраняет session-local native tools,
   settings, skills, hooks, MCP, deferred tool discovery и доступ к любому
   OS-accessible пути. Точный tool set зависит от runtime; не копируй в brief
@@ -64,8 +75,11 @@ Codex остаётся owner scope, проверки, синтеза и отве
   [opus-agent-prompting.md](references/opus-agent-prompting.md).
 - Конкретный Claude `Skill`, MCP capability, subagent, monitor или workflow →
   [claude-native-tools.md](references/claude-native-tools.md).
+- Долгая/параллельная работа, follow-up, steer, stop или bounded progress peek →
+  [session-adapter.md](references/session-adapter.md).
 - Tool missing/stale, approval, auth, malformed output или cancellation →
   [mcp-failure-handling.md](references/mcp-failure-handling.md).
 
-Stop после одного bounded result и локальной проверки material claims. Не
-объявляй Claude review выполненным без terminal result.
+Stop после bounded terminal result и локальной проверки material claims.
+Активную transient session останови, когда follow-up больше не нужен. Не
+объявляй Claude review выполненным по progress snapshot без terminal result.

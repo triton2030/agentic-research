@@ -25,9 +25,16 @@ export const claudeAskInputSchema = Object.freeze({
   prompt: z.string().min(1).max(60_000),
   profile: z.enum(["opus_advisor", "fable_advisor"]),
   cwd: z.string().min(1),
-  session_id: z.string().uuid().optional()
+  session_id: z.string().uuid().optional(),
+  effort: z.enum(["xhigh", "max"]).optional()
 });
-const requestSchema = z.object(claudeAskInputSchema).strict();
+const requestSchema = z.object({
+  prompt: claudeAskInputSchema.prompt,
+  profile: claudeAskInputSchema.profile.optional(),
+  cwd: claudeAskInputSchema.cwd,
+  session_id: claudeAskInputSchema.session_id,
+  effort: claudeAskInputSchema.effort
+}).strict();
 
 // Personal-tool hygiene, not a hostile-config sandbox. Native Claude settings stay active.
 const EXPLICIT_ROUTE_ENV = Object.freeze([
@@ -79,7 +86,13 @@ function canonicalRequest(request) {
   if (!parsed.data.prompt.trim()) {
     throw new ClaudeAskError("invalid_request", "claude_ask requires a non-empty prompt.");
   }
-  const profile = PROFILES[parsed.data.profile];
+  if (!parsed.data.session_id && !parsed.data.profile) {
+    throw new ClaudeAskError("unsupported_profile", "Fresh Claude sessions require opus_advisor or fable_advisor.");
+  }
+  const baseProfile = parsed.data.session_id ? null : PROFILES[parsed.data.profile];
+  const profile = baseProfile
+    ? { ...baseProfile, effort: parsed.data.effort || baseProfile.effort }
+    : null;
   if (parsed.data.session_id && !isClaudeSessionId(parsed.data.session_id)) {
     throw new ClaudeAskError("invalid_session_id", "Claude session_id must be a UUID.");
   }

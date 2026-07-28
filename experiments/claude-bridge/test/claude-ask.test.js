@@ -23,7 +23,9 @@ function sdkMessages({
   text = "ADVICE_OK",
   apiKeySource = "none",
   resultSubtype = "success",
-  errors
+  errors,
+  beforeResult = [],
+  permissionDenials = []
 } = {}) {
   return [
     {
@@ -40,6 +42,7 @@ function sdkMessages({
       message: { model: auxiliaryModel }
     }] : []),
     { type: "assistant", parent_tool_use_id: null, message: { model: mainModel } },
+    ...beforeResult,
     {
       type: "result",
       subtype: resultSubtype,
@@ -48,6 +51,7 @@ function sdkMessages({
       errors,
       session_id: sessionId,
       duration_ms: 123,
+      permission_denials: permissionDenials,
       modelUsage: {
         ...(auxiliaryModel ? { [auxiliaryModel]: {} } : {}),
         [mainModel]: {}
@@ -62,7 +66,12 @@ function queryFactoryFor(messages, capture = {}) {
     capture.options = options;
     return {
       async *[Symbol.asyncIterator]() {
-        for (const message of typeof messages === "function" ? messages({ prompt, options }) : messages) yield message;
+        const scripted = typeof messages === "function" ? messages({ prompt, options }) : messages;
+        capture.input = await prompt.next();
+        if (capture.input.done) return;
+        if (scripted[0]?.type !== "system" || scripted[0]?.subtype !== "init") return;
+        yield scripted[0];
+        for (const message of scripted.slice(1)) yield message;
       },
       close() {
         capture.closed = true;
@@ -118,12 +127,25 @@ test("one-shot uses fixed profile and native SDK authority", async () => {
     text: "ADVICE_OK",
     session_id: OPUS_SESSION,
     requested_model: "opus",
+    requested_effort: "xhigh",
     resolved_model: "claude-opus-5",
     duration_ms: 123,
     warnings: []
   });
-  assert.match(capture.prompt, /do not modify files/iu);
-  assert.match(capture.prompt, /Challenge this design/u);
+  assert.equal(capture.prompt[Symbol.asyncIterator](), capture.prompt);
+  const input = capture.input;
+  assert.equal(input.done, false);
+  assert.equal(input.value.type, "user");
+  assert.equal(input.value.message.role, "user");
+  assert.match(input.value.message.content, /Challenge this design/u);
+  assert.equal((await capture.prompt.next()).done, true, "blocking ask must close streaming input after one message");
+  assert.deepEqual(capture.options.systemPrompt, {
+    type: "preset",
+    preset: "claude_code",
+    append:
+      "Act as an independent advisor. Investigate and read whatever evidence is necessary, but do not modify files, " +
+      "run state-changing commands, or take external actions. Return compact, decision-useful answers to the user's tasks."
+  });
   assert.equal(capture.options.model, "claude-opus-5");
   assert.equal(capture.options.effort, "xhigh");
   assert.deepEqual(capture.options.additionalDirectories, ["/"]);
@@ -144,6 +166,7 @@ test("resume keeps the native session model and omits caller model routing", asy
   assert.equal(capture.options.model, undefined);
   assert.equal(capture.options.effort, undefined);
   assert.equal(result.requested_model, null);
+  assert.equal(result.requested_effort, null);
   assert.equal(result.resolved_model, "claude-opus-5");
   assert.match(result.warnings.join(" "), /resume_session_owns_model/u);
 });
@@ -345,6 +368,53 @@ test("typed SDK failures are bounded and incomplete evidence fails closed", asyn
   );
 });
 
+test("max-turn failure keeps native resume details when the iterator later throws", async () => {
+  const capture = {};
+  const messages = sdkMessages({
+    resultSubtype: "error_max_turns",
+    errors: ["Reached maximum number of turns (24)."]
+  });
+  Object.assign(messages.at(-1), {
+    num_turns: 24,
+    terminal_reason: "max_turns"
+  });
+  const queryFactory = ({ prompt, options }) => {
+    capture.prompt = prompt;
+    capture.options = options;
+    return {
+      async *[Symbol.asyncIterator]() {
+        capture.input = await prompt.next();
+        if (capture.input.done) return;
+        yield messages[0];
+        for (const message of messages.slice(1)) yield message;
+        throw new Error("iterator failed after terminal result");
+      },
+      close() {
+        capture.closed = true;
+      }
+    };
+  };
+
+  const error = await expectClaudeError(
+    askTest(
+      { prompt: "Bound this review.", profile: "opus_advisor", cwd: bridgeRoot },
+      { executable: fakeClaude, queryFactory }
+    ),
+    "max_turns"
+  );
+
+  assert.deepEqual(error.details, {
+    session_id: OPUS_SESSION,
+    resumable: true,
+    duration_ms: 123,
+    num_turns: 24,
+    terminal_reason: "max_turns",
+    subtype: "error_max_turns"
+  });
+  assert.match(error.message, /maximum number of turns/u);
+  assert.equal(capture.closed, true);
+});
+
 test("bounded result reports main-model resolution without auxiliary-model corruption", async () => {
   const result = await askTest(
     { prompt: "Deep review.", profile: "fable_advisor", cwd: bridgeRoot },
@@ -367,37 +437,119 @@ test("bounded result reports main-model resolution without auxiliary-model corru
   assert.doesNotMatch(result.warnings.join(" "), /safety/u);
 });
 
-test("MCP exposes exactly one honest blocking claude_ask schema", async () => {
+test("typed limit, fallback, and permission evidence stays compact", async () => {
+  const result = await askTest(
+    { prompt: "Inspect safely.", profile: "opus_advisor", cwd: bridgeRoot },
+    fakeOptions(sdkMessages({
+      beforeResult: [
+        {
+          type: "rate_limit_event",
+          rate_limit_info: { status: "allowed_warning", isUsingOverage: true },
+          session_id: OPUS_SESSION
+        },
+        {
+          type: "system",
+          subtype: "permission_denied",
+          tool_name: "Bash",
+          message: "RAW_PERMISSION_REASON",
+          session_id: OPUS_SESSION
+        },
+        {
+          type: "system",
+          subtype: "model_refusal_fallback",
+          original_model: "claude-opus-5",
+          fallback_model: "claude-fable-5",
+          api_refusal_category: "safety",
+          content: "RAW_FALLBACK_EXPLANATION",
+          session_id: OPUS_SESSION
+        }
+      ],
+      permissionDenials: [{
+        tool_name: "Write",
+        tool_use_id: "tool-1",
+        tool_input: { secret: "RAW_DENIED_TOOL_INPUT" }
+      }]
+    }))
+  );
+
+  assert.match(result.warnings.join(" "), /subscription_overage_in_use/u);
+  assert.match(result.warnings.join(" "), /permission_denied:Bash/u);
+  assert.match(result.warnings.join(" "), /permission_denied:Write/u);
+  assert.match(
+    result.warnings.join(" "),
+    /model_refusal_fallback:claude-opus-5:claude-fable-5:safety/u
+  );
+  assert.doesNotMatch(JSON.stringify(result), /RAW_/u);
+});
+
+test("MCP exposes exactly three tools with honest annotations", async () => {
   const packet = {
     text: "MCP_OK",
     session_id: OPUS_SESSION,
     requested_model: null,
+    requested_effort: null,
     resolved_model: "claude-opus-5",
     duration_ms: 5,
     warnings: ["resume_session_owns_model"]
   };
-  const instance = createClaudeAskServer(async () => packet);
+  const sessionAdapter = {
+    async command() {
+      throw new Error("not exercised");
+    },
+    async observe() {
+      throw new Error("not exercised");
+    },
+    async shutdown() {}
+  };
+  const instance = createClaudeAskServer(async () => packet, sessionAdapter);
   const client = new Client({ name: "claude-ask-test", version: "1.0.0" });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   await instance.server.connect(serverTransport);
   await client.connect(clientTransport);
   try {
     const tools = await client.listTools();
-    assert.deepEqual(tools.tools.map((tool) => tool.name), ["claude_ask"]);
-    assert.match(tools.tools[0].description, /Opus 5 or Fable 5/u);
-    assert.deepEqual(tools.tools[0].annotations, {
+    assert.deepEqual(
+      tools.tools.map((tool) => tool.name),
+      ["claude_ask", "claude_session", "claude_observe"]
+    );
+    const byName = Object.fromEntries(tools.tools.map((tool) => [tool.name, tool]));
+    assert.match(byName.claude_ask.description, /Opus 5 or Fable 5/u);
+    assert.deepEqual(byName.claude_ask.annotations, {
       readOnlyHint: false,
       destructiveHint: true,
       idempotentHint: false,
       openWorldHint: true
     });
-    assert.match(JSON.stringify(tools.tools[0].outputSchema.properties.requested_model), /null/u);
+    assert.deepEqual(byName.claude_session.annotations, {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+      openWorldHint: true
+    });
+    assert.deepEqual(byName.claude_observe.annotations, {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false
+    });
+    assert.deepEqual(
+      byName.claude_session.inputSchema.properties.op.enum,
+      ["open_fresh", "open_resume", "send", "steer", "stop"]
+    );
+    for (const field of ["prompt", "profile", "effort", "cwd", "session_id"]) {
+      assert.ok(byName.claude_session.inputSchema.properties[field], `claude_session schema omitted ${field}`);
+    }
+    assert.match(JSON.stringify(byName.claude_ask.outputSchema.properties.requested_model), /null/u);
+    assert.match(JSON.stringify(byName.claude_ask.outputSchema.properties.requested_effort), /null/u);
+    assert.match(JSON.stringify(byName.claude_observe.outputSchema.properties.state), /requires_action/u);
+    assert.match(JSON.stringify(byName.claude_observe.outputSchema.properties.state), /closing/u);
     const called = await client.callTool({
       name: "claude_ask",
       arguments: { prompt: "Continue.", profile: "opus_advisor", cwd: bridgeRoot, session_id: OPUS_SESSION }
     });
     assert.deepEqual(called.structuredContent, packet);
-    assert.ok(Buffer.byteLength(called.content[0].text, "utf8") < 16000);
+    assert.equal(called.content[0].text, "Claude bridge returned a structured result.");
+    assert.doesNotMatch(called.content[0].text, /MCP_OK|11111111/u);
   } finally {
     await client.close();
     await instance.shutdown();

@@ -27,9 +27,11 @@ opinion.
 ## Evidence Boundary
 
 `claude_ask` returns one terminal answer, model/session metadata and warnings.
-It does not expose structured tool events. Claude's final claim that it used a
-tool is not proof of that exact invocation. If named-tool use is itself an
-acceptance criterion, mark it unverified or run a separate runtime diagnostic.
+The optional session adapter can expose bounded normalized tool names and
+subagent progress, but never raw tool inputs/outputs or a structured audit log.
+Claude's final claim or an activity label is not proof of an exact invocation.
+If named-tool use is itself an acceptance criterion, mark it unverified or run a
+separate runtime diagnostic.
 
 Official volatile owners:
 

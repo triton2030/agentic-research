@@ -7,11 +7,40 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { askClaude } from "../src/claude-ask.js";
+import { createClaudeSessionAdapter } from "../src/claude-session.js";
 
 const testDir = path.dirname(fileURLToPath(import.meta.url));
 const bridgeRoot = path.resolve(testDir, "..");
 const repoRoot = path.resolve(bridgeRoot, "..", "..");
 const scratch = fs.mkdtempSync(path.join(os.tmpdir(), "claude-sdk-live-"));
+const activeSessionStates = new Set([
+  "starting",
+  "thinking",
+  "tool",
+  "subagent",
+  "retrying",
+  "steering",
+  "requires_action"
+]);
+const observationKeys = [
+  "active_tool",
+  "background_tasks",
+  "changed",
+  "cursor",
+  "direction",
+  "events",
+  "last_activity_age_ms",
+  "messages",
+  "possibly_stalled",
+  "requested_effort",
+  "requested_model",
+  "resolved_model",
+  "session_id",
+  "state",
+  "terminal",
+  "thinking_tokens",
+  "warnings"
+];
 
 function token(prefix) {
   return `${prefix}_${randomUUID().slice(0, 8).toUpperCase()}`;
@@ -76,6 +105,55 @@ async function observeTreeUntilSettled(rootPid, observedTree, completion) {
   await completion;
 }
 
+function assertBoundedObservation(packet, detail, { limit, maxChars }) {
+  assert.deepEqual(Object.keys(packet).sort(), observationKeys);
+  assert.ok(packet.events.length <= limit);
+  assert.ok(packet.messages.length <= limit);
+  assert.ok(Buffer.byteLength(JSON.stringify(packet), "utf8") <= 12_000);
+  assert.doesNotMatch(
+    JSON.stringify(packet),
+    /"(?:content|thinking|thinking_blocks|tool_input|tool_output|tool_result|tool_use|tool_use_result)"\s*:/u
+  );
+  for (const event of packet.events) {
+    assert.deepEqual(Object.keys(event).sort(), ["at_ms", "cursor", "summary", "type"]);
+    assert.ok(event.summary.length <= 220);
+  }
+  for (const message of packet.messages) {
+    assert.deepEqual(Object.keys(message).sort(), ["cursor", "role", "text"]);
+  }
+  if (detail === "summary") {
+    assert.deepEqual(packet.events, []);
+    assert.deepEqual(packet.messages, []);
+  } else if (detail === "activity") {
+    assert.deepEqual(packet.messages, []);
+  } else {
+    assert.deepEqual(packet.events, []);
+    assert.ok(packet.messages.reduce((total, message) => total + message.text.length, 0) <= maxChars);
+  }
+}
+
+async function waitUntilIdle(adapter, sessionId, initialSnapshot, timeoutMs = 90_000) {
+  const deadline = Date.now() + timeoutMs;
+  let snapshot = initialSnapshot;
+  while (snapshot.state !== "idle" || snapshot.terminal?.kind !== "success") {
+    assert.doesNotMatch(snapshot.state, /^(?:closed|failed|timed_out)$/u);
+    const remainingMs = deadline - Date.now();
+    assert.ok(remainingMs > 0, `Claude session ${sessionId} did not become idle`);
+    if (snapshot.state === "idle") {
+      await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+    snapshot = await adapter.observe({
+      session_id: sessionId,
+      detail: "summary",
+      cursor: snapshot.cursor,
+      wait_ms: Math.min(10_000, remainingMs),
+      limit: 1,
+      max_chars: 200
+    });
+  }
+  return snapshot;
+}
+
 const directClaudeChildren = (snapshot) => [...snapshot]
   .filter(([, processInfo]) => (
     processInfo.ppid === process.pid &&
@@ -84,6 +162,7 @@ const directClaudeChildren = (snapshot) => [...snapshot]
   .map(([pid]) => pid);
 
 const receipts = {};
+let sessionAdapter = null;
 
 try {
   const opusCwd = path.join(scratch, "opus");
@@ -148,6 +227,151 @@ try {
   assert.match(fableResume.warnings.join(" "), /resume_session_owns_model/u);
   receipts.sessions = { opus, opus_resume: opusResume, fable, fable_resume: fableResume };
 
+  sessionAdapter = createClaudeSessionAdapter();
+  const sessionMarker = token("SESSION_ADAPTER");
+  const steerMarker = token("SESSION_STEER");
+  const toolOutputMarker = token("RAW_TOOL_OUTPUT");
+  const sessionCwd = path.join(scratch, "session");
+  fs.mkdirSync(sessionCwd);
+  fs.writeFileSync(path.join(sessionCwd, "tool-output.txt"), `${toolOutputMarker}\n`);
+  let controlledSessionId = null;
+  let explicitlyStopped = false;
+  try {
+    const opened = await sessionAdapter.command({
+      op: "open_fresh",
+      cwd: sessionCwd,
+      profile: "opus_advisor",
+      prompt:
+        "Use the Read tool once to read tool-output.txt. " +
+        `After reading it, reply with exactly ${sessionMarker}; do not repeat the file contents.`
+    });
+    controlledSessionId = opened.session_id;
+    assert.equal(opened.accepted_op, "open_fresh");
+    assert.ok(activeSessionStates.has(opened.state), `open_fresh returned in unexpected state ${opened.state}`);
+    assert.equal(opened.terminal, null, "open_fresh waited for the terminal result");
+
+    const openingSummary = await sessionAdapter.observe({
+      session_id: controlledSessionId,
+      detail: "summary",
+      wait_ms: 0,
+      limit: 1,
+      max_chars: 200
+    });
+    assertBoundedObservation(openingSummary, "summary", { limit: 1, maxChars: 200 });
+
+    const firstIdle = await waitUntilIdle(sessionAdapter, controlledSessionId, openingSummary);
+    assertBoundedObservation(firstIdle, "summary", { limit: 1, maxChars: 200 });
+    assert.equal(firstIdle.terminal?.kind, "success");
+
+    const activity = await sessionAdapter.observe({
+      session_id: controlledSessionId,
+      detail: "activity",
+      wait_ms: 0,
+      limit: 8,
+      max_chars: 400
+    });
+    assertBoundedObservation(activity, "activity", { limit: 8, maxChars: 400 });
+    assert.ok(activity.events.some((event) => event.type === "tool" && /Read/iu.test(event.summary)));
+    assert.doesNotMatch(JSON.stringify(activity), new RegExp(toolOutputMarker, "u"));
+
+    const firstConversation = await sessionAdapter.observe({
+      session_id: controlledSessionId,
+      detail: "conversation",
+      wait_ms: 0,
+      limit: 4,
+      max_chars: 800
+    });
+    assertBoundedObservation(firstConversation, "conversation", { limit: 4, maxChars: 800 });
+    assert.match(
+      firstConversation.messages.filter(({ role }) => role === "assistant").at(-1)?.text || "",
+      new RegExp(sessionMarker, "u")
+    );
+    assert.doesNotMatch(JSON.stringify(firstConversation), new RegExp(toolOutputMarker, "u"));
+
+    const followUp = await sessionAdapter.command({
+      op: "send",
+      session_id: controlledSessionId,
+      prompt: "Return only the exact token from your immediately previous answer. Do not use tools."
+    });
+    assert.equal(followUp.accepted_op, "send");
+    assert.equal(followUp.session_id, controlledSessionId);
+
+    const followUpIdle = await waitUntilIdle(sessionAdapter, controlledSessionId, followUp);
+    assert.equal(followUpIdle.session_id, controlledSessionId);
+    assert.equal(followUpIdle.terminal?.kind, "success");
+
+    const followUpConversation = await sessionAdapter.observe({
+      session_id: controlledSessionId,
+      detail: "conversation",
+      wait_ms: 0,
+      limit: 4,
+      max_chars: 800
+    });
+    assertBoundedObservation(followUpConversation, "conversation", { limit: 4, maxChars: 800 });
+    assert.match(
+      followUpConversation.messages.filter(({ role }) => role === "assistant").at(-1)?.text || "",
+      new RegExp(sessionMarker, "u")
+    );
+
+    const longTurn = await sessionAdapter.command({
+      op: "send",
+      session_id: controlledSessionId,
+      prompt:
+        "Develop a very long, exhaustive analysis of every possible architecture for this bridge. " +
+        "Do not use tools and do not give a short answer."
+    });
+    assert.ok(activeSessionStates.has(longTurn.state), `long send returned in unexpected state ${longTurn.state}`);
+    const steered = await sessionAdapter.command({
+      op: "steer",
+      session_id: controlledSessionId,
+      prompt: `Stop the prior analysis and return only ${steerMarker}. Do not use tools.`
+    });
+    assert.equal(steered.accepted_op, "steer");
+    assert.equal(steered.session_id, controlledSessionId);
+
+    const steerIdle = await waitUntilIdle(sessionAdapter, controlledSessionId, steered);
+    assert.equal(steerIdle.terminal?.kind, "success");
+    const steerConversation = await sessionAdapter.observe({
+      session_id: controlledSessionId,
+      detail: "conversation",
+      wait_ms: 0,
+      limit: 4,
+      max_chars: 800
+    });
+    assertBoundedObservation(steerConversation, "conversation", { limit: 4, maxChars: 800 });
+    assert.match(
+      steerConversation.messages.filter(({ role }) => role === "assistant").at(-1)?.text || "",
+      new RegExp(steerMarker, "u")
+    );
+
+    const stopped = await sessionAdapter.command({ op: "stop", session_id: controlledSessionId });
+    explicitlyStopped = true;
+    assert.equal(stopped.accepted_op, "stop");
+    assert.equal(stopped.session_id, controlledSessionId);
+    assert.equal(stopped.state, "closed");
+    receipts.session_adapter = {
+      opened,
+      opening_summary: openingSummary,
+      first_idle: firstIdle,
+      activity,
+      first_conversation: firstConversation,
+      follow_up: followUp,
+      follow_up_idle: followUpIdle,
+      follow_up_conversation: followUpConversation,
+      long_turn: longTurn,
+      steered,
+      steer_idle: steerIdle,
+      steer_conversation: steerConversation,
+      stopped
+    };
+  } finally {
+    if (controlledSessionId && !explicitlyStopped) {
+      await sessionAdapter.command({ op: "stop", session_id: controlledSessionId }).catch(() => {});
+    }
+    await sessionAdapter.shutdown();
+    sessionAdapter = null;
+  }
+
   let abortRootPid = null;
   const abortController = new AbortController();
   const abortPromise = askClaude(
@@ -182,5 +406,6 @@ try {
   };
   process.stdout.write(`${JSON.stringify(receipts, null, 2)}\n`);
 } finally {
+  await sessionAdapter?.shutdown();
   fs.rmSync(scratch, { recursive: true, force: true });
 }

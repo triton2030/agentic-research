@@ -3,7 +3,8 @@ import { assertSdkSubscriptionEvidence, prepareClaudeRequest } from "./claude-po
 import { formatClaudeResult, ClaudeAskError, compactTail } from "./claude-result.js";
 import { runClaudeSdk } from "./claude-sdk.js";
 
-const DEFAULT_TIMEOUT_MS = 30 * 60 * 1000;
+// Finish with a typed bridge timeout before Codex's 30-minute MCP envelope wins.
+const DEFAULT_TIMEOUT_MS = 29 * 60 * 1000;
 const testDependencies = new AsyncLocalStorage();
 
 function requestLifetime(signal, timeoutMs) {
@@ -45,7 +46,8 @@ export async function askClaude(request, signal) {
     const raw = await runClaudeSdk(launch, {
       abortController: lifetime.controller,
       queryFactory: dependencies.queryFactory,
-      spawnClaudeCodeProcess: dependencies.spawnClaudeCodeProcess
+      spawnClaudeCodeProcess: dependencies.spawnClaudeCodeProcess,
+      validateInit: assertSdkSubscriptionEvidence
     });
     assertSdkSubscriptionEvidence(raw.init);
     return formatClaudeResult(raw, launch);

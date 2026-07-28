@@ -1,8 +1,10 @@
 # Opus Advisor Prompting
 
 `opus_advisor` is the exact-pinned `claude-opus-5` default for architecture,
-debugging, code review, planning and ongoing project advice. The profile already
-owns model and `xhigh` effort; do not add arbitrary CLI overrides.
+debugging, code review, planning and ongoing project advice. The profile owns
+model and `xhigh` effort; select supported `effort: max` only for a fresh turn
+whose decision value justifies the additional time. Do not add arbitrary CLI
+overrides.
 
 Give Opus the task, intent, current state, exact sources, constraints, evidence
 bar, expected output and stop condition in the first turn. Name exact sources

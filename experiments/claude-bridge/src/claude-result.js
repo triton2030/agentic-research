@@ -33,18 +33,31 @@ export function isClaudeSessionId(value) {
 /** Validate SDK evidence and create the only public success packet. */
 export function formatClaudeResult(raw, launch) {
   if (!raw.result || raw.result.subtype !== "success" || raw.result.is_error) {
-    const errors = Array.isArray(raw.result?.errors) ? raw.result.errors.join(" ") : "SDK query ended without success.";
-    throw new ClaudeAskError("claude_sdk_result", compactTail(errors));
+    const result = raw.result;
+    const errors = Array.isArray(result?.errors) ? result.errors.join(" ") : "SDK query ended without success.";
+    const sessionId = isClaudeSessionId(result?.session_id) ? result.session_id : undefined;
+    const details = {
+      ...(sessionId ? { session_id: sessionId, resumable: true } : {}),
+      ...(Number.isFinite(result?.duration_ms) ? { duration_ms: result.duration_ms } : {}),
+      ...(Number.isInteger(result?.num_turns) ? { num_turns: result.num_turns } : {}),
+      ...(typeof result?.terminal_reason === "string" ? { terminal_reason: result.terminal_reason } : {}),
+      ...(typeof result?.subtype === "string" ? { subtype: result.subtype } : {})
+    };
+    if (result?.subtype === "error_max_turns") {
+      throw new ClaudeAskError("max_turns", compactTail(errors || "Claude reached its turn limit."), details);
+    }
+    throw new ClaudeAskError("claude_sdk_result", compactTail(errors), details);
   }
   if (!isClaudeSessionId(raw.result.session_id)) {
     throw new ClaudeAskError("missing_session", "Claude SDK result did not include a native session UUID.");
   }
 
-  const resolvedModel = raw.primaryModels.at(-1) || raw.init.model;
+  const resolvedModel = raw.primaryModels.at(-1) || raw.init?.model;
   if (!resolvedModel) throw new ClaudeAskError("missing_model", "Claude SDK did not identify the session model.");
 
   const bounded = boundText(raw.result.result, MAX_RESULT_CHARS);
   const requestedModel = launch.sessionId ? null : launch.profile.requestedModel;
+  const requestedEffort = launch.sessionId ? null : launch.profile.effort;
   const warnings = [];
   if (launch.stripped.length) warnings.push(`environment_overrides_stripped:${launch.stripped.toSorted().join(",")}`);
   if (raw.primaryModels.length > 1) warnings.push(`model_history:${raw.primaryModels.join("->")}`);
@@ -52,12 +65,26 @@ export function formatClaudeResult(raw, launch) {
     warnings.push(`model_resolution_mismatch:requested=${launch.profile.model},resolved=${resolvedModel}`);
   }
   if (launch.sessionId) warnings.push("resume_session_owns_model");
+  for (const warning of raw.runtimeWarnings || []) {
+    const compact = boundText(warning, 240).text;
+    if (compact && !warnings.includes(compact)) warnings.push(compact);
+  }
+  const deniedTools = [...new Set(
+    (raw.result.permission_denials || [])
+      .map((denial) => boundText(denial?.tool_name, 80).text)
+      .filter(Boolean)
+  )];
+  if (deniedTools.length) {
+    const warning = `permission_denied:${deniedTools.join(",")}`;
+    if (!warnings.includes(warning)) warnings.push(warning);
+  }
   if (bounded.truncated) warnings.push(`result_truncated_at:${MAX_RESULT_CHARS}`);
 
   return {
     text: bounded.text,
     session_id: raw.result.session_id,
     requested_model: requestedModel,
+    requested_effort: requestedEffort,
     resolved_model: resolvedModel,
     duration_ms: raw.result.duration_ms,
     warnings: warnings.slice(0, 8)
@@ -66,9 +93,15 @@ export function formatClaudeResult(raw, launch) {
 
 export function compactClaudeAskError(error) {
   const known = error instanceof ClaudeAskError;
+  const details = known ? error.details : {};
   return {
     code: known ? error.code : "internal_error",
     message: compactTail(error?.message || "Claude request failed."),
-    ...(known && error.details.duration_ms !== undefined ? { duration_ms: error.details.duration_ms } : {})
+    ...(details.session_id ? { session_id: details.session_id } : {}),
+    ...(details.duration_ms !== undefined ? { duration_ms: details.duration_ms } : {}),
+    ...(details.num_turns !== undefined ? { num_turns: details.num_turns } : {}),
+    ...(details.terminal_reason ? { terminal_reason: compactTail(details.terminal_reason, 200) } : {}),
+    ...(details.subtype ? { subtype: compactTail(details.subtype, 100) } : {}),
+    ...(details.resumable !== undefined ? { resumable: Boolean(details.resumable) } : {})
   };
 }

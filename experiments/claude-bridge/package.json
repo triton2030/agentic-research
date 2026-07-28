@@ -1,13 +1,13 @@
 {
   "name": "claude-advisor-bridge",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "type": "module",
-  "description": "One-tool Claude Agent SDK advisor bridge for Codex.",
+  "description": "Claude Agent SDK advisor bridge with blocking ask and transient sessions.",
   "scripts": {
     "ask:mcp": "node ./src/ask-server.js",
     "ask:live": "node ./test/live-claude-ask.js",
-    "ask:test": "NODE_ENV=test node --test ./test/claude-ask.test.js"
+    "ask:test": "NODE_ENV=test node --test ./test/*.test.js"
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "0.3.219",

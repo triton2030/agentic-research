@@ -1,15 +1,23 @@
 ---
-description: "Cut over the Claude advisor bridge to one Agent SDK-backed MCP tool"
+description: "Historical evidence for the completed Agent SDK-backed claude_ask cutover"
 kind: task
 ---
 
 # Claude Advisor SDK Cutover
 
+## Archive Note
+
+Archived on 2026-07-28 as historical evidence for the completed blocking
+cutover. It no longer owns current execution; the accepted session-adapter work
+lives in
+[`claude-session-adapter/task.md`](../claude-session-adapter/task.md).
+
 ## Outcome
 
-Activate the runtime contract owned by [`README.md`](../../../../README.md): one
-blocking `claude_ask`, native Claude sessions, a compact terminal result and no
-second agent control plane. This Task owns migration evidence only.
+At the time of this cutover, activate the then-current one-tool contract in
+`README.md`: blocking `claude_ask`, native Claude sessions, a compact terminal
+result, and no second agent control plane. This Task owns historical migration
+evidence only.
 
 ## Accepted Decision
 
@@ -22,7 +30,7 @@ second agent control plane. This Task owns migration evidence only.
   The no-modification instruction is behavioral, not a sandbox.
 - Native `session_id` owns resume history and model. An initial Fable-to-Opus
   resolution is visible but not assigned an invented cause.
-- Billing setup has one owner: [`docs/subscription-billing.md`](../../../../docs/subscription-billing.md).
+- Billing setup has one owner: [`docs/subscription-billing.md`](../../../../../docs/subscription-billing.md).
 
 ## Completion Checklist
 
@@ -99,8 +107,11 @@ second agent control plane. This Task owns migration evidence only.
   tree while removing the handwritten CLI policy/process layers and the entire
   legacy control plane.
 
-## Remaining Gate
+## Historical Remaining Gate
 
-Do not commit until the coordinator returns docs-green and independent reviews
-map every remaining checklist item. Do not revive a lifecycle, registry,
-background, provider abstraction or worker path in this cutover.
+The task ended with the following gate. It is retained as evidence and no longer
+governs current execution:
+
+> Do not commit until the coordinator returns docs-green and independent
+> reviews map every remaining checklist item. Do not revive a lifecycle,
+> registry, background, provider abstraction or worker path in this cutover.

@@ -1,8 +1,9 @@
 # Fable Advisor Prompting
 
 Use `fable_advisor` only for the hardest long-horizon, ambiguous, high-stakes or
-multi-system judgment. It is one blocking trusted-native call and may take
-minutes.
+multi-system judgment. The default is one blocking trusted-native call and may
+take minutes; use the transient session adapter only when parallel work,
+follow-up or correction is materially useful.
 
 ## Brief
 
@@ -16,8 +17,9 @@ Give Fable the real outcome and why constraints matter, not only commands. Name:
 
 Ask for findings, evidence, alternatives and uncertainty, never private
 reasoning. Strong but short instructions work better than repeated process
-scaffolding. Claude may use its own tools, skills or subagents inside the one
-blocking advisor turn; Codex still receives only one bounded terminal result.
+scaffolding. Claude may use its own tools, skills or subagents inside its native
+turn. Codex receives either one bounded blocking result or explicit bounded
+session snapshots; never a continuous reasoning/tool feed.
 
 ## Continuation And Fallback
 
@@ -29,5 +31,5 @@ silently rewriting the task or changing billing/tool authority.
 
 Official volatile owners:
 
-- https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5
-- https://code.claude.com/docs/en/model-config
+- <https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5>
+- <https://code.claude.com/docs/en/model-config>
