@@ -1,7 +1,7 @@
 interface:
   display_name: "Claude Advisor"
-  short_description: "Independent Claude review or second opinion"
-  default_prompt: "Use $1claude-mcp to get a compact independent Claude perspective on this decision."
+  short_description: "External Claude review or session control"
+  default_prompt: "Use $1claude-mcp for a compact independent Claude perspective on this task or decision."
 
 dependencies:
   tools:

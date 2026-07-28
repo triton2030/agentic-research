@@ -10,6 +10,8 @@ provider, mode, permissions and settings. Do not paste a static inventory into
 the advisor brief. Describe the needed capability and let Claude choose its
 visible native tools.
 
+- Do not add manual directories. Native sessions retain settings, skills,
+  hooks, MCP and deferred tool discovery, and can use any OS-accessible path.
 - Name a `Skill` when that specific reusable workflow is required.
 - Name the MCP capability or server when it matters; `ToolSearch` discovers
   deferred schemas on demand.

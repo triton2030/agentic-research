@@ -1,85 +1,70 @@
 ---
 name: 1claude-mcp
 description: >-
-  Когда нужно независимое ревью, второе мнение или совет другой model family —
-  либо явный вызов Claude, Opus или Fable — вызови advisor. Не для вопросов о
-  Claude; native Codex review → `1fresh-eyes`.
+  Когда пользователь просит Claude, Opus или Fable, мнение другой model family
+  либо работу с уже запущенной Claude session — подключи Claude advisor. Не для
+  справочных вопросов о Claude; native Codex review → `1fresh-eyes`.
 ---
 
 # Claude Advisor
 
-## Outcome
+## Результат
 
-Получить компактный evidence-backed взгляд Claude. По умолчанию используй
-blocking `claude_ask`; transient session lane включай только когда полезны
-параллельная работа, follow-up, steer или проверка живости. Codex остаётся owner
-scope, проверки, синтеза и ответа пользователю; Claude — внешний советник, не
-acceptance owner.
+Получить компактное, проверяемое мнение Claude. По умолчанию используй blocking
+`claude_ask`; transient session остаётся opt-in. Codex владеет scope, проверкой,
+синтезом и ответом пользователю; Claude советует, но не принимает результат.
 
-## Default Path
+## Основной Маршрут
 
 1. Выбери `opus_advisor` (`claude-opus-5`) по умолчанию. `fable_advisor`
-   (`claude-fable-5`) оставь для самых сложных long-horizon, multi-system или
-   high-stakes решений.
-2. Передай реальный project/worktree `cwd` и короткий self-contained brief:
-   outcome; claim/decision; точные paths или URLs; material boundaries; evidence
-   bar; compact verdict-first output; stop condition. Не копируй сырой chat dump.
-3. Оставь `xhigh` default; выбери `effort: max` только когда цена решения
-   оправдывает более долгий максимально глубокий fresh turn.
+   (`claude-fable-5`) оставь для самых сложных долгосрочных, multi-system
+   решений или решений с высокой ценой ошибки.
+2. Передай реальный project/worktree `cwd` и короткий самодостаточный brief:
+   цель; проверяемое решение или утверждение; точные пути или URLs;
+   существенные границы; требования к evidence; короткий verdict-first ответ;
+   условие остановки. Не копируй сырой chat dump.
+3. Оставь `xhigh`; выбери `effort: max` только для свежего вызова, когда цена
+   решения оправдывает более долгую максимально глубокую работу.
 4. Вызови один blocking `claude_ask`. Он может работать несколько минут;
-   продолжай тот же host call, не запускай polling или параллельный retry.
+   продолжай тот же host call, не запускай polling или параллельный повтор.
 5. Прочитай `requested_model`, `requested_effort`, `resolved_model`, `warnings`
-   и `session_id`.
-   Fable → Opus — успешное изменение model resolution, если оно явно видно в
-   result; не выдумывай причину. `warnings` может компактно показать нативный
-   model-refusal fallback, subscription overage/credits или имя отклонённого
-   инструмента, но не его arguments/output.
-6. Проверь существенные claims локально и синтезируй ответ как мнение Claude,
-   а не как собственный доказанный verdict.
+   и `session_id`. Fable → Opus — успешный вызов с другой `resolved_model`, если
+   это явно видно; не выдумывай причину. `warnings` может компактно показать
+   нативный model-refusal fallback, subscription overage/credits или имя
+   отклонённого инструмента, но не его arguments/output.
+6. Проверь существенные утверждения локально и представь ответ как мнение
+   Claude, а не как собственный доказанный вывод.
 
-## Sessions, Paths, And Skills
+## Внешние Данные И Оплата
 
-- Продолжай полезный разговор через returned `session_id` и тот же `cwd`.
-  Native session сохраняет свою модель: resume profile её не переключает. Для
-  blind review, другой ветки/проекта или нового frame начни fresh call.
-- Несколько Codex agents могут параллельно держать отдельные Claude sessions:
-  не переиспользуй чужой UUID; каждый caller хранит собственный `session_id`.
-- Когда blocking path мешает полезно работать параллельно, нужен mid-turn steer
-  или пользователь просит видеть progress, читай
-  [session-adapter.md](references/session-adapter.md). Не включай session lane
-  только ради «полноты возможностей».
-- Ручной `add_dirs` не нужен. Claude сохраняет session-local native tools,
-  settings, skills, hooks, MCP, deferred tool discovery и доступ к любому
-  OS-accessible пути. Точный tool set зависит от runtime; не копируй в brief
-  статический каталог. Инструкция исследовать и не менять state —
-  поведенческая, не read-only sandbox.
-- Когда outcome зависит от конкретного Claude skill, tool или orchestration
-  mode, читай [claude-native-tools.md](references/claude-native-tools.md).
-
-## External And Billing Boundaries
-
-`claude_ask` отправляет переданный prompt и прочитанный material в Anthropic.
+`claude_ask` отправляет в Anthropic переданный prompt и прочитанные материалы.
 Следуй host approval; не обходи его, но и не изобретай дополнительный запрет на
-локальные/project files после разрешения scope.
+локальные файлы и файлы проекта после разрешения scope.
 
-Не подставляй API key/token/provider/base URL ради recovery. При auth или billing
-ошибке читай единственный owner-файл
+Инструкция исследовать и не изменять состояние — поведенческая, а не read-only
+sandbox.
+
+Не подставляй API key/token/provider/base URL ради восстановления. При auth или
+billing ошибке читай единственный owner-файл
 [`subscription-billing.md`](/Users/triton/Documents/GitHub/agentic-research/experiments/claude-bridge/docs/subscription-billing.md)
 — не загружай его в обычный advisor call.
 
-## Conditional Routes And Stop
+## Условные Маршруты
 
-- Сложный Fable brief или model-resolution mismatch →
+- Сложный Fable brief или model-resolution mismatch:
   [fable-agent-prompting.md](references/fable-agent-prompting.md).
-- Когда качество Opus review зависит от роли, sources или output shape →
+- Когда качество Opus review зависит от роли, sources или формы ответа:
   [opus-agent-prompting.md](references/opus-agent-prompting.md).
-- Конкретный Claude `Skill`, MCP capability, subagent, monitor или workflow →
+- Конкретный Claude `Skill`, MCP capability, subagent, monitor или workflow:
   [claude-native-tools.md](references/claude-native-tools.md).
-- Долгая/параллельная работа, follow-up, steer, stop или bounded progress peek →
+- Продолжение по `session_id`, параллельная работа, follow-up, steer, проверка
+  живости или stop:
   [session-adapter.md](references/session-adapter.md).
-- Tool missing/stale, approval, auth, malformed output или cancellation →
+- Tool missing/stale, approval, auth, malformed output или cancellation:
   [mcp-failure-handling.md](references/mcp-failure-handling.md).
 
-Stop после bounded terminal result и локальной проверки material claims.
-Активную transient session останови, когда follow-up больше не нужен. Не
+## Стоп
+
+Остановись после bounded terminal result и локальной проверки существенных
+утверждений. Закрой transient session, когда follow-up больше не нужен. Не
 объявляй Claude review выполненным по progress snapshot без terminal result.
