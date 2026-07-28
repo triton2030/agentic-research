@@ -23,7 +23,7 @@ import threading
 import time
 from typing import Any, AsyncIterator, Callable, Iterator
 
-from codex_run_ledger import append_event
+from codex_run_ledger import append_event, write_json
 
 # Нотификации-дельты идут потоком токенов: в ledger они дали бы мегабайты шума,
 # поэтому их только считаем. В журнал пишем границы шагов и события, меняющие
@@ -298,14 +298,31 @@ class _InterruptOnSignal:
         self._fired = False
 
     def _on_signal(self, signum: int, _frame: Any) -> None:
-        if not self._fired:
-            self._fired = True
+        if self._fired:
+            return
+        self._fired = True
+        # Порядок намеренный: сперва фиксируем факт на диске, потом просим
+        # движок остановиться. Если он висит (например, внутри MCP-вызова) и
+        # процесс потом убьют, audit-запись уже существует.
+        if self._run_dir is not None:
             try:
-                self._handle.interrupt()
-                if self._run_dir is not None:
-                    append_event(self._run_dir, "interrupt_requested", signal=signum)
-            except Exception:  # noqa: BLE001 — на выходе не мешаем остановке
+                append_event(self._run_dir, "interrupt_requested", signal=signum)
+                write_json(
+                    self._run_dir / "result.json",
+                    {
+                        "status": "interrupt_requested",
+                        "ok": False,
+                        "error": f"Прогон остановлен сигналом {signum}; "
+                        "движок не подтвердил завершение хода.",
+                        "provisional": True,
+                    },
+                )
+            except Exception:  # noqa: BLE001
                 pass
+        try:
+            self._handle.interrupt()
+        except Exception:  # noqa: BLE001 — на выходе не мешаем остановке
+            pass
 
     def __enter__(self) -> _InterruptOnSignal:
         import signal

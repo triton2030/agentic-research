@@ -89,9 +89,22 @@ def _install_fake_openai_codex(
             captured["run_kwargs"] = dict(kwargs)
             return _fake_result()
 
+    class _FakeClient:
+        """Сырой RPC-канал: mode=diff зовёт review/start мимо высокого API."""
+
+        def _request_raw(self, method, params=None):  # noqa: ANN001
+            captured.setdefault("rpc", []).append((method, params))
+            if method == "review/start":
+                return {
+                    "reviewThreadId": "review-thread-1",
+                    "turn": {"id": "turn-fake-1"},
+                }
+            return {}
+
     class _FakeCodex:
         def __init__(self, config=None):  # noqa: ANN001
             self.config = config
+            self._client = _FakeClient()
 
         def __enter__(self):
             return self
@@ -142,11 +155,31 @@ def _install_fake_openai_codex(
     run_mod = types.ModuleType("openai_codex._run")
     run_mod._collect_turn_result = _collect
     run_mod._collect_async_turn_result = _collect_async
+    # `api` нужен ветке mode=diff: она собирает TurnHandle вручную. Без него
+    # диф-путь в тестах был бы недостижим — ложное зелёное на новой механике.
+    api_mod = types.ModuleType("openai_codex.api")
+
+    class _TurnHandle:
+        def __init__(self, client, thread_id, turn_id):  # noqa: ANN001
+            captured["handle_args"] = (thread_id, turn_id)
+            self.id = turn_id
+            self.thread_id = thread_id
+
+        def stream(self):
+            return _FakeHandle().stream()
+
+        def run(self):
+            captured["handle_run_fallback"] = True
+            return _fake_result()
+
+    api_mod.TurnHandle = _TurnHandle
+    sys.modules["openai_codex.api"] = api_mod
     names = [
         "openai_codex",
         "openai_codex.generated",
         "openai_codex.generated.v2_all",
         "openai_codex._run",
+        "openai_codex.api",
     ]
     sys.modules["openai_codex"] = mod
     sys.modules["openai_codex.generated"] = gen
@@ -787,6 +820,74 @@ class CodexReviewCliTests(unittest.TestCase):
                     rc = codex_review.main()
                 self.assertEqual(rc, 0)
                 self.assertIs(captured.get("ephemeral"), True)
+        finally:
+            sys.argv = saved_argv
+            for name in fake_names:
+                sys.modules.pop(name, None)
+
+    def test_diff_mode_targets(self) -> None:
+        """Четыре формы git-таргета для нативного review/start."""
+        import types as _t
+
+        from codex_review import _review_target
+
+        def a(**kw):
+            return _t.SimpleNamespace(**{"base": None, "commit": None, **kw})
+
+        self.assertEqual(_review_target(a(), None), {"type": "uncommittedChanges"})
+        self.assertEqual(
+            _review_target(a(base="main"), None), {"type": "baseBranch", "branch": "main"}
+        )
+        self.assertEqual(
+            _review_target(a(commit="abc123"), None), {"type": "commit", "sha": "abc123"}
+        )
+        # custom принимает инструкции — официальный плагин OpenAI от этого отказывается.
+        self.assertEqual(
+            _review_target(a(), "смотри только на гонки"),
+            {"type": "custom", "instructions": "смотри только на гонки"},
+        )
+        # Явный таргет сильнее свободного текста.
+        self.assertEqual(
+            _review_target(a(commit="abc"), "текст"), {"type": "commit", "sha": "abc"}
+        )
+
+    def test_diff_mode_calls_native_review_and_reports_inherited_effort(self) -> None:
+        """mode=diff идёт через review/start, а не через промпт, и НЕ врёт про effort."""
+        import codex_review
+
+        captured: dict = {}
+        fake_names = _install_fake_openai_codex(captured)
+        saved_argv = sys.argv[:]
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                sys.argv = [
+                    "codex_review.py", "--mode", "diff", "--base", "main",
+                    "--project", str(root), "--effort", "xhigh",
+                ]
+                err = io.StringIO()
+                with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(err):
+                    rc = codex_review.main()
+                self.assertEqual(rc, 0)
+
+                rpc = dict((m, p) for m, p in captured.get("rpc", []))
+                self.assertIn("review/start", rpc)
+                self.assertEqual(rpc["review/start"]["delivery"], "inline")
+                self.assertEqual(
+                    rpc["review/start"]["target"], {"type": "baseBranch", "branch": "main"}
+                )
+                # TurnHandle собран на треде ревью и turn id из ответа.
+                self.assertEqual(captured["handle_args"], ("review-thread-1", "turn-fake-1"))
+                # Промпт в этом режиме не отправляется вовсе.
+                self.assertNotIn("run_kwargs", captured)
+
+                result = json.loads(
+                    next((root / "_workspace" / "codex-artifacts").glob("*/result.json"))
+                    .read_text(encoding="utf-8")
+                )
+                # Ledger обязан говорить правду: усилие наследуется, не применяется.
+                self.assertEqual(result["codex"]["effort"], "inherit")
+                self.assertIn("НЕ применяется", err.getvalue())
         finally:
             sys.argv = saved_argv
             for name in fake_names:

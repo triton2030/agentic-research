@@ -65,21 +65,44 @@ def check(*, cwd: str, codex_bin: str | None = None) -> dict[str, Any]:
         )
         return report
 
-    acc = _dig(account, "account") or {}
-    report["auth"] = {
-        "present": bool(acc),
-        # Живая форма ответа (замер 2026-07-28): {"account": {"type": "chatgpt",
+    report.update(interpret(account, config))
+    return report
+
+
+def interpret(account: Any, config: Any) -> dict[str, Any]:
+    """Разбор ответов в вердикт. Чистая функция — тестируется без движка.
+
+    Форма ответа движка дрейфует, поэтому НИ ОДНО поле не считается словарём
+    без проверки: неизвестная форма обязана стать видимым warning, а не тихим
+    «всё None, но ok».
+    """
+    result: dict[str, Any] = {"auth": {}, "config": {}, "warnings": [], "ok": False}
+    warnings: list[str] = result["warnings"]
+
+    acc = _dig(account, "account")
+    if acc is not None and not isinstance(acc, dict):
+        warnings.append("account/read вернул неизвестную форму — разбор невозможен")
+        acc = None
+    acc = acc or {}
+    result["auth"] = {
+        # Живая форма (замер 2026-07-28): {"account": {"type": "chatgpt",
         # "email": …, "planType": "plus"}, "requiresOpenaiAuth": true}.
-        # `requiresOpenaiAuth` — норма, НЕ признак проблемы: не заводи на него
-        # предупреждение, ложная тревога хуже её отсутствия.
+        # `requiresOpenaiAuth` — норма, НЕ повод для предупреждения.
+        "present": bool(acc),
         "mode": acc.get("type") or acc.get("authMode"),
         "plan": acc.get("planType") or acc.get("plan_type"),
         "email": acc.get("email"),
     }
 
-    cfg = _dig(config, "config") or config or {}
+    cfg = _dig(config, "config")
+    if cfg is None:
+        cfg = config
+    config_unknown = not isinstance(cfg, dict)
+    if config_unknown:
+        warnings.append("config/read вернул неизвестную форму — эффективный конфиг не прочитан")
+        cfg = {}
     effective_tier = cfg.get("serviceTier") or cfg.get("service_tier")
-    report["config"] = {
+    result["config"] = {
         "model": cfg.get("model"),
         "effort": cfg.get("modelReasoningEffort") or cfg.get("model_reasoning_effort"),
         # Единственное поле, которое мост реально НАСЛЕДУЕТ, а не задаёт сам.
@@ -88,10 +111,9 @@ def check(*, cwd: str, codex_bin: str | None = None) -> dict[str, Any]:
         "approval_policy": cfg.get("approvalPolicy") or cfg.get("approval_policy"),
     }
 
-    warnings: list[str] = report["warnings"]
-    mode = report["auth"]["mode"]
-    blocking = False
-    if not report["auth"]["present"]:
+    blocking = config_unknown
+    mode = result["auth"]["mode"]
+    if not result["auth"]["present"]:
         warnings.append("аккаунт не прочитан — вероятно, требуется вход в Codex")
         blocking = True
     elif mode != "chatgpt":
@@ -106,8 +128,9 @@ def check(*, cwd: str, codex_bin: str | None = None) -> dict[str, Any]:
             "стандартном тире (мост тир не шлёт, он берётся отсюда)"
         )
 
-    report["ok"] = not blocking
-    return report
+    result["ok"] = not blocking
+    return result
+
 
 
 def render(report: dict[str, Any]) -> str:

@@ -398,6 +398,15 @@ def main() -> int:
     if args.mode == "diff" and args.base and args.commit:
         print("mode=diff: --base и --commit взаимоисключимы.", file=sys.stderr)
         return 2
+    if args.mode == "diff" and args.effort != DEFAULT_CODEX_EFFORT:
+        # Молча проглотить флаг было бы хуже всего: пользователь думает, что
+        # заказал глубину, а нативный ревьюер работает на конфиге движка.
+        print(
+            f"[codex-bridge] mode=diff: --effort {args.effort} НЕ применяется — "
+            "нативный review/start усилие не принимает, оно наследуется из "
+            "конфига движка (в ledger: effort=inherit).",
+            file=sys.stderr,
+        )
     if args.mode == "task" and not payload:
         print('Режим task требует задание: --task "..." или позиционный аргумент.', file=sys.stderr)
         return 2
@@ -498,7 +507,11 @@ def main() -> int:
     thread_persistent = bool(args.dialog or args.continue_thread)
     codex_runtime = {
         "model": args.model,
-        "effort": args.effort,
+        # mode=diff идёт через review/start, который effort не принимает, а
+        # thread_start его не несёт: усилие там НАСЛЕДУЕТСЯ из конфига движка.
+        # Ledger обязан говорить это прямо — иначе аудит врёт так же, как врал
+        # бы «применённый tier».
+        "effort": "inherit" if args.mode == "diff" else args.effort,
         "service_tier": args.service_tier,
         "codex_bin": codex_bin,
         "binary_source": codex_bin_source(codex_bin),
