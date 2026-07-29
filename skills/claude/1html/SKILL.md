@@ -28,17 +28,28 @@ _workspace/
             ├── daisyui.css
             ├── daisyui-themes.css
             ├── tailwind.js
-            └── alpine.js
+            ├── alpine.js
+            └── lucide.min.js
 ```
 
 Корневой `index.html` показывает все непосредственные дочерние папки, в которых
-есть `index.html`. Название каждой страницы берётся из первого `<h1>` внутри
-артефакта, а рядом показывается относительная дата создания. `_catalog/` хранит
-общие локальные стили и runtime.
+есть `index.html`. По умолчанию название страницы берётся из первого `<h1>`, а
+рядом показывается относительная дата создания. Для точного preview-title и
+большой иконки карточки задай в `<head>` необязательные overrides:
+
+```html
+<meta name="artifact-title" content="Короткий заголовок для галереи">
+<meta name="artifact-icon" content="sparkles">
+```
+
+Пустой `artifact-title` сохраняет fallback на первый `<h1>`; пустой
+`artifact-icon` оставляет карточку без иконки. `_catalog/` хранит общие локальные
+стили и runtime.
 `<artifact-name>/index.html` хранит содержание и композицию страницы.
 Повторяемые цвета, типографика, ритм и layout-роли принадлежат
 `assets/theme.css`. `lib/` — локальные закреплённые зависимости; CDN, npm
-install и build step не нужны.
+install и build step не нужны. Lucide даёт локальные именованные SVG-иконки,
+которые наследуют цвет активной DaisyUI-темы через `currentColor`.
 
 `sources/` создавай только когда у артефакта есть реальные входные материалы,
 provenance или вложения. Не называй CSS и runtime-файлы «источниками».
@@ -98,11 +109,34 @@ Default art direction уже зашит в starter и сохранён в
 карточки и щедрый ритм. Явный пользовательский или project-local референс сильнее
 этого default.
 
-Начинай с DaisyUI component (`card`, `badge`, `menu`, `btn`, `alert`, `collapse`,
-`tabs`, `table`), затем добавляй Tailwind utilities для конкретной композиции.
-Стабильная повторяемая роль принадлежит `theme.css`; одноразовое расположение
-может остаться utility-классом. Alpine подключай в HTML только когда нативных
-`details`, `dialog`, links и form controls недостаточно для состояния.
+Полный локальный DaisyUI bundle доступен: выбирай любой компонент закреплённой
+версии, а не только знакомый короткий набор. Начинай с DaisyUI component
+(`card`, `badge`, `menu`, `btn`, `alert`, `collapse`, `tabs`, `table` и
+остальные), применяй semantic colors (`primary`, `base`, `success`, `warning`,
+`error`), затем добавляй Tailwind utilities для конкретной композиции. Не
+закрепляй случайные palette colors и SVG fill/stroke, если ту же роль выражает
+тема. Стабильная повторяемая роль принадлежит `theme.css`; одноразовое
+расположение может остаться utility-классом. Alpine подключай в HTML только
+когда нативных `details`, `dialog`, links и form controls недостаточно для
+состояния.
+
+## Иконки
+
+Lucide уже подключён starter-ом. Используй именованную иконку без inline SVG:
+
+```html
+<button class="btn btn-primary">
+  <i data-lucide="sparkles" class="size-4" aria-hidden="true"></i>
+  Создать артефакт
+</button>
+```
+
+Выбирай иконку по смыслу, а не для заполнения пустоты. Одна крупная иконка может
+держать тему карточки или секции; не превращай каждый label в пиктограмму.
+Иконка наследует цвет текста или semantic color через `currentColor`. Для
+декоративной иконки ставь `aria-hidden="true"`; icon-only control получает
+видимый `tooltip` и `aria-label`. Критический смысл никогда не передавай только
+иконкой.
 
 Оптимизируй форму под задачу чтения или решения: сравнения рядом, sequence как
 flow/timeline, hierarchy как structure. Интерактивность добавляй только когда она
@@ -131,6 +165,9 @@ full-screen содержанием, сократи prose и используй S
 Если неизвестно точное имя DaisyUI-компонента, ищи только нужный термин в
 `references/daisyui-llms.txt`; не читай файл целиком.
 
+Если неизвестно имя Lucide-иконки, ищи один смысловой термин в
+`references/lucide-icon-names.txt`. Не загружай весь список в контекст.
+
 ## Скорость
 
 Это draft-local surface. Сразу верни одну постоянную ссылку на
@@ -142,8 +179,8 @@ QA, screenshot loop, console check, responsive matrix или interaction audit. 
 ## Готово Когда
 
 - `_workspace/HTML_artifacts/<artifact-name>/` создана и содержит `index.html`;
-- корневой каталог обновлён, показывает первый `<h1>` и относительную дату
-  создания и ведёт на новый artifact;
+- корневой каталог обновлён, показывает explicit `artifact-title` или первый
+  `<h1>`, optional большую Lucide-иконку и относительную дату создания;
 - верхняя навигация artifact-а ведёт обратно в каталог;
 - артефакт передаёт запрошенный смысл и использует готовые общие стили;
 - пользователю сразу дана постоянная ссылка на каталог;

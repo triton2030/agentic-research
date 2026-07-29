@@ -19,7 +19,7 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 skill_dir="$(cd "$script_dir/.." && pwd)"
 starter_dir="$skill_dir/assets/starter"
 catalog_source="$skill_dir/assets/catalog/catalog.css"
-title_reader="$script_dir/first_h1.py"
+metadata_reader="$script_dir/artifact_metadata.py"
 artifacts_root="$project_root/_workspace/HTML_artifacts"
 catalog_runtime="$artifacts_root/_catalog"
 catalog_index="$artifacts_root/index.html"
@@ -77,6 +77,7 @@ cp -R "$starter_dir/lib"/. "$catalog_runtime/lib"/
 
 artifact_names=()
 artifact_titles=()
+artifact_icons=()
 artifact_created_epochs=()
 artifact_count=0
 
@@ -87,7 +88,8 @@ for artifact_dir in "$artifacts_root"/*; do
 
   artifact_name="$(basename "$artifact_dir")"
   display_name="${artifact_name//[-_]/ }"
-  artifact_title="$(python3 "$title_reader" "$artifact_dir/index.html")"
+  artifact_metadata="$(python3 "$metadata_reader" "$artifact_dir/index.html")"
+  IFS=$'\t' read -r artifact_title artifact_icon <<< "$artifact_metadata"
   artifact_title="${artifact_title:-$display_name}"
   artifact_created_epoch="$(file_created_at "$artifact_dir")"
   insert_index="$artifact_count"
@@ -98,12 +100,14 @@ for artifact_dir in "$artifacts_root"/*; do
 
     artifact_names[$insert_index]="${artifact_names[$previous_index]}"
     artifact_titles[$insert_index]="${artifact_titles[$previous_index]}"
+    artifact_icons[$insert_index]="${artifact_icons[$previous_index]}"
     artifact_created_epochs[$insert_index]="${artifact_created_epochs[$previous_index]}"
     insert_index="$previous_index"
   done
 
   artifact_names[$insert_index]="$artifact_name"
   artifact_titles[$insert_index]="$artifact_title"
+  artifact_icons[$insert_index]="$artifact_icon"
   artifact_created_epochs[$insert_index]="$artifact_created_epoch"
   artifact_count=$((artifact_count + 1))
 done
@@ -153,7 +157,7 @@ trap 'rm -f "$temporary_index"' EXIT
   printf '%s\n' '      </div>'
   printf '      <span class="badge badge-success">%s %s</span>\n' \
     "$artifact_count" "$artifact_page_word"
-    printf '%s\n' '    </section>'
+  printf '%s\n' '    </section>'
 
   if [ "$artifact_count" -eq 0 ]; then
     printf '%s\n' '    <article class="card catalog-empty">'
@@ -168,9 +172,11 @@ trap 'rm -f "$temporary_index"' EXIT
     for ((artifact_index = 0; artifact_index < artifact_count; artifact_index++)); do
       artifact_name="${artifact_names[$artifact_index]}"
       artifact_title="${artifact_titles[$artifact_index]}"
+      artifact_icon="${artifact_icons[$artifact_index]}"
       artifact_created_epoch="${artifact_created_epochs[$artifact_index]}"
       escaped_name="$(printf '%s' "$artifact_name" | html_escape)"
       escaped_title="$(printf '%s' "$artifact_title" | html_escape)"
+      escaped_icon="$(printf '%s' "$artifact_icon" | html_escape)"
       printf '      <a class="card catalog-card" href="%s/index.html">\n' "$escaped_name"
       printf '%s\n' '        <div class="card-body">'
       printf '%s\n' '          <div>'
@@ -181,6 +187,10 @@ trap 'rm -f "$temporary_index"' EXIT
       printf '%s\n' '            </div>'
       printf '            <h2 class="catalog-card-title mt-5">%s</h2>\n' "$escaped_title"
       printf '%s\n' '          </div>'
+      if [ -n "$escaped_icon" ]; then
+        printf '          <i class="catalog-card-icon" data-lucide="%s" aria-hidden="true"></i>\n' \
+          "$escaped_icon"
+      fi
       printf '          <span class="catalog-card-path">%s/index.html →</span>\n' "$escaped_name"
       printf '%s\n' '        </div>'
       printf '%s\n' '      </a>'
@@ -190,7 +200,9 @@ trap 'rm -f "$temporary_index"' EXIT
   fi
 
   printf '%s\n' '  </main>'
+  printf '%s\n' '  <script src="_catalog/lib/lucide.min.js"></script>'
   printf '%s\n' '  <script>'
+  printf '%s\n' '    lucide.createIcons();'
   printf '%s\n' '    (() => {'
   printf '%s\n' '      const formatter = new Intl.RelativeTimeFormat("ru", { numeric: "auto" });'
   printf '%s\n' '      const units = ['

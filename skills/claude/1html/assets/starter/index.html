@@ -4,6 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
+  <meta name="artifact-title" content="">
+  <meta name="artifact-icon" content="">
   <title>Черновой HTML-артефакт</title>
   <link href="lib/daisyui.css" rel="stylesheet">
   <link href="lib/daisyui-themes.css" rel="stylesheet">
@@ -14,7 +16,7 @@
   <div class="artifact-shell">
     <header class="artifact-topbar">
       <a class="artifact-home-link" href="../index.html">
-        <span aria-hidden="true">←</span>
+        <i data-lucide="arrow-left" class="size-4" aria-hidden="true"></i>
         Все артефакты
       </a>
       <span class="artifact-topbar-note">Local HTML draft</span>
@@ -56,9 +58,18 @@
               намеренно остаётся за границами черновика.
             </p>
             <div class="artifact-badges" aria-label="Ключевые статусы">
-              <span class="badge badge-outline">быстрый черновик</span>
-              <span class="badge badge-outline">локальные стили</span>
-              <span class="badge badge-outline">без build step</span>
+              <span class="badge badge-outline">
+                <i data-lucide="zap" class="size-3" aria-hidden="true"></i>
+                быстрый черновик
+              </span>
+              <span class="badge badge-outline">
+                <i data-lucide="palette" class="size-3" aria-hidden="true"></i>
+                локальные стили
+              </span>
+              <span class="badge badge-outline">
+                <i data-lucide="package-check" class="size-3" aria-hidden="true"></i>
+                без build step
+              </span>
             </div>
           </div>
         </article>
@@ -143,9 +154,14 @@
 
       <footer class="artifact-footer">
         <span>HTML draft bundle</span>
-        <a class="btn btn-neutral btn-sm" href="#summary">Наверх</a>
+        <a class="btn btn-neutral btn-sm" href="#summary">
+          <i data-lucide="arrow-up" class="size-4" aria-hidden="true"></i>
+          Наверх
+        </a>
       </footer>
     </main>
   </div>
+  <script src="lib/lucide.min.js"></script>
+  <script>lucide.createIcons();</script>
 </body>
 </html>

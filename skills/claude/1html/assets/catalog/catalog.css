@@ -80,7 +80,7 @@
 }
 
 .catalog-card {
-  min-height: 220px;
+  min-height: 320px;
   border: 1px solid var(--artifact-line);
   background: rgb(251 248 241 / 72%);
   text-decoration: none;
@@ -124,6 +124,14 @@
   letter-spacing: -0.025em;
   line-height: 1.08;
   overflow-wrap: anywhere;
+}
+
+.catalog-card-icon {
+  align-self: flex-end;
+  width: clamp(112px, 12vw, 148px);
+  height: clamp(112px, 12vw, 148px);
+  color: var(--color-primary);
+  stroke-width: 1.25;
 }
 
 .catalog-card-path {
