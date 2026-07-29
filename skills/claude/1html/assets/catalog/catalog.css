@@ -102,6 +102,20 @@
   padding: 24px;
 }
 
+.catalog-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.catalog-card-date {
+  color: var(--artifact-muted);
+  font-family: var(--artifact-mono);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
 .catalog-card-title {
   margin: 0;
   font-family: var(--artifact-display);
