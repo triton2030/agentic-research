@@ -4,6 +4,9 @@
 убираем переменные, которые увели бы Codex на платный API вместо подписки.
 SDK делает os.environ.copy() для дочернего процесса и лишь дополняет его
 config.env, поэтому удалять ключи надо в родительском окружении.
+
+Здесь же живут мелкие помощники, общие для всех входов: держать их копии в
+каждом entrypoint значит чинить дефект дважды.
 """
 from __future__ import annotations
 
@@ -20,3 +23,12 @@ def scrub_billing_env() -> list[str]:
         if os.environ.pop(var, None) is not None:
             removed.append(var)
     return removed
+
+
+def first_nonblank(*values: str | None) -> str | None:
+    """Первое значение, непустое после strip. Защищает от задания из одних
+    пробелов ('   '): оно truthy, но по смыслу пустое и жгло бы кредиты впустую."""
+    for value in values:
+        if value and value.strip():
+            return value.strip()
+    return None

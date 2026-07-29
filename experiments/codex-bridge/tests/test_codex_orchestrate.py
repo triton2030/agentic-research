@@ -33,10 +33,24 @@ from codex_git_scope import (
 )
 
 
-def _install_fake_openai_codex(captured: dict) -> list[str]:
+# Предикат retryable берём из настоящего SDK: async-ретрай флота делит с ним
+# именно его (backoff у нас свой — async-хелпера SDK не даёт).
+try:
+    from openai_codex.errors import ServerBusyError, is_retryable_error
+except ImportError:  # pragma: no cover — окружение без SDK
+    class ServerBusyError(Exception):  # type: ignore[no-redef]
+        pass
+
+    def is_retryable_error(exc):  # type: ignore[no-redef] # noqa: ANN001
+        return isinstance(exc, ServerBusyError)
+
+
+def _install_fake_openai_codex(captured: dict, *, start_failures: int = 0) -> list[str]:
     """Put a fake `openai_codex` into sys.modules so the worker's lazy SDK import
     resolves to a stub that records thread_start kwargs instead of launching a
-    real Codex process. Returns the module names to pop in teardown."""
+    real Codex process. Returns the module names to pop in teardown.
+
+    `start_failures` — сколько первых thread_start падают transient-перегрузкой."""
 
     class _Sandbox:
         read_only = "read_only"
@@ -75,15 +89,20 @@ def _install_fake_openai_codex(captured: dict) -> list[str]:
 
     class _FakeThread:
         async def turn(self, prompt, **kwargs):  # noqa: ANN001
+            captured["run_prompt"] = prompt
             captured["run_kwargs"] = dict(kwargs)
             return _FakeHandle()
 
         async def run(self, prompt, **kwargs):  # noqa: ANN001
+            captured["run_prompt"] = prompt
             captured["run_kwargs"] = dict(kwargs)
             return _fake_result()
 
     class _FakeCodex:
         async def thread_start(self, **kwargs):  # noqa: ANN003
+            captured["thread_start_attempts"] = captured.get("thread_start_attempts", 0) + 1
+            if captured["thread_start_attempts"] <= start_failures:
+                raise ServerBusyError(-32000, "server overloaded", "server_overloaded")
             captured.update(kwargs)
             return _FakeThread()
 
@@ -108,6 +127,7 @@ def _install_fake_openai_codex(captured: dict) -> list[str]:
     mod.FakeCodex = _FakeCodex
     mod.CodexConfig = _CodexConfig
     mod.AsyncCodex = _AsyncCodex
+    mod.is_retryable_error = is_retryable_error
     gen = types.ModuleType("openai_codex.generated")
     v2 = types.ModuleType("openai_codex.generated.v2_all")
     v2.ReasoningEffort = lambda value: value
@@ -454,6 +474,85 @@ class CodexOrchestrateCliTests(unittest.TestCase):
             self.assertIsNone(captured.get("service_tier"))
             self.assertIsNone((captured.get("run_kwargs") or {}).get("service_tier"))
             self.assertEqual(record["worker_status"], "completed")
+        finally:
+            for name in fake_names:
+                sys.modules.pop(name, None)
+
+    def test_files_contract_travels_developer_channel(self) -> None:
+        """Файловый allowlist — политика треда, а не задание: он уходит
+        developer_instructions при thread_start, а воркер получает репликой
+        чистый task.prompt. Enforcement остаётся в preflight/postflight."""
+        import codex_orchestrate
+
+        captured: dict = {}
+        fake_names = _install_fake_openai_codex(captured)
+        try:
+            with self.temp_project() as tmp:
+                root = Path(tmp).resolve()
+                self.write(root, "a.md")
+                tasks = normalize_tasks(root, [{"id": "t1", "prompt": "перепиши шапку", "files": ["a.md"]}])
+                run_dir = root / "run"
+                run_dir.mkdir()
+                defaults = {
+                    "cwd": str(root),
+                    "model": "gpt-5.6-sol",
+                    "effort": "high",
+                    "service_tier": None,
+                    "run_dir": run_dir,
+                    "progress": {"completed": 0, "total": 1},
+                }
+                fake_codex = sys.modules["openai_codex"].FakeCodex()
+                asyncio.run(
+                    codex_orchestrate._run_one(
+                        fake_codex, asyncio.Semaphore(1), tasks[0], defaults
+                    )
+                )
+            dev = captured.get("developer_instructions") or ""
+            self.assertIn("ТОЛЬКО эти файлы: a.md", dev)
+            self.assertEqual(captured.get("run_prompt"), "перепиши шапку")
+        finally:
+            for name in fake_names:
+                sys.modules.pop(name, None)
+
+    def test_worker_start_retried_on_transient_overload(self) -> None:
+        """Флот стартует N тредов разом и упирается в overload раньше одиночных
+        входов: старт воркера обязан переживать transient-ошибку, а повтор —
+        оставлять след в ledger с именем воркера."""
+        import codex_orchestrate
+
+        captured: dict = {}
+        fake_names = _install_fake_openai_codex(captured, start_failures=1)
+        try:
+            with self.temp_project() as tmp:
+                root = Path(tmp).resolve()
+                self.write(root, "a.md")
+                tasks = normalize_tasks(root, [{"id": "t1", "prompt": "hi", "files": ["a.md"]}])
+                run_dir = root / "run"
+                run_dir.mkdir()
+                defaults = {
+                    "cwd": str(root),
+                    "model": "gpt-5.6-sol",
+                    "effort": "high",
+                    "service_tier": None,
+                    "run_dir": run_dir,
+                    "progress": {"completed": 0, "total": 1},
+                }
+                fake_codex = sys.modules["openai_codex"].FakeCodex()
+                record = asyncio.run(
+                    codex_orchestrate._run_one(
+                        fake_codex, asyncio.Semaphore(1), tasks[0], defaults
+                    )
+                )
+                events = [
+                    json.loads(line)
+                    for line in (run_dir / "events.jsonl").read_text().splitlines()
+                ]
+            self.assertEqual(record["worker_status"], "completed")
+            self.assertEqual(captured.get("thread_start_attempts"), 2)
+            retries = [e for e in events if e.get("event") == "retry"]
+            self.assertEqual(len(retries), 1)
+            self.assertEqual(retries[0]["operation"], "thread_start")
+            self.assertEqual(retries[0]["worker"], "t1")
         finally:
             for name in fake_names:
                 sys.modules.pop(name, None)

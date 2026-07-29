@@ -59,6 +59,13 @@ python codex_progress.py <RUN_DIR> [--tail N]   # несколько строк,
 
 Сырой `events.jsonl` в окно не читают; он для машины и для разбора постфактум.
 
+**Перегрузка движка не съедает ход.** Стартовые вызовы (`thread_start`,
+`thread_resume`, `thread.turn`) идут через `codex_retry`: transient
+`server_overloaded` повторяется (до 3 попыток, backoff как в SDK), и оплаченный
+ход не теряется на ровном месте. Потребление потока НЕ ретраится — повтор после
+начала хода означал бы второй оплаченный turn. Каждый повтор виден в
+`events.jsonl` событием `retry` (`operation`, `attempt`, у флота — `worker`).
+
 ## Audit surface — только run_dir прогона
 
 Единственный audit/debug owner прогона — его `run_dir`. Все входы пишут
@@ -241,6 +248,15 @@ Reviewer всегда создаёт `run_dir` и пишет `manifest.json`, `e
 `prompt.md`, `result.json`, а после реального Codex-run-а — `final.md`.
 `--run-dir` только переопределяет project-local default.
 
+Роль (эксперт в `task`, ревьюер в `review`, рамка вопроса в `ask`) уходит в
+движок отдельным каналом — `developer_instructions` у `thread_start`, — а не
+вклеивается в реплику: задание остаётся заданием. `prompt.md` при этом
+показывает ОБЕ части (секции `DEVELOPER INSTRUCTIONS` и `USER PROMPT`), потому
+что audit-владелец обязан показывать полную эффективную инструкцию; в manifest
+рядом с `prompt_chars` (длина user-промпта) лежит
+`developer_instructions_chars`. У `--mode diff` роли нет вовсе — контракт ревью
+несёт сам движок.
+
 Диалог (`--dialog` / `--continue`) — исключение из ephemeral-дефолта: resume
 работает только по rollout на диске (эфемерный тред → «no rollout found»,
 проверено живыми пробниками 2026-07-12), поэтому диалоговые треды персистентны
@@ -267,8 +283,9 @@ Reviewer всегда создаёт `run_dir` и пишет `manifest.json`, `e
   тред. `--dry-run` валидирует CLI/prompt/реестр, но НЕ существование треда
   (`resume_checked=false` в ledger).
 - Sandbox/approval переприбиваются на каждом turn'е — resume не ослабляет
-  read-only. Реплика в `--continue` уходит без повторной обёртки ролью: роль
-  и контекст уже в треде.
+  read-only. Реплика в `--continue` уходит как есть, без обёртки ролью в
+  тексте: контекст уже в треде, а роль повторяется своим каналом
+  (`developer_instructions` у `thread_resume`) — она идемпотентна.
 
 ## Исследователь
 
@@ -284,10 +301,12 @@ Reviewer всегда создаёт `run_dir` и пишет `manifest.json`, `e
 ```
 
 `run_dir` создаётся всегда (в нём живёт `out/`); default —
-`<project>/_workspace/codex-artifacts/<run_id>/`. Codex видит в промпте
-sandbox-контракт: читать весь диск свободно, складывать артефакты в `cwd`
+`<project>/_workspace/codex-artifacts/<run_id>/`. Sandbox-контракт Codex
+получает каналом `developer_instructions` при `thread_start`, а репликой —
+чистое задание: читать весь диск свободно, складывать артефакты в `cwd`
 (=`out/`, подпапки и своя структура — свободно) и в конце `result.md`, проект
-не править. Backend пишет уникальный
+не править. В `prompt.md` лежат обе части сразу — audit-владелец показывает
+полную эффективную инструкцию. Backend пишет уникальный
 `result.json`: `status`, `artifacts` (файлы, реально созданные в `out/`),
 `scope_status` (второе, независимое доказательство «проект не тронут»; из
 проверки исключены `out/` и ledger-файлы; `scope=failed` роняет `ok` в false),
@@ -348,6 +367,9 @@ run_dir и его collapsed-предков (`_workspace/`) — своя площ
 
 - **File-disjoint enforced.** Backend нормализует `files` и reject-ит overlap
   до запуска Codex. `files` — exact file paths, не directory/prefix scopes.
+  Воркеру allowlist объявляется каналом `developer_instructions` его треда, а
+  репликой уходит чистый `prompt` задачи; текст — объяснение рамки, enforcement
+  остаётся на preflight/postflight.
 - **Git safety fail-closed.** Реальный write-run требует рабочий git worktree.
   `--dry-run` может работать вне git, но помечает `git.available=false`.
 - **Dirty-overlap gate + fingerprint snapshot.** По умолчанию запуск блокируется,
@@ -368,8 +390,10 @@ run_dir и его collapsed-предков (`_workspace/`) — своя площ
 - `codex_review.py` / `codex_investigate.py` / `codex_orchestrate.py` — три
   входа по профилям выше.
 - `cbcommon.py` — биллинг-гигиена; `codex_defaults.py` — runtime-дефолты;
-  `codex_sdk_compat.py` — open-enum hardening.
-- `codex_run_ledger.py` — журнал прогона (run_dir, события, пульс).
+  `codex_sdk_compat.py` — open-enum hardening; `codex_retry.py` — ретрай
+  стартовых вызовов под перегрузкой.
+- `codex_run_ledger.py` — журнал прогона (run_dir, события, пульс) + форма его
+  артефактов: `prompt.md` и финал `result.json` (`RunResult`).
 - `codex_git_scope.py` — снимок дерева и постфлайт-вердикт.
 - `codex_progress.py` — живая активность хода + сводка `digest()`.
 - `codex_orchestrate_contract.py` / `codex_threads.py` — контракт флота и

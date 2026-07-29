@@ -32,7 +32,8 @@ import sys
 import time
 from pathlib import Path
 
-from cbcommon import scrub_billing_env
+from cbcommon import first_nonblank, scrub_billing_env
+from codex_retry import retry_start
 from codex_sdk_compat import harden_sdk_enums
 from codex_defaults import (
     BRIDGE_THREAD_EPHEMERAL,
@@ -53,8 +54,10 @@ from codex_orchestrate_contract import (
     codex_turn_completed,
 )
 from codex_run_ledger import (
+    RunResult,
     append_event,
     prepare_run_dir,
+    render_prompt_document,
     start_heartbeat,
     utc_now,
     write_json,
@@ -90,15 +93,6 @@ def _truncate(text: str, limit: int) -> str:
     if len(text) <= limit:
         return text
     return text[:limit] + f"… [+{len(text) - limit} символов оборвано]"
-
-
-def _first_nonblank(*values: str | None) -> str | None:
-    """Первое значение, непустое после strip. Защищает от задания из одних
-    пробелов ('   '): оно truthy, но по смыслу пустое и жгло бы кредиты впустую."""
-    for value in values:
-        if value and value.strip():
-            return value.strip()
-    return None
 
 
 def render_transcript(path: Path, include_thinking: bool) -> str:
@@ -169,13 +163,13 @@ TASK_ROLE = """\
 Ты — независимый старший эксперт; профессиональную линзу (инженерия, документы,
 стратегия…) бери из задания. У тебя read-only доступ ко всем файлам этого
 проекта — открывай и проверяй реальный код и документы, ничего не домысливай.
-Выполни задание ниже: будь конкретным, опирайся на реальные файлы и точные пути,
-не пересказывай очевидное."""
+Выполни задание из сообщения пользователя: будь конкретным, опирайся на реальные
+файлы и точные пути, не пересказывай очевидное."""
 
 
 REVIEW_ROLE = """\
 Ты — независимый старший ревьюер; профессиональную линзу бери из содержания
-работы. Ниже транскрипт рабочей сессии другого
+работы. В сообщении пользователя — транскрипт рабочей сессии другого
 ИИ-агента (Claude Code) с пользователем. У тебя есть read-only доступ ко всем
 файлам этого проекта — открывай и проверяй реальный код и документы, не верь
 транскрипту на слово.
@@ -185,6 +179,12 @@ REVIEW_ROLE = """\
 - где агент выбрал слабый подход и что было бы лучше;
 - что проверить или переделать прежде, чем считать работу готовой.
 Будь конкретным и опирайся на файлы. Не пересказывай транскрипт."""
+
+
+ASK_ROLE = """\
+В сообщении пользователя — транскрипт рабочей сессии ИИ-агента (Claude Code) с
+пользователем как контекст и вопрос к тебе. У тебя read-only доступ ко всем
+файлам проекта — сверяйся с ними, а не с пересказом."""
 
 
 
@@ -203,20 +203,35 @@ def _review_target(args, payload: str | None) -> dict:
     return {"type": "uncommittedChanges"}
 
 
-def build_prompt(mode: str, transcript_md: str, payload: str | None) -> str:
+def build_instructions(mode: str) -> str | None:
+    """Инвариантная роль режима — она уходит каналом `developer_instructions`
+    (thread_start/thread_resume), а не вклеивается в реплику.
+
+    Разделение не косметическое: роль относится к треду, а не к ходу, поэтому
+    в диалоге её не надо повторять текстом, и она не конкурирует с заданием за
+    внимание. mode=diff роли не получает вовсе — контракт ревью несёт сам
+    движок (`review/start`)."""
     if mode == "task":
-        return f"{TASK_ROLE}\n\n===== ЗАДАНИЕ =====\n{payload}"
+        return TASK_ROLE
+    if mode == "review":
+        return REVIEW_ROLE
+    if mode == "ask":
+        return ASK_ROLE
+    return None
+
+
+def build_prompt(mode: str, transcript_md: str, payload: str | None) -> str:
+    """User-промпт: только задание/вопрос и, где нужен, транскрипт сессии."""
+    if mode == "task":
+        return f"===== ЗАДАНИЕ =====\n{payload}"
     if mode == "review":
         return (
-            f"{REVIEW_ROLE}\n\n"
             f"===== ТРАНСКРИПТ СЕССИИ =====\n{transcript_md}\n"
             f"===== КОНЕЦ ТРАНСКРИПТА =====\n\n"
             f"Теперь дай ревью."
         )
     # ask
     return (
-        "Ниже транскрипт рабочей сессии ИИ-агента (Claude Code) с пользователем, "
-        "как контекст. У тебя read-only доступ ко всем файлам проекта — сверяйся с ними.\n\n"
         f"===== ТРАНСКРИПТ СЕССИИ (контекст) =====\n{transcript_md}\n"
         f"===== КОНЕЦ ТРАНСКРИПТА =====\n\n"
         f"===== ВОПРОС =====\n{payload}"
@@ -282,22 +297,18 @@ def _dialog_thread_known(project_cwd: Path, thread_id: str) -> bool:
     return False
 
 
-def _compact_review_payload(payload: dict[str, object]) -> dict[str, object]:
-    return {
-        key: payload[key]
-        for key in (
-            "run_id",
-            "run_dir",
-            "dry_run",
-            "mode",
-            "status",
-            "ok",
-            "codex",
-            "paths",
-            "prompt_chars",
-        )
-        if key in payload
-    }
+# Ключи компактного stdout фонового прогона (порядок — часть наблюдаемой формы).
+COMPACT_KEYS = (
+    "run_id",
+    "run_dir",
+    "dry_run",
+    "mode",
+    "status",
+    "ok",
+    "codex",
+    "paths",
+    "prompt_chars",
+)
 
 
 def main() -> int:
@@ -393,7 +404,7 @@ def main() -> int:
 
     # Задание/вопрос берём из любого источника, чтобы вызов не падал из-за того,
     # каким флагом он записан: --task, --question или позиционный аргумент.
-    payload = _first_nonblank(args.task, args.question, args.task_text)
+    payload = first_nonblank(args.task, args.question, args.task_text)
 
     if args.mode == "diff" and args.base and args.commit:
         print("mode=diff: --base и --commit взаимоисключимы.", file=sys.stderr)
@@ -469,15 +480,21 @@ def main() -> int:
             tail = transcript_md[-(args.max_chars * 4 // 5):]
             transcript_md = f"{head}\n\n… [середина транскрипта оборвана для бюджета] …\n\n{tail}"
 
+    # Роль отправляется отдельным каналом (developer_instructions) и в
+    # user-промпт не попадает. В --continue она уходит повторно при
+    # thread_resume: роль идемпотентна, а вот переклейка её в текст реплики
+    # ломала бы диалог сменой рамки на каждом ходе.
+    dev_instructions = build_instructions(args.mode)
     if args.mode == "diff":
         # Промпта нет вовсе: контракт ревью несёт сам движок. В prompt.md
         # кладём таргет, чтобы audit-владелец не врал пустотой.
         prompt = f"[нативный review/start] target={json.dumps(_review_target(args, payload), ensure_ascii=False)}"
     elif args.continue_thread:
-        # Продолжение диалога: роль и контекст первой реплики уже в треде.
+        # Продолжение диалога: контекст первой реплики уже в треде.
         prompt = payload
     else:
         prompt = build_prompt(args.mode, transcript_md, payload)
+    prompt_document = render_prompt_document(prompt, dev_instructions)
     transcript_name = transcript_path.name if transcript_path else "—"
     # Single source for the codex block written to every ledger payload, so the
     # audit owner (run_dir) records thread_ephemeral uniformly: result["codex"].
@@ -536,6 +553,9 @@ def main() -> int:
         "project": str(project_cwd),
         "transcript": str(transcript_path) if transcript_path else None,
         "prompt_chars": len(prompt),
+        # Роль ушла отдельным каналом; без её длины manifest занижал бы объём
+        # реально отправленной инструкции.
+        "developer_instructions_chars": len(dev_instructions or ""),
         "codex": dict(codex_runtime),
         "runtime": {
             "sandbox": REVIEW_SANDBOX,
@@ -545,8 +565,22 @@ def main() -> int:
         "paths": paths,
     }
     write_json(run_dir / "manifest.json", manifest)
-    (run_dir / "prompt.md").write_text(prompt, encoding="utf-8")
+    (run_dir / "prompt.md").write_text(prompt_document, encoding="utf-8")
     append_event(run_dir, "validated", dry_run=args.dry_run, mode=args.mode)
+    ledger = RunResult(
+        run_dir,
+        base={
+            "run_id": run_id,
+            "run_dir": str(run_dir),
+            "dry_run": args.dry_run,
+            "mode": args.mode,
+        },
+        codex_runtime=codex_runtime,
+        paths=paths,
+        prompt_chars=len(prompt),
+        compact_keys=COMPACT_KEYS,
+        summary_stdout=args.summary_stdout,
+    )
 
     if args.dry_run:
         print(f"[codex-bridge dry-run] транскрипт={transcript_name} "
@@ -555,27 +589,18 @@ def main() -> int:
               f"binary={codex_runtime['binary_source']} "
               f"run_dir={run_dir} "
               f"sandbox={REVIEW_SANDBOX} approval={REVIEW_APPROVAL_MODE}", file=sys.stderr)
-        payload = {
-            "run_id": run_id,
-            "run_dir": str(run_dir),
-            "dry_run": True,
-            "mode": args.mode,
-            "status": "validated",
-            "ok": True,
-            "codex": dict(codex_runtime),
-            "paths": paths,
-            "prompt_chars": len(prompt),
-        }
-        if thread_persistent:
-            # Dry-run валидирует CLI/prompt/реестр, но НЕ существование
-            # треда и не создание нового — не выдаём сильных заявлений.
-            payload["resume_checked"] = False
-        write_json(run_dir / "result.json", payload)
-        append_event(run_dir, "done", dry_run=True, ok=True)
+        ledger.finish(
+            status="validated",
+            ok=True,
+            event="done",
+            # Dry-run валидирует CLI/prompt/реестр, но НЕ существование треда и
+            # не создание нового — не выдаём сильных заявлений.
+            extra={"resume_checked": False} if thread_persistent else None,
+            event_fields={"dry_run": True, "ok": True},
+        )
         if args.summary_stdout:
-            print(json.dumps(_compact_review_payload(payload), ensure_ascii=False, indent=2))
             return 0
-        print(prompt)
+        print(prompt_document)
         return 0
 
     # Гарантия биллинга через аккаунт: до импорта/запуска codex убираем API-ключи.
@@ -589,22 +614,13 @@ def main() -> int:
             "Пакет openai-codex не установлен. Активируй venv: "
             "experiments/codex-bridge/.venv (pip install openai-codex)."
         )
-        payload = {
-            "run_id": run_id,
-            "run_dir": str(run_dir),
-            "dry_run": False,
-            "mode": args.mode,
-            "status": "unavailable",
-            "ok": False,
-            "error": f"{error} ({exc})",
-            "codex": dict(codex_runtime),
-            "paths": paths,
-            "prompt_chars": len(prompt),
-        }
-        write_json(run_dir / "result.json", payload)
-        append_event(run_dir, "failed", status="unavailable", error=str(exc))
-        if args.summary_stdout:
-            print(json.dumps(_compact_review_payload(payload), ensure_ascii=False, indent=2))
+        ledger.finish(
+            status="unavailable",
+            ok=False,
+            event="failed",
+            extra={"error": f"{error} ({exc})"},
+            event_fields={"status": "unavailable", "error": str(exc)},
+        )
         print(error, file=sys.stderr)
         return 1
 
@@ -647,22 +663,32 @@ def main() -> int:
     try:
         with Codex(config) as codex:
             if args.continue_thread:
-                thread = codex.thread_resume(
-                    args.continue_thread,
-                    cwd=str(project_cwd),
-                    sandbox=Sandbox.read_only,
-                    approval_mode=ApprovalMode.deny_all,
-                    model=args.model,
-                    service_tier=args.service_tier,
+                thread = retry_start(
+                    lambda: codex.thread_resume(
+                        args.continue_thread,
+                        cwd=str(project_cwd),
+                        sandbox=Sandbox.read_only,
+                        approval_mode=ApprovalMode.deny_all,
+                        model=args.model,
+                        service_tier=args.service_tier,
+                        developer_instructions=dev_instructions,
+                    ),
+                    run_dir=run_dir,
+                    operation="thread_resume",
                 )
             else:
-                thread = codex.thread_start(
-                    cwd=str(project_cwd),
-                    sandbox=Sandbox.read_only,
-                    approval_mode=ApprovalMode.deny_all,
-                    model=args.model,
-                    service_tier=args.service_tier,
-                    ephemeral=codex_runtime["thread_ephemeral"],
+                thread = retry_start(
+                    lambda: codex.thread_start(
+                        cwd=str(project_cwd),
+                        sandbox=Sandbox.read_only,
+                        approval_mode=ApprovalMode.deny_all,
+                        model=args.model,
+                        service_tier=args.service_tier,
+                        developer_instructions=dev_instructions,
+                        ephemeral=codex_runtime["thread_ephemeral"],
+                    ),
+                    run_dir=run_dir,
+                    operation="thread_start",
                 )
             codex_runtime["thread_id"] = getattr(thread, "id", None)
             if args.continue_thread:
@@ -741,41 +767,34 @@ def main() -> int:
                 # turn() вместо run(): тот же ход, но с доступом к потоку
                 # нотификаций — активность уезжает в ledger, heartbeat перестаёт
                 # быть слепым. TurnResult собирает штатный сборщик SDK.
-                handle = thread.turn(
-                    prompt,
-                    model=args.model,
-                    effort=ReasoningEffort(args.effort),
-                    service_tier=args.service_tier,
-                    sandbox=Sandbox.read_only,
-                    approval_mode=ApprovalMode.deny_all,
+                handle = retry_start(
+                    lambda: thread.turn(
+                        prompt,
+                        model=args.model,
+                        effort=ReasoningEffort(args.effort),
+                        service_tier=args.service_tier,
+                        sandbox=Sandbox.read_only,
+                        approval_mode=ApprovalMode.deny_all,
+                    ),
+                    run_dir=run_dir,
+                    operation="turn_start",
                 )
             result = run_turn(handle, run_dir=run_dir, tracker=progress)
     except Exception as exc:  # noqa: BLE001 — показать пользователю причину как есть
         heartbeat_stop.set()
         if heartbeat_thread is not None:
             heartbeat_thread.join(timeout=1)
-        payload = {
-            "run_id": run_id,
-            "run_dir": str(run_dir),
-            "dry_run": False,
-            "mode": args.mode,
-            "status": "exception",
-            "ok": False,
-            "error": str(exc),
-            "codex": dict(codex_runtime),
-            "paths": paths,
-            "prompt_chars": len(prompt),
-        }
-        write_json(run_dir / "result.json", payload)
-        append_event(
-            run_dir,
-            "failed",
+        ledger.finish(
             status="exception",
-            error=str(exc),
-            requested_thread_id=args.continue_thread,
+            ok=False,
+            event="failed",
+            extra={"error": str(exc)},
+            event_fields={
+                "status": "exception",
+                "error": str(exc),
+                "requested_thread_id": args.continue_thread,
+            },
         )
-        if args.summary_stdout:
-            print(json.dumps(_compact_review_payload(payload), ensure_ascii=False, indent=2))
         print(f"[codex-bridge] ошибка вызова Codex: {exc}", file=sys.stderr)
         return 1
     finally:
@@ -783,34 +802,15 @@ def main() -> int:
         if heartbeat_thread is not None:
             heartbeat_thread.join(timeout=1)
 
-    if getattr(result, "error", None):
-        payload = {
-            "run_id": run_id,
-            "run_dir": str(run_dir),
-            "dry_run": False,
-            "mode": args.mode,
-            "status": codex_status_value(getattr(result, "status", "failed")),
-            "ok": False,
-            "error": str(result.error),
-            "codex": dict(codex_runtime),
-            "paths": paths,
-            "prompt_chars": len(prompt),
-        }
-        write_json(run_dir / "result.json", payload)
-        append_event(
-            run_dir,
-            "failed",
-            status=payload["status"],
-            error=str(result.error),
-            requested_thread_id=args.continue_thread,
-        )
-        if args.summary_stdout:
-            print(json.dumps(_compact_review_payload(payload), ensure_ascii=False, indent=2))
-        print(f"[codex-bridge] Codex вернул ошибку: {result.error}", file=sys.stderr)
-        return 1
-
+    # Провалившийся ход сюда не доходит: штатный сборщик SDK поднимает
+    # RuntimeError на TurnStatus.failed (`openai_codex/_run.py`
+    # `_raise_for_failed_turn`), и приёмка идёт веткой except выше. Проверка
+    # `result.error` остаётся дешёвой страховкой на error при НЕ-failed статусе
+    # (interrupted, будущие статусы движка) — семантика та же, носитель один.
+    result_error = getattr(result, "error", None)
     usage = getattr(result, "usage", None)
     status = codex_status_value(getattr(result, "status", "?"))
+    completed = codex_turn_completed(status, result_error)
     print(
         f"[codex-bridge] статус={status} "
         f"время={getattr(result, 'duration_ms', '?')}мс usage={usage}",
@@ -818,35 +818,32 @@ def main() -> int:
     )
 
     final_response = result.final_response or "[пустой ответ Codex]"
-    completed = codex_turn_completed(status, None)
-    error = None if completed else f"Codex turn did not complete (status={status})."
+    if result_error:
+        error = str(result_error)
+    elif not completed:
+        error = f"Codex turn did not complete (status={status})."
+    else:
+        error = None
     (run_dir / "final.md").write_text(final_response, encoding="utf-8")
-    payload = {
-        "run_id": run_id,
-        "run_dir": str(run_dir),
-        "dry_run": False,
-        "mode": args.mode,
-        "status": status,
-        "ok": completed,
-        "codex": dict(codex_runtime),
-        "paths": paths,
-        "prompt_chars": len(prompt),
+    extra: dict[str, object] = {
         "duration_ms": getattr(result, "duration_ms", None),
         "usage": str(usage),
         "final_response": final_response,
     }
     if error:
-        payload["error"] = error
-    write_json(run_dir / "result.json", payload)
-    append_event(
-        run_dir,
-        "done" if completed else "failed",
+        extra["error"] = error
+    ledger.finish(
         status=status,
         ok=completed,
-        **({"error": error} if error else {}),
+        event="done" if completed else "failed",
+        extra=extra,
+        event_fields={
+            "status": status,
+            "ok": completed,
+            **({"error": error} if error else {}),
+        },
     )
     if args.summary_stdout:
-        print(json.dumps(_compact_review_payload(payload), ensure_ascii=False, indent=2))
         return 0 if completed else 1
     if not completed:
         print(f"[codex-bridge] {error}", file=sys.stderr)

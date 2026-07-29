@@ -93,13 +93,41 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
 - **Успех turn-а точный.** Для review / investigate / worker только SDK-статус
   `completed` при отсутствии `error` означает успех. `interrupted`,
   `inProgress` и любой неизвестный статус — `ok=false` + ненулевой exit code;
-  не восстанавливай успех по наличию partial response.
+  не восстанавливай успех по наличию partial response. Провалившийся ход
+  приходит ИСКЛЮЧЕНИЕМ, а не значением: штатный сборщик SDK
+  (`openai_codex/_run.py`, `_raise_for_failed_turn`) поднимает `RuntimeError`
+  на `TurnStatus.failed`, поэтому `TurnResult` со `status=failed` до финала не
+  доходит. Проверка `result.error` в общем финальном пути остаётся страховкой
+  на error при НЕ-failed статусе — не удаляй её как «мёртвую».
+- **Роль и политика — каналом `developer_instructions`.** Инвариантная часть
+  инструкции (роль эксперта/ревьюера, sandbox-контракт исследователя, файловый
+  allowlist воркера) уходит параметром `thread_start`/`thread_resume`, а не
+  вклеивается в реплику; user-промпт остаётся заданием (для review/ask —
+  транскрипт + вопрос). `--continue` шлёт ту же роль тем же каналом повторно
+  (resume её принимает, роль идемпотентна); `--mode diff` роли не получает
+  вовсе — контракт ревью несёт сам движок. Честность аудита: `prompt.md`
+  обязан показывать ПОЛНУЮ эффективную инструкцию — обе секции сразу
+  (`codex_run_ledger.render_prompt_document`), а manifest несёт
+  `developer_instructions_chars` рядом с `prompt_chars` (`prompt_chars` —
+  длина именно user-промпта). Новый вход обязан делать так же: инструкция,
+  которой нет в run_dir, для аудита не существует.
+- **Ретраится только СТАРТ.** `thread_start` / `thread_resume` / `thread.turn`
+  оборачиваются в `codex_retry` (sync — поверх `retry_on_overload` из SDK,
+  async-зеркало для флота — свой backoff на общем `is_retryable_error`):
+  transient `server_overloaded` не должен терять оплаченный ход. Потребление
+  потока НЕ ретраится — повтор после начала хода означал бы второй оплаченный
+  turn. Каждая попытка пишется в ledger событием `retry` (`operation`,
+  `attempt`, у флота ещё `worker`): молчаливый повтор прятал бы нестабильность
+  движка.
 
 ## Карта файлов
 
-- `cbcommon.py` — общая биллинг-гигиена (одна правда).
+- `cbcommon.py` — общая биллинг-гигиена (одна правда) + мелкие общие помощники
+  входов (`first_nonblank`).
 - `codex_sdk_compat.py` — open-enum hardening запиненного SDK: дрейф движка
   ChatGPT.app не роняет мост.
+- `codex_retry.py` — ретрай стартовых вызовов под перегрузкой движка (sync +
+  async), события `retry` в ledger.
 - `codex_defaults.py` — ярусы вызова и runtime default (`gpt-5.6-sol`+`medium`),
   `HEAVY_EFFORTS`, sandbox и
   approval labels для ledger/docs, `BRIDGE_THREAD_EPHEMERAL`.
@@ -115,7 +143,11 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
 - `codex_orchestrate_contract.py` — pure schema/path/status contract:
   обязательные `prompt`/`files`, exact file allowlist, overlap и status mapping.
 - `codex_run_ledger.py` — журнал прогона: `run_dir`, события, пульс, атомарная
-  запись. Общий для всех трёх входов.
+  запись. Общий для всех трёх входов. Он же владеет формой своих артефактов:
+  `render_prompt_document` (полная эффективная инструкция в `prompt.md`) и
+  `RunResult` — единый финализатор `result.json` + событие + compact stdout,
+  которым reviewer и investigator закрывают ВСЕ свои ветки (dry-run,
+  недоступный SDK, исключение, завершённый ход).
 - `codex_git_scope.py` — git snapshot и постфлайт-вердикт «писали ли лишнее».
 - `codex_progress.py` — живая активность хода: tee потока нотификаций в журнал,
   `ProgressTracker`/`ProgressRegistry` для пульса, `digest()` и CLI-сводка.

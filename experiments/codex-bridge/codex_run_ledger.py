@@ -1,8 +1,10 @@
-"""Журнал прогона: run_dir, события, пульс, атомарная запись.
+"""Журнал прогона: run_dir, события, пульс, атомарная запись, финал.
 
 Единственный audit-владелец любого прогона моста — его `run_dir` в
 `<проект>/_workspace/codex-artifacts/<run_id>/`. Общий `~/.codex` шарится с
-Codex Desktop и audit surface НЕ является.
+Codex Desktop и audit surface НЕ является. Раз владелец один, здесь же лежит
+и форма его артефактов: `prompt.md` (`render_prompt_document`) и финал прогона
+(`RunResult`).
 
 Модуль SDK-free: dry-run и валидация флагов не поднимают Codex-рантайм.
 Раньше это жило в `codex_orchestrate_state.py` вместе с git-скоупом — имя
@@ -17,6 +19,7 @@ import sys
 import threading
 import time
 import uuid
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
@@ -91,6 +94,24 @@ def append_event(run_dir: Path, event: str, **data: Any) -> None:
     append_jsonl(run_dir / "events.jsonl", {"ts": utc_now(), "event": event, **data})
 
 
+def render_prompt_document(prompt: str, developer_instructions: str | None = None) -> str:
+    """Полная ЭФФЕКТИВНАЯ инструкция хода одним текстом — для `prompt.md`.
+
+    Роль и политика уходят в движок отдельным каналом (`developer_instructions`
+    у thread_start/thread_resume), а не вклеиваются в реплику. Audit-владелец
+    обязан показывать обе части: иначе по run_dir нельзя восстановить, что
+    именно видел Codex, и аудит врал бы усечённой правдой.
+    """
+    if not developer_instructions:
+        return prompt
+    return (
+        "===== DEVELOPER INSTRUCTIONS (канал thread_start) =====\n"
+        f"{developer_instructions}\n\n"
+        "===== USER PROMPT =====\n"
+        f"{prompt}"
+    )
+
+
 def append_heartbeat(
     run_dir: Path,
     started_monotonic: float,
@@ -139,3 +160,59 @@ def start_heartbeat(
     thread = threading.Thread(target=loop, name=thread_name, daemon=True)
     thread.start()
     return stop, thread
+
+
+@dataclass
+class RunResult:
+    """Финал прогона одним ходом: `result.json` + событие + compact stdout.
+
+    Каждая ветка входа (dry-run, недоступный SDK, исключение, завершённый ход)
+    собирала свой почти одинаковый payload и повторяла те же три вызова подряд;
+    расхождения между копиями были вопросом времени, а не гипотезой. Здесь
+    остаётся один `finish()`, а ветка отдаёт ровно то, чем отличается: статус,
+    вердикт, свои поля и имя события.
+
+    Форма payload фиксирована и одинакова у всех входов: постоянная голова
+    (`base`), затем поля ветки (`extra`), затем общий хвост
+    (`codex`/`paths`/`prompt_chars`). Блок `codex` снимается на момент финала —
+    вход дописывает в него `thread_id` уже после старта треда.
+    """
+
+    run_dir: Path
+    base: dict[str, Any]
+    codex_runtime: dict[str, Any]
+    paths: dict[str, str]
+    prompt_chars: int
+    compact_keys: tuple[str, ...]
+    summary_stdout: bool = False
+
+    def compact(self, payload: dict[str, Any]) -> dict[str, Any]:
+        """Проекция для stdout фонового прогона: контекстное окно оркестратора
+        читает несколько ключей, полные данные остаются в run_dir."""
+        return {key: payload[key] for key in self.compact_keys if key in payload}
+
+    def finish(
+        self,
+        *,
+        status: str,
+        ok: bool,
+        event: str,
+        extra: dict[str, Any] | None = None,
+        event_fields: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        payload: dict[str, Any] = {
+            **self.base,
+            "status": status,
+            "ok": ok,
+            **(extra or {}),
+            "codex": dict(self.codex_runtime),
+            "paths": self.paths,
+            "prompt_chars": self.prompt_chars,
+        }
+        write_json(self.run_dir / "result.json", payload)
+        append_event(self.run_dir, event, **(event_fields or {}))
+        if self.summary_stdout:
+            # Компактный stdout печатает владелец записи: иначе каждая ветка
+            # каждого входа повторяла бы одну и ту же сериализацию.
+            print(json.dumps(self.compact(payload), ensure_ascii=False, indent=2))
+        return payload

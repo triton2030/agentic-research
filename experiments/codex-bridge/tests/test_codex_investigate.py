@@ -15,15 +15,38 @@ from unittest import mock
 BACKEND = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(BACKEND))
 
+# Ретрай-хелперы берём из настоящего SDK (см. тот же приём в test_codex_review).
+try:
+    from openai_codex.errors import ServerBusyError, is_retryable_error
+    from openai_codex.retry import retry_on_overload
+except ImportError:  # pragma: no cover — окружение без SDK
+    class ServerBusyError(Exception):  # type: ignore[no-redef]
+        pass
+
+    def is_retryable_error(exc):  # type: ignore[no-redef] # noqa: ANN001
+        return isinstance(exc, ServerBusyError)
+
+    def retry_on_overload(op, *, max_attempts=3, **_kw):  # type: ignore[no-redef] # noqa: ANN001
+        for attempt in range(1, max_attempts + 1):
+            try:
+                return op()
+            except Exception as exc:  # noqa: BLE001
+                if attempt >= max_attempts or not is_retryable_error(exc):
+                    raise
+
 
 def _install_fake_openai_codex(
     captured: dict,
     *,
     status: str = "completed",
+    turn_failures: int = 0,
 ) -> list[str]:
     """Stub `openai_codex` in sys.modules so main()'s lazy SDK import resolves to
     a fake that records thread_start/CodexConfig kwargs instead of launching a
-    real Codex."""
+    real Codex.
+
+    `turn_failures` — сколько первых `thread.turn` падают transient-перегрузкой:
+    ретраится СТАРТ хода, потребление потока — нет."""
 
     class _Sandbox:
         read_only = "read_only"
@@ -63,6 +86,10 @@ def _install_fake_openai_codex(
 
     class _FakeThread:
         def turn(self, prompt, **kwargs):  # noqa: ANN001
+            captured["turn_attempts"] = captured.get("turn_attempts", 0) + 1
+            if captured["turn_attempts"] <= turn_failures:
+                raise ServerBusyError(-32000, "server overloaded", "server_overloaded")
+            captured["run_prompt"] = prompt
             captured["run_kwargs"] = dict(kwargs)
             return _FakeHandle()
 
@@ -94,6 +121,8 @@ def _install_fake_openai_codex(
     mod.ApprovalMode = _ApprovalMode
     mod.Codex = _FakeCodex
     mod.CodexConfig = _CodexConfig
+    mod.retry_on_overload = retry_on_overload
+    mod.is_retryable_error = is_retryable_error
     gen = types.ModuleType("openai_codex.generated")
     v2 = types.ModuleType("openai_codex.generated.v2_all")
     v2.ReasoningEffort = lambda value: value
@@ -175,6 +204,83 @@ class CodexInvestigateSdkContractTests(unittest.TestCase):
                     os.environ.pop(key, None)
                 else:
                     os.environ[key] = value
+
+    def test_sandbox_contract_travels_developer_channel(self) -> None:
+        """SANDBOX-КОНТРАКТ — политика треда, а не задание: он уходит
+        developer_instructions при thread_start, а Codex получает репликой чистое
+        задание. prompt.md обязан показывать обе части (аудит не врёт усечением)."""
+        import codex_investigate
+
+        captured: dict = {}
+        fake_names = _install_fake_openai_codex(captured)
+        saved_argv = sys.argv[:]
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp).resolve()
+                run_dir = root / ".runs" / uuid.uuid4().hex
+                sys.argv = [
+                    "codex_investigate.py",
+                    "--task", "изучи X и напиши отчёт",
+                    "--project", str(root),
+                    "--run-dir", str(run_dir),
+                    "--heartbeat-sec", "0",
+                ]
+                with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(
+                    io.StringIO()
+                ):
+                    rc = codex_investigate.main()
+                prompt_md = (run_dir / "prompt.md").read_text(encoding="utf-8")
+                manifest = json.loads((run_dir / "manifest.json").read_text())
+            self.assertEqual(rc, 0)
+            dev = captured.get("developer_instructions") or ""
+            self.assertIn("SANDBOX-КОНТРАКТ", dev)
+            self.assertEqual(captured.get("run_prompt"), "изучи X и напиши отчёт")
+            self.assertNotIn("SANDBOX-КОНТРАКТ", captured.get("run_prompt") or "")
+            self.assertIn("DEVELOPER INSTRUCTIONS", prompt_md)
+            self.assertIn("SANDBOX-КОНТРАКТ", prompt_md)
+            self.assertIn("изучи X и напиши отчёт", prompt_md)
+            self.assertEqual(manifest["prompt_chars"], len("изучи X и напиши отчёт"))
+            self.assertEqual(manifest["developer_instructions_chars"], len(dev))
+        finally:
+            sys.argv = saved_argv
+            for name in fake_names:
+                sys.modules.pop(name, None)
+
+    def test_turn_start_retried_on_transient_overload(self) -> None:
+        """Старт хода переживает transient-перегрузку, и повтор слышен в ledger."""
+        import codex_investigate
+
+        captured: dict = {}
+        fake_names = _install_fake_openai_codex(captured, turn_failures=1)
+        saved_argv = sys.argv[:]
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp).resolve()
+                run_dir = root / ".runs" / uuid.uuid4().hex
+                sys.argv = [
+                    "codex_investigate.py",
+                    "--task", "проверь ретрай",
+                    "--project", str(root),
+                    "--run-dir", str(run_dir),
+                    "--heartbeat-sec", "0",
+                ]
+                with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(
+                    io.StringIO()
+                ):
+                    rc = codex_investigate.main()
+                events = [
+                    json.loads(line)
+                    for line in (run_dir / "events.jsonl").read_text().splitlines()
+                ]
+            self.assertEqual(rc, 0)
+            self.assertEqual(captured.get("turn_attempts"), 2)
+            retries = [e for e in events if e.get("event") == "retry"]
+            self.assertEqual(len(retries), 1)
+            self.assertEqual(retries[0]["operation"], "turn_start")
+        finally:
+            sys.argv = saved_argv
+            for name in fake_names:
+                sys.modules.pop(name, None)
 
     def test_in_progress_turn_is_failed_and_returns_nonzero(self) -> None:
         import codex_investigate

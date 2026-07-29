@@ -19,13 +19,13 @@
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import sys
 import time
 from pathlib import Path
 
-from cbcommon import scrub_billing_env
+from cbcommon import first_nonblank, scrub_billing_env
+from codex_retry import retry_start
 from codex_sdk_compat import harden_sdk_enums
 from codex_defaults import (
     BRIDGE_THREAD_EPHEMERAL,
@@ -45,8 +45,10 @@ from codex_orchestrate_contract import (
     codex_turn_completed,
 )
 from codex_run_ledger import (
+    RunResult,
     append_event,
     prepare_run_dir,
+    render_prompt_document,
     start_heartbeat,
     utc_now,
     write_json,
@@ -58,17 +60,12 @@ from codex_git_scope import (
 from codex_progress import ProgressTracker, run_turn
 
 
-def _first_nonblank(*values: str | None) -> str | None:
-    """Первое значение, непустое после strip — защита от задания из пробелов,
-    которое truthy, но по смыслу пусто и жгло бы кредиты впустую."""
-    for value in values:
-        if value and value.strip():
-            return value.strip()
-    return None
+def build_instructions(project_cwd: Path, out_dir: Path) -> str:
+    """Роль исследователя и sandbox-контракт — канал `developer_instructions`.
 
-
-def build_prompt(task: str, project_cwd: Path, out_dir: Path) -> str:
-    """Самодостаточное задание + контракт sandbox, чтобы Codex клал результат в out/."""
+    Это политика прогона, а не задание: она уходит при thread_start отдельно от
+    реплики, поэтому user-промпт остаётся чистым заданием, а контракт не тонет
+    в его тексте."""
     return (
         "Ты — исследователь-субагент. Тебе дано самодостаточное задание.\n\n"
         f"SANDBOX-КОНТРАКТ:\n"
@@ -79,8 +76,7 @@ def build_prompt(task: str, project_cwd: Path, out_dir: Path) -> str:
         "это твоё рабочее место: свободно создавай подпапки и структуру под "
         "задачу (drafts/, data/, archive/ …), переписывай и архивируй своё.\n"
         "- Обязательно в конце запиши `result.md` в cwd — краткое резюме находок "
-        "с указателями на созданные артефакты.\n\n"
-        f"===== ЗАДАНИЕ =====\n{task}"
+        "с указателями на созданные артефакты."
     )
 
 
@@ -106,24 +102,20 @@ def _list_artifacts(out_dir: Path) -> list[str]:
     )
 
 
-def _compact_payload(payload: dict[str, object]) -> dict[str, object]:
-    return {
-        key: payload[key]
-        for key in (
-            "run_id",
-            "run_dir",
-            "dry_run",
-            "profile",
-            "status",
-            "ok",
-            "codex",
-            "paths",
-            "artifacts",
-            "scope_status",
-            "prompt_chars",
-        )
-        if key in payload
-    }
+# Ключи компактного stdout фонового прогона (порядок — часть наблюдаемой формы).
+COMPACT_KEYS = (
+    "run_id",
+    "run_dir",
+    "dry_run",
+    "profile",
+    "status",
+    "ok",
+    "codex",
+    "paths",
+    "artifacts",
+    "scope_status",
+    "prompt_chars",
+)
 
 
 def main() -> int:
@@ -157,7 +149,7 @@ def main() -> int:
     parser.add_argument("--dry-run", action="store_true", help="Собрать промпт и вывести его, НЕ вызывая Codex.")
     args = parser.parse_args()
 
-    task = _first_nonblank(args.task, args.task_text)
+    task = first_nonblank(args.task, args.task_text)
     if not task:
         print('Нужно задание: --task "..." или позиционный аргумент.', file=sys.stderr)
         return 2
@@ -180,7 +172,11 @@ def main() -> int:
     out_dir = run_dir / "out"
     out_dir.mkdir(parents=True, exist_ok=False)
 
-    prompt = build_prompt(task, project_cwd, out_dir)
+    # Задание уходит репликой, роль и sandbox-контракт — каналом
+    # developer_instructions при thread_start.
+    prompt = task
+    dev_instructions = build_instructions(project_cwd, out_dir)
+    prompt_document = render_prompt_document(prompt, dev_instructions)
     paths = _investigate_paths(run_dir, out_dir)
     codex_bin = resolve_codex_bin()
     if codex_bin is None:
@@ -193,7 +189,7 @@ def main() -> int:
         "binary_source": codex_bin_source(codex_bin),
         "thread_ephemeral": BRIDGE_THREAD_EPHEMERAL,
     }
-    (run_dir / "prompt.md").write_text(prompt, encoding="utf-8")
+    (run_dir / "prompt.md").write_text(prompt_document, encoding="utf-8")
     manifest = {
         "run_id": run_id,
         "run_dir": str(run_dir),
@@ -202,6 +198,9 @@ def main() -> int:
         "profile": "investigate",
         "project": str(project_cwd),
         "prompt_chars": len(prompt),
+        # Контракт ушёл отдельным каналом; без его длины manifest занижал бы
+        # объём реально отправленной инструкции.
+        "developer_instructions_chars": len(dev_instructions),
         "codex": dict(codex_runtime),
         "runtime": {
             "sandbox": INVESTIGATE_SANDBOX,
@@ -211,6 +210,20 @@ def main() -> int:
     }
     write_json(run_dir / "manifest.json", manifest)
     append_event(run_dir, "created", profile="investigate", dry_run=args.dry_run)
+    ledger = RunResult(
+        run_dir,
+        base={
+            "run_id": run_id,
+            "run_dir": str(run_dir),
+            "dry_run": args.dry_run,
+            "profile": "investigate",
+        },
+        codex_runtime=codex_runtime,
+        paths=paths,
+        prompt_chars=len(prompt),
+        compact_keys=COMPACT_KEYS,
+        summary_stdout=args.summary_stdout,
+    )
 
     if args.dry_run:
         print(
@@ -221,14 +234,9 @@ def main() -> int:
             + (f" | вырезаны из env: {', '.join(removed)}" if removed else " | env чист"),
             file=sys.stderr,
         )
-        payload = {
-            "run_id": run_id, "run_dir": str(run_dir), "dry_run": True,
-            "profile": "investigate", "status": "validated", "ok": True,
-            "codex": dict(codex_runtime), "paths": paths, "prompt_chars": len(prompt),
-        }
-        write_json(run_dir / "result.json", payload)
-        append_event(run_dir, "dry_run_done")
-        print(json.dumps(_compact_payload(payload), ensure_ascii=False, indent=2) if args.summary_stdout else prompt)
+        ledger.finish(status="validated", ok=True, event="dry_run_done")
+        if not args.summary_stdout:
+            print(prompt_document)
         return 0
 
     try:
@@ -277,37 +285,43 @@ def main() -> int:
     )
     try:
         with Codex(config) as codex:
-            thread = codex.thread_start(
-                cwd=str(out_dir),
-                sandbox=Sandbox.workspace_write,
-                approval_mode=ApprovalMode.deny_all,
-                model=args.model,
-                service_tier=args.service_tier,
-                ephemeral=BRIDGE_THREAD_EPHEMERAL,
+            thread = retry_start(
+                lambda: codex.thread_start(
+                    cwd=str(out_dir),
+                    sandbox=Sandbox.workspace_write,
+                    approval_mode=ApprovalMode.deny_all,
+                    model=args.model,
+                    service_tier=args.service_tier,
+                    developer_instructions=dev_instructions,
+                    ephemeral=BRIDGE_THREAD_EPHEMERAL,
+                ),
+                run_dir=run_dir,
+                operation="thread_start",
             )
-            handle = thread.turn(
-                prompt,
-                model=args.model,
-                effort=ReasoningEffort(args.effort),
-                service_tier=args.service_tier,
-                sandbox=Sandbox.workspace_write,
-                approval_mode=ApprovalMode.deny_all,
+            handle = retry_start(
+                lambda: thread.turn(
+                    prompt,
+                    model=args.model,
+                    effort=ReasoningEffort(args.effort),
+                    service_tier=args.service_tier,
+                    sandbox=Sandbox.workspace_write,
+                    approval_mode=ApprovalMode.deny_all,
+                ),
+                run_dir=run_dir,
+                operation="turn_start",
             )
             result = run_turn(handle, run_dir=run_dir, tracker=progress)
     except Exception as exc:  # noqa: BLE001 — показать пользователю причину как есть
         heartbeat_stop.set()
         if heartbeat_thread is not None:
             heartbeat_thread.join(timeout=1)
-        payload = {
-            "run_id": run_id, "run_dir": str(run_dir), "dry_run": False,
-            "profile": "investigate", "status": "exception", "ok": False,
-            "error": str(exc), "codex": dict(codex_runtime), "paths": paths,
-            "artifacts": _list_artifacts(out_dir), "prompt_chars": len(prompt),
-        }
-        write_json(run_dir / "result.json", payload)
-        append_event(run_dir, "failed", status="exception", error=str(exc))
-        if args.summary_stdout:
-            print(json.dumps(_compact_payload(payload), ensure_ascii=False, indent=2))
+        ledger.finish(
+            status="exception",
+            ok=False,
+            event="failed",
+            extra={"error": str(exc), "artifacts": _list_artifacts(out_dir)},
+            event_fields={"status": "exception", "error": str(exc)},
+        )
         print(f"[codex-bridge] ошибка вызова Codex: {exc}", file=sys.stderr)
         return 1
     finally:
@@ -315,19 +329,12 @@ def main() -> int:
         if heartbeat_thread is not None:
             heartbeat_thread.join(timeout=1)
 
-    if getattr(result, "error", None):
-        payload = {
-            "run_id": run_id, "run_dir": str(run_dir), "dry_run": False,
-            "profile": "investigate", "status": codex_status_value(getattr(result, "status", "failed")),
-            "ok": False, "error": str(result.error), "codex": dict(codex_runtime),
-            "paths": paths, "artifacts": _list_artifacts(out_dir), "prompt_chars": len(prompt),
-        }
-        write_json(run_dir / "result.json", payload)
-        append_event(run_dir, "failed", status=payload["status"], error=str(result.error))
-        if args.summary_stdout:
-            print(json.dumps(_compact_payload(payload), ensure_ascii=False, indent=2))
-        print(f"[codex-bridge] Codex вернул ошибку: {result.error}", file=sys.stderr)
-        return 1
+    # Провалившийся ход сюда не доходит: штатный сборщик SDK поднимает
+    # RuntimeError на TurnStatus.failed (`openai_codex/_run.py`
+    # `_raise_for_failed_turn`), и приёмка идёт веткой except выше. Дешёвая
+    # проверка `result.error` остаётся страховкой на error при НЕ-failed статусе
+    # (interrupted, будущие статусы движка) — она входит в общий финал ниже.
+    result_error = getattr(result, "error", None)
 
     # Scope-проверка ПОСЛЕ: allowlist пуст — проект не должен был измениться вообще.
     # Исключаем ТОЛЬКО собственную область investigator'а: scratch `out/` (сюда
@@ -397,47 +404,43 @@ def main() -> int:
     # точном completed, а scope=failed означает запись вне области investigator.
     # not_checked (нет git) успех не роняет: гарантию несёт sandbox, scope —
     # лишь второе доказательство.
-    completed = codex_turn_completed(status, None)
+    completed = codex_turn_completed(status, result_error)
     ok = completed and scope_status != "failed"
     failure_reasons: list[str] = []
-    if not completed:
+    if result_error:
+        failure_reasons.append(str(result_error))
+    elif not completed:
         failure_reasons.append(f"Codex turn did not complete (status={status}).")
     if scope_status == "failed":
         failure_reasons.append("Investigator changed project scope.")
-    payload = {
-        "run_id": run_id,
-        "run_dir": str(run_dir),
-        "dry_run": False,
-        "profile": "investigate",
-        "status": status,
-        "ok": ok,
-        "codex": dict(codex_runtime),
-        "paths": paths,
+    error = " ".join(failure_reasons) if failure_reasons else None
+    extra: dict[str, object] = {
         "artifacts": artifacts,
         "scope_status": scope_status,
         "scope": scope_detail,
         "duration_ms": getattr(result, "duration_ms", None),
         "usage": str(usage),
-        "prompt_chars": len(prompt),
         "final_response": final_response,
     }
-    if failure_reasons:
-        payload["error"] = " ".join(failure_reasons)
-    write_json(run_dir / "result.json", payload)
-    append_event(
-        run_dir,
-        "done" if ok else "failed",
+    if error:
+        extra["error"] = error
+    ledger.finish(
         status=status,
         ok=ok,
-        scope_status=scope_status,
-        **({"error": payload["error"]} if failure_reasons else {}),
+        event="done" if ok else "failed",
+        extra=extra,
+        event_fields={
+            "status": status,
+            "ok": ok,
+            "scope_status": scope_status,
+            **({"error": error} if error else {}),
+        },
     )
 
     if args.summary_stdout:
-        print(json.dumps(_compact_payload(payload), ensure_ascii=False, indent=2))
         return 0 if ok else 1
     if not ok:
-        print(f"[codex-bridge] {payload['error']}", file=sys.stderr)
+        print(f"[codex-bridge] {error}", file=sys.stderr)
         return 1
     print(final_response)
     return 0

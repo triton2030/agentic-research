@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from cbcommon import scrub_billing_env
+from codex_retry import retry_start_async
 from codex_sdk_compat import harden_sdk_enums
 from codex_defaults import (
     BRIDGE_THREAD_EPHEMERAL,
@@ -62,11 +63,17 @@ def _safe_print(message: str, *, stream: Any = None) -> None:
 
 
 def _files_constraint(files: tuple[str, ...]) -> str:
+    """Файловый контракт воркера — канал `developer_instructions` треда.
+
+    Это политика прогона, а не задание: она уходит при thread_start отдельно от
+    реплики, поэтому task.prompt остаётся заданием пользователя, а allowlist не
+    растворяется в его тексте. Enforcement всё равно живёт в
+    preflight/postflight — текст лишь объясняет воркеру рамку."""
     joined = ", ".join(files)
     return (
         f"Тебе разрешено создавать и редактировать ТОЛЬКО эти файлы: {joined}. "
         "Не трогай никакие другие файлы. Если задача требует иного — опиши это "
-        "в ответе, но не делай.\n\n"
+        "в ответе, но не делай."
     )
 
 
@@ -74,7 +81,8 @@ async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict
     from openai_codex import ApprovalMode, Sandbox  # импорт после scrub_billing_env
     from openai_codex.generated.v2_all import ReasoningEffort
 
-    prompt = _files_constraint(task.files) + task.prompt
+    prompt = task.prompt
+    files_contract = _files_constraint(task.files)
     run_dir: Path = defaults["run_dir"]
     effort = ReasoningEffort(defaults["effort"])
     # registry ставит _run_fleet; при прямом вызове воркера его может не быть —
@@ -86,21 +94,32 @@ async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict
         t0 = time.monotonic()
         append_event(run_dir, "worker_start", id=task.id)
         try:
-            thread = await codex.thread_start(
-                cwd=defaults["cwd"],
-                sandbox=Sandbox.workspace_write,
-                approval_mode=ApprovalMode.auto_review,
-                model=defaults["model"],
-                service_tier=defaults["service_tier"],
-                ephemeral=BRIDGE_THREAD_EPHEMERAL,
+            thread = await retry_start_async(
+                lambda: codex.thread_start(
+                    cwd=defaults["cwd"],
+                    sandbox=Sandbox.workspace_write,
+                    approval_mode=ApprovalMode.auto_review,
+                    model=defaults["model"],
+                    service_tier=defaults["service_tier"],
+                    developer_instructions=files_contract,
+                    ephemeral=BRIDGE_THREAD_EPHEMERAL,
+                ),
+                run_dir=run_dir,
+                operation="thread_start",
+                fields={"worker": task.id},
             )
-            handle = await thread.turn(
-                prompt,
-                approval_mode=ApprovalMode.auto_review,
-                effort=effort,
-                model=defaults["model"],
-                service_tier=defaults["service_tier"],
-                sandbox=Sandbox.workspace_write,
+            handle = await retry_start_async(
+                lambda: thread.turn(
+                    prompt,
+                    approval_mode=ApprovalMode.auto_review,
+                    effort=effort,
+                    model=defaults["model"],
+                    service_tier=defaults["service_tier"],
+                    sandbox=Sandbox.workspace_write,
+                ),
+                run_dir=run_dir,
+                operation="turn_start",
+                fields={"worker": task.id},
             )
             result = await run_async_turn(
                 handle,

@@ -18,14 +18,44 @@ BACKEND = Path(__file__).resolve().parents[1]
 SCRIPT = BACKEND / "codex_review.py"
 sys.path.insert(0, str(BACKEND))
 
+# Ретрай-хелперы берём из настоящего SDK: тест проверяет наш контракт с
+# первичкой, а не с имитацией её поведения. Без SDK (системный python) —
+# минимальное зеркало, чтобы модуль оставался импортируемым.
+try:
+    from openai_codex.errors import ServerBusyError, is_retryable_error
+    from openai_codex.retry import retry_on_overload
+except ImportError:  # pragma: no cover — окружение без SDK
+    class ServerBusyError(Exception):  # type: ignore[no-redef]
+        pass
+
+    def is_retryable_error(exc):  # type: ignore[no-redef] # noqa: ANN001
+        return isinstance(exc, ServerBusyError)
+
+    def retry_on_overload(op, *, max_attempts=3, **_kw):  # type: ignore[no-redef] # noqa: ANN001
+        for attempt in range(1, max_attempts + 1):
+            try:
+                return op()
+            except Exception as exc:  # noqa: BLE001
+                if attempt >= max_attempts or not is_retryable_error(exc):
+                    raise
+
+
+def _overloaded() -> Exception:
+    """Ровно та ошибка, на которой SDK разрешает повтор (см. errors.py)."""
+    return ServerBusyError(-32000, "server overloaded", "server_overloaded")
+
 
 def _install_fake_openai_codex(
     captured: dict,
     *,
     status: str = "completed",
+    start_failures: int = 0,
 ) -> list[str]:
     """Stub `openai_codex` in sys.modules so main()'s lazy SDK import resolves to
-    a fake that records thread_start kwargs instead of launching a real Codex."""
+    a fake that records thread_start kwargs instead of launching a real Codex.
+
+    `start_failures` — сколько первых thread_start падают transient-перегрузкой:
+    так проверяется ретрай старта, не трогая потребление потока."""
 
     class _Sandbox:
         read_only = "read_only"
@@ -114,6 +144,9 @@ def _install_fake_openai_codex(
 
         def thread_start(self, **kwargs):  # noqa: ANN003
             captured["thread_start_called"] = True
+            captured["thread_start_attempts"] = captured.get("thread_start_attempts", 0) + 1
+            if captured["thread_start_attempts"] <= start_failures:
+                raise _overloaded()
             captured.update(kwargs)
             return _FakeThread()
 
@@ -146,6 +179,9 @@ def _install_fake_openai_codex(
     mod.ApprovalMode = _ApprovalMode
     mod.Codex = _FakeCodex
     mod.CodexConfig = _CodexConfig
+    # codex_retry берёт хелперы отсюда: без них мост тихо работал бы без ретрая.
+    mod.retry_on_overload = retry_on_overload
+    mod.is_retryable_error = is_retryable_error
     gen = types.ModuleType("openai_codex.generated")
     v2 = types.ModuleType("openai_codex.generated.v2_all")
     v2.ReasoningEffort = lambda value: value
@@ -445,6 +481,11 @@ class CodexReviewCliTests(unittest.TestCase):
             self.assertEqual(resume_kwargs.get("sandbox"), "read_only")
             self.assertEqual(resume_kwargs.get("approval_mode"), "deny_all")
             self.assertIsNone(resume_kwargs.get("service_tier"))
+            # Роль уходит повторно СВОИМ каналом: resume её принимает, роль
+            # идемпотентна, а вклейка в текст реплики меняла бы рамку на ходу.
+            self.assertEqual(
+                resume_kwargs.get("developer_instructions"), codex_review.TASK_ROLE
+            )
             run_kwargs = captured.get("run_kwargs") or {}
             self.assertEqual(run_kwargs.get("sandbox"), "read_only")
             self.assertEqual(run_kwargs.get("approval_mode"), "deny_all")
@@ -880,6 +921,8 @@ class CodexReviewCliTests(unittest.TestCase):
                 self.assertEqual(captured["handle_args"], ("review-thread-1", "turn-fake-1"))
                 # Промпт в этом режиме не отправляется вовсе.
                 self.assertNotIn("run_kwargs", captured)
+                # Роли тоже нет: контракт ревью несёт сам движок.
+                self.assertIsNone(captured.get("developer_instructions"))
 
                 result = json.loads(
                     next((root / "_workspace" / "codex-artifacts").glob("*/result.json"))
@@ -973,6 +1016,122 @@ class CodexReviewCliTests(unittest.TestCase):
         self.assertEqual(snap["last"], "fileChange")
         self.assertEqual(snap["deltas"], 1)
         self.assertIn("idle_sec", snap)
+
+    def test_role_travels_developer_channel_not_user_prompt(self) -> None:
+        """Инвариантная роль уходит каналом developer_instructions при
+        thread_start, а user-промпт остаётся заданием: дубль роли в тексте
+        конкурировал бы с заданием за внимание и врал бы про prompt_chars."""
+        import codex_review
+
+        cases = (
+            ("task", ("--task", "посмотри на codex_review.py"), codex_review.TASK_ROLE),
+            ("ask", ("--mode", "ask", "--question", "где дыра?"), codex_review.ASK_ROLE),
+        )
+        for label, argv_tail, expected_role in cases:
+            with self.subTest(mode=label):
+                captured: dict = {}
+                fake_names = _install_fake_openai_codex(captured)
+                saved_argv = sys.argv[:]
+                try:
+                    with tempfile.TemporaryDirectory() as tmp:
+                        root = Path(tmp)
+                        transcript = root / "session.jsonl"
+                        write_transcript(transcript)
+                        sys.argv = [
+                            "codex_review.py",
+                            "--project", str(root),
+                            "--transcript", str(transcript),
+                            *argv_tail,
+                        ]
+                        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(
+                            io.StringIO()
+                        ):
+                            rc = codex_review.main()
+                        artifacts = root / "_workspace" / "codex-artifacts"
+                        run_dir = next(p for p in artifacts.iterdir() if p.is_dir())
+                        prompt_md = (run_dir / "prompt.md").read_text(encoding="utf-8")
+                        manifest = json.loads((run_dir / "manifest.json").read_text())
+                    self.assertEqual(rc, 0)
+                    self.assertEqual(
+                        captured.get("developer_instructions"), expected_role
+                    )
+                    user_prompt = captured.get("run_prompt") or ""
+                    self.assertNotIn(expected_role, user_prompt)
+                    # prompt.md обязан показывать ПОЛНУЮ эффективную инструкцию:
+                    # иначе по run_dir не восстановить, что видел Codex.
+                    self.assertIn("DEVELOPER INSTRUCTIONS", prompt_md)
+                    self.assertIn(expected_role, prompt_md)
+                    self.assertIn(user_prompt, prompt_md)
+                    self.assertEqual(manifest["prompt_chars"], len(user_prompt))
+                    self.assertEqual(
+                        manifest["developer_instructions_chars"], len(expected_role)
+                    )
+                finally:
+                    sys.argv = saved_argv
+                    for name in fake_names:
+                        sys.modules.pop(name, None)
+
+    def test_transient_overload_on_start_is_retried_and_logged(self) -> None:
+        """Перегрузка движка на СТАРТЕ теряла оплаченный ход целиком. Ретрай
+        обязан быть слышимым: событие `retry` в ledger, а не тихий повтор."""
+        import codex_review
+
+        captured: dict = {}
+        fake_names = _install_fake_openai_codex(captured, start_failures=1)
+        saved_argv = sys.argv[:]
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                sys.argv = [
+                    "codex_review.py",
+                    "--task", "проверь ретрай",
+                    "--project", str(root),
+                    "--heartbeat-sec", "0",
+                ]
+                with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(
+                    io.StringIO()
+                ):
+                    rc = codex_review.main()
+                run_dir = next(
+                    p for p in (root / "_workspace" / "codex-artifacts").iterdir() if p.is_dir()
+                )
+                events = [
+                    json.loads(line)
+                    for line in (run_dir / "events.jsonl").read_text().splitlines()
+                ]
+            self.assertEqual(rc, 0)
+            self.assertEqual(captured.get("thread_start_attempts"), 2)
+            retries = [e for e in events if e.get("event") == "retry"]
+            self.assertEqual(len(retries), 1)
+            self.assertEqual(retries[0]["operation"], "thread_start")
+            self.assertEqual(retries[0]["attempt"], 1)
+        finally:
+            sys.argv = saved_argv
+            for name in fake_names:
+                sys.modules.pop(name, None)
+
+    def test_non_retryable_start_error_is_not_retried(self) -> None:
+        """Ретрай — только на transient-перегрузке: обычная ошибка старта обязана
+        падать сразу, иначе мост множит бесполезные попытки на чужих дефектах."""
+        import codex_retry
+
+        calls = {"n": 0}
+
+        def op():
+            calls["n"] += 1
+            raise ValueError("bad params")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp)
+            fake_names = _install_fake_openai_codex({})
+            try:
+                with self.assertRaises(ValueError):
+                    codex_retry.retry_start(op, run_dir=run_dir, operation="thread_start")
+            finally:
+                for name in fake_names:
+                    sys.modules.pop(name, None)
+            self.assertEqual(calls["n"], 1)
+            self.assertFalse((run_dir / "events.jsonl").exists())
 
     def test_interrupted_turn_is_failed_and_recorded(self) -> None:
         import codex_review
