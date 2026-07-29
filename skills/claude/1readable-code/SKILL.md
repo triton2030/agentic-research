@@ -1,17 +1,17 @@
 ---
 name: 1readable-code
 description: >
-  Use when meaningful code changes or reviews expose implementation choices
-  that affect future change cost. Prefer fewer concepts and cohesive owners. In
-  code-heavy repos, verify the existing architecture owner; skip architecture
-  ceremony for scripts and small codebases.
+  Use when a code change or review introduces meaningful structural choices
+  affecting ownership, indirection, implementation concepts, or change radius.
+  Skip tiny local edits; explicit interface or seam design →
+  `1codebase-design`.
 ---
 
 # Readable Code
 
 ## Outcome
 
-Leave code whose behavior and owner a future agent can find, understand, change
+Leave code whose behavior and owner a future agent can find, understand, change,
 and verify without mapping the whole project. This skill supplies a structural
 preference when several implementations satisfy the requested behavior; it is
 not a generic style checklist.
@@ -26,21 +26,21 @@ requested outcome still holds and meaningful complexity disappears.
 Do not trade away an explicit requirement, correctness, data integrity,
 security or stability. Surface the conflict if simplicity would require that.
 
-## Contract
+## Quality Standard
 
-For the touched behavior:
+For the touched behavior, a readable result has:
 
-- Find the existing owner before editing. A small diff in the wrong owner is
-  not a small change.
-- Keep behavior searchable through stable names in files, symbols, types,
-  errors and focused tests.
-- Reuse existing seams. Add no dependency, layer, helper family, flag or folder
-  pattern unless the current behavior needs it and total owned complexity falls.
-- Separate decisions that fail independently: validation, policy, state change,
-  IO and formatting. Do not split code for visual symmetry.
-- Make supported boundaries and failures visible in code, types, errors or a
-  focused proof; comments and broad green tests do not replace the contract.
-- Delete obsolete paths exposed by the change, but avoid unrelated cleanup.
+- one findable owner per decision or contract, with explicit handoffs in a
+  genuinely multi-owner flow; a small diff in the wrong owner is still a large
+  structural mistake;
+- stable search terms across files, symbols, types, errors, and focused tests;
+- no new dependency, layer, helper family, flag, or folder pattern unless the
+  current behavior needs it and total owned complexity falls;
+- independent decisions separated where they can fail independently:
+  validation, policy, state change, IO, and formatting—not for visual symmetry;
+- supported boundaries and failures visible in code, types, errors, or focused
+  proof rather than implied by comments or broad green tests;
+- obsolete paths exposed by the change removed without unrelated cleanup.
 
 Prefer deletion or direct local code when behavior is preserved. Add an
 abstraction only when it names a real concept, hides meaningful complexity,

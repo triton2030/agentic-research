@@ -145,7 +145,7 @@ class ChatCaptureTests(unittest.TestCase):
         self.assertIn("2010-06-15T12:00:00+00:00", text)
         self.assertIn("1999-01-02T03:04:05+00:00", text)
 
-    def test_legacy_entry_without_source_date_is_left_unchanged(self) -> None:
+    def test_legacy_entry_is_preserved_when_appending_repaired_record(self) -> None:
         self.run_capture("Legacy quote", "факт", "1chat-recall", env=self.claude_env())
         legacy_path = self.recall_files()[0]
         legacy_text = re.sub(
@@ -162,15 +162,15 @@ class ChatCaptureTests(unittest.TestCase):
             "1chat-recall",
             env=self.claude_env(),
             source_timestamp="1999-01-02T03:04:05Z",
-            expect_ok=False,
         )
 
-        self.assertEqual(result.returncode, 2)
-        self.assertIn("without a source timestamp", result.stderr)
-        self.assertEqual(self.recall_files(), [legacy_path])
-        self.assertEqual(legacy_path.read_text(encoding="utf-8"), legacy_text)
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual(len(self.recall_files()), 1)
+        repaired = self.recall_files()[0].read_text(encoding="utf-8")
+        self.assertIn('* 04:05:06 — "Legacy quote"', repaired)
+        self.assertIn('"New quote"', repaired)
 
-    def test_failed_rewrite_after_rename_keeps_one_recoverable_file(self) -> None:
+    def test_failed_atomic_rewrite_leaves_original_file_unchanged(self) -> None:
         later = "2010-06-15T12:00:00Z"
         earlier = "1999-01-02T03:04:05Z"
         self.run_capture(
@@ -199,15 +199,7 @@ class ChatCaptureTests(unittest.TestCase):
                 )
 
         files_after_failure = self.recall_files()
-        self.assertEqual(len(files_after_failure), 1)
-        local_earlier = datetime.fromisoformat(
-            earlier.replace("Z", "+00:00")
-        ).astimezone()
-        self.assertTrue(
-            files_after_failure[0].name.startswith(
-                f"{local_earlier:%Y-%m-%d-%H%M%S}-"
-            )
-        )
+        self.assertEqual(files_after_failure, [old_path])
         self.assertIn(
             "Existing quote",
             files_after_failure[0].read_text(encoding="utf-8"),
@@ -216,20 +208,6 @@ class ChatCaptureTests(unittest.TestCase):
             "Earlier quote",
             files_after_failure[0].read_text(encoding="utf-8"),
         )
-
-        repaired_path = CHAT_CAPTURE.find_session_file(
-            self.root / CHAT_CAPTURE.LOG_DIR,
-            "claude",
-            self.session,
-            CHAT_CAPTURE.source_timestamp(later),
-        )
-        local_later = datetime.fromisoformat(
-            later.replace("Z", "+00:00")
-        ).astimezone()
-        self.assertTrue(
-            repaired_path.name.startswith(f"{local_later:%Y-%m-%d-%H%M%S}-")
-        )
-        self.assertEqual(self.recall_files(), [repaired_path])
 
         self.run_capture(
             "Earlier quote",
@@ -243,7 +221,7 @@ class ChatCaptureTests(unittest.TestCase):
         self.assertIn("Existing quote", recovered)
         self.assertIn("Earlier quote", recovered)
 
-    def test_source_timestamp_is_required_and_must_include_timezone(self) -> None:
+    def test_timestamp_requires_value_and_approximate_source(self) -> None:
         missing = self.run_capture(
             "Без даты",
             "факт",
@@ -264,8 +242,124 @@ class ChatCaptureTests(unittest.TestCase):
             expect_ok=False,
         )
         self.assertEqual(naive.returncode, 2)
-        self.assertIn("timezone offset", naive.stderr)
+        self.assertIn("--timestamp-source", naive.stderr)
         self.assertEqual(self.recall_files(), [])
+
+    def test_derived_sources_cannot_claim_exact_precision(self) -> None:
+        env = {key: value for key, value in os.environ.items() if key not in SESSION_ENV_VARS}
+        env.update(self.claude_env())
+        base = [
+            sys.executable,
+            str(SCRIPT),
+            "--quote",
+            "Наблюдаемая реплика",
+            "--type",
+            "факт",
+            "--topic",
+            "1chat-recall",
+            "--source-timestamp",
+            DEFAULT_SOURCE_TIMESTAMP,
+            "--timestamp-source",
+            "turn-context",
+            "--project",
+            str(self.root),
+        ]
+        rejected = subprocess.run(base, capture_output=True, text=True, env=env)
+        self.assertEqual(rejected.returncode, 2)
+        self.assertIn("cannot be source-exact", rejected.stderr)
+        accepted = subprocess.run(
+            [*base, "--timestamp-precision", "minute"],
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+        self.assertEqual(accepted.returncode, 0, accepted.stderr)
+        self.assertIn(
+            "source: turn-context | precision: minute",
+            self.recall_files()[0].read_text(encoding="utf-8"),
+        )
+        for derived in ("filename", "frontmatter", "raw-time", "unknown"):
+            candidate = subprocess.run(
+                [
+                    *base,
+                    "--quote",
+                    f"Источник {derived}",
+                    "--timestamp-source",
+                    derived,
+                ],
+                capture_output=True,
+                text=True,
+                env=env,
+            )
+            self.assertEqual(candidate.returncode, 2)
+            self.assertIn("cannot be source-exact", candidate.stderr)
+
+    def test_date_only_unknown_and_selection_are_marked_inline(self) -> None:
+        clean_env = self.claude_env()
+        command = [
+            sys.executable,
+            str(SCRIPT),
+            "--quote",
+            "Выбрал локальный путь",
+            "--type",
+            "решение",
+            "--topic",
+            "1chat-recall",
+            "--kind",
+            "selection",
+            "--source-timestamp",
+            "2001-02-03",
+            "--timestamp-source",
+            "repaired",
+            "--timestamp-precision",
+            "date",
+            "--source-ref",
+            "session.jsonl",
+            "--project",
+            str(self.root),
+        ]
+        env = {key: value for key, value in os.environ.items() if key not in SESSION_ENV_VARS}
+        env.update(clean_env)
+        result = subprocess.run(command, capture_output=True, text=True, env=env)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        text = self.recall_files()[0].read_text(encoding="utf-8")
+        self.assertIn("kind: selection", text)
+        self.assertIn("source: repaired | precision: date", text)
+        self.assertIn("source-ref: session.jsonl", text)
+
+        unknown = subprocess.run(
+            [
+                sys.executable,
+                str(SCRIPT),
+                "--quote",
+                "Дата источника не восстановлена",
+                "--type",
+                "неопределено",
+                "--topic",
+                "без-темы",
+                "--kind",
+                "note",
+                "--source-timestamp",
+                "unknown",
+                "--timestamp-source",
+                "unknown",
+                "--timestamp-precision",
+                "unknown",
+                "--project",
+                str(self.root),
+            ],
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+        self.assertEqual(unknown.returncode, 0, unknown.stderr)
+        text = self.recall_files()[0].read_text(encoding="utf-8")
+        self.assertIn(
+            '* unknown — "Дата источника не восстановлена" '
+            "— kind: note | type: неопределено | topic: без-темы "
+            "| source: unknown | precision: unknown",
+            text,
+        )
 
     def test_unknown_type_is_rejected(self) -> None:
         result = self.run_capture(

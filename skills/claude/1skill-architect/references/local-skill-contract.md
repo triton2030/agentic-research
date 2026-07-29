@@ -14,16 +14,16 @@ skill", or "port this skill into Claude Code".
 - **Description**: one routing formulation with use case, trigger words,
   skip-cases, and boundaries. For model-invoked skills, front-load the opening
   because body is unavailable before activation.
-- **Core body**: only result, boundaries, default path, reference routes, key
-  branches, validation, and stop. Add authority, required output, and side-effect
-  limits only when they change behavior.
+- **Core body**: outcome/decision contract by default — result, decision
+  standard, boundaries, evidence, conditional routes, and stop. Include a
+  workflow only when order itself closes an observed failure.
 - **Progressive disclosure**: long variants, examples, limits, source notes, and
   rare branches go to `references/`; deterministic fragile operations go to
   `scripts/`.
-- **Validation**: run the official Claude `skill-creator` structural check. For
-  substantial rewrites, compare one realistic output against baseline or the
-  previous version. Choose the evidence bar here; use `skill-creator` for
-  measurement mechanics.
+- **Validation**: run the official Claude `skill-creator` structural check and
+  an observable check for each material claim. Baseline or previous-version
+  comparison is required only for relative-improvement claims. Choose the
+  evidence bar here; use `skill-creator` for measurement mechanics.
 
 ## Claude-Specific Done
 

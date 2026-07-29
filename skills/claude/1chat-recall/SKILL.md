@@ -1,138 +1,124 @@
 ---
 name: 1chat-recall
 description: >
-  Цитируй владельца сам, без просьбы: он поправил твой ход, назвал правило,
-  решение, red line или критерий — сохрани в `_ops/chat-recall/` короткую
-  выдержку его собственных слов, где остался один его тезис. Сокращай только
-  удалением шума и разовой команды; своими словами не переписывай. Читай
-  transcript текущего разговора, когда после compaction нужны его точные
-  прежние слова или выбор в AskUserQuestion. Только этот разговор, чужие не ищи.
-allowed-tools: Bash(${CLAUDE_SKILL_DIR}/scripts/chat_recall.py *), Bash(${CLAUDE_SKILL_DIR}/scripts/chat_capture.py *), Bash(${CLAUDE_SKILL_DIR}/scripts/chat_digest.py *)
+  Save and find source-bound owner words: automatically capture durable
+  decisions, corrections, preferences, and facts from the current Claude
+  session; recover earlier current-session input after compaction; search
+  `_ops/chat-recall` for requests such as “what did I say?” or “find my quotes”;
+  and repair an existing malformed record. Metadata errors never hide a quote.
+  Search other sessions only while repairing an existing record.
+allowed-tools: Bash(python3 *), Read, Grep, Glob
 ---
 
 # Chat recall
 
-Слова владельца точны только в момент, когда прозвучали: контекст выцветает и
-пересказывается. Два скрипта сохраняют источник: capture копит датированную
-руду source-bound выдержек, recall читает transcript текущего разговора.
-Дата принадлежит исходной transcript record, а не ходу запуска скила.
+## Invariant
 
-## Запись — автоматически, в момент, когда прозвучало
+The quote is primary. A wrong or missing date, type, topic, or format never
+cancels it. Retrieval includes exact, legacy, partial, multiline, and raw
+records. Metadata is repaired; valuable text is not dropped.
 
-Триггер — не просьба сохранить, а сам факт: владелец сказал то, что стоит
-сохранить. Решение, коррекция твоего хода, red line, предпочтение, критерий
-готовности, ограничение, важное число, факт о том, как владелец работает, сырая
-идея на будущее («не забыть бы, но пока рано»). Отдельно лови durable-хвост
-императива: в «сделай X, потому что в будущем Y» команда разовая и не
-записывается, а хвост про Y — записывается. Пиши сразу в том же ходе, одной
-командой, и продолжай работу — это не отдельная задача и не повод для вопроса.
+The log is dated evidence, not current canon. A later quote may supersede an
+earlier one, and an approximate timeline must not be presented as current
+truth.
 
-Сначала получи точный `source_timestamp` этой же пользовательской record.
-Для свежей реплики включи текущий ход; при восстановлении древнего разговора
-используй `--all` и timestamp рядом с выбранной цитатой:
+## Router
 
-```bash
-CLAUDE_RECALL_SESSION="${CLAUDE_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-}}"
-"${CLAUDE_SKILL_DIR}/scripts/chat_recall.py" --session-id "$CLAUDE_RECALL_SESSION" --include-current-turn
-```
+- A fresh durable owner thesis appeared: capture it automatically in the same
+  turn. Skip simple approvals, one-off commands, credentials, and quoted or
+  pasted material that is not the owner's position.
+- Earlier input or a Plan/AskUserQuestion choice from the current session can
+  change a durable result: read current-session evidence.
+- The user explicitly asks what they said, asks to find quotes, or requests a
+  recall harvest: use corpus retrieval.
+- An existing record has diagnostics or malformed metadata: use repair. This is
+  the only branch allowed to search another session.
 
-Копируй timestamp только из блока с тем же исходным текстом; соседняя реплика
-того же turn не является допустимым источником времени.
+## Current-session evidence
 
-```bash
-"${CLAUDE_SKILL_DIR}/scripts/chat_capture.py" --quote "<source-bound выдержка его слов>" --source-timestamp "<source_timestamp той же record>" --type решение --topic 1codex --project "$PWD" --session "${CLAUDE_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-}}"
-```
-
-- `--type` — из закрытого списка: `решение`, `коррекция`, `предпочтение`,
-  `идея`, `критерий`, `правило-кандидат`, `обо-мне`, `факт`. Новых не выдумывай.
-  Возможная инструкция потом ищется по `коррекция|правило-кандидат|предпочтение`.
-- `--topic` — наименьшая устойчивая область, прямо называющая предмет тезиса и
-  объединяющая будущие цитаты о том же: например, `бизнес`, `дизайн`,
-  `frontend`, `маркетинг`. Это уровень гранулярности, не закрытый список.
-  Проект, документ и текущая задача — лишь контекст; бери их handle, только если
-  тезис действительно о них целиком. Не мельчи до случайного слова одной
-  реплики. Сначала переиспользуй существующий handle того же смысла; если его
-  нет, глянь инвентарь (`chat_digest.py <корень>/_ops/chat-recall`) и создай
-  короткий новый — дубль в другом регистре ломает поиск. Слова владельца о себе
-  и своём способе работать — постоянная тема `мой-workflow`.
-- `--model` — добавь только если точно знаешь resolved runtime model; иначе
-  оставь поле отсутствующим, не угадывай alias или семейство.
-
-Скрипт сам ведёт файл этого разговора
-`_ops/chat-recall/<дата>-<время>-<агент>-<session8>.md`: имя и `date` берутся
-из самой ранней сохранённой цитаты, каждая строка содержит полный source
-timestamp. Если позже добавлена более старая цитата, helper переименует этот же
-session-файл. Session id берётся из env; не найден — helper откажет: передай
-`--session`, общий файл смешал бы разговоры.
-
-`--source-timestamp` обязателен и должен быть timezone-aware ISO 8601 из
-native transcript. Не подставляй часы запуска, дату файла или память. Transcript
-удалён retention-ом, timestamp отсутствует либо schema изменилась — не
-записывай цитату и назови отказ. Отдельный штатный случай: реплика, присланная
-во время активного хода агента, может вообще не попасть в transcript (доставлена
-модели эфемерно) — такую не записывай по памяти, а попроси владельца повторить
-мысль отдельным сообщением и запиши уже её.
-
-Что попадает в `--quote`:
-
-- **Source-bound выдержка, не пересказ.** Сохрани лексику, смысл, условия,
-  оговорки, отрицания и числа владельца; не заменяй их своими синонимами,
-  объяснениями или обобщением причины.
-- **По умолчанию только удаляй.** Убери речевой шум, самоперебивы, повторы и
-  разовую команду; допустимо лишь нормализовать пунктуацию. Если связная
-  deletion-only выдержка невозможна, оставь больше исходных слов или не пиши.
-- **Вставленный материал не равен словам владельца.** Удали цитируемые,
-  пересланные, кодовые и явно вставленные блоки; сохрани только собственное
-  обрамление владельца и явно выраженное отношение к ним. Неясно, где его
-  позиция, — не записывай.
-- **Одна мысль — одна запись.** Два разных устойчивых тезиса в одной реплике —
-  две команды.
-
-Только текущий разговор: записывай реплики этой session; не переноси выдержки
-из чужих recall-файлов, чужих транскриптов или пересказов. Субагент не
-записывает вовсе: в его транскрипте «пользователь» — вызывающий агент, а не
-владелец; слова владельца фиксирует только главный агент разговора.
-
-Не записывай: разовые операционные указания текущей задачи («поправь этот
-файл», «запусти тесты»), уточняющие вопросы, согласия вроде «да, давай»,
-credentials и токены.
-
-## Статус лога: руда с датами, не канон
-
-Лог односторонний — слова владельца без развязки разговора: сказанное могло
-быть позже молча отменено. Поэтому:
-
-- Не читай `_ops/chat-recall/` перед решениями по своей инициативе. Открывай
-  только по явной команде владельца («что я говорил про…») или в его
-  harvest-задаче (повторяющиеся коррекции → правка инструкций, автоматизмы).
-- Подтверждённое правило в момент подтверждения уходит в `AGENTS.md` / память;
-  лог хранит source-bound выдержку. Две записи, не одна.
-- Поиск — только через проекции `chat_digest.py`, сырые файлы не читай: без
-  флагов — инвентарь (карта topics/types за сотни токенов), фильтры
-  `--type`/`--topic`/`--grep`/`--since` — построчный digest с адресами
-  `файл:строка`. После `--topic` обязателен `--grep`-добор: метка ловит ~50%
-  темы. Маршруты и отвергнутые пути —
-  [`references/reading-the-log.md`](references/reading-the-log.md).
-
-## Чтение — когда результат опирается на сказанное
+Use the native current-session reader when earlier user input or a Plan answer
+can change a durable result:
 
 ```bash
-CLAUDE_RECALL_SESSION="${CLAUDE_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-}}"
-"${CLAUDE_SKILL_DIR}/scripts/chat_recall.py" --session-id "$CLAUDE_RECALL_SESSION"
+RECALL="${CLAUDE_SKILL_DIR}/scripts/chat_recall.py"
+SESSION="${CLAUDE_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-}}"
+python3 "$RECALL" --session-id "$SESSION"
 ```
 
-Возвращает последние 10 реплик владельца из активной ветки текущей session с
-точным `source_timestamp`, текущий turn исключён. Нужна полнота — повтори с
-`--all`. Для записи свежей реплики добавь `--include-current-turn`.
+The default is bounded and excludes the current turn. Add
+`--include-current-turn` only when locating the exact record for a fresh
+capture; add `--all` only when the bounded result is insufficient. A Plan
+option is agent-authored: represent it as a selection (“user selected X”), not
+a verbatim quote.
 
-Используй только прямые сообщения и подтверждённые ответы `AskUserQuestion`.
-Формулировка вопроса и option label принадлежат Claude; считай их
-зафиксированным выбором, а не дословной репликой владельца. Image content не
-извлекается и помечается явно.
+## Capture
 
-`session` в шапке recall-файла — ключ к полному транскрипту того разговора
-(`~/.claude/projects/<проект>/<session>.jsonl`), пока его не удалил retention.
-Чужой транскрипт открывай только по явной команде владельца.
+Automatically capture one durable owner thesis at a time: decision, correction,
+preference, idea, criterion, candidate rule, personal workflow fact, or fact.
+Preserve the owner's wording by deletion-only shortening; do not turn agent
+summaries, inserted text, credentials, or one-off commands into quotes.
 
-Если helper завершился ошибкой, скажи, что recall не подтверждён. Не угадывай
-по памяти и не открывай другую session по своей инициативе.
+For an exact transcript record:
+
+```bash
+python3 "${CLAUDE_SKILL_DIR}/scripts/chat_capture.py" \
+  --quote "<owner words>" \
+  --source-timestamp "<timezone-aware transcript timestamp>" \
+  --type решение --topic <handle> --agent claude \
+  --project "$PWD" \
+  --session "${CLAUDE_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-}}"
+```
+
+`--source-timestamp` always has a value. It accepts timezone-aware ISO, an
+approximate ISO/date, or `unknown`. Approximate/unknown records must also pass
+`--timestamp-source`, normally `--timestamp-precision`, and optionally
+`--source-ref`. Use `--kind selection` for a chosen agent-authored option and
+`--kind note` for a later explanation.
+
+Default `source=transcript` is allowed only after reading that exact native
+record. A remembered, inferred, filename-derived, or semantically matched time
+is repaired/approximate even when written as a timezone-aware ISO; pass its
+honest source and non-exact precision.
+
+If the fresh message has no transcript record, preserve it with an observation
+timestamp and explicitly pass both `--timestamp-source turn-context` and
+`--timestamp-precision minute` (or `date`). Never present observation time as
+source-exact; capture rejects that combination.
+
+Type is one of `решение`, `коррекция`, `предпочтение`, `идея`, `критерий`,
+`правило-кандидат`, `обо-мне`, `факт`, or the repair sentinel
+`неопределено`. Unknown topic is `без-темы`.
+
+## Corpus retrieval
+
+For an explicit quote search or harvest, establish the runtime-specific
+variables:
+
+```bash
+DIGEST="${CLAUDE_SKILL_DIR}/scripts/chat_digest.py"
+RECALL_DIR="$PWD/_ops/chat-recall"
+```
+
+Then follow
+[`references/reading-the-log.md`](references/reading-the-log.md), which owns
+`check`, inventory, BM25, filters, timeline, `show`, bounded output, and
+abstention.
+
+## Repair
+
+Historical search outside the live session is allowed only to repair an
+already-existing recall record. Follow
+[`references/repairing-the-log.md`](references/repairing-the-log.md).
+
+In a read-only task, show the repair backlog. In a mutation-authorized task,
+repair it session-by-session, use exact only after native text/choice
+verification, and explicitly mark unresolved metadata.
+
+## Boundaries and stop
+
+- `chat_digest.py` owns `_ops/chat-recall` retrieval; generic Markdown search
+  does not replace it. Screen history is not native transcript evidence.
+- Do not send quotes or transcript evidence to network tools, import quotes from
+  unrelated chats, or promote the dated log to current canon.
+- Stop after the fresh durable theses are captured or the bounded question is
+  answered or explicitly abstained, with provenance and diagnostics visible.

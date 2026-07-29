@@ -3,6 +3,7 @@ description: "Source-backed выводы из официальных docs и и�
 read-before-edit: []
 edit-after-edit: []
 ---
+
 # Research 2026 Mar-May
 
 Срез источников на 19 мая 2026. Это snapshot, а не живой источник истины.
@@ -19,6 +20,14 @@ initial skill list (до 2% context или 8000 символов при неиз
 shortening descriptions, возможный omission skills, skill-vs-plugin boundary,
 instruction-only default и dependencies в `agents/openai.yaml`. OpenAI требует
 front-load первой фразы, но не задаёт `120-200` как platform limit.
+
+Recheck 2026-07-25: Anthropic сообщил, что для Opus 5 и Fable 5 удалил более
+80% Claude Code system prompt без измеримой потери на coding evals. Новый
+baseline: меньше универсальных rules и повторов, lightweight skills и
+`CLAUDE.md`, progressive disclosure, interface-first tool design, auto-memory
+вместо memory dump в instructions и rich references. Это направление для
+pruning с with/without eval, а не разрешение на массовое удаление локальных
+инвариантов.
 
 ## Official Baseline
 
@@ -42,6 +51,11 @@ front-load первой фразы, но не задаёт `120-200` как plat
 - Anthropic / Agent Skills: progressive disclosure — frontmatter, body, bundled
   files; scripts полезны там, где нужна repeatable deterministic execution.
   Source: [Anthropic Agent Skills](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills)
+- Anthropic / Claude 5 context engineering: context — совокупность system
+  prompt, skills, `CLAUDE.md`, memory и references; для новых моделей сначала
+  сокращать obsolete constraints, переносить tool-use knowledge в interface и
+  раскрывать длинные детали по необходимости.
+  Source: [The new rules of context engineering for Claude 5 generation models](https://claude.com/blog/the-new-rules-of-context-engineering-for-claude-5-generation-models)
 - Agent Skills standard: `name` до 64, `description` до 1024, `SKILL.md` body,
   optional `scripts/`, `references/`, `assets`, recommended body under 500
   lines. Source: [Agent Skills specification](https://agentskills.io/specification)
@@ -93,12 +107,16 @@ front-load первой фразы, но не задаёт `120-200` как plat
 
 1. **Less is more, но не “short is always better”.** Короткий core + нужные
    bundled files сильнее длинного ядра.
-2. **Description — главный рычаг.** Без trigger evals skill может быть идеален
-   внутри и бесполезен снаружи. Для маленьких скилов достаточно малого
-   набора use cases; 8-10/8-10 prompts — strict gate, а не universal minimum.
+2. **Description — главный рычаг.** Без routing evidence skill может быть
+   идеален внутри и бесполезен снаружи. Исторические `2-3` и `8-10/8-10` —
+   примеры eval sizes, не текущие gates: выборка должна различать заявленный
+   trigger и реальные near-misses.
 3. **Author from traces.** Лучший материал — реальные успехи, провалы,
    corrections, issue/review history.
 4. **Evaluate as intervention.** Считать repairs и regressions, а не только
    красивый output.
 5. **Security is semantic.** Проверять не только код, но и то, как
    `description` и инструкции меняют selection, trust и runtime actions.
+6. **Audit the assembled context.** Не повторять один tool/workflow contract в
+   system prompt, `CLAUDE.md`, skill и tool description. Один слой владеет
+   правилом; остальные маршрутизируют к нему, а удаление проверяется baseline.

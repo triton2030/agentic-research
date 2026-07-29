@@ -1,48 +1,52 @@
-# Как читать recall-лог с пользой
+# Reading the recall log
 
-Маршруты выведены из замеров на живом корпусе (403 цитаты, 22 файла, 148 KB,
-2026-07-26). Все начинаются с проекций `chat_digest.py`; сырые файлы читаются
-только точечно по адресу `файл:строка` из digest.
+`chat_digest.py` is the only retrieval owner. It treats every Markdown
+star-block as a record. Metadata diagnostics never remove a record from
+inventory, search, timeline, or `show`.
 
-## Шаг 0 — инвентарь, всегда
+## Bounded route
+
+Before opening this route, the runtime-specific root `SKILL.md` sets `DIGEST` to
+its installed `scripts/chat_digest.py`. This shared reference never assumes a
+Claude- or Codex-specific environment variable.
 
 ```bash
-"${CLAUDE_SKILL_DIR}/scripts/chat_digest.py" <корень>/_ops/chat-recall
+RECALL_DIR="<project>/_ops/chat-recall"
+
+python3 "$DIGEST" "$RECALL_DIR" --check
+python3 "$DIGEST" "$RECALL_DIR"
+python3 "$DIGEST" "$RECALL_DIR" --query "субагент* параллел*" \
+  --limit 12 --max-chars 8000
+python3 "$DIGEST" "$RECALL_DIR" --show <record-id>
 ```
 
-Карта корпуса за сотни токенов (~550 на 403 цитаты): каждый topic с объёмом,
-периодом и раскладкой типов. Показывает, где густо, что живо, и дрейф словаря
-(`Канон` рядом с `канон`) — до того, как открыт хоть один файл.
+The default command is a cheap topics/types/period inventory. `--query` builds
+an in-memory SQLite FTS5 index with one record per document and BM25 ranking.
+The record text has normal weight; `topic` has a small boost. Add original
+terms, synonyms, and explicit Russian prefix forms such as `субагент*`.
+Automatic lemmatization is intentionally absent.
 
-## Маршруты по задаче
+Filters remain metadata, not query text:
 
-- **«Что владелец говорил про X»** — `--grep '<слово>'` по тексту цитат.
-  Нашлось мало — добавь синонимы через `|`. Слово не угадывается — digest
-  подходящего среза и читай глазами: смысловой поиск делает модель, не индекс.
-- **Harvest** (повторяющиеся коррекции → инструкции) —
-  `--type коррекция,правило-кандидат,предпочтение`. Инструкционный слой корпуса
-  целиком: ~4K токенов на 114 цитат, читается одним заходом.
-- **Картина проекта / периода** — `--topic <handle>` и/или `--since <дата>`.
-- **Полная цитата** — только по адресу из digest: `sed -n '<N>p' <файл>`.
+```bash
+python3 "$DIGEST" "$RECALL_DIR" --query "память контекст" \
+  --type коррекция,правило-кандидат --agent <agent> --since 2026-07-01
+python3 "$DIGEST" "$RECALL_DIR" --timeline --session <uuid>
+```
 
-## Главное правило: topic сужает, grep добирает
+Supported filters are `--type`, `--topic`, `--grep`, `--since`, `--until`,
+`--agent`, and `--session`. `--limit 12` and `--max-chars 8000` are bounded
+defaults. `--json` returns `total`, `matched`, `returned`, `truncated`,
+`selection`, quality counts, warnings, and records.
 
-`type` — надёжная ось (закрытый список, enforced скриптом). `topic` — точная,
-но дырявая: на замерах метка ловит ~50% цитат темы. Причина структурная: одна
-метка на строку, и пишущий агент метит проект-контекст, а не тему тезиса
-(«про канон, сказано в работе над презентацией» → `topic: Инвест_Преза`).
-Поэтому после любого `--topic`-среза обязателен `--grep`-добор по слову — две
-команды вместо одной поднимают recall с половины до полного.
+`selection=none` is a valid abstention, not a failure. A timeline orders known
+timestamps, then isolates unknown records; chronology alone never means
+“current truth”. Use `--show` for the complete text, provenance, address, and
+diagnostics of one stable `record_id`.
 
-## Отвергнутые пути — не повторять
+## Diagnostics
 
-- **Читать файлы целиком** — ~42K токенов на этом корпусе; съедает окно ради
-  шума. Digest всего корпуса (110 симв/цитата + адрес) — ~14K, и почти всегда
-  нужен не весь, а срез.
-- **Семантический индекс (`md index/search`)** — структурно несовместим: чанк
-  режется по заголовкам, а recall-файл — один заголовок и десятки разнотемных
-  цитат; вектор усредняет несовместимые смыслы. Замер: top-5 по «субагенты и
-  параллельная работа» вернул расходы на серверы, скоры ~0.03, реранк не помог.
-- **Topic-фильтр как единственный шаг** — recall <50%, см. выше.
-- **Частотный анализ слов** («важное = повторяющееся») — 2/3 шума: частота
-  ловит манеру речи, не тезисы.
+`--check` reports repair backlog but exits successfully so records remain
+readable. `--check --strict` is the validation gate and exits non-zero while
+diagnostics remain. Repair procedure and evidence rules live only in
+[`repairing-the-log.md`](repairing-the-log.md).

@@ -4,7 +4,7 @@ description: "Claude Fable 5-specific routing, brief, autonomy, evidence and del
 
 # Wisdom — Claude Fable 5
 
-Снимок на 22 июля 2026.
+Снимок на 29 июля 2026.
 
 Здесь живут только правила, которые меняют работу именно с `Claude Fable 5`.
 Fable — target для самых сложных long-horizon, ambiguous и high-stakes задач,
@@ -35,8 +35,13 @@ Fable — target для самых сложных long-horizon, ambiguous и hig
 
 ## Поведение И Поправки
 
+- Рабочий exact model id — `claude-fable-5`; фактически resolved model
+  фиксировать в runtime evidence.
 - `high` — рабочий default; `xhigh` — для capability-sensitive задач. На routine
   work сначала снижать effort, а не обрастать prompt-ограничениями.
+- Adaptive thinking у Fable 5 всегда включён: disabled/manual thinking budget
+  не являются рабочими режимами. Управлять стоимостью и глубиной через effort,
+  scope и observable completion criteria.
 - На high effort отдельно запрещать unrequested features, surrounding refactor,
   speculative abstractions и future-proofing. Достаточен простейший ход,
   закрывающий observable outcome.
@@ -45,6 +50,12 @@ Fable — target для самых сложных long-horizon, ambiguous и hig
   ambiguity в бесконечное планирование.
 - Ground progress claims в tool results текущего run. Непроверенное называть
   непроверенным; failed test не пересказывать как почти-success.
+- Для действительно долгого run дать runtime достаточно времени и не
+  синхронизировать независимые ветки без причины. Не сообщать модели явный
+  countdown context budget: он может спровоцировать преждевременный stop.
+- Редкий ранний stop считать harness/contract signal. Если работа автономная,
+  brief должен разрешать продолжать до observable done или реального blocker,
+  а не останавливаться после правдоподобного промежуточного результата.
 - Граница request type обязательна: assessment/review/diagnosis заканчивается
   отчётом; fix/build разрешает scoped edits. Не расширять одно в другое.
 - Fable охотнее делегирует и устойчивее ведёт parallel subagents. Давать только
@@ -64,10 +75,16 @@ Fable — target для самых сложных long-horizon, ambiguous и hig
   лишней предписанности. Сначала baseline, затем удаление obsolete scaffolding.
 - Не использовать Fable как дорогой serial worker для множества одинаковых
   механических задач.
-- Не принимать self-critique за независимую проверку; для material work лучше
-  fresh-context verifier с отдельным evidence contract.
+- На long-running material work нужны периодические сверки с observable
+  specification. Они не становятся независимым доказательством только потому,
+  что модель назвала их self-critique; fresh-context verifier оправдан, когда
+  действительно нужна независимая проверка и её evidence contract отделён.
 - Не добавлять memory, guardrail, fallback или validation без конкретного
   failure mode либо реальной system boundary.
+- Не возвращать Claude 4.x как fallback. Runtime не должен молча выходить за
+  рабочий model set: отказ или capability mismatch становится явным blocker
+  либо, если задача остаётся безопасной и подходит основному Claude-target,
+  заново маршрутизируется к `Claude Opus 5`.
 
 ## Где Использовать
 
@@ -78,9 +95,12 @@ Fable — target для самых сложных long-horizon, ambiguous и hig
 
 ## Опоры
 
-- https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5
+- <https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5>
   Официальный model-specific guide: long runs, effort, scope, progress,
   subagents, memory, brevity и migration of existing skills.
+- <https://platform.claude.com/docs/en/about-claude/models/migration-guide>
+  Thinking modes, refusal details и API-level migration surface; официальный
+  legacy fallback не является локальным рабочим baseline.
 - `experiments/claude-bridge/codex-skill/1claude-mcp/references/fable-agent-prompting.md`
   Локальный bounded brief для вызова Fable через bridge; profile/session details
   остаются bridge-specific и не входят в этот owner.

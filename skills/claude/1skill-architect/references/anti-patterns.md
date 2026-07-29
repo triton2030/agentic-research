@@ -31,6 +31,9 @@ Use this reference for broad audits or when a design keeps adding surfaces.
   surface.
 - **Tutorial body**: `SKILL.md` teaches the whole domain instead of routing to
   the needed reference.
+- **Procedure by default**: a judgment/design/quality skill prescribes stages
+  even though order is not part of correctness, narrowing model judgment and
+  rewarding checklist compliance.
 - **Cargo-cult creation**: adding a new skill/agent/hook because a similar one
   exists, without proof and reuse-first gates.
 - **Runtime by analogy**: porting another runtime's agent, hook, or skill into

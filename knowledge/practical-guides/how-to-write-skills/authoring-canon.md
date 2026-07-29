@@ -7,24 +7,31 @@ edit-after-edit: []
 # Authoring Canon
 
 Практический канон написания скиллов под рабочий model set из `_ops/GOAL.md`.
+Системные `skill-creator` tools владеют scaffolding и validation mechanics; их
+step list не является универсальной формой body или обязательным authoring
+ritual.
 
 ## Когда Писать Скилл
 
 Писать, если одновременно верно:
 
-- workflow повторяется;
+- повторяется момент, в котором агенту нужна одна и та же профессиональная
+  Delta;
 - есть отдельный trigger, по которому агент должен сам выбрать скилл;
-- внутри есть порядок, развилки, gotchas или проверка, которые меняют результат;
+- внутри есть неочевидный критерий решения, failure mode, развилка, gotcha или
+  проверка, которые меняют результат;
 - без скилла агент уже ошибается, плавает, тратит лишние ходы или забывает
   локальную экспертизу.
 
 Не писать, если это разовая задача, общий совет, сырая теория, правило для
-`AGENTS.md`, script без reasoning-части или reference без workflow.
+`AGENTS.md`, script без reasoning-части или reference без повторяемого
+decision/action contract.
 
 ## Scope
 
-Один скилл — одна связная работа и один default path. Он проектируется по
-моменту применения, а не по профессии, теме или каталогу возможностей.
+Один скилл — один повторяемый момент и один связный результат или решение. Он
+проектируется по моменту применения, а не по профессии, теме или каталогу
+возможностей.
 
 Слишком узкий скилл заставляет грузить несколько скиллов на один кейс. Слишком
 широкий плохо триггерится и тащит лишний контекст. Нормальный scope можно
@@ -37,8 +44,7 @@ edit-after-edit: []
 
 Первая фраза — hot zone: она должна самостоятельно назвать главный use case и
 trigger words. Codex может сократить `description` или не включить skill в
-budgeted initial list. `120-200` символов — наша эвристика для сильного opening,
-не platform limit.
+budgeted initial list.
 
 Хороший `description`:
 
@@ -48,33 +54,39 @@ budgeted initial list. `120-200` символов — наша эвристик�
 - содержит boundaries, skip-cases и adjacent near-misses;
 - достаточно настойчивый, чтобы не undertrigger;
 - достаточно точный, чтобы не перетриггерить соседние задачи;
-- использует `120-200` символов opening как локальную эвристику, а не цель;
 - остаётся в portable ceiling 1024 символа; platform-specific discovery limits
   и shortening держит `platform-deltas.md`.
 
-Минимальная проверка: 2-3 concrete use cases и реальные trigger phrases,
-которые пользователь мог бы сказать. Для глобальных, частых, рискованных или
-спорных trigger surface добавляй strict check: 8-10 `should-trigger` и 8-10
-`should-not-trigger` prompts. Негативные примеры должны быть near-miss, а не
-очевидный мусор.
+Routing evidence использует representative trigger phrases и настоящие
+near-misses. Выборка должна быть достаточна, чтобы проверить заявленный
+trigger и живые collisions; фиксированное число prompts этого не доказывает.
 
 ## Тело `SKILL.md`
 
-В ядре держать только то, что нужно на каждой активации:
+Сначала выбери форму тела.
 
-- outcome и границы;
-- входной контекст;
-- основной workflow;
-- default path и важные развилки;
-- gotchas, которые ломают разумные предположения;
-- observable validation;
-- stop condition;
-- ссылки на `references/`, `scripts/`, `assets/` с условием, когда их читать
-  или запускать.
+**Outcome/decision contract — default** для judgment, design и quality skills:
+
+- результат, который должен стать истинным;
+- главный критерий выбора при конфликте;
+- материальные boundaries и настоящие invariants;
+- falsifiable acceptance/evidence;
+- условные reference/tool routes;
+- stop и handoff.
+
+**Workflow contract — исключение** для хрупких, необратимых, safety-critical или
+tool-bound операций, где порядок сам является частью корректности. Оставляй
+только минимальную обязательную последовательность; не превращай
+профессиональное суждение в стадии ради управляемого вида.
 
 Не учить модель очевидному. Добавлять то, чего агент не знает без скилла:
 локальные conventions, API-паттерны, failure modes, команды, схемы, критерии и
 реальные поправки пользователя.
+
+Если skill учит tool use, сначала спроектировать выразительный
+description/schema: понятные параметры, enum, constraints и output contract.
+Примеры добавлять, только если interface не передаёт неочевидный формат, вкус
+или известный failure mode; серия примеров не заменяет хороший interface.
 
 ## Progressive Disclosure
 
@@ -93,9 +105,9 @@ budgeted initial list. `120-200` символов — наша эвристик�
 
 Общий принцип — `knowledge/wisdom-llm.md`: подразумеваемое держи как критерии
 готовности + гейт сверки, не как процедуру; пошаговый порядок оправдан только для
-хрупкой/необратимой операции или когда порядок сам — требование продукта. В теле
-скила это значит: outcome, критерии и stop идут раньше шагов, а проверку
-результата закладывай гейтом, а не надеждой, что модель вспомнит.
+хрупкой/необратимой операции или когда порядок сам — требование продукта. В
+остальных skills шагов по умолчанию нет: outcome, decision criteria, evidence и
+stop оставляют модели свободу пути, но не свободу объявить успех на глаз.
 
 Для `GPT-5.6` сначала удаляй obsolete scaffolding, повторы, generic brevity и
 process для уже надёжного поведения. Outcome, evidence, stop rules и короткие
@@ -107,11 +119,14 @@ defaults сильнее длинного self-check stack; новое прави
 evidence, output и stop только там, где они меняют ход. Для Fable-brief
 добавлять реальный outcome и причину constraints; старый process scaffolding
 сначала удалять и возвращать только под измеренный failure mode.
+Claude-specific context assembly держит `knowledge/wisdom-claude-code.md`.
+Portable consequence: один owner контракта, lightweight guide + progressive
+disclosure и жёсткость только под high-risk boundary или измеренный failure.
 
 ## Если Скилл Делегирует
 
 Subagents — не generic quality mode. Включай их в skill contract, только если у
-повторяемого workflow есть независимые evidence streams, files или leaf
+повторяемой задачи есть независимые evidence streams, files или leaf
 implementation и fan-out меняет latency, context hygiene или качество.
 
 Orchestrating skill должен определить:
@@ -132,38 +147,29 @@ GPT-5.6 routing — `knowledge/wisdom-gpt-5.6.md`.
 Скилл нельзя считать хорошим по тексту, но proof loop должен соответствовать
 риску. Тяжёлые проверки не являются ритуалом для каждого маленького скила.
 
-**Минимальная проверка (`minimum gate`)** — для маленького, локального или
-низкорискового скила:
+Evidence покрывает ровно заявленные свойства:
 
-1. Есть 2-3 concrete use cases или один реальный trace/correction.
-2. `description` явно говорит, когда использовать и когда пропустить.
-3. Структурная проверка прошла (`quick_validate.py` для Codex).
-4. Есть одна наблюдаемая проверка результата: команда, dry-run, `wc -m`,
-   grep, пример output или ручная сверка с коротким критерием.
+- admission — реальный повторяемый момент, Delta и failure evidence;
+- routing — representative use/skip/near-miss cases и живые collisions;
+- structure — platform validator и доступность нужных bundled resources;
+- behavior — observable output assertion на реалистичной задаче;
+- relative improvement — baseline или previous version, только когда заявлено
+  сравнение;
+- distribution — metadata/projection sync, только когда эти поверхности есть.
 
-**Строгая проверка (`strict gate`)** — включай, если скилл глобальный, часто
-вызывается, имеет широкий/спорный trigger, scripts/network/credentials,
-высокий blast radius или уже показал regressions:
-
-1. Сравнение с baseline: без скилла или старая версия.
-2. Trigger eval: 8-10 should-trigger и 8-10 should-not near-miss prompts.
-3. Output assertions и regression check, а не только красивый пример.
-4. Синхронизация `SKILL.md`, `description`, metadata и `agents/openai.yaml`,
-   если он есть.
-5. После первого реального использования вырезать всё, что не улучшило
-   routing, качество, скорость или надёжность.
-
-Для глобального Claude skill strict gate включает representative trigger,
-near-miss и output probe на обеих целевых Claude-моделях. Записывай фактически
-resolved model: alias или requested model сам по себе не доказывает runtime.
+Глобальный, частый, рискованный, collision-prone или already-regressed surface
+повышает требуемую различающую силу evidence. Это не делает каждый возможный
+check обязательным. Для model-specific claim прогон фиксирует фактически
+resolved model; requested alias сам по себе runtime не доказывает.
 
 ## Типовые Провалы
 
-- Тема вместо workflow.
+- Тема вместо повторяемого decision/action contract.
 - `description` без trigger phrases и near-miss boundaries.
 - Body-only “When to use”.
+- Процедура по умолчанию там, где модели нужен outcome и критерии решения.
 - Длинный процесс ради успокоения автора.
-- Большой menu без default path.
+- Большой menu без главного decision standard.
 - Дубли между `SKILL.md` и `references/`.
 - Скрытая зависимость от чата.
 - Нет validation или stop condition.

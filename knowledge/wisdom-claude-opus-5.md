@@ -4,7 +4,7 @@ description: "Claude Opus 5-specific prompting, effort, scope, tool and delegati
 
 # Wisdom — Claude Opus 5
 
-Снимок на 25 июля 2026.
+Снимок на 29 июля 2026.
 
 Здесь живут только правила, которые меняют работу именно с `Claude Opus 5`.
 Общие свойства LLM держит `wisdom-llm.md`; платформенные правила Claude Code
@@ -16,15 +16,19 @@ description: "Claude Opus 5-specific prompting, effort, scope, tool and delegati
 - Передавать полный task-spec в первом ходе: outcome, intent, live sources,
   constraints, scope, success criteria и stop. Opus 5 особенно силён в
   long-horizon agentic work, когда видит задачу целиком.
-- `effort` — первый рычаг качества и стоимости. Для coding/agentic work
-  `xhigh` остаётся рекомендуемым стартом, но `low` и `medium` уже дают сильный
-  результат; перенос старого default требует effort sweep на своих evals.
+- `high` — API и Claude Code default. `low` и `medium` уже дают сильный
+  результат; `xhigh` оставлять для demanding capability-sensitive задач.
+  Effort выбирать representative evals, а не универсальным максимумом.
+- Adaptive thinking включён по умолчанию. Отключение доступно только при
+  `high` или ниже и само требует причины/eval; низкий effort с thinking обычно
+  лучше, чем выключенный thinking.
 - Явно калибровать длину ответа, progress cadence и размер письменных
   deliverables. Opus 5 подробнее прежних Opus и охотно narrates agentic work;
   короткий положительный пример формата надёжнее списка запретов.
-- Не добавлять generic «double-check», отдельный verification pass или
-  subagent-verifier. Opus 5 сам исправляет и проверяет работу; старое
-  scaffolding вызывает over-verification, лишние latency и token cost.
+- Не добавлять generic «double-check», отдельный verification ritual или
+  subagent-verifier по умолчанию. Это вызывает over-verification, лишние
+  latency и token cost. Объективная acceptance-проверка результата остаётся,
+  когда её требует риск или task contract.
 - Для узкой задачи явно удерживать requested scope и stop. Модель может сама
   расширить работу полезными, но не запрошенными шагами.
 - Делегировать только genuinely independent sizeable tracks. Opus 5 охотнее
@@ -42,8 +46,8 @@ description: "Claude Opus 5-specific prompting, effort, scope, tool and delegati
 
 ## Что Не Делать
 
-- Не переносить Opus 4.x prompt stack как действующий baseline без новой
-  проверки; старые prompts — только старт миграции.
+- Не переносить Claude 4.x prompt stack как действующий baseline или fallback;
+  старые prompts — только историческое migration evidence.
 - Не компенсировать неверный effort длинным process scaffolding.
 - Не требовать automatic fan-out, self-review или повторную проверку по
   умолчанию.
@@ -51,13 +55,13 @@ description: "Claude Opus 5-specific prompting, effort, scope, tool and delegati
 - Не объявлять отсутствие finding доказательством отсутствия проблемы, если
   review prompt одновременно поднял reporting threshold.
 
-## Миграция С Opus 4.8
+## Критерий Миграции
 
-1. Переключить exact model id на `claude-opus-5`, сохранив working prompt.
-2. Снять baseline и effort sweep на representative evals.
-3. Удалить generic verification и automatic subagent scaffolding.
-4. Откалибровать scope, visible response length и progress cadence.
-5. Возвращать только точечные правила под наблюдаемый failure.
+Рабочий target — exact model id `claude-opus-5`. Миграция завершена, когда
+representative evals подтверждают outcome, scope, visible length и cost/latency
+на выбранном effort. Старый prompt используется только как baseline для
+сравнения; generic verification и automatic fan-out не возвращаются без
+наблюдаемого failure.
 
 ## Где Использовать
 

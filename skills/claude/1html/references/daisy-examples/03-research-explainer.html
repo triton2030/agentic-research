@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ru" data-theme="editorial">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Research explainer · DaisyUI example</title>
+  <link href="../../assets/starter/lib/daisyui.css" rel="stylesheet">
+  <link href="../../assets/starter/lib/daisyui-themes.css" rel="stylesheet">
+  <link href="../../assets/starter/assets/theme.css" rel="stylesheet">
+  <script src="../../assets/starter/lib/tailwind.js"></script>
+</head>
+<body>
+  <main class="artifact-main mx-auto max-w-5xl px-5 py-12 sm:px-8">
+    <header class="artifact-hero">
+      <p class="artifact-kicker">Research explainer · mechanism first</p>
+      <h1 class="artifact-title">Сначала механизм. Потом уверенность.</h1>
+      <p class="artifact-lead">
+        Хороший explainer отделяет наблюдаемое, интерпретацию и неизвестное. Так
+        читатель видит не только вывод, но и предел его надёжности.
+      </p>
+    </header>
+
+    <section class="grid gap-4 md:grid-cols-3">
+      <article class="card border border-base-300 bg-base-200">
+        <div class="card-body">
+          <span class="badge badge-outline">01 · signal</span>
+          <h2 class="card-title artifact-card-title">Что наблюдаем</h2>
+          <p>Короткий воспроизводимый факт без объяснения причин.</p>
+        </div>
+      </article>
+      <article class="card border border-base-300 bg-success">
+        <div class="card-body">
+          <span class="badge badge-outline">02 · mechanism</span>
+          <h2 class="card-title artifact-card-title">Как это работает</h2>
+          <p>Одна причинная цепочка, которую можно опровергнуть evidence.</p>
+        </div>
+      </article>
+      <article class="card border border-base-300 bg-warning">
+        <div class="card-body">
+          <span class="badge badge-outline">03 · unknown</span>
+          <h2 class="card-title artifact-card-title">Чего не знаем</h2>
+          <p>Условие, при котором текущий вывод перестанет быть достаточным.</p>
+        </div>
+      </article>
+    </section>
+
+    <section class="artifact-section">
+      <p class="artifact-kicker">Evidence on demand</p>
+      <h2 class="artifact-heading">Детали раскрываются по мере нужды</h2>
+      <div class="join join-vertical w-full">
+        <details class="collapse collapse-arrow join-item border border-base-300 bg-base-200">
+          <summary class="collapse-title font-medium">Источник наблюдения</summary>
+          <div class="collapse-content"><p>Дайте ссылку, дату и коротко назовите, что именно подтверждено.</p></div>
+        </details>
+        <details class="collapse collapse-arrow join-item border border-base-300 bg-base-200">
+          <summary class="collapse-title font-medium">Альтернативное объяснение</summary>
+          <div class="collapse-content"><p>Покажите ближайшую конкурирующую гипотезу и различающий тест.</p></div>
+        </details>
+        <details class="collapse collapse-arrow join-item border border-base-300 bg-base-200">
+          <summary class="collapse-title font-medium">Следующий дешёвый probe</summary>
+          <div class="collapse-content"><p>Назовите одно действие, которое сильнее всего уменьшит неизвестность.</p></div>
+        </details>
+      </div>
+    </section>
+
+    <footer class="artifact-footer">
+      <a href="index.html">← Галерея</a>
+      <span>Observation → mechanism → unknown</span>
+    </footer>
+  </main>
+</body>
+</html>

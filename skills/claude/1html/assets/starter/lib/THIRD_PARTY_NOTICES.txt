@@ -1,0 +1,17 @@
+This local draft bundle includes:
+
+- daisyUI 5.7.4
+  https://github.com/saadeghi/daisyui
+  License: MIT (licenses/daisyui.txt)
+
+- Tailwind CSS browser runtime 4.3.3
+  https://github.com/tailwindlabs/tailwindcss
+  License: MIT (licenses/tailwindcss.txt)
+
+- Alpine.js 3.15.12
+  https://github.com/alpinejs/alpine
+  License: MIT (licenses/alpinejs.txt)
+
+These files are vendored so local HTML drafts open without a CDN, package
+install, or build step. Alpine.js is available but is not loaded by the starter;
+add its script tag only when native HTML controls are insufficient.

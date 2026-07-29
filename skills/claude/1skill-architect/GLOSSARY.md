@@ -2,9 +2,10 @@
 
 Domain model for making a control surface found and activated at its moment.
 Each term below is a lever on **Moment-fit**. This glossary owns architecture
-language for `1skill-architect`; general skill-writing discipline belongs to the
-official Claude `skill-creator` and current Claude skill authoring rules. Read it only when
-a term is ambiguous or the vocabulary itself is being changed.
+language for `1skill-architect`; general skill-writing discipline belongs to
+the official Claude `skill-creator` and current Claude skill authoring rules.
+Read it only when a term is ambiguous or the vocabulary itself is being
+changed.
 
 ## Contents
 
@@ -90,10 +91,10 @@ _Avoid_: keyword bundle, generic trigger
 ### Description Budget
 
 The discipline of making `description` a pointer to the body, not a digest of
-the body. Build the full routing architecture first, then compress. Move
-identity, rationale, examples, and proof into the body or references.
+the body. Preserve the routing function that matters against live neighbors;
+move identity, rationale, examples, and proof into the body or references.
 
-_Avoid_: 1024 as target, premature shortening
+_Avoid_: 1024 as target, body summary
 
 ### Candidate Canvas
 
@@ -116,8 +117,8 @@ _Avoid_: n-gram dedupe, isolated description review
 ### Micro-router
 
 The ideal shape of `SKILL.md`: a short router with root virtue, boundaries,
-default path, conditional reference routes, validation, and stop condition. It
-is not a tutorial that teaches every concept on every activation.
+decision standard, conditional reference routes, validation, and stop
+condition. It is not a tutorial or mandatory reasoning algorithm.
 
 _Avoid_: tutorial, full manual, exhaustive process
 
@@ -144,21 +145,13 @@ must name the closest existing owner and the concrete gap.
 
 _Avoid_: duplicate check, search for similar names
 
-### Minimum Gate
+### Evidence Gate
 
-The lightweight proof level for low-risk local changes: 2-3 concrete use cases
-or one real trace/correction, explicit use/skip boundaries, structural
-validation, and one observable output check or manual comparison.
+The claim-matched proof bar for a new or changed surface. Routing, behavior,
+relative-improvement, structure and distribution claims need different
+evidence; risk raises discriminating strength without creating a fixed package.
 
-_Avoid_: smoke test only, matcher-only proof
-
-### Strict Gate
-
-The proof level for broad, frequent, risky, global, credential/network, or
-already-regressed triggers: near-miss trigger evals, baseline comparison,
-collision/canvas checks, metadata sync, and observable behavior assertions.
-
-_Avoid_: ritual test suite
+_Avoid_: minimum/strict ritual, matcher-only proof
 
 ### Design-time
 
@@ -170,8 +163,8 @@ _Avoid_: benchmark, optimization loop
 
 ### Measurement-time
 
-The official Claude `skill-creator` phase: validation scripts, forward testing, measured
-benchmarks, packaging mechanics, and iteration from observed runs.
+The official Claude `skill-creator` phase: validation scripts, forward testing,
+measured benchmarks, packaging mechanics, and iteration from observed runs.
 
 _Avoid_: design critique
 

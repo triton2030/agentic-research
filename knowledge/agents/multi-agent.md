@@ -1,5 +1,5 @@
 ---
-description: Multi-agent системы — независимые потоки, context hygiene, worker contract, synthesis и борьба с ложным consensus.
+description: Multi-agent системы: независимые потоки, worker contract, synthesis и ложный consensus.
 ---
 
 # Agents — Multi-agent Systems
@@ -13,7 +13,9 @@ Tool surface каждого worker — `tool-design.md`.
 
 ## Проверено
 
-- Роли агентов лучше разделять, чем собирать в одного «супер-агента». Для сложной системы устойчивее несколько узких ролей с ясными границами.
+- Subagent оправдан отдельной ролью, ownership или context stream, а не общей
+  идеей «несколько агентов надёжнее одного». Если разделение не меняет latency,
+  context hygiene, independence или качество проверки, root достаточен.
 - Главная польза subagents — не только parallel speed, но и context hygiene:
   exploration notes, логи и большие промежуточные результаты остаются в worker
   threads; root хранит requirements, решения и integration, получая сжатый
@@ -27,7 +29,10 @@ Tool surface каждого worker — `tool-design.md`.
   смыслового пересказа, а worker output возвращать по заранее заданному
   контракту. Fan-out держать минимальным: шире — supervisor становится
   bottleneck по контексту и синтезу.
-- Sycophantic consensus: при голосовании или iterative discussion несколько LLM-агентов сходятся к согласию даже при ошибочной позиции одного. Если нужна реальная проверка — встраивать adversarial роль с мандатом «искать дыры», не консенсус.
+- Sycophantic consensus: при голосовании или iterative discussion несколько
+  LLM-агентов сходятся к согласию даже при ошибочной позиции одного. Если нужна
+  реальная проверка — давать adversarial role мандат «искать дыры», не
+  консенсус.
 - Parallel agents включать только когда есть независимые файлы, evidence streams
   или leaf implementation. Model-specific routing —
   `knowledge/wisdom-gpt-5.6.md`, `knowledge/wisdom-claude-opus-5.md` и
@@ -57,17 +62,21 @@ Tool surface каждого worker — `tool-design.md`.
   instructions, compaction и concurrency limits. Не переносить её runtime
   defaults в Codex или локальные agent configs как универсальный канон.
 - Для GPT-5.6 demanding root/synthesis начинать с `Sol`, а лёгкие read-heavy
-  workers проверять на `Terra`; качество, latency и cost подтверждать на
-  representative tasks.
+  workers проверять на `Terra`, high-volume дешёвые потоки — на `Luna`;
+  качество, latency и cost подтверждать на representative tasks.
+- Для Opus 5 ограничивать delegation genuinely independent sizeable tracks и
+  низким spawn count. Для Fable 5 parallel/async fan-out допустим чаще, но
+  independence, write ownership и root synthesis остаются обязательными.
 
 ## Опоры
 
-- https://learn.chatgpt.com/docs/agent-configuration/subagents
+- <https://learn.chatgpt.com/docs/agent-configuration/subagents>
   Codex subagent workflows: context isolation, read-heavy default, worker
   prompting, model choice и thread controls.
 
-- https://developers.openai.com/api/docs/guides/responses-multi-agent
+- <https://developers.openai.com/api/docs/guides/responses-multi-agent>
   Отдельная Responses API beta surface и её runtime ограничения.
 
 - `/knowledge/wisdom-claude-code.md`
-  Платформенные наблюдения про Claude Code Agent tool, parallel agents, `isolation: "worktree"`.
+  Платформенные наблюдения про Claude Code Agent tool, parallel agents и
+  `isolation: "worktree"`.

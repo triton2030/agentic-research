@@ -1,60 +1,82 @@
 ---
 name: 1skill-architect
 description: >
-  До реализации skill/control surface: owner, trigger/invocation, collision,
-  body topology. Create/update/validate — `skill-creator`.
+  Use when designing or substantially revising a Claude skill/control surface
+  before implementation: decide owner, trigger, collisions, and
+  outcome-vs-workflow shape. Create/update/validate → `skill-creator`.
 ---
 
-Скил существует, чтобы вернуть нужную экспертизу в момент действия. **Moment-fit**
-— surface найден и активирован в нужный момент — корневая добродетель; каждый ход
-ниже служит ей. Скил с верным содержанием, но не найденный в свой момент, не
-существует. Точные значения **bold-терминов** бери из
-[`GLOSSARY.md`](GLOSSARY.md) только при ambiguity или правке vocabulary. Этот
-скил применяет к себе то, что предписывает: trigger surface в `description`,
-micro-router в теле, depth в references.
+# Skill Architect
 
-Начинай с минимального hot path: результат, критерии успеха, scope/authority,
-evidence, нужные reference routes, validation и stop. Явно фиксируй authority,
-required output и side-effect boundary только там, где они меняют поведение.
-Перед добавлением правила удаляй obsolete scaffolding, повторы и generic
-brevity. Порядок фиксируй лишь там, где он сам является требованием: surface до
-текста, proof/reuse до нового surface, description до body.
+## Результат
 
-## Default Path — Спроектировать / Починить Один Surface
+Нужная экспертиза возвращается в момент действия через один правильный surface,
+а его contract меняет наблюдаемое поведение агента без лишнего process
+scaffolding. **Moment-fit** — surface найден и активирован в нужный момент —
+корневая добродетель: сильное содержимое, которое не загрузилось, не существует
+для агента.
 
-1. **Surface первым.** Выбери `skill`, `agent`, `hook-as-code`,
-   `instruction-text` или "не новый surface". У них разный runtime, owner и
-   validation; ошибка surface не лечится хорошим письмом. Если выбран не skill,
-   зафиксируй owner и передай реализацию его live surface.
-2. **Reuse + proof + Delta gate.** Новый или существенно переписанный surface
-   требует:
-   повторяемый ход, отдельный trigger, реальный паттерн сбоя, почему это не
-   закрывают существующие instructions/criteria/runtime/script, и чем
-   недостаточно ближайшее покрытие. В skill входит только **Delta** —
-   неочевидное правило, failure mode или профессиональный ход, который агент не
-   выведет надёжно из задачи, текущего контекста и ближайшего owner. Generic
-   competence не является Delta.
-3. **Description = discovery contract.** Для model-invoked Claude skill
-   `description` — discovery contract: body ещё не виден, а runtime может усечь
-   discovery metadata. Поэтому первая фраза
-   держит use case и boundary. Пиши в две фазы: архитектура
-   (**Condition x Delta**, trigger-surface-not-capability, near-miss) ->
-   compression (указатель к телу, не выжимка).
-4. **Canvas audit.** На authoring-time читай полный live candidate set и отдельно
-   проверяй видимый prompt surface; full co-presence не гарантирована. Не
-   пересказывай соседей: bare pointer (`1planning`, `1instruction-layer`) обычно
-   лучше. Повтор trigger-фразы = collision, а не дубль, решай ownership.
-5. **Body = micro-router.** `SKILL.md` держит root virtue, default path, важные
-   branches, conditional reference routes, validation и stop. Не превращай body
-   в учебник и не делай маршрут "читать все references".
-6. **Evidence gate по риску.** Minimum для малой правки; strict для global,
-   broad, frequent, risky, collision-prone или already-regressed surfaces. Здесь
-   выбери bar и acceptance criteria; measurement mechanics передай
-   `skill-creator`.
+Точные значения **bold-терминов** бери из [`GLOSSARY.md`](GLOSSARY.md) только
+при ambiguity или правке vocabulary.
 
-Детали шагов 2–6 (двухфазный method, canvas audit, limits, eval gates, checks,
-source discipline) — [`references/claude-skill-authoring.md`](references/claude-skill-authoring.md).
-Контракт локального skill — [`references/local-skill-contract.md`](references/local-skill-contract.md).
+## Surface И Admission
+
+Surface type и owner должны быть определены до wording:
+
+- `skill` возвращает повторяемое профессиональное суждение или tool workflow;
+- `agent` изолирует независимую роль или context stream;
+- `hook-as-code` детерминированно наблюдает или ограничивает runtime event;
+- `instruction-text` задаёт устойчивое default-правило;
+- "не новый surface" — правильный результат, если ближайший owner уже достаточен.
+
+Новый или существенно переписанный surface оправдан только когда есть
+повторяемый момент, отдельный trigger, наблюдаемый failure pattern и **Delta**,
+которую агент не выводит надёжно из задачи, текущего контекста и ближайшего
+owner. Generic competence prompt budget не получает.
+
+## Body Shape
+
+**Outcome/decision contract — default** для judgment, design и quality skills.
+Он держит желаемое состояние, главный decision standard, материальные
+boundaries, falsifiable evidence, условные routes и stop/handoff. Модель сама
+выбирает путь.
+
+**Workflow contract — исключение** для хрупкой, необратимой, safety-critical или
+tool-bound работы, где порядок сам является частью корректности. Оставляй только
+последовательность, отсутствие которой воспроизводит конкретный failure.
+
+**Micro-router** означает компактный contract и conditional disclosure, а не
+обязательный алгоритм рассуждения. Не превращай `SKILL.md` в учебник и не
+маршрутизируй к чтению всех references.
+
+## Discovery Contract
+
+Для model-invoked Claude skill `description` участвует в discovery до загрузки
+body:
+
+- opening называет observable condition и важную Delta;
+- trigger описывает момент, не каталог capabilities;
+- adjacent near-miss принадлежит одному owner-у;
+- description остаётся указателем к body, не его конспектом.
+
+Полный live candidate canvas и фактически видимый prompt surface сильнее
+изолированной формулировки. Shared trigger phrase — collision/ownership signal,
+не задача literal dedupe. Соседей обозначай bare pointer-ом.
+
+## Evidence Gate
+
+Evidence должен быть способен опровергнуть материальный claim изменения.
+Global, broad, frequent, risky, collision-prone или already-regressed surface
+повышает требуемую различающую силу, но не создаёт фиксированный test package.
+Baseline нужен для relative-improvement claim, near-miss cases — для routing
+claim, projection sync — для реально существующих copies, observable output
+assertion — для behavior claim. Structural validity и prompt visibility не
+доказывают полезное поведение.
+
+Для Opus 5 и Fable 5 сначала удаляй obsolete scaffolding, повторы и generic
+brevity. Жёсткий workflow возвращай только под order-sensitive failure;
+model/effort/long-run правила остаются в model и platform owners, не в portable
+skill core.
 
 ## Failure Modes — Brooks Lens
 
@@ -64,6 +86,8 @@ source discipline) — [`references/claude-skill-authoring.md`](references/claud
   trigger surface.
 - **Shallow abstraction** — `description` пересказывает body и не экономит
   чтение реализации.
+- **Procedure by default** — judgment skill навязывает стадии без
+  order-sensitive failure mode.
 - **Configuration explosion** — несколько surfaces делят один момент без owner.
 - **Cargo-cult creation** — новый surface "по аналогии" без proof/reuse gate.
 - **Description-in-vacuum** — правка одного `description` без audit полного live
@@ -77,7 +101,7 @@ source discipline) — [`references/claude-skill-authoring.md`](references/claud
 - [`GLOSSARY.md`](GLOSSARY.md) — только если термин неоднозначен или меняется
   vocabulary.
 - [`references/claude-skill-authoring.md`](references/claude-skill-authoring.md) —
-  default при создании / существенной правке Claude skill или `description`.
+  при создании / существенной правке Claude skill или `description`.
 - [`references/local-skill-contract.md`](references/local-skill-contract.md) —
   когда вывод включает "нужен локальный skill" или "этот skill переписать".
 - [`references/anti-patterns.md`](references/anti-patterns.md) — широкий аудит
@@ -89,7 +113,8 @@ source discipline) — [`references/claude-skill-authoring.md`](references/claud
 ## Boundaries And Handoff
 
 - `skill-creator` owns creation/scaffolding, packaging, structural validation,
-  forward testing, measured benchmark и prompt eval.
+  forward testing, measured benchmark и prompt eval; его tool-specific steps не
+  становятся обязательной формой skill body.
 - `1skill-architect` owns design-time: surface, trigger, body shape,
   candidate-canvas/collision, owner и evidence gate до реализации.
 - Task contract / current path -> `1planning`.

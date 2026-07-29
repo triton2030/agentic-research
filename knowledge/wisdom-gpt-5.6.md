@@ -1,6 +1,6 @@
 # Wisdom — GPT-5.6
 
-Снимок на 13 июля 2026.
+Снимок на 29 июля 2026.
 
 Здесь живут только правила, которые важны именно для `GPT-5.6`. Общие свойства
 LLM держит `wisdom-llm.md`; платформенные правила Codex держит
@@ -39,6 +39,10 @@ LLM держит `wisdom-llm.md`; платформенные правила Code
   переход между слоями.
 - Показывать только task-relevant tools. Tool description должна объяснять
   `what`, `when`, важные return fields и error behavior.
+- `PTC` использовать для bounded deterministic reduction над уже полученными
+  данными. Semantic judgment, citations, approval-sensitive и внешние действия
+  оставлять прямым tool calls: сжатие orchestration не должно скрывать
+  решение, источник или authority boundary.
 - Для grounded ответа задавать evidence bar и retrieval budget. Повторный поиск
   нужен, когда отсутствует обязательный факт, owner, дата, ID, source или
   citation; отсутствие результата не превращать в уверенное «нет» без одного-
@@ -51,13 +55,15 @@ LLM держит `wisdom-llm.md`; платформенные правила Code
 - `reasoning.effort` — last-mile knob. Начинать с текущего режима, сравнивать его
   с уровнем ниже на representative evals; `medium` — balanced start, `high` /
   `xhigh` / `max` — только по измеренному выигрышу, не глобальный default.
+- Bare alias `gpt-5.6` сейчас разрешается в `gpt-5.6-sol`. Для runtime evidence
+  фиксировать resolved slug, а не считать requested alias доказательством.
 - До повышения effort проверить success criteria, dependency rules, tool
   routing и validation loop.
-- Внутри GPT-5.6 family использовать `Sol` для root/synthesis и сложной
-  неоднозначной работы, а `Terra` — для более быстрых и дешёвых read-heavy
-  scans, exploration и supporting workers. Не считать это жёстким глобальным
-  mapping: model/effort подтверждать representative evals, а доступный slug —
-  в живом runtime конкретной платформы.
+- Внутри GPT-5.6 family `Sol` — capability-first кандидат для root/synthesis и
+  сложной неоднозначной работы, `Terra` — price/performance кандидат для
+  повседневных и supporting задач, `Luna` — volume/low-cost кандидат.
+  Это не жёсткий mapping: variant/effort подтверждать representative evals, а
+  доступный slug — в живом runtime конкретной платформы.
 - В prompt явно назвать значимую проверку результата. Для кода — targeted
   tests/build/smoke по риску; для frontend и visual artifacts — render и
   визуальная инспекция перед финалом.
@@ -74,13 +80,13 @@ LLM держит `wisdom-llm.md`; платформенные правила Code
 - Не переписывать working prompt и одновременно менять model, tools и effort:
   источник регрессии станет неразличим.
 
-## Миграция
+## Критерий Миграции
 
-1. Переключить модель, сохранив текущий reasoning effort.
-2. Снять baseline на representative evals до правки prompt.
-3. Удалить obsolete scaffolding, повторы и нерелевантные tools.
-4. Добавлять только минимальную правку под конкретный trace failure.
-5. После каждой prompt- или effort-правки повторять те же evals.
+Миграция завершена, когда representative evals подтверждают нужный outcome на
+GPT-5.6, а источник изменения различим. Сохраняй достаточно стабильными model,
+prompt, tools и effort, чтобы сравнение что-то доказывало; сначала измеряй
+baseline и pruning, затем возвращай только минимальную Delta под наблюдаемый
+failure. Это evidence contract, а не обязательная стадийная процедура.
 
 ## Где Использовать
 
@@ -91,12 +97,12 @@ LLM держит `wisdom-llm.md`; платформенные правила Code
 
 ## Опоры
 
-- https://developers.openai.com/api/docs/guides/prompt-guidance-gpt-5p6
+- <https://developers.openai.com/api/docs/guides/prompt-guidance-gpt-5p6>
   Официальная GPT-5.6 guidance: prompt pruning, outcome/stop, response length,
   permissions, tools, retrieval, state, effort и validation.
 
-- https://developers.openai.com/api/docs/guides/latest-model?model=gpt-5.6
+- <https://developers.openai.com/api/docs/guides/latest-model>
   Текущий model-family baseline и migration posture.
 
-- https://platform.openai.com/docs/api-reference/responses
+- <https://platform.openai.com/docs/api-reference/responses>
   Responses state, output items и reasoning settings.

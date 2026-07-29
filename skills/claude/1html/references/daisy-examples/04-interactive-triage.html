@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ru" data-theme="editorial">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Interactive triage · DaisyUI example</title>
+  <link href="../../assets/starter/lib/daisyui.css" rel="stylesheet">
+  <link href="../../assets/starter/lib/daisyui-themes.css" rel="stylesheet">
+  <link href="../../assets/starter/assets/theme.css" rel="stylesheet">
+  <script src="../../assets/starter/lib/tailwind.js"></script>
+</head>
+<body>
+  <main class="artifact-main mx-auto max-w-5xl px-5 py-12 sm:px-8">
+    <header class="artifact-hero">
+      <p class="artifact-kicker">Interactive triage · zero custom JS</p>
+      <h1 class="artifact-title">Переключение помогает выбрать, а не украшает.</h1>
+      <p class="artifact-lead">
+        DaisyUI tabs на нативных radio inputs дают meaningful state без
+        собственного JavaScript и отдельной state-модели.
+      </p>
+    </header>
+
+    <div class="tabs tabs-lift">
+      <input class="tab" type="radio" name="triage" aria-label="Сейчас" checked>
+      <div class="tab-content border-base-300 bg-base-200 p-6">
+        <div class="grid gap-4 md:grid-cols-2">
+          <article class="card border border-base-300 bg-success">
+            <div class="card-body">
+              <span class="badge badge-outline">accept</span>
+              <h2 class="card-title artifact-card-title">Готово для черновика</h2>
+              <p>Смысл ясен, формат обратим, новый runtime не нужен.</p>
+            </div>
+          </article>
+          <article class="card border border-base-300 bg-warning">
+            <div class="card-body">
+              <span class="badge badge-outline">clarify</span>
+              <h2 class="card-title artifact-card-title">Нужен один ответ</h2>
+              <p>Неизвестность меняет сам вывод, а не только декоративную деталь.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <input class="tab" type="radio" name="triage" aria-label="Позже">
+      <div class="tab-content border-base-300 bg-base-200 p-6">
+        <ul class="list">
+          <li class="list-row">
+            <span class="badge badge-ghost">01</span>
+            <div><strong>Responsive polish</strong><div class="text-sm opacity-70">Только если страницу будут смотреть с телефона.</div></div>
+          </li>
+          <li class="list-row">
+            <span class="badge badge-ghost">02</span>
+            <div><strong>Export</strong><div class="text-sm opacity-70">Только если пользователь меняет данные внутри.</div></div>
+          </li>
+          <li class="list-row">
+            <span class="badge badge-ghost">03</span>
+            <div><strong>QA</strong><div class="text-sm opacity-70">Только при публикации или явном запросе.</div></div>
+          </li>
+        </ul>
+      </div>
+
+      <input class="tab" type="radio" name="triage" aria-label="Стоп">
+      <div class="tab-content border-base-300 bg-error p-6">
+        <div class="alert border-error-content/30 bg-transparent">
+          <span><strong>Не продолжать:</strong> черновик начал притворяться production-продуктом.</span>
+        </div>
+      </div>
+    </div>
+
+    <footer class="artifact-footer">
+      <a href="index.html">← Галерея</a>
+      <span>Native inputs · DaisyUI state · no app.js</span>
+    </footer>
+  </main>
+</body>
+</html>

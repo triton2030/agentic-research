@@ -3,11 +3,14 @@ description: "Единый вход в компактный канон напи�
 read-before-edit: []
 edit-after-edit: []
 ---
+
 # Как Писать Скиллы
 
-Единый вход для skill authoring. Если нужна одна страница — читай
-[`authoring-canon.md`](authoring-canon.md), потом
-[`checklist.md`](checklist.md).
+Единый вход для skill authoring. [`authoring-canon.md`](authoring-canon.md)
+владеет portable authoring principles; platform/runtime mechanics принадлежат
+`platform-deltas.md` и системным creator skills. [`checklist.md`](checklist.md)
+— acceptance gate для уже выбранного решения, а не следующий обязательный
+workflow.
 
 ## Что Здесь Лежит
 
@@ -17,27 +20,33 @@ edit-after-edit: []
   Agent Skills standard и API/runtime.
 - [`research-2026-mar-may.md`](research-2026-mar-may.md) — source-backed выводы
   из официальных docs и исследований марта-мая 2026.
-- [`checklist.md`](checklist.md) — Go/No-Go перед созданием или правкой скилла.
+- [`checklist.md`](checklist.md) — post-hoc acceptance gate для candidate
+  design, draft или review.
 
 ## Главное Решение
 
-Скилл — не тема и не заметка. Это повторяемый workflow с отдельным trigger,
-границами, входом, выходом и проверкой. Если скилл не меняет поведение агента
-на реальной задаче, его лучше не писать.
+Скилл — не тема, заметка или обязательный алгоритм. Это повторяемое
+профессиональное вмешательство с отдельным trigger, полезной Delta, границами
+и проверяемым результатом. Если скилл не меняет поведение агента на реальной
+задаче, его лучше не писать.
 
-## Быстрый Маршрут
+Default для judgment/design/quality skills — **outcome/decision contract**:
+какой результат должен стать истинным, как разрешать материальные tradeoffs и
+чем результат доказать. Пошаговый workflow нужен только когда порядок сам
+обеспечивает корректность, безопасность или работу хрупкого инструмента.
 
-1. Проверь Go/No-Go в [`checklist.md`](checklist.md).
-2. Пиши `description` как routing contract: когда использовать, когда не
-   использовать, какие реальные фразы пользователя должны сработать.
-3. В `SKILL.md` оставь только ядро: workflow, gotchas, defaults, validation,
-   stop condition и ссылки на нужные bundled files.
-4. Длинные детали вынеси в `references/`, детерминированные операции — в
-   `scripts/`, выходные ресурсы — в `assets/`.
-5. Масштабируй проверку: для маленького скила достаточно минимальной проверки
-   (`minimum gate`); для глобального, частого, рискованного или спорного
-   trigger — строгая проверка (`strict gate`).
-   Детали в [`checklist.md`](checklist.md).
+## Достаточный Авторский Результат
+
+- Admission доказан: повторяемый момент, отдельный trigger и полезная Delta
+  действительно требуют skill surface.
+- `description` различает use, skip и соседние задачи по реалистичным фразам.
+- `SKILL.md` держит outcome, decision rules, boundaries, evidence и stop;
+  workflow присутствует только под order-sensitive failure.
+- Rare detail находится в `references/`, детерминированная хрупкая операция —
+  в `scripts/`, выходной ресурс — в `assets/`.
+- Evidence способен опровергнуть материальные claims именно этого изменения.
+  Глобальность и риск повышают силу доказательства, но не задают обязательный
+  пакет проверок.
 
 ## Свежесть
 
