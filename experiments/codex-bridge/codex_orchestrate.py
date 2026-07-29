@@ -77,6 +77,23 @@ def _files_constraint(files: tuple[str, ...]) -> str:
     )
 
 
+def _manifest_task_record(task: TaskSpec) -> dict[str, Any]:
+    """Запись задачи в manifest: контракт задачи + её эффективная инструкция.
+
+    Файловый контракт уходит воркеру каналом `developer_instructions`, минуя
+    реплику, поэтому по `prompt` и `allowlist` его текст не восстановить: он
+    рендерится backend-кодом, а к моменту разбора прогона код уже другой.
+    Audit-владелец прогона — run_dir, значит точный текст (и его длина) лежат
+    здесь, до первого хода: инструкция, которой нет в run_dir, для аудита не
+    существует."""
+    developer_instructions = _files_constraint(task.files)
+    return {
+        **task.to_json(),
+        "developer_instructions": developer_instructions,
+        "developer_instructions_chars": len(developer_instructions),
+    }
+
+
 async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict[str, Any]:
     from openai_codex import ApprovalMode, Sandbox  # импорт после scrub_billing_env
     from openai_codex.generated.v2_all import ReasoningEffort
@@ -291,7 +308,7 @@ def build_manifest(
         "codex": codex_runtime,
         "verify": verify_commands,
         "allowlist": sorted(allowlist),
-        "tasks": [task.to_json() for task in tasks],
+        "tasks": [_manifest_task_record(task) for task in tasks],
     }
 
 
@@ -434,7 +451,9 @@ def main() -> int:
             "paths": paths,
             "task_count": len(tasks),
             "git": initial_git.to_json(),
-            "tasks": [task.to_json() for task in tasks],
+            # Ровно тот план, что записан в manifest: два вида одного прогона в
+            # одном run_dir не должны расходиться формой.
+            "tasks": manifest["tasks"],
         }
         write_json(run_dir / "result.json", payload)
         print(

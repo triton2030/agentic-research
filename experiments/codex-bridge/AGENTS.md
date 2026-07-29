@@ -109,8 +109,11 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
   обязан показывать ПОЛНУЮ эффективную инструкцию — обе секции сразу
   (`codex_run_ledger.render_prompt_document`), а manifest несёт
   `developer_instructions_chars` рядом с `prompt_chars` (`prompt_chars` —
-  длина именно user-промпта). Новый вход обязан делать так же: инструкция,
-  которой нет в run_dir, для аудита не существует.
+  длина именно user-промпта). У флота своего `prompt.md` нет: точный текст
+  файлового контракта и его длина лежат в записи задачи —
+  `manifest.tasks[].developer_instructions` (+ `_chars`), пишутся до первого
+  хода, поэтому фиксируются и в `--dry-run`. Новый вход обязан делать так же:
+  инструкция, которой нет в run_dir, для аудита не существует.
 - **Ретраится только СТАРТ.** `thread_start` / `thread_resume` / `thread.turn`
   оборачиваются в `codex_retry` (sync — поверх `retry_on_overload` из SDK,
   async-зеркало для флота — свой backoff на общем `is_retryable_error`):

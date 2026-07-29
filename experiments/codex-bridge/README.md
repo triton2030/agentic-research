@@ -369,7 +369,9 @@ run_dir и его collapsed-предков (`_workspace/`) — своя площ
   до запуска Codex. `files` — exact file paths, не directory/prefix scopes.
   Воркеру allowlist объявляется каналом `developer_instructions` его треда, а
   репликой уходит чистый `prompt` задачи; текст — объяснение рамки, enforcement
-  остаётся на preflight/postflight.
+  остаётся на preflight/postflight. Сам текст и его длина фиксируются в
+  `manifest.tasks[]` (`developer_instructions` / `developer_instructions_chars`)
+  до первого хода — в `--dry-run` тоже, чтобы прогон был восстановим по run_dir.
 - **Git safety fail-closed.** Реальный write-run требует рабочий git worktree.
   `--dry-run` может работать вне git, но помечает `git.available=false`.
 - **Dirty-overlap gate + fingerprint snapshot.** По умолчанию запуск блокируется,
