@@ -1,0 +1,80 @@
+.diagram-viewer {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--artifact-paper, var(--color-base-100));
+}
+
+.diagram-viewer__canvas {
+  display: grid;
+  min-width: 0;
+  height: clamp(420px, 70vh, 780px);
+  overflow: hidden;
+  place-items: center;
+  touch-action: none;
+}
+
+.diagram-viewer__canvas .mermaid {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 24px;
+  place-items: center;
+}
+
+.diagram-viewer__canvas svg {
+  display: block;
+  width: 100% !important;
+  max-width: none !important;
+  height: 100% !important;
+}
+
+.diagram-viewer__toolbar {
+  position: absolute;
+  z-index: 5;
+  top: 14px;
+  right: 14px;
+  box-shadow: var(--artifact-shadow, 0 12px 32px rgb(0 0 0 / 10%));
+}
+
+.diagram-viewer__toolbar .btn {
+  border-color: var(--artifact-line, var(--color-base-300));
+  background: color-mix(in srgb, var(--artifact-surface, var(--color-base-200)) 92%, transparent);
+}
+
+.diagram-viewer__scale {
+  min-width: 58px;
+  pointer-events: none;
+  color: var(--artifact-muted, currentColor);
+  font-family: var(--artifact-mono, monospace);
+  font-size: 11px;
+}
+
+.diagram-viewer:fullscreen {
+  display: grid;
+  padding: 24px;
+  background: var(--artifact-paper, var(--color-base-100));
+  place-items: stretch;
+}
+
+.diagram-viewer:fullscreen .diagram-viewer__canvas {
+  height: 100%;
+}
+
+@media (max-width: 640px) {
+  .diagram-viewer__canvas {
+    height: min(68vh, 620px);
+  }
+
+  .diagram-viewer__toolbar {
+    top: 8px;
+    right: 8px;
+  }
+
+  .diagram-viewer__toolbar .btn {
+    min-height: 2rem;
+    height: 2rem;
+    padding-inline: 0.55rem;
+  }
+}

@@ -1,0 +1,16 @@
+This optional local diagram bundle includes:
+
+- Mermaid 11.16.0
+  https://github.com/mermaid-js/mermaid
+  License: MIT (licenses/mermaid.txt)
+
+- Mermaid ELK layout 0.2.2
+  https://github.com/mermaid-js/mermaid-layout-elk
+  License: MIT (licenses/mermaid-layout-elk.txt)
+
+- Panzoom 4.6.2
+  https://github.com/timmywil/panzoom
+  License: MIT (licenses/panzoom.txt)
+
+The bundle is vendored so diagram artifacts open from file:// without a CDN,
+package install, server, or build step.
