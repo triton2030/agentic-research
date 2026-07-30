@@ -3,7 +3,8 @@ name: 1skill-architect
 description: >
   Use when designing or substantially revising a Claude skill/control surface
   before implementation: decide owner, trigger, collisions, and
-  outcome-vs-workflow shape. Create/update/validate → `skill-creator`.
+  outcome-vs-workflow shape. Keep the body independent of neighboring skills
+  and non-applicable-case routing.
 ---
 
 # Skill Architect
@@ -54,6 +55,24 @@ transfers the rule beyond its literal wording:
 Do not praise a tool abstractly or restate the user's goal. If you cannot name
 the unknown Delta and its action-changing benefit, remove the line or surface.
 
+## Contract Independence
+
+One skill owns one positive moment and information job. Its body is not a map of
+the rest of the system. State when this contract applies, what it changes, what
+it must return, and where its own authority stops.
+
+Do not add neighbor menus, "X → another route," handoff catalogs, or sections
+explaining what to do when the skill does not apply. Non-applicable cases belong
+to ordinary discovery and candidate-canvas evaluation, not to this body. Keep a
+negative boundary only when it prevents this skill from overclaiming authority
+inside its own trigger; state the limit without prescribing another surface.
+
+Keep an exact external skill handle only when it is indispensable to execution:
+the called package supplies a required protocol, command, or artifact whose
+identity cannot be expressed as a capability. State that concrete dependency
+and its failure mode. A neighboring capability, a suggested review, or a
+generic handoff never meets this bar.
+
 ## Body Shape
 
 An **outcome/decision contract is the default** for judgment, design, and
@@ -76,13 +95,13 @@ before the body loads:
 
 - the opening names an observable condition and the important Delta;
 - the trigger describes a moment, not a capability catalog;
-- each adjacent near-miss belongs to one owner;
 - the description remains a pointer to the body, not its summary.
 
 The complete live candidate canvas and the prompt surface actually visible to
 the model are stronger evidence than an isolated wording. A shared trigger
 phrase is a collision/ownership signal, not a literal-deduplication task.
-Describe neighbors with bare pointers.
+Resolve near misses in design and evaluation; do not serialize the neighboring
+system into the runtime description.
 
 ## Evidence Gate
 
@@ -118,6 +137,8 @@ Quick self-check (full catalog:
   Delta, prevented failure, and benefit to the user's outcome.
 - **Description-in-vacuum**—one `description` is edited without auditing the
   complete live candidate set and visible prompt surface.
+- **Router residue**—the body explains where unrelated cases should go, so a
+  local contract becomes coupled to the surrounding skill landscape.
 
 **Stop rule:** if you cannot name the trigger surface in one sentence, that is
 a finding; do not keep adding to `description`.
@@ -136,17 +157,12 @@ a finding; do not keep adding to `description`.
   of the skill landscape, runtime, or control surface: eight steps, lenses, and
   output shape.
 
-## Boundaries and Handoff
+## Boundary and Stop
 
-- `skill-creator` owns creation/scaffolding, packaging, structural validation,
-  forward testing, measured benchmarks, and prompt evals; its tool-specific
-  steps do not become the mandatory shape of a skill body.
-- `1skill-architect` owns design-time surface, trigger, body shape,
-  candidate-canvas/collision, owner, and evidence-gate decisions before
-  implementation.
-- Task contract or current path → `1planning`.
-- Prose, folder placement, or instruction wording → `1instruction-layer`.
-- Runtime settings, permissions, hooks, or CLI wiring → the live settings/hook
-  pass.
-- Independent, context-free structural critique → `1fresh-eyes` when the
-  change is load-bearing.
+- The live authoring owner handles creation/scaffolding, packaging, structural
+  validation, forward testing, measured benchmarks, and prompt evals; its
+  tool-specific steps do not become the mandatory shape of a skill body.
+- This surface owns design-time trigger, body shape, candidate-canvas/collision,
+  owner, and evidence-gate decisions before implementation.
+- It does not create, package, distribute, wire, or independently critique the
+  chosen surface. Stop after the design decision and evidence gate are explicit.

@@ -7,9 +7,8 @@ edit-after-edit: []
 # Authoring Canon
 
 Практический канон написания скиллов под рабочий model set из `_ops/GOAL.md`.
-Системные `skill-creator` tools владеют scaffolding и validation mechanics; их
-step list не является универсальной формой body или обязательным authoring
-ritual.
+Системные authoring tools владеют scaffolding и validation mechanics; их step
+list не является универсальной формой body или обязательным authoring ritual.
 
 ## Когда Писать Скилл
 
@@ -51,15 +50,16 @@ budgeted initial list.
 - в первой фразе несёт главный use case и trigger words;
 - говорит `Use when...`, а не просто “helps with...”;
 - описывает intent пользователя, а не внутреннюю механику;
-- содержит boundaries, skip-cases и adjacent near-misses;
 - достаточно настойчивый, чтобы не undertrigger;
 - достаточно точный, чтобы не перетриггерить соседние задачи;
 - остаётся в portable ceiling 1024 символа; platform-specific discovery limits
   и shortening держит `platform-deltas.md`.
 
 Routing evidence использует representative trigger phrases и настоящие
-near-misses. Выборка должна быть достаточна, чтобы проверить заявленный
-trigger и живые collisions; фиксированное число prompts этого не доказывает.
+near-misses. Они остаются тестовыми случаями: не переписывай их в `description`
+или body как карту соседних скиллов. Выборка должна быть достаточна, чтобы
+проверить заявленный trigger и живые collisions; фиксированное число prompts
+этого не доказывает.
 
 ## Тело `SKILL.md`
 
@@ -69,10 +69,17 @@ trigger и живые collisions; фиксированное число prompts 
 
 - результат, который должен стать истинным;
 - главный критерий выбора при конфликте;
-- материальные boundaries и настоящие invariants;
+- материальные ограничения внутри trigger и настоящие invariants;
 - falsifiable acceptance/evidence;
-- условные reference/tool routes;
-- stop и handoff.
+- условные routes только к bundled resources или обязательным tools;
+- stop.
+
+Скилл не является каталогом системы. Не добавляй в body соседние скиллы,
+handoff menu, `X → другой route` или раздел о том, что делать, когда этот скилл
+не подходит. Положительный trigger принадлежит `description`; если он не
+совпал, обычный discovery сам выбирает следующий surface. Отрицательная граница
+остаётся только когда без неё скилл присвоит чужую authority внутри собственного
+trigger, и она формулируется как запрет без дальнейшего маршрута.
 
 **Workflow contract — исключение** для хрупких, необратимых, safety-critical или
 tool-bound операций, где порядок сам является частью корректности. Оставляй
@@ -170,6 +177,7 @@ resolved model; requested alias сам по себе runtime не доказыв
 - Процедура по умолчанию там, где модели нужен outcome и критерии решения.
 - Длинный процесс ради успокоения автора.
 - Большой menu без главного decision standard.
+- Router-секция о соседних или неприменимых случаях.
 - Дубли между `SKILL.md` и `references/`.
 - Скрытая зависимость от чата.
 - Нет validation или stop condition.

@@ -2,8 +2,8 @@
 
 Domain model for making a control surface found and activated at its moment.
 Each term below is a lever on **Moment-fit**. This glossary owns architecture
-language for `1skill-architect`; general skill-writing discipline belongs to
-the official Claude `skill-creator` and current Claude skill authoring rules.
+language for this package; general skill-writing discipline belongs to current
+Claude authoring rules.
 Read it only when a term is ambiguous or the vocabulary itself is being
 changed.
 
@@ -163,7 +163,7 @@ _Avoid_: benchmark, optimization loop
 
 ### Measurement-time
 
-The official Claude `skill-creator` phase: validation scripts, forward testing,
+The official Claude authoring phase: validation scripts, forward testing,
 measured benchmarks, packaging mechanics, and iteration from observed runs.
 
 _Avoid_: design critique

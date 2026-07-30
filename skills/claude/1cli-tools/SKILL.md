@@ -3,8 +3,7 @@ name: 1cli-tools
 description: >
   Use when repo/tooling decisions need terminal evidence: exact text/path/ID/
   count/JSON, active binary owner, CLI flag/schema, update or security scan.
-  Stable ID/table/raw block in Markdown is exact; prose body → 1md-read;
-  unknown meaning → 1md-search; graph → 1md-graph.
+  Stable ID/table/raw block in Markdown is exact.
 ---
 
 # CLI Evidence
@@ -42,9 +41,6 @@ permission на delete/rename.
 | Active binary/version влияет на вывод | `probe-tools.sh` + version | Доказывает реально исполняемый owner |
 | Code syntax/analyzer candidate | exact/code reference | Даёт candidate, не semantic verdict |
 | Update/security/supply-chain | профильная reference | Side effects и evidence bar отличаются |
-| Известный Markdown heading/prose | `1md-read` | Heading-aware body сильнее line match |
-| Неизвестный смысл/owner | `1md-search` | Exact text не заменяет discovery |
-| Links, holders, impact | `1md-graph` | Graph relation не равна text occurrence |
 
 Название команды не гарантирует read-only. `outdated`, `doctor`, `dry-run`,
 `cache verify` и даже некоторые `list/root` могут обновить metadata, repair
@@ -89,17 +85,15 @@ cache или создать directories.
 
 - `derived`: exact CLI fact (`rg`, `fd`, `sg`, parsed JSON field);
 - `inferred`: analyzer/scanner candidate (`knip`, `depcruise`, SAST);
-- `semantic`: ranked search candidate или `1md-search` packet;
+- `semantic`: ranked search candidate;
 - `runtime`: реально выполненная command/test/health check.
 
 `inferred` и `semantic` требуют cross-check перед необратимым действием.
 Secret-scanner finding остаётся candidate даже если verifier принял credential:
 owner/scope и rotate/revoke — отдельные решения.
 
-## Boundaries И Stop
+## Boundary И Stop
 
-- Browser interaction, screenshots и visual assertions → browser/frontend
-  owner.
 - Install/update, network probe, codemod, delete/move/rename, cache download и
   mutating LSP требуют явного покрытия запросом.
 - Exact match отвечает только на literal claim; authority и meaning остаются у
