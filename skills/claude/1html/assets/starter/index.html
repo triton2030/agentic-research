@@ -17,25 +17,44 @@
 </head>
 <body x-data="prototypeViewer()">
   <div class="artifact-shell">
-    <header class="artifact-topbar">
-      <a class="artifact-home-link" href="../index.html">
-        <i data-lucide="arrow-left" class="size-4" aria-hidden="true"></i>
-        Все артефакты
-      </a>
-      <label class="flex items-center gap-2" x-cloak x-show="pages.length > 1">
-        <span class="sr-only">Страница проекта</span>
-        <select
-          class="select select-xs w-auto"
-          :value="herePath"
-          @change="navigate($event.target.value)"
-        >
-          <template x-for="page in pages" :key="page.path">
-            <option :value="page.path" x-text="page.title"></option>
-          </template>
-        </select>
-      </label>
-      <span class="artifact-topbar-note">Local HTML draft</span>
-    </header>
+    <div class="artifact-project-header">
+      <header class="artifact-topbar">
+        <a class="artifact-home-link" href="../index.html">
+          <i data-lucide="arrow-left" class="size-4" aria-hidden="true"></i>
+          Все артефакты
+        </a>
+        <span class="artifact-topbar-note">Local HTML draft</span>
+      </header>
+
+      <nav
+        class="navbar artifact-project-nav"
+        aria-label="Страницы проекта"
+        x-cloak
+        x-show="pageCount() > 1"
+      >
+        <span class="artifact-project-nav-label">Страницы</span>
+        <details class="dropdown artifact-project-mobile md:hidden">
+          <summary class="btn btn-sm btn-ghost" x-text="currentPageTitle()"></summary>
+          <ul
+            class="menu menu-sm dropdown-content bg-base-100 rounded-box shadow-sm"
+            x-html="navigationItemsHtml('mobile')"
+          ></ul>
+        </details>
+        <ul
+          class="menu menu-horizontal artifact-project-menu hidden md:flex"
+          x-html="navigationItemsHtml('desktop')"
+        ></ul>
+      </nav>
+
+      <nav
+        class="breadcrumbs artifact-breadcrumbs"
+        aria-label="Путь к текущей странице"
+        x-cloak
+        x-show="currentTrail().length > 1"
+      >
+        <ul x-html="breadcrumbItemsHtml()"></ul>
+      </nav>
+    </div>
 
     <aside class="artifact-rail" aria-label="Навигация по странице">
       <p class="artifact-kicker">На этой странице</p>

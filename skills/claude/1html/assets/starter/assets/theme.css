@@ -83,6 +83,11 @@ a {
   padding: 56px 0 96px;
 }
 
+.artifact-project-header {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
 .artifact-topbar {
   grid-column: 1 / -1;
   display: flex;
@@ -117,6 +122,77 @@ a {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.artifact-project-nav {
+  min-height: auto;
+  align-items: center;
+  gap: 14px;
+  margin-top: 14px;
+  padding: 0 0 14px;
+  border-bottom: 1px solid var(--artifact-line);
+}
+
+.artifact-project-nav-label {
+  flex: none;
+  color: var(--artifact-muted);
+  font-family: var(--artifact-mono);
+  font-size: 10px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.artifact-project-menu {
+  min-width: 0;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 3px;
+  padding: 0;
+}
+
+.artifact-project-menu > li > a,
+.artifact-project-menu > li > details > summary {
+  min-height: 2.25rem;
+  font-size: 13px;
+}
+
+.artifact-project-menu .active {
+  background: var(--artifact-sage);
+  color: var(--artifact-ink);
+}
+
+.artifact-project-submenu {
+  z-index: 50;
+  width: 260px;
+  border: 1px solid var(--artifact-line);
+}
+
+.artifact-project-mobile {
+  min-width: 0;
+  flex: 1;
+}
+
+.artifact-project-mobile > summary {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.artifact-project-mobile .dropdown-content {
+  z-index: 50;
+  width: min(300px, calc(100vw - 44px));
+  margin-top: 8px;
+  border: 1px solid var(--artifact-line);
+}
+
+.artifact-breadcrumbs {
+  margin-top: 8px;
+  color: var(--artifact-muted);
+  font-family: var(--artifact-mono);
+  font-size: 11px;
+}
+
+.artifact-breadcrumbs [aria-current="page"] {
+  color: var(--artifact-ink);
 }
 
 .artifact-rail {
@@ -359,7 +435,7 @@ a {
     padding-top: 32px;
   }
 
-  .artifact-topbar {
+  .artifact-project-header {
     margin-bottom: 32px;
   }
 
@@ -397,6 +473,14 @@ a {
 
   .artifact-title {
     font-size: 45px;
+  }
+
+  .artifact-topbar {
+    flex-wrap: wrap;
+  }
+
+  .artifact-project-nav-label {
+    display: none;
   }
 
   .artifact-lead {
@@ -439,7 +523,7 @@ a {
     display: none;
   }
 
-  .artifact-topbar {
+  .artifact-project-header {
     display: none;
   }
 

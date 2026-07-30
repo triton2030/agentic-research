@@ -7,6 +7,26 @@ Audit — advisory maintenance, не linter и не gate. Он помогает 
 визуальный язык, но не запрещает интерфейсы, необычные объяснения и анимации,
 которые действительно облегчают понимание.
 
+## Быстрые Source-Сигналы
+
+Если нужно найти вероятное переизобретение компонентов или style drift в
+исходниках, запусти:
+
+```bash
+"<каталог skill>/scripts/audit_html_style.py" \
+  "<artifact-project-or-index.html>"
+```
+
+Скрипт читает только HTML/CSS и возвращает review prompts: action controls без
+DaisyUI-root, competing button utilities, overrides готовых компонентов,
+arbitrary spacing/colors, inline styles, новые CSS tokens и расхождение
+shared CSS assets с текущим starter/bundle. Findings не меняют exit code,
+ничего не исправляют и не являются визуальным вердиктом.
+
+Интерпретируй каждый сигнал по reader job. Готовый DaisyUI-вариант обычно
+заменяет случайный custom component; осознанная необычная визуализация остаётся
+локальным исключением.
+
 ## Карточка: Канон Не Равен Старым Артефактам
 
 **Главная опасность:** следующий агент копирует накопившийся drift, потому что

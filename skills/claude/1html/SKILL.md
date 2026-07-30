@@ -24,7 +24,9 @@ artifact и catalog.
 
 Меняй `index.html`; `assets/theme.css` трогай только для другого визуального
 языка. Для дополнительных экранов копируй `pages/_template.html` и один раз
-добавляй экран в `ARTIFACT_PROJECT.pages` внутри `assets/project.js`.
+добавляй экран в `ARTIFACT_PROJECT.pages` внутри `assets/project.js`. Файлы
+оставляй плоскими в `pages/`; иерархию задавай через `children` — starter сам
+построит верхний navbar, dropdown веток и breadcrumbs текущего пути.
 
 После ручного удаления или переименования проектов обнови каталог:
 

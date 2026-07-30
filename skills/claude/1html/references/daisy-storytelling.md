@@ -33,6 +33,7 @@ Tailwind utilities для конкретной композиции. Повто�
 | Время | `timeline` | причинности без времени |
 | Одновременное сравнение | `table`, `diff`, side-by-side | tabs |
 | Равноправные виды объекта | `tabs`, `swap` | page navigation |
+| Иерархия страниц | `navbar`, `menu`, `dropdown`, `breadcrumbs` | tabs |
 | Модульная коллекция | `card`, `list`, gallery | непрерывного аргумента |
 | Одна необязательная глубина | `details.collapse` | главного вывода |
 | Редкая сфокусированная задача | `dialog.modal` | справочного склада |
@@ -41,6 +42,19 @@ Tailwind utilities для конкретной композиции. Повто�
 `badge` — короткий status или tag. `alert` — важное состояние с последствием.
 `stats` — только реальные числа с контекстом. `tooltip` — короткое
 необязательное пояснение, не скрытая инструкция.
+
+## Карточка: Дерево Страниц Сверху
+
+**Сигнал:** artifact project содержит родительские и дочерние страницы.
+
+**Практика:** используй готовый верхний `navbar`. Leaf остаётся прямой ссылкой;
+branch раскрывает `menu` через нативные `details`/`summary`, содержит отдельную
+ссылку на overview родителя и вложенные страницы. `breadcrumbs` показывают
+текущий путь. В `ARTIFACT_PROJECT.pages` вложи узлы через `children`; HTML-файлы
+остаются плоскими в `pages/`.
+
+**Не делай:** не изображай иерархию tabs, не открывай submenu только по hover и
+не превращай summary родителя в единственный недоступный путь к его странице.
 
 ## Карточка: Нативный State
 
@@ -119,6 +133,10 @@ DaisyUI.
 - [daisyUI Collapse](https://daisyui.com/components/collapse/?lang=en)
 - [daisyUI Modal](https://daisyui.com/components/modal/?lang=en)
 - [daisyUI Loading](https://daisyui.com/components/loading/?lang=en)
+- [daisyUI Navbar](https://daisyui.com/components/navbar/?lang=en)
+- [daisyUI Dropdown](https://daisyui.com/components/dropdown/?lang=en)
+- [daisyUI Menu](https://daisyui.com/components/menu/?lang=en)
+- [daisyUI Breadcrumbs](https://daisyui.com/components/breadcrumbs/?lang=en)
 - [daisyUI utilities](https://daisyui.com/docs/utilities/?lang=en)
 - [daisyUI 5.6](https://daisyui.com/blog/v5.6/)
 - [Tailwind animation and reduced motion](https://tailwindcss.com/docs/animation)
