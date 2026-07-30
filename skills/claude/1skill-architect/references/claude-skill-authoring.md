@@ -1,133 +1,137 @@
 # Claude Skill Authoring
 
-Читай этот reference при создании или существенной правке Claude skill,
-`description`, invocation policy, runtime transfer или source-backed claims.
+Read this reference when creating or substantially revising a Claude skill,
+`description`, invocation policy, runtime transfer, or source-backed claims.
 
-## Желаемый Результат
+## Desired Result
 
-Skill активируется в правильный момент и возвращает Claude недостающий
-профессиональный контракт. Body улучшает observable outcome, не заставляя Opus
-5 или Fable 5 изображать authoring procedure.
+The skill activates at the right moment and returns the missing professional
+contract to Claude. Its body improves the observable outcome without making
+Opus 5 or Fable 5 perform an authoring procedure.
 
-Portable core задаёт outcome, decision standard, boundaries, evidence,
-conditional routes и stop. Порядок действий появляется только там, где его
-нарушение воспроизводит correctness, safety или tool failure.
+The portable core defines the outcome, decision standard, boundaries, evidence,
+conditional routes, and stop. Ordered steps appear only when violating the
+order reproduces a correctness, safety, or tool failure.
 
 ## Core Contract
 
-- `description` — discovery contract для model-invoked skill. Main use case,
-  trigger words и adjacent boundaries должны переживать сокращение metadata;
-  body до активации недоступен.
-- `SKILL.md` — compact contract, а не учебник. Держи core outcome, критерий
-  решения, materially important boundaries, evidence, conditional routes и
-  stop/handoff.
-- В skill входит только **Delta**: неочевидная domain logic, failure mode,
-  correction или профессиональный ход, который модель не выводит надёжно из
-  задачи, текущего контекста и ближайшего owner.
-- Authority, required output и side-effect boundary называй, только когда они
-  меняют допустимое действие.
-- Не проси читать все references. Каждый bundled file получает
-  action-changing route из `SKILL.md`.
-- Reference files держи one level deep; длинному reference дай короткую
-  plain-text карту содержания. Body до 500 строк — ceiling, не цель.
-- Scripts оправданы deterministic behavior, external tooling или повторяемой
-  хрупкой операцией; examples — не компенсация слабого interface.
+- `description` is the discovery contract for a model-invoked skill. The main
+  use case, trigger words, and adjacent boundaries must survive metadata
+  shortening; the body is unavailable before activation.
+- `SKILL.md` is a compact contract, not a textbook. Keep the core outcome,
+  decision criterion, materially important boundaries, evidence, conditional
+  routes, and stop/handoff.
+- Include only **Delta** in a skill: non-obvious domain logic, a failure mode,
+  a correction, or a professional move the model cannot reliably infer from
+  the task, current context, and nearest owner.
+- Name authority, required output, and side-effect boundaries only when they
+  change the permitted action.
+- Do not instruct the agent to read every reference. Give each bundled file an
+  action-changing route from `SKILL.md`.
+- Keep reference files one level deep; give a long reference a short plain-text
+  content map. A body under 500 lines is a ceiling, not a target.
+- Scripts are justified by deterministic behavior, external tooling, or a
+  recurring fragile operation; examples do not compensate for a weak
+  interface.
 
-## Outcome Или Workflow
+## Outcome or Workflow
 
-Outcome/decision contract — default для judgment, design и quality work:
+An outcome/decision contract is the default for judgment, design, and quality
+work:
 
-- какое состояние должно стать истинным;
-- какой decision standard разрешает tradeoff;
-- какие boundaries действительно материальны;
-- какое evidence может опровергнуть успех;
-- когда нужен reference/tool/agent;
-- где stop или handoff.
+- the state that must become true;
+- the decision standard that resolves a tradeoff;
+- the boundaries that are actually material;
+- the evidence that can refute success;
+- when a reference, tool, or agent is needed;
+- where to stop or hand off.
 
-Workflow contract оправдан, когда порядок сам является частью корректности:
-необратимая операция, safety boundary, transactional sequence, protocol или
-хрупкий tool handoff. Оставляй только инвариантную последовательность, а не
-универсальную процедуру «для надёжности».
+A workflow contract is justified when order itself is part of correctness: an
+irreversible operation, safety boundary, transactional sequence, protocol, or
+fragile tool handoff. Keep only the invariant sequence, not a universal
+procedure "for reliability."
 
 ## Discovery Contract
 
-Model-invoked description должна сохранять одну routing function:
+A model-invoked description must preserve one routing function:
 **Condition × Delta**.
 
-- **Condition** — observable anchor, который Claude может распознать сейчас:
-  user phrase, action, artifact, file или path. Абстрактная тема слабее
-  наблюдаемого момента.
-- **Delta** — неочевидная ставка, из-за которой body стоит открыть.
-- Capability catalog не заменяет trigger.
-- Near-miss boundary нужен только там, где сосед действительно претендует на
-  тот же момент.
-- Description остаётся pointer к body, не его digest.
+- **Condition** is an observable anchor Claude can recognize now: a user
+  phrase, action, artifact, file, or path. An abstract topic is weaker than an
+  observable moment.
+- **Delta** is the non-obvious stake that makes opening the body worthwhile.
+- A capability catalog does not replace a trigger.
+- A near-miss boundary is needed only where a neighbor genuinely claims the
+  same moment.
+- The description remains a pointer to the body, not its digest.
 
-Cut-test: если удаление фразы не меняет, какой skill должен активироваться
-против живых соседей, это no-op или body material.
+Cut test: if removing a phrase does not change which skill should activate
+against live neighbors, it is a no-op or body material.
 
-## Candidate Canvas И Invocation
+## Candidate Canvas and Invocation
 
-Полный installed set model-invoked descriptions — authoring-time candidate
-canvas. Runtime co-presence не гарантирована, поэтому broad/adjacent trigger
-дополнительно проверяется на фактически видимом prompt surface.
+The complete installed set of model-invoked descriptions is the authoring-time
+candidate canvas. Runtime co-presence is not guaranteed, so a broad or adjacent
+trigger also needs checking against the prompt surface actually visible to the
+model.
 
-- Shared trigger phrase — collision/ownership question, не literal-dedupe.
-- Правду о skill держит его собственный description; сосед использует bare
-  pointer вместо пересказа.
-- `disable-model-invocation: true` подходит deliberate/manual skill, который
-  не должен конкурировать в model discovery.
-- Live Claude skill root и resolved model проверяются, а не выводятся по alias,
-  старому пути или другой платформе.
+- A shared trigger phrase is a collision/ownership question, not literal
+  deduplication.
+- A skill's own description owns its truth; a neighbor uses a bare pointer
+  instead of retelling it.
+- `disable-model-invocation: true` suits a deliberate/manual skill that should
+  not compete in model discovery.
+- Verify the live Claude skill root and resolved model rather than inferring
+  them from an alias, old path, or another platform.
 
-## Evidence По Claim
+## Evidence by Claim
 
-Evidence должен различать именно заявленное свойство:
+Evidence must discriminate the exact property being claimed:
 
-- admission claim — повторяемый момент, полезная Delta и наблюдаемый gap;
-- routing claim — representative use/skip/near-miss cases и живые collisions;
-- structure claim — platform validator и reachable bundled resources;
-- behavior claim — observable assertion на реалистичной задаче;
-- relative-improvement claim — baseline или previous version;
-- distribution claim — source/installed projection sync.
+- admission claim—a recurring moment, useful Delta, and observable gap;
+- routing claim—representative use/skip/near-miss cases and live collisions;
+- structure claim—a platform validator and reachable bundled resources;
+- behavior claim—an observable assertion on a realistic task;
+- relative-improvement claim—a baseline or previous version;
+- distribution claim—source/installed projection sync.
 
-Global, frequent, broad, risky, collision-prone или already-regressed surface
-требует более сильного evidence по поднятому риску. Это не превращается в
-фиксированное количество prompts, обязательный benchmark или универсальный
-verification ritual.
+A global, frequent, broad, risky, collision-prone, or already-regressed surface
+requires stronger evidence for the risk it raises. This does not become a fixed
+number of prompts, a mandatory benchmark, or a universal verification ritual.
 
-Prompt visibility доказывает только возможность selection. Matcher или
-structural validation не доказывают полезный output.
+Prompt visibility proves only that selection is possible. A matcher or
+structural validation does not prove useful output.
 
 ## Model Baseline
 
-- Opus 5 и Fable 5 получают lightweight skill + progressive disclosure.
-- Generic self-review, automatic verifier и fan-out не входят в portable
-  baseline. Objective validation и independent verifier добавляются по
-  task/risk contract.
-- Model, effort, thinking, long-run и fallback rules принадлежат текущему model
-  owner/runtime. Не копируй их в skill.
-- Старые Claude 4.x skills и prompts — historical migration evidence, не
-  active baseline или fallback.
+- Give Opus 5 and Fable 5 a lightweight skill with progressive disclosure.
+- Generic self-review, an automatic verifier, and fan-out are not part of the
+  portable baseline. Add objective validation and an independent verifier
+  according to the task/risk contract.
+- Model, effort, thinking, long-run, and fallback rules belong to the current
+  model owner/runtime. Do not copy them into the skill.
+- Older Claude 4.x skills and prompts are historical migration evidence, not an
+  active baseline or fallback.
 
 ## `skill-creator` Handoff
 
-`1skill-architect` выбирает surface, contract shape, routing claim и evidence
-bar. Официальный Claude `skill-creator` выполняет scaffolding, validation,
-forward testing, measured benchmark и packaging.
+`1skill-architect` chooses the surface, contract shape, routing claim, and
+evidence bar. The official Claude `skill-creator` performs scaffolding,
+validation, forward testing, measured benchmarks, and packaging.
 
-Его step list — механика конкретного tool, а не обязательная форма skill body
-или универсальный authoring ritual. Не воспроизводи matcher/eval pipeline в
-этом reference.
+Its step list is the mechanics of a specific tool, not the mandatory shape of
+a skill body or a universal authoring ritual. Do not reproduce the matcher/eval
+pipeline in this reference.
 
 ## Source Discipline
 
-- Anthropic-endorsed claim требует current official source:
+- An Anthropic-endorsed claim requires a current official source:
   `platform.claude.com/docs`, `code.claude.com/docs`,
-  `anthropic.com/engineering` или `github.com/anthropics/skills`.
-- Local engineering называй local engineering, не рекомендацией Anthropic.
-- Не изобретай metrics, limits или runtime availability. Drift-prone факт
-  перепроверяй в live docs/runtime.
+  `anthropic.com/engineering`, or `github.com/anthropics/skills`.
+- Label local engineering as local engineering, not an Anthropic
+  recommendation.
+- Do not invent metrics, limits, or runtime availability. Recheck a drift-prone
+  fact in live docs/runtime.
 
 Current anchors:
 
