@@ -25,10 +25,12 @@
   "<artifact-name>" "<project-root>"
 ```
 
-Подключи напечатанный script **после** `assets/project.js`, но **до**
-`lib/alpine.js`. Для внутренней страницы используй путь с `../assets/`.
+Подключи напечатанный script **после** `assets/pages.js` и
+`assets/project.js`, но **до** `lib/alpine.js`. Для внутренней страницы
+используй путь с `../assets/`.
 
 ```html
+<script defer src="assets/pages.js"></script>
 <script defer src="assets/project.js"></script>
 <script defer src="assets/artifact-table.js"></script>
 <script defer src="lib/alpine.js"></script>

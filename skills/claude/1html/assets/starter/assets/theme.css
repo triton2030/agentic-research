@@ -94,13 +94,10 @@ body {
 }
 
 .artifact-topbar {
-  grid-column: 1 / -1;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   gap: 20px;
   min-width: 0;
-  padding-bottom: 14px;
+  min-height: auto;
+  padding: 0 0 14px;
   border-bottom: 1px solid var(--artifact-line);
   color: var(--artifact-muted);
   font-family: var(--artifact-mono);
@@ -123,52 +120,32 @@ body {
   color: var(--artifact-accent);
 }
 
-.artifact-topbar-note {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .artifact-project-nav {
-  min-height: auto;
-  align-items: center;
-  gap: 14px;
-  margin-top: 14px;
-  padding: 0 0 14px;
-  border-bottom: 1px solid var(--artifact-line);
-}
-
-.artifact-project-nav-label {
-  flex: none;
-  color: var(--artifact-muted);
-  font-family: var(--artifact-mono);
-  font-size: 10px;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
+  flex: 1 1 auto;
+  min-width: 0;
+  justify-content: center;
 }
 
 .artifact-project-menu {
-  min-width: 0;
-  flex: 1;
-  flex-wrap: wrap;
-  gap: 3px;
+  flex-wrap: nowrap;
   padding: 0;
+  background: transparent;
+  white-space: nowrap;
 }
 
 .artifact-project-menu > li > a,
 .artifact-project-menu > li > details > summary {
   min-height: 2.25rem;
-  font-size: 13px;
 }
 
 .artifact-project-menu .active {
-  background: var(--artifact-sage);
+  background: var(--color-success);
   color: var(--artifact-ink);
 }
 
 .artifact-project-submenu {
   z-index: 50;
-  width: 260px;
+  width: 250px;
   border: 1px solid var(--artifact-line);
 }
 
@@ -198,6 +175,10 @@ body {
 
 .artifact-breadcrumbs [aria-current="page"] {
   color: var(--artifact-ink);
+}
+
+.artifact-topbar-action {
+  white-space: nowrap;
 }
 
 .artifact-rail {
@@ -482,10 +463,15 @@ body {
 
   .artifact-topbar {
     flex-wrap: wrap;
+    gap: 12px 18px;
   }
 
-  .artifact-project-nav-label {
-    display: none;
+  .artifact-project-nav {
+    order: 3;
+    flex-basis: 100%;
+    justify-content: start;
+    overflow: visible;
+    padding-bottom: 0;
   }
 
   .artifact-lead {

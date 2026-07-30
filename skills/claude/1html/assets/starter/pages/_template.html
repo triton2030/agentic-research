@@ -9,6 +9,7 @@
   <link href="../lib/daisyui-themes.css" rel="stylesheet">
   <link href="../assets/theme.css" rel="stylesheet">
   <script src="../lib/tailwind.js"></script>
+  <script defer src="../assets/pages.js"></script>
   <script defer src="../assets/project.js"></script>
   <script defer src="../lib/alpine.js"></script>
 </head>
@@ -26,43 +27,12 @@
   })"
 >
   <div class="artifact-shell">
-    <div class="artifact-project-header">
-      <header class="artifact-topbar">
+    <div class="artifact-project-header" data-artifact-project-shell>
+      <header class="navbar artifact-topbar">
         <a class="artifact-home-link" href="../index.html">
-          <i data-lucide="layout-dashboard" class="size-4" aria-hidden="true"></i>
           Обзор проекта
         </a>
-        <a href="../../index.html">Все проекты</a>
       </header>
-
-      <nav
-        class="navbar artifact-project-nav"
-        aria-label="Страницы проекта"
-        x-cloak
-        x-show="pageCount() > 1"
-      >
-        <span class="artifact-project-nav-label">Страницы</span>
-        <details class="dropdown artifact-project-mobile md:hidden">
-          <summary class="btn btn-sm btn-ghost" x-text="currentPageTitle()"></summary>
-          <ul
-            class="menu menu-sm dropdown-content bg-base-100 rounded-box shadow-sm"
-            x-html="navigationItemsHtml('mobile')"
-          ></ul>
-        </details>
-        <ul
-          class="menu menu-horizontal artifact-project-menu hidden md:flex"
-          x-html="navigationItemsHtml('desktop')"
-        ></ul>
-      </nav>
-
-      <nav
-        class="breadcrumbs artifact-breadcrumbs"
-        aria-label="Путь к текущей странице"
-        x-cloak
-        x-show="currentTrail().length > 1"
-      >
-        <ul x-html="breadcrumbItemsHtml()"></ul>
-      </nav>
     </div>
 
     <main class="artifact-main col-start-2">

@@ -14,11 +14,13 @@ Alpine оправдан, когда несколько controls меняют о�
 
 ## Карточка: Один Владелец State
 
-**Сигнал:** одна панель и список экранов скопированы в каждый HTML.
+**Сигнал:** одна панель, shell или список экранов скопированы в каждый HTML.
 
-**Практика:** общая логика живёт в `assets/project.js` через `Alpine.data`.
-Project pages объявляются один раз в `ARTIFACT_PROJECT.pages`. Конкретный экран
-держит только собственные states, fixtures и comments.
+**Практика:** `assets/project.js` даёт неизменяемый shell и регистрирует
+`prototypeViewer` через `Alpine.data`; дерево объявляется один раз в
+`assets/pages.js`. Конкретный экран держит только собственные states, fixtures
+и comments. Повторяемую project-specific интерактивность вынеси в отдельный
+asset и подключи после `project.js`, но до `alpine.js`.
 
 **Не делай:** не создавай global store для page-local state. `Alpine.store`
 нужен только настоящим shared consumers на одной странице.
@@ -69,7 +71,8 @@ fade + scale, 150 ms на вход и 75 ms на выход. Для чтения
 
 ## Карточка: Короткие Failure Modes
 
-- Большой inline `x-data` → `Alpine.data` в `assets/project.js`.
+- Большой повторяемый inline `x-data` → отдельный project-specific asset с
+  `Alpine.data`, подключённый до `alpine.js`.
 - `x-for` без `:key` → неверные DOM associations после сортировки.
 - Скрытая ветка мелькает → `x-cloak`; базовый CSS уже включён.
 - `$watch` меняет тот же object → реактивный цикл.

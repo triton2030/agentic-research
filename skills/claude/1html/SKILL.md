@@ -43,9 +43,10 @@ artifact и catalog.
 
 Меняй `index.html`; `assets/theme.css` трогай только для другого визуального
 языка. Для дополнительных экранов копируй `pages/_template.html` и один раз
-добавляй экран в `ARTIFACT_PROJECT.pages` внутри `assets/project.js`. Файлы
-оставляй плоскими в `pages/`; иерархию задавай через `children` — starter сам
-построит верхний navbar, dropdown веток и breadcrumbs текущего пути.
+добавляй экран в `assets/pages.js`. Файлы оставляй плоскими в `pages/`;
+иерархию задавай через `children` — общий `assets/project.js` сам построит
+верхний navbar, dropdown веток и breadcrumbs текущего пути. Не копируй
+родителей, соседей или дерево страниц в HTML.
 
 После ручного удаления или переименования проектов обнови каталог:
 
@@ -69,6 +70,7 @@ _workspace/HTML_artifacts/
 └── <artifact-name>/
     ├── index.html
     ├── assets/
+    │   ├── pages.js
     │   ├── theme.css
     │   └── project.js
     ├── pages/
@@ -103,7 +105,9 @@ Metadata принадлежит project entry, а не каждому внутр
   сразу даёт ориентацию и короткий ответ;
 - видимый хребет идёт от ответа к опоре и следующему ходу; скрывается только
   необязательная глубина, связанная с ближайшим тезисом;
-- другая reader job получает внутреннюю страницу того же artifact project.
+- другая reader job получает внутреннюю страницу того же artifact project;
+- другое состояние того же вопроса остаётся в текущем HTML и переключается
+  Alpine, а не становится ещё одной страницей.
 
 Catalog, dashboard и reference могут быть модульными: их единая работа
 действительно состоит в поиске, мониторинге или сравнении элементов.
@@ -150,8 +154,11 @@ Catalog, dashboard и reference могут быть модульными: их �
   reader job и не выражается готовым vocabulary. Оставляй исключение локальным;
   не превращай его автоматически в новый default.
 - Нативные links, `details`, `dialog`, radio и checkbox идут раньше Alpine.
-- Alpine нужен только для связанных состояний и prototype instruments; общая
-  логика живёт в `assets/project.js`.
+- `assets/pages.js` владеет только названием, иконкой и деревом страниц.
+  `assets/project.js` владеет общим shell и prototype instrument — не копируй
+  и не переписывай его по страницам. Отдельную project-specific интерактивность
+  подключай своим asset перед `lib/alpine.js`.
+- Alpine нужен только для связанных состояний и prototype instruments.
 - Lucide уже подключён. Иконка выбирается по смыслу, наследует `currentColor` и
   не остаётся единственным носителем значения.
 - Mermaid добавляется только при diagram-задаче:
