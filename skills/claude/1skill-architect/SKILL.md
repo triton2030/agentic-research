@@ -34,6 +34,26 @@ Surface type и owner должны быть определены до wording:
 которую агент не выводит надёжно из задачи, текущего контекста и ближайшего
 owner. Generic competence prompt budget не получает.
 
+## Delta И Причинная Выгода
+
+**Delta** — знание, различение или преимущество инструмента, которого агент сам
+не знает либо не выводит надёжно из запроса, текущего контекста и ближайшего
+owner-а. Делай это явным в body: не только «используй X», но и какой вероятный
+default или failure это предотвращает и как помогает быстрее, легче или
+надёжнее получить пользовательский outcome.
+
+Причина — не реклама и не enforcement, а decision standard, который переносит
+правило за пределы буквального wording:
+
+- cognitive / judgment skill объясняет default или tell модели и как поправка
+  меняет критерии, решение либо evidence;
+- tool skill объясняет релевантное преимущество инструмента над вероятным
+  default и когда оно меняет route или результат;
+- invariant / safety rule называет защищаемый риск или side effect.
+
+Не хвали инструмент абстрактно и не пересказывай цель пользователя. Если нельзя
+назвать неизвестную Delta и action-changing выгоду, убери строку или surface.
+
 ## Body Shape
 
 **Outcome/decision contract — default** для judgment, design и quality skills.
@@ -90,6 +110,8 @@ skill core.
   order-sensitive failure mode.
 - **Configuration explosion** — несколько surfaces делят один момент без owner.
 - **Cargo-cult creation** — новый surface "по аналогии" без proof/reuse gate.
+- **Naked imperative** — body требует X, но не объясняет неизвестную Delta,
+  предотвращаемый failure и выигрыш для пользовательского outcome.
 - **Description-in-vacuum** — правка одного `description` без audit полного live
   candidate set и видимого prompt surface.
 
