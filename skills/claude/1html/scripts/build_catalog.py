@@ -117,7 +117,28 @@ def build_html(projects: list[CatalogProject]) -> str:
         items,
         activeTags: [],
         sortBy: "newest",
+        favoriteSlugs: [],
+        copiedSlug: "",
+        copyResetTimer: null,
+        favoritesStorageKey:
+          `1html-catalog-favorites-v1:${{window.location.pathname}}`,
         relativeFormatter: new Intl.RelativeTimeFormat("ru", {{ numeric: "auto" }}),
+
+        init() {{
+          try {{
+            const stored = JSON.parse(
+              localStorage.getItem(this.favoritesStorageKey) || "[]"
+            );
+            const available = new Set(this.items.map((item) => item.slug));
+            this.favoriteSlugs = Array.isArray(stored)
+              ? stored.filter(
+                  (slug) => typeof slug === "string" && available.has(slug)
+                )
+              : [];
+          }} catch {{
+            this.favoriteSlugs = [];
+          }}
+        }},
 
         get allTags() {{
           return [...new Set(this.items.flatMap((item) => item.tags))]
@@ -131,6 +152,10 @@ def build_html(projects: list[CatalogProject]) -> str:
           );
 
           return result.sort((left, right) => {{
+            const favoriteOrder =
+              Number(this.isFavorite(right.slug)) -
+              Number(this.isFavorite(left.slug));
+            if (favoriteOrder) return favoriteOrder;
             if (this.sortBy === "oldest") return left.created_epoch - right.created_epoch;
             if (this.sortBy === "title") return left.title.localeCompare(right.title, "ru");
             if (this.sortBy === "tag") {{
@@ -145,6 +170,61 @@ def build_html(projects: list[CatalogProject]) -> str:
           this.activeTags = this.activeTags.includes(tag)
             ? this.activeTags.filter((value) => value !== tag)
             : [...this.activeTags, tag];
+        }},
+
+        isFavorite(slug) {{
+          return this.favoriteSlugs.includes(slug);
+        }},
+
+        toggleFavorite(slug) {{
+          this.favoriteSlugs = this.isFavorite(slug)
+            ? this.favoriteSlugs.filter((value) => value !== slug)
+            : [...this.favoriteSlugs, slug];
+
+          try {{
+            localStorage.setItem(
+              this.favoritesStorageKey,
+              JSON.stringify(this.favoriteSlugs)
+            );
+          }} catch {{
+            // The catalog still works when file:// storage is unavailable.
+          }}
+        }},
+
+        projectUrl(item) {{
+          return new URL(`${{item.slug}}/index.html`, window.location.href).href;
+        }},
+
+        copyTextFallback(value) {{
+          const textarea = document.createElement("textarea");
+          textarea.value = value;
+          textarea.setAttribute("readonly", "");
+          textarea.style.position = "fixed";
+          textarea.style.opacity = "0";
+          document.body.appendChild(textarea);
+          textarea.select();
+          const copied = document.execCommand("copy");
+          textarea.remove();
+          if (!copied) throw new Error("Copy command failed");
+        }},
+
+        async copyProjectLink(item) {{
+          const fullUrl = this.projectUrl(item);
+
+          try {{
+            if (!navigator.clipboard?.writeText) {{
+              throw new Error("Clipboard API unavailable");
+            }}
+            await navigator.clipboard.writeText(fullUrl);
+          }} catch {{
+            this.copyTextFallback(fullUrl);
+          }}
+
+          this.copiedSlug = item.slug;
+          window.clearTimeout(this.copyResetTimer);
+          this.copyResetTimer = window.setTimeout(() => {{
+            if (this.copiedSlug === item.slug) this.copiedSlug = "";
+          }}, 1600);
         }},
 
         relativeTime(epoch) {{
@@ -244,7 +324,8 @@ def build_html(projects: list[CatalogProject]) -> str:
       class="catalog-table-wrap"
       x-cloak
       x-show="visibleItems.length"
-      x-effect="visibleItems; $nextTick(() => window.lucide?.createIcons())"
+      x-effect="visibleItems; copiedSlug; favoriteSlugs;
+        $nextTick(() => window.lucide?.createIcons())"
     >
       <table class="table catalog-table">
         <thead>
@@ -253,7 +334,7 @@ def build_html(projects: list[CatalogProject]) -> str:
             <th scope="col">Теги</th>
             <th scope="col">Страницы</th>
             <th scope="col">Создан</th>
-            <th scope="col"><span class="sr-only">Открыть</span></th>
+            <th scope="col"><span class="sr-only">Действия</span></th>
           </tr>
         </thead>
         <tbody>
@@ -291,13 +372,43 @@ def build_html(projects: list[CatalogProject]) -> str:
               <td class="catalog-nowrap" x-text="pageLabel(item.page_count)"></td>
               <td class="catalog-nowrap" x-text="relativeTime(item.created_epoch)"></td>
               <td>
-                <a
-                  class="btn btn-circle btn-ghost"
-                  :href="`${{item.slug}}/index.html`"
-                  :aria-label="`Открыть ${{item.title}}`"
-                >
-                  <i data-lucide="arrow-up-right" class="size-5" aria-hidden="true"></i>
-                </a>
+                <div class="catalog-actions">
+                  <button
+                    class="btn btn-circle btn-sm catalog-favorite"
+                    :class="isFavorite(item.slug) ? 'btn-primary' : 'btn-ghost'"
+                    @click="toggleFavorite(item.slug)"
+                    :aria-label="isFavorite(item.slug)
+                      ? `Убрать ${{item.title}} из избранного`
+                      : `Добавить ${{item.title}} в избранное`"
+                    :aria-pressed="isFavorite(item.slug)"
+                    :title="isFavorite(item.slug) ? 'Убрать из избранного' : 'В избранное'"
+                  >
+                    <i data-lucide="star" class="size-4" aria-hidden="true"></i>
+                  </button>
+                  <button
+                    class="btn btn-circle btn-sm btn-ghost"
+                    @click="copyProjectLink(item)"
+                    :aria-label="copiedSlug === item.slug
+                      ? `Ссылка на ${{item.title}} скопирована`
+                      : `Скопировать полную ссылку на ${{item.title}}`"
+                    :title="copiedSlug === item.slug ? 'Скопировано' : 'Копировать ссылку'"
+                  >
+                    <template x-if="copiedSlug !== item.slug">
+                      <i data-lucide="copy" class="size-4" aria-hidden="true"></i>
+                    </template>
+                    <template x-if="copiedSlug === item.slug">
+                      <i data-lucide="check" class="size-4" aria-hidden="true"></i>
+                    </template>
+                  </button>
+                  <a
+                    class="btn btn-circle btn-sm btn-ghost"
+                    :href="`${{item.slug}}/index.html`"
+                    :aria-label="`Открыть ${{item.title}}`"
+                    title="Открыть"
+                  >
+                    <i data-lucide="arrow-up-right" class="size-4" aria-hidden="true"></i>
+                  </a>
+                </div>
               </td>
             </tr>
           </template>

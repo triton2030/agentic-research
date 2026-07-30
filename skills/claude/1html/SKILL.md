@@ -33,6 +33,10 @@ _workspace/HTML_artifacts/
 Название берётся из первого `<h1>`, если в `<head>` не задан точный
 `artifact-title`.
 
+В строке можно закрепить проект звездой — избранные всегда идут первыми — и
+скопировать его полный локальный `file://` URL. Оба действия принадлежат
+каталогу; artifact менять для них не нужно.
+
 ```html
 <meta name="artifact-title" content="Заголовок для каталога">
 <meta name="artifact-icon" content="sparkles">
