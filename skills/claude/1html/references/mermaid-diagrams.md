@@ -1,106 +1,90 @@
-# Mermaid Диаграммы
+# Mermaid: Читаемые Диаграммы
 
-## Выбор Формы
+Читай эти карточки, когда знание находится в связях, порядке, ветвлении или
+иерархии. Runtime, ELK и viewer добавляются готовым helper script, поэтому здесь
+нет копируемой HTML-страницы.
 
-Используй Mermaid, когда ребро, порядок, ветвление или иерархия сами несут
-знание. Один тезис, набор независимых карточек или декоративный flow остаются
-обычным текстом и DaisyUI.
+## Карточка: Диаграмма Имеет Вопрос
 
-- `flowchart` — процесс, архитектура, зависимости и развилки;
-- `sequenceDiagram` — сообщения и порядок взаимодействий;
-- `stateDiagram-v2` — состояния и переходы;
-- `mindmap` — компактная иерархия;
-- `quadrantChart` — позиционирование объектов по двум осям.
+**Сигнал:** Mermaid используется как декоративная версия списка.
 
-Простой flowchart оставляй на `dagre`. Для нескольких кластеров, перекрёстных
-связей, обратных петель или большого числа узлов включай ELK.
+**Практика:** сформулируй вопрос, на который отвечает topology. Один тезис и
+независимые карточки оставь обычным текстом или DaisyUI.
 
-## Локальный Runtime
+**Не делай:** не помещай абзацы в nodes; labels называют сущность, состояние
+или действие.
 
-Добавь закреплённый Mermaid, ELK и viewer в уже созданный artifact:
+## Карточка: Тип По Отношению
+
+| Знание | Тип |
+| --- | --- |
+| Процесс, зависимости, развилка | `flowchart` |
+| Порядок сообщений | `sequenceDiagram` |
+| Состояния и переходы | `stateDiagram-v2` |
+| Компактная иерархия | `mindmap` |
+| Сравнение по двум осям | `quadrantChart` |
+
+## Карточка: Direction По Форме
+
+**Сигнал:** `LR` создаёт длинную горизонтальную ленту.
+
+**Практика:** `TB` — default для узких экранов, глубоких процессов и нескольких
+кластеров. `LR` подходит короткому линейному маршруту. Сначала сократи labels и
+число одновременных веток.
+
+**Не делай:** не задавай SVG принудительный `min-width`.
+
+## Карточка: ELK Только Для Сложности
+
+**Сигнал:** есть несколько кластеров, cross-links, обратные петли или много
+узлов.
+
+**Практика:** простой graph оставь на `dagre`; сложный flowchart переключи на
+`layout: elk`. Начни с defaults. `mergeEdges` и
+`nodePlacementStrategy` меняй только под наблюдаемую проблему раскладки.
+
+**Не делай:** ELK не превращает смешанные reader jobs в одну понятную схему.
+Если topology остаётся стеной, раздели её по вопросу читателя.
+
+## Карточка: DaisyUI Владеет Обрамлением
+
+**Сигнал:** toolbar, пояснения и controls рисуются внутри diagram syntax.
+
+**Практика:** DaisyUI владеет card, toolbar, legend, dialog и disclosure.
+Mermaid владеет topology. Для custom theme используй `theme: base` и hex-зеркало
+semantic DaisyUI colors: Mermaid theme engine принимает hex, а не CSS custom
+properties.
+
+`classDef` различает semantic node roles; label и форма дублируют важный цвет.
+
+## Карточка: Viewer Для Реально Большой Схемы
+
+**Сигнал:** fit-to-width делает labels нечитаемыми.
+
+**Практика:** первый кадр показывает всю систему. Большая схема получает
+локальный viewer с pan, wheel/pinch zoom, reset-to-fit и fullscreen. Добавь его
+в artifact готовым script:
 
 ```bash
 "<каталог skill>/scripts/add_mermaid_bundle.sh" "<artifact-name>" "<project-root>"
 ```
 
-Подключи стили в `<head>`:
+Viewer инициализируется только после того, как Mermaid заменил definition на
+SVG. Не копируй runtime вручную.
 
-```html
-<link href="assets/diagram-viewer.css" rel="stylesheet">
-```
+## Карточка: Текстовый Маршрут Остаётся
 
-Обёртка viewer-а:
+**Сигнал:** вывод доступен только через исследование графа.
 
-```html
-<div class="diagram-viewer" data-diagram-viewer>
-  <div class="diagram-viewer__canvas" data-diagram-canvas>
-    <pre class="mermaid">
-flowchart TB
-  A["Смысл"] --> B{"Есть развилка?"}
-  B -->|да| C["Mermaid"]
-  B -->|нет| D["DaisyUI"]
-    </pre>
-  </div>
-</div>
-```
+**Практика:** рядом дай короткое резюме: что показано, главный путь, развилка и
+вывод. В diagram definition задай `accTitle` и `accDescr`.
 
-Загрузи локальные scripts в конце `<body>` и инициализируй viewer только после
-того, как Mermaid заменил text definition на SVG:
+**Не делай:** цвет, spatial position и hover не остаются единственными
+носителями смысла.
 
-```html
-<script src="lib/mermaid.min.js"></script>
-<script src="lib/mermaid-layout-elk.iife.min.js"></script>
-<script src="lib/panzoom.min.js"></script>
-<script src="assets/diagram-viewer.js"></script>
-<script>
-  mermaid.registerLayoutLoaders(MermaidElkLayouts.default);
-  mermaid.initialize({
-    startOnLoad: false,
-    securityLevel: "loose",
-    theme: "base",
-    themeVariables: {
-      background: "#f4f0e7",
-      primaryColor: "#dfe8dc",
-      primaryTextColor: "#1b201d",
-      primaryBorderColor: "#46664f",
-      secondaryColor: "#dce8eb",
-      tertiaryColor: "#f3ddd6",
-      lineColor: "#656b65",
-      clusterBkg: "#fbf8f1",
-      clusterBorder: "#aaa69b"
-    }
-  });
+## Официальные Опоры
 
-  (async () => {
-    await mermaid.run({ querySelector: ".mermaid" });
-    HTMLDiagramViewer.initAll();
-  })();
-</script>
-```
-
-Для сложного flowchart добавь frontmatter в саму диаграмму:
-
-```text
----
-config:
-  layout: elk
-  elk:
-    mergeEdges: false
-    nodePlacementStrategy: NETWORK_SIMPLEX
----
-flowchart TB
-```
-
-## Визуальные Правила
-
-- DaisyUI владеет карточкой, toolbar, dialog, пояснениями и раскрытиями.
-- Mermaid получает те же роли как hex через `themeVariables`; его theme engine
-  не читает DaisyUI custom properties напрямую.
-- `classDef` выделяет семантические роли узлов; цвет не остаётся единственным
-  носителем смысла.
-- Сначала показывай всю диаграмму целиком. Крупной схеме добавляй viewer:
-  pan, wheel/pinch zoom, reset-to-fit и fullscreen.
-- Не задавай Mermaid SVG принудительный `min-width`. Для узкого контейнера
-  выбирай `TB` или viewer; `LR` с большой минимальной шириной создаёт
-  недоступный горизонтальный overflow.
-- Если даже с ELK схема остаётся стеной, раздели её по вопросу читателя.
+- [Mermaid layouts](https://mermaid.js.org/config/layouts.html)
+- [Mermaid flowcharts](https://mermaid.js.org/syntax/flowchart)
+- [Mermaid theming](https://mermaid.js.org/config/theming.html)
+- [Mermaid accessibility](https://mermaid.js.org/config/accessibility)

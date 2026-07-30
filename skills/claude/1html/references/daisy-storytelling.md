@@ -1,84 +1,96 @@
-# DaisyUI И Связное Раскрытие
+# DaisyUI: Компоненты И Motion
 
-Компонент выбирается после reader job. Его задача — передать связь между
-частями мысли, а не придать каждой части отдельную рамку.
+Читай эти карточки, когда выбираешь компонент, semantic role, disclosure или
+анимацию. В starter закреплён локальный DaisyUI `5.7.4`.
 
-## Одна Работа На Страницу
+## Карточка: Daisy Сначала
 
-Сначала сформулируй:
+**Сигнал:** разметка собирается только из utility-классов.
 
-- **входной вопрос:** зачем читатель открыл страницу;
-- **ответ:** один тезис, который страница должна донести;
-- **изменение:** что после чтения можно понять, решить или сделать.
+**Практика:** сначала выбери компонент по смыслу (`card`, `alert`, `table`,
+`tabs`, `collapse`, `modal`, `steps`), затем semantic color role, затем малые
+Tailwind utilities для конкретной композиции. Повторяемый visual token
+принадлежит `theme.css`.
 
-Explainer, decision, plan и tutorial разворачивают один вопросный хребет:
+**Не делай:** не закрепляй случайные palette colors и SVG fill/stroke, если роль
+уже выражает тема.
 
-`ориентация → ответ → почему / evidence / contrast → следствие / действие`
+## Карточка: Компонент По Отношению
 
-Следующий раздел должен отвечать на вопрос, возникший из предыдущего ответа.
-Заголовки называют смысловой ход, а не контейнер вроде «Общее», «Детали» или
-«Разное». Если концептуальное объяснение внезапно переходит в schema, UI,
-данные и acceptance, это несколько reader jobs: держи их отдельными страницами
-в одном artifact project.
-
-Модульная коллекция уместна, когда сама работа — найти, сравнить или
-контролировать элементы: catalog, gallery, dashboard, reference. В связном
-рассказе свободно переставляемые карточки обычно означают, что получился
-инвентарь тем, а не путь к выводу.
-
-## Слои
-
-| Слой | Что входит | Форма |
+| Отношение | DaisyUI-форма | Не использовать для |
 | --- | --- | --- |
-| Всегда видно | Ответ, минимальная опора, риск, следующий ход | hero, prose, verdict, alert |
-| Связанная глубина | Evidence, пример, определение или edge case к видимому тезису | соседний `details.collapse`, modal по месту |
-| Другая работа | Самостоятельная спецификация, реестр, аудит, длинный reference | внутренняя страница artifact project |
-| Не выводить | Повторы, служебный шум, ветка без пользы текущему читателю | omit |
+| Последовательность | `steps` | независимых тем |
+| Время | `timeline` | причинности без времени |
+| Одновременное сравнение | `table`, `diff`, side-by-side | tabs |
+| Равноправные виды объекта | `tabs`, `swap` | page navigation |
+| Модульная коллекция | `card`, `list`, gallery | непрерывного аргумента |
+| Одна необязательная глубина | `details.collapse` | главного вывода |
+| Редкая сфокусированная задача | `dialog.modal` | справочного склада |
+| Действие / state change | `btn`, control | перехода в другое место |
 
-Progressive disclosure — не склад. Trigger должен обещать конкретную глубину, а
-раскрытый материал — продолжать ближайший видимый тезис.
+`badge` — короткий status или tag. `alert` — важное состояние с последствием.
+`stats` — только реальные числа с контекстом. `tooltip` — короткое
+необязательное пояснение, не скрытая инструкция.
 
-## Компонент По Связи
+## Карточка: Нативный State
 
-| Связь / задача | Форма | Не использовать для |
-| --- | --- | --- |
-| Последовательность действий | `steps` | списка независимых тем |
-| Хронология | `timeline` | приоритета или причинности без времени |
-| Одновременное сравнение | table, `diff`, side-by-side | tabs, заставляющих запоминать |
-| Равноправные виды одного объекта | `tabs` / `swap` | процесса, page navigation, разных reader jobs |
-| Равноправные самостоятельные элементы | cards, list, gallery | непрерывного аргумента |
-| Одна необязательная подробность | `details.collapse` рядом с тезисом | вывода, нужного большинству |
-| Несколько связанных необязательных веток | accordion | основной истории и вложенных accordions |
-| Длинная уже связная страница | anchors / side navigation | замены смысловой иерархии |
-| Редкая сфокусированная задача | modal / drawer | свалки справочного текста |
-| Действие или смена состояния | `btn`, Alpine control | обычной навигации |
-| Переход в другое место | link / anchor | имитации действия |
-| UI states и comments | `select` + Alpine, toggle + drawer / alert | ряда дублирующих экран кнопок |
+**Сигнал:** для одного открытия пишется Alpine или ручной JS.
 
-`chat` показывает столкновение моделей, `stats` — только реальные числа с
-контекстом, `tooltip` — короткое необязательное пояснение, `carousel` —
-необязательные примеры. `badge` остаётся коротким статусом или тегом. Иконка и
-цвет не являются единственным носителем смысла.
+**Практика:** searchable disclosure делай через `details` + `summary` с
+DaisyUI collapse. Modal начинай с нативного `<dialog>`: DaisyUI рекомендует этот
+метод, он закрывается по `Esc` и блокирует фон.
 
-Предпочитай нативные `details`, `dialog`, radio и checkbox controls. Alpine
-нужен, когда нативного состояния недостаточно; см.
-[`alpine-prototypes.md`](alpine-prototypes.md).
+**Не делай:** checkbox- и anchor-модалы являются legacy-вариантами, а Alpine
+нужен только для связанных состояний.
 
-## Основание Правил
+## Карточка: Motion Объясняет Изменение
 
-- [USWDS: Card](https://designsystem.digital.gov/components/card/) — cards
-  модульны; для последовательного текста рекомендуются body, headings или list.
-- [GOV.UK: Tabs](https://design-system.service.gov.uk/components/tabs/) — tabs
-  не подходят для последовательного чтения, одновременного сравнения и page
-  navigation.
-- [GOV.UK: Details](https://design-system.service.gov.uk/components/details/)
-  и [Accordion](https://design-system.service.gov.uk/components/accordion/) —
-  скрывается только необязательное; сначала стоит упростить, разделить или
-  оставить материал под headings.
-- [Carbon: Disclosures](https://carbondesignsystem.com/patterns/disclosures-pattern/) —
-  раскрываемый материал относится к конкретному trigger на странице.
-- [W3C WAI: Headings](https://www.w3.org/WAI/tutorials/page-structure/headings/)
-  — headings передают организацию страницы и дают маршрут по ней.
+**Сигнал:** анимация добавляется, потому что экран кажется статичным.
 
-Точную структуру выбранного DaisyUI-компонента ищи по его имени в
-`daisyui-llms.txt`, не загружая весь файл.
+**Практика:** сначала используй встроенный transition компонента. Motion
+допустим, когда показывает смену state, пространственную связь или причинность.
+Он не задерживает чтение и действие.
+
+- `swap-rotate` и `swap-flip` — только для двух состояний одного control;
+- collapse и modal — для появления связанной глубины;
+- `loading-*` — только пока действительно идёт ожидание;
+- дополнительный motion ограничивай opacity/transform и короткой дистанцией;
+- для custom motion используй `motion-safe:` и `motion-reduce:`.
+
+**Не делай:** не запускай decorative autoplay, infinite motion, stagger всего
+экрана или ложный progress. Не анимируй layout без смысловой причины.
+
+## Карточка: DaisyUI 5, Не Старые Рецепты
+
+**Сигнал:** предлагаются `--animation-btn`, `--animation-input` или
+`--btn-focus-scale`.
+
+**Практика:** эти theme variables удалены в DaisyUI 5. Используй поведение
+актуального компонента и только его документированные локальные variables,
+например `--overflow-delay` у collapse.
+
+В DaisyUI 5.6 native `details` collapse получил более плавную анимацию, а
+loading animations — static fallback при `prefers-reduced-motion`. Это не
+означает, что любой custom motion автоматически доступен: extra animation всё
+равно получает reduced-motion вариант.
+
+## Карточка: Полный Ассортимент, Малый Набор
+
+**Сигнал:** знакомый компонент не выражает нужную связь.
+
+**Практика:** точечно найди термин в `daisyui-llms.txt`; полный локальный bundle
+доступен. Выбери минимальное число разных component families на странице.
+
+**Не делай:** не открывай весь reference и не превращай artifact в showcase
+DaisyUI.
+
+## Официальные Опоры
+
+- [daisyUI 5 release notes](https://daisyui.com/docs/v5/?lang=en)
+- [daisyUI Swap](https://daisyui.com/components/swap/?lang=en)
+- [daisyUI Collapse](https://daisyui.com/components/collapse/?lang=en)
+- [daisyUI Modal](https://daisyui.com/components/modal/?lang=en)
+- [daisyUI Loading](https://daisyui.com/components/loading/?lang=en)
+- [daisyUI utilities](https://daisyui.com/docs/utilities/?lang=en)
+- [daisyUI 5.6](https://daisyui.com/blog/v5.6/)
+- [Tailwind animation and reduced motion](https://tailwindcss.com/docs/animation)
