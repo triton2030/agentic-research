@@ -4,9 +4,10 @@ description: "Exact text, path, count and JSON evidence plus code-aware symbol, 
 
 # Exact And Code Evidence
 
-Открывай, когда scope уже задан и нужны exact strings/paths/counts, raw-block
-или JSON inspection, code symbol/refactor evidence, syntax inventory либо
-analyzer candidates. Markdown meaning и owner принадлежат `1md-navigator`;
+Открывай, когда scope уже задан и нужны exact strings/paths/counts, stable IDs,
+table rows, raw blocks или JSON inspection, code symbol/refactor evidence,
+syntax inventory либо analyzer candidates. Heading-bounded Markdown prose
+принадлежит `1md-read`, unknown semantic owner/discovery — `1md-search`;
 frontmatter graph, anchors, wikilinks и impact — `1md-graph`.
 
 ## Exact Text, Paths И Counts
@@ -23,6 +24,34 @@ rg -o --no-filename 'OldName|old/path' SCOPE | wc -l
 Scope и exclusions бери из task/owner packet. Broad raw/archive/vendor count
 подписывай как broad evidence, не как project truth. В raw/interview формах
 извлекай answer blocks, не считай вопросы user claims.
+
+## Exact Markdown IDs И Blocks
+
+Stable ID, registry row или bold-labelled rule может быть мельче ближайшего
+heading. Тогда exact route выгоднее: он не заставляет извлекать многотысячную
+секцию ради одной addressable записи.
+
+Сначала найди locator:
+
+```bash
+rg -n 'STABLE-ID' FILE.md
+```
+
+Если запись многострочная и не имеет собственного heading, извлекай её до
+следующего delimiter **того же семейства**, а не до угаданного следующего
+номера:
+
+```bash
+awk -v start='SYS-R-075' -v family='SYS-R-' '
+index($0, "**" start " ") == 1 { on=1; print; next }
+on && index($0, "**" family) == 1 { exit }
+on
+' FILE.md
+```
+
+`rg -A/-B` допустим как locator/context preview, но не как доказательство
+heading boundary или полного raw block. Если target имеет heading, верни body в
+`1md-read` через `toc → extract`.
 
 ## Raw Blocks, JSON И Links
 

@@ -1,85 +1,109 @@
 ---
 name: 1cli-tools
 description: >
-  Use when repo/tooling decisions need terminal evidence: active binary owner,
-  exact text/path/symbol refs, JSON shape, update or security scan. Markdown
-  meaning → 1md-navigator; graph → 1md-graph; not browser/visual QA.
+  Use when repo/tooling decisions need terminal evidence: exact text/path/ID/
+  count/JSON, active binary owner, CLI flag/schema, update or security scan.
+  Stable ID/table/raw block in Markdown is exact; prose body → 1md-read;
+  unknown meaning → 1md-search; graph → 1md-graph.
 ---
 
 # CLI Evidence
 
+## Почему Это Выгодно
+
+Один точный probe часто отменяет длинную ветку чтения, реализации или спора о
+том, что «наверное» делает инструмент. Live schema дешевле отладки remembered
+flag, а exact ID дешевле чтения многотысячной секции. Это не терминальная
+церемония: используй CLI только там, где literal fact действительно сужает путь
+к ответу пользователя.
+
 ## Результат
 
-Верни проверяемый evidence packet:
+Для обычного узкого probe достаточно:
 
-- claim: на какой вопрос отвечает probe;
-- scope: cwd, paths, exclusions и выбранный runtime;
-- command + active owner: что именно запущено и откуда;
-- evidence class и наблюдаемый результат;
-- gaps, side effects и следующий owner.
+```text
+claim → exact target/scope → observed fact → gap или side effect
+```
+
+Полный packet с command, active owner и evidence class нужен, только когда от
+runtime, версии, риска или воспроизводимости materially зависит решение.
 
 Команда доказывает только свой слой. Manager receipt не доказывает active
 binary; text match не доказывает semantic owner; analyzer finding не даёт
 permission на delete/rename.
 
-## Границы
+## Рабочая Иерархия
 
-- Markdown meaning, canon, owner, corpus discovery и index lifecycle →
-  `1md-navigator`.
-- `depends-on`, holders, anchors, cycles, wikilinks и graph impact →
-  `1md-graph`.
-- Browser interaction, screenshot и visual assertions → профильный browser /
-  frontend skill.
-- Install/update, network probe, codemod, delete/move/rename, cache download и
-  mutating LSP action требуют явного покрытия запросом.
+| Момент | Лучший route | Почему |
+| --- | --- | --- |
+| Exact string/path/count/JSON | `rg` / `fd` / `wc` / `jq` | Literal answer за минимальный output |
+| Stable ID, table row, raw block в Markdown | `rg`, затем delimiter-aware block extraction | Не загружает весь heading ради одной addressable записи |
+| Неизвестный flag или JSON shape | `<tool> --help`; для `md` — `md tools <command> --json` | Live contract предотвращает ложный parse |
+| Active binary/version влияет на вывод | `probe-tools.sh` + version | Доказывает реально исполняемый owner |
+| Code syntax/analyzer candidate | exact/code reference | Даёт candidate, не semantic verdict |
+| Update/security/supply-chain | профильная reference | Side effects и evidence bar отличаются |
+| Известный Markdown heading/prose | `1md-read` | Heading-aware body сильнее line match |
+| Неизвестный смысл/owner | `1md-search` | Exact text не заменяет discovery |
+| Links, holders, impact | `1md-graph` | Graph relation не равна text occurrence |
 
 Название команды не гарантирует read-only. `outdated`, `doctor`, `dry-run`,
 `cache verify` и даже некоторые `list/root` могут обновить metadata, repair
 cache или создать directories.
 
-## Default Path
+## Минимальный Контракт
 
-1. Сформулируй один claim и минимальный scope. До команды назови, какой output
-   подтвердит или опровергнет claim.
-2. Выбери минимальные handles. Targeted presence/owner probe:
+1. Зафиксируй один claim, точный target и единицу измерения: files, matching
+   lines, occurrences, JSON keys, runtime owner или test outcome.
+2. Перед редким flag проверь `<tool> --help`; перед schema-dependent parsing —
+   live keys/schema. Для `md` сначала:
 
    ```bash
-   bash ~/.claude/skills/1cli-tools/scripts/probe-tools.sh rg sg tsc
+   md tools <command> --json
    ```
 
-   Для package CLI сначала подтверди local owner (`node_modules/.bin`) и
-   запускай `pnpm exec` из package root, затем рассматривай global binary.
-   `npm exec`/`npx`/`uvx` могут скачать package/cache и не являются harmless
-   fallback без подтверждённого local receipt.
-3. Загрузи только нужную ветку:
-   - exact strings/paths/counts/JSON, symbol/refactor, syntax и analyzer
-     candidates →
-     [`references/exact-and-code-evidence.md`](references/exact-and-code-evidence.md);
-   - PATH owner, versions, update или explicit machine-wide audit →
-     [`references/runtime-ownership.md`](references/runtime-ownership.md);
-   - secrets, vulnerabilities, SAST или native supply chain →
-     [`references/security-scans.md`](references/security-scans.md).
-4. Перед редким flag проверь `<tool> --help`; перед schema-dependent parsing —
-   live JSON keys/schema. Для `md`: `md tools <command> --json` для machine
-   contract, `md <command> --help` для human flags. Live surface сильнее
-   reference.
-5. Запусти узкий probe. Для delete/rename/codemod нужны два независимых
-   сигнала либо runtime/test confirmation.
-6. Сообщи фактические side effects, в том числе automatic cache/index repair.
+3. Запусти самый узкий probe. Не превращай точный вопрос в inventory
+   репозитория или машины.
+4. Проверяй active binary owner только когда другой binary/version способен
+   изменить вывод. Targeted owner probe:
+
+   ```bash
+   bash ~/.claude/skills/1cli-tools/scripts/probe-tools.sh md rg
+   ```
+
+   Для package CLI сначала предпочитай project-local `node_modules/.bin` /
+   `pnpm exec`. `npm exec`, `npx` и `uvx` могут скачать package/cache.
+5. Для delete/rename/codemod или другого high-risk действия добавь второй
+   независимый signal либо runtime/test confirmation.
+6. Сообщи фактические side effects, включая generated cache/index repair.
+
+## Conditional References
+
+- Exact strings/paths/counts/JSON, stable IDs, raw blocks, symbols и analyzers →
+  [`references/exact-and-code-evidence.md`](references/exact-and-code-evidence.md).
+- PATH owner, versions, update или machine-wide audit →
+  [`references/runtime-ownership.md`](references/runtime-ownership.md).
+- Secrets, vulnerabilities, SAST или native supply chain →
+  [`references/security-scans.md`](references/security-scans.md).
 
 ## Evidence Classes
 
 - `derived`: exact CLI fact (`rg`, `fd`, `sg`, parsed JSON field);
 - `inferred`: analyzer/scanner candidate (`knip`, `depcruise`, SAST);
-- `semantic`: ranked search candidate или navigator packet;
+- `semantic`: ranked search candidate или `1md-search` packet;
 - `runtime`: реально выполненная command/test/health check.
 
 `inferred` и `semantic` требуют cross-check перед необратимым действием.
 Secret-scanner finding остаётся candidate даже если verifier принял credential:
 owner/scope и rotate/revoke — отдельные решения.
 
-## Стоп
+## Boundaries И Stop
 
-Стоп, когда claim получил адресуемый результат; scope, active owner, command и
-evidence class названы; side effects и residual risk не скрыты. Не расширяй
-probe до inventory всей машины, если исходный вопрос уже закрыт.
+- Browser interaction, screenshots и visual assertions → browser/frontend
+  owner.
+- Install/update, network probe, codemod, delete/move/rename, cache download и
+  mutating LSP требуют явного покрытия запросом.
+- Exact match отвечает только на literal claim; authority и meaning остаются у
+  прочитанного owner-а.
+
+Остановись, когда exact claim получил адресуемый ответ, scope и side effects
+видны, а следующий CLI-вызов не способен изменить решение.
