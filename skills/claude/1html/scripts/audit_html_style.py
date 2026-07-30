@@ -52,10 +52,21 @@ DAISY_COMPONENTS = {
 CATEGORY_ORDER = (
     "LIKELY_REINVENTION",
     "DAISY_OVERRIDE",
+    "CONTRAST_RISK",
     "STYLE_LITERAL",
     "OWNER_DIVERGENCE",
 )
 MAX_VISIBLE_FINDINGS = 40
+SEMANTIC_ROLES = (
+    "primary",
+    "secondary",
+    "accent",
+    "neutral",
+    "info",
+    "success",
+    "warning",
+    "error",
+)
 
 ARBITRARY_SPACING_RE = re.compile(
     r"(?:^|:)(?:gap(?:-[xy])?|space-[xy]|p[trblxy]?|m[trblxy]?|"
@@ -89,6 +100,13 @@ CUSTOM_BUTTON_SELECTOR_RE = re.compile(
 DAISY_SELECTOR_RE = re.compile(
     r"(?<![\w-])\.(" + "|".join(sorted(DAISY_COMPONENTS)) + r")(?![\w-])"
 )
+GLOBAL_ANCHOR_COLOR_RE = re.compile(
+    r"(?ms)(?:^|})\s*a\s*\{(?P<body>[^{}]*\bcolor\s*:[^{}]+)\}"
+)
+THEME_TOKEN_RE = re.compile(
+    r"(--color-[a-z0-9-]+)\s*:\s*(#[0-9a-fA-F]{3,8})\s*;"
+)
+CLASS_ATTRIBUTE_RE = re.compile(r"""class\s*=\s*["']([^"']+)["']""")
 
 
 @dataclass(frozen=True)
@@ -105,6 +123,131 @@ def compact(text: str, limit: int = 140) -> str:
     if len(normalized) <= limit:
         return normalized
     return normalized[: limit - 1] + "…"
+
+
+def line_for_offset(text: str, offset: int) -> int:
+    return text.count("\n", 0, offset) + 1
+
+
+def parse_hex_color(value: str) -> tuple[float, float, float] | None:
+    raw = value.removeprefix("#")
+    if len(raw) == 3:
+        raw = "".join(character * 2 for character in raw)
+    if len(raw) != 6:
+        return None
+    return tuple(
+        int(raw[index : index + 2], 16) / 255
+        for index in range(0, 6, 2)
+    )
+
+
+def relative_luminance(color: tuple[float, float, float]) -> float:
+    linear = tuple(
+        channel / 12.92
+        if channel <= 0.04045
+        else ((channel + 0.055) / 1.055) ** 2.4
+        for channel in color
+    )
+    return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2]
+
+
+def contrast_ratio(
+    first: tuple[float, float, float],
+    second: tuple[float, float, float],
+) -> float:
+    light, dark = sorted(
+        (relative_luminance(first), relative_luminance(second)),
+        reverse=True,
+    )
+    return (light + 0.05) / (dark + 0.05)
+
+
+def global_cascade_findings(path: Path, css: str) -> list[Finding]:
+    findings: list[Finding] = []
+    for match in GLOBAL_ANCHOR_COLOR_RE.finditer(css):
+        findings.append(
+            Finding(
+                "DAISY_OVERRIDE",
+                path,
+                line_for_offset(css, match.start()),
+                "Global anchor color can override layered DaisyUI foreground "
+                "states such as `btn` and `menu-active`; scope inheritance "
+                "outside semantic components.",
+                compact(match.group(0).lstrip("}")),
+            )
+        )
+    return findings
+
+
+def semantic_contrast_findings(
+    path: Path,
+    css: str,
+    class_source_files: list[Path],
+) -> list[Finding]:
+    token_values = {
+        name: value
+        for name, value in THEME_TOKEN_RE.findall(css)
+    }
+    parsed_tokens = {
+        name: parse_hex_color(value)
+        for name, value in token_values.items()
+    }
+    findings: list[Finding] = []
+
+    for role in SEMANTIC_ROLES:
+        color_name = f"--color-{role}"
+        content_name = f"--color-{role}-content"
+        color = parsed_tokens.get(color_name)
+        content = parsed_tokens.get(content_name)
+        if color is None or content is None:
+            continue
+        ratio = contrast_ratio(color, content)
+        if ratio < 4.5:
+            findings.append(
+                Finding(
+                    "CONTRAST_RISK",
+                    path,
+                    line_for_offset(css, css.find(f"{color_name}:")),
+                    "Semantic color/content pair is below 4.5:1.",
+                    f"{role}: {ratio:.2f}:1",
+                )
+            )
+
+    used_soft_roles: set[str] = set()
+    for source_path in class_source_files:
+        source = source_path.read_text(encoding="utf-8")
+        for class_value in CLASS_ATTRIBUTE_RE.findall(source):
+            classes = set(class_value.split())
+            for component in ("alert", "badge"):
+                if f"{component}-soft" not in classes:
+                    continue
+                used_soft_roles.update(
+                    role
+                    for role in SEMANTIC_ROLES
+                    if f"{component}-{role}" in classes
+                )
+
+    base = parsed_tokens.get("--color-base-100")
+    if base is None:
+        return findings
+    for role in sorted(used_soft_roles):
+        color_name = f"--color-{role}"
+        color = parsed_tokens.get(color_name)
+        if color is None:
+            continue
+        ratio = contrast_ratio(color, base)
+        if ratio < 4.5:
+            findings.append(
+                Finding(
+                    "CONTRAST_RISK",
+                    path,
+                    line_for_offset(css, css.find(f"{color_name}:")),
+                    "Soft semantic component reuses the role color as "
+                    "foreground, but it is too close to `base-100`.",
+                    f"{role} soft proxy: {ratio:.2f}:1",
+                )
+            )
+    return findings
 
 
 def has_dynamic_root(attributes: dict[str, str]) -> bool:
@@ -327,7 +470,9 @@ def source_files(root: Path, suffix: str) -> list[Path]:
     )
 
 
-def audit(target: Path) -> tuple[Path, list[Path], list[Path], list[Finding]]:
+def audit(
+    target: Path,
+) -> tuple[Path, list[Path], list[Path], list[Path], list[Finding]]:
     resolved = target.expanduser().resolve()
     if resolved.is_file() and resolved.suffix.lower() == ".html":
         root = resolved.parent
@@ -342,6 +487,7 @@ def audit(target: Path) -> tuple[Path, list[Path], list[Path], list[Finding]]:
         else source_files(root, ".html")
     )
     css_files = source_files(root, ".css")
+    js_files = source_files(root, ".js")
     if not html_files:
         raise ValueError("target contains no HTML files")
 
@@ -350,6 +496,19 @@ def audit(target: Path) -> tuple[Path, list[Path], list[Path], list[Finding]]:
         parser = ArtifactHTMLParser(html_path)
         parser.feed(html_path.read_text(encoding="utf-8"))
         findings.extend(parser.findings)
+
+    theme_path = next(
+        (path for path in css_files if path.name == "theme.css"),
+        None,
+    )
+    if theme_path is not None:
+        findings.extend(
+            semantic_contrast_findings(
+                theme_path,
+                theme_path.read_text(encoding="utf-8"),
+                [*html_files, *js_files],
+            )
+        )
 
     skill_dir = Path(__file__).resolve().parent.parent
     owner_baselines = {
@@ -361,6 +520,7 @@ def audit(target: Path) -> tuple[Path, list[Path], list[Path], list[Finding]]:
 
     for css_path in css_files:
         current = css_path.read_text(encoding="utf-8")
+        findings.extend(global_cascade_findings(css_path, current))
         baseline_path = owner_baselines.get(css_path.name)
         if baseline_path is not None:
             baseline = baseline_path.read_text(encoding="utf-8")
@@ -404,18 +564,22 @@ def audit(target: Path) -> tuple[Path, list[Path], list[Path], list[Finding]]:
             finding.message,
         ),
     )
-    return root, html_files, css_files, ordered
+    return root, html_files, css_files, js_files, ordered
 
 
 def print_report(
     root: Path,
     html_files: list[Path],
     css_files: list[Path],
+    js_files: list[Path],
     findings: list[Finding],
 ) -> None:
     print("HTML anti-drift audit — advisory, never pass/fail")
     print(f"target={root}")
-    print(f"scanned={len(html_files)} html, {len(css_files)} css")
+    print(
+        f"scanned={len(html_files)} html, {len(css_files)} css, "
+        f"{len(js_files)} js"
+    )
     print(f"findings={len(findings)}")
 
     if not findings:
@@ -460,12 +624,12 @@ def main() -> int:
         return 2
 
     try:
-        root, html_files, css_files, findings = audit(Path(sys.argv[1]))
+        root, html_files, css_files, js_files, findings = audit(Path(sys.argv[1]))
     except (OSError, UnicodeError, ValueError) as error:
         print(f"Error: {error}", file=sys.stderr)
         return 1
 
-    print_report(root, html_files, css_files, findings)
+    print_report(root, html_files, css_files, js_files, findings)
     return 0
 
 

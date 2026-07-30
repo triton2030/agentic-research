@@ -17,11 +17,12 @@ Audit — advisory maintenance, не linter и не gate. Он помогает 
   "<artifact-project-or-index.html>"
 ```
 
-Скрипт читает только HTML/CSS и возвращает review prompts: action controls без
-DaisyUI-root, competing button utilities, overrides готовых компонентов,
-arbitrary spacing/colors, inline styles, новые CSS tokens и расхождение
-shared CSS assets с текущим starter/bundle. Findings не меняют exit code,
-ничего не исправляют и не являются визуальным вердиктом.
+Скрипт читает HTML/CSS и class-строки first-party JS, затем возвращает review
+prompts: action controls без DaisyUI-root, competing button utilities,
+overrides готовых компонентов, arbitrary spacing/colors, inline styles, новые
+CSS tokens, semantic contrast, глобальный link-color поверх layered Daisy
+states и расхождение shared CSS assets с текущим starter/bundle. Findings не
+меняют exit code, ничего не исправляют и не являются визуальным вердиктом.
 
 Интерпретируй каждый сигнал по reader job. Готовый DaisyUI-вариант обычно
 заменяет случайный custom component; осознанная необычная визуализация остаётся
@@ -64,6 +65,16 @@ DaisyUI structure; palette использует `base`, `primary`, `secondary`, 
 Custom CSS не является нарушением сам по себе. Drift начинается, когда он
 дублирует готовый component, создаёт вторую palette/radius/spacing system или
 заставляет каждую страницу заново решать один и тот же layout.
+
+Modifiers могут менять назначение theme-токена: например, `alert-soft`
+использует semantic role color как foreground, тогда как обычный
+`alert-info` использует пару `info` / `info-content`. Проверяй контраст
+фактически выбранного variant, а не только наличие semantic class.
+
+Не задавай глобальный unlayered `a { color: ... }`: он способен перекрыть
+foreground layered-компонентов DaisyUI, оставив новый фон со старым
+унаследованным текстом. Наследование обычных ссылок ограничивай content-role,
+исключая `btn`, `link` и stateful navigation.
 
 ## Карточка: Иерархия Видна До Декора
 

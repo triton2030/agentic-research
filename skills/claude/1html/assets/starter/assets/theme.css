@@ -17,7 +17,7 @@
   --color-success: #dfe8dc;
   --color-success-content: #46664f;
   --color-warning: #f1e5cc;
-  --color-warning-content: #8b6427;
+  --color-warning-content: #7d581f;
   --color-error: #f3ddd6;
   --color-error-content: #964b3c;
   --radius-selector: 999px;
@@ -70,7 +70,12 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-a {
+.artifact-main a:not(.btn):not(.link),
+.artifact-rail-note a {
+  color: inherit;
+}
+
+.artifact-project-menu a:not(.active):not(.menu-active) {
   color: inherit;
 }
 

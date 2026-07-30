@@ -1,6 +1,6 @@
 ---
 name: 1html
-description: "Когда нужен максимально быстрый локальный HTML-черновик или многоэкранный prototype — report, explainer, comparison, plan, diagram или UI states/comments. Создаёт автономный bundle из готового DaisyUI/Alpine starter, регистрирует его в локальном каталоге и не добавляет проверки на fast path. Явный audit/cleanup существующего artifact включает необязательный visual anti-drift review. Не для production website/app/deploy."
+description: "Когда нужен максимально быстрый локальный HTML-черновик или многоэкранный prototype — report, explainer, comparison, plan, diagram или UI states/comments. Создаёт автономный bundle из готового DaisyUI/Alpine starter, регистрирует его в локальном каталоге и не добавляет проверки на fast path. Явный audit/cleanup существующего artifact включает необязательный visual anti-drift review. Не для production website/app/deploy или встроенной в чат интерактивной визуализации."
 ---
 
 # HTML
@@ -9,6 +9,25 @@ description: "Когда нужен максимально быстрый лок
 
 Выдай переносимый локальный HTML-черновик с минимальной задержкой между запросом
 и первым просмотром.
+
+## Назначение
+
+Артефакт — личная локальная рабочая документация владельца. Он не готовится к
+публичной публикации, рекламе или демонстрации внешней аудитории.
+
+Главный критерий — скорость понимания: владелец должен быстро найти факт,
+состояние, решение, границу или следующий шаг.
+
+- Сначала определи цель страницы и один вопрос читателя.
+- Пиши на уровне владельца проекта; не объясняй ему очевидный контекст.
+- Каждый видимый фрагмент должен выполнять информационную работу. Удаляй
+  вводные фразы, повторы и декоративные объяснения.
+- Используй прямые названия и формулировки. Не добавляй литературные заголовки,
+  метафоры, рекламный тон и эмоциональные оценки.
+- Сохраняй технические различия, условия, неопределённость и статус
+  рекомендации, но выражай их прямо.
+- Визуальная подача служит навигации и чтению. Она не является самостоятельной
+  целью артефакта.
 
 ## Быстрый Старт
 
@@ -104,6 +123,7 @@ Catalog, dashboard и reference могут быть модульными: их �
 | Нужно выстроить рассказ, иерархию, headings, длину строк или раскрытие | [`references/readable-design.md`](references/readable-design.md) | Читаемость, один вопрос, answer-first, связное progressive disclosure |
 | Выбираются DaisyUI-компоненты, semantic colors или motion | [`references/daisy-storytelling.md`](references/daisy-storytelling.md) | Component semantics, native primitives, theme roles, анимация |
 | Нужны UI states, dropdown, comments или связанные controls | [`references/alpine-prototypes.md`](references/alpine-prototypes.md) | State ownership, Alpine primitives, transitions, failure modes |
+| Нужна таблица с поиском, фильтрами или сортировкой | [`references/data-tables.md`](references/data-tables.md) | Semantic rows, DaisyUI controls, Alpine derived view, sortable headers |
 | Знание находится в связях, порядке, ветвлении или иерархии | [`references/mermaid-diagrams.md`](references/mermaid-diagrams.md) | Diagram choice, ELK, viewer, theming, accessibility |
 | Сложный artifact многоэкранный, интерактивный или diagram-heavy | [`references/agent-readable-artifacts.md`](references/agent-readable-artifacts.md) | DOM-порядок, стабильные anchors, текстовые state/diagram outcomes, provenance |
 | Пользователь отдельно просит audit красоты, cleanup или проверку style drift | [`references/visual-audit.md`](references/visual-audit.md) | Advisory visual review, DaisyUI fidelity, rhythm, intentional exceptions |
@@ -112,9 +132,11 @@ Catalog, dashboard и reference могут быть модульными: их �
 
 ## Runtime-Границы
 
-- Default art direction уже в starter и
+- Default visual shell уже в starter и
   `references/editorial-style.png`: тёплая бумага, графит, крупный serif,
   моноширинные labels, тонкие контуры, спокойные sage/clay поверхности.
+  Это описание внешнего вида, а не разрешение на редакционный или
+  художественный тон текста.
 - Полный локальный DaisyUI bundle доступен. Сначала semantic component и theme
   role, затем Tailwind utilities для конкретной композиции.
 - Visual authority: явный пользовательский или project-local reference →
@@ -136,6 +158,13 @@ Catalog, dashboard и reference могут быть модульными: их �
 
 ```bash
 "<каталог skill>/scripts/add_mermaid_bundle.sh" "<artifact-name>" "<project-root>"
+```
+
+- Поиск, filters и сортировка таблицы добавляются только когда они сокращают
+  путь к нужной строке:
+
+```bash
+"<каталог skill>/scripts/add_table_bundle.sh" "<artifact-name>" "<project-root>"
 ```
 
 - Все зависимости локальны и закреплены; CDN, npm install, server и build step
