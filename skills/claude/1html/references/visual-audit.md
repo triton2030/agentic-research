@@ -12,9 +12,9 @@ Audit — advisory maintenance, не linter и не gate. Он помогает 
 **Главная опасность:** следующий агент копирует накопившийся drift, потому что
 видит его в соседних artifacts.
 
-**Порядок authority:** явный пользовательский / project reference → текущие
-starter и `theme.css` skill → semantic DaisyUI → локальная композиция текущей
-страницы. Старые artifacts — только объекты аудита, никогда style precedent.
+Бери порядок visual authority из `Runtime-Границ` в `SKILL.md`; audit его не
+переопределяет. Старые artifacts — только объекты аудита, никогда style
+precedent.
 
 Не продвигай локальное исключение в starter или общий vocabulary без
 повторяемого reader job и явного решения владельца.
@@ -77,7 +77,7 @@ Audit предлагает убрать drift и явно назвать пол�
 
 1. Зафиксируй, что страница должна помочь понять или сделать.
 2. Посмотри текущий render или screenshot и только нужный source.
-3. Сравни с authority-порядком выше, а не с соседними artifacts.
+3. Сравни с authority-порядком `SKILL.md`, а не с соседними artifacts.
 4. Назови максимум три-пять изменений с наибольшим эффектом для hierarchy,
    rhythm, DaisyUI fidelity и понимания.
 5. Отдельно перечисли удачные решения и intentional local exceptions.
