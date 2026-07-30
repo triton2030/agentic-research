@@ -1,6 +1,6 @@
 ---
 name: 1html
-description: "Когда нужен максимально быстрый локальный HTML-черновик: report, explainer, comparison, plan, diagram, deck или одноразовый prototype. Создаёт автономную папку, добавляет её в единый локальный каталог с верхней навигацией и использует готовую DaisyUI-тему; без browser/Playwright-проверок. Не для production website, app или deploy."
+description: "Когда нужен максимально быстрый локальный HTML-черновик или многоэкранный prototype: report, explainer, comparison, plan, diagram, deck, UI states и comments. Создаёт автономный project bundle, добавляет его в табличный локальный каталог с тегами и использует готовые DaisyUI/Alpine assets; без browser/Playwright-проверок. Не для production website, app или deploy."
 ---
 
 # HTML
@@ -10,8 +10,9 @@ description: "Когда нужен максимально быстрый лок
 Выдай переносимый локальный HTML-черновик с минимальной задержкой между запросом
 и показом. При каждом запуске сначала создай `_workspace/HTML_artifacts/` в
 корне текущего проекта, если каталога ещё нет. Корневой `index.html` — одна
-постоянная точка входа во все страницы проекта. Каждый артефакт получает внутри
-свою автономную папку и верхнюю ссылку обратно в каталог:
+постоянная точка входа во все **artifact projects**. Каждый непосредственный
+дочерний каталог — один автономный проект: одна входная страница либо связный
+набор экранов, состояний и комментариев.
 
 ```text
 _workspace/
@@ -21,9 +22,13 @@ _workspace/
     │   ├── assets/
     │   └── lib/
     └── <artifact-name>/
-        ├── index.html
+        ├── index.html              # project entry
         ├── assets/
-        │   └── theme.css
+        │   ├── theme.css
+        │   └── project.js          # shared Alpine state/navigation
+        ├── pages/                  # optional internal screens
+        │   ├── _template.html
+        │   └── <screen>.html
         └── lib/
             ├── daisyui.css
             ├── daisyui-themes.css
@@ -32,22 +37,32 @@ _workspace/
             └── lucide.min.js
 ```
 
-Корневой `index.html` показывает все непосредственные дочерние папки, в которых
-есть `index.html`. По умолчанию название страницы берётся из первого `<h1>`, а
-рядом показывается относительная дата создания. Для точного preview-title и
-большой иконки карточки задай в `<head>` необязательные overrides:
+Корневой каталог показывает по одной широкой строке на artifact project:
+название, крупную иконку, теги, число внутренних страниц и относительную дату
+создания. Он не перечисляет проекты в верхней навигации и не выводит внутренние
+страницы отдельными строками.
+
+По умолчанию название проекта берётся из первого `<h1>`. Для точного
+preview-title, крупной иконки и фильтруемых тегов задай в `<head>`:
 
 ```html
-<meta name="artifact-title" content="Короткий заголовок для галереи">
+<meta name="artifact-title" content="Короткий заголовок для каталога">
 <meta name="artifact-icon" content="sparkles">
+<meta name="artifact-tags" content="prototype, alpine, research">
 ```
 
 Пустой `artifact-title` сохраняет fallback на первый `<h1>`; пустой
-`artifact-icon` оставляет карточку без иконки. `_catalog/` хранит общие локальные
-стили и runtime.
-`<artifact-name>/index.html` хранит содержание и композицию страницы.
+`artifact-icon` оставляет строку без иконки. `artifact-tags` — разделённые
+запятыми project-level tags; каталог даёт multi-tag filter и сортировку по
+новизне, названию или первому тегу. Внутренний экран не дублирует metadata:
+owner проекта — `<artifact-name>/index.html`.
+
+`_catalog/` хранит общие локальные стили и runtime.
+`<artifact-name>/index.html` — вход в проект; дополнительные экраны живут в
+`pages/` и используют его assets.
 Повторяемые цвета, типографика, ритм и layout-роли принадлежат
-`assets/theme.css`. `lib/` — локальные закреплённые зависимости; CDN, npm
+`assets/theme.css`, общая Alpine-логика и список экранов —
+`assets/project.js`. `lib/` — локальные закреплённые зависимости; CDN, npm
 install и build step не нужны. Lucide даёт локальные именованные SVG-иконки,
 которые наследуют цвет активной DaisyUI-темы через `currentColor`.
 
@@ -56,7 +71,7 @@ provenance или вложения. Не называй CSS и runtime-файл�
 
 ## Быстрый Старт
 
-Для нового артефакта из корня проекта скопируй готовый starter:
+Для нового artifact project из корня проекта скопируй готовый starter:
 
 ```bash
 "<каталог skill>/scripts/new_html_bundle.sh" "<artifact-name>"
@@ -66,9 +81,12 @@ provenance или вложения. Не называй CSS и runtime-файл�
 аргументом. Скрипт сам создаёт `_workspace/HTML_artifacts/`, обновляет каталог и
 печатает два адреса: новый artifact и постоянный catalog.
 
-Затем меняй только `index.html` и, если визуальный язык действительно
-отличается, малую часть `assets/theme.css`. Не переписывай runtime и базовую
-тему для каждой страницы.
+Затем меняй `index.html` и, если визуальный язык действительно отличается,
+малую часть `assets/theme.css`. Для дополнительных экранов копируй
+`pages/_template.html`, добавляй каждый экран один раз в
+`ARTIFACT_PROJECT.pages` внутри `assets/project.js`. Project navigation живёт
+внутри проекта; корневой каталог остаётся списком проектов. Не переписывай
+runtime, тему, panel или список экранов в каждом HTML.
 
 После ручного удаления или переименования папок обнови каталог:
 
@@ -116,9 +134,39 @@ Default art direction уже зашит в starter и сохранён в
 `error`), затем добавляй Tailwind utilities для конкретной композиции. Не
 закрепляй случайные palette colors и SVG fill/stroke, если ту же роль выражает
 тема. Стабильная повторяемая роль принадлежит `theme.css`; одноразовое
-расположение может остаться utility-классом. Alpine подключай в HTML только
-когда нативных `details`, `dialog`, links и form controls недостаточно для
-состояния.
+расположение может остаться utility-классом.
+
+## Alpine И Многоэкранные Прототипы
+
+Нативные `details`, `dialog`, links, radio и checkbox остаются самым быстрым
+выбором для простого disclosure. Используй уже локальный Alpine, когда
+артефакту нужны несколько значимых состояний, dropdown-переключатель,
+комментарии/annotations, связанные controls, derived UI или общий prototype
+instrument.
+
+Повторяемая логика проекта живёт в `assets/project.js` через `Alpine.data`;
+страница объявляет только собственные `state`, `states`, fixtures и comments.
+Чистый интерфейс — default: comments, source overlays и служебная панель
+выключены при открытии. Для множества состояний выбирай компактный `select`, а
+не ряд кнопок, который начинает закрывать макет.
+
+- `x-model` связывает dropdown и state;
+- `x-show` держит частые состояния в DOM и поддерживает `x-transition`;
+- `x-if` создаёт редкую тяжёлую ветку, но требует `<template>` с одним root и
+  не поддерживает transition;
+- `x-for` требует один root и стабильный `:key`;
+- `x-cloak` скрывает ветку до старта Alpine; базовый CSS уже включён;
+- `$nextTick` нужен только для DOM после реактивного update;
+- `$watch` не должен менять тот же watched object.
+
+Core Alpine не является router и не переносит state между HTML-файлами.
+Страницы остаются обычными локальными links. Persist, Focus, Collapse, Sort и
+другие официальные plugins не входят в bundle: добавляй один локально только
+под реальный повторяемый эффект.
+
+Точные patterns, verified snapshot, project provider, официальные ссылки и
+failure modes читай только для интерактивных prototype-задач в
+[`references/alpine-prototypes.md`](references/alpine-prototypes.md).
 
 ## Иконки
 
@@ -189,6 +237,8 @@ runtime:
 Для богатого объяснения с несколькими смысловыми ходами используй компактную
 карту `references/daisy-storytelling.md`. Она связывает задачу читателя,
 компонент DaisyUI и правило раскрытия, не превращая основной contract в каталог.
+Для UI states, dropdown и comments ближайший готовый пример —
+`references/daisy-examples/06-alpine-prototype.html`.
 
 Если неизвестно точное имя DaisyUI-компонента, ищи только нужный термин в
 `references/daisyui-llms.txt`; не читай файл целиком.
@@ -207,9 +257,11 @@ QA, screenshot loop, console check, responsive matrix или interaction audit. 
 ## Готово Когда
 
 - `_workspace/HTML_artifacts/<artifact-name>/` создана и содержит `index.html`;
-- корневой каталог обновлён, показывает explicit `artifact-title` или первый
-  `<h1>`, optional большую Lucide-иконку и относительную дату создания;
-- верхняя навигация artifact-а ведёт обратно в каталог;
+- корневой табличный каталог обновлён и показывает explicit `artifact-title`
+  или первый `<h1>`, optional большую Lucide-иконку, теги, число страниц и
+  относительную дату создания;
+- artifact project ведёт обратно в каталог, а многоэкранный project держит
+  внутреннюю навигацию и общий Alpine provider в своих assets;
 - артефакт передаёт запрошенный смысл и использует готовые общие стили;
 - пользователю сразу дана постоянная ссылка на каталог;
 - не выполнены никакие проверки.

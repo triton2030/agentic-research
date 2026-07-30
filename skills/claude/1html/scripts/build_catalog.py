@@ -1,0 +1,326 @@
+#!/usr/bin/env python3
+"""Build the project-level HTML artifact catalog."""
+
+from __future__ import annotations
+
+from dataclasses import asdict, dataclass
+from datetime import datetime
+from html import escape
+import json
+from pathlib import Path
+import sys
+
+from artifact_metadata import read_artifact_metadata
+
+
+@dataclass(frozen=True)
+class CatalogProject:
+    slug: str
+    title: str
+    icon: str
+    tags: tuple[str, ...]
+    created_epoch: int
+    page_count: int
+
+
+def created_epoch(path: Path) -> int:
+    stat = path.stat()
+    return int(getattr(stat, "st_birthtime", stat.st_mtime))
+
+
+def page_count(project_dir: Path) -> int:
+    pages_dir = project_dir / "pages"
+    if not pages_dir.is_dir():
+        return 1
+
+    pages = (
+        page
+        for page in pages_dir.rglob("*.html")
+        if not page.name.startswith("_")
+    )
+    return 1 + sum(1 for _ in pages)
+
+
+def collect_projects(artifacts_root: Path) -> list[CatalogProject]:
+    projects: list[CatalogProject] = []
+
+    for project_dir in artifacts_root.iterdir():
+        if (
+            not project_dir.is_dir()
+            or project_dir.name == "_catalog"
+            or not (project_dir / "index.html").is_file()
+        ):
+            continue
+
+        metadata = read_artifact_metadata(project_dir / "index.html")
+        fallback_title = project_dir.name.replace("-", " ").replace("_", " ")
+        projects.append(
+            CatalogProject(
+                slug=project_dir.name,
+                title=metadata.title or fallback_title,
+                icon=metadata.icon,
+                tags=metadata.tags,
+                created_epoch=created_epoch(project_dir),
+                page_count=page_count(project_dir),
+            )
+        )
+
+    return sorted(projects, key=lambda project: project.created_epoch, reverse=True)
+
+
+def project_payload(projects: list[CatalogProject]) -> str:
+    payload = json.dumps(
+        [asdict(project) for project in projects],
+        ensure_ascii=False,
+        separators=(",", ":"),
+    )
+    return payload.replace("</", "<\\/")
+
+
+def count_label(count: int, one: str, few: str, many: str) -> str:
+    last_two = count % 100
+    last = count % 10
+    if 11 <= last_two <= 14:
+        word = many
+    elif last == 1:
+        word = one
+    elif 2 <= last <= 4:
+        word = few
+    else:
+        word = many
+    return f"{count} {word}"
+
+
+def build_html(projects: list[CatalogProject]) -> str:
+    count = len(projects)
+    projects_label = count_label(count, "проект", "проекта", "проектов")
+    payload = project_payload(projects)
+    payload_attribute = escape(payload, quote=True)
+    generated = datetime.now().astimezone().isoformat(timespec="seconds")
+
+    return f"""<!doctype html>
+<html lang="ru" data-theme="editorial">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="generated-at" content="{escape(generated)}">
+  <title>Локальные HTML-проекты</title>
+  <link href="_catalog/lib/daisyui.css" rel="stylesheet">
+  <link href="_catalog/lib/daisyui-themes.css" rel="stylesheet">
+  <link href="_catalog/assets/theme.css" rel="stylesheet">
+  <link href="_catalog/assets/catalog.css" rel="stylesheet">
+  <script src="_catalog/lib/tailwind.js"></script>
+  <script>
+    document.addEventListener("alpine:init", () => {{
+      Alpine.data("artifactCatalog", (items) => ({{
+        items,
+        activeTags: [],
+        sortBy: "newest",
+        relativeFormatter: new Intl.RelativeTimeFormat("ru", {{ numeric: "auto" }}),
+
+        get allTags() {{
+          return [...new Set(this.items.flatMap((item) => item.tags))]
+            .sort((left, right) => left.localeCompare(right, "ru"));
+        }},
+
+        get visibleItems() {{
+          const selected = this.activeTags;
+          const result = this.items.filter((item) =>
+            selected.every((tag) => item.tags.includes(tag))
+          );
+
+          return result.sort((left, right) => {{
+            if (this.sortBy === "oldest") return left.created_epoch - right.created_epoch;
+            if (this.sortBy === "title") return left.title.localeCompare(right.title, "ru");
+            if (this.sortBy === "tag") {{
+              const tagOrder = (left.tags[0] || "").localeCompare(right.tags[0] || "", "ru");
+              return tagOrder || left.title.localeCompare(right.title, "ru");
+            }}
+            return right.created_epoch - left.created_epoch;
+          }});
+        }},
+
+        toggleTag(tag) {{
+          this.activeTags = this.activeTags.includes(tag)
+            ? this.activeTags.filter((value) => value !== tag)
+            : [...this.activeTags, tag];
+        }},
+
+        relativeTime(epoch) {{
+          const difference = epoch - Date.now() / 1000;
+          const units = [
+            ["year", 31536000],
+            ["month", 2592000],
+            ["week", 604800],
+            ["day", 86400],
+            ["hour", 3600],
+            ["minute", 60],
+            ["second", 1],
+          ];
+          const [unit, seconds] =
+            units.find(([, size]) => Math.abs(difference) >= size) || units.at(-1);
+          return this.relativeFormatter.format(Math.round(difference / seconds), unit);
+        }},
+
+        pageLabel(count) {{
+          const lastTwo = count % 100;
+          const last = count % 10;
+          if (lastTwo >= 11 && lastTwo <= 14) return `${{count}} страниц`;
+          if (last === 1) return `${{count}} страница`;
+          if (last >= 2 && last <= 4) return `${{count}} страницы`;
+          return `${{count}} страниц`;
+        }},
+      }}));
+    }});
+  </script>
+  <script defer src="_catalog/lib/alpine.js"></script>
+</head>
+<body class="catalog-page" x-data='artifactCatalog({payload_attribute})'>
+  <header class="catalog-topbar">
+    <a class="catalog-brand" href="index.html">HTML projects</a>
+    <span class="catalog-topbar-note">_workspace / HTML_artifacts</span>
+    <span class="badge badge-outline">{count}</span>
+  </header>
+
+  <main class="catalog-shell">
+    <section class="catalog-hero">
+      <div>
+        <p class="artifact-kicker">Local project index</p>
+        <h1 class="catalog-title">Черновые HTML-проекты</h1>
+        <p class="catalog-lead">
+          Один проект может содержать много экранов и состояний. Каталог
+          показывает только его входную страницу.
+        </p>
+      </div>
+      <span class="badge badge-success">{projects_label}</span>
+    </section>
+
+    <section class="catalog-controls" x-cloak x-show="items.length">
+      <div class="catalog-tag-filter" aria-label="Фильтр по тегам">
+        <button
+          class="btn btn-sm"
+          :class="activeTags.length === 0 ? 'btn-neutral' : 'btn-ghost'"
+          @click="activeTags = []"
+        >Все</button>
+        <template x-for="tag in allTags" :key="tag">
+          <button
+            class="btn btn-sm"
+            :class="activeTags.includes(tag) ? 'btn-primary' : 'btn-ghost'"
+            @click="toggleTag(tag)"
+            x-text="tag"
+          ></button>
+        </template>
+      </div>
+
+      <label class="catalog-sort">
+        <span>Сортировка</span>
+        <select class="select select-sm" x-model="sortBy">
+          <option value="newest">Сначала новые</option>
+          <option value="oldest">Сначала старые</option>
+          <option value="title">По названию</option>
+          <option value="tag">По первому тегу</option>
+        </select>
+      </label>
+    </section>
+
+    <article class="card catalog-empty" x-cloak x-show="items.length === 0">
+      <div class="card-body">
+        <h2 class="card-title">Пока нет проектов</h2>
+        <p>Первый созданный bundle автоматически появится здесь.</p>
+      </div>
+    </article>
+
+    <article class="card catalog-empty" x-cloak x-show="items.length && visibleItems.length === 0">
+      <div class="card-body">
+        <h2 class="card-title">Нет проектов с таким набором тегов</h2>
+        <button class="btn btn-sm btn-neutral w-fit" @click="activeTags = []">
+          Сбросить фильтр
+        </button>
+      </div>
+    </article>
+
+    <div
+      class="catalog-table-wrap"
+      x-cloak
+      x-show="visibleItems.length"
+      x-effect="visibleItems; $nextTick(() => window.lucide?.createIcons())"
+    >
+      <table class="table catalog-table">
+        <thead>
+          <tr>
+            <th scope="col">Проект</th>
+            <th scope="col">Теги</th>
+            <th scope="col">Страницы</th>
+            <th scope="col">Создан</th>
+            <th scope="col"><span class="sr-only">Открыть</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <template x-for="item in visibleItems" :key="item.slug">
+            <tr class="catalog-row">
+              <td>
+                <a
+                  class="catalog-project"
+                  :class="{{ 'catalog-project--no-icon': !item.icon }}"
+                  :href="`${{item.slug}}/index.html`"
+                >
+                  <template x-if="item.icon">
+                    <span class="catalog-icon-slot">
+                      <i :data-lucide="item.icon" aria-hidden="true"></i>
+                    </span>
+                  </template>
+                  <span>
+                    <strong class="catalog-project-title" x-text="item.title"></strong>
+                    <small class="catalog-project-path" x-text="`${{item.slug}}/index.html`"></small>
+                  </span>
+                </a>
+              </td>
+              <td>
+                <div class="catalog-row-tags">
+                  <template x-for="tag in item.tags" :key="tag">
+                    <button
+                      class="badge badge-outline"
+                      @click="toggleTag(tag)"
+                      x-text="tag"
+                    ></button>
+                  </template>
+                  <span class="catalog-no-tags" x-show="item.tags.length === 0">без тегов</span>
+                </div>
+              </td>
+              <td class="catalog-nowrap" x-text="pageLabel(item.page_count)"></td>
+              <td class="catalog-nowrap" x-text="relativeTime(item.created_epoch)"></td>
+              <td>
+                <a
+                  class="btn btn-circle btn-ghost"
+                  :href="`${{item.slug}}/index.html`"
+                  :aria-label="`Открыть ${{item.title}}`"
+                >
+                  <i data-lucide="arrow-up-right" class="size-5" aria-hidden="true"></i>
+                </a>
+              </td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <script src="_catalog/lib/lucide.min.js"></script>
+</body>
+</html>
+"""
+
+
+def main() -> None:
+    if len(sys.argv) != 3:
+        raise SystemExit("Usage: build_catalog.py <artifacts-root> <catalog-index>")
+
+    artifacts_root = Path(sys.argv[1])
+    catalog_index = Path(sys.argv[2])
+    projects = collect_projects(artifacts_root)
+    catalog_index.write_text(build_html(projects), encoding="utf-8")
+
+
+if __name__ == "__main__":
+    main()

@@ -6,19 +6,34 @@
   <meta name="color-scheme" content="light">
   <meta name="artifact-title" content="">
   <meta name="artifact-icon" content="">
+  <meta name="artifact-tags" content="">
   <title>Черновой HTML-артефакт</title>
   <link href="lib/daisyui.css" rel="stylesheet">
   <link href="lib/daisyui-themes.css" rel="stylesheet">
   <link href="assets/theme.css" rel="stylesheet">
   <script src="lib/tailwind.js"></script>
+  <script defer src="assets/project.js"></script>
+  <script defer src="lib/alpine.js"></script>
 </head>
-<body>
+<body x-data="prototypeViewer()">
   <div class="artifact-shell">
     <header class="artifact-topbar">
       <a class="artifact-home-link" href="../index.html">
         <i data-lucide="arrow-left" class="size-4" aria-hidden="true"></i>
         Все артефакты
       </a>
+      <label class="flex items-center gap-2" x-cloak x-show="pages.length > 1">
+        <span class="sr-only">Страница проекта</span>
+        <select
+          class="select select-xs w-auto"
+          :value="herePath"
+          @change="navigate($event.target.value)"
+        >
+          <template x-for="page in pages" :key="page.path">
+            <option :value="page.path" x-text="page.title"></option>
+          </template>
+        </select>
+      </label>
       <span class="artifact-topbar-note">Local HTML draft</span>
     </header>
 
