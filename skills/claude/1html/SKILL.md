@@ -1,6 +1,6 @@
 ---
 name: 1html
-description: "Когда нужен максимально быстрый локальный HTML-черновик или многоэкранный prototype: report, explainer, comparison, plan, diagram, deck, UI states и comments. Создаёт автономный project bundle, добавляет его в табличный локальный каталог с тегами и использует готовые DaisyUI/Alpine assets; без browser/Playwright-проверок. Не для production website, app или deploy."
+description: "Когда нужен максимально быстрый локальный HTML-черновик или многоэкранный prototype: report, explainer, comparison, plan, diagram, deck, UI states и comments. Создаёт автономный project bundle, добавляет его в локальный каталог и использует готовый DaisyUI/Alpine vocabulary; fast path без проверок. Отдельный явный audit/cleanup существующего 1html artifact даёт необязательный visual anti-drift review. Не для production website, app или deploy."
 ---
 
 # HTML
@@ -100,6 +100,7 @@ Catalog, dashboard и reference могут быть модульными: их �
 | Нужны UI states, dropdown, comments или связанные controls | [`references/alpine-prototypes.md`](references/alpine-prototypes.md) | State ownership, Alpine primitives, transitions, failure modes |
 | Знание находится в связях, порядке, ветвлении или иерархии | [`references/mermaid-diagrams.md`](references/mermaid-diagrams.md) | Diagram choice, ELK, viewer, theming, accessibility |
 | Сложный artifact многоэкранный, интерактивный или diagram-heavy | [`references/agent-readable-artifacts.md`](references/agent-readable-artifacts.md) | DOM-порядок, стабильные anchors, текстовые state/diagram outcomes, provenance |
+| Пользователь отдельно просит audit красоты, cleanup или проверку style drift | [`references/visual-audit.md`](references/visual-audit.md) | Advisory visual review, DaisyUI fidelity, rhythm, intentional exceptions |
 | Неизвестно точное имя DaisyUI-компонента | Точечный поиск в `references/daisyui-llms.txt` | Актуальная структура выбранного компонента |
 | Неизвестно имя Lucide-иконки | Точечный поиск в `references/lucide-icon-names.txt` | Допустимое локальное имя иконки |
 
@@ -110,8 +111,16 @@ Catalog, dashboard и reference могут быть модульными: их �
   моноширинные labels, тонкие контуры, спокойные sage/clay поверхности.
 - Полный локальный DaisyUI bundle доступен. Сначала semantic component и theme
   role, затем Tailwind utilities для конкретной композиции.
-- Повторяемая визуальная роль живёт в `theme.css`; одноразовое расположение
-  может остаться utility-классом.
+- Visual authority: явный пользовательский или project-local reference →
+  текущие starter/theme этого skill → semantic DaisyUI. Без явного reference
+  starter/theme и DaisyUI остаются default. Соседние и старые artifacts —
+  результаты, не примеры и не источник стиля.
+- Сначала переиспользуй `.artifact-*` roles, semantic colors и уже выбранный
+  spacing. Не создавай новую palette или числовую шкалу, если текущий owner уже
+  выражает роль.
+- Кастомная композиция, CSS или анимация допустима, когда помогает конкретному
+  reader job и не выражается готовым vocabulary. Оставляй исключение локальным;
+  не превращай его автоматически в новый default.
 - Нативные links, `details`, `dialog`, radio и checkbox идут раньше Alpine.
 - Alpine нужен только для связанных состояний и prototype instruments; общая
   логика живёт в `assets/project.js`.
@@ -126,7 +135,6 @@ Catalog, dashboard и reference могут быть модульными: их �
 - Все зависимости локальны и закреплены; CDN, npm install, server и build step
   не нужны.
 
-Явный пользовательский или project-local визуальный reference сильнее default.
 Интерактивность и motion допустимы, только когда сокращают путь к пониманию или
 показывают реальное изменение состояния.
 
@@ -136,9 +144,13 @@ Catalog, dashboard и reference могут быть модульными: их �
 `_workspace/HTML_artifacts/index.html`; direct link на текущий artifact добавляй
 только когда он полезен.
 
-Не запускай server, browser, Playwright, QA, screenshot loop, console check,
-responsive matrix или interaction audit. У этого skill нет проверки ни по
-умолчанию, ни по запросу.
+При обычном создании не запускай server, browser, Playwright, QA, screenshot
+loop, console check, responsive matrix или interaction audit.
+
+Явный отдельный запрос на audit/cleanup — другой, необязательный maintenance
+mode. Он может посмотреть текущий render или screenshot, если без этого нельзя
+судить о визуальной цельности, но не блокирует artifact, не становится его
+acceptance gate и не создаёт постоянный regression suite.
 
 ## Готово Когда
 
@@ -148,4 +160,4 @@ responsive matrix или interaction audit. У этого skill нет пров�
 - раскрываемые слои продолжают видимый тезис;
 - artifact использует готовые общие assets и передаёт запрошенный смысл;
 - пользователю дана постоянная ссылка на каталог;
-- не выполнены никакие проверки.
+- в обычном режиме не выполнены никакие проверки.

@@ -3,6 +3,16 @@
 Читай эти карточки, когда выбираешь компонент, semantic role, disclosure или
 анимацию. В starter закреплён локальный DaisyUI `5.7.4`.
 
+Карточки:
+
+- Daisy сначала;
+- компонент по отношению;
+- нативный state;
+- ритм принадлежит starter;
+- motion объясняет изменение;
+- DaisyUI 5, не старые рецепты;
+- полный ассортимент, малый набор.
+
 ## Карточка: Daisy Сначала
 
 **Сигнал:** разметка собирается только из utility-классов.
@@ -42,6 +52,24 @@ DaisyUI collapse. Modal начинай с нативного `<dialog>`: DaisyUI
 
 **Не делай:** checkbox- и anchor-модалы являются legacy-вариантами, а Alpine
 нужен только для связанных состояний.
+
+## Карточка: Ритм Принадлежит Starter
+
+**Сигнал:** новая страница заново собирает shell, section spacing и card padding
+из utility-классов.
+
+**Практика:** сначала сохраняй готовых владельцев: `.artifact-shell` — page
+layout, `.artifact-hero` — первый ответ, `.artifact-section` — ход рассказа,
+`.artifact-grid` — расстояние коллекции, `.artifact-card .card-body` —
+внутренний padding, `.artifact-details` — необязательная глубина. Parent владеет
+расстоянием между детьми; component — внутренним padding.
+
+**Исключение:** необычная visual explanation, interface или animation может
+потребовать своей композиции. Переиспользуй DaisyUI roles и текущую palette, а
+новые расстояния держи в одном локальном owner, не рассыпай по HTML.
+
+**Не делай:** не начинай с literal hex, inline styles, `gap-[11px]`,
+`p-[27px]` или новой spacing scale только потому, что так быстрее набрать.
 
 ## Карточка: Motion Объясняет Изменение
 
