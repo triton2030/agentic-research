@@ -129,7 +129,7 @@
   const projectNavigationHtml = () => {
     if (flattenPages(pages).length <= 1) return "";
     return (
-      '<nav class="navbar-center artifact-project-nav" '
+      '<nav class="navbar-end artifact-project-nav" '
       + 'aria-label="Страницы проекта">'
       + '<details class="dropdown artifact-project-mobile md:hidden">'
       + `<summary class="btn btn-sm btn-ghost">${escapeHtml(currentPageTitle)}</summary>`
@@ -152,14 +152,15 @@
 
     return (
       '<header class="navbar artifact-topbar">'
-      + '<div class="navbar-start w-auto">'
+      + '<div class="navbar-start artifact-topbar-start">'
+      + `<a class="btn btn-soft btn-accent btn-sm artifact-topbar-action" href="${escapeHtml(catalogHref)}">`
+      + "Все проекты</a>"
       + `<a class="artifact-home-link" href="${escapeHtml(projectEntryHref)}">`
       + `<i data-lucide="${escapeHtml(projectIcon)}" class="size-4" aria-hidden="true"></i>`
-      + `${escapeHtml(projectTitle)}</a></div>`
+      + `<span class="artifact-project-title">${escapeHtml(projectTitle)}</span>`
+      + "</a></div>"
       + projectNavigationHtml()
-      + '<div class="navbar-end w-auto">'
-      + `<a class="btn btn-ghost btn-sm artifact-topbar-action" href="${escapeHtml(catalogHref)}">`
-      + "Все проекты</a></div></header>"
+      + "</header>"
       + breadcrumbs
     );
   };

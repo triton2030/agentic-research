@@ -23,8 +23,8 @@ baseline.
 5. `knowledge/` — wisdom, guides, practical guides, examples и research.
    Для написания скилов начинать с
    `knowledge/practical-guides/how-to-write-skills/`.
-6. `skills/claude/` — tracked source глобальных Claude skills;
-   `~/.claude/skills/` — их installed projection.
+6. `skills/claude/` и `skills/codex/` — tracked runtime-owners глобальных
+   skills; `~/.claude/skills/` и `~/.codex/skills/` — их installed projections.
 7. `_ops/findings/`, `_ops/interviews/`, `_ops/plans/` — временные рабочие
    поверхности; открывать их только когда текущая задача на них указывает.
 

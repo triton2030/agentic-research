@@ -7,10 +7,9 @@
 
 - Сначала править `skills/claude/<name>`, затем разворачивать ту же package shape
   в `~/.claude/skills/<name>` и подтверждать exact diff.
-- Codex installed packages были import evidence для этой миграции, не upstream
-  owner и не parity promise. Дальнейшие изменения портируются осознанно через
-  semantic diff; Claude-native frontmatter, tool/agent names, discovery и
-  invocation semantics сохраняются.
+- Codex runtime-owner живёт в `skills/codex/<name>`. Общие scripts/references
+  cross-runtime package должны совпадать побайтно; `SKILL.md`, UI metadata,
+  transcript reader и тесты различаются только из-за реального platform delta.
 - Общий Claude core работает на целевых Claude-моделях из `_ops/GOAL.md`.
   Model routing и prompting deltas живут в `knowledge/wisdom-claude-*.md`, а не
   копируются в каждый skill.

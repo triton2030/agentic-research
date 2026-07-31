@@ -1,12 +1,10 @@
 ---
 name: 1chat-recall
 description: >
-  Save and find source-bound owner words: automatically capture durable
-  decisions, corrections, preferences, and facts from the current Claude
-  session; recover earlier current-session input after compaction; search
-  `_ops/chat-recall` for requests such as “what did I say?” or “find my quotes”;
-  and repair an existing malformed record. Metadata errors never hide a quote.
-  Search other sessions only while repairing an existing record.
+  Use when durable owner evidence appears in the current Claude session,
+  existing owner evidence may materially change a current decision, the user
+  asks what they said, or a recall record needs repair. Capture and read
+  source-bound evidence in `_ops/chat-recall` without hiding malformed text.
 allowed-tools: Bash(python3 *), Read, Grep, Glob
 ---
 
@@ -14,9 +12,10 @@ allowed-tools: Bash(python3 *), Read, Grep, Glob
 
 ## Invariant
 
-The quote is primary. A wrong or missing date, type, topic, or format never
-cancels it. Retrieval includes exact, legacy, partial, multiline, and raw
-records. Metadata is repaired; valuable text is not dropped.
+Source-bound owner evidence is primary. A verbatim quote stays a quote, a Plan
+choice stays a selection, and note/raw evidence remains visibly non-verbatim.
+A wrong or missing date, type, topic, or format never cancels the record.
+Retrieval includes exact, legacy, partial, multiline, and raw records.
 
 The log is dated evidence, not current canon. A later quote may supersede an
 earlier one, and an approximate timeline must not be presented as current
@@ -24,11 +23,16 @@ truth.
 
 ## Router
 
-- A fresh durable owner thesis appeared: capture it automatically in the same
-  turn. Skip simple approvals, one-off commands, credentials, and quoted or
-  pasted material that is not the owner's position.
+- Fresh durable owner evidence appeared: capture every independent thesis in
+  the same turn, one record per meaning. Skip routine approvals or commands
+  only when they leave no durable decision, state, rule, criterion, or
+  preference. Always skip credentials and pasted material that is not the
+  owner's position.
 - Earlier input or a Plan/AskUserQuestion choice from the current session can
   change a durable result: read current-session evidence.
+- A material current decision depends on established goals, boundaries,
+  decisions, criteria, corrections, or preferences: read only the recall cluster
+  that can change that decision.
 - The user explicitly asks what they said, asks to find quotes, or requests a
   recall harvest: use corpus retrieval.
 - An existing record has diagnostics or malformed metadata: use repair. This is
@@ -53,10 +57,11 @@ a verbatim quote.
 
 ## Capture
 
-Automatically capture one durable owner thesis at a time: decision, correction,
-preference, idea, criterion, candidate rule, personal workflow fact, or fact.
-Preserve the owner's wording by deletion-only shortening; do not turn agent
-summaries, inserted text, credentials, or one-off commands into quotes.
+Automatically capture every durable owner thesis as a separate record:
+decision, correction, preference, idea, criterion, candidate rule, personal
+workflow fact, or factual assertion. Preserve the owner's wording by
+deletion-only shortening; do not turn agent summaries, inserted text,
+credentials, or non-durable commands into quotes.
 
 For an exact transcript record:
 
@@ -64,7 +69,7 @@ For an exact transcript record:
 python3 "${CLAUDE_SKILL_DIR}/scripts/chat_capture.py" \
   --quote "<owner words>" \
   --source-timestamp "<timezone-aware transcript timestamp>" \
-  --type решение --topic <handle> --agent claude \
+  --type решение --topic документация-и-знания --agent claude \
   --project "$PWD" \
   --session "${CLAUDE_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-}}"
 ```
@@ -85,14 +90,64 @@ timestamp and explicitly pass both `--timestamp-source turn-context` and
 `--timestamp-precision minute` (or `date`). Never present observation time as
 source-exact; capture rejects that combination.
 
-Type is one of `решение`, `коррекция`, `предпочтение`, `идея`, `критерий`,
-`правило-кандидат`, `обо-мне`, `факт`, or the repair sentinel
-`неопределено`. Unknown topic is `без-темы`.
+### Metadata
+
+Choose metadata by the durable meaning of the thesis, not by incidental nouns
+or the current task name. Code validates vocabulary membership, not semantic
+correctness; the agent must make and check the semantic choice before writing.
+Run `python3 "${CLAUDE_SKILL_DIR}/scripts/chat_capture.py" --list-metadata` when
+the vocabulary is unclear.
+
+Classify the speech act, not its sentence form:
+
+- An explicit repair of prior understanding, decision, or action is
+  `коррекция`, even when it also establishes a new state.
+- A condition for judging good, ready, successful, or feasible is `критерий`.
+- An adopted durable course or state is `решение`; an unadopted possibility is
+  `идея`.
+- A stable taste or cross-task expectation is `предпочтение`; stable personal
+  or workflow context is `обо-мне`.
+- A reusable instruction awaiting promotion to its owner is
+  `правило-кандидат`.
+- A factual assertion with no stronger speech act is `факт`; this records what
+  the owner asserted and does not independently verify truth.
+
+Topic is one broad retrieval owner:
+
+- `цели-и-приоритеты` — purpose, outcomes, priorities.
+- `границы-и-объём` — scope, red lines, intentional exclusions.
+- `продукт-и-ценность` — product behavior, offer, value.
+- `пользователи-и-потребности` — audiences, needs, pains, scenarios.
+- `бизнес-и-монетизация` — business model, prices, sales, economics.
+- `бренд-и-коммуникация` — positioning, voice, external communication.
+- `контент-и-редактура` — copy, media, publishing, editorial decisions.
+- `дизайн-и-опыт` — visual language, interface, experience.
+- `исследования-и-источники` — research, provenance, evidence, citations.
+- `данные-и-аналитика` — data, metrics, calculations, interpretation.
+- `архитектура-и-модель` — system structure, domain model, relationships.
+- `код-и-реализация` — code behavior, API, technical implementation.
+- `инструменты-и-автоматизация` — CLI, applications, automated flows.
+- `агенты-и-ии` — models, agents, prompts, agentic behavior.
+- `работа-и-процессы` — workflow, coordination, order, work habits.
+- `документация-и-знания` — documents, memory, navigation, owner truth.
+- `качество-и-проверка` — acceptance, review, tests, done criteria.
+- `безопасность-и-доступ` — secrets, permissions, privacy, acceptable risk.
+- `операции-и-инфраструктура` — environments, services, deployment, operation.
+- `обо-мне-и-предпочтения` — personal context, taste, stable expectations.
+
+When several topics fit, choose the owner most likely to retrieve the thesis
+later; do not mint a narrower label. Use `работа-и-процессы` for how work is
+organized, `инструменты-и-автоматизация` for the tool or automated flow itself,
+`документация-и-знания` for document authority/navigation, and
+`архитектура-и-модель` for system entities and relationships. `неопределено`
+and `без-темы` are independent repair-only sentinels; either requires
+`--kind note` when adding a repair note and neither is a fallback for fresh
+quotes.
 
 ## Corpus retrieval
 
-For an explicit quote search or harvest, establish the runtime-specific
-variables:
+When recorded owner evidence can change the current work, or for an explicit
+quote search or harvest, establish the runtime-specific variables:
 
 ```bash
 DIGEST="${CLAUDE_SKILL_DIR}/scripts/chat_digest.py"
