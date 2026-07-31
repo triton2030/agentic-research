@@ -125,6 +125,7 @@ Catalog, dashboard и reference могут быть модульными: их �
 | Сигнал задачи | Открыть | Чем владеет |
 | --- | --- | --- |
 | Нужно выстроить рассказ, иерархию, headings, длину строк или раскрытие | [`references/readable-design.md`](references/readable-design.md) | Читаемость, один вопрос, answer-first, связное progressive disclosure |
+| Материал полон, но экран перегружен и нужно уменьшить одновременный visual load без потери смысла | [`references/compact-disclosure.md`](references/compact-disclosure.md) | Видимый смысловой хребет, выбор collapse/tabs/toggle/dropdown/modal/drawer и граница Alpine |
 | Выбираются DaisyUI-компоненты, semantic colors или motion | [`references/daisy-storytelling.md`](references/daisy-storytelling.md) | Component semantics, native primitives, theme roles, анимация |
 | Нужны UI states, dropdown, comments или связанные controls | [`references/alpine-prototypes.md`](references/alpine-prototypes.md) | State ownership, Alpine primitives, transitions, failure modes |
 | Нужна таблица с поиском, фильтрами или сортировкой | [`references/data-tables.md`](references/data-tables.md) | Semantic rows, DaisyUI controls, Alpine derived view, sortable headers |
