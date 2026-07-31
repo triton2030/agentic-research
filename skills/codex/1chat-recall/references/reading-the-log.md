@@ -18,9 +18,14 @@ RECALL_DIR="<project>/_ops/chat-recall"
 python3 "$DIGEST" "$RECALL_DIR" --check
 python3 "$DIGEST" "$RECALL_DIR"
 python3 "$DIGEST" "$RECALL_DIR" --query "субагент* параллел*" \
-  --limit 12 --max-chars 8000
+  --limit 5 --max-chars 4000
 python3 "$DIGEST" "$RECALL_DIR" --query "память контекст" \
-  --timeline --json --limit 12 --max-chars 8000
+  --timeline --json --limit 5 --max-chars 4000 \
+  | jq '{
+      matched, returned, truncated, order, warnings,
+      records: [.records[] |
+        {record_id, timestamp, type, topic, text, diagnostics}]
+    }'
 python3 "$DIGEST" "$RECALL_DIR" --show <record-id>
 ```
 
@@ -39,10 +44,20 @@ python3 "$DIGEST" "$RECALL_DIR" --timeline --session <uuid>
 ```
 
 Supported filters are `--type`, `--topic`, `--grep`, `--since`, `--until`,
-`--agent`, and `--session`. `--limit 12` and `--max-chars 8000` are bounded
-defaults. `--json` returns `total`, `matched`, `returned`, `truncated`,
-`selection`, quality counts, warnings, and records. With `--timeline`, it also
-returns `order: newest-first`.
+`--agent`, and `--session`. Start agent-facing retrieval with `--limit 5` and
+`--max-chars 4000`; widen only when the coverage gate below requires it. The
+larger CLI defaults remain a compatibility ceiling, not a reason to spend it.
+
+Human search output keeps only the stable ID, source date, evidence kind,
+classification and excerpt; it marks records with diagnostics and omits file
+addresses and the internal BM25 score. Use `--show` to recover complete text,
+provenance, raw malformed metadata and address for a consequential candidate;
+add `--verbose` only when the ranking or full parser record is under diagnosis.
+`--json` returns `total`, `matched`, `returned`, `truncated`, `selection`,
+quality counts, warnings, and records. With `--timeline`, it also returns
+`order: newest-first`. In an agent-facing terminal, pipe JSON through `jq` so
+only fields needed for the decision enter context, but retain `warnings` and
+per-record `diagnostics`.
 
 `selection=none` is a valid abstention, not a failure. A timeline orders known
 timestamps newest-first and puts unknown records last. Bounded output therefore
@@ -101,8 +116,10 @@ evidence; it does not turn the dated log into current canon.
 ## Diagnostics
 
 `--check` reports repair backlog but exits successfully so records remain
-readable. `--check --strict` is the validation gate and exits non-zero while
-diagnostics remain. An invalid non-empty type or topic becomes the corresponding
-repair sentinel while its original value remains visible as `type_raw` or
-`topic_raw`; the raw topic also stays BM25-searchable. Repair procedure and
-evidence rules live only in [`repairing-the-log.md`](repairing-the-log.md).
+readable. Its summary counts records that carry diagnostics, not the number of
+individual diagnostic labels. `--check --strict` is the validation gate and
+exits non-zero while diagnostics remain. An invalid non-empty type or topic
+becomes the corresponding repair sentinel while its original value remains
+visible as `type_raw` or `topic_raw`; the raw topic also stays BM25-searchable.
+Repair procedure and evidence rules live only in
+[`repairing-the-log.md`](repairing-the-log.md).

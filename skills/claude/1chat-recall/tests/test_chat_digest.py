@@ -113,6 +113,7 @@ class ChatDigestTests(unittest.TestCase):
     def test_bm25_prefix_filters_and_show_are_stable(self) -> None:
         query = self.call("--query", "субагент*", "--json")
         self.assertEqual(query.returncode, 0, query.stderr)
+        self.assertEqual(query.stderr, "")
         envelope = json.loads(query.stdout)
         self.assertEqual(envelope["matched"], 1)
         record_id = envelope["records"][0]["record_id"]
@@ -128,6 +129,40 @@ class ChatDigestTests(unittest.TestCase):
         )
         self.assertEqual(json.loads(filtered.stdout)["matched"], 1)
 
+    def test_human_query_hides_score_unless_verbose(self) -> None:
+        compact = self.call("--query", "субагент*")
+        self.assertEqual(compact.returncode, 0, compact.stderr)
+        self.assertIn("1/1 matches shown · 5 records", compact.stdout)
+        self.assertIn("2026-07-14", compact.stdout)
+        self.assertNotIn("score=", compact.stdout)
+        self.assertNotIn("recall.md:", compact.stdout)
+        self.assertEqual(compact.stderr, "")
+
+        verbose = self.call("--query", "субагент*", "--verbose")
+        self.assertEqual(verbose.returncode, 0, verbose.stderr)
+        self.assertIn("score=", verbose.stdout)
+
+    def test_human_show_is_compact_and_verbose_preserves_full_record(self) -> None:
+        record_id = json.loads(self.call("--query", "канон", "--json").stdout)[
+            "records"
+        ][0]["record_id"]
+
+        compact = self.call("--show", record_id)
+        self.assertEqual(compact.returncode, 0, compact.stderr)
+        self.assertEqual(compact.stdout.count("Канон живёт отдельно"), 1)
+        self.assertIn(f"record={record_id}", compact.stdout)
+        self.assertIn("diagnostics=none", compact.stdout)
+        self.assertNotIn('"quote"', compact.stdout)
+        self.assertNotIn("type_raw=", compact.stdout)
+        self.assertNotIn("topic_raw=", compact.stdout)
+        self.assertEqual(compact.stderr, "")
+
+        verbose = self.call("--show", record_id, "--verbose")
+        self.assertEqual(verbose.returncode, 0, verbose.stderr)
+        full_record = json.loads(verbose.stdout)
+        self.assertEqual(full_record["record_id"], record_id)
+        self.assertIn("quote", full_record)
+
     def test_invalid_topic_is_visible_and_searchable(self) -> None:
         check = self.call("--check")
         self.assertIn("invalid-topic", check.stdout)
@@ -135,6 +170,14 @@ class ChatDigestTests(unittest.TestCase):
         self.assertEqual(found["matched"], 1)
         self.assertEqual(found["records"][0]["topic"], "без-темы")
         self.assertEqual(found["records"][0]["topic_raw"], "мой-workflow")
+        shown_topic = self.call("--show", found["records"][0]["record_id"])
+        self.assertIn("topic_raw=мой-workflow", shown_topic.stdout)
+
+        invalid_type = json.loads(
+            self.call("--query", "Позднее", "--json").stdout
+        )["records"][0]
+        shown_type = self.call("--show", invalid_type["record_id"])
+        self.assertIn("type_raw=идея, коррекция", shown_type.stdout)
 
     def test_controlled_vocabulary_is_shared(self) -> None:
         self.assertEqual(len(DIGEST.TYPES), 9)
@@ -155,6 +198,63 @@ class ChatDigestTests(unittest.TestCase):
         none = json.loads(self.call("--query", "несуществующее", "--json").stdout)
         self.assertEqual(none["selection"], "none")
         self.assertEqual(none["returned"], 0)
+
+    def test_human_bound_uses_rendered_digest_not_full_json(self) -> None:
+        self.write_entries(
+            [
+                (
+                    f'* 2026-07-01T{hour:02d}:00:00+00:00 — '
+                    f'"Needle {hour} {"detail " * 350}" '
+                    "— type: решение | topic: документация-и-знания"
+                )
+                for hour in range(5)
+            ]
+        )
+
+        human = self.call(
+            "--query", "Needle", "--limit", "5", "--max-chars", "4000"
+        )
+        self.assertEqual(human.returncode, 0, human.stderr)
+        self.assertTrue(human.stdout.startswith("5/5 matches shown · 5 records"))
+        self.assertLessEqual(len(human.stdout.rstrip("\n")), 4000)
+
+        machine = json.loads(
+            self.call(
+                "--query",
+                "Needle",
+                "--limit",
+                "5",
+                "--max-chars",
+                "4000",
+                "--json",
+            ).stdout
+        )
+        self.assertLess(machine["returned"], 5)
+        self.assertTrue(machine["truncated"])
+
+    def test_human_bound_never_turns_matches_into_abstention(self) -> None:
+        self.write_entries(
+            [
+                (
+                    '* 2026-07-01T10:00:00+00:00 — '
+                    f'"Needle {"detail " * 500}" '
+                    "— type: решение | topic: документация-и-знания"
+                )
+            ]
+        )
+
+        result = self.call(
+            "--query",
+            "Needle",
+            "--head",
+            "10000",
+            "--max-chars",
+            "512",
+        )
+        self.assertEqual(result.returncode, 2)
+        self.assertEqual(result.stdout, "")
+        self.assertIn("первая запись не помещается", result.stderr)
+        self.assertNotIn("selection=none", result.stderr)
 
     def test_timeline_puts_unknown_last(self) -> None:
         data = json.loads(self.call("--timeline", "--json", "--limit", "20").stdout)
@@ -260,11 +360,39 @@ class ChatDigestTests(unittest.TestCase):
     def test_check_is_readable_and_strict_blocks_validation(self) -> None:
         check = self.call("--check")
         self.assertEqual(check.returncode, 0)
+        records, diagnostic_count = DIGEST.load(self.corpus)
+        self.assertTrue(
+            check.stdout.startswith(
+                f"{diagnostic_count} records with diagnostics · "
+                f"{len(records)} records"
+            )
+        )
         self.assertIn("recall.md:", check.stdout)
+        self.assertNotIn("returned/matched/total", check.stdout + check.stderr)
         bounded = self.call("--check", "--max-chars", "512")
         self.assertLessEqual(len(bounded.stdout.rstrip("\n")), 512)
         strict = self.call("--check", "--strict")
         self.assertEqual(strict.returncode, 1)
+
+    def test_check_truncation_counts_visible_diagnostics(self) -> None:
+        self.write_entries([f"* broken record {index:02d}" for index in range(20)])
+
+        check = self.call("--check", "--max-chars", "512")
+        self.assertEqual(check.returncode, 0, check.stderr)
+        lines = check.stdout.splitlines()
+        self.assertRegex(
+            lines[0],
+            r"^\d+/20 records with diagnostics shown · 20 records · truncated$",
+        )
+        shown = int(lines[0].split("/", 1)[0])
+        self.assertEqual(len(lines) - 1, shown)
+
+    def test_global_bounds_validate_check_and_inventory(self) -> None:
+        for args in (("--check", "--max-chars", "511"), ("--limit", "0")):
+            with self.subTest(args=args):
+                result = self.call(*args)
+                self.assertEqual(result.returncode, 2)
+                self.assertEqual(result.stdout, "")
 
     def test_cli_errors_are_short_without_traceback(self) -> None:
         for args in (
@@ -274,6 +402,7 @@ class ChatDigestTests(unittest.TestCase):
         ):
             result = self.call(*args)
             self.assertEqual(result.returncode, 2)
+            self.assertEqual(result.stdout, "")
             self.assertNotIn("Traceback", result.stderr)
 
 

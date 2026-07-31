@@ -365,13 +365,17 @@ def _summary(record: dict[str, Any]) -> dict[str, Any]:
     return {field: record[field] for field in fields if field in record}
 
 
-def _bounded(
-    records: list[dict[str, Any]], limit: int, max_chars: int
-) -> tuple[list[dict[str, Any]], bool]:
+def _validate_bounds(limit: int, max_chars: int) -> None:
     if limit < 1:
         raise CliError("--limit должен быть положительным")
     if max_chars < 512:
         raise CliError("--max-chars должен быть не меньше 512")
+
+
+def _bounded(
+    records: list[dict[str, Any]], limit: int, max_chars: int
+) -> tuple[list[dict[str, Any]], bool]:
+    _validate_bounds(limit, max_chars)
     result: list[dict[str, Any]] = []
     used = 0
     for record in records[:limit]:
@@ -390,19 +394,139 @@ def _bounded(
     return result, len(result) < len(records)
 
 
-def _digest(records: list[dict[str, Any]], head: int) -> str:
+def _digest(records: list[dict[str, Any]], head: int, *, verbose: bool) -> str:
     if head < 1:
         raise CliError("--head должен быть положительным")
     lines: list[str] = []
     for record in records:
         clipped = record["text"][:head] + ("…" if len(record["text"]) > head else "")
-        score = f" score={record['score']:.4f}" if "score" in record else ""
+        score = f" score={record['score']:.4f}" if verbose and "score" in record else ""
+        diagnostics = " !diagnostics" if record["diagnostics"] else ""
         lines.append(
-            f"{record['record_id']} {record['address']} "
+            f"{record['record_id']} {record['date'] or 'unknown'} "
             f"{record['precision']} {record['kind']} "
-            f"{record['type']}/{record['topic']}{score} · {clipped}"
+            f"{record['type']}/{record['topic']}{diagnostics}{score} · {clipped}"
         )
     return "\n".join(lines)
+
+
+def _show(record: dict[str, Any]) -> str:
+    source = (
+        f"timestamp={record['timestamp']} · precision={record['precision']} · "
+        f"source={record['source']}"
+    )
+    if record["source_ref"]:
+        source += f" · source_ref={record['source_ref']}"
+    owner = (
+        f"address={record['address']} · session={record['session']} · "
+        f"agent={record['agent']}"
+    )
+    if record["project"]:
+        owner += f" · project={record['project']}"
+    if record["model"]:
+        owner += f" · model={record['model']}"
+    classification = (
+        f"record={record['record_id']} · kind={record['kind']} · "
+        f"type={record['type']} · topic={record['topic']}"
+    )
+    if record["type_raw"] and record["type_raw"] != record["type"]:
+        classification += f" · type_raw={record['type_raw']}"
+    if record["topic_raw"] and record["topic_raw"] != record["topic"]:
+        classification += f" · topic_raw={record['topic_raw']}"
+    diagnostics = ",".join(record["diagnostics"]) or "none"
+    return "\n".join(
+        (
+            record["text"],
+            classification,
+            source,
+            owner,
+            f"diagnostics={diagnostics}",
+        )
+    )
+
+
+def _check_report(records: list[dict[str, Any]], total: int, max_chars: int) -> str:
+    issues = [record for record in records if record["diagnostics"]]
+    if not issues:
+        return f"OK: {total} записей без diagnostics"
+
+    issue_lines = [
+        f"{record['address']} {record['record_id']}: {','.join(record['diagnostics'])}"
+        for record in issues
+    ]
+    visible: list[str] = []
+    for line in issue_lines:
+        candidate_count = len(visible) + 1
+        candidate_summary = (
+            f"{candidate_count}/{len(issues)} records with diagnostics shown · "
+            f"{total} records · truncated"
+        )
+        candidate = "\n".join((candidate_summary, *visible, line))
+        if len(candidate) > max_chars:
+            break
+        visible.append(line)
+
+    truncated = len(visible) < len(issue_lines)
+    summary = (
+        f"{len(visible)}/{len(issues)} records with diagnostics shown · "
+        f"{total} records · truncated"
+        if truncated
+        else f"{len(issues)} records with diagnostics · {total} records"
+    )
+    return "\n".join((summary, *visible))
+
+
+def _result_status(returned: int, matched: int, total: int, truncated: bool) -> str:
+    status = f"{returned}/{matched} matches shown · {total} records"
+    return f"{status} · truncated" if truncated else status
+
+
+def _render_digest(
+    records: list[dict[str, Any]],
+    *,
+    head: int,
+    verbose: bool,
+    matched: int,
+    total: int,
+    truncated: bool,
+) -> str:
+    digest = _digest(records, head, verbose=verbose)
+    lines = [_result_status(len(records), matched, total, truncated)]
+    lines.append(digest or "selection=none")
+    return "\n".join(lines)
+
+
+def _bounded_digest(
+    records: list[dict[str, Any]],
+    *,
+    limit: int,
+    max_chars: int,
+    head: int,
+    verbose: bool,
+    total: int,
+) -> tuple[list[dict[str, Any]], bool]:
+    _validate_bounds(limit, max_chars)
+    _digest([], head, verbose=verbose)
+    selected: list[dict[str, Any]] = []
+    for record in records[:limit]:
+        candidate = [*selected, record]
+        rendered = _render_digest(
+            candidate,
+            head=head,
+            verbose=verbose,
+            matched=len(records),
+            total=total,
+            truncated=len(candidate) < len(records),
+        )
+        if len(rendered) > max_chars:
+            break
+        selected = candidate
+    if records and not selected:
+        raise CliError(
+            "первая запись не помещается в --max-chars; "
+            "уменьшите --head или увеличьте --max-chars"
+        )
+    return selected, len(selected) < len(records)
 
 
 def _timeline(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -458,6 +582,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--head", type=int, default=110)
     parser.add_argument("--limit", type=int, default=12)
     parser.add_argument("--max-chars", type=int, default=8000)
+    parser.add_argument("--verbose", action="store_true")
     parser.add_argument("--json", action="store_true")
     return parser
 
@@ -469,8 +594,24 @@ def main() -> int:
             raise CliError("--strict используется только вместе с --check")
         if not args.corpus.is_dir():
             raise CliError(f"нет папки: {args.corpus}")
+        if not args.show:
+            _validate_bounds(args.limit, args.max_chars)
         records, diagnostic_count = load(args.corpus)
         total = len(records)
+        inventory_mode = not any(
+            (
+                args.digest,
+                args.query,
+                args.timeline,
+                args.types,
+                args.topics,
+                args.grep,
+                args.since,
+                args.until,
+                args.agent,
+                args.session,
+            )
+        )
 
         if args.show:
             matches = [record for record in records if record["record_id"] == args.show]
@@ -482,18 +623,28 @@ def main() -> int:
                     f"record_id неоднозначен ({addresses}); сначала почините duplicate"
                 )
             selected, truncated = matches, False
+            matched = len(selected)
         else:
-            selected = search_bm25(records, args.query) if args.query else list(records)
-            selected = _filter(selected, args)
+            candidates = search_bm25(records, args.query) if args.query else list(records)
+            candidates = _filter(candidates, args)
             if args.timeline:
-                selected = _timeline(selected)
-            selected, truncated = _bounded(selected, args.limit, args.max_chars)
-
-        matched = (
-            len(_filter(search_bm25(records, args.query), args))
-            if args.query and not args.show
-            else len(_filter(records, args)) if not args.show else len(selected)
-        )
+                candidates = _timeline(candidates)
+            matched = len(candidates)
+            if args.json:
+                selected, truncated = _bounded(
+                    candidates, args.limit, args.max_chars
+                )
+            elif args.check or inventory_mode:
+                selected, truncated = candidates, False
+            else:
+                selected, truncated = _bounded_digest(
+                    candidates,
+                    limit=args.limit,
+                    max_chars=args.max_chars,
+                    head=args.head,
+                    verbose=args.verbose,
+                    total=total,
+                )
         envelope = {
             "total": total,
             "matched": matched,
@@ -532,59 +683,31 @@ def main() -> int:
                 )
             print(rendered)
         elif args.check:
-            issues = [record for record in records if record["diagnostics"]]
-            if issues:
-                issue_lines = [
-                    f"{record['address']} {record['record_id']}: "
-                    f"{','.join(record['diagnostics'])}"
-                    for record in issues
-                ]
-                visible: list[str] = []
-                used = 0
-                for line in issue_lines:
-                    if visible and used + len(line) + 1 > args.max_chars - 80:
-                        break
-                    visible.append(line)
-                    used += len(line) + 1
-                print("\n".join(visible))
-                if len(visible) < len(issue_lines):
-                    print(
-                        f"... ещё {len(issue_lines) - len(visible)} diagnostics "
-                        "не показано из-за --max-chars"
-                    )
-            else:
-                print(f"OK: {total} записей без diagnostics")
+            print(_check_report(records, total, args.max_chars))
         elif args.show:
-            rendered = json.dumps(selected[0], ensure_ascii=False, indent=2)
+            rendered = (
+                json.dumps(selected[0], ensure_ascii=False, indent=2)
+                if args.verbose
+                else _show(selected[0])
+            )
             if len(rendered) > args.max_chars:
                 raise CliError(
                     "полная запись превышает --max-chars; увеличьте лимит для --show"
                 )
             print(rendered)
-        elif not any(
-            (
-                args.digest,
-                args.query,
-                args.timeline,
-                args.types,
-                args.topics,
-                args.grep,
-                args.since,
-                args.until,
-                args.agent,
-                args.session,
-            )
-        ):
+        elif inventory_mode:
             print(inventory(records, diagnostic_count))
         else:
-            print(_digest(selected, args.head))
-            if matched == 0:
-                print("selection=none")
-        print(
-            f"--- {envelope['returned']}/{matched}/{total} returned/matched/total"
-            f"{' truncated' if envelope['truncated'] else ''}",
-            file=sys.stderr,
-        )
+            print(
+                _render_digest(
+                    selected,
+                    head=args.head,
+                    verbose=args.verbose,
+                    matched=matched,
+                    total=total,
+                    truncated=truncated,
+                )
+            )
         if args.check and args.strict and diagnostic_count:
             return 1
         return 0
