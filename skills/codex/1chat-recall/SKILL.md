@@ -4,7 +4,8 @@ description: >
   Use when durable owner evidence appears in the current Codex chat, existing
   owner evidence may materially change a current decision, the user asks what
   they said, or a recall record needs repair. Capture and read source-bound
-  evidence in `_ops/chat-recall` without hiding malformed text.
+  evidence in `_ops/chat-recall`: keep the owner's wording, but shorten quotes
+  by deletion only — never paraphrase, never hide malformed text.
 ---
 
 # Chat recall
