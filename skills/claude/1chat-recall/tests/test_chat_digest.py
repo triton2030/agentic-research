@@ -190,14 +190,38 @@ class ChatDigestTests(unittest.TestCase):
         self.assertEqual(bounded["total"], 5)
         self.assertEqual(bounded["returned"], 2)
         self.assertTrue(bounded["truncated"])
+        self.assertEqual(bounded["truncated_by"], "limit")
         self.assertIn("quality", bounded)
+        human_limited = self.call("--digest", "--limit", "2")
+        self.assertTrue(
+            human_limited.stdout.startswith(
+                "2/5 matches shown · 5 records · truncated by --limit"
+            )
+        )
         tiny = self.call("--query", "субагент*", "--max-chars", "512", "--json")
         self.assertEqual(tiny.returncode, 0, tiny.stderr)
         self.assertLessEqual(len(tiny.stdout.rstrip("\n")), 512)
-        self.assertTrue(json.loads(tiny.stdout)["truncated"])
+        tiny_payload = json.loads(tiny.stdout)
+        self.assertTrue(tiny_payload["truncated"])
+        self.assertEqual(tiny_payload["truncated_by"], "max_chars")
         none = json.loads(self.call("--query", "несуществующее", "--json").stdout)
         self.assertEqual(none["selection"], "none")
         self.assertEqual(none["returned"], 0)
+        self.assertIsNone(none["truncated_by"])
+
+    def test_help_explains_limit_head_and_character_budget(self) -> None:
+        result = subprocess.run(
+            [sys.executable, str(SCRIPT), "--help"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("maximum records", result.stdout)
+        self.assertIn("human-readable excerpt", result.stdout)
+        self.assertIn("ignored with --json", result.stdout)
+        self.assertIn("may return fewer records than --limit", result.stdout)
 
     def test_human_bound_uses_rendered_digest_not_full_json(self) -> None:
         self.write_entries(
@@ -218,6 +242,15 @@ class ChatDigestTests(unittest.TestCase):
         self.assertTrue(human.stdout.startswith("5/5 matches shown · 5 records"))
         self.assertLessEqual(len(human.stdout.rstrip("\n")), 4000)
 
+        character_limited = self.call(
+            "--query", "Needle", "--limit", "5", "--max-chars", "512"
+        )
+        self.assertEqual(character_limited.returncode, 0, character_limited.stderr)
+        self.assertIn(
+            "truncated by --max-chars",
+            character_limited.stdout.splitlines()[0],
+        )
+
         machine = json.loads(
             self.call(
                 "--query",
@@ -231,6 +264,7 @@ class ChatDigestTests(unittest.TestCase):
         )
         self.assertLess(machine["returned"], 5)
         self.assertTrue(machine["truncated"])
+        self.assertEqual(machine["truncated_by"], "max_chars")
 
     def test_human_bound_never_turns_matches_into_abstention(self) -> None:
         self.write_entries(
@@ -289,6 +323,7 @@ class ChatDigestTests(unittest.TestCase):
         self.assertEqual(data["matched"], 15)
         self.assertEqual(data["returned"], 12)
         self.assertTrue(data["truncated"])
+        self.assertEqual(data["truncated_by"], "limit")
         self.assertEqual(data["records"][0]["text"], "Position 14")
         self.assertEqual(data["records"][-1]["text"], "Position 03")
 
@@ -355,6 +390,7 @@ class ChatDigestTests(unittest.TestCase):
 
         self.assertEqual(data["matched"], 8)
         self.assertTrue(data["truncated"])
+        self.assertEqual(data["truncated_by"], "max_chars")
         self.assertTrue(data["records"][0]["text"].startswith("Память 08"))
 
     def test_check_is_readable_and_strict_blocks_validation(self) -> None:

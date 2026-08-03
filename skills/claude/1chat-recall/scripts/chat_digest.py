@@ -374,13 +374,15 @@ def _validate_bounds(limit: int, max_chars: int) -> None:
 
 def _bounded(
     records: list[dict[str, Any]], limit: int, max_chars: int
-) -> tuple[list[dict[str, Any]], bool]:
+) -> tuple[list[dict[str, Any]], str | None]:
     _validate_bounds(limit, max_chars)
     result: list[dict[str, Any]] = []
     used = 0
+    truncated_by: str | None = None
     for record in records[:limit]:
         estimate = len(json.dumps(_summary(record), ensure_ascii=False))
         if result and used + estimate > max_chars:
+            truncated_by = "max_chars"
             break
         if not result and estimate > max_chars:
             clipped = dict(record)
@@ -388,10 +390,13 @@ def _bounded(
             clipped["quote"] = clipped["text"]
             clipped["raw"] = clipped["raw"][: max(40, max_chars // 3)] + "…"
             result.append(clipped)
+            truncated_by = "max_chars"
             break
         result.append(record)
         used += estimate
-    return result, len(result) < len(records)
+    if truncated_by is None and len(result) < len(records):
+        truncated_by = "limit"
+    return result, truncated_by
 
 
 def _digest(records: list[dict[str, Any]], head: int, *, verbose: bool) -> str:
@@ -476,9 +481,15 @@ def _check_report(records: list[dict[str, Any]], total: int, max_chars: int) -> 
     return "\n".join((summary, *visible))
 
 
-def _result_status(returned: int, matched: int, total: int, truncated: bool) -> str:
+def _result_status(
+    returned: int, matched: int, total: int, truncated_by: str | None
+) -> str:
     status = f"{returned}/{matched} matches shown · {total} records"
-    return f"{status} · truncated" if truncated else status
+    if truncated_by == "limit":
+        return f"{status} · truncated by --limit"
+    if truncated_by == "max_chars":
+        return f"{status} · truncated by --max-chars"
+    return status
 
 
 def _render_digest(
@@ -488,10 +499,10 @@ def _render_digest(
     verbose: bool,
     matched: int,
     total: int,
-    truncated: bool,
+    truncated_by: str | None,
 ) -> str:
     digest = _digest(records, head, verbose=verbose)
-    lines = [_result_status(len(records), matched, total, truncated)]
+    lines = [_result_status(len(records), matched, total, truncated_by)]
     lines.append(digest or "selection=none")
     return "\n".join(lines)
 
@@ -504,10 +515,11 @@ def _bounded_digest(
     head: int,
     verbose: bool,
     total: int,
-) -> tuple[list[dict[str, Any]], bool]:
+) -> tuple[list[dict[str, Any]], str | None]:
     _validate_bounds(limit, max_chars)
     _digest([], head, verbose=verbose)
     selected: list[dict[str, Any]] = []
+    truncated_by: str | None = None
     for record in records[:limit]:
         candidate = [*selected, record]
         rendered = _render_digest(
@@ -516,9 +528,10 @@ def _bounded_digest(
             verbose=verbose,
             matched=len(records),
             total=total,
-            truncated=len(candidate) < len(records),
+            truncated_by=("max_chars" if len(candidate) < len(records) else None),
         )
         if len(rendered) > max_chars:
+            truncated_by = "max_chars"
             break
         selected = candidate
     if records and not selected:
@@ -526,7 +539,9 @@ def _bounded_digest(
             "первая запись не помещается в --max-chars; "
             "уменьшите --head или увеличьте --max-chars"
         )
-    return selected, len(selected) < len(records)
+    if truncated_by is None and len(selected) < len(records):
+        truncated_by = "limit"
+    return selected, truncated_by
 
 
 def _timeline(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -579,9 +594,24 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--until")
     parser.add_argument("--agent")
     parser.add_argument("--session")
-    parser.add_argument("--head", type=int, default=110)
-    parser.add_argument("--limit", type=int, default=12)
-    parser.add_argument("--max-chars", type=int, default=8000)
+    parser.add_argument(
+        "--head",
+        type=int,
+        default=110,
+        help="human-readable excerpt length; ignored with --json",
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=12,
+        help="maximum records to return before the --max-chars budget",
+    )
+    parser.add_argument(
+        "--max-chars",
+        type=int,
+        default=8000,
+        help="hard output cap; may return fewer records than --limit",
+    )
     parser.add_argument("--verbose", action="store_true")
     parser.add_argument("--json", action="store_true")
     return parser
@@ -622,7 +652,7 @@ def main() -> int:
                 raise CliError(
                     f"record_id неоднозначен ({addresses}); сначала почините duplicate"
                 )
-            selected, truncated = matches, False
+            selected, truncated_by = matches, None
             matched = len(selected)
         else:
             candidates = search_bm25(records, args.query) if args.query else list(records)
@@ -631,13 +661,13 @@ def main() -> int:
                 candidates = _timeline(candidates)
             matched = len(candidates)
             if args.json:
-                selected, truncated = _bounded(
+                selected, truncated_by = _bounded(
                     candidates, args.limit, args.max_chars
                 )
             elif args.check or inventory_mode:
-                selected, truncated = candidates, False
+                selected, truncated_by = candidates, None
             else:
-                selected, truncated = _bounded_digest(
+                selected, truncated_by = _bounded_digest(
                     candidates,
                     limit=args.limit,
                     max_chars=args.max_chars,
@@ -649,7 +679,8 @@ def main() -> int:
             "total": total,
             "matched": matched,
             "returned": len(selected),
-            "truncated": truncated,
+            "truncated": truncated_by is not None,
+            "truncated_by": truncated_by,
             "selection": "none" if matched == 0 else "records",
             "quality": _quality(records),
             "warnings": _warnings(records),
@@ -674,6 +705,7 @@ def main() -> int:
                 envelope["records"].pop()
                 envelope["returned"] = len(envelope["records"])
                 envelope["truncated"] = True
+                envelope["truncated_by"] = "max_chars"
                 rendered = json.dumps(
                     envelope, ensure_ascii=False, separators=(",", ":")
                 )
@@ -705,7 +737,7 @@ def main() -> int:
                     verbose=args.verbose,
                     matched=matched,
                     total=total,
-                    truncated=truncated,
+                    truncated_by=truncated_by,
                 )
             )
         if args.check and args.strict and diagnostic_count:

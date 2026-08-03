@@ -22,7 +22,7 @@ python3 "$DIGEST" "$RECALL_DIR" --query "субагент* параллел*" \
 python3 "$DIGEST" "$RECALL_DIR" --query "память контекст" \
   --timeline --json --limit 5 --max-chars 4000 \
   | jq '{
-      matched, returned, truncated, order, warnings,
+      matched, returned, truncated, truncated_by, order, warnings,
       records: [.records[] |
         {record_id, timestamp, type, topic, text, diagnostics}]
     }'
@@ -48,16 +48,24 @@ Supported filters are `--type`, `--topic`, `--grep`, `--since`, `--until`,
 `--max-chars 4000`; widen only when the coverage gate below requires it. The
 larger CLI defaults remain a compatibility ceiling, not a reason to spend it.
 
+`--limit` is the maximum number of returned records, not a guaranteed count.
+The hard `--max-chars` budget applies to the complete rendered output and can
+therefore return fewer records than `--limit`. Inspect `truncated_by`: `limit`
+means the record ceiling was reached, while `max_chars` means the output budget
+was reached. `--head` changes only the excerpt length in human output and is
+ignored with `--json`. For complete JSON coverage, increase both `--limit` and
+`--max-chars` until `matched == returned` and `truncated_by` is `null`.
+
 Human search output keeps only the stable ID, source date, evidence kind,
 classification and excerpt; it marks records with diagnostics and omits file
 addresses and the internal BM25 score. Use `--show` to recover complete text,
 provenance, raw malformed metadata and address for a consequential candidate;
 add `--verbose` only when the ranking or full parser record is under diagnosis.
-`--json` returns `total`, `matched`, `returned`, `truncated`, `selection`,
-quality counts, warnings, and records. With `--timeline`, it also returns
-`order: newest-first`. In an agent-facing terminal, pipe JSON through `jq` so
-only fields needed for the decision enter context, but retain `warnings` and
-per-record `diagnostics`.
+`--json` returns `total`, `matched`, `returned`, `truncated`, `truncated_by`,
+`selection`, quality counts, warnings, and records. With `--timeline`, it also
+returns `order: newest-first`. In an agent-facing terminal, pipe JSON through
+`jq` so only fields needed for the decision enter context, but retain `warnings`
+and per-record `diagnostics`.
 
 `selection=none` is a valid abstention, not a failure. A timeline orders known
 timestamps newest-first and puts unknown records last. Bounded output therefore
