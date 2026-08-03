@@ -155,8 +155,8 @@ RECALL_DIR="$PWD/_ops/chat-recall"
 
 Затем следуй
 [`references/reading-the-log.md`](references/reading-the-log.md): этот файл
-владеет `check`, inventory, BM25, filters, timeline, `show`, bounded output и
-abstention.
+владеет `check`, inventory, локальным hybrid/lexical retrieval, filters,
+timeline, `show`, bounded output и abstention.
 
 ## Repair
 

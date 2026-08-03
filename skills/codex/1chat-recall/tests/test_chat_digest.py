@@ -1,4 +1,4 @@
-"""Acceptance tests for lossless recall parsing and bounded BM25 retrieval."""
+"""Acceptance tests for lossless parsing and bounded hybrid recall retrieval."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 SCRIPT = Path(__file__).parents[1] / "scripts" / "chat_digest.py"
 if str(SCRIPT.parent) not in sys.path:
@@ -50,10 +51,22 @@ class ChatDigestTests(unittest.TestCase):
         self.temp.cleanup()
 
     def call(self, *args: str) -> subprocess.CompletedProcess[str]:
+        command = list(args)
+        if "--query" in command and "--lexical" not in command:
+            command.append("--lexical")
+        return subprocess.run(
+            [sys.executable, str(SCRIPT), str(self.corpus), *command],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+
+    def call_default(self, *args: str) -> subprocess.CompletedProcess[str]:
         return subprocess.run(
             [sys.executable, str(SCRIPT), str(self.corpus), *args],
             capture_output=True,
             text=True,
+            check=False,
         )
 
     def write_entries(self, entries: list[str]) -> None:
@@ -116,6 +129,9 @@ class ChatDigestTests(unittest.TestCase):
         self.assertEqual(query.stderr, "")
         envelope = json.loads(query.stdout)
         self.assertEqual(envelope["matched"], 1)
+        self.assertEqual(envelope["retrieval"], "lexical")
+        self.assertTrue(envelope["retrieval_complete"])
+        self.assertEqual(envelope["candidate_count"], 1)
         record_id = envelope["records"][0]["record_id"]
         shown = self.call("--show", record_id, "--json")
         self.assertEqual(shown.returncode, 0, shown.stderr)
@@ -132,7 +148,10 @@ class ChatDigestTests(unittest.TestCase):
     def test_human_query_hides_score_unless_verbose(self) -> None:
         compact = self.call("--query", "субагент*")
         self.assertEqual(compact.returncode, 0, compact.stderr)
-        self.assertIn("1/1 matches shown · 5 records", compact.stdout)
+        self.assertIn(
+            "1/1 candidates shown · 5 records · retrieval=lexical",
+            compact.stdout,
+        )
         self.assertIn("2026-07-14", compact.stdout)
         self.assertNotIn("score=", compact.stdout)
         self.assertNotIn("recall.md:", compact.stdout)
@@ -195,7 +214,7 @@ class ChatDigestTests(unittest.TestCase):
         human_limited = self.call("--digest", "--limit", "2")
         self.assertTrue(
             human_limited.stdout.startswith(
-                "2/5 matches shown · 5 records · truncated by --limit"
+                "2/5 records shown · 5 records · truncated by --limit"
             )
         )
         tiny = self.call("--query", "субагент*", "--max-chars", "512", "--json")
@@ -204,10 +223,13 @@ class ChatDigestTests(unittest.TestCase):
         tiny_payload = json.loads(tiny.stdout)
         self.assertTrue(tiny_payload["truncated"])
         self.assertEqual(tiny_payload["truncated_by"], "max_chars")
-        none = json.loads(self.call("--query", "несуществующее", "--json").stdout)
+        none_result = self.call_default("--query", "несуществующее", "--json")
+        self.assertEqual(none_result.returncode, 0, none_result.stderr)
+        none = json.loads(none_result.stdout)
         self.assertEqual(none["selection"], "none")
         self.assertEqual(none["returned"], 0)
         self.assertIsNone(none["truncated_by"])
+        self.assertEqual(none["retrieval"], "hybrid")
 
     def test_help_explains_limit_head_and_character_budget(self) -> None:
         result = subprocess.run(
@@ -239,7 +261,7 @@ class ChatDigestTests(unittest.TestCase):
             "--query", "Needle", "--limit", "5", "--max-chars", "4000"
         )
         self.assertEqual(human.returncode, 0, human.stderr)
-        self.assertTrue(human.stdout.startswith("5/5 matches shown · 5 records"))
+        self.assertTrue(human.stdout.startswith("5/5 candidates shown · 5 records"))
         self.assertLessEqual(len(human.stdout.rstrip("\n")), 4000)
 
         character_limited = self.call(
@@ -429,6 +451,95 @@ class ChatDigestTests(unittest.TestCase):
                 result = self.call(*args)
                 self.assertEqual(result.returncode, 2)
                 self.assertEqual(result.stdout, "")
+
+    def test_query_defaults_to_hybrid_and_lexical_is_explicit(self) -> None:
+        default = DIGEST.build_parser().parse_args(
+            [str(self.corpus), "--query", "канон"]
+        )
+        lexical = DIGEST.build_parser().parse_args(
+            [str(self.corpus), "--query", "канон", "--lexical"]
+        )
+
+        self.assertFalse(default.lexical)
+        self.assertTrue(lexical.lexical)
+
+    def test_hybrid_abstains_before_loading_dense_model(self) -> None:
+        records, _ = DIGEST.load(self.corpus)
+        with mock.patch.object(DIGEST, "search_dense") as dense:
+            result = DIGEST.search_hybrid(records, "несуществующее")
+
+        self.assertEqual(result, [])
+        dense.assert_not_called()
+
+    def test_hybrid_rrf_uses_addresses_not_duplicate_record_ids(self) -> None:
+        records = [
+            {"address": "a.md:1", "record_id": "duplicate"},
+            {"address": "b.md:1", "record_id": "duplicate"},
+            {"address": "c.md:1", "record_id": "unique"},
+        ]
+        lexical = [dict(records[0]), dict(records[1])]
+        dense = [dict(records[1]), dict(records[2])]
+        with (
+            mock.patch.object(DIGEST, "search_bm25", return_value=lexical),
+            mock.patch.object(DIGEST, "search_dense", return_value=dense),
+        ):
+            result = DIGEST.search_hybrid(records, "query")
+
+        self.assertEqual(
+            [record["address"] for record in result],
+            ["b.md:1", "a.md:1", "c.md:1"],
+        )
+        self.assertEqual(
+            [record["record_id"] for record in result].count("duplicate"),
+            2,
+        )
+
+    def test_filters_run_before_hybrid_ranking(self) -> None:
+        records, _ = DIGEST.load(self.corpus)
+        args = DIGEST.build_parser().parse_args(
+            [
+                str(self.corpus),
+                "--query",
+                "канон",
+                "--topic",
+                "документация-и-знания",
+            ]
+        )
+        with mock.patch.object(DIGEST, "search_hybrid", return_value=[]) as hybrid:
+            _, retrieval = DIGEST._retrieve(records, args)
+
+        ranked_records = hybrid.call_args.args[0]
+        self.assertEqual(retrieval, "hybrid")
+        self.assertTrue(ranked_records)
+        self.assertTrue(
+            all(
+                record["topic"] == "документация-и-знания"
+                for record in ranked_records
+            )
+        )
+
+    def test_embedding_cache_contains_hashes_and_vectors_not_quote_text(self) -> None:
+        path = self.corpus / "cache" / "embeddings.sqlite3"
+        secret = "Точный приватный текст цитаты"
+        content_hash = DIGEST._content_hash(secret)
+        vector = [0.125] * DIGEST.EMBEDDING_DIMENSION
+
+        DIGEST._store_vectors(path, {content_hash: vector})
+        loaded = DIGEST._cached_vectors(path, [content_hash])
+
+        self.assertEqual(loaded[content_hash], vector)
+        self.assertNotIn(secret.encode("utf-8"), path.read_bytes())
+        with mock.patch.object(DIGEST, "EMBEDDING_PROFILE", "another-profile"):
+            self.assertEqual(DIGEST._cached_vectors(path, [content_hash]), {})
+
+    def test_prepare_is_standalone_and_lexical_requires_query(self) -> None:
+        prepare_with_corpus = self.call("--prepare")
+        self.assertEqual(prepare_with_corpus.returncode, 2)
+        self.assertIn("--prepare запускается отдельно", prepare_with_corpus.stderr)
+
+        lexical_without_query = self.call("--lexical")
+        self.assertEqual(lexical_without_query.returncode, 2)
+        self.assertIn("только вместе с --query", lexical_without_query.stderr)
 
     def test_cli_errors_are_short_without_traceback(self) -> None:
         for args in (

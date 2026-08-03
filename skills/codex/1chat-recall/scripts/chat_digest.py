@@ -1,4 +1,10 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.12,<3.13"
+# dependencies = [
+#   "fastembed==0.8.0",
+# ]
+# ///
 """Lossless inventory and bounded retrieval for `_ops/chat-recall`.
 
 Every Markdown star block is a record. Broken metadata becomes diagnostics and
@@ -9,9 +15,12 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.metadata
 import json
+import os
 import re
 import sqlite3
+import struct
 import sys
 from collections import Counter, defaultdict
 from datetime import date, datetime
@@ -35,6 +44,23 @@ META_RE = re.compile(
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 TIME_RE = re.compile(r"^\d{1,2}:\d{2}(?::\d{2})?$")
 QUERY_TOKEN_RE = re.compile(r"[\w-]+\*?", re.UNICODE)
+
+FASTEMBED_VERSION = "0.8.0"
+EMBEDDING_MODEL = "intfloat/multilingual-e5-small"
+EMBEDDING_REVISION = "614241f622f53c4eeff9890bdc4f31cfecc418b3"
+EMBEDDING_DIMENSION = 384
+EMBEDDING_MODEL_FILE = "onnx/model.onnx"
+QUERY_PREFIX = "query: "
+PASSAGE_PREFIX = "passage: "
+HYBRID_DEPTH = 40
+RRF_CONSTANT = 60
+EMBEDDING_PROFILE = (
+    "chat-recall-v1|fastembed=" + FASTEMBED_VERSION
+    + "|model=" + EMBEDDING_MODEL
+    + "|revision=" + EMBEDDING_REVISION
+    + "|pooling=mean|normalization=true|query-prefix=query:|passage-prefix=passage:"
+)
+_EMBEDDING_BACKENDS: dict[tuple[bool, str], Any] = {}
 
 
 class CliError(RuntimeError):
@@ -300,6 +326,264 @@ def search_bm25(records: list[dict[str, Any]], query: str) -> list[dict[str, Any
     return result
 
 
+def _cache_root() -> Path:
+    explicit = os.environ.get("CHAT_RECALL_CACHE_DIR")
+    if explicit:
+        return Path(explicit).expanduser()
+    xdg_root = os.environ.get("XDG_CACHE_HOME")
+    if xdg_root:
+        return Path(xdg_root).expanduser() / "chat-recall"
+    return Path.home() / ".cache" / "chat-recall"
+
+
+def _embedding_cache_path() -> Path:
+    return _cache_root() / "embeddings.sqlite3"
+
+
+def _content_hash(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def _pack_vector(vector: list[float]) -> bytes:
+    return struct.pack(f"<{len(vector)}f", *vector)
+
+
+def _unpack_vector(payload: bytes, dimension: int) -> list[float]:
+    expected = dimension * 4
+    if len(payload) != expected:
+        raise CliError(
+            "embedding cache повреждён: "
+            f"ожидалось {expected} bytes, получено {len(payload)}"
+        )
+    return list(struct.unpack(f"<{dimension}f", payload))
+
+
+def _open_embedding_cache(path: Path) -> sqlite3.Connection:
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        connection = sqlite3.connect(path, timeout=30)
+        connection.execute("PRAGMA busy_timeout = 30000")
+        connection.execute("PRAGMA journal_mode = WAL")
+        connection.execute(
+            "CREATE TABLE IF NOT EXISTS embeddings ("
+            "profile TEXT NOT NULL, "
+            "content_hash TEXT NOT NULL, "
+            "dimension INTEGER NOT NULL, "
+            "vector BLOB NOT NULL, "
+            "PRIMARY KEY (profile, content_hash)"
+            ")"
+        )
+        return connection
+    except (OSError, sqlite3.Error) as error:
+        raise CliError(f"не удалось открыть embedding cache {path}: {error}") from error
+
+
+def _cached_vectors(
+    path: Path,
+    content_hashes: list[str],
+) -> dict[str, list[float]]:
+    try:
+        connection = _open_embedding_cache(path)
+        try:
+            result: dict[str, list[float]] = {}
+            for content_hash in dict.fromkeys(content_hashes):
+                row = connection.execute(
+                    "SELECT dimension, vector FROM embeddings "
+                    "WHERE profile = ? AND content_hash = ?",
+                    (EMBEDDING_PROFILE, content_hash),
+                ).fetchone()
+                if row is None:
+                    continue
+                dimension, payload = row
+                if dimension != EMBEDDING_DIMENSION:
+                    raise CliError(
+                        "embedding cache повреждён: неверная размерность "
+                        f"для {content_hash[:12]}"
+                    )
+                result[content_hash] = _unpack_vector(payload, dimension)
+            return result
+        finally:
+            connection.close()
+    except sqlite3.Error as error:
+        raise CliError(f"не удалось прочитать embedding cache {path}: {error}") from error
+
+
+def _store_vectors(path: Path, vectors: dict[str, list[float]]) -> None:
+    if not vectors:
+        return
+    for content_hash, vector in vectors.items():
+        if len(vector) != EMBEDDING_DIMENSION:
+            raise CliError(
+                "embedding backend вернул неверную размерность "
+                f"для {content_hash[:12]}: {len(vector)}"
+            )
+    try:
+        connection = _open_embedding_cache(path)
+        try:
+            with connection:
+                connection.executemany(
+                    "INSERT OR REPLACE INTO embeddings "
+                    "(profile, content_hash, dimension, vector) VALUES (?, ?, ?, ?)",
+                    (
+                        (
+                            EMBEDDING_PROFILE,
+                            content_hash,
+                            EMBEDDING_DIMENSION,
+                            _pack_vector(vector),
+                        )
+                        for content_hash, vector in vectors.items()
+                    ),
+                )
+        finally:
+            connection.close()
+    except sqlite3.Error as error:
+        raise CliError(f"не удалось записать embedding cache {path}: {error}") from error
+
+
+def _embedding_backend(*, offline: bool) -> Any:
+    backend_key = (offline, str(_cache_root() / "models"))
+    if backend_key in _EMBEDDING_BACKENDS:
+        return _EMBEDDING_BACKENDS[backend_key]
+    try:
+        installed = importlib.metadata.version("fastembed")
+    except importlib.metadata.PackageNotFoundError as error:
+        raise CliError(
+            "hybrid runtime не подготовлен; выполните `uv run --locked --script "
+            "chat_digest.py --prepare` или используйте --lexical"
+        ) from error
+    if installed != FASTEMBED_VERSION:
+        raise CliError(
+            f"нужен fastembed=={FASTEMBED_VERSION}, найден {installed}; "
+            "выполните `uv run --locked --script chat_digest.py --prepare`"
+        )
+
+    try:
+        from fastembed import TextEmbedding
+        from fastembed.common.model_description import ModelSource, PoolingType
+        from loguru import logger
+
+        logger.disable("fastembed")
+        known = {entry["model"].casefold() for entry in TextEmbedding.list_supported_models()}
+        if EMBEDDING_MODEL.casefold() not in known:
+            TextEmbedding.add_custom_model(
+                model=EMBEDDING_MODEL,
+                pooling=PoolingType.MEAN,
+                normalization=True,
+                sources=ModelSource(hf=EMBEDDING_MODEL),
+                dim=EMBEDDING_DIMENSION,
+                model_file=EMBEDDING_MODEL_FILE,
+                description="Multilingual E5 small for local chat recall",
+            )
+        os.environ.setdefault("HF_HUB_DISABLE_TELEMETRY", "1")
+        if offline:
+            os.environ["HF_HUB_OFFLINE"] = "1"
+        backend = TextEmbedding(
+            model_name=EMBEDDING_MODEL,
+            cache_dir=str(_cache_root() / "models"),
+            local_files_only=offline,
+            revision=EMBEDDING_REVISION,
+        )
+        _EMBEDDING_BACKENDS[backend_key] = backend
+        return backend
+    except CliError:
+        raise
+    except Exception as error:
+        action = (
+            "выполните `uv run --locked --script chat_digest.py --prepare` "
+            "при доступной сети"
+            if offline
+            else "проверьте сеть и доступ к Hugging Face"
+        )
+        raise CliError(
+            f"не удалось открыть локальную embedding model: {error}; {action}; "
+            "для BM25 используйте --lexical"
+        ) from error
+
+
+def _embed(model: Any, texts: list[str]) -> list[list[float]]:
+    try:
+        vectors = [list(map(float, vector)) for vector in model.embed(texts)]
+    except Exception as error:
+        raise CliError(f"embedding inference завершился ошибкой: {error}") from error
+    if len(vectors) != len(texts):
+        raise CliError(
+            "embedding backend вернул неожиданное число векторов: "
+            f"{len(vectors)} вместо {len(texts)}"
+        )
+    if any(len(vector) != EMBEDDING_DIMENSION for vector in vectors):
+        raise CliError("embedding backend вернул неверную размерность вектора")
+    return vectors
+
+
+def _prepare_hybrid() -> str:
+    model = _embedding_backend(offline=False)
+    _embed(model, [PASSAGE_PREFIX + "local chat recall readiness check"])
+    return (
+        f"READY: {EMBEDDING_MODEL}@{EMBEDDING_REVISION[:12]} · "
+        f"cache={_cache_root()}"
+    )
+
+
+def search_dense(records: list[dict[str, Any]], query: str) -> list[dict[str, Any]]:
+    if not records:
+        return []
+    model = _embedding_backend(offline=True)
+    cache_path = _embedding_cache_path()
+    hashes = [_content_hash(record["text"]) for record in records]
+    vectors = _cached_vectors(cache_path, hashes)
+    missing = [content_hash for content_hash in dict.fromkeys(hashes) if content_hash not in vectors]
+    if missing:
+        text_by_hash = {
+            _content_hash(record["text"]): record["text"] for record in records
+        }
+        embedded = _embed(
+            model,
+            [PASSAGE_PREFIX + text_by_hash[content_hash] for content_hash in missing],
+        )
+        additions = dict(zip(missing, embedded, strict=True))
+        _store_vectors(cache_path, additions)
+        vectors.update(additions)
+
+    query_vector = _embed(model, [QUERY_PREFIX + query])[0]
+    ranked: list[tuple[float, int, dict[str, Any]]] = []
+    for index, (record, content_hash) in enumerate(zip(records, hashes, strict=True)):
+        score = sum(
+            left * right for left, right in zip(vectors[content_hash], query_vector, strict=True)
+        )
+        ranked.append((score, index, record))
+    result: list[dict[str, Any]] = []
+    for score, _, record in sorted(ranked, key=lambda item: (-item[0], item[1])):
+        candidate = dict(record)
+        candidate["score"] = score
+        result.append(candidate)
+    return result
+
+
+def search_hybrid(records: list[dict[str, Any]], query: str) -> list[dict[str, Any]]:
+    lexical = search_bm25(records, query)
+    if not lexical:
+        return []
+    dense = search_dense(records, query)
+    scores: dict[str, float] = defaultdict(float)
+    for ranking in (lexical[:HYBRID_DEPTH], dense[:HYBRID_DEPTH]):
+        for rank, record in enumerate(ranking, 1):
+            scores[record["address"]] += 1.0 / (RRF_CONSTANT + rank)
+    original_order = {
+        record["address"]: index for index, record in enumerate(records)
+    }
+    by_address = {record["address"]: record for record in records}
+    ordered = sorted(
+        scores,
+        key=lambda address: (-scores[address], original_order[address]),
+    )
+    result: list[dict[str, Any]] = []
+    for address in ordered:
+        candidate = dict(by_address[address])
+        candidate["score"] = scores[address]
+        result.append(candidate)
+    return result
+
+
 def _validate_date(value: str, name: str) -> str:
     try:
         return date.fromisoformat(value).isoformat()
@@ -332,6 +616,17 @@ def _filter(records: list[dict[str, Any]], args: argparse.Namespace) -> list[dic
         until = _validate_date(args.until, "--until")
         result = [record for record in result if record["date"] and record["date"] <= until]
     return result
+
+
+def _retrieve(
+    records: list[dict[str, Any]], args: argparse.Namespace
+) -> tuple[list[dict[str, Any]], str | None]:
+    filtered = _filter(records, args)
+    if not args.query:
+        return filtered, None
+    if args.lexical:
+        return search_bm25(filtered, args.query), "lexical"
+    return search_hybrid(filtered, args.query), "hybrid"
 
 
 def _quality(records: list[dict[str, Any]]) -> dict[str, int]:
@@ -482,9 +777,16 @@ def _check_report(records: list[dict[str, Any]], total: int, max_chars: int) -> 
 
 
 def _result_status(
-    returned: int, matched: int, total: int, truncated_by: str | None
+    returned: int,
+    matched: int,
+    total: int,
+    truncated_by: str | None,
+    retrieval: str | None,
 ) -> str:
-    status = f"{returned}/{matched} matches shown · {total} records"
+    noun = "candidates" if retrieval else "records"
+    status = f"{returned}/{matched} {noun} shown · {total} records"
+    if retrieval:
+        status += f" · retrieval={retrieval}"
     if truncated_by == "limit":
         return f"{status} · truncated by --limit"
     if truncated_by == "max_chars":
@@ -500,9 +802,12 @@ def _render_digest(
     matched: int,
     total: int,
     truncated_by: str | None,
+    retrieval: str | None,
 ) -> str:
     digest = _digest(records, head, verbose=verbose)
-    lines = [_result_status(len(records), matched, total, truncated_by)]
+    lines = [
+        _result_status(len(records), matched, total, truncated_by, retrieval)
+    ]
     lines.append(digest or "selection=none")
     return "\n".join(lines)
 
@@ -515,6 +820,7 @@ def _bounded_digest(
     head: int,
     verbose: bool,
     total: int,
+    retrieval: str | None,
 ) -> tuple[list[dict[str, Any]], str | None]:
     _validate_bounds(limit, max_chars)
     _digest([], head, verbose=verbose)
@@ -529,6 +835,7 @@ def _bounded_digest(
             matched=len(records),
             total=total,
             truncated_by=("max_chars" if len(candidate) < len(records) else None),
+            retrieval=retrieval,
         )
         if len(rendered) > max_chars:
             truncated_by = "max_chars"
@@ -580,11 +887,21 @@ def _warnings(records: list[dict[str, Any]]) -> list[str]:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("corpus", type=Path)
+    parser.add_argument("corpus", type=Path, nargs="?")
+    parser.add_argument(
+        "--prepare",
+        action="store_true",
+        help="download and verify the pinned local embedding model",
+    )
     parser.add_argument("--digest", action="store_true")
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--strict", action="store_true")
     parser.add_argument("--query")
+    parser.add_argument(
+        "--lexical",
+        action="store_true",
+        help="use BM25 only instead of the default local hybrid retrieval",
+    )
     parser.add_argument("--show")
     parser.add_argument("--timeline", action="store_true")
     parser.add_argument("--type", dest="types")
@@ -620,8 +937,41 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> int:
     try:
         args = build_parser().parse_args()
+        if args.prepare:
+            incompatible = any(
+                (
+                    args.corpus,
+                    args.digest,
+                    args.check,
+                    args.strict,
+                    args.query,
+                    args.lexical,
+                    args.show,
+                    args.timeline,
+                    args.types,
+                    args.topics,
+                    args.grep,
+                    args.since,
+                    args.until,
+                    args.agent,
+                    args.session,
+                    args.json,
+                    args.verbose,
+                    args.head != 110,
+                    args.limit != 12,
+                    args.max_chars != 8000,
+                )
+            )
+            if incompatible:
+                raise CliError("--prepare запускается отдельно, без corpus и retrieval flags")
+            print(_prepare_hybrid())
+            return 0
         if args.strict and not args.check:
             raise CliError("--strict используется только вместе с --check")
+        if args.lexical and not args.query:
+            raise CliError("--lexical используется только вместе с --query")
+        if args.corpus is None:
+            raise CliError("укажите папку `_ops/chat-recall` или используйте --prepare")
         if not args.corpus.is_dir():
             raise CliError(f"нет папки: {args.corpus}")
         if not args.show:
@@ -654,9 +1004,9 @@ def main() -> int:
                 )
             selected, truncated_by = matches, None
             matched = len(selected)
+            retrieval = None
         else:
-            candidates = search_bm25(records, args.query) if args.query else list(records)
-            candidates = _filter(candidates, args)
+            candidates, retrieval = _retrieve(records, args)
             if args.timeline:
                 candidates = _timeline(candidates)
             matched = len(candidates)
@@ -674,6 +1024,7 @@ def main() -> int:
                     head=args.head,
                     verbose=args.verbose,
                     total=total,
+                    retrieval=retrieval,
                 )
         envelope = {
             "total": total,
@@ -686,6 +1037,12 @@ def main() -> int:
             "warnings": _warnings(records),
             "records": selected if args.show else [_summary(record) for record in selected],
         }
+        if args.query:
+            envelope["retrieval"] = retrieval
+            envelope["retrieval_complete"] = True
+            envelope["candidate_count"] = matched
+            if retrieval == "hybrid":
+                envelope["candidate_depth"] = HYBRID_DEPTH
         if args.timeline:
             envelope["order"] = "newest-first"
 
@@ -738,6 +1095,7 @@ def main() -> int:
                     matched=matched,
                     total=total,
                     truncated_by=truncated_by,
+                    retrieval=retrieval,
                 )
             )
         if args.check and args.strict and diagnostic_count:

@@ -15,57 +15,105 @@ Claude- or Codex-specific environment variable.
 ```bash
 RECALL_DIR="<project>/_ops/chat-recall"
 
+# One-time bootstrap. This is the only command allowed to use the network.
+uv run --locked --script "$DIGEST" --prepare
+
 python3 "$DIGEST" "$RECALL_DIR" --check
 python3 "$DIGEST" "$RECALL_DIR"
-python3 "$DIGEST" "$RECALL_DIR" --query "субагент* параллел*" \
+uv run --offline --locked --script "$DIGEST" "$RECALL_DIR" \
+  --query "субагент* параллел*" \
   --limit 5 --max-chars 4000
-python3 "$DIGEST" "$RECALL_DIR" --query "память контекст" \
+uv run --offline --locked --script "$DIGEST" "$RECALL_DIR" \
+  --query "память контекст" \
   --timeline --json --limit 5 --max-chars 4000 \
   | jq '{
-      matched, returned, truncated, truncated_by, order, warnings,
+      retrieval, retrieval_complete, candidate_count,
+      returned, truncated, truncated_by, order, warnings,
       records: [.records[] |
         {record_id, timestamp, type, topic, text, diagnostics}]
     }'
 python3 "$DIGEST" "$RECALL_DIR" --show <record-id>
 ```
 
-The default command is a cheap topics/types/period inventory. `--query` builds
-an in-memory SQLite FTS5 index with one record per document and BM25 ranking.
-The record text has normal weight; `topic` has a small boost. Add original
-terms, synonyms, and explicit Russian prefix forms such as `субагент*`.
-Automatic lemmatization is intentionally absent.
+The default command remains a cheap topics/types/period inventory. The first
+`--prepare` downloads the pinned `intfloat/multilingual-e5-small` ONNX model and
+locked Python runtime dependencies into the local cache (about 465 MB on the
+current Mac). It never reads the recall corpus. Query commands use
+`uv --offline`; a query never downloads a model or sends quote text to a network
+service. Set
+`CHAT_RECALL_CACHE_DIR` only when the default `~/.cache/chat-recall` location is
+unsuitable. Keep `--locked` on both prepare and query commands so the adjacent
+script lock remains authoritative.
+
+`--query` now uses local hybrid retrieval by default:
+
+1. Metadata filters narrow the corpus before either ranker runs.
+2. In-memory SQLite FTS5/BM25 is the admission gate. If it finds no lexical
+   candidate, the command returns `selection=none` without loading the model.
+3. The pinned multilingual E5 model ranks the filtered records. Equal-weight
+   reciprocal-rank fusion combines the first 40 BM25 and dense candidates.
+
+The content-addressed SQLite cache stores only SHA-256 hashes and 384-dimensional
+float vectors, never quote text. Its profile includes the model revision,
+FastEmbed version, pooling, normalization, and E5 prefix scheme, so a changed
+profile cannot silently reuse old vectors. The RRF score is candidate-routing
+evidence, not a probability, relevance threshold, or claim about truth. The
+first query over previously unseen quote hashes computes their vectors and can
+therefore take materially longer; later queries reuse the shared local cache.
+
+Use explicit lexical-only mode when bootstrap is unavailable or when diagnosing
+exact-term behavior:
+
+```bash
+python3 "$DIGEST" "$RECALL_DIR" --query "субагент* параллел*" \
+  --lexical --limit 5 --max-chars 4000
+```
+
+Original terms, synonyms, and Russian prefix forms such as `субагент*` remain
+useful because BM25 is the honest abstention gate. Automatic lemmatization is
+intentionally absent: measured prefix/stopword variants did not improve hit@5
+over BM25 on the maintained Russian paraphrase regression.
 
 Filters remain metadata, not query text:
 
 ```bash
-python3 "$DIGEST" "$RECALL_DIR" --query "память контекст" \
+uv run --offline --locked --script "$DIGEST" "$RECALL_DIR" \
+  --query "память контекст" \
   --type коррекция,правило-кандидат --agent <agent> --since 2026-07-01
 python3 "$DIGEST" "$RECALL_DIR" --timeline --session <uuid>
 ```
 
 Supported filters are `--type`, `--topic`, `--grep`, `--since`, `--until`,
-`--agent`, and `--session`. Start agent-facing retrieval with `--limit 5` and
-`--max-chars 4000`; widen only when the coverage gate below requires it. The
-larger CLI defaults remain a compatibility ceiling, not a reason to spend it.
+`--agent`, and `--session`; query filters run before ranking. Start agent-facing
+retrieval with `--limit 5` and `--max-chars 4000`; widen only when the coverage
+gate below requires it. The larger CLI defaults remain a compatibility ceiling,
+not a reason to spend it.
 
 `--limit` is the maximum number of returned records, not a guaranteed count.
 The hard `--max-chars` budget applies to the complete rendered output and can
 therefore return fewer records than `--limit`. Inspect `truncated_by`: `limit`
 means the record ceiling was reached, while `max_chars` means the output budget
 was reached. `--head` changes only the excerpt length in human output and is
-ignored with `--json`. For complete JSON coverage, increase both `--limit` and
-`--max-chars` until `matched == returned` and `truncated_by` is `null`.
+ignored with `--json`. `truncated` and `truncated_by` describe presentation
+only. Increase both budgets until `truncated: false` when the task truly needs
+every generated candidate; this is not proof that every semantically relevant
+record exists in the pool.
 
-Human search output keeps only the stable ID, source date, evidence kind,
-classification and excerpt; it marks records with diagnostics and omits file
-addresses and the internal BM25 score. Use `--show` to recover complete text,
-provenance, raw malformed metadata and address for a consequential candidate;
-add `--verbose` only when the ranking or full parser record is under diagnosis.
-`--json` returns `total`, `matched`, `returned`, `truncated`, `truncated_by`,
-`selection`, quality counts, warnings, and records. With `--timeline`, it also
-returns `order: newest-first`. In an agent-facing terminal, pipe JSON through
-`jq` so only fields needed for the decision enter context, but retain `warnings`
-and per-record `diagnostics`.
+Human search output labels the denominator as generated candidates. It keeps
+only the stable ID, source date, evidence kind, classification and excerpt;
+marks records with diagnostics; and omits file addresses and the internal rank
+score. Use `--show` to recover complete text, provenance, raw malformed metadata
+and address for a consequential candidate; add `--verbose` only when ranking or
+the full parser record is under diagnosis.
+For queries, JSON adds `retrieval`, `retrieval_complete`, `candidate_count`, and
+for hybrid retrieval `candidate_depth`. `matched` remains a compatibility alias
+for `candidate_count`; neither field means independently verified relevance.
+`retrieval_complete: true` means the declared candidate-generation policy
+finished, not that semantic recall is perfect. The envelope also returns
+`total`, `returned`, `truncated`, `truncated_by`, `selection`, quality counts,
+warnings, and records. With `--timeline`, it adds `order: newest-first`. Pipe
+agent-facing JSON through `jq` so only decision-relevant fields enter context,
+but retain `warnings` and per-record `diagnostics`.
 
 `selection=none` is a valid abstention, not a failure. A timeline orders known
 timestamps newest-first and puts unknown records last. Bounded output therefore
@@ -79,8 +127,8 @@ Read the log to improve the current decision, not to produce a quote dump. Start
 from the live choice: what owner evidence could change the goal, boundary,
 adopted direction, quality criterion, or acceptable way of working? Search that
 claim with original words, synonyms, prefix forms, and a broad topic filter when
-useful. BM25 score selects candidates; it does not determine importance or
-truth.
+useful. Hybrid or lexical rank selects candidates; it does not determine
+importance or truth.
 
 Within the resulting claim cluster, weigh evidence in this order:
 
@@ -101,11 +149,13 @@ date-only records, or unknown order require both records to remain visible.
 For `type: факт`, recency identifies the owner's newer assertion, not
 independent truth about the world.
 
-Before declaring supersession, require `truncated: false` and
-`matched == returned` for the chosen query, then check retrieval coverage:
-search wording variants or the owning topic when a later paraphrase could have
-been missed. If those gates do not close, state that the answer is based on an
-incomplete window or abstain.
+Before declaring supersession, require `retrieval_complete: true`, inspect each
+consequential candidate with `--show`, and check the claim cluster with at least
+one wording variant or its owning topic when a later paraphrase could have been
+missed. Do not use `matched == returned`, a dense score, or a fixed similarity
+threshold as semantic coverage proof. Widen the presentation window when top
+candidates are ambiguous or variants change the result. If those gates do not
+close, state that the answer is based on an incomplete window or abstain.
 
 The useful reading result is a compact working context:
 

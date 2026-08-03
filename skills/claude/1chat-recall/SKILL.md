@@ -7,7 +7,7 @@ description: >
   source-bound evidence in `_ops/chat-recall`: keep the owner's wording, but
   shorten quotes by deletion only — never paraphrase, never hide malformed
   text.
-allowed-tools: Bash(python3 *), Read, Grep, Glob
+allowed-tools: Bash(python3 *), Bash(uv *), Read, Grep, Glob
 ---
 
 # Chat recall
@@ -158,8 +158,8 @@ RECALL_DIR="$PWD/_ops/chat-recall"
 
 Then follow
 [`references/reading-the-log.md`](references/reading-the-log.md), which owns
-`check`, inventory, BM25, filters, timeline, `show`, bounded output, and
-abstention.
+`check`, inventory, local hybrid/lexical retrieval, filters, timeline, `show`,
+bounded output, and abstention.
 
 ## Repair
 
