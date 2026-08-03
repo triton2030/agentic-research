@@ -372,10 +372,10 @@ test("max-turn failure keeps native resume details when the iterator later throw
   const capture = {};
   const messages = sdkMessages({
     resultSubtype: "error_max_turns",
-    errors: ["Reached maximum number of turns (24)."]
+    errors: ["Reached maximum number of turns (48)."]
   });
   Object.assign(messages.at(-1), {
-    num_turns: 24,
+    num_turns: 48,
     terminal_reason: "max_turns"
   });
   const queryFactory = ({ prompt, options }) => {
@@ -407,7 +407,7 @@ test("max-turn failure keeps native resume details when the iterator later throw
     session_id: OPUS_SESSION,
     resumable: true,
     duration_ms: 123,
-    num_turns: 24,
+    num_turns: 48,
     terminal_reason: "max_turns",
     subtype: "error_max_turns"
   });

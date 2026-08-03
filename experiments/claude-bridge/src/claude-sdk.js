@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { query } from "@anthropic-ai/claude-agent-sdk";
 
 const CLIENT_APP = "claude-bridge/2.0";
-const MAX_TURNS = 24;
+const MAX_TURNS = 48;
 const ADVISOR_INSTRUCTION = [
   "Act as an independent advisor.",
   "Investigate and read whatever evidence is necessary, but do not modify files, run state-changing commands, or take external actions.",

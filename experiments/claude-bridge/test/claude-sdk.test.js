@@ -53,6 +53,7 @@ test("streaming engine waits for a confirmed completion signal after result", as
   const turn = engine.send("Inspect.");
   const input = await capture.input.next();
   assert.equal(input.value.uuid, turn.uuid);
+  assert.equal(capture.options.maxTurns, 48);
 
   output.push({
     type: "result",
