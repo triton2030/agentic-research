@@ -102,6 +102,13 @@ scope и какие stop rules запрещают удобные shortcuts.
 Если purpose звучит как "обновить файл", "добавить раздел" или "починить текст",
 сначала найди, какой strategy/task outcome эта запись продвигает.
 
+### Когда Дохожу До Развилки
+
+Перечитай в активный контекст релевантный блок task-файла перед материальным
+выбором scope, метода, acceptance или следующего фронтира. Само существование
+файла курс не держит. Сверь развилку с outcome и criteria; если новые факты их
+меняют, сначала ревизуй task-файл и только затем продолжай исполнение.
+
 ### Когда После Исполнения
 
 Сравни фактический diff, artifact или command output с criteria и evidence.
@@ -185,7 +192,12 @@ outcome.
   structural owner/shape decisions; `1instruction-layer` owns wording and
   placement of instruction prose.
 
-## Research Tie-Back
+## Research Tie-Back — Историческая Родословная GPT-4-Эры
+
+Эти работы 2022–2023 объясняют происхождение формы playbook-а, но не являются
+действующим обоснованием для текущего model set. Текущий механизм внешнего
+якоря требует отдельного evidence: файл помогает только когда агент возвращает
+его в контекст у развилки и ревизует после изменения фактов.
 
 - HTN supports the layered model: abstract work decomposes into executable tasks,
   but not necessarily to a fixed depth.

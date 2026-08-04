@@ -21,9 +21,6 @@ source/reference слой.
   Experiential Reflective Learning: reusable heuristics из reflection на
   прошлых trajectories.
 
-- [Memory triage](https://fazm.ai/blog/ai-agent-memory-triage-retention-decay)
-  Memory triage, retention decay и importance scoring.
-
 - [FiFA](https://arxiv.org/html/2512.12856v1)
   FiFA benchmark и Forgetful-but-Faithful architecture.
 
@@ -46,17 +43,17 @@ source/reference слой.
   guardrails повышают constraint compliance.
 
 - [RoadmapBench](https://arxiv.org/abs/2605.15846)
-  Long-horizon coding остаётся нерешённым даже для Claude Opus 4.7; нужна
-  декомпозиция, evidence и проверки, а не вера в длинный prompt.
+  Снимок 2026-05: long-horizon coding остаётся нерешённым даже для Claude Opus
+  4.7; нужна декомпозиция, evidence и проверки, а не вера в длинный prompt.
 
 - [SWE-Chain](https://arxiv.org/abs/2605.14415)
-  Release-level upgrade chains показывают, что Claude Opus 4.7 лидирует, но
-  агенты всё ещё ломают inherited functionality.
+  Снимок 2026-05: release-level upgrade chains показывают, что Claude Opus 4.7
+  лидирует, но агенты всё ещё ломают inherited functionality.
 
 - [Trajectory-aware evaluation](https://arxiv.org/abs/2602.21230)
   Trajectory-aware evaluation и пределы оценки только по финальному ответу.
 
-- [AgentIF](https://keg.cs.tsinghua.edu.cn/persons/xubin/papers/AgentIF.pdf)
+- [AgentIF](https://arxiv.org/abs/2505.16944)
   Agent instruction-following taxonomy: formatting, semantic, tool.
 
 - [LLM agent evaluation survey](https://dl.acm.org/doi/10.1145/3711896.3736570)
@@ -73,7 +70,7 @@ source/reference слой.
   token efficiency; всё равно требует точных validation loops. Сохранено как
   launch evidence, не как текущая guidance.
 
-- [GPT-5 for Coding](https://cdn.openai.com/API/docs/gpt-5-for-coding-cheatsheet.pdf)
+- Historical GPT-5-era: [GPT-5 for Coding](https://cdn.openai.com/API/docs/gpt-5-for-coding-cheatsheet.pdf)
   GPT-5-family лучше следует инструкциям, но vague/conflicting `.cursor/rules`
   и `AGENTS.md` могут backfire.
 
@@ -117,9 +114,3 @@ source/reference слой.
 
 - [planning-with-files](https://github.com/othmanadi/planning-with-files)
   Persistent markdown files for planning and knowledge.
-
-- [Self-learning Claude Code skill](https://www.mindstudio.ai/blog/self-learning-claude-code-skill-learnings-md)
-  Practical guide for `learnings.md`: structure, quality, growth management.
-
-- [Learnings loop](https://www.mindstudio.ai/blog/how-to-build-learnings-loop-claude-code-skills)
-  Learnings loop as read-execute-capture cycle for self-improving skills.

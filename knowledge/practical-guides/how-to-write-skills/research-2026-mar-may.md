@@ -29,6 +29,17 @@ baseline: меньше универсальных rules и повторов, lig
 pruning с with/without eval, а не разрешение на массовое удаление локальных
 инвариантов.
 
+Recheck 2026-08-04: научная верификация в
+[science/how-to-steer-llm-thinking.md](../../../science/how-to-steer-llm-thinking.md)
+уточнила три границы, не переписывая исторический snapshot:
+
+- не резать thought demonstrations только по критерию `actionable`: показ может
+  менять продолжение и перенос, даже когда не является отдельным шагом;
+- указатель на owner/reference не равен конкретному restatement критического
+  правила в точке действия;
+- выборка разных prompts проверяет routing/coverage, но не заменяет повторные
+  matched-прогоны одного сценария для claim о вероятностном улучшении.
+
 ## Official Baseline
 
 - OpenAI Codex Build Skills: skills — authoring, plugins — distribution;

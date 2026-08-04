@@ -86,9 +86,13 @@ tool-bound операций, где порядок сам является ча�
 только минимальную обязательную последовательность; не превращай
 профессиональное суждение в стадии ради управляемого вида.
 
-Не учить модель очевидному. Добавлять то, чего агент не знает без скилла:
-локальные conventions, API-паттерны, failure modes, команды, схемы, критерии и
-реальные поправки пользователя.
+Не добавлять общеизвестное по инерции, но «модель это знает» не является
+критерием удаления правила. Различай knowledge-gap и behavior-gap: если модель
+может пересказать правило и всё равно нарушает его, правило закрывает разрыв
+дефолта и остаётся ([KBV](https://arxiv.org/abs/2604.28031)). Добавлять то, что
+меняет действие без скилла: локальные conventions, API-паттерны, failure modes,
+команды, схемы, критерии, конкретный restatement у развилки и реальные поправки
+пользователя.
 
 Если skill учит tool use, сначала спроектировать выразительный
 description/schema: понятные параметры, enum, constraints и output contract.
@@ -106,7 +110,10 @@ description/schema: понятные параметры, enum, constraints и ou
 - `assets/`: шаблоны и ресурсы результата.
 
 Если reference длинный, дай короткое содержание и явный trigger чтения. Не
-дублируй одно правило в `SKILL.md` и reference.
+создавай независимый пересказ одного правила в `SKILL.md` и reference. Допустимо
+преднамеренно повторить критическое правило рядом с командой, шаблоном или
+phase boundary, если именно позиция меняет действие: пометь строку как копию
+owner-формулировки и обновляй её вместе с owner-ом.
 
 ## Жёсткость
 
@@ -159,9 +166,14 @@ Evidence покрывает ровно заявленные свойства:
 - admission — реальный повторяемый момент, Delta и failure evidence;
 - routing — representative use/skip/near-miss cases и живые collisions;
 - structure — platform validator и доступность нужных bundled resources;
-- behavior — observable output assertion на реалистичной задаче;
-- relative improvement — baseline или previous version, только когда заявлено
-  сравнение;
+- behavior — observable output assertion на реалистичной holdout-задаче, не на
+  traces, из которых skill авторился;
+- comparator — новый skill неявно заявляет, что полезнее no-skill или меньшего
+  вмешательства; проверь минимальный comparator, даже если текст не произносит
+  «улучшение»;
+- probabilistic improvement — matched resampling одного holdout-сценария на том
+  же resolved model и settings, с числом прогонов; один удачный output
+  доказывает возможность, но не сдвиг вероятности;
 - distribution — metadata/projection sync, только когда эти поверхности есть.
 
 Глобальный, частый, рискованный, collision-prone или already-regressed surface
@@ -178,7 +190,8 @@ resolved model; requested alias сам по себе runtime не доказыв
 - Длинный процесс ради успокоения автора.
 - Большой menu без главного decision standard.
 - Router-секция о соседних или неприменимых случаях.
-- Дубли между `SKILL.md` и `references/`.
+- Независимые пересказы между `SKILL.md` и `references/`; помеченный restatement
+  owner-правила в точке действия не считается этим дублем.
 - Скрытая зависимость от чата.
 - Нет validation или stop condition.
 - Новый скилл создан раньше, чем проверен существующий live handle.

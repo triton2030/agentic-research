@@ -9,6 +9,9 @@
   references для Codex и Claude.
 - `1skill-architect/platforms/<runtime>/` — только честные platform deltas:
   authoring mechanics и runtime metadata.
+- `1md-read/portable/` и `1md-search/portable/` — общий cognitive/tool core для
+  Codex и Claude; `platforms/codex/agents/openai.yaml` — только Codex UI и
+  invocation metadata.
 
 Source-only `portable/references/platform-skill-authoring.md` — pointer-router
 к двум platform owners. Он делает source links разрешимыми, но не входит в
@@ -28,6 +31,19 @@ projections этого owner-а. `~/.codex/skills/1skill-architect/` и
 python3 skills/shared/1skill-architect/sync_projections.py --write --install
 python3 skills/shared/1skill-architect/sync_projections.py --check
 ```
+
+Для простых shared packages и runtime-owned `1md-graph`:
+
+```bash
+python3 skills/shared/sync_simple_projections.py \
+  1md-read 1md-search 1md-graph --write --install
+python3 skills/shared/sync_simple_projections.py \
+  1md-read 1md-search 1md-graph --check
+```
+
+Generic script собирает все portable files и непересекающуюся runtime delta.
+Он не обслуживает special-manifest `1skill-architect` и отказывается удалять
+unexpected projection files: их provenance сначала разрешается явно.
 
 Скрипт копирует только явный manifest и удаляет только названные obsolete
 runtime-файлы. Неизвестные лишние файлы он не удаляет: `--check` останавливается

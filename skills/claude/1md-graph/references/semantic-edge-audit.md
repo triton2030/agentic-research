@@ -1,114 +1,172 @@
 ---
-description: "Body-evidence admission test and verdicts for declared, missing or invalid depends-on edges."
+description: "Admission test and verdicts for semantic correctness, necessity, strength and delta impact of one cross-file Markdown edge."
 ---
 
 # Semantic Edge Audit
 
-Contents: Boundary · Evidence Packet · Admission Test · Verdicts ·
-Owner-Conflict Slots · Flow Check · Closeout.
+Contents: Unit · Relation jobs · Evidence · Admission test · Verdicts ·
+Delta impact · Conflicts and cycles · Stop.
 
-Открывай, когда mechanical graph уже известен, но надо решить: верен ли
-declared `depends-on`, отсутствует ли обязательный edge, или связь вообще не
-должна быть edge.
+## Unit
 
-## Граница
+Аудируй не URL отдельно, а связь вместе с несущим её утверждением:
 
-- Container, split/merge/move/rename, block placement и owner-shape сначала
-  решает `1ia-audit`.
-- `1md-graph` решает только source/downstream direction и propagation.
-- `1md-navigator` даёт semantic candidates; similarity не создаёт edge.
-
-## Evidence Packet
-
-Собери target, его direct `must_read`, direct `must_update`, важные body links
-и выбранные semantic candidates. Reuse текущий `preflight`; повтори его только
-если evidence отсутствует или target/state изменился. Затем:
-
-```bash
-md read-related --paths TARGET --scan GRAPH_ROOT --json
+```text
+holder: HOLDER#section
+holder statement: ...
+target: TARGET#section | file-level
+relation job: ...
+attribution: holder claims target owns/supports/constrains ...
 ```
 
-Из map выбери и прочитай нужные bodies напрямую до verdict. Packet-level
-`_envelope.next_step` раскрывает весь neighborhood, не selected item; запускай его
-только для малого packet или с явным `--token-budget N`. Recorded graph
-кажется неполным — bounded candidates через `1md-navigator`; second hop не
-расширяй автоматически.
+`holder` содержит link или dependency declaration. `target` — адресуемый
+источник, которому holder приписывает смысл. Для hard edge target является
+upstream source; reverse traversal находит holders, которые надо перечитать при
+его изменении.
+
+## Relation Jobs
+
+Выбери information job до verdict:
+
+- `authority/definition` — target владеет термином, правилом, ролью или
+  инвариантом;
+- `application/constraint` — holder применяет или сужает контракт target-а;
+- `support/provenance` — target подтверждает, объясняет происхождение или
+  evidence boundary;
+- `navigation` — связь помогает reader-у, но её изменение не инвалидирует
+  holder;
+- `hard invalidation` — изменение X в target делает Y в holder ложным или
+  misleading.
+
+Это не обязательный frontmatter enum. Local corpus contract сильнее и может
+назвать relation иначе; смысловая работа должна оставаться различимой.
+
+## Evidence
+
+Перед verdict прочитай:
+
+1. holder section целиком, включая предложение до и после link;
+2. exact target section и его owner/authority contract;
+3. только те upstream/downstream sections, которые способны изменить verdict.
+
+Heading, description, link label, metadata key, similarity и graph direction
+выбирают чтение, но не заменяют body evidence. Local `source-of-truth-for`,
+Rule IDs или contract markers полезны как addressable signals, а не
+универсальная authority schema.
+
+Если target — bare file:
+
+- artifact-wide attribution может быть sound;
+- section-specific attribution без section address требует `retarget` либо
+  доказательства, что local contract считает whole-file target стабильным.
 
 ## Admission Test
 
-Перед `keep` или `add-missing` заполни одну проверяемую конструкцию:
+Проверь шесть вопросов.
 
-> Если в `SOURCE#section` изменится **X**, то в `HOLDER#section` станет ложным
-> или misleading **Y**.
+### 1. Attribution fit
 
-Требования:
+Закрой конструкцию:
 
-- **X** — адресуемый контракт: правило, роль, формула, enum, обещание,
-  ограничение, право, evidence;
-- **Y** — конкретная проекция этого контракта в теле holder-а;
-- для X и Y названы `path#heading` и краткое body evidence;
-- «важно», «связано», «полезно прочитать», общая тема и сходный словарь
-  admission test НЕ проходят.
+> В `HOLDER#section` конкретный **Y** приписывает `TARGET#section`
+> смысл, authority, support или constraint **X**.
 
-Direction test: **source владеет X; holder применяет, ограничивает или
-пересказывает X.** Оба файла заявляют владение X, либо source отсылает к
-holder-у как к канону → `owner-conflict`, не `keep` и не reciprocal edge.
+Target body действительно утверждает X в том же смысле и при тех же
+ограничениях. Тематическая близость не проходит тест.
 
-Отказы теста:
+### 2. Direction
 
-- есть X, но нет конкретного Y → `downgrade` до navigation;
-- есть Y, но source не владеет X → `reverse`, `remove` или `owner-conflict`;
-- holder останется верным при материальном изменении X → edge не hard;
-- изменение нерелевантной части source не доказывает связь.
+Holder применяет, цитирует, ограничивает или навигирует к target. Если target
+на самом деле делегирует X holder-у, relation развёрнут или ownership спорен.
 
-Стоп-правило: нельзя создать или сохранить hard edge на основании одних
-frontmatter, description, similarity score или тезиса «документы связаны».
+### 3. Endpoint precision
 
-## Verdicts
+Target file и section должны быть минимальным стабильным owner address.
+Ссылка на соседний heading, общий файл вместо точного section или устаревший
+owner — `retarget`, даже когда path/anchor технически существует.
 
-- `keep` — X/Y и direction подтверждены body evidence;
-- `reverse` — edge записан в обратную сторону;
-- `downgrade` — useful navigation, не obligation;
-- `remove` — stale, decorative или misleading edge;
-- `add-missing` — обязательный source meaning не объявлен (X/Y названы);
-- `owner-conflict` — владение инвариантом спорно; edge-edit стоп, решение у
-  `1ia-audit`;
-- `deferred` — owner/scope/evidence недостаточны для verdict.
+### 4. Necessity
 
-Для каждого verdict — X/Y и body addresses. Большой cascade или similarity
-score сами по себе не ошибка.
+Назови information job, которая исчезнет после удаления edge:
 
-## Owner-Conflict Slots
+- owner/definition станет неадресуемым;
+- evidence/provenance перестанет быть проверяемым;
+- dependency не попадёт в propagation review;
+- составная мысль потеряет обязательный reader path.
+
+Если ни одна job не исчезает, edge декоративный, дублирующий или stale.
+Optional navigation может оставаться sound только с честным navigation intent.
+
+### 5. Strength
+
+Hard edge требует X/Y invalidation:
+
+> Если в target материально изменится X, Y в holder станет ложным или
+> misleading.
+
+Не проходит — downgrade до подходящей prose/navigation relation. Обратный
+случай тоже material: holder фактически зависит от target, но хранит лишь
+необязательную prose-ссылку — `reclassify` в hard relation по local contract.
+
+### 6. Consistency
+
+Bodies совместимы по term meaning, scope, units, state, authority и lifecycle.
+Clear owner + stale consumer — обычный repair. Два конкурирующих owner-а или
+несовместимые инварианты — `conflict`.
+
+## Edge Verdicts
+
+- `sound` — endpoint, attribution, direction, necessity и strength согласованы;
+- `retarget` — relation нужна, но должна вести к другому file/section;
+- `reclassify` — relation job или сила неверна;
+- `remove` — decorative, duplicate, stale или misleading edge без
+  самостоятельной information job;
+- `missing` — конкретный holder Y использует target X, но обязательной
+  addressable relation нет;
+- `conflict` — linked bodies или owner claims несовместимы, и локальный repair
+  edge-а не разрешает authority;
+- `unread` — evidence ещё не прочитано; это очередь, не verdict.
+
+Для каждого verdict сохрани attribution и body addresses. Batch verdict по
+file names, snippets или graph rows недопустим.
+
+## Delta Impact
+
+Edge verdict и impact-status независимы:
+
+- `affected` — эта delta target-а изменяет Y holder-а;
+- `unaffected` — edge остаётся sound, но delta не касается применяемого X;
+- `unread` — impact не проверен;
+- `not-applicable` — edge audit идёт без конкретной delta.
+
+Рекурсируй reverse graph только через `affected`. `unaffected` останавливает
+ветвь с объяснением применяемого контракта.
+
+## Conflicts And Cycles
 
 Для спорной пары заполни:
 
 ```text
 A owns:
-A says B owns:
+A attributes to B:
 B owns:
-B says A owns:
+B attributes to A:
 shared invariant:
 ```
 
-Один invariant заявлен обоими, либо каждый делегирует его другому →
-`owner-conflict`. `md cycles == 0` этого не опровергает: он видит только
-frontmatter-циклы, петля живёт в тексте.
+Один invariant заявлен обоими, либо каждый делегирует его другому, —
+`conflict` и handoff `1ia-audit`.
 
-## Flow Check
+SCC сам по себе не verdict. Если каждое edge связывает разные, совместимые
+инварианты, cohort может быть sound и требует совместного review. Если local
+contract явно запрещает cycles, structural blocker действует независимо от
+semantic verdict.
 
-Проверь только то, что меняет edge verdict:
+## Stop
 
-- base claim приходит до downstream detail;
-- child применяет/уточняет source, а не становится вторым canon;
-- anchor ведёт к нужной секции;
-- sibling summaries не конкурируют как owner truth.
+Стоп, когда denominator существующих edges назван, обе стороны каждого
+selected edge прочитаны, verdict и при наличии delta impact-status записаны,
+`unread` передан, а conflict получил owner handoff.
 
-Если flow требует менять container или переносить truth, останови edge edit и
-передай решение `1ia-audit`.
-
-## Closeout
-
-После авторизованной edge-правки прогони `preflight`, scoped `check` и
-`cycles`. Стоп, когда у каждой audited пары есть verdict с X/Y evidence и
-findings сообщены; при разрешённых edits ошибки исправлены или blocked, иначе
-получили action/handoff.
+Не распространяй этот stop на непросмотренный corpus или open-world missing
+edges.

@@ -97,7 +97,7 @@ failure. Это evidence contract, а не обязательная стадий
 
 ## Опоры
 
-- <https://developers.openai.com/api/docs/guides/prompt-guidance-gpt-5p6>
+- <https://developers.openai.com/api/docs/guides/latest-model?model=gpt-5.6#prompting-best-practices>
   Официальная GPT-5.6 guidance: prompt pruning, outcome/stop, response length,
   permissions, tools, retrieval, state, effort и validation.
 

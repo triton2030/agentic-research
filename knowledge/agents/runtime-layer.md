@@ -42,7 +42,7 @@ approvals, hooks, sandbox и orient-before-act. Tool design — отдельны
 
 ## Опоры
 
-- https://openai.com/index/introducing-the-model-spec/
+- https://model-spec.openai.com/2025-12-18.html
   Instruction hierarchy, роли и приоритеты правил.
 
 - `/knowledge/guides/perfect-system-prompts.md`

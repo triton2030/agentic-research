@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-MD Search"
+  short_description: "Semantic discovery across Markdown corpora"
+  default_prompt: "Use $1md-search to find and read decision-ready Markdown evidence, then continue the original task; do not infer owner, duplicate meaning, or absence from rank."
+
+policy:
+  allow_implicit_invocation: true

@@ -26,13 +26,13 @@
 
 ## Опоры
 
-- <https://developers.openai.com/codex/sdk>
+- <https://learn.chatgpt.com/docs/codex-sdk>
   Основная опора для thread-based orchestration.
 
 - <https://developers.openai.com/api/docs/guides/latest-model>
   GPT-5.6 migration posture для coding, tool-heavy agents и prompt tuning.
 
-- <https://developers.openai.com/codex/use-cases/agent-friendly-clis>
+- <https://learn.chatgpt.com/use-cases/agent-friendly-clis>
   Подход к CLI, которые удобны для агентной работы.
 
 - <https://github.com/milisp/codexia>

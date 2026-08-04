@@ -12,9 +12,11 @@ authoring: любой материально слабый ответ меняе�
 ## Evidence Pressure
 
 Evidence соответствует заявленному claim и цене ошибки. Малой локальной правке
-может хватить structural check и одного различающего output probe. Глобальный,
-частый, collision-prone, risky или already-regressed surface требует более
-сильного evidence именно по поднятому риску, но не фиксированного test package.
+может хватить structural check и минимального различающего comparator-а на
+holdout-кейсе. Один output probe доказывает возможность поведения, но не
+вероятностное улучшение. Глобальный, частый, collision-prone, risky или
+already-regressed surface требует более сильного evidence именно по поднятому
+риску, но не фиксированного test package.
 
 ## Go / No-Go
 
@@ -48,6 +50,8 @@ Evidence соответствует заявленному claim и цене о�
   order-sensitive failure mode?
 - В `SKILL.md` осталось только ядро?
 - Длинные детали вынесены в `references/`?
+- Критический restatement в точке действия помечен как копия owner-правила, а
+  не стал независимым вторым каноном?
 - Хрупкая повторяемая логика вынесена в `scripts/`?
 - Выходные шаблоны и ресурсы вынесены в `assets/`?
 - Нет `README.md`, `CHANGELOG.md`, `QUICK_REFERENCE.md` внутри installed skill?
@@ -66,7 +70,12 @@ Evidence соответствует заявленному claim и цене о�
 
 - Структурная проверка платформы прошла?
 - Есть наблюдаемая проверка каждого материального behavior/routing claim?
-- Baseline или previous version есть, если заявлено улучшение относительно них?
+- Для нового skill есть минимальный comparator: no-skill, одно правило или
+  ближайшая меньшая форма вмешательства?
+- Behavior проверяется на holdout-задаче, а не на traces, из которых skill
+  авторился?
+- Если заявлен сдвиг вероятности, проведено matched resampling на одном
+  сценарии с тем же resolved model/settings и записанным числом прогонов?
 - Metadata/projections синхронизированы, если изменение их затрагивает?
 - Assertions проверяют наблюдаемое, а human review оставлен для вкуса/качества?
 - После прогона удалено всё, что не улучшает routing, качество, скорость или

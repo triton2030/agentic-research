@@ -91,9 +91,9 @@ packaging и управляемых agents,
 - `knowledge/wisdom-claude-fable-5.md` — отдельный Fable 5 baseline.
 - `knowledge/practical-guides/how-to-write-skills/platform-deltas.md` —
   Claude Code skills, free skills и plugin packaging.
-- <https://docs.anthropic.com/en/docs/claude-code/hooks-guide> — hooks как внешний
+- <https://code.claude.com/docs/en/hooks-guide> — hooks как внешний
   слой контроля.
-- <https://docs.anthropic.com/en/docs/build-with-claude/computer-use> — approvals,
+- <https://platform.claude.com/docs/en/agents-and-tools/tool-use/computer-use-tool> — approvals,
   risk levels и контроль внешних действий.
 - <https://code.claude.com/docs/en/model-config> — live model aliases,
   overrides и фактически resolved model в machine-readable output.

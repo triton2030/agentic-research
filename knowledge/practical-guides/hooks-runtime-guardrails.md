@@ -131,13 +131,17 @@ agent loop и может влиять на действия модели.
 
 ## Session-state pattern (baseline для stateful enforcement)
 
-Hook без памяти сессии стреляет одинаково каждый ход — отсюда re-read одного
-и того же criteria 5 раз, verbatim citation требуемая когда anchor docs не
-менялись, маркеры ставимые ради маркеров. Session-state разрывает loop:
+Hook без памяти сессии не различает полезный возврат к якорю после дистанции и
+шумное повторение каждый ход. Проблема не в re-read как таковом: файл не менялся
+не значит, что модель удерживает его в активном контексте. Session-state
+кодирует дистанцию от последнего чтения и даёт hook-у перечитать criteria у
+развилки или после N ходов, не требуя verbatim citation и маркеров ради
+маркеров:
 
 - **anchor_reads** — какие живые anchor-doc (`AGENTS.md`, `CLAUDE.md`,
   `_ops/GOAL.md` и active `_ops/plans/**/task-*.md`, если он есть) прочитаны в
-  этой сессии и когда (turn_id + ts + mtime).
+  этой сессии и когда (`turn_id` + `ts`); `mtime` отдельно показывает изменение
+  файла, но не заменяет дистанцию от последнего чтения.
 - **file_changes** — что менялось в текущей и прошлых turns.
 - **skill_invocations** — какие skills вызывались (per turn). Hook читает
   это для composability check: вместо `marker регex` спрашивает «вызывался
@@ -150,8 +154,9 @@ CLI: read / write / append / bump / sync-from-transcript / gc. Atomic
 writes (temp + rename). Fail-open: ошибки никогда не ломают hook или skill.
 GC: 14 дней.
 
-Использовать когда: cross-hook / cross-skill ratio truth, idempotent
-re-firing, threshold logic, mtime-based freshness, composability detection.
+Использовать когда: cross-hook / cross-skill ratio truth, idempotent re-firing,
+threshold logic, freshness по дистанции от последнего чтения с дополнительной
+проверкой `mtime`, composability detection.
 Не использовать как durable storage для user quotes (это
 manual-only legacy archive в `_ops/user-said/YYYY-MM-DD.md`) или для task
 contracts (`_ops/plans/**/task-*.md` через `1planning`).

@@ -95,7 +95,9 @@ MCP даёт доступ к инструментам и данным. Skill д�
 
 Для OpenAI Responses skill bundle может быть загружен в контейнер и найден
 агентом в runtime. Для таких workflows сохранять state: assistant items,
-tool outcomes, phase, compaction milestones, blockers и next concrete goal.
+tool outcomes, phase, compaction milestones, blockers и next concrete goal — и
+возвращаться к нему циклом перечитать → сверить → ревизовать у материальной
+развилки.
 
 Для Claude API skills идут через skill management / container capabilities;
 для production-пайплайнов важнее versioning, distribution, security review и

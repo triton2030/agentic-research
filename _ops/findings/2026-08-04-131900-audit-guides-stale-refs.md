@@ -1,0 +1,3 @@
+# Finding — 2026-08-04 — capture:131900-audit-guides-stale-refs
+
+- 13:19 — knowledge/guides/structural-critique-playbook.md (Skill Map, Domain Adaptation) ссылается на retired-скилы `project-roadmap`, `task-contract`, `plan-drift-watch`, `strategy-trace`, `pulse-check`; knowledge/guides/design-review-playbook.md маршрутизирует в `1impeccable` и `1screenshot-design`, которых нет в ~/.claude/skills (есть `screenshot-design`); knowledge/guides/progressive-task-planning-playbook.md:175 держит абсолютный путь `/Users/triton/.codex/skills/1planning/SKILL.md`; knowledge/guides/README.md пуст (2 строки) | ls ~/.claude/skills + чтение файлов при read-only аудите guides | маршруты плейбуков ведут в несуществующие скилы, не проверялось против ~/.codex/skills

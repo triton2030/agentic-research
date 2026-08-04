@@ -1,167 +1,145 @@
 ---
 name: 1md-graph
 description: >
-  Use when claim/heading/anchor/depends-on affects holders/cycles, or
-  graph-frontmatter/move/merge/rename/delete needs impact. Search→nav; shape→IA.
+  Use when change/review asks whether a Markdown `depends-on` or prose link is
+  semantically correct, necessary, missing or invalidated. Audit both bodies and
+  reverse propagation. Follow known link→1md-read; unknown meaning→1md-search;
+  exact refs→1cli-tools; owner/shape→1ia-audit.
 ---
 
 # 1md-graph
 
-Центральный вопрос скила — не «какие файлы вернул preflight», а: **какой
-конкретный смысл меняется, где он спроецирован, и какое прочитанное evidence
-доказывает или опровергает распространение изменения**.
+## Root Virtue
 
-## Результат — change-contract packet
+Каждая межфайловая ссылка — утверждение об отношении, а не доказательство
+связности. Skill проверяет **semantic edge**: что окружающий текст приписывает
+target-у, действительно ли target этим смыслом владеет или его поддерживает,
+нужна ли связь и что она обязует перечитать после изменения.
 
-- change claim: что именно станет иначе (`before → after` или область delta);
-- прочитанные sources и держатели с evidence «какая проекция задета»;
-- ветви держателей: `affected` / `unaffected` / `unread` (явная очередь);
-- semantic probes (claim + consumer) и их retrieval outcome;
-- находки гнили: `duplicate-truth`, `owner-conflict`;
-- gaps и handoff правильному owner-у.
+`md`/graph output может перечислить или проверить структурные связи, но не
+выносит semantic verdict. Не говори `file checked`, `graph clean`,
+`safe-to-edit` или «пропущенных связей нет».
 
-Graph JSON — structural evidence, не semantic вердикт и не permission расширять
-write scope. Не говори `safe-to-edit`. Непустая `unread`-очередь = работа не
-закрыта, а остановлена названным решением.
+## Единица Работы И Результат
+
+Один edge packet содержит:
+
+- `holder#section` и конкретное утверждение вокруг ссылки;
+- `target#section` или честный file-level target;
+- relation job: `authority/definition`, `application/constraint`,
+  `support/provenance`, `navigation` или `hard invalidation`;
+- attribution: какой смысл holder приписывает target-у;
+- прочитанное body evidence с обеих сторон;
+- edge verdict: `sound`, `retarget`, `reclassify`, `remove`, `missing`,
+  `conflict` или `unread`;
+- для конкретной delta отдельный impact-status:
+  `affected`, `unaffected`, `unread` или `not-applicable`.
+
+Локальный document contract может уточнять relation jobs и authority. Эти
+labels — рабочая рамка аудита, не универсальная metadata schema.
 
 ## Границы
 
-| Момент | Owner |
+| Information job | Owner |
 |---|---|
-| `depends-on`, reverse holders, anchor drift, cycles, destructive impact | `1md-graph` |
-| Где живёт semantic owner или какие blocks связаны по смыслу | `1md-navigator` |
-| Нужно ли split/merge/move/rename или менять container/placement | `1ia-audit`; после решения вернись сюда за impact/closeout |
-| Exact refs/counts, stale strings или shell cleanup | `1cli-tools` |
-| Ordinary prose/formatting или known read без graph risk | direct Read/edit |
-| `SKILL.md` frontmatter | `1skill-architect` |
+| Прочитать известные holder и target sections | `1md-read` |
+| Найти candidates на отсутствующую связь | `1md-search` |
+| Решить owner, split/merge/move или placement истины | `1ia-audit` |
+| Exact refs, path/anchor resolution, counts и live CLI contract | `1cli-tools` |
+| Оценить смысл, необходимость, силу и propagation edge | `1md-graph` |
+| Применить разрешённый prose/edge repair и проверить Markdown | direct scoped edit + `1md-lint` |
 
-Эта граница определяет graph semantics, а не универсальный whitelist
-frontmatter. `depends-on` — единственное поле, которое этот skill трактует как
-hard invalidation edge. Другие metadata (`kind`, execution-order field,
-`derived-from`, `supersedes`, type/lifecycle fields) могут иметь собственную
-функцию по local document/planning contract. Не переименовывай их в
-`depends-on` и не удаляй только потому, что graph их не потребляет; их
-допустимость и validation принадлежат live path/zone profile. Runtime mismatch
-разрешай через route ниже.
+Обычная ссылка без semantic question читается напрямую. Broken path или anchor
+остаётся structural defect; его исправление не доказывает, что выбран правильный
+target.
 
-## Default Path
+## Default Path — Audit Изменённого Neighborhood
 
-1. **Зафиксируй change claim до команд**: одно предложение — что станет иначе.
-   Правка без смыслового изменения и без graph risk — обычный edit без этого
-   пути. Если мотив правки — противоречие между файлами или неясно, где
-   правда, — проблема глубже связей: сначала shape-вердикт `1ia-audit`, связи
-   потом.
+1. **Назови claim и denominator.** Зафиксируй semantic delta либо точный edge
+   audit question. Назови holder/target scope, exclusions и что считается
+   существующим edge set. Без cross-file meaning обычный edit не требует этого
+   маршрута. Rename/move/delete входит сюда, только если меняет semantic address,
+   owner attribution или propagation; exact broken refs/counts сначала
+   принадлежат `1cli-tools`.
+2. **Собери edges, не verdicts.** Для изменяемого holder-а возьми его outgoing
+   cross-file links и declared dependencies. Для изменяемого owner/source
+   найди reverse holders. Frontmatter, body links, local registries, exact
+   search и graph tools — candidate channels; ни один канал сам не доказывает
+   полноту или правильность связи.
+3. **Прочитай обе стороны.** Через `1md-read` раскрой holder statement и точный
+   target section. Bare file link допустим только когда attribution
+   artifact-wide; section-level claim требует section-level evidence. Не
+   подменяй broken или слабый target похожим heading по догадке.
+4. **Сформулируй attribution.** Одно проверяемое предложение:
 
-2. **Сними карту из `GRAPH_ROOT`**. Запускай из `cwd=GRAPH_ROOT`, а `--scan`
-   явно фиксирует reverse-scan scope:
+   > В `HOLDER#section` утверждение **Y** приписывает
+   > `TARGET#section` смысл/владение **X**.
 
-   ```bash
-   md preflight PATH --scan GRAPH_ROOT --json
-   ```
+   Затем проверь direction, endpoint, relation job, необходимость и
+   совместимость bodies по
+   [`semantic-edge-audit.md`](references/semantic-edge-audit.md).
+5. **Отдели edge quality от delta impact.** `sound` edge может быть
+   `unaffected` конкретной редакционной delta; неверный edge требует
+   `retarget/reclassify/remove` независимо от текущей правки.
+6. **Пройди propagation.** Для substantive change target-а каждому прямому
+   holder-у дай `affected`, `unaffected` или `unread` с body evidence.
+   Раскрывай следующий reverse hop только у `affected`-ветвей. `depends-on`
+   создаёт обязательство review, не автоматического update.
+7. **Ищи missing edge только от seed.** Когда конкретный owner claim, ID,
+   consumer behavior или обнаруженный разрыв делает отсутствие material,
+   используй
+   [`missing-edge-discovery.md`](references/missing-edge-discovery.md).
+   Open-world поиск без seed и denominator запрещён.
+8. **Разреши конфликт на правильном слое.** Ясный owner + stale holder =
+   `affected` или `retarget`. Два владельца одного инварианта, несовместимые
+   claims или непонятная authority = `conflict` и handoff `1ia-audit`; не
+   придумывай reciprocal edge как лечение.
+9. **Применяй только разрешённый verdict.** При write-intent исправь exact
+   holder/target edge и затронутый смысл, затем используй `1md-lint` и local
+   structural checks. Owner, container или placement change остаётся у
+   `1ia-audit`.
 
-   Для незнакомого target с нужным linked context —
-   `md edit-context PATH --scan GRAPH_ROOT --json` (вложенный `.preflight`;
-   bodies читай direct Read). Роли полей:
+## Relation Strength
 
-   - `edit_plan.must_read` — источники смысла; прочитай затронутые delta;
-   - **полный рабочий список держателей — `edit_plan.must_update`** (direct +
-     каскад); raw graph-проекции доступны только через `--expanded`;
-   - `edit_plan.cascade_summary` — размер/overload signal; unique files не
-     смешивай с repeated occurrences или пересекающимися branch totals;
-   - `edit_plan.also_check` — soft-кандидаты, не hard-обязательства;
-   - `blockers.has_blockers` — hard gate; разреши `blockers.issues` до правки;
-   - `blockers.anchor_drift_risk` — **hard gate при правке heading**:
-     держателей входящих якорей разреши до rename;
-   - non-null `cycle_membership` — structural blocker; scoped `md cycles`
-     показывает полное SCC. Нулевой count действует только в effective graph
-     scope и не доказывает semantic owner-а.
+`depends-on` — hard invalidation edge:
 
-3. **Пройди держателей как ветви, не как плоский список.** Каждому прямому
-   держателю — один статус с body evidence (`path#heading` + проекция):
+> Если в `TARGET#section` материально изменится **X**, конкретный **Y** в
+> `HOLDER#section` станет ложным или misleading.
 
-   - `affected` — назови, какая проекция изменяемого смысла устаревает →
-     раскрой следующий hop только этой ветви;
-   - `unaffected` — назови контракт, который держатель применяет, и почему
-     delta его не трогает → ветвь останавливается;
-   - `unread` — честное состояние в явной очереди, не разновидность
-     `check-only`. Батч-вердикт без прочитанной проекции = не вердикт.
+Не можешь назвать X/Y и body addresses — это не hard edge. Полезная ссылка
+может остаться `navigation`, `support` или `provenance`.
 
-   `cascade_summary.overloaded == true` — triage signal, не blocker и не
-   verdict. Иди от крупнейших branches батчами уникальных files, сохраняя
-   `unread`, либо остановись как `graph-overloaded` с явной очередью. Sampling
-   не закрывает impact hard contract.
+Cycle не является автоматическим semantic defect. SCC читается как одна review
+cohort; `conflict` возникает, только если edges не проходят attribution/owner
+test. Local contract, который явно требует DAG, сильнее этого default.
 
-4. **Semantic second-look обязателен при material claim change** канона или
-   contract-файла: два probe (claim + consumer) —
-   [`references/section-blast-radius.md`](references/section-blast-radius.md).
-   Незадекларированный межслойный downstream не появится в graph traversal —
-   его ловит только этот шаг.
+## Tool Evidence
 
-5. **Перед delete/rename/move/merge** (после принятого shape-решения):
+Используй live project commands только как дешёвый способ перечислить edges,
+проверить paths/anchors или получить reverse candidates. Перед schema-dependent
+разбором читай `md tools <cmd> --json`; exact mechanics принадлежат
+`1cli-tools` и установленному runtime.
 
-   ```bash
-   md impact PATH --scan GRAPH_ROOT --json
-   md deps PATH --scan GRAPH_ROOT --depth 2 --json
-   ```
+Tool list обязан сохранять link type, holder context и exact fragment. Если
+этого нет, он не является достаточным denominator для semantic audit.
 
-   **Все три массива `impact` — обязательства**: `dependent_breaks`,
-   `body_wikilink_refs`, `body_markdown_refs`. Пустые holders при живых
-   body-ссылках ≠ разрешение. Exact counts — `1cli-tools` c тем же graph
-   scope.
+## Corpus Mode
 
-6. **Closeout — op-specific, закрой только изменённый риск**:
+Полный или sampled аудит bounded cohort использует те же edge verdicts, но
+другой denominator и stop. Открывай
+[`corpus-edge-audit.md`](references/corpus-edge-audit.md) только для явного
+corpus-wide вопроса; не превращай edit-time ход в кампанию.
 
-   - edit: повторный `md preflight PATH` + `md check --paths SCOPE --json` +
-     `md cycles --paths SCOPE --json`;
-   - rename/move: `preflight` НОВОГО path + scoped `check`;
-   - delete: старый path мёртв (`path_not_found` — норма) — scoped `check` +
-     проверка, что бывшие держатели не несут stale ссылок.
+## Stop
 
-   `edit_plan.to_clear` — summary, не done gate.
+Стоп для существующего edge set, когда каждый edge в названном denominator
+получил verdict или `unread` с owner/handoff, а каждая `affected`-ветвь закрыта
+или явно передана.
 
-## Постановка и ревизия связи
+Missing-edge route закрывается только записью seed, searched scope, channels,
+прочитанных candidates и непросеянного остатка. Пустой search означает
+`no candidate in this probe`, не отсутствие связи.
 
-Hard edge требует адресуемую пару: изменение **X** в source делает конкретный
-**Y** в holder ложным/misleading; source владеет X, holder его применяет.
-Не можешь назвать X/Y — это navigation, не `depends-on`. Полный admission test
-и verdicts — [`references/semantic-edge-audit.md`](references/semantic-edge-audit.md).
-
-## Гниль вне механики
-
-Чтение тел держателей не пропадает зря: замеченный shape-smell фиксируй в
-packet, даже если он вне текущего graph risk, — не глотай.
-
-- **Ручной список держателей в теле** («кто на меня ссылается») =
-  `duplicate-truth`: сравни с вычисляемым reverse graph; расходятся — правда у
-  графа. Список не «подправляй» как второй реестр: generated view, явная
-  non-exhaustive навигация или удаление — shape-решение у `1ia-audit`.
-- **Смысловая owner-петля**: A и B называют друг друга каноном одного
-  инварианта — `owner-conflict` finding + handoff `1ia-audit`, даже при
-  `cycles == 0`.
-- **Несовместимые утверждения** в прочитанных телах — тест владельца: владелец
-  утверждения ясен → это stale-проекция, обычная `affected`-ветвь; владелец
-  неясен или оба претендуют → `owner-conflict` → `1ia-audit`, связи и контент
-  не правь до вердикта.
-
-## Восстановление графа
-
-Накопленные ошибки (инфляция edges, петли, пропущенные межслойные связи) —
-отдельный маршрут [`references/graph-recovery.md`](references/graph-recovery.md),
-не расширение чек-листа правки.
-
-## Runtime и schema mutation
-
-Composite errors/side effects (`edit-context`, `section-blast-radius`,
-`index_busy`), `md init` / `md strip` и графовый frontmatter —
-[`references/runtime-gates.md`](references/runtime-gates.md). При расхождении
-команды, поля или cost с памятью — `md tools <cmd> --json` /
-`md <cmd> --help`; live payload сильнее текста скила. Полный catalog открывай
-только для catalog-wide вопроса.
-
-## Остановка
-
-Стоп, когда change claim закрыт: затронутые sources прочитаны; каждая
-`affected`-ветвь закрыта или остановлена named-решением; очередь `unread` пуста
-либо явно передана; destructive-обязательства (все три массива) разрешены;
-scoped `check`/`cycles` пройдены; `duplicate-truth` / `owner-conflict` findings
-переданы owner-у. Ordinary edit без graph risk этого closeout не требует.
+Финальный claim: **`semantic edge review status for <scope>`** с отдельными
+reviewed verdicts, `unread`, handoffs, structural checks и open remainder. Это
+не verdict о качестве, истинности или полноте файлов целиком.
