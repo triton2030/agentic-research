@@ -157,10 +157,18 @@
   Alignment: схемы/цепи как носители поведения.
 - https://arxiv.org/html/2510.23006 — In-Context Learning beyond Transformers:
   ICL как инференс латентной задачи; induction / function-vector heads.
-- https://github.com/jhammant/agent-drift — Asymmetric Goal Drift (агентский
-  дрейф 2026): асимметрия и провал одноходовых проверок.
-- https://zylos.ai/research/2026-04-03-goal-persistence-drift-long-horizon-ai-agents/
-  — Goal Persistence: внешний план-артефакт как якорь против дрейфа.
+- https://arxiv.org/abs/2603.03456 — Asymmetric Goal Drift (ICLR 2026
+  workshop): дрейф сильнее при конфликте ограничения с усвоенными ценностями;
+  shallow compliance-проверки дают ложную уверенность.
+- https://arxiv.org/abs/2603.03258 — Inherited Goal Drift (2026): дрейф
+  наследуется из накопленного контекста; сила instruction-following не
+  предсказывает устойчивость к дрейфу.
+- https://arxiv.org/abs/2505.02709 — Evaluating Goal Drift in LM Agents (AIES
+  2025): механизм дрейфа — pattern-matching на накопленный контекст, не
+  расстояние в токенах от цели.
+- https://arxiv.org/abs/2606.22953 — Plans Don't Persist (2026): сигнал плана
+  затухает в hidden state в 4–12× за 1–2 шага; план живёт только как
+  перечитываемый текст контекста — статичное хранение якоря не спасает.
 
 Базовые (держатся, перепроверены):
 
