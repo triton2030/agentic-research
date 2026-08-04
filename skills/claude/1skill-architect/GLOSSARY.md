@@ -132,8 +132,10 @@ _Avoid_: stages for presentational neatness, mandatory process without failure
 ### Commitment Anchor
 
 A checked principle, frame, or decision externalized so later actions condition
-on it instead of drifting locally. A sound anchor has provenance or veto and a
-reopen signal; otherwise it hardens an early error.
+on it instead of drifting locally. A sound anchor is re-read into active context
+at the decisions it governs, has provenance or veto, and carries a reopen signal.
+Static storage or loyalty to a stale anchor does not apply the decision; it can
+harden an early error.
 
 _Avoid_: first guess promoted to truth, ownerless memory, anchor without sunset
 
@@ -142,7 +144,8 @@ _Avoid_: first guess promoted to truth, ownerless memory, anchor without sunset
 A concise, observable decision trace that demonstrates the transformation:
 default, tell, operation, and changed choice. It teaches a reasoning pattern,
 not a claim about private chain-of-thought and not merely the shape of the final
-answer.
+answer. Its evidence claim is transfer of the operator or decision structure,
+not an automatic increase in task accuracy.
 
 _Avoid_: output example, hidden-reasoning disclosure, project fact disguised as
 example
@@ -159,7 +162,9 @@ _Avoid_: rule alone, rationale alone, caricatured negative
 
 Alignment between the decision structure a skill teaches and the structure its
 own text demonstrates. If the reader continues the text's latent genre where
-literal rules end, the intended behavior should remain likely.
+literal rules end, the intended behavior should remain likely. Explicit rules
+and accumulated demonstrated patterns compete with dose, so a mismatch may stay
+hidden early and dominate only on a long trajectory.
 
 _Avoid_: visual imitation, copied section names, style consistency alone
 
@@ -303,7 +308,9 @@ _Avoid_: overlap, duplicate wording
 The admission test for a new or substantially rewritten surface: repeated work,
 distinct trigger, real failure pattern, and a reason existing instructions,
 acceptance criteria, guardrails, or scripts do not cover it. For a cognitive
-skill it also requires a necessity proof and a falsifiable transfer claim.
+skill it also requires a necessity proof, a falsifiable transfer claim, and an
+exact failure that the smallest plausible intervention cannot close. If the
+minimal comparator covers the trace, the larger mechanism fails admission.
 
 _Avoid_: justification, "would be useful"
 
@@ -319,7 +326,9 @@ _Avoid_: duplicate check, search for similar names
 Evidence selected because it can refute a material admission, routing,
 structure, mechanism, transfer, relative-improvement, or distribution claim.
 Risk and collision pressure raise the required discriminating strength, but do
-not activate a fixed package of checks.
+not activate a fixed package of checks. A probability-shift claim uses matched
+resampling of the same unshown fork and counts the target first act; one fluent
+success proves possibility, not increased likelihood.
 
 _Avoid_: minimum/strict ritual, matcher-only proof
 
@@ -424,3 +433,21 @@ missing mechanism. The selected format then distorts the problem and produces a
 surface justified by its own existence.
 
 _Avoid_: surface gate
+
+### Elastic Defense
+
+Rescuing a failed claim with an explanation invented after the run—missing
+moment-fit, pressure, or wrong reading—when no bypass prediction or revision
+criterion was recorded beforehand. The new story reopens the mechanism; it does
+not preserve the original claim.
+
+_Avoid_: post-hoc diagnosis presented as pre-registered evidence
+
+### Undated Model Deficit
+
+Treating a limitation observed in one resolved model generation as a permanent
+property of models. A model-dependent rule names the resolved model or target
+set, observation date, and the model-change event that triggers revalidation or
+deletion.
+
+_Avoid_: timeless incapacity claim, model change without delete-first review

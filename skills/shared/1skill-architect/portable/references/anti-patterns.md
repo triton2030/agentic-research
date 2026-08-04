@@ -48,6 +48,9 @@ Use this reference for broad audits or when a design keeps adding surfaces.
   observed failure.
 - **Cargo-cult creation**: adding a new skill/agent/hook because a similar one
   exists, without proof and reuse-first gates.
+- **Oversized first intervention**: a full cognitive mechanism is designed
+  before testing whether one rule, question, check, or nearest-owner delta
+  already closes the failure trace.
 - **Runtime by analogy**: porting another runtime's agent, hook, or skill
   without adapting invocation, tools, metadata, and validation to the target.
 - **Prompt-only guardrail for hard risk**: using prose where enforcement,
@@ -64,6 +67,9 @@ Use this reference for broad audits or when a design keeps adding surfaces.
   default is attractive, what harm it causes here, and how X breaks the chain.
 - **Introspection imperative**: "notice", "realize", or "do not forget" is not
   translated into a check over observable text, context, or artifacts.
+- **Distant critical rule**: a concrete check that must survive concurrent load
+  appears only in early rationale, not at the command, template, or phase
+  boundary where it constrains action.
 - **Anatomy as proof**: a vivid claim that the model "has no organ" or is
   incapable replaces a behavioral tell, causal trace, and transfer evidence.
 - **Unchanged economics**: the skill forbids a shortcut while still rewarding
@@ -71,11 +77,14 @@ Use this reference for broad audits or when a design keeps adding surfaces.
 - **Phase leak**: exploration, compression, and commitment interfere because
   their boundary exists only as prose or presentational stages.
 - **Anchor lock-in**: an early conclusion is externalized without provenance,
-  veto, or reopen signal and becomes a more durable error.
+  veto, or reopen signal, or a stale anchor is obeyed without rereading and
+  revision, so it becomes a more durable error.
 - **Checklist theatre**: every field is filled while the representation and
   final decision remain those of the no-skill baseline.
 - **Output-example trap**: examples teach wording, style, or field order but do
   not demonstrate default -> tell -> operation -> changed decision.
+- **Demonstration overclaim**: transfer of an operator, style, or decision
+  structure is reported as improved task accuracy without matching evidence.
 - **False contrast**: the negative example is cartoonishly bad, so it does not
   locate the real boundary between two plausible moves.
 - **Thought theatre**: fluent reasoning text or self-reported confidence is
@@ -104,8 +113,12 @@ Use this reference for broad audits or when a design keeps adding surfaces.
   replacement when the claim is material.
 - **No near-miss negatives**: testing obvious should-not prompts but not the
   adjacent tasks that actually cause collision.
+- **Elastic defense**: a failed run is rescued by a post-hoc explanation when
+  no bypass prediction and revision criterion were recorded before it.
 - **No sunset signal**: a rule has no observable condition under which it should
   be revisited or removed.
+- **Undated model deficit**: a model-dependent limitation has no resolved model,
+  observation date, or target-model change trigger for revalidation.
 
 ## Language And Priority
 

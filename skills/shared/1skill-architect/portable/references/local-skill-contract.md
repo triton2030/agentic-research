@@ -11,10 +11,16 @@ skill", or "port this skill into another supported runtime".
 - **Necessity proof**: connect natural default -> why it is attractive ->
   trigger-specific harm -> mechanism that breaks the chain -> new cases the
   mechanism should resolve. If ordinary task context or the nearest owner
-  already supplies it, do not add a skill.
+  already supplies it, do not add a skill. Compare the full mechanism with one
+  rule, question, check, or nearest-owner delta; name the exact trace case the
+  minimal version misses or keep the minimal version.
 - **Deficit and proxy**: name the missing control act as a behavioral hypothesis,
   then translate introspective language into a check over observable text,
   context, or artifacts. Do not use model-anatomy metaphors as proof.
+- **Point of action**: place or restate a load-bearing check beside the command,
+  template, or phase boundary where it constrains behavior, not only in early
+  rationale. Preserve one semantic owner; use a pointer or generated reminder
+  instead of an independently maintained paraphrase.
 - **Surface gate**: explain why this is a skill, not an agent, hook, plain
   reference, instruction file, acceptance criterion, guardrail, or script.
   Safety and invariant surfaces must name the protected risk; use a
@@ -35,10 +41,12 @@ skill", or "port this skill into another supported runtime".
 - **Thought demonstrations**: teach default -> tell -> operation -> changed
   decision. Include a plausible mechanism-free anti-example and a transfer case
   when examples materially cause the behavior. A final-output example alone is
-  insufficient for a cognitive claim.
+  insufficient for a cognitive claim. Use the smallest varied set that defines
+  the operator and boundary; claim decision-structure transfer, not accuracy.
 - **Causal cells and form**: central guidance combines operator, machine-level
   rationale, and plausible boundary/anti-example. The package's own decision
-  structure demonstrates the behavior it asks the reader to continue.
+  structure demonstrates the behavior it asks the reader to continue. Treat a
+  rule/genre conflict as a delayed long-horizon failure, not a style issue.
 - **Trigger and description**: name one positive recurring moment. For
   model-invoked skills, front-load condition and stake because selection happens
   before the body is available and metadata may be shortened. Keep full causal
@@ -59,7 +67,9 @@ skill", or "port this skill into another supported runtime".
   previous-version, or mechanism ablation when claiming improvement. Increase
   discriminating evidence with breadth, frequency, risk, collision, external
   effects, and regression history. Test proxy, objective, phase, anchor, and
-  form claims separately when the design relies on them.
+  form claims separately when the design relies on them. For a probability-shift
+  claim, register the bypass prediction first, then use matched repeated runs of
+  the same fork and count the target first act.
 
 ## Portable Done
 
@@ -74,6 +84,9 @@ skill", or "port this skill into another supported runtime".
 - Portable files contain no platform-only paths, metadata, commands, model
   routing, or validation claims; those live in `platform-skill-authoring.md`
   and the platform-owned package delta.
+- A model-dependent deficit names the resolved model or target set, observation
+  date, and model-change reopen signal; a stale limitation is deleted rather
+  than preserved as timeless theory.
 - The actual live skill root is verified; no path migration or cross-runtime
   parity is inferred from docs or analogy.
 - Structural, routing, cognitive-transfer, operational, and distribution claims
