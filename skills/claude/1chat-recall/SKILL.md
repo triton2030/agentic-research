@@ -1,18 +1,27 @@
 ---
 name: 1chat-recall
 description: >
-  Use when durable owner evidence appears in the current Claude session,
-  existing owner evidence may materially change a current decision, the user
-  asks what they said, or a recall record needs repair. Capture and read
-  source-bound evidence in `_ops/chat-recall`: keep the owner's wording, but
-  shorten quotes by deletion only — never paraphrase, never hide malformed
-  text.
+  Use when a material decision may depend on what the owner said earlier,
+  durable owner evidence appears in the current Claude session, the user asks
+  what they said, or a recall record needs repair. Without source-bound
+  applicability and chronology checks, an agent may re-ask the owner or apply
+  a plausible but stale or out-of-scope quote.
 allowed-tools: Bash(python3 *), Bash(uv *), Read, Grep, Glob
 ---
 
 # Chat recall
 
-## Invariant
+## Product job
+
+At a material fork, recover not a quote dump but **applicable working context**
+sufficient to continue the current work without making the owner repeat
+themselves. The consumer is a future agent; success is the correct next
+decision, not a high rank or a large number of matches.
+
+Working context is a transient synthesis over source evidence. It does not
+create a persistent owner profile or become new owner truth.
+
+## Invariants
 
 Source-bound owner evidence is primary. A verbatim quote stays a quote, a Plan
 choice stays a selection, and note/raw evidence remains visibly non-verbatim.
@@ -29,20 +38,84 @@ The log is dated evidence, not current canon. A later quote may supersede an
 earlier one, and an approximate timeline must not be presented as current
 truth.
 
-## Router
+## Why bare search fails
 
+The natural default is to continue from visible chat or treat the first
+semantically similar or newest hit as the current position. Exact wording, a
+date, and rank look authoritative even when the quote belongs to another scope,
+is an idea rather than an adopted decision, or has already been corrected. A
+late check does not help after the assumption has begun steering
+implementation.
+
+The missing control act is an applicability gate before commitment:
+
+```text
+material fork
+→ bounded claim cluster
+→ full consequential records
+→ applicability + commitment + time + coverage
+→ decision-ready context | abstain
+```
+
+The bare command “find earlier words first” does not close this failure: it
+still permits a top hit or a list of quotes without deciding applicability.
+
+## Decision controller
+
+Before retrieval, name the current fork and one or more independent claims that
+earlier owner words could change. Do not begin with “what does the owner think
+in general”: it merges scopes and rewards a coherent story instead of
+applicable evidence.
+
+Use only the current project's recall by default. Cross-project retrieval is
+allowed only under explicit user scope; never silently merge its results with a
+local position. Retrieval selects candidates for reading. Show every record
+capable of changing the decision and compare applicability, evidence kind,
+commitment, source time/precision, and cluster coverage.
+
+Return to yourself or the user the smallest packet containing:
+
+- applicable decisions, boundaries, criteria, and preferences;
+- the displaced position and why it no longer governs, when relevant;
+- scoped exceptions, conflicts, and gaps;
+- the agent's own implementation inferences, explicitly not as owner words;
+- dates and `record_id` values only for consequential claims.
+
+If scope, commitment, chronology, or coverage remains unresolved, keep the
+conflict visible and abstain or ask the owner. False application is worse than
+missed recall. Keep tool rows, scores, and corpus counts internal unless they
+change confidence or the user requested a search report.
+
+### Contrastive scenes
+
+> **Default → transition.** The newest top-1 looks like the current decision.
+> `show` reveals that it is a narrower idea while the earlier record is an
+> adopted general direction. The controller preserves the direction and adds a
+> scoped exception instead of claiming false supersession.
+
+> **Anti-example.** The agent found five exact quotes, showed dates, and called
+> them context. No decision changed and applicability was not resolved:
+> retrieval happened, the product did not.
+
+> **Transfer.** For a broad question about the owner's position, first separate
+> claims and scopes. Build several bounded packets or return a gap; do not infer
+> one profile from thematically similar phrases.
+
+## Operational branches
+
+- A material current decision depends on established goals, boundaries,
+  decisions, criteria, corrections, or preferences: build only the claim
+  cluster that can change the decision and apply the controller above.
+- Earlier input or a Plan/AskUserQuestion choice from the current session can
+  change a durable result: read current-session evidence.
 - Fresh durable owner evidence appeared: capture every independent useful
   thesis in the same turn, one record per meaning. Skip an approval,
   confirmation, or command when its own words do not form durable knowledge.
   Always skip credentials and pasted material that is not the owner's
   position.
-- Earlier input or a Plan/AskUserQuestion choice from the current session can
-  change a durable result: read current-session evidence.
-- A material current decision depends on established goals, boundaries,
-  decisions, criteria, corrections, or preferences: read only the recall cluster
-  that can change that decision.
 - The user explicitly asks what they said, asks to find quotes, or requests a
-  recall harvest: use corpus retrieval.
+  recall harvest: use corpus retrieval; quote search remains a servicing output
+  when there is no current decision.
 - An existing record has diagnostics or malformed metadata: use repair. This is
   the only branch allowed to search another session.
 
@@ -167,7 +240,8 @@ quotes.
 ## Corpus retrieval
 
 When recorded owner evidence can change the current work, or for an explicit
-quote search or harvest, establish the runtime-specific variables:
+quote search or harvest, use the project-local corpus by default and establish
+the runtime-specific variables:
 
 ```bash
 DIGEST="${CLAUDE_SKILL_DIR}/scripts/chat_digest.py"
@@ -177,7 +251,8 @@ RECALL_DIR="$PWD/_ops/chat-recall"
 Then follow
 [`references/reading-the-log.md`](references/reading-the-log.md), which owns
 `check`, inventory, local hybrid/lexical retrieval, filters, timeline, `show`,
-bounded output, and abstention.
+bounded output, evidence weighting, and abstention. Its rows and scores are
+intermediate state; finish with the controller packet above.
 
 ## Repair
 
@@ -195,5 +270,14 @@ verification, and explicitly mark unresolved metadata.
   does not replace it. Screen history is not native transcript evidence.
 - Do not send quotes or transcript evidence to network tools, import quotes from
   unrelated chats, or promote the dated log to current canon.
-- Stop after the fresh durable theses are captured or the bounded question is
-  answered or explicitly abstained, with provenance and diagnostics visible.
+- If the answer stops at a quote dump, declares a top hit current without the
+  gate, or repeats the quote in `context-note`, shaping failed: return to the
+  last unchecked condition instead of widening output.
+- Stop after fresh durable theses are captured or a material bounded fork has
+  decision-ready context or an explicit abstention, with provenance,
+  diagnostics, and material gaps visible.
+
+The design hypothesis is dated 2026-08-04 for Claude Opus 5 and Claude Fable 5.
+A change to the working model set, or matched cases where the bare command
+“find and read quotes” yields the same decision and evidence, reopens the
+mechanism for simplification.

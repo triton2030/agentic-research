@@ -1,16 +1,26 @@
 ---
 name: 1chat-recall
 description: >
-  Use when durable owner evidence appears in the current Codex chat, existing
-  owner evidence may materially change a current decision, the user asks what
-  they said, or a recall record needs repair. Capture and read source-bound
-  evidence in `_ops/chat-recall`: keep the owner's wording, but shorten quotes
-  by deletion only — never paraphrase, never hide malformed text.
+  Use when a material decision may depend on what the owner said earlier,
+  durable owner evidence appears in the current Codex chat, the user asks what
+  they said, or a recall record needs repair. Without source-bound
+  applicability and chronology checks, an agent may re-ask the owner or apply
+  a plausible but stale or out-of-scope quote.
 ---
 
 # Chat recall
 
-## Инвариант
+## Продуктовая работа
+
+В существенной развилке восстанови не quote dump, а **применимый рабочий
+контекст**, достаточный, чтобы продолжить текущую работу без повторного вопроса
+владельцу. Потребитель — будущий агент; мера успеха — корректное следующее
+решение, а не высокий rank или число найденных цитат.
+
+Рабочий контекст — transient synthesis над source evidence. Он не создаёт
+постоянный профиль владельца и не становится новым owner truth.
+
+## Инварианты
 
 Source-bound evidence владельца первично. Дословная цитата остаётся цитатой,
 Plan-выбор — selection, а note/raw evidence явно остаётся недословным. Ошибка
@@ -26,20 +36,83 @@ Retrieval включает exact, legacy, partial, multiline и raw records.
 Лог — датированное evidence, не текущий канон. Поздняя цитата может отменить
 раннюю, а approximate timeline нельзя выдавать за «текущую истину».
 
-## Router
+## Почему голого поиска недостаточно
 
+Естественный default — продолжить из видимого чата либо принять первый
+семантически похожий или самый новый hit за текущую позицию. Точная формулировка,
+дата и rank выглядят авторитетно, хотя цитата может относиться к другому scope,
+быть идеей вместо принятого решения или уже быть исправленной. Поздняя проверка
+не помогает: неверное предположение уже управляет реализацией.
+
+Недостающий control act — gate применимости до commitment:
+
+```text
+существенная развилка
+→ bounded claim cluster
+→ полные consequential records
+→ applicability + commitment + time + coverage
+→ decision-ready context | abstain
+```
+
+Голая команда «сначала найди прошлые слова» этот провал не закрывает: она всё
+ещё позволяет выдать top hit или список цитат без решения об их применимости.
+
+## Контроллер решения
+
+До поиска назови текущую развилку и один или несколько независимых claims,
+которые прежние слова способны изменить. Не начинай с широкого вопроса «что
+владелец думает вообще»: он смешивает scopes и награждает связный рассказ вместо
+применимого evidence.
+
+По умолчанию используй только recall текущего проекта. Cross-project поиск
+допустим лишь при явном scope пользователя; не смешивай его результаты молча с
+локальной позицией. Retrieval выбирает candidates для чтения. Каждый record,
+способный изменить решение, раскрой полностью и сравни по применимости, виду
+evidence, commitment, source time/precision и покрытию кластера.
+
+Верни себе или пользователю минимальный packet:
+
+- применимые решения, границы, критерии и предпочтения;
+- вытесненную позицию и причину, если она больше не управляет;
+- scoped exceptions, конфликты и gaps;
+- собственные implementation-инференсы отдельно и явно не как слова владельца;
+- даты и `record_id` только для consequential claims.
+
+Если scope, commitment, chronology или coverage не разрешены, сохрани конфликт
+видимым и abstain-ись либо переспроси владельца. False application хуже missed
+recall. Tool rows, scores и corpus counts держи внутренними, если они не меняют
+уверенность или пользователь не просил search report.
+
+### Контрастивные сцены
+
+> **Default → переход.** Newest top-1 выглядит текущим решением. После `show`
+> видно, что это более узкая идея, а прежняя запись — принятый общий курс.
+> Controller сохраняет общий курс и добавляет scoped exception вместо ложного
+> supersession.
+
+> **Антипример.** Агент нашёл пять точных цитат, показал даты и назвал это
+> контекстом. Решение не изменилось и применимость не разобрана — retrieval
+> выполнен, продукт нет.
+
+> **Перенос.** На широкий вопрос о позиции владельца сначала выдели claims и
+> scopes. Собери несколько bounded packets либо верни gap; не синтезируй единый
+> профиль из тематически похожих фраз.
+
+## Операционные ветви
+
+- Текущая существенная развилка зависит от уже высказывавшихся целей, границ,
+  решений, критериев, коррекций или предпочтений: собери только claim cluster,
+  который может изменить решение, и примени controller выше.
+- Прежний ввод или Plan-выбор текущего чата может изменить долгоживущий
+  результат: прочитай evidence текущего чата.
 - Появилось свежее durable evidence владельца: в том же ходе сохрани каждый
   самостоятельный полезный тезис отдельной записью. Пропускай согласие,
   подтверждение или команду, если сами слова не образуют долговечного знания.
   Всегда пропускай credentials и вставленный материал, который не выражает
   позицию владельца.
-- Прежний ввод или Plan-выбор текущего чата может изменить долгоживущий
-  результат: прочитай evidence текущего чата.
-- Текущая существенная развилка зависит от уже высказывавшихся целей, границ,
-  решений, критериев, коррекций или предпочтений: прочитай только тот
-  recall-кластер, который может изменить решение.
 - Пользователь явно спрашивает, что говорил, просит найти цитаты или сделать
-  recall-harvest: используй corpus retrieval.
+  recall-harvest: используй corpus retrieval; quote search остаётся
+  обслуживающим output, если текущего решения нет.
 - У существующей записи есть diagnostics или повреждённая metadata: используй
   repair. Только эта ветвь разрешает искать другую сессию.
 
@@ -162,7 +235,8 @@ Topic — один широкий retrieval-owner:
 ## Retrieval по recall-корпусу
 
 Когда записанное owner evidence может изменить текущую работу либо нужен явный
-поиск цитат или harvest, задай runtime-specific переменные:
+поиск цитат или harvest, используй project-local corpus по умолчанию и задай
+runtime-specific переменные:
 
 ```bash
 DIGEST="${CODEX_HOME:-$HOME/.codex}/skills/1chat-recall/scripts/chat_digest.py"
@@ -172,7 +246,8 @@ RECALL_DIR="$PWD/_ops/chat-recall"
 Затем следуй
 [`references/reading-the-log.md`](references/reading-the-log.md): этот файл
 владеет `check`, inventory, локальным hybrid/lexical retrieval, filters,
-timeline, `show`, bounded output и abstention.
+timeline, `show`, bounded output, evidence weighting и abstention. Его rows и
+scores — промежуточное состояние; закончи controller packet-ом выше.
 
 ## Repair
 
@@ -197,5 +272,13 @@ native record и явно маркируй неразрешённое.
   а не native transcript evidence.
 - Не отправляй цитаты или transcript evidence в сеть, не импортируй цитаты из
   посторонних чатов и не объявляй датированный лог текущим каноном.
-- Остановись, когда свежие durable тезисы сохранены либо на bounded-вопрос дан
-  ответ или явный abstain, а provenance и diagnostics видны.
+- Если ответ остановился на quote dump, top hit объявлен текущим без gate либо
+  `context-note` повторяет цитату, shaping не сработал: вернись к последней
+  непройденной проверке, а не расширяй output.
+- Остановись, когда свежие durable тезисы сохранены либо на bounded-развилку
+  дан decision-ready context или явный abstain, а provenance, diagnostics и
+  material gaps видны.
+
+Дизайн-гипотеза датирована 2026-08-04 для GPT-5.6. Смена рабочего model set или
+matched cases, где голая команда «найди и прочитай цитаты» даёт тот же выбор и
+evidence, reopen-ят механизм на упрощение.
