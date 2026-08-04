@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Append one owner-memory record without treating metadata as a veto."""
+"""Append one owner-memory record and preserve its non-inferable context."""
 
 from __future__ import annotations
 
@@ -473,7 +473,10 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--source-ref")
     parser.add_argument(
         "--context-note",
-        help="expected context when a non-inferable delta exists; links rejected",
+        help=(
+            "capture a useful non-inferable context delta; omit only when "
+            "quote plus type/topic is self-contained; links rejected"
+        ),
     )
     parser.add_argument("--project", default=".")
     parser.add_argument("--agent", default="claude")

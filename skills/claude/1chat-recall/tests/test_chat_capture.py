@@ -127,6 +127,25 @@ class ChatCaptureTests(unittest.TestCase):
             text,
         )
 
+    def test_help_promotes_context_note_check(self) -> None:
+        result = subprocess.run(
+            [sys.executable, str(SCRIPT), "--help"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        help_text = " ".join(result.stdout.split())
+        self.assertIn(
+            "preserve its non-inferable context",
+            help_text,
+        )
+        self.assertIn("--context-note CONTEXT_NOTE", help_text)
+        self.assertIn(
+            "omit only when quote plus type/topic is self-contained",
+            help_text,
+        )
+
     def test_context_note_rejects_links_delimiters_and_note_on_note(self) -> None:
         cases = (
             ("Ссылка", "https://example.com", None, "not a link"),

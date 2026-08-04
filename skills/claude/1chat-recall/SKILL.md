@@ -2,11 +2,11 @@
 name: 1chat-recall
 description: >
   Use when durable owner evidence appears in the current Claude session:
-  capture each important owner thesis in the same turn, because missed supply
-  leaves future recall nothing to retrieve. Also use when a material decision
-  may depend on earlier owner words, the user asks what they said, or an
-  existing record needs repair; applicability and chronology gates prevent
-  stale or out-of-scope use.
+  capture each important owner thesis and any non-inferable context delta in
+  the same turn, because missed supply leaves future recall nothing to
+  retrieve. Also use when a material decision may depend on earlier owner
+  words, the user asks what they said, or an existing record needs repair;
+  applicability and chronology gates prevent stale or out-of-scope use.
 allowed-tools: Bash(python3 *), Bash(uv *), Read, Grep, Glob
 ---
 
@@ -28,10 +28,11 @@ Source-bound owner evidence is primary. A verbatim quote stays a quote, a Plan
 choice stays a selection, and note/raw evidence remains visibly non-verbatim.
 A wrong or missing date, type, topic, or format never cancels the record.
 
-A useful isolated quote carries a `context-note` by default, but that note
-contains only surprise delta: what cannot reasonably be inferred from the quote
-plus its `type/topic`. Repeating, paraphrasing, or confirming what is already
-clear is forbidden; when no non-inferable delta exists, omit the field.
+Check `context-note` separately for every quote that passes the usefulness gate.
+A useful isolated quote carries such a note by default, but it contains only
+surprise delta: what cannot reasonably be inferred from the quote plus its
+`type/topic`. Repeating, paraphrasing, or confirming what is already clear is
+forbidden; when no non-inferable delta exists, omit the field.
 
 Retrieval includes exact, legacy, partial, multiline, and raw records.
 
@@ -160,13 +161,15 @@ python3 "${CLAUDE_SKILL_DIR}/scripts/chat_capture.py" \
   --session "${CLAUDE_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-}}"
 ```
 
-Pass the delta through `--context-note "<one short agent explanation>"`. It
-stays inline, visibly non-verbatim, and available through `show`, but does not
-participate in the record ID, BM25, or dense ranking. Do not add a new
-conclusion, rationale, URL, path, or pointer to a transcript/another record.
-The limit is 300 characters; `--kind note` cannot carry `--context-note`. A
-context note never makes a weak quote worth capturing: apply the usefulness
-gate first.
+Before capture, check each quote/selection: name the useful boundary, reason,
+or scope that would disappear without neighboring messages. If such a delta
+exists, `--context-note "<one short agent explanation>"` is required; otherwise
+omit the field. The note stays inline, visibly non-verbatim, and available
+through `show`, but does not participate in the record ID, BM25, or dense
+ranking. Do not add a new conclusion, rationale, URL, path, or pointer to a
+transcript/another record. The limit is 300 characters; `--kind note` cannot
+carry `--context-note`. A context note never makes a weak quote worth capturing:
+apply the usefulness gate first.
 
 `--source-timestamp` always has a value. It accepts timezone-aware ISO, an
 approximate ISO/date, or `unknown`. Approximate/unknown records must also pass

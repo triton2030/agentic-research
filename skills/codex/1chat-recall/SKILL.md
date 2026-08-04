@@ -2,11 +2,11 @@
 name: 1chat-recall
 description: >
   Use when durable owner evidence appears in the current Codex chat: capture
-  each important owner thesis in the same turn, because missed supply leaves
-  future recall nothing to retrieve. Also use when a material decision may
-  depend on earlier owner words, the user asks what they said, or an existing
-  record needs repair; applicability and chronology gates prevent stale or
-  out-of-scope use.
+  each important owner thesis and any non-inferable context delta in the same
+  turn, because missed supply leaves future recall nothing to retrieve. Also
+  use when a material decision may depend on earlier owner words, the user asks
+  what they said, or an existing record needs repair; applicability and
+  chronology gates prevent stale or out-of-scope use.
 ---
 
 # Chat recall
@@ -27,7 +27,8 @@ Source-bound evidence владельца первично. Дословная ц
 Plan-выбор — selection, а note/raw evidence явно остаётся недословным. Ошибка
 или отсутствие даты, type, topic либо формата никогда не отменяет запись.
 
-Полезную изолированную цитату по умолчанию сопровождает `context-note`, но он
+Для каждой цитаты, прошедшей usefulness gate, отдельно проверь `context-note`.
+Полезную изолированную цитату по умолчанию сопровождает такая заметка, но она
 содержит только surprise-дельту: то, что нельзя разумно вывести из цитаты вместе
 с `type/topic`. Повтор, перефразирование или подтверждение уже понятного
 запрещены; если невыводимой дельты нет, поле остаётся пустым.
@@ -158,12 +159,15 @@ python3 "$CAPTURE" \
   --project "$PWD" --session "$CODEX_THREAD_ID"
 ```
 
-Передай найденную дельту через `--context-note "<одно короткое пояснение
-агента>"`. Заметка хранится inline, явно остаётся недословной и показывается
-через `show`, но не участвует в record ID, BM25 или dense ranking. Не добавляй
-новый вывод, мотивацию, URL, путь либо ссылку на transcript/другую запись.
-Ограничение — 300 символов; `--kind note` с `--context-note` недопустим. Context
-note никогда не делает слабую цитату достойной записи: сначала usefulness gate.
+Перед запуском capture проверь каждую quote/selection: назови полезную границу,
+причину или scope, которые исчезнут без соседних сообщений. Если такая дельта
+есть, `--context-note "<одно короткое пояснение агента>"` обязателен; если её
+нет, поле пропусти. Заметка хранится inline, явно остаётся недословной и
+показывается через `show`, но не участвует в record ID, BM25 или dense ranking.
+Не добавляй новый вывод, мотивацию, URL, путь либо ссылку на transcript/другую
+запись. Ограничение — 300 символов; `--kind note` с `--context-note` недопустим.
+Context note никогда не делает слабую цитату достойной записи: сначала
+usefulness gate.
 
 `--source-timestamp` всегда имеет значение: timezone-aware ISO, approximate
 ISO/date или `unknown`. Для approximate/unknown обязательно укажи
