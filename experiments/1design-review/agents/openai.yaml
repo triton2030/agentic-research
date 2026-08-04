@@ -1,5 +1,5 @@
 interface:
-  display_name: "1-Ревью интерфейса"
+  display_name: "1-Дизайн-ревью"
   short_description: "Evidence-first visual review; fanout only when warranted."
   default_prompt: "Use $1design-review after frontend work. Inspect the live UI yourself and produce a screenshot-grounded verdict. Escalate to clean reviewer fanout only for an explicit request, milestone signoff, high-risk redesign, or unresolved visual ambiguity."
 policy:
