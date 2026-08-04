@@ -1,5 +1,5 @@
 interface:
-  display_name: "Claude Advisor"
+  display_name: "1-Совет Claude"
   short_description: "External Claude review or session control"
   default_prompt: "Use $1claude-mcp for a compact independent Claude perspective on this task or decision."
 
