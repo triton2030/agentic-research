@@ -473,7 +473,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--source-ref")
     parser.add_argument(
         "--context-note",
-        help="short inline agent context; links are rejected",
+        help="expected context when a non-inferable delta exists; links rejected",
     )
     parser.add_argument("--project", default=".")
     parser.add_argument("--agent", default="claude")

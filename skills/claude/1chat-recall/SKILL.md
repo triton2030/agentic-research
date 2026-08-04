@@ -80,15 +80,17 @@ python3 "${CLAUDE_SKILL_DIR}/scripts/chat_capture.py" \
   --session "${CLAUDE_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-}}"
 ```
 
-When an already useful deletion-only quote still has an unresolved referent,
-add `--context-note "<one short agent explanation>"`. It is stored inline in
-the same record, remains visibly non-verbatim, and appears through `show`; it
-does not participate in the record ID, BM25, or dense ranking. It may only name
-the discussed object or situation: it must not add a new conclusion, rationale,
-URL, path, or pointer to a transcript/another record. The limit is 300
-characters; `--kind note` cannot carry `--context-note`. A context note never
-makes a weak quote worth capturing: apply the usefulness gate first, then add
-context.
+For every quote that passes the usefulness gate, look for and normally add a
+`context-note`: an isolated quote almost always loses part of its conversation.
+But the note itself must pass a surprise gate—it is the smallest delta that
+cannot reasonably be inferred from the quote plus its `type/topic`. When no
+such delta exists, omit the field rather than repeat, paraphrase, or confirm
+what is already clear. It stays inline, visibly non-verbatim, and available
+through `show`, but does not participate in the record ID, BM25, or dense
+ranking. Do not add a new conclusion, rationale, URL, path, or pointer to a
+transcript/another record. The limit is 300 characters; `--kind note` cannot
+carry `--context-note`. A context note never makes a weak quote worth
+capturing: apply the usefulness gate first, then information equals surprise.
 
 `--source-timestamp` always has a value. It accepts timezone-aware ISO, an
 approximate ISO/date, or `unknown`. Approximate/unknown records must also pass
