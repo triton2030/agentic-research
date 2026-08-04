@@ -908,7 +908,10 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="use BM25 only instead of the default local hybrid retrieval",
     )
-    parser.add_argument("--show")
+    parser.add_argument(
+        "--show",
+        help="show complete record, provenance, and context-note when present",
+    )
     parser.add_argument("--timeline", action="store_true")
     parser.add_argument("--type", dest="types")
     parser.add_argument("--topic", dest="topics")
