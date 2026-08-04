@@ -124,6 +124,21 @@ Apply lenses during the steps, not as a ritual.
 - Current trace: did this conversation show skipped truth, wrong surface,
   premature editing, or weak verification?
 
+### Cognitive Effect - Steps 4-6
+
+- Necessity: does each cognitive skill expose its natural default, causal harm,
+  and corrective mechanism, or merely assert good practice?
+- Deficit/proxy: is the missing control act behaviorally named, and has
+  unreliable introspection become an observable check?
+- Transformation: can the change be written as concrete `A -> B` with tells and
+  operators a fresh Claude session can apply?
+- Local control: does the failure require a changed success measure, phase
+  boundary, commitment anchor, or labor inversion, and is only that lever used?
+- Demonstrations/form: do examples and the skill's own latent genre teach the
+  decision transition beyond literal rule coverage?
+- Controller/transfer: what reusable frame remains, and what unshown decision
+  proves it changed trajectory rather than checklist compliance?
+
 ### Pressure - Step 7
 
 - Still alive: does the rule still serve its backlink?
@@ -187,6 +202,9 @@ Use for long audits. Compress for smaller tasks.
 - Fix layer:
 - Owner:
 - Backlink:
+- Natural default / operational gap:
+- Necessity and mechanism:
+- Thought demonstration / exact tool advantage:
 - Observable signal:
 - Sunset signal:
 - Validation:

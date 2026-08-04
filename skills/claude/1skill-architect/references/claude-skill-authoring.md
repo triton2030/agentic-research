@@ -5,25 +5,36 @@ Read this reference when creating or substantially revising a Claude skill,
 
 ## Desired Result
 
-The skill activates at the right moment and returns the missing professional
-contract to Claude. Its body improves the observable outcome without making
-Opus 5 or Fable 5 perform an authoring procedure.
+The skill activates at the right moment and causally changes an observable
+decision or supplies a precise operational advantage. It does not merely make
+Opus 5 or Fable 5 perform an authoring checklist.
 
-The portable core defines the outcome, decision standard, in-scope constraints,
-evidence, own conditional resources, and stop. Ordered steps appear only when violating the
-order reproduces a correctness, safety, or tool failure.
+A cognitive core keeps necessity, natural default, named deficit, observable
+proxy, transformation, minimal operators, thought demonstrations, controller,
+feedback, evidence, and stop in the hot path. An operational core keeps the
+exact advantage and minimum reproducible contract. Ordered steps appear only
+when violating order reproduces a correctness, safety, or tool failure.
 
 ## Core Contract
 
 - `description` is the discovery contract for a model-invoked skill. The main
   positive use case, trigger words, and important Delta must survive metadata
   shortening; the body is unavailable before activation.
-- `SKILL.md` is a compact contract, not a textbook. Keep the core outcome,
-  decision criterion, materially important in-scope constraints, evidence,
-  own conditional resources, and stop.
+- Classify the body as cognitive shaper, operational package, or justified
+  hybrid before choosing its shape. Do not force both through one template.
+- `SKILL.md` is the smallest causally complete contract, not a textbook. Keep
+  the mechanism whose removal reproduces the observed failure in the hot path.
 - Include only **Delta** in a skill: non-obvious domain logic, a failure mode,
   a correction, or a professional move the model cannot reliably infer from
   the task, current context, and nearest owner.
+- Treat model-mechanics claims as behavioral hypotheses. Name an observable
+  tell and transfer consequence; a "missing organ" metaphor is not evidence.
+- Translate introspective imperatives into observable proxies. Add a local
+  objective, phase boundary, checked anchor, or labor inversion only when the
+  demonstrated failure depends on that lever.
+- Write central cognitive guidance as causal cells: operator + why the natural
+  default bypasses a naked command + plausible boundary or anti-example. Make
+  the skill's own decision structure congruent with the behavior it teaches.
 - Name authority, required output, and side-effect boundaries only when they
   change the permitted action.
 - Do not instruct the agent to read every reference. Give each bundled file an
@@ -34,32 +45,34 @@ order reproduces a correctness, safety, or tool failure.
   recurring fragile operation; examples do not compensate for a weak
   interface.
 
-## Outcome or Workflow
+## Class and Body Shape
 
-An outcome/decision contract is the default for judgment, design, and quality
-work:
+A **cognitive shaper** changes attention, representation, alternatives,
+decision policy, verification, or learning from feedback. Keep its necessity
+proof, default/tell, deficit/proxy, `A -> B` transformation, causally selected
+control levers, contrastive thought demonstrations, reusable controller,
+feedback, evidence, boundary, and stop.
 
-- the state that must become true;
-- the decision standard that resolves a tradeoff;
-- the in-scope constraints that are actually material;
-- the evidence that can refute success;
-- when a bundled reference or required tool is needed;
-- where this skill's work is complete.
+An **operational package** supplies precise knowledge, a tool advantage, schema,
+asset, or fragile order. Keep the relevant advantage, required inputs, minimum
+order-sensitive workflow, exact evidence, boundary, and stop. Do not invent
+cognitive ceremony around deterministic work.
 
-A workflow contract is justified when order itself is part of correctness: an
-irreversible operation, safety boundary, transactional sequence, protocol, or
-fragile tool handoff. Keep only the invariant sequence, not a universal
-procedure "for reliability."
+A workflow is justified when order itself is correctness: an irreversible
+operation, safety boundary, transactional sequence, protocol, or fragile tool
+handoff. Keep only the invariant sequence. If compliance must not depend on
+reasoning, use deterministic enforcement rather than prose.
 
 ## Discovery Contract
 
 A model-invoked description must preserve one routing function:
-**Condition × Delta**.
+**Condition × Stake**.
 
 - **Condition** is an observable anchor Claude can recognize now: a user
   phrase, action, artifact, file, or path. An abstract topic is weaker than an
   observable moment.
-- **Delta** is the non-obvious stake that makes opening the body worthwhile.
+- **Stake** is the plausible failure or lost advantage that makes opening the
+  body worthwhile.
 - A capability catalog does not replace a trigger.
 - The description remains a pointer to the body, not its digest.
 
@@ -90,6 +103,8 @@ Evidence must discriminate the exact property being claimed:
 - routing claim—representative use/skip/near-miss cases and live collisions;
 - structure claim—a platform validator and reachable bundled resources;
 - behavior claim—an observable assertion on a realistic task;
+- cognitive-transfer claim—a changed representation, decision, probe,
+  escalation pattern, or response to feedback on an unshown case;
 - relative-improvement claim—a baseline or previous version;
 - distribution claim—source/installed projection sync.
 
@@ -99,6 +114,12 @@ number of prompts, a mandatory benchmark, or a universal verification ritual.
 
 Prompt visibility proves only that selection is possible. A matcher or
 structural validation does not prove useful output.
+
+Proxy, objective, phase, anchor, thought-demonstration, and form-congruence
+claims need discriminating observations or ablations matched to the mechanism:
+the proxy changes action, the criterion survives shortcut pressure, phases stop
+the named interference, a wrong anchor can reopen, and the latent genre carries
+the intended decision beyond literal rule coverage.
 
 ## Model Baseline
 
