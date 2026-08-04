@@ -35,7 +35,8 @@ session: {SESSION}
 * 10:55 — "Субагенты работают параллельно
 и сохраняют контекст" — type: предпочтение | topic: мой-workflow
 * 2026-07-15 — "Выбрал: локальный путь" — kind: selection | type: решение | \
-topic: работа-и-процессы | source: repaired | precision: date | source-ref: transcript.jsonl
+topic: работа-и-процессы | context-note: Выбор относится к режиму хранения канона. | \
+source: repaired | precision: date | source-ref: transcript.jsonl
 * unknown — "Позднее пояснение" — kind: note | type: идея, коррекция | topic:  | source: unknown | precision: unknown
 * сломанная строка, но она ценна
 """
@@ -154,6 +155,23 @@ class ChatDigestTests(unittest.TestCase):
         self.assertEqual(
             shown_json["records"][0]["context_note"],
             "Речь о владельце канона, а не о BM25.",
+        )
+
+    def test_opaque_selection_has_context_while_self_contained_quote_stays_bare(
+        self,
+    ) -> None:
+        records, _ = DIGEST.load(self.corpus)
+        self.assertNotIn("context_note", records[1])
+        selection = records[2]
+        self.assertEqual(selection["kind"], "selection")
+        self.assertEqual(
+            selection["context_note"],
+            "Выбор относится к режиму хранения канона.",
+        )
+        shown = self.call("--show", selection["record_id"])
+        self.assertIn(
+            "context-note: Выбор относится к режиму хранения канона.",
+            shown.stdout,
         )
 
     def test_bm25_prefix_filters_and_show_are_stable(self) -> None:
@@ -381,6 +399,35 @@ class ChatDigestTests(unittest.TestCase):
         self.assertEqual(data["truncated_by"], "limit")
         self.assertEqual(data["records"][0]["text"], "Position 14")
         self.assertEqual(data["records"][-1]["text"], "Position 03")
+
+    def test_timeline_keeps_later_correction_with_the_earlier_decision(self) -> None:
+        self.write_entries(
+            [
+                (
+                    '* 2026-07-01T10:00:00+00:00 — "Артефакты удалять локально" '
+                    "— type: решение | topic: работа-и-процессы"
+                ),
+                (
+                    '* 2026-07-02T10:00:00+00:00 — "Артефакты локально сохранять" '
+                    "— type: коррекция | topic: работа-и-процессы"
+                ),
+            ]
+        )
+
+        records = json.loads(
+            self.call(
+                "--query",
+                "Артефакты",
+                "--timeline",
+                "--json",
+                "--limit",
+                "5",
+            ).stdout
+        )["records"]
+
+        self.assertEqual(len(records), 2)
+        self.assertEqual(records[0]["type"], "коррекция")
+        self.assertEqual(records[1]["type"], "решение")
 
     def test_timeline_ties_are_stable_and_unknown_is_not_duplicated(self) -> None:
         self.write_entries(

@@ -74,6 +74,13 @@ useful because BM25 is the honest abstention gate. Automatic lemmatization is
 intentionally absent: measured prefix/stopword variants did not improve hit@5
 over BM25 on the maintained Russian paraphrase regression.
 
+The bundled regression fixture declares `corpus.project: agentic-research` and
+the evaluator rejects another corpus as `corpus-mismatch` before checking target
+IDs. A different corpus needs its own self-describing `--cases` fixture; missing
+targets inside the declared corpus remain a distinct failure. Hit@5 measures
+retrieval only: it cannot decide whether a context note adds surprise or whether
+later evidence semantically supersedes an earlier statement.
+
 Filters remain metadata, not query text:
 
 ```bash

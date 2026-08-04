@@ -22,6 +22,88 @@ if SPEC is None or SPEC.loader is None:
 DIGEST = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(DIGEST)
 
+FIXTURE_SCHEMA = 1
+
+
+def _load_fixture(path: Path) -> tuple[str, list[dict[str, Any]]]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise ValueError("top level must be an object")
+    if payload.get("schema") != FIXTURE_SCHEMA:
+        raise ValueError(f"schema must equal {FIXTURE_SCHEMA}")
+    corpus = payload.get("corpus")
+    if not isinstance(corpus, dict) or not isinstance(corpus.get("project"), str):
+        raise ValueError("corpus.project must be a string")
+    project = corpus["project"].strip()
+    if not project:
+        raise ValueError("corpus.project must not be empty")
+    cases = payload.get("cases")
+    if not isinstance(cases, list) or not cases:
+        raise ValueError("cases must be a non-empty list")
+    for index, case in enumerate(cases):
+        if not isinstance(case, dict):
+            raise ValueError(f"cases[{index}] must be an object")
+        if not isinstance(case.get("id"), str) or not case["id"].strip():
+            raise ValueError(f"cases[{index}].id must be a non-empty string")
+        if not isinstance(case.get("query"), str) or not case["query"].strip():
+            raise ValueError(f"cases[{index}].query must be a non-empty string")
+        relevant = case.get("relevant")
+        if (
+            not isinstance(relevant, list)
+            or not relevant
+            or not all(isinstance(record_id, str) and record_id for record_id in relevant)
+        ):
+            raise ValueError(
+                f"cases[{index}].relevant must be a non-empty string list"
+            )
+    return project, cases
+
+
+def _fixture_corpus_error(
+    records: list[dict[str, Any]],
+    project: str,
+    cases: list[dict[str, Any]],
+) -> dict[str, Any] | None:
+    projects = sorted(
+        {
+            record["project"]
+            for record in records
+            if isinstance(record.get("project"), str) and record["project"]
+        }
+    )
+    if project not in projects:
+        return {
+            "error": "corpus-mismatch",
+            "expected": {"project": project},
+            "found": {"projects": projects},
+        }
+
+    targets = {
+        record_id for case in cases for record_id in case["relevant"]
+    }
+    by_id: dict[str, list[dict[str, Any]]] = {}
+    for record in records:
+        by_id.setdefault(record["record_id"], []).append(record)
+    missing = sorted(targets - set(by_id))
+    if missing:
+        return {"error": "missing-targets", "record_ids": missing}
+
+    wrong_project: dict[str, list[str]] = {}
+    for record_id in targets:
+        target_projects = {record.get("project") for record in by_id[record_id]}
+        if target_projects != {project}:
+            wrong_project[record_id] = sorted(
+                value if isinstance(value, str) and value else "<missing>"
+                for value in target_projects
+            )
+    if wrong_project:
+        return {
+            "error": "target-project-mismatch",
+            "expected": {"project": project},
+            "record_projects": wrong_project,
+        }
+    return None
+
 
 def _ranking(corpus: Path, query: str, *, lexical: bool) -> list[str]:
     if lexical:
@@ -104,16 +186,23 @@ def main() -> int:
     args = parser.parse_args()
 
     records, _ = DIGEST.load(args.corpus)
-    cases = json.loads(args.cases.read_text(encoding="utf-8"))
-    known = {record["record_id"] for record in records}
-    missing = sorted(
-        record_id
-        for case in cases
-        for record_id in case["relevant"]
-        if record_id not in known
-    )
-    if missing:
-        print(json.dumps({"error": "missing-targets", "record_ids": missing}))
+    try:
+        project, cases = _load_fixture(args.cases)
+    except (OSError, json.JSONDecodeError, ValueError) as error:
+        print(
+            json.dumps(
+                {
+                    "error": "cases-schema",
+                    "fixture": str(args.cases),
+                    "detail": str(error),
+                },
+                ensure_ascii=False,
+            )
+        )
+        return 2
+    corpus_error = _fixture_corpus_error(records, project, cases)
+    if corpus_error:
+        print(json.dumps(corpus_error, ensure_ascii=False))
         return 2
 
     lexical_rankings: list[list[str]] = []
@@ -131,6 +220,17 @@ def main() -> int:
     print(
         json.dumps(
             {
+                "corpus": {
+                    "fixture_project": project,
+                    "observed_projects": sorted(
+                        {
+                            record["project"]
+                            for record in records
+                            if isinstance(record.get("project"), str)
+                            and record["project"]
+                        }
+                    ),
+                },
                 "records": len(records),
                 "cases": len(cases),
                 "model": DIGEST.EMBEDDING_MODEL,
