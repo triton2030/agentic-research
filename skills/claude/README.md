@@ -1,15 +1,19 @@
 # Claude Skill Sources
 
-Эта папка — tracked source of truth для поддерживаемых глобальных Claude skills.
-`~/.claude/skills/<name>` — installed projection, не отдельный owner.
+Эта папка содержит tracked runtime owners и tracked projections глобальных
+Claude skills. Cross-runtime owners перечислены в
+[`../shared/README.md`](../shared/README.md); `~/.claude/skills/<name>` —
+installed projection, не отдельный owner.
 
 ## Контракт
 
-- Сначала править `skills/claude/<name>`, затем разворачивать ту же package shape
-  в `~/.claude/skills/<name>` и подтверждать exact diff.
-- Codex runtime-owner живёт в `skills/codex/<name>`. Общие scripts/references
-  cross-runtime package должны совпадать побайтно; `SKILL.md`, UI metadata,
-  transcript reader и тесты различаются только из-за реального platform delta.
+- Сначала проверить registry в `skills/shared/README.md`. Если package там
+  перечислен, править shared owner и собирать projection его sync-командой;
+  иначе править `skills/claude/<name>` и разворачивать ту же package shape в
+  `~/.claude/skills/<name>`.
+- Для package без shared owner Codex runtime-owner живёт в
+  `skills/codex/<name>`. Общие scripts/references должны совпадать побайтно;
+  runtime files различаются только из-за реального platform delta.
 - Общий Claude core работает на целевых Claude-моделях из `_ops/GOAL.md`.
   Model routing и prompting deltas живут в `knowledge/wisdom-claude-*.md`, а не
   копируются в каждый skill.

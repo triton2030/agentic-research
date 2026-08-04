@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Скилл-архитектор"
+  short_description: "Design skills that change how agents think"
+  default_prompt: "Use $1skill-architect to prove why this surface is needed, expose the natural default and named deficit, translate it into an observable proxy, choose only causally needed objective, phase, or anchor controls, demonstrate them contrastively and in the skill's own form, then choose owner, trigger, surface, and transfer evidence."
+
+policy:
+  allow_implicit_invocation: true
