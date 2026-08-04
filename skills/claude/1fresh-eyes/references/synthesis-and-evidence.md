@@ -1,11 +1,12 @@
 ---
-description: "Classify expert findings by source support while preserving disagreement and alternatives."
+description: "Classify critic findings by source support while preserving native outputs and disagreement."
 ---
 
 # Synthesis And Evidence
 
-Read after agents return when findings disagree, need verification or change
-the owner decision.
+Read after critic agents return when findings disagree, need verification or
+may change the owner decision. `auditor` and `md-scout` keep their native
+products; do not normalize them into this critic classification.
 
 ## Classification
 
@@ -18,10 +19,11 @@ the owner decision.
 - **incomplete** — critic finding has no alternative. Ask the same expert for a
   better path/smaller probe/missing input, or retain it only as awareness.
 - **invalid-test** — the brief/question asks about the wrong actor, status,
-  claim or owner. Repair the test before trusting its verdict.
+  claim or owner, leaks the desired conclusion, or calls forked/resumed context
+  fresh. Repair the test before trusting its verdict.
 
-`incomplete` does not apply to `auditor` or `md-scout`, whose native contracts
-are evidence-shaped.
+This classification applies to critic findings only. `auditor` preserves its
+native `pass/fail/unknown` matrix; `md-scout` preserves its evidence packet.
 
 ## Evidence Bar
 
@@ -33,9 +35,9 @@ finding claims. Distinguish:
   it;
 - `unknown` / `tool_failure` / `self_report_only` — gap, not proof.
 
-For `md-scout`, require addressable snippets, actual scope/exclusions, tool
-coverage and explicit gaps. Retrieval rank and broad shell counts do not become
-IA/canon verdicts.
+For supporting `md-scout` input, require addressable snippets, actual
+scope/exclusions, tool coverage and explicit gaps. Retrieval rank and broad
+shell counts do not become IA/canon verdicts.
 
 ## Steering Trace
 
@@ -52,15 +54,12 @@ several independent votes.
 - Do not silently filter or move raw agent output into canon.
 - Group findings by source, verdict and severity; retain uncertainty labels.
 - Aggregate alternatives into the decision set, but keep `md-scout` evidence
-  separate from critic judgments.
+  and `auditor` acceptance separate from critic judgments.
 - An honestly `satisfied` / `architecture_ok` result is complete; do not rerun
   the same lens without a new material reason.
 
-## Handoff
+## Owner Action
 
-- accepted current-scope finding → main owner applies and validates;
-- acceptance gap → task owner / `1planning`;
-- instruction or owner-shape gap → `1instruction-layer` / `1ia-audit`;
-- graph obligations → `1md-graph`;
-- genuine collateral problem → `1findings`;
-- project goal/scope change → `1goal` after caller decision.
+Return to the caller's decision anchor. The main owner chooses and validates the
+next action from verified evidence; this reference does not route the rest of
+the system or turn a critic recommendation into authority.

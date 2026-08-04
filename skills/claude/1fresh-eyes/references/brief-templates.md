@@ -1,61 +1,56 @@
 ---
-description: "Minimal non-leading briefs for named profiles, untyped expert lenses and md-scout."
+description: "Self-contained non-leading briefs for fresh named Claude roles."
 ---
 
 # Brief Templates
 
-Read immediately before a fresh-eyes spawn.
+Read immediately before the first fresh `Agent` invocation.
 
 ## Brief Contract
 
-Give the decision, why it matters, exact artifact paths, evidence/unknown,
-scope and forbidden side effects. For tool-heavy roles add one line naming the
-project-specific tool and its purpose.
+Isolation and anti-priming invariants are owned by
+[`Independence Boundary`](../SKILL.md#independence-boundary). This reference
+only packages role-specific fields; it cannot relax that contract.
 
-Do not give a hypothesis-conclusion, investigative sequence, checklist,
-hotspots, native role recap, desired verdict or rigid output schema. Named
-profiles already own their method. An untyped lens additionally needs a compact
-professional stance, not a fake identity.
-
-## Named Critic Or Auditor
+## Named Critic
 
 ```text
-Что проверить: {one decision or question}.
-Now doing: {current work; include when trajectory/business context matters}.
-Why: {outcome that depends on the answer}.
+Решение: {owner decision this judgment may change}.
+Текущий route: {what main intends to do and why; one factual sentence}.
+Что проверить: {neutral professional question}.
+Почему сейчас: {downstream outcome that depends on the judgment}.
 Где смотреть: {exact raw files, diff or artifact paths}.
-Уже известно: {evidence or none}. Неизвестно: {material gap}.
+Факты: {source-bound facts or none}. Неизвестно: {material gap}.
 Границы: in — {scope}; out — {scope}; side effects — {none/read-only/etc.}.
-Доступный local tool: {one relevant tool and purpose, or omit}.
+Доступный local tool: {one relevant tool and its information job, or omit}.
 ```
 
-Select the profile through the native `Agent` tool's exact `subagent_type`; do
-not restate its native contract in the brief.
+Select the profile through the native `Agent` tool's exact `subagent_type`;
+do not restate its native contract in the brief.
 
-## Untyped Expert Lens
+## `auditor`
 
 ```text
-Ты независимый эксперт с линзой «{perspective}».
-
-Профессиональная позиция: защищаешь {value}; не доверяешь {typical blind spot};
-предпочитаешь {principle/trade-off}. Не наследуй вывод основного агента.
-
-Решение: {one question}. Зачем: {dependent outcome}.
-Где смотреть: {raw paths}. Evidence/unknown: {facts and gap}.
+Что заявлено готовым: {artifact/work/result}.
+Условия приёмки: {exact user/task/owner conditions}.
+Где проверять: {raw artifacts, diff, commands or evidence paths}.
+Известное evidence: {outputs or none}. Неизвестно: {gaps}.
 Границы: in — {scope}; out — {scope}; только чтение.
 ```
 
-Label the return by perspective, never by an unavailable named profile.
+Do not suggest pass/fail statuses. The auditor owns its native acceptance
+matrix and evidence kinds.
 
 ## `md-scout`
 
 ```text
-Corpus: {root}. Только чтение.
+Corpus: {root}. Только source-read-only.
 Вопрос: {one retrieval question}.
 Scope: {paths/includes/exclusions}.
 Решение, которое зависит от packet: {owner decision}.
-Уже известно: {evidence or none}. Неизвестно: {gap}.
+Факты: {source-bound facts or none}. Неизвестно: {gap}.
 Вне scope: {boundary}. Relevant local route: {optional one-line hint}.
 ```
 
-Main context verifies addresses and owns the verdict.
+Scout returns addresses, actual coverage and gaps. It does not return a critic
+verdict, and its packet does not by itself close the owner decision.

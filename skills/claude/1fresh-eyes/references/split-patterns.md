@@ -1,37 +1,37 @@
 ---
-description: "Choose one lens, multiple domain lenses, disjoint slices, or critic plus evidence scout."
+description: "Worked examples for splits that look similar but create different decision inputs."
 ---
 
 # Split Patterns
 
 Read only when fresh-eyes is triggered but the smallest useful split is not
-obvious.
+obvious. Core admission and fan-out rules remain in
+[`Split И Dialogue`](../SKILL.md#split-и-dialogue); these examples only resolve
+borderline cases.
 
-## Patterns
+## Two Roles, One Artifact
 
-- **Owner + cross-domain defeater** — default for a material decision. Root
-  keeps the owner domain; one fresh lens challenges the strongest neighboring
-  risk. Code may need only a business lens; a business promise may need only an
-  implementation lens.
-- **Single critic depth** — one artifact and one material judgment.
-- **Different lenses, same artifact** — use when the decision genuinely spans
-  domains, such as business viability plus implementation feasibility. Give
-  non-overlapping professional questions, not duplicate checklists.
-- **Same lens, disjoint artifacts** — parallel slices when independent items can
-  be judged separately. Each agent owns one artifact.
-- **Critic + `md-scout`** — critic judges structure/path; scout independently
-  supplies addresses, snippets and gaps. Do not average evidence with verdicts.
+A pricing proposal may need `business-critic` for willingness-to-pay and
+`developer-critic` for delivery cost. The first can reverse the offer; the
+second can reverse feasibility. Give each role its own question and reversal
+result. Shared artifact does not make the products duplicate.
 
-## Selection Rules
+## One Role, Disjoint Artifacts
 
-- Choose the smallest split that can change the decision.
-- Domain boundaries remain intact: architecture is not trajectory; trajectory
-  is not acceptance; corpus retrieval is not IA judgment.
-- Do not run two same-type critics on the same artifact. Correct the brief or
-  ask the existing expert to reconsider instead.
-- Different file scopes alone create evidence fan-out, not different expert
-  perspectives.
-- Do not fix an agent count in advance. Count follows independent lenses and
-  artifacts.
-- Fresh eyes is overkill for single-line edits, routine closeout and checks that
-  direct rereading proves more cheaply.
+Five unrelated adapters may be split across several `developer-critic` agents
+when each adapter can fail independently. This is parallel evidence production
+inside one lens, not several professional votes on the same claim.
+
+## Critic Plus Scout
+
+When an `architecture-critic` needs corpus-wide ownership evidence, run a
+separate `md-scout` for addresses, actual coverage and gaps. The scout does not
+confirm the architecture verdict; main verifies the packet and returns the
+supported evidence to the decision.
+
+## False Split
+
+“Frontend risk” and “backend risk” can look like different lenses while both
+questions are implementation feasibility. If they concern one coupled change,
+use one `developer-critic`; if they are genuinely independent artifacts, split
+by artifact without treating agreement as stronger proof.
