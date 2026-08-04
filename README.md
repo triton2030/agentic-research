@@ -23,11 +23,14 @@ baseline.
 5. `knowledge/` — wisdom, guides, practical guides, examples и research.
    Для написания скилов начинать с
    `knowledge/practical-guides/how-to-write-skills/`.
-6. `skills/shared/` — owner cross-runtime packages; `skills/claude/` и
+6. `science/` — научная программа изучения мышления ЛЛМ: тезисы с
+   evidence-статусами, верификация и эксперименты; вход —
+   [`science/README.md`](science/README.md).
+7. `skills/shared/` — owner cross-runtime packages; `skills/claude/` и
    `skills/codex/` — runtime owners либо их tracked projections согласно
    [`skills/shared/README.md`](skills/shared/README.md). `~/.claude/skills/` и
    `~/.codex/skills/` — installed projections.
-7. `_ops/findings/`, `_ops/interviews/`, `_ops/plans/` — временные рабочие
+8. `_ops/findings/`, `_ops/interviews/`, `_ops/plans/` — временные рабочие
    поверхности; открывать их только когда текущая задача на них указывает.
 
 ## Подход
