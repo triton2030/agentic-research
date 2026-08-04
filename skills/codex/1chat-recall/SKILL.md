@@ -1,11 +1,12 @@
 ---
 name: 1chat-recall
 description: >
-  Use when a material decision may depend on what the owner said earlier,
-  durable owner evidence appears in the current Codex chat, the user asks what
-  they said, or a recall record needs repair. Without source-bound
-  applicability and chronology checks, an agent may re-ask the owner or apply
-  a plausible but stale or out-of-scope quote.
+  Use when durable owner evidence appears in the current Codex chat: capture
+  each important owner thesis in the same turn, because missed supply leaves
+  future recall nothing to retrieve. Also use when a material decision may
+  depend on earlier owner words, the user asks what they said, or an existing
+  record needs repair; applicability and chronology gates prevent stale or
+  out-of-scope use.
 ---
 
 # Chat recall
