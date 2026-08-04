@@ -31,14 +31,15 @@ from recall_metadata import REPAIR_TOPIC, REPAIR_TYPE, TOPICS, TYPES
 
 KINDS = {"quote", "selection", "note", "raw"}
 PRECISIONS = {"exact", "minute", "date", "unknown"}
+META_KEY = r"kind|type|topic|source|precision|source-ref|context-note"
 ENTRY_RE = re.compile(
     r"^\*\s+(?P<timestamp>.+?)\s+—\s+"
-    r'(?P<text>".*?"|.*?)\s+—\s+(?P<meta>(?:kind|type|topic|source|precision|source-ref):.*)$',
+    r'(?P<text>".*?"|.*?)\s+—\s+(?P<meta>(?:' + META_KEY + r'):.*)$',
     re.DOTALL,
 )
 META_RE = re.compile(
-    r"(?:^|\s*\|\s*)(kind|type|topic|source|precision|source-ref):\s*"
-    r"([^|\n]*?)(?=\s*\|\s*(?:kind|type|topic|source|precision|source-ref):|$)",
+    r"(?:^|\s*\|\s*)(" + META_KEY + r"):\s*"
+    r"([^|\n]*?)(?=\s*\|\s*(?:" + META_KEY + r"):|$)",
     re.MULTILINE,
 )
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
@@ -198,8 +199,14 @@ def _parse_block(
     if precision != "exact" and "precision" not in metadata:
         diagnostics.append("unmarked-approximate")
 
+    context_note = metadata.get("context-note")
+    if context_note == "":
+        diagnostics.append("empty-context-note")
+    if context_note is not None and kind == "note":
+        diagnostics.append("context-note-on-note")
+
     session = header.get("session", "unknown")
-    return {
+    record = {
         "record_id": _record_id(session, kind, text),
         "kind": kind,
         "text": text,
@@ -224,6 +231,9 @@ def _parse_block(
         "raw": block,
         "diagnostics": sorted(set(diagnostics)),
     }
+    if context_note is not None:
+        record["context_note"] = context_note
+    return record
 
 
 def load(corpus: Path) -> tuple[list[dict[str, Any]], int]:
@@ -734,15 +744,11 @@ def _show(record: dict[str, Any]) -> str:
     if record["topic_raw"] and record["topic_raw"] != record["topic"]:
         classification += f" · topic_raw={record['topic_raw']}"
     diagnostics = ",".join(record["diagnostics"]) or "none"
-    return "\n".join(
-        (
-            record["text"],
-            classification,
-            source,
-            owner,
-            f"diagnostics={diagnostics}",
-        )
-    )
+    lines = [record["text"]]
+    if record.get("context_note"):
+        lines.append(f"context-note: {record['context_note']}")
+    lines.extend((classification, source, owner, f"diagnostics={diagnostics}"))
+    return "\n".join(lines)
 
 
 def _check_report(records: list[dict[str, Any]], total: int, max_chars: int) -> str:

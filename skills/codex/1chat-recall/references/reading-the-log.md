@@ -103,8 +103,10 @@ Human search output labels the denominator as generated candidates. It keeps
 only the stable ID, source date, evidence kind, classification and excerpt;
 marks records with diagnostics; and omits file addresses and the internal rank
 score. Use `--show` to recover complete text, provenance, raw malformed metadata
-and address for a consequential candidate; add `--verbose` only when ranking or
-the full parser record is under diagnosis.
+and address for a consequential candidate. An optional agent-authored
+`context-note` appears only in `show`/full-record output and never contributes to
+BM25, embeddings, or record identity. Add `--verbose` only when ranking or the
+full parser record is under diagnosis.
 For queries, JSON adds `retrieval`, `retrieval_complete`, `candidate_count`, and
 for hybrid retrieval `candidate_depth`. `matched` remains a compatibility alias
 for `candidate_count`; neither field means independently verified relevance.

@@ -31,7 +31,7 @@ session: {SESSION}
 
 # Chat recall
 
-* 2026-07-14T06:00:00+00:00 — "Канон живёт отдельно — с тире" — type: решение | topic: документация-и-знания
+* 2026-07-14T06:00:00+00:00 — "Канон живёт отдельно — с тире" — type: решение | topic: документация-и-знания | context-note: Речь о владельце канона, а не о BM25.
 * 10:55 — "Субагенты работают параллельно
 и сохраняют контекст" — type: предпочтение | topic: мой-workflow
 * 2026-07-15 — "Выбрал: локальный путь" — kind: selection | type: решение | \
@@ -107,13 +107,17 @@ class ChatDigestTests(unittest.TestCase):
         self.assertEqual(records[3]["kind"], "note")
         self.assertEqual(records[3]["type"], "неопределено")
 
-    def test_record_id_ignores_file_date_line_and_classification(self) -> None:
+    def test_record_id_ignores_file_date_classification_and_context_note(self) -> None:
         records, _ = DIGEST.load(self.corpus)
         original = records[0]["record_id"]
         changed = FILE.replace("date: 2026-07-14", "date: 2025-01-01").replace(
             "type: решение | topic: документация-и-знания",
             "type: факт | topic: архитектура-и-модель",
             1,
+        )
+        changed = changed.replace(
+            "Речь о владельце канона, а не о BM25.",
+            "Другое пояснение того же тезиса.",
         )
         (self.corpus / "recall.md").unlink()
         (self.corpus / "renamed.md").write_text(
@@ -122,6 +126,35 @@ class ChatDigestTests(unittest.TestCase):
         )
         changed_records, _ = DIGEST.load(self.corpus)
         self.assertEqual(original, changed_records[0]["record_id"])
+
+    def test_context_note_is_show_only_and_does_not_affect_retrieval(self) -> None:
+        records, _ = DIGEST.load(self.corpus)
+        record = records[0]
+        record_id = record["record_id"]
+        self.assertEqual(
+            record["context_note"],
+            "Речь о владельце канона, а не о BM25.",
+        )
+
+        compact_query = self.call("--query", "канон")
+        self.assertNotIn("владельце канона", compact_query.stdout)
+        query_json = json.loads(self.call("--query", "канон", "--json").stdout)
+        self.assertNotIn("context_note", query_json["records"][0])
+        no_context_match = json.loads(
+            self.call("--query", "BM25", "--json").stdout
+        )
+        self.assertEqual(no_context_match["selection"], "none")
+
+        shown = self.call("--show", record_id)
+        self.assertIn(
+            "context-note: Речь о владельце канона, а не о BM25.",
+            shown.stdout,
+        )
+        shown_json = json.loads(self.call("--show", record_id, "--json").stdout)
+        self.assertEqual(
+            shown_json["records"][0]["context_note"],
+            "Речь о владельце канона, а не о BM25.",
+        )
 
     def test_bm25_prefix_filters_and_show_are_stable(self) -> None:
         query = self.call("--query", "субагент*", "--json")

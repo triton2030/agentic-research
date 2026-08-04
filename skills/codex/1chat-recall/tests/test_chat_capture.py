@@ -51,6 +51,7 @@ class ChatCaptureTests(unittest.TestCase):
         agent: str | None = None,
         env: dict[str, str] | None = None,
         kind: str | None = None,
+        context_note: str | None = None,
         session: str | None = None,
         source_timestamp: str | None = DEFAULT_SOURCE_TIMESTAMP,
         expect_ok: bool = True,
@@ -69,6 +70,8 @@ class ChatCaptureTests(unittest.TestCase):
             command += ["--agent", agent]
         if kind:
             command += ["--kind", kind]
+        if context_note:
+            command += ["--context-note", context_note]
         if session:
             command += ["--session", session]
         result = subprocess.run(command, capture_output=True, text=True, env=clean_env)
@@ -107,6 +110,42 @@ class ChatCaptureTests(unittest.TestCase):
             "— type: решение | topic: агенты-и-ии",
             text,
         )
+
+    def test_context_note_is_inline_metadata(self) -> None:
+        self.run_capture(
+            "Цитата сама остаётся полезной единицей знания",
+            "критерий",
+            "документация-и-знания",
+            env=self.claude_env(),
+            context_note="Речь о критерии записи в chat recall.",
+        )
+
+        text = self.recall_files()[0].read_text(encoding="utf-8")
+        self.assertIn(
+            "topic: документация-и-знания | "
+            "context-note: Речь о критерии записи в chat recall.",
+            text,
+        )
+
+    def test_context_note_rejects_links_delimiters_and_note_on_note(self) -> None:
+        cases = (
+            ("Ссылка", "https://example.com", None, "not a link"),
+            ("Разделитель", "Контекст | продолжение", None, "delimiter"),
+            ("Заметка", "Контекст заметки", "note", "cannot be attached"),
+        )
+        for quote, context, kind, error in cases:
+            with self.subTest(quote=quote):
+                result = self.run_capture(
+                    quote,
+                    "факт",
+                    "документация-и-знания",
+                    env=self.claude_env(),
+                    kind=kind,
+                    context_note=context,
+                    expect_ok=False,
+                )
+                self.assertEqual(result.returncode, 2)
+                self.assertIn(error, result.stderr)
 
     def test_appends_to_same_file_and_extends_inventory(self) -> None:
         self.run_capture(

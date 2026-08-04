@@ -25,11 +25,11 @@ truth.
 
 ## Router
 
-- Fresh durable owner evidence appeared: capture every independent thesis in
-  the same turn, one record per meaning. Skip routine approvals or commands
-  only when they leave no durable decision, state, rule, criterion, or
-  preference. Always skip credentials and pasted material that is not the
-  owner's position.
+- Fresh durable owner evidence appeared: capture every independent useful
+  thesis in the same turn, one record per meaning. Skip an approval,
+  confirmation, or command when its own words do not form durable knowledge.
+  Always skip credentials and pasted material that is not the owner's
+  position.
 - Earlier input or a Plan/AskUserQuestion choice from the current session can
   change a durable result: read current-session evidence.
 - A material current decision depends on established goals, boundaries,
@@ -59,9 +59,13 @@ a verbatim quote.
 
 ## Capture
 
-Automatically capture every durable owner thesis as a separate record:
-decision, correction, preference, idea, criterion, candidate rule, personal
-workflow fact, or factual assertion. Preserve the owner's wording by
+Do not capture every durable utterance. Capture each independent useful owner
+thesis as a separate record: decision, correction, preference, idea, criterion,
+candidate rule, personal workflow fact, or factual assertion. A record passes
+the usefulness gate only when its own words, outside neighboring messages, can
+change a future decision, boundary, criterion, preference, or understanding of
+the owner. `“Yes, let's fix it that way”` fails: its meaning lives in someone
+else's context rather than in the quote. Preserve the owner's wording by
 deletion-only shortening; do not turn agent summaries, inserted text,
 credentials, or non-durable commands into quotes.
 
@@ -75,6 +79,16 @@ python3 "${CLAUDE_SKILL_DIR}/scripts/chat_capture.py" \
   --project "$PWD" \
   --session "${CLAUDE_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-}}"
 ```
+
+When an already useful deletion-only quote still has an unresolved referent,
+add `--context-note "<one short agent explanation>"`. It is stored inline in
+the same record, remains visibly non-verbatim, and appears through `show`; it
+does not participate in the record ID, BM25, or dense ranking. It may only name
+the discussed object or situation: it must not add a new conclusion, rationale,
+URL, path, or pointer to a transcript/another record. The limit is 300
+characters; `--kind note` cannot carry `--context-note`. A context note never
+makes a weak quote worth capturing: apply the usefulness gate first, then add
+context.
 
 `--source-timestamp` always has a value. It accepts timezone-aware ISO, an
 approximate ISO/date, or `unknown`. Approximate/unknown records must also pass

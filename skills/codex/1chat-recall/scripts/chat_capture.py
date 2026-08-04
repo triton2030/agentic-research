@@ -46,6 +46,10 @@ ENV_BY_AGENT = {
 }
 HANDLE_RE = re.compile(r"^[\w.\-/]+$")
 ENTRY_START_RE = re.compile(r"^\*\s+(?P<timestamp>.+?)\s+—\s+")
+CONTEXT_LINK_RE = re.compile(
+    r"(?:https?://|file://|www\.|\[[^\]]+\]\([^)]+\))", re.IGNORECASE
+)
+MAX_CONTEXT_NOTE_CHARS = 300
 
 
 class CaptureError(RuntimeError):
@@ -63,6 +67,19 @@ def one_line(value: str, field: str) -> str:
     collapsed = " ".join(value.split())
     if not collapsed:
         raise CaptureError(f"{field} is empty")
+    return collapsed
+
+
+def context_note(value: str) -> str:
+    collapsed = one_line(value, "context note")
+    if len(collapsed) > MAX_CONTEXT_NOTE_CHARS:
+        raise CaptureError(
+            f"context note must be at most {MAX_CONTEXT_NOTE_CHARS} characters"
+        )
+    if "|" in collapsed:
+        raise CaptureError("context note cannot contain the metadata delimiter '|'")
+    if CONTEXT_LINK_RE.search(collapsed):
+        raise CaptureError("context note must be inline context, not a link")
     return collapsed
 
 
@@ -282,11 +299,14 @@ def _entry_line(
     timestamp_source: str,
     source_ref: str | None,
     kind: str,
+    context: str | None = None,
 ) -> str:
     fields = []
     if kind != "quote":
         fields.append(f"kind: {kind}")
     fields.extend((f"type: {type_}", f"topic: {topic}"))
+    if context:
+        fields.append(f"context-note: {context}")
     if source.precision != "exact" or timestamp_source != "transcript":
         fields.extend(
             (f"source: {timestamp_source}", f"precision: {source.precision}")
@@ -356,6 +376,7 @@ def create_file(
     timestamp_source: str,
     source_ref: str | None,
     kind: str,
+    context: str | None = None,
 ) -> None:
     local = source.file_when.astimezone()
     lines = [
@@ -377,7 +398,14 @@ def create_file(
         f"# Chat recall — {local:%Y-%m-%d} — {agent} {short_session(session)}",
         "",
         _entry_line(
-            quote, type_, topic, source, timestamp_source, source_ref, kind
+            quote,
+            type_,
+            topic,
+            source,
+            timestamp_source,
+            source_ref,
+            kind,
+            context,
         ).rstrip(),
     ]
     write_atomic(path, "\n".join(lines) + "\n")
@@ -394,6 +422,7 @@ def append_entry(
     timestamp_source: str = "transcript",
     source_ref: str | None = None,
     kind: str = "quote",
+    context: str | None = None,
 ) -> tuple[bool, Path]:
     text = path.read_text(encoding="utf-8-sig")
     if f'"{quote}"' in text:
@@ -411,7 +440,14 @@ def append_entry(
         current=path,
     )
     rendered = "\n".join(lines) + "\n" + _entry_line(
-        quote, type_, topic, source, timestamp_source, source_ref, kind
+        quote,
+        type_,
+        topic,
+        source,
+        timestamp_source,
+        source_ref,
+        kind,
+        context,
     )
     write_atomic(target, rendered)
     if target != path:
@@ -435,6 +471,10 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--timestamp-precision", choices=PRECISIONS)
     parser.add_argument("--source-ref")
+    parser.add_argument(
+        "--context-note",
+        help="short inline agent context; links are rejected",
+    )
     parser.add_argument("--project", default=".")
     parser.add_argument("--agent", default="claude")
     parser.add_argument("--model")
@@ -453,6 +493,9 @@ def main() -> int:
         model = handle(args.model, "model") if args.model else None
         timestamp_source = handle(args.timestamp_source, "timestamp source")
         source_ref = one_line(args.source_ref, "source ref") if args.source_ref else None
+        context = context_note(args.context_note) if args.context_note else None
+        if context and args.kind == "note":
+            raise CaptureError("--context-note cannot be attached to --kind note")
         source = source_timestamp(args.source_timestamp, args.timestamp_precision)
         if source.precision != "exact" and timestamp_source == "transcript":
             raise CaptureError(
@@ -485,6 +528,7 @@ def main() -> int:
                 timestamp_source,
                 source_ref,
                 args.kind,
+                context,
             )
         else:
             create_file(
@@ -500,6 +544,7 @@ def main() -> int:
                 timestamp_source,
                 source_ref,
                 args.kind,
+                context,
             )
             written = True
         print(f"{'appended to' if written else 'already present in'} {path}")
