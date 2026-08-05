@@ -12,6 +12,10 @@
 - `1md-read/portable/` и `1md-search/portable/` — общий cognitive/tool core для
   Codex и Claude; `platforms/codex/agents/openai.yaml` — только Codex UI и
   invocation metadata.
+- `1deep-agents/portable/` — общий framework-routing, trace и synthesis
+  contract; runtime launch deltas для Codex `spawn_agent` и Claude `Agent`
+  живут в одной адресуемой reference, а Codex UI metadata — в
+  `platforms/codex/agents/openai.yaml`.
 
 Source-only `portable/references/platform-skill-authoring.md` — pointer-router
 к двум platform owners. Он делает source links разрешимыми, но не входит в

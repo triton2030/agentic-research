@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Глубокие агенты"
+  short_description: "Три чистых framework-агента с видимыми traces"
+  default_prompt: "Используй $1deep-agents, чтобы три чистых субагента независимо прошли по одному релевантному framework, показали trace каждого шага и вернули раздельные анализы перед синтезом."
+
+policy:
+  allow_implicit_invocation: true

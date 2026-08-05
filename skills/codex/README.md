@@ -11,8 +11,12 @@ installed projection, не отдельный owner.
   перечислен, править shared owner и собирать projection его sync-командой;
   иначе править `skills/codex/<name>`.
 - Для package со shared owner состав общих файлов и platform deltas задаёт его
-  manifest. Без shared owner общая логика должна совпадать с Claude runtime
-  owner побайтно; runtime files различаются только из-за реального platform
-  delta.
-- Глобальная правка требует structural check, shared-file parity и smoke из
-  чужого project cwd.
+  manifest.
+- Если положительный job зависит от native Codex surface и честного
+  Claude-эквивалента нет, `skills/codex/<name>` — единственный
+  runtime-specific owner; фиктивный Claude twin не создаётся. Для portable
+  package с отдельным Claude owner общая логика совпадает побайтно, кроме
+  реального platform delta.
+- `~/.codex/skills/<name>` всегда projection. Для runtime-specific owner
+  проверяй structural contract, побайтную parity установленной projection и
+  smoke из чужого project cwd; отсутствие Claude-копии не является parity gap.
