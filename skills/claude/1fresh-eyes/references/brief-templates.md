@@ -9,24 +9,32 @@ Read immediately before the first fresh `Agent` invocation.
 ## Brief Contract
 
 Isolation and anti-priming invariants are owned by
-[`Independence Boundary`](../SKILL.md#independence-boundary). This reference
-only packages role-specific fields; it cannot relax that contract.
+[`Independence Boundary`](../SKILL.md#independence-boundary). Per-role zone,
+falsifier and stake are derived in
+[`Экспертная Юрисдикция`](../SKILL.md#экспертная-юрисдикция). This reference only
+packages the resulting fields; it cannot relax either contract.
 
 ## Named Critic
 
 ```text
 Решение: {owner decision this judgment may change}.
 Текущий route: {what main intends to do and why; one factual sentence}.
-Что проверить: {neutral professional question}.
-Почему сейчас: {downstream outcome that depends on the judgment}.
-Где смотреть: {exact raw files, diff or artifact paths}.
+Что проверить: {neutral question only this profession would ask in this form}.
+Почему сейчас: {what changes downstream, stated in this role's own currency}.
+Где смотреть: {this role's zone: exact raw paths where its falsifier would surface}.
 Факты: {source-bound facts or none}. Неизвестно: {material gap}.
 Границы: in — {scope}; out — {scope}; side effects — {none/read-only/etc.}.
 Доступный local tool: {one relevant tool and its information job, or omit}.
 ```
 
-Select the profile through the native `Agent` tool's exact `subagent_type`;
-do not restate its native contract in the brief.
+Two briefs filled from this template must not be interchangeable between their
+roles; if they are, the zones were never derived and the run buys one input
+twice.
+
+Select the profile through the native `Agent` tool's exact `subagent_type`. Do
+not restate its native contract in the brief: a compressed recap of the
+profession sits nearer than the role definition and the agent will answer the
+recap instead of its own method.
 
 ## `auditor`
 

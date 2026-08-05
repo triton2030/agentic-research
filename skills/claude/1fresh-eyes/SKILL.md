@@ -110,6 +110,39 @@ snapshot. Если спорный claim уже встроен в active instruct
 честно назови результат `peer review` или `retained consultation`; явный запрос
 на independence им не закрывается.
 
+## Экспертная Юрисдикция
+
+Роль выбрана, но lens этим ещё не включён. Естественный следующий ход — дать
+каждому агенту тот же artifact path и тот же вопрос, поменяв только
+`subagent_type`: одинаковый полный доступ читается как честность и отсутствие
+steering. Поэтому ход и переживает проверку, а roles расходятся лишь в
+вокабуляре verdict-а — наблюдения у них общие, а материал, на который именно эта
+профессия среагировала бы сильнее всего, в brief не попал.
+
+До первого spawn выведи для каждой роли:
+
+```text
+falsifier: что должно оказаться правдой, чтобы judgment именно этой роли был неверен
+зона: адрес, где falsifier проявится и который другие роли не берут главным входом
+stake: тот же reversal result в валюте роли — деньги/adoption, поддержка/breakage,
+       ownership/будущие editors, порядок/opportunity cost
+```
+
+Зона идёт от юрисдикции роли, а не от подозрения main. Тест на leak: назвал бы
+ты эту зону до того, как появилась гипотеза о дефекте? Сужение к месту, где main
+уже ждёт проблему, — тот самый suspected hotspot, запрещённый `Independence
+Boundary`. Юрисдикция обычно расширяет: отправляет роль туда, куда main сам не
+пошёл — runtime schema и живой прогон, owner chain и соседние surfaces, цена и
+adoption, предыдущие решения и их последовательность.
+
+Swap-тест перед spawn: поменяй два brief-а ролями. Если получивший может
+осмысленно выполнить чужой, различие номинально — одна работа под двумя
+ярлыками; собери одну роль либо выведи зоны заново.
+
+Метод роли принадлежит её definition. Пересказ линзы в brief не усиливает lens,
+а ослабляет его: ближайший текст выигрывает у системного контракта, и агент
+отвечает твоему сжатому пересказу профессии вместо собственного метода.
+
 ## Split И Dialogue
 
 Parallel fan-out оправдан только отдельными output jobs, reversal results либо
@@ -164,17 +197,21 @@ coverage и gaps; main может изменить решение по packet, �
 
 ## Граница И Stop
 
-`1fresh-eyes` владеет named-role routing, isolation boundary и возвратом native
-product к owner decision. Он не владеет методами roles, truth в артефактах,
-semantic retrieval, final acceptance или mutation. Generic/cross-model review
-принадлежит `1codex`, а не этому gateway.
+`1fresh-eyes` владеет named-role routing, аллокацией зоны и stake, isolation
+boundary и возвратом native product к owner decision. Он не владеет методами
+roles, truth в артефактах, semantic retrieval, final acceptance или mutation.
+Выбор профессиональной методологии и criteria overlay для собственной работы
+main принадлежит `1expert-lens`; generic/cross-model review — `1codex`, а не
+этому gateway.
 
 Готово, когда runtime mode честно назван, fresh pass начат новой non-fork
-`Agent`-инвокацией, native product сохранён, decision-changing claims проверены
-и owner action явен. Остановись, если `Agent` недоступен; exact requested role
-не selectable и замена не разрешена; два follow-up не сужают evidence,
-alternative или decision; либо outputs уже синтезированы.
+`Agent`-инвокацией, у каждого stream названы своя зона и stake, native product
+сохранён, decision-changing claims проверены и owner action явен. Остановись,
+если `Agent` недоступен; exact requested role не selectable и замена не
+разрешена; два follow-up не сужают evidence, alternative или decision; либо
+outputs уже синтезированы.
 
 Behavioral hypothesis датирована `Claude Code 2.1.220`, 2026-08-04. Смена
 runtime semantics, callable schema или повтор tells `forked context`,
-`artifact-picked lens`, `consensus as proof` reopen-ят контракт.
+`artifact-picked lens`, `consensus as proof`, `interchangeable briefs` reopen-ят
+контракт.

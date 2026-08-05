@@ -16,6 +16,11 @@ A pricing proposal may need `business-critic` for willingness-to-pay and
 second can reverse feasibility. Give each role its own question and reversal
 result. Shared artifact does not make the products duplicate.
 
+The zones differ even though the artifact is shared: willingness-to-pay lives in
+customer evidence, comparable offers and unit economics, delivery cost lives in
+the code path, dependencies and operational load. The proposal page is context
+for both and the main entry for neither.
+
 ## One Role, Disjoint Artifacts
 
 Five unrelated adapters may be split across several `developer-critic` agents
@@ -34,4 +39,5 @@ supported evidence to the decision.
 “Frontend risk” and “backend risk” can look like different lenses while both
 questions are implementation feasibility. If they concern one coupled change,
 use one `developer-critic`; if they are genuinely independent artifacts, split
-by artifact without treating agreement as stronger proof.
+by artifact without treating agreement as stronger proof. The swap test catches
+this before spawn: either brief reads correctly in the other agent's hands.
