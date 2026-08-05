@@ -50,6 +50,10 @@ CONTEXT_LINK_RE = re.compile(
     r"(?:https?://|file://|www\.|\[[^\]]+\]\([^)]+\))", re.IGNORECASE
 )
 MAX_CONTEXT_NOTE_CHARS = 300
+CONTEXT_NOTE_GUIDANCE = (
+    "context-note adds only missing context; never repeat or paraphrase the quote"
+)
+CONTEXT_NOTE_REMINDER = f"remember: {CONTEXT_NOTE_GUIDANCE}"
 
 
 class CaptureError(RuntimeError):
@@ -474,8 +478,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--context-note",
         help=(
-            "capture a useful non-inferable context delta; omit only when "
-            "quote plus type/topic is self-contained; links rejected"
+            "required for --kind quote; "
+            f"{CONTEXT_NOTE_GUIDANCE}; links rejected"
         ),
     )
     parser.add_argument("--project", default=".")
@@ -496,7 +500,16 @@ def main() -> int:
         model = handle(args.model, "model") if args.model else None
         timestamp_source = handle(args.timestamp_source, "timestamp source")
         source_ref = one_line(args.source_ref, "source ref") if args.source_ref else None
-        context = context_note(args.context_note) if args.context_note else None
+        context = (
+            context_note(args.context_note)
+            if args.context_note is not None
+            else None
+        )
+        if args.kind == "quote" and context is None:
+            raise CaptureError(
+                "--context-note is required for --kind quote; "
+                + CONTEXT_NOTE_GUIDANCE
+            )
         if context and args.kind == "note":
             raise CaptureError("--context-note cannot be attached to --kind note")
         source = source_timestamp(args.source_timestamp, args.timestamp_precision)
@@ -551,6 +564,8 @@ def main() -> int:
             )
             written = True
         print(f"{'appended to' if written else 'already present in'} {path}")
+        if written and args.kind == "quote":
+            print(CONTEXT_NOTE_REMINDER)
         return 0
     except (CaptureError, OSError) as error:
         print(f"chat-capture: error: {error}", file=sys.stderr)

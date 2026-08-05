@@ -28,11 +28,13 @@ Source-bound owner evidence is primary. A verbatim quote stays a quote, a Plan
 choice stays a selection, and note/raw evidence remains visibly non-verbatim.
 A wrong or missing date, type, topic, or format never cancels the record.
 
-Check `context-note` separately for every quote that passes the usefulness gate.
-A useful isolated quote carries such a note by default, but it contains only
-surprise delta: what cannot reasonably be inferred from the quote plus its
-`type/topic`. Repeating, paraphrasing, or confirming what is already clear is
-forbidden; when no non-inferable delta exists, omit the field.
+Every quote that passes the usefulness gate requires `context-note`. It contains
+only surprise delta: what cannot reasonably be inferred from the quote plus its
+`type/topic`. A self-contained thesis is not context-free: name the external
+referent, scope, prior state, or decision scene lost in isolation. Repeating,
+paraphrasing, or confirming what is already clear is forbidden. If no honest
+non-repeating delta is available, reread neighboring source context; never fill
+the field with a restatement.
 
 Retrieval includes exact, legacy, partial, multiline, and raw records.
 
@@ -155,21 +157,24 @@ For an exact transcript record:
 ```bash
 python3 "${CLAUDE_SKILL_DIR}/scripts/chat_capture.py" \
   --quote "<owner words>" \
+  --context-note "<missing external circumstance, not a quote restatement>" \
   --source-timestamp "<timezone-aware transcript timestamp>" \
   --type решение --topic документация-и-знания --agent claude \
   --project "$PWD" \
   --session "${CLAUDE_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-}}"
 ```
 
-Before capture, check each quote/selection: name the useful boundary, reason,
-or scope that would disappear without neighboring messages. If such a delta
-exists, `--context-note "<one short agent explanation>"` is required; otherwise
-omit the field. The note stays inline, visibly non-verbatim, and available
-through `show`, but does not participate in the record ID, BM25, or dense
-ranking. Do not add a new conclusion, rationale, URL, path, or pointer to a
-transcript/another record. The limit is 300 characters; `--kind note` cannot
-carry `--context-note`. A context note never makes a weak quote worth capturing:
-apply the usefulness gate first.
+Before capture, name one external circumstance for every quote that disappears
+without neighboring messages: referent, scope, prior state, or decision scene.
+For `--kind quote`, `--context-note "<one short agent explanation>"` is required.
+The note stays inline, visibly non-verbatim, and available through `show`, but
+does not participate in the record ID, BM25, or dense ranking. To test for
+repetition, mentally hide the quote: the note must only locate its application,
+not let the reader reconstruct the thesis. Do not add a new conclusion,
+rationale, URL, path, or pointer to a transcript/another record. The limit is
+300 characters; a selection may carry the field only for such a delta, while
+`--kind note` cannot carry `--context-note`. A context note never makes a weak
+quote worth capturing: apply the usefulness gate first.
 
 `--source-timestamp` always has a value. It accepts timezone-aware ISO, an
 approximate ISO/date, or `unknown`. Approximate/unknown records must also pass
@@ -275,13 +280,14 @@ verification, and explicitly mark unresolved metadata.
 - Do not send quotes or transcript evidence to network tools, import quotes from
   unrelated chats, or promote the dated log to current canon.
 - If the answer stops at a quote dump, declares a top hit current without the
-  gate, or repeats the quote in `context-note`, shaping failed: return to the
-  last unchecked condition instead of widening output.
+  gate, leaves an owner quote without `context-note`, or repeats the quote in
+  the note, shaping failed: return to the last unchecked condition instead of
+  widening output.
 - Stop after fresh durable theses are captured or a material bounded fork has
   decision-ready context or an explicit abstention, with provenance,
   diagnostics, and material gaps visible.
 
-The design hypothesis is dated 2026-08-04 for Claude Opus 5 and Claude Fable 5.
+The design hypothesis is dated 2026-08-05 for Claude Opus 5 and Claude Fable 5.
 A change to the working model set, or matched cases where the bare command
 “find and read quotes” yields the same decision and evidence, reopens the
 mechanism for simplification.

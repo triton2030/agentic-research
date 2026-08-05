@@ -21,6 +21,7 @@ SKILL = SCRIPT.parents[1] / "SKILL.md"
 if str(SCRIPT.parent) not in sys.path:
     sys.path.insert(0, str(SCRIPT.parent))
 DEFAULT_SOURCE_TIMESTAMP = "2001-02-03T04:05:06.789Z"
+DEFAULT_CONTEXT_NOTE = "Test source situation outside the quote."
 MODULE_SPEC = importlib.util.spec_from_file_location(
     "chat_capture_under_test",
     SCRIPT,
@@ -51,7 +52,7 @@ class ChatCaptureTests(unittest.TestCase):
         agent: str | None = None,
         env: dict[str, str] | None = None,
         kind: str | None = None,
-        context_note: str | None = None,
+        context_note: str | None = DEFAULT_CONTEXT_NOTE,
         session: str | None = None,
         source_timestamp: str | None = DEFAULT_SOURCE_TIMESTAMP,
         expect_ok: bool = True,
@@ -70,7 +71,9 @@ class ChatCaptureTests(unittest.TestCase):
             command += ["--agent", agent]
         if kind:
             command += ["--kind", kind]
-        if context_note:
+        if kind in ("selection", "note") and context_note == DEFAULT_CONTEXT_NOTE:
+            context_note = None
+        if context_note is not None:
             command += ["--context-note", context_note]
         if session:
             command += ["--session", session]
@@ -112,7 +115,7 @@ class ChatCaptureTests(unittest.TestCase):
         )
 
     def test_context_note_is_inline_metadata(self) -> None:
-        self.run_capture(
+        result = self.run_capture(
             "Цитата сама остаётся полезной единицей знания",
             "критерий",
             "документация-и-знания",
@@ -126,6 +129,22 @@ class ChatCaptureTests(unittest.TestCase):
             "context-note: Речь о критерии записи в chat recall.",
             text,
         )
+        self.assertIn(CHAT_CAPTURE.CONTEXT_NOTE_REMINDER, result.stdout)
+
+    def test_quote_without_context_note_is_rejected(self) -> None:
+        result = self.run_capture(
+            "Контекст нельзя опускать",
+            "коррекция",
+            "документация-и-знания",
+            env=self.claude_env(),
+            context_note=None,
+            expect_ok=False,
+        )
+
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("--context-note is required for --kind quote", result.stderr)
+        self.assertIn("never repeat or paraphrase the quote", result.stderr)
+        self.assertEqual(self.recall_files(), [])
 
     def test_help_promotes_context_note_check(self) -> None:
         result = subprocess.run(
@@ -142,7 +161,11 @@ class ChatCaptureTests(unittest.TestCase):
         )
         self.assertIn("--context-note CONTEXT_NOTE", help_text)
         self.assertIn(
-            "omit only when quote plus type/topic is self-contained",
+            "required for --kind quote",
+            help_text,
+        )
+        self.assertIn(
+            "never repeat or paraphrase the quote",
             help_text,
         )
 
@@ -206,6 +229,7 @@ class ChatCaptureTests(unittest.TestCase):
             env=self.claude_env(),
         )
         self.assertIn("already present", result.stdout)
+        self.assertNotIn(CHAT_CAPTURE.CONTEXT_NOTE_REMINDER, result.stdout)
         text = self.recall_files()[0].read_text(encoding="utf-8")
         self.assertEqual(text.count('"Одна мысль"'), 1)
 
@@ -360,6 +384,8 @@ class ChatCaptureTests(unittest.TestCase):
             DEFAULT_SOURCE_TIMESTAMP,
             "--timestamp-source",
             "turn-context",
+            "--context-note",
+            "The timestamp came from observed turn context.",
             "--project",
             str(self.root),
         ]
@@ -638,6 +664,8 @@ class ChatCaptureTests(unittest.TestCase):
                 shlex.quote("документация-и-знания"),
                 "--source-timestamp",
                 shlex.quote(DEFAULT_SOURCE_TIMESTAMP),
+                "--context-note",
+                shlex.quote("Captured through a separate shell command."),
                 "--project",
                 shlex.quote(str(self.root)),
                 "--session",
