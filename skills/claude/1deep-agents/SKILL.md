@@ -78,6 +78,7 @@ streams, проверкой traces, публикацией и synthesis. Суб�
 ```text
 decision: какой вопрос должен разрешить owner/root
 packet: raw request + факты + constraints + известные gaps
+cognitive_work: какая domain-independent мыслительная работа реально нужна
 lenses: минимум три разные cognitive jobs
 frameworks: один named method на lens + operational step spine + topology
 barrier: какие traces обязаны вернуться до synthesis
@@ -108,16 +109,46 @@ post-state; необъяснённый delta отклоняет run.
 без parent conversation и готового solution frame, а не отсутствие системных и
 project instructions: называй эту границу честно.
 
-## 2. Выбери Минимум Три Разные Cognitive Jobs
+## 2. Извлеки Cognitive Work И Выбери Минимум Три Frameworks
 
-Сначала выведи best-fit methods из самой ситуации: какое преобразование
-представления или какой decision test реально способен помочь именно здесь.
-Затем используй
+Не маршрутизируй по поверхностной теме задачи. Область говорит, **о чём**
+задача, но не говорит, какая мыслительная работа должна произойти, чтобы её
+разрешить. Сначала построй mechanism-level модель:
+
+```text
+raw task
+→ actors, objects и требуемое изменение состояния
+→ search, abstraction, representation, inference, simulation, choice,
+  verification, uncertainty и feedback
+→ место возможного cognitive failure
+→ нужные преобразования или decision tests
+→ distinct cognitive jobs
+→ framework signatures
+```
+
+Модель достаточна, когда root может назвать для каждого будущего stream:
+
+- какое представление, belief, causal model, option space или decision rule
+  должно появиться либо измениться;
+- какая операция вызывает этот переход и какой shortcut она предотвращает;
+- какой публичный artifact покажет, что операция действительно произошла.
+
+Ищи framework по структуре этой работы, а не по словарю или исходной профессии
+метода. Cross-domain transfer нормален, если роли, отношения и все канонические
+шаги framework-а содержательно отображаются на текущую задачу. До выбора
+проверь mapping
+`framework entity/operation → task entity/operation`. Если перенос требует
+пропустить, переставить, объединить или изобрести шаг, это structural no-fit.
+Креативность принадлежит диагнозу cognitive work и обнаружению неожиданного
+structural fit; сама выбранная методология не адаптируется.
+
+Только после этого используй
 [`references/frameworks.md`](references/frameworks.md) как компактный recall и
 contrast seed. Registry не задаёт множество разрешённых candidates, не даёт
 приоритета перечисленным names и никогда не работает как whitelist.
 
-Выбирай сначала job, затем framework. Обычные jobs:
+Выбирай сначала cognitive work, затем job, затем framework. Примеры jobs ниже —
+не ontology и не меню:
 
 - reframe или decomposition;
 - evidence, causality или belief challenge;
@@ -140,19 +171,23 @@ contrast seed. Registry не задаёт множество разрешённ�
    подбери по distinct job; явный structural no-fit покажи до запуска.
 5. Framework вне registry — обычный best-fit выбор, а не исключение. Root обязан
    выбрать его, если он релевантнее перечисленных, даёт distinct move и имеет
-   defensible best-practice lineage. Root формулирует полный operational step
-   spine и topology: `linear` или `iterative`. Branch alternatives могут быть
-   публичным artifact внутри шага, но не отдельной execution topology. Если
-   пользователь
-   просит exact branded/canonical procedure либо lineage или порядок неясны,
-   сначала проверь первичный или официальный источник, назови version и не
-   импровизируй методологию из красивого названия.
-6. Добавь четвёртый или пятый stream только под отдельную consequential
+   defensible best-practice lineage. Root восстанавливает полный established
+   operational step spine и topology: `linear` или `iterative`; он не сочиняет
+   task-specific variant. Branch alternatives могут быть публичным artifact
+   внутри исходного шага, но не отдельной execution topology. Если lineage,
+   порядок или обязательность шага неясны, либо пользователь просит exact
+   branded/canonical procedure, сначала проверь первичный или официальный
+   источник, назови version и не импровизируй методологию из красивого названия.
+6. После выбора не сокращай, не переставляй, не гибридизируй и не «улучшай»
+   framework. Под задачу отображаются только его сущности и входные данные;
+   механизм, полный step spine, topology и completion condition сохраняются.
+7. Добавь четвёртый или пятый stream только под отдельную consequential
    uncertainty, которую первые три jobs принципиально не видят. Больше агентов
    не является evidence само по себе.
 
-До spawn покажи пользователю короткую selection table: `framework → job →
-почему он способен изменить решение`. Не публикуй внутренний ranking dump.
+До spawn покажи пользователю короткую selection table: `cognitive work →
+framework → structural fit → почему он способен изменить решение`. Не публикуй
+внутренний ranking dump.
 Назначь шагам стабильные IDs `S1…Sn`; для iterative методов заранее обозначь
 допустимые возвраты.
 
@@ -180,7 +215,8 @@ TASK PACKET
 
 ASSIGNED FRAMEWORK
 Name: <один framework>
-Why selected: <одна distinct cognitive job>
+Diagnosed cognitive work: <одна distinct cognitive job>
+Structural fit: <framework entities/relations → task entities/relations>
 Topology: <linear | iterative>
 Operational step spine:
 S1. <step>
@@ -189,7 +225,10 @@ S2. <step>
 
 REQUIRED OUTPUT
 1. Назови framework, его цель, topology и повтори полный operational step spine
-   до анализа. Не называй этот adapter canonical без source-grounding.
+   до анализа. Затем покажи cross-domain mapping, не меняя методологию. Если
+   mapping не позволяет содержательно пройти каждый исходный шаг, верни
+   structural no-fit и остановись: не создавай task-specific variant. Не
+   называй step spine canonical без source-grounding.
 2. Адресуй каждый declared step согласно topology. Для loop покажи повторный
    step ID и observable delta между проходами. Для каждого покажи:
    - Task-local input: факты, наблюдения или предыдущий результат шага;
@@ -223,6 +262,8 @@ Trace принимается, только если одновременно в�
 
 - объявлены один framework, topology и весь operational step spine со
   стабильными IDs;
+- cognitive work и structural mapping видимы, а все исходные шаги применимы
+  без изменения методологии;
 - каждый declared step адресован согласно topology; повторные проходы
   показывают IDs и task-specific deltas;
 - у каждого шага есть task-specific observable transformation, а не generic
@@ -309,6 +350,9 @@ cognitive lift. Его продукт — раздельная provenance, audit
 Failure tells, которые reopen-ят дизайн:
 
 - agents называют разные methods, но возвращают одну representation;
+- root выбирает methods по поверхностной теме, не показав cognitive work и
+  structural fit;
+- cross-domain перенос незаметно меняет, сокращает или смешивает методологию;
 - trace fields заполнены, а следующий шаг не использует предыдущий;
 - technical tasks снова получают только общие mental models;
 - root сжимает native traces до гладкого consensus;

@@ -8,6 +8,13 @@ and compact operational adapters needed to brief a capable clean agent; these
 are not claims of canonical branded wording. Do not load full framework essays
 into every stream.
 
+The domain headings below are storage shelves, not a routing taxonomy. Start
+from the task's underlying cognitive work, then search for a framework with the
+same relational mechanism even when it originated in another field. Transfer
+framework entities to task entities; do not adapt, shorten, reorder or combine
+the selected methodology itself. If the compact spine cannot be defended as the
+method's established procedure, verify its primary lineage before spawn.
+
 Contents:
 
 - Framing, reasoning and causality
@@ -319,10 +326,18 @@ cycles and contradictions → revise → derive navigation, model or explanation
 - Derive the needed cognitive jobs from the task before consulting this seed.
   Never restrict selection to the names below or reward a listed method merely
   for being easy to retrieve.
+- Diagnose the task below its surface domain: identify the representation,
+  inference, choice, uncertainty, feedback or failure mechanism that must
+  change. Match frameworks by relational structure, not shared vocabulary or
+  profession.
 - Select an unlisted established framework whenever it offers the strongest
   situational fit and decision-changing cognitive move. State its complete step
   spine and topology in the brief. Verify primary lineage when the sequence is
   uncertain or an exact canonical/branded procedure was requested.
+- Cross-domain transfer maps framework entities and inputs onto the task while
+  preserving the original mechanism, complete step spine, topology and
+  completion condition. A transfer that needs omitted, reordered, invented or
+  hybrid steps is structural no-fit, not creative adaptation.
 - Choose one framework per agent. A chain such as `scenario planning →
   premortem → backcasting` is three frameworks and therefore three streams.
 - Prefer a method whose output can change the current decision. Fame, evidence
