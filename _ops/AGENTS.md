@@ -59,10 +59,10 @@
 - Если верхний уровень меняется, старые нижние task-файлы сначала
   reconciled/archived, а не продолжают управлять работой по инерции.
 
-Markdown-поиск по папке — owner, тема, section targets, related files,
-duplicates и выбор файлов/секций — идёт через `$1md-navigator`. Внутри уже
-начатого route он же bounded раскрывает выбранные `description`, заголовки,
-секции, `read-related` и `walk`; короткий known file читай напрямую.
+Когда адрес неизвестен и его надо найти по смыслу — owner, тема, related files,
+duplicates, выбор файлов/секций — идёт через `$1md-search`. Когда адрес уже
+известен (выбранный файл, заголовок, секция), bounded чтение ведёт `$1md-read`;
+короткий known file читай напрямую.
 
 Связи Markdown-документов внутри `_ops` — YAML frontmatter,
 `read-before-edit`, `edit-after-edit`, related-docs sections и

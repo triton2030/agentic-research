@@ -90,7 +90,7 @@ critique или approach choice.
 - `references/cross-file-dedupe.md` - читай только когда Markdown-файл раздут
   source-of-truth duplication. Этот skill может делать только derivative
   cleanup: gist + link к known owner. Неизвестно место owner-а →
-  `1md-navigator`; спорен owner/structure → `1ia-audit`; есть graph risk →
+  `1md-search`; спорен owner/structure → `1ia-audit`; есть graph risk →
   `1md-graph`.
 
 ## Output

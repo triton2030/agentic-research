@@ -50,7 +50,7 @@ status.
    strategic prose правка не требует graph ceremony.
 7. Пиши минимально: одна функция файла, без side-docs, rulebook-секций, task mechanics.
 8. Сверь GOAL и README прямым чтением. Если риск paraphrase-дубля остаётся,
-   получи bounded semantic evidence через `1md-navigator`, не меняя owner root.
+   получи bounded semantic evidence через `1md-search`, не меняя owner root.
 9. Маршрутизируй последствия: GOAL outcome changed → обнови Goal-цитату в root `AGENTS.md`/`CLAUDE.md` в том же ходу; literal quote → память проекта; instruction wording → `1instruction-layer`.
 
 **Вход от пользователя.** После local discovery задай одним компактным блоком
@@ -86,9 +86,9 @@ task lists/statuses → plans; rules → AGENTS/CLAUDE или `_ops/rules/`.
 
 Сначала сравни тела GOAL и README: одинаковая тема допустима, одинаковая
 durable scope/done truth — нет. Для неочевидной paraphrase-пары передай
-`1md-navigator` два коротких независимо извлекаемых тезиса и project root.
+`1md-search` два коротких независимо извлекаемых тезиса и project root.
 `README.md` лежит в root, поэтому `_ops` не является corpus для этой сверки и
-не должен получать отдельный index. Navigator возвращает candidates и coverage;
+не должен получать отдельный index. `1md-search` возвращает candidates и coverage;
 `1goal` решает contract-vs-context, а split/merge/move verdict принадлежит
 `1ia-audit`.
 
@@ -113,7 +113,7 @@ semantic sync Goal-цитаты всё равно подтверждается �
 
 - выбран один document function: contract / context;
 - strategic truth не дублируется в README/GOAL (direct read; при неясной
-  paraphrase — evidence packet от `1md-navigator`);
+  paraphrase — evidence packet от `1md-search`);
 - README/GOAL не хранят rules (кроме собственных scope/done/stop) и project status / task links;
 - In scope звучит как outcome, а не список проделанных действий;
 - fresh-agent завтра понимает проект из README + GOAL без устного контекста;

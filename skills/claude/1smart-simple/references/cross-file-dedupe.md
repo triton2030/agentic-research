@@ -38,9 +38,9 @@ runtime/index ritual.
    тела напрямую. Для literal duplicate возьми scoped exact packet у
    `1cli-tools`; verdict owner-vs-derivative остаётся здесь.
 2. Если неизвестно, где живёт смысл или нужен broad duplicate search,
-   передай discovery в `1md-navigator`. Он владеет query pack, corpus
-   scope, index recovery и bounded reading; здесь используй его адресуемый
-   evidence packet, а не повторяй его CLI lifecycle.
+   передай discovery в `1md-search`. Он владеет query pack, corpus scope и
+   index recovery; bounded чтение уже найденного адреса — `1md-read`. Здесь
+   используй адресуемый evidence packet, а не повторяй их CLI lifecycle.
 3. Exact refs/counts передавай `1cli-tools`. Graph/frontmatter/anchor или
    downstream obligations — `1md-graph` до edit.
 4. После обычного prose-only сжатия проверь direct diff/read и
@@ -50,7 +50,7 @@ runtime/index ritual.
 ## Решение
 
 1. Определи authoritative owner по прочитанным bodies. Если его место
-   неизвестно — `1md-navigator`; если неясен сам owner/structure —
+   неизвестно — `1md-search`; если неясен сам owner/structure —
    остановись и handoff в `1ia-audit`.
 2. Если есть graph/frontmatter/blast obligations, handoff в `1md-graph`.
 3. Если дублирование держится папочным instruction contract или guardrail,
