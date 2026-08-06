@@ -1,11 +1,10 @@
 ---
 name: 1md-read
 description: >
-  Use before any Markdown read or first project-context orientation when `.md`
-  files are present. Without it agents often full-read, use arbitrary line
-  windows, or mistake routing metadata for evidence; frame the decision, read
-  the smallest addressable body that could change it, and stop at sufficient
-  coverage.
+  Use when a Markdown evidence address is already known and choosing the wrong
+  reading scope could distort the next decision. For a named corpus, use it for
+  bounded orientation; read the smallest addressable body and stop at
+  sufficient coverage.
 ---
 
 # 1md-read
@@ -67,11 +66,20 @@ compliance into evidence theatre.
 | Known state | Read route |
 | --- | --- |
 | Measured short file or named nonlocal dependency | Direct Read |
+| Named heading or link anchor (`file#heading`) | `md extract FILE --anchor "HEADING" --extract --json`; repeat `--anchor` for several sections of one file |
 | Root-scoped stable section ID | `md extract --section-root ROOT --section-id ID --extract --json` |
 | Known folder, file not chosen | `md orient FOLDER --json` → select |
-| Known large file, section not addressed | `md toc FILE --with-tokens --json` → `md extract` |
-| Exact row, frontmatter field or raw block | Exact extraction; do not load its whole heading by habit |
+| Known large file, no heading named yet | `md toc FILE --with-tokens --json` → `md extract` |
+| One frontmatter field across a folder | `md orient FOLDER --frontmatter-field FIELD --json` |
+| Exact row or raw block inside a section | Exact shell match; `md` owns sections, not sub-section slices |
 | Several immediate anchored wikilink premises | Bounded linked reading from the source section |
+
+An index or link that already names its target heading is a solved address: go
+straight to `--anchor` instead of buying a map to translate that name into a
+numeric id. `--anchor` refuses when a name matches zero or several headings, so
+a refusal is a real ambiguity to resolve, never a reason to fall back to the
+first plausible section. Numeric ids from `toc` stay valid; they belong to that
+one map and are not stable section IDs.
 
 The table is enough for ordinary routes. Open
 [`references/progressive-reading.md`](references/progressive-reading.md) only

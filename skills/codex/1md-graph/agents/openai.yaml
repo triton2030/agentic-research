@@ -1,7 +1,7 @@
 interface:
   display_name: "1-МД Граф"
   short_description: "Semantic integrity of Markdown links"
-  default_prompt: "Используй $1md-graph, чтобы превратить cross-file edge в attribution Y→X, отделить evidence address от serialized endpoint и силы relation, проверить X/Y counterfactual и пройти только affected reverse holders."
+  default_prompt: "Используй $1md-graph: раздели serialized carrier на attribution atoms, независимо извлеки Y/X и weaker/null counterframe, проверь concrete X₀→X₁→ΔY и передавай на следующий reverse hop только выведенный ΔY."
 
 policy:
   allow_implicit_invocation: true
