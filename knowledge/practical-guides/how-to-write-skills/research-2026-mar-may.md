@@ -73,14 +73,23 @@ Recheck 2026-08-04: научная верификация в
 
 ## Что Подтвердили Исследования
 
-- SkillsBench (Feb 2026): skills дают сильный, но variable effect; “есть skill”
-  намного слабее, чем “правильный skill, правильный момент, правильное
-  содержание”. Практика: каждый skill требует proof loop, но глубина проверки
-  масштабируется по риску.
-  Source: [SkillsBench](https://www.skillsbench.ai/blogs/introducing-skillsbench)
-- SkillReducer (31 Mar 2026): на 55k+ public skills найдено много token waste;
-  compression descriptions/body улучшала качество при меньшем контексте.
-  Практика: сначала резать non-actionable content, потом добавлять.
+- SkillsBench (13 Feb 2026, v4 14 Jun): числа из тела работы, сверено
+  2026-08-06 — «variable effect» прячет знак. Человеческие skill-файлы поднимают
+  средний pass rate с 33.9% до 50.5% (**+16.6 п.п.**); skill-файлы,
+  сгенерированные моделью, уходят **ниже базовой линии без скилов вообще**:
+  −8.1 п.п. на Claude Code + Opus 4.7, −11.3 на Codex + GPT-5.5, −11.5 на Gemini
+  CLI. Вывод авторов: «Self-generated Skills do not substitute for curated
+  ones». Практика: автор скила — человек; каждый skill требует proof loop,
+  глубина проверки масштабируется по риску.
+  Source: [SkillsBench](https://arxiv.org/abs/2602.12670) (первичный; блог
+  skillsbench.ai — вторичный пересказ)
+- SkillReducer (31 Mar 2026, v2 24 Jun): на 55k+ public skills много token waste.
+  Точные числа, сверено 2026-08-06: сжатие описания на 48% и тела на 39%
+  сохранило **или** улучшило балл у 86.0% скилов (улучшило 25.3%, **ухудшило
+  14.0%**). Состав тела: 38.5% core rules, 40.7% фон, 12.9% примеры, 7.6%
+  шаблоны. Практика: резать non-actionable — но повторяющаяся причина настоящих
+  регрессий — «пример как спецификация», когда пример неявно задаёт поведение и
+  уезжает в reference. См. `1distill`: до разреза спроси «почему он здесь?».
   Source: [SkillReducer](https://arxiv.org/abs/2603.29919)
 - SkillMOO (10 Apr 2026): optimization чаще выигрывает через pruning и
   substitution, а не накопление инструкций. Практика: treat skill bundle as
@@ -95,9 +104,12 @@ Recheck 2026-08-04: научная верификация в
   плохо выделяют skill-relevant signals в длинных шумных queries. Практика:
   имена, descriptions, taxonomy и near-miss evals важны не меньше body.
   Source: [SkillRet](https://arxiv.org/abs/2605.05726)
-- SkillGen (9 May 2026): хорошие skills можно синтезировать из successful и
-  failed trajectories, но проверять надо как intervention: with/without,
-  repairs vs regressions. Практика: skill authoring начинается с traces.
+- SkillGen (9 May 2026): skills можно синтезировать из successful и failed
+  trajectories, но проверять надо как intervention: with/without, repairs vs
+  regressions. **Поправка 2026-08-06:** SkillsBench выше меряет ровно этот класс
+  и даёт ему отрицательный знак — сгенерированный моделью скил уходит ниже
+  базовой линии. Практика: трассы остаются материалом для автора, но автор —
+  человек; синтезированный скил без человеческой правки принимать нельзя.
   Source: [SkillGen](https://arxiv.org/abs/2605.10999)
 - SkillSmith (12 May 2026): raw skill injection создаёт лишний context и
   повторное reasoning; boundary-first compiled interfaces снижают tokens/time.
@@ -116,8 +128,12 @@ Recheck 2026-08-04: научная верификация в
 
 ## Итог Для Нашего Канона
 
-1. **Less is more, но не “short is always better”.** Короткий core + нужные
-   bundled files сильнее длинного ядра.
+1. **Считай не длину, а число одновременно действующих правил.** Поправка
+   2026-08-06: корреляции «длина документа → балл» не найдено, а прямой замер
+   стеков даёт 96% соблюдения при одном правиле и 20–60% при двадцати, через
+   попарные конфликты. Бюджет тратят правила, а не строки; «короткий core +
+   bundled files» верно только когда вынос не уносит единственного носителя
+   функции.
 2. **Description — главный рычаг.** Без routing evidence skill может быть
    идеален внутри и бесполезен снаружи. Исторические `2-3` и `8-10/8-10` —
    примеры eval sizes, не текущие gates: выборка должна различать заявленный
