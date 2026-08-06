@@ -23,6 +23,9 @@ denominator и не может закончиться честным verdict о 
 
 Topic, имя файла и общий вопрос «что ещё связано» seed не создают.
 
+Seed выбирает retrieval, но не доказывает missing relation. Marker, locator или
+direct-read consumer сам по себе не создаёт prose link или hard dependency.
+
 ## Bounded Route
 
 1. **Назови искомый relation.** Что должен делать missing edge:
@@ -36,18 +39,26 @@ Topic, имя файла и общий вопрос «что ещё связан
    - declared reverse graph;
    - paraphrase candidates через `1md-search`, только когда exact vocabulary не
      покрывает вероятных consumers.
-4. **Прочитай selected bodies.** Search row, snippet, score или совпадение
-   термина — candidate. `missing` возникает только после X/Y attribution test из
+4. **Прочитай и атомизируй selected bodies.** Search row, snippet, score или
+   совпадение термина — candidate. Один candidate может содержать несколько
+   holder claims; раздели их на Yᵢ/Xᵢ atoms. `Missing` возникает только после
+   independent extraction, attribution + weaker/null counterframe и
+   discriminator test из
    [`semantic-edge-audit.md`](semantic-edge-audit.md).
 5. **Отдели отсутствие edge от отсутствия необходимости.** Не каждый mention
    требует link. Edge нужен, только если без него теряется addressable owner,
    проверяемая support/provenance job, reader path или propagation obligation.
-6. **Запиши disposition candidate:** `missing`, если edge нужен и отсутствует;
-   `not-required`, `already-covered`, `conflict` или `unread` в остальных
-   случаях.
+6. **Проверь local graph contract.** Для hard invalidation нужны concrete
+   X₀→X₁/ΔY test, разрешённая relation class и допустимый serialized endpoint.
+   Если dialect не прочитан, mutation остаётся `unread`.
+7. **Запиши disposition каждого atom:** `missing`, если edge нужен и
+   отсутствует; `not-required`, `already-covered`, `conflict`, `undetermined`
+   или `unread` в остальных случаях. `Undetermined` означает прочитанное, но
+   недостаточное evidence; `unread` — ещё не прочитанное.
 
 Не добавляй edge автоматически: `missing` — semantic verdict; edit требует
-current write scope и local metadata/link contract.
+current write scope и local metadata/link contract. Не создавай locator только
+ради graph edge.
 
 ## Retrieval Limits
 
@@ -71,8 +82,9 @@ relation sought:
 corpus and exclusions:
 channels executed:
 candidates selected/read:
-missing verdicts with X/Y:
-conflicts/unread:
+atom count and carrier mapping:
+missing verdicts with X/Y and discriminator:
+conflicts/undetermined/unread:
 unsearched remainder:
 ```
 

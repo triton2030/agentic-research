@@ -37,7 +37,7 @@ Playbook: каждое правило лежит у правильного owner
    пометь move. Форма контейнера спорна (нужен ли вообще отдельный файл, split/
    merge) → сначала `1ia-audit`, не закрепляй плохую IA текстом.
 3. **Root↔child дубль.** Сначала direct read и exact packet от `1cli-tools`; для
-   semantic spread передай discovery в `1md-navigator` и прими его results
+   semantic spread передай discovery в `1md-search` и прими его results
    только как candidates до чтения bodies.
    Содержательно одинаково → один owner + pointer; расходится → drift; разный
    момент работы → conscious freshness, если owner остаётся один.

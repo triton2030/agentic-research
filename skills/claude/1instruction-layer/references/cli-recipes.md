@@ -13,7 +13,7 @@ read-when: "Repair требует exact, semantic или graph evidence вне �
 - Известны малые targets → direct Read; literal duplicate, exact citation, file
   count или stale wording → `1cli-tools`.
 - Неизвестно, где живёт правило, или нужен broad duplicate/owner search →
-  `1md-navigator`. Передай ему короткий тезис одного правила на
+  `1md-search`. Передай ему короткий тезис одного правила на
   query, languages вероятного source и нужные path constraints. Он владеет
   corpus/index/recovery и вернёт адресуемые bodies с gaps.
 - Holders, `depends-on`, anchors, cycles, blast radius и graph closeout →

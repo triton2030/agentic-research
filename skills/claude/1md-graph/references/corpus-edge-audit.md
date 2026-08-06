@@ -27,12 +27,17 @@ Denominator должен перечислять link dialects и metadata relati
 который теряет holder context, exact fragment или часть dialects, не является
 полным inventory.
 
+Считай отдельно **serialized carriers** и полученные после body reading
+**attribution atoms**. До atomization denominator closed только структурно;
+carrier count нельзя выдавать за число semantic relations.
+
 ## Baseline
 
 До verdicts зафиксируй:
 
 - corpus root, includes/excludes и effective instructions;
-- количество existing edges по relation/link class;
+- количество existing serialized carriers по relation/link class;
+- количество attribution atoms после чтения и carrier→atoms mapping;
 - unread denominator;
 - known hubs и SCC review cohorts;
 - named seeds для missing-edge probes;
@@ -51,15 +56,18 @@ Broken paths/anchors и cycles — signals. Они не заменяют чте�
    Centrality выбирает порядок, не verdict.
 3. **Anchored prose edges.** Проверяй holder attribution против exact target
    section; technically valid anchor может быть semantic `retarget`.
-4. **Hard dependencies.** Для каждого `depends-on` назови X/Y и
-   `sound/reclassify/remove/conflict`.
+4. **Hard dependencies.** Для каждого atom внутри `depends-on` независимо
+   извлеки X/Y, построй weaker/null counterframe, назови discriminator и concrete
+   `X₀ → X₁ → ΔY`; затем дай
+   `sound/reclassify/remove/conflict/undetermined`. Evidence address и
+   serialized endpoint проверяй раздельно по local graph contract.
 5. **Navigation/provenance.** Удали только edge без различимой information job;
    optional reader value может быть sound.
 6. **Missing edges.** Запусти seeded route из
    [`missing-edge-discovery.md`](missing-edge-discovery.md) только после
    existing-edge cohort, чтобы не смешивать closed и open sets.
 
-Каждая строка verdict-а следует
+Каждая строка atom verdict-а следует
 [`semantic-edge-audit.md`](semantic-edge-audit.md). File-level batch verdict
 без body attribution запрещён.
 
@@ -67,8 +75,10 @@ Broken paths/anchors и cycles — signals. Они не заменяют чте�
 
 Для exhaustive/risk cohort сообщи:
 
-- denominator existing edges;
-- `sound`, `retarget`, `reclassify`, `remove`, `conflict`, `unread`;
+- denominator serialized carriers и denominator attribution atoms отдельно;
+- carrier→atoms mapping и mixed carrier dispositions без усреднения;
+- `sound`, `retarget`, `reclassify`, `remove`, `conflict`, `undetermined`,
+  `unread` по atoms;
 - delta impacts, если audit связан с change;
 - missing probes, candidates и named open remainder;
 - structural findings отдельно.
@@ -78,9 +88,10 @@ Broken paths/anchors и cycles — signals. Они не заменяют чте�
 
 ## Stop
 
-Exhaustive cohort закрыт, когда каждый existing edge denominator получил
-verdict, `unread` пуст или передан, conflicts имеют owner handoff, а
-missing-edge вывод ограничен seeds и searched scope.
+Exhaustive cohort закрыт, когда каждый existing carrier разложен на atoms,
+каждый atom получил evidence-state и verdict, `unread`/`undetermined` пуст или
+передан, conflicts имеют owner handoff, а missing-edge вывод ограничен seeds и
+searched scope.
 
 Sampled diagnostic закрыт после выбранной sample и failure-pattern verdict; он
 не разрешает фразы `corpus audited`, `graph clean` или `no missing edges`.

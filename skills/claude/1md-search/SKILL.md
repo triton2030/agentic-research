@@ -1,11 +1,10 @@
 ---
 name: 1md-search
 description: >
-  Use when unknown Markdown must be found by meaning, or when similarity,
-  near-copy, recurring-topic, or corpus-topology candidates are requested.
-  Ranking feels like evidence but can silently misassign owner, duplicate
-  meaning, or absence; force addressable body reading, effective scope, and
-  honest gaps.
+  Use when needed Markdown evidence has no known address and must be found by
+  meaning; ranked hits can misstate owner truth or absence. Also use for
+  similarity, near-copy, recurring-topic, or corpus-topology candidates;
+  resolve selected bodies and coverage honestly.
 ---
 
 # 1md-search
@@ -62,6 +61,45 @@ multiple claims creates a smooth averaged rank and hides which aspect was lost.
 
 For an external corpus, first read its `AGENTS.md` and `.md-tools.toml`: scope
 belongs to the target corpus, not the current `cwd`.
+
+### No Declared Boundary Yet
+
+An absent `.md-tools.toml` is not a default of "everything is truth". With no
+declared scope the index takes the whole tree, so drafts, projections, archives
+and generated views rank beside authored truth, and every one of those files is
+what leaves the machine for the embedding provider. The commands will not warn
+you: an undeclared corpus dry-runs and indexes exactly like a declared one.
+
+Authoring that boundary is retrieval work, and it is derived from this project,
+never copied from a template:
+
+1. **Read what the project says about itself first.** Its `AGENTS.md`, README,
+   goal or index files usually name which documents carry authority and which
+   are views. Folder names are a hypothesis about that, never the finding.
+2. **Classify by function, not by label.** Three kinds behave differently under
+   retrieval: authored truth; derived views of that truth (projections,
+   translations, decks, generated exports); and working process (plans,
+   scratch, archives, session logs). Only the first kind should be retrievable
+   as an answer.
+3. **Test each candidate against a real claim.** Ask: if a section from here
+   came back as the answer to a question about this product, would that be
+   right or wrong? A directory you cannot judge that way is not classified yet,
+   so do not place it.
+4. **Fail narrow.** Unclassified stays out. A missing document produces a
+   visible no-hit that the next probe can fix; an admitted projection produces
+   a confident wrong answer that nothing downstream catches, and it has already
+   been sent to the provider.
+5. **Prove the boundary before writing it.** Run the intended scope as command
+   filters — `md search-read CORPUS --query "..." --path-include "..." --json` —
+   and read the actually returned paths. The config is the durable form of a
+   filter you already saw behave correctly.
+6. **Write, then verify the scope really narrowed** with `md status CORPUS
+   --json` and its reported `path_scope`.
+
+This file is the owner's data boundary, not a tuning knob: propose it, name what
+you excluded and why, and never widen it silently in a later task. When the
+project never declares what carries authority, that gap belongs to the owner or
+to `1ia-audit`; do not invent it from folder names.
 
 ### Authorization Gate at the Point of Action
 
@@ -163,15 +201,33 @@ check:
 - the strongest plausibly missing candidate with one alternative short query.
 
 A cold, partial, busy, or warmup-required state is a retrieval state, not a
-no-hit. Perform the exact recovery from
-[`references/index-lifecycle.md`](references/index-lifecycle.md), then replay
-the original query with the same filters. When authorization covers ordinary
-warmup, use dry-run → confirm with the transaction or fingerprint from that
-same dry-run → status → replay.
+no-hit. `NO_INDEX`, `NEEDS_WARMUP`, and `index_warmup_required` never license
+the conclusion that a corpus lacks the claim. Where authorization covers
+ordinary warmup, run the recovery here rather than inventing one:
 
-`profile-sections`, cleanup-shadowed, vacuum, manual rebuild, and corpus-scope
-expansion are outside ordinary warmup. Serialize semantic queries against one
-corpus; independent roots can run in parallel.
+```bash
+md status CORPUS --json                 # only after edits or an index question
+md index CORPUS --dry-run --json
+md index CORPUS --confirm --transaction-id TRANSACTION_ID --json
+md status CORPUS --json
+# then replay the original query with the same filters
+```
+
+Confirm carries the `transaction_id` or `fingerprint` from **that same**
+dry-run; with zero pending and cleanup counts no confirm is needed. When
+`_envelope.next_step.args` proposes a parent corpus or filters, use them as-is
+instead of composing your own. `NEEDS_REBUILD` means a schema, model, or
+integrity mismatch and still goes through this normal index transaction.
+
+Everything past ordinary warmup — `cleanup-shadowed`, vacuum, manual deletion of
+SQLite/WAL/SHM, forced rebuild — needs its own separate grounding first.
+[`references/index-lifecycle.md`](references/index-lifecycle.md) holds the full
+state table, delta/cleanup rules, and the transaction contract; open it when a
+state does not match this sequence.
+
+`profile-sections` and corpus-scope expansion are likewise outside ordinary
+warmup. Serialize semantic queries against one corpus; independent roots can run
+in parallel.
 
 After a second material no-hit and one query variant, stop the semantic loop. If
 absence is material, add a filesystem map and exact search through the proper
