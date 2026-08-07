@@ -200,9 +200,9 @@ coverage и gaps; main может изменить решение по packet, �
 `1fresh-eyes` владеет named-role routing, аллокацией зоны и stake, isolation
 boundary и возвратом native product к owner decision. Он не владеет методами
 roles, truth в артефактах, semantic retrieval, final acceptance или mutation.
-Выбор профессиональной методологии и criteria overlay для собственной работы
-main принадлежит `1expert-lens`; generic/cross-model review — `1codex`, а не
-этому gateway.
+Выбор профессиональной методологии и экспертная мудрость для собственной
+работы main принадлежат `1expert-lens`; generic/cross-model review — `1codex`,
+а не этому gateway.
 
 Готово, когда runtime mode честно назван, fresh pass начат новой non-fork
 `Agent`-инвокацией, у каждого stream названы своя зона и stake, native product

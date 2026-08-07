@@ -1,5 +1,5 @@
 ---
-description: "Research-backed failure patterns that justify an independent professional standard."
+description: "Research-backed сбои моделей — конкретные цели, под которые линза вызывает экспертную мудрость против стажёрских ошибок."
 read-when: "The active lens needs a concrete failure target or role-only prompting looks sufficient."
 ---
 
