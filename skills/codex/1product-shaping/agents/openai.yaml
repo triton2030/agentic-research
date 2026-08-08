@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Формирование продукта"
+  short_description: "Owner sync → Product Principles + Frame bound to GOAL before new or reshaped product scope"
+  default_prompt: "Use $1product-shaping before building or noticeably reshaping product scope, or when correct principles conflict with sacrifice: read ALL Frames+Principles and GOAL first, probe 1chat-recall pointwise, then one form — scene retell + dangerous defaults + earned questions with appetite; record verbatim answers as P-* blocks, rebuild the Frame with a GOAL binding that names what we will NOT do, map stale artifacts. No file writes before the owner's yes. Applying an existing pair in work is $1use-principles."
+
+policy:
+  allow_implicit_invocation: true

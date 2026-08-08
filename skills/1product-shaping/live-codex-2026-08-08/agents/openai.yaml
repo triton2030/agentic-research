@@ -1,0 +1,4 @@
+interface:
+  display_name: "1-Шейпинг продукта"
+  short_description: "Вопросы, принципы и Frame перед большой работой"
+  default_prompt: "Используй $1product-shaping, чтобы сформировать тематическую пару Product Principles + Product Frame: ответы владельца с влиянием и короткие рабочие тайбрейкеры."
