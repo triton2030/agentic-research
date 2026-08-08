@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Брейкдаун"
+  short_description: "Строит ближайший проверяемый слой исполнения"
+  default_prompt: "Используй $1break-down, чтобы превратить выбранную тяжёлую работу в минимальный dependency cut до следующего существенного proof."
+
+policy:
+  allow_implicit_invocation: true
