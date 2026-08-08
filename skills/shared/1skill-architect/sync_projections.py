@@ -16,23 +16,39 @@ PORTABLE_ROOT = OWNER_ROOT / "portable"
 
 PORTABLE_FILES = (
     "SKILL.md",
-    "GLOSSARY.md",
-    "references/anti-patterns.md",
-    "references/deep-audit.md",
-    "references/local-skill-contract.md",
+    "references/design.md",
+    "references/evidence.md",
+    "references/failures.md",
 )
 
 PLATFORM_FILES = {
-    "codex": (
-        "references/platform-skill-authoring.md",
-        "agents/openai.yaml",
-    ),
-    "claude": ("references/platform-skill-authoring.md",),
+    "codex": ("agents/openai.yaml",),
+    "claude": (),
 }
 
 OBSOLETE_FILES = {
-    "codex": ("references/codex-skill-authoring.md",),
-    "claude": ("references/claude-skill-authoring.md",),
+    "codex": (
+        "GLOSSARY.md",
+        "references/anti-patterns.md",
+        "references/check.md",
+        "references/codex-skill-authoring.md",
+        "references/deep-audit.md",
+        "references/description.md",
+        "references/local-skill-contract.md",
+        "references/platform-skill-authoring.md",
+        "references/protocol.md",
+    ),
+    "claude": (
+        "GLOSSARY.md",
+        "references/anti-patterns.md",
+        "references/check.md",
+        "references/claude-skill-authoring.md",
+        "references/deep-audit.md",
+        "references/description.md",
+        "references/local-skill-contract.md",
+        "references/platform-skill-authoring.md",
+        "references/protocol.md",
+    ),
 }
 
 

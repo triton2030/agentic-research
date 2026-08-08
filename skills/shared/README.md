@@ -1,3 +1,7 @@
+---
+description: "Semantic owners and projection contracts for cross-runtime skills."
+---
+
 # Shared Skill Owners
 
 Эта папка владеет пакетами, у которых переносимый смысл и runtime-дельты
@@ -5,10 +9,10 @@
 
 ## Живые Owners
 
-- `1skill-architect/portable/` — общий `SKILL.md`, словарь и portable
-  references для Codex и Claude.
-- `1skill-architect/platforms/<runtime>/` — только честные platform deltas:
-  authoring mechanics и runtime metadata.
+- `1skill-architect/portable/` — общий короткий controller и три условных
+  reference-маршрута для Codex и Claude.
+- `1skill-architect/platforms/codex/agents/openai.yaml` — только Codex UI и
+  invocation metadata; authoring mechanics остаются у runtime skill creator.
 - `1md-read/portable/` и `1md-search/portable/` — общий cognitive/tool core для
   Codex и Claude; `platforms/codex/agents/openai.yaml` — только Codex UI и
   invocation metadata.
@@ -16,11 +20,6 @@
   contract; runtime launch deltas для Codex `spawn_agent` и Claude `Agent`
   живут в одной адресуемой reference, а Codex UI metadata — в
   `platforms/codex/agents/openai.yaml`.
-
-Source-only `portable/references/platform-skill-authoring.md` — pointer-router
-к двум platform owners. Он делает source links разрешимыми, но не входит в
-projection manifest: в собранном package тот же address занимает выбранная
-runtime delta.
 
 `skills/codex/1skill-architect/` и `skills/claude/1skill-architect/` — tracked
 projections этого owner-а. `~/.codex/skills/1skill-architect/` и
@@ -49,6 +48,6 @@ Generic script собирает все portable files и непересекаю�
 Он не обслуживает special-manifest `1skill-architect` и отказывается удалять
 unexpected projection files: их provenance сначала разрешается явно.
 
-Скрипт копирует только явный manifest и удаляет только названные obsolete
-runtime-файлы. Неизвестные лишние файлы он не удаляет: `--check` останавливается
-и показывает расхождение, чтобы projection не стала скрытым вторым owner-ом.
+Special-manifest скрипт копирует явный manifest и удаляет только названные
+obsolete runtime-файлы. Неизвестные лишние файлы он не удаляет: `--check`
+останавливается, чтобы projection не стала скрытым вторым owner-ом.
