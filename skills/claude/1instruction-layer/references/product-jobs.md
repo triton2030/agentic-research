@@ -28,6 +28,6 @@ permission, hook, validator, test или approval у runtime owner-а.
 
 - split/merge/move/new instruction container → `1ia-audit`;
 - `depends-on`, holders, anchors, cycles, broken links → `1md-graph`;
-- skill/agent/hook selection, trigger/collision → `1skill-architect`;
+- skill/agent/hook selection, trigger/collision → `1skill-shaping`;
 - project scope/done/stop → `1goal`; task contract → `1planning`;
 - permissions/hooks/settings/enforcement → live runtime owner.

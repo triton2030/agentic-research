@@ -15,7 +15,7 @@
 6. Проверь `Load`, `Steer`, `Prove / enforce` по отдельности и отметь только
    проваленные jobs; не переписывай здоровый слой по инерции.
 7. Если ещё выбирается instruction text vs skill/agent/hook/config, остановись:
-   surface decision принадлежит `1skill-architect`.
+   surface decision принадлежит `1skill-shaping`.
 
 **Результат gate:** `mode + one-off|durable + premise status + admitted evidence
 + failed jobs`. Неизвестна необходимая premise → явный assumption/stop; нет

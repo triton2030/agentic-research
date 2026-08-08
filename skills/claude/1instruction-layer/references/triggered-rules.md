@@ -14,7 +14,7 @@ instruction surface, если правило устойчиво, нужно то
   — orphan; копия его procedure в root — competing owner.
 - Читай RULE только после совпадения trigger, не загружай всю папку заранее.
 - Если правило должно обнаруживаться skill runtime-ом в момент действия, а root
-  route недостаточен, surface decision принадлежит `1skill-architect`; жанр
+  route недостаточен, surface decision принадлежит `1skill-shaping`; жанр
   project-local `2*` — `1local-rules`.
 
 Открывается из Gate 2, когда правило нужно только в редкий наблюдаемый момент.

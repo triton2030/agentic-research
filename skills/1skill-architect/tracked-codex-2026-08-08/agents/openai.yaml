@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Скилл-архитектор"
+  short_description: "Design the smallest behavior-changing skill"
+  default_prompt: "Use $1skill-architect to decide whether a skill is justified, design its smallest behavior-changing form, and name evidence for activation, application, and completion."
+
+policy:
+  allow_implicit_invocation: true

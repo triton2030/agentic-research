@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Форма скилов"
+  short_description: "Interview the owner, then shape a skill that fires and changes decisions"
+  default_prompt: "Use $1skill-shaping to interview the owner before writing any skill: name the class (knowledge-in-the-moment vs behavior-in-the-moment), extract the deficit in the owner's own words, draft in chat, audit the draft, and write files only after the owner approves."
+
+policy:
+  allow_implicit_invocation: true

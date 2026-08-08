@@ -2,7 +2,15 @@
 description: "Research, historical versions and evaluation evidence for 1skill-architect."
 ---
 
-# 1skill-architect — папка скила: знания и версии
+# 1skill-architect — снят 2026-08-08, папка знаний и версий
+
+**Скил снят.** Заменён `1skill-shaping` (смена жанра: не проектирует скил сам,
+а вытаскивает замысел из владельца и не пишет до его «да»). Живой owner
+преемника — `skills/shared/1skill-shaping/`, происхождение и потери —
+`skills/1skill-shaping/`.
+
+Ничего не удалено: owner, tracked и installed проекции сняты сюда целиком и
+восстановимы.
 
 Здесь сливаются все знания об этом скиле, чтобы смело работать над сжатием.
 Версии лежат подпапками внутри по мере необходимости; обычно скилы просто
@@ -25,5 +33,10 @@ description: "Research, historical versions and evaluation evidence for 1skill-a
 - `evaluation-2026-08-08.md` — адресуемый отчёт single-run preservation,
   routing и transfer; probability uplift оставлен `unknown`.
 
-Живой owner не здесь: `skills/shared/1skill-architect/`. Tracked и installed
-Codex/Claude packages — его проекции; эта папка хранит только evidence и версии.
+- `shared-owner-2026-08-08/` — бывший живой owner (`portable/` + Codex
+  `agents/openai.yaml` + `sync_projections.py`), снят с `skills/shared/`.
+- `live-claude-2026-08-08/`, `live-codex-2026-08-08/` — установленные версии на
+  момент снятия; они были новее репо-копии.
+- `tracked-codex-2026-08-08/` — бывшая tracked-проекция `skills/codex/`.
+
+Живого owner-а у этого скила больше нет — папка целиком историческая.

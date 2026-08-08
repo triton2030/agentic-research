@@ -9,10 +9,10 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
 
 ## Живые Owners
 
-- `1skill-architect/portable/` — общий короткий controller и три условных
-  reference-маршрута для Codex и Claude.
-- `1skill-architect/platforms/codex/agents/openai.yaml` — только Codex UI и
-  invocation metadata; authoring mechanics остаются у runtime skill creator.
+- `1skill-shaping/portable/` — общий controller (семь фиксированных разделов) и
+  семь условных reference-маршрутов для Codex и Claude.
+  `platforms/codex/agents/openai.yaml` — только Codex UI и invocation metadata.
+  Заменил `1skill-architect`, снятый 2026-08-08 в `skills/1skill-architect/`.
 - `1md-read/portable/` и `1md-search/portable/` — общий cognitive/tool core для
   Codex и Claude; `platforms/codex/agents/openai.yaml` — только Codex UI и
   invocation metadata.
@@ -21,32 +21,28 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   живут в одной адресуемой reference, а Codex UI metadata — в
   `platforms/codex/agents/openai.yaml`.
 
-`skills/codex/1skill-architect/` и `skills/claude/1skill-architect/` — tracked
-projections этого owner-а. `~/.codex/skills/1skill-architect/` и
-`~/.claude/skills/1skill-architect/` — installed projections следующего уровня.
-Их не редактируют напрямую.
+`skills/codex/<name>/` и `skills/claude/<name>/` — tracked projections owner-а.
+`~/.codex/skills/<name>/` и `~/.claude/skills/<name>/` — installed projections
+следующего уровня. Их не редактируют напрямую.
 
 ## Синхронизация
 
 После правки source owner-а:
 
 ```bash
-python3 skills/shared/1skill-architect/sync_projections.py --write --install
-python3 skills/shared/1skill-architect/sync_projections.py --check
-```
-
-Для простых shared packages и runtime-owned `1md-graph`:
-
-```bash
 python3 skills/shared/sync_simple_projections.py \
-  1md-read 1md-search 1md-graph --write --install
+  1skill-shaping 1md-read 1md-search 1md-graph --write --install
 python3 skills/shared/sync_simple_projections.py \
-  1md-read 1md-search 1md-graph --check
+  1skill-shaping 1md-read 1md-search 1md-graph --check
 ```
 
 Generic script собирает все portable files и непересекающуюся runtime delta.
-Он не обслуживает special-manifest `1skill-architect` и отказывается удалять
-unexpected projection files: их provenance сначала разрешается явно.
+Он отказывается удалять unexpected projection files: их provenance сначала
+разрешается явно.
+
+Special-manifest скрипт `1skill-architect/sync_projections.py` вышел из
+обращения вместе со скилом; он лежит в
+`skills/1skill-architect/shared-owner-2026-08-08/`.
 
 Special-manifest скрипт копирует явный manifest и удаляет только названные
 obsolete runtime-файлы. Неизвестные лишние файлы он не удаляет: `--check`

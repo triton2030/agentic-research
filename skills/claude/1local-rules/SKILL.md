@@ -2,16 +2,16 @@
 name: 1local-rules
 description: >
   Когда создаёшь project-local rule-skill (`2*`) для конкретного действия
-  проекта и sync Claude/Codex. Surface → `1skill-architect`; prose →
+  проекта и sync Claude/Codex. Surface → `1skill-shaping`; prose →
   `1instruction-layer`.
 ---
 
 Локальное **правило-скил** — критичная инструкция одного проекта, которая обычно
 осела бы текстом в `AGENTS.md`/`CLAUDE.md`, но вынесена в скил, потому что обязана
 всплыть **в момент действия**, а не выцвести в начале сессии. Корневая добродетель
-та же, что у `1skill-architect` (**moment-fit**), но жанр узкий: правило,
+та же, что у `1skill-shaping` (**moment-fit**), но жанр узкий: правило,
 привязанное к наблюдаемому действию, и его обновление по мере взросления проекта.
-Surface/owner/trigger/collision design держит `1skill-architect`; общий
+Surface/owner/trigger/collision design держит `1skill-shaping`; общий
 create/update/scaffold/validate contract — официальный Claude `skill-creator`;
 размещение и формулировку обычных текстовых правил — `1instruction-layer`. Этот скил
 добавляет только то, что специфично жанру локального правила-скила.
@@ -28,7 +28,7 @@ create/update/scaffold/validate contract — официальный Claude `skil
 его и так выполняет — правило, не меняющее решение агента, лишнее (это владение
 `1instruction-layer`). «Куда вообще положить правило / как сформулировать» —
 сначала `1instruction-layer`; «какой surface/owner, почему не срабатывает или где
-collision» — `1skill-architect`; «создать/обновить/scaffold/validate skill» —
+collision» — `1skill-shaping`; «создать/обновить/scaffold/validate skill» —
 `skill-creator`.
 
 ## Закон триггера: условие × дельта
@@ -72,7 +72,7 @@ marketing/`) — жёстче всего; глагол действия (`пиш
 Тело держи тонким; глубину — в `references/`, по условию. Общую дисциплину письма
 скила (concrete examples, degrees of freedom, progressive disclosure,
 validation) не дублируй — она у системного `skill-creator`; design gate,
-Condition × Delta и collision ownership — у `1skill-architect`.
+Condition × Delta и collision ownership — у `1skill-shaping`.
 
 ## Имя, размещение, синхронизация (`1` vs `2`)
 
@@ -124,7 +124,7 @@ Condition × Delta и collision ownership — у `1skill-architect`.
 - провенанс: названо, против какого расхождения модели стоит правило (наблюдалось /
   общий перекос);
 - имя и размещение: имя с `2` (`2<имя>`); одинаковая копия у обоих агентов из одного
-  источника правды; surface/trigger/collision делегируй `1skill-architect`, а
+  источника правды; surface/trigger/collision делегируй `1skill-shaping`, а
   create/update/scaffold/validate — `skill-creator`.
 
 Остановись, когда правило срабатывает в свой момент, несёт дельту и привязано к
