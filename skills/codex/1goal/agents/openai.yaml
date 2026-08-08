@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Цель проекта"
+  short_description: "Own GOAL.md as the top-level context agents extrapolate decisions from"
+  default_prompt: "Use $1goal when the project's goal, scope, done/stop or on-ramp changes, or when a request conflicts with the recorded goal: interview the owner (tie-breakers included), return the project triad, write only after the owner's yes, and sync the Goal quote in root instructions in the same turn."
+
+policy:
+  allow_implicit_invocation: true

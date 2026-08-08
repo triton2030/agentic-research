@@ -1,0 +1,10 @@
+interface:
+  display_name: "1-Цель"
+  short_description: "Интервьюирует вечную цель репозитория"
+  default_prompt: >
+    Используй $1goal, чтобы провести стратегическое интервью и сформировать
+    вечную цель репозитория, направляющую агентов через смену этапов и product
+    frames.
+
+policy:
+  allow_implicit_invocation: true
