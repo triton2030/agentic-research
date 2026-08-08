@@ -24,7 +24,7 @@ rank.
 
 No routed owner, or several candidates claim the same truth → report the exact
 gap/conflict and hand the placement/ownership decision to `1ia-audit`. Adding or
-changing a durable AGENTS/CLAUDE route belongs to `1instruction-layer`.
+changing a durable AGENTS/CLAUDE route belongs to `1instruction-shaping`.
 
 ## Existing-Owner Delta
 

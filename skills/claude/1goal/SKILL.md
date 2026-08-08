@@ -29,7 +29,7 @@ status.
 Эскалируй:
 
 - `1planning` — task-файлы, статусы, archive, reconcile;
-- `1instruction-layer` — wording и placement instruction prose;
+- `1instruction-shaping` — wording и placement instruction prose;
 - память проекта — durable quote / preference / red line;
 - фундаментальный gap в frame до commit — остановись и сообщи; если конкретная
   скрытая premise меняет outcome/scope, передай ground-check в
@@ -51,7 +51,7 @@ status.
 7. Пиши минимально: одна функция файла, без side-docs, rulebook-секций, task mechanics.
 8. Сверь GOAL и README прямым чтением. Если риск paraphrase-дубля остаётся,
    получи bounded semantic evidence через `1md-search`, не меняя owner root.
-9. Маршрутизируй последствия: GOAL outcome changed → обнови Goal-цитату в root `AGENTS.md`/`CLAUDE.md` в том же ходу; literal quote → память проекта; instruction wording → `1instruction-layer`.
+9. Маршрутизируй последствия: GOAL outcome changed → обнови Goal-цитату в root `AGENTS.md`/`CLAUDE.md` в том же ходу; literal quote → память проекта; instruction wording → `1instruction-shaping`.
 
 **Вход от пользователя.** После local discovery задай одним компактным блоком
 только user-owned вопросы, ответы на которые materially меняют scope, anti-scope,
@@ -106,7 +106,7 @@ semantic sync Goal-цитаты всё равно подтверждается �
 - Durable red line не превращай в GOAL из интерпретации — сначала память проекта.
 - `GOAL.md#Что делаем` изменение → обнови Goal-цитату в AGENTS/CLAUDE в том же ходу (не молчаливо).
 - Если в README/GOAL просится правило: hot-path → AGENTS/CLAUDE, conditional rule →
-  `_ops/rules/` через `1instruction-layer`, workflow → skill, hard guardrail → hook.
+  `_ops/rules/` через `1instruction-shaping`, workflow → skill, hard guardrail → hook.
 - Не создавай новый файл/раздел, пока существующий strategic owner держит функцию.
 
 ## Готово Когда

@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Слой инструкций"
+  short_description: "Инструкции: owner, steering и проверка"
+  default_prompt: "Используй $1instruction-layer, чтобы восстановить effective instruction chain, найти representative fork и вернуть или применить минимальную trajectory-changing instruction delta с различающим proof."
+
+policy:
+  allow_implicit_invocation: true

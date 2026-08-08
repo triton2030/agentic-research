@@ -13,6 +13,10 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   семь условных reference-маршрутов для Codex и Claude.
   `platforms/codex/agents/openai.yaml` — только Codex UI и invocation metadata.
   Заменил `1skill-architect`, снятый 2026-08-08 в `skills/1skill-architect/`.
+- `1instruction-shaping/portable/` — agent harness: шов между пятью слоями,
+  влияющими на поведение агента (корень, папка, скил, хук, план). Семь
+  фиксированных разделов, семь условных reference-маршрутов.
+  Заменил `1instruction-layer`, снятый 2026-08-08 в `skills/1instruction-layer/`.
 - `1md-read/portable/` и `1md-search/portable/` — общий cognitive/tool core для
   Codex и Claude; `platforms/codex/agents/openai.yaml` — только Codex UI и
   invocation metadata.

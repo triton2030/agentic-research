@@ -28,13 +28,13 @@
   `self-learning:`; старые тематические файлы, счётчики и архивы не
   восстанавливать.
 - `rules/` — условные холодные rule-docs для редких правил с явным trigger,
-  owner и check. Wording держит `1instruction-layer`; механизм — live settings/hook
+  owner и check. Wording держит `1instruction-shaping`; механизм — live settings/hook
   pass. Если route/owner rule-doc меняется, синхронизировать root `AGENTS.md`.
   Читать только по конкретному
   trigger из `AGENTS.md` или owner-файла, не как preload.
 - `interviews/` — временные интерактивные вопросники для случаев, когда агенту
   нужно много ответов пользователя. Маршрут задаёт `1interview-tool`, wording
-  маршрута чинит `1instruction-layer`, читаемую форму для Obsidian —
+  маршрута чинит `1instruction-shaping`, читаемую форму для Obsidian —
   `1writing-style`. После разбора смысл переносится к владельцам
   (task-файлы, roadmap, GOAL/README, knowledge).
 - `interviews/_archive/` — архив полностью разобранных интервью.

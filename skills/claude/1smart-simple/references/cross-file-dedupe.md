@@ -54,7 +54,7 @@ runtime/index ritual.
    остановись и handoff в `1ia-audit`.
 2. Если есть graph/frontmatter/blast obligations, handoff в `1md-graph`.
 3. Если дублирование держится папочным instruction contract или guardrail,
-   handoff в `1instruction-layer`; если держится graph/frontmatter edge,
+   handoff в `1instruction-shaping`; если держится graph/frontmatter edge,
    handoff в `1md-graph`.
 4. Если повтор касается README или GOAL как strategic truth, handoff в
    `1goal`.

@@ -13,7 +13,7 @@ Trigger: создаёшь, двигаешь, переименовываешь и
 
 Owner: container shape, split/merge/move, file-vs-folder и truth-vs-view держит
 `1ia-audit`; folder criteria и формулировку инструкции держит
-`1instruction-layer`; GOAL/README shape держит `1goal`.
+`1instruction-shaping`; GOAL/README shape держит `1goal`.
 
 Check: один owner truth, понятный retrieval path, нет второго source of truth,
 нет нового файла без функции.

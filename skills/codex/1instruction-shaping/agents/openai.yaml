@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Форма инструкций"
+  short_description: "Shape the whole instruction set so the agent reaches context and behavior fast"
+  default_prompt: "Use $1instruction-shaping to shape or audit everything that steers the agent — root and folder instructions, skills, hooks, plans. Name the mode (owner's failure history / clean project / audit of an existing set), read the effective chain before writing, choose the layer for each rule, keep knowledge out, resolve conflicts across layers, and write files only after the owner approves."
+
+policy:
+  allow_implicit_invocation: true

@@ -9,14 +9,14 @@
 
 Все execution details, task statuses, task links, archive/reconcile и substeps
 живут в `_ops/plans/**` через `1planning`. Instruction rules живут в
-`AGENTS.md` / `CLAUDE.md` / `_ops/rules/**` через `1instruction-layer`.
+`AGENTS.md` / `CLAUDE.md` / `_ops/rules/**` через `1instruction-shaping`.
 
 ## Карта Владельцев
 
 - `_ops/GOAL.md` -> `1goal`.
 - `README.md` -> `1goal`.
 - `_ops/plans/**/task-*.md` -> `1planning`.
-- `AGENTS.md` / `CLAUDE.md` / subtree instructions -> `1instruction-layer`.
+- `AGENTS.md` / `CLAUDE.md` / subtree instructions -> `1instruction-shaping`.
 - Goal-цитата в `AGENTS.md` / `CLAUDE.md` -> прямой sync после изменения
   `_ops/GOAL.md#Что делаем`.
 Если правка хочет записать и strategic contract, и execution detail в один файл,
@@ -48,7 +48,7 @@
 
 - появляются мотивационные абзацы -> README;
 - появляются substeps, task lists, statuses, commands, evidence -> `1planning`;
-- появляются rule-form правила "every X must Y" -> `1instruction-layer`;
+- появляются rule-form правила "every X must Y" -> `1instruction-shaping`;
 - durable preference или red line записывается как интерпретация, а не как
   подтверждённая цель.
 

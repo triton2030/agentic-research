@@ -12,7 +12,7 @@ Trigger: правишь `AGENTS.md`, `CLAUDE.md`, `SKILL.md`, prompt, hook, runt
 guardrail, `config.toml`, skill reference или модельный baseline.
 
 Owner: wording, instruction placement и folder criteria держит
-`1instruction-layer`; `SKILL.md`/metadata и skill/hook surface держит
+`1instruction-shaping`; `SKILL.md`/metadata и skill/hook surface держит
 `1skill-architect`; GOAL/README держит `1goal`; runtime settings, permissions и
 CLI wiring держит отдельный live settings/hook pass.
 

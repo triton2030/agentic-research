@@ -62,7 +62,7 @@ report the concrete mapping cost or structural risk.
 
 `1readable-code` does not choose a new canonical document or instruction route.
 Missing/competing architecture owner → `1ia-audit`; durable instruction route →
-`1instruction-layer`.
+`1instruction-shaping`.
 
 ## Evidence
 
