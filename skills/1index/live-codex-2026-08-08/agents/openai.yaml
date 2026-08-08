@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Индекс"
+  short_description: "INDEX-handoff: intent → неочевидный route"
+  default_prompt: "Используй $1index, чтобы сохранить в корневом INDEX.md устойчивый reader intent с доказанной дельтой между ожидаемым и фактическим owner, section или reading order — без дерева файлов и второй truth."
+
+policy:
+  allow_implicit_invocation: true
