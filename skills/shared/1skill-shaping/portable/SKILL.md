@@ -101,6 +101,8 @@ description: >
   [audit](references/audit.md)
 - сдан без прогона → читается лучше прежнего, потери невидимы →
   [check](references/check.md)
+- reference собирает правила впрок → перегруз глушит и правила тела →
+  соблюдение падает кратно (96% → 20–60%) → [reference](references/reference.md)
 - скил не сработал в живой задаче → лечится добавлением правил → разрастание →
   [failures](references/failures.md)
 
