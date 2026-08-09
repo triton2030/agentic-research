@@ -1,103 +1,58 @@
 ---
 name: 1cli-tools
 description: >
-  Use when repo/tooling decisions need terminal evidence: exact text/path/ID/
-  count/JSON, active binary owner, CLI flag/schema, update or security scan.
-  Stable ID/table/raw block in Markdown is exact.
+  Use before building a helper, installing software, or doing repetitive manual
+  work with Markdown, code, checks, UI/design, media/docs, data, security, or
+  delivery: this Mac may already have a useful local tool. Inspect only the
+  relevant capability and reuse it when it shortens the task. Skip when the
+  project already fixes the tool and no choice remains.
 ---
 
-# CLI Evidence
+# Local Tool Router
 
-## Почему Это Выгодно
+## Цель
 
-Один точный probe часто отменяет длинную ветку чтения, реализации или спора о
-том, что «наверное» делает инструмент. Live schema дешевле отладки remembered
-flag, а exact ID дешевле чтения многотысячной секции. Это не терминальная
-церемония: используй CLI только там, где literal fact действительно сужает путь
-к ответу пользователя.
+До собственной реализации или ручной обработки проверить и переиспользовать
+минимальную локальную возможность, которая заметно упрощает задачу пользователя.
 
-## Результат
+## Критерии успеха
 
-Для обычного узкого probe достаточно:
+Считать успехом active tool и названную отменённую работу либо targeted
+`no fit`, после которого основная задача продолжена без нового inventory.
 
-```text
-claim → exact target/scope → observed fact → gap или side effect
-```
+## Инварианты
 
-Полный packet с command, active owner и evidence class нужен, только когда от
-runtime, версии, риска или воспроизводимости materially зависит решение.
+- Предпочитать project-local command и config глобальной копии.
+- Не выводить из discovery разрешение на install, update, network или mutation.
+- Не отдавать инструменту решение о смысле и приёмке результата.
 
-Команда доказывает только свой слой. Manager receipt не доказывает active
-binary; text match не доказывает semantic owner; analyzer finding не даёт
-permission на delete/rename.
+## Дельта
 
-## Рабочая Иерархия
+- Markdown: `md`, `mdq`, `rg`, `fd`, `rumdl`, `markdownlint-cli2`, `lychee`.
+- Код и зависимости: `ast-grep`, `graphify`, `depcruise`, `knip`.
+- Проверки: JS/TS, Python, shell и CI toolchains уже установлены.
+- UI и браузер: `impeccable`, `agent-browser`, `playwright`.
+- Дизайн, медиа и документы: visual apps, Blender, FFmpeg, WebP, Poppler,
+  LibreOffice.
+- Данные и delivery: `jq`, `gron`, SQLite, `just`, `gh`, Vercel, Supabase.
+- Security: secret, SAST, dependency и filesystem scanners уже доступны.
 
-| Момент | Лучший route | Почему |
-| --- | --- | --- |
-| Exact string/path/count/JSON | `rg` / `fd` / `wc` / `jq` | Literal answer за минимальный output |
-| Stable ID, table row, raw block в Markdown | `rg`, затем delimiter-aware block extraction | Не загружает весь heading ради одной addressable записи |
-| Неизвестный flag или JSON shape | `<tool> --help`; для `md` — `md tools <command> --json` | Live contract предотвращает ложный parse |
-| Active binary/version влияет на вывод | `probe-tools.sh` + version | Доказывает реально исполняемый owner |
-| Code syntax/analyzer candidate | exact/code reference | Даёт candidate, не semantic verdict |
-| Update/security/supply-chain | профильная reference | Side effects и evidence bar отличаются |
+## Известные сбои
 
-Название команды не гарантирует read-only. `outdated`, `doctor`, `dry-run`,
-`cache verify` и даже некоторые `list/root` могут обновить metadata, repair
-cache или создать directories.
+- неизвестна локальная возможность → пишется дубль или ставится package →
+  лишняя работа → [tool-map](references/tool-map.md)
+- имя или receipt принято за working tool → выбран неактивный binary →
+  ложный старт → [runtime ownership](references/runtime-ownership.md)
+- scanner выбран по названию → network, exposure или ложная remediation →
+  [security scans](references/security-scans.md)
 
-## Минимальный Контракт
+## Механика
 
-1. Зафиксируй один claim, точный target и единицу измерения: files, matching
-   lines, occurrences, JSON keys, runtime owner или test outcome.
-2. Перед редким flag проверь `<tool> --help`; перед schema-dependent parsing —
-   live keys/schema. Для `md` сначала:
+1. Сопоставить задачу с одной строкой Дельты и открыть только нужную reference.
+2. Проверить кандидатов через `command -v`, bundled `probe-tools.sh` и live help.
+3. Выбрать минимальный подходящий инструмент и вернуться к основной задаче.
 
-   ```bash
-   md tools <command> --json
-   ```
+## Завершение
 
-3. Запусти самый узкий probe. Не превращай точный вопрос в inventory
-   репозитория или машины.
-4. Проверяй active binary owner только когда другой binary/version способен
-   изменить вывод. Targeted owner probe:
-
-   ```bash
-   bash ~/.claude/skills/1cli-tools/scripts/probe-tools.sh md rg
-   ```
-
-   Для package CLI сначала предпочитай project-local `node_modules/.bin` /
-   `pnpm exec`. `npm exec`, `npx` и `uvx` могут скачать package/cache.
-5. Для delete/rename/codemod или другого high-risk действия добавь второй
-   независимый signal либо runtime/test confirmation.
-6. Сообщи фактические side effects, включая generated cache/index repair.
-
-## Conditional References
-
-- Exact strings/paths/counts/JSON, stable IDs, raw blocks, symbols и analyzers →
-  [`references/exact-and-code-evidence.md`](references/exact-and-code-evidence.md).
-- PATH owner, versions, update или machine-wide audit →
-  [`references/runtime-ownership.md`](references/runtime-ownership.md).
-- Secrets, vulnerabilities, SAST или native supply chain →
-  [`references/security-scans.md`](references/security-scans.md).
-
-## Evidence Classes
-
-- `derived`: exact CLI fact (`rg`, `fd`, `sg`, parsed JSON field);
-- `inferred`: analyzer/scanner candidate (`knip`, `depcruise`, SAST);
-- `semantic`: ranked search candidate;
-- `runtime`: реально выполненная command/test/health check.
-
-`inferred` и `semantic` требуют cross-check перед необратимым действием.
-Secret-scanner finding остаётся candidate даже если verifier принял credential:
-owner/scope и rotate/revoke — отдельные решения.
-
-## Boundary И Stop
-
-- Install/update, network probe, codemod, delete/move/rename, cache download и
-  mutating LSP требуют явного покрытия запросом.
-- Exact match отвечает только на literal claim; authority и meaning остаются у
-  прочитанного owner-а.
-
-Остановись, когда exact claim получил адресуемый ответ, scope и side effects
-видны, а следующий CLI-вызов не способен изменить решение.
+Вернуть `selected TOOL @ PATH → avoided work` либо `no fit`; не продолжать
+поиск, если следующий probe уже не способен изменить выбор.

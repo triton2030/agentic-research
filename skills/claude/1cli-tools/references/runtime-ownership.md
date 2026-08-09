@@ -5,8 +5,8 @@ description: "PATH, receipt, version, update and explicit machine-wide ownership
 # Runtime Ownership
 
 Открывай для PATH/versions, «что обновить», broken CLI environment или explicit
-machine-wide audit. Repo-level exact refs принадлежат
-[`exact-and-code-evidence.md`](exact-and-code-evidence.md).
+machine-wide audit. Repo-level tool choice принадлежит
+[`tool-map.md`](tool-map.md).
 
 ## Active Owner
 
