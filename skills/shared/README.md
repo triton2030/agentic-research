@@ -24,6 +24,11 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   contract; runtime launch deltas для Codex `spawn_agent` и Claude `Agent`
   живут в одной адресуемой reference, а Codex UI metadata — в
   `platforms/codex/agents/openai.yaml`.
+- `1product-shaping/portable/` создаёт чистые Product Principles + Frame и
+  журнал обоснований; `1use-principles/portable/` применяет их к развилкам и
+  пустотам.
+- `1planning/portable/` создаёт живой контракт и `context.md` для работы через
+  сессии; `1index/portable/` держит карты оплаченных поиском маршрутов.
 
 `skills/codex/<name>/` и `skills/claude/<name>/` — tracked projections owner-а.
 `~/.codex/skills/<name>/` и `~/.claude/skills/<name>/` — installed projections
@@ -39,13 +44,14 @@ intent и runtime нужен явный reconcile, а не копия пары �
 
 ## Синхронизация
 
-После правки source owner-а:
+После правки source owner-а передай имена изменённых пакетов позиционными
+аргументами. Например, для текущей группы:
 
 ```bash
 python3 skills/shared/sync_simple_projections.py \
-  1skill-shaping 1md-read 1md-search 1md-graph --write --install
+  1product-shaping 1use-principles 1planning 1index --write --install
 python3 skills/shared/sync_simple_projections.py \
-  1skill-shaping 1md-read 1md-search 1md-graph --check
+  1product-shaping 1use-principles 1planning 1index --check
 ```
 
 Generic script собирает все portable files и непересекающуюся runtime delta.

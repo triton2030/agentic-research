@@ -46,5 +46,5 @@ premise останавливает разбивку → `1assumption-audit`, и 
 
 Произведённый фронтир спорен или повторяется конкретный перекос — открой
 каталог перекосов из архива:
-`skills/1break-down/tracked-claude-2026-08-08/references/decomposition-failures.md`;
+`~/Documents/GitHub/agentic-research/skills/1break-down/tracked-claude-2026-08-08/references/decomposition-failures.md`;
 применяй только совпавший диагноз.
