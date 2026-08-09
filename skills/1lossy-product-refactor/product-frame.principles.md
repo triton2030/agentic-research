@@ -3,7 +3,7 @@
 Source-layer ответов владельца по скилу дистилляции управляющих текстов;
 2026-08-07 продукт переосмыслен владельцем в **lossy product refactor**
 (P-019, P-020). Свёртка —
-[1lossy-product-refactor.md](1lossy-product-refactor.md).
+[product-frame.md](product-frame.md).
 
 ### P-001 · Управляющий текст — продукт с функцией
 

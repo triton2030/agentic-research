@@ -29,6 +29,14 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
 `~/.codex/skills/<name>/` и `~/.claude/skills/<name>/` — installed projections
 следующего уровня. Их не редактируют напрямую.
 
+## Product Owners
+
+`1chat-recall/`, `1handoff/` и `1hermes/` владеют только общей продуктовой
+правдой `product-frame*.md` — Frame и, где она уже существует, Principles.
+Они не становятся source owner-ами runtime package и не входят в projection
+sync. Поведение остаётся у tracked или live `SKILL.md`; при расхождении product
+intent и runtime нужен явный reconcile, а не копия пары в оба runtime.
+
 ## Синхронизация
 
 После правки source owner-а:

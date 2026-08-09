@@ -30,10 +30,18 @@ fallback.
 (scope/done/stop) и живых `SKILL.md`. `README.md` — входной контекст. Граф зон —
 `depends-on` в шапках subtree `AGENTS.md` (читает `1md-graph`).
 
+До первого существенного суждения прочитай целиком project-wide пару
+`_ops/product-frames/agentic-research{,.principles}.md`. При правке скила
+найди ровно одну tracked owner-папку `skills/**/<skill>/` с
+`product-frame*.md` и прочитай весь набор, если он существует; несколько таких
+папок — owner-conflict. Product Frame владеет продуктовым намерением; живой
+`SKILL.md` — runtime-контрактом. Рамки неприменимых скилов не pre-load'ятся.
+
 ## Приоритеты
 
 - Skill contract сильнее старых repo notes: расходятся живой `SKILL.md` и
-  инструкция — следуй `SKILL.md`.
+  инструкция — следуй `SKILL.md`. Расхождение с matching Product Frame —
+  конфликт product intent и runtime, а не повод выбрать один файл по типу.
 - Перед правкой skill / agent / instruction начинай с ближайшего
   `knowledge/wisdom-*` и одного guide; для skills сперва
   `knowledge/practical-guides/how-to-write-skills/`.

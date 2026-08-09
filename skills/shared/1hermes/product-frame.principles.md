@@ -1,7 +1,7 @@
 # Product Principles — 1hermes
 
 Source-layer ответов владельца по скилу вызова моделей чужих семей через Hermes.
-Свёртка — [1hermes.md](1hermes.md).
+Свёртка — [product-frame.md](product-frame.md).
 
 ### P-001 · Советник и рабочий — оба режима, не один
 

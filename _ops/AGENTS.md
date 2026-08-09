@@ -9,6 +9,11 @@
 - `GOAL.md` — короткий контракт проекта: что делаем, что не делаем, definition
   of done и stop rules. Владелец: `1goal` (он думает goal-formation
   internal работой и пишет; thinking не делегируется в отдельный strategy skill).
+- `product-frames/` — только project-wide пары, применимые к любой
+  содержательной работе в этом репо. Текущий owner —
+  `agentic-research.md` + `.principles.md`; читает root `AGENTS.md`, создаёт и
+  обновляет `1product-shaping`. Product truth отдельного скила живёт рядом с
+  tracked owner-ом этого скила, не здесь.
 - `chat-recall/` — руда слов владельца: файл на разговор
   (`<дата>-<время>-<агент>-<session8>.md`), source-bound выдержки с
   классификацией `type`/`topic`. Выдержка строится преимущественно удалением

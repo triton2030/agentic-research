@@ -10,9 +10,10 @@ description: "Archived 1lossy-product-refactor — compression absorbed by 1inst
 потерь + переписывание от оригинала» ещё раньше стал стандартом папки скила
 (`cut.md`) и живёт в `check.md` обоих мета-скилов.
 
-Оплаченная продуктовая пара владельца остаётся живой:
-`_ops/product-frames/1lossy-product-refactor.md` + `.principles.md`
-(P-021…P-027) — источник правды о методе сжатия.
+Оплаченная продуктовая пара сохранена здесь как история снятого продукта:
+`product-frame.md` + `.principles.md` (P-021…P-027). Она не управляет живым
+`1instruction-shaping`: текущим методом сжатия владеет его собственный
+контракт.
 
 - `tracked-claude-2026-08-08/` — репозиторная копия;
 - `live-claude-2026-08-08/`, `live-codex-2026-08-08/` — установленные версии.

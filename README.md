@@ -17,20 +17,24 @@ baseline.
 2. `CLAUDE.md` — shim из одной строки `@AGENTS.md`; отдельной правды не держит.
 3. `_ops/GOAL.md` — рабочий контракт проекта: что делаем, что не делаем, когда
    остановиться и вернуться к стратегии.
-4. `_ops/chat-recall/` — руда source-bound выдержек слов владельца, файл на
+4. `_ops/product-frames/agentic-research{,.principles}.md` — постоянный
+   product-controller для любой содержательной работы. При правке скила к нему
+   добавляется весь `product-frame*.md` из единственной matching
+   `skills/**/<skill>/`.
+5. `_ops/chat-recall/` — руда source-bound выдержек слов владельца, файл на
    разговор; пишет `1chat-recall` в момент, когда прозвучало;
    `_ops/user-said/` — его замороженный предшественник, только для чтения.
-5. `knowledge/` — wisdom, guides, practical guides, examples и research.
+6. `knowledge/` — wisdom, guides, practical guides, examples и research.
    Для написания скилов начинать с
    `knowledge/practical-guides/how-to-write-skills/`.
-6. `science/` — научная программа изучения мышления ЛЛМ: тезисы с
+7. `science/` — научная программа изучения мышления ЛЛМ: тезисы с
    evidence-статусами, верификация и эксперименты; вход —
    [`science/README.md`](science/README.md).
-7. `skills/shared/` — owner cross-runtime packages; `skills/claude/` и
+8. `skills/shared/` — owner cross-runtime packages; `skills/claude/` и
    `skills/codex/` — runtime owners либо их tracked projections согласно
    [`skills/shared/README.md`](skills/shared/README.md). `~/.claude/skills/` и
    `~/.codex/skills/` — installed projections.
-8. `_ops/findings/`, `_ops/interviews/`, `_ops/plans/` — временные рабочие
+9. `_ops/findings/`, `_ops/interviews/`, `_ops/plans/` — временные рабочие
    поверхности; открывать их только когда текущая задача на них указывает.
 
 ## Подход
