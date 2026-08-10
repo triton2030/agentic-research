@@ -49,9 +49,9 @@ ENTRY_START_RE = re.compile(r"^\*\s+(?P<timestamp>.+?)\s+—\s+")
 CONTEXT_LINK_RE = re.compile(
     r"(?:https?://|file://|www\.|\[[^\]]+\]\([^)]+\))", re.IGNORECASE
 )
-MAX_CONTEXT_NOTE_CHARS = 300
 CONTEXT_NOTE_GUIDANCE = (
-    "context-note adds only missing context; never repeat or paraphrase the quote"
+    "context-note adds only missing context; never repeat or paraphrase the quote,"
+    " never widen a situational reply into a standing preference"
 )
 CONTEXT_NOTE_REMINDER = f"remember: {CONTEXT_NOTE_GUIDANCE}"
 
@@ -76,10 +76,6 @@ def one_line(value: str, field: str) -> str:
 
 def context_note(value: str) -> str:
     collapsed = one_line(value, "context note")
-    if len(collapsed) > MAX_CONTEXT_NOTE_CHARS:
-        raise CaptureError(
-            f"context note must be at most {MAX_CONTEXT_NOTE_CHARS} characters"
-        )
     if "|" in collapsed:
         raise CaptureError("context note cannot contain the metadata delimiter '|'")
     if CONTEXT_LINK_RE.search(collapsed):
