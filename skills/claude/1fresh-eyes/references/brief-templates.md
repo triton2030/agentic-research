@@ -1,64 +1,62 @@
 ---
-description: "Self-contained non-leading briefs for fresh named Claude roles."
+description: "Self-contained non-leading briefs for panel lenses, auditor and md-scout."
 ---
 
 # Brief Templates
 
-Read immediately before the first fresh `Agent` invocation.
+Читай непосредственно перед первым запуском. Изоляцией и зонами владеет
+тело скила; этот файл только упаковывает поля.
 
-## Brief Contract
-
-Isolation and anti-priming invariants are owned by
-[`Independence Boundary`](../SKILL.md#independence-boundary). Per-role zone,
-falsifier and stake are derived in
-[`Экспертная Юрисдикция`](../SKILL.md#экспертная-юрисдикция). This reference only
-packages the resulting fields; it cannot relax either contract.
-
-## Named Critic
+## Линза панели
 
 ```text
-Решение: {owner decision this judgment may change}.
-Текущий route: {what main intends to do and why; one factual sentence}.
-Что проверить: {neutral question only this profession would ask in this form}.
-Почему сейчас: {what changes downstream, stated in this role's own currency}.
-Где смотреть: {this role's zone: exact raw paths where its falsifier would surface}.
-Факты: {source-bound facts or none}. Неизвестно: {material gap}.
-Границы: in — {scope}; out — {scope}; side effects — {none/read-only/etc.}.
-Доступный local tool: {one relevant tool and its information job, or omit}.
+Вопрос на столе: {что взвешиваем}.
+Что изменит ответ: {следующий ход, который может поменяться}.
+Твоя зона: {адреса/срез, где falsifier этой линзы проявится и который
+  другие линзы не берут главным входом}.
+Материал проекта: {GOAL, product-frames, findings, планы — пути}.
+Факты: {source-bound или none}. Неизвестно: {существенный пробел}.
+Границы: in — {scope}; out — {scope}; read-only.
 ```
 
-Two briefs filled from this template must not be interchangeable between their
-roles; if they are, the zones were never derived and the run buys one input
-twice.
+Не включать: гипотезу main, подозреваемое место, желаемый вердикт,
+пересказ метода роли (метод живёт в definition; пересказ ближе — агент
+ответит пересказу).
 
-Select the profile through the native `Agent` tool's exact `subagent_type`. Do
-not restate its native contract in the brief: a compressed recap of the
-profession sits nearer than the role definition and the agent will answer the
-recap instead of its own method.
+Swap-тест: два заполненных брифа, осмысленные в чужих руках, — зоны не
+выведены; одна работа куплена дважды.
 
-## `auditor`
+**Пример разведения зон.** Pricing-предложение: у `business-critic` зона —
+willingness-to-pay (customer evidence, сравнимые офферы, unit economics);
+у `developer-critic` — цена доставки (code path, зависимости, операционная
+нагрузка). Артефакт общий, главный вход — разный.
+
+**Антипример (false split).** «Frontend-риск» и «backend-риск» одного
+связанного изменения — одна линза feasibility под двумя ярлыками: одна
+роль, не две.
+
+## `auditor` (одиночное исключение, evidence-продукт)
 
 ```text
 Что заявлено готовым: {artifact/work/result}.
-Условия приёмки: {exact user/task/owner conditions}.
-Где проверять: {raw artifacts, diff, commands or evidence paths}.
-Известное evidence: {outputs or none}. Неизвестно: {gaps}.
+Условия приёмки: {точные условия владельца/задачи}.
+Где проверять: {raw артефакты, diff, команды, пути}.
+Известное evidence: {outputs или none}. Неизвестно: {gaps}.
 Границы: in — {scope}; out — {scope}; только чтение.
 ```
 
-Do not suggest pass/fail statuses. The auditor owns its native acceptance
-matrix and evidence kinds.
+Не подсказывай pass/fail: матрица приёмки — родной продукт auditor.
 
-## `md-scout`
+## `md-scout` (одиночное исключение, evidence-продукт)
 
 ```text
 Corpus: {root}. Только source-read-only.
-Вопрос: {one retrieval question}.
+Вопрос: {один retrieval-вопрос}.
 Scope: {paths/includes/exclusions}.
 Решение, которое зависит от packet: {owner decision}.
-Факты: {source-bound facts or none}. Неизвестно: {gap}.
-Вне scope: {boundary}. Relevant local route: {optional one-line hint}.
+Факты: {source-bound или none}. Неизвестно: {gap}.
+Вне scope: {граница}.
 ```
 
-Scout returns addresses, actual coverage and gaps. It does not return a critic
-verdict, and its packet does not by itself close the owner decision.
+Scout возвращает адреса, покрытие и пробелы — не вердикт критика; его
+packet сам по себе не закрывает решение.
