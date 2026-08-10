@@ -1,293 +1,236 @@
 ---
 name: 1chat-recall
 description: >
-  Use when durable owner evidence appears in the current Claude session:
-  capture each important owner thesis and any non-inferable context delta in
-  the same turn, because missed supply leaves future recall nothing to
-  retrieve. Also use when a material decision may depend on earlier owner
-  words, the user asks what they said, or an existing record needs repair;
-  applicability and chronology gates prevent stale or out-of-scope use.
+  Вызывай, когда в текущем чате появляется важный самостоятельный тезис
+  владельца: сохрани его и недодумываемую контекстную дельту в том же ходе.
+  Также вызывай, когда прежние слова владельца из этой или другой задачи
+  текущего проекта могут закрыть существенный пробел текущей просьбы,
+  пользователь спрашивает, что говорил, либо требуется repair/backfill recall.
+  Не применяй цитату буквально без проверки контекста, scope, chronology и
+  более свежего owner-а.
 allowed-tools: Bash(python3 *), Bash(uv *), Read, Grep, Glob
 ---
 
 # Chat recall
 
-## Product job
+## Цель
 
-At a material fork, recover not a quote dump but **applicable working context**
-sufficient to continue the current work without making the owner repeat
-themselves. The consumer is a future agent; success is the correct next
-decision, not a high rank or a large number of matches.
+Будущий агент закрывает неполноту текущей просьбы применимыми словами владельца
+и принимает корректное следующее решение без повторного сбора уже сказанного.
+Для consequential утверждения он способен назвать файл и процитировать owner
+evidence, изменившее понимание или решение.
 
-Working context is a transient synthesis over source evidence. It does not
-create a persistent owner profile or become new owner truth.
+Capture — обязательная supply-часть того же продукта: важный тезис сохраняется
+в том же ходе, иначе будущему retrieval нечего читать.
 
-## Invariants
+Дословность защищает evidence, но не заменяет понимание. Намерение
+восстанавливается по source context, scope, речевому акту, хронологии,
+контекстной дельте и более свежим owner-файлам. Собственная интерпретация
+помечается как вывод агента; неразрешённая существенная неоднозначность приводит
+к abstain или вопросу владельцу.
 
-Source-bound owner evidence is primary. A verbatim quote stays a quote, a Plan
-choice stays a selection, and note/raw evidence remains visibly non-verbatim.
-A wrong or missing date, type, topic, or format never cancels the record.
+Рабочий контекст остаётся временным synthesis над источниками. Он не создаёт
+постоянный профиль владельца и не превращает датированный лог в текущий канон.
 
-Every quote that passes the usefulness gate requires `context-note`. It contains
-only surprise delta: what cannot reasonably be inferred from the quote plus its
-`type/topic`. A self-contained thesis is not context-free: name the external
-referent, scope, prior state, or decision scene lost in isolation. Repeating,
-paraphrasing, or confirming what is already clear is forbidden. If no honest
-non-repeating delta is available, reread neighboring source context; never fill
-the field with a restatement.
+## Критерии успеха
 
-Retrieval includes exact, legacy, partial, multiline, and raw records.
+- Каждый самостоятельный полезный тезис текущего хода записан один раз.
+- Quote сохраняет лексику владельца; сокращение только deletion-only.
+- Вид evidence различим: `quote`, `selection`, `note` или повреждённый `raw`.
+- Source timestamp, session и agent позволяют проверить происхождение записи.
+- У owner quote есть `context-note` только с внешней surprise-дельтой.
+- Retrieval заканчивается применимым context packet, прямым ответом на запрос
+  цитаты либо честным abstain — не списком top hits.
+- Consequential применение предъявляет полную цитату и адрес файла.
+- Repair/backfill сохраняет тексты, provenance и исходную хронологию.
+- Evidence параллельной задачи меняет только названный текущий claim и не
+  выдаётся за live-status той задачи.
 
-The log is dated evidence, not current canon. A later quote may supersede an
-earlier one, and an approximate timeline must not be presented as current
-truth.
+## Инварианты
 
-## Why bare search fails
+Owner quote — source-bound evidence. Agent-authored option, summary или вывод не
+становится цитатой владельца. `selection` фиксирует выбранный agent-authored
+вариант без притворства дословной речью.
 
-The natural default is to continue from visible chat or treat the first
-semantically similar or newest hit as the current position. Exact wording, a
-date, and rank look authoritative even when the quote belongs to another scope,
-is an idea rather than an adopted decision, or has already been corrected. A
-late check does not help after the assumption has begun steering
-implementation.
+Usefulness gate проходит тезис, чьи собственные слова вне соседних сообщений
+способны изменить будущее решение, границу, критерий, предпочтение или
+понимание владельца. Согласие вроде «да, давай так» не проходит. Credentials,
+вставленный чужой материал и недолговечная команда не записываются.
 
-The missing control act is an applicability gate before commitment:
+У каждой quote обязателен однострочный `context-note`: внешний referent, scope,
+прежнее состояние или сцена решения, потерянные при изоляции. Повтор,
+перефразирование, новая мотивация, URL и ссылка на transcript запрещены.
+Произвольного числового лимита нет; заметка ограничивается только необходимой
+дельтой. Заметка возвращает цитату в её сцену и не укрупняет сказанное:
+реплике нельзя приписывать больший scope или commitment, чем она несла в
+источнике, — ситуативная правка не становится постоянным предпочтением
+владельца.
+
+Exact provenance ставится только после чтения native record. Observation time,
+filename, память агента и semantic match остаются approximate с честным
+`source/precision`.
+
+Один разговор/session пишет один recall-файл и не добавляет туда evidence из
+другого окна. Retrieval читает общий project-local corpus всех агентов.
+
+Ошибка даты, type, topic или синтаксиса не уничтожает запись. Quote или
+selection остаётся asset, а проблема становится diagnostic.
+
+По умолчанию scope только текущий проект. Cross-project recall требует явного
+scope владельца. Цитаты и transcript evidence не отправляются в сеть.
+
+Live owner сильнее recall. Новизна сама по себе не отменяет прежнюю позицию:
+нужны тот же claim и scope, реальное исправление или замена и различимая
+хронология.
+
+## Дельта
+
+Модель умеет копировать текст и запускать поиск. Без скила она:
+
+- продолжает работу, не сохранив важный тезис текущего хода;
+- принимает видимый, первый семантический или самый новый hit за позицию
+  владельца;
+- понимает двусмысленную фразу буквально, не сверяя ситуацию и прежние
+  коррекции;
+- показывает quote dump вместо изменившегося решения;
+- принимает историческую цитату параллельной задачи за её текущий статус.
+
+Недостающий оператор:
 
 ```text
-material fork
-→ bounded claim cluster
-→ full consequential records
-→ applicability + commitment + time + coverage
+fresh evidence → usefulness gate → source-bound capture
+material gap → bounded claim → full records
+→ context + scope + commitment + chronology + live owner
 → decision-ready context | abstain
 ```
 
-The bare command “find earlier words first” does not close this failure: it
-still permits a top hit or a list of quotes without deciding applicability.
+## Известные сбои
 
-## Decision controller
+`когда → сбой → цена → куда`
 
-Before retrieval, name the current fork and one or more independent claims that
-earlier owner words could change. Do not begin with “what does the owner think
-in general”: it merges scopes and rewards a coherent story instead of
-applicable evidence.
+- появился важный тезис → работа продолжена без capture → будущему recall
+  нечего читать → механика, Capture
+- context-note повторяет цитату → агентский груз выглядит полезным контекстом →
+  загрязнение каждого будущего чтения → механика, Capture
+- ситуативное согласие в задаче → context-note обобщает его до постоянного
+  предпочтения → будущий агент применяет несуществующее правило → механика,
+  Capture
+- найден top/newest hit → он объявлен текущей позицией → false application →
+  [reading-the-log](references/reading-the-log.md)
+- один query пуст → объявлено «владелец не говорил» → ложное отсутствие →
+  [reading-the-log](references/reading-the-log.md)
+- найдена цитата параллельной задачи → ей приписан нынешний status →
+  координация строится на прошлом → [reading-the-log](references/reading-the-log.md)
+- проект существовал до recall либо metadata повреждена → дата придумана или
+  evidence потеряно → ложная история →
+  [repairing-the-log](references/repairing-the-log.md)
 
-Use only the current project's recall by default. Cross-project retrieval is
-allowed only under explicit user scope; never silently merge its results with a
-local position. Retrieval selects candidates for reading. Show every record
-capable of changing the decision and compare applicability, evidence kind,
-commitment, source time/precision, and cluster coverage.
+## Механика
 
-Return to yourself or the user the smallest packet containing:
+В одном ходе могут сработать несколько ветвей. Сначала сохрани свежее evidence;
+затем используй прежнее evidence для текущего решения. Repair/backfill не
+является обычным retrieval.
 
-- applicable decisions, boundaries, criteria, and preferences;
-- the displaced position and why it no longer governs, when relevant;
-- scoped exceptions, conflicts, and gaps;
-- the agent's own implementation inferences, explicitly not as owner words;
-- dates and `record_id` values only for consequential claims.
-
-If scope, commitment, chronology, or coverage remains unresolved, keep the
-conflict visible and abstain or ask the owner. False application is worse than
-missed recall. Keep tool rows, scores, and corpus counts internal unless they
-change confidence or the user requested a search report.
-
-### Contrastive scenes
-
-> **Default → transition.** The newest top-1 looks like the current decision.
-> `show` reveals that it is a narrower idea while the earlier record is an
-> adopted general direction. The controller preserves the direction and adds a
-> scoped exception instead of claiming false supersession.
-
-> **Anti-example.** The agent found five exact quotes, showed dates, and called
-> them context. No decision changed and applicability was not resolved:
-> retrieval happened, the product did not.
-
-> **Transfer.** For a broad question about the owner's position, first separate
-> claims and scopes. Build several bounded packets or return a gap; do not infer
-> one profile from thematically similar phrases.
-
-## Operational branches
-
-- A material current decision depends on established goals, boundaries,
-  decisions, criteria, corrections, or preferences: build only the claim
-  cluster that can change the decision and apply the controller above.
-- Earlier input or a Plan/AskUserQuestion choice from the current session can
-  change a durable result: read current-session evidence.
-- Fresh durable owner evidence appeared: capture every independent useful
-  thesis in the same turn, one record per meaning. Skip an approval,
-  confirmation, or command when its own words do not form durable knowledge.
-  Always skip credentials and pasted material that is not the owner's
-  position.
-- The user explicitly asks what they said, asks to find quotes, or requests a
-  recall harvest: use corpus retrieval; quote search remains a servicing output
-  when there is no current decision.
-- An existing record has diagnostics or malformed metadata: use repair. This is
-  the only branch allowed to search another session.
-
-## Current-session evidence
-
-Use the native current-session reader when earlier user input or a Plan answer
-can change a durable result:
+### Evidence текущего чата
 
 ```bash
-RECALL="${CLAUDE_SKILL_DIR}/scripts/chat_recall.py"
+ROOT="${CLAUDE_SKILL_DIR}"
 SESSION="${CLAUDE_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-}}"
+AGENT="claude"
+RECALL="$ROOT/scripts/chat_recall.py"
+
 python3 "$RECALL" --session-id "$SESSION"
+python3 "$RECALL" --session-id "$SESSION" --include-current-turn
+python3 "$RECALL" --session-id "$SESSION" --all \
+  --include-current-turn
 ```
 
-The default is bounded and excludes the current turn. Add
-`--include-current-turn` only when locating the exact record for a fresh
-capture; add `--all` only when the bounded result is insufficient. A Plan
-option is agent-authored: represent it as a selection (“user selected X”), not
-a verbatim quote.
+Для свежей реплики найди exact native record. Если runtime ещё не показывает
+текущий turn, используй observation timestamp с
+`source=turn-context`, `precision=minute|date`; не называй его transcript-exact.
 
-## Capture
+Plan/AskUserQuestion option написан агентом. Сохраняй выбранное значение как
+`selection`, а не owner quote.
 
-Do not capture every durable utterance. Capture each independent useful owner
-thesis as a separate record: decision, correction, preference, idea, criterion,
-candidate rule, personal workflow fact, or factual assertion. A record passes
-the usefulness gate only when its own words, outside neighboring messages, can
-change a future decision, boundary, criterion, preference, or understanding of
-the owner. `“Yes, let's fix it that way”` fails: its meaning lives in someone
-else's context rather than in the quote. Preserve the owner's wording by
-deletion-only shortening; do not turn agent summaries, inserted text,
-credentials, or non-durable commands into quotes.
+### Capture
 
-For an exact transcript record:
+Перед командой назови одно внешнее обстоятельство, которое исчезнет без
+соседних сообщений. Затем запиши каждый самостоятельный тезис отдельно:
 
 ```bash
-python3 "${CLAUDE_SKILL_DIR}/scripts/chat_capture.py" \
-  --quote "<owner words>" \
-  --context-note "<missing external circumstance, not a quote restatement>" \
-  --source-timestamp "<timezone-aware transcript timestamp>" \
-  --type решение --topic документация-и-знания --agent claude \
-  --project "$PWD" \
-  --session "${CLAUDE_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-}}"
+CAPTURE="$ROOT/scripts/chat_capture.py"
+
+python3 "$CAPTURE" \
+  --quote "<слова владельца или выбранный вариант>" \
+  --context-note "<внешняя дельта, не пересказ>" \
+  --source-timestamp "<timestamp источника>" \
+  --type <речевой-акт> --topic <retrieval-owner> \
+  --agent "$AGENT" --project "$PWD" --session "$SESSION"
 ```
 
-Before capture, name one external circumstance for every quote that disappears
-without neighboring messages: referent, scope, prior state, or decision scene.
-For `--kind quote`, `--context-note "<one short agent explanation>"` is required.
-The note stays inline, visibly non-verbatim, and available through `show`, but
-does not participate in the record ID, BM25, or dense ranking. To test for
-repetition, mentally hide the quote: the note must only locate its application,
-not let the reader reconstruct the thesis. Do not add a new conclusion,
-rationale, URL, path, or pointer to a transcript/another record. The limit is
-300 characters; a selection may carry the field only for such a delta, while
-`--kind note` cannot carry `--context-note`. A context note never makes a weak
-quote worth capturing: apply the usefulness gate first.
-
-`--source-timestamp` always has a value. It accepts timezone-aware ISO, an
-approximate ISO/date, or `unknown`. Approximate/unknown records must also pass
-`--timestamp-source`, normally `--timestamp-precision`, and optionally
-`--source-ref`. Use `--kind selection` for a chosen agent-authored option and
-`--kind note` for a later explanation.
-
-Default `source=transcript` is allowed only after reading that exact native
-record. A remembered, inferred, filename-derived, or semantically matched time
-is repaired/approximate even when written as a timezone-aware ISO; pass its
-honest source and non-exact precision.
-
-If the fresh message has no transcript record, preserve it with an observation
-timestamp and explicitly pass both `--timestamp-source turn-context` and
-`--timestamp-precision minute` (or `date`). Never present observation time as
-source-exact; capture rejects that combination.
-
-### Metadata
-
-Choose metadata by the durable meaning of the thesis, not by incidental nouns
-or the current task name. Code validates vocabulary membership, not semantic
-correctness; the agent must make and check the semantic choice before writing.
-Run `python3 "${CLAUDE_SKILL_DIR}/scripts/chat_capture.py" --list-metadata` when
-the vocabulary is unclear.
-
-Classify the speech act, not its sentence form:
-
-- An explicit repair of prior understanding, decision, or action is
-  `коррекция`, even when it also establishes a new state.
-- A condition for judging good, ready, successful, or feasible is `критерий`.
-- An adopted durable course or state is `решение`; an unadopted possibility is
-  `идея`.
-- A stable taste or cross-task expectation is `предпочтение`; stable personal
-  or workflow context is `обо-мне`.
-- A reusable instruction awaiting promotion to its owner is
-  `правило-кандидат`.
-- A factual assertion with no stronger speech act is `факт`; this records what
-  the owner asserted and does not independently verify truth.
-
-Topic is one broad retrieval owner:
-
-- `цели-и-приоритеты` — purpose, outcomes, priorities.
-- `границы-и-объём` — scope, red lines, intentional exclusions.
-- `продукт-и-ценность` — product behavior, offer, value.
-- `пользователи-и-потребности` — audiences, needs, pains, scenarios.
-- `бизнес-и-монетизация` — business model, prices, sales, economics.
-- `бренд-и-коммуникация` — positioning, voice, external communication.
-- `контент-и-редактура` — copy, media, publishing, editorial decisions.
-- `дизайн-и-опыт` — visual language, interface, experience.
-- `исследования-и-источники` — research, provenance, evidence, citations.
-- `данные-и-аналитика` — data, metrics, calculations, interpretation.
-- `архитектура-и-модель` — system structure, domain model, relationships.
-- `код-и-реализация` — code behavior, API, technical implementation.
-- `инструменты-и-автоматизация` — CLI, applications, automated flows.
-- `агенты-и-ии` — models, agents, prompts, agentic behavior.
-- `работа-и-процессы` — workflow, coordination, order, work habits.
-- `документация-и-знания` — documents, memory, navigation, owner truth.
-- `качество-и-проверка` — acceptance, review, tests, done criteria.
-- `безопасность-и-доступ` — secrets, permissions, privacy, acceptable risk.
-- `операции-и-инфраструктура` — environments, services, deployment, operation.
-- `обо-мне-и-предпочтения` — personal context, taste, stable expectations.
-
-When several topics fit, choose the owner most likely to retrieve the thesis
-later; do not mint a narrower label. Use `работа-и-процессы` for how work is
-organized, `инструменты-и-автоматизация` for the tool or automated flow itself,
-`документация-и-знания` for document authority/navigation, and
-`архитектура-и-модель` for system entities and relationships. `неопределено`
-and `без-темы` are independent repair-only sentinels; either requires
-`--kind note` when adding a repair note and neither is a fallback for fresh
-quotes.
-
-## Corpus retrieval
-
-When recorded owner evidence can change the current work, or for an explicit
-quote search or harvest, use the project-local corpus by default and establish
-the runtime-specific variables:
+Для agent-authored выбора добавь `--kind selection`; для repair explanation —
+`--kind note`. Если type/topic неочевидны:
 
 ```bash
-DIGEST="${CLAUDE_SKILL_DIR}/scripts/chat_digest.py"
+python3 "$CAPTURE" --list-metadata
+```
+
+Классифицируй речевой акт и долгоживущий retrieval-owner, не грамматику
+предложения и не название текущей задачи.
+
+### Retrieval
+
+До query назови текущий claim, который прежние слова способны изменить:
+
+```bash
+DIGEST="$ROOT/scripts/chat_digest.py"
 RECALL_DIR="$PWD/_ops/chat-recall"
+
+uv run --offline --locked --script "$DIGEST" "$RECALL_DIR" \
+  --query "<claim, слова или варианты формулировки>" \
+  --limit 5 --max-chars 4000
+
+python3 "$DIGEST" "$RECALL_DIR" --show <record-id>
 ```
 
-Then follow
-[`references/reading-the-log.md`](references/reading-the-log.md), which owns
-`check`, inventory, local hybrid/lexical retrieval, filters, timeline, `show`,
-bounded output, evidence weighting, and abstention. Its rows and scores are
-intermediate state; finish with the controller packet above.
+Если local hybrid cache недоступен, используй `--lexical`; обычный retrieval не
+получает разрешение на network bootstrap.
 
-## Repair
+Раскрой каждый consequential candidate полностью. Сравни применимость, kind,
+commitment, source time/precision, coverage и live owner. Верни минимальный
+packet:
 
-Historical search outside the live session is allowed only to repair an
-already-existing recall record. Follow
-[`references/repairing-the-log.md`](references/repairing-the-log.md).
+- применимые решения, границы, критерии и предпочтения;
+- вытесненную позицию и основание вытеснения;
+- scoped exceptions, conflicts и gaps;
+- агентские интерпретации отдельно от owner words;
+- полные цитаты и адреса только для consequential claims.
 
-In a read-only task, show the repair backlog. In a mutation-authorized task,
-repair it session-by-session, use exact only after native text/choice
-verification, and explicitly mark unresolved metadata.
+Для параллельной задачи того же проекта допустимы filters
+`--agent`, `--session`, `--since` и `--until`. Результат говорит, что было
+сказано или выбрано; он не доказывает нынешний статус задачи.
 
-## Boundaries and stop
+Прямой запрос «что я говорил?» может закончиться source-bound цитатами без
+decision packet, если текущей развилки действительно нет.
 
-- `chat_digest.py` owns `_ops/chat-recall` retrieval; generic Markdown search
-  does not replace it. Screen history is not native transcript evidence.
-- Do not send quotes or transcript evidence to network tools, import quotes from
-  unrelated chats, or promote the dated log to current canon.
-- If the answer stops at a quote dump, declares a top hit current without the
-  gate, leaves an owner quote without `context-note`, or repeats the quote in
-  the note, shaping failed: return to the last unchecked condition instead of
-  widening output.
-- Stop after fresh durable theses are captured or a material bounded fork has
-  decision-ready context or an explicit abstention, with provenance,
-  diagnostics, and material gaps visible.
+### Repair/backfill
 
-The design hypothesis is dated 2026-08-05 for Claude Opus 5 and Claude Fable 5.
-A change to the working model set, or matched cases where the bare command
-“find and read quotes” yields the same decision and evidence, reopens the
-mechanism for simplification.
+Открывай
+[repairing-the-log](references/repairing-the-log.md) только когда существующая
+запись повреждена либо владелец явно просит восстановить полезные owner-сигналы
+из проекта/session, существовавших до нормального capture.
+
+Не используй repair/backfill как скрытый импорт всех старых разговоров.
+
+## Завершение
+
+Остановись, когда:
+
+- свежие самостоятельные тезисы сохранены;
+- material claim получил decision-ready context либо явный abstain;
+- прямой запрос цитаты получил source-bound ответ;
+- repair/backfill сохранил исходные тексты и честную chronology;
+- provenance, diagnostics, owner inference и material gaps видны.
+
+Quote dump, top hit без applicability gate, owner quote без context-note и
+непомеченный агентский вывод не являются завершением.
