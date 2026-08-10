@@ -6,9 +6,12 @@ Installed: `~/.claude/skills/`, `~/.codex/skills/` — напрямую не п�
 
 Здесь: происхождение правил, вырезанное, evidence, снятые файлы.
 
-Внешняя зависимость: тело ссылается на
-`1instruction-shaping/references/wording.md` (формулировки заданий).
-При рефакторе `1instruction-shaping` проверить держателя ссылки.
+Внешние зависимости:
+- тело ссылается на `1instruction-shaping/references/wording.md`
+  (формулировки заданий); при рефакторе `1instruction-shaping`
+  проверить держателя ссылки;
+- `~/.claude/skills/1codex` (references/orchestration.md, fleet.md)
+  указывает сюда как на контракт волны — второй держатель шва.
 
 - `roles-retired-2026-08-10.md` — снятая таблица прав ролей и форматы
   промпта/возврата v2; заменены картой волны и фокусировкой (v3).
