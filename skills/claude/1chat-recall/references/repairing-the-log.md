@@ -1,61 +1,80 @@
-# Repairing the recall log
+# Repairing and backfilling recall
 
-The quote or selection is the asset. Wrong date, type, topic, or syntax is
-repairable metadata and must never justify hiding, skipping, or deleting it.
-Repair only an already-existing local recall record.
+Quote или selection — asset. Повреждённая metadata не оправдывает удаление,
+сокрытие или переписывание owner evidence.
+
+## Admission
+
+Открывай этот route только для:
+
+- repair уже существующей записи с diagnostics или сомнительным provenance;
+- явного owner-запроса восстановить полезные тезисы из project/session,
+  существовавших до применения `1chat-recall`.
+
+Backfill не является обычным historical retrieval и не импортирует разговор
+целиком.
+
+## Scope
+
+До чтения назови project и конкретную session либо ограниченный набор sessions.
+Не угадывай соседний чат и не импортируй unrelated conversations.
+
+Для каждого найденного сообщения заново примени usefulness gate. Сохраняй
+только самостоятельные тезисы владельца, а не весь transcript.
 
 ## Evidence order
 
-For each diagnostic, work by session and stop at the strongest evidence found:
+Для каждого тезиса или diagnostic:
 
-1. Open the native transcript named by the record's `session:`.
-2. Search an exact unique text fragment across all local Claude/Codex
-   transcripts and local git branches.
-3. Use a bounded semantic or manual search over local history.
-4. Infer only what filename, frontmatter, or raw time directly supports.
-5. If evidence is absent, keep the record with timestamp `unknown`.
+1. native transcript указанной session;
+2. exact unique text fragment в локальных Claude/Codex transcripts;
+3. bounded semantic/manual search по локальной истории;
+4. filename, frontmatter или raw time только в пределах того, что они прямо
+   поддерживают;
+5. `unknown`, если provenance не восстановлен.
 
-Never send quotes to a network tool. Never import new quotes from unrelated
-chats. A semantic match alone is not exact evidence.
+Semantic match сам по себе не является exact evidence. Quotes не отправляются в
+network tools.
 
-## Repair rules
+Runtime-команду чтения session задаёт корневой `SKILL.md`. Codex использует
+explicit `--repair-session`; Claude — explicit `--session-id`.
 
-- Compare the stored text or selected option with the native record before
-  assigning `precision: exact`.
-- Exact transcript records keep the short line format without extra provenance.
-- Repaired or approximate records add inline `source`, `precision`, and, when
-  useful, `source-ref`.
-- Valid precision is `exact`, `minute`, `date`, or `unknown`.
-- Preserve one semantic type. If evidence cannot support one, use
-  `type: неопределено`; do not combine types.
-- If a topic cannot be recovered, use `topic: без-темы`.
-- When adding either sentinel through `chat_capture.py`, use `kind: note`;
-  sentinels are not allowed on a fresh quote.
-- Do not change an existing quote or selection into `note` merely to attach a
-  sentinel; the note-only rule applies to a newly added repair explanation.
-- AskUserQuestion/Plan choices use `kind: selection`.
-- Agent-authored summaries use `kind: note` unless a source-bound owner quote
-  is actually recovered.
-- Preserve malformed content as `kind: raw` until its structure is repaired.
-- Merge duplicate holders only when the same session occurs twice inside the
-  same project corpus. The same session in different project corpora is valid.
+## Capture и chronology
 
-For a fresh user message missing from the native transcript, capture the
-observation timestamp with `source: turn-context` and an honest non-exact
-precision. Never label capture time as transcript-exact.
+Сохраняй исходный timestamp сообщения, а не время ремонта. Exact допускается
+только после сверки native text или выбранной option.
 
-## Mutation boundary and proof
+Approximate запись получает явные `source`, `precision` и при необходимости
+`source-ref`. Допустимы `exact`, `minute`, `date`, `unknown`.
 
-In read-only work, report the `--check` backlog and do not rewrite it. When
-mutation is authorized, repair every reported record that can be repaired and
-leave unresolved ones explicitly marked.
+Один session создаёт один holder. Имя файла, frontmatter date и заголовок
+следуют самой ранней сохранённой source-date этой session.
 
-Before a corpus rewrite, save checksums and back up untracked originals outside
-the scanned corpus. Afterward prove:
+`quote` остаётся deletion-only owner text. AskUserQuestion/Plan option —
+`selection`. Agent-authored explanation — `note`. Malformed block остаётся
+`raw`, пока его структура не восстановлена.
 
-- the multiset of record texts and raw blocks did not shrink;
-- every star-block is available through inventory/query/show;
-- every malformed record has diagnostics or was repaired;
-- type/topic are valid or explicit sentinels;
-- approximate provenance is visible;
-- one project corpus has at most one holder per session.
+## Repair metadata
+
+- Сохраняй один semantic type.
+- Невосстановимый type — `неопределено`.
+- Невосстановимый topic — `без-темы`.
+- Repair sentinels не используются для свежей quote.
+- Existing quote или selection не превращается в note ради sentinel.
+- Duplicate holders объединяются только внутри одного project corpus и одной
+  session.
+
+## Mutation boundary
+
+В read-only задаче покажи backlog и не переписывай corpus. При разрешённой
+mutation сначала сохрани checksums и backup untracked originals вне scanned
+corpus.
+
+После repair/backfill докажи:
+
+- multiset прежних texts/raw blocks не уменьшился;
+- новые quotes существуют в native source;
+- исходные timestamps и session сохранены честно;
+- каждый record доступен через inventory/query/show;
+- diagnostics исправлены либо остаются явно видимыми;
+- один project corpus содержит не более одного holder на session.

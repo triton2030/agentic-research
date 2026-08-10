@@ -51,7 +51,8 @@ CONTEXT_LINK_RE = re.compile(
 )
 CONTEXT_NOTE_GUIDANCE = (
     "context-note adds only missing context; never repeat or paraphrase the quote,"
-    " never widen a situational reply into a standing preference"
+    " never widen a situational reply into a standing preference;"
+    " name searchable referents (skill/file/doc/date), not session-local pointers"
 )
 CONTEXT_NOTE_REMINDER = f"remember: {CONTEXT_NOTE_GUIDANCE}"
 

@@ -302,10 +302,11 @@ def search_bm25(records: list[dict[str, Any]], query: str) -> list[dict[str, Any
     connection = sqlite3.connect(":memory:")
     try:
         connection.execute(
-            "CREATE VIRTUAL TABLE recall USING fts5(text, topic, tokenize='unicode61')"
+            "CREATE VIRTUAL TABLE recall USING fts5("
+            "text, topic, context, tokenize='unicode61')"
         )
         connection.executemany(
-            "INSERT INTO recall(rowid, text, topic) VALUES (?, ?, ?)",
+            "INSERT INTO recall(rowid, text, topic, context) VALUES (?, ?, ?, ?)",
             (
                 (
                     index,
@@ -315,12 +316,13 @@ def search_bm25(records: list[dict[str, Any]], query: str) -> list[dict[str, Any
                         for value in (record["topic"], record["topic_raw"])
                         if value
                     ),
+                    record.get("context_note") or "",
                 )
                 for index, record in enumerate(records, 1)
             ),
         )
         rows = connection.execute(
-            "SELECT rowid, bm25(recall, 1.0, 0.25) AS score "
+            "SELECT rowid, bm25(recall, 1.0, 0.25, 0.5) AS score "
             "FROM recall WHERE recall MATCH ? ORDER BY score, rowid",
             (_fts_query(query),),
         ).fetchall()
@@ -534,17 +536,23 @@ def _prepare_hybrid() -> str:
     )
 
 
+def _dense_text(record: dict[str, Any]) -> str:
+    note = record.get("context_note")
+    return f"{record['text']}\n{note}" if note else record["text"]
+
+
 def search_dense(records: list[dict[str, Any]], query: str) -> list[dict[str, Any]]:
     if not records:
         return []
     model = _embedding_backend(offline=True)
     cache_path = _embedding_cache_path()
-    hashes = [_content_hash(record["text"]) for record in records]
+    hashes = [_content_hash(_dense_text(record)) for record in records]
     vectors = _cached_vectors(cache_path, hashes)
     missing = [content_hash for content_hash in dict.fromkeys(hashes) if content_hash not in vectors]
     if missing:
         text_by_hash = {
-            _content_hash(record["text"]): record["text"] for record in records
+            _content_hash(_dense_text(record)): _dense_text(record)
+            for record in records
         }
         embedded = _embed(
             model,

@@ -131,6 +131,21 @@ class ChatCaptureTests(unittest.TestCase):
         )
         self.assertIn(CHAT_CAPTURE.CONTEXT_NOTE_REMINDER, result.stdout)
 
+    def test_context_note_has_no_arbitrary_character_limit(self) -> None:
+        context = "Внешняя сцена " + "уточнена подробно " * 30
+        self.assertGreater(len(context), 300)
+
+        self.run_capture(
+            "Длинная контекстная дельта допустима",
+            "критерий",
+            "документация-и-знания",
+            env=self.claude_env(),
+            context_note=context,
+        )
+
+        text = self.recall_files()[0].read_text(encoding="utf-8")
+        self.assertIn("context-note: " + context.strip(), text)
+
     def test_quote_without_context_note_is_rejected(self) -> None:
         result = self.run_capture(
             "Контекст нельзя опускать",
@@ -528,20 +543,28 @@ class ChatCaptureTests(unittest.TestCase):
         self.assertIn("  обо-мне-и-предпочтения:", result.stdout)
         self.assertIn("repair-only sentinel", result.stdout)
 
-    def test_skill_documents_twenty_russian_global_topics(self) -> None:
+    def test_runtime_owner_documents_russian_metadata_vocabulary(self) -> None:
         topics = CHAT_CAPTURE.TOPIC_DESCRIPTIONS
         self.assertEqual(len(topics), 20)
         for topic in topics:
             self.assertRegex(topic, r"^[а-яё]+(?:-[а-яё]+)*$")
 
         skill_text = SKILL.read_text(encoding="utf-8")
+        self.assertIn("--list-metadata", skill_text)
+        result = subprocess.run(
+            [sys.executable, str(SCRIPT), "--list-metadata"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
         for value in (
             *CHAT_CAPTURE.TYPE_DESCRIPTIONS,
             *topics,
             CHAT_CAPTURE.REPAIR_TYPE,
             CHAT_CAPTURE.REPAIR_TOPIC,
         ):
-            self.assertIn(f"`{value}`", skill_text)
+            self.assertIn(f"  {value}:", result.stdout)
 
     def test_repair_sentinels_are_independent_and_note_only(self) -> None:
         fresh_unknown_type = self.run_capture(

@@ -144,7 +144,7 @@ def resolve_current_transcript(thread_id: str, *, repair: bool = False) -> Path:
     return matches[0]
 
 
-def require_existing_repair_record(thread_id: str) -> None:
+def reject_duplicate_repair_holders(thread_id: str) -> None:
     corpus = Path.cwd() / "_ops" / "chat-recall"
     holders = []
     if corpus.is_dir():
@@ -163,11 +163,6 @@ def require_existing_repair_record(thread_id: str) -> None:
                 continue
             if marker in (line.strip() for line in lines[1:end]):
                 holders.append(path)
-    if not holders:
-        raise RecallError(
-            "--repair-session requires an existing record in "
-            "$PWD/_ops/chat-recall"
-        )
     if len(holders) > 1:
         names = ", ".join(path.name for path in holders)
         raise RecallError(f"repair session has duplicate holders: {names}")
@@ -733,8 +728,8 @@ def build_parser() -> argparse.ArgumentParser:
         "--repair-session",
         metavar="UUID",
         help=(
-            "explicit historical session; allowed only for repairing an "
-            "already-existing recall record"
+            "explicit historical session for repair or owner-requested "
+            "backfill"
         ),
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -858,7 +853,7 @@ def main() -> int:
         return 2
     try:
         if args.repair_session:
-            require_existing_repair_record(thread_id)
+            reject_duplicate_repair_holders(thread_id)
         transcript_path = resolve_current_transcript(
             thread_id, repair=bool(args.repair_session)
         )

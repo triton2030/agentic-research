@@ -128,7 +128,7 @@ class ChatDigestTests(unittest.TestCase):
         changed_records, _ = DIGEST.load(self.corpus)
         self.assertEqual(original, changed_records[0]["record_id"])
 
-    def test_context_note_is_show_only_and_does_not_affect_retrieval(self) -> None:
+    def test_context_note_is_searchable_but_shown_only_on_show(self) -> None:
         records, _ = DIGEST.load(self.corpus)
         record = records[0]
         record_id = record["record_id"]
@@ -141,10 +141,14 @@ class ChatDigestTests(unittest.TestCase):
         self.assertNotIn("владельце канона", compact_query.stdout)
         query_json = json.loads(self.call("--query", "канон", "--json").stdout)
         self.assertNotIn("context_note", query_json["records"][0])
-        no_context_match = json.loads(
+        note_match = json.loads(
             self.call("--query", "BM25", "--json").stdout
         )
-        self.assertEqual(no_context_match["selection"], "none")
+        self.assertNotEqual(note_match["selection"], "none")
+        self.assertIn(
+            record_id,
+            [entry["record_id"] for entry in note_match["records"]],
+        )
 
         shown = self.call("--show", record_id)
         self.assertIn(

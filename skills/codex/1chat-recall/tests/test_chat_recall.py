@@ -214,7 +214,7 @@ class ChatRecallTests(unittest.TestCase):
         self.assertEqual(payload["meta"]["returned"], 1)
         self.assertEqual(payload["records"][0]["text"], "Сохрани 42 точно.")
 
-    def test_repair_session_requires_existing_recall_record(self) -> None:
+    def test_repair_session_allows_owner_requested_backfill(self) -> None:
         historical = str(uuid.uuid4())
         records = self.fixture()
         records[0]["payload"]["id"] = historical
@@ -231,11 +231,31 @@ class ChatRecallTests(unittest.TestCase):
             "— type: факт | topic: test\n",
             encoding="utf-8",
         )
+        result = self.call("--repair-session", historical, "read", "--json")
+        payload = json.loads(result.stdout)
+        self.assertGreater(payload["meta"]["returned"], 0)
+
+    def test_repair_session_rejects_duplicate_holders(self) -> None:
+        historical = str(uuid.uuid4())
+        records = self.fixture()
+        records[0]["payload"]["id"] = historical
+        transcript = self.sessions / f"rollout-test-{historical}.jsonl"
+        transcript.write_text(
+            "".join(json.dumps(record, ensure_ascii=False) + "\n" for record in records),
+            encoding="utf-8",
+        )
+        recall = Path(self.temp.name) / "_ops" / "chat-recall"
+        recall.mkdir(parents=True)
+        for name in ("first.md", "second.md"):
+            (recall / name).write_text(
+                f"---\nsession: {historical}\n---\n", encoding="utf-8"
+            )
+
         result = self.call(
             "--repair-session", historical, "read", "--json", expect_ok=False
         )
         self.assertEqual(result.returncode, 2)
-        self.assertIn("requires an existing record", result.stderr)
+        self.assertIn("duplicate holders", result.stderr)
 
 
 if __name__ == "__main__":
