@@ -87,15 +87,31 @@ non-fork default agent без упоминания скила:
   auditor 54, trajectory-critic 33, developer-critic 26,
   business-critic 15, md-scout 13 (август).
 - `wait_agent` 1017 вызовов — ожидание доминирует над спавном (489).
-- «4 available concurrency slots» — 2758 совпадений за июль-август,
-  но число конфигурируемо (`agents.max_concurrent_threads_per_session`),
-  в `~/.codex/config.toml` не задано → в скил не зашито.
+- «4 available concurrency slots» — 887 вхождений за август, все «4»;
+  другого значения на этой машине нет. Настраиваемость известна только
+  из внешней доки OpenAI, локально ручки не видно → в теле сказано
+  «объявлен в системном промте», не «настройка».
+- Реальный отказ потолка: `collab spawn failed: agent thread limit
+  reached` — 14 раз за август.
 - `multi_agent_mode`: дословно «Do not spawn sub-agents unless the user
   or applicable AGENTS.md/skill instructions explicitly ask» — отсюда
   мандат делегирования в теле.
 - Поправки Codex к моим наблюдениям: обязательны только
-  name/description/developer_instructions; профиль сильнее spawn
-  override по model/effort; `wait_agent` не имеет target.
+  name/description/developer_instructions; `wait_agent` не имеет target
+  (подтверждено дважды: 1056/1056 живых вызовов несут только
+  `timeout_ms`; дока — «wait for an update in the calling agent's
+  mailbox»).
+- Утверждение Codex «профиль сильнее spawn override» ОТВЕРГНУТО
+  проверкой: рантайм overrides принимает (48 вызовов с `model`, 80 с
+  `reasoning_effort`, в том числе поверх именованных критиков),
+  precedence в логах не наблюдаем. В теле оставлено правило без
+  механики: «опускай — что сильнее, не проверено». Тот же вывод сделал
+  внутренний критик самого Codex-прогона.
+- `fork_turns: "none"` обязателен жёстко: единственный класс ошибок
+  спавна (39 за август) — «Full-history forked agents inherit the parent
+  agent type; omit agent_type, or spawn without a full-history fork».
+- `list_agents` возвращает дерево и статусы, не свободные слоты —
+  формулировка тела исправлена после проверки.
 
 ### Поведенческое (первое для этого скила)
 
