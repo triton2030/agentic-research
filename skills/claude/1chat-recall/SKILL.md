@@ -69,15 +69,16 @@ Usefulness gate проходит тезис, чьи собственные сл�
 «дефект №3» будущий запрос не наберёт. Поисковое дружелюбие не оправдывает
 пересказ — добавляй имена сцены, не синонимы цитаты.
 
-Exact provenance ставится только после чтения native record. Observation time,
-filename, память агента и semantic match остаются approximate с честным
-`source/precision`.
+Capture разрешён только после чтения exact native record. Observation time,
+filename, память агента и semantic match не являются записываемым provenance;
+если exact record недоступен, не пиши запись и сообщи владельцу об этом одной
+строкой в ответе текущего хода.
 
 Один разговор/session пишет один recall-файл и не добавляет туда evidence из
 другого окна. Retrieval читает общий project-local corpus всех агентов.
 
-Ошибка даты, type, topic или синтаксиса не уничтожает запись. Quote или
-selection остаётся asset, а проблема становится diagnostic.
+Ошибка metadata или синтаксиса уже сохранённой quote/selection не уничтожает
+asset: проблема остаётся diagnostic до source-bound repair.
 
 По умолчанию scope только текущий проект. Cross-project recall требует явного
 scope владельца. Цитаты и transcript evidence не отправляются в сеть.
@@ -149,8 +150,8 @@ python3 "$RECALL" --session-id "$SESSION" --all \
 ```
 
 Для свежей реплики найди exact native record. Если runtime ещё не показывает
-текущий turn, используй observation timestamp с
-`source=turn-context`, `precision=minute|date`; не называй его transcript-exact.
+текущий turn, останови capture и одной строкой сообщи владельцу, что тезис не
+сохранён из-за недоступного provenance.
 
 Plan/AskUserQuestion option написан агентом. Сохраняй выбранное значение как
 `selection`, а не owner quote.
@@ -171,9 +172,9 @@ python3 "$CAPTURE" \
   --agent "$AGENT" --project "$PWD" --session "$SESSION"
 ```
 
-Для выбранного agent-authored варианта добавь
-`--kind selection --source-ref <native-answer-ref>`; без exact native
-user-answer это не evidence выбора. Для repair explanation — `--kind note`.
+Для выбранного agent-authored варианта добавь `--kind selection`; сначала найди
+exact native user-answer. Без него это не evidence выбора и capture не
+выполняется. Для repair explanation — `--kind note`.
 Если type/topic неочевидны:
 
 ```bash
@@ -195,8 +196,8 @@ type/topic, собственный дубль. Текст owner-цитаты м�
 сам. Совпадение или top hit не доказывает полноту и применимость.
 
 Для current/approval claim `selection` доказывает выбор только через exact
-native user-answer, связанный `session`, `source-timestamp` и `source-ref`;
-собственный текст `selection` или `context-note` не доказывает approval.
+native user-answer в той же `session` и `source-timestamp`; собственный текст
+`selection` или `context-note` не доказывает approval.
 
 Верни только evidence, меняющее текущее решение: применимую позицию,
 вытеснение, exception, conflict или gap; inference отдели от owner words.

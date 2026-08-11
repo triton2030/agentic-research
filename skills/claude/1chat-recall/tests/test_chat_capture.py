@@ -15,7 +15,6 @@ from datetime import datetime
 from pathlib import Path
 from unittest import mock
 
-
 SCRIPT = Path(__file__).parents[1] / "scripts" / "chat_capture.py"
 SKILL = SCRIPT.parents[1] / "SKILL.md"
 if str(SCRIPT.parent) not in sys.path:
@@ -77,7 +76,9 @@ class ChatCaptureTests(unittest.TestCase):
             command += ["--context-note", context_note]
         if session:
             command += ["--session", session]
-        result = subprocess.run(command, capture_output=True, text=True, env=clean_env)
+        result = subprocess.run(
+            command, capture_output=True, text=True, env=clean_env, check=False
+        )
         if expect_ok:
             self.assertEqual(result.returncode, 0, result.stderr)
         return result
@@ -278,7 +279,7 @@ class ChatCaptureTests(unittest.TestCase):
         self.assertIn("2010-06-15T12:00:00+00:00", text)
         self.assertIn("1999-01-02T03:04:05+00:00", text)
 
-    def test_legacy_entry_is_preserved_when_appending_repaired_record(self) -> None:
+    def test_legacy_holder_is_not_modified_by_exact_append(self) -> None:
         self.run_capture(
             "Legacy quote",
             "факт",
@@ -287,26 +288,28 @@ class ChatCaptureTests(unittest.TestCase):
         )
         legacy_path = self.recall_files()[0]
         legacy_text = re.sub(
-            r'^\* \S+ — "',
-            '* 04:05:06 — "',
+            r'(^\* .* — "Legacy quote" — .*$)',
+            r'\1 | source: turn-context | precision: minute',
             legacy_path.read_text(encoding="utf-8"),
             flags=re.MULTILINE,
         )
         legacy_path.write_text(legacy_text, encoding="utf-8")
 
+        before = legacy_path.read_bytes()
         result = self.run_capture(
             "New quote",
             "идея",
             "документация-и-знания",
             env=self.claude_env(),
             source_timestamp="1999-01-02T03:04:05Z",
+            expect_ok=False,
         )
 
-        self.assertEqual(result.returncode, 0)
-        self.assertEqual(len(self.recall_files()), 1)
-        repaired = self.recall_files()[0].read_text(encoding="utf-8")
-        self.assertIn('* 04:05:06 — "Legacy quote"', repaired)
-        self.assertIn('"New quote"', repaired)
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("legacy approximate holder", result.stderr)
+        self.assertEqual(self.recall_files(), [legacy_path])
+        self.assertEqual(legacy_path.read_bytes(), before)
+        self.assertNotIn('"New quote"', legacy_path.read_text(encoding="utf-8"))
 
     def test_failed_atomic_rewrite_leaves_original_file_unchanged(self) -> None:
         later = "2010-06-15T12:00:00Z"
@@ -324,17 +327,16 @@ class ChatCaptureTests(unittest.TestCase):
             CHAT_CAPTURE,
             "write_atomic",
             side_effect=OSError("simulated rewrite failure"),
-        ):
-            with self.assertRaisesRegex(OSError, "simulated rewrite failure"):
-                CHAT_CAPTURE.append_entry(
-                    old_path,
-                    "claude",
-                    self.session,
-                    "идея",
-                    "документация-и-знания",
-                    "Earlier quote",
-                    CHAT_CAPTURE.source_timestamp(earlier),
-                )
+        ), self.assertRaisesRegex(OSError, "simulated rewrite failure"):
+            CHAT_CAPTURE.append_entry(
+                old_path,
+                "claude",
+                self.session,
+                "идея",
+                "документация-и-знания",
+                "Earlier quote",
+                CHAT_CAPTURE.source_timestamp(earlier),
+            )
 
         files_after_failure = self.recall_files()
         self.assertEqual(files_after_failure, [old_path])
@@ -359,7 +361,7 @@ class ChatCaptureTests(unittest.TestCase):
         self.assertIn("Existing quote", recovered)
         self.assertIn("Earlier quote", recovered)
 
-    def test_timestamp_requires_value_and_approximate_source(self) -> None:
+    def test_timestamp_requires_exact_timezone_aware_value(self) -> None:
         missing = self.run_capture(
             "Без даты",
             "факт",
@@ -371,72 +373,27 @@ class ChatCaptureTests(unittest.TestCase):
         self.assertEqual(missing.returncode, 2)
         self.assertIn("--source-timestamp", missing.stderr)
 
-        naive = self.run_capture(
-            "Неоднозначная дата",
-            "факт",
-            "документация-и-знания",
-            env=self.claude_env(),
-            source_timestamp="2001-02-03T04:05:06",
-            expect_ok=False,
-        )
-        self.assertEqual(naive.returncode, 2)
-        self.assertIn("--timestamp-source", naive.stderr)
-        self.assertEqual(self.recall_files(), [])
+        for label, value in (
+            ("naive", "2001-02-03T04:05:06"),
+            ("date", "2001-02-03"),
+            ("unknown", "unknown"),
+        ):
+            with self.subTest(label=label):
+                rejected = self.run_capture(
+                    f"Неточная дата {label}",
+                    "факт",
+                    "документация-и-знания",
+                    env=self.claude_env(),
+                    source_timestamp=value,
+                    expect_ok=False,
+                )
+                self.assertEqual(rejected.returncode, 2)
+                self.assertIn("timezone-aware", rejected.stderr)
+                self.assertEqual(self.recall_files(), [])
 
-    def test_derived_sources_cannot_claim_exact_precision(self) -> None:
-        env = {key: value for key, value in os.environ.items() if key not in SESSION_ENV_VARS}
-        env.update(self.claude_env())
+    def test_removed_provenance_flags_are_rejected_before_write(self) -> None:
+        env = self.claude_env()
         base = [
-            sys.executable,
-            str(SCRIPT),
-            "--quote",
-            "Наблюдаемая реплика",
-            "--type",
-            "факт",
-            "--topic",
-            "документация-и-знания",
-            "--source-timestamp",
-            DEFAULT_SOURCE_TIMESTAMP,
-            "--timestamp-source",
-            "turn-context",
-            "--context-note",
-            "The timestamp came from observed turn context.",
-            "--project",
-            str(self.root),
-        ]
-        rejected = subprocess.run(base, capture_output=True, text=True, env=env)
-        self.assertEqual(rejected.returncode, 2)
-        self.assertIn("cannot be source-exact", rejected.stderr)
-        accepted = subprocess.run(
-            [*base, "--timestamp-precision", "minute"],
-            capture_output=True,
-            text=True,
-            env=env,
-        )
-        self.assertEqual(accepted.returncode, 0, accepted.stderr)
-        self.assertIn(
-            "source: turn-context | precision: minute",
-            self.recall_files()[0].read_text(encoding="utf-8"),
-        )
-        for derived in ("filename", "frontmatter", "raw-time", "unknown"):
-            candidate = subprocess.run(
-                [
-                    *base,
-                    "--quote",
-                    f"Источник {derived}",
-                    "--timestamp-source",
-                    derived,
-                ],
-                capture_output=True,
-                text=True,
-                env=env,
-            )
-            self.assertEqual(candidate.returncode, 2)
-            self.assertIn("cannot be source-exact", candidate.stderr)
-
-    def test_date_only_unknown_and_selection_are_marked_inline(self) -> None:
-        clean_env = self.claude_env()
-        command = [
             sys.executable,
             str(SCRIPT),
             "--quote",
@@ -448,58 +405,49 @@ class ChatCaptureTests(unittest.TestCase):
             "--kind",
             "selection",
             "--source-timestamp",
-            "2001-02-03",
-            "--timestamp-source",
-            "repaired",
-            "--timestamp-precision",
-            "date",
-            "--source-ref",
-            "session.jsonl",
+            DEFAULT_SOURCE_TIMESTAMP,
             "--project",
             str(self.root),
         ]
-        env = {key: value for key, value in os.environ.items() if key not in SESSION_ENV_VARS}
-        env.update(clean_env)
-        result = subprocess.run(command, capture_output=True, text=True, env=env)
-        self.assertEqual(result.returncode, 0, result.stderr)
+        for flag, value in (
+            ("--timestamp-source", "turn-context"),
+            ("--timestamp-precision", "minute"),
+            ("--source-ref", "msg-native-123"),
+        ):
+            with self.subTest(flag=flag):
+                result = subprocess.run(
+                    [*base, flag, value],
+                    capture_output=True,
+                    text=True,
+                    env=env,
+                    check=False,
+                )
+                self.assertEqual(result.returncode, 2)
+                self.assertIn(f"unrecognized arguments: {flag}", result.stderr)
+                self.assertEqual(self.recall_files(), [])
+
+    def test_selection_and_note_use_only_exact_record_metadata(self) -> None:
+        self.run_capture(
+            "Выбрал локальный путь",
+            "решение",
+            "документация-и-знания",
+            env=self.claude_env(),
+            kind="selection",
+        )
+        self.run_capture(
+            "Восстановление подтверждено exact source",
+            "неопределено",
+            "без-темы",
+            env=self.claude_env(),
+            kind="note",
+        )
+
         text = self.recall_files()[0].read_text(encoding="utf-8")
         self.assertIn("kind: selection", text)
-        self.assertIn("source: repaired | precision: date", text)
-        self.assertIn("source-ref: session.jsonl", text)
-
-        unknown = subprocess.run(
-            [
-                sys.executable,
-                str(SCRIPT),
-                "--quote",
-                "Дата источника не восстановлена",
-                "--type",
-                "неопределено",
-                "--topic",
-                "без-темы",
-                "--kind",
-                "note",
-                "--source-timestamp",
-                "unknown",
-                "--timestamp-source",
-                "unknown",
-                "--timestamp-precision",
-                "unknown",
-                "--project",
-                str(self.root),
-            ],
-            capture_output=True,
-            text=True,
-            env=env,
-        )
-        self.assertEqual(unknown.returncode, 0, unknown.stderr)
-        text = self.recall_files()[0].read_text(encoding="utf-8")
-        self.assertIn(
-            '* unknown — "Дата источника не восстановлена" '
-            "— kind: note | type: неопределено | topic: без-темы "
-            "| source: unknown | precision: unknown",
-            text,
-        )
+        self.assertIn("kind: note", text)
+        self.assertNotIn("source:", text)
+        self.assertNotIn("precision:", text)
+        self.assertNotIn("source-ref:", text)
 
     def test_unknown_type_is_rejected(self) -> None:
         result = self.run_capture(

@@ -24,22 +24,6 @@ from recall_metadata import (
 LOG_DIR = Path("_ops/chat-recall")
 KINDS = ("quote", "selection", "note")
 PRECISIONS = ("exact", "minute", "date", "unknown")
-TIMESTAMP_SOURCES = (
-    "transcript",
-    "turn-context",
-    "repaired",
-    "raw-time",
-    "filename",
-    "frontmatter",
-    "unknown",
-)
-NON_EXACT_SOURCES = {
-    "turn-context",
-    "raw-time",
-    "filename",
-    "frontmatter",
-    "unknown",
-}
 ENV_BY_AGENT = {
     "claude": ("CLAUDE_SESSION_ID", "CLAUDE_CODE_SESSION_ID"),
     "codex": ("CODEX_THREAD_ID", "CODEX_SESSION_ID"),
@@ -297,8 +281,6 @@ def _entry_line(
     type_: str,
     topic: str,
     source: SourceTimestamp,
-    timestamp_source: str,
-    source_ref: str | None,
     kind: str,
     context: str | None = None,
 ) -> str:
@@ -308,12 +290,6 @@ def _entry_line(
     fields.extend((f"type: {type_}", f"topic: {topic}"))
     if context:
         fields.append(f"context-note: {context}")
-    if source.precision != "exact" or timestamp_source != "transcript":
-        fields.extend(
-            (f"source: {timestamp_source}", f"precision: {source.precision}")
-        )
-        if source_ref:
-            fields.append(f"source-ref: {source_ref}")
     return f'* {source.rendered} — "{quote}" — ' + " | ".join(fields) + "\n"
 
 
@@ -374,8 +350,6 @@ def create_file(
     topic: str,
     quote: str,
     source: SourceTimestamp,
-    timestamp_source: str,
-    source_ref: str | None,
     kind: str,
     context: str | None = None,
 ) -> None:
@@ -403,8 +377,6 @@ def create_file(
             type_,
             topic,
             source,
-            timestamp_source,
-            source_ref,
             kind,
             context,
         ).rstrip(),
@@ -420,14 +392,20 @@ def append_entry(
     topic: str,
     quote: str,
     source: SourceTimestamp,
-    timestamp_source: str = "transcript",
-    source_ref: str | None = None,
     kind: str = "quote",
     context: str | None = None,
 ) -> tuple[bool, Path]:
     text = path.read_text(encoding="utf-8-sig")
     if f'"{quote}"' in text:
         return False, path
+    has_legacy_provenance = re.search(
+        r"\|\s+(?:source|precision|source-ref):", text
+    )
+    if has_legacy_provenance or any(
+        item.precision != "exact"
+        for item in _entry_times(text, _frontmatter_date(text))
+    ):
+        raise CaptureError("legacy approximate holder is read-only; repair first")
     lines = text.splitlines()
     ensure_inventory(lines, "types", type_)
     ensure_inventory(lines, "topics", topic)
@@ -445,8 +423,6 @@ def append_entry(
         type_,
         topic,
         source,
-        timestamp_source,
-        source_ref,
         kind,
         context,
     )
@@ -467,11 +443,6 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--topic", required=True)
     parser.add_argument("--kind", choices=KINDS, default="quote")
     parser.add_argument("--source-timestamp", required=True)
-    parser.add_argument(
-        "--timestamp-source", choices=TIMESTAMP_SOURCES, default="transcript"
-    )
-    parser.add_argument("--timestamp-precision", choices=PRECISIONS)
-    parser.add_argument("--source-ref")
     parser.add_argument(
         "--context-note",
         help=(
@@ -495,8 +466,6 @@ def main() -> int:
         validate_metadata(type_, topic, args.kind)
         agent = handle(args.agent, "agent")
         model = handle(args.model, "model") if args.model else None
-        timestamp_source = handle(args.timestamp_source, "timestamp source")
-        source_ref = one_line(args.source_ref, "source ref") if args.source_ref else None
         context = (
             context_note(args.context_note)
             if args.context_note is not None
@@ -509,15 +478,11 @@ def main() -> int:
             )
         if context and args.kind == "note":
             raise CaptureError("--context-note cannot be attached to --kind note")
-        source = source_timestamp(args.source_timestamp, args.timestamp_precision)
-        if source.precision != "exact" and timestamp_source == "transcript":
+        source = source_timestamp(args.source_timestamp)
+        if source.precision != "exact":
             raise CaptureError(
-                "approximate/unknown timestamp requires --timestamp-source"
-            )
-        if timestamp_source in NON_EXACT_SOURCES and source.precision == "exact":
-            raise CaptureError(
-                f"{timestamp_source} cannot be source-exact; "
-                "pass --timestamp-precision minute or date"
+                "source timestamp must be a timezone-aware ISO timestamp; "
+                "read it from the exact native record before capture"
             )
         root = Path(args.project).resolve()
         if not root.is_dir():
@@ -538,8 +503,6 @@ def main() -> int:
                 topic,
                 quote,
                 source,
-                timestamp_source,
-                source_ref,
                 args.kind,
                 context,
             )
@@ -554,8 +517,6 @@ def main() -> int:
                 topic,
                 quote,
                 source,
-                timestamp_source,
-                source_ref,
                 args.kind,
                 context,
             )

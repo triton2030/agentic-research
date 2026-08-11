@@ -31,10 +31,10 @@ Backfill не является обычным historical retrieval и не им�
 
 1. native transcript указанной session;
 2. exact unique text fragment в локальных Claude/Codex transcripts;
-3. bounded semantic/manual search по локальной истории;
-4. filename, frontmatter или raw time только в пределах того, что они прямо
-   поддерживают;
-5. `unknown`, если provenance не восстановлен.
+3. bounded semantic/manual search по локальной истории, чтобы найти exact native
+   record;
+4. явный gap, если record не найден: filename, frontmatter, raw time и
+   `unknown` не разрешают capture.
 
 Semantic match сам по себе не является exact evidence. Quotes не отправляются в
 network tools.
@@ -47,8 +47,9 @@ explicit `--repair-session`; Claude — explicit `--session-id`.
 Сохраняй исходный timestamp сообщения, а не время ремонта. Exact допускается
 только после сверки native text или выбранной option.
 
-Approximate запись получает явные `source`, `precision` и при необходимости
-`source-ref`. Допустимы `exact`, `minute`, `date`, `unknown`.
+`chat_capture.py` принимает только exact timezone-aware native timestamp.
+Legacy approximate metadata остаётся видимой диагностикой; writer её не создаёт
+и не дописывает такой holder до source-bound repair.
 
 Один session создаёт один holder. Имя файла, frontmatter date и заголовок
 следуют самой ранней сохранённой source-date этой session.
