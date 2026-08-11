@@ -88,7 +88,7 @@ non-fork default agent без упоминания скила:
   business-critic 15, md-scout 13 (август).
 - `wait_agent` 1017 вызовов — ожидание доминирует над спавном (489).
 - «4 available concurrency slots» — 2758 совпадений за июль-август,
-  但 число конфигурируемо (`agents.max_concurrent_threads_per_session`),
+  но число конфигурируемо (`agents.max_concurrent_threads_per_session`),
   в `~/.codex/config.toml` не задано → в скил не зашито.
 - `multi_agent_mode`: дословно «Do not spawn sub-agents unless the user
   or applicable AGENTS.md/skill instructions explicitly ask» — отсюда
