@@ -34,3 +34,28 @@
 Взять один реальный скил, переписать его прежним `1skill-architect` (снят в
 `skills/1skill-architect/live-claude-2026-08-08/`) и новым, вслепую, и сравнить
 принятые решения, а не тексты.
+
+## Точечная правка момента — 2026-08-11
+
+Owner и проекции:
+
+- `qv-skill` для installed Claude и Codex — pass;
+- `sync_simple_projections.py 1skill-shaping --check` — tracked и installed
+  Claude/Codex byte-identical shared owner-у;
+- независимый Claude Opus 5 review (`xhigh`) отклонил отдельный
+  `trigger-moment.md`: universal default принадлежит существующему
+  `references/description.md`.
+
+Codex smoke: свежий `default` subagent получил запрос исправить description
+UI-review skill, который должен сработать только после завершения реализации и
+запуска приложения. Он автоматически прочитал installed `1skill-shaping` и
+`references/description.md`, вернул:
+
+- момент: реализация завершена, live UI доступен для осмотра;
+- «ещё рано»: реализация продолжается или live UI недоступен;
+- первую фразу с phase, evidence и capability.
+
+Статус: application possibility — **pass**. Exact resolved model collaboration
+API не предъявил; no-skill comparator, matched repeats и late-trigger
+probability не проверялись. Один smoke не переводит общий lifecycle из
+`candidate` в «проверен поведением».

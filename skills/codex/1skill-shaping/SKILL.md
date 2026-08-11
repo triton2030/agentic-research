@@ -108,7 +108,8 @@ description: >
   знания → [knowledge-package](references/knowledge-package.md)
 - скил про поведение → правило без причины → форма исполнена, решение прежнее →
   [behavior-package](references/behavior-package.md)
-- `description` написан как аннотация → не поднимается или поднимается не там →
+- `description` написан как аннотация или под тему → скил не поднимается либо
+  поднимается не в свой момент работы → его Дельта потеряна →
   [description](references/description.md)
 - черновик проверен чтением → убедительный текст прячет лазейку →
   [audit](references/audit.md)
