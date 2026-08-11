@@ -1,7 +1,7 @@
 interface:
   display_name: "1-Применение принципов"
   short_description: "Compile principles + GOAL into case-specific implications before clean writes"
-  default_prompt: "Use $1use-principles before any clean write or material fork in autonomous work: name the decision, list options first, sweep all principle files and GOAL tie-breakers by consequence (not keyword), build the mini-matrix, run the counter-principle pass, resolve conflicts by tie-breaker or escalate with the layout — leave the trace."
+  default_prompt: "Use $1use-principles before any clean write or material fork in autonomous work: name the decision and first look for an answer already written by its owner; none found — list options, sweep all principle files and GOAL tie-breakers by consequence (not keyword), build the mini-matrix, run the counter-principle pass, resolve ties by tie-breaker then specific-over-general then best practice — never escalate, never average — and leave the trace."
 
 policy:
   allow_implicit_invocation: true
