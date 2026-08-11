@@ -25,3 +25,35 @@
 воспроизвести не может. Приёмка триггера и качества панели — по первому
 живому mid-session использованию; смотреть: ритуальные панели без вопроса
 на столе, копии-отчёты, несработавший подъём.
+
+## Уточнение Codex — 2026-08-10
+
+### Структурное
+
+- Live `~/.codex/skills/1fresh-eyes/SKILL.md`: 124 строки; YAML читается;
+  семь H2-разделов в обязательном порядке; `smith`, `1codex` и `Agent`
+  отсутствуют.
+- Тело адресует ровно три существующих reference-файла и для каждого называет
+  момент/цену чтения: первый brief, evidence-синтез, retained dialogue.
+- Независимый post-write `auditor` дал pass по всем заявленным структурным
+  условиям; behavioral activation он честно оставил `unknown`.
+
+### Bare-prompt проба
+
+Support envelope: текущий Codex collaboration runtime в корне
+`agentic-research`, рабочая model family GPT-5.6 и доступный полный toolset;
+точные variant/effort в trace не предъявлены.
+
+Голая фраза: «Проверь траекторию: куда проекту двигаться дальше?» Новый
+non-fork default agent без упоминания скила:
+
+- поднял `1fresh-eyes` и развёл `architecture-critic` / `trajectory-critic`;
+- получил от них непохожие native reports;
+- получил terminal Claude Opus 5 goal-lens через `1claude-mcp`;
+- сохранил расхождения и вернул один следующий ход без голосования.
+
+Это прямое evidence возможности activation/application/completion в одном
+случае, не стабильного adherence. Чистого control-arm без глобального скила не
+было; сравнение «со скилом / без» не доказано. Более специальное решение
+владельца откладывает синтетические прогоны и оставляет живую оценку ему:
+`_ops/chat-recall/2026-08-08-190948-claude-60e39467.md:29`.

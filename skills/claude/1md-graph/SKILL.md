@@ -68,7 +68,7 @@ labels — рабочая рамка аудита, не универсальна
 | Решить owner, split/merge/move или placement истины | `1ia-audit` |
 | Exact refs, path/anchor resolution, counts и live CLI contract | `1cli-tools` |
 | Оценить смысл, необходимость, силу и propagation edge | `1md-graph` |
-| Применить разрешённый prose/edge repair и проверить Markdown | direct scoped edit + `1md-lint` |
+| Применить разрешённый prose/edge repair и проверить Markdown | direct scoped edit + local Markdown checks |
 
 Обычная ссылка без semantic question читается напрямую. Broken path или anchor
 остаётся structural defect; его исправление не доказывает, что выбран правильный
@@ -128,7 +128,7 @@ target.
    claims или непонятная authority = `conflict` и handoff `1ia-audit`; не
    придумывай reciprocal edge как лечение.
 10. **Применяй только разрешённый verdict.** При write-intent исправь exact
-   holder/target edge и затронутый смысл, затем используй `1md-lint` и local
+   holder/target edge и затронутый смысл, затем выполни local Markdown и
    structural checks. Owner, container или placement change остаётся у
    `1ia-audit`.
 

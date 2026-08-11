@@ -1,7 +1,7 @@
 interface:
   display_name: "1-МД Чтение"
-  short_description: "Read decision-changing Markdown without context bloat"
-  default_prompt: "Используй $1md-read, чтобы дать следующему решению минимальное достаточное Markdown evidence или честный gap, не превращая чтение в отдельный отчёт."
+  short_description: "Ознакомиться со слоем чтения и поиска Markdown"
+  default_prompt: "Используй $1md-read, ознакомься с доступными инструментами чтения и поиска Markdown и продолжи исходную задачу."
 
 policy:
   allow_implicit_invocation: true

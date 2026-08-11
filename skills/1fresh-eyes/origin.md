@@ -20,6 +20,15 @@ auditor — 3 ложных факта, Брукс — двух владельц�
 (вход: вопрос на столе; приёмка: уникальная строка из каждого отчёта);
 методы линз живут в definitions агентов, шаблоны — в brief-templates.
 
-Owner-топология: единственный tracked owner `skills/claude/1fresh-eyes/`;
-живая codex-копия `~/.codex/skills/1fresh-eyes` разошлась и оставлена вне
-scope решением владельца (finding 2026-08-10-193345).
+Owner-топология на момент этой ревизии: единственный tracked owner
+`skills/claude/1fresh-eyes/`; живая Codex-копия
+`~/.codex/skills/1fresh-eyes` разошлась и была оставлена вне scope
+(finding 2026-08-10-193345).
+
+## Уточнение Codex — 2026-08-10
+
+Владелец переоткрыл только Codex-boundary: актуальная Claude-версия остаётся
+baseline, а live Codex package получает runtime-адаптацию и Claude goal-lens
+для вопросов уровня всего проекта. Основание и коррекции:
+`_ops/chat-recall/2026-08-10-200839-codex-019fec35.md:16-22`.
+Второй tracked owner не создан.
