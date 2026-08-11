@@ -6,8 +6,8 @@ description: >
   goes; touching logic that already exists in more than one place; refactoring,
   restructuring or reviewing code. Name the owner before the first edit, then
   re-enter at each further structural choice in the session. Interface or seam
-  contracts → `codebase-design`: a spread of thin modules is what agents repair
-  worst.
+  contracts → `codebase-design`, installed as `1codebase-design` on Codex: a
+  spread of thin modules is what agents repair worst.
 ---
 
 # Readable Code
