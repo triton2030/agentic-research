@@ -20,6 +20,12 @@ workflow.
   Agent Skills standard и API/runtime.
 - [`research-2026-mar-may.md`](research-2026-mar-may.md) — source-backed выводы
   из официальных docs и исследований марта-мая 2026.
+- [`research-mid-trajectory-trigger-descriptions-2026-08.md`](research-mid-trajectory-trigger-descriptions-2026-08.md)
+  — датированный evidence-report о short descriptions и позднем автоматическом
+  вызове по состоянию длинной работы.
+- [`mid-trajectory-trigger-descriptions.md`](mid-trajectory-trigger-descriptions.md)
+  — узкий практический профиль для event/state-trigger descriptions; дополняет,
+  но не дублирует общий канон.
 - [`checklist.md`](checklist.md) — post-hoc acceptance gate для candidate
   design, draft или review.
 
@@ -50,10 +56,12 @@ Default для judgment/design/quality skills — **outcome/decision contract**:
 
 ## Свежесть
 
-[`research-2026-mar-may.md`](research-2026-mar-may.md) — snapshot источников,
-а не вечная истина. Перед audit'ом current/default/best-practice решений
-сверяй свежие официальные docs; канон в `authoring-canon.md` держит только
-выводы, которые переживают такую сверку.
+Research-файлы — датированные snapshots, а не вечная истина. Для
+mid-trajectory descriptions текущий срез —
+[`research-mid-trajectory-trigger-descriptions-2026-08.md`](research-mid-trajectory-trigger-descriptions-2026-08.md).
+Перед audit'ом current/default/best-practice решений сверяй свежие официальные
+docs; канон в `authoring-canon.md` держит только выводы, которые переживают
+такую сверку.
 
 ## Не Создавать
 
