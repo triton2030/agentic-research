@@ -119,11 +119,11 @@ material gap → bounded claim → full records
   предпочтения → будущий агент применяет несуществующее правило → Инварианты,
   context-note
 - найден top/newest hit → он объявлен текущей позицией → false application →
-  [reading-the-log](references/reading-the-log.md)
+  Механика, Retrieval
 - один query пуст → объявлено «владелец не говорил» → ложное отсутствие →
-  [reading-the-log](references/reading-the-log.md)
+  [reading-the-log](references/reading-the-log.md), Coverage
 - найдена цитата параллельной задачи → ей приписан нынешний status →
-  координация строится на прошлом → [reading-the-log](references/reading-the-log.md)
+  координация строится на прошлом → Критерии успеха
 - проект существовал до recall либо metadata повреждена → дата придумана или
   evidence потеряно → ложная история →
   [repairing-the-log](references/repairing-the-log.md)
@@ -171,8 +171,10 @@ python3 "$CAPTURE" \
   --agent "$AGENT" --project "$PWD" --session "$SESSION"
 ```
 
-Для agent-authored выбора добавь `--kind selection`; для repair explanation —
-`--kind note`. Если type/topic неочевидны:
+Для выбранного agent-authored варианта добавь
+`--kind selection --source-ref <native-answer-ref>`; без exact native
+user-answer это не evidence выбора. Для repair explanation — `--kind note`.
+Если type/topic неочевидны:
 
 ```bash
 python3 "$CAPTURE" --list-metadata
@@ -188,38 +190,18 @@ type/topic, собственный дубль. Текст owner-цитаты м�
 
 ### Retrieval
 
-До query назови текущий claim, который прежние слова способны изменить:
+Восстанови стандартными project-local search/read tools и metadata записей
+минимальный decision-ready контекст для текущего claim; путь поиска выбирай
+сам. Совпадение или top hit не доказывает полноту и применимость.
 
-```bash
-DIGEST="$ROOT/scripts/chat_digest.py"
-RECALL_DIR="$PWD/_ops/chat-recall"
+Для current/approval claim `selection` доказывает выбор только через exact
+native user-answer, связанный `session`, `source-timestamp` и `source-ref`;
+собственный текст `selection` или `context-note` не доказывает approval.
 
-uv run --offline --locked --script "$DIGEST" "$RECALL_DIR" \
-  --query "<claim, слова или варианты формулировки>" \
-  --limit 5 --max-chars 4000
-
-python3 "$DIGEST" "$RECALL_DIR" --show <record-id>
-```
-
-Если local hybrid cache недоступен, используй `--lexical`; обычный retrieval не
-получает разрешение на network bootstrap.
-
-Раскрой каждый consequential candidate полностью. Сравни применимость, kind,
-commitment, source time/precision, coverage и live owner. Верни минимальный
-packet:
-
-- применимые решения, границы, критерии и предпочтения;
-- вытесненную позицию и основание вытеснения;
-- scoped exceptions, conflicts и gaps;
-- агентские интерпретации отдельно от owner words;
-- полные цитаты и адреса только для consequential claims.
-
-Для параллельной задачи того же проекта допустимы filters
-`--agent`, `--session`, `--since` и `--until`. Результат говорит, что было
-сказано или выбрано; он не доказывает нынешний статус задачи.
-
-Прямой запрос «что я говорил?» может закончиться source-bound цитатами без
-decision packet, если текущей развилки действительно нет.
+Верни только evidence, меняющее текущее решение: применимую позицию,
+вытеснение, exception, conflict или gap; inference отдели от owner words.
+Для consequential owner claims дай полную цитату и адрес. Неразрешённые
+применимость, chronology или coverage означают abstain.
 
 ### Repair/backfill
 

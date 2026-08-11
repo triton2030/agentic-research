@@ -78,6 +78,6 @@ corpus.
 - multiset прежних texts/raw blocks не уменьшился;
 - новые quotes существуют в native source;
 - исходные timestamps и session сохранены честно;
-- каждый record доступен через inventory/query/show;
+- каждый record находится локальным поиском и открывается по exact file:line;
 - diagnostics исправлены либо остаются явно видимыми;
 - один project corpus содержит не более одного holder на session.
