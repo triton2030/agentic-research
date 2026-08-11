@@ -66,10 +66,19 @@ serializer.py»: `Skill` не вызван ни разу, инструменты
   `references/` и `project-legibility` в обоих `SKILL.md` пуст.
 - `md check --paths skills/claude/1readable-code`: targets=4, issues=[].
 - YAML frontmatter обеих копий разбирается, `name: 1readable-code` в каждой.
-- Codex-копия (`~/.codex/skills/1readable-code/`) tracked owner-а в репо не
-  имеет — по AGENTS.md live-пакет остаётся единственной правдой. Перенесены
-  смыслы, не текст; её маршрут ведёт в живой `1codebase-design`, которого на
-  Claude-стороне нет.
+- Codex-копия приведена к паритету по решению владельца 2026-08-11 «Кодекс
+  версия должна быть такая же как и клод»: tracked owner, live Claude и live
+  Codex `SKILL.md` совпадают побайтово,
+  SHA-256 `a0d594a65dadbf931f5af5788c5de34a0e3101f74f038bf9837ab95ae587618a`.
+  Прежний режим — перенос смыслов в собственных формулировках каждой копии —
+  отменён; owner один, оба install-а стали его проекциями.
+- Единственное, что мешало полному совпадению: сосед физически называется
+  `codebase-design` на Claude и `1codebase-design` на Codex. Маршрут назвал оба
+  имени, поэтому текст остался единым и ни в одной среде не битый.
+- Codex-специфичным остался только `agents/openai.yaml` (проекция интерфейса);
+  tracked owner-а у этого файла нет, он существует лишь в live-пакете.
+- **Codex-прогоном новая версия не проверена.** Триггеринг и следы измерены
+  только на Claude.
 
 ## Поведенческий прогон — Claude Opus 5
 
