@@ -4,7 +4,7 @@ description: "Origin, rejected rules and verification evidence for 1use-principl
 
 # 1use-principles — папка скила: происхождение и потери
 
-Живой owner: `skills/shared/1use-principles/`. Tracked проекции —
+Живой owner: `skills/shared/1use-principles/portable/`. Tracked проекции —
 `skills/claude/` и `skills/codex/`; installed — `~/.claude/skills/` и
 `~/.codex/skills/`. Их не редактируют напрямую.
 
