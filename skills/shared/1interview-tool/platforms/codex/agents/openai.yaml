@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Инструмент интервью"
+  short_description: "Адресуемая форма с переносом решений"
+  default_prompt: "Используй $1interview-tool, чтобы собрать связанные решения в адресуемой Markdown-форме и перенести ответы в их owner-артефакты."
+
+policy:
+  allow_implicit_invocation: true

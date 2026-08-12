@@ -29,6 +29,9 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   пустотам.
 - `1planning/portable/` создаёт живой контракт и `context.md` для работы через
   сессии; `1index/portable/` держит карты оплаченных поиском маршрутов.
+- `1interview-tool/portable/` создаёт адресуемую plain-Markdown форму и держит
+  lifecycle `решения владельца → настоящие owners → архив`; Codex invocation
+  metadata живёт в `platforms/codex/agents/openai.yaml`.
 
 `skills/codex/<name>/` и `skills/claude/<name>/` — tracked projections owner-а.
 `~/.codex/skills/<name>/` и `~/.claude/skills/<name>/` — installed projections
