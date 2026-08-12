@@ -44,15 +44,18 @@ explicit `--repair-session`; Claude — explicit `--session-id`.
 
 ## Capture и chronology
 
-Сохраняй исходный timestamp сообщения, а не время ремонта. Exact допускается
-только после сверки native text или выбранной option.
+Сохраняй исходный timestamp сообщения, а не время ремонта. `exact` precision
+допускается только после сверки native text или выбранной option — иначе
+понижай до `minute` или `date`.
 
-`chat_capture.py` принимает только exact timezone-aware native timestamp.
-Legacy approximate metadata остаётся видимой диагностикой; writer её не создаёт
-и не дописывает такой holder до source-bound repair.
+`chat_capture.py` принимает любую валидную precision (exact/minute/date);
+`unknown` разрешён только для `--kind note`. Legacy approximate metadata старых
+записей остаётся видимой диагностикой; writer её не создаёт, но добавляет новую
+чистую запись в тот же holder — существующие грязные строки не переписываются.
 
 Один session создаёт один holder. Имя файла, frontmatter date и заголовок
-следуют самой ранней сохранённой source-date этой session.
+следуют самой ранней сохранённой exact/minute source-date этой session; запись
+с precision `date` не двигает имя holder-а.
 
 `quote` остаётся deletion-only owner text. AskUserQuestion/Plan option —
 `selection`. Agent-authored explanation — `note`. Malformed block остаётся

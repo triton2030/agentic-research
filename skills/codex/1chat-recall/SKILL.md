@@ -68,10 +68,11 @@ Usefulness gate проходит тезис, чьи собственные сл�
 «дефект №3» будущий запрос не наберёт. Поисковое дружелюбие не оправдывает
 пересказ — добавляй имена сцены, не синонимы цитаты.
 
-Capture разрешён только после чтения exact native record. Observation time,
-filename, память агента и semantic match не являются записываемым provenance;
-если exact record недоступен, не пиши запись и сообщи владельцу об этом одной
-строкой в ответе текущего хода.
+`source-timestamp` берётся максимально точный из доступного агенту прямо сейчас:
+exact ISO с таймзоной, если runtime показывает точное время turn; минута из
+транскрипта; иначе дата дня (`YYYY-MM-DD`) — она агенту известна всегда.
+`unknown` возможен только для repair `--kind note`. Precision в записи честно
+фиксирует уровень; произвольная выдуманная дата запрещена.
 
 Один разговор/session пишет один recall-файл и не добавляет туда evidence из
 другого окна. Retrieval читает общий project-local corpus всех агентов.
@@ -127,6 +128,8 @@ material gap → bounded claim → full records
 - проект существовал до recall либо metadata повреждена → дата придумана или
   evidence потеряно → ложная история →
   [repairing-the-log](references/repairing-the-log.md)
+- runtime не даёт exact time turn → capture пропущен «до лучшей provenance» →
+  тезис потерян навсегда → Инварианты, `source-timestamp`
 
 ## Механика
 
@@ -149,9 +152,9 @@ python3 "$RECALL" search "<свежий фрагмент>" \
 python3 "$RECALL" show <record-id>
 ```
 
-Для свежей реплики найди exact native record. Если runtime ещё не показывает
-текущий turn, останови capture и одной строкой сообщи владельцу, что тезис не
-сохранён из-за недоступного provenance.
+Для свежей реплики бери самый точный timestamp, доступный агенту сейчас:
+ISO с таймзоной из runtime → минута из транскрипта → дата дня. Отдельного шага
+«сначала прочитай native record» нет — точность фиксируется в timestamp.
 
 Plan/AskUserQuestion option написан агентом. Сохраняй выбранное значение как
 `selection`, а не owner quote.
@@ -172,9 +175,9 @@ python3 "$CAPTURE" \
   --agent "$AGENT" --project "$PWD" --session "$SESSION"
 ```
 
-Для выбранного agent-authored варианта добавь `--kind selection`; сначала найди
-exact native user-answer. Без него это не evidence выбора и capture не
-выполняется. Для repair explanation — `--kind note`.
+Для выбранного agent-authored варианта добавь `--kind selection`; сцену выбора
+и подтверждение владельца называй в `context-note`. Для repair explanation —
+`--kind note`.
 Если type/topic неочевидны:
 
 ```bash
@@ -195,9 +198,10 @@ type/topic, собственный дубль. Текст owner-цитаты м�
 минимальный decision-ready контекст для текущего claim; путь поиска выбирай
 сам. Совпадение или top hit не доказывает полноту и применимость.
 
-Для current/approval claim `selection` доказывает выбор только через exact
-native user-answer в той же `session` и `source-timestamp`; собственный текст
-`selection` или `context-note` не доказывает approval.
+Для current/approval claim `selection` доказывает лишь выбранный вариант;
+approval требует owner reply в той же `session` (соседний quote или явное
+подтверждение). Собственный текст `selection` и `context-note` approval не
+доказывают.
 
 Верни только evidence, меняющее текущее решение: применимую позицию,
 вытеснение, exception, conflict или gap; inference отдели от owner words.

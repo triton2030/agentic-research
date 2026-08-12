@@ -279,7 +279,7 @@ class ChatCaptureTests(unittest.TestCase):
         self.assertIn("2010-06-15T12:00:00+00:00", text)
         self.assertIn("1999-01-02T03:04:05+00:00", text)
 
-    def test_legacy_holder_is_not_modified_by_exact_append(self) -> None:
+    def test_append_extends_legacy_holder_without_touching_old_lines(self) -> None:
         self.run_capture(
             "Legacy quote",
             "факт",
@@ -295,21 +295,27 @@ class ChatCaptureTests(unittest.TestCase):
         )
         legacy_path.write_text(legacy_text, encoding="utf-8")
 
-        before = legacy_path.read_bytes()
-        result = self.run_capture(
+        self.run_capture(
             "New quote",
             "идея",
             "документация-и-знания",
             env=self.claude_env(),
-            source_timestamp="1999-01-02T03:04:05Z",
-            expect_ok=False,
+            source_timestamp="2026-08-12",
         )
 
-        self.assertEqual(result.returncode, 2)
-        self.assertIn("legacy approximate holder", result.stderr)
-        self.assertEqual(self.recall_files(), [legacy_path])
-        self.assertEqual(legacy_path.read_bytes(), before)
-        self.assertNotIn('"New quote"', legacy_path.read_text(encoding="utf-8"))
+        text = self.recall_files()[0].read_text(encoding="utf-8")
+        self.assertIn(
+            '"Legacy quote" — type: факт | topic: документация-и-знания'
+            " | context-note: Test source situation outside the quote."
+            " | source: turn-context | precision: minute",
+            text,
+        )
+        self.assertIn('"New quote"', text)
+        new_entry = next(
+            line for line in text.splitlines() if '"New quote"' in line
+        )
+        self.assertNotIn("source:", new_entry)
+        self.assertNotIn("precision:", new_entry)
 
     def test_failed_atomic_rewrite_leaves_original_file_unchanged(self) -> None:
         later = "2010-06-15T12:00:00Z"
@@ -361,7 +367,7 @@ class ChatCaptureTests(unittest.TestCase):
         self.assertIn("Existing quote", recovered)
         self.assertIn("Earlier quote", recovered)
 
-    def test_timestamp_requires_exact_timezone_aware_value(self) -> None:
+    def test_timestamp_accepts_date_and_minute_rejects_unknown_for_quote(self) -> None:
         missing = self.run_capture(
             "Без даты",
             "факт",
@@ -374,22 +380,31 @@ class ChatCaptureTests(unittest.TestCase):
         self.assertIn("--source-timestamp", missing.stderr)
 
         for label, value in (
-            ("naive", "2001-02-03T04:05:06"),
+            ("minute", "2001-02-03T04:05:06"),
             ("date", "2001-02-03"),
-            ("unknown", "unknown"),
         ):
             with self.subTest(label=label):
-                rejected = self.run_capture(
-                    f"Неточная дата {label}",
+                self.run_capture(
+                    f"Приблизительная дата {label}",
                     "факт",
                     "документация-и-знания",
                     env=self.claude_env(),
+                    session=str(uuid.uuid4()),
                     source_timestamp=value,
-                    expect_ok=False,
                 )
-                self.assertEqual(rejected.returncode, 2)
-                self.assertIn("timezone-aware", rejected.stderr)
-                self.assertEqual(self.recall_files(), [])
+        self.assertEqual(len(self.recall_files()), 2)
+
+        rejected = self.run_capture(
+            "Дата unknown",
+            "факт",
+            "документация-и-знания",
+            env=self.claude_env(),
+            session=str(uuid.uuid4()),
+            source_timestamp="unknown",
+            expect_ok=False,
+        )
+        self.assertEqual(rejected.returncode, 2)
+        self.assertIn("unknown timestamp is repair-only", rejected.stderr)
 
     def test_removed_provenance_flags_are_rejected_before_write(self) -> None:
         env = self.claude_env()

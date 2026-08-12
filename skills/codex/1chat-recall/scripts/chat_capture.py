@@ -398,26 +398,20 @@ def append_entry(
     text = path.read_text(encoding="utf-8-sig")
     if f'"{quote}"' in text:
         return False, path
-    has_legacy_provenance = re.search(
-        r"\|\s+(?:source|precision|source-ref):", text
-    )
-    if has_legacy_provenance or any(
-        item.precision != "exact"
-        for item in _entry_times(text, _frontmatter_date(text))
-    ):
-        raise CaptureError("legacy approximate holder is read-only; repair first")
     lines = text.splitlines()
     ensure_inventory(lines, "types", type_)
     ensure_inventory(lines, "topics", topic)
-    earliest = _earliest_known(text, source)
-    _set_file_date(lines, earliest)
-    target = dated_path(
-        path.parent,
-        agent,
-        session,
-        SourceTimestamp(earliest.isoformat(), "exact", earliest, earliest),
-        current=path,
-    )
+    target = path
+    if source.precision in ("exact", "minute"):
+        earliest = _earliest_known(text, source)
+        _set_file_date(lines, earliest)
+        target = dated_path(
+            path.parent,
+            agent,
+            session,
+            SourceTimestamp(earliest.isoformat(), "exact", earliest, earliest),
+            current=path,
+        )
     rendered = "\n".join(lines) + "\n" + _entry_line(
         quote,
         type_,
@@ -479,10 +473,10 @@ def main() -> int:
         if context and args.kind == "note":
             raise CaptureError("--context-note cannot be attached to --kind note")
         source = source_timestamp(args.source_timestamp)
-        if source.precision != "exact":
+        if source.precision == "unknown" and args.kind != "note":
             raise CaptureError(
-                "source timestamp must be a timezone-aware ISO timestamp; "
-                "read it from the exact native record before capture"
+                "unknown timestamp is repair-only; capture must pass at least a "
+                "YYYY-MM-DD date, preferably ISO with timezone"
             )
         root = Path(args.project).resolve()
         if not root.is_dir():
