@@ -236,10 +236,10 @@ def _parse_block(
     return record
 
 
-def load(corpus: Path) -> tuple[list[dict[str, Any]], int]:
+def load(records_dir: Path) -> tuple[list[dict[str, Any]], int]:
     """Return one record per Markdown star block; second value is diagnostic count."""
     records: list[dict[str, Any]] = []
-    for path in sorted(corpus.glob("*.md")):
+    for path in sorted(records_dir.glob("*.md")):
         try:
             lines = path.read_text(encoding="utf-8-sig").splitlines()
         except OSError as error:
@@ -901,7 +901,7 @@ def _warnings(records: list[dict[str, Any]]) -> list[str]:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("corpus", type=Path, nargs="?")
+    parser.add_argument("records_dir", type=Path, nargs="?")
     parser.add_argument(
         "--prepare",
         action="store_true",
@@ -957,7 +957,7 @@ def main() -> int:
         if args.prepare:
             incompatible = any(
                 (
-                    args.corpus,
+                    args.records_dir,
                     args.digest,
                     args.check,
                     args.strict,
@@ -980,20 +980,22 @@ def main() -> int:
                 )
             )
             if incompatible:
-                raise CliError("--prepare запускается отдельно, без corpus и retrieval flags")
+                raise CliError(
+                    "--prepare запускается отдельно, без records_dir и retrieval flags"
+                )
             print(_prepare_hybrid())
             return 0
         if args.strict and not args.check:
             raise CliError("--strict используется только вместе с --check")
         if args.lexical and not args.query:
             raise CliError("--lexical используется только вместе с --query")
-        if args.corpus is None:
+        if args.records_dir is None:
             raise CliError("укажите папку `_ops/chat-recall` или используйте --prepare")
-        if not args.corpus.is_dir():
-            raise CliError(f"нет папки: {args.corpus}")
+        if not args.records_dir.is_dir():
+            raise CliError(f"нет папки: {args.records_dir}")
         if not args.show:
             _validate_bounds(args.limit, args.max_chars)
-        records, diagnostic_count = load(args.corpus)
+        records, diagnostic_count = load(args.records_dir)
         total = len(records)
         inventory_mode = not any(
             (
