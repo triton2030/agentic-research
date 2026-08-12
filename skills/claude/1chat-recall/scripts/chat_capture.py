@@ -436,7 +436,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--type", required=True, dest="type_")
     parser.add_argument("--topic", required=True)
     parser.add_argument("--kind", choices=KINDS, default="quote")
-    parser.add_argument("--source-timestamp", required=True)
+    parser.add_argument(
+        "--source-timestamp",
+        help=(
+            "when the owner said it; omit only when writing in the same turn — "
+            "the write time is then the right mark. For backfill pass it explicitly"
+        ),
+    )
     parser.add_argument(
         "--context-note",
         help=(
@@ -472,7 +478,12 @@ def main() -> int:
             )
         if context and args.kind == "note":
             raise CaptureError("--context-note cannot be attached to --kind note")
-        source = source_timestamp(args.source_timestamp)
+        implicit_now = args.source_timestamp is None
+        source = source_timestamp(
+            args.source_timestamp
+            if not implicit_now
+            else datetime.now().astimezone().replace(microsecond=0).isoformat()
+        )
         if source.precision == "unknown" and args.kind != "note":
             raise CaptureError(
                 "unknown timestamp is repair-only; capture must pass at least a "
@@ -516,6 +527,12 @@ def main() -> int:
             )
             written = True
         print(f"{'appended to' if written else 'already present in'} {path}")
+        if written and implicit_now:
+            print(
+                "note: source-timestamp not given — used the write time "
+                f"({source.rendered}). Correct for a same-turn capture; "
+                "for backfill pass --source-timestamp explicitly"
+            )
         if written and args.kind == "quote":
             print(CONTEXT_NOTE_REMINDER)
         return 0

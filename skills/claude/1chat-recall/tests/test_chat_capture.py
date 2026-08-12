@@ -368,16 +368,20 @@ class ChatCaptureTests(unittest.TestCase):
         self.assertIn("Earlier quote", recovered)
 
     def test_timestamp_accepts_date_and_minute_rejects_unknown_for_quote(self) -> None:
-        missing = self.run_capture(
+        omitted = self.run_capture(
             "Без даты",
             "факт",
             "документация-и-знания",
             env=self.claude_env(),
             source_timestamp=None,
-            expect_ok=False,
         )
-        self.assertEqual(missing.returncode, 2)
-        self.assertIn("--source-timestamp", missing.stderr)
+        self.assertEqual(omitted.returncode, 0)
+        self.assertIn("used the write time", omitted.stdout)
+        self.assertIn("for backfill pass --source-timestamp", omitted.stdout)
+        written = self.recall_files()[0].read_text(encoding="utf-8")
+        self.assertRegex(written, r"\* \d{4}-\d{2}-\d{2}T[\d:]+[+-]\d{2}:\d{2} — \"Без даты\"")
+        for path in self.recall_files():
+            path.unlink()
 
         for label, value in (
             ("minute", "2001-02-03T04:05:06"),
