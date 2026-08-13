@@ -6,27 +6,19 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 usage() {
   cat <<'USAGE'
 Usage:
-  run-clean-design-agent.sh --run-dir DIR --questions FILE [--url URL]
+  run-clean-design-agent.sh --run-dir DIR --questions FILE [options]
 
-Runs clean Codex terminal design reviewers:
-  1. multiple focused reviewers per planned screenshot group (2-3 images each);
-  2. one clean aggregate reviewer over the focused outputs.
+Runs one clean Codex reviewer for each ready question in manifest.json.
+There is no lens multiplication and no aggregate reviewer.
 
 Options:
-  --run-dir DIR       Existing design-review run directory with manifest.json.
-  --questions FILE    Markdown questions file.
-  --brief FILE        Optional design direction brief. Default: <run-dir>/design-brief.md if present.
-  --comments-ledger FILE
-                     Optional project-local review-comment ledger, passed only to the aggregate reviewer.
-  --url URL           Captured page URL, added to prompts.
-  --model NAME        Codex model. Default: gpt-5.6-sol.
-  --effort LEVEL      model_reasoning_effort. Default: high.
-  --parallel N        Focused reviewers to run at once. Default: 3.
-  --progress-interval N
-                     Seconds between progress heartbeats. Default: 10.
-  --out FILE          Aggregate output markdown. Default: <run-dir>/design-review.md.
-  --dry-run           Build prompts and selected image lists, but do not call Codex.
-  -h, --help          Show this help.
+  --run-dir DIR     Existing run directory with manifest.json.
+  --questions FILE  Clean reviewer contract.
+  --model NAME      Codex model. Default: gpt-5.6-sol.
+  --effort LEVEL    Reasoning effort. Default: high.
+  --parallel N      Maximum concurrent reviewers. Default: 3.
+  --dry-run         Build prompts and print task/image mapping without Codex.
+  -h, --help        Show this help.
 USAGE
 }
 
@@ -37,29 +29,18 @@ die() {
 
 RUN_DIR=""
 QUESTIONS=""
-BRIEF=""
-COMMENTS_LEDGER=""
-URL=""
 MODEL="${DESIGN_REVIEW_MODEL:-gpt-5.6-sol}"
 EFFORT="${DESIGN_REVIEW_EFFORT:-high}"
 PARALLEL="3"
-PROGRESS_INTERVAL="10"
-OUT_FILE=""
 DRY_RUN=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --run-dir) RUN_DIR="${2:-}"; shift 2 ;;
     --questions) QUESTIONS="${2:-}"; shift 2 ;;
-    --brief) BRIEF="${2:-}"; shift 2 ;;
-    --comments-ledger) COMMENTS_LEDGER="${2:-}"; shift 2 ;;
-    --url) URL="${2:-}"; shift 2 ;;
     --model) MODEL="${2:-}"; shift 2 ;;
     --effort) EFFORT="${2:-}"; shift 2 ;;
     --parallel) PARALLEL="${2:-}"; shift 2 ;;
-    --progress-interval) PROGRESS_INTERVAL="${2:-}"; shift 2 ;;
-    --max-images) shift 2 ;; # Backward-compatible no-op; groups own image count.
-    --out) OUT_FILE="${2:-}"; shift 2 ;;
     --dry-run) DRY_RUN=1; shift ;;
     -h|--help) usage; exit 0 ;;
     *) die "unknown argument: $1" ;;
@@ -70,94 +51,27 @@ done
 [[ -n "$QUESTIONS" ]] || die "--questions is required"
 [[ -d "$RUN_DIR" ]] || die "run-dir not found: $RUN_DIR"
 [[ -f "$QUESTIONS" ]] || die "questions file not found: $QUESTIONS"
-if [[ -z "$BRIEF" && -f "$RUN_DIR/design-brief.md" ]]; then
-  BRIEF="$RUN_DIR/design-brief.md"
-fi
-[[ -z "$BRIEF" || -f "$BRIEF" ]] || die "brief file not found: $BRIEF"
-[[ -z "$COMMENTS_LEDGER" || -f "$COMMENTS_LEDGER" ]] || die "comments ledger not found: $COMMENTS_LEDGER"
-[[ "$PARALLEL" =~ ^[0-9]+$ ]] || die "--parallel must be a positive integer"
-[[ "$PARALLEL" -gt 0 ]] || die "--parallel must be > 0"
-[[ "$PROGRESS_INTERVAL" =~ ^[0-9]+$ ]] || die "--progress-interval must be a positive integer"
-[[ "$PROGRESS_INTERVAL" -gt 0 ]] || die "--progress-interval must be > 0"
+[[ "$PARALLEL" =~ ^[0-9]+$ && "$PARALLEL" -gt 0 ]] || die "--parallel must be a positive integer"
 command -v codex >/dev/null 2>&1 || die "codex CLI not found"
 
 RUN_DIR="$(cd "$RUN_DIR" && pwd)"
 QUESTIONS="$(cd "$(dirname "$QUESTIONS")" && pwd)/$(basename "$QUESTIONS")"
-if [[ -n "$BRIEF" ]]; then
-  BRIEF="$(cd "$(dirname "$BRIEF")" && pwd)/$(basename "$BRIEF")"
-fi
-if [[ -n "$COMMENTS_LEDGER" ]]; then
-  COMMENTS_LEDGER="$(cd "$(dirname "$COMMENTS_LEDGER")" && pwd)/$(basename "$COMMENTS_LEDGER")"
-fi
-OUT_FILE="${OUT_FILE:-$RUN_DIR/design-review.md}"
-AUTH_SOURCE="${CODEX_AUTH_JSON:-$HOME/.codex/auth.json}"
+AUTH_SOURCE="${CODEX_AUTH_JSON:-${CODEX_HOME:-$HOME/.codex}/auth.json}"
 [[ -f "$AUTH_SOURCE" ]] || die "Codex auth file not found: $AUTH_SOURCE"
 
-node -e '
-const fs = require("fs");
-const manifestPath = `${process.argv[1]}/manifest.json`;
-const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
-const failures = Array.isArray(manifest.failures) ? manifest.failures : [];
-if (failures.length > 0) {
-  console.error(`manifest has ${failures.length} capture failure(s); rerun capture before review`);
-  process.exit(1);
-}
-' "$RUN_DIR" || die "manifest contains capture failures"
-
-prepare_group_args=(--run-dir "$RUN_DIR" --questions "$QUESTIONS")
-if [[ -n "$BRIEF" ]]; then
-  prepare_group_args+=(--brief "$BRIEF")
-fi
-if [[ -n "$URL" ]]; then
-  prepare_group_args+=(--url "$URL")
-fi
-GROUP_INDEX="$("$SCRIPT_DIR/prepare-design-review-groups.mjs" "${prepare_group_args[@]}")"
-PROGRESS_CMD=(node "$SCRIPT_DIR/design-review-progress.mjs")
-PROGRESS_MD="$("${PROGRESS_CMD[@]}" init \
-  --run-dir "$RUN_DIR" \
-  --index "$GROUP_INDEX" \
-  --parallel "$PARALLEL")"
+TASK_INDEX="$("$SCRIPT_DIR/prepare-design-review-tasks.mjs"   --run-dir "$RUN_DIR"   --questions "$QUESTIONS")"
 
 if [[ "$DRY_RUN" == "1" ]]; then
-  printf '[run-clean-design-agent] dry-run group index: %s\n' "$GROUP_INDEX"
-  printf '[run-clean-design-agent] dry-run progress file: %s\n' "$PROGRESS_MD"
+  printf '[run-clean-design-agent] dry-run task index: %s\n' "$TASK_INDEX"
+  node -e '
+    const fs = require("fs");
+    const index = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+    for (const task of index.tasks) {
+      console.log([task.id, task.evidenceIds.join(","), task.images.join(",")].join("\t"));
+    }
+  ' "$TASK_INDEX"
   exit 0
 fi
-
-progress_update() {
-  "${PROGRESS_CMD[@]}" "$@" --run-dir "$RUN_DIR" >/dev/null
-}
-
-progress_summary() {
-  "${PROGRESS_CMD[@]}" summary --run-dir "$RUN_DIR"
-}
-
-progress_heartbeat() {
-  "${PROGRESS_CMD[@]}" heartbeat --run-dir "$RUN_DIR" >/dev/null
-  progress_summary
-}
-
-HEARTBEAT_PID=""
-
-stop_heartbeat() {
-  if [[ -n "${HEARTBEAT_PID:-}" ]]; then
-    kill "$HEARTBEAT_PID" >/dev/null 2>&1 || true
-    wait "$HEARTBEAT_PID" >/dev/null 2>&1 || true
-    HEARTBEAT_PID=""
-  fi
-}
-
-start_heartbeat() {
-  (
-    while true; do
-      sleep "$PROGRESS_INTERVAL"
-      progress_heartbeat
-    done
-  ) &
-  HEARTBEAT_PID="$!"
-}
-
-trap stop_heartbeat EXIT
 
 run_clean_codex() {
   local prompt_file="$1"
@@ -165,9 +79,9 @@ run_clean_codex() {
   local log_file="$3"
   shift 3
   local images=("$@")
-
   local clean_home
   local clean_cwd
+
   clean_home="$(mktemp -d "${TMPDIR:-/tmp}/codex-design-review-home.XXXXXX")"
   clean_cwd="$(mktemp -d "${TMPDIR:-/tmp}/codex-design-review-cwd.XXXXXX")"
   ln -s "$AUTH_SOURCE" "$clean_home/auth.json"
@@ -185,6 +99,7 @@ run_clean_codex() {
     -c "model_reasoning_effort=\"$EFFORT\""
     --output-last-message "$output_file"
   )
+  local image
   for image in "${images[@]}"; do
     cmd+=(-i "$image")
   done
@@ -200,160 +115,145 @@ run_clean_codex() {
   ) >"$log_file" 2>&1
 }
 
-status_file_for_group() {
-  local group_id="$1"
-  printf '%s.status' "$(printf '%s' "$group_id" | sed 's/[^A-Za-z0-9_.-]/_/g')"
+status_name() {
+  printf '%s.status' "$(printf '%s' "$1" | sed 's/[^A-Za-z0-9_.-]/_/g')"
 }
 
-write_group_status() {
-  local status_file="$1"
-  local exit_code="$2"
-  local tmp_file="${status_file}.$$.$RANDOM.tmp"
-  printf '%s\n' "$exit_code" > "$tmp_file"
-  mv "$tmp_file" "$status_file"
-}
-
-run_group_reviewer() {
-  local group_id="$1"
+run_task() {
+  local task_id="$1"
   local prompt="$2"
   local output="$3"
   local log="$4"
   shift 4
   local images=("$@")
-  local exit_code
   local status_file
-
-  status_file="$TASK_STATUS_DIR/$(status_file_for_group "$group_id")"
-  trap 'write_group_status "$status_file" "$?"' EXIT
+  local exit_code=0
+  status_file="$STATUS_DIR/$(status_name "$task_id")"
 
   set +e
   run_clean_codex "$prompt" "$output" "$log" "${images[@]}"
   exit_code="$?"
   set -e
-
-  if [[ "$exit_code" -eq 0 ]]; then
-    progress_update group --id "$group_id" --status done --exit-code 0
-    return 0
-  fi
-
-  progress_update group --id "$group_id" --status failed --exit-code "$exit_code"
+  printf '%s\n' "$exit_code" > "${status_file}.tmp"
+  mv "${status_file}.tmp" "$status_file"
   return "$exit_code"
 }
 
-wait_for_completed_group() {
+wait_for_one() {
   local index
-  local pid
   local status_file
   local exit_code
-
   while true; do
     for index in "${!pids[@]}"; do
-      status_file="$TASK_STATUS_DIR/$(status_file_for_group "${groups[$index]}")"
+      status_file="$STATUS_DIR/$(status_name "${task_ids[$index]}")"
       if [[ ! -f "$status_file" ]]; then
         continue
       fi
-
-      pid="${pids[$index]}"
       exit_code="$(cat "$status_file")"
-      wait "$pid" >/dev/null 2>&1 || true
-      rm -f "$status_file"
-      unset 'pids[index]'
-      unset 'groups[index]'
-      pids=("${pids[@]}")
-      groups=("${groups[@]}")
-      active=$((active - 1))
+      wait "${pids[$index]}" >/dev/null 2>&1 || true
       if [[ "$exit_code" != "0" ]]; then
         failures=$((failures + 1))
+        printf '[run-clean-design-agent] failed task=%s log=%s\n'           "${task_ids[$index]}" "${logs[$index]}" >&2
+      else
+        printf '[run-clean-design-agent] done task=%s\n' "${task_ids[$index]}"
       fi
-      progress_summary
+      unset 'pids[index]'
+      unset 'task_ids[index]'
+      unset 'logs[index]'
+      pids=("${pids[@]}")
+      task_ids=("${task_ids[@]}")
+      logs=("${logs[@]}")
+      active=$((active - 1))
       return
     done
     sleep 0.2
   done
 }
 
+STATUS_DIR="$RUN_DIR/reviewers/.status"
+mkdir -p "$STATUS_DIR"
+find "$STATUS_DIR" -type f -name '*.status' -delete
+
 active=0
 failures=0
 pids=()
-groups=()
-TASK_STATUS_DIR="$RUN_DIR/group-reviews/.task-status"
-rm -rf "$TASK_STATUS_DIR"
-mkdir -p "$TASK_STATUS_DIR"
+task_ids=()
+logs=()
 
-printf '[run-clean-design-agent] progress file: %s\n' "$PROGRESS_MD"
-printf '[run-clean-design-agent] comments ledger: %s\n' "${COMMENTS_LEDGER:-"(none)"}"
-progress_summary
-start_heartbeat
-
-while IFS=$'\t' read -r group_id prompt output log images_json; do
+while IFS=$'\t' read -r task_id prompt output log images_json; do
   images=()
   while IFS= read -r image; do
     [[ -n "$image" ]] && images+=("$image")
   done < <(node -e 'for (const item of JSON.parse(process.argv[1])) console.log(item)' "$images_json")
 
-  printf '[run-clean-design-agent] start group=%s images=%s\n' "$group_id" "${#images[@]}"
-  run_group_reviewer "$group_id" "$prompt" "$output" "$log" "${images[@]}" &
-  progress_update group --id "$group_id" --status running --pid "$!"
+  printf '[run-clean-design-agent] start task=%s images=%s\n' "$task_id" "${#images[@]}"
+  run_task "$task_id" "$prompt" "$output" "$log" "${images[@]}" &
   pids+=("$!")
-  groups+=("$group_id")
+  task_ids+=("$task_id")
+  logs+=("$log")
   active=$((active + 1))
-
   if [[ "$active" -ge "$PARALLEL" ]]; then
-    wait_for_completed_group
+    wait_for_one
   fi
 done < <(node -e '
-const fs = require("fs");
-const index = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
-for (const group of index.groups) {
-  console.log([group.id, group.prompt, group.output, group.log, JSON.stringify(group.images)].join("\t"));
-}
-' "$GROUP_INDEX")
+  const fs = require("fs");
+  const index = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+  for (const task of index.tasks) {
+    console.log([task.id, task.prompt, task.output, task.log, JSON.stringify(task.images)].join("\t"));
+  }
+' "$TASK_INDEX")
 
 while [[ "$active" -gt 0 ]]; do
-  wait_for_completed_group
+  wait_for_one
 done
 
-if [[ "$failures" -gt 0 ]]; then
-  progress_update stage --stage failed
-  stop_heartbeat
-  progress_summary
-  printf '[run-clean-design-agent] %s focused reviewer(s) failed\n' "$failures" >&2
-  find "$RUN_DIR/group-reviews" -name codex.log -maxdepth 3 -print >&2
+final_failures="$(
+node - "$TASK_INDEX" "$STATUS_DIR" <<'NODE'
+const fs = require("fs");
+const path = require("path");
+const [indexPath, statusDir] = process.argv.slice(2);
+const index = JSON.parse(fs.readFileSync(indexPath, "utf8"));
+for (const task of index.tasks) {
+  const name = task.id.replace(/[^A-Za-z0-9_.-]/g, "_") + ".status";
+  const statusPath = path.join(statusDir, name);
+  const exitCode = fs.existsSync(statusPath) ? Number(fs.readFileSync(statusPath, "utf8").trim()) : null;
+  task.exitCode = exitCode;
+  task.status = exitCode === 0 && fs.existsSync(task.output) ? "done" : "failed";
+}
+fs.writeFileSync(indexPath, JSON.stringify(index, null, 2) + "\n");
+const summary = {
+  version: 1,
+  generatedAt: new Date().toISOString(),
+  tasks: index.tasks.map(({ id, evidenceIds, output, log, status, exitCode }) => ({
+    id,
+    evidenceIds,
+    output,
+    log,
+    status,
+    exitCode,
+  })),
+};
+fs.writeFileSync(path.join(path.dirname(indexPath), "summary.json"), JSON.stringify(summary, null, 2) + "\n");
+console.log(summary.tasks.filter((task) => task.status === "failed").length);
+NODE
+)"
+
+if [[ "$final_failures" -gt 0 ]]; then
+  printf '[run-clean-design-agent] %s reviewer task(s) failed or produced no output\n' +    "$final_failures" >&2
+  node -e '
+    const fs = require("fs");
+    const index = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+    for (const task of index.tasks.filter((item) => item.status === "failed")) {
+      console.error([
+        "task=" + task.id,
+        "output=" + task.output,
+        "log=" + task.log,
+        "exit=" + task.exitCode,
+      ].join(" "));
+    }
+  ' "$TASK_INDEX"
   exit 1
 fi
 
-prepare_aggregate_args=(--aggregate --run-dir "$RUN_DIR" --questions "$QUESTIONS")
-if [[ -n "$BRIEF" ]]; then
-  prepare_aggregate_args+=(--brief "$BRIEF")
-fi
-if [[ -n "$COMMENTS_LEDGER" ]]; then
-  prepare_aggregate_args+=(--comments-ledger "$COMMENTS_LEDGER")
-fi
-if [[ -n "$URL" ]]; then
-  prepare_aggregate_args+=(--url "$URL")
-fi
-AGGREGATE_PROMPT="$("$SCRIPT_DIR/prepare-design-review-groups.mjs" "${prepare_aggregate_args[@]}")"
-
-AGGREGATE_LOG="$RUN_DIR/aggregate-codex.log"
-progress_update stage --stage aggregate-review
-progress_update aggregate --status running --output "$OUT_FILE" --log "$AGGREGATE_LOG"
-progress_summary
-
-if run_clean_codex "$AGGREGATE_PROMPT" "$OUT_FILE" "$AGGREGATE_LOG"; then
-  progress_update aggregate --status done --exit-code 0
-  progress_update stage --stage complete
-else
-  aggregate_exit="$?"
-  progress_update aggregate --status failed --exit-code "$aggregate_exit"
-  progress_update stage --stage failed
-  stop_heartbeat
-  progress_summary
-  exit "$aggregate_exit"
-fi
-
-stop_heartbeat
-progress_summary
-
-printf '[run-clean-design-agent] aggregate review written: %s\n' "$OUT_FILE"
-printf '[run-clean-design-agent] group reviews: %s\n' "$RUN_DIR/group-reviews"
-printf '[run-clean-design-agent] aggregate log: %s\n' "$AGGREGATE_LOG"
+printf '[run-clean-design-agent] reviews complete: %s\n' "$RUN_DIR/reviewers"
+printf '[run-clean-design-agent] root must now re-open exact pixels and adjudicate every candidate\n'

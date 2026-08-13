@@ -7,55 +7,29 @@ SKILL_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 usage() {
   cat <<'USAGE'
 Usage:
-  design-review --url URL --plan screenshot-plan.json [--project DIR] [--label NAME]
-  design-review --review-only --run-dir DIR
-  design-review --capture-only --url URL --plan screenshot-plan.json [--project DIR]
-  design-review --auto-capture --capture-only --url URL [--project DIR]
+  design-review --plan FILE [--project DIR] [--url URL] [--capture-only]
+  design-review --review-only --run-dir DIR [--parallel N]
 
-Captures UI screenshot evidence into:
-  <project>/_workspace/design-review/<timestamp>-<label>/
-
-Without --capture-only, runs clean terminal Codex reviewers over planned 2-3 screenshot groups.
+Plan version 2 produces narrow screenshot evidence and one clean task per
+question. The script never captures a tall full-page image and never runs a
+blind aggregate reviewer.
 
 Options:
-  --url URL                  Live page URL to capture.
-  --plan FILE                Main-agent curated screenshot plan. Required unless --auto-capture or --review-only.
-  --auto-capture             Explicit capture-only fallback: broad scroll capture without a plan.
-  --project DIR              Project under review. Default: current directory.
-  --run-dir DIR              Existing or target run directory.
-  --label NAME               Optional run label used in the directory name.
-  --questions FILE           Markdown question contract. Default: skill questions.md.
-  --brief FILE               Optional design direction brief. Default: <run-dir>/design-brief.md if present.
-  --comments-ledger FILE     Optional project-local review-comment ledger for aggregate iteration memory.
-  --interactions FILE        JSON interaction plan for clicked/expanded states.
-  --profiles LIST            Comma-separated profiles. Default: desktop-1440,mobile-iphone,mobile-android.
-  --settle-ms N              Wait after load/scroll/click. Default: 1200.
-  --max-shots-per-profile N  Capture cap per profile before interactions. Default: 36.
-  --max-images N             Images attached to the clean agent. Default: 28.
-  --parallel N               Focused reviewers to run at once. Default: 3.
-  --progress-interval N      Seconds between review progress heartbeats. Default: 10.
-  --model NAME               Codex model for clean reviewer. Default: gpt-5.6-sol.
-  --effort LEVEL             model_reasoning_effort. Default: high.
-  --capture-only             Only capture screenshots and ledgers.
-  --review-only              Only run the clean reviewer on an existing run-dir.
-  --dry-run                  Print planned paths/commands without capture or review.
-  -h, --help                 Show this help.
-
-Plan shape:
-  {
-    "url": "http://localhost:3000",
-    "groups": [
-      {
-        "id": "hero-to-color",
-        "purpose": "first fold and transition into token overview",
-        "shots": [
-          {"name":"desktop-hero","profile":"desktop-1440","scrollY":0},
-          {"name":"desktop-bridge","profile":"desktop-1440","scrollY":420},
-          {"name":"mobile-hero","profile":"mobile-iphone","scrollY":0}
-        ]
-      }
-    ]
-  }
+  --plan FILE        Curated plan version 2.
+  --project DIR      Project receiving _workspace/design-review artifacts.
+                     Default: current directory.
+  --run-dir DIR      Exact run directory. Required for --review-only.
+  --label NAME       Run directory suffix.
+  --url URL          Fallback URL for a URL source without url.
+  --questions FILE   Reviewer contract. Default: skill questions.md.
+  --settle-ms N      Post-load/action settle delay. Default: 350.
+  --parallel N       Maximum concurrent clean reviewers. Default: 3.
+  --model NAME       Reviewer model. Default: gpt-5.6-sol.
+  --effort LEVEL     Reviewer reasoning effort. Default: high.
+  --capture-only     Capture and derive evidence; do not launch reviewers.
+  --review-only      Review a successful existing run.
+  --dry-run          Print resolved route without capture or reviewers.
+  -h, --help         Show this help.
 USAGE
 }
 
@@ -64,68 +38,30 @@ die() {
   exit 2
 }
 
-run_capture_script() {
-  if node -e "require.resolve('playwright')" >/dev/null 2>&1; then
-    PLAYWRIGHT_MODULE_ROOT="$(pwd)" node "${capture_cmd[@]}"
-    return
-  fi
-
-  command -v npm >/dev/null 2>&1 || die "npm not found; install Node.js/npm or install Playwright in the project"
-  runner_dir="$RUN_DIR/.playwright-runner"
-  mkdir -p "$runner_dir"
-  if [[ ! -d "$runner_dir/node_modules/playwright" ]]; then
-    printf '[design-review] installing private Playwright runner in %s\n' "$runner_dir" >&2
-    (
-      cd "$runner_dir"
-      if [[ ! -f package.json ]]; then
-        printf '%s\n' '{"private":true,"name":"design-review-playwright-runner","version":"0.0.0"}' > package.json
-      fi
-      npm install playwright@latest --no-audit --no-fund
-    )
-  fi
-  PLAYWRIGHT_MODULE_ROOT="$runner_dir" node "${capture_cmd[@]}"
-}
-
 PROJECT="$(pwd)"
-URL=""
 PLAN=""
 RUN_DIR=""
 LABEL=""
+URL=""
 QUESTIONS="$SKILL_DIR/questions.md"
-BRIEF=""
-COMMENTS_LEDGER=""
-INTERACTIONS=""
-PROFILES="desktop-1440,mobile-iphone,mobile-android"
-SETTLE_MS="1200"
-MAX_SHOTS_PER_PROFILE="36"
-MAX_IMAGES="28"
+SETTLE_MS="350"
 PARALLEL="3"
-PROGRESS_INTERVAL="10"
 MODEL="${DESIGN_REVIEW_MODEL:-gpt-5.6-sol}"
 EFFORT="${DESIGN_REVIEW_EFFORT:-high}"
 CAPTURE_ONLY=0
 REVIEW_ONLY=0
-AUTO_CAPTURE=0
 DRY_RUN=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --url) URL="${2:-}"; shift 2 ;;
     --plan) PLAN="${2:-}"; shift 2 ;;
-    --auto-capture) AUTO_CAPTURE=1; shift ;;
     --project) PROJECT="${2:-}"; shift 2 ;;
     --run-dir) RUN_DIR="${2:-}"; shift 2 ;;
     --label) LABEL="${2:-}"; shift 2 ;;
+    --url) URL="${2:-}"; shift 2 ;;
     --questions) QUESTIONS="${2:-}"; shift 2 ;;
-    --brief) BRIEF="${2:-}"; shift 2 ;;
-    --comments-ledger) COMMENTS_LEDGER="${2:-}"; shift 2 ;;
-    --interactions) INTERACTIONS="${2:-}"; shift 2 ;;
-    --profiles) PROFILES="${2:-}"; shift 2 ;;
     --settle-ms) SETTLE_MS="${2:-}"; shift 2 ;;
-    --max-shots-per-profile) MAX_SHOTS_PER_PROFILE="${2:-}"; shift 2 ;;
-    --max-images) MAX_IMAGES="${2:-}"; shift 2 ;;
     --parallel) PARALLEL="${2:-}"; shift 2 ;;
-    --progress-interval) PROGRESS_INTERVAL="${2:-}"; shift 2 ;;
     --model) MODEL="${2:-}"; shift 2 ;;
     --effort) EFFORT="${2:-}"; shift 2 ;;
     --capture-only) CAPTURE_ONLY=1; shift ;;
@@ -136,21 +72,29 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-[[ "$CAPTURE_ONLY" == "1" && "$REVIEW_ONLY" == "1" ]] && die "choose capture-only or review-only, not both"
-[[ "$AUTO_CAPTURE" == "1" && -n "$PLAN" ]] && die "choose --plan or --auto-capture, not both"
-[[ "$AUTO_CAPTURE" == "1" && "$CAPTURE_ONLY" == "0" ]] && die "--auto-capture is capture-only fallback; write --plan for clean review"
+[[ "$CAPTURE_ONLY" == "1" && "$REVIEW_ONLY" == "1" ]] && die "choose capture-only or review-only"
+[[ -d "$PROJECT" ]] || die "project directory not found: $PROJECT"
 [[ -f "$QUESTIONS" ]] || die "questions file not found: $QUESTIONS"
-[[ -z "$BRIEF" || -f "$BRIEF" ]] || die "brief file not found: $BRIEF"
-[[ "$PARALLEL" =~ ^[0-9]+$ ]] || die "--parallel must be a positive integer"
-[[ "$PARALLEL" -gt 0 ]] || die "--parallel must be > 0"
-[[ "$PROGRESS_INTERVAL" =~ ^[0-9]+$ ]] || die "--progress-interval must be a positive integer"
-[[ "$PROGRESS_INTERVAL" -gt 0 ]] || die "--progress-interval must be > 0"
+[[ "$PARALLEL" =~ ^[0-9]+$ && "$PARALLEL" -gt 0 ]] || die "--parallel must be a positive integer"
+[[ "$SETTLE_MS" =~ ^[0-9]+$ ]] || die "--settle-ms must be a non-negative integer"
 
 PROJECT="$(cd "$PROJECT" && pwd)"
+QUESTIONS="$(cd "$(dirname "$QUESTIONS")" && pwd)/$(basename "$QUESTIONS")"
+
+if [[ "$REVIEW_ONLY" == "0" ]]; then
+  [[ -n "$PLAN" ]] || die "--plan is required for capture"
+  case "$PLAN" in
+    /*) ;;
+    *) PLAN="$PROJECT/$PLAN" ;;
+  esac
+  [[ -f "$PLAN" ]] || die "plan file not found: $PLAN"
+  PLAN="$(cd "$(dirname "$PLAN")" && pwd)/$(basename "$PLAN")"
+fi
 
 if [[ -z "$RUN_DIR" ]]; then
+  [[ "$REVIEW_ONLY" == "0" ]] || die "--review-only requires --run-dir"
   stamp="$(date -u +%Y%m%dT%H%M%SZ)"
-  safe_label="$(printf '%s' "$LABEL" | tr -cs '[:alnum:]_.-' '-' | sed 's/^-//; s/-$//')"
+  safe_label="$(printf '%s' "$LABEL" | tr -cs '[:alnum:]_.-' '-' | sed 's/^-//;s/-$//')"
   if [[ -n "$safe_label" ]]; then
     RUN_DIR="$PROJECT/_workspace/design-review/$stamp-$safe_label"
   else
@@ -163,73 +107,42 @@ else
   esac
 fi
 
-if [[ "$REVIEW_ONLY" == "0" && -z "$URL" ]]; then
-  die "--url is required unless --review-only is used"
-fi
-
-if [[ "$REVIEW_ONLY" == "0" && "$AUTO_CAPTURE" == "0" && -z "$PLAN" ]]; then
-  die "--plan is required. Inspect the page first, write a curated screenshot plan, or pass --auto-capture explicitly as a fallback."
-fi
-
-if [[ -n "$PLAN" ]]; then
-  case "$PLAN" in
-    /*) ;;
-    *) PLAN="$PROJECT/$PLAN" ;;
-  esac
-  [[ -f "$PLAN" ]] || die "plan file not found: $PLAN"
-fi
-
-if [[ -n "$COMMENTS_LEDGER" ]]; then
-  case "$COMMENTS_LEDGER" in
-    /*) ;;
-    *) COMMENTS_LEDGER="$PROJECT/$COMMENTS_LEDGER" ;;
-  esac
-  [[ -f "$COMMENTS_LEDGER" ]] || die "comments ledger not found: $COMMENTS_LEDGER"
-fi
-
-if [[ "$REVIEW_ONLY" == "1" && ! -d "$RUN_DIR" ]]; then
-  die "--review-only requires an existing --run-dir"
-fi
-
 printf '[design-review] project: %s\n' "$PROJECT"
 printf '[design-review] run_dir: %s\n' "$RUN_DIR"
-printf '[design-review] questions: %s\n' "$QUESTIONS"
-printf '[design-review] brief: %s\n' "${BRIEF:-"(none; auto-uses run-dir design-brief.md if present)"}"
-printf '[design-review] comments_ledger: %s\n' "${COMMENTS_LEDGER:-"(none)"}"
-if [[ -n "$PLAN" ]]; then
-  printf '[design-review] plan: %s\n' "$PLAN"
-fi
+printf '[design-review] plan: %s\n' "${PLAN:-"(existing manifest)"}"
+printf '[design-review] route: capture_only=%s review_only=%s parallel=%s\n'   "$CAPTURE_ONLY" "$REVIEW_ONLY" "$PARALLEL"
 
 if [[ "$DRY_RUN" == "1" ]]; then
-  printf '[design-review] dry_run: capture_only=%s review_only=%s auto_capture=%s url=%s profiles=%s parallel=%s progress_interval=%s\n' \
-    "$CAPTURE_ONLY" "$REVIEW_ONLY" "$AUTO_CAPTURE" "${URL:-"(none)"}" "$PROFILES" "$PARALLEL" "$PROGRESS_INTERVAL"
   exit 0
 fi
 
-mkdir -p "$RUN_DIR"
-
 if [[ "$REVIEW_ONLY" == "0" ]]; then
-  capture_cmd=(
-    "$SCRIPT_DIR/capture-design-screenshots.mjs"
-    --url "$URL"
+  module_root=""
+  for candidate in "$SKILL_DIR/node_modules" "$PROJECT/node_modules"; do
+    if [[ -d "$candidate/playwright" ]]; then
+      module_root="$candidate"
+      break
+    fi
+  done
+  if [[ -z "$module_root" ]] && command -v npm >/dev/null 2>&1; then
+    global_root="$(npm root -g 2>/dev/null || true)"
+    if [[ -n "$global_root" && -d "$global_root/playwright" ]]; then
+      module_root="$global_root"
+    fi
+  fi
+  [[ -n "$module_root" ]] || die "Playwright runtime not found; install it in the skill/project or expose an existing npm module root"
+
+  mkdir -p "$RUN_DIR"
+  capture=(
+    node "$SCRIPT_DIR/capture-design-screenshots.mjs"
+    --plan "$PLAN"
     --out-dir "$RUN_DIR"
     --settle-ms "$SETTLE_MS"
-    --progress-interval "$PROGRESS_INTERVAL"
   )
-  if [[ -n "$PLAN" ]]; then
-    capture_cmd+=(--plan "$PLAN")
-  else
-    capture_cmd+=(
-      --auto-capture
-      --profiles "$PROFILES"
-      --max-shots-per-profile "$MAX_SHOTS_PER_PROFILE"
-    )
+  if [[ -n "$URL" ]]; then
+    capture+=(--url "$URL")
   fi
-  if [[ -n "$INTERACTIONS" && "$AUTO_CAPTURE" == "1" ]]; then
-    capture_cmd+=(--interactions "$INTERACTIONS")
-  fi
-
-  run_capture_script
+  PLAYWRIGHT_MODULE_ROOT="$module_root" "${capture[@]}"
 fi
 
 if [[ "$CAPTURE_ONLY" == "1" ]]; then
@@ -237,24 +150,11 @@ if [[ "$CAPTURE_ONLY" == "1" ]]; then
   exit 0
 fi
 
-review_cmd=(
-  "$SCRIPT_DIR/run-clean-design-agent.sh"
-  --run-dir "$RUN_DIR"
-  --questions "$QUESTIONS"
-)
-if [[ -n "$BRIEF" ]]; then
-  review_cmd+=(--brief "$BRIEF")
-fi
-if [[ -n "$COMMENTS_LEDGER" ]]; then
-  review_cmd+=(--comments-ledger "$COMMENTS_LEDGER")
-fi
-review_cmd+=(
-  --url "$URL"
-  --model "$MODEL"
+"$SCRIPT_DIR/run-clean-design-agent.sh" \
+  --run-dir "$RUN_DIR" \
+  --questions "$QUESTIONS" \
+  --parallel "$PARALLEL" \
+  --model "$MODEL" \
   --effort "$EFFORT"
-  --max-images "$MAX_IMAGES"
-  --parallel "$PARALLEL"
-  --progress-interval "$PROGRESS_INTERVAL"
-)
 
-"${review_cmd[@]}"
+printf '[design-review] focused reviews complete; root adjudication remains: %s\n' "$RUN_DIR"

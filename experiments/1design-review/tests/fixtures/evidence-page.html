@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Design evidence fixture</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; color: #1e2430; background: #f8f4eb; font-family: Arial, sans-serif; }
+    #hero { min-height: 680px; display: grid; grid-template-columns: 1.1fr .9fr; gap: 48px; align-items: center; padding: 72px 96px; background: #172238; color: #f7eed9; }
+    #hero-copy { max-width: 680px; display: grid; gap: 22px; }
+    h1 { margin: 0; font-family: Georgia, serif; font-size: 72px; line-height: .98; }
+    p { margin: 0; font-size: 22px; line-height: 1.48; }
+    #button-family { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    button { min-height: 48px; border: 1px solid #c58f50; border-radius: 999px; padding: 12px 22px; color: #172238; background: #e9b978; font: 700 16px/1 Arial, sans-serif; }
+    button.secondary { color: #f7eed9; background: transparent; }
+    #portrait { height: 460px; border-radius: 32px; background: linear-gradient(145deg, #c58f50, #59412f); box-shadow: 0 30px 70px #0006; }
+    #feature { min-height: 720px; padding: 80px 96px; background: #f8f4eb; }
+    #feature-layout { display: grid; gap: 34px; padding: 42px; border: 1px solid #b4aa9b; }
+    #cards { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; padding: 26px; background: #efe5d3; }
+    .card { display: grid; gap: 12px; min-height: 180px; padding: 24px 30px; background: white; }
+    .card h2 { margin: 0; font: 42px/1.05 Georgia, serif; }
+    .card p { font-size: 17px; }
+  </style>
+</head>
+<body>
+  <section id="hero">
+    <div id="hero-copy">
+      <h1>A precise visual review starts with the right evidence.</h1>
+      <p>Each artifact isolates one design question while preserving enough context to judge the visible relationship.</p>
+      <div id="button-family">
+        <button id="button-primary">Primary action</button>
+        <button id="button-secondary" class="secondary">Secondary</button>
+        <button id="button-short">Short</button>
+        <button id="button-long" class="secondary">A longer action label</button>
+      </div>
+    </div>
+    <div id="portrait" aria-label="Decorative portrait placeholder"></div>
+  </section>
+  <section id="feature">
+    <div id="feature-layout">
+      <h2>One semantic block, one visual question</h2>
+      <div id="cards">
+        <article id="card-a" class="card"><h2>Density</h2><p>Text becomes red geometry on white.</p></article>
+        <article id="card-b" class="card"><h2>Spacing</h2><p>Padding and gaps become colored regions.</p></article>
+      </div>
+    </div>
+  </section>
+</body>
+</html>

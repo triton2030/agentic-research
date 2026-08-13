@@ -1,0 +1,37 @@
+{
+  "version": 2,
+  "context": {
+    "audience": "design tool evaluator",
+    "primaryAction": "verify the evidence pipeline",
+    "intendedCharacter": "clear and deliberate",
+    "tasteConstraints": ["strong hierarchy", "no accidental noise"]
+  },
+  "sources": [
+    {"id": "fixture", "type": "url", "url": "__FIXTURE_URL__"}
+  ],
+  "evidence": [
+    {"id": "viewport-hero", "kind": "viewport", "sourceId": "fixture", "viewport": {"width": 1200, "height": 700, "deviceScaleFactor": 1}},
+    {"id": "transition-hero-feature", "kind": "transition", "sourceId": "fixture", "beforeSelector": "#hero", "afterSelector": "#feature", "viewport": {"width": 1200, "height": 700, "deviceScaleFactor": 1}},
+    {"id": "block-copy", "kind": "block", "sourceId": "fixture", "selectors": ["#hero-copy h1", "#hero-copy p"], "viewport": {"width": 1200, "height": 700, "deviceScaleFactor": 1}},
+    {"id": "family-buttons", "kind": "family", "sourceId": "fixture", "members": [
+      {"id": "primary", "selector": "#button-primary"},
+      {"id": "secondary", "selector": "#button-secondary"},
+      {"id": "short", "selector": "#button-short"},
+      {"id": "long", "selector": "#button-long"}
+    ], "viewport": {"width": 1200, "height": 700, "deviceScaleFactor": 1}},
+    {"id": "density-copy", "kind": "text-density", "sourceId": "fixture", "selector": "#hero-copy", "viewport": {"width": 1200, "height": 700, "deviceScaleFactor": 1}},
+    {"id": "spacing-feature", "kind": "spacing", "sourceId": "fixture", "selector": "#feature-layout", "containers": [
+      {"id": "cards", "selector": "#cards"},
+      {"id": "card-a", "selector": "#card-a"},
+      {"id": "card-b", "selector": "#card-b"}
+    ], "viewport": {"width": 1200, "height": 700, "deviceScaleFactor": 1}}
+  ],
+  "tasks": [
+    {"id": "t-viewport", "question": "Does the first viewport have a clear focal hierarchy?", "evidenceIds": ["viewport-hero"], "decision": "whole-frame orientation"},
+    {"id": "t-transition", "question": "Does the boundary preserve visual continuity?", "evidenceIds": ["transition-hero-feature"], "decision": "section transition"},
+    {"id": "t-block", "question": "Does the heading and paragraph read as one coherent block?", "evidenceIds": ["block-copy"], "decision": "semantic block"},
+    {"id": "t-family", "question": "Does this button family read as one system?", "evidenceIds": ["family-buttons"], "decision": "component family"},
+    {"id": "t-density", "question": "Is text load balanced against free space?", "evidenceIds": ["density-copy"], "decision": "text density"},
+    {"id": "t-spacing", "question": "Do nested padding and gaps form a deliberate rhythm?", "evidenceIds": ["spacing-feature"], "decision": "spacing map"}
+  ]
+}
