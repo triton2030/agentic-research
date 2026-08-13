@@ -1,0 +1,11 @@
+interface:
+  display_name: "Recraft Images"
+  short_description: "Генерирует и сохраняет изображения через Recraft"
+  default_prompt: "Используй $recraft-images, чтобы создать изображение через Recraft, сохранить результат в Workspace/Recraft и сообщить остаток кредитов."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "recraft"
+      description: "Recraft image generation and editing MCP server"
+policy:
+  allow_implicit_invocation: true
