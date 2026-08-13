@@ -108,11 +108,12 @@ contrast, pixel или tap-target thresholds требуют отдельного
 5. Создай evidence по references/evidence-protocol.md. Для live UI bundled
    scripts/design-review исполняет этот contract; supplied screenshots
    используют image sources и явные rects только для derived artifacts. В
-   проектной задаче держи artifacts в
-   `<project>/Workspace/Design/Screenshots/<label>/`. Для projectless screenshot
-   используй отдельный temporary run directory и верни его exact path. Открой
-   manifest и каждый PNG; неверный target, state, crop или diagnostic исправь
-   до fanout.
+   проектной задаче держи весь run в
+   `<project>/_workspace/design/1design-review/<MM-DD>/<run-id>/`: PNG, manifest,
+   reviewer logs/reports и adjudication не разноси по другим папкам. Для
+   projectless screenshot используй отдельный temporary run directory и верни
+   его exact path. Открой manifest и каждый PNG; неверный target, state, crop
+   или diagnostic исправь до fanout.
 6. Запусти по одной clean task на каждый независимый question. Reviewer видит
    только назначенный evidence packet, question, минимальные audience, primary
    action, intended character и taste constraints и questions.md; не видит chat

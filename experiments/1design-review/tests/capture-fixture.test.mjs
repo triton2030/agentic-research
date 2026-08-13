@@ -9,6 +9,7 @@ import { createRequire } from "node:module";
 import { execFileSync, spawn } from "node:child_process";
 
 const packageRoot = path.resolve(import.meta.dirname, "..");
+const entryScript = path.join(packageRoot, "scripts", "design-review");
 const captureScript = path.join(packageRoot, "scripts", "capture-design-screenshots.mjs");
 const prepareScript = path.join(packageRoot, "scripts", "prepare-design-review-tasks.mjs");
 const runnerScript = path.join(packageRoot, "scripts", "run-clean-design-agent.sh");
@@ -92,6 +93,27 @@ function run(command, args, options = {}) {
     child.on("close", (status) => resolve({ status, stdout, stderr }));
   });
 }
+
+test("CLI resolves project runs under the skill-name and MM-DD hierarchy", async () => {
+  const projectRoot = await fs.mkdtemp(path.join(os.tmpdir(), "design-review-route-"));
+  const planPath = path.join(projectRoot, "plan.json");
+  await fs.writeFile(planPath, "{}\n");
+
+  const result = await run(
+    "bash",
+    [entryScript, "--project", projectRoot, "--plan", planPath, "--label", "route", "--dry-run"],
+  );
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  const runLine = result.stdout
+    .split("\n")
+    .find((line) => line.startsWith("[design-review] run_dir: "));
+  assert.ok(runLine, result.stdout);
+  const runDir = runLine.slice("[design-review] run_dir: ".length);
+  assert.match(
+    runDir,
+    /\/_workspace\/design\/1design-review\/\d{2}-\d{2}\/\d{8}T\d{6}-route$/,
+  );
+});
 
 test("fixture produces all six evidence kinds, diagnostic colors, collage, and one task per question", async (t) => {
   const moduleRoot = playwrightRoot();

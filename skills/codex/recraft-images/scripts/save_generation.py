@@ -17,25 +17,10 @@ import urllib.request
 from datetime import date, datetime
 from pathlib import Path
 
-MONTHS = (
-    "января",
-    "февраля",
-    "марта",
-    "апреля",
-    "мая",
-    "июня",
-    "июля",
-    "августа",
-    "сентября",
-    "октября",
-    "ноября",
-    "декабря",
-)
-
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Save Recraft image outputs under Workspace/Design/Recraft."
+        description="Save Recraft outputs under _workspace/design/recraft-images."
     )
     parser.add_argument(
         "--project-root",
@@ -74,9 +59,9 @@ def slugify(value: str) -> str:
 
 
 def day_directory(project_root: Path, generation_date: date) -> Path:
-    folder = f"{generation_date.day}-{MONTHS[generation_date.month - 1]}"
+    folder = generation_date.strftime("%m-%d")
     destination = (
-        project_root.resolve() / "Workspace" / "Design" / "Recraft" / folder
+        project_root.resolve() / "_workspace" / "design" / "recraft-images" / folder
     )
     destination.mkdir(parents=True, exist_ok=True)
     return destination

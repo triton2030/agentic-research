@@ -30,3 +30,14 @@
 - Структурные проверки: `npm run check`,
   system `quick_validate.py`, Markdown lint и projection parity выполняются
   перед commit.
+
+## Итерация: project-local design namespace
+
+- Owner correction:
+  `_ops/chat-recall/2026-08-13-153240-codex-019ffa9f.md:25-26`.
+- `npm test` → 8/8. Новый route-test доказал default path
+  `_workspace/design/1design-review/MM-DD/<run-id>`; fixture повторно создал
+  все шесть evidence kinds и проверил diagnostic colors и collage pixels.
+- `shellcheck scripts/design-review scripts/run-clean-design-agent.sh` → exit 0.
+- Старый Kumysbekov proof оставлен на историческом пути: миграция существующих
+  артефактов не входила в коррекцию.

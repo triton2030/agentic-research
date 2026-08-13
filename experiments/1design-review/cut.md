@@ -24,3 +24,5 @@
   семантически нечестная картинка; modes физически разделены.
 - Все пары детей как spacing gaps — live visual gate показал ложные зоны;
   renderer оставляет только соседние элементы.
+- Старые design-review runs не переносятся в новую storage topology: правило
+  действует на новые project runs.

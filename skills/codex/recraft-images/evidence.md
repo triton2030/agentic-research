@@ -26,6 +26,17 @@
   absolute project root, exact Design Agent message provenance, durable owner
   addresses, selected SVG/one-output evidence, executed-test receipts.
 
+## Итерация: project-local design namespace
+
+- Owner correction:
+  `agentic-research/_ops/chat-recall/2026-08-13-153240-codex-019ffa9f.md:25-26`.
+- `python3 -m py_compile scripts/save_generation.py` → exit 0; `ruff check` →
+  `All checks passed!`.
+- Fresh temp-project smoke с датой `2026-08-13` реально создал
+  `_workspace/design/recraft-images/08-13/route-proof.png` и парный `.md`.
+- Старые output paths ниже сохранены как историческое evidence; существующие
+  файлы не переносились.
+
 ## Итерация: компиляция количественного намерения
 
 Owner correction: `_ops/chat-recall/2026-08-13-154355-Codex-019ffa9f.md:21-22`.

@@ -21,7 +21,7 @@ Recall владельца: `_ops/chat-recall/2026-08-13-153240-codex-019ffa9f.md
 | Manifest хранит provenance, но не scheduler state | Fresh Eyes Solvent; проверено live run |
 | Playwright + DOMRect/Range + browser-rendered SVG/HTML — единственный rendering runtime | Fresh Eyes Prospector; проверено fixture и Kumysbekov |
 | Итерация хранит open/fixed/rejected/deferred/routed | утверждённый владельцем V3; root adjudication contract |
-| Project screenshots хранятся в `Workspace/Design/Screenshots/` | владелец, `_ops/chat-recall/2026-08-13-165535-codex-019ffaf7.md:18-20` |
+| Весь project run хранится в `_workspace/design/1design-review/MM-DD/<run-id>/` | владелец, `_ops/chat-recall/2026-08-13-153240-codex-019ffa9f.md:25` |
 
 Точный runtime-текст V3 был предъявлен владельцу целиком и утверждён его
 сообщением «Отлично, создай этот скилл и потом проверь его на этом проекте».

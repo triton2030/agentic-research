@@ -19,6 +19,10 @@ Source root: `/Users/triton/Documents/My_projects/mavo-assets`.
 - `agentic-research/_ops/chat-recall/2026-08-13-165535-codex-019ffaf7.md:18-20`
   — общий корень дизайн-артефактов изменён на `Workspace/Design/`; Recraft
   сохраняет результаты внутри `Workspace/Design/Recraft/`.
+- `agentic-research/_ops/chat-recall/2026-08-13-153240-codex-019ffa9f.md:25-26`
+  — актуальная общая топология для файловых дизайн-скиллов:
+  `_workspace/design/<skill-name>/<MM-DD>/`; Recraft использует собственный
+  namespace `recraft-images`.
 
 ## Recraft
 
