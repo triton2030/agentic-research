@@ -16,7 +16,7 @@ blind aggregate reviewer.
 
 Options:
   --plan FILE        Curated plan version 2.
-  --project DIR      Project receiving _workspace/design-review artifacts.
+  --project DIR      Project receiving Workspace/Design/Screenshots artifacts.
                      Default: current directory.
   --run-dir DIR      Exact run directory. Required for --review-only.
   --label NAME       Run directory suffix.
@@ -96,9 +96,9 @@ if [[ -z "$RUN_DIR" ]]; then
   stamp="$(date -u +%Y%m%dT%H%M%SZ)"
   safe_label="$(printf '%s' "$LABEL" | tr -cs '[:alnum:]_.-' '-' | sed 's/^-//;s/-$//')"
   if [[ -n "$safe_label" ]]; then
-    RUN_DIR="$PROJECT/_workspace/design-review/$stamp-$safe_label"
+    RUN_DIR="$PROJECT/Workspace/Design/Screenshots/$stamp-$safe_label"
   else
-    RUN_DIR="$PROJECT/_workspace/design-review/$stamp"
+    RUN_DIR="$PROJECT/Workspace/Design/Screenshots/$stamp"
   fi
 else
   case "$RUN_DIR" in

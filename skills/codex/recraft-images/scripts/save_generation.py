@@ -35,7 +35,7 @@ MONTHS = (
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Save Recraft image outputs under Workspace/Recraft."
+        description="Save Recraft image outputs under Workspace/Design/Recraft."
     )
     parser.add_argument(
         "--project-root",
@@ -75,7 +75,9 @@ def slugify(value: str) -> str:
 
 def day_directory(project_root: Path, generation_date: date) -> Path:
     folder = f"{generation_date.day}-{MONTHS[generation_date.month - 1]}"
-    destination = project_root.resolve() / "Workspace" / "Recraft" / folder
+    destination = (
+        project_root.resolve() / "Workspace" / "Design" / "Recraft" / folder
+    )
     destination.mkdir(parents=True, exist_ok=True)
     return destination
 

@@ -16,6 +16,9 @@ Source root: `/Users/triton/Documents/My_projects/mavo-assets`.
 - `_ops/chat-recall/2026-08-13-154355-Codex-019ffa9f.md:21-22` — owner brief не
   копируется в prompt: количественное требование сначала переводится в слова,
   вызывающие нужный визуальный эффект.
+- `agentic-research/_ops/chat-recall/2026-08-13-165535-codex-019ffaf7.md:18-20`
+  — общий корень дизайн-артефактов изменён на `Workspace/Design/`; Recraft
+  сохраняет результаты внутри `Workspace/Design/Recraft/`.
 
 ## Recraft
 

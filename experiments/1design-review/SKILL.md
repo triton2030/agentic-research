@@ -109,7 +109,7 @@ contrast, pixel или tap-target thresholds требуют отдельного
    scripts/design-review исполняет этот contract; supplied screenshots
    используют image sources и явные rects только для derived artifacts. В
    проектной задаче держи artifacts в
-   `<project>/_workspace/design-review/<label>/`. Для projectless screenshot
+   `<project>/Workspace/Design/Screenshots/<label>/`. Для projectless screenshot
    используй отдельный temporary run directory и верни его exact path. Открой
    manifest и каждый PNG; неверный target, state, crop или diagnostic исправь
    до fanout.
