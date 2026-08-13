@@ -1,4 +1,4 @@
 interface:
-  display_name: "1 Аудит чтения интерфейса"
+  display_name: "1-Аудит чтения интерфейса"
   short_description: "Аудит порядка чтения страницы по коду"
   default_prompt: "Use $1ui-reading-audit to audit this page reading order from source code."
