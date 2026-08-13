@@ -7,6 +7,9 @@
 # Canonical knowledge corpus for semantic index/search/audit.
 # Code, runtime experiments, plans and scratch docs stay outside retrieval.
 include = ["knowledge/**"]
+# Цитаты владельца не уходят в сеть (product-frame 1chat-recall): эмбеддинги
+# md-tools считаются через openrouter. Их локальный поиск — chat_digest.py.
+exclude = ["_ops/chat-recall/**"]
 
 [graph]
 # Same: transcript logs are not part of the documentation graph; including
