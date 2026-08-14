@@ -571,18 +571,38 @@ def main() -> int:
         base = initial_git.git_head or "HEAD"
         try:
             for task in tasks:
-                trees.append(create_worker_tree(project, run_id, task.id, base=base))
+                trees.append(
+                    create_worker_tree(
+                        project, run_id, task.id, base=base, allowlist=set(task.files)
+                    )
+                )
         except WorktreeError as exc:
             # Полволны изолировать нельзя: часть воркеров писала бы в общее дерево,
-            # и атрибуция снова стала бы недоказуемой. Свернуть созданное и выйти.
-            close_wave(project, trees, allowlist, run_id=run_id, integrate=False, cleanup=True)
+            # и атрибуция снова стала бы недоказуемой. Свернуть созданное и выйти —
+            # Codex ещё не запускался, терять в деревьях нечего.
+            close_wave(project, trees, run_id=run_id, integrate=False, cleanup=True)
             print(f"[orch] worktree isolation failed: {exc}", file=sys.stderr)
             append_event(run_dir, "done", ok=False, worker_status="not_started", scope_status="unknown")
             return 2
         defaults["trees"] = {tree.task_id: tree for tree in trees}
         append_event(run_dir, "worktrees_ready", count=len(trees), base=base)
 
-    results = asyncio.run(_run_fleet(tasks, defaults, args.concurrency, args.heartbeat_sec))
+    try:
+        results = asyncio.run(_run_fleet(tasks, defaults, args.concurrency, args.heartbeat_sec))
+    except (KeyboardInterrupt, SystemExit):
+        # У async-пути нет штатного `turn/interrupt` (он есть только у синхронного
+        # `run_turn`), поэтому прерывание волны иначе оставляло бы деревья с
+        # незафиксированной работой — и её было бы нечем найти, кроме `git
+        # worktree list`. Фиксируем в ветках, деревья держим, ничего не вливаем.
+        if trees:
+            rescue = close_wave(project, trees, run_id=run_id, integrate=False, cleanup=False)
+            append_event(run_dir, "interrupt_requested", rescued=rescue["kept_branches"])
+            print(
+                "[orch] прервано: работа воркеров зафиксирована в ветках "
+                + ", ".join(rescue["kept_branches"] or ["(пусто)"]),
+                file=sys.stderr,
+            )
+        raise
 
     worker_status = "completed" if all(r["worker_status"] == "completed" for r in results) else "failed"
 
@@ -603,14 +623,20 @@ def main() -> int:
         # время волны — это работа оркестратора (recall, планы, артефакты), и
         # раньше они валили волну. Замер 2026-08-14: 68% записей out_of_scope по
         # 106 волнам были именно таким служебным шумом.
+        # Статус хода — шлюз интеграции: полуфабрикат упавшего воркера в проект не
+        # едет, но фиксируется в его ветке.
+        by_id = {record["id"]: record for record in results}
+        for tree in trees:
+            tree.worker_ok = by_id.get(tree.task_id, {}).get("worker_status") == "completed"
         try:
             wave = close_wave(
                 project,
                 trees,
-                allowlist,
                 run_id=run_id,
                 integrate=not args.no_integrate,
-                cleanup=not args.keep_worktrees,
+                # Уборка только когда работа забрана: снести дерево, не влив его,
+                # значит выбросить правки. `--no-integrate` держит деревья сам.
+                cleanup=not args.keep_worktrees and not args.no_integrate,
             )
         except WorktreeError as exc:
             wave = {

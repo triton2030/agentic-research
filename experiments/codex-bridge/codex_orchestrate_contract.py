@@ -49,6 +49,22 @@ def worker_status_from_codex_status(status: Any, error: Any) -> str:
     return "completed" if codex_turn_completed(status, error) else "failed"
 
 
+# `id` уходит и в путь worktree, и в имя git-ветки, поэтому проверяется по
+# худшему из двух наборов правил. Иначе диверсия не нужна: хватит id вида
+# `../x` или `feat/a`, чтобы прогон упал уже после создания части деревьев.
+_ID_FORBIDDEN = set(' \t\n/\\~^:?*[]{}@$!"\'`|<>&;()')
+
+
+def validate_task_id(task_id: str, seen: set[str]) -> None:
+    if task_id in seen:
+        raise UsageError(f"duplicate task id: {task_id}")
+    bad = sorted(_ID_FORBIDDEN & set(task_id))
+    if bad:
+        raise UsageError(f"{task_id}: id must not contain {' '.join(repr(c) for c in bad)}")
+    if task_id.startswith((".", "-")) or task_id.endswith((".", ".lock")) or ".." in task_id:
+        raise UsageError(f"{task_id}: id must be usable as a path and a git branch name")
+
+
 def paths_overlap(left: str, right: str) -> bool:
     return left == right or left.startswith(right + "/") or right.startswith(left + "/")
 
@@ -87,6 +103,7 @@ def normalize_tasks(project: Path, raw_tasks: Any) -> list[TaskSpec]:
 
     tasks: list[TaskSpec] = []
     owners: dict[str, str] = {}
+    seen_ids: set[str] = set()
     for index, task in enumerate(raw_tasks, start=1):
         if not isinstance(task, dict):
             raise UsageError(f"Task #{index} must be an object.")
@@ -101,6 +118,8 @@ def normalize_tasks(project: Path, raw_tasks: Any) -> list[TaskSpec]:
             task_id = raw_id.strip()
         else:
             raise UsageError(f"Task #{index}: id must be a non-empty string when provided.")
+        validate_task_id(task_id, seen_ids)
+        seen_ids.add(task_id)
 
         prompt = task.get("prompt")
         if not isinstance(prompt, str) or not prompt.strip():

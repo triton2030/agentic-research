@@ -44,6 +44,13 @@ class WorkerTree:
     path: Path
     branch: str
     base_commit: str
+    # Свой allowlist, не union волны: с union воркер A мог править файл воркера B,
+    # и правка проходила как in-scope — то самое, что изоляция должна была
+    # исключить.
+    allowlist: frozenset[str] = frozenset()
+    # Успех хода воркера. Дерево воркера, чей ход не завершился, не вливается:
+    # его правки — полуфабрикат, и статус хода обязан быть шлюзом интеграции.
+    worker_ok: bool = True
     changed_files: tuple[str, ...] = ()
     out_of_scope_files: tuple[str, ...] = ()
     commit: str | None = None
@@ -58,6 +65,7 @@ class WorkerTree:
             "worktree": str(self.path),
             "branch": self.branch,
             "base_commit": self.base_commit,
+            "worker_ok": self.worker_ok,
             "changed_files": list(self.changed_files),
             "out_of_scope_files": list(self.out_of_scope_files),
             "commit": self.commit,
@@ -86,7 +94,14 @@ def _nul_list(data: str) -> list[str]:
     return [part for part in data.split("\0") if part]
 
 
-def create_worker_tree(project: Path, run_id: str, task_id: str, *, base: str) -> WorkerTree:
+def create_worker_tree(
+    project: Path,
+    run_id: str,
+    task_id: str,
+    *,
+    base: str,
+    allowlist: set[str] | frozenset[str] = frozenset(),
+) -> WorkerTree:
     """Дерево воркера на новой ветке от `base`.
 
     Ветка, а не detached: работа забирается одним `git merge` и удаляется одной
@@ -98,30 +113,41 @@ def create_worker_tree(project: Path, run_id: str, task_id: str, *, base: str) -
     target.parent.mkdir(parents=True, exist_ok=True)
     branch = f"{BRANCH_PREFIX}/{run_id}/{task_id}"
     _git(project, "worktree", "add", "-b", branch, str(target), base, check=True)
-    return WorkerTree(task_id=task_id, path=target, branch=branch, base_commit=base)
+    return WorkerTree(
+        task_id=task_id,
+        path=target,
+        branch=branch,
+        base_commit=base,
+        allowlist=frozenset(allowlist),
+    )
 
 
-def collect_changes(tree: WorkerTree, allowlist: set[str]) -> None:
+def collect_changes(tree: WorkerTree) -> None:
     """Что воркер изменил в СВОЁМ дереве — это и есть атрибуция.
 
     Чужих правок внутри быть не может, поэтому деление changed/out_of_scope здесь
-    точное, в отличие от aggregate-чека по проекту.
+    точное, в отличие от aggregate-чека по проекту. Сверка идёт с ЕГО allowlist:
+    по union волны файл соседа считался бы своим.
     """
     tracked = _git(tree.path, "diff", "--name-only", "-z", "HEAD", "--", check=True)
     untracked = _git(tree.path, "ls-files", "--others", "--exclude-standard", "-z", "--", check=True)
     changed = sorted(set(_nul_list(tracked.stdout)) | set(_nul_list(untracked.stdout)))
     tree.changed_files = tuple(changed)
-    tree.out_of_scope_files = tuple(path for path in changed if path not in allowlist)
+    tree.out_of_scope_files = tuple(path for path in changed if path not in tree.allowlist)
 
 
-def commit_worker_tree(tree: WorkerTree, allowlist: set[str], *, message: str) -> None:
-    """Коммит ТОЛЬКО файлов из allowlist.
+def commit_worker_tree(tree: WorkerTree, *, message: str) -> None:
+    """Коммит ТОЛЬКО файлов из его allowlist.
 
     Точечный `git add -- <files>` вместо `add -A` защищает и scope, и диск:
     сборочный мусор воркера (node_modules, кэши) в коммит не идёт и уезжает с
     деревом. Именно он раздул `~/.codex/worktrees` до 7.3 ГБ к 2026-08-14.
+
+    Коммит делается и для провалившегося воркера: фиксация ≠ интеграция. Иначе
+    уборка снесла бы его дерево вместе с недоделанной работой, и разбирать было
+    бы нечего.
     """
-    in_scope = [path for path in tree.changed_files if path in allowlist]
+    in_scope = [path for path in tree.changed_files if path in tree.allowlist]
     if not in_scope:
         tree.integration_status = "empty"
         tree.notes.append("ни одного изменения в своём allowlist")
@@ -141,6 +167,21 @@ def integrate_worker_tree(project: Path, tree: WorkerTree) -> None:
     """
     if tree.commit is None:
         return
+    if not tree.worker_ok:
+        # Ход не завершился — правки полуфабрикат. Ветка с коммитом остаётся для
+        # разбора, в проект не идёт.
+        tree.integration_status = "held_failed_worker"
+        tree.notes.append(f"ход воркера не завершён; работа зафиксирована в {tree.branch}")
+        return
+    if tree.out_of_scope_files:
+        # Запись вне своего списка — сорванный контракт. Отбраковать её одну
+        # нельзя честно: воркер мог опираться на неё в файлах, которые в списке.
+        tree.integration_status = "held_out_of_scope"
+        tree.notes.append(
+            f"писал вне своего списка ({', '.join(tree.out_of_scope_files[:3])}); "
+            f"работа зафиксирована в {tree.branch}"
+        )
+        return
     merge = _git(project, "merge", "--no-ff", "--no-verify", "-m", f"codex fleet: {tree.task_id}", tree.branch)
     if merge.returncode == 0:
         tree.integration_status = "merged"
@@ -151,31 +192,43 @@ def integrate_worker_tree(project: Path, tree: WorkerTree) -> None:
     tree.notes.append(f"работа цела в ветке {tree.branch}, забрать вручную")
 
 
-def remove_worker_tree(project: Path, tree: WorkerTree, *, drop_branch: bool) -> None:
+def remove_worker_tree(project: Path, tree: WorkerTree) -> None:
     """Снести дерево; ветку — только когда работа уже забрана.
 
     `--force` нужен всегда: в дереве остаётся неотслеживаемый мусор воркера, без
     него git отказывается удалять непустой worktree.
+
+    Статус ставится по факту с диска, а не по факту вызова: неудачное удаление,
+    выданное за уборку, и есть тот молчаливый рост, из-за которого накопилось
+    7.3 ГБ.
     """
     _git(project, "worktree", "remove", "--force", str(tree.path))
     if tree.path.exists():
         shutil.rmtree(tree.path, ignore_errors=True)
     _git(project, "worktree", "prune")
 
-    if drop_branch and tree.integration_status in {"merged", "empty"}:
-        dropped = _git(project, "branch", "-D", tree.branch)
-        tree.cleanup_status = "removed" if dropped.returncode == 0 else "worktree_removed"
-    elif drop_branch:
+    if tree.path.exists():
+        tree.cleanup_status = "tree_stuck"
+        tree.notes.append(f"дерево не удалилось: {tree.path}")
+        return
+
+    work_is_home = tree.integration_status in {"merged", "empty"}
+    if not work_is_home:
         tree.cleanup_status = "branch_kept"
         tree.notes.append(f"ветка {tree.branch} оставлена: работа не в проекте")
+        return
+
+    dropped = _git(project, "branch", "-D", tree.branch)
+    if dropped.returncode == 0:
+        tree.cleanup_status = "removed"
     else:
-        tree.cleanup_status = "worktree_removed"
+        tree.cleanup_status = "branch_stuck"
+        tree.notes.append(f"ветка {tree.branch} не удалилась: {(dropped.stderr or '').strip()}")
 
 
 def close_wave(
     project: Path,
     trees: list[WorkerTree],
-    allowlist: set[str],
     *,
     run_id: str,
     integrate: bool,
@@ -186,34 +239,54 @@ def close_wave(
     Порядок не переставляется: пока работа не забрана, дерево и ветка не
     удаляются. Отказ на интеграции превращает уборку в «оставить ветку» — потеря
     правок дороже висящего worktree.
+
+    Коммит идёт всегда, даже когда интеграция не заказана: без него `--no-integrate`
+    вместе с уборкой снёс бы деревья с незафиксированной работой. Фиксация — не
+    интеграция.
     """
     for tree in trees:
-        collect_changes(tree, allowlist)
-        if integrate:
-            commit_worker_tree(tree, allowlist, message=f"codex fleet {run_id}: {tree.task_id}")
+        collect_changes(tree)
+        commit_worker_tree(tree, message=f"codex fleet {run_id}: {tree.task_id}")
 
     if integrate:
         for tree in trees:
             integrate_worker_tree(project, tree)
+    else:
+        for tree in trees:
+            if tree.integration_status == "pending":
+                tree.integration_status = "held"
 
     if cleanup:
         for tree in trees:
-            remove_worker_tree(project, tree, drop_branch=integrate)
+            remove_worker_tree(project, tree)
         run_home = FLEET_WORKTREE_HOME / run_id
         if run_home.exists() and not any(run_home.iterdir()):
             run_home.rmdir()
 
     conflicts = [t.task_id for t in trees if t.integration_status == "conflict"]
-    status = "held" if not integrate else ("conflict" if conflicts else "integrated")
+    held = [t.task_id for t in trees if t.integration_status.startswith("held")]
+    if not integrate:
+        status = "held"
+    elif conflicts or held:
+        status = "conflict" if conflicts else "partial"
+    else:
+        status = "integrated"
+
+    # Уборка честная: считается по факту с диска, а не по тому, что её просили.
+    stuck = [t.task_id for t in trees if t.cleanup_status in {"tree_stuck", "branch_stuck"}]
+    cleanup_done = cleanup and not stuck
     return {
         "isolation": "worktree",
         "integration_status": status,
         "merged": [t.task_id for t in trees if t.integration_status == "merged"],
         "conflicts": conflicts,
+        "held": held,
         "kept_branches": [
             t.branch for t in trees
-            if t.cleanup_status in {"branch_kept", "pending"} and t.integration_status != "empty"
+            if t.cleanup_status != "removed" and t.integration_status != "empty"
         ],
-        "cleanup_done": cleanup,
+        "cleanup_done": cleanup_done,
+        "cleanup_requested": cleanup,
+        "cleanup_stuck": stuck,
         "workers": [t.to_json() for t in trees],
     }
