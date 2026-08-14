@@ -653,6 +653,9 @@ def main() -> int:
     payload = {
         "run_id": run_id,
         "run_dir": str(run_dir),
+        # `status` читают сводка и доска: без него `codex_progress.py` печатал
+        # «status: None» на успешной волне и выглядел сломанным.
+        "status": "completed" if ok else "failed",
         "ok": ok,
         "fully_verified": verification_status == "passed",
         "codex": codex_runtime,

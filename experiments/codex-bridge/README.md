@@ -20,10 +20,12 @@
   postflight ловит project drift. Для «изучи X, собери данные, напиши отчёт»
   Codex складывает deliverables в `out/`, Claude забирает `result.json` и сливает
   фан-аут кодом. Как вызов субагента: транскрипт не тянется.
-- **Флот воркеров** (`codex_orchestrate.py`) — guarded shared-worktree
-  workspace-write. Claude как оркестратор раздаёт file-disjoint задачи, backend
-  валидирует контракт до запуска Codex, гонит N Codex параллельно (`AsyncCodex`
-  + лимит concurrency), пишет run ledger и проверяет aggregate postflight scope.
+- **Флот воркеров** (`codex_orchestrate.py`) — guarded workspace-write, по
+  умолчанию с worktree-изоляцией: каждый воркер работает в своём git worktree от
+  HEAD. Claude как оркестратор раздаёт file-disjoint задачи, backend валидирует
+  контракт до запуска Codex, гонит N Codex параллельно (`AsyncCodex` + лимит
+  concurrency), пишет run ledger, считает атрибуцию по дереву каждого воркера и в
+  том же прогоне забирает работу в проект и убирает деревья.
 
 Управляется глобальным скиллом **`1codex`** (`~/.claude/skills/1codex/`).
 
@@ -356,11 +358,12 @@ echo '[
 ```
 
 Вход — JSON-массив задач. `prompt` и `files` обязательны; `id` опционален;
-`allow_create: true` разрешает создание отсутствующего файла. `cwd` в задаче
-больше не поддерживается: все воркеры запускаются из `--project`. Unknown keys,
-не-bool `allow_create`, не-string `id`, absolute paths, `..`, пустые `files`,
-overlap между задачами и `concurrency < 1` падают до импорта Codex и до любых
-трат.
+`allow_create: true` разрешает создание отсутствующего файла; `subagents: true`
+разрешает воркеру делегировать внутри своего дерева. `cwd` в задаче не
+поддерживается: cwd воркера задаёт backend — его worktree в режиме изоляции либо
+`--project` в shared. Unknown keys, не-bool `allow_create`/`subagents`,
+не-string `id`, absolute paths, `..`, пустые `files`, overlap между задачами и
+`concurrency < 1` падают до импорта Codex и до любых трат.
 
 Выход в stdout — JSON object. По умолчанию он остаётся полным и включает
 результаты воркеров. С `--summary-stdout` stdout становится компактным:
@@ -393,8 +396,25 @@ run_dir и его collapsed-предков (`_workspace/`) — своя площ
 - **Verification отдельно.** `worker_status=completed` не равно done.
   `--verify CMD` даёт `verification_status=passed`; без verify статус
   `not_requested`, а `fully_verified=false`.
-- **Shared-worktree limitation.** Этот режим не доказывает, какой именно worker
-  изменил файл. Worktree isolation и patch reducer — следующий слой, не v1.
+- **Worktree-изоляция по умолчанию.** `--isolation worktree` (default) заводит
+  воркеру git worktree от HEAD под `~/.codex-bridge/worktrees/<run_id>/<task_id>`
+  на ветке `codex-fleet/<run_id>/<task_id>`. Следствия: атрибуция считается в его
+  дереве, запись вне allowlist в проект не попадает, а параллельная запись
+  оркестратора в основное дерево волну не валит — она уходит информационным полем
+  `wave.main_tree_drift`. `scope_status` в этом режиме строится по per-worker
+  атрибуции и по успеху интеграции. `--isolation shared` — прежний режим с
+  aggregate-чеком, для задач, которым нужно видеть правки друг друга; цена
+  изоляции — выкладка рабочего дерева на воркера.
+- **Закрытие волны в том же прогоне.** Собрать изменения → коммит ТОЛЬКО файлов
+  allowlist (мусор воркера остаётся в дереве) → `merge --no-ff` на воркера →
+  снести деревья и ветки. Незабранная работа не удаляется никогда: конфликт
+  откатывает merge, оставляет ветку в `wave.kept_branches` и валит `ok`.
+  `--no-integrate` останавливается на коммитах в ветках, `--keep-worktrees`
+  оставляет деревья для разбора. Инвентарь и ручная уборка — готовым
+  `git worktree list/remove/prune`; мост их не оборачивает.
+- **`subagents: true` в задаче.** Кладёт воркеру разрешение делить свою работу на
+  собственных субагентов (движок молчит про них, пока явно не попросят).
+  Осмысленно только в изолированном дереве — иначе его субагенты пишут в общее.
 
 ## Карта кода
 

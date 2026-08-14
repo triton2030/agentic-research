@@ -75,11 +75,26 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
   исключение — диалог ревьюера `--dialog`/`--continue`: персистентный тред
   (resume требует rollout на диске), обязательный авто-run_dir и
   provenance-реестр `dialog-threads.jsonl`; см. README «Консультант / ревьюер».
-- **Воркер пишет под контрактом.** `codex_orchestrate.py` — `workspace_write` +
-  `auto_review`; `files` обязательны и enforced preflight/postflight. Не ставь
-  `Sandbox.full_access` default-ом: изменения вне project/git scope нельзя
-  честно проверить postflight allowlist. Shared worktree не доказывает
-  per-worker attribution; worktree isolation остаётся Stage 2.
+- **Воркер пишет под контрактом, по умолчанию в своём дереве.**
+  `codex_orchestrate.py` — `workspace_write` + `auto_review`; `files` обязательны
+  и enforced preflight/postflight. Не ставь `Sandbox.full_access` default-ом:
+  изменения вне project/git scope нельзя честно проверить postflight allowlist.
+  `--isolation worktree` (default) даёт воркеру отдельный git worktree от HEAD:
+  атрибуция становится фактом, запись вне allowlist отбраковывается вместе с
+  деревом, а параллельная запись оркестратора в основное дерево перестаёт валить
+  волну (замер 2026-08-14: 41 провал `scope_status` из 106 боевых волн, 68%
+  записей `out_of_scope_files` — служебные файлы оркестратора). Вердикт
+  `scope_status` в этом режиме строится по per-worker атрибуции, а дрейф
+  основного дерева уходит информационным полем `wave.main_tree_drift`.
+  `--isolation shared` — прежнее поведение с aggregate-чеком, для задач, которым
+  нужно видеть правки друг друга.
+- **Волна закрывается в том же прогоне.** Собрать → коммит только файлов
+  allowlist → `merge --no-ff` на воркера → снести деревья и ветки; порядок не
+  переставляется, и незабранная работа никогда не удаляется (конфликт оставляет
+  ветку и валит `ok`). Уборка не опция: дерево — выкладка проекта, и мусор
+  копится молча (7.3 ГБ в `~/.codex/worktrees` за три дня к 2026-08-14).
+  Инвентарь и ручную уборку мост НЕ оборачивает — это готовый `git worktree`;
+  не заводи для них второй интерфейс.
 - **Дрейф движка не роняет мост.** ChatGPT.app авто-обновляется, SDK запинен —
   неизвестные enum-значения ломали pydantic-валидацию в обоих направлениях:
   исходящий `--effort ultra` (07.2026) и `max` в ответе `thread_start`
@@ -142,8 +157,11 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
 - `codex_investigate.py` — исследователь: deliverables в `run_dir/out`,
   built-in filesystem также допускает system temp; project drift ловит
   postflight. Uniform `result.json` c `artifacts` и `scope_status`.
-- `codex_orchestrate.py` — entrypoint/runner для guarded shared-worktree пула
-  воркеров (`AsyncCodex` + semaphore).
+- `codex_orchestrate.py` — entrypoint/runner для guarded пула воркеров
+  (`AsyncCodex` + semaphore), по умолчанию с worktree-изоляцией.
+- `codex_worktrees.py` — дерево на воркера и закрытие волны: атрибуция, коммит
+  только allowlist, merge, уборка. Порядок и защиты — здесь; инвентарь и разбор
+  конфликтов остаются готовому git.
 - `codex_recall.py` — глубокий recall по корпусу цитат владельца одним вызовом
   для Claude и Codex; владеет промптом, чтобы обе стороны спрашивали одинаково.
   Ревьюер на `luna`+`xhigh`, `--no-dialog`; тактику поиска модели не диктует.
