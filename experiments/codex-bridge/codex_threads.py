@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
-"""Статусная доска диалоговых тредов Codex: list / archive / unarchive.
+"""Статусная доска тредов Codex: list / mine / archive / unarchive.
 
-Источник — append-only реестр `<project>/_workspace/codex-artifacts/
+Источник `list` — append-only реестр `<project>/_workspace/codex-artifacts/
 dialog-threads.jsonl` (события start/continue/archive/unarchive; legacy-строки
 без "event" читаются как start). `list` не трогает SDK и Codex — чистое
 чтение; `archive`/`unarchive` зовут штатные SDK-вызовы (env scrub перед
 импортом SDK — биллинг-инвариант), никаких ручных удалений в `~/.codex`.
+
+`mine` — вторая, более широкая оптика: нативный `thread_list` движка, то есть
+общий store `~/.codex`, включая сессии владельца в Codex Desktop и терминале,
+которых в реестре моста нет вовсе. Только чтение, кредитов не тратит.
 
 Зачем: новый или параллельный агент видит тематику и свежесть чужих диалогов,
 не читая переписку; «где остановились» — final.md последнего run (упавший ход
@@ -170,6 +174,70 @@ def _open_sdk(project_cwd: Path):
     return Codex(CodexConfig(cwd=str(project_cwd), codex_bin=resolve_codex_bin()))
 
 
+def cmd_mine(project_cwd: Path, as_json: bool, limit: int, all_projects: bool) -> int:
+    """Нативные треды движка — включая те, в которых владелец работает сам.
+
+    Доска моста (`list`) знает только треды, заведённые мостом в этом проекте:
+    сессии Codex Desktop и `codex` в терминале туда не попадают вообще. Здесь
+    читается общий store `~/.codex` — тот же, что видит Desktop. Только чтение,
+    кредитов не тратит.
+    """
+    with _open_sdk(project_cwd) as codex:
+        resp = codex.thread_list(
+            limit=limit, sort_key="updated_at", sort_direction="desc"
+        )
+    rows = []
+    for item in resp.data:
+        t = item.model_dump() if hasattr(item, "model_dump") else dict(item)
+        cwd = str(t.get("cwd") or "")
+        if not all_projects and cwd and not cwd.startswith(str(project_cwd)):
+            continue
+        rows.append({
+            "thread_id": t.get("id"),
+            "name": t.get("name"),
+            "cwd": cwd,
+            "branch": (t.get("git_info") or {}).get("branch"),
+            "updated_at": _epoch_iso(t.get("updated_at") or t.get("created_at")),
+            "ephemeral": t.get("ephemeral"),
+            "forked_from_id": t.get("forked_from_id"),
+        })
+
+    if as_json:
+        print(json.dumps(rows, ensure_ascii=False, indent=2))
+        return 0
+    if not rows:
+        scope = "во всём store" if all_projects else f"в {project_cwd}"
+        print(f"Нативных тредов {scope} не найдено (показаны последние {limit}).")
+        return 0
+    print(f"Треды движка ({'все проекты' if all_projects else project_cwd}):\n")
+    for r in rows:
+        mark = " [ephemeral]" if r["ephemeral"] else ""
+        fork = f"  ← форк {r['forked_from_id'][:8]}" if r["forked_from_id"] else ""
+        print(
+            f"{r['thread_id']}{mark}{fork}\n"
+            f"  {r['name'] or '(без имени)'}\n"
+            f"  {r['updated_at'] or '?'}  {r['cwd'] or '—'}"
+            f"{' (' + r['branch'] + ')' if r['branch'] else ''}"
+        )
+    print(
+        '\nЧужой тред продолжается только осознанно: codex_review.py "..." '
+        "--continue THREAD_ID --continue-foreign. Живой тред другой сессии не трогай."
+    )
+    return 0
+
+
+def _epoch_iso(value) -> str | None:
+    """Движок отдаёт время треда unix-секундами; доска моста живёт в ISO."""
+    if value is None:
+        return None
+    try:
+        return datetime.fromtimestamp(int(value), timezone.utc).astimezone().isoformat(
+            timespec="minutes"
+        )
+    except (TypeError, ValueError, OSError):
+        return str(value)
+
+
 def cmd_archive(
     project_cwd: Path, thread_id: str | None, stale: bool, older_hours: int
 ) -> int:
@@ -232,7 +300,7 @@ def cmd_unarchive(project_cwd: Path, thread_id: str) -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("list", "archive", "unarchive"))
+    parser.add_argument("command", choices=("list", "mine", "archive", "unarchive"))
     parser.add_argument("thread_id", nargs="?", help="THREAD_ID для archive/unarchive.")
     parser.add_argument("--project", default=".", help="Корень проекта (default cwd).")
     parser.add_argument("--stale", action="store_true", help="archive: все треды старше --older-hours.")
@@ -240,14 +308,25 @@ def main() -> int:
         "--older-hours", type=int, default=STALE_HOURS_DEFAULT,
         help=f"Порог свежести в часах (default {STALE_HOURS_DEFAULT} — правило «старше двух дней»).",
     )
-    parser.add_argument("--json", action="store_true", help="list: JSON вместо текста.")
+    parser.add_argument("--json", action="store_true", help="list/mine: JSON вместо текста.")
+    parser.add_argument(
+        "--limit", type=int, default=25,
+        help="mine: сколько последних тредов движка запросить (default 25).",
+    )
+    parser.add_argument(
+        "--all-projects", action="store_true",
+        help="mine: не фильтровать по текущему проекту.",
+    )
     args = parser.parse_args()
 
     if args.older_hours <= 0:
         print("--older-hours должен быть > 0.", file=sys.stderr)
         return 2
-    if args.command == "list" and args.thread_id:
-        print("list не принимает THREAD_ID.", file=sys.stderr)
+    if args.command in ("list", "mine") and args.thread_id:
+        print(f"{args.command} не принимает THREAD_ID.", file=sys.stderr)
+        return 2
+    if args.command == "mine" and args.limit <= 0:
+        print("--limit должен быть > 0.", file=sys.stderr)
         return 2
     if args.command == "archive" and bool(args.thread_id) == args.stale:
         print("archive: укажи ровно одно из THREAD_ID или --stale.", file=sys.stderr)
@@ -259,6 +338,8 @@ def main() -> int:
     project_cwd = Path(args.project).expanduser().resolve()
     if args.command == "list":
         return cmd_list(project_cwd, args.json, args.older_hours)
+    if args.command == "mine":
+        return cmd_mine(project_cwd, args.json, args.limit, args.all_projects)
     if args.command == "archive":
         return cmd_archive(project_cwd, args.thread_id, args.stale, args.older_hours)
     return cmd_unarchive(project_cwd, args.thread_id)
