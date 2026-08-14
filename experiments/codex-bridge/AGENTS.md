@@ -16,12 +16,13 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
   любого codex-процесса. Не убирай и не обходи — это защита от ухода на платный
   API. Любой новый вход (скрипт/режим) обязан звать его первым.
 - **Модель и effort фиксируются backend-ом; tier — нет.** Default для всех
-  Codex turns: `model=gpt-5.6-sol`, `effort=medium` — явно в каждом
+  Codex turns: `model=gpt-5.6-sol`, `effort=xhigh` — явно в каждом
   `thread_start` + `thread_resume` + `thread.turn`, независимо от дрейфа
-  `~/.codex/config.toml`. Ярусы вызова (владелец, 2026-07-27):
-  `sol`+`medium` — основной, писать и работать параллельно; `sol`+`xhigh` и
-  выше — только сложное, где надо думать; `terra`+`medium` — простая механика
-  (перестал быть исключением `md-scout`). Service tier мост по умолчанию НЕ шлёт (вердикт
+  `~/.codex/config.toml`. Ярусы вызова (владелец, 2026-08-14, разворот его же
+  решения 2026-07-27): `sol`+`xhigh` — дефолт на всё; `max`/`ultra` — глубже
+  дефолта и переходят в диалог; `luna` — только тупые и большие задания.
+  `terra` доступен явным `--model` (дефолт `md-scout`), штатным ярусом моста
+  быть перестал. Service tier мост по умолчанию НЕ шлёт (вердикт
   владельца 2026-07-25, снят форсинг fast от 2026-07-20): `None` опускается
   SDK (`exclude_none`), движок наследует tier из config; `features.fast_mode`
   через `config_overrides` тоже не форсится. `--service-tier` — только
@@ -131,7 +132,7 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
   ChatGPT.app не роняет мост.
 - `codex_retry.py` — ретрай стартовых вызовов под перегрузкой движка (sync +
   async), события `retry` в ledger.
-- `codex_defaults.py` — ярусы вызова и runtime default (`gpt-5.6-sol`+`medium`),
+- `codex_defaults.py` — ярусы вызова и runtime default (`gpt-5.6-sol`+`xhigh`),
   `HEAVY_EFFORTS`, sandbox и
   approval labels для ledger/docs, `BRIDGE_THREAD_EPHEMERAL`.
 - `codex_review.py` — консультант/ревьюер с built-in filesystem read-only.
@@ -143,6 +144,9 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
   postflight. Uniform `result.json` c `artifacts` и `scope_status`.
 - `codex_orchestrate.py` — entrypoint/runner для guarded shared-worktree пула
   воркеров (`AsyncCodex` + semaphore).
+- `codex_recall.py` — глубокий recall по корпусу цитат владельца одним вызовом
+  для Claude и Codex; владеет промптом, чтобы обе стороны спрашивали одинаково.
+  Ревьюер на `luna`+`xhigh`, `--no-dialog`; тактику поиска модели не диктует.
 - `codex_orchestrate_contract.py` — pure schema/path/status contract:
   обязательные `prompt`/`files`, exact file allowlist, overlap и status mapping.
 - `codex_run_ledger.py` — журнал прогона: `run_dir`, события, пульс, атомарная

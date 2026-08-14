@@ -318,7 +318,7 @@ class CodexReviewCliTests(unittest.TestCase):
             self.assertEqual(payload["status"], "validated")
             self.assertEqual(payload["mode"], "ask")
             self.assertEqual(payload["codex"]["model"], "gpt-5.6-sol")
-            self.assertEqual(payload["codex"]["effort"], "medium")
+            self.assertEqual(payload["codex"]["effort"], "xhigh")
             self.assertIsNone(payload["codex"]["service_tier"])
             self.assertTrue(payload["codex"]["thread_ephemeral"])
             self.assertNotIn("final_response", payload)
@@ -490,7 +490,7 @@ class CodexReviewCliTests(unittest.TestCase):
             self.assertEqual(run_kwargs.get("sandbox"), "read_only")
             self.assertEqual(run_kwargs.get("approval_mode"), "deny_all")
             self.assertEqual(run_kwargs.get("model"), "gpt-5.6-sol")
-            self.assertEqual(run_kwargs.get("effort"), "medium")
+            self.assertEqual(run_kwargs.get("effort"), "xhigh")
             self.assertIsNone(run_kwargs.get("service_tier"))
         finally:
             sys.argv = saved_argv
@@ -821,12 +821,15 @@ class CodexReviewCliTests(unittest.TestCase):
     def test_heavy_effort_turns_into_dialog_and_no_dialog_opts_out(self) -> None:
         """Ярусы вызова: тяжёлое усилие — разговор, а не выстрел.
 
-        xhigh/max/ultra долго читают и думают, ценность приходит во втором
-        обмене, поэтому такой прогон сам заводит персистентный тред. Дефолтный
-        medium остаётся эфемерным одиночным вызовом."""
+        max/ultra долго читают и думают, ценность приходит во втором обмене,
+        поэтому такой прогон сам заводит персистентный тред. Дефолтный xhigh
+        (2026-08-14) остаётся эфемерным одиночным вызовом: автотред на ярусе
+        по умолчанию делал бы чат в Codex Desktop из каждого вызова моста."""
         import codex_review
 
-        for effort, expect_persistent in (("medium", False), ("xhigh", True), ("max", True)):
+        for effort, expect_persistent in (
+            ("medium", False), ("xhigh", False), ("max", True), ("ultra", True)
+        ):
             captured: dict = {}
             fake_names = _install_fake_openai_codex(captured)
             saved_argv = sys.argv[:]
@@ -855,7 +858,7 @@ class CodexReviewCliTests(unittest.TestCase):
             with tempfile.TemporaryDirectory() as tmp:
                 sys.argv = [
                     "codex_review.py", "--task", "вопрос",
-                    "--project", tmp, "--effort", "xhigh", "--no-dialog",
+                    "--project", tmp, "--effort", "max", "--no-dialog",
                 ]
                 with contextlib.redirect_stdout(io.StringIO()):
                     rc = codex_review.main()

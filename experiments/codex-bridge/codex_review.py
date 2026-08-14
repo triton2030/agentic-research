@@ -338,7 +338,12 @@ def main() -> int:
     parser.add_argument(
         "--effort",
         choices=REASONING_EFFORTS,
-        default=DEFAULT_CODEX_EFFORT,
+        # None-sentinel, а не готовый дефолт: mode=diff обязан отличать «усилие
+        # заказали явно» от «взяли дефолт». Сравнение с DEFAULT_CODEX_EFFORT для
+        # этого не годится — когда дефолтом стал xhigh (2026-08-14), явный
+        # `--effort xhigh` в diff-режиме перестал печатать предупреждение,
+        # и пользователь молча думал, что заказал глубину.
+        default=None,
         help=f"Reasoning effort для Codex turn (default: {DEFAULT_CODEX_EFFORT}).",
     )
     parser.add_argument(
@@ -409,7 +414,10 @@ def main() -> int:
     if args.mode == "diff" and args.base and args.commit:
         print("mode=diff: --base и --commit взаимоисключимы.", file=sys.stderr)
         return 2
-    if args.mode == "diff" and args.effort != DEFAULT_CODEX_EFFORT:
+    effort_explicit = args.effort is not None
+    if not effort_explicit:
+        args.effort = DEFAULT_CODEX_EFFORT
+    if args.mode == "diff" and effort_explicit:
         # Молча проглотить флаг было бы хуже всего: пользователь думает, что
         # заказал глубину, а нативный ревьюер работает на конфиге движка.
         print(
