@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import io
 import asyncio
 import json
 import subprocess
@@ -570,6 +571,64 @@ class CodexOrchestrateCliTests(unittest.TestCase):
                 finally:
                     for name in fake_names:
                         sys.modules.pop(name, None)
+
+    def test_full_run_path_end_to_end_with_isolation(self) -> None:
+        """Единственный тест, проходящий main() насквозь на живом (не dry-run) пути.
+
+        Заведён после того, как рефактор 2026-08-14 оставил в `defaults` имя,
+        уехавшее в другую функцию: все 106 тестов остались зелёными, потому что
+        каждый гонял либо dry-run, либо `_run_one` напрямую, а реальный прогон
+        падал бы на первой же волне. Проверяется вся цепочка: план → деревья →
+        воркеры → закрытие волны → payload на диске."""
+        import codex_orchestrate
+
+        captured: dict = {}
+        fake_names = _install_fake_openai_codex(captured)
+        try:
+            with self.temp_project() as tmp:
+                root = Path(tmp).resolve()
+                self.write(root, "a.md", "старое\n")
+                self.init_repo(root)
+                git(root, "add", "-A")
+                git(root, "commit", "-m", "init")
+
+                run_dir = root / "run"
+                argv = [
+                    "codex_orchestrate.py",
+                    "--project", str(root),
+                    "--run-dir", str(run_dir),
+                    "--summary-stdout",
+                    "--heartbeat-sec", "0",
+                ]
+                task = json.dumps([{"id": "t1", "prompt": "правь", "files": ["a.md"]}])
+                original_argv, original_stdin = sys.argv, sys.stdin
+                sys.argv = argv
+                sys.stdin = io.StringIO(task)
+                # Деревья волны уводим из ~/.codex-bridge, чтобы тест не трогал рабочие.
+                original_home = codex_orchestrate.__dict__["open_wave"].__globals__["FLEET_WORKTREE_HOME"]
+                codex_orchestrate.__dict__["open_wave"].__globals__["FLEET_WORKTREE_HOME"] = root.parent / "wt"
+                try:
+                    exit_code = codex_orchestrate.main()
+                finally:
+                    sys.argv, sys.stdin = original_argv, original_stdin
+                    codex_orchestrate.__dict__["open_wave"].__globals__["FLEET_WORKTREE_HOME"] = original_home
+
+                payload = json.loads((run_dir / "result.json").read_text())
+
+            # Воркер дошёл до движка в СВОЁМ дереве, не в корне проекта.
+            self.assertNotEqual(captured.get("cwd"), str(root))
+            self.assertIn("t1", captured.get("cwd", ""))
+            # Волна закрыта целиком: вердикт, отчёт и уборка на месте.
+            self.assertEqual(payload["worker_status"], "completed")
+            self.assertEqual(payload["isolation"], "worktree")
+            self.assertEqual(payload["status"], "completed" if payload["ok"] else "failed")
+            self.assertIn("wave", payload)
+            self.assertTrue(payload["wave"]["cleanup_done"])
+            self.assertEqual(payload["wave"]["kept_branches"], [])
+            self.assertEqual(exit_code, 0 if payload["ok"] else 1)
+        finally:
+            for name in fake_names:
+                sys.modules.pop(name, None)
 
     def test_worker_start_retried_on_transient_overload(self) -> None:
         """Флот стартует N тредов разом и упирается в overload раньше одиночных

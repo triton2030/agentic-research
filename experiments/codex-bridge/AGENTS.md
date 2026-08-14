@@ -40,7 +40,7 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
   Не переводи cwd в проект и не давай `full_access`. Scope-чек исключает
   поддерево `run_dir` (свой scratch/ledger ≠ правка проекта).
 - **Backend владеет safety.** `codex_orchestrate.py` — не thin launcher, а
-  entrypoint guarded shared-worktree orchestrator. Runtime safety живёт в backend:
+  guarded orchestrator. Runtime safety живёт в backend:
   strict schema/preflight до импорта Codex, exact file allowlist, git fail-closed
   для real run, dirty fingerprint snapshot, run ledger, aggregate postflight
   allowlist и optional verification. Skill `1codex` — router/operator guide, не
@@ -158,10 +158,15 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
   built-in filesystem также допускает system temp; project drift ловит
   postflight. Uniform `result.json` c `artifacts` и `scope_status`.
 - `codex_orchestrate.py` — entrypoint/runner для guarded пула воркеров
-  (`AsyncCodex` + semaphore), по умолчанию с worktree-изоляцией.
-- `codex_worktrees.py` — дерево на воркера и закрытие волны: атрибуция, коммит
-  только allowlist, merge, уборка. Порядок и защиты — здесь; инвентарь и разбор
-  конфликтов остаются готовому git.
+  (`AsyncCodex` + semaphore), по умолчанию с worktree-изоляцией. Прогон разложен
+  на этапы: `_plan_run` (всё, что проверяется до трат) → `open_wave` → `_run_fleet`
+  → `_assess_wave` (закрытие волны и вердикт scope) → `_emit`. Новый шаг добавляй
+  этапом, а не строкой в `main()`: она была на 329 строк и любая правка требовала
+  прочитать остальные.
+- `codex_worktrees.py` — жизненный цикл изоляции целиком: `open_wave` разворачивает
+  деревья волны или ни одного, `close_wave` собирает атрибуцию, коммитит только
+  allowlist задачи, мерджит и убирает. Открытие и закрытие живут вместе намеренно —
+  они меняются одним движением. Инвентарь и разбор конфликтов остаются готовому git.
 - `codex_recall.py` — глубокий recall по корпусу цитат владельца одним вызовом
   для Claude и Codex; владеет промптом, чтобы обе стороны спрашивали одинаково.
   Ревьюер на `luna`+`xhigh`, `--no-dialog`; тактику поиска модели не диктует.
@@ -183,6 +188,13 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
 
 `--dry-run` есть у обоих скриптов — гоняет рендер/план без трат. Для оркестрации
 запускай `python -m unittest discover experiments/codex-bridge/tests` и
-`python -m py_compile experiments/codex-bridge/*.py`. Реальные прогоны тратят
+`python -m pyflakes experiments/codex-bridge/*.py`. Реальные прогоны тратят
 кредиты аккаунта; тестируй на временных подпапках (`_ftest/`, `_wtest/` —
 git-ignored) и чисти за собой.
+
+**pyflakes обязателен, `py_compile` его не заменяет.** Замер 2026-08-14: рефактор
+оставил в `defaults` имя, уехавшее в другую функцию; компиляция прошла, все 106
+тестов остались зелёными, а первый живой прогон упал бы `NameError`. Причина
+дыры — ни один тест не проходил `main()` на НЕ-dry-run пути. Теперь такой тест
+есть один (`test_full_run_path_end_to_end_with_isolation`); правя путь живого
+прогона, держи его зелёным — он единственный, кто там что-то доказывает.

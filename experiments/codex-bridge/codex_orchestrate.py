@@ -9,6 +9,7 @@ import os
 import subprocess
 import sys
 import time
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -54,7 +55,7 @@ from codex_worktrees import (
     WorkerTree,
     WorktreeError,
     close_wave,
-    create_worker_tree,
+    open_wave,
 )
 
 
@@ -403,7 +404,27 @@ def _load_tasks(args: argparse.Namespace) -> Any:
         raise UsageError(f"Invalid task JSON: {exc}") from exc
 
 
-def main() -> int:
+@dataclass(frozen=True)
+class RunPlan:
+    """Всё, что известно о прогоне до первого оплаченного хода.
+
+    Существует, чтобы подготовка перестала быть началом `main()`: раньше проверки,
+    манифест и запуск лежали одной лентой, и любая правка одного этапа требовала
+    прочитать остальные. Здесь же держится инвариант аудита — то, что записано в
+    manifest, и то, с чем пойдёт волна, это один объект, а не две копии полей.
+    """
+
+    tasks: list[TaskSpec]
+    allowlist: set[str]
+    initial_git: GitSnapshot
+    codex_runtime: dict[str, Any]
+    run_id: str
+    run_dir: Path
+    paths: dict[str, str]
+    manifest: dict[str, Any]
+
+
+def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Guarded fleet of parallel Codex workers under Claude orchestration.")
     parser.add_argument("--tasks", help="JSON task file (otherwise stdin).")
     parser.add_argument("--project", default=None, help="Project root = worker cwd (default: current directory).")
@@ -451,65 +472,226 @@ def main() -> int:
     parser.add_argument("--summary-stdout", action="store_true", help="Print compact JSON to stdout; full results stay in result.json/results.jsonl.")
     parser.add_argument("--heartbeat-sec", type=int, default=120, help="Seconds between ledger heartbeat events while Codex workers run; 0 disables.")
     parser.add_argument("--dry-run", action="store_true", help="Validate tasks and write ledger without invoking Codex.")
-    args = parser.parse_args()
+    return parser
 
+
+def _plan_run(args: argparse.Namespace, project: Path) -> RunPlan:
+    """Проверить всё, что можно проверить до траты кредитов, и записать план.
+
+    Порядок внутри значим: сначала отказы (аргументы, задачи, git, конфликты
+    флагов), только потом создание `run_dir`. Иначе каждый отвергнутый запуск
+    оставлял бы пустой каталог прогона.
+    """
+    if args.concurrency < 1:
+        raise UsageError("--concurrency must be >= 1.")
+    if args.heartbeat_sec < 0:
+        raise UsageError("--heartbeat-sec must be >= 0.")
+    if not project.is_dir():
+        raise UsageError(f"--project must be an existing directory: {project}")
+    if args.isolation == "shared" and (args.no_integrate or args.keep_worktrees):
+        raise UsageError("--no-integrate/--keep-worktrees apply to --isolation worktree only.")
+
+    tasks = normalize_tasks(project, _load_tasks(args))
+    allowlist = {path for task in tasks for path in task.files}
+    initial_git = capture_git_snapshot(project, required=not args.dry_run)
+    dirty_overlap = dirty_overlaps(initial_git.dirty_files, allowlist)
+    if dirty_overlap and not args.allow_dirty_overlap:
+        raise UsageError(
+            "Dirty files overlap task files; commit/stage them or pass --allow-dirty-overlap: "
+            + ", ".join(dirty_overlap)
+        )
+    if args.isolation == "worktree" and not initial_git.available and not args.dry_run:
+        raise UsageError("--isolation worktree requires a git worktree.")
+
+    codex_bin = resolve_codex_bin()
+    if codex_bin is None:
+        print(SDK_BUNDLE_WARNING, file=sys.stderr)
+    codex_runtime = {
+        "model": args.model,
+        "effort": args.effort,
+        "service_tier": args.service_tier,
+        "codex_bin": codex_bin,
+        "binary_source": codex_bin_source(codex_bin),
+        "worker_sandbox": WORKER_SANDBOX,
+        "worker_approval_mode": WORKER_APPROVAL_MODE,
+        "thread_ephemeral": BRIDGE_THREAD_EPHEMERAL,
+        "heartbeat_sec": args.heartbeat_sec,
+        "isolation": args.isolation,
+    }
+
+    run_id, run_dir = prepare_run_dir(args.run_dir, project=project)
+    paths = _orchestrate_paths(run_dir)
+    manifest = build_manifest(
+        run_id=run_id,
+        run_dir=run_dir,
+        project=project,
+        tasks=tasks,
+        allowlist=allowlist,
+        initial_git=initial_git,
+        verify_commands=args.verify,
+        concurrency=args.concurrency,
+        dry_run=args.dry_run,
+        codex_runtime=codex_runtime,
+        isolation=args.isolation,
+    )
+    manifest["paths"] = paths
+    write_json(run_dir / "manifest.json", manifest)
+    append_event(run_dir, "validated", task_count=len(tasks), dry_run=args.dry_run)
+    return RunPlan(
+        tasks=tasks,
+        allowlist=allowlist,
+        initial_git=initial_git,
+        codex_runtime=codex_runtime,
+        run_id=run_id,
+        run_dir=run_dir,
+        paths=paths,
+        manifest=manifest,
+    )
+
+
+def _emit(payload: dict[str, Any], *, run_dir: Path, compact: bool) -> None:
+    """Единственный выход прогона: канонический `result.json` плюс проекция в stdout.
+
+    Один владелец на оба вида ответа — иначе dry-run и живой прогон расходятся
+    формой, и по run_dir нельзя восстановить, что видел вызывающий.
+    """
+    write_json(run_dir / "result.json", payload)
+    stdout_payload = _compact_orchestrate_payload(payload) if compact else payload
+    _safe_print(json.dumps(stdout_payload, ensure_ascii=False, indent=2), stream=sys.stdout)
+
+
+@dataclass(frozen=True)
+class WaveVerdict:
+    """Чем закончилась волна: что изменено, что вне рамки, что с интеграцией."""
+
+    scope_status: str
+    changed_files: list[str]
+    out_of_scope_files: list[str]
+    head_changed: bool
+    wave: dict[str, Any]
+    after_git: GitSnapshot
+
+
+def _assess_wave(
+    args: argparse.Namespace,
+    project: Path,
+    plan: RunPlan,
+    results: list[dict[str, Any]],
+    trees: list[WorkerTree],
+) -> WaveVerdict:
+    """Закрыть волну и вынести вердикт по scope.
+
+    Два режима отвечают на разные вопросы, и это единственное место, где разница
+    видна целиком. В shared всё доказательство — общее дерево. В worktree
+    атрибуция считается в дереве каждого воркера, поэтому вердикт строится по ней:
+    изменения в основном дереве во время волны — работа оркестратора (recall,
+    планы, артефакты), и раньше они валили волну (замер 2026-08-14: 68% записей
+    out_of_scope по 106 волнам были таким служебным шумом). Они остаются видимыми
+    в `main_tree_drift`, но приговором больше не являются.
+    """
+    # Снимок основного дерева берётся ДО интеграции: после merge он показывал бы
+    # нашу же работу и ничего не доказывал.
+    after_git = capture_git_snapshot(project, required=True)
+    scope = compare_scope(plan.initial_git, after_git, plan.allowlist)
+    # run_dir по умолчанию живёт внутри проекта (_workspace/codex-artifacts): его
+    # ledger — собственная площадка прогона, не правка проекта, иначе каждый
+    # прогон ложно валил бы scope об собственный журнал.
+    changed = [f for f in scope.changed_files if not is_scope_noise(project, plan.run_dir, f)]
+    drifted = [f for f in scope.out_of_scope_files if not is_scope_noise(project, plan.run_dir, f)]
+
+    if args.isolation != "worktree":
+        return WaveVerdict(
+            scope_status="passed" if (not drifted and not scope.head_changed) else "failed",
+            changed_files=changed,
+            out_of_scope_files=drifted,
+            head_changed=scope.head_changed,
+            wave={"isolation": "shared"},
+            after_git=after_git,
+        )
+
+    # Статус хода — шлюз интеграции: полуфабрикат упавшего воркера в проект не
+    # едет, но фиксируется в его ветке.
+    by_id = {record["id"]: record for record in results}
+    for tree in trees:
+        tree.worker_ok = by_id.get(tree.task_id, {}).get("worker_status") == "completed"
+    try:
+        wave = close_wave(
+            project,
+            trees,
+            run_id=plan.run_id,
+            integrate=not args.no_integrate,
+            # Уборка только когда работа забрана: снести дерево, не влив его,
+            # значит выбросить правки. `--no-integrate` держит деревья сам.
+            cleanup=not args.keep_worktrees and not args.no_integrate,
+        )
+    except WorktreeError as exc:
+        wave = {
+            "isolation": "worktree",
+            "integration_status": "error",
+            "error": str(exc),
+            "workers": [t.to_json() for t in trees],
+        }
+    wave["main_tree_drift"] = drifted
+
+    worker_out_of_scope = sorted({path for tree in trees for path in tree.out_of_scope_files})
+    failed = bool(worker_out_of_scope) or wave.get("integration_status") in {"conflict", "error"}
+    return WaveVerdict(
+        scope_status="failed" if failed else "passed",
+        changed_files=sorted({path for tree in trees for path in tree.changed_files}),
+        out_of_scope_files=worker_out_of_scope,
+        head_changed=scope.head_changed,
+        wave=wave,
+        after_git=after_git,
+    )
+
+
+def _wave_line(wave: dict[str, Any], task_count: int) -> str:
+    """Итог волны одной строкой в stderr — то, что оркестратор видит без чтения JSON.
+
+    Кричит про неубранные деревья: висящее дерево — выкладка всего проекта, и
+    молчаливое накопление таких деревьев было исходной болью.
+    """
+    if wave.get("isolation") != "worktree":
+        return ""
+    kept = wave.get("kept_branches") or []
+    parts = [f" | worktree: влито {len(wave.get('merged') or [])}/{task_count}"]
+    if kept:
+        parts.append(f"осталось веток {len(kept)}")
+    if wave.get("cleanup_done"):
+        parts.append("деревья убраны")
+    elif wave.get("cleanup_requested"):
+        parts.append(f"УБОРКА НЕ ПРОШЛА: {', '.join(wave.get('cleanup_stuck') or [])}")
+    else:
+        parts.append("деревья оставлены")
+    return ", ".join(parts)
+
+
+def _dry_run_payload(args: argparse.Namespace, plan: RunPlan) -> dict[str, Any]:
+    return {
+        "run_id": plan.run_id,
+        "run_dir": str(plan.run_dir),
+        "dry_run": True,
+        "status": "validated",
+        "ok": True,
+        "codex": plan.codex_runtime,
+        "paths": plan.paths,
+        "task_count": len(plan.tasks),
+        # Сухой план обязан говорить, как пойдёт прогон: режим изоляции меняет
+        # и контракт воркера, и способ забрать работу.
+        "isolation": args.isolation,
+        "git": plan.initial_git.to_json(),
+        # Ровно тот план, что записан в manifest: два вида одного прогона в
+        # одном run_dir не должны расходиться формой.
+        "tasks": plan.manifest["tasks"],
+    }
+
+
+def main() -> int:
+    args = _build_parser().parse_args()
     project = Path(args.project or os.getcwd()).expanduser().resolve()
 
     try:
-        if args.concurrency < 1:
-            raise UsageError("--concurrency must be >= 1.")
-        if args.heartbeat_sec < 0:
-            raise UsageError("--heartbeat-sec must be >= 0.")
-        if not project.is_dir():
-            raise UsageError(f"--project must be an existing directory: {project}")
-
-        tasks = normalize_tasks(project, _load_tasks(args))
-        allowlist = {path for task in tasks for path in task.files}
-        initial_git = capture_git_snapshot(project, required=not args.dry_run)
-        dirty_overlap = dirty_overlaps(initial_git.dirty_files, allowlist)
-        if dirty_overlap and not args.allow_dirty_overlap:
-            raise UsageError(
-                "Dirty files overlap task files; commit/stage them or pass --allow-dirty-overlap: "
-                + ", ".join(dirty_overlap)
-            )
-
-        codex_bin = resolve_codex_bin()
-        if codex_bin is None:
-            print(SDK_BUNDLE_WARNING, file=sys.stderr)
-        codex_runtime = {
-            "model": args.model,
-            "effort": args.effort,
-            "service_tier": args.service_tier,
-            "codex_bin": codex_bin,
-            "binary_source": codex_bin_source(codex_bin),
-            "worker_sandbox": WORKER_SANDBOX,
-            "worker_approval_mode": WORKER_APPROVAL_MODE,
-            "thread_ephemeral": BRIDGE_THREAD_EPHEMERAL,
-            "heartbeat_sec": args.heartbeat_sec,
-            "isolation": args.isolation,
-        }
-        if args.isolation == "worktree" and not initial_git.available and not args.dry_run:
-            raise UsageError("--isolation worktree requires a git worktree; use --isolation shared.")
-        if args.isolation == "shared" and (args.no_integrate or args.keep_worktrees):
-            raise UsageError("--no-integrate/--keep-worktrees apply to --isolation worktree only.")
-        run_id, run_dir = prepare_run_dir(args.run_dir, project=project)
-        paths = _orchestrate_paths(run_dir)
-        manifest = build_manifest(
-            run_id=run_id,
-            run_dir=run_dir,
-            project=project,
-            tasks=tasks,
-            allowlist=allowlist,
-            initial_git=initial_git,
-            verify_commands=args.verify,
-            concurrency=args.concurrency,
-            dry_run=args.dry_run,
-            codex_runtime=codex_runtime,
-            isolation=args.isolation,
-        )
-        manifest["paths"] = paths
-        write_json(run_dir / "manifest.json", manifest)
-        append_event(run_dir, "validated", task_count=len(tasks), dry_run=args.dry_run)
+        plan = _plan_run(args, project)
     except OSError as exc:
         print(f"[orch] filesystem error: {exc}", file=sys.stderr)
         return 1
@@ -517,32 +699,16 @@ def main() -> int:
         print(f"[orch] {exc}", file=sys.stderr)
         return 2
 
+    run_id, run_dir, tasks = plan.run_id, plan.run_dir, plan.tasks
+    initial_git, codex_runtime, paths = plan.initial_git, plan.codex_runtime, plan.paths
+
     if args.dry_run:
-        payload = {
-            "run_id": run_id,
-            "run_dir": str(run_dir),
-            "dry_run": True,
-            "status": "validated",
-            "ok": True,
-            "codex": codex_runtime,
-            "paths": paths,
-            "task_count": len(tasks),
-            # Сухой план обязан говорить, как пойдёт прогон: режим изоляции меняет
-            # и контракт воркера, и способ забрать работу.
-            "isolation": args.isolation,
-            "git": initial_git.to_json(),
-            # Ровно тот план, что записан в manifest: два вида одного прогона в
-            # одном run_dir не должны расходиться формой.
-            "tasks": manifest["tasks"],
-        }
-        write_json(run_dir / "result.json", payload)
         print(
             f"[orch dry-run] {len(tasks)} tasks, concurrency={args.concurrency}, "
             f"run_dir={run_dir}, binary={codex_runtime['binary_source']}",
             file=sys.stderr,
         )
-        stdout_payload = _compact_orchestrate_payload(payload) if args.summary_stdout else payload
-        print(json.dumps(stdout_payload, ensure_ascii=False, indent=2))
+        _emit(_dry_run_payload(args, plan), run_dir=run_dir, compact=args.summary_stdout)
         return 0
 
     removed = scrub_billing_env()
@@ -562,7 +728,7 @@ def main() -> int:
         "effort": args.effort,
         "service_tier": args.service_tier,
         "run_dir": run_dir,
-        "codex_bin": codex_bin,
+        "codex_bin": codex_runtime["codex_bin"],
         "isolation": args.isolation,
     }
 
@@ -570,17 +736,10 @@ def main() -> int:
     if args.isolation == "worktree":
         base = initial_git.git_head or "HEAD"
         try:
-            for task in tasks:
-                trees.append(
-                    create_worker_tree(
-                        project, run_id, task.id, base=base, allowlist=set(task.files)
-                    )
-                )
+            trees = open_wave(
+                project, run_id, [(task.id, set(task.files)) for task in tasks], base=base
+            )
         except WorktreeError as exc:
-            # Полволны изолировать нельзя: часть воркеров писала бы в общее дерево,
-            # и атрибуция снова стала бы недоказуемой. Свернуть созданное и выйти —
-            # Codex ещё не запускался, терять в деревьях нечего.
-            close_wave(project, trees, run_id=run_id, integrate=False, cleanup=True)
             print(f"[orch] worktree isolation failed: {exc}", file=sys.stderr)
             append_event(run_dir, "done", ok=False, worker_status="not_started", scope_status="unknown")
             return 2
@@ -605,57 +764,10 @@ def main() -> int:
         raise
 
     worker_status = "completed" if all(r["worker_status"] == "completed" for r in results) else "failed"
-
-    # Снимок основного дерева берётся ДО интеграции: после merge он показывал бы
-    # нашу же работу и ничего не доказывал.
-    after_git = capture_git_snapshot(project, required=True)
-    scope = compare_scope(initial_git, after_git, allowlist)
-    # run_dir по умолчанию живёт внутри проекта (_workspace/codex-artifacts): его
-    # ledger — собственная площадка прогона, не правка проекта, иначе каждый
-    # прогон ложно валил бы scope об собственный журнал.
-    changed_files = [f for f in scope.changed_files if not is_scope_noise(project, run_dir, f)]
-    out_of_scope_files = [f for f in scope.out_of_scope_files if not is_scope_noise(project, run_dir, f)]
-
-    wave: dict[str, Any] = {"isolation": "shared"}
-    if args.isolation == "worktree":
-        # Атрибуция считается в дереве каждого воркера, поэтому вердикт scope
-        # строится по ней, а не по общему дереву: изменения в основном дереве во
-        # время волны — это работа оркестратора (recall, планы, артефакты), и
-        # раньше они валили волну. Замер 2026-08-14: 68% записей out_of_scope по
-        # 106 волнам были именно таким служебным шумом.
-        # Статус хода — шлюз интеграции: полуфабрикат упавшего воркера в проект не
-        # едет, но фиксируется в его ветке.
-        by_id = {record["id"]: record for record in results}
-        for tree in trees:
-            tree.worker_ok = by_id.get(tree.task_id, {}).get("worker_status") == "completed"
-        try:
-            wave = close_wave(
-                project,
-                trees,
-                run_id=run_id,
-                integrate=not args.no_integrate,
-                # Уборка только когда работа забрана: снести дерево, не влив его,
-                # значит выбросить правки. `--no-integrate` держит деревья сам.
-                cleanup=not args.keep_worktrees and not args.no_integrate,
-            )
-        except WorktreeError as exc:
-            wave = {
-                "isolation": "worktree",
-                "integration_status": "error",
-                "error": str(exc),
-                "workers": [t.to_json() for t in trees],
-            }
-        worker_out_of_scope = sorted(
-            {path for tree in trees for path in tree.out_of_scope_files}
-        )
-        scope_status = "passed" if not worker_out_of_scope else "failed"
-        if wave.get("integration_status") in {"conflict", "error"}:
-            scope_status = "failed"
-        wave["main_tree_drift"] = out_of_scope_files
-        out_of_scope_files = worker_out_of_scope
-        changed_files = sorted({path for tree in trees for path in tree.changed_files})
-    else:
-        scope_status = "passed" if (not out_of_scope_files and not scope.head_changed) else "failed"
+    verdict = _assess_wave(args, project, plan, results, trees)
+    scope_status = verdict.scope_status
+    changed_files, out_of_scope_files = verdict.changed_files, verdict.out_of_scope_files
+    wave, after_git = verdict.wave, verdict.after_git
 
     append_event(
         run_dir,
@@ -663,7 +775,7 @@ def main() -> int:
         scope_status=scope_status,
         changed_files=changed_files,
         out_of_scope_files=out_of_scope_files,
-        git_head_changed=scope.head_changed,
+        git_head_changed=verdict.head_changed,
         isolation=args.isolation,
     )
 
@@ -697,12 +809,11 @@ def main() -> int:
         "wave": wave,
         "postflight_changed_files": changed_files,
         "out_of_scope_files": out_of_scope_files,
-        "git_head_changed": scope.head_changed,
+        "git_head_changed": verdict.head_changed,
         "git": {"initial": initial_git.to_json(), "after": after_git.to_json()},
         "results": results,
         "verification_results": verification_results,
     }
-    write_json(run_dir / "result.json", payload)
     append_event(
         run_dir,
         "done",
@@ -712,21 +823,11 @@ def main() -> int:
         verification_status=verification_status,
     )
 
-    wave_line = ""
-    if args.isolation == "worktree":
-        merged = len(wave.get("merged", []))
-        kept = wave.get("kept_branches", [])
-        wave_line = (
-            f" | worktree: влито {merged}/{len(tasks)}"
-            + (f", осталось веток {len(kept)}" if kept else "")
-            + (", деревья убраны" if wave.get("cleanup_done") else ", ДЕРЕВЬЯ НЕ УБРАНЫ")
-        )
     _safe_print(
         f"[orch] готово: worker={worker_status} scope={scope_status} "
-        f"verify={verification_status} ok={ok}{wave_line}"
+        f"verify={verification_status} ok={ok}{_wave_line(wave, len(tasks))}"
     )
-    stdout_payload = _compact_orchestrate_payload(payload) if args.summary_stdout else payload
-    _safe_print(json.dumps(stdout_payload, ensure_ascii=False, indent=2), stream=sys.stdout)
+    _emit(payload, run_dir=run_dir, compact=args.summary_stdout)
     return 0 if ok else 1
 
 

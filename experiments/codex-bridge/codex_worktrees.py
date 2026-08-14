@@ -122,6 +122,36 @@ def create_worker_tree(
     )
 
 
+def open_wave(
+    project: Path,
+    run_id: str,
+    footprints: list[tuple[str, set[str]]],
+    *,
+    base: str,
+) -> list[WorkerTree]:
+    """Развернуть деревья всей волны или ни одного.
+
+    Открытие живёт рядом с закрытием намеренно: они меняются вместе — стоит
+    добавить в дерево ещё что-то (ветку, sparse-checkout, hook), и оба конца
+    правятся одним движением.
+
+    Полволны изолировать нельзя: часть воркеров писала бы в общее дерево, и
+    атрибуция снова стала бы недоказуемой. Codex на этом шаге ещё не запускался,
+    поэтому свернуть созданное безопасно — терять в деревьях нечего.
+    """
+    trees: list[WorkerTree] = []
+    try:
+        for task_id, allowlist in footprints:
+            trees.append(
+                create_worker_tree(project, run_id, task_id, base=base, allowlist=allowlist)
+            )
+    except WorktreeError:
+        for tree in trees:
+            remove_worker_tree(project, tree)
+        raise
+    return trees
+
+
 def collect_changes(tree: WorkerTree) -> None:
     """Что воркер изменил в СВОЁМ дереве — это и есть атрибуция.
 

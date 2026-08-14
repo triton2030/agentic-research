@@ -19,7 +19,6 @@ from pathlib import Path
 from typing import Any
 
 from codex_orchestrate_contract import UsageError, path_allowed
-from codex_run_ledger import PROJECT_ARTIFACTS_SUBDIR
 
 @dataclass(frozen=True)
 class GitSnapshot:
