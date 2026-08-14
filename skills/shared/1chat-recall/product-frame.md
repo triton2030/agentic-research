@@ -10,9 +10,14 @@
 применимость или хронология не разрешены.
 
 Потребитель продукта — агент; выгодоприобретатель — владелец, которому не нужно
-повторять уже сказанное. Цитаты, hybrid retrieval, `context-note`, timeline и
-repair — обслуживающие возможности. Мера успеха — корректное продолжение
-текущей работы, а не количество найденных совпадений или полнота quote dump.
+повторять уже сказанное. Цитаты, hybrid retrieval, `context-note`,
+`session-context`, timeline и repair — обслуживающие возможности. Мера успеха
+— корректное продолжение текущей работы, а не количество найденных совпадений
+или полнота quote dump.
+
+Acceptance этой возможности включает случай, где существенные слова задачи
+отсутствуют во всех цитатах и `context-note`, присутствуют только в
+`session-context`, а default query возвращает нужный файл в top-5.
 
 Рабочий контекст остаётся transient synthesis с source evidence. Он не создаёт
 постоянный «профиль владельца» и не превращает датированный recall-лог в
@@ -23,7 +28,8 @@ repair — обслуживающие возможности. Мера успе�
 1. При конфликте false application и missed recall побеждает abstention: лучше
    переспросить, чем уверенно применить stale или wrong-scope позицию.
 2. При конфликте semantic rank и применимости побеждают scope, commitment,
-   chronology и прочитанный полный record; score только выбирает, что читать.
+   chronology и прочитанный полный record; `session-context` и score только
+   выбирают файл для чтения и не являются owner evidence.
 3. При конфликте recall и более свежего project-local owner-а побеждает live
    owner; расхождение остаётся видимым.
 4. По умолчанию ищется только project-local corpus. Cross-project recall
@@ -36,8 +42,13 @@ repair — обслуживающие возможности. Мера успе�
 ## Аппетит
 
 - Local/offline retrieval обязателен; цитаты не отправляются в сеть.
-- Не вводить ручную per-record курацию, второй summary-store, ссылки на
-  transcript или постоянный профиль владельца.
+- Не вводить отдельную или ретроспективную per-record курацию, второй
+  summary-store, ссылки на transcript или постоянный профиль владельца.
+  Единственная capture-time курация — сверка одной per-file `session-context`
+  при записи `quote` или `selection`.
+- `session-context` обязательна только для новых и затронутых сессий. Её
+  отсутствие у untouched legacy-файла не является diagnostic и не требует
+  массового backfill.
 - Допустимы одноразовый model/cache bootstrap и несколько секунд на
   consequential query; дешёвый lexical fallback и честный abstain сохраняются.
 - Capture, retrieval и repair остаются в одном skill-package, но подчиняются
@@ -47,5 +58,6 @@ repair — обслуживающие возможности. Мера успе�
   смене рабочего model set.
 
 Исходная рамка подтверждена владельцем 2026-08-04; tie-breaker 5 скорректирован
-владельцем 2026-08-05. Рабочие targets: GPT-5.6 и общий Claude core для Opus
-5/Fable 5; projections сохраняют один продуктовый и causal contract.
+владельцем 2026-08-05; `session-context` подтверждена 2026-08-14. Рабочие
+targets: GPT-5.6 и общий Claude core для Opus 5/Fable 5; projections сохраняют
+один продуктовый и causal contract.

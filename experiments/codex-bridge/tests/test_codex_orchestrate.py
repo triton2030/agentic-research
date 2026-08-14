@@ -109,6 +109,11 @@ def _install_fake_openai_codex(captured: dict, *, start_failures: int = 0) -> li
             captured.update(kwargs)
             return _FakeThread()
 
+        async def thread_resume(self, thread_id, **kwargs):  # noqa: ANN001, ANN003
+            captured["resumed_thread_id"] = thread_id
+            captured.update(kwargs)
+            return _FakeThread()
+
     class _CodexConfig:
         def __init__(self, **kwargs):  # noqa: ANN003
             self.kwargs = kwargs
@@ -638,6 +643,56 @@ class CodexOrchestrateCliTests(unittest.TestCase):
         finally:
             for name in fake_names:
                 sys.modules.pop(name, None)
+
+    def test_warm_repair_resumes_worker_thread(self) -> None:
+        """Тёплый ремонт (1orchestration: «круг репликой прогретого воркера по
+        handle»): задача с thread_id продолжает персистентный тред воркера
+        прошлой волны, а cwd и файловый контракт перепиняются на текущую."""
+        import codex_orchestrate
+
+        captured: dict = {}
+        fake_names = _install_fake_openai_codex(captured)
+        raw_task = {
+            "id": "t1", "prompt": "почини по findings",
+            "files": ["a.md"], "thread_id": "warm-123",
+        }
+        try:
+            with self.temp_project() as tmp:
+                root = Path(tmp).resolve()
+                self.write(root, "a.md")
+                tasks = normalize_tasks(root, [raw_task])
+                run_dir = root / "run"
+                run_dir.mkdir()
+                defaults = {
+                    "cwd": str(root), "model": "gpt-5.6-sol", "effort": "high",
+                    "service_tier": None, "run_dir": run_dir,
+                    "progress": {"completed": 0, "total": 1}, "isolation": "shared",
+                }
+                fake_codex = sys.modules["openai_codex"].FakeCodex()
+                record = asyncio.run(
+                    codex_orchestrate._run_one(
+                        fake_codex, asyncio.Semaphore(1), tasks[0], defaults
+                    )
+                )
+            self.assertEqual(captured.get("resumed_thread_id"), "warm-123")
+            self.assertNotIn("thread_start_attempts", captured)
+            self.assertEqual(captured.get("cwd"), str(root))
+            self.assertIn("ТОЛЬКО эти файлы: a.md", captured.get("developer_instructions") or "")
+            self.assertEqual(record["thread_id"], "thread-fake-1")
+        finally:
+            for name in fake_names:
+                sys.modules.pop(name, None)
+
+    def test_thread_id_must_be_nonempty_string(self) -> None:
+        with self.temp_project() as tmp:
+            root = Path(tmp)
+            self.write(root, "a.md")
+            for bad in (123, "", "   "):
+                with self.assertRaises(UsageError):
+                    normalize_tasks(
+                        root,
+                        [{"id": "t1", "prompt": "p", "files": ["a.md"], "thread_id": bad}],
+                    )
 
     def test_worker_start_retried_on_transient_overload(self) -> None:
         """Флот стартует N тредов разом и упирается в overload раньше одиночных

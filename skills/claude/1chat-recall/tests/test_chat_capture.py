@@ -21,6 +21,9 @@ if str(SCRIPT.parent) not in sys.path:
     sys.path.insert(0, str(SCRIPT.parent))
 DEFAULT_SOURCE_TIMESTAMP = "2001-02-03T04:05:06.789Z"
 DEFAULT_CONTEXT_NOTE = "Test source situation outside the quote."
+DEFAULT_SESSION_CONTEXT = (
+    "chat recall capture; session files; owner-memory metadata"
+)
 MODULE_SPEC = importlib.util.spec_from_file_location(
     "chat_capture_under_test",
     SCRIPT,
@@ -52,6 +55,7 @@ class ChatCaptureTests(unittest.TestCase):
         env: dict[str, str] | None = None,
         kind: str | None = None,
         context_note: str | None = DEFAULT_CONTEXT_NOTE,
+        session_context: str | None = DEFAULT_SESSION_CONTEXT,
         session: str | None = None,
         source_timestamp: str | None = DEFAULT_SOURCE_TIMESTAMP,
         expect_ok: bool = True,
@@ -72,8 +76,12 @@ class ChatCaptureTests(unittest.TestCase):
             command += ["--kind", kind]
         if kind in ("selection", "note") and context_note == DEFAULT_CONTEXT_NOTE:
             context_note = None
+        if kind == "note" and session_context == DEFAULT_SESSION_CONTEXT:
+            session_context = None
         if context_note is not None:
             command += ["--context-note", context_note]
+        if session_context is not None:
+            command += ["--session-context", session_context]
         if session:
             command += ["--session", session]
         result = subprocess.run(
@@ -107,6 +115,11 @@ class ChatCaptureTests(unittest.TestCase):
         text = files[0].read_text(encoding="utf-8")
         self.assertIn(f"date: {local_when:%Y-%m-%d}", text)
         self.assertIn(f"session: {self.session}", text)
+        self.assertIn(
+            'session-context: "chat recall capture; session files; '
+            'owner-memory metadata"',
+            text,
+        )
         self.assertIn("  - решение", text)
         self.assertIn("  - агенты-и-ии", text)
         self.assertIn(
@@ -162,6 +175,27 @@ class ChatCaptureTests(unittest.TestCase):
         self.assertIn("never repeat or paraphrase the quote", result.stderr)
         self.assertEqual(self.recall_files(), [])
 
+    def test_quote_and_selection_without_session_context_are_rejected(self) -> None:
+        for kind in ("quote", "selection"):
+            with self.subTest(kind=kind):
+                result = self.run_capture(
+                    "Карточку сессии нельзя опускать",
+                    "решение",
+                    "документация-и-знания",
+                    env=self.claude_env(),
+                    kind=kind,
+                    session_context=None,
+                    expect_ok=False,
+                )
+
+                self.assertEqual(result.returncode, 2)
+                self.assertIn(
+                    "--session-context is required for --kind quote and "
+                    "--kind selection",
+                    result.stderr,
+                )
+                self.assertEqual(self.recall_files(), [])
+
     def test_help_promotes_context_note_check(self) -> None:
         result = subprocess.run(
             [sys.executable, str(SCRIPT), "--help"],
@@ -176,6 +210,7 @@ class ChatCaptureTests(unittest.TestCase):
             help_text,
         )
         self.assertIn("--context-note CONTEXT_NOTE", help_text)
+        self.assertIn("--session-context SESSION_CONTEXT", help_text)
         self.assertIn(
             "required for --kind quote",
             help_text,
@@ -184,6 +219,7 @@ class ChatCaptureTests(unittest.TestCase):
             "never repeat or paraphrase the quote",
             help_text,
         )
+        self.assertIn("complete current card, not a delta", help_text)
 
     def test_context_note_rejects_links_delimiters_and_note_on_note(self) -> None:
         cases = (
@@ -248,6 +284,34 @@ class ChatCaptureTests(unittest.TestCase):
         self.assertNotIn(CHAT_CAPTURE.CONTEXT_NOTE_REMINDER, result.stdout)
         text = self.recall_files()[0].read_text(encoding="utf-8")
         self.assertEqual(text.count('"Одна мысль"'), 1)
+
+    def test_duplicate_quote_still_replaces_complete_session_context(self) -> None:
+        self.run_capture(
+            "Одна мысль",
+            "идея",
+            "агенты-и-ии",
+            env=self.claude_env(),
+            session_context="chat recall capture; session files",
+        )
+        result = self.run_capture(
+            "Одна мысль",
+            "идея",
+            "агенты-и-ии",
+            env=self.claude_env(),
+            session_context=(
+                "chat recall capture; session files; hybrid retrieval; BM25"
+            ),
+        )
+
+        self.assertIn("quote already present; session-context updated", result.stdout)
+        text = self.recall_files()[0].read_text(encoding="utf-8")
+        self.assertEqual(text.count('"Одна мысль"'), 1)
+        self.assertIn(
+            'session-context: "chat recall capture; session files; '
+            'hybrid retrieval; BM25"',
+            text,
+        )
+        self.assertNotIn('session-context: "chat recall capture; session files"\n', text)
 
     def test_earlier_source_quote_redates_the_single_session_file(self) -> None:
         later = "2010-06-15T12:00:00+00:00"
@@ -342,6 +406,7 @@ class ChatCaptureTests(unittest.TestCase):
                 "документация-и-знания",
                 "Earlier quote",
                 CHAT_CAPTURE.source_timestamp(earlier),
+                session_card=DEFAULT_SESSION_CONTEXT,
             )
 
         files_after_failure = self.recall_files()
@@ -467,6 +532,18 @@ class ChatCaptureTests(unittest.TestCase):
         self.assertNotIn("source:", text)
         self.assertNotIn("precision:", text)
         self.assertNotIn("source-ref:", text)
+
+    def test_repair_note_can_leave_legacy_holder_without_session_context(self) -> None:
+        self.run_capture(
+            "Repair-only note",
+            "неопределено",
+            "без-темы",
+            env=self.claude_env(),
+            kind="note",
+        )
+
+        text = self.recall_files()[0].read_text(encoding="utf-8")
+        self.assertNotIn("session-context:", text)
 
     def test_unknown_type_is_rejected(self) -> None:
         result = self.run_capture(
@@ -656,6 +733,8 @@ class ChatCaptureTests(unittest.TestCase):
                 shlex.quote(DEFAULT_SOURCE_TIMESTAMP),
                 "--context-note",
                 shlex.quote("Captured through a separate shell command."),
+                "--session-context",
+                shlex.quote(DEFAULT_SESSION_CONTEXT),
                 "--project",
                 shlex.quote(str(self.root)),
                 "--session",

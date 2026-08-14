@@ -158,24 +158,44 @@ async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict
         append_event(run_dir, "worker_start", id=task.id)
         thread_id: str | None = None
         try:
-            thread = await retry_start_async(
-                lambda: codex.thread_start(
-                    cwd=worker_cwd,
-                    sandbox=Sandbox.workspace_write,
-                    approval_mode=ApprovalMode.auto_review,
-                    model=defaults["model"],
-                    service_tier=defaults["service_tier"],
-                    developer_instructions=files_contract,
-                    ephemeral=FLEET_THREAD_EPHEMERAL,
-                ),
-                run_dir=run_dir,
-                operation="thread_start",
-                fields={"worker": task.id},
-            )
+            if task.thread_id:
+                # Тёплый ремонт (контракт 1orchestration «круг репликой прогретого
+                # воркера по handle»): resume несёт контекст прошлой волны, но cwd,
+                # файловый контракт и sandbox перепиняются на ЭТУ волну — воркер
+                # просыпается в свежем дереве, а не в снесённом старом.
+                thread = await retry_start_async(
+                    lambda: codex.thread_resume(
+                        task.thread_id,
+                        cwd=worker_cwd,
+                        sandbox=Sandbox.workspace_write,
+                        approval_mode=ApprovalMode.auto_review,
+                        model=defaults["model"],
+                        service_tier=defaults["service_tier"],
+                        developer_instructions=files_contract,
+                    ),
+                    run_dir=run_dir,
+                    operation="thread_resume",
+                    fields={"worker": task.id},
+                )
+            else:
+                thread = await retry_start_async(
+                    lambda: codex.thread_start(
+                        cwd=worker_cwd,
+                        sandbox=Sandbox.workspace_write,
+                        approval_mode=ApprovalMode.auto_review,
+                        model=defaults["model"],
+                        service_tier=defaults["service_tier"],
+                        developer_instructions=files_contract,
+                        ephemeral=FLEET_THREAD_EPHEMERAL,
+                    ),
+                    run_dir=run_dir,
+                    operation="thread_start",
+                    fields={"worker": task.id},
+                )
             # Тред воркера персистентен (решение владельца 2026-08-14): Codex
             # Desktop показывает его как чат = живой монитор прогресса. id — в
             # отчёт и в ledger, иначе тред не найти среди остальных.
-            thread_id = getattr(thread, "id", None)
+            thread_id = getattr(thread, "id", None) or task.thread_id
             if thread_id:
                 append_event(run_dir, "worker_thread", id=task.id, thread_id=thread_id)
             handle = await retry_start_async(

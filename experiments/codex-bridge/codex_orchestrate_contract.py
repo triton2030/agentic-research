@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-ALLOWED_TASK_KEYS = {"id", "prompt", "files", "allow_create", "subagents"}
+ALLOWED_TASK_KEYS = {"id", "prompt", "files", "allow_create", "subagents", "thread_id"}
 COMPLETED_CODEX_STATUS = "completed"
 
 
@@ -22,6 +22,10 @@ class TaskSpec:
     # Разрешение воркеру делить свою задачу на собственных субагентов. Осмысленно
     # только в изолированном дереве: иначе его субагенты пишут в общее.
     subagents: bool = False
+    # Тёплый ремонт: продолжить персистентный тред воркера прошлой волны
+    # (`results.jsonl` → thread_id) вместо старта с нуля. Контекст задачи у него
+    # уже в голове; дерево, файловый контракт и атрибуция — свежие, этой волны.
+    thread_id: str | None = None
 
     def to_json(self) -> dict[str, Any]:
         return {
@@ -30,6 +34,7 @@ class TaskSpec:
             "files": list(self.files),
             "allow_create": self.allow_create,
             "subagents": self.subagents,
+            "thread_id": self.thread_id,
         }
 
 
@@ -134,6 +139,11 @@ def normalize_tasks(project: Path, raw_tasks: Any) -> list[TaskSpec]:
         if type(raw_subagents) is not bool:
             raise UsageError(f"{task_id}: subagents must be a boolean when provided.")
 
+        raw_thread = task.get("thread_id")
+        if raw_thread is not None and (not isinstance(raw_thread, str) or not raw_thread.strip()):
+            raise UsageError(f"{task_id}: thread_id must be a non-empty string when provided.")
+        thread_id = raw_thread.strip() if isinstance(raw_thread, str) else None
+
         files = task.get("files")
         if not isinstance(files, list) or not files:
             raise UsageError(f"{task_id}: files is required and must be a non-empty list.")
@@ -157,6 +167,7 @@ def normalize_tasks(project: Path, raw_tasks: Any) -> list[TaskSpec]:
                 files=tuple(normalized_files),
                 allow_create=allow_create,
                 subagents=raw_subagents,
+                thread_id=thread_id,
             )
         )
     return tasks

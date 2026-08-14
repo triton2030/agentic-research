@@ -144,7 +144,26 @@ def _ranking(corpus: Path, query: str, *, lexical: bool) -> list[str]:
         detail = completed.stderr.strip() or completed.stdout.strip()
         raise RuntimeError(f"retrieval command failed: {detail}")
     payload = json.loads(completed.stdout)
-    return [record["record_id"] for record in payload["records"]]
+    return [record["address"].rsplit(":", 1)[0] for record in payload["records"]]
+
+
+def _file_relevance(
+    records: list[dict[str, Any]], cases: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    files_by_record_id: dict[str, list[str]] = {}
+    for record in records:
+        files_by_record_id.setdefault(record["record_id"], []).append(record["file"])
+    result: list[dict[str, Any]] = []
+    for case in cases:
+        files = list(
+            dict.fromkeys(
+                filename
+                for record_id in case["relevant"]
+                for filename in files_by_record_id[record_id]
+            )
+        )
+        result.append({**case, "relevant": files})
+    return result
 
 
 def _metrics(
@@ -204,15 +223,16 @@ def main() -> int:
     if corpus_error:
         print(json.dumps(corpus_error, ensure_ascii=False))
         return 2
+    evaluation_cases = _file_relevance(records, cases)
 
     lexical_rankings: list[list[str]] = []
     hybrid_rankings: list[list[str]] = []
-    for case in cases:
+    for case in evaluation_cases:
         lexical_rankings.append(_ranking(args.corpus, case["query"], lexical=True))
         hybrid_rankings.append(_ranking(args.corpus, case["query"], lexical=False))
 
-    lexical, lexical_failed = _metrics(cases, lexical_rankings)
-    hybrid, hybrid_failed = _metrics(cases, hybrid_rankings)
+    lexical, lexical_failed = _metrics(evaluation_cases, lexical_rankings)
+    hybrid, hybrid_failed = _metrics(evaluation_cases, hybrid_rankings)
     passed = (
         hybrid["hit@5"] >= args.min_hit_at_five
         and hybrid["hit@5"] > lexical["hit@5"]
@@ -233,6 +253,7 @@ def main() -> int:
                 },
                 "records": len(records),
                 "cases": len(cases),
+                "relevance_unit": "file",
                 "model": DIGEST.EMBEDDING_MODEL,
                 "revision": DIGEST.EMBEDDING_REVISION,
                 "hybrid_depth": DIGEST.HYBRID_DEPTH,

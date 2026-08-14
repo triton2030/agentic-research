@@ -27,6 +27,7 @@ date: 2026-07-14
 agent: claude
 model: claude-opus-5
 session: {SESSION}
+session-context: "chat recall retrieval; session files; BM25; карточечныймаршрут"
 ---
 
 # Chat recall
@@ -71,19 +72,35 @@ class ChatDigestTests(unittest.TestCase):
         )
 
     def write_entries(self, entries: list[str]) -> None:
+        self.write_file("recall.md", entries)
+
+    def write_file(
+        self,
+        name: str,
+        entries: list[str],
+        *,
+        session: str = SESSION,
+        session_context: str | None = None,
+    ) -> None:
+        context_line = (
+            f"session-context: {json.dumps(session_context, ensure_ascii=False)}\n"
+            if session_context
+            else ""
+        )
         content = (
             "---\n"
             "project: demo\n"
             "date: 2026-07-01\n"
             "agent: codex\n"
             "model: gpt-5.6\n"
-            f"session: {SESSION}\n"
-            "---\n\n"
+            f"session: {session}\n"
+            + context_line
+            + "---\n\n"
             "# Chat recall\n\n"
             + "\n".join(entries)
             + "\n"
         )
-        (self.corpus / "recall.md").write_text(content, encoding="utf-8")
+        (self.corpus / name).write_text(content, encoding="utf-8")
 
     def test_every_star_block_is_a_record(self) -> None:
         records, diagnostics = DIGEST.load(self.corpus)
@@ -141,6 +158,10 @@ class ChatDigestTests(unittest.TestCase):
         self.assertNotIn("владельце канона", compact_query.stdout)
         query_json = json.loads(self.call("--query", "канон", "--json").stdout)
         self.assertNotIn("context_note", query_json["records"][0])
+        self.assertEqual(
+            query_json["records"][0]["session_context"],
+            "chat recall retrieval; session files; BM25; карточечныймаршрут",
+        )
         note_match = json.loads(
             self.call("--query", "BM25", "--json").stdout
         )
@@ -160,6 +181,18 @@ class ChatDigestTests(unittest.TestCase):
             shown_json["records"][0]["context_note"],
             "Речь о владельце канона, а не о BM25.",
         )
+
+    def test_session_context_is_the_only_searchable_source_for_task_wording(self) -> None:
+        data = json.loads(
+            self.call("--query", "карточечныймаршрут", "--json").stdout
+        )
+
+        self.assertEqual(data["matched"], 1)
+        self.assertEqual(data["records"][0]["session_context"], (
+            "chat recall retrieval; session files; BM25; карточечныймаршрут"
+        ))
+        record = data["records"][0]
+        self.assertNotIn("карточечныймаршрут", record["text"])
 
     def test_opaque_selection_has_context_while_self_contained_quote_stays_bare(
         self,
@@ -301,22 +334,24 @@ class ChatDigestTests(unittest.TestCase):
         self.assertIn("may return fewer records than --limit", result.stdout)
 
     def test_human_bound_uses_rendered_digest_not_full_json(self) -> None:
-        self.write_entries(
-            [
-                (
-                    f'* 2026-07-01T{hour:02d}:00:00+00:00 — '
-                    f'"Needle {hour} {"detail " * 350}" '
-                    "— type: решение | topic: документация-и-знания"
-                )
-                for hour in range(5)
-            ]
-        )
+        for hour in range(5):
+            self.write_file(
+                f"needle-{hour}.md",
+                [
+                    (
+                        f'* 2026-07-01T{hour:02d}:00:00+00:00 — '
+                        f'"Needle {hour} {"detail " * 350}" '
+                        "— type: решение | topic: документация-и-знания"
+                    )
+                ],
+                session=f"00000000-0000-4000-8000-{hour:012d}",
+            )
 
         human = self.call(
             "--query", "Needle", "--limit", "5", "--max-chars", "4000"
         )
         self.assertEqual(human.returncode, 0, human.stderr)
-        self.assertTrue(human.stdout.startswith("5/5 candidates shown · 5 records"))
+        self.assertTrue(human.stdout.startswith("5/5 candidates shown · 10 records"))
         self.assertLessEqual(len(human.stdout.rstrip("\n")), 4000)
 
         character_limited = self.call(
@@ -577,6 +612,84 @@ class ChatDigestTests(unittest.TestCase):
             [record["record_id"] for record in result].count("duplicate"),
             2,
         )
+
+    def test_hybrid_collapses_files_before_depth_and_rrf(self) -> None:
+        records = [
+            {
+                "file": "long.md",
+                "address": f"long.md:{index}",
+                "record_id": f"long-{index}",
+            }
+            for index in range(DIGEST.HYBRID_DEPTH + 1)
+        ]
+        records.append(
+            {"file": "other.md", "address": "other.md:1", "record_id": "other"}
+        )
+        lexical = [dict(record) for record in records]
+        dense = [dict(record) for record in records]
+        with (
+            mock.patch.object(DIGEST, "search_bm25", return_value=lexical),
+            mock.patch.object(DIGEST, "search_dense", return_value=dense),
+        ):
+            result = DIGEST.search_hybrid(
+                records,
+                "query",
+                collapse_files=True,
+            )
+
+        self.assertEqual([record["file"] for record in result], ["long.md", "other.md"])
+
+    def test_default_query_returns_one_candidate_per_file_and_timeline_keeps_all(
+        self,
+    ) -> None:
+        long_entries = [
+            (
+                f'* 2026-07-01T{index % 24:02d}:{index:02d}:00+00:00 — '
+                f'"Needle long {index}" — type: факт | topic: работа-и-процессы'
+            )
+            for index in range(DIGEST.HYBRID_DEPTH + 1)
+        ]
+        self.write_file("long.md", long_entries)
+        self.write_file(
+            "other.md",
+            [
+                '* 2026-07-02T10:00:00+00:00 — "Needle other" '
+                '— type: факт | topic: работа-и-процессы'
+            ],
+            session="22222222-2222-4222-8222-222222222222",
+        )
+
+        compact = json.loads(
+            self.call("--query", "Needle", "--limit", "2", "--json").stdout
+        )
+        timeline = json.loads(
+            self.call_default(
+                "--query",
+                "Needle",
+                "--timeline",
+                "--limit",
+                "100",
+                "--max-chars",
+                "200000",
+                "--json",
+            ).stdout
+        )
+
+        self.assertEqual({record["address"].split(":", 1)[0] for record in compact["records"]}, {"long.md", "other.md"})
+        self.assertEqual(timeline["matched"], DIGEST.HYBRID_DEPTH + 2)
+
+    def test_legacy_file_without_session_context_remains_valid(self) -> None:
+        self.write_entries(
+            [
+                '* 2026-07-01T10:00:00+00:00 — "Legacy holder" '
+                '— type: факт | topic: работа-и-процессы'
+            ]
+        )
+
+        records, diagnostics = DIGEST.load(self.corpus)
+
+        self.assertEqual(diagnostics, 0)
+        self.assertNotIn("session_context", records[0])
 
     def test_filters_run_before_hybrid_ranking(self) -> None:
         records, _ = DIGEST.load(self.corpus)

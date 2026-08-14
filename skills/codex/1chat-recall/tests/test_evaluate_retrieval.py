@@ -124,6 +124,23 @@ class RetrievalEvaluatorTests(unittest.TestCase):
         assert error is not None
         self.assertEqual(error["error"], "target-project-mismatch")
 
+    def test_relevance_is_evaluated_by_file_not_representative_record(self) -> None:
+        target_id = self.write_record(
+            "agentic-research",
+            "Target quote",
+            "target-session.md",
+        )
+        records, _ = EVALUATOR.DIGEST.load(self.corpus)
+
+        cases = EVALUATOR._file_relevance(
+            records,
+            [{"id": "example", "query": "target", "relevant": [target_id]}],
+        )
+        metrics, failed = EVALUATOR._metrics(cases, [["target-session.md"]])
+
+        self.assertEqual(metrics["hit@1"], 1.0)
+        self.assertEqual(failed, [])
+
 
 if __name__ == "__main__":
     unittest.main()
