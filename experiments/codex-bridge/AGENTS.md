@@ -21,7 +21,7 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
   `~/.codex/config.toml`. Ярусы вызова (владелец, 2026-08-14): `sol`+`xhigh` — дефолт на всё;
   `luna` — только тупые и большие задания; `max`/`ultra` сняты («не будем
   использовать, чтобы было проще») — флаг `--effort` остаётся техническим
-  opt-in, и автодиалог `HEAVY_EFFORTS` при неиспользуемых ярусах спит.
+  opt-in.
   `terra` доступен явным `--model` (дефолт `md-scout`), штатным ярусом моста
   быть перестал. Service tier мост по умолчанию НЕ шлёт (вердикт
   владельца 2026-07-25, снят форсинг fast от 2026-07-20): `None` опускается
@@ -59,12 +59,10 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
   по умолчанию:** смысл субагента — беречь контекстное окно, поэтому stdout
   прогона не растёт, а заглядывают через `codex_progress.py RUN_DIR` (сводка на
   несколько строк). Сырой `events.jsonl` в окно оркестратора не читают.
-- **Тяжёлое усилие — разговор, а не выстрел.** На пути ревьюера
-  `--effort` из `HEAVY_EFFORTS` (`max`/`ultra` — дефолтный `xhigh` сюда НЕ
-  входит, иначе каждый вызов моста плодил бы чат в Codex Desktop) сам включает
-  персистентный тред: такой прогон долго читает и думает, и ценность приходит
-  во втором обмене — поправить курс или углубить. Отказ осознанный:
-  `--no-dialog`. Не делай это молчаливым — вход печатает причину в stderr.
+- **Тред заводит только явный `--dialog`.** Автовключение на тяжёлом усилии
+  снято 2026-08-14: оно решало за вызывающего дважды — навязывало персистентный
+  тред одноразовому вопросу и спорило с инвариантом владельца «дерево и тред —
+  только у пишущего воркера». Глубина мышления не доказывает второй ход.
 - **Bridge threads эфемерны.** Все входы стартуют thread с
   `ephemeral=BRIDGE_THREAD_EPHEMERAL` (`codex_defaults.py`, =`True`). `~/.codex` —
   owner auth/config/runtime, общий с Codex Desktop, который рисует каждый
@@ -159,8 +157,7 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
 - `codex_retry.py` — ретрай стартовых вызовов под перегрузкой движка (sync +
   async), события `retry` в ledger.
 - `codex_defaults.py` — ярусы вызова и runtime default (`gpt-5.6-sol`+`xhigh`),
-  `HEAVY_EFFORTS`, sandbox и
-  approval labels для ledger/docs, `BRIDGE_THREAD_EPHEMERAL`.
+  sandbox и approval labels для ledger/docs, `BRIDGE_THREAD_EPHEMERAL`.
 - `codex_review.py` — консультант/ревьюер с built-in filesystem read-only.
   Default режим `task`:
   самодостаточное задание без транскрипта (вызов «как субагент»). Режимы
