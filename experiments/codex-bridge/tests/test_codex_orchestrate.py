@@ -519,50 +519,57 @@ class CodexOrchestrateCliTests(unittest.TestCase):
         developer_instructions), обязана лежать в manifest дословно и до
         первого хода — иначе после правки backend-кода нельзя восстановить,
         что воркер реально получил. Сверяем текст из dry-run manifest с тем,
-        что перехватил фейковый thread_start на том же задании."""
+        что перехватил фейковый thread_start на том же задании.
+
+        Оба режима изоляции: контракт воркера в них разный по существу (в своём
+        дереве лишнее отбраковывается, в общем — запрещено), и рассинхрон между
+        manifest и отправкой возможен в каждом."""
         import codex_orchestrate
 
-        captured: dict = {}
-        fake_names = _install_fake_openai_codex(captured)
-        raw_task = {"id": "t1", "prompt": "перепиши шапку", "files": ["a.md"]}
-        try:
-            with self.temp_project() as tmp:
-                root = Path(tmp).resolve()
-                self.write(root, "a.md")
+        for isolation in ("worktree", "shared"):
+            with self.subTest(isolation=isolation):
+                captured: dict = {}
+                fake_names = _install_fake_openai_codex(captured)
+                raw_task = {"id": "t1", "prompt": "перепиши шапку", "files": ["a.md"]}
+                try:
+                    with self.temp_project() as tmp:
+                        root = Path(tmp).resolve()
+                        self.write(root, "a.md")
 
-                proc = run_cli(root, [raw_task])
-                self.assertEqual(proc.returncode, 0, proc.stderr)
-                payload = json.loads(proc.stdout)
-                manifest = json.loads(Path(payload["paths"]["manifest"]).read_text())
+                        proc = run_cli(root, [raw_task], "--isolation", isolation)
+                        self.assertEqual(proc.returncode, 0, proc.stderr)
+                        payload = json.loads(proc.stdout)
+                        manifest = json.loads(Path(payload["paths"]["manifest"]).read_text())
 
-                tasks = normalize_tasks(root, [raw_task])
-                run_dir = root / "run"
-                run_dir.mkdir()
-                defaults = {
-                    "cwd": str(root),
-                    "model": "gpt-5.6-sol",
-                    "effort": "high",
-                    "service_tier": None,
-                    "run_dir": run_dir,
-                    "progress": {"completed": 0, "total": 1},
-                }
-                fake_codex = sys.modules["openai_codex"].FakeCodex()
-                asyncio.run(
-                    codex_orchestrate._run_one(
-                        fake_codex, asyncio.Semaphore(1), tasks[0], defaults
-                    )
-                )
+                        tasks = normalize_tasks(root, [raw_task])
+                        run_dir = root / "run"
+                        run_dir.mkdir()
+                        defaults = {
+                            "cwd": str(root),
+                            "model": "gpt-5.6-sol",
+                            "effort": "high",
+                            "service_tier": None,
+                            "run_dir": run_dir,
+                            "progress": {"completed": 0, "total": 1},
+                            "isolation": isolation,
+                        }
+                        fake_codex = sys.modules["openai_codex"].FakeCodex()
+                        asyncio.run(
+                            codex_orchestrate._run_one(
+                                fake_codex, asyncio.Semaphore(1), tasks[0], defaults
+                            )
+                        )
 
-            sent = captured["developer_instructions"]
-            record = manifest["tasks"][0]
-            self.assertEqual(record["id"], "t1")
-            self.assertEqual(record["developer_instructions"], sent)
-            self.assertEqual(record["developer_instructions_chars"], len(sent))
-            # dry-run фиксирует план целиком: result.json не беднее manifest.
-            self.assertEqual(payload["tasks"][0], record)
-        finally:
-            for name in fake_names:
-                sys.modules.pop(name, None)
+                    sent = captured["developer_instructions"]
+                    record = manifest["tasks"][0]
+                    self.assertEqual(record["id"], "t1")
+                    self.assertEqual(record["developer_instructions"], sent)
+                    self.assertEqual(record["developer_instructions_chars"], len(sent))
+                    # dry-run фиксирует план целиком: result.json не беднее manifest.
+                    self.assertEqual(payload["tasks"][0], record)
+                finally:
+                    for name in fake_names:
+                        sys.modules.pop(name, None)
 
     def test_worker_start_retried_on_transient_overload(self) -> None:
         """Флот стартует N тредов разом и упирается в overload раньше одиночных

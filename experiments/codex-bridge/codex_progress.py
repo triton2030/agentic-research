@@ -282,6 +282,69 @@ def digest(run_dir: Any, *, tail: int = 6) -> str:
     return "\n".join(lines)
 
 
+def board(project: Any, *, limit: int = 12) -> str:
+    """Одна строка на прогон — доска оркестратора, ведущего несколько Codex разом.
+
+    `digest()` отвечает на «что делает ЭТОТ прогон», а оркестратору с тремя
+    фоновыми запусками нужен другой вопрос: «кто из них ещё жив и кто встал».
+    Три вызова digest на это отвечали ценой трёх выхлопов в контекстное окно —
+    ровно то, от чего субагент должен избавлять.
+    """
+    import json
+    from pathlib import Path
+
+    root = Path(project) / "_workspace" / "codex-artifacts"
+    if not root.is_dir():
+        return f"прогонов нет: {root} не существует"
+
+    runs = sorted((p for p in root.iterdir() if p.is_dir()), reverse=True)[:limit]
+    if not runs:
+        return f"прогонов нет: {root} пуст"
+
+    lines = [f"прогоны в {root} (свежие сверху, показано {len(runs)}):"]
+    for run in runs:
+        result = run / "result.json"
+        state = "идёт"
+        detail = ""
+        if result.is_file():
+            try:
+                data = json.loads(result.read_text(encoding="utf-8"))
+                state = "ok" if data.get("ok") else "провал"
+                for key in ("worker_status", "scope_status", "verification_status"):
+                    if data.get(key):
+                        detail += f" {key.split('_')[0]}={data[key]}"
+                wave = data.get("wave") or {}
+                if wave.get("integration_status"):
+                    detail += f" влито={len(wave.get('merged') or [])}"
+                    if wave.get("kept_branches"):
+                        detail += f" ВЕТОК={len(wave['kept_branches'])}"
+                    if wave.get("cleanup_done") is False:
+                        detail += " ДЕРЕВЬЯ-ВИСЯТ"
+            except Exception:  # noqa: BLE001
+                state = "result.json нечитаем"
+
+        beat: dict[str, Any] | None = None
+        events = run / "events.jsonl"
+        if events.is_file():
+            for raw in events.read_text(encoding="utf-8").splitlines():
+                try:
+                    event = json.loads(raw)
+                except Exception:  # noqa: BLE001
+                    continue
+                if event.get("event") == "heartbeat":
+                    beat = event
+        if state == "идёт" and beat:
+            # Растущий idle при живом процессе — единственный честный признак
+            # зависания; для флота важнее не агрегат, а самый молчащий воркер.
+            detail += f" elapsed={beat.get('elapsed_sec')}s"
+            for key in ("steps", "idle_sec", "active", "stalest"):
+                if beat.get(key) is not None:
+                    detail += f" {key}={beat[key]}"
+
+        lines.append(f"  {run.name}  {state}{detail}")
+    return "\n".join(lines)
+
+
 class _InterruptOnSignal:
     """SIGINT/SIGTERM → `turn/interrupt`, а не смерть процесса на полуслове.
 
@@ -393,13 +456,26 @@ def main() -> int:
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="Сводка идущего или завершённого Codex-прогона."
+        description="Сводка идущего или завершённого Codex-прогона; --board — все прогоны разом."
     )
-    parser.add_argument("run_dir", help="Путь к run_dir прогона")
+    parser.add_argument("run_dir", nargs="?", help="Путь к run_dir прогона")
+    parser.add_argument(
+        "--board",
+        metavar="PROJECT",
+        nargs="?",
+        const=".",
+        help="Доска: одна строка на прогон проекта (default: cwd). Для оркестратора "
+        "с несколькими фоновыми запусками.",
+    )
     parser.add_argument(
         "--tail", type=int, default=6, help="Сколько последних шагов показать"
     )
     args = parser.parse_args()
+    if args.board is not None:
+        print(board(args.board))
+        return 0
+    if not args.run_dir:
+        parser.error("нужен RUN_DIR или --board [PROJECT]")
     print(digest(args.run_dir, tail=args.tail))
     return 0
 

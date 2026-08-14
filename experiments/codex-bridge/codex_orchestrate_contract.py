@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-ALLOWED_TASK_KEYS = {"id", "prompt", "files", "allow_create"}
+ALLOWED_TASK_KEYS = {"id", "prompt", "files", "allow_create", "subagents"}
 COMPLETED_CODEX_STATUS = "completed"
 
 
@@ -19,6 +19,9 @@ class TaskSpec:
     prompt: str
     files: tuple[str, ...]
     allow_create: bool
+    # Разрешение воркеру делить свою задачу на собственных субагентов. Осмысленно
+    # только в изолированном дереве: иначе его субагенты пишут в общее.
+    subagents: bool = False
 
     def to_json(self) -> dict[str, Any]:
         return {
@@ -26,6 +29,7 @@ class TaskSpec:
             "prompt": self.prompt,
             "files": list(self.files),
             "allow_create": self.allow_create,
+            "subagents": self.subagents,
         }
 
 
@@ -107,6 +111,10 @@ def normalize_tasks(project: Path, raw_tasks: Any) -> list[TaskSpec]:
             raise UsageError(f"{task_id}: allow_create must be a boolean when provided.")
         allow_create = raw_allow_create
 
+        raw_subagents = task.get("subagents", False)
+        if type(raw_subagents) is not bool:
+            raise UsageError(f"{task_id}: subagents must be a boolean when provided.")
+
         files = task.get("files")
         if not isinstance(files, list) or not files:
             raise UsageError(f"{task_id}: files is required and must be a non-empty list.")
@@ -129,6 +137,7 @@ def normalize_tasks(project: Path, raw_tasks: Any) -> list[TaskSpec]:
                 prompt=prompt.strip(),
                 files=tuple(normalized_files),
                 allow_create=allow_create,
+                subagents=raw_subagents,
             )
         )
     return tasks

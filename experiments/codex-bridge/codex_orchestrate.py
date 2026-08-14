@@ -50,6 +50,12 @@ from codex_git_scope import (
     is_scope_noise,
 )
 from codex_progress import ProgressRegistry, ProgressTracker, run_async_turn
+from codex_worktrees import (
+    WorkerTree,
+    WorktreeError,
+    close_wave,
+    create_worker_tree,
+)
 
 
 def _safe_print(message: str, *, stream: Any = None) -> None:
@@ -62,22 +68,49 @@ def _safe_print(message: str, *, stream: Any = None) -> None:
         pass
 
 
-def _files_constraint(files: tuple[str, ...]) -> str:
+def _files_constraint(files: tuple[str, ...], *, isolated: bool = False, subagents: bool = False) -> str:
     """Файловый контракт воркера — канал `developer_instructions` треда.
 
     Это политика прогона, а не задание: она уходит при thread_start отдельно от
     реплики, поэтому task.prompt остаётся заданием пользователя, а allowlist не
     растворяется в его тексте. Enforcement всё равно живёт в
-    preflight/postflight — текст лишь объясняет воркеру рамку."""
+    preflight/postflight — текст лишь объясняет воркеру рамку.
+
+    В изолированном дереве формулировка другая по существу, а не по вежливости:
+    писать вне списка воркер физически может (дерево его), но в проект уедут
+    только файлы списка — остальное будет отброшено вместе с деревом. Модели
+    честнее сказать про отбраковку, чем запрещать то, что песочница разрешает.
+
+    Делегация запрашивается здесь же: системный промпт движка молчит про
+    субагентов, пока их явно не попросят («Do not spawn sub-agents unless the
+    user or applicable AGENTS.md/skill instructions explicitly ask»). Разрешение
+    осмысленно только в своём дереве — иначе субагенты пишут в общее.
+    """
     joined = ", ".join(files)
-    return (
-        f"Тебе разрешено создавать и редактировать ТОЛЬКО эти файлы: {joined}. "
-        "Не трогай никакие другие файлы. Если задача требует иного — опиши это "
-        "в ответе, но не делай."
-    )
+    if isolated:
+        contract = (
+            f"Ты работаешь в отдельном git worktree — это твоя копия проекта. "
+            f"В проект будут забраны ТОЛЬКО эти файлы: {joined}. "
+            "Всё, что ты изменишь вне этого списка, будет отброшено вместе с деревом: "
+            "нужен другой файл — назови его в ответе, не правь молча. "
+            "Не создавай коммитов и не переключай ветки: сбор делает оркестратор."
+        )
+    else:
+        contract = (
+            f"Тебе разрешено создавать и редактировать ТОЛЬКО эти файлы: {joined}. "
+            "Не трогай никакие другие файлы. Если задача требует иного — опиши это "
+            "в ответе, но не делай."
+        )
+    if subagents:
+        contract += (
+            " Задача крупная: тебе РАЗРЕШЕНО делить её на собственных субагентов "
+            "и работать ими параллельно, оставаясь в границах своего дерева и "
+            "своего списка файлов."
+        )
+    return contract
 
 
-def _manifest_task_record(task: TaskSpec) -> dict[str, Any]:
+def _manifest_task_record(task: TaskSpec, *, isolated: bool = False) -> dict[str, Any]:
     """Запись задачи в manifest: контракт задачи + её эффективная инструкция.
 
     Файловый контракт уходит воркеру каналом `developer_instructions`, минуя
@@ -86,7 +119,9 @@ def _manifest_task_record(task: TaskSpec) -> dict[str, Any]:
     Audit-владелец прогона — run_dir, значит точный текст (и его длина) лежат
     здесь, до первого хода: инструкция, которой нет в run_dir, для аудита не
     существует."""
-    developer_instructions = _files_constraint(task.files)
+    developer_instructions = _files_constraint(
+        task.files, isolated=isolated, subagents=task.subagents
+    )
     return {
         **task.to_json(),
         "developer_instructions": developer_instructions,
@@ -99,7 +134,16 @@ async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict
     from openai_codex.generated.v2_all import ReasoningEffort
 
     prompt = task.prompt
-    files_contract = _files_constraint(task.files)
+    # В worktree-режиме воркер живёт в своей копии проекта: cwd другой, и контракт
+    # говорит про отбраковку вне allowlist, а не про запрет писать. Режим берётся
+    # из defaults, а не из наличия дерева: manifest пишет тот же текст до первого
+    # хода, и два источника режима разошлись бы в аудите.
+    isolated = defaults.get("isolation") == "worktree"
+    tree: WorkerTree | None = defaults.get("trees", {}).get(task.id)
+    worker_cwd = str(tree.path) if tree is not None else defaults["cwd"]
+    files_contract = _files_constraint(
+        task.files, isolated=isolated, subagents=task.subagents
+    )
     run_dir: Path = defaults["run_dir"]
     effort = ReasoningEffort(defaults["effort"])
     # registry ставит _run_fleet; при прямом вызове воркера его может не быть —
@@ -113,7 +157,7 @@ async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict
         try:
             thread = await retry_start_async(
                 lambda: codex.thread_start(
-                    cwd=defaults["cwd"],
+                    cwd=worker_cwd,
                     sandbox=Sandbox.workspace_write,
                     approval_mode=ApprovalMode.auto_review,
                     model=defaults["model"],
@@ -296,6 +340,7 @@ def build_manifest(
     concurrency: int,
     dry_run: bool,
     codex_runtime: dict[str, Any],
+    isolation: str,
 ) -> dict[str, Any]:
     return {
         "run_id": run_id,
@@ -305,10 +350,13 @@ def build_manifest(
         "project": str(project),
         "git": initial_git.to_json(),
         "concurrency": concurrency,
+        "isolation": isolation,
         "codex": codex_runtime,
         "verify": verify_commands,
         "allowlist": sorted(allowlist),
-        "tasks": [_manifest_task_record(task) for task in tasks],
+        "tasks": [
+            _manifest_task_record(task, isolated=isolation == "worktree") for task in tasks
+        ],
     }
 
 
@@ -340,6 +388,8 @@ def _compact_orchestrate_payload(payload: dict[str, Any]) -> dict[str, Any]:
             "postflight_changed_files",
             "out_of_scope_files",
             "git_head_changed",
+            "isolation",
+            "wave",
         )
         if key in payload
     }
@@ -375,6 +425,27 @@ def main() -> int:
     parser.add_argument(
         "--run-dir",
         help="Ledger directory override (default: <project>/_workspace/codex-artifacts/<run_id>).",
+    )
+    parser.add_argument(
+        "--isolation",
+        choices=["worktree", "shared"],
+        default="worktree",
+        help="worktree (default): каждому воркеру свой git worktree — точная атрибуция, "
+        "отбраковка правок вне allowlist, свобода писать в основном дереве во время волны. "
+        "shared: все воркеры в дереве проекта (прежнее поведение); выбирай, когда задачи "
+        "должны видеть правки друг друга или выкладка дерева слишком дорога.",
+    )
+    parser.add_argument(
+        "--no-integrate",
+        action="store_true",
+        help="worktree: не забирать работу в проект — оставить коммиты в ветках воркеров "
+        "для ручного разбора. Деревья при этом не удаляются.",
+    )
+    parser.add_argument(
+        "--keep-worktrees",
+        action="store_true",
+        help="worktree: не убирать деревья после волны (разбор мусора воркеров). "
+        "Помни: каждое дерево — выкладка проекта, чистить придётся руками.",
     )
     parser.add_argument("--allow-dirty-overlap", action="store_true", help="Allow launch when existing dirty files overlap task files.")
     parser.add_argument("--summary-stdout", action="store_true", help="Print compact JSON to stdout; full results stay in result.json/results.jsonl.")
@@ -415,7 +486,12 @@ def main() -> int:
             "worker_approval_mode": WORKER_APPROVAL_MODE,
             "thread_ephemeral": BRIDGE_THREAD_EPHEMERAL,
             "heartbeat_sec": args.heartbeat_sec,
+            "isolation": args.isolation,
         }
+        if args.isolation == "worktree" and not initial_git.available and not args.dry_run:
+            raise UsageError("--isolation worktree requires a git worktree; use --isolation shared.")
+        if args.isolation == "shared" and (args.no_integrate or args.keep_worktrees):
+            raise UsageError("--no-integrate/--keep-worktrees apply to --isolation worktree only.")
         run_id, run_dir = prepare_run_dir(args.run_dir, project=project)
         paths = _orchestrate_paths(run_dir)
         manifest = build_manifest(
@@ -429,6 +505,7 @@ def main() -> int:
             concurrency=args.concurrency,
             dry_run=args.dry_run,
             codex_runtime=codex_runtime,
+            isolation=args.isolation,
         )
         manifest["paths"] = paths
         write_json(run_dir / "manifest.json", manifest)
@@ -483,18 +560,74 @@ def main() -> int:
         "service_tier": args.service_tier,
         "run_dir": run_dir,
         "codex_bin": codex_bin,
+        "isolation": args.isolation,
     }
+
+    trees: list[WorkerTree] = []
+    if args.isolation == "worktree":
+        base = initial_git.git_head or "HEAD"
+        try:
+            for task in tasks:
+                trees.append(create_worker_tree(project, run_id, task.id, base=base))
+        except WorktreeError as exc:
+            # Полволны изолировать нельзя: часть воркеров писала бы в общее дерево,
+            # и атрибуция снова стала бы недоказуемой. Свернуть созданное и выйти.
+            close_wave(project, trees, allowlist, run_id=run_id, integrate=False, cleanup=True)
+            print(f"[orch] worktree isolation failed: {exc}", file=sys.stderr)
+            append_event(run_dir, "done", ok=False, worker_status="not_started", scope_status="unknown")
+            return 2
+        defaults["trees"] = {tree.task_id: tree for tree in trees}
+        append_event(run_dir, "worktrees_ready", count=len(trees), base=base)
+
     results = asyncio.run(_run_fleet(tasks, defaults, args.concurrency, args.heartbeat_sec))
 
     worker_status = "completed" if all(r["worker_status"] == "completed" for r in results) else "failed"
+
+    # Снимок основного дерева берётся ДО интеграции: после merge он показывал бы
+    # нашу же работу и ничего не доказывал.
     after_git = capture_git_snapshot(project, required=True)
     scope = compare_scope(initial_git, after_git, allowlist)
-    # run_dir теперь по умолчанию живёт внутри проекта (_workspace/codex-artifacts):
-    # его ledger/файлы — собственная площадка прогона, не правка проекта, иначе
-    # каждый прогон ложно валил бы scope об собственный журнал.
+    # run_dir по умолчанию живёт внутри проекта (_workspace/codex-artifacts): его
+    # ledger — собственная площадка прогона, не правка проекта, иначе каждый
+    # прогон ложно валил бы scope об собственный журнал.
     changed_files = [f for f in scope.changed_files if not is_scope_noise(project, run_dir, f)]
     out_of_scope_files = [f for f in scope.out_of_scope_files if not is_scope_noise(project, run_dir, f)]
-    scope_status = "passed" if (not out_of_scope_files and not scope.head_changed) else "failed"
+
+    wave: dict[str, Any] = {"isolation": "shared"}
+    if args.isolation == "worktree":
+        # Атрибуция считается в дереве каждого воркера, поэтому вердикт scope
+        # строится по ней, а не по общему дереву: изменения в основном дереве во
+        # время волны — это работа оркестратора (recall, планы, артефакты), и
+        # раньше они валили волну. Замер 2026-08-14: 68% записей out_of_scope по
+        # 106 волнам были именно таким служебным шумом.
+        try:
+            wave = close_wave(
+                project,
+                trees,
+                allowlist,
+                run_id=run_id,
+                integrate=not args.no_integrate,
+                cleanup=not args.keep_worktrees,
+            )
+        except WorktreeError as exc:
+            wave = {
+                "isolation": "worktree",
+                "integration_status": "error",
+                "error": str(exc),
+                "workers": [t.to_json() for t in trees],
+            }
+        worker_out_of_scope = sorted(
+            {path for tree in trees for path in tree.out_of_scope_files}
+        )
+        scope_status = "passed" if not worker_out_of_scope else "failed"
+        if wave.get("integration_status") in {"conflict", "error"}:
+            scope_status = "failed"
+        wave["main_tree_drift"] = out_of_scope_files
+        out_of_scope_files = worker_out_of_scope
+        changed_files = sorted({path for tree in trees for path in tree.changed_files})
+    else:
+        scope_status = "passed" if (not out_of_scope_files and not scope.head_changed) else "failed"
+
     append_event(
         run_dir,
         "scope_done",
@@ -502,6 +635,7 @@ def main() -> int:
         changed_files=changed_files,
         out_of_scope_files=out_of_scope_files,
         git_head_changed=scope.head_changed,
+        isolation=args.isolation,
     )
 
     if worker_status == "completed" and scope_status == "passed":
@@ -527,6 +661,8 @@ def main() -> int:
         "worker_status": worker_status,
         "scope_status": scope_status,
         "verification_status": verification_status,
+        "isolation": args.isolation,
+        "wave": wave,
         "postflight_changed_files": changed_files,
         "out_of_scope_files": out_of_scope_files,
         "git_head_changed": scope.head_changed,
@@ -544,9 +680,18 @@ def main() -> int:
         verification_status=verification_status,
     )
 
+    wave_line = ""
+    if args.isolation == "worktree":
+        merged = len(wave.get("merged", []))
+        kept = wave.get("kept_branches", [])
+        wave_line = (
+            f" | worktree: влито {merged}/{len(tasks)}"
+            + (f", осталось веток {len(kept)}" if kept else "")
+            + (", деревья убраны" if wave.get("cleanup_done") else ", ДЕРЕВЬЯ НЕ УБРАНЫ")
+        )
     _safe_print(
         f"[orch] готово: worker={worker_status} scope={scope_status} "
-        f"verify={verification_status} ok={ok}"
+        f"verify={verification_status} ok={ok}{wave_line}"
     )
     stdout_payload = _compact_orchestrate_payload(payload) if args.summary_stdout else payload
     _safe_print(json.dumps(stdout_payload, ensure_ascii=False, indent=2), stream=sys.stdout)
