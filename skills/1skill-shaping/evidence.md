@@ -59,3 +59,16 @@ UI-review skill, который должен сработать только п�
 API не предъявил; no-skill comparator, matched repeats и late-trigger
 probability не проверялись. Один smoke не переводит общий lifecycle из
 `candidate` в «проверен поведением».
+
+## Полный preflight аудиторов — 2026-08-14
+
+- Два независимых read-only аудитора до записи вернули покрытие 20/20 файлов
+  каждый; оба нашли и закрыли дешёвый выход «неприменимо» без причины.
+- `qv-skill` и system `quick_validate.py` для installed Codex/Claude — pass.
+- `md check` для shared owner и папки истории — issues `[]`.
+- `sync_simple_projections.py 1skill-shaping --check` — tracked и installed
+  Codex/Claude совпадают с shared owner; SHA-256 пяти `SKILL.md` одинаков.
+
+Дополнительный post-install smoke остановлен по коррекции владельца как
+избыточный для точечной правки; поведенческий uplift не заявляется, lifecycle
+остаётся `candidate`.
