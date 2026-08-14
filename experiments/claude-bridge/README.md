@@ -1,6 +1,6 @@
 # Claude Advisor Bridge
 
-This project lets Codex ask Claude for an independent Opus 5 or Fable 5 opinion
+This project lets Codex ask Claude for an independent Opus 5 opinion
 through a blocking default or an opt-in transient session adapter, while using
 the owner's Claude.ai subscription and Claude's native session history.
 
@@ -12,11 +12,12 @@ tmux session, event log, report store, relay protocol, worker sandbox, or model
 routing system.
 
 The exact-pinned Claude Agent SDK owns execution, typed events, process cleanup,
-and native session semantics. It is pointed at the owner's installed Claude Code
-executable and uses that executable's Claude.ai login. The bridge adds only the
-Codex-facing MCP seam, a small subscription preflight, transient lease
-lifetime, and bounded results and observations. There is no provider abstraction
-or alternate billing route.
+native session semantics, and supported local session reads. It is pointed at
+the owner's installed Claude Code executable and uses that executable's
+Claude.ai login. The bridge adds only the Codex-facing MCP seam, a small
+subscription preflight, transient lease lifetime, and bounded results,
+observations, and visible-session reads. There is no provider abstraction or
+alternate billing route.
 
 The completed adapter cutover and its acceptance evidence are archived in
 [`_ops/plans/bridge-maintainability/_archive/claude-session-adapter/task.md`](_ops/plans/bridge-maintainability/_archive/claude-session-adapter/task.md).
@@ -26,26 +27,26 @@ contract.
 ## Supported Interface
 
 The MCP entrypoint is `src/ask-server.js`. The supported surface has exactly
-three tools: blocking `claude_ask`, transient `claude_session`, and pull-only
-`claude_observe`.
+four tools: blocking `claude_ask`, transient `claude_session`, pull-only
+`claude_observe`, and read-only `claude_sessions`.
 
 ### Blocking Default
 
 `claude_ask` accepts:
 
 - a non-empty `prompt`;
-- fixed `opus_advisor` or `fable_advisor` profile;
+- the fixed `opus_advisor` profile;
 - an existing `cwd`;
 - an optional native Claude `session_id` for continuation.
 
-Fresh calls pin the profiles to exact `claude-opus-5` and `claude-fable-5`
-model IDs. The compact public `requested_model` field remains `opus` or `fable`;
-`resolved_model` carries Claude's exact runtime evidence.
+Fresh calls pin the profile to the exact `claude-opus-5` model ID. The compact
+public `requested_model` field is `opus`; `resolved_model` carries Claude's exact
+runtime evidence.
 
 The terminal packet contains bounded `text`, native `session_id`, requested and
-resolved models, duration, and warnings. A Fable request that Claude resolves to
-Opus is not a bridge failure, but the resolution must remain visible and the
-bridge must not invent a cause that Claude did not report.
+resolved models, duration, and warnings. A fresh call, resumed session, or
+runtime fallback that exposes a non-Opus primary model fails closed with
+`unsupported_model`.
 
 A nominal SDK success with a non-completing `terminal_reason`, such as
 `background_requested`, fails closed with a resumable typed error. The blocking
@@ -66,7 +67,9 @@ authorization instead of showing a new prompt.
 
 `claude_ask` remains the ordinary path: it runs one advisor turn, waits, and
 returns one bounded terminal packet. The session tools do not make blocking ask
-a compatibility afterthought or require callers to manage a lifecycle.
+a compatibility afterthought or require callers to manage a lifecycle. Use the
+advisor before work, during a parallel host track, or after work as a review;
+parallel execution uses the opt-in session path below.
 
 ### Transient Session Control
 
@@ -112,6 +115,30 @@ Successful MCP calls use `structuredContent` as the only context-bearing
 payload; the text block is a constant short receipt, not a serialized duplicate.
 A fresh Codex host probe must prove it can read a marker present only in
 `structuredContent` before this compatibility tradeoff is changed.
+
+### Existing Session Discovery
+
+`claude_sessions` exposes two read-only operations over active local Claude
+Code and Claude Desktop sessions:
+
+- `list_active` returns at most twenty active native sessions with their native
+  `session_id`, name, kind, cwd, title, branch, and start time, but no
+  conversation text;
+- `read` accepts one active native `session_id` plus an optional cwd scope and
+  returns a bounded tail of visible user/assistant messages.
+
+The installed Claude executable owns the active-process list through
+`claude agents --json`; the exact Agent SDK owns session metadata and message
+reads. The bridge does not parse Claude's private transcript format, index
+history, or retain another copy. System messages, thinking, tool calls/results,
+hooks, and subagent transcripts never cross this seam. Unreadable optional
+metadata does not hide an active session; CLI identity and project fields still
+remain available.
+
+Discovery does not send, resume, steer, stop, or otherwise mutate a session. A
+session discovered as active may have a writer in Claude Desktop or another
+process, so its ID is not permission to open another live writer through
+`claude_session`.
 
 ## Runtime Boundaries
 
@@ -181,9 +208,10 @@ The public surface stays small while independent failure reasons remain local:
 
 | Module | Owns | Must not own |
 | --- | --- | --- |
-| `src/ask-server.js` | the three MCP schemas, annotations, per-call cancellation, shutdown, and transport mapping | Claude policy, SDK events, or durable state |
+| `src/ask-server.js` | the four MCP schemas, annotations, per-call cancellation, shutdown, and transport mapping | Claude policy, SDK events, or durable state |
 | `src/claude-ask.js` | the blocking `askClaude(request, signal)` compatibility seam over transient execution | MCP schema, session registry, or SDK event details |
 | `src/claude-session.js` | the bounded process-local registry keyed by native `session_id`; open/resume, send, steer, stop, bounded observation-event projection, and shutdown | durable identity, persistence, Claude history, or raw event logs |
+| `src/claude-sessions.js` | active native-session discovery, official SDK metadata/message reads, visible-text filtering, and output bounds | live lease control, persistence, raw transcript parsing, or session mutation |
 | `src/claude-policy.js` | request/cwd/session/profile validation, explicit route-env hygiene, and subscription preflight | settings governance, SDK execution, or result formatting |
 | `src/claude-sdk.js` | the exact streaming Agent SDK query, controlled input, turn-completion/model reduction, compact runtime-warning normalization, native resume, and session evidence | registry policy, public packet shape, or billing policy |
 | `src/claude-result.js` | compact typed failures and bounded blocking/session packets | auth, registry, or SDK process ownership |
@@ -212,12 +240,13 @@ intended:
 npm run ask:live
 ```
 
-The live suite exercises blocking Opus and Fable calls, parallel execution,
+The live suite exercises parallel blocking Opus calls,
 native resume, bounded observation, follow-up, steer, stop, broad
 cwd/home/system reads, and cancellation with no observed SDK process tail. A
 schema or entrypoint change also requires fresh Codex discovery of exactly the
-three supported tools, one real blocking call, and one real session flow. An
-already-open task may retain an old MCP server, schema, or authorization state.
+four supported tools, one real blocking call, one real session flow, and one
+real active-session list/read. An already-open task may retain an old MCP
+server, schema, or authorization state.
 
 Before release, also run syntax and diff checks. Source and installed copies of
 `1claude-mcp` must match after an accepted projection change. The Codex MCP

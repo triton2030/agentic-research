@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { promisify } from "node:util";
 import { z } from "zod";
-import { ClaudeAskError, compactTail, isClaudeSessionId } from "./claude-result.js";
+import { ClaudeAskError, compactTail, isClaudeSessionId, isOpusModel } from "./claude-result.js";
 
 const execFileAsync = promisify(execFile);
 export const CLAUDE_EXECUTABLE = "/Users/triton/.local/bin/claude";
@@ -13,17 +13,12 @@ const PROFILES = Object.freeze({
     requestedModel: "opus",
     model: "claude-opus-5",
     effort: "xhigh"
-  }),
-  fable_advisor: Object.freeze({
-    requestedModel: "fable",
-    model: "claude-fable-5",
-    effort: "xhigh"
   })
 });
 
 export const claudeAskInputSchema = Object.freeze({
   prompt: z.string().min(1).max(60_000),
-  profile: z.enum(["opus_advisor", "fable_advisor"]),
+  profile: z.literal("opus_advisor"),
   cwd: z.string().min(1),
   session_id: z.string().uuid().optional(),
   effort: z.enum(["xhigh", "max"]).optional()
@@ -78,7 +73,7 @@ function canonicalRequest(request) {
   const parsed = requestSchema.safeParse(request);
   if (!parsed.success) {
     const field = parsed.error.issues[0]?.path[0];
-    if (field === "profile") throw new ClaudeAskError("unsupported_profile", "Use opus_advisor or fable_advisor.");
+    if (field === "profile") throw new ClaudeAskError("unsupported_profile", "Use opus_advisor; Fable is disabled.");
     if (field === "session_id") throw new ClaudeAskError("invalid_session_id", "Claude session_id must be a UUID.");
     if (field === "cwd") throw new ClaudeAskError("invalid_cwd", "Claude cwd is required.");
     throw new ClaudeAskError("invalid_request", "claude_ask requires a prompt of 1 to 60000 characters.");
@@ -87,7 +82,7 @@ function canonicalRequest(request) {
     throw new ClaudeAskError("invalid_request", "claude_ask requires a non-empty prompt.");
   }
   if (!parsed.data.session_id && !parsed.data.profile) {
-    throw new ClaudeAskError("unsupported_profile", "Fresh Claude sessions require opus_advisor or fable_advisor.");
+    throw new ClaudeAskError("unsupported_profile", "Fresh Claude sessions require opus_advisor.");
   }
   const baseProfile = parsed.data.session_id ? null : PROFILES[parsed.data.profile];
   const profile = baseProfile
@@ -159,12 +154,18 @@ export async function prepareClaudeRequest(request, options = {}) {
   return { ...canonical, env, executable, stripped, subscriptionType };
 }
 
-/** Reject SDK evidence that contradicts the already-proven subscription route. */
-export function assertSdkSubscriptionEvidence(init) {
+/** Reject SDK evidence that contradicts the subscription-only, Opus-only route. */
+export function assertSdkRuntimeEvidence(init) {
   if (!init || !["none", "oauth"].includes(init.apiKeySource)) {
     throw new ClaudeAskError(
       "sdk_subscription_required",
       `Claude SDK exposed a non-subscription credential source: ${init?.apiKeySource || "missing"}.`
+    );
+  }
+  if (!isOpusModel(init.model)) {
+    throw new ClaudeAskError(
+      "unsupported_model",
+      `Claude bridge permits Opus 5 only; native session model is ${init?.model || "missing"}.`
     );
   }
 }

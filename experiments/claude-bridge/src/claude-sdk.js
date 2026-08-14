@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { query } from "@anthropic-ai/claude-agent-sdk";
+import { ClaudeAskError } from "./claude-result.js";
 
 const CLIENT_APP = "claude-bridge/2.0";
 const MAX_TURNS = 48;
@@ -307,7 +308,7 @@ export async function runClaudeSdk(launch, options = {}) {
     try {
       ready = await engine.ready;
     } catch (error) {
-      if (error?.code === "sdk_subscription_required") throw error;
+      if (error instanceof ClaudeAskError) throw error;
       options.validateInit?.(null);
       throw error;
     }

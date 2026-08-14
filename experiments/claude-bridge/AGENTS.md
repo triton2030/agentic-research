@@ -9,9 +9,11 @@ copy, or old bridge source as current runtime truth.
 ## Preserve The Adapter Shape
 
 - Keep the public surface and module seams described in `README.md`. The accepted
-  surface is one blocking default, `claude_ask`, plus the opt-in
-  `claude_session` control seam and pull-only `claude_observe`. Another tool,
-  mode, flag, store, or protocol requires a recorded failing acceptance story.
+  surface is one blocking default, `claude_ask`, the opt-in `claude_session`
+  control seam, pull-only `claude_observe`, and read-only `claude_sessions` for
+  active native-session discovery and bounded visible conversation. Another
+  tool, mode, flag, store, or protocol requires a recorded failing acceptance
+  story.
 - Keep session control transient and process-local. Each active registry entry
   is keyed by its native Claude `session_id`; never introduce a second handle or
   identity. Restart may discard every active lease, but the same native session
@@ -28,8 +30,10 @@ copy, or old bridge source as current runtime truth.
   and result formatting in their existing owners. Do not create shallow
   manager/provider/factory layers or merge those independent failure reasons
   into one file.
-- Claude owns conversation history through its native `session_id`; this bridge
-  must not read or reproduce Claude's private session format.
+- Claude owns conversation history through its native `session_id`; use only the
+  official Agent SDK session readers and never parse or reproduce Claude's
+  private session format. Keep discovery read-only and return only bounded
+  visible user/assistant text.
 - Before implementing infrastructure, check current official Claude Code,
   Agent SDK, Codex, and MCP documentation plus the installed runtime. Prefer
   Claude's native sessions, resume, typed SDK events, `--bg`/agent view,
@@ -52,8 +56,8 @@ copy, or old bridge source as current runtime truth.
   details and the external Usage credits prerequisite have one owner:
   [`docs/subscription-billing.md`](docs/subscription-billing.md). Do not copy that
   contract into the task-time skill.
-- A Fable-to-Opus resolution is not a bridge failure, but must remain visible as
-  requested versus resolved model evidence. Do not invent its cause.
+- Keep the active bridge Opus-only. Reject a non-Opus fresh profile, resumed
+  native session, or primary-model fallback instead of silently routing it.
 - Preserve compact typed warnings for subscription overage/credits,
   model-refusal fallback, and denied tool names. Never expose denial prose,
   permission inputs, raw tool output, or fallback explanation text.
@@ -73,6 +77,10 @@ copy, or old bridge source as current runtime truth.
   shutdown cleanup, and restart-loss/resume behavior at the session adapter
   seam. The bridge's internal active-turn deadline must expire before the Codex
   host tool timeout so it can return a typed result and clean its process tree.
+- Prove active-session filtering, visible-text-only projection, read bounds, and
+  read-only MCP annotations at the `claude_sessions` seam. `list_active` must
+  not read conversation text, and unreadable metadata must not hide another
+  active session.
 - Any MCP schema or entrypoint change requires focused tests plus discovery and
   real blocking and session calls from a fresh Codex process. Already-open tasks
   can retain stale tools. Every public tool must expose a non-empty,

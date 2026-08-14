@@ -30,6 +30,10 @@ export function isClaudeSessionId(value) {
   return UUID_PATTERN.test(String(value || ""));
 }
 
+export function isOpusModel(value) {
+  return /^claude-opus-5(?:$|-)/iu.test(String(value || ""));
+}
+
 /** Validate SDK evidence and create the only public success packet. */
 export function formatClaudeResult(raw, launch) {
   if (!raw.result || raw.result.subtype !== "success" || raw.result.is_error) {
@@ -70,6 +74,12 @@ export function formatClaudeResult(raw, launch) {
 
   const resolvedModel = raw.primaryModels.at(-1) || raw.init?.model;
   if (!resolvedModel) throw new ClaudeAskError("missing_model", "Claude SDK did not identify the session model.");
+  if (!isOpusModel(resolvedModel)) {
+    throw new ClaudeAskError(
+      "unsupported_model",
+      `Claude bridge permits Opus 5 only; resolved model is ${resolvedModel}.`
+    );
+  }
 
   const bounded = boundText(raw.result.result, MAX_RESULT_CHARS);
   const requestedModel = launch.sessionId ? null : launch.profile.requestedModel;
@@ -77,9 +87,6 @@ export function formatClaudeResult(raw, launch) {
   const warnings = [];
   if (launch.stripped.length) warnings.push(`environment_overrides_stripped:${launch.stripped.toSorted().join(",")}`);
   if (raw.primaryModels.length > 1) warnings.push(`model_history:${raw.primaryModels.join("->")}`);
-  if (!launch.sessionId && !resolvedModel.toLowerCase().includes(launch.profile.model)) {
-    warnings.push(`model_resolution_mismatch:requested=${launch.profile.model},resolved=${resolvedModel}`);
-  }
   if (launch.sessionId) warnings.push("resume_session_owns_model");
   for (const warning of raw.runtimeWarnings || []) {
     const compact = boundText(warning, 240).text;

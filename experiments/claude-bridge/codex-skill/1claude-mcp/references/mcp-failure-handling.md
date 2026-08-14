@@ -6,6 +6,7 @@ Classify the failed layer before recovery:
 - external-data approval cancelled before dispatch;
 - invalid cwd/session or macOS-protected path;
 - subscription auth or Agent SDK rejection;
+- unsupported profile or non-Opus native model evidence;
 - Claude timeout, cancellation or SDK execution failure;
 - transient lease missing/busy, interrupt not settling, or session capacity;
 - recoverable maximum-turn result carrying a native `session_id`;
@@ -17,8 +18,10 @@ Classify the failed layer before recovery:
    tools or a raw Claude subprocess.
 2. For declined external-data approval, state what was not sent. Retry only when
    the user explicitly reopens that scope; do not invent another policy layer.
-3. For auth/SDK failure, preserve the subscription-only route. Do not
-   inject a key/token/base URL, enable a cloud provider or change model aliases.
+3. For auth/SDK failure, preserve the subscription-only route. For
+   unsupported profile/model evidence, preserve the Opus-only route. Do not
+   inject a key/token/base URL, enable a cloud provider, retry Fable or change
+   model aliases.
 4. For path or session failure, report the exact invalid input or OS denial;
    correct it or start a fresh session without changing authority.
    For a native tool permission denial, use the compact tool-name warning and

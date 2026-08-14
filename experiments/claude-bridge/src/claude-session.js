@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { assertSdkSubscriptionEvidence, prepareClaudeRequest } from "./claude-policy.js";
+import { assertSdkRuntimeEvidence, prepareClaudeRequest } from "./claude-policy.js";
 import { ClaudeAskError, compactClaudeAskError, formatClaudeResult, isClaudeSessionId } from "./claude-result.js";
 import { claudeRuntimeWarning, startClaudeSdkSession } from "./claude-sdk.js";
 
@@ -46,7 +46,7 @@ export const claudeSessionInputSchema = z.object({
     .describe("Session operation."),
   prompt: promptSchema.optional()
     .describe("Advisor task or follow-up; required except for stop."),
-  profile: z.enum(["opus_advisor", "fable_advisor"]).optional()
+  profile: z.literal("opus_advisor").optional()
     .describe("Fresh-session model profile."),
   effort: z.enum(["xhigh", "max"]).optional()
     .describe("Fresh-session effort; defaults to xhigh."),
@@ -671,7 +671,7 @@ export function createClaudeSessionAdapter(options = {}) {
     try {
       engine = startSession(launch, {
         abortController: controller,
-        validateInit: assertSdkSubscriptionEvidence,
+        validateInit: assertSdkRuntimeEvidence,
         onMessage: (message) => observeMessage(record, message),
         onTerminal: ({ error, lastRaw }) => {
           if (record.engine !== engine) return;
@@ -712,7 +712,7 @@ export function createClaudeSessionAdapter(options = {}) {
       // environment; reservations/capacity are held before this dispatch.
       beginTurn(record, engine, prompt, launch);
       const { init } = await waitWithSignal(engine.ready, signal);
-      assertSdkSubscriptionEvidence(init);
+      assertSdkRuntimeEvidence(init);
       if (!isClaudeSessionId(init.session_id)) {
         throw new ClaudeAskError("missing_session", "Claude SDK init did not include a native session UUID.");
       }

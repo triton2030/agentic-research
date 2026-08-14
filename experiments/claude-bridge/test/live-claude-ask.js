@@ -166,15 +166,15 @@ let sessionAdapter = null;
 
 try {
   const opusCwd = path.join(scratch, "opus");
-  const fableCwd = path.join(scratch, "fable");
+  const secondCwd = path.join(scratch, "second-opus");
   fs.mkdirSync(opusCwd);
-  fs.mkdirSync(fableCwd);
+  fs.mkdirSync(secondCwd);
   const opusMarker = token("OPUS_SCOPE");
-  const fableMarker = token("FABLE_SCOPE");
+  const secondMarker = token("SECOND_OPUS_SCOPE");
   fs.writeFileSync(path.join(opusCwd, "scope-marker.txt"), `${opusMarker}\n`);
-  fs.writeFileSync(path.join(fableCwd, "scope-marker.txt"), `${fableMarker}\n`);
+  fs.writeFileSync(path.join(secondCwd, "scope-marker.txt"), `${secondMarker}\n`);
 
-  const [opus, fable] = await Promise.all([
+  const [opus, second] = await Promise.all([
     askClaude({
       cwd: opusCwd,
       profile: "opus_advisor",
@@ -184,48 +184,46 @@ try {
         `Return the marker, the README heading Agentic Research, and one localhost line.`
     }),
     askClaude({
-      cwd: fableCwd,
-      profile: "fable_advisor",
+      cwd: secondCwd,
+      profile: "opus_advisor",
       prompt: "Read scope-marker.txt and return only its exact contents."
     })
   ]);
   assert.match(opus.text, new RegExp(opusMarker, "u"));
-  assert.doesNotMatch(opus.text, new RegExp(fableMarker, "u"));
+  assert.doesNotMatch(opus.text, new RegExp(secondMarker, "u"));
   assert.match(opus.text, /Agentic Research/u);
   assert.match(opus.text, /localhost/iu);
-  assert.match(fable.text, new RegExp(fableMarker, "u"));
-  assert.doesNotMatch(fable.text, new RegExp(opusMarker, "u"));
-  assert.notEqual(opus.session_id, fable.session_id);
+  assert.match(second.text, new RegExp(secondMarker, "u"));
+  assert.doesNotMatch(second.text, new RegExp(opusMarker, "u"));
+  assert.notEqual(opus.session_id, second.session_id);
   assert.equal(opus.requested_model, "opus");
-  assert.equal(fable.requested_model, "fable");
+  assert.equal(second.requested_model, "opus");
   assert.equal(opus.resolved_model, "claude-opus-5");
-  assert.match(fable.resolved_model, /^claude-(?:fable|opus)-5(?:$|-)/u);
+  assert.equal(second.resolved_model, "claude-opus-5");
 
-  const [opusResume, fableResume] = await Promise.all([
+  const [opusResume, secondResume] = await Promise.all([
     askClaude({
       cwd: opusCwd,
-      profile: "fable_advisor",
       session_id: opus.session_id,
       prompt: "Return only the exact scope token from the previous turn."
     }),
     askClaude({
-      cwd: fableCwd,
-      profile: "opus_advisor",
-      session_id: fable.session_id,
+      cwd: secondCwd,
+      session_id: second.session_id,
       prompt: "Return only the exact scope token from the previous turn."
     })
   ]);
   assert.match(opusResume.text, new RegExp(opusMarker, "u"));
-  assert.match(fableResume.text, new RegExp(fableMarker, "u"));
+  assert.match(secondResume.text, new RegExp(secondMarker, "u"));
   assert.equal(opusResume.session_id, opus.session_id);
-  assert.equal(fableResume.session_id, fable.session_id);
+  assert.equal(secondResume.session_id, second.session_id);
   assert.equal(opusResume.requested_model, null);
-  assert.equal(fableResume.requested_model, null);
+  assert.equal(secondResume.requested_model, null);
   assert.equal(opusResume.resolved_model, opus.resolved_model);
-  assert.equal(fableResume.resolved_model, fable.resolved_model);
+  assert.equal(secondResume.resolved_model, second.resolved_model);
   assert.match(opusResume.warnings.join(" "), /resume_session_owns_model/u);
-  assert.match(fableResume.warnings.join(" "), /resume_session_owns_model/u);
-  receipts.sessions = { opus, opus_resume: opusResume, fable, fable_resume: fableResume };
+  assert.match(secondResume.warnings.join(" "), /resume_session_owns_model/u);
+  receipts.sessions = { opus, opus_resume: opusResume, second_opus: second, second_opus_resume: secondResume };
 
   sessionAdapter = createClaudeSessionAdapter();
   const sessionMarker = token("SESSION_ADAPTER");

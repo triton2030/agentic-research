@@ -2,7 +2,7 @@
 name: 1claude-mcp
 description: >-
   Когда пользователь просит Claude, Opus или Fable, мнение другой model family
-  либо работу с уже запущенной Claude session — подключи Claude advisor. Не для
+  либо работу с уже запущенной Claude session — подключи Opus advisor. Не для
   справочных вопросов о Claude; native Codex review → `1fresh-eyes`.
 ---
 
@@ -10,28 +10,32 @@ description: >-
 
 ## Результат
 
-Получить компактное, проверяемое мнение Claude. По умолчанию используй blocking
-`claude_ask`; transient session остаётся opt-in. Codex владеет scope, проверкой,
-синтезом и ответом пользователю; Claude советует, но не принимает результат.
+Получить компактное, проверяемое мнение Claude перед работой, параллельно с ней
+или как ревью результата. Для одного ответа по умолчанию используй blocking
+`claude_ask`; transient session остаётся opt-in для параллельной работы и
+follow-up. Codex владеет scope, проверкой, синтезом и ответом пользователю;
+Claude советует, но не принимает результат.
 
 ## Основной Маршрут
 
-1. Выбери `opus_advisor` (`claude-opus-5`) по умолчанию. `fable_advisor`
-   (`claude-fable-5`) оставь для самых сложных долгосрочных, multi-system
-   решений или решений с высокой ценой ошибки.
+1. Используй только `opus_advisor` (`claude-opus-5`). Если запрос назвал
+   Fable, до вызова назови Opus-only границу и маршрутизируй работу в Opus,
+   не подменяя модель молча.
 2. Передай реальный project/worktree `cwd` и короткий самодостаточный brief:
-   цель; проверяемое решение или утверждение; точные пути или URLs;
-   существенные границы; требования к evidence; короткий verdict-first ответ;
-   условие остановки. Не копируй сырой chat dump.
+   цель и проблему; текущее состояние; известные owner-файлы и URLs, а если
+   точного адреса нет — корень исследования; существенные границы; критерий
+   успеха и evidence; форму и длину ответа. Описывай необходимый результат, а
+   не шаги: Claude сам выбирает дополнительные файлы, инструменты и подход. Не
+   копируй сырой chat dump.
 3. Оставь `xhigh`; выбери `effort: max` только для свежего вызова, когда цена
    решения оправдывает более долгую максимально глубокую работу.
 4. Вызови один blocking `claude_ask`. Он может работать несколько минут;
    продолжай тот же host call, не запускай polling или параллельный повтор.
 5. Прочитай `requested_model`, `requested_effort`, `resolved_model`, `warnings`
-   и `session_id`. Fable → Opus — успешный вызов с другой `resolved_model`, если
-   это явно видно; не выдумывай причину. `warnings` может компактно показать
-   нативный model-refusal fallback, subscription overage/credits или имя
-   отклонённого инструмента, но не его arguments/output.
+   и `session_id`. `unsupported_profile` или `unsupported_model` — fail-closed:
+   не повторяй через Fable и не выдавай вызов за завершённый. `warnings` может
+   компактно показать нативный model-refusal fallback, subscription
+   overage/credits или имя отклонённого инструмента, но не его arguments/output.
 6. Проверь существенные утверждения локально и представь ответ как мнение
    Claude, а не как собственный доказанный вывод.
 
@@ -51,15 +55,16 @@ billing ошибке читай единственный owner-файл
 
 ## Условные Маршруты
 
-- Сложный Fable brief или model-resolution mismatch:
-  [fable-agent-prompting.md](references/fable-agent-prompting.md).
 - Когда качество Opus review зависит от роли, sources или формы ответа:
   [opus-agent-prompting.md](references/opus-agent-prompting.md).
 - Конкретный Claude `Skill`, MCP capability, subagent, monitor или workflow:
   [claude-native-tools.md](references/claude-native-tools.md).
-- Продолжение по `session_id`, параллельная работа, follow-up, steer, проверка
-  живости или stop:
+- Совет фоном, пока Codex продолжает работу; продолжение по `session_id`,
+  follow-up, steer, проверка живости или stop:
   [session-adapter.md](references/session-adapter.md).
+- Необязательный read-only список активных локальных Claude sessions или чтение
+  видимой переписки известной active session:
+  [existing-sessions.md](references/existing-sessions.md).
 - Tool missing/stale, approval, auth, malformed output или cancellation:
   [mcp-failure-handling.md](references/mcp-failure-handling.md).
 

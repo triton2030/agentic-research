@@ -6,12 +6,12 @@ progress, liveness checks, or explicit stop.
 
 ## Start And Address
 
-- Fresh: `claude_session` with `op: open_fresh`, initial `prompt`, `profile`,
-  `cwd`, and optional `effort: max`.
+- Fresh: `claude_session` with `op: open_fresh`, initial `prompt`,
+  `profile: opus_advisor`, `cwd`, and optional `effort: max`.
 - Native continuation after a bridge restart: `op: open_resume` with the known
   `session_id`, same project `cwd`, and a new prompt.
-- Resume preserves the native session model; another profile does not switch
-  it. Start fresh for a blind review, another project or a materially new frame.
+- Resume preserves the native session model. Start fresh for a blind review,
+  another project or a materially new frame.
 - Keep the returned native `session_id`. It is both the live address and
   Claude's durable conversation identity; there is no second bridge handle.
 - Use distinct IDs for independent parallel advisors. Never open two live

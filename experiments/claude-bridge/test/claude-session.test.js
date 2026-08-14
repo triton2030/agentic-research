@@ -4,7 +4,7 @@ import { ClaudeAskError } from "../src/claude-ask.js";
 import { createClaudeSessionAdapter } from "../src/claude-session.js";
 
 const OPUS_SESSION = "11111111-1111-4111-8111-111111111111";
-const FABLE_SESSION = "22222222-2222-4222-8222-222222222222";
+const SECOND_SESSION = "22222222-2222-4222-8222-222222222222";
 const THIRD_SESSION = "33333333-3333-4333-8333-333333333333";
 
 function deferred() {
@@ -18,13 +18,7 @@ function deferred() {
 }
 
 function profileFor(name, effort = "xhigh") {
-  if (name === "fable_advisor") {
-    return {
-      effort,
-      model: "claude-fable-5",
-      requestedModel: "fable"
-    };
-  }
+  assert.equal(name, "opus_advisor");
   return {
     effort,
     model: "claude-opus-5",
@@ -134,7 +128,7 @@ class FakeEngine {
 
 function createHarness({
   maxSessions = 4,
-  sessionIds = [OPUS_SESSION, FABLE_SESSION, THIRD_SESSION],
+  sessionIds = [OPUS_SESSION, SECOND_SESSION, THIRD_SESSION],
   steerSettleMs = 25
 } = {}) {
   const engines = [];
@@ -184,6 +178,16 @@ test("session operation schema stays strict while remaining MCP-visible", async 
   const { adapter, engines } = createHarness();
   t.after(() => adapter.shutdown());
 
+  await expectAdapterError(
+    adapter.command({
+      op: "open_fresh",
+      cwd: "/workspace",
+      prompt: "Forbidden profile.",
+      profile: "fable_advisor"
+    }),
+    "invalid_request",
+    /profile/u
+  );
   await expectAdapterError(
     adapter.command({
       op: "open_fresh",
@@ -416,11 +420,11 @@ test("parallel sessions remain isolated and enforce live-session capacity", asyn
     adapter.command({
       op: "open_fresh",
       prompt: "RIGHT_TASK",
-      profile: "fable_advisor",
+      profile: "opus_advisor",
       cwd: "/right"
     })
   ]);
-  assert.deepEqual([left.session_id, right.session_id], [OPUS_SESSION, FABLE_SESSION]);
+  assert.deepEqual([left.session_id, right.session_id], [OPUS_SESSION, SECOND_SESSION]);
   assert.deepEqual(engines.map((engine) => engine.actions[0]), ["send:LEFT_TASK", "send:RIGHT_TASK"]);
 
   await expectAdapterError(
@@ -435,11 +439,11 @@ test("parallel sessions remain isolated and enforce live-session capacity", asyn
 
   engines[0].finish("LEFT_DONE");
   await waitForState(adapter, OPUS_SESSION, "idle");
-  const rightSummary = await adapter.observe({ session_id: FABLE_SESSION });
+  const rightSummary = await adapter.observe({ session_id: SECOND_SESSION });
   assert.equal(rightSummary.state, "thinking");
   const [leftConversation, rightConversation] = await Promise.all([
     adapter.observe({ session_id: OPUS_SESSION, detail: "conversation" }),
-    adapter.observe({ session_id: FABLE_SESSION, detail: "conversation" })
+    adapter.observe({ session_id: SECOND_SESSION, detail: "conversation" })
   ]);
   assert.match(JSON.stringify(leftConversation.messages), /LEFT_TASK/u);
   assert.doesNotMatch(JSON.stringify(leftConversation.messages), /RIGHT_TASK/u);
@@ -564,7 +568,7 @@ test("failed reopen cleanup counts once toward live engine capacity", async () =
         engines.push(engine);
         return engine;
       }
-      const sessionId = launch.sessionId || (starts === 1 ? OPUS_SESSION : FABLE_SESSION);
+      const sessionId = launch.sessionId || (starts === 1 ? OPUS_SESSION : SECOND_SESSION);
       const engine = new FakeEngine(launch, callbacks, sessionId);
       engines.push(engine);
       return engine;
@@ -594,10 +598,10 @@ test("failed reopen cleanup counts once toward live engine capacity", async () =
   const second = await adapter.command({
     op: "open_fresh",
     prompt: "SECOND",
-    profile: "fable_advisor",
+    profile: "opus_advisor",
     cwd: "/second"
   });
-  assert.equal(second.session_id, FABLE_SESSION);
+  assert.equal(second.session_id, SECOND_SESSION);
   assert.equal(second.state, "thinking");
   assert.equal(starts, 3);
 
@@ -717,7 +721,7 @@ test("stop closes one engine and shutdown closes every remaining engine", async 
     adapter.command({
       op: "open_fresh",
       prompt: "RIGHT_TASK",
-      profile: "fable_advisor",
+      profile: "opus_advisor",
       cwd: "/right"
     })
   ]);
@@ -733,7 +737,7 @@ test("stop closes one engine and shutdown closes every remaining engine", async 
   await adapter.shutdown();
   assert.equal(engines[0].stopReasons.length, 1);
   assert.equal(engines[1].stopReasons.length, 1);
-  assert.equal((await adapter.observe({ session_id: FABLE_SESSION })).state, "closed");
+  assert.equal((await adapter.observe({ session_id: SECOND_SESSION })).state, "closed");
 });
 
 test("delayed cleanup remains closing and reserves capacity until completion", async () => {

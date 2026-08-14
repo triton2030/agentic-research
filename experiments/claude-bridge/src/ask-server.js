@@ -5,6 +5,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 import { askClaude, compactClaudeAskError } from "./claude-ask.js";
 import { claudeAskInputSchema } from "./claude-policy.js";
+import { claudeSessionsInputSchema, createClaudeSessionsReader } from "./claude-sessions.js";
 import {
   claudeObserveInputSchema,
   claudeSessionInputSchema,
@@ -14,7 +15,7 @@ import {
 const askResultSchema = {
   text: z.string(),
   session_id: z.string().uuid(),
-  requested_model: z.enum(["opus", "fable"]).nullable(),
+  requested_model: z.literal("opus").nullable(),
   requested_effort: z.enum(["xhigh", "max"]).nullable(),
   resolved_model: z.string().min(1),
   duration_ms: z.number().int().nonnegative(),
@@ -45,7 +46,7 @@ const observationFields = {
   thinking_tokens: z.number().int().nonnegative().nullable(),
   background_tasks: z.number().int().nonnegative(),
   possibly_stalled: z.boolean(),
-  requested_model: z.enum(["opus", "fable"]).nullable(),
+  requested_model: z.literal("opus").nullable(),
   requested_effort: z.enum(["xhigh", "max"]).nullable(),
   resolved_model: z.string().nullable(),
   terminal: z.record(z.string(), z.unknown()).nullable(),
@@ -63,6 +64,25 @@ const observationFields = {
   })),
   diagnostic: z.record(z.string(), z.unknown()).optional()
 };
+
+const nativeSessionFields = {
+  session_id: z.string().uuid(),
+  name: z.string().nullable(),
+  kind: z.string(),
+  cwd: z.string(),
+  started_at_ms: z.number().int().nonnegative().nullable(),
+  title: z.string().nullable(),
+  git_branch: z.string().nullable()
+};
+
+const activeSessionSchema = z.object(nativeSessionFields);
+
+const sessionInfoSchema = z.object(nativeSessionFields);
+
+const visibleMessageSchema = z.object({
+  role: z.enum(["user", "assistant"]),
+  text: z.string()
+});
 
 function success(result) {
   return {
@@ -82,8 +102,12 @@ function combinedSignal(...signals) {
   return present.length === 1 ? present[0] : AbortSignal.any(present);
 }
 
-/** Create the blocking and transient-session MCP boundary. */
-export function createClaudeAskServer(ask = askClaude, sessionAdapter = createClaudeSessionAdapter()) {
+/** Create the blocking, transient-session, and read-only discovery MCP boundary. */
+export function createClaudeAskServer(
+  ask = askClaude,
+  sessionAdapter = createClaudeSessionAdapter(),
+  sessionsReader = createClaudeSessionsReader()
+) {
   const server = new McpServer({ name: "claude-advisor", version: "2.0.0" });
   const shutdownController = new AbortController();
   const activeRequests = new Set();
@@ -105,7 +129,7 @@ export function createClaudeAskServer(ask = askClaude, sessionAdapter = createCl
     {
       title: "Ask Claude",
       description:
-        "Ask native Claude Opus 5 or Fable 5 for a blocking independent review through the logged-in Claude.ai subscription. " +
+        "Ask native Claude Opus 5 for blocking independent advice or review through the logged-in Claude.ai subscription. " +
         "Claude retains native local tools, skills, hooks, settings and MCP integrations; instruct it not to modify state. " +
         "Returns one bounded answer and native session_id.",
       inputSchema: claudeAskInputSchema,
@@ -163,6 +187,34 @@ export function createClaudeAskServer(ask = askClaude, sessionAdapter = createCl
       }
     },
     (args, extra) => tracked(() => sessionAdapter.observe(
+      args,
+      combinedSignal(extra.signal, shutdownController.signal)
+    ))
+  );
+
+  server.registerTool(
+    "claude_sessions",
+    {
+      title: "Read Active Claude Sessions",
+      description:
+        "List active local Claude Code or Claude Desktop sessions, or read a bounded visible user/assistant conversation " +
+        "from one active native session_id. Never returns hidden reasoning, system messages, tool I/O, hooks, or subagent transcripts.",
+      inputSchema: claudeSessionsInputSchema,
+      outputSchema: {
+        op: z.enum(["list_active", "read"]),
+        sessions: z.array(activeSessionSchema),
+        session: sessionInfoSchema.nullable(),
+        messages: z.array(visibleMessageSchema),
+        warnings: z.array(z.string())
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false
+      }
+    },
+    (args, extra) => tracked(() => sessionsReader.read(
       args,
       combinedSignal(extra.signal, shutdownController.signal)
     ))

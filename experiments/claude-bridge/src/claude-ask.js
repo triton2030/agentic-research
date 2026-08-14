@@ -1,5 +1,5 @@
 import { AsyncLocalStorage } from "node:async_hooks";
-import { assertSdkSubscriptionEvidence, prepareClaudeRequest } from "./claude-policy.js";
+import { assertSdkRuntimeEvidence, prepareClaudeRequest } from "./claude-policy.js";
 import { formatClaudeResult, ClaudeAskError, compactTail } from "./claude-result.js";
 import { runClaudeSdk } from "./claude-sdk.js";
 
@@ -47,9 +47,9 @@ export async function askClaude(request, signal) {
       abortController: lifetime.controller,
       queryFactory: dependencies.queryFactory,
       spawnClaudeCodeProcess: dependencies.spawnClaudeCodeProcess,
-      validateInit: assertSdkSubscriptionEvidence
+      validateInit: assertSdkRuntimeEvidence
     });
-    assertSdkSubscriptionEvidence(raw.init);
+    assertSdkRuntimeEvidence(raw.init);
     return formatClaudeResult(raw, launch);
   } catch (error) {
     const stoppedBy = lifetime.stoppedBy();

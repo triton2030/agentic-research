@@ -13,7 +13,7 @@ const testDir = path.dirname(fileURLToPath(import.meta.url));
 const bridgeRoot = path.resolve(testDir, "..");
 const fakeClaude = path.join(testDir, "fixtures", "fake-claude.mjs");
 const OPUS_SESSION = "11111111-1111-4111-8111-111111111111";
-const FABLE_SESSION = "22222222-2222-4222-8222-222222222222";
+const SECOND_SESSION = "22222222-2222-4222-8222-222222222222";
 
 function sdkMessages({
   sessionId = OPUS_SESSION,
@@ -159,7 +159,7 @@ test("one-shot uses fixed profile and native SDK authority", async () => {
 test("resume keeps the native session model and omits caller model routing", async () => {
   const capture = {};
   const result = await askTest(
-    { prompt: "Continue.", profile: "fable_advisor", cwd: bridgeRoot, session_id: OPUS_SESSION },
+    { prompt: "Continue.", cwd: bridgeRoot, session_id: OPUS_SESSION },
     fakeOptions(sdkMessages(), { queryFactory: queryFactoryFor(sdkMessages(), capture) })
   );
   assert.equal(capture.options.resume, OPUS_SESSION);
@@ -171,12 +171,38 @@ test("resume keeps the native session model and omits caller model routing", asy
   assert.match(result.warnings.join(" "), /resume_session_owns_model/u);
 });
 
+test("Fable profile and native Fable evidence fail closed", async () => {
+  await expectClaudeError(
+    askTest(
+      { prompt: "Do not run.", profile: "fable_advisor", cwd: bridgeRoot },
+      fakeOptions(sdkMessages())
+    ),
+    "unsupported_profile"
+  );
+
+  await expectClaudeError(
+    askTest(
+      { prompt: "Continue.", cwd: bridgeRoot, session_id: OPUS_SESSION },
+      fakeOptions(sdkMessages({ initModel: "claude-fable-5", mainModel: "claude-fable-5" }))
+    ),
+    "unsupported_model"
+  );
+
+  await expectClaudeError(
+    askTest(
+      { prompt: "Reject fallback.", profile: "opus_advisor", cwd: bridgeRoot },
+      fakeOptions(sdkMessages({ mainModel: "claude-fable-5" }))
+    ),
+    "unsupported_model"
+  );
+});
+
 test("parallel subscription preflights and sessions remain independent", async (t) => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "claude-sdk-parallel-"));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
   const env = { FAKE_AUTH_BARRIER_DIR: path.join(root, "barrier") };
   const opusCapture = {};
-  const fableCapture = {};
+  const secondCapture = {};
   const [left, right] = await Promise.all([
     askTest(
       { prompt: "LEFT", profile: "opus_advisor", cwd: bridgeRoot },
@@ -186,12 +212,12 @@ test("parallel subscription preflights and sessions remain independent", async (
       })
     ),
     askTest(
-      { prompt: "RIGHT", profile: "fable_advisor", cwd: bridgeRoot },
-      fakeOptions(sdkMessages({ text: "RIGHT", sessionId: FABLE_SESSION, initModel: "claude-fable-5" }), {
+      { prompt: "RIGHT", profile: "opus_advisor", cwd: bridgeRoot },
+      fakeOptions(sdkMessages({ text: "RIGHT", sessionId: SECOND_SESSION }), {
         env,
         queryFactory: queryFactoryFor(
-          sdkMessages({ text: "RIGHT", sessionId: FABLE_SESSION, initModel: "claude-fable-5" }),
-          fableCapture
+          sdkMessages({ text: "RIGHT", sessionId: SECOND_SESSION }),
+          secondCapture
         )
       })
     )
@@ -199,7 +225,7 @@ test("parallel subscription preflights and sessions remain independent", async (
   assert.deepEqual([left.text, right.text], ["LEFT", "RIGHT"]);
   assert.notEqual(left.session_id, right.session_id);
   assert.equal(opusCapture.options.model, "claude-opus-5");
-  assert.equal(fableCapture.options.model, "claude-fable-5");
+  assert.equal(secondCapture.options.model, "claude-opus-5");
   assert.equal(fs.readdirSync(path.join(root, "barrier")).length, 2);
 });
 
@@ -335,7 +361,7 @@ test("host cancellation and timeout close the SDK query", async () => {
   const timedOut = {};
   await expectClaudeError(
     askTest(
-      { prompt: "Wait.", profile: "fable_advisor", cwd: bridgeRoot },
+      { prompt: "Wait.", profile: "opus_advisor", cwd: bridgeRoot },
       { executable: fakeClaude, queryFactory: blockingQueryFactory(timedOut), timeoutMs: 500 }
     ),
     "timeout"
@@ -432,24 +458,17 @@ test("max-turn failure keeps native resume details when the iterator later throw
   assert.equal(capture.closed, true);
 });
 
-test("bounded result reports main-model resolution without auxiliary-model corruption", async () => {
+test("bounded result ignores auxiliary-model evidence", async () => {
   const result = await askTest(
-    { prompt: "Deep review.", profile: "fable_advisor", cwd: bridgeRoot },
+    { prompt: "Deep review.", profile: "opus_advisor", cwd: bridgeRoot },
     fakeOptions(sdkMessages({
-      initModel: "claude-fable-5",
       auxiliaryModel: "claude-haiku-4-5-20251001",
-      mainModel: "claude-opus-5",
       text: `BEGIN\n${"0123456789".repeat(2000)}\nEND`
     }))
   );
   assert.ok(result.text.length <= 12000);
   assert.match(result.text, /chars omitted/u);
   assert.equal(result.resolved_model, "claude-opus-5");
-  assert.match(result.warnings.join(" "), /model_history:claude-fable-5->claude-opus-5/u);
-  assert.match(
-    result.warnings.join(" "),
-    /model_resolution_mismatch:requested=claude-fable-5,resolved=claude-opus-5/u
-  );
   assert.doesNotMatch(result.warnings.join(" "), /haiku/u);
   assert.doesNotMatch(result.warnings.join(" "), /safety/u);
 });
@@ -475,7 +494,7 @@ test("typed limit, fallback, and permission evidence stays compact", async () =>
           type: "system",
           subtype: "model_refusal_fallback",
           original_model: "claude-opus-5",
-          fallback_model: "claude-fable-5",
+          fallback_model: "claude-sonnet-5",
           api_refusal_category: "safety",
           content: "RAW_FALLBACK_EXPLANATION",
           session_id: OPUS_SESSION
@@ -494,12 +513,12 @@ test("typed limit, fallback, and permission evidence stays compact", async () =>
   assert.match(result.warnings.join(" "), /permission_denied:Write/u);
   assert.match(
     result.warnings.join(" "),
-    /model_refusal_fallback:claude-opus-5:claude-fable-5:safety/u
+    /model_refusal_fallback:claude-opus-5:claude-sonnet-5:safety/u
   );
   assert.doesNotMatch(JSON.stringify(result), /RAW_/u);
 });
 
-test("MCP exposes exactly three tools with honest annotations", async () => {
+test("MCP exposes exactly four tools with honest annotations", async () => {
   const packet = {
     text: "MCP_OK",
     session_id: OPUS_SESSION,
@@ -518,7 +537,27 @@ test("MCP exposes exactly three tools with honest annotations", async () => {
     },
     async shutdown() {}
   };
-  const instance = createClaudeAskServer(async () => packet, sessionAdapter);
+  const sessionsPacket = {
+    op: "list_active",
+    sessions: [{
+      session_id: OPUS_SESSION,
+      name: "active-claude",
+      kind: "interactive",
+      cwd: bridgeRoot,
+      started_at_ms: 1234,
+      title: "Active work",
+      git_branch: "main"
+    }],
+    session: null,
+    messages: [],
+    warnings: []
+  };
+  const sessionsReader = {
+    async read() {
+      return sessionsPacket;
+    }
+  };
+  const instance = createClaudeAskServer(async () => packet, sessionAdapter, sessionsReader);
   const client = new Client({ name: "claude-ask-test", version: "1.0.0" });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   await instance.server.connect(serverTransport);
@@ -527,10 +566,13 @@ test("MCP exposes exactly three tools with honest annotations", async () => {
     const tools = await client.listTools();
     assert.deepEqual(
       tools.tools.map((tool) => tool.name),
-      ["claude_ask", "claude_session", "claude_observe"]
+      ["claude_ask", "claude_session", "claude_observe", "claude_sessions"]
     );
     const byName = Object.fromEntries(tools.tools.map((tool) => [tool.name, tool]));
-    assert.match(byName.claude_ask.description, /Opus 5 or Fable 5/u);
+    assert.match(byName.claude_ask.description, /Opus 5/u);
+    assert.doesNotMatch(byName.claude_ask.description, /Fable/u);
+    assert.equal(byName.claude_ask.inputSchema.properties.profile.const, "opus_advisor");
+    assert.equal(byName.claude_session.inputSchema.properties.profile.const, "opus_advisor");
     assert.deepEqual(byName.claude_ask.annotations, {
       readOnlyHint: false,
       destructiveHint: true,
@@ -549,6 +591,12 @@ test("MCP exposes exactly three tools with honest annotations", async () => {
       idempotentHint: true,
       openWorldHint: false
     });
+    assert.deepEqual(byName.claude_sessions.annotations, {
+      readOnlyHint: true,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: false
+    });
     assert.deepEqual(
       byName.claude_session.inputSchema.properties.op.enum,
       ["open_fresh", "open_resume", "send", "steer", "stop"]
@@ -560,6 +608,10 @@ test("MCP exposes exactly three tools with honest annotations", async () => {
     assert.match(JSON.stringify(byName.claude_ask.outputSchema.properties.requested_effort), /null/u);
     assert.match(JSON.stringify(byName.claude_observe.outputSchema.properties.state), /requires_action/u);
     assert.match(JSON.stringify(byName.claude_observe.outputSchema.properties.state), /closing/u);
+    assert.deepEqual(
+      byName.claude_sessions.inputSchema.properties.op.enum,
+      ["list_active", "read"]
+    );
     const called = await client.callTool({
       name: "claude_ask",
       arguments: { prompt: "Continue.", profile: "opus_advisor", cwd: bridgeRoot, session_id: OPUS_SESSION }
@@ -567,6 +619,13 @@ test("MCP exposes exactly three tools with honest annotations", async () => {
     assert.deepEqual(called.structuredContent, packet);
     assert.equal(called.content[0].text, "Claude bridge returned a structured result.");
     assert.doesNotMatch(called.content[0].text, /MCP_OK|11111111/u);
+    const listed = await client.callTool({
+      name: "claude_sessions",
+      arguments: { op: "list_active" }
+    });
+    assert.deepEqual(listed.structuredContent, sessionsPacket);
+    assert.equal(listed.content[0].text, "Claude bridge returned a structured result.");
+    assert.doesNotMatch(listed.content[0].text, /Inspect current work|11111111/u);
   } finally {
     await client.close();
     await instance.shutdown();
@@ -617,7 +676,7 @@ test("MCP host cancellation and shutdown reach the deep request signal", async (
   const second = await connectMcp(blockingMcpAsk(stopped));
   const stoppedCall = second.client.callTool({
     name: "claude_ask",
-    arguments: { prompt: "Wait.", profile: "fable_advisor", cwd: bridgeRoot }
+    arguments: { prompt: "Wait.", profile: "opus_advisor", cwd: bridgeRoot }
   });
   const stoppedOutcome = stoppedCall.catch((error) => error);
   await stopped.started;
