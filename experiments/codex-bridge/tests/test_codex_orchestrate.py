@@ -965,3 +965,27 @@ class TelemetryResilienceTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class WaveLineHonestyTests(unittest.TestCase):
+    """Итоговая строка волны не выдаёт файловый scope за приёмку."""
+
+    def test_merge_without_verify_is_marked_unverified(self) -> None:
+        import codex_orchestrate
+
+        line = codex_orchestrate._wave_line(
+            {"isolation": "worktree", "merged": ["t1"], "cleanup_done": True}, 1
+        )
+        self.assertIn("БЕЗ ПРОВЕРКИ", line)
+
+    def test_merge_after_gate_is_not_marked(self) -> None:
+        import codex_orchestrate
+
+        line = codex_orchestrate._wave_line(
+            {
+                "isolation": "worktree", "merged": ["t1"], "cleanup_done": True,
+                "verification": {"status": "passed", "checks": []},
+            },
+            1,
+        )
+        self.assertNotIn("БЕЗ ПРОВЕРКИ", line)

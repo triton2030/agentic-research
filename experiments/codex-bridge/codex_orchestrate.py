@@ -707,7 +707,13 @@ def _wave_line(wave: dict[str, Any], task_count: int) -> str:
     if wave.get("isolation") != "worktree":
         return ""
     kept = wave.get("kept_branches") or []
-    parts = [f" | worktree: влито {len(wave.get('merged') or [])}/{task_count}"]
+    merged = wave.get("merged") or []
+    parts = [f" | worktree: влито {len(merged)}/{task_count}"]
+    # Без заказанной проверки «влито» значит только «файлы в своём списке».
+    # Молчать об этом — выдавать файловый scope за приёмку: семантику диффа
+    # никто не смотрел, а строка выглядит успехом.
+    if merged and not wave.get("verification"):
+        parts.append("БЕЗ ПРОВЕРКИ (--verify не заказан)")
     if kept:
         parts.append(f"осталось веток {len(kept)}")
     if wave.get("cleanup_done"):

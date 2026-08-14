@@ -818,17 +818,17 @@ class CodexReviewCliTests(unittest.TestCase):
                 else:
                     os.environ[key] = value
 
-    def test_heavy_effort_turns_into_dialog_and_no_dialog_opts_out(self) -> None:
-        """Ярусы вызова: тяжёлое усилие — разговор, а не выстрел.
+    def test_thread_is_never_created_without_explicit_dialog(self) -> None:
+        """Тред заводит только явный `--dialog`, на любом ярусе усилия.
 
-        max/ultra долго читают и думают, ценность приходит во втором обмене,
-        поэтому такой прогон сам заводит персистентный тред. Дефолтный xhigh
-        (2026-08-14) остаётся эфемерным одиночным вызовом: автотред на ярусе
-        по умолчанию делал бы чат в Codex Desktop из каждого вызова моста."""
+        Раньше max/ultra включали его сами. Это решало за вызывающим дважды:
+        навязывало персистентный тред одноразовому вопросу и спорило с
+        инвариантом владельца «дерево и тред — только у пишущего воркера»
+        (2026-08-14). Глубина мышления не доказывает, что будет второй ход."""
         import codex_review
 
         for effort, expect_persistent in (
-            ("medium", False), ("xhigh", False), ("max", True), ("ultra", True)
+            ("medium", False), ("xhigh", False), ("max", False), ("ultra", False)
         ):
             captured: dict = {}
             fake_names = _install_fake_openai_codex(captured)
@@ -850,7 +850,7 @@ class CodexReviewCliTests(unittest.TestCase):
                 for name in fake_names:
                     sys.modules.pop(name, None)
 
-        # --no-dialog возвращает одиночный эфемерный выстрел на том же усилии.
+        # Явный --dialog по-прежнему заводит персистентный тред.
         captured = {}
         fake_names = _install_fake_openai_codex(captured)
         saved_argv = sys.argv[:]
@@ -858,12 +858,12 @@ class CodexReviewCliTests(unittest.TestCase):
             with tempfile.TemporaryDirectory() as tmp:
                 sys.argv = [
                     "codex_review.py", "--task", "вопрос",
-                    "--project", tmp, "--effort", "max", "--no-dialog",
+                    "--project", tmp, "--dialog",
                 ]
                 with contextlib.redirect_stdout(io.StringIO()):
                     rc = codex_review.main()
                 self.assertEqual(rc, 0)
-                self.assertIs(captured.get("ephemeral"), True)
+                self.assertIs(captured.get("ephemeral"), False)
         finally:
             sys.argv = saved_argv
             for name in fake_names:

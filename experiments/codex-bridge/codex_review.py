@@ -40,7 +40,6 @@ from codex_defaults import (
     DEFAULT_CODEX_EFFORT,
     DEFAULT_CODEX_MODEL,
     DEFAULT_CODEX_SERVICE_TIER,
-    HEAVY_EFFORTS,
     REASONING_EFFORTS,
     REVIEW_APPROVAL_MODE,
     REVIEW_SANDBOX,
@@ -509,24 +508,11 @@ def main() -> int:
     codex_bin = resolve_codex_bin()
     if codex_bin is None:
         print(SDK_BUNDLE_WARNING, file=sys.stderr)
-    # Тяжёлое усилие = разговор, не выстрел. xhigh/max/ultra долго читают и
-    # долго думают; ценность появляется во втором обмене — поправить курс или
-    # углубить. Поэтому такой прогон по умолчанию заводит персистентный тред,
-    # даже если про --dialog не вспомнили. Осознанный одиночный выстрел —
-    # --no-dialog.
-    auto_dialog = (
-        args.effort in HEAVY_EFFORTS
-        and not args.no_dialog
-        and not args.continue_thread
-        and not args.dry_run
-    )
-    if auto_dialog and not args.dialog:
-        print(
-            f"[codex-bridge] effort={args.effort} — включён диалоговый тред "
-            "(тяжёлое усилие: разговор, а не выстрел; отключить: --no-dialog).",
-            file=sys.stderr,
-        )
-        args.dialog = True
+    # Тред заводится только явным --dialog. Раньше тяжёлое усилие включало его
+    # само; это решало за вызывающего дважды — навязывало персистентный тред
+    # одноразовому вопросу и спорило с инвариантом владельца «тред только у
+    # пишущего воркера» (2026-08-14). Глубина мышления не доказывает, что
+    # будет второй ход.
     # Диалог требует персистентный тред: resume работает только по rollout на
     # диске («no rollout found» для эфемерных — проверено живым пробником).
     thread_persistent = bool(args.dialog or args.continue_thread)
