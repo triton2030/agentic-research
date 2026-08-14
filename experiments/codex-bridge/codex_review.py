@@ -503,6 +503,14 @@ def main() -> int:
         prompt = build_prompt(args.mode, transcript_md, payload)
     prompt_document = render_prompt_document(prompt, dev_instructions)
     transcript_name = transcript_path.name if transcript_path else "—"
+    # Чей это разговор — решает вызывающий, а не mtime. Без session id в env
+    # (типично для фонового Bash) берётся свежайший файл проекта, и при двух
+    # параллельных сессиях ревью молча уедет по чужому: помечаем догадку в
+    # баннере, чтобы её было видно до траты, а не в ответе.
+    if transcript_path and not args.transcript and not (
+        os.environ.get("CLAUDE_CODE_SESSION_ID") or os.environ.get("CLAUDE_SESSION_ID")
+    ):
+        transcript_name += " (свежайший по времени — своя ли сессия, проверь)"
     # Single source for the codex block written to every ledger payload, so the
     # audit owner (run_dir) records thread_ephemeral uniformly: result["codex"].
     codex_bin = resolve_codex_bin()
