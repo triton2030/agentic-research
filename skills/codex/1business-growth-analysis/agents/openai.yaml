@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Бизнес-анализ роста"
+  short_description: "Вызывает отдельного аналитика денег и роста"
+  default_prompt: "Use $1business-growth-analysis to get a separate business and growth verdict before this choice is made."
+
+policy:
+  allow_implicit_invocation: true
