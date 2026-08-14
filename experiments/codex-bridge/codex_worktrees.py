@@ -167,22 +167,25 @@ def collect_changes(tree: WorkerTree) -> None:
 
 
 def commit_worker_tree(tree: WorkerTree, *, message: str) -> None:
-    """Коммит ТОЛЬКО файлов из его allowlist.
+    """Зафиксировать в ветке ВСЁ изменённое воркером — отбор происходит на merge.
 
-    Точечный `git add -- <files>` вместо `add -A` защищает и scope, и диск:
-    сборочный мусор воркера (node_modules, кэши) в коммит не идёт и уезжает с
-    деревом. Именно он раздул `~/.codex/worktrees` до 7.3 ГБ к 2026-08-14.
+    Ветка — страховка от потери: она переживает уборку деревьев. Если коммитить
+    только allowlist, held-воркера нельзя разобрать вручную — его правка по
+    списку могла опираться на внесписочную, а та погибла бы с деревом. Поэтому
+    фиксация полная, а фильтр «только свой список» живёт в integrate: воркер с
+    внесписочными правками не вливается вовсе.
 
-    Коммит делается и для провалившегося воркера: фиксация ≠ интеграция. Иначе
-    уборка снесла бы его дерево вместе с недоделанной работой, и разбирать было
-    бы нечего.
+    Диск это не раздувает: gitignored-мусор (node_modules, кэши) сюда не
+    попадает — `collect_changes` ходит с `--exclude-standard`, а ветка чистого
+    воркера удаляется сразу после merge.
+
+    Коммит делается и для провалившегося воркера: фиксация ≠ интеграция.
     """
-    in_scope = [path for path in tree.changed_files if path in tree.allowlist]
-    if not in_scope:
+    if not tree.changed_files:
         tree.integration_status = "empty"
-        tree.notes.append("ни одного изменения в своём allowlist")
+        tree.notes.append("изменений нет")
         return
-    _git(tree.path, "add", "--", *in_scope, check=True)
+    _git(tree.path, "add", "--", *tree.changed_files, check=True)
     _git(tree.path, "commit", "--no-verify", "-m", message, check=True)
     tree.commit = _git(tree.path, "rev-parse", "HEAD", check=True).stdout.strip()
 

@@ -85,7 +85,8 @@ class WorktreeIsolationTests(unittest.TestCase):
     def test_out_of_scope_write_holds_the_whole_worker(self) -> None:
         """Запись вне списка в проект не попадает вообще — ни лишнее, ни то, что
         рядом: воркер мог опереться на лишний файл, и половина работы дала бы
-        сломанное состояние. Работа фиксируется в ветке, дерево остаётся."""
+        сломанное состояние. Вся работа — включая внесписочную, на которую он
+        мог опереться, — фиксируется в ветке; дерево при уборке сносится."""
         tree = self.make_tree("run1", "t1", {"a.md"})
         (tree.path / "a.md").write_text("A changed\n")
         (tree.path / "b.md").write_text("ЛИШНЕЕ\n")
@@ -102,9 +103,26 @@ class WorktreeIsolationTests(unittest.TestCase):
         self.assertEqual((self.project / "a.md").read_text(), "A\n")
         self.assertEqual((self.project / "b.md").read_text(), "B\n")
         self.assertFalse((self.project / "node_modules").exists())
-        # Но работа цела и адресуема: ветка сохранена, дерево не снесено.
+        # Работа цела ЦЕЛИКОМ и адресуема через ветку: ручной разбор возможен,
+        # даже когда дерево уже снесено уборкой.
         self.assertIn(tree.branch, wave["kept_branches"])
+        self.assertFalse(tree.path.exists())
         self.assertEqual(git(self.project, "show", f"{tree.branch}:a.md"), "A changed")
+        self.assertEqual(git(self.project, "show", f"{tree.branch}:b.md"), "ЛИШНЕЕ")
+
+    def test_only_out_of_scope_work_is_preserved_not_dropped_as_empty(self) -> None:
+        """Воркер, писавший только вне списка, — не «пустой»: до этой проверки
+        его правки не коммитились вовсе и гибли вместе с деревом при уборке."""
+        tree = self.make_tree("run1", "t1", {"a.md"})
+        (tree.path / "b.md").write_text("всё мимо списка\n")
+
+        wave = wt.close_wave(
+            self.project, [tree], run_id="run1", integrate=True, cleanup=True
+        )
+        self.assertEqual(tree.integration_status, "held_out_of_scope")
+        self.assertIn(tree.branch, wave["kept_branches"])
+        self.assertEqual((self.project / "b.md").read_text(), "B\n")
+        self.assertEqual(git(self.project, "show", f"{tree.branch}:b.md"), "всё мимо списка")
 
     def test_worker_touching_another_workers_file_is_out_of_scope(self) -> None:
         """Каждому дереву — СВОЙ список, не union волны. С union правка соседнего
