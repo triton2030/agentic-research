@@ -657,6 +657,15 @@ def _assess_wave(
     by_id = {record["id"]: record for record in results}
     for tree in trees:
         tree.worker_ok = by_id.get(tree.task_id, {}).get("worker_status") == "completed"
+    # Проверка — ворота перед проектом, а не отчёт после него: воркеры сливаются
+    # во временное дерево, `--verify` идёт там, и красный результат оставляет
+    # проект нетронутым, а работу — в ветках воркеров.
+    def run_gate(integration_tree: Path) -> tuple[bool, dict[str, Any]]:
+        status, checks = run_verification(args.verify, integration_tree, plan.run_dir)
+        return status == "passed", {"status": status, "checks": checks}
+
+    gate = run_gate if (args.verify and not args.no_integrate) else None
+
     try:
         wave = close_wave(
             project,
@@ -666,6 +675,7 @@ def _assess_wave(
             # Уборка только когда работа забрана: снести дерево, не влив его,
             # значит выбросить правки. `--no-integrate` держит деревья сам.
             cleanup=not args.keep_worktrees and not args.no_integrate,
+            gate=gate,
         )
     except WorktreeError as exc:
         wave = {
@@ -835,7 +845,13 @@ def main() -> int:
         isolation=args.isolation,
     )
 
-    if args.no_integrate and args.verify:
+    gate_report = wave.get("verification") if isinstance(wave, dict) else None
+    if gate_report:
+        # Проверка уже прошла воротами перед вливанием — второй прогон по проекту
+        # проверял бы то же состояние повторно и стоил бы столько же.
+        verification_status = gate_report["status"]
+        verification_results = gate_report["checks"]
+    elif args.no_integrate and args.verify:
         # Held-волна: в основном дереве работы нет, зелёный verify по нему
         # доказывал бы чужое состояние (находка аудита 2026-08-14).
         verification_status, verification_results = "skipped", []

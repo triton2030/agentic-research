@@ -658,6 +658,58 @@ class CodexOrchestrateCliTests(unittest.TestCase):
             for name in fake_names:
                 sys.modules.pop(name, None)
 
+    def test_red_verification_never_reaches_the_project(self) -> None:
+        """Живой путь с красной проверкой: она стоит ПЕРЕД проектом, поэтому
+        основная ветка остаётся прежней, а работа воркера — в его ветке.
+        До 2026-08-14 verify бежал после merge и провал уже ничего не откатывал."""
+        import codex_orchestrate
+
+        captured: dict = {}
+        fake_names = _install_fake_openai_codex(captured)
+        try:
+            with self.temp_project() as tmp:
+                root = Path(tmp).resolve()
+                self.write(root, "a.md", "старое\n")
+                self.init_repo(root)
+                git(root, "add", "-A")
+                git(root, "commit", "-m", "init")
+                head_before = git(root, "rev-parse", "HEAD")
+
+                run_dir = root / "run"
+                sys.argv = [
+                    "codex_orchestrate.py",
+                    "--project", str(root),
+                    "--run-dir", str(run_dir),
+                    "--summary-stdout",
+                    "--heartbeat-sec", "0",
+                    "--verify", "exit 1",
+                ]
+                task = json.dumps([{"id": "t1", "prompt": "правь", "files": ["a.md"]}])
+                original_argv, original_stdin = sys.argv, sys.stdin
+                sys.stdin = io.StringIO(task)
+                original_home = codex_orchestrate.__dict__["open_wave"].__globals__["FLEET_WORKTREE_HOME"]
+                codex_orchestrate.__dict__["open_wave"].__globals__["FLEET_WORKTREE_HOME"] = root.parent / "wt"
+                try:
+                    exit_code = codex_orchestrate.main()
+                finally:
+                    sys.argv, sys.stdin = original_argv, original_stdin
+                    codex_orchestrate.__dict__["open_wave"].__globals__["FLEET_WORKTREE_HOME"] = original_home
+
+                payload = json.loads((run_dir / "result.json").read_text())
+                head_after = git(root, "rev-parse", "HEAD")
+                project_file = (root / "a.md").read_text()
+
+            self.assertEqual(head_after, head_before)
+            self.assertEqual(project_file, "старое\n")
+            self.assertEqual(payload["verification_status"], "failed")
+            self.assertEqual(payload["wave"]["merged"], [])
+            self.assertEqual(len(payload["wave"]["kept_branches"]), 1)
+            self.assertFalse(payload["ok"])
+            self.assertNotEqual(exit_code, 0)
+        finally:
+            for name in fake_names:
+                sys.modules.pop(name, None)
+
     def test_warm_repair_resumes_worker_thread(self) -> None:
         """Тёплый ремонт (1orchestration: «круг репликой прогретого воркера по
         handle»): задача с thread_id продолжает персистентный тред воркера

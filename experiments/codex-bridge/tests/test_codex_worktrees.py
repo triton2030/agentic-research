@@ -348,6 +348,48 @@ class WorktreeIsolationTests(unittest.TestCase):
         self.assertEqual((self.project / "a.md").read_text(), "работа воркера\n")
         self.assertFalse((self.project / "probes" / "warp.png").exists())
 
+    def test_red_gate_keeps_project_untouched_and_work_in_branches(self) -> None:
+        """Проверка — ворота ПЕРЕД проектом. Красная проверка не вливает ничего:
+        основная ветка та же, работа цела в ветке воркера, дерево убрано."""
+        tree = self.make_tree("run1", "t1", {"a.md"})
+        (tree.path / "a.md").write_text("работа воркера\n")
+        head_before = git(self.project, "rev-parse", "HEAD")
+        seen: list[Path] = []
+
+        def gate(path: Path) -> tuple[bool, dict]:
+            seen.append(path)
+            # Проверка видит уже слитое состояние, а не исходное.
+            self.assertEqual((path / "a.md").read_text(), "работа воркера\n")
+            return False, {"status": "failed", "checks": [{"command": "false"}]}
+
+        wave = wt.close_wave(
+            self.project, [tree], run_id="run1", integrate=True, cleanup=True, gate=gate
+        )
+        self.assertEqual(seen and seen[0].name, "_integration")
+        self.assertEqual(git(self.project, "rev-parse", "HEAD"), head_before)
+        self.assertEqual((self.project / "a.md").read_text(), "A\n")
+        self.assertEqual(wave["merged"], [])
+        self.assertEqual(tree.integration_status, "held_verify_failed")
+        self.assertIn(tree.branch, wave["kept_branches"])
+        self.assertEqual(wave["verification"]["status"], "failed")
+        self.assertFalse((wt.FLEET_WORKTREE_HOME / "run1" / "_integration").exists())
+
+    def test_green_gate_merges_after_verification(self) -> None:
+        """Зелёная проверка пускает работу в проект, ветки воркеров убираются."""
+        tree = self.make_tree("run1", "t1", {"a.md"})
+        (tree.path / "a.md").write_text("проверено\n")
+
+        wave = wt.close_wave(
+            self.project, [tree], run_id="run1", integrate=True, cleanup=True,
+            gate=lambda path: (True, {"status": "passed", "checks": []}),
+        )
+        self.assertEqual(wave["merged"], ["t1"])
+        self.assertEqual((self.project / "a.md").read_text(), "проверено\n")
+        self.assertEqual(wave["kept_branches"], [])
+        self.assertTrue(wave["verified_before_merge"])
+        branches = git(self.project, "branch", "--list", f"{wt.BRANCH_PREFIX}/run1/integration")
+        self.assertEqual(branches.strip(), "")
+
     def test_open_wave_rolls_back_partially_opened_wave(self) -> None:
         """Полволны изолировать нельзя: отказ на втором дереве убирает первое
         целиком — деревья, ветки, записи git."""

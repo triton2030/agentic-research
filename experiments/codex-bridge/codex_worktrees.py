@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import shutil
 import subprocess
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -239,14 +240,19 @@ def commit_worker_tree(tree: WorkerTree, *, message: str) -> None:
     tree.commit = _git(tree.path, "rev-parse", "HEAD", check=True).stdout.strip()
 
 
-def integrate_worker_tree(project: Path, tree: WorkerTree) -> None:
+def integrate_worker_tree(project: Path, tree: WorkerTree, *, into: Path | None = None) -> None:
     """Забрать ветку воркера одним merge.
 
     `--no-ff` намеренно: отдельный merge-коммит на воркера — единственное место,
     где после уборки видно, кто писал эти файлы. Конфликт означает нарушенный
     file-disjoint контракт или уехавшую базу: merge откатывается, ветка остаётся,
     работа не теряется.
+
+    `into` — дерево, куда вливать. По умолчанию проект; при проверке перед
+    вливанием сюда приходит интеграционное дерево, и основная ветка не трогается
+    до зелёной проверки.
     """
+    target = into or project
     if tree.commit is None:
         return
     if not tree.worker_ok:
@@ -274,7 +280,7 @@ def integrate_worker_tree(project: Path, tree: WorkerTree) -> None:
     # База обязана остаться в истории HEAD. Прямой коммит поверх — норма (мои
     # recall/планы во время волны), а вот reset/rebase назад делает merge
     # контрабандой: он принёс бы разницу веток истории как «работу воркера».
-    ancestor = _git(project, "merge-base", "--is-ancestor", tree.base_commit, "HEAD")
+    ancestor = _git(target, "merge-base", "--is-ancestor", tree.base_commit, "HEAD")
     if ancestor.returncode != 0:
         tree.integration_status = "held_base_rewritten"
         tree.notes.append(
@@ -285,13 +291,13 @@ def integrate_worker_tree(project: Path, tree: WorkerTree) -> None:
     # Merge именно записанного SHA, не имени ветки: между аудитом изменений и
     # merge на ветку мог успеть лечь чужой коммит (поздний субагент воркера) —
     # tip-у это сошло бы с рук, SHA — нет (находка аудита 2026-08-14).
-    merge = _git(project, "merge", "--no-ff", "--no-verify", "-m", f"codex fleet: {tree.task_id}", tree.commit)
+    merge = _git(target, "merge", "--no-ff", "--no-verify", "-m", f"codex fleet: {tree.task_id}", tree.commit)
     if merge.returncode == 0:
         tree.integration_status = "merged"
         return
     tree.integration_status = "conflict"
     tree.integration_error = (merge.stderr or merge.stdout).strip()
-    _git(project, "merge", "--abort")
+    _git(target, "merge", "--abort")
     tree.notes.append(f"работа цела в ветке {tree.branch}, забрать вручную")
 
 
@@ -337,6 +343,62 @@ def remove_worker_tree(project: Path, tree: WorkerTree) -> None:
         tree.notes.append(f"ветка {tree.branch} не удалилась: {(dropped.stderr or '').strip()}")
 
 
+def _gated_integration(
+    project: Path,
+    trees: list[WorkerTree],
+    *,
+    run_id: str,
+    gate: "Callable[[Path], tuple[bool, Any]]",
+) -> dict[str, Any]:
+    """Слить воркеров во временное дерево, проверить там, и только потом в проект.
+
+    Смысл в одном: проверка обязана быть воротами ПЕРЕД основной веткой, а не
+    отчётом после неё. Красная проверка оставляет проект нетронутым, а работу —
+    в ветках воркеров.
+
+    Дерево берётся от HEAD проекта, а не от базы волны: проверять надо то
+    состояние, которое реально получится после вливания.
+    """
+    branch = f"{BRANCH_PREFIX}/{run_id}/integration"
+    path = FLEET_WORKTREE_HOME / run_id / "_integration"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    added = _git(project, "worktree", "add", "-b", branch, str(path), "HEAD")
+    if added.returncode != 0:
+        raise WorktreeError(f"integration worktree failed: {(added.stderr or '').strip()}")
+    try:
+        for tree in trees:
+            integrate_worker_tree(project, tree, into=path)
+        staged = [t for t in trees if t.integration_status == "merged"]
+        passed, report = gate(path)
+        if passed and staged:
+            # Один merge готовой ветки: проект получает уже проверенное состояние.
+            merged = _git(
+                project, "merge", "--no-ff", "--no-verify",
+                "-m", f"codex fleet {run_id}: проверенная волна", branch,
+            )
+            if merged.returncode != 0:
+                _git(project, "merge", "--abort")
+                for tree in staged:
+                    tree.integration_status = "conflict"
+                    tree.integration_error = (merged.stderr or merged.stdout).strip()
+                    tree.notes.append(f"работа цела в ветке {tree.branch}, забрать вручную")
+        elif not passed:
+            for tree in staged:
+                tree.integration_status = "held_verify_failed"
+                tree.notes.append(
+                    f"проверка волны красная — в проект не влито; работа в {tree.branch}"
+                )
+        return {"verification": report, "verified_before_merge": True, "branch": branch}
+    finally:
+        _git(project, "worktree", "remove", "--force", str(path))
+        if path.exists():
+            shutil.rmtree(path, ignore_errors=True)
+        _git(project, "worktree", "prune")
+        # Ветка нужна только пока держит проверенное состояние: работа воркеров
+        # живёт в их собственных ветках и без неё.
+        _git(project, "branch", "-D", branch)
+
+
 def close_wave(
     project: Path,
     trees: list[WorkerTree],
@@ -344,6 +406,7 @@ def close_wave(
     run_id: str,
     integrate: bool,
     cleanup: bool,
+    gate: "Callable[[Path], tuple[bool, Any]] | None" = None,
 ) -> dict[str, Any]:
     """Собрать → коммит → merge → убрать.
 
@@ -359,7 +422,10 @@ def close_wave(
         collect_changes(tree)
         commit_worker_tree(tree, message=f"codex fleet {run_id}: {tree.task_id}")
 
-    if integrate:
+    gate_report: dict[str, Any] = {}
+    if integrate and gate is not None:
+        gate_report = _gated_integration(project, trees, run_id=run_id, gate=gate)
+    elif integrate:
         for tree in trees:
             integrate_worker_tree(project, tree)
     else:
@@ -403,4 +469,5 @@ def close_wave(
         "cleanup_requested": cleanup,
         "cleanup_stuck": stuck,
         "workers": [t.to_json() for t in trees],
+        **gate_report,
     }
