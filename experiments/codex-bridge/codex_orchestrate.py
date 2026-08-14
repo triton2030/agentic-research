@@ -17,7 +17,7 @@ from cbcommon import scrub_billing_env
 from codex_retry import retry_start_async
 from codex_sdk_compat import harden_sdk_enums
 from codex_defaults import (
-    BRIDGE_THREAD_EPHEMERAL,
+    FLEET_THREAD_EPHEMERAL,
     DEFAULT_CODEX_EFFORT,
     DEFAULT_CODEX_MODEL,
     DEFAULT_CODEX_SERVICE_TIER,
@@ -78,9 +78,9 @@ def _files_constraint(files: tuple[str, ...], *, isolated: bool = False, subagen
     preflight/postflight — текст лишь объясняет воркеру рамку.
 
     В изолированном дереве формулировка другая по существу, а не по вежливости:
-    писать вне списка воркер физически может (дерево его), но в проект уедут
-    только файлы списка — остальное будет отброшено вместе с деревом. Модели
-    честнее сказать про отбраковку, чем запрещать то, что песочница разрешает.
+    писать вне списка воркер физически может (дерево его), но внесписочная правка
+    удержит всю его работу в ветке на ручной разбор. Модели честнее сказать про
+    удержание, чем запрещать то, что песочница разрешает.
 
     Делегация запрашивается здесь же: системный промпт движка молчит про
     субагентов, пока их явно не попросят («Do not spawn sub-agents unless the
@@ -156,6 +156,7 @@ async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict
     async with sem:
         t0 = time.monotonic()
         append_event(run_dir, "worker_start", id=task.id)
+        thread_id: str | None = None
         try:
             thread = await retry_start_async(
                 lambda: codex.thread_start(
@@ -165,12 +166,18 @@ async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict
                     model=defaults["model"],
                     service_tier=defaults["service_tier"],
                     developer_instructions=files_contract,
-                    ephemeral=BRIDGE_THREAD_EPHEMERAL,
+                    ephemeral=FLEET_THREAD_EPHEMERAL,
                 ),
                 run_dir=run_dir,
                 operation="thread_start",
                 fields={"worker": task.id},
             )
+            # Тред воркера персистентен (решение владельца 2026-08-14): Codex
+            # Desktop показывает его как чат = живой монитор прогресса. id — в
+            # отчёт и в ledger, иначе тред не найти среди остальных.
+            thread_id = getattr(thread, "id", None)
+            if thread_id:
+                append_event(run_dir, "worker_thread", id=task.id, thread_id=thread_id)
             handle = await retry_start_async(
                 lambda: thread.turn(
                     prompt,
@@ -200,6 +207,7 @@ async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict
             )
             record = {
                 "id": task.id,
+                "thread_id": thread_id,
                 "worker_status": worker_status,
                 "codex_status": codex_status,
                 "error": str(result.error) if result.error else None,
@@ -212,6 +220,7 @@ async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict
             _safe_print(f"[orch] ✗ {task.id} — исключение: {exc}")
             record = {
                 "id": task.id,
+                "thread_id": thread_id,
                 "worker_status": "exception",
                 "codex_status": "exception",
                 "error": str(exc),
@@ -515,7 +524,7 @@ def _plan_run(args: argparse.Namespace, project: Path) -> RunPlan:
         "binary_source": codex_bin_source(codex_bin),
         "worker_sandbox": WORKER_SANDBOX,
         "worker_approval_mode": WORKER_APPROVAL_MODE,
-        "thread_ephemeral": BRIDGE_THREAD_EPHEMERAL,
+        "thread_ephemeral": FLEET_THREAD_EPHEMERAL,
         "heartbeat_sec": args.heartbeat_sec,
         "isolation": args.isolation,
     }

@@ -124,3 +124,10 @@ INVESTIGATE_APPROVAL_MODE = "deny_all"
 # Passing ephemeral=True keeps the thread off disk — SDK wire schema: "should
 # not be materialized on disk".
 BRIDGE_THREAD_EPHEMERAL = True
+
+# Воркеры флота — санкционированное исключение (владелец, 2026-08-14: «при
+# большой работе создаваемые треды я видел в кодексе тоже… через приложение
+# кодекс могу также видеть прогресс работы самих агентов»). Материализованный
+# тред воркера = живой монитор его прогресса в Codex Desktop; audit-владельцем
+# прогона остаётся run_dir, thread_id каждого воркера пишется в results.jsonl.
+FLEET_THREAD_EPHEMERAL = False

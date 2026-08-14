@@ -89,6 +89,8 @@ def _install_fake_openai_codex(captured: dict, *, start_failures: int = 0) -> li
             return _fake_result()
 
     class _FakeThread:
+        id = "thread-fake-1"
+
         async def turn(self, prompt, **kwargs):  # noqa: ANN001
             captured["run_prompt"] = prompt
             captured["run_kwargs"] = dict(kwargs)
@@ -218,7 +220,9 @@ class CodexOrchestrateCliTests(unittest.TestCase):
             self.assertIsNone(payload["codex"]["service_tier"])
             self.assertEqual(payload["codex"]["worker_sandbox"], "workspace_write")
             self.assertEqual(payload["codex"]["worker_approval_mode"], "auto_review")
-            self.assertTrue(payload["codex"]["thread_ephemeral"])
+            # Треды флота персистентны (владелец 2026-08-14): Desktop = живой
+            # монитор прогресса воркеров.
+            self.assertFalse(payload["codex"]["thread_ephemeral"])
             # Значение зависит от машины (есть ли ChatGPT.app) — контракт в том,
             # что dry-run ledger вообще фиксирует источник движка.
             self.assertIn(
@@ -443,7 +447,10 @@ class CodexOrchestrateCliTests(unittest.TestCase):
                 prepare_run_dir(str(run_dir))
 
     def test_worker_thread_start_passes_ephemeral(self) -> None:
-        """SDK call contract: workers must start threads ephemerally so bridge
+        """SDK call contract: fleet workers start PERSISTENT threads — the owner
+        watches their progress in Codex Desktop (2026-08-14). Regression guard
+        both ways: the kwarg must be sent and must be False.
+        Historical note: workers used to be ephemeral so bridge
         runs never materialize into the shared ~/.codex session store."""
         import codex_orchestrate
 
@@ -470,7 +477,7 @@ class CodexOrchestrateCliTests(unittest.TestCase):
                         fake_codex, asyncio.Semaphore(1), tasks[0], defaults
                     )
                 )
-            self.assertIs(captured.get("ephemeral"), True)
+            self.assertIs(captured.get("ephemeral"), False)
             self.assertEqual(captured.get("sandbox"), "workspace_write")
             self.assertIsNone(captured.get("service_tier"))
             self.assertIsNone((captured.get("run_kwargs") or {}).get("service_tier"))
@@ -620,6 +627,8 @@ class CodexOrchestrateCliTests(unittest.TestCase):
             self.assertIn("t1", captured.get("cwd", ""))
             # Волна закрыта целиком: вердикт, отчёт и уборка на месте.
             self.assertEqual(payload["worker_status"], "completed")
+            # Ручка треда воркера — в отчёте: без неё чат не найти в Desktop.
+            self.assertEqual(payload["results"][0]["thread_id"], "thread-fake-1")
             self.assertEqual(payload["isolation"], "worktree")
             self.assertEqual(payload["status"], "completed" if payload["ok"] else "failed")
             self.assertIn("wave", payload)

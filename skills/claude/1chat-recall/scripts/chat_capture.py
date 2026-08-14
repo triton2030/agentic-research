@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import re
 import sys
@@ -39,6 +40,12 @@ CONTEXT_NOTE_GUIDANCE = (
     " name searchable referents (skill/file/doc/date), not session-local pointers"
 )
 CONTEXT_NOTE_REMINDER = f"remember: {CONTEXT_NOTE_GUIDANCE}"
+SESSION_CONTEXT_GUIDANCE = (
+    "one-line search card for the whole session; pass the complete current card, "
+    "not a delta; keep earlier major subjects when work changes; use brief "
+    "task/artifact/operation/synonym fragments; do not quote or paraphrase owner "
+    "speech or state decisions, conclusions, or current truth"
+)
 
 
 class CaptureError(RuntimeError):
@@ -66,6 +73,10 @@ def context_note(value: str) -> str:
     if CONTEXT_LINK_RE.search(collapsed):
         raise CaptureError("context note must be inline context, not a link")
     return collapsed
+
+
+def session_context(value: str) -> str:
+    return one_line(value, "session context")
 
 
 def handle(value: str, field: str) -> str:
@@ -307,6 +318,25 @@ def ensure_inventory(lines: list[str], key: str, value: str) -> None:
     lines.insert(index, f"  - {value}")
 
 
+def set_frontmatter_scalar(lines: list[str], key: str, value: str) -> bool:
+    """Create or replace one JSON-quoted YAML scalar; report whether it changed."""
+    end = frontmatter_end(lines)
+    rendered = f"{key}: {json.dumps(value, ensure_ascii=False)}"
+    prefix = f"{key}:"
+    for index in range(1, end):
+        if lines[index].startswith(prefix):
+            if lines[index] == rendered:
+                return False
+            lines[index] = rendered
+            return True
+    for index in range(1, end):
+        if lines[index].startswith("session: "):
+            lines.insert(index + 1, rendered)
+            return True
+    lines.insert(end, rendered)
+    return True
+
+
 def _set_file_date(lines: list[str], source_start: datetime) -> None:
     local = source_start.astimezone()
     end = frontmatter_end(lines)
@@ -352,6 +382,7 @@ def create_file(
     source: SourceTimestamp,
     kind: str,
     context: str | None = None,
+    session_card: str | None = None,
 ) -> None:
     local = source.file_when.astimezone()
     lines = [
@@ -364,6 +395,12 @@ def create_file(
         lines.append(f"model: {model}")
     lines += [
         f"session: {session}",
+    ]
+    if session_card:
+        lines.append(
+            f"session-context: {json.dumps(session_card, ensure_ascii=False)}"
+        )
+    lines += [
         "types:",
         f"  - {type_}",
         "topics:",
@@ -394,11 +431,18 @@ def append_entry(
     source: SourceTimestamp,
     kind: str = "quote",
     context: str | None = None,
-) -> tuple[bool, Path]:
+    session_card: str | None = None,
+) -> tuple[bool, bool, Path]:
     text = path.read_text(encoding="utf-8-sig")
-    if f'"{quote}"' in text:
-        return False, path
     lines = text.splitlines()
+    context_updated = bool(
+        session_card is not None
+        and set_frontmatter_scalar(lines, "session-context", session_card)
+    )
+    if f'"{quote}"' in text:
+        if context_updated:
+            write_atomic(path, "\n".join(lines) + "\n")
+        return False, context_updated, path
     ensure_inventory(lines, "types", type_)
     ensure_inventory(lines, "topics", topic)
     target = path
@@ -423,7 +467,7 @@ def append_entry(
     write_atomic(target, rendered)
     if target != path:
         path.unlink()
-    return True, target
+    return True, context_updated, target
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -450,6 +494,13 @@ def build_parser() -> argparse.ArgumentParser:
             f"{CONTEXT_NOTE_GUIDANCE}; links rejected"
         ),
     )
+    parser.add_argument(
+        "--session-context",
+        help=(
+            "required for --kind quote and --kind selection; "
+            + SESSION_CONTEXT_GUIDANCE
+        ),
+    )
     parser.add_argument("--project", default=".")
     parser.add_argument("--agent", default="claude")
     parser.add_argument("--model")
@@ -471,10 +522,21 @@ def main() -> int:
             if args.context_note is not None
             else None
         )
+        session_card = (
+            session_context(args.session_context)
+            if args.session_context is not None
+            else None
+        )
         if args.kind == "quote" and context is None:
             raise CaptureError(
                 "--context-note is required for --kind quote; "
                 + CONTEXT_NOTE_GUIDANCE
+            )
+        if args.kind in ("quote", "selection") and session_card is None:
+            raise CaptureError(
+                "--session-context is required for --kind quote and "
+                "--kind selection; "
+                + SESSION_CONTEXT_GUIDANCE
             )
         if context and args.kind == "note":
             raise CaptureError("--context-note cannot be attached to --kind note")
@@ -500,7 +562,7 @@ def main() -> int:
             )
         path = find_session_file(root / LOG_DIR, agent, session, source)
         if path.exists():
-            written, path = append_entry(
+            written, context_updated, path = append_entry(
                 path,
                 agent,
                 session,
@@ -510,6 +572,7 @@ def main() -> int:
                 source,
                 args.kind,
                 context,
+                session_card,
             )
         else:
             create_file(
@@ -524,9 +587,16 @@ def main() -> int:
                 source,
                 args.kind,
                 context,
+                session_card,
             )
             written = True
-        print(f"{'appended to' if written else 'already present in'} {path}")
+            context_updated = session_card is not None
+        if written:
+            print(f"appended to {path}")
+        elif context_updated:
+            print(f"quote already present; session-context updated in {path}")
+        else:
+            print(f"already present in {path}")
         if written and implicit_now:
             print(
                 "note: source-timestamp not given — used the write time "

@@ -77,7 +77,14 @@ def _frontmatter(lines: list[str]) -> dict[str, str]:
             break
         if ": " in line and not line.startswith((" ", "\t")):
             key, value = line.split(": ", 1)
-            result[key.strip()] = value.strip().strip('"')
+            scalar = value.strip()
+            if scalar.startswith('"'):
+                try:
+                    decoded = json.loads(scalar)
+                except json.JSONDecodeError:
+                    decoded = scalar.strip('"')
+                scalar = decoded if isinstance(decoded, str) else scalar
+            result[key.strip()] = scalar
     return result
 
 
@@ -204,6 +211,7 @@ def _parse_block(
         diagnostics.append("empty-context-note")
     if context_note is not None and kind == "note":
         diagnostics.append("context-note-on-note")
+    session_context = header.get("session-context")
 
     session = header.get("session", "unknown")
     record = {
@@ -233,6 +241,8 @@ def _parse_block(
     }
     if context_note is not None:
         record["context_note"] = context_note
+    if session_context:
+        record["session_context"] = session_context
     return record
 
 
@@ -316,7 +326,14 @@ def search_bm25(records: list[dict[str, Any]], query: str) -> list[dict[str, Any
                         for value in (record["topic"], record["topic_raw"])
                         if value
                     ),
-                    record.get("context_note") or "",
+                    "\n".join(
+                        value
+                        for value in (
+                            record.get("context_note"),
+                            record.get("session_context"),
+                        )
+                        if value
+                    ),
                 )
                 for index, record in enumerate(records, 1)
             ),
@@ -537,8 +554,15 @@ def _prepare_hybrid() -> str:
 
 
 def _dense_text(record: dict[str, Any]) -> str:
-    note = record.get("context_note")
-    return f"{record['text']}\n{note}" if note else record["text"]
+    return "\n".join(
+        value
+        for value in (
+            record["text"],
+            record.get("context_note"),
+            record.get("session_context"),
+        )
+        if value
+    )
 
 
 def search_dense(records: list[dict[str, Any]], query: str) -> list[dict[str, Any]]:
@@ -577,27 +601,52 @@ def search_dense(records: list[dict[str, Any]], query: str) -> list[dict[str, An
     return result
 
 
-def search_hybrid(records: list[dict[str, Any]], query: str) -> list[dict[str, Any]]:
+def _first_per_file(ranking: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    result: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for record in ranking:
+        if record["file"] in seen:
+            continue
+        seen.add(record["file"])
+        result.append(record)
+    return result
+
+
+def search_hybrid(
+    records: list[dict[str, Any]],
+    query: str,
+    *,
+    collapse_files: bool = False,
+) -> list[dict[str, Any]]:
     lexical = search_bm25(records, query)
     if not lexical:
         return []
     dense = search_dense(records, query)
+    rankings = (lexical, dense)
+    key_field = "address"
+    if collapse_files:
+        rankings = tuple(_first_per_file(ranking) for ranking in rankings)
+        key_field = "file"
     scores: dict[str, float] = defaultdict(float)
-    for ranking in (lexical[:HYBRID_DEPTH], dense[:HYBRID_DEPTH]):
+    representatives: dict[str, dict[str, Any]] = {}
+    for ranking in rankings:
         for rank, record in enumerate(ranking, 1):
-            scores[record["address"]] += 1.0 / (RRF_CONSTANT + rank)
-    original_order = {
-        record["address"]: index for index, record in enumerate(records)
-    }
-    by_address = {record["address"]: record for record in records}
+            if rank > HYBRID_DEPTH:
+                break
+            key = record[key_field]
+            scores[key] += 1.0 / (RRF_CONSTANT + rank)
+            representatives.setdefault(key, record)
+    original_order: dict[str, int] = {}
+    for index, record in enumerate(records):
+        original_order.setdefault(record[key_field], index)
     ordered = sorted(
         scores,
-        key=lambda address: (-scores[address], original_order[address]),
+        key=lambda key: (-scores[key], original_order[key]),
     )
     result: list[dict[str, Any]] = []
-    for address in ordered:
-        candidate = dict(by_address[address])
-        candidate["score"] = scores[address]
+    for key in ordered:
+        candidate = dict(representatives[key])
+        candidate["score"] = scores[key]
         result.append(candidate)
     return result
 
@@ -642,9 +691,17 @@ def _retrieve(
     filtered = _filter(records, args)
     if not args.query:
         return filtered, None
+    if args.timeline or args.lexical:
+        lexical = search_bm25(filtered, args.query)
+    if args.timeline:
+        return lexical, "lexical"
     if args.lexical:
-        return search_bm25(filtered, args.query), "lexical"
-    return search_hybrid(filtered, args.query), "hybrid"
+        return _first_per_file(lexical), "lexical"
+    return search_hybrid(
+        filtered,
+        args.query,
+        collapse_files=True,
+    ), "hybrid"
 
 
 def _quality(records: list[dict[str, Any]]) -> dict[str, int]:
@@ -669,6 +726,7 @@ def _summary(record: dict[str, Any]) -> dict[str, Any]:
         "type",
         "topic",
         "topic_raw",
+        "session_context",
         "session",
         "agent",
         "address",
@@ -755,6 +813,8 @@ def _show(record: dict[str, Any]) -> str:
     lines = [record["text"]]
     if record.get("context_note"):
         lines.append(f"context-note: {record['context_note']}")
+    if record.get("session_context"):
+        lines.append(f"session-context: {record['session_context']}")
     lines.extend((classification, source, owner, f"diagnostics={diagnostics}"))
     return "\n".join(lines)
 
