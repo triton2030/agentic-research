@@ -55,6 +55,7 @@ QUERY_PREFIX = "query: "
 PASSAGE_PREFIX = "passage: "
 HYBRID_DEPTH = 40
 RRF_CONSTANT = 60
+SESSION_ROUTE_LIMIT = 5
 EMBEDDING_PROFILE = (
     "chat-recall-v1|fastembed=" + FASTEMBED_VERSION
     + "|model=" + EMBEDDING_MODEL
@@ -330,7 +331,6 @@ def search_bm25(records: list[dict[str, Any]], query: str) -> list[dict[str, Any
                         value
                         for value in (
                             record.get("context_note"),
-                            record.get("session_context"),
                         )
                         if value
                     ),
@@ -353,6 +353,66 @@ def search_bm25(records: list[dict[str, Any]], query: str) -> list[dict[str, Any
         record["score"] = score
         result.append(record)
     return result
+
+
+def search_session_context_bm25(
+    records: list[dict[str, Any]], query: str
+) -> list[dict[str, Any]]:
+    representatives: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for record in records:
+        if record["file"] in seen or not record.get("session_context"):
+            continue
+        seen.add(record["file"])
+        representatives.append(record)
+    if not representatives:
+        return []
+
+    connection = sqlite3.connect(":memory:")
+    try:
+        connection.execute(
+            "CREATE VIRTUAL TABLE session_cards USING fts5("
+            "context, tokenize='unicode61')"
+        )
+        connection.executemany(
+            "INSERT INTO session_cards(rowid, context) VALUES (?, ?)",
+            (
+                (index, record["session_context"])
+                for index, record in enumerate(representatives, 1)
+            ),
+        )
+        rows = connection.execute(
+            "SELECT rowid, bm25(session_cards) AS score "
+            "FROM session_cards WHERE session_cards MATCH ? ORDER BY score, rowid",
+            (_fts_query(query),),
+        ).fetchall()
+    except sqlite3.Error as error:
+        raise CliError(f"BM25 query недопустим: {error}") from error
+    finally:
+        connection.close()
+
+    result: list[dict[str, Any]] = []
+    for rowid, score in rows:
+        record = dict(representatives[rowid - 1])
+        record["score"] = score
+        result.append(record)
+    return result
+
+
+def search_session_routes(
+    records: list[dict[str, Any]], query: str
+) -> list[dict[str, Any]]:
+    novel_tokens = [
+        token
+        for token in QUERY_TOKEN_RE.findall(query.casefold())
+        if not search_bm25(records, token)
+    ]
+    if not novel_tokens:
+        return []
+    return search_session_context_bm25(
+        records,
+        " ".join(novel_tokens),
+    )[:SESSION_ROUTE_LIMIT]
 
 
 def _cache_root() -> Path:
@@ -559,7 +619,6 @@ def _dense_text(record: dict[str, Any]) -> str:
         for value in (
             record["text"],
             record.get("context_note"),
-            record.get("session_context"),
         )
         if value
     )
@@ -612,38 +671,14 @@ def _first_per_file(ranking: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return result
 
 
-def search_hybrid(
+def _merge_file_rankings(
     records: list[dict[str, Any]],
-    query: str,
-    *,
-    collapse_files: bool = False,
+    rankings: tuple[list[dict[str, Any]], ...],
 ) -> list[dict[str, Any]]:
-    lexical = search_bm25(records, query)
-    if not lexical:
-        return []
-    dense = search_dense(records, query)
-    rankings = (lexical, dense)
-    if not collapse_files:
-        scores: dict[str, float] = defaultdict(float)
-        representatives: dict[str, dict[str, Any]] = {}
-        for ranking in rankings:
-            for rank, record in enumerate(ranking[:HYBRID_DEPTH], 1):
-                scores[record["address"]] += 1.0 / (RRF_CONSTANT + rank)
-                representatives.setdefault(record["address"], record)
-        original_order = {
-            record["address"]: index for index, record in enumerate(records)
-        }
-        ordered = sorted(
-            scores,
-            key=lambda address: (-scores[address], original_order[address]),
-        )
-        return [
-            {**representatives[address], "score": scores[address]}
-            for address in ordered
-        ]
-
     file_rankings = tuple(
-        _first_per_file(ranking)[:HYBRID_DEPTH] for ranking in rankings
+        _first_per_file(ranking)[:HYBRID_DEPTH]
+        for ranking in rankings
+        if ranking
     )
     rank_by_address = tuple(
         {record["address"]: rank for rank, record in enumerate(ranking, 1)}
@@ -685,6 +720,39 @@ def search_hybrid(
     ]
 
 
+def search_hybrid(
+    records: list[dict[str, Any]],
+    query: str,
+    *,
+    collapse_files: bool = False,
+) -> list[dict[str, Any]]:
+    lexical = search_bm25(records, query)
+    if not lexical:
+        return []
+    dense = search_dense(records, query)
+    rankings = (lexical, dense)
+    if not collapse_files:
+        scores: dict[str, float] = defaultdict(float)
+        representatives: dict[str, dict[str, Any]] = {}
+        for ranking in rankings:
+            for rank, record in enumerate(ranking[:HYBRID_DEPTH], 1):
+                scores[record["address"]] += 1.0 / (RRF_CONSTANT + rank)
+                representatives.setdefault(record["address"], record)
+        original_order = {
+            record["address"]: index for index, record in enumerate(records)
+        }
+        ordered = sorted(
+            scores,
+            key=lambda address: (-scores[address], original_order[address]),
+        )
+        return [
+            {**representatives[address], "score": scores[address]}
+            for address in ordered
+        ]
+
+    return _merge_file_rankings(records, rankings)
+
+
 def _validate_date(value: str, name: str) -> str:
     try:
         return date.fromisoformat(value).isoformat()
@@ -721,21 +789,32 @@ def _filter(records: list[dict[str, Any]], args: argparse.Namespace) -> list[dic
 
 def _retrieve(
     records: list[dict[str, Any]], args: argparse.Namespace
-) -> tuple[list[dict[str, Any]], str | None]:
+) -> tuple[list[dict[str, Any]], str | None, list[dict[str, Any]]]:
     filtered = _filter(records, args)
     if not args.query:
-        return filtered, None
+        return filtered, None, []
+    session_routes = search_session_routes(filtered, args.query)
     if args.timeline or args.lexical:
         lexical = search_bm25(filtered, args.query)
     if args.timeline:
-        return lexical, "lexical"
+        if lexical:
+            return lexical, "lexical", session_routes
+        card_files = {record["file"] for record in session_routes}
+        return [
+            record
+            for record in filtered
+            if record["file"] in card_files
+        ], "lexical", session_routes
     if args.lexical:
-        return _first_per_file(lexical), "lexical"
-    return search_hybrid(
+        if lexical:
+            return _first_per_file(lexical), "lexical", session_routes
+        return session_routes, "lexical", session_routes
+    hybrid = search_hybrid(
         filtered,
         args.query,
         collapse_files=True,
-    ), "hybrid"
+    )
+    return hybrid or session_routes, "hybrid", session_routes
 
 
 def _quality(records: list[dict[str, Any]]) -> dict[str, int]:
@@ -765,6 +844,18 @@ def _summary(record: dict[str, Any]) -> dict[str, Any]:
         "agent",
         "address",
         "diagnostics",
+        "score",
+    )
+    return {field: record[field] for field in fields if field in record}
+
+
+def _session_summary(record: dict[str, Any]) -> dict[str, Any]:
+    fields = (
+        "file",
+        "session_context",
+        "session",
+        "agent",
+        "address",
         "score",
     )
     return {field: record[field] for field in fields if field in record}
@@ -1091,6 +1182,7 @@ def main() -> int:
             _validate_bounds(args.limit, args.max_chars)
         records, diagnostic_count = load(args.records_dir)
         total = len(records)
+        session_routes: list[dict[str, Any]] = []
         inventory_mode = not any(
             (
                 args.digest,
@@ -1119,7 +1211,7 @@ def main() -> int:
             matched = len(selected)
             retrieval = None
         else:
-            candidates, retrieval = _retrieve(records, args)
+            candidates, retrieval, session_routes = _retrieve(records, args)
             if args.timeline:
                 candidates = _timeline(candidates)
             matched = len(candidates)
@@ -1151,6 +1243,11 @@ def main() -> int:
             "records": selected if args.show else [_summary(record) for record in selected],
         }
         if args.query:
+            envelope["session_candidates"] = [
+                _session_summary(record) for record in session_routes
+            ]
+            envelope["session_candidate_count"] = len(session_routes)
+            envelope["session_candidates_returned"] = len(session_routes)
             envelope["retrieval"] = retrieval
             envelope["retrieval_complete"] = True
             envelope["candidate_count"] = matched
@@ -1174,6 +1271,20 @@ def main() -> int:
             ):
                 envelope["records"].pop()
                 envelope["returned"] = len(envelope["records"])
+                envelope["truncated"] = True
+                envelope["truncated_by"] = "max_chars"
+                rendered = json.dumps(
+                    envelope, ensure_ascii=False, separators=(",", ":")
+                )
+            while (
+                not args.show
+                and len(rendered) > args.max_chars
+                and envelope.get("session_candidates")
+            ):
+                envelope["session_candidates"].pop()
+                envelope["session_candidates_returned"] = len(
+                    envelope["session_candidates"]
+                )
                 envelope["truncated"] = True
                 envelope["truncated_by"] = "max_chars"
                 rendered = json.dumps(

@@ -15,9 +15,10 @@
 — корректное продолжение текущей работы, а не количество найденных совпадений
 или полнота quote dump.
 
-Acceptance этой возможности включает случай, где существенные слова задачи
-отсутствуют во всех цитатах и `context-note`, присутствуют только в
-`session-context`, а default query возвращает нужный файл в top-5.
+Acceptance этой возможности включает случай, где один существенный термин
+задачи отсутствует во всех цитатах и `context-note`, присутствует только в
+`session-context`, а default JSON показывает нужный файл в top-5
+`session_candidates`, не меняя порядок `records`.
 
 Рабочий контекст остаётся transient synthesis с source evidence. Он не создаёт
 постоянный «профиль владельца» и не превращает датированный recall-лог в
@@ -46,9 +47,10 @@ Acceptance этой возможности включает случай, где
   summary-store, ссылки на transcript или постоянный профиль владельца.
   Единственная capture-time курация — сверка одной per-file `session-context`
   при записи `quote` или `selection`.
-- `session-context` обязательна только для новых и затронутых сессий. Её
-  отсутствие у untouched legacy-файла не является diagnostic и не требует
-  массового backfill.
+- Runtime требует `session-context` только для новых и затронутых сессий;
+  отсутствие у untouched legacy-файла само по себе не diagnostic. Одноразовый
+  owner-requested backfill допустим как сборка реального evaluation corpus:
+  карточка выводится после чтения полного transcript, записи цитат не меняются.
 - Допустимы одноразовый model/cache bootstrap и несколько секунд на
   consequential query; дешёвый lexical fallback и честный abstain сохраняются.
 - Capture, retrieval и repair остаются в одном skill-package, но подчиняются

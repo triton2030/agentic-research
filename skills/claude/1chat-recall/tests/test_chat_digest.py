@@ -194,6 +194,66 @@ class ChatDigestTests(unittest.TestCase):
         record = data["records"][0]
         self.assertNotIn("карточечныймаршрут", record["text"])
 
+    def test_novel_card_term_is_a_separate_route_when_common_text_matches(self) -> None:
+        self.write_file(
+            "base.md",
+            [
+                (
+                    '* 2026-07-01T10:00:00+00:00 — "Common route word" '
+                    '— type: факт | topic: работа-и-процессы'
+                )
+            ],
+            session="22222222-2222-4222-8222-222222222222",
+        )
+        self.write_file(
+            "card.md",
+            [
+                (
+                    '* 2026-07-02T10:00:00+00:00 — "Unrelated quote" '
+                    '— type: факт | topic: работа-и-процессы'
+                )
+            ],
+            session="33333333-3333-4333-8333-333333333333",
+            session_context="rarecardterm",
+        )
+
+        data = json.loads(
+            self.call(
+                "--query",
+                "rarecardterm common",
+                "--json",
+                "--limit",
+                "5",
+            ).stdout
+        )
+
+        self.assertEqual(data["records"][0]["address"].split(":", 1)[0], "base.md")
+        self.assertEqual(
+            [route["file"] for route in data["session_candidates"]],
+            ["card.md"],
+        )
+        self.assertEqual(data["session_candidate_count"], 1)
+        self.assertEqual(data["session_candidates_returned"], 1)
+
+        bounded = json.loads(
+            self.call(
+                "--query",
+                "rarecardterm common",
+                "--json",
+                "--max-chars",
+                "512",
+            ).stdout
+        )
+        self.assertEqual(bounded["session_candidate_count"], 1)
+        self.assertEqual(
+            bounded["session_candidates_returned"],
+            len(bounded["session_candidates"]),
+        )
+        self.assertGreater(
+            bounded["session_candidate_count"],
+            bounded["session_candidates_returned"],
+        )
+
     def test_opaque_selection_has_context_while_self_contained_quote_stays_bare(
         self,
     ) -> None:
@@ -590,6 +650,25 @@ class ChatDigestTests(unittest.TestCase):
         self.assertEqual(result, [])
         dense.assert_not_called()
 
+    def test_session_card_fallback_does_not_displace_quote_hybrid(self) -> None:
+        records = [
+            {"file": "quote.md", "address": "quote.md:1", "record_id": "quote"},
+            {"file": "card.md", "address": "card.md:1", "record_id": "card"},
+        ]
+        with (
+            mock.patch.object(DIGEST, "search_bm25", return_value=[records[0]]),
+            mock.patch.object(DIGEST, "search_dense", return_value=records),
+            mock.patch.object(
+                DIGEST,
+                "search_session_context_bm25",
+                return_value=[records[1]],
+            ) as cards,
+        ):
+            result = DIGEST.search_hybrid(records, "query", collapse_files=True)
+
+        cards.assert_not_called()
+        self.assertEqual(result[0]["file"], "quote.md")
+
     def test_hybrid_rrf_uses_addresses_not_duplicate_record_ids(self) -> None:
         records = [
             {"address": "a.md:1", "record_id": "duplicate"},
@@ -653,8 +732,10 @@ class ChatDigestTests(unittest.TestCase):
         self.write_file(
             "other.md",
             [
-                '* 2026-07-02T10:00:00+00:00 — "Needle other" '
-                '— type: факт | topic: работа-и-процессы'
+                (
+                    '* 2026-07-02T10:00:00+00:00 — "Needle other" '
+                    '— type: факт | topic: работа-и-процессы'
+                )
             ],
             session="22222222-2222-4222-8222-222222222222",
         )
@@ -678,11 +759,56 @@ class ChatDigestTests(unittest.TestCase):
         self.assertEqual({record["address"].split(":", 1)[0] for record in compact["records"]}, {"long.md", "other.md"})
         self.assertEqual(timeline["matched"], DIGEST.HYBRID_DEPTH + 2)
 
+    def test_session_card_is_indexed_once_and_timeline_expands_its_file(self) -> None:
+        entries = [
+            (
+                f'* 2026-07-01T{index % 24:02d}:{index % 60:02d}:00+00:00 — '
+                f'"Record without route word {index}" '
+                '— type: факт | topic: работа-и-процессы'
+            )
+            for index in range(DIGEST.HYBRID_DEPTH + 12)
+        ]
+        self.write_file(
+            "card-only.md",
+            entries,
+            session_context="уникальныйкарточныймаршрут",
+        )
+
+        compact = json.loads(
+            self.call_default(
+                "--query",
+                "уникальныйкарточныймаршрут",
+                "--json",
+            ).stdout
+        )
+        timeline = json.loads(
+            self.call_default(
+                "--query",
+                "уникальныйкарточныймаршрут",
+                "--timeline",
+                "--limit",
+                "100",
+                "--max-chars",
+                "200000",
+                "--json",
+            ).stdout
+        )
+
+        self.assertEqual(compact["matched"], 1)
+        self.assertEqual(compact["records"][0]["address"].split(":", 1)[0], "card-only.md")
+        self.assertEqual(timeline["matched"], len(entries))
+        self.assertEqual(
+            {record["address"].split(":", 1)[0] for record in timeline["records"]},
+            {"card-only.md"},
+        )
+
     def test_legacy_file_without_session_context_remains_valid(self) -> None:
         self.write_entries(
             [
-                '* 2026-07-01T10:00:00+00:00 — "Legacy holder" '
-                '— type: факт | topic: работа-и-процессы'
+                (
+                    '* 2026-07-01T10:00:00+00:00 — "Legacy holder" '
+                    '— type: факт | topic: работа-и-процессы'
+                )
             ]
         )
 
@@ -703,7 +829,7 @@ class ChatDigestTests(unittest.TestCase):
             ]
         )
         with mock.patch.object(DIGEST, "search_hybrid", return_value=[]) as hybrid:
-            _, retrieval = DIGEST._retrieve(records, args)
+            _, retrieval, _ = DIGEST._retrieve(records, args)
 
         ranked_records = hybrid.call_args.args[0]
         self.assertEqual(retrieval, "hybrid")
