@@ -48,6 +48,22 @@ export function formatClaudeResult(raw, launch) {
     }
     throw new ClaudeAskError("claude_sdk_result", compactTail(errors), details);
   }
+  if (
+    typeof raw.result.terminal_reason === "string" &&
+    raw.result.terminal_reason !== "completed"
+  ) {
+    const sessionId = isClaudeSessionId(raw.result.session_id) ? raw.result.session_id : undefined;
+    throw new ClaudeAskError(
+      "incomplete_result",
+      `Claude returned success before the requested work completed: ${raw.result.terminal_reason}.`,
+      {
+        ...(sessionId ? { session_id: sessionId, resumable: true } : {}),
+        ...(Number.isFinite(raw.result.duration_ms) ? { duration_ms: raw.result.duration_ms } : {}),
+        terminal_reason: raw.result.terminal_reason,
+        subtype: raw.result.subtype
+      }
+    );
+  }
   if (!isClaudeSessionId(raw.result.session_id)) {
     throw new ClaudeAskError("missing_session", "Claude SDK result did not include a native session UUID.");
   }

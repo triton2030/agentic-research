@@ -47,6 +47,11 @@ resolved models, duration, and warnings. A Fable request that Claude resolves to
 Opus is not a bridge failure, but the resolution must remain visible and the
 bridge must not invent a cause that Claude did not report.
 
+A nominal SDK success with a non-completing `terminal_reason`, such as
+`background_requested`, fails closed with a resumable typed error. The blocking
+path never labels an answer terminal after Claude moved required work into the
+background.
+
 Warnings retain only compact typed evidence: explicit subscription
 overage/credits signals, model-refusal fallback, permission-denied tool names,
 environment stripping, resume ownership, and truncation. They never retain

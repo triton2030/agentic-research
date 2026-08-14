@@ -366,6 +366,23 @@ test("typed SDK failures are bounded and incomplete evidence fails closed", asyn
     ),
     "sdk_subscription_required"
   );
+
+  const backgrounded = sdkMessages({ text: "Work continues in the background." });
+  Object.assign(backgrounded.at(-1), { terminal_reason: "background_requested" });
+  const backgroundError = await expectClaudeError(
+    askTest(
+      { prompt: "Finish before returning.", profile: "opus_advisor", cwd: bridgeRoot },
+      fakeOptions(backgrounded)
+    ),
+    "incomplete_result"
+  );
+  assert.deepEqual(backgroundError.details, {
+    session_id: OPUS_SESSION,
+    resumable: true,
+    duration_ms: 123,
+    terminal_reason: "background_requested",
+    subtype: "success"
+  });
 });
 
 test("max-turn failure keeps native resume details when the iterator later throws", async () => {
