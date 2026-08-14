@@ -109,9 +109,23 @@ def main() -> int:
     packages: list[tuple[str, str, str, dict[str, Path]]] = []
     try:
         for skill in args.skills:
+            covered = 0
             for runtime in RUNTIMES:
-                owner_kind, manifest = source_manifest(skill, runtime)
+                try:
+                    owner_kind, manifest = source_manifest(skill, runtime)
+                except ValueError as exc:
+                    # Пакет одного рантайма — норма, а не поломка: у `1codex`,
+                    # `1fresh-eyes` и ещё девяти Claude-only скилов Codex-owner-а
+                    # нет и не будет. Раньше скрипт падал на первом же таком,
+                    # и треть пакетов не проверялась вовсе.
+                    if "no shared or runtime owner" not in str(exc):
+                        raise
+                    print(f"skipped {runtime}/{skill}: owner отсутствует", file=sys.stderr)
+                    continue
+                covered += 1
                 packages.append((skill, runtime, owner_kind, manifest))
+            if not covered:
+                raise ValueError(f"{skill}: owner-а нет ни для одного рантайма")
     except ValueError as exc:
         print(exc, file=sys.stderr)
         return 2
