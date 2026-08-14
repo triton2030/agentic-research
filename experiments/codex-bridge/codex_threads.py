@@ -201,6 +201,38 @@ def _threads_with_active_writer(thread_ids: list[str]) -> set[str]:
     return {paths[line[1:]] for line in out.splitlines() if line[1:] in paths}
 
 
+def _lineage_from_rollouts(thread_ids: list[str]) -> dict[str, str]:
+    """thread_id → id источника, если тред создан форком.
+
+    `thread/list` движка это поле не отдаёт (проверено 2026-08-14: 40 тредов,
+    0 значений, при том что форки за те же дни есть), поэтому родословную
+    читаем из `session_meta` — первой строки rollout-файла. Без неё форк и его
+    источник в доске неразличимы: у них одинаковое имя.
+    """
+    wanted = {tid for tid in thread_ids if tid}
+    if not wanted:
+        return {}
+    root = Path.home() / ".codex" / "sessions"
+    found: dict[str, str] = {}
+    for path in sorted(root.rglob("rollout-*.jsonl"), reverse=True):
+        # id треда — UUID в хвосте имени: rollout-<ts>-<uuid>.jsonl (дешевле чтения)
+        tid = path.stem[-36:]
+        if tid not in wanted or tid in found:
+            continue
+        try:
+            with path.open(encoding="utf-8", errors="replace") as fh:
+                meta = json.loads(fh.readline()).get("payload", {})
+        except (OSError, json.JSONDecodeError):
+            continue
+        source = meta.get("forked_from_id")
+        if source:
+            found[tid] = source
+        wanted.discard(tid)
+        if not wanted:
+            break
+    return found
+
+
 def cmd_mine(project_cwd: Path, as_json: bool, limit: int, all_projects: bool) -> int:
     """Нативные треды движка — включая те, в которых владелец работает сам.
 
@@ -229,9 +261,12 @@ def cmd_mine(project_cwd: Path, as_json: bool, limit: int, all_projects: bool) -
             "forked_from_id": t.get("forked_from_id"),
         })
 
-    busy = _threads_with_active_writer([r["thread_id"] for r in rows])
+    ids = [r["thread_id"] for r in rows]
+    busy = _threads_with_active_writer(ids)
+    lineage = _lineage_from_rollouts([i for i, r in zip(ids, rows) if not r["forked_from_id"]])
     for r in rows:
         r["writer_busy"] = r["thread_id"] in busy
+        r["forked_from_id"] = r["forked_from_id"] or lineage.get(r["thread_id"])
 
     if as_json:
         print(json.dumps(rows, ensure_ascii=False, indent=2))
