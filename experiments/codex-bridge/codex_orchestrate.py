@@ -527,6 +527,9 @@ def main() -> int:
             "codex": codex_runtime,
             "paths": paths,
             "task_count": len(tasks),
+            # Сухой план обязан говорить, как пойдёт прогон: режим изоляции меняет
+            # и контракт воркера, и способ забрать работу.
+            "isolation": args.isolation,
             "git": initial_git.to_json(),
             # Ровно тот план, что записан в manifest: два вида одного прогона в
             # одном run_dir не должны расходиться формой.
