@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -174,6 +175,32 @@ def _open_sdk(project_cwd: Path):
     return Codex(CodexConfig(cwd=str(project_cwd), codex_bin=resolve_codex_bin()))
 
 
+def _threads_with_active_writer(thread_ids: list[str]) -> set[str]:
+    """Треды, право записи в которые сейчас занято (открытая вкладка Codex).
+
+    Движок держит writer-lock на каждый тред, открытый в приложении, и
+    отклоняет `--continue` в него: `already has an active writer`. Лок живёт,
+    пока вкладка открыта, — не пока идёт работа, и не зависит от того, кто
+    тред создал. Держатели читаются одним вызовом lsof; нет lsof — пустое
+    множество (пометка исчезнет, поведение продолжения не изменится).
+    """
+    lock_dir = Path.home() / ".codex" / "thread-writer-locks"
+    paths = {str(lock_dir / f"{tid}.lock"): tid for tid in thread_ids if tid}
+    existing = [p for p in paths if Path(p).is_file()]
+    if not existing:
+        return set()
+    try:
+        out = subprocess.run(
+            ["lsof", "-F", "n", "--", *existing],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        ).stdout
+    except (OSError, subprocess.SubprocessError):
+        return set()
+    return {paths[line[1:]] for line in out.splitlines() if line[1:] in paths}
+
+
 def cmd_mine(project_cwd: Path, as_json: bool, limit: int, all_projects: bool) -> int:
     """Нативные треды движка — включая те, в которых владелец работает сам.
 
@@ -202,6 +229,10 @@ def cmd_mine(project_cwd: Path, as_json: bool, limit: int, all_projects: bool) -
             "forked_from_id": t.get("forked_from_id"),
         })
 
+    busy = _threads_with_active_writer([r["thread_id"] for r in rows])
+    for r in rows:
+        r["writer_busy"] = r["thread_id"] in busy
+
     if as_json:
         print(json.dumps(rows, ensure_ascii=False, indent=2))
         return 0
@@ -212,6 +243,7 @@ def cmd_mine(project_cwd: Path, as_json: bool, limit: int, all_projects: bool) -
     print(f"Треды движка ({'все проекты' if all_projects else project_cwd}):\n")
     for r in rows:
         mark = " [ephemeral]" if r["ephemeral"] else ""
+        mark += " [открыт в приложении: запись занята]" if r["writer_busy"] else ""
         fork = f"  ← форк {r['forked_from_id'][:8]}" if r["forked_from_id"] else ""
         print(
             f"{r['thread_id']}{mark}{fork}\n"
