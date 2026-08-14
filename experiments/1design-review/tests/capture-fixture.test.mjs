@@ -10,6 +10,7 @@ import { execFileSync, spawn } from "node:child_process";
 
 const packageRoot = path.resolve(import.meta.dirname, "..");
 const entryScript = path.join(packageRoot, "scripts", "design-review");
+const approvalScript = path.join(packageRoot, "scripts", "approve-design-evidence.mjs");
 const captureScript = path.join(packageRoot, "scripts", "capture-design-screenshots.mjs");
 const prepareScript = path.join(packageRoot, "scripts", "prepare-design-review-tasks.mjs");
 const runnerScript = path.join(packageRoot, "scripts", "run-clean-design-agent.sh");
@@ -38,6 +39,14 @@ function pngDimensions(buffer) {
     width: buffer.readUInt32BE(16),
     height: buffer.readUInt32BE(20),
   };
+}
+
+function minimalPng(width = 1, height = 1) {
+  const buffer = Buffer.alloc(24);
+  buffer.write("\x89PNG\r\n\x1a\n", 0, "latin1");
+  buffer.writeUInt32BE(width, 16);
+  buffer.writeUInt32BE(height, 20);
+  return buffer;
 }
 
 async function imageColorStats(playwright, imagePath) {
@@ -115,6 +124,120 @@ test("CLI resolves project runs under the skill-name and MM-DD hierarchy", async
   );
 });
 
+test("runner preserves a sixty-task one-image queue and rejects parallelism above three", async () => {
+  const runDir = await fs.mkdtemp(path.join(os.tmpdir(), "design-review-long-queue-"));
+  const fakeRoot = await fs.mkdtemp(path.join(os.tmpdir(), "design-review-fake-cli-"));
+  const fakeBin = path.join(fakeRoot, "bin");
+  const fakeAuth = path.join(fakeRoot, "auth.json");
+  const concurrencyRoot = path.join(fakeRoot, "concurrency");
+  await fs.mkdir(fakeBin);
+  await fs.mkdir(concurrencyRoot);
+  await fs.writeFile(
+    path.join(fakeBin, "codex"),
+    `#!/bin/sh
+output=""
+image=""
+while [ "$#" -gt 0 ]; do
+  if [ "$1" = "--output-last-message" ]; then output="$2"; shift 2; else shift; fi
+  if [ "$1" = "-i" ]; then image="$2"; shift 2; fi
+done
+[ -n "$image" ] || exit 40
+dd if="$image" of=/dev/null 2>/dev/null || exit 41
+if dd if="$DESIGN_REVIEW_FORBIDDEN_FILE" of=/dev/null 2>/dev/null; then exit 44; fi
+slot=""
+for candidate in 1 2 3; do
+  if mkdir "$DESIGN_REVIEW_TEST_CONCURRENCY/slot-$candidate" 2>/dev/null; then slot="$candidate"; break; fi
+done
+[ -n "$slot" ] || exit 42
+trap 'rmdir "$DESIGN_REVIEW_TEST_CONCURRENCY/slot-'"$slot"'"' EXIT
+if [ "$slot" = "3" ]; then
+  touch "$DESIGN_REVIEW_TEST_CONCURRENCY/peak-3"
+fi
+task="$(basename "$(dirname "$output")")"
+if ! mkdir "$DESIGN_REVIEW_TEST_CONCURRENCY/launched-$task" 2>/dev/null; then exit 43; fi
+sleep 0.03
+printf 'VERDICT: NO_MATERIAL_ISSUE\n' > "$output"
+`,
+  );
+  await fs.chmod(path.join(fakeBin, "codex"), 0o755);
+  await fs.writeFile(fakeAuth, "{}\n");
+
+  const artifacts = [];
+  const tasks = [];
+  for (let index = 1; index <= 60; index += 1) {
+    const id = `block-${String(index).padStart(2, "0")}`;
+    const file = path.join(runDir, `${id}.png`);
+    await fs.writeFile(file, minimalPng(index, index));
+    artifacts.push({ id, kind: "block", reviewAudience: "reviewer", file, status: "success" });
+    tasks.push({
+      id: `task-${String(index).padStart(2, "0")}`,
+      question: `Inspect narrow region ${index}`,
+      decision: `region ${index}`,
+      evidenceIds: [id],
+      status: "ready",
+    });
+  }
+  await fs.writeFile(
+    path.join(runDir, "manifest.json"),
+    `${JSON.stringify({ version: 2, failures: [], artifacts, tasks }, null, 2)}\n`,
+  );
+  const approval = await run(
+    process.execPath,
+    [approvalScript, "--run-dir", runDir, "--all-reviewer-evidence"],
+  );
+  assert.equal(approval.status, 0, approval.stderr || approval.stdout);
+  const env = {
+    ...process.env,
+    CODEX_AUTH_JSON: fakeAuth,
+    DESIGN_REVIEW_TEST_CONCURRENCY: concurrencyRoot,
+    DESIGN_REVIEW_FORBIDDEN_FILE: artifacts[0].file,
+    PATH: `${fakeBin}:${process.env.PATH}`,
+  };
+  const queuePromise = run(
+    "bash",
+    [runnerScript, "--run-dir", runDir, "--questions", questionsPath, "--parallel", "3"],
+    { env },
+  );
+  const lockPath = path.join(runDir, "reviewers", ".runner.lock");
+  for (let attempt = 0; attempt < 100 && !existsSync(lockPath); attempt += 1) {
+    await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+  assert.ok(existsSync(lockPath), "expected the first runner to hold the run lock");
+  const otherRunDir = await fs.mkdtemp(path.join(os.tmpdir(), "design-review-other-run-"));
+  const competingRun = await run(
+    "bash",
+    [runnerScript, "--run-dir", otherRunDir, "--questions", questionsPath, "--parallel", "3"],
+    { env },
+  );
+  assert.equal(competingRun.status, 2);
+  assert.match(competingRun.stderr, /global reviewer limit is three/);
+  const duplicateRun = await run(
+    "bash",
+    [runnerScript, "--run-dir", runDir, "--questions", questionsPath, "--parallel", "3"],
+    { env },
+  );
+  assert.equal(duplicateRun.status, 2);
+  assert.match(duplicateRun.stderr, /already running/);
+  const queueRun = await queuePromise;
+  assert.equal(queueRun.status, 0, queueRun.stderr || queueRun.stdout);
+  const summary = JSON.parse(
+    await fs.readFile(path.join(runDir, "reviewers", "summary.json"), "utf8"),
+  );
+  assert.equal(summary.tasks.length, 60);
+  assert.ok(summary.tasks.every((task) => task.status === "done"));
+  const concurrencyEntries = await fs.readdir(concurrencyRoot);
+  assert.equal(concurrencyEntries.filter((entry) => entry.startsWith("launched-")).length, 60);
+  assert.ok(concurrencyEntries.includes("peak-3"));
+
+  const tooWide = await run(
+    "bash",
+    [runnerScript, "--run-dir", runDir, "--questions", questionsPath, "--parallel", "4", "--dry-run"],
+    { env },
+  );
+  assert.equal(tooWide.status, 2);
+  assert.match(tooWide.stderr, /integer from 1 to 3/);
+});
+
 test("fixture produces all six evidence kinds, diagnostic colors, collage, and one task per question", async (t) => {
   const moduleRoot = playwrightRoot();
   if (!moduleRoot) {
@@ -151,13 +274,52 @@ test("fixture produces all six evidence kinds, diagnostic colors, collage, and o
     new Set(["viewport", "transition", "block", "family", "text-density", "spacing"]),
   );
   assert.ok(manifest.artifacts.every((artifact) => artifact.status === "success"));
+  assert.equal(
+    manifest.artifacts.find((artifact) => artifact.kind === "viewport").reviewAudience,
+    "root-only",
+  );
+  assert.ok(
+    manifest.artifacts
+      .filter((artifact) => artifact.kind !== "viewport")
+      .every((artifact) => artifact.reviewAudience === "reviewer"),
+  );
   assert.equal(manifest.artifacts.find((artifact) => artifact.kind === "block").contextRect.ratio, 0.1);
   assert.equal(manifest.artifacts.find((artifact) => artifact.kind === "family").members.length, 4);
+
+  const broadRunDir = await fs.mkdtemp(path.join(os.tmpdir(), "design-evidence-broad-block-"));
+  const broadPlanPath = path.join(broadRunDir, "plan.json");
+  await fs.writeFile(
+    broadPlanPath,
+    JSON.stringify({
+      version: 2,
+      sources: [{ id: "page", type: "url", url: `http://127.0.0.1:${address.port}/` }],
+      evidence: [{ id: "too-broad", kind: "block", sourceId: "page", selector: "body" }],
+      tasks: [
+        {
+          id: "too-broad-task",
+          question: "Inspect the whole body",
+          decision: "must be rejected",
+          evidenceIds: ["too-broad"],
+        },
+      ],
+    }),
+  );
+  const broadCapture = await run(
+    process.execPath,
+    [captureScript, "--plan", broadPlanPath, "--out-dir", broadRunDir, "--settle-ms", "0"],
+    { env: { ...process.env, PLAYWRIGHT_MODULE_ROOT: moduleRoot } },
+  );
+  assert.equal(broadCapture.status, 1);
+  const broadManifest = JSON.parse(
+    await fs.readFile(path.join(broadRunDir, "manifest.json"), "utf8"),
+  );
+  assert.match(broadManifest.artifacts[0].error, /too large to isolate one visual question/);
 
   const playwright = loadPlaywright(moduleRoot);
   const density = manifest.artifacts.find((artifact) => artifact.kind === "text-density");
   const spacing = manifest.artifacts.find((artifact) => artifact.kind === "spacing");
   const family = manifest.artifacts.find((artifact) => artifact.kind === "family");
+  const transition = manifest.artifacts.find((artifact) => artifact.kind === "transition");
   const densityStats = await imageColorStats(playwright, density.file);
   const spacingStats = await imageColorStats(playwright, spacing.file);
   assert.ok(densityStats.red > 20, `expected red density blocks, got ${JSON.stringify(densityStats)}`);
@@ -168,6 +330,11 @@ test("fixture produces all six evidence kinds, diagnostic colors, collage, and o
   );
   const familySize = pngDimensions(await fs.readFile(family.file));
   assert.ok(familySize.width > 500 && familySize.height > 250, JSON.stringify(familySize));
+  const transitionSize = pngDimensions(await fs.readFile(transition.file));
+  assert.ok(
+    transitionSize.height <= Math.floor(transition.viewport.height * 0.35),
+    JSON.stringify(transitionSize),
+  );
 
   const imageRunDir = await fs.mkdtemp(path.join(os.tmpdir(), "design-evidence-image-"));
   const imagePlanPath = path.join(imageRunDir, "plan.json");
@@ -201,10 +368,16 @@ test("fixture produces all six evidence kinds, diagnostic colors, collage, and o
         ],
         tasks: [
           {
-            id: "supplied-task",
-            question: "Do supplied-image crops preserve the selected pixels?",
-            evidenceIds: ["supplied-viewport", "supplied-block", "supplied-family"],
-            decision: "standalone screenshot support",
+            id: "supplied-block-task",
+            question: "Does the block crop preserve the selected pixels?",
+            evidenceIds: ["supplied-block"],
+            decision: "standalone block support",
+          },
+          {
+            id: "supplied-family-task",
+            question: "Does the family collage preserve the selected pixels?",
+            evidenceIds: ["supplied-family"],
+            decision: "standalone family support",
           },
         ],
       },
@@ -225,6 +398,70 @@ test("fixture produces all six evidence kinds, diagnostic colors, collage, and o
   assert.equal(suppliedManifest.artifacts.length, 3);
   assert.ok(suppliedManifest.artifacts.every((artifact) => artifact.status === "success"));
 
+  const unapproved = await run(
+    process.execPath,
+    [prepareScript, "--run-dir", runDir, "--questions", questionsPath],
+  );
+  assert.equal(unapproved.status, 1);
+  assert.match(unapproved.stderr, /root approval is missing/);
+
+  const approval = await run(
+    process.execPath,
+    [approvalScript, "--run-dir", runDir, "--all-reviewer-evidence"],
+  );
+  assert.equal(approval.status, 0, approval.stderr || approval.stdout);
+
+  const approvedArtifact = manifest.artifacts.find(
+    (artifact) => artifact.reviewAudience === "reviewer",
+  );
+  const approvedBytes = await fs.readFile(approvedArtifact.file);
+  await fs.appendFile(approvedArtifact.file, Buffer.from([0]));
+  const changedPixels = await run(
+    process.execPath,
+    [prepareScript, "--run-dir", runDir, "--questions", questionsPath],
+  );
+  assert.equal(changedPixels.status, 1);
+  assert.match(changedPixels.stderr, /approved PNG changed/);
+  await fs.writeFile(approvedArtifact.file, approvedBytes);
+  const refreshedApproval = await run(
+    process.execPath,
+    [approvalScript, "--run-dir", runDir, "--all-reviewer-evidence"],
+  );
+  assert.equal(refreshedApproval.status, 0, refreshedApproval.stderr || refreshedApproval.stdout);
+
+  const duplicateRunDir = await fs.mkdtemp(path.join(os.tmpdir(), "design-evidence-duplicate-"));
+  const duplicateArtifact = { ...approvedArtifact, id: "duplicate-physical-file" };
+  const duplicateManifest = {
+    ...manifest,
+    artifacts: [approvedArtifact, duplicateArtifact],
+    tasks: [
+      {
+        id: "original-file-task",
+        question: "Inspect original evidence",
+        decision: "original",
+        evidenceIds: [approvedArtifact.id],
+        status: "ready",
+      },
+      {
+        id: "duplicate-file-task",
+        question: "Inspect duplicate evidence",
+        decision: "duplicate",
+        evidenceIds: [duplicateArtifact.id],
+        status: "ready",
+      },
+    ],
+  };
+  await fs.writeFile(
+    path.join(duplicateRunDir, "manifest.json"),
+    `${JSON.stringify(duplicateManifest, null, 2)}\n`,
+  );
+  const duplicateApproval = await run(
+    process.execPath,
+    [approvalScript, "--run-dir", duplicateRunDir, "--all-reviewer-evidence"],
+  );
+  assert.equal(duplicateApproval.status, 1);
+  assert.match(duplicateApproval.stderr, /one physical PNG/);
+
   const prepared = await run(
     process.execPath,
     [prepareScript, "--run-dir", runDir, "--questions", questionsPath],
@@ -233,6 +470,9 @@ test("fixture produces all six evidence kinds, diagnostic colors, collage, and o
   const taskIndex = JSON.parse(await fs.readFile(prepared.stdout.trim(), "utf8"));
   assert.equal(taskIndex.tasks.length, manifest.tasks.length);
   assert.ok(taskIndex.tasks.every((task) => !task.id.includes("--")));
+  const isolatedPrompt = await fs.readFile(taskIndex.tasks[0].prompt, "utf8");
+  assert.doesNotMatch(isolatedPrompt, new RegExp(runDir.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  assert.doesNotMatch(isolatedPrompt, /viewport-hero\.png/);
 
   const fakeRoot = await fs.mkdtemp(path.join(os.tmpdir(), "design-review-fake-codex-"));
   const fakeBin = path.join(fakeRoot, "bin");
@@ -242,6 +482,7 @@ test("fixture produces all six evidence kinds, diagnostic colors, collage, and o
   await fs.writeFile(fakeCodex, "#!/bin/sh\nexit 0\n");
   await fs.chmod(fakeCodex, 0o755);
   await fs.writeFile(fakeAuth, "{}\n");
+  await fs.writeFile(taskIndex.tasks[0].output, "stale review\n");
   const missingOutputRun = await run(
     "bash",
     [

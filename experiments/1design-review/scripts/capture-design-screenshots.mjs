@@ -400,19 +400,28 @@ async function captureTransition(page, evidence, filePath, viewport) {
   const bounds = await documentBounds(page);
   const transition = transitionScrollY(beforeRect, afterRect, viewport.height, bounds.height);
   await page.evaluate((scrollY) => window.scrollTo(0, scrollY), transition.scrollY);
+  const stripHeight = Math.max(1, Math.min(420, Math.floor(viewport.height * 0.35)));
+  const clipY = Math.floor((viewport.height - stripHeight) / 2);
   await page.screenshot({
     path: filePath,
-    fullPage: false,
+    clip: { x: 0, y: clipY, width: viewport.width, height: stripHeight },
     animations: "disabled",
     caret: "hide",
     scale: "css",
+    captureBeyondViewport: false,
   });
   return {
-    targetRect: roundRect({ x: 0, y: transition.scrollY, width: viewport.width, height: viewport.height }),
+    targetRect: roundRect({
+      x: 0,
+      y: transition.scrollY + clipY,
+      width: viewport.width,
+      height: stripHeight,
+    }),
     contextRect: null,
     stats: {
       boundaryY: transition.boundary,
       scrollY: transition.scrollY,
+      reviewerStripHeight: stripHeight,
       beforeRect: roundRect(beforeRect),
       afterRect: roundRect(afterRect),
     },
@@ -433,9 +442,12 @@ async function captureBlock(page, source, evidence, filePath, viewport) {
   const bounds = await documentBounds(page);
   const rects = await targetRects(page, source, evidence);
   const crop = contextCrop(rects, bounds, 0.1);
+  const cropAreaRatio =
+    (crop.actual.width * crop.actual.height) / (viewport.width * viewport.height);
   if (
     crop.target.height > viewport.height * 2.5 ||
-    (crop.target.width > bounds.width * 0.98 && crop.target.height > viewport.height * 1.5)
+    (crop.target.width > bounds.width * 0.98 && crop.target.height > viewport.height * 1.5) ||
+    cropAreaRatio > 0.5
   ) {
     throw new Error("block target is too large to isolate one visual question");
   }
@@ -820,6 +832,7 @@ async function captureEvidence(browser, source, evidence, outputDir, planDir, se
     return {
       id: evidence.id,
       kind: evidence.kind,
+      reviewAudience: evidence.reviewAudience,
       status: "success",
       file: filePath,
       sourceId: evidence.sourceId,
@@ -866,6 +879,7 @@ async function main() {
         artifacts.push({
           id: evidence.id,
           kind: evidence.kind,
+          reviewAudience: evidence.reviewAudience,
           status: "failed",
           sourceId: evidence.sourceId,
           algorithmVersion: ALGORITHM_VERSION,

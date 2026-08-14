@@ -41,3 +41,32 @@
 - `shellcheck scripts/design-review scripts/run-clean-design-agent.sh` → exit 0.
 - Старый Kumysbekov proof оставлен на историческом пути: миграция существующих
   артефактов не входила в коррекцию.
+
+## Итерация: один PNG — один reviewer
+
+- Owner correction:
+  `_ops/chat-recall/2026-08-13-153240-codex-019ffa9f.md:28-29`.
+- Две независимые read-only линзы нашли четыре блокирующие лазейки: доступ ко
+  всему run-dir, отсутствие observable root gate, dry-run вместо реальной
+  длинной очереди и второй runner поверх первого. Все четыре закрыты runtime-ом.
+- `npm test` → 10/10: plan/manifest отклоняют viewport-task, multi-image task,
+  повторную выдачу id или одного physical PNG, неназначенный reviewer artifact
+  и block больше 50% viewport; transition ограничен 35% viewport и 420 px;
+  fixture создаёт все шесть evidence kinds.
+- 60-task scheduler probe реально запустил и завершил 60 fake reviewers, каждый
+  ровно один раз; каждый прочитал task-local PNG, а попытка прочитать исходный
+  PNG из run-dir была запрещена OS sandbox; наблюдаемый peak = 3. `--parallel
+  4` и второй runner даже для другого run отклонены, summary = 60/60 done.
+- Prompt не содержит run-dir или root-only viewport path. Clean process
+  стартует из neutral cwd, читает только task-local PNG/system runtime и пишет
+  только во временные CODEX_HOME/cwd; output копируется root-процессом. Попытка
+  auto-scan `~/.agents/skills` в live log была запрещена и не остановила review.
+- Fanout без `root-approval.json` отклоняется. Approval привязан к SHA-256
+  manifest и canonical path, SHA-256 bytes, byte size и dimensions каждого PNG;
+  byte mutation делает approval stale, а SHA-256 task-local copy повторно
+  проверяется непосредственно перед запуском reviewer.
+- Live Kumysbekov proof:
+  `/Users/triton/Documents/My_projects/kumysbekov/_workspace/design/1design-review/08-13/20260813T184758-one-image-proof/`.
+  Capture = 6/6 (root viewport + два crops + 4-item collage + раздельные
+  text-density/spacing maps); root открыл все PNG; clean fanout = 5/5
+  `done/exitCode=0` партиями 3+2.

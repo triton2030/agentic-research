@@ -22,6 +22,8 @@ Recall владельца: `_ops/chat-recall/2026-08-13-153240-codex-019ffa9f.md
 | Playwright + DOMRect/Range + browser-rendered SVG/HTML — единственный rendering runtime | Fresh Eyes Prospector; проверено fixture и Kumysbekov |
 | Итерация хранит open/fixed/rejected/deferred/routed | утверждённый владельцем V3; root adjudication contract |
 | Весь project run хранится в `_workspace/design/1design-review/MM-DD/<run-id>/` | владелец, `_ops/chat-recall/2026-08-13-153240-codex-019ffa9f.md:25` |
+| Один узкий PNG получает ровно один subagent; whole-frame ему недоступен | владелец, recall:28 |
+| Долгая очередь может содержать 50–60 reviewers, одновременно работают максимум три | владелец, recall:29 |
 
 Точный runtime-текст V3 был предъявлен владельцу целиком и утверждён его
 сообщением «Отлично, создай этот скилл и потом проверь его на этом проекте».

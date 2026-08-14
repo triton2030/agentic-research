@@ -16,7 +16,7 @@ Options:
   --questions FILE  Clean reviewer contract.
   --model NAME      Codex model. Default: gpt-5.6-sol.
   --effort LEVEL    Reasoning effort. Default: high.
-  --parallel N      Maximum concurrent reviewers. Default: 3.
+  --parallel N      Concurrent reviewers, 1-3. Default: 3.
   --dry-run         Build prompts and print task/image mapping without Codex.
   -h, --help        Show this help.
 USAGE
@@ -51,13 +51,63 @@ done
 [[ -n "$QUESTIONS" ]] || die "--questions is required"
 [[ -d "$RUN_DIR" ]] || die "run-dir not found: $RUN_DIR"
 [[ -f "$QUESTIONS" ]] || die "questions file not found: $QUESTIONS"
-[[ "$PARALLEL" =~ ^[0-9]+$ && "$PARALLEL" -gt 0 ]] || die "--parallel must be a positive integer"
+[[ "$PARALLEL" =~ ^[1-3]$ ]] || die "--parallel must be an integer from 1 to 3"
 command -v codex >/dev/null 2>&1 || die "codex CLI not found"
+command -v sandbox-exec >/dev/null 2>&1 || die "sandbox-exec is required for reviewer evidence isolation"
+command -v shasum >/dev/null 2>&1 || die "shasum is required for approved pixel verification"
+CODEX_BIN="$(realpath "$(command -v codex)")"
+CODEX_BIN_DIR="$(dirname "$CODEX_BIN")"
 
 RUN_DIR="$(cd "$RUN_DIR" && pwd)"
 QUESTIONS="$(cd "$(dirname "$QUESTIONS")" && pwd)/$(basename "$QUESTIONS")"
 AUTH_SOURCE="${CODEX_AUTH_JSON:-${CODEX_HOME:-$HOME/.codex}/auth.json}"
 [[ -f "$AUTH_SOURCE" ]] || die "Codex auth file not found: $AUTH_SOURCE"
+AUTH_SOURCE="$(realpath "$AUTH_SOURCE")"
+
+mkdir -p "$RUN_DIR/reviewers"
+GLOBAL_LOCK_DIR="${TMPDIR:-/tmp}/codex-1design-review-${UID}.runner.lock"
+LOCK_DIR="$RUN_DIR/reviewers/.runner.lock"
+
+acquire_lock() {
+  local lock_dir="$1"
+  local owner=""
+  if mkdir "$lock_dir" 2>/dev/null; then
+    printf '%s\n' "$$" > "$lock_dir/pid"
+    return
+  fi
+  if [[ -f "$lock_dir/pid" ]]; then
+    read -r owner < "$lock_dir/pid" || true
+  fi
+  if [[ "$owner" =~ ^[0-9]+$ ]] && kill -0 "$owner" >/dev/null 2>&1; then
+    return 1
+  fi
+  rm -f "$lock_dir/pid"
+  rmdir "$lock_dir" >/dev/null 2>&1 || return 1
+  mkdir "$lock_dir" 2>/dev/null || return 1
+  printf '%s\n' "$$" > "$lock_dir/pid"
+}
+
+if ! acquire_lock "$GLOBAL_LOCK_DIR"; then
+  die "another design-review queue is already running; global reviewer limit is three"
+fi
+if ! acquire_lock "$LOCK_DIR"; then
+  rm -f "$GLOBAL_LOCK_DIR/pid"
+  rmdir "$GLOBAL_LOCK_DIR" >/dev/null 2>&1 || true
+  die "reviewer queue is already running for this run-dir"
+fi
+pids=()
+cleanup_runner() {
+  local pid
+  for pid in "${pids[@]}"; do
+    kill "$pid" >/dev/null 2>&1 || true
+  done
+  rm -f "$LOCK_DIR/pid" "$GLOBAL_LOCK_DIR/pid"
+  rmdir "$LOCK_DIR" >/dev/null 2>&1 || true
+  rmdir "$GLOBAL_LOCK_DIR" >/dev/null 2>&1 || true
+}
+trap cleanup_runner EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 TASK_INDEX="$("$SCRIPT_DIR/prepare-design-review-tasks.mjs"   --run-dir "$RUN_DIR"   --questions "$QUESTIONS")"
 
@@ -77,41 +127,90 @@ run_clean_codex() {
   local prompt_file="$1"
   local output_file="$2"
   local log_file="$3"
-  shift 3
+  local expected_sha256="$4"
+  shift 4
   local images=("$@")
   local clean_home
   local clean_cwd
+  local staged_image
+  local sandbox_profile
+  local staged_output
+  local escaped_clean_cwd
+  local escaped_clean_home
+  local escaped_codex_bin_dir
 
   clean_home="$(mktemp -d "${TMPDIR:-/tmp}/codex-design-review-home.XXXXXX")"
   clean_cwd="$(mktemp -d "${TMPDIR:-/tmp}/codex-design-review-cwd.XXXXXX")"
-  ln -s "$AUTH_SOURCE" "$clean_home/auth.json"
+  cp "$AUTH_SOURCE" "$clean_home/auth.json"
+  chmod 0600 "$clean_home/auth.json"
+  staged_image="$clean_cwd/evidence.png"
+  staged_output="$clean_cwd/review.md"
+  cp "${images[0]}" "$staged_image"
+  chmod 0444 "$staged_image"
+  sandbox_profile="$clean_cwd/reviewer.sb"
+  escaped_clean_cwd="$(realpath "$clean_cwd" | sed 's/\\/\\\\/g; s/"/\\"/g')"
+  escaped_clean_home="$(realpath "$clean_home" | sed 's/\\/\\\\/g; s/"/\\"/g')"
+  escaped_codex_bin_dir="$(printf '%s' "$CODEX_BIN_DIR" | sed 's/\\/\\\\/g; s/"/\\"/g')"
+  printf '%s\n' \
+    '(version 1)' \
+    '(deny default)' \
+    '(import "system.sb")' \
+    '(allow process*)' \
+    '(allow network*)' \
+    '(allow system-socket)' \
+    '(allow user-preference-read)' \
+    '(allow mach-lookup' \
+    '  (global-name "com.apple.SystemConfiguration.configd")' \
+    '  (global-name "com.apple.SecurityServer")' \
+    '  (global-name "com.apple.CoreServices.coreservicesd"))' \
+    '(allow file-read-metadata file-test-existence)' \
+    '(allow file-write*' \
+    "  (subpath \"$escaped_clean_cwd\")" \
+    "  (subpath \"$escaped_clean_home\"))" \
+    '(allow file-read* file-test-existence' \
+    '  (subpath "/bin")' \
+    '  (subpath "/usr")' \
+    '  (subpath "/System")' \
+    '  (subpath "/Library")' \
+    '  (subpath "/private/etc")' \
+    "  (subpath \"$escaped_codex_bin_dir\")" \
+    "  (subpath \"$escaped_clean_cwd\")" \
+    "  (subpath \"$escaped_clean_home\"))" > "$sandbox_profile"
+  if [[ -n "${DESIGN_REVIEW_TEST_CONCURRENCY:-}" ]]; then
+    local escaped_test_concurrency
+    escaped_test_concurrency="$(realpath "$DESIGN_REVIEW_TEST_CONCURRENCY" | sed 's/\\/\\\\/g; s/"/\\"/g')"
+    printf '(allow file-write* (subpath "%s"))\n' \
+      "$escaped_test_concurrency" >> "$sandbox_profile"
+  fi
 
   local cmd=(
-    codex exec
+    "$CODEX_BIN" exec
     --ephemeral
     --ignore-user-config
     --ignore-rules
     --skip-git-repo-check
-    --sandbox read-only
+    --sandbox danger-full-access
     --cd "$clean_cwd"
-    --add-dir "$RUN_DIR"
     --model "$MODEL"
     -c "model_reasoning_effort=\"$EFFORT\""
-    --output-last-message "$output_file"
+    --output-last-message "$staged_output"
   )
-  local image
-  for image in "${images[@]}"; do
-    cmd+=(-i "$image")
-  done
+  cmd+=(-i "$staged_image")
   cmd+=(-)
 
   (
     trap 'rm -rf "$clean_home" "$clean_cwd"' EXIT
+    if [[ "$(shasum -a 256 "$staged_image" | awk '{print $1}')" != "$expected_sha256" ]]; then
+      printf 'run-clean-design-agent: approved PNG changed before reviewer launch\n' >&2
+      exit 2
+    fi
     unset OPENAI_API_KEY
     unset CODEX_API_KEY
     unset OPENAI_BASE_URL
     export CODEX_HOME="$clean_home"
-    "${cmd[@]}" < "$prompt_file"
+    cd "$clean_cwd"
+    sandbox-exec -f "$sandbox_profile" "${cmd[@]}" < "$prompt_file"
+    cp "$staged_output" "$output_file"
   ) >"$log_file" 2>&1
 }
 
@@ -124,14 +223,16 @@ run_task() {
   local prompt="$2"
   local output="$3"
   local log="$4"
-  shift 4
+  local image_sha256="$5"
+  shift 5
   local images=("$@")
   local status_file
   local exit_code=0
   status_file="$STATUS_DIR/$(status_name "$task_id")"
 
+  rm -f "$output"
   set +e
-  run_clean_codex "$prompt" "$output" "$log" "${images[@]}"
+  run_clean_codex "$prompt" "$output" "$log" "$image_sha256" "${images[@]}"
   exit_code="$?"
   set -e
   printf '%s\n' "$exit_code" > "${status_file}.tmp"
@@ -147,7 +248,13 @@ wait_for_one() {
     for index in "${!pids[@]}"; do
       status_file="$STATUS_DIR/$(status_name "${task_ids[$index]}")"
       if [[ ! -f "$status_file" ]]; then
-        continue
+        if ! kill -0 "${pids[$index]}" >/dev/null 2>&1; then
+          wait "${pids[$index]}" >/dev/null 2>&1 || true
+          printf '255\n' > "${status_file}.tmp"
+          mv "${status_file}.tmp" "$status_file"
+        else
+          continue
+        fi
       fi
       exit_code="$(cat "$status_file")"
       wait "${pids[$index]}" >/dev/null 2>&1 || true
@@ -176,18 +283,18 @@ find "$STATUS_DIR" -type f -name '*.status' -delete
 
 active=0
 failures=0
-pids=()
 task_ids=()
 logs=()
 
-while IFS=$'\t' read -r task_id prompt output log images_json; do
+while IFS=$'\t' read -r task_id prompt output log image_sha256 images_json; do
   images=()
   while IFS= read -r image; do
     [[ -n "$image" ]] && images+=("$image")
   done < <(node -e 'for (const item of JSON.parse(process.argv[1])) console.log(item)' "$images_json")
+  [[ "${#images[@]}" == "1" ]] || die "task $task_id must have exactly one image"
 
   printf '[run-clean-design-agent] start task=%s images=%s\n' "$task_id" "${#images[@]}"
-  run_task "$task_id" "$prompt" "$output" "$log" "${images[@]}" &
+  run_task "$task_id" "$prompt" "$output" "$log" "$image_sha256" "${images[@]}" &
   pids+=("$!")
   task_ids+=("$task_id")
   logs+=("$log")
@@ -199,7 +306,7 @@ done < <(node -e '
   const fs = require("fs");
   const index = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
   for (const task of index.tasks) {
-    console.log([task.id, task.prompt, task.output, task.log, JSON.stringify(task.images)].join("\t"));
+    console.log([task.id, task.prompt, task.output, task.log, task.imageSha256, JSON.stringify(task.images)].join("\t"));
   }
 ' "$TASK_INDEX")
 
@@ -218,7 +325,10 @@ for (const task of index.tasks) {
   const statusPath = path.join(statusDir, name);
   const exitCode = fs.existsSync(statusPath) ? Number(fs.readFileSync(statusPath, "utf8").trim()) : null;
   task.exitCode = exitCode;
-  task.status = exitCode === 0 && fs.existsSync(task.output) ? "done" : "failed";
+  task.status =
+    exitCode === 0 && fs.existsSync(task.output) && fs.statSync(task.output).size > 0
+      ? "done"
+      : "failed";
 }
 fs.writeFileSync(indexPath, JSON.stringify(index, null, 2) + "\n");
 const summary = {

@@ -1,4 +1,4 @@
-export const ALGORITHM_VERSION = "design-evidence-v2.0.0";
+export const ALGORITHM_VERSION = "design-evidence-v2.1.0";
 
 export const EVIDENCE_KINDS = new Set([
   "viewport",
@@ -203,6 +203,11 @@ function validateEvidence(evidence, sourceById, ids) {
   ids.add(id);
   const kind = requireString(evidence.kind, `evidence ${id}.kind`);
   if (!EVIDENCE_KINDS.has(kind)) throw new Error(`evidence ${id} has unsupported kind: ${kind}`);
+  const reviewAudience = kind === "viewport" ? "root-only" : "reviewer";
+  if (evidence.reviewAudience !== undefined && evidence.reviewAudience !== reviewAudience) {
+    throw new Error(`evidence ${id}.reviewAudience must be ${reviewAudience}`);
+  }
+  evidence.reviewAudience = reviewAudience;
   const sourceId = requireSafeId(evidence.sourceId, `evidence ${id}.sourceId`);
   const source = sourceById.get(sourceId);
   if (!source) throw new Error(`evidence ${id} references unknown source: ${sourceId}`);
@@ -275,18 +280,33 @@ export function validatePlan(input, fallbackUrl = "") {
   }
 
   const taskIds = new Set();
+  const assignedEvidenceIds = new Set();
   for (const [index, task] of plan.tasks.entries()) {
     const id = requireSafeId(task.id, `tasks[${index}].id`);
     if (taskIds.has(id)) throw new Error(`duplicate task id: ${id}`);
     taskIds.add(id);
     task.question = requireString(task.question, `task ${id}.question`);
     task.decision = requireString(task.decision, `task ${id}.decision`);
-    if (!Array.isArray(task.evidenceIds) || task.evidenceIds.length === 0) {
-      throw new Error(`task ${id}.evidenceIds must not be empty`);
+    if (!Array.isArray(task.evidenceIds) || task.evidenceIds.length !== 1) {
+      throw new Error(`task ${id}.evidenceIds must contain exactly one evidence id`);
     }
     for (const evidenceId of task.evidenceIds) {
       if (!evidenceIds.has(evidenceId)) throw new Error(`task ${id} references unknown evidence: ${evidenceId}`);
+      const evidence = plan.evidence.find((item) => item.id === evidenceId);
+      if (evidence.reviewAudience !== "reviewer") {
+        throw new Error(`task ${id} references root-only evidence: ${evidenceId}`);
+      }
+      if (assignedEvidenceIds.has(evidenceId)) {
+        throw new Error(`evidence ${evidenceId} is assigned to more than one reviewer task`);
+      }
+      assignedEvidenceIds.add(evidenceId);
     }
+  }
+  const unassignedEvidenceIds = plan.evidence
+    .filter((evidence) => evidence.reviewAudience === "reviewer" && !assignedEvidenceIds.has(evidence.id))
+    .map((evidence) => evidence.id);
+  if (unassignedEvidenceIds.length > 0) {
+    throw new Error(`reviewer evidence has no task: ${unassignedEvidenceIds.join(", ")}`);
   }
   return plan;
 }

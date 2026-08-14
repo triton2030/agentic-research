@@ -13,11 +13,11 @@ description: >
 
 ## Контекст
 
-Широкий screenshot и широкий список вопросов перегружают визуальное суждение:
-мелкий дефект исчезает в странице, а рецензент заполняет пробелы
-правдоподобной критикой. Этот скил превращает готовый UI в узкие
-question-specific evidence-пакеты, чтобы чистые рецензенты решали простые
-перцептивные задачи, а root оставался судьёй.
+Большая картинка перегружает визуальное внимание агента: мелкий дефект исчезает
+в странице, а рецензент заполняет пробелы правдоподобной критикой. Лечение —
+физически разделить внимание: один clean subagent получает один маленький
+вырезанный PNG и целиком тратит своё окно на этот участок. Большой исходный
+кадр видит только root; reviewer никогда его не получает.
 
 ## Цель
 
@@ -51,17 +51,23 @@ contrast, pixel или tap-target thresholds требуют отдельного
 - Root владеет whole-frame orientation, вопросами, capture, приёмкой findings и
   финальным verdict. Clean reviewer производит кандидатов: его самоотчёт не
   доказательство.
+- Один reviewer получает ровно один reviewer-eligible PNG, а один PNG получает
+  ровно одного reviewer-а. Viewport/whole-frame остаётся root-only. Не
+  прикладывай второй screenshot, исходную большую картинку или соседний crop
+  «для контекста»: это возвращает разделённое внимание, ради устранения которого
+  существует skill.
 - Whole-frame composition, harmony и semantic-weight distribution важнее
-  component polish. Не отдавай высокий full-page screenshot как единственное
-  evidence: локальный дефект в нём теряется. Обычный viewport допустим для
-  композиции или section transition; локальный вопрос получает crop.
+  component polish. Root оценивает её по обычному viewport, но не передаёт этот
+  frame reviewer-у. Section transition получает отдельную узкую полосу, любой
+  локальный вопрос — crop.
 - Один ordinary target/relationship и его pixels получают один open-ended
   material-defect task. Не разбивай тот же artifact на отдельные spacing,
   typography, color, hierarchy или alignment questions. Дополнительный task для
   того же target допустим только для другого captured state/relationship либо
   для одного условно вызванного diagnostic, который ordinary pixels не
-  разрешили. Before/after получает один comparison task с двумя artifacts;
-  family — один task и один collage максимум из четырёх элементов.
+  разрешили. Before/after получает два независимых state tasks по одному PNG;
+  root сравнивает их после adjudication. Family получает один task и один
+  collage максимум из четырёх элементов.
 - Text-density и spacing diagnostics не входят в baseline review. Создавай один
   из них, только когда обычный screenshot не изолирует конкретный density или
   spacing question и результат способен изменить verdict или action. Эти
@@ -101,7 +107,7 @@ contrast, pixel или tap-target thresholds требуют отдельного
    изменить ready-status, top actions или решение preserve. Много screenshots —
    следствие декомпозиции, не числовая квота.
 4. На каждый ordinary target/relationship создай один open-ended
-   material-defect task с id, question, evidence ids и decision, который ответ
+   material-defect task с id, question, одним evidence id и decision, который ответ
    может изменить. Запрещён whole-page вопрос «что здесь не так» и несколько
    axis-tasks на одном crop. Diagnostic получает отдельный task только по
    условию из инварианта.
@@ -113,15 +119,29 @@ contrast, pixel или tap-target thresholds требуют отдельного
    reviewer logs/reports и adjudication не разноси по другим папкам. Для
    projectless screenshot используй отдельный temporary run directory и верни
    его exact path. Открой manifest и каждый PNG; неверный target, state, crop
-   или diagnostic исправь до fanout.
+   или diagnostic исправь до fanout. После этого создай observable gate:
+
+   ```bash
+   scripts/approve-design-evidence.mjs \
+     --run-dir "<absolute-run-dir>" \
+     --all-reviewer-evidence
+   ```
+
+   Approval привязан к SHA-256 manifest и к canonical path, SHA-256, byte size и
+   dimensions каждого PNG; изменение manifest или пикселей снова блокирует
+   fanout.
 6. Запусти по одной clean task на каждый независимый question. Reviewer видит
-   только назначенный evidence packet, question, минимальные audience, primary
+   только один назначенный PNG, question, минимальные audience, primary
    action, intended character и taste constraints и questions.md; не видит chat
    history, code, project instructions, другие findings или root interpretation.
-   Runner сохраняет эту границу temporary CODEX_HOME, auth-only link, neutral
-   cwd, ignored rules/config, read-only sandbox и screenshot-only attachments.
-   Если evidence промахнулся, допустим один bounded repair; второй промах
-   завершает task как failed.
+   Runner сохраняет эту границу temporary CODEX_HOME с auth-only copy, neutral
+   cwd, ignored rules/config, OS allowlist sandbox, task-local копию ровно одного
+   attachment и запрет чтения общего run directory. Один глобальный runner
+   не даёт двум независимым review-runs вместе превысить предел в три процесса.
+   Очередь из 50–60 узких reviewers нормальна: запускай её до завершения
+   ограниченными партиями, не больше трёх одновременно. Если evidence
+   промахнулся, допустим один bounded repair; второй промах завершает task как
+   failed.
 7. Для каждого candidate finding заново открой exact pixels и заполни:
    finding id · evidence id · visible condition · user/design effect ·
    confirmed/challenged/unverified · root severity · action-if-confirmed.
@@ -133,9 +153,9 @@ contrast, pixel или tap-target thresholds требуют отдельного
    открывает без противоречащих pixels. Routed не возвращается visual reviewer:
    root заново adjudicates его, когда названный deterministic/technical check
    вернул результат; pixel contradiction для этого не требуется.
-8. Для before/after сначала назови видимое изменение, затем классифицируй
-   better / worse / merely different и только после этого объясняй tradeoff.
-   Difference само по себе не improvement.
+8. Для before/after root сопоставляет два независимо проверенных state reports,
+   сам открывает оба PNG, называет видимое изменение и лишь затем классифицирует
+   better / worse / merely different. Difference само по себе не improvement.
 9. Верни первой строкой ready / not ready / evidence-limited вместе с strongest
    visible reason. Затем: 1–3 подтверждённых приоритета с evidence ids и user
    effect; что уже держится и должно сохраниться; отклонённый шум только если он

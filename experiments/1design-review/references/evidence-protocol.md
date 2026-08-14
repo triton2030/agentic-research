@@ -27,23 +27,28 @@ Block требует один explicit pixel rect; family требует explici
 Text-density и spacing без DOM завершаются unsupported, а не имитируются. URL
 source разрешает DOM selectors и все evidence kinds.
 
-Task содержит id, один непустой question, evidenceIds и decision. Evidence id
-уникален; каждый task ссылается только на successful artifacts. Один artifact
-не может иметь два diagnostic kinds.
+Task содержит id, один непустой question, ровно один evidence id в evidenceIds
+и decision. Один reviewer-eligible evidence id используется ровно одним task.
+Viewport — root-only orientation artifact и task на него ссылаться не может.
+Один artifact не может иметь два diagnostic kinds.
 
 ## Evidence kinds
 
-- viewport — один обычный viewport для композиции или state. Канонический
-  desktop-fhd: 1920×1080, DPR 1. Не создавай tall full-page artifact.
-- transition — один viewport, где граница двух заданных соседних sections
-  помещена около центра. Boundary равен середине между концом before и началом
-  after; при overlap используется начало after; scrollY clamp-ится документом.
+- viewport — root-only orientation для композиции или state; clean reviewer его
+  не получает. Канонический desktop-fhd: 1920×1080, DPR 1. Не создавай tall
+  full-page artifact.
+- transition — узкая горизонтальная полоса, где граница двух заданных соседних
+  sections помещена около центра. Она рендерится из fresh viewport, но полный
+  viewport reviewer-у не передаётся. Boundary равен середине между концом before
+  и началом after; при overlap используется начало after; scrollY clamp-ится
+  документом. Высота полосы не больше 35% viewport и не больше 420 px.
 - block — один semantic target или видимая relationship двух соседних targets:
   например heading + subheading или copy + image. Selector/rect или общий rect
   двух targets расширяется на 10% target width слева/справа и 10% target height
   сверху/снизу, затем clamp-ится source. Manifest хранит requested и actual
   context. Огромный target, который не изолирует вопрос, отклоняется и требует
-  более узкого target.
+  более узкого target; итоговый crop не может занимать больше 50% площади
+  viewport.
 - family — collage из 1–4 элементов одной семьи и одного state/profile:
   buttons, headings, body styles, fields, cards или icons. Root явно выбирает
   members; совпадений больше четырёх нельзя молча обрезать. Каждый member
@@ -74,5 +79,14 @@ warnings и kind-specific stats. Capture считается failed, если sel
 содержит больше четырёх members, diagnostic смешан с другим kind или task
 ссылается на failed evidence.
 
-Root открывает каждый PNG и подтверждает target, state, context и читаемость.
-Структурно valid manifest без этого visual gate не допускает fanout.
+Root открывает каждый reviewer PNG и подтверждает target, state, context и
+читаемость через `scripts/approve-design-evidence.mjs`. Скрипт сохраняет
+`root-approval.json` с SHA-256 текущего manifest и для каждого approved PNG —
+canonical path, SHA-256 bytes, byte size и dimensions. Изменившийся или
+отсутствующий approval не допускает fanout. Структурно valid manifest без этого
+visual gate недостаточен.
+Fanout может содержать десятки tasks, но runner держит максимум три активных
+reviewer-процесса глобально, не допускает второй runner даже для другого run и
+завершает всю очередь до root synthesis. Clean process получает task-local
+копию attachment, а OS sandbox запрещает чтение общего run-dir: sibling crops,
+root-only viewport и чужие reports недоступны.

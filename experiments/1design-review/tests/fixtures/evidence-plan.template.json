@@ -27,7 +27,6 @@
     ], "viewport": {"width": 1200, "height": 700, "deviceScaleFactor": 1}}
   ],
   "tasks": [
-    {"id": "t-viewport", "question": "Does the first viewport have a clear focal hierarchy?", "evidenceIds": ["viewport-hero"], "decision": "whole-frame orientation"},
     {"id": "t-transition", "question": "Does the boundary preserve visual continuity?", "evidenceIds": ["transition-hero-feature"], "decision": "section transition"},
     {"id": "t-block", "question": "Does the heading and paragraph read as one coherent block?", "evidenceIds": ["block-copy"], "decision": "semantic block"},
     {"id": "t-family", "question": "Does this button family read as one system?", "evidenceIds": ["family-buttons"], "decision": "component family"},

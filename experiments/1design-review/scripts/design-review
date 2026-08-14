@@ -12,7 +12,8 @@ Usage:
 
 Plan version 2 produces narrow screenshot evidence and one clean task per
 question. The script never captures a tall full-page image and never runs a
-blind aggregate reviewer.
+blind aggregate reviewer. Capture always stops for root visual approval before
+the reviewer queue can start.
 
 Options:
   --plan FILE        Curated plan version 2.
@@ -23,10 +24,10 @@ Options:
   --url URL          Fallback URL for a URL source without url.
   --questions FILE   Reviewer contract. Default: skill questions.md.
   --settle-ms N      Post-load/action settle delay. Default: 350.
-  --parallel N       Maximum concurrent clean reviewers. Default: 3.
+  --parallel N       Concurrent clean reviewers globally, 1-3. Default: 3.
   --model NAME       Reviewer model. Default: gpt-5.6-sol.
   --effort LEVEL     Reviewer reasoning effort. Default: high.
-  --capture-only     Capture and derive evidence; do not launch reviewers.
+  --capture-only     Explicit capture-only alias; capture always stops at approval.
   --review-only      Review a successful existing run.
   --dry-run          Print resolved route without capture or reviewers.
   -h, --help         Show this help.
@@ -75,7 +76,7 @@ done
 [[ "$CAPTURE_ONLY" == "1" && "$REVIEW_ONLY" == "1" ]] && die "choose capture-only or review-only"
 [[ -d "$PROJECT" ]] || die "project directory not found: $PROJECT"
 [[ -f "$QUESTIONS" ]] || die "questions file not found: $QUESTIONS"
-[[ "$PARALLEL" =~ ^[0-9]+$ && "$PARALLEL" -gt 0 ]] || die "--parallel must be a positive integer"
+[[ "$PARALLEL" =~ ^[1-3]$ ]] || die "--parallel must be an integer from 1 to 3"
 [[ "$SETTLE_MS" =~ ^[0-9]+$ ]] || die "--settle-ms must be a non-negative integer"
 
 PROJECT="$(cd "$PROJECT" && pwd)"
@@ -134,9 +135,13 @@ if [[ "$REVIEW_ONLY" == "0" ]]; then
   [[ -n "$module_root" ]] || die "Playwright runtime not found; install it in the skill/project or expose an existing npm module root"
 
   mkdir -p "$RUN_DIR"
+  plan_snapshot="$RUN_DIR/screenshot-plan.json"
+  if [[ "$(realpath "$PLAN")" != "$(realpath "$plan_snapshot" 2>/dev/null || true)" ]]; then
+    cp "$PLAN" "$plan_snapshot"
+  fi
   capture=(
     node "$SCRIPT_DIR/capture-design-screenshots.mjs"
-    --plan "$PLAN"
+    --plan "$plan_snapshot"
     --out-dir "$RUN_DIR"
     --settle-ms "$SETTLE_MS"
   )
@@ -146,8 +151,11 @@ if [[ "$REVIEW_ONLY" == "0" ]]; then
   PLAYWRIGHT_MODULE_ROOT="$module_root" "${capture[@]}"
 fi
 
-if [[ "$CAPTURE_ONLY" == "1" ]]; then
+if [[ "$REVIEW_ONLY" == "0" ]]; then
   printf '[design-review] capture complete: %s\n' "$RUN_DIR"
+  printf '[design-review] root must open every reviewer PNG, then approve:\n'
+  printf '  %s/approve-design-evidence.mjs --run-dir %s --all-reviewer-evidence\n' "$SCRIPT_DIR" "$RUN_DIR"
+  printf '[design-review] after approval, launch the queue with --review-only --run-dir %s\n' "$RUN_DIR"
   exit 0
 fi
 
