@@ -54,6 +54,9 @@ class WorkerTree:
     changed_files: tuple[str, ...] = ()
     out_of_scope_files: tuple[str, ...] = ()
     commit: str | None = None
+    # Пути, грязные сразу после создания дерева (post-checkout hook и т.п.):
+    # это не работа воркера, и атрибуция такого дерева ненадёжна.
+    preexisting: tuple[str, ...] = ()
     integration_status: str = "pending"
     integration_error: str | None = None
     cleanup_status: str = "pending"
@@ -69,6 +72,7 @@ class WorkerTree:
             "changed_files": list(self.changed_files),
             "out_of_scope_files": list(self.out_of_scope_files),
             "commit": self.commit,
+            "preexisting": list(self.preexisting),
             "integration_status": self.integration_status,
             "integration_error": self.integration_error,
             "cleanup_status": self.cleanup_status,
@@ -113,13 +117,23 @@ def create_worker_tree(
     target.parent.mkdir(parents=True, exist_ok=True)
     branch = f"{BRANCH_PREFIX}/{run_id}/{task_id}"
     _git(project, "worktree", "add", "-b", branch, str(target), base, check=True)
-    return WorkerTree(
+    # post-checkout hook может испачкать дерево ещё до старта воркера — тогда
+    # его правки влились бы как работа воркера (находка аудита 2026-08-14).
+    dirty = _git(target, "status", "--porcelain", check=True).stdout.splitlines()
+    preexisting = tuple(sorted(line[3:] for line in dirty if len(line) > 3))
+    tree = WorkerTree(
         task_id=task_id,
         path=target,
         branch=branch,
         base_commit=base,
         allowlist=frozenset(allowlist),
+        preexisting=preexisting,
     )
+    if preexisting:
+        tree.notes.append(
+            "дерево грязное сразу после создания (hook?): " + ", ".join(preexisting[:3])
+        )
+    return tree
 
 
 def open_wave(
@@ -148,6 +162,9 @@ def open_wave(
     except WorktreeError:
         for tree in trees:
             remove_worker_tree(project, tree)
+            # На свежесозданной ветке нет ни одного коммита — удалять безопасно,
+            # а оставленная, она блокировала бы повтор той же волны.
+            _git(project, "branch", "-D", tree.branch)
         raise
     return trees
 
@@ -158,12 +175,25 @@ def collect_changes(tree: WorkerTree) -> None:
     Чужих правок внутри быть не может, поэтому деление changed/out_of_scope здесь
     точное, в отличие от aggregate-чека по проекту. Сверка идёт с ЕГО allowlist:
     по union волны файл соседа считался бы своим.
+
+    Diff берётся от base_commit волны, не от HEAD: воркер может закоммитить сам
+    (вопреки контракту), и подвижный HEAD сделал бы его работу невидимой —
+    «пустой» воркер терял ветку вместе с закоммиченным (находка аудита
+    2026-08-14). Отдельный проход по allowlist ловит новый файл, попавший под
+    .gitignore: `--exclude-standard` его не видит, а `allow_create` не проверяет
+    ignore-правил — целевой файл гиб как «мусор».
     """
-    tracked = _git(tree.path, "diff", "--name-only", "-z", "HEAD", "--", check=True)
+    tracked = _git(tree.path, "diff", "--name-only", "-z", tree.base_commit, "--", check=True)
     untracked = _git(tree.path, "ls-files", "--others", "--exclude-standard", "-z", "--", check=True)
-    changed = sorted(set(_nul_list(tracked.stdout)) | set(_nul_list(untracked.stdout)))
-    tree.changed_files = tuple(changed)
-    tree.out_of_scope_files = tuple(path for path in changed if path not in tree.allowlist)
+    changed = set(_nul_list(tracked.stdout)) | set(_nul_list(untracked.stdout))
+    for path in tree.allowlist:
+        if path in changed or not (tree.path / path).exists():
+            continue
+        in_base = _git(tree.path, "cat-file", "-e", f"{tree.base_commit}:{path}")
+        if in_base.returncode != 0:  # на диске есть, в базе нет — новый, пусть и ignored
+            changed.add(path)
+    tree.changed_files = tuple(sorted(changed))
+    tree.out_of_scope_files = tuple(path for path in tree.changed_files if path not in tree.allowlist)
 
 
 def commit_worker_tree(tree: WorkerTree, *, message: str) -> None:
@@ -185,8 +215,19 @@ def commit_worker_tree(tree: WorkerTree, *, message: str) -> None:
         tree.integration_status = "empty"
         tree.notes.append("изменений нет")
         return
-    _git(tree.path, "add", "--", *tree.changed_files, check=True)
-    _git(tree.path, "commit", "--no-verify", "-m", message, check=True)
+    # -f: новый allowlist-файл может попадать под .gitignore — без -f git его
+    # молча пропустит, и «зафиксировано всё» станет ложью.
+    _git(tree.path, "add", "-f", "--", *tree.changed_files, check=True)
+    committed = _git(tree.path, "commit", "--no-verify", "-m", message)
+    if committed.returncode != 0:
+        # Воркер мог закоммитить всё сам — тогда стейджить нечего, но работа уже
+        # в истории ветки; головной коммит и есть фиксация.
+        status = _git(tree.path, "status", "--porcelain", check=True).stdout.strip()
+        if status:
+            raise WorktreeError(
+                f"git commit failed in {tree.path}: {(committed.stderr or committed.stdout).strip()}"
+            )
+        tree.notes.append("воркер коммитил сам; фиксация — головной коммит его ветки")
     tree.commit = _git(tree.path, "rev-parse", "HEAD", check=True).stdout.strip()
 
 
@@ -215,7 +256,26 @@ def integrate_worker_tree(project: Path, tree: WorkerTree) -> None:
             f"работа зафиксирована в {tree.branch}"
         )
         return
-    merge = _git(project, "merge", "--no-ff", "--no-verify", "-m", f"codex fleet: {tree.task_id}", tree.branch)
+    if tree.preexisting:
+        # Изоляция скомпрометирована ещё до воркера — что здесь чьё, недоказуемо.
+        tree.integration_status = "held_dirty_birth"
+        tree.notes.append(f"работа зафиксирована в {tree.branch}; разбирать вручную")
+        return
+    # База обязана остаться в истории HEAD. Прямой коммит поверх — норма (мои
+    # recall/планы во время волны), а вот reset/rebase назад делает merge
+    # контрабандой: он принёс бы разницу веток истории как «работу воркера».
+    ancestor = _git(project, "merge-base", "--is-ancestor", tree.base_commit, "HEAD")
+    if ancestor.returncode != 0:
+        tree.integration_status = "held_base_rewritten"
+        tree.notes.append(
+            f"HEAD переписан ниже базы волны ({tree.base_commit[:8]}); "
+            f"работа цела в {tree.branch}, вливать вручную"
+        )
+        return
+    # Merge именно записанного SHA, не имени ветки: между аудитом изменений и
+    # merge на ветку мог успеть лечь чужой коммит (поздний субагент воркера) —
+    # tip-у это сошло бы с рук, SHA — нет (находка аудита 2026-08-14).
+    merge = _git(project, "merge", "--no-ff", "--no-verify", "-m", f"codex fleet: {tree.task_id}", tree.commit)
     if merge.returncode == 0:
         tree.integration_status = "merged"
         return
@@ -246,6 +306,14 @@ def remove_worker_tree(project: Path, tree: WorkerTree) -> None:
         return
 
     work_is_home = tree.integration_status in {"merged", "empty"}
+    if work_is_home and tree.commit is not None:
+        tip = _git(project, "rev-parse", tree.branch)
+        if tip.returncode == 0 and tip.stdout.strip() != tree.commit:
+            # На ветку успел лечь коммит ПОСЛЕ влитого SHA — force-delete снёс
+            # бы его молча. Оставить на разбор.
+            tree.cleanup_status = "branch_ahead"
+            tree.notes.append(f"ветка {tree.branch} ушла вперёд влитого коммита — оставлена")
+            return
     if not work_is_home:
         tree.cleanup_status = "branch_kept"
         tree.notes.append(f"ветка {tree.branch} оставлена: работа не в проекте")
@@ -314,9 +382,12 @@ def close_wave(
         "merged": [t.task_id for t in trees if t.integration_status == "merged"],
         "conflicts": conflicts,
         "held": held,
+        # Незабранная работа, не «ветка осталась»: merged-ветка при
+        # --keep-worktrees — норма и в разборе не нуждается.
         "kept_branches": [
             t.branch for t in trees
-            if t.cleanup_status != "removed" and t.integration_status != "empty"
+            if t.integration_status not in {"merged", "empty"}
+            or t.cleanup_status in {"branch_stuck", "branch_ahead"}
         ],
         "cleanup_done": cleanup_done,
         "cleanup_requested": cleanup,

@@ -239,6 +239,107 @@ class WorktreeIsolationTests(unittest.TestCase):
         self.assertEqual(tree.integration_status, "empty")
         self.assertFalse(tree.path.exists())
 
+    def test_worker_own_commit_is_not_lost(self) -> None:
+        """Воркер закоммитил сам (вопреки контракту): diff от подвижного HEAD
+        видел «пустоту» и force-delete уносил его коммит в dangling. Diff от
+        base_commit волны видит работу."""
+        tree = self.make_tree("run1", "t1", {"a.md"})
+        (tree.path / "a.md").write_text("сам закоммитил\n")
+        git(tree.path, "add", "a.md")
+        git(tree.path, "commit", "-m", "worker own commit")
+
+        wave = wt.close_wave(
+            self.project, [tree], run_id="run1", integrate=True, cleanup=True
+        )
+        self.assertEqual(wave["merged"], ["t1"])
+        self.assertEqual((self.project / "a.md").read_text(), "сам закоммитил\n")
+
+    def test_merge_takes_recorded_commit_not_branch_tip(self) -> None:
+        """Между аудитом изменений и merge на ветку мог лечь чужой коммит:
+        merge tip-а внёс бы его в проект как работу воркера. Вливается только
+        записанный SHA; уехавшая вперёд ветка не удаляется."""
+        tree = self.make_tree("run1", "t1", {"a.md"})
+        (tree.path / "a.md").write_text("audited\n")
+        wt.collect_changes(tree)
+        wt.commit_worker_tree(tree, message="m")
+        (tree.path / "late.md").write_text("контрабанда\n")
+        git(tree.path, "add", "late.md")
+        git(tree.path, "commit", "-m", "late")
+
+        wt.integrate_worker_tree(self.project, tree)
+        self.assertEqual(tree.integration_status, "merged")
+        self.assertEqual((self.project / "a.md").read_text(), "audited\n")
+        self.assertFalse((self.project / "late.md").exists())
+        wt.remove_worker_tree(self.project, tree)
+        self.assertEqual(tree.cleanup_status, "branch_ahead")
+
+    def test_rewritten_head_holds_integration(self) -> None:
+        """reset/rebase ниже базы волны делает merge контрабандой: он принёс бы
+        разницу историй как работу воркера. Такой воркер удерживается."""
+        (self.project / "a.md").write_text("v2\n")
+        git(self.project, "commit", "-am", "v2")
+        base2 = git(self.project, "rev-parse", "HEAD")
+        tree = wt.create_worker_tree(
+            self.project, "run1", "t1", base=base2, allowlist={"a.md"}
+        )
+        (tree.path / "a.md").write_text("работа\n")
+        git(self.project, "reset", "--hard", self.base)
+
+        wave = wt.close_wave(
+            self.project, [tree], run_id="run1", integrate=True, cleanup=True
+        )
+        self.assertEqual(tree.integration_status, "held_base_rewritten")
+        self.assertEqual((self.project / "a.md").read_text(), "A\n")
+        self.assertIn(tree.branch, wave["kept_branches"])
+
+    def test_gitignored_new_allowlist_file_is_not_lost(self) -> None:
+        """Разрешённый новый файл может сам попадать под .gitignore: без
+        отдельного прохода по allowlist он гиб как «мусор», а прогон честно
+        рапортовал empty."""
+        (self.project / ".gitignore").write_text("dist/\n")
+        git(self.project, "add", ".gitignore")
+        git(self.project, "commit", "-m", "ignore dist")
+        base = git(self.project, "rev-parse", "HEAD")
+        tree = wt.create_worker_tree(
+            self.project, "run1", "t1", base=base, allowlist={"dist/out.md"}
+        )
+        (tree.path / "dist").mkdir()
+        (tree.path / "dist" / "out.md").write_text("артефакт\n")
+
+        wave = wt.close_wave(
+            self.project, [tree], run_id="run1", integrate=True, cleanup=True
+        )
+        self.assertEqual(wave["merged"], ["t1"])
+        self.assertEqual((self.project / "dist" / "out.md").read_text(), "артефакт\n")
+
+    def test_hook_dirtied_tree_is_held(self) -> None:
+        """post-checkout hook пачкает дерево до старта воркера — его правки
+        вливались бы как работа воркера. Такое дерево удерживается."""
+        hook = self.project / ".git" / "hooks" / "post-checkout"
+        hook.write_text("#!/bin/sh\nprintf 'written by hook\\n' > a.md\n")
+        hook.chmod(0o755)
+        tree = self.make_tree("run1", "t1", {"a.md"})
+        self.assertIn("a.md", tree.preexisting)
+
+        wave = wt.close_wave(
+            self.project, [tree], run_id="run1", integrate=True, cleanup=True
+        )
+        self.assertEqual(tree.integration_status, "held_dirty_birth")
+        self.assertEqual((self.project / "a.md").read_text(), "A\n")
+        self.assertIn(tree.branch, wave["kept_branches"])
+
+    def test_open_wave_rolls_back_partially_opened_wave(self) -> None:
+        """Полволны изолировать нельзя: отказ на втором дереве убирает первое
+        целиком — деревья, ветки, записи git."""
+        blocker = wt.FLEET_WORKTREE_HOME / "run1" / "t2"
+        blocker.mkdir(parents=True)
+        with self.assertRaises(wt.WorktreeError):
+            wt.open_wave(
+                self.project, "run1", [("t1", {"a.md"}), ("t2", {"b.md"})], base=self.base
+            )
+        self.assertFalse((wt.FLEET_WORKTREE_HOME / "run1" / "t1").exists())
+        self.assertEqual(git(self.project, "branch", "--list", "codex-fleet/*"), "")
+
     def test_hold_mode_keeps_trees_and_branches(self) -> None:
         """`--no-integrate`: работа зафиксирована в ветке, но в проект не забрана —
         оркестратор смотрит сам."""

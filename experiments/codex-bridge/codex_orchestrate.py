@@ -6,6 +6,7 @@ import argparse
 import asyncio
 import json
 import os
+import signal
 import subprocess
 import sys
 import time
@@ -532,6 +533,18 @@ def _plan_run(args: argparse.Namespace, project: Path) -> RunPlan:
         )
     if args.isolation == "worktree" and not initial_git.available and not args.dry_run:
         raise UsageError("--isolation worktree requires a git worktree.")
+    if (
+        args.isolation == "worktree"
+        and initial_git.available
+        and Path(initial_git.worktree_root or project).resolve() != project
+    ):
+        # Вложенный --project: allowlist нормализуется от него, а дерево
+        # выкладывается от корня репо — воркер молча правил бы одноимённый файл
+        # в корне (находка аудита 2026-08-14).
+        raise UsageError(
+            f"--isolation worktree требует --project в корне git-репозитория "
+            f"(корень: {initial_git.worktree_root}); для подпапки используй --isolation shared."
+        )
 
     codex_bin = resolve_codex_bin()
     if codex_bin is None:
@@ -661,7 +674,7 @@ def _assess_wave(
             "error": str(exc),
             "workers": [t.to_json() for t in trees],
         }
-    wave["main_tree_drift"] = drifted
+    wave["main_tree_drift"] = changed
 
     worker_out_of_scope = sorted({path for tree in trees for path in tree.out_of_scope_files})
     failed = bool(worker_out_of_scope) or wave.get("integration_status") in {"conflict", "error"}
@@ -776,6 +789,10 @@ def main() -> int:
         defaults["trees"] = {tree.task_id: tree for tree in trees}
         append_event(run_dir, "worktrees_ready", count=len(trees), base=base)
 
+    # SIGTERM обязан пройти тем же rescue-путём, что и Ctrl-C: без обработчика
+    # процесс умирает сразу, и работа воркеров остаётся незафиксированной
+    # (находка аудита 2026-08-14).
+    signal.signal(signal.SIGTERM, lambda _s, _f: sys.exit(143))
     try:
         results = asyncio.run(_run_fleet(tasks, defaults, args.concurrency, args.heartbeat_sec))
     except (KeyboardInterrupt, SystemExit):
@@ -784,13 +801,22 @@ def main() -> int:
         # незафиксированной работой — и её было бы нечем найти, кроме `git
         # worktree list`. Фиксируем в ветках, деревья держим, ничего не вливаем.
         if trees:
-            rescue = close_wave(project, trees, run_id=run_id, integrate=False, cleanup=False)
-            append_event(run_dir, "interrupt_requested", rescued=rescue["kept_branches"])
-            print(
-                "[orch] прервано: работа воркеров зафиксирована в ветках "
-                + ", ".join(rescue["kept_branches"] or ["(пусто)"]),
-                file=sys.stderr,
-            )
+            try:
+                rescue = close_wave(project, trees, run_id=run_id, integrate=False, cleanup=False)
+                append_event(run_dir, "interrupt_requested", rescued=rescue["kept_branches"])
+                print(
+                    "[orch] прервано: работа воркеров зафиксирована в ветках "
+                    + ", ".join(rescue["kept_branches"] or ["(пусто)"]),
+                    file=sys.stderr,
+                )
+            except WorktreeError as exc:
+                # index.lock и прочие отказы git: фиксация не удалась, но работа
+                # лежит в деревьях — назвать их дороже молчаливой смерти.
+                print(
+                    f"[orch] прервано; зафиксировать не удалось ({exc}) — работа в деревьях: "
+                    + ", ".join(str(t.path) for t in trees),
+                    file=sys.stderr,
+                )
         raise
 
     worker_status = "completed" if all(r["worker_status"] == "completed" for r in results) else "failed"
@@ -809,7 +835,11 @@ def main() -> int:
         isolation=args.isolation,
     )
 
-    if worker_status == "completed" and scope_status == "passed":
+    if args.no_integrate and args.verify:
+        # Held-волна: в основном дереве работы нет, зелёный verify по нему
+        # доказывал бы чужое состояние (находка аудита 2026-08-14).
+        verification_status, verification_results = "skipped", []
+    elif worker_status == "completed" and scope_status == "passed":
         verification_status, verification_results = run_verification(args.verify, project, run_dir)
     elif args.verify:
         verification_status, verification_results = "skipped", []

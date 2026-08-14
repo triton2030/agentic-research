@@ -94,6 +94,14 @@ def _install_fake_openai_codex(captured: dict, *, start_failures: int = 0) -> li
         async def turn(self, prompt, **kwargs):  # noqa: ANN001
             captured["run_prompt"] = prompt
             captured["run_kwargs"] = dict(kwargs)
+            # Реальная запись через полученный cwd: сквозной тест проверяет
+            # weld «воркер пишет → волна вливает», а не только достижимость пути.
+            cwd = captured.get("cwd")
+            if cwd:
+                try:
+                    (Path(cwd) / "a.md").write_text("готово\n")
+                except OSError:
+                    pass
             return _FakeHandle()
 
         async def run(self, prompt, **kwargs):  # noqa: ANN001
@@ -626,6 +634,7 @@ class CodexOrchestrateCliTests(unittest.TestCase):
                     codex_orchestrate.__dict__["open_wave"].__globals__["FLEET_WORKTREE_HOME"] = original_home
 
                 payload = json.loads((run_dir / "result.json").read_text())
+                merged_a = (root / "a.md").read_text()
 
             # Воркер дошёл до движка в СВОЁМ дереве, не в корне проекта.
             self.assertNotEqual(captured.get("cwd"), str(root))
@@ -635,11 +644,16 @@ class CodexOrchestrateCliTests(unittest.TestCase):
             # Ручка треда воркера — в отчёте: без неё чат не найти в Desktop.
             self.assertEqual(payload["results"][0]["thread_id"], "thread-fake-1")
             self.assertEqual(payload["isolation"], "worktree")
-            self.assertEqual(payload["status"], "completed" if payload["ok"] else "failed")
-            self.assertIn("wave", payload)
+            # Не тавтология: конкретный успех, конкретный результат в проекте.
+            self.assertTrue(payload["ok"])
+            self.assertEqual(payload["status"], "completed")
+            self.assertEqual(payload["scope_status"], "passed")
+            self.assertEqual(payload["wave"]["merged"], ["t1"])
+            self.assertEqual(payload["postflight_changed_files"], ["a.md"])
+            self.assertEqual(merged_a, "готово\n")
             self.assertTrue(payload["wave"]["cleanup_done"])
             self.assertEqual(payload["wave"]["kept_branches"], [])
-            self.assertEqual(exit_code, 0 if payload["ok"] else 1)
+            self.assertEqual(exit_code, 0)
         finally:
             for name in fake_names:
                 sys.modules.pop(name, None)
@@ -693,6 +707,85 @@ class CodexOrchestrateCliTests(unittest.TestCase):
                         root,
                         [{"id": "t1", "prompt": "p", "files": ["a.md"], "thread_id": bad}],
                     )
+
+    def test_interrupt_rescues_worker_branches(self) -> None:
+        """Прерывание волны фиксирует работу воркеров в ветках и держит деревья:
+        до этого теста rescue-ветка main() не исполнялась ничем."""
+        import codex_orchestrate
+        import codex_worktrees as wtmod
+
+        captured: dict = {}
+        fake_names = _install_fake_openai_codex(captured)
+        try:
+            with self.temp_project() as tmp:
+                root = Path(tmp).resolve()
+                self.write(root, "a.md", "A\n")
+                self.init_repo(root)
+                git(root, "add", "-A")
+                git(root, "commit", "-m", "init")
+                run_dir = root / "run"
+
+                async def boom(tasks, defaults, concurrency, heartbeat):  # noqa: ANN001
+                    tree = defaults["trees"]["t1"]
+                    (tree.path / "a.md").write_text("недоделано\n")
+                    raise KeyboardInterrupt
+
+                original_fleet = codex_orchestrate._run_fleet
+                original_argv, original_stdin = sys.argv, sys.stdin
+                original_home = wtmod.FLEET_WORKTREE_HOME
+                codex_orchestrate._run_fleet = boom
+                wtmod.FLEET_WORKTREE_HOME = root.parent / "wt"
+                sys.argv = [
+                    "codex_orchestrate.py", "--project", str(root),
+                    "--run-dir", str(run_dir), "--heartbeat-sec", "0",
+                ]
+                sys.stdin = io.StringIO(json.dumps(
+                    [{"id": "t1", "prompt": "p", "files": ["a.md"]}]
+                ))
+                try:
+                    with self.assertRaises(KeyboardInterrupt):
+                        codex_orchestrate.main()
+                finally:
+                    codex_orchestrate._run_fleet = original_fleet
+                    sys.argv, sys.stdin = original_argv, original_stdin
+                    wtmod.FLEET_WORKTREE_HOME = original_home
+
+                branches = subprocess.run(
+                    ["git", "branch", "--list", "codex-fleet/*"],
+                    cwd=root, text=True, stdout=subprocess.PIPE, check=True,
+                ).stdout
+                self.assertIn("codex-fleet/", branches)
+                # «+» помечает ветку, выписанную в другом worktree
+                branch = branches.strip().lstrip("+* ").strip()
+                shown = subprocess.run(
+                    ["git", "show", f"{branch}:a.md"],
+                    cwd=root, text=True, stdout=subprocess.PIPE, check=True,
+                ).stdout
+                self.assertEqual(shown, "недоделано\n")
+                # Дерево держится, result.json не написан, событие есть.
+                self.assertTrue((root.parent / "wt").exists())
+                self.assertFalse((run_dir / "result.json").exists())
+                events = (run_dir / "events.jsonl").read_text()
+                self.assertIn("interrupt_requested", events)
+                # Основное дерево не тронуто.
+                self.assertEqual((root / "a.md").read_text(), "A\n")
+        finally:
+            for name in fake_names:
+                sys.modules.pop(name, None)
+
+    def test_worktree_isolation_requires_repo_root(self) -> None:
+        """Вложенный --project ломал пути: allowlist от подпапки, дерево от корня
+        — воркер молча правил одноимённый файл в корне. Теперь fail-closed."""
+        with self.temp_project() as tmp:
+            root = Path(tmp).resolve()
+            self.write(root, "app/a.md")
+            self.init_repo(root)
+            git(root, "add", "-A")
+            git(root, "commit", "-m", "init")
+            proc = run_cli(root / "app", [{"id": "t1", "prompt": "p", "files": ["a.md"]}],
+                           dry_run=False)
+            self.assertEqual(proc.returncode, 2, proc.stderr)
+            self.assertIn("корне git-репозитория", proc.stderr)
 
     def test_worker_start_retried_on_transient_overload(self) -> None:
         """Флот стартует N тредов разом и упирается в overload раньше одиночных

@@ -623,32 +623,66 @@ def search_hybrid(
         return []
     dense = search_dense(records, query)
     rankings = (lexical, dense)
-    key_field = "address"
-    if collapse_files:
-        rankings = tuple(_first_per_file(ranking) for ranking in rankings)
-        key_field = "file"
-    scores: dict[str, float] = defaultdict(float)
+    if not collapse_files:
+        scores: dict[str, float] = defaultdict(float)
+        representatives: dict[str, dict[str, Any]] = {}
+        for ranking in rankings:
+            for rank, record in enumerate(ranking[:HYBRID_DEPTH], 1):
+                scores[record["address"]] += 1.0 / (RRF_CONSTANT + rank)
+                representatives.setdefault(record["address"], record)
+        original_order = {
+            record["address"]: index for index, record in enumerate(records)
+        }
+        ordered = sorted(
+            scores,
+            key=lambda address: (-scores[address], original_order[address]),
+        )
+        return [
+            {**representatives[address], "score": scores[address]}
+            for address in ordered
+        ]
+
+    file_rankings = tuple(
+        _first_per_file(ranking)[:HYBRID_DEPTH] for ranking in rankings
+    )
+    rank_by_address = tuple(
+        {record["address"]: rank for rank, record in enumerate(ranking, 1)}
+        for ranking in rankings
+    )
     representatives: dict[str, dict[str, Any]] = {}
-    for ranking in rankings:
-        for rank, record in enumerate(ranking, 1):
-            if rank > HYBRID_DEPTH:
-                break
-            key = record[key_field]
-            scores[key] += 1.0 / (RRF_CONSTANT + rank)
-            representatives.setdefault(key, record)
+    for ranking in file_rankings:
+        for record in ranking:
+            representatives.setdefault(record["file"], record)
+
+    scores: dict[str, float] = defaultdict(float)
+    for filename, representative in representatives.items():
+        address = representative["address"]
+        ranks = [
+            ranking[address]
+            for ranking in rank_by_address
+            if address in ranking and ranking[address] <= HYBRID_DEPTH
+        ]
+        if not ranks:
+            ranks = [
+                min(
+                    ranking[address]
+                    for ranking in rank_by_address
+                    if address in ranking
+                )
+            ]
+        scores[filename] = sum(1.0 / (RRF_CONSTANT + rank) for rank in ranks)
+
     original_order: dict[str, int] = {}
     for index, record in enumerate(records):
-        original_order.setdefault(record[key_field], index)
+        original_order.setdefault(record["file"], index)
     ordered = sorted(
         scores,
-        key=lambda key: (-scores[key], original_order[key]),
+        key=lambda filename: (-scores[filename], original_order[filename]),
     )
-    result: list[dict[str, Any]] = []
-    for key in ordered:
-        candidate = dict(representatives[key])
-        candidate["score"] = scores[key]
-        result.append(candidate)
-    return result
+    return [
+        {**representatives[filename], "score": scores[filename]}
+        for filename in ordered
+    ]
 
 
 def _validate_date(value: str, name: str) -> str:

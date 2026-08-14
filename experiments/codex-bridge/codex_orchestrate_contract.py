@@ -68,6 +68,8 @@ def validate_task_id(task_id: str, seen: set[str]) -> None:
         raise UsageError(f"{task_id}: id must not contain {' '.join(repr(c) for c in bad)}")
     if task_id.startswith((".", "-")) or task_id.endswith((".", ".lock")) or ".." in task_id:
         raise UsageError(f"{task_id}: id must be usable as a path and a git branch name")
+    if len(task_id) > 100 or any(ord(ch) < 32 or ord(ch) == 127 for ch in task_id):
+        raise UsageError(f"{task_id!r}: id must be <=100 chars without control characters")
 
 
 def paths_overlap(left: str, right: str) -> bool:
