@@ -328,6 +328,26 @@ class WorktreeIsolationTests(unittest.TestCase):
         self.assertEqual((self.project / "a.md").read_text(), "A\n")
         self.assertIn(tree.branch, wave["kept_branches"])
 
+    def test_hook_artifact_outside_allowlist_does_not_hold_the_worker(self) -> None:
+        """Боевая волна 20260814T085606Z: hook породил один посторонний файл в
+        каждом дереве, и все три воркера были удержаны как out_of_scope — 8
+        готовых файлов не влились. Чужой файл, лежавший до старта, работой
+        воркера не считается."""
+        hook = self.project / ".git" / "hooks" / "post-checkout"
+        hook.write_text("#!/bin/sh\nmkdir -p probes\nprintf 'png\\n' > probes/warp.png\n")
+        hook.chmod(0o755)
+        tree = self.make_tree("run1", "t1", {"a.md"})
+        self.assertIn("probes/warp.png", tree.preexisting)
+        (tree.path / "a.md").write_text("работа воркера\n")
+
+        wave = wt.close_wave(
+            self.project, [tree], run_id="run1", integrate=True, cleanup=True
+        )
+        self.assertEqual(tree.out_of_scope_files, ())
+        self.assertEqual(wave["merged"], ["t1"])
+        self.assertEqual((self.project / "a.md").read_text(), "работа воркера\n")
+        self.assertFalse((self.project / "probes" / "warp.png").exists())
+
     def test_open_wave_rolls_back_partially_opened_wave(self) -> None:
         """Полволны изолировать нельзя: отказ на втором дереве убирает первое
         целиком — деревья, ветки, записи git."""

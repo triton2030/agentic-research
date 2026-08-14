@@ -119,7 +119,9 @@ def create_worker_tree(
     _git(project, "worktree", "add", "-b", branch, str(target), base, check=True)
     # post-checkout hook может испачкать дерево ещё до старта воркера — тогда
     # его правки влились бы как работа воркера (находка аудита 2026-08-14).
-    dirty = _git(target, "status", "--porcelain", check=True).stdout.splitlines()
+    # -uall: без него новый каталог схлопывается в одну строку «probes/», и
+    # сверить его с изменениями воркера (там — точные пути файлов) нечем.
+    dirty = _git(target, "status", "--porcelain", "-uall", check=True).stdout.splitlines()
     preexisting = tuple(sorted(line[3:] for line in dirty if len(line) > 3))
     tree = WorkerTree(
         task_id=task_id,
@@ -192,6 +194,12 @@ def collect_changes(tree: WorkerTree) -> None:
         in_base = _git(tree.path, "cat-file", "-e", f"{tree.base_commit}:{path}")
         if in_base.returncode != 0:  # на диске есть, в базе нет — новый, пусть и ignored
             changed.add(path)
+    # Посторонний файл, лежавший в дереве ещё до старта воркера (hook при
+    # checkout), — не его работа и не его вина: боевая волна 20260814T085606Z
+    # удержала всех трёх воркеров из-за одного такого .png, и 8 готовых файлов не
+    # влились. Грязный файл ИЗ списка воркера так не прощается: там hook и работа
+    # неразличимы, дерево удерживается целиком (held_dirty_birth).
+    changed -= set(tree.preexisting) - tree.allowlist
     tree.changed_files = tuple(sorted(changed))
     tree.out_of_scope_files = tuple(path for path in tree.changed_files if path not in tree.allowlist)
 
@@ -256,8 +264,10 @@ def integrate_worker_tree(project: Path, tree: WorkerTree) -> None:
             f"работа зафиксирована в {tree.branch}"
         )
         return
-    if tree.preexisting:
-        # Изоляция скомпрометирована ещё до воркера — что здесь чьё, недоказуемо.
+    if set(tree.preexisting) & tree.allowlist:
+        # Грязным родился файл ИЗ зоны воркера — что там чьё, недоказуемо.
+        # Посторонний артефакт hook (вне зоны) держать нечего: он к работе
+        # отношения не имеет и в ветку не попал.
         tree.integration_status = "held_dirty_birth"
         tree.notes.append(f"работа зафиксирована в {tree.branch}; разбирать вручную")
         return
