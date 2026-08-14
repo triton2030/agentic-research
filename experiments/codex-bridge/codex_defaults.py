@@ -53,12 +53,12 @@ HEAVY_EFFORTS = ("max", "ultra")
 # credit dashboard.
 DEFAULT_CODEX_SERVICE_TIER = None
 
-# gpt-5.6-sol requires a newer codex binary than the SDK pins (0.1.0b3 pins
-# codex-cli 0.137.0a4 → HTTP 400 "requires a newer version of Codex"). The
-# ChatGPT desktop app bundles a current binary and auto-updates it, so the
-# bridge prefers it and falls back to the SDK bundle only if the app is gone
-# (verified live 2026-07-10: bundled 0.137.0a4 rejects the model, app binary
-# 0.144.0a4 serves it).
+# The ChatGPT desktop app bundles a current codex binary and auto-updates it,
+# so the bridge prefers it and falls back to the SDK bundle only if the app is
+# gone. History of why: the old pin (SDK 0.1.0b3 → codex-cli 0.137.0a4) answered
+# HTTP 400 "requires a newer version of Codex" on gpt-5.6-sol (verified live
+# 2026-07-10). Pins now track 0.144.4, still behind the app engine
+# (0.148.0-alpha.9 on 2026-08-14), so the preference stays.
 CHATGPT_APP_CODEX_BIN = "/Applications/ChatGPT.app/Contents/Resources/codex"
 
 
