@@ -20,6 +20,9 @@ workflow.
   Agent Skills standard и API/runtime.
 - [`research-2026-mar-may.md`](research-2026-mar-may.md) — source-backed выводы
   из официальных docs и исследований марта-мая 2026.
+- [`research-matt-pocock-skill-writing-2026-08.md`](research-matt-pocock-skill-writing-2026-08.md)
+  — форензика 25 promoted skills: формулировки, порядок, размеры,
+  отрицательное пространство и границы переноса в `1skill-shaping`.
 - [`research-mid-trajectory-trigger-descriptions-2026-08.md`](research-mid-trajectory-trigger-descriptions-2026-08.md)
   — датированный evidence-report о short descriptions и позднем автоматическом
   вызове по состоянию длинной работы.
