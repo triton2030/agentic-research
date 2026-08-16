@@ -185,5 +185,33 @@ class TaskLineTests(unittest.TestCase):
             self.assertIn("задание: Починить сборку.", codex_progress.digest(run_dir))
 
 
+class DigestSteerTests(unittest.TestCase):
+    """Судьба реплики видна в сводке: за ней нельзя посылать в сырой журнал."""
+
+    def test_digest_reports_request_and_verdict(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp)
+            request = codex_progress.file_steer_request(run_dir, "вернись к цели")
+            codex_progress._ControlInbox(run_dir).accepted(
+                request, type("Resp", (), {"turn_id": "turn-9"})()
+            )
+            out = codex_progress.digest(run_dir)
+            self.assertIn(request["id"], out)
+            self.assertIn("принята движком", out)
+            self.assertIn("не значит", out)
+
+    def test_digest_reports_refusal_with_reason(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp)
+            request = codex_progress.file_steer_request(run_dir, "поздно", worker="t1")
+            codex_progress._ControlInbox(run_dir, "t1").rejected(
+                request, RuntimeError("activeTurnNotSteerable")
+            )
+            out = codex_progress.digest(run_dir)
+            self.assertIn("[t1]", out)
+            self.assertIn("отвергнута", out)
+            self.assertIn("activeTurnNotSteerable", out)
+
+
 if __name__ == "__main__":
     unittest.main()

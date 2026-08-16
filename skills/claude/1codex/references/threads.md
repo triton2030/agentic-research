@@ -15,9 +15,6 @@ B=/Users/triton/Documents/GitHub/agentic-research/experiments/codex-bridge
 $B/.venv/bin/python $B/codex_threads.py list --project "$PWD"   # (+ --json)
 ```
 
-Каждый тред: тема, ходов, последняя активность, короткий id сессии, последний
-run.
-
 **Доска моста — не все треды Codex.** В неё попадает только то, что завёл мост
 в этом проекте; сессии владельца в Codex Desktop и в терминале там не значатся
 вовсе. Их печатает `codex_threads.py mine` — чтение общего store `~/.codex`

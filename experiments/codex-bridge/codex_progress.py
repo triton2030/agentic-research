@@ -305,15 +305,22 @@ def digest(run_dir: Any, *, tail: int = 6) -> str:
 
     activity: list[dict[str, Any]] = []
     last_beat: dict[str, Any] | None = None
+    steer: list[dict[str, Any]] = []
     for raw in events_path.read_text(encoding="utf-8").splitlines():
         try:
             event = json.loads(raw)
         except Exception:  # noqa: BLE001
             continue
-        if event.get("event") == "codex":
+        name = event.get("event")
+        if name == "codex":
             activity.append(event)
-        elif event.get("event") == "heartbeat":
+        elif name == "heartbeat":
             last_beat = event
+        elif name in ("steer_requested", "steer_accepted", "steer_rejected"):
+            # Судьба реплики обязана быть видна ЗДЕСЬ: посылать за ней в сырой
+            # events.jsonl значит отправлять в окно то, ради экономии которого
+            # сводка и существует.
+            steer.append(event)
 
     if last_beat:
         parts = [f"elapsed={last_beat.get('elapsed_sec')}s"]
@@ -321,6 +328,16 @@ def digest(run_dir: Any, *, tail: int = 6) -> str:
             if last_beat.get(key) is not None:
                 parts.append(f"{key}={last_beat[key]}")
         lines.append("пульс: " + " ".join(parts))
+
+    for event in steer:
+        mark = {
+            "steer_requested": "в ящике",
+            "steer_accepted": "принята движком (не значит «послушался»)",
+            "steer_rejected": "отвергнута",
+        }[event["event"]]
+        who = f"[{event['worker']}] " if event.get("worker") else ""
+        why = f" — {_short(event.get('error', ''), 90)}" if event.get("error") else ""
+        lines.append(f"реплика {who}{event.get('request_id')}: {mark}{why}")
 
     lines.append(f"шагов записано: {len(activity)}")
     for event in activity[-tail:]:
@@ -717,8 +734,8 @@ def _steer_cli(run_dir: Any, text: str, worker: str | None) -> int:
             return 2
     request = file_steer_request(root, text, worker=worker)
     print(
-        f"реплика {request['id']} в ящике; приём смотри в events.jsonl "
-        f"(steer_accepted / steer_rejected), курс — следующими шагами сводки"
+        f"реплика {request['id']} в ящике; её судьба и курс — в сводке "
+        f"`codex_progress.py {root}`"
     )
     return 0
 

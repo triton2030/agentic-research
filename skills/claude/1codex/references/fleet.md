@@ -69,9 +69,7 @@ B=/Users/triton/Documents/GitHub/agentic-research/experiments/codex-bridge
 echo '[{"id":"t1","prompt":"...","files":["a.md"]}]' \
   | $B/.venv/bin/python $B/codex_orchestrate.py --concurrency 4 --project "$PWD"
 # большой список — через файл: --tasks tasks.json ; сухой план запуска: --dry-run
-# default model/effort: --model gpt-5.6-sol --effort xhigh
-# тупая и объёмная правка по файлам: --model gpt-5.6-luna
-# long-run: --run-dir "$RUN_DIR" --summary-stdout --heartbeat-sec 120
+# всегда: --run-dir "$RUN_DIR" --summary-stdout --heartbeat-sec 120
 # ворота перед проектом: --verify "pytest ..." — воркеры сливаются во временное дерево, проверка идёт там, красная не вливает ничего; при --no-integrate пропускается
 # посмотреть работу до забора в проект: --no-integrate (деревья и ветки остаются)
 ```
@@ -84,9 +82,7 @@ echo '[{"id":"t1","prompt":"...","files":["a.md"]}]' \
 `active` и `stalest` (кто молчит дольше всех), активность помечена id воркера.
 Механика надзора — в [`orchestration.md`](orchestration.md).
 
-**Владелец смотрит воркеров в Codex Desktop.** Пишущий воркер получает тред
-всегда — это половина инварианта «дерево ⟺ тред»; читающим ролям он сам не
-заводится (советник берёт его явным `--dialog`). Каждый воркер — чат в
+**Владелец смотрит воркеров в Codex Desktop.** Каждый воркер — чат в
 приложении, живой прогресс без твоего участия; `thread_id` лежит в
 `results.jsonl` — назови его, когда владелец спросит «который из чатов чей».
 Чаты волн накапливаются в
@@ -129,10 +125,8 @@ echo '[{"id":"t1","prompt":"...","files":["a.md"]}]' \
 Уборка не заканчивается словом «убрал»: назови `cleanup_done` и
 `kept_branches`.
 
-**Прерванную волну проверь руками:** `git worktree list` и
-`git branch --list 'codex-fleet/*'` — работа воркеров в ветках, а `result.json`
-не написан. Что именно происходит при остановке — в
-[`orchestration.md`](orchestration.md).
+**Прерванную волну проверь руками** — что происходит при остановке и чем
+смотреть, в [`orchestration.md`](orchestration.md).
 
 Инвентарь и ручная уборка — готовым git, обёрток для них мост не держит:
 
@@ -157,9 +151,8 @@ git branch --list 'codex-fleet/*'     # незабранная работа во
   удержит от merge всю работу воркера, и волна закончится ручным разбором
   ветки вместо результата (реальный случай: протокол вынесли из memo, а его
   новый дом в `files` не положили).
-- **Strict backend preflight.** Unknown keys, не-bool `allow_create`/`subagents`,
-  не-string `id`, absolute paths, `..`, пустые `files` и overlap падают до
-  запуска Codex.
+- **Preflight fail-closed.** Невалидный JSON задач падает ДО запуска Codex —
+  кредитов это не стоит, ошибку читай в выводе инструмента.
 - **Git fail-closed.** Реальный запуск требует git (`--dry-run` работает и без
   него, помечая `git.available=false`), а worktree-изоляция — ещё и `--project`
   в корне репозитория: от подпапки allowlist и дерево считались бы от разных
