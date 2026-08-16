@@ -23,7 +23,7 @@ import threading
 import time
 from typing import Any, AsyncIterator, Callable, Iterator
 
-from codex_run_ledger import append_event, write_json
+from codex_run_ledger import append_event, append_jsonl, utc_now, write_json
 
 # Нотификации-дельты идут потоком токенов: в ledger они дали бы мегабайты шума,
 # поэтому их только считаем. В журнал пишем границы шагов и события, меняющие
@@ -226,6 +226,51 @@ async def _atee(
         yield event
 
 
+GOAL_HEADINGS = ("цель", "задача", "goal", "objective")
+
+
+def _task_line(root: Any) -> str:
+    """Исходное задание одной строкой — то, с чем сравнивают последние шаги.
+
+    Без него сводка честно отвечает «что он делает», но не «туда ли идёт»:
+    сравнивать приходится с памятью вызывающего, а у свежего окна её нет.
+    """
+    import json
+
+    prompt_path = root / "prompt.md"
+    if prompt_path.is_file():
+        try:
+            text = prompt_path.read_text(encoding="utf-8")
+        except Exception:  # noqa: BLE001
+            return ""
+        marker = "===== USER PROMPT ====="
+        if marker in text:
+            text = text.split(marker, 1)[1]
+        rows = [row.strip() for row in text.splitlines()]
+        # Задание почти всегда начинается служебной рамкой (запреты, каналы), а
+        # сравнивают шаги с целью: если автор её озаглавил, берём её.
+        for index, row in enumerate(rows):
+            if row.startswith("#") and row.lstrip("# ").strip().lower() in GOAL_HEADINGS:
+                for below in rows[index + 1 :]:
+                    if below:
+                        return _short(below, 160)
+        for row in rows:
+            if row and not row.startswith("#"):
+                return _short(row, 160)
+        return ""
+
+    manifest_path = root / "manifest.json"
+    if manifest_path.is_file():
+        try:
+            tasks = json.loads(manifest_path.read_text(encoding="utf-8")).get("tasks") or []
+        except Exception:  # noqa: BLE001
+            return ""
+        if tasks:
+            names = ", ".join(str(task.get("id")) for task in tasks[:6])
+            return _short(f"{len(tasks)} воркеров: {names}" + ("…" if len(tasks) > 6 else ""), 160)
+    return ""
+
+
 def digest(run_dir: Any, *, tail: int = 6) -> str:
     """Компактная сводка прогона для оркестратора: несколько строк, не журнал.
 
@@ -239,6 +284,9 @@ def digest(run_dir: Any, *, tail: int = 6) -> str:
 
     root = Path(run_dir)
     lines: list[str] = [f"run_dir: {root}"]
+    task = _task_line(root)
+    if task:
+        lines.append(f"задание: {task}")
 
     result_path = root / "result.json"
     if result_path.is_file():
@@ -408,6 +456,147 @@ class _InterruptOnSignal:
                 pass
 
 
+CONTROL_INBOX_NAME = "control.jsonl"
+CONTROL_POLL_SEC = 2.0
+
+
+def file_steer_request(run_dir: Any, text: str, *, worker: str | None = None) -> dict[str, Any]:
+    """Положить реплику в ящик идущего прогона. Кредитов не стоит, хода не начинает.
+
+    Ящик существует потому, что прогон — отдельный процесс: SDK-ручка хода
+    принадлежит ему, и снаружи её не позвать. Диск — единственный носитель,
+    общий у оркестратора и прогона.
+    """
+    from pathlib import Path
+    import uuid as _uuid
+
+    request = {
+        "id": _uuid.uuid4().hex[:12],
+        "text": text,
+        "worker": worker,
+        "created_at": utc_now(),
+    }
+    append_jsonl(Path(run_dir) / CONTROL_INBOX_NAME, request)
+    append_event(run_dir, "steer_requested", request_id=request["id"], worker=worker)
+    return request
+
+
+class _ControlInbox:
+    """Читатель ящика для одного адресата: отдаёт новые реплики, ведёт приём.
+
+    Событие приёма называется `steer_accepted`, а не `applied`: движок
+    подтверждает получение реплики, но не смену курса. Курс проверяется
+    следующими шагами прогона, и подменять эту проверку записью в журнал —
+    ровно тот самоотчёт, который здесь нигде не считается доказательством.
+    """
+
+    def __init__(self, run_dir: Any, worker: str | None = None) -> None:
+        from pathlib import Path
+
+        self._path = Path(run_dir) / CONTROL_INBOX_NAME
+        self._run_dir = run_dir
+        self._worker = worker
+        self._seen: set[str] = set()
+
+    def pending(self) -> list[dict[str, Any]]:
+        """Непрочитанные реплики, адресованные этому ходу."""
+        import json
+
+        if not self._path.is_file():
+            return []
+        fresh: list[dict[str, Any]] = []
+        try:
+            raw_lines = self._path.read_text(encoding="utf-8").splitlines()
+        except Exception:  # noqa: BLE001 — ящик не имеет права уронить ход
+            return []
+        for raw in raw_lines:
+            try:
+                request = json.loads(raw)
+            except Exception:  # noqa: BLE001
+                continue
+            request_id = str(request.get("id") or "")
+            if not request_id or request_id in self._seen:
+                continue
+            # Безадресная реплика достаётся только одиночному ходу: в волне
+            # «кому-нибудь» означало бы всем сразу.
+            if request.get("worker") != self._worker:
+                continue
+            self._seen.add(request_id)
+            fresh.append(request)
+        return fresh
+
+    def accepted(self, request: dict[str, Any], response: Any) -> None:
+        append_event(
+            self._run_dir,
+            "steer_accepted",
+            request_id=request.get("id"),
+            worker=self._worker,
+            turn_id=getattr(response, "turn_id", None),
+        )
+
+    def rejected(self, request: dict[str, Any], error: BaseException) -> None:
+        append_event(
+            self._run_dir,
+            "steer_rejected",
+            request_id=request.get("id"),
+            worker=self._worker,
+            error=f"{type(error).__name__}: {error}",
+        )
+
+
+class _ControlWatcher:
+    """Сторож рядом с ходом: доставляет реплики из ящика в живой turn.
+
+    Живёт отдельным потоком, а не проверкой между событиями, намеренно: поток
+    нотификаций молчит минутами, пока модель думает, и реплика приезжала бы
+    ровно тогда, когда вмешиваться уже поздно.
+    """
+
+    def __init__(self, handle: Any, run_dir: Any | None, worker: str | None = None) -> None:
+        self._handle = handle
+        self._inbox = _ControlInbox(run_dir, worker) if run_dir is not None else None
+        self._stop = threading.Event()
+        self._thread: threading.Thread | None = None
+
+    def _loop(self) -> None:
+        while not self._stop.wait(CONTROL_POLL_SEC):
+            assert self._inbox is not None
+            for request in self._inbox.pending():
+                try:
+                    self._inbox.accepted(request, self._handle.steer(request["text"]))
+                except Exception as exc:  # noqa: BLE001
+                    # Отказ движка — нормальный ответ (ход уже сменился, вид
+                    # хода не управляем), а не авария прогона.
+                    self._inbox.rejected(request, exc)
+
+    def __enter__(self) -> _ControlWatcher:
+        if self._inbox is not None:
+            self._thread = threading.Thread(
+                target=self._loop, name="codex-control-watcher", daemon=True
+            )
+            self._thread.start()
+        return self
+
+    def __exit__(self, *_exc: Any) -> None:
+        self._stop.set()
+        if self._thread is not None:
+            self._thread.join(timeout=CONTROL_POLL_SEC + 1)
+
+
+async def _watch_control_async(handle: Any, run_dir: Any, worker: str | None) -> None:
+    """Тот же сторож для асинхронного хода флота: `steer` там — корутина."""
+    import asyncio
+
+    inbox = _ControlInbox(run_dir, worker)
+    while True:
+        await asyncio.sleep(CONTROL_POLL_SEC)
+        for request in inbox.pending():
+            try:
+                inbox.accepted(request, await handle.steer(request["text"]))
+            except Exception as exc:  # noqa: BLE001
+                inbox.rejected(request, exc)
+
+
 def run_turn(
     handle: Any,
     *,
@@ -421,7 +610,7 @@ def run_turn(
         return handle.run()
     stream = handle.stream()
     try:
-        with _InterruptOnSignal(handle, run_dir):
+        with _InterruptOnSignal(handle, run_dir), _ControlWatcher(handle, run_dir):
             return collect(_tee(stream, tracker, run_dir, extra), turn_id=handle.id)
     finally:
         stream.close()
@@ -438,12 +627,23 @@ async def run_async_turn(
     _, collect_async = _load_collectors()
     if collect_async is None:
         return await handle.run()
+    import asyncio
+
     stream = handle.stream()
+    watcher = (
+        asyncio.ensure_future(
+            _watch_control_async(handle, run_dir, (extra or {}).get("worker"))
+        )
+        if run_dir is not None
+        else None
+    )
     try:
         return await collect_async(
             _atee(stream, tracker, run_dir, extra), turn_id=handle.id
         )
     finally:
+        if watcher is not None:
+            watcher.cancel()
         await stream.aclose()
 
 
@@ -470,13 +670,56 @@ def main() -> int:
     parser.add_argument(
         "--tail", type=int, default=6, help="Сколько последних шагов показать"
     )
+    parser.add_argument(
+        "--steer",
+        metavar="ТЕКСТ",
+        help="Реплика в ИДУЩИЙ ход: положить в ящик прогона. Кредитов не стоит; "
+        "движок подтверждает приём, но не смену курса — проверяй следующими шагами.",
+    )
+    parser.add_argument(
+        "--worker",
+        metavar="ID",
+        help="Кому из воркеров волны адресована реплика (--steer). У одиночного прогона не нужен.",
+    )
     args = parser.parse_args()
     if args.board is not None:
         print(board(args.board))
         return 0
     if not args.run_dir:
         parser.error("нужен RUN_DIR или --board [PROJECT]")
+    if args.steer:
+        return _steer_cli(args.run_dir, args.steer, args.worker)
     print(digest(args.run_dir, tail=args.tail))
+    return 0
+
+
+def _steer_cli(run_dir: Any, text: str, worker: str | None) -> int:
+    """Отдать реплику ящику прогона, отказав честно, когда принимать её некому."""
+    import json
+    from pathlib import Path
+
+    root = Path(run_dir)
+    if not root.is_dir():
+        print(f"нет такого прогона: {root}")
+        return 2
+    if (root / "result.json").is_file():
+        print("прогон закончен — реплику принимать некому; чини следующим прогоном")
+        return 2
+    manifest = root / "manifest.json"
+    if worker is None and manifest.is_file():
+        try:
+            tasks = json.loads(manifest.read_text(encoding="utf-8")).get("tasks") or []
+        except Exception:  # noqa: BLE001
+            tasks = []
+        if tasks:
+            names = ", ".join(str(task.get("id")) for task in tasks)
+            print(f"это волна — назови адресата: --worker ID (есть: {names})")
+            return 2
+    request = file_steer_request(root, text, worker=worker)
+    print(
+        f"реплика {request['id']} в ящике; приём смотри в events.jsonl "
+        f"(steer_accepted / steer_rejected), курс — следующими шагами сводки"
+    )
     return 0
 
 
