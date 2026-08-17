@@ -23,20 +23,26 @@
   мёртвым: на 20 pinned queries record-index дал хотя бы одно OR-совпадение во
   всех 20 случаях.
 
-Superseded 2026-08-16: поэтому карточки не входят в record BM25 или embeddings.
-Одна lexical card на файл образует отдельный `session_candidates`; маршрут
-включается только по query-термину, отсутствующему во всём record-index, и не
-переставляет `records`. При пустом `records` тот же маршрут становится fallback;
-его `--timeline` разворачивает все записи выбранных файлов.
+### Historical fallback, superseded 2026-08-17
+
+Следующий контракт и его проверки описывают промежуточный runtime, а не
+текущее поведение:
+
+- Карточки не входили в record BM25 или embeddings; одна lexical card на файл
+  образовывала отдельный `session_candidates` и включалась только по новому
+  query-термину. При пустом `records` тот же маршрут создавал fallback record;
+  `--timeline` разворачивал записи выбранных файлов.
+- Codex suite: 77 tests, `OK`; Claude suite: 76 tests, `OK`.
+- Real mixed queries нашли gold sessions: `skillrouter инструкция`,
+  `mantineprovider компоненты`, `skillsbench исследование`.
+- Card-only `skillrouter` вернул нужный файл первым и как fallback record, и
+  в `session_candidates`.
+
+Текущий контракт отменяет fallback record: card-only default сохраняет
+`records=[]`, а найденные файлы живут только в `session_candidates`.
 
 ## Проверки
 
-- Codex suite: 77 tests, `OK`; Claude suite: 76 tests, `OK`.
-- Real mixed queries сохранили обычный record ranking и отдельно нашли gold
-  session: `skillrouter инструкция`, `mantineprovider компоненты`,
-  `skillsbench исследование`.
-- Card-only `skillrouter` вернул нужный файл первым и как fallback record, и в
-  `session_candidates`.
 - Pinned 20-query regression после разделения маршрутов: lexical `hit@5=0.30`,
   hybrid `hit@5=0.70`, delta `+0.40`. Общий acceptance-порог `0.90` остаётся
   красным; эта возможность его не маскирует.
@@ -74,7 +80,7 @@ Superseded 2026-08-16: поэтому карточки не входят в reco
   `5216879cf24a` и текущий код дали одинаковый hybrid `hit@5=0.60`,
   `hit@1=0.05`, `hit@10=0.65`, `mrr@10=0.271`. Проверка стартового кода
   воспроизводится тем же `evaluate_retrieval.py` через `--digest-script`.
-- Текущий pinned agentic-research набор из 20 queries и 810 records:
+- Pinned agentic-research snapshot 2026-08-17 из 20 queries и 810 records:
   lexical `hit@5=0.30`, hybrid `hit@5=0.70`, `hit@1=0.45`,
   `mrr@10=0.540`; порог `0.70` пройден.
 - Текущие suites: Codex 83 tests, Claude 80 tests, оба `OK`. Код runtime и
@@ -85,3 +91,25 @@ Superseded 2026-08-16: поэтому карточки не входят в reco
   holder. Отдельный natural+root absent-case дважды вернул пустые records,
   пустые session candidates и `selection=none`. Ещё один later-holder check
   обнаружил реальную более позднюю коррекцию Luna → Sol xhigh.
+
+## Full-holder contract candidate, 2026-08-17
+
+Support envelope: isolated Codex subagents, `fork_turns=none`, local tools,
+read-only MAVO corpus; `gpt-5.6-sol` / high и `gpt-5.6-luna` / max. Claude:
+blocking `claude-opus-5` / xhigh на синтетическом corpus; реальный owner corpus
+в Anthropic не отправлялся.
+
+- Sol real-case: top hit нёс вытесненный Luna-default; после полного чтения 12
+  holder-ов / 355 строк найдена более поздняя коррекция Sol-default. Обе выдачи
+  были `truncated=true`, поэтому абсолютная полнота не заявлена.
+- Luna real-case с датированным later-search прочитал 10 holder-ов / 312 строк,
+  нашёл ту же коррекцию и вернул `abstain`, потому что поздняя выдача осталась
+  усечённой. Это прямой completion-trace честного gap, а не retrieval failure.
+- Opus synthetic-case прочитал три holder-а / 10 строк; отдельный later-search
+  нашёл решающий holder, отсутствовавший в исходных `records` и
+  `session_candidates`. Реальный corpus не читался.
+
+Прогоны подтверждают claim `hit → полный holder → отдельный later-search →
+позиция или явный gap`. Они не доказывают полноту ранжирования и не превращают
+`truncated=false` одного запроса в доказательство отсутствия скрытой
+коррекции.

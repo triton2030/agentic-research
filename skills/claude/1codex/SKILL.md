@@ -39,7 +39,6 @@ ledger, профили sandbox, версии) живёт в `<backend>/README.md
 | ревью git-дифа | `codex_review.py --mode diff` — НАТИВНЫЙ ревьюер движка, не наш промпт. Усилие там НАСЛЕДУЕТСЯ из конфига движка (`--effort` не действует, ledger пишет `inherit`); большой диф сузь `--base`/`--commit`, на всём дереве он идёт долго |
 | вопрос по нашему диалогу или траектории сессии | `--mode ask` (тянет транскрипт); `--mode review` — негативно смещённый аудит хода, не навигация |
 | markdown-evidence «сходи в knowledge, принеси адреса» | `run_md_scout.py` — read-only executor `1md-search`, без вердиктов; приёмка по пакету, не по exit code (критерий — в самом инструменте) |
-| история позиции владельца по корпусу цитат | `codex_recall.py`; процедурой владеет `1chat-recall`, здесь только маршрут |
 | артефакты в свою папку, **без project edit** | `codex_investigate.py`; забирай `result.json` и `out/` |
 | **файлы проекта — Codex вносит правки** | `codex_orchestrate.py`; сперва прочитай `fleet.md` |
 
@@ -131,7 +130,6 @@ $B/.venv/bin/python $B/codex_review.py "ВОПРОС" --dialog --topic "ТЕМА
 $B/.venv/bin/python $B/codex_review.py "УТОЧНЕНИЕ" --continue THREAD_ID --project "$PWD"
 $B/.venv/bin/python $B/codex_review.py --mode diff [--base REF | --commit SHA] --project "$PWD"
 $B/.venv/bin/python $B/codex_review.py --doctor --project "$PWD"   # не работает — сперва это, кредитов не стоит
-$B/.venv/bin/python $B/codex_recall.py "ВОПРОС" --project "$PWD"
 $B/.venv/bin/python $B/codex_threads.py list --project "$PWD"
 $B/.venv/bin/python $B/codex_progress.py "$RUN_DIR" [--steer "ТЕКСТ"] [--board "$PWD"]
 $B/.venv/bin/python $B/codex_investigate.py "ЗАДАНИЕ + формат выхода" --project "$PWD"
