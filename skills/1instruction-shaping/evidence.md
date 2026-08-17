@@ -47,3 +47,43 @@
 Взять один реальный репозиторий без свода, собрать его этим скилом и без него,
 и сравнить на трёх задачах число ходов до первого верного действия и число
 неверных ходов.
+
+## Deletion-first controller revision — 2026-08-17
+
+**Claim.** Controller больше не делает триаду обязательным runtime-template;
+форма свода выводится через `Поглощение` и `Момент решения`, rationale остаётся
+только против названного ошибочного дефолта, evidence выбирается по claim.
+
+**Matched downstream pilot.** Два чистых Codex-окна получили одну задачу:
+pre-draft refactor `1orchestration`. A полностью читал installed controller,
+byte-identical `HEAD`; B — текущий tracked draft. Оба полностью прочитали обе
+controller-пары, все references, target и его историю.
+
+- A сохранил fixed form и оставил часть removal-решений новыми вопросами.
+- B собрал target по функциям и выдал материально отличающуюся карту; его
+  `delete`-рекомендации приняты синтезом только как `delete_candidate`.
+- Независимый acceptance-аудитор подтвердил decision delta; вероятностный
+  uplift на других models/targets после одного paired sample остаётся
+  `unknown`.
+- Невыводимые потери не прошли как решения: named risk → comparator + owner
+  curation; до этого результат остаётся `candidate`.
+
+**Fresh Eyes.** Ladder удержал текущий diff как enabling step, но остановил
+дальнейшую meta-полировку на bounded pilot; Solvent снял допущение, что
+controller надо принять до downstream case; Prospector отнёс test plan к
+migration slice. Claude Opus 5 premortem нашёл дешёвый выход через
+«непроверено»; он закрыт новым candidate-boundary. Claude session
+`8306b40c-7d64-4cf5-bfdb-8abd341e88f7`, `resolved_model=claude-opus-5`;
+warning `permission_denied:Bash`, локальные claims перепроверены Codex.
+
+**Структура и distribution.** `quick_validate.py` и `qv-skill` — pass для
+shared, installed Codex и installed Claude; `md check` — `issues: []` для
+portable owner и history; `sync_simple_projections.py ... --check` — все
+tracked/installed проекции совпадают. SHA-256 пяти `SKILL.md`:
+`ebeb072fc28857409ccd8e4ad86afe476d5777992387a3fe8927047a110cbbc7`.
+`md deps/impact` не нашёл declared dependents; найденные body-ссылки живут в
+исторических `_workspace/codex-artifacts/**`, их смысл не переписывался.
+
+Статус: **candidate с одним matched decision-map pilot**. Доказано изменение
+решения на одном downstream case; систематическое улучшение target models и
+безопасность будущей массовой волны не заявляются.

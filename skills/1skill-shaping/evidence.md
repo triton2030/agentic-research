@@ -72,3 +72,50 @@ probability не проверялись. Один smoke не переводит 
 Дополнительный post-install smoke остановлен по коррекции владельца как
 избыточный для точечной правки; поведенческий uplift не заявляется, lifecycle
 остаётся `candidate`.
+
+## Deletion-first controller revision — 2026-08-17
+
+**Claim.** Controller больше не навязывает создаваемому skill фиксированную
+форму и self-conformance; он выводит форму через `Поглощение` и `Момент
+решения`, сохраняя невыводимые исключения и evidence по claim.
+
+**Matched downstream pilot.** Два чистых Codex-окна получили одну задачу:
+pre-draft refactor `1orchestration`. A полностью читал installed controller,
+byte-identical `HEAD`; B — текущий tracked draft. Оба полностью прочитали обе
+controller-пары, все references, target и его историю.
+
+- A сохранил обязательные `Контекст → Цель` и оставил часть removal-решений
+  новыми вопросами владельцу.
+- B отказался от fixed template, собрал target по функциям и выдал материально
+  отличающуюся карту; его `delete`-рекомендации приняты синтезом только как
+  `delete_candidate`.
+- Независимый acceptance-аудитор подтвердил decision delta. Один paired sample
+  не доказывает вероятностный uplift; causal behavior на других models/targets
+  остаётся `unknown`.
+- Рискованные B-кандидаты (`3+ instruction owners`, два дешёвых readers)
+  получили named loss risk и остановились до comparator и owner curation.
+  Проверка подтвердила, что действующий exception/candidate gate не даёт
+  распространить их как принятые удаления.
+
+**Fresh Eyes.** Ladder подтвердил цепочку к массовой переработке корпуса и
+поставил следующий рубеж на bounded pilot; Solvent отверг принятие controller-а
+как непроверенного prerequisite; Prospector показал, что Matt держит test plan
+у migration slice, не внутри вечного authoring ritual. Claude Opus 5 premortem
+нашёл дешёвый выход через «названо непроверенным»; он закрыт статусом
+`candidate`, не распространяемым как принятый. Claude session
+`8306b40c-7d64-4cf5-bfdb-8abd341e88f7`, `resolved_model=claude-opus-5`;
+warning `permission_denied:Bash`, поэтому локальные claims проверены Codex
+напрямую.
+
+**Структура и distribution.** `quick_validate.py` и `qv-skill` — pass для
+shared, installed Codex и installed Claude; `md check` — `issues: []` для
+portable owner и history; `sync_simple_projections.py ... --check` — все
+tracked/installed проекции совпадают. SHA-256 пяти `SKILL.md`:
+`5ab3ad2035579c2f6e24cbde8b0c40c407d1a1d58b6928959536723d51240aea`.
+`md deps/impact` не нашёл declared dependents; body-ссылки ведут только из
+исторических `_workspace/codex-artifacts/**` и сохранённого Matt-report, их
+исторический смысл не переписывался.
+
+Статус: **candidate с одним matched decision-map pilot**. Доказано изменение
+решения на одном downstream case; систематическое улучшение target models и
+безопасность будущей массовой волны не заявляются.
