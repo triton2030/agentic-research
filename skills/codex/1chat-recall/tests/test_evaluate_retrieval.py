@@ -90,6 +90,54 @@ class RetrievalEvaluatorTests(unittest.TestCase):
         self.assertEqual(code, 2)
         self.assertEqual(payload["error"], "cases-schema")
 
+    def test_fixture_accepts_direct_file_targets(self) -> None:
+        self.fixture.write_text(
+            json.dumps(
+                {
+                    "schema": 1,
+                    "corpus": {"project": "demo"},
+                    "cases": [
+                        {
+                            "id": "example",
+                            "query": "пример",
+                            "relevant_files": ["session.md"],
+                        }
+                    ],
+                },
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+
+        project, cases = EVALUATOR._load_fixture(self.fixture)
+        evaluated = EVALUATOR._file_relevance([], cases)
+
+        self.assertEqual(project, "demo")
+        self.assertEqual(evaluated[0]["relevant"], ["session.md"])
+
+    def test_fixture_rejects_ambiguous_record_and_file_targets(self) -> None:
+        self.fixture.write_text(
+            json.dumps(
+                {
+                    "schema": 1,
+                    "corpus": {"project": "demo"},
+                    "cases": [
+                        {
+                            "id": "example",
+                            "query": "пример",
+                            "relevant": ["cr-example"],
+                            "relevant_files": ["session.md"],
+                        }
+                    ],
+                },
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+
+        with self.assertRaisesRegex(ValueError, "exactly one"):
+            EVALUATOR._load_fixture(self.fixture)
+
     def test_corpus_mismatch_precedes_missing_target_ids(self) -> None:
         self.write_record("mavo-short2", "Тестовая запись")
         self.write_fixture("agentic-research", ["cr-does-not-exist"])

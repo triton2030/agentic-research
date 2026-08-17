@@ -20,6 +20,12 @@ Acceptance этой возможности включает случай, где
 `session-context`, а default JSON показывает нужный файл в top-5
 `session_candidates`, не меняя порядок `records`.
 
+Acceptance также включает обычный file-route: ни один корень запроса не нов
+для record-index, но два отдельных wildcard-корня повторного корневого запроса
+совпадают в одной `session-context`; default JSON показывает этот файл в
+top-5 `session_candidates`, не меняя `records`. Одно обычное совпадение
+маршрут не открывает.
+
 Рабочий контекст остаётся transient synthesis с source evidence. Он не создаёт
 постоянный «профиль владельца» и не превращает датированный recall-лог в
 текущий канон.
@@ -29,8 +35,9 @@ Acceptance этой возможности включает случай, где
 1. При конфликте false application и missed recall побеждает abstention: лучше
    переспросить, чем уверенно применить stale или wrong-scope позицию.
 2. При конфликте semantic rank и применимости побеждают scope, commitment,
-   chronology и прочитанный полный record; `session-context` и score только
-   выбирают файл для чтения и не являются owner evidence.
+   chronology, прочитанный от первой до последней строки session holder и
+   проверка более поздних holder-ов по тому же claim; `session-context` и score
+   только выбирают файлы для чтения и не являются owner evidence.
 3. При конфликте recall и более свежего project-local owner-а побеждает live
    owner; расхождение остаётся видимым.
 4. По умолчанию ищется только project-local corpus. Cross-project recall

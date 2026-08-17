@@ -401,18 +401,32 @@ def search_session_context_bm25(
 
 def search_session_routes(
     records: list[dict[str, Any]], query: str
-) -> list[dict[str, Any]]:
-    novel_tokens = [
-        token
-        for token in QUERY_TOKEN_RE.findall(query.casefold())
-        if not search_bm25(records, token)
-    ]
-    if not novel_tokens:
-        return []
-    return search_session_context_bm25(
-        records,
-        " ".join(novel_tokens),
-    )[:SESSION_ROUTE_LIMIT]
+) -> tuple[list[dict[str, Any]], str]:
+    tokens = list(dict.fromkeys(QUERY_TOKEN_RE.findall(query.casefold())))
+    wildcard_tokens = {token for token in tokens if token.endswith("*")}
+    novel_tokens = {token for token in tokens if not search_bm25(records, token)}
+    card_matches: dict[str, set[str]] = defaultdict(set)
+    for token in tokens:
+        for record in search_session_context_bm25(records, token):
+            card_matches[record["file"]].add(token)
+
+    ranked_cards = search_session_context_bm25(records, query)
+    admitted: list[tuple[int, int, dict[str, Any]]] = []
+    for bm25_rank, record in enumerate(ranked_cards):
+        matched_tokens = card_matches[record["file"]]
+        novel_match = bool(matched_tokens & novel_tokens)
+        ordinary_match = (
+            len(wildcard_tokens) >= 2 and len(matched_tokens) >= 2
+        )
+        if novel_match or ordinary_match:
+            admitted.append((len(matched_tokens), bm25_rank, record))
+
+    if admitted:
+        admitted.sort(key=lambda item: (-item[0], item[1]))
+        return [item[2] for item in admitted[:SESSION_ROUTE_LIMIT]], "open"
+    if len(wildcard_tokens) < 2:
+        return [], "closed: fewer than two wildcard roots"
+    return [], "no lexical admission"
 
 
 def _cache_root() -> Path:
@@ -645,7 +659,8 @@ def search_dense(records: list[dict[str, Any]], query: str) -> list[dict[str, An
         _store_vectors(cache_path, additions)
         vectors.update(additions)
 
-    query_vector = _embed(model, [QUERY_PREFIX + query])[0]
+    dense_query = query.replace("*", "")
+    query_vector = _embed(model, [QUERY_PREFIX + dense_query])[0]
     ranked: list[tuple[float, int, dict[str, Any]]] = []
     for index, (record, content_hash) in enumerate(zip(records, hashes, strict=True)):
         score = sum(
@@ -789,32 +804,29 @@ def _filter(records: list[dict[str, Any]], args: argparse.Namespace) -> list[dic
 
 def _retrieve(
     records: list[dict[str, Any]], args: argparse.Namespace
-) -> tuple[list[dict[str, Any]], str | None, list[dict[str, Any]]]:
+) -> tuple[list[dict[str, Any]], str | None, list[dict[str, Any]], str | None]:
     filtered = _filter(records, args)
     if not args.query:
-        return filtered, None, []
-    session_routes = search_session_routes(filtered, args.query)
+        return filtered, None, [], None
+    session_routes, card_route = search_session_routes(filtered, args.query)
     if args.timeline or args.lexical:
         lexical = search_bm25(filtered, args.query)
     if args.timeline:
-        if lexical:
-            return lexical, "lexical", session_routes
+        lexical_addresses = {record["address"] for record in lexical}
         card_files = {record["file"] for record in session_routes}
         return [
             record
             for record in filtered
-            if record["file"] in card_files
-        ], "lexical", session_routes
+            if record["address"] in lexical_addresses or record["file"] in card_files
+        ], "lexical", session_routes, card_route
     if args.lexical:
-        if lexical:
-            return _first_per_file(lexical), "lexical", session_routes
-        return session_routes, "lexical", session_routes
+        return _first_per_file(lexical), "lexical", session_routes, card_route
     hybrid = search_hybrid(
         filtered,
         args.query,
         collapse_files=True,
     )
-    return hybrid or session_routes, "hybrid", session_routes
+    return hybrid, "hybrid", session_routes, card_route
 
 
 def _quality(records: list[dict[str, Any]]) -> dict[str, int]:
@@ -852,10 +864,9 @@ def _summary(record: dict[str, Any]) -> dict[str, Any]:
 def _session_summary(record: dict[str, Any]) -> dict[str, Any]:
     fields = (
         "file",
-        "session_context",
         "session",
-        "agent",
-        "address",
+        "date",
+        "session_context",
         "score",
     )
     return {field: record[field] for field in fields if field in record}
@@ -1008,6 +1019,24 @@ def _render_digest(
         _result_status(len(records), matched, total, truncated_by, retrieval)
     ]
     lines.append(digest or "selection=none")
+    return "\n".join(lines)
+
+
+def _render_session_candidates(
+    records: list[dict[str, Any]], card_route: str, max_chars: int
+) -> str:
+    lines = [f"card_route={card_route}"]
+    if len(lines[0]) > max_chars:
+        return ""
+    for record in records:
+        line = (
+            f"holder={record['file']} date={record.get('date') or 'unknown'} "
+            f"session={record['session']} score={record['score']:.4f}"
+        )
+        candidate = "\n".join((*lines, line))
+        if len(candidate) > max_chars:
+            break
+        lines.append(line)
     return "\n".join(lines)
 
 
@@ -1183,6 +1212,7 @@ def main() -> int:
         records, diagnostic_count = load(args.records_dir)
         total = len(records)
         session_routes: list[dict[str, Any]] = []
+        card_route: str | None = None
         inventory_mode = not any(
             (
                 args.digest,
@@ -1211,7 +1241,7 @@ def main() -> int:
             matched = len(selected)
             retrieval = None
         else:
-            candidates, retrieval, session_routes = _retrieve(records, args)
+            candidates, retrieval, session_routes, card_route = _retrieve(records, args)
             if args.timeline:
                 candidates = _timeline(candidates)
             matched = len(candidates)
@@ -1237,7 +1267,13 @@ def main() -> int:
             "returned": len(selected),
             "truncated": truncated_by is not None,
             "truncated_by": truncated_by,
-            "selection": "none" if matched == 0 else "records",
+            "selection": (
+                "records"
+                if matched
+                else "session_candidates"
+                if session_routes
+                else "none"
+            ),
             "quality": _quality(records),
             "warnings": _warnings(records),
             "records": selected if args.show else [_summary(record) for record in selected],
@@ -1248,6 +1284,7 @@ def main() -> int:
             ]
             envelope["session_candidate_count"] = len(session_routes)
             envelope["session_candidates_returned"] = len(session_routes)
+            envelope["card_route"] = card_route
             envelope["retrieval"] = retrieval
             envelope["retrieval_complete"] = True
             envelope["candidate_count"] = matched
@@ -1311,17 +1348,23 @@ def main() -> int:
         elif inventory_mode:
             print(inventory(records, diagnostic_count))
         else:
-            print(
-                _render_digest(
-                    selected,
-                    head=args.head,
-                    verbose=args.verbose,
-                    matched=matched,
-                    total=total,
-                    truncated_by=truncated_by,
-                    retrieval=retrieval,
-                )
+            rendered = _render_digest(
+                selected,
+                head=args.head,
+                verbose=args.verbose,
+                matched=matched,
+                total=total,
+                truncated_by=truncated_by,
+                retrieval=retrieval,
             )
+            if args.query and card_route is not None:
+                remaining = max(args.max_chars - len(rendered) - 1, 0)
+                route_digest = _render_session_candidates(
+                    session_routes, card_route, remaining
+                )
+                if route_digest:
+                    rendered = f"{rendered}\n{route_digest}"
+            print(rendered)
         if args.check and args.strict and diagnostic_count:
             return 1
         return 0

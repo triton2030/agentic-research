@@ -16,11 +16,21 @@ SCRIPT = Path(__file__).parents[1] / "scripts" / "chat_digest.py"
 CASES = Path(__file__).with_name("retrieval_cases.json")
 if str(SCRIPT.parent) not in sys.path:
     sys.path.insert(0, str(SCRIPT.parent))
-SPEC = importlib.util.spec_from_file_location("chat_digest_eval", SCRIPT)
-if SPEC is None or SPEC.loader is None:
-    raise RuntimeError("cannot import chat_digest.py")
-DIGEST = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(DIGEST)
+
+
+def _load_digest(path: Path, module_name: str = "chat_digest_eval") -> Any:
+    parent = str(path.parent)
+    if parent not in sys.path:
+        sys.path.insert(0, parent)
+    spec = importlib.util.spec_from_file_location(module_name, path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"cannot import {path}")
+    digest = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(digest)
+    return digest
+
+
+DIGEST = _load_digest(SCRIPT)
 
 FIXTURE_SCHEMA = 1
 
@@ -48,13 +58,24 @@ def _load_fixture(path: Path) -> tuple[str, list[dict[str, Any]]]:
         if not isinstance(case.get("query"), str) or not case["query"].strip():
             raise ValueError(f"cases[{index}].query must be a non-empty string")
         relevant = case.get("relevant")
-        if (
-            not isinstance(relevant, list)
-            or not relevant
-            or not all(isinstance(record_id, str) and record_id for record_id in relevant)
-        ):
+        relevant_files = case.get("relevant_files")
+        record_targets_valid = (
+            isinstance(relevant, list)
+            and bool(relevant)
+            and all(isinstance(record_id, str) and record_id for record_id in relevant)
+        )
+        file_targets_valid = (
+            isinstance(relevant_files, list)
+            and bool(relevant_files)
+            and all(
+                isinstance(filename, str) and filename
+                for filename in relevant_files
+            )
+        )
+        if record_targets_valid == file_targets_valid:
             raise ValueError(
-                f"cases[{index}].relevant must be a non-empty string list"
+                f"cases[{index}] must define exactly one non-empty string list: "
+                "relevant or relevant_files"
             )
     return project, cases
 
@@ -79,7 +100,7 @@ def _fixture_corpus_error(
         }
 
     targets = {
-        record_id for case in cases for record_id in case["relevant"]
+        record_id for case in cases for record_id in case.get("relevant", [])
     }
     by_id: dict[str, list[dict[str, Any]]] = {}
     for record in records:
@@ -105,9 +126,15 @@ def _fixture_corpus_error(
     return None
 
 
-def _ranking(corpus: Path, query: str, *, lexical: bool) -> list[str]:
+def _ranking(
+    corpus: Path,
+    query: str,
+    *,
+    lexical: bool,
+    script: Path = SCRIPT,
+) -> list[str]:
     if lexical:
-        command = [sys.executable, str(SCRIPT)]
+        command = [sys.executable, str(script)]
     else:
         command = [
             "uv",
@@ -115,7 +142,7 @@ def _ranking(corpus: Path, query: str, *, lexical: bool) -> list[str]:
             "--offline",
             "--locked",
             "--script",
-            str(SCRIPT),
+            str(script),
         ]
     command.extend(
         (
@@ -155,6 +182,9 @@ def _file_relevance(
         files_by_record_id.setdefault(record["record_id"], []).append(record["file"])
     result: list[dict[str, Any]] = []
     for case in cases:
+        if "relevant_files" in case:
+            result.append({**case, "relevant": case["relevant_files"]})
+            continue
         files = list(
             dict.fromkeys(
                 filename
@@ -201,10 +231,16 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("corpus", type=Path)
     parser.add_argument("--cases", type=Path, default=CASES)
+    parser.add_argument("--digest-script", type=Path, default=SCRIPT)
     parser.add_argument("--min-hit-at-five", type=float, default=0.90)
     args = parser.parse_args()
 
-    records, _ = DIGEST.load(args.corpus)
+    digest = (
+        DIGEST
+        if args.digest_script.resolve() == SCRIPT.resolve()
+        else _load_digest(args.digest_script.resolve(), "chat_digest_eval_candidate")
+    )
+    records, _ = digest.load(args.corpus)
     try:
         project, cases = _load_fixture(args.cases)
     except (OSError, json.JSONDecodeError, ValueError) as error:
@@ -228,8 +264,22 @@ def main() -> int:
     lexical_rankings: list[list[str]] = []
     hybrid_rankings: list[list[str]] = []
     for case in evaluation_cases:
-        lexical_rankings.append(_ranking(args.corpus, case["query"], lexical=True))
-        hybrid_rankings.append(_ranking(args.corpus, case["query"], lexical=False))
+        lexical_rankings.append(
+            _ranking(
+                args.corpus,
+                case["query"],
+                lexical=True,
+                script=args.digest_script,
+            )
+        )
+        hybrid_rankings.append(
+            _ranking(
+                args.corpus,
+                case["query"],
+                lexical=False,
+                script=args.digest_script,
+            )
+        )
 
     lexical, lexical_failed = _metrics(evaluation_cases, lexical_rankings)
     hybrid, hybrid_failed = _metrics(evaluation_cases, hybrid_rankings)
@@ -254,9 +304,10 @@ def main() -> int:
                 "records": len(records),
                 "cases": len(cases),
                 "relevance_unit": "file",
-                "model": DIGEST.EMBEDDING_MODEL,
-                "revision": DIGEST.EMBEDDING_REVISION,
-                "hybrid_depth": DIGEST.HYBRID_DEPTH,
+                "digest_script": str(args.digest_script),
+                "model": digest.EMBEDDING_MODEL,
+                "revision": digest.EMBEDDING_REVISION,
+                "hybrid_depth": digest.HYBRID_DEPTH,
                 "lexical": lexical,
                 "hybrid": hybrid,
                 "delta_hit@5": round(hybrid["hit@5"] - lexical["hit@5"], 3),
