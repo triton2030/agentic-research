@@ -8,6 +8,7 @@ import json
 import subprocess
 import sys
 import tempfile
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -131,7 +132,12 @@ async def run_ingest(args: argparse.Namespace) -> dict[str, Any]:
 async def run_query(args: argparse.Namespace) -> dict[str, Any]:
     database = _data_path(args.database)
     async with open_graph(database) as graphiti:
-        return await query_facts(graphiti, args.query, limit=args.results)
+        return await query_facts(
+            graphiti,
+            args.query,
+            limit=args.results,
+            as_of=args.as_of,
+        )
 
 
 async def run_demo(args: argparse.Namespace) -> dict[str, Any]:
@@ -139,7 +145,13 @@ async def run_demo(args: argparse.Namespace) -> dict[str, Any]:
     database = _data_path(args.database)
     async with open_graph(database) as graphiti:
         ingestion = await ingest_quotes(graphiti, quotes)
-        edges = await _search_fact_edges(graphiti, args.query, limit=args.results)
+        as_of = datetime.now(UTC)
+        edges = await _search_fact_edges(
+            graphiti,
+            args.query,
+            limit=args.results,
+            as_of=as_of,
+        )
         if not edges:
             raise RuntimeError("live vertical returned no derived facts")
         await validate_edge_provenance_once(graphiti, edges, quotes)
@@ -148,6 +160,7 @@ async def run_demo(args: argparse.Namespace) -> dict[str, Any]:
         "skipped_records": skipped_records,
         "ingestion": ingestion,
         "query": args.query,
+        "as_of": as_of.isoformat(),
         "facts": _facts_from_edges(edges),
     }
 
@@ -157,6 +170,16 @@ def _add_source_arguments(command: argparse.ArgumentParser, *, limit_default: in
     command.add_argument("--record-id", action="append", help="stable quote UUID or episode.name")
     command.add_argument("--limit", type=int, default=limit_default)
     command.add_argument("--database", type=Path, default=DEFAULT_DATABASE)
+
+
+def _exact_datetime(value: str) -> datetime:
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError as error:
+        raise argparse.ArgumentTypeError("expected an ISO-8601 datetime") from error
+    if parsed.tzinfo is None:
+        raise argparse.ArgumentTypeError("datetime must include a timezone")
+    return parsed
 
 
 def parser() -> argparse.ArgumentParser:
@@ -171,6 +194,11 @@ def parser() -> argparse.ArgumentParser:
     query = subcommands.add_parser("query", help="search Graphiti's derived facts")
     query.add_argument("query")
     query.add_argument("--results", type=int, default=10)
+    query.add_argument(
+        "--as-of",
+        type=_exact_datetime,
+        help="return facts valid at this ISO-8601 time; defaults to now",
+    )
     query.add_argument("--database", type=Path, default=DEFAULT_DATABASE)
 
     demo = subcommands.add_parser("demo", help="ingest explicit records and query derived facts")

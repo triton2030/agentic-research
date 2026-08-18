@@ -35,7 +35,7 @@ Graph:
 3. Держать lifecycle фактов через `valid_at` / `invalid_at`, сохраняя историю
    при последующих изменениях.
 4. Возвращать релевантные facts через штатный hybrid semantic + BM25 search с
-   RRF.
+   RRF и явным temporal view.
 
 Graphiti не обещает отдельный fact для каждого episode. Контекстная или
 неполная реплика может остаться только raw episode; adapter не компенсирует это
@@ -119,14 +119,28 @@ source episodes сохраняются. Если relation не извлечен�
 
 ## Search boundary
 
-Обычный query вызывает:
+Обычный query фиксирует `as_of=now`; исторический query получает явный aware
+ISO-8601 `as_of`. Затем adapter вызывает:
 
 ```python
-graphiti.search(query, group_ids=["owner-quotes"], num_results=limit)
+graphiti.search(
+    query,
+    group_ids=["owner-quotes"],
+    num_results=limit,
+    search_filter=SearchFilters(
+        valid_at=[[valid_at <= as_of], [valid_at IS NULL]],
+        invalid_at=[[invalid_at > as_of], [invalid_at IS NULL]],
+    ),
+)
 ```
 
-Это штатный basic `EDGE_HYBRID_SEARCH_RRF` Graphiti. Adapter сериализует
-`EntityEdge` только в:
+Это штатные `SearchFilters` и basic `EDGE_HYBRID_SEARCH_RRF` Graphiti. Outer
+filter groups используют OR, поля между собой — AND. Момент начала включён;
+момент `invalid_at` уже исключён. После upstream search adapter повторяет ту же
+проверку над возвращёнными edges и fail-closed отбрасывает edge вне выбранного
+времени. Это защищает публичный current view даже при backend regression.
+
+Adapter сериализует `EntityEdge` только в:
 
 ```json
 {
@@ -137,8 +151,14 @@ graphiti.search(query, group_ids=["owner-quotes"], num_results=limit)
 }
 ```
 
-Обёртка CLI содержит query и список facts, но не содержит raw quote, path,
-source link, `sources` или episode ID.
+Обёртка CLI содержит query, `as_of` и список facts, но не содержит raw quote,
+path, source link, `sources` или episode ID. Без `--as-of` invalidated fact не
+может попасть в current answer. Историческая версия доступна только через явно
+указанный `--as-of`.
+
+Гарантия начинается после штатной invalidation. Если Graphiti не распознала
+позднюю реплику как изменение той же relation и не выставила `invalid_at`,
+adapter не делает собственный semantic verdict и не скрывает этот предел.
 
 Basic RRF search не вызывает `CrossEncoderClient.rank`. Adapter всё равно
 передаёт fail-closed implementation, чтобы другой search recipe не сделал
@@ -172,6 +192,8 @@ Acceptance adapter:
 - [Adding episodes](https://help.getzep.com/graphiti/core-concepts/adding-episodes)
 - [Graph namespacing](https://help.getzep.com/graphiti/core-concepts/graph-namespacing)
 - [Searching the graph](https://help.getzep.com/graphiti/working-with-data/searching)
+- [Search filters and current facts](https://help.getzep.com/searching-the-graph#checking-for-null-timestamps)
 - [Pinned v0.29.3](https://github.com/getzep/graphiti/releases/tag/v0.29.3)
 - [Pinned `add_episode` source](https://github.com/getzep/graphiti/blob/021d3a57d511f21b10adaf7fa923bd5c1fce5e9d/graphiti_core/graphiti.py#L980-L1111)
+- [Pinned temporal filter source](https://github.com/getzep/graphiti/blob/021d3a57d511f21b10adaf7fa923bd5c1fce5e9d/graphiti_core/search/search_filters.py#L149-L271)
 - [Pinned `EntityEdge.episodes`](https://github.com/getzep/graphiti/blob/021d3a57d511f21b10adaf7fa923bd5c1fce5e9d/graphiti_core/edges.py#L263-L282)

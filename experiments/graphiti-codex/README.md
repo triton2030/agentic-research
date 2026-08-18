@@ -15,7 +15,7 @@ answer.
 | `add_episode()` и `EpisodeType.message` | Чтение holder-файлов; формат `Owner: <quote>` |
 | Официальные prompts, extraction, entity/edge resolution и temporal fields | `CodexLLMClient` через официальный `_generate_response` seam |
 | `episode.name` и внутренний Graphiti UUID | Stable source identity в `episode.name`; UUID создаёт Graphiti |
-| `Graphiti.search()` и stock `EDGE_HYBRID_SEARCH_RRF` | Namespace `owner-quotes` |
+| `Graphiti.search()`, `SearchFilters` и stock `EDGE_HYBRID_SEARCH_RRF` | Namespace `owner-quotes`; explicit current/as-of view |
 | `CrossEncoderClient` seam | Fail-closed client: не вызывает OpenAI и не подделывает rank |
 | Graph driver lifecycle | Embedded FalkorDBLite database under `.data/` |
 | Embedder seam | Локальный `intfloat/multilingual-e5-small` через FastEmbed |
@@ -30,9 +30,11 @@ coverage thresholds.
 После последовательного ingest внутри графа остаются исходные message episodes,
 а Graphiti автономно строит entity nodes и time-stamped relationship facts.
 Поздние сообщения могут инвалидировать прежние связи, не удаляя историю.
-Обычный `search()` объединяет semantic similarity и BM25 через штатный RRF и
-возвращает найденные facts. Это не обещание пересказать каждую строку: фраза,
-из которой Graphiti не извлёк relation, может остаться только episode.
+Обычный `search()` объединяет semantic similarity и BM25 через штатный RRF.
+Публичный query дополнительно передаёт штатный temporal `SearchFilters` и
+возвращает только facts, действующие в один явно названный момент. Это не
+обещание пересказать каждую строку: фраза, из которой Graphiti не извлёк
+relation, может остаться только episode.
 
 Graphiti messages сериализуются для Codex без добавленной adapter-инструкции:
 исходные `role` и `content` сохраняются. Codex запускается как
@@ -97,12 +99,26 @@ uv run graphiti-codex demo \
 uv run graphiti-codex ingest HOLDER.md --limit 3 --database .data/graphiti.db
 uv run graphiti-codex ingest HOLDER.md --record-id <quote-uuid>
 uv run graphiti-codex query "вопрос к базе знаний" --database .data/graphiti.db
+uv run graphiti-codex query "что было актуально раньше?" \
+  --as-of 2026-08-10T12:00:00+05:00 \
+  --database .data/graphiti.db
 ```
 
-`query` возвращает для каждого результата только `kind`, `fact`, `valid_at` и
-`invalid_at` (в обёртке результата — сам query и список `facts`). В нём нет raw
-quote, Markdown path/address, source link, `sources` или episode IDs. Private
-проверка живёт только внутри demo/tests и не является query API.
+Без `--as-of` query фиксирует текущее время. Он использует официальный temporal
+filter `(valid_at <= as_of OR NULL) AND (invalid_at > as_of OR NULL)` и повторно
+проверяет каждый edge перед публичным ответом. Поэтому fact, который Graphiti
+уже пометил `invalid_at`, не может попасть в текущий ответ; исторический ответ
+возможен только через явный `--as-of`.
+
+`query` возвращает `as_of`, а для каждого результата — только `kind`, `fact`,
+`valid_at` и `invalid_at`. В нём нет raw quote, Markdown path/address, source
+link, `sources` или episode IDs. Private проверка живёт только внутри
+demo/tests и не является query API.
+
+Граница гарантии: temporal filter защищает от уже инвалидированных facts. Если
+штатная Graphiti resolution не распознала две реплики как изменение одной
+relation и не выставила `invalid_at`, adapter не подменяет это собственной
+семантикой.
 
 Approximate record без полного времени и timezone не ingest-ится. При tolerant
 чтении явного holder он пропускается с machine-readable address/reason; точный

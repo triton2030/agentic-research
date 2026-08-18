@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from datetime import UTC
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -13,6 +13,7 @@ from graphiti_core import Graphiti
 from graphiti_core.driver.falkordb_driver import FalkorDriver
 from graphiti_core.edges import EntityEdge
 from graphiti_core.nodes import EpisodeType, EpisodicNode
+from graphiti_core.search.search_filters import ComparisonOperator, DateFilter, SearchFilters
 from redislite.async_falkordb_client import AsyncFalkorDB
 
 from graphiti_codex.codex_llm import CodexLLMClient
@@ -123,10 +124,63 @@ async def ingest_quotes(graphiti: Graphiti, quotes: list[SourceQuote]) -> dict[s
     }
 
 
-async def _search_fact_edges(graphiti: Graphiti, query: str, *, limit: int) -> list[EntityEdge]:
-    """Use Graphiti's ordinary stock hybrid search recipe."""
+def _as_utc(value: datetime) -> datetime:
+    if value.tzinfo is None:
+        raise ValueError("fact validity time must include a timezone")
+    return value.astimezone(UTC)
 
-    return await graphiti.search(query, group_ids=[GROUP_ID], num_results=limit)
+
+def _facts_valid_at(as_of: datetime) -> SearchFilters:
+    """Build Graphiti's documented temporal filter for one point in time."""
+
+    point = _as_utc(as_of)
+    return SearchFilters(
+        valid_at=[
+            [
+                DateFilter(
+                    date=point,
+                    comparison_operator=ComparisonOperator.less_than_equal,
+                )
+            ],
+            [DateFilter(comparison_operator=ComparisonOperator.is_null)],
+        ],
+        invalid_at=[
+            [
+                DateFilter(
+                    date=point,
+                    comparison_operator=ComparisonOperator.greater_than,
+                )
+            ],
+            [DateFilter(comparison_operator=ComparisonOperator.is_null)],
+        ],
+    )
+
+
+def _edge_is_valid_at(edge: EntityEdge, as_of: datetime) -> bool:
+    point = _as_utc(as_of)
+    starts_before_point = edge.valid_at is None or _as_utc(edge.valid_at) <= point
+    ends_after_point = edge.invalid_at is None or _as_utc(edge.invalid_at) > point
+    return starts_before_point and ends_after_point
+
+
+async def _search_fact_edges(
+    graphiti: Graphiti,
+    query: str,
+    *,
+    limit: int,
+    as_of: datetime,
+) -> list[EntityEdge]:
+    """Run stock hybrid search, restricted to facts valid at ``as_of``."""
+
+    edges = await graphiti.search(
+        query,
+        group_ids=[GROUP_ID],
+        num_results=limit,
+        search_filter=_facts_valid_at(as_of),
+    )
+    # The explicit Graphiti filter is authoritative. This local check makes the
+    # public boundary fail closed if a backend ever returns an out-of-range edge.
+    return [edge for edge in edges if _edge_is_valid_at(edge, as_of)]
 
 
 def _derived_fact(edge: EntityEdge) -> dict[str, Any]:
@@ -144,11 +198,18 @@ def _facts_from_edges(edges: list[EntityEdge]) -> list[dict[str, Any]]:
     return [_derived_fact(edge) for edge in edges]
 
 
-async def query_facts(graphiti: Graphiti, query: str, *, limit: int = 10) -> dict[str, Any]:
-    """Return only Graphiti's derived fact layer for an ordinary query."""
+async def query_facts(
+    graphiti: Graphiti,
+    query: str,
+    *,
+    limit: int = 10,
+    as_of: datetime | None = None,
+) -> dict[str, Any]:
+    """Return derived facts that were valid at one explicit point in time."""
 
-    edges = await _search_fact_edges(graphiti, query, limit=limit)
-    return {"query": query, "facts": _facts_from_edges(edges)}
+    point = _as_utc(as_of or datetime.now(UTC))
+    edges = await _search_fact_edges(graphiti, query, limit=limit, as_of=point)
+    return {"query": query, "as_of": point.isoformat(), "facts": _facts_from_edges(edges)}
 
 
 async def validate_edge_provenance_once(
