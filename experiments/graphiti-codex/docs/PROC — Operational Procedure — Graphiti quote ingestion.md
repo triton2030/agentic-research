@@ -24,6 +24,23 @@ Holder остаётся исходным evidence. Один точный record 
 links, `sources` и episode IDs не входят в пользовательский ответ. Их можно
 проверить только во внутреннем one-shot validator demo/test.
 
+## Ожидаемый upstream outcome
+
+После ingest Graphiti должен дать тот же эффект, который заявлен для Context
+Graph:
+
+1. Сохранить каждое исходное сообщение отдельным internal episode.
+2. Автономно извлечь и разрешить entity nodes и relationship facts; не создавать
+   наш параллельный пересказ или сводку.
+3. Держать lifecycle фактов через `valid_at` / `invalid_at`, сохраняя историю
+   при последующих изменениях.
+4. Возвращать релевантные facts через штатный hybrid semantic + BM25 search с
+   RRF.
+
+Graphiti не обещает отдельный fact для каждого episode. Контекстная или
+неполная реплика может остаться только raw episode; adapter не компенсирует это
+custom prompt, ontology или синтезом.
+
 ## Upstream и adapter
 
 | Upstream `graphiti-core==0.29.3` | Adapter |

@@ -25,6 +25,15 @@ search recipes. Adapter не передаёт `custom_extraction_instructions`, 
 ontology или entity/edge types, не синтезирует facts вручную и не вводит
 coverage thresholds.
 
+## Ожидаемый эффект Graphiti
+
+После последовательного ingest внутри графа остаются исходные message episodes,
+а Graphiti автономно строит entity nodes и time-stamped relationship facts.
+Поздние сообщения могут инвалидировать прежние связи, не удаляя историю.
+Обычный `search()` объединяет semantic similarity и BM25 через штатный RRF и
+возвращает найденные facts. Это не обещание пересказать каждую строку: фраза,
+из которой Graphiti не извлёк relation, может остаться только episode.
+
 Graphiti messages сериализуются для Codex без добавленной adapter-инструкции:
 исходные `role` и `content` сохраняются. Codex запускается как
 `gpt-5.6-luna`, reasoning effort `max`, ephemeral, read-only, approvals never;
