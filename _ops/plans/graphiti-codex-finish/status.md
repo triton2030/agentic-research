@@ -36,9 +36,9 @@ Graphiti LLM-call, максимум 4 Luna-turn внутри episode, сами e
   распознана моделью и не дала invalidation: temporal filter гарантирует
   исключение уже инвалидированных рёбер, но не гарантирует распознавание каждой
   коррекции stock Graphiti.
-- Ordered DB на текущем pause checkpoint:
-  190/693 уникальных episodes, 286 facts, 32 invalidated, remaining 503,
-  duplicate names 0; writer-процессов нет. Резервная копия до удаления старого
+- Последний подтверждённый reopen checkpoint ordered DB:
+  195/693 уникальных episodes, 300 facts, 33 invalidated, remaining 498,
+  duplicate names 0; BGSAVE `ok`, changes 0. Резервная копия до удаления старого
   concurrent-дубля:
   `.data/owner-quotes-2026-08-04_2026-08-18-luna-low-ordered.before-dedup-20260819T0110.db`.
 - Последние полные пачки 5/5: 18 facts за 226.00 s, 10 facts за 193.23 s,
@@ -65,7 +65,8 @@ Graphiti LLM-call, максимум 4 Luna-turn внутри episode, сами e
 - Текущий production verdict: сохранять warm app-server + ephemeral thread на
   каждый Graphiti call. Thread-per-episode доказал speed potential, но на этом
   exact corpus-probe ухудшил fact recall, attribution и historical coverage;
-  temporal correctness имеет приоритет над скоростью.
+  temporal correctness имеет приоритет над скоростью. Владелец закрепил выбор:
+  `_ops/chat-recall/2026-08-18-151822-codex-01a0145e.md:67`.
 - Повторный A/B на девяти других quotes проверил три независимых серии:
   эволюцию правил объяснений, разрешение quote + Agent context и алгоритм
   восстановления времени. Shared был 45.5% быстрее: 230.789 s / 35 LLM calls
@@ -82,8 +83,8 @@ Graphiti LLM-call, максимум 4 Luna-turn внутри episode, сами e
   shared conversation ускоряет turns, но materially снижает owner-fact recall;
   ephemeral остаётся production transport, а несовершенная invalidation —
   наблюдаемый предел stock Graphiti/Luna, не повод добавлять свою семантику.
-- Pinned retained task `01a01480-61ba-77b3-a876-01f3b50b15a5` остановлен на
-  чистом checkpoint после текущей пачки; возобновлять тем же batch-size 5 после
-  принятия transport verdict.
+- Pinned retained task `01a01480-61ba-77b3-a876-01f3b50b15a5` активен и после
+  чистого checkpoint 195/693 продолжает отдельными `batch-size 5`; runtime
+  сильнее этого снимка, следующая сессия сначала читает сам task.
 - Adapter теперь fail-closed при duplicate episode identity; `ruff` — pass,
   `pytest` — 26 passed. Live `doctor` — ready.

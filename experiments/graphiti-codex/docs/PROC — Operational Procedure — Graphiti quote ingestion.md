@@ -65,11 +65,13 @@ scope-формат не передаются. Adapter не синтезируе�
 ## LLM boundary
 
 1. Graphiti формирует официальный список `Message` и response model.
-2. Adapter сериализует этот список для одного ephemeral Codex CLI turn. `role` и
-   `content` проходят без добавленной adapter-инструкции и без переписывания
-   prompt. Output schema передаётся CLI через штатный `--output-schema`.
+2. Adapter сериализует этот список для одного Codex turn. `role` и `content`
+   проходят без добавленной adapter-инструкции и без переписывания prompt.
+   Один `codex app-server` живёт на время CLI-run; каждый Graphiti call начинает
+   в нём новый ephemeral thread и передаёт response schema через штатный
+   `output_schema`.
 3. Invocation фиксирован на `gpt-5.6-luna`, reasoning effort `low`, sandbox
-   `read-only`, approvals `never`, ephemeral process. Shell, memory, apps,
+   `read-only`, approvals `never`. Shell, memory, apps,
    browser/computer и workspace-tools явно отключены; каталог skills,
    permissions/apps/collaboration/environment context не добавляется в model
    input. После базовой инструкции самой Codex-модели она получает только
@@ -82,6 +84,11 @@ scope-формат не передаются. Adapter не синтезируе�
 5. Adapter допускает не более четырёх одновременных Luna turns только для
    независимых extraction/resolution операций, которые Graphiti сам запускает
    внутри текущего episode.
+
+Conversation thread между Graphiti calls не переиспользуется. Live A/B показал,
+что thread-per-episode быстрее, но теряет больше owner-facts и хуже сохраняет
+attribution/history. Поэтому тёплым остаётся только transport-процесс, а каждый
+structured completion изолирован новым ephemeral thread.
 
 Это повторяет provider-контракт Graphiti, а не превращает extraction в агента:
 штатный OpenAI client делает один structured completion без tools и памяти,

@@ -24,6 +24,22 @@ Graphiti сам владеет prompts, extraction, deduplication, temporal inva
 search recipes. Adapter не передаёт custom ontology или extraction instruction,
 не синтезирует facts и не добавляет собственный resolver.
 
+## Карта кода
+
+- `quotes.py` — единственный владелец чтения holder records, stable identity и
+  вычисления `reference_time` для date-only записей.
+- `codex_llm.py` — единственная граница Graphiti → Codex: app-server lifecycle,
+  ephemeral threads, изоляция, concurrency и strict schema validation.
+- `graph.py` — сборка Graphiti, последовательный ingest, temporal search и
+  приватная provenance-проверка demo.
+- `local_clients.py` — локальные embeddings и fail-closed reranker seam.
+- `cli.py` — аргументы команд, operational events и JSON-вывод; Graphiti-правил
+  здесь нет.
+
+Тесты повторяют эти границы тремя файлами: `test_quotes.py`, `test_codex_llm.py`
+и `test_graph.py`. Новую Graphiti-семантику следует искать в upstream, а не
+добавлять в CLI или source reader.
+
 ## Ожидаемый эффект Graphiti
 
 После последовательного ingest внутри графа остаются исходные message episodes,
@@ -159,7 +175,7 @@ uv run graphiti-codex doctor
 
 Acceptance этой тонкой границы — unit tests, пять немедленных reopen cycles
 embedded database и свежий live episode → derived fact → private provenance.
-Полный корпус остаётся следующей операцией исходной пользовательской цели после
-этого acceptance. Он запускается тем же явным последовательным ingest выбранных
-holder-файлов и record IDs; отдельная corpus-система/control plane для этого не
-добавляется.
+Полный frozen-корпус загружается тем же явным последовательным ingest выбранных
+holder-файлов короткими возобновляемыми порциями. Его живой checkpoint и остаток
+ведёт `_ops/plans/graphiti-codex-finish/status.md`; отдельная
+corpus-система/control plane для этого не добавляется.
