@@ -32,10 +32,10 @@ kind: status
 - Подтверждено live: два одинаковых `--batch-size 1` запуска последовательно
   дали `skipped=1, added=1, remaining=1, complete=false`, затем
   `skipped=2, added=1, remaining=0, complete=true`.
-- На паузе после второго production batch: ordered DB после reopen содержит
-  119 episodes / 142 facts / 9 invalidated; последний batch за ~3:30 дал
-  added 5, skipped_existing 114, derived facts 12, remaining 574. Snapshot
-  остаётся frozen на commit `692d894`: 117 holders / 693 records.
+- Активен повторяемый production ingest отдельными batches по 5. Последний
+  наблюдённый checkpoint после batch 6: 139 episodes / 180 facts /
+  17 invalidated, BGSAVE ok; batch 7 запущен. Snapshot остаётся frozen на
+  commit `692d894`: 117 holders / 693 records.
 - Проверено изолированно на пяти реальных quotes: штатный Graphiti 0.29.3
   multi-episode combined extraction через Luna/max обработал все 5 episode
   indices и вывел 17 facts за 2 LLM turns, но занял 428.138 s. Luna/low на
@@ -43,6 +43,14 @@ kind: status
   не получила `invalid_at` от более поздней коррекции внутри той же пачки.
   Поэтому multi-episode extraction не входит в production ingest: он не дал
   ускорения и не доказал intra-batch temporal invalidation.
+- Проверено по совету Opus и official Codex runtime: один полный scratch
+  `Graphiti.add_episode` занял 47.797 s и сделал 4 последовательных LLM turns
+  (`ExtractedEntities`, `ExtractedEdges`, `EdgeTimestamps`,
+  `SummarizedEntities`). Суммарный cold start до первого JSON event —
+  1.064 s, а ожидание выхода процессов после уже полученного
+  `turn.completed` — 8.284 s. Persistent `codex app-server` с новым ephemeral
+  thread на каждый turn — подтверждённый официальный transport-кандидат, но
+  ещё не принят без отдельного contract/performance proof.
 - Подтверждено: Luna/low даёт schema-valid Graphiti extraction быстрее
   проверенного Luna/max; tools, skills, memory и write отключены.
 - Подтверждено: custom ontology, `RECORD_SCOPE`, `record_type` и relation
