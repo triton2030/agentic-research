@@ -82,9 +82,11 @@ class LocalFastEmbedder(EmbedderClient):
         return await asyncio.to_thread(self._embed, input_data_list)
 
 
-class PassThroughCrossEncoder(CrossEncoderClient):
-    """Keep RRF order locally; never instantiate Graphiti's OpenAI reranker."""
+class FailClosedCrossEncoder(CrossEncoderClient):
+    """Prevent accidental OpenAI or fake reranking outside stock RRF search."""
 
     async def rank(self, query: str, passages: list[str]) -> list[tuple[str, float]]:
-        del query
-        return [(passage, 1.0 / (index + 1)) for index, passage in enumerate(passages)]
+        del query, passages
+        raise RuntimeError(
+            "cross-encoder ranking is not configured; use Graphiti.search() with stock RRF"
+        )

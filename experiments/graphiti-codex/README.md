@@ -1,34 +1,43 @@
 # Graphiti + Codex
 
-Эксперимент превращает source-bound цитаты владельца в производную временную
-базу знаний Graphiti. Дословная цитата, её время и Markdown-адрес остаются
-evidence; извлечённый Graphiti-факт — недоверенное производное знание, которое
-всегда возвращает к одному или нескольким исходным episodes.
+Тонкий локальный adapter для `graphiti-core==0.29.3`: явные source-bound
+records превращаются в Graphiti episodes, а query возвращает штатный derived
+fact layer. Holder остаётся исходным evidence; он не выдаётся как knowledge
+answer.
 
-Официально обоснованный метод ingestion и порядок будущих исправлений живут в
-[`docs/PROC — Operational Procedure — Graphiti quote ingestion.md`](docs/PROC%20%E2%80%94%20Operational%20Procedure%20%E2%80%94%20Graphiti%20quote%20ingestion.md).
+Методическая граница описана в
+[`docs/PROC — Operational Procedure — Graphiti quote ingestion.md`](<docs/PROC — Operational Procedure — Graphiti quote ingestion.md>).
 
-## Граница
+## Upstream и adapter
 
-- `graphiti-core[falkordblite]==0.29.3`: стабильный upstream без форка;
-- embedded FalkorDBLite: локальный файл `.data/graphiti.db`, без Docker и
-  отдельного graph server;
-- Codex CLI: `gpt-5.6-luna`, reasoning effort `max`, ChatGPT login, JSON Schema,
-  ephemeral/read-only вызовы;
-- `intfloat/multilingual-e5-small` через FastEmbed: локальные embeddings;
-- deterministic pass-through reranker: не создаёт скрытый OpenAI API-вызов;
-- Graphiti telemetry выключена до импорта библиотеки.
+| Upstream Graphiti 0.29.3 | Локальный adapter |
+| --- | --- |
+| `add_episode()` и `EpisodeType.text` | Чтение явно переданных holder-файлов и record IDs |
+| Официальные prompts, extraction, entity/edge resolution и temporal fields | `CodexLLMClient` через официальный `_generate_response` seam |
+| `episode.name` и внутренний Graphiti UUID | Stable source identity в `episode.name`; UUID создаёт Graphiti |
+| `Graphiti.search()` и stock `EDGE_HYBRID_SEARCH_RRF` | Namespace `owner-quotes` |
+| `CrossEncoderClient` seam | Fail-closed client: не вызывает OpenAI и не подделывает rank |
+| Graph driver lifecycle | Embedded FalkorDBLite database under `.data/` |
+| Embedder seam | Локальный `intfloat/multilingual-e5-small` через FastEmbed |
 
-Это убирает Zep API, `OPENAI_API_KEY`, внешний embedding API и OpenAI reranker.
-Но обработка **не offline**: текст цитат уходит в OpenAI через уже
-авторизованный Codex/ChatGPT аккаунт. В обычные логи prompt и stderr не пишутся.
+Graphiti сам владеет prompts, extraction, deduplication, temporal invalidation и
+search recipes. Adapter не передаёт `custom_extraction_instructions`, custom
+ontology или entity/edge types, не синтезирует facts вручную и не вводит
+coverage thresholds.
 
-Holder-файлы — входной корпус. Одна точная цитата добавляется одним
-`add_episode()` и входит в saga своей исходной сессии. `episode_body` хранит
-точный текст, `source_description` — путь и строку holder-файла,
-`reference_time` — исходную точную дату. Bulk ingestion намеренно не
-используется: он не выполняет edge invalidation, необходимую для коррекций
-владельца.
+Graphiti messages сериализуются для Codex без добавленной adapter-инструкции:
+исходные `role` и `content` сохраняются. Codex запускается как
+`gpt-5.6-luna`, reasoning effort `max`, ephemeral, read-only, approvals never;
+response schema валидируется и CLI, и локальным Pydantic.
+
+## Reranker boundary
+
+Публичный query использует `Graphiti.search()` — штатный basic
+`EDGE_HYBRID_SEARCH_RRF`. Этот рецепт не вызывает `CrossEncoderClient.rank`.
+Поэтому adapter передаёт Graphiti fail-closed client: если другой код выберет
+cross-encoder recipe, он остановится с явной ошибкой вместо внешнего OpenAI
+вызова, тяжёлой модели или pass-through ранжирования. Это не изменение basic
+search algorithm.
 
 ## Установка
 
@@ -38,41 +47,61 @@ uv sync --python 3.12
 uv run graphiti-codex doctor
 ```
 
-`doctor` проверяет ChatGPT login, наличие `gpt-5.6-luna/max`, локальную
-embedding-модель и embedded FalkorDBLite. Если multilingual E5 уже подготовлен
-для `1chat-recall`, эксперимент переиспользует его content-addressed cache.
+`doctor` проверяет ChatGPT login, наличие `gpt-5.6-luna/max`, локальные
+embeddings, fail-closed reranker seam и embedded FalkorDBLite. Codex inference
+не offline: episode content отправляется через уже авторизованный Codex/ChatGPT
+аккаунт. Внешний embedding API и OpenAI reranker не используются.
 
-## Вертикальный проход
+## Малый live vertical
 
-Из корня `agentic-research`:
+До любой полной загрузки корпуса запускается свежий проход на 1–3 явных
+records:
 
 ```bash
-cd experiments/graphiti-codex
 uv run graphiti-codex demo \
   ../../_ops/chat-recall/2026-08-18-151822-codex-01a0145e.md \
   --limit 3 \
-  --query "Как владелец хочет превращать цитаты в базу знаний?"
+  --query "Как владелец хочет превращать цитаты в базу знаний?" \
+  --database .data/small-vertical.db
 ```
 
-Команда сохраняет graph database, печатает извлечённые факты и для каждого
-факта — `episodes` с точной цитатой и Markdown-адресом. Повторный ingest того же
-record UUID идемпотентно пропускается.
+Команда последовательно вызывает stock `add_episode`, затем stock `search`.
+Она делает one-shot private provenance check и падает при отсутствии
+`edge.episodes` или несовпадении episode content/time,
+но stdout содержит только operational counts и public facts.
 
-Раздельные команды:
+Повторный ingest той же source identity в `episode.name` идемпотентно
+пропускается. Совпавшие content и source address обязательны; collision —
+ошибка. Graphiti UUID не используется как record identity.
+
+## Явный ingest и query
 
 ```bash
-uv run graphiti-codex ingest HOLDER.md --limit 3
-uv run graphiti-codex query "вопрос к базе знаний"
+uv run graphiti-codex ingest HOLDER.md --limit 3 --database .data/graphiti.db
+uv run graphiti-codex ingest HOLDER.md --record-id <quote-uuid>
+uv run graphiti-codex query "вопрос к базе знаний" --database .data/graphiti.db
 ```
+
+`query` возвращает для каждого результата только `kind`, `fact`, `valid_at` и
+`invalid_at` (в обёртке результата — сам query и список `facts`). В нём нет raw
+quote, Markdown path/address, source link, `sources` или episode IDs. Private
+проверка живёт только внутри demo/tests и не является query API.
+
+Approximate record без полного времени и timezone не ingest-ится. При tolerant
+чтении явного holder он пропускается с machine-readable address/reason; точный
+timestamp не выдумывается. `kind: selection` также не является quote episode.
 
 ## Проверка
 
 ```bash
 uv run ruff check .
 uv run pytest -q
+uv run graphiti-codex doctor
 ```
 
-Structural tests не доказывают качество Graphiti extraction. Acceptance этого
-эксперимента — живой `demo`: не менее одного derived fact, у каждого
-`edge.episodes` непуст, каждый episode читается обратно из embedded graph и его
-`content`/`source_description` совпадают с настоящим holder-файлом.
+Acceptance этой тонкой границы — unit tests, пять немедленных reopen cycles
+embedded database и свежий live episode → derived fact → private provenance.
+Полный корпус остаётся следующей операцией исходной пользовательской цели после
+этого acceptance. Он запускается тем же явным последовательным ingest выбранных
+holder-файлов и record IDs; отдельная corpus-система/control plane для этого не
+добавляется.

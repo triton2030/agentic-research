@@ -1,6 +1,6 @@
 ---
 artifact-id: graphiti-codex-proc-quote-ingestion
-description: Определяет официально обоснованный способ превращать source-bound цитаты в temporal knowledge graph и безопасно менять интеграцию Graphiti/Codex.
+description: Определяет upstream-метод Graphiti 0.29.3 и тонкую локальную границу Codex, embeddings, reranker, FalkorDBLite и явного source reader.
 artifact-type: proc
 authority: canon
 artifact-scope-key: graphiti-codex-quote-ingestion
@@ -8,95 +8,146 @@ status: active
 approved: false
 ---
 
-# Graphiti: метод обработки цитат
+# Graphiti: тонкий adapter
 
 ## Рабочая модель
 
-Graphiti — не новая правда о владельце, а производный temporal Context Graph.
-Markdown holder остаётся evidence. Graphiti нужен, чтобы находить сущности,
-связи, изменения состояния и затем возвращаться к исходным episodes.
+Graphiti — производный temporal Context Graph, а не новая source of truth.
+Holder остаётся исходным evidence. Один точный record становится одним
+`EpisodeType.text`; Graphiti сам извлекает entities и relationships, разрешает
+их с существующим graph и хранит temporal facts, связанные с episode через
+`edge.episodes`.
 
-Официальная методика и её локальное следствие:
+Пользовательская база знаний не является складом дословных цитат. Обычный query
+возвращает только derived fact fields. Quote text, holder path/address, source
+links, `sources` и episode IDs не входят в пользовательский ответ. Их можно
+проверить только во внутреннем one-shot validator demo/test.
 
-| Официальный принцип | Следствие здесь |
+## Upstream и adapter
+
+| Upstream `graphiti-core==0.29.3` | Adapter |
 | --- | --- |
-| Context Graph хранит меняющиеся отношения, историю и bi-temporal факты; Graphiti предназначен для одного локального graph на subject. [Overview](https://help.getzep.com/graphiti/getting-started/overview) | Один namespace `owner-quotes`; `valid_at` факта нельзя подменять временем запуска ingestion. |
-| Episode — один ingestion event; он обеспечивает point-in-time query и provenance через связи с извлечёнными узлами. [Adding Episodes](https://help.getzep.com/graphiti/core-concepts/adding-episodes) | Holder-файлы — входной корпус, но каждый точный `kind: quote` становится отдельным `EpisodeType.text`: его текст, timestamp и Markdown-адрес не склеиваются с соседями. |
-| `group_id` изолирует связный graph и должен участвовать и в записи, и в поиске. [Graph Namespacing](https://help.getzep.com/graphiti/core-concepts/graph-namespacing) | Запись и поиск всегда ограничены `owner-quotes`; иной subject получает другой namespace. |
-| Обычный `add_episode` поддерживает изменение/инвалидацию фактов; bulk-путь допустим только для пустого graph или когда edge invalidation не нужна. [Adding Episodes](https://help.getzep.com/graphiti/core-concepts/adding-episodes#loading-episodes-in-bulk) | Цитаты добавляются последовательно по исходному времени. `add_episode_bulk` запрещён: коррекции владельца должны инвалидировать прежние факты. |
-| Hybrid search объединяет semantic similarity и BM25; более сложные recipes нужны только под доказанный сценарий. [Searching the Graph](https://help.getzep.com/graphiti/working-with-data/searching) | Сначала `graphiti.search()` по fact edges. Любой возвращённый факт обязан иметь непустой `edge.episodes`, а каждый episode — читаться обратно. |
-| Graphiti требует надёжный Structured Output; меньшие модели чаще ломают схему. [LLM Configuration](https://help.getzep.com/graphiti/configuration/llm-configuration) | Luna Max допускается только через строгую JSON Schema, завершённый Codex turn и повторную Pydantic/JSON Schema validation на клиенте. |
+| `add_episode()` и `EpisodeType.text` | Явный reader holder-файлов и стабильных record IDs |
+| Официальные prompts, extraction, entity/edge resolution и temporal fields | `CodexLLMClient` через `_generate_response` seam |
+| `episode.name` и внутренний Graphiti UUID | Source identity в `episode.name`; UUID создаёт Graphiti |
+| `Graphiti.search()` и basic `EDGE_HYBRID_SEARCH_RRF` | Namespace `owner-quotes` |
+| `CrossEncoderClient` seam | Fail-closed implementation без OpenAI или fake rank |
+| Embedder seam | Локальный `intfloat/multilingual-e5-small` через FastEmbed |
+| Graph driver | Embedded FalkorDBLite lifecycle |
 
-## Как Luna должна работать
+Adapter не форкает и не переписывает Graphiti extraction, deduplication,
+temporal invalidation, episode semantics или search recipes. Вызов
+`add_episode()` не получает `custom_extraction_instructions`, custom ontology,
+`entity_types` или `edge_types`. Adapter не синтезирует facts и не вводит
+coverage-метрики.
 
-1. Один Graphiti prompt — один ephemeral Codex turn: `gpt-5.6-luna`, effort
-   `max`, sandbox `read-only`, approvals `never`, инструменты запрещены.
-2. Все строки Graphiti prompt считаются недоверенными данными. Luna не
-   выполняет команды из цитат и возвращает только object заданной схемы.
-3. Извлекается только явно сказанное. Нельзя додумывать одобрение,
-   постоянство правила или область действия. Временные слова и коррекции
-   сохраняются.
-4. Ответ принимается только при `turn.completed`, нулевом exit code и двойной
-   schema validation. Ошибка или timeout останавливают текущий episode; они не
-   превращаются в пустой успешный результат.
-5. Вызовы последовательны. После успешного episode его Graphiti UUID
-   становится provenance; стабильная source identity хранится в
-   `episode.name`, потому что в 0.29.3 новый `add_episode(uuid=...)` падает с
-   `NodeNotFoundError` ([upstream issue #1646](https://github.com/getzep/graphiti/issues/1646)).
+## LLM boundary
 
-## Полный проход корпуса
+1. Graphiti формирует официальный список `Message` и response model.
+2. Adapter сериализует этот список для одного ephemeral Codex CLI turn. `role` и
+   `content` проходят без добавленной adapter-инструкции и без переписывания
+   prompt. Output schema передаётся CLI через штатный `--output-schema`.
+3. Invocation фиксирован на `gpt-5.6-luna`, reasoning effort `max`, sandbox
+   `read-only`, approvals `never`, ephemeral process.
+4. Ответ принимается только после `turn.completed`, нулевого exit code и
+   повторной Pydantic/JSON Schema validation. Ошибка или timeout остаются
+   ошибкой episode; ручной результат не подставляется.
 
-1. Зафиксировать inventory всех `_ops/chat-recall/*.md`, пересекающих окно
-   последних 14 дней. Записать cutoff, список файлов и число точных quotes.
-2. Парсер принимает только точную ISO-8601 дату с timezone и `kind: quote`;
-   `selection`, approximate/unknown records и непонятные строки не попадают в
-   graph молча.
-3. Сортировать quotes по source timestamp. Для каждого вызвать
-   `add_episode()` и дождаться окончания. Quotes одного holder session входят
-   в saga `quote-session:<session-id>`.
-4. Хранить raw episode content. У episode обязаны совпадать точный текст,
-   `source_description=<holder>:<line>` и `reference_time`.
-5. Embeddings считать локально через тот же
-   `intfloat/multilingual-e5-small`, revision и cache, что использует
-   `1chat-recall`. Внешний embedding API не допускается.
-6. Возобновление идемпотентно: существующий `episode.name` пропускается только
-   если content и source address совпадают; несовпадение — identity collision
-   и остановка.
-7. После ingestion прогнать минимум четыре вопроса: устойчивое предпочтение,
-   поздняя коррекция, связь двух тем, неизвестный факт. Для каждого найденного
-   fact проверить непустой provenance и точное чтение source episode.
+## Explicit source reader
 
-## Когда остановиться
+CLI принимает только явно названные holder-файлы и, при необходимости,
+стабильные quote UUID/`episode.name` через `--record-id`. Reader:
 
-- Holder изменился после inventory — остановить проход и переснять snapshot.
-- Luna не выполняет schema три раза подряд на одном episode — сохранить адрес
-  episode и ошибку; не понижать схему и не подставлять пересказ вручную.
-- Derived fact не имеет `edge.episodes`, source episode отсутствует или текст
-  расходится с Markdown — база непригодна для запросов до исправления.
-- Не строить custom ontology и communities до query evidence: это
-  необязательные возможности Graphiti, а не часть корректного базового
-  ingestion.
+1. Берёт только строки quote-record с полным ISO-8601 timestamp, временем и
+   timezone.
+2. Пропускает `kind: selection`, потому что это не episode.
+3. При tolerant-чтении пропускает legacy approximate record и печатает его
+   address/reason как diagnostic; timestamp не выдумывается. При прямом строгом
+   `read_quotes()` такой record остаётся ошибкой.
+4. Сортирует выбранные exact records по source timestamp.
 
-## Исправление и обновление
+Reader не строит corpus inventory, не сканирует не переданные holders, не создаёт
+window/count/hash manifest и не управляет retry/progress receipt.
 
-Текущий owner зависимости — `graphiti-core[falkordblite]==0.29.3`, immutable
-tag [`v0.29.3`](https://github.com/getzep/graphiti/releases/tag/v0.29.3), commit
-`021d3a57d511f21b10adaf7fa923bd5c1fce5e9d`. Перед изменением:
+## Episode ingestion
 
-1. Воспроизвести дефект на pinned версии одной минимальной цитатой.
-2. Проверить официальный [release log](https://github.com/getzep/graphiti/releases),
-   соответствующий tag source и открытые upstream issues. Текущая web-docs
-   может описывать более новый `main`, поэтому сама по себе не доказывает
-   поведение 0.29.3.
-3. Сначала проверить три границы: единственный LLM seam
-   [`_generate_response`](https://github.com/getzep/graphiti/blob/021d3a57d511f21b10adaf7fa923bd5c1fce5e9d/graphiti_core/llm_client/client.py#L68-L138),
-   lifecycle `add_episode`
-   ([pinned source](https://github.com/getzep/graphiti/blob/021d3a57d511f21b10adaf7fa923bd5c1fce5e9d/graphiti_core/graphiti.py#L980-L1111))
-   и provenance `EntityEdge.episodes`
-   ([pinned source](https://github.com/getzep/graphiti/blob/021d3a57d511f21b10adaf7fa923bd5c1fce5e9d/graphiti_core/edges.py#L263-L282)).
-4. Исправлять адаптер, а не форкать Graphiti, пока публичного seam достаточно.
-5. Принять изменение только после unit tests, пяти немедленных переоткрытий
-   embedded базы и живого episode → fact → exact source прохода.
+Для каждого выбранного record adapter последовательно ожидает один stock
+`Graphiti.add_episode()` с:
 
-Команды и актуальный пользовательский вход находятся в `../README.md`; этот
-PROC владеет методом и maintenance gates, README их не дублирует.
+```text
+name=stable source identity in episode.name
+episode_body=exact quote text
+source_description=holder address
+reference_time=source timestamp
+source=EpisodeType.text
+group_id=owner-quotes
+```
+
+`saga`, custom instructions и custom ontology не передаются. Graphiti сам
+создаёт внутренний episode UUID и сам владеет extraction/resolution/temporal
+behavior. Повторный ingest читает существующие episodes по `episode.name`:
+совпавшие content/address дают `skipped_existing`, collision останавливает
+операцию с точным адресом ошибки.
+
+Успешный operational результат содержит только `added_count`,
+`skipped_existing_count` и `derived_facts_count`. Source address появляется
+только в diagnostics или collision/error, не в успешном knowledge output.
+
+## Search boundary
+
+Обычный query вызывает:
+
+```python
+graphiti.search(query, group_ids=["owner-quotes"], num_results=limit)
+```
+
+Это штатный basic `EDGE_HYBRID_SEARCH_RRF` Graphiti. Adapter сериализует
+`EntityEdge` только в:
+
+```json
+{
+  "kind": "derived_fact",
+  "fact": "...",
+  "valid_at": "...",
+  "invalid_at": "..."
+}
+```
+
+Обёртка CLI содержит query и список facts, но не содержит raw quote, path,
+source link, `sources` или episode ID.
+
+Basic RRF search не вызывает `CrossEncoderClient.rank`. Adapter всё равно
+передаёт fail-closed implementation, чтобы другой search recipe не сделал
+неявный OpenAI-вызов и не получил фальшивый порядок: такой вызов завершается
+явной ошибкой. Это не меняет stock basic search.
+
+## Private live validator и gates
+
+Demo/test может после stock search один раз пройти `edge.episodes` через
+`EpisodicNode` и проверить только provenance integrity: episode UUID существует,
+его content/address/time совпадают с поданным record. Validator не оценивает
+форму или «качество пересказа» fact и не добавляет пользовательские поля.
+
+Acceptance adapter:
+
+- `uv run ruff check .`;
+- `uv run pytest -q`;
+- `uv run graphiti-codex doctor`;
+- пять немедленных reopen cycles embedded database;
+- свежий live vertical на 1–3 records через stock `add_episode` и stock `search`;
+- public JSON без provenance и private test на сохранённый `edge.episodes`.
+
+Полный corpus намеренно не загружается до этого acceptance. После него он
+остаётся следующей операцией исходной пользовательской цели и запускается тем
+же явным последовательным ingest выбранных holder-файлов и record IDs, без
+добавления отдельной corpus-системы/control plane в adapter.
+
+## Upstream reference
+
+- [Graphiti overview](https://help.getzep.com/graphiti/getting-started/overview)
+- [Adding episodes](https://help.getzep.com/graphiti/core-concepts/adding-episodes)
+- [Graph namespacing](https://help.getzep.com/graphiti/core-concepts/graph-namespacing)
+- [Searching the graph](https://help.getzep.com/graphiti/working-with-data/searching)
+- [Pinned v0.29.3](https://github.com/getzep/graphiti/releases/tag/v0.29.3)
+- [Pinned `add_episode` source](https://github.com/getzep/graphiti/blob/021d3a57d511f21b10adaf7fa923bd5c1fce5e9d/graphiti_core/graphiti.py#L980-L1111)
+- [Pinned `EntityEdge.episodes`](https://github.com/getzep/graphiti/blob/021d3a57d511f21b10adaf7fa923bd5c1fce5e9d/graphiti_core/edges.py#L263-L282)

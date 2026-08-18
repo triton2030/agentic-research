@@ -1,10 +1,11 @@
-"""Compose Graphiti and preserve fact-to-quote provenance at its public boundary."""
+"""Thin Graphiti 0.29.3 adapter for local storage and provider clients."""
 
 from __future__ import annotations
 
 import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from datetime import UTC
 from pathlib import Path
 from typing import Any
 
@@ -15,19 +16,16 @@ from graphiti_core.nodes import EpisodeType, EpisodicNode
 from redislite.async_falkordb_client import AsyncFalkorDB
 
 from graphiti_codex.codex_llm import CodexLLMClient
-from graphiti_codex.local_clients import LocalFastEmbedder, PassThroughCrossEncoder
+from graphiti_codex.local_clients import FailClosedCrossEncoder, LocalFastEmbedder
 from graphiti_codex.quotes import SourceQuote
 
 GROUP_ID = "owner-quotes"
-EXTRACTION_INSTRUCTIONS = (
-    "This episode is one verbatim statement by the owner. Extract only claims explicitly present "
-    "in that statement. Do not infer approval, permanence, or scope beyond its wording. "
-    "Keep temporal language and corrections visible."
-)
 
 
 @asynccontextmanager
 async def open_graph(database: Path) -> AsyncIterator[Graphiti]:
+    """Open one embedded FalkorDBLite graph and close its full lifecycle."""
+
     database.parent.mkdir(parents=True, exist_ok=True)
     embedded = AsyncFalkorDB(dbfilename=str(database))
     driver = FalkorDriver(falkor_db=embedded, database=GROUP_ID)
@@ -35,21 +33,21 @@ async def open_graph(database: Path) -> AsyncIterator[Graphiti]:
         graph_driver=driver,
         llm_client=CodexLLMClient(),
         embedder=LocalFastEmbedder(),
-        cross_encoder=PassThroughCrossEncoder(),
+        # Graphiti.search() uses the stock RRF recipe. If another caller picks
+        # a cross-encoder recipe, fail explicitly instead of using OpenAI or a
+        # silent pass-through ranker.
+        cross_encoder=FailClosedCrossEncoder(),
         store_raw_episode_content=True,
         max_coroutines=1,
     )
     try:
-        # FalkorDriver schedules this task in its constructor. Awaiting that
-        # exact task avoids a duplicate index build racing with shutdown.
         if driver._init_task is not None:  # noqa: SLF001 - upstream lifecycle contract
             await driver._init_task  # noqa: SLF001
         yield graphiti
     finally:
-        # falkordblite 0.10 marks its sync owner as async-managed, so the public
-        # async close disconnects the client but leaves the embedded server and
-        # its socket registry alive. Finish that sync-owned lifecycle only after
-        # Graphiti has released the async connection.
+        # falkordblite owns a sync server behind its async client. Graphiti's
+        # public close releases the async connection; the sync owner then
+        # needs its upstream cleanup hook to stop the embedded process.
         await graphiti.close()
         sync_owner = embedded.connection._sync_client  # noqa: SLF001 - upstream lifecycle gap
         sync_owner._async_managed = False  # noqa: SLF001
@@ -57,74 +55,124 @@ async def open_graph(database: Path) -> AsyncIterator[Graphiti]:
         sync_owner._async_managed = True  # noqa: SLF001
 
 
-async def ingest_quotes(graphiti: Graphiti, quotes: list[SourceQuote]) -> dict[str, Any]:
-    added: list[dict[str, Any]] = []
-    skipped: list[str] = []
-    existing = {
+async def existing_episodes(graphiti: Graphiti) -> dict[str, EpisodicNode]:
+    """Read stable adapter identities without replacing Graphiti UUIDs."""
+
+    return {
         episode.name: episode
         for episode in await EpisodicNode.get_by_group_ids(graphiti.driver, [GROUP_ID])
     }
+
+
+async def ingest_quote(
+    graphiti: Graphiti,
+    quote: SourceQuote,
+    existing: dict[str, EpisodicNode],
+) -> dict[str, Any]:
+    """Add one source record through stock ``Graphiti.add_episode``."""
+
+    prior = existing.get(quote.name)
+    if prior is not None:
+        if prior.content != quote.text or prior.source_description != quote.address:
+            raise RuntimeError(f"episode identity collision for {quote.address}")
+        return {"status": "skipped_existing"}
+
+    result = await graphiti.add_episode(
+        name=quote.name,
+        episode_body=quote.text,
+        source_description=quote.address,
+        reference_time=quote.timestamp,
+        source=EpisodeType.text,
+        group_id=GROUP_ID,
+    )
+    if result.episode.content != quote.text:
+        raise RuntimeError(f"Graphiti did not preserve episode {quote.address}")
+    existing[result.episode.name] = result.episode
+    return {
+        "status": "added",
+        "derived_facts": len(result.edges),
+    }
+
+
+async def ingest_quotes(graphiti: Graphiti, quotes: list[SourceQuote]) -> dict[str, Any]:
+    """Ingest records in source order, one awaited episode at a time."""
+
+    added_count = 0
+    skipped_existing_count = 0
+    derived_facts_count = 0
+    existing = await existing_episodes(graphiti)
     for quote in quotes:
-        prior = existing.get(quote.name)
-        if prior is not None:
-            if prior.content != quote.text or prior.source_description != quote.address:
-                raise RuntimeError(f"episode identity collision for {quote.address}")
-            skipped.append(quote.address)
-            continue
-
-        result = await graphiti.add_episode(
-            name=quote.name,
-            episode_body=quote.text,
-            source_description=quote.address,
-            reference_time=quote.timestamp,
-            source=EpisodeType.text,
-            group_id=GROUP_ID,
-            custom_extraction_instructions=EXTRACTION_INSTRUCTIONS,
-            saga=f"quote-session:{quote.session}",
-        )
-        if result.episode.content != quote.text:
-            raise RuntimeError(f"Graphiti did not preserve episode {quote.address}")
-        existing[result.episode.name] = result.episode
-        added.append(
-            {
-                "episode_uuid": result.episode.uuid,
-                "source": result.episode.source_description,
-                "derived_facts": len(result.edges),
-            }
-        )
-    return {"added": added, "skipped_existing": skipped}
+        outcome = await ingest_quote(graphiti, quote, existing)
+        if outcome["status"] == "skipped_existing":
+            skipped_existing_count += 1
+        else:
+            added_count += 1
+            derived_facts_count += int(outcome["derived_facts"])
+    return {
+        "added_count": added_count,
+        "skipped_existing_count": skipped_existing_count,
+        "derived_facts_count": derived_facts_count,
+    }
 
 
-async def _sources_for_edge(graphiti: Graphiti, edge: EntityEdge) -> list[dict[str, Any]]:
-    if not edge.episodes:
-        raise RuntimeError(f"derived fact {edge.uuid} has no source episodes")
-    episodes = await EpisodicNode.get_by_uuids(graphiti.driver, edge.episodes)
-    by_uuid = {episode.uuid: episode for episode in episodes}
-    missing = [episode_uuid for episode_uuid in edge.episodes if episode_uuid not in by_uuid]
-    if missing:
-        raise RuntimeError(f"derived fact {edge.uuid} has missing episodes: {missing}")
-    return [
-        {
-            "episode_uuid": episode_uuid,
-            "source": by_uuid[episode_uuid].source_description,
-            "quote": by_uuid[episode_uuid].content,
-            "reference_time": by_uuid[episode_uuid].valid_at.isoformat(),
-        }
-        for episode_uuid in edge.episodes
-    ]
+async def _search_fact_edges(graphiti: Graphiti, query: str, *, limit: int) -> list[EntityEdge]:
+    """Use Graphiti's ordinary stock hybrid search recipe."""
+
+    return await graphiti.search(query, group_ids=[GROUP_ID], num_results=limit)
+
+
+def _derived_fact(edge: EntityEdge) -> dict[str, Any]:
+    """Serialize a Graphiti edge without exposing episode provenance."""
+
+    return {
+        "kind": "derived_fact",
+        "fact": edge.fact,
+        "valid_at": edge.valid_at.isoformat() if edge.valid_at else None,
+        "invalid_at": edge.invalid_at.isoformat() if edge.invalid_at else None,
+    }
+
+
+def _facts_from_edges(edges: list[EntityEdge]) -> list[dict[str, Any]]:
+    return [_derived_fact(edge) for edge in edges]
 
 
 async def query_facts(graphiti: Graphiti, query: str, *, limit: int = 10) -> dict[str, Any]:
-    edges = await graphiti.search(query, group_ids=[GROUP_ID], num_results=limit)
-    facts = []
+    """Return only Graphiti's derived fact layer for an ordinary query."""
+
+    edges = await _search_fact_edges(graphiti, query, limit=limit)
+    return {"query": query, "facts": _facts_from_edges(edges)}
+
+
+async def validate_edge_provenance_once(
+    graphiti: Graphiti,
+    edges: list[EntityEdge],
+    quotes: list[SourceQuote],
+) -> int:
+    """Private one-shot demo/test validator; it returns no trace payload."""
+
+    expected = {quote.address: quote for quote in quotes}
+    checked = 0
     for edge in edges:
-        facts.append(
-            {
-                "kind": "derived_fact",
-                "fact": edge.fact,
-                "valid_at": edge.valid_at.isoformat() if edge.valid_at else None,
-                "invalid_at": edge.invalid_at.isoformat() if edge.invalid_at else None,
-                "sources": await _sources_for_edge(graphiti, edge),
-            }
-        )
-    return {"query": query, "facts": facts}
+        if not edge.episodes:
+            raise RuntimeError(f"derived fact {edge.uuid} has no source episodes")
+        episodes = await EpisodicNode.get_by_uuids(graphiti.driver, edge.episodes)
+        by_uuid = {episode.uuid: episode for episode in episodes}
+        for episode_uuid in edge.episodes:
+            episode = by_uuid.get(episode_uuid)
+            if episode is None:
+                raise RuntimeError(f"derived fact {edge.uuid} has missing episode {episode_uuid}")
+            quote = expected.get(episode.source_description)
+            if quote is None:
+                raise RuntimeError(
+                    f"derived fact {edge.uuid} points outside supplied holders: "
+                    f"{episode.source_description}"
+                )
+            if episode.content != quote.text:
+                raise RuntimeError(f"episode content mismatch: {quote.address}")
+            if (
+                episode.valid_at is None
+                or episode.valid_at.astimezone(UTC) != quote.timestamp.astimezone(UTC)
+            ):
+                raise RuntimeError(f"episode reference time mismatch: {quote.address}")
+            checked += 1
+    return checked
