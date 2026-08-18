@@ -74,10 +74,13 @@ async def open_graph(database: Path) -> AsyncIterator[Graphiti]:
 async def existing_episodes(graphiti: Graphiti) -> dict[str, EpisodicNode]:
     """Read stable adapter identities without replacing Graphiti UUIDs."""
 
-    return {
-        episode.name: episode
-        for episode in await EpisodicNode.get_by_group_ids(graphiti.driver, [GROUP_ID])
-    }
+    episodes = await EpisodicNode.get_by_group_ids(graphiti.driver, [GROUP_ID])
+    by_name: dict[str, EpisodicNode] = {}
+    for episode in episodes:
+        if episode.name in by_name:
+            raise RuntimeError(f"duplicate episode identity in graph: {episode.name}")
+        by_name[episode.name] = episode
+    return by_name
 
 
 async def ingest_quote(

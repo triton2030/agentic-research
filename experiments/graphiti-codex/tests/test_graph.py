@@ -314,6 +314,25 @@ def test_stable_episode_name_turns_source_change_into_collision() -> None:
         asyncio.run(ingest_quote(object(), quote, {quote.name: prior}))
 
 
+def test_existing_episodes_fails_closed_on_duplicate_identity(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def duplicate_episodes(_driver: object, _group_ids: list[str]) -> list[object]:
+        return [
+            SimpleNamespace(name="quote:duplicate"),
+            SimpleNamespace(name="quote:duplicate"),
+        ]
+
+    monkeypatch.setattr(
+        graph_module.EpisodicNode,
+        "get_by_group_ids",
+        staticmethod(duplicate_episodes),
+    )
+
+    with pytest.raises(RuntimeError, match="duplicate episode identity"):
+        asyncio.run(graph_module.existing_episodes(SimpleNamespace(driver=object())))
+
+
 def test_private_validator_checks_provenance_not_fact_wording(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
