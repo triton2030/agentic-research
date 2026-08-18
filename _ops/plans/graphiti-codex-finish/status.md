@@ -9,8 +9,8 @@ kind: status
 
 ## Next
 
-Запустить fresh sequential ingest 692 цитат в новую ordered DB и после reopen
-снять authoritative counts.
+Дождаться фонового sequential ingest 692 цитат; после reopen снять
+authoritative counts и выполнить current/history/no-provenance query audit.
 
 ## Свидетельства и статус
 
@@ -25,6 +25,9 @@ kind: status
 - Остановлена: partial exact-only
   `owner-quotes-2026-08-04_2026-08-18-luna-low.db`; checkpoint сохранён как
   control, продолжать его нельзя. Full corpus пойдёт в новую ordered DB.
+- В работе: одна команда без `--limit` пишет все 692 records в новую
+  `owner-quotes-2026-08-04_2026-08-18-luna-low-ordered.db`; reader передал
+  117 holders, 667 exact + 25 interpolated, diagnostics = 0.
 - Подтверждено: Luna/low даёт schema-valid Graphiti extraction быстрее
   проверенного Luna/max; tools, skills, memory и write отключены.
 - Подтверждено: custom ontology, `RECORD_SCOPE`, `record_type` и relation
