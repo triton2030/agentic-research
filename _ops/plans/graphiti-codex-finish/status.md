@@ -32,9 +32,17 @@ kind: status
 - Подтверждено live: два одинаковых `--batch-size 1` запуска последовательно
   дали `skipped=1, added=1, remaining=1, complete=false`, затем
   `skipped=2, added=1, remaining=0, complete=true`.
-- В работе: первый production batch завершился за ~1:40 — added 5,
-  skipped_existing 109, derived facts 4, remaining 579. Новая owner quote
-  подняла текущий snapshot с 692 до 693; reader arithmetic согласована.
+- На паузе после второго production batch: ordered DB после reopen содержит
+  119 episodes / 142 facts / 9 invalidated; последний batch за ~3:30 дал
+  added 5, skipped_existing 114, derived facts 12, remaining 574. Snapshot
+  остаётся frozen на commit `692d894`: 117 holders / 693 records.
+- Проверено изолированно на пяти реальных quotes: штатный Graphiti 0.29.3
+  multi-episode combined extraction через Luna/max обработал все 5 episode
+  indices и вывел 17 facts за 2 LLM turns, но занял 428.138 s. Luna/low на
+  том же общем prompt превысила 300 s timeout. Ранняя позиция «решить потом»
+  не получила `invalid_at` от более поздней коррекции внутри той же пачки.
+  Поэтому multi-episode extraction не входит в production ingest: он не дал
+  ускорения и не доказал intra-batch temporal invalidation.
 - Подтверждено: Luna/low даёт schema-valid Graphiti extraction быстрее
   проверенного Luna/max; tools, skills, memory и write отключены.
 - Подтверждено: custom ontology, `RECORD_SCOPE`, `record_type` и relation
