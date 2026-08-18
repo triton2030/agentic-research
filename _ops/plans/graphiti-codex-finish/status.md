@@ -32,10 +32,10 @@ kind: status
 - Подтверждено live: два одинаковых `--batch-size 1` запуска последовательно
   дали `skipped=1, added=1, remaining=1, complete=false`, затем
   `skipped=2, added=1, remaining=0, complete=true`.
-- Активен повторяемый production ingest отдельными batches по 5. Последний
-  наблюдённый checkpoint после batch 6: 139 episodes / 180 facts /
-  17 invalidated, BGSAVE ok; batch 7 запущен. Snapshot остаётся frozen на
-  commit `692d894`: 117 holders / 693 records.
+- Повторяемый production ingest мягко остановлен после наблюдаемой порции:
+  ordered DB содержит 149 episodes / 201 facts / 25 invalidated, remaining 544;
+  BGSAVE ok, unsaved changes 0, writer/Codex/Redis процессов нет. Snapshot
+  остаётся frozen на commit `692d894`: 117 holders / 693 records.
 - Проверено изолированно на пяти реальных quotes: штатный Graphiti 0.29.3
   multi-episode combined extraction через Luna/max обработал все 5 episode
   indices и вывел 17 facts за 2 LLM turns, но занял 428.138 s. Luna/low на
@@ -53,6 +53,11 @@ kind: status
   ещё не принят без отдельного contract/performance proof.
 - Подтверждено: Luna/low даёт schema-valid Graphiti extraction быстрее
   проверенного Luna/max; tools, skills, memory и write отключены.
+- Проверено A/B на одной реальной temporal-паре `1000 → 2000` в чистых БД:
+  Luna/low — 61.453 s, 5 edges, 1 invalidated; Luna/none — 33.374 s, но
+  поздний episode дал 0 facts и оставил старый лимит актуальным; Terra/none —
+  66.397 s, 4 edges, 1 invalidated. Поэтому reasoning `none` отвергнут:
+  Luna/low остаётся самым быстрым вариантом, сохранившим temporal semantics.
 - Подтверждено: custom ontology, `RECORD_SCOPE`, `record_type` и relation
   filters удалены; episode — только `Owner:` и optional `Agent:` messages.
 - Подтверждено: `uv run ruff check .` — pass; `uv run pytest -q` — 26 passed;
