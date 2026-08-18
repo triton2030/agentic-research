@@ -37,9 +37,14 @@ Graphiti LLM-call, максимум 4 Luna-turn внутри episode, сами e
   исключение уже инвалидированных рёбер, но не гарантирует распознавание каждой
   коррекции stock Graphiti.
 - Ordered DB после последней полной пачки и штатного удаления одного старого
-  concurrent-дубля: 165/693 уникальных episodes, 249 facts, 31 invalidated,
-  remaining 528. Резервная копия до удаления:
+  concurrent-дубля: 175/693 уникальных episodes, 266 facts, 31 invalidated,
+  remaining 518. Резервная копия до удаления:
   `.data/owner-quotes-2026-08-04_2026-08-18-luna-low-ordered.before-dedup-20260819T0110.db`.
-- Последняя пачка 5/5: 18 derived facts, 226.00 s, около 45.2 s/episode.
+- Последние полные пачки 5/5: 18 facts за 226.00 s, 10 facts за 193.23 s,
+  8 facts за 201.46 s; observed range 38.6–45.2 s/episode.
+- Luna/medium проверена изолированно на той же temporal control-паре, не в
+  основной DB: 103.71 s против около 96.9 s у low, те же 5 facts и 2 invalidated,
+  но medium инвалидировала две новые фразы об отмене и оставила старый лимит
+  актуальным в current query. Поэтому default остаётся Luna/low.
 - Adapter теперь fail-closed при duplicate episode identity; `ruff` — pass,
   `pytest` — 26 passed. Live `doctor` — ready.
