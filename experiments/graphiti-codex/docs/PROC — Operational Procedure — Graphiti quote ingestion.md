@@ -14,7 +14,8 @@ approved: false
 
 Graphiti — производный temporal Context Graph, а не новая source of truth.
 Holder остаётся исходным evidence. Один точный record становится одним
-`EpisodeType.text`; Graphiti сам извлекает entities и relationships, разрешает
+`EpisodeType.message` в документированном формате `Owner: <quote>`; Graphiti сам
+извлекает entities и relationships, разрешает
 их с существующим graph и хранит temporal facts, связанные с episode через
 `edge.episodes`.
 
@@ -27,7 +28,7 @@ links, `sources` и episode IDs не входят в пользовательс�
 
 | Upstream `graphiti-core==0.29.3` | Adapter |
 | --- | --- |
-| `add_episode()` и `EpisodeType.text` | Явный reader holder-файлов и стабильных record IDs |
+| `add_episode()` и `EpisodeType.message` | Reader holder-файлов; формат `Owner: <quote>` |
 | Официальные prompts, extraction, entity/edge resolution и temporal fields | `CodexLLMClient` через `_generate_response` seam |
 | `episode.name` и внутренний Graphiti UUID | Source identity в `episode.name`; UUID создаёт Graphiti |
 | `Graphiti.search()` и basic `EDGE_HYBRID_SEARCH_RRF` | Namespace `owner-quotes` |
@@ -76,10 +77,10 @@ window/count/hash manifest и не управляет retry/progress receipt.
 
 ```text
 name=stable source identity in episode.name
-episode_body=exact quote text
+episode_body=Owner: <exact quote text>
 source_description=holder address
 reference_time=source timestamp
-source=EpisodeType.text
+source=EpisodeType.message
 group_id=owner-quotes
 ```
 
@@ -88,6 +89,12 @@ group_id=owner-quotes
 behavior. Повторный ingest читает существующие episodes по `episode.name`:
 совпавшие content/address дают `skipped_existing`, collision останавливает
 операцию с точным адресом ошибки.
+
+`reference_time` — время исходной цитаты, не время ingest. Поздний episode не
+заменяет и не удаляет ранний. Когда штатная resolution распознаёт изменение той
+же связи, прежний derived edge получает `invalid_at`, новый — `valid_at`; оба
+source episodes сохраняются. Если relation не извлечена или противоречие не
+разрешено к той же связи, один лишь более поздний timestamp ничего не отменяет.
 
 Успешный operational результат содержит только `added_count`,
 `skipped_existing_count` и `derived_facts_count`. Source address появляется

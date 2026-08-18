@@ -9,6 +9,7 @@ from graphiti_core.nodes import EpisodeType
 
 import graphiti_codex.graph as graph_module
 from graphiti_codex.graph import (
+    episode_body,
     ingest_quote,
     ingest_quotes,
     query_facts,
@@ -79,9 +80,10 @@ def test_ingest_uses_stock_episode_arguments_without_custom_extraction() -> None
     result = asyncio.run(ingest_quote(graph, quote, {}))
 
     assert result["status"] == "added"
-    assert graph.kwargs["source"] is EpisodeType.text
+    assert graph.kwargs["source"] is EpisodeType.message
     assert graph.kwargs["group_id"] == "owner-quotes"
     assert graph.kwargs["name"] == quote.name
+    assert graph.kwargs["episode_body"] == "Owner: владелец хочет derived knowledge"
     assert "custom_extraction_instructions" not in graph.kwargs
     assert "entity_types" not in graph.kwargs
     assert "edge_types" not in graph.kwargs
@@ -158,7 +160,7 @@ def test_private_validator_checks_provenance_not_fact_wording(
     edge = SimpleNamespace(uuid="edge-1", fact=quote.text, episodes=["episode-1"])
     episode = SimpleNamespace(
         uuid="episode-1",
-        content=quote.text,
+        content=episode_body(quote),
         source_description=quote.address,
         valid_at=timestamp,
     )

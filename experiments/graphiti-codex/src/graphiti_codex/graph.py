@@ -20,6 +20,13 @@ from graphiti_codex.local_clients import FailClosedCrossEncoder, LocalFastEmbedd
 from graphiti_codex.quotes import SourceQuote
 
 GROUP_ID = "owner-quotes"
+OWNER_SPEAKER = "Owner"
+
+
+def episode_body(quote: SourceQuote) -> str:
+    """Format one owner utterance as Graphiti's documented message episode."""
+
+    return f"{OWNER_SPEAKER}: {quote.text}"
 
 
 @asynccontextmanager
@@ -71,21 +78,22 @@ async def ingest_quote(
 ) -> dict[str, Any]:
     """Add one source record through stock ``Graphiti.add_episode``."""
 
+    body = episode_body(quote)
     prior = existing.get(quote.name)
     if prior is not None:
-        if prior.content != quote.text or prior.source_description != quote.address:
+        if prior.content != body or prior.source_description != quote.address:
             raise RuntimeError(f"episode identity collision for {quote.address}")
         return {"status": "skipped_existing"}
 
     result = await graphiti.add_episode(
         name=quote.name,
-        episode_body=quote.text,
+        episode_body=body,
         source_description=quote.address,
         reference_time=quote.timestamp,
-        source=EpisodeType.text,
+        source=EpisodeType.message,
         group_id=GROUP_ID,
     )
-    if result.episode.content != quote.text:
+    if result.episode.content != body:
         raise RuntimeError(f"Graphiti did not preserve episode {quote.address}")
     existing[result.episode.name] = result.episode
     return {
@@ -167,7 +175,7 @@ async def validate_edge_provenance_once(
                     f"derived fact {edge.uuid} points outside supplied holders: "
                     f"{episode.source_description}"
                 )
-            if episode.content != quote.text:
+            if episode.content != episode_body(quote):
                 raise RuntimeError(f"episode content mismatch: {quote.address}")
             if (
                 episode.valid_at is None

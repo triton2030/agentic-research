@@ -1,7 +1,7 @@
 # Graphiti + Codex
 
 Тонкий локальный adapter для `graphiti-core==0.29.3`: явные source-bound
-records превращаются в Graphiti episodes, а query возвращает штатный derived
+records превращаются в штатные Graphiti message episodes, а query возвращает derived
 fact layer. Holder остаётся исходным evidence; он не выдаётся как knowledge
 answer.
 
@@ -12,7 +12,7 @@ answer.
 
 | Upstream Graphiti 0.29.3 | Локальный adapter |
 | --- | --- |
-| `add_episode()` и `EpisodeType.text` | Чтение явно переданных holder-файлов и record IDs |
+| `add_episode()` и `EpisodeType.message` | Чтение holder-файлов; формат `Owner: <quote>` |
 | Официальные prompts, extraction, entity/edge resolution и temporal fields | `CodexLLMClient` через официальный `_generate_response` seam |
 | `episode.name` и внутренний Graphiti UUID | Stable source identity в `episode.name`; UUID создаёт Graphiti |
 | `Graphiti.search()` и stock `EDGE_HYBRID_SEARCH_RRF` | Namespace `owner-quotes` |
@@ -66,6 +66,8 @@ uv run graphiti-codex demo \
 ```
 
 Команда последовательно вызывает stock `add_episode`, затем stock `search`.
+Каждая точная реплика передаётся как документированный conversational message
+`Owner: <quote>`, чтобы субъект оставался явным без custom prompt или ontology.
 Она делает one-shot private provenance check и падает при отсутствии
 `edge.episodes` или несовпадении episode content/time,
 но stdout содержит только operational counts и public facts.
@@ -73,6 +75,12 @@ uv run graphiti-codex demo \
 Повторный ingest той же source identity в `episode.name` идемпотентно
 пропускается. Совпавшие content и source address обязательны; collision —
 ошибка. Graphiti UUID не используется как record identity.
+
+`reference_time` всегда равен времени самой цитаты. Более поздний episode не
+переписывает ранний: если Graphiti распознаёт обновление той же связи, он
+оставляет оба episodes, а прежнему derived fact назначает `invalid_at` и создаёт
+новый fact со своим `valid_at`. Простая хронологическая близость сама по себе не
+означает отмену.
 
 ## Явный ingest и query
 
