@@ -36,9 +36,9 @@ Graphiti LLM-call, максимум 4 Luna-turn внутри episode, сами e
   распознана моделью и не дала invalidation: temporal filter гарантирует
   исключение уже инвалидированных рёбер, но не гарантирует распознавание каждой
   коррекции stock Graphiti.
-- Ordered DB после последней полной пачки и штатного удаления одного старого
-  concurrent-дубля: 175/693 уникальных episodes, 266 facts, 31 invalidated,
-  remaining 518. Резервная копия до удаления:
+- Ordered DB в момент передачи retained background task:
+  180/693 уникальных episodes, 270 facts, 31 invalidated, remaining 513,
+  duplicate names 0. Резервная копия до удаления старого concurrent-дубля:
   `.data/owner-quotes-2026-08-04_2026-08-18-luna-low-ordered.before-dedup-20260819T0110.db`.
 - Последние полные пачки 5/5: 18 facts за 226.00 s, 10 facts за 193.23 s,
   8 facts за 201.46 s; observed range 38.6–45.2 s/episode.
@@ -46,5 +46,13 @@ Graphiti LLM-call, максимум 4 Luna-turn внутри episode, сами e
   основной DB: 103.71 s против около 96.9 s у low, те же 5 facts и 2 invalidated,
   но medium инвалидировала две новые фразы об отмене и оставила старый лимит
   актуальным в current query. Поэтому default остаётся Luna/low.
+- Один общий Codex conversation thread для параллельных Graphiti turns отвергнут
+  live-probe: два тривиальных structured turns в одном thread не завершились за
+  180 s и были остановлены. Сохраняем общий warm app-server, но отдельный
+  ephemeral thread на каждый вызов; иначе теряются parallel turns и stateless
+  Graphiti prompt semantics.
+- Дальнейший ingest передан pinned retained task
+  `01a01480-61ba-77b3-a876-01f3b50b15a5`: только named main DB, отдельные
+  batch-size 5, live reopen после каждого, до complete либо первой точной ошибки.
 - Adapter теперь fail-closed при duplicate episode identity; `ruff` — pass,
   `pytest` — 26 passed. Live `doctor` — ready.
