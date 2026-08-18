@@ -16,8 +16,8 @@ kind: status
 
 - Подтверждено: pinned Graphiti 0.29.3 работает через embedded FalkorDBLite,
   local multilingual-e5-small и Codex LLM seam.
-- Подтверждено: current inventory — 117 tracked holders, 692 quotes:
-  667 exact + 25 date-only, интерполированных по порядку между соседними
+- Подтверждено: current inventory — 117 tracked holders, 693 quotes:
+  668 exact + 25 date-only, интерполированных по порядку между соседними
   session timestamps; diagnostics = 0.
 - Подтверждено live: настоящий date-only record получил вычисленное
   `reference_time`, добавлен как 1 stock episode и дал 3 derived facts;
@@ -32,6 +32,9 @@ kind: status
 - Подтверждено live: два одинаковых `--batch-size 1` запуска последовательно
   дали `skipped=1, added=1, remaining=1, complete=false`, затем
   `skipped=2, added=1, remaining=0, complete=true`.
+- В работе: первый production batch завершился за ~1:40 — added 5,
+  skipped_existing 109, derived facts 4, remaining 579. Новая owner quote
+  подняла текущий snapshot с 692 до 693; reader arithmetic согласована.
 - Подтверждено: Luna/low даёт schema-valid Graphiti extraction быстрее
   проверенного Luna/max; tools, skills, memory и write отключены.
 - Подтверждено: custom ontology, `RECORD_SCOPE`, `record_type` и relation

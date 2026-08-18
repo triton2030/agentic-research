@@ -29,8 +29,8 @@ Root `_ops/GOAL.md` не владеет runtime-экспериментами; п
 - Одна реальная пара «старая позиция → новая позиция» доказывает
   stock invalidation: current-query не возвращает старое, явный
   historical query возвращает.
-- В новую базу загружены все 692 цитаты текущего tracked snapshot за
-  2026-08-04..2026-08-18: 667 точных и 25 date-only с детерминированным
+- В новую базу загружены все 693 цитаты текущего tracked snapshot за
+  2026-08-04..2026-08-18: 668 точных и 25 date-only с детерминированным
   `reference_time` внутри окна соседних sessions; загрузка последовательна,
   но внутренние Luna-turns ограничены пулом.
 - Финальный аудит задаёт current и historical вопросы; public output
@@ -85,7 +85,7 @@ Execution. Ось разреза — зависимая цепочка набл�
 2. Live proof: lint/tests/doctor + одна реальная temporal пара на свежей
    базе; current/history и public no-provenance output доказаны.
 3. Полная база: повторяемые последовательные batches по 5 новых episodes
-   загружают 692 цитаты в новую DB через Luna/low; checkpoint и stable
+   загружают 693 цитаты в новую DB через Luna/low; checkpoint и stable
    `episode.name` служат resume.
 4. Query audit: текущие цели, устойчивые предпочтения, точечные
    директивы, изменённая позиция current/history; затем принятая DB становится
@@ -97,7 +97,7 @@ Execution. Ось разреза — зависимая цепочка набл�
   custom knowledge semantics.
 - Live proof → corpus ingest съедобен, когда stock Graphiti инвалидирует
   реальную пару.
-- Corpus ingest → audit съедобен, когда episode count равен 692 и нет
+- Corpus ingest → audit съедобен, когда episode count равен 693 и нет
   ingest errors.
 
 ## Инварианты волны
