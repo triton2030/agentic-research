@@ -8,6 +8,11 @@ description: "Origin, rejected rules and archived versions of 1planning."
 `skills/codex/`; installed — `~/.claude/skills/` и `~/.codex/skills/`. Их не
 редактируют напрямую.
 
+2026-08-18 (после «Да» на текст): в `decompose.md` снят мёртвый указатель
+`1assumption-audit` (скила не существует, наследие 1break-down) — material
+premise теперь закрывается через `1use-principles` либо блокирующий вопрос
+по `questions.md`; «да» владельца — в сессии аудита 2026-08-18.
+
 Переформирован 2026-08-18 через `1skill-shaping` (рефактор): два результата —
 карта эпиков (map.md) + план работы папкой `task/status/context`; гейт «да»
 владельца сохранён и усилен гейтом вопросов со следом; вопросы владельцу —
