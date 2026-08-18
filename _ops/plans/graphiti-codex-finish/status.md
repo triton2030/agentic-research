@@ -36,9 +36,10 @@ Graphiti LLM-call, максимум 4 Luna-turn внутри episode, сами e
   распознана моделью и не дала invalidation: temporal filter гарантирует
   исключение уже инвалидированных рёбер, но не гарантирует распознавание каждой
   коррекции stock Graphiti.
-- Ordered DB в момент передачи retained background task:
-  180/693 уникальных episodes, 270 facts, 31 invalidated, remaining 513,
-  duplicate names 0. Резервная копия до удаления старого concurrent-дубля:
+- Ordered DB на текущем pause checkpoint:
+  185/693 уникальных episodes, 277 facts, 31 invalidated, remaining 508,
+  duplicate names 0; writer-процессов нет. Резервная копия до удаления старого
+  concurrent-дубля:
   `.data/owner-quotes-2026-08-04_2026-08-18-luna-low-ordered.before-dedup-20260819T0110.db`.
 - Последние полные пачки 5/5: 18 facts за 226.00 s, 10 facts за 193.23 s,
   8 facts за 201.46 s; observed range 38.6–45.2 s/episode.
@@ -46,13 +47,27 @@ Graphiti LLM-call, максимум 4 Luna-turn внутри episode, сами e
   основной DB: 103.71 s против около 96.9 s у low, те же 5 facts и 2 invalidated,
   но medium инвалидировала две новые фразы об отмене и оставила старый лимит
   актуальным в current query. Поэтому default остаётся Luna/low.
-- Один общий Codex conversation thread для параллельных Graphiti turns отвергнут
-  live-probe: два тривиальных structured turns в одном thread не завершились за
-  180 s и были остановлены. Сохраняем общий warm app-server, но отдельный
-  ephemeral thread на каждый вызов; иначе теряются parallel turns и stateless
-  Graphiti prompt semantics.
-- Дальнейший ingest передан pinned retained task
-  `01a01480-61ba-77b3-a876-01f3b50b15a5`: только named main DB, отдельные
-  batch-size 5, live reopen после каждого, до complete либо первой точной ошибки.
+- Первый probe двух одновременных turns в одном conversation thread был
+  нерелевантен гипотезе владельца о последовательном reuse и не используется как
+  verdict. Корректный A/B реализовал один thread на episode с lock для всех
+  Graphiti turns и сравнил его с ephemeral-per-call на одинаковых clean DB.
+- Sequential shared-thread был стабильно быстрее во всех трёх измерениях:
+  57.095 vs 84.863 s, 49.281 vs 74.093 s на temporal-паре и 20.405 vs
+  29.350 s на первой цитате; выигрыш около 30–34%, несмотря на сериализацию
+  fan-out до 2–3 ожидающих turns.
+- Ручная проверка raw Graphiti responses не приняла этот выигрыш: shared
+  `ExtractedEdges` три раза из трёх потерял главное owner-правило «каждый файл
+  не больше 2000 символов», хотя последующий `SummarizedEntities` его понимал;
+  факт оставался summary узла, а не searchable edge. Ephemeral сохранил правило
+  в 2/3 runs. На поздней цитате shared в 2/2 runs приписал отмену Agent и не
+  создал historical old-rule edge; ephemeral правильно приписал отмену Owner
+  в 2/2, хотя correct invalidation получил только 1/2 из-за model variance.
+- Текущий production verdict: сохранять warm app-server + ephemeral thread на
+  каждый Graphiti call. Thread-per-episode доказал speed potential, но на этом
+  exact corpus-probe ухудшил fact recall, attribution и historical coverage;
+  temporal correctness имеет приоритет над скоростью.
+- Pinned retained task `01a01480-61ba-77b3-a876-01f3b50b15a5` остановлен на
+  чистом checkpoint после текущей пачки; возобновлять тем же batch-size 5 после
+  принятия transport verdict.
 - Adapter теперь fail-closed при duplicate episode identity; `ruff` — pass,
   `pytest` — 26 passed. Live `doctor` — ready.
