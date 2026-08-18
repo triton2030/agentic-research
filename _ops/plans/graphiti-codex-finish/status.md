@@ -56,8 +56,10 @@ kind: status
 - Проверено A/B на одной реальной temporal-паре `1000 → 2000` в чистых БД:
   Luna/low — 61.453 s, 5 edges, 1 invalidated; Luna/none — 33.374 s, но
   поздний episode дал 0 facts и оставил старый лимит актуальным; Terra/none —
-  66.397 s, 4 edges, 1 invalidated. Поэтому reasoning `none` отвергнут:
-  Luna/low остаётся самым быстрым вариантом, сохранившим temporal semantics.
+  66.397 s, 4 edges, 1 invalidated. Поэтому отвергнута только Luna/none.
+  Terra/none сохранила проверенную temporal semantics и на этой паре была
+  практически равна Luna/low по скорости; общая quality parity не доказана,
+  поскольку состав рёбер различается. До переключения нужен более широкий A/B.
 - Подтверждено: custom ontology, `RECORD_SCOPE`, `record_type` и relation
   filters удалены; episode — только `Owner:` и optional `Agent:` messages.
 - Подтверждено: `uv run ruff check .` — pass; `uv run pytest -q` — 26 passed;
