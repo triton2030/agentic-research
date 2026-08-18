@@ -41,6 +41,13 @@ Graphiti messages сериализуются для Codex без добавле�
 `gpt-5.6-luna`, reasoning effort `max`, ephemeral, read-only, approvals never;
 response schema валидируется и CLI, и локальным Pydantic.
 
+Episodes ingest-ятся строго последовательно: следующий `add_episode()`
+начинается только после полного завершения предыдущего, поэтому видит его
+entities, edges и invalidation. Внутри одного episode Graphiti штатно запускает
+независимые extraction/resolution операции через `semaphore_gather`; adapter
+разрешает не более четырёх одновременных Luna turns. Параллельные episodes
+одного `group_id` и `add_episode_bulk` не используются.
+
 ## Reranker boundary
 
 Публичный query использует `Graphiti.search()` — штатный basic

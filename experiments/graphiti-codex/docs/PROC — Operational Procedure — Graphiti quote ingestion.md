@@ -70,6 +70,9 @@ coverage-метрики.
 4. Ответ принимается только после `turn.completed`, нулевого exit code и
    повторной Pydantic/JSON Schema validation. Ошибка или timeout остаются
    ошибкой episode; ручной результат не подставляется.
+5. Adapter допускает не более четырёх одновременных Luna turns только для
+   независимых extraction/resolution операций, которые Graphiti сам запускает
+   внутри текущего episode.
 
 ## Explicit source reader
 
@@ -100,6 +103,13 @@ reference_time=source timestamp
 source=EpisodeType.message
 group_id=owner-quotes
 ```
+
+Следующий episode не начинается до завершения предыдущего: только так он видит
+его entities, edges и temporal invalidation. Параллельны лишь внутренние
+операции одного `add_episode()` через штатный Graphiti `semaphore_gather` и
+ограничитель adapter на четыре Codex turns. Параллельные `add_episode()` одного
+`group_id` и `add_episode_bulk` запрещены: bulk предназначен для пустого графа
+или случая, где invalidation не требуется.
 
 `saga`, custom instructions и custom ontology не передаются. Graphiti сам
 создаёт внутренний episode UUID и сам владеет extraction/resolution/temporal
@@ -190,6 +200,7 @@ Acceptance adapter:
 
 - [Graphiti overview](https://help.getzep.com/graphiti/getting-started/overview)
 - [Adding episodes](https://help.getzep.com/graphiti/core-concepts/adding-episodes)
+- [Graphiti MCP concurrency](https://help.getzep.com/graphiti/getting-started/mcp-server)
 - [Graph namespacing](https://help.getzep.com/graphiti/core-concepts/graph-namespacing)
 - [Searching the graph](https://help.getzep.com/graphiti/working-with-data/searching)
 - [Search filters and current facts](https://help.getzep.com/searching-the-graph#checking-for-null-timestamps)

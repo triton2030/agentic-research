@@ -37,6 +37,19 @@ class FakeRunner:
         return self.response
 
 
+class ConcurrencyRunner:
+    def __init__(self) -> None:
+        self.active = 0
+        self.max_active = 0
+
+    async def run(self, _messages: list[Message], _schema: dict[str, Any]) -> dict[str, Any]:
+        self.active += 1
+        self.max_active = max(self.max_active, self.active)
+        await asyncio.sleep(0.01)
+        self.active -= 1
+        return {"entity": "Graphiti", "score": 10}
+
+
 def test_public_graphiti_boundary_validates_response_model() -> None:
     runner = FakeRunner({"entity": "Graphiti", "score": 10})
     client = CodexLLMClient(runner=runner)  # type: ignore[arg-type]
@@ -50,6 +63,27 @@ def test_public_graphiti_boundary_validates_response_model() -> None:
     assert result == {"entity": "Graphiti", "score": 10}
     assert runner.schema["properties"]["entity"]["type"] == "string"
     assert runner.messages[-1].role == "user"
+
+
+def test_client_bounds_parallel_graphiti_turns_without_serializing_them() -> None:
+    runner = ConcurrencyRunner()
+    client = CodexLLMClient(runner=runner, max_parallel_turns=2)  # type: ignore[arg-type]
+    messages = [Message(role="user", content="data")]
+
+    async def run_four() -> list[dict[str, Any]]:
+        return await asyncio.gather(
+            *(client.generate_response(messages, Response) for _ in range(4))
+        )
+
+    results = asyncio.run(run_four())
+
+    assert results == [{"entity": "Graphiti", "score": 10}] * 4
+    assert runner.max_active == 2
+
+
+def test_client_rejects_an_empty_parallel_turn_pool() -> None:
+    with pytest.raises(ValueError, match="at least 1"):
+        CodexLLMClient(max_parallel_turns=0)
 
 
 def test_command_is_ephemeral_read_only_and_pins_luna_max(tmp_path: Path) -> None:

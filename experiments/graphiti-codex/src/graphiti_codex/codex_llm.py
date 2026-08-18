@@ -20,6 +20,7 @@ from pydantic import BaseModel
 
 CODEX_MODEL = "gpt-5.6-luna"
 CODEX_EFFORT = "max"
+CODEX_MAX_PARALLEL_TURNS = 4
 DEFAULT_TIMEOUT_SECONDS = 180.0
 BILLING_LEAK_VARS = ("OPENAI_API_KEY", "CODEX_API_KEY", "OPENAI_BASE_URL")
 CHATGPT_CODEX = Path("/Applications/ChatGPT.app/Contents/Resources/codex")
@@ -212,13 +213,16 @@ class CodexLLMClient(LLMClient):
         *,
         runner: CodexSubprocess | None = None,
         timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
+        max_parallel_turns: int = CODEX_MAX_PARALLEL_TURNS,
     ) -> None:
+        if max_parallel_turns < 1:
+            raise ValueError("max_parallel_turns must be at least 1")
         super().__init__(
             LLMConfig(model=CODEX_MODEL, small_model=CODEX_MODEL),
             cache=False,
         )
         self.runner = runner or CodexSubprocess(timeout_seconds=timeout_seconds)
-        self._single_turn = asyncio.Semaphore(1)
+        self._turn_slots = asyncio.Semaphore(max_parallel_turns)
 
     async def _generate_response(
         self,
@@ -231,6 +235,6 @@ class CodexLLMClient(LLMClient):
         if response_model is None:
             raise CodexInvocationError("Graphiti call did not provide a response model")
         schema = response_model.model_json_schema()
-        async with self._single_turn:
+        async with self._turn_slots:
             result = await self.runner.run(messages, schema)
         return response_model.model_validate(result).model_dump(mode="json")

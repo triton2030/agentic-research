@@ -16,7 +16,7 @@ from graphiti_core.nodes import EpisodeType, EpisodicNode
 from graphiti_core.search.search_filters import ComparisonOperator, DateFilter, SearchFilters
 from redislite.async_falkordb_client import AsyncFalkorDB
 
-from graphiti_codex.codex_llm import CodexLLMClient
+from graphiti_codex.codex_llm import CODEX_MAX_PARALLEL_TURNS, CodexLLMClient
 from graphiti_codex.local_clients import FailClosedCrossEncoder, LocalFastEmbedder
 from graphiti_codex.quotes import SourceQuote
 
@@ -46,7 +46,9 @@ async def open_graph(database: Path) -> AsyncIterator[Graphiti]:
         # silent pass-through ranker.
         cross_encoder=FailClosedCrossEncoder(),
         store_raw_episode_content=True,
-        max_coroutines=1,
+        # Episodes remain sequential in ingest_quotes(). Graphiti may run
+        # independent extraction/resolution work inside one episode in parallel.
+        max_coroutines=CODEX_MAX_PARALLEL_TURNS,
     )
     try:
         if driver._init_task is not None:  # noqa: SLF001 - upstream lifecycle contract
