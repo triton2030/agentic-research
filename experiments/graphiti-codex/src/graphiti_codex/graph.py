@@ -109,24 +109,41 @@ async def ingest_quote(
     }
 
 
-async def ingest_quotes(graphiti: Graphiti, quotes: list[SourceQuote]) -> dict[str, Any]:
-    """Ingest records in source order, one awaited episode at a time."""
+async def ingest_quotes(
+    graphiti: Graphiti,
+    quotes: list[SourceQuote],
+    *,
+    batch_size: int | None = None,
+) -> dict[str, Any]:
+    """Ingest at most one observable batch of new records in source order."""
 
-    added_count = 0
-    skipped_existing_count = 0
-    derived_facts_count = 0
+    if batch_size is not None and batch_size < 1:
+        raise ValueError("batch_size must be positive")
     existing = await existing_episodes(graphiti)
+    pending: list[SourceQuote] = []
     for quote in quotes:
+        prior = existing.get(quote.name)
+        if prior is None:
+            pending.append(quote)
+            continue
+        body = episode_body(quote)
+        if prior.content != body or prior.source_description != quote.address:
+            raise RuntimeError(f"episode identity collision for {quote.address}")
+
+    batch = pending if batch_size is None else pending[:batch_size]
+    derived_facts_count = 0
+    for quote in batch:
         outcome = await ingest_quote(graphiti, quote, existing)
-        if outcome["status"] == "skipped_existing":
-            skipped_existing_count += 1
-        else:
-            added_count += 1
-            derived_facts_count += int(outcome["derived_facts"])
+        derived_facts_count += int(outcome["derived_facts"])
+
+    added_count = len(batch)
+    remaining_count = len(pending) - added_count
     return {
         "added_count": added_count,
-        "skipped_existing_count": skipped_existing_count,
+        "skipped_existing_count": len(quotes) - len(pending),
         "derived_facts_count": derived_facts_count,
+        "remaining_count": remaining_count,
+        "complete": remaining_count == 0,
     }
 
 

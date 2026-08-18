@@ -9,8 +9,8 @@ kind: status
 
 ## Next
 
-Дождаться фонового sequential ingest 692 цитат; после reopen снять
-authoritative counts и выполнить current/history/no-provenance query audit.
+Продолжить ту же ordered DB порциями по 5 новых episodes с отчётом после
+каждой; после полного reopen выполнить current/history/no-provenance query audit.
 
 ## Свидетельства и статус
 
@@ -25,14 +25,18 @@ authoritative counts и выполнить current/history/no-provenance query a
 - Остановлена: partial exact-only
   `owner-quotes-2026-08-04_2026-08-18-luna-low.db`; checkpoint сохранён как
   control, продолжать его нельзя. Full corpus пойдёт в новую ordered DB.
-- В работе: одна команда без `--limit` пишет все 692 records в новую
-  `owner-quotes-2026-08-04_2026-08-18-luna-low-ordered.db`; reader передал
-  117 holders, 667 exact + 25 interpolated, diagnostics = 0.
+- Подтверждено: прежний writer мягко остановлен; checkpoint ordered DB после
+  reopen содержит 109 episodes / 126 facts / 9 invalidated, BGSAVE status ok,
+  unsaved changes 0. Schema/provenance errors отсутствуют; были transient
+  `UnknownIssuer` и DNS transport errors.
+- Подтверждено live: два одинаковых `--batch-size 1` запуска последовательно
+  дали `skipped=1, added=1, remaining=1, complete=false`, затем
+  `skipped=2, added=1, remaining=0, complete=true`.
 - Подтверждено: Luna/low даёт schema-valid Graphiti extraction быстрее
   проверенного Luna/max; tools, skills, memory и write отключены.
 - Подтверждено: custom ontology, `RECORD_SCOPE`, `record_type` и relation
   filters удалены; episode — только `Owner:` и optional `Agent:` messages.
-- Подтверждено: `uv run ruff check .` — pass; `uv run pytest -q` — 25 passed;
+- Подтверждено: `uv run ruff check .` — pass; `uv run pytest -q` — 26 passed;
   `uv run graphiti-codex doctor` — ready.
 - Подтверждено: live stock temporal pair добавила 2 episodes / 8 facts;
   старая связь получила `invalid_at=2026-08-08T09:05:14.733Z`, current

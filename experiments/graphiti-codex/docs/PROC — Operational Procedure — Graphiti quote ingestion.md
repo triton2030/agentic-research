@@ -130,6 +130,12 @@ group_id=owner-quotes
 `group_id` и `add_episode_bulk` запрещены: bulk предназначен для пустого графа
 или случая, где invalidation не требуется.
 
+Один `ingest` ограничен наблюдаемой порцией новых episodes: default 5,
+переопределение — `--batch-size N`. Перед порцией adapter проверяет stable
+identities всего входа, считает уже существующие records, затем добавляет только
+следующие N в хронологическом порядке. Результат сообщает остаток и `complete`.
+Следующая порция — повтор той же команды и той же DB, без offset/receipt.
+
 `saga`, custom ontology и extraction instruction не передаются;
 extraction/resolution/temporal behavior остаётся у Graphiti. Graphiti сам
 создаёт внутренний episode UUID. Повторный ingest читает
@@ -144,8 +150,9 @@ source episodes сохраняются. Если relation не извлечен�
 разрешено к той же связи, один лишь более поздний timestamp ничего не отменяет.
 
 Успешный operational результат содержит только `added_count`,
-`skipped_existing_count` и `derived_facts_count`. Source address появляется
-только в diagnostics или collision/error, не в успешном knowledge output.
+`skipped_existing_count`, `derived_facts_count`, `remaining_count` и
+`complete`. Source address появляется только в diagnostics или collision/error,
+не в успешном knowledge output.
 
 ## Search boundary
 

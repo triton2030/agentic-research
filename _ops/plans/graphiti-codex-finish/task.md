@@ -84,8 +84,9 @@ Execution. Ось разреза — зависимая цепочка набл�
    штатные episodes/search.
 2. Live proof: lint/tests/doctor + одна реальная temporal пара на свежей
    базе; current/history и public no-provenance output доказаны.
-3. Полная база: один последовательный background ingest 692 цитат
-   в новую DB через Luna/low; checkpoint служит resume.
+3. Полная база: повторяемые последовательные batches по 5 новых episodes
+   загружают 692 цитаты в новую DB через Luna/low; checkpoint и stable
+   `episode.name` служат resume.
 4. Query audit: текущие цели, устойчивые предпочтения, точечные
    директивы, изменённая позиция current/history; затем принятая DB становится
    основной experiment-базой.

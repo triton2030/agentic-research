@@ -204,7 +204,7 @@ def test_cross_encoder_seam_fails_closed_instead_of_faking_rank() -> None:
         asyncio.run(FailClosedCrossEncoder().rank("query", ["passage"]))
 
 
-def test_successful_ingest_summary_has_counts_only(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_successful_ingest_summary_reports_completion(monkeypatch: pytest.MonkeyPatch) -> None:
     timestamp = datetime.fromisoformat("2026-08-18T15:00:00+05:00")
     quote = SourceQuote(
         text="derived knowledge",
@@ -236,9 +236,67 @@ def test_successful_ingest_summary_has_counts_only(monkeypatch: pytest.MonkeyPat
         "added_count": 1,
         "skipped_existing_count": 0,
         "derived_facts_count": 2,
+        "remaining_count": 0,
+        "complete": True,
     }
     assert "source" not in result
     assert "episode_uuid" not in result
+
+
+def test_ingest_batch_skips_existing_and_limits_only_new_records(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    timestamp = datetime.fromisoformat("2026-08-18T15:00:00+05:00")
+    quotes = [
+        SourceQuote(
+            text=f"quote {position}",
+            timestamp=timestamp,
+            address=f"holder.md:{position}",
+            session="session-1",
+            uuid=f"record-{position}",
+        )
+        for position in range(1, 6)
+    ]
+    prior = {
+        quote.name: SimpleNamespace(
+            name=quote.name,
+            content=episode_body(quote),
+            source_description=quote.address,
+        )
+        for quote in quotes[:2]
+    }
+
+    async def two_existing(_graph: object) -> dict[str, object]:
+        return prior
+
+    class BatchGraph:
+        def __init__(self) -> None:
+            self.added: list[str] = []
+
+        async def add_episode(self, **kwargs: object) -> object:
+            self.added.append(str(kwargs["name"]))
+            return SimpleNamespace(
+                episode=SimpleNamespace(
+                    name=kwargs["name"],
+                    content=kwargs["episode_body"],
+                    source_description=kwargs["source_description"],
+                ),
+                edges=[object()],
+            )
+
+    monkeypatch.setattr(graph_module, "existing_episodes", two_existing)
+    graph = BatchGraph()
+
+    result = asyncio.run(ingest_quotes(graph, quotes, batch_size=2))
+
+    assert graph.added == [quotes[2].name, quotes[3].name]
+    assert result == {
+        "added_count": 2,
+        "skipped_existing_count": 2,
+        "derived_facts_count": 2,
+        "remaining_count": 1,
+        "complete": False,
+    }
 
 
 def test_stable_episode_name_turns_source_change_into_collision() -> None:

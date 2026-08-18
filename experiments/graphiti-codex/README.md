@@ -54,6 +54,13 @@ entities, edges и invalidation. Внутри одного episode Graphiti шт
 разрешает не более четырёх одновременных Luna turns. Параллельные episodes
 одного `group_id` и `add_episode_bulk` не используются.
 
+CLI `ingest` по умолчанию добавляет не больше пяти новых episodes и возвращает
+`added_count`, `skipped_existing_count`, `remaining_count` и `complete`.
+Повторяется та же explicit-команда над той же DB: stable `episode.name`
+пропускает уже сохранённое, а следующая порция продолжает общую хронологию.
+Размер можно изменить через `--batch-size N`; один CLI-запуск никогда не
+распараллеливает episodes.
+
 ## Reranker boundary
 
 Публичный query использует `Graphiti.search()` — штатный basic

@@ -134,7 +134,7 @@ async def run_ingest(args: argparse.Namespace) -> dict[str, Any]:
     quotes, skipped_records, approximated_records = _read_inputs(args)
     database = _data_path(args.database)
     async with open_graph(database) as graphiti:
-        result = await ingest_quotes(graphiti, quotes)
+        result = await ingest_quotes(graphiti, quotes, batch_size=args.batch_size)
     return {
         "quotes_read": len(quotes),
         "skipped_records": skipped_records,
@@ -197,6 +197,13 @@ def _exact_datetime(value: str) -> datetime:
     return parsed
 
 
+def _positive_int(value: str) -> int:
+    parsed = int(value)
+    if parsed < 1:
+        raise argparse.ArgumentTypeError("expected a positive integer")
+    return parsed
+
+
 def parser() -> argparse.ArgumentParser:
     result = argparse.ArgumentParser(description=__doc__)
     subcommands = result.add_subparsers(dest="command", required=True)
@@ -205,6 +212,12 @@ def parser() -> argparse.ArgumentParser:
 
     ingest = subcommands.add_parser("ingest", help="turn explicit holder records into episodes")
     _add_source_arguments(ingest, limit_default=None)
+    ingest.add_argument(
+        "--batch-size",
+        type=_positive_int,
+        default=5,
+        help="add at most this many new episodes, then return progress (default: 5)",
+    )
 
     query = subcommands.add_parser("query", help="search Graphiti's derived facts")
     query.add_argument("query")
