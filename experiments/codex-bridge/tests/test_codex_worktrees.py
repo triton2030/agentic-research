@@ -414,6 +414,30 @@ class WorktreeIsolationTests(unittest.TestCase):
         self.assertTrue(tree.path.exists())
         self.assertEqual((self.project / "a.md").read_text(), "A\n")
 
+    def test_cleanup_names_the_orphaned_worker_threads(self) -> None:
+        """Дерево снесли — карточка проекта Codex ведёт в никуда; тред назван на уборку."""
+        tree = self.make_tree("run1", "t1", {"a.md"})
+        tree.thread_id = "019f-aaa"
+        (tree.path / "a.md").write_text("A by t1\n")
+
+        wave = wt.close_wave(
+            self.project, [tree], run_id="run1", integrate=True, cleanup=True
+        )
+        self.assertEqual(wave["threads_orphaned"], ["019f-aaa"])
+        self.assertEqual(wave["workers"][0]["thread_id"], "019f-aaa")
+
+    def test_kept_tree_keeps_its_thread(self) -> None:
+        """Пока папка жива, карточка рабочая — убирать нечего."""
+        tree = self.make_tree("run1", "t1", {"a.md"})
+        tree.thread_id = "019f-bbb"
+        (tree.path / "a.md").write_text("A by t1\n")
+
+        wave = wt.close_wave(
+            self.project, [tree], run_id="run1", integrate=True, cleanup=False
+        )
+        self.assertEqual(wave["threads_orphaned"], [])
+        self.assertTrue(tree.path.exists())
+
 
 if __name__ == "__main__":
     unittest.main()

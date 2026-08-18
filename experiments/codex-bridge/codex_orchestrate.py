@@ -52,6 +52,7 @@ from codex_git_scope import (
     is_scope_noise,
 )
 from codex_progress import ProgressRegistry, ProgressTracker, run_async_turn
+from codex_threads import _open_sdk
 from codex_worktrees import (
     WorkerTree,
     WorktreeError,
@@ -199,6 +200,10 @@ async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict
             thread_id = getattr(thread, "id", None) or task.thread_id
             if thread_id:
                 append_event(run_dir, "worker_thread", id=task.id, thread_id=thread_id)
+                if tree is not None:
+                    # Дерево должно знать свой тред: закрытие волны убирает их
+                    # вместе, иначе карточка проекта переживёт свою папку.
+                    tree.thread_id = thread_id
             handle = await retry_start_async(
                 lambda: thread.turn(
                     prompt,
@@ -326,6 +331,36 @@ async def _run_fleet(
         if heartbeat_task is not None:
             heartbeat_task.cancel()
             await asyncio.gather(heartbeat_task, return_exceptions=True)
+
+
+def archive_orphaned_threads(project: Path, thread_ids: list[str], run_dir: Path) -> list[str]:
+    """Убрать из Codex треды воркеров, чьи деревья волна только что снесла.
+
+    Тред воркера материализуется намеренно (`FLEET_THREAD_EPHEMERAL`): пока волна
+    идёт, Codex Desktop показывает его чатом — живой монитор прогресса. Но
+    «проект» у Codex — это ПАПКА треда, а папка воркера одноразовая: после уборки
+    в списке проектов остаётся карточка, ведущая в никуда (замер 2026-08-18: 34 из
+    34 тредов моста висели на удалённых деревьях, и список проектов владельца
+    состоял из имён наших задач). Дерево и его тред уходят вместе.
+
+    Архивирование — штатная обратимая операция движка (`codex_threads.py
+    unarchive THREAD_ID`), не удаление; транскрипт воркера остаётся на диске.
+    """
+    if not thread_ids:
+        return []
+    archived: list[str] = []
+    try:
+        with _open_sdk(project) as codex:
+            for tid in thread_ids:
+                try:
+                    codex.thread_archive(tid)
+                except Exception as exc:  # noqa: BLE001 — гигиена не валит закрытую волну
+                    append_event(run_dir, "thread_archive_failed", thread_id=tid, error=str(exc))
+                    continue
+                archived.append(tid)
+    except Exception as exc:  # noqa: BLE001 — движок недоступен: волна уже закрыта
+        append_event(run_dir, "thread_archive_failed", error=str(exc))
+    return archived
 
 
 def run_verification(commands: list[str], project: Path, run_dir: Path) -> tuple[str, list[dict[str, Any]]]:
@@ -685,6 +720,9 @@ def _assess_wave(
             "workers": [t.to_json() for t in trees],
         }
     wave["main_tree_drift"] = changed
+    wave["threads_archived"] = archive_orphaned_threads(
+        project, wave.get("threads_orphaned") or [], plan.run_dir
+    )
 
     worker_out_of_scope = sorted({path for tree in trees for path in tree.out_of_scope_files})
     failed = bool(worker_out_of_scope) or wave.get("integration_status") in {"conflict", "error"}

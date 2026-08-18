@@ -52,6 +52,9 @@ class WorkerTree:
     # Успех хода воркера. Дерево воркера, чей ход не завершился, не вливается:
     # его правки — полуфабрикат, и статус хода обязан быть шлюзом интеграции.
     worker_ok: bool = True
+    # Тред воркера в сторе Codex: материализован намеренно, а его «проект» —
+    # это папка треда. Дерево снесли — тред осиротел, см. threads_orphaned.
+    thread_id: str | None = None
     changed_files: tuple[str, ...] = ()
     out_of_scope_files: tuple[str, ...] = ()
     commit: str | None = None
@@ -70,6 +73,7 @@ class WorkerTree:
             "branch": self.branch,
             "base_commit": self.base_commit,
             "worker_ok": self.worker_ok,
+            "thread_id": self.thread_id,
             "changed_files": list(self.changed_files),
             "out_of_scope_files": list(self.out_of_scope_files),
             "commit": self.commit,
@@ -466,6 +470,12 @@ def close_wave(
             or t.cleanup_status in {"branch_stuck", "branch_ahead"}
         ],
         "cleanup_done": cleanup_done,
+        # Треды снесённых деревьев: их карточка проекта в Codex осталась бы
+        # ведущей в никуда — архивирует их владелец SDK (оркестратор).
+        "threads_orphaned": [
+            t.thread_id for t in trees
+            if cleanup and t.thread_id and t.cleanup_status != "tree_stuck"
+        ],
         "cleanup_requested": cleanup,
         "cleanup_stuck": stuck,
         "workers": [t.to_json() for t in trees],

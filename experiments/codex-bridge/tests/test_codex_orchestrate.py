@@ -963,6 +963,55 @@ class TelemetryResilienceTest(unittest.TestCase):
                 pass
 
 
+class OrphanThreadHygieneTests(unittest.TestCase):
+    """Тред воркера живёт ровно столько, сколько его дерево.
+
+    Иначе в списке проектов Codex остаётся карточка на удалённую папку: «проект»
+    у Codex — это папка треда (замер 2026-08-18: 34 из 34 тредов моста висели на
+    снесённых деревьях).
+    """
+
+    def _orchestrate(self):
+        import importlib
+        return importlib.import_module("codex_orchestrate")
+
+    def _with_fake_sdk(self, archive):
+        orch = self._orchestrate()
+
+        class FakeCodex:
+            def __enter__(self): return self
+            def __exit__(self, *a): return False
+            def thread_archive(self, tid): archive(tid)
+
+        original = orch._open_sdk
+        orch._open_sdk = lambda project: FakeCodex()
+        self.addCleanup(lambda: setattr(orch, "_open_sdk", original))
+        return orch
+
+    def test_orphaned_threads_are_archived(self) -> None:
+        seen = []
+        orch = self._with_fake_sdk(seen.append)
+        with tempfile.TemporaryDirectory() as tmp:
+            done = orch.archive_orphaned_threads(Path(tmp), ["a", "b"], Path(tmp))
+        self.assertEqual(seen, ["a", "b"])
+        self.assertEqual(done, ["a", "b"])
+
+    def test_archive_failure_does_not_break_a_closed_wave(self) -> None:
+        """Волна уже закрыта и работа влита — гигиена не имеет права её ронять."""
+        def boom(tid):
+            raise RuntimeError("движок недоступен")
+
+        orch = self._with_fake_sdk(boom)
+        with tempfile.TemporaryDirectory() as tmp:
+            done = orch.archive_orphaned_threads(Path(tmp), ["a"], Path(tmp))
+        self.assertEqual(done, [])
+
+    def test_nothing_to_archive_does_not_touch_the_engine(self) -> None:
+        orch = self._with_fake_sdk(lambda tid: self.fail("движок не должен подниматься"))
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertEqual(orch.archive_orphaned_threads(Path(tmp), [], Path(tmp)), [])
+
+
 if __name__ == "__main__":
     unittest.main()
 
