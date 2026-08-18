@@ -10,6 +10,8 @@ from graphiti_core.prompts.models import Message
 from pydantic import BaseModel
 
 from graphiti_codex.codex_llm import (
+    CODEX_CONTEXT_CONFIG,
+    CODEX_DISABLED_FEATURES,
     CODEX_EFFORT,
     CODEX_MODEL,
     CodexInvocationError,
@@ -86,15 +88,32 @@ def test_client_rejects_an_empty_parallel_turn_pool() -> None:
         CodexLLMClient(max_parallel_turns=0)
 
 
-def test_command_is_ephemeral_read_only_and_pins_luna_max(tmp_path: Path) -> None:
+def test_command_is_completion_like_and_pins_luna_low(tmp_path: Path) -> None:
     runner = CodexSubprocess(binary="/bin/codex")
     command = runner.command(tmp_path, tmp_path / "schema.json")
 
-    assert command[:5] == ["/bin/codex", "-m", CODEX_MODEL, "-c", 'model_reasoning_effort="max"']
-    assert CODEX_EFFORT == "max"
+    assert command[:5] == ["/bin/codex", "-m", CODEX_MODEL, "-c", 'model_reasoning_effort="low"']
+    assert CODEX_EFFORT == "low"
     assert "--ephemeral" in command
     assert "--ignore-user-config" in command
     assert command[command.index("-s") + 1] == "read-only"
+    disabled = {
+        command[index + 1]
+        for index, item in enumerate(command[:-1])
+        if item == "--disable"
+    }
+    assert disabled == set(CODEX_DISABLED_FEATURES)
+    assert {"shell_tool", "skill_search", "memories", "apps"} <= disabled
+    configs = {
+        command[index + 1]
+        for index, item in enumerate(command[:-1])
+        if item == "-c"
+    }
+    assert configs == {
+        'model_reasoning_effort="low"',
+        *CODEX_CONTEXT_CONFIG,
+    }
+    assert "skills.include_instructions=false" in configs
 
 
 def test_codex_transport_preserves_graphiti_messages_without_injected_prompt() -> None:
@@ -131,6 +150,48 @@ def test_jsonl_rejects_failed_turn() -> None:
     stdout = (json.dumps({"type": "turn.failed", "error": "unsupported model"}) + "\n").encode()
     with pytest.raises(CodexInvocationError, match="failed"):
         parse_codex_jsonl(stdout, 1)
+
+
+def test_jsonl_rejects_any_tool_item() -> None:
+    stdout = "\n".join(
+        [
+            json.dumps({"type": "turn.started"}),
+            json.dumps(
+                {
+                    "type": "item.started",
+                    "item": {"type": "command_execution", "command": "pwd"},
+                }
+            ),
+            json.dumps(
+                {
+                    "type": "item.completed",
+                    "item": {"type": "agent_message", "text": '{"entity":"Graphiti","score":10}'},
+                }
+            ),
+            json.dumps({"type": "turn.completed"}),
+        ]
+    ).encode()
+
+    with pytest.raises(CodexInvocationError, match="forbidden item"):
+        parse_codex_jsonl(stdout, 0)
+
+
+def test_jsonl_requires_exactly_one_completed_answer() -> None:
+    answer = {
+        "type": "item.completed",
+        "item": {"type": "agent_message", "text": '{"entity":"Graphiti","score":10}'},
+    }
+    stdout = "\n".join(
+        [
+            json.dumps({"type": "turn.started"}),
+            json.dumps(answer),
+            json.dumps(answer),
+            json.dumps({"type": "turn.completed"}),
+        ]
+    ).encode()
+
+    with pytest.raises(CodexInvocationError, match="2 completed answers"):
+        parse_codex_jsonl(stdout, 0)
 
 
 def test_strict_schema_closes_and_requires_every_nested_object() -> None:

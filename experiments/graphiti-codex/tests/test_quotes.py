@@ -9,15 +9,14 @@ def test_quote_keeps_exact_text_time_and_address_and_skips_selection(tmp_path: P
     holder = tmp_path / "holder.md"
     holder.write_text(
         (
-            """---
-project: agentic-research
-session: 12345678-abcd
----
-
-# Chat recall
-
-* 2026-08-18T15:00:00+05:00 — "дословная цитата" — type: решение | topic: продукт-и-ценность
-"""
+            "---\n"
+            "project: agentic-research\n"
+            "session: 12345678-abcd\n"
+            "---\n\n"
+            "# Chat recall\n\n"
+            '* 2026-08-18T15:00:00+05:00 — "дословная цитата" — '
+            "type: решение | topic: продукт-и-ценность | "
+            "context-note: Правка черновика: красный цвет только здесь\n"
             '* 2026-08-18T15:01:00+05:00 — "выбранный пересказ" — '
             "kind: selection | type: решение | topic: продукт-и-ценность\n"
         ),
@@ -31,6 +30,7 @@ session: 12345678-abcd
     assert quotes[0].timestamp.isoformat() == "2026-08-18T15:00:00+05:00"
     assert quotes[0].address == "holder.md:8"
     assert quotes[0].session == "12345678-abcd"
+    assert quotes[0].context_note == "Правка черновика: красный цвет только здесь"
 
 
 def test_strict_reader_rejects_approximate_timestamp(tmp_path: Path) -> None:

@@ -25,9 +25,13 @@ OWNER_SPEAKER = "Owner"
 
 
 def episode_body(quote: SourceQuote) -> str:
-    """Format one owner utterance as Graphiti's documented message episode."""
+    """Format documented speaker/message pairs without a context side channel."""
 
-    return f"{OWNER_SPEAKER}: {quote.text}"
+    body = f"{OWNER_SPEAKER}: {quote.text}"
+    if not quote.context_note:
+        return body
+    context = " ".join(quote.context_note.split())
+    return f"{body}\nAgent: {context}"
 
 
 @asynccontextmanager
@@ -210,7 +214,12 @@ async def query_facts(
     """Return derived facts that were valid at one explicit point in time."""
 
     point = _as_utc(as_of or datetime.now(UTC))
-    edges = await _search_fact_edges(graphiti, query, limit=limit, as_of=point)
+    edges = await _search_fact_edges(
+        graphiti,
+        query,
+        limit=limit,
+        as_of=point,
+    )
     return {"query": query, "as_of": point.isoformat(), "facts": _facts_from_edges(edges)}
 
 

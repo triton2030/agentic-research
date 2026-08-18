@@ -38,6 +38,7 @@ class FakeGraph:
         self.search_filter = search_filter
         return [
             SimpleNamespace(
+                name="HAS_PREFERENCE_ABOUT",
                 fact=(
                     "The owner prefers source-bound retrieval to return a holder "
                     "for full reading."
@@ -78,11 +79,13 @@ def test_current_query_fails_closed_if_search_returns_an_invalidated_fact() -> N
         async def search(self, *_args: object, **_kwargs: object) -> list[object]:
             return [
                 SimpleNamespace(
+                    name="HAS_POSITION_ABOUT",
                     fact="old idea",
                     valid_at=datetime(2026, 8, 1, tzinfo=UTC),
                     invalid_at=datetime(2026, 8, 10, tzinfo=UTC),
                 ),
                 SimpleNamespace(
+                    name="HAS_POSITION_ABOUT",
                     fact="current idea",
                     valid_at=datetime(2026, 8, 10, tzinfo=UTC),
                     invalid_at=None,
@@ -105,11 +108,13 @@ def test_historical_query_returns_only_facts_valid_at_that_time() -> None:
         async def search(self, *_args: object, **_kwargs: object) -> list[object]:
             return [
                 SimpleNamespace(
+                    name="HAS_POSITION_ABOUT",
                     fact="old idea",
                     valid_at=datetime(2026, 8, 1, tzinfo=UTC),
                     invalid_at=datetime(2026, 8, 10, tzinfo=UTC),
                 ),
                 SimpleNamespace(
+                    name="HAS_POSITION_ABOUT",
                     fact="later idea",
                     valid_at=datetime(2026, 8, 10, tzinfo=UTC),
                     invalid_at=None,
@@ -138,7 +143,7 @@ def test_query_rejects_a_time_without_timezone() -> None:
         )
 
 
-def test_ingest_uses_stock_episode_arguments_without_custom_extraction() -> None:
+def test_ingest_uses_stock_message_episode() -> None:
     timestamp = datetime.fromisoformat("2026-08-18T15:00:00+05:00")
     quote = SourceQuote(
         text="владелец хочет derived knowledge",
@@ -172,9 +177,26 @@ def test_ingest_uses_stock_episode_arguments_without_custom_extraction() -> None
     assert graph.kwargs["group_id"] == "owner-quotes"
     assert graph.kwargs["name"] == quote.name
     assert graph.kwargs["episode_body"] == "Owner: владелец хочет derived knowledge"
-    assert "custom_extraction_instructions" not in graph.kwargs
     assert "entity_types" not in graph.kwargs
     assert "edge_types" not in graph.kwargs
+    assert "edge_type_map" not in graph.kwargs
+    assert "custom_extraction_instructions" not in graph.kwargs
+
+
+def test_episode_body_keeps_optional_agent_context_as_second_message() -> None:
+    quote = SourceQuote(
+        text="давай поставим красный цвет",
+        timestamp=datetime.fromisoformat("2026-08-18T15:00:00+05:00"),
+        address="holder.md:1",
+        session="session-1",
+        uuid="scoped-record",
+        context_note="Правка черновика: только эта задача",
+    )
+
+    assert episode_body(quote) == (
+        "Owner: давай поставим красный цвет\n"
+        "Agent: Правка черновика: только эта задача"
+    )
 
 
 def test_cross_encoder_seam_fails_closed_instead_of_faking_rank() -> None:

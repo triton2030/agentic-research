@@ -19,11 +19,40 @@ from jsonschema import Draft202012Validator
 from pydantic import BaseModel
 
 CODEX_MODEL = "gpt-5.6-luna"
-CODEX_EFFORT = "max"
+CODEX_EFFORT = "low"
 CODEX_MAX_PARALLEL_TURNS = 4
 DEFAULT_TIMEOUT_SECONDS = 180.0
 BILLING_LEAK_VARS = ("OPENAI_API_KEY", "CODEX_API_KEY", "OPENAI_BASE_URL")
 CHATGPT_CODEX = Path("/Applications/ChatGPT.app/Contents/Resources/codex")
+CODEX_DISABLED_FEATURES = (
+    "apps",
+    "browser_use",
+    "browser_use_external",
+    "browser_use_full_cdp_access",
+    "computer_use",
+    "goals",
+    "hooks",
+    "image_generation",
+    "in_app_browser",
+    "memories",
+    "multi_agent",
+    "plugins",
+    "remote_plugin",
+    "shell_tool",
+    "skill_mcp_dependency_install",
+    "skill_search",
+    "tool_suggest",
+    "view_image",
+    "workspace_dependencies",
+)
+CODEX_CONTEXT_CONFIG = (
+    "skills.include_instructions=false",
+    "include_permissions_instructions=false",
+    "include_apps_instructions=false",
+    "include_collaboration_mode_instructions=false",
+    "include_environment_context=false",
+)
+ALLOWED_CODEX_ITEM_TYPES = {"agent_message", "reasoning"}
 
 
 class CodexInvocationError(RuntimeError):
@@ -69,6 +98,8 @@ def parse_codex_jsonl(stdout: bytes, returncode: int) -> dict[str, Any]:
     completed = False
     final_text: str | None = None
     fatal: str | None = None
+    unexpected_item: str | None = None
+    answer_count = 0
 
     for raw_line in stdout.decode("utf-8", errors="replace").splitlines():
         if not raw_line.strip():
@@ -81,15 +112,27 @@ def parse_codex_jsonl(stdout: bytes, returncode: int) -> dict[str, Any]:
         event_type = event.get("type")
         if event_type in {"error", "turn.failed"}:
             fatal = str(event.get("message") or event.get("error") or event_type)
-        elif event_type == "item.completed":
+        elif event_type in {"item.started", "item.completed"}:
             item = event.get("item") or {}
-            if item.get("type") == "agent_message" and isinstance(item.get("text"), str):
+            item_type = item.get("type")
+            if item_type not in ALLOWED_CODEX_ITEM_TYPES:
+                unexpected_item = str(item_type or "missing item type")
+            elif (
+                event_type == "item.completed"
+                and item_type == "agent_message"
+                and isinstance(item.get("text"), str)
+            ):
+                answer_count += 1
                 final_text = item["text"]
         elif event_type == "turn.completed":
             completed = True
 
     if fatal:
         raise CodexInvocationError(f"Codex turn failed: {fatal}")
+    if unexpected_item:
+        raise CodexInvocationError(f"Codex emitted a forbidden item: {unexpected_item}")
+    if answer_count != 1:
+        raise CodexInvocationError(f"Codex emitted {answer_count} completed answers; expected one")
     if returncode != 0:
         raise CodexInvocationError(
             f"Codex exited with status {returncode} without a terminal event"
@@ -107,7 +150,7 @@ def parse_codex_jsonl(stdout: bytes, returncode: int) -> dict[str, Any]:
 
 
 class CodexSubprocess:
-    """Run one ephemeral, read-only Codex turn with a JSON Schema."""
+    """Run one isolated completion-like Codex turn with a JSON Schema."""
 
     def __init__(
         self,
@@ -123,7 +166,7 @@ class CodexSubprocess:
         self.timeout_seconds = timeout_seconds
 
     def command(self, workdir: Path, schema_path: Path) -> list[str]:
-        return [
+        command = [
             self.binary,
             "-m",
             self.model,
@@ -135,19 +178,28 @@ class CodexSubprocess:
             "read-only",
             "-C",
             str(workdir),
-            "exec",
-            "--strict-config",
-            "--ephemeral",
-            "--ignore-user-config",
-            "--ignore-rules",
-            "--skip-git-repo-check",
-            "--output-schema",
-            str(schema_path),
-            "--color",
-            "never",
-            "--json",
-            "-",
         ]
+        for feature in CODEX_DISABLED_FEATURES:
+            command.extend(("--disable", feature))
+        for setting in CODEX_CONTEXT_CONFIG:
+            command.extend(("-c", setting))
+        command.extend(
+            [
+                "exec",
+                "--strict-config",
+                "--ephemeral",
+                "--ignore-user-config",
+                "--ignore-rules",
+                "--skip-git-repo-check",
+                "--output-schema",
+                str(schema_path),
+                "--color",
+                "never",
+                "--json",
+                "-",
+            ]
+        )
+        return command
 
     @staticmethod
     def prompt_for(messages: list[Message]) -> str:

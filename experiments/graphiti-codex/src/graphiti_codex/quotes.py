@@ -11,7 +11,9 @@ from uuid import NAMESPACE_URL, uuid5
 ENTRY_RE = re.compile(
     r'^\*\s+(?P<timestamp>.+?)\s+—\s+"(?P<text>.*)"\s+—\s+(?P<meta>.+)$'
 )
-KIND_RE = re.compile(r"(?:^|\|\s*)kind:\s*(?P<kind>[\w-]+)")
+METADATA_FIELD_RE = re.compile(
+    r"(?:^|\|\s*)(?P<key>[\w-]+):\s*(?P<value>.*?)(?=\s+\|\s+[\w-]+:\s*|$)"
+)
 FRONTMATTER_RE = re.compile(r"^---\n(?P<body>.*?)\n---\n", re.DOTALL)
 
 
@@ -24,6 +26,7 @@ class SourceQuote:
     address: str
     session: str
     uuid: str
+    context_note: str | None = None
 
     @property
     def name(self) -> str:
@@ -74,6 +77,13 @@ def _quote_identity(session: str, timestamp: datetime, address: str) -> str:
     return str(uuid5(NAMESPACE_URL, identity))
 
 
+def _metadata_fields(raw: str) -> dict[str, str]:
+    return {
+        match.group("key"): match.group("value").strip()
+        for match in METADATA_FIELD_RE.finditer(raw)
+    }
+
+
 def _read_holder(
     path: Path,
     *,
@@ -91,8 +101,9 @@ def _read_holder(
         match = ENTRY_RE.match(line)
         if not match:
             continue
-        kind_match = KIND_RE.search(match.group("meta"))
-        if kind_match and kind_match.group("kind") != "quote":
+        metadata = _metadata_fields(match.group("meta"))
+        kind = metadata.get("kind")
+        if kind and kind != "quote":
             continue
         address = f"{relative_path}:{line_number}"
         try:
@@ -108,6 +119,7 @@ def _read_holder(
             address=address,
             session=session,
             uuid=_quote_identity(session, timestamp, address),
+            context_note=metadata.get("context-note"),
         )
         if record_ids is None or quote.uuid in record_ids or quote.name in record_ids:
             quotes.append(quote)

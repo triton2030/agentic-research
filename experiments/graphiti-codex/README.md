@@ -12,7 +12,7 @@ answer.
 
 | Upstream Graphiti 0.29.3 | Локальный adapter |
 | --- | --- |
-| `add_episode()` и `EpisodeType.message` | Чтение holder-файлов; формат `Owner: <quote>` |
+| `add_episode()` и `EpisodeType.message` | Чтение holder-файлов; `Owner: <quote>` + optional `Agent: <context>` |
 | Официальные prompts, extraction, entity/edge resolution и temporal fields | `CodexLLMClient` через официальный `_generate_response` seam |
 | `episode.name` и внутренний Graphiti UUID | Stable source identity в `episode.name`; UUID создаёт Graphiti |
 | `Graphiti.search()`, `SearchFilters` и stock `EDGE_HYBRID_SEARCH_RRF` | Namespace `owner-quotes`; explicit current/as-of view |
@@ -21,9 +21,8 @@ answer.
 | Embedder seam | Локальный `intfloat/multilingual-e5-small` через FastEmbed |
 
 Graphiti сам владеет prompts, extraction, deduplication, temporal invalidation и
-search recipes. Adapter не передаёт `custom_extraction_instructions`, custom
-ontology или entity/edge types, не синтезирует facts вручную и не вводит
-coverage thresholds.
+search recipes. Adapter не передаёт custom ontology или extraction instruction,
+не синтезирует facts и не добавляет собственный resolver.
 
 ## Ожидаемый эффект Graphiti
 
@@ -36,9 +35,16 @@ coverage thresholds.
 обещание пересказать каждую строку: фраза, из которой Graphiti не извлёк
 relation, может остаться только episode.
 
+Если у quote-record есть `context-note`, он передаётся рядом второй штатной
+message-парой `Agent: <context>`. Это обычный episode body, а не отдельная
+архитектура, metadata scope или источник вручную созданных facts.
+
 Graphiti messages сериализуются для Codex без добавленной adapter-инструкции:
 исходные `role` и `content` сохраняются. Codex запускается как
-`gpt-5.6-luna`, reasoning effort `max`, ephemeral, read-only, approvals never;
+`gpt-5.6-luna`, reasoning effort `low`, ephemeral, read-only, approvals never.
+Shell, memory, apps, browser/computer и остальные workspace-tools явно
+отключены, а каталог skills не добавляется в model context: один Graphiti call
+может дать только один terminal schema-answer;
 response schema валидируется и CLI, и локальным Pydantic.
 
 Episodes ingest-ятся строго последовательно: следующий `add_episode()`
@@ -65,7 +71,7 @@ uv sync --python 3.12
 uv run graphiti-codex doctor
 ```
 
-`doctor` проверяет ChatGPT login, наличие `gpt-5.6-luna/max`, локальные
+`doctor` проверяет ChatGPT login, наличие `gpt-5.6-luna/low`, локальные
 embeddings, fail-closed reranker seam и embedded FalkorDBLite. Codex inference
 не offline: episode content отправляется через уже авторизованный Codex/ChatGPT
 аккаунт. Внешний embedding API и OpenAI reranker не используются.
@@ -85,7 +91,8 @@ uv run graphiti-codex demo \
 
 Команда последовательно вызывает stock `add_episode`, затем stock `search`.
 Каждая точная реплика передаётся как документированный conversational message
-`Owner: <quote>`, чтобы субъект оставался явным без custom prompt или ontology.
+`Owner: <quote>`; необязательный контекст — следующей парой `Agent: <context>`.
+Custom prompt и ontology не добавляются.
 Она делает one-shot private provenance check и падает при отсутствии
 `edge.episodes` или несовпадении episode content/time,
 но stdout содержит только operational counts и public facts.

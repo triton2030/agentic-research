@@ -14,7 +14,8 @@ approved: false
 
 Graphiti — производный temporal Context Graph, а не новая source of truth.
 Holder остаётся исходным evidence. Один точный record становится одним
-`EpisodeType.message` в документированном формате `Owner: <quote>`; Graphiti сам
+`EpisodeType.message` в документированном формате `Owner: <quote>` и optional
+`Agent: <context-note>`; Graphiti сам
 извлекает entities и relationships, разрешает
 их с существующим graph и хранит temporal facts, связанные с episode через
 `edge.episodes`.
@@ -30,8 +31,8 @@ links, `sources` и episode IDs не входят в пользовательс�
 Graph:
 
 1. Сохранить каждое исходное сообщение отдельным internal episode.
-2. Автономно извлечь и разрешить entity nodes и relationship facts; не создавать
-   наш параллельный пересказ или сводку.
+2. Автономно извлечь и разрешить entity nodes и relationship facts штатными
+   prompts и schema; не создавать наш параллельный пересказ или сводку.
 3. Держать lifecycle фактов через `valid_at` / `invalid_at`, сохраняя историю
    при последующих изменениях.
 4. Возвращать релевантные facts через штатный hybrid semantic + BM25 search с
@@ -45,7 +46,7 @@ custom prompt, ontology или синтезом.
 
 | Upstream `graphiti-core==0.29.3` | Adapter |
 | --- | --- |
-| `add_episode()` и `EpisodeType.message` | Reader holder-файлов; формат `Owner: <quote>` |
+| `add_episode()` и `EpisodeType.message` | Reader holder-файлов; exact quote + optional agent context |
 | Официальные prompts, extraction, entity/edge resolution и temporal fields | `CodexLLMClient` через `_generate_response` seam |
 | `episode.name` и внутренний Graphiti UUID | Source identity в `episode.name`; UUID создаёт Graphiti |
 | `Graphiti.search()` и basic `EDGE_HYBRID_SEARCH_RRF` | Namespace `owner-quotes` |
@@ -55,9 +56,11 @@ custom prompt, ontology или синтезом.
 
 Adapter не форкает и не переписывает Graphiti extraction, deduplication,
 temporal invalidation, episode semantics или search recipes. Вызов
-`add_episode()` не получает `custom_extraction_instructions`, custom ontology,
-`entity_types` или `edge_types`. Adapter не синтезирует facts и не вводит
-coverage-метрики.
+`add_episode()` не передаёт custom ontology или extraction instruction.
+`context-note`, если он есть, становится второй документированной message-парой
+`Agent: <context>` в том же episode; `record_type`, широкий `topic` и отдельный
+scope-формат не передаются. Adapter не синтезирует facts, не разрешает
+противоречия сам и не вводит coverage-метрики.
 
 ## LLM boundary
 
@@ -65,14 +68,27 @@ coverage-метрики.
 2. Adapter сериализует этот список для одного ephemeral Codex CLI turn. `role` и
    `content` проходят без добавленной adapter-инструкции и без переписывания
    prompt. Output schema передаётся CLI через штатный `--output-schema`.
-3. Invocation фиксирован на `gpt-5.6-luna`, reasoning effort `max`, sandbox
-   `read-only`, approvals `never`, ephemeral process.
-4. Ответ принимается только после `turn.completed`, нулевого exit code и
-   повторной Pydantic/JSON Schema validation. Ошибка или timeout остаются
+3. Invocation фиксирован на `gpt-5.6-luna`, reasoning effort `low`, sandbox
+   `read-only`, approvals `never`, ephemeral process. Shell, memory, apps,
+   browser/computer и workspace-tools явно отключены; каталог skills,
+   permissions/apps/collaboration/environment context не добавляется в model
+   input. После базовой инструкции самой Codex-модели она получает только
+   текущие Graphiti messages и schema: читать файлы, писать, вызывать tools или
+   продолжать прошлую сессию она не может.
+4. Ответ принимается только после ровно одного terminal `agent_message`,
+   `turn.completed`, нулевого exit code и повторной Pydantic/JSON Schema
+   validation. Любой tool item, второй answer, ошибка или timeout остаются
    ошибкой episode; ручной результат не подставляется.
 5. Adapter допускает не более четырёх одновременных Luna turns только для
    независимых extraction/resolution операций, которые Graphiti сам запускает
    внутри текущего episode.
+
+Это повторяет provider-контракт Graphiti, а не превращает extraction в агента:
+штатный OpenAI client делает один structured completion без tools и памяти,
+выбирает verbosity `low`, reasoning `none` для `gpt-5.5` и `minimal` для
+остальных моделей именно из-за сопоставимого extraction quality при меньшей
+latency/cost. Luna не поддерживает `none`/`minimal`, поэтому используется её
+самый низкий поддерживаемый tier `low`.
 
 ## Explicit source reader
 
@@ -97,7 +113,7 @@ window/count/hash manifest и не управляет retry/progress receipt.
 
 ```text
 name=stable source identity in episode.name
-episode_body=Owner: <exact quote text>
+episode_body=Owner: <exact quote text> + optional Agent: <context-note>
 source_description=holder address
 reference_time=source timestamp
 source=EpisodeType.message
@@ -111,9 +127,10 @@ group_id=owner-quotes
 `group_id` и `add_episode_bulk` запрещены: bulk предназначен для пустого графа
 или случая, где invalidation не требуется.
 
-`saga`, custom instructions и custom ontology не передаются. Graphiti сам
-создаёт внутренний episode UUID и сам владеет extraction/resolution/temporal
-behavior. Повторный ingest читает существующие episodes по `episode.name`:
+`saga`, custom ontology и extraction instruction не передаются;
+extraction/resolution/temporal behavior остаётся у Graphiti. Graphiti сам
+создаёт внутренний episode UUID. Повторный ingest читает
+существующие episodes по `episode.name`:
 совпавшие content/address дают `skipped_existing`, collision останавливает
 операцию с точным адресом ошибки.
 
@@ -205,6 +222,9 @@ Acceptance adapter:
 - [Searching the graph](https://help.getzep.com/graphiti/working-with-data/searching)
 - [Search filters and current facts](https://help.getzep.com/searching-the-graph#checking-for-null-timestamps)
 - [Pinned v0.29.3](https://github.com/getzep/graphiti/releases/tag/v0.29.3)
+- [Pinned structured LLM client and reasoning policy](https://github.com/getzep/graphiti/blob/v0.29.3/graphiti_core/llm_client/openai_base_client.py)
+- [LLM configuration and Structured Output requirement](https://help.getzep.com/graphiti/configuration/llm-configuration)
+- [Custom Entity and Edge Types](https://help.getzep.com/graphiti/core-concepts/custom-entity-and-edge-types/)
 - [Pinned `add_episode` source](https://github.com/getzep/graphiti/blob/021d3a57d511f21b10adaf7fa923bd5c1fce5e9d/graphiti_core/graphiti.py#L980-L1111)
 - [Pinned temporal filter source](https://github.com/getzep/graphiti/blob/021d3a57d511f21b10adaf7fa923bd5c1fce5e9d/graphiti_core/search/search_filters.py#L149-L271)
 - [Pinned `EntityEdge.episodes`](https://github.com/getzep/graphiti/blob/021d3a57d511f21b10adaf7fa923bd5c1fce5e9d/graphiti_core/edges.py#L263-L282)
