@@ -861,6 +861,14 @@ def _summary(record: dict[str, Any]) -> dict[str, Any]:
     return {field: record[field] for field in fields if field in record}
 
 
+def _snippet_summary(record: dict[str, Any], head: int) -> dict[str, Any]:
+    summary = _summary(record)
+    text = summary.get("text")
+    if isinstance(text, str) and len(text) > head:
+        summary["text"] = text[:head].rstrip() + "…"
+    return summary
+
+
 def _session_summary(record: dict[str, Any]) -> dict[str, Any]:
     fields = (
         "file",
@@ -1146,7 +1154,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--head",
         type=int,
         default=110,
-        help="human-readable excerpt length; ignored with --json",
+        help="excerpt length for human digest and query-JSON record text",
     )
     parser.add_argument(
         "--limit",
@@ -1261,6 +1269,14 @@ def main() -> int:
                     total=total,
                     retrieval=retrieval,
                 )
+        if args.show:
+            rendered_records = selected
+        elif args.query and not args.timeline:
+            rendered_records = [
+                _snippet_summary(record, args.head) for record in selected
+            ]
+        else:
+            rendered_records = [_summary(record) for record in selected]
         envelope = {
             "total": total,
             "matched": matched,
@@ -1276,7 +1292,7 @@ def main() -> int:
             ),
             "quality": _quality(records),
             "warnings": _warnings(records),
-            "records": selected if args.show else [_summary(record) for record in selected],
+            "records": rendered_records,
         }
         if args.query:
             envelope["session_candidates"] = [

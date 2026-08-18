@@ -445,6 +445,28 @@ class ChatDigestTests(unittest.TestCase):
         self.assertIsNone(none["truncated_by"])
         self.assertEqual(none["retrieval"], "hybrid")
 
+    def test_query_json_returns_snippet_not_full_quote(self) -> None:
+        long_text = (
+            "владелец объясняет длинную позицию про запись файлов " * 6
+        ).strip()
+        self.write_entries(
+            [
+                f'* 2026-07-01T10:00:00+00:00 — "{long_text}" — '
+                "type: решение | topic: работа-и-процессы",
+            ]
+        )
+        data = json.loads(self.call("--query", "запись файлов", "--json").stdout)
+        self.assertEqual(data["returned"], 1)
+        snippet = data["records"][0]["text"]
+        self.assertTrue(snippet.endswith("…"))
+        self.assertLessEqual(len(snippet), 111)
+        timeline = json.loads(
+            self.call("--query", "запись файлов", "--timeline", "--json").stdout
+        )
+        self.assertTrue(
+            any(len(record["text"]) > 111 for record in timeline["records"])
+        )
+
     def test_help_explains_limit_head_and_character_budget(self) -> None:
         result = subprocess.run(
             [sys.executable, str(SCRIPT), "--help"],
@@ -455,8 +477,7 @@ class ChatDigestTests(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("maximum records", result.stdout)
-        self.assertIn("human-readable excerpt", result.stdout)
-        self.assertIn("ignored with --json", result.stdout)
+        self.assertIn("excerpt length for human digest and query-JSON", result.stdout)
         self.assertIn("may return fewer records than --limit", result.stdout)
 
     def test_human_bound_uses_rendered_digest_not_full_json(self) -> None:
