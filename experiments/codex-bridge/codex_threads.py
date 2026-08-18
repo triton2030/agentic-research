@@ -30,6 +30,7 @@ from pathlib import Path
 
 from cbcommon import scrub_billing_env
 from codex_defaults import resolve_codex_bin
+from codex_footprint import orphan_threads
 from codex_sdk_compat import harden_sdk_enums
 from codex_review import _append_registry_event, _dialog_registry_path
 
@@ -306,8 +307,19 @@ def _epoch_iso(value) -> str | None:
 
 
 def cmd_archive(
-    project_cwd: Path, thread_id: str | None, stale: bool, older_hours: int
+    project_cwd: Path, thread_id: str | None, stale: bool, older_hours: int,
+    orphaned: bool = False,
 ) -> int:
+    if orphaned:
+        # Источник — стор движка, а не реестр диалогов: воркеров флота в
+        # реестре нет, и `--stale` их не видел ни разу (замер 2026-08-18).
+        found = orphan_threads()
+        if not found:
+            print("Осиротевших тредов моста нет.")
+            return 0
+        print(f"Тредов на удалённых папках: {len(found)}")
+        return _archive_ids(project_cwd, [t["thread_id"] for t in found])
+
     events, bad = read_events(project_cwd)
     threads = collapse(events)
     if stale:
@@ -326,6 +338,10 @@ def cmd_archive(
         print("Нечего архивировать.")
         return 0
 
+    return _archive_ids(project_cwd, targets)
+
+
+def _archive_ids(project_cwd: Path, targets: list[str]) -> int:
     archived, failed = [], []
     with _open_sdk(project_cwd) as codex:
         for tid in targets:
@@ -372,6 +388,10 @@ def main() -> int:
     parser.add_argument("--project", default=".", help="Корень проекта (default cwd).")
     parser.add_argument("--stale", action="store_true", help="archive: все треды старше --older-hours.")
     parser.add_argument(
+        "--orphaned", action="store_true",
+        help="archive: треды моста, чьи рабочие папки удалены (карточки-проекты в никуда).",
+    )
+    parser.add_argument(
         "--older-hours", type=int, default=STALE_HOURS_DEFAULT,
         help=f"Порог свежести в часах (default {STALE_HOURS_DEFAULT} — правило «старше двух дней»).",
     )
@@ -395,8 +415,16 @@ def main() -> int:
     if args.command == "mine" and args.limit <= 0:
         print("--limit должен быть > 0.", file=sys.stderr)
         return 2
-    if args.command == "archive" and bool(args.thread_id) == args.stale:
-        print("archive: укажи ровно одно из THREAD_ID или --stale.", file=sys.stderr)
+    if args.command == "archive" and sum(
+        (bool(args.thread_id), args.stale, args.orphaned)
+    ) != 1:
+        print(
+            "archive: укажи ровно одно из THREAD_ID, --stale или --orphaned.",
+            file=sys.stderr,
+        )
+        return 2
+    if args.command != "archive" and args.orphaned:
+        print("--orphaned применим только к archive.", file=sys.stderr)
         return 2
     if args.command == "unarchive" and (not args.thread_id or args.stale):
         print("unarchive: нужен THREAD_ID, --stale не применим.", file=sys.stderr)
@@ -408,7 +436,9 @@ def main() -> int:
     if args.command == "mine":
         return cmd_mine(project_cwd, args.json, args.limit, args.all_projects)
     if args.command == "archive":
-        return cmd_archive(project_cwd, args.thread_id, args.stale, args.older_hours)
+        return cmd_archive(
+            project_cwd, args.thread_id, args.stale, args.older_hours, args.orphaned
+        )
     return cmd_unarchive(project_cwd, args.thread_id)
 
 

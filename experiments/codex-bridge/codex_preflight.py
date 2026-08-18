@@ -8,6 +8,9 @@
 
 Оба вызова (`account/read`, `config/read`) — служебные RPC, кредиты не тратят.
 
+Сюда же приклеен локальный скан следа моста СНАРУЖИ (`codex_footprint.py`):
+он не требует движка и печатается даже тогда, когда RPC не ответили.
+
 Ответы читаются СЫРЫМИ (`_request_raw`), без pydantic-моделей: движок
 ChatGPT.app опережает запиненную схему (см. `codex_sdk_compat.py`), и
 диагностика обязана переживать дрейф, а не падать на нём первой.
@@ -21,6 +24,7 @@ from codex_defaults import (
     codex_bin_source,
     resolve_codex_bin,
 )
+from codex_footprint import scan as scan_footprint
 
 
 def _dig(node: Any, *path: str) -> Any:
@@ -43,10 +47,15 @@ def check(*, cwd: str, codex_bin: str | None = None) -> dict[str, Any]:
     if codex_bin is None:
         codex_bin = resolve_codex_bin()
 
+    # След — локальный скан диска: он обязан дожить до вывода даже тогда, когда
+    # движок молчит, потому что именно эту грязь наши тесты не видят вообще.
+    footprint = scan_footprint()
+
     report: dict[str, Any] = {
         "engine": {"codex_bin": codex_bin, "binary_source": codex_bin_source(codex_bin)},
         "auth": {},
         "config": {},
+        "footprint": footprint,
         "warnings": [],
         "ok": False,
     }
@@ -66,6 +75,7 @@ def check(*, cwd: str, codex_bin: str | None = None) -> dict[str, Any]:
         return report
 
     report.update(interpret(account, config))
+    report["footprint"] = footprint
     return report
 
 
@@ -156,6 +166,16 @@ def render(report: dict[str, Any]) -> str:
             f"наследуемый service_tier: {cfg.get('inherited_service_tier') or '—'} "
             f"(мост его не шлёт; модель мост задаёт сам: {DEFAULT_CODEX_MODEL})"
         )
+    foot = report.get("footprint") or {}
+    orphans, dead = foot.get("orphan_threads", 0), foot.get("dead_project_entries", 0)
+    lines.append(
+        f"след моста снаружи: тредов на удалённых папках — {orphans}; "
+        f"мёртвых записей в config.toml — {dead} (косметика, не чиним)"
+    )
+    if orphans:
+        # Каждый такой тред — карточка проекта в Codex, ведущая в никуда.
+        lines.append(f"  ↳ пример: {(foot.get('orphan_thread_samples') or ['—'])[0]}")
+        lines.append("  ↳ убрать: codex_threads.py archive --orphaned --project \"$PWD\"")
     for warning in report.get("warnings", []):
         lines.append(f"  ⚠ {warning}")
     lines.append(f"итог: {'ok' if report.get('ok') else 'ТРЕБУЕТ ВНИМАНИЯ'}")
