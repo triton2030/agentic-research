@@ -21,7 +21,7 @@ Root `_ops/GOAL.md` не владеет runtime-экспериментами; п
 - Ingest и search идут через штатные `Graphiti.add_episode()` и
   `Graphiti.search()`; custom ontology, свой resolver и свои fact-классы
   отсутствуют.
-- Episode содержит штатные message-pairs: точную `Owner: <quote>` и
+- Episode содержит штатные message-pairs: `Owner: <quote>` и
   необязательную `Agent: <context-note>`; отдельной архитектуры
   контекста нет.
 - Luna получает только Graphiti messages + schema, не имеет tools,
@@ -29,9 +29,10 @@ Root `_ops/GOAL.md` не владеет runtime-экспериментами; п
 - Одна реальная пара «старая позиция → новая позиция» доказывает
   stock invalidation: current-query не возвращает старое, явный
   historical query возвращает.
-- В новую базу загружены все 648 точных цитат за
-  2026-08-04..2026-08-18; загрузка последовательна, но внутренние
-  Luna-turns ограничены пулом.
+- В новую базу загружены все 692 цитаты текущего tracked snapshot за
+  2026-08-04..2026-08-18: 667 точных и 25 date-only с детерминированным
+  `reference_time` внутри окна соседних sessions; загрузка последовательна,
+  но внутренние Luna-turns ограничены пулом.
 - Финальный аудит задаёт current и historical вопросы; public output
   не содержит цитат, holder paths, links и episode IDs.
 
@@ -50,10 +51,13 @@ Root `_ops/GOAL.md` не владеет runtime-экспериментами; п
   `_ops/chat-recall/2026-08-18-151822-codex-01a0145e.md:48`.
 - Цитата + необязательный контекст агента в одном episode → владелец,
   `_ops/chat-recall/2026-08-18-151822-codex-01a0145e.md:47`.
-- 648 цитат до запросов → владелец,
+- Полный двухнедельный корпус до запросов → владелец,
   `_ops/chat-recall/2026-08-18-151822-codex-01a0145e.md:32`.
 - Current не считает вытесненное актуальным → владелец, текущий чат;
   официальные Graphiti `reference_time`, `valid_at`, `invalid_at`.
+- Для date-only records порядок важнее времени суток, а реалистичное время
+  выводится из окна соседних sessions → владелец,
+  `_ops/chat-recall/2026-08-18-151822-codex-01a0145e.md:51-52`.
 - Форма episode и custom-надстроек нет → official
   `Adding Episodes`, раздел multi-turn message episodes.
 - Выбор границы → записанный ответ owner выше; `agentic-research:P-003`
@@ -80,7 +84,7 @@ Execution. Ось разреза — зависимая цепочка набл�
    штатные episodes/search.
 2. Live proof: lint/tests/doctor + одна реальная temporal пара на свежей
    базе; current/history и public no-provenance output доказаны.
-3. Полная база: один последовательный background ingest 648 цитат
+3. Полная база: один последовательный background ingest 692 цитат
    в новую DB через Luna/low; checkpoint служит resume.
 4. Query audit: текущие цели, устойчивые предпочтения, точечные
    директивы, изменённая позиция current/history; затем принятая DB становится
@@ -92,7 +96,7 @@ Execution. Ось разреза — зависимая цепочка набл�
   custom knowledge semantics.
 - Live proof → corpus ingest съедобен, когда stock Graphiti инвалидирует
   реальную пару.
-- Corpus ingest → audit съедобен, когда episode count равен 648 и нет
+- Corpus ingest → audit съедобен, когда episode count равен 692 и нет
   ingest errors.
 
 ## Инварианты волны

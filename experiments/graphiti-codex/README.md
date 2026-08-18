@@ -90,7 +90,7 @@ uv run graphiti-codex demo \
 ```
 
 Команда последовательно вызывает stock `add_episode`, затем stock `search`.
-Каждая точная реплика передаётся как документированный conversational message
+Каждая реплика передаётся как документированный conversational message
 `Owner: <quote>`; необязательный контекст — следующей парой `Agent: <context>`.
 Custom prompt и ontology не добавляются.
 Она делает one-shot private provenance check и падает при отсутствии
@@ -134,9 +134,12 @@ demo/tests и не является query API.
 relation и не выставила `invalid_at`, adapter не подменяет это собственной
 семантикой.
 
-Approximate record без полного времени и timezone не ingest-ится. При tolerant
-чтении явного holder он пропускается с machine-readable address/reason; точный
-timestamp не выдумывается. `kind: selection` также не является quote episode.
+Date-only record получает `reference_time`, равномерно интерполированный между
+временем предыдущего и следующего известных session-файлов. Если одной границы
+нет, используется граница календарного дня `Asia/Almaty`. Исходный holder не
+переписывается, порядок строк сохраняется, а operational event явно помечает
+такую метку как `record.approximated`. Timed record без timezone остаётся
+ошибкой. `kind: selection` не является quote episode.
 
 ## Проверка
 

@@ -18,6 +18,10 @@
 исходных цитат и их адресов. См. owner-критерии в chat-recall:
 `_ops/chat-recall/2026-08-18-151822-codex-01a0145e.md:36-39`.
 
+У 25 legacy records известна только дата. Владелец выбрал порядок как
+существенную семантику: вычислять `reference_time` внутри окна между соседними
+session-файлами, сохраняя порядок строк и не выдавая часы за source evidence.
+
 ## Отпавшие ходы
 
 - `RECORD_SCOPE`, `record_type`, saga, receipt/control-plane и собственная custom ontology:

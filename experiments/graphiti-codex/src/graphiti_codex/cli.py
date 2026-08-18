@@ -58,7 +58,9 @@ def _emit(event: str, **payload: Any) -> None:
     print(json.dumps({"event": event, **payload}, ensure_ascii=False), flush=True)
 
 
-def _read_inputs(args: argparse.Namespace) -> tuple[list[Any], list[dict[str, str]]]:
+def _read_inputs(
+    args: argparse.Namespace,
+) -> tuple[list[Any], list[dict[str, str]], list[dict[str, str]]]:
     root = project_root(Path.cwd())
     holders = [Path(holder).resolve() for holder in args.holders]
     record_ids = set(args.record_id or [])
@@ -72,9 +74,20 @@ def _read_inputs(args: argparse.Namespace) -> tuple[list[Any], list[dict[str, st
     skipped = [{"address": item.address, "reason": item.reason} for item in diagnostics]
     for item in skipped:
         _emit("record.skipped", **item)
+    approximated = [
+        {
+            "address": quote.address,
+            "reference_time": quote.timestamp.isoformat(),
+            "basis": "neighboring-session-window+source-order",
+        }
+        for quote in quotes
+        if quote.timestamp_precision == "interpolated"
+    ]
+    for item in approximated:
+        _emit("record.approximated", **item)
     if not quotes:
-        raise RuntimeError("No exact source-bound quote records found")
-    return quotes, skipped
+        raise RuntimeError("No source-bound quote records found")
+    return quotes, skipped, approximated
 
 
 async def doctor() -> dict[str, Any]:
@@ -118,13 +131,14 @@ async def doctor() -> dict[str, Any]:
 
 
 async def run_ingest(args: argparse.Namespace) -> dict[str, Any]:
-    quotes, skipped_records = _read_inputs(args)
+    quotes, skipped_records, approximated_records = _read_inputs(args)
     database = _data_path(args.database)
     async with open_graph(database) as graphiti:
         result = await ingest_quotes(graphiti, quotes)
     return {
         "quotes_read": len(quotes),
         "skipped_records": skipped_records,
+        "approximated_records": approximated_records,
         "ingestion": result,
     }
 
@@ -141,7 +155,7 @@ async def run_query(args: argparse.Namespace) -> dict[str, Any]:
 
 
 async def run_demo(args: argparse.Namespace) -> dict[str, Any]:
-    quotes, skipped_records = _read_inputs(args)
+    quotes, skipped_records, approximated_records = _read_inputs(args)
     database = _data_path(args.database)
     async with open_graph(database) as graphiti:
         ingestion = await ingest_quotes(graphiti, quotes)
@@ -158,6 +172,7 @@ async def run_demo(args: argparse.Namespace) -> dict[str, Any]:
     return {
         "quotes_read": len(quotes),
         "skipped_records": skipped_records,
+        "approximated_records": approximated_records,
         "ingestion": ingestion,
         "query": args.query,
         "as_of": as_of.isoformat(),

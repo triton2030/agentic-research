@@ -13,7 +13,7 @@ approved: false
 ## Рабочая модель
 
 Graphiti — производный temporal Context Graph, а не новая source of truth.
-Holder остаётся исходным evidence. Один точный record становится одним
+Holder остаётся исходным evidence. Один quote record становится одним
 `EpisodeType.message` в документированном формате `Owner: <quote>` и optional
 `Agent: <context-note>`; Graphiti сам
 извлекает entities и relationships, разрешает
@@ -46,7 +46,7 @@ custom prompt, ontology или синтезом.
 
 | Upstream `graphiti-core==0.29.3` | Adapter |
 | --- | --- |
-| `add_episode()` и `EpisodeType.message` | Reader holder-файлов; exact quote + optional agent context |
+| `add_episode()` и `EpisodeType.message` | Reader holder-файлов; quote + optional agent context |
 | Официальные prompts, extraction, entity/edge resolution и temporal fields | `CodexLLMClient` через `_generate_response` seam |
 | `episode.name` и внутренний Graphiti UUID | Source identity в `episode.name`; UUID создаёт Graphiti |
 | `Graphiti.search()` и basic `EDGE_HYBRID_SEARCH_RRF` | Namespace `owner-quotes` |
@@ -95,13 +95,16 @@ latency/cost. Luna не поддерживает `none`/`minimal`, поэтом�
 CLI принимает только явно названные holder-файлы и, при необходимости,
 стабильные quote UUID/`episode.name` через `--record-id`. Reader:
 
-1. Берёт только строки quote-record с полным ISO-8601 timestamp, временем и
-   timezone.
+1. Берёт строки quote-record с полным ISO-8601 timestamp либо датой.
 2. Пропускает `kind: selection`, потому что это не episode.
-3. При tolerant-чтении пропускает legacy approximate record и печатает его
-   address/reason как diagnostic; timestamp не выдумывается. При прямом строгом
-   `read_quotes()` такой record остаётся ошибкой.
-4. Сортирует выбранные exact records по source timestamp.
+3. Полную временную метку сохраняет без изменений. Date-only записи равномерно
+   располагает по исходному порядку между timestamps соседних session-файлов;
+   окно ограничено их календарным днём `Asia/Almaty`. При отсутствии одной
+   границы берётся начало или конец дня.
+4. Для вычисленной метки печатает `record.approximated` с адресом, временем и
+   основанием. Source holder не изменяется. Timed record без timezone остаётся
+   diagnostic/ошибкой.
+5. Сортирует все выбранные records по итоговому `reference_time`.
 
 Reader не строит corpus inventory, не сканирует не переданные holders, не создаёт
 window/count/hash manifest и не управляет retry/progress receipt.
@@ -115,7 +118,7 @@ window/count/hash manifest и не управляет retry/progress receipt.
 name=stable source identity in episode.name
 episode_body=Owner: <exact quote text> + optional Agent: <context-note>
 source_description=holder address
-reference_time=source timestamp
+reference_time=source timestamp или явно вычисленное session-window time
 source=EpisodeType.message
 group_id=owner-quotes
 ```
