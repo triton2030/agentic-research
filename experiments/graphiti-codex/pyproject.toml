@@ -1,0 +1,37 @@
+[project]
+name = "graphiti-codex"
+version = "0.1.0"
+description = "Graphiti knowledge graph over source-bound owner quotes, analyzed by Codex"
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "fastembed==0.8.0",
+  "graphiti-core[falkordblite]==0.29.3",
+  "jsonschema>=4.25,<5",
+]
+
+[project.scripts]
+graphiti-codex = "graphiti_codex.cli:main"
+
+[dependency-groups]
+dev = [
+  "pytest>=8.4,<10",
+  "ruff>=0.12,<1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/graphiti_codex"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
