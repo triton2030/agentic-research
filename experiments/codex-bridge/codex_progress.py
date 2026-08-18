@@ -229,6 +229,16 @@ async def _atee(
 GOAL_HEADINGS = ("цель", "задача", "goal", "objective")
 
 
+def _is_banner(row: str) -> bool:
+    """Служебная рамка `===== ЗАДАНИЕ =====`, которую пишут сами entrypoints.
+
+    Она стоит первой строкой и не начинается с `#`, поэтому раньше побеждала в
+    fallback-ветке: сводка отвечала на «туда ли идёт?» словом «ЗАДАНИЕ» —
+    информации ноль (найдено сверкой скила с кодом 2026-08-19).
+    """
+    return row.startswith("=====") or set(row) <= {"=", "-"} and bool(row)
+
+
 def _task_line(root: Any) -> str:
     """Исходное задание одной строкой — то, с чем сравнивают последние шаги.
 
@@ -255,7 +265,7 @@ def _task_line(root: Any) -> str:
                     if below:
                         return _short(below, 160)
         for row in rows:
-            if row and not row.startswith("#"):
+            if row and not row.startswith("#") and not _is_banner(row):
                 return _short(row, 160)
         return ""
 
@@ -700,6 +710,8 @@ def main() -> int:
     )
     args = parser.parse_args()
     if args.board is not None:
+        if args.run_dir or args.steer:
+            parser.error("--board идёт один: RUN_DIR и --steer он не выполняет.")
         print(board(args.board))
         return 0
     if not args.run_dir:

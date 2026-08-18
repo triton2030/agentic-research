@@ -3,6 +3,7 @@ from __future__ import annotations
 import contextlib
 import io
 import json
+import subprocess
 import sys
 import tempfile
 import time
@@ -164,6 +165,17 @@ class TaskLineTests(unittest.TestCase):
             )
             self.assertEqual(codex_progress._task_line(run_dir), "Собрать карту зависимостей.")
 
+    def test_service_banner_never_wins(self) -> None:
+        """Раньше сводка отвечала «туда ли идёт?» словом ЗАДАНИЕ — ноль информации."""
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp)
+            (run_dir / "prompt.md").write_text(
+                "===== ЗАДАНИЕ =====\nУбрать утечку токена в логах.\n", encoding="utf-8"
+            )
+            self.assertEqual(
+                codex_progress._task_line(run_dir), "Убрать утечку токена в логах."
+            )
+
     def test_falls_back_to_first_line(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             run_dir = Path(tmp)
@@ -211,6 +223,18 @@ class DigestSteerTests(unittest.TestCase):
             self.assertIn("[t1]", out)
             self.assertIn("отвергнута", out)
             self.assertIn("activeTurnNotSteerable", out)
+
+
+class BoardCliTests(unittest.TestCase):
+    def test_board_refuses_to_swallow_run_dir_or_steer(self) -> None:
+        """Раньше доска печаталась молча, а реплика не уходила никуда."""
+        proc = subprocess.run(
+            [sys.executable, str(Path(__file__).resolve().parents[1] / "codex_progress.py"),
+             "/tmp/whatever", "--board", "."],
+            text=True, capture_output=True,
+        )
+        self.assertEqual(proc.returncode, 2)
+        self.assertIn("--board идёт один", proc.stderr)
 
 
 if __name__ == "__main__":
