@@ -129,7 +129,7 @@ $B/.venv/bin/python $B/codex_review.py "САМОДОСТАТОЧНОЕ ЗАДА�
 $B/.venv/bin/python $B/codex_review.py "ВОПРОС" --dialog --topic "ТЕМА" --project "$PWD"
 $B/.venv/bin/python $B/codex_review.py "УТОЧНЕНИЕ" --continue THREAD_ID --project "$PWD"
 $B/.venv/bin/python $B/codex_review.py --mode diff [--base REF | --commit SHA] --project "$PWD"
-$B/.venv/bin/python $B/codex_review.py --doctor --project "$PWD"   # не работает — сперва это, кредитов не стоит
+$B/.venv/bin/python $B/codex_review.py --doctor --project "$PWD"   # не работает — сперва это; он же считает след моста снаружи. Кредитов не стоит
 $B/.venv/bin/python $B/codex_threads.py list --project "$PWD"
 $B/.venv/bin/python $B/codex_progress.py "$RUN_DIR" [--steer "ТЕКСТ"] [--board "$PWD"]
 $B/.venv/bin/python $B/codex_investigate.py "ЗАДАНИЕ + формат выхода" --project "$PWD"
