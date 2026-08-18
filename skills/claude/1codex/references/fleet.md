@@ -69,8 +69,9 @@ B=/Users/triton/Documents/GitHub/agentic-research/experiments/codex-bridge
 echo '[{"id":"t1","prompt":"...","files":["a.md"]}]' \
   | $B/.venv/bin/python $B/codex_orchestrate.py --concurrency 4 --project "$PWD"
 # большой список — через файл: --tasks tasks.json ; сухой план запуска: --dry-run
-# всегда: --run-dir "$RUN_DIR" --summary-stdout --heartbeat-sec 120
-# ворота перед проектом: --verify "pytest ..." — воркеры сливаются во временное дерево, проверка идёт там, красная не вливает ничего; при --no-integrate пропускается
+# всегда: --summary-stdout --heartbeat-sec 120
+# --run-dir без причины не передавай: дефолт — "$PWD/_workspace/codex-artifacts/<run_id>". Причина и выбор пути — у orchestration.md (хуки проекта чистят _workspace/); главное — каталог, переживающий сессию, а не «внутри проекта»
+# --verify "команда" — повтори флаг для КАЖДОЙ проверки, которую иначе прогнал бы руками после интеграции. В дефолтном worktree это ворота: проверка идёт по временному СЛИТОМУ дереву до merge (красный исход — ниже). При --no-integrate пропускается, при --isolation shared ворот нет — воркеры уже в проекте
 # посмотреть работу до забора в проект: --no-integrate (деревья и ветки остаются)
 ```
 
