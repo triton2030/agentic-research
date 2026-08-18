@@ -1,7 +1,7 @@
 ---
 эпик: "самостоятельный experiment: graphiti-codex"
 состояние: в работе
-обновлено: 2026-08-18
+обновлено: 2026-08-19
 kind: status
 ---
 
@@ -9,8 +9,10 @@ kind: status
 
 ## Next
 
-Продолжить ту же ordered DB порциями по 5 новых episodes с отчётом после
-каждой; после полного reopen выполнить current/history/no-provenance query audit.
+Заменить только транспорт `codex exec` на один тёплый `codex app-server` на
+CLI-run, сохраняя новый ephemeral thread для каждого Graphiti LLM-call. Затем
+повторить transport benchmark и реальную temporal-пару; при равной семантике
+продолжить ordered DB порциями по 5 episodes.
 
 ## Свидетельства и статус
 
@@ -60,6 +62,24 @@ kind: status
   Terra/none сохранила проверенную temporal semantics и на этой паре была
   практически равна Luna/low по скорости; общая quality parity не доказана,
   поскольку состав рёбер различается. До переключения нужен более широкий A/B.
+- Решение владельца после A/B: оставить Luna/low — Terra/none дороже и не дала
+  существенного выигрыша скорости
+  (`_ops/chat-recall/2026-08-18-151822-codex-01a0145e.md`).
+- Официальный Graphiti README рекомендует при медленном ingestion поднимать
+  `SEMAPHORE_LIMIT` в пределах пропускной способности LLM-провайдера; официальный
+  MCP server поясняет, что каждый episode вызывает несколько LLM-операций.
+  Adapter уже допускает 4 параллельных Luna-turns внутри episode, но сохраняет
+  последовательность episodes одного temporal corpus.
+- GitHub issues `getzep/graphiti#1516` и `#1262` подтверждают наблюдаемый
+  bottleneck: число extraction/dedup/resolution LLM-вызовов, умноженное на их
+  latency и сериализацию. `skip_extraction` и bulk не подходят: первый убирает
+  нужные facts/edges, второй официально не гарантирует edge invalidation.
+- Изолированный transport A/B на текущем ChatGPT Codex binary, Luna/low и одном
+  strict schema-answer: два холодных `codex exec` — 8.668/9.546 s
+  (mean 9.107); один app-server + два новых ephemeral threads — startup 0.924 s,
+  turns 8.480/6.068 s (mean 7.274; 7.736 с долей startup). Кандидат даёт
+  примерно 15–20% транспортного выигрыша, не меняя Graphiti prompts или
+  conversation semantics; real Graphiti proof ещё обязателен.
 - Подтверждено: custom ontology, `RECORD_SCOPE`, `record_type` и relation
   filters удалены; episode — только `Owner:` и optional `Agent:` messages.
 - Подтверждено: `uv run ruff check .` — pass; `uv run pytest -q` — 26 passed;
