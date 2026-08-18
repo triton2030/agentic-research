@@ -41,9 +41,10 @@ async def open_graph(database: Path) -> AsyncIterator[Graphiti]:
     database.parent.mkdir(parents=True, exist_ok=True)
     embedded = AsyncFalkorDB(dbfilename=str(database))
     driver = FalkorDriver(falkor_db=embedded, database=GROUP_ID)
+    llm_client = CodexLLMClient()
     graphiti = Graphiti(
         graph_driver=driver,
-        llm_client=CodexLLMClient(),
+        llm_client=llm_client,
         embedder=LocalFastEmbedder(),
         # Graphiti.search() uses the stock RRF recipe. If another caller picks
         # a cross-encoder recipe, fail explicitly instead of using OpenAI or a
@@ -62,6 +63,7 @@ async def open_graph(database: Path) -> AsyncIterator[Graphiti]:
         # falkordblite owns a sync server behind its async client. Graphiti's
         # public close releases the async connection; the sync owner then
         # needs its upstream cleanup hook to stop the embedded process.
+        await llm_client.aclose()
         await graphiti.close()
         sync_owner = embedded.connection._sync_client  # noqa: SLF001 - upstream lifecycle gap
         sync_owner._async_managed = False  # noqa: SLF001

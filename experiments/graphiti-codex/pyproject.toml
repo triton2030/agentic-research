@@ -8,6 +8,7 @@ dependencies = [
   "fastembed==0.8.0",
   "graphiti-core[falkordblite]==0.29.3",
   "jsonschema>=4.25,<5",
+  "openai-codex==0.147.0",
 ]
 
 [project.scripts]

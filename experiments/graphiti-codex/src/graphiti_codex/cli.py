@@ -12,6 +12,9 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from graphiti_core.prompts.models import Message
+from pydantic import BaseModel
+
 from graphiti_codex.codex_llm import CODEX_EFFORT, CODEX_MODEL, resolve_codex_binary
 from graphiti_codex.graph import (
     _facts_from_edges,
@@ -31,6 +34,11 @@ from graphiti_codex.quotes import load_quotes
 EXPERIMENT_ROOT = Path(__file__).resolve().parents[2]
 DATA_ROOT = EXPERIMENT_ROOT / ".data"
 DEFAULT_DATABASE = DATA_ROOT / "graphiti.db"
+
+
+class TransportReceipt(BaseModel):
+    entity: str
+    score: int
 
 
 def project_root(start: Path) -> Path:
@@ -116,11 +124,25 @@ async def doctor() -> dict[str, Any]:
         raise RuntimeError("cross-encoder seam did not fail closed")
 
     with tempfile.TemporaryDirectory(prefix="graphiti-codex-doctor-") as workdir:
-        async with open_graph(Path(workdir) / "doctor.db"):
-            pass
+        async with open_graph(Path(workdir) / "doctor.db") as graphiti:
+            receipt = await graphiti.llm_client.generate_response(
+                [
+                    Message(role="system", content="Extract the requested structured value."),
+                    Message(role="user", content="Return entity Graphiti with score 10."),
+                ],
+                TransportReceipt,
+            )
+            if receipt != {"entity": "Graphiti", "score": 10}:
+                raise RuntimeError(f"Codex app-server response mismatch: {receipt}")
     return {
         "status": "ready",
-        "codex": {"version": version, "login": login, "model": CODEX_MODEL, "effort": CODEX_EFFORT},
+        "codex": {
+            "version": version,
+            "login": login,
+            "model": CODEX_MODEL,
+            "effort": CODEX_EFFORT,
+            "transport": "app-server",
+        },
         "embedding": {"dimension": len(vector), "local": True},
         "reranker": {
             "implementation": "CrossEncoderClient fail-closed seam",

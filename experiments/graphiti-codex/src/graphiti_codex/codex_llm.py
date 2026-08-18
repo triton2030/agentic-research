@@ -5,17 +5,18 @@ from __future__ import annotations
 import asyncio
 import copy
 import json
-import os
 import shutil
-import signal
 import tempfile
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any
+from typing import Any, Protocol
 
 from graphiti_core.llm_client.client import LLMClient
 from graphiti_core.llm_client.config import DEFAULT_MAX_TOKENS, LLMConfig, ModelSize
 from graphiti_core.prompts.models import Message
 from jsonschema import Draft202012Validator
+from openai_codex import ApprovalMode, AsyncCodex, CodexConfig, Sandbox
+from openai_codex.generated.v2_all import ReasoningEffort
 from pydantic import BaseModel
 
 CODEX_MODEL = "gpt-5.6-luna"
@@ -51,8 +52,10 @@ CODEX_CONTEXT_CONFIG = (
     "include_apps_instructions=false",
     "include_collaboration_mode_instructions=false",
     "include_environment_context=false",
+    "project_doc_max_bytes=0",
+    "mcp_servers={}",
 )
-ALLOWED_CODEX_ITEM_TYPES = {"agent_message", "reasoning"}
+ALLOWED_CODEX_ITEM_TYPES = {"userMessage", "agentMessage", "reasoning"}
 
 
 class CodexInvocationError(RuntimeError):
@@ -93,64 +96,16 @@ def resolve_codex_binary() -> str:
     raise CodexInvocationError("Codex CLI not found; install or open ChatGPT.app")
 
 
-def parse_codex_jsonl(stdout: bytes, returncode: int) -> dict[str, Any]:
-    """Extract the final structured object from Codex JSONL events."""
-    completed = False
-    final_text: str | None = None
-    fatal: str | None = None
-    unexpected_item: str | None = None
-    answer_count = 0
+class CodexTurnRunner(Protocol):
+    """Completion-like transport consumed by the Graphiti LLM client."""
 
-    for raw_line in stdout.decode("utf-8", errors="replace").splitlines():
-        if not raw_line.strip():
-            continue
-        try:
-            event = json.loads(raw_line)
-        except json.JSONDecodeError as error:
-            raise CodexInvocationError("Codex emitted non-JSON output in --json mode") from error
+    async def run(self, messages: list[Message], schema: dict[str, Any]) -> dict[str, Any]: ...
 
-        event_type = event.get("type")
-        if event_type in {"error", "turn.failed"}:
-            fatal = str(event.get("message") or event.get("error") or event_type)
-        elif event_type in {"item.started", "item.completed"}:
-            item = event.get("item") or {}
-            item_type = item.get("type")
-            if item_type not in ALLOWED_CODEX_ITEM_TYPES:
-                unexpected_item = str(item_type or "missing item type")
-            elif (
-                event_type == "item.completed"
-                and item_type == "agent_message"
-                and isinstance(item.get("text"), str)
-            ):
-                answer_count += 1
-                final_text = item["text"]
-        elif event_type == "turn.completed":
-            completed = True
-
-    if fatal:
-        raise CodexInvocationError(f"Codex turn failed: {fatal}")
-    if unexpected_item:
-        raise CodexInvocationError(f"Codex emitted a forbidden item: {unexpected_item}")
-    if answer_count != 1:
-        raise CodexInvocationError(f"Codex emitted {answer_count} completed answers; expected one")
-    if returncode != 0:
-        raise CodexInvocationError(
-            f"Codex exited with status {returncode} without a terminal event"
-        )
-    if not completed or final_text is None:
-        raise CodexInvocationError("Codex did not emit a completed agent message")
-
-    try:
-        decoded = json.loads(final_text)
-    except json.JSONDecodeError as error:
-        raise CodexInvocationError("Codex final message was not a JSON object") from error
-    if not isinstance(decoded, dict):
-        raise CodexInvocationError("Codex final JSON must be an object")
-    return decoded
+    async def aclose(self) -> None: ...
 
 
-class CodexSubprocess:
-    """Run one isolated completion-like Codex turn with a JSON Schema."""
+class CodexAppServer:
+    """Reuse one Codex app-server while isolating every Graphiti call in a new thread."""
 
     def __init__(
         self,
@@ -159,46 +114,31 @@ class CodexSubprocess:
         model: str = CODEX_MODEL,
         effort: str = CODEX_EFFORT,
         timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
+        client_factory: Callable[[CodexConfig], AsyncCodex] = AsyncCodex,
     ) -> None:
         self.binary = binary or resolve_codex_binary()
         self.model = model
         self.effort = effort
         self.timeout_seconds = timeout_seconds
+        self._client_factory = client_factory
+        self._client: AsyncCodex | None = None
+        self._client_lock = asyncio.Lock()
+        self._workdir_owner = tempfile.TemporaryDirectory(prefix="graphiti-codex-")
+        self.workdir = Path(self._workdir_owner.name)
+        self._closed = False
 
-    def command(self, workdir: Path, schema_path: Path) -> list[str]:
-        command = [
-            self.binary,
-            "-m",
-            self.model,
-            "-c",
-            f'model_reasoning_effort="{self.effort}"',
-            "-a",
-            "never",
-            "-s",
-            "read-only",
-            "-C",
-            str(workdir),
-        ]
+    def command(self) -> list[str]:
+        """Build the long-lived app-server command with API billing variables removed."""
+
+        command = ["/usr/bin/env"]
+        for name in BILLING_LEAK_VARS:
+            command.extend(("-u", name))
+        command.append(self.binary)
         for feature in CODEX_DISABLED_FEATURES:
             command.extend(("--disable", feature))
-        for setting in CODEX_CONTEXT_CONFIG:
+        for setting in (f'model_reasoning_effort="{self.effort}"', *CODEX_CONTEXT_CONFIG):
             command.extend(("-c", setting))
-        command.extend(
-            [
-                "exec",
-                "--strict-config",
-                "--ephemeral",
-                "--ignore-user-config",
-                "--ignore-rules",
-                "--skip-git-repo-check",
-                "--output-schema",
-                str(schema_path),
-                "--color",
-                "never",
-                "--json",
-                "-",
-            ]
-        )
+        command.extend(("app-server", "--listen", "stdio://"))
         return command
 
     @staticmethod
@@ -210,60 +150,110 @@ class CodexSubprocess:
             ensure_ascii=False,
         )
 
-    async def run(self, messages: list[Message], schema: dict[str, Any]) -> dict[str, Any]:
-        prompt = self.prompt_for(messages)
-        env = os.environ.copy()
-        for name in BILLING_LEAK_VARS:
-            env.pop(name, None)
+    async def _get_client(self) -> AsyncCodex:
+        if self._closed:
+            raise CodexInvocationError("Codex app-server is closed")
+        if self._client is not None:
+            return self._client
+        async with self._client_lock:
+            if self._client is None:
+                config = CodexConfig(
+                    launch_args_override=tuple(self.command()),
+                    cwd=str(self.workdir),
+                )
+                client = self._client_factory(config)
+                await client.__aenter__()
+                self._client = client
+        return self._client
 
-        with tempfile.TemporaryDirectory(prefix="graphiti-codex-") as raw_workdir:
-            workdir = Path(raw_workdir)
-            schema_path = workdir / "response.schema.json"
-            schema_path.write_text(
-                json.dumps(strict_codex_schema(schema), ensure_ascii=False), encoding="utf-8"
+    @staticmethod
+    def _decode_result(result: Any) -> dict[str, Any]:
+        status = getattr(result.status, "value", result.status)
+        if status != "completed" or result.error is not None:
+            raise CodexInvocationError(f"Codex turn ended with status {status}")
+
+        item_types: list[str] = []
+        answer_count = 0
+        for item in result.items:
+            payload = getattr(item, "root", item)
+            item_type = getattr(payload, "type", None)
+            item_types.append(str(item_type or "missing item type"))
+            if item_type == "agentMessage":
+                answer_count += 1
+        forbidden = [
+            item_type for item_type in item_types if item_type not in ALLOWED_CODEX_ITEM_TYPES
+        ]
+        if forbidden:
+            raise CodexInvocationError(f"Codex emitted a forbidden item: {forbidden[0]}")
+        if answer_count != 1:
+            raise CodexInvocationError(
+                f"Codex emitted {answer_count} completed answers; expected one"
             )
-            process = await asyncio.create_subprocess_exec(
-                *self.command(workdir, schema_path),
-                stdin=asyncio.subprocess.PIPE,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-                env=env,
-                start_new_session=True,
+        if not isinstance(result.final_response, str):
+            raise CodexInvocationError("Codex did not emit a completed agent message")
+
+        try:
+            decoded = json.loads(result.final_response)
+        except json.JSONDecodeError as error:
+            raise CodexInvocationError("Codex final message was not a JSON object") from error
+        if not isinstance(decoded, dict):
+            raise CodexInvocationError("Codex final JSON must be an object")
+        return decoded
+
+    async def run(self, messages: list[Message], schema: dict[str, Any]) -> dict[str, Any]:
+        client = await self._get_client()
+        prompt = self.prompt_for(messages)
+        try:
+            thread = await client.thread_start(
+                cwd=str(self.workdir),
+                sandbox=Sandbox.read_only,
+                approval_mode=ApprovalMode.deny_all,
+                model=self.model,
+                ephemeral=True,
             )
             try:
-                stdout, _stderr = await asyncio.wait_for(
-                    process.communicate(prompt.encode("utf-8")),
+                result = await asyncio.wait_for(
+                    thread.run(
+                        prompt,
+                        model=self.model,
+                        effort=ReasoningEffort(self.effort),
+                        output_schema=strict_codex_schema(schema),
+                        sandbox=Sandbox.read_only,
+                        approval_mode=ApprovalMode.deny_all,
+                    ),
                     timeout=self.timeout_seconds,
                 )
             except TimeoutError as error:
-                await self._stop_process_group(process)
                 raise CodexInvocationError(
                     f"Codex exceeded {self.timeout_seconds:g}s timeout"
                 ) from error
+        except CodexInvocationError:
+            raise
+        except Exception as error:
+            raise CodexInvocationError(f"Codex app-server turn failed: {error}") from error
 
-        result = parse_codex_jsonl(stdout, process.returncode or 0)
-        Draft202012Validator(schema).validate(result)
-        return result
+        decoded = self._decode_result(result)
+        Draft202012Validator(schema).validate(decoded)
+        return decoded
 
-    @staticmethod
-    async def _stop_process_group(process: asyncio.subprocess.Process) -> None:
-        if process.returncode is not None:
+    async def aclose(self) -> None:
+        if self._closed:
             return
-        os.killpg(process.pid, signal.SIGTERM)
-        try:
-            await asyncio.wait_for(process.wait(), timeout=3)
-        except TimeoutError:
-            os.killpg(process.pid, signal.SIGKILL)
-            await process.wait()
+        self._closed = True
+        async with self._client_lock:
+            client, self._client = self._client, None
+        if client is not None:
+            await client.close()
+        self._workdir_owner.cleanup()
 
 
 class CodexLLMClient(LLMClient):
-    """Graphiti LLM client backed by serialized Codex subprocess turns."""
+    """Graphiti LLM client backed by bounded turns on one Codex app-server."""
 
     def __init__(
         self,
         *,
-        runner: CodexSubprocess | None = None,
+        runner: CodexTurnRunner | None = None,
         timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS,
         max_parallel_turns: int = CODEX_MAX_PARALLEL_TURNS,
     ) -> None:
@@ -273,8 +263,11 @@ class CodexLLMClient(LLMClient):
             LLMConfig(model=CODEX_MODEL, small_model=CODEX_MODEL),
             cache=False,
         )
-        self.runner = runner or CodexSubprocess(timeout_seconds=timeout_seconds)
+        self.runner = runner or CodexAppServer(timeout_seconds=timeout_seconds)
         self._turn_slots = asyncio.Semaphore(max_parallel_turns)
+
+    async def aclose(self) -> None:
+        await self.runner.aclose()
 
     async def _generate_response(
         self,
