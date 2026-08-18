@@ -720,9 +720,13 @@ def _assess_wave(
             "workers": [t.to_json() for t in trees],
         }
     wave["main_tree_drift"] = changed
-    wave["threads_archived"] = archive_orphaned_threads(
-        project, wave.get("threads_orphaned") or [], plan.run_dir
-    )
+    # Один тред — один исход. `threads_orphaned` был промежуточным списком «кого
+    # убирать», и тред, успешно убранный, значился сразу в двух полях: читается
+    # как противоречие (замечено ревьюером волны 2026-08-19).
+    orphaned = wave.pop("threads_orphaned", None) or []
+    archived = archive_orphaned_threads(project, orphaned, plan.run_dir)
+    wave["threads_archived"] = archived
+    wave["threads_stuck"] = [tid for tid in orphaned if tid not in archived]
 
     worker_out_of_scope = sorted({path for tree in trees for path in tree.out_of_scope_files})
     failed = bool(worker_out_of_scope) or wave.get("integration_status") in {"conflict", "error"}

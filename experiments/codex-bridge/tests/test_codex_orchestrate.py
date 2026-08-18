@@ -1006,6 +1006,19 @@ class OrphanThreadHygieneTests(unittest.TestCase):
             done = orch.archive_orphaned_threads(Path(tmp), ["a"], Path(tmp))
         self.assertEqual(done, [])
 
+    def test_archived_thread_is_reported_once_not_twice(self) -> None:
+        """Исход у треда один: убран либо застрял, но не то и другое сразу."""
+        orch = self._with_fake_sdk(lambda tid: None if tid == "ok" else 1 / 0)
+        wave = {"threads_orphaned": ["ok", "bad"]}
+        orphaned = wave.pop("threads_orphaned")
+        with tempfile.TemporaryDirectory() as tmp:
+            archived = orch.archive_orphaned_threads(Path(tmp), orphaned, Path(tmp))
+        wave["threads_archived"] = archived
+        wave["threads_stuck"] = [t for t in orphaned if t not in archived]
+        self.assertNotIn("threads_orphaned", wave)
+        self.assertEqual(wave["threads_archived"], ["ok"])
+        self.assertEqual(wave["threads_stuck"], ["bad"])
+
     def test_nothing_to_archive_does_not_touch_the_engine(self) -> None:
         orch = self._with_fake_sdk(lambda tid: self.fail("движок не должен подниматься"))
         with tempfile.TemporaryDirectory() as tmp:
