@@ -4,8 +4,11 @@
 
 - Смысл и форма аудита: владелец,
   `agentic-research/_ops/chat-recall/2026-08-13-165151-codex-019ffaf5.md`.
-- Общий root дизайн-артефактов: владелец,
+- Прежний общий root дизайн-артефактов: владелец,
   `agentic-research/_ops/chat-recall/2026-08-13-165535-codex-019ffaf7.md`.
+- Прежний `Workspace/Design` заменён владельцем 19 августа на
+  `_workspace/design`:
+  `kumysbekov/_ops/chat-recall/2026-08-19-152031-codex-01a01987.md:15`.
 - Точный `SKILL.md` утверждён владельцем в Codex thread
   `019ffaf5-70b8-75f0-b345-335f1b4e5530`, 2026-08-13.
 - Evidence-led контракт UI/UX-субагента утверждён владельцем в том же thread
@@ -19,4 +22,4 @@ UI/UX-субагент с E/S-цепочками → root-приёмка по co
 
 Desktop PC — default. Mobile и другие размеры только по запросу.
 Карта и субагентский отчёт живут по дням в
-`Workspace/Design/1ui-reading-audit/`.
+`_workspace/design/1ui-reading-audit/`.

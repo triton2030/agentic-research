@@ -49,7 +49,7 @@ render, screenshots или browser DOM.
 Создай дневную папку:
 
 ```text
-<project>/Workspace/Design/1ui-reading-audit/<YYYY-MM-DD>/
+<project>/_workspace/design/1ui-reading-audit/<YYYY-MM-DD>/
 ```
 
 Используй локальную дату проекта. Для одного запуска выбери общий

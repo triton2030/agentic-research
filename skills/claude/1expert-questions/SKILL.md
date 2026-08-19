@@ -60,8 +60,8 @@ output file. Named critics из `1fresh-eyes` являются evaluative сос
      результат свежим subagent-view.
 6. Пиши в рабочий слой. Если в проекте уже есть non-canon expert/stress-test
    folder, используй его. Иначе default:
-   `_Workspace/Expert-Questions/Вопросы/`, ответы потом в
-   `_Workspace/Expert-Questions/Ответы/`.
+   `_workspace/Expert-Questions/Вопросы/`, ответы потом в
+   `_workspace/Expert-Questions/Ответы/`.
 7. Сохрани сырой checklist каждой линзы. Не фильтруй молча "важное"; максимум
    добавь отдельную сводку после raw-файлов.
 
