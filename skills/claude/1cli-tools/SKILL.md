@@ -1,58 +1,41 @@
 ---
 name: 1cli-tools
 description: >
-  Use before building a helper, installing software, or doing repetitive manual
-  work with Markdown, code, checks, UI/design, media/docs, data, security, or
-  delivery: this Mac may already have a useful local tool. Inspect only the
-  relevant capability and reuse it when it shortens the task. Skip when the
-  project already fixes the tool and no choice remains.
+  Вызывай перед version-sensitive выбором route/default в active
+  `agent-browser`, `ast-grep`, npm 12, uv tools, TypeScript 7, локальном `md`,
+  GitHub/Vercel agent CLI, FFmpeg 9 или при конфликте версий — особенно после
+  update, ошибки старой команды или перед написанием helper-а. Свежий baseline
+  не знает этих route/default. Не для общего CLI inventory; новый CLI поверх
+  API создаёт `cli-creator`.
 ---
 
-# Local Tool Router
+# Свежие возможности CLI
 
-## Цель
+Память модели старее инструментов на этом Mac. Знакомое имя не означает
+знакомые возможности.
 
-До собственной реализации или ручной обработки проверить и переиспользовать
-минимальную локальную возможность, которая заметно упрощает задачу пользователя.
+## Открой Один Reference В Текущий Момент
 
-## Критерии успеха
+| Момент решения | Получить |
+|---|---|
+| выбрать workflow в `agent-browser` | [version-matched bundled skills](references/agent-browser-skills.md) |
+| выбрать browser evidence/diagnostic | [встроенные diagnostics](references/agent-browser-diagnostics.md) |
+| искать структуру или переписывать AST | [`ast-grep` 0.45](references/ast-grep.md) |
+| npm install пропустил lifecycle script | [npm 12 allowScripts](references/npm-12.md) |
+| проверить vulnerabilities изолированного Python CLI | [`uv tool audit`](references/uv-tool-audit.md) |
+| пересобрать environment Python CLI | [`uv tool install --reinstall`](references/uv-tool-rebuild.md) |
+| запустить глобальный TypeScript 7 | [новые compiler defaults](references/typescript-7.md) |
+| работать с большим Markdown corpus | [локальный md-tools](references/markdown-knowledge.md) |
+| работать с GitHub agent session | [`gh agent-task`](references/github-agent-task.md) |
+| искать/обновлять GitHub agent skill | [`gh skill`](references/github-skills.md) |
+| выбрать Vercel agent/platform route | [новые команды Vercel 59](references/vercel-agent-platform.md) |
+| выбрать codec в локальном FFmpeg | [возможности active build](references/ffmpeg-build.md) |
+| обновить конфликтующие active CLI | [owner и совместный smoke](references/runtime-update.md) |
 
-Считать успехом active tool и названную отменённую работу либо targeted
-`no fit`, после которого основная задача продолжена без нового inventory.
+## Вернись В Задачу
 
-## Инварианты
-
-- Предпочитать project-local command и config глобальной копии.
-- Не выводить из discovery разрешение на install, update, network или mutation.
-- Не отдавать инструменту решение о смысле и приёмке результата.
-
-## Дельта
-
-- Markdown: `md`, `mdq`, `rg`, `fd`, `rumdl`, `markdownlint-cli2`, `lychee`.
-- Код и зависимости: `ast-grep`, `graphify`, `depcruise`, `knip`.
-- Проверки: JS/TS, Python, shell и CI toolchains уже установлены.
-- UI и браузер: `impeccable`, `agent-browser`, `playwright`.
-- Дизайн, медиа и документы: visual apps, Blender, FFmpeg, WebP, Poppler,
-  LibreOffice.
-- Данные и delivery: `jq`, `gron`, SQLite, `just`, `gh`, Vercel, Supabase.
-- Security: secret, SAST, dependency и filesystem scanners уже доступны.
-
-## Известные сбои
-
-- неизвестна локальная возможность → пишется дубль или ставится package →
-  лишняя работа → [tool-map](references/tool-map.md)
-- имя или receipt принято за working tool → выбран неактивный binary →
-  ложный старт → [runtime ownership](references/runtime-ownership.md)
-- scanner выбран по названию → network, exposure или ложная remediation →
-  [security scans](references/security-scans.md)
-
-## Механика
-
-1. Сопоставить задачу с одной строкой Дельты и открыть только нужную reference.
-2. Проверить кандидатов через `command -v`, bundled `probe-tools.sh` и live help.
-3. Выбрать минимальный подходящий инструмент и вернуться к основной задаче.
-
-## Завершение
-
-Вернуть `selected TOOL @ PATH → avoided work` либо `no fit`; не продолжать
-поиск, если следующий probe уже не способен изменить выбор.
+1. Сверь active version с live-help командой из reference; при drift live help
+   побеждает. Project-local owner/config сильнее global.
+2. Используй capability, если она меняет ход задачи. Discovery не разрешает
+   mutation или network.
+3. Верни `TOOL VERSION · capability → changed action` либо `no relevant delta`.
