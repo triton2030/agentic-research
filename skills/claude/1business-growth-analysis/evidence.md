@@ -56,6 +56,19 @@
 - Нужны те же behavioral falsifier-ы, что остаются в Codex `evidence.md`;
   новый Claude forecast contract пока candidate.
 
+## Candidate 2026-08-19 — вход в незнакомую компанию
+
+- Claude skill и agent несут тот же поворот, что Codex owner: локальная задача
+  — сигнал, впервые нанятый аналитик сам восстанавливает business context и
+  ставит материальный вопрос до прогноза.
+- Два read-only cognitive audit подтвердили parity, сохранение unrestricted
+  documentation/owner-history retrieval, IIBA-опору без ritual checklist и
+  наблюдаемый след методов.
+- Структурные validators и Markdown lint проходят; tracked и global Claude
+  agent byte-identical, SHA-256 `ca61fada...0559c`.
+- Codex forward test доказал behavior общей смысловой формы на named subagent;
+  отдельный Claude behavioral run новой версии не выполнен и не заявляется.
+
 ## Следующий шаг, если дыра важна
 
 Скил по устройству может не подняться. Гарантия на приказ-распоряжение живёт не
