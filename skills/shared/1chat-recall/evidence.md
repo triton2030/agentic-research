@@ -197,3 +197,37 @@ Claude MCP. Opus получил read-only контекст, но его Bash б�
   подтверждает совпадение tracked и installed owners. `git diff --check`
   чист; `rumdl` показал только четыре прежних MD013 в фасетном блоке строк
   230/236 двух runtime-копий, новые строки нарушений не добавили.
+
+## Runtime IA refactor, 2026-08-19
+
+- Два независимых read-only аудита — IA и simplification — сошлись на одном
+  seam: обычные Capture/Retrieval, интерпретация top-10, full-holder,
+  later-holder и abstain остаются в гарантированно читаемом теле; существующие
+  references владеют только плохим coverage и repair/backfill. Новый reference
+  не нужен. Owner-коррекция о cold references:
+  `_ops/chat-recall/2026-08-19-135233-codex-01a01922.md:31`.
+- Из тела удалены только tool-owned ranking internals, corpus trivia и
+  повторные carriers одних gates. Codex body уменьшился с 308 до 164 строк и
+  с 2111 до 992 слов; размер подтверждает снятый контекстный налог, но сам по
+  себе не доказывает изменение поведения.
+- `quick_validate.py` принял оба packages; `rumdl check` дал `No issues found`
+  на девяти изменённых runtime/history Markdown-файлах; `git diff --check`
+  чист.
+- Полные package suites: Codex 89 tests, Claude 86 tests, оба `OK`.
+  `chat_recall.py --help` отдельно подтвердил новые адресованные repair-команды
+  обеих платформ.
+- `sync_simple_projections.py 1chat-recall --write --install` записал Codex
+  install и затем встретил `SameFileError` на уже симлинкованном Claude
+  `.ruff_cache`; итоговый `--check` подтвердил совпадение всех tracked и
+  installed projections с owners.
+- Запрос через установленный Codex runtime вернул 10 holders, полный
+  `session_context`, human-readable age, `semantic_rank`, strongest quote и
+  counts types/topics. Порядок рангов `1,2,7,5,8,3,4,6,9,10` подтвердил
+  semantic selection + newest-first display, а `truncated=true` сохранил
+  наблюдаемый coverage gap.
+- Semantic edge review status for runtime package: живые body-связи на оба
+  exception-reference прочитаны и соответствуют их admission; declared
+  `depends-on` отсутствуют. Семь входящих ссылок на Claude owner находятся в
+  исторических `_workspace/codex-artifacts/**`, описывают прошлые состояния и
+  исключены из нормативной волны; их абсолютные line anchors остаются
+  архивными, не runtime truth.

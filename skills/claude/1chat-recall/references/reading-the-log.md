@@ -1,20 +1,41 @@
-# Reading the recall log
+# Recovering recall coverage
 
-Открывай этот reference, когда обычный retrieval дал пустой, слишком широкий
-или конфликтующий route. `SKILL.md` владеет применением и full-holder /
-later-holder postcondition; здесь только coverage перед abstain.
+Открывай только когда обычный Retrieval дал пустой, чрезмерно широкий,
+конфликтующий или усечённый route либо hybrid-поиск недоступен. Этот файл даёт
+bounded recovery и coverage packet; применение owner evidence остаётся в
+`SKILL.md`.
 
-## Coverage
+## Recovery
 
-По умолчанию ищи в corpus текущего проекта; другой project-local corpus
-разрешён только явным owner scope.
+Сначала прочитай diagnostics выдачи: `matched`, `returned`, `truncated`,
+`retrieval` и уникальные holder files. Затем используй только варианты,
+способные изменить candidate set:
 
-Используй только search budget и варианты запроса, уже заданные Retrieval
-`SKILL.md`. Собери уникальные файлы из `holders`; holder card, matching quote
-и rank ответом не являются. Один пустой route не доказывает отсутствие.
+1. Переформулируй тот же claim короткой естественной фразой о предмете, не об
+   имени артефакта.
+2. Сделай максимум один lexical-повтор тремя-четырьмя различающими корнями.
+   Русские основы ставь отдельно со `*` после устойчивой части:
+   `корнев* папочн* инструкц* ссылк*`; точные имена оставляй целиком.
+3. Широкую тему разложи на материальные фасеты. Лексику следующего фасета бери
+   из snippets и `session-context`; хотя бы один фасет формулируй языком задачи.
+   Два фасета подряд без новых holder-ов — наблюдаемое насыщение.
+4. `matched` больше `returned` втрое и более означает, что route слишком широк:
+   сузь claim либо осознанно подними `--limit`.
 
-Вернись в Retrieval `SKILL.md` и закрой его postcondition. Если предмет не
-найден, сохрани названные проверенные routes как coverage gap и abstain.
+Если локальная модель не подготовлена, один раз выполни `--prepare`. Когда
+hybrid недоступен, `--lexical` сохраняет file-level BM25 и lexical
+context-gate. `--timeline` разворачивает записи выбранных holder-ов.
+
+```bash
+ROOT="${CLAUDE_SKILL_DIR}"
+
+uv run --locked --script "$ROOT/scripts/chat_digest.py" \
+  _ops/chat-recall --query "<claim или корни>" --lexical --json
+```
+
+Верни в Retrieval body: названные проверенные routes, уникальные holder files,
+спрошенные фасеты, truncation status и unresolved gaps. Empty recovery — тоже
+результат; новых вариантов запроса без изменяемого candidate set не добавляй.
 
 ## Structural validation
 
@@ -23,5 +44,4 @@ python3 "$ROOT/scripts/chat_digest.py" \
   "$PWD/_ops/chat-recall" --check --strict
 ```
 
-Validator проверяет структуру corpus и diagnostics, но не выбирает и не
-применяет evidence.
+Validator проверяет структуру corpus и diagnostics, но не применимость позиции.

@@ -39,8 +39,15 @@ Backfill не является обычным historical retrieval и не им�
 Semantic match сам по себе не является exact evidence. Quotes не отправляются в
 network tools.
 
-Runtime-команду чтения session задаёт корневой `SKILL.md`. Codex использует
-explicit `--repair-session`; Claude — explicit `--session-id`.
+Реплики прежних ходов Claude-сессии читай локально:
+
+```bash
+ROOT="${CLAUDE_SKILL_DIR}"
+SESSION="${CLAUDE_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-}}"
+python3 "$ROOT/scripts/chat_recall.py" --session-id "$SESSION"
+```
+
+Repair чужой сессии требует explicit `--session-id`.
 
 ## Capture и chronology
 
@@ -57,9 +64,9 @@ explicit `--repair-session`; Claude — explicit `--session-id`.
 следуют самой ранней сохранённой exact/minute source-date этой session; запись
 с precision `date` не двигает имя holder-а.
 
-`quote` остаётся deletion-only owner text. AskUserQuestion/Plan option —
-`selection`. Agent-authored explanation — `note`. Malformed block остаётся
-`raw`, пока его структура не восстановлена.
+`quote` остаётся deletion-only owner text (копия горячего правила; правь
+вместе). AskUserQuestion/Plan option — `selection`. Agent-authored explanation
+— `note`. Malformed block остаётся `raw`, пока его структура не восстановлена.
 
 ## Repair metadata
 
