@@ -15,3 +15,5 @@
 - `Bash` в инструментах оставлен вопреки обещанию read-only: без него не
   работает Retrieval `1chat-recall` (`chat_digest.py`). Дыра названа в
   `evidence.md`, не закрыта прозой.
+- Продуктовые правила не скопированы из Codex: Claude остаётся runtime twin и
+  читает единственную Product Frame-пару общего intent.
