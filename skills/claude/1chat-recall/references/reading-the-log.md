@@ -10,9 +10,8 @@ later-holder postcondition; здесь только coverage перед abstain.
 разрешён только явным owner scope.
 
 Используй только search budget и варианты запроса, уже заданные Retrieval
-`SKILL.md`. Собери уникальные holder-файлы из `records` и
-`session_candidates`; record, snippet и rank ответом не являются. Один пустой
-route не доказывает отсутствие.
+`SKILL.md`. Собери уникальные файлы из `holders`; holder card, matching quote
+и rank ответом не являются. Один пустой route не доказывает отсутствие.
 
 Вернись в Retrieval `SKILL.md` и закрой его postcondition. Если предмет не
 найден, сохрани названные проверенные routes как coverage gap и abstain.

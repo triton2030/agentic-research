@@ -187,7 +187,22 @@ class RetrievalEvaluatorTests(unittest.TestCase):
         metrics, failed = EVALUATOR._metrics(cases, [["target-session.md"]])
 
         self.assertEqual(metrics["hit@1"], 1.0)
+        self.assertEqual(metrics["coverage@10"], 1.0)
         self.assertEqual(failed, [])
+
+    def test_coverage_counts_all_useful_holders_not_only_first_hit(self) -> None:
+        cases = [
+            {
+                "id": "multi",
+                "query": "target",
+                "relevant": ["one.md", "two.md"],
+            }
+        ]
+
+        metrics, _ = EVALUATOR._metrics(cases, [["one.md", "other.md"]])
+
+        self.assertEqual(metrics["hit@1"], 1.0)
+        self.assertEqual(metrics["coverage@10"], 0.5)
 
 
 if __name__ == "__main__":

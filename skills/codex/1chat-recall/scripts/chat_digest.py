@@ -23,6 +23,7 @@ import sqlite3
 import struct
 import sys
 from collections import Counter, defaultdict
+from collections.abc import Callable
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any
@@ -56,6 +57,9 @@ PASSAGE_PREFIX = "passage: "
 HYBRID_DEPTH = 40
 RRF_CONSTANT = 60
 SESSION_ROUTE_LIMIT = 5
+CONTEXT_RESCUE_LIMIT = 2
+FILE_SUPPORT_WEIGHT = 0.1
+DEFAULT_MAX_CHARS = 8000
 EMBEDDING_PROFILE = (
     "chat-recall-v1|fastembed=" + FASTEMBED_VERSION
     + "|model=" + EMBEDDING_MODEL
@@ -400,7 +404,7 @@ def search_session_context_bm25(
 
 
 def search_session_routes(
-    records: list[dict[str, Any]], query: str
+    records: list[dict[str, Any]], query: str, *, hybrid: bool
 ) -> tuple[list[dict[str, Any]], str]:
     tokens = list(dict.fromkeys(QUERY_TOKEN_RE.findall(query.casefold())))
     wildcard_tokens = {token for token in tokens if token.endswith("*")}
@@ -421,12 +425,73 @@ def search_session_routes(
         if novel_match or ordinary_match:
             admitted.append((len(matched_tokens), bm25_rank, record))
 
-    if admitted:
-        admitted.sort(key=lambda item: (-item[0], item[1]))
-        return [item[2] for item in admitted[:SESSION_ROUTE_LIMIT]], "open"
+    admitted.sort(key=lambda item: (-item[0], item[1]))
+    lexical_files = [item[2]["file"] for item in admitted]
+
+    consensus: list[dict[str, Any]] = []
+    if hybrid and ranked_cards:
+        dense_cards = search_session_context_dense(records, query)
+        lexical_ranks = {
+            record["file"]: rank
+            for rank, record in enumerate(ranked_cards[:SESSION_ROUTE_LIMIT], 1)
+        }
+        dense_ranks = {
+            record["file"]: rank
+            for rank, record in enumerate(dense_cards[:SESSION_ROUTE_LIMIT], 1)
+        }
+        representatives = {record["file"]: record for record in ranked_cards}
+        representatives.update(
+            {
+                record["file"]: record
+                for record in dense_cards
+                if record["file"] not in representatives
+            }
+        )
+        consensus_files = lexical_ranks.keys() & dense_ranks.keys()
+        for filename in sorted(
+            consensus_files,
+            key=lambda value: (
+                lexical_ranks[value] + dense_ranks[value],
+                max(lexical_ranks[value], dense_ranks[value]),
+                value,
+            ),
+        ):
+            candidate = dict(representatives[filename])
+            candidate["card_evidence"] = ["bm25", "dense"]
+            consensus.append(candidate)
+
+    ordered: list[dict[str, Any]] = []
+    seen_files: set[str] = set()
+    for record in consensus:
+        ordered.append(record)
+        seen_files.add(record["file"])
+    for _, _, record in admitted:
+        if record["file"] in seen_files:
+            for candidate in ordered:
+                if candidate["file"] == record["file"]:
+                    candidate.setdefault("card_evidence", []).append("lexical-gate")
+                    break
+            continue
+        candidate = dict(record)
+        candidate["card_evidence"] = ["lexical-gate"]
+        ordered.append(candidate)
+        seen_files.add(record["file"])
+
+    if ordered:
+        for rank, record in enumerate(ordered[:SESSION_ROUTE_LIMIT], 1):
+            record["card_rank"] = rank
+        routes = "+".join(
+            name
+            for name, present in (
+                ("consensus", bool(consensus)),
+                ("lexical", bool(lexical_files)),
+            )
+            if present
+        )
+        return ordered[:SESSION_ROUTE_LIMIT], f"open: {routes}"
     if len(wildcard_tokens) < 2:
-        return [], "closed: fewer than two wildcard roots"
-    return [], "no lexical admission"
+        return [], "closed: no context consensus or lexical novelty"
+    return [], "no context consensus or lexical admission"
 
 
 def _cache_root() -> Path:
@@ -638,18 +703,23 @@ def _dense_text(record: dict[str, Any]) -> str:
     )
 
 
-def search_dense(records: list[dict[str, Any]], query: str) -> list[dict[str, Any]]:
+def _search_dense_texts(
+    records: list[dict[str, Any]],
+    query: str,
+    text_for: Callable[[dict[str, Any]], str],
+) -> list[dict[str, Any]]:
     if not records:
         return []
     model = _embedding_backend(offline=True)
     cache_path = _embedding_cache_path()
-    hashes = [_content_hash(_dense_text(record)) for record in records]
+    texts = [text_for(record) for record in records]
+    hashes = [_content_hash(text) for text in texts]
     vectors = _cached_vectors(cache_path, hashes)
     missing = [content_hash for content_hash in dict.fromkeys(hashes) if content_hash not in vectors]
     if missing:
         text_by_hash = {
-            _content_hash(_dense_text(record)): _dense_text(record)
-            for record in records
+            _content_hash(text): text
+            for text in texts
         }
         embedded = _embed(
             model,
@@ -675,6 +745,27 @@ def search_dense(records: list[dict[str, Any]], query: str) -> list[dict[str, An
     return result
 
 
+def search_dense(records: list[dict[str, Any]], query: str) -> list[dict[str, Any]]:
+    return _search_dense_texts(records, query, _dense_text)
+
+
+def search_session_context_dense(
+    records: list[dict[str, Any]], query: str
+) -> list[dict[str, Any]]:
+    representatives: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for record in records:
+        if record["file"] in seen or not record.get("session_context"):
+            continue
+        seen.add(record["file"])
+        representatives.append(record)
+    return _search_dense_texts(
+        representatives,
+        query,
+        lambda record: record["session_context"],
+    )
+
+
 def _first_per_file(ranking: list[dict[str, Any]]) -> list[dict[str, Any]]:
     result: list[dict[str, Any]] = []
     seen: set[str] = set()
@@ -696,31 +787,71 @@ def _merge_file_rankings(
         if ranking
     )
     rank_by_address = tuple(
-        {record["address"]: rank for rank, record in enumerate(ranking, 1)}
+        {
+            record["address"]: rank
+            for rank, record in enumerate(ranking[:HYBRID_DEPTH], 1)
+        }
         for ranking in rankings
     )
+    rank_by_file = tuple(
+        {
+            record["file"]: (rank, record)
+            for rank, record in enumerate(ranking, 1)
+        }
+        for ranking in file_rankings
+    )
+    filenames = {
+        filename
+        for ranking in rank_by_file
+        for filename in ranking
+    }
+    records_by_file: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for record in records:
+        records_by_file[record["file"]].append(record)
+    scores: dict[str, float] = {}
     representatives: dict[str, dict[str, Any]] = {}
-    for ranking in file_rankings:
-        for record in ranking:
-            representatives.setdefault(record["file"], record)
-
-    scores: dict[str, float] = defaultdict(float)
-    for filename, representative in representatives.items():
-        address = representative["address"]
-        ranks = [
-            ranking[address]
-            for ranking in rank_by_address
-            if address in ranking and ranking[address] <= HYBRID_DEPTH
+    evidence: dict[str, list[dict[str, Any]]] = {}
+    for filename in filenames:
+        channel_hits = [
+            ranking[filename]
+            for ranking in rank_by_file
+            if filename in ranking
         ]
-        if not ranks:
-            ranks = [
-                min(
-                    ranking[address]
+        file_support = sum(
+            1.0 / (RRF_CONSTANT + rank)
+            for rank, _ in channel_hits
+        )
+        passage_scores = [
+            (
+                sum(
+                    1.0 / (RRF_CONSTANT + ranking[record["address"]])
                     for ranking in rank_by_address
-                    if address in ranking
-                )
-            ]
-        scores[filename] = sum(1.0 / (RRF_CONSTANT + rank) for rank in ranks)
+                    if record["address"] in ranking
+                ),
+                record,
+            )
+            for record in records_by_file[filename]
+            if any(record["address"] in ranking for ranking in rank_by_address)
+        ]
+        ranked_evidence = sorted(channel_hits, key=lambda item: item[0])
+        if passage_scores:
+            primary_score, primary_record = max(
+                passage_scores,
+                key=lambda item: item[0],
+            )
+        else:
+            primary_score, primary_record = 0.0, ranked_evidence[0][1]
+        scores[filename] = primary_score + FILE_SUPPORT_WEIGHT * file_support
+        representatives[filename] = primary_record
+        evidence[filename] = []
+        seen_addresses: set[str] = set()
+        for record in (primary_record, *(record for _, record in ranked_evidence)):
+            if record["address"] in seen_addresses:
+                continue
+            seen_addresses.add(record["address"])
+            evidence[filename].append(record)
+            if len(evidence[filename]) == 3:
+                break
 
     original_order: dict[str, int] = {}
     for index, record in enumerate(records):
@@ -730,7 +861,14 @@ def _merge_file_rankings(
         key=lambda filename: (-scores[filename], original_order[filename]),
     )
     return [
-        {**representatives[filename], "score": scores[filename]}
+        {
+            **representatives[filename],
+            "score": scores[filename],
+            "quote_channels": len(
+                [ranking for ranking in rank_by_file if filename in ranking]
+            ),
+            "quote_evidence": evidence[filename],
+        }
         for filename in ordered
     ]
 
@@ -808,25 +946,192 @@ def _retrieve(
     filtered = _filter(records, args)
     if not args.query:
         return filtered, None, [], None
-    session_routes, card_route = search_session_routes(filtered, args.query)
-    if args.timeline or args.lexical:
-        lexical = search_bm25(filtered, args.query)
-    if args.timeline:
-        lexical_addresses = {record["address"] for record in lexical}
-        card_files = {record["file"] for record in session_routes}
-        return [
-            record
-            for record in filtered
-            if record["address"] in lexical_addresses or record["file"] in card_files
-        ], "lexical", session_routes, card_route
+    session_routes, card_route = search_session_routes(
+        filtered,
+        args.query,
+        hybrid=not args.lexical,
+    )
     if args.lexical:
-        return _first_per_file(lexical), "lexical", session_routes, card_route
+        lexical = search_bm25(filtered, args.query)
+        return (
+            _merge_file_rankings(filtered, (lexical,)),
+            "lexical",
+            session_routes,
+            card_route,
+        )
     hybrid = search_hybrid(
         filtered,
         args.query,
         collapse_files=True,
     )
     return hybrid, "hybrid", session_routes, card_route
+
+
+def _select_holders(
+    quote_ranking: list[dict[str, Any]],
+    card_ranking: list[dict[str, Any]],
+    limit: int,
+) -> tuple[list[dict[str, Any]], int]:
+    by_card_file = {record["file"]: record for record in card_ranking}
+    selected: list[dict[str, Any]] = []
+    for record in quote_ranking[:limit]:
+        candidate = dict(record)
+        card = by_card_file.get(record["file"])
+        candidate["admitted_by"] = "both" if card else "quote"
+        if card:
+            candidate["card_evidence"] = card.get("card_evidence", [])
+            candidate["card_rank"] = card.get("card_rank")
+        selected.append(candidate)
+
+    selected_files = {record["file"] for record in selected}
+    rescues = 0
+    for card in card_ranking:
+        if card["file"] in selected_files:
+            continue
+        candidate = dict(card)
+        candidate["admitted_by"] = "card"
+        candidate["quote_channels"] = 0
+        candidate["quote_evidence"] = []
+        if len(selected) < limit:
+            selected.append(candidate)
+            selected_files.add(candidate["file"])
+            continue
+        if rescues >= CONTEXT_RESCUE_LIMIT:
+            break
+        replacement = next(
+            (
+                index
+                for index in range(len(selected) - 1, -1, -1)
+                if selected[index].get("admitted_by") == "quote"
+                and selected[index].get("quote_channels", 1) < 2
+            ),
+            None,
+        )
+        if replacement is None:
+            break
+        selected_files.remove(selected[replacement]["file"])
+        selected[replacement] = candidate
+        selected_files.add(candidate["file"])
+        rescues += 1
+
+    for rank, record in enumerate(selected, 1):
+        record["semantic_rank"] = rank
+    candidate_count = len(
+        {record["file"] for record in (*quote_ranking, *card_ranking)}
+    )
+    return selected, candidate_count
+
+
+def _parse_sort_datetime(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(value)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None or parsed.utcoffset() is None:
+        parsed = parsed.replace(tzinfo=datetime.now().astimezone().tzinfo)
+    return parsed
+
+
+def _latest_holder_datetime(records: list[dict[str, Any]]) -> datetime | None:
+    values = [
+        parsed
+        for record in records
+        if (parsed := _parse_sort_datetime(record.get("sort_timestamp")))
+        is not None
+    ]
+    return max(values) if values else None
+
+
+def _russian_count(value: int, forms: tuple[str, str, str]) -> str:
+    tail = value % 100
+    if 11 <= tail <= 14:
+        form = forms[2]
+    elif value % 10 == 1:
+        form = forms[0]
+    elif 2 <= value % 10 <= 4:
+        form = forms[1]
+    else:
+        form = forms[2]
+    return f"{value} {form} назад"
+
+
+def _relative_age(value: datetime | None, now: datetime) -> str:
+    if value is None:
+        return "время неизвестно"
+    localized = value.astimezone(now.tzinfo)
+    seconds = max(0, int((now - localized).total_seconds()))
+    if seconds < 60:
+        return "только что"
+    minutes = seconds // 60
+    if minutes < 60:
+        return _russian_count(minutes, ("минуту", "минуты", "минут"))
+    hours = minutes // 60
+    if hours < 24:
+        return _russian_count(hours, ("час", "часа", "часов"))
+    days = hours // 24
+    if days < 30:
+        return _russian_count(days, ("день", "дня", "дней"))
+    months = days // 30
+    if months < 12:
+        return _russian_count(months, ("месяц", "месяца", "месяцев"))
+    years = days // 365
+    return _russian_count(years, ("год", "года", "лет"))
+
+
+def _holder_cards(
+    selected: list[dict[str, Any]],
+    all_records: list[dict[str, Any]],
+    head: int,
+) -> list[dict[str, Any]]:
+    by_file: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for record in all_records:
+        by_file[record["file"]].append(record)
+    now = datetime.now().astimezone()
+    cards: list[dict[str, Any]] = []
+    for candidate in selected:
+        holder_records = by_file[candidate["file"]]
+        latest = _latest_holder_datetime(holder_records)
+        evidence = candidate.get("quote_evidence", [])
+        strongest_quote = None
+        if evidence:
+            text = evidence[0]["text"]
+            strongest_quote = {
+                "text": text[:head].rstrip() + ("…" if len(text) > head else ""),
+                "address": evidence[0]["address"],
+            }
+        types = Counter(record["type"] for record in holder_records)
+        topics = Counter(record["topic"] for record in holder_records)
+        session_context = candidate.get("session_context")
+        if session_context is None and holder_records:
+            session_context = holder_records[0].get("session_context")
+        cards.append(
+            {
+                "file": candidate["file"],
+                "age": _relative_age(latest, now),
+                "semantic_rank": candidate["semantic_rank"],
+                "session_context": session_context,
+                "strongest_quote": strongest_quote,
+                "supporting_quote_count": min(max(len(evidence) - 1, 0), 2),
+                "types": dict(types.most_common()),
+                "topics": dict(topics.most_common()),
+                "admitted_by": candidate["admitted_by"],
+                "card_evidence": candidate.get("card_evidence", []),
+                "_latest": latest,
+            }
+        )
+    cards.sort(
+        key=lambda card: (
+            card["_latest"] is not None,
+            card["_latest"] or datetime.min.replace(tzinfo=now.tzinfo),
+            -card["semantic_rank"],
+        ),
+        reverse=True,
+    )
+    for card in cards:
+        del card["_latest"]
+    return cards
 
 
 def _quality(records: list[dict[str, Any]]) -> dict[str, int]:
@@ -867,17 +1172,6 @@ def _snippet_summary(record: dict[str, Any], head: int) -> dict[str, Any]:
     if isinstance(text, str) and len(text) > head:
         summary["text"] = text[:head].rstrip() + "…"
     return summary
-
-
-def _session_summary(record: dict[str, Any]) -> dict[str, Any]:
-    fields = (
-        "file",
-        "session",
-        "date",
-        "session_context",
-        "score",
-    )
-    return {field: record[field] for field in fields if field in record}
 
 
 def _validate_bounds(limit: int, max_chars: int) -> None:
@@ -1030,22 +1324,80 @@ def _render_digest(
     return "\n".join(lines)
 
 
-def _render_session_candidates(
-    records: list[dict[str, Any]], card_route: str, max_chars: int
+def _render_holders(
+    cards: list[dict[str, Any]],
+    *,
+    matched: int,
+    total: int,
+    truncated_by: str | None,
+    retrieval: str,
 ) -> str:
-    lines = [f"card_route={card_route}"]
-    if len(lines[0]) > max_chars:
-        return ""
-    for record in records:
-        line = (
-            f"holder={record['file']} date={record.get('date') or 'unknown'} "
-            f"session={record['session']} score={record['score']:.4f}"
+    status = (
+        f"{len(cards)}/{matched} holders shown · {total} records · "
+        f"retrieval={retrieval} · order=newest-first"
+    )
+    if truncated_by:
+        status += f" · truncated by --{truncated_by.replace('_', '-')}"
+    lines = [status]
+    for card in cards:
+        lines.append(
+            f"holder={card['file']} · {card['age']} · "
+            f"semantic_rank={card['semantic_rank']} · "
+            f"admitted_by={card['admitted_by']}"
         )
-        candidate = "\n".join((*lines, line))
-        if len(candidate) > max_chars:
-            break
-        lines.append(line)
+        lines.append(
+            "session-context: "
+            + (card["session_context"] or "[нет session-context]")
+        )
+        strongest = card["strongest_quote"]
+        if strongest:
+            text = " ".join(strongest["text"].split())
+            lines.append(
+                f"strongest-quote: {text} · {strongest['address']} · "
+                f"supporting={card['supporting_quote_count']}"
+            )
+        else:
+            lines.append("strongest-quote: [нет quote-hit] · supporting=0")
+        type_counts = " ".join(
+            f"{name}:{count}" for name, count in card["types"].items()
+        )
+        topic_counts = " ".join(
+            f"{name}:{count}" for name, count in card["topics"].items()
+        )
+        lines.append(f"types: {type_counts or '[нет]'}")
+        lines.append(f"topics: {topic_counts or '[нет]'}")
     return "\n".join(lines)
+
+
+def _bounded_holder_cards(
+    cards: list[dict[str, Any]],
+    *,
+    matched: int,
+    total: int,
+    max_chars: int,
+    retrieval: str,
+) -> tuple[list[dict[str, Any]], str | None]:
+    selected: list[dict[str, Any]] = []
+    truncated_by: str | None = None
+    for card in cards:
+        candidate = [*selected, card]
+        rendered = _render_holders(
+            candidate,
+            matched=matched,
+            total=total,
+            truncated_by=("max_chars" if len(candidate) < len(cards) else None),
+            retrieval=retrieval,
+        )
+        if len(rendered) > max_chars:
+            truncated_by = "max_chars"
+            break
+        selected = candidate
+    if cards and not selected:
+        raise CliError(
+            "первая holder-card не помещается в --max-chars; "
+            "уменьшите --head или увеличьте лимит"
+        )
+    return selected, truncated_by
 
 
 def _bounded_digest(
@@ -1154,19 +1506,22 @@ def build_parser() -> argparse.ArgumentParser:
         "--head",
         type=int,
         default=110,
-        help="excerpt length for human digest and query-JSON record text",
+        help="excerpt length for human digest and strongest quote text",
     )
     parser.add_argument(
         "--limit",
         type=int,
-        default=12,
-        help="maximum records to return before the --max-chars budget",
+        default=10,
+        help="maximum holders for a query, records for other modes",
     )
     parser.add_argument(
         "--max-chars",
         type=int,
-        default=8000,
-        help="hard output cap; may return fewer records than --limit",
+        default=None,
+        help=(
+            "hard output cap; default: full query holder cards, "
+            "8000 characters in other modes"
+        ),
     )
     parser.add_argument("--verbose", action="store_true")
     parser.add_argument("--json", action="store_true")
@@ -1197,8 +1552,8 @@ def main() -> int:
                     args.json,
                     args.verbose,
                     args.head != 110,
-                    args.limit != 12,
-                    args.max_chars != 8000,
+                    args.limit != 10,
+                    args.max_chars is not None,
                 )
             )
             if incompatible:
@@ -1215,12 +1570,17 @@ def main() -> int:
             raise CliError("укажите папку `_ops/chat-recall` или используйте --prepare")
         if not args.records_dir.is_dir():
             raise CliError(f"нет папки: {args.records_dir}")
+        holder_mode = bool(args.query and not args.timeline and not args.show)
+        if args.max_chars is None:
+            args.max_chars = sys.maxsize if holder_mode else DEFAULT_MAX_CHARS
         if not args.show:
             _validate_bounds(args.limit, args.max_chars)
         records, diagnostic_count = load(args.records_dir)
         total = len(records)
         session_routes: list[dict[str, Any]] = []
         card_route: str | None = None
+        holder_cards: list[dict[str, Any]] = []
+        candidate_count = 0
         inventory_mode = not any(
             (
                 args.digest,
@@ -1248,8 +1608,51 @@ def main() -> int:
             selected, truncated_by = matches, None
             matched = len(selected)
             retrieval = None
+        elif holder_mode:
+            quote_ranking, retrieval, session_routes, card_route = _retrieve(
+                records,
+                args,
+            )
+            selected_holders, candidate_count = _select_holders(
+                quote_ranking,
+                session_routes,
+                args.limit,
+            )
+            holder_cards = _holder_cards(selected_holders, records, args.head)
+            matched = candidate_count
+            truncated_by = (
+                "limit" if len(selected_holders) < candidate_count else None
+            )
+            if not args.json:
+                holder_cards, character_truncation = _bounded_holder_cards(
+                    holder_cards,
+                    matched=matched,
+                    total=total,
+                    max_chars=args.max_chars,
+                    retrieval=retrieval or "lexical",
+                )
+                if character_truncation:
+                    truncated_by = character_truncation
+            selected = []
         else:
-            candidates, retrieval, session_routes, card_route = _retrieve(records, args)
+            candidates, retrieval, session_routes, card_route = _retrieve(
+                records,
+                args,
+            )
+            if args.query and args.timeline:
+                selected_holders, candidate_count = _select_holders(
+                    candidates,
+                    session_routes,
+                    min(args.limit, 10),
+                )
+                holder_files = {
+                    record["file"] for record in selected_holders
+                }
+                candidates = [
+                    record
+                    for record in _filter(records, args)
+                    if record["file"] in holder_files
+                ]
             if args.timeline:
                 candidates = _timeline(candidates)
             matched = len(candidates)
@@ -1269,41 +1672,41 @@ def main() -> int:
                     total=total,
                     retrieval=retrieval,
                 )
-        if args.show:
+        if holder_mode:
+            rendered_records: list[dict[str, Any]] = []
+        elif args.show:
             rendered_records = selected
-        elif args.query and not args.timeline:
-            rendered_records = [
-                _snippet_summary(record, args.head) for record in selected
-            ]
         else:
             rendered_records = [_summary(record) for record in selected]
-        envelope = {
+        envelope: dict[str, Any] = {
             "total": total,
             "matched": matched,
-            "returned": len(selected),
+            "returned": len(holder_cards) if holder_mode else len(selected),
             "truncated": truncated_by is not None,
             "truncated_by": truncated_by,
             "selection": (
-                "records"
-                if matched
-                else "session_candidates"
-                if session_routes
+                "holders"
+                if holder_mode and holder_cards
+                else "records"
+                if not holder_mode and matched
                 else "none"
             ),
             "quality": _quality(records),
             "warnings": _warnings(records),
-            "records": rendered_records,
         }
+        if holder_mode:
+            envelope["holders"] = holder_cards
+            envelope["order"] = "newest-first"
+            envelope["semantic_order"] = "semantic_rank"
+        else:
+            envelope["records"] = rendered_records
         if args.query:
-            envelope["session_candidates"] = [
-                _session_summary(record) for record in session_routes
-            ]
-            envelope["session_candidate_count"] = len(session_routes)
-            envelope["session_candidates_returned"] = len(session_routes)
             envelope["card_route"] = card_route
             envelope["retrieval"] = retrieval
             envelope["retrieval_complete"] = True
-            envelope["candidate_count"] = matched
+            envelope["candidate_count"] = (
+                candidate_count if candidate_count else matched
+            )
             if retrieval == "hybrid":
                 envelope["candidate_depth"] = HYBRID_DEPTH
         if args.timeline:
@@ -1317,27 +1720,14 @@ def main() -> int:
                 raise CliError(
                     "полная запись превышает --max-chars; увеличьте лимит для --show"
                 )
+            output_key = "holders" if holder_mode else "records"
             while (
                 not args.show
                 and len(rendered) > args.max_chars
-                and envelope["records"]
+                and envelope[output_key]
             ):
-                envelope["records"].pop()
-                envelope["returned"] = len(envelope["records"])
-                envelope["truncated"] = True
-                envelope["truncated_by"] = "max_chars"
-                rendered = json.dumps(
-                    envelope, ensure_ascii=False, separators=(",", ":")
-                )
-            while (
-                not args.show
-                and len(rendered) > args.max_chars
-                and envelope.get("session_candidates")
-            ):
-                envelope["session_candidates"].pop()
-                envelope["session_candidates_returned"] = len(
-                    envelope["session_candidates"]
-                )
+                envelope[output_key].pop()
+                envelope["returned"] = len(envelope[output_key])
                 envelope["truncated"] = True
                 envelope["truncated_by"] = "max_chars"
                 rendered = json.dumps(
@@ -1363,24 +1753,28 @@ def main() -> int:
             print(rendered)
         elif inventory_mode:
             print(inventory(records, diagnostic_count))
-        else:
-            rendered = _render_digest(
-                selected,
-                head=args.head,
-                verbose=args.verbose,
-                matched=matched,
-                total=total,
-                truncated_by=truncated_by,
-                retrieval=retrieval,
-            )
-            if args.query and card_route is not None:
-                remaining = max(args.max_chars - len(rendered) - 1, 0)
-                route_digest = _render_session_candidates(
-                    session_routes, card_route, remaining
+        elif holder_mode:
+            print(
+                _render_holders(
+                    holder_cards,
+                    matched=matched,
+                    total=total,
+                    truncated_by=truncated_by,
+                    retrieval=retrieval or "lexical",
                 )
-                if route_digest:
-                    rendered = f"{rendered}\n{route_digest}"
-            print(rendered)
+            )
+        else:
+            print(
+                _render_digest(
+                    selected,
+                    head=args.head,
+                    verbose=args.verbose,
+                    matched=matched,
+                    total=total,
+                    truncated_by=truncated_by,
+                    retrieval=retrieval,
+                )
+            )
         if args.check and args.strict and diagnostic_count:
             return 1
         return 0

@@ -26,3 +26,15 @@ later-holder postcondition и общий scope Codex/Claude выбраны та�
 Owner-топология: продуктовый смысл живёт в этом shared package; runtime и
 инструменты — в tracked owners `skills/{codex,claude}/1chat-recall/`; live
 packages остаются projections.
+
+## Единый holder-ranking, 2026-08-19
+
+Владелец заменил два retrieval-выхода на первый ответ из десяти файлов с полным
+`session-context`, затем задал newest-first показ, относительный возраст и
+counts по type/topic. Источник:
+`_ops/chat-recall/2026-08-19-135233-codex-01a01922.md:20-23`.
+
+Приблизительное «50/50» не стало формулой: владелец уточнил, что нужен
+сбалансированный по цели рейтинг, а длинная сессия полезна только через
+содержащийся в ней релевантный материал. Источник:
+`_ops/chat-recall/2026-08-19-135233-codex-01a01922.md:24-25`.

@@ -157,18 +157,18 @@ class ChatDigestTests(unittest.TestCase):
         compact_query = self.call("--query", "канон")
         self.assertNotIn("владельце канона", compact_query.stdout)
         query_json = json.loads(self.call("--query", "канон", "--json").stdout)
-        self.assertNotIn("context_note", query_json["records"][0])
+        self.assertNotIn("context_note", query_json["holders"][0])
         self.assertEqual(
-            query_json["records"][0]["session_context"],
+            query_json["holders"][0]["session_context"],
             "chat recall retrieval; session files; BM25; карточечныймаршрут",
         )
         note_match = json.loads(
             self.call("--query", "BM25", "--json").stdout
         )
         self.assertNotEqual(note_match["selection"], "none")
-        self.assertIn(
-            record_id,
-            [entry["record_id"] for entry in note_match["records"]],
+        self.assertEqual(
+            note_match["holders"][0]["strongest_quote"]["address"],
+            record["address"],
         )
 
         shown = self.call("--show", record_id)
@@ -187,22 +187,106 @@ class ChatDigestTests(unittest.TestCase):
             self.call("--query", "карточечныймаршрут", "--json").stdout
         )
 
-        self.assertEqual(data["matched"], 0)
-        self.assertEqual(data["records"], [])
-        self.assertEqual(data["selection"], "session_candidates")
-        self.assertEqual(data["card_route"], "open")
-        self.assertEqual(data["session_candidates"][0]["session_context"], (
+        self.assertEqual(data["matched"], 1)
+        self.assertEqual(data["selection"], "holders")
+        self.assertEqual(data["card_route"], "open: lexical")
+        self.assertEqual(data["holders"][0]["session_context"], (
             "chat recall retrieval; session files; BM25; карточечныймаршрут"
         ))
-        self.assertNotIn("address", data["session_candidates"][0])
+        self.assertIsNone(data["holders"][0]["strongest_quote"])
+        self.assertEqual(data["holders"][0]["admitted_by"], "card")
+        self.assertNotIn("date", data["holders"][0])
+        self.assertIn("age", data["holders"][0])
 
     def test_human_card_route_names_holder_without_representative_quote(self) -> None:
         result = self.call("--query", "карточечныймаршрут")
 
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("card_route=open", result.stdout)
         self.assertIn("holder=recall.md", result.stdout)
+        self.assertIn("admitted_by=card", result.stdout)
         self.assertNotIn("Канон живёт отдельно", result.stdout)
+
+    def test_selected_holders_display_newest_first_with_semantic_rank_and_counts(
+        self,
+    ) -> None:
+        self.write_file(
+            "a-old.md",
+            [
+                (
+                    '* 2026-07-01T10:00:00+00:00 — "Needle old decision" '
+                    '— type: решение | topic: архитектура-и-модель'
+                ),
+                (
+                    '* 2026-07-01T11:00:00+00:00 — "Needle old idea" '
+                    '— type: идея | topic: архитектура-и-модель'
+                ),
+            ],
+            session="22222222-2222-4222-8222-222222222222",
+            session_context="old needle session",
+        )
+        self.write_file(
+            "z-new.md",
+            [
+                (
+                    '* 2026-07-03T10:00:00+00:00 — "Needle new decision" '
+                    '— type: решение | topic: продукт-и-ценность'
+                ),
+            ],
+            session="33333333-3333-4333-8333-333333333333",
+            session_context="new needle session",
+        )
+
+        data = json.loads(
+            self.call("--query", "Needle", "--limit", "2", "--json").stdout
+        )
+
+        self.assertEqual(
+            [holder["file"] for holder in data["holders"]],
+            ["z-new.md", "a-old.md"],
+        )
+        self.assertEqual(
+            [holder["semantic_rank"] for holder in data["holders"]],
+            [2, 1],
+        )
+        old = data["holders"][1]
+        self.assertEqual(old["session_context"], "old needle session")
+        self.assertEqual(old["types"], {"решение": 1, "идея": 1})
+        self.assertEqual(old["topics"], {"архитектура-и-модель": 2})
+        self.assertNotIn("date", old)
+
+    def test_context_rescue_replaces_only_single_channel_quote_holder(self) -> None:
+        quote_ranking = [
+            {
+                "file": "protected.md",
+                "quote_channels": 2,
+                "quote_evidence": [],
+            },
+            {
+                "file": "replaceable.md",
+                "quote_channels": 1,
+                "quote_evidence": [],
+            },
+        ]
+        card_ranking = [
+            {
+                "file": "card.md",
+                "card_rank": 1,
+                "card_evidence": ["bm25", "dense"],
+            }
+        ]
+
+        selected, candidate_count = DIGEST._select_holders(
+            quote_ranking,
+            card_ranking,
+            2,
+        )
+
+        self.assertEqual(candidate_count, 3)
+        self.assertEqual(
+            [record["file"] for record in selected],
+            ["protected.md", "card.md"],
+        )
+        self.assertEqual(selected[1]["admitted_by"], "card")
 
     def test_novel_card_term_is_a_separate_route_when_common_text_matches(self) -> None:
         self.write_file(
@@ -237,13 +321,11 @@ class ChatDigestTests(unittest.TestCase):
             ).stdout
         )
 
-        self.assertEqual(data["records"][0]["address"].split(":", 1)[0], "base.md")
-        self.assertEqual(
-            [route["file"] for route in data["session_candidates"]],
-            ["card.md"],
-        )
-        self.assertEqual(data["session_candidate_count"], 1)
-        self.assertEqual(data["session_candidates_returned"], 1)
+        by_file = {holder["file"]: holder for holder in data["holders"]}
+        self.assertEqual(set(by_file), {"base.md", "card.md"})
+        self.assertEqual(by_file["base.md"]["admitted_by"], "quote")
+        self.assertEqual(by_file["card.md"]["admitted_by"], "card")
+        self.assertEqual(data["candidate_count"], 2)
 
         bounded = json.loads(
             self.call(
@@ -254,15 +336,9 @@ class ChatDigestTests(unittest.TestCase):
                 "512",
             ).stdout
         )
-        self.assertEqual(bounded["session_candidate_count"], 1)
-        self.assertEqual(
-            bounded["session_candidates_returned"],
-            len(bounded["session_candidates"]),
-        )
-        self.assertGreaterEqual(
-            bounded["session_candidate_count"],
-            bounded["session_candidates_returned"],
-        )
+        self.assertEqual(bounded["candidate_count"], 2)
+        self.assertEqual(bounded["returned"], len(bounded["holders"]))
+        self.assertGreaterEqual(bounded["candidate_count"], bounded["returned"])
 
     def test_two_wildcard_roots_open_the_ordinary_card_route(self) -> None:
         self.write_file(
@@ -307,18 +383,16 @@ class ChatDigestTests(unittest.TestCase):
             self.call("--query", "корнев* отсутствующ*", "--json").stdout
         )
 
-        self.assertEqual(opened["card_route"], "open")
-        self.assertEqual(
-            [route["file"] for route in opened["session_candidates"]],
-            ["card.md"],
-        )
+        self.assertEqual(opened["card_route"], "open: lexical")
+        self.assertIn("card.md", [holder["file"] for holder in opened["holders"]])
         self.assertEqual(
             one_root["card_route"],
-            "closed: fewer than two wildcard roots",
+            "closed: no context consensus or lexical novelty",
         )
-        self.assertEqual(one_root["session_candidates"], [])
-        self.assertEqual(no_admission["card_route"], "no lexical admission")
-        self.assertEqual(no_admission["session_candidates"], [])
+        self.assertEqual(
+            no_admission["card_route"],
+            "no context consensus or lexical admission",
+        )
 
     def test_opaque_selection_has_context_while_self_contained_quote_stays_bare(
         self,
@@ -346,7 +420,11 @@ class ChatDigestTests(unittest.TestCase):
         self.assertEqual(envelope["retrieval"], "lexical")
         self.assertTrue(envelope["retrieval_complete"])
         self.assertEqual(envelope["candidate_count"], 1)
-        record_id = envelope["records"][0]["record_id"]
+        address = envelope["holders"][0]["strongest_quote"]["address"]
+        records, _ = DIGEST.load(self.corpus)
+        record_id = next(
+            record["record_id"] for record in records if record["address"] == address
+        )
         shown = self.call("--show", record_id, "--json")
         self.assertEqual(shown.returncode, 0, shown.stderr)
         self.assertEqual(json.loads(shown.stdout)["records"][0]["record_id"], record_id)
@@ -363,22 +441,26 @@ class ChatDigestTests(unittest.TestCase):
         compact = self.call("--query", "субагент*")
         self.assertEqual(compact.returncode, 0, compact.stderr)
         self.assertIn(
-            "1/1 candidates shown · 5 records · retrieval=lexical",
+            "1/1 holders shown · 5 records · retrieval=lexical",
             compact.stdout,
         )
-        self.assertIn("2026-07-14", compact.stdout)
+        self.assertRegex(compact.stdout, r"\d+ (день|дня|дней|месяц|месяца|месяцев) назад")
         self.assertNotIn("score=", compact.stdout)
-        self.assertNotIn("recall.md:", compact.stdout)
+        self.assertIn("recall.md:13", compact.stdout)
         self.assertEqual(compact.stderr, "")
 
         verbose = self.call("--query", "субагент*", "--verbose")
         self.assertEqual(verbose.returncode, 0, verbose.stderr)
-        self.assertIn("score=", verbose.stdout)
+        self.assertNotIn("score=", verbose.stdout)
 
     def test_human_show_is_compact_and_verbose_preserves_full_record(self) -> None:
-        record_id = json.loads(self.call("--query", "канон", "--json").stdout)[
-            "records"
-        ][0]["record_id"]
+        address = json.loads(self.call("--query", "канон", "--json").stdout)[
+            "holders"
+        ][0]["strongest_quote"]["address"]
+        records, _ = DIGEST.load(self.corpus)
+        record_id = next(
+            record["record_id"] for record in records if record["address"] == address
+        )
 
         compact = self.call("--show", record_id)
         self.assertEqual(compact.returncode, 0, compact.stderr)
@@ -401,14 +483,17 @@ class ChatDigestTests(unittest.TestCase):
         self.assertIn("invalid-topic", check.stdout)
         found = json.loads(self.call("--query", "мой-workflow", "--json").stdout)
         self.assertEqual(found["matched"], 1)
-        self.assertEqual(found["records"][0]["topic"], "без-темы")
-        self.assertEqual(found["records"][0]["topic_raw"], "мой-workflow")
-        shown_topic = self.call("--show", found["records"][0]["record_id"])
+        self.assertEqual(found["holders"][0]["topics"]["без-темы"], 3)
+        records, _ = DIGEST.load(self.corpus)
+        invalid_topic = next(record for record in records if record["topic_raw"])
+        shown_topic = self.call("--show", invalid_topic["record_id"])
         self.assertIn("topic_raw=мой-workflow", shown_topic.stdout)
 
-        invalid_type = json.loads(
-            self.call("--query", "Позднее", "--json").stdout
-        )["records"][0]
+        invalid_type = next(
+            record
+            for record in records
+            if record["type_raw"] and record["type_raw"] != record["type"]
+        )
         shown_type = self.call("--show", invalid_type["record_id"])
         self.assertIn("type_raw=идея, коррекция", shown_type.stdout)
 
@@ -445,7 +530,31 @@ class ChatDigestTests(unittest.TestCase):
         self.assertIsNone(none["truncated_by"])
         self.assertEqual(none["retrieval"], "hybrid")
 
-    def test_query_json_returns_snippet_not_full_quote(self) -> None:
+    def test_default_query_keeps_all_ten_full_holder_cards(self) -> None:
+        for hour in range(10):
+            self.write_file(
+                f"full-context-{hour}.md",
+                [
+                    (
+                        f'* 2026-07-01T{hour:02d}:00:00+00:00 — '
+                        f'"Needle holder {hour}" — type: решение | '
+                        "topic: документация-и-знания"
+                    )
+                ],
+                session=f"00000000-0000-4000-9000-{hour:012d}",
+                session_context=f"Needle context {hour} " + "detail " * 180,
+            )
+
+        result = self.call("--query", "Needle", "--lexical", "--json")
+        data = json.loads(result.stdout)
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertGreater(len(result.stdout), DIGEST.DEFAULT_MAX_CHARS)
+        self.assertEqual(data["returned"], 10)
+        self.assertEqual(len(data["holders"]), 10)
+        self.assertFalse(data["truncated"])
+
+    def test_query_json_returns_snippet_in_strongest_quote(self) -> None:
         long_text = (
             "владелец объясняет длинную позицию про запись файлов " * 6
         ).strip()
@@ -457,7 +566,7 @@ class ChatDigestTests(unittest.TestCase):
         )
         data = json.loads(self.call("--query", "запись файлов", "--json").stdout)
         self.assertEqual(data["returned"], 1)
-        snippet = data["records"][0]["text"]
+        snippet = data["holders"][0]["strongest_quote"]["text"]
         self.assertTrue(snippet.endswith("…"))
         self.assertLessEqual(len(snippet), 111)
         timeline = json.loads(
@@ -476,9 +585,9 @@ class ChatDigestTests(unittest.TestCase):
         )
 
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("maximum records", result.stdout)
-        self.assertIn("excerpt length for human digest and query-JSON", result.stdout)
-        self.assertIn("may return fewer records than --limit", result.stdout)
+        self.assertIn("maximum holders for a query", result.stdout)
+        self.assertIn("excerpt length for human digest and strongest quote", result.stdout)
+        self.assertIn("full query holder cards", result.stdout)
 
     def test_human_bound_uses_rendered_digest_not_full_json(self) -> None:
         for hour in range(5):
@@ -498,7 +607,7 @@ class ChatDigestTests(unittest.TestCase):
             "--query", "Needle", "--limit", "5", "--max-chars", "4000"
         )
         self.assertEqual(human.returncode, 0, human.stderr)
-        self.assertTrue(human.stdout.startswith("5/5 candidates shown · 10 records"))
+        self.assertTrue(human.stdout.startswith("5/5 holders shown · 10 records"))
         self.assertLessEqual(len(human.stdout.rstrip("\n")), 4000)
 
         character_limited = self.call(
@@ -521,9 +630,9 @@ class ChatDigestTests(unittest.TestCase):
                 "--json",
             ).stdout
         )
-        self.assertLess(machine["returned"], 5)
-        self.assertTrue(machine["truncated"])
-        self.assertEqual(machine["truncated_by"], "max_chars")
+        self.assertEqual(machine["returned"], 5)
+        self.assertFalse(machine["truncated"])
+        self.assertIsNone(machine["truncated_by"])
 
     def test_human_bound_never_turns_matches_into_abstention(self) -> None:
         self.write_entries(
@@ -546,7 +655,7 @@ class ChatDigestTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 2)
         self.assertEqual(result.stdout, "")
-        self.assertIn("первая запись не помещается", result.stderr)
+        self.assertIn("первая holder-card не помещается", result.stderr)
         self.assertNotIn("selection=none", result.stderr)
 
     def test_timeline_puts_unknown_last(self) -> None:
@@ -756,6 +865,49 @@ class ChatDigestTests(unittest.TestCase):
         cards.assert_not_called()
         self.assertEqual(result[0]["file"], "quote.md")
 
+    def test_context_consensus_requires_top_five_bm25_and_dense_agreement(
+        self,
+    ) -> None:
+        records = [
+            {
+                "file": "agreed.md",
+                "address": "agreed.md:1",
+                "record_id": "agreed",
+            },
+            {
+                "file": "lexical-only.md",
+                "address": "lexical-only.md:1",
+                "record_id": "lexical-only",
+            },
+            {
+                "file": "dense-only.md",
+                "address": "dense-only.md:1",
+                "record_id": "dense-only",
+            },
+        ]
+        with (
+            mock.patch.object(DIGEST, "search_bm25", return_value=[records[0]]),
+            mock.patch.object(
+                DIGEST,
+                "search_session_context_bm25",
+                return_value=[records[1], records[0]],
+            ),
+            mock.patch.object(
+                DIGEST,
+                "search_session_context_dense",
+                return_value=[records[2], records[0]],
+            ),
+        ):
+            result, route = DIGEST.search_session_routes(
+                records,
+                "query",
+                hybrid=True,
+            )
+
+        self.assertEqual([record["file"] for record in result], ["agreed.md"])
+        self.assertEqual(result[0]["card_evidence"], ["bm25", "dense"])
+        self.assertEqual(route, "open: consensus")
+
     def test_hybrid_rrf_uses_addresses_not_duplicate_record_ids(self) -> None:
         records = [
             {"address": "a.md:1", "record_id": "duplicate"},
@@ -804,13 +956,17 @@ class ChatDigestTests(unittest.TestCase):
             )
 
         self.assertEqual([record["file"] for record in result], ["long.md", "other.md"])
-        self.assertAlmostEqual(result[0]["score"], 2 / (DIGEST.RRF_CONSTANT + 1))
+        self.assertAlmostEqual(
+            result[0]["score"],
+            (1 + DIGEST.FILE_SUPPORT_WEIGHT) * 2 / (DIGEST.RRF_CONSTANT + 1),
+        )
+        self.assertEqual(len(result[0]["quote_evidence"]), 1)
         self.assertAlmostEqual(
             result[1]["score"],
-            1 / (DIGEST.RRF_CONSTANT + DIGEST.HYBRID_DEPTH + 2),
+            DIGEST.FILE_SUPPORT_WEIGHT * 2 / (DIGEST.RRF_CONSTANT + 2),
         )
 
-    def test_file_rrf_does_not_merge_evidence_from_different_quotes(self) -> None:
+    def test_file_rrf_uses_each_channels_best_quote_without_raw_count_bonus(self) -> None:
         records = [
             {"file": "a.md", "address": "a.md:1", "record_id": "a1"},
             {"file": "a.md", "address": "a.md:2", "record_id": "a2"},
@@ -825,9 +981,18 @@ class ChatDigestTests(unittest.TestCase):
         self.assertEqual(result[0]["address"], "a.md:1")
         self.assertAlmostEqual(
             result[0]["score"],
-            1 / (DIGEST.RRF_CONSTANT + 1) + 1 / (DIGEST.RRF_CONSTANT + 3),
+            1 / (DIGEST.RRF_CONSTANT + 1)
+            + 1 / (DIGEST.RRF_CONSTANT + 3)
+            + DIGEST.FILE_SUPPORT_WEIGHT * 2 / (DIGEST.RRF_CONSTANT + 1),
         )
-        self.assertAlmostEqual(result[1]["score"], 2 / (DIGEST.RRF_CONSTANT + 2))
+        self.assertAlmostEqual(
+            result[1]["score"],
+            (1 + DIGEST.FILE_SUPPORT_WEIGHT) * 2 / (DIGEST.RRF_CONSTANT + 2),
+        )
+        self.assertEqual(
+            [record["address"] for record in result[0]["quote_evidence"]],
+            ["a.md:1", "a.md:2"],
+        )
 
     def test_default_query_returns_one_candidate_per_file_and_timeline_keeps_all(
         self,
@@ -855,7 +1020,7 @@ class ChatDigestTests(unittest.TestCase):
             self.call("--query", "Needle", "--limit", "2", "--json").stdout
         )
         timeline = json.loads(
-            self.call_default(
+            self.call(
                 "--query",
                 "Needle",
                 "--timeline",
@@ -867,7 +1032,10 @@ class ChatDigestTests(unittest.TestCase):
             ).stdout
         )
 
-        self.assertEqual({record["address"].split(":", 1)[0] for record in compact["records"]}, {"long.md", "other.md"})
+        self.assertEqual(
+            {holder["file"] for holder in compact["holders"]},
+            {"long.md", "other.md"},
+        )
         self.assertEqual(timeline["matched"], DIGEST.HYBRID_DEPTH + 2)
 
     def test_session_card_is_indexed_once_and_timeline_expands_its_file(self) -> None:
@@ -886,14 +1054,14 @@ class ChatDigestTests(unittest.TestCase):
         )
 
         compact = json.loads(
-            self.call_default(
+            self.call(
                 "--query",
                 "уникальныйкарточныймаршрут",
                 "--json",
             ).stdout
         )
         timeline = json.loads(
-            self.call_default(
+            self.call(
                 "--query",
                 "уникальныйкарточныймаршрут",
                 "--timeline",
@@ -905,11 +1073,10 @@ class ChatDigestTests(unittest.TestCase):
             ).stdout
         )
 
-        self.assertEqual(compact["matched"], 0)
-        self.assertEqual(compact["records"], [])
-        self.assertEqual(compact["selection"], "session_candidates")
-        self.assertEqual(compact["card_route"], "open")
-        self.assertEqual(compact["session_candidates"][0]["file"], "card-only.md")
+        self.assertEqual(compact["matched"], 1)
+        self.assertEqual(compact["selection"], "holders")
+        self.assertEqual(compact["card_route"], "open: lexical")
+        self.assertEqual(compact["holders"][0]["file"], "card-only.md")
         self.assertEqual(timeline["matched"], len(entries))
         self.assertEqual(
             {record["address"].split(":", 1)[0] for record in timeline["records"]},

@@ -12,9 +12,13 @@
   строку и короткими поисковыми фрагментами через `;`.
 - `context-note` не снят: он владеет сценой одной записи; `session-context` —
   задачей и лексикой целого разговора.
-- Карточка не смешана с record ranking или embeddings цитат: два lexical-гейта
-  выводят её отдельным `session_candidates`, а `records` сохраняет собственный
-  порядок. E5 остаётся у цитат; card ablation не дала ему top-5 прироста.
+- Прежние отдельные `records` и `session_candidates` сняты 2026-08-19 после
+  нового owner-контракта единого `holders`. Не введены literal 50/50, сумма
+  всех quote-hits и бонус за размер: сильнейшая цитата остаётся primary, а
+  согласие BM25/E5 и context-rescue ограничены.
+- Отдельная vector DB не введена: `session-context` использует существующие E5
+  и content-hash SQLite cache; при текущем corpus второй store не меняет
+  ranking contract.
 - Внешний `codex_recall.py` снят из нормативного Retrieval: global skill не
   зависит от project-local experiment, owner corpus не уходит другой модели,
   а full-holder / later-holder postcondition остаётся у одного runtime-owner.

@@ -144,7 +144,11 @@ def _ranking(corpus: Path, query: str, *, lexical: bool) -> list[str]:
         detail = completed.stderr.strip() or completed.stdout.strip()
         raise RuntimeError(f"retrieval command failed: {detail}")
     payload = json.loads(completed.stdout)
-    return [record["address"].rsplit(":", 1)[0] for record in payload["records"]]
+    holders = sorted(
+        payload["holders"],
+        key=lambda holder: holder["semantic_rank"],
+    )
+    return [holder["file"] for holder in holders]
 
 
 def _file_relevance(
@@ -170,6 +174,7 @@ def _metrics(
     cases: list[dict[str, Any]], rankings: list[list[str]]
 ) -> tuple[dict[str, float], list[str]]:
     positions: list[float] = []
+    coverage_at_ten: list[float] = []
     failed_at_five: list[str] = []
     for case, ranking in zip(cases, rankings, strict=True):
         found = [
@@ -179,6 +184,10 @@ def _metrics(
         ]
         position = min(found) if found else math.inf
         positions.append(position)
+        coverage_at_ten.append(
+            sum(filename in ranking[:10] for filename in case["relevant"])
+            / len(case["relevant"])
+        )
         if position > 5:
             failed_at_five.append(case["id"])
     count = len(cases)
@@ -187,6 +196,7 @@ def _metrics(
             "hit@1": round(sum(position <= 1 for position in positions) / count, 3),
             "hit@5": round(sum(position <= 5 for position in positions) / count, 3),
             "hit@10": round(sum(position <= 10 for position in positions) / count, 3),
+            "coverage@10": round(sum(coverage_at_ten) / count, 3),
             "mrr@10": round(
                 sum(0.0 if position > 10 else 1.0 / position for position in positions)
                 / count,

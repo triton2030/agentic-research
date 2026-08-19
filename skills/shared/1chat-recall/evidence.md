@@ -136,3 +136,40 @@ blocking `claude-opus-5` / xhigh на синтетическом corpus; реа�
   носителей «hit ≠ evidence» к одному, порог «втрое» вместо «много больше»,
   смягчение overclaim про file-route, след фасетов перенесён в Завершение,
   дата эксперимента в примере.
+
+## Единый top-10 holder-ов, 2026-08-19
+
+Support envelope: локальный `GPT-5.6`; советник `claude-opus-5` / xhigh через
+Claude MCP. Opus получил read-only контекст, но его Bash был запрещён;
+численные claims перепроверены локально.
+
+- Opus обнаружил два дефекта прямого суммирования record-ranks: разные лучшие
+  BM25/E5-цитаты одного holder-а теряли один канал, а длинный holder занимал
+  несколько соседних позиций. Реализация использует file-level MaxP по
+  отдельной цитате и только ограниченную поддержку лучшего результата каждого
+  канала; число цитат и длина holder-а в score не входят.
+- `session-context` допускает holder через lexical gate или совпадение BM25 и
+  E5 в top-5. Проверка на pinned 20 queries: пересечение непусто в 9/20
+  случаев, поэтому consensus-route не мёртвый. Context-rescue ограничен двумя
+  holder-ами и не вытесняет двухканальный quote-hit.
+- Pinned agentic-research snapshot: 895 records, 20 queries. Lexical:
+  `hit@5=0.30`, `hit@10=0.55`, `coverage@10=0.50`; hybrid: `hit@1=0.40`,
+  `hit@5=0.65`, `hit@10=0.75`, `coverage@10=0.75`, `mrr@10=0.50`.
+  Промежуточная file-level формула уронила hybrid `hit@10` до `0.65`;
+  ограниченная поддержка с весом `0.1` вернула `0.75`, не меняя `hit@5`.
+- Retrieval suites: Codex 53 tests, Claude 51 tests; полные package suites:
+  Codex 89, Claude 86, все `OK`. Runtime и общие runtime tests byte-identical.
+  Новый adversarial test проверяет, что стандартный query возвращает все десять
+  полных holder-card даже при выводе больше прежних 8000 символов; явный
+  `--max-chars` остаётся opt-in ограничением.
+- Живой запрос вернул 10/10 holder-ов, полный `session-context`, относительный
+  возраст, type/topic counts и `semantic_rank`; display newest-first, отбор
+  остаётся семантическим. Новый vector store не добавлен: context embeddings
+  используют тот же E5 и существующий content-hash SQLite cache.
+- `sync_simple_projections.py 1chat-recall --check` подтвердил совпадение обоих
+  tracked owners и live installs. Установленный Codex runtime повторил тот же
+  результат: 10 holder-card, 8461 символ, без character truncation.
+
+Оставшийся предел: `coverage@10` умеет считать несколько полезных holder-ов,
+но текущая pinned fixture в основном single-gold; широкую человеческую оценку
+многих уместных сессий эти числа не заменяют.
