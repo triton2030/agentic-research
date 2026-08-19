@@ -53,13 +53,17 @@ EMBEDDING_REVISION = "00fc3aeb3dbb95842de2ac1961d33c6319acf57b"
 EMBEDDING_DIMENSION = 1024
 EMBEDDING_MODEL_FILE = "onnx/model_quantized.onnx"
 EMBEDDING_BATCH_SIZE = 32
-# Калибровка порогов поддержки: 20 закреплённых кейсов против 15 запросов вне
-# корпуса, 940 записей, Xenova/multilingual-e5-large int8, 2026-08-20.
-# >= 0.82 — 18/20 по делу и 0/15 вне корпуса; < 0.805 — 0/20 по делу и 13/15
-# вне корпуса. Пороги привязаны к EMBEDDING_PROFILE: смена модели требует
-# повторной калибровки (tests/evaluate_support.py).
-SUPPORT_STRONG = 0.82
-SUPPORT_WEAK = 0.805
+# Вердикт различает только предметную область запроса, не наличие позиции.
+# Замер 2026-08-20 на 940 записях, Xenova/multilingual-e5-large int8:
+# бытовые темы (гитара, борщ, ипотека) дают top1 0.764-0.812; всё про предмет
+# проекта - 0.825 и выше. Разделение чистое.
+# Тот же замер на доменных негативах (правила владельца, которых в корпусе
+# нет по grep): top1 0.825-0.876 против 0.830-0.868 у заведомо присутствующих.
+# Пересечение полное, 4 из 5 негативов выше минимума присутствующих.
+# Отсюда имена: in-domain / edge / off-domain, а не supported / unsupported.
+# Пороги привязаны к EMBEDDING_PROFILE (tests/evaluate_support.py).
+DOMAIN_STRONG = 0.82
+DOMAIN_WEAK = 0.805
 QUERY_PREFIX = "query: "
 PASSAGE_PREFIX = "passage: "
 HYBRID_DEPTH = 40
@@ -766,19 +770,21 @@ def search_dense(records: list[dict[str, Any]], query: str) -> list[dict[str, An
     return ranked
 
 
-def _support_verdict(top1: float | None) -> str | None:
-    """Ближайшая запись корпуса как сырой косинус, а не как позиция в ранге.
+def _domain_verdict(top1: float | None) -> str | None:
+    """Лежит ли запрос в предметной области корпуса.
 
-    RRF стирает абсолютный смысл скора, поэтому вердикт считается до слияния
-    каналов. Он описывает наличие материала в корпусе, а не правоту выдачи.
+    Сырой косинус ближайшей записи, снятый до RRF: после слияния скор зависит
+    только от позиции в ранге. Измерено, что величина различает «про предмет
+    проекта» и «про постороннее», и НЕ различает «позиция записана» и «позиции
+    нет» внутри предмета. Вердикт отвечает только на первый вопрос.
     """
     if top1 is None:
         return None
-    if top1 >= SUPPORT_STRONG:
-        return "supported"
-    if top1 >= SUPPORT_WEAK:
-        return "weak"
-    return "unsupported"
+    if top1 >= DOMAIN_STRONG:
+        return "in-domain"
+    if top1 >= DOMAIN_WEAK:
+        return "edge"
+    return "off-domain"
 
 
 def search_session_context_dense(
@@ -1371,9 +1377,9 @@ def _render_holders(
     if truncated_by:
         status += f" · truncated by --{truncated_by.replace('_', '-')}"
     lines = [status]
-    support = _support_verdict(_DENSE_TOP1)
-    if support is not None:
-        lines.append(f"corpus-support={support} · dense_top1={_DENSE_TOP1:.3f}")
+    domain = _domain_verdict(_DENSE_TOP1)
+    if domain is not None:
+        lines.append(f"query-domain={domain} · dense_top1={_DENSE_TOP1:.3f}")
     for card in cards:
         lines.append(
             f"holder={card['file']} · {card['age']} · "
@@ -1742,14 +1748,14 @@ def main() -> int:
             envelope["candidate_count"] = (
                 candidate_count if candidate_count else matched
             )
-            support = _support_verdict(_DENSE_TOP1)
-            if support is not None:
+            domain = _domain_verdict(_DENSE_TOP1)
+            if domain is not None:
                 envelope["dense_top1"] = round(_DENSE_TOP1, 4)
-                envelope["support"] = support
-                if support != "supported":
+                envelope["query_domain"] = domain
+                if domain != "in-domain":
                     envelope["warnings"] = [
                         *envelope["warnings"],
-                        f"corpus-support-{support}",
+                        f"query-{domain}",
                     ]
             if retrieval == "hybrid":
                 envelope["candidate_depth"] = HYBRID_DEPTH
