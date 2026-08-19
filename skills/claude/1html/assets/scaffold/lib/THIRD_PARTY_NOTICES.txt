@@ -17,6 +17,5 @@ This local draft bundle includes:
   License: ISC with MIT-noted Feather-derived icons (licenses/lucide.txt)
 
 These files are vendored so local HTML drafts open without a CDN, package
-install, or build step. Lucide is loaded by the starter for local named icons.
-Alpine.js is available but is not loaded by the starter; add its script tag only
-when native HTML controls are insufficient.
+install, or build step. The starter loads Lucide for local named icons and
+Alpine.js for the shared project shell and optional prototype states.

@@ -1,14 +1,14 @@
 # DaisyUI: Компоненты И Motion
 
-Читай эти карточки, когда выбираешь компонент, semantic role, disclosure или
-анимацию. В starter закреплён локальный DaisyUI `5.7.4`.
+Читай эти карточки, когда выбираешь component, semantic role, disclosure или
+анимацию. В scaffold закреплён локальный DaisyUI `5.7.4`.
 
 Карточки:
 
 - Daisy сначала;
 - компонент по отношению;
 - нативный state;
-- ритм принадлежит starter;
+- ритм принадлежит artifact;
 - motion объясняет изменение;
 - DaisyUI 5, не старые рецепты;
 - полный ассортимент, малый набор.
@@ -17,13 +17,13 @@
 
 **Сигнал:** разметка собирается только из utility-классов.
 
-**Практика:** сначала выбери компонент по смыслу (`card`, `alert`, `table`,
+**Практика:** сначала выбери component по смыслу (`card`, `alert`, `table`,
 `tabs`, `collapse`, `modal`, `steps`), затем semantic color role, затем малые
-Tailwind utilities для конкретной композиции. Повторяемый visual token
-принадлежит `theme.css`.
+Tailwind utilities для конкретной композиции. Palette, typography, spacing и
+повторяемые visual tokens текущей страницы принадлежат `assets/local.css`.
 
-**Не делай:** не закрепляй случайные palette colors и SVG fill/stroke, если роль
-уже выражает тема.
+**Не делай:** не создавай второй способ выражать одну роль внутри artifact;
+SVG и add-ons наследуют `currentColor` или artifact variables.
 
 ## Карточка: Компонент По Отношению
 
@@ -43,25 +43,6 @@ Tailwind utilities для конкретной композиции. Повто�
 `stats` — только реальные числа с контекстом. `tooltip` — короткое
 необязательное пояснение, не скрытая инструкция.
 
-## Карточка: Дерево Страниц Сверху
-
-**Сигнал:** artifact project содержит родительские и дочерние страницы.
-
-**Практика:** используй готовый верхний `navbar`. Leaf остаётся прямой ссылкой;
-branch раскрывает `menu` через нативные `details`/`summary`, содержит отдельную
-ссылку на overview родителя и вложенные страницы. `breadcrumbs` показывают
-текущий путь. В `assets/pages.js` вложи узлы через `children`; HTML-файлы
-остаются плоскими в `pages/`, а `assets/project.js` рисует общий shell.
-Первым control слева остаётся мягкая акцентная кнопка «Все проекты», после неё —
-identity проекта и его страницы. Sticky header заранее резервирует свою высоту,
-а content anchors получают соответствующий `scroll-margin-top`: поздняя
-подстановка меню не двигает страницу и не закрывает целевой heading.
-
-**Не делай:** не изображай иерархию tabs, не открывай submenu только по hover и
-не превращай summary родителя в единственный недоступный путь к его странице.
-Не переставляй «Все проекты» между страницами и не дублируй родителей, соседей
-и дочерние links в rail каждой страницы.
-
 ## Карточка: Нативный State
 
 **Сигнал:** для одного открытия пишется Alpine или ручной JS.
@@ -73,23 +54,19 @@ DaisyUI collapse. Modal начинай с нативного `<dialog>`: DaisyUI
 **Не делай:** checkbox- и anchor-модалы являются legacy-вариантами, а Alpine
 нужен только для связанных состояний.
 
-## Карточка: Ритм Принадлежит Starter
+## Карточка: Ритм Принадлежит Artifact
 
-**Сигнал:** новая страница заново собирает shell, section spacing и card padding
-из utility-классов.
+**Сигнал:** близкие элементы имеют случайные gap/padding/radius и теряют
+визуальную группу.
 
-**Практика:** сначала сохраняй готовых владельцев: `.artifact-shell` — page
-layout, `.artifact-hero` — первый ответ, `.artifact-section` — ход рассказа,
-`.artifact-grid` — расстояние коллекции, `.artifact-card .card-body` —
-внутренний padding, `.artifact-details` — необязательная глубина. Parent владеет
-расстоянием между детьми; component — внутренним padding.
+**Практика:** parent владеет расстоянием между children, component — внутренним
+padding. Заведи малый набор tokens в `assets/local.css` под текущую композицию.
+Design может быть editorial, dense, playful или technical; общий scaffold не
+владеет layout, palette или typography.
 
-**Исключение:** необычная visual explanation, interface или animation может
-потребовать своей композиции. Переиспользуй DaisyUI roles и текущую palette, а
-новые расстояния держи в одном локальном owner, не рассыпай по HTML.
-
-**Не делай:** не начинай с literal hex, inline styles, `gap-[11px]`,
-`p-[27px]` или новой spacing scale только потому, что так быстрее набрать.
+**Не делай:** не рассыпай почти одинаковые arbitrary values по HTML. Literal
+hex и inline style допустимы для разового visual, но повторяемая роль получает
+одного владельца в `local.css`.
 
 ## Карточка: Motion Объясняет Изменение
 

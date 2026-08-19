@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Read project metadata and the first h1 fallback from an HTML artifact."""
 
-from dataclasses import dataclass
-from html.parser import HTMLParser
 import json
-from pathlib import Path
 import re
 import sys
+from dataclasses import dataclass
+from html.parser import HTMLParser
+from pathlib import Path
 
 
 @dataclass(frozen=True)

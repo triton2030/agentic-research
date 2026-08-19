@@ -6,6 +6,15 @@
   min-height: 100vh;
 }
 
+.catalog-kicker {
+  margin: 0;
+  color: var(--artifact-muted);
+  font-family: var(--artifact-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
 .catalog-topbar {
   position: sticky;
   top: 0;

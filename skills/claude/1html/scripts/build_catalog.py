@@ -3,12 +3,12 @@
 
 from __future__ import annotations
 
+import json
+import sys
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from html import escape
-import json
 from pathlib import Path
-import sys
 
 from artifact_metadata import read_artifact_metadata
 
@@ -39,8 +39,8 @@ def page_count(project_dir: Path) -> int:
 
     pages = (
         page
-        for page in pages_dir.rglob("*.html")
-        if not page.name.startswith("_")
+        for page in pages_dir.glob("*.html")
+        if page.is_file() and not page.name.startswith("_")
     )
     return 1 + sum(1 for _ in pages)
 

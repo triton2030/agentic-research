@@ -3,9 +3,9 @@
 Открывай этот reference только по отдельному запросу `audit`, `cleanup`,
 «аудит красоты» или «мы ушли от стиля». Обычное создание его не читает.
 
-Audit — advisory maintenance, не linter и не gate. Он помогает вернуть общий
-визуальный язык, но не запрещает интерфейсы, необычные объяснения и анимации,
-которые действительно облегчают понимание.
+Audit — advisory maintenance, не linter и не gate. Он проверяет, служат ли
+hierarchy, rhythm, components и motion reader job текущего artifact. Общего
+визуального template у artifacts нет.
 
 ## Быстрые Source-Сигналы
 
@@ -17,25 +17,22 @@ Audit — advisory maintenance, не linter и не gate. Он помогает 
   "<artifact-project-or-index.html>"
 ```
 
-Скрипт читает HTML/CSS и class-строки first-party JS, затем возвращает review
-prompts: action controls без DaisyUI-root, competing button utilities,
-overrides готовых компонентов, arbitrary spacing/colors, inline styles, новые
-CSS tokens, semantic contrast, глобальный link-color поверх layered Daisy
-states и расхождение shared CSS assets с текущим starter/bundle. Findings не
+Скрипт читает HTML/CSS и возвращает review prompts о возможных cascade,
+contrast, spacing, inline-style и component-reinvention рисках. Findings не
 меняют exit code, ничего не исправляют и не являются визуальным вердиктом.
 
 Интерпретируй каждый сигнал по reader job. Готовый DaisyUI-вариант обычно
 заменяет случайный custom component; осознанная необычная визуализация остаётся
 локальным исключением.
 
-## Карточка: Канон Не Равен Старым Артефактам
+## Карточка: Intent Не Равен Старым Артефактам
 
 **Главная опасность:** следующий агент копирует накопившийся drift, потому что
 видит его в соседних artifacts.
 
-Бери порядок visual authority из `Runtime-Границ` в `SKILL.md`; audit его не
-переопределяет. Старые artifacts — только объекты аудита, никогда style
-precedent.
+Visual authority: явный user/project reference → заявленная reader job и intent
+текущего artifact → его собственные tokens/components. Старые artifacts не
+являются style precedent.
 
 Не продвигай локальное исключение в starter или общий vocabulary без
 повторяемого reader job и явного решения владельца.
@@ -51,20 +48,18 @@ precedent.
 - narrative text не растянут на всю ширину;
 - нет россыпи почти одинаковых расстояний и sibling `margin` patches.
 
-Сначала верни `.artifact-shell`, `.artifact-hero`, `.artifact-section`,
-`.artifact-grid`, `.artifact-card .card-body` и `.artifact-details`. Новое число
-добавляй только для осознанной локальной композиции.
+Сначала найди владельца spacing в `assets/local.css`: parent gap, component
+padding, section rhythm. Новое число добавляй только для осознанной локальной
+композиции.
 
-## Карточка: DaisyUI Остаётся Основанием
+## Карточка: DaisyUI Не Обязателен, Но Его Grammar Реальна
 
-Проверь semantic component, state и color role раньше custom CSS. Buttons,
-cards, alerts, tabs, collapse, modal, table, loading и badges должны сохранять
-DaisyUI structure; palette использует `base`, `primary`, `secondary`, `accent`,
-`neutral`, `info`, `success`, `warning`, `error`.
+Если artifact использует DaisyUI component, проверь его актуальную semantic
+structure и state прежде custom patch. Собственная компонентная форма допустима
+и не обязана выглядеть как DaisyUI.
 
-Custom CSS не является нарушением сам по себе. Drift начинается, когда он
-дублирует готовый component, создаёт вторую palette/radius/spacing system или
-заставляет каждую страницу заново решать один и тот же layout.
+Custom CSS не является нарушением. Drift начинается, когда внутри одного
+artifact он создаёт второй противоречивый способ выражать ту же роль.
 
 Modifiers могут менять назначение theme-токена: например, `alert-soft`
 использует semantic role color как foreground, тогда как обычный
@@ -108,7 +103,7 @@ Audit предлагает убрать drift и явно назвать пол�
 
 1. Зафиксируй, что страница должна помочь понять или сделать.
 2. Посмотри текущий render или screenshot и только нужный source.
-3. Сравни с authority-порядком `SKILL.md`, а не с соседними artifacts.
+3. Сравни с visual intent текущего artifact, а не с соседними artifacts.
 4. Назови максимум три-пять изменений с наибольшим эффектом для hierarchy,
    rhythm, DaisyUI fidelity и понимания.
 5. Отдельно перечисли удачные решения и intentional local exceptions.

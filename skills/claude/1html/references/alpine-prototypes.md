@@ -1,7 +1,7 @@
 # Alpine: Быстрые Прототипы
 
 Читай эти карточки, когда artifact показывает несколько UI states, dropdown,
-comments, связанные controls или повторяемый prototype instrument. В starter
+comments, связанные controls или повторяемый prototype instrument. В scaffold
 закреплён локальный Alpine `3.15.12`.
 
 ## Карточка: Native До Alpine
@@ -14,13 +14,11 @@ Alpine оправдан, когда несколько controls меняют о�
 
 ## Карточка: Один Владелец State
 
-**Сигнал:** одна панель, shell или список экранов скопированы в каждый HTML.
+**Сигнал:** одна модель состояния объявлена inline в нескольких местах.
 
-**Практика:** `assets/project.js` даёт неизменяемый shell и регистрирует
-`prototypeViewer` через `Alpine.data`; дерево объявляется один раз в
-`assets/pages.js`. Конкретный экран держит только собственные states, fixtures
-и comments. Повторяемую project-specific интерактивность вынеси в отдельный
-asset и подключи после `project.js`, но до `alpine.js`.
+**Практика:** конкретный экран держит собственные states, fixtures и comments.
+Повторяемую project-specific интерактивность вынеси в один asset с
+`Alpine.data()` и подключи до `alpine.js`; HTML остаётся semantic source.
 
 **Не делай:** не создавай global store для page-local state. `Alpine.store`
 нужен только настоящим shared consumers на одной странице.

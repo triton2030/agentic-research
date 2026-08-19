@@ -1,275 +1,216 @@
 ---
 name: 1html
-description: "Когда нужен максимально быстрый локальный HTML-черновик или многоэкранный prototype — report, explainer, comparison, plan, diagram или UI states/comments. Создаёт автономный bundle из готового DaisyUI/Alpine starter, регистрирует его в локальном каталоге и не добавляет browser/visual QA на fast path. Явный audit/cleanup существующего artifact включает необязательный visual anti-drift review. Не для production website/app/deploy или встроенной в чат интерактивной визуализации."
+description: "Когда нужен быстрый автономный HTML-артефакт, который показывает сложное вместо стены текста: explainer, report, comparison, plan, diagram, data story или UI states. Создаёт нейтральный локальный bundle, подключает только нужные visual add-ons и блокирует поломки переносимости перед каталогом. Не для production website/app/deploy или встроенной в чат визуализации."
 ---
 
 # HTML
 
 ## Результат
 
-Выдай переносимый локальный HTML-черновик с минимальной задержкой между запросом
-и первым просмотром.
+Выдай переносимый локальный HTML-артефакт, в котором главный смысл виден до
+чтения объяснительной прозы. Он открывается напрямую через `file://`, не требует
+сервера, сети или build step и остаётся понятным без запуска JavaScript.
 
-## Назначение
+Это личная рабочая документация владельца, не production-сайт и не рекламная
+страница. Главный критерий — скорость понимания: факт, состояние, решение,
+граница, устройство или следующий шаг находятся глазами.
 
-Артефакт — личная локальная рабочая документация владельца. Он не готовится к
-публичной публикации, рекламе или демонстрации внешней аудитории.
+## Покажи, Не Пересказывай
 
-Главный критерий — скорость понимания: владелец должен быстро найти факт,
-состояние, решение, границу или следующий шаг.
+Сначала выдели реальные отношения в материале: состав, порядок, поток,
+сравнение, долю, изменение, состояние или действие. Для каждого существенного
+отношения выбери самый простой визуальный носитель; в heading, caption или
+видимой подписи назови, что он показывает. Нет отношения или reader job,
+которым помогает visual, — visual не нужен. Вопрос и короткий answer-first блок
+уместны для explainer или decision, но не являются общей композицией artifact.
 
-- Сначала определи цель страницы и один вопрос читателя.
-- Пиши на уровне владельца проекта; не объясняй ему очевидный контекст.
-- Пиши телеграфно: только дельту и самое важное. Дефолт модели — полные
-  объяснительные предложения и одна мысль, пересказанная в лиде, вердикте и
-  разделе; режь до тезисов, одна мысль — один дом на странице.
-- Используй прямые названия и формулировки. Не добавляй литературные заголовки,
-  метафоры, рекламный тон и эмоциональные оценки.
-- Сохраняй технические различия, условия, неопределённость и статус
-  рекомендации, но выражай их прямо.
-- Визуальная подача служит навигации и чтению. Она не является самостоятельной
-  целью артефакта.
+Текст подписывает форму и сохраняет точность. Он не должен повторять то, что
+уже видно:
+
+- «что внутри чего» показывай вложенной композицией;
+- процесс, ветвление и движение данных — flow;
+- план и события — steps или timeline;
+- сравнение — рядом или таблицей;
+- реальные величины, доли и изменение — подходящим chart;
+- действие и смену состояния — управляемым motion;
+- необязательную глубину — `details`, popover или `dialog` рядом с тезисом.
+
+Полная карта выбора, анти-кейсы и лестница носителей —
+[`references/visual-routing.md`](references/visual-routing.md). Открой её перед
+композицией сложного explainer, plan, diagram или data story.
+
+Форма допустима только для отношения, которое действительно есть в источнике.
+Не рисуй оценочные числа как измерения, линейный список как сеть и статическое
+утверждение как процесс. Карточки с теми же абзацами — всё ещё стена текста.
 
 ## Факт Или Комментарий
 
-Это точный инструмент: он переводит подтверждённый материал в визуальный вид —
-картину сверху с раскрытием деталей, — а не сочиняет удобную версию. Каждое
-утверждение на странице принадлежит одному из двух слоёв.
+Артефакт переводит подтверждённый материал в наглядную форму, а не сочиняет
+удобную версию.
 
-- **Факт** — то, что есть в источнике: каноне, документах, коде, прямых словах
-  владельца. Упрощай форму, не смысл: не додумывай недостающее, не «улучшай»
-  формулировку до другого утверждения, не заполняй пробелы правдоподобным.
-  Простой язык остаётся максимально отражающим.
-- **Комментарий** — всё, что добавил ты сам: неуверенность, найденная по пути
-  ошибка, замеченный пробел, вопрос, предложение, вывод, который владелец не
-  утверждал. Оставляй его на странице, но визуально отдели от фактов и назови
-  тип (вопрос, риск, гипотеза, найденная ошибка); не вплетай в основной текст
-  как ещё один факт.
+- **Факт** принадлежит канону, документу, коду, данным или прямым словам
+  владельца. Упрощай форму, не смысл; не заполняй пробел правдоподобным.
+- **Комментарий** добавлен агентом: риск, гипотеза, вопрос, найденная ошибка или
+  вывод. Назови тип и визуально отдели его от фактов.
 
-Если подтверждённого материала для ответа страницы не хватает, покажи пробел
-как пробел — это информативнее выдуманной связки.
+Если материала не хватает, покажи пробел. Существенный смысл остаётся в
+семантическом DOM: headings, labels, captions, text summary и обычные links.
+Цвет, spatial position, hover, animation и canvas не являются единственным
+носителем ответа.
 
 ## Быстрый Старт
 
-Из корня проекта создай artifact готовым скриптом:
+Из корня проекта:
 
 ```bash
 "<каталог skill>/scripts/new_html_bundle.sh" "<artifact-name>"
 ```
 
-Если текущая директория не является корнем проекта, передай корень вторым
-аргументом. Скрипт сам создаёт папки, обновляет каталог и печатает адреса
-artifact и catalog.
+Если текущая директория не является корнем проекта, передай его вторым
+аргументом. Скрипт создаёт нейтральный scaffold, регистрирует проект в каталоге
+и печатает адреса. Меняй `index.html` и `assets/local.css`: HTML, композиция,
+палитра, типографика и motion принадлежат текущему artifact. Scaffold и прошлые
+artifacts не являются design template.
 
-Меняй `index.html`; `assets/theme.css` не трогай без явного заказа владельца
-на другой визуальный язык. Для дополнительных экранов копируй `pages/_template.html` и один раз
-добавляй экран в `assets/pages.js`. Файлы оставляй плоскими в `pages/`;
-иерархию задавай через `children` — общий `assets/project.js` сам построит
-верхний navbar, dropdown веток и breadcrumbs текущего пути. Не копируй
-родителей, соседей или дерево страниц в HTML.
+Для дополнительных экранов создай плоские `pages/<name>.html` с правильными
+относительными путями. Отдельный reader job получает отдельную страницу;
+состояния одной модели могут оставаться на текущей странице.
 
-После ручного удаления или переименования проектов обнови каталог:
+Metadata project entry:
+
+```html
+<meta name="artifact-title" content="Точное имя для каталога">
+<meta name="artifact-icon" content="sparkles">
+<meta name="artifact-tags" content="explainer, plan, prototype">
+```
+
+После ручного удаления или переименования проекта обнови каталог:
 
 ```bash
 "<каталог skill>/scripts/rebuild_html_catalog.sh" "<корень проекта>"
 ```
 
-Starter — пустой каркас с готовым shell, а не композиция: наполняй `main`
-знакомым DaisyUI-словарём; готовые блоки в фирменном языке бери из
-[`references/structure-patterns.md`](references/structure-patterns.md).
+## Носители И Add-ons
 
-## Каталог И Структура
+Начинай с native HTML, CSS, SVG и уже локальных DaisyUI, Tailwind, Alpine и
+Lucide. Подключай add-on только когда он выражает отношение лучше и проще.
 
-Корневой `index.html` — постоянная точка входа во все artifact projects. Каждый
-его непосредственный дочерний каталог — один автономный проект: одна страница
-либо связный набор экранов, состояний и комментариев.
-
-```text
-_workspace/HTML_artifacts/
-├── index.html
-├── _catalog/
-└── <artifact-name>/
-    ├── index.html
-    ├── assets/
-    │   ├── pages.js
-    │   ├── theme.css
-    │   └── project.js
-    ├── pages/
-    └── lib/
-```
-
-Корневой каталог показывает по одной широкой строке на проект: название,
-крупную иконку, теги, число внутренних страниц и относительную дату создания.
-Название берётся из первого `<h1>`, если в `<head>` не задан точный
-`artifact-title`.
-
-В строке можно закрепить проект звездой — избранные всегда идут первыми — и
-скопировать его полный локальный `file://` URL. Оба действия принадлежат
-каталогу; artifact менять для них не нужно.
-
-```html
-<meta name="artifact-title" content="Заголовок для каталога">
-<meta name="artifact-icon" content="sparkles">
-<meta name="artifact-tags" content="prototype, alpine, research">
-```
-
-Metadata принадлежит project entry, а не каждому внутреннему экрану.
-`sources/` создавай только для реальных входных материалов, provenance или
-вложений; CSS и runtime не являются источниками.
-
-## Главный Контракт Смысла
-
-До компонентов зафиксируй вопрос читателя, короткий ответ страницы и изменение:
-что после неё можно понять, решить или сделать. Одновременно раздели материал:
-что подтверждено источником, а что пойдёт отделённым комментарием.
-
-- одна страница выполняет одну информационную работу, а первый видимый блок
-  сразу даёт ориентацию и короткий ответ;
-- видимый хребет идёт от ответа к опоре и следующему ходу; скрывается только
-  необязательная глубина, связанная с ближайшим тезисом;
-- другая reader job получает внутреннюю страницу того же artifact project;
-- другое состояние того же вопроса остаётся в текущем HTML и переключается
-  Alpine, а не становится ещё одной страницей;
-- структуру, порядок повествования и сам факт интерактивности выбирай под
-  материал заново; starter и прошлые artifacts — не композиционный шаблон.
-
-Catalog, dashboard и reference могут быть модульными: их единая работа
-действительно состоит в поиске, мониторинге или сравнении элементов.
-
-Артефакт понятен из исходного HTML без запуска JS: DOM следует ходу рассказа,
-первый смысловой блок даёт краткий ответ, разделы имеют содержательные
-заголовки и стабильные `id`, а существенный смысл выражен текстом и
-семантической разметкой.
-
-## Роутер Практик
-
-Открывай только тот reference, без которого нельзя принять текущее решение. Не
-читай все файлы подряд и не дублируй их правила в artifact.
-
-| Сигнал задачи | Открыть | Чем владеет |
-| --- | --- | --- |
-| Составляется `main` и нужен готовый блок: вердикт, карточки, шаги, timeline, сравнение, отделённый комментарий | [`references/structure-patterns.md`](references/structure-patterns.md) | Копируемые снипеты в фирменном языке; выбор механики остаётся за compact-disclosure и daisy-storytelling |
-| Нужно выстроить рассказ, иерархию, headings, длину строк или раскрытие | [`references/readable-design.md`](references/readable-design.md) | Читаемость, один вопрос, answer-first, связное progressive disclosure |
-| Материал полон, но экран перегружен и нужно уменьшить одновременный visual load без потери смысла | [`references/compact-disclosure.md`](references/compact-disclosure.md) | Видимый смысловой хребет, выбор collapse/tabs/toggle/dropdown/modal/drawer и граница Alpine |
-| Выбираются DaisyUI-компоненты, semantic colors или motion | [`references/daisy-storytelling.md`](references/daisy-storytelling.md) | Component semantics, native primitives, theme roles, анимация |
-| Нужны UI states, dropdown, comments или связанные controls | [`references/alpine-prototypes.md`](references/alpine-prototypes.md) | State ownership, Alpine primitives, transitions, failure modes |
-| Нужна таблица с поиском, фильтрами или сортировкой | [`references/data-tables.md`](references/data-tables.md) | Semantic rows, DaisyUI controls, Alpine derived view, sortable headers |
-| Знание находится в связях, порядке, ветвлении или иерархии | [`references/mermaid-diagrams.md`](references/mermaid-diagrams.md) | Diagram choice, ELK, viewer, theming, accessibility |
-| Сложный artifact многоэкранный, интерактивный или diagram-heavy | [`references/agent-readable-artifacts.md`](references/agent-readable-artifacts.md) | DOM-порядок, стабильные anchors, текстовые state/diagram outcomes, provenance |
-| Пользователь отдельно просит audit красоты, cleanup или проверку style drift | [`references/visual-audit.md`](references/visual-audit.md) | Advisory visual review, DaisyUI fidelity, rhythm, intentional exceptions |
-| Неизвестно точное имя DaisyUI-компонента | Точечный поиск в `references/daisyui-llms.txt` | Актуальная структура выбранного компонента |
-| Неизвестно имя Lucide-иконки | Точечный поиск в `references/lucide-icon-names.txt` | Допустимое локальное имя иконки |
-
-## Шпаргалка Письма
-
-Знание, не правила: что уже оплачено и не требует нового кода.
-
-В bundle закреплены полный DaisyUI, Tailwind runtime, Alpine и Lucide; точные
-версии — владелец `assets/starter/lib/` (сверено 2026-08-19). Тема `editorial`
-сама стилизует стандартные DaisyUI-компоненты:
-`card`, `btn`, `badge`, `alert`, `table`, `steps`, `timeline`, `collapse`,
-`tabs`, `stats` выглядят фирменно без кастомного CSS — обычный знакомый
-DaisyUI/Tailwind-словарь даёт готовый результат.
-
-Каркас и типографику держат классы `theme.css`:
-
-| Класс | Роль |
-| --- | --- |
-| `artifact-shell` | grid страницы: rail + main |
-| `artifact-project-header`, `artifact-topbar` | sticky-шапка; наполняет `project.js` |
-| `artifact-rail`, `artifact-menu`, `artifact-rail-note` | левая навигация «на этой странице» |
-| `artifact-main` | колонка содержания |
-| `artifact-hero`, `artifact-kicker`, `artifact-title`, `artifact-lead` | первый экран: моно-надзаголовок, крупный serif, лид |
-| `artifact-section`, `artifact-heading`, `artifact-section-intro` | смысловой ход рассказа |
-| `artifact-grid` → `card artifact-card` (`--primary`, `--stop`) → `card-body` → `artifact-card-title`, `artifact-number` | коллекция карточек; primary шире, stop — глиняный акцент; внутренние отступы живут в `card-body` |
-| `card artifact-verdict` → `card-body` → `artifact-verdict-title` | карточка главного вывода с акцентной кромкой; отступы — в `card-body` |
-| `artifact-details` | `details.collapse` в фирменном контуре |
-| `artifact-badges` | ряд моноширинных статус-баджей |
-| `artifact-footer` | нижняя линия страницы |
-
-Классы шапки и навигации вне таблицы — `artifact-project-*`,
-`artifact-topbar-start`, `artifact-topbar-action`, `artifact-home-link`,
-`artifact-breadcrumbs` — наполняет `assets/project.js` (см. Runtime-Границы).
-
-## Runtime-Границы
-
-- Default visual shell уже в starter и
-  `references/editorial-style.png`: тёплая бумага, графит, крупный serif,
-  моноширинные labels, тонкие контуры, спокойные sage/clay поверхности.
-  Палитра, схема, иконки и стиль не меняются от artifact к artifact.
-  Это описание внешнего вида, а не разрешение на редакционный или
-  художественный тон текста.
-- Полный локальный DaisyUI bundle доступен. Сначала semantic component и theme
-  role, затем Tailwind utilities для конкретной композиции.
-- Visual authority: явный пользовательский или project-local reference →
-  текущие starter/theme этого skill → semantic DaisyUI. Без явного reference
-  starter/theme и DaisyUI остаются default. Соседние и старые artifacts —
-  результаты, не примеры и не источник стиля.
-- Сначала переиспользуй `.artifact-*` roles, semantic colors и уже выбранный
-  spacing. Не создавай новую palette или числовую шкалу, если текущий owner уже
-  выражает роль.
-- Кастомная композиция, CSS или анимация допустима, когда помогает конкретному
-  reader job и не выражается готовым vocabulary. Оставляй исключение локальным;
-  не превращай его автоматически в новый default.
-- Нативные links, `details`, `dialog`, radio и checkbox идут раньше Alpine.
-- `assets/pages.js` владеет только названием, иконкой и деревом страниц.
-  `assets/project.js` владеет общим shell и prototype instrument — не копируй
-  и не переписывай его по страницам. Отдельную project-specific интерактивность
-  подключай своим asset перед `lib/alpine.js`.
-- Общий shell держит мягкую акцентную кнопку «Все проекты» первым control слева,
-  резервирует высоту до запуска JS и остаётся у верхнего края окна. Не меняй
-  этот порядок и sticky-offset якорей на отдельных страницах.
-- Alpine нужен только для связанных состояний и prototype instruments.
-- Lucide уже подключён. Иконка выбирается по смыслу, наследует `currentColor` и
-  не остаётся единственным носителем значения.
-- Mermaid добавляется только при diagram-задаче:
-
-```bash
-"<каталог skill>/scripts/add_mermaid_bundle.sh" "<artifact-name>" "<project-root>"
-```
-
-- Поиск, filters и сортировка таблицы добавляются только когда они сокращают
-  путь к нужной строке:
+- Таблица с реальным поиском, фильтрами или сортировкой:
 
 ```bash
 "<каталог skill>/scripts/add_table_bundle.sh" "<artifact-name>" "<project-root>"
 ```
 
-- Все зависимости локальны и закреплены; CDN, npm install, server и build step
-  не нужны.
-
-Интерактивность и motion допустимы, только когда сокращают путь к пониманию или
-показывают реальное изменение состояния.
-
-## Скорость
-
-Это draft-local surface. Сразу верни постоянную ссылку на
-`_workspace/HTML_artifacts/index.html`; direct link на текущий artifact добавляй
-только когда он полезен.
-
-При обычном создании не запускай server, browser, Playwright, QA, screenshot
-loop, console check, responsive matrix или interaction audit.
-
-Перед сдачей выполни один финальный переход:
+- Mermaid для topology, sequence, state, timeline, gantt и простых charts:
 
 ```bash
-"<каталог skill>/scripts/finish_html_bundle.sh" "<artifact-name>" "<корень проекта>"
+"<каталог skill>/scripts/add_mermaid_bundle.sh" "<artifact-name>" "<project-root>"
 ```
 
-Ненулевой код означает, что artifact не готов. Ссылки бери только из успешного
-вывода этой команды.
+- Apache ECharts для нескольких quantitative views, interactive exploration,
+  Sankey, treemap, heatmap или scatter, которые native SVG/Mermaid выражают
+  хуже:
 
-Явный отдельный запрос на audit/cleanup — другой, необязательный maintenance
-mode. Он может посмотреть текущий render или screenshot, если без этого нельзя
-судить о визуальной цельности, но не блокирует artifact, не становится его
-acceptance gate и не создаёт постоянный regression suite.
+```bash
+"<каталог skill>/scripts/add_echarts_bundle.sh" "<artifact-name>" "<project-root>"
+```
+
+ECharts — opt-in local runtime, не default и не page template. Данные и
+`option` остаются рядом с текущим artifact; пять редактируемых recipes и
+accessibility contract — [`references/echarts.md`](references/echarts.md).
+
+- React Flow только когда одновременно нужны крупные интерактивные nodes,
+  pan/zoom исследуемого полотна и направленные data-flow edges:
+
+```bash
+"<каталог skill>/scripts/add_react_flow_bundle.sh" "<artifact-name>" "<project-root>"
+```
+
+React Flow здесь заранее собран в локальный IIFE вместе с React runtime:
+artifact по-прежнему открывается через `file://` без dev server и сети. Его
+nodes и edges наследуют CSS variables, шрифт и цвета самого artifact; add-on не
+задаёт палитру. Детали, config contract и пример —
+[`references/react-flow.md`](references/react-flow.md).
+
+Интерактивность и motion допустимы, только когда сокращают путь к пониманию или
+показывают реальное изменение. Всегда сохраняй static meaning и
+`prefers-reduced-motion`. Актуальные native возможности и fallback —
+[`references/modern-web.md`](references/modern-web.md).
+
+## Роутер Практик
+
+Открывай только reference текущего решения.
+
+| Сигнал | Открыть | Владелец |
+| --- | --- | --- |
+| Выбрать форму для сложного материала | [`visual-routing.md`](references/visual-routing.md) | relation → carrier, charts, flows, nesting, motion |
+| Выстроить понятный путь и иерархию | [`readable-design.md`](references/readable-design.md) | reader job, outline, visual hierarchy |
+| Спрятать необязательную глубину | [`compact-disclosure.md`](references/compact-disclosure.md) | details/accordion/tabs/popover/dialog/drawer |
+| Выбрать DaisyUI component или semantic role | [`daisy-storytelling.md`](references/daisy-storytelling.md) | component grammar и role, не визуальный template |
+| Связанные UI states и controls | [`alpine-prototypes.md`](references/alpine-prototypes.md) | state ownership и transitions |
+| Интерактивная таблица | [`data-tables.md`](references/data-tables.md) | semantic rows и table helper |
+| Mermaid topology или chart | [`mermaid-diagrams.md`](references/mermaid-diagrams.md) | diagram choice, ELK, viewer, accessibility |
+| Разные quantitative charts, Sankey или treemap | [`echarts.md`](references/echarts.md) | local runtime, data/options recipes, accessible fallback |
+| Крупные interactive nodes и data-flow | [`react-flow.md`](references/react-flow.md) | threshold, config, node controls, animated edges |
+| Popover, native accordion, modern motion/CSS | [`modern-web.md`](references/modern-web.md) | current capability и fallback |
+| Явный audit красоты или cleanup | [`visual-audit.md`](references/visual-audit.md) | advisory visual review |
+| Неизвестно имя DaisyUI component | точечный поиск в `references/daisyui-llms.txt` | bundled component syntax |
+| Неизвестно имя Lucide icon | точечный поиск в `references/lucide-icon-names.txt` | local icon name |
+
+## Runtime-Границы
+
+- Все зависимости локальны и закреплены; не добавляй CDN, network fetch,
+  remote font, npm install, server или build step в artifact workflow.
+- Local-only CSP из scaffold блокирует случайные runtime network routes;
+  сохраняй его на каждом current live page.
+- Native links, `details`, `dialog`, popover, radio и checkbox идут раньше
+  Alpine. Alpine нужен для связанных состояний или derived presentation.
+- DaisyUI задаёт component semantics, но не композицию и не palette artifact.
+  Соблюдай структуру выбранного component; затем оформляй её в `local.css`.
+- Текстовый `.card` кладёт content в direct `.card-body`; media-only card может
+  обойтись без него. `.hero` получает direct `.hero-content`. Это contract
+  padding/layout, не visual template.
+- Не называй собственный layout-класс именем DaisyUI component (`hero`,
+  `card`, `navbar`, `drawer`), если не используешь его contract: library CSS
+  уже придаёт такому классу layout behavior. Для локальной формы дай
+  artifact-specific имя.
+- Lucide icon наследует `currentColor` и имеет видимый либо доступный label.
+- Главная связь и ориентация доступны без раскрытия controls. Скрывается только
+  необязательная глубина; tooltip и hover никогда не несут единственный
+  существенный смысл.
+- Простые charts выражай native HTML/SVG или Mermaid. ECharts подключай только
+  когда реальные данные требуют нескольких quantitative views, exploration,
+  Sankey, treemap, heatmap или scatter; не загружай его ради одного простого bar.
+
+## Скорость И Проверка
+
+Обычное создание остаётся fast path: не запускай server, browser, screenshot
+loop, responsive matrix или visual QA. Программный gate проверяет переносимость
+и целостность, а не навязывает внешний вид.
+
+Перед сдачей выполни один переход:
+
+```bash
+"<каталог skill>/scripts/finish_html_bundle.sh" "<artifact-name>" "<project-root>"
+```
+
+Ненулевой код означает, что artifact не готов. Команда проверяет HTML,
+локальные ресурсы, add-on wiring и generation contract, затем пересобирает
+catalog и печатает обе ссылки. Для созданного старой версией bundle используй
+явный `--legacy`; current bundle не может обходить текущий gate этим flag.
+
+Явный запрос audit/cleanup — отдельный maintenance mode. Он может открыть
+render или screenshot и запустить advisory source scan:
+
+```bash
+"<каталог skill>/scripts/audit_html_style.py" "<artifact-project-or-index.html>"
+```
 
 ## Готово Когда
 
-- каждая страница выполняет одну информационную работу и передаёт запрошенный
-  смысл;
-- каждое утверждение либо подтверждено источником, либо явно оформлено как
-  отделённый комментарий;
-- первый видимый блок отвечает, а раскрываемые слои продолжают ближайший тезис;
-- artifact использует готовые общие assets;
-- `finish_html_bundle.sh` завершился успешно и вернул ссылки artifact и catalog.
+- главный смысл и отношения понятны глазами до чтения подробной прозы;
+- визуальная форма показывает подтверждённый смысл, а не украшает его;
+- факты и комментарии агента различимы;
+- artifact автономно открывается через `file://`, а существенный смысл доступен
+  без JavaScript и motion;
+- `finish_html_bundle.sh` завершился успешно и вернул artifact/catalog links.

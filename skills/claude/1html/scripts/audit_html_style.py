@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
-"""Report likely DaisyUI reinvention and style drift in one HTML artifact."""
+"""Audit one HTML artifact and enforce its portable bundle contract."""
 
 from __future__ import annotations
 
-import difflib
+import json
+import math
 import re
 import sys
 from dataclasses import dataclass
 from html.parser import HTMLParser
 from pathlib import Path
+from urllib.parse import unquote, urlsplit
 
 EXCLUDED_DIRS = {"_catalog", ".git", "lib", "node_modules", "sources"}
-ARTIFACT_CARD_ROOTS = {"artifact-card", "artifact-verdict"}
 HTML_VOID_ELEMENTS = {
     "area",
     "base",
@@ -70,7 +71,6 @@ CATEGORY_ORDER = (
     "DAISY_OVERRIDE",
     "CONTRAST_RISK",
     "STYLE_LITERAL",
-    "OWNER_DIVERGENCE",
 )
 MAX_VISIBLE_FINDINGS = 40
 SEMANTIC_ROLES = (
@@ -123,6 +123,29 @@ THEME_TOKEN_RE = re.compile(
     r"(--color-[a-z0-9-]+)\s*:\s*(#[0-9a-fA-F]{3,8})\s*;"
 )
 CLASS_ATTRIBUTE_RE = re.compile(r"""class\s*=\s*["']([^"']+)["']""")
+KNOWN_PLACEHOLDER_MARKERS = (
+    "Название HTML-артефакта",
+    "Заголовок-ответ страницы",
+    "HTML draft bundle",
+)
+BUNDLE_MARKER = ".1html-bundle-version"
+LEGACY_RESOURCE_ATTRIBUTES = {
+    "a": ("href",),
+    "audio": ("src",),
+    "img": ("src", "srcset"),
+    "link": ("href",),
+    "script": ("src",),
+    "source": ("src", "srcset"),
+    "video": ("src", "poster"),
+}
+RESOURCE_ATTRIBUTES = {
+    **LEGACY_RESOURCE_ATTRIBUTES,
+    "embed": ("src",),
+    "iframe": ("src",),
+    "input": ("src",),
+    "object": ("data",),
+    "track": ("src",),
+}
 
 
 @dataclass(frozen=True)
@@ -134,19 +157,401 @@ class Finding:
     evidence: str
 
 
-@dataclass
-class StructureRoot:
+@dataclass(frozen=True)
+class BundleViolation:
     path: Path
     line: int
-    role: str
-    has_card_class: bool
-    has_direct_card_body: bool = False
+    code: str
+    message: str
+
+
+@dataclass
+class BundleFrame:
+    tag: str
+    line: int
+    in_main: bool
+    tablist_id: int | None
+    inline_script: bool
+    json_script_id: str | None
+    inline_style_index: int | None
+    inline_script_index: int | None
+    element_id: str | None
+    daisy_required_part: str | None
+    daisy_part_found: bool
+    daisy_unwrapped_content: bool
 
 
 @dataclass(frozen=True)
-class ElementFrame:
+class ResourceReference:
     tag: str
-    structure_root: StructureRoot | None
+    attribute: str
+    value: str
+    line: int
+
+
+def srcset_candidates(value: str) -> list[str]:
+    stripped = value.strip()
+    if stripped.startswith("data:"):
+        return [stripped.split()[0]]
+    return [
+        candidate.strip().split()[0]
+        for candidate in value.split(",")
+        if candidate.strip()
+    ]
+
+
+class BundleHTMLParser(HTMLParser):
+    """Collect the source invariants owned by the shipped 1html bundle."""
+
+    def __init__(self, path: Path) -> None:
+        super().__init__(convert_charrefs=True)
+        self.path = path
+        self.stack: list[BundleFrame] = []
+        self.violations: list[BundleViolation] = []
+        self.mains: list[int] = []
+        self.h1s: list[tuple[int, bool]] = []
+        self.doctypes: list[int] = []
+        self.htmls: list[int] = []
+        self.heads: list[int] = []
+        self.bodies: list[int] = []
+        self.charsets: list[tuple[int, str]] = []
+        self.viewports: list[tuple[int, str]] = []
+        self.content_security_policies: list[tuple[int, str]] = []
+        self.ids: set[str] = set()
+        self.text_by_id: dict[str, list[str]] = {}
+        self.resources: list[ResourceReference] = []
+        self.script_sources: list[tuple[int, str]] = []
+        self.stylesheet_hrefs: list[tuple[int, str]] = []
+        self.uses_table = False
+        self.uses_mermaid = False
+        self.uses_react_flow = False
+        self.react_flow_hosts: list[tuple[int, str]] = []
+        self.uses_echarts = False
+        self.echarts_hosts: list[tuple[int, str, str, str, str]] = []
+        self.json_script_lines: dict[str, list[int]] = {}
+        self.json_script_parts: dict[str, list[str]] = {}
+        self.inline_style_blocks: list[tuple[int, list[str]]] = []
+        self.inline_style_attributes: list[tuple[int, str]] = []
+        self.inline_script_blocks: list[tuple[int, list[str]]] = []
+        self.module_scripts: list[int] = []
+        self.template_ids: set[str] = set()
+        self._next_tablist_id = 1
+        self.radio_tab_groups: dict[str, list[tuple[int, int]]] = {}
+        self.artifact_title = ""
+        self.visible_text_parts: list[str] = []
+        self.meaningful_elements = 0
+
+    def violation(self, line: int, code: str, message: str) -> None:
+        self.violations.append(
+            BundleViolation(self.path, line, code, message)
+        )
+
+    def handle_starttag(
+        self, tag: str, attrs: list[tuple[str, str | None]]
+    ) -> None:
+        self._handle_element(
+            tag,
+            attrs,
+            push=tag.lower() not in HTML_VOID_ELEMENTS,
+        )
+
+    def handle_startendtag(
+        self, tag: str, attrs: list[tuple[str, str | None]]
+    ) -> None:
+        normalized_tag = tag.lower()
+        if normalized_tag not in HTML_VOID_ELEMENTS:
+            line, _ = self.getpos()
+            self.violation(
+                line,
+                "TAG_NESTING",
+                f"non-void <{normalized_tag}> cannot use self-closing syntax in HTML",
+            )
+        self._handle_element(tag, attrs, push=False)
+
+    def handle_decl(self, decl: str) -> None:
+        if decl.strip().casefold() == "doctype html":
+            line, _ = self.getpos()
+            self.doctypes.append(line)
+
+    def handle_endtag(self, tag: str) -> None:
+        normalized_tag = tag.lower()
+        line, _ = self.getpos()
+        if not self.stack:
+            self.violation(
+                line,
+                "TAG_NESTING",
+                f"unexpected closing tag </{normalized_tag}>",
+            )
+            return
+        if self.stack[-1].tag == normalized_tag:
+            frame = self.stack.pop()
+            self._finish_frame(frame)
+            return
+
+        expected = self.stack[-1].tag
+        self.violation(
+            line,
+            "TAG_NESTING",
+            f"closing </{normalized_tag}> crosses open <{expected}>",
+        )
+        for index in range(len(self.stack) - 1, -1, -1):
+            if self.stack[index].tag == normalized_tag:
+                for frame in self.stack[index:]:
+                    self._finish_frame(frame)
+                del self.stack[index:]
+                return
+
+    def _finish_frame(self, frame: BundleFrame) -> None:
+        needs_part = frame.daisy_required_part == "hero-content" or (
+            frame.daisy_required_part == "card-body"
+            and frame.daisy_unwrapped_content
+        )
+        if needs_part and not frame.daisy_part_found:
+            root = {
+                "card-body": "card",
+                "hero-content": "hero",
+            }[frame.daisy_required_part]
+            self.violation(
+                frame.line,
+                "DAISY_STRUCTURE",
+                f".{root} "
+                f"must contain a direct .{frame.daisy_required_part} child; "
+                "use an artifact-specific class for custom layout",
+            )
+
+    def handle_data(self, data: str) -> None:
+        stripped = data.strip()
+        if stripped:
+            for frame in self.stack:
+                if frame.element_id:
+                    self.text_by_id.setdefault(frame.element_id, []).append(stripped)
+            if (
+                self.stack
+                and self.stack[-1].daisy_required_part == "card-body"
+            ):
+                self.stack[-1].daisy_unwrapped_content = True
+        if self.stack and self.stack[-1].inline_style_index is not None:
+            self.inline_style_blocks[self.stack[-1].inline_style_index][1].append(data)
+        elif self.stack and self.stack[-1].inline_script:
+            script_id = self.stack[-1].json_script_id
+            if script_id:
+                self.json_script_parts[script_id].append(data)
+            elif self.stack[-1].inline_script_index is not None:
+                self.inline_script_blocks[self.stack[-1].inline_script_index][1].append(data)
+        elif self.stack and self.stack[-1].in_main and stripped:
+            self.visible_text_parts.append(stripped)
+
+    def _handle_element(
+        self,
+        tag: str,
+        attrs: list[tuple[str, str | None]],
+        *,
+        push: bool,
+    ) -> None:
+        line, _ = self.getpos()
+        normalized_tag = tag.lower()
+        attributes = {name.lower(): value or "" for name, value in attrs}
+        classes = set(attributes.get("class", "").split())
+        parent = self.stack[-1] if self.stack else None
+        in_main = bool(parent and parent.in_main) or normalized_tag == "main"
+        if attributes.get("role", "").lower() == "tablist":
+            tablist_id = self._next_tablist_id
+            self._next_tablist_id += 1
+        else:
+            tablist_id = parent.tablist_id if parent else None
+
+        if normalized_tag == "base":
+            self.violation(
+                line,
+                "RESOURCE_LINK",
+                "<base> is forbidden because local bundle URLs resolve from each page",
+            )
+        if "data-artifact-placeholder" in attributes:
+            self.violation(
+                line,
+                "PLACEHOLDER",
+                "scaffold placeholder marker remains in a live page",
+            )
+
+        if (
+            normalized_tag == "meta"
+            and attributes.get("name", "").lower() == "artifact-title"
+        ):
+            self.artifact_title = attributes.get("content", "").strip()
+
+        if attributes.get("id"):
+            self.ids.add(attributes["id"])
+            self.text_by_id.setdefault(attributes["id"], [])
+            if normalized_tag == "template":
+                self.template_ids.add(attributes["id"])
+
+        if normalized_tag == "html":
+            self.htmls.append(line)
+        elif normalized_tag == "head":
+            self.heads.append(line)
+        elif normalized_tag == "body":
+            self.bodies.append(line)
+        elif normalized_tag == "meta":
+            if "charset" in attributes:
+                self.charsets.append((line, attributes["charset"].strip()))
+            if attributes.get("name", "").casefold() == "viewport":
+                self.viewports.append((line, attributes.get("content", "").strip()))
+            if attributes.get("http-equiv", "").casefold() == "content-security-policy":
+                self.content_security_policies.append(
+                    (line, attributes.get("content", "").strip())
+                )
+
+        if normalized_tag == "main":
+            self.mains.append(line)
+        if normalized_tag == "h1":
+            self.h1s.append((line, in_main))
+        if in_main and normalized_tag in {
+            "audio",
+            "canvas",
+            "embed",
+            "form",
+            "iframe",
+            "img",
+            "object",
+            "pre",
+            "svg",
+            "table",
+            "video",
+        }:
+            self.meaningful_elements += 1
+
+        if attributes.get("style"):
+            self.inline_style_attributes.append((line, attributes["style"]))
+
+        if parent and parent.daisy_required_part in classes:
+            parent.daisy_part_found = True
+        elif (
+            parent
+            and parent.daisy_required_part == "card-body"
+            and normalized_tag not in {"figure", "img", "picture", "source"}
+        ):
+            parent.daisy_unwrapped_content = True
+
+        daisy_required_part = None
+        if "card" in classes:
+            daisy_required_part = "card-body"
+        elif "hero" in classes:
+            daisy_required_part = "hero-content"
+        if (
+            normalized_tag == "input"
+            and attributes.get("type", "").lower() == "radio"
+            and attributes.get("name")
+            and tablist_id is not None
+        ):
+            self.radio_tab_groups.setdefault(attributes["name"], []).append(
+                (line, tablist_id)
+            )
+
+        for resource_attribute in RESOURCE_ATTRIBUTES.get(normalized_tag, ()):
+            value = attributes.get(resource_attribute, "")
+            if not value:
+                continue
+            values = srcset_candidates(value) if resource_attribute == "srcset" else [value]
+            for resource_value in values:
+                self.resources.append(
+                    ResourceReference(
+                        normalized_tag,
+                        resource_attribute,
+                        resource_value,
+                        line,
+                    )
+                )
+            if normalized_tag == "script" and resource_attribute == "src":
+                self.script_sources.append((line, value))
+            if (
+                normalized_tag == "link"
+                and resource_attribute == "href"
+                and "stylesheet" in attributes.get("rel", "").split()
+            ):
+                self.stylesheet_hrefs.append((line, value))
+
+        attribute_text = " ".join(attributes.values())
+        if "artifactTable(" in attribute_text or any(
+            name.startswith("data-table-") for name in attributes
+        ):
+            self.uses_table = True
+        if "mermaid" in classes or "data-diagram-viewer" in attributes:
+            self.uses_mermaid = True
+        if "data-react-flow" in attributes:
+            self.uses_react_flow = True
+            self.react_flow_hosts.append(
+                (line, attributes.get("data-react-flow", "").strip())
+            )
+        if "data-echart" in attributes:
+            self.uses_echarts = True
+            self.echarts_hosts.append(
+                (
+                    line,
+                    attributes.get("data-echart", "").strip(),
+                    attributes.get("aria-label", "").strip(),
+                    attributes.get("aria-labelledby", "").strip(),
+                    attributes.get("data-echart-renderer", "").strip(),
+                )
+            )
+
+        json_script_id = None
+        if (
+            normalized_tag == "script"
+            and attributes.get("type", "").lower() == "application/json"
+            and attributes.get("id")
+        ):
+            json_script_id = attributes["id"]
+            self.json_script_lines.setdefault(json_script_id, []).append(line)
+            self.json_script_parts.setdefault(json_script_id, [])
+
+        inline_style_index = None
+        if normalized_tag == "style":
+            inline_style_index = len(self.inline_style_blocks)
+            self.inline_style_blocks.append((line, []))
+
+        inline_script_index = None
+        if (
+            normalized_tag == "script"
+            and attributes.get("type", "").casefold() == "module"
+        ):
+            self.module_scripts.append(line)
+        if (
+            normalized_tag == "script"
+            and not attributes.get("src")
+            and json_script_id is None
+        ):
+            inline_script_index = len(self.inline_script_blocks)
+            self.inline_script_blocks.append((line, []))
+
+        if push:
+            self.stack.append(
+                BundleFrame(
+                    tag=normalized_tag,
+                    line=line,
+                    in_main=in_main,
+                    tablist_id=tablist_id,
+                    inline_script=(
+                        normalized_tag == "script" and not attributes.get("src")
+                    ),
+                    json_script_id=json_script_id,
+                    inline_style_index=inline_style_index,
+                    inline_script_index=inline_script_index,
+                    element_id=attributes.get("id") or None,
+                    daisy_required_part=daisy_required_part,
+                    daisy_part_found=False,
+                    daisy_unwrapped_content=False,
+                )
+            )
+
+    def finish(self) -> None:
+        for frame in reversed(self.stack):
+            self._finish_frame(frame)
+            self.violation(
+                frame.line,
+                "TAG_NESTING",
+                f"unclosed <{frame.tag}> tag",
+            )
+        self.stack.clear()
 
 
 def compact(text: str, limit: int = 140) -> str:
@@ -314,7 +719,7 @@ class ArtifactHTMLParser(HTMLParser):
                     "STYLE_LITERAL",
                     self.path,
                     line,
-                    "Embedded style block creates a local CSS owner.",
+                    "Embedded style block may split CSS ownership; verify intent.",
                     evidence,
                 )
             )
@@ -337,7 +742,8 @@ class ArtifactHTMLParser(HTMLParser):
                     "LIKELY_REINVENTION",
                     self.path,
                     line,
-                    "Action control has no DaisyUI action root such as `btn`.",
+                    "Custom action control: check whether an existing component "
+                    "would express the same role more simply.",
                     evidence,
                 )
             )
@@ -368,7 +774,7 @@ class ArtifactHTMLParser(HTMLParser):
                         "STYLE_LITERAL",
                         self.path,
                         line,
-                        "Arbitrary spacing or radius bypasses the shared scale.",
+                        "Arbitrary spacing or radius may fragment this artifact's rhythm.",
                         class_name,
                     )
                 )
@@ -380,7 +786,7 @@ class ArtifactHTMLParser(HTMLParser):
                         "STYLE_LITERAL",
                         self.path,
                         line,
-                        "Hard-coded color bypasses DaisyUI semantic color roles.",
+                        "Hard-coded color may bypass this artifact's semantic tokens.",
                         class_name,
                     )
                 )
@@ -391,87 +797,10 @@ class ArtifactHTMLParser(HTMLParser):
                     "STYLE_LITERAL",
                     self.path,
                     line,
-                    "Inline style creates a local style owner.",
+                    "Inline style may hide a repeated rule from this artifact's CSS owner.",
                     compact(attributes["style"]),
                 )
             )
-
-
-class StructureHTMLParser(HTMLParser):
-    def __init__(self, path: Path) -> None:
-        super().__init__(convert_charrefs=True)
-        self.path = path
-        self.roots: list[StructureRoot] = []
-        self.stack: list[ElementFrame] = []
-
-    def handle_starttag(
-        self, tag: str, attrs: list[tuple[str, str | None]]
-    ) -> None:
-        self._handle_element(
-            tag,
-            attrs,
-            push=tag.lower() not in HTML_VOID_ELEMENTS,
-        )
-
-    def handle_startendtag(
-        self, tag: str, attrs: list[tuple[str, str | None]]
-    ) -> None:
-        self._handle_element(tag, attrs, push=False)
-
-    def handle_endtag(self, tag: str) -> None:
-        normalized_tag = tag.lower()
-        for index in range(len(self.stack) - 1, -1, -1):
-            if self.stack[index].tag == normalized_tag:
-                del self.stack[index:]
-                return
-
-    def _handle_element(
-        self,
-        tag: str,
-        attrs: list[tuple[str, str | None]],
-        *,
-        push: bool,
-    ) -> None:
-        line, _ = self.getpos()
-        attributes = {name.lower(): value or "" for name, value in attrs}
-        classes = set(attributes.get("class", "").split())
-
-        if self.stack and "card-body" in classes:
-            parent_root = self.stack[-1].structure_root
-            if parent_root is not None:
-                parent_root.has_direct_card_body = True
-
-        roles = sorted(classes & ARTIFACT_CARD_ROOTS)
-        structure_root = None
-        if roles:
-            structure_root = StructureRoot(
-                path=self.path,
-                line=line,
-                role=roles[0],
-                has_card_class="card" in classes,
-            )
-            self.roots.append(structure_root)
-
-        if push:
-            self.stack.append(ElementFrame(tag.lower(), structure_root))
-
-
-def changed_target_lines(baseline: str, current: str) -> list[tuple[int, str]]:
-    matcher = difflib.SequenceMatcher(
-        a=baseline.splitlines(), b=current.splitlines(), autojunk=False
-    )
-    changed: list[tuple[int, str]] = []
-    current_lines = current.splitlines()
-
-    for operation, _, _, current_start, current_end in matcher.get_opcodes():
-        if operation not in {"insert", "replace"}:
-            continue
-        changed.extend(
-            (line_number + 1, current_lines[line_number])
-            for line_number in range(current_start, current_end)
-        )
-
-    return changed
 
 
 def css_findings(
@@ -576,21 +905,1238 @@ def resolve_html_target(target: Path) -> tuple[Path, list[Path]]:
     return root, html_files
 
 
-def structure_violations(target: Path) -> tuple[Path, list[Path], list[StructureRoot]]:
-    root, html_files = resolve_html_target(target)
-    violations: list[StructureRoot] = []
+def live_page_topology(
+    root: Path,
+) -> tuple[list[Path], list[BundleViolation]]:
+    live_pages: list[Path] = []
+    violations: list[BundleViolation] = []
+    html_candidates = sorted(
+        path
+        for path in root.rglob("*")
+        if path.is_file() and path.suffix.casefold() == ".html"
+    )
 
-    for html_path in html_files:
-        parser = StructureHTMLParser(html_path)
-        parser.feed(html_path.read_text(encoding="utf-8"))
-        violations.extend(
-            structure_root
-            for structure_root in parser.roots
-            if not structure_root.has_card_class
-            or not structure_root.has_direct_card_body
+    for path in html_candidates:
+        relative = path.relative_to(root)
+        if relative == Path("index.html"):
+            live_pages.append(path)
+            continue
+        if (
+            len(relative.parts) == 2
+            and relative.parts[0] == "pages"
+            and relative.suffix == ".html"
+            and not relative.name.startswith("_")
+        ):
+            live_pages.append(path)
+            continue
+        violations.append(
+            BundleViolation(
+                path,
+                1,
+                "PAGE_TOPOLOGY",
+                "live HTML must be index.html or a direct pages/*.html file",
+            )
         )
 
-    return root, html_files, violations
+    index_path = root / "index.html"
+    if index_path not in live_pages:
+        violations.append(
+            BundleViolation(
+                index_path,
+                1,
+                "PAGE_TOPOLOGY",
+                "required lowercase index.html is missing",
+            )
+        )
+    return live_pages, violations
+
+
+def add_file_contract(
+    violations: list[BundleViolation],
+    artifact_path: Path,
+    owner_path: Path,
+) -> None:
+    if not artifact_path.is_file():
+        violations.append(
+            BundleViolation(
+                artifact_path,
+                1,
+                "SHARED_ASSET",
+                f"required shared file is missing: {artifact_path.name}",
+            )
+        )
+        return
+    if artifact_path.read_bytes() != owner_path.read_bytes():
+        violations.append(
+            BundleViolation(
+                artifact_path,
+                1,
+                "OWNER_DIVERGENCE",
+                f"shared file differs from 1html owner: {artifact_path.name}",
+            )
+        )
+def css_resource_violations(
+    root: Path,
+    path: Path,
+    source: str,
+    *,
+    base_directory: Path,
+    first_line: int = 1,
+    allow_data: bool = True,
+) -> list[BundleViolation]:
+    def preserve_lines(match: re.Match[str]) -> str:
+        return "".join(
+            "\n" if character == "\n" else " " for character in match.group()
+        )
+
+    without_comments = re.sub(
+        r"/\*.*?\*/",
+        preserve_lines,
+        source,
+        flags=re.DOTALL,
+    )
+    violations: list[BundleViolation] = []
+    for match in re.finditer(r"(?i)@import\b", without_comments):
+        violations.append(
+            BundleViolation(
+                path,
+                first_line + line_for_offset(without_comments, match.start()) - 1,
+                "RESOURCE_LINK",
+                "CSS cannot use @import; link local CSS in HTML",
+            )
+        )
+    for match in re.finditer(
+        r"(?i)url\(\s*(?P<quote>['\"]?)(?P<value>.*?)\1\s*\)",
+        without_comments,
+    ):
+        value = match.group("value").strip()
+        if not value or value.startswith("#") or (
+            allow_data and value.startswith("data:")
+        ):
+            continue
+        parsed = urlsplit(value)
+        target = (base_directory / unquote(parsed.path)).resolve()
+        if parsed.scheme or parsed.netloc:
+            message = f"CSS URL must use a local file: {value}"
+        elif not target.is_relative_to(root.resolve()):
+            message = f"CSS URL escapes artifact root: {value}"
+        elif not target.is_file():
+            message = f"CSS URL does not exist: {value}"
+        else:
+            continue
+        violations.append(
+            BundleViolation(
+                path,
+                first_line + line_for_offset(without_comments, match.start()) - 1,
+                "RESOURCE_LINK",
+                message,
+            )
+        )
+    return violations
+
+
+def local_css_resource_violations(
+    root: Path,
+    path: Path,
+) -> list[BundleViolation]:
+    if not path.is_file():
+        return []
+    return css_resource_violations(
+        root,
+        path,
+        path.read_text(encoding="utf-8"),
+        base_directory=path.parent,
+    )
+
+
+def page_css_resource_violations(
+    root: Path,
+    page: Path,
+    parser: BundleHTMLParser,
+) -> list[BundleViolation]:
+    violations: list[BundleViolation] = []
+    for line, parts in parser.inline_style_blocks:
+        violations.extend(
+            css_resource_violations(
+                root,
+                page,
+                "".join(parts),
+                base_directory=page.parent,
+                first_line=line,
+            )
+        )
+    for line, style in parser.inline_style_attributes:
+        violations.extend(
+            css_resource_violations(
+                root,
+                page,
+                style,
+                base_directory=page.parent,
+                first_line=line,
+            )
+        )
+    return violations
+
+
+NETWORK_JS_RE = re.compile(
+    r"(?ix)"
+    r"\b(?:fetch|import)\s*\(|"
+    r"\b(?:new\s+)?(?:XMLHttpRequest|WebSocket|EventSource)\b|"
+    r"\bimport\s+(?:[^;\n]+?\s+from\s+)?[\"']"
+)
+
+
+def javascript_portability_violations(
+    path: Path,
+    source: str,
+    *,
+    first_line: int = 1,
+) -> list[BundleViolation]:
+    without_comments = re.sub(
+        r"/\*.*?\*/|//[^\n]*",
+        lambda match: "".join(
+            "\n" if character == "\n" else " " for character in match.group()
+        ),
+        source,
+        flags=re.DOTALL | re.MULTILINE,
+    )
+    return [
+        BundleViolation(
+            path,
+            first_line + line_for_offset(without_comments, match.start()) - 1,
+            "SCRIPT_PORTABILITY",
+            "file:// artifact cannot use module import or network runtime APIs",
+        )
+        for match in NETWORK_JS_RE.finditer(without_comments)
+    ]
+
+
+def positions_for(
+    references: list[tuple[int, str]], expected: str
+) -> list[int]:
+    return [index for index, (_, value) in enumerate(references) if value == expected]
+
+
+def require_reference(
+    violations: list[BundleViolation],
+    page: Path,
+    references: list[tuple[int, str]],
+    expected: str,
+    kind: str,
+) -> int | None:
+    positions = positions_for(references, expected)
+    if len(positions) != 1:
+        violations.append(
+            BundleViolation(
+                page,
+                1,
+                "DEPENDENCY_WIRING",
+                f"{kind} must reference {expected} exactly once",
+            )
+        )
+        return None
+    return positions[0]
+
+
+def check_order(
+    violations: list[BundleViolation],
+    page: Path,
+    ordered: list[tuple[str, int | None]],
+    kind: str,
+) -> None:
+    present = [(name, position) for name, position in ordered if position is not None]
+    if len(present) != len(ordered):
+        return
+    positions = [position for _, position in present]
+    if positions != sorted(positions):
+        names = " → ".join(name for name, _ in ordered)
+        violations.append(
+            BundleViolation(
+                page,
+                1,
+                "DEPENDENCY_ORDER",
+                f"{kind} dependency order must be {names}",
+            )
+        )
+
+
+def validate_local_resources(
+    root: Path,
+    page: Path,
+    parser: BundleHTMLParser,
+    *,
+    same_generation: bool,
+) -> list[BundleViolation]:
+    violations: list[BundleViolation] = []
+    resolved_root = root.resolve()
+    navigation_root = resolved_root.parent
+
+    for reference in parser.resources:
+        if (
+            not same_generation
+            and reference.attribute
+            not in LEGACY_RESOURCE_ATTRIBUTES.get(reference.tag, ())
+        ):
+            continue
+        parsed = urlsplit(reference.value)
+        if reference.tag == "a":
+            if parsed.scheme in {"http", "https", "mailto", "tel"}:
+                continue
+            if parsed.scheme or parsed.netloc:
+                violations.append(
+                    BundleViolation(
+                        page,
+                        reference.line,
+                        "RESOURCE_LINK",
+                        f"unsupported navigation target: {reference.value}",
+                    )
+                )
+                continue
+            if not parsed.path:
+                target = unquote(parsed.fragment)
+                if reference.value == "#":
+                    continue
+                if target and target not in parser.ids:
+                    violations.append(
+                        BundleViolation(
+                            page,
+                            reference.line,
+                            "RESOURCE_LINK",
+                            f"same-page anchor target does not exist: #{target}",
+                        )
+                    )
+                continue
+
+        if parsed.scheme or parsed.netloc:
+            violations.append(
+                BundleViolation(
+                    page,
+                    reference.line,
+                    "RESOURCE_LINK",
+                    f"{reference.tag}[{reference.attribute}] must use a local file",
+                )
+            )
+            continue
+        if not parsed.path:
+            continue
+        resource_path = (page.parent / unquote(parsed.path)).resolve()
+        allowed_root = navigation_root if reference.tag == "a" else resolved_root
+        if not resource_path.is_relative_to(allowed_root):
+            violations.append(
+                BundleViolation(
+                    page,
+                    reference.line,
+                    "RESOURCE_LINK",
+                    f"resource escapes artifact root: {reference.value}",
+                )
+            )
+        elif not resource_path.is_file():
+            violations.append(
+                BundleViolation(
+                    page,
+                    reference.line,
+                    "RESOURCE_LINK",
+                    f"local resource does not exist: {reference.value}",
+                )
+            )
+    return violations
+
+
+def validate_page_shell(
+    page: Path,
+    parser: BundleHTMLParser,
+    *,
+    same_generation: bool,
+) -> list[BundleViolation]:
+    if not same_generation:
+        violations = [
+            violation
+            for violation in parser.violations
+            if violation.code in {"TAG_NESTING", "PLACEHOLDER"}
+        ]
+        return violations
+
+    violations = list(parser.violations)
+    shell_contracts = (
+        (parser.doctypes, "PAGE_DOCTYPE", "live page requires <!doctype html>"),
+        (parser.htmls, "PAGE_HTML", "live page requires exactly one html element"),
+        (parser.heads, "PAGE_HEAD", "live page requires exactly one head element"),
+        (parser.bodies, "PAGE_BODY", "live page requires exactly one body element"),
+    )
+    for occurrences, code, message in shell_contracts:
+        if len(occurrences) != 1:
+            violations.append(
+                BundleViolation(
+                    page,
+                    occurrences[1] if len(occurrences) > 1 else 1,
+                    code,
+                    message,
+                )
+            )
+    valid_charsets = [
+        line for line, value in parser.charsets if value.casefold() == "utf-8"
+    ]
+    if len(valid_charsets) != 1:
+        violations.append(
+            BundleViolation(
+                page,
+                valid_charsets[1] if len(valid_charsets) > 1 else 1,
+                "PAGE_CHARSET",
+                "live page requires exactly one <meta charset=\"utf-8\">",
+            )
+        )
+    valid_viewports = [
+        line
+        for line, value in parser.viewports
+        if re.search(
+            r"(?:^|,)\s*width\s*=\s*device-width(?:\s*,|$)",
+            value,
+            re.IGNORECASE,
+        )
+    ]
+    if len(valid_viewports) != 1:
+        violations.append(
+            BundleViolation(
+                page,
+                valid_viewports[1] if len(valid_viewports) > 1 else 1,
+                "PAGE_VIEWPORT",
+                "live page requires one viewport meta with width=device-width",
+            )
+        )
+    required_csp = {
+        "default-src 'self'",
+        "connect-src 'none'",
+        "img-src 'self'",
+        "script-src 'self'",
+        "style-src 'self'",
+        "worker-src 'self'",
+    }
+    valid_csp = [
+        line
+        for line, value in parser.content_security_policies
+        if all(directive in value for directive in required_csp)
+    ]
+    if len(valid_csp) != 1:
+        violations.append(
+            BundleViolation(
+                page,
+                valid_csp[1] if len(valid_csp) > 1 else 1,
+                "PAGE_CSP",
+                "live page requires the local-only Content-Security-Policy",
+            )
+        )
+    if len(parser.mains) != 1:
+        violations.append(
+            BundleViolation(
+                page,
+                parser.mains[1] if len(parser.mains) > 1 else 1,
+                "PAGE_MAIN",
+                "live page requires exactly one semantic main element",
+            )
+        )
+
+    headings_in_main = [line for line, in_main in parser.h1s if in_main]
+    if len(headings_in_main) > 1:
+        violations.append(
+            BundleViolation(
+                page,
+                headings_in_main[1],
+                "PAGE_HEADING",
+                "live page allows at most one h1 inside main",
+            )
+        )
+    elif not headings_in_main and not parser.artifact_title:
+        violations.append(
+            BundleViolation(
+                page,
+                1,
+                "PAGE_HEADING",
+                "live page requires an h1 inside main or artifact-title metadata",
+            )
+        )
+
+    if not parser.visible_text_parts and parser.meaningful_elements == 0:
+        violations.append(
+            BundleViolation(
+                page,
+                parser.mains[0] if parser.mains else 1,
+                "EMPTY_PAGE",
+                "main has no readable text, media, form, canvas, table, or diagram",
+            )
+        )
+
+    for line in parser.module_scripts:
+        violations.append(
+            BundleViolation(
+                page,
+                line,
+                "SCRIPT_PORTABILITY",
+                "type=module is not portable in the direct file:// contract",
+            )
+        )
+
+    for name, occurrences in sorted(parser.radio_tab_groups.items()):
+        tablists = {tablist_id for _, tablist_id in occurrences}
+        if len(tablists) < 2:
+            continue
+        first_by_tablist: dict[int, int] = {}
+        for line, tablist_id in occurrences:
+            first_by_tablist.setdefault(tablist_id, line)
+        for line in first_by_tablist.values():
+            violations.append(
+                BundleViolation(
+                    page,
+                    line,
+                    "TAB_RADIO_SCOPE",
+                    f"radio name {name!r} spans multiple role=tablist containers",
+                )
+            )
+    return violations
+
+
+def strict_json_loads(source: str) -> object:
+    def reject_constant(value: str) -> object:
+        raise ValueError(f"non-finite JSON number: {value}")
+
+    return json.loads(source, parse_constant=reject_constant)
+
+
+def validate_react_flow_config(
+    page: Path,
+    parser: BundleHTMLParser,
+) -> list[BundleViolation]:
+    violations: list[BundleViolation] = []
+
+    for line, config_id in parser.react_flow_hosts:
+        if not config_id:
+            violations.append(
+                BundleViolation(
+                    page,
+                    line,
+                    "REACT_FLOW_CONFIG",
+                    "data-react-flow must name an application/json script id",
+                )
+            )
+            continue
+        script_lines = parser.json_script_lines.get(config_id, [])
+        if len(script_lines) != 1:
+            violations.append(
+                BundleViolation(
+                    page,
+                    line,
+                    "REACT_FLOW_CONFIG",
+                    f"React Flow config {config_id!r} must exist exactly once",
+                )
+            )
+            continue
+        try:
+            config = strict_json_loads("".join(parser.json_script_parts[config_id]))
+        except (json.JSONDecodeError, ValueError) as error:
+            message = error.msg if isinstance(error, json.JSONDecodeError) else str(error)
+            relative_line = error.lineno - 1 if isinstance(error, json.JSONDecodeError) else 0
+            violations.append(
+                BundleViolation(
+                    page,
+                    script_lines[0] + relative_line,
+                    "REACT_FLOW_CONFIG",
+                    f"invalid JSON in React Flow config {config_id!r}: {message}",
+                )
+            )
+            continue
+        if not isinstance(config, dict):
+            violations.append(
+                BundleViolation(
+                    page,
+                    script_lines[0],
+                    "REACT_FLOW_CONFIG",
+                    f"React Flow config {config_id!r} must be an object",
+                )
+            )
+            continue
+        nodes = config.get("nodes")
+        edges = config.get("edges", [])
+        if not isinstance(nodes, list) or not nodes:
+            violations.append(
+                BundleViolation(
+                    page,
+                    script_lines[0],
+                    "REACT_FLOW_CONFIG",
+                    f"React Flow config {config_id!r} needs a non-empty nodes array",
+                )
+            )
+            continue
+        if not isinstance(edges, list):
+            violations.append(
+                BundleViolation(
+                    page,
+                    script_lines[0],
+                    "REACT_FLOW_CONFIG",
+                    f"React Flow config {config_id!r} edges must be an array",
+                )
+            )
+            continue
+
+        node_ids: set[str] = set()
+        for node in nodes:
+            node_id = node.get("id") if isinstance(node, dict) else None
+            if not isinstance(node_id, str) or not node_id:
+                violations.append(
+                    BundleViolation(
+                        page,
+                        script_lines[0],
+                        "REACT_FLOW_CONFIG",
+                        "every React Flow node needs a non-empty string id",
+                    )
+                )
+                continue
+            if node_id in node_ids:
+                violations.append(
+                    BundleViolation(
+                        page,
+                        script_lines[0],
+                        "REACT_FLOW_CONFIG",
+                        f"duplicate React Flow node id: {node_id}",
+                    )
+                )
+            node_ids.add(node_id)
+            position = node.get("position")
+            coordinates = (
+                position.get("x") if isinstance(position, dict) else None,
+                position.get("y") if isinstance(position, dict) else None,
+            )
+            if any(
+                isinstance(value, bool)
+                or not isinstance(value, (int, float))
+                or not math.isfinite(value)
+                for value in coordinates
+            ):
+                violations.append(
+                    BundleViolation(
+                        page,
+                        script_lines[0],
+                        "REACT_FLOW_CONFIG",
+                        f"React Flow node needs numeric x/y position: {node_id}",
+                    )
+                )
+            if "data" in node and not isinstance(node["data"], dict):
+                violations.append(
+                    BundleViolation(
+                        page,
+                        script_lines[0],
+                        "REACT_FLOW_CONFIG",
+                        f"React Flow node data must be an object: {node_id}",
+                    )
+                )
+                data = {}
+            else:
+                data = node.get("data", {})
+            template_id = node.get("template", data.get("template"))
+            label = node.get("label", data.get("label"))
+            if template_id is not None:
+                if not isinstance(template_id, str) or not template_id:
+                    violations.append(
+                        BundleViolation(
+                            page,
+                            script_lines[0],
+                            "REACT_FLOW_CONFIG",
+                            f"React Flow node template must be a non-empty id: {node_id}",
+                        )
+                    )
+                elif template_id not in parser.template_ids:
+                    violations.append(
+                        BundleViolation(
+                            page,
+                            script_lines[0],
+                            "REACT_FLOW_CONFIG",
+                            f"React Flow node template does not exist: {template_id}",
+                        )
+                    )
+            elif not isinstance(label, str) or not label.strip():
+                violations.append(
+                    BundleViolation(
+                        page,
+                        script_lines[0],
+                        "REACT_FLOW_CONFIG",
+                        f"React Flow node needs template or label: {node_id}",
+                    )
+                )
+
+        edge_ids: set[str] = set()
+        for edge in edges:
+            edge_id = edge.get("id") if isinstance(edge, dict) else None
+            if not isinstance(edge_id, str) or not edge_id:
+                violations.append(
+                    BundleViolation(
+                        page,
+                        script_lines[0],
+                        "REACT_FLOW_CONFIG",
+                        "every React Flow edge needs a non-empty string id",
+                    )
+                )
+                continue
+            if edge_id in edge_ids:
+                violations.append(
+                    BundleViolation(
+                        page,
+                        script_lines[0],
+                        "REACT_FLOW_CONFIG",
+                        f"duplicate React Flow edge id: {edge_id}",
+                    )
+                )
+            edge_ids.add(edge_id)
+            if edge.get("source") not in node_ids or edge.get("target") not in node_ids:
+                violations.append(
+                    BundleViolation(
+                        page,
+                        script_lines[0],
+                        "REACT_FLOW_CONFIG",
+                        f"React Flow edge points to an unknown node: {edge_id}",
+                    )
+                )
+    return violations
+
+
+def validate_echarts_config(
+    page: Path,
+    parser: BundleHTMLParser,
+) -> list[BundleViolation]:
+    violations: list[BundleViolation] = []
+
+    for line, config_id, host_aria_label, labelled_by, renderer in parser.echarts_hosts:
+        if not config_id:
+            violations.append(
+                BundleViolation(
+                    page,
+                    line,
+                    "ECHARTS_CONFIG",
+                    "data-echart must name an application/json script id",
+                )
+            )
+            continue
+        script_lines = parser.json_script_lines.get(config_id, [])
+        if len(script_lines) != 1:
+            violations.append(
+                BundleViolation(
+                    page,
+                    line,
+                    "ECHARTS_CONFIG",
+                    f"ECharts config {config_id!r} must exist exactly once",
+                )
+            )
+            continue
+        try:
+            option = strict_json_loads("".join(parser.json_script_parts[config_id]))
+        except (json.JSONDecodeError, ValueError) as error:
+            message = error.msg if isinstance(error, json.JSONDecodeError) else str(error)
+            relative_line = error.lineno - 1 if isinstance(error, json.JSONDecodeError) else 0
+            violations.append(
+                BundleViolation(
+                    page,
+                    script_lines[0] + relative_line,
+                    "ECHARTS_CONFIG",
+                    f"invalid JSON in ECharts config {config_id!r}: {message}",
+                )
+            )
+            continue
+        if not isinstance(option, dict):
+            violations.append(
+                BundleViolation(
+                    page,
+                    script_lines[0],
+                    "ECHARTS_CONFIG",
+                    f"ECharts config {config_id!r} must be an object",
+                )
+            )
+            continue
+        series = option.get("series")
+        if not isinstance(series, list) or not series:
+            violations.append(
+                BundleViolation(
+                    page,
+                    script_lines[0],
+                    "ECHARTS_CONFIG",
+                    f"ECharts config {config_id!r} needs a non-empty series array",
+                )
+            )
+        if renderer and renderer not in {"svg", "canvas"}:
+            violations.append(
+                BundleViolation(
+                    page,
+                    line,
+                    "ECHARTS_CONFIG",
+                    "data-echart-renderer must be svg or canvas",
+                )
+            )
+        aria = option.get("aria") if isinstance(option.get("aria"), dict) else {}
+        option_aria_label = (
+            aria.get("label") if isinstance(aria.get("label"), dict) else {}
+        )
+        authored_description = option_aria_label.get("description") or aria.get(
+            "description"
+        )
+        labelled_ids = labelled_by.split()
+        missing_label_ids = [item for item in labelled_ids if item not in parser.ids]
+        empty_label_ids = [
+            item
+            for item in labelled_ids
+            if item in parser.ids
+            and not " ".join(parser.text_by_id.get(item, [])).strip()
+        ]
+        host_has_description = bool(host_aria_label) or bool(
+            labelled_ids and not missing_label_ids and not empty_label_ids
+        )
+        if not host_has_description and not (
+            isinstance(authored_description, str) and authored_description.strip()
+        ):
+            violations.append(
+                BundleViolation(
+                    page,
+                    line,
+                    "ECHARTS_CONFIG",
+                    "ECharts host needs aria-label/aria-labelledby or aria.label.description",
+                )
+            )
+        if missing_label_ids:
+            violations.append(
+                BundleViolation(
+                    page,
+                    line,
+                    "ECHARTS_CONFIG",
+                    "ECharts aria-labelledby points to missing id(s): "
+                    + ", ".join(missing_label_ids),
+                )
+            )
+        if empty_label_ids:
+            violations.append(
+                BundleViolation(
+                    page,
+                    line,
+                    "ECHARTS_CONFIG",
+                    "ECharts aria-labelledby points to empty id(s): "
+                    + ", ".join(empty_label_ids),
+                )
+            )
+    return violations
+
+
+def validate_page_dependencies(
+    root: Path,
+    page: Path,
+    parser: BundleHTMLParser,
+    *,
+    same_generation: bool,
+) -> list[BundleViolation]:
+    violations = validate_local_resources(
+        root,
+        page,
+        parser,
+        same_generation=same_generation,
+    )
+    if not same_generation:
+        return violations
+    prefix = "../" if page.parent.name == "pages" else ""
+
+    if parser.uses_table:
+        table_script = require_reference(
+            violations,
+            page,
+            parser.script_sources,
+            f"{prefix}assets/artifact-table.js",
+            "table script",
+        )
+        alpine_script = require_reference(
+            violations,
+            page,
+            parser.script_sources,
+            f"{prefix}lib/alpine.js",
+            "table runtime",
+        )
+        check_order(
+            violations,
+            page,
+            [
+                ("artifact-table.js", table_script),
+                ("alpine.js", alpine_script),
+            ],
+            "table script",
+        )
+
+    if parser.uses_mermaid:
+        diagram_css = require_reference(
+            violations,
+            page,
+            parser.stylesheet_hrefs,
+            f"{prefix}assets/diagram-viewer.css",
+            "Mermaid stylesheet",
+        )
+        local_positions = positions_for(
+            parser.stylesheet_hrefs,
+            f"{prefix}assets/local.css",
+        )
+        if local_positions:
+            check_order(
+                violations,
+                page,
+                [
+                    ("diagram-viewer.css", diagram_css),
+                    ("local.css", local_positions[0]),
+                ],
+                "Mermaid stylesheet",
+            )
+        mermaid_scripts = [
+            ("mermaid.min.js", f"{prefix}lib/mermaid.min.js"),
+            (
+                "mermaid-layout-elk.iife.min.js",
+                f"{prefix}lib/mermaid-layout-elk.iife.min.js",
+            ),
+            ("panzoom.min.js", f"{prefix}lib/panzoom.min.js"),
+            ("diagram-viewer.js", f"{prefix}assets/diagram-viewer.js"),
+            ("mermaid-init.js", f"{prefix}assets/mermaid-init.js"),
+        ]
+        positions = [
+            (
+                name,
+                require_reference(
+                    violations,
+                    page,
+                    parser.script_sources,
+                    source,
+                    "Mermaid script",
+                ),
+            )
+            for name, source in mermaid_scripts
+        ]
+        check_order(violations, page, positions, "Mermaid script")
+
+    if parser.uses_react_flow:
+        violations.extend(validate_react_flow_config(page, parser))
+        vendor_css = require_reference(
+            violations,
+            page,
+            parser.stylesheet_hrefs,
+            f"{prefix}lib/react-flow.css",
+            "React Flow stylesheet",
+        )
+        bridge_css = require_reference(
+            violations,
+            page,
+            parser.stylesheet_hrefs,
+            f"{prefix}assets/react-flow-theme.css",
+            "React Flow palette bridge",
+        )
+        local_positions = positions_for(
+            parser.stylesheet_hrefs,
+            f"{prefix}assets/local.css",
+        )
+        ordered_css = [
+            ("react-flow.css", vendor_css),
+            ("react-flow-theme.css", bridge_css),
+        ]
+        if local_positions:
+            ordered_css.append(("local.css", local_positions[0]))
+        check_order(violations, page, ordered_css, "React Flow stylesheet")
+        vendor_script = require_reference(
+            violations,
+            page,
+            parser.script_sources,
+            f"{prefix}lib/react-flow.vendor.js",
+            "React Flow vendor script",
+        )
+        init_script = require_reference(
+            violations,
+            page,
+            parser.script_sources,
+            f"{prefix}assets/react-flow-init.js",
+            "React Flow init script",
+        )
+        check_order(
+            violations,
+            page,
+            [
+                ("react-flow.vendor.js", vendor_script),
+                ("react-flow-init.js", init_script),
+            ],
+            "React Flow script",
+        )
+
+    if parser.uses_echarts:
+        violations.extend(validate_echarts_config(page, parser))
+        vendor_script = require_reference(
+            violations,
+            page,
+            parser.script_sources,
+            f"{prefix}lib/echarts.min.js",
+            "ECharts vendor script",
+        )
+        init_script = require_reference(
+            violations,
+            page,
+            parser.script_sources,
+            f"{prefix}assets/echarts-init.js",
+            "ECharts init script",
+        )
+        check_order(
+            violations,
+            page,
+            [
+                ("echarts.min.js", vendor_script),
+                ("echarts-init.js", init_script),
+            ],
+            "ECharts script",
+        )
+
+    return violations
+
+
+def bundle_violations(
+    target: Path,
+    *,
+    legacy_requested: bool,
+) -> tuple[Path, list[Path], str, list[BundleViolation]]:
+    root = target.expanduser().resolve()
+    if not root.is_dir():
+        raise ValueError("target must be an artifact directory")
+
+    skill_dir = Path(__file__).resolve().parent.parent
+    scaffold_dir = skill_dir / "assets/scaffold"
+    owner_marker = scaffold_dir / BUNDLE_MARKER
+    artifact_marker = root / BUNDLE_MARKER
+    marker_matches = (
+        owner_marker.is_file()
+        and artifact_marker.is_file()
+        and owner_marker.read_bytes() == artifact_marker.read_bytes()
+    )
+    marker_missing = not artifact_marker.exists()
+    marker_unknown = artifact_marker.exists() and not marker_matches
+    same_generation = marker_matches
+    legacy_mode = not same_generation and legacy_requested
+    if same_generation:
+        mode = "same-generation"
+    elif legacy_mode:
+        mode = "legacy"
+    elif marker_unknown and not legacy_requested:
+        mode = "unknown-version"
+    else:
+        mode = "unversioned"
+    live_pages, violations = live_page_topology(root)
+    if not same_generation:
+        violations = []
+
+    if marker_missing and not legacy_requested:
+        violations.append(
+            BundleViolation(
+                artifact_marker,
+                1,
+                "BUNDLE_VERSION",
+                "bundle marker is missing; rerun finish explicitly with --legacy",
+            )
+        )
+    elif marker_unknown and not legacy_requested:
+        violations.append(
+            BundleViolation(
+                artifact_marker,
+                1,
+                "BUNDLE_VERSION",
+                "bundle marker is not current; rerun finish explicitly with --legacy",
+            )
+        )
+    elif marker_matches and legacy_requested:
+        violations.append(
+            BundleViolation(
+                artifact_marker,
+                1,
+                "BUNDLE_VERSION",
+                "current bundle marker cannot be audited with --legacy",
+            )
+        )
+    if same_generation:
+        for owner_runtime in sorted((scaffold_dir / "lib").rglob("*")):
+            if owner_runtime.is_file() and owner_runtime.suffix in {
+                ".css",
+                ".js",
+                ".txt",
+            }:
+                add_file_contract(
+                    violations,
+                    root / owner_runtime.relative_to(scaffold_dir),
+                    owner_runtime,
+                )
+
+    for css_path in source_files(root, ".css"):
+        violations.extend(local_css_resource_violations(root, css_path))
+
+    parsed_pages: list[BundleHTMLParser] = []
+    for page in live_pages:
+        source = page.read_text(encoding="utf-8")
+        parser = BundleHTMLParser(page)
+        parser.feed(source)
+        parser.close()
+        parser.finish()
+        parsed_pages.append(parser)
+        violations.extend(
+            validate_page_shell(
+                page,
+                parser,
+                same_generation=same_generation,
+            )
+        )
+        violations.extend(
+            validate_page_dependencies(
+                root,
+                page,
+                parser,
+                same_generation=same_generation,
+            )
+        )
+        if same_generation:
+            violations.extend(page_css_resource_violations(root, page, parser))
+            for line, parts in parser.inline_script_blocks:
+                violations.extend(
+                    javascript_portability_violations(
+                        page,
+                        "".join(parts),
+                        first_line=line,
+                    )
+                )
+        for marker in KNOWN_PLACEHOLDER_MARKERS:
+            if marker in source:
+                violations.append(
+                    BundleViolation(
+                        page,
+                        line_for_offset(source, source.index(marker)),
+                        "PLACEHOLDER",
+                        f"scaffold placeholder text remains: {marker}",
+                    )
+                )
+
+    if same_generation:
+        for javascript_path in source_files(root, ".js"):
+            violations.extend(
+                javascript_portability_violations(
+                    javascript_path,
+                    javascript_path.read_text(encoding="utf-8"),
+                )
+            )
+
+        mermaid_names = {
+            "mermaid.min.js",
+            "mermaid-layout-elk.iife.min.js",
+            "panzoom.min.js",
+            "diagram-viewer.js",
+            "mermaid-init.js",
+            "diagram-viewer.css",
+        }
+        mermaid_active = any(
+            parser.uses_mermaid
+            or any(
+                Path(urlsplit(source).path).name in mermaid_names
+                for _, source in [
+                    *parser.script_sources,
+                    *parser.stylesheet_hrefs,
+                ]
+            )
+            for parser in parsed_pages
+        )
+        if mermaid_active:
+            mermaid_files = (
+                "lib/mermaid.min.js",
+                "lib/mermaid-layout-elk.iife.min.js",
+                "lib/panzoom.min.js",
+                "lib/MERMAID_THIRD_PARTY_NOTICES.txt",
+                "lib/licenses/mermaid.txt",
+                "lib/licenses/mermaid-layout-elk.txt",
+                "lib/licenses/panzoom.txt",
+            )
+            for relative in mermaid_files:
+                add_file_contract(
+                    violations,
+                    root / relative,
+                    skill_dir / "assets/mermaid" / relative,
+                )
+
+        react_flow_names = {
+            "react-flow.vendor.js",
+            "react-flow.css",
+            "react-flow-theme.css",
+            "react-flow-init.js",
+        }
+        react_flow_active = any(
+            parser.uses_react_flow
+            or any(
+                Path(urlsplit(source).path).name in react_flow_names
+                for _, source in [
+                    *parser.script_sources,
+                    *parser.stylesheet_hrefs,
+                ]
+            )
+            for parser in parsed_pages
+        )
+        if react_flow_active:
+            react_flow_vendor_files = [
+                "lib/react-flow.vendor.js",
+                "lib/react-flow.css",
+                "lib/REACT_FLOW_THIRD_PARTY_NOTICES.txt",
+            ]
+            react_flow_vendor_files.extend(
+                str(path.relative_to(skill_dir / "assets/react-flow"))
+                for path in sorted(
+                    (skill_dir / "assets/react-flow/lib/licenses").glob("*.txt")
+                )
+            )
+            for relative in react_flow_vendor_files:
+                add_file_contract(
+                    violations,
+                    root / relative,
+                    skill_dir / "assets/react-flow" / relative,
+                )
+
+        echarts_names = {"echarts.min.js", "echarts-init.js"}
+        echarts_active = any(
+            parser.uses_echarts
+            or any(
+                Path(urlsplit(source).path).name in echarts_names
+                for _, source in parser.script_sources
+            )
+            for parser in parsed_pages
+        )
+        if echarts_active:
+            echarts_vendor_files = (
+                "lib/echarts.min.js",
+                "lib/ECHARTS_LICENSE",
+                "lib/ECHARTS_NOTICE",
+                "lib/ECHARTS_THIRD_PARTY_NOTICES.txt",
+                "lib/licenses/ECHARTS_LICENSE-d3",
+            )
+            owner_files = {
+                "lib/echarts.min.js": "lib/echarts.min.js",
+                "lib/ECHARTS_LICENSE": "lib/LICENSE",
+                "lib/ECHARTS_NOTICE": "lib/NOTICE",
+                "lib/ECHARTS_THIRD_PARTY_NOTICES.txt": (
+                    "lib/ECHARTS_THIRD_PARTY_NOTICES.txt"
+                ),
+                "lib/licenses/ECHARTS_LICENSE-d3": "lib/licenses/LICENSE-d3",
+            }
+            for relative in echarts_vendor_files:
+                add_file_contract(
+                    violations,
+                    root / relative,
+                    skill_dir / "assets/echarts" / owner_files[relative],
+                )
+
+    unique = {
+        (violation.path, violation.line, violation.code, violation.message): violation
+        for violation in violations
+    }
+    ordered = sorted(
+        unique.values(),
+        key=lambda violation: (
+            str(violation.path),
+            violation.line,
+            violation.code,
+            violation.message,
+        ),
+    )
+    return root, live_pages, mode, ordered
 
 
 def audit(
@@ -619,38 +2165,9 @@ def audit(
             )
         )
 
-    skill_dir = Path(__file__).resolve().parent.parent
-    owner_baselines = {
-        "theme.css": skill_dir / "assets" / "starter" / "assets" / "theme.css",
-        "diagram-viewer.css": (
-            skill_dir / "assets" / "mermaid" / "assets" / "diagram-viewer.css"
-        ),
-    }
-
     for css_path in css_files:
         current = css_path.read_text(encoding="utf-8")
         findings.extend(global_cascade_findings(css_path, current))
-        baseline_path = owner_baselines.get(css_path.name)
-        if baseline_path is not None:
-            baseline = baseline_path.read_text(encoding="utf-8")
-            if current == baseline:
-                continue
-            findings.append(
-                Finding(
-                    "OWNER_DIVERGENCE",
-                    css_path,
-                    1,
-                    "Shared CSS asset differs from the current 1html owner; "
-                    "review whether the change is an intentional exception.",
-                    css_path.name,
-                )
-            )
-            lines = changed_target_lines(baseline, current)
-            findings.extend(
-                css_findings(css_path, lines, inspect_literals=False)
-            )
-            continue
-
         lines = list(enumerate(current.splitlines(), start=1))
         findings.extend(css_findings(css_path, lines, inspect_literals=True))
 
@@ -724,55 +2241,69 @@ def print_report(
     )
 
 
-def print_structure_report(
+def print_bundle_report(
     root: Path,
-    html_files: list[Path],
-    violations: list[StructureRoot],
+    live_pages: list[Path],
+    mode: str,
+    violations: list[BundleViolation],
 ) -> None:
-    print("HTML structure check — blocking")
+    print("HTML bundle contract — blocking")
     print(f"target={root}")
-    print(f"scanned={len(html_files)} html")
+    print(f"mode={mode}")
+    print(f"scanned={len(live_pages)} live html")
     print(f"violations={len(violations)}")
 
     for violation in violations:
-        missing: list[str] = []
-        if not violation.has_card_class:
-            missing.append("`card` on root")
-        if not violation.has_direct_card_body:
-            missing.append("direct child `.card-body`")
-        relative_path = violation.path.relative_to(root)
+        try:
+            relative = violation.path.relative_to(root)
+        except ValueError:
+            relative = violation.path
         print(
-            f"- {relative_path}:{violation.line} — "
-            f".{violation.role} requires {' and '.join(missing)}"
+            f"- {relative}:{violation.line} [{violation.code}] "
+            f"{violation.message}"
         )
 
     if not violations:
-        print("Structure contract satisfied.")
+        print("Bundle contract satisfied.")
 
 
 def main() -> int:
     arguments = sys.argv[1:]
-    structure_mode = len(arguments) == 2 and arguments[0] == "--check-structure"
+    bundle_mode = "--check-bundle" in arguments
     advisory_mode = len(arguments) == 1
-    if not structure_mode and not advisory_mode:
+    if bundle_mode:
+        allowed = {"--check-bundle", "--legacy"}
+        options = [argument for argument in arguments if argument.startswith("--")]
+        targets = [argument for argument in arguments if not argument.startswith("--")]
+        if (
+            any(option not in allowed for option in options)
+            or len(targets) != 1
+        ):
+            print(
+                "Usage: audit_html_style.py --check-bundle "
+                "[--legacy] <artifact-directory>",
+                file=sys.stderr,
+            )
+            return 2
+        try:
+            root, live_pages, mode, violations = bundle_violations(
+                Path(targets[0]),
+                legacy_requested="--legacy" in arguments,
+            )
+        except (OSError, UnicodeError, ValueError) as error:
+            print(f"Error: {error}", file=sys.stderr)
+            return 1
+        print_bundle_report(root, live_pages, mode, violations)
+        return 1 if violations else 0
+
+    if not advisory_mode:
         print(
-            "Usage: audit_html_style.py [--check-structure] "
-            "<artifact-directory-or-index.html>",
+            "Usage: audit_html_style.py <artifact-directory-or-index.html>",
             file=sys.stderr,
         )
         return 2
 
     target = Path(arguments[-1])
-
-    if structure_mode:
-        try:
-            root, html_files, violations = structure_violations(target)
-        except (OSError, UnicodeError, ValueError) as error:
-            print(f"Error: {error}", file=sys.stderr)
-            return 1
-
-        print_structure_report(root, html_files, violations)
-        return 1 if violations else 0
 
     try:
         root, html_files, css_files, js_files, findings = audit(target)

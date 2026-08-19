@@ -17,7 +17,8 @@ fi
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 skill_dir="$(cd "$script_dir/.." && pwd)"
-starter_dir="$skill_dir/assets/starter"
+scaffold_dir="$skill_dir/assets/scaffold"
+catalog_theme="$skill_dir/assets/catalog/theme.css"
 catalog_source="$skill_dir/assets/catalog/catalog.css"
 catalog_builder="$script_dir/build_catalog.py"
 artifacts_root="$project_root/_workspace/HTML_artifacts"
@@ -26,9 +27,9 @@ catalog_index="$artifacts_root/index.html"
 temporary_index="$artifacts_root/.index.html.tmp.$$"
 
 mkdir -p "$catalog_runtime/assets" "$catalog_runtime/lib"
-cp "$starter_dir/assets/theme.css" "$catalog_runtime/assets/theme.css"
+cp "$catalog_theme" "$catalog_runtime/assets/theme.css"
 cp "$catalog_source" "$catalog_runtime/assets/catalog.css"
-cp -R "$starter_dir/lib"/. "$catalog_runtime/lib"/
+cp -R "$scaffold_dir/lib"/. "$catalog_runtime/lib"/
 
 trap 'rm -f "$temporary_index"' EXIT
 PYTHONDONTWRITEBYTECODE=1 python3 "$catalog_builder" "$artifacts_root" "$temporary_index"

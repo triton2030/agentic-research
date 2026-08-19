@@ -1,0 +1,30 @@
+React Flow local bundle
+=======================
+
+Built for 1html on 2026-08-20 with esbuild 0.28.2 from these exact npm packages:
+
+- @xyflow/react 12.11.3
+- @xyflow/system 0.0.80
+- React 19.2.8
+- React DOM 19.2.8
+- scheduler 0.27.0
+- Zustand 4.5.7
+- use-sync-external-store 1.6.0
+- classcat 5.0.5
+- d3-color 3.1.0
+- d3-dispatch 3.0.1
+- d3-drag 3.0.0
+- d3-ease 3.0.1
+- d3-interpolate 3.0.1
+- d3-selection 3.0.0
+- d3-timer 3.0.1
+- d3-transition 3.0.1
+- d3-zoom 3.0.0
+
+All listed runtime dependencies are distributed under the MIT License. Their
+license texts are stored in lib/licenses/. The bundle is self-contained and
+does not load a CDN, run npm, or require a build step inside an artifact.
+
+Source entry: assets/react-flow/src/vendor-entry.js
+Official package: https://www.npmjs.com/package/@xyflow/react
+Official source: https://github.com/xyflow/xyflow

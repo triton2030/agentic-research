@@ -1,14 +1,14 @@
 # Mermaid: Читаемые Диаграммы
 
 Читай эти карточки, когда знание находится в связях, порядке, ветвлении или
-иерархии. Runtime, ELK и viewer добавляются готовым helper script, поэтому здесь
-нет копируемой HTML-страницы.
+иерархии. Helper script копирует и идемпотентно подключает runtime,
+ELK, viewer и init ко всем текущим live-экранам artifact.
 
-## Карточка: Диаграмма Имеет Вопрос
+## Карточка: Диаграмма Показывает Связь
 
 **Сигнал:** Mermaid используется как декоративная версия списка.
 
-**Практика:** сформулируй вопрос, на который отвечает topology. Один тезис и
+**Практика:** назови связь, которую показывает topology. Один тезис и
 независимые карточки оставь обычным текстом или DaisyUI.
 
 **Не делай:** не помещай абзацы в nodes; labels называют сущность, состояние
@@ -23,6 +23,13 @@
 | Состояния и переходы | `stateDiagram-v2` |
 | Компактная иерархия | `mindmap` |
 | Сравнение по двум осям | `quadrantChart` |
+| План и события | `timeline`, `gantt` |
+| Доли одного целого | `pie` |
+| Величины/изменение с числовой осью | `xychart-beta` |
+
+Chart-типы используют только реальные данные, единицы и labels. `-beta` syntax
+закреплён текущим local bundle, но не является стабильным межверсионным API;
+не делай его единственным носителем приёмочного результата.
 
 ## Карточка: Direction По Форме
 
@@ -51,9 +58,9 @@
 **Сигнал:** toolbar, пояснения и controls рисуются внутри diagram syntax.
 
 **Практика:** DaisyUI владеет card, toolbar, legend, dialog и disclosure.
-Mermaid владеет topology. Для custom theme используй `theme: base` и hex-зеркало
-semantic DaisyUI colors: Mermaid theme engine принимает hex, а не CSS custom
-properties.
+Mermaid владеет topology. Локальный init использует `theme: base` и переносит
+computed font/palette самого artifact в Mermaid. Для artifact-specific ролей
+переопредели `window.HTMLMermaidConfig`; не добавляй вторую hard-coded palette.
 
 `classDef` различает semantic node roles; label и форма дублируют важный цвет.
 
@@ -70,7 +77,27 @@ properties.
 ```
 
 Viewer инициализируется только после того, как Mermaid заменил definition на
-SVG. Не копируй runtime вручную.
+SVG. Не копируй runtime и init вручную. Готовый viewer:
+
+```html
+<article
+  class="card diagram-viewer border border-base-300"
+  data-diagram-viewer
+>
+  <div class="card-body">
+    <div class="diagram-viewer__canvas" data-diagram-canvas>
+      <pre class="mermaid">
+flowchart TB
+  accTitle: Короткое имя схемы
+  accDescr: Что показывает главный путь и развилка
+  A[Вход] --> B{Проверка}
+  B -->|Да| C[Готово]
+  B -->|Нет| D[Исправить]
+      </pre>
+    </div>
+  </div>
+</article>
+```
 
 ## Карточка: Текстовый Маршрут Остаётся
 
