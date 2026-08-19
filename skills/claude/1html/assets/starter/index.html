@@ -32,138 +32,21 @@
       <p class="artifact-kicker">На этой странице</p>
       <nav>
         <ul class="menu artifact-menu">
-          <li><a href="#summary">Резюме</a></li>
-          <li><a href="#decisions">Главное</a></li>
-          <li><a href="#evidence">Подробности</a></li>
+          <li><a href="#summary">Ответ</a></li>
         </ul>
       </nav>
-      <div class="artifact-rail-note">
-        Локальный черновик.<br>
-        Замените содержание,<br>
-        сохраните визуальный язык.
-      </div>
     </aside>
 
     <main class="artifact-main">
       <header class="artifact-hero" id="summary">
-        <p class="artifact-kicker">Draft · quick synthesis</p>
-        <h1 class="artifact-title">Один ясный вывод вместо стены текста</h1>
-        <p class="artifact-lead">
-          Начните с решения, которое должен унести читатель. Детали, evidence и
-          развилки разложите ниже — так страницу можно понять за один проход.
-        </p>
-
-        <article class="card artifact-verdict">
-          <div class="card-body">
-            <p class="artifact-kicker">Рекомендуемый вывод</p>
-            <h2 class="card-title artifact-verdict-title">
-              Сформулируйте главное действие одной человеческой фразой.
-            </h2>
-            <p>
-              Коротко объясните, почему это действие разумно сейчас и что
-              намеренно остаётся за границами черновика.
-            </p>
-            <div class="artifact-badges" aria-label="Ключевые статусы">
-              <span class="badge badge-outline">
-                <i data-lucide="zap" class="size-3" aria-hidden="true"></i>
-                быстрый черновик
-              </span>
-              <span class="badge badge-outline">
-                <i data-lucide="palette" class="size-3" aria-hidden="true"></i>
-                локальные стили
-              </span>
-              <span class="badge badge-outline">
-                <i data-lucide="package-check" class="size-3" aria-hidden="true"></i>
-                без build step
-              </span>
-            </div>
-          </div>
-        </article>
+        <p class="artifact-kicker">Draft</p>
+        <h1 class="artifact-title">Заголовок-ответ страницы</h1>
+        <p class="artifact-lead">Лид: короткий ответ на вопрос читателя.</p>
       </header>
-
-      <section class="artifact-section" id="decisions">
-        <p class="artifact-kicker">01 · Decision</p>
-        <h2 class="artifact-heading">Что важно сделать сейчас</h2>
-        <p class="artifact-section-intro">
-          Используйте карточки как смысловые блоки, а не как декоративную сетку.
-          Первая карточка держит рекомендуемый путь, остальные — ограничения и
-          следующий шаг.
-        </p>
-
-        <div class="artifact-grid">
-          <article class="card artifact-card artifact-card--primary">
-            <div class="card-body">
-              <span class="artifact-number">01</span>
-              <h3 class="card-title artifact-card-title">Принять рабочий путь</h3>
-              <p>
-                Опишите самый дешёвый обратимый шаг, который уже можно сделать
-                без нового слоя архитектуры или согласований.
-              </p>
-            </div>
-          </article>
-
-          <article class="card artifact-card">
-            <div class="card-body">
-              <span class="artifact-number">02</span>
-              <h3 class="card-title artifact-card-title">Сохранить границу</h3>
-              <p>
-                Назовите, что не входит в текущий черновик, чтобы читатель не
-                принял иллюстрацию за готовый production contract.
-              </p>
-            </div>
-          </article>
-
-          <article class="card artifact-card artifact-card--stop">
-            <div class="card-body">
-              <span class="artifact-number">03</span>
-              <h3 class="card-title artifact-card-title">Не усложнять</h3>
-              <p>
-                Не добавляйте новый runtime, экран или сущность, если смысл
-                можно показать текущими компонентами и коротким пояснением.
-              </p>
-            </div>
-          </article>
-
-          <article class="card artifact-card">
-            <div class="card-body">
-              <span class="artifact-number">04</span>
-              <h3 class="card-title artifact-card-title">Оставить следующий шаг</h3>
-              <p>
-                Завершите страницу одним конкретным действием, которое можно
-                выполнить сразу после просмотра.
-              </p>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section class="artifact-section" id="evidence">
-        <p class="artifact-kicker">02 · Context on demand</p>
-        <h2 class="artifact-heading">Подробности не мешают первому чтению</h2>
-        <p class="artifact-section-intro">
-          Главный вывод, действие и критический риск оставляйте видимыми.
-          Evidence, источники и оговорки переносите в нативное раскрытие DaisyUI,
-          а детали без пользы для читателя не показывайте вовсе.
-        </p>
-
-        <details class="collapse collapse-arrow artifact-details">
-          <summary class="collapse-title">Показать evidence, источники и допущения</summary>
-          <div class="collapse-content">
-            <p>
-              Здесь могут лежать источники, ограничения, непроверенные ветки и
-              пояснения — всё, что важно сохранить, но не обязательно читать
-              до принятия первого решения.
-            </p>
-          </div>
-        </details>
-      </section>
 
       <footer class="artifact-footer">
         <span>HTML draft bundle</span>
-        <a class="btn btn-neutral btn-sm" href="#summary">
-          <i data-lucide="arrow-up" class="size-4" aria-hidden="true"></i>
-          Наверх
-        </a>
+        <a class="btn btn-neutral btn-sm" href="#summary">Наверх</a>
       </footer>
     </main>
   </div>

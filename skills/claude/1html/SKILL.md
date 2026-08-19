@@ -20,8 +20,7 @@ description: "Когда нужен максимально быстрый лок
 
 - Сначала определи цель страницы и один вопрос читателя.
 - Пиши на уровне владельца проекта; не объясняй ему очевидный контекст.
-- Каждый видимый фрагмент должен выполнять информационную работу. Удаляй
-  вводные фразы, повторы и декоративные объяснения.
+- Пиши телеграфно: только дельту и самое важное.
 - Используй прямые названия и формулировки. Не добавляй литературные заголовки,
   метафоры, рекламный тон и эмоциональные оценки.
 - Сохраняй технические различия, условия, неопределённость и статус
@@ -60,8 +59,8 @@ description: "Когда нужен максимально быстрый лок
 аргументом. Скрипт сам создаёт папки, обновляет каталог и печатает адреса
 artifact и catalog.
 
-Меняй `index.html`; `assets/theme.css` трогай только для другого визуального
-языка. Для дополнительных экранов копируй `pages/_template.html` и один раз
+Меняй `index.html`; `assets/theme.css` не трогай без явного заказа владельца
+на другой визуальный язык. Для дополнительных экранов копируй `pages/_template.html` и один раз
 добавляй экран в `assets/pages.js`. Файлы оставляй плоскими в `pages/`;
 иерархию задавай через `children` — общий `assets/project.js` сам построит
 верхний navbar, dropdown веток и breadcrumbs текущего пути. Не копируй
@@ -73,8 +72,9 @@ artifact и catalog.
 "<каталог skill>/scripts/rebuild_html_catalog.sh" "<корень проекта>"
 ```
 
-Starter — заготовка результата, а не reference для чтения: сначала скопируй
-его, затем открывай и меняй только нужные места.
+Starter — пустой каркас с готовым shell, а не композиция: наполняй `main`
+знакомым DaisyUI-словарём; готовые блоки в фирменном языке бери из
+[`references/structure-patterns.md`](references/structure-patterns.md).
 
 ## Каталог И Структура
 
@@ -127,7 +127,9 @@ Metadata принадлежит project entry, а не каждому внутр
   необязательная глубина, связанная с ближайшим тезисом;
 - другая reader job получает внутреннюю страницу того же artifact project;
 - другое состояние того же вопроса остаётся в текущем HTML и переключается
-  Alpine, а не становится ещё одной страницей.
+  Alpine, а не становится ещё одной страницей;
+- структуру, порядок повествования и сам факт интерактивности выбирай под
+  материал заново; starter и прошлые artifacts — не композиционный шаблон.
 
 Catalog, dashboard и reference могут быть модульными: их единая работа
 действительно состоит в поиске, мониторинге или сравнении элементов.
@@ -144,6 +146,7 @@ Catalog, dashboard и reference могут быть модульными: их �
 
 | Сигнал задачи | Открыть | Чем владеет |
 | --- | --- | --- |
+| Составляется `main` и нужен готовый блок: вердикт, карточки, шаги, timeline, сравнение, отделённый комментарий | [`references/structure-patterns.md`](references/structure-patterns.md) | Копируемые снипеты в фирменном языке; выбор механики остаётся за compact-disclosure и daisy-storytelling |
 | Нужно выстроить рассказ, иерархию, headings, длину строк или раскрытие | [`references/readable-design.md`](references/readable-design.md) | Читаемость, один вопрос, answer-first, связное progressive disclosure |
 | Материал полон, но экран перегружен и нужно уменьшить одновременный visual load без потери смысла | [`references/compact-disclosure.md`](references/compact-disclosure.md) | Видимый смысловой хребет, выбор collapse/tabs/toggle/dropdown/modal/drawer и граница Alpine |
 | Выбираются DaisyUI-компоненты, semantic colors или motion | [`references/daisy-storytelling.md`](references/daisy-storytelling.md) | Component semantics, native primitives, theme roles, анимация |
@@ -155,11 +158,43 @@ Catalog, dashboard и reference могут быть модульными: их �
 | Неизвестно точное имя DaisyUI-компонента | Точечный поиск в `references/daisyui-llms.txt` | Актуальная структура выбранного компонента |
 | Неизвестно имя Lucide-иконки | Точечный поиск в `references/lucide-icon-names.txt` | Допустимое локальное имя иконки |
 
+## Шпаргалка Письма
+
+Знание, не правила: что уже оплачено и не требует нового кода.
+
+В bundle закреплены полный DaisyUI, Tailwind runtime, Alpine и Lucide; точные
+версии — владелец `assets/starter/lib/` (сверено 2026-08-19). Тема `editorial`
+сама стилизует стандартные DaisyUI-компоненты:
+`card`, `btn`, `badge`, `alert`, `table`, `steps`, `timeline`, `collapse`,
+`tabs`, `stats` выглядят фирменно без кастомного CSS — обычный знакомый
+DaisyUI/Tailwind-словарь даёт готовый результат.
+
+Каркас и типографику держат классы `theme.css`:
+
+| Класс | Роль |
+| --- | --- |
+| `artifact-shell` | grid страницы: rail + main |
+| `artifact-project-header`, `artifact-topbar` | sticky-шапка; наполняет `project.js` |
+| `artifact-rail`, `artifact-menu`, `artifact-rail-note` | левая навигация «на этой странице» |
+| `artifact-main` | колонка содержания |
+| `artifact-hero`, `artifact-kicker`, `artifact-title`, `artifact-lead` | первый экран: моно-надзаголовок, крупный serif, лид |
+| `artifact-section`, `artifact-heading`, `artifact-section-intro` | смысловой ход рассказа |
+| `artifact-grid`, `artifact-card`, `artifact-card--primary`, `artifact-card--stop`, `artifact-card-title`, `artifact-number` | коллекция карточек; primary шире, stop — глиняный акцент |
+| `artifact-verdict`, `artifact-verdict-title` | карточка главного вывода с акцентной кромкой |
+| `artifact-details` | `details.collapse` в фирменном контуре |
+| `artifact-badges` | ряд моноширинных статус-баджей |
+| `artifact-footer` | нижняя линия страницы |
+
+Классы шапки и навигации вне таблицы — `artifact-project-*`,
+`artifact-topbar-start`, `artifact-topbar-action`, `artifact-home-link`,
+`artifact-breadcrumbs` — наполняет `assets/project.js` (см. Runtime-Границы).
+
 ## Runtime-Границы
 
 - Default visual shell уже в starter и
   `references/editorial-style.png`: тёплая бумага, графит, крупный serif,
   моноширинные labels, тонкие контуры, спокойные sage/clay поверхности.
+  Палитра, схема, иконки и стиль не меняются от artifact к artifact.
   Это описание внешнего вида, а не разрешение на редакционный или
   художественный тон текста.
 - Полный локальный DaisyUI bundle доступен. Сначала semantic component и theme
