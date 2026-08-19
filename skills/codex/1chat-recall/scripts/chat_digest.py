@@ -48,10 +48,11 @@ TIME_RE = re.compile(r"^\d{1,2}:\d{2}(?::\d{2})?$")
 QUERY_TOKEN_RE = re.compile(r"[\w-]+\*?", re.UNICODE)
 
 FASTEMBED_VERSION = "0.8.0"
-EMBEDDING_MODEL = "intfloat/multilingual-e5-small"
-EMBEDDING_REVISION = "614241f622f53c4eeff9890bdc4f31cfecc418b3"
-EMBEDDING_DIMENSION = 384
-EMBEDDING_MODEL_FILE = "onnx/model.onnx"
+EMBEDDING_MODEL = "Xenova/multilingual-e5-large"
+EMBEDDING_REVISION = "00fc3aeb3dbb95842de2ac1961d33c6319acf57b"
+EMBEDDING_DIMENSION = 1024
+EMBEDDING_MODEL_FILE = "onnx/model_quantized.onnx"
+EMBEDDING_BATCH_SIZE = 32
 QUERY_PREFIX = "query: "
 PASSAGE_PREFIX = "passage: "
 HYBRID_DEPTH = 40
@@ -670,7 +671,10 @@ def _embedding_backend(*, offline: bool) -> Any:
 
 def _embed(model: Any, texts: list[str]) -> list[list[float]]:
     try:
-        vectors = [list(map(float, vector)) for vector in model.embed(texts)]
+        vectors = [
+            list(map(float, vector))
+            for vector in model.embed(texts, batch_size=EMBEDDING_BATCH_SIZE)
+        ]
     except Exception as error:
         raise CliError(f"embedding inference завершился ошибкой: {error}") from error
     if len(vectors) != len(texts):
