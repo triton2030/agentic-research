@@ -187,6 +187,9 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
   которым reviewer и investigator закрывают ВСЕ свои ветки (dry-run,
   недоступный SDK, исключение, завершённый ход).
 - `codex_git_scope.py` — git snapshot и постфлайт-вердикт «писали ли лишнее».
+- `codex_footprint.py` — след моста СНАРУЖИ run_dir: треды на удалённых папках
+  и мёртвые записи `[projects.*]`. Локальный бесплатный скан; питает `--doctor`
+  и `codex_threads.py archive --orphaned`. Ничего не удаляет.
 - `codex_progress.py` — живая активность хода: tee потока нотификаций в журнал,
   `ProgressTracker`/`ProgressRegistry` для пульса, `digest()` и CLI-сводка.
 - `requirements.txt` — pinned `openai-codex` SDK + bundled CLI bin. venv в
