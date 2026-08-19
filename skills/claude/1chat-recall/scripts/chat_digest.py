@@ -53,6 +53,13 @@ EMBEDDING_REVISION = "00fc3aeb3dbb95842de2ac1961d33c6319acf57b"
 EMBEDDING_DIMENSION = 1024
 EMBEDDING_MODEL_FILE = "onnx/model_quantized.onnx"
 EMBEDDING_BATCH_SIZE = 32
+# Калибровка порогов поддержки: 20 закреплённых кейсов против 15 запросов вне
+# корпуса, 940 записей, Xenova/multilingual-e5-large int8, 2026-08-20.
+# >= 0.82 — 18/20 по делу и 0/15 вне корпуса; < 0.805 — 0/20 по делу и 13/15
+# вне корпуса. Пороги привязаны к EMBEDDING_PROFILE: смена модели требует
+# повторной калибровки (tests/evaluate_support.py).
+SUPPORT_STRONG = 0.82
+SUPPORT_WEAK = 0.805
 QUERY_PREFIX = "query: "
 PASSAGE_PREFIX = "passage: "
 HYBRID_DEPTH = 40
@@ -749,8 +756,29 @@ def _search_dense_texts(
     return result
 
 
+_DENSE_TOP1: float | None = None
+
+
 def search_dense(records: list[dict[str, Any]], query: str) -> list[dict[str, Any]]:
-    return _search_dense_texts(records, query, _dense_text)
+    global _DENSE_TOP1
+    ranked = _search_dense_texts(records, query, _dense_text)
+    _DENSE_TOP1 = ranked[0]["score"] if ranked else None
+    return ranked
+
+
+def _support_verdict(top1: float | None) -> str | None:
+    """Ближайшая запись корпуса как сырой косинус, а не как позиция в ранге.
+
+    RRF стирает абсолютный смысл скора, поэтому вердикт считается до слияния
+    каналов. Он описывает наличие материала в корпусе, а не правоту выдачи.
+    """
+    if top1 is None:
+        return None
+    if top1 >= SUPPORT_STRONG:
+        return "supported"
+    if top1 >= SUPPORT_WEAK:
+        return "weak"
+    return "unsupported"
 
 
 def search_session_context_dense(
@@ -1343,6 +1371,9 @@ def _render_holders(
     if truncated_by:
         status += f" · truncated by --{truncated_by.replace('_', '-')}"
     lines = [status]
+    support = _support_verdict(_DENSE_TOP1)
+    if support is not None:
+        lines.append(f"corpus-support={support} · dense_top1={_DENSE_TOP1:.3f}")
     for card in cards:
         lines.append(
             f"holder={card['file']} · {card['age']} · "
@@ -1711,6 +1742,15 @@ def main() -> int:
             envelope["candidate_count"] = (
                 candidate_count if candidate_count else matched
             )
+            support = _support_verdict(_DENSE_TOP1)
+            if support is not None:
+                envelope["dense_top1"] = round(_DENSE_TOP1, 4)
+                envelope["support"] = support
+                if support != "supported":
+                    envelope["warnings"] = [
+                        *envelope["warnings"],
+                        f"corpus-support-{support}",
+                    ]
             if retrieval == "hybrid":
                 envelope["candidate_depth"] = HYBRID_DEPTH
         if args.timeline:
