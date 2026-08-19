@@ -19,28 +19,18 @@ case "$artifact_name" in
 esac
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-starter_dir="$(cd "$script_dir/../assets/starter" && pwd)"
+audit_script="$script_dir/audit_html_style.py"
 catalog_script="$script_dir/rebuild_html_catalog.sh"
-finish_script="$script_dir/finish_html_bundle.sh"
 artifacts_root="$project_root/_workspace/HTML_artifacts"
 target="$artifacts_root/$artifact_name"
 
-if [ ! -d "$project_root" ]; then
-  printf 'Error: project root is not a directory: %s\n' "$project_root" >&2
+if [ ! -f "$target/index.html" ]; then
+  printf 'Error: artifact index.html not found: %s\n' "$target/index.html" >&2
   exit 1
 fi
 
-if [ -e "$target" ]; then
-  printf 'Error: artifact already exists: %s\n' "$target" >&2
-  exit 1
-fi
-
-mkdir -p "$artifacts_root" "$target"
-cp -R "$starter_dir"/. "$target"/
+PYTHONDONTWRITEBYTECODE=1 python3 "$audit_script" --check-structure "$target"
 "$catalog_script" "$project_root" >/dev/null
 
 printf 'artifact=%s\n' "$target/index.html"
 printf 'catalog=%s\n' "$artifacts_root/index.html"
-printf 'finish-command='
-printf '%q ' "$finish_script" "$artifact_name" "$project_root"
-printf '\n'

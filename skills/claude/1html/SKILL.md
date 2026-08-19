@@ -1,6 +1,6 @@
 ---
 name: 1html
-description: "Когда нужен максимально быстрый локальный HTML-черновик или многоэкранный prototype — report, explainer, comparison, plan, diagram или UI states/comments. Создаёт автономный bundle из готового DaisyUI/Alpine starter, регистрирует его в локальном каталоге и не добавляет проверки на fast path. Явный audit/cleanup существующего artifact включает необязательный visual anti-drift review. Не для production website/app/deploy или встроенной в чат интерактивной визуализации."
+description: "Когда нужен максимально быстрый локальный HTML-черновик или многоэкранный prototype — report, explainer, comparison, plan, diagram или UI states/comments. Создаёт автономный bundle из готового DaisyUI/Alpine starter, регистрирует его в локальном каталоге и не добавляет browser/visual QA на fast path. Явный audit/cleanup существующего artifact включает необязательный visual anti-drift review. Не для production website/app/deploy или встроенной в чат интерактивной визуализации."
 ---
 
 # HTML
@@ -250,6 +250,15 @@ DaisyUI/Tailwind-словарь даёт готовый результат.
 При обычном создании не запускай server, browser, Playwright, QA, screenshot
 loop, console check, responsive matrix или interaction audit.
 
+Перед сдачей выполни один финальный переход:
+
+```bash
+"<каталог skill>/scripts/finish_html_bundle.sh" "<artifact-name>" "<корень проекта>"
+```
+
+Ненулевой код означает, что artifact не готов. Ссылки бери только из успешного
+вывода этой команды.
+
 Явный отдельный запрос на audit/cleanup — другой, необязательный maintenance
 mode. Он может посмотреть текущий render или screenshot, если без этого нельзя
 судить о визуальной цельности, но не блокирует artifact, не становится его
@@ -263,4 +272,4 @@ acceptance gate и не создаёт постоянный regression suite.
   отделённый комментарий;
 - первый видимый блок отвечает, а раскрываемые слои продолжают ближайший тезис;
 - artifact использует готовые общие assets;
-- каталог обновлён, пользователю дана его постоянная ссылка.
+- `finish_html_bundle.sh` завершился успешно и вернул ссылки artifact и catalog.

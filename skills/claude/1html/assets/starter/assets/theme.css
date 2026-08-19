@@ -288,6 +288,7 @@ body {
   position: relative;
   margin-top: 32px;
   overflow: hidden;
+  padding: 27px 30px 28px 34px;
   border: 1px solid var(--artifact-line-strong);
   background: rgb(251 248 241 / 90%);
   box-shadow: var(--artifact-shadow);
@@ -301,9 +302,9 @@ body {
   content: "";
 }
 
-.artifact-verdict .card-body {
+.artifact-verdict > .card-body {
   gap: 9px;
-  padding: 27px 30px 28px 34px;
+  padding: 0;
 }
 
 .artifact-verdict-title {
@@ -369,13 +370,14 @@ body {
 
 .artifact-card {
   min-height: 212px;
+  padding: 22px;
   border: 1px solid var(--artifact-line);
   background: rgb(251 248 241 / 68%);
 }
 
-.artifact-card .card-body {
+.artifact-card > .card-body {
   display: block;
-  padding: 22px;
+  padding: 0;
 }
 
 .artifact-card--primary {
@@ -514,7 +516,7 @@ body {
     font-size: 17px;
   }
 
-  .artifact-verdict .card-body {
+  .artifact-verdict {
     padding: 23px 20px 23px 27px;
   }
 
@@ -557,13 +559,4 @@ body {
   .artifact-verdict {
     box-shadow: none;
   }
-}
-
-/* Страховка разметки: карточка без card-body не остаётся без отступов. */
-.artifact-card:not(:has(> .card-body)) {
-  padding: 22px;
-}
-
-.artifact-verdict:not(:has(> .card-body)) {
-  padding: 27px 30px 28px 34px;
 }

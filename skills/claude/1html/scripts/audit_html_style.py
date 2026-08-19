@@ -4,14 +4,30 @@
 from __future__ import annotations
 
 import difflib
+import re
+import sys
 from dataclasses import dataclass
 from html.parser import HTMLParser
 from pathlib import Path
-import re
-import sys
-
 
 EXCLUDED_DIRS = {"_catalog", ".git", "lib", "node_modules", "sources"}
+ARTIFACT_CARD_ROOTS = {"artifact-card", "artifact-verdict"}
+HTML_VOID_ELEMENTS = {
+    "area",
+    "base",
+    "br",
+    "col",
+    "embed",
+    "hr",
+    "img",
+    "input",
+    "link",
+    "meta",
+    "param",
+    "source",
+    "track",
+    "wbr",
+}
 ACTION_INPUT_TYPES = {"button", "reset", "submit"}
 DAISY_ACTION_ROOTS = {
     "btn",
@@ -116,6 +132,21 @@ class Finding:
     line: int
     message: str
     evidence: str
+
+
+@dataclass
+class StructureRoot:
+    path: Path
+    line: int
+    role: str
+    has_card_class: bool
+    has_direct_card_body: bool = False
+
+
+@dataclass(frozen=True)
+class ElementFrame:
+    tag: str
+    structure_root: StructureRoot | None
 
 
 def compact(text: str, limit: int = 140) -> str:
@@ -366,6 +397,65 @@ class ArtifactHTMLParser(HTMLParser):
             )
 
 
+class StructureHTMLParser(HTMLParser):
+    def __init__(self, path: Path) -> None:
+        super().__init__(convert_charrefs=True)
+        self.path = path
+        self.roots: list[StructureRoot] = []
+        self.stack: list[ElementFrame] = []
+
+    def handle_starttag(
+        self, tag: str, attrs: list[tuple[str, str | None]]
+    ) -> None:
+        self._handle_element(
+            tag,
+            attrs,
+            push=tag.lower() not in HTML_VOID_ELEMENTS,
+        )
+
+    def handle_startendtag(
+        self, tag: str, attrs: list[tuple[str, str | None]]
+    ) -> None:
+        self._handle_element(tag, attrs, push=False)
+
+    def handle_endtag(self, tag: str) -> None:
+        normalized_tag = tag.lower()
+        for index in range(len(self.stack) - 1, -1, -1):
+            if self.stack[index].tag == normalized_tag:
+                del self.stack[index:]
+                return
+
+    def _handle_element(
+        self,
+        tag: str,
+        attrs: list[tuple[str, str | None]],
+        *,
+        push: bool,
+    ) -> None:
+        line, _ = self.getpos()
+        attributes = {name.lower(): value or "" for name, value in attrs}
+        classes = set(attributes.get("class", "").split())
+
+        if self.stack and "card-body" in classes:
+            parent_root = self.stack[-1].structure_root
+            if parent_root is not None:
+                parent_root.has_direct_card_body = True
+
+        roles = sorted(classes & ARTIFACT_CARD_ROOTS)
+        structure_root = None
+        if roles:
+            structure_root = StructureRoot(
+                path=self.path,
+                line=line,
+                role=roles[0],
+                has_card_class="card" in classes,
+            )
+            self.roots.append(structure_root)
+
+        if push:
+            self.stack.append(ElementFrame(tag.lower(), structure_root))
+
+
 def changed_target_lines(baseline: str, current: str) -> list[tuple[int, str]]:
     matcher = difflib.SequenceMatcher(
         a=baseline.splitlines(), b=current.splitlines(), autojunk=False
@@ -470,26 +560,45 @@ def source_files(root: Path, suffix: str) -> list[Path]:
     )
 
 
-def audit(
-    target: Path,
-) -> tuple[Path, list[Path], list[Path], list[Path], list[Finding]]:
+def resolve_html_target(target: Path) -> tuple[Path, list[Path]]:
     resolved = target.expanduser().resolve()
     if resolved.is_file() and resolved.suffix.lower() == ".html":
         root = resolved.parent
+        html_files = [resolved]
     elif resolved.is_dir():
         root = resolved
+        html_files = source_files(root, ".html")
     else:
         raise ValueError("target must be an artifact directory or HTML file")
 
-    html_files = (
-        [resolved]
-        if resolved.is_file()
-        else source_files(root, ".html")
-    )
-    css_files = source_files(root, ".css")
-    js_files = source_files(root, ".js")
     if not html_files:
         raise ValueError("target contains no HTML files")
+    return root, html_files
+
+
+def structure_violations(target: Path) -> tuple[Path, list[Path], list[StructureRoot]]:
+    root, html_files = resolve_html_target(target)
+    violations: list[StructureRoot] = []
+
+    for html_path in html_files:
+        parser = StructureHTMLParser(html_path)
+        parser.feed(html_path.read_text(encoding="utf-8"))
+        violations.extend(
+            structure_root
+            for structure_root in parser.roots
+            if not structure_root.has_card_class
+            or not structure_root.has_direct_card_body
+        )
+
+    return root, html_files, violations
+
+
+def audit(
+    target: Path,
+) -> tuple[Path, list[Path], list[Path], list[Path], list[Finding]]:
+    root, html_files = resolve_html_target(target)
+    css_files = source_files(root, ".css")
+    js_files = source_files(root, ".js")
 
     findings: list[Finding] = []
     for html_path in html_files:
@@ -615,16 +724,58 @@ def print_report(
     )
 
 
-def main() -> int:
-    if len(sys.argv) != 2:
+def print_structure_report(
+    root: Path,
+    html_files: list[Path],
+    violations: list[StructureRoot],
+) -> None:
+    print("HTML structure check — blocking")
+    print(f"target={root}")
+    print(f"scanned={len(html_files)} html")
+    print(f"violations={len(violations)}")
+
+    for violation in violations:
+        missing: list[str] = []
+        if not violation.has_card_class:
+            missing.append("`card` on root")
+        if not violation.has_direct_card_body:
+            missing.append("direct child `.card-body`")
+        relative_path = violation.path.relative_to(root)
         print(
-            "Usage: audit_html_style.py <artifact-directory-or-index.html>",
+            f"- {relative_path}:{violation.line} — "
+            f".{violation.role} requires {' and '.join(missing)}"
+        )
+
+    if not violations:
+        print("Structure contract satisfied.")
+
+
+def main() -> int:
+    arguments = sys.argv[1:]
+    structure_mode = len(arguments) == 2 and arguments[0] == "--check-structure"
+    advisory_mode = len(arguments) == 1
+    if not structure_mode and not advisory_mode:
+        print(
+            "Usage: audit_html_style.py [--check-structure] "
+            "<artifact-directory-or-index.html>",
             file=sys.stderr,
         )
         return 2
 
+    target = Path(arguments[-1])
+
+    if structure_mode:
+        try:
+            root, html_files, violations = structure_violations(target)
+        except (OSError, UnicodeError, ValueError) as error:
+            print(f"Error: {error}", file=sys.stderr)
+            return 1
+
+        print_structure_report(root, html_files, violations)
+        return 1 if violations else 0
+
     try:
-        root, html_files, css_files, js_files, findings = audit(Path(sys.argv[1]))
+        root, html_files, css_files, js_files, findings = audit(target)
     except (OSError, UnicodeError, ValueError) as error:
         print(f"Error: {error}", file=sys.stderr)
         return 1
