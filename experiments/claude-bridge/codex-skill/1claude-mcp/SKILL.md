@@ -1,9 +1,10 @@
 ---
 name: 1claude-mcp
 description: >-
-  Когда пользователь просит Claude, Opus или Fable, мнение другой model family
-  либо работу с уже запущенной Claude session — подключи Opus advisor. Не для
-  справочных вопросов о Claude; native Codex review → `1fresh-eyes`.
+  Когда пользователь просит Claude, Opus или Fable, мнение неназванной другой
+  model family либо работу с уже запущенной Claude session — подключи Opus
+  advisor. Явный Gemini → `1gemini`; Hermes/Kimi → `1hermes`. Не для справочных
+  вопросов о Claude; native Codex review → `1fresh-eyes`.
 ---
 
 # Claude Advisor
