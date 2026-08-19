@@ -6,7 +6,7 @@
 - Harness: Codex skill catalog and same-thread named subagents.
 - Required tools: skill discovery, `business-growth-analyst`, project-document
   reading, `1chat-recall` Retrieval, optional web research.
-- Required isolation: subagent invocation with `fork_turns="none"`.
+- Required isolation: отдельный субагент в чистом окне.
 
 ## Acceptance
 
@@ -27,3 +27,11 @@
   installed the agent predates the catalog reload.
 - The seven-section rewrite of `developer_instructions` (family parity with the
   ten live Codex critics) is a structural change only — no behavioral run.
+
+## Проверка 2026-08-19
+
+- Явный вызов с открытой trial-развилкой сформулировал задачу из текущей работы
+  и вызвал отдельного `business-growth-analyst`; Root получил его
+  `FINAL_ANSWER` и предъявил вердикт.
+- Конкретные имена инструментов и поля их ответов удалены из runtime-контракта:
+  скил владеет требованием вызвать субагента, а не API оркестратора.
