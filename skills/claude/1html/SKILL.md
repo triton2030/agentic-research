@@ -153,7 +153,7 @@ nodes и edges наследуют CSS variables, шрифт и цвета сам
 | Разные quantitative charts, Sankey или treemap | [`echarts.md`](references/echarts.md) | local runtime, data/options recipes, accessible fallback |
 | Крупные interactive nodes и data-flow | [`react-flow.md`](references/react-flow.md) | threshold, config, node controls, animated edges |
 | Popover, native accordion, modern motion/CSS | [`modern-web.md`](references/modern-web.md) | current capability и fallback |
-| Явный audit красоты или cleanup | [`visual-audit.md`](references/visual-audit.md) | advisory visual review |
+| Rendered geometry, responsive-сбой, audit или cleanup | [`visual-audit.md`](references/visual-audit.md) | repair evidence + advisory visual review |
 | Неизвестно имя DaisyUI component | точечный поиск в `references/daisyui-llms.txt` | bundled component syntax |
 | Неизвестно имя Lucide icon | точечный поиск в `references/lucide-icon-names.txt` | local icon name |
 
@@ -199,12 +199,12 @@ loop, responsive matrix или visual QA. Программный gate прове
 catalog и печатает обе ссылки. Для созданного старой версией bundle используй
 явный `--legacy`; current bundle не может обходить текущий gate этим flag.
 
-Явный запрос audit/cleanup — отдельный maintenance mode. Он может открыть
-render или screenshot и запустить advisory source scan:
-
-```bash
-"<каталог skill>/scripts/audit_html_style.py" "<artifact-project-or-index.html>"
-```
+Жалоба на rendered overlap, clipping, overflow, frame/content geometry,
+responsive-сбой, повторная правка одного component family ради того же
+rendered дефекта или явный audit/cleanup включает maintenance mode до
+CSS-правки: воспроизведи дефект в render и открой
+[`visual-audit.md`](references/visual-audit.md). Обычный fast path это не
+расширяет.
 
 ## Готово Когда
 
