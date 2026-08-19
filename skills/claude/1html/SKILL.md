@@ -20,7 +20,9 @@ description: "Когда нужен максимально быстрый лок
 
 - Сначала определи цель страницы и один вопрос читателя.
 - Пиши на уровне владельца проекта; не объясняй ему очевидный контекст.
-- Пиши телеграфно: только дельту и самое важное.
+- Пиши телеграфно: только дельту и самое важное. Дефолт модели — полные
+  объяснительные предложения и одна мысль, пересказанная в лиде, вердикте и
+  разделе; режь до тезисов, одна мысль — один дом на странице.
 - Используй прямые названия и формулировки. Не добавляй литературные заголовки,
   метафоры, рекламный тон и эмоциональные оценки.
 - Сохраняй технические различия, условия, неопределённость и статус
@@ -179,8 +181,8 @@ DaisyUI/Tailwind-словарь даёт готовый результат.
 | `artifact-main` | колонка содержания |
 | `artifact-hero`, `artifact-kicker`, `artifact-title`, `artifact-lead` | первый экран: моно-надзаголовок, крупный serif, лид |
 | `artifact-section`, `artifact-heading`, `artifact-section-intro` | смысловой ход рассказа |
-| `artifact-grid`, `artifact-card`, `artifact-card--primary`, `artifact-card--stop`, `artifact-card-title`, `artifact-number` | коллекция карточек; primary шире, stop — глиняный акцент |
-| `artifact-verdict`, `artifact-verdict-title` | карточка главного вывода с акцентной кромкой |
+| `artifact-grid` → `card artifact-card` (`--primary`, `--stop`) → `card-body` → `artifact-card-title`, `artifact-number` | коллекция карточек; primary шире, stop — глиняный акцент; внутренние отступы живут в `card-body` |
+| `card artifact-verdict` → `card-body` → `artifact-verdict-title` | карточка главного вывода с акцентной кромкой; отступы — в `card-body` |
 | `artifact-details` | `details.collapse` в фирменном контуре |
 | `artifact-badges` | ряд моноширинных статус-баджей |
 | `artifact-footer` | нижняя линия страницы |

@@ -558,3 +558,12 @@ body {
     box-shadow: none;
   }
 }
+
+/* Страховка разметки: карточка без card-body не остаётся без отступов. */
+.artifact-card:not(:has(> .card-body)) {
+  padding: 22px;
+}
+
+.artifact-verdict:not(:has(> .card-body)) {
+  padding: 27px 30px 28px 34px;
+}

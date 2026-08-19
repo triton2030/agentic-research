@@ -89,6 +89,16 @@
 </ul>
 ```
 
+Шаг с подписью — телеграфной строкой в том же `li`, без своих обёрток:
+
+```html
+<ul class="steps steps-vertical">
+  <li class="step step-accent text-left">
+    <span><strong>Собрал корзину.</strong> Много позиций; превью на мокапе.</span>
+  </li>
+</ul>
+```
+
 ## Timeline
 
 ```html
