@@ -23,6 +23,8 @@ Installed-source proof: `/tmp/1html-installed-proof.mROdSd` — две flat page
 для Claude/Codex, `md check`, `bash -n`, `shellcheck`, `ruff --no-cache` и
 `node --check` — pass.
 
+Git handoff: commit `61a5f16` pushed to `origin/main`.
+
 ## Историческое evidence V5 — не acceptance нового кандидата
 
 - Подтверждено: design-free harness — `124` checks; blank scaffold и
