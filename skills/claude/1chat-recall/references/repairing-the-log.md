@@ -1,94 +1,96 @@
 # Repairing and backfilling recall
 
-Quote или selection — asset. Повреждённая metadata не оправдывает удаление,
-сокрытие или переписывание owner evidence.
+Quote или selection — asset. Правила обращения с речью владельца и запрет
+отправлять цитаты в network tools — `SKILL.md`, раздел «Слова владельца —
+актив»; здесь только то, что добавляет ремонт: provenance, хронология и
+доказательство целостности.
 
 ## Admission
 
-Открывай этот route только для:
+Маршрут открывается для двух случаев и по названным заранее project и
+конкретной session либо ограниченному набору sessions:
 
 - repair уже существующей записи с diagnostics или сомнительным provenance;
-- явного owner-запроса восстановить полезные тезисы из project/session,
+- явный owner-запрос восстановить полезные тезисы из project/session,
   существовавших до применения `1chat-recall`.
 
-Backfill не является обычным historical retrieval и не импортирует разговор
-целиком.
+Не сюда: обычный historical retrieval · соседний чат, который пришлось бы
+угадывать · unrelated conversations · своя запись текущей сессии (её правит
+обычный Capture, repair-инварианты на неё не действуют).
 
-Своя запись текущей сессии — не этот маршрут: её правит абзац самоисправления
-в Capture, и repair-инварианты на неё не действуют.
-
-## Scope
-
-До чтения назови project и конкретную session либо ограниченный набор sessions.
-Не угадывай соседний чат и не импортируй unrelated conversations.
-
-Для каждого найденного сообщения заново примени usefulness gate. Сохраняй
-только самостоятельные тезисы владельца, а не весь transcript.
+Backfill не импортирует разговор целиком: к каждому найденному сообщению заново
+применяется usefulness gate тела.
 
 ## Evidence order
 
 Для каждого тезиса или diagnostic:
 
-1. native transcript указанной session;
+1. native transcript названной session;
 2. exact unique text fragment в локальных Claude/Codex transcripts;
-3. bounded semantic/manual search по локальной истории, чтобы найти exact native
-   record;
-4. явный gap, если record не найден: filename, frontmatter, raw time и
-   `unknown` не разрешают capture.
+3. bounded semantic/manual search по локальной истории — чтобы найти exact
+   native record;
+4. явный gap, если record не найден.
 
-Semantic match сам по себе не является exact evidence. Quotes не отправляются в
-network tools.
+Semantic match сам по себе exact evidence не является; filename, frontmatter,
+raw time и `unknown` capture не разрешают.
 
 Реплики прежних ходов Claude-сессии читай локально:
 
 ```bash
 ROOT="${CLAUDE_SKILL_DIR}"
 SESSION="${CLAUDE_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-}}"
+
 python3 "$ROOT/scripts/chat_recall.py" --session-id "$SESSION"
 ```
 
-Repair чужой сессии требует explicit `--session-id`.
+Repair чужой сессии требует explicit `--session-id` этой сессии.
 
-## Capture и chronology
+## Честная хронология
 
-Сохраняй исходный timestamp сообщения, а не время ремонта. `exact` precision
-допускается только после сверки native text или выбранной option — иначе
-понижай до `minute` или `date`.
+Сохраняй timestamp исходного сообщения, а не время ремонта (копия правила тела —
+правь вместе). Precision выводится из формата `--source-timestamp`: ISO с
+таймзоной → `exact`, ISO без неё → `minute`, `YYYY-MM-DD` → `date`, `unknown` —
+только для `--kind note`. `exact` допустим только после сверки с native text или
+выбранной option.
 
-`chat_capture.py` принимает любую валидную precision (exact/minute/date);
-`unknown` разрешён только для `--kind note`. Legacy approximate metadata старых
-записей остаётся видимой диагностикой; writer её не создаёт, но добавляет новую
-чистую запись в тот же holder — существующие грязные строки не переписываются.
+Знай цену огрубления: writer не сериализует precision, поэтому любая не-exact
+запись читается валидатором как `unmarked-approximate`, а naive ISO — ещё и как
+`timezone-missing`. Чистую запись даёт только timezone-aware ISO; несверенное
+время всё равно огрубляй, но диагностику назови в отчёте, а не оставляй молча.
 
-Один session создаёт один holder. Имя файла, frontmatter date и заголовок
-следуют самой ранней сохранённой exact/minute source-date этой session; запись
-с precision `date` не двигает имя holder-а.
+Имя файла, frontmatter date и заголовок holder-а следуют самой ранней
+сохранённой source-date этой session и меняются вместе. Сама по себе запись с
+precision `date` rename не запускает, но уже сохранённая date-запись войдёт в
+минимум и сдвинет holder при следующем exact/minute capture — проверяй имя после
+записи.
 
-`quote` остаётся deletion-only owner text (копия горячего правила; правь
-вместе). AskUserQuestion/Plan option — `selection`. Agent-authored explanation
-— `note`. Malformed block остаётся `raw`, пока его структура не восстановлена.
+Writer переиспользует holder только для точной пары `(agent, session)`:
+различие `codex`/`Codex` или смена agent создают второй holder. Уникальность
+session по корпусу — забота validator-а, и сейчас она нарушена, так что дубли
+ищи прогоном, а не предположением.
 
 ## Repair metadata
 
-- Сохраняй один semantic type.
-- Невосстановимый type — `неопределено`.
-- Невосстановимый topic — `без-темы`.
-- Repair sentinels не используются для свежей quote.
-- Existing quote или selection не превращается в note ради sentinel.
-- Duplicate holders объединяются только внутри одного project corpus и одной
-  session.
+Сохраняй один semantic type. Невосстановимый type — `неопределено`,
+невосстановимый topic — `без-темы`. Repair sentinels не ставятся свежей quote, и
+existing quote или selection не превращается в note ради sentinel. Duplicate
+holders объединяются только внутри одного project corpus и одной session.
 
 ## Mutation boundary
 
-В read-only задаче покажи backlog и не переписывай corpus. При разрешённой
+В read-only задаче покажи backlog и corpus не переписывай. При разрешённой
 mutation сначала сохрани checksums и backup untracked originals вне scanned
 corpus.
 
-После repair/backfill докажи:
+После repair/backfill докажи целостность:
 
-- multiset прежних texts/raw blocks не уменьшился;
+- multiset прежних texts и raw blocks не уменьшился;
 - новые quotes существуют в native source;
 - исходные timestamps и session сохранены честно;
 - каждый record находится локальным поиском и открывается по exact file:line;
 - diagnostics исправлены либо остаются явно видимыми;
 - один project corpus содержит не более одного holder на session.
+
+Недоказуемая целостность — не повод закрыть ветку молча: точный blocker —
+что именно не сходится и на каком record, если record существует, — допустимое
+завершение ремонта.
