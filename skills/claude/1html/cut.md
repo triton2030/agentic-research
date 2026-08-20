@@ -11,7 +11,8 @@
 
 - per-artifact directory, повторные `lib/` и `assets/`;
 - bundle version marker и migration/legacy modes;
-- `finish_html_bundle.sh`, blocking validator и advisory visual audit;
+- `finish_html_bundle.sh`, blocking validator и advisory clipping/occlusion
+  audit, который судил visual intent;
 - add-on installer scripts и HTML wiring parser;
 - обязательные audit, browser-loop, screenshot matrix и command evidence в
   обычной работе;
@@ -27,7 +28,9 @@
   страницы или presets;
 - каталог flat HTML и legacy directory entries на время естественного перехода;
 - одна папочная stance: визуально объясняй, сохраняй design freedom, исправляй
-  общего владельца геометрии вместо device-specific patch.
+  общего владельца геометрии вместо device-specific patch;
+- advisory HTML smoke по явному запросу: только browser/runtime facts без
+  суждения о clipping, пересечениях, overlay или красоте.
 
 ### Почему Не Только Папочная Инструкция
 
@@ -40,7 +43,7 @@ descendant-файла, если сессия запущена выше. Поэт
 ### Не Добавлено
 
 - generic geometry linter: он не знает visual intent и снова сделал бы дизайн
-  процедурой;
+  процедурой; технический smoke намеренно не занимает эту роль;
 - обязательный render audit: владелец выбрал скорость и правильную рабочую
   позицию вместо ritual compliance;
 - автоматическая миграция существующих directory-artifacts: она ломала бы

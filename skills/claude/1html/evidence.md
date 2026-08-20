@@ -20,7 +20,7 @@ HTML; без лишних проверок и дополнительных ша�
 | Zone snapshot не смешивает поколения | следующая страница берёт новый skill scaffold при старых local instructions/runtimes | pass: runtime, instructions, carrier map и оба neutral templates создаются only-if-missing; новая страница читается из local snapshot; catalog projection обновляется отдельно |
 | Base icon carrier работает без skill/QA | `<i data-lucide>` остаётся пустым, потому что local runtime подключён, но не инициализирован | pass: neutral template регистрирует `DOMContentLoaded → lucide.createIcons()`; COMPONENTS называет automatic/manual boundary |
 | Существующая чужая инструкция не уничтожается | генератор молча перезаписывает `AGENTS.md` без generated marker | pass: `/tmp/1html-shared-foreign.Yv4iXS`, hash до/после одинаков |
-| Package не содержит старый workflow | остаются bundle/finish/audit/add-on installer/validator scripts | pass: file/name/content scan; scripts остались `new`, `rebuild`, metadata, catalog builder |
+| Package не содержит старый workflow | остаются bundle/finish/audit/add-on installer scripts | pass: file/name/content scan; scripts остались `new`, `rebuild`, metadata, catalog builder |
 | MAVO migration сохраняет страницу | CSS или видимая шапка меняются; старый URL пропадает | pass: CSS byte-identical; прежние home-link/icon/title перенесены из runtime в static HTML; old-path directory содержит только redirect; catalog href один — `whatsapp-order-interface.html` |
 | Stance меняет attractive solution | unseen nested/overlay/responsive prompt после чтения кандидата всё ещё даёт repeated cards или compensating breakpoint | pass: `../behavior-comparator.md`; control — четыре peer cards и три media blocks, treatment — physical nesting, разные carriers и один named composition breakpoint |
 
@@ -29,3 +29,23 @@ authored adapters, `qv-skill` и `md check` (`16` targets) — pass. На мом
 acceptance: exact candidate audit — pass (`instruction_surface`,
 `skill_science`, `claude-opus-5`); live projection ожидает буквального согласия
 владельца.
+
+## Conservative HTML Smoke 2026-08-20
+
+Owner evidence:
+`_ops/chat-recall/2026-08-20-171854-codex-01a01f1a.md:19-21` — будущие tests
+должны быть верхнеуровневыми и переносимыми; текущий checker оставляет только
+самые очевидные сигналы с низким риском ложной тревоги.
+
+| Claim | Falsifier | Статус |
+|---|---|---|
+| Smoke не судит visual intent | line-clamp, полностью закрытый overlay, local `blob:` worker или full-bleed дают finding | pass: все четыре fixture завершились с exit `0` |
+| Отсутствующий local asset ловится | `<img src="missing.png">` проходит | pass: `local request failed` на 390/768/1440, exit `1` |
+| Offline boundary ловится без `blob:` noise | `http://127.0.0.1:9/...` проходит либо local blob-worker падает | pass: HTTP — `forbidden network request`; blob — clean |
+| Runtime errors ловятся | явный `console.error` или async uncaught exception проходит | pass: `console` и `pageerror` на трёх ширинах, exit `1` |
+| Только реальный page-level horizontal scroll считается вылетом | 900 px element на узких viewport проходит либо `width:100vw` full-bleed падает | pass: 530/152 px travel пойман; full-bleed clean |
+| Живые артефакты не создают ложных тревог | Visual Systems Lab или каталог падает | pass: обе страницы clean, exit `0` |
+
+Команды: `node skills/claude/1html/scripts/check_html.mjs <fixtures...>`,
+`node skills/claude/1html/scripts/check_html.mjs _workspace/HTML_artifacts/`,
+`node --check skills/claude/1html/scripts/check_html.mjs`, `git diff --check`.

@@ -22,7 +22,9 @@ component — внутренним пространством, overlay — safe 
 - не создавай per-page bundle directory и не копируй `lib/assets`;
 - соседние HTML, `_template.html` и `assets/_template.css` не являются design
   template; это только frozen neutral scaffold этой zone;
-- обычная работа заканчивается готовой страницей, без audit/check/finish.
+- обычная работа заканчивается готовой страницей, без audit/check/finish;
+- явный технический check — advisory `check_html.mjs` из скила `1html`: только
+  runtime, local files, сеть и горизонтальная прокрутка страницы; не visual audit.
 
 Страница обязана открываться через `file://` без сети, server и build step.
 Существенный смысл оставляй в semantic HTML и не прячь только в цвет, hover,
