@@ -1,3 +1,27 @@
 /* Only repeated carriers absent from DaisyUI belong here. */
 /* DaisyUI owns matching component anatomy and the cupcake palette. */
 /* Keep page-specific composition in assets/<slug>.css. */
+
+/* ── Раскладка зоны: look-free композиция, имена проверены против DaisyUI ── */
+
+/* Вертикальный ритм потока: один ритм на контейнер, не свой отступ у детей. */
+.flow > * + * { margin-block-start: var(--space, 1rem); }
+
+/* Ряд меток и чипов: переносится по содержимому, порога нет. */
+.cluster { display: flex; flex-wrap: wrap; gap: var(--gap, 0.5rem); align-items: center; }
+
+/* Два-три блока: ряд ↔ колонка целиком; --threshold — минимум всего ряда. */
+.switcher { display: flex; flex-wrap: wrap; gap: var(--gap, 1rem); }
+.switcher > * { flex-grow: 1; flex-basis: calc((var(--threshold, 30rem) - 100%) * 999); }
+
+/* Панель + текучее тело; --side — минимум панели; тело не уже 60%. */
+.with-sidebar { display: flex; flex-wrap: wrap; gap: var(--gap, 1rem); }
+.with-sidebar > :first-child { flex-basis: var(--side, 15rem); flex-grow: 1; }
+.with-sidebar > :last-child { flex-basis: 0; flex-grow: 999; min-inline-size: 60%; }
+
+/* Коллекция равноправных карточек; --min — минимум карточки из плана. */
+.auto-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--min, 16rem)), 1fr)); gap: var(--gap, 1rem); }
+
+/* Горизонтальная лента: прокручивается лента, не страница. */
+.reel { display: flex; gap: var(--gap, 1rem); overflow-x: auto; overscroll-behavior-x: contain; }
+.reel > * { flex: 0 0 auto; }
