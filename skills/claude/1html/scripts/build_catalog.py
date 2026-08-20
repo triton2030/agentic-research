@@ -20,6 +20,7 @@ CATALOG_TEMPLATE = (
 @dataclass(frozen=True)
 class CatalogProject:
     slug: str
+    href: str
     title: str
     icon: str
     tags: tuple[str, ...]
@@ -47,11 +48,37 @@ def page_count(project_dir: Path) -> int:
 
 def collect_projects(artifacts_root: Path) -> list[CatalogProject]:
     projects: list[CatalogProject] = []
+    flat_slugs: set[str] = set()
+
+    for page in artifacts_root.glob("*.html"):
+        if (
+            not page.is_file()
+            or page.name == "index.html"
+            or page.name.startswith("_")
+        ):
+            continue
+
+        metadata = read_artifact_metadata(page)
+        slug = page.stem
+        flat_slugs.add(slug)
+        fallback_title = slug.replace("-", " ").replace("_", " ")
+        projects.append(
+            CatalogProject(
+                slug=slug,
+                href=page.name,
+                title=metadata.title or fallback_title,
+                icon=metadata.icon,
+                tags=metadata.tags,
+                created_epoch=created_epoch(page),
+                page_count=1,
+            )
+        )
 
     for project_dir in artifacts_root.iterdir():
         if (
             not project_dir.is_dir()
             or project_dir.name == "_catalog"
+            or project_dir.name in flat_slugs
             or not (project_dir / "index.html").is_file()
         ):
             continue
@@ -61,6 +88,7 @@ def collect_projects(artifacts_root: Path) -> list[CatalogProject]:
         projects.append(
             CatalogProject(
                 slug=project_dir.name,
+                href=f"{project_dir.name}/index.html",
                 title=metadata.title or fallback_title,
                 icon=metadata.icon,
                 tags=metadata.tags,
@@ -97,7 +125,7 @@ def count_label(count: int, one: str, few: str, many: str) -> str:
 
 def build_html(projects: list[CatalogProject], template: str) -> str:
     count = len(projects)
-    projects_label = count_label(count, "проект", "проекта", "проектов")
+    projects_label = count_label(count, "страница", "страницы", "страниц")
     generated = datetime.now().astimezone().isoformat(timespec="seconds")
     payload_attribute = escape(project_payload(projects), quote=True)
 

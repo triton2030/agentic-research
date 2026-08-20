@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
   <meta name="generated-at" content="__CATALOG_GENERATED_AT__">
-  <title>Локальные HTML-проекты</title>
-  <link href="_catalog/lib/daisyui.css" rel="stylesheet">
-  <link href="_catalog/lib/daisyui-themes.css" rel="stylesheet">
-  <link href="_catalog/assets/theme.css" rel="stylesheet">
-  <link href="_catalog/assets/catalog.css" rel="stylesheet">
-  <script src="_catalog/lib/tailwind.js"></script>
+  <title>Локальные HTML-артефакты</title>
+  <link href="lib/daisyui.css" rel="stylesheet">
+  <link href="lib/daisyui-themes.css" rel="stylesheet">
+  <link href="assets/shared/catalog-theme.css" rel="stylesheet">
+  <link href="assets/shared/catalog.css" rel="stylesheet">
+  <script src="lib/tailwind.js"></script>
   <script>
     document.addEventListener("alpine:init", () => {
       Alpine.data("artifactCatalog", (items) => ({
@@ -92,7 +92,7 @@
         },
 
         projectUrl(item) {
-          return new URL(`${item.slug}/index.html`, window.location.href).href;
+          return new URL(item.href, window.location.href).href;
         },
 
         copyTextFallback(value) {
@@ -159,11 +159,11 @@
       }));
     });
   </script>
-  <script defer src="_catalog/lib/alpine.js"></script>
+  <script defer src="lib/alpine.js"></script>
 </head>
 <body class="catalog-page" x-data='artifactCatalog(__CATALOG_PROJECT_PAYLOAD__)'>
   <header class="catalog-topbar">
-    <a class="catalog-brand" href="index.html">HTML projects</a>
+    <a class="catalog-brand" href="index.html">HTML artifacts</a>
     <span class="catalog-topbar-note">_workspace / HTML_artifacts</span>
     <span class="badge badge-outline">__CATALOG_PROJECT_COUNT__</span>
   </header>
@@ -171,11 +171,11 @@
   <main class="catalog-shell">
     <section class="catalog-hero">
       <div>
-        <p class="catalog-kicker">Local project index</p>
-        <h1 class="catalog-title">Черновые HTML-проекты</h1>
+        <p class="catalog-kicker">Local artifact index</p>
+        <h1 class="catalog-title">Черновые HTML-артефакты</h1>
         <p class="catalog-lead">
-          Один проект может содержать много экранов и состояний. Каталог
-          показывает только его входную страницу.
+          Одна общая папка держит local libraries, components и styles.
+          Каждая строка ниже — самостоятельная HTML-страница.
         </p>
       </div>
       <span class="badge badge-success">__CATALOG_PROJECTS_LABEL__</span>
@@ -211,14 +211,14 @@
 
     <article class="card catalog-empty" x-cloak x-show="items.length === 0">
       <div class="card-body">
-        <h2 class="card-title">Пока нет проектов</h2>
-        <p>Первый созданный bundle автоматически появится здесь.</p>
+        <h2 class="card-title">Пока нет страниц</h2>
+        <p>Первый созданный HTML автоматически появится здесь.</p>
       </div>
     </article>
 
     <article class="card catalog-empty" x-cloak x-show="items.length && visibleItems.length === 0">
       <div class="card-body">
-        <h2 class="card-title">Нет проектов с таким набором тегов</h2>
+        <h2 class="card-title">Нет страниц с таким набором тегов</h2>
         <button class="btn btn-sm btn-neutral w-fit" @click="activeTags = []">
           Сбросить фильтр
         </button>
@@ -235,7 +235,7 @@
       <table class="table catalog-table">
         <thead>
           <tr>
-            <th scope="col">Проект</th>
+            <th scope="col">Артефакт</th>
             <th scope="col">Теги</th>
             <th scope="col">Страницы</th>
             <th scope="col">Создан</th>
@@ -249,7 +249,7 @@
                 <a
                   class="catalog-project"
                   :class="{ 'catalog-project--no-icon': !item.icon }"
-                  :href="`${item.slug}/index.html`"
+                  :href="item.href"
                 >
                   <template x-if="item.icon">
                     <span class="catalog-icon-slot">
@@ -258,7 +258,7 @@
                   </template>
                   <span>
                     <strong class="catalog-project-title" x-text="item.title"></strong>
-                    <small class="catalog-project-path" x-text="`${item.slug}/index.html`"></small>
+                    <small class="catalog-project-path" x-text="item.href"></small>
                   </span>
                 </a>
               </td>
@@ -307,7 +307,7 @@
                   </button>
                   <a
                     class="btn btn-circle btn-sm btn-ghost"
-                    :href="`${item.slug}/index.html`"
+                    :href="item.href"
                     :aria-label="`Открыть ${item.title}`"
                     title="Открыть"
                   >
@@ -322,6 +322,6 @@
     </div>
   </main>
 
-  <script src="_catalog/lib/lucide.min.js"></script>
+  <script src="lib/lucide.min.js"></script>
 </body>
 </html>

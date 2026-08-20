@@ -1,8 +1,18 @@
 # Mermaid: Читаемые Диаграммы
 
 Читай эти карточки, когда знание находится в связях, порядке, ветвлении или
-иерархии. Helper script копирует и идемпотентно подключает runtime,
-ELK, viewer и init ко всем текущим live-экранам artifact.
+иерархии. Runtime, ELK, viewer и init уже лежат в общей HTML_artifacts zone.
+
+Подключение страницы:
+
+```html
+<link href="assets/shared/diagram-viewer.css" rel="stylesheet">
+<script defer src="lib/mermaid.min.js"></script>
+<script defer src="lib/mermaid-layout-elk.iife.min.js"></script>
+<script defer src="lib/panzoom.min.js"></script>
+<script defer src="assets/shared/diagram-viewer.js"></script>
+<script defer src="assets/shared/mermaid-init.js"></script>
+```
 
 ## Карточка: Диаграмма Показывает Связь
 
@@ -69,15 +79,9 @@ computed font/palette самого artifact в Mermaid. Для artifact-specific
 **Сигнал:** fit-to-width делает labels нечитаемыми.
 
 **Практика:** первый кадр показывает всю систему. Большая схема получает
-локальный viewer с pan, wheel/pinch zoom, reset-to-fit и fullscreen. Добавь его
-в artifact готовым script:
-
-```bash
-"<каталог skill>/scripts/add_mermaid_bundle.sh" "<artifact-name>" "<project-root>"
-```
-
-Viewer инициализируется только после того, как Mermaid заменил definition на
-SVG. Не копируй runtime и init вручную. Готовый viewer:
+локальный viewer с pan, wheel/pinch zoom, reset-to-fit и fullscreen. Viewer
+инициализируется только после того, как Mermaid заменил definition на SVG.
+Не копируй runtime в отдельную page-folder. Готовый viewer:
 
 ```html
 <article

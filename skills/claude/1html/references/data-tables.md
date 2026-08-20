@@ -15,21 +15,18 @@
 **Не делай:** не превращай непрерывный рассказ, разные типы карточек или длинные
 абзацы в сетку только ради компактности.
 
-## Карточка: Добавить Интерактивность Готовым Bundle
+## Карточка: Подключить Общий Adapter
 
-Добавь helper только когда строки действительно нужно искать, фильтровать или
-сортировать:
+Подключи adapter только когда строки действительно нужно искать, фильтровать
+или сортировать. Он уже лежит в общей HTML_artifacts zone; поставь tag перед
+общим Alpine runtime:
 
-```bash
-"<каталог skill>/scripts/add_table_bundle.sh" \
-  "<artifact-name>" "<project-root>"
+```html
+<script defer src="assets/shared/artifact-table.js"></script>
+<script defer src="lib/alpine.js"></script>
 ```
 
-Helper копирует shared runtime и сам подключает `artifact-table.js` во все
-текущие live pages перед Alpine. Если страницу с таблицей скопировали позже,
-финальная проверка остановит bundle до повторного запуска helper.
-
-Helper регистрирует `artifactTable()` и не добавляет CSS, зависимость или build
+Adapter регистрирует `artifactTable()` и не добавляет CSS, dependency или build
 step.
 
 ## Карточка: HTML Остаётся Источником Данных

@@ -6,13 +6,13 @@
 
 ## Подключение
 
-```bash
-"<каталог skill>/scripts/add_echarts_bundle.sh" \
-  "<artifact-name>" "<project-root>"
+```html
+<script defer src="lib/echarts.min.js"></script>
+<script defer src="assets/shared/echarts-init.js"></script>
 ```
 
-Helper копирует ECharts 6.1.0, тонкий adapter и license notices локально, затем
-подключает их только к live pages с `data-echart`. Страница работает через
+ECharts 6.1.0, adapter и notices уже лежат в общей HTML_artifacts zone.
+Подключай runtime только на странице с `data-echart`. Страница работает через
 `file://` без dev server, CDN, module loader, runtime build и сетевых запросов.
 
 ## Контракт
@@ -193,19 +193,6 @@ theme bridge; authored `option` остаётся свободным. При
   }]
 }
 ```
-
-## Проверка
-
-- Подключён только локальный `lib/echarts.min.js`; Network пуст при `file://`.
-- Каждый host имеет ненулевые computed width/height и `data-echart-ready=true`.
-- Если host вычислился в ноль, adapter даёт только технический `min-block-size`
-  и ждёт `ResizeObserver`; после раскрытия `details` chart монтируется сам.
-  Обычный размер, aspect ratio и surface всё равно задай в `local.css`.
-- SVG существует внутри host по умолчанию; `canvas` появляется только opt-in.
-- Font, ink и palette вычислены из текущего artifact, а не из отдельной темы.
-- При reduced motion ECharts option получает `animation: false`.
-- Видимый вывод остаётся понятным без JavaScript и без hover tooltip.
-- Data, единицы, период и источник совпадают с semantic summary.
 
 ## Официальные Опоры
 

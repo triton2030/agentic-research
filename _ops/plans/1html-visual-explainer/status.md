@@ -1,7 +1,7 @@
 ---
 эпик: "[[../../GOAL#Definition of done]]"
 план: "[[task|1html — design-free visual explainer]]"
-состояние: ✅ завершено
+состояние: ✅ завершён
 вех-готово: 5
 вех-всего: 5
 обновлено: 2026-08-20
@@ -10,12 +10,20 @@ kind: status
 
 # Статус — 1html visual explainer
 
-## Итог
+## Текущий переход
 
-Exact candidate установлен в Claude/Codex; реальный WhatsApp artifact прошёл
-финальный legacy finish без изменения source hash и старого visual style.
+Exact candidate `f3457735…752d45` установлен в tracked Claude owner и Codex;
+common tree совпадает. `mavo-short2` переведён на одну shared HTML-artifacts
+zone с projection hash `6fa025eb…bbd2e`: старый CSS сохранён побайтно, прежний
+URL ведёт через compatibility redirect, отдельные runtime-копии удалены.
 
-## Свидетельства и статус
+Installed-source proof: `/tmp/1html-installed-proof.mROdSd` — две flat pages,
+один folder-level `AGENTS.md`, shared runtime hash не меняется после второй
+страницы, новая страница читается из frozen local zone snapshot. `qv-skill`
+для Claude/Codex, `md check`, `bash -n`, `shellcheck`, `ruff --no-cache` и
+`node --check` — pass.
+
+## Историческое evidence V5 — не acceptance нового кандидата
 
 - Подтверждено: design-free harness — `124` checks; blank scaffold и
   произвольные narrative/dashboard designs проходят один blocking gate.

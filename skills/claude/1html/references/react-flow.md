@@ -10,15 +10,17 @@
 
 ## Подключение
 
-```bash
-"<каталог skill>/scripts/add_react_flow_bundle.sh" \
-  "<artifact-name>" "<project-root>"
+```html
+<link href="lib/react-flow.css" rel="stylesheet">
+<link href="assets/shared/react-flow-theme.css" rel="stylesheet">
+<script defer src="lib/react-flow.vendor.js"></script>
+<script defer src="assets/shared/react-flow-init.js"></script>
 ```
 
-Helper копирует предварительно собранный локальный IIFE, React Flow CSS,
-тонкий adapter, palette bridge и license notices; затем идемпотентно подключает
-их только к live pages с `data-react-flow`. Никакого dev server, CDN, import map,
-`fetch` или runtime build.
+Предварительно собранный local IIFE, React Flow CSS, adapter и palette bridge
+уже лежат в общей HTML_artifacts zone. Подключай их только на странице с
+`data-react-flow`. Никакого dev server, CDN, import map, `fetch` или runtime
+build.
 
 ## Граница Свободы
 
@@ -29,7 +31,7 @@ design template и не предписанная анатомия node. Adapter 
 Одна node может быть только emoji и короткой подписью, другая — большим
 заголовком и двумя `<details>`, третья — icon, текстом, form controls и тремя
 disclosures. Количество, порядок, semantic tags, размеры, padding, surface,
-radius и responsive поведение задаёт сам artifact в `assets/local.css`.
+radius и responsive поведение задаёт сама страница в `assets/<slug>.css`.
 
 Bridge оставляет два стабильных hooks:
 
@@ -126,7 +128,7 @@ edges остались на handles.
 Bridge наследует `font-family`, `color` и semantic variables самого artifact:
 `--color-base-*`, `--color-primary`, `--color-accent`, `--radius-box`. При их
 отсутствии он использует system colors и `currentColor`, а не свою палитру.
-Artifact может переопределить bridge variables в `assets/local.css`.
+Страница может переопределить bridge variables в `assets/<slug>.css`.
 
 Animated edge показывает направление только для текущего потока. При
 `prefers-reduced-motion: reduce` частица исчезает; статичная линия и label
@@ -135,18 +137,6 @@ Animated edge показывает направление только для т
 На узком экране default показывает первую node в читаемом масштабе, а не
 ужимает всё полотно до миниатюры; остальные nodes доступны pan. Только если
 обзор topology важнее чтения node, задай `"fitViewOnMobile": true` в options.
-
-## Проверка
-
-- HTML открывается напрямую через `file://` при отключённой сети.
-- Нет network requests, unresolved bare imports, `fetch` или modules.
-- На одном canvas пройди falsifier: три icon-only nodes и две независимо
-  оформленные rich nodes с разным количеством disclosures.
-- В shared `react-flow-theme.css` нет width/padding/background/border или
-  selectors внутренней разметки node.
-- Pan/zoom, Pause/Play и controls внутри nodes работают.
-- После раскрытия каждого disclosure endpoints остаются на handles.
-- Computed font/colors совпадают с artifact palette; reduced-motion статичен.
 
 ## Официальные Опоры
 

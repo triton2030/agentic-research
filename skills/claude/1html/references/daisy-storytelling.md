@@ -20,7 +20,7 @@
 **Практика:** сначала выбери component по смыслу (`card`, `alert`, `table`,
 `tabs`, `collapse`, `modal`, `steps`), затем semantic color role, затем малые
 Tailwind utilities для конкретной композиции. Palette, typography, spacing и
-повторяемые visual tokens текущей страницы принадлежат `assets/local.css`.
+повторяемые visual tokens текущей страницы принадлежат `assets/<slug>.css`.
 
 **Не делай:** не создавай второй способ выражать одну роль внутри artifact;
 SVG и add-ons наследуют `currentColor` или artifact variables.
@@ -60,7 +60,7 @@ DaisyUI collapse. Modal начинай с нативного `<dialog>`: DaisyUI
 визуальную группу.
 
 **Практика:** parent владеет расстоянием между children, component — внутренним
-padding. Заведи малый набор tokens в `assets/local.css` под текущую композицию.
+padding. Заведи малый набор tokens в `assets/<slug>.css` под текущую композицию.
 Design может быть editorial, dense, playful или technical; общий scaffold не
 владеет layout, palette или typography.
 

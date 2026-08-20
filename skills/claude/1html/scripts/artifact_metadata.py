@@ -41,7 +41,11 @@ class ArtifactMetadataParser(HTMLParser):
                 self._icon = content
             elif name == "artifact-tags":
                 self._tags.extend(content.split(","))
-        elif not self._found_h1 and normalized_tag == "h1":
+        elif (
+            not self._found_h1
+            and normalized_tag == "h1"
+            and "data-artifact-placeholder" not in attributes
+        ):
             self._capturing_h1 = True
 
     def handle_endtag(self, tag: str) -> None:

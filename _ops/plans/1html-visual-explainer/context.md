@@ -8,8 +8,9 @@ Owner evidence —
 ## Ожидаемый эффект
 
 Новая сессия быстрее доводит сложный материал до наглядного автономного
-объяснения: кодовые страховки снимают механические ошибки, а выбор visual
-carrier остаётся свободным и зависит от смысловой связи.
+объяснения: одна folder-level stance задаёт отношение к работе, shared zone
+снимает повторное копирование libraries/components, а mandatory QA-loop
+отсутствует.
 
 ## Отпавшие ходы
 
@@ -19,3 +20,14 @@ carrier остаётся свободным и зависит от смысло�
   owner-correction о полной свободе содержимого nodes.
 - React Flow с dev server/CDN: запрещён offline/file contract.
 - Data charts без реальных чисел: создают ложную измеримость.
+- Per-artifact bundle с собственной копией `lib/assets`: отменён прямой
+  owner-correction об одной общей папке для множества HTML.
+- Общая инструкция в каждом artifact: неверное прочтение; owner просил одну
+  instruction на shared HTML_artifacts zone.
+
+## Живой Потребитель
+
+`/Users/triton/Documents/My_projects/mavo-short2/_workspace/HTML_artifacts/`
+до миграции хранил отдельные копии runtime у каталога и WhatsApp artifact.
+Теперь это одна flat/shared zone; CSS страницы и её тёплый visual language не
+изменены, а старый directory URL сохранён compatibility redirect-ом.

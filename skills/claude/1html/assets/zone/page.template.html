@@ -7,12 +7,14 @@
   <meta name="artifact-title" content="">
   <meta name="artifact-icon" content="">
   <meta name="artifact-tags" content="">
-  <title data-artifact-placeholder>Название HTML-артефакта</title>
+  <title data-artifact-placeholder>__ARTIFACT_SLUG__</title>
   <link href="lib/daisyui.css" rel="stylesheet">
   <link href="lib/daisyui-themes.css" rel="stylesheet">
-  <link href="assets/local.css" rel="stylesheet">
+  <link href="assets/shared/components.css" rel="stylesheet">
+  <link href="assets/__ARTIFACT_SLUG__.css" rel="stylesheet">
   <script src="lib/tailwind.js"></script>
   <script defer src="lib/lucide.min.js"></script>
+  <script>addEventListener("DOMContentLoaded", () => window.lucide?.createIcons());</script>
   <script defer src="lib/alpine.js"></script>
 </head>
 <body>
