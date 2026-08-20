@@ -954,3 +954,45 @@ gold генератору не виден. Сравнение при **равн�
 называющая `truncated=true` поводом для `abstain`, срабатывает всегда и потому
 не срабатывает никогда. Записано находкой
 `_ops/findings/2026-08-20-212257-40467-5390.md`.
+
+## Фоновая разведка: forward test, 2026-08-21
+
+Support envelope: чистый Codex subagent без истории родительского окна; живой
+`/Users/triton/.codex/skills/1chat-recall`; read-only retrieval в реальном
+корпусе `agentic-research`. Задача: восстановить позицию о том, должен ли
+`1use-principles` выводить новое поверх уже записанного owner-ответа; механика
+разведки в prompt не подсказывалась.
+
+Наблюдаемый результат:
+
+- root `forward_test_chat_recall` сам запустил две параллельные read-only ветки
+  `holder_route_owner` и `holder_route_use_principles`;
+- обе ветки вернули только holder-пути и краткую связь с claim-ом; цитаты или
+  синтез позиции они не вернули;
+- root вернул decision-ready позицию только после завершения обеих веток,
+  с адресами holder-ов, later-holder check и live owner-а;
+- `quick_validate.py` вернул `Skill is valid!` для tracked Codex, tracked Claude
+  и материализованной Codex projection; `git diff --check` пуст.
+
+Доказано: в одном чистом прогоне новая строка изменила маршрут с одиночного
+поиска на две фоновые разведки с заданным return contract и ожиданием веток. Не
+доказано: вероятностный сдвиг на серии прогонов и прямой tool-trace полного
+чтения каждого holder-а главным агентом; его финал это заявил и дал построчные
+адреса, но полный tool-trace в возврат не входил.
+
+## Фоновая разведка: независимый audit, 2026-08-21
+
+Два чистых read-only окна до суждения полностью прочитали живые пакеты
+`1skill-shaping` и `1instruction-shaping` со всеми references, затем отдельно
+проверили один и тот же candidate:
+
+- `audit_excess` искал лишние обязанности, ритуал и чрезмерную жёсткость;
+- `audit_provenance` сопоставил owner-selection, текущие runtime-строки и
+  product/history owners.
+
+Обе новые runtime-строки прошли provenance-проверку. Предложения сузить fan-out
+до `consequential claim`, добавить deadline или обязать root прочитать каждый
+scout-hit отклонены: они меняли бы точный owner-selection либо добавляли новую
+квоту без owner-source. Найдены два pre-existing расхождения вне текущего diff:
+полная tracked/install Codex parity и трактовка `off-domain`; оба вынесены через
+`1findings`, а runtime candidate из-за них не расширялся.
