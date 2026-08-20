@@ -49,3 +49,7 @@ Owner evidence:
 Команды: `node skills/claude/1html/scripts/check_html.mjs <fixtures...>`,
 `node skills/claude/1html/scripts/check_html.mjs _workspace/HTML_artifacts/`,
 `node --check skills/claude/1html/scripts/check_html.mjs`, `git diff --check`.
+Финальный independent audit: `claude-opus-5` — PASS по границе правил; после
+его замечаний checker ждёт `load`, на finding-path ставит `exitCode` без
+принудительного выхода, а неверный input возвращает exit `2`. Redirect fixture
+и запуск из `/tmp` — clean.

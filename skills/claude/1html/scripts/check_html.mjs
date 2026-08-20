@@ -40,7 +40,13 @@ function collectTargets(args) {
   const files = [];
   for (const arg of args) {
     const target = path.resolve(arg);
-    const stat = fs.statSync(target);
+    let stat;
+    try {
+      stat = fs.statSync(target);
+    } catch (error) {
+      console.error(`не удалось открыть ${target}: ${error.code || error.message}`);
+      process.exit(2);
+    }
     if (stat.isDirectory()) {
       for (const entry of fs.readdirSync(target).sort()) {
         if (entry.endsWith('.html') && !entry.startsWith('_')) {
@@ -106,7 +112,7 @@ try {
       page.on('websocket', (socket) => networkAttempts.push(socket.url()));
 
       try {
-        await page.goto(pathToFileURL(file).href, { waitUntil: 'domcontentloaded' });
+        await page.goto(pathToFileURL(file).href, { waitUntil: 'load' });
         await page.waitForTimeout(1200);
 
         const horizontalScroll = await page.evaluate((tolerance) => {
@@ -159,4 +165,4 @@ try {
   await browser.close();
 }
 
-process.exit(dirty ? 1 : 0);
+process.exitCode = dirty ? 1 : 0;
