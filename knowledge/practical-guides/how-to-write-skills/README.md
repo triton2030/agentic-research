@@ -23,6 +23,9 @@ workflow.
 - [`research-matt-pocock-skill-writing-2026-08.md`](research-matt-pocock-skill-writing-2026-08.md)
   — форензика 25 promoted skills: формулировки, порядок, размеры,
   отрицательное пространство и границы переноса в `1skill-shaping`.
+- [`research-instruction-wording-adherence-2026-08.md`](research-instruction-wording-adherence-2026-08.md)
+  — evidence snapshot о неоднозначности, числе активных правил, порядке,
+  проверяемом результате и границе prompt-only соблюдения.
 - [`research-mid-trajectory-trigger-descriptions-2026-08.md`](research-mid-trajectory-trigger-descriptions-2026-08.md)
   — датированный evidence-report о short descriptions и позднем автоматическом
   вызове по состоянию длинной работы.

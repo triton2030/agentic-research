@@ -1,8 +1,14 @@
+---
+description: "Устойчивая роль, приоритеты, границы и форма сильного системного промпта."
+---
+
 # Как Писать Системные Промпты
 
 Точный model set задаёт `_ops/GOAL.md`. Модельные различия читать в
 `knowledge/wisdom-gpt-5.6.md`, `knowledge/wisdom-claude-opus-5.md` и
 `knowledge/wisdom-claude-fable-5.md`; здесь только правила системного промпта.
+Доказательный срез по wording, ambiguity, instruction density и adherence —
+[`research-instruction-wording-adherence-2026-08.md`](../practical-guides/how-to-write-skills/research-instruction-wording-adherence-2026-08.md).
 
 ## Для Чего Нужен Системный Промпт
 
