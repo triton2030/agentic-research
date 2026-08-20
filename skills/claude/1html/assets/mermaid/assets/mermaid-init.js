@@ -38,6 +38,28 @@
     return value;
   };
 
+  const legacyRgb = (value, host) => {
+    const probe = document.createElement("span");
+    probe.style.color = value;
+    probe.style.position = "fixed";
+    probe.style.visibility = "hidden";
+    host.append(probe);
+    const resolved = getComputedStyle(probe).color;
+    probe.remove();
+
+    const canvas = document.createElement("canvas");
+    canvas.width = 1;
+    canvas.height = 1;
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+    context.clearRect(0, 0, 1, 1);
+    context.fillStyle = resolved;
+    context.fillRect(0, 0, 1, 1);
+    const [red, green, blue, alpha] = context.getImageData(0, 0, 1, 1).data;
+    return alpha === 255
+      ? `rgb(${red}, ${green}, ${blue})`
+      : `rgba(${red}, ${green}, ${blue}, ${alpha / 255})`;
+  };
+
   const inheritedTheme = (host) => {
     const sources = [
       host,
@@ -45,27 +67,30 @@
       document.body,
       document.documentElement,
     ];
-    const fontFamily = computedValue(sources, "fontFamily");
-    const ink =
-      firstCustomProperty(sources, ["--artifact-ink", "--color-base-content"]) ||
+    const fontFamily = computedValue([
+      host?.closest("[data-diagram-viewer]"),
+      host?.parentElement,
+      document.body,
+      document.documentElement,
+    ], "fontFamily");
+    const inkValue =
+      firstCustomProperty(sources, ["--color-base-content"]) ||
       computedValue(sources, "color") ||
       systemColor("CanvasText", "color");
-    const paper =
-      firstCustomProperty(sources, ["--artifact-paper", "--color-base-100"]) ||
+    const paperValue =
+      firstCustomProperty(sources, ["--color-base-100"]) ||
       computedValue(sources, "backgroundColor") ||
       systemColor("Canvas", "backgroundColor");
-    const surface =
-      firstCustomProperty(sources, ["--artifact-surface", "--color-base-200"]) ||
-      paper;
-    const line =
-      firstCustomProperty(sources, ["--artifact-line", "--color-base-300"]) ||
-      ink;
-    const accent =
-      firstCustomProperty(sources, ["--artifact-accent", "--color-primary"]) ||
-      line;
-    const muted =
-      firstCustomProperty(sources, ["--artifact-muted", "--color-neutral-content"]) ||
-      ink;
+    const surfaceValue =
+      firstCustomProperty(sources, ["--color-base-200"]) || paperValue;
+    const lineValue = `color-mix(in srgb, ${inkValue} 25%, ${paperValue})`;
+    const accentValue =
+      firstCustomProperty(sources, ["--color-primary-content"]) || lineValue;
+    const ink = legacyRgb(inkValue, host);
+    const paper = legacyRgb(paperValue, host);
+    const surface = legacyRgb(surfaceValue, host);
+    const line = legacyRgb(lineValue, host);
+    const accent = legacyRgb(accentValue, host);
 
     return {
       fontFamily,
@@ -112,7 +137,7 @@
         gitBranchLabel3: ink,
         pieTitleTextColor: ink,
         pieSectionTextColor: ink,
-        pieLegendTextColor: muted,
+        pieLegendTextColor: ink,
         pieStrokeColor: line,
       },
     };
@@ -121,18 +146,31 @@
   const configuration = (host) => {
     const inherited = inheritedTheme(host);
     const authored = isRecord(window.HTMLMermaidConfig) ? window.HTMLMermaidConfig : {};
-    const authoredTheme = isRecord(authored.themeVariables) ? authored.themeVariables : {};
+    const behavior = Object.fromEntries(
+      Object.entries(authored).filter(
+        ([key]) => !["fontFamily", "theme", "themeCSS", "themeVariables"].includes(key),
+      ),
+    );
 
     return {
-      ...authored,
+      ...behavior,
+      secure: [
+        "secure",
+        "securityLevel",
+        "startOnLoad",
+        "maxTextSize",
+        "suppressErrorRendering",
+        "maxEdges",
+        "theme",
+        "themeCSS",
+        "themeVariables",
+        "fontFamily",
+      ],
       startOnLoad: false,
       securityLevel: "strict",
-      theme: authored.theme || "base",
-      fontFamily: authored.fontFamily || inherited.fontFamily,
-      themeVariables: {
-        ...inherited.themeVariables,
-        ...authoredTheme,
-      },
+      theme: "base",
+      fontFamily: inherited.fontFamily,
+      themeVariables: inherited.themeVariables,
     };
   };
 
@@ -159,29 +197,30 @@
       markError(element, source, "render");
       return false;
     } catch (_error) {
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      if (element.querySelector("svg")) {
+        element.removeAttribute("data-mermaid-error");
+        return true;
+      }
       markError(element, source, "render");
       return false;
     }
   };
 
-  const render = async () => {
-    if (!window.mermaid) return;
-
-    const diagrams = Array.from(document.querySelectorAll(".mermaid"));
-    if (!diagrams.length) return;
-
+  const prepare = (host) => {
     try {
       const elkLayouts = window.MermaidElkLayouts?.default;
       if (elkLayouts && typeof window.mermaid.registerLayoutLoaders === "function") {
         window.mermaid.registerLayoutLoaders(elkLayouts);
       }
-      window.mermaid.initialize(configuration(diagrams[0]));
+      window.mermaid.initialize(configuration(host));
+      return true;
     } catch (_error) {
-      for (const diagram of diagrams) {
-        markError(diagram, diagram.textContent, "render");
-      }
-      return;
+      return false;
     }
+  };
+
+  const render = async (diagrams) => {
     for (const diagram of diagrams) {
       await renderOne(diagram);
     }
@@ -192,9 +231,18 @@
     }
   };
 
+  if (!window.mermaid) return;
+  const diagrams = Array.from(document.querySelectorAll(".mermaid"));
+  if (!diagrams.length) return;
+
+  if (!prepare(diagrams[0])) {
+    for (const diagram of diagrams) markError(diagram, diagram.textContent, "render");
+    return;
+  }
+
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", () => void render(), { once: true });
+    document.addEventListener("DOMContentLoaded", () => void render(diagrams), { once: true });
   } else {
-    void render();
+    void render(diagrams);
   }
 })();

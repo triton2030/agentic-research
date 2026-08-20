@@ -11,17 +11,62 @@ description: "Когда нужен быстрый локальный HTML, ко
 состав, порядок, поток, сравнение, величину, состояние или действие так, чтобы
 главное читалось глазами до прозы.
 
-Композиция важнее набора компонентов. Parent владеет отношениями между
-частями, component — своим внутренним пространством, overlay — своей safe
-area. Breakpoint меняет названную композицию, а не компенсирует ошибку базовой
-геометрии. Если одна форма ломается на разных ширинах, исправляй её общего
-владельца, а не добавляй заплатку под показанный экран.
+Ты компонуешь готовый visual language, а не рисуешь повторяемую component-
+анатомию с нуля. Если DaisyUI уже выражает нужную роль и её анатомия совпадает
+с задачей, используй канонический Daisy component: button, badge, card,
+collapse, modal, tabs, steps, timeline, table, alert, tooltip, loading и другие
+доступные families.
 
-HTML, палитра, типографика, ритм, node anatomy и motion принадлежат текущей
-странице. Общая zone даёт primitives, не design template. Соседние страницы —
-не образец для копирования. Делай сразу, свободно и достаточно: обычное
-создание не включает audit, browser-loop, screenshot matrix, `finish` или
-доказательство работы командами.
+DaisyUI владеет совпавшей component-анатомией и её состояниями. Текущая
+страница владеет отношениями между components, bespoke-вложенностью,
+page-grid, chart/diagram/flow canvas, типографикой, ритмом и motion. Custom CSS
+компонует, размещает и связывает. Он не перерисовывает Daisy surface, padding,
+border, radius и state-анатомию под другим именем. Если отношения или carrier
+в Daisy нет, создай его свободно.
+
+Parent владеет отношениями между частями, component — своим внутренним
+пространством, overlay — своей safe area. Breakpoint меняет названную
+композицию, а не компенсирует ошибку базовой геометрии. Если одна форма ломается
+на разных ширинах, исправляй её общего владельца, а не добавляй заплатку под
+показанный экран.
+
+Общая zone даёт primitives, не design template. Соседние страницы — не образец
+для копирования. Делай сразу, свободно и достаточно: обычное создание не
+включает audit, browser-loop, screenshot matrix, `finish` или доказательство
+работы командами.
+
+## Одна Палитра
+
+Вся `HTML_artifacts` zone использует DaisyUI theme `cupcake`:
+`<html data-theme="cupcake">`.
+
+Второй палитры нет. Authored CSS, SVG, ECharts, Mermaid, React Flow и каталог
+берут цвета только из Daisy semantic tokens либо из `color-mix()` от них.
+Vendor bytes не переписываются.
+
+Daisy colors являются парами surface/content:
+
+- `base-*` — бумага и нейтральные поверхности;
+- `base-content` — обычный foreground;
+- `primary`/`primary-content`, `secondary`/`secondary-content` и
+  `accent`/`accent-content` применяются как связанные пары;
+- Daisy component самостоятельно выбирает content для своей role surface: эту
+  пару вручную не перерисовывай;
+- `neutral-content` используется только на `neutral`;
+- `info`, `success`, `warning` и `error` используются только для настоящих
+  состояний, а не как дополнительные категории данных.
+
+Для фиксированной темы cupcake значимые marks на base-paper — текст, icons,
+SVG strokes, connectors, focus, selection и data ink — могут использовать
+проверенную brand-content тройку: `primary-content`, `secondary-content`,
+`accent-content`. Это относится ко всему foreground, не только к тексту. Цвет
+не остаётся единственным носителем смысла: сохраняются label, форма или подпись.
+
+Если цвет различает больше трёх равноправных категорий, artifact задаёт
+`option.color` из brand-content/base-content и производных `color-mix()`.
+Status-токены не назначаются нейтральным категориям. Shared adapters
+преобразуют Daisy OKLCH в формат runtime; агент страницы не пишет для этого
+дополнительный код.
 
 ## Одна Общая Zone
 
@@ -96,7 +141,9 @@ animation и canvas не несут ответ в одиночку.
 
 ## Общие Носители Уже Установлены
 
-Начинай с native HTML, CSS, SVG и общих DaisyUI, Tailwind, Alpine и Lucide.
+Начинай с native HTML behavior, совпавшей DaisyUI-анатомии и CSS-композиции.
+SVG пиши для отношений, которых нет в component library. Tailwind, Alpine и
+Lucide уже общие.
 Table, Mermaid, ECharts и React Flow уже лежат в `lib/` и `assets/shared/`:
 подключи только tags выбранного носителя из его reference, без installer
 command, CDN, server или build step.
@@ -113,9 +160,9 @@ command, CDN, server или build step.
 - DaisyUI grammar — [`daisy-storytelling.md`](references/daisy-storytelling.md).
 
 React Flow node содержит любой semantic HTML: icon-only, text-only, большой
-заголовок, controls или любое число disclosures. Shared bridge не задаёт node
-anatomy, palette или размеры. ECharts recipes задают отношения data/options,
-не page composition.
+заголовок, controls или любое число disclosures. Совпавшая анатомия внутри node
+остаётся Daisy; сама node, её размеры и состав — artifact-owned. ECharts recipes
+задают отношения data/options, не page composition.
 
 ## Границы
 
@@ -123,9 +170,9 @@ anatomy, palette или размеры. ECharts recipes задают отнош�
   npm install, server или build step.
 - Native HTML идёт раньше JavaScript. Интерактивность и motion оставляют
   static meaning и уважают `prefers-reduced-motion`.
-- DaisyUI задаёт grammar выбранного component, не композицию или palette.
+- DaisyUI владеет совпавшей component-анатомией, но не page composition.
   Custom layout не называй `card`, `hero`, `navbar` или `drawer`, если не
-  используешь их contract.
+  используешь их contract; Daisy component не перерисовывай custom shell.
 - Скрывается только необязательная глубина; hover и tooltip не несут
   единственный существенный смысл.
 

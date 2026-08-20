@@ -1,2 +1,3 @@
-/* Page-owned design: palette, typography, spacing, composition and motion. */
+/* Page-owned typography, spacing, composition and motion. */
+/* Palette comes from DaisyUI cupcake semantic tokens; no second color system. */
 /* Shared libraries and adapters live in ../lib and ./shared. */

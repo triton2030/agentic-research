@@ -6,20 +6,20 @@
   function toolbarMarkup() {
     return `
       <div class="join diagram-viewer__toolbar" role="toolbar" aria-label="Управление диаграммой">
-        <button class="btn btn-sm join-item tooltip tooltip-bottom" type="button"
+        <button class="btn btn-xs join-item tooltip tooltip-bottom" type="button"
           data-tip="Уменьшить" data-diagram-action="zoom-out" aria-label="Уменьшить диаграмму">
           <i data-lucide="minus" class="size-4" aria-hidden="true"></i>
         </button>
-        <span class="btn btn-sm join-item diagram-viewer__scale" data-diagram-zoom>100%</span>
-        <button class="btn btn-sm join-item tooltip tooltip-bottom" type="button"
+        <span class="btn btn-xs join-item diagram-viewer__scale" data-diagram-zoom>100%</span>
+        <button class="btn btn-xs join-item tooltip tooltip-bottom" type="button"
           data-tip="Увеличить" data-diagram-action="zoom-in" aria-label="Увеличить диаграмму">
           <i data-lucide="plus" class="size-4" aria-hidden="true"></i>
         </button>
-        <button class="btn btn-sm join-item tooltip tooltip-bottom" type="button"
+        <button class="btn btn-xs join-item tooltip tooltip-bottom" type="button"
           data-tip="Вписать целиком" data-diagram-action="fit" aria-label="Вписать диаграмму целиком">
           <i data-lucide="scan" class="size-4" aria-hidden="true"></i>
         </button>
-        <button class="btn btn-sm join-item tooltip tooltip-bottom" type="button"
+        <button class="btn btn-xs join-item tooltip tooltip-bottom" type="button"
           data-tip="Полный экран" data-diagram-action="fullscreen" aria-label="Открыть на весь экран">
           <i data-lucide="maximize-2" class="size-4" aria-hidden="true"></i>
         </button>

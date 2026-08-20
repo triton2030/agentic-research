@@ -27,8 +27,9 @@
 
 ## Лестница Носителей
 
-1. Native semantic HTML + CSS: composition, nesting, disclosure, steps,
-   timeline, stat, table и простые bars.
+1. Native semantic behavior + совпавшая DaisyUI-анатомия + CSS composition:
+   nesting, disclosure, steps, timeline, stat, table и простые bars. Custom CSS
+   связывает готовые components, но не перерисовывает их anatomy.
 2. Inline SVG: одна фиксированная схема или chart с небольшой геометрией.
 3. Mermaid: topology или chart задаётся данными; нужен auto-layout либо viewer.
 4. ECharts: несколько quantitative views, exploration либо Sankey/treemap/

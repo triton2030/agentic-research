@@ -1,12 +1,11 @@
-/* React Flow inherits the artifact's visual language; it owns no palette. */
+/* React Flow maps its runtime chrome to DaisyUI cupcake semantic roles. */
 [data-react-flow] {
-  --rf-surface: var(--color-base-100, var(--surface, var(--paper, Canvas)));
-  --rf-surface-raised: var(--color-base-200, var(--surface-raised, var(--card, Canvas)));
-  --rf-ink: var(--color-base-content, var(--text, var(--ink, CanvasText)));
-  --rf-accent: var(--color-primary, var(--accent, currentColor));
-  --rf-radius: var(--radius-box, var(--radius, 1rem));
+  --rf-surface: var(--color-base-100, Canvas);
+  --rf-surface-raised: var(--color-base-200, Canvas);
+  --rf-ink: var(--color-base-content, CanvasText);
+  --rf-accent: var(--color-primary-content, currentColor);
   --rf-border-width: var(--border, 1px);
-  --rf-line: var(--color-base-300, var(--line, currentColor));
+  --rf-line: var(--color-base-300, currentColor);
   color: inherit;
   font: inherit;
 }
@@ -59,14 +58,6 @@
 
 [data-react-flow] .rf-edge-label {
   position: absolute;
-  padding: 0.35rem 0.55rem;
-  border: var(--rf-border-width) solid var(--rf-line);
-  border-radius: 999px;
-  background: var(--rf-surface-raised);
-  color: var(--rf-ink);
-  font: inherit;
-  font-size: 0.75rem;
-  line-height: 1;
   pointer-events: none;
 }
 
@@ -75,26 +66,8 @@
   fill: currentColor;
 }
 
-[data-react-flow] .rf-motion-toggle {
-  min-block-size: 2.4rem;
-  padding: 0.5rem 0.75rem;
-  border: var(--rf-border-width) solid var(--rf-line);
-  border-radius: var(--radius-field, 0.65rem);
-  background: var(--rf-surface-raised);
-  color: var(--rf-ink);
-  font: inherit;
-  font-size: 0.75rem;
-  cursor: pointer;
-}
-
 [data-react-flow] .rf-load-error {
-  box-sizing: border-box;
   margin: 1rem;
-  padding: 1rem;
-  border: var(--rf-border-width) solid var(--rf-line);
-  border-radius: var(--rf-radius);
-  color: var(--rf-ink);
-  font: inherit;
 }
 
 @media (prefers-reduced-motion: reduce) {

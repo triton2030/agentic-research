@@ -59,11 +59,35 @@ Adapter включает ECharts ARIA и передаёт туда authored desc
 
 ## Palette, Font, Motion
 
-Adapter читает computed font и semantic variables artifact:
-`--color-primary`, `--color-secondary`, `--color-accent`, status colors,
-`--color-base-content`, `--color-base-300`. Из них собирается только ECharts
-theme bridge; authored `option` остаётся свободным. При
-`prefers-reduced-motion: reduce` animation отключается. `ResizeObserver`
+Adapter читает computed font и Daisy cupcake tokens. Обычный ink берётся из
+`base-content`; axis/grid — из контрастной смеси `base-content` с `base-100`,
+а не из близких по светлоте соседних base surfaces. Default data ink — из
+проверенной brand-content тройки `primary-content`, `secondary-content`,
+`accent-content`. Adapter
+переводит CSS color в формат, который понимает ECharts; page не пишет
+conversion code. Authored `option` остаётся свободным.
+
+Три brand colors — default только для максимум трёх равноправных categories или
+series. Если цвет различает четыре и более, задай `option.color` из brand/base
+tokens и производных `color-mix()` под текущие данные. `info`, `success`,
+`warning`, `error` не расширяют categorical palette: это реальные statuses.
+Label, shape или line style дублируют важное различие.
+
+```json
+"color": [
+  "var(--color-primary-content)",
+  "var(--color-secondary-content)",
+  "var(--color-accent-content)",
+  "var(--color-base-content)",
+  "color-mix(in oklch, var(--color-primary-content) 64%, var(--color-base-100))"
+]
+```
+
+Adapter разрешает эти строковые CSS colors/expressions в RGB перед передачей
+ECharts. Gradient object задавай в поддерживающем его series/item style, а не в
+глобальном palette `option.color`.
+
+При `prefers-reduced-motion: reduce` animation отключается. `ResizeObserver`
 подгоняет chart после изменения контейнера.
 
 ## Пять Рецептов, Не Пять Макетов
@@ -138,6 +162,8 @@ theme bridge; authored `option` остаётся свободным. При
 ### 4. Sankey — показать объём между этапами
 
 `value` относится к потоку, а не к размеру нарисованного блока.
+Если nodes больше трёх и цвет выражает identity, добавь authored
+`option.color`; не позволяй default palette назначить status colors этапам.
 
 ```json
 {

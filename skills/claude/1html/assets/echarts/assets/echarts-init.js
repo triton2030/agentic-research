@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const API_VERSION = "1.0.0";
+  const API_VERSION = "1.1.0";
   const existingApi = window.HTMLECharts;
   if (existingApi?.version === API_VERSION) {
     existingApi.mountAll();
@@ -29,27 +29,51 @@
     return fallback;
   }
 
+  function legacyRgb(host, value) {
+    const probe = document.createElement("span");
+    probe.style.color = value;
+    probe.style.position = "fixed";
+    probe.style.visibility = "hidden";
+    host.append(probe);
+    const resolved = getComputedStyle(probe).color;
+    probe.remove();
+
+    const canvas = document.createElement("canvas");
+    canvas.width = 1;
+    canvas.height = 1;
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+    context.clearRect(0, 0, 1, 1);
+    context.fillStyle = resolved;
+    context.fillRect(0, 0, 1, 1);
+    const [red, green, blue, alpha] = context.getImageData(0, 0, 1, 1).data;
+    return alpha === 255
+      ? `rgb(${red}, ${green}, ${blue})`
+      : `rgba(${red}, ${green}, ${blue}, ${alpha / 255})`;
+  }
+
   function themeFrom(host) {
     const style = getComputedStyle(host);
-    const ink = cssToken(
+    const inkValue = cssToken(
       style,
-      ["--color-base-content", "--text", "--ink"],
+      ["--color-base-content"],
       style.color,
     );
-    const line = cssToken(
+    const paperValue = cssToken(
       style,
-      ["--color-base-300", "--line"],
-      ink,
+      ["--color-base-100"],
+      "Canvas",
+    );
+    const ink = legacyRgb(host, inkValue);
+    const line = legacyRgb(
+      host,
+      `color-mix(in srgb, ${inkValue} 25%, ${paperValue})`,
     );
     const fontFamily = style.fontFamily;
     const palette = [
-      cssToken(style, ["--color-primary", "--primary"], ""),
-      cssToken(style, ["--color-secondary", "--secondary"], ""),
-      cssToken(style, ["--color-accent", "--accent"], ""),
-      cssToken(style, ["--color-success", "--success"], ""),
-      cssToken(style, ["--color-warning", "--warning"], ""),
-      cssToken(style, ["--color-error", "--error"], ""),
-    ].filter(Boolean);
+      cssToken(style, ["--color-primary-content"], ""),
+      cssToken(style, ["--color-secondary-content"], ""),
+      cssToken(style, ["--color-accent-content"], ""),
+    ].filter(Boolean).map((value) => legacyRgb(host, value));
     const textStyle = { color: ink, fontFamily };
     const axisTheme = () => ({
       axisLabel: { ...textStyle },
@@ -92,6 +116,22 @@
       fail(`ECharts option needs a non-empty series array: ${configId}`);
     }
     return option;
+  }
+
+  function resolvedOptionColors(host, option) {
+    if (option.color === undefined) return option;
+    if (!Array.isArray(option.color) || !option.color.length) {
+      fail("ECharts option.color must be a non-empty array when provided");
+    }
+    return {
+      ...option,
+      color: option.color.map((value) => {
+        if (typeof value !== "string" || !value.trim()) {
+          fail("ECharts option.color values must be non-empty CSS color strings");
+        }
+        return legacyRgb(host, value);
+      }),
+    };
   }
 
   function labelledText(host) {
@@ -138,7 +178,7 @@
     if (pending.has(host)) return null;
 
     try {
-      const option = configFor(host);
+      const option = resolvedOptionColors(host, configFor(host));
       const bounds = host.getBoundingClientRect();
       if (bounds.width <= 0 || bounds.height <= 0) {
         host.style.minBlockSize ||= "var(--echart-fallback-block-size, 20rem)";

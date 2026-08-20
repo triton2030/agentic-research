@@ -16,19 +16,24 @@
 - add-on installer scripts и HTML wiring parser;
 - обязательные audit, browser-loop, screenshot matrix и command evidence в
   обычной работе;
-- design template, общий visual language и component anatomy как package
-  contract.
+- design template, отдельная authored-палитра и custom component anatomy как
+  package contract.
 
 ### Оставлено
 
-- один нейтральный page scaffold, чтобы начать без boilerplate;
+- один composition-neutral page scaffold с DaisyUI `cupcake`, чтобы начать без
+  boilerplate и без выбора второй палитры;
 - один shared `lib/` с локальными pinned runtimes;
-- один `assets/shared/` с adapters и пустым zone-owned `components.css`;
+- один `assets/shared/` с adapters и zone-owned `components.css` только для
+  повторившегося carrier, которого нет в Daisy;
 - Table, Mermaid, ECharts и React Flow как доступные носители, не обязательные
   страницы или presets;
 - каталог flat HTML и legacy directory entries на время естественного перехода;
 - одна папочная stance: визуально объясняй, сохраняй design freedom, исправляй
   общего владельца геометрии вместо device-specific patch;
+- DaisyUI владеет совпавшей component-анатомией и состояниями; artifact —
+  уникальными отношениями и composition; все authored carriers используют
+  semantic tokens `cupcake` вместо второй палитры;
 - advisory HTML smoke по явному запросу: только browser/runtime facts без
   суждения о clipping, пересечениях, overlay или красоте.
 

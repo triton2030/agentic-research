@@ -226,7 +226,7 @@
           h(
             "span",
             {
-              className: "rf-edge-label nodrag nopan",
+              className: "rf-edge-label badge badge-sm nodrag nopan",
               style: {
                 transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
               },
@@ -329,7 +329,7 @@
               "button",
               {
                 "aria-pressed": motionPaused ? "true" : "false",
-                className: "rf-motion-toggle nodrag nopan",
+                className: "rf-motion-toggle btn btn-sm btn-ghost nodrag nopan",
                 onClick: () => setMotionPaused((paused) => !paused),
                 type: "button",
               },
@@ -345,7 +345,8 @@
     host.removeAttribute("data-react-flow-loading");
     host.replaceChildren();
     const message = document.createElement("p");
-    message.className = "rf-load-error";
+    message.className = "rf-load-error alert alert-error";
+    message.setAttribute("role", "alert");
     message.textContent = `React Flow: ${error.message}`;
     host.append(message);
     console.error(error);

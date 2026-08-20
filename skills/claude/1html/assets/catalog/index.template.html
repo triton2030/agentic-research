@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ru" data-theme="editorial">
+<html lang="ru" data-theme="cupcake">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,7 +8,6 @@
   <title>Локальные HTML-артефакты</title>
   <link href="lib/daisyui.css" rel="stylesheet">
   <link href="lib/daisyui-themes.css" rel="stylesheet">
-  <link href="assets/shared/catalog-theme.css" rel="stylesheet">
   <link href="assets/shared/catalog.css" rel="stylesheet">
   <script src="lib/tailwind.js"></script>
   <script>
@@ -178,7 +177,7 @@
           Каждая строка ниже — самостоятельная HTML-страница.
         </p>
       </div>
-      <span class="badge badge-success">__CATALOG_PROJECTS_LABEL__</span>
+      <span class="badge badge-primary">__CATALOG_PROJECTS_LABEL__</span>
     </section>
 
     <section class="catalog-controls" x-cloak x-show="items.length">
@@ -209,14 +208,14 @@
       </label>
     </section>
 
-    <article class="card catalog-empty" x-cloak x-show="items.length === 0">
+    <article class="card border border-base-300 bg-base-200 catalog-empty" x-cloak x-show="items.length === 0">
       <div class="card-body">
         <h2 class="card-title">Пока нет страниц</h2>
         <p>Первый созданный HTML автоматически появится здесь.</p>
       </div>
     </article>
 
-    <article class="card catalog-empty" x-cloak x-show="items.length && visibleItems.length === 0">
+    <article class="card border border-base-300 bg-base-200 catalog-empty" x-cloak x-show="items.length && visibleItems.length === 0">
       <div class="card-body">
         <h2 class="card-title">Нет страниц с таким набором тегов</h2>
         <button class="btn btn-sm btn-neutral w-fit" @click="activeTags = []">

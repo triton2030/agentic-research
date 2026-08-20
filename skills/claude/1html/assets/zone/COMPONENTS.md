@@ -1,19 +1,21 @@
 <!-- 1html-generated: shared carrier map -->
 # Shared Visual Carriers
 
-Это карта уже установленных возможностей общей `HTML_artifacts` zone. Она не
-задаёт page layout, palette, typography, card anatomy или размеры.
+Это карта уже установленных возможностей общей `HTML_artifacts` zone. DaisyUI
+`cupcake` владеет совпавшей component-анатомией и палитрой; artifact владеет
+page layout, typography, bespoke carrier, node anatomy и размерами.
 
 ## Base
 
 Каждая новая страница уже подключает:
 
-- `lib/daisyui.css` и `lib/daisyui-themes.css` — component grammar;
+- `lib/daisyui.css` и `lib/daisyui-themes.css` — component anatomy и palette;
 - `lib/tailwind.js` — utility CSS;
 - `lib/lucide.min.js` — icons; neutral scaffold уже вызывает
   `lucide.createIcons()`, при ручной странице вызови его после загрузки script;
 - `lib/alpine.js` — небольшие UI states;
-- `assets/shared/components.css` — общий zone-owned component layer;
+- `assets/shared/components.css` — только повторившийся carrier, которого нет в
+  Daisy; не второй atom system и не palette;
 - `assets/<slug>.css` — дизайн только текущей страницы.
 
 ## Table
@@ -48,8 +50,8 @@ Adapter добавляет Alpine `artifactTable()` для search/filter/sort.
 ```
 
 Host: `<div data-echart="option-id" aria-label="..."></div>`. Option хранится в
-`<script type="application/json" id="option-id">`. Размер, palette, данные и
-page composition принадлежат текущей странице.
+`<script type="application/json" id="option-id">`. Размер, данные и page
+composition принадлежат текущей странице; palette приходит из cupcake.
 
 ## React Flow
 
@@ -63,6 +65,12 @@ page composition принадлежат текущей странице.
 Host: `<div data-react-flow="flow-id" aria-label="..."></div>`. Config хранится
 в JSON; содержимое nodes — произвольный semantic HTML из `<template>`. Shared
 bridge не задаёт node anatomy, surface, padding или количество disclosures.
+Внутри свободной node совпавшие button, badge, collapse и alert остаются Daisy
+components.
+
+Все shared bridges наследуют Daisy cupcake tokens. Они не принимают
+`--artifact-*` palette aliases и не используют status colors как нейтральные
+data categories.
 
 Все runtimes локальны и работают через `file://`; server, CDN и build step не
 нужны. Подключай только carrier, который действительно показывает отношение.

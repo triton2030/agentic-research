@@ -24,7 +24,6 @@ fi
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 skill_dir="$(cd "$script_dir/.." && pwd)"
 base_lib="$skill_dir/assets/base/lib"
-catalog_theme="$skill_dir/assets/catalog/theme.css"
 catalog_source="$skill_dir/assets/catalog/catalog.css"
 catalog_builder="$script_dir/build_catalog.py"
 artifacts_root="$project_root/_workspace/HTML_artifacts"
@@ -34,7 +33,6 @@ catalog_index="$artifacts_root/index.html"
 temporary_index="$artifacts_root/.index.html.tmp.$$"
 
 mkdir -p "$shared_assets" "$shared_lib/licenses"
-cp "$catalog_theme" "$shared_assets/catalog-theme.css"
 cp "$catalog_source" "$shared_assets/catalog.css"
 for file in \
   THIRD_PARTY_NOTICES.txt \

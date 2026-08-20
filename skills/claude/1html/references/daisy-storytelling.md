@@ -19,11 +19,32 @@
 
 **Практика:** сначала выбери component по смыслу (`card`, `alert`, `table`,
 `tabs`, `collapse`, `modal`, `steps`), затем semantic color role, затем малые
-Tailwind utilities для конкретной композиции. Palette, typography, spacing и
-повторяемые visual tokens текущей страницы принадлежат `assets/<slug>.css`.
+Tailwind utilities для конкретной композиции. Daisy владеет совпавшей
+component-анатомией; artifact владеет отношениями между components и уникальным
+carrier. Composition is yours; matching anatomy is Daisy's.
 
 **Не делай:** не создавай второй способ выражать одну роль внутри artifact;
-SVG и add-ons наследуют `currentColor` или artifact variables.
+не добавляй custom class, который заново рисует surface, padding, border,
+radius или state уже выбранного Daisy component.
+
+## Карточка: Cupcake — Одна Палитра
+
+**Сигнал:** authored CSS, SVG или adapter вводит literal color, `--artifact-*`
+palette либо использует status color для нейтральной категории.
+
+**Практика:** root использует `data-theme="cupcake"`. Surface/content — пары:
+`base-content` работает на base surfaces, а role component получает matching
+`*-content` от Daisy. На cupcake base-paper foreground marks и data ink могут
+брать проверенную brand-content тройку `primary-content`,
+`secondary-content`, `accent-content`. Значимый mark сохраняет label или форму.
+
+Для четырёх и более равноправных категорий задай `option.color` из brand/base
+tokens и `color-mix()`. `info`, `success`, `warning`, `error` означают только
+реальный status. `neutral-content` не является muted text на base-paper.
+
+**Не делай:** не создавай вторую palette и не переопределяй content внутри
+Daisy component. Runtime adapter сам переводит Daisy OKLCH в поддерживаемый
+формат; page не пишет color-conversion code.
 
 ## Карточка: Компонент По Отношению
 
@@ -60,13 +81,13 @@ DaisyUI collapse. Modal начинай с нативного `<dialog>`: DaisyUI
 визуальную группу.
 
 **Практика:** parent владеет расстоянием между children, component — внутренним
-padding. Заведи малый набор tokens в `assets/<slug>.css` под текущую композицию.
-Design может быть editorial, dense, playful или technical; общий scaffold не
-владеет layout, palette или typography.
+padding. Page может быть editorial, dense, playful или technical; общий
+scaffold не владеет layout или typography. Цветовые решения остаются внутри
+semantic roles cupcake, а не отдельной page palette.
 
-**Не делай:** не рассыпай почти одинаковые arbitrary values по HTML. Literal
-hex и inline style допустимы для разового visual, но повторяемая роль получает
-одного владельца в `local.css`.
+**Не делай:** не рассыпай почти одинаковые arbitrary values по HTML. Для цвета
+literal hex не является разовым исключением: используй Daisy token или
+`color-mix()` от него.
 
 ## Карточка: Motion Объясняет Изменение
 
@@ -104,7 +125,8 @@ loading animations — static fallback при `prefers-reduced-motion`. Это �
 **Сигнал:** знакомый компонент не выражает нужную связь.
 
 **Практика:** точечно найди термин в `daisyui-llms.txt`; полный локальный bundle
-доступен. Выбери минимальное число разных component families на странице.
+доступен. Если role и anatomy совпадают, канонический Daisy markup — самый
+дешёвый путь. Выбери минимальное число разных component families на странице.
 
 **Не делай:** не открывай весь reference и не превращай artifact в showcase
 DaisyUI.

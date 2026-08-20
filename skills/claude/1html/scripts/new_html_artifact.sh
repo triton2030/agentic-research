@@ -108,7 +108,6 @@ copy_once "$skill_dir/assets/react-flow/assets/react-flow-theme.css" \
 copy_once "$skill_dir/assets/react-flow/assets/react-flow-init.js" \
   "$shared_assets/react-flow-init.js"
 
-cp "$skill_dir/assets/catalog/theme.css" "$shared_assets/catalog-theme.css"
 cp "$skill_dir/assets/catalog/catalog.css" "$shared_assets/catalog.css"
 
 if [ ! -e "$artifacts_root/AGENTS.md" ]; then

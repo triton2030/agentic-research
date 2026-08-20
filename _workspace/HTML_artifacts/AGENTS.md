@@ -9,9 +9,17 @@ flow, план — timeline, сравнение — рядом, величины
 Нужно решить, какой visual carrier выбрать и как им показать материал → открой
 skill `1html`; здесь остаётся только постоянная установка зоны.
 
-Композиция важнее компонентов. Parent владеет отношениями между частями,
-component — внутренним пространством, overlay — safe area. Breakpoint меняет
-композицию, а не компенсирует ошибку общей геометрии.
+Используй stereotype агента в пользу скорости: совпавшая component-анатомия и
+state принадлежат DaisyUI; artifact владеет отношениями, bespoke-вложенностью,
+chart/diagram/flow canvas, типографикой, ритмом и motion. Custom CSS компонует,
+но не перерисовывает Daisy component под другим именем. Parent владеет
+отношениями между частями, component — внутренним пространством, overlay — safe
+area. Breakpoint меняет композицию, а не компенсирует ошибку общей геометрии.
+
+Вся zone использует DaisyUI `cupcake`. Второй палитры нет: authored CSS, SVG и
+visual runtimes берут Daisy semantic tokens либо `color-mix()` от них. На base
+обычный foreground — `base-content`; meaningful data ink/lines используют
+brand-content roles; status colors означают только реальные statuses.
 
 Это одна shared zone для всех страниц:
 
@@ -19,10 +27,14 @@ component — внутренним пространством, overlay — safe 
 - общие libraries уже лежат в `lib/`, components/styles/adapters — в
   `assets/shared/`;
 - точные local tags носителей лежат в `COMPONENTS.md`; открывай только нужный;
+- подробности выбора visual и component лежат в skill `1html`; не дублируй их
+  здесь;
 - не создавай per-page bundle directory и не копируй `lib/assets`;
 - соседние HTML, `_template.html` и `assets/_template.css` не являются design
   template; это только frozen neutral scaffold этой zone;
-- обычная работа заканчивается готовой страницей, без audit/check/finish.
+- обычная работа заканчивается готовой страницей, без audit/check/finish;
+- явный технический check — advisory `check_html.mjs` из скила `1html`: только
+  runtime, local files, сеть и горизонтальная прокрутка страницы; не visual audit.
 
 Страница обязана открываться через `file://` без сети, server и build step.
 Существенный смысл оставляй в semantic HTML и не прячь только в цвет, hover,

@@ -29,9 +29,10 @@ design template и не предписанная анатомия node. Adapter 
 как есть и не создаёт header/body/footer, card, accordion или icon.
 
 Одна node может быть только emoji и короткой подписью, другая — большим
-заголовком и двумя `<details>`, третья — icon, текстом, form controls и тремя
-disclosures. Количество, порядок, semantic tags, размеры, padding, surface,
-radius и responsive поведение задаёт сама страница в `assets/<slug>.css`.
+заголовком и двумя `<details class="collapse">`, третья — icon, текстом, form
+controls и тремя disclosures. Количество, порядок, semantic tags, размеры и
+responsive поведение задаёт сама страница в `assets/<slug>.css`. Совпавшие
+button, badge, collapse, alert и другие anatomy внутри node остаются Daisy.
 
 Bridge оставляет два стабильных hooks:
 
@@ -60,8 +61,14 @@ Topology хранится в JSON, а содержимое каждой слож
     <section>
       <h3>Проверка заказа</h3>
       <p>Состав и срок подтверждаются отдельно.</p>
-      <details><summary>Состав</summary><ul><li>Позиции</li><li>Тираж</li></ul></details>
-      <details><summary>Срок</summary><p>Обещанная дата и запас.</p></details>
+      <details class="collapse collapse-arrow border border-base-300">
+        <summary class="collapse-title">Состав</summary>
+        <ul class="collapse-content"><li>Позиции</li><li>Тираж</li></ul>
+      </details>
+      <details class="collapse collapse-arrow border border-base-300">
+        <summary class="collapse-title">Срок</summary>
+        <p class="collapse-content">Обещанная дата и запас.</p>
+      </details>
     </section>
   </template>
 
@@ -125,10 +132,14 @@ edges остались на handles.
 
 ## Palette И Motion
 
-Bridge наследует `font-family`, `color` и semantic variables самого artifact:
-`--color-base-*`, `--color-primary`, `--color-accent`, `--radius-box`. При их
-отсутствии он использует system colors и `currentColor`, а не свою палитру.
-Страница может переопределить bridge variables в `assets/<slug>.css`.
+Bridge наследует `font-family` и Daisy cupcake roles: base surfaces,
+`base-content`, `base-300` и `primary-content` для meaningful edge/selection.
+При их отсутствии он использует system colors и `currentColor`, а не свою
+палитру. Node composition может переопределить geometry variables в
+`assets/<slug>.css`, но не вводит второй palette dialect.
+
+Generated Pause/Play, load error и edge label используют Daisy `btn`, `alert`
+и `badge`; page CSS отвечает только за их положение относительно canvas.
 
 Animated edge показывает направление только для текущего потока. При
 `prefers-reduced-motion: reduce` частица исчезает; статичная линия и label
