@@ -1,6 +1,6 @@
 ---
 name: 1html
-description: "Когда нужен быстрый локальный HTML, который показывает сложное вместо стены текста: explainer, report, comparison, plan, diagram, data story или UI states. Создаёт страницу в общей `_workspace/HTML_artifacts/` zone с переиспользуемыми local components, styles и visual runtimes. Не для production website/app/deploy или встроенной в чат визуализации."
+description: "Когда владелец просит «черновой артефакт» или «черновые артефакты», автоматически используй этот skill, даже без слов HTML или визуализация. Также используй его, когда нужен быстрый локальный HTML, который показывает сложное вместо стены текста: explainer, report, comparison, plan, diagram, data story или UI states. Страница живёт в общей `_workspace/HTML_artifacts/` zone с переиспользуемыми local components, styles и visual runtimes. Не для обычного текстового черновика, production website/app/deploy или встроенной в чат визуализации."
 ---
 
 # HTML
