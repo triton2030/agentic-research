@@ -12,10 +12,9 @@ kind: status
 
 ## Next
 
-Запустить шесть Luna Max read-only тредов в worktrees. Каждый использует
-`$1orchestration` и делит свою зону между внутренними субагентами. Root сводит
-их returns в один непротиворечивый contract и только после этого открывает
-writer-волну вехи 2.
+Дождаться шести Luna Max read-only returns, проверить evidence и расхождения
+между зонами, затем свести их в один непротиворечивый contract вехи 1. Только
+после этого root открывает file-disjoint writer-волну вехи 2.
 
 ## Вехи
 
@@ -42,8 +41,18 @@ writer-волну вехи 2.
 
 ## Wave 4 registry
 
-Пока не запущено. Registry заполняет только root после фактического создания
-тредов: task ID, title, card, worktree и итоговый lifecycle state.
+| Task | Title | Card | Worktree | State |
+| --- | --- | --- | --- | --- |
+| `01a0248f-9a1b-71d0-ac76-9c9247e0d23d` | OpenViking: карта корпуса | `wave-4-corpus-map.md` | `25bc` | active |
+| `01a0248f-9a14-7a53-877a-56a4f0acb12a` | OpenViking: seam компилятора | `wave-4-compiler-seam.md` | `1b54` | active |
+| `01a02490-90e6-7a71-8120-8451f7ad4016` | OpenViking: prompt и IA | `wave-4-openviking-ia.md` | `93c9` | active |
+| `01a0248f-9a1b-71d0-ac76-9c52161efcf2` | OpenViking: LLM route | `wave-4-llm-route.md` | `2901` | active |
+| `01a0248f-9a14-7a53-877a-568219d57716` | OpenViking: acceptance contract | `wave-4-acceptance.md` | `2e80` | active |
+| `01a0248f-9a1b-71d0-ac76-9c7d8ac02686` | OpenViking: privacy и recovery | `wave-4-privacy-operations.md` | `b2e6` | active |
+
+Все треды запущены на `gpt-5.6-luna/max`, обязаны использовать
+`$1orchestration` и внутренний fan-out. Репозиторий для них read-only; запись
+returns и `observations/` остаётся у root.
 
 ## Блокеры
 

@@ -45,6 +45,9 @@ OpenViking в принятом маршруте не участвует.
   no-gold вопрос — hard failure.
 - Полный backfill имеет inventory/coverage/build receipts и короткий agent
   route: сначала Wiki, holders — только для проверки evidence.
+- Только подтверждённые переносимые выводы для будущего cross-project compiler
+  записываются в `observations/README.md`; локальная хроника и гипотезы туда не
+  попадают.
 
 ## Не входит
 
@@ -83,6 +86,8 @@ OpenViking в принятом маршруте не участвует.
   потребовал использовать именно OpenViking prompts, IA и layered projection.
 - Existing frame дополняется: один plan owner и один derived experiment;
   `_ops/chat-recall/` не дублируется и остаётся источником доказательств.
+- `observations/` владеет только переносимыми experiment learnings; он не
+  дублирует plan status, implementation truth или страницы Wiki.
 - Self-report writer’а не является приёмкой: каждую существенную границу
   проверяет независимая рука или исполняемый validator.
 - Максимальный fan-out ограничен реальными независимыми зонами; writers
@@ -93,6 +98,8 @@ OpenViking в принятом маршруте не участвует.
 - Решение о маршруте, локальном плане, root-orchestrator, максимальных фоновых
   Luna Max-тредах и вложенных субагентах:
   `_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md`.
+- Там же владелец потребовал сохранять самые важные наблюдения отдельно как
+  сырьё для будущего инструмента конвертации цитат во всех проектах.
 - Неизменяемость holders и source-bound evidence: `_ops/AGENTS.md`.
 - Upstream prompt и IA: официальный OpenViking
   `examples/compile/ov-compile-skills/llm-wiki/SKILL.md`; точную версию обязана
