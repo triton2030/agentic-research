@@ -216,3 +216,23 @@ environment-dependent.
 **Граница.** Это относится к read-only frozen inputs с проверенными digests.
 Writable generated roots по-прежнему требуют resolved containment и
 fail-closed symlink checks.
+
+## 2026-08-22 — Partition оптимизирует knowledge cohesion, не chronology
+
+**Вывод.** Когда source уже сохраняет chronology, deterministic partitions для
+semantic workers должны прежде всего удерживать normalized knowledge topic.
+Session остаётся атомарной внутри `(topic, session)`, но может пересекать parts
+по topic boundary; oversized topic делится адресуемыми shards.
+
+**Evidence.** На frozen 1101-record corpus session-first LPT дал 137–138
+records и 0 split sessions, но размазал topics. Topic-first rule дал 135–141,
+сохранил все 369 `(topic, session)` groups и разделил только topic из 624
+records на 5 parts. Два fresh builds byte-identical; exact return —
+`modules/_returns/wave-6-f3-stable-partitions.md`.
+
+**Что меняет.** Reusable compiler объявляет primary cohesion unit, cap,
+oversized fallback и измеренную цену split до semantic generation. Balance сам
+по себе не заменяет downstream knowledge route.
+
+**Граница.** Это deterministic foundation. Retrieval benefit и качество
+semantic claims будут проверены только после representative L2/L1/L0 ingestion.

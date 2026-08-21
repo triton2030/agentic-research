@@ -40,11 +40,13 @@ coverage-disposition, а не исключать файл или чинить so
 ## Dependencies
 
 F1 frozen corpus lock → F2 records/evidence → F3 stable partitions. F2 не
-читает live directory; F3 не меняет evidence-поля и не вызывает модель.
+читает live directory; F3 не меняет evidence-поля и не вызывает модель. F4
+synthetic provider canary идёт отдельной веткой после pinned execution seam.
+Wave 6 PASS требует F1 + F2 + F3 + F4.
 
 ## Ownership
 
-Три file-disjoint Luna Max writers, каждый с собственным nested read-only
+Четыре file-disjoint Luna Max writers, каждый с собственным nested read-only
 checker:
 
 - F1: `scripts/freeze_corpus.py`, `tests/test_freeze_corpus.py`,
@@ -54,6 +56,9 @@ checker:
 - F3: `scripts/build_cluster_proposals.py`, `tests/test_cluster_proposals.py`,
   `artifacts/full-build/clusters/partition-manifest.json`,
   `artifacts/full-build/clusters/part-*/input.jsonl`.
+- F4: отдельная card
+  [wave-6-provider-canary](./wave-6-provider-canary.md), writer/test и dedicated
+  `artifacts/full-build/provider-canary/**`.
 
 Shared manifests интегрирует только root после независимой проверки returns.
 
@@ -63,7 +68,9 @@ Shared manifests интегрирует только root после незав�
   [_returns/wave-6-f1-source-lock](./_returns/wave-6-f1-source-lock.md).
 - F2 accepted на `main` commit `ea569e2`; exact return —
   [_returns/wave-6-f2-evidence-layer](./_returns/wave-6-f2-evidence-layer.md).
-- F3 next: построить stable partitions только из accepted F2 artifacts.
+- F3 accepted на `main` commit `c5bbe41`; exact return —
+  [_returns/wave-6-f3-stable-partitions](./_returns/wave-6-f3-stable-partitions.md).
+- F4 next: synthetic provider canary; реальные holders запрещены.
 
 ## Contract
 
@@ -88,7 +95,7 @@ Shared manifests интегрирует только root после незав�
 
 ## Budget
 
-Stdlib/deterministic work не тратит model tokens. Fan-out ограничен тремя
+Stdlib/deterministic work не тратит model tokens. Fan-out ограничен четырьмя
 ownership zones; root останавливает волну при первом upstream FAIL.
 
 ## Return

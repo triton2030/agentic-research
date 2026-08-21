@@ -13,18 +13,18 @@ kind: status
 
 ## Next
 
-Запустить F3 stable-partition writer из принятого F2 evidence layer. F3 обязан
-распределить все 1101 record IDs ровно по одному deterministic part, не менять
-evidence fields и не вызывать модель. Frozen semantic gold остаётся
-неизменным. Следующий utility verdict снимается только с настоящего
-representative L2/L1/L0 route, и его PASS откроет full semantic Wave 7.
+Запустить F4 synthetic provider canary без реальных holders. F4 выбирает один
+Luna Max execution envelope и обязан доказать completed auth round-trip,
+synthetic-only egress, retry/timeout, log redaction и usage/cost accounting.
+Без terminal PASS Wave 6b не стартует. Frozen semantic gold остаётся
+неизменным.
 
 ## Вехи
 
 | Веха | Статус | Evidence |
 | --- | --- | --- |
 | 1. Контракты | в работе | Wave 4/4b accepted contracts; Wave 5 semantic contract принят, utility topology переносится после ingestion |
-| 2. Compiler | в работе | F1 source lock и F2 evidence приняты; F3 stable partitions следующий |
+| 2. Compiler | в работе | F1–F3 deterministic foundation принята; F4 provider canary следующий |
 | 3. Full build | ожидает | После sample gates и explicit frozen snapshot |
 | 4. Normalize | ожидает | После coverage-complete full build |
 | 5. Acceptance | ожидает | После frozen candidate Wiki |
@@ -135,6 +135,7 @@ evidence.
 | --- | --- | --- | --- |
 | 01a025ca-3714-7082-be9f-27ece6673e54 | F1 frozen source lock | freeze script/test + frozen manifest/lock | accepted `acb3def` + `31c8a4f` |
 | 01a025ef-35d5-7791-a2c8-323259126faa | F2 deterministic evidence | evidence script/test + records/coverage | accepted `ea569e2` |
+| 01a02629-b1e2-71d2-949f-9a605f686b8b | F3 stable partitions | partition writer/test + manifest/8 parts | accepted `c5bbe41` |
 
 F1 return —
 [wave-6-f1-source-lock](modules/_returns/wave-6-f1-source-lock.md). Root
@@ -149,11 +150,17 @@ auditor дал FAIL из-за неоднозначного dirty-live bullet; в
 Luna Max audit доказал, что rejection принадлежит F1, а F2-owned invariant —
 byte-identical output независимо от live holder tree. Карточка уточнена.
 
+F3 return —
+[wave-6-f3-stable-partitions](modules/_returns/wave-6-f3-stable-partitions.md).
+Root подтвердил два fresh public-CLI build, exact F2 equality и 43/43 tests;
+independent Luna Max auditor вернул PASS. Semantic utility не выводится из
+balance и остаётся отдельным Wave 6b gate.
+
 ## Планируемые волны
 
 | Волна | Результат | Dependency | State |
 | --- | --- | --- | --- |
-| 6 | frozen snapshot, deterministic records, stable partitions, privacy fixture | accepted Wave 5 semantic contract + explicit corpus commit | active: F1/F2 PASS, F3 next |
+| 6 | frozen snapshot, deterministic records, stable partitions, privacy fixture | accepted Wave 5 semantic contract + explicit corpus commit | active: F1/F2/F3 PASS, F4 next |
 | 6b | representative L2/L1/L0 ingestion + matched final-route utility | Wave 6 pass | accepted card; execution waits for Wave 6 |
 | 7 | semantic candidates и canonical current claims | Wave 6b utility PASS | planned |
 | 8 | typed L2 pages, per-part validation и root catalog | Wave 7 pass | planned |
