@@ -81,10 +81,71 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
 | 4. Normalize | Layered Wiki, каталог, cross-links, claim status и provenance прошли механические инварианты и выборочную ручную сверку |
 | 5. Acceptance | Blind held-out сравнение подтвердило correctness и экономию чтения/context; agent route и rebuild handoff записаны |
 
+## Подробная карта исполнения
+
+Ось разреза — зависимая цепочка доказательств. Следующий этап получает только
+принятый и адресуемый выход предыдущего; зеленый downstream не перекрывает
+провал upstream.
+
+    G0 representative contract
+      → F1 frozen snapshot
+      → F2 deterministic evidence
+      → F3 stable semantic partitions
+      → S1 semantic candidates
+      → S2 canonical current claims
+      → L2 typed Wiki pages + catalog
+      → L1 overviews → L0 abstracts
+      → full coverage/resume/rebuild receipts
+      → blind matched acceptance
+      → fresh-agent route or rejection
+
+Детали принадлежат модульным карточкам:
+
+| Волна | Карточка | Вход | Выход | Открывает |
+| --- | --- | --- | --- | --- |
+| 5 | [wave-5-distilled-probe](modules/wave-5-distilled-probe.md) | frozen real records + locked five-case gold | принятый claim/currentness contract | все full-build writers |
+| 6 | [wave-6-snapshot-evidence](modules/wave-6-snapshot-evidence.md) | принятый G0 + explicit corpus commit | frozen source lock, records, coverage input, stable partitions | semantic generation |
+| 7 | [wave-7-semantic-claims](modules/wave-7-semantic-claims.md) | partitions + pinned Wiki prompt tuple | canonical claims, rejections, lifecycle evidence | L2 writers |
+| 8 | [wave-8-l2-library](modules/wave-8-l2-library.md) | accepted canonical claims | typed L2 pages, catalog, validated index | context layers |
+| 9 | [wave-9-context-layers](modules/wave-9-context-layers.md) | accepted L2 tree + pinned L1 prompt | bottom-up L1/L0 sidecars | finalization |
+| 10 | [wave-10-full-build-operations](modules/wave-10-full-build-operations.md) | all stage outputs and receipts | exhaustive coverage, resume/rebuild proof, private build receipt | held-out acceptance |
+| 11 | [wave-11-blind-acceptance](modules/wave-11-blind-acceptance.md) | frozen candidate + locked gold | matched correctness/currentness/efficiency verdict | route decision |
+| 12 | [wave-12-fresh-agent-handoff](modules/wave-12-fresh-agent-handoff.md) | accepted route or explicit rejection | clean-session route, rebuild handoff, independent completion audit | завершение |
+
+Карточка становится разрешением на исполнение только когда ее dependency gate
+закрыт в status.md. До этого это подробная проекция остатка, а не permission
+запускать downstream.
+
+## Инварианты волн
+
+- Corpus commit, upstream tuple, prompt/config digests и output topology
+  фиксируются до первой записи каждой зависимой волны.
+- Root единолично владеет plan/status, shared catalog/index, final manifests,
+  интеграцией Worktree commits и публикацией route verdict.
+- Параллельные Luna Max writers получают только конкретный part-* или
+  semantic-directory footprint; shared файлы им запрещены.
+- Модель предлагает grouping, claim и lifecycle candidate. Детерминированный
+  слой владеет source membership/provenance; отдельный validator принимает или
+  отклоняет semantic output.
+- Любой record frozen snapshot имеет ровно один coverage-disposition:
+  used, rejected или skipped с причиной. Silent skip запрещен.
+- Resume разрешен только для stage со статусом pass и совпавшими input,
+  output, code, prompt и config digests. Drift инвалидирует stage и descendants.
+- Receipts содержат IDs, counts и digests, но не полные приватные цитаты,
+  секреты или corpus dumps.
+- Generated-root cleanup удаляет только доказанно owned файлы внутри
+  разрешенного root; path traversal и symlink escape обязаны fail closed.
+- Ни writer self-report, ни гладкая Wiki, ни тест узкого fixture не закрывают
+  full-corpus usefulness. Приемка принадлежит непишущим readers/auditors.
+
 ## Stop rules
 
 - Full build не начинается, пока representative sample не проходит exact-fact
   validators и semantic audit.
+- Semantic provider не получает реальные holders, пока synthetic canary не
+  доказал auth, data-egress, logging, retry, cost и secret-redaction contract.
+- Full-build snapshot не берется из live directory или старого inventory:
+  только explicit Git commit и пересчитанный source/record manifest.
 - LLM output с отсутствующим record ID, выдуманным provenance, изменённым
   evidence-полем, неподдержанным claim или superseded claim, выданным за
   current, отклоняется, а не чинится молча.
@@ -106,6 +167,9 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
   проверяет независимая рука или исполняемый validator.
 - Максимальный fan-out ограничен реальными независимыми зонами; writers
   запускаются только после согласования read-only контрактов первой волны.
+- Подробные карточки вытесняют хранение остатка в чате, но не создают второй
+  plan owner: task.md владеет outcome и зависимостями, status.md — живым Next,
+  modules — неизменяемыми заданиями конкретного момента.
 
 ## Происхождение требований
 
@@ -116,6 +180,8 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
   дистиллированные знания и факты, а не историю того, как к ним пришли.
 - Там же владелец потребовал сохранять самые важные наблюдения отдельно как
   сырьё для будущего инструмента конвертации цитат во всех проектах.
+- Требование записать подробные планы, чтобы полный остаток не потерялся:
+  та же запись, позднее решение текущей сессии.
 - Неизменяемость holders и source-bound evidence: `_ops/AGENTS.md`.
 - L2 prompt/IA: официальный OpenViking
   `examples/compile/ov-compile-skills/llm-wiki/SKILL.md`. L0/L1 contract и
