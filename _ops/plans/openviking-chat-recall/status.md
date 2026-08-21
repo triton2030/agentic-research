@@ -1,6 +1,6 @@
 ---
 эпик: "самостоятельный experiment: openviking-chat-recall"
-состояние: в работе
+состояние: ждёт решения владельца
 режим: Wayfinding
 обновлено: 2026-08-21
 kind: status
@@ -10,10 +10,12 @@ kind: status
 
 ## Next
 
-Blind v2 Wiki arm повторяет locked вопросы 9 и 11; отдельный semantic auditor
-пересчитывает шесть recurrence sections по selected holders и сверяет outcome
-page со всеми записями current OpenViking holder. Полный corpus пока не
-запускать.
+Владелец выбирает следующий route. До выбора не запускать full corpus:
+
+1. minimal OpenViking wrapper: compatibility pin, one-record-per-quote staging
+   и deterministic count/chronology validator;
+2. собственный compiler по official LLM Wiki Skill/IA без OpenViking runtime;
+3. закрыть эксперимент отрицательным verdict.
 
 ## Текущее состояние
 
@@ -37,15 +39,16 @@ page со всеми записями current OpenViking holder. Полный co
   no-gold control. Return: `modules/return-wave-2-v1-diagnostic.md`.
 - V2 diagnostic integrated commit `4faf469`: exact approved reason создал три
   pages, включая шесть counted recurrence sections и отдельный outcome page;
-  semantic correctness ещё не принята.
+  semantic audit отклонил результат: 4 FAIL, 1 UNKNOWN, 1 PASS, outcome
+  inversion. Return: `modules/return-wave-2-v2-audit.md`.
 
 ## Вехи
 
 | Веха | Статус | Evidence |
 | --- | --- | --- |
 | 1. Pilot runtime | ⚠️ blocked | Stock receipt + diagnostic Wiki: `d57a49d` |
-| 2. Pilot audit | ⏳ | Нужны locked questions, ручная сверка и matched run |
-| 3. Transition verdict | ⏳ | Нужен прямой ответ на решающий вопрос Wayfinding |
+| 2. Pilot audit | ❌ | V1/V2 blind + semantic returns: current Wiki rejected |
+| 3. Transition verdict | ❌ | Stock blocked; diagnostic output не проходит meaning/count gates |
 | 4. Full backfill | заблокировано | Только после положительного pilot-verdict |
 | 5. Handoff | заблокировано | Только после принятого full audit |
 
@@ -61,11 +64,13 @@ page со всеми записями current OpenViking holder. Полный co
   `01a023e9-f36e-7471-86f5-d9ae99828de2`, «OpenViking: blind Wiki arm»;
   blind source arm, pinned task `01a023e9-f36c-71c1-b216-f5fb84e1310e`,
   «OpenViking: blind source arm»; ✅ v1 return записан, diagnostic failed.
-- `wave-2-v2-audit.md` — blind v2 reader + read-only semantic auditor; registry
-  добавляется после запуска.
+- `wave-2-v2-audit.md` — blind v2 reader, pinned task
+  `01a023fa-177f-7010-8e1f-121ccd352951`, «OpenViking: blind Wiki v2 arm»;
+  semantic auditor, pinned task `01a023fa-1782-7563-979e-74a6428dde87`,
+  «OpenViking: проверить семантику Wiki v2»; ✅ return записан, V2 failed.
 
 ## Открытые вопросы владельцу
 
-Нет. Для первого pilot принят stock English Wiki с русскими агентными ответами;
-русский compile output становится отдельной развилкой только при измеренном
-ухудшении.
+Какой route выбрать после отрицательного pilot: minimal OpenViking wrapper,
+собственный compiler по official Skill/IA или остановка? Ответ откроет новую
+Execution-веху либо закроет эксперимент.
