@@ -67,3 +67,43 @@ commits `2af48624…` и `499995f3…`.
 **Граница.** Это source-backed ownership seam. Точная локальная реализация
 semantic prompt templates, их лицензионная применимость и retrieval benefit
 ещё требуют проверки.
+
+## 2026-08-21 — История выбирает знание, но не становится Wiki
+
+**Вывод.** Reusable compiler должен разделять три поверхности: неизменяемые
+source records хранят точные слова и chronology; evidence manifest хранит
+адреса, membership и измеримые temporal facts; Wiki показывает
+дистиллированные применимые claims. История может помочь определить, какой
+claim жив, но не должна по умолчанию превращать страницу знания в отчёт о его
+эволюции.
+
+**Evidence.** Владелец прямо отделил хронологию цитат от дистиллированной Wiki
+(`_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md`). Ранее blind Wiki v1
+выбрала историческую задачу вместо текущей, хотя provenance links были на
+месте (`modules/return-wave-2-v1-diagnostic.md`).
+
+**Что меняет.** Default Wiki schema больше не требует `count`, `first/latest`
+или narrative evolution в теле страницы. Она требует current claim,
+applicability, lifecycle-status и source record IDs; история раскрывается через
+manifest/holders по отдельному маршруту.
+
+**Граница.** Автоматическое определение supersession ещё не доказано. До
+массовой генерации нужен held-out кластер с реальной отменой позиции.
+
+## 2026-08-21 — Upstream надо фиксировать кортежем артефактов
+
+**Вывод.** Версия пакета или digest одного prompt не фиксируют технологию
+компиляции. Manifest будущего инструмента должен отдельно закреплять commit,
+URL и SHA-256 каждого upstream owner: Wiki Skill, L1 prompt, Context Layers
+contract и generator code path.
+
+**Evidence.** Между OpenViking v0.4.16 (`499995f3…`) и current commit
+`2af48624…` Wiki Skill не изменился, а `overview_generation.yaml` изменился с
+SHA-256 `5a67431d…` на `6a3e077f…` и получил coverage-aware contract. Root
+проверил оба source snapshots; детали — `modules/_returns/wave-4b-contracts.md`.
+
+**Что меняет.** Upstream loader и receipts валидируют весь provenance tuple;
+drift одного элемента инвалидирует зависимые generated layers.
+
+**Граница.** Проверены только необходимые этой реализации upstream artifacts
+и две named revisions; это не общий аудит совместимости всего OpenViking.

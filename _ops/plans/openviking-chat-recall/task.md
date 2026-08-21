@@ -10,10 +10,10 @@ kind: task
 ## Цель
 
 Превратить полный статический snapshot `_ops/chat-recall/` в удобную агентам
-библиотеку знаний: точные recurrence/chronology/provenance вычисляются
-детерминированно; официальный LLM Wiki Skill OpenViking задаёт L2-страницы и
-`index.md`; официальный Context Layers contract и semantic prompts задают
-bottom-up L0/L1. Runtime OpenViking в принятом маршруте не участвует.
+библиотеку дистиллированных знаний: официальный LLM Wiki Skill OpenViking
+задаёт L2-страницы и `index.md`; официальный Context Layers contract и semantic
+prompts задают bottom-up L0/L1. Runtime OpenViking в принятом маршруте не
+участвует.
 
 Исходные holders остаются неизменяемым evidence. Библиотека — производная,
 проверяемая и полностью пересобираемая поверхность чтения в
@@ -25,8 +25,13 @@ bottom-up L0/L1. Runtime OpenViking в принятом маршруте не у
   timestamp и digest; для каждой записи есть ровно один итог: использована,
   отклонена валидатором или пропущена с явной причиной.
 - Детерминированный слой единолично владеет membership, exact count,
-  first/latest, chronology и provenance. LLM не вычисляет и не исправляет эти
-  факты.
+  first/latest и provenance. Эти evidence-поля не обязаны появляться в теле
+  Wiki и сами по себе не доказывают, какая позиция актуальна.
+- Semantic claim отделён от source history: он содержит дистиллированное
+  знание, область применимости, lifecycle-status и source record IDs. Модель
+  может предложить status или supersession, но validator не принимает их без
+  адресуемой опоры; точный минимальный contract закрывает representative
+  probe до общей writer-волны.
 - Смысловой compiler использует зафиксированный snapshot официального
   OpenViking LLM Wiki Skill для L2: `index.md`, `entity`, `concept` и только
   обоснованные `method`, `comparison`, `analysis`, `summary`. Пустые типы и
@@ -38,17 +43,21 @@ bottom-up L0/L1. Runtime OpenViking в принятом маршруте не у
 - Происхождение, upstream commit, digest и граница лицензии фиксируются для
   Wiki Skill и Context Layers/prompts раздельно; локальные добавления не
   выдаются за upstream behavior.
-- Повторы сводятся в одно знание, но сохраняют exact count, первую и последнюю
-  фиксацию, эволюцию позиции, противоречия и адреса исходных records.
+- Повторы сводятся в одно актуальное знание. Exact count, первая/последняя
+  фиксация и полный путь изменения остаются в evidence manifest и holders;
+  Wiki не пересказывает историю по умолчанию. Конфликт или неразрешённая
+  актуальность остаются видимыми как status, а не сглаживаются в уверенный факт.
 - Build возобновляется после сбоя, повторный запуск на том же snapshot
   воспроизводим, секреты и полный приватный corpus не попадают в receipts или
   внешнюю публикацию.
 - Закрытый held-out audit сравнивает Wiki и исходные holders на одинаковых
-  вопросах. Wiki принимается только при не худшей корректности/chronology и
-  материально меньшем количестве чтений или context tokens; confident ответ на
-  no-gold вопрос — hard failure.
+  knowledge-вопросах. Wiki принимается только при не худшей корректности и
+  актуальности при материально меньшем количестве чтений или context tokens.
+  Исторический вопрос должен адресно маршрутизироваться к holders; confident
+  ответ на no-gold или superseded claim как на current — hard failure.
 - Полный backfill имеет inventory/coverage/build receipts и короткий agent
-  route: сначала Wiki, holders — только для проверки evidence.
+  route: Wiki — для знаний; holders — для точных слов, истории, проверки
+  provenance и неразрешённой актуальности.
 - Только подтверждённые переносимые выводы для будущего cross-project compiler
   записываются в `observations/README.md`; локальная хроника и гипотезы туда не
   попадают.
@@ -66,10 +75,10 @@ bottom-up L0/L1. Runtime OpenViking в принятом маршруте не у
 
 | Веха | Проверяемый результат |
 | --- | --- |
-| 1. Контракты | Frozen corpus map, compiler seam, pinned Wiki Skill, pinned Context Layers/prompts, generation route, acceptance и privacy/recovery contracts не противоречат друг другу |
+| 1. Контракты | Frozen corpus map, distilled-claim seam, pinned Wiki Skill, pinned Context Layers/prompts, generation route, acceptance и privacy/recovery contracts не противоречат друг другу; supersession probe пройден |
 | 2. Compiler | Детерминированный pipeline, semantic generation, validators, resume state и receipts проходят узкие tests на representative sample |
 | 3. Full build | Весь frozen snapshot обработан; coverage manifest не содержит молчаливых пропусков |
-| 4. Normalize | Layered Wiki, каталог, cross-links и recurrence/chronology прошли механические инварианты и выборочную ручную сверку |
+| 4. Normalize | Layered Wiki, каталог, cross-links, claim status и provenance прошли механические инварианты и выборочную ручную сверку |
 | 5. Acceptance | Blind held-out сравнение подтвердило correctness и экономию чтения/context; agent route и rebuild handoff записаны |
 
 ## Stop rules
@@ -77,7 +86,8 @@ bottom-up L0/L1. Runtime OpenViking в принятом маршруте не у
 - Full build не начинается, пока representative sample не проходит exact-fact
   validators и semantic audit.
 - LLM output с отсутствующим record ID, выдуманным provenance, изменённым
-  count/chronology или неподдержанным claim отклоняется, а не чинится молча.
+  evidence-полем, неподдержанным claim или superseded claim, выданным за
+  current, отклоняется, а не чинится молча.
 - Если official prompt/IA нельзя использовать с проверяемым provenance или
   приемлемой лицензионной границей, работа останавливается перед semantic
   generator.
@@ -102,6 +112,8 @@ bottom-up L0/L1. Runtime OpenViking в принятом маршруте не у
 - Решение о маршруте, локальном плане, root-orchestrator, максимальных фоновых
   Luna Max-тредах и вложенных субагентах:
   `_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md`.
+- Там же позднее уточнена центральная граница: Wiki не удаляет цитаты и хранит
+  дистиллированные знания и факты, а не историю того, как к ним пришли.
 - Там же владелец потребовал сохранять самые важные наблюдения отдельно как
   сырьё для будущего инструмента конвертации цитат во всех проектах.
 - Неизменяемость holders и source-bound evidence: `_ops/AGENTS.md`.

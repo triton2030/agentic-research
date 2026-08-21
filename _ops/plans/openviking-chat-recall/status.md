@@ -12,16 +12,16 @@ kind: status
 
 ## Next
 
-Закрыть три follow-up gap: точные L0/L1 prompt templates, совместный
-Wiki-L2/Context-L0-L1 seam и execution route для текущего корпуса против
-будущего reusable tool. После независимой сверки root фиксирует contract вехи
-1 и открывает file-disjoint writer-волну вехи 2.
+Заморозить исправленный contract знания и провести один representative
+supersession probe: Wiki должна вернуть текущий дистиллированный факт, не
+пересказывать историю и адресно раскрыть holders при проверке. Только после
+этого root закрывает contract вехи 1 и открывает file-disjoint writer-волну.
 
 ## Вехи
 
 | Веха | Статус | Evidence |
 | --- | --- | --- |
-| 1. Контракты | в работе | Шесть Wave 4 returns + три карточки `wave-4b-*.md` |
+| 1. Контракты | в работе | Wave 4/4b returns + Fresh Eyes correction; ждёт supersession probe |
 | 2. Compiler | ожидает | После принятого seam и file-disjoint writer cards |
 | 3. Full build | ожидает | После sample gates вехи 2 |
 | 4. Normalize | ожидает | После coverage-complete full build |
@@ -39,6 +39,9 @@ Wiki-L2/Context-L0-L1 seam и execution route для текущего корпу
   `modules/return-wave-3-typed-evidence-probe.md`.
 - Владелец после split verdict утвердил custom compiler и текущую схему
   оркестрации; точные слова записаны в holder, указанный в `task.md`.
+- Владелец затем снял chronology-heavy Wiki: источники сохраняют историю, а
+  Wiki хранит дистиллированные знания. Fresh Eyes route записан в
+  `modules/_returns/fresh-eyes-distilled-knowledge.md`.
 
 ## Wave 4 registry
 
@@ -64,12 +67,29 @@ upstream owners. Веха ещё не закрыта из-за трёх Wave 4b 
 
 | Task | Title | Card | Worktree | State |
 | --- | --- | --- | --- | --- |
-| `01a024a2-245a-7a91-95c2-d5cacb530c76` | OpenViking: L0 L1 prompts | `wave-4b-context-layer-prompts.md` | `a5dc` | active |
-| `01a024a2-245a-7a91-95c2-d58e0db293a2` | OpenViking: layered seam | `wave-4b-layered-seam.md` | `aa2d` | active |
-| `01a024a2-245a-7a91-95c2-d5aeba7a18cc` | OpenViking: generation execution | `wave-4b-generation-execution.md` | `57af` | active |
+| `01a024a2-245a-7a91-95c2-d5cacb530c76` | OpenViking: L0 L1 prompts | `wave-4b-context-layer-prompts.md` | `a5dc` | terminal candidate |
+| `01a024a2-245a-7a91-95c2-d58e0db293a2` | OpenViking: layered seam | `wave-4b-layered-seam.md` | `aa2d` | terminal candidate |
+| `01a024a2-245a-7a91-95c2-d5aeba7a18cc` | OpenViking: generation execution | `wave-4b-generation-execution.md` | `57af` | terminal candidate |
 
 Все три — `gpt-5.6-luna/max`, read-only, с обязательным nested
 `$1orchestration`. Root принимает returns и единолично пишет plan/observations.
+
+Wave 4b закончена как candidate. Root подтвердил: L1 sidecar использует
+`overview_generation.yaml`; L0 directory abstract извлекается из `Brief
+Description` L1; `context_generation.yaml` не является прямым sidecar prompt.
+Контракт записан в `modules/_returns/wave-4b-contracts.md`.
+
+## Wave 5 registry
+
+| Task | Title | Card | State |
+| --- | --- | --- | --- |
+| pending | OpenViking: distilled probe | `wave-5-distilled-probe.md` | ready |
+| pending | OpenViking: acceptance lock | `wave-5-distilled-acceptance.md` | ready |
+| pending | OpenViking: contract red-team | `wave-5-distilled-red-team.md` | ready |
+
+Все три запускаются на `gpt-5.6-luna/max`. Каждый top-level тред обязан сначала
+использовать `$1orchestration` и разделить свою карточку между внутренними
+субагентами. Writers владеют непересекающимися файлами; red-team read-only.
 
 ## Блокеры
 
