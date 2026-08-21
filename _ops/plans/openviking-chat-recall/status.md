@@ -83,9 +83,9 @@ Description` L1; `context_generation.yaml` не является прямым si
 
 | Task | Title | Card | State |
 | --- | --- | --- | --- |
-| pending | OpenViking: distilled probe | `wave-5-distilled-probe.md` | ready |
-| pending | OpenViking: acceptance lock | `wave-5-distilled-acceptance.md` | ready |
-| pending | OpenViking: contract red-team | `wave-5-distilled-red-team.md` | ready |
+| `01a024c0-0f08-7870-85ef-d9d0b1784da5` | OpenViking: distilled probe | `wave-5-distilled-probe.md` | active |
+| `01a024c0-0f10-7f02-b209-d0524247d432` | OpenViking: acceptance lock | `wave-5-distilled-acceptance.md` | active |
+| `01a024c0-0f0e-7220-861e-aeb7f67e570d` | OpenViking: contract red-team | `wave-5-distilled-red-team.md` | active |
 
 Все три запускаются на `gpt-5.6-luna/max`. Каждый top-level тред обязан сначала
 использовать `$1orchestration` и разделить свою карточку между внутренними
