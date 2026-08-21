@@ -1,0 +1,10 @@
+viking://resources/chat-recall-wiki/analysis
+viking://resources/chat-recall-wiki/analysis/Chat recall pilot chronology and change signals.md
+viking://resources/chat-recall-wiki/analysis/User preferences and correction patterns in the pilot corpus.md
+viking://resources/chat-recall-wiki/concept
+viking://resources/chat-recall-wiki/concept/Autonomy boundary in agent execution.md
+viking://resources/chat-recall-wiki/concept/Chat recall capture policy.md
+viking://resources/chat-recall-wiki/concept/Session-context retrieval model.md
+viking://resources/chat-recall-wiki/method
+viking://resources/chat-recall-wiki/method/Improving chat-recall retrieval experimentally.md
+viking://resources/chat-recall-wiki/index.md

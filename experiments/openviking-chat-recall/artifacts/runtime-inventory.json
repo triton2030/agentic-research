@@ -1,0 +1,62 @@
+{
+  "schema": "openviking-chat-recall/runtime-inventory.v1",
+  "status": "stock-acceptance-blocked",
+  "date": "2026-08-21",
+  "package": {
+    "name": "openviking",
+    "distribution_version": "0.4.16",
+    "tag": "v0.4.16",
+    "tag_commit": "499995f3ed2e7f551a715179c4053772c51ff819",
+    "license": "AGPL-3.0",
+    "source": "https://github.com/volcengine/OpenViking/tree/v0.4.16",
+    "license_source": "https://github.com/volcengine/OpenViking/blob/v0.4.16/LICENSE"
+  },
+  "official_skill": {
+    "name": "llm-wiki",
+    "source": "https://github.com/volcengine/OpenViking/blob/v0.4.16/examples/compile/ov-compile-skills/llm-wiki/SKILL.md",
+    "sha256": "c5e379843a0af6c4574f29ae8fd6637b2b89a0481da63a76472188633f4792de",
+    "runtime_uri": "viking://agent/skills/llm-wiki"
+  },
+  "source": {
+    "root": "_ops/chat-recall",
+    "rule": "top-level Markdown holders excluding README.md",
+    "inventory_count": 182,
+    "inventory_sha256": "490171eae7376460a45f18fb947e4d4f6784b35db10aa8146695fc6f0448ec2e",
+    "pilot_count": 6,
+    "pilot_selection_sha256": "6efb89760b8e70536dbfcafa813345139dd880f1f57ae7c0a3453704776c7f0b",
+    "runtime_uri": "viking://resources/chat-recall-pilot"
+  },
+  "runtime": {
+    "python": "3.13.13",
+    "openviking_sdk": "0.1.8",
+    "cli_help_version": "0.4.17.dev0",
+    "server_health_version": "0.4.16",
+    "embedding": "local/bge-small-zh-v1.5-f16",
+    "vlm": "openai-codex/gpt-5.4 via codex-cli OAuth",
+    "config_sha256": "2c6632fc68e03308d0dcd9198bc37fd1bb2d2910762539e0d3375bb76ff33465"
+  },
+  "stock_compile": {
+    "http_status": 400,
+    "error_code": "INVALID_ARGUMENT",
+    "error": "AsyncHTTPClient.get_skill() got an unexpected keyword argument 'include_integrity'",
+    "accepted_task_id": null
+  },
+  "diagnostic_compile": {
+    "mode": "non-stock-disposable-sdk-compat-shim",
+    "shim": ".runtime/compat/sitecustomize.py",
+    "task_id": "cmp_3e13368f446f4b938f367feaefce419e",
+    "status": "completed",
+    "source_uri": "viking://resources/chat-recall-pilot",
+    "target_uri": "viking://resources/chat-recall-wiki",
+    "skill_uri": "viking://agent/skills/llm-wiki",
+    "page_count": 7,
+    "link_count": 0,
+    "warnings": [],
+    "exported_tree": "artifacts/wiki-tree.txt",
+    "exported_page_bytes": 30239
+  },
+  "context_commit_checked_but_not_used": {
+    "commit": "9042a0254f9285aeab1779cc648440a5cf3108e5",
+    "reason": "post-tag context commit; the pinned runtime remains v0.4.16 tag"
+  }
+}

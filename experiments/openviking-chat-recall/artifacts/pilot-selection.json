@@ -1,0 +1,100 @@
+{
+  "schema": "openviking-chat-recall/pilot-selection.v1",
+  "rule": "explicit frozen holder fingerprints selected for recurrence, chronology, contradiction, method and preference",
+  "source_inventory_sha256": "490171eae7376460a45f18fb947e4d4f6784b35db10aa8146695fc6f0448ec2e",
+  "count": 6,
+  "files": [
+    {
+      "path": "2026-07-22-105500-claude-d8a832a4.md",
+      "sha256": "fedd9654d668bec581e25b9d1aed3ec7a2ae621bbcb6480f133c67351247ecc8",
+      "bytes": 2747,
+      "lines": 25,
+      "date": "2026-07-22",
+      "types": "- критерий",
+      "topics": "- инструменты-и-автоматизация",
+      "reasons": [
+        "stable-preference"
+      ]
+    },
+    {
+      "path": "2026-08-11-163847-codex-019ff09d.md",
+      "sha256": "c54068530c3dc2618590d5e239ae15b0759382594814fa25367f5534d4103e33",
+      "bytes": 10087,
+      "lines": 35,
+      "date": "2026-08-11",
+      "types": "- коррекция",
+      "topics": "- качество-и-проверка",
+      "reasons": [
+        "earlier-position-for-chronology"
+      ]
+    },
+    {
+      "path": "2026-08-14-124028-codex-019fff2e.md",
+      "sha256": "501cad60b995a15ce2382ea1c4f264f4c3f22a0e1450dda2fbe4d891c58016ff",
+      "bytes": 15013,
+      "lines": 37,
+      "date": "2026-08-14",
+      "types": "- идея",
+      "topics": "- документация-и-знания",
+      "reasons": [
+        "method-and-process-preference"
+      ]
+    },
+    {
+      "path": "2026-08-20-222832-codex-01a02036.md",
+      "sha256": "45cfe135cfd07e8c5e12ed917812212012b524b4dd1786ac7d53a982f24901b7",
+      "bytes": 16757,
+      "lines": 34,
+      "date": "2026-08-20",
+      "types": "- критерий",
+      "topics": "- агенты-и-ии",
+      "reasons": [
+        "contradiction-or-boundary"
+      ]
+    },
+    {
+      "path": "2026-08-21-010201-codex-01a020be.md",
+      "sha256": "a3a228676c91163ca113b2792374cdbacf588e20749115c246272462bc9f9388",
+      "bytes": 1809,
+      "lines": 20,
+      "date": "2026-08-21",
+      "types": "- коррекция",
+      "topics": "- агенты-и-ии",
+      "reasons": [
+        "later-position-check"
+      ]
+    },
+    {
+      "path": "2026-08-21-133152-codex-01a0236d.md",
+      "sha256": "c92addebb7e56454bb848a935f2bdfe6408f9b6949248c1ca56dd06ec0502443",
+      "bytes": 5239,
+      "lines": 23,
+      "date": "2026-08-21",
+      "types": "- идея",
+      "topics": "- архитектура-и-модель",
+      "reasons": [
+        "recurring-position-and-change"
+      ]
+    }
+  ],
+  "reasons": {
+    "2026-07-22-105500-claude-d8a832a4.md": [
+      "stable-preference"
+    ],
+    "2026-08-11-163847-codex-019ff09d.md": [
+      "earlier-position-for-chronology"
+    ],
+    "2026-08-14-124028-codex-019fff2e.md": [
+      "method-and-process-preference"
+    ],
+    "2026-08-20-222832-codex-01a02036.md": [
+      "contradiction-or-boundary"
+    ],
+    "2026-08-21-010201-codex-01a020be.md": [
+      "later-position-check"
+    ],
+    "2026-08-21-133152-codex-01a0236d.md": [
+      "recurring-position-and-change"
+    ]
+  }
+}

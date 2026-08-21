@@ -1,0 +1,1648 @@
+{
+  "schema": "openviking-chat-recall/source-inventory.v1",
+  "source_dir": "/Users/triton/.codex/worktrees/b156/agentic-research/_ops/chat-recall",
+  "source_rule": "top-level *.md excluding README.md; sorted by relative path",
+  "count": 182,
+  "bytes": 856171,
+  "inventory_sha256": "490171eae7376460a45f18fb947e4d4f6784b35db10aa8146695fc6f0448ec2e",
+  "files": [
+    {
+      "path": "2026-04-28-111714-claude-74356077.md",
+      "sha256": "24b4600fafed89773b6da5a9a7b87d5573bb3a09e410be0ff09dfe84dc487a3c",
+      "bytes": 9227,
+      "lines": 24,
+      "date": "2026-04-28",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-07-22-105500-claude-d8a832a4.md",
+      "sha256": "fedd9654d668bec581e25b9d1aed3ec7a2ae621bbcb6480f133c67351247ecc8",
+      "bytes": 2747,
+      "lines": 25,
+      "date": "2026-07-22",
+      "types": "- критерий",
+      "topics": "- инструменты-и-автоматизация"
+    },
+    {
+      "path": "2026-07-22-111300-claude-37219ddd.md",
+      "sha256": "d4df45e70af4ae373f999407d0774c750ac2e2ddba9a5795fcd395d52649e326",
+      "bytes": 7485,
+      "lines": 33,
+      "date": "2026-07-22",
+      "types": "- критерий",
+      "topics": "- инструменты-и-автоматизация"
+    },
+    {
+      "path": "2026-07-22-121239-codex-019f889f.md",
+      "sha256": "a90f240bfcbedc2c9771f2ec94d2f8e1b949d0e99e74f73f437dba5a1b308725",
+      "bytes": 926,
+      "lines": 16,
+      "date": "2026-07-22",
+      "types": "- коррекция",
+      "topics": "- инструменты-и-автоматизация"
+    },
+    {
+      "path": "2026-07-23-114721-claude-67208f21.md",
+      "sha256": "e47a0b0f1c7a4558b2fc0c0a8291729d6a44ef3ad4c62f5ba1dec8cb55ce7023",
+      "bytes": 868,
+      "lines": 15,
+      "date": "2026-07-23",
+      "types": "- предпочтение",
+      "topics": "- документация-и-знания"
+    },
+    {
+      "path": "2026-07-25-124728-codex-019f983d.md",
+      "sha256": "dd81f55cd9c765e99243993165b02255b64588e447dec8ff70457b2c30cd9a18",
+      "bytes": 1095,
+      "lines": 15,
+      "date": "2026-07-25",
+      "types": "- коррекция",
+      "topics": "- инструменты-и-автоматизация"
+    },
+    {
+      "path": "2026-07-25-134829-claude-d96a2888.md",
+      "sha256": "66746a18716cdfabaff8728d85dc07f70f1929e78e48408140e7f9b6fdae6a04",
+      "bytes": 642,
+      "lines": 15,
+      "date": "2026-07-25",
+      "types": "- коррекция",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-07-26-163413-claude-2be60fdc.md",
+      "sha256": "39cec94ecb34848db4b9dd7b065dfd06f3efeb82df91bd30e0620213c6dc189b",
+      "bytes": 3347,
+      "lines": 21,
+      "date": "2026-07-26",
+      "types": "- правило-кандидат",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-07-26-163521-claude-bddf1411.md",
+      "sha256": "39486a82075a24b620dda59698baa7c24f8a285c5bd0ed0136ab30a0b46db753",
+      "bytes": 1308,
+      "lines": 16,
+      "date": "2026-07-26",
+      "types": "- предпочтение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-07-26-174326-codex-019f9e61.md",
+      "sha256": "3773514bb39dcc642874ebdd1b822f7608ef3a490980674172552344c6746b26",
+      "bytes": 1168,
+      "lines": 15,
+      "date": "2026-07-26",
+      "types": "- коррекция",
+      "topics": "- инструменты-и-автоматизация"
+    },
+    {
+      "path": "2026-07-26-180518-claude-fa590eea.md",
+      "sha256": "0f347c360d7dfdc0dc9cf272c288cba6436fe5d571789eb00fbe52d0280d6de7",
+      "bytes": 1140,
+      "lines": 17,
+      "date": "2026-07-26",
+      "types": "- критерий",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-07-26-190811-codex-019f9ec1.md",
+      "sha256": "38f5cf92d473d10335a04f6610331ae0343563a9c46c6c1bea7ca5a0c110d566",
+      "bytes": 887,
+      "lines": 15,
+      "date": "2026-07-26",
+      "types": "- правило-кандидат",
+      "topics": "- инструменты-и-автоматизация"
+    },
+    {
+      "path": "2026-07-27-175105-codex-019fa38f.md",
+      "sha256": "a27e3e36e8773035d1bcec9efe3841388fb2ff322fbb49069ccad3b78a24d917",
+      "bytes": 799,
+      "lines": 15,
+      "date": "2026-07-27",
+      "types": "- коррекция",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-07-27-211730-claude-8e802437.md",
+      "sha256": "f6630a1e8667eb3af29f85acbe84423762e701d1a349883f55a6c285f0116c2c",
+      "bytes": 3733,
+      "lines": 22,
+      "date": "2026-07-27",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-07-28-230352-codex-019fa9d9.md",
+      "sha256": "a9ab1d741afe23a5b24d885795016e0b7c08d2a79e0dba2ff06a01b01f455e6f",
+      "bytes": 904,
+      "lines": 15,
+      "date": "2026-07-28",
+      "types": "- коррекция",
+      "topics": "- архитектура-и-модель"
+    },
+    {
+      "path": "2026-07-29-000000-claude-068dc13d.md",
+      "sha256": "08ea0411185cd3e41e9f76cc5d659fdd57e996299cc762999b935dc4ffd14950",
+      "bytes": 2581,
+      "lines": 16,
+      "date": "2026-07-29",
+      "types": "- предпочтение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-07-29-000000-claude-a9f0f34a.md",
+      "sha256": "f25471bb5f47ae6eaf6b0551f496f8d03bb59fd8307eabcb813622a1d6000250",
+      "bytes": 1579,
+      "lines": 19,
+      "date": "2026-07-29",
+      "types": "- правило-кандидат",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-07-29-172153-claude-82e3e055.md",
+      "sha256": "bea3ec42242f5ec967266e7128373702b6500d00ef29f4e79cfca4658559e407",
+      "bytes": 685,
+      "lines": 15,
+      "date": "2026-07-29",
+      "types": "- предпочтение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-07-29-201707-codex-019fae73.md",
+      "sha256": "7208f20d2665c2b91644c52986e74f4e63c90d6ce47fba1e683d2df99be78af4",
+      "bytes": 1275,
+      "lines": 15,
+      "date": "2026-07-29",
+      "types": "- правило-кандидат",
+      "topics": "- архитектура-и-модель"
+    },
+    {
+      "path": "2026-07-29-201852-codex-019fada0.md",
+      "sha256": "b20ecde3b033d42f989d36e26a1f25df2724ed7b3fcc353f0c27f15c601d04d3",
+      "bytes": 10769,
+      "lines": 49,
+      "date": "2026-07-29",
+      "types": "- предпочтение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-07-29-201927-codex-019fadc9.md",
+      "sha256": "204b5f10faa5b3d5081b253c2c8a3359190daa0d5ead8554d4daa62ccca2158d",
+      "bytes": 1855,
+      "lines": 16,
+      "date": "2026-07-29",
+      "types": "- правило-кандидат",
+      "topics": "- инструменты-и-автоматизация"
+    },
+    {
+      "path": "2026-07-30-125453-codex-019fb200.md",
+      "sha256": "c244dc6b806485d198384267a2d0f8d0d6e9e267c2689e0fe961078ef0c1a712",
+      "bytes": 3404,
+      "lines": 20,
+      "date": "2026-07-30",
+      "types": "- правило-кандидат",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-07-30-131107-codex-019fb213.md",
+      "sha256": "434c7a61becb09e0915d8e0a261f629189150a66b6065b0f795437a64cd9963a",
+      "bytes": 1897,
+      "lines": 18,
+      "date": "2026-07-30",
+      "types": "- коррекция",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-07-30-131247-codex-019fb215.md",
+      "sha256": "e00e9de053b5d3cd0f847aefa6829e06fb0c22494a03660f61c58f9fd450dfeb",
+      "bytes": 1525,
+      "lines": 15,
+      "date": "2026-07-30",
+      "types": "- идея",
+      "topics": "- архитектура-и-модель"
+    },
+    {
+      "path": "2026-07-31-005511-codex-019fb495.md",
+      "sha256": "01dbc1dcae3f4fbd65eaf907c6c9cb22429ab27f6bd813720fd4b86b76d44732",
+      "bytes": 1377,
+      "lines": 17,
+      "date": "2026-07-31",
+      "types": "- правило-кандидат",
+      "topics": "- документация-и-знания"
+    },
+    {
+      "path": "2026-07-31-200328-codex-019fb8b3.md",
+      "sha256": "6b05e20443503d570334d8300cb04f89b489a1d324a42ea111182e6836c8edd9",
+      "bytes": 971,
+      "lines": 15,
+      "date": "2026-07-31",
+      "types": "- критерий",
+      "topics": "- инструменты-и-автоматизация"
+    },
+    {
+      "path": "2026-08-01-122602-claude-5db612ad.md",
+      "sha256": "9cf6211daceaba25c1535831643798f2ed9f2cc82aaa1d1e012138acb2f831a5",
+      "bytes": 3321,
+      "lines": 22,
+      "date": "2026-08-01",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-01-122733-claude-188605a7.md",
+      "sha256": "703dbbf9df19a86e977f6f1fdc45f8fe97e4d63c3fab80187c8b43dbcc7ca56b",
+      "bytes": 1200,
+      "lines": 15,
+      "date": "2026-08-01",
+      "types": "- критерий",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-01-145225-claude-444200aa.md",
+      "sha256": "77bb8a089b18ac471d346f9896671bcea52718b397dbec469ec768576b077c81",
+      "bytes": 2010,
+      "lines": 15,
+      "date": "2026-08-01",
+      "types": "- критерий",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-01-164842-claude-d2c4b3e7.md",
+      "sha256": "84a5ad07bd8af37d58c76ffc1da3258f28361f8f615fc107a7c1af4ef796e6d1",
+      "bytes": 2121,
+      "lines": 17,
+      "date": "2026-08-01",
+      "types": "- коррекция",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-01-172241-codex-019fbd46.md",
+      "sha256": "a360d5c6ac8f7a5d98d05e431d895da655bc147b9ce9449c8745bff6fe24d5c2",
+      "bytes": 999,
+      "lines": 15,
+      "date": "2026-08-01",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-02-160951-codex-019fc22a.md",
+      "sha256": "c9ea631a41751c79b930ca944da8877392db76dec6ff544d940dde5f71e6c213",
+      "bytes": 1264,
+      "lines": 15,
+      "date": "2026-08-02",
+      "types": "- критерий",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-02-172116-codex-019fc250.md",
+      "sha256": "9c8695f8945250e6251ad0487a55d952daf441f2b11a4e26f11be38b422a4f32",
+      "bytes": 1362,
+      "lines": 18,
+      "date": "2026-08-02",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-02-172343-codex-019fc26d.md",
+      "sha256": "bcba5fc85aef34787e30b1bc003598e564abf2af2f62efd3f09b740fb5afffab",
+      "bytes": 908,
+      "lines": 15,
+      "date": "2026-08-02",
+      "types": "- критерий",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-03-015356-codex-019fc43f.md",
+      "sha256": "ca591bb37d57bf41ac3ae17a2c244c47a5c9b6c6e070accd882d47fb533d23d3",
+      "bytes": 1253,
+      "lines": 18,
+      "date": "2026-08-03",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-03-113253-codex-019fc652.md",
+      "sha256": "5c69ed42adfbe947bdcbc91a76c47a5b3ae640eff7968ccdde01d2a0db8bcee5",
+      "bytes": 1884,
+      "lines": 21,
+      "date": "2026-08-03",
+      "types": "- идея",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-03-232246-codex-019fc8d8.md",
+      "sha256": "d3c2d04b9fbb4781049e5b48775ffb2ed1d4b183e34738558c91c87ebf1de078",
+      "bytes": 6291,
+      "lines": 34,
+      "date": "2026-08-03",
+      "types": "- решение",
+      "topics": "- инструменты-и-автоматизация"
+    },
+    {
+      "path": "2026-08-04-120529-codex-019fcb8f.md",
+      "sha256": "5af562300a115a96b181e9634fc75c5da27921a3e7ad0c5b0f38474ee6a39a20",
+      "bytes": 2657,
+      "lines": 25,
+      "date": "2026-08-04",
+      "types": "- коррекция",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-04-121600-codex-019fcb91.md",
+      "sha256": "4f8beac75b5797c8a4b080744471d39c13ed53a73c18db09f671fbb496106b96",
+      "bytes": 1567,
+      "lines": 18,
+      "date": "2026-08-04",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-04-124042-claude-3f4b2db2.md",
+      "sha256": "357ca5a372307c4fab98d113ddf102f58359bc9b2b57e866e8b0c77cca381f2a",
+      "bytes": 2271,
+      "lines": 23,
+      "date": "2026-08-04",
+      "types": "- факт",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-04-125501-codex-019fcbc0.md",
+      "sha256": "a71521007b110c3ed1f47184b9aeb62b9dc0273e0bca09412dc35c39d3fd8b9a",
+      "bytes": 1922,
+      "lines": 21,
+      "date": "2026-08-04",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-04-131749-codex-019fcbc4.md",
+      "sha256": "48f059ef0e58da2300f87eb1dfb6c4080a41ee4d91a3aad6588cb89972d0493c",
+      "bytes": 1090,
+      "lines": 18,
+      "date": "2026-08-04",
+      "types": "- коррекция",
+      "topics": "- инструменты-и-автоматизация"
+    },
+    {
+      "path": "2026-08-04-140649-claude-d8fcf6fd.md",
+      "sha256": "44d1216c49f0067656d86748c2d2cab54819b398d1b912eaea330060fafcfc61",
+      "bytes": 917,
+      "lines": 15,
+      "date": "2026-08-04",
+      "types": "- решение",
+      "topics": "- цели-и-приоритеты"
+    },
+    {
+      "path": "2026-08-04-161131-codex-019fcc75.md",
+      "sha256": "e686c0b9a2a890a9408acc7b15802680ec31e365fd76cc696004ea9c05a0c357",
+      "bytes": 3493,
+      "lines": 22,
+      "date": "2026-08-04",
+      "types": "- критерий",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-04-161820-codex-019fcc74.md",
+      "sha256": "57cbc6e488fd9d2e027d2c22768172c0f5b41099715839e54ea7bde36efa06f8",
+      "bytes": 2538,
+      "lines": 21,
+      "date": "2026-08-04",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-04-162452-codex-019fcbb1.md",
+      "sha256": "a7e10ff9ea89d559a2a2bed5b3f670cfb31b6c53bb7d5d9c25d626a9f2f0fcb1",
+      "bytes": 2878,
+      "lines": 20,
+      "date": "2026-08-04",
+      "types": "- решение",
+      "topics": "- цели-и-приоритеты"
+    },
+    {
+      "path": "2026-08-04-165425-codex-019fcc93.md",
+      "sha256": "b4e6946edf7c260522914b3b289d1595638cb7aa5af1492d01ae20cb46943a12",
+      "bytes": 2085,
+      "lines": 19,
+      "date": "2026-08-04",
+      "types": "- коррекция",
+      "topics": "- инструменты-и-автоматизация"
+    },
+    {
+      "path": "2026-08-04-165447-codex-019fcc94.md",
+      "sha256": "4778afb429c2df3bbe2e62f7108a20493bb46f24d2c7170ecc0dae49e31088e8",
+      "bytes": 791,
+      "lines": 15,
+      "date": "2026-08-04",
+      "types": "- коррекция",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-04-210528-codex-019fcd67.md",
+      "sha256": "7c622ca4a3c21bbfacf9c2990551823c8d0e76999eb016daa4b5e1f1302c836b",
+      "bytes": 892,
+      "lines": 15,
+      "date": "2026-08-04",
+      "types": "- коррекция",
+      "topics": "- инструменты-и-автоматизация"
+    },
+    {
+      "path": "2026-08-04-215610-codex-019fcdb3.md",
+      "sha256": "c6998dcdd4a16999ddc971c144c02500fbe5fe5b485ee309d88add9c6bb61e2a",
+      "bytes": 2349,
+      "lines": 20,
+      "date": "2026-08-04",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-04-215717-codex-019fcdb4.md",
+      "sha256": "3a4f00c73e1522e187578892a9bbc739278695ccc52f8451f586f513e55b5092",
+      "bytes": 2132,
+      "lines": 18,
+      "date": "2026-08-04",
+      "types": "- критерий",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-04-231700-codex-019fcdfd.md",
+      "sha256": "baaced57a750ea1854b2d0c7e72af9bdfdbbe53b757df9f7f4ee741a25823f97",
+      "bytes": 5156,
+      "lines": 23,
+      "date": "2026-08-04",
+      "types": "- коррекция",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-04-234007-codex-019fce09.md",
+      "sha256": "38bd445ad4785eb47015d2c99b78f71813cc5e048ccae82a3ede8278d659f827",
+      "bytes": 2148,
+      "lines": 19,
+      "date": "2026-08-04",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-05-000000-codex-019fd2d3.md",
+      "sha256": "9dccffa089d9fe53c0ed7cb39cce9f5dc9a1bbed9e978533b28301753ff28eba",
+      "bytes": 1036,
+      "lines": 15,
+      "date": "2026-08-05",
+      "types": "- правило-кандидат",
+      "topics": "- документация-и-знания"
+    },
+    {
+      "path": "2026-08-05-144851-codex-019fd153.md",
+      "sha256": "ce7c184c42d61d1fa4b07af0640b4ca4efe397cf14cd73a850c53d9e71bffc8f",
+      "bytes": 11574,
+      "lines": 38,
+      "date": "2026-08-05",
+      "types": "- решение",
+      "topics": "- документация-и-знания"
+    },
+    {
+      "path": "2026-08-05-150700-codex-019fd162.md",
+      "sha256": "7439c288bbaadbd4a34179b6abd81cb12fa07ef815b4f3ee1372cb4787532be5",
+      "bytes": 10022,
+      "lines": 25,
+      "date": "2026-08-05",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-05-151631-codex-019fd16c.md",
+      "sha256": "1330869283b5f63a287f9edfd8109cc232f045bd32959c75538c98c60a1b7302",
+      "bytes": 1454,
+      "lines": 15,
+      "date": "2026-08-05",
+      "types": "- коррекция",
+      "topics": "- документация-и-знания"
+    },
+    {
+      "path": "2026-08-05-153153-claude-1087a584.md",
+      "sha256": "1c16194e002b8a9af578fb247ca0b4703f4f80824e260c97d6e7c8448d98e0bd",
+      "bytes": 2181,
+      "lines": 16,
+      "date": "2026-08-05",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-05-204527-codex-019fd299.md",
+      "sha256": "a42874b94337ca8441f54e6e3ad16b5940a64a676278cf058a0a8195b1b38477",
+      "bytes": 8897,
+      "lines": 35,
+      "date": "2026-08-05",
+      "types": "- правило-кандидат",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-05-205001-codex-019fd29d.md",
+      "sha256": "6788a5ee09e693aafbaf917458b1e097c44523129b63b588c4ae803086a2718e",
+      "bytes": 1684,
+      "lines": 17,
+      "date": "2026-08-05",
+      "types": "- коррекция",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-05-205838-codex-019fd2a5.md",
+      "sha256": "507b26ffef95e351e50703d743c3c9293938c1cc8b00189d74dc3f77b355aeef",
+      "bytes": 5365,
+      "lines": 20,
+      "date": "2026-08-05",
+      "types": "- критерий",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-06-113200-claude-712763b3.md",
+      "sha256": "316b772b2532dcd08fd09627681c4b1f9589d91b9cdb76c1661e7cce1c8da98b",
+      "bytes": 6081,
+      "lines": 28,
+      "date": "2026-08-06",
+      "types": "- коррекция",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-06-141534-claude-481c094d.md",
+      "sha256": "feba30c95308ceff958b686f77acc5f20eca5f4ceacb4015cd18a52aa1896fb9",
+      "bytes": 9028,
+      "lines": 28,
+      "date": "2026-08-06",
+      "types": "- правило-кандидат",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-06-182756-claude-99ed258a.md",
+      "sha256": "9138ef624ae9e38af529cf68a9ca4cbdb8721b426b28860b99ff168317da02fe",
+      "bytes": 5853,
+      "lines": 28,
+      "date": "2026-08-06",
+      "types": "- решение",
+      "topics": "- документация-и-знания"
+    },
+    {
+      "path": "2026-08-06-215508-claude-224b8c51.md",
+      "sha256": "399acaf3526e8e670b25f5e7b07ec6ad7beaa2c5d0ac7874d9557955213b3ff9",
+      "bytes": 9111,
+      "lines": 32,
+      "date": "2026-08-06",
+      "types": "- правило-кандидат",
+      "topics": "- работа-и-процессы"
+    },
+    {
+      "path": "2026-08-06-235654-claude-36fcbf96.md",
+      "sha256": "18282470749feddfa3d395cb7fb48218d4e4db29a01ddc4650a32a84b743e7a4",
+      "bytes": 8621,
+      "lines": 27,
+      "date": "2026-08-06",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-07-121413-claude-833c44a4.md",
+      "sha256": "cc9c9c447b8fa7dc93f3a544184f0b667c9867f788a732546ed1b8a055c945b2",
+      "bytes": 10743,
+      "lines": 28,
+      "date": "2026-08-07",
+      "types": "- идея",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-07-132700-claude-ab88e176.md",
+      "sha256": "31e3e1ec3497aa58353ca0ee78345975be04a27ea99c937c2523f8acc9166018",
+      "bytes": 8479,
+      "lines": 28,
+      "date": "2026-08-07",
+      "types": "- коррекция",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-08-134900-codex-019fe08d.md",
+      "sha256": "85058911400fe8ba1d5d97449ca3d6eb7420c55aef2fc6ad7e3c38eb0cd31969",
+      "bytes": 4412,
+      "lines": 29,
+      "date": "2026-08-08",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-08-135005-claude-dfa9fb5c.md",
+      "sha256": "c8cc214ab21cf084bdee08c07d4559cadb71123fcf9e6b1041d182748ed40844",
+      "bytes": 39295,
+      "lines": 79,
+      "date": "2026-08-08",
+      "types": "- критерий",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-08-135137-claude-457be55d.md",
+      "sha256": "9abc43fcf9d287ce954de3a1af176bb3c6bcd600a8ee3ce0b8c13c5d001a3ede",
+      "bytes": 13031,
+      "lines": 36,
+      "date": "2026-08-08",
+      "types": "- обо-мне",
+      "topics": "- обо-мне-и-предпочтения"
+    },
+    {
+      "path": "2026-08-08-190948-claude-60e39467.md",
+      "sha256": "4831b9b78c6a9b856264003b4847ad974c4ab92d4e337a421634aaad4f6c14fd",
+      "bytes": 12139,
+      "lines": 30,
+      "date": "2026-08-08",
+      "types": "- решение",
+      "topics": "- цели-и-приоритеты"
+    },
+    {
+      "path": "2026-08-08-195321-codex-019fe1dd.md",
+      "sha256": "86b17aaa9bd50b95b6acad6ce90114f78c6566194a0ec9fb84a96e117d5d635d",
+      "bytes": 12646,
+      "lines": 41,
+      "date": "2026-08-08",
+      "types": "- критерий",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-09-030700-codex-019fe36a.md",
+      "sha256": "61fad2f29fa34dac6a87bb48b944b125ec843c0390b4583c9c0c3811aa40d2cf",
+      "bytes": 8068,
+      "lines": 28,
+      "date": "2026-08-09",
+      "types": "- критерий",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-09-121135-codex-019fe38d.md",
+      "sha256": "64d6ead222c80eb4a39142993c5b78dfba9707953a023f06d89019086d0a2ac9",
+      "bytes": 1399,
+      "lines": 17,
+      "date": "2026-08-09",
+      "types": "- критерий",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-09-122011-claude-08445ad4.md",
+      "sha256": "bff806bbf61a91767ba01d7970db08a3be2feacca404c6f469b5a7616488b5ba",
+      "bytes": 20733,
+      "lines": 40,
+      "date": "2026-08-09",
+      "types": "- коррекция",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-09-124507-codex-019fe57b.md",
+      "sha256": "fe6f0f3ecd6686fb8ee50b64920639d16d9e49f678ba7f32076263941ee94186",
+      "bytes": 1024,
+      "lines": 15,
+      "date": "2026-08-09",
+      "types": "- решение",
+      "topics": "- документация-и-знания"
+    },
+    {
+      "path": "2026-08-09-132538-codex-019fe572.md",
+      "sha256": "54582efd218af7a870ec44698a99b25b4084e2b93beffc662373d125336dbdf8",
+      "bytes": 2899,
+      "lines": 25,
+      "date": "2026-08-09",
+      "types": "- обо-мне",
+      "topics": "- обо-мне-и-предпочтения"
+    },
+    {
+      "path": "2026-08-09-133113-codex-019fe574.md",
+      "sha256": "b718058f3e295b9b460a2cc90c13df85272c786ebdfa839eddf0717bd6aefc68",
+      "bytes": 1087,
+      "lines": 15,
+      "date": "2026-08-09",
+      "types": "- коррекция",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-09-150249-codex-019fe5f7.md",
+      "sha256": "28dbc2c57ef02cbb5caae928693c3df4070c972622a59e72c79beae20ae6e449",
+      "bytes": 10474,
+      "lines": 30,
+      "date": "2026-08-09",
+      "types": "- правило-кандидат",
+      "topics": "- работа-и-процессы"
+    },
+    {
+      "path": "2026-08-09-153733-codex-019fe619.md",
+      "sha256": "b8765ab21a7fc5491b66cd1ae2d34e31203332a304461c235b4040b783be2f1b",
+      "bytes": 4853,
+      "lines": 25,
+      "date": "2026-08-09",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-09-154508-codex-019fe619.md",
+      "sha256": "6fb2d8e7299274cce103780f441629009831c12803d20aa559ded0391868ddbe",
+      "bytes": 1109,
+      "lines": 15,
+      "date": "2026-08-09",
+      "types": "- правило-кандидат",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-09-165734-codex-019fe662.md",
+      "sha256": "1b97c80a6ef68f46f4d485d78e6910b936e3dccec2e53dc39f41baceb196e5fd",
+      "bytes": 1988,
+      "lines": 19,
+      "date": "2026-08-09",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-09-165811-codex-019fe662.md",
+      "sha256": "98e7ed8e1e9d58e2f128442d514f24fb2735b75b66692e772a13457446d41d69",
+      "bytes": 4025,
+      "lines": 23,
+      "date": "2026-08-09",
+      "types": "- критерий",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-09-171636-Codex-019fe662.md",
+      "sha256": "8dac14a31800f297df2a24b9d17573e30f7d0912b451d956e1cff35ddfe8eb35",
+      "bytes": 3071,
+      "lines": 23,
+      "date": "2026-08-09",
+      "types": "- коррекция",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-09-175000-claude-337dc5a6.md",
+      "sha256": "f3a683f57fe99bcf1e6b83229299e7b055f2e160cf00f9cdb91f944e2a28d40a",
+      "bytes": 1533,
+      "lines": 15,
+      "date": "2026-08-09",
+      "types": "- решение",
+      "topics": "- документация-и-знания"
+    },
+    {
+      "path": "2026-08-09-192537-codex-019fe6e9.md",
+      "sha256": "212286decd768bb9c6d75bda5e1e455b670c19eddaa1d5f79f746a52f419ac12",
+      "bytes": 14916,
+      "lines": 42,
+      "date": "2026-08-09",
+      "types": "- правило-кандидат",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-09-202532-codex-019fe71b.md",
+      "sha256": "8e7fb7d856326b738fa9b2ae29a19d496adc2e7202f82a5beefb00b764eed03e",
+      "bytes": 1106,
+      "lines": 15,
+      "date": "2026-08-09",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-09-203500-claude-39f062f3.md",
+      "sha256": "56cd13eeb6db828684bc0d8443c17ae7a178fbff8101bbd7c477788a26754fb9",
+      "bytes": 3684,
+      "lines": 18,
+      "date": "2026-08-09",
+      "types": "- коррекция",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-09-205000-claude-e43a3456.md",
+      "sha256": "fff55576c51d72ffa0bcb15c8ad46b848a0a766a67e29700586ce18cf03bdf6e",
+      "bytes": 1018,
+      "lines": 15,
+      "date": "2026-08-09",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-10-000000-claude-a0af5c40.md",
+      "sha256": "db1ce18b7032f1a0068d99e8b3c861a0189252b4aa62ca3791864f406b90f4b4",
+      "bytes": 15392,
+      "lines": 28,
+      "date": "2026-08-10",
+      "types": "- идея",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-10-134812-codex-019feadb.md",
+      "sha256": "c375f3c1389e22718026599ec1e1304500f0329c54c3c5a582e432abad63da74",
+      "bytes": 2263,
+      "lines": 20,
+      "date": "2026-08-10",
+      "types": "- критерий",
+      "topics": "- исследования-и-источники"
+    },
+    {
+      "path": "2026-08-10-150726-claude-f93c43cf.md",
+      "sha256": "31597f0e2e5d13e20d4e6451b6706e30e7b9f1b179838db8dcdf516b72aba30d",
+      "bytes": 2583,
+      "lines": 18,
+      "date": "2026-08-10",
+      "types": "- коррекция",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-10-151230-codex-019feb11.md",
+      "sha256": "a9360dfdc8003046326ece68e2465934e79c628906bfe552c042fc64e083c8d6",
+      "bytes": 6841,
+      "lines": 24,
+      "date": "2026-08-10",
+      "types": "- коррекция",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-10-160541-codex-019feb59.md",
+      "sha256": "c9de9afd5bea7f594b982ee73d8a0c12b91b09d1aa6c886615aadce3c1663171",
+      "bytes": 2157,
+      "lines": 16,
+      "date": "2026-08-10",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-10-174714-claude-3592f17b.md",
+      "sha256": "706416744edc700b35f7e847f408a8c5b19ad9f9841eecea4ed3b9492cdcd7cd",
+      "bytes": 3674,
+      "lines": 18,
+      "date": "2026-08-10",
+      "types": "- коррекция",
+      "topics": "- инструменты-и-автоматизация"
+    },
+    {
+      "path": "2026-08-10-184723-codex-019febdf.md",
+      "sha256": "7a5c88a823a63af935488d50d5bb5ed88c015d2b33a1e3d54c2679dd5c164427",
+      "bytes": 4598,
+      "lines": 20,
+      "date": "2026-08-10",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-10-185852-claude-c78f2a64.md",
+      "sha256": "394deabf076f3b9e499ec0a78c379c5bdcee2ae1fd850b216311ced962aedd24",
+      "bytes": 7056,
+      "lines": 20,
+      "date": "2026-08-10",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-10-195720-codex-019fec2d.md",
+      "sha256": "1b66f740fa9e34c2737ae2e2a43a84a2b8ce63b639658b00bfea6b94ad485a99",
+      "bytes": 9591,
+      "lines": 36,
+      "date": "2026-08-10",
+      "types": "- идея",
+      "topics": "- архитектура-и-модель"
+    },
+    {
+      "path": "2026-08-10-200839-codex-019fec35.md",
+      "sha256": "50727cdfaeaac3817e0fd888dede525775bfb0736fc7658d8e2c88b70a920609",
+      "bytes": 7112,
+      "lines": 23,
+      "date": "2026-08-10",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-10-221517-codex-019fecab.md",
+      "sha256": "8777fb162c1f3d97acc6d6b2fdd08982e0cc7793a2b989076ff795f32393a287",
+      "bytes": 3682,
+      "lines": 20,
+      "date": "2026-08-10",
+      "types": "- идея",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-11-000000-claude-1ae24acb.md",
+      "sha256": "5bc8da59429b2853e4ebdd0465b0f32f251de08e8761892aeefa1c40e42312b1",
+      "bytes": 769,
+      "lines": 18,
+      "date": "2026-08-11",
+      "types": "- идея",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-11-000000-claude-e2169162.md",
+      "sha256": "d22f89d763291c792b66ddc14af704558d45a4898122f893a79678090d4a749f",
+      "bytes": 8305,
+      "lines": 24,
+      "date": "2026-08-11",
+      "types": "- идея",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-11-000000-claude-e8af9475.md",
+      "sha256": "2d9476955d3a68b413727ba305a88f6b83ab7e25c187ce5134a0db08de3a9375",
+      "bytes": 2244,
+      "lines": 19,
+      "date": "2026-08-11",
+      "types": "- критерий",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-11-002528-claude-5fcdde37.md",
+      "sha256": "d6b6c9be85424a4b927962ce51b86be9b25375fbb72ed31820863790dedc3b07",
+      "bytes": 1611,
+      "lines": 16,
+      "date": "2026-08-11",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-11-003000-claude-b378aa7e.md",
+      "sha256": "bef0c3e66a8262e1983edd8026af6d4ceaca4712a95ba64f2981bde2b68b5d5d",
+      "bytes": 1327,
+      "lines": 15,
+      "date": "2026-08-11",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-11-050000-claude-97cc05a9.md",
+      "sha256": "554fc6f8ac837c06db0e1b28d0fcbbd8b114e82a5d698b133fd97a16c4f30a64",
+      "bytes": 5030,
+      "lines": 22,
+      "date": "2026-08-11",
+      "types": "- критерий",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-11-050000-claude-ad4c0fa8.md",
+      "sha256": "d12eb6531d24f15384ac3f3155a0013a00ebdc71926029b9abd97e0a5df23843",
+      "bytes": 3839,
+      "lines": 23,
+      "date": "2026-08-11",
+      "types": "- коррекция",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-11-163847-codex-019ff09d.md",
+      "sha256": "c54068530c3dc2618590d5e239ae15b0759382594814fa25367f5534d4103e33",
+      "bytes": 10087,
+      "lines": 35,
+      "date": "2026-08-11",
+      "types": "- коррекция",
+      "topics": "- качество-и-проверка"
+    },
+    {
+      "path": "2026-08-11-164716-codex-019ff0a5.md",
+      "sha256": "b872909655d202134eaa2afb2a91c9badb1448dcbb2d2943deeffd218cf6f931",
+      "bytes": 3950,
+      "lines": 25,
+      "date": "2026-08-11",
+      "types": "- коррекция",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-11-181825-codex-019ff0f9.md",
+      "sha256": "fa405a6f30a9b3892e9ecfecc81ab06c0f1f9c05a3783e7543e6e60f9cc1e38e",
+      "bytes": 2840,
+      "lines": 17,
+      "date": "2026-08-11",
+      "types": "- идея",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-11-183344-claude-6bb7881b.md",
+      "sha256": "d48a6111eedad186a9ce69828692c33f11104bcde38c59b99261ff7b00026867",
+      "bytes": 8326,
+      "lines": 24,
+      "date": "2026-08-11",
+      "types": "- предпочтение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-11-190024-codex-019ff11f.md",
+      "sha256": "beab0a47bedd7a84ea42db31a263cc387054e6eb22c912b839bd79da12e2d72e",
+      "bytes": 4214,
+      "lines": 21,
+      "date": "2026-08-11",
+      "types": "- критерий",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-11-194544-claude-5586052b.md",
+      "sha256": "1e2d81b7e34e3d19d4b60cc2b623af1514c49366d51e166898bfb2f5632b4f61",
+      "bytes": 4050,
+      "lines": 18,
+      "date": "2026-08-11",
+      "types": "- предпочтение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-11-202216-claude-6d853588.md",
+      "sha256": "0683ceacb801e5315040e9b51869df46761bf04e7fc2618ff3a578851d1e9d8c",
+      "bytes": 3342,
+      "lines": 16,
+      "date": "2026-08-11",
+      "types": "- идея",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-11-234650-codex-019ff225.md",
+      "sha256": "519429e78e26f6aa8ba9b2502298aed5fbe31b207f390601822b2f13abaf39ed",
+      "bytes": 1617,
+      "lines": 16,
+      "date": "2026-08-11",
+      "types": "- коррекция",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-12-000000-claude-2649459a.md",
+      "sha256": "f724f8287768f815f84b522e993d79978d80c443dbfbcc123e215ec907d862c1",
+      "bytes": 7257,
+      "lines": 26,
+      "date": "2026-08-12",
+      "types": "- коррекция",
+      "topics": "- качество-и-проверка"
+    },
+    {
+      "path": "2026-08-12-104416-codex-019ff47f.md",
+      "sha256": "cc510577c4165c4676af2a443acf744b2164f8880a68c5f9d102fe5ea8abb282",
+      "bytes": 2519,
+      "lines": 19,
+      "date": "2026-08-12",
+      "types": "- коррекция",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-12-110523-codex-019ff491.md",
+      "sha256": "27078acb88171ef245341bfced4cf6aae26d77d2f8d57790c4609696a0f62c02",
+      "bytes": 1353,
+      "lines": 17,
+      "date": "2026-08-12",
+      "types": "- коррекция",
+      "topics": "- инструменты-и-автоматизация"
+    },
+    {
+      "path": "2026-08-12-112247-claude-8704f2a4.md",
+      "sha256": "1b3239a225bbc9ef95de06141ddab4ed330fbcc08c8a97c11a4c81bdf7918422",
+      "bytes": 5372,
+      "lines": 23,
+      "date": "2026-08-12",
+      "types": "- коррекция",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-12-163448-claude-1d2d9841.md",
+      "sha256": "cbb8d388abb0f71fb04c938c8c757384ff7978fc99e149e007ade4b8317029fb",
+      "bytes": 5711,
+      "lines": 22,
+      "date": "2026-08-12",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-12-170654-claude-4bc752e5.md",
+      "sha256": "8a4aa4280b70224a2eb09e0793295780f0d682ecc36dbe57918413f2290a6549",
+      "bytes": 1682,
+      "lines": 15,
+      "date": "2026-08-12",
+      "types": "- идея",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-12-183615-codex-019ff629.md",
+      "sha256": "2a45edcfc64e5cff4cb3319a784a43ac2f85688bc794a2101d45b6092f7a66bb",
+      "bytes": 8016,
+      "lines": 32,
+      "date": "2026-08-12",
+      "types": "- предпочтение",
+      "topics": "- границы-и-объём"
+    },
+    {
+      "path": "2026-08-12-201454-codex-019ff688.md",
+      "sha256": "ff76539835ce29106d2b8f63f8d3e1d1e1dd5aa0368ab538343f59a4b2a37da4",
+      "bytes": 1314,
+      "lines": 15,
+      "date": "2026-08-12",
+      "types": "- коррекция",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-12-203725-claude-af1633f9.md",
+      "sha256": "bcff6e7fe2767e29309c7f403dfb4dcf1d828087fe6b8a8b6577a3ab4a6f8989",
+      "bytes": 4954,
+      "lines": 25,
+      "date": "2026-08-12",
+      "types": "- факт",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-12-210411-claude-ec925182.md",
+      "sha256": "f014a228ad18799371759e84d22f274eb3db9780ad05eeb0e7d74d17efe91dce",
+      "bytes": 1798,
+      "lines": 16,
+      "date": "2026-08-12",
+      "types": "- критерий",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-13-020747-claude-6193917d.md",
+      "sha256": "eecec7696d160389e4ee7a2c8fd529d4ed71a445f4dcb20f58da474d813158c9",
+      "bytes": 887,
+      "lines": 15,
+      "date": "2026-08-13",
+      "types": "- коррекция",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-13-022730-codex-019ff7de.md",
+      "sha256": "bed7d42d8920d178951e35b21951b3bd5bb4b851b4afb59f6aa23d229d75176b",
+      "bytes": 2663,
+      "lines": 19,
+      "date": "2026-08-13",
+      "types": "- коррекция",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-13-024648-codex-019ff7b0.md",
+      "sha256": "079fc91761ec855f342022287caff449f05f8601ef8c518f579508e9694385c4",
+      "bytes": 916,
+      "lines": 15,
+      "date": "2026-08-13",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-13-031328-codex-019ff806.md",
+      "sha256": "0802118c83628bdef131e74a5196a4b3e12265edf434f2674b9b711e260b0d0d",
+      "bytes": 858,
+      "lines": 15,
+      "date": "2026-08-13",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-13-120315-claude-8e9d58e3.md",
+      "sha256": "8c1a60087251beb0dcb202a45d478ba0e0881fc8fceb19a3b38f15dcc3fd70ec",
+      "bytes": 6144,
+      "lines": 23,
+      "date": "2026-08-13",
+      "types": "- факт",
+      "topics": "- документация-и-знания"
+    },
+    {
+      "path": "2026-08-13-153240-codex-019ffa9f.md",
+      "sha256": "a035742d836c86ea33a4fa6db4ade2af2d4fe3c1fd720b2cb6d946836d1f543e",
+      "bytes": 7756,
+      "lines": 30,
+      "date": "2026-08-13",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-13-154222-codex-019ffab3.md",
+      "sha256": "2b554ab686bc0dea6e1663b38edb614998552987557727cbb471183096b8e6c5",
+      "bytes": 1111,
+      "lines": 15,
+      "date": "2026-08-13",
+      "types": "- коррекция",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-13-165151-codex-019ffaf5.md",
+      "sha256": "00fc02a0dcb6980561349583de7406cacde96b18d5cfd9d396bdaecd8bc42da0",
+      "bytes": 7822,
+      "lines": 35,
+      "date": "2026-08-13",
+      "types": "- решение",
+      "topics": "- дизайн-и-опыт"
+    },
+    {
+      "path": "2026-08-13-165535-codex-019ffaf7.md",
+      "sha256": "a735b3836eed53f294d47dc0731946b18b5aa511c619ef51a01b52a50e52cac2",
+      "bytes": 3576,
+      "lines": 23,
+      "date": "2026-08-13",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-13-175350-codex-019ffb29.md",
+      "sha256": "0e98793eb4fe9e3ad730473d7225930e1b9bb6043195587052087b540b46b55b",
+      "bytes": 2402,
+      "lines": 21,
+      "date": "2026-08-13",
+      "types": "- предпочтение",
+      "topics": "- работа-и-процессы"
+    },
+    {
+      "path": "2026-08-14-110034-codex-019ffed8.md",
+      "sha256": "df94700cd233690ebd1669caf5834c9fe758eb9601f0b55e818f2756c61c7f0b",
+      "bytes": 6763,
+      "lines": 32,
+      "date": "2026-08-14",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-14-113414-codex-019ffef8.md",
+      "sha256": "9a66cb22831f522a7e8db6c10e660238b85825f70f1de4d96a5ce7819cc5c3f7",
+      "bytes": 1685,
+      "lines": 18,
+      "date": "2026-08-14",
+      "types": "- критерий",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-14-120225-codex-019ffae9.md",
+      "sha256": "5eaa699b35ca969ab9ba3d0e57232e7ca45218c3578242b1792c271696acb3cf",
+      "bytes": 1470,
+      "lines": 17,
+      "date": "2026-08-14",
+      "types": "- решение",
+      "topics": "- инструменты-и-автоматизация"
+    },
+    {
+      "path": "2026-08-14-122215-claude-2e4e5183.md",
+      "sha256": "987a5d443d9689e77a41c44e76792f490c7b1b8f2f56823aee28e7225ae19909",
+      "bytes": 19694,
+      "lines": 41,
+      "date": "2026-08-14",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-14-124028-codex-019fff2e.md",
+      "sha256": "501cad60b995a15ce2382ea1c4f264f4c3f22a0e1450dda2fbe4d891c58016ff",
+      "bytes": 15013,
+      "lines": 37,
+      "date": "2026-08-14",
+      "types": "- идея",
+      "topics": "- документация-и-знания"
+    },
+    {
+      "path": "2026-08-14-135604-Codex-019ffae9.md",
+      "sha256": "19467bd5ee4039b14822fe71954ca93b2bc00eebc488c9cad511168c154f11ac",
+      "bytes": 2916,
+      "lines": 22,
+      "date": "2026-08-14",
+      "types": "- коррекция",
+      "topics": "- границы-и-объём"
+    },
+    {
+      "path": "2026-08-14-201110-codex-019fff9f.md",
+      "sha256": "1e1eb8be0bcadd3b73ab5f3673c9d7f238d08abf245b6aa1bd5dcf6cdd74b799",
+      "bytes": 1781,
+      "lines": 17,
+      "date": "2026-08-14",
+      "types": "- коррекция",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-14-201233-codex-01a000d3.md",
+      "sha256": "4ed9eb11e41d4746bbf39d5f862cfdbeae44fa370a5dad9f5f797f286d4cd412",
+      "bytes": 1742,
+      "lines": 18,
+      "date": "2026-08-14",
+      "types": "- обо-мне",
+      "topics": "- обо-мне-и-предпочтения"
+    },
+    {
+      "path": "2026-08-14-211521-claude-bed3795b.md",
+      "sha256": "dcbc35a8f737ed529fbdbe9c9e14e87e951780fab8f98949176cbee02d6267d1",
+      "bytes": 4399,
+      "lines": 22,
+      "date": "2026-08-14",
+      "types": "- решение",
+      "topics": "- качество-и-проверка"
+    },
+    {
+      "path": "2026-08-15-134233-codex-01a00494.md",
+      "sha256": "23d6dbfda03725bbe239070da1ea6c7586e21931360cbaeb75b55a1e1c7e8744",
+      "bytes": 7508,
+      "lines": 28,
+      "date": "2026-08-15",
+      "types": "- критерий",
+      "topics": "- качество-и-проверка"
+    },
+    {
+      "path": "2026-08-16-060539-claude-0da6ba3c.md",
+      "sha256": "8c5f0210b5fdb1f42f3a1e125c553137df643edb5f5f9a2b5a3dfe119aea2690",
+      "bytes": 3840,
+      "lines": 22,
+      "date": "2026-08-16",
+      "types": "- идея",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-16-063500-Codex-01a00494.md",
+      "sha256": "4bd05c822aaace9506797fca22dfe1a5ab78f864dca61845fd616900148feccc",
+      "bytes": 1194,
+      "lines": 15,
+      "date": "2026-08-16",
+      "types": "- коррекция",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-18-132634-codex-01a013f9.md",
+      "sha256": "6c885c1d01a421540362fda5f9448642fe575b3523dfa17b5a1561e84f6d9cd7",
+      "bytes": 2345,
+      "lines": 19,
+      "date": "2026-08-18",
+      "types": "- коррекция",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-18-133335-claude-d89e3d9a.md",
+      "sha256": "81522e4fd2a1f423a9538fd7dff4783e386d5c1f5cb1b267c78ff6205f7c898c",
+      "bytes": 2494,
+      "lines": 19,
+      "date": "2026-08-18",
+      "types": "- решение",
+      "topics": "- документация-и-знания"
+    },
+    {
+      "path": "2026-08-18-135026-claude-a42b965e.md",
+      "sha256": "3d106d2e02c05a96198071fe7c911e686915a48f18dacc4d3128039683c31492",
+      "bytes": 1038,
+      "lines": 15,
+      "date": "2026-08-18",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-18-143416-claude-9d58ffa2.md",
+      "sha256": "17a185ee4c901113d655648e579a7dfd7f45a22b89b666b1a610082b26ed4558",
+      "bytes": 3731,
+      "lines": 22,
+      "date": "2026-08-18",
+      "types": "- предпочтение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-18-143951-claude-524d8920.md",
+      "sha256": "35c4701715b233e36e6563f463b8884545c9a2c9e91eb2e282009bd7296924e3",
+      "bytes": 2091,
+      "lines": 17,
+      "date": "2026-08-18",
+      "types": "- идея",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-18-151822-codex-01a0145e.md",
+      "sha256": "721780fa5104feb1fa4b052c62c4a472711d23488ac7966a6dc1ee3e7bc30fcd",
+      "bytes": 23891,
+      "lines": 67,
+      "date": "2026-08-18",
+      "types": "- решение",
+      "topics": "- код-и-реализация"
+    },
+    {
+      "path": "2026-08-18-172151-claude-21ca4023.md",
+      "sha256": "680463d595d9cdefb17fb9af8aa5102a9f0b2562891172e2cfe07c40f8af3e84",
+      "bytes": 5022,
+      "lines": 22,
+      "date": "2026-08-18",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-19-020820-claude-7658d2a8.md",
+      "sha256": "b364aea63f0ae2d50c9d04e5a5521181061f39dc523897b4a9de33304189e964",
+      "bytes": 9182,
+      "lines": 26,
+      "date": "2026-08-19",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-19-023138-codex-01a016c7.md",
+      "sha256": "6b9b366cbce31f1e9ba94275130bf6f9bb13796e499c598ef22b72c541b16088",
+      "bytes": 1337,
+      "lines": 18,
+      "date": "2026-08-19",
+      "types": "- коррекция",
+      "topics": "- цели-и-приоритеты"
+    },
+    {
+      "path": "2026-08-19-034014-codex-01a01707.md",
+      "sha256": "0ddc09e57e9b6705a015d280a6bf36b1f85d6a5c17b6ddeab3ed2ddc964421d6",
+      "bytes": 775,
+      "lines": 15,
+      "date": "2026-08-19",
+      "types": "- критерий",
+      "topics": "- исследования-и-источники"
+    },
+    {
+      "path": "2026-08-19-122330-claude-01a016c7.md",
+      "sha256": "7988065be62add3e1e3e06ece8beca4defdd30a43b5d0479787793229210c0d4",
+      "bytes": 932,
+      "lines": 15,
+      "date": "2026-08-19",
+      "types": "- коррекция",
+      "topics": "- качество-и-проверка"
+    },
+    {
+      "path": "2026-08-19-135233-codex-01a01922.md",
+      "sha256": "a284892517e6b21de54e57f312bbe583af95e271758358881f31555385b1c505",
+      "bytes": 9528,
+      "lines": 32,
+      "date": "2026-08-19",
+      "types": "- коррекция",
+      "topics": "- документация-и-знания"
+    },
+    {
+      "path": "2026-08-19-142942-codex-01a01956.md",
+      "sha256": "2d74f9d347813fa2345319834fcd09674a3103e849afbfd991d1084ead641031",
+      "bytes": 8280,
+      "lines": 26,
+      "date": "2026-08-19",
+      "types": "- коррекция",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-19-143845-codex-01a01961.md",
+      "sha256": "cd81ce5aec5f4d91da50ca793d0ca17731146fc19c91ef110a0ee3c32acbd0b7",
+      "bytes": 959,
+      "lines": 15,
+      "date": "2026-08-19",
+      "types": "- коррекция",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-19-154822-codex-01a019a2.md",
+      "sha256": "5131aecf0eb1c29499b0e117d18b52b7500edba2a66ea9c7d4ca5e7a52168860",
+      "bytes": 3898,
+      "lines": 27,
+      "date": "2026-08-19",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-19-160259-codex-01a019a8.md",
+      "sha256": "da8e6aebe3e65cc6c325b5facaf14708c9f44d65e5d760bc5e01afab4dc555c6",
+      "bytes": 3478,
+      "lines": 22,
+      "date": "2026-08-19",
+      "types": "- предпочтение",
+      "topics": "- инструменты-и-автоматизация"
+    },
+    {
+      "path": "2026-08-19-212344-codex-01a01ad4.md",
+      "sha256": "3b8e390e5e077845e3d93ec0e0ef06a823ee2e4f7f8d687c137e0626de3cc89a",
+      "bytes": 28637,
+      "lines": 70,
+      "date": "2026-08-19",
+      "types": "- правило-кандидат",
+      "topics": "- дизайн-и-опыт"
+    },
+    {
+      "path": "2026-08-19-221010-claude-3a023b71.md",
+      "sha256": "49340375166fceba9467dc7e743f9bad866d870ed488ac48b28751077ba28a4f",
+      "bytes": 8028,
+      "lines": 36,
+      "date": "2026-08-19",
+      "types": "- критерий",
+      "topics": "- документация-и-знания"
+    },
+    {
+      "path": "2026-08-20-041346-claude-12da2cc9.md",
+      "sha256": "aa75ca72ff1848fd0e146aa040456c545f59b4d887f97687ab3cc6e497ba7813",
+      "bytes": 9998,
+      "lines": 39,
+      "date": "2026-08-20",
+      "types": "- коррекция",
+      "topics": "- архитектура-и-модель"
+    },
+    {
+      "path": "2026-08-20-171854-codex-01a01f1a.md",
+      "sha256": "93ce78ba594fde316f7e6b2dcda76f5e137af9b9047cd02e7e7a0fbec540c01c",
+      "bytes": 2993,
+      "lines": 21,
+      "date": "2026-08-20",
+      "types": "- идея",
+      "topics": "- качество-и-проверка"
+    },
+    {
+      "path": "2026-08-20-172413-claude-b259d766.md",
+      "sha256": "a1ebda88a7fd94c5186df60e2be75dd4c69eda200527ae13ebb048e3ad467490",
+      "bytes": 1572,
+      "lines": 16,
+      "date": "2026-08-20",
+      "types": "- критерий",
+      "topics": "- качество-и-проверка"
+    },
+    {
+      "path": "2026-08-20-181330-claude-a7539038.md",
+      "sha256": "857ca090b099b531a57ade07defc384a5458cd46afef9441b6cde985ad5d1b7e",
+      "bytes": 7253,
+      "lines": 27,
+      "date": "2026-08-20",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-20-212455-claude-0407e6d0.md",
+      "sha256": "e902d2d85943abc3449a98b19fc5e91dc59e55208e417102412dcdcfc34e0e37",
+      "bytes": 3940,
+      "lines": 22,
+      "date": "2026-08-20",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-20-222653-claude-93d2bd06.md",
+      "sha256": "22a59ba3cc809cedbfb6e4d048cfa83f9111b72cc741a9abbc939e59543f820b",
+      "bytes": 4431,
+      "lines": 20,
+      "date": "2026-08-20",
+      "types": "- критерий",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-20-222728-claude-6a83ff1b.md",
+      "sha256": "e0586393e8555da8f6b2faea796c4c966d4ecd70e5f3eac3204c66fad9a3a739",
+      "bytes": 1186,
+      "lines": 15,
+      "date": "2026-08-20",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-20-222832-codex-01a02036.md",
+      "sha256": "45cfe135cfd07e8c5e12ed917812212012b524b4dd1786ac7d53a982f24901b7",
+      "bytes": 16757,
+      "lines": 34,
+      "date": "2026-08-20",
+      "types": "- критерий",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-20-224022-claude-1bc0a881.md",
+      "sha256": "cd689d8fe93b80261267a716a28482690e1a14632d5cc4856c7337e3b349a21b",
+      "bytes": 10925,
+      "lines": 31,
+      "date": "2026-08-20",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-20-224519-codex-01a02038.md",
+      "sha256": "9da5f3e733c023eab868075ff7e5d8447d0b2258982f784a608542d9b948c968",
+      "bytes": 1124,
+      "lines": 15,
+      "date": "2026-08-20",
+      "types": "- решение",
+      "topics": "- документация-и-знания"
+    },
+    {
+      "path": "2026-08-20-235300-codex-01a02084.md",
+      "sha256": "d1dffd2b5e1a1e38600a9c2326c3fcedb7a30694b004d3c13ec82c5fe5f14abb",
+      "bytes": 3052,
+      "lines": 20,
+      "date": "2026-08-20",
+      "types": "- идея",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-21-005222-claude-8e9b40bf.md",
+      "sha256": "db93b2a47d959d4408a25c30748067235ad8eafbc07fcd314a55702b1a9d787a",
+      "bytes": 13706,
+      "lines": 29,
+      "date": "2026-08-21",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-21-010201-codex-01a020be.md",
+      "sha256": "a3a228676c91163ca113b2792374cdbacf588e20749115c246272462bc9f9388",
+      "bytes": 1809,
+      "lines": 20,
+      "date": "2026-08-21",
+      "types": "- коррекция",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-21-133152-codex-01a0236d.md",
+      "sha256": "c92addebb7e56454bb848a935f2bdfe6408f9b6949248c1ca56dd06ec0502443",
+      "bytes": 5239,
+      "lines": 23,
+      "date": "2026-08-21",
+      "types": "- идея",
+      "topics": "- архитектура-и-модель"
+    },
+    {
+      "path": "2026-08-21-145624-codex-01a023be.md",
+      "sha256": "8bc3f6c3cbe6bcf7c0df6e479df9e63c7e4ffda1dc5c9072dff77043e9c4ce67",
+      "bytes": 894,
+      "lines": 15,
+      "date": "2026-08-21",
+      "types": "- коррекция",
+      "topics": "- агенты-и-ии"
+    },
+    {
+      "path": "2026-08-21-145843-codex-01a023c1.md",
+      "sha256": "643e1c29a466f05af2f147a6cf05ec7efd6bd19f23cbd7e6174f349ccc34ce10",
+      "bytes": 698,
+      "lines": 15,
+      "date": "2026-08-21",
+      "types": "- решение",
+      "topics": "- агенты-и-ии"
+    }
+  ]
+}
