@@ -10,10 +10,10 @@ kind: status
 
 ## Next
 
-Вторая диагностическая волна: две blind Luna Max руки отвечают на locked вопросы
-9 и 11 — одна только по diagnostic Wiki, другая только по six-holder source.
-После прямого сравнения решить, заслуживает ли package compatibility seam
-отдельной правки. Полный corpus пока не запускать.
+Writer повторяет diagnostic Compile на том же six-holder corpus в новый v2
+target с exact approved reason: canonical merge, count distinct records,
+earliest/latest/current/contradiction и отдельная OpenViking outcome page. Затем
+те же blind вопросы 9 и 11 повторяются на v2. Полный corpus пока не запускать.
 
 ## Текущее состояние
 
@@ -32,6 +32,9 @@ kind: status
 - Runtime pilot интегрирован commit `d57a49d`: stock Compile blocked HTTP 400
   из-за несовместимости VikingBot/SDK; disposable shim построил diagnostic Wiki
   из семи страниц, но это не stock acceptance.
+- Blind v1 diagnostic failed: source arm нашёл current OpenViking outcome, Wiki
+  arm подменил его historical retrieval-script задачей; обе руки abstained на
+  no-gold control. Return: `modules/return-wave-2-v1-diagnostic.md`.
 
 ## Вехи
 
@@ -51,8 +54,10 @@ kind: status
 - `wave-1-retrieval-contract.md` — независимый read-only acceptance designer;
   pinned task `01a023c3-ee43-7c73-964a-08b22a2d1b17`,
   «OpenViking: зафиксировать retrieval-контракт»; ✅ locked return принят.
-- `wave-2-diagnostic-retrieval.md` — две blind read-only руки; thread registry
-  добавляется после запуска.
+- `wave-2-diagnostic-retrieval.md` — blind Wiki arm, pinned task
+  `01a023e9-f36e-7471-86f5-d9ae99828de2`, «OpenViking: blind Wiki arm»;
+  blind source arm, pinned task `01a023e9-f36c-71c1-b216-f5fb84e1310e`,
+  «OpenViking: blind source arm»; ✅ v1 return записан, diagnostic failed.
 
 ## Открытые вопросы владельцу
 
