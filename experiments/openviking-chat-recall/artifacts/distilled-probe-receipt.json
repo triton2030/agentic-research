@@ -14,6 +14,10 @@
         "status": "pass"
       },
       {
+        "id": "contested-membership-structure",
+        "status": "pass"
+      },
+      {
         "id": "no-gold-boundary",
         "status": "pass"
       }
@@ -22,6 +26,7 @@
   },
   "evidence": {
     "claim_count": 6,
+    "contested_membership": [],
     "no_gold_controls": [
       {
         "checked_addresses": [
@@ -71,7 +76,8 @@
     "not_proven": [
       "semantic grouping quality",
       "currentness beyond the explicit manifest status",
-      "blind retrieval usefulness"
+      "blind retrieval usefulness",
+      "semantic opposition between contested source records"
     ],
     "status": "candidate"
   },

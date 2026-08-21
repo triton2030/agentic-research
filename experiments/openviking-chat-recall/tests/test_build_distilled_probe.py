@@ -169,6 +169,123 @@ class DistilledProbeTests(unittest.TestCase):
         with self.assertRaisesRegex(build_distilled_probe.ProbeError, "dangling superseded_by"):
             build_distilled_probe.validate_manifest(dangling, EXPERIMENT.parents[1])
 
+    def test_contested_membership_contract_fails_closed(self) -> None:
+        manifest = build_distilled_probe.load_manifest(MANIFEST_PATH)
+
+        def contested_manifest() -> tuple[dict, dict]:
+            candidate = copy.deepcopy(manifest)
+            claim = next(
+                item
+                for item in candidate["claims"]
+                if item["id"] == "wiki-language-route"
+            )
+            claim["lifecycle_status"] = "contested"
+            return candidate, claim
+
+        missing_conflicts, _ = contested_manifest()
+        with self.assertRaisesRegex(
+            build_distilled_probe.ProbeError,
+            "contested claim requires conflict_source_record_ids",
+        ):
+            build_distilled_probe.validate_manifest(
+                missing_conflicts, EXPERIMENT.parents[1]
+            )
+
+        one_sided, one_sided_claim = contested_manifest()
+        one_sided_claim["conflict_source_record_ids"] = [
+            one_sided_claim["source_record_ids"][0]
+        ]
+        with self.assertRaisesRegex(
+            build_distilled_probe.ProbeError,
+            "at least two distinct conflict source record IDs",
+        ):
+            build_distilled_probe.validate_manifest(one_sided, EXPERIMENT.parents[1])
+
+        out_of_claim, out_of_claim_item = contested_manifest()
+        out_of_claim_item["conflict_source_record_ids"] = [
+            out_of_claim_item["source_record_ids"][0],
+            "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:33",
+        ]
+        with self.assertRaisesRegex(
+            build_distilled_probe.ProbeError,
+            "must be included in source_record_ids",
+        ):
+            build_distilled_probe.validate_manifest(
+                out_of_claim, EXPERIMENT.parents[1]
+            )
+
+        dangling, dangling_claim = contested_manifest()
+        dangling_claim["source_record_ids"] = [
+            "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:25",
+            "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:33",
+        ]
+        dangling_claim["conflict_source_record_ids"] = [
+            dangling_claim["source_record_ids"][0],
+            "missing.md:1",
+        ]
+        with self.assertRaisesRegex(
+            build_distilled_probe.ProbeError,
+            "unknown conflict source record id",
+        ):
+            build_distilled_probe.validate_manifest(dangling, EXPERIMENT.parents[1])
+
+    def test_structural_contested_fixture_stays_candidate(self) -> None:
+        manifest = build_distilled_probe.load_manifest(MANIFEST_PATH)
+        candidate = copy.deepcopy(manifest)
+        claim = next(
+            item
+            for item in candidate["claims"]
+            if item["id"] == "wiki-language-route"
+        )
+        conflict_ids = [
+            "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:25",
+            "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:33",
+        ]
+        claim["lifecycle_status"] = "contested"
+        claim["source_record_ids"] = conflict_ids
+        claim["conflict_source_record_ids"] = conflict_ids
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            fixture_path = root / "manifest.json"
+            self._write_manifest(fixture_path, candidate)
+            payload = build_distilled_probe.build(
+                fixture_path,
+                root / "input",
+                root / "wiki",
+                EXPERIMENT.parents[1],
+                root / "receipt.json",
+                root / "receipt.md",
+            )
+            body = "\n".join(
+                path.read_text(encoding="utf-8")
+                for path in (root / "wiki").rglob("*.md")
+            )
+
+        self.assertEqual(payload["semantic_boundary"]["status"], "candidate")
+        self.assertIn(
+            "semantic opposition between contested source records",
+            payload["semantic_boundary"]["not_proven"],
+        )
+        self.assertIn(
+            "contested-membership-structure",
+            [
+                check["id"]
+                for check in payload["deterministic_validation"]["checks"]
+            ],
+        )
+        self.assertEqual(
+            payload["evidence"]["contested_membership"],
+            [
+                {
+                    "claim_id": "wiki-language-route",
+                    "source_record_ids": conflict_ids,
+                    "conflict_source_record_ids": conflict_ids,
+                }
+            ],
+        )
+        self.assertIn(claim["statement"], body)
+
     def test_no_gold_and_default_body_do_not_leak_source_history(self) -> None:
         manifest = build_distilled_probe.load_manifest(MANIFEST_PATH)
         bundle = build_distilled_probe.validate_manifest(manifest, EXPERIMENT.parents[1])

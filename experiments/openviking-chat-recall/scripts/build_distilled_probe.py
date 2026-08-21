@@ -247,6 +247,36 @@ def validate_manifest(manifest: dict[str, Any], repo_root: Path) -> dict[str, An
         for record_id in source_record_ids:
             if record_id not in record_map:
                 raise ProbeError(f"{claim_id}: unknown source record id {record_id}")
+        conflict_source_record_ids = claim.get("conflict_source_record_ids")
+        if status == "contested":
+            if not isinstance(conflict_source_record_ids, list):
+                raise ProbeError(
+                    f"{claim_id}: contested claim requires conflict_source_record_ids"
+                )
+            for record_id in conflict_source_record_ids:
+                if not isinstance(record_id, str) or not record_id.strip():
+                    raise ProbeError(
+                        f"{claim_id}: conflict source record IDs must be non-empty strings"
+                    )
+            if len(conflict_source_record_ids) < 2 or len(
+                set(conflict_source_record_ids)
+            ) < 2:
+                raise ProbeError(
+                    f"{claim_id}: contested claim requires at least two distinct conflict source record IDs"
+                )
+            for record_id in conflict_source_record_ids:
+                if record_id not in record_map:
+                    raise ProbeError(
+                        f"{claim_id}: unknown conflict source record id {record_id}"
+                    )
+                if record_id not in source_record_ids:
+                    raise ProbeError(
+                        f"{claim_id}: conflict source record id must be included in source_record_ids: {record_id}"
+                    )
+        elif conflict_source_record_ids is not None:
+            raise ProbeError(
+                f"{claim_id}: conflict_source_record_ids only allowed for contested claim"
+            )
         claim_map[claim_id] = {
             "id": claim_id,
             "slug": slug,
@@ -257,6 +287,7 @@ def validate_manifest(manifest: dict[str, Any], repo_root: Path) -> dict[str, An
             ),
             "lifecycle_status": status,
             "source_record_ids": source_record_ids,
+            "conflict_source_record_ids": conflict_source_record_ids or [],
             "superseded_by": claim.get("superseded_by"),
         }
     for claim in claim_map.values():
@@ -473,6 +504,7 @@ def validate_default_wiki(
                 f"{claim['lifecycle_status']}"
             )
     checks.append({"id": "lifecycle-filter-is-explicit", "status": "pass"})
+    checks.append({"id": "contested-membership-structure", "status": "pass"})
     for control in bundle["no_gold_controls"]:
         if control["statement"] in body:
             raise ProbeError(f"no-gold control leaked into Wiki: {control['id']}")
@@ -588,6 +620,15 @@ def receipt_payload(
         for claim in bundle["claims"]
         if claim["lifecycle_status"] not in DEFAULT_WIKI_STATUSES
     ]
+    contested_membership = [
+        {
+            "claim_id": claim["id"],
+            "source_record_ids": claim["source_record_ids"],
+            "conflict_source_record_ids": claim["conflict_source_record_ids"],
+        }
+        for claim in bundle["claims"]
+        if claim["lifecycle_status"] == "contested"
+    ]
     return {
         "schema": RECEIPT_SCHEMA,
         "status": "candidate",
@@ -603,6 +644,7 @@ def receipt_payload(
             "claim_count": len(bundle["claims"]),
             "rendered_claim_ids": rendered,
             "suppressed_claim_ids": suppressed,
+            "contested_membership": contested_membership,
             "no_gold_controls": bundle["no_gold_controls"],
         },
         "deterministic_validation": {
@@ -616,6 +658,7 @@ def receipt_payload(
                 "semantic grouping quality",
                 "currentness beyond the explicit manifest status",
                 "blind retrieval usefulness",
+                "semantic opposition between contested source records",
             ],
         },
         "test_command": "python3 -m unittest discover -s tests -p 'test_*.py' -v",
@@ -655,6 +698,7 @@ def render_receipt_markdown(payload: dict[str, Any]) -> str:
             "",
             f"- Status: `{semantic['status']}`.",
             "- The builder accepts `current`/`contested` as explicit candidate input and suppresses `non-current`/`uncertain`; it never derives currentness from `latest`.",
+            "- Contested membership is deterministic only: conflict addresses are checked for distinct in-bundle membership; semantic opposition is an external audit.",
             "- No-gold controls remain explicit `abstain`/`unknown` gaps with checked source addresses; they are not projected as claims.",
             "- Not proven here: semantic grouping quality, currentness beyond the manifest status, and blind retrieval usefulness.",
             "",
@@ -663,6 +707,7 @@ def render_receipt_markdown(payload: dict[str, Any]) -> str:
             "- frozen blob, line, record ID, timestamp or quote-digest drift fails closed;\n"
             "- unknown record ID or lifecycle status fails closed;\n"
             "- dangling `superseded_by` fails closed;\n"
+            "- contested claims require at least two distinct in-bundle conflict addresses; semantic opposition is not asserted;\n"
             "- exact source quotes and count/first/latest/evolution markers cannot enter default Wiki;\n"
             "- non-current/uncertain claims and no-gold controls cannot enter default Wiki;\n"
             "- deterministic rebuild must be byte-identical.",
