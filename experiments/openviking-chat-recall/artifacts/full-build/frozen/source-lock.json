@@ -1,0 +1,14 @@
+{
+  "code_sha256": "c583848cd8e12cda4c512d653d5fd17c5c79d55739f49f4d97ada836f22d4e3d",
+  "config_sha256": "d8122ad1c5b4bb889459f3959bb3a5e5fcd406431904109a1d3dbcc79b86e153",
+  "corpus_commit": "6f98fcccdbf4b4de45ef787239ad101f70d106e2",
+  "holder_count": 184,
+  "manifest_sha256": "9cf1f74a0ee48347a9f2db4bf01eeb795577913fd9d04c235540564e9c753450",
+  "owned_files": [
+    "source-manifest.json",
+    "source-lock.json"
+  ],
+  "parser_sha256": "cd2f558947255f8648a08a0c86989a2c8af60e2439be617b5e2a02db94cc1d23",
+  "schema": "openviking-chat-recall/source-lock.v1",
+  "source_root": "_ops/chat-recall"
+}
