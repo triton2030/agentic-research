@@ -13,19 +13,18 @@ kind: status
 
 ## Next
 
-Запустить F2 evidence-layer writer из принятого F1 source lock. F2 читает Git
-objects exact corpus commit `6f98fcccdbf4b4de45ef787239ad101f70d106e2`,
-не live holders, и адресует все 1101 parsed records и 34 diagnostics. Frozen
-semantic gold остаётся неизменным. Следующий utility verdict снимается только
-с настоящего representative L2/L1/L0 route, и его PASS откроет full semantic
-Wave 7.
+Запустить F3 stable-partition writer из принятого F2 evidence layer. F3 обязан
+распределить все 1101 record IDs ровно по одному deterministic part, не менять
+evidence fields и не вызывать модель. Frozen semantic gold остаётся
+неизменным. Следующий utility verdict снимается только с настоящего
+representative L2/L1/L0 route, и его PASS откроет full semantic Wave 7.
 
 ## Вехи
 
 | Веха | Статус | Evidence |
 | --- | --- | --- |
 | 1. Контракты | в работе | Wave 4/4b accepted contracts; Wave 5 semantic contract принят, utility topology переносится после ingestion |
-| 2. Compiler | в работе | F1 source lock принят; F2 deterministic evidence следующий |
+| 2. Compiler | в работе | F1 source lock и F2 evidence приняты; F3 stable partitions следующий |
 | 3. Full build | ожидает | После sample gates и explicit frozen snapshot |
 | 4. Normalize | ожидает | После coverage-complete full build |
 | 5. Acceptance | ожидает | После frozen candidate Wiki |
@@ -135,6 +134,7 @@ evidence.
 | Task | Stage | Ownership | State |
 | --- | --- | --- | --- |
 | 01a025ca-3714-7082-be9f-27ece6673e54 | F1 frozen source lock | freeze script/test + frozen manifest/lock | accepted `acb3def` + `31c8a4f` |
+| 01a025ef-35d5-7791-a2c8-323259126faa | F2 deterministic evidence | evidence script/test + records/coverage | accepted `ea569e2` |
 
 F1 return —
 [wave-6-f1-source-lock](modules/_returns/wave-6-f1-source-lock.md). Root
@@ -142,11 +142,18 @@ F1 return —
 `/root/f1_acceptance` вернул PASS по 16 условиям. Nested checker writer-а
 остался UNKNOWN и не использован как evidence.
 
+F2 return —
+[wave-6-f2-evidence-layer](modules/_returns/wave-6-f2-evidence-layer.md).
+Root подтвердил 32/32 tests, committed `--check` и exact-one JSON audit. Первый
+auditor дал FAIL из-за неоднозначного dirty-live bullet; второй independent
+Luna Max audit доказал, что rejection принадлежит F1, а F2-owned invariant —
+byte-identical output независимо от live holder tree. Карточка уточнена.
+
 ## Планируемые волны
 
 | Волна | Результат | Dependency | State |
 | --- | --- | --- | --- |
-| 6 | frozen snapshot, deterministic records, stable partitions, privacy fixture | accepted Wave 5 semantic contract + explicit corpus commit | active: F1 PASS, F2 next |
+| 6 | frozen snapshot, deterministic records, stable partitions, privacy fixture | accepted Wave 5 semantic contract + explicit corpus commit | active: F1/F2 PASS, F3 next |
 | 6b | representative L2/L1/L0 ingestion + matched final-route utility | Wave 6 pass | accepted card; execution waits for Wave 6 |
 | 7 | semantic candidates и canonical current claims | Wave 6b utility PASS | planned |
 | 8 | typed L2 pages, per-part validation и root catalog | Wave 7 pass | planned |

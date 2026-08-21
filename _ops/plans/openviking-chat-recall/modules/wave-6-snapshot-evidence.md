@@ -61,9 +61,9 @@ Shared manifests интегрирует только root после незав�
 
 - F1 accepted на `main` commits `acb3def` + `31c8a4f`; exact return —
   [_returns/wave-6-f1-source-lock](./_returns/wave-6-f1-source-lock.md).
-- F2 next: построить deterministic records/evidence только из accepted F1
-  lock и Git objects exact corpus commit.
-- F3 ждёт принятого F2.
+- F2 accepted на `main` commit `ea569e2`; exact return —
+  [_returns/wave-6-f2-evidence-layer](./_returns/wave-6-f2-evidence-layer.md).
+- F3 next: построить stable partitions только из accepted F2 artifacts.
 
 ## Contract
 
@@ -81,7 +81,8 @@ Shared manifests интегрирует только root после незав�
 - commit/blob/line/timestamp/record drift fail closed;
 - missing, duplicate или cross-part record fail;
 - два fresh builds byte-identical;
-- snapshot из live dirty tree отклоняется;
+- F1 отклоняет dirty source snapshot до lock; F2 игнорирует live tree и
+  доказывает byte-identical output из accepted lock/Git objects;
 - synthetic provider canary доказывает auth, egress, logging, retry, cost и
   secret redaction до передачи реального holder content.
 

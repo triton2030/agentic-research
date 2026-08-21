@@ -193,3 +193,26 @@ axis. Deterministic snapshot/evidence не блокируется pre-ingestion 
 **Граница.** Upstream benchmark доказывает порядок измерения, а не качество
 нашей статической distilled Wiki. Точные thresholds и русскоязычный corpus
 остаются локальной acceptance-гипотезой до Wave 6b.
+
+## 2026-08-22 — Dirty gate принадлежит стадии создания snapshot
+
+**Вывод.** После explicit source lock downstream deterministic stages не
+должны снова зависеть от live worktree. F1 отклоняет dirty source snapshot до
+фиксации commit/manifest; F2 читает только accepted lock и Git objects, поэтому
+его falsifier — изменение output от dirty или отсутствующего live tree, а не
+сам факт такого live state.
+
+**Evidence.** Первый F2 audit выдал FAIL, применив общий dirty-snapshot bullet
+к F2. Второй independent audit построил byte-identical F2 artifacts даже после
+удаления live `_ops/chat-recall` и адресовал ownership: F1 return уже доказывает
+dirty-source rejection, F2 contract запрещает live-directory input. Return —
+`modules/_returns/wave-6-f2-evidence-layer.md`.
+
+**Что меняет.** Reusable compiler типизирует gate по стадии: acquisition
+проверяет cleanliness и фиксирует source; downstream проверяет lock/digest и
+инвариантность к live state. Иначе замороженная сборка снова становится
+environment-dependent.
+
+**Граница.** Это относится к read-only frozen inputs с проверенными digests.
+Writable generated roots по-прежнему требуют resolved containment и
+fail-closed symlink checks.
