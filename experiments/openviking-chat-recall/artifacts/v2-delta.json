@@ -1,0 +1,90 @@
+{
+  "schema": "openviking-chat-recall/v2-delta.v1",
+  "status": "diagnostic-only-stock-gate-blocked",
+  "base": {
+    "v1_commit": "bf9b035328086ab9d0a1d22493988f072736f38d",
+    "v1_target_uri": "viking://resources/chat-recall-wiki",
+    "v1_export": "artifacts/wiki",
+    "v1_tree_sha256_before": "483b204ef333326094d2fa04371582e633229f866a0b35e1d1a678f6cde29ff5",
+    "v1_tree_sha256_after": "483b204ef333326094d2fa04371582e633229f866a0b35e1d1a678f6cde29ff5",
+    "source_uri": "viking://resources/chat-recall-pilot",
+    "inventory_sha256": "490171eae7376460a45f18fb947e4d4f6784b35db10aa8146695fc6f0448ec2e",
+    "pilot_holder_count": 6,
+    "skill_uri": "viking://agent/skills/llm-wiki"
+  },
+  "repair": {
+    "target_uri": "viking://resources/chat-recall-wiki-v2-repair",
+    "export": "artifacts/wiki-v2",
+    "tree_export": "artifacts/wiki-v2-tree.txt",
+    "tree_sha256": "8e2c6005409b00b0e3c25a48bc2002cb10959ab981b7814291495eba6a591ae5",
+    "page_count": 3,
+    "exported_bytes": 14643,
+    "task_id": "cmp_cc9abd10702e4104becab28e7b0a25b4",
+    "status": "completed",
+    "created_count": 3,
+    "warnings": [],
+    "compile_link_count": 0
+  },
+  "request": {
+    "from": ["viking://resources/chat-recall-pilot"],
+    "to": "viking://resources/chat-recall-wiki-v2-repair",
+    "skill": "viking://agent/skills/llm-wiki",
+    "runtime_timeout_seconds": 900,
+    "reason_sha256": "637741113a6464239f3e61d5db6a9fbfe7d3a4c687a5ce5d2571864dda0925ab",
+    "reason": "Wave-2 repair only. Merge semantically equivalent owner statements into one canonical retrieval page instead of per-source retellings. For every recurring position, state the exact count of distinct source records, earliest and latest dated occurrence with source links, current formulation, and any change or contradiction. Create a dedicated page for the OpenViking chat-recall knowledge-library outcome and its boundaries because the source holder contains it. Preserve provenance; if evidence is insufficient, say so rather than infer. Use stock English Wiki behavior; no prompt/Skill fork, no ontology fork, no full backfill."
+  },
+  "direct_checks": {
+    "v2_page_count": 3,
+    "canonical_page_present": true,
+    "outcome_page_present": true,
+    "index_present": true,
+    "recurring_section_count": 6,
+    "all_recurring_sections_have_required_fields": true,
+    "all_recurring_sections_have_source_links": true,
+    "recurrence_counts": [
+      {
+        "title": "Capture owner statements as dated quotes, but in shortened essence form",
+        "distinct_source_records": 3,
+        "source_link_count": 3
+      },
+      {
+        "title": "The skill is global and should run automatically",
+        "distinct_source_records": 2,
+        "source_link_count": 3
+      },
+      {
+        "title": "Store recall records in `_ops/chat-recall`",
+        "distinct_source_records": 2,
+        "source_link_count": 4
+      },
+      {
+        "title": "Search aids may help find the right session, but they do not prove the owner's position",
+        "distinct_source_records": 3,
+        "source_link_count": 4
+      },
+      {
+        "title": "Backfilling session context requires reading the real sessions, not only quote snippets",
+        "distinct_source_records": 2,
+        "source_link_count": 3
+      },
+      {
+        "title": "The runtime skill should stay simple and should not record unproven claims",
+        "distinct_source_records": 4,
+        "source_link_count": 7
+      }
+    ],
+    "outcome_has_boundaries": true,
+    "outcome_marks_evidence_limit": true,
+    "outcome_has_source_links": true,
+    "index_links_both_required_pages": true,
+    "v2_does_not_reference_v1_target": true,
+    "v2_provenance_links": 34
+  },
+  "not_proven": [
+    "semantic correctness of model-generated counts against all source records",
+    "matched retrieval versus holders and Graphiti",
+    "stock acceptance without compatibility shim",
+    "full-corpus recurrence coverage",
+    "link usability despite compile metadata link_count=0"
+  ]
+}

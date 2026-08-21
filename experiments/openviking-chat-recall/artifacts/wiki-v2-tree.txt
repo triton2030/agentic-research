@@ -1,0 +1,4 @@
+viking://resources/chat-recall-wiki-v2-repair/concept
+viking://resources/chat-recall-wiki-v2-repair/concept/Chat recall owner statement canon.md
+viking://resources/chat-recall-wiki-v2-repair/concept/OpenViking chat-recall knowledge-library outcome.md
+viking://resources/chat-recall-wiki-v2-repair/index.md

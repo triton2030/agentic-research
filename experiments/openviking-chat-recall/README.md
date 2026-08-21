@@ -41,6 +41,17 @@ The stock compile command and its failed response are recorded in the receipt.
 A clean checkout must provide the required local LLM configuration; secrets
 never belong in this directory or its receipt.
 
+## V1 and V2 diagnostic outputs
+
+- V1: `artifacts/wiki/`, target URI
+  `viking://resources/chat-recall-wiki`, receipt `artifacts/receipt.md`.
+- V2 repair: `artifacts/wiki-v2/`, target URI
+  `viking://resources/chat-recall-wiki-v2-repair`, receipt
+  `artifacts/v2-receipt.md`, delta `artifacts/v2-delta.json`.
+- Both exports are diagnostic only: the stock gate remains blocked by the
+  pinned package's SDK mismatch, and V2 is a separate target rather than a
+  rewrite of V1.
+
 ## Evidence boundary
 
 `artifacts/` is the committed, human-readable pilot evidence and the explicitly
