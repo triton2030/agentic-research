@@ -1,0 +1,82 @@
+{
+  "deterministic_validation": {
+    "checks": [
+      {
+        "id": "exact-source-quotes-absent",
+        "status": "pass"
+      },
+      {
+        "id": "history-fields-absent",
+        "status": "pass"
+      },
+      {
+        "id": "lifecycle-filter-is-explicit",
+        "status": "pass"
+      },
+      {
+        "id": "no-gold-boundary",
+        "status": "pass"
+      }
+    ],
+    "status": "pass"
+  },
+  "evidence": {
+    "claim_count": 6,
+    "record_count": 7,
+    "rendered_claim_ids": [
+      "static-derived-library",
+      "distilled-facts-not-history",
+      "retrieval-scout-boundary"
+    ],
+    "source_count": 2,
+    "suppressed_claim_ids": [
+      "historical-wiki-evolution",
+      "subagents-read-and-summarize",
+      "wiki-replaces-holders-everywhere"
+    ]
+  },
+  "generated": {
+    "input_files": [
+      "index.md",
+      "source-01.md",
+      "source-02.md"
+    ],
+    "wiki_files": [
+      "concept/distilled-facts-not-history.md",
+      "concept/retrieval-scout-boundary.md",
+      "concept/static-derived-library.md",
+      "index.md"
+    ]
+  },
+  "manifest": "artifacts/distilled-gold-manifest.json",
+  "provenance_commit": "09d2a48b2a82ff4b35ffb739a11b5721351d7dd6",
+  "schema": "openviking-chat-recall/distilled-probe-receipt.v1",
+  "semantic_boundary": {
+    "claim_statuses_are_manifest_input": true,
+    "not_proven": [
+      "semantic grouping quality",
+      "currentness beyond the explicit manifest status",
+      "blind retrieval usefulness"
+    ],
+    "status": "candidate"
+  },
+  "nested_agent_receipts": [
+    {
+      "handle": "01a024c8-af7f-71d3-b7aa-05f6aa55f7d0",
+      "status": "UNKNOWN",
+      "runtime_state": "shutdown_after_bounded_waits"
+    },
+    {
+      "handle": "01a024c8-aef5-72c0-a4a3-2f2eacd2763f",
+      "status": "UNKNOWN",
+      "runtime_state": "shutdown_after_bounded_waits"
+    },
+    {
+      "handle": "01a024c8-affa-7901-8df5-fd21b10a0535",
+      "status": "UNKNOWN",
+      "runtime_state": "shutdown_after_bounded_waits"
+    }
+  ],
+  "status": "candidate",
+  "test_command": "python3 -m unittest discover -s tests -p 'test_*.py' -v"
+}

@@ -1,0 +1,164 @@
+{
+  "schema": "openviking-chat-recall/distilled-gold.v1",
+  "frozen_provenance_commit": "09d2a48b2a82ff4b35ffb739a11b5721351d7dd6",
+  "source_rule": "Resolve every source through the exact frozen Git commit; never fall back to the live holder or HEAD.",
+  "sources": [
+    {
+      "id": "retrieval-supersession",
+      "path": "_ops/chat-recall/2026-08-20-181330-claude-a7539038.md",
+      "provenance_commit": "09d2a48b2a82ff4b35ffb739a11b5721351d7dd6",
+      "blob_sha256": "857ca090b099b531a57ade07defc384a5458cd46afef9441b6cde985ad5d1b7e",
+      "records": [
+        {
+          "record_id": "_ops/chat-recall/2026-08-20-181330-claude-a7539038.md:21",
+          "line": 21,
+          "timestamp": "2026-08-20T18:16:42+05:00",
+          "kind": null,
+          "type": "критерий",
+          "topic": "агенты-и-ии",
+          "quote_sha256": "90f2cc367e508a42a3a84fa1e9db7802e76365de88418e5f23a04b9c589f77d8"
+        },
+        {
+          "record_id": "_ops/chat-recall/2026-08-20-181330-claude-a7539038.md:24",
+          "line": 24,
+          "timestamp": "2026-08-20T18:46:14+05:00",
+          "kind": null,
+          "type": "коррекция",
+          "topic": "агенты-и-ии",
+          "quote_sha256": "8eed048544ce279ecad37402dcfe94e6f4a88335b8699cad6f5ff04d5e3cd518"
+        },
+        {
+          "record_id": "_ops/chat-recall/2026-08-20-181330-claude-a7539038.md:27",
+          "line": 27,
+          "timestamp": "2026-08-20T21:27:07+05:00",
+          "kind": null,
+          "type": "решение",
+          "topic": "агенты-и-ии",
+          "quote_sha256": "3659691304899b70b5afe2865c8ef2786a6afbc8362b30a22904996663f74118"
+        }
+      ]
+    },
+    {
+      "id": "distilled-knowledge",
+      "path": "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md",
+      "provenance_commit": "09d2a48b2a82ff4b35ffb739a11b5721351d7dd6",
+      "blob_sha256": "7510b3fbb2fb1418db55d76e979f66c040e5e0a7f94efd1fdd7fdbcfe212d699",
+      "records": [
+        {
+          "record_id": "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:21",
+          "line": 21,
+          "timestamp": "2026-08-21T14:34:15+05:00",
+          "kind": null,
+          "type": "коррекция",
+          "topic": "архитектура-и-модель",
+          "quote_sha256": "ec536255b514d3f6877f06f8558a047abdf0adbeb83dc2fb98b37a272205de2c"
+        },
+        {
+          "record_id": "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:23",
+          "line": 23,
+          "timestamp": "2026-08-21T14:44:26+05:00",
+          "kind": null,
+          "type": "решение",
+          "topic": "цели-и-приоритеты",
+          "quote_sha256": "81b870ef93f88423c181066ae743e4d821ed6398b8b5e26eb0962d63caf8d4cc"
+        },
+        {
+          "record_id": "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:25",
+          "line": 25,
+          "timestamp": "2026-08-21T09:56:47.738000+00:00",
+          "kind": "selection",
+          "type": "решение",
+          "topic": "цели-и-приоритеты",
+          "quote_sha256": "d85d4e87bfde1fccae65fb81ab6bb9d5ee750013c3be75c88d532afa117eaddd"
+        },
+        {
+          "record_id": "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:33",
+          "line": 33,
+          "timestamp": "2026-08-21T19:19:42+05:00",
+          "kind": null,
+          "type": "коррекция",
+          "topic": "архитектура-и-модель",
+          "quote_sha256": "17d26afa458beba91b2fc26441db54f43d63ff8e026b00e38879144092530cbe"
+        }
+      ]
+    }
+  ],
+  "claims": [
+    {
+      "id": "static-derived-library",
+      "slug": "static-derived-library",
+      "title": "The Wiki is a static derived library",
+      "statement": "The distilled Wiki is a rebuildable knowledge library compiled from a static snapshot; the source holders remain the evidence layer.",
+      "applicability": "Batch conversion of the existing chat-recall corpus; it does not authorize realtime capture or source-holder mutation.",
+      "lifecycle_status": "current",
+      "source_record_ids": [
+        "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:21",
+        "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:25"
+      ]
+    },
+    {
+      "id": "distilled-facts-not-history",
+      "slug": "distilled-facts-not-history",
+      "title": "The Wiki stores distilled facts, not source chronology",
+      "statement": "The Wiki keeps distilled knowledge and facts while the original quotes keep the chronology of how those facts were reached.",
+      "applicability": "Default knowledge reading; exact wording, chronology and provenance checks route back to the source holders.",
+      "lifecycle_status": "current",
+      "source_record_ids": [
+        "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:33"
+      ]
+    },
+    {
+      "id": "retrieval-scout-boundary",
+      "slug": "retrieval-scout-boundary",
+      "title": "Subagents scout; the main agent reads the holder",
+      "statement": "Retrieval subagents locate useful holder files, while the main agent reads selected holders fully and owns the recovered position.",
+      "applicability": "The recall/search stage before a claim is accepted; it is a retrieval boundary, not semantic acceptance.",
+      "lifecycle_status": "current",
+      "source_record_ids": [
+        "_ops/chat-recall/2026-08-20-181330-claude-a7539038.md:24",
+        "_ops/chat-recall/2026-08-20-181330-claude-a7539038.md:27"
+      ]
+    },
+    {
+      "id": "historical-wiki-evolution",
+      "slug": "historical-wiki-evolution",
+      "title": "The Wiki should narrate the full history by default",
+      "statement": "The default Wiki should print counts, first/latest timestamps and the full evolution of each owner position.",
+      "applicability": "Earlier candidate contract for the default Wiki surface; retained only as a superseded semantic candidate.",
+      "lifecycle_status": "non-current",
+      "superseded_by": "distilled-facts-not-history",
+      "source_record_ids": [
+        "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:25"
+      ]
+    },
+    {
+      "id": "subagents-read-and-summarize",
+      "slug": "subagents-read-and-summarize",
+      "title": "Subagents should read and summarize source files",
+      "statement": "Retrieval subagents should read 20–30 source files and return the owner's position so the main agent can rely on their summaries.",
+      "applicability": "Earlier retrieval candidate; it conflicts with the later scout-only boundary.",
+      "lifecycle_status": "non-current",
+      "superseded_by": "retrieval-scout-boundary",
+      "source_record_ids": [
+        "_ops/chat-recall/2026-08-20-181330-claude-a7539038.md:21"
+      ]
+    },
+    {
+      "id": "wiki-replaces-holders-everywhere",
+      "slug": "wiki-replaces-holders-everywhere",
+      "title": "The Wiki can replace holders for every question",
+      "statement": "The distilled Wiki can replace source-holder reads for every question, including exact wording, chronology and provenance.",
+      "applicability": "Unresolved scope candidate spanning knowledge, exact wording, history and provenance questions.",
+      "lifecycle_status": "uncertain",
+      "source_record_ids": [
+        "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:25"
+      ]
+    }
+  ],
+  "no_gold_controls": [
+    {
+      "id": "unsupported-deletion",
+      "statement": "The owner approved deleting the original chat-recall holders after Wiki compilation."
+    }
+  ]
+}
