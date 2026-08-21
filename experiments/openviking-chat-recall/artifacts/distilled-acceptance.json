@@ -1,0 +1,286 @@
+{
+  "schema_version": "wave-5-distilled-acceptance/v1",
+  "contract_status": "locked_for_blind_probe",
+  "budget_status": "probe_thresholds_are_measurable_acceptance_limits, not owner-approved project facts",
+  "purpose": "До чтения candidate Wiki зафиксировать слепой контракт, который отличает полезное дистиллированное знание от historical ошибки.",
+  "source_policy": {
+    "source_of_truth": "_ops/chat-recall/**",
+    "projection_role": "Wiki и manifest являются пересобираемой производной поверх immutable holders.",
+    "gold_frozen_before_candidate_read": true,
+    "expected_answers_require_source_addresses": true,
+    "full_source_quotes_in_expected_answers": false,
+    "candidate_wiki_used_to_define_expected_answers": false,
+    "latest_is_not_current": true
+  },
+  "cases": [
+    {
+      "id": "W5-STABLE-KNOWLEDGE-001",
+      "question": "Что именно должна хранить distilled Wiki в эксперименте OpenViking-style для chat-recall?",
+      "allowed_surface": [
+        "Краткое source-backed distilled knowledge с applicability и lifecycle status, если они подтверждены.",
+        "Адреса source records для проверки.",
+        "Wiki как derived, rebuildable reading surface, а не как владелец слов владельца."
+      ],
+      "expected_semantic_criteria": [
+        "Разделяет semantic claim и source history.",
+        "Сохраняет применимость и статус claim-а, не превращая Wiki в chronology report.",
+        "Позволяет раскрыть исходные records по адресам и не требует runtime OpenViking для владения знанием."
+      ],
+      "forbidden_claims": [
+        "Wiki является source of truth или заменяет holders.",
+        "Wiki удаляет, переписывает или отменяет исходные цитаты.",
+        "Wiki обязана пересказывать count, first/latest и evolution по умолчанию.",
+        "Stock OpenViking runtime является обязательным источником текущей истины."
+      ],
+      "required_source_route": [
+        "_ops/plans/openviking-chat-recall/task.md:12-20,30-34",
+        "_ops/plans/openviking-chat-recall/context.md:37-41,63-68",
+        "_ops/plans/openviking-chat-recall/modules/_returns/fresh-eyes-distilled-knowledge.md:17-23,66-83"
+      ],
+      "hard_failure_conditions": [
+        "Нет адресуемого source record или holder route.",
+        "Derived projection выдана за primary owner.",
+        "История или полный source quote скопированы в expected answer вместо краткого claim и адреса.",
+        "Unsupported claim принят только потому, что generated surface выглядит гладко."
+      ],
+      "read_context_budget": {
+        "max_projection_reads": 2,
+        "max_discovery_operations": 3,
+        "max_holder_reads": 1,
+        "max_context_tokens": 900,
+        "max_verification_tokens": 600,
+        "max_answer_tokens": 200,
+        "must_report": [
+          "discovery_operations",
+          "source_reads",
+          "context_tokens",
+          "source_record_addresses"
+        ]
+      }
+    },
+    {
+      "id": "W5-SUPERSESSION-CURRENT-001",
+      "question": "Если поздняя запись расходится с ранней, как определить, что можно назвать current?",
+      "allowed_surface": [
+        "Current distilled claim только с lifecycle status и адресуемой semantic опорой.",
+        "Раздельный prior/later или contested результат, если currentness не разрешена.",
+        "Переход к holders для проверки chronology и supersession."
+      ],
+      "expected_semantic_criteria": [
+        "Не выводит current из latest timestamp или порядка файлов.",
+        "Разделяет prior и later positions и учитывает applicability, cancellation и conflict.",
+        "При неразрешённой later-check coverage показывает unknown/abstain, а не выбирает уверенный current claim."
+      ],
+      "forbidden_claims": [
+        "latest автоматически означает current.",
+        "Ранняя или superseded позиция выдана как текущая.",
+        "Timestamp сам по себе доказывает semantic supersession.",
+        "Gap или contradiction исправлены молча."
+      ],
+      "required_source_route": [
+        "_ops/plans/openviking-chat-recall/task.md:46-57,84-95",
+        "_ops/plans/openviking-chat-recall/context.md:70-73,80-87",
+        "_ops/plans/openviking-chat-recall/modules/_returns/fresh-eyes-distilled-knowledge.md:80-99",
+        "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:33"
+      ],
+      "hard_failure_conditions": [
+        "Current claim принят без проверки later holder-а или source address.",
+        "Prior/later distinction исчезла из ответа.",
+        "Unresolved correction, truncation или coverage gap скрыты.",
+        "Lifecycle status выдуман без traceable evidence."
+      ],
+      "read_context_budget": {
+        "max_projection_reads": 3,
+        "max_discovery_operations": 3,
+        "max_holder_reads": 2,
+        "max_context_tokens": 1200,
+        "max_answer_tokens": 250,
+        "must_report": [
+          "discovery_operations",
+          "source_reads",
+          "context_tokens",
+          "prior_addresses",
+          "later_check_addresses"
+        ]
+      }
+    },
+    {
+      "id": "W5-CONTESTED-SCOPE-001",
+      "question": "Что отвечать, если claim зависит от scope или конфликт между records ещё не разрешён?",
+      "allowed_surface": [
+        "Contested или scope-dependent claim с явно названной областью применимости.",
+        "Lifecycle status и адреса records, которые поддерживают разные стороны.",
+        "Abstain, если оставшийся конфликт способен изменить ответ."
+      ],
+      "expected_semantic_criteria": [
+        "Не превращает локальную или условную позицию в универсальный факт.",
+        "Показывает conflict/scope как часть статуса, а не сглаживает его.",
+        "Возвращает source route для проверки и оставляет unknown явным, если semantic judgment не закрыт."
+      ],
+      "forbidden_claims": [
+        "Contested claim выдан за settled current fact.",
+        "Scope inferred from filename, count или latest timestamp.",
+        "Одна сторона конфликта выбрана без адресуемого owner evidence.",
+        "Неразрешённый конфликт скрыт ради гладкого ответа."
+      ],
+      "required_source_route": [
+        "_ops/plans/openviking-chat-recall/task.md:30-34,46-49,84-90",
+        "_ops/plans/openviking-chat-recall/context.md:70-73,80-87",
+        "_ops/plans/openviking-chat-recall/modules/_returns/fresh-eyes-distilled-knowledge.md:25-41,80-83"
+      ],
+      "hard_failure_conditions": [
+        "Scope или conflict не названы.",
+        "Ответ утверждает currentness при unresolved evidence.",
+        "Нет адресов всех материальных records, на которых держится contested claim.",
+        "Abstention заменён догадкой или непомеченным агентским выводом."
+      ],
+      "read_context_budget": {
+        "max_projection_reads": 2,
+        "max_discovery_operations": 3,
+        "max_holder_reads": 1,
+        "max_context_tokens": 700,
+        "max_verification_tokens": 900,
+        "max_answer_tokens": 250,
+        "must_report": [
+          "discovery_operations",
+          "source_reads",
+          "context_tokens",
+          "scope",
+          "conflict_addresses"
+        ]
+      }
+    },
+    {
+      "id": "W5-PROV-HISTORY-001",
+      "question": "Как изменилось требование к distilled Wiki: что планировалось сохранять для повторов и эволюции, что позднее стало границей Wiki, и где проверить исходные записи?",
+      "allowed_surface": [
+        "Краткая раздельная prior/later paraphrase с адресами immutable holders.",
+        "Wiki L0/L1/L2 и manifest только как claim/status/route pointer и source addresses.",
+        "Точная история, provenance и изменение позиции после полного чтения holders."
+      ],
+      "expected_semantic_criteria": [
+        "Разделяет ранний selected plan и позднюю owner correction, не смешивая их в одну позицию.",
+        "Направляет reader к holders для chronology, exact words и provenance.",
+        "Сохраняет record path, stable record ID, timestamp и digest как provenance evidence, но не принимает metadata за currentness.",
+        "При неполной later-check coverage возвращает explicit unknown/abstain."
+      ],
+      "forbidden_claims": [
+        "Wiki или manifest владеют историей.",
+        "Wiki сама доказывает chronology, count, first/latest или evolution.",
+        "Ранняя позиция выдана за текущую только из-за timestamp.",
+        "Ответ получен только из Wiki/manifest без полного holder route.",
+        "Полный owner quote включён в expected answer."
+      ],
+      "required_source_route": [
+        "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:25,33",
+        "_ops/chat-recall/2026-08-20-181330-claude-a7539038.md:24",
+        "_ops/plans/openviking-chat-recall/task.md:24-31,46-60,88-90",
+        "_ops/plans/openviking-chat-recall/context.md:65-72,82-86",
+        "_ops/plans/openviking-chat-recall/modules/_returns/fresh-eyes-distilled-knowledge.md:66-83"
+      ],
+      "hard_failure_conditions": [
+        "Нет полного holder read или traceable source address.",
+        "Prior/later не разделены.",
+        "Historical claim выдан за current.",
+        "Later gap, truncation или unknown скрыты.",
+        "Превышен matched budget или использован полный source quote."
+      ],
+      "read_context_budget": {
+        "max_projection_reads": 1,
+        "max_discovery_operations": 3,
+        "max_evidence_reads": 6,
+        "max_seconds": 120,
+        "max_context_tokens": 12000,
+        "max_answer_tokens": 400,
+        "max_answer_words": 250,
+        "must_report": [
+          "discovery_operations",
+          "evidence_reads",
+          "elapsed_seconds",
+          "context_tokens",
+          "full_holder_addresses",
+          "later_check_addresses"
+        ]
+      }
+    },
+    {
+      "id": "W5-NO-GOLD-ABSTAIN-001",
+      "question": "Что вернуть, если в frozen holders нет record, который поддерживает заданный claim?",
+      "allowed_surface": [
+        "Abstain/unknown с коротким описанием coverage gap.",
+        "Названный source route и список проверенных адресов, если он не пуст.",
+        "Явное указание, что claim нельзя подтвердить из frozen evidence."
+      ],
+      "expected_semantic_criteria": [
+        "Не выдаёт семантический ответ, когда отсутствует supporting record.",
+        "Отделяет отсутствие проверенной опоры от утверждения, что в мире такого факта нет.",
+        "Сохраняет gap и route для повторной проверки, не чинит его молча."
+      ],
+      "forbidden_claims": [
+        "Уверенный current fact без source record ID и address.",
+        "Вымышленная provenance, цитата или holder.",
+        "Соседний claim использован как доказательство отсутствующего claim-а.",
+        "Candidate Wiki или manifest использованы как gold вместо holders.",
+        "Abstention скрыт за гладким summary или утверждением о полном отсутствии факта."
+      ],
+      "required_source_route": [
+        "_ops/plans/openviking-chat-recall/task.md:24-34,84-95",
+        "_ops/plans/openviking-chat-recall/context.md:80-87",
+        "_ops/plans/openviking-chat-recall/modules/_returns/fresh-eyes-distilled-knowledge.md:87-99",
+        "_ops/chat-recall/** через frozen inventory и полный holder route"
+      ],
+      "hard_failure_conditions": [
+        "Любой confident semantic answer при отсутствии supporting record.",
+        "Отсутствующий или внешний record ID принят как доказательство.",
+        "Coverage gap не назван.",
+        "Ожидаемый ответ содержит invented provenance или full source quote.",
+        "Source route не был проверен в пределах budget."
+      ],
+      "read_context_budget": {
+        "max_projection_reads": 4,
+        "max_discovery_operations": 3,
+        "max_manifest_lookups": 1,
+        "max_holder_records": 3,
+        "max_context_tokens": 3000,
+        "max_holder_context_tokens": 1500,
+        "max_answer_tokens": 120,
+        "must_report": [
+          "discovery_operations",
+          "source_reads",
+          "context_tokens",
+          "checked_addresses",
+          "coverage_gap"
+        ]
+      }
+    }
+  ],
+  "nested_agent_receipts": [
+    {
+      "zone": "currentness",
+      "agent_handle": "01a024c8-c9be-77c0-a3a0-a3c06a21a5c4",
+      "status": "COMPLETED_LATE",
+      "status_at_recovery": "UNKNOWN",
+      "packet": "CURRENTNESS_PACKET",
+      "observed_evidence": "Several bounded multi_agent_v1 wait calls timed out; the terminal packet arrived only after the recovery boundary and was not used to justify more waiting.",
+      "used_in_contract": true
+    },
+    {
+      "zone": "provenance/history",
+      "agent_handle": "01a024c8-c8b0-7891-8ca7-f7089e987883",
+      "status": "COMPLETED_LATE",
+      "status_at_recovery": "UNKNOWN",
+      "packet": "PROVENANCE_PACKET",
+      "observed_evidence": "Terminal subagent notification returned a bounded provenance/history packet with source addresses and budget proposal after the recovery boundary.",
+      "used_in_contract": true
+    },
+    {
+      "zone": "no-gold",
+      "agent_handle": "01a024c8-c927-7942-94cb-80d9387631d6",
+      "status": "COMPLETED_LATE",
+      "status_at_recovery": "UNKNOWN",
+      "packet": "NOGOLD_PACKET",
+      "observed_evidence": "Several bounded multi_agent_v1 wait calls timed out; the terminal packet arrived only after the recovery boundary and was not used to justify more waiting.",
+      "used_in_contract": true
+    }
+  ]
+}
