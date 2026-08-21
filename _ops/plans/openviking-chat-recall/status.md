@@ -18,13 +18,16 @@ falsifying acceptance до просмотра результата. Полный
 
 - Rationale одобрен владельцем 2026-08-21; approval записан в
   `_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md`.
-- На момент планирования corpus содержит 181 Markdown holder; точный frozen
-  inventory обязан пересчитать writer.
+- После approval-capture corpus содержит 182 Markdown holder без `README.md`;
+  точный frozen inventory и digest обязан записать writer.
 - Stock route выбран как `add-resource` → официальный LLM Wiki Skill →
   `compile`; realtime memory/plugin route исключён.
 - Исходные holders остаются source evidence; будущая Wiki — derived projection.
 - Graphiti не выполняется как живая pinned задача и остаётся baseline по
   артефактам существующего эксперимента.
+- Retrieval denominator locked до чтения Wiki: 11 exact questions, closed gold,
+  matched budget, scoring и hard failures записаны в
+  `modules/return-wave-1-retrieval-contract.md`.
 
 ## Вехи
 
@@ -43,7 +46,7 @@ falsifying acceptance до просмотра результата. Полный
   «OpenViking: собрать stock pilot».
 - `wave-1-retrieval-contract.md` — независимый read-only acceptance designer;
   pinned task `01a023c3-ee43-7c73-964a-08b22a2d1b17`,
-  «OpenViking: зафиксировать retrieval-контракт».
+  «OpenViking: зафиксировать retrieval-контракт»; ✅ locked return принят.
 
 ## Открытые вопросы владельцу
 
