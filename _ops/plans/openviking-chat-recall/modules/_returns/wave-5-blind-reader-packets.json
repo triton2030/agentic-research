@@ -1,0 +1,274 @@
+{
+  "schema": "openviking-chat-recall/blind-reader-arms.v1",
+  "candidate_wiki_commit": "5fd8f947d7fabf9c80387219560728277cd2abba",
+  "final_probe_commit": "f2ca3005bf6d70eb028c66a2e353c24344d3bf25",
+  "question_mapping": {
+    "Q1": "W5-STABLE-KNOWLEDGE-001",
+    "Q2": "W5-SUPERSESSION-CURRENT-001",
+    "Q3": "W5-CONTESTED-SCOPE-001",
+    "Q4": "W5-PROV-HISTORY-001",
+    "Q5": "W5-NO-GOLD-ABSTAIN-001"
+  },
+  "arms": {
+    "wiki": {
+      "thread_id": "01a02587-f765-7ae3-8382-7d64283388ed",
+      "turn_id": "01a02587-f914-7cc0-b7f2-4e493bb2c649",
+      "duration_ms": 478170,
+      "packets": [
+        {
+          "question_id": "Q1",
+          "answer_ru": "Distilled Wiki должна быть пересобираемой статически производной библиотекой distilled knowledge и facts, собранной из static snapshot. Хронология происхождения фактов остаётся в original quotes/source holders; realtime capture и mutation holders не входят в эту границу.",
+          "status": "answer",
+          "surface_reads": [
+            "experiments/openviking-chat-recall/artifacts/distilled-wiki/.distilled-probe-owned.json",
+            "experiments/openviking-chat-recall/artifacts/distilled-wiki/concept/static-derived-library.md",
+            "experiments/openviking-chat-recall/artifacts/distilled-wiki/concept/retrieval-scout-boundary.md",
+            "experiments/openviking-chat-recall/artifacts/distilled-wiki/concept/distilled-facts-not-history.md",
+            "experiments/openviking-chat-recall/artifacts/distilled-wiki/index.md"
+          ],
+          "source_routes": [
+            "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:21",
+            "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:25",
+            "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:33"
+          ],
+          "discovery_operations": [
+            "rg --files -g '*' experiments/openviking-chat-recall/artifacts/distilled-wiki",
+            "wc -l по пяти обнаруженным paths",
+            "полное чтение пяти paths",
+            "wc -c -w по пяти paths"
+          ],
+          "approximate_context_tokens": 650,
+          "elapsed_seconds": 0.4,
+          "gaps": []
+        },
+        {
+          "question_id": "Q2",
+          "answer_ru": "Wiki подтверждает только критерий включения claim в эту surface: он явно помечен current или contested в evidence manifest. Правила выбора current при расхождении поздней и ранней записи нет; конфликт здесь не разрешается.",
+          "status": "abstain",
+          "surface_reads": [
+            "experiments/openviking-chat-recall/artifacts/distilled-wiki/.distilled-probe-owned.json",
+            "experiments/openviking-chat-recall/artifacts/distilled-wiki/concept/static-derived-library.md",
+            "experiments/openviking-chat-recall/artifacts/distilled-wiki/concept/retrieval-scout-boundary.md",
+            "experiments/openviking-chat-recall/artifacts/distilled-wiki/concept/distilled-facts-not-history.md",
+            "experiments/openviking-chat-recall/artifacts/distilled-wiki/index.md"
+          ],
+          "source_routes": [
+            "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:33",
+            "evidence manifest; exact path отсутствует на разрешённой surface"
+          ],
+          "discovery_operations": [
+            "rg --files -g '*' experiments/openviking-chat-recall/artifacts/distilled-wiki",
+            "wc -l по пяти обнаруженным paths",
+            "полное чтение пяти paths",
+            "wc -c -w по пяти paths"
+          ],
+          "approximate_context_tokens": 650,
+          "elapsed_seconds": 0.4,
+          "gaps": [
+            "Нет precedence rule или процедуры разрешения расхождения.",
+            "Нужны chronology/provenance checks в source holder и проверка evidence manifest; они не открывались."
+          ]
+        },
+        {
+          "question_id": "Q3",
+          "answer_ru": "При неподтверждённом scope или unresolved conflict claim нельзя принять на этой surface. Вернуть abstain и направить к полному чтению выбранного source holder; retrieval scout не является semantic acceptance.",
+          "status": "abstain",
+          "surface_reads": [
+            "experiments/openviking-chat-recall/artifacts/distilled-wiki/.distilled-probe-owned.json",
+            "experiments/openviking-chat-recall/artifacts/distilled-wiki/concept/static-derived-library.md",
+            "experiments/openviking-chat-recall/artifacts/distilled-wiki/concept/retrieval-scout-boundary.md",
+            "experiments/openviking-chat-recall/artifacts/distilled-wiki/concept/distilled-facts-not-history.md",
+            "experiments/openviking-chat-recall/artifacts/distilled-wiki/index.md"
+          ],
+          "source_routes": [
+            "_ops/chat-recall/2026-08-20-181330-claude-a7539038.md:24",
+            "_ops/chat-recall/2026-08-20-181330-claude-a7539038.md:27",
+            "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:33"
+          ],
+          "discovery_operations": [
+            "rg --files -g '*' experiments/openviking-chat-recall/artifacts/distilled-wiki",
+            "wc -l по пяти обнаруженным paths",
+            "полное чтение пяти paths",
+            "wc -c -w по пяти paths"
+          ],
+          "approximate_context_tokens": 650,
+          "elapsed_seconds": 0.4,
+          "gaps": [
+            "Нет общего правила разрешения scope-gap и conflicting record на Wiki surface.",
+            "Нужен полный read selected source holder для semantic acceptance."
+          ]
+        },
+        {
+          "question_id": "Q4",
+          "answer_ru": "Полную эволюцию требования доказательно восстановить нельзя: ранний план сохранения для повторов и evolution отсутствует на этой surface. Зафиксированная граница — rebuildable static derived library из static snapshot: Wiki хранит distilled facts/knowledge, а original quotes сохраняют chronology. Исходные записи следует проверять в source holders по указанным routes.",
+          "status": "abstain",
+          "surface_reads": [
+            "experiments/openviking-chat-recall/artifacts/distilled-wiki/.distilled-probe-owned.json",
+            "experiments/openviking-chat-recall/artifacts/distilled-wiki/concept/static-derived-library.md",
+            "experiments/openviking-chat-recall/artifacts/distilled-wiki/concept/retrieval-scout-boundary.md",
+            "experiments/openviking-chat-recall/artifacts/distilled-wiki/concept/distilled-facts-not-history.md",
+            "experiments/openviking-chat-recall/artifacts/distilled-wiki/index.md"
+          ],
+          "source_routes": [
+            "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:21",
+            "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:25",
+            "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:33"
+          ],
+          "discovery_operations": [
+            "rg --files -g '*' experiments/openviking-chat-recall/artifacts/distilled-wiki",
+            "wc -l по пяти обнаруженным paths",
+            "полное чтение пяти paths",
+            "wc -c -w по пяти paths"
+          ],
+          "approximate_context_tokens": 650,
+          "elapsed_seconds": 0.4,
+          "gaps": [
+            "Нет записи о раннем плане сохранения для повторов и evolution.",
+            "Source holders по указанным routes не открывались."
+          ]
+        },
+        {
+          "question_id": "Q5",
+          "answer_ru": "Wiki не задаёт отдельного fallback-протокола при отсутствии supporting record. Claim нельзя подтвердить на этой surface: вернуть abstain. Source holders названы как evidence route, но дальнейшего ответа без record Wiki не содержит.",
+          "status": "abstain",
+          "surface_reads": [
+            "experiments/openviking-chat-recall/artifacts/distilled-wiki/.distilled-probe-owned.json",
+            "experiments/openviking-chat-recall/artifacts/distilled-wiki/concept/static-derived-library.md",
+            "experiments/openviking-chat-recall/artifacts/distilled-wiki/concept/retrieval-scout-boundary.md",
+            "experiments/openviking-chat-recall/artifacts/distilled-wiki/concept/distilled-facts-not-history.md",
+            "experiments/openviking-chat-recall/artifacts/distilled-wiki/index.md"
+          ],
+          "source_routes": [
+            "source holders — evidence layer; exact holder/record Wiki не идентифицирует",
+            "evidence manifest; exact path отсутствует на разрешённой surface"
+          ],
+          "discovery_operations": [
+            "rg --files -g '*' experiments/openviking-chat-recall/artifacts/distilled-wiki",
+            "wc -l по пяти обнаруженным paths",
+            "полное чтение пяти paths",
+            "wc -c -w по пяти paths"
+          ],
+          "approximate_context_tokens": 650,
+          "elapsed_seconds": 0.4,
+          "gaps": [
+            "Нет fallback/status protocol для отсутствующего supporting record.",
+            "На Wiki surface нет supporting record, подтверждающего заданный claim."
+          ]
+        }
+      ]
+    },
+    "holders": {
+      "thread_id": "01a02587-f16a-7a82-9fd7-c75281594395",
+      "turn_id": "01a02587-f39f-7303-8d2b-14e7caa5357b",
+      "duration_ms": 231127,
+      "packets": [
+        {
+          "question_id": "Q1",
+          "answer_ru": "Distilled Wiki должна хранить отдельные документы с дистиллированными знаниями, фактами и другими выводами из цитат; она не заменяет и не удаляет исходные цитаты.",
+          "status": "answer",
+          "surface_reads": [
+            "_ops/chat-recall/2026-08-20-181330-claude-a7539038.md",
+            "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md"
+          ],
+          "source_routes": [
+            "codex holder: 2026-08-21T14:27:02, 2026-08-21T14:39:59, 2026-08-21T19:19:42"
+          ],
+          "discovery_operations": [
+            "git show 09d2a48b2a82ff4b35ffb739a11b5721351d7dd6:_ops/chat-recall/2026-08-20-181330-claude-a7539038.md",
+            "git show 09d2a48b2a82ff4b35ffb739a11b5721351d7dd6:_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md"
+          ],
+          "approximate_context_tokens": 2500,
+          "elapsed_seconds": 0.1,
+          "gaps": []
+        },
+        {
+          "question_id": "Q2",
+          "answer_ru": "Правило определения current при расхождении поздней и ранней записи в holders не задано. Зафиксированы эволюция и противоречия как требование раннего плана, но не критерий выбора current.",
+          "status": "abstain",
+          "surface_reads": [
+            "_ops/chat-recall/2026-08-20-181330-claude-a7539038.md",
+            "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md"
+          ],
+          "source_routes": [
+            "codex holder: 2026-08-21T09:56:47.738000 и 2026-08-21T19:19:42 — поддерживают наличие эволюции/противоречий, но не способ выбора current"
+          ],
+          "discovery_operations": [
+            "git show 09d2a48b2a82ff4b35ffb739a11b5721351d7dd6:_ops/chat-recall/2026-08-20-181330-claude-a7539038.md",
+            "git show 09d2a48b2a82ff4b35ffb739a11b5721351d7dd6:_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md"
+          ],
+          "approximate_context_tokens": 2500,
+          "elapsed_seconds": 0.1,
+          "gaps": [
+            "Нет критерия определения current."
+          ]
+        },
+        {
+          "question_id": "Q3",
+          "answer_ru": "Политика ответа для scope-зависимого claim или неразрешённого конфликта между records не зафиксирована. Есть требование сохранять противоречия, но нет ответа, который следует возвращать читателю.",
+          "status": "abstain",
+          "surface_reads": [
+            "_ops/chat-recall/2026-08-20-181330-claude-a7539038.md",
+            "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md"
+          ],
+          "source_routes": [
+            "codex holder: 2026-08-21T09:56:47.738000 — сохранение противоречий; поддержки response policy нет"
+          ],
+          "discovery_operations": [
+            "git show 09d2a48b2a82ff4b35ffb739a11b5721351d7dd6:_ops/chat-recall/2026-08-20-181330-claude-a7539038.md",
+            "git show 09d2a48b2a82ff4b35ffb739a11b5721351d7dd6:_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md"
+          ],
+          "approximate_context_tokens": 2500,
+          "elapsed_seconds": 0.1,
+          "gaps": [
+            "Нет правила для scope-зависимых claims.",
+            "Нет правила ответа при неразрешённом конфликте."
+          ]
+        },
+        {
+          "question_id": "Q4",
+          "answer_ru": "Ранний план требовал объединять повторы, сохраняя их количество, первую и последнюю фиксацию, эволюцию позиции и противоречия. Позднее граница Wiki была уточнена: Wiki хранит дистиллированные знания и факты, а хронология остаётся в исходных цитатах; Wiki их не отменяет и не удаляет. Исходные записи нужно проверять в исходных quote-holder-ах `_ops/chat-recall`.",
+          "status": "answer",
+          "surface_reads": [
+            "_ops/chat-recall/2026-08-20-181330-claude-a7539038.md",
+            "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md"
+          ],
+          "source_routes": [
+            "codex holder: 2026-08-21T09:56:47.738000 — ранний план",
+            "codex holder: 2026-08-21T19:19:42 — поздняя граница Wiki"
+          ],
+          "discovery_operations": [
+            "git show 09d2a48b2a82ff4b35ffb739a11b5721351d7dd6:_ops/chat-recall/2026-08-20-181330-claude-a7539038.md",
+            "git show 09d2a48b2a82ff4b35ffb739a11b5721351d7dd6:_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md"
+          ],
+          "approximate_context_tokens": 2500,
+          "elapsed_seconds": 0.1,
+          "gaps": [
+            "Полный перечень исходных файлов за пределами двух frozen holders не прочитан по ограничению поверхности."
+          ]
+        },
+        {
+          "question_id": "Q5",
+          "answer_ru": "В holders нет правила, что именно возвращать при отсутствии supporting record. Зафиксировано требование искать максимально полно, но fallback-ответ не определён.",
+          "status": "abstain",
+          "surface_reads": [
+            "_ops/chat-recall/2026-08-20-181330-claude-a7539038.md",
+            "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md"
+          ],
+          "source_routes": [
+            "claude holder: 2026-08-20T21:27:07 — максимальный поиск; поддержки конкретного fallback-ответа нет"
+          ],
+          "discovery_operations": [
+            "git show 09d2a48b2a82ff4b35ffb739a11b5721351d7dd6:_ops/chat-recall/2026-08-20-181330-claude-a7539038.md",
+            "git show 09d2a48b2a82ff4b35ffb739a11b5721351d7dd6:_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md"
+          ],
+          "approximate_context_tokens": 2500,
+          "elapsed_seconds": 0.1,
+          "gaps": [
+            "Нет явного fallback-ответа для claim без supporting record."
+          ]
+        }
+      ]
+    }
+  },
+  "boundary": "Raw terminal reader packets only. This file contains no gold, grading, or root semantic synthesis."
+}

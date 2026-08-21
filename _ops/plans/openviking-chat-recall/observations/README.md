@@ -107,3 +107,66 @@ drift одного элемента инвалидирует зависимые 
 
 **Граница.** Проверены только необходимые этой реализации upstream artifacts
 и две named revisions; это не общий аудит совместимости всего OpenViking.
+
+## 2026-08-21 — Lifecycle status является evidence relation, а не меткой
+
+**Вывод.** Reusable compiler не должен принимать `current`, `contested` или
+`superseded` как свободную строку модели. Status обязан нести проверяемую
+структуру: source membership, applicability и, для `contested`, адреса минимум
+двух заявленных сторон; semantic opposition всё равно принимает отдельный
+auditor, а не deterministic validator.
+
+**Evidence.** Independent adversarial audit изменил один claim на `contested`
+с единственным source ID, и validator принял его. Repair `f2ca300` добавил
+`conflict_source_record_ids`, отклонение missing/one-sided/dangling/out-of-claim
+IDs и явную границу `semantic opposition ... not proven`. Root worktree и clean
+detached clone прошли 16/16 tests; исходная mutation теперь получает
+`ProbeError`.
+
+**Что меняет.** Canonical claim schema и receipts будущего инструмента хранят
+не только status, но и его typed evidence. Deterministic gate доказывает
+membership/структуру; отдельный semantic gate доказывает смысл связи.
+
+**Граница.** Два адреса сами по себе не доказывают конфликт. Автоматическая
+оценка semantic opposition и currentness полного корпуса ещё не принята.
+
+## 2026-08-21 — Generated cleanup сначала доказывает containment
+
+**Вывод.** Rebuildable library не может удалять старые generated files по
+лексически безопасному relative path. Перед любой записью или удалением нужно
+разрешить все owned destinations, доказать containment внутри generated root и
+только затем мутировать дерево; symlink/path escape обязан остановить весь run.
+
+**Evidence.** Adversarial audit commit `581e85c` показал, что marker
+`link/sentinel.txt` через symlinked ancestor удаляет внешний sentinel. Repair
+`e74bbf0` добавил resolved containment и test, где внешний sentinel и unrelated
+page переживают отказ. Тест входит в финальный 16/16 clean-clone suite.
+
+**Что меняет.** Ownership marker, preflight containment и fail-closed cleanup
+становятся обязательным operational contract любого полного rebuild/resume.
+
+**Граница.** Доказано для локальной файловой системы текущего Python writer.
+Atomicity при process crash и особенности других storage backends ещё требуют
+отдельных fixtures.
+
+## 2026-08-21 — Retrieval budget принадлежит case и arm
+
+**Вывод.** Blind comparator не должен давать одному reader-у весь question set
+после общего чтения поверхности. Каждый case запускается в свежем контексте, а
+Wiki и holder arms получают разные разрешённые surfaces, required routes и
+must-report fields при одинаковом вопросе/модели/answer schema.
+
+**Evidence.** Первый matched run передал одному reader-у Q1–Q5. Оба arms
+калиброванно abstain-или, но независимый grader отклонил G0: Wiki повторно
+приписал каждому case пять projection reads, Q4 превысил лимит одной read,
+holder Q2 превысил context budget, а packet schema потерял case-specific
+addresses. Raw packets и verdict —
+`modules/_returns/wave-5-blind-reader-packets.json` и
+`modules/_returns/wave-5-matched-grader.md`.
+
+**Что меняет.** Harness будущего инструмента создаёт отдельный run/receipt на
+каждую пару `(case, arm)`, заранее типизирует projection/holder/evidence reads
+и считает reader latency отдельно от orchestration wall time.
+
+**Граница.** Это acceptance-topology proof, не доказательство полезности Wiki.
+Новые case-isolated arms ещё должны пройти frozen semantic criteria.

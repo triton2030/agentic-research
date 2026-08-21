@@ -13,9 +13,10 @@ kind: status
 
 ## Next
 
-Принять исправленный representative probe: закрыть symlink-containment и три
-semantic corrections, затем независимо повторить 13+ tests, adversarial cleanup
-и пять locked cases. Только accepted G0 открывает Wave 6.
+Исправить acceptance harness без изменения frozen semantic gold: разделить
+Wiki/holder expectations и запускать каждый case изолированно с его
+must-report/budget. Первый matched run — FAIL; только accepted rerun открывает
+Wave 6.
 
 ## Вехи
 
@@ -43,8 +44,8 @@ semantic corrections, затем независимо повторить 13+ tes
   modules/_returns/fresh-eyes-distilled-knowledge.md.
 - Acceptance lock интегрирован commit a77fc4c: пять cases и hard failures
   зафиксированы до принятия candidate Wiki.
-- Probe commits ae3bd56 → 581e85c дали воспроизводимый frozen candidate;
-  root clean-worktree run на 581e85c прошел 13/13 tests.
+- Probe chain ae3bd56 → f2ca300 дал воспроизводимый frozen candidate;
+  root main и clean detached run на f2ca300 прошли 16/16 tests.
 - Независимая техническая приемка 581e85c нашла symlink escape при cleanup
   generated root. Семантическая приемка нашла unsupported contested status,
   один overstated prior claim и corpus-wide wording при двух checked addresses.
@@ -80,12 +81,21 @@ modules/_returns/wave-4b-contracts.md.
 
 | Task | Title | Card | State |
 | --- | --- | --- | --- |
-| 01a024c0-0f08-7870-85ef-d9d0b1784da5 | OpenViking: distilled probe | wave-5-distilled-probe.md | active repair after independent blockers |
+| 01a024c0-0f08-7870-85ef-d9d0b1784da5 | OpenViking: distilled probe | wave-5-distilled-probe.md | terminal candidate f2ca300; behavior pending |
 | 01a024c0-0f10-7f02-b209-d0524247d432 | OpenViking: acceptance lock | wave-5-distilled-acceptance.md | terminal; integrated a77fc4c |
 | 01a024c0-0f0e-7220-861e-aeb7f67e570d | OpenViking: contract red-team | wave-5-distilled-red-team.md | terminal read-only |
 
 Все top-level задачи — gpt-5.6-luna/max с обязательным nested orchestration.
 Inner-agent UNKNOWN не принят как evidence.
+
+Blind arms Wiki `01a02587-f765-7ae3-8382-7d64283388ed` и holders
+`01a02587-f16a-7a82-9fd7-c75281594395` terminal. Independent matched verdict —
+FAIL: один five-case session нарушил per-case budgets/reporting; raw packets —
+`modules/_returns/wave-5-blind-reader-packets.json`, verdict —
+`modules/_returns/wave-5-matched-grader.md`.
+
+Active repair card —
+[wave-5-acceptance-operations-amendment](modules/wave-5-acceptance-operations-amendment.md).
 
 ## Detailed-plan registry
 

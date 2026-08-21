@@ -1,7 +1,7 @@
 ---
 kind: module-return
 scope: waves-6-12
-state: root-repaired-pending-recheck
+state: pass-with-nested-unknown
 candidate: abfb7c2
 ---
 
@@ -31,3 +31,10 @@ Independent Luna Max audit проверил task/status и cards Waves 6–12.
 Nested checker не запустился: в контексте audit agent отсутствовал callable
 spawn handle. Root не считает эту часть независимой проверкой и сохраняет
 UNKNOWN до отдельного recheck.
+
+## Recheck
+
+Luna Max recheck commit `166301f` подтвердил PASS обеих root repairs и не
+нашёл нового duplicate shared owner/gate. Nested spawn снова был недоступен,
+поэтому independent nested confirmation остаётся единственным UNKNOWN и не
+меняет исполнимость записанных dependencies.
