@@ -5,7 +5,7 @@
 режим: Execution
 вех-готово: 0
 вех-всего: 5
-обновлено: 2026-08-21
+обновлено: 2026-08-22
 kind: status
 ---
 
@@ -13,17 +13,18 @@ kind: status
 
 ## Next
 
-Исправить acceptance harness без изменения frozen semantic gold: разделить
-Wiki/holder expectations и запускать каждый case изолированно с его
-must-report/budget. Первый matched run — FAIL; только accepted rerun открывает
-Wave 6.
+Принять новую post-ingestion pilot-card и выбрать explicit corpus commit для
+Wave 6. Frozen semantic gold остаётся неизменным, но незавершённый pre-build
+operations-v2 rerun больше не блокирует deterministic snapshot/evidence.
+Следующий utility verdict снимается только с настоящего representative
+L2/L1/L0 route; его PASS откроет full semantic Wave 7.
 
 ## Вехи
 
 | Веха | Статус | Evidence |
 | --- | --- | --- |
-| 1. Контракты | в работе | Wave 4/4b accepted contracts; Wave 5 repair проходит повторную приемку |
-| 2. Compiler | ожидает | Подробные cards Waves 6–10 записаны; gate — accepted G0 |
+| 1. Контракты | в работе | Wave 4/4b accepted contracts; Wave 5 semantic contract принят, utility topology переносится после ingestion |
+| 2. Compiler | ожидает | Wave 6 deterministic foundation больше не зависит от pre-build utility PASS; нужен explicit corpus commit |
 | 3. Full build | ожидает | После sample gates и explicit frozen snapshot |
 | 4. Normalize | ожидает | После coverage-complete full build |
 | 5. Acceptance | ожидает | После frozen candidate Wiki |
@@ -94,8 +95,10 @@ FAIL: один five-case session нарушил per-case budgets/reporting; raw 
 `modules/_returns/wave-5-blind-reader-packets.json`, verdict —
 `modules/_returns/wave-5-matched-grader.md`.
 
-Active repair card —
-[wave-5-acceptance-operations-amendment](modules/wave-5-acceptance-operations-amendment.md).
+Pre-build repair card
+[wave-5-acceptance-operations-amendment](modules/wave-5-acceptance-operations-amendment.md)
+остановлена после Fresh Eyes: её case-isolation сохраняется как требование, но
+utility нельзя принимать до ingestion настоящего representative route.
 
 ## Detailed-plan registry
 
@@ -103,6 +106,7 @@ Active repair card —
 | --- | --- | --- | --- |
 | 01a0255d-8b25-7e13-85ee-a74fff61dc6a | OpenViking: full compiler plan | snapshot → L2/L1/L0 → receipts | terminal candidate; root-adapted |
 | 01a0255d-8b20-7471-a0e1-2454629f3aa0 | OpenViking: full acceptance plan | blind audit → coverage/privacy → handoff | terminal candidate; root-adapted |
+| 01a025ae-59cf-7883-976b-1449e19e5439 | OpenViking: post-ingestion pilot gate | representative L2/L1/L0 → matched utility | terminal; integrated 7a6cdf5 |
 
 Оба треда были gpt-5.6-luna/max и запустили внутренний fan-out. Все шесть
 внутренних agents остались UNKNOWN после bounded waits; их содержательные
@@ -112,12 +116,19 @@ Active repair card —
 [detailed-plan-audit](modules/_returns/detailed-plan-audit.md); nested recheck
 пока UNKNOWN.
 
+Fresh Eyes trajectory correction и четыре разные опоры записаны в
+[fresh-eyes-post-ingestion-gate](modules/_returns/fresh-eyes-post-ingestion-gate.md).
+Wave 6b writer запустил nested Luna Max auditor
+`01a025b5-e79a-7c81-a2c5-261ac06be8ff`; circular gate и semantic acceptance —
+PASS.
+
 ## Планируемые волны
 
 | Волна | Результат | Dependency | State |
 | --- | --- | --- | --- |
-| 6 | frozen snapshot, deterministic records, stable partitions, privacy fixture | accepted Wave 5 G0 | planned |
-| 7 | semantic candidates и canonical current claims | Wave 6 pass | planned |
+| 6 | frozen snapshot, deterministic records, stable partitions, privacy fixture | accepted Wave 5 semantic contract + explicit corpus commit | planned |
+| 6b | representative L2/L1/L0 ingestion + matched final-route utility | Wave 6 pass | accepted card; execution waits for Wave 6 |
+| 7 | semantic candidates и canonical current claims | Wave 6b utility PASS | planned |
 | 8 | typed L2 pages, per-part validation и root catalog | Wave 7 pass | planned |
 | 9 | bottom-up L1 overviews и deterministic L0 abstracts | Wave 8 pass | planned |
 | 10 | exhaustive coverage, resume/crash/delete-rebuild receipts | Wave 9 pass | planned |
@@ -128,7 +139,7 @@ Active repair card —
 
 Owner-блокера нет.
 
-Dependency blockers G0:
+Закрытые semantic defects G0:
 
 - generated-root cleanup обязан отклонять symlink escape и сохранять внешний
   sentinel;
@@ -136,6 +147,8 @@ Dependency blockers G0:
 - historical subagent claim должен говорить только то, что есть в source;
 - no-gold coverage gap ограничивается реально проверенными addresses.
 
-Full build отдельно заблокирован до принятого privacy/provider fixture и нового
-explicit corpus snapshot. Планировочный baseline a77fc4c содержит 180 holders /
-1074 records; это не обещание, что финальный snapshot останется тем же.
+Wave 6 real-source run заблокирован до принятого privacy/provider fixture и
+нового explicit corpus snapshot. В рабочем дереве есть незакоммиченные holder
+overlays, поэтому `HEAD` нельзя молча объявить полным текущим corpus. Baseline
+`a77fc4c` содержит 180 holders / 1074 records; это не обещание, что финальный
+snapshot останется тем же.

@@ -9,19 +9,20 @@ thinking: max
 
 # Модуль — semantic candidates и canonical claims
 
-[parent: task.md](../task.md) · веха 2 · gate: Wave 6 PASS
+[parent: task.md](../task.md) · веха 2 · gate: Wave 6b utility PASS
 
 ## Contribution
 
 Получить из frozen partitions проверяемые knowledge candidates, затем одним
 serial owner слить их в canonical claims с явной currentness и rejection
-причинами. До закрытия Wave 6 карточка остаётся только планом.
+причинами. До закрытия Wave 6b карточка остаётся только планом.
 
 ## Inputs
 
 - frozen `part-*/input.jsonl` и partition manifest Wave 6;
 - pinned OpenViking Wiki Skill/prompt/config/model tuple с provenance и digests;
-- accepted claim schema, lifecycle vocabulary и privacy/provider gate.
+- accepted claim schema, lifecycle vocabulary, privacy/provider gate и
+  terminal Wave 6b matched utility PASS.
 
 ## Dependencies
 

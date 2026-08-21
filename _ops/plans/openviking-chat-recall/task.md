@@ -52,9 +52,11 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
   внешнюю публикацию.
 - Закрытый held-out audit сравнивает Wiki и исходные holders на одинаковых
   knowledge-вопросах. Wiki принимается только при не худшей корректности и
-  актуальности при материально меньшем количестве чтений или context tokens.
-  Исторический вопрос должен адресно маршрутизироваться к holders; confident
-  ответ на no-gold или superseded claim как на current — hard failure.
+  актуальности: минимум одна из осей `context tokens` или `evidence reads`
+  улучшается не менее чем на 25%, а `typed reads`, tokens и reader elapsed не
+  ухудшаются более чем на 10%. Исторический вопрос должен адресно
+  маршрутизироваться к holders; confident ответ на no-gold или superseded claim
+  как на current — hard failure.
 - Полный backfill имеет inventory/coverage/build receipts и короткий agent
   route: Wiki — для знаний; holders — для точных слов, истории, проверки
   provenance и неразрешённой актуальности.
@@ -87,10 +89,12 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
 принятый и адресуемый выход предыдущего; зеленый downstream не перекрывает
 провал upstream.
 
-    G0 representative contract
+    G0 frozen semantic contract
       → F1 frozen snapshot
       → F2 deterministic evidence
       → F3 stable semantic partitions
+      → P0 representative end-to-end L2/L1/L0 ingestion
+      → U0 matched final-route utility gate
       → S1 semantic candidates
       → S2 canonical current claims
       → L2 typed Wiki pages + catalog
@@ -103,9 +107,10 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
 
 | Волна | Карточка | Вход | Выход | Открывает |
 | --- | --- | --- | --- | --- |
-| 5 | [wave-5-distilled-probe](modules/wave-5-distilled-probe.md) | frozen real records + locked five-case gold | принятый claim/currentness contract | все full-build writers |
-| 6 | [wave-6-snapshot-evidence](modules/wave-6-snapshot-evidence.md) | принятый G0 + explicit corpus commit | frozen source lock, records, coverage input, stable partitions | semantic generation |
-| 7 | [wave-7-semantic-claims](modules/wave-7-semantic-claims.md) | partitions + pinned Wiki prompt tuple | canonical claims, rejections, lifecycle evidence | L2 writers |
+| 5 | [wave-5-distilled-probe](modules/wave-5-distilled-probe.md) | frozen real records + locked five-case gold | принятый claim/currentness contract; не utility verdict | deterministic foundation |
+| 6 | [wave-6-snapshot-evidence](modules/wave-6-snapshot-evidence.md) | принятый semantic contract + explicit corpus commit | frozen source lock, records, coverage input, stable partitions | representative ingestion |
+| 6b | [wave-6b-representative-ingestion-utility](modules/wave-6b-representative-ingestion-utility.md) | representative frozen subset + final L2/L1/L0 route | matched correctness/currentness/efficiency verdict | full semantic generation |
+| 7 | [wave-7-semantic-claims](modules/wave-7-semantic-claims.md) | Wave 6b PASS + partitions + pinned Wiki prompt tuple | canonical claims, rejections, lifecycle evidence | L2 writers |
 | 8 | [wave-8-l2-library](modules/wave-8-l2-library.md) | accepted canonical claims | typed L2 pages, catalog, validated index | context layers |
 | 9 | [wave-9-context-layers](modules/wave-9-context-layers.md) | accepted L2 tree + pinned L1 prompt | bottom-up L1/L0 sidecars | finalization |
 | 10 | [wave-10-full-build-operations](modules/wave-10-full-build-operations.md) | all stage outputs and receipts | exhaustive coverage, resume/rebuild proof, private build receipt | held-out acceptance |
@@ -140,8 +145,9 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
 
 ## Stop rules
 
-- Full build не начинается, пока representative sample не проходит exact-fact
-  validators и semantic audit.
+- Full semantic backfill не начинается, пока representative frozen sample не
+  пройдёт настоящий L2/L1/L0 ingestion и matched final-route audit. Wave 6
+  deterministic snapshot/evidence может выполняться раньше этого utility gate.
 - Semantic provider не получает реальные holders, пока synthetic canary не
   доказал auth, data-egress, logging, retry, cost и secret-redaction contract.
 - Full-build snapshot не берется из live directory или старого inventory:

@@ -9,17 +9,18 @@ thinking: max
 
 # Модуль — frozen snapshot и evidence foundation
 
-[parent: task.md](../task.md) · веха 2 · gate: accepted Wave 5 G0
+[parent: task.md](../task.md) · веха 2 · gate: accepted Wave 5 semantic contract
 
 ## Contribution
 
 Зафиксировать полный корпус одним explicit Git commit и превратить его в
 детерминированный record/evidence layer со стабильными semantic partitions.
-Карточка не разрешает исполнение, пока status.md не закрыл G0.
+Pre-build utility PASS не является dependency: полезность измеряется после
+representative ingestion в Wave 6b.
 
 ## Inputs
 
-- exact corpus commit, выбранный root после принятия G0;
+- exact corpus commit, выбранный root после принятия semantic contract;
 - действующий holder parser и правила `_ops/chat-recall/`;
 - accepted distilled-claim contract и provider privacy fixture.
 

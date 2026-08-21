@@ -170,3 +170,26 @@ addresses. Raw packets и verdict —
 
 **Граница.** Это acceptance-topology proof, не доказательство полезности Wiki.
 Новые case-isolated arms ещё должны пройти frozen semantic criteria.
+
+## 2026-08-21 — Utility проверяется после representative ingestion
+
+**Вывод.** Reusable compiler не должен доказывать пользу static schema fixture
+до появления настоящего retrieval route. Сначала фиксируется небольшой
+воспроизводимый source subset, затем он проходит тот же L2/L1/L0 pipeline, что
+и full build, и только после этого Wiki сравнивается с holders.
+
+**Evidence.** Официальный OpenViking RAG benchmark рекомендует document-level
+sampling с фиксированным seed, затем выполняет data ingestion, retrieval,
+answer generation и evaluation по Recall, F1, Accuracy, latency и token usage.
+Первый локальный matched run показал противоположные cost axes: Wiki сообщила
+меньше context tokens, но больше surface reads и orchestration wall time
+(`modules/_returns/wave-5-matched-grader.md`).
+
+**Что меняет.** Pilot future tool-а использует настоящий финальный route и
+принимает token/read improvement только без material regression другой cost
+axis. Deterministic snapshot/evidence не блокируется pre-ingestion utility
+вердиктом; full semantic backfill блокируется post-ingestion pilot verdict.
+
+**Граница.** Upstream benchmark доказывает порядок измерения, а не качество
+нашей статической distilled Wiki. Точные thresholds и русскоязычный corpus
+остаются локальной acceptance-гипотезой до Wave 6b.
