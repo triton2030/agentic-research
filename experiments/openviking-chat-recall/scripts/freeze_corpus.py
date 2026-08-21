@@ -8,7 +8,6 @@ import hashlib
 import json
 import re
 import subprocess
-import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -29,6 +28,7 @@ EXPECTED_HOLDER_COUNT = 184
 FULL_COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 OID_RE = re.compile(r"^[0-9a-f]{40,64}$")
 SOURCE_RULE = "top-level *.md excluding README.md; sorted by relative POSIX path"
+SYSTEM_PATH_ALIASES = (Path("/tmp"), Path("/var"))
 
 PARSER_SPEC: dict[str, object] = {
     "blob_read": "git cat-file blob <oid>",
@@ -307,7 +307,7 @@ def build_lock(
 
 
 def _reject_symlink_components(path: Path, label: str, repo_root: Path) -> None:
-    trusted_anchors = (repo_root.resolve(), Path(tempfile.gettempdir()).resolve())
+    resolved_repo_root = repo_root.resolve()
     for component in (path, *path.parents):
         try:
             is_symlink = component.is_symlink()
@@ -319,7 +319,9 @@ def _reject_symlink_components(path: Path, label: str, repo_root: Path) -> None:
             resolved_component = component.resolve()
         except (OSError, RuntimeError) as exc:
             raise FreezeError(f"cannot resolve symlink in {label} path: {component}") from exc
-        if not any(anchor.is_relative_to(resolved_component) for anchor in trusted_anchors):
+        if component in SYSTEM_PATH_ALIASES:
+            continue
+        if not resolved_repo_root.is_relative_to(resolved_component):
             raise FreezeError(f"{label} path contains an escaping symlink: {component}")
 
 

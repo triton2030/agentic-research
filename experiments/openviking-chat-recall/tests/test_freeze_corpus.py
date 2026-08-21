@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -155,6 +156,47 @@ class FreezeCorpusTests(unittest.TestCase):
                 freeze_corpus.build(REPO_ROOT, SNAPSHOT_COMMIT, output)
             self.assertFalse((outside / "generated/source-manifest.json").exists())
             self.assertFalse((outside / "generated/source-lock.json").exists())
+
+    def test_system_tmp_alias_is_environment_independent(self) -> None:
+        if not Path("/tmp").is_symlink():
+            self.skipTest("this regression requires the system /tmp alias")
+        with tempfile.TemporaryDirectory(dir="/tmp", prefix="openviking-f1-root-") as temp_dir:
+            output = Path(temp_dir) / "frozen"
+            command = [
+                sys.executable,
+                str(SCRIPT_DIR / "freeze_corpus.py"),
+                "--commit",
+                SNAPSHOT_COMMIT,
+                "--source-root",
+                "_ops/chat-recall",
+                "--output-dir",
+                str(output),
+                "--repo-root",
+                str(REPO_ROOT),
+            ]
+            env_without_tmp_alias = os.environ.copy()
+            env_without_tmp_alias["TMPDIR"] = str(REPO_ROOT)
+            env_without_tmp_alias["PYTHONDONTWRITEBYTECODE"] = "1"
+            first = subprocess.run(
+                command,
+                cwd=REPO_ROOT,
+                env=env_without_tmp_alias,
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            env_with_tmp_alias = env_without_tmp_alias.copy()
+            env_with_tmp_alias["TMPDIR"] = "/tmp"
+            second = subprocess.run(
+                command,
+                cwd=REPO_ROOT,
+                env=env_with_tmp_alias,
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+        self.assertEqual(first.returncode, 0, first.stderr)
+        self.assertEqual(second.returncode, 0, second.stderr)
 
 
 if __name__ == "__main__":
