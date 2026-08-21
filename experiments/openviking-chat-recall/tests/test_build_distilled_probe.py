@@ -47,6 +47,15 @@ class DistilledProbeTests(unittest.TestCase):
             {"current", "non-current", "uncertain"},
         )
         self.assertEqual(len(bundle["claims"]), 6)
+        subagent_claim = next(
+            claim
+            for claim in bundle["claims"]
+            if claim["id"] == "subagents-read-and-summarize"
+        )
+        self.assertEqual(
+            subagent_claim["title"], "Earlier broad subagent reading proposal"
+        )
+        self.assertNotIn("should read and summarize", subagent_claim["title"])
         self.assertEqual(bundle["no_gold_controls"][0]["status"], "abstain")
         self.assertEqual(bundle["no_gold_controls"][0]["resolution"], "unknown")
         self.assertTrue(bundle["no_gold_controls"][0]["coverage_gap"])

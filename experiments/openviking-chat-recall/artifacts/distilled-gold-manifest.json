@@ -145,7 +145,7 @@
     {
       "id": "subagents-read-and-summarize",
       "slug": "subagents-read-and-summarize",
-      "title": "Subagents should read and summarize source files",
+      "title": "Earlier broad subagent reading proposal",
       "statement": "Subagents were proposed to read 20–30 files for discovery coverage; the main agent reads holders and owns the recovered position.",
       "applicability": "Earlier retrieval candidate; it conflicts with the later scout-only boundary.",
       "lifecycle_status": "non-current",
