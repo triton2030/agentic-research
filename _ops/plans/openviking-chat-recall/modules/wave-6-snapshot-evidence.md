@@ -1,7 +1,7 @@
 ---
 kind: module-card
 wave: 6
-state: planned
+state: active
 role: deterministic-foundation-writers
 model: gpt-5.6-luna
 thinking: max
@@ -56,6 +56,14 @@ checker:
   `artifacts/full-build/clusters/part-*/input.jsonl`.
 
 Shared manifests интегрирует только root после независимой проверки returns.
+
+## Execution state
+
+- F1 accepted на `main` commits `acb3def` + `31c8a4f`; exact return —
+  [_returns/wave-6-f1-source-lock](./_returns/wave-6-f1-source-lock.md).
+- F2 next: построить deterministic records/evidence только из accepted F1
+  lock и Git objects exact corpus commit.
+- F3 ждёт принятого F2.
 
 ## Contract
 
