@@ -4,89 +4,75 @@ kind: context
 записано: 2026-08-21
 ---
 
-# Контекст — почему OpenViking Wiki
+# Контекст — почему собственный compiler
 
-## Что изменилось
+## Материальная проблема
 
-`chat-recall` хорошо сохраняет голос владельца, но его единица — цитата в
-датированном holder. Повтор одной позиции, её эволюция и сводный документ не
-имеют собственного потребительского представления. Владелец заказал не новый
-поиск цитат, а нормальную библиотеку знаний из всего старого корпуса.
+`chat-recall` сохраняет точные слова владельца в датированных holders, но не
+владеет документами, которые показывают повтор позиции, её развитие,
+противоречия и текущий вывод. Поэтому поиск возвращает цитаты, а агенту
+приходится заново собирать знание из многих источников.
 
-Graphiti решает другую задачу: извлекает temporal graph и ищет факты, но не
-создаёт читаемую Wiki с каталогом документов. Поэтому новый outcome не является
-продолжением Graphiti ingest и не должен наследовать его runtime-статус.
+Нужная поверхность — не ещё один индекс цитат, а производная библиотека:
+концепты, методы, сравнения и анализ с короткими слоями чтения и возможностью
+раскрыть каждое утверждение до исходного record.
 
-## Почему именно Compile + LLM Wiki
-
-OpenViking уже владеет нужным классом решения:
-
-- Compile читает corpus, применяет выбранный Skill и пишет новый knowledge tree;
-- официальный LLM Wiki Skill разделяет entity, concept, method, comparison и
-  analysis, объединяет дубли и требует provenance;
-- OpenViking автоматически держит L0/L1/L2 representations для экономного
-  context loading.
-
-Мы меняем только `reason`: recurrence должно стать явным знанием с количеством,
-первой/последней записью и chronology. Prompt/Skill upstream не форкается до
-доказанного ограничения stock route.
-
-## Граница истины
+## Выбранная граница
 
 ```text
-_ops/chat-recall/**                 immutable source evidence
-        ↓ static snapshot/import
-OpenViking viking://resources/**   runtime resource tree
-        ↓ Compile + official Skill
-chat-recall-wiki/**                derived, rebuildable knowledge library
+_ops/chat-recall/**                  immutable source evidence
+        ↓ deterministic inventory + typed facts
+compiler manifests                  counts / chronology / provenance
+        ↓ official OpenViking prompt + IA, local batch execution
+derived Wiki                        L0 / L1 / L2 knowledge surface
+        ↓ blind retrieval audit
+recommended agent route or rejection
 ```
 
-Wiki служит чтению и поиску, но не получает права переписывать слова владельца
-или автоматически менять GOAL, Product Frames, skills и инструкции.
+OpenViking здесь — источник проверяемой технологии организации знания, а не
+runtime dependency. Наш код владеет snapshot, typed evidence, generation
+envelope, validators, resume/rebuild и receipts. Зафиксированный upstream
+prompt владеет только смысловой схемой преобразования внутри этой оболочки.
 
-## Язык
+## Почему отказались от stock runtime
 
-Текущий Compile language route OpenViking ограничен `en` и `zh-CN`. Первый
-pilot сохраняет stock behavior: Wiki на английском, вопросы и ответы агента на
-русском. Это проверяет именно технологию OpenViking. Русский fork допустим лишь
-после falsifying evidence, что межъязыковой слой мешает retrieval или
-применению.
+Три независимые проверки разделили прежнюю гипотезу:
 
-## Upstream и лицензия
+- exact deterministic evidence работает;
+- official prompt/IA на typed input дал полезную Wiki для blind reader;
+- PyPI SDK, bundled server, VikingBot и Compile не образовали совместимую
+  поверхность.
 
-На старте исследования проверены PyPI `openviking==0.4.16`, upstream commit
-`9042a0254f9285aeab1779cc648440a5cf3108e5` и корневой `LICENSE` AGPL-3.0.
-Writer обязан проверить и записать реально установленный runtime; README-claim
-не заменяет authoritative license или package receipt.
+Повторные `⚡ UNEXPECTED` поэтому изменили верхнюю модель: исправлять очередной
+SDK mismatch дороже и рискованнее, чем отделить доказанно полезную часть
+OpenViking от сломанной инфраструктуры. Владелец явно утвердил это изменение.
 
-## Принятый компромисс
+## Единственная истина и приватность
 
-«Превратить цитаты в библиотеку» означает заменить потребительский маршрут
-агента, а не удалить provenance. Если библиотека проходит audit, агент сначала
-читает Wiki и раскрывает holders только для проверки evidence. Если не проходит,
-исходная система остаётся целой и эксперимент можно удалить без потери знания.
+Wiki никогда не становится владельцем слов пользователя. Она может быть
+удалена и заново построена из frozen source snapshot. Любой semantic claim
+должен перечислять использованные record IDs; полные цитаты раскрываются только
+когда это нужно для проверки, а не копируются во все слои.
 
-## Почему typed evidence
+External LLM route до full build обязан явно описать, какие данные покидают
+машину, какие секреты используются и как гарантируется отсутствие содержимого
+holders в logs/receipts. Если приемлемого route нет, semantic generation не
+запускается.
 
-V2 показала, что один prompt нельзя делать владельцем и точных фактов,
-и сводного смысла. Следующий probe делит ответственность:
+## Проверяемая польза
 
-- deterministic layer хранит record IDs, exact count, first/latest и provenance;
-- OpenViking сохраняет official Skill, IA, Compile и L0/L1/L2;
-- blind reader проверяет, что из Wiki восстанавливается текущий outcome,
-  а не только красивая структура.
+Гладкая Wiki не является результатом. Итоговая библиотека должна помочь
+слепому агенту восстановить актуальную позицию и chronology не хуже holders,
+но меньшим числом чтений или меньшим context. Exact facts проверяются кодом;
+смысл и удобство — закрытым matched audit с no-gold control.
 
-Это не полный wrapper: два кластера должны сначала опровергнуть или
-подтвердить seam.
+## Отвергнутые маршруты
 
-## Что изменили UNEXPECTED-сигналы
-
-После серии package/API mismatch владелец указал: повторный `⚡ UNEXPECTED`
-означает, что может быть неверна верхнеуровневая модель, а не только
-локальный ход. Источник:
-`_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md`.
-
-Поэтому эксперимент больше не считает PyPI SDK, bundled server, VikingBot
-и current Compile docs одной доказанно связной surface. Он проверяет три
-независимых claim: exact evidence seam, official prompt/IA usefulness и
-stock runtime availability.
+- **Ждать stock OpenViking.** Не решает текущий static corpus и связывает
+  outcome с недоказанно совместимым runtime.
+- **Дать LLM весь корпус одним prompt.** Смешивает точные факты и интерпретацию,
+  скрывает пропуски и не даёт возобновляемого build.
+- **Сделать только embeddings/search.** Ускоряет нахождение цитат, но не создаёт
+  документов о повторении, изменении позиции и противоречиях.
+- **Сделать source-by-source summaries.** Дублирует физическую структуру
+  holders вместо семантической библиотеки и не экономит сборку знания.

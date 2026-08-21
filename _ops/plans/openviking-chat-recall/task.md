@@ -1,96 +1,101 @@
 ---
 эпик: "самостоятельный experiment: openviking-chat-recall"
-режим: Wayfinding
+режим: Execution
 kind: task
 создано: 2026-08-21
 ---
 
-# OpenViking Wiki для chat-recall
+# Batch compiler знаний из chat-recall
 
 ## Цель
 
 Превратить полный статический snapshot `_ops/chat-recall/` в удобную агентам
-библиотеку знаний штатным OpenViking Compile и официальным LLM Wiki Skill.
-Исходные holders остаются неизменяемым evidence; Wiki — производная,
-пересобираемая и неканоническая поверхность чтения.
+библиотеку знаний: точные recurrence/chronology/provenance вычисляются
+детерминированно, а официальный prompt, information architecture и layered
+projection OpenViking используются для смысловой сборки документов. Runtime
+OpenViking в принятом маршруте не участвует.
 
-Работа живёт в самостоятельном `experiments/openviking-chat-recall/` и не
-расширяет root `_ops/GOAL.md` до runtime-эксперимента.
+Исходные holders остаются неизменяемым evidence. Библиотека — производная,
+проверяемая и полностью пересобираемая поверхность чтения в
+`experiments/openviking-chat-recall/`.
 
 ## Критерии успеха
 
-- Эксперимент воспроизводимо поднимает pinned stock OpenViking и импортирует
-  frozen snapshot всех holders без правки исходников.
-- Compile использует официальный LLM Wiki Skill и создаёт навигационный
-  `index.md` плюс страницы нужных типов: `entity/`, `concept/`, `method/`,
-  `comparison/`, `analysis/`; пустые типы не создаются ради симметрии.
-- Семантически одинаковые позиции объединены. Для повторяющейся позиции Wiki
-  хранит число отдельных записей, первую и последнюю фиксацию, изменение
-  позиции и противоречия со ссылками на источники.
-- На проверяемой выборке recurrence-метаданные сходятся с holders вручную;
-  непроверенная модельная оценка не считается доказательством.
-- Matched retrieval-проверка сравнивает исходные holders, существующий Graphiti
-  и OpenViking Wiki по одинаковым вопросам: корректность, chronology,
-  применение актуальной позиции, число чтений, токены и время.
-- Полный backfill запускается только после pilot-verdict; принятый full snapshot
-  имеет inventory receipt без пропусков и дубликатов источников.
-- Агент может отвечать по-русски. Английский текст stock Wiki допустим только
-  если pilot не показывает материального ухудшения поиска или применения.
+- Frozen inventory адресует каждую запись snapshot по source path, record ID,
+  timestamp и digest; для каждой записи есть ровно один итог: использована,
+  отклонена валидатором или пропущена с явной причиной.
+- Детерминированный слой единолично владеет membership, exact count,
+  first/latest, chronology и provenance. LLM не вычисляет и не исправляет эти
+  факты.
+- Смысловой compiler использует зафиксированный snapshot официального
+  OpenViking LLM Wiki prompt и его IA. Происхождение, upstream commit и граница
+  лицензии записаны в receipt; локальные добавления отделены от upstream.
+- Результат организован как семантические директории и страницы нужных типов
+  (`entity`, `concept`, `method`, `comparison`, `analysis`) с каталогом и
+  слоями: L0 abstract, L1 overview, L2 source-backed page body. Пустые типы и
+  source-by-source пересказы не создаются ради симметрии.
+- Повторы сводятся в одно знание, но сохраняют exact count, первую и последнюю
+  фиксацию, эволюцию позиции, противоречия и адреса исходных records.
+- Build возобновляется после сбоя, повторный запуск на том же snapshot
+  воспроизводим, секреты и полный приватный corpus не попадают в receipts или
+  внешнюю публикацию.
+- Закрытый held-out audit сравнивает Wiki и исходные holders на одинаковых
+  вопросах. Wiki принимается только при не худшей корректности/chronology и
+  материально меньшем количестве чтений или context tokens; confident ответ на
+  no-gold вопрос — hard failure.
+- Полный backfill имеет inventory/coverage/build receipts и короткий agent
+  route: сначала Wiki, holders — только для проверки evidence.
 
 ## Не входит
 
 - Realtime capture, hooks, watcher или подмена `1chat-recall`.
 - Удаление, редактирование или архивирование `_ops/chat-recall/**`.
-- Собственная knowledge architecture вместо штатного LLM Wiki Skill.
-- Переписывание OpenViking prompts до falsifying stock-pilot.
-- Публикация исходных цитат, персональных данных или WebDAV наружу.
-- Возобновление незаконченного Graphiti ingest; Graphiti здесь только baseline.
+- Возобновление Graphiti ingest; его артефакты остаются внешним baseline.
+- Stock SDK/server/Compile OpenViking и локальные compatibility shims к ним.
+- Публикация исходных цитат, персональных данных или Wiki наружу.
+- Перенос кода OpenViking в иной продуктовый owner.
 
-## Решающий вопрос Wayfinding
+## Вехи
 
-Может ли stock OpenViking собрать из русского корпуса библиотеку, которая
-одновременно:
+| Веха | Проверяемый результат |
+| --- | --- |
+| 1. Контракты | Frozen corpus map, compiler seam, pinned OpenViking IA/prompt, LLM route, acceptance и privacy/recovery contracts не противоречат друг другу |
+| 2. Compiler | Детерминированный pipeline, semantic generation, validators, resume state и receipts проходят узкие tests на representative sample |
+| 3. Full build | Весь frozen snapshot обработан; coverage manifest не содержит молчаливых пропусков |
+| 4. Normalize | Layered Wiki, каталог, cross-links и recurrence/chronology прошли механические инварианты и выборочную ручную сверку |
+| 5. Acceptance | Blind held-out сравнение подтвердило correctness и экономию чтения/context; agent route и rebuild handoff записаны |
 
-1. правильно сводит повторы и chronology;
-2. сохраняет проверяемый provenance;
-3. помогает агенту находить и применять позицию лучше или дешевле исходных
-   holders и Graphiti?
+## Stop rules
 
-Если хотя бы одно условие не подтверждено, полный backfill не начинается:
-фиксируется предел и выбирается минимальная следующая развилка — уточнить
-compile reason, добавить русский output или отказаться от класса решения.
+- Full build не начинается, пока representative sample не проходит exact-fact
+  validators и semantic audit.
+- LLM output с отсутствующим record ID, выдуманным provenance, изменённым
+  count/chronology или неподдержанным claim отклоняется, а не чинится молча.
+- Если official prompt/IA нельзя использовать с проверяемым provenance или
+  приемлемой лицензионной границей, работа останавливается перед semantic
+  generator.
+- Если held-out audit не показывает пользы против holders, Wiki не становится
+  рекомендуемым agent route, даже если build технически завершён.
 
-## Последовательность
+## Principles trace
 
-1. **Pilot runtime.** Изолированный pinned OpenViking, frozen inventory,
-   официальный LLM Wiki Skill, representative corpus и compile receipt.
-2. **Pilot audit.** Ручная сверка recurrence/chronology и matched retrieval на
-   заранее зафиксированных вопросах.
-3. **Переходный verdict.** Только evidence переводит план из Wayfinding в
-   Execution либо закрывает эксперимент с отрицательным результатом.
-4. **Full backfill.** В режиме Execution компилируется весь frozen corpus,
-   проверяется inventory и повторяется held-out retrieval audit.
-5. **Handoff.** Принятая библиотека получает короткий agent route; source of
-   truth и способ полного rebuild остаются явными.
-
-## Условия входа и stop rules
-
-- Используется локальная конфигурация без внешней публикации и без секретов в
-  репозитории.
-- Upstream version, commit, официальный Skill и compile reason фиксируются в
-  receipt: новая версия не подменяет измеряемый runtime по ходу pilot.
-- AGPL-3.0 учитывается как граница эксперимента: код OpenViking не переносится
-  в иной продуктовый owner без отдельного решения.
-- Если stock output не позволяет проверить recurrence или противоречия,
-  модельный текст не принимается как «библиотека знаний» только за гладкость.
+- Владелец выбрал собственный batch compiler вместо broken stock runtime и
+  потребовал использовать именно OpenViking prompts, IA и layered projection.
+- Existing frame дополняется: один plan owner и один derived experiment;
+  `_ops/chat-recall/` не дублируется и остаётся источником доказательств.
+- Self-report writer’а не является приёмкой: каждую существенную границу
+  проверяет независимая рука или исполняемый validator.
+- Максимальный fan-out ограничен реальными независимыми зонами; writers
+  запускаются только после согласования read-only контрактов первой волны.
 
 ## Происхождение требований
 
-- Outcome, static backfill, Luna Max и проверка удобства агентам — решение
-  владельца: `_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md`.
-- Неизменяемость holders и их роль source-bound evidence — `_ops/AGENTS.md`,
-  разделы `chat-recall/` и «Красные линии».
-- Штатная IA и правила дедупликации — официальный OpenViking LLM Wiki Skill:
-  `examples/compile/ov-compile-skills/llm-wiki/SKILL.md`.
-- Graphiti baseline и его текущий незавершённый scope —
-  `_ops/plans/graphiti-codex-finish/{task,status,context}.md`.
+- Решение о маршруте, локальном плане, root-orchestrator, максимальных фоновых
+  Luna Max-тредах и вложенных субагентах:
+  `_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md`.
+- Неизменяемость holders и source-bound evidence: `_ops/AGENTS.md`.
+- Upstream prompt и IA: официальный OpenViking
+  `examples/compile/ov-compile-skills/llm-wiki/SKILL.md`; точную версию обязана
+  зафиксировать веха 1.
+- Отрицательный stock-runtime evidence и положительный typed-evidence probe:
+  прежние returns этой папки и `experiments/openviking-chat-recall/artifacts/`.
