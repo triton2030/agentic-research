@@ -94,7 +94,7 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
       → S1 semantic candidates
       → S2 canonical current claims
       → L2 typed Wiki pages + catalog
-      → L1 overviews → L0 abstracts
+      → per-depth L1 → L0, from leaves to root
       → full coverage/resume/rebuild receipts
       → blind matched acceptance
       → fresh-agent route or rejection
@@ -110,7 +110,7 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
 | 9 | [wave-9-context-layers](modules/wave-9-context-layers.md) | accepted L2 tree + pinned L1 prompt | bottom-up L1/L0 sidecars | finalization |
 | 10 | [wave-10-full-build-operations](modules/wave-10-full-build-operations.md) | all stage outputs and receipts | exhaustive coverage, resume/rebuild proof, private build receipt | held-out acceptance |
 | 11 | [wave-11-blind-acceptance](modules/wave-11-blind-acceptance.md) | frozen candidate + locked gold | matched correctness/currentness/efficiency verdict | route decision |
-| 12 | [wave-12-fresh-agent-handoff](modules/wave-12-fresh-agent-handoff.md) | accepted route or explicit rejection | clean-session route, rebuild handoff, independent completion audit | завершение |
+| 12 | [wave-12-fresh-agent-handoff](modules/wave-12-fresh-agent-handoff.md) | terminal Wave 11 verdict: accepted route or explicit rejection | clean-session route, rebuild handoff, independent completion audit | завершение |
 
 Карточка становится разрешением на исполнение только когда ее dependency gate
 закрыт в status.md. До этого это подробная проекция остатка, а не permission

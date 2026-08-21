@@ -24,8 +24,9 @@ thinking: max
 
 ## Dependencies
 
-Обход строго bottom-up: leaf L1 → parent L1 с child L0 → deterministic L0 для
-каждого принятого L1. Parent не строится до terminal children.
+Обход строго bottom-up и чередуется на каждом depth: leaf L1 → leaf L0 →
+parent L1 с child L0 → parent L0. Parent L1 не строится до terminal L0 всех
+непосредственных children.
 
 ## Ownership
 

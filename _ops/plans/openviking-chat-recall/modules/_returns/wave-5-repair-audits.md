@@ -9,7 +9,7 @@ candidate: a1928822cbadfa43a298bb65c15c082fb080aa03
 
 ## Candidate chain
 
-`ae3bd56` → `581e85c` → `e74bbf0` → `a192882`.
+`ae3bd56` → `581e85c` → `e74bbf0` → `a192882` → `5fd8f94`.
 
 Root clean-worktree run на `581e85c` дал 13/13 PASS, но две независимые
 приёмки не приняли G0.
@@ -39,7 +39,11 @@ Required corrections:
 - no-gold absence нельзя расширять дальше checked frozen addresses.
 
 Repair `a192882` применил все три ограничения и удалил language page из default
-Wiki. Это root-inspected state; независимый final semantic verdict ещё ожидается.
+Wiki. Root затем обнаружил, что suppressed claim всё ещё назывался unsupported
+title `Subagents should read and summarize source files`. Repair `5fd8f94`
+заменил title на source-supported `Earlier broad subagent reading proposal` и
+добавил falsifying test. Root run в настоящем detached clone: 14/14 PASS;
+независимый final semantic verdict ещё ожидается.
 
 ## Gate
 

@@ -98,6 +98,10 @@ Inner-agent UNKNOWN не принят как evidence.
 внутренних agents остались UNKNOWN после bounded waits; их содержательные
 выводы не использованы. Root проверил frozen counts и material gates напрямую.
 
+Независимый plan-audit и root repairs записаны в
+[detailed-plan-audit](modules/_returns/detailed-plan-audit.md); nested recheck
+пока UNKNOWN.
+
 ## Планируемые волны
 
 | Волна | Результат | Dependency | State |
@@ -108,7 +112,7 @@ Inner-agent UNKNOWN не принят как evidence.
 | 9 | bottom-up L1 overviews и deterministic L0 abstracts | Wave 8 pass | planned |
 | 10 | exhaustive coverage, resume/crash/delete-rebuild receipts | Wave 9 pass | planned |
 | 11 | blind five-case probe + full matched comparator | Wave 10 frozen candidate | planned |
-| 12 | fresh-agent route, rebuild handoff и independent completion audit | Wave 11 pass | planned |
+| 12 | fresh-agent route, rebuild handoff и independent completion audit | terminal Wave 11 verdict: pass or explicit rejection | planned |
 
 ## Блокеры
 
