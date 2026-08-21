@@ -1,0 +1,179 @@
+{
+  "schema": "openviking-chat-recall/typed-gold.v1",
+  "frozen_provenance_commit": "6d392ae^",
+  "source_rule": "Resolve every source through its explicit git provenance_ref; never fall back to the live holder.",
+  "clusters": [
+    {
+      "id": "cluster-a-retrieval-aid-not-proof",
+      "title": "Retrieval aid is not proof",
+      "probe_claim": "A search card or retrieval hit selects a holder for full reading; it does not prove the owner's position.",
+      "source": {
+        "path": "_ops/chat-recall/2026-08-14-124028-codex-019fff2e.md",
+        "provenance_commit": "6d392ae^",
+        "provenance_ref": "6d392ae^:_ops/chat-recall/2026-08-14-124028-codex-019fff2e.md",
+        "sha256": "501cad60b995a15ce2382ea1c4f264f4c3f22a0e1450dda2fbe4d891c58016ff"
+      },
+      "expected": {
+        "record_count": 4,
+        "first": "2026-08-14T07:45:46.732000+00:00",
+        "latest": "2026-08-17T17:46:29+05:00"
+      },
+      "gold_assertions": [
+        {
+          "id": "A-assertion-1",
+          "statement": "The retrieval aid helps locate the right conversation but does not replace the owner's quotes or count as the owner's truth.",
+          "record_ids": [
+            "2026-08-14-124028-codex-019fff2e.md:20"
+          ]
+        },
+        {
+          "id": "A-assertion-2",
+          "statement": "A hit selects a holder for complete chronological reading and later checking; it does not prove the owner's position.",
+          "record_ids": [
+            "2026-08-14-124028-codex-019fff2e.md:26",
+            "2026-08-14-124028-codex-019fff2e.md:31",
+            "2026-08-14-124028-codex-019fff2e.md:35"
+          ]
+        }
+      ],
+      "records": [
+        {
+          "record_id": "2026-08-14-124028-codex-019fff2e.md:20",
+          "line": 20,
+          "timestamp": "2026-08-14T07:45:46.732000+00:00",
+          "kind": "selection",
+          "type": "решение",
+          "topic": "документация-и-знания",
+          "quote": "У каждого файла цитат есть одна короткая, постоянно актуализируемая поисковая карточка сессии; она помогает найти правильный разговор, но не заменяет цитаты, не пересказывает решения и не считается правдой владельца."
+        },
+        {
+          "record_id": "2026-08-14-124028-codex-019fff2e.md:26",
+          "line": 26,
+          "timestamp": "2026-08-14T20:50:44+05:00",
+          "kind": "selection",
+          "type": "решение",
+          "topic": "документация-и-знания",
+          "quote": "`session-context` остаётся отдельным полем `session_context` в JSON и `--show`. Обычный `records`-ranking ищет только по цитатам и `context-note`: BM25 допускает dense rerank, затем выдача схлопывается до одного кандидата на файл. Карточка индексируется отдельно — одна BM25-строка на файл — и никогда не смешивается с embeddings цитат. Если запрос содержит термин, отсутствующий во всём record-index, совпавшие карточки появляются отдельным top-5 маршрутом `session_candidates`, не переставляя `records`; если `records` пуст, тот же маршрут становится fallback-выдачей. В card-only fallback `--timeline` возвращает все записи найденных файлов. Карточка и rank выбирают только файл для полного чтения и не доказывают позицию владельца. `--json` даёт `address` для record-кандидатов и `session_candidates` для file-level маршрутов. При нуле и в record-index, и в карточках поиск честно возвращает пусто. Модель ставится один раз через `--prepare`; без неё `--lexical` сохраняет те же два раздельных lexical-маршрута. Acceptance этой возможности включает случай, где один существенный термин задачи отсутствует во всех цитатах и `context-note`, присутствует только в `session-context`, а default JSON показывает нужный файл в top-5 `session_candidates`, не меняя порядок `records`."
+        },
+        {
+          "record_id": "2026-08-14-124028-codex-019fff2e.md:31",
+          "line": 31,
+          "timestamp": "2026-08-16T06:07:59+05:00",
+          "kind": null,
+          "type": "коррекция",
+          "topic": "документация-и-знания",
+          "quote": "Да но мы не должны удалять ту старую обязанность что агент должен читать не отдельные цитаты а весь файл ведь иначе он может не уловить контекст связи и флоу мои цитат по порядку а будет читать цитаты вне контекста"
+        },
+        {
+          "record_id": "2026-08-14-124028-codex-019fff2e.md:35",
+          "line": 35,
+          "timestamp": "2026-08-17T17:46:29+05:00",
+          "kind": "selection",
+          "type": "решение",
+          "topic": "документация-и-знания",
+          "quote": "1chat-recall: первый запрос — естественная формулировка для BM25+E5 по цитатам; максимум один повтор — три-четыре отдельных wildcard-корня. Session-context остаётся отдельным BM25 file-route: прежний novel-term gate либо минимум два совпавших корня; карточка не входит в records, E5 карточки не ранжирует, card-only records пусты кроме timeline. Любой hit только выбирает holder: его читают от первой строки до последней и затем проверяют более поздние holder-ы по тому же claim."
+        }
+      ]
+    },
+    {
+      "id": "cluster-b-openviking-outcome",
+      "title": "Current OpenViking outcome",
+      "probe_claim": "The OpenViking experiment is a derived knowledge-library projection over static chat-recall evidence, with recurrence, provenance and later retrieval convenience tested explicitly.",
+      "source": {
+        "path": "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md",
+        "provenance_commit": "6d392ae^",
+        "provenance_ref": "6d392ae^:_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md",
+        "sha256": "c92addebb7e56454bb848a935f2bdfe6408f9b6949248c1ca56dd06ec0502443"
+      },
+      "expected": {
+        "record_count": 5,
+        "first": "2026-08-21T13:31:52+05:00",
+        "latest": "2026-08-21T14:44:26+05:00"
+      },
+      "gold_assertions": [
+        {
+          "id": "B-assertion-1",
+          "statement": "Слои пересказа по OpenViking нужны для экономии токенов.",
+          "record_ids": [
+            "2026-08-21-133152-codex-01a0236d.md:18"
+          ]
+        },
+        {
+          "id": "B-assertion-2",
+          "statement": "Нужны отдельные документы или отчёты и явный факт повторения, а не простое цитирование цитат.",
+          "record_ids": [
+            "2026-08-21-133152-codex-01a0236d.md:19"
+          ]
+        },
+        {
+          "id": "B-assertion-3",
+          "statement": "Нужна готовая библиотека в параллельной папке со static import старой папки, а не realtime memory route.",
+          "record_ids": [
+            "2026-08-21-133152-codex-01a0236d.md:20"
+          ]
+        },
+        {
+          "id": "B-assertion-4",
+          "statement": "Нужны официальные системные промты агентов и информационная архитектура OpenViking.",
+          "record_ids": [
+            "2026-08-21-133152-codex-01a0236d.md:21"
+          ]
+        },
+        {
+          "id": "B-assertion-5",
+          "statement": "После рефактора нужно проверить, насколько агентам удобно находить знание.",
+          "record_ids": [
+            "2026-08-21-133152-codex-01a0236d.md:22"
+          ]
+        }
+      ],
+      "records": [
+        {
+          "record_id": "2026-08-21-133152-codex-01a0236d.md:18",
+          "line": 18,
+          "timestamp": "2026-08-21T13:31:52+05:00",
+          "kind": null,
+          "type": "идея",
+          "topic": "архитектура-и-модель",
+          "quote": "Я бы хотел бы просто воспользоваться их технологией, ну, почти полностью, но вместо их инструмента понять, какие они там промты используют, для того, чтобы по их системе разбития информации на несколько слоев все мои цитаты как-то вот переписать, чтобы был еще отдельный слой, не знаю, пересказов моих цитат, но именно по их технологии и по их структуре, которая помогает экономить количество токенов."
+        },
+        {
+          "record_id": "2026-08-21-133152-codex-01a0236d.md:19",
+          "line": 19,
+          "timestamp": "2026-08-21T14:27:02+05:00",
+          "kind": null,
+          "type": "коррекция",
+          "topic": "архитектура-и-модель",
+          "quote": "Так я про это и говорю про долгосрочную память, потому что у меня сейчас проблема в том, что цитаты повторяются, и факт того, что цитата повторилась, ну, нигде нет. То есть мне нужен именно не цитирование цитат, а, знаешь, как будто какие-то отдельные документы, отчеты, но, видимо, по системе открытого викинга."
+        },
+        {
+          "record_id": "2026-08-21-133152-codex-01a0236d.md:20",
+          "line": 20,
+          "timestamp": "2026-08-21T14:34:15+05:00",
+          "kind": null,
+          "type": "коррекция",
+          "topic": "архитектура-и-модель",
+          "quote": "Ну вот, разница в том, что я бы хотел бы это сделать из готовой библиотеки. То есть, как мы могли бы сделать еще параллельную папку по их технологии, ровно как они говорят? Но просто мы не будем брать в реальном времени, мы будем брать из моей папки стат уже старые."
+        },
+        {
+          "record_id": "2026-08-21-133152-codex-01a0236d.md:21",
+          "line": 21,
+          "timestamp": "2026-08-21T14:39:59+05:00",
+          "kind": null,
+          "type": "коррекция",
+          "topic": "архитектура-и-модель",
+          "quote": "Меня интересуют их системные промты агентам и информационная архитектура. То есть есть куча мала, куча всякого, всякой информации, цитат, цитаты повторяются и так далее. И вот как из них собрать знания, кучу документов с правильной структурой папок, так чтобы по этой базе было легко искать. По идее, вот именно этим они и славятся, открытый викинг."
+        },
+        {
+          "record_id": "2026-08-21-133152-codex-01a0236d.md:22",
+          "line": 22,
+          "timestamp": "2026-08-21T14:44:26+05:00",
+          "kind": null,
+          "type": "решение",
+          "topic": "цели-и-приоритеты",
+          "quote": "Отлично, давай все запланируем, запишем, как мы хотим сделать, создадим планы. И затем при помощи фоновых тредов с Луной Макс. Мы это сделаем и потом проверим, насколько удобно агентам находить там информацию. Мы сделаем рефактор, то есть все здесь цитаты превратим в нормальную библиотеку знаний."
+        }
+      ]
+    }
+  ]
+}
