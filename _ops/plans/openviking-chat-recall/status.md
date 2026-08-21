@@ -13,18 +13,18 @@ kind: status
 
 ## Next
 
-Принять новую post-ingestion pilot-card и выбрать explicit corpus commit для
-Wave 6. Frozen semantic gold остаётся неизменным, но незавершённый pre-build
-operations-v2 rerun больше не блокирует deterministic snapshot/evidence.
-Следующий utility verdict снимается только с настоящего representative
-L2/L1/L0 route; его PASS откроет full semantic Wave 7.
+Запустить F1 frozen-source writer на explicit corpus commit
+`6f98fcccdbf4b4de45ef787239ad101f70d106e2`. Frozen semantic gold остаётся
+неизменным. Wave 6 deterministic snapshot/evidence открыт; следующий utility
+verdict снимается только с настоящего representative L2/L1/L0 route, и его
+PASS откроет full semantic Wave 7.
 
 ## Вехи
 
 | Веха | Статус | Evidence |
 | --- | --- | --- |
 | 1. Контракты | в работе | Wave 4/4b accepted contracts; Wave 5 semantic contract принят, utility topology переносится после ingestion |
-| 2. Compiler | ожидает | Wave 6 deterministic foundation больше не зависит от pre-build utility PASS; нужен explicit corpus commit |
+| 2. Compiler | в работе | Explicit corpus commit 6f98fcc выбран; F1 source lock следующий |
 | 3. Full build | ожидает | После sample gates и explicit frozen snapshot |
 | 4. Normalize | ожидает | После coverage-complete full build |
 | 5. Acceptance | ожидает | После frozen candidate Wiki |
@@ -122,11 +122,18 @@ Wave 6b writer запустил nested Luna Max auditor
 `01a025b5-e79a-7c81-a2c5-261ac06be8ff`; circular gate и semantic acceptance —
 PASS.
 
+Source-frontier task `01a025bb-e6d4-7c00-94ce-bafd7bb932e1` доказал, что
+предыдущий `HEAD` терял 26 parsed records. Все восемь holder overlays сохранены
+без изменения текста в explicit source commit `6f98fcc`; точные counts и
+diagnostics — [wave-6-source-frontier](modules/_returns/wave-6-source-frontier.md).
+Nested denominator checker остался terminal UNKNOWN и не использован как
+evidence.
+
 ## Планируемые волны
 
 | Волна | Результат | Dependency | State |
 | --- | --- | --- | --- |
-| 6 | frozen snapshot, deterministic records, stable partitions, privacy fixture | accepted Wave 5 semantic contract + explicit corpus commit | planned |
+| 6 | frozen snapshot, deterministic records, stable partitions, privacy fixture | accepted Wave 5 semantic contract + explicit corpus commit | active: F1 next |
 | 6b | representative L2/L1/L0 ingestion + matched final-route utility | Wave 6 pass | accepted card; execution waits for Wave 6 |
 | 7 | semantic candidates и canonical current claims | Wave 6b utility PASS | planned |
 | 8 | typed L2 pages, per-part validation и root catalog | Wave 7 pass | planned |
@@ -147,8 +154,7 @@ Owner-блокера нет.
 - historical subagent claim должен говорить только то, что есть в source;
 - no-gold coverage gap ограничивается реально проверенными addresses.
 
-Wave 6 real-source run заблокирован до принятого privacy/provider fixture и
-нового explicit corpus snapshot. В рабочем дереве есть незакоммиченные holder
-overlays, поэтому `HEAD` нельзя молча объявить полным текущим corpus. Baseline
-`a77fc4c` содержит 180 holders / 1074 records; это не обещание, что финальный
-snapshot останется тем же.
+Wave 6 source snapshot выбран: `6f98fcc`, 184 holder files и 1101 parsed
+records. Из них 34 имеют diagnostics; compiler не удаляет их молча, а обязан
+выдать явный rejected/skipped disposition. Перед передачей реальных holders
+semantic provider-у отдельно остаётся обязательным privacy/provider fixture.

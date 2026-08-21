@@ -20,12 +20,22 @@ representative ingestion в Wave 6b.
 
 ## Inputs
 
-- exact corpus commit, выбранный root после принятия semantic contract;
+- exact corpus commit
+  `6f98fcccdbf4b4de45ef787239ad101f70d106e2`, выбранный root после принятия
+  semantic contract;
 - действующий holder parser и правила `_ops/chat-recall/`;
 - accepted distilled-claim contract и provider privacy fixture.
 
 Планировочный baseline `a77fc4c` с 180 holders / 1074 records не является
 автоматическим full-build snapshot.
+
+## Selected source frontier
+
+Commit `6f98fcc` содержит 184 holder files и 1101 parsed records. Non-strict
+structural check завершился с 34 diagnostics: 29 `duplicate-session-holder`,
+4 `unmarked-approximate` и 1 `invalid-type`. Snapshot сохраняет их дословно;
+F1/F2 обязаны адресовать diagnostics и передать каждому record явный
+coverage-disposition, а не исключать файл или чинить source молча.
 
 ## Dependencies
 
