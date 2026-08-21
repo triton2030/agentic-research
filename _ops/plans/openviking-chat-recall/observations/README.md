@@ -46,3 +46,24 @@ inversion (`modules/return-wave-2-v2-audit.md`). После разделения
 **Граница.** Доказано для records со стабильными source addresses и timestamps.
 Качество автоматического semantic clustering полного разнородного корпуса этим
 ещё не доказано.
+
+## 2026-08-21 — Wiki pages и context layers имеют разных upstream owners
+
+**Вывод.** Reusable compiler должен фиксировать две независимые OpenViking
+поверхности: LLM Wiki Skill задаёт L2 semantic pages и `index.md`, а core
+Context Layers задаёт L0 `.abstract.md`, L1 `.overview.md`, bottom-up generation
+и progressive reading. Нельзя приписывать L0/L1 промпту Wiki.
+
+**Evidence.** Текущий и pinned `SKILL.md` одинаково запрещают самому Wiki-agent
+генерировать semantic sidecars и говорят, что ими владеет Compile. Официальный
+`docs/en/concepts/03-context-layers.md` отдельно определяет L0/L1/L2,
+token budgets и bottom-up generation. Root проверил оба источника напрямую на
+commits `2af48624…` и `499995f3…`.
+
+**Что меняет.** Prompt/provenance manifest, validators и tests разделяются на
+`wiki_l2` и `context_layers_l0_l1`; custom compiler соединяет их только через
+явный interface.
+
+**Граница.** Это source-backed ownership seam. Точная локальная реализация
+semantic prompt templates, их лицензионная применимость и retrieval benefit
+ещё требуют проверки.

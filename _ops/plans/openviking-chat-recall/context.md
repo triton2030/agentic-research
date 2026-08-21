@@ -23,16 +23,19 @@ kind: context
 _ops/chat-recall/**                  immutable source evidence
         ↓ deterministic inventory + typed facts
 compiler manifests                  counts / chronology / provenance
-        ↓ official OpenViking prompt + IA, local batch execution
-derived Wiki                        L0 / L1 / L2 knowledge surface
+        ↓ official Wiki Skill, local batch execution
+L2 typed Wiki pages                 index / entity / concept / ...
+        ↓ official Context Layers contract + semantic prompts
+L0/L1 directory sidecars            bottom-up progressive reading
         ↓ blind retrieval audit
 recommended agent route or rejection
 ```
 
-OpenViking здесь — источник проверяемой технологии организации знания, а не
-runtime dependency. Наш код владеет snapshot, typed evidence, generation
-envelope, validators, resume/rebuild и receipts. Зафиксированный upstream
-prompt владеет только смысловой схемой преобразования внутри этой оболочки.
+OpenViking здесь — источник двух проверяемых технологий организации знания, а
+не runtime dependency. LLM Wiki Skill владеет semantic page graph и L2; core
+Context Layers владеет L0/L1, bottom-up generation и progressive reading. Наш
+код владеет snapshot, typed evidence, execution envelope, validators,
+resume/rebuild и receipts. Оба upstream owner-а фиксируются отдельно.
 
 ## Почему отказались от stock runtime
 
@@ -46,6 +49,13 @@ prompt владеет только смысловой схемой преобр�
 Повторные `⚡ UNEXPECTED` поэтому изменили верхнюю модель: исправлять очередной
 SDK mismatch дороже и рискованнее, чем отделить доказанно полезную часть
 OpenViking от сломанной инфраструктуры. Владелец явно утвердил это изменение.
+
+Вторая верхнеуровневая коррекция пришла в Wave 4: L0/L1/L2 не являются частью
+LLM Wiki Skill. Skill прямо запрещает генерировать `.abstract.md` и
+`.overview.md`, потому что в stock-системе ими владеет Compile/runtime. Core
+Context Layers отдельно описывает эти sidecars. В custom compiler мы заменяем
+runtime, поэтому воспроизводим оба официальных контракта, не смешивая их
+provenance.
 
 ## Единственная истина и приватность
 

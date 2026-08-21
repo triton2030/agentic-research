@@ -11,9 +11,9 @@ kind: task
 
 Превратить полный статический snapshot `_ops/chat-recall/` в удобную агентам
 библиотеку знаний: точные recurrence/chronology/provenance вычисляются
-детерминированно, а официальный prompt, information architecture и layered
-projection OpenViking используются для смысловой сборки документов. Runtime
-OpenViking в принятом маршруте не участвует.
+детерминированно; официальный LLM Wiki Skill OpenViking задаёт L2-страницы и
+`index.md`; официальный Context Layers contract и semantic prompts задают
+bottom-up L0/L1. Runtime OpenViking в принятом маршруте не участвует.
 
 Исходные holders остаются неизменяемым evidence. Библиотека — производная,
 проверяемая и полностью пересобираемая поверхность чтения в
@@ -28,12 +28,16 @@ OpenViking в принятом маршруте не участвует.
   first/latest, chronology и provenance. LLM не вычисляет и не исправляет эти
   факты.
 - Смысловой compiler использует зафиксированный snapshot официального
-  OpenViking LLM Wiki prompt и его IA. Происхождение, upstream commit и граница
-  лицензии записаны в receipt; локальные добавления отделены от upstream.
-- Результат организован как семантические директории и страницы нужных типов
-  (`entity`, `concept`, `method`, `comparison`, `analysis`) с каталогом и
-  слоями: L0 abstract, L1 overview, L2 source-backed page body. Пустые типы и
+  OpenViking LLM Wiki Skill для L2: `index.md`, `entity`, `concept` и только
+  обоснованные `method`, `comparison`, `analysis`, `summary`. Пустые типы и
   source-by-source пересказы не создаются ради симметрии.
+- Layer compiler отдельно использует зафиксированный OpenViking Context Layers
+  contract и его semantic prompt templates: для каждой semantic directory
+  bottom-up создаются L0 `.abstract.md` (~100 tokens) и L1 `.overview.md`
+  (~2k tokens), а L2 остаётся полным набором source-backed Wiki pages.
+- Происхождение, upstream commit, digest и граница лицензии фиксируются для
+  Wiki Skill и Context Layers/prompts раздельно; локальные добавления не
+  выдаются за upstream behavior.
 - Повторы сводятся в одно знание, но сохраняют exact count, первую и последнюю
   фиксацию, эволюцию позиции, противоречия и адреса исходных records.
 - Build возобновляется после сбоя, повторный запуск на том же snapshot
@@ -62,7 +66,7 @@ OpenViking в принятом маршруте не участвует.
 
 | Веха | Проверяемый результат |
 | --- | --- |
-| 1. Контракты | Frozen corpus map, compiler seam, pinned OpenViking IA/prompt, LLM route, acceptance и privacy/recovery contracts не противоречат друг другу |
+| 1. Контракты | Frozen corpus map, compiler seam, pinned Wiki Skill, pinned Context Layers/prompts, generation route, acceptance и privacy/recovery contracts не противоречат друг другу |
 | 2. Compiler | Детерминированный pipeline, semantic generation, validators, resume state и receipts проходят узкие tests на representative sample |
 | 3. Full build | Весь frozen snapshot обработан; coverage manifest не содержит молчаливых пропусков |
 | 4. Normalize | Layered Wiki, каталог, cross-links и recurrence/chronology прошли механические инварианты и выборочную ручную сверку |
@@ -101,8 +105,9 @@ OpenViking в принятом маршруте не участвует.
 - Там же владелец потребовал сохранять самые важные наблюдения отдельно как
   сырьё для будущего инструмента конвертации цитат во всех проектах.
 - Неизменяемость holders и source-bound evidence: `_ops/AGENTS.md`.
-- Upstream prompt и IA: официальный OpenViking
-  `examples/compile/ov-compile-skills/llm-wiki/SKILL.md`; точную версию обязана
-  зафиксировать веха 1.
+- L2 prompt/IA: официальный OpenViking
+  `examples/compile/ov-compile-skills/llm-wiki/SKILL.md`. L0/L1 contract и
+  prompts: `docs/en/concepts/03-context-layers.md` и semantic prompt templates;
+  точные версии и digests обязана зафиксировать веха 1.
 - Отрицательный stock-runtime evidence и положительный typed-evidence probe:
   прежние returns этой папки и `experiments/openviking-chat-recall/artifacts/`.
