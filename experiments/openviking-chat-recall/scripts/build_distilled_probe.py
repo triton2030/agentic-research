@@ -507,6 +507,24 @@ def _read_owned_paths(root: Path) -> list[str]:
     return paths
 
 
+def _contained_destination(root: Path, relative_path: str, label: str) -> Path:
+    destination = root / _safe_relative_path(relative_path, label)
+    try:
+        resolved_root = root.resolve()
+        resolved_destination = destination.resolve(strict=False)
+    except (OSError, RuntimeError) as exc:
+        raise ProbeError(
+            f"cannot resolve {label} {relative_path!r} under generated root"
+        ) from exc
+    try:
+        resolved_destination.relative_to(resolved_root)
+    except ValueError as exc:
+        raise ProbeError(
+            f"{label} escapes generated root through a symlink: {relative_path!r}"
+        ) from exc
+    return destination
+
+
 def add_generated_root_marker(files: dict[str, str]) -> dict[str, str]:
     for relative_path in files:
         _safe_relative_path(relative_path, "generated file")
@@ -526,13 +544,19 @@ def add_generated_root_marker(files: dict[str, str]) -> dict[str, str]:
 def write_files(root: Path, files: dict[str, str]) -> None:
     root.mkdir(parents=True, exist_ok=True)
     previous_paths = _read_owned_paths(root)
-    for relative_path in previous_paths:
-        destination = root / relative_path
+    previous_destinations = [
+        _contained_destination(root, relative_path, "owned destination")
+        for relative_path in previous_paths
+    ]
+    current_destinations = {
+        relative_path: _contained_destination(root, relative_path, "generated destination")
+        for relative_path in files
+    }
+    for destination in previous_destinations:
         if destination.is_file() or destination.is_symlink():
             destination.unlink()
     for relative_path, content in files.items():
-        _safe_relative_path(relative_path, "generated file")
-        destination = root / relative_path
+        destination = current_destinations[relative_path]
         destination.parent.mkdir(parents=True, exist_ok=True)
         destination.write_text(content, encoding="utf-8")
 

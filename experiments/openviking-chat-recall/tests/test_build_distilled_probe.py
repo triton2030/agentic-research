@@ -228,6 +228,47 @@ class DistilledProbeTests(unittest.TestCase):
             self.assertEqual(unrelated_page.read_text(encoding="utf-8"), "unrelated\n")
             self.assertTrue((root / "wiki/concept/wiki-language-route.md").exists())
 
+    def test_generated_root_symlink_escape_fails_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            wiki_dir = root / "wiki"
+            wiki_dir.mkdir(parents=True)
+            outside_dir = root / "outside"
+            outside_dir.mkdir()
+            sentinel = outside_dir / "sentinel.txt"
+            sentinel.write_text("must survive\n", encoding="utf-8")
+            (wiki_dir / "link").symlink_to(outside_dir, target_is_directory=True)
+            (wiki_dir / "keep-unrelated.md").write_text(
+                "unrelated\n", encoding="utf-8"
+            )
+            (wiki_dir / build_distilled_probe.GENERATED_ROOT_MARKER).write_text(
+                json.dumps(
+                    {
+                        "schema": build_distilled_probe.GENERATED_ROOT_SCHEMA,
+                        "files": ["link/sentinel.txt"],
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(
+                build_distilled_probe.ProbeError,
+                "owned destination escapes generated root through a symlink",
+            ):
+                build_distilled_probe.build(
+                    MANIFEST_PATH,
+                    root / "input",
+                    wiki_dir,
+                    EXPERIMENT.parents[1],
+                )
+
+            self.assertEqual(sentinel.read_text(encoding="utf-8"), "must survive\n")
+            self.assertEqual(
+                (wiki_dir / "keep-unrelated.md").read_text(encoding="utf-8"),
+                "unrelated\n",
+            )
+
     def test_projection_includes_supported_contested_and_suppresses_non_current(self) -> None:
         manifest = build_distilled_probe.load_manifest(MANIFEST_PATH)
         claims = {claim["id"]: claim for claim in manifest["claims"]}
