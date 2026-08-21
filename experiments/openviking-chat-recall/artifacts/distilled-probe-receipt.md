@@ -5,7 +5,7 @@ Status: `candidate` — deterministic evidence passed; semantic acceptance is ex
 ## Frozen provenance
 
 - Commit: `09d2a48b2a82ff4b35ffb739a11b5721351d7dd6`
-- Manifest: `artifacts/distilled-gold-manifest.json`
+- Manifest: `experiments/openviking-chat-recall/artifacts/distilled-gold-manifest.json`
 - Sources: `2`; records: `7`; claims: `6`.
 
 ## Design trace
@@ -20,12 +20,13 @@ Status: `candidate` — deterministic evidence passed; semantic acceptance is ex
 - `history-fields-absent`: `pass`
 - `lifecycle-filter-is-explicit`: `pass`
 - `no-gold-boundary`: `pass`
-- Rebuild check: the test suite compares every generated input/Wiki file byte-for-byte across two temporary output roots.
+- Rebuild check: the test suite compares every generated input/Wiki file byte-for-byte across two temporary output roots and verifies receipt regeneration.
 
 ## Semantic boundary
 
 - Status: `candidate`.
 - The builder accepts `current`/`contested` as explicit candidate input and suppresses `non-current`/`uncertain`; it never derives currentness from `latest`.
+- No-gold controls remain explicit `abstain`/`unknown` gaps with checked source addresses; they are not projected as claims.
 - Not proven here: semantic grouping quality, currentness beyond the manifest status, and blind retrieval usefulness.
 
 ## Falsifying checks
@@ -40,11 +41,3 @@ Status: `candidate` — deterministic evidence passed; semantic acceptance is ex
 ## Test command
 
 `python3 -m unittest discover -s tests -p 'test_*.py' -v` (run from a clean checkout of the writer commit).
-
-## Nested-agent receipts
-
-The three requested internal read-only scout packets are explicit UNKNOWN after bounded runtime recovery; they are not promoted to evidence.
-
-- `01a024c8-af7f-71d3-b7aa-05f6aa55f7d0`: `UNKNOWN`; shutdown after bounded waits.
-- `01a024c8-aef5-72c0-a4a3-2f2eacd2763f`: `UNKNOWN`; shutdown after bounded waits.
-- `01a024c8-affa-7901-8df5-fd21b10a0535`: `UNKNOWN`; shutdown after bounded waits.

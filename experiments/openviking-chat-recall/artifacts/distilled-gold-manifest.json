@@ -120,6 +120,17 @@
       ]
     },
     {
+      "id": "wiki-language-route",
+      "slug": "wiki-language-route",
+      "title": "The pilot may keep the Wiki in English",
+      "statement": "The pilot may keep the generated Wiki in English while agents answer in Russian, pending evidence of search degradation.",
+      "applicability": "Pilot language route only; this remains unresolved until the planned search-quality comparison supplies behavioral evidence.",
+      "lifecycle_status": "contested",
+      "source_record_ids": [
+        "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:25"
+      ]
+    },
+    {
       "id": "historical-wiki-evolution",
       "slug": "historical-wiki-evolution",
       "title": "The Wiki should narrate the full history by default",
@@ -142,23 +153,19 @@
       "source_record_ids": [
         "_ops/chat-recall/2026-08-20-181330-claude-a7539038.md:21"
       ]
-    },
-    {
-      "id": "wiki-replaces-holders-everywhere",
-      "slug": "wiki-replaces-holders-everywhere",
-      "title": "The Wiki can replace holders for every question",
-      "statement": "The distilled Wiki can replace source-holder reads for every question, including exact wording, chronology and provenance.",
-      "applicability": "Unresolved scope candidate spanning knowledge, exact wording, history and provenance questions.",
-      "lifecycle_status": "uncertain",
-      "source_record_ids": [
-        "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:25"
-      ]
     }
   ],
   "no_gold_controls": [
     {
-      "id": "unsupported-deletion",
-      "statement": "The owner approved deleting the original chat-recall holders after Wiki compilation."
+      "id": "wiki-replaces-holders-everywhere",
+      "status": "abstain",
+      "resolution": "unknown",
+      "statement": "The distilled Wiki can replace source-holder reads for every question, including exact wording, chronology and provenance.",
+      "coverage_gap": "No source-backed gold supports this universal replacement claim; the checked owner records keep source holders as immutable evidence and route chronology and provenance back to them.",
+      "checked_addresses": [
+        "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:25",
+        "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:33"
+      ]
     }
   ]
 }

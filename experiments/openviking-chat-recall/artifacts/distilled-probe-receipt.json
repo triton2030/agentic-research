@@ -22,33 +22,49 @@
   },
   "evidence": {
     "claim_count": 6,
+    "no_gold_controls": [
+      {
+        "checked_addresses": [
+          "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:25",
+          "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:33"
+        ],
+        "coverage_gap": "No source-backed gold supports this universal replacement claim; the checked owner records keep source holders as immutable evidence and route chronology and provenance back to them.",
+        "id": "wiki-replaces-holders-everywhere",
+        "resolution": "unknown",
+        "statement": "The distilled Wiki can replace source-holder reads for every question, including exact wording, chronology and provenance.",
+        "status": "abstain"
+      }
+    ],
     "record_count": 7,
     "rendered_claim_ids": [
       "static-derived-library",
       "distilled-facts-not-history",
-      "retrieval-scout-boundary"
+      "retrieval-scout-boundary",
+      "wiki-language-route"
     ],
     "source_count": 2,
     "suppressed_claim_ids": [
       "historical-wiki-evolution",
-      "subagents-read-and-summarize",
-      "wiki-replaces-holders-everywhere"
+      "subagents-read-and-summarize"
     ]
   },
   "generated": {
     "input_files": [
+      ".distilled-probe-owned.json",
       "index.md",
       "source-01.md",
       "source-02.md"
     ],
     "wiki_files": [
+      ".distilled-probe-owned.json",
       "concept/distilled-facts-not-history.md",
       "concept/retrieval-scout-boundary.md",
       "concept/static-derived-library.md",
+      "concept/wiki-language-route.md",
       "index.md"
     ]
   },
-  "manifest": "artifacts/distilled-gold-manifest.json",
+  "manifest": "experiments/openviking-chat-recall/artifacts/distilled-gold-manifest.json",
   "provenance_commit": "09d2a48b2a82ff4b35ffb739a11b5721351d7dd6",
   "schema": "openviking-chat-recall/distilled-probe-receipt.v1",
   "semantic_boundary": {
@@ -60,23 +76,6 @@
     ],
     "status": "candidate"
   },
-  "nested_agent_receipts": [
-    {
-      "handle": "01a024c8-af7f-71d3-b7aa-05f6aa55f7d0",
-      "status": "UNKNOWN",
-      "runtime_state": "shutdown_after_bounded_waits"
-    },
-    {
-      "handle": "01a024c8-aef5-72c0-a4a3-2f2eacd2763f",
-      "status": "UNKNOWN",
-      "runtime_state": "shutdown_after_bounded_waits"
-    },
-    {
-      "handle": "01a024c8-affa-7901-8df5-fd21b10a0535",
-      "status": "UNKNOWN",
-      "runtime_state": "shutdown_after_bounded_waits"
-    }
-  ],
   "status": "candidate",
   "test_command": "python3 -m unittest discover -s tests -p 'test_*.py' -v"
 }

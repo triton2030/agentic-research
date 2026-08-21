@@ -24,11 +24,14 @@ class ProbeError(ValueError):
 
 SCHEMA = "openviking-chat-recall/distilled-gold.v1"
 RECEIPT_SCHEMA = "openviking-chat-recall/distilled-probe-receipt.v1"
+GENERATED_ROOT_SCHEMA = "openviking-chat-recall/generated-root.v1"
+GENERATED_ROOT_MARKER = ".distilled-probe-owned.json"
 FROZEN_COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 SLUG_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 RECORD_PREFIX = "* "
 LIFECYCLE_STATUSES = frozenset({"current", "contested", "non-current", "uncertain"})
 DEFAULT_WIKI_STATUSES = frozenset({"current", "contested"})
+NO_GOLD_STATUSES = frozenset({"abstain", "unknown"})
 FORBIDDEN_DEFAULT_MARKERS = (
     "Exact count:",
     "First recorded occurrence:",
@@ -272,7 +275,7 @@ def validate_manifest(manifest: dict[str, Any], repo_root: Path) -> dict[str, An
     no_gold_controls = manifest.get("no_gold_controls", [])
     if not isinstance(no_gold_controls, list):
         raise ProbeError("no_gold_controls must be a list")
-    validated_controls: list[dict[str, str]] = []
+    validated_controls: list[dict[str, Any]] = []
     control_ids: set[str] = set()
     for control in no_gold_controls:
         if not isinstance(control, dict):
@@ -281,12 +284,34 @@ def validate_manifest(manifest: dict[str, Any], repo_root: Path) -> dict[str, An
         if control_id in control_ids:
             raise ProbeError(f"duplicate no-gold control id: {control_id}")
         control_ids.add(control_id)
+        status = _require_string(control.get("status"), f"{control_id}.status")
+        if status not in NO_GOLD_STATUSES:
+            raise ProbeError(f"{control_id}: unknown no-gold status {status!r}")
+        resolution = _require_string(
+            control.get("resolution"), f"{control_id}.resolution"
+        )
+        if resolution != "unknown":
+            raise ProbeError(f"{control_id}: no-gold resolution must be 'unknown'")
+        checked_addresses = control.get("checked_addresses")
+        if not isinstance(checked_addresses, list) or not checked_addresses:
+            raise ProbeError(f"{control_id}: checked_addresses must be non-empty")
+        if len(set(checked_addresses)) != len(checked_addresses):
+            raise ProbeError(f"{control_id}: duplicate checked address")
+        for address in checked_addresses:
+            if not isinstance(address, str) or address not in record_map:
+                raise ProbeError(f"{control_id}: unknown checked address {address!r}")
         validated_controls.append(
             {
                 "id": control_id,
+                "status": status,
+                "resolution": resolution,
                 "statement": _require_string(
                     control.get("statement"), f"{control_id}.statement"
                 ),
+                "coverage_gap": _require_string(
+                    control.get("coverage_gap"), f"{control_id}.coverage_gap"
+                ),
+                "checked_addresses": checked_addresses,
             }
         )
 
@@ -424,7 +449,11 @@ def render_wiki(bundle: dict[str, Any]) -> dict[str, str]:
 def validate_default_wiki(
     wiki_files: dict[str, str], bundle: dict[str, Any]
 ) -> list[dict[str, str]]:
-    body = "\n".join(wiki_files.values())
+    body = "\n".join(
+        content
+        for relative_path, content in wiki_files.items()
+        if Path(relative_path).suffix == ".md"
+    )
     checks: list[dict[str, str]] = []
     for record in bundle["records"].values():
         quote = record["quote"] or ""
@@ -451,12 +480,70 @@ def validate_default_wiki(
     return checks
 
 
+def _safe_relative_path(relative_path: str, label: str) -> Path:
+    path = Path(relative_path)
+    if path.is_absolute() or ".." in path.parts:
+        raise ProbeError(f"{label} escapes generated root: {relative_path!r}")
+    return path
+
+
+def _read_owned_paths(root: Path) -> list[str]:
+    marker_path = root / GENERATED_ROOT_MARKER
+    if not marker_path.exists():
+        return []
+    try:
+        marker = json.loads(marker_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ProbeError(f"cannot read generated-root marker {marker_path}: {exc}") from exc
+    if not isinstance(marker, dict) or marker.get("schema") != GENERATED_ROOT_SCHEMA:
+        raise ProbeError(f"unsupported generated-root marker in {marker_path}")
+    paths = marker.get("files")
+    if not isinstance(paths, list):
+        raise ProbeError(f"generated-root marker files must be a list in {marker_path}")
+    for relative_path in paths:
+        if not isinstance(relative_path, str):
+            raise ProbeError(f"generated-root marker has a non-string path in {marker_path}")
+        _safe_relative_path(relative_path, "generated-root marker")
+    return paths
+
+
+def add_generated_root_marker(files: dict[str, str]) -> dict[str, str]:
+    for relative_path in files:
+        _safe_relative_path(relative_path, "generated file")
+    marker = {
+        "schema": GENERATED_ROOT_SCHEMA,
+        "files": sorted(files),
+    }
+    return {
+        **files,
+        GENERATED_ROOT_MARKER: json.dumps(
+            marker, ensure_ascii=False, indent=2, sort_keys=True
+        )
+        + "\n",
+    }
+
+
 def write_files(root: Path, files: dict[str, str]) -> None:
     root.mkdir(parents=True, exist_ok=True)
+    previous_paths = _read_owned_paths(root)
+    for relative_path in previous_paths:
+        destination = root / relative_path
+        if destination.is_file() or destination.is_symlink():
+            destination.unlink()
     for relative_path, content in files.items():
+        _safe_relative_path(relative_path, "generated file")
         destination = root / relative_path
         destination.parent.mkdir(parents=True, exist_ok=True)
         destination.write_text(content, encoding="utf-8")
+
+
+def receipt_manifest_path(manifest_path: Path, repo_root: Path) -> str:
+    resolved_manifest = manifest_path.resolve()
+    resolved_repo = repo_root.resolve()
+    try:
+        return resolved_manifest.relative_to(resolved_repo).as_posix()
+    except ValueError:
+        return str(manifest_path)
 
 
 def receipt_payload(
@@ -465,6 +552,7 @@ def receipt_payload(
     input_files: dict[str, str],
     wiki_files: dict[str, str],
     deterministic_checks: list[dict[str, str]],
+    repo_root: Path,
 ) -> dict[str, Any]:
     rendered = [
         claim["id"]
@@ -479,7 +567,7 @@ def receipt_payload(
     return {
         "schema": RECEIPT_SCHEMA,
         "status": "candidate",
-        "manifest": str(manifest_path),
+        "manifest": receipt_manifest_path(manifest_path, repo_root),
         "provenance_commit": bundle["frozen_provenance_commit"],
         "generated": {
             "input_files": sorted(input_files),
@@ -491,6 +579,7 @@ def receipt_payload(
             "claim_count": len(bundle["claims"]),
             "rendered_claim_ids": rendered,
             "suppressed_claim_ids": suppressed,
+            "no_gold_controls": bundle["no_gold_controls"],
         },
         "deterministic_validation": {
             "status": "pass",
@@ -536,12 +625,13 @@ def render_receipt_markdown(payload: dict[str, Any]) -> str:
     lines.extend(f"- `{check['id']}`: `{check['status']}`" for check in checks)
     lines.extend(
         [
-            "- Rebuild check: the test suite compares every generated input/Wiki file byte-for-byte across two temporary output roots.",
+            "- Rebuild check: the test suite compares every generated input/Wiki file byte-for-byte across two temporary output roots and verifies receipt regeneration.",
             "",
             "## Semantic boundary",
             "",
             f"- Status: `{semantic['status']}`.",
             "- The builder accepts `current`/`contested` as explicit candidate input and suppresses `non-current`/`uncertain`; it never derives currentness from `latest`.",
+            "- No-gold controls remain explicit `abstain`/`unknown` gaps with checked source addresses; they are not projected as claims.",
             "- Not proven here: semantic grouping quality, currentness beyond the manifest status, and blind retrieval usefulness.",
             "",
             "## Falsifying checks",
@@ -556,10 +646,6 @@ def render_receipt_markdown(payload: dict[str, Any]) -> str:
             "## Test command",
             "",
             f"`{payload['test_command']}` (run from a clean checkout of the writer commit).",
-            "",
-            "## Nested-agent receipts",
-            "",
-            "The three requested internal read-only scout packets are explicit UNKNOWN after bounded runtime recovery; their handles and shutdown state are recorded in the terminal return, not promoted to evidence.",
             "",
         ]
     )
@@ -576,8 +662,8 @@ def build(
 ) -> dict[str, Any]:
     manifest = load_manifest(manifest_path)
     bundle = validate_manifest(manifest, repo_root.resolve())
-    input_files = render_input(bundle)
-    wiki_files = render_wiki(bundle)
+    input_files = add_generated_root_marker(render_input(bundle))
+    wiki_files = add_generated_root_marker(render_wiki(bundle))
     deterministic_checks = validate_default_wiki(wiki_files, bundle)
     write_files(input_dir, input_files)
     write_files(wiki_dir, wiki_files)
@@ -587,6 +673,7 @@ def build(
         input_files,
         wiki_files,
         deterministic_checks,
+        repo_root,
     )
     if receipt_json is not None:
         receipt_json.parent.mkdir(parents=True, exist_ok=True)

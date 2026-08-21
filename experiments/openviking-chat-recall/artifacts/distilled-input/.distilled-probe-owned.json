@@ -1,0 +1,8 @@
+{
+  "files": [
+    "index.md",
+    "source-01.md",
+    "source-02.md"
+  ],
+  "schema": "openviking-chat-recall/generated-root.v1"
+}
