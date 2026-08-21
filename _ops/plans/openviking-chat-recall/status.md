@@ -62,8 +62,14 @@ upstream owners. Веха ещё не закрыта из-за трёх Wave 4b 
 
 ## Wave 4b registry
 
-Карточки записаны; треды ещё не запущены. Root заполняет registry после
-фактического worktree provisioning.
+| Task | Title | Card | Worktree | State |
+| --- | --- | --- | --- | --- |
+| `01a024a2-245a-7a91-95c2-d5cacb530c76` | OpenViking: L0 L1 prompts | `wave-4b-context-layer-prompts.md` | `a5dc` | active |
+| `01a024a2-245a-7a91-95c2-d58e0db293a2` | OpenViking: layered seam | `wave-4b-layered-seam.md` | `aa2d` | active |
+| `01a024a2-245a-7a91-95c2-d5aeba7a18cc` | OpenViking: generation execution | `wave-4b-generation-execution.md` | `57af` | active |
+
+Все три — `gpt-5.6-luna/max`, read-only, с обязательным nested
+`$1orchestration`. Root принимает returns и единолично пишет plan/observations.
 
 ## Блокеры
 
