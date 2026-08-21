@@ -3,7 +3,6 @@
     "concept/distilled-facts-not-history.md",
     "concept/retrieval-scout-boundary.md",
     "concept/static-derived-library.md",
-    "concept/wiki-language-route.md",
     "index.md"
   ],
   "schema": "openviking-chat-recall/generated-root.v1"

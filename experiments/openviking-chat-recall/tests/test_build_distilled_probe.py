@@ -44,12 +44,16 @@ class DistilledProbeTests(unittest.TestCase):
         self.assertEqual(len(bundle["records"]), 7)
         self.assertEqual(
             {claim["lifecycle_status"] for claim in bundle["claims"]},
-            {"current", "contested", "non-current"},
+            {"current", "non-current", "uncertain"},
         )
         self.assertEqual(len(bundle["claims"]), 6)
         self.assertEqual(bundle["no_gold_controls"][0]["status"], "abstain")
         self.assertEqual(bundle["no_gold_controls"][0]["resolution"], "unknown")
         self.assertTrue(bundle["no_gold_controls"][0]["coverage_gap"])
+        self.assertEqual(
+            bundle["no_gold_controls"][0]["coverage_gap"],
+            "No supporting record for this universal replacement claim was found at the checked frozen addresses; this route does not establish that no such claim exists elsewhere in _ops/chat-recall/**.",
+        )
         self.assertEqual(
             bundle["no_gold_controls"][0]["checked_addresses"],
             [
@@ -77,17 +81,21 @@ class DistilledProbeTests(unittest.TestCase):
         self.assertIn("static-derived-library", body)
         self.assertIn("retrieval-scout-boundary", body)
         self.assertIn("distilled-facts-not-history", body)
-        self.assertIn(claims["wiki-language-route"]["statement"], body)
+        self.assertNotIn(claims["wiki-language-route"]["statement"], body)
         self.assertNotIn(claims["historical-wiki-evolution"]["statement"], body)
         self.assertNotIn(claims["subagents-read-and-summarize"]["statement"], body)
         self.assertNotIn(
             "The distilled Wiki can replace source-holder reads for every question",
             body,
         )
-        self.assertIn("wiki-language-route", payload["evidence"]["rendered_claim_ids"])
+        self.assertNotIn("wiki-language-route", payload["evidence"]["rendered_claim_ids"])
         self.assertEqual(
             payload["evidence"]["suppressed_claim_ids"],
-            ["historical-wiki-evolution", "subagents-read-and-summarize"],
+            [
+                "wiki-language-route",
+                "historical-wiki-evolution",
+                "subagents-read-and-summarize",
+            ],
         )
 
     def test_drift_and_unknown_contracts_fail_closed(self) -> None:
@@ -226,7 +234,7 @@ class DistilledProbeTests(unittest.TestCase):
 
             self.assertFalse(stale_page.exists())
             self.assertEqual(unrelated_page.read_text(encoding="utf-8"), "unrelated\n")
-            self.assertTrue((root / "wiki/concept/wiki-language-route.md").exists())
+            self.assertTrue((root / "wiki/concept/retrieval-scout-boundary.md").exists())
 
     def test_generated_root_symlink_escape_fails_closed(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -269,7 +277,7 @@ class DistilledProbeTests(unittest.TestCase):
                 "unrelated\n",
             )
 
-    def test_projection_includes_supported_contested_and_suppresses_non_current(self) -> None:
+    def test_projection_includes_current_and_suppresses_uncertain_or_non_current(self) -> None:
         manifest = build_distilled_probe.load_manifest(MANIFEST_PATH)
         claims = {claim["id"]: claim for claim in manifest["claims"]}
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -284,11 +292,12 @@ class DistilledProbeTests(unittest.TestCase):
                 path.read_text(encoding="utf-8")
                 for path in (root / "wiki").rglob("*.md")
             )
-        self.assertIn(claims["wiki-language-route"]["statement"], body)
-        self.assertIn(
-            "wiki-language-route", payload["evidence"]["rendered_claim_ids"]
-        )
-        for claim_id in ("historical-wiki-evolution", "subagents-read-and-summarize"):
+        self.assertIn(claims["static-derived-library"]["statement"], body)
+        for claim_id in (
+            "wiki-language-route",
+            "historical-wiki-evolution",
+            "subagents-read-and-summarize",
+        ):
             self.assertNotIn(claims[claim_id]["statement"], body)
             self.assertIn(claim_id, payload["evidence"]["suppressed_claim_ids"])
 

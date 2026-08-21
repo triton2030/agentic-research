@@ -28,7 +28,7 @@
           "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:25",
           "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:33"
         ],
-        "coverage_gap": "No source-backed gold supports this universal replacement claim; the checked owner records keep source holders as immutable evidence and route chronology and provenance back to them.",
+        "coverage_gap": "No supporting record for this universal replacement claim was found at the checked frozen addresses; this route does not establish that no such claim exists elsewhere in _ops/chat-recall/**.",
         "id": "wiki-replaces-holders-everywhere",
         "resolution": "unknown",
         "statement": "The distilled Wiki can replace source-holder reads for every question, including exact wording, chronology and provenance.",
@@ -39,11 +39,11 @@
     "rendered_claim_ids": [
       "static-derived-library",
       "distilled-facts-not-history",
-      "retrieval-scout-boundary",
-      "wiki-language-route"
+      "retrieval-scout-boundary"
     ],
     "source_count": 2,
     "suppressed_claim_ids": [
+      "wiki-language-route",
       "historical-wiki-evolution",
       "subagents-read-and-summarize"
     ]
@@ -60,7 +60,6 @@
       "concept/distilled-facts-not-history.md",
       "concept/retrieval-scout-boundary.md",
       "concept/static-derived-library.md",
-      "concept/wiki-language-route.md",
       "index.md"
     ]
   },
