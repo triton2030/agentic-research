@@ -10,10 +10,10 @@ kind: status
 
 ## Next
 
-Writer повторяет diagnostic Compile на том же six-holder corpus в новый v2
-target с exact approved reason: canonical merge, count distinct records,
-earliest/latest/current/contradiction и отдельная OpenViking outcome page. Затем
-те же blind вопросы 9 и 11 повторяются на v2. Полный corpus пока не запускать.
+Blind v2 Wiki arm повторяет locked вопросы 9 и 11; отдельный semantic auditor
+пересчитывает шесть recurrence sections по selected holders и сверяет outcome
+page со всеми записями current OpenViking holder. Полный corpus пока не
+запускать.
 
 ## Текущее состояние
 
@@ -35,6 +35,9 @@ earliest/latest/current/contradiction и отдельная OpenViking outcome p
 - Blind v1 diagnostic failed: source arm нашёл current OpenViking outcome, Wiki
   arm подменил его historical retrieval-script задачей; обе руки abstained на
   no-gold control. Return: `modules/return-wave-2-v1-diagnostic.md`.
+- V2 diagnostic integrated commit `4faf469`: exact approved reason создал три
+  pages, включая шесть counted recurrence sections и отдельный outcome page;
+  semantic correctness ещё не принята.
 
 ## Вехи
 
@@ -58,6 +61,8 @@ earliest/latest/current/contradiction и отдельная OpenViking outcome p
   `01a023e9-f36e-7471-86f5-d9ae99828de2`, «OpenViking: blind Wiki arm»;
   blind source arm, pinned task `01a023e9-f36c-71c1-b216-f5fb84e1310e`,
   «OpenViking: blind source arm»; ✅ v1 return записан, diagnostic failed.
+- `wave-2-v2-audit.md` — blind v2 reader + read-only semantic auditor; registry
+  добавляется после запуска.
 
 ## Открытые вопросы владельцу
 
