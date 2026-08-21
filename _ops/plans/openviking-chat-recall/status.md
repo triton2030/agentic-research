@@ -1,6 +1,6 @@
 ---
 эпик: "самостоятельный experiment: openviking-chat-recall"
-состояние: в работе
+состояние: ждёт решения владельца
 режим: Wayfinding
 обновлено: 2026-08-21
 kind: status
@@ -10,10 +10,13 @@ kind: status
 
 ## Next
 
-Провести blind semantic read offline Wiki по
-`modules/wave-3-blind-reader.md`, затем вынести раздельный verdict по
-deterministic seam, official prompt/IA и stock runtime. Full corpus и полный
-wrapper остаются заблокированными.
+Владелец выбирает между двумя разными продуктами:
+
+1. рекомендовано — свой batch compiler на deterministic evidence и official
+   OpenViking prompt/IA, без их несвязного runtime;
+2. ждать совместимого stock SDK/server/Compile и не продолжать рефактор.
+
+Full corpus до этого выбора заблокирован.
 
 ## Текущее состояние
 
@@ -49,6 +52,10 @@ wrapper остаются заблокированными.
 - Серия mismatch опровергла верхнюю модель о единой stock surface:
   health/resource import работают, но SDK skill upload и Compile несовместимы;
   receipt: `artifacts/wave-3-receipt.md`.
+- Blind projectless Luna Max task `01a0247f-3ee8-7480-87a2-4c0f963c9fae`
+  видел только три Wiki-файла: exact recurrence, все пять obligations и
+  stock abstention восстановлены с confidence 100%; semantic `PASS`.
+  Return: `modules/return-wave-3-typed-evidence-probe.md`.
 
 ## Вехи
 
@@ -56,7 +63,7 @@ wrapper остаются заблокированными.
 | --- | --- | --- |
 | 1. Pilot runtime | ⚠️ blocked | Stock receipt + diagnostic Wiki: `d57a49d` |
 | 2. Pilot audit | ❌ | V1/V2 blind + semantic returns: current Wiki rejected |
-| 3. Typed-evidence probe | 🔄 | Deterministic pass; offline Wiki ждёт blind read; stock blocked |
+| 3. Typed-evidence probe | ✅/⚠️ | Evidence + prompt/IA pass; stock runtime blocked |
 | 4. Full backfill | заблокировано | Только после положительного pilot-verdict |
 | 5. Handoff | заблокировано | Только после принятого full audit |
 
@@ -80,9 +87,11 @@ wrapper остаются заблокированными.
   pinned task `01a02465-8638-7d41-b1a5-8c91a9becd72`,
   «OpenViking: typed-evidence probe»; ✅ candidate интегрирован.
 - `wave-3-blind-reader.md` — read-only Luna Max; task ID записывается
-  после создания.
+  `01a0247f-3ee8-7480-87a2-4c0f963c9fae`, «OpenViking: blind typed Wiki
+  reader»; ✅ semantic `PASS`.
 
 ## Открытые вопросы владельцу
 
-Нет. Следующее решение появится только после измеренного verdict
-typed-evidence probe.
+Принять ли рекомендованный route «свой batch compiler по official
+prompt/IA OpenViking»? Это откажется от их runtime как готовой библиотеки,
+но сохранит доказанно полезные prompts, IA и layered projection.
