@@ -2,7 +2,7 @@
 kind: module-card
 wave: 6
 stage: F4
-state: planned
+state: terminal-unknown
 role: synthetic-provider-canary
 model: gpt-5.6-luna
 thinking: max
@@ -75,3 +75,17 @@ PASS возможен только если одновременно:
 Full commit SHA, exact paths, selected envelope, synthetic task/run address,
 auth/egress/retry/timeout/redaction/usage matrix, tests, public receipt digest,
 nested receipt и terminal `PASS | FAIL | UNKNOWN`. Только PASS открывает 6b.
+
+## Execution result
+
+Первая и единственная real synthetic попытка завершилась недолговечным
+результатом: post-provider artifact writer упал на relative-path containment.
+Повтор в рамках F4 не выполнялся. Принятый terminal verdict — `UNKNOWN`, exact
+return — [_returns/wave-6-f4-provider-canary](./_returns/wave-6-f4-provider-canary.md).
+
+Repair не переписывает этот verdict или artifact root. Отдельный F4-R1 route —
+[wave-6-provider-canary-repair](./wave-6-provider-canary-repair.md).
+Independent runtime audit принял UNKNOWN receipt, но нашёл три pre-retry
+blocker-а: model-event drift может скрыться последним ожидаемым event,
+`run_address=null` допускает PASS, а receipt schema не адресует provider и
+retry policy. До их code repair новый real call запрещён.

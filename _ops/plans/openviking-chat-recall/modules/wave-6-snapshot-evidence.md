@@ -70,7 +70,10 @@ Shared manifests интегрирует только root после незав�
   [_returns/wave-6-f2-evidence-layer](./_returns/wave-6-f2-evidence-layer.md).
 - F3 accepted на `main` commit `c5bbe41`; exact return —
   [_returns/wave-6-f3-stable-partitions](./_returns/wave-6-f3-stable-partitions.md).
-- F4 next: synthetic provider canary; реальные holders запрещены.
+- F4 terminal `UNKNOWN` на `main` commit `c7ceed0`; exact return —
+  [_returns/wave-6-f4-provider-canary](./_returns/wave-6-f4-provider-canary.md).
+- F4-R1 next: false-PASS code repair, отдельный persistence-preflight и не
+  более одного нового synthetic call; реальные holders всё ещё запрещены.
 
 ## Contract
 

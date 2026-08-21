@@ -13,18 +13,20 @@ kind: status
 
 ## Next
 
-Запустить F4 synthetic provider canary без реальных holders. F4 выбирает один
-Luna Max execution envelope и обязан доказать completed auth round-trip,
-synthetic-only egress, retry/timeout, log redaction и usage/cost accounting.
-Без terminal PASS Wave 6b не стартует. Frozen semantic gold остаётся
-неизменным.
+Запустить отдельный F4-R1 после принятого F4 `UNKNOWN`. Сначала устранить три
+false-PASS seam: contradictory model events, missing run address и
+неадресуемые provider/retry policy. Затем полный non-billable persistence
+preflight через fake Codex; только после его PASS — один новый Luna Max
+synthetic call в отдельный artifact root. Реальные holders по-прежнему
+запрещены. Без terminal PASS Wave 6b не стартует; frozen semantic gold и
+исходный F4 receipt неизменны.
 
 ## Вехи
 
 | Веха | Статус | Evidence |
 | --- | --- | --- |
 | 1. Контракты | в работе | Wave 4/4b accepted contracts; Wave 5 semantic contract принят, utility topology переносится после ingestion |
-| 2. Compiler | в работе | F1–F3 deterministic foundation принята; F4 provider canary следующий |
+| 2. Compiler | в работе | F1–F3 приняты; F4 честно UNKNOWN; F4-R1 следующий |
 | 3. Full build | ожидает | После sample gates и explicit frozen snapshot |
 | 4. Normalize | ожидает | После coverage-complete full build |
 | 5. Acceptance | ожидает | После frozen candidate Wiki |
@@ -136,6 +138,7 @@ evidence.
 | 01a025ca-3714-7082-be9f-27ece6673e54 | F1 frozen source lock | freeze script/test + frozen manifest/lock | accepted `acb3def` + `31c8a4f` |
 | 01a025ef-35d5-7791-a2c8-323259126faa | F2 deterministic evidence | evidence script/test + records/coverage | accepted `ea569e2` |
 | 01a02629-b1e2-71d2-949f-9a605f686b8b | F3 stable partitions | partition writer/test + manifest/8 parts | accepted `c5bbe41` |
+| 01a02657-d943-7013-b1a6-36be71b59b68 | F4 provider canary | writer/test + public UNKNOWN receipt | accepted `UNKNOWN` on `c7ceed0`; no retry |
 
 F1 return —
 [wave-6-f1-source-lock](modules/_returns/wave-6-f1-source-lock.md). Root
@@ -156,11 +159,23 @@ Root подтвердил два fresh public-CLI build, exact F2 equality и 43
 independent Luna Max auditor вернул PASS. Semantic utility не выводится из
 balance и остаётся отдельным Wave 6b gate.
 
+F4 return —
+[wave-6-f4-provider-canary](modules/_returns/wave-6-f4-provider-canary.md).
+Одна real synthetic попытка дошла до local artifact writer, который упал на
+absolute/relative containment до долговечной записи результата. Повтора не
+было; usage/model/nonce не восстановлены и terminal verdict остаётся UNKNOWN.
+Current fix прошёл 59/59 tests и root full-pipeline fake preflight. Отдельная
+repair card —
+[wave-6-provider-canary-repair](modules/wave-6-provider-canary-repair.md).
+Independent Luna Max runtime audit принял UNKNOWN receipt, но запретил retry
+до code repair: all-model drift, required run address и явные provider/retry
+policy поля пока не имеют fail-closed contract.
+
 ## Планируемые волны
 
 | Волна | Результат | Dependency | State |
 | --- | --- | --- | --- |
-| 6 | frozen snapshot, deterministic records, stable partitions, privacy fixture | accepted Wave 5 semantic contract + explicit corpus commit | active: F1/F2/F3 PASS, F4 next |
+| 6 | frozen snapshot, deterministic records, stable partitions, privacy fixture | accepted Wave 5 semantic contract + explicit corpus commit | active: F1/F2/F3 PASS, F4 UNKNOWN, F4-R1 next |
 | 6b | representative L2/L1/L0 ingestion + matched final-route utility | Wave 6 pass | accepted card; execution waits for Wave 6 |
 | 7 | semantic candidates и canonical current claims | Wave 6b utility PASS | planned |
 | 8 | typed L2 pages, per-part validation и root catalog | Wave 7 pass | planned |
@@ -184,4 +199,5 @@ Owner-блокера нет.
 Wave 6 source snapshot выбран: `6f98fcc`, 184 holder files и 1101 parsed
 records. Из них 34 имеют diagnostics; compiler не удаляет их молча, а обязан
 выдать явный rejected/skipped disposition. Перед передачей реальных holders
-semantic provider-у отдельно остаётся обязательным privacy/provider fixture.
+semantic provider-у обязателен terminal F4-R1 PASS. Исходный F4 UNKNOWN не
+является permission на Wave 6b.
