@@ -52,22 +52,21 @@ kind: status
 | 4. Full backfill | заблокировано | Только после положительного pilot-verdict |
 | 5. Handoff | заблокировано | Только после принятого full audit |
 
-## Активная волна
+## Thread registry
 
 - `wave-1-runtime-pilot.md` — единственный writer runtime/experiment;
-  pinned task `01a023c3-ee43-7c73-964a-08a496494398`,
-  «OpenViking: собрать stock pilot»; ✅ return принят, stock gate blocked.
+  retained pinned task `01a023c3-ee43-7c73-964a-08a496494398`,
+  «OpenViking: собрать stock pilot»; ждёт выбора нового route.
 - `wave-1-retrieval-contract.md` — независимый read-only acceptance designer;
-  pinned task `01a023c3-ee43-7c73-964a-08b22a2d1b17`,
-  «OpenViking: зафиксировать retrieval-контракт»; ✅ locked return принят.
-- `wave-2-diagnostic-retrieval.md` — blind Wiki arm, pinned task
+  task `01a023c3-ee43-7c73-964a-08b22a2d1b17`; ✅ return принят, archived.
+- `wave-2-diagnostic-retrieval.md` — blind Wiki arm task
   `01a023e9-f36e-7471-86f5-d9ae99828de2`, «OpenViking: blind Wiki arm»;
-  blind source arm, pinned task `01a023e9-f36c-71c1-b216-f5fb84e1310e`,
-  «OpenViking: blind source arm»; ✅ v1 return записан, diagnostic failed.
-- `wave-2-v2-audit.md` — blind v2 reader, pinned task
+  source arm task `01a023e9-f36c-71c1-b216-f5fb84e1310e`; ✅ return записан,
+  both archived.
+- `wave-2-v2-audit.md` — blind v2 reader task
   `01a023fa-177f-7010-8e1f-121ccd352951`, «OpenViking: blind Wiki v2 arm»;
-  semantic auditor, pinned task `01a023fa-1782-7563-979e-74a6428dde87`,
-  «OpenViking: проверить семантику Wiki v2»; ✅ return записан, V2 failed.
+  semantic auditor task `01a023fa-1782-7563-979e-74a6428dde87`; ✅ return
+  записан, both archived.
 
 ## Открытые вопросы владельцу
 
