@@ -10,9 +10,10 @@ kind: status
 
 ## Next
 
-Выполнить typed-evidence probe на двух замороженных кластерах по
-`modules/wave-3-typed-evidence-probe.md`. До его verdict не запускать full
-corpus и не строить полный wrapper.
+Провести blind semantic read offline Wiki по
+`modules/wave-3-blind-reader.md`, затем вынести раздельный verdict по
+deterministic seam, official prompt/IA и stock runtime. Full corpus и полный
+wrapper остаются заблокированными.
 
 ## Текущее состояние
 
@@ -40,6 +41,14 @@ corpus и не строить полный wrapper.
   pages, включая шесть counted recurrence sections и отдельный outcome page;
   semantic audit отклонил результат: 4 FAIL, 1 UNKNOWN, 1 PASS, outcome
   inversion. Return: `modules/return-wave-2-v2-audit.md`.
+- Typed-evidence candidate интегрирован commit `9319f71`: frozen Git blobs,
+  4/5 exact records, count/first/latest и typed Markdown воспроизводимы;
+  независимый прогон — 5/5 tests и byte-identical rebuild.
+- Official prompt/IA дал offline diagnostic candidate из трёх pages; semantic
+  acceptance ещё нет.
+- Серия mismatch опровергла верхнюю модель о единой stock surface:
+  health/resource import работают, но SDK skill upload и Compile несовместимы;
+  receipt: `artifacts/wave-3-receipt.md`.
 
 ## Вехи
 
@@ -47,7 +56,7 @@ corpus и не строить полный wrapper.
 | --- | --- | --- |
 | 1. Pilot runtime | ⚠️ blocked | Stock receipt + diagnostic Wiki: `d57a49d` |
 | 2. Pilot audit | ❌ | V1/V2 blind + semantic returns: current Wiki rejected |
-| 3. Typed-evidence probe | 🔄 | Одобрен; карточка wave 3 зафиксирована |
+| 3. Typed-evidence probe | 🔄 | Deterministic pass; offline Wiki ждёт blind read; stock blocked |
 | 4. Full backfill | заблокировано | Только после положительного pilot-verdict |
 | 5. Handoff | заблокировано | Только после принятого full audit |
 
@@ -69,8 +78,9 @@ corpus и не строить полный wrapper.
   записан, both archived.
 - `wave-3-typed-evidence-probe.md` — Luna Max writer в чистом worktree;
   pinned task `01a02465-8638-7d41-b1a5-8c91a9becd72`,
-  «OpenViking: typed-evidence probe». Blind reader запускается только после
-  интеграции writer return.
+  «OpenViking: typed-evidence probe»; ✅ candidate интегрирован.
+- `wave-3-blind-reader.md` — read-only Luna Max; task ID записывается
+  после создания.
 
 ## Открытые вопросы владельцу
 

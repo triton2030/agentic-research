@@ -78,3 +78,15 @@ V2 показала, что один prompt нельзя делать владе
 
 Это не полный wrapper: два кластера должны сначала опровергнуть или
 подтвердить seam.
+
+## Что изменили UNEXPECTED-сигналы
+
+После серии package/API mismatch владелец указал: повторный `⚡ UNEXPECTED`
+означает, что может быть неверна верхнеуровневая модель, а не только
+локальный ход. Источник:
+`_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md`.
+
+Поэтому эксперимент больше не считает PyPI SDK, bundled server, VikingBot
+и current Compile docs одной доказанно связной surface. Он проверяет три
+независимых claim: exact evidence seam, official prompt/IA usefulness и
+stock runtime availability.
