@@ -10,9 +10,10 @@ kind: status
 
 ## Next
 
-Первая волна: Luna Max writer поднимает изолированный stock runtime и получает
-representative Wiki; параллельный Luna Max reviewer фиксирует retrieval-набор и
-falsifying acceptance до просмотра результата. Полный corpus пока не запускать.
+Вторая диагностическая волна: две blind Luna Max руки отвечают на locked вопросы
+9 и 11 — одна только по diagnostic Wiki, другая только по six-holder source.
+После прямого сравнения решить, заслуживает ли package compatibility seam
+отдельной правки. Полный corpus пока не запускать.
 
 ## Текущее состояние
 
@@ -28,12 +29,15 @@ falsifying acceptance до просмотра результата. Полный
 - Retrieval denominator locked до чтения Wiki: 11 exact questions, closed gold,
   matched budget, scoring и hard failures записаны в
   `modules/return-wave-1-retrieval-contract.md`.
+- Runtime pilot интегрирован commit `d57a49d`: stock Compile blocked HTTP 400
+  из-за несовместимости VikingBot/SDK; disposable shim построил diagnostic Wiki
+  из семи страниц, но это не stock acceptance.
 
 ## Вехи
 
 | Веха | Статус | Evidence |
 | --- | --- | --- |
-| 1. Pilot runtime | ⏳ | Нужны runtime receipt, inventory и Wiki tree |
+| 1. Pilot runtime | ⚠️ blocked | Stock receipt + diagnostic Wiki: `d57a49d` |
 | 2. Pilot audit | ⏳ | Нужны locked questions, ручная сверка и matched run |
 | 3. Transition verdict | ⏳ | Нужен прямой ответ на решающий вопрос Wayfinding |
 | 4. Full backfill | заблокировано | Только после положительного pilot-verdict |
@@ -43,10 +47,12 @@ falsifying acceptance до просмотра результата. Полный
 
 - `wave-1-runtime-pilot.md` — единственный writer runtime/experiment;
   pinned task `01a023c3-ee43-7c73-964a-08a496494398`,
-  «OpenViking: собрать stock pilot».
+  «OpenViking: собрать stock pilot»; ✅ return принят, stock gate blocked.
 - `wave-1-retrieval-contract.md` — независимый read-only acceptance designer;
   pinned task `01a023c3-ee43-7c73-964a-08b22a2d1b17`,
   «OpenViking: зафиксировать retrieval-контракт»; ✅ locked return принят.
+- `wave-2-diagnostic-retrieval.md` — две blind read-only руки; thread registry
+  добавляется после запуска.
 
 ## Открытые вопросы владельцу
 
