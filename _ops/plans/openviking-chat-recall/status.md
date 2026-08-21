@@ -70,9 +70,8 @@ Full corpus до этого выбора заблокирован.
 ## Thread registry
 
 - `wave-1-runtime-pilot.md` — единственный writer runtime/experiment;
-  retained pinned task `01a023c3-ee43-7c73-964a-08a496494398`,
-  «OpenViking: собрать stock pilot»; recovery-only: worktree отстал и
-  содержит незавершённые файлы, поэтому не переиспользуется.
+  task `01a023c3-ee43-7c73-964a-08a496494398`, «OpenViking: собрать
+  stock pilot»; recovery history archived, stale worktree не переиспользуется.
 - `wave-1-retrieval-contract.md` — независимый read-only acceptance designer;
   task `01a023c3-ee43-7c73-964a-08b22a2d1b17`; ✅ return принят, archived.
 - `wave-2-diagnostic-retrieval.md` — blind Wiki arm task
@@ -84,11 +83,11 @@ Full corpus до этого выбора заблокирован.
   semantic auditor task `01a023fa-1782-7563-979e-74a6428dde87`; ✅ return
   записан, both archived.
 - `wave-3-typed-evidence-probe.md` — Luna Max writer в чистом worktree;
-  pinned task `01a02465-8638-7d41-b1a5-8c91a9becd72`,
-  «OpenViking: typed-evidence probe»; ✅ candidate интегрирован.
-- `wave-3-blind-reader.md` — read-only Luna Max; task ID записывается
+  task `01a02465-8638-7d41-b1a5-8c91a9becd72`, «OpenViking: typed-evidence
+  probe»; ✅ candidate интегрирован, task archived.
+- `wave-3-blind-reader.md` — read-only Luna Max task
   `01a0247f-3ee8-7480-87a2-4c0f963c9fae`, «OpenViking: blind typed Wiki
-  reader»; ✅ semantic `PASS`.
+  reader»; ✅ semantic `PASS`, task archived.
 
 ## Открытые вопросы владельцу
 
