@@ -54,3 +54,24 @@
   и живой случай.
 - Пока behavior comparator и live case не завершены, skill не называется
   принятым.
+
+## Bounded historical replay · 2026-08-22
+
+- Corpus: пять последних `⚡ UNEXPECTED` из Codex task
+  `01a0236d-cbaf-72e1-95dd-0832b58fd23b` — snapshot hash drift, отсутствующий
+  frozen source object, смешанный cwd verification, missing orchestration
+  reference и stale Graphiti runtime status.
+- Q1 adherence: pass — пять случаев разделены; для каждого названы ожидание,
+  наблюдение, основание, опровержение, коррекция и её результат.
+- Q2 verdict: два компактных предположения покрыли все пять случаев без
+  выдуманного единого объяснения: locator/receipt принимался за наблюдаемое
+  состояние; relative address — за однозначный без resolving context.
+- Q3 probe воспроизвёл оба оставшихся класса: live `1orchestration` указывает на
+  отсутствующий локальный `references/wording.md`; `1planning` не отделяет
+  last-observed external runtime status от live lifecycle evidence.
+- Q4 control изменился: вместо 25 отдельных правил выбраны два owner-seam
+  repairs; brittle positive tests `test_freeze_corpus.py`, обнаруженные тем же
+  probe, переведены на synthetic Git repo без ослабления production dirty/path
+  guard. Focused snapshot/evidence suite: 16/16 pass.
+- Boundary: это ручной replay из отдельной задачи по просьбе владельца, не
+  self-trigger после пятого marker и не live-case proof.

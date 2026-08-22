@@ -11,9 +11,7 @@ from pathlib import Path
 
 
 EXPERIMENT = Path(__file__).resolve().parents[1]
-REPO_ROOT = EXPERIMENT.parents[1]
 SCRIPT_DIR = EXPERIMENT / "scripts"
-SNAPSHOT_COMMIT = "6f98fcccdbf4b4de45ef787239ad101f70d106e2"
 
 sys.path.insert(0, str(SCRIPT_DIR))
 import freeze_corpus  # noqa: E402
@@ -53,13 +51,15 @@ class FreezeCorpusTests(unittest.TestCase):
         return repo, cls._git(repo, "rev-parse", "HEAD")
 
     def test_snapshot_manifest_is_file_level_and_exact(self) -> None:
-        manifest = freeze_corpus.build_manifest(REPO_ROOT, SNAPSHOT_COMMIT)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo, commit = self._make_repo(Path(temp_dir))
+            manifest = freeze_corpus.build_manifest(repo, commit)
         self.assertEqual(manifest["count"], 184)
         self.assertEqual(len(manifest["files"]), 184)
         paths = [entry["path"] for entry in manifest["files"]]
         self.assertEqual(paths, sorted(paths))
-        self.assertEqual(paths[0], "2026-04-28-111714-claude-74356077.md")
-        self.assertEqual(paths[-1], "2026-08-21-151338-codex-01a023cd.md")
+        self.assertEqual(paths[0], "holder-000.md")
+        self.assertEqual(paths[-1], "holder-183.md")
         for entry in manifest["files"]:
             self.assertEqual(set(entry), {"path", "blob_oid", "sha256", "bytes"})
             self.assertIsInstance(entry["bytes"], int)
@@ -72,36 +72,39 @@ class FreezeCorpusTests(unittest.TestCase):
     def test_two_fresh_builds_are_byte_identical_and_preserve_unrelated_files(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
+            repo, commit = self._make_repo(root)
             first = root / "first"
             second = root / "second"
-            freeze_corpus.build(REPO_ROOT, SNAPSHOT_COMMIT, first)
-            freeze_corpus.build(REPO_ROOT, SNAPSHOT_COMMIT, second)
+            freeze_corpus.build(repo, commit, first)
+            freeze_corpus.build(repo, commit, second)
             self.assertEqual(self._snapshot(first), self._snapshot(second))
 
             unrelated = first / "keep-unrelated.txt"
             unrelated.write_text("do not remove\n", encoding="utf-8")
-            freeze_corpus.build(REPO_ROOT, SNAPSHOT_COMMIT, first)
+            freeze_corpus.build(repo, commit, first)
             self.assertEqual(unrelated.read_text(encoding="utf-8"), "do not remove\n")
 
             lock = json.loads((first / "source-lock.json").read_text(encoding="utf-8"))
             manifest_bytes = (first / "source-manifest.json").read_bytes()
-            self.assertEqual(lock["corpus_commit"], SNAPSHOT_COMMIT)
+            self.assertEqual(lock["corpus_commit"], commit)
             self.assertEqual(lock["holder_count"], 184)
             self.assertEqual(lock["source_root"], "_ops/chat-recall")
             self.assertEqual(lock["manifest_sha256"], hashlib.sha256(manifest_bytes).hexdigest())
             self.assertEqual(lock["owned_files"], ["source-manifest.json", "source-lock.json"])
-            self.assertNotIn(str(REPO_ROOT), (first / "source-lock.json").read_text())
+            self.assertNotIn(str(repo), (first / "source-lock.json").read_text())
 
     def test_invalid_commit_forms_fail_closed(self) -> None:
-        for value in ("HEAD", SNAPSHOT_COMMIT[:7], "0" * 40):
-            with self.subTest(value=value):
-                with self.assertRaises(freeze_corpus.FreezeError):
-                    freeze_corpus.validate_commit(REPO_ROOT, value)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            repo, commit = self._make_repo(Path(temp_dir))
+            for value in ("HEAD", commit[:7], "0" * 40):
+                with self.subTest(value=value):
+                    with self.assertRaises(freeze_corpus.FreezeError):
+                        freeze_corpus.validate_commit(repo, value)
 
-        manifest = freeze_corpus.build_manifest(REPO_ROOT, SNAPSHOT_COMMIT)
-        blob_oid = manifest["files"][0]["blob_oid"]
-        with self.assertRaisesRegex(freeze_corpus.FreezeError, "not a commit"):
-            freeze_corpus.validate_commit(REPO_ROOT, blob_oid)
+            manifest = freeze_corpus.build_manifest(repo, commit)
+            blob_oid = manifest["files"][0]["blob_oid"]
+            with self.assertRaisesRegex(freeze_corpus.FreezeError, "not a commit"):
+                freeze_corpus.validate_commit(repo, blob_oid)
 
     def test_source_root_and_count_drift_fail_closed(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -110,7 +113,7 @@ class FreezeCorpusTests(unittest.TestCase):
             with self.assertRaisesRegex(freeze_corpus.FreezeError, "holder count drift"):
                 freeze_corpus.build(repo, commit, root / "output")
             with self.assertRaises(freeze_corpus.FreezeError):
-                freeze_corpus.build_manifest(REPO_ROOT, SNAPSHOT_COMMIT, "_ops/chat-recall/../chat-recall")
+                freeze_corpus.build_manifest(repo, commit, "_ops/chat-recall/../chat-recall")
 
     def test_dirty_tree_and_path_drift_fail_closed(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -136,65 +139,69 @@ class FreezeCorpusTests(unittest.TestCase):
     def test_generated_root_symlink_escape_does_not_touch_sentinel(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
+            repo, commit = self._make_repo(root)
             output = root / "output"
             outside = root / "outside.txt"
             output.mkdir()
             outside.write_text("must survive\n", encoding="utf-8")
             (output / "source-manifest.json").symlink_to(outside)
             with self.assertRaises(freeze_corpus.FreezeError):
-                freeze_corpus.build(REPO_ROOT, SNAPSHOT_COMMIT, output)
+                freeze_corpus.build(repo, commit, output)
             self.assertEqual(outside.read_text(encoding="utf-8"), "must survive\n")
 
     def test_generated_root_symlinked_parent_fails_closed(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
+            repo, commit = self._make_repo(root)
             output = root / "link" / "generated"
             outside = root / "outside"
             outside.mkdir()
             (root / "link").symlink_to(outside, target_is_directory=True)
             with self.assertRaisesRegex(freeze_corpus.FreezeError, "escaping symlink"):
-                freeze_corpus.build(REPO_ROOT, SNAPSHOT_COMMIT, output)
+                freeze_corpus.build(repo, commit, output)
             self.assertFalse((outside / "generated/source-manifest.json").exists())
             self.assertFalse((outside / "generated/source-lock.json").exists())
 
     def test_system_tmp_alias_is_environment_independent(self) -> None:
         if not Path("/tmp").is_symlink():
             self.skipTest("this regression requires the system /tmp alias")
-        with tempfile.TemporaryDirectory(dir="/tmp", prefix="openviking-f1-root-") as temp_dir:
-            output = Path(temp_dir) / "frozen"
-            command = [
-                sys.executable,
-                str(SCRIPT_DIR / "freeze_corpus.py"),
-                "--commit",
-                SNAPSHOT_COMMIT,
-                "--source-root",
-                "_ops/chat-recall",
-                "--output-dir",
-                str(output),
-                "--repo-root",
-                str(REPO_ROOT),
-            ]
-            env_without_tmp_alias = os.environ.copy()
-            env_without_tmp_alias["TMPDIR"] = str(REPO_ROOT)
-            env_without_tmp_alias["PYTHONDONTWRITEBYTECODE"] = "1"
-            first = subprocess.run(
-                command,
-                cwd=REPO_ROOT,
-                env=env_without_tmp_alias,
-                check=False,
-                capture_output=True,
-                text=True,
-            )
-            env_with_tmp_alias = env_without_tmp_alias.copy()
-            env_with_tmp_alias["TMPDIR"] = "/tmp"
-            second = subprocess.run(
-                command,
-                cwd=REPO_ROOT,
-                env=env_with_tmp_alias,
-                check=False,
-                capture_output=True,
-                text=True,
-            )
+        with tempfile.TemporaryDirectory() as repo_dir:
+            repo, commit = self._make_repo(Path(repo_dir))
+            with tempfile.TemporaryDirectory(dir="/tmp", prefix="openviking-f1-root-") as temp_dir:
+                output = Path(temp_dir) / "frozen"
+                command = [
+                    sys.executable,
+                    str(SCRIPT_DIR / "freeze_corpus.py"),
+                    "--commit",
+                    commit,
+                    "--source-root",
+                    "_ops/chat-recall",
+                    "--output-dir",
+                    str(output),
+                    "--repo-root",
+                    str(repo),
+                ]
+                env_without_tmp_alias = os.environ.copy()
+                env_without_tmp_alias["TMPDIR"] = str(repo)
+                env_without_tmp_alias["PYTHONDONTWRITEBYTECODE"] = "1"
+                first = subprocess.run(
+                    command,
+                    cwd=repo,
+                    env=env_without_tmp_alias,
+                    check=False,
+                    capture_output=True,
+                    text=True,
+                )
+                env_with_tmp_alias = env_without_tmp_alias.copy()
+                env_with_tmp_alias["TMPDIR"] = "/tmp"
+                second = subprocess.run(
+                    command,
+                    cwd=repo,
+                    env=env_with_tmp_alias,
+                    check=False,
+                    capture_output=True,
+                    text=True,
+                )
         self.assertEqual(first.returncode, 0, first.stderr)
         self.assertEqual(second.returncode, 0, second.stderr)
 
