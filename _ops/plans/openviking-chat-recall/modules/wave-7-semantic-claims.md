@@ -1,7 +1,7 @@
 ---
 kind: module-card
 wave: 7
-state: planned
+state: superseded
 role: semantic-candidate-writers-and-canonical-merger
 system-owner: root
 canonical-review: claude-opus-5
@@ -11,7 +11,8 @@ batch-thinking: max
 
 # Модуль — semantic candidates и canonical claims
 
-[parent: task.md](../task.md) · веха 2 · gate: Wave 6b utility PASS
+[parent: task.md](../task.md) · historical parallel semantic route ·
+superseded by the chronological fold in Wave 6f]
 
 ## Contribution
 

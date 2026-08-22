@@ -1,7 +1,7 @@
 ---
 kind: module-card
 wave: 8
-state: planned
+state: superseded
 role: l2-page-writers-and-catalog-owner
 system-owner: root
 boundary-review: claude-opus-5
@@ -11,7 +11,8 @@ batch-thinking: max
 
 # Модуль — typed L2 knowledge library
 
-[parent: task.md](../task.md) · вехи 2–4 · gate: Wave 7 PASS
+[parent: task.md](../task.md) · historical parallel L2 route ·
+superseded by the chronological fold in Wave 6f]
 
 ## Contribution
 

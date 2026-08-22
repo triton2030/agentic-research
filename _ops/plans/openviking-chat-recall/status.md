@@ -13,19 +13,26 @@ kind: status
 
 ## Next
 
-Batch-002 принят как второй chronological checkpoint. Текущая Wiki содержит
-9 Markdown-файлов на boundary `2026-07-30T08:24:08.846000+00:00`: 3 страницы
-обновлены, 4 созданы, один record честно rejected. Root и независимый auditor
-подтвердили 7/7 byte-exact materialization, before/after tree digests, 20/20
-coverage, 8 index routes и разрешённые source links. Blind reader ранее дал 4/4
-correct first choices без чтения Sources или non-Wiki файлов.
+Batch-002 принят как второй chronological checkpoint: 10 holders,
+20 records, 9 active Wiki pages, 20/20 coverage, 8 index routes и blind
+findability 4/4. Но Fresh Eyes и source-check нашли новый semantic
+falsifier: source-backed строка может не отвечать на H1 страницы.
+`method/global-skill-trigger.md` уже смешал цитаты про skill и
+глобальную instruction. Механический model-check отдельно доказал, что
+7/7 proposed files можно replay-ить детерминированно без Luna.
 
-Стоп перед batch-003: текущая авторизация покрывала только следующие 10 holders,
-а не весь corpus. Для продолжения root сначала создаёт следующий frozen manifest
-и отдельную карточку; затем возобновляет retained visible Luna Max task
-`01a026fe-70a0-78d1-abad-12387192465e`. Writer не архивирован, потому что это
-единственный последовательный накопительный writer; завершённый blind reader
-`01a02750-7aa1-7190-94b0-050dbd08e903` архивирован.
+Единственный Next — завершить
+[Wave 6f full-backfill transition](modules/wave-6f-full-backfill-transition.md).
+Page-fit/split schema, deterministic materializer и chronological builder уже
+реализованы; 13 targeted tests PASS, включая exact coverage/provenance
+closure после independent implementation BLOCK. Frozen `batch-003-input.json` содержит
+следующие 10 holders / 38 records и byte-identical проходит `--check`.
+Осталось той же retained Luna починить найденное scope-mixing внутри v3
+batch-003 draft, затем провести полный independent semantic audit и
+детерминированно материализовать accepted bytes. После
+этого full backfill идёт по одному reusable contract без новой permission-card
+на каждые десять holders. Retained visible Luna Max task
+`01a026fe-70a0-78d1-abad-12387192465e` не архивируется до terminal Wiki.
 
 ## Вехи
 
@@ -208,17 +215,19 @@ provider repair снят с текущей траектории после Fresh
 | 6c | first chronological serial changeset + candidate Wiki checkpoint | accepted F1–F3 + explicit owner authorization | owner-liked Wiki `6ab9cb9`; root structural/provenance PASS |
 | 6d | second chronological draft/materialization checkpoint | batch-001 accepted + owner-authorized next 10 holders | accepted: 10 holders / 20 records; 3 update + 4 create + 1 reject; tree `71bc5b…` |
 | 6e | blind index-first findability | current Wiki frozen before batch-002 draft | PASS: [wave-6e return](modules/_returns/wave-6e-blind-findability.md); task `01a02750…` archived |
-| 6b | representative input-lock, затем L2/L1/L0 + matched utility | F1–F3 for input-lock; accepted provider/privacy PASS for semantic execution | root-owned input-lock ready; Luna semantic batch blocked |
-| 7 | semantic candidates и canonical current claims | Wave 6b utility PASS | planned |
-| 8 | typed L2 pages, per-part validation и root catalog | Wave 7 pass | planned |
-| 9 | bottom-up L1 overviews и deterministic L0 abstracts | Wave 8 pass | planned |
+| 6f | page-fit/split + deterministic replay + shadow batch-003 | accepted batch-002 + Fresh Eyes/model-check | **Next: ready** |
+| 6b | historical representative/provider route | F1–F3 | superseded as pre-backfill permission route; input-lock evidence retained |
+| 7 | historical parallel semantic candidates route | Wave 6b utility PASS | superseded by chronological fold |
+| 8 | historical parallel L2 build route | Wave 7 pass | superseded by chronological fold |
+| 9 | terminal L1/L0 projection over complete L2 | full chronological L2 Wiki | deferred until complete L2; not a batch blocker |
 | 10 | exhaustive coverage, resume/crash/delete-rebuild receipts | Wave 9 pass | planned |
 | 11 | blind five-case probe + full matched comparator | Wave 10 frozen candidate | planned |
 | 12 | fresh-agent route, rebuild handoff и independent completion audit | terminal Wave 11 verdict: pass or explicit rejection | planned |
 
 ## Блокеры
 
-Owner-блокера нет.
+Owner-блокера нет. Full backfill разрешён ранним owner-decision
+после успешного pilot; текущий blocker внутренний — Wave 6f transition.
 
 Закрытые semantic defects G0:
 

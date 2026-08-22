@@ -18,9 +18,10 @@ coverage, crash recovery, delete-rebuild identity и безопасные privat
 
 ## Inputs
 
-- frozen tuples и outputs Waves 6–9;
+- frozen tuples, cumulative chronological run-state и accepted Wave 9 output;
 - accepted generated-root ownership/containment contract Wave 5;
-- provider privacy/cost canary и stage validators.
+- stage validators; provider privacy/cost canary только для external
+  provider route, не для owner-authorized local visible Codex route.
 
 ## Ownership
 

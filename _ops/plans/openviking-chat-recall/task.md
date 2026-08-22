@@ -38,6 +38,11 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
   OpenViking LLM Wiki Skill для L2: `index.md`, `entity`, `concept` и только
   обоснованные `method`, `comparison`, `analysis`, `summary`. Пустые типы и
   source-by-source пересказы не создаются ради симметрии.
+- Каждая страница отвечает на один самостоятельный retrieval-вопрос. Новый
+  claim обновляет страницу только когда supporting quote сама отвечает на её
+  H1-вопрос; соседняя тема требует `create` или адресного `split`, а не удобного
+  накопления в наиболее близком файле. Source link без page-fit не доказывает
+  смысловую принадлежность claim-а странице.
 - Layer compiler отдельно использует зафиксированный OpenViking Context Layers
   contract и его semantic prompt templates: для каждой semantic directory
   bottom-up создаются L0 `.abstract.md` и L1 `.overview.md`, а L2 остаётся
@@ -110,16 +115,11 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
       → F1 frozen snapshot
       → F2 deterministic evidence
       → F3 stable semantic partitions
-      → C0 first 10-holder chronological changeset + Wiki checkpoint
-      → root verdict on serial fold topology
-      → P-1 representative source-bound input lock
-      → P0 representative end-to-end L2/L1/L0 ingestion
-      → U0 matched final-route utility gate
-      → S1 semantic candidates
-      → S2 canonical current claims
-      → L2 typed Wiki pages + catalog
-      → per-depth L1 → L0, from leaves to root
-      → full coverage/resume/rebuild receipts
+      → C0/C1 accepted chronological Wiki checkpoints
+      → T0 page-fit/split gate + deterministic replay transition
+      → C2…Cn one retained Luna, 10 holders in chronology, current-page rewrite
+      → full coverage/resume/rebuild receipt
+      → terminal L1/L0 projection over complete L2 only if it improves retrieval
       → blind matched acceptance
       → fresh-agent route or rejection
 
@@ -132,13 +132,21 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
 | 6c | [wave-6c-chronological-serial-pilot](modules/wave-6c-chronological-serial-pilot.md) | F1–F3 + owner-authorized 10-holder batch | typed changeset + first candidate Wiki checkpoint + serial-route verdict | решение, заменяет ли serial fold прежний parallel semantic plan |
 | 6d | [wave-6d-chronological-batch-002](modules/wave-6d-chronological-batch-002.md) | accepted batch-001 checkpoint + следующие 10 frozen holders | evidence-mapped draft → exact materialization + второй candidate checkpoint | blind findability и verdict по update/supersede |
 | 6e | [wave-6e-blind-findability](modules/wave-6e-blind-findability.md) | frozen current Wiki before batch-002 draft | index-first page choices + bounded answers from a separate Luna | findability evidence independent of writer |
-| 6b | [wave-6b-representative-ingestion-utility](modules/wave-6b-representative-ingestion-utility.md) | F1–F3 foundation → source-bound input lock; accepted provider gate → final L2/L1/L0 route | prepared input lock, затем matched correctness/currentness/efficiency verdict | full semantic generation только после utility PASS |
-| 7 | [wave-7-semantic-claims](modules/wave-7-semantic-claims.md) | Wave 6b PASS + partitions + pinned Wiki prompt tuple | canonical claims, rejections, lifecycle evidence | L2 writers |
-| 8 | [wave-8-l2-library](modules/wave-8-l2-library.md) | accepted canonical claims | typed L2 pages, catalog, validated index | context layers |
-| 9 | [wave-9-context-layers](modules/wave-9-context-layers.md) | accepted L2 tree + pinned L1 prompt | bottom-up L1/L0 sidecars | finalization |
+| 6f | [wave-6f-full-backfill-transition](modules/wave-6f-full-backfill-transition.md) | accepted batch-002 + Fresh Eyes/model-check evidence | page-fit/split contract, deterministic replay, shadow batch-003 verdict | reusable full-backfill loop |
+| 6b | [wave-6b-representative-ingestion-utility](modules/wave-6b-representative-ingestion-utility.md) | historical provider-dependent route | retained input-lock and experiment evidence | superseded by Wave 6f for current backfill |
+| 7 | [wave-7-semantic-claims](modules/wave-7-semantic-claims.md) | historical parallel partition route | historical design only | superseded by chronological fold |
+| 8 | [wave-8-l2-library](modules/wave-8-l2-library.md) | historical parallel L2 route | historical design only | superseded by chronological fold |
+| 9 | [wave-9-context-layers](modules/wave-9-context-layers.md) | complete accepted chronological L2 Wiki + pinned L1/L0 prompts | bottom-up L1/L0 sidecars | finalization |
 | 10 | [wave-10-full-build-operations](modules/wave-10-full-build-operations.md) | all stage outputs and receipts | exhaustive coverage, resume/rebuild proof, private build receipt | held-out acceptance |
 | 11 | [wave-11-blind-acceptance](modules/wave-11-blind-acceptance.md) | frozen candidate + locked gold | matched correctness/currentness/efficiency verdict | route decision |
 | 12 | [wave-12-fresh-agent-handoff](modules/wave-12-fresh-agent-handoff.md) | terminal Wave 11 verdict: accepted route or explicit rejection | clean-session route, rebuild handoff, independent completion audit | завершение |
+
+Wave 6f is the live route override for the frozen current-Wiki backfill. Pending
+Wave 6b–9 cards remain historical designs and do not grant or block execution of
+the owner-authorized visible Codex/Luna route. Their useful terminal obligations
+— layered retrieval, full coverage and matched acceptance — are evaluated only
+after the complete L2 Wiki exists; they are not a provider gate before each
+chronological batch.
 
 Карточка становится разрешением на исполнение только когда ее dependency gate
 закрыт в status.md. До этого это подробная проекция остатка, а не permission
@@ -173,14 +181,17 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
 
 ## Stop rules
 
-- Full semantic backfill не начинается, пока representative frozen sample не
-  пройдёт настоящий L2/L1/L0 ingestion и matched final-route audit. Wave 6
-  deterministic snapshot/evidence может выполняться раньше этого utility gate.
+- Full chronological backfill идёт только по frozen F1/F2 через retained
+  visible Codex Luna task и reusable contract Wave 6f. Batch останавливается
+  до записи при missing coverage, unsupported claim, unresolved currentness,
+  failed page-fit/split, stale prior digest или deterministic replay mismatch.
 - Representative source-bound input lock можно построить после F1–F3 без
   provider: он не содержит semantic claims, Wiki pages или private quote dump
   и сам по себе не разрешает model execution.
-- Semantic provider не получает реальные holders, пока synthetic canary не
-  доказал auth, data-egress, logging, retry, cost и secret-redaction contract.
+- External semantic provider не получает реальные holders, пока synthetic
+  canary не доказал auth, data-egress, logging, retry, cost и
+  secret-redaction contract. Этот stop rule не подменяет уже
+  разрешённый владельцем local visible Codex route.
 - Full-build snapshot не берется из live directory или старого inventory:
   только explicit Git commit и пересчитанный source/record manifest.
 - LLM output с отсутствующим record ID, выдуманным provenance, изменённым
@@ -211,13 +222,13 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
 - Fan-out ограничен реальными независимыми batch-зонами после заморозки единой
   логики. Системный дизайн не дробится между Luna-тредами; их зона —
   повторяемый quote-to-Wiki rewrite по готовому contract.
-- Первый chronological probe выполнила одна Luna на десяти полных holders;
-  владелец одобрил полезный четырёхстраничный Wiki checkpoint, root подтвердил
-  exact coverage/provenance и разрешил тому же writer-у следующий batch.
-  Parallel part writers и merge не возвращаются: одна рука последовательно
-  переписывает текущую Wiki, а blind readers проверяют её отдельно. Это
-  разрешение относится к batch-002 как bounded probe, а не автоматически ко
-  всему оставшемуся corpus.
+- Первые два chronological batch прошли structural, source-bound и
+  index-first checks. Тем самым закрыто условие раннего owner-decision:
+  после успешного pilot запустить full backfill всех holders
+  (`_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:25-27`). Parallel
+  part writers и merge не возвращаются: retained Luna последовательно
+  переписывает current Wiki по десяти holders, а root и non-writing
+  auditors держат semantic и terminal acceptance.
 - Подробные карточки вытесняют хранение остатка в чате, но не создают второй
   plan owner: task.md владеет outcome и зависимостями, status.md — живым Next,
   modules — неизменяемыми заданиями конкретного момента.

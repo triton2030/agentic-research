@@ -11,7 +11,7 @@ batch-thinking: max
 
 # Модуль — bottom-up L1 overviews и L0 abstracts
 
-[parent: task.md](../task.md) · веха 4 · gate: Wave 8 PASS
+[parent: task.md](../task.md) · веха 4 · gate: complete accepted chronological L2 Wiki
 
 ## Contribution
 
@@ -20,7 +20,7 @@ batch-thinking: max
 
 ## Inputs
 
-- validated L2 catalog/tree Wave 8;
+- validated complete chronological L2 catalog/tree and terminal full-run receipt;
 - pinned `overview_generation.yaml`, official prompt provenance и digests;
 - accepted Wave 4b contract: L1 semantic, L0 извлекается из Brief Description.
 

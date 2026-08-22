@@ -1,7 +1,7 @@
 ---
 kind: module-card
 wave: "6b"
-state: planned
+state: superseded
 role: representative-ingestion-utility-gate
 system-owner: root
 strategy-review: claude-opus-5
@@ -12,9 +12,8 @@ description: representative post-ingestion utility gate before full semantic gen
 
 # Модуль — representative ingestion utility gate
 
-[parent: task.md](../task.md) · между deterministic Wave 6 и semantic Wave 7 ·
-preflight: accepted F1–F3 + Wave 5 semantic contract · semantic gate: accepted
-provider/privacy PASS
+[parent: task.md](../task.md) · historical provider-dependent route ·
+superseded for the live full backfill by Wave 6f; retained as experiment evidence]
 
 ## Contribution
 
