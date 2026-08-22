@@ -344,6 +344,26 @@ class MaterializeChronologicalChangesetTests(unittest.TestCase):
                 self.assertEqual(before, self._snapshot(fixture["wiki"]))
                 self.assertFalse(fixture["receipt"].exists())
 
+    def test_candidate_can_be_preflighted_but_not_materialized(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            fixture = self._fixture(Path(temp_dir))
+            before = self._snapshot(fixture["wiki"])
+            value = copy.deepcopy(fixture["changeset_value"])
+            value["status"] = "candidate"
+            raw = _json_bytes(value)
+            fixture["changeset"].write_bytes(raw)
+            fixture["accepted_sha"] = _sha(raw)
+
+            receipt = self._materialize(fixture, dry_run=True)
+            self.assertEqual(receipt["status"], "materialized-candidate")
+            with self.assertRaisesRegex(
+                materializer.MaterializationError,
+                "cannot be materialized before acceptance",
+            ):
+                self._materialize(fixture)
+            self.assertEqual(before, self._snapshot(fixture["wiki"]))
+            self.assertFalse(fixture["receipt"].exists())
+
     def test_path_prior_and_content_sha_fail_before_write(self) -> None:
         cases = (
             (lambda value: value["operations"][1].__setitem__("page_path", "current/wiki/../escape.md"), "path"),

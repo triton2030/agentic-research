@@ -873,8 +873,16 @@ def materialize(
         raise MaterializationError("accepted changeset SHA mismatch")
     if changeset.get("schema") != CHANGESET_SCHEMA:
         raise MaterializationError("changeset schema mismatch")
-    if changeset.get("phase") != "semantic-draft" or changeset.get("status") != "accepted":
-        raise MaterializationError("changeset is not an accepted semantic draft")
+    status = changeset.get("status")
+    if changeset.get("phase") != "semantic-draft" or status not in {
+        "candidate",
+        "accepted",
+    }:
+        raise MaterializationError("changeset is not a semantic draft candidate")
+    if not dry_run and status != "accepted":
+        raise MaterializationError(
+            "candidate changeset cannot be materialized before acceptance"
+        )
     allowed = changeset.get("allowed_operations")
     if not isinstance(allowed, list) or set(allowed) != ALLOWED_OPERATIONS:
         raise MaterializationError("changeset allowed_operations mismatch")
