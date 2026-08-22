@@ -16,6 +16,7 @@ from typing import Any
 
 import _advisor_contract as contract
 import _ox_policy as ox
+import _run_receipt as receipt_store
 import _runtime_evidence as evidence
 import _runtime_execution as execution
 
@@ -78,7 +79,13 @@ def _parser() -> argparse.ArgumentParser:
     return parser
 
 
+_RECEIPT: dict[str, Any] | None = None
+
+
 def _emit(payload: dict[str, Any]) -> None:
+    if _RECEIPT:
+        payload = {**payload, "run_dir": _RECEIPT["path"]}
+        receipt_store.close_receipt(_RECEIPT, payload)
     json.dump(payload, sys.stdout, ensure_ascii=False, indent=2)
     sys.stdout.write("\n")
 
@@ -182,6 +189,9 @@ def _run(
             "cwd": str(source_cwd),
             "run_cwd": str(run_cwd),
         }
+        global _RECEIPT
+        _RECEIPT = receipt_store.open_receipt(requested, prompt)
+
         run_env = os.environ.copy()
         read_only_root: tempfile.TemporaryDirectory[str] | None = None
         if args.allow_write:
@@ -345,7 +355,13 @@ def main() -> int:
     hermes_bin = args.hermes_bin or shutil.which("hermes")
     if not hermes_bin:
         return _fail("hermes executable not found on PATH")
-    return _run(args, prompt, cwd, toolsets, hermes_bin)
+    try:
+        return _run(args, prompt, cwd, toolsets, hermes_bin)
+    except Exception as exc:  # noqa: BLE001
+        # Вызывающий — агент, читающий stdout как JSON. Traceback для него
+        # неотличим от поломки всей системы, а прогон мог быть уже оплачен:
+        # любой исход обязан стать терминальным JSON и попасть в квитанцию.
+        return _fail(f"{type(exc).__name__}: {exc}", exit_code=1)
 
 
 if __name__ == "__main__":

@@ -502,7 +502,7 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument("--project", default=".")
-    parser.add_argument("--agent", default="claude")
+    parser.add_argument("--agent", required=True)
     parser.add_argument("--model")
     parser.add_argument("--session")
     return parser

@@ -239,6 +239,7 @@ class HermesRuntimeTests(unittest.TestCase):
         *extra: str,
         mode: str = "normal",
         response: str = "review-ok",
+        prompt: str = "private-test-brief",
     ) -> subprocess.CompletedProcess[str]:
         env = self.env | {"FAKE_MODE": mode, "FAKE_RESPONSE": response}
         command = [
@@ -252,7 +253,7 @@ class HermesRuntimeTests(unittest.TestCase):
         ]
         return subprocess.run(
             command,
-            input="private-test-brief",
+            input=prompt,
             text=True,
             capture_output=True,
             env=env,
@@ -344,6 +345,29 @@ class HermesRuntimeTests(unittest.TestCase):
             self.assertIsNotNone(off_route)
         finally:
             ox.live_pricing_is_free = original
+
+    def test_paid_run_survives_an_unexpected_crash_as_json_and_receipt(self) -> None:
+        """Прогон стоит денег. Любой исход обязан стать адресуемым результатом,
+        а не traceback-ом в stderr вызывающего агента."""
+        completed = self.advisor(
+            "--model", MODEL, "--reasoning", "medium", prompt="brief\x00tail"
+        )
+        payload = json.loads(completed.stdout)
+        self.assertFalse(payload["ok"])
+        self.assertIn("embedded null byte", payload["error"])
+        receipt = Path(payload["run_dir"]) / "result.json"
+        self.assertTrue(receipt.is_file())
+        self.assertEqual(json.loads(receipt.read_text())["error"], payload["error"])
+
+    def test_normal_run_leaves_an_addressable_receipt(self) -> None:
+        completed = self.advisor("--model", MODEL, "--reasoning", "medium")
+        payload = json.loads(completed.stdout)
+        run_dir = Path(payload["run_dir"])
+        self.assertTrue((run_dir / "manifest.json").is_file())
+        self.assertTrue((run_dir / "prompt.md").is_file())
+        self.assertEqual(
+            json.loads((run_dir / "result.json").read_text())["ok"], payload["ok"]
+        )
 
     def test_ox_cost_evidence_must_prove_zero_after_the_run(self) -> None:
         """Каталог доказывает цену до старта, сессия — после. Между ними часы."""

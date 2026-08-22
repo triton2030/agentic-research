@@ -51,7 +51,7 @@ class ChatCaptureTests(unittest.TestCase):
 
     def run_capture(
         self, quote: str, type_: str, topic: str,
-        agent: str | None = None,
+        agent: str | None = "claude",
         env: dict[str, str] | None = None,
         kind: str | None = None,
         context_note: str | None = DEFAULT_CONTEXT_NOTE,
@@ -220,6 +220,23 @@ class ChatCaptureTests(unittest.TestCase):
             help_text,
         )
         self.assertIn("complete current card, not a delta", help_text)
+
+    def test_agent_is_required(self) -> None:
+        result = self.run_capture(
+            "Runtime должен быть явным",
+            "факт",
+            "документация-и-знания",
+            agent=None,
+            env=self.claude_env(),
+            expect_ok=False,
+        )
+
+        self.assertEqual(result.returncode, 2)
+        self.assertIn(
+            "the following arguments are required: --agent",
+            result.stderr,
+        )
+        self.assertEqual(self.recall_files(), [])
 
     def test_context_note_rejects_links_delimiters_and_note_on_note(self) -> None:
         cases = (
@@ -480,6 +497,8 @@ class ChatCaptureTests(unittest.TestCase):
         base = [
             sys.executable,
             str(SCRIPT),
+            "--agent",
+            "claude",
             "--quote",
             "Выбрал локальный путь",
             "--type",
@@ -723,6 +742,8 @@ class ChatCaptureTests(unittest.TestCase):
             [
                 shlex.quote(sys.executable),
                 shlex.quote(str(SCRIPT)),
+                "--agent",
+                shlex.quote("claude"),
                 "--quote",
                 shlex.quote("Separate shell quote"),
                 "--type",
