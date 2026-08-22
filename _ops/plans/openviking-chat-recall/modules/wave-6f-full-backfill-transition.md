@@ -14,12 +14,14 @@ reusable chronological fold]
 
 ## Outcome
 
-Перед batch-003 убрать два уже наблюдаемых класса сбоя:
+Перед batch-003 убрать три уже наблюдаемых класса сбоя:
 
 1. source-backed claim попадает в близкую страницу, но supporting quote не
    отвечает на её H1-вопрос;
 2. semantic writer вручную материализует пути и bytes из accepted
-   changeset, хотя это детерминированная работа.
+   changeset, хотя это детерминированная работа;
+3. локальное решение про named skill/artifact переписывается как универсальный
+   метод, либо неподдержанное обобщение остаётся в prose вне typed claims.
 
 Результат перехода — один reusable full-run contract, узкий
 deterministic replay route и batch-003 shadow verdict. Хронологический размер
@@ -44,6 +46,11 @@ silent fallback или semantic input.
 - Проверить каждый material claim в затронутых batch-002 pages вопросом:
   «supporting quote сама отвечает на H1 этой страницы?»
 - Changeset обязан адресно обосновать `page_fit` для каждого claim.
+- Holder scene, `context-note` и named owner ограничивают subject/H1: перенос
+  `1html`, `1index` или конкретного каталога на весь класс skills/Wiki/interfaces
+  является новым claim, а не дистилляцией.
+- Independent audit сравнивает с evidence весь `proposed_content`, а не только
+  `material_claims`: typed table не считается полным представлением prose.
 - Не подходящий соседний предмет требует `create` или named `split`;
   existing page не растёт только по semantic proximity.
 - Первая repair-цель: `method/global-skill-trigger.md`; source records
@@ -58,6 +65,9 @@ silent fallback или semantic input.
   он принимает только `chronological-wiki-changeset.v3`. Claim хранит exact H1
   в `page_fit.page_question`, непустой subset
   `page_fit.answering_record_ids` и короткий `page_fit.reason`.
+- Current-batch `record_ids` semantic operations должны точно совпадать с
+  union `material_claims.supporting_record_ids`; formal `used` без
+  claim-ответственности fail closed.
 - Replay helper до записи проверяет schema, prior tree/page SHA, разрешённые
   operations и path boundary; после записи — exact proposed bytes/SHA, active tree,
   coverage, links и receipt.
@@ -80,8 +90,10 @@ silent fallback или semantic input.
   только mechanical invariants. Accepted draft материализует replay helper.
 - Если independent audit находит material page-fit/currentness defect, который
   не вызвал stop, full semantic audit сохраняется на каждом batch.
-- Только shadow PASS открывает exception-based semantic audits;
-  deterministic gates и exact coverage остаются на каждом batch.
+- Наблюдавшийся scope/prose FAIL оставляет full semantic audit на каждом batch.
+  Exception-based route не открывается, пока исправленный batch-003 и следующий
+  batch подряд не пройдут чистый candidate-first audit; deterministic gates и
+  exact coverage остаются на каждом batch.
 
 ## Full-run checkpoints
 
@@ -115,12 +127,13 @@ Wave 6f accepted, когда:
 - `tests/test_materialize_chronological_changeset.py` проверяет exact bytes,
   machine receipt, v3/page-fit, path/prior/content SHA, named split, source-only
   links, full-quote guard, symlink boundary и existing-receipt stop.
-- 14 targeted tests PASS. Provenance closure отдельно доказывает, что
+- 15 targeted tests PASS. Provenance closure отдельно доказывает, что
   `reject|skipped` record нельзя материализовать, а старый support разрешён
-  только через exact source-link принятой prior Wiki. Candidate проходит полный
-  dry-run, но materialization до `status: accepted` fail closed. Это mechanical evidence;
-  semantic repair и shadow
-  verdict ещё не приняты.
+  только через exact source-link принятой prior Wiki, а `used` record не может
+  остаться без material-claim support. Full suite: 76 tests, только прежние
+  2 failures + 3 errors `test_freeze_corpus` из-за dirty live `_ops/chat-recall`.
+  Batch-003 проходит mechanical dry-run, но его source-scope repair и новый
+  blind verdict ещё не приняты; materialization до `status: accepted` fail closed.
 
 ## Principles trace
 

@@ -43,6 +43,13 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
   H1-вопрос; соседняя тема требует `create` или адресного `split`, а не удобного
   накопления в наиболее близком файле. Source link без page-fit не доказывает
   смысловую принадлежность claim-а странице.
+- Source scene, `context-note` и названный владелец ограничивают applicability:
+  локальное решение про конкретный skill, artifact или каталог не становится
+  универсальным методом без отдельной source-backed опоры. Paraphrase может
+  сжимать формулировку, но не расширять предмет.
+- Typed claims обязаны покрывать каждый current-batch record со статусом
+  `used`, но не считаются полным представлением страницы: independent audit
+  проверяет против evidence весь proposed prose, включая H1 и frontmatter.
 - Layer compiler отдельно использует зафиксированный OpenViking Context Layers
   contract и его semantic prompt templates: для каждой semantic directory
   bottom-up создаются L0 `.abstract.md` и L1 `.overview.md`, а L2 остаётся
