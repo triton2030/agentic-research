@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Mantine разработка"
+  short_description: "Mantine: public UI, placement и runtime proof"
+  default_prompt: "Используй $1mantine-dev для Mantine UI: выбери публичную композицию, владельца темы или стиля и докажи результат на слое сбоя."
+
+policy:
+  allow_implicit_invocation: true
