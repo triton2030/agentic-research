@@ -3,8 +3,10 @@ kind: module-card
 wave: 8
 state: planned
 role: l2-page-writers-and-catalog-owner
-model: gpt-5.6-luna
-thinking: max
+system-owner: root
+boundary-review: claude-opus-5
+batch-model: gpt-5.6-luna
+batch-thinking: max
 ---
 
 # Модуль — typed L2 knowledge library
@@ -36,26 +38,35 @@ Parallel render per part → validation per part → root-only catalog/index. Н
 - Read-only validators используют `scripts/validate_l2.py`; validation result
   хранится рядом с part, но writer не принимает сам себя.
 - Root-only owner: `scripts/build_l2_catalog.py`,
-  `artifacts/full-build/wiki-l2/index.md` и `catalog.json`.
+  `artifacts/full-build/wiki-l2/index.md`, `catalog.json` и
+  `page-provenance.json`.
 - L2 writers никогда не пишут `.overview.md` или `.abstract.md`.
 
-Каждый writer делегирует nested checker проверку source IDs и link boundary.
+Каждый writer проходит deterministic проверку source-quote membership и link
+boundary; системную границу независимо проверяет root/Opus, не writer.
 
 ## Page contract
 
 - Одна страница владеет одной понятной knowledge unit и имеет stable slug/type.
-- Body содержит distilled statement, applicability, uncertainty и compact
-  provenance pointer; точные цитаты и chronology остаются в holders.
+- Body содержит только distilled final statement, applicability, uncertainty и
+  точные адреса supporting chat-recall quotes. Полные цитаты и chronology
+  остаются в holders.
 - Count/first/latest/full evolution не печатаются как default knowledge.
 - Superseded/non-current/uncertain claims не появляются как current; contested
   допускается только при evidence обеих позиций и явной scope boundary.
-- Все source IDs, internal links и catalog entries разрешаются; orphan pages и
-  dangling links запрещены.
+- Source quote IDs разрешаются только из accepted claim membership. Internal
+  Wiki links и catalog entries разрешаются; ссылки на project knowledge files,
+  URLs или иные источники запрещены. Writer не открывает упомянутые в цитатах
+  project files.
+- `page-provenance.json` зеркалит только проверяемый page/claim/record mapping и
+  не является вторым владельцем claim text.
 
 ## Falsifying checks
 
 - full quote/history leakage fail;
 - unknown claim/source ID, duplicate slug или wrong type fail;
+- project-corpus link, source lookup вне frozen quote input или invented
+  knowledge fail;
 - prior superseded claim отсутствует в default body;
 - delete-and-render part byte-identical;
 - root catalog строится только из terminal validated parts и публикуется

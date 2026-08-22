@@ -15,8 +15,9 @@ kind: task
 prompts задают bottom-up L0/L1. Runtime OpenViking в принятом маршруте не
 участвует.
 
-Исходные holders остаются неизменяемым evidence. Библиотека — производная,
-проверяемая и полностью пересобираемая поверхность чтения в
+Исходные holders остаются неизменяемым evidence и логом изменения мысли.
+Библиотека — производная, проверяемая и полностью пересобираемая поверхность
+только актуальных итоговых знаний в
 `experiments/openviking-chat-recall/`.
 
 ## Критерии успеха
@@ -27,11 +28,12 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
 - Детерминированный слой единолично владеет membership, exact count,
   first/latest и provenance. Эти evidence-поля не обязаны появляться в теле
   Wiki и сами по себе не доказывают, какая позиция актуальна.
-- Semantic claim отделён от source history: он содержит дистиллированное
-  знание, область применимости, lifecycle-status и source record IDs. Модель
-  может предложить status или supersession, но validator не принимает их без
-  адресуемой опоры; точный минимальный contract закрывает representative
-  probe до общей writer-волны.
+- Semantic claim отделён от source history: canonical claim/evidence запись
+  содержит дистиллированное знание, область применимости, lifecycle-status и
+  source record IDs. Wiki печатает только итоговое знание и адреса исходных
+  цитат; она не ссылается на project knowledge corpus и не дополняет слова
+  владельца чтением упомянутых им файлов. Модель может предложить status или
+  supersession, но validator не принимает их без адресуемой опоры.
 - Смысловой compiler использует зафиксированный snapshot официального
   OpenViking LLM Wiki Skill для L2: `index.md`, `entity`, `concept` и только
   обоснованные `method`, `comparison`, `analysis`, `summary`. Пустые типы и
@@ -47,6 +49,14 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
   фиксация и полный путь изменения остаются в evidence manifest и holders;
   Wiki не пересказывает историю по умолчанию. Конфликт или неразрешённая
   актуальность остаются видимыми как status, а не сглаживаются в уверенный факт.
+- При новом frozen snapshot Wiki пересобирается как replaceable projection:
+  новые цитаты могут заменить итоговое знание, а superseded формулировка не
+  остаётся рядом ради истории. История решения принадлежит только holders и
+  evidence manifest; append-only lifecycle для Wiki запрещён.
+- Видимый текст Wiki после удаления дублей и истории должен быть примерно в
+  5–10 раз меньше исходного текста цитат. Hard ceiling — `wiki/source ≤ 0.20`;
+  целевой band — `0.10–0.20`. Результат ниже `0.10` не дополняется filler-ом,
+  но требует отдельной проверки полноты знаний.
 - Build возобновляется после сбоя, повторный запуск на том же snapshot
   воспроизводим, секреты и полный приватный corpus не попадают в receipts или
   внешнюю публикацию.
@@ -58,8 +68,8 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
   маршрутизироваться к holders; confident ответ на no-gold или superseded claim
   как на current — hard failure.
 - Полный backfill имеет inventory/coverage/build receipts и короткий agent
-  route: Wiki — для знаний; holders — для точных слов, истории, проверки
-  provenance и неразрешённой актуальности.
+  route: Wiki — для актуальных итоговых знаний; source-quote addresses — для
+  provenance; holders — для точных слов, истории и неразрешённой актуальности.
 - Только подтверждённые переносимые выводы для будущего cross-project compiler
   записываются в `observations/README.md`; локальная хроника и гипотезы туда не
   попадают.
@@ -80,7 +90,7 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
 | 1. Контракты | Frozen corpus map, distilled-claim seam, pinned Wiki Skill, pinned Context Layers/prompts, generation route, acceptance и privacy/recovery contracts не противоречат друг другу; supersession probe пройден |
 | 2. Compiler | Детерминированный pipeline, semantic generation, validators, resume state и receipts проходят узкие tests на representative sample |
 | 3. Full build | Весь frozen snapshot обработан; coverage manifest не содержит молчаливых пропусков |
-| 4. Normalize | Layered Wiki, каталог, cross-links, claim status и provenance прошли механические инварианты и выборочную ручную сверку |
+| 4. Normalize | Layered Wiki, каталог, internal links и source-quote provenance прошли механические инварианты; project-corpus links отсутствуют; compression ≤ 0.20 |
 | 5. Acceptance | Blind held-out сравнение подтвердило correctness и экономию чтения/context; agent route и rebuild handoff записаны |
 
 ## Подробная карта исполнения
@@ -93,6 +103,8 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
       → F1 frozen snapshot
       → F2 deterministic evidence
       → F3 stable semantic partitions
+      → C0 first 10-holder chronological changeset + Wiki checkpoint
+      → root verdict on serial fold topology
       → P-1 representative source-bound input lock
       → P0 representative end-to-end L2/L1/L0 ingestion
       → U0 matched final-route utility gate
@@ -110,6 +122,7 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
 | --- | --- | --- | --- | --- |
 | 5 | [wave-5-distilled-probe](modules/wave-5-distilled-probe.md) | frozen real records + locked five-case gold | принятый claim/currentness contract; не utility verdict | deterministic foundation |
 | 6 | [wave-6-snapshot-evidence](modules/wave-6-snapshot-evidence.md) | принятый semantic contract + explicit corpus commit | frozen source lock, records, coverage input, stable partitions | representative input lock |
+| 6c | [wave-6c-chronological-serial-pilot](modules/wave-6c-chronological-serial-pilot.md) | F1–F3 + owner-authorized 10-holder batch | typed changeset + first candidate Wiki checkpoint + serial-route verdict | решение, заменяет ли serial fold прежний parallel semantic plan |
 | 6b | [wave-6b-representative-ingestion-utility](modules/wave-6b-representative-ingestion-utility.md) | F1–F3 foundation → source-bound input lock; accepted provider gate → final L2/L1/L0 route | prepared input lock, затем matched correctness/currentness/efficiency verdict | full semantic generation только после utility PASS |
 | 7 | [wave-7-semantic-claims](modules/wave-7-semantic-claims.md) | Wave 6b PASS + partitions + pinned Wiki prompt tuple | canonical claims, rejections, lifecycle evidence | L2 writers |
 | 8 | [wave-8-l2-library](modules/wave-8-l2-library.md) | accepted canonical claims | typed L2 pages, catalog, validated index | context layers |
@@ -135,6 +148,9 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
 - Модель предлагает grouping, claim и lifecycle candidate. Детерминированный
   слой владеет source membership/provenance; отдельный validator принимает или
   отклоняет semantic output.
+- Semantic writer получает только frozen quote records, prompt/schema и
+  evidence IDs. Упомянутые в цитатах project files, docs, code и иные знания
+  проекта не входят в allowed read surface и не проверяются ради Wiki.
 - Любой record frozen snapshot имеет ровно один coverage-disposition:
   used, rejected или skipped с причиной. Silent skip запрещен.
 - Resume разрешен только для stage со статусом pass и совпавшими input,
@@ -161,6 +177,10 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
 - LLM output с отсутствующим record ID, выдуманным provenance, изменённым
   evidence-полем, неподдержанным claim или superseded claim, выданным за
   current, отклоняется, а не чинится молча.
+- Wiki page с project-knowledge link, содержанием из прочитанного вне frozen
+  quote input или append-only остатком superseded знания отклоняется.
+- Full build с `wiki/source > 0.20` не принимается; пустая или чрезмерно
+  сжатая Wiki не получает PASS только по ratio — полноту доказывает blind audit.
 - Если official prompt/IA нельзя использовать с проверяемым provenance или
   приемлемой лицензионной границей, работа останавливается перед semantic
   generator.
@@ -180,6 +200,9 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
 - Fan-out ограничен реальными независимыми batch-зонами после заморозки единой
   логики. Системный дизайн не дробится между Luna-тредами; их зона —
   повторяемый quote-to-Wiki rewrite по готовому contract.
+- Первый chronological probe выполняет одна Luna на десяти полных holders.
+  Parallel part writers и merge не получают дальнейшего permission, пока root
+  не сравнит typed serial changeset с прежним plan route.
 - Подробные карточки вытесняют хранение остатка в чате, но не создают второй
   plan owner: task.md владеет outcome и зависимостями, status.md — живым Next,
   modules — неизменяемыми заданиями конкретного момента.
@@ -192,6 +215,12 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
 - Поздняя коррекция в том же holder-е уточняет роли: Luna Max предназначена
   только для понятного повторяемого пересказа цитат в Wiki; связанную систему
   проектирует root, а тяжёлую стратегию и архитектуру чаще проверяет Opus.
+- Там же владелец уточнил центральный Wiki contract: страницы ссылаются на
+  исходные цитаты, но не на project knowledge corpus и не проверяют упомянутые
+  файлы; Wiki — не второй канон, а сжатая в 5–10 раз форма итоговых знаний.
+- Последующая запись того же holder-а задаёт lifecycle: новые цитаты полностью
+  переписывают затронутое знание; Wiki хранит только актуальный итог без
+  истории, которая остаётся в chat-recall.
 - Там же позднее уточнена центральная граница: Wiki не удаляет цитаты и хранит
   дистиллированные знания и факты, а не историю того, как к ним пришли.
 - Там же владелец потребовал сохранять самые важные наблюдения отдельно как

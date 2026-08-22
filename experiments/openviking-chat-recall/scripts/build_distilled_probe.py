@@ -39,6 +39,7 @@ FORBIDDEN_DEFAULT_MARKERS = (
     "## Evolution",
     "Evolution:",
 )
+MARKDOWN_LINK_RE = re.compile(r"\[[^\]\n]+\]\(([^)\n]+)\)")
 
 
 def parse_args() -> argparse.Namespace:
@@ -419,7 +420,9 @@ def render_input(bundle: dict[str, Any]) -> dict[str, str]:
 
 
 def render_claim(claim: dict[str, Any]) -> str:
-    source_lines = "\n".join(f"- `{record_id}`" for record_id in claim["source_record_ids"])
+    source_lines = "\n".join(
+        f"- `{record_id}`" for record_id in claim["source_record_ids"]
+    )
     return "\n".join(
         [
             "---",
@@ -438,7 +441,7 @@ def render_claim(claim: dict[str, Any]) -> str:
             "",
             claim["applicability"],
             "",
-            "## Evidence addresses",
+            "## Source quotes",
             "",
             source_lines,
             "",
@@ -491,6 +494,37 @@ def validate_default_wiki(
         if quote and quote in body:
             raise ProbeError(f"default Wiki contains exact source quote {record['record_id']}")
     checks.append({"id": "exact-source-quotes-absent", "status": "pass"})
+    for claim in bundle["claims"]:
+        if claim["lifecycle_status"] not in DEFAULT_WIKI_STATUSES:
+            continue
+        page_path = f"concept/{claim['slug']}.md"
+        page = wiki_files.get(page_path, "")
+        if "## Source quotes" not in page:
+            raise ProbeError(f"claim {claim['id']}: source quote section is missing")
+        expected_ids = set(claim["source_record_ids"])
+        for record_id in bundle["records"]:
+            present = record_id in page
+            if present != (record_id in expected_ids):
+                raise ProbeError(
+                    f"claim {claim['id']}: source quote address membership differs"
+                )
+    checks.append({"id": "source-quote-provenance-exact", "status": "pass"})
+    for relative_path, content in wiki_files.items():
+        if Path(relative_path).suffix != ".md":
+            continue
+        for target in MARKDOWN_LINK_RE.findall(content):
+            path_target = target.split("#", 1)[0]
+            internal_target = Path(relative_path).parent / path_target
+            if path_target.startswith("_ops/chat-recall/"):
+                continue
+            if "_ops/chat-recall/" in path_target and ".." in Path(path_target).parts:
+                continue
+            if internal_target.as_posix() in wiki_files:
+                continue
+            raise ProbeError(
+                f"default Wiki contains forbidden project-knowledge link {target!r}"
+            )
+    checks.append({"id": "project-knowledge-links-absent", "status": "pass"})
     for marker in FORBIDDEN_DEFAULT_MARKERS:
         if marker in body:
             raise ProbeError(f"default Wiki contains forbidden history marker {marker!r}")
@@ -629,6 +663,16 @@ def receipt_payload(
         for claim in bundle["claims"]
         if claim["lifecycle_status"] == "contested"
     ]
+    claim_provenance = [
+        {
+            "claim_id": claim["id"],
+            "lifecycle_status": claim["lifecycle_status"],
+            "source_record_ids": claim["source_record_ids"],
+            "conflict_source_record_ids": claim["conflict_source_record_ids"],
+            "superseded_by": claim["superseded_by"],
+        }
+        for claim in bundle["claims"]
+    ]
     return {
         "schema": RECEIPT_SCHEMA,
         "status": "candidate",
@@ -644,6 +688,7 @@ def receipt_payload(
             "claim_count": len(bundle["claims"]),
             "rendered_claim_ids": rendered,
             "suppressed_claim_ids": suppressed,
+            "claim_provenance": claim_provenance,
             "contested_membership": contested_membership,
             "no_gold_controls": bundle["no_gold_controls"],
         },
@@ -684,6 +729,7 @@ def render_receipt_markdown(payload: dict[str, Any]) -> str:
         "",
         "- Owner: `scripts/build_distilled_probe.py`; manifest owns frozen membership and explicit claim status; tests own the boundary proof.",
         "- Chosen seam: one stdlib compiler with `manifest → evidence validation → input/Wiki projection`; a multi-module package was rejected because the probe has one writer and no evidenced independent runtime seam.",
+        "- Wiki pages contain distilled knowledge plus exact source-quote addresses; claim-to-record provenance is also preserved in the machine-readable receipt, while project-knowledge links are forbidden.",
         "- Applied project principles: Product Frame P-001/P-003/P-004/P-005/P-008; this keeps the derived experiment separate from immutable holders, makes the evidence chain visible, and leaves semantic self-report unaccepted.",
         "",
         "## Deterministic validation",
@@ -709,6 +755,7 @@ def render_receipt_markdown(payload: dict[str, Any]) -> str:
             "- dangling `superseded_by` fails closed;\n"
             "- contested claims require at least two distinct in-bundle conflict addresses; semantic opposition is not asserted;\n"
             "- exact source quotes and count/first/latest/evolution markers cannot enter default Wiki;\n"
+            "- source-quote address membership must match the evidence manifest exactly, while project-knowledge links are forbidden;\n"
             "- non-current/uncertain claims and no-gold controls cannot enter default Wiki;\n"
             "- deterministic rebuild must be byte-identical.",
             "",

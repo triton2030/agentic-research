@@ -14,7 +14,7 @@ Retrieval subagents locate useful holder files, while the main agent reads selec
 
 The recall/search stage before a claim is accepted; it is a retrieval boundary, not semantic acceptance.
 
-## Evidence addresses
+## Source quotes
 
 - `_ops/chat-recall/2026-08-20-181330-claude-a7539038.md:24`
 - `_ops/chat-recall/2026-08-20-181330-claude-a7539038.md:27`

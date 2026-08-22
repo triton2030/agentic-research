@@ -313,6 +313,74 @@ class DistilledProbeTests(unittest.TestCase):
         for control in bundle["no_gold_controls"]:
             self.assertNotIn(control["statement"], body)
 
+    def test_claim_provenance_links_only_to_source_quotes(self) -> None:
+        manifest = build_distilled_probe.load_manifest(MANIFEST_PATH)
+        bundle = build_distilled_probe.validate_manifest(
+            manifest, EXPERIMENT.parents[1]
+        )
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            payload = build_distilled_probe.build(
+                MANIFEST_PATH,
+                root / "input",
+                root / "wiki",
+                EXPERIMENT.parents[1],
+            )
+            wiki_body = "\n".join(
+                path.read_text(encoding="utf-8")
+                for path in (root / "wiki").rglob("*.md")
+            )
+            wiki_pages = {
+                claim["id"]: (
+                    root / "wiki/concept" / f"{claim['slug']}.md"
+                ).read_text(encoding="utf-8")
+                for claim in bundle["claims"]
+                if claim["lifecycle_status"]
+                in build_distilled_probe.DEFAULT_WIKI_STATUSES
+            }
+
+        expected = [
+            {
+                "claim_id": claim["id"],
+                "lifecycle_status": claim["lifecycle_status"],
+                "source_record_ids": claim["source_record_ids"],
+                "conflict_source_record_ids": claim["conflict_source_record_ids"],
+                "superseded_by": claim["superseded_by"],
+            }
+            for claim in bundle["claims"]
+        ]
+        self.assertEqual(payload["evidence"]["claim_provenance"], expected)
+        for claim in bundle["claims"]:
+            if claim["lifecycle_status"] not in build_distilled_probe.DEFAULT_WIKI_STATUSES:
+                continue
+            page = wiki_pages[claim["id"]]
+            self.assertIn("## Source quotes", page)
+            for record_id in claim["source_record_ids"]:
+                self.assertIn(record_id, page)
+            for other_id in bundle["records"]:
+                if other_id not in claim["source_record_ids"]:
+                    self.assertNotIn(other_id, page)
+        self.assertIn("_ops/chat-recall/", wiki_body)
+
+    def test_project_knowledge_links_fail_closed(self) -> None:
+        manifest = build_distilled_probe.load_manifest(MANIFEST_PATH)
+        linked = copy.deepcopy(manifest)
+        linked["claims"][0]["statement"] += " [Project canon](../../_ops/GOAL.md)."
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            manifest_path = root / "manifest.json"
+            self._write_manifest(manifest_path, linked)
+            with self.assertRaisesRegex(
+                build_distilled_probe.ProbeError,
+                "forbidden project-knowledge link",
+            ):
+                build_distilled_probe.build(
+                    manifest_path,
+                    root / "input",
+                    root / "wiki",
+                    EXPERIMENT.parents[1],
+                )
+
     def test_rebuild_is_byte_identical(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)

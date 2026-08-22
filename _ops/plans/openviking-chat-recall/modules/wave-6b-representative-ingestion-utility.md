@@ -96,7 +96,7 @@ snapshot, неприкреплённая prompt-версия или utility resu
   provider `UNKNOWN` явно пишет `semantic_execution=blocked`.
 - Реальный representative L2 tree, построенные из него bottom-up L1 overviews
   и L0 abstracts в dedicated artifact root; для каждого слоя есть topology,
-  counts и digest.
+  counts, digest и visible-text compression ratio против source quotes.
 - Десять case-isolated packets: пять v1 cases × Wiki/holder arm, каждый с
   measured final route и физическими cost/evidence receipts.
 - Unchanged-gold proof, isolation/privacy proof, nested-falsifier receipt и
@@ -164,8 +164,10 @@ snapshot, неприкреплённая prompt-версия или utility resu
    выполнение останавливается до шага 1.
 1. После accepted provider/privacy PASS на frozen representative subset
    выполнить настоящий L2 semantic build по
-   pinned Wiki Skill/IA. Generated pages должны быть source-backed и
-   адресуемыми, но receipt не должен копировать private quotes.
+   pinned Wiki Skill/IA. Writer видит только frozen quote records и не читает
+   упомянутые в них project files. Generated pages адресуют source quotes и
+   internal Wiki pages, но не project knowledge corpus; receipt не копирует
+   private quotes.
 2. Из полученного L2 дерева выполнить реальный bottom-up build: сначала L1
    overviews, затем L0 abstracts для тех же semantic directories. Sidecars
    строятся из фактически созданного дерева, а не из статического validator
@@ -197,6 +199,9 @@ snapshot, неприкреплённая prompt-версия или utility resu
   no-gold вопрос abstain-ит или следует за frozen route expectation.
   Historical/no-gold confident answer из Wiki, invented provenance,
   superseded claim как current или scope-overclaim — hard `FAIL`.
+- **Compression without loss.** Visible representative Wiki text составляет
+  не более 20% source quote text; ожидаемый band — 10–20%. Ratio ниже 10%
+  требует отдельного completeness PASS и не разрешает пустой output.
 - **Measured final route.** Вердикт опирается на десять fresh runs и их
   receipts, а не на длину файлов, static validator, byte parity, prompt
   inspection или writer self-report.
@@ -225,6 +230,9 @@ snapshot, неприкреплённая prompt-версия или utility resu
 - Wiki/holder arm оценивается по чужому budget или обязательное поле нельзя
   получить из его allowed surface;
 - historical/no-gold/superseded route нарушен, даже если средний score вырос;
+- Wiki содержит link на project knowledge file, claim из прочитанного вне
+  frozen quote input, chronology/evolution prose или superseded остаток;
+- `wiki/source > 0.20`, либо ratio ниже 0.10 скрывает missing knowledge;
 - context-token/read economy достигается ценой >10% regression в другом
   material cost dimension, скрытой orchestration latency или отсутствующего
   receipt;
@@ -242,7 +250,7 @@ Return обязан содержать:
 - input-lock state, source/record/subset counts и digests, Wave 6 lock, v1 gold,
   prompt/IA/model/config/code и provider-canary receipts;
 - L2/L1/L0 output topology, counts/digests и proof, что sidecars построены
-  bottom-up из фактического L2;
+  bottom-up из фактического L2; source/Wiki text counts и compression ratio;
 - десять case/arm packets с route, allowed surface, typed reads,
   evidence reads, context/total tokens, reader elapsed, retries/status,
   cited source IDs, gaps, hard-failure flags и grader result;

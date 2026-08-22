@@ -3,8 +3,10 @@ kind: module-card
 wave: 9
 state: planned
 role: bottom-up-context-layer-writers
-model: gpt-5.6-luna
-thinking: max
+system-owner: root
+strategy-review: claude-opus-5
+batch-model: gpt-5.6-luna
+batch-thinking: max
 ---
 
 # Модуль — bottom-up L1 overviews и L0 abstracts
@@ -33,6 +35,8 @@ parent L1 с child L0 → parent L0. Parent L1 не строится до termin
 - `scripts/build_l1_overviews.py`, `tests/test_l1_overviews.py` — один shared
   code owner; semantic writers получают по одной directory/depth zone.
 - Каждый writer пишет только `.overview.md` внутри своей zone и receipt.
+- Leaf/per-part L1 может быть повторяемым Luna batch; L1, объединяющий несколько
+  `part-*` или root, пишет root и проверяет Opus.
 - `scripts/build_l0_abstracts.py`, `tests/test_l0_abstracts.py` — отдельный
   deterministic owner; пишет только `.abstract.md`.
 - Root пишет layer manifest после завершения всех depths.
@@ -45,6 +49,8 @@ parent L1 с child L0 → parent L0. Parent L1 не строится до termin
   сама будущая L1/L0 не входит в собственный prompt.
 - L1 содержит Brief Description и навигационные distinctions, достаточные для
   выбора следующего чтения, но не пытается заменить L2 evidence.
+- L1/L0 ссылаются только на internal Wiki children. Source-quote provenance
+  остаётся в L2; project knowledge links и enrichment запрещены.
 - L0 механически извлекается только из Brief Description принятого L1; без
   отдельного LLM-вызова и новых фактов.
 - Одна directory/depth zone имеет одного writer. Self-cycle и двойной owner
@@ -56,6 +62,7 @@ parent L1 с child L0 → parent L0. Parent L1 не строится до termin
 - self-inclusion/cycle и parent-before-child fail;
 - L0, не совпадающий с Brief Description, fail;
 - L1 source/link, отсутствующий в L2 catalog, fail;
+- link на project corpus или факт, отсутствующий в accepted L2, fail;
 - delete-and-rebuild с теми же digests byte-identical;
 - synthetic directory fixture показывает, что агент выбирает правильного child
   по L0/L1 без чтения всей ветви.

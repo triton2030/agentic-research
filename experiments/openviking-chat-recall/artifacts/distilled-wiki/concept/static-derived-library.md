@@ -14,7 +14,7 @@ The distilled Wiki is a rebuildable knowledge library compiled from a static sna
 
 Batch conversion of the existing chat-recall corpus; it does not authorize realtime capture or source-holder mutation.
 
-## Evidence addresses
+## Source quotes
 
 - `_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:21`
 - `_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:25`

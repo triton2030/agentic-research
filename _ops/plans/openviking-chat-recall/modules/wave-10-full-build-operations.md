@@ -3,8 +3,8 @@ kind: module-card
 wave: 10
 state: planned
 role: build-finalizer-and-operations-auditors
-model: gpt-5.6-luna
-thinking: max
+system-owner: root
+acceptance-review: claude-opus-5
 ---
 
 # Модуль — full-build operations, coverage и reproducibility
@@ -31,7 +31,8 @@ coverage, crash recovery, delete-rebuild identity и безопасные privat
 - Root единолично пишет `artifacts/full-build/build-receipt.json` и frozen
   candidate pointer после независимых returns.
 
-Параллельные Luna Max auditors read-only; каждый запускает nested falsifier.
+Повторяемые mechanical probes могут исполняться Luna Max, но system verdict и
+independent falsifier принадлежат root/Opus.
 
 ## Run-state contract
 
@@ -41,6 +42,11 @@ coverage, crash recovery, delete-rebuild identity и безопасные privat
   stage и всех descendants.
 - Crash до atomic publish не оставляет stage `pass` или частично принятый shared
   manifest.
+- Новый frozen snapshot пересобирает affected semantic outputs и атомарно
+  заменяет Wiki projection; append-only накопление старых страниц запрещено.
+- Stale/superseded page исчезает из candidate Wiki, но остаётся трассируемой в
+  holders/evidence; unchanged page может переиспользоваться только при полном
+  digest match.
 - Generated cleanup читает ownership marker, отклоняет traversal/symlink escape
   и никогда не удаляет внешний или unrelated sentinel.
 - Receipts не содержат quotes, corpus dumps, API keys или private transcripts.
@@ -50,7 +56,9 @@ coverage, crash recovery, delete-rebuild identity и безопасные privat
 Для каждого frozen record существует ровно одна disposition: `used`, `rejected`
 или `skipped` с машинно читаемой причиной. Объединение равно all records;
 пересечения, missing IDs, duplicates и silent skips пусты. Derived claims/pages
-ссылаются только на frozen membership.
+ссылаются только на frozen quote membership и internal Wiki. Coverage receipt
+публикует source quote text, visible Wiki text и compression ratio; hard ceiling
+`wiki/source ≤ 0.20`.
 
 ## Falsifying checks
 
@@ -60,6 +68,7 @@ coverage, crash recovery, delete-rebuild identity и безопасные privat
   классифицирует допустимую semantic nondeterminism;
 - adversarial path traversal и symlink sentinel survive;
 - secret/private-content scan receipts PASS;
+- project-corpus link/access scan, stale-page scan и compression gate PASS;
 - coverage set equations PASS на полном snapshot, не sample.
 
 ## Budget

@@ -3,8 +3,10 @@ kind: module-card
 wave: 12
 state: planned
 role: fresh-agent-route-and-completion-auditor
-model: gpt-5.6-luna
-thinking: max
+system-owner: root
+fresh-reader-model: gpt-5.6-luna
+fresh-reader-thinking: max
+completion-auditor: claude-opus-5
 ---
 
 # Модуль — fresh-agent route, rebuild handoff и completion audit
@@ -20,8 +22,9 @@ thinking: max
 
 - Текущее дистиллированное знание: L0 → L1 → нужные L2 pages.
 - Exact words, recurrence count, first/latest и chronology: immutable holders.
-- Provenance, contested/scope-dependent знание: Wiki pointer плюс полный holder
-  и later-check route.
+- Provenance: source-quote addresses в L2 плюс полный holder/later-check route.
+- Упомянутые в Wiki project files не являются knowledge source и не открываются
+  без отдельного текущего project-canon вопроса.
 - No-gold, unresolved conflict или неполная coverage: abstain/UNKNOWN.
 - Если Wave 11 FAIL, holders остаются default; Wiki помечается rejected/candidate
   с сохранённым evidence, а не продвигается молча.
@@ -31,17 +34,19 @@ thinking: max
 - Один handoff writer пишет короткую agent route и exact rebuild/runbook в
   experiment-owned docs; он не меняет global skill или root instruction.
 - Fresh Luna Max agent в clean session выполняет locked tasks только по handoff.
-- Независимый completion auditor read-only раскладывает все критерии task.md на
+- Независимый Opus completion auditor read-only раскладывает все критерии task.md на
   PASS/FAIL/UNKNOWN и не исправляет результат.
 - Root один обновляет task/status, observations и final verdict после returns.
 
-Top-level writer и auditor обязаны делегировать nested checks navigation и
-rebuild recovery соответственно.
+Root отдельно запускает bounded navigation и rebuild recovery probes; их
+self-report не заменяет Opus acceptance matrix.
 
 ## Fresh-session checks
 
 - новый agent без истории находит current knowledge через L0/L1/L2;
 - на exact/history вопрос сам маршрутизируется к holder, а не пересказывает Wiki;
+- не использует project corpus для дополнения ответа на вопрос о remembered
+  owner knowledge и не возвращает superseded Wiki content;
 - rebuild из frozen commit выполняется одной записанной командой и совпадает с
   accepted digests/declared semantic nondeterminism;
 - сломанный digest, missing provider gate или unresolved claim fail closed;

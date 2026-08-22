@@ -12,11 +12,14 @@ Status: `candidate` — deterministic evidence passed; semantic acceptance is ex
 
 - Owner: `scripts/build_distilled_probe.py`; manifest owns frozen membership and explicit claim status; tests own the boundary proof.
 - Chosen seam: one stdlib compiler with `manifest → evidence validation → input/Wiki projection`; a multi-module package was rejected because the probe has one writer and no evidenced independent runtime seam.
+- Wiki pages contain distilled knowledge plus exact source-quote addresses; claim-to-record provenance is also preserved in the machine-readable receipt, while project-knowledge links are forbidden.
 - Applied project principles: Product Frame P-001/P-003/P-004/P-005/P-008; this keeps the derived experiment separate from immutable holders, makes the evidence chain visible, and leaves semantic self-report unaccepted.
 
 ## Deterministic validation
 
 - `exact-source-quotes-absent`: `pass`
+- `source-quote-provenance-exact`: `pass`
+- `project-knowledge-links-absent`: `pass`
 - `history-fields-absent`: `pass`
 - `lifecycle-filter-is-explicit`: `pass`
 - `contested-membership-structure`: `pass`
@@ -38,6 +41,7 @@ Status: `candidate` — deterministic evidence passed; semantic acceptance is ex
 - dangling `superseded_by` fails closed;
 - contested claims require at least two distinct in-bundle conflict addresses; semantic opposition is not asserted;
 - exact source quotes and count/first/latest/evolution markers cannot enter default Wiki;
+- source-quote address membership must match the evidence manifest exactly, while project-knowledge links are forbidden;
 - non-current/uncertain claims and no-gold controls cannot enter default Wiki;
 - deterministic rebuild must be byte-identical.
 

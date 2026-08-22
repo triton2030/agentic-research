@@ -3,8 +3,9 @@ kind: module-card
 wave: 11
 state: planned
 role: blind-reader-and-matched-comparator
-model: gpt-5.6-luna
-thinking: max
+reader-model: gpt-5.6-luna
+reader-thinking: max
+grader-model: claude-opus-5
 ---
 
 # Модуль — blind acceptance и matched Wiki-vs-holders comparator
@@ -37,10 +38,10 @@ currentness, provenance, calibration и стоимости чтения.
 - `scripts/run_blind_acceptance.py`, `tests/test_blind_acceptance.py` — один
   harness owner.
 - Separate Luna Max Wiki readers и holder readers пишут disjoint arm receipts.
-- Graders владеют case verdicts, не arm writers.
+- Read-only Opus graders владеют case verdicts, не arm writers.
 - Root один пишет `artifacts/full-build/acceptance/route-verdict.json`.
 
-Каждый top-level acceptance owner запускает nested falsifier; missing nested
+Один independent Opus falsifier проверяет isolation и aggregation; missing
 return помечается UNKNOWN, а не заменяется self-report.
 
 ## Metrics
@@ -54,6 +55,8 @@ owner-approved business facts:
 - total Wiki не хуже holders более чем на 5 percentage points;
 - Wiki улучшает не менее чем на 25% median tokens, elapsed time или evidence
   reads без ухудшения другой material cost dimension более чем на 10%.
+- Visible Wiki/source quote text ratio не выше 0.20; band 0.10–0.20 ожидаем,
+  но ratio ниже 0.10 принимается только при отдельном completeness PASS.
 
 ## Hard failures
 
@@ -62,6 +65,9 @@ owner-approved business facts:
 - answer зависит от candidate Wiki при создании gold;
 - arm configurations различаются или receipts не позволяют matched comparison;
 - privacy leak, silent skip либо material UNKNOWN.
+- ответ опирается на project knowledge file, которого не было в quote input;
+- Wiki сохраняет superseded решение рядом с актуальным или превращает change
+  history в default knowledge.
 
 ## Receipts
 

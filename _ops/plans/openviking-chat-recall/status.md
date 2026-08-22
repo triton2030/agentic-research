@@ -13,14 +13,13 @@ kind: status
 
 ## Next
 
-Root строит только source-bound Wave 6b input-lock из accepted F1–F3: два
-полных holder-а, 24 `used` records, 0 diagnostics, membership/digests против
-frozen records, partitions и semantic gold. Opus проверяет системную границу;
-Luna не участвует до замороженного повторяемого quote-to-Wiki batch. Output —
-`representative-utility/input-lock.json` со статусом `prepared/blocked`, без
-full quotes, semantic claims, Wiki pages или provider call. F4-R1 rejected;
-semantic `L2 → L1 → L0` остаётся закрыт до нового accepted provider/privacy
-gate.
+Запустить owner-authorized Wave 6c probe: одна visible Luna Max получает первые
+10 полных frozen holders одним chronological batch — 32 `used` records, 0
+diagnostics — и пишет typed changeset плюс первый candidate Wiki checkpoint.
+Root проверяет exact coverage, source-quote provenance, отсутствие project
+corpus enrichment/history, semantic compression ≤ 0.20 и replay boundary.
+Parallel writers и следующий batch закрыты до этого verdict. Provider F4
+остаётся `UNKNOWN`; probe не является permission на full backfill.
 
 ## Вехи
 
@@ -46,6 +45,10 @@ gate.
 - Поздняя коррекция владельца сняла chronology-heavy Wiki: источники сохраняют
   историю, Wiki хранит дистиллированные знания. Route записан в
   modules/_returns/fresh-eyes-distilled-knowledge.md.
+- Последняя коррекция владельца уточнила topology и lifecycle: Wiki ссылается
+  на quotes, но не на project knowledge files; хранит только переписываемый
+  актуальный итог и ожидается в 5–10 раз меньше quote corpus. Holder —
+  `_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md`.
 - Acceptance lock интегрирован commit a77fc4c: пять cases и hard failures
   зафиксированы до принятия candidate Wiki.
 - Probe chain ae3bd56 → f2ca300 дал воспроизводимый frozen candidate;
@@ -188,6 +191,7 @@ provider repair снят с текущей траектории после Fresh
 | Волна | Результат | Dependency | State |
 | --- | --- | --- | --- |
 | 6 | frozen snapshot, deterministic records, stable partitions; provider gate separate | accepted Wave 5 semantic contract + explicit corpus commit | deterministic F1/F2/F3 PASS; provider F4 UNKNOWN; F4-R1 rejected |
+| 6c | first chronological serial changeset + candidate Wiki checkpoint | accepted F1–F3 + explicit owner authorization | batch-001 frozen; one Luna task ready to start |
 | 6b | representative input-lock, затем L2/L1/L0 + matched utility | F1–F3 for input-lock; accepted provider/privacy PASS for semantic execution | root-owned input-lock ready; Luna semantic batch blocked |
 | 7 | semantic candidates и canonical current claims | Wave 6b utility PASS | planned |
 | 8 | typed L2 pages, per-part validation и root catalog | Wave 7 pass | planned |

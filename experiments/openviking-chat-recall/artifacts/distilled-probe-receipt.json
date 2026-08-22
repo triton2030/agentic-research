@@ -6,6 +6,14 @@
         "status": "pass"
       },
       {
+        "id": "source-quote-provenance-exact",
+        "status": "pass"
+      },
+      {
+        "id": "project-knowledge-links-absent",
+        "status": "pass"
+      },
+      {
         "id": "history-fields-absent",
         "status": "pass"
       },
@@ -26,6 +34,65 @@
   },
   "evidence": {
     "claim_count": 6,
+    "claim_provenance": [
+      {
+        "claim_id": "static-derived-library",
+        "conflict_source_record_ids": [],
+        "lifecycle_status": "current",
+        "source_record_ids": [
+          "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:21",
+          "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:25"
+        ],
+        "superseded_by": null
+      },
+      {
+        "claim_id": "distilled-facts-not-history",
+        "conflict_source_record_ids": [],
+        "lifecycle_status": "current",
+        "source_record_ids": [
+          "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:33"
+        ],
+        "superseded_by": null
+      },
+      {
+        "claim_id": "retrieval-scout-boundary",
+        "conflict_source_record_ids": [],
+        "lifecycle_status": "current",
+        "source_record_ids": [
+          "_ops/chat-recall/2026-08-20-181330-claude-a7539038.md:24",
+          "_ops/chat-recall/2026-08-20-181330-claude-a7539038.md:27"
+        ],
+        "superseded_by": null
+      },
+      {
+        "claim_id": "wiki-language-route",
+        "conflict_source_record_ids": [],
+        "lifecycle_status": "uncertain",
+        "source_record_ids": [
+          "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:25"
+        ],
+        "superseded_by": null
+      },
+      {
+        "claim_id": "historical-wiki-evolution",
+        "conflict_source_record_ids": [],
+        "lifecycle_status": "non-current",
+        "source_record_ids": [
+          "_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:25"
+        ],
+        "superseded_by": "distilled-facts-not-history"
+      },
+      {
+        "claim_id": "subagents-read-and-summarize",
+        "conflict_source_record_ids": [],
+        "lifecycle_status": "non-current",
+        "source_record_ids": [
+          "_ops/chat-recall/2026-08-20-181330-claude-a7539038.md:21",
+          "_ops/chat-recall/2026-08-20-181330-claude-a7539038.md:24"
+        ],
+        "superseded_by": "retrieval-scout-boundary"
+      }
+    ],
     "contested_membership": [],
     "no_gold_controls": [
       {
