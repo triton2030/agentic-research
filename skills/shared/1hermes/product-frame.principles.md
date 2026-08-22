@@ -308,12 +308,12 @@ harness, чтобы она могла читать и редактировать
 отредактировать скил гермес».
 
 **Commitment.** `decision` — Ox Alpha вызывается существующим `1hermes` как
-явная замена runtime для роли Исполнителя: `stealth/ox-alpha` через `openrouter`,
+явная замена runtime для роли Исполнителя: `stealth/ox-alpha` через `nous`,
 reasoning `max`. Это не четвёртая роль, не default, не fallback и не новый
 рабочий target. P-007 частично вытеснен только в части закрытого списка моделей.
 
 **Влияет на.** Trigger description и горячий путь обеих runtime-проекций;
-OpenRouter credential; exact runtime evidence. Для write-run разрешён только
+Nous Portal session; exact runtime evidence. Для write-run разрешён только
 Hermes-created worktree в repo с remote-tracking baseline. Чтобы Hermes 0.20.0
 не удалил его, действует узкое исключение из общего запрета commit: агент
 локально коммитит все порученные изменения и оставляет хотя бы один unpushed
@@ -323,8 +323,10 @@ commit; push запрещён. Без `refs/remotes/*` wrapper останавл�
 считать ли Ox Alpha новой ролью.
 
 **Источник.** 2026-08-22, Codex task `01a0271b`: live smoke доказал exact
-OpenRouter runtime; max read probe прочитал marker через `read_file`. Первый
-uncommitted write probe доказал удаление результата. После добавления
+OpenRouter runtime; max read probe прочитал marker через `read_file`. Поздняя
+коррекция владельца «А у самого Гермес не было разве альфа модели?» привела к
+проверке: session `20260822_080754_80bcf3` доказала exact Ox через `nous`.
+Первый uncommitted write probe доказал удаление результата. После добавления
 remote-tracking baseline Ox создала commit `a77bc05`; независимая проверка
 доказала один изменённый файл, clean worktree и неизменный base.
 
@@ -339,14 +341,17 @@ remote-tracking baseline Ox создала commit `a77bc05`; независим�
 ox-alpha потом что она как раз бесплатная, как только она станет платной надо
 сразу отклбючить её».
 
-**Commitment.** `decision` — перед каждым Ox Alpha run официальный live catalog
-OpenRouter должен вернуть ровно `stealth/ox-alpha`, обязательные `prompt` и
-`completion` и числовой ноль для каждой присутствующей компоненты `pricing`.
-Missing model, missing fields, malformed/unknown pricing, network failure или
-любое ненулевое значение отключают route fail-closed. Primary model/provider не
-подменяются и `--allow-fallback` не используется. Более раннее разрешение на
-metered OpenRouter сохраняется только для отдельно обозначенного auxiliary
-usage и не разрешает платную Ox Alpha.
+**Commitment.** `decision` — основной route идёт через `nous`. Перед каждым Ox
+Alpha run официальный live catalog фактического provider должен вернуть ровно
+`stealth/ox-alpha`, обязательные `prompt` и `completion` и числовой ноль для
+каждой присутствующей компоненты `pricing`. Missing model, missing fields,
+malformed/unknown pricing, network failure или любое ненулевое значение
+отключают route fail-closed до model call. Primary model/provider не подменяются,
+а `--allow-fallback` для Ox отвергается. Resume начинается только после
+session-evidence exact model/provider/reasoning и читаемого per-model usage;
+wrapper повторно передаёт сохранённый runtime и после call требует usage delta
+ровно у этой model/provider. Более раннее разрешение на metered OpenRouter не
+создаёт Ox fallback.
 
 **Влияет на.** Обязательный preflight в обеих runtime-проекциях и stop/gap при
 его провале.
@@ -355,8 +360,12 @@ usage и не разрешает платную Ox Alpha.
 достаточными при платном request/image/reasoning/cache; можно ли тихо сменить
 primary runtime.
 
-**Источник.** 2026-08-22, Codex task `01a0271b`; официальный OpenRouter models
-endpoint проверен live, текущие компоненты Ox Alpha равны нулю.
+**Источник.** 2026-08-22, Codex task `01a0271b`; официальные Nous и OpenRouter
+models endpoints проверены live, текущие компоненты Ox Alpha равны нулю. Владелец
+затем подтвердил полный Nous-primary контракт: «Да исправь всё как надо» и «Да».
+Session `20260822_084549_a41a3f` доказала fresh и resumed exact
+`stealth/ox-alpha`/`nous`/`max`; per-model usage содержит два main calls, без
+другой модели, estimated cost `0.0`.
 
-**Пересмотреть, если.** OpenRouter предоставит более сильную официальную
+**Пересмотреть, если.** Nous Portal предоставит более сильную официальную
 free-only гарантию, которую можно проверить до run без расхода.

@@ -2,7 +2,7 @@
 
 ## In
 
-- Explicit Ox Alpha trigger and exact OpenRouter runtime.
+- Explicit Ox Alpha trigger and exact Nous runtime.
 - Live free-only pricing gate before every run.
 - Existing Hermes harness for project reads and explicitly authorized writes.
 - Worktree persistence boundary and failed-result classification.
@@ -13,5 +13,6 @@
 - A new skill or a fourth role.
 - Changing Kimi, DeepSeek or Nous defaults.
 - Automatic fallback from Ox Alpha.
+- OpenRouter key or OpenRouter route in the hot path.
 - Global Hermes configuration changes.
 - A claim that Claude routing or committed live writer behavior is already proven.
