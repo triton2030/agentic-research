@@ -1,7 +1,7 @@
 ---
 kind: module-card
 wave: "6d"
-state: ready-for-draft
+state: accepted
 role: chronological-serial-wiki-writer
 system-owner: root
 batch-model: gpt-5.6-luna

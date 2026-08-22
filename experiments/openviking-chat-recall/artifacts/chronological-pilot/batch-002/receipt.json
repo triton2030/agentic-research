@@ -1,0 +1,351 @@
+{
+  "schema": "openviking-chat-recall/chronological-wiki-receipt.v2",
+  "status": "materialized-candidate",
+  "batch_id": "batch-002",
+  "previous_batch_id": "batch-001",
+  "source_snapshot": {
+    "commit": "6636b52",
+    "manifest_path": "experiments/openviking-chat-recall/artifacts/chronological-pilot/batch-002-input.json",
+    "manifest_sha256": "ce6eb52c593d562f01c30e9c4437a012642c3bb0b7176b03ee10bc23be0d2c10",
+    "changeset_path": "experiments/openviking-chat-recall/artifacts/chronological-pilot/batch-002/changeset.json",
+    "changeset_sha256": "da9421d9fb3d7904b20f7a557d9e534db342141ffb1887690e0870ba1b5a244f",
+    "corpus_commit": "6f98fcccdbf4b4de45ef787239ad101f70d106e2",
+    "evidence_commit": "ea569e2bf84377b17be9177065d5fb9172d26d39",
+    "evidence_records_sha256": "868ffff05768e4ebac6893436141e99493e0582b6738845350b2aa805e99d69d",
+    "time_boundary_utc": "2026-07-30T08:24:08.846000+00:00"
+  },
+  "tree_digest": {
+    "algorithm": "sha256 of sorted relative-UTF-8-path\\0file-sha256\\n entries",
+    "before": {
+      "wiki_root": "experiments/openviking-chat-recall/artifacts/chronological-pilot/current/wiki",
+      "sha256": "a2a34d647a63dbf872a69a6ad54665924c02ea7e0ba0c3f035de41642d69b2a9",
+      "entries": [
+        {
+          "path": "concept/dated-recall-currentness.md",
+          "sha256": "b3b661535156cfb6c2d7d9fc91e84432852a9b9b682eb91a93d5b91c80dadad0"
+        },
+        {
+          "path": "concept/embedding-similarity-boundary.md",
+          "sha256": "ea99e46091aaf0bbda850f9bd4f6dd84edf6ecb6a2f5c94a6e672f3b05fc11c8"
+        },
+        {
+          "path": "index.md",
+          "sha256": "c4973d29fbc1570d58a2571d1c9125a4dcb7c433ac35490f98d7910f6dab1f92"
+        },
+        {
+          "path": "method/capture-owner-quotes.md",
+          "sha256": "facb42852278a5f10269162f9db203f518d3835f464503b1202d365ba3d0b6c4"
+        },
+        {
+          "path": "method/global-skill-trigger.md",
+          "sha256": "a2d6a33d681ac1ea045bcbdd76cc1d1f3dba5577beb452b71475cb44ad7bfb52"
+        }
+      ]
+    },
+    "after": {
+      "wiki_root": "experiments/openviking-chat-recall/artifacts/chronological-pilot/current/wiki",
+      "sha256": "71bc5b917ffdef9feeb26831efe3cfbf801a8a1e36ef460ed14427390b8cbfe0",
+      "entries": [
+        {
+          "path": "concept/dated-recall-currentness.md",
+          "sha256": "b3b661535156cfb6c2d7d9fc91e84432852a9b9b682eb91a93d5b91c80dadad0"
+        },
+        {
+          "path": "concept/embedding-similarity-boundary.md",
+          "sha256": "ea99e46091aaf0bbda850f9bd4f6dd84edf6ecb6a2f5c94a6e672f3b05fc11c8"
+        },
+        {
+          "path": "concept/global-ops-structure.md",
+          "sha256": "a9b533b1df3a2ef54b1b9c747532c50a7afb895d6c3258e56163e34fcc4aadc5"
+        },
+        {
+          "path": "index.md",
+          "sha256": "e98cff4bbccf6dcffb5c648fbfb0f2ed9960d856e16d4a3535f349005c1077ed"
+        },
+        {
+          "path": "method/agent-work-routing-review.md",
+          "sha256": "66612c749a39bcf4fe9658bc406d5f45fe8cb2a4467a385a1023b93eb4cdb3bd"
+        },
+        {
+          "path": "method/capture-owner-quotes.md",
+          "sha256": "0a7f6013253cbbe8d71bbd96c9f883d3d8b7ece5529783f295f68f8b48c2f8d9"
+        },
+        {
+          "path": "method/global-skill-trigger.md",
+          "sha256": "abf95e8609ae1946fe88b8105886be47912b4d88933fc046f00bea641d89307f"
+        },
+        {
+          "path": "method/markdown-reading-trigger.md",
+          "sha256": "c78f22cde0641f4ecb0b4651a9311471e48c0f255e8f476739fd11d33d5209f7"
+        },
+        {
+          "path": "method/proactive-cross-runtime-recall.md",
+          "sha256": "bcf25a09e12e443d0eef0551c5be79e44525a76d9174bf64dd6a66b09fc8027d"
+        }
+      ]
+    }
+  },
+  "active_page_set": {
+    "count": 9,
+    "paths": [
+      "current/wiki/concept/dated-recall-currentness.md",
+      "current/wiki/concept/embedding-similarity-boundary.md",
+      "current/wiki/concept/global-ops-structure.md",
+      "current/wiki/index.md",
+      "current/wiki/method/agent-work-routing-review.md",
+      "current/wiki/method/capture-owner-quotes.md",
+      "current/wiki/method/global-skill-trigger.md",
+      "current/wiki/method/markdown-reading-trigger.md",
+      "current/wiki/method/proactive-cross-runtime-recall.md"
+    ],
+    "materialized_operations": [
+      {
+        "operation": "update",
+        "page_path": "current/wiki/method/capture-owner-quotes.md",
+        "proposed_sha256": "0a7f6013253cbbe8d71bbd96c9f883d3d8b7ece5529783f295f68f8b48c2f8d9",
+        "materialized_sha256": "0a7f6013253cbbe8d71bbd96c9f883d3d8b7ece5529783f295f68f8b48c2f8d9",
+        "utf8_bytes": 3513,
+        "equal": true
+      },
+      {
+        "operation": "update",
+        "page_path": "current/wiki/method/global-skill-trigger.md",
+        "proposed_sha256": "abf95e8609ae1946fe88b8105886be47912b4d88933fc046f00bea641d89307f",
+        "materialized_sha256": "abf95e8609ae1946fe88b8105886be47912b4d88933fc046f00bea641d89307f",
+        "utf8_bytes": 3522,
+        "equal": true
+      },
+      {
+        "operation": "create",
+        "page_path": "current/wiki/method/agent-work-routing-review.md",
+        "proposed_sha256": "66612c749a39bcf4fe9658bc406d5f45fe8cb2a4467a385a1023b93eb4cdb3bd",
+        "materialized_sha256": "66612c749a39bcf4fe9658bc406d5f45fe8cb2a4467a385a1023b93eb4cdb3bd",
+        "utf8_bytes": 2725,
+        "equal": true
+      },
+      {
+        "operation": "create",
+        "page_path": "current/wiki/concept/global-ops-structure.md",
+        "proposed_sha256": "a9b533b1df3a2ef54b1b9c747532c50a7afb895d6c3258e56163e34fcc4aadc5",
+        "materialized_sha256": "a9b533b1df3a2ef54b1b9c747532c50a7afb895d6c3258e56163e34fcc4aadc5",
+        "utf8_bytes": 1267,
+        "equal": true
+      },
+      {
+        "operation": "create",
+        "page_path": "current/wiki/method/markdown-reading-trigger.md",
+        "proposed_sha256": "c78f22cde0641f4ecb0b4651a9311471e48c0f255e8f476739fd11d33d5209f7",
+        "materialized_sha256": "c78f22cde0641f4ecb0b4651a9311471e48c0f255e8f476739fd11d33d5209f7",
+        "utf8_bytes": 2383,
+        "equal": true
+      },
+      {
+        "operation": "create",
+        "page_path": "current/wiki/method/proactive-cross-runtime-recall.md",
+        "proposed_sha256": "bcf25a09e12e443d0eef0551c5be79e44525a76d9174bf64dd6a66b09fc8027d",
+        "materialized_sha256": "bcf25a09e12e443d0eef0551c5be79e44525a76d9174bf64dd6a66b09fc8027d",
+        "utf8_bytes": 1836,
+        "equal": true
+      },
+      {
+        "operation": "update",
+        "page_path": "current/wiki/index.md",
+        "proposed_sha256": "e98cff4bbccf6dcffb5c648fbfb0f2ed9960d856e16d4a3535f349005c1077ed",
+        "materialized_sha256": "e98cff4bbccf6dcffb5c648fbfb0f2ed9960d856e16d4a3535f349005c1077ed",
+        "utf8_bytes": 3564,
+        "equal": true
+      }
+    ],
+    "unchanged_prior_pages": [
+      "current/wiki/concept/dated-recall-currentness.md",
+      "current/wiki/concept/embedding-similarity-boundary.md"
+    ]
+  },
+  "operations": {
+    "create": 4,
+    "update": 3,
+    "supersede": 0,
+    "no-change": 0,
+    "reject": 1,
+    "expected": "3 update / 4 create / 1 reject"
+  },
+  "coverage": {
+    "total": 20,
+    "used": 19,
+    "reject": 1,
+    "record_ids_in_manifest_order": [
+      "cr-69e4b2a1107aa87d",
+      "cr-56d5a0fea3f8c211",
+      "cr-1384a167b697c661",
+      "cr-5044980a6f72f496",
+      "cr-793aac3ae4d2446f",
+      "cr-e00a08e807845411",
+      "cr-27ba0242849b2beb",
+      "cr-36c802ebb12e71aa",
+      "cr-aea6e72370fe050b",
+      "cr-3318b31c74e8d6f5",
+      "cr-6c3e3f19419f9ff8",
+      "cr-6c4956400b562a02",
+      "cr-d9a49643a2410c2c",
+      "cr-1b76de9d3b65d037",
+      "cr-3fc4c7c231c6a8ba",
+      "cr-04c8ae0d0ff5aee5",
+      "cr-69fca2300b6be024",
+      "cr-962428c18fdc2067",
+      "cr-cf14b8e6d768aba3",
+      "cr-292d9e3017cb6d6d"
+    ]
+  },
+  "source_addresses": [
+    {
+      "record_id": "cr-69e4b2a1107aa87d",
+      "address": "_ops/chat-recall/2026-07-26-190811-codex-019f9ec1.md:15",
+      "source_path": "_ops/chat-recall/2026-07-26-190811-codex-019f9ec1.md",
+      "source_line": 15
+    },
+    {
+      "record_id": "cr-56d5a0fea3f8c211",
+      "address": "_ops/chat-recall/2026-07-27-175105-codex-019fa38f.md:15",
+      "source_path": "_ops/chat-recall/2026-07-27-175105-codex-019fa38f.md",
+      "source_line": 15
+    },
+    {
+      "record_id": "cr-1384a167b697c661",
+      "address": "_ops/chat-recall/2026-07-27-211730-claude-8e802437.md:18",
+      "source_path": "_ops/chat-recall/2026-07-27-211730-claude-8e802437.md",
+      "source_line": 18
+    },
+    {
+      "record_id": "cr-5044980a6f72f496",
+      "address": "_ops/chat-recall/2026-07-27-211730-claude-8e802437.md:19",
+      "source_path": "_ops/chat-recall/2026-07-27-211730-claude-8e802437.md",
+      "source_line": 19
+    },
+    {
+      "record_id": "cr-793aac3ae4d2446f",
+      "address": "_ops/chat-recall/2026-07-27-211730-claude-8e802437.md:20",
+      "source_path": "_ops/chat-recall/2026-07-27-211730-claude-8e802437.md",
+      "source_line": 20
+    },
+    {
+      "record_id": "cr-e00a08e807845411",
+      "address": "_ops/chat-recall/2026-07-27-211730-claude-8e802437.md:21",
+      "source_path": "_ops/chat-recall/2026-07-27-211730-claude-8e802437.md",
+      "source_line": 21
+    },
+    {
+      "record_id": "cr-27ba0242849b2beb",
+      "address": "_ops/chat-recall/2026-07-27-211730-claude-8e802437.md:22",
+      "source_path": "_ops/chat-recall/2026-07-27-211730-claude-8e802437.md",
+      "source_line": 22
+    },
+    {
+      "record_id": "cr-36c802ebb12e71aa",
+      "address": "_ops/chat-recall/2026-07-28-230352-codex-019fa9d9.md:15",
+      "source_path": "_ops/chat-recall/2026-07-28-230352-codex-019fa9d9.md",
+      "source_line": 15
+    },
+    {
+      "record_id": "cr-aea6e72370fe050b",
+      "address": "_ops/chat-recall/2026-07-29-000000-claude-a9f0f34a.md:17",
+      "source_path": "_ops/chat-recall/2026-07-29-000000-claude-a9f0f34a.md",
+      "source_line": 17
+    },
+    {
+      "record_id": "cr-3318b31c74e8d6f5",
+      "address": "_ops/chat-recall/2026-07-29-000000-claude-a9f0f34a.md:18",
+      "source_path": "_ops/chat-recall/2026-07-29-000000-claude-a9f0f34a.md",
+      "source_line": 18
+    },
+    {
+      "record_id": "cr-6c3e3f19419f9ff8",
+      "address": "_ops/chat-recall/2026-07-29-000000-claude-a9f0f34a.md:19",
+      "source_path": "_ops/chat-recall/2026-07-29-000000-claude-a9f0f34a.md",
+      "source_line": 19
+    },
+    {
+      "record_id": "cr-6c4956400b562a02",
+      "address": "_ops/chat-recall/2026-07-29-000000-claude-068dc13d.md:15",
+      "source_path": "_ops/chat-recall/2026-07-29-000000-claude-068dc13d.md",
+      "source_line": 15
+    },
+    {
+      "record_id": "cr-d9a49643a2410c2c",
+      "address": "_ops/chat-recall/2026-07-29-000000-claude-068dc13d.md:16",
+      "source_path": "_ops/chat-recall/2026-07-29-000000-claude-068dc13d.md",
+      "source_line": 16
+    },
+    {
+      "record_id": "cr-1b76de9d3b65d037",
+      "address": "_ops/chat-recall/2026-07-29-172153-claude-82e3e055.md:15",
+      "source_path": "_ops/chat-recall/2026-07-29-172153-claude-82e3e055.md",
+      "source_line": 15
+    },
+    {
+      "record_id": "cr-3fc4c7c231c6a8ba",
+      "address": "_ops/chat-recall/2026-07-29-201707-codex-019fae73.md:15",
+      "source_path": "_ops/chat-recall/2026-07-29-201707-codex-019fae73.md",
+      "source_line": 15
+    },
+    {
+      "record_id": "cr-04c8ae0d0ff5aee5",
+      "address": "_ops/chat-recall/2026-07-30-131247-codex-019fb215.md:15",
+      "source_path": "_ops/chat-recall/2026-07-30-131247-codex-019fb215.md",
+      "source_line": 15
+    },
+    {
+      "record_id": "cr-69fca2300b6be024",
+      "address": "_ops/chat-recall/2026-07-30-125453-codex-019fb200.md:17",
+      "source_path": "_ops/chat-recall/2026-07-30-125453-codex-019fb200.md",
+      "source_line": 17
+    },
+    {
+      "record_id": "cr-962428c18fdc2067",
+      "address": "_ops/chat-recall/2026-07-30-125453-codex-019fb200.md:18",
+      "source_path": "_ops/chat-recall/2026-07-30-125453-codex-019fb200.md",
+      "source_line": 18
+    },
+    {
+      "record_id": "cr-cf14b8e6d768aba3",
+      "address": "_ops/chat-recall/2026-07-30-125453-codex-019fb200.md:19",
+      "source_path": "_ops/chat-recall/2026-07-30-125453-codex-019fb200.md",
+      "source_line": 19
+    },
+    {
+      "record_id": "cr-292d9e3017cb6d6d",
+      "address": "_ops/chat-recall/2026-07-30-125453-codex-019fb200.md:20",
+      "source_path": "_ops/chat-recall/2026-07-30-125453-codex-019fb200.md",
+      "source_line": 20
+    }
+  ],
+  "execution": {
+    "model": "gpt-5.6-luna",
+    "thinking": "max",
+    "subagents": false,
+    "worktree": false,
+    "git_commit": false,
+    "git_push": false
+  },
+  "diagnostics": {
+    "measurement_scope": "batch-002 materialized candidate",
+    "evaluation": "diagnostic-only; no target or gate evaluated",
+    "source_quotes": {
+      "chars": 5263,
+      "utf8_bytes": 9533
+    },
+    "current_wiki": {
+      "chars": 15716,
+      "utf8_bytes": 21926
+    }
+  },
+  "gaps": [
+    "The single-database-versus-many-Markdown question has no settled answer in the twenty records and is rejected.",
+    "The model routing preference is dated evidence, not a current runtime guarantee.",
+    "The exact global Ops layout, owner, implementation status, and migration route are not established.",
+    "The Markdown tool ranking/order is requested but not specified by the records."
+  ],
+  "content_exclusions": {
+    "hidden_reasoning": true,
+    "full_quotes": true
+  }
+}

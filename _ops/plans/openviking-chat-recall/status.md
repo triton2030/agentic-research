@@ -13,16 +13,19 @@ kind: status
 
 ## Next
 
-Продолжить ту же видимую Codex-задачу
-`01a026fe-70a0-78d1-abad-12387192465e` на chronological batch-002: следующие
-10 полных frozen holders, 20 records, 0 diagnostics. Luna Max читает текущую
-Wiki из принятого batch-001 checkpoint и переписывает её in place; новая
-страница появляется для отдельного durable retrieval-вопроса, но число страниц
-и длина файлов не ограничены. Сначала writer возвращает полный draft changeset
-с claim→record evidence, затем материализует ровно эти bytes после root gate.
-Отдельный blind reader начинает с `index.md` и проверяет быстрый выбор страницы;
-writer self-check приёмкой не является. Batch-002 — bounded probe первого
-реального update/supersede, а не permission на весь оставшийся corpus.
+Batch-002 принят как второй chronological checkpoint. Текущая Wiki содержит
+9 Markdown-файлов на boundary `2026-07-30T08:24:08.846000+00:00`: 3 страницы
+обновлены, 4 созданы, один record честно rejected. Root и независимый auditor
+подтвердили 7/7 byte-exact materialization, before/after tree digests, 20/20
+coverage, 8 index routes и разрешённые source links. Blind reader ранее дал 4/4
+correct first choices без чтения Sources или non-Wiki файлов.
+
+Стоп перед batch-003: текущая авторизация покрывала только следующие 10 holders,
+а не весь corpus. Для продолжения root сначала создаёт следующий frozen manifest
+и отдельную карточку; затем возобновляет retained visible Luna Max task
+`01a026fe-70a0-78d1-abad-12387192465e`. Writer не архивирован, потому что это
+единственный последовательный накопительный writer; завершённый blind reader
+`01a02750-7aa1-7190-94b0-050dbd08e903` архивирован.
 
 ## Вехи
 
@@ -55,6 +58,11 @@ writer self-check приёмкой не является. Batch-002 — bounded 
   backfill. Главный semantic gate — claim-level source support без
   неподтверждённых фактов, causality, scope, status или recommendations. Holder —
   `_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md`.
+- Chronological batch-002 принят: 10 holders, 20 records, 3 update, 4 create,
+  1 reject; current Wiki — 9 pages. Root и independent auditor подтвердили
+  changeset replay, receipt/provenance, frozen source targets и index integrity.
+  Return —
+  [wave-6d chronological batch-002](modules/_returns/wave-6d-chronological-batch-002.md).
 - Acceptance lock интегрирован commit a77fc4c: пять cases и hard failures
   зафиксированы до принятия candidate Wiki.
 - Probe chain ae3bd56 → f2ca300 дал воспроизводимый frozen candidate;
@@ -198,8 +206,8 @@ provider repair снят с текущей траектории после Fresh
 | --- | --- | --- | --- |
 | 6 | frozen snapshot, deterministic records, stable partitions; provider gate separate | accepted Wave 5 semantic contract + explicit corpus commit | deterministic F1/F2/F3 PASS; provider F4 UNKNOWN; F4-R1 rejected |
 | 6c | first chronological serial changeset + candidate Wiki checkpoint | accepted F1–F3 + explicit owner authorization | owner-liked Wiki `6ab9cb9`; root structural/provenance PASS |
-| 6d | second chronological draft/materialization checkpoint | batch-001 accepted + owner-authorized next 10 holders | manifest/card preparation; same visible Luna task next; blind reader pending |
-| 6e | blind index-first findability | current Wiki frozen before batch-002 draft | four questions frozen; separate visible Luna task next |
+| 6d | second chronological draft/materialization checkpoint | batch-001 accepted + owner-authorized next 10 holders | accepted: 10 holders / 20 records; 3 update + 4 create + 1 reject; tree `71bc5b…` |
+| 6e | blind index-first findability | current Wiki frozen before batch-002 draft | PASS: [wave-6e return](modules/_returns/wave-6e-blind-findability.md); task `01a02750…` archived |
 | 6b | representative input-lock, затем L2/L1/L0 + matched utility | F1–F3 for input-lock; accepted provider/privacy PASS for semantic execution | root-owned input-lock ready; Luna semantic batch blocked |
 | 7 | semantic candidates и canonical current claims | Wave 6b utility PASS | planned |
 | 8 | typed L2 pages, per-part validation и root catalog | Wave 7 pass | planned |
