@@ -282,8 +282,8 @@ max|ultra`, выбран `max` как названный им максимум �
 
 **Commitment.** `decision`
 
-**Влияет на.** `DEFAULT_MAX_TURNS` и `DEFAULT_TIMEOUT_SEC` в `hermes_advisor.py`,
-`DEFAULT_MAX_TOKENS` в `hermes_raw.py`, раздел про бюджет в `SKILL.md`.
+**Влияет на.** `DEFAULT_MAX_TURNS` и `DEFAULT_TIMEOUT_SEC` в
+`hermes_advisor.py`, раздел про бюджет в `SKILL.md`.
 
 **Снимает.** Надо ли сужать brief ради экономии итераций; что делать при обрыве
 по потолку — теперь это сигнал зацикливания, а не нехватки бюджета.
@@ -291,8 +291,9 @@ max|ultra`, выбран `max` как названный им максимум �
 **Источник.** 2026-08-06, сессия 712763b3. Проверено живым прогоном:
 `max_turns: 2000` доезжает до session-записи и перебивает `agent.max_turns: 500`
 из конфига; `reasoning: max` принят и Kimi, и DeepSeek. Отдельный
-`delegation.max_iterations: 50` относится к внутренним субагентам Hermes,
-которые обёртка запрещает по умолчанию, и на наши прогоны не влияет.
+`delegation.max_iterations: 50` относится к внутренней декомпозиции Hermes и
+влияет только когда вызывающий агент открыл соответствующий delegation/toolset;
+метод и необходимость декомпозиции принадлежат skill и Hermes, не wrapper-у.
 
 **Пересмотреть, если.** Прогон начнёт регулярно упираться в 2000 — это
 зацикливание, а не потолок.
@@ -314,10 +315,11 @@ reasoning `max`. Это не четвёртая роль, не default, не fal
 
 **Влияет на.** Trigger description и горячий путь обеих runtime-проекций;
 Nous Portal session; exact runtime evidence. Для write-run разрешён только
-Hermes-created worktree в repo с remote-tracking baseline. Чтобы Hermes 0.20.0
-не удалил его, действует узкое исключение из общего запрета commit: агент
-локально коммитит все порученные изменения и оставляет хотя бы один unpushed
-commit; push запрещён. Без `refs/remotes/*` wrapper останавливает run заранее.
+wrapper-created exact Git worktree в repo с remote-tracking baseline. Ox
+получает `file,web` и не получает terminal; `HERMES_WRITE_SAFE_ROOT` закреплён
+за этим worktree. После принятого runtime и file delta wrapper сам создаёт
+локальный commit и оставляет его unpushed; push запрещён. Без `refs/remotes/*`
+wrapper останавливает run заранее.
 
 **Снимает.** Нужен ли отдельный skill; достаточно ли прямого вопроса без tools;
 считать ли Ox Alpha новой ролью.
@@ -330,8 +332,9 @@ OpenRouter runtime; max read probe прочитал marker через `read_file
 remote-tracking baseline Ox создала commit `a77bc05`; независимая проверка
 доказала один изменённый файл, clean worktree и неизменный base.
 
-**Пересмотреть, если.** Hermes изменит lifecycle worktree либо Ox Alpha
-перестанет поддерживать required tools/reasoning.
+**Пересмотреть, если.** Hermes даст машинно проверяемый native worktree route,
+который заранее раскрывает exact write root и сохраняет file-only delta без
+terminal, либо Ox Alpha перестанет поддерживать required tools/reasoning.
 
 ### P-014 · Ox Alpha допускается только пока полностью бесплатна
 
@@ -347,11 +350,13 @@ Alpha run официальный live catalog фактического provider 
 каждой присутствующей компоненты `pricing`. Missing model, missing fields,
 malformed/unknown pricing, network failure или любое ненулевое значение
 отключают route fail-closed до model call. Primary model/provider не подменяются,
-а `--allow-fallback` для Ox отвергается. Resume начинается только после
+`--ignore-user-config` не загружает пользовательский fallback-chain, а
+`--allow-fallback` для Ox отвергается. Resume начинается только после
 session-evidence exact model/provider/reasoning и читаемого per-model usage;
-wrapper повторно передаёт сохранённый runtime и после call требует usage delta
-ровно у этой model/provider. Более раннее разрешение на metered OpenRouter не
-создаёт Ox fallback.
+wrapper повторно передаёт сохранённый runtime и после fresh/resume требует
+usage delta exact `model/provider/base URL/billing mode` для main и всех
+auxiliary calls. Более раннее разрешение на metered OpenRouter не создаёт Ox
+fallback.
 
 **Влияет на.** Обязательный preflight в обеих runtime-проекциях и stop/gap при
 его провале.
@@ -369,3 +374,39 @@ Session `20260822_084549_a41a3f` доказала fresh и resumed exact
 
 **Пересмотреть, если.** Nous Portal предоставит более сильную официальную
 free-only гарантию, которую можно проверить до run без расхода.
+
+### P-015 · Код держит границы, агент — способ работы
+
+**Вопрос.** Должен ли wrapper программировать исследовательский маршрут Hermes
+или оставлять его вызываемому агенту?
+
+**Ответ владельца.** «Нам важно упростить весь код и помнить то, что этот скилл
+запускает другой агент, и переложить какие-то вещи из кода в его когнитивные
+способности, для того чтобы инструмент был гибкий, и мы своим программированием
+не ограничивали свободу агента, и в то же время количество кода у нас было
+меньшим, как я тебе сказал, в глобальной инструкции придерживаться минимального
+кода.»
+
+**Commitment.** `decision` — один product path запускает Hermes agent. Python
+оставляет только границы, которые требуют машинного enforcement или evidence:
+free-price admission, exact runtime, permissions, timeout/resume lock,
+safe-root/worktree и receipt. Методики выбора роли, подготовки brief,
+исследования, декомпозиции и проверки расхождений живут в skill и применяются
+агентом, а не кодируются в wrapper.
+
+**Влияет на.** Удалены custom health/state и raw-proxy слои; prompt injection
+wrapper-а сокращён до permission facts; native Hermes commands владеют static
+health. Skill владеет когнитивной методикой, wrapper не получает role-router
+или hard-coded research procedure.
+
+**Снимает.** Нужно ли переносить всю procedure skill-а в Python; считать ли
+разбиение монолита достаточным упрощением без сокращения общего кода; нужен ли
+второй raw-model product path.
+
+**Источник.** 2026-08-22, Codex task `01a0271b`, сообщение владельца в
+12:22:16 +05:00; коррекция в 12:41:42 +05:00: «мы убираем все методики обучения
+из кода в скил а не наоборот».
+
+**Пересмотреть, если.** Конкретная когнитивная операция систематически нарушает
+permission или evidence boundary и появляется falsifier, который нельзя
+закрыть skill brief-ом либо native Hermes capability.
