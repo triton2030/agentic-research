@@ -113,11 +113,11 @@ HERMES_BRIEF
 `--ignore-user-config`, поэтому пользовательский fallback-chain не загружается,
 и отдельно отвергает `--allow-fallback`. После fresh и resume он принимает Ox
 только когда `session_model_usage` доказывает exact model/provider/base URL/
-billing mode для main и всех auxiliary calls. Ox получает только `file,web`;
-execution-capable toolsets запрещены, а `--skill` допустим, поскольку меняет
-инструкцию, но не машинные permissions. Для writes/worktree и resume прочитай
-[`references/advanced-usage.md`](references/advanced-usage.md); write-run требует
-явного поручения пользователя.
+billing mode для main и всех auxiliary calls. Права у Ox те же, что у любой
+другой роли: terminal, code_execution и запись проходят общий контроль
+`validate`, отдельного запрета для неё нет. Гейт цены — единственное, что
+относится только к ней, и он про деньги, а не про права. Для writes/worktree и
+resume прочитай [`references/advanced-usage.md`](references/advanced-usage.md).
 
 ## Один путь: Hermes agent
 
@@ -132,7 +132,8 @@ provider-у (прогон платный и сохраняется в локал
 wrapper технически блокирует `write_file`/`patch` через
 `HERMES_WRITE_SAFE_ROOT`: read-only получает пустой временный root, write-run —
 exact project/worktree root. Это не sandbox для terminal; execution-capable
-toolsets требуют отдельный `--allow-write`, а для Ox запрещены полностью.
+toolsets требуют отдельный `--allow-write` — одинаково для всех моделей,
+включая Ox.
 
 **Советник читает инструкции твоего проекта — и так задумано.** Hermes инжектит
 в системный промпт содержимое `AGENTS.md` / `CLAUDE.md` / `.hermes.md` рабочей

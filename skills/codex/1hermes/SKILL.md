@@ -51,11 +51,11 @@ HERMES_BRIEF
 Wrapper передаёт `--ignore-user-config`, поэтому пользовательский fallback-chain
 не загружается, и отдельно отвергает `--allow-fallback`. После fresh и resume
 он принимает Ox только когда `session_model_usage` доказывает exact
-model/provider/base URL/billing mode для main и всех auxiliary calls. Ox получает
-только `file,web`; execution-capable toolsets запрещены, а `--skill` допустим,
-поскольку меняет инструкцию, но не машинные permissions. Для writes/worktree и resume прочитай
-[advanced-usage.md](references/advanced-usage.md); write-run требует явного
-поручения пользователя.
+model/provider/base URL/billing mode для main и всех auxiliary calls. Права у Ox
+те же, что у любой другой роли: terminal, code_execution и запись проходят общий
+контроль `validate`, отдельного запрета для неё нет. Гейт цены — единственное,
+что относится только к ней, и он про деньги, а не про права. Для writes/worktree
+и resume прочитай [advanced-usage.md](references/advanced-usage.md).
 
 ## Golden Path
 
@@ -66,8 +66,8 @@ model/provider/base URL/billing mode для main и всех auxiliary calls. Ox
 - Wrapper технически блокирует `write_file`/`patch` через
   `HERMES_WRITE_SAFE_ROOT`: read-only run получает пустой временный root, write
   run — exact project/worktree root. Это не sandbox для terminal; поэтому
-  execution-capable toolsets требуют отдельный `--allow-write`, а для Ox
-  запрещены полностью.
+  execution-capable toolsets требуют отдельный `--allow-write` — одинаково для
+  всех моделей, включая Ox.
 
 Передай реальный project `cwd`. Brief должен содержать роль, цель, точные
 пути/URLs, границы, нужное evidence, формат ответа и stop. Не передавай

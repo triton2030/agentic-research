@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import argparse
 import importlib.util
 import json
 import os
@@ -337,21 +338,40 @@ class HermesRuntimeTests(unittest.TestCase):
                 )
                 self.assertIsNotNone(error)
 
-    def test_ox_rejects_extra_toolsets_before_chat(self) -> None:
-        completed = self.advisor(
-            "--model",
-            "stealth/ox-alpha",
-            "--provider",
-            "nous",
-            "--reasoning",
-            "max",
-            "--toolsets",
-            "browser",
+    def test_ox_has_full_agent_rights_and_only_the_billing_gate(self) -> None:
+        """Ox работает как любая другая роль: terminal, execution и запись
+        проходят общий контроль. Отдельным остаётся только гейт денег."""
+        import _advisor_contract as contract
+        import _ox_policy as ox
+
+        args = argparse.Namespace(
+            model=ox.MODEL,
+            provider="nous",
+            reasoning="max",
+            toolsets="file,terminal,web",
+            allow_execution_tools=True,
+            allow_write=True,
+            worktree=False,
+            allow_fallback=False,
+            skill=[],
+            resume=None,
         )
-        payload = json.loads(completed.stdout)
-        self.assertEqual(completed.returncode, 2)
-        self.assertFalse(self.argv_file.exists())
-        self.assertIn("Ox Alpha", payload["error"])
+        runtime = (ox.MODEL, "nous", "max")
+        original = ox.live_pricing_is_free
+        try:
+            ox.live_pricing_is_free = lambda: (True, "test: every component is zero")
+            self.assertIsNone(contract.ox_gate(args, runtime))
+
+            ox.live_pricing_is_free = lambda: (False, "test: pricing is unreadable")
+            paid = contract.ox_gate(args, runtime)
+            self.assertIsNotNone(paid)
+            self.assertIn("Ox Alpha disabled", paid)
+
+            ox.live_pricing_is_free = lambda: (True, "test: every component is zero")
+            off_route = contract.ox_gate(args, (ox.MODEL, "openrouter", "max"))
+            self.assertIsNotNone(off_route)
+        finally:
+            ox.live_pricing_is_free = original
 
     def test_ox_route_evidence_rejects_mixed_or_shadow_endpoint(self) -> None:
         exact = (

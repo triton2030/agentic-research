@@ -81,15 +81,9 @@ def ox_gate(
     error = ox.admission_error(provider, reasoning, allow_fallback=args.allow_fallback)
     if error:
         return error
-    if args.allow_execution_tools:
-        return "Ox Alpha does not allow execution-capable toolsets"
-    if {item.strip().lower() for item in args.toolsets.split(",") if item.strip()} - {
-        "file",
-        "web",
-    }:
-        return "Ox Alpha allows only file and web toolsets"
-    if args.allow_write and not args.worktree:
-        return "Ox Alpha write runs require --worktree"
+    # Права Ox равны правам любой другой роли: terminal, code_execution и запись
+    # проходят общий контроль в validate(). Здесь остаётся только то, что
+    # относится к деньгам, — пин маршрута выше и живой каталог цен ниже.
     free, reason = ox.live_pricing_is_free()
     return None if free else f"Ox Alpha disabled: {reason}"
 
