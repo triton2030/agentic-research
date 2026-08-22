@@ -1,6 +1,12 @@
 ---
 name: 1html
-description: "Когда владелец просит «черновой артефакт» или «черновые артефакты», автоматически используй этот skill, даже без слов HTML или визуализация. Также используй его, когда нужен быстрый локальный HTML, который показывает сложное вместо стены текста: explainer, report, comparison, plan, diagram, data story или UI states. Страница живёт в общей `_workspace/HTML_artifacts/` zone с переиспользуемыми local components, styles и visual runtimes. Не для обычного текстового черновика, production website/app/deploy или встроенной в чат визуализации."
+description: >
+  Вызывай, когда пользователь просит «черновой артефакт» или «черновые
+  артефакты», даже без слов HTML/visualization; также когда быстрый локальный
+  HTML лучше текста показывает explainer, report, comparison, plan, diagram,
+  data story или UI states. Не вызывай для обычного текстового черновика,
+  production website/app, deploy, встроенной в чат визуализации, небольшого
+  списка или одного простого отношения.
 ---
 
 # HTML

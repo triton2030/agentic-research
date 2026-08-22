@@ -1,13 +1,12 @@
 ---
 name: 1readable-code
 description: >
-  Use before editing code whenever the change is more than a one-liner: adding
-  a rule, check, flag, helper, layer or dependency; deciding where new behavior
-  goes; touching logic that already exists in more than one place; refactoring,
-  restructuring or reviewing code. Name the owner before the first edit, then
-  re-enter at each further structural choice in the session. Interface or seam
-  contracts → `codebase-design`, installed as `1codebase-design` on Codex: a
-  spread of thin modules is what agents repair worst.
+  Вызывай перед правкой кода больше one-liner: добавлением правила, check,
+  flag, helper, слоя или dependency; когда существующая логика уже живёт в
+  нескольких местах; при refactor, restructure, code review или выборе
+  владельца нового behavior. Не вызывай для механического formatting/rename,
+  чтения без суждения или одной очевидной строки. Если решение именно об
+  interface, seam, adapter или test boundary, используй codebase-design.
 ---
 
 # Readable Code

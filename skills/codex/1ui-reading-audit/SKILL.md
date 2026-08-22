@@ -1,12 +1,12 @@
 ---
 name: 1ui-reading-audit
 description: >
-  Use when исходный код одной web-страницы нужно превратить в аудит
-  порядка чтения, смысловой иерархии и относительного визуального
-  веса. Root строит телеграфную code-grounded карту и передаёт только её
-  чистому UI-субагенту. Не для screenshot-review — rendered UI проверяет
-  `1design-review`; также не для click QA, accessibility conformance, user
-  testing, multi-page flow или исправления кода.
+  Вызывай, когда исходный код одной web-страницы нужно превратить в аудит
+  порядка чтения, смысловой иерархии и относительного визуального веса без
+  rendered evidence. Не вызывай для screenshot/design review, live-browser
+  или click QA, accessibility conformance, user testing, multi-page flow,
+  mobile варианта без отдельного запроса, общей UX-стратегии либо исправления
+  кода. Для готового render используй `1design-review`.
 ---
 
 # Аудит чтения интерфейса
