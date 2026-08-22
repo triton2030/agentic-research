@@ -55,8 +55,9 @@ owner-approved business facts:
 - total Wiki не хуже holders более чем на 5 percentage points;
 - Wiki улучшает не менее чем на 25% median tokens, elapsed time или evidence
   reads без ухудшения другой material cost dimension более чем на 10%.
-- Visible Wiki/source quote text ratio не выше 0.20; band 0.10–0.20 ожидаем,
-  но ratio ниже 0.10 принимается только при отдельном completeness PASS.
+- Visible Wiki/source quote text ratio записывается только диагностически и не
+  ограничивает число страниц, длину файлов или total output. Completeness и
+  utility имеют собственные semantic/reader gates.
 
 ## Hard failures
 

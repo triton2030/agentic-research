@@ -199,9 +199,10 @@ snapshot, неприкреплённая prompt-версия или utility resu
   no-gold вопрос abstain-ит или следует за frozen route expectation.
   Historical/no-gold confident answer из Wiki, invented provenance,
   superseded claim как current или scope-overclaim — hard `FAIL`.
-- **Compression without loss.** Visible representative Wiki text составляет
-  не более 20% source quote text; ожидаемый band — 10–20%. Ratio ниже 10%
-  требует отдельного completeness PASS и не разрешает пустой output.
+- **Size is diagnostic only.** Visible representative Wiki/source ratio
+  измеряется, но не ограничивает число страниц, длину файлов или общий объём и
+  не участвует в PASS/FAIL. Completeness и отсутствие filler проверяются
+  семантически независимо от размера.
 - **Measured final route.** Вердикт опирается на десять fresh runs и их
   receipts, а не на длину файлов, static validator, byte parity, prompt
   inspection или writer self-report.
@@ -232,7 +233,8 @@ snapshot, неприкреплённая prompt-версия или utility resu
 - historical/no-gold/superseded route нарушен, даже если средний score вырос;
 - Wiki содержит link на project knowledge file, claim из прочитанного вне
   frozen quote input, chronology/evolution prose или superseded остаток;
-- `wiki/source > 0.20`, либо ratio ниже 0.10 скрывает missing knowledge;
+- missing knowledge либо filler обнаружены semantic/coverage audit независимо
+  от `wiki/source` ratio;
 - context-token/read economy достигается ценой >10% regression в другом
   material cost dimension, скрытой orchestration latency или отсутствующего
   receipt;

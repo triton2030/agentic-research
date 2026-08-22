@@ -40,8 +40,9 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
   source-by-source пересказы не создаются ради симметрии.
 - Layer compiler отдельно использует зафиксированный OpenViking Context Layers
   contract и его semantic prompt templates: для каждой semantic directory
-  bottom-up создаются L0 `.abstract.md` (~100 tokens) и L1 `.overview.md`
-  (~2k tokens), а L2 остаётся полным набором source-backed Wiki pages.
+  bottom-up создаются L0 `.abstract.md` и L1 `.overview.md`, а L2 остаётся
+  полным набором source-backed Wiki pages. Официальные ориентиры длины не
+  становятся нашим target или acceptance gate.
 - Происхождение, upstream commit, digest и граница лицензии фиксируются для
   Wiki Skill и Context Layers/prompts раздельно; локальные добавления не
   выдаются за upstream behavior.
@@ -53,12 +54,16 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
   новые цитаты могут заменить итоговое знание, а superseded формулировка не
   остаётся рядом ради истории. История решения принадлежит только holders и
   evidence manifest; append-only lifecycle для Wiki запрещён.
-- После полного chronological backfill ожидается, что текущая Wiki окажется
-  примерно в 5–10 раз меньше всего source quote corpus: новые batch-и должны
-  преимущественно переписывать и объединять существующие знания, а не линейно
-  умножать страницы. Это cumulative diagnostic expectation, не per-batch и не
-  terminal acceptance gate. Полезность, полнота и findability не режутся ради
-  ratio; filler и пересказ истории по-прежнему запрещены.
+- Количество Wiki-страниц, длина каждого файла и итоговый объём Wiki не имеют
+  лимита или целевого диапазона: границы страниц следуют самостоятельным
+  retrieval-вопросам, а объём — полноте знания. Ожидаемое владельцем
+  5–10-кратное итоговое сжатие измеряется только после полного backfill как
+  наблюдение, но не управляет writer-ом и не даёт PASS/FAIL.
+- Пересказ и synthesis неизбежно создают новую формулировку и разрешены. Каждый
+  существенный факт, причинная связь, scope, status, рекомендация и отношение
+  между предметами должны адресовать supporting record IDs; неподдержанное
+  утверждение удаляется, а действительно нужный вывод явно помечается как
+  inference/uncertainty и называет evidence.
 - Build возобновляется после сбоя, повторный запуск на том же snapshot
   воспроизводим, секреты и полный приватный corpus не попадают в receipts или
   внешнюю публикацию.
@@ -125,6 +130,8 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
 | 5 | [wave-5-distilled-probe](modules/wave-5-distilled-probe.md) | frozen real records + locked five-case gold | принятый claim/currentness contract; не utility verdict | deterministic foundation |
 | 6 | [wave-6-snapshot-evidence](modules/wave-6-snapshot-evidence.md) | принятый semantic contract + explicit corpus commit | frozen source lock, records, coverage input, stable partitions | representative input lock |
 | 6c | [wave-6c-chronological-serial-pilot](modules/wave-6c-chronological-serial-pilot.md) | F1–F3 + owner-authorized 10-holder batch | typed changeset + first candidate Wiki checkpoint + serial-route verdict | решение, заменяет ли serial fold прежний parallel semantic plan |
+| 6d | [wave-6d-chronological-batch-002](modules/wave-6d-chronological-batch-002.md) | accepted batch-001 checkpoint + следующие 10 frozen holders | evidence-mapped draft → exact materialization + второй candidate checkpoint | blind findability и verdict по update/supersede |
+| 6e | [wave-6e-blind-findability](modules/wave-6e-blind-findability.md) | frozen current Wiki before batch-002 draft | index-first page choices + bounded answers from a separate Luna | findability evidence independent of writer |
 | 6b | [wave-6b-representative-ingestion-utility](modules/wave-6b-representative-ingestion-utility.md) | F1–F3 foundation → source-bound input lock; accepted provider gate → final L2/L1/L0 route | prepared input lock, затем matched correctness/currentness/efficiency verdict | full semantic generation только после utility PASS |
 | 7 | [wave-7-semantic-claims](modules/wave-7-semantic-claims.md) | Wave 6b PASS + partitions + pinned Wiki prompt tuple | canonical claims, rejections, lifecycle evidence | L2 writers |
 | 8 | [wave-8-l2-library](modules/wave-8-l2-library.md) | accepted canonical claims | typed L2 pages, catalog, validated index | context layers |
@@ -181,10 +188,10 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
   current, отклоняется, а не чинится молча.
 - Wiki page с project-knowledge link, содержанием из прочитанного вне frozen
   quote input или append-only остатком superseded знания отклоняется.
-- Per-batch compression ratio не даёт PASS/FAIL. Финальное отношение current
-  Wiki ко всему quote corpus сравнивается с ожидаемыми 0.10–0.20 как
-  диагностический результат; полноту, полезность и findability доказывает
-  blind audit, а не размер.
+- Никакой size/compression metric не даёт PASS/FAIL и не ограничивает число
+  страниц или длину файлов. После полного backfill отношение current Wiki ко
+  всему quote corpus записывается только как диагностический результат;
+  полноту, полезность и findability доказывает blind audit, а не размер.
 - Если official prompt/IA нельзя использовать с проверяемым provenance или
   приемлемой лицензионной границей, работа останавливается перед semantic
   generator.
@@ -208,7 +215,9 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
   владелец одобрил полезный четырёхстраничный Wiki checkpoint, root подтвердил
   exact coverage/provenance и разрешил тому же writer-у следующий batch.
   Parallel part writers и merge не возвращаются: одна рука последовательно
-  переписывает текущую Wiki, а blind readers проверяют её отдельно.
+  переписывает текущую Wiki, а blind readers проверяют её отдельно. Это
+  разрешение относится к batch-002 как bounded probe, а не автоматически ко
+  всему оставшемуся corpus.
 - Подробные карточки вытесняют хранение остатка в чате, но не создают второй
   plan owner: task.md владеет outcome и зависимостями, status.md — живым Next,
   modules — неизменяемыми заданиями конкретного момента.
@@ -226,6 +235,10 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
   файлы; Wiki — не второй канон. Позднее он уточнил 5–10-кратное сжатие как
   ожидаемый финальный эффект всего backfill, а не условие каждого batch или
   terminal gate.
+- Самая поздняя коррекция в том же holder-е полностью сняла ограничения и
+  targets на количество страниц и длину файлов. Она оставила генеративный
+  пересказ допустимым, но сделала центральным gate запрет чрезмерного
+  неподдержанного придумывания.
 - Последующая запись того же holder-а задаёт lifecycle: новые цитаты полностью
   переписывают затронутое знание; Wiki хранит только актуальный итог без
   истории, которая остаётся в chat-recall.

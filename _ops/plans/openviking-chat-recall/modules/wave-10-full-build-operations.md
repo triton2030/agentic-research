@@ -57,8 +57,9 @@ independent falsifier принадлежат root/Opus.
 или `skipped` с машинно читаемой причиной. Объединение равно all records;
 пересечения, missing IDs, duplicates и silent skips пусты. Derived claims/pages
 ссылаются только на frozen quote membership и internal Wiki. Coverage receipt
-публикует source quote text, visible Wiki text и compression ratio; hard ceiling
-`wiki/source ≤ 0.20`.
+публикует source quote text, visible Wiki text и compression ratio только как
+диагностику; metric не ограничивает page count, file length или total output и
+не участвует в PASS/FAIL.
 
 ## Falsifying checks
 
@@ -68,7 +69,8 @@ independent falsifier принадлежат root/Opus.
   классифицирует допустимую semantic nondeterminism;
 - adversarial path traversal и symlink sentinel survive;
 - secret/private-content scan receipts PASS;
-- project-corpus link/access scan, stale-page scan и compression gate PASS;
+- project-corpus link/access scan и stale-page scan PASS; compression ratio
+  записан без threshold;
 - coverage set equations PASS на полном snapshot, не sample.
 
 ## Budget

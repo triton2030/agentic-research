@@ -17,11 +17,12 @@ kind: status
 `01a026fe-70a0-78d1-abad-12387192465e` на chronological batch-002: следующие
 10 полных frozen holders, 20 records, 0 diagnostics. Luna Max читает текущую
 Wiki из принятого batch-001 checkpoint и переписывает её in place; новая
-страница допускается только для нового durable retrieval-вопроса. Root
-фиксирует batch-002 manifest и prior checkpoint до запуска. Отдельный blind
-reader начинает с `index.md` и проверяет быстрый выбор страницы; writer
-self-check приёмкой не является. Compression каждого batch только diagnostic;
-5–10× оценивается после полного corpus backfill.
+страница появляется для отдельного durable retrieval-вопроса, но число страниц
+и длина файлов не ограничены. Сначала writer возвращает полный draft changeset
+с claim→record evidence, затем материализует ровно эти bytes после root gate.
+Отдельный blind reader начинает с `index.md` и проверяет быстрый выбор страницы;
+writer self-check приёмкой не является. Batch-002 — bounded probe первого
+реального update/supersede, а не permission на весь оставшийся corpus.
 
 ## Вехи
 
@@ -49,8 +50,10 @@ self-check приёмкой не является. Compression каждого ba
   modules/_returns/fresh-eyes-distilled-knowledge.md.
 - Последняя коррекция владельца уточнила topology и lifecycle: Wiki ссылается
   на quotes, но не на project knowledge files; хранит только переписываемый
-  актуальный итог. 5–10× — ожидаемый cumulative эффект полного backfill, не
-  gate batch-ей или terminal acceptance. Holder —
+  актуальный итог. Число страниц, длина файлов и compression ratio не имеют
+  лимитов или targets; 5–10× остаётся только наблюдаемым ожиданием после полного
+  backfill. Главный semantic gate — claim-level source support без
+  неподтверждённых фактов, causality, scope, status или recommendations. Holder —
   `_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md`.
 - Acceptance lock интегрирован commit a77fc4c: пять cases и hard failures
   зафиксированы до принятия candidate Wiki.
@@ -194,7 +197,9 @@ provider repair снят с текущей траектории после Fresh
 | Волна | Результат | Dependency | State |
 | --- | --- | --- | --- |
 | 6 | frozen snapshot, deterministic records, stable partitions; provider gate separate | accepted Wave 5 semantic contract + explicit corpus commit | deterministic F1/F2/F3 PASS; provider F4 UNKNOWN; F4-R1 rejected |
-| 6c | first chronological serial changeset + candidate Wiki checkpoint | accepted F1–F3 + explicit owner authorization | owner-liked Wiki `6ab9cb9`; root structural/provenance PASS; same visible Luna task continues batch-002; blind reader pending |
+| 6c | first chronological serial changeset + candidate Wiki checkpoint | accepted F1–F3 + explicit owner authorization | owner-liked Wiki `6ab9cb9`; root structural/provenance PASS |
+| 6d | second chronological draft/materialization checkpoint | batch-001 accepted + owner-authorized next 10 holders | manifest/card preparation; same visible Luna task next; blind reader pending |
+| 6e | blind index-first findability | current Wiki frozen before batch-002 draft | four questions frozen; separate visible Luna task next |
 | 6b | representative input-lock, затем L2/L1/L0 + matched utility | F1–F3 for input-lock; accepted provider/privacy PASS for semantic execution | root-owned input-lock ready; Luna semantic batch blocked |
 | 7 | semantic candidates и canonical current claims | Wave 6b utility PASS | planned |
 | 8 | typed L2 pages, per-part validation и root catalog | Wave 7 pass | planned |

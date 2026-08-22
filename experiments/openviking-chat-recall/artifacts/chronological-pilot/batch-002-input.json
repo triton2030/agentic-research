@@ -1,0 +1,139 @@
+{
+  "schema": "openviking-chat-recall/chronological-batch-input.v2",
+  "batch_id": "batch-002",
+  "previous_batch_id": "batch-001",
+  "corpus_commit": "6f98fcccdbf4b4de45ef787239ad101f70d106e2",
+  "evidence_commit": "ea569e2bf84377b17be9177065d5fb9172d26d39",
+  "evidence_records_sha256": "868ffff05768e4ebac6893436141e99493e0582b6738845350b2aa805e99d69d",
+  "prior_checkpoint": {
+    "wiki_root_at_checkpoint": "experiments/openviking-chat-recall/artifacts/chronological-pilot/batch-001/wiki",
+    "current_wiki_root": "experiments/openviking-chat-recall/artifacts/chronological-pilot/current/wiki",
+    "owner_liked_wiki_commit": "6ab9cb9",
+    "accepted_metadata_commit": "f48de1e",
+    "wiki_tree_sha256": "a2a34d647a63dbf872a69a6ad54665924c02ea7e0ba0c3f035de41642d69b2a9",
+    "receipt_path": "experiments/openviking-chat-recall/artifacts/chronological-pilot/batch-001/receipt.json",
+    "receipt_sha256": "c2086d7bd63596bb36e7e8d2e0d71555fe366276cc2d926c40fee8bc38798154",
+    "time_boundary_utc": "2026-07-26T13:05:18.283000+00:00"
+  },
+  "ordering": {
+    "holder_key": "maximum normalized record timestamp",
+    "naive_timestamp_timezone": "Asia/Almaty",
+    "normalized_timezone": "UTC",
+    "tie_break": "source_path",
+    "holder_split": false
+  },
+  "counts": {
+    "holder_count": 10,
+    "record_count": 20,
+    "diagnostic_record_count": 0,
+    "source_quote_chars": 5263,
+    "source_quote_utf8_bytes": 9533,
+    "cumulative_holder_count": 20,
+    "cumulative_record_count": 52,
+    "cumulative_source_quote_chars": 10804,
+    "cumulative_source_quote_utf8_bytes": 19612
+  },
+  "size_policy": {
+    "page_count_limit": false,
+    "file_length_limit": false,
+    "total_output_limit": false,
+    "compression_acceptance_gate": false,
+    "compression_is_diagnostic_only": true
+  },
+  "semantic_evidence_policy": {
+    "paraphrase_and_synthesis_allowed": true,
+    "material_claims_require_source_record_ids": true,
+    "unsupported_fact_causality_scope_status_recommendation_or_relationship": "omit",
+    "necessary_inference": "mark_explicitly_with_evidence_and_uncertainty",
+    "cross_page_conflict_check": "per_record_checked_prior_pages_or_reason",
+    "project_corpus_enrichment": false
+  },
+  "time_boundary_utc": "2026-07-30T08:24:08.846000+00:00",
+  "holders": [
+    {
+      "source_path": "_ops/chat-recall/2026-07-26-190811-codex-019f9ec1.md",
+      "source_blob_sha256": "38f5cf92d473d10335a04f6610331ae0343563a9c46c6c1bea7ca5a0c110d566",
+      "min_timestamp_utc": "2026-07-26T14:08:11.318000+00:00",
+      "max_timestamp_utc": "2026-07-26T14:08:11.318000+00:00",
+      "record_ids": ["cr-69e4b2a1107aa87d"]
+    },
+    {
+      "source_path": "_ops/chat-recall/2026-07-27-175105-codex-019fa38f.md",
+      "source_blob_sha256": "a27e3e36e8773035d1bcec9efe3841388fb2ff322fbb49069ccad3b78a24d917",
+      "min_timestamp_utc": "2026-07-27T12:51:05.501000+00:00",
+      "max_timestamp_utc": "2026-07-27T12:51:05.501000+00:00",
+      "record_ids": ["cr-56d5a0fea3f8c211"]
+    },
+    {
+      "source_path": "_ops/chat-recall/2026-07-27-211730-claude-8e802437.md",
+      "source_blob_sha256": "f6630a1e8667eb3af29f85acbe84423762e701d1a349883f55a6c285f0116c2c",
+      "min_timestamp_utc": "2026-07-27T16:17:30.468000+00:00",
+      "max_timestamp_utc": "2026-07-27T21:08:55.350000+00:00",
+      "record_ids": [
+        "cr-1384a167b697c661",
+        "cr-5044980a6f72f496",
+        "cr-793aac3ae4d2446f",
+        "cr-e00a08e807845411",
+        "cr-27ba0242849b2beb"
+      ]
+    },
+    {
+      "source_path": "_ops/chat-recall/2026-07-28-230352-codex-019fa9d9.md",
+      "source_blob_sha256": "a9ab1d741afe23a5b24d885795016e0b7c08d2a79e0dba2ff06a01b01f455e6f",
+      "min_timestamp_utc": "2026-07-28T18:03:52.471000+00:00",
+      "max_timestamp_utc": "2026-07-28T18:03:52.471000+00:00",
+      "record_ids": ["cr-36c802ebb12e71aa"]
+    },
+    {
+      "source_path": "_ops/chat-recall/2026-07-29-000000-claude-a9f0f34a.md",
+      "source_blob_sha256": "f25471bb5f47ae6eaf6b0551f496f8d03bb59fd8307eabcb813622a1d6000250",
+      "min_timestamp_utc": "2026-07-28T19:00:00+00:00",
+      "max_timestamp_utc": "2026-07-28T19:00:00+00:00",
+      "record_ids": [
+        "cr-aea6e72370fe050b",
+        "cr-3318b31c74e8d6f5",
+        "cr-6c3e3f19419f9ff8"
+      ]
+    },
+    {
+      "source_path": "_ops/chat-recall/2026-07-29-000000-claude-068dc13d.md",
+      "source_blob_sha256": "08ea0411185cd3e41e9f76cc5d659fdd57e996299cc762999b935dc4ffd14950",
+      "min_timestamp_utc": "2026-07-28T19:00:00+00:00",
+      "max_timestamp_utc": "2026-07-29T12:11:17.010000+00:00",
+      "record_ids": ["cr-6c4956400b562a02", "cr-d9a49643a2410c2c"]
+    },
+    {
+      "source_path": "_ops/chat-recall/2026-07-29-172153-claude-82e3e055.md",
+      "source_blob_sha256": "bea3ec42242f5ec967266e7128373702b6500d00ef29f4e79cfca4658559e407",
+      "min_timestamp_utc": "2026-07-29T12:21:53.277000+00:00",
+      "max_timestamp_utc": "2026-07-29T12:21:53.277000+00:00",
+      "record_ids": ["cr-1b76de9d3b65d037"]
+    },
+    {
+      "source_path": "_ops/chat-recall/2026-07-29-201707-codex-019fae73.md",
+      "source_blob_sha256": "7208f20d2665c2b91644c52986e74f4e63c90d6ce47fba1e683d2df99be78af4",
+      "min_timestamp_utc": "2026-07-29T15:17:07.484000+00:00",
+      "max_timestamp_utc": "2026-07-29T15:17:07.484000+00:00",
+      "record_ids": ["cr-3fc4c7c231c6a8ba"]
+    },
+    {
+      "source_path": "_ops/chat-recall/2026-07-30-131247-codex-019fb215.md",
+      "source_blob_sha256": "e00e9de053b5d3cd0f847aefa6829e06fb0c22494a03660f61c58f9fd450dfeb",
+      "min_timestamp_utc": "2026-07-30T08:12:47.174000+00:00",
+      "max_timestamp_utc": "2026-07-30T08:12:47.174000+00:00",
+      "record_ids": ["cr-04c8ae0d0ff5aee5"]
+    },
+    {
+      "source_path": "_ops/chat-recall/2026-07-30-125453-codex-019fb200.md",
+      "source_blob_sha256": "c244dc6b806485d198384267a2d0f8d0d6e9e267c2689e0fe961078ef0c1a712",
+      "min_timestamp_utc": "2026-07-30T07:54:53+00:00",
+      "max_timestamp_utc": "2026-07-30T08:24:08.846000+00:00",
+      "record_ids": [
+        "cr-69fca2300b6be024",
+        "cr-962428c18fdc2067",
+        "cr-cf14b8e6d768aba3",
+        "cr-292d9e3017cb6d6d"
+      ]
+    }
+  ]
+}

@@ -19,7 +19,7 @@ Codex Luna run на десяти frozen holders
 одна Luna Max читает десять самых ранних полных holder-файлов, предлагает
 типизированный changeset и материализует первый candidate Wiki checkpoint.
 Этот probe не разрешает full backfill и не доказывает currentness будущих
-batch-ей; он проверяет, можно ли без parallel merge получить компактную,
+batch-ей; он проверяет, можно ли без parallel merge получить полезную,
 структурированную и source-bound начальную Wiki.
 
 ## Frozen input
@@ -86,9 +86,8 @@ skip запрещён. Один record может поддерживать не�
 - Claim не обогащается сведениями, которых нет в allowed quote input. `latest`
   не считается `current` автоматически; uncertainty остаётся видимой.
 - Semantic/total chars и ratios измеряются отдельно как baseline diagnostics.
-  Per-batch min/max и PASS/FAIL по размеру нет. После всего backfill ожидается
-  cumulative Wiki/source ratio 0.10–0.20, но полезность, полнота и быстрый
-  поиск не режутся ради этого ожидания; filler запрещён.
+  Число страниц, длина файлов и total ratio не имеют min/max, target или
+  PASS/FAIL. Filler и source-by-source пересказ истории по-прежнему запрещены.
 
 ## Required receipt
 
@@ -109,8 +108,8 @@ Root принимает или отклоняет checkpoint только пос
    отсутствуют;
 5. каждая страница отвечает на один будущий вопрос и даёт действие/границу;
    отдельный blind reader быстро выбирает её, начиная с `index.md`;
-6. per-batch ratio записан только диагностически, а final 5–10× expectation
-   не объявлен доказанным до полного corpus;
+6. никакой size metric не повлияла на page count, file length или semantic
+   содержание; ratio записан только диагностически;
 7. changeset replay создаёт тот же candidate tree или gap честно остаётся
    `UNKNOWN`.
 
