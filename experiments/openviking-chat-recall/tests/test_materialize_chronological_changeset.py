@@ -437,6 +437,24 @@ class MaterializeChronologicalChangesetTests(unittest.TestCase):
             self.assertEqual(before, self._snapshot(fixture["wiki"]))
             self.assertFalse(fixture["receipt"].exists())
 
+    def test_used_record_requires_material_claim_responsibility(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            fixture = self._fixture(Path(temp_dir))
+            before = self._snapshot(fixture["wiki"])
+            value = copy.deepcopy(fixture["changeset_value"])
+            value["operations"][0]["material_claims"] = []
+            raw = _json_bytes(value)
+            fixture["changeset"].write_bytes(raw)
+            fixture["accepted_sha"] = _sha(raw)
+
+            with self.assertRaisesRegex(
+                materializer.MaterializationError,
+                "record_ids do not exactly match material claim support",
+            ):
+                self._materialize(fixture)
+            self.assertEqual(before, self._snapshot(fixture["wiki"]))
+            self.assertFalse(fixture["receipt"].exists())
+
     def test_only_exactly_cited_prior_evidence_can_move_during_update(self) -> None:
         for prior_linked, expected in ((True, None), (False, "outside the batch")):
             with self.subTest(prior_linked=prior_linked), tempfile.TemporaryDirectory() as temp_dir:

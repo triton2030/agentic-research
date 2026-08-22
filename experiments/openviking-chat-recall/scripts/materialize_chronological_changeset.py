@@ -366,6 +366,7 @@ def _validate_coverage(
     counts: collections.Counter[str] = collections.Counter()
     manifest_set = set(manifest_ids)
     semantic_ids: set[str] = set()
+    claim_supported_ids: set[str] = set()
     rejected_ids: set[str] = set()
     for operation in operations:
         operation_ids = set(operation.get("record_ids", []))
@@ -377,10 +378,19 @@ def _validate_coverage(
         kind = operation.get("operation")
         if kind in {"create", "update", "supersede", "no-change"}:
             semantic_ids.update(operation_ids & manifest_set)
+            for claim in operation.get("material_claims", []):
+                claim_supported_ids.update(
+                    set(claim.get("supporting_record_ids", [])) & manifest_set
+                )
         elif kind == "reject":
             if extra_ids:
                 raise MaterializationError("reject operation cannot cite prior evidence")
             rejected_ids.update(operation_ids)
+
+    if claim_supported_ids != semantic_ids:
+        raise MaterializationError(
+            "semantic operation record_ids do not exactly match material claim support"
+        )
 
     used_ids: set[str] = set()
     coverage_rejected_ids: set[str] = set()
