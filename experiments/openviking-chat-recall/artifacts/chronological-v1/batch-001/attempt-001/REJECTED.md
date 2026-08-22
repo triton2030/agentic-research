@@ -37,3 +37,6 @@ Independent source-bound audit дал FAIL:
 Wiki и receipt не материализованы. Этот artifact — immutable failure evidence,
 не semantic prior и не repair target. Следующая попытка обязана использовать
 новый prompt SHA и новую Luna с чистым контекстом.
+
+Pinned v1 `batch-001-input.json` и `preflight.json` сохранены в этой же папке;
+их канонические paths освобождены для нового versioned attempt.

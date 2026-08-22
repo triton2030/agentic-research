@@ -19,10 +19,8 @@ import re
 import shutil
 import tempfile
 import uuid
-from datetime import date, datetime, time, timezone
 from pathlib import Path, PurePosixPath
 from typing import Any
-from zoneinfo import ZoneInfo
 
 
 class MaterializationError(ValueError):
@@ -243,6 +241,8 @@ def _validate_claims(
     operation: dict[str, Any],
     h1: str,
     evidence: dict[str, dict[str, Any]],
+    *,
+    strict_v5: bool = False,
 ) -> None:
     claims = operation.get("material_claims")
     if not isinstance(claims, list):
@@ -278,15 +278,67 @@ def _validate_claims(
         if page_fit.get("page_question") != h1:
             raise MaterializationError(f"material claim {claim_id} page_fit H1 mismatch")
         answering = page_fit.get("answering_record_ids")
-        if (
+        answering_is_invalid = (
             not isinstance(answering, list)
             or not answering
             or len(set(answering)) != len(answering)
-            or not set(answering).issubset(support)
-        ):
+        )
+        if strict_v5:
+            answering_is_invalid = answering_is_invalid or answering != support
+        else:
+            answering_is_invalid = answering_is_invalid or not set(answering).issubset(
+                support
+            )
+        if answering_is_invalid:
             raise MaterializationError(
                 f"material claim {claim_id} page_fit answering_record_ids are invalid"
             )
+        if strict_v5:
+            alignment = page_fit.get("source_alignment")
+            if not isinstance(alignment, list) or len(alignment) != len(answering):
+                raise MaterializationError(
+                    f"material claim {claim_id} page_fit source_alignment is invalid"
+                )
+            alignment_ids: list[str] = []
+            for item in alignment:
+                if not isinstance(item, dict):
+                    raise MaterializationError(
+                        f"material claim {claim_id} source alignment must be an object"
+                    )
+                record_id = item.get("record_id")
+                if not isinstance(record_id, str):
+                    raise MaterializationError(
+                        f"material claim {claim_id} source alignment has no record ID"
+                    )
+                alignment_ids.append(record_id)
+                for field in (
+                    "named_subject",
+                    "scope",
+                    "modality",
+                    "supporting_words",
+                ):
+                    value = item.get(field)
+                    if not isinstance(value, str) or not value.strip():
+                        raise MaterializationError(
+                            f"material claim {claim_id} source alignment has no {field}"
+                        )
+                if len(item["supporting_words"]) > 120:
+                    raise MaterializationError(
+                        f"material claim {claim_id} source alignment quote is too long"
+                    )
+                quote = evidence[record_id].get("quote")
+                if (
+                    not isinstance(quote, str)
+                    or item["supporting_words"] not in quote
+                ):
+                    raise MaterializationError(
+                        f"material claim {claim_id} source alignment words "
+                        "are not in the exact quote"
+                    )
+            if alignment_ids != answering:
+                raise MaterializationError(
+                    f"material claim {claim_id} source alignment order mismatch"
+                )
         if not isinstance(page_fit.get("reason"), str) or not page_fit["reason"].strip():
             raise MaterializationError(f"material claim {claim_id} page_fit has no reason")
 
@@ -503,25 +555,6 @@ def _validate_v5_bindings(
     return source_targets
 
 
-def _record_time(record: dict[str, Any]) -> datetime:
-    metadata = record.get("metadata")
-    value = metadata.get("sort_timestamp") if isinstance(metadata, dict) else None
-    if not isinstance(value, str) or not value:
-        raise MaterializationError(f"record has no sort timestamp: {record.get('record_id')}")
-    try:
-        if len(value) == 10:
-            parsed = datetime.combine(
-                date.fromisoformat(value), time(), ZoneInfo("Asia/Almaty")
-            )
-        else:
-            parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
-            if parsed.tzinfo is None:
-                parsed = parsed.replace(tzinfo=ZoneInfo("Asia/Almaty"))
-    except ValueError as exc:
-        raise MaterializationError(f"record has invalid sort timestamp: {value}") from exc
-    return parsed.astimezone(timezone.utc)
-
-
 def _validate_v5_evidence_metadata(
     changeset: dict[str, Any], evidence: dict[str, dict[str, Any]]
 ) -> None:
@@ -532,6 +565,10 @@ def _validate_v5_evidence_metadata(
     conflicts = metadata.get("unresolved_conflicts")
     if not isinstance(groups, list) or not isinstance(conflicts, list):
         raise MaterializationError("v5 repetition/conflict metadata must be lists")
+    manifest_ids = changeset.get("frozen_record_ids_in_manifest_order")
+    if not isinstance(manifest_ids, list) or len(manifest_ids) != len(set(manifest_ids)):
+        raise MaterializationError("v5 frozen record order is invalid")
+    manifest_set = set(manifest_ids)
     group_ids: set[str] = set()
     for group in groups:
         if not isinstance(group, dict):
@@ -549,13 +586,22 @@ def _validate_v5_evidence_metadata(
             or len(record_ids) < 2
             or len(record_ids) != len(set(record_ids))
             or any(record_id not in evidence for record_id in record_ids)
+            or not set(record_ids).issubset(manifest_set)
         ):
             raise MaterializationError("repetition group is invalid")
         group_ids.add(group_id)
         if group.get("occurrence_count") != len(record_ids):
             raise MaterializationError("repetition occurrence_count mismatch")
-        ordered = sorted(record_ids, key=lambda record_id: (_record_time(evidence[record_id]), record_id))
-        if group.get("first_record_id") != ordered[0] or group.get("latest_record_id") != ordered[-1]:
+        record_id_set = set(record_ids)
+        manifest_group_order = [
+            record_id for record_id in manifest_ids if record_id in record_id_set
+        ]
+        if record_ids != manifest_group_order:
+            raise MaterializationError("repetition record IDs are not in manifest order")
+        if (
+            group.get("first_record_id") != record_ids[0]
+            or group.get("latest_record_id") != record_ids[-1]
+        ):
             raise MaterializationError("repetition first/latest record mismatch")
     for conflict in conflicts:
         if not isinstance(conflict, dict):
@@ -975,7 +1021,12 @@ def _apply_operations(
                 page_type = operation.get("page_type")
                 _validate_page_type(text, page_type, relative)
                 _validate_v5_page_shape(text, str(page_type), str(operation.get("page_path")))
-                _validate_claims(operation, _page_h1(text, relative), evidence)
+                _validate_claims(
+                    operation,
+                    _page_h1(text, relative),
+                    evidence,
+                    strict_v5=True,
+                )
             continue
 
         relative = _page_relative_path(operation.get("page_path"))
@@ -1031,7 +1082,7 @@ def _apply_operations(
                     "index operation cannot contain material claims or record_ids"
                 )
         else:
-            _validate_claims(operation, h1, evidence)
+            _validate_claims(operation, h1, evidence, strict_v5=strict_v5)
         after[relative] = raw
         materialized.append(
             {

@@ -13,11 +13,10 @@ kind: status
 
 ## Next
 
-Root исправляет semantic writer contract в новом versioned prompt: named
-subject/scope, direct H1 answerability, candidate modality на всех surfaces,
-deterministic repetition order и full-holder reject reason. Затем builder
-создаёт новый frozen attempt тех же первых десяти holders, а новая visible Luna
-Max пишет candidate с нуля; rejected bytes не ремонтируются.
+Запустить новую visible `gpt-5.6-luna/max` без worktree: она читает prompt v2,
+новый frozen manifest/preflight, те же первые десять holders и 32 evidence rows
+и пишет только чистый `batch-001/changeset.json`. Rejected attempt-001 и иные
+historical artifacts запрещены как semantic input.
 
 ## Свидетельства и статус
 
@@ -27,8 +26,11 @@ Max пишет candidate с нуля; rejected bytes не ремонтируют
 - Rejected semantic prompt:
   `experiments/openviking-chat-recall/prompts/wiki-writer.v1.md`, SHA-256
   `3fd3ff7748c71f2e6d8e8cc06aebd898b1992c3c6a242bb021fe3f1ff08897d3`.
-- Batch-001 manifest: 10 holders / 32 records, SHA-256
-  `595e530c6497bd5270a33dc568dd2ed4f8068d8cd23527cf7db0f636edbfc543`;
+- Current semantic prompt:
+  `experiments/openviking-chat-recall/prompts/wiki-writer.v2.md`, SHA-256
+  `e5c4389374911239551f3157bce2b03e878dcd9981dae48a60831af856c8eeba`.
+- Current batch-001 manifest: 10 holders / 32 records, SHA-256
+  `1b7e51536b2b488ad2b8f4e16c4ab3ac47f1b72182e318bd2bcb1171951f32fc`;
   preflight PASS; prior Wiki tree empty.
 - Pipeline checkpoint `9426db2d17c7823b603fe1b818387ab4211bbfad` pushed to
   `origin/main`; targeted suite 22/22 PASS.
@@ -50,6 +52,11 @@ Max пишет candidate с нуля; rejected bytes не ремонтируют
   bindings, а read-set audit — доказать отсутствие reread старых quotes.
 - Owner blocker отсутствует. Текущий gate внутренний: новый prompt SHA и чистый
   batch-001 attempt должны закрыть пять semantic failure classes.
+- Prompt v2 требует per-record `source_alignment`; strict v5 проверяет, что
+  каждый supporting record прямо отвечает H1, а короткий `supporting_words`
+  буквально входит в exact quote. Repetition order теперь проверяется по
+  manifest, не по lexical timestamp tie.
+- Targeted current/legacy suite 21/21 PASS; полный experiment suite 87/87 PASS.
 - До первого update в batch-002 validator обязан отклонять changed knowledge,
   которое выросло только в provenance/description, но не появилось в body.
 

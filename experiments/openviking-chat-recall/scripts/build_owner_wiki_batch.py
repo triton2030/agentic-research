@@ -157,6 +157,7 @@ def output_contract() -> dict[str, Any]:
             "supporting_record_ids",
             "page_fit.page_question",
             "page_fit.answering_record_ids",
+            "page_fit.source_alignment",
             "page_fit.reason",
         ],
         "coverage": {

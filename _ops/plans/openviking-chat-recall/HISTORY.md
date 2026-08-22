@@ -119,6 +119,8 @@ Mechanical check прошёл, но independent semantic audit отклонил 
 
 Exact rejected bytes и typed verdict сохранены в
 `experiments/openviking-chat-recall/artifacts/chronological-v1/batch-001/attempt-001/`.
+Туда же перенесены pinned v1 manifest и preflight; канонические batch-001 input
+paths пересобраны только для новой попытки.
 
 Wiki и receipt не материализованы; visible task архивирована. Candidate нельзя
 ремонтировать. Следующий attempt начинается новой Luna и новым prompt SHA.
@@ -127,6 +129,13 @@ Fresh-eyes остановил дальнейшую полировку докум
 новое изменённое знание должно появиться в answer-body, а не только в
 description/provenance. После accepted batch-002 ранний matched comparator
 проверит пользу до полного backfill.
+
+Prompt v2 добавил наблюдаемый per-record `source_alignment`: named subject,
+scope, modality и короткий exact quote fragment. Materializer проверяет, что
+все supporting records прямо отвечают H1, фрагмент действительно входит в
+`quote`, а repetition IDs следуют manifest order. Новый frozen input-lock:
+prompt SHA `e5c4389374911239551f3157bce2b03e878dcd9981dae48a60831af856c8eeba`,
+manifest SHA `1b7e51536b2b488ad2b8f4e16c4ab3ac47f1b72182e318bd2bcb1171951f32fc`.
 
 ## Подробный архив
 

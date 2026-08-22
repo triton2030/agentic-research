@@ -24,7 +24,7 @@ manifests/receipts и blind-доказательство, что агент на
 
 | Смысл | Единственный owner |
 | --- | --- |
-| Семантика Wiki writer-а | versioned prompt в `experiments/openviking-chat-recall/prompts/`; v1 отклонён первым clean attempt |
+| Семантика Wiki writer-а | `experiments/openviking-chat-recall/prompts/wiki-writer.v2.md`; v1 остаётся rejected history |
 | Полный контракт и путь до конца | этот `task.md` |
 | Зачем выбран маршрут | `context.md` |
 | Текущий frontier | `status.md` |

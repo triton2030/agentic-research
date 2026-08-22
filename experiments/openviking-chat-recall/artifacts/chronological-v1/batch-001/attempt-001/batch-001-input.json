@@ -131,7 +131,7 @@
   ],
   "materializer": {
     "path": "experiments/openviking-chat-recall/scripts/materialize_chronological_changeset.py",
-    "sha256": "b3f88c093d059b1bf5463b6afe2996b49dfd923f0798218f9cf416d921e88508"
+    "sha256": "aba2076d6c8848f31fb2f1f841148be2ce15f99df89686456d1f3465af9675cb"
   },
   "ordering": {
     "batch_size": 10,
@@ -222,7 +222,6 @@
         "supporting_record_ids",
         "page_fit.page_question",
         "page_fit.answering_record_ids",
-        "page_fit.source_alignment",
         "page_fit.reason"
       ],
       "operation": {
@@ -278,7 +277,7 @@
         "gaps"
       ]
     },
-    "output_contract_sha256": "4d09960a7f99b81c031ca55a28f5aa5329287cbda10b31dfd9b981b0c2577b7e"
+    "output_contract_sha256": "87a181226bdfa16a98b20d6eec43a3298c74f335fab43766e817bf7461e02b19"
   },
   "preflight_receipt_path": "experiments/openviking-chat-recall/artifacts/chronological-v1/batch-001/preflight.json",
   "previous_batch_id": null,
@@ -288,8 +287,8 @@
     "wiki_tree_sha256_target": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
   },
   "prompt": {
-    "path": "experiments/openviking-chat-recall/prompts/wiki-writer.v2.md",
-    "sha256": "e5c4389374911239551f3157bce2b03e878dcd9981dae48a60831af856c8eeba"
+    "path": "experiments/openviking-chat-recall/prompts/wiki-writer.v1.md",
+    "sha256": "3fd3ff7748c71f2e6d8e8cc06aebd898b1992c3c6a242bb021fe3f1ff08897d3"
   },
   "record_bindings": [
     {

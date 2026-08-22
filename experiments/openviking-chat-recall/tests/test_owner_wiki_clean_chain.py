@@ -19,9 +19,17 @@ import materialize_chronological_changeset as materializer  # noqa: E402
 
 FROZEN = EXPERIMENT / "artifacts/full-build/frozen/source-manifest.json"
 EVIDENCE = EXPERIMENT / "artifacts/full-build/evidence/records.jsonl"
-PROMPT = EXPERIMENT / "prompts/wiki-writer.v1.md"
+PROMPT = EXPERIMENT / "prompts/wiki-writer.v2.md"
 MATERIALIZER = EXPERIMENT / "scripts/materialize_chronological_changeset.py"
 EVIDENCE_COMMIT = "ea569e2bf84377b17be9177065d5fb9172d26d39"
+EVIDENCE_QUOTES = {
+    record["record_id"]: record["quote"]
+    for record in (
+        json.loads(line)
+        for line in EVIDENCE.read_text(encoding="utf-8").splitlines()
+        if line
+    )
+}
 
 
 def _sha(raw: bytes) -> str:
@@ -135,7 +143,19 @@ class OwnerWikiCleanChainTests(unittest.TestCase):
                             "supporting_record_ids": record_ids,
                             "page_fit": {
                                 "page_question": question,
-                                "answering_record_ids": [record_ids[0]],
+                                "answering_record_ids": record_ids,
+                                "source_alignment": [
+                                    {
+                                        "record_id": record_id,
+                                        "named_subject": "первая группа",
+                                        "scope": "frozen test fixture",
+                                        "modality": "позиция",
+                                        "supporting_words": EVIDENCE_QUOTES[record_id][
+                                            :120
+                                        ],
+                                    }
+                                    for record_id in record_ids
+                                ],
                                 "reason": "Запись относится к первой группе.",
                             },
                         }
@@ -178,20 +198,24 @@ class OwnerWikiCleanChainTests(unittest.TestCase):
             "changeset_value": changeset,
         }
 
+    def _dry_run(self, fixture: dict[str, Path | dict]) -> dict:
+        changeset_path = fixture["changeset"]
+        assert isinstance(changeset_path, Path)
+        return materializer.materialize(
+            repo_root=REPO,
+            changeset_path=changeset_path,
+            manifest_path=fixture["manifest"],
+            evidence_records_path=EVIDENCE,
+            wiki_root=fixture["wiki"],
+            receipt_path=fixture["receipt"],
+            accepted_changeset_sha256=_sha(changeset_path.read_bytes()),
+            dry_run=True,
+        )
+
     def test_clean_batch_builds_and_v5_candidate_preflights(self) -> None:
         with tempfile.TemporaryDirectory(dir=REPO) as temp_dir:
             fixture = self._build_fixture(Path(temp_dir))
-            changeset_path = fixture["changeset"]
-            receipt = materializer.materialize(
-                repo_root=REPO,
-                changeset_path=changeset_path,
-                manifest_path=fixture["manifest"],
-                evidence_records_path=EVIDENCE,
-                wiki_root=fixture["wiki"],
-                receipt_path=fixture["receipt"],
-                accepted_changeset_sha256=_sha(changeset_path.read_bytes()),
-                dry_run=True,
-            )
+            receipt = self._dry_run(fixture)
             self.assertEqual(receipt["schema"], builder.RECEIPT_SCHEMA)
             self.assertEqual(receipt["batch_id"], "batch-001")
             self.assertEqual(receipt["active_page_set"]["count"], 2)
@@ -210,16 +234,75 @@ class OwnerWikiCleanChainTests(unittest.TestCase):
             with self.assertRaisesRegex(
                 materializer.MaterializationError, "prompt/output bindings"
             ):
-                materializer.materialize(
-                    repo_root=REPO,
-                    changeset_path=changeset_path,
-                    manifest_path=fixture["manifest"],
-                    evidence_records_path=EVIDENCE,
-                    wiki_root=fixture["wiki"],
-                    receipt_path=fixture["receipt"],
-                    accepted_changeset_sha256=_sha(changeset_path.read_bytes()),
-                    dry_run=True,
-                )
+                self._dry_run(fixture)
+
+    def test_v5_every_supporting_record_must_answer_the_h1(self) -> None:
+        with tempfile.TemporaryDirectory(dir=REPO) as temp_dir:
+            fixture = self._build_fixture(Path(temp_dir))
+            changeset_path = fixture["changeset"]
+            value = fixture["changeset_value"]
+            claim = value["operations"][0]["material_claims"][0]
+            claim["page_fit"]["answering_record_ids"] = [
+                claim["supporting_record_ids"][0]
+            ]
+            claim["page_fit"]["source_alignment"] = claim["page_fit"][
+                "source_alignment"
+            ][:1]
+            changeset_path.write_bytes(_json_bytes(value))
+            with self.assertRaisesRegex(
+                materializer.MaterializationError, "answering_record_ids"
+            ):
+                self._dry_run(fixture)
+
+    def test_v5_source_alignment_is_required(self) -> None:
+        with tempfile.TemporaryDirectory(dir=REPO) as temp_dir:
+            fixture = self._build_fixture(Path(temp_dir))
+            changeset_path = fixture["changeset"]
+            value = fixture["changeset_value"]
+            del value["operations"][0]["material_claims"][0]["page_fit"][
+                "source_alignment"
+            ]
+            changeset_path.write_bytes(_json_bytes(value))
+            with self.assertRaisesRegex(
+                materializer.MaterializationError, "source_alignment"
+            ):
+                self._dry_run(fixture)
+
+    def test_v5_source_alignment_words_must_exist_in_quote(self) -> None:
+        with tempfile.TemporaryDirectory(dir=REPO) as temp_dir:
+            fixture = self._build_fixture(Path(temp_dir))
+            changeset_path = fixture["changeset"]
+            value = fixture["changeset_value"]
+            value["operations"][0]["material_claims"][0]["page_fit"][
+                "source_alignment"
+            ][0]["supporting_words"] = "Выдуманный фрагмент, которого нет в quote."
+            changeset_path.write_bytes(_json_bytes(value))
+            with self.assertRaisesRegex(
+                materializer.MaterializationError, "not in the exact quote"
+            ):
+                self._dry_run(fixture)
+
+    def test_v5_repetition_records_follow_manifest_order(self) -> None:
+        with tempfile.TemporaryDirectory(dir=REPO) as temp_dir:
+            fixture = self._build_fixture(Path(temp_dir))
+            changeset_path = fixture["changeset"]
+            value = fixture["changeset_value"]
+            first, second = value["frozen_record_ids_in_manifest_order"][:2]
+            value["evidence_metadata"]["repetition_groups"] = [
+                {
+                    "group_id": "reversed-tie",
+                    "statement": "Одинаковая позиция владельца.",
+                    "record_ids": [second, first],
+                    "occurrence_count": 2,
+                    "first_record_id": second,
+                    "latest_record_id": first,
+                }
+            ]
+            changeset_path.write_bytes(_json_bytes(value))
+            with self.assertRaisesRegex(
+                materializer.MaterializationError, "manifest order"
+            ):
+                self._dry_run(fixture)
 
 
 if __name__ == "__main__":
