@@ -3,8 +3,10 @@ kind: module-card
 wave: "6b"
 state: planned
 role: representative-ingestion-utility-gate
-model: gpt-5.6-luna
-thinking: max
+system-owner: root
+strategy-review: claude-opus-5
+batch-model: gpt-5.6-luna
+batch-thinking: max
 description: representative post-ingestion utility gate before full semantic generation
 ---
 
@@ -104,13 +106,25 @@ snapshot, неприкреплённая prompt-версия или utility resu
 
 ## Exact ownership
 
-- **6b execution owner** — один `gpt-5.6-luna/max` writer. Он владеет только
-  representative utility implementation, её tests и dedicated artifact root:
+- **6b system owner** — root. Он единолично проектирует и собирает связанную
+  representative utility implementation, её tests и input-lock в dedicated
+  artifact root:
   `experiments/openviking-chat-recall/scripts/build_representative_utility.py`,
   `experiments/openviking-chat-recall/tests/test_representative_utility.py` и
   `experiments/openviking-chat-recall/artifacts/full-build/representative-utility/**`.
-  Он не владеет source lock, Wave 6 partitions, v1 gold, Wiki full-build tree,
-  Wave 7 outputs, `task.md` или `status.md`.
+  Root не меняет source lock, Wave 6 partitions, v1 gold или Wave 7 outputs.
+  После provider/privacy PASS root также владеет кросс-частным semantic layer:
+  L1 overviews на каждой глубине, покрывающей больше одного `part-*`, включая
+  корневой, и deterministic L0 extraction из Brief Description L1 по тому же
+  pinned Context Layers tuple.
+- **Strategy reviewer** — read-only Opus. До принятия system seam и terminal
+  utility verdict он атакует связность архитектуры, privacy boundary и
+  acceptance logic; self-report или совет Opus не заменяет исполняемые tests.
+- **Luna Max batch writer** подключается только после accepted input-lock и
+  provider/privacy PASS. Она получает замороженные prompt/schema и конкретный
+  `part-*`, выполняет повторяемый quote-to-Wiki rewrite и пишет только L2 pages
+  своего semantic-directory footprint. Она не пишет L1/L0 sidecars, не
+  проектирует систему, не меняет shared files и не выносит gate verdict.
 - **Wave 6 owner** сохраняет ownership frozen deterministic inputs. 6b читает
   их только по digest-у и не чинит их на месте.
 - **Reader/grader owner** получает только заранее разрешённую surface и
@@ -119,14 +133,16 @@ snapshot, неприкреплённая prompt-версия или utility resu
 - **Root orchestrator** единолично принимает `PASS | FAIL | UNKNOWN`, открывает
   Wave 7 и при необходимости интегрирует shared plan/status. 6b writer не
   меняет shared plan/status.
-- **Nested falsifier** — ровно один read-only `gpt-5.6-luna/max` без inherited
-  context. Он не пишет файлов и возвращает atomic checks по circular-gate и
+- **Independent falsifier** — read-only Opus без writer transcript. Он не
+  пишет файлов и возвращает atomic checks по circular-gate и
   semantic-acceptance risks.
 
 ## Bounded fan-out and isolation
 
-- Один top-level writer и ровно один nested falsifier; дополнительных
-  exploratory agents или parallel writers нет.
+- До semantic batch implementation и input-lock принадлежат root; один Opus
+  проверяет системную границу. После accepted input-lock, provider/privacy PASS
+  и frozen prompt/schema параллельные Luna writers разрешены только по
+  непересекающимся `part-*`; exploratory fan-out запрещён.
 - Ровно десять fresh reader runs: 5 cases × 2 arms. Каждый run получает новый
   context, один case, один arm и только его allowed surface. Никакой case не
   делит context, cache, discovery history или answer state с другим case.

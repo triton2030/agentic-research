@@ -13,9 +13,10 @@ kind: status
 
 ## Next
 
-Построить только source-bound Wave 6b input-lock из accepted F1–F3: два полных
-holder-а, 24 `used` records, 0 diagnostics, membership/digests против frozen
-records, partitions и semantic gold. Output —
+Root строит только source-bound Wave 6b input-lock из accepted F1–F3: два
+полных holder-а, 24 `used` records, 0 diagnostics, membership/digests против
+frozen records, partitions и semantic gold. Opus проверяет системную границу;
+Luna не участвует до замороженного повторяемого quote-to-Wiki batch. Output —
 `representative-utility/input-lock.json` со статусом `prepared/blocked`, без
 full quotes, semantic claims, Wiki pages или provider call. F4-R1 rejected;
 semantic `L2 → L1 → L0` остаётся закрыт до нового accepted provider/privacy
@@ -122,7 +123,9 @@ Fresh Eyes trajectory correction и четыре разные опоры зап�
 [fresh-eyes-post-ingestion-gate](modules/_returns/fresh-eyes-post-ingestion-gate.md).
 Wave 6b writer запустил nested Luna Max auditor
 `01a025b5-e79a-7c81-a2c5-261ac06be8ff`; circular gate и semantic acceptance —
-PASS.
+исторический PASS прежней role-map, не evidence для текущего terminal gate.
+Перед terminal verdict independent falsifier выполняет Opus без writer
+transcript.
 
 Source-frontier task `01a025bb-e6d4-7c00-94ce-bafd7bb932e1` доказал, что
 предыдущий `HEAD` терял 26 parsed records. Все восемь holder overlays сохранены
@@ -140,6 +143,7 @@ evidence.
 | 01a02629-b1e2-71d2-949f-9a605f686b8b | F3 stable partitions | partition writer/test + manifest/8 parts | accepted `c5bbe41` |
 | 01a02657-d943-7013-b1a6-36be71b59b68 | F4 provider canary | writer/test + public UNKNOWN receipt | accepted `UNKNOWN` on `c7ceed0`; no retry |
 | 01a02681-32dd-7de1-8d4c-014972769587 | F4-R1 provider repair | three-path candidate + separate v2 receipt | rejected by final audit; commits not integrated; terminal `UNKNOWN` |
+| 01a026cd-2baf-7982-ac1f-303b04c29302 | P-1 representative input-lock | system design + implementation | stopped before writes; clean worktree; archived after owner model-role correction |
 
 F1 return —
 [wave-6-f1-source-lock](modules/_returns/wave-6-f1-source-lock.md). Root
@@ -184,7 +188,7 @@ provider repair снят с текущей траектории после Fresh
 | Волна | Результат | Dependency | State |
 | --- | --- | --- | --- |
 | 6 | frozen snapshot, deterministic records, stable partitions; provider gate separate | accepted Wave 5 semantic contract + explicit corpus commit | deterministic F1/F2/F3 PASS; provider F4 UNKNOWN; F4-R1 rejected |
-| 6b | representative input-lock, затем L2/L1/L0 + matched utility | F1–F3 for input-lock; accepted provider/privacy PASS for semantic execution | input-lock ready to execute; semantic stage blocked |
+| 6b | representative input-lock, затем L2/L1/L0 + matched utility | F1–F3 for input-lock; accepted provider/privacy PASS for semantic execution | root-owned input-lock ready; Luna semantic batch blocked |
 | 7 | semantic candidates и canonical current claims | Wave 6b utility PASS | planned |
 | 8 | typed L2 pages, per-part validation и root catalog | Wave 7 pass | planned |
 | 9 | bottom-up L1 overviews и deterministic L0 abstracts | Wave 8 pass | planned |
