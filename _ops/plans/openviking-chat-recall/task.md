@@ -24,98 +24,58 @@ manifests/receipts и blind-доказательство, что агент на
 
 | Смысл | Единственный owner |
 | --- | --- |
-| Семантика Wiki writer-а | `experiments/openviking-chat-recall/prompts/wiki-writer.v2.md`; v1 остаётся rejected history |
+| Семантика пофайлового сжатия (маршрут Б) | `experiments/openviking-chat-recall/prompts/flatten-file.v1.md` |
+| Семантика сборки страниц (маршрут A) | `experiments/openviking-chat-recall/prompts/wiki-writer.v4.md`; v1–v3 — rejected history |
+| Проверка формы вики | `experiments/openviking-chat-recall/scripts/check_wiki.py` |
 | Полный контракт и путь до конца | этот `task.md` |
 | Зачем выбран маршрут | `context.md` |
-| Текущий frontier | `status.md` |
-| Прошлые решения и эксперименты | `HISTORY.md` |
-| Frozen evidence | `experiments/openviking-chat-recall/artifacts/full-build/frozen/` и `experiments/openviking-chat-recall/artifacts/full-build/evidence/` |
-| Manifest/preflight | `experiments/openviking-chat-recall/scripts/build_owner_wiki_batch.py` |
-| Mechanical validation/materialization | `experiments/openviking-chat-recall/scripts/materialize_chronological_changeset.py` |
-| Единственная текущая Wiki chain | `experiments/openviking-chat-recall/artifacts/chronological-v1/` |
+| Текущий рубеж | `status.md` |
+| Прошлые решения и отклонённые кандидаты | `HISTORY.md` и `artifacts/chronological-v1/batch-001/attempt-*/REJECTED.md` |
+| Сухое знание пофайлово | `experiments/openviking-chat-recall/artifacts/flatten-v1/flat/` |
+| Атомарность, история, откат | git: один шаг — один коммит |
 
-`modules/**` и `artifacts/chronological-pilot/**` — addressable historical
-evidence. Они не управляют новой работой и не являются semantic prior.
+`modules/**`, `artifacts/chronological-pilot/**` и весь слой changeset /
+manifest / materializer — addressable historical evidence. Они не управляют
+новой работой.
 
 ## Система
 
+Два маршрута к одной цели; сравниваются на одном корпусе.
+
 ```text
-frozen chat-recall holders
-        ↓ deterministic chronological slice
-10 новых holders + их evidence records
-        ↓ Luna Max по versioned prompt
-candidate changeset над current Wiki
-        ↓ mechanical check + independent semantic audit
-accepted materialized current Wiki
-        ↓ повторить до полного L2 corpus
-bottom-up L1/L0
-        ↓ coverage/rebuild + blind matched audit
-recommended agent route или честный FAIL
+197 файлов цитат  (неизменны)
+        |
+        |  маршрут Б, шаг 1: пофайлово, параллельно
+        v
+197 файлов сухого знания              <- выполнено, 2,75x
+        |
+        |  шаг 2: объединение по схожести темы
+        v
+крупные тематические файлы
+        |
+        |  маршрут A на чистом материале: сборка страниц
+        v
+вики по IA OpenViking + index
+        |
+        v
+blind matched audit -> рекомендуемый маршрут агента либо честный отказ
 ```
 
-### Что читает writer одного batch
+Работа «не исказить сказанное» и работа «решить, как разложить» разведены по
+шагам. Четыре кандидата маршрута A показали, что одновременно они не даются:
+механизм качается между смешиванием вопросов и дроблением страниц.
 
-Batch `N` получает только:
+### Как идёт один шаг
 
-1. versioned prompt, manifest, output contract и preflight;
-2. следующие десять целых frozen holder-файлов и только их evidence rows;
-3. `index.md` и потенциально подходящие страницы принятой current Wiki.
+1. Root готовит вход: список файлов, контракт, границы.
+2. Исполнитель — `gpt-5.6-luna/max` для переноса и прозы, `gpt-5.6-sol/xhigh`
+   для суждения — пишет только в свою выходную папку.
+3. Root кладёт результат на место сам; модель файлов проекта не трогает.
+4. `check_wiki.py` судит форму, независимый аудит на `sol` — смысл.
+5. Годно — коммит. Негодно — `git checkout` и правка контракта, не результата.
 
-Writer не читает прежние holders, прежние quotes и targets старых source
-links. Current Wiki уже является сжатым prior knowledge. Deterministic builder
-передаёт page SHA, prior record IDs и готовые source-link targets, необходимые
-для сохранения provenance без повторного чтения старых цитат.
-
-Project instructions и named owner contracts относятся к control plane. Они не
-являются Wiki evidence, не растут вместе с номером batch и не разрешают broad
-historical recall scan. До batch-002 read-set audit обязан доказать границу:
-`10 новых holders + current Wiki`, а не `все обработанные holders`.
-
-### Что пишет writer
-
-- только `batch-NNN/changeset.json` со статусом `candidate`;
-- complete proposed Markdown для `create/update`;
-- claims ledger до prose, exact coverage и repetition/conflict metadata;
-- ни current Wiki, ни receipt, ни Git state.
-
-Каждая material surface — type/path, title/H1, description, body, source label,
-coverage reason и index cue — сохраняет owner attribution, subject, scope,
-modality и relations. Wiki пишет по-русски от третьего лица и не превращает
-owner quote в объективный факт или универсальный императив.
-
-Тематическая близость record-а к странице не считается page fit: каждый `used`
-record прямо отвечает точному H1. Named skill/project/runtime и
-`кандидат | идея | вопрос | правило` не обобщаются и не усиливаются на соседних
-surfaces. `first/latest` repetition IDs вычисляет deterministic слой в manifest
-order; writer их не угадывает. Reject reason проверяется по полному holder
-context, а не по одной строке quote.
-
-### Как проходит один batch
-
-1. Root строит manifest и preflight; hashes и prior tree проверяются до Luna.
-2. Новая visible `gpt-5.6-luna/max` получает один bounded batch без worktree.
-3. Luna читает разрешённые inputs, пишет candidate и запускает только
-   deterministic `--check-only`.
-4. Root/Opus независимо проверяет source → claim → все page surfaces → index.
-5. FAIL отбрасывает candidate целиком. Root исправляет versioned prompt или
-   deterministic contract и запускает новую Luna с нуля; repair того же
-   candidate запрещён.
-6. PASS меняет status candidate → accepted; deterministic materializer пишет
-   exact Wiki/receipt. Root проверяет tree/coverage, коммитит и пушит checkpoint.
-7. Root обновляет `status.md`, при изменении системы — `task.md/context.md`, и
-   архивирует завершённую visible task.
-8. Только accepted checkpoint становится prior следующего batch.
-
-Batch-агенты работают последовательно. Параллельные writers по разным эпохам и
-merge их Wiki запрещены: более новая цитата может переписать уже созданное
-знание.
-
-Новый record, который добавляет или меняет claim принятой страницы, обязан
-быть виден в answer-body, а не только в `description`, `## Источники` или
-metadata. Рост provenance без body-delta допустим только для доказанного
-семантического повтора уже выраженного current knowledge; validator фиксирует
-этот случай отдельно. Первый непустой `update/no-change` в batch-002 обязан
-пройти этот falsifying gate до продолжения backfill.
+Параллельность допустима там, где шаг не требует общего контекста: пофайловое
+сжатие гналось двадцатью прогонами. Сборка страниц последовательна по природе.
 
 ## Критерии успеха
 
@@ -149,16 +109,11 @@ metadata. Рост provenance без body-delta допустим только д
 
 | № | Веха | Готово, когда |
 | --- | --- | --- |
-| 1 | Надёжный batch-механизм | clean batch-001/002/003 приняты без repair; bounded read set доказан; prompt/manifest/materializer contract стабилен |
-| 2 | Полный L2 backfill | все record-bearing holders последовательно обработаны, exact coverage и один current Wiki checkpoint |
-| 3 | L1/L0 layers | sidecars созданы bottom-up по полному L2 и проходят provenance/structure gates |
-| 4 | Operations proof | fresh rebuild, resume/crash/delete-rebuild, coverage и privacy receipts проходят |
-| 5 | Retrieval acceptance | blind matched comparator и fresh-agent handoff дают PASS либо библиотека явно отклонена |
-
-После accepted batch-002 проводится ранний matched-budget comparator только на
-первых двадцати holders. Он не заменяет финальную приёмку полного корпуса, но
-fail-closed останавливает дорогой backfill, если Wiki ещё не показывает
-deduplication/currentness/findability benefit.
+| 1 | Пофайловое сухое знание | 197 файлов переписаны, имена один в один, модальность из ярлыка, выборочный смысловой аудит подтверждает верность — **шаг выполнен, аудит выборки остаётся** |
+| 2 | Тематические объединения | файлы сгруппированы по схожести предмета; межфайловые дубли схлопнуты, актуальность между разговорами разрешена |
+| 3 | Вики по IA OpenViking | страницы и index собраны из чистого материала, `check_wiki.py` зелёный, смысловой аудит без blocker |
+| 4 | Operations proof | пересборка из источников, удаление и восстановление, границы приватности имеют квитанции |
+| 5 | Retrieval acceptance | blind matched comparator и cold start свежего агента дают PASS либо библиотека явно отклонена |
 
 ## Не входит
 
@@ -172,17 +127,15 @@ deduplication/currentness/findability benefit.
 
 ## Условия входа и stop rules
 
-- Corpus/evidence остаются pinned к commits
-  `6f98fcccdbf4b4de45ef787239ad101f70d106e2` и
-  `ea569e2bf84377b17be9177065d5fb9172d26d39`; silent `HEAD` fallback запрещён.
-- Два последовательных FAIL одного semantic класса после prompt bump
-  останавливают full backfill и возвращают механизм в Wayfinding.
-- Любой batch, который требует перечитать старые holders, останавливается до
-  ремонта prior-page bindings или изоляции writer package.
-- Missing prompt/input/prior hash, partial candidate или materialization до
-  independent acceptance — fail closed.
-- Если blind audit не показывает пользы против holders, Wiki не становится
-  рекомендуемым agent route, даже при полном build.
+- Исходные файлы `_ops/chat-recall/` неизменны; всё производное пересобираемо.
+- Модель не пишет в файлы проекта: результат кладёт root.
+- Два последовательных провала одного семантического класса после правки
+  контракта останавливают маршрут и требуют сменить не формулировку, а
+  разложение работы. Маршрут A остановлен по этому правилу после четырёх
+  кандидатов.
+- Параллельность разрешена только там, где шаг не требует общего контекста.
+- Если аудит не показывает пользы против исходных файлов, библиотека не
+  становится рекомендуемым маршрутом агента даже при полной сборке.
 
 ## Стыки
 
