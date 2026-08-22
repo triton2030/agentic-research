@@ -1,0 +1,1395 @@
+{
+  "schema": "openviking-chat-recall/chronological-wiki-changeset.v5",
+  "phase": "semantic-draft",
+  "status": "candidate",
+  "batch_id": "batch-001",
+  "previous_batch_id": null,
+  "model": "gpt-5.6-luna",
+  "thinking": "max",
+  "input": {
+    "manifest_path": "experiments/openviking-chat-recall/artifacts/chronological-v1/batch-001-input.json",
+    "manifest_sha256": "1b7e51536b2b488ad2b8f4e16c4ab3ac47f1b72182e318bd2bcb1171951f32fc",
+    "evidence_records_path": "experiments/openviking-chat-recall/artifacts/full-build/evidence/records.jsonl",
+    "evidence_records_sha256": "868ffff05768e4ebac6893436141e99493e0582b6738845350b2aa805e99d69d",
+    "corpus_commit": "6f98fcccdbf4b4de45ef787239ad101f70d106e2",
+    "evidence_commit": "ea569e2bf84377b17be9177065d5fb9172d26d39",
+    "time_boundary_utc": "2026-07-26T13:05:18.283000+00:00",
+    "prompt_path": "experiments/openviking-chat-recall/prompts/wiki-writer.v2.md",
+    "prompt_sha256": "e5c4389374911239551f3157bce2b03e878dcd9981dae48a60831af856c8eeba",
+    "materializer_path": "experiments/openviking-chat-recall/scripts/materialize_chronological_changeset.py",
+    "materializer_sha256": "b3f88c093d059b1bf5463b6afe2996b49dfd923f0798218f9cf416d921e88508",
+    "output_contract_sha256": "4d09960a7f99b81c031ca55a28f5aa5329287cbda10b31dfd9b981b0c2577b7e"
+  },
+  "prior_checkpoint": {
+    "accepted_prior_commit": null,
+    "wiki_root": "experiments/openviking-chat-recall/artifacts/chronological-v1/current/wiki",
+    "wiki_tree_sha256_target": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "allowed_operations": [
+    "create",
+    "update",
+    "supersede",
+    "no-change",
+    "reject"
+  ],
+  "frozen_record_ids_in_manifest_order": [
+    "cr-39cc21a90c49798e",
+    "cr-26bf33cb209aa21e",
+    "cr-42f1d19bfbb686ed",
+    "cr-f94d105dcf39a94e",
+    "cr-67b75758780bdd03",
+    "cr-9e4a0a195f9f977c",
+    "cr-db36c02089cee53c",
+    "cr-22ee623ec7686866",
+    "cr-fc5efefa2e142f6d",
+    "cr-fa0e021879c62cf9",
+    "cr-cd12084caea37373",
+    "cr-411135b8c85edbcd",
+    "cr-92ba68ae02b88b40",
+    "cr-efcf76d86838867f",
+    "cr-526ac5b1659adabe",
+    "cr-d0cc9efc0619245c",
+    "cr-28ee572c031e1ce9",
+    "cr-709322c9d9b388ba",
+    "cr-07c5570aa291ce00",
+    "cr-ead240f06f3f4056",
+    "cr-d14718675797fc5f",
+    "cr-44844272055b3fa4",
+    "cr-1c066feff9816000",
+    "cr-d11297ea9be4a382",
+    "cr-036e14487d4f4aa4",
+    "cr-0c56f9b82f11ffc7",
+    "cr-89588d01dee1aacf",
+    "cr-9e42f2995175d537",
+    "cr-e0cc9eb95585f23d",
+    "cr-1d42692df43b815f",
+    "cr-3e2fa31aaeff8e35",
+    "cr-7cb93d9f82c72fea"
+  ],
+  "operations": [
+    {
+      "operation": "create",
+      "page_path": "current/wiki/index.md",
+      "page_type": "index",
+      "prior_sha256": null,
+      "proposed_content": "---\ntype: index\ntitle: Что владелец говорил о chat-recall, скилах и работе с агентами?\ndescription: Навигация по текущим owner-attributed позициям о chat-recall, скилах, поиске, инструкциях и работе с агентами.\n---\n# Что владелец говорил о chat-recall, скилах и работе с агентами?\n\nЭта Wiki собирает текущие owner-attributed позиции о chat-recall, скилах, поиске, инструкциях и работе с агентами. Страницы сохраняют решения, критерии, предпочтения, коррекции, предложения и слова владельца о себе в их исходной силе.\n\n## Chat-recall и лог\n- [Как владелец определил запись своих цитат в 1chat-recall?](concept/owner-quote-capture.md) — Открой, чтобы узнать, как владелец определил запись своих цитат в 1chat-recall.\n- [Зачем владелец решил сохранять ранние идеи в логе?](concept/owner-early-ideas-log.md) — Открой, чтобы узнать, зачем владелец решил сохранять ранние идеи в логе.\n- [Как владелец решил обращаться со старыми записями лога?](concept/owner-log-currentness.md) — Открой, чтобы узнать, как владелец решил обращаться со старыми записями лога.\n- [Зачем владелец решил накапливать комментарии для редактирования инструкций?](concept/owner-instruction-review.md) — Открой, чтобы узнать, зачем владелец решил накапливать комментарии для редактирования инструкций.\n- [Как владелец определил гранулярность тем в логе?](concept/owner-log-topic-granularity.md) — Открой, чтобы узнать, как владелец определил гранулярность тем в логе.\n- [Какую область записи владелец определил для одного окна чата?](concept/owner-chat-session-scope.md) — Открой, чтобы узнать, какую область записи владелец определил для одного окна чата.\n- [Как владелец определил агентские границы и метаданные записей 1chat-recall?](concept/owner-agent-metadata.md) — Открой, чтобы узнать, как владелец определил агентские границы и метаданные записей 1chat-recall.\n- [Как владелец описал своё общение с несколькими агентами?](concept/owner-multiple-agents.md) — Открой, чтобы узнать, как владелец описал своё общение с несколькими агентами.\n- [Что владелец отметил о несвязной речи при чтении переписок?](concept/owner-unstructured-speech.md) — Открой, чтобы узнать, что владелец отметил о несвязной речи при чтении переписок.\n\n## Skills и инструменты\n- [Какие модели владелец назвал для использования скилов?](concept/owner-skill-models.md) — Открой, чтобы узнать, какие модели владелец назвал для использования скилов.\n- [Какую длину инструкций предпочитает владелец?](concept/owner-instruction-length.md) — Открой, чтобы узнать, какую длину инструкций предпочитает владелец.\n- [Что владелец исправил в работе chat-recall со старыми чатами?](concept/owner-historical-capture.md) — Открой, чтобы узнать, что владелец исправил в работе chat-recall со старыми чатами.\n- [Что владелец исправил в Codex skill о флаге приоритета?](concept/owner-codex-priority-flag.md) — Открой, чтобы узнать, что владелец исправил в Codex skill о флаге приоритета.\n- [Какое короткое описание скила предпочитает владелец для записи цитат?](concept/owner-skill-description.md) — Открой, чтобы узнать, какое короткое описание скила предпочитает владелец для записи цитат.\n- [Что владелец предпочитает указывать в reference file?](concept/owner-reference-file.md) — Открой, чтобы узнать, что владелец предпочитает указывать в reference file.\n- [Какую границу владелец предложил для поиска через embeddings?](concept/owner-embedding-duplicate-boundary.md) — Открой, чтобы узнать, какую границу владелец предложил для поиска через embeddings.\n- [Что владелец уточнил о глобальном embedding-инструменте и скилах?](concept/owner-global-embedding-skill.md) — Открой, чтобы узнать, что владелец уточнил о глобальном embedding-инструменте и скилах.\n- [Какую плотность скилов владелец предложил?](concept/owner-skill-density.md) — Открой, чтобы узнать, какую плотность скилов владелец предложил.\n- [Что владелец задал и какой возможный вариант назвал для Playwright skill в Claude и Codex?](concept/owner-playwright-parity.md) — Открой, чтобы узнать, что владелец задал и какой возможный вариант назвал для Playwright skill в Claude и Codex.\n- [Что владелец предложил не терять из контекста задания агенту?](concept/owner-context-retention.md) — Открой, чтобы узнать, что владелец предложил не терять из контекста задания агенту.\n",
+      "proposed_sha256": "6c43fb3acd1e5494811ef0422c7c775057cf41d6c654ff8a315497b50352b3b0",
+      "record_ids": [],
+      "material_claims": [],
+      "prior_page_review": {
+        "checked_prior_pages": []
+      }
+    },
+    {
+      "operation": "create",
+      "page_path": "current/wiki/concept/owner-quote-capture.md",
+      "page_type": "concept",
+      "prior_sha256": null,
+      "proposed_content": "---\ntype: concept\ntitle: Как владелец определил запись своих цитат в 1chat-recall?\ndescription: Владелец определил формат, границу и область записи своих цитат в 1chat-recall.\n---\n# Как владелец определил запись своих цитат в 1chat-recall?\n\nВладелец определил для 1chat-recall формат записи своих цитат: скил должен сохранять его слова с датами, коротко и без агентской интерпретации. Он решил записывать такие цитаты именно в _ops/chat-recall и считать скил глобальным для всех проектов. Владелец также решил, что агент вручную слегка сокращает цитату, выделяя главное; отдельно он исправил границу извлечения: фиксировать нужно сказанное им, а не только скопированный и вставленный текст.\n\n## Источники\n- [Решение о цитатах с датами](../../../../../../../_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md#L20)\n- [Критерий автоматической короткой записи](../../../../../../../_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md#L21)\n- [Критерий лёгкого сокращения](../../../../../../../_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md#L22)\n- [Решение о пути записи](../../../../../../../_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md#L23)\n- [Решение о глобальном скиле](../../../../../../../_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md#L24)\n- [Решение о ручном сокращении](../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L29)\n- [Коррекция границы извлечения](../../../../../../../_ops/chat-recall/2026-07-22-121239-codex-019f889f.md#L16)\n",
+      "proposed_sha256": "9a88eb82bc51d9d95c269ade31394da9902f33afc20255356efac3f8eb646beb",
+      "record_ids": [
+        "cr-39cc21a90c49798e",
+        "cr-26bf33cb209aa21e",
+        "cr-42f1d19bfbb686ed",
+        "cr-f94d105dcf39a94e",
+        "cr-67b75758780bdd03",
+        "cr-526ac5b1659adabe",
+        "cr-ead240f06f3f4056"
+      ],
+      "material_claims": [
+        {
+          "claim_id": "quote-capture-1",
+          "statement": "Владелец решил, что скил должен записывать его буквальные цитаты вместе с датами.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-39cc21a90c49798e"
+          ],
+          "page_fit": {
+            "page_question": "Как владелец определил запись своих цитат в 1chat-recall?",
+            "answering_record_ids": [
+              "cr-39cc21a90c49798e"
+            ],
+            "source_alignment": [
+              {
+                "record_id": "cr-39cc21a90c49798e",
+                "named_subject": "скил",
+                "scope": "запись буквальных цитат с датами",
+                "modality": "решение",
+                "supporting_words": "Хочу, чтобы скил записывал буквально мои цитаты с датами"
+              }
+            ],
+            "reason": "Запись прямо отвечает на вопрос о формате цитат в скиле."
+          }
+        },
+        {
+          "claim_id": "quote-capture-2",
+          "statement": "Владелец задал критерий: скил должен срабатывать автоматически и коротко фиксировать самое важное из его слов, не подменяя их агентской интерпретацией.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-26bf33cb209aa21e"
+          ],
+          "page_fit": {
+            "page_question": "Как владелец определил запись своих цитат в 1chat-recall?",
+            "answering_record_ids": [
+              "cr-26bf33cb209aa21e"
+            ],
+            "source_alignment": [
+              {
+                "record_id": "cr-26bf33cb209aa21e",
+                "named_subject": "скил",
+                "scope": "автоматическая короткая фиксация главного из слов владельца",
+                "modality": "критерий",
+                "supporting_words": "Скил должен срабатывать автоматически и записывать самое важное, что я сказал"
+              }
+            ],
+            "reason": "Запись прямо отвечает на вопрос о требовании к содержанию и запуску скила."
+          }
+        },
+        {
+          "claim_id": "quote-capture-3",
+          "statement": "Владелец уточнил критерий: буквальную цитату можно слегка сократить.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-42f1d19bfbb686ed"
+          ],
+          "page_fit": {
+            "page_question": "Как владелец определил запись своих цитат в 1chat-recall?",
+            "answering_record_ids": [
+              "cr-42f1d19bfbb686ed"
+            ],
+            "source_alignment": [
+              {
+                "record_id": "cr-42f1d19bfbb686ed",
+                "named_subject": "цитата",
+                "scope": "буквальная цитата с лёгким сокращением",
+                "modality": "критерий",
+                "supporting_words": "Не буквально цитату, а, в принципе, буквально цитату, но слегка сокращённую"
+              }
+            ],
+            "reason": "Запись прямо уточняет допустимую степень сокращения цитаты."
+          }
+        },
+        {
+          "claim_id": "quote-capture-4",
+          "statement": "Владелец решил записывать такие цитаты именно в _ops/chat-recall.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-f94d105dcf39a94e"
+          ],
+          "page_fit": {
+            "page_question": "Как владелец определил запись своих цитат в 1chat-recall?",
+            "answering_record_ids": [
+              "cr-f94d105dcf39a94e"
+            ],
+            "source_alignment": [
+              {
+                "record_id": "cr-f94d105dcf39a94e",
+                "named_subject": "запись цитат",
+                "scope": "_ops/chat-recall",
+                "modality": "решение",
+                "supporting_words": "Записывать должно именно в _ops/chat-recall"
+              }
+            ],
+            "reason": "Запись прямо отвечает на вопрос о месте хранения цитат."
+          }
+        },
+        {
+          "claim_id": "quote-capture-5",
+          "statement": "Владелец зафиксировал, что скил глобален для всех проектов.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-67b75758780bdd03"
+          ],
+          "page_fit": {
+            "page_question": "Как владелец определил запись своих цитат в 1chat-recall?",
+            "answering_record_ids": [
+              "cr-67b75758780bdd03"
+            ],
+            "source_alignment": [
+              {
+                "record_id": "cr-67b75758780bdd03",
+                "named_subject": "скил",
+                "scope": "все проекты",
+                "modality": "решение",
+                "supporting_words": "Скил глобальный для всех проектов"
+              }
+            ],
+            "reason": "Запись прямо отвечает на вопрос об области действия скила."
+          }
+        },
+        {
+          "claim_id": "quote-capture-6",
+          "statement": "Владелец решил, что агент должен вручную слегка сокращать цитату, выделяя главное.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-526ac5b1659adabe"
+          ],
+          "page_fit": {
+            "page_question": "Как владелец определил запись своих цитат в 1chat-recall?",
+            "answering_record_ids": [
+              "cr-526ac5b1659adabe"
+            ],
+            "source_alignment": [
+              {
+                "record_id": "cr-526ac5b1659adabe",
+                "named_subject": "цитаты",
+                "scope": "ручное лёгкое сокращение записи",
+                "modality": "решение",
+                "supporting_words": "Именно поэтому записывать должен агент вручную и слегка сокращать"
+              }
+            ],
+            "reason": "Запись прямо отвечает на вопрос о способе сокращения цитаты."
+          }
+        },
+        {
+          "claim_id": "quote-capture-7",
+          "statement": "Владелец исправил границу извлечения: нужно вычленять то, что он сказал, а не только скопированный и вставленный текст.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-ead240f06f3f4056"
+          ],
+          "page_fit": {
+            "page_question": "Как владелец определил запись своих цитат в 1chat-recall?",
+            "answering_record_ids": [
+              "cr-ead240f06f3f4056"
+            ],
+            "source_alignment": [
+              {
+                "record_id": "cr-ead240f06f3f4056",
+                "named_subject": "сказанное владельцем",
+                "scope": "извлечение вместо только скопированного и вставленного",
+                "modality": "коррекция",
+                "supporting_words": "Нужно именно вычленить из того, что я сказал, именно то, что я сказал"
+              }
+            ],
+            "reason": "Запись прямо отвечает на вопрос о границе owner-цитаты."
+          }
+        }
+      ],
+      "prior_page_review": {
+        "checked_prior_pages": []
+      }
+    },
+    {
+      "operation": "create",
+      "page_path": "current/wiki/concept/owner-early-ideas-log.md",
+      "page_type": "concept",
+      "prior_sha256": null,
+      "proposed_content": "---\ntype: concept\ntitle: Зачем владелец решил сохранять ранние идеи в логе?\ndescription: Владелец решил использовать лог для идей о будущем, которые ещё рано считать окончательными.\n---\n# Зачем владелец решил сохранять ранние идеи в логе?\n\nВладелец решил использовать лог как место для идей о будущем, которые ещё слишком рано записывать как окончательные: такая идея может быть отменена.\n\n## Источники\n- [Решение о ранних идеях](../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L21)\n",
+      "proposed_sha256": "afa0671bb72ab27e912cfc8312acd7dac923462dcb0fe793606a34de82e817d7",
+      "record_ids": [
+        "cr-db36c02089cee53c"
+      ],
+      "material_claims": [
+        {
+          "claim_id": "early-ideas-1",
+          "statement": "Владелец решил сохранять в логе идеи о будущем, которые ещё слишком рано считать окончательными и которые могут быть отменены.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-db36c02089cee53c"
+          ],
+          "page_fit": {
+            "page_question": "Зачем владелец решил сохранять ранние идеи в логе?",
+            "answering_record_ids": [
+              "cr-db36c02089cee53c"
+            ],
+            "source_alignment": [
+              {
+                "record_id": "cr-db36c02089cee53c",
+                "named_subject": "лог",
+                "scope": "ранние идеи о будущем",
+                "modality": "решение",
+                "supporting_words": "идеи про будущее, которые нам бы не забыть, но которые ещё слишком рано записывать"
+              }
+            ],
+            "reason": "Запись прямо отвечает на вопрос о назначении лога для ранних идей."
+          }
+        }
+      ],
+      "prior_page_review": {
+        "checked_prior_pages": []
+      }
+    },
+    {
+      "operation": "create",
+      "page_path": "current/wiki/concept/owner-log-currentness.md",
+      "page_type": "concept",
+      "prior_sha256": null,
+      "proposed_content": "---\ntype: concept\ntitle: Как владелец решил обращаться со старыми записями лога?\ndescription: Владелец решил учитывать дату записи и перечитывать старые записи только по заданной задаче.\n---\n# Как владелец решил обращаться со старыми записями лога?\n\nВладелец решил, что дата записи влияет на отношение к старым идеям: старые записи не обязательно хороши и не должны постоянно направлять решения. Он будет задавать чтение лога сам, например при полировке или размышлениях о будущем.\n\n## Источники\n- [Решение о старых записях](../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L25)\n",
+      "proposed_sha256": "edf9d230f9b4597cf61050931e9a2ab4d7cb78902bab66a87f2a0f8579d09547",
+      "record_ids": [
+        "cr-cd12084caea37373"
+      ],
+      "material_claims": [
+        {
+          "claim_id": "log-currentness-1",
+          "statement": "Владелец решил учитывать дату записи: старые записи не обязательно содержат хорошую идею и не должны постоянно влиять на решения.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-cd12084caea37373"
+          ],
+          "page_fit": {
+            "page_question": "Как владелец решил обращаться со старыми записями лога?",
+            "answering_record_ids": [
+              "cr-cd12084caea37373"
+            ],
+            "source_alignment": [
+              {
+                "record_id": "cr-cd12084caea37373",
+                "named_subject": "старые записи",
+                "scope": "влияние даты и чтение по задаче",
+                "modality": "решение",
+                "supporting_words": "Даты записи очень влияют: старые записи — не факт что хорошая идея."
+              }
+            ],
+            "reason": "Запись прямо отвечает на вопрос о работе со старыми записями."
+          }
+        }
+      ],
+      "prior_page_review": {
+        "checked_prior_pages": []
+      }
+    },
+    {
+      "operation": "create",
+      "page_path": "current/wiki/concept/owner-instruction-review.md",
+      "page_type": "concept",
+      "prior_sha256": null,
+      "proposed_content": "---\ntype: concept\ntitle: Зачем владелец решил накапливать комментарии для редактирования инструкций?\ndescription: Владелец решил накапливать комментарии агентов, чтобы со временем редактировать инструкции и находить повторяющиеся коррекции.\n---\n# Зачем владелец решил накапливать комментарии для редактирования инструкций?\n\nВладелец решил накапливать комментарии разных агентов как материал для последующего редактирования инструкций: по повторяющимся коррекциям можно будет подумать об автоматизмах или исправлениях.\n\n## Источники\n- [Решение об использовании комментариев](../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L26)\n",
+      "proposed_sha256": "617454927b0343628066d18822ba01060fa8e29000b06abc16497898819c8798",
+      "record_ids": [
+        "cr-411135b8c85edbcd"
+      ],
+      "material_claims": [
+        {
+          "claim_id": "instruction-review-1",
+          "statement": "Владелец решил использовать накопленные комментарии разных агентов для последующего редактирования инструкций и поиска повторяющихся коррекций.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-411135b8c85edbcd"
+          ],
+          "page_fit": {
+            "page_question": "Зачем владелец решил накапливать комментарии для редактирования инструкций?",
+            "answering_record_ids": [
+              "cr-411135b8c85edbcd"
+            ],
+            "source_alignment": [
+              {
+                "record_id": "cr-411135b8c85edbcd",
+                "named_subject": "комментарии агентов",
+                "scope": "редактирование инструкций со временем",
+                "modality": "решение",
+                "supporting_words": "Одна из самых главных причин — это отличный способ редактировать инструкции"
+              }
+            ],
+            "reason": "Запись прямо отвечает на вопрос о назначении накопленных комментариев."
+          }
+        }
+      ],
+      "prior_page_review": {
+        "checked_prior_pages": []
+      }
+    },
+    {
+      "operation": "create",
+      "page_path": "current/wiki/concept/owner-log-topic-granularity.md",
+      "page_type": "concept",
+      "prior_sha256": null,
+      "proposed_content": "---\ntype: concept\ntitle: Как владелец определил гранулярность тем в логе?\ndescription: Владелец решил классифицировать записи по темам и исправил их ширину в сторону более гранулярных тем.\n---\n# Как владелец определил гранулярность тем в логе?\n\nВладелец решил классифицировать записи по темам, чтобы находить разговоры о конкретном скиле, а сведения о его поведении держать отдельно. Он исправил ширину тем: хочет темы, близкие к конкретному разговору, например бизнес, дизайн, фронт-энд или маркетинг.\n\n## Источники\n- [Решение о классификации по темам](../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L27)\n- [Коррекция гранулярности тем](../../../../../../../_ops/chat-recall/2026-07-26-174326-codex-019f9e61.md#L15)\n",
+      "proposed_sha256": "8a1403358f4560e4a02ab415aae4651b739edb5adf008ca0b6d9ccef24b70115",
+      "record_ids": [
+        "cr-92ba68ae02b88b40",
+        "cr-1d42692df43b815f"
+      ],
+      "material_claims": [
+        {
+          "claim_id": "topic-granularity-1",
+          "statement": "Владелец решил классифицировать цитаты по темам, чтобы находить разговоры о конкретном скиле, а классификацию его поведения вести отдельно.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-92ba68ae02b88b40"
+          ],
+          "page_fit": {
+            "page_question": "Как владелец определил гранулярность тем в логе?",
+            "answering_record_ids": [
+              "cr-92ba68ae02b88b40"
+            ],
+            "source_alignment": [
+              {
+                "record_id": "cr-92ba68ae02b88b40",
+                "named_subject": "классификация цитат",
+                "scope": "поиск разговоров о конкретном скиле и отдельная классификация поведения",
+                "modality": "решение",
+                "supporting_words": "Не просто записывать мои цитаты, а классифицировать"
+              }
+            ],
+            "reason": "Запись прямо отвечает на вопрос о тематической организации лога."
+          }
+        },
+        {
+          "claim_id": "topic-granularity-2",
+          "statement": "Владелец исправил ширину тем: хочет более гранулярные темы, близкие к тому, что обсуждается, включая бизнес, дизайн, фронт-энд и маркетинг.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-1d42692df43b815f"
+          ],
+          "page_fit": {
+            "page_question": "Как владелец определил гранулярность тем в логе?",
+            "answering_record_ids": [
+              "cr-1d42692df43b815f"
+            ],
+            "source_alignment": [
+              {
+                "record_id": "cr-1d42692df43b815f",
+                "named_subject": "темы",
+                "scope": "гранулярность тем, близкая к предмету разговора",
+                "modality": "коррекция",
+                "supporting_words": "темы были более гранулярные"
+              }
+            ],
+            "reason": "Запись прямо отвечает на вопрос о желаемой гранулярности тем."
+          }
+        }
+      ],
+      "prior_page_review": {
+        "checked_prior_pages": []
+      }
+    },
+    {
+      "operation": "create",
+      "page_path": "current/wiki/concept/owner-chat-session-scope.md",
+      "page_type": "concept",
+      "prior_sha256": null,
+      "proposed_content": "---\ntype: concept\ntitle: Какую область записи владелец определил для одного окна чата?\ndescription: Владелец определил, что одно окно чата записывает только один файл о событиях этого окна.\n---\n# Какую область записи владелец определил для одного окна чата?\n\nВладелец решил, что одно окно чата и один разговор образуют один файл, а запись этого окна относится только к происходившему в нём и не выходит за его пределы.\n\n## Источники\n- [Решение о границе окна чата](../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L31)\n",
+      "proposed_sha256": "202fb9c7a9c4351ca05823de440b82389ec49c01d3425ccf98520d509f851458",
+      "record_ids": [
+        "cr-28ee572c031e1ce9"
+      ],
+      "material_claims": [
+        {
+          "claim_id": "chat-session-scope-1",
+          "statement": "Владелец решил, что одно окно чата и один разговор образуют один файл, содержащий только происходившее в этом окне.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-28ee572c031e1ce9"
+          ],
+          "page_fit": {
+            "page_question": "Какую область записи владелец определил для одного окна чата?",
+            "answering_record_ids": [
+              "cr-28ee572c031e1ce9"
+            ],
+            "source_alignment": [
+              {
+                "record_id": "cr-28ee572c031e1ce9",
+                "named_subject": "окно чата и разговор",
+                "scope": "один файл только для событий этого окна",
+                "modality": "решение",
+                "supporting_words": "Одно окно чата, один разговор — это один файл."
+              }
+            ],
+            "reason": "Запись прямо отвечает на вопрос о границе записи одного окна чата."
+          }
+        }
+      ],
+      "prior_page_review": {
+        "checked_prior_pages": []
+      }
+    },
+    {
+      "operation": "create",
+      "page_path": "current/wiki/concept/owner-agent-metadata.md",
+      "page_type": "concept",
+      "prior_sha256": null,
+      "proposed_content": "---\ntype: concept\ntitle: Как владелец определил агентские границы и метаданные записей 1chat-recall?\ndescription: Владелец определил, кто вызывает 1chat-recall, что получают субагенты и какие агентские метаданные сохраняются.\n---\n# Как владелец определил агентские границы и метаданные записей 1chat-recall?\n\nВладелец определил агентские границы и метаданные записей 1chat-recall. Скилл вызывают Codex, Claude и параллельные агенты; субагенты не получают цитаты владельца напрямую; имя записывающего агента, точность и session ID сохраняются в метаданных. Владелец также решил писать слова type и topic на английском в метаданных и строках, чтобы агенту было легче искать.\n\n## Источники\n- [Критерий о вызывающих агентах](../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L22)\n- [Факт о субагентах](../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L32)\n- [Решение о метаданных](../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L28)\n- [Решение о названиях полей](../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L33)\n",
+      "proposed_sha256": "3edd659190591b13d503f479abdb5a64ed16d826c4fae8197ea486467c3edd90",
+      "record_ids": [
+        "cr-22ee623ec7686866",
+        "cr-efcf76d86838867f",
+        "cr-709322c9d9b388ba",
+        "cr-07c5570aa291ce00"
+      ],
+      "material_claims": [
+        {
+          "claim_id": "agent-metadata-1",
+          "statement": "Владелец задал критерий, что этот скилл вызывают Codex, Claude и параллельные агенты.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-22ee623ec7686866"
+          ],
+          "page_fit": {
+            "page_question": "Как владелец определил агентские границы и метаданные записей 1chat-recall?",
+            "answering_record_ids": [
+              "cr-22ee623ec7686866"
+            ],
+            "source_alignment": [
+              {
+                "record_id": "cr-22ee623ec7686866",
+                "named_subject": "этот скилл",
+                "scope": "вызов Codex, Claude и параллельными агентами",
+                "modality": "критерий",
+                "supporting_words": "Этот скилл будут вызывать как Codex, так и Claude, и параллельные агенты"
+              }
+            ],
+            "reason": "Запись прямо отвечает на вопрос о вызывающих агентах."
+          }
+        },
+        {
+          "claim_id": "agent-metadata-3",
+          "statement": "Владелец решил различать параллельные записи именем агента, а точность и session ID хранить в метаданных.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-efcf76d86838867f"
+          ],
+          "page_fit": {
+            "page_question": "Как владелец определил агентские границы и метаданные записей 1chat-recall?",
+            "answering_record_ids": [
+              "cr-efcf76d86838867f"
+            ],
+            "source_alignment": [
+              {
+                "record_id": "cr-efcf76d86838867f",
+                "named_subject": "имя агента и метаданные",
+                "scope": "различение записывающих агентов и восстановление сессии",
+                "modality": "решение",
+                "supporting_words": "В названии файла — имя агента, который записывает"
+              }
+            ],
+            "reason": "Запись прямо отвечает на вопрос о происхождении записи и её метаданных."
+          }
+        },
+        {
+          "claim_id": "agent-metadata-2",
+          "statement": "Владелец отметил, что субагенты получают сообщения вызывающего агента, а не его собственные цитаты.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-709322c9d9b388ba"
+          ],
+          "page_fit": {
+            "page_question": "Как владелец определил агентские границы и метаданные записей 1chat-recall?",
+            "answering_record_ids": [
+              "cr-709322c9d9b388ba"
+            ],
+            "source_alignment": [
+              {
+                "record_id": "cr-709322c9d9b388ba",
+                "named_subject": "субагенты",
+                "scope": "передача сообщений и цитат внутри одной сессии",
+                "modality": "факт",
+                "supporting_words": "Субагенты никогда не получают именно цитат от меня"
+              }
+            ],
+            "reason": "Запись прямо отвечает на вопрос о границе передачи owner-цитат."
+          }
+        },
+        {
+          "claim_id": "agent-metadata-4",
+          "statement": "Владелец решил писать слова type и topic на английском в метаданных и строках, чтобы агенту было легче искать.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-07c5570aa291ce00"
+          ],
+          "page_fit": {
+            "page_question": "Как владелец определил агентские границы и метаданные записей 1chat-recall?",
+            "answering_record_ids": [
+              "cr-07c5570aa291ce00"
+            ],
+            "source_alignment": [
+              {
+                "record_id": "cr-07c5570aa291ce00",
+                "named_subject": "type и topic",
+                "scope": "метаданные и строки; поиск агентом",
+                "modality": "решение",
+                "supporting_words": "В метаданных и в строчках писать само слово type и topic на английском"
+              }
+            ],
+            "reason": "Запись прямо отвечает на вопрос о названиях полей в метаданных и строках."
+          }
+        }
+      ],
+      "prior_page_review": {
+        "checked_prior_pages": []
+      }
+    },
+    {
+      "operation": "create",
+      "page_path": "current/wiki/concept/owner-multiple-agents.md",
+      "page_type": "concept",
+      "prior_sha256": null,
+      "proposed_content": "---\ntype: concept\ntitle: Как владелец описал своё общение с несколькими агентами?\ndescription: Владелец описал, что иногда одновременно общается с двумя-тремя агентами и пишет много промптов.\n---\n# Как владелец описал своё общение с несколькими агентами?\n\nВладелец описал собственную рабочую сцену так: иногда он одновременно общается с двумя-тремя агентами и пишет много промптов.\n\n## Источники\n- [Слова владельца о собственном общении](../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L23)\n",
+      "proposed_sha256": "59bbeec27628d30a08a08d3227194497d076bdaa962a0e95e40116f8005a8898",
+      "record_ids": [
+        "cr-fc5efefa2e142f6d"
+      ],
+      "material_claims": [
+        {
+          "claim_id": "multiple-agents-1",
+          "statement": "Владелец описал, что иногда одновременно общается с двумя-тремя агентами и пишет много промптов.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-fc5efefa2e142f6d"
+          ],
+          "page_fit": {
+            "page_question": "Как владелец описал своё общение с несколькими агентами?",
+            "answering_record_ids": [
+              "cr-fc5efefa2e142f6d"
+            ],
+            "source_alignment": [
+              {
+                "record_id": "cr-fc5efefa2e142f6d",
+                "named_subject": "собственное общение владельца",
+                "scope": "одновременное общение с двумя-тремя агентами",
+                "modality": "обо-мне",
+                "supporting_words": "Я общаюсь иногда даже с двумя-тремя агентами одновременно"
+              }
+            ],
+            "reason": "Запись прямо отвечает на вопрос о собственной рабочей сцене владельца."
+          }
+        }
+      ],
+      "prior_page_review": {
+        "checked_prior_pages": []
+      }
+    },
+    {
+      "operation": "create",
+      "page_path": "current/wiki/concept/owner-unstructured-speech.md",
+      "page_type": "concept",
+      "prior_sha256": null,
+      "proposed_content": "---\ntype: concept\ntitle: Что владелец отметил о несвязной речи при чтении переписок?\ndescription: Владелец отметил, что несвязная речь может забивать контекстное окно при чтении предыдущих переписок.\n---\n# Что владелец отметил о несвязной речи при чтении переписок?\n\nВладелец отметил, что несвязная и грязная речь может забивать контекстное окно, когда агент читает предыдущие переписки.\n\n## Источники\n- [Слова владельца о несвязной речи](../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L30)\n",
+      "proposed_sha256": "eccb636aa4f6c2ae476207f2c8e8d6a79df3a3e71a47430c8c9ea812cb0a8454",
+      "record_ids": [
+        "cr-d0cc9efc0619245c"
+      ],
+      "material_claims": [
+        {
+          "claim_id": "unstructured-speech-1",
+          "statement": "Владелец отметил, что несвязная речь может забивать контекстное окно при чтении предыдущих переписок.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-d0cc9efc0619245c"
+          ],
+          "page_fit": {
+            "page_question": "Что владелец отметил о несвязной речи при чтении переписок?",
+            "answering_record_ids": [
+              "cr-d0cc9efc0619245c"
+            ],
+            "source_alignment": [
+              {
+                "record_id": "cr-d0cc9efc0619245c",
+                "named_subject": "несвязная речь",
+                "scope": "чтение предыдущих переписок и контекстное окно",
+                "modality": "обо-мне",
+                "supporting_words": "Иногда я говорю что попало, несвязанно, грязно"
+              }
+            ],
+            "reason": "Запись прямо отвечает на вопрос о несвязной речи владельца в сцене чтения переписок."
+          }
+        }
+      ],
+      "prior_page_review": {
+        "checked_prior_pages": []
+      }
+    },
+    {
+      "operation": "create",
+      "page_path": "current/wiki/concept/owner-skill-models.md",
+      "page_type": "concept",
+      "prior_sha256": null,
+      "proposed_content": "---\ntype: concept\ntitle: Какие модели владелец назвал для использования скилов?\ndescription: Владелец назвал Фейбл и Опус 4.8 для использования скилов и связал это с обновлением репозитория и промптов.\n---\n# Какие модели владелец назвал для использования скилов?\n\nВладелец назвал Фейбл и Опус 4.8 для использования скилов; в той же формулировке он связал это с обновлением репозитория и написанием промптов для Claude, особенно для Fable.\n\n## Источники\n- [Решение о моделях для скилов](../../../../../../../_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md#L25)\n",
+      "proposed_sha256": "ed3c6b379c42d82207f1286e21ab4aca55f5b096cd659507433f85007d38478a",
+      "record_ids": [
+        "cr-9e4a0a195f9f977c"
+      ],
+      "material_claims": [
+        {
+          "claim_id": "skill-models-1",
+          "statement": "Владелец решил, что скиллы будет использовать Фейбл и Опус 4.8, и связал это с обновлением репозитория и промптов для Claude, особенно для Fable.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-9e4a0a195f9f977c"
+          ],
+          "page_fit": {
+            "page_question": "Какие модели владелец назвал для использования скилов?",
+            "answering_record_ids": [
+              "cr-9e4a0a195f9f977c"
+            ],
+            "source_alignment": [
+              {
+                "record_id": "cr-9e4a0a195f9f977c",
+                "named_subject": "скиллы",
+                "scope": "использование Fable и Opus 4.8; обновление репозитория и промптов для Claude",
+                "modality": "решение",
+                "supporting_words": "Скиллы будет использовать Фейбл и Опус четыре точка восемь."
+              }
+            ],
+            "reason": "Запись прямо отвечает на вопрос о названных владельцем моделях для скилов."
+          }
+        }
+      ],
+      "prior_page_review": {
+        "checked_prior_pages": []
+      }
+    },
+    {
+      "operation": "create",
+      "page_path": "current/wiki/concept/owner-instruction-length.md",
+      "page_type": "concept",
+      "prior_sha256": null,
+      "proposed_content": "---\ntype: concept\ntitle: Какую длину инструкций предпочитает владелец?\ndescription: Владелец предпочитает сокращать инструкции, сохраняя их короткими.\n---\n# Какую длину инструкций предпочитает владелец?\n\nВладелец предпочитает сокращать общее количество слов в инструкции и одновременно сохранять её короткой.\n\n## Источники\n- [Предпочтение о длине инструкций](../../../../../../../_ops/chat-recall/2026-07-23-114721-claude-67208f21.md#L15)\n",
+      "proposed_sha256": "06e27d25dba3f5fe2bc6cc4acc7d0486e647115b7d077874f3044f6cd917887a",
+      "record_ids": [
+        "cr-d14718675797fc5f"
+      ],
+      "material_claims": [
+        {
+          "claim_id": "instruction-length-1",
+          "statement": "Владелец предпочитает сокращать общее количество слов в инструкции и сохранять её короткой.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-d14718675797fc5f"
+          ],
+          "page_fit": {
+            "page_question": "Какую длину инструкций предпочитает владелец?",
+            "answering_record_ids": [
+              "cr-d14718675797fc5f"
+            ],
+            "source_alignment": [
+              {
+                "record_id": "cr-d14718675797fc5f",
+                "named_subject": "инструкция",
+                "scope": "общее количество слов и короткая форма",
+                "modality": "предпочтение",
+                "supporting_words": "давай применим, но ещё давай будем думать о том, как бы общее количество слов сократить"
+              }
+            ],
+            "reason": "Запись прямо отвечает на вопрос о предпочтительной длине инструкции."
+          }
+        }
+      ],
+      "prior_page_review": {
+        "checked_prior_pages": []
+      }
+    },
+    {
+      "operation": "create",
+      "page_path": "current/wiki/concept/owner-historical-capture.md",
+      "page_type": "concept",
+      "prior_sha256": null,
+      "proposed_content": "---\ntype: concept\ntitle: Что владелец исправил в работе chat-recall со старыми чатами?\ndescription: Владелец исправил требование к chat-recall: при вызове из древнего чата нужно сохранять исходную дату цитаты и файла.\n---\n# Что владелец исправил в работе chat-recall со старыми чатами?\n\nВладелец исправил требование к chat-recall в старом чате: при фактической записи нужно извлекать нужные цитаты с их старой датой, и файл цитат тоже должен иметь эту дату.\n\n## Источники\n- [Коррекция исторической даты записи](../../../../../../../_ops/chat-recall/2026-07-25-124728-codex-019f983d.md#L15)\n",
+      "proposed_sha256": "36da31296b240aa14f36751e1278991cd06f0c3b27afdefc9a434e5066349392",
+      "record_ids": [
+        "cr-44844272055b3fa4"
+      ],
+      "material_claims": [
+        {
+          "claim_id": "historical-capture-1",
+          "statement": "Владелец исправил требование к chat-recall: при вызове из древнего чата нужно извлекать нужные цитаты с их старой датой и сохранять ту же дату в файле.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-44844272055b3fa4"
+          ],
+          "page_fit": {
+            "page_question": "Что владелец исправил в работе chat-recall со старыми чатами?",
+            "answering_record_ids": [
+              "cr-44844272055b3fa4"
+            ],
+            "source_alignment": [
+              {
+                "record_id": "cr-44844272055b3fa4",
+                "named_subject": "chat-recall",
+                "scope": "вызов из древнего чата и дата цитаты и файла",
+                "modality": "коррекция",
+                "supporting_words": "если я вызываю скил в очень древенем чате чтобы он вытащил нужные цитаты именно со старой датой"
+              }
+            ],
+            "reason": "Запись прямо отвечает на вопрос о работе chat-recall с исторической датой."
+          }
+        }
+      ],
+      "prior_page_review": {
+        "checked_prior_pages": []
+      }
+    },
+    {
+      "operation": "create",
+      "page_path": "current/wiki/concept/owner-codex-priority-flag.md",
+      "page_type": "concept",
+      "prior_sha256": null,
+      "proposed_content": "---\ntype: concept\ntitle: Что владелец исправил в Codex skill о флаге приоритета?\ndescription: Владелец исправил Codex skill, попросив убрать флаг приоритета, который влияет на скорость.\n---\n# Что владелец исправил в Codex skill о флаге приоритета?\n\nВ holder-е project codex-bridge владелец исправил Codex skill: попросил убрать флаг приоритета, который ещё влияет на скорость работы.\n\n## Источники\n- [Коррекция флага приоритета](../../../../../../../_ops/chat-recall/2026-07-25-134829-claude-d96a2888.md#L15)\n",
+      "proposed_sha256": "bef90bcd9f35eb152d293fc4f8f951940f203a4e06dd7f1ede29e15613fd218e",
+      "record_ids": [
+        "cr-1c066feff9816000"
+      ],
+      "material_claims": [
+        {
+          "claim_id": "codex-priority-flag-1",
+          "statement": "Владелец исправил Codex skill, попросив убрать флаг приоритета, который влияет на скорость работы.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-1c066feff9816000"
+          ],
+          "page_fit": {
+            "page_question": "Что владелец исправил в Codex skill о флаге приоритета?",
+            "answering_record_ids": [
+              "cr-1c066feff9816000"
+            ],
+            "source_alignment": [
+              {
+                "record_id": "cr-1c066feff9816000",
+                "named_subject": "Codex skill",
+                "scope": "codex-bridge; флаг приоритета, влияющий на скорость",
+                "modality": "коррекция",
+                "supporting_words": "Убери в кодекс скиле флаг про приоритет который ещё влияет на скорость работы"
+              }
+            ],
+            "reason": "Запись прямо отвечает на вопрос о конкретной коррекции Codex skill."
+          }
+        }
+      ],
+      "prior_page_review": {
+        "checked_prior_pages": []
+      }
+    },
+    {
+      "operation": "create",
+      "page_path": "current/wiki/concept/owner-skill-description.md",
+      "page_type": "concept",
+      "prior_sha256": null,
+      "proposed_content": "---\ntype: concept\ntitle: Какое короткое описание скила предпочитает владелец для записи цитат?\ndescription: Владелец предпочитает короткое триггерное описание скила, которое сразу говорит о краткой фиксации главного.\n---\n# Какое короткое описание скила предпочитает владелец для записи цитат?\n\nВладелец предпочитает короткое и интересное триггерное описание скила: в нём следует прямо сказать, что при записи цитат нужно фиксировать главное и делать запись короткой.\n\n## Источники\n- [Предпочтение к короткому описанию скила](../../../../../../../_ops/chat-recall/2026-07-26-163521-claude-bddf1411.md#L15)\n",
+      "proposed_sha256": "29bedab1e62d3d50524c93d638f618074d84bbe5ae8321567db69ace2f51e0ae",
+      "record_ids": [
+        "cr-d11297ea9be4a382"
+      ],
+      "material_claims": [
+        {
+          "claim_id": "skill-description-1",
+          "statement": "Владелец предпочитает, чтобы короткое описание скила звучало триггерно и прямо говорило о короткой записи главного при записи цитат.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-d11297ea9be4a382"
+          ],
+          "page_fit": {
+            "page_question": "Какое короткое описание скила предпочитает владелец для записи цитат?",
+            "answering_record_ids": [
+              "cr-d11297ea9be4a382"
+            ],
+            "source_alignment": [
+              {
+                "record_id": "cr-d11297ea9be4a382",
+                "named_subject": "короткое описание скила",
+                "scope": "описание скила для записи цитат",
+                "modality": "предпочтение",
+                "supporting_words": "короткое описание должно звучать триггерно, интересно"
+              }
+            ],
+            "reason": "Запись прямо отвечает на вопрос о предпочтительной форме короткого описания скила."
+          }
+        }
+      ],
+      "prior_page_review": {
+        "checked_prior_pages": []
+      }
+    },
+    {
+      "operation": "create",
+      "page_path": "current/wiki/concept/owner-reference-file.md",
+      "page_type": "concept",
+      "prior_sha256": null,
+      "proposed_content": "---\ntype: concept\ntitle: Что владелец предпочитает указывать в reference file?\ndescription: Владелец предпочитает указывать в reference file самый быстрый путь, основанный на проведённых экспериментах.\n---\n# Что владелец предпочитает указывать в reference file?\n\nВладелец предпочитает указывать в reference file самый быстрый путь, основанный на экспериментах, проведённых в этой работе.\n\n## Источники\n- [Предпочтение к reference file](../../../../../../../_ops/chat-recall/2026-07-26-163521-claude-bddf1411.md#L16)\n",
+      "proposed_sha256": "3bb9444dd5b5b33728d9fbf5d9fbc2783ef34d971f44ab7558c04749e8877bde",
+      "record_ids": [
+        "cr-036e14487d4f4aa4"
+      ],
+      "material_claims": [
+        {
+          "claim_id": "reference-file-1",
+          "statement": "Владелец предпочитает указывать в reference file самый быстрый путь на основе проведённых экспериментов.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-036e14487d4f4aa4"
+          ],
+          "page_fit": {
+            "page_question": "Что владелец предпочитает указывать в reference file?",
+            "answering_record_ids": [
+              "cr-036e14487d4f4aa4"
+            ],
+            "source_alignment": [
+              {
+                "record_id": "cr-036e14487d4f4aa4",
+                "named_subject": "reference file",
+                "scope": "самый быстрый путь на основе экспериментов",
+                "modality": "предпочтение",
+                "supporting_words": "в референс файле скажем самый быстрый путь на основе наших экспериментов"
+              }
+            ],
+            "reason": "Запись прямо отвечает на вопрос о содержании reference file."
+          }
+        }
+      ],
+      "prior_page_review": {
+        "checked_prior_pages": []
+      }
+    },
+    {
+      "operation": "create",
+      "page_path": "current/wiki/concept/owner-embedding-duplicate-boundary.md",
+      "page_type": "concept",
+      "prior_sha256": null,
+      "proposed_content": "---\ntype: concept\ntitle: Какую границу владелец предложил для поиска через embeddings?\ndescription: Владелец предложил не использовать embedding-поиск дублей как поиск смысловых дублей и описывать только его особенность.\n---\n# Какую границу владелец предложил для поиска через embeddings?\n\nВладелец предложил провести красную линию: поиск дублей через embeddings не следует использовать для поиска смысловых дублей. Он предложил описывать это как математический поиск похожестей и писать в скилах только дельту.\n\n## Источники\n- [Правило-кандидат о поиске дублей](../../../../../../../_ops/chat-recall/2026-07-26-163413-claude-2be60fdc.md#L18)\n- [Правило-кандидат об embeddings](../../../../../../../_ops/chat-recall/2026-07-26-163413-claude-2be60fdc.md#L20)\n",
+      "proposed_sha256": "0853b0b9597bc62eff17b813e971cd90b6bc491a9a3e85614ec5d0589c866477",
+      "record_ids": [
+        "cr-0c56f9b82f11ffc7",
+        "cr-9e42f2995175d537"
+      ],
+      "material_claims": [
+        {
+          "claim_id": "embedding-boundary-1",
+          "statement": "Владелец предложил не использовать систему поиска дублей через embeddings для поиска смысловых дублей.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-0c56f9b82f11ffc7"
+          ],
+          "page_fit": {
+            "page_question": "Какую границу владелец предложил для поиска через embeddings?",
+            "answering_record_ids": [
+              "cr-0c56f9b82f11ffc7"
+            ],
+            "source_alignment": [
+              {
+                "record_id": "cr-0c56f9b82f11ffc7",
+                "named_subject": "система поиска дублей через embeddings",
+                "scope": "поиск смысловых дублей",
+                "modality": "правило-кандидат",
+                "supporting_words": "не должна никогда использоваться для того, чтобы искать смысловые дубли"
+              }
+            ],
+            "reason": "Запись прямо отвечает на вопрос о предложенной границе embedding-поиска."
+          }
+        },
+        {
+          "claim_id": "embedding-boundary-2",
+          "statement": "Владелец предложил описывать поиск по embeddings как математический поиск похожестей и писать в скилах только дельту.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-9e42f2995175d537"
+          ],
+          "page_fit": {
+            "page_question": "Какую границу владелец предложил для поиска через embeddings?",
+            "answering_record_ids": [
+              "cr-9e42f2995175d537"
+            ],
+            "source_alignment": [
+              {
+                "record_id": "cr-9e42f2995175d537",
+                "named_subject": "поиск по embeddings",
+                "scope": "описание поиска похожестей и содержательная дельта скила",
+                "modality": "правило-кандидат",
+                "supporting_words": "Это не смысловой поиск, это можно сказать математический поиск похожестей."
+              }
+            ],
+            "reason": "Запись прямо отвечает на вопрос о том, как владелец предложил называть и ограничивать embedding-поиск."
+          }
+        }
+      ],
+      "prior_page_review": {
+        "checked_prior_pages": []
+      }
+    },
+    {
+      "operation": "create",
+      "page_path": "current/wiki/concept/owner-global-embedding-skill.md",
+      "page_type": "concept",
+      "prior_sha256": null,
+      "proposed_content": "---\ntype: concept\ntitle: Что владелец уточнил о глобальном embedding-инструменте и скилах?\ndescription: Владелец уточнил, что embedding-инструмент глобален, а скиллы автоматически запускаются во всех проектах и объясняют работу с ним.\n---\n# Что владелец уточнил о глобальном embedding-инструменте и скилах?\n\nВладелец уточнил, что этот инструмент глобален и может приходить из другого проекта; скиллы запускаются автоматически во всех проектах и помогают понять особенности работы с embeddings.\n\n## Источники\n- [Коррекция о глобальном инструменте](../../../../../../../_ops/chat-recall/2026-07-26-163413-claude-2be60fdc.md#L19)\n",
+      "proposed_sha256": "6a6cf72bf7ae9c54e0e84d18409f6c7d544eacdbcd02343721d43b1cc88ccad4",
+      "record_ids": [
+        "cr-89588d01dee1aacf"
+      ],
+      "material_claims": [
+        {
+          "claim_id": "global-embedding-skill-1",
+          "statement": "Владелец уточнил, что инструмент глобален, а скиллы автоматически запускаются во всех проектах и помогают понять особенности работы с embedding-поиском.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-89588d01dee1aacf"
+          ],
+          "page_fit": {
+            "page_question": "Что владелец уточнил о глобальном embedding-инструменте и скилах?",
+            "answering_record_ids": [
+              "cr-89588d01dee1aacf"
+            ],
+            "source_alignment": [
+              {
+                "record_id": "cr-89588d01dee1aacf",
+                "named_subject": "embedding-инструмент и скиллы",
+                "scope": "все проекты; особенности работы с embeddings",
+                "modality": "коррекция",
+                "supporting_words": "И скиллы запускаются автоматически во всех проектах."
+              }
+            ],
+            "reason": "Запись прямо отвечает на вопрос о связи глобального инструмента и автоматических скилов."
+          }
+        }
+      ],
+      "prior_page_review": {
+        "checked_prior_pages": []
+      }
+    },
+    {
+      "operation": "create",
+      "page_path": "current/wiki/concept/owner-skill-density.md",
+      "page_type": "concept",
+      "prior_sha256": null,
+      "proposed_content": "---\ntype: concept\ntitle: Какую плотность скилов владелец предложил?\ndescription: Владелец предложил делать скиллы плотнее и суше, оставляя только неожиданную для агента дельту.\n---\n# Какую плотность скилов владелец предложил?\n\nВладелец предложил делать скиллы плотнее и суше: оставлять только дельту, о которой агент не догадается сам.\n\n## Источники\n- [Правило-кандидат о плотности скилов](../../../../../../../_ops/chat-recall/2026-07-26-163413-claude-2be60fdc.md#L21)\n",
+      "proposed_sha256": "b8d41bca5a9179bc95c7259e72ab156eaee84ad35715ee0950451f598e1996c8",
+      "record_ids": [
+        "cr-e0cc9eb95585f23d"
+      ],
+      "material_claims": [
+        {
+          "claim_id": "skill-density-1",
+          "statement": "Владелец предложил делать скиллы плотнее и суше, оставляя только дельту, о которой агент не догадается сам.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-e0cc9eb95585f23d"
+          ],
+          "page_fit": {
+            "page_question": "Какую плотность скилов владелец предложил?",
+            "answering_record_ids": [
+              "cr-e0cc9eb95585f23d"
+            ],
+            "source_alignment": [
+              {
+                "record_id": "cr-e0cc9eb95585f23d",
+                "named_subject": "скиллы",
+                "scope": "плотность и дельта, неожиданная для агента",
+                "modality": "правило-кандидат",
+                "supporting_words": "Скиллы должны быть плотнее и суше, то есть только дельта"
+              }
+            ],
+            "reason": "Запись прямо отвечает на вопрос о предложенной плотности скилов."
+          }
+        }
+      ],
+      "prior_page_review": {
+        "checked_prior_pages": []
+      }
+    },
+    {
+      "operation": "create",
+      "page_path": "current/wiki/concept/owner-playwright-parity.md",
+      "page_type": "concept",
+      "prior_sha256": null,
+      "proposed_content": "---\ntype: concept\ntitle: Что владелец задал и какой возможный вариант назвал для Playwright skill в Claude и Codex?\ndescription: Владелец задал критерий к работе Playwright skill в Claude и Codex и назвал возможным вариантом официальный Codex skill вместо ручного.\n---\n# Что владелец задал и какой возможный вариант назвал для Playwright skill в Claude и Codex?\n\nВладелец задал критерий, чтобы Playwright skill работал у Claude и так же хорошо в Codex. Для Codex он назвал возможным вариантом удалить ручной skill и использовать официальный.\n\n## Источники\n- [Критерий к Playwright skill](../../../../../../../_ops/chat-recall/2026-07-26-180518-claude-fa590eea.md#L16)\n- [Предпочтение для Codex](../../../../../../../_ops/chat-recall/2026-07-26-180518-claude-fa590eea.md#L17)\n",
+      "proposed_sha256": "bfb93ab2abb1df7af9981d104c2265bb3627d631482fc8921c1acb5793f66b61",
+      "record_ids": [
+        "cr-3e2fa31aaeff8e35",
+        "cr-7cb93d9f82c72fea"
+      ],
+      "material_claims": [
+        {
+          "claim_id": "playwright-parity-1",
+          "statement": "Владелец задал критерий, чтобы Playwright skill работал у Claude и так же хорошо в Codex.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-3e2fa31aaeff8e35"
+          ],
+          "page_fit": {
+            "page_question": "Что владелец задал и какой возможный вариант назвал для Playwright skill в Claude и Codex?",
+            "answering_record_ids": [
+              "cr-3e2fa31aaeff8e35"
+            ],
+            "source_alignment": [
+              {
+                "record_id": "cr-3e2fa31aaeff8e35",
+                "named_subject": "Playwright skill",
+                "scope": "Claude и Codex",
+                "modality": "критерий",
+                "supporting_words": "нам надо помнить, что это надо сделать как для тебя, и чтобы это работало именно у тебя"
+              }
+            ],
+            "reason": "Запись прямо отвечает на вопрос о требовании к Playwright skill в двух рантаймах."
+          }
+        },
+        {
+          "claim_id": "playwright-parity-2",
+          "statement": "Владелец назвал возможным вариантом для Codex удалить ручной Playwright skill и использовать официальный.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-7cb93d9f82c72fea"
+          ],
+          "page_fit": {
+            "page_question": "Что владелец задал и какой возможный вариант назвал для Playwright skill в Claude и Codex?",
+            "answering_record_ids": [
+              "cr-7cb93d9f82c72fea"
+            ],
+            "source_alignment": [
+              {
+                "record_id": "cr-7cb93d9f82c72fea",
+                "named_subject": "Playwright skill",
+                "scope": "Codex; ручной и официальный варианты",
+                "modality": "предпочтение",
+                "supporting_words": "в кодексе, возможно, мой ручной скилл лучше удалить и использовать их официальный"
+              }
+            ],
+            "reason": "Запись прямо отвечает на вопрос о предпочтительном варианте Playwright skill в Codex."
+          }
+        }
+      ],
+      "prior_page_review": {
+        "checked_prior_pages": []
+      }
+    },
+    {
+      "operation": "create",
+      "page_path": "current/wiki/concept/owner-context-retention.md",
+      "page_type": "concept",
+      "prior_sha256": null,
+      "proposed_content": "---\ntype: concept\ntitle: Что владелец предложил не терять из контекста задания агенту?\ndescription: Владелец предложил сохранять контекст задания агенту, чтобы не потерять его будущий смысл.\n---\n# Что владелец предложил не терять из контекста задания агенту?\n\nВладелец предложил не терять контекст задания, который он передаёт агенту вместе с задачей и будущей причиной, например возможностью менять цвета дизайна.\n\n## Источники\n- [Правило-кандидат о сохранении контекста](../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L24)\n",
+      "proposed_sha256": "cd5e7de76253c2edd39ab79d97d76bcac2445df9ca9dacc565186452a986e8eb",
+      "record_ids": [
+        "cr-fa0e021879c62cf9"
+      ],
+      "material_claims": [
+        {
+          "claim_id": "context-retention-1",
+          "statement": "Владелец предложил не терять контекст задания агенту, включая будущую причину, ради которой задача выполняется.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-fa0e021879c62cf9"
+          ],
+          "page_fit": {
+            "page_question": "Что владелец предложил не терять из контекста задания агенту?",
+            "answering_record_ids": [
+              "cr-fa0e021879c62cf9"
+            ],
+            "source_alignment": [
+              {
+                "record_id": "cr-fa0e021879c62cf9",
+                "named_subject": "контекст задания агенту",
+                "scope": "задача и её будущая причина",
+                "modality": "правило-кандидат",
+                "supporting_words": "потому что в будущем я захочу менять цвета всего дизайна"
+              }
+            ],
+            "reason": "Запись прямо отвечает на вопрос о предложении сохранять контекст задания."
+          }
+        }
+      ],
+      "prior_page_review": {
+        "checked_prior_pages": []
+      }
+    }
+  ],
+  "coverage": [
+    {
+      "record_id": "cr-39cc21a90c49798e",
+      "disposition": "used",
+      "page_path": "current/wiki/concept/owner-quote-capture.md",
+      "reason": "Поддерживает material claim quote-capture-1 на странице current/wiki/concept/owner-quote-capture.md."
+    },
+    {
+      "record_id": "cr-26bf33cb209aa21e",
+      "disposition": "used",
+      "page_path": "current/wiki/concept/owner-quote-capture.md",
+      "reason": "Поддерживает material claim quote-capture-2 на странице current/wiki/concept/owner-quote-capture.md."
+    },
+    {
+      "record_id": "cr-42f1d19bfbb686ed",
+      "disposition": "used",
+      "page_path": "current/wiki/concept/owner-quote-capture.md",
+      "reason": "Поддерживает material claim quote-capture-3 на странице current/wiki/concept/owner-quote-capture.md."
+    },
+    {
+      "record_id": "cr-f94d105dcf39a94e",
+      "disposition": "used",
+      "page_path": "current/wiki/concept/owner-quote-capture.md",
+      "reason": "Поддерживает material claim quote-capture-4 на странице current/wiki/concept/owner-quote-capture.md."
+    },
+    {
+      "record_id": "cr-67b75758780bdd03",
+      "disposition": "used",
+      "page_path": "current/wiki/concept/owner-quote-capture.md",
+      "reason": "Поддерживает material claim quote-capture-5 на странице current/wiki/concept/owner-quote-capture.md."
+    },
+    {
+      "record_id": "cr-9e4a0a195f9f977c",
+      "disposition": "used",
+      "page_path": "current/wiki/concept/owner-skill-models.md",
+      "reason": "Поддерживает material claim skill-models-1 на странице current/wiki/concept/owner-skill-models.md."
+    },
+    {
+      "record_id": "cr-db36c02089cee53c",
+      "disposition": "used",
+      "page_path": "current/wiki/concept/owner-early-ideas-log.md",
+      "reason": "Поддерживает material claim early-ideas-1 на странице current/wiki/concept/owner-early-ideas-log.md."
+    },
+    {
+      "record_id": "cr-22ee623ec7686866",
+      "disposition": "used",
+      "page_path": "current/wiki/concept/owner-agent-metadata.md",
+      "reason": "Поддерживает material claim agent-metadata-1 на странице current/wiki/concept/owner-agent-metadata.md."
+    },
+    {
+      "record_id": "cr-fc5efefa2e142f6d",
+      "disposition": "used",
+      "page_path": "current/wiki/concept/owner-multiple-agents.md",
+      "reason": "Поддерживает material claim multiple-agents-1 на странице current/wiki/concept/owner-multiple-agents.md."
+    },
+    {
+      "record_id": "cr-fa0e021879c62cf9",
+      "disposition": "used",
+      "page_path": "current/wiki/concept/owner-context-retention.md",
+      "reason": "Поддерживает предложенный material claim context-retention-1 на странице current/wiki/concept/owner-context-retention.md."
+    },
+    {
+      "record_id": "cr-cd12084caea37373",
+      "disposition": "used",
+      "page_path": "current/wiki/concept/owner-log-currentness.md",
+      "reason": "Поддерживает material claim log-currentness-1 на странице current/wiki/concept/owner-log-currentness.md."
+    },
+    {
+      "record_id": "cr-411135b8c85edbcd",
+      "disposition": "used",
+      "page_path": "current/wiki/concept/owner-instruction-review.md",
+      "reason": "Поддерживает material claim instruction-review-1 на странице current/wiki/concept/owner-instruction-review.md."
+    },
+    {
+      "record_id": "cr-92ba68ae02b88b40",
+      "disposition": "used",
+      "page_path": "current/wiki/concept/owner-log-topic-granularity.md",
+      "reason": "Поддерживает material claim topic-granularity-1 на странице current/wiki/concept/owner-log-topic-granularity.md."
+    },
+    {
+      "record_id": "cr-efcf76d86838867f",
+      "disposition": "used",
+      "page_path": "current/wiki/concept/owner-agent-metadata.md",
+      "reason": "Поддерживает material claim agent-metadata-3 на странице current/wiki/concept/owner-agent-metadata.md."
+    },
+    {
+      "record_id": "cr-526ac5b1659adabe",
+      "disposition": "used",
+      "page_path": "current/wiki/concept/owner-quote-capture.md",
+      "reason": "Поддерживает material claim quote-capture-6 на странице current/wiki/concept/owner-quote-capture.md."
+    },
+    {
+      "record_id": "cr-d0cc9efc0619245c",
+      "disposition": "used",
+      "page_path": "current/wiki/concept/owner-unstructured-speech.md",
+      "reason": "Поддерживает material claim unstructured-speech-1 на странице current/wiki/concept/owner-unstructured-speech.md."
+    },
+    {
+      "record_id": "cr-28ee572c031e1ce9",
+      "disposition": "used",
+      "page_path": "current/wiki/concept/owner-chat-session-scope.md",
+      "reason": "Поддерживает material claim chat-session-scope-1 на странице current/wiki/concept/owner-chat-session-scope.md."
+    },
+    {
+      "record_id": "cr-709322c9d9b388ba",
+      "disposition": "used",
+      "page_path": "current/wiki/concept/owner-agent-metadata.md",
+      "reason": "Поддерживает material claim agent-metadata-2 на странице current/wiki/concept/owner-agent-metadata.md."
+    },
+    {
+      "record_id": "cr-07c5570aa291ce00",
+      "disposition": "used",
+      "reason": "Поддерживает material claim undefined на странице undefined."
+    },
+    {
+      "record_id": "cr-ead240f06f3f4056",
+      "disposition": "used",
+      "page_path": "current/wiki/concept/owner-quote-capture.md",
+      "reason": "Поддерживает material claim quote-capture-7 на странице current/wiki/concept/owner-quote-capture.md."
+    },
+    {
+      "record_id": "cr-d14718675797fc5f",
+      "disposition": "used",
+      "page_path": "current/wiki/concept/owner-instruction-length.md",
+      "reason": "Поддерживает material claim instruction-length-1 на странице current/wiki/concept/owner-instruction-length.md."
+    },
+    {
+      "record_id": "cr-44844272055b3fa4",
+      "disposition": "used",
+      "page_path": "current/wiki/concept/owner-historical-capture.md",
+      "reason": "Поддерживает material claim historical-capture-1 на странице current/wiki/concept/owner-historical-capture.md."
+    },
+    {
+      "record_id": "cr-1c066feff9816000",
+      "disposition": "used",
+      "page_path": "current/wiki/concept/owner-codex-priority-flag.md",
+      "reason": "Поддерживает material claim codex-priority-flag-1 на странице current/wiki/concept/owner-codex-priority-flag.md."
+    },
+    {
+      "record_id": "cr-d11297ea9be4a382",
+      "disposition": "used",
+      "page_path": "current/wiki/concept/owner-skill-description.md",
+      "reason": "Поддерживает material claim skill-description-1 на странице current/wiki/concept/owner-skill-description.md."
+    },
+    {
+      "record_id": "cr-036e14487d4f4aa4",
+      "disposition": "used",
+      "page_path": "current/wiki/concept/owner-reference-file.md",
+      "reason": "Поддерживает material claim reference-file-1 на странице current/wiki/concept/owner-reference-file.md."
+    },
+    {
+      "record_id": "cr-0c56f9b82f11ffc7",
+      "disposition": "used",
+      "page_path": "current/wiki/concept/owner-embedding-duplicate-boundary.md",
+      "reason": "Поддерживает предложенный material claim embedding-boundary-1 на странице current/wiki/concept/owner-embedding-duplicate-boundary.md."
+    },
+    {
+      "record_id": "cr-89588d01dee1aacf",
+      "disposition": "used",
+      "page_path": "current/wiki/concept/owner-global-embedding-skill.md",
+      "reason": "Поддерживает material claim global-embedding-skill-1 на странице current/wiki/concept/owner-global-embedding-skill.md."
+    },
+    {
+      "record_id": "cr-9e42f2995175d537",
+      "disposition": "used",
+      "page_path": "current/wiki/concept/owner-embedding-duplicate-boundary.md",
+      "reason": "Поддерживает предложенный material claim embedding-boundary-2 на странице current/wiki/concept/owner-embedding-duplicate-boundary.md."
+    },
+    {
+      "record_id": "cr-e0cc9eb95585f23d",
+      "disposition": "used",
+      "page_path": "current/wiki/concept/owner-skill-density.md",
+      "reason": "Поддерживает предложенный material claim skill-density-1 на странице current/wiki/concept/owner-skill-density.md."
+    },
+    {
+      "record_id": "cr-1d42692df43b815f",
+      "disposition": "used",
+      "page_path": "current/wiki/concept/owner-log-topic-granularity.md",
+      "reason": "Поддерживает material claim topic-granularity-2 на странице current/wiki/concept/owner-log-topic-granularity.md."
+    },
+    {
+      "record_id": "cr-3e2fa31aaeff8e35",
+      "disposition": "used",
+      "page_path": "current/wiki/concept/owner-playwright-parity.md",
+      "reason": "Поддерживает material claim playwright-parity-1 на странице current/wiki/concept/owner-playwright-parity.md."
+    },
+    {
+      "record_id": "cr-7cb93d9f82c72fea",
+      "disposition": "used",
+      "page_path": "current/wiki/concept/owner-playwright-parity.md",
+      "reason": "Поддерживает material claim playwright-parity-2 на странице current/wiki/concept/owner-playwright-parity.md."
+    }
+  ],
+  "evidence_metadata": {
+    "repetition_groups": [
+      {
+        "group_id": "quote-shortening",
+        "statement": "Владелец повторно описал лёгкое сокращение буквальной цитаты.",
+        "record_ids": [
+          "cr-26bf33cb209aa21e",
+          "cr-42f1d19bfbb686ed",
+          "cr-526ac5b1659adabe"
+        ],
+        "occurrence_count": 3,
+        "first_record_id": "cr-26bf33cb209aa21e",
+        "latest_record_id": "cr-526ac5b1659adabe"
+      }
+    ],
+    "unresolved_conflicts": []
+  },
+  "gaps": []
+}

@@ -1,0 +1,1520 @@
+{
+  "schema": "openviking-chat-recall/chronological-wiki-changeset.v3",
+  "phase": "semantic-draft",
+  "status": "candidate",
+  "batch_id": "batch-003",
+  "previous_batch_id": "batch-002",
+  "model": "gpt-5.6-luna",
+  "thinking": "max",
+  "source_snapshot": {
+    "checkpoint_commit": "6f886452b82df1d992f5ba8e50a14b2e5cbe64d",
+    "accepted_prior_commit": "ade7d0583930495479f3739a6db54cb47003b7fb",
+    "accepted_prior_receipt_path": "experiments/openviking-chat-recall/artifacts/chronological-pilot/batch-002/receipt.json",
+    "accepted_prior_receipt_sha256": "17301a3fda7dae78d45ad3244060a1bc73a1b67db3276a3b2b947d96757f6f94"
+  },
+  "input": {
+    "manifest_path": "experiments/openviking-chat-recall/artifacts/chronological-pilot/batch-003-input.json",
+    "manifest_sha256": "02e36c2a5636a19c24633149cb81b082c6d5edb14c247b773a4f67821ff9e4c4",
+    "evidence_records_path": "experiments/openviking-chat-recall/artifacts/full-build/evidence/records.jsonl",
+    "evidence_records_sha256": "868ffff05768e4ebac6893436141e99493e0582b6738845350b2aa805e99d69d",
+    "corpus_commit": "6f98fcccdbf4b4de45ef787239ad101f70d106e2",
+    "evidence_commit": "ea569e2bf84377b17be9177065d5fb9172d26d39",
+    "time_boundary_utc": "2026-08-01T12:22:41.874000+00:00",
+    "holder_count": 10,
+    "record_count": 38
+  },
+  "prior_checkpoint": {
+    "accepted_prior_commit": "ade7d0583930495479f3739a6db54cb47003b7fb",
+    "wiki_root": "experiments/openviking-chat-recall/artifacts/chronological-pilot/current/wiki",
+    "wiki_tree_sha256_target": "71bc5b917ffdef9feeb26831efe3cfbf801a8a1e36ef460ed14427390b8cbfe0"
+  },
+  "allowed_operations": [
+    "create",
+    "update",
+    "supersede",
+    "no-change",
+    "reject"
+  ],
+  "frozen_record_ids_in_manifest_order": [
+    "cr-d7a7121a7f805363",
+    "cr-58f114cc0ba33c69",
+    "cr-e91e0d35dc9d6afd",
+    "cr-d34cf45deda5905c",
+    "cr-28a9dc60d9d6c87f",
+    "cr-f3e63ab086f6ba0b",
+    "cr-9613be20e07577f0",
+    "cr-83a548903fec8892",
+    "cr-3109797ff93132ec",
+    "cr-31d8b7515f95689d",
+    "cr-5ca977f05708881a",
+    "cr-54494ea5ace69b22",
+    "cr-72eae46384c1234e",
+    "cr-cbf8ce271ad72364",
+    "cr-44f6ff47beb911bd",
+    "cr-934fad9c0a5c36de",
+    "cr-3dd776e002f1b9b4",
+    "cr-eef5507a9ac2ab0c",
+    "cr-d5bc44f45dfb21f6",
+    "cr-71aa3ce5978097ac",
+    "cr-0ebfb7ea948f4451",
+    "cr-02d8998120284879",
+    "cr-194d76ed7a2ce4fc",
+    "cr-84823fbd473e7a37",
+    "cr-1333bbd745ad775e",
+    "cr-523d6af3382fd4f4",
+    "cr-d88de4fd7db2de6e",
+    "cr-57f8a719c3dcf859",
+    "cr-9d363a2a896c3d5a",
+    "cr-d5f5e0cc185020f1",
+    "cr-ad2f65746e824e45",
+    "cr-5789af84be5b2ab2",
+    "cr-d7964c271afae465",
+    "cr-d368c20bbcdf86e3",
+    "cr-a54100dbe5704f3f",
+    "cr-b5ff888e2ef88c30",
+    "cr-d81d62de2bf80ce9",
+    "cr-1aa75287bcfae7b3"
+  ],
+  "semantic_policy": {
+    "current_only_projection": true,
+    "full_quote_copy": false,
+    "project_corpus_enrichment": false,
+    "page_fit_required_per_material_claim": true,
+    "compression_acceptance_gate": false
+  },
+  "operations": [
+    {
+      "operation": "update",
+      "page_path": "current/wiki/method/capture-owner-quotes.md",
+      "page_type": "method",
+      "prior_sha256": "0a7f6013253cbbe8d71bbd96c9f883d3d8b7ece5529783f295f68f8b48c2f8d9",
+      "proposed_content": "---\ntype: method\ntitle: Как сохранить цитату владельца, чтобы её нашли позже?\ndescription: Сохраняй цитаты владельца; короткое описание разрешает сокращать их без потери смысла.\n---\n\n# Как сохранить цитату владельца, чтобы её нашли позже?\n\nНужна именно речь владельца, а не вставленный текст или вывод агента. Сокращай удалением шума, сохраняя смысл. Используй этот метод и при handoff: новая передача должна сопровождаться отдельной chat-recall session.\n\n## Steps\n\n0. При handoff запусти chat-recall для того, что сказал владелец в этой сессии.\n1. Сохрани owner speech в recall с исходной датой и адресом источника; старый чат не датируй заново.\n2. Веди один файл на одно окно разговора: укажи writer, точное время и session ID; не переноси слова между окнами.\n3. Пометь запись словами `type` и `topic`; topic делай близкой к предмету разговора. Текст субагента не owner evidence.\n\n## Check\n\nПеред сохранением проверь цепочку: слова владельца → дата и адрес → окно и session → метки. Если звено потеряно, запись не готова к поиску.\n\n## Sources\n\n- [literal owner speech and date](../../../../../../../_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md#L20)\n- [owner speech rather than interpretation](../../../../../../../_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md#L21)\n- [deletion-only shortening](../../../../../../../_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md#L22)\n- [recall storage surface](../../../../../../../_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md#L23)\n- [context otherwise forgotten](../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L24)\n- [instruction and topic classification](../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L27)\n- [writer and session metadata](../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L28)\n- [manual shortening of pasted blocks](../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L29)\n- [noise can fill context](../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L30)\n- [one window, one file](../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L31)\n- [subagents lack owner quotes](../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L32)\n- [searchable type and topic labels](../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L33)\n- [owner speech versus pasted text](../../../../../../../_ops/chat-recall/2026-07-22-121239-codex-019f889f.md#L16)\n- [original date for an old chat](../../../../../../../_ops/chat-recall/2026-07-25-124728-codex-019f983d.md#L15)\n- [granular discussion topics](../../../../../../../_ops/chat-recall/2026-07-26-174326-codex-019f9e61.md#L15)\n- [handoff capture rule](../../../../../../../_ops/chat-recall/2026-07-26-190811-codex-019f9ec1.md#L15)\n- [brief owner capture](../../../../../../../_ops/chat-recall/2026-07-29-201852-codex-019fada0.md#L29)\n- [description tells agents to save quotes](../../../../../../../_ops/chat-recall/2026-08-01-164842-claude-d2c4b3e7.md#L16)\n",
+      "proposed_sha256": "2079a0c078570eaf5bb821f3debda8e058e9c4ba01d8ba4669f920b94d5f0309",
+      "record_ids": [
+        "cr-39cc21a90c49798e",
+        "cr-26bf33cb209aa21e",
+        "cr-42f1d19bfbb686ed",
+        "cr-f94d105dcf39a94e",
+        "cr-fa0e021879c62cf9",
+        "cr-92ba68ae02b88b40",
+        "cr-efcf76d86838867f",
+        "cr-526ac5b1659adabe",
+        "cr-d0cc9efc0619245c",
+        "cr-28ee572c031e1ce9",
+        "cr-709322c9d9b388ba",
+        "cr-07c5570aa291ce00",
+        "cr-ead240f06f3f4056",
+        "cr-44844272055b3fa4",
+        "cr-1d42692df43b815f",
+        "cr-69e4b2a1107aa87d",
+        "cr-83a548903fec8892",
+        "cr-b5ff888e2ef88c30"
+      ],
+      "material_claims": [
+        {
+          "claim_id": "owner-speech-evidence",
+          "statement": "Capture the owner's speech rather than pasted text or an agent interpretation.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-39cc21a90c49798e",
+            "cr-26bf33cb209aa21e",
+            "cr-ead240f06f3f4056"
+          ],
+          "page_fit": {
+            "page_question": "Как сохранить цитату владельца, чтобы её нашли позже?",
+            "answering_record_ids": [
+              "cr-39cc21a90c49798e"
+            ],
+            "reason": "The capture question is answered by distinguishing owner speech from copied or interpreted text."
+          }
+        },
+        {
+          "claim_id": "capture-metadata-chain",
+          "statement": "Keep the original date, source address, window, writer/session metadata, and searchable type/topic labels.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-fa0e021879c62cf9",
+            "cr-92ba68ae02b88b40",
+            "cr-efcf76d86838867f",
+            "cr-28ee572c031e1ce9",
+            "cr-07c5570aa291ce00"
+          ],
+          "page_fit": {
+            "page_question": "Как сохранить цитату владельца, чтобы её нашли позже?",
+            "answering_record_ids": [
+              "cr-efcf76d86838867f"
+            ],
+            "reason": "These records specify the metadata needed to find the saved quote later."
+          }
+        },
+        {
+          "claim_id": "one-window-boundary",
+          "statement": "Keep one file per conversation window and do not move words between windows.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-28ee572c031e1ce9",
+            "cr-709322c9d9b388ba"
+          ],
+          "page_fit": {
+            "page_question": "Как сохранить цитату владельца, чтобы её нашли позже?",
+            "answering_record_ids": [
+              "cr-28ee572c031e1ce9"
+            ],
+            "reason": "The page's storage action is the one-window boundary."
+          }
+        },
+        {
+          "claim_id": "handoff-capture",
+          "statement": "A handoff should start a chat-recall session for the owner's words in that session.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-69e4b2a1107aa87d"
+          ],
+          "page_fit": {
+            "page_question": "Как сохранить цитату владельца, чтобы её нашли позже?",
+            "answering_record_ids": [
+              "cr-69e4b2a1107aa87d"
+            ],
+            "reason": "The handoff trigger is a direct capture action on this page."
+          }
+        },
+        {
+          "claim_id": "brief-future-record",
+          "statement": "Record everything the owner said, but keep the saved form short for future use.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-83a548903fec8892"
+          ],
+          "page_fit": {
+            "page_question": "Как сохранить цитату владельца, чтобы её нашли позже?",
+            "answering_record_ids": [
+              "cr-83a548903fec8892"
+            ],
+            "reason": "The record directly answers how to preserve owner speech for later retrieval."
+          }
+        },
+        {
+          "claim_id": "description-and-shortening",
+          "statement": "The short frontmatter description must say that the skill saves owner quotes and permits shortening them without losing meaning; do not rely on the body alone.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-b5ff888e2ef88c30"
+          ],
+          "page_fit": {
+            "page_question": "Как сохранить цитату владельца, чтобы её нашли позже?",
+            "answering_record_ids": [
+              "cr-b5ff888e2ef88c30"
+            ],
+            "reason": "The capture page is the exact owner of where the quote-saving and shortening rule must be visible."
+          }
+        }
+      ],
+      "prior_page_review": {
+        "checked_prior_pages": [
+          "current/wiki/index.md",
+          "current/wiki/method/capture-owner-quotes.md",
+          "current/wiki/method/global-skill-trigger.md",
+          "current/wiki/method/agent-work-routing-review.md",
+          "current/wiki/method/markdown-reading-trigger.md",
+          "current/wiki/method/proactive-cross-runtime-recall.md",
+          "current/wiki/concept/dated-recall-currentness.md",
+          "current/wiki/concept/embedding-similarity-boundary.md",
+          "current/wiki/concept/global-ops-structure.md"
+        ],
+        "match": "The existing capture question remains the owner; add concise future capture and description-level routing.",
+        "preserved_prior_claims": [
+          "owner-speech evidence, metadata chain, one-window boundary, handoff trigger"
+        ],
+        "changed_claims": [
+          "brief-future-record",
+          "description-and-shortening"
+        ]
+      },
+      "proposed_utf8_bytes": 3747
+    },
+    {
+      "operation": "update",
+      "page_path": "current/wiki/method/global-skill-trigger.md",
+      "page_type": "method",
+      "prior_sha256": "abf95e8609ae1946fe88b8105886be47912b4d88933fc046f00bea641d89307f",
+      "proposed_content": "---\ntype: method\ntitle: Как устроить общий skill, чтобы его вызвали вовремя?\ndescription: Порядок shaping общего skill через неожиданное правило, момент вызова и действие.\n---\n\n# Как устроить общий skill, чтобы его вызвали вовремя?\n\nОбщий skill должен работать для Claude, Codex и параллельных агентов. Оставь только неожиданное правило, которое агент сам не выведет. Description загружается всегда, поэтому прямо назови в нём момент вызова и действие; для Claude описание может следовать практикам Claude и отличаться от формулировки для ChatGPT.\n\nСкилл должен содержать то, чего агент сам не знает, и объяснять, почему это полезно и какое действие выполнить.\n\n## Steps\n\n1. Назови ситуацию и действие в description. Для thinking/search companion явно скажи, что использовать его нужно, когда агент сомневается или не уверен, что поиск завершён.\n2. Удали очевидный фон; оставь только важную дельту.\n3. Для Claude и ChatGPT проверь разные практики; не копируй описание механически. Проверь чтение в Claude и Codex; если та же функция уже официально доступна в Codex, предпочтение официального skill условно.\n\n## Check\n\nСвежий читатель по description понимает, когда вызвать skill и что сделать.\n\n## Boundary\n\nПравила global instruction вынесены на отдельную страницу; здесь остаётся только shaping общего skill. Не выводи из этой записи цель конкретной модели или влияние priority-флага на скорость.\n\n## Sources\n\n- [global skill scope](../../../../../../../_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md#L24)\n- [Codex, Claude and parallel callers](../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L22)\n- [short instruction preference](../../../../../../../_ops/chat-recall/2026-07-23-114721-claude-67208f21.md#L15)\n- [description is always loaded](../../../../../../../_ops/chat-recall/2026-07-26-163521-claude-bddf1411.md#L15)\n- [skills keep only the delta](../../../../../../../_ops/chat-recall/2026-07-26-163413-claude-2be60fdc.md#L21)\n- [Claude and Codex applicability](../../../../../../../_ops/chat-recall/2026-07-26-180518-claude-fa590eea.md#L16)\n- [official skill preference](../../../../../../../_ops/chat-recall/2026-07-26-180518-claude-fa590eea.md#L17)\n- [Claude-specific description practices](../../../../../../../_ops/chat-recall/2026-07-27-175105-codex-019fa38f.md#L15)\n- [thinking/search companion trigger](../../../../../../../_ops/chat-recall/2026-07-27-211730-claude-8e802437.md#L21)\n- [why a skill helps](../../../../../../../_ops/chat-recall/2026-07-30-131107-codex-019fb213.md#L17)\n- [unknown knowledge and useful action](../../../../../../../_ops/chat-recall/2026-07-30-131107-codex-019fb213.md#L18)\n",
+      "proposed_sha256": "bc88c9eb9413230771938eb44569349e677558eba80b7e8cf051b3ba59274cc6",
+      "record_ids": [
+        "cr-67b75758780bdd03",
+        "cr-22ee623ec7686866",
+        "cr-d14718675797fc5f",
+        "cr-d11297ea9be4a382",
+        "cr-e0cc9eb95585f23d",
+        "cr-3e2fa31aaeff8e35",
+        "cr-7cb93d9f82c72fea",
+        "cr-56d5a0fea3f8c211",
+        "cr-e00a08e807845411",
+        "cr-58f114cc0ba33c69",
+        "cr-e91e0d35dc9d6afd"
+      ],
+      "material_claims": [
+        {
+          "claim_id": "shared-runtime-scope",
+          "statement": "A common skill is intended to work across Claude, Codex, and parallel agents.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-67b75758780bdd03",
+            "cr-22ee623ec7686866"
+          ],
+          "page_fit": {
+            "page_question": "Как устроить общий skill, чтобы его вызвали вовремя?",
+            "answering_record_ids": [
+              "cr-67b75758780bdd03"
+            ],
+            "reason": "The H1 asks how to shape a common skill; the records define its caller scope."
+          }
+        },
+        {
+          "claim_id": "unexpected-skill-delta",
+          "statement": "Keep in the skill what the agent will not infer itself: the unexpected rule or useful delta.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-e0cc9eb95585f23d",
+            "cr-d14718675797fc5f"
+          ],
+          "page_fit": {
+            "page_question": "Как устроить общий skill, чтобы его вызвали вовремя?",
+            "answering_record_ids": [
+              "cr-e0cc9eb95585f23d"
+            ],
+            "reason": "This is the page's central shaping decision."
+          }
+        },
+        {
+          "claim_id": "description-visible-trigger",
+          "statement": "Because the description is always loaded, it must name the situation and action that trigger the skill.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-d11297ea9be4a382"
+          ],
+          "page_fit": {
+            "page_question": "Как устроить общий skill, чтобы его вызвали вовремя?",
+            "answering_record_ids": [
+              "cr-d11297ea9be4a382"
+            ],
+            "reason": "The description-trigger question is exactly the page H1."
+          }
+        },
+        {
+          "claim_id": "runtime-specific-description",
+          "statement": "A Claude description may follow Claude practices and differ from a ChatGPT formulation.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-56d5a0fea3f8c211"
+          ],
+          "page_fit": {
+            "page_question": "Как устроить общий skill, чтобы его вызвали вовремя?",
+            "answering_record_ids": [
+              "cr-56d5a0fea3f8c211"
+            ],
+            "reason": "The runtime-specific description remains inside common-skill shaping."
+          }
+        },
+        {
+          "claim_id": "thinking-search-companion",
+          "statement": "A short description can identify the thinking/search companion and tell the agent to use it when uncertain or unsure search is complete.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-e00a08e807845411"
+          ],
+          "page_fit": {
+            "page_question": "Как устроить общий skill, чтобы его вызвали вовремя?",
+            "answering_record_ids": [
+              "cr-e00a08e807845411"
+            ],
+            "reason": "The companion trigger is a direct description action for this skill page."
+          }
+        },
+        {
+          "claim_id": "skill-value-in-skill-body",
+          "statement": "The skill should explain why it is useful and how it helps, not only what it does.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-58f114cc0ba33c69"
+          ],
+          "page_fit": {
+            "page_question": "Как устроить общий skill, чтобы его вызвали вовремя?",
+            "answering_record_ids": [
+              "cr-58f114cc0ba33c69"
+            ],
+            "reason": "The claim is explicitly about the skill body, which this skill-shaping page owns."
+          }
+        },
+        {
+          "claim_id": "unknown-and-use",
+          "statement": "The skill should contain what the agent does not know and explain why that knowledge is useful and what action to take.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-e91e0d35dc9d6afd"
+          ],
+          "page_fit": {
+            "page_question": "Как устроить общий skill, чтобы его вызвали вовремя?",
+            "answering_record_ids": [
+              "cr-e91e0d35dc9d6afd"
+            ],
+            "reason": "The page's shaping action is to keep unknown owner knowledge and make its use explicit."
+          }
+        },
+        {
+          "claim_id": "cross-runtime-check",
+          "statement": "Check Claude and Codex practices separately instead of copying one description mechanically.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-56d5a0fea3f8c211",
+            "cr-3e2fa31aaeff8e35",
+            "cr-7cb93d9f82c72fea"
+          ],
+          "page_fit": {
+            "page_question": "Как устроить общий skill, чтобы его вызвали вовремя?",
+            "answering_record_ids": [
+              "cr-56d5a0fea3f8c211"
+            ],
+            "reason": "Claude-specific description practice plus the existing applicability links answer how to check runtimes without copying descriptions mechanically."
+          }
+        }
+      ],
+      "prior_page_review": {
+        "checked_prior_pages": [
+          "current/wiki/index.md",
+          "current/wiki/method/capture-owner-quotes.md",
+          "current/wiki/method/global-skill-trigger.md",
+          "current/wiki/method/agent-work-routing-review.md",
+          "current/wiki/method/markdown-reading-trigger.md",
+          "current/wiki/method/proactive-cross-runtime-recall.md",
+          "current/wiki/concept/dated-recall-currentness.md",
+          "current/wiki/concept/embedding-similarity-boundary.md",
+          "current/wiki/concept/global-ops-structure.md"
+        ],
+        "match": "Split out the two global-instruction rules; retain only skill-specific scope, trigger, unknown delta, benefit, and runtime applicability.",
+        "preserved_prior_claims": [
+          "shared runtime scope",
+          "unexpected skill delta",
+          "description visibility",
+          "runtime-specific description",
+          "thinking/search companion"
+        ],
+        "changed_claims": [
+          "skill-value-in-description",
+          "unknown-and-use"
+        ],
+        "deleted_claims": [
+          "owner-specific global instruction",
+          "remove conflicting global-instruction lines"
+        ]
+      },
+      "split_group_id": "split-global-skill-vs-global-instruction",
+      "proposed_utf8_bytes": 3551
+    },
+    {
+      "operation": "create",
+      "page_path": "current/wiki/method/global-instruction-owner-context.md",
+      "page_type": "method",
+      "prior_sha256": null,
+      "proposed_content": "---\ntype: method\ntitle: Как направить global instruction к owner context и находкам?\ndescription: Явный маршрут global instruction к owner-quote recall, findings и embedding search с границами неизвестного.\n---\n\n# Как направить global instruction к owner context и находкам?\n\nИспользуй страницу при shaping global instruction, если агенту нужно явно подсказать owner-context recall или быстрые находки.\n\n## Steps\n\n1. Явно подсветь, что агент должен пользоваться skill запоминания и чтения owner quotes.\n2. Добавь короткий маршрут к findings: записывай замеченную проблему по ходу работы и продолжай, не теряя контекст.\n3. В корневой инструкции прямо рекламируй recall и embedding search как полезные глобальные инструменты; точный текст терминальной команды здесь не установлен.\n4. Говори об owner-specific неизвестном и желаемом результате, а подозрительные или конфликтующие строки удаляй.\n\n## Check\n\nСвежий читатель может назвать маршрут к owner quotes, маршрут к findings и границу: exact command syntax и реализация инструментов не выдумываются.\n\n## Boundary\n\nСтраница задаёт, что global instruction должна явно подсказать; она не устанавливает конкретную команду, backend или проектную реализацию.\n\n## Sources\n\n- [owner-specific global instruction](../../../../../../../_ops/chat-recall/2026-07-29-000000-claude-068dc13d.md#L15)\n- [remove conflicting instruction lines](../../../../../../../_ops/chat-recall/2026-07-29-000000-claude-068dc13d.md#L16)\n- [explicit owner-quote recall route](../../../../../../../_ops/chat-recall/2026-07-29-201927-codex-019fadc9.md#L15)\n- [short findings route](../../../../../../../_ops/chat-recall/2026-07-29-201927-codex-019fadc9.md#L16)\n- [advertise recall and embedding search](../../../../../../../_ops/chat-recall/2026-08-01-164842-claude-d2c4b3e7.md#L17)\n- [short recall and embedding instruction](../../../../../../../_ops/chat-recall/2026-08-01-172241-codex-019fbd46.md#L15)\n",
+      "proposed_sha256": "4a1c062fb068947cd4be9c6d1011f31bfd21420044ea114000a2cd1c3f5368c3",
+      "record_ids": [
+        "cr-6c4956400b562a02",
+        "cr-d9a49643a2410c2c",
+        "cr-d34cf45deda5905c",
+        "cr-28a9dc60d9d6c87f",
+        "cr-d81d62de2bf80ce9",
+        "cr-1aa75287bcfae7b3"
+      ],
+      "material_claims": [
+        {
+          "claim_id": "explicit-owner-recall-route",
+          "statement": "Global instruction should explicitly tell the agent to use the skill for remembering and reading owner quotes.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-d34cf45deda5905c"
+          ],
+          "page_fit": {
+            "page_question": "Как направить global instruction к owner context и находкам?",
+            "answering_record_ids": [
+              "cr-d34cf45deda5905c"
+            ],
+            "reason": "The record names the global-instruction change and the page gives its action."
+          }
+        },
+        {
+          "claim_id": "findings-route",
+          "statement": "Global instruction should add a short findings route that records problems during work without interrupting the work.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-28a9dc60d9d6c87f"
+          ],
+          "page_fit": {
+            "page_question": "Как направить global instruction к owner context и находкам?",
+            "answering_record_ids": [
+              "cr-28a9dc60d9d6c87f"
+            ],
+            "reason": "The record directly describes the findings action and its continuation boundary."
+          }
+        },
+        {
+          "claim_id": "recall-embedding-advertisement",
+          "statement": "Root instruction should briefly advertise both owner recall and embedding search as useful global tools.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-d81d62de2bf80ce9",
+            "cr-1aa75287bcfae7b3"
+          ],
+          "page_fit": {
+            "page_question": "Как направить global instruction к owner context и находкам?",
+            "answering_record_ids": [
+              "cr-d81d62de2bf80ce9"
+            ],
+            "reason": "The two records specify the pair of tools to make visible."
+          }
+        },
+        {
+          "claim_id": "owner-specific-outcome",
+          "statement": "Global instruction should speak to owner-specific unknowns and desired outcomes rather than generic known procedure.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-6c4956400b562a02"
+          ],
+          "page_fit": {
+            "page_question": "Как направить global instruction к owner context и находкам?",
+            "answering_record_ids": [
+              "cr-6c4956400b562a02"
+            ],
+            "reason": "This claim was moved from the mixed skill page to its own H1."
+          }
+        },
+        {
+          "claim_id": "conflict-pruning",
+          "statement": "Suspicious or conflicting global-instruction lines should be removed while shortening it.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-d9a49643a2410c2c"
+          ],
+          "page_fit": {
+            "page_question": "Как направить global instruction к owner context и находкам?",
+            "answering_record_ids": [
+              "cr-d9a49643a2410c2c"
+            ],
+            "reason": "This cleanup action belongs to global instruction, not common-skill shaping."
+          }
+        }
+      ],
+      "prior_page_review": {
+        "checked_prior_pages": [
+          "current/wiki/index.md",
+          "current/wiki/method/capture-owner-quotes.md",
+          "current/wiki/method/global-skill-trigger.md",
+          "current/wiki/method/agent-work-routing-review.md",
+          "current/wiki/method/markdown-reading-trigger.md",
+          "current/wiki/method/proactive-cross-runtime-recall.md",
+          "current/wiki/concept/dated-recall-currentness.md",
+          "current/wiki/concept/embedding-similarity-boundary.md",
+          "current/wiki/concept/global-ops-structure.md"
+        ],
+        "match": "New independent retrieval question created by the named split; its two prior source links are moved from the mixed skill page.",
+        "preserved_prior_claims": [
+          "owner-specific global instruction",
+          "remove conflicting global-instruction lines"
+        ],
+        "changed_claims": []
+      },
+      "split_group_id": "split-global-skill-vs-global-instruction",
+      "proposed_utf8_bytes": 2585
+    },
+    {
+      "operation": "update",
+      "page_path": "current/wiki/concept/dated-recall-currentness.md",
+      "page_type": "concept",
+      "prior_sha256": "b3b661535156cfb6c2d7d9fc91e84432852a9b9b682eb91a93d5b91c80dadad0",
+      "proposed_content": "---\ntype: concept\ntitle: Должна ли старая запись управлять текущим решением?\ndescription: Различие между датированной находкой и автоматически действующим правилом.\n---\n\n# Должна ли старая запись управлять текущим решением?\n\nНет. Старая запись — датированная находка, не распоряжение: будущую идею могут отменить. Дата меняет вес, но не делает её автоматически хорошей; повторяющиеся поздние комментарии могут стать основанием для исправления инструкций.\n\nКогда цитаты расходятся, учитывай даты: более позднее сказанное может быть более правдивым.\n\n## Action\n\nПеред решением прочти запись в нужном контексте, покажи дату и uncertainty. Не позволяй находке автоматически определять текущий выбор.\n\n## Boundary\n\nПовторяемость — сигнал пересмотреть инструкцию, а не доказательство, что исходная запись уже была current rule.\n\n## Sources\n\n- [future idea may be canceled](../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L21)\n- [date limits automatic influence](../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L25)\n- [later comments revise instructions](../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L26)\n- [later quote may be more truthful](../../../../../../../_ops/chat-recall/2026-07-31-005511-codex-019fb495.md#L16)\n",
+      "proposed_sha256": "78d64fa852bcc624aee4a42754633451fcbf23ade8bd0d4339316d7c4fa6858d",
+      "record_ids": [
+        "cr-db36c02089cee53c",
+        "cr-cd12084caea37373",
+        "cr-411135b8c85edbcd",
+        "cr-f3e63ab086f6ba0b"
+      ],
+      "material_claims": [
+        {
+          "claim_id": "dated-finding-not-command",
+          "statement": "A dated finding is not automatically a current command; date changes weight but not truth by itself.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-db36c02089cee53c",
+            "cr-cd12084caea37373"
+          ],
+          "page_fit": {
+            "page_question": "Должна ли старая запись управлять текущим решением?",
+            "answering_record_ids": [
+              "cr-db36c02089cee53c"
+            ],
+            "reason": "The page directly answers whether an old record controls today's decision."
+          }
+        },
+        {
+          "claim_id": "later-comments-revise",
+          "statement": "Repeated later comments can justify revising instructions, but repetition alone is not proof of a current rule.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-411135b8c85edbcd"
+          ],
+          "page_fit": {
+            "page_question": "Должна ли старая запись управлять текущим решением?",
+            "answering_record_ids": [
+              "cr-411135b8c85edbcd"
+            ],
+            "reason": "The existing boundary distinguishes revision signal from automatic currentness."
+          }
+        },
+        {
+          "claim_id": "later-quote-currentness",
+          "statement": "When owner quotes conflict, use dates because later wording may be more truthful.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-f3e63ab086f6ba0b"
+          ],
+          "page_fit": {
+            "page_question": "Должна ли старая запись управлять текущим решением?",
+            "answering_record_ids": [
+              "cr-f3e63ab086f6ba0b"
+            ],
+            "reason": "The new record gives the page a concrete date comparison action."
+          }
+        }
+      ],
+      "prior_page_review": {
+        "checked_prior_pages": [
+          "current/wiki/index.md",
+          "current/wiki/method/capture-owner-quotes.md",
+          "current/wiki/method/global-skill-trigger.md",
+          "current/wiki/method/agent-work-routing-review.md",
+          "current/wiki/method/markdown-reading-trigger.md",
+          "current/wiki/method/proactive-cross-runtime-recall.md",
+          "current/wiki/concept/dated-recall-currentness.md",
+          "current/wiki/concept/embedding-similarity-boundary.md",
+          "current/wiki/concept/global-ops-structure.md"
+        ],
+        "match": "The existing currentness question owns the new dated-conflict rule.",
+        "preserved_prior_claims": [
+          "dated finding is not an automatic command",
+          "date and uncertainty action",
+          "later comments can revise instructions"
+        ],
+        "changed_claims": [
+          "later-quote-currentness"
+        ]
+      },
+      "proposed_utf8_bytes": 1911
+    },
+    {
+      "operation": "create",
+      "page_path": "current/wiki/method/skill-purpose-and-routing.md",
+      "page_type": "method",
+      "prior_sha256": null,
+      "proposed_content": "---\ntype: method\ntitle: Как устроить IA страниц и reference-router в 1html?\ndescription: Одна цель старых interface artifacts 1html, progressive disclosure, best-practice cards и reference-router.\n---\n\n# Как устроить IA страниц и reference-router в 1html?\n\nИспользуй этот метод при shaping 1html и его старых interface artifacts/references.\n\n## Steps\n\n1. Дай каждому старому interface artifact 1html одну цель или одну информацию; не превращай старые interface artifacts в сборник.\n2. Учи в 1html progressive disclosure через tabs, components, buttons, hiding и anchors по мере необходимости.\n3. Удали из 1html literal full-page code; оставь best-practice cards для Daisy, Mermaid и Alpine, а body 1html сделай reference-router к нужным файлам.\n4. Держи 1html визуально компактным, но не сокращай смысл.\n\n## Check\n\nПроверь: старые interface artifacts 1html имеют отдельные цели; progressive disclosure ведёт к деталям; literal full-page code заменён best-practice cards, body — reference-router; visual compactness не сокращает смысл.\n\n## Boundary\n\nЭто IA 1html и его references: visual compactness не разрешает сокращать смысл; конкретные Daisy, Mermaid и Alpine details здесь не выводятся.\n\n## Sources\n\n- [one purpose for old interface artifacts](../../../../../../../_ops/chat-recall/2026-07-29-201852-codex-019fada0.md#L34)\n- [tabs, components, buttons, hiding and anchors](../../../../../../../_ops/chat-recall/2026-07-29-201852-codex-019fada0.md#L35)\n- [cards and body as router](../../../../../../../_ops/chat-recall/2026-07-29-201852-codex-019fada0.md#L36)\n- [compact visually, not semantically](../../../../../../../_ops/chat-recall/2026-07-29-201852-codex-019fada0.md#L48)\n",
+      "proposed_sha256": "9eeaace0e4023c4601668f514498c44f6aaf2154560271ee64a9328425eb31b3",
+      "record_ids": [
+        "cr-72eae46384c1234e",
+        "cr-cbf8ce271ad72364",
+        "cr-44f6ff47beb911bd",
+        "cr-523d6af3382fd4f4"
+      ],
+      "material_claims": [
+        {
+          "claim_id": "one-purpose-old-interface-artifact",
+          "statement": "Each old 1html interface artifact should communicate one clear goal or one piece of information, not a collection.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-72eae46384c1234e"
+          ],
+          "page_fit": {
+            "page_question": "Как устроить IA страниц и reference-router в 1html?",
+            "answering_record_ids": [
+              "cr-72eae46384c1234e"
+            ],
+            "reason": "The record's context names old interface artifacts; this H1 owns their one-purpose correction."
+          }
+        },
+        {
+          "claim_id": "progressive-disclosure",
+          "statement": "The 1html skill should teach progressive disclosure through tabs, components, buttons, hiding, and anchors.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-cbf8ce271ad72364"
+          ],
+          "page_fit": {
+            "page_question": "Как устроить IA страниц и reference-router в 1html?",
+            "answering_record_ids": [
+              "cr-cbf8ce271ad72364"
+            ],
+            "reason": "The record names progressive disclosure for the 1html skill."
+          }
+        },
+        {
+          "claim_id": "cards-as-router",
+          "statement": "In 1html, remove literal full-page code, keep best-practice cards, and make the body a reference-router to needed files.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-44f6ff47beb911bd"
+          ],
+          "page_fit": {
+            "page_question": "Как устроить IA страниц и reference-router в 1html?",
+            "answering_record_ids": [
+              "cr-44f6ff47beb911bd"
+            ],
+            "reason": "The record names the 1html best-practice-card and reference-router action."
+          }
+        },
+        {
+          "claim_id": "visual-compactness-page-boundary",
+          "statement": "Visual compactness is a 1html page-IA boundary, not permission to reduce the page's meaning.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-523d6af3382fd4f4"
+          ],
+          "page_fit": {
+            "page_question": "Как устроить IA страниц и reference-router в 1html?",
+            "answering_record_ids": [
+              "cr-523d6af3382fd4f4"
+            ],
+            "reason": "The compactness record supplies the 1html page-IA boundary."
+          }
+        }
+      ],
+      "prior_page_review": {
+        "checked_prior_pages": [
+          "current/wiki/index.md",
+          "current/wiki/method/capture-owner-quotes.md",
+          "current/wiki/method/global-skill-trigger.md",
+          "current/wiki/method/agent-work-routing-review.md",
+          "current/wiki/method/markdown-reading-trigger.md",
+          "current/wiki/method/proactive-cross-runtime-recall.md",
+          "current/wiki/concept/dated-recall-currentness.md",
+          "current/wiki/concept/embedding-similarity-boundary.md",
+          "current/wiki/concept/global-ops-structure.md"
+        ],
+        "match": "New retrieval question: page purpose, progressive disclosure, cards, routing, and semantic compactness have no prior owner.",
+        "preserved_prior_claims": [],
+        "changed_claims": [
+          "one-purpose-old-interface-artifact",
+          "progressive-disclosure",
+          "cards-as-router",
+          "visual-compactness-page-boundary"
+        ]
+      },
+      "proposed_utf8_bytes": 2071
+    },
+    {
+      "operation": "create",
+      "page_path": "current/wiki/method/skill-self-listening.md",
+      "page_type": "method",
+      "prior_sha256": null,
+      "proposed_content": "---\ntype: method\ntitle: Должен ли агент при использовании 1html прислушиваться к себе?\ndescription: Self-listening rule для 1html skill.\n---\n\n# Должен ли агент при использовании 1html прислушиваться к себе?\n\nПри работе с 1html агент должен прислушиваться к себе.\n\n## Boundary\n\nИсточник задаёт это правило для 1html, но не задаёт timing, categories, procedure, audit protocol, metric или improvement loop.\n\n## Sources\n\n- [skill listens to its own use](../../../../../../../_ops/chat-recall/2026-07-29-201852-codex-019fada0.md#L49)\n",
+      "proposed_sha256": "a3760f23f5db488120753ed96e6404c31bcca3c5276fe6ee8448b8fbd929c406",
+      "record_ids": [
+        "cr-d88de4fd7db2de6e"
+      ],
+      "material_claims": [
+        {
+          "claim_id": "agent-self-listening",
+          "statement": "When using 1html, the agent should listen to itself.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-d88de4fd7db2de6e"
+          ],
+          "page_fit": {
+            "page_question": "Должен ли агент при использовании 1html прислушиваться к себе?",
+            "answering_record_ids": [
+              "cr-d88de4fd7db2de6e"
+            ],
+            "reason": "The exact H1 asks whether the agent using 1html should listen to itself."
+          }
+        }
+      ],
+      "prior_page_review": {
+        "checked_prior_pages": [
+          "current/wiki/index.md",
+          "current/wiki/method/capture-owner-quotes.md",
+          "current/wiki/method/global-skill-trigger.md",
+          "current/wiki/method/agent-work-routing-review.md",
+          "current/wiki/method/markdown-reading-trigger.md",
+          "current/wiki/method/proactive-cross-runtime-recall.md",
+          "current/wiki/concept/dated-recall-currentness.md",
+          "current/wiki/concept/embedding-similarity-boundary.md",
+          "current/wiki/concept/global-ops-structure.md"
+        ],
+        "match": "No prior page owns the agent's self-listening action; create a separate retrieval question.",
+        "preserved_prior_claims": [],
+        "changed_claims": []
+      },
+      "proposed_utf8_bytes": 709
+    },
+    {
+      "operation": "create",
+      "page_path": "current/wiki/method/visual-skill-fidelity-audit.md",
+      "page_type": "method",
+      "prior_sha256": null,
+      "proposed_content": "---\ntype: method\ntitle: Как удержать visual language 1html faithful без блокировки?\ndescription: Existing 1html visual language, Daisy guidance и non-blocking audit protocol.\n---\n\n# Как удержать visual language 1html faithful без блокировки?\n\nИспользуй метод при работе с visual language 1html, когда нужно сохранить его faithful и не блокировать fast path.\n\n## Steps\n\n1. Переиспользуй существующие цвета и расстояния 1html; новые значения не придумывай.\n2. Для анимаций 1html внимательно изучи рекомендации Daisy; точное содержание этих рекомендаций здесь не выводится.\n3. Предусмотри protocol audit 1html по best practices и cleanup, который владелец может время от времени запустить; audit не должен блокировать fast path.\n4. Не уходи от visual language 1html/Daisy: style drift заставляет следующего агента копировать накопившиеся артефакты вместо skill.\n\n## Check\n\nВ 1html сохранены existing values, Daisy guidance оставлена как внешний reference, owner-run audit protocol не блокирует fast path, а style drift не подменяет visual language артефактами.\n\n## Boundary\n\nИсточники не задают конкретный 1html audit protocol, animation recipe или полный visual language.\n\n## Sources\n\n- [readability and Daisy animations](../../../../../../../_ops/chat-recall/2026-07-29-201852-codex-019fada0.md#L37)\n- [reuse existing styles](../../../../../../../_ops/chat-recall/2026-07-29-201852-codex-019fada0.md#L38)\n- [periodic best-practice audit](../../../../../../../_ops/chat-recall/2026-07-29-201852-codex-019fada0.md#L39)\n- [audit is not a blocker](../../../../../../../_ops/chat-recall/2026-07-29-201852-codex-019fada0.md#L40)\n- [avoid style drift](../../../../../../../_ops/chat-recall/2026-07-29-201852-codex-019fada0.md#L41)\n",
+      "proposed_sha256": "cda0e94463c51db817067ba63472c8288f8b238b86c0c815855abc2113858f65",
+      "record_ids": [
+        "cr-934fad9c0a5c36de",
+        "cr-3dd776e002f1b9b4",
+        "cr-eef5507a9ac2ab0c",
+        "cr-d5bc44f45dfb21f6",
+        "cr-71aa3ce5978097ac"
+      ],
+      "material_claims": [
+        {
+          "claim_id": "daisy-animation-reading",
+          "statement": "For 1html animations, study Daisy's guidance; its exact recipe is not established here.",
+          "epistemic_kind": "uncertainty",
+          "supporting_record_ids": [
+            "cr-934fad9c0a5c36de"
+          ],
+          "page_fit": {
+            "page_question": "Как удержать visual language 1html faithful без блокировки?",
+            "answering_record_ids": [
+              "cr-934fad9c0a5c36de"
+            ],
+            "reason": "The exact H1 locates the Daisy-guidance boundary in visual language 1html."
+          }
+        },
+        {
+          "claim_id": "reuse-existing-style",
+          "statement": "For 1html speed, reuse existing colors and distances instead of inventing new values.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-3dd776e002f1b9b4"
+          ],
+          "page_fit": {
+            "page_question": "Как удержать visual language 1html faithful без блокировки?",
+            "answering_record_ids": [
+              "cr-3dd776e002f1b9b4"
+            ],
+            "reason": "The record gives the concrete reuse action for visual language 1html."
+          }
+        },
+        {
+          "claim_id": "periodic-audit",
+          "statement": "Provide a 1html best-practice and cleanup audit protocol that the owner can run occasionally without blocking the fast path.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-eef5507a9ac2ab0c",
+            "cr-d5bc44f45dfb21f6"
+          ],
+          "page_fit": {
+            "page_question": "Как удержать visual language 1html faithful без блокировки?",
+            "answering_record_ids": [
+              "cr-eef5507a9ac2ab0c"
+            ],
+            "reason": "The two records define the owner-run 1html audit protocol and its non-blocking boundary."
+          }
+        },
+        {
+          "claim_id": "style-drift-prevention",
+          "statement": "Avoid 1html visual-language drift from Daisy because later agents may copy accumulated artifacts instead of the skill.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-71aa3ce5978097ac"
+          ],
+          "page_fit": {
+            "page_question": "Как удержать visual language 1html faithful без блокировки?",
+            "answering_record_ids": [
+              "cr-71aa3ce5978097ac"
+            ],
+            "reason": "The record explains why 1html visual-language fidelity changes the next agent's action."
+          }
+        }
+      ],
+      "prior_page_review": {
+        "checked_prior_pages": [
+          "current/wiki/index.md",
+          "current/wiki/method/capture-owner-quotes.md",
+          "current/wiki/method/global-skill-trigger.md",
+          "current/wiki/method/agent-work-routing-review.md",
+          "current/wiki/method/markdown-reading-trigger.md",
+          "current/wiki/method/proactive-cross-runtime-recall.md",
+          "current/wiki/concept/dated-recall-currentness.md",
+          "current/wiki/concept/embedding-similarity-boundary.md",
+          "current/wiki/concept/global-ops-structure.md"
+        ],
+        "match": "New retrieval question: visual fidelity, reuse, audit, and style-drift prevention are distinct from page purpose.",
+        "preserved_prior_claims": [],
+        "changed_claims": []
+      },
+      "proposed_utf8_bytes": 2232
+    },
+    {
+      "operation": "create",
+      "page_path": "current/wiki/method/multi-page-knowledge-interface.md",
+      "page_type": "method",
+      "prior_sha256": null,
+      "proposed_content": "---\ntype: method\ntitle: Как сделать каталог interface artifacts с множеством страниц обозримым?\ndescription: Owner preference for the HTML_artifacts catalog: states via dropdown, comments separately; главная таблица, tags, sort, many pages, favorites и full file link.\n---\n\n# Как сделать каталог interface artifacts с множеством страниц обозримым?\n\nИспользуй метод для каталога HTML_artifacts и его interface prototypes, когда главная таблица должна показать много страниц.\n\n## Affordances\n\n1. Владельцу нравится смотреть states через dropdown, а comments — отдельно.\n2. В каталоге HTML_artifacts используй главную таблицу с tags и sorting вместо лишнего перечисления страниц.\n3. Разрешай одному проекту содержать много interface pages.\n4. Дай помечать favorites сверху и копировать full absolute file link, не relative path.\n5. Можно отдельно подумать о filter и sort tooling для главной таблицы: это часто нужно, но здесь не settled universal rule.\n\n## Check\n\nВ каталоге HTML_artifacts отражено owner preference: states смотрят через dropdown, comments — отдельно; главная таблица поддерживает tags/sort; many pages, favorites и full absolute link остаются обозримыми; filter/sort tooling отмечен как предложение, а не settled rule.\n\n## Boundary\n\nИсточники задают эти interface affordances для HTML_artifacts, но не фиксируют разметку, код или размеры элементов.\n\n## Sources\n\n- [owner preference: states via dropdown; comments separately](../../../../../../../_ops/chat-recall/2026-07-29-201852-codex-019fada0.md#L30)\n- [table tags and sorting](../../../../../../../_ops/chat-recall/2026-07-29-201852-codex-019fada0.md#L31)\n- [one project with many pages](../../../../../../../_ops/chat-recall/2026-07-29-201852-codex-019fada0.md#L32)\n- [favorites and full file link](../../../../../../../_ops/chat-recall/2026-07-29-201852-codex-019fada0.md#L43)\n- [repeated table filtering and sorting](../../../../../../../_ops/chat-recall/2026-07-29-201852-codex-019fada0.md#L45)\n",
+      "proposed_sha256": "7576fb8bcbf5148a3d9c8e246366e5869a17275a023d7b69f354ee7762875cf5",
+      "record_ids": [
+        "cr-3109797ff93132ec",
+        "cr-31d8b7515f95689d",
+        "cr-5ca977f05708881a",
+        "cr-02d8998120284879",
+        "cr-194d76ed7a2ce4fc"
+      ],
+      "material_claims": [
+        {
+          "claim_id": "state-and-comment-affordance",
+          "statement": "The owner prefers to inspect states through a dropdown and comments separately in the HTML_artifacts catalog.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-3109797ff93132ec"
+          ],
+          "page_fit": {
+            "page_question": "Как сделать каталог interface artifacts с множеством страниц обозримым?",
+            "answering_record_ids": [
+              "cr-3109797ff93132ec"
+            ],
+            "reason": "The record is an owner preference: dropdown is for states and comments are inspected separately in the HTML_artifacts catalog."
+          }
+        },
+        {
+          "claim_id": "table-tag-sort-navigation",
+          "statement": "The HTML_artifacts catalog should use a main table with tags and sorting instead of redundant page lists.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-31d8b7515f95689d"
+          ],
+          "page_fit": {
+            "page_question": "Как сделать каталог interface artifacts с множеством страниц обозримым?",
+            "answering_record_ids": [
+              "cr-31d8b7515f95689d"
+            ],
+            "reason": "The record supplies the main-table representation for the HTML_artifacts catalog."
+          }
+        },
+        {
+          "claim_id": "many-pages-per-project",
+          "statement": "One HTML_artifacts project can contain many interface pages.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-5ca977f05708881a"
+          ],
+          "page_fit": {
+            "page_question": "Как сделать каталог interface artifacts с множеством страниц обозримым?",
+            "answering_record_ids": [
+              "cr-5ca977f05708881a"
+            ],
+            "reason": "The record supplies the many-pages-per-project fact for the HTML_artifacts catalog."
+          }
+        },
+        {
+          "claim_id": "favorites-and-full-link",
+          "statement": "The catalog should keep favorited pages at the top and copy the full absolute file link.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-02d8998120284879"
+          ],
+          "page_fit": {
+            "page_question": "Как сделать каталог interface artifacts с множеством страниц обозримым?",
+            "answering_record_ids": [
+              "cr-02d8998120284879"
+            ],
+            "reason": "The record gives two concrete affordances for the HTML_artifacts catalog."
+          }
+        },
+        {
+          "claim_id": "repeated-table-tools",
+          "statement": "Consider filter and sort tooling for the main HTML_artifacts table because it is often used; this is a proposal, not a settled universal rule.",
+          "epistemic_kind": "uncertainty",
+          "supporting_record_ids": [
+            "cr-194d76ed7a2ce4fc"
+          ],
+          "page_fit": {
+            "page_question": "Как сделать каталог interface artifacts с множеством страниц обозримым?",
+            "answering_record_ids": [
+              "cr-194d76ed7a2ce4fc"
+            ],
+            "reason": "The record supplies a recurring-need proposal for this catalog, not a universal requirement."
+          }
+        }
+      ],
+      "prior_page_review": {
+        "checked_prior_pages": [
+          "current/wiki/index.md",
+          "current/wiki/method/capture-owner-quotes.md",
+          "current/wiki/method/global-skill-trigger.md",
+          "current/wiki/method/agent-work-routing-review.md",
+          "current/wiki/method/markdown-reading-trigger.md",
+          "current/wiki/method/proactive-cross-runtime-recall.md",
+          "current/wiki/concept/dated-recall-currentness.md",
+          "current/wiki/concept/embedding-similarity-boundary.md",
+          "current/wiki/concept/global-ops-structure.md"
+        ],
+        "match": "New retrieval question: concrete multi-page viewing affordances are not owned by the existing skill or Wiki pages.",
+        "preserved_prior_claims": [],
+        "changed_claims": []
+      },
+      "proposed_utf8_bytes": 2552
+    },
+    {
+      "operation": "create",
+      "page_path": "current/wiki/method/flat-multipage-shell.md",
+      "page_type": "method",
+      "prior_sha256": null,
+      "proposed_content": "---\ntype: method\ntitle: Как разделить плоские HTML-страницы, shell и дерево в 1html?\ndescription: Selected 1html refactor: flat HTML pages, shell и page tree.\n---\n\n# Как разделить плоские HTML-страницы, shell и дерево в 1html?\n\nИспользуй метод для выбранного refactor многостраничности 1html.\n\n## Steps\n\n1. Сохраняй в 1html физические плоские HTML-страницы.\n2. Разделяй shell 1html и дерево страниц.\n3. Убирай ручные копии навигации; fast path 1html оставляй без проверок.\n\n## Check\n\nПосле refactor 1html страницы остаются плоскими, shell и дерево разделены, ручные копии навигации удалены, а fast path не превращён в blocker.\n\n## Boundary\n\nИсточник фиксирует выбранное направление refactor 1html, но не описывает project files или implementation.\n\n## Sources\n\n- [selected flat multi-page refactor](../../../../../../../_ops/chat-recall/2026-07-29-201852-codex-019fada0.md#L47)\n",
+      "proposed_sha256": "a0200936ef6de3700174bf0327a7d8a5f16899e02d93ca3569c06d21592b3937",
+      "record_ids": [
+        "cr-1333bbd745ad775e"
+      ],
+      "material_claims": [
+        {
+          "claim_id": "flat-shell-tree-separation",
+          "statement": "In the selected 1html refactor, keep physical flat HTML pages, separate shell and page tree, remove manual navigation copies, and leave fast path without checks.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-1333bbd745ad775e"
+          ],
+          "page_fit": {
+            "page_question": "Как разделить плоские HTML-страницы, shell и дерево в 1html?",
+            "answering_record_ids": [
+              "cr-1333bbd745ad775e"
+            ],
+            "reason": "The selected 1html refactor is the complete action answered by this H1."
+          }
+        }
+      ],
+      "prior_page_review": {
+        "checked_prior_pages": [
+          "current/wiki/index.md",
+          "current/wiki/method/capture-owner-quotes.md",
+          "current/wiki/method/global-skill-trigger.md",
+          "current/wiki/method/agent-work-routing-review.md",
+          "current/wiki/method/markdown-reading-trigger.md",
+          "current/wiki/method/proactive-cross-runtime-recall.md",
+          "current/wiki/concept/dated-recall-currentness.md",
+          "current/wiki/concept/embedding-similarity-boundary.md",
+          "current/wiki/concept/global-ops-structure.md"
+        ],
+        "match": "New retrieval question: the selected flat-page/shell/tree refactor is a separate action from UI affordances.",
+        "preserved_prior_claims": [],
+        "changed_claims": []
+      },
+      "proposed_utf8_bytes": 1232
+    },
+    {
+      "operation": "create",
+      "page_path": "current/wiki/method/skill-output-context-budget.md",
+      "page_type": "method",
+      "prior_sha256": null,
+      "proposed_content": "---\ntype: method\ntitle: Как проверить terminal output 1chat-recall и 1md-read, не забивая контекст?\ndescription: Раздельные review questions: шум terminal output для 1chat-recall; line data, full output, comfort и context footprint для 1md-read.\n---\n\n# Как проверить terminal output 1chat-recall и 1md-read, не забивая контекст?\n\nВыбирай секцию по конкретному skill. Не переноси вопросы 1chat-recall на 1md-read и наоборот.\n\n## 1chat-recall\n\nПроверь, не несёт ли terminal output 1chat-recall лишние texts и symbols, которые заполняют context.\n\n## 1md-read\n\nПроверь terminal output 1md-read: нужны ли line data и весь output для текущего действия; остаётся ли output комфортным для чтения и каков его context footprint.\n\n## Check\n\nДля 1chat-recall назови лишние texts/symbols. Для 1md-read проверь нужность line data и всего output, комфорт чтения и context footprint. Числового gate эти sources не задают.\n\n## Boundary\n\nЭти вопросы раздельны по owner: 1chat-recall задаёт только вопрос о лишних texts/symbols, а 1md-read — о line data, полном output, комфорте и context footprint. Источники не задают deletion procedure или CLI format.\n\n## Sources\n\n- [1chat-recall terminal output can fill context](../../../../../../../_ops/chat-recall/2026-07-31-200328-codex-019fb8b3.md#L15)\n- [1md-read output line data, comfort and context footprint](../../../../../../../_ops/chat-recall/2026-08-01-122733-claude-188605a7.md#L15)\n",
+      "proposed_sha256": "b521c043452dd6068f7912b89bc40792e12fef6f38432a8be8a9899e1ca74e92",
+      "record_ids": [
+        "cr-57f8a719c3dcf859",
+        "cr-9d363a2a896c3d5a"
+      ],
+      "material_claims": [
+        {
+          "claim_id": "terminal-output-noise",
+          "statement": "Inspect 1chat-recall terminal output for nonessential text and symbols that unnecessarily fill the context window.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-57f8a719c3dcf859"
+          ],
+          "page_fit": {
+            "page_question": "Как проверить terminal output 1chat-recall и 1md-read, не забивая контекст?",
+            "answering_record_ids": [
+              "cr-57f8a719c3dcf859"
+            ],
+            "reason": "The record answers only the 1chat-recall subsection about nonessential terminal-output text and symbols."
+          }
+        },
+        {
+          "claim_id": "output-line-utility",
+          "statement": "When reviewing 1md-read terminal output, ask whether line data and the full output are needed, whether it is comfortable to read, and what its context footprint is.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-9d363a2a896c3d5a"
+          ],
+          "page_fit": {
+            "page_question": "Как проверить terminal output 1chat-recall и 1md-read, не забивая контекст?",
+            "answering_record_ids": [
+              "cr-9d363a2a896c3d5a"
+            ],
+            "reason": "The record answers only the 1md-read subsection about line data, full output, comfort, and context footprint."
+          }
+        }
+      ],
+      "prior_page_review": {
+        "checked_prior_pages": [
+          "current/wiki/index.md",
+          "current/wiki/method/capture-owner-quotes.md",
+          "current/wiki/method/global-skill-trigger.md",
+          "current/wiki/method/agent-work-routing-review.md",
+          "current/wiki/method/markdown-reading-trigger.md",
+          "current/wiki/method/proactive-cross-runtime-recall.md",
+          "current/wiki/concept/dated-recall-currentness.md",
+          "current/wiki/concept/embedding-similarity-boundary.md",
+          "current/wiki/concept/global-ops-structure.md"
+        ],
+        "match": "New retrieval question: terminal output footprint and line-level usefulness are not owned by Markdown reading or currentness pages.",
+        "preserved_prior_claims": [],
+        "changed_claims": []
+      },
+      "proposed_utf8_bytes": 1826
+    },
+    {
+      "operation": "create",
+      "page_path": "current/wiki/method/knowledge-visualization-truth-boundary.md",
+      "page_type": "method",
+      "prior_sha256": null,
+      "proposed_content": "---\ntype: method\ntitle: Как 1html визуально оформляет факты, не дописывая канон?\ndescription: Source-faithful visual projection in 1html с overview, comments и simple reflective language.\n---\n\n# Как 1html визуально оформляет факты, не дописывая канон?\n\nИспользуй метод при применении 1html для visual projection фактов.\n\n## Steps\n\n1. Покажи в 1html картину сверху, а детали раскрывай по нажатию.\n2. Не дописывай факты, не меняй формулировки и не добавляй в 1html канон, документы или owner statement того, чего нет.\n3. В 1html визуализируй только то, в чём уверен; для uncertainty, ошибок, пропусков и неутверждённых добавлений оставляй comments.\n4. Пиши в 1html простым, максимально отражающим языком, чтобы проекции читались и проверялись агентами.\n\n## Check\n\nВ 1html overview виден до деталей; неутверждённое не дописывается; uncertainty и missing knowledge идут в comments; язык остаётся простым и source-faithful.\n\n## Boundary\n\nЭто source-faithful projection 1html; источники не задают конкретный UI, канон или механизм comments.\n\n## Sources\n\n- [visual overview with revealed details](../../../../../../../_ops/chat-recall/2026-08-01-122602-claude-5db612ad.md#L18)\n- [do not invent canon](../../../../../../../_ops/chat-recall/2026-08-01-122602-claude-5db612ad.md#L19)\n- [comments for uncertainty and missing knowledge](../../../../../../../_ops/chat-recall/2026-08-01-122602-claude-5db612ad.md#L20)\n- [simple exact language](../../../../../../../_ops/chat-recall/2026-08-01-122602-claude-5db612ad.md#L21)\n- [readable and checkable projections](../../../../../../../_ops/chat-recall/2026-08-01-122602-claude-5db612ad.md#L22)\n",
+      "proposed_sha256": "f9f12bb9ce7c970e097c9c8395c4d90d0207f2067ccd5611d1fce265d38bb803",
+      "record_ids": [
+        "cr-d5f5e0cc185020f1",
+        "cr-ad2f65746e824e45",
+        "cr-5789af84be5b2ab2",
+        "cr-d7964c271afae465",
+        "cr-d368c20bbcdf86e3"
+      ],
+      "material_claims": [
+        {
+          "claim_id": "overview-then-details",
+          "statement": "Use the 1html visual surface to show the overview and reveal details on interaction.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-d5f5e0cc185020f1"
+          ],
+          "page_fit": {
+            "page_question": "Как 1html визуально оформляет факты, не дописывая канон?",
+            "answering_record_ids": [
+              "cr-d5f5e0cc185020f1"
+            ],
+            "reason": "The record directly states the visual-projection action for 1html."
+          }
+        },
+        {
+          "claim_id": "no-invented-canon",
+          "statement": "In 1html, do not invent facts, alter wording, or add canon, documents, or owner statements that were not established.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-ad2f65746e824e45"
+          ],
+          "page_fit": {
+            "page_question": "Как 1html визуально оформляет факты, не дописывая канон?",
+            "answering_record_ids": [
+              "cr-ad2f65746e824e45"
+            ],
+            "reason": "The record defines the central evidence boundary for 1html projection."
+          }
+        },
+        {
+          "claim_id": "comments-for-uncertainty",
+          "statement": "In 1html, render only what is supported/confident; leave uncertainty, errors, missing knowledge, and unasserted additions as comments.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-5789af84be5b2ab2"
+          ],
+          "page_fit": {
+            "page_question": "Как 1html визуально оформляет факты, не дописывая канон?",
+            "answering_record_ids": [
+              "cr-5789af84be5b2ab2"
+            ],
+            "reason": "The record gives the 1html action and fallback for uncertainty."
+          }
+        },
+        {
+          "claim_id": "simple-exact-language",
+          "statement": "Use simple language that reflects the source closely so agents can read and check 1html projections.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-d7964c271afae465",
+            "cr-d368c20bbcdf86e3"
+          ],
+          "page_fit": {
+            "page_question": "Как 1html визуально оформляет факты, не дописывая канон?",
+            "answering_record_ids": [
+              "cr-d7964c271afae465"
+            ],
+            "reason": "The two records connect plain exact language with agent-checkable 1html projections."
+          }
+        }
+      ],
+      "prior_page_review": {
+        "checked_prior_pages": [
+          "current/wiki/index.md",
+          "current/wiki/method/capture-owner-quotes.md",
+          "current/wiki/method/global-skill-trigger.md",
+          "current/wiki/method/agent-work-routing-review.md",
+          "current/wiki/method/markdown-reading-trigger.md",
+          "current/wiki/method/proactive-cross-runtime-recall.md",
+          "current/wiki/concept/dated-recall-currentness.md",
+          "current/wiki/concept/embedding-similarity-boundary.md",
+          "current/wiki/concept/global-ops-structure.md"
+        ],
+        "match": "New retrieval question: faithful visualization and explicit unknown/comments are distinct from visual styling and UI affordances.",
+        "preserved_prior_claims": [],
+        "changed_claims": [
+          "overview-then-details",
+          "no-invented-canon",
+          "comments-for-uncertainty",
+          "simple-exact-language"
+        ]
+      },
+      "proposed_utf8_bytes": 2149
+    },
+    {
+      "operation": "create",
+      "page_path": "current/wiki/method/alpine-documentation-freshness.md",
+      "page_type": "method",
+      "prior_sha256": null,
+      "proposed_content": "---\ntype: method\ntitle: Как для Alpine-card в 1html отделить известное, особенно свежее, от неизвестного?\ndescription: Alpine-card research in 1html: прочитать документацию, назвать known/fresh facts и записать unknowns.\n---\n\n# Как для Alpine-card в 1html отделить известное, особенно свежее, от неизвестного?\n\nИспользуй метод при исследовании Alpine-card внутри redesign 1html.\n\n## Steps\n\n1. Внимательно прочитай документацию Alpine.\n2. Отдельно назови то, что знаешь, особенно свежее.\n3. Запиши то, чего не знаешь.\n\n## Check\n\nВ записи Alpine-card 1html отдельно видны known, especially fresh, и unknown.\n\n## Boundary\n\nИсточник не задаёт здесь version, best-practice procedure или конкретные Alpine-card facts.\n\n## Sources\n\n- [read Alpine docs; known, especially fresh, and unknown](../../../../../../../_ops/chat-recall/2026-07-29-201852-codex-019fada0.md#L33)\n",
+      "proposed_sha256": "56a7d6d3ef212ecfb864238ace22392eb82e83f3124c3d01a70fc73a063c30f5",
+      "record_ids": [
+        "cr-54494ea5ace69b22"
+      ],
+      "material_claims": [
+        {
+          "claim_id": "alpine-fresh-known-unknown",
+          "statement": "For an Alpine-card in 1html, read Alpine documentation carefully, name what is known—especially what is fresh—and record what is unknown.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-54494ea5ace69b22"
+          ],
+          "page_fit": {
+            "page_question": "Как для Alpine-card в 1html отделить известное, особенно свежее, от неизвестного?",
+            "answering_record_ids": [
+              "cr-54494ea5ace69b22"
+            ],
+            "reason": "The exact H1 names the Alpine-card documentation and known/fresh/unknown boundary inside 1html."
+          }
+        }
+      ],
+      "prior_page_review": {
+        "checked_prior_pages": [
+          "current/wiki/index.md",
+          "current/wiki/method/capture-owner-quotes.md",
+          "current/wiki/method/global-skill-trigger.md",
+          "current/wiki/method/agent-work-routing-review.md",
+          "current/wiki/method/markdown-reading-trigger.md",
+          "current/wiki/method/proactive-cross-runtime-recall.md",
+          "current/wiki/concept/dated-recall-currentness.md",
+          "current/wiki/concept/embedding-similarity-boundary.md",
+          "current/wiki/concept/global-ops-structure.md"
+        ],
+        "match": "No prior page owns the Alpine-card known/fresh/unknown question in 1html; create a separate owner page.",
+        "preserved_prior_claims": [],
+        "changed_claims": []
+      },
+      "proposed_utf8_bytes": 1184
+    },
+    {
+      "operation": "create",
+      "page_path": "current/wiki/method/action-oriented-knowledge-index.md",
+      "page_type": "method",
+      "prior_sha256": null,
+      "proposed_content": "---\ntype: method\ntitle: Как 1index должен вести к неожиданной дельте и действию?\ndescription: 1index/INDEX.md как delta-handoff к section-level action routes.\n---\n\n# Как 1index должен вести к неожиданной дельте и действию?\n\nИспользуй метод при настройке 1index/INDEX.md.\n\n## Steps\n\n1. Показывай в 1index delta, найденную в неожиданном месте, чтобы он работал как handoff.\n2. Ссылайся на sections, а не только на files; в каждой ссылке описывай action, что можно узнать или увидеть, и importance.\n3. Веди к section-level месту внутри file, а не только к file.\n\n## Check\n\nFresh reader по ссылке 1index понимает, куда перейти, что там сделать или узнать и почему это важно.\n\n## Boundary\n\nИсточник задаёт назначение 1index/INDEX.md и содержимое action links, но не конкретный формат index или ranking algorithm.\n\n## Sources\n\n- [index as delta handoff](../../../../../../../_ops/chat-recall/2026-08-01-145225-claude-444200aa.md#L15)\n",
+      "proposed_sha256": "a418cb8c2d76097a1836bafe486b74fcee690568fb98a9725b4839a17c3e9797",
+      "record_ids": [
+        "cr-a54100dbe5704f3f"
+      ],
+      "material_claims": [
+        {
+          "claim_id": "unexpected-delta-index",
+          "statement": "1index/INDEX.md should hand off an unexpected delta with section-level links that describe action, what can be learned or seen, and importance.",
+          "epistemic_kind": "source-backed",
+          "supporting_record_ids": [
+            "cr-a54100dbe5704f3f"
+          ],
+          "page_fit": {
+            "page_question": "Как 1index должен вести к неожиданной дельте и действию?",
+            "answering_record_ids": [
+              "cr-a54100dbe5704f3f"
+            ],
+            "reason": "The record directly defines the 1index/INDEX.md delta-handoff question and section-level action links."
+          }
+        }
+      ],
+      "prior_page_review": {
+        "checked_prior_pages": [
+          "current/wiki/index.md",
+          "current/wiki/method/capture-owner-quotes.md",
+          "current/wiki/method/global-skill-trigger.md",
+          "current/wiki/method/agent-work-routing-review.md",
+          "current/wiki/method/markdown-reading-trigger.md",
+          "current/wiki/method/proactive-cross-runtime-recall.md",
+          "current/wiki/concept/dated-recall-currentness.md",
+          "current/wiki/concept/embedding-similarity-boundary.md",
+          "current/wiki/concept/global-ops-structure.md"
+        ],
+        "match": "New retrieval question: section-level action links and unexpected-delta handoff are not owned by the navigation index itself.",
+        "preserved_prior_claims": [],
+        "changed_claims": []
+      },
+      "proposed_utf8_bytes": 1308
+    },
+    {
+      "operation": "update",
+      "page_path": "current/wiki/index.md",
+      "page_type": "index",
+      "prior_sha256": "e98cff4bbccf6dcffb5c648fbfb0f2ed9960d856e16d4a3535f349005c1077ed",
+      "proposed_content": "---\ntype: index\ntitle: OpenViking chat-recall Wiki\ndescription: Навигация по owner knowledge, currentness, skills, global instruction, UI knowledge и evidence boundaries.\n---\n\n# OpenViking chat-recall Wiki\n\nЭта Wiki — производная библиотека того, что владелец сказал, а не project canon; evidence остаётся в linked chat-recall quotes.\n\nОбработанная граница этой версии — batch-003. Выбирай страницу по естественному вопросу: каждая даёт действие и его границу.\n\n## Methods\n\n- [Как сохранить цитату владельца, чтобы её нашли позже?](method/capture-owner-quotes.md) — Открой при новой реплике владельца или handoff: здесь как записать слова с датой, окном и допустимым сокращением.\n- [Как устроить общий skill, чтобы его вызвали вовремя?](method/global-skill-trigger.md) — Открой при shaping общего skill: здесь как оставить неизвестную дельту, trigger и действие.\n- [Как направить global instruction к owner context и находкам?](method/global-instruction-owner-context.md) — Открой при правке global instruction: здесь как явно направить recall, findings и embedding search.\n- [Как направлять долгую агентскую работу и проверять результат?](method/agent-work-routing-review.md) — Открой перед чтением многих материалов или долгой code/tool работой: здесь как выбрать маршрут и отделить исполнение от проверки.\n- [Как сделать скилл чтения Markdown находимым и полезным?](method/markdown-reading-trigger.md) — Открой, когда в проекте есть Markdown: здесь когда вызывать reader, какую пользу объяснить и что считать неизвестным.\n- [Как использовать прошлые owner quotes в Claude и Codex?](method/proactive-cross-runtime-recall.md) — Открой перед решением, которому нужен контекст владельца: здесь как искать его заранее во всех runtime-записях.\n- [Как устроить IA страниц и reference-router в 1html?](method/skill-purpose-and-routing.md) — Открой при shaping 1html: здесь одна цель старых interface artifacts, progressive disclosure, best-practice cards и reference-router.\n- [Должен ли агент при использовании 1html прислушиваться к себе?](method/skill-self-listening.md) — Открой при использовании 1html: здесь его self-listening rule.\n- [Как удержать visual language 1html faithful без блокировки?](method/visual-skill-fidelity-audit.md) — Открой при visual language 1html: здесь reuse, Daisy boundary, owner-run audit protocol и style-drift guard.\n- [Как сделать каталог interface artifacts с множеством страниц обозримым?](method/multi-page-knowledge-interface.md) — Открой в каталоге HTML_artifacts: здесь owner preference: states через dropdown, comments отдельно; main table, tags/sort, favorites, full links и предложение о filter/sort tooling.\n- [Как разделить плоские HTML-страницы, shell и дерево в 1html?](method/flat-multipage-shell.md) — Открой при refactor 1html: здесь плоские HTML-pages, shell, tree; ручные копии навигации убраны, fast path без проверок.\n- [Как проверить terminal output 1chat-recall и 1md-read, не забивая контекст?](method/skill-output-context-budget.md) — Открой при terminal output 1chat-recall/1md-read: здесь texts/symbols, line data, comfort и context footprint.\n- [Как 1html визуально оформляет факты, не дописывая канон?](method/knowledge-visualization-truth-boundary.md) — Открой при source-faithful projection 1html: здесь overview/reveal, no-invention, comments и simple language.\n- [Как для Alpine-card в 1html отделить известное, особенно свежее, от неизвестного?](method/alpine-documentation-freshness.md) — Открой при Alpine-card research в 1html: здесь known/fresh и unknown.\n- [Как 1index должен вести к неожиданной дельте и действию?](method/action-oriented-knowledge-index.md) — Открой при настройке 1index/INDEX.md: здесь unexpected delta, section-level action и importance.\n\n## Concepts\n\n- [Должна ли старая запись управлять текущим решением?](concept/dated-recall-currentness.md) — Открой перед применением старой записи: здесь как учесть дату и uncertainty, не превратив находку в приказ.\n- [Похожесть текстов — это доказательство смыслового дубля?](concept/embedding-similarity-boundary.md) — Открой перед объявлением двух текстов копиями: здесь граница между численной близостью и отдельным доказательством.\n- [Насколько единообразной должна быть глобальная Ops-структура?](concept/global-ops-structure.md) — Открой при добавлении global skill: здесь ожидание единообразия и детали, которые пока нельзя выводить.\n",
+      "proposed_sha256": "51abae6b0e045c787cedc768c30c31ee1fd8e91e564e49f6098ae874e48bdeae",
+      "record_ids": [],
+      "material_claims": [],
+      "prior_page_review": {
+        "checked_prior_pages": [
+          "current/wiki/index.md",
+          "current/wiki/method/capture-owner-quotes.md",
+          "current/wiki/method/global-skill-trigger.md",
+          "current/wiki/method/agent-work-routing-review.md",
+          "current/wiki/method/markdown-reading-trigger.md",
+          "current/wiki/method/proactive-cross-runtime-recall.md",
+          "current/wiki/concept/dated-recall-currentness.md",
+          "current/wiki/concept/embedding-similarity-boundary.md",
+          "current/wiki/concept/global-ops-structure.md"
+        ],
+        "match": "Update the navigation boundary and add each new active page exactly once.",
+        "preserved_prior_claims": [
+          "project-canon boundary",
+          "existing active routes"
+        ],
+        "changed_claims": [
+          "batch-003 current boundary",
+          "new route cues"
+        ]
+      },
+      "proposed_utf8_bytes": 6229
+    },
+    {
+      "operation": "reject",
+      "page_path": null,
+      "page_type": null,
+      "prior_sha256": null,
+      "proposed_content": null,
+      "proposed_sha256": null,
+      "record_ids": [
+        "cr-d7a7121a7f805363",
+        "cr-0ebfb7ea948f4451",
+        "cr-84823fbd473e7a37"
+      ],
+      "material_claims": [],
+      "reason": "cr-d7a... is an 1expert-lens correction: its quote reports only a general effect of calling a lens and does not set a new trigger, action, or boundary for a useful Wiki page; the other two records remain a one-off visual tweak and an unresolved multi-page question.",
+      "prior_page_review": {
+        "checked_prior_pages": [
+          "current/wiki/index.md",
+          "current/wiki/method/capture-owner-quotes.md",
+          "current/wiki/method/global-skill-trigger.md",
+          "current/wiki/method/agent-work-routing-review.md",
+          "current/wiki/method/markdown-reading-trigger.md",
+          "current/wiki/method/proactive-cross-runtime-recall.md",
+          "current/wiki/concept/dated-recall-currentness.md",
+          "current/wiki/concept/embedding-similarity-boundary.md",
+          "current/wiki/concept/global-ops-structure.md"
+        ],
+        "match": "No existing or proposed page can answer a settled question without inventing the missing subject or decision.",
+        "preserved_prior_claims": [],
+        "changed_claims": []
+      }
+    }
+  ],
+  "coverage": [
+    {
+      "record_id": "cr-d7a7121a7f805363",
+      "disposition": "reject",
+      "reason": "Record belongs to 1expert-lens, but its quote reports only a general effect of calling a lens and does not set a new trigger, action, or boundary for a useful Wiki page; kept reject."
+    },
+    {
+      "record_id": "cr-58f114cc0ba33c69",
+      "disposition": "used",
+      "reason": "Adds the skill-description rule to explain usefulness and help, on the skill-shaping page."
+    },
+    {
+      "record_id": "cr-e91e0d35dc9d6afd",
+      "disposition": "used",
+      "reason": "Adds the unknown-to-use bridge to the skill-shaping page."
+    },
+    {
+      "record_id": "cr-d34cf45deda5905c",
+      "disposition": "used",
+      "reason": "Adds the explicit owner-quote route to the separate global-instruction page."
+    },
+    {
+      "record_id": "cr-28a9dc60d9d6c87f",
+      "disposition": "used",
+      "reason": "Adds the short findings route to the separate global-instruction page."
+    },
+    {
+      "record_id": "cr-f3e63ab086f6ba0b",
+      "disposition": "used",
+      "reason": "Adds the dated conflict rule to the existing currentness page."
+    },
+    {
+      "record_id": "cr-9613be20e07577f0",
+      "disposition": "skipped",
+      "reason": "Generic desire for maximum usefulness has no independent action beyond the dated/currentness route and would make that page answer a different H1."
+    },
+    {
+      "record_id": "cr-83a548903fec8892",
+      "disposition": "used",
+      "reason": "Adds concise future capture to the existing owner-quote capture page."
+    },
+    {
+      "record_id": "cr-3109797ff93132ec",
+      "disposition": "used",
+      "reason": "Preserves the owner preference: states via dropdown and comments separately on the multi-page interface page."
+    },
+    {
+      "record_id": "cr-31d8b7515f95689d",
+      "disposition": "used",
+      "reason": "Adds table, tags, and sorting navigation to the multi-page interface page."
+    },
+    {
+      "record_id": "cr-5ca977f05708881a",
+      "disposition": "used",
+      "reason": "Adds the one-project/many-pages structural requirement to the multi-page interface page."
+    },
+    {
+      "record_id": "cr-54494ea5ace69b22",
+      "disposition": "used",
+      "reason": "Adds careful Alpine-doc reading plus known (especially fresh) vs unknown to its exact 1html Alpine-card page."
+    },
+    {
+      "record_id": "cr-72eae46384c1234e",
+      "disposition": "used",
+      "reason": "Adds the one-purpose rule for old interface artifacts to the skill-purpose page."
+    },
+    {
+      "record_id": "cr-cbf8ce271ad72364",
+      "disposition": "used",
+      "reason": "Adds progressive disclosure to the new skill-purpose page."
+    },
+    {
+      "record_id": "cr-44f6ff47beb911bd",
+      "disposition": "used",
+      "reason": "Adds cards/body-as-router and removal of full-page examples to the new skill-purpose page."
+    },
+    {
+      "record_id": "cr-934fad9c0a5c36de",
+      "disposition": "used",
+      "reason": "Adds Daisy animation guidance as an explicit uncertainty boundary to the fidelity page."
+    },
+    {
+      "record_id": "cr-3dd776e002f1b9b4",
+      "disposition": "used",
+      "reason": "Adds reuse of existing visual values to the fidelity page."
+    },
+    {
+      "record_id": "cr-eef5507a9ac2ab0c",
+      "disposition": "used",
+      "reason": "Adds periodic audit to the fidelity page."
+    },
+    {
+      "record_id": "cr-d5bc44f45dfb21f6",
+      "disposition": "used",
+      "reason": "Adds the non-blocking audit boundary to the fidelity page."
+    },
+    {
+      "record_id": "cr-71aa3ce5978097ac",
+      "disposition": "used",
+      "reason": "Adds style-drift prevention to the fidelity page."
+    },
+    {
+      "record_id": "cr-0ebfb7ea948f4451",
+      "disposition": "reject",
+      "reason": "One-off request to reduce icon, text, and heading size gives no reusable scale rule."
+    },
+    {
+      "record_id": "cr-02d8998120284879",
+      "disposition": "used",
+      "reason": "Adds favorites and full-link affordances to the multi-page interface page."
+    },
+    {
+      "record_id": "cr-194d76ed7a2ce4fc",
+      "disposition": "used",
+      "reason": "Adds recurring table filtering and sorting to the multi-page interface page."
+    },
+    {
+      "record_id": "cr-84823fbd473e7a37",
+      "disposition": "reject",
+      "reason": "An unresolved question to call Opus supplies no settled multi-page decision."
+    },
+    {
+      "record_id": "cr-1333bbd745ad775e",
+      "disposition": "used",
+      "reason": "Adds the selected flat-page/shell/tree refactor to its own action page."
+    },
+    {
+      "record_id": "cr-523d6af3382fd4f4",
+      "disposition": "used",
+      "reason": "Adds the visual-versus-semantic compactness boundary to the skill-purpose page."
+    },
+    {
+      "record_id": "cr-d88de4fd7db2de6e",
+      "disposition": "used",
+      "reason": "Adds agent self-listening to its separate self-listening page."
+    },
+    {
+      "record_id": "cr-57f8a719c3dcf859",
+      "disposition": "used",
+      "reason": "Adds terminal-output noise review to the output-context page."
+    },
+    {
+      "record_id": "cr-9d363a2a896c3d5a",
+      "disposition": "used",
+      "reason": "Adds line/output usefulness and context-footprint review to the output-context page."
+    },
+    {
+      "record_id": "cr-d5f5e0cc185020f1",
+      "disposition": "used",
+      "reason": "Adds overview-first visual disclosure to the truth-boundary page."
+    },
+    {
+      "record_id": "cr-ad2f65746e824e45",
+      "disposition": "used",
+      "reason": "Adds the no-invented-canon boundary to the truth-boundary page."
+    },
+    {
+      "record_id": "cr-5789af84be5b2ab2",
+      "disposition": "used",
+      "reason": "Adds comments for uncertainty, errors, missing knowledge, and unasserted additions."
+    },
+    {
+      "record_id": "cr-d7964c271afae465",
+      "disposition": "used",
+      "reason": "Adds simple exact language to the truth-boundary page."
+    },
+    {
+      "record_id": "cr-d368c20bbcdf86e3",
+      "disposition": "used",
+      "reason": "Adds projection readability and checkability to the truth-boundary page."
+    },
+    {
+      "record_id": "cr-a54100dbe5704f3f",
+      "disposition": "used",
+      "reason": "Adds unexpected-delta and section-level action links to the index-method page."
+    },
+    {
+      "record_id": "cr-b5ff888e2ef88c30",
+      "disposition": "used",
+      "reason": "Adds description-level capture and allowed shortening to the owner-quote page."
+    },
+    {
+      "record_id": "cr-d81d62de2bf80ce9",
+      "disposition": "used",
+      "reason": "Adds explicit recall and embedding promotion to the global-instruction page."
+    },
+    {
+      "record_id": "cr-1aa75287bcfae7b3",
+      "disposition": "used",
+      "reason": "Adds the concise root-instruction request for recall and embedding to the global-instruction page."
+    }
+  ],
+  "gaps": [
+    "Records cr-d7a7121a7f805363, cr-0ebfb7ea948f4451, and cr-84823fbd473e7a37 have no settled reusable action.",
+    "cr-9613be20e07577f0 states a usefulness goal but no independent rule that fits an existing H1.",
+    "Exact terminal command syntax for recall and embedding search is not established by the frozen records.",
+    "Exact Daisy, Mermaid, and Alpine best-practice content and animation guidance are not represented here; only the owner-specified boundaries are retained.",
+    "The exact audit protocol and comments mechanism are not established by the frozen records."
+  ]
+}

@@ -894,6 +894,7 @@ def _validate_coverage(
     semantic_ids: set[str] = set()
     claim_supported_ids: set[str] = set()
     rejected_ids: set[str] = set()
+    record_pages: dict[str, set[str]] = {}
     for operation in operations:
         operation_ids = set(operation.get("record_ids", []))
         extra_ids = operation_ids - manifest_set
@@ -904,6 +905,9 @@ def _validate_coverage(
         kind = operation.get("operation")
         if kind in {"create", "update", "supersede", "no-change"}:
             semantic_ids.update(operation_ids & manifest_set)
+            operation_page = operation.get("page_path")
+            for record_id in operation_ids & manifest_set:
+                record_pages.setdefault(record_id, set()).add(operation_page)
             for claim in operation.get("material_claims", []):
                 claim_supported_ids.update(
                     set(claim.get("supporting_record_ids", [])) & manifest_set
@@ -931,11 +935,28 @@ def _validate_coverage(
             raise MaterializationError("coverage item has invalid record or disposition")
         if not isinstance(reason, str) or not reason.strip():
             raise MaterializationError(f"coverage reason is missing for {record_id}")
+        page_path = item.get("page_path")
         if disposition == "used":
+            if not isinstance(page_path, str) or not page_path.strip():
+                raise MaterializationError(
+                    f"used coverage is missing page_path for {record_id}"
+                )
+            if page_path not in record_pages.get(record_id, set()):
+                raise MaterializationError(
+                    f"used coverage page_path does not match the operation using {record_id}"
+                )
             used_ids.add(record_id)
         elif disposition == "reject":
+            if page_path is not None:
+                raise MaterializationError(
+                    f"reject coverage cannot have a page path for {record_id}"
+                )
             coverage_rejected_ids.add(record_id)
         else:
+            if page_path is not None:
+                raise MaterializationError(
+                    f"skipped coverage cannot have a page path for {record_id}"
+                )
             skipped_ids.add(record_id)
         coverage_ids.append(record_id)
         counts[disposition] += 1

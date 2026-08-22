@@ -660,6 +660,7 @@ class MaterializeChronologicalChangesetTests(unittest.TestCase):
             before = self._snapshot(fixture["wiki"])
             value = copy.deepcopy(fixture["changeset_value"])
             value["coverage"][1]["disposition"] = "reject"
+            value["coverage"][1].pop("page_path", None)
             raw = _json_bytes(value)
             fixture["changeset"].write_bytes(raw)
             fixture["accepted_sha"] = _sha(raw)
@@ -670,6 +671,35 @@ class MaterializeChronologicalChangesetTests(unittest.TestCase):
                 self._materialize(fixture)
             self.assertEqual(before, self._snapshot(fixture["wiki"]))
             self.assertFalse(fixture["receipt"].exists())
+
+    def test_used_coverage_requires_matching_page_path(self) -> None:
+        """Regression: batch-001 attempt-002 shipped a used row without page_path.
+
+        Its reason literally read "material claim undefined на странице undefined"
+        and check-only passed it, so the record -> claim -> page route was unverifiable.
+        """
+        for mutate in (
+            lambda item: item.pop("page_path", None),
+            lambda item: item.update({"page_path": "current/wiki/concept/does-not-exist.md"}),
+        ):
+            with tempfile.TemporaryDirectory() as temp_dir:
+                fixture = self._fixture(Path(temp_dir))
+                before = self._snapshot(fixture["wiki"])
+                value = copy.deepcopy(fixture["changeset_value"])
+                used = next(
+                    item for item in value["coverage"] if item["disposition"] == "used"
+                )
+                mutate(used)
+                raw = _json_bytes(value)
+                fixture["changeset"].write_bytes(raw)
+                fixture["accepted_sha"] = _sha(raw)
+                with self.assertRaisesRegex(
+                    materializer.MaterializationError,
+                    "used coverage (is missing page_path|page_path does not match)",
+                ):
+                    self._materialize(fixture)
+                self.assertEqual(before, self._snapshot(fixture["wiki"]))
+                self.assertFalse(fixture["receipt"].exists())
 
     def test_used_record_requires_material_claim_responsibility(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
