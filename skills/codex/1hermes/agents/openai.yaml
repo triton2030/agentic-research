@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Hermes"
+  short_description: "Hermes advisor and runtime health"
+  default_prompt: "Use $1hermes to get a compact Kimi K3 High perspective on this task."
+
+policy:
+  allow_implicit_invocation: true
