@@ -373,6 +373,28 @@ class HermesRuntimeTests(unittest.TestCase):
         finally:
             ox.live_pricing_is_free = original
 
+    def test_ox_cost_evidence_must_prove_zero_after_the_run(self) -> None:
+        """Каталог доказывает цену до старта, сессия — после. Между ними часы."""
+        import _runtime_evidence as evidence
+
+        live_shape = {
+            "estimated_cost_usd": 0.0,
+            "actual_cost_usd": None,
+            "cost_status": "unknown",
+        }
+        self.assertTrue(evidence.ox_cost_verdict(live_shape)[0])
+
+        for rejected in (
+            {"estimated_cost_usd": 0.001, "actual_cost_usd": None},
+            {"estimated_cost_usd": 0.0, "actual_cost_usd": 0.02},
+            {"estimated_cost_usd": None, "actual_cost_usd": None},
+            {"estimated_cost_usd": "0", "actual_cost_usd": None},
+        ):
+            with self.subTest(usage=rejected):
+                verdict, reason = evidence.ox_cost_verdict(rejected)
+                self.assertFalse(verdict)
+                self.assertTrue(reason)
+
     def test_ox_route_evidence_rejects_mixed_or_shadow_endpoint(self) -> None:
         exact = (
             "stealth/ox-alpha",

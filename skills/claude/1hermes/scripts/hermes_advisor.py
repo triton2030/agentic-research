@@ -274,6 +274,13 @@ def _run(
                         "per-call usage did not prove the exact requested route"
                     )
 
+        cost_mismatch = False
+        if ox_requested:
+            cost_ok, cost_reason = evidence.ox_cost_verdict(usage)
+            if not cost_ok:
+                cost_mismatch = True
+                warnings.append("Ox Alpha cost evidence rejected: " + cost_reason)
+
         response_mismatch = (
             args.expect_exact is not None and response != args.expect_exact
         )
@@ -285,6 +292,7 @@ def _run(
             and not missing_runtime
             and not runtime_mismatch
             and not route_mismatch
+            and not cost_mismatch
             and not response_mismatch
         )
         worktree_evidence = worktree

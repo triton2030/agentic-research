@@ -132,6 +132,31 @@ def resume_runtime(record: dict[str, Any]) -> tuple[str, str, str] | None:
     return model.strip(), provider.strip(), effort.strip()
 
 
+def ox_cost_verdict(usage: dict[str, Any]) -> tuple[bool, str]:
+    """Доказать нулевую стоимость Ox-прогона по записи сессии.
+
+    Гейт цены до запуска доказывает каталог, а не прогон: между проверкой и
+    последним вызовом проходят часы. Здесь проверяется уже потраченное.
+
+    Живой Ox пишет estimated_cost_usd=0.0, actual_cost_usd=None,
+    cost_status="unknown" — провайдер фактическую стоимость не заполняет.
+    Поэтому требуется числовой ноль там, где число есть, и обязательно
+    присутствует estimated: отсутствие всякой оценки доказательством не является.
+    """
+    estimated = usage.get("estimated_cost_usd")
+    actual = usage.get("actual_cost_usd")
+    for label, value in (("estimated", estimated), ("actual", actual)):
+        if value is None:
+            continue
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            return False, f"{label} cost is not numeric: {value!r}"
+        if value != 0:
+            return False, f"{label} cost is not zero: {value}"
+    if estimated is None:
+        return False, "session carries no estimated cost to prove the free route"
+    return True, "session cost evidence is zero"
+
+
 def session_usage_snapshot(
     session_id: str,
 ) -> tuple[dict[UsageKey, int] | None, str | None]:

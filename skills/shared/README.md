@@ -45,6 +45,12 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
 sync. Поведение остаётся у tracked или live `SKILL.md`; при расхождении product
 intent и runtime нужен явный reconcile, а не копия пары в оба runtime.
 
+Runtime `1hermes` с 2026-08-22 tracked: `skills/claude/1hermes/` и
+`skills/codex/1hermes/` — owner-ы своих семей, установленные пути стали
+симлинками. Общего portable-ядра у них нет и не планируется: копии расходятся
+намеренно (`--isolated` только у Claude, `agents/openai.yaml` только у Codex),
+поэтому правку кода вноси в обе руками, а не через sync.
+
 ## Синхронизация
 
 После правки source owner-а передай имена изменённых пакетов позиционными
