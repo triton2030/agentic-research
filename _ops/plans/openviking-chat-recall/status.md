@@ -13,11 +13,11 @@ kind: status
 
 ## Next
 
-Дождаться terminal packet активной visible `gpt-5.6-luna/max` без worktree
-(`01a02899-63da-7ef2-99f1-b1f0e6559a6a`). Затем root проверяет точный SHA
-кандидата и materializer `--check-only`, а свежий read-only auditor сверяет все
-32 records с десятью полными holders. Любой semantic FAIL отклоняет весь
-кандидат; только полный PASS разрешает materialization, receipt и commit.
+Root независимо проверяет terminal candidate SHA
+`5b6d2a0e12df4f4a55273640b6f33621100cd8e718b67db7d3c84da2459f7701`,
+frozen provenance и materializer `--check-only`. Затем свежий read-only auditor
+сверяет все 32 records с десятью полными holders. Любой semantic FAIL отклоняет
+весь кандидат; только полный PASS разрешает materialization, receipt и commit.
 
 ## Свидетельства и статус
 
@@ -60,9 +60,13 @@ kind: status
 - Prompt v2 и strict gates находятся в pushed commit
   `fc287ecf22834593c1a82b4b2a4445273e6ac377`; Opus cold-start после исправления
   manifest и literal alignment вернул `READY_FOR_FRESH_ATTEMPT`.
-- Чистая Luna v2 сейчас активна и пишет только
-  `artifacts/chronological-v1/batch-001/changeset.json`; candidate существует,
-  но terminal packet, root check и независимый semantic audit ещё не получены.
+- Чистая Luna v2 завершила candidate
+  `artifacts/chronological-v1/batch-001/changeset.json`, SHA-256
+  `5b6d2a0e12df4f4a55273640b6f33621100cd8e718b67db7d3c84da2459f7701`;
+  её builder и materializer `--check-only` дали PASS и after-tree
+  `5439df57ebf0cbfbe22b87610bb5ef57c06ba481405ebdf8f0953a2016ec4381`.
+  Это self-report исполнителя: root check и независимый semantic audit ещё не
+  получены, receipt и Wiki не созданы.
 - Targeted current/legacy suite 21/21 PASS; полный experiment suite 87/87 PASS.
 - До первого update в batch-002 validator обязан отклонять changed knowledge,
   которое выросло только в provenance/description, но не появилось в body.
