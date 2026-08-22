@@ -58,3 +58,25 @@ Support envelope: Claude Fable 5 (оркестратор) + Claude fresh windows
 сняты). Не проверено: routing голой фразой; comparator-прогон «создай план»
 старый-vs-новый — первым живым использованием станет создание карты эпиков
 MAVO; до него поведенческие claims считаются кандидатными.
+
+## 2026-08-22 — terminal repair и внешний runtime
+
+- Historical comparator: task `01a0236d-cbaf-72e1-95dd-0832b58fd23b` под
+  прежним контрактом повторял waits без module return и называл внешний Codex
+  task active из plan-status, хотя live platform этого не подтверждала.
+- Codex clean-window falsifiers по installed projection:
+  1) источник не разрешает handle → lifecycle только `unknown`, отправка и
+  restart не разрешены; 2) два repairs не закрыли модуль → blocker в
+  `status.md`, owner-only продолжение → `questions.md`; технический blocker
+  без owner-choice вопроса не создаёт.
+- Claude clean-window falsifiers: `claude-opus-5`, `xhigh`, blocking
+  `claude_ask`, local read-only tools, `warnings=[]`; installed Claude
+  projection дала те же решения в обоих runtime- и handoff-сценариях.
+- Два независимых architecture-аудита нашли и закрыли потерю старого handoff
+  «стоп, блокер владельцу»; corrected suffix принят обоими без структурных
+  находок.
+- Distribution: `sync_simple_projections.py 1planning --check` подтвердил
+  shared owner, tracked Codex/Claude и обе installed projections.
+- Residual: после технического blocker без owner-choice delegation не называет
+  исполнителя следующей диагностики; `contract.md` всё же требует один `Next`.
+  Это не входит в доказанный claim и не выдано за закрытое.

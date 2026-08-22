@@ -91,3 +91,24 @@
   `qv-skill` и локальный `md check` прошли.
 - Fresh dry-run остановлен без возврата; forced-crash behavior не
   доказан.
+
+## v4.3 (2026-08-22, no-delta terminal)
+
+- Comparator: task `01a0236d-cbaf-72e1-95dd-0832b58fd23b` под прежним
+  контрактом повторял bounded waits после отсутствующих terminal packets и
+  принимал writer progress-report без owner-файлов. Это исторический живой
+  baseline, не matched A/B.
+- Codex clean-window falsifier прочитал installed projection и на первом
+  no-delta wait выбрал один read-only probe → `UNKNOWN`/blocker → стоп только
+  зависимой ветки без нового окна. Точная модель subagent packet-ом не
+  экспонирована; harness — Codex collaboration, локальные read-only tools.
+- Claude clean-window falsifier: `claude-opus-5`, `xhigh`, blocking
+  `claude_ask`, local read-only tools, `warnings=[]`; installed Claude
+  projection дал ту же последовательность и отказался немедленно создавать
+  новое окно.
+- Locator-pass: и Codex, и Claude разрешили `1instruction-shaping` → его
+  `references/wording.md` в единственный installed файл своей семьи.
+- Distribution: `sync_simple_projections.py 1orchestration --check` подтвердил
+  shared owner, tracked Codex/Claude и обе installed projections.
+- Не проверено: forced live interruption реальной волны; claim ограничен
+  clean-window decision, locator и distribution.

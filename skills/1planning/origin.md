@@ -35,3 +35,19 @@
 на более мелкие файлы (пример монолита — launch-план 246 строк). Аудит: две
 линзы (лишнее / потерянное-выдуманное) + панель ladder·solvent·prospector·
 premortem; их decision-changing находки внесены до «да».
+
+## 2026-08-22 — live runtime и terminal repair
+
+Источник и одобрение полного global-текста:
+`_ops/chat-recall/2026-08-22-124048-codex-01a02869.md`; scope владельца —
+shared owner с проекциями Codex и Claude.
+
+- После первого bounded wait module return доказывает только probe названного
+  return/artifact/diff; commentary delta не является.
+- Нет delta → `UNKNOWN`/blocker в `status.md`, без нового окна; два repairs —
+  абсолютный предел.
+- Оба repairs не закрыли модуль → итоговый blocker в `status.md`; owner-only
+  продолжение передаётся существующему owner-у `questions.md`.
+- Внешний runtime в `status.md` — датированный snapshot, не live lifecycle;
+  любое зависимое действие требует нового разрешения handle через platform
+  owner/tool.
