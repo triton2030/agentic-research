@@ -1,0 +1,482 @@
+{
+  "topics": [
+    {
+      "id": "fresh-eyes",
+      "title": "Независимые критические линзы и проверка траектории работы",
+      "why": "Файлы описывают 1fresh-eyes, goal/trajectory-lens, premortem и глубокие когнитивные линзы; тема отличается от экспертной консультации по предмету и от механики оркестрации агентов.",
+      "files": [
+        "2026-04-28-111714-claude-74356077.md",
+        "2026-08-05-150700-codex-019fd162.md",
+        "2026-08-05-153153-claude-1087a584.md",
+        "2026-08-10-185852-claude-c78f2a64.md",
+        "2026-08-10-200839-codex-019fec35.md",
+        "2026-08-10-221517-codex-019fecab.md",
+        "2026-08-11-194544-claude-5586052b.md",
+        "2026-08-11-202216-claude-6d853588.md",
+        "2026-08-11-234650-codex-019ff225.md",
+        "2026-08-19-143845-codex-01a01961.md"
+      ]
+    },
+    {
+      "id": "chat-recall-corpus",
+      "title": "Фиксация, формат и жизненный цикл корпуса 1chat-recall",
+      "why": "Здесь решения о capture, единице session-файла, датах, типах, provenance, context-note, repair и межruntime-паритете; поиск и применение уже записанного вынесены в отдельную retrieval-тему.",
+      "files": [
+        "2026-07-22-105500-claude-d8a832a4.md",
+        "2026-07-22-111300-claude-37219ddd.md",
+        "2026-07-22-121239-codex-019f889f.md",
+        "2026-07-25-124728-codex-019f983d.md",
+        "2026-07-26-163521-claude-bddf1411.md",
+        "2026-07-26-174326-codex-019f9e61.md",
+        "2026-07-26-190811-codex-019f9ec1.md",
+        "2026-07-29-201707-codex-019fae73.md",
+        "2026-07-31-005511-codex-019fb495.md",
+        "2026-08-01-164842-claude-d2c4b3e7.md",
+        "2026-08-04-131749-codex-019fcbc4.md",
+        "2026-08-04-210528-codex-019fcd67.md",
+        "2026-08-05-151631-codex-019fd16c.md",
+        "2026-08-09-132538-codex-019fe572.md",
+        "2026-08-10-174714-claude-3592f17b.md",
+        "2026-08-12-000000-claude-2649459a.md",
+        "2026-08-12-110523-codex-019ff491.md",
+        "2026-08-12-210411-claude-ec925182.md",
+        "2026-08-21-150905-codex-01a023c2.md",
+        "README.md"
+      ]
+    },
+    {
+      "id": "global-agent-instructions",
+      "title": "Форма и содержание глобальных инструкций Claude и Codex",
+      "why": "Файлы отвечают, как должны быть устроены, сжаты, сформулированы и синхронизированы корневые AGENTS.md/CLAUDE.md; это не общая методика написания произвольных skills и prompts.",
+      "files": [
+        "2026-07-23-114721-claude-67208f21.md",
+        "2026-07-27-175105-codex-019fa38f.md",
+        "2026-07-29-000000-claude-068dc13d.md",
+        "2026-07-29-000000-claude-a9f0f34a.md",
+        "2026-07-29-201927-codex-019fadc9.md",
+        "2026-08-06-141534-claude-481c094d.md",
+        "2026-08-08-135137-claude-457be55d.md",
+        "2026-08-09-192537-codex-019fe6e9.md",
+        "2026-08-10-151230-codex-019feb11.md",
+        "2026-08-11-181825-codex-019ff0f9.md",
+        "2026-08-12-112247-claude-8704f2a4.md",
+        "2026-08-12-203725-claude-af1633f9.md",
+        "2026-08-18-132634-codex-01a013f9.md",
+        "2026-08-18-135026-claude-a42b965e.md",
+        "2026-08-20-222728-claude-6a83ff1b.md",
+        "2026-08-20-222832-codex-01a02036.md"
+      ]
+    },
+    {
+      "id": "codex-fleet",
+      "title": "Codex как управляемый флот исполнителей и советников",
+      "why": "Файлы про роли моделей, Codex bridge, команды turn/steer, stop и управление флотом через 1codex; lifecycle отдельных видимых background threads выделен отдельно.",
+      "files": [
+        "2026-07-25-134829-claude-d96a2888.md",
+        "2026-07-27-211730-claude-8e802437.md",
+        "2026-07-29-172153-claude-82e3e055.md",
+        "2026-08-14-122215-claude-2e4e5183.md",
+        "2026-08-16-060539-claude-0da6ba3c.md",
+        "2026-08-18-143416-claude-9d58ffa2.md",
+        "2026-08-18-143951-claude-524d8920.md"
+      ]
+    },
+    {
+      "id": "markdown-knowledge",
+      "title": "Поиск, чтение и навигация по Markdown-знаниям",
+      "why": "Тема объединяет 1md-search, 1md-read, 1md-graph и 1index как одну reader-задачу — найти адрес, прочитать нужное и понять связи; она не включает owner-память 1chat-recall.",
+      "files": [
+        "2026-07-26-163413-claude-2be60fdc.md",
+        "2026-07-30-125453-codex-019fb200.md",
+        "2026-08-01-145225-claude-444200aa.md",
+        "2026-08-04-165447-codex-019fcc94.md",
+        "2026-08-05-205838-codex-019fd2a5.md",
+        "2026-08-09-153733-codex-019fe619.md"
+      ]
+    },
+    {
+      "id": "playwright",
+      "title": "Playwright-скилл для браузерной проверки",
+      "why": "Единственный файл относится именно к переносимому Playwright-инструменту в Claude и Codex; проверки конкретных HTML-артефактов остаются в теме 1html.",
+      "files": [
+        "2026-07-26-180518-claude-fa590eea.md"
+      ]
+    },
+    {
+      "id": "project-structure",
+      "title": "Структура проекта, служебных зон и корневой навигации",
+      "why": "Файлы определяют одинаковую _ops-топологию и жанр корневых инструкций с границами проекта и INDEX; это карта homes, а не содержание конкретного skill.",
+      "files": [
+        "2026-07-28-230352-codex-019fa9d9.md",
+        "2026-08-22-140751-claude-acfa042e.md"
+      ]
+    },
+    {
+      "id": "html-artifacts",
+      "title": "Создание и проверка быстрых HTML-артефактов",
+      "why": "Файлы про 1html, HTML_artifacts, DaisyUI, responsive-сборку и геометрические/Playwright-проверки результата; визуальное экспертное ревью чужого UI относится к другой теме.",
+      "files": [
+        "2026-07-29-201852-codex-019fada0.md",
+        "2026-08-01-122602-claude-5db612ad.md",
+        "2026-08-19-212344-codex-01a01ad4.md",
+        "2026-08-20-171854-codex-01a01f1a.md",
+        "2026-08-20-172413-claude-b259d766.md",
+        "2026-08-20-212455-claude-0407e6d0.md",
+        "2026-08-20-224022-claude-1bc0a881.md",
+        "2026-08-21-010201-codex-01a020be.md"
+      ]
+    },
+    {
+      "id": "expert-lens",
+      "title": "Получение практического взгляда предметного эксперта",
+      "why": "Эти файлы формируют 1expert-lens как способ поднять профессиональную планку решения; в отличие от fresh-eyes, предмет здесь — доменная экспертиза, а не траектория и завершённость работы.",
+      "files": [
+        "2026-07-30-131107-codex-019fb213.md",
+        "2026-08-04-215717-codex-019fcdb4.md"
+      ]
+    },
+    {
+      "id": "chat-recall-retrieval",
+      "title": "Поиск и применение записанных слов владельца",
+      "why": "Файлы про storage/retrieval trade-offs, lexical и dense search, chat_digest, full-holder reading, chronology, ranking и subagent coverage; capture и ремонт самих записей находятся в теме корпуса.",
+      "files": [
+        "2026-07-30-131247-codex-019fb215.md",
+        "2026-08-01-172241-codex-019fbd46.md",
+        "2026-08-03-232246-codex-019fc8d8.md",
+        "2026-08-08-195321-codex-019fe1dd.md",
+        "2026-08-11-163847-codex-019ff09d.md",
+        "2026-08-12-170654-claude-4bc752e5.md",
+        "2026-08-13-120315-claude-8e9d58e3.md",
+        "2026-08-14-124028-codex-019fff2e.md",
+        "2026-08-18-133335-claude-d89e3d9a.md",
+        "2026-08-19-135233-codex-01a01922.md",
+        "2026-08-19-221010-claude-3a023b71.md",
+        "2026-08-20-041346-claude-12da2cc9.md",
+        "2026-08-20-181330-claude-a7539038.md",
+        "2026-08-20-235300-codex-01a02084.md"
+      ]
+    },
+    {
+      "id": "context-efficiency",
+      "title": "Экономия контекстного окна при чтении инструментального вывода",
+      "why": "Файлы решают, как показывать terminal/Markdown output и номера строк без лишней цены контекста; это runtime-эргономика чтения, а не архитектура базы знаний.",
+      "files": [
+        "2026-07-31-200328-codex-019fb8b3.md",
+        "2026-08-01-122733-claude-188605a7.md"
+      ]
+    },
+    {
+      "id": "handoff",
+      "title": "Закрытие сессии и передача продолжения следующему агенту",
+      "why": "Все файлы о continuation-sufficient handoff, дельте, историческом следе, consumer proof и моменте вызова; планирование будущей работы и orchestration выделены отдельно.",
+      "files": [
+        "2026-08-02-160951-codex-019fc22a.md",
+        "2026-08-04-161820-codex-019fcc74.md",
+        "2026-08-09-203500-claude-39f062f3.md",
+        "2026-08-09-205000-claude-e43a3456.md",
+        "2026-08-18-172151-claude-21ca4023.md"
+      ]
+    },
+    {
+      "id": "notion-integration",
+      "title": "Интеграция агента с Notion Developer Platform",
+      "why": "Одиночная тема про Notion API/CLI и 1my-notion не имеет содержательного соседа среди других инструментов корпуса.",
+      "files": [
+        "2026-08-02-172116-codex-019fc250.md"
+      ]
+    },
+    {
+      "id": "skill-instruction-authoring",
+      "title": "Проектирование и рефакторинг skills, prompts и агентных инструкций",
+      "why": "Файлы задают общие контракты 1skill-shaping/1instruction-shaping, когнитивные шаги, references, ownership и validation; конкретные operating skills и короткие trigger descriptions вынесены в свои темы.",
+      "files": [
+        "2026-08-02-172343-codex-019fc26d.md",
+        "2026-08-04-161131-codex-019fcc75.md",
+        "2026-08-05-205001-codex-019fd29d.md",
+        "2026-08-07-132700-claude-ab88e176.md",
+        "2026-08-08-134900-codex-019fe08d.md",
+        "2026-08-08-135005-claude-dfa9fb5c.md",
+        "2026-08-09-121135-codex-019fe38d.md",
+        "2026-08-09-122011-claude-08445ad4.md",
+        "2026-08-09-202532-codex-019fe71b.md",
+        "2026-08-10-150726-claude-f93c43cf.md",
+        "2026-08-10-160541-codex-019feb59.md",
+        "2026-08-13-022730-codex-019ff7de.md",
+        "2026-08-14-113414-codex-019ffef8.md",
+        "2026-08-15-134233-codex-01a00494.md",
+        "2026-08-16-063500-Codex-01a00494.md",
+        "2026-08-19-020820-claude-7658d2a8.md",
+        "2026-08-20-222653-claude-93d2bd06.md",
+        "2026-08-20-224519-codex-01a02038.md"
+      ]
+    },
+    {
+      "id": "domain-modeling",
+      "title": "Выделение доменных понятий, правил и границ компонентов",
+      "why": "Файлы относятся к 1domain-modeling и моделированию domain concepts; это кодово-предметная работа, а не общая архитектура документов или инструкций.",
+      "files": [
+        "2026-08-03-015356-codex-019fc43f.md",
+        "2026-08-04-215610-codex-019fcdb3.md"
+      ]
+    },
+    {
+      "id": "interview-tool",
+      "title": "Структурированные интервью и Markdown-формы для решений владельца",
+      "why": "Файлы описывают 1interview-tool, grilling, SPEC и разметку вопросов; product shaping решает, какие продуктовые вопросы важны, а здесь — форма их асинхронного сбора.",
+      "files": [
+        "2026-08-03-113253-codex-019fc652.md",
+        "2026-08-13-020747-claude-6193917d.md",
+        "2026-08-13-024648-codex-019ff7b0.md"
+      ]
+    },
+    {
+      "id": "product-shaping",
+      "title": "Формирование продукта через Product Frame и Product Principles",
+      "why": "Файлы про 1product-shaping, пары рамки и принципов, их evidence, topology и pre-reasoning; цели, планы и применение принципов как следующий слой выделены отдельно.",
+      "files": [
+        "2026-08-04-120529-codex-019fcb8f.md",
+        "2026-08-04-124042-claude-3f4b2db2.md",
+        "2026-08-04-231700-codex-019fcdfd.md",
+        "2026-08-05-000000-codex-019fd2d3.md",
+        "2026-08-05-144851-codex-019fd153.md",
+        "2026-08-09-124507-codex-019fe57b.md"
+      ]
+    },
+    {
+      "id": "codex-background-threads",
+      "title": "Жизненный цикл видимых фоновых Codex-тредов",
+      "why": "Файлы про 1codex-bg-threads: запуск, retention, архивирование, freshness, model routing, worktrees и управление очередью; общая стратегия флота и wave orchestration не смешиваются с этой thread-механикой.",
+      "files": [
+        "2026-08-04-121600-codex-019fcb91.md",
+        "2026-08-09-154508-codex-019fe619.md",
+        "2026-08-10-195720-codex-019fec2d.md",
+        "2026-08-11-002528-claude-5fcdde37.md",
+        "2026-08-11-164716-codex-019ff0a5.md",
+        "2026-08-12-183615-codex-019ff629.md",
+        "2026-08-13-154222-codex-019ffab3.md",
+        "2026-08-14-201110-codex-019fff9f.md",
+        "2026-08-22-055820-codex-01a026f8.md"
+      ]
+    },
+    {
+      "id": "skill-routing",
+      "title": "Имена, descriptions и автоматическая активация skills",
+      "why": "Файлы про отображаемые имена, trigger descriptions, implicit invocation и состав стартового контекста; они отвечают, когда skill попадает в работу, а не как писать его основное тело.",
+      "files": [
+        "2026-08-04-125501-codex-019fcbc0.md",
+        "2026-08-11-190024-codex-019ff11f.md",
+        "2026-08-21-145843-codex-01a023c1.md",
+        "2026-08-22-140815-claude-b61006df.md",
+        "2026-08-22-144408-codex-01a028da.md",
+        "2026-08-22-151321-codex-01a028e5.md"
+      ]
+    },
+    {
+      "id": "llm-science",
+      "title": "Научное исследование поведения и управления LLM",
+      "why": "Файлы задают отдельную science-ветку agentic-research и оценку научной работы на пользу skills и knowledge; это исследовательский evidence-слой, не практический authoring конкретного skill.",
+      "files": [
+        "2026-08-04-140649-claude-d8fcf6fd.md",
+        "2026-08-19-034014-codex-01a01707.md"
+      ]
+    },
+    {
+      "id": "goals-plans-principles",
+      "title": "Связка проектной цели, планов и принципов принятия решений",
+      "why": "Файлы описывают 1goal, 1planning и 1use-principles как последовательность от цели через рамки к шагам и разрешению развилок; product discovery и форма Product Frame находятся рядом, но отдельно.",
+      "files": [
+        "2026-08-04-162452-codex-019fcbb1.md",
+        "2026-08-08-190948-claude-60e39467.md",
+        "2026-08-11-050000-claude-97cc05a9.md",
+        "2026-08-12-163448-claude-1d2d9841.md",
+        "2026-08-12-201454-codex-019ff688.md"
+      ]
+    },
+    {
+      "id": "findings",
+      "title": "Фиксация побочных находок без остановки основной работы",
+      "why": "Файлы целиком про 1findings, его friction-сигнал, route-строки и паритет runtime; handoff и planning обслуживают другие моменты жизненного цикла работы.",
+      "files": [
+        "2026-08-04-165425-codex-019fcc93.md",
+        "2026-08-09-165734-codex-019fe662.md",
+        "2026-08-09-171636-Codex-019fe662.md"
+      ]
+    },
+    {
+      "id": "hermes",
+      "title": "Hermes, Kimi и Ox Alpha как внешние модели и советники",
+      "why": "Файлы относятся к 1hermes/Hermes Agent, выбору Kimi или Ox Alpha, правам, cold-start и делегированию; Claude и Gemini имеют самостоятельные integration-контракты.",
+      "files": [
+        "2026-08-04-234007-codex-019fce09.md",
+        "2026-08-06-113200-claude-712763b3.md",
+        "2026-08-22-063718-codex-01a0271b.md",
+        "2026-08-22-135200-claude-52700d6b.md"
+      ]
+    },
+    {
+      "id": "document-system",
+      "title": "Владение документами, информационная архитектура и progressive disclosure",
+      "why": "Файлы про 1document-system/1ia-audit, когнитивные seams, genre и размещение деталей в references; это топология документной правды, а не лингвистический рефактор инструкций.",
+      "files": [
+        "2026-08-05-204527-codex-019fd299.md",
+        "2026-08-09-175000-claude-337dc5a6.md"
+      ]
+    },
+    {
+      "id": "semantic-compression",
+      "title": "Смысловое сжатие и lossy product refactor документов",
+      "why": "Файлы развивают 1distill/1smart-simple, семантическое ядро, уровни расширения и переход от процедур к целям; это отдельный предмет от общего instruction authoring.",
+      "files": [
+        "2026-08-06-182756-claude-99ed258a.md",
+        "2026-08-06-215508-claude-224b8c51.md",
+        "2026-08-06-235654-claude-36fcbf96.md",
+        "2026-08-07-121413-claude-833c44a4.md",
+        "2026-08-10-184723-codex-019febdf.md",
+        "2026-08-11-000000-claude-1ae24acb.md",
+        "2026-08-11-000000-claude-e2169162.md"
+      ]
+    },
+    {
+      "id": "owner-intent",
+      "title": "Понимание скрытого намерения владельца за буквальной просьбой",
+      "why": "Оба файла формулируют чтение намёков, ситуации и indirect prompts как отдельную обязанность агента; это не retrieval прошлых цитат и не product discovery.",
+      "files": [
+        "2026-08-09-030700-codex-019fe36a.md",
+        "2026-08-14-201233-codex-01a000d3.md"
+      ]
+    },
+    {
+      "id": "mental-model-checks",
+      "title": "Проверка допущений и ремонт ментальной модели по неожиданностям",
+      "why": "Файлы связывает работа с неявными assumptions и сигналом ⚡ UNEXPECTED через 1assumption-audit/1model-check; это причинная самопроверка, а не внешний critic review.",
+      "files": [
+        "2026-08-09-133113-codex-019fe574.md",
+        "2026-08-22-060958-codex-01a02701.md",
+        "2026-08-22-124048-codex-01a02869.md"
+      ]
+    },
+    {
+      "id": "agent-autonomy",
+      "title": "Автономность агента, доказательность и восстановимые границы действий",
+      "why": "Файлы задают verified-only writing, право спорить и принимать решения, опору на evidence/Git и Autonomous Progress; тема про поведение агента, а не редактуру текста корневых инструкций.",
+      "files": [
+        "2026-08-09-150249-codex-019fe5f7.md",
+        "2026-08-11-183344-claude-6bb7881b.md",
+        "2026-08-21-145624-codex-01a023be.md"
+      ]
+    },
+    {
+      "id": "cli-tools",
+      "title": "Маршрутизация к установленным CLI по версии и ситуации",
+      "why": "Файлы относятся именно к 1cli-tools, его activation surface и reference-форме; Markdown-инструменты и внешние model bridges имеют собственные темы.",
+      "files": [
+        "2026-08-09-165811-codex-019fe662.md",
+        "2026-08-19-160259-codex-01a019a8.md"
+      ]
+    },
+    {
+      "id": "orchestration-waves",
+      "title": "Оркестрация многозадачных волн и durable manifest",
+      "why": "Файлы про 1orchestration, wave-folder, root sources, закрытие волны и CTO-траекторию; фоновые треды и управление Codex-флотом здесь только исполнители, не предмет.",
+      "files": [
+        "2026-08-10-000000-claude-a0af5c40.md",
+        "2026-08-10-134812-codex-019feadb.md",
+        "2026-08-11-003000-claude-b378aa7e.md"
+      ]
+    },
+    {
+      "id": "mantine",
+      "title": "Разработка и обновление интерфейсов на Mantine",
+      "why": "Файлы специфичны для 1mantine-dev, источников Mantine, независимой проверки и синхронизации runtime; это implementation-тема, не общий дизайн-аудит.",
+      "files": [
+        "2026-08-11-000000-claude-e8af9475.md",
+        "2026-08-13-175350-codex-019ffb29.md"
+      ]
+    },
+    {
+      "id": "readable-code",
+      "title": "Проектирование читаемого кода и устойчивых программных границ",
+      "why": "Одиночный файл про 1readable-code, Brooks и deep modules не имеет второго файла с тем же предметом; instruction authoring затрагивается лишь как исследовательский источник.",
+      "files": [
+        "2026-08-11-050000-claude-ad4c0fa8.md"
+      ]
+    },
+    {
+      "id": "claude-bridge",
+      "title": "Claude/Opus/Fable bridge и 1claude-mcp",
+      "why": "Файлы описывают границы Fable, Claude Agent/MCP SDK, claude_sessions и advisor route; это конкретная provider-интеграция, не общий Codex-флот или Hermes.",
+      "files": [
+        "2026-08-12-104416-codex-019ff47f.md",
+        "2026-08-14-120225-codex-019ffae9.md",
+        "2026-08-14-135604-Codex-019ffae9.md"
+      ]
+    },
+    {
+      "id": "ui-design-review",
+      "title": "Аудит визуального UI и порядка чтения страницы",
+      "why": "Файлы покрывают screenshot-based 1design-review и code-only 1ui-reading-audit как два режима одной reader-задачи оценки UI; генерация HTML и изображений выделена отдельно.",
+      "files": [
+        "2026-08-13-031328-codex-019ff806.md",
+        "2026-08-13-153240-codex-019ffa9f.md",
+        "2026-08-13-165151-codex-019ffaf5.md"
+      ]
+    },
+    {
+      "id": "recraft-images",
+      "title": "Генерация изображений через Recraft и хранение дизайн-артефактов",
+      "why": "Файлы относятся к recraft-images/Recraft MCP, путям хранения и безопасному OAuth-запуску; визуальный review оценивает уже существующий UI и потому отделён.",
+      "files": [
+        "2026-08-13-165535-codex-019ffaf7.md",
+        "2026-08-22-051636-codex-01a026d2.md"
+      ]
+    },
+    {
+      "id": "business-growth",
+      "title": "Долгосрочный анализ бизнес-ценности и реакций участников",
+      "why": "Файлы определяют 1business-growth-analysis и business-growth-analyst, их активацию, горизонты прибыли и границы с product shaping/business critic; это бизнес-прогноз, не общая продуктовая рамка.",
+      "files": [
+        "2026-08-14-110034-codex-019ffed8.md",
+        "2026-08-14-211521-claude-bed3795b.md",
+        "2026-08-19-142942-codex-01a01956.md"
+      ]
+    },
+    {
+      "id": "graphiti-memory",
+      "title": "Эксперимент Graphiti для преобразования цитат в память",
+      "why": "Файлы про архитектуру Graphiti-backfill и сравнение его retrieval с 1chat-recall; OpenViking — следующий самостоятельный эксперимент с другой информационной архитектурой.",
+      "files": [
+        "2026-08-18-151822-codex-01a0145e.md",
+        "2026-08-19-023138-codex-01a016c7.md",
+        "2026-08-19-122330-claude-01a016c7.md"
+      ]
+    },
+    {
+      "id": "gemini",
+      "title": "Gemini/Antigravity skill и обработка audio/video",
+      "why": "Одиночный файл задаёт отдельную Gemini-family интеграцию; объединять её с Claude или Hermes только по признаку внешней модели было бы слишком поверхностно.",
+      "files": [
+        "2026-08-19-154822-codex-01a019a2.md"
+      ]
+    },
+    {
+      "id": "explain-status",
+      "title": "Простое мета-объяснение происходящей работы через 123-explain",
+      "why": "Файлы развивают ручной 123-explain: mental model, status, predictive explanation, product frame и визуальные карточки; это объяснение владельцу, не critic review и не handoff.",
+      "files": [
+        "2026-08-21-005222-claude-8e9b40bf.md",
+        "2026-08-21-151338-codex-01a023cd.md",
+        "2026-08-22-073058-claude-cefd6997.md"
+      ]
+    },
+    {
+      "id": "openviking-wiki",
+      "title": "Эксперимент OpenViking по сборке owner-attributed библиотеки знаний",
+      "why": "Файлы описывают bounded chronological compiler, flatten, тематическое объединение и findability будущей Wiki; это производная knowledge-проекция поверх recall, а не сам capture/retrieval skill.",
+      "files": [
+        "2026-08-21-133152-codex-01a0236d.md",
+        "2026-08-22-140532-claude-efb50744.md"
+      ]
+    }
+  ],
+  "orphans": []
+}
