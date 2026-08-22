@@ -131,7 +131,7 @@
   ],
   "materializer": {
     "path": "experiments/openviking-chat-recall/scripts/materialize_chronological_changeset.py",
-    "sha256": "b3f88c093d059b1bf5463b6afe2996b49dfd923f0798218f9cf416d921e88508"
+    "sha256": "6897832f9b0a6c60803d65787d76ee44b9e3eda613f915046cad6e07b5850a95"
   },
   "ordering": {
     "batch_size": 10,
@@ -288,8 +288,8 @@
     "wiki_tree_sha256_target": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
   },
   "prompt": {
-    "path": "experiments/openviking-chat-recall/prompts/wiki-writer.v2.md",
-    "sha256": "e5c4389374911239551f3157bce2b03e878dcd9981dae48a60831af856c8eeba"
+    "path": "experiments/openviking-chat-recall/prompts/wiki-writer.v3.md",
+    "sha256": "664c4bef03b1e72a093b9ec83e0c844ba7f89f7df4a8296fafb7befde28bf116"
   },
   "record_bindings": [
     {

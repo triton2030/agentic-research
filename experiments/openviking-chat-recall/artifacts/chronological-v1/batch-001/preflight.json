@@ -1,10 +1,10 @@
 {
   "batch_id": "batch-001",
   "manifest_path": "experiments/openviking-chat-recall/artifacts/chronological-v1/batch-001-input.json",
-  "manifest_sha256": "1b7e51536b2b488ad2b8f4e16c4ab3ac47f1b72182e318bd2bcb1171951f32fc",
-  "materializer_sha256": "b3f88c093d059b1bf5463b6afe2996b49dfd923f0798218f9cf416d921e88508",
+  "manifest_sha256": "a162abbdf8fffbc1566d2608f28b3ddf559e9f068bf609e237cfd484082c4274",
+  "materializer_sha256": "6897832f9b0a6c60803d65787d76ee44b9e3eda613f915046cad6e07b5850a95",
   "prior_wiki_tree_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-  "prompt_sha256": "e5c4389374911239551f3157bce2b03e878dcd9981dae48a60831af856c8eeba",
+  "prompt_sha256": "664c4bef03b1e72a093b9ec83e0c844ba7f89f7df4a8296fafb7befde28bf116",
   "schema": "openviking-chat-recall/wiki-writer-preflight.v1",
   "status": "pass"
 }
