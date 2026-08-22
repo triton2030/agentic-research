@@ -1,78 +1,73 @@
-
 В этом репо работай как хранитель `agentic-research`: усиливай глобальную
 инструкцию локальной правдой проекта, не повторяй её.
+
+Здесь мало правил и много ориентировки. Правила — только там, где мой дефолт
+в этом репо приведёт к неверному действию. Всё остальное ниже — сухие адреса.
+Маршруты, оплаченные чужим поиском, — в [`INDEX.md`](INDEX.md).
 
 ## Что Это За Репо
 
 `agentic-research` — мастерская знаний и полигон для обсуждений и экспериментов,
 но **продукт всегда снаружи репо**: глобальные скилы (`~/.claude/skills/1*`,
-`~/.codex/skills/`) и общие паттерны инструкций / промптов / хуков, работающие во
-всех проектах. `knowledge/` и разговоры здесь обслуживают эту цель, не существуют
-ради себя. Следствие на каждый день: правка скила — глобальный артефакт
-(cross-project, veto-class), пиши project-independent. Если package имеет tracked
-owner в `skills/**` или `experiments/**`, сначала правь его, а global install
-считай projection. Если tracked owner отсутствует, live installed package
-остаётся единственной правдой до отдельного решения provenance; не выдумывай
-parity или второй source tree. `experiments/**` — независимые под-проекты со своей
-правдой.
+`~/.codex/skills/`) и общие паттерны инструкций / промптов / хуков, работающие
+во всех проектах. `knowledge/` и разговоры здесь обслуживают эту цель, не
+существуют ради себя.
 
-## Цель
+Цель проекта, границы, done и stop — `_ops/GOAL.md`. Рабочий набор моделей задан
+там же; канон не расширяется до model-neutral, `GPT-5.5` и Claude 4.x остаются
+историческим evidence, не target и не fallback.
 
-Делать систему `skills`, hooks, prompts, инструкций, знаний и рабочих контрактов
-понятнее для будущей ИИ-сессии под рабочий набор моделей, заданный в
-`_ops/GOAL.md`. Канон не расширяется до model-neutral; `GPT-5.5` и более старые
-OpenAI-модели остаются только историческим evidence, не рабочим target или
-fallback.
+## Карта Репо
 
-## Локальная Правда
+| Где | Что лежит | Владелец правды |
+| --- | --- | --- |
+| `_ops/GOAL.md` | контракт проекта: scope / done / stop | `1goal` |
+| `_ops/product-frames/` | project-wide пара frame + principles | `1product-shaping` |
+| `_ops/chat-recall/` | дословные выдержки слов владельца, файл на разговор | `1chat-recall` |
+| `_ops/findings/` | inbox побочных проблем до маршрутизации | `1findings` |
+| `_ops/plans/` | task-файлы активной многосессионной работы | `1planning` |
+| `_ops/handoffs/` | continuation packets закрытых сессий | `1handoff` |
+| `_ops/interviews/`, `_ops/rules/`, `_ops/user-said/`, `_ops/self-learning/` | временные и замороженные поверхности | `_ops/AGENTS.md` |
+| `knowledge/` | wisdom-файлы, guides, practical guides, research, examples | папочные README |
+| `science/` | тезисы об управлении мышлением ЛЛМ + evidence-статусы | `science/README.md` |
+| `skills/shared/` | cross-runtime owners пакетов (`<name>/portable/`) | `skills/shared/README.md` |
+| `skills/claude/`, `skills/codex/` | runtime owners либо tracked projections | `skills/claude/README.md` |
+| `skills/1<name>/` | **архив истории скила**, не сам скил | — |
+| `experiments/` | независимые под-проекты со своей правдой | локальный `AGENTS.md` |
+| `_workspace/` | рабочие артефакты, HTML-зона, оркестрации | `_workspace/*/AGENTS.md` |
 
-Если это меняет маршрут, риск или проверку, стартуй от `_ops/GOAL.md`
-(scope/done/stop) и живых `SKILL.md`. `README.md` — входной контекст. Граф зон —
-`depends-on` в шапках subtree `AGENTS.md` (читает `1md-graph`).
+Детальные контракты папок `_ops` — в `_ops/AGENTS.md`, включая красные линии.
+Граф зон — `depends-on` в шапках subtree `AGENTS.md` (читает `1md-graph`).
+`README.md` — входной контекст для человека.
 
-До первого существенного суждения прочитай целиком project-wide пару
-`_ops/product-frames/agentic-research{,.principles}.md`. При правке скила
-найди ровно одну tracked owner-папку `skills/**/<skill>/` с
-`product-frame*.md` и прочитай весь набор, если он существует; несколько таких
-папок — owner-conflict. Product Frame владеет продуктовым намерением; живой
-`SKILL.md` — runtime-контрактом. Рамки неприменимых скилов не pre-load'ятся.
+## Правила Этого Репо
 
-## Приоритеты
-
-- Skill contract сильнее старых repo notes: расходятся живой `SKILL.md` и
-  инструкция — следуй `SKILL.md`. Расхождение с matching Product Frame —
-  конфликт product intent и runtime, а не повод выбрать один файл по типу.
-- Перед правкой skill / agent / instruction начинай с ближайшего
+- **Правка скила — глобальный артефакт** (cross-project, veto-class): пиши
+  project-independent, без путей и допущений текущего проекта.
+- **Владелец пакета — сначала tracked owner.** Есть папка в `skills/shared/**`
+  или `skills/{claude,codex}/**` — правь её, а `~/.claude/skills/` и
+  `~/.codex/skills/` считай projection. Нет tracked owner — live installed
+  package остаётся единственной правдой; parity и второй source tree не
+  выдумывай. Реестр владельцев — `skills/shared/README.md`.
+- **`skills/1<name>/` — история, не скил.** Внутри `origin.md`, `cut.md`,
+  `evidence.md`, снапшоты `live-*` и `tracked-*`, иногда `product-frame*.md`
+  снятого скила. Никогда не правь их как живой контракт и не принимай их
+  `product-frame*.md` за действующий.
+- **Живой `SKILL.md` сильнее старых repo notes.** Расходятся — следуй
+  `SKILL.md`. Расхождение с matching Product Frame — конфликт product intent и
+  runtime: предъяви оба адреса, не выбирай молча.
+- **До первого существенного суждения** прочитай целиком
+  `_ops/product-frames/agentic-research{,.principles}.md`. При правке скила —
+  плюс `product-frame*.md` из его tracked owner-папки, если она есть; рамки
+  неприменимых скилов не pre-load'ятся.
+- **Перед правкой skill / agent / instruction** начинай с ближайшего
   `knowledge/wisdom-*` и одного guide; для skills сперва
   `knowledge/practical-guides/how-to-write-skills/`.
-- До принятия любого нового или переписанного skill **обязательно** вызови
-  `1skill-shaping` и проведи его когнитивный audit черновика. **Наблюдаемый gate
-  обязателен всегда:** правило без предъявляемого следа соблюдается в единицах
-  процентов независимо от формулировки. Недостающий мыслительный operator
-  требуй, когда шаг не выводится из контракта выхода, — и требуй **операцию**
-  («процитируй строку», «назови источник»), а не совет о мышлении («рассмотри
-  несколько подходов»): первое меняет решение, второе множит токены при нулевом
-  приросте. Голая последовательность шагов и checklist compliance не доказывают
-  ни того, ни другого. Процедурой и evidence владеет живой `1skill-shaping`;
-  он же запрещает писать skill без разговора с владельцем и его «да».
-
-## `experiments/`
-
-Полигон самостоятельных под-проектов (`claude-bridge`, `gemini-mcp`,
-`md-tools`, `flowpage-v4-elk`, `strategy-gallery`,
-`global-agent-surface-viewer` и др.). Каждый существенный под-проект держит свою
-правду в локальном `README.md` / `AGENTS.md`; правь субтри от его инструкции, не
-от корневой. Эти папки — НЕ polygon scope `_ops/GOAL.md` (тот про knowledge и
-skill design, не про runtime под-проектов). Связи и зависимости — в локальных
-`AGENTS.md` сабтри.
-
-## GitHub
-
-GitHub здесь — backup-диск локального `main`, не branch/PR flow. Коммить и пушь
-свободно прямо в `main`, без веток, без спроса и без подтверждений. Это
-solo-проект; не блокируйся на git.
-
-## Проверка
-
-Перед финалом покажи только существенное evidence: что изменено, чем проверено,
-какие риски остались. Пиши по-русски, коротко, без справочного шума.
+- **Новый или переписанный скил — только через `1skill-shaping`**, и он же
+  запрещает писать скил без разговора с владельцем и его «да».
+- **`experiments/**` правь от локальной инструкции**, не от корневой. Эти папки
+  не входят в polygon scope `_ops/GOAL.md`.
+- **GitHub здесь — backup-диск локального `main`**, не branch/PR flow. Коммить
+  и пушь свободно прямо в `main`, без веток, без спроса. Не блокируйся на git.
+- **Перед финалом** покажи только существенное evidence: что изменено, чем
+  проверено, какие риски остались. По-русски, коротко, без справочного шума.

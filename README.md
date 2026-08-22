@@ -11,31 +11,34 @@ baseline.
 
 ## Как Читать
 
-1. `AGENTS.md` — центральная инструкция для обоих агентов: роль, цель,
-   приоритеты, owner-маршрут, условные правила и красные линии. Codex читает
-   напрямую, Claude — через `@AGENTS.md`.
-2. `CLAUDE.md` — shim из одной строки `@AGENTS.md`; отдельной правды не держит.
-3. `_ops/GOAL.md` — рабочий контракт проекта: что делаем, что не делаем, когда
+1. `AGENTS.md` — центральная инструкция для обоих агентов: что за репо, карта
+   репо с владельцами правды и короткий набор правил этого репозитория. Codex
+   читает напрямую, Claude — через `@AGENTS.md`.
+2. [`INDEX.md`](INDEX.md) — маршруты, оплаченные прошлым поиском: где лежит
+   знание, которое холодный агент стал бы искать не там. Владелец — `1index`.
+3. `CLAUDE.md` — shim из одной строки `@AGENTS.md`; отдельной правды не держит.
+4. `_ops/GOAL.md` — рабочий контракт проекта: что делаем, что не делаем, когда
    остановиться и вернуться к стратегии.
-4. `_ops/product-frames/agentic-research{,.principles}.md` — постоянный
+5. `_ops/product-frames/agentic-research{,.principles}.md` — постоянный
    product-controller для любой содержательной работы. При правке скила к нему
-   добавляется весь `product-frame*.md` из единственной matching
-   `skills/**/<skill>/`.
-5. `_ops/chat-recall/` — руда source-bound выдержек слов владельца, файл на
+   добавляется `product-frame*.md` из tracked owner-папки скила
+   (`skills/shared|claude|codex/<skill>/`); `skills/1<skill>/` — архив истории,
+   его Frame не действует.
+6. `_ops/chat-recall/` — руда source-bound выдержек слов владельца, файл на
    разговор; пишет `1chat-recall` в момент, когда прозвучало;
    `_ops/user-said/` — его замороженный предшественник, только для чтения.
-6. `knowledge/` — wisdom, guides, practical guides, examples и research.
+7. `knowledge/` — wisdom, guides, practical guides, examples и research.
    Для написания скилов начинать с
    `knowledge/practical-guides/how-to-write-skills/`.
-7. `science/` — научная программа изучения мышления ЛЛМ: тезисы с
+8. `science/` — научная программа изучения мышления ЛЛМ: тезисы с
    evidence-статусами, верификация и эксперименты; вход —
    [`science/README.md`](science/README.md).
-8. `skills/shared/` — owner cross-runtime packages; `skills/claude/` и
+9. `skills/shared/` — owner cross-runtime packages; `skills/claude/` и
    `skills/codex/` — runtime owners либо их tracked projections согласно
    [`skills/shared/README.md`](skills/shared/README.md). `~/.claude/skills/` и
    `~/.codex/skills/` — installed projections.
-9. `_ops/findings/`, `_ops/interviews/`, `_ops/plans/` — временные рабочие
-   поверхности; открывать их только когда текущая задача на них указывает.
+10. `_ops/findings/`, `_ops/interviews/`, `_ops/plans/` — временные рабочие
+    поверхности; открывать их только когда текущая задача на них указывает.
 
 ## Подход
 
