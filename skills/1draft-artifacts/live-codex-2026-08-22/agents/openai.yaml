@@ -1,0 +1,10 @@
+interface:
+  display_name: "1-Черновые артефакты"
+  short_description: "Черновой Markdown по прямому вызову"
+  default_prompt: >
+    Используй $1draft-artifacts: выбери режим по моему запросу, создавай или
+    переиспользуй неканонический Markdown только в режиме артефакта и не
+    записывай файл при обсуждении самого skill-а.
+
+policy:
+  allow_implicit_invocation: true

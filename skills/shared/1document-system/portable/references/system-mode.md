@@ -11,7 +11,7 @@ future scenarios → information obligations → owners and types → lifecycle
 ```
 
 Read the live project first — progressively: known target directly; known
-folder via `1md-read` (map → select → bounded extract); unknown semantic owner
+folder via `md` CLI (map → select → bounded extract); unknown semantic owner
 via scoped `1md-search`. Then ask only questions whose answers change owners,
 types, lifecycle or topology.
 

@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Стиль письма"
+  short_description: "Zone-aware Obsidian readability"
+  default_prompt: "Используй $1writing-style, чтобы сделать этот Markdown читаемее, сохранив границу canon/_ops/projection и единственного owner-а истины."
+
+policy:
+  allow_implicit_invocation: true

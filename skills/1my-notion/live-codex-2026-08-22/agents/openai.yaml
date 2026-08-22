@@ -1,0 +1,4 @@
+interface:
+  display_name: "1-Мой Notion"
+  short_description: "Личный Notion через локальный ntn CLI"
+  default_prompt: "Use $1my-notion to inspect this Notion URL safely through the local ntn CLI."

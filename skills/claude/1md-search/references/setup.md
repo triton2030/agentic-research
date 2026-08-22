@@ -49,4 +49,4 @@ md search --help
 ```
 
 Backend/network failure — runtime gap. Он не доказывает пустоту Markdown
-corpus; filesystem reading через `1md-read` остаётся независимым.
+corpus; filesystem reading остаётся независимым.

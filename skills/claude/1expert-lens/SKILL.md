@@ -1,5 +1,6 @@
 ---
 name: 1expert-lens
+disable-model-invocation: true
 description: >
   Use when «качественно» / proper / robust, профессиональный DoD или риск
   пропустить материальное неявное обязательство: вызови взгляд эксперта с

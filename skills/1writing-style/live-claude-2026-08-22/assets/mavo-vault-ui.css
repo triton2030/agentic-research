@@ -1,0 +1,50 @@
+/* MAVO Obsidian vault UI: heading hierarchy and quiet service files. */
+:root {
+  --mavo-heading-1: #ff6b5a;
+  --mavo-heading-2: #f2a545;
+  --mavo-heading-3: #4fbf8f;
+  --mavo-heading-4: #4f9fe8;
+}
+
+.markdown-preview-view h1,
+.markdown-rendered h1,
+.markdown-preview-section h1,
+.markdown-source-view .cm-header-1 {
+  color: var(--mavo-heading-1);
+  font-size: 2em;
+}
+
+.markdown-preview-view h2,
+.markdown-rendered h2,
+.markdown-preview-section h2,
+.markdown-source-view .cm-header-2 {
+  color: var(--mavo-heading-2);
+  font-size: 1.75em;
+}
+
+.markdown-preview-view h3,
+.markdown-rendered h3,
+.markdown-preview-section h3,
+.markdown-source-view .cm-header-3 {
+  color: var(--mavo-heading-3);
+  font-size: 1.5em;
+}
+
+.markdown-preview-view h4,
+.markdown-rendered h4,
+.markdown-preview-section h4,
+.markdown-source-view .cm-header-4 {
+  color: var(--mavo-heading-4);
+  font-size: 1.25em;
+}
+
+/* Keep agent instruction files discoverable without competing with content. */
+.nav-file-title[data-path="AGENTS.md"] .nav-file-title-content,
+.nav-file-title[data-path$="/AGENTS.md"] .nav-file-title-content,
+.nav-file-title[data-path="CLAUDE.md"] .nav-file-title-content,
+.nav-file-title[data-path$="/CLAUDE.md"] .nav-file-title-content,
+.nav-file-title[data-path="GEMINI.md"] .nav-file-title-content,
+.nav-file-title[data-path$="/GEMINI.md"] .nav-file-title-content {
+  color: var(--text-faint) !important;
+  opacity: 0.65;
+}

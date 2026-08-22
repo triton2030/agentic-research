@@ -1,0 +1,360 @@
+/* MAVO Obsidian readability: HTML mini-reviews, tables and Mermaid fit. */
+.markdown-preview-view,
+.markdown-rendered,
+.markdown-source-view {
+  --mavo-border: var(--background-modifier-border);
+  --mavo-border-strong: color-mix(in srgb, var(--text-muted) 28%, transparent);
+  --mavo-review-bg: color-mix(in srgb, var(--background-secondary) 84%, var(--background-primary));
+  --mavo-card-bg: var(--background-primary);
+  --mavo-muted: var(--text-muted);
+  --mavo-text: var(--text-normal);
+  --mavo-money: #4fbf8f;
+  --mavo-proof: #4f9fe8;
+  --mavo-warn: #f2a545;
+  --mavo-risk: #ff6b5a;
+  --mavo-neutral: #8d9299;
+  --mavo-tone: var(--mavo-neutral);
+  --mavo-radius: 8px;
+}
+
+.markdown-preview-view .mavo-review,
+.markdown-rendered .mavo-review,
+.markdown-source-view .mavo-review {
+  margin: 0.95rem 0 1.35rem;
+  padding: 1rem;
+  border: 1px solid var(--mavo-border);
+  border-left: 4px solid var(--mavo-tone);
+  border-radius: var(--mavo-radius);
+  background: var(--mavo-review-bg);
+}
+
+.markdown-preview-view .mavo-review > header,
+.markdown-rendered .mavo-review > header,
+.markdown-source-view .mavo-review > header {
+  margin: 0 0 0.78rem;
+  color: var(--mavo-muted);
+  font-size: 0.82rem;
+  font-weight: 750;
+  line-height: 1.25;
+}
+
+.markdown-preview-view .mavo-review-grid,
+.markdown-rendered .mavo-review-grid,
+.markdown-source-view .mavo-review-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.25rem, 1fr));
+  gap: 0.7rem;
+}
+
+.markdown-preview-view .mavo-review article,
+.markdown-rendered .mavo-review article,
+.markdown-source-view .mavo-review article {
+  min-height: 3.6rem;
+  padding: 0.72rem 0.78rem;
+  border: 1px solid color-mix(in srgb, var(--mavo-border) 82%, transparent);
+  border-top: 3px solid var(--mavo-tone);
+  border-radius: var(--mavo-radius);
+  background: var(--mavo-card-bg);
+}
+
+.markdown-preview-view .mavo-review b,
+.markdown-rendered .mavo-review b,
+.markdown-source-view .mavo-review b {
+  display: block;
+  color: var(--mavo-text);
+  font-size: 1.16rem;
+  line-height: 1.12;
+}
+
+.markdown-preview-view .mavo-review small,
+.markdown-rendered .mavo-review small,
+.markdown-source-view .mavo-review small {
+  display: block;
+  margin-top: 0.28rem;
+  color: var(--mavo-muted);
+  font-size: 0.8rem;
+  line-height: 1.32;
+}
+
+.markdown-preview-view .mavo-review mark,
+.markdown-rendered .mavo-review mark,
+.markdown-source-view .mavo-review mark {
+  display: inline-block;
+  margin-top: 0.34rem;
+  padding: 0.04rem 0.32rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mavo-tone) 16%, transparent);
+  color: var(--mavo-text);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.markdown-preview-view :is(.mavo-review, .mavo-review article, .mavo-banner, .mavo-compare article)[data-tone="money"],
+.markdown-rendered :is(.mavo-review, .mavo-review article, .mavo-banner, .mavo-compare article)[data-tone="money"],
+.markdown-source-view :is(.mavo-review, .mavo-review article, .mavo-banner, .mavo-compare article)[data-tone="money"] {
+  --mavo-tone: var(--mavo-money);
+}
+
+.markdown-preview-view :is(.mavo-review, .mavo-review article, .mavo-banner, .mavo-compare article)[data-tone="proof"],
+.markdown-rendered :is(.mavo-review, .mavo-review article, .mavo-banner, .mavo-compare article)[data-tone="proof"],
+.markdown-source-view :is(.mavo-review, .mavo-review article, .mavo-banner, .mavo-compare article)[data-tone="proof"] {
+  --mavo-tone: var(--mavo-proof);
+}
+
+.markdown-preview-view :is(.mavo-review, .mavo-review article, .mavo-banner, .mavo-compare article)[data-tone="warn"],
+.markdown-rendered :is(.mavo-review, .mavo-review article, .mavo-banner, .mavo-compare article)[data-tone="warn"],
+.markdown-source-view :is(.mavo-review, .mavo-review article, .mavo-banner, .mavo-compare article)[data-tone="warn"] {
+  --mavo-tone: var(--mavo-warn);
+}
+
+.markdown-preview-view :is(.mavo-review, .mavo-review article, .mavo-banner, .mavo-compare article)[data-tone="risk"],
+.markdown-rendered :is(.mavo-review, .mavo-review article, .mavo-banner, .mavo-compare article)[data-tone="risk"],
+.markdown-source-view :is(.mavo-review, .mavo-review article, .mavo-banner, .mavo-compare article)[data-tone="risk"] {
+  --mavo-tone: var(--mavo-risk);
+}
+
+.markdown-preview-view .mavo-review[data-kind="compact"] .mavo-review-grid,
+.markdown-rendered .mavo-review[data-kind="compact"] .mavo-review-grid,
+.markdown-source-view .mavo-review[data-kind="compact"] .mavo-review-grid {
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+}
+
+.markdown-preview-view .mavo-review[data-kind="stack"] .mavo-review-grid,
+.markdown-rendered .mavo-review[data-kind="stack"] .mavo-review-grid,
+.markdown-source-view .mavo-review[data-kind="stack"] .mavo-review-grid {
+  grid-template-columns: 1fr;
+}
+
+/* Headline cards: карточки только из заголовков. */
+.markdown-preview-view .mavo-review[data-kind="headline"] article,
+.markdown-rendered .mavo-review[data-kind="headline"] article,
+.markdown-source-view .mavo-review[data-kind="headline"] article {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3.1rem;
+  padding: 0.85rem 0.6rem;
+  text-align: center;
+}
+
+.markdown-preview-view .mavo-review[data-kind="headline"] b,
+.markdown-rendered .mavo-review[data-kind="headline"] b,
+.markdown-source-view .mavo-review[data-kind="headline"] b {
+  font-size: 1.3rem;
+  line-height: 1.15;
+}
+
+/* Text cards: карточки без заголовков, чистый текст. */
+.markdown-preview-view .mavo-review[data-kind="text"] article,
+.markdown-rendered .mavo-review[data-kind="text"] article,
+.markdown-source-view .mavo-review[data-kind="text"] article {
+  min-height: 0;
+  color: var(--mavo-text);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+/* Gallery: свободная сетка карточек без рамки секции. */
+.markdown-preview-view .mavo-review[data-kind="gallery"],
+.markdown-rendered .mavo-review[data-kind="gallery"],
+.markdown-source-view .mavo-review[data-kind="gallery"] {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.markdown-preview-view .mavo-review[data-kind="gallery"] .mavo-review-grid,
+.markdown-rendered .mavo-review[data-kind="gallery"] .mavo-review-grid,
+.markdown-source-view .mavo-review[data-kind="gallery"] .mavo-review-grid {
+  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+}
+
+.markdown-preview-view .mavo-review[data-kind="gallery"] article,
+.markdown-rendered .mavo-review[data-kind="gallery"] article,
+.markdown-source-view .mavo-review[data-kind="gallery"] article {
+  min-height: 4.4rem;
+  padding: 0.85rem 0.9rem;
+  background: var(--mavo-review-bg);
+}
+
+/* Banner: полоса с крупным текстом, которого Obsidian сам не даёт. */
+.markdown-preview-view .mavo-banner,
+.markdown-rendered .mavo-banner,
+.markdown-source-view .mavo-banner {
+  margin: 1.1rem 0 1.3rem;
+  padding: 1rem 1.15rem;
+  border: 1px solid var(--mavo-border);
+  border-left: 5px solid var(--mavo-tone);
+  border-radius: var(--mavo-radius);
+  background: color-mix(in srgb, var(--mavo-tone) 8%, var(--mavo-review-bg));
+  color: var(--mavo-text);
+  font-size: 1.32rem;
+  font-weight: 750;
+  line-height: 1.3;
+}
+
+.markdown-preview-view .mavo-banner small,
+.markdown-rendered .mavo-banner small,
+.markdown-source-view .mavo-banner small {
+  display: block;
+  margin-top: 0.32rem;
+  color: var(--mavo-muted);
+  font-size: 0.84rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+/* Compare: карточка одного цвета -> стрелка -> карточка другого цвета. */
+.markdown-preview-view .mavo-compare,
+.markdown-rendered .mavo-compare,
+.markdown-source-view .mavo-compare {
+  display: flex;
+  align-items: stretch;
+  gap: 0.55rem;
+  margin: 0.95rem 0 1.35rem;
+}
+
+.markdown-preview-view .mavo-compare article,
+.markdown-rendered .mavo-compare article,
+.markdown-source-view .mavo-compare article {
+  flex: 1;
+  padding: 0.78rem 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--mavo-border) 82%, transparent);
+  border-top: 3px solid var(--mavo-tone);
+  border-radius: var(--mavo-radius);
+  background: color-mix(in srgb, var(--mavo-tone) 7%, var(--mavo-card-bg));
+}
+
+.markdown-preview-view .mavo-compare b,
+.markdown-rendered .mavo-compare b,
+.markdown-source-view .mavo-compare b {
+  display: block;
+  color: var(--mavo-text);
+  font-size: 1.08rem;
+  line-height: 1.15;
+}
+
+.markdown-preview-view .mavo-compare small,
+.markdown-rendered .mavo-compare small,
+.markdown-source-view .mavo-compare small {
+  display: block;
+  margin-top: 0.28rem;
+  color: var(--mavo-muted);
+  font-size: 0.8rem;
+  line-height: 1.32;
+}
+
+.markdown-preview-view .mavo-compare .mavo-arrow,
+.markdown-rendered .mavo-compare .mavo-arrow,
+.markdown-source-view .mavo-compare .mavo-arrow {
+  align-self: center;
+  color: var(--mavo-muted);
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.markdown-preview-view .mavo-table,
+.markdown-rendered .mavo-table,
+.markdown-source-view .mavo-table {
+  width: 100%;
+  margin: 0.9rem 0 1.1rem;
+  overflow: hidden;
+  border: 1px solid var(--mavo-border);
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: var(--mavo-radius);
+  background: var(--mavo-card-bg);
+  font-size: 0.92rem;
+  line-height: 1.3;
+}
+
+.markdown-preview-view .mavo-table th,
+.markdown-rendered .mavo-table th,
+.markdown-source-view .mavo-table th {
+  background: var(--mavo-review-bg);
+  color: var(--mavo-text);
+  font-weight: 750;
+}
+
+.markdown-preview-view .mavo-table th,
+.markdown-preview-view .mavo-table td,
+.markdown-rendered .mavo-table th,
+.markdown-rendered .mavo-table td,
+.markdown-source-view .mavo-table th,
+.markdown-source-view .mavo-table td {
+  padding: 0.58rem 0.66rem;
+  border-bottom: 1px solid var(--mavo-border);
+  vertical-align: top;
+}
+
+.markdown-preview-view .mavo-table td:first-child,
+.markdown-rendered .mavo-table td:first-child,
+.markdown-source-view .mavo-table td:first-child {
+  font-weight: 650;
+}
+
+.markdown-preview-view .mavo-table tr:last-child td,
+.markdown-rendered .mavo-table tr:last-child td,
+.markdown-source-view .mavo-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.markdown-preview-view .mavo-table code,
+.markdown-rendered .mavo-table code,
+.markdown-source-view .mavo-table code {
+  white-space: nowrap;
+}
+
+.markdown-source-view .cm-html-embed:has(.mavo-review) > .edit-block-button {
+  display: none;
+}
+
+.mermaid {
+  display: flex;
+  justify-content: center;
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-y: visible;
+}
+
+.mermaid svg {
+  display: block;
+  max-width: 100% !important;
+  width: auto !important;
+  height: auto !important;
+  margin: 0 auto;
+}
+
+.mermaid svg .node rect,
+.mermaid svg .cluster rect {
+  rx: 6px;
+  ry: 6px;
+}
+
+.markdown-source-view .cm-html-embed:has(.mavo-banner) > .edit-block-button,
+.markdown-source-view .cm-html-embed:has(.mavo-compare) > .edit-block-button {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .markdown-preview-view .mavo-review-grid,
+  .markdown-rendered .mavo-review-grid,
+  .markdown-source-view .mavo-review-grid,
+  .markdown-preview-view .mavo-review[data-kind="compact"] .mavo-review-grid,
+  .markdown-rendered .mavo-review[data-kind="compact"] .mavo-review-grid,
+  .markdown-source-view .mavo-review[data-kind="compact"] .mavo-review-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .markdown-preview-view .mavo-compare,
+  .markdown-rendered .mavo-compare,
+  .markdown-source-view .mavo-compare {
+    flex-direction: column;
+  }
+
+  .markdown-preview-view .mavo-compare .mavo-arrow,
+  .markdown-rendered .mavo-compare .mavo-arrow,
+  .markdown-source-view .mavo-compare .mavo-arrow {
+    transform: rotate(90deg);
+  }
+}
