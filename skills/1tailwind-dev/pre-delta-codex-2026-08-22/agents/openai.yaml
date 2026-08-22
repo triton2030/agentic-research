@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Tailwind разработка"
+  short_description: "Tailwind-native UI без параллельных tokens"
+  default_prompt: "Используй $1tailwind-dev до любой frontend source edit: сохрани current owners, выбери Tailwind/framework-native vocabulary, реализуй с минимумом новых tokens, components и styles, затем проверь UI."
+
+policy:
+  allow_implicit_invocation: true
