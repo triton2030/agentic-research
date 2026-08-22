@@ -13,16 +13,22 @@ kind: status
 
 ## Next
 
-Поднять отложенный allocation gate вместо третьего полного changeset.
-Порядок одного batch становится: (1) root пересобирает manifest — materializer
-SHA изменился после ремонта `_validate_coverage`; (2) новая visible Luna Max
-выдаёт только claim -> page allocation без прозы; (3) независимый аудит
-принимает или отклоняет карту; (4) вторая Luna Max пишет прозу и index,
-связанные с accepted allocation SHA; (5) полный semantic audit сохраняется.
+Дождаться attempt-003: Luna Max пишет batch-001 по `prompts/wiki-writer.v3.md`,
+затем независимый аудит на `gpt-5.6-sol/xhigh` по осям attempt-002, затем
+материализация первого принятого checkpoint.
 
-Prompt-only route опровергнут: attempt-001 и attempt-002 упали в один
-родительский класс S1 (page-allocation instability), поэтому stop rule
-`task.md` запрещает третий полный changeset без изменения механизма.
+Маршрут изменён по слову владельца: систему обновления документов не
+переизобретаем, а следуем закреплённому upstream `llm-wiki/SKILL.md`. Его
+процедура из шести фаз (scope · survey · extract and normalize subjects · plan
+against existing knowledge · index · write) уже содержит планирование как
+собственную фазу. v2 нёс правила границ почти дословно, но потерял этот
+порядок, поэтому писатель применял их во время черновика, а не до него. v3
+возвращает фазы спиной промпта; отдельный allocation-артефакт снят как
+локальное дублирование их фазы 4.
+
+Роутинг моделей по слову владельца 2026-08-22: Luna Max исполняет инструкции и
+пишет прозу, суждение и поиск конфликтов идут на `gpt-5.6-sol`.
+
 Attempt-001 и attempt-002 запрещены как semantic input.
 
 ## Свидетельства и статус
@@ -34,11 +40,13 @@ Attempt-001 и attempt-002 запрещены как semantic input.
   `experiments/openviking-chat-recall/prompts/wiki-writer.v1.md`, SHA-256
   `3fd3ff7748c71f2e6d8e8cc06aebd898b1992c3c6a242bb021fe3f1ff08897d3`.
 - Current semantic prompt:
-  `experiments/openviking-chat-recall/prompts/wiki-writer.v2.md`, SHA-256
-  `e5c4389374911239551f3157bce2b03e878dcd9981dae48a60831af856c8eeba`.
+  `experiments/openviking-chat-recall/prompts/wiki-writer.v3.md`, SHA-256
+  `664c4bef03b1e72a093b9ec83e0c844ba7f89f7df4a8296fafb7befde28bf116`;
+  v1 и v2 остаются rejected history.
 - Current batch-001 manifest: 10 holders / 32 records, SHA-256
-  `1b7e51536b2b488ad2b8f4e16c4ab3ac47f1b72182e318bd2bcb1171951f32fc`;
-  preflight PASS; prior Wiki tree empty.
+  `a162abbdf8fffbc1566d2608f28b3ddf559e9f068bf609e237cfd484082c4274`;
+  preflight PASS; prior Wiki tree empty; связан с prompt v3 и починенным
+  materializer.
 - Pipeline checkpoint `9426db2d17c7823b603fe1b818387ab4211bbfad` pushed to
   `origin/main`; targeted suite 22/22 PASS.
 - Attempt-001 отклонён (слияние named subjects, тематическая близость вместо
