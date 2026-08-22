@@ -53,10 +53,12 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
   новые цитаты могут заменить итоговое знание, а superseded формулировка не
   остаётся рядом ради истории. История решения принадлежит только holders и
   evidence manifest; append-only lifecycle для Wiki запрещён.
-- Видимый текст Wiki после удаления дублей и истории должен быть примерно в
-  5–10 раз меньше исходного текста цитат. Hard ceiling — `wiki/source ≤ 0.20`;
-  целевой band — `0.10–0.20`. Результат ниже `0.10` не дополняется filler-ом,
-  но требует отдельной проверки полноты знаний.
+- После полного chronological backfill ожидается, что текущая Wiki окажется
+  примерно в 5–10 раз меньше всего source quote corpus: новые batch-и должны
+  преимущественно переписывать и объединять существующие знания, а не линейно
+  умножать страницы. Это cumulative diagnostic expectation, не per-batch и не
+  terminal acceptance gate. Полезность, полнота и findability не режутся ради
+  ratio; filler и пересказ истории по-прежнему запрещены.
 - Build возобновляется после сбоя, повторный запуск на том же snapshot
   воспроизводим, секреты и полный приватный corpus не попадают в receipts или
   внешнюю публикацию.
@@ -90,7 +92,7 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
 | 1. Контракты | Frozen corpus map, distilled-claim seam, pinned Wiki Skill, pinned Context Layers/prompts, generation route, acceptance и privacy/recovery contracts не противоречат друг другу; supersession probe пройден |
 | 2. Compiler | Детерминированный pipeline, semantic generation, validators, resume state и receipts проходят узкие tests на representative sample |
 | 3. Full build | Весь frozen snapshot обработан; coverage manifest не содержит молчаливых пропусков |
-| 4. Normalize | Layered Wiki, каталог, internal links и source-quote provenance прошли механические инварианты; project-corpus links отсутствуют; compression ≤ 0.20 |
+| 4. Normalize | Layered Wiki, каталог, internal links и source-quote provenance прошли механические инварианты; project-corpus links отсутствуют; cumulative compression измерена диагностически |
 | 5. Acceptance | Blind held-out сравнение подтвердило correctness и экономию чтения/context; agent route и rebuild handoff записаны |
 
 ## Подробная карта исполнения
@@ -179,8 +181,10 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
   current, отклоняется, а не чинится молча.
 - Wiki page с project-knowledge link, содержанием из прочитанного вне frozen
   quote input или append-only остатком superseded знания отклоняется.
-- Full build с `wiki/source > 0.20` не принимается; пустая или чрезмерно
-  сжатая Wiki не получает PASS только по ratio — полноту доказывает blind audit.
+- Per-batch compression ratio не даёт PASS/FAIL. Финальное отношение current
+  Wiki ко всему quote corpus сравнивается с ожидаемыми 0.10–0.20 как
+  диагностический результат; полноту, полезность и findability доказывает
+  blind audit, а не размер.
 - Если official prompt/IA нельзя использовать с проверяемым provenance или
   приемлемой лицензионной границей, работа останавливается перед semantic
   generator.
@@ -200,9 +204,11 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
 - Fan-out ограничен реальными независимыми batch-зонами после заморозки единой
   логики. Системный дизайн не дробится между Luna-тредами; их зона —
   повторяемый quote-to-Wiki rewrite по готовому contract.
-- Первый chronological probe выполняет одна Luna на десяти полных holders.
-  Parallel part writers и merge не получают дальнейшего permission, пока root
-  не сравнит typed serial changeset с прежним plan route.
+- Первый chronological probe выполнила одна Luna на десяти полных holders;
+  владелец одобрил полезный четырёхстраничный Wiki checkpoint, root подтвердил
+  exact coverage/provenance и разрешил тому же writer-у следующий batch.
+  Parallel part writers и merge не возвращаются: одна рука последовательно
+  переписывает текущую Wiki, а blind readers проверяют её отдельно.
 - Подробные карточки вытесняют хранение остатка в чате, но не создают второй
   plan owner: task.md владеет outcome и зависимостями, status.md — живым Next,
   modules — неизменяемыми заданиями конкретного момента.
@@ -217,7 +223,9 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
   проектирует root, а тяжёлую стратегию и архитектуру чаще проверяет Opus.
 - Там же владелец уточнил центральный Wiki contract: страницы ссылаются на
   исходные цитаты, но не на project knowledge corpus и не проверяют упомянутые
-  файлы; Wiki — не второй канон, а сжатая в 5–10 раз форма итоговых знаний.
+  файлы; Wiki — не второй канон. Позднее он уточнил 5–10-кратное сжатие как
+  ожидаемый финальный эффект всего backfill, а не условие каждого batch или
+  terminal gate.
 - Последующая запись того же holder-а задаёт lifecycle: новые цитаты полностью
   переписывают затронутое знание; Wiki хранит только актуальный итог без
   истории, которая остаётся в chat-recall.

@@ -1,7 +1,7 @@
 ---
 kind: module-card
 wave: "6c"
-state: ready
+state: accepted-for-serial-continuation
 role: chronological-serial-wiki-pilot
 system-owner: root
 batch-model: gpt-5.6-luna
@@ -85,9 +85,10 @@ skip запрещён. Один record может поддерживать не�
   файлы, упомянутые в цитатах, запрещены.
 - Claim не обогащается сведениями, которых нет в allowed quote input. `latest`
   не считается `current` автоматически; uncertainty остаётся видимой.
-- Semantic prose — title + distilled statement + applicability без navigation
-  и provenance — не более 1 108 символов; target 554–1 108. Filler ради нижней
-  границы запрещён. Total Markdown footprint отчитается отдельно.
+- Semantic/total chars и ratios измеряются отдельно как baseline diagnostics.
+  Per-batch min/max и PASS/FAIL по размеру нет. После всего backfill ожидается
+  cumulative Wiki/source ratio 0.10–0.20, но полезность, полнота и быстрый
+  поиск не режутся ради этого ожидания; filler запрещён.
 
 ## Required receipt
 
@@ -106,13 +107,24 @@ Root принимает или отклоняет checkpoint только пос
 3. Wiki quote addresses входят только в batch membership;
 4. project-corpus links, full quotes, history prose и unsupported knowledge
    отсутствуют;
-5. semantic ratio ≤ 0.20; результат ниже 0.10 не получает PASS без ручной
-   completeness проверки;
-6. changeset replay создаёт тот же candidate tree или gap честно остаётся
+5. каждая страница отвечает на один будущий вопрос и даёт действие/границу;
+   отдельный blind reader быстро выбирает её, начиная с `index.md`;
+6. per-batch ratio записан только диагностически, а final 5–10× expectation
+   не объявлен доказанным до полного corpus;
+7. changeset replay создаёт тот же candidate tree или gap честно остаётся
    `UNKNOWN`.
 
 Writer self-report, красивый index и smooth prose не являются PASS. Следующий
 batch не запускается до root verdict по batch-001.
+
+## Observed verdict
+
+Владелец одобрил текущий вид четырёх knowledge pages и `index.md`; snapshot
+зафиксирован commit `6ab9cb9`. Root независимо подтвердил exact 10 holders,
+32 records, 28 `used`, 4 `rejected`, 28 разрешённых source links, отсутствие
+Wiki drift от snapshot и `md` без issues. Следующий chronological batch явно
+разрешён тому же visible Luna writer. Независимый blind index-first reader
+остаётся отдельным findability evidence и не блокирует serial writer.
 
 ## Return
 

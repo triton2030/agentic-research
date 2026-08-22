@@ -1,0 +1,322 @@
+{
+  "schema": "openviking-chat-recall/chronological-wiki-receipt.v1",
+  "batch_id": "batch-001",
+  "revision": 2,
+  "status": "candidate",
+  "prior_candidate_status": "rejected_by_owner",
+  "owner_liked_snapshot": {
+    "wiki_content_locked": true,
+    "snapshot_commit": "6ab9cb9",
+    "comparison": "MATCH",
+    "note": "Wiki bodies were preserved after the owner-liked snapshot; root snapshot review and blind findability reader remain outstanding."
+  },
+  "model": "gpt-5.6-luna",
+  "thinking": "max",
+  "processing": {
+    "mode": "single-sequential-writer",
+    "holder_order": "manifest order",
+    "record_order": "manifest order within holder",
+    "source_quote_only_semantics": true,
+    "subagents": false,
+    "worktree": false,
+    "commit_created": false
+  },
+  "input": {
+    "manifest_path": "experiments/openviking-chat-recall/artifacts/chronological-pilot/batch-001-input.json",
+    "manifest_sha256": "c94692ded5bf0b687615cc1c4ead242160e14a1adc1eb089c7d8e0883bf59dd9",
+    "process_card_path": "_ops/plans/openviking-chat-recall/modules/wave-6c-chronological-serial-pilot.md",
+    "process_inputs_source": "current main",
+    "corpus_commit": "6f98fcccdbf4b4de45ef787239ad101f70d106e2",
+    "f2_commit": "ea569e2bf84377b17be9177065d5fb9172d26d39",
+    "f2_path": "experiments/openviking-chat-recall/artifacts/full-build/evidence/records.jsonl",
+    "f2_sha256": "868ffff05768e4ebac6893436141e99493e0582b6738845350b2aa805e99d69d",
+    "holder_count": 10,
+    "record_count": 32,
+    "diagnostic_record_count": 0,
+    "time_boundary_utc": "2026-07-26T13:05:18.283000+00:00"
+  },
+  "provenance_split": {
+    "process_inputs": {
+      "source": "current main",
+      "paths": [
+        "_ops/plans/openviking-chat-recall/modules/wave-6c-chronological-serial-pilot.md",
+        "experiments/openviking-chat-recall/artifacts/chronological-pilot/batch-001-input.json"
+      ]
+    },
+    "source_holders": {
+      "commit": "6f98fcccdbf4b4de45ef787239ad101f70d106e2",
+      "scope": "exactly the ten manifest source holder blobs"
+    },
+    "frozen_f2_records": {
+      "commit": "ea569e2bf84377b17be9177065d5fb9172d26d39",
+      "path": "experiments/openviking-chat-recall/artifacts/full-build/evidence/records.jsonl",
+      "sha256": "868ffff05768e4ebac6893436141e99493e0582b6738845350b2aa805e99d69d",
+      "scope": "only the 32 record IDs named by the manifest"
+    },
+    "official_skill": {
+      "repository": "volcengine/OpenViking",
+      "tag": "v0.4.16",
+      "path": "examples/compile/ov-compile-skills/llm-wiki/SKILL.md",
+      "uri": "https://raw.githubusercontent.com/volcengine/OpenViking/v0.4.16/examples/compile/ov-compile-skills/llm-wiki/SKILL.md",
+      "sha256": "c5e379843a0af6c4574f29ae8fd6637b2b89a0481da63a76472188633f4792de",
+      "role": "page shape, index, type tests and quality gate only; not project semantic evidence"
+    }
+  },
+  "output_paths": [
+    "experiments/openviking-chat-recall/artifacts/chronological-pilot/batch-001/changeset.json",
+    "experiments/openviking-chat-recall/artifacts/chronological-pilot/batch-001/wiki/index.md",
+    "experiments/openviking-chat-recall/artifacts/chronological-pilot/batch-001/wiki/method/capture-owner-quotes.md",
+    "experiments/openviking-chat-recall/artifacts/chronological-pilot/batch-001/wiki/method/global-skill-trigger.md",
+    "experiments/openviking-chat-recall/artifacts/chronological-pilot/batch-001/wiki/concept/dated-recall-currentness.md",
+    "experiments/openviking-chat-recall/artifacts/chronological-pilot/batch-001/wiki/concept/embedding-similarity-boundary.md",
+    "experiments/openviking-chat-recall/artifacts/chronological-pilot/batch-001/receipt.json"
+  ],
+  "operations": {
+    "create": 5,
+    "no-change": 0,
+    "update": 0,
+    "supersede": 0,
+    "reject": 4,
+    "total": 9
+  },
+  "coverage": {
+    "used": 28,
+    "rejected": 4,
+    "skipped": 0,
+    "total": 32,
+    "exact_manifest_order": true
+  },
+  "source_quote_addresses": {
+    "used": [
+      "_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md:20",
+      "_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md:21",
+      "_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md:22",
+      "_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md:23",
+      "_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md:24",
+      "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md:21",
+      "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md:22",
+      "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md:24",
+      "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md:25",
+      "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md:26",
+      "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md:27",
+      "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md:28",
+      "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md:29",
+      "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md:30",
+      "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md:31",
+      "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md:32",
+      "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md:33",
+      "_ops/chat-recall/2026-07-22-121239-codex-019f889f.md:16",
+      "_ops/chat-recall/2026-07-23-114721-claude-67208f21.md:15",
+      "_ops/chat-recall/2026-07-25-124728-codex-019f983d.md:15",
+      "_ops/chat-recall/2026-07-26-163521-claude-bddf1411.md:15",
+      "_ops/chat-recall/2026-07-26-163413-claude-2be60fdc.md:18",
+      "_ops/chat-recall/2026-07-26-163413-claude-2be60fdc.md:19",
+      "_ops/chat-recall/2026-07-26-163413-claude-2be60fdc.md:20",
+      "_ops/chat-recall/2026-07-26-163413-claude-2be60fdc.md:21",
+      "_ops/chat-recall/2026-07-26-174326-codex-019f9e61.md:15",
+      "_ops/chat-recall/2026-07-26-180518-claude-fa590eea.md:16",
+      "_ops/chat-recall/2026-07-26-180518-claude-fa590eea.md:17"
+    ],
+    "rejected": [
+      "_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md:25",
+      "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md:23",
+      "_ops/chat-recall/2026-07-25-134829-claude-d96a2888.md:15",
+      "_ops/chat-recall/2026-07-26-163521-claude-bddf1411.md:16"
+    ]
+  },
+  "page_questions": [
+    {
+      "page_path": "wiki/method/capture-owner-quotes.md",
+      "type": "method",
+      "future_question": "Как сохранить цитату владельца, чтобы её нашли позже?",
+      "decision_or_action": "Сохранить owner speech с deletion-only shortening, исходной датой/source address, границей окна, writer/time/session и type/topic labels.",
+      "boundary": "Pasted text, agent interpretation и слова subagent не становятся owner evidence."
+    },
+    {
+      "page_path": "wiki/concept/dated-recall-currentness.md",
+      "type": "concept",
+      "future_question": "Должна ли старая запись управлять текущим решением?",
+      "decision_or_action": "Показать date и uncertainty, прочитать контекст по запросу и не применять находку автоматически.",
+      "boundary": "Будущую идею могут отменить; поздний повтор — повод пересмотреть инструкцию, не доказательство currentness."
+    },
+    {
+      "page_path": "wiki/method/global-skill-trigger.md",
+      "type": "method",
+      "future_question": "Как устроить общий skill, чтобы его вызвали вовремя?",
+      "decision_or_action": "Оставить non-obvious delta, назвать trigger/action в always-loaded description, укоротить body и проверить Claude/Codex.",
+      "boundary": "Official-over-manual — условное предпочтение; model target и speed claim не выводятся."
+    },
+    {
+      "page_path": "wiki/concept/embedding-similarity-boundary.md",
+      "type": "concept",
+      "future_question": "Похожесть текстов — это доказательство смыслового дубля?",
+      "decision_or_action": "Называть embedding result похожестью и требовать отдельное evidence перед claim о копии.",
+      "boundary": "Красная линия запрещает embedding search для semantic duplicates; replacement algorithm не выбран."
+    }
+  ],
+  "utility_falsifier": {
+    "mode": "wiki-only; no source quotes opened",
+    "result": "PASS",
+    "probes": [
+      {
+        "id": "a",
+        "question": "Как правильно сохранить новую цитату владельца?",
+        "first_page": "wiki/method/capture-owner-quotes.md",
+        "action": "Capture owner speech; shorten by deletion; keep original date/source, one-window provenance and type/topic labels.",
+        "boundary": "Subagent text is not owner evidence."
+      },
+      {
+        "id": "b",
+        "question": "Должна ли старая recall-запись автоматически управлять текущим решением?",
+        "first_page": "wiki/concept/dated-recall-currentness.md",
+        "action": "Show date and uncertainty; read context when requested; do not auto-apply the finding.",
+        "boundary": "A future idea may be canceled; repetition is a review signal."
+      },
+      {
+        "id": "c",
+        "question": "Что должно попасть в глобальный skill и как повысить шанс его срабатывания?",
+        "first_page": "wiki/method/global-skill-trigger.md",
+        "action": "Keep only non-obvious delta; put trigger/action in the always-loaded description; keep body short and check Claude/Codex.",
+        "boundary": "No model-version or speed inference."
+      },
+      {
+        "id": "d",
+        "question": "Можно ли embedding search использовать как доказательство смыслового дубля?",
+        "first_page": "wiki/concept/embedding-similarity-boundary.md",
+        "action": "Label the result similarity; require separate evidence before a duplicate claim.",
+        "boundary": "Red line; no replacement algorithm selected."
+      }
+    ],
+    "executed_check": "Wiki-only pattern audit returned PASS for all four probes."
+  },
+  "findability_self_check": {
+    "mode": "writer-side; not root acceptance",
+    "result": "PASS",
+    "blind_reader_status": "not run here; root must run it",
+    "entries": [
+      {
+        "question": "Как правильно сохранить новую цитату владельца?",
+        "first_index_entry": "Как сохранить цитату владельца, чтобы её нашли позже?",
+        "page_path": "wiki/method/capture-owner-quotes.md",
+        "retrieval_cue": "Открой при новой реплике владельца: здесь порядок записи, даты, границы разговора и метки, чтобы материал можно было проверить и найти."
+      },
+      {
+        "question": "Должна ли старая recall-запись автоматически управлять текущим решением?",
+        "first_index_entry": "Должна ли старая запись управлять текущим решением?",
+        "page_path": "wiki/concept/dated-recall-currentness.md",
+        "retrieval_cue": "Открой перед применением старой записи: здесь как учесть дату и сомнение, не превратив находку в приказ."
+      },
+      {
+        "question": "Что должно попасть в глобальный skill и как повысить шанс его срабатывания?",
+        "first_index_entry": "Как устроить общий skill, чтобы его вызвали вовремя?",
+        "page_path": "wiki/method/global-skill-trigger.md",
+        "retrieval_cue": "Открой при редактировании общего правила: здесь как оставить только неожиданное, а момент вызова и действие вынести в всегда видимое описание."
+      },
+      {
+        "question": "Можно ли embedding search использовать как доказательство смыслового дубля?",
+        "first_index_entry": "Похожесть текстов — это доказательство смыслового дубля?",
+        "page_path": "wiki/concept/embedding-similarity-boundary.md",
+        "retrieval_cue": "Открой перед объявлением двух текстов копиями: здесь граница между численной близостью и отдельным доказательством."
+      }
+    ],
+    "note": "Cues use plain question/task language and source-adjacent synonyms; they are self-report only."
+  },
+  "record_audit": [
+    {"record_id":"cr-39cc21a90c49798e","disposition":"used","page_path":"wiki/method/capture-owner-quotes.md","knowledge":"literal owner speech with date"},
+    {"record_id":"cr-26bf33cb209aa21e","disposition":"used","page_path":"wiki/method/capture-owner-quotes.md","knowledge":"owner speech is not agent interpretation"},
+    {"record_id":"cr-42f1d19bfbb686ed","disposition":"used","page_path":"wiki/method/capture-owner-quotes.md","knowledge":"shortening removes noise only"},
+    {"record_id":"cr-f94d105dcf39a94e","disposition":"used","page_path":"wiki/method/capture-owner-quotes.md","knowledge":"recall storage surface"},
+    {"record_id":"cr-67b75758780bdd03","disposition":"used","page_path":"wiki/method/global-skill-trigger.md","knowledge":"global skill scope"},
+    {"record_id":"cr-9e4a0a195f9f977c","disposition":"rejected","page_path":null,"knowledge":"model target is a snapshot without currentness evidence"},
+    {"record_id":"cr-db36c02089cee53c","disposition":"used","page_path":"wiki/concept/dated-recall-currentness.md","knowledge":"future idea may be canceled"},
+    {"record_id":"cr-22ee623ec7686866","disposition":"used","page_path":"wiki/method/global-skill-trigger.md","knowledge":"Codex, Claude and parallel callers"},
+    {"record_id":"cr-fc5efefa2e142f6d","disposition":"rejected","page_path":null,"knowledge":"personal two-to-three-agent context has no independent reusable action"},
+    {"record_id":"cr-fa0e021879c62cf9","disposition":"used","page_path":"wiki/method/capture-owner-quotes.md","knowledge":"preserve context otherwise forgotten"},
+    {"record_id":"cr-cd12084caea37373","disposition":"used","page_path":"wiki/concept/dated-recall-currentness.md","knowledge":"old dates limit automatic influence"},
+    {"record_id":"cr-411135b8c85edbcd","disposition":"used","page_path":"wiki/concept/dated-recall-currentness.md","knowledge":"later repetition can revise instructions"},
+    {"record_id":"cr-92ba68ae02b88b40","disposition":"used","page_path":"wiki/method/capture-owner-quotes.md","knowledge":"classify type and topic"},
+    {"record_id":"cr-efcf76d86838867f","disposition":"used","page_path":"wiki/method/capture-owner-quotes.md","knowledge":"writer, precise time and session provenance"},
+    {"record_id":"cr-526ac5b1659adabe","disposition":"used","page_path":"wiki/method/capture-owner-quotes.md","knowledge":"manual shortening of pasted blocks"},
+    {"record_id":"cr-d0cc9efc0619245c","disposition":"used","page_path":"wiki/method/capture-owner-quotes.md","knowledge":"remove noisy context"},
+    {"record_id":"cr-28ee572c031e1ce9","disposition":"used","page_path":"wiki/method/capture-owner-quotes.md","knowledge":"one chat window, one file"},
+    {"record_id":"cr-709322c9d9b388ba","disposition":"used","page_path":"wiki/method/capture-owner-quotes.md","knowledge":"subagents do not receive owner quotes"},
+    {"record_id":"cr-07c5570aa291ce00","disposition":"used","page_path":"wiki/method/capture-owner-quotes.md","knowledge":"English type/topic labels aid search"},
+    {"record_id":"cr-ead240f06f3f4056","disposition":"used","page_path":"wiki/method/capture-owner-quotes.md","knowledge":"extract what owner said, not pasted text"},
+    {"record_id":"cr-d14718675797fc5f","disposition":"used","page_path":"wiki/method/global-skill-trigger.md","knowledge":"short instruction form"},
+    {"record_id":"cr-44844272055b3fa4","disposition":"used","page_path":"wiki/method/capture-owner-quotes.md","knowledge":"preserve original date in old chat"},
+    {"record_id":"cr-1c066feff9816000","disposition":"rejected","page_path":null,"knowledge":"one-off priority edit lacks reusable subject/action"},
+    {"record_id":"cr-d11297ea9be4a382","disposition":"used","page_path":"wiki/method/global-skill-trigger.md","knowledge":"always-loaded description should be triggerable and short"},
+    {"record_id":"cr-036e14487d4f4aa4","disposition":"rejected","page_path":null,"knowledge":"future reference-file plan lacks standalone durable claim"},
+    {"record_id":"cr-0c56f9b82f11ffc7","disposition":"used","page_path":"wiki/concept/embedding-similarity-boundary.md","knowledge":"embedding search is not semantic-duplicate proof"},
+    {"record_id":"cr-89588d01dee1aacf","disposition":"used","page_path":"wiki/concept/embedding-similarity-boundary.md","knowledge":"global skill carries tool boundary"},
+    {"record_id":"cr-9e42f2995175d537","disposition":"used","page_path":"wiki/concept/embedding-similarity-boundary.md","knowledge":"mathematical similarity differs from semantic search"},
+    {"record_id":"cr-e0cc9eb95585f23d","disposition":"used","page_path":"wiki/method/global-skill-trigger.md","knowledge":"skill keeps only non-obvious delta"},
+    {"record_id":"cr-1d42692df43b815f","disposition":"used","page_path":"wiki/method/capture-owner-quotes.md","knowledge":"topics stay granular and close to discussion"},
+    {"record_id":"cr-3e2fa31aaeff8e35","disposition":"used","page_path":"wiki/method/global-skill-trigger.md","knowledge":"Claude and Codex applicability"},
+    {"record_id":"cr-7cb93d9f82c72fea","disposition":"used","page_path":"wiki/method/global-skill-trigger.md","knowledge":"official skill preference is conditional"}
+  ],
+  "compression": {
+    "measurement_scope": "batch-001 baseline",
+    "source_quote_chars": 5541,
+    "semantic_prose_chars": 2405,
+    "navigation_chars": 1183,
+    "provenance_chars": 3958,
+    "total_markdown_chars": 7546,
+    "semantic_ratio": 0.4340371774048006,
+    "total_markdown_ratio": 1.3618480418696985,
+    "final_expectation": "5-10x across the final cumulative Wiki versus the cumulative quote corpus; not evaluated in batch-001",
+    "gate": "diagnostic only; no per-batch min/max or PASS/FAIL"
+  },
+  "checks": {
+    "json_parse": "PASS",
+    "manifest_membership": "PASS",
+    "exact_10_holders": "PASS",
+    "exact_32_records": "PASS",
+    "f2_sha256": "PASS",
+    "frozen_holder_blob_hashes": "PASS",
+    "chronological_manifest_order": "PASS",
+    "allowed_operations_only": "PASS",
+    "coverage_and_disposition": "PASS",
+    "wiki_write_set": "PASS",
+    "wiki_frontmatter_and_h1": "PASS",
+    "page_type_tests": "PASS",
+    "question_action_boundary": "PASS",
+    "no_shallow_slogan_pages": "PASS",
+    "no_collapsed_distinct_actions": "PASS",
+    "source_links_allowed_and_clickable": "PASS",
+    "no_full_quote_text": "PASS",
+    "no_project_canon_links_or_enrichment": "PASS",
+    "index_entries_and_retrieval_cues": "PASS",
+    "utility_falsifier": "PASS",
+    "writer_findability_self_check": "PASS",
+    "compression": "DIAGNOSTIC_ONLY"
+  },
+  "gaps": [
+    {
+      "kind": "root-acceptance",
+      "status": "open",
+      "detail": "Owner-liked snapshot is recorded, but root snapshot review and separate blind reader starting from index.md are still required."
+    },
+    {
+      "kind": "split-provenance",
+      "status": "explicit",
+      "detail": "Process card and batch input are current-main process inputs; corpus commit 6f98… fixes only ten holder blobs; F2 records are pinned to ea569…; official skill is upstream v0.4.16."
+    },
+    {
+      "kind": "rejected-records",
+      "status": "bounded",
+      "record_ids": ["cr-9e4a0a195f9f977c", "cr-fc5efefa2e142f6d", "cr-1c066feff9816000", "cr-036e14487d4f4aa4"],
+      "detail": "Snapshot model target, personal parallel context, one-off priority edit and future reference-file plan were not materialized as reusable Wiki knowledge."
+    },
+    {
+      "kind": "currentness",
+      "status": "boundary-limited",
+      "detail": "This candidate represents only the supplied batch boundary; no later holder was used as semantic input."
+    },
+    {
+      "kind": "cumulative-compression",
+      "status": "not-evaluated",
+      "detail": "5-10x is a final cumulative expectation across batches, not a batch-001 gate; the recorded chars and ratios are baseline diagnostics only."
+    }
+  ]
+}

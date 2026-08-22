@@ -1,0 +1,159 @@
+{
+  "schema": "openviking-chat-recall/chronological-wiki-changeset.v1",
+  "batch_id": "batch-001",
+  "revision": 2,
+  "prior_candidate_status": "rejected_by_owner",
+  "semantic_gate": "question-action-boundary",
+  "findability_gate": "index-first-retrieval-cue",
+  "processing_order": "manifest holder order, then manifest record order; coverage is authoritative",
+  "allowed_operations": ["create", "no-change", "reject"],
+  "operations": [
+    {
+      "operation_id": "op-001",
+      "operation": "create",
+      "claim_id": "owner-quote-capture",
+      "page_slug": "method/capture-owner-quotes",
+      "page_type": "method",
+      "source_record_ids": [
+        "cr-39cc21a90c49798e",
+        "cr-26bf33cb209aa21e",
+        "cr-42f1d19bfbb686ed",
+        "cr-f94d105dcf39a94e",
+        "cr-fa0e021879c62cf9",
+        "cr-92ba68ae02b88b40",
+        "cr-efcf76d86838867f",
+        "cr-526ac5b1659adabe",
+        "cr-d0cc9efc0619245c",
+        "cr-28ee572c031e1ce9",
+        "cr-709322c9d9b388ba",
+        "cr-07c5570aa291ce00",
+        "cr-ead240f06f3f4056",
+        "cr-44844272055b3fa4",
+        "cr-1d42692df43b815f"
+      ],
+      "reason": "Один исполнимый маршрут сохраняет owner speech: отделяет вставку и интерпретацию, сокращает удалением шума, удерживает исходную дату и source address, границу chat window, writer/time/session provenance и предметные type/topic labels."
+    },
+    {
+      "operation_id": "op-002",
+      "operation": "create",
+      "claim_id": "dated-recall-currentness",
+      "page_slug": "concept/dated-recall-currentness",
+      "page_type": "concept",
+      "source_record_ids": [
+        "cr-db36c02089cee53c",
+        "cr-cd12084caea37373",
+        "cr-411135b8c85edbcd"
+      ],
+      "reason": "Страница различает датированную, потенциально отменяемую находку и автоматическое текущее правило; даёт действие прочитать контекст и границу для поздних повторов."
+    },
+    {
+      "operation_id": "op-003",
+      "operation": "create",
+      "claim_id": "global-skill-trigger",
+      "page_slug": "method/global-skill-trigger",
+      "page_type": "method",
+      "source_record_ids": [
+        "cr-67b75758780bdd03",
+        "cr-22ee623ec7686866",
+        "cr-d14718675797fc5f",
+        "cr-d11297ea9be4a382",
+        "cr-e0cc9eb95585f23d",
+        "cr-3e2fa31aaeff8e35",
+        "cr-7cb93d9f82c72fea"
+      ],
+      "reason": "Метод оставляет в общем skill только non-obvious delta, помещает trigger/action в всегда загруженное description, проверяет Claude/Codex и сохраняет условную границу official-versus-manual."
+    },
+    {
+      "operation_id": "op-004",
+      "operation": "create",
+      "claim_id": "embedding-similarity-boundary",
+      "page_slug": "concept/embedding-similarity-boundary",
+      "page_type": "concept",
+      "source_record_ids": [
+        "cr-0c56f9b82f11ffc7",
+        "cr-89588d01dee1aacf",
+        "cr-9e42f2995175d537"
+      ],
+      "reason": "Страница объясняет различие mathematical similarity и semantic-duplicate proof, требует отдельного evidence перед claim о копии и фиксирует red-line без выдуманного replacement algorithm."
+    },
+    {
+      "operation_id": "op-005",
+      "operation": "create",
+      "claim_id": "wiki-navigation",
+      "page_slug": "index",
+      "page_type": "index",
+      "source_record_ids": [],
+      "reason": "Обязательный index перечисляет четыре active pages понятными вопросами и однострочными retrieval cues; новых semantic claims не добавляет."
+    },
+    {
+      "operation_id": "op-006",
+      "operation": "reject",
+      "claim_id": "snapshot-model-target",
+      "page_slug": null,
+      "page_type": null,
+      "source_record_ids": ["cr-9e4a0a195f9f977c"],
+      "reason": "Model target привязан к snapshot; разрешённые цитаты не доказывают его currentness на batch boundary, поэтому reusable rule не материализован."
+    },
+    {
+      "operation_id": "op-007",
+      "operation": "reject",
+      "claim_id": "personal-parallel-context",
+      "page_slug": null,
+      "page_type": null,
+      "source_record_ids": ["cr-fc5efefa2e142f6d"],
+      "reason": "Личный факт о двух-трёх одновременных разговорах не добавляет независимого durable action; параллельный runtime boundary уже конкретно поддержан другим record."
+    },
+    {
+      "operation_id": "op-008",
+      "operation": "reject",
+      "claim_id": "unspecified-one-off-priority-edit",
+      "page_slug": null,
+      "page_type": null,
+      "source_record_ids": ["cr-1c066feff9816000"],
+      "reason": "Одноразовая коррекция priority flag не называет reusable правило или условие; project file не открывался и дополнительный смысл не выдуман."
+    },
+    {
+      "operation_id": "op-009",
+      "operation": "reject",
+      "claim_id": "reference-file-plan",
+      "page_slug": null,
+      "page_type": null,
+      "source_record_ids": ["cr-036e14487d4f4aa4"],
+      "reason": "Будущий reference-file plan не формулирует самостоятельного durable knowledge unit для текущей Wiki; упомянутый файл не открывался."
+    }
+  ],
+  "coverage": [
+    {"record_id":"cr-39cc21a90c49798e","disposition":"used","reason":"Сохраняет literal owner speech и исходную дату.","operation_ids":["op-001"]},
+    {"record_id":"cr-26bf33cb209aa21e","disposition":"used","reason":"Отделяет owner speech от агентской интерпретации.","operation_ids":["op-001"]},
+    {"record_id":"cr-42f1d19bfbb686ed","disposition":"used","reason":"Ограничивает сокращение удалением шума.","operation_ids":["op-001"]},
+    {"record_id":"cr-f94d105dcf39a94e","disposition":"used","reason":"Фиксирует recall storage surface для метода capture.","operation_ids":["op-001"]},
+    {"record_id":"cr-67b75758780bdd03","disposition":"used","reason":"Объясняет global scope skill.","operation_ids":["op-003"]},
+    {"record_id":"cr-9e4a0a195f9f977c","disposition":"rejected","reason":"Snapshot model target без доказанной currentness.","operation_ids":["op-006"]},
+    {"record_id":"cr-db36c02089cee53c","disposition":"used","reason":"Показывает, почему будущая идея остаётся отменяемой находкой.","operation_ids":["op-002"]},
+    {"record_id":"cr-22ee623ec7686866","disposition":"used","reason":"Задаёт callers: Codex, Claude и parallel agents.","operation_ids":["op-003"]},
+    {"record_id":"cr-fc5efefa2e142f6d","disposition":"rejected","reason":"Личный параллельный контекст не меняет действие Wiki.","operation_ids":["op-007"]},
+    {"record_id":"cr-fa0e021879c62cf9","disposition":"used","reason":"Объясняет, зачем сохранять иначе забываемый контекст.","operation_ids":["op-001"]},
+    {"record_id":"cr-cd12084caea37373","disposition":"used","reason":"Ограничивает автоматическое влияние старой датированной записи.","operation_ids":["op-002"]},
+    {"record_id":"cr-411135b8c85edbcd","disposition":"used","reason":"Даёт позднему повтору действие пересмотреть инструкцию.","operation_ids":["op-002"]},
+    {"record_id":"cr-92ba68ae02b88b40","disposition":"used","reason":"Задаёт классификацию type/topic при capture.","operation_ids":["op-001"]},
+    {"record_id":"cr-efcf76d86838867f","disposition":"used","reason":"Поддерживает writer, точное время и session provenance.","operation_ids":["op-001"]},
+    {"record_id":"cr-526ac5b1659adabe","disposition":"used","reason":"Поддерживает ручное вычленение важного из больших вставок.","operation_ids":["op-001"]},
+    {"record_id":"cr-d0cc9efc0619245c","disposition":"used","reason":"Обосновывает удаление шумового наполнения.","operation_ids":["op-001"]},
+    {"record_id":"cr-28ee572c031e1ce9","disposition":"used","reason":"Задаёт один файл на одно chat window.","operation_ids":["op-001"]},
+    {"record_id":"cr-709322c9d9b388ba","disposition":"used","reason":"Задаёт границу: subagent не получает owner quotes.","operation_ids":["op-001"]},
+    {"record_id":"cr-07c5570aa291ce00","disposition":"used","reason":"Делает type/topic retrievable labels.","operation_ids":["op-001"]},
+    {"record_id":"cr-ead240f06f3f4056","disposition":"used","reason":"Повторно фиксирует owner speech вместо pasted text.","operation_ids":["op-001"]},
+    {"record_id":"cr-d14718675797fc5f","disposition":"used","reason":"Поддерживает короткую форму инструкции без filler.","operation_ids":["op-003"]},
+    {"record_id":"cr-44844272055b3fa4","disposition":"used","reason":"Требует исходную дату для старого чата.","operation_ids":["op-001"]},
+    {"record_id":"cr-1c066feff9816000","disposition":"rejected","reason":"Разовая priority-коррекция без reusable subject/action.","operation_ids":["op-008"]},
+    {"record_id":"cr-d11297ea9be4a382","disposition":"used","reason":"Description всегда загружено и должно повышать triggerability через короткий trigger/action.","operation_ids":["op-003"]},
+    {"record_id":"cr-036e14487d4f4aa4","disposition":"rejected","reason":"Будущий reference-file plan без самостоятельного durable claim.","operation_ids":["op-009"]},
+    {"record_id":"cr-0c56f9b82f11ffc7","disposition":"used","reason":"Запрещает использовать embedding search как semantic-duplicate proof.","operation_ids":["op-004"]},
+    {"record_id":"cr-89588d01dee1aacf","disposition":"used","reason":"Фиксирует global skill/tool boundary для embedding knowledge.","operation_ids":["op-004"]},
+    {"record_id":"cr-9e42f2995175d537","disposition":"used","reason":"Различает mathematical similarity и semantic search.","operation_ids":["op-004"]},
+    {"record_id":"cr-e0cc9eb95585f23d","disposition":"used","reason":"Оставляет в skill только non-obvious delta.","operation_ids":["op-003"]},
+    {"record_id":"cr-1d42692df43b815f","disposition":"used","reason":"Требует granular topic близко к предмету разговора.","operation_ids":["op-001"]},
+    {"record_id":"cr-3e2fa31aaeff8e35","disposition":"used","reason":"Требует применимость для Claude и Codex.","operation_ids":["op-003"]},
+    {"record_id":"cr-7cb93d9f82c72fea","disposition":"used","reason":"Поддерживает conditional preference official skill over manual duplicate.","operation_ids":["op-003"]}
+  ]
+}

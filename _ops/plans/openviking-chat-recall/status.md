@@ -13,15 +13,15 @@ kind: status
 
 ## Next
 
-Дождаться owner-authorized Wave 6c probe в видимой Codex-задаче
-`01a026fe-70a0-78d1-abad-12387192465e`: одна Luna Max получает первые 10
-полных frozen holders одним chronological batch — 32 `used` records, 0
-diagnostics — и пишет typed changeset плюс первый candidate Wiki checkpoint
-прямо в изолированный `batch-001`, без worktree и commit. Root проверяет exact
-coverage, source-quote provenance, отсутствие project corpus enrichment/history,
-semantic compression ≤ 0.20 и replay boundary. Parallel writers и следующий
-batch закрыты до этого verdict. Provider F4 остаётся `UNKNOWN`; probe не
-является permission на full backfill.
+Продолжить ту же видимую Codex-задачу
+`01a026fe-70a0-78d1-abad-12387192465e` на chronological batch-002: следующие
+10 полных frozen holders, 20 records, 0 diagnostics. Luna Max читает текущую
+Wiki из принятого batch-001 checkpoint и переписывает её in place; новая
+страница допускается только для нового durable retrieval-вопроса. Root
+фиксирует batch-002 manifest и prior checkpoint до запуска. Отдельный blind
+reader начинает с `index.md` и проверяет быстрый выбор страницы; writer
+self-check приёмкой не является. Compression каждого batch только diagnostic;
+5–10× оценивается после полного corpus backfill.
 
 ## Вехи
 
@@ -49,7 +49,8 @@ batch закрыты до этого verdict. Provider F4 остаётся `UNKN
   modules/_returns/fresh-eyes-distilled-knowledge.md.
 - Последняя коррекция владельца уточнила topology и lifecycle: Wiki ссылается
   на quotes, но не на project knowledge files; хранит только переписываемый
-  актуальный итог и ожидается в 5–10 раз меньше quote corpus. Holder —
+  актуальный итог. 5–10× — ожидаемый cumulative эффект полного backfill, не
+  gate batch-ей или terminal acceptance. Holder —
   `_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md`.
 - Acceptance lock интегрирован commit a77fc4c: пять cases и hard failures
   зафиксированы до принятия candidate Wiki.
@@ -193,7 +194,7 @@ provider repair снят с текущей траектории после Fresh
 | Волна | Результат | Dependency | State |
 | --- | --- | --- | --- |
 | 6 | frozen snapshot, deterministic records, stable partitions; provider gate separate | accepted Wave 5 semantic contract + explicit corpus commit | deterministic F1/F2/F3 PASS; provider F4 UNKNOWN; F4-R1 rejected |
-| 6c | first chronological serial changeset + candidate Wiki checkpoint | accepted F1–F3 + explicit owner authorization | visible Luna Max task `01a026fe-70a0-78d1-abad-12387192465e` active; no worktree |
+| 6c | first chronological serial changeset + candidate Wiki checkpoint | accepted F1–F3 + explicit owner authorization | owner-liked Wiki `6ab9cb9`; root structural/provenance PASS; same visible Luna task continues batch-002; blind reader pending |
 | 6b | representative input-lock, затем L2/L1/L0 + matched utility | F1–F3 for input-lock; accepted provider/privacy PASS for semantic execution | root-owned input-lock ready; Luna semantic batch blocked |
 | 7 | semantic candidates и canonical current claims | Wave 6b utility PASS | planned |
 | 8 | typed L2 pages, per-part validation и root catalog | Wave 7 pass | planned |
