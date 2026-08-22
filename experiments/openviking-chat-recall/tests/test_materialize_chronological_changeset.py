@@ -272,6 +272,104 @@ class MaterializeChronologicalChangesetTests(unittest.TestCase):
             "accepted_sha": _sha(changeset_raw),
         }
 
+    def _upgrade_to_v4(self, fixture: dict) -> None:
+        repo = fixture["repo"]
+        manifest_value = json.loads(fixture["manifest"].read_text(encoding="utf-8"))
+        manifest_value["batch_id"] = "batch-004"
+        manifest_value["previous_batch_id"] = "batch-003"
+        manifest_path = repo / "artifacts/chronological-pilot/batch-004-input.json"
+        manifest_raw = _json_bytes(manifest_value)
+        manifest_path.write_bytes(manifest_raw)
+
+        changeset = copy.deepcopy(fixture["changeset_value"])
+        changeset["schema"] = "openviking-chat-recall/chronological-wiki-changeset.v4"
+        changeset["batch_id"] = "batch-004"
+        changeset["previous_batch_id"] = "batch-003"
+        changeset["input"]["manifest_path"] = manifest_path.relative_to(repo).as_posix()
+        changeset["input"]["manifest_sha256"] = _sha(manifest_raw)
+
+        allocation = {
+            "schema": "openviking-chat-recall/chronological-wiki-allocation.v1",
+            "status": "accepted",
+            "batch_id": "batch-004",
+            "manifest_path": manifest_path.relative_to(repo).as_posix(),
+            "manifest_sha256": _sha(manifest_raw),
+            "evidence_records_sha256": changeset["input"][
+                "evidence_records_sha256"
+            ],
+            "prior_wiki_tree_sha256": changeset["prior_checkpoint"][
+                "wiki_tree_sha256_target"
+            ],
+            "pages": [
+                {
+                    "operation": "update",
+                    "page_path": "current/wiki/method/owner-quotes.md",
+                    "page_type": "method",
+                    "h1": "Как сохранять owner quotes?",
+                },
+                {
+                    "operation": "create",
+                    "page_path": "current/wiki/method/global-instruction.md",
+                    "page_type": "method",
+                    "h1": "Как писать глобальную инструкцию?",
+                },
+            ],
+            "records": [
+                {
+                    "record_id": "cr-0000000000000001",
+                    "source_address": "_ops/chat-recall/a.md:15",
+                    "source_owner": "owner",
+                    "source_scope": "agentic-research",
+                    "disposition": "used",
+                    "target_page_path": "current/wiki/method/owner-quotes.md",
+                    "reason": "Updates the owner-quote page.",
+                },
+                {
+                    "record_id": "cr-0000000000000002",
+                    "source_address": "_ops/chat-recall/b.md:16",
+                    "source_owner": "owner",
+                    "source_scope": "agentic-research",
+                    "disposition": "used",
+                    "target_page_path": "current/wiki/method/global-instruction.md",
+                    "reason": "Creates the global-instruction page.",
+                },
+            ],
+        }
+        allocation_path = fixture["changeset"].parent / "allocation.json"
+        allocation_raw = _json_bytes(allocation)
+        allocation_path.write_bytes(allocation_raw)
+        allocation_sha = _sha(allocation_raw)
+        changeset["input"]["allocation_path"] = allocation_path.relative_to(repo).as_posix()
+        changeset["input"]["allocation_sha256"] = allocation_sha
+
+        changeset_raw = _json_bytes(changeset)
+        fixture.update(
+            {
+                "manifest": manifest_path,
+                "changeset_value": changeset,
+                "accepted_sha": _sha(changeset_raw),
+                "allocation": allocation_path,
+                "allocation_value": allocation,
+                "accepted_allocation_sha": allocation_sha,
+            }
+        )
+        fixture["changeset"].write_bytes(changeset_raw)
+
+    def _write_changeset(self, fixture: dict, changeset: dict) -> None:
+        raw = _json_bytes(changeset)
+        fixture["changeset"].write_bytes(raw)
+        fixture["changeset_value"] = changeset
+        fixture["accepted_sha"] = _sha(raw)
+
+    def _write_allocation(self, fixture: dict, allocation: dict) -> None:
+        raw = _json_bytes(allocation)
+        fixture["allocation"].write_bytes(raw)
+        fixture["allocation_value"] = allocation
+        fixture["accepted_allocation_sha"] = _sha(raw)
+        changeset = copy.deepcopy(fixture["changeset_value"])
+        changeset["input"]["allocation_sha256"] = _sha(raw)
+        self._write_changeset(fixture, changeset)
+
     @staticmethod
     def _snapshot(root: Path) -> dict[str, bytes]:
         return {
@@ -289,6 +387,8 @@ class MaterializeChronologicalChangesetTests(unittest.TestCase):
             wiki_root=fixture["wiki"],
             receipt_path=fixture["receipt"],
             accepted_changeset_sha256=fixture["accepted_sha"],
+            allocation_path=fixture.get("allocation"),
+            accepted_allocation_sha256=fixture.get("accepted_allocation_sha"),
             dry_run=dry_run,
         )
 
@@ -325,6 +425,140 @@ class MaterializeChronologicalChangesetTests(unittest.TestCase):
             for operation in changeset["operations"]:
                 target = fixture["wiki"] / Path(operation["page_path"]).relative_to("current/wiki")
                 self.assertEqual(target.read_text(encoding="utf-8"), operation["proposed_content"])
+
+    def test_v3_batch_004_is_rejected_before_write(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            fixture = self._fixture(Path(temp_dir))
+            before = self._snapshot(fixture["wiki"])
+            changeset = copy.deepcopy(fixture["changeset_value"])
+            changeset["batch_id"] = "batch-004"
+            self._write_changeset(fixture, changeset)
+
+            with self.assertRaisesRegex(
+                materializer.MaterializationError,
+                "v3 changeset is supported only for batch-003",
+            ):
+                self._materialize(fixture)
+            self.assertEqual(before, self._snapshot(fixture["wiki"]))
+            self.assertFalse(fixture["receipt"].exists())
+
+    def test_v4_allocation_dry_run_and_materialization_pass(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            fixture = self._fixture(Path(temp_dir))
+            self._upgrade_to_v4(fixture)
+
+            dry_receipt = self._materialize(fixture, dry_run=True)
+            self.assertEqual(
+                dry_receipt["schema"],
+                "openviking-chat-recall/chronological-wiki-receipt.v4",
+            )
+            self.assertEqual(
+                dry_receipt["source_snapshot"]["allocation_path"],
+                fixture["allocation"].relative_to(fixture["repo"]).as_posix(),
+            )
+            self.assertEqual(
+                dry_receipt["source_snapshot"]["allocation_sha256"],
+                fixture["accepted_allocation_sha"],
+            )
+            self.assertFalse(fixture["receipt"].exists())
+
+            receipt = self._materialize(fixture)
+            self.assertEqual(receipt, json.loads(fixture["receipt"].read_text()))
+            self.assertEqual(
+                receipt["tree_digest"]["after"]["sha256"],
+                materializer.tree_digest(fixture["wiki"])[0],
+            )
+
+    def test_v4_requires_allocation_arguments_before_write(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            fixture = self._fixture(Path(temp_dir))
+            self._upgrade_to_v4(fixture)
+            before = self._snapshot(fixture["wiki"])
+            fixture.pop("allocation")
+            fixture.pop("accepted_allocation_sha")
+
+            with self.assertRaisesRegex(
+                materializer.MaterializationError,
+                "v4 changeset requires allocation_path",
+            ):
+                self._materialize(fixture)
+            self.assertEqual(before, self._snapshot(fixture["wiki"]))
+            self.assertFalse(fixture["receipt"].exists())
+
+    def test_v4_rejects_semantic_record_moved_off_allocated_target(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            fixture = self._fixture(Path(temp_dir))
+            self._upgrade_to_v4(fixture)
+            before = self._snapshot(fixture["wiki"])
+            changeset = copy.deepcopy(fixture["changeset_value"])
+            owner_operation = changeset["operations"][0]
+            instruction_operation = changeset["operations"][1]
+            moved_record_id = "cr-0000000000000002"
+
+            owner_operation["record_ids"].append(moved_record_id)
+            moved_claim = copy.deepcopy(instruction_operation["material_claims"][0])
+            moved_claim["page_fit"]["page_question"] = "Как сохранять owner quotes?"
+            owner_operation["material_claims"].append(moved_claim)
+            owner_content = owner_operation["proposed_content"] + (
+                "- [instruction source](../../../../../_ops/chat-recall/b.md#L16)\n"
+            )
+            owner_operation["proposed_content"] = owner_content
+            owner_operation["proposed_sha256"] = _sha(owner_content.encode("utf-8"))
+
+            instruction_content = instruction_operation["proposed_content"].replace(
+                "- [source](../../../../../_ops/chat-recall/b.md#L16)\n", ""
+            )
+            instruction_operation["proposed_content"] = instruction_content
+            instruction_operation["proposed_sha256"] = _sha(
+                instruction_content.encode("utf-8")
+            )
+            instruction_operation["record_ids"] = []
+            instruction_operation["material_claims"] = []
+            changeset["coverage"][1]["page_path"] = (
+                "current/wiki/method/owner-quotes.md"
+            )
+            self._write_changeset(fixture, changeset)
+
+            with self.assertRaisesRegex(
+                materializer.MaterializationError,
+                "allocation target mismatch",
+            ):
+                self._materialize(fixture)
+            self.assertEqual(before, self._snapshot(fixture["wiki"]))
+            self.assertFalse(fixture["receipt"].exists())
+
+    def test_v4_allocation_hash_path_h1_and_disposition_drift_fail_before_write(self) -> None:
+        for mode, message in (
+            ("hash", "accepted allocation SHA mismatch"),
+            ("path", "allocation path does not match changeset input"),
+            ("h1", "allocation page map does not match"),
+            ("disposition", "allocation disposition does not match coverage"),
+        ):
+            with self.subTest(mode=mode), tempfile.TemporaryDirectory() as temp_dir:
+                fixture = self._fixture(Path(temp_dir))
+                self._upgrade_to_v4(fixture)
+                before = self._snapshot(fixture["wiki"])
+                if mode == "hash":
+                    fixture["accepted_allocation_sha"] = "0" * 64
+                elif mode == "path":
+                    changeset = copy.deepcopy(fixture["changeset_value"])
+                    changeset["input"]["allocation_path"] = (
+                        "artifacts/chronological-pilot/batch-004/wrong.json"
+                    )
+                    self._write_changeset(fixture, changeset)
+                else:
+                    allocation = copy.deepcopy(fixture["allocation_value"])
+                    if mode == "h1":
+                        allocation["pages"][1]["h1"] = "Другая страница?"
+                    else:
+                        allocation["records"][1]["disposition"] = "skipped"
+                        allocation["records"][1]["target_page_path"] = None
+                    self._write_allocation(fixture, allocation)
+
+                with self.assertRaisesRegex(materializer.MaterializationError, message):
+                    self._materialize(fixture)
+                self.assertEqual(before, self._snapshot(fixture["wiki"]))
+                self.assertFalse(fixture["receipt"].exists())
 
     def test_v2_or_missing_page_fit_fails_before_write(self) -> None:
         for mutation, message in (

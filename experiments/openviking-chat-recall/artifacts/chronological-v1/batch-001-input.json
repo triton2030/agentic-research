@@ -1,0 +1,599 @@
+{
+  "batch_id": "batch-001",
+  "corpus_commit": "6f98fcccdbf4b4de45ef787239ad101f70d106e2",
+  "counts": {
+    "cumulative_diagnostic_record_count": 0,
+    "cumulative_holder_count": 10,
+    "cumulative_record_count": 32,
+    "cumulative_source_quote_chars": 5541,
+    "cumulative_source_quote_utf8_bytes": 10079,
+    "diagnostic_record_count": 0,
+    "holder_count": 10,
+    "record_count": 32,
+    "source_quote_chars": 5541,
+    "source_quote_utf8_bytes": 10079
+  },
+  "evidence_commit": "ea569e2bf84377b17be9177065d5fb9172d26d39",
+  "evidence_records_sha256": "868ffff05768e4ebac6893436141e99493e0582b6738845350b2aa805e99d69d",
+  "holders": [
+    {
+      "max_timestamp_utc": "2026-07-22T06:01:00+00:00",
+      "min_timestamp_utc": "2026-07-22T05:55:00+00:00",
+      "record_ids": [
+        "cr-39cc21a90c49798e",
+        "cr-26bf33cb209aa21e",
+        "cr-42f1d19bfbb686ed",
+        "cr-f94d105dcf39a94e",
+        "cr-67b75758780bdd03",
+        "cr-9e4a0a195f9f977c"
+      ],
+      "source_blob_sha256": "fedd9654d668bec581e25b9d1aed3ec7a2ae621bbcb6480f133c67351247ecc8",
+      "source_path": "_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md"
+    },
+    {
+      "max_timestamp_utc": "2026-07-22T06:55:20+00:00",
+      "min_timestamp_utc": "2026-07-22T06:13:00+00:00",
+      "record_ids": [
+        "cr-db36c02089cee53c",
+        "cr-22ee623ec7686866",
+        "cr-fc5efefa2e142f6d",
+        "cr-fa0e021879c62cf9",
+        "cr-cd12084caea37373",
+        "cr-411135b8c85edbcd",
+        "cr-92ba68ae02b88b40",
+        "cr-efcf76d86838867f",
+        "cr-526ac5b1659adabe",
+        "cr-d0cc9efc0619245c",
+        "cr-28ee572c031e1ce9",
+        "cr-709322c9d9b388ba",
+        "cr-07c5570aa291ce00"
+      ],
+      "source_blob_sha256": "d4df45e70af4ae373f999407d0774c750ac2e2ddba9a5795fcd395d52649e326",
+      "source_path": "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md"
+    },
+    {
+      "max_timestamp_utc": "2026-07-22T07:09:50.183000+00:00",
+      "min_timestamp_utc": "2026-07-22T07:09:50.183000+00:00",
+      "record_ids": [
+        "cr-ead240f06f3f4056"
+      ],
+      "source_blob_sha256": "a90f240bfcbedc2c9771f2ec94d2f8e1b949d0e99e74f73f437dba5a1b308725",
+      "source_path": "_ops/chat-recall/2026-07-22-121239-codex-019f889f.md"
+    },
+    {
+      "max_timestamp_utc": "2026-07-23T06:47:21+00:00",
+      "min_timestamp_utc": "2026-07-23T06:47:21+00:00",
+      "record_ids": [
+        "cr-d14718675797fc5f"
+      ],
+      "source_blob_sha256": "e47a0b0f1c7a4558b2fc0c0a8291729d6a44ef3ad4c62f5ba1dec8cb55ce7023",
+      "source_path": "_ops/chat-recall/2026-07-23-114721-claude-67208f21.md"
+    },
+    {
+      "max_timestamp_utc": "2026-07-25T07:47:28.106000+00:00",
+      "min_timestamp_utc": "2026-07-25T07:47:28.106000+00:00",
+      "record_ids": [
+        "cr-44844272055b3fa4"
+      ],
+      "source_blob_sha256": "dd81f55cd9c765e99243993165b02255b64588e447dec8ff70457b2c30cd9a18",
+      "source_path": "_ops/chat-recall/2026-07-25-124728-codex-019f983d.md"
+    },
+    {
+      "max_timestamp_utc": "2026-07-25T08:48:29.097000+00:00",
+      "min_timestamp_utc": "2026-07-25T08:48:29.097000+00:00",
+      "record_ids": [
+        "cr-1c066feff9816000"
+      ],
+      "source_blob_sha256": "66746a18716cdfabaff8728d85dc07f70f1929e78e48408140e7f9b6fdae6a04",
+      "source_path": "_ops/chat-recall/2026-07-25-134829-claude-d96a2888.md"
+    },
+    {
+      "max_timestamp_utc": "2026-07-26T11:57:22.239000+00:00",
+      "min_timestamp_utc": "2026-07-26T11:35:21.115000+00:00",
+      "record_ids": [
+        "cr-d11297ea9be4a382",
+        "cr-036e14487d4f4aa4"
+      ],
+      "source_blob_sha256": "39486a82075a24b620dda59698baa7c24f8a285c5bd0ed0136ab30a0b46db753",
+      "source_path": "_ops/chat-recall/2026-07-26-163521-claude-bddf1411.md"
+    },
+    {
+      "max_timestamp_utc": "2026-07-26T12:22:12.793000+00:00",
+      "min_timestamp_utc": "2026-07-26T11:34:13.444000+00:00",
+      "record_ids": [
+        "cr-0c56f9b82f11ffc7",
+        "cr-89588d01dee1aacf",
+        "cr-9e42f2995175d537",
+        "cr-e0cc9eb95585f23d"
+      ],
+      "source_blob_sha256": "39cec94ecb34848db4b9dd7b065dfd06f3efeb82df91bd30e0620213c6dc189b",
+      "source_path": "_ops/chat-recall/2026-07-26-163413-claude-2be60fdc.md"
+    },
+    {
+      "max_timestamp_utc": "2026-07-26T12:43:26.575000+00:00",
+      "min_timestamp_utc": "2026-07-26T12:43:26.575000+00:00",
+      "record_ids": [
+        "cr-1d42692df43b815f"
+      ],
+      "source_blob_sha256": "3773514bb39dcc642874ebdd1b822f7608ef3a490980674172552344c6746b26",
+      "source_path": "_ops/chat-recall/2026-07-26-174326-codex-019f9e61.md"
+    },
+    {
+      "max_timestamp_utc": "2026-07-26T13:05:18.283000+00:00",
+      "min_timestamp_utc": "2026-07-26T13:05:18.283000+00:00",
+      "record_ids": [
+        "cr-3e2fa31aaeff8e35",
+        "cr-7cb93d9f82c72fea"
+      ],
+      "source_blob_sha256": "0f347c360d7dfdc0dc9cf272c288cba6436fe5d571789eb00fbe52d0280d6de7",
+      "source_path": "_ops/chat-recall/2026-07-26-180518-claude-fa590eea.md"
+    }
+  ],
+  "materializer": {
+    "path": "experiments/openviking-chat-recall/scripts/materialize_chronological_changeset.py",
+    "sha256": "aba2076d6c8848f31fb2f1f841148be2ce15f99df89686456d1f3465af9675cb"
+  },
+  "ordering": {
+    "batch_size": 10,
+    "holder_key": "maximum normalized record timestamp",
+    "holder_split": false,
+    "naive_timestamp_timezone": "Asia/Almaty",
+    "normalized_timezone": "UTC",
+    "record_key": "source_line then record_id",
+    "tie_break": "source_path"
+  },
+  "output": {
+    "changeset_path": "experiments/openviking-chat-recall/artifacts/chronological-v1/batch-001/changeset.json",
+    "changeset_schema": "openviking-chat-recall/chronological-wiki-changeset.v5",
+    "output_contract": {
+      "candidate_only": true,
+      "coverage": {
+        "dispositions": [
+          "used",
+          "reject",
+          "skipped"
+        ],
+        "fields": [
+          "record_id",
+          "disposition",
+          "reason"
+        ],
+        "order": "exact frozen_record_ids_in_manifest_order",
+        "used_adds": [
+          "page_path"
+        ]
+      },
+      "evidence_metadata": {
+        "repetition_group": [
+          "group_id",
+          "statement",
+          "record_ids",
+          "occurrence_count",
+          "first_record_id",
+          "latest_record_id"
+        ],
+        "required": [
+          "repetition_groups",
+          "unresolved_conflicts"
+        ],
+        "unresolved_conflict": [
+          "statement",
+          "record_ids"
+        ]
+      },
+      "fixed_values": {
+        "allowed_operations": [
+          "create",
+          "update",
+          "supersede",
+          "no-change",
+          "reject"
+        ],
+        "model": "gpt-5.6-luna",
+        "phase": "semantic-draft",
+        "schema": "openviking-chat-recall/chronological-wiki-changeset.v5",
+        "status": "candidate",
+        "thinking": "max"
+      },
+      "index": {
+        "material_claims": [],
+        "page_path": "current/wiki/index.md",
+        "page_type": "index",
+        "record_ids": []
+      },
+      "input_echoes": [
+        "manifest_path",
+        "manifest_sha256",
+        "evidence_records_path",
+        "evidence_records_sha256",
+        "corpus_commit",
+        "evidence_commit",
+        "time_boundary_utc",
+        "prompt_path",
+        "prompt_sha256",
+        "materializer_path",
+        "materializer_sha256",
+        "output_contract_sha256"
+      ],
+      "material_claim": [
+        "claim_id",
+        "statement",
+        "epistemic_kind",
+        "supporting_record_ids",
+        "page_fit.page_question",
+        "page_fit.answering_record_ids",
+        "page_fit.reason"
+      ],
+      "operation": {
+        "common": [
+          "operation",
+          "record_ids"
+        ],
+        "create_update": [
+          "page_path",
+          "page_type",
+          "prior_sha256",
+          "proposed_content",
+          "proposed_sha256",
+          "material_claims",
+          "prior_page_review"
+        ],
+        "no_change": [
+          "page_path",
+          "page_type",
+          "prior_sha256",
+          "material_claims",
+          "prior_page_review"
+        ],
+        "reject": [
+          "operation",
+          "record_ids"
+        ],
+        "split_encoding": "exactly one update|supersede and one or more create operations share one non-empty split_group_id",
+        "supersede": [
+          "page_path",
+          "page_type",
+          "prior_sha256",
+          "material_claims",
+          "prior_page_review"
+        ]
+      },
+      "source_links": "copy record_bindings[].source_link_target exactly",
+      "top_level_required": [
+        "schema",
+        "phase",
+        "status",
+        "batch_id",
+        "previous_batch_id",
+        "model",
+        "thinking",
+        "input",
+        "prior_checkpoint",
+        "allowed_operations",
+        "frozen_record_ids_in_manifest_order",
+        "operations",
+        "coverage",
+        "evidence_metadata",
+        "gaps"
+      ]
+    },
+    "output_contract_sha256": "87a181226bdfa16a98b20d6eec43a3298c74f335fab43766e817bf7461e02b19"
+  },
+  "preflight_receipt_path": "experiments/openviking-chat-recall/artifacts/chronological-v1/batch-001/preflight.json",
+  "previous_batch_id": null,
+  "prior_checkpoint": {
+    "accepted_prior_commit": null,
+    "wiki_root": "experiments/openviking-chat-recall/artifacts/chronological-v1/current/wiki",
+    "wiki_tree_sha256_target": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "prompt": {
+    "path": "experiments/openviking-chat-recall/prompts/wiki-writer.v1.md",
+    "sha256": "3fd3ff7748c71f2e6d8e8cc06aebd898b1992c3c6a242bb021fe3f1ff08897d3"
+  },
+  "record_bindings": [
+    {
+      "record_id": "cr-39cc21a90c49798e",
+      "sort_timestamp": "2026-07-22T10:55",
+      "source_address": "_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md:20",
+      "source_line": 20,
+      "source_link_target": "../../../../../../../_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md#L20",
+      "source_path": "_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md"
+    },
+    {
+      "record_id": "cr-26bf33cb209aa21e",
+      "sort_timestamp": "2026-07-22T10:55",
+      "source_address": "_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md:21",
+      "source_line": 21,
+      "source_link_target": "../../../../../../../_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md#L21",
+      "source_path": "_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md"
+    },
+    {
+      "record_id": "cr-42f1d19bfbb686ed",
+      "sort_timestamp": "2026-07-22T10:55",
+      "source_address": "_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md:22",
+      "source_line": 22,
+      "source_link_target": "../../../../../../../_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md#L22",
+      "source_path": "_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md"
+    },
+    {
+      "record_id": "cr-f94d105dcf39a94e",
+      "sort_timestamp": "2026-07-22T10:55",
+      "source_address": "_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md:23",
+      "source_line": 23,
+      "source_link_target": "../../../../../../../_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md#L23",
+      "source_path": "_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md"
+    },
+    {
+      "record_id": "cr-67b75758780bdd03",
+      "sort_timestamp": "2026-07-22T10:55",
+      "source_address": "_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md:24",
+      "source_line": 24,
+      "source_link_target": "../../../../../../../_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md#L24",
+      "source_path": "_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md"
+    },
+    {
+      "record_id": "cr-9e4a0a195f9f977c",
+      "sort_timestamp": "2026-07-22T11:01",
+      "source_address": "_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md:25",
+      "source_line": 25,
+      "source_link_target": "../../../../../../../_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md#L25",
+      "source_path": "_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md"
+    },
+    {
+      "record_id": "cr-db36c02089cee53c",
+      "sort_timestamp": "2026-07-22T11:13",
+      "source_address": "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md:21",
+      "source_line": 21,
+      "source_link_target": "../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L21",
+      "source_path": "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md"
+    },
+    {
+      "record_id": "cr-22ee623ec7686866",
+      "sort_timestamp": "2026-07-22T11:13",
+      "source_address": "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md:22",
+      "source_line": 22,
+      "source_link_target": "../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L22",
+      "source_path": "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md"
+    },
+    {
+      "record_id": "cr-fc5efefa2e142f6d",
+      "sort_timestamp": "2026-07-22T11:13",
+      "source_address": "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md:23",
+      "source_line": 23,
+      "source_link_target": "../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L23",
+      "source_path": "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md"
+    },
+    {
+      "record_id": "cr-fa0e021879c62cf9",
+      "sort_timestamp": "2026-07-22T11:13",
+      "source_address": "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md:24",
+      "source_line": 24,
+      "source_link_target": "../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L24",
+      "source_path": "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md"
+    },
+    {
+      "record_id": "cr-cd12084caea37373",
+      "sort_timestamp": "2026-07-22T11:13",
+      "source_address": "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md:25",
+      "source_line": 25,
+      "source_link_target": "../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L25",
+      "source_path": "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md"
+    },
+    {
+      "record_id": "cr-411135b8c85edbcd",
+      "sort_timestamp": "2026-07-22T11:13",
+      "source_address": "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md:26",
+      "source_line": 26,
+      "source_link_target": "../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L26",
+      "source_path": "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md"
+    },
+    {
+      "record_id": "cr-92ba68ae02b88b40",
+      "sort_timestamp": "2026-07-22T11:13",
+      "source_address": "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md:27",
+      "source_line": 27,
+      "source_link_target": "../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L27",
+      "source_path": "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md"
+    },
+    {
+      "record_id": "cr-efcf76d86838867f",
+      "sort_timestamp": "2026-07-22T11:16",
+      "source_address": "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md:28",
+      "source_line": 28,
+      "source_link_target": "../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L28",
+      "source_path": "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md"
+    },
+    {
+      "record_id": "cr-526ac5b1659adabe",
+      "sort_timestamp": "2026-07-22T11:20",
+      "source_address": "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md:29",
+      "source_line": 29,
+      "source_link_target": "../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L29",
+      "source_path": "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md"
+    },
+    {
+      "record_id": "cr-d0cc9efc0619245c",
+      "sort_timestamp": "2026-07-22T11:20",
+      "source_address": "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md:30",
+      "source_line": 30,
+      "source_link_target": "../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L30",
+      "source_path": "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md"
+    },
+    {
+      "record_id": "cr-28ee572c031e1ce9",
+      "sort_timestamp": "2026-07-22T11:39:33",
+      "source_address": "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md:31",
+      "source_line": 31,
+      "source_link_target": "../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L31",
+      "source_path": "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md"
+    },
+    {
+      "record_id": "cr-709322c9d9b388ba",
+      "sort_timestamp": "2026-07-22T11:44:23",
+      "source_address": "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md:32",
+      "source_line": 32,
+      "source_link_target": "../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L32",
+      "source_path": "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md"
+    },
+    {
+      "record_id": "cr-07c5570aa291ce00",
+      "sort_timestamp": "2026-07-22T11:55:20",
+      "source_address": "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md:33",
+      "source_line": 33,
+      "source_link_target": "../../../../../../../_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md#L33",
+      "source_path": "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md"
+    },
+    {
+      "record_id": "cr-ead240f06f3f4056",
+      "sort_timestamp": "2026-07-22T07:09:50.183000+00:00",
+      "source_address": "_ops/chat-recall/2026-07-22-121239-codex-019f889f.md:16",
+      "source_line": 16,
+      "source_link_target": "../../../../../../../_ops/chat-recall/2026-07-22-121239-codex-019f889f.md#L16",
+      "source_path": "_ops/chat-recall/2026-07-22-121239-codex-019f889f.md"
+    },
+    {
+      "record_id": "cr-d14718675797fc5f",
+      "sort_timestamp": "2026-07-23T11:47:21",
+      "source_address": "_ops/chat-recall/2026-07-23-114721-claude-67208f21.md:15",
+      "source_line": 15,
+      "source_link_target": "../../../../../../../_ops/chat-recall/2026-07-23-114721-claude-67208f21.md#L15",
+      "source_path": "_ops/chat-recall/2026-07-23-114721-claude-67208f21.md"
+    },
+    {
+      "record_id": "cr-44844272055b3fa4",
+      "sort_timestamp": "2026-07-25T07:47:28.106000+00:00",
+      "source_address": "_ops/chat-recall/2026-07-25-124728-codex-019f983d.md:15",
+      "source_line": 15,
+      "source_link_target": "../../../../../../../_ops/chat-recall/2026-07-25-124728-codex-019f983d.md#L15",
+      "source_path": "_ops/chat-recall/2026-07-25-124728-codex-019f983d.md"
+    },
+    {
+      "record_id": "cr-1c066feff9816000",
+      "sort_timestamp": "2026-07-25T08:48:29.097000+00:00",
+      "source_address": "_ops/chat-recall/2026-07-25-134829-claude-d96a2888.md:15",
+      "source_line": 15,
+      "source_link_target": "../../../../../../../_ops/chat-recall/2026-07-25-134829-claude-d96a2888.md#L15",
+      "source_path": "_ops/chat-recall/2026-07-25-134829-claude-d96a2888.md"
+    },
+    {
+      "record_id": "cr-d11297ea9be4a382",
+      "sort_timestamp": "2026-07-26T11:35:21.115000+00:00",
+      "source_address": "_ops/chat-recall/2026-07-26-163521-claude-bddf1411.md:15",
+      "source_line": 15,
+      "source_link_target": "../../../../../../../_ops/chat-recall/2026-07-26-163521-claude-bddf1411.md#L15",
+      "source_path": "_ops/chat-recall/2026-07-26-163521-claude-bddf1411.md"
+    },
+    {
+      "record_id": "cr-036e14487d4f4aa4",
+      "sort_timestamp": "2026-07-26T11:57:22.239000+00:00",
+      "source_address": "_ops/chat-recall/2026-07-26-163521-claude-bddf1411.md:16",
+      "source_line": 16,
+      "source_link_target": "../../../../../../../_ops/chat-recall/2026-07-26-163521-claude-bddf1411.md#L16",
+      "source_path": "_ops/chat-recall/2026-07-26-163521-claude-bddf1411.md"
+    },
+    {
+      "record_id": "cr-0c56f9b82f11ffc7",
+      "sort_timestamp": "2026-07-26T11:34:13.444000+00:00",
+      "source_address": "_ops/chat-recall/2026-07-26-163413-claude-2be60fdc.md:18",
+      "source_line": 18,
+      "source_link_target": "../../../../../../../_ops/chat-recall/2026-07-26-163413-claude-2be60fdc.md#L18",
+      "source_path": "_ops/chat-recall/2026-07-26-163413-claude-2be60fdc.md"
+    },
+    {
+      "record_id": "cr-89588d01dee1aacf",
+      "sort_timestamp": "2026-07-26T11:55:15.972000+00:00",
+      "source_address": "_ops/chat-recall/2026-07-26-163413-claude-2be60fdc.md:19",
+      "source_line": 19,
+      "source_link_target": "../../../../../../../_ops/chat-recall/2026-07-26-163413-claude-2be60fdc.md#L19",
+      "source_path": "_ops/chat-recall/2026-07-26-163413-claude-2be60fdc.md"
+    },
+    {
+      "record_id": "cr-9e42f2995175d537",
+      "sort_timestamp": "2026-07-26T11:55:15.972000+00:00",
+      "source_address": "_ops/chat-recall/2026-07-26-163413-claude-2be60fdc.md:20",
+      "source_line": 20,
+      "source_link_target": "../../../../../../../_ops/chat-recall/2026-07-26-163413-claude-2be60fdc.md#L20",
+      "source_path": "_ops/chat-recall/2026-07-26-163413-claude-2be60fdc.md"
+    },
+    {
+      "record_id": "cr-e0cc9eb95585f23d",
+      "sort_timestamp": "2026-07-26T12:22:12.793000+00:00",
+      "source_address": "_ops/chat-recall/2026-07-26-163413-claude-2be60fdc.md:21",
+      "source_line": 21,
+      "source_link_target": "../../../../../../../_ops/chat-recall/2026-07-26-163413-claude-2be60fdc.md#L21",
+      "source_path": "_ops/chat-recall/2026-07-26-163413-claude-2be60fdc.md"
+    },
+    {
+      "record_id": "cr-1d42692df43b815f",
+      "sort_timestamp": "2026-07-26T12:43:26.575000+00:00",
+      "source_address": "_ops/chat-recall/2026-07-26-174326-codex-019f9e61.md:15",
+      "source_line": 15,
+      "source_link_target": "../../../../../../../_ops/chat-recall/2026-07-26-174326-codex-019f9e61.md#L15",
+      "source_path": "_ops/chat-recall/2026-07-26-174326-codex-019f9e61.md"
+    },
+    {
+      "record_id": "cr-3e2fa31aaeff8e35",
+      "sort_timestamp": "2026-07-26T13:05:18.283000+00:00",
+      "source_address": "_ops/chat-recall/2026-07-26-180518-claude-fa590eea.md:16",
+      "source_line": 16,
+      "source_link_target": "../../../../../../../_ops/chat-recall/2026-07-26-180518-claude-fa590eea.md#L16",
+      "source_path": "_ops/chat-recall/2026-07-26-180518-claude-fa590eea.md"
+    },
+    {
+      "record_id": "cr-7cb93d9f82c72fea",
+      "sort_timestamp": "2026-07-26T13:05:18.283000+00:00",
+      "source_address": "_ops/chat-recall/2026-07-26-180518-claude-fa590eea.md:17",
+      "source_line": 17,
+      "source_link_target": "../../../../../../../_ops/chat-recall/2026-07-26-180518-claude-fa590eea.md#L17",
+      "source_path": "_ops/chat-recall/2026-07-26-180518-claude-fa590eea.md"
+    }
+  ],
+  "run_state": {
+    "frozen_holder_count": 184,
+    "no_record_holder_count": 1,
+    "no_record_holders": [
+      "_ops/chat-recall/2026-08-11-000000-claude-1ae24acb.md"
+    ],
+    "processed_holder_paths": [
+      "_ops/chat-recall/2026-07-22-105500-claude-d8a832a4.md",
+      "_ops/chat-recall/2026-07-22-111300-claude-37219ddd.md",
+      "_ops/chat-recall/2026-07-22-121239-codex-019f889f.md",
+      "_ops/chat-recall/2026-07-23-114721-claude-67208f21.md",
+      "_ops/chat-recall/2026-07-25-124728-codex-019f983d.md",
+      "_ops/chat-recall/2026-07-25-134829-claude-d96a2888.md",
+      "_ops/chat-recall/2026-07-26-163521-claude-bddf1411.md",
+      "_ops/chat-recall/2026-07-26-163413-claude-2be60fdc.md",
+      "_ops/chat-recall/2026-07-26-174326-codex-019f9e61.md",
+      "_ops/chat-recall/2026-07-26-180518-claude-fa590eea.md"
+    ],
+    "processed_record_bearing_holder_count": 10,
+    "record_bearing_holder_count": 183,
+    "remaining_record_bearing_holder_count": 173,
+    "terminal_coverage_equation": "183 record-bearing + 1 no-record = 184 frozen"
+  },
+  "schema": "openviking-chat-recall/chronological-batch-input.v4",
+  "semantic_evidence_policy": {
+    "current_only_projection": true,
+    "exact_repetition_metadata": true,
+    "full_quote_copy": false,
+    "material_claims_require_source_record_ids": true,
+    "page_fit_required_per_material_claim": true,
+    "paraphrase_and_synthesis_allowed": true,
+    "project_corpus_enrichment": false,
+    "third_person_owner_attribution": true
+  },
+  "size_policy": {
+    "compression_acceptance_gate": false,
+    "compression_is_diagnostic_only": true,
+    "file_length_limit": false,
+    "page_count_limit": false,
+    "total_output_limit": false
+  },
+  "source_snapshot": {
+    "evidence_records_path": "experiments/openviking-chat-recall/artifacts/full-build/evidence/records.jsonl",
+    "evidence_records_sha256": "868ffff05768e4ebac6893436141e99493e0582b6738845350b2aa805e99d69d",
+    "frozen_manifest_path": "experiments/openviking-chat-recall/artifacts/full-build/frozen/source-manifest.json",
+    "frozen_manifest_sha256": "9cf1f74a0ee48347a9f2db4bf01eeb795577913fd9d04c235540564e9c753450"
+  },
+  "time_boundary_utc": "2026-07-26T13:05:18.283000+00:00"
+}

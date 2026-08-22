@@ -1,5 +1,19 @@
 # OpenViking Wiki pilot for `chat-recall`
 
+## Current owner-attributed chain
+
+Текущий route полного backfill живёт в `artifacts/chronological-v1/`. Его
+semantic owner — `prompts/wiki-writer.v1.md`; `scripts/build_owner_wiki_batch.py`
+фиксирует prompt/materializer/output-contract SHA, десять целых holders и exact
+source-link targets, а `scripts/materialize_chronological_changeset.py`
+проверяет candidate v5 и материализует только отдельно принятый changeset.
+
+Wiki пересказывает слова владельца от третьего лица, объединяет дубли и хранит
+актуальный поддерживаемый итог. Она ссылается только на точные chat-recall
+цитаты и не превращается в проектный канон или историю решений. Старый
+`artifacts/chronological-pilot/` сохранён как historical structural/findability
+evidence и не является semantic prior текущей цепочки.
+
 This directory contains the first, representative runtime pilot setup and its
 receipts. It is a derived experiment: `_ops/chat-recall/` remains the immutable
 source evidence; the ignored `.runtime/` tree is disposable staging and runtime

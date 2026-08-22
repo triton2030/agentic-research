@@ -30,16 +30,18 @@ source-fidelity мутации: добавленное отношение `comme
 добавленную capability. Этот candidate остаётся только failure evidence и не
 ремонтируется.
 
-Единственный Next — завершить prompt reset внутри
-[Wave 6f full-backfill transition](modules/wave-6f-full-backfill-transition.md):
-показать владельцу полный exact draft `wiki-writer.v1.md`; после его явного
-одобрения создать единственный semantic-will owner, привязать его path и SHA к
-input manifest → changeset → receipt и чисто переиграть batch-001, затем
-batch-002 и только потом batch-003 — каждый новой visible Luna Max task.
-Semantic FAIL запрещает ремонт candidate: меняется версия prompt, а новая Luna
-строит новый changeset с нуля. Прежняя retained task
-`01a026fe-70a0-78d1-abad-12387192465e` больше не является writer route и может
-быть архивирована после сохранения terminal evidence.
+Единственный Next — новая visible Luna Max строит clean batch-001 внутри
+[Wave 6f full-backfill transition](modules/wave-6f-full-backfill-transition.md).
+Semantic-will owner —
+`experiments/openviking-chat-recall/prompts/wiki-writer.v1.md`, SHA-256
+`3fd3ff7748c71f2e6d8e8cc06aebd898b1992c3c6a242bb021fe3f1ff08897d3`.
+Prompt-bound manifest `chronological-v1/batch-001-input.json` имеет SHA-256
+`595e530c6497bd5270a33dc568dd2ed4f8068d8cd23527cf7db0f636edbfc543`:
+10 первых holders, 32 records, пустой prior tree. Deterministic preflight PASS;
+22/22 targeted tests проходят. Luna пишет только candidate changeset, затем
+root проводит independent source → claim → prose/index audit. Semantic FAIL
+запрещает ремонт candidate: меняется версия prompt, а новая Luna строит новый
+changeset с нуля.
 
 ## Вехи
 
@@ -222,7 +224,7 @@ provider repair снят с текущей траектории после Fresh
 | 6c | first chronological serial changeset + candidate Wiki checkpoint | accepted F1–F3 + explicit owner authorization | owner-liked Wiki `6ab9cb9`; root structural/provenance PASS |
 | 6d | second chronological draft/materialization checkpoint | batch-001 accepted + owner-authorized next 10 holders | accepted: 10 holders / 20 records; 3 update + 4 create + 1 reject; tree `71bc5b…` |
 | 6e | blind index-first findability | current Wiki frozen before batch-002 draft | PASS: [wave-6e return](modules/_returns/wave-6e-blind-findability.md); task `01a02750…` archived |
-| 6f | versioned prompt + clean owner-attributed batch-001/002/003 rebaseline | historical batch-001/002 + latest owner correction | **Next: prompt approval** |
+| 6f | versioned prompt + clean owner-attributed batch-001/002/003 rebaseline | prompt v1 + manifest/preflight v4 + changeset/materializer v5 | **Next: visible Luna batch-001** |
 | 6b | historical representative/provider route | F1–F3 | superseded as pre-backfill permission route; input-lock evidence retained |
 | 7 | historical parallel semantic candidates route | Wave 6b utility PASS | superseded by chronological fold |
 | 8 | historical parallel L2 build route | Wave 7 pass | superseded by chronological fold |

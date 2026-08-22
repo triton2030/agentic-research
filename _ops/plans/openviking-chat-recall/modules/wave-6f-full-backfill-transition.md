@@ -82,8 +82,10 @@ silent fallback или semantic input.
   материализует.
 - Runtime owner —
   `experiments/openviking-chat-recall/scripts/materialize_chronological_changeset.py`;
-  он принимает только `chronological-wiki-changeset.v3`. Claim хранит exact H1
-  в `page_fit.page_question`, непустой subset
+  clean owner-attributed chain принимает
+  `chronological-wiki-changeset.v5` поверх manifest v4. Legacy v3 и optional
+  allocation-v4 остаются historical/experimental routes. Claim хранит exact
+  H1 в `page_fit.page_question`, непустой subset
   `page_fit.answering_record_ids` и короткий `page_fit.reason`.
 - Current-batch `record_ids` semantic operations должны точно совпадать с
   union `material_claims.supporting_record_ids`; formal `used` без
@@ -96,17 +98,18 @@ silent fallback или semantic input.
 
 ### T3 · Clean owner-attributed rebaseline
 
-- Deterministic builder
-  `experiments/openviking-chat-recall/scripts/build_chronological_batch.py`
-  сформировал `batch-003-input.json` SHA-256
-  `02e36c2a5636a19c24633149cb81b082c6d5edb14c247b773a4f67821ff9e4c4`:
-  следующие десять целых holders, 38 records, UTC boundary
-  `2026-08-01T12:22:41.874000+00:00`.
+- Deterministic clean builder
+  `experiments/openviking-chat-recall/scripts/build_owner_wiki_batch.py`
+  сформировал `artifacts/chronological-v1/batch-001-input.json` SHA-256
+  `595e530c6497bd5270a33dc568dd2ed4f8068d8cd23527cf7db0f636edbfc543`:
+  первые десять целых holders, 32 records, пустой prior tree и exact
+  source-link targets. Исторический v3 builder и batch-003 input сохранены как
+  failure/comparator evidence, но не входят в новую semantic chain.
 - Cumulative run-state явно разделяет 183 record-bearing holders и один
   no-record holder; нулевому holder не выдумывается timestamp или semantic
   batch.
-- Старые batch-001/002 current pages не переписывать вручную. После prompt
-  approval новая Luna строит batch-001 из первых десяти frozen holders и
+- Старые batch-001/002 current pages не переписывать вручную. Новая Luna строит
+  batch-001 из первых десяти frozen holders и
   пустого Wiki; independent audit проверяет source → claim → third-person
   prose и index-first findability. PASS материализует новый baseline.
 - Следующая новая Luna строит batch-002 поверх accepted нового baseline; только
@@ -117,10 +120,11 @@ silent fallback или semantic input.
   остаётся rejected failure evidence: он добавил `comments separately` и
   превратил proposal рассмотреть filtering/sorting в added capability на
   derived surfaces. Его не ремонтировать и не материализовать.
-- После exact owner approval создать
-  `experiments/openviking-chat-recall/prompts/wiki-writer.v1.md`. Prompt —
-  единственный owner writing rules; Wave 6f владеет acceptance и stop-rule, но
-  не копирует его prose.
+- Создан `experiments/openviking-chat-recall/prompts/wiki-writer.v1.md`,
+  SHA-256
+  `3fd3ff7748c71f2e6d8e8cc06aebd898b1992c3c6a242bb021fe3f1ff08897d3`.
+  Prompt — единственный owner writing rules; Wave 6f владеет acceptance и
+  stop-rule, но не копирует его prose.
 - Builder фиксирует `prompt_path` и `prompt_sha256`; changeset и receipt обязаны
   воспроизвести binding. Ручные follow-up инструкции writer-у запрещены.
 - Новая visible Luna с чистым context получает frozen batch input, accepted
@@ -149,8 +153,9 @@ silent fallback или semantic input.
 - Вернуться к allocation можно после двух clean batch либо после prompt-only
   defeater. Тогда отдельный falsifying probe должен показать, что sidecar ловит
   material defect до prose дешевле полного candidate audit.
-- До такого evidence рабочая схема остаётся changeset v3 плюс обязательный
-  prompt path/SHA binding. План не требует allocation v1 или v4 для batch-004.
+- До такого evidence рабочая clean-chain схема остаётся changeset v5 с
+  обязательными prompt/materializer/output-contract bindings. План не требует
+  allocation v1 или v4 для batch-004.
 
 ## Full-run checkpoints
 
@@ -171,7 +176,7 @@ Wave 6f accepted, когда:
 - replay helper и его falsifying tests доказывают fail-before-write и exact
   replay для `create | update | supersede`; named split кодируется
   как `update|supersede + create` с общим `split_group_id`;
-- exact owner-approved prompt и его path/SHA binding воспроизводятся из input
+- exact prompt и его path/SHA binding воспроизводятся из input
   manifest в changeset и receipt;
 - clean batch-001/002 rebaseline и batch-003 имеют exact coverage, accepted
   semantic drafts, deterministic receipts и independent verdicts без repair
@@ -197,6 +202,10 @@ Wave 6f accepted, когда:
   Batch-003 candidate `b1001021…f808` проходит mechanical dry-run, но terminal
   semantic audit отклонил его из-за unsupported relation и proposal-modality на
   derived surfaces; materialization до `status: accepted` fail closed.
+- `tests/test_owner_wiki_clean_chain.py` проверяет пустой v1 prior,
+  prompt/materializer/output-contract binding, preflight receipt, exact
+  manifest source targets и v5 dry-run; wrong prompt echo fail closed. Targeted
+  suite: 22/22 PASS.
 
 ## Principles trace
 
