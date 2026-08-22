@@ -13,20 +13,20 @@ kind: status
 
 ## Next
 
-Запустить отдельный F4-R1 после принятого F4 `UNKNOWN`. Сначала устранить три
-false-PASS seam: contradictory model events, missing run address и
-неадресуемые provider/retry policy. Затем полный non-billable persistence
-preflight через fake Codex; только после его PASS — один новый Luna Max
-synthetic call в отдельный artifact root. Реальные holders по-прежнему
-запрещены. Без terminal PASS Wave 6b не стартует; frozen semantic gold и
-исходный F4 receipt неизменны.
+Построить только source-bound Wave 6b input-lock из accepted F1–F3: два полных
+holder-а, 24 `used` records, 0 diagnostics, membership/digests против frozen
+records, partitions и semantic gold. Output —
+`representative-utility/input-lock.json` со статусом `prepared/blocked`, без
+full quotes, semantic claims, Wiki pages или provider call. F4-R1 rejected;
+semantic `L2 → L1 → L0` остаётся закрыт до нового accepted provider/privacy
+gate.
 
 ## Вехи
 
 | Веха | Статус | Evidence |
 | --- | --- | --- |
 | 1. Контракты | в работе | Wave 4/4b accepted contracts; Wave 5 semantic contract принят, utility topology переносится после ingestion |
-| 2. Compiler | в работе | F1–F3 приняты; F4 честно UNKNOWN; F4-R1 следующий |
+| 2. Compiler | в работе | F1–F3 приняты; F4 UNKNOWN; F4-R1 rejected; representative input-lock следующий |
 | 3. Full build | ожидает | После sample gates и explicit frozen snapshot |
 | 4. Normalize | ожидает | После coverage-complete full build |
 | 5. Acceptance | ожидает | После frozen candidate Wiki |
@@ -139,6 +139,7 @@ evidence.
 | 01a025ef-35d5-7791-a2c8-323259126faa | F2 deterministic evidence | evidence script/test + records/coverage | accepted `ea569e2` |
 | 01a02629-b1e2-71d2-949f-9a605f686b8b | F3 stable partitions | partition writer/test + manifest/8 parts | accepted `c5bbe41` |
 | 01a02657-d943-7013-b1a6-36be71b59b68 | F4 provider canary | writer/test + public UNKNOWN receipt | accepted `UNKNOWN` on `c7ceed0`; no retry |
+| 01a02681-32dd-7de1-8d4c-014972769587 | F4-R1 provider repair | three-path candidate + separate v2 receipt | rejected by final audit; commits not integrated; terminal `UNKNOWN` |
 
 F1 return —
 [wave-6-f1-source-lock](modules/_returns/wave-6-f1-source-lock.md). Root
@@ -171,12 +172,19 @@ Independent Luna Max runtime audit принял UNKNOWN receipt, но запре
 до code repair: all-model drift, required run address и явные provider/retry
 policy поля пока не имеют fail-closed contract.
 
+F4-R1 return —
+[wave-6-f4-r1-provider-canary](modules/_returns/wave-6-f4-r1-provider-canary.md).
+Root подтвердил 32/32 targeted и 75/75 full tests, но independent final audit
+нашёл два новых false-PASS: null usage при addressable status и два real
+requests. Candidate `84cda7f → 5bfbffb → 9b1cdaf` не интегрирован; дальнейший
+provider repair снят с текущей траектории после Fresh Eyes.
+
 ## Планируемые волны
 
 | Волна | Результат | Dependency | State |
 | --- | --- | --- | --- |
-| 6 | frozen snapshot, deterministic records, stable partitions, privacy fixture | accepted Wave 5 semantic contract + explicit corpus commit | active: F1/F2/F3 PASS, F4 UNKNOWN, F4-R1 next |
-| 6b | representative L2/L1/L0 ingestion + matched final-route utility | Wave 6 pass | accepted card; execution waits for Wave 6 |
+| 6 | frozen snapshot, deterministic records, stable partitions; provider gate separate | accepted Wave 5 semantic contract + explicit corpus commit | deterministic F1/F2/F3 PASS; provider F4 UNKNOWN; F4-R1 rejected |
+| 6b | representative input-lock, затем L2/L1/L0 + matched utility | F1–F3 for input-lock; accepted provider/privacy PASS for semantic execution | input-lock ready to execute; semantic stage blocked |
 | 7 | semantic candidates и canonical current claims | Wave 6b utility PASS | planned |
 | 8 | typed L2 pages, per-part validation и root catalog | Wave 7 pass | planned |
 | 9 | bottom-up L1 overviews и deterministic L0 abstracts | Wave 8 pass | planned |
@@ -198,6 +206,7 @@ Owner-блокера нет.
 
 Wave 6 source snapshot выбран: `6f98fcc`, 184 holder files и 1101 parsed
 records. Из них 34 имеют diagnostics; compiler не удаляет их молча, а обязан
-выдать явный rejected/skipped disposition. Перед передачей реальных holders
-semantic provider-у обязателен terminal F4-R1 PASS. Исходный F4 UNKNOWN не
-является permission на Wave 6b.
+выдать явный rejected/skipped disposition. Source-bound input-lock разрешён,
+но перед передачей реальных holders semantic provider-у обязателен новый
+accepted provider/privacy PASS. F4/F4-R1 `UNKNOWN` не являются permission на
+semantic Wave 6b.

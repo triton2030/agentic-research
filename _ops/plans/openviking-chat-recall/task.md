@@ -93,6 +93,7 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
       → F1 frozen snapshot
       → F2 deterministic evidence
       → F3 stable semantic partitions
+      → P-1 representative source-bound input lock
       → P0 representative end-to-end L2/L1/L0 ingestion
       → U0 matched final-route utility gate
       → S1 semantic candidates
@@ -108,8 +109,8 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
 | Волна | Карточка | Вход | Выход | Открывает |
 | --- | --- | --- | --- | --- |
 | 5 | [wave-5-distilled-probe](modules/wave-5-distilled-probe.md) | frozen real records + locked five-case gold | принятый claim/currentness contract; не utility verdict | deterministic foundation |
-| 6 | [wave-6-snapshot-evidence](modules/wave-6-snapshot-evidence.md) | принятый semantic contract + explicit corpus commit | frozen source lock, records, coverage input, stable partitions | representative ingestion |
-| 6b | [wave-6b-representative-ingestion-utility](modules/wave-6b-representative-ingestion-utility.md) | representative frozen subset + final L2/L1/L0 route | matched correctness/currentness/efficiency verdict | full semantic generation |
+| 6 | [wave-6-snapshot-evidence](modules/wave-6-snapshot-evidence.md) | принятый semantic contract + explicit corpus commit | frozen source lock, records, coverage input, stable partitions | representative input lock |
+| 6b | [wave-6b-representative-ingestion-utility](modules/wave-6b-representative-ingestion-utility.md) | F1–F3 foundation → source-bound input lock; accepted provider gate → final L2/L1/L0 route | prepared input lock, затем matched correctness/currentness/efficiency verdict | full semantic generation только после utility PASS |
 | 7 | [wave-7-semantic-claims](modules/wave-7-semantic-claims.md) | Wave 6b PASS + partitions + pinned Wiki prompt tuple | canonical claims, rejections, lifecycle evidence | L2 writers |
 | 8 | [wave-8-l2-library](modules/wave-8-l2-library.md) | accepted canonical claims | typed L2 pages, catalog, validated index | context layers |
 | 9 | [wave-9-context-layers](modules/wave-9-context-layers.md) | accepted L2 tree + pinned L1 prompt | bottom-up L1/L0 sidecars | finalization |
@@ -148,6 +149,9 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
 - Full semantic backfill не начинается, пока representative frozen sample не
   пройдёт настоящий L2/L1/L0 ingestion и matched final-route audit. Wave 6
   deterministic snapshot/evidence может выполняться раньше этого utility gate.
+- Representative source-bound input lock можно построить после F1–F3 без
+  provider: он не содержит semantic claims, Wiki pages или private quote dump
+  и сам по себе не разрешает model execution.
 - Semantic provider не получает реальные holders, пока synthetic canary не
   доказал auth, data-egress, logging, retry, cost и secret-redaction contract.
 - Full-build snapshot не берется из live directory или старого inventory:

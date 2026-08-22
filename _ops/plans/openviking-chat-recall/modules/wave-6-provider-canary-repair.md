@@ -2,7 +2,7 @@
 kind: module-card
 wave: 6
 stage: F4-R1
-state: planned
+state: rejected-unknown
 role: synthetic-provider-canary-repair
 model: gpt-5.6-luna
 thinking: max
@@ -18,6 +18,24 @@ thinking: max
 один новый synthetic-only Luna Max call и получить долговечный terminal
 receipt. F4-R1 не исправляет и не заменяет исходный F4 UNKNOWN; он создаёт
 отдельное evidence в новом artifact root.
+
+## Execution result
+
+Visible Luna Max task `01a02681-32dd-7de1-8d4c-014972769587` выполнил один
+synthetic-only call. Он завершился `provider_error/nonzero_exit` до parseable
+JSON events: model, run address и usage не наблюдались, automatic retry не
+было. Terminal evidence поэтому остаётся `UNKNOWN`, а не `FAIL` или `PASS`.
+
+Трёхкоммитный repair candidate `84cda7f → 5bfbffb → 9b1cdaf` не интегрирован.
+Независимый acceptance-аудит нашёл два оставшихся false-PASS: validator
+принимал `usage_status=addressable` при `usage=null` и
+`real_call.request_count=2`. Исходный F4 receipt и accepted `UNKNOWN` на
+`c7ceed0` остаются единственным live evidence этой ветки.
+
+После Fresh Eyes дальнейший CLI/provider repair снят с текущей траектории:
+он не доказывает semantic utility Wiki. Любая будущая provider-попытка требует
+новой root-card, отдельного falsifier-а для этих двух seam и не может
+перезаписывать F4/F4-R1 receipts.
 
 ## Ownership
 

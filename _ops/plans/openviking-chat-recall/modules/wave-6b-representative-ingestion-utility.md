@@ -11,7 +11,8 @@ description: representative post-ingestion utility gate before full semantic gen
 # Модуль — representative ingestion utility gate
 
 [parent: task.md](../task.md) · между deterministic Wave 6 и semantic Wave 7 ·
-gate: Wave 6 PASS + accepted Wave 5 semantic contract
+preflight: accepted F1–F3 + Wave 5 semantic contract · semantic gate: accepted
+provider/privacy PASS
 
 ## Contribution
 
@@ -43,12 +44,15 @@ expected/forbidden criteria и hard failures остаются immutable.
 
 ## Entry contract
 
-Wave 6b разрешён только если одновременно выполнены условия:
+Wave 6b разделён на два неравноправных шага. Source-bound preflight/input-lock
+разрешён после accepted F1–F3 и не вызывает модель. Semantic execution
+`L2 → L1 → L0` разрешён только если дополнительно выполнены все условия:
 
 - принят Wave 5 semantic/claim-currentness contract и immutable v1 semantic
   gold; принятие contract не означает utility PASS;
-- deterministic Wave 6 завершён с `PASS` и выдал frozen source lock, records,
-  coverage input, stable partitions и frozen representative subset;
+- deterministic F1–F3 завершены с `PASS` и выдали frozen source lock, records,
+  coverage input и stable partitions; representative subset фиксирует
+  preflight до первого candidate read;
 - pinned OpenViking prompt/IA tuple и Context Layers prompt tuple имеют
   provenance, model/config/code digests и одну выбранную execution envelope;
 - privacy/provider canary заранее доказал auth, egress, logging, retry, cost и
@@ -56,9 +60,10 @@ Wave 6b разрешён только если одновременно выпо
 - subset, case/arm route matrix, metrics и aggregation rule зафиксированы до
   первого чтения candidate Wiki или candidate answer.
 
-Любой `UNKNOWN` на входе блокирует 6b. Live directory, dirty snapshot,
-неприкреплённая prompt-версия или utility result Wave 5 не являются заменой
-входному contract.
+Provider `UNKNOWN` блокирует semantic execution, но не source-bound input-lock.
+Любой другой `UNKNOWN` на входе блокирует зависимый шаг. Live directory, dirty
+snapshot, неприкреплённая prompt-версия или utility result Wave 5 не являются
+заменой входному contract.
 
 ## Inputs
 
@@ -83,6 +88,10 @@ Wave 6b разрешён только если одновременно выпо
 
 ## Outputs
 
+- Детерминированный `representative-utility/input-lock.json`: digests F1–F3,
+  exact two-holder membership, record IDs/source addresses/content digests,
+  selected-part map и digest immutable gold. Он не копирует full quotes и при
+  provider `UNKNOWN` явно пишет `semantic_execution=blocked`.
 - Реальный representative L2 tree, построенные из него bottom-up L1 overviews
   и L0 abstracts в dedicated artifact root; для каждого слоя есть topology,
   counts и digest.
@@ -129,7 +138,16 @@ Wave 6b разрешён только если одновременно выпо
 
 ## Required execution
 
-1. На frozen representative subset выполнить настоящий L2 semantic build по
+0. До model/provider call собрать source-bound input-lock из двух полных
+   holders `_ops/chat-recall/2026-08-20-181330-claude-a7539038.md` и
+   `_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md`. Accepted F2 должен
+   дать ровно 24 `used` records, 0 diagnostics и 2 sessions; membership
+   проверяется против F3 parts и всех holder routes frozen gold. Старый
+   `artifacts/pilot-selection.json` запрещён. Full quotes в lock не пишутся.
+   Если provider gate не `PASS`, output имеет состояние `prepared/blocked` и
+   выполнение останавливается до шага 1.
+1. После accepted provider/privacy PASS на frozen representative subset
+   выполнить настоящий L2 semantic build по
    pinned Wiki Skill/IA. Generated pages должны быть source-backed и
    адресуемыми, но receipt не должен копировать private quotes.
 2. Из полученного L2 дерева выполнить реальный bottom-up build: сначала L1
@@ -196,13 +214,16 @@ Wave 6b разрешён только если одновременно выпо
   receipt;
 - provider canary, privacy boundary, source digest или nested falsifier receipt
   отсутствует.
+- source-bound preflight переиспользует старый six-holder pilot, меняет subset
+  после candidate read, не совпадает с F1–F3 digests или пишет semantic claims,
+  Wiki pages либо full private quotes;
 
 ## Receipts
 
 Return обязан содержать:
 
 - commit SHA и exact changed paths 6b implementation/tests/artifacts;
-- input source/record/subset counts и digests, Wave 6 lock, v1 gold,
+- input-lock state, source/record/subset counts и digests, Wave 6 lock, v1 gold,
   prompt/IA/model/config/code и provider-canary receipts;
 - L2/L1/L0 output topology, counts/digests и proof, что sidecars построены
   bottom-up из фактического L2;
@@ -218,6 +239,8 @@ transcripts, secrets или незаявленные absolute paths.
 
 ## Gate outcome
 
+- `prepared/blocked` принимает только immutable representative input-lock. Это
+  не utility verdict, не Wiki и не permission на semantic execution.
 - **PASS** открывает Wave 7 full semantic generation. Wave 7 получает именно
   accepted 6b receipt и тот же pinned tuple; usefulness не переоценивается по
   гладкости candidate tree.

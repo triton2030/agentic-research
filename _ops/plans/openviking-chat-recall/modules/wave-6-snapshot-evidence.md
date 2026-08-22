@@ -40,9 +40,11 @@ coverage-disposition, а не исключать файл или чинить so
 ## Dependencies
 
 F1 frozen corpus lock → F2 records/evidence → F3 stable partitions. F2 не
-читает live directory; F3 не меняет evidence-поля и не вызывает модель. F4
-synthetic provider canary идёт отдельной веткой после pinned execution seam.
-Wave 6 PASS требует F1 + F2 + F3 + F4.
+читает live directory; F3 не меняет evidence-поля и не вызывает модель. Эта
+deterministic foundation принята независимо от F4. Synthetic provider canary
+остаётся отдельным gate перед первым semantic egress; его `UNKNOWN` не
+запрещает source-bound representative input-lock, но запрещает model-backed
+L2/L1/L0 execution.
 
 ## Ownership
 
@@ -72,8 +74,9 @@ Shared manifests интегрирует только root после незав�
   [_returns/wave-6-f3-stable-partitions](./_returns/wave-6-f3-stable-partitions.md).
 - F4 terminal `UNKNOWN` на `main` commit `c7ceed0`; exact return —
   [_returns/wave-6-f4-provider-canary](./_returns/wave-6-f4-provider-canary.md).
-- F4-R1 next: false-PASS code repair, отдельный persistence-preflight и не
-  более одного нового synthetic call; реальные holders всё ещё запрещены.
+- F4-R1 завершён как rejected candidate / terminal `UNKNOWN`; exact return —
+  [_returns/wave-6-f4-r1-provider-canary](./_returns/wave-6-f4-r1-provider-canary.md).
+  Три candidate commits не интегрированы; новые provider calls не разрешены.
 
 ## Contract
 
@@ -93,8 +96,10 @@ Shared manifests интегрирует только root после незав�
 - два fresh builds byte-identical;
 - F1 отклоняет dirty source snapshot до lock; F2 игнорирует live tree и
   доказывает byte-identical output из accepted lock/Git objects;
-- synthetic provider canary доказывает auth, egress, logging, retry, cost и
-  secret redaction до передачи реального holder content.
+- source-bound representative lock не содержит полных quotes или semantic
+  claims и строится только из F1–F3 digests;
+- отдельный accepted provider/privacy gate обязателен до передачи реального
+  holder content semantic model-у.
 
 ## Budget
 
@@ -105,7 +110,8 @@ ownership zones; root останавливает волну при первом 
 
 Каждый writer возвращает commit SHA, exact changed paths, counts/digests,
 test command/output, rejected inputs и nested-agent receipt. Root записывает
-единый Wave 6 verdict; UNKNOWN не открывает Wave 7.
+единый verdict своего stage; provider `UNKNOWN` не открывает semantic Wave 6b
+или Wave 7.
 
 ## Prohibitions
 
