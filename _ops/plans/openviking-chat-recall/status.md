@@ -13,10 +13,11 @@ kind: status
 
 ## Next
 
-Запустить новую visible `gpt-5.6-luna/max` без worktree: она читает prompt v2,
-новый frozen manifest/preflight, те же первые десять holders и 32 evidence rows
-и пишет только чистый `batch-001/changeset.json`. Rejected attempt-001 и иные
-historical artifacts запрещены как semantic input.
+Дождаться terminal packet активной visible `gpt-5.6-luna/max` без worktree
+(`01a02899-63da-7ef2-99f1-b1f0e6559a6a`). Затем root проверяет точный SHA
+кандидата и materializer `--check-only`, а свежий read-only auditor сверяет все
+32 records с десятью полными holders. Любой semantic FAIL отклоняет весь
+кандидат; только полный PASS разрешает materialization, receipt и commit.
 
 ## Свидетельства и статус
 
@@ -56,6 +57,12 @@ historical artifacts запрещены как semantic input.
   каждый supporting record прямо отвечает H1, а короткий `supporting_words`
   буквально входит в exact quote. Repetition order теперь проверяется по
   manifest, не по lexical timestamp tie.
+- Prompt v2 и strict gates находятся в pushed commit
+  `fc287ecf22834593c1a82b4b2a4445273e6ac377`; Opus cold-start после исправления
+  manifest и literal alignment вернул `READY_FOR_FRESH_ATTEMPT`.
+- Чистая Luna v2 сейчас активна и пишет только
+  `artifacts/chronological-v1/batch-001/changeset.json`; candidate существует,
+  но terminal packet, root check и независимый semantic audit ещё не получены.
 - Targeted current/legacy suite 21/21 PASS; полный experiment suite 87/87 PASS.
 - До первого update в batch-002 validator обязан отклонять changed knowledge,
   которое выросло только в provenance/description, но не появилось в body.
