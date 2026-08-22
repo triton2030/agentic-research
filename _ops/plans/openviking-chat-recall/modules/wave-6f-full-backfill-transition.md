@@ -115,9 +115,10 @@ Wave 6f accepted, когда:
 - `tests/test_materialize_chronological_changeset.py` проверяет exact bytes,
   machine receipt, v3/page-fit, path/prior/content SHA, named split, source-only
   links, full-quote guard, symlink boundary и existing-receipt stop.
-- 13 targeted tests PASS. Provenance closure отдельно доказывает, что
+- 14 targeted tests PASS. Provenance closure отдельно доказывает, что
   `reject|skipped` record нельзя материализовать, а старый support разрешён
-  только через exact source-link принятой prior Wiki. Это mechanical evidence;
+  только через exact source-link принятой prior Wiki. Candidate проходит полный
+  dry-run, но materialization до `status: accepted` fail closed. Это mechanical evidence;
   semantic repair и shadow
   verdict ещё не приняты.
 

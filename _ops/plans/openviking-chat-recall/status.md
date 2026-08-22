@@ -24,7 +24,7 @@ falsifier: source-backed строка может не отвечать на H1 �
 Единственный Next — завершить
 [Wave 6f full-backfill transition](modules/wave-6f-full-backfill-transition.md).
 Page-fit/split schema, deterministic materializer и chronological builder уже
-реализованы; 13 targeted tests PASS, включая exact coverage/provenance
+реализованы; 14 targeted tests PASS, включая exact coverage/provenance
 closure после independent implementation BLOCK. Frozen `batch-003-input.json` содержит
 следующие 10 holders / 38 records и byte-identical проходит `--check`.
 Осталось той же retained Luna починить найденное scope-mixing внутри v3
