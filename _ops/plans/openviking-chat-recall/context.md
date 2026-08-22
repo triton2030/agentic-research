@@ -2,171 +2,74 @@
 эпик: "самостоятельный experiment: openviking-chat-recall"
 kind: context
 записано: 2026-08-21
+пересобрано: 2026-08-22
 ---
 
-# Контекст — почему собственный compiler
+# Контекст — зачем нужна Wiki из chat-recall
 
-## Материальная проблема
+## Проблема
 
-`chat-recall` сохраняет точные слова владельца в датированных holders, но это
-руда прошлых высказываний, а не готовая текущая картина знаний. Повторы и
-поздние коррекции заставляют агента каждый раз заново собирать применимый факт
-из многих источников.
+`chat-recall` надёжно хранит точные датированные слова владельца, но это руда,
+а не текущая картина знаний. Повторы и поздние corrections заставляют нового
+агента снова читать много holders и самостоятельно собирать финальную позицию.
 
-Нужная поверхность — не ещё один индекс цитат, а производная библиотека:
-актуальные концепты, методы, сравнения и анализ с короткими слоями чтения.
-Каждый claim ссылается на исходные цитаты, но Wiki не пересказывает chronology,
-count или путь появления знания и не проверяет знания проекта вне цитат.
+Если batch writer на шаге 100 перечитывает первые 990 источников, система
+масштабируется хуже самого recall. Поэтому current Wiki обязана быть сжатой
+памятью уже обработанного прошлого: новый writer читает только десять новых
+holders и релевантные страницы Wiki.
 
-## Выбранная граница
+Owner evidence:
+`_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:21-24,35,40-42,64-73`.
 
-```text
-_ops/chat-recall/**                  immutable source evidence
-        ↓ deterministic inventory + typed facts
-compiler manifests                  membership / counts / timestamps / provenance
-        ↓ semantic resolution + validation
-canonical claims + provenance       current knowledge / applicability / quote IDs
-        ↓ official Wiki Skill, local batch execution
-L2 typed Wiki pages       final knowledge / quote addresses / internal nav
-        ↓ official Context Layers contract + semantic prompts
-L0/L1 directory sidecars            bottom-up progressive reading
-        ↓ blind retrieval audit
-recommended agent route or rejection
-```
+## Ожидаемый эффект
 
-OpenViking здесь — источник двух проверяемых технологий организации знания, а
-не runtime dependency. LLM Wiki Skill владеет semantic page graph и L2; core
-Context Layers владеет L0/L1, bottom-up generation и progressive reading. Наш
-код владеет snapshot, typed evidence, execution envelope, validators,
-resume/rebuild и receipts. Оба upstream owner-а фиксируются отдельно.
+Новая сессия начинает с `index.md`, быстро выбирает нужную страницу, узнаёт
+актуальную позицию владельца и при необходимости открывает точную исходную
+цитату. Для большинства рабочих вопросов ей не нужно восстанавливать всю
+хронологию или читать project corpus.
 
-## Почему отказались от stock runtime
+Wiki остаётся производной: её можно удалить и пересобрать. Она не заменяет
+holders, не становится вторым проектным каноном и не скрывает, что знания
+получены из речи владельца.
 
-Три независимые проверки разделили прежнюю гипотезу:
+## Почему именно этот маршрут
 
-- exact deterministic evidence работает;
-- official prompt/IA на typed input дал полезную Wiki для blind reader;
-- PyPI SDK, bundled server, VikingBot и Compile не образовали совместимую
-  поверхность.
+OpenViking дал полезную information architecture и progressive context layers,
+но stock runtime не образовал совместимую проверяемую цепочку. Поэтому проект
+использует pinned prompts/IA, а snapshot, batching, provenance, validation,
+resume и receipts реализует локально.
 
-Повторные `⚡ UNEXPECTED` поэтому изменили верхнюю модель: исправлять очередной
-SDK mismatch дороже и рискованнее, чем отделить доказанно полезную часть
-OpenViking от сломанной инфраструктуры. Владелец явно утвердил это изменение.
+Последовательный chronological fold сохраняет одну current Wiki: каждый batch
+видит новый evidence и уже дистиллированный prior, обновляет существующие
+страницы и создаёт новые только для самостоятельных retrieval-вопросов. Это
+избегает merge конфликтующих эпох и не заставляет агента перечитывать старые
+quotes.
 
-Вторая верхнеуровневая коррекция пришла в Wave 4: L0/L1/L2 не являются частью
-LLM Wiki Skill. Skill прямо запрещает генерировать `.abstract.md` и
-`.overview.md`, потому что в stock-системе ими владеет Compile/runtime. Core
-Context Layers отдельно описывает эти sidecars. В custom compiler мы заменяем
-runtime, поэтому воспроизводим оба официальных контракта, не смешивая их
-provenance.
+## Границы смысла
 
-## Единственная истина и приватность
+- Holders владеют точными словами, датами и историей.
+- Deterministic manifests владеют membership, counts, hashes и provenance.
+- Versioned prompt владеет semantic writing behavior.
+- Current Wiki владеет только пересобираемым актуальным пересказом.
+- `task.md` владеет системой и путём до конца; `status.md` — только frontier;
+  `HISTORY.md` — только прошлым.
 
-Wiki никогда не становится владельцем слов пользователя или второй копией
-project canon. Она может быть удалена и заново построена из frozen source
-snapshot. Claim-запись manifest/receipt перечисляет использованные record IDs,
-а Wiki-страница даёт адреса этих цитат. Полные цитаты раскрываются только при
-проверке и не копируются во все слои.
+Пересказ неизбежно генерирует новую формулировку. Граница качества — не
+буквальность, а отсутствие нового неподдержанного actor, subject, scope,
+modality, relation, causality или status.
 
-Если цитата упоминает документ, код или другое знание проекта, semantic writer
-не открывает этот источник и не добавляет найденное содержание. Wiki хранит
-только то, что владелец сказал, в максимально сжатой и структурированной форме;
-internal Wiki navigation не является ссылкой на project canon.
+## Отпавшие ходы
 
-Это не новый тип страниц и не отступление от OpenViking IA. `entity`,
-`concept`, `method`, `comparison`, `analysis` и `index` сохраняют свои
-retrieval-purpose, но материал страниц честно отражает природу input: это
-атрибутированные пересказы owner quotes от третьего лица. Формулировка
-«владелец предпочитает X» не превращается в объективное «X является правилом»;
-«владелец предложил рассмотреть X» не превращается в capability. Дубли
-схлопываются в одну позицию с несколькими source links, а более свежая запись
-переписывает прежнюю только когда действительно меняет тот же subject/scope.
+- **Stock OpenViking runtime:** SDK/Compile route не дал совместимой
+  воспроизводимой поверхности.
+- **Один prompt на весь corpus:** не помещается устойчиво и скрывает coverage.
+- **Повторное чтение всех prior quotes:** не масштабируется; current Wiki и
+  deterministic prior bindings должны полностью заменить его.
+- **Parallel writers по эпохам:** их outputs нельзя надёжно merge при
+  corrections и supersession.
+- **Source-by-source summaries:** дублируют holders, а не создают knowledge IA.
+- **Project-file enrichment:** превращает Wiki owner speech во второй canon.
+- **Repair rejected candidate:** доказывает ручную доводку output, а не качество
+  повторяемого механизма.
 
-Хронология принадлежит holders и evidence manifest. Она участвует во
-внутреннем выборе актуального claim, но не становится рассказом на
-Wiki-странице. `latest` не равно `current`: применимость, отмена и конфликт
-требуют semantic judgment, адресуемой опоры и отдельной проверки. После нового
-snapshot затронутые страницы переписываются, superseded текст исчезает из Wiki,
-а полная история остаётся в holders.
-
-External LLM route до full build обязан явно описать, какие данные покидают
-машину, какие секреты используются и как гарантируется отсутствие содержимого
-holders в logs/receipts. Если приемлемого route нет, semantic generation не
-запускается.
-
-## Проверяемая польза
-
-Гладкая Wiki не является результатом. Итоговая библиотека должна помочь
-слепому агенту восстановить актуальное знание не хуже holders, но меньшим
-числом чтений или меньшим context. Исторический вопрос должен переводить
-агента к исходным holders, а не заставлять Wiki имитировать архив. Exact facts
-проверяются кодом; currentness, смысл и удобство — закрытым matched audit с
-no-gold и supersession controls.
-
-Размер — только cumulative диагностический результат. Количество страниц,
-длина файлов и total Wiki/source ratio ничем не ограничены и не имеют target:
-writer выбирает страницу по самостоятельному retrieval-вопросу и пишет столько,
-сколько нужно для полного знания. После обработки всего корпуса можно проверить
-ожидание владельца о 5–10-кратном сжатии, но результат не меняет semantic PASS.
-
-Пересказ не обязан повторять слова цитаты и поэтому неизбежно содержит synthesis.
-Граница проходит не по новой формулировке, а по поддержке: каждый материальный
-факт, причинность, scope, status, рекомендация или relationship выводятся из
-названных source records. Неподдержанное удаляется; inference и uncertainty
-явно отделяются от source-backed знания. Project corpus не используется для
-заполнения пробелов.
-
-## Почему остановили repair batch-003
-
-Batch-003 показал системный дефект прежнего writer route. Typed claims уже
-адресовали evidence, но часть читаемого знания жила вне них: в description,
-теле, `Check`, подписях Sources, coverage reasons и index cues. Одна Luna в
-одном retained context после каждого audit согласованно чинила найденную
-формулировку, но переносила ту же неподдержанную modality или relation на другую
-surface. Поэтому terminal PASS после ручной серии repairs доказал бы только
-доводку одного output, а не переносимый механизм.
-
-Новая граница разделяет три owner-а: holders владеют evidence; deterministic
-scripts владеют membership, bytes, coverage и receipts; один versioned prompt
-владеет semantic will writer-а. Clean attempt всегда начинает новая Luna с
-точно привязанным prompt SHA и выдаёт только candidate changeset. Independent
-audit проверяет все serialized surfaces. Semantic FAIL отбрасывает candidate;
-меняется prompt и запускается новая чистая attempt, но сам candidate не
-ремонтируется. Так проверяется генератор правильных статей, а не способность
-root и auditor бесконечно исправлять его результат.
-
-Поздняя owner-correction выявила более высокий дефект accepted batch-001/002:
-их форма и findability полезны, но универсальные императивы снимают атрибуцию с
-owner quotes. Поэтому они остаются evidence дизайна и прежнего поведения, но не
-semantic prior новой версии. Clean rebaseline начинает с первых десяти holders,
-затем последовательно переигрывает вторые и третьи десять новыми Luna. Это
-проверяет prompt без ручного глобального rewrite уже заражённого prior.
-
-## Переносимые наблюдения
-
-`observations/README.md` — узкий журнал подтверждённых выводов, которые меняют
-контракт будущего project-independent compiler. Это не дневник эксперимента:
-запись принимается только с direct evidence, границей переноса и объяснением,
-какое будущее решение она меняет. Текущий ход, task IDs, локальные имена файлов
-и непроверенные идеи остаются в status, returns или `_ops/findings/`.
-
-Root единолично принимает такие записи после независимой проверки returns.
-Субагенты могут предложить не более одного candidate observation, но не правят
-этот owner.
-
-## Отвергнутые маршруты
-
-- **Ждать stock OpenViking.** Не решает текущий static corpus и связывает
-  outcome с недоказанно совместимым runtime.
-- **Дать LLM весь корпус одним prompt.** Смешивает точные факты и интерпретацию,
-  скрывает пропуски и не даёт возобновляемого build.
-- **Сделать только embeddings/search.** Ускоряет нахождение цитат, но не создаёт
-  документов дистиллированного знания.
-- **Сделать source-by-source summaries.** Дублирует физическую структуру
-  holders вместо семантической библиотеки и не экономит сборку знания.
-- **Печатать count/first/latest/evolution на каждой Wiki-странице.** Дублирует
-  источник и превращает knowledge surface в исторический отчёт. Эти данные
-  остаются в manifest/holders и раскрываются только по запросу проверки.
-- **Разрешить Wiki-agent читать упомянутые в цитатах project files.** Создаёт
-  новое знание из project corpus и превращает производную память слов владельца
-  во второй, быстро устаревающий канон.
+Подробная история проверок и поворотов находится только в `HISTORY.md`.
