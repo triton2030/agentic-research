@@ -14,7 +14,7 @@ reusable chronological fold]
 
 ## Outcome
 
-Перед batch-003 убрать три уже наблюдаемых класса сбоя:
+Перед новым clean-run batch-003 убрать четыре уже наблюдаемых класса сбоя:
 
 1. source-backed claim попадает в близкую страницу, но supporting quote не
    отвечает на её H1-вопрос;
@@ -22,11 +22,14 @@ reusable chronological fold]
    changeset, хотя это детерминированная работа;
 3. локальное решение про named skill/artifact переписывается как универсальный
    метод, либо неподдержанное обобщение остаётся в prose вне typed claims.
+4. typed claim остаётся source-faithful, но description, body, `Check`, source
+   label, coverage reason или index cue добавляет новую modality/relationship.
 
-Результат перехода — один reusable full-run contract, узкий
-deterministic replay route и batch-003 shadow verdict. Хронологический размер
-десять holders, retained visible Luna, current-only rewrite и exact-one
-record coverage не меняются.
+Результат перехода — один versioned semantic-will prompt, его path/SHA binding,
+reusable full-run contract, узкий deterministic replay route и чистый
+batch-003 shadow verdict. Хронологический размер десять holders, current-only
+rewrite и exact-one record coverage не меняются. Retained writer route
+отменён: каждая clean attempt получает новую visible Luna task.
 
 ## Frozen boundary
 
@@ -34,7 +37,7 @@ record coverage не меняются.
 - evidence commit: `ea569e2bf84377b17be9177065d5fb9172d26d39`;
 - accepted batch-002 commit: `ade7d0583930495479f3739a6db54cb47003b7fb`;
 - accepted current Wiki tree: `71bc5b917ffdef9feeb26831efe3cfbf801a8a1e36ef460ed14427390b8cbfe0`;
-- retained visible writer: `01a026fe-70a0-78d1-abad-12387192465e`.
+- failed retained writer evidence: `01a026fe-70a0-78d1-abad-12387192465e`.
 
 `HEAD`, live holders и project files, упомянутые в quotes, не становятся
 silent fallback или semantic input.
@@ -51,6 +54,13 @@ silent fallback или semantic input.
   является новым claim, а не дистилляцией.
 - Independent audit сравнивает с evidence весь `proposed_content`, а не только
   `material_claims`: typed table не считается полным представлением prose.
+- До prose writer перечисляет все serialized surfaces страницы. Каждая
+  material surface несёт source record ID или выводится из named claim; для
+  неё отдельно проверяются actor, subject, scope, modality и relation.
+- Обратная проверка называет точный source span и каждое слово/отношение без
+  соответствия в нём. Несоответствие удаляется либо явно становится
+  inference/uncertainty; source preference/question не превращается в settled
+  capability/rule.
 - Не подходящий соседний предмет требует `create` или named `split`;
   existing page не растёт только по semantic proximity.
 - Первая repair-цель: `method/global-skill-trigger.md`; source records
@@ -85,15 +95,44 @@ silent fallback или semantic input.
 - Cumulative run-state явно разделяет 183 record-bearing holders и один
   no-record holder; нулевому holder не выдумывается timestamp или semantic
   batch.
-- Возобновить retained Luna на Phase A с новым page-fit contract.
-- Root и independent non-writer повторно проверяют все affected pages, а не
-  только mechanical invariants. Accepted draft материализует replay helper.
-- Если independent audit находит material page-fit/currentness defect, который
-  не вызвал stop, full semantic audit сохраняется на каждом batch.
-- Наблюдавшийся scope/prose FAIL оставляет full semantic audit на каждом batch.
-  Exception-based route не открывается, пока исправленный batch-003 и следующий
-  batch подряд не пройдут чистый candidate-first audit; deterministic gates и
-  exact coverage остаются на каждом batch.
+- Candidate SHA
+  `b1001021bb4011cec1504f75b1cc35d8c9e809b4e60ac82874058ca4ec77f808`
+  остаётся rejected failure evidence: он добавил `comments separately` и
+  превратил proposal рассмотреть filtering/sorting в added capability на
+  derived surfaces. Его не ремонтировать и не материализовать.
+- После exact owner approval создать
+  `experiments/openviking-chat-recall/prompts/wiki-writer.v1.md`. Prompt —
+  единственный owner writing rules; Wave 6f владеет acceptance и stop-rule, но
+  не копирует его prose.
+- Builder фиксирует `prompt_path` и `prompt_sha256`; changeset и receipt обязаны
+  воспроизвести binding. Ручные follow-up инструкции writer-у запрещены.
+- Новая visible Luna с чистым context получает frozen batch input, accepted
+  prior Wiki и exact prompt SHA; пишет только новый changeset. Mechanical
+  `--check` выполняется до independent non-writer semantic audit всех affected
+  pages и всех serialized surfaces.
+- PASS разрешает deterministic materialization. FAIL отбрасывает candidate:
+  root + Opus классифицируют класс сбоя, новая prompt version получает новый
+  SHA, а следующая новая Luna повторяет batch с нуля. Repair output той же Luna
+  запрещён.
+- Два последовательных FAIL одного owner/scope/modality/relation класса после
+  prompt bump останавливают backfill и опровергают prompt-only route. До
+  пересмотра размера batch, model route или claim-derived surfaces batch-004 не
+  запускается.
+- Full semantic audit сохраняется на каждом batch. Exception-based route не
+  открывается, пока два последовательных batch не пройдут clean candidate-first
+  audit; deterministic gates и exact coverage остаются на каждом batch.
+
+### T4 · Отложенный allocation prototype
+
+- Реализованный allocation-v4 seam остаётся не принятым optional prototype и
+  не блокирует batch-003/004. Наблюдавшиеся terminal defects требовали полного
+  holder context и prose audit; отдельная allocation phase пока не доказала
+  снижения ошибки или стоимости.
+- Вернуться к allocation можно после двух clean batch либо после prompt-only
+  defeater. Тогда отдельный falsifying probe должен показать, что sidecar ловит
+  material defect до prose дешевле полного candidate audit.
+- До такого evidence рабочая схема остаётся changeset v3 плюс обязательный
+  prompt path/SHA binding. План не требует allocation v1 или v4 для batch-004.
 
 ## Full-run checkpoints
 
@@ -103,8 +142,8 @@ silent fallback или semantic input.
 - Blind index-first reader запускается после каждых пяти batch, при
   material index/page split и на terminal full-corpus boundary.
 - Final acceptance проверяет complete frozen coverage, currentness, page-fit,
-  index-first findability, source links, rebuild/replay и matched reading cost. Размер
-  Wiki — diagnostic only.
+  index-first findability, source links, rebuild/replay и matched reading cost.
+  Размер Wiki — diagnostic only.
 
 ## Acceptance
 
@@ -114,8 +153,12 @@ Wave 6f accepted, когда:
 - replay helper и его falsifying tests доказывают fail-before-write и exact
   replay для `create | update | supersede`; named split кодируется
   как `update|supersede + create` с общим `split_group_id`;
-- batch-003 имеет exact coverage, accepted semantic draft, deterministic receipt
-  и independent shadow verdict;
+- exact owner-approved prompt и его path/SHA binding воспроизводятся из input
+  manifest в changeset и receipt;
+- clean batch-003 имеет exact coverage, accepted semantic draft, deterministic
+  receipt и independent shadow verdict без repair candidate;
+- batch-004 запускается только после batch-003 PASS; allocation-v4 не является
+  gate без отдельного falsifying evidence;
 - plan/status хранят один full-run frontier, а completed batch artifacts остаются
   immutable evidence.
 
@@ -132,16 +175,18 @@ Wave 6f accepted, когда:
   только через exact source-link принятой prior Wiki, а `used` record не может
   остаться без material-claim support. Full suite: 76 tests, только прежние
   2 failures + 3 errors `test_freeze_corpus` из-за dirty live `_ops/chat-recall`.
-  Batch-003 проходит mechanical dry-run, но его source-scope repair и новый
-  blind verdict ещё не приняты; materialization до `status: accepted` fail closed.
+  Batch-003 candidate `b1001021…f808` проходит mechanical dry-run, но terminal
+  semantic audit отклонил его из-за unsupported relation и proposal-modality на
+  derived surfaces; materialization до `status: accepted` fail closed.
 
 ## Principles trace
 
-Direct owner answers сохраняют full backfill, одну chronological Luna, десять
-holders, current-only rewrite, source links и отсутствие size gates
-(`_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:25-27,35,40-57`).
-P-003 снимает process, который больше не служит полной Wiki; P-004/P-005
-сохраняют semantic falsifier и observable replay gate; P-007 правит этот
-plan owner вместо параллельного plan. Выведено: после одного shadow PASS
-routine semantic audit может сузиться до exceptions; прямого owner-answer
-на эту степень автоматизации нет.
+Direct owner answers сохраняют full backfill, десять holders, current-only
+rewrite, source links и отсутствие size gates, но теперь требуют ремонтировать
+reusable prompt и запускать новые Luna; цель — механизм правильных статей
+(`_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:25-27,35,40-63`).
+P-003 снимает repair loop, который больше не служит полной Wiki; P-004/P-005
+требуют clean-run observable gate вместо принятия self-report или manually
+repaired output; P-007 правит существующие task/context/status/Wave 6f вместо
+параллельной карточки. Контрось по Frame, всем Principles и GOAL не нашла оси за
+продолжение repair; GOAL отдельно запрещает второй source of truth.

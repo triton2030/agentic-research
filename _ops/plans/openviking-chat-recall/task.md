@@ -50,6 +50,18 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
 - Typed claims обязаны покрывать каждый current-batch record со статусом
   `used`, но не считаются полным представлением страницы: independent audit
   проверяет против evidence весь proposed prose, включая H1 и frontmatter.
+- Semantic will writer-а имеет одного версионированного owner-а:
+  `experiments/openviking-chat-recall/prompts/wiki-writer.v1.md`. После
+  одобрения владельцем exact prompt его path и SHA-256 фиксируются в input
+  manifest, changeset и receipt. Plan владеет acceptance, но не копирует
+  writing rules; ручные сообщения модели не становятся скрытой второй версией
+  prompt.
+- Source fidelity проверяется не только у material claims, но у каждой
+  serialized surface: title/H1, description, body, check/boundary, source-link
+  label, coverage reason и index cue. Каждая такая поверхность адресует source
+  record либо claim, сохраняющий actor, subject, scope, modality и relation;
+  короткая производная поверхность может опустить деталь, но не расширить,
+  усилить или изменить связь.
 - Layer compiler отдельно использует зафиксированный OpenViking Context Layers
   contract и его semantic prompt templates: для каждой semantic directory
   bottom-up создаются L0 `.abstract.md` и L1 `.overview.md`, а L2 остаётся
@@ -124,7 +136,8 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
       → F3 stable semantic partitions
       → C0/C1 accepted chronological Wiki checkpoints
       → T0 page-fit/split gate + deterministic replay transition
-      → C2…Cn one retained Luna, 10 holders in chronology, current-page rewrite
+      → C2…Cn clean Luna attempt per prompt SHA, 10 holders in chronology,
+        current-page rewrite
       → full coverage/resume/rebuild receipt
       → terminal L1/L0 projection over complete L2 only if it improves retrieval
       → blind matched acceptance
@@ -188,10 +201,14 @@ chronological batch.
 
 ## Stop rules
 
-- Full chronological backfill идёт только по frozen F1/F2 через retained
-  visible Codex Luna task и reusable contract Wave 6f. Batch останавливается
+- Full chronological backfill идёт только по frozen F1/F2 через новую visible
+  Codex Luna task на каждую clean attempt и reusable contract Wave 6f. Batch останавливается
   до записи при missing coverage, unsupported claim, unresolved currentness,
   failed page-fit/split, stale prior digest или deterministic replay mismatch.
+- Semantic FAIL отбрасывает весь candidate без repair. Root исправляет один
+  versioned prompt owner, меняет SHA и запускает новую Luna с чистым контекстом.
+  Два последовательных FAIL одного класса после prompt bump останавливают
+  backfill до пересмотра механизма root + Opus; batch N+1 не запускается.
 - Representative source-bound input lock можно построить после F1–F3 без
   provider: он не содержит semantic claims, Wiki pages или private quote dump
   и сам по себе не разрешает model execution.

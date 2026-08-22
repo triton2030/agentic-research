@@ -27,7 +27,7 @@ compiler manifests                  membership / counts / timestamps / provenanc
         ↓ semantic resolution + validation
 canonical claims + provenance       current knowledge / applicability / quote IDs
         ↓ official Wiki Skill, local batch execution
-L2 typed Wiki pages                 final knowledge / quote addresses / internal nav
+L2 typed Wiki pages       final knowledge / quote addresses / internal nav
         ↓ official Context Layers contract + semantic prompts
 L0/L1 directory sidecars            bottom-up progressive reading
         ↓ blind retrieval audit
@@ -106,6 +106,25 @@ writer выбирает страницу по самостоятельному r
 названных source records. Неподдержанное удаляется; inference и uncertainty
 явно отделяются от source-backed знания. Project corpus не используется для
 заполнения пробелов.
+
+## Почему остановили repair batch-003
+
+Batch-003 показал системный дефект прежнего writer route. Typed claims уже
+адресовали evidence, но часть читаемого знания жила вне них: в description,
+теле, `Check`, подписях Sources, coverage reasons и index cues. Одна Luna в
+одном retained context после каждого audit согласованно чинила найденную
+формулировку, но переносила ту же неподдержанную modality или relation на другую
+surface. Поэтому terminal PASS после ручной серии repairs доказал бы только
+доводку одного output, а не переносимый механизм.
+
+Новая граница разделяет три owner-а: holders владеют evidence; deterministic
+scripts владеют membership, bytes, coverage и receipts; один versioned prompt
+владеет semantic will writer-а. Clean attempt всегда начинает новая Luna с
+точно привязанным prompt SHA и выдаёт только candidate changeset. Independent
+audit проверяет все serialized surfaces. Semantic FAIL отбрасывает candidate;
+меняется prompt и запускается новая чистая attempt, но сам candidate не
+ремонтируется. Так проверяется генератор правильных статей, а не способность
+root и auditor бесконечно исправлять его результат.
 
 ## Переносимые наблюдения
 

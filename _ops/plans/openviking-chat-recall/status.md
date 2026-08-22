@@ -15,24 +15,24 @@ kind: status
 
 Batch-002 принят как второй chronological checkpoint: 10 holders,
 20 records, 9 active Wiki pages, 20/20 coverage, 8 index routes и blind
-findability 4/4. Но Fresh Eyes и source-check нашли новый semantic
-falsifier: source-backed строка может не отвечать на H1 страницы.
-`method/global-skill-trigger.md` уже смешал цитаты про skill и
-глобальную instruction. Механический model-check отдельно доказал, что
-7/7 proposed files можно replay-ить детерминированно без Luna.
+findability 4/4. Frozen `batch-003-input.json` содержит следующие 10 holders /
+38 records и механически проходит `--check`, но semantic candidate
+`b1001021bb4011cec1504f75b1cc35d8c9e809b4e60ac82874058ca4ec77f808`
+отклонён. После нескольких repair/audit циклов в нём остались две
+source-fidelity мутации: добавленное отношение `comments separately` и
+предложение рассмотреть filtering/sorting, превращённое на derived surfaces в
+добавленную capability. Этот candidate остаётся только failure evidence и не
+ремонтируется.
 
-Единственный Next — завершить
-[Wave 6f full-backfill transition](modules/wave-6f-full-backfill-transition.md).
-Page-fit/split schema, deterministic materializer и chronological builder уже
-реализованы; 14 targeted tests PASS, включая exact coverage/provenance
-closure после independent implementation BLOCK. Frozen `batch-003-input.json` содержит
-следующие 10 holders / 38 records и byte-identical проходит `--check`.
-Осталось той же retained Luna починить найденное scope-mixing внутри v3
-batch-003 draft, затем провести полный independent semantic audit и
-детерминированно материализовать accepted bytes. После
-этого full backfill идёт по одному reusable contract без новой permission-card
-на каждые десять holders. Retained visible Luna Max task
-`01a026fe-70a0-78d1-abad-12387192465e` не архивируется до terminal Wiki.
+Единственный Next — завершить prompt reset внутри
+[Wave 6f full-backfill transition](modules/wave-6f-full-backfill-transition.md):
+показать владельцу полный exact draft `wiki-writer.v1.md`; после его явного
+одобрения создать единственный semantic-will owner, привязать его path и SHA к
+input manifest → changeset → receipt и с нуля перезапустить batch-003 в новой
+visible Luna Max task. Semantic FAIL запрещает ремонт candidate: меняется версия
+prompt, а новая Luna строит новый changeset с нуля. Прежняя retained task
+`01a026fe-70a0-78d1-abad-12387192465e` больше не является writer route и может
+быть архивирована после сохранения terminal evidence.
 
 ## Вехи
 
@@ -63,8 +63,8 @@ batch-003 draft, затем провести полный independent semantic a
   актуальный итог. Число страниц, длина файлов и compression ratio не имеют
   лимитов или targets; 5–10× остаётся только наблюдаемым ожиданием после полного
   backfill. Главный semantic gate — claim-level source support без
-  неподтверждённых фактов, causality, scope, status или recommendations. Holder —
-  `_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md`.
+  неподтверждённых фактов, causality, scope, status или recommendations.
+  Holder — `_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md`.
 - Chronological batch-002 принят: 10 holders, 20 records, 3 update, 4 create,
   1 reject; current Wiki — 9 pages. Root и independent auditor подтвердили
   changeset replay, receipt/provenance, frozen source targets и index integrity.
