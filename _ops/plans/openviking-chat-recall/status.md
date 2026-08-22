@@ -13,13 +13,15 @@ kind: status
 
 ## Next
 
-Запустить owner-authorized Wave 6c probe: одна visible Luna Max получает первые
-10 полных frozen holders одним chronological batch — 32 `used` records, 0
-diagnostics — и пишет typed changeset плюс первый candidate Wiki checkpoint.
-Root проверяет exact coverage, source-quote provenance, отсутствие project
-corpus enrichment/history, semantic compression ≤ 0.20 и replay boundary.
-Parallel writers и следующий batch закрыты до этого verdict. Provider F4
-остаётся `UNKNOWN`; probe не является permission на full backfill.
+Дождаться owner-authorized Wave 6c probe в видимой Codex-задаче
+`01a026fe-70a0-78d1-abad-12387192465e`: одна Luna Max получает первые 10
+полных frozen holders одним chronological batch — 32 `used` records, 0
+diagnostics — и пишет typed changeset плюс первый candidate Wiki checkpoint
+прямо в изолированный `batch-001`, без worktree и commit. Root проверяет exact
+coverage, source-quote provenance, отсутствие project corpus enrichment/history,
+semantic compression ≤ 0.20 и replay boundary. Parallel writers и следующий
+batch закрыты до этого verdict. Provider F4 остаётся `UNKNOWN`; probe не
+является permission на full backfill.
 
 ## Вехи
 
@@ -191,7 +193,7 @@ provider repair снят с текущей траектории после Fresh
 | Волна | Результат | Dependency | State |
 | --- | --- | --- | --- |
 | 6 | frozen snapshot, deterministic records, stable partitions; provider gate separate | accepted Wave 5 semantic contract + explicit corpus commit | deterministic F1/F2/F3 PASS; provider F4 UNKNOWN; F4-R1 rejected |
-| 6c | first chronological serial changeset + candidate Wiki checkpoint | accepted F1–F3 + explicit owner authorization | batch-001 frozen; one Luna task ready to start |
+| 6c | first chronological serial changeset + candidate Wiki checkpoint | accepted F1–F3 + explicit owner authorization | visible Luna Max task `01a026fe-70a0-78d1-abad-12387192465e` active; no worktree |
 | 6b | representative input-lock, затем L2/L1/L0 + matched utility | F1–F3 for input-lock; accepted provider/privacy PASS for semantic execution | root-owned input-lock ready; Luna semantic batch blocked |
 | 7 | semantic candidates и canonical current claims | Wave 6b utility PASS | planned |
 | 8 | typed L2 pages, per-part validation и root catalog | Wave 7 pass | planned |
