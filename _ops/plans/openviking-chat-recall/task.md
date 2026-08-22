@@ -30,10 +30,14 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
   Wiki и сами по себе не доказывают, какая позиция актуальна.
 - Semantic claim отделён от source history: canonical claim/evidence запись
   содержит дистиллированное знание, область применимости, lifecycle-status и
-  source record IDs. Wiki печатает только итоговое знание и адреса исходных
-  цитат; она не ссылается на project knowledge corpus и не дополняет слова
-  владельца чтением упомянутых им файлов. Модель может предложить status или
-  supersession, но validator не принимает их без адресуемой опоры.
+  source record IDs. Поскольку corpus состоит из слов владельца, Wiki не
+  превращает их в независимые факты о мире или проекте: каждая material
+  формулировка остаётся атрибутированным пересказом от третьего лица — что
+  владелец сказал, решил, предпочитает, предложил или поставил под вопрос.
+  Wiki печатает только этот актуальный итог и адреса исходных цитат; она не
+  ссылается на project knowledge corpus и не дополняет слова владельца чтением
+  упомянутых им файлов. Модель может предложить status или supersession, но
+  validator не принимает их без адресуемой опоры.
 - Смысловой compiler использует зафиксированный snapshot официального
   OpenViking LLM Wiki Skill для L2: `index.md`, `entity`, `concept` и только
   обоснованные `method`, `comparison`, `analysis`, `summary`. Пустые типы и
@@ -43,6 +47,11 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
   H1-вопрос; соседняя тема требует `create` или адресного `split`, а не удобного
   накопления в наиболее близком файле. Source link без page-fit не доказывает
   смысловую принадлежность claim-а странице.
+- OpenViking IA не меняется: `entity | concept | method | comparison | analysis`
+  выбираются по предмету и retrieval-purpose. Но title/H1, page type,
+  description, prose и index cue не скрывают source semantics: читатель
+  понимает, что страница сообщает позицию владельца о предмете. Предпочтение не
+  становится method, а предложение — capability только из-за типа страницы.
 - Source scene, `context-note` и названный владелец ограничивают applicability:
   локальное решение про конкретный skill, artifact или каталог не становится
   универсальным методом без отдельной source-backed опоры. Paraphrase может
@@ -134,8 +143,9 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
       → F1 frozen snapshot
       → F2 deterministic evidence
       → F3 stable semantic partitions
-      → C0/C1 accepted chronological Wiki checkpoints
-      → T0 page-fit/split gate + deterministic replay transition
+      → C0/C1 historical chronological Wiki checkpoints
+      → T0 owner-attributed prompt + deterministic replay transition
+      → R0/R1 clean rebaseline from holders 1–20
       → C2…Cn clean Luna attempt per prompt SHA, 10 holders in chronology,
         current-page rewrite
       → full coverage/resume/rebuild receipt
@@ -152,7 +162,7 @@ prompts задают bottom-up L0/L1. Runtime OpenViking в принятом м�
 | 6c | [wave-6c-chronological-serial-pilot](modules/wave-6c-chronological-serial-pilot.md) | F1–F3 + owner-authorized 10-holder batch | typed changeset + first candidate Wiki checkpoint + serial-route verdict | решение, заменяет ли serial fold прежний parallel semantic plan |
 | 6d | [wave-6d-chronological-batch-002](modules/wave-6d-chronological-batch-002.md) | accepted batch-001 checkpoint + следующие 10 frozen holders | evidence-mapped draft → exact materialization + второй candidate checkpoint | blind findability и verdict по update/supersede |
 | 6e | [wave-6e-blind-findability](modules/wave-6e-blind-findability.md) | frozen current Wiki before batch-002 draft | index-first page choices + bounded answers from a separate Luna | findability evidence independent of writer |
-| 6f | [wave-6f-full-backfill-transition](modules/wave-6f-full-backfill-transition.md) | accepted batch-002 + Fresh Eyes/model-check evidence | page-fit/split contract, deterministic replay, shadow batch-003 verdict | reusable full-backfill loop |
+| 6f | [wave-6f-full-backfill-transition](modules/wave-6f-full-backfill-transition.md) | historical batch-001/002 + owner-attribution correction | versioned prompt, clean batch-001/002 rebaseline, deterministic replay, clean batch-003 verdict | reusable full-backfill loop |
 | 6b | [wave-6b-representative-ingestion-utility](modules/wave-6b-representative-ingestion-utility.md) | historical provider-dependent route | retained input-lock and experiment evidence | superseded by Wave 6f for current backfill |
 | 7 | [wave-7-semantic-claims](modules/wave-7-semantic-claims.md) | historical parallel partition route | historical design only | superseded by chronological fold |
 | 8 | [wave-8-l2-library](modules/wave-8-l2-library.md) | historical parallel L2 route | historical design only | superseded by chronological fold |
