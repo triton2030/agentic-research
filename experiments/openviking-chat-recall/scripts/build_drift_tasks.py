@@ -24,19 +24,34 @@ TYPE = re.compile(r"(?:—|\|)\s*type:\s*([^\s|]+)")
 # источников, где текста перед ссылкой нет вовсе. Оба несут утверждение —
 # в первом случае это сам пункт, во втором метка ссылки. Берём оба, иначе
 # шесть разговоров из четырнадцати выпадают из проверки молча.
+TOPICS = "_ops/chat-recall-topics"
+NOT_A_TOPIC = {"AGENTS.md", "README.md"}
+BARE = re.compile(r"\[?([0-9]{4}-[0-9]{2}-[0-9]{2}-[^\s#\],]+\.md)#L(\d+)")
 CITED = re.compile(r"\[([^\]]*)\]\(\.\./[^)]*?/([0-9]{4}-[^)/]+\.md)#L(\d+)\)")
 
 
 def cited_facts() -> dict[str, list[tuple[int, str, str]]]:
-    """Разговор -> [(строка, текст факта, страница)]."""
+    """Разговор -> [(строка, текст факта, файл темы)].
+
+    Читает живой слой тем. Пока здесь стояла снятая библиотека страниц, разбор
+    дрейфа честно отвечал «на него никто не ссылается» по продукту, которым
+    никто не пользуется.
+    """
     found: dict[str, list[tuple[int, str, str]]] = defaultdict(list)
-    for path in sorted(glob.glob(f"{ART}/wiki-v1/**/*.md", recursive=True)):
-        page = os.path.relpath(path, f"{ART}/wiki-v1")
+    for path in sorted(glob.glob(f"{TOPICS}/*.md")):
+        page = os.path.basename(path)
+        if page in NOT_A_TOPIC:
+            continue
         for line in open(path, encoding="utf-8"):
             stripped = line.rstrip("\n")
+            # Страница носила якорь markdown-ссылкой, тема носит его голым.
+            # Пока здесь стояла только первая форма, слой был невидим.
+            head = stripped.split("[", 1)[0].lstrip("- ").strip()
             for label, name, number in CITED.findall(stripped):
-                head = stripped.split("[", 1)[0].lstrip("- ").strip()
                 found[name].append((int(number), head or label.strip(), page))
+            for name, number in BARE.findall(stripped):
+                if head:
+                    found[name].append((int(number), head, page))
     return found
 
 

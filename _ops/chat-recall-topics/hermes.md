@@ -55,6 +55,10 @@ sources: 4
 - Владелец поправил, что alpha-модель уже есть у самого Hermes: stealth/ox-alpha присутствует в live Hermes-каталоге у Nous и OpenRouter. [2026-08-22-063718-codex-01a0271b.md#L26]
 - Владелец утвердил полный Nous-primary Ox-контракт: provider-specific zero-pricing gate, no fallback, strict resume identity, сохранённые worktree fixes и owner/evidence correction. [2026-08-22-063718-codex-01a0271b.md#L28]
 
+## Добавлено 2026-08-24
+
+- Владелец решил сделать небольшой скил, который упростил бы и ускорил использование модели stealth/ox-alpha. [2026-08-22-063718-codex-01a0271b.md#L19]
+
 ## Отменено
 
 - [2026-08-06-113200-claude-712763b3.md#L23] отменено более поздним [2026-08-22-063718-codex-01a0271b.md#L29, 2026-08-22-063718-codex-01a0271b.md#L34]
