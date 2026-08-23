@@ -42,6 +42,16 @@ h1 { letter-spacing: -0.05em; line-height: 0.9; }
 .fine    { font-size: var(--step-fine); color: var(--quiet); }
 .figure-big { font-family: var(--display); font-size: var(--step-1); font-weight: 500; line-height: .85; letter-spacing: -.04em; }
 
+/* ── Две семьи краски, которые нельзя перепутать.
+      surface-* — заливка: текст внутри уже правильный.
+      ink-*     — цвет текста на бумаге: всегда из *-content, всегда читается.
+      Сырые токены бренда как цвет текста (text-primary и подобные) на бумаге
+      не читаются: жёлтый на белом даёт 1,57:1. ── */
+.ink-brand  { color: var(--color-primary-content); }
+.ink-second { color: var(--color-secondary-content); }
+.ink-strong { color: var(--color-accent); }
+.ink-quiet  { color: var(--quiet); }
+
 /* ── Роли поверхностей. Bumblebee даёт настоящий контраст: белая бумага,
       чёрные чернила, жёлтый бренд. Хотя бы одно поле на странице — не бумага. ── */
 .surface-paper { background: var(--color-base-100); color: var(--color-base-content); }
