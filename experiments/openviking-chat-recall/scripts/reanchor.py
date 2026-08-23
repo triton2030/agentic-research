@@ -31,7 +31,7 @@ import sys
 CORPUS = "_ops/chat-recall"
 ART = "experiments/openviking-chat-recall/artifacts"
 MAP = f"{ART}/anchor-map.json"
-ROOTS = [f"{ART}/wiki-v1", "_ops/chat-recall/topics"]
+ROOTS = [f"{ART}/wiki-v1", "_ops/chat-recall-topics"]
 
 TYPE = re.compile(r"(?:—|\|)\s*type:\s*([^\s|]+)")
 ANCHOR = re.compile(r"([0-9]{4}-[0-9]{2}-[0-9]{2}-[^\s#\],)]+\.md)#L(\d+)")

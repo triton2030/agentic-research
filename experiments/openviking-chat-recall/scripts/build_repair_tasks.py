@@ -61,7 +61,7 @@ def main(runs: str, out_dir: str) -> int:
             f"{i}. страница `{page}` · вид `{kind}`\n   что не так: {what}\n   опора: {evidence}"
             for i, (page, kind, what, evidence) in enumerate(items, start=1)
         )
-        source = f"_ops/chat-recall/topics/{topic}.md"
+        source = f"_ops/chat-recall-topics/{topic}.md"
         open(os.path.join(out_dir, f"{topic}.txt"), "w", encoding="utf-8").write(
             f"""Роль: редактор, исправляющий страницы библиотеки по замечаниям проверяющего.
 Замечания уже вынесены другим агентом; твоя работа — сформулировать правку, а не

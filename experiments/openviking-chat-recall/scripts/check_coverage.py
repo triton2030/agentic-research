@@ -111,7 +111,7 @@ def main(rev: str) -> int:
     known = set(records)
     stages = [
         ("1  снимок -> сжатые файлы", flat_anchors()),
-        ("3  сжатые -> темы", anchors("_ops/chat-recall/topics/*.md")),
+        ("3  сжатые -> темы", anchors("_ops/chat-recall-topics/*.md")),
         ("4  темы -> страницы", anchors(f"{ART}/wiki-v1/**/*.md")),
     ]
 

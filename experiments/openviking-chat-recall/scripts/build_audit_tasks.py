@@ -44,7 +44,7 @@ def main(out_dir: str, only_clean: bool, runs_dir: str | None, redo: bool) -> in
     for topic in skip_done(sorted(pages_by_topic), runs_dir, redo):
         if only_clean and topic in touched:
             continue
-        source = f"_ops/chat-recall/topics/{topic}.md"
+        source = f"_ops/chat-recall-topics/{topic}.md"
         if not os.path.exists(source):
             continue
         pages = pages_by_topic[topic]
