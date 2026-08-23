@@ -34,8 +34,9 @@ case "$MODE" in
   *) echo "MODE должен быть read, write или worktree" >&2; exit 2 ;;
 esac
 
-# Вероятностный отказ маршрута имеет точный отпечаток и проходит на повторе,
-# поэтому вызывающему его видеть незачем — раннер поглощает его сам.
+# Отказы, проходящие на повторе, раннер поглощает сам: маршрут не стартовал,
+# сессия не доказала ответ, вызовы не подтвердили маршрут. Вызывающему их видеть
+# незачем — он всё равно сделал бы то же самое, только руками и позже.
 run_one() {
   local brief="$1" id attempt=1
   id=$(basename "$brief" .txt)
@@ -45,10 +46,10 @@ run_one() {
       --max-turns 2000 --timeout-sec 10800 \
       "${EXTRA[@]}" \
       > "$OUT/$id.json" 2> "$OUT/$id.err" < "$brief"
-    if python3 "$HERE/route_started.py" "$OUT/$id.json"; then
+    if why=$(python3 "$HERE/route_started.py" "$OUT/$id.json"); then
       break
     fi
-    echo "$id: маршрут не стартовал, повтор $attempt"
+    echo "$id: $why, повтор $attempt"
     attempt=$((attempt + 1))
     sleep 5
   done
