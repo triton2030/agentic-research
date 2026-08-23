@@ -27,14 +27,14 @@ carrier. Composition is yours; matching anatomy is Daisy's.
 не добавляй custom class, который заново рисует surface, padding, border,
 radius или state уже выбранного Daisy component.
 
-## Карточка: Cupcake — Одна Палитра
+## Карточка: Bumblebee — Одна Палитра
 
 **Сигнал:** authored CSS, SVG или adapter вводит literal color, `--artifact-*`
 palette либо использует status color для нейтральной категории.
 
-**Практика:** root использует `data-theme="cupcake"`. Surface/content — пары:
+**Практика:** root использует `data-theme="bumblebee"`. Surface/content — пары:
 `base-content` работает на base surfaces, а role component получает matching
-`*-content` от Daisy. На cupcake base-paper foreground marks и data ink могут
+`*-content` от Daisy. На bumblebee base-paper foreground marks и data ink могут
 брать проверенную brand-content тройку `primary-content`,
 `secondary-content`, `accent-content`. Значимый mark сохраняет label или форму.
 
@@ -83,7 +83,7 @@ DaisyUI collapse. Modal начинай с нативного `<dialog>`: DaisyUI
 **Практика:** parent владеет расстоянием между children, component — внутренним
 padding. Page может быть editorial, dense, playful или technical; общий
 scaffold не владеет layout или typography. Цветовые решения остаются внутри
-semantic roles cupcake, а не отдельной page palette.
+semantic roles bumblebee, а не отдельной page palette.
 
 **Не делай:** не рассыпай почти одинаковые arbitrary values по HTML. Для цвета
 literal hex не является разовым исключением: используй Daisy token или

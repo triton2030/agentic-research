@@ -59,7 +59,7 @@ Adapter включает ECharts ARIA и передаёт туда authored desc
 
 ## Palette, Font, Motion
 
-Adapter читает computed font и Daisy cupcake tokens. Обычный ink берётся из
+Adapter читает computed font и Daisy bumblebee tokens. Обычный ink берётся из
 `base-content`; axis/grid — из контрастной смеси `base-content` с `base-100`,
 а не из близких по светлоте соседних base surfaces. Default data ink — из
 проверенной brand-content тройки `primary-content`, `secondary-content`,

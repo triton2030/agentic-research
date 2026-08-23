@@ -14,8 +14,9 @@ description: >
 Вызов этого скила означает: собери самостоятельный сайт в общей зоне
 `_workspace/HTML_artifacts/`, связанный ссылкой с галереей `index.html`, на уже
 установленных локальных библиотеках. Tailwind, Alpine и Lucide подключены, тема
-DaisyUI `cupcake` уже стоит; Table, Mermaid, ECharts и React Flow лежат в `lib/`
-и `assets/shared/`, точные теги каждого — в `COMPONENTS.md` этой же зоны.
+DaisyUI `bumblebee` уже стоит; Table, Mermaid, ECharts и React Flow лежат в `lib/`
+и `assets/shared/`, точные теги каждого, роли поверхностей и классы раскладки — в
+`COMPONENTS.md` этой же зоны.
 В сеть не ходи: страница обязана открываться по `file://` без интернета,
 без CDN, установки, сервера и сборки.
 

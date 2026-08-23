@@ -1,4 +1,4 @@
-/* React Flow maps its runtime chrome to DaisyUI cupcake semantic roles. */
+/* React Flow maps its runtime chrome to DaisyUI bumblebee semantic roles. */
 [data-react-flow] {
   --rf-surface: var(--color-base-100, Canvas);
   --rf-surface-raised: var(--color-base-200, Canvas);

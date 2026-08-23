@@ -69,11 +69,11 @@ Chart-типы используют только реальные данные, 
 
 **Практика:** DaisyUI владеет card, toolbar, legend, dialog и disclosure.
 Mermaid владеет topology. Локальный init использует `theme: base` и переносит
-computed cupcake surfaces, ink и brand-content line color в Mermaid. Он сам
+computed bumblebee surfaces, ink и brand-content line color в Mermaid. Он сам
 переводит Daisy OKLCH в поддерживаемый Mermaid формат. Через
 `window.HTMLMermaidConfig` можно менять layout/behavior, но не `theme`,
 `themeCSS`, `themeVariables` или `fontFamily`: они всегда приходят из computed
-artifact style и cupcake. Init-directive внутри diagram source тоже не
+artifact style и bumblebee. Init-directive внутри diagram source тоже не
 переопределяет эти palette/font keys.
 
 Semantic node roles различай label и формой. Не вводи diagram-local palette

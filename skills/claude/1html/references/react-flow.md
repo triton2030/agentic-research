@@ -132,7 +132,7 @@ edges остались на handles.
 
 ## Palette И Motion
 
-Bridge наследует `font-family` и Daisy cupcake roles: base surfaces,
+Bridge наследует `font-family` и Daisy bumblebee roles: base surfaces,
 `base-content`, `base-300` и `primary-content` для meaningful edge/selection.
 При их отсутствии он использует system colors и `currentColor`, а не свою
 палитру. Node composition может переопределить geometry variables в

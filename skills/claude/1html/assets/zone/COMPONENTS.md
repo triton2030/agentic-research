@@ -1,51 +1,61 @@
 <!-- 1html-generated: shared carrier map -->
-# Shared Visual Carriers
+# Что Уже Установлено В Зоне
 
-Это карта уже установленных возможностей общей `HTML_artifacts` zone. DaisyUI
-`cupcake` владеет совпавшей component-анатомией и палитрой; artifact владеет
-page layout, typography, bespoke carrier, node anatomy и размерами.
+Тема — DaisyUI `bumblebee`, второй палитры нет. Всё ниже лежит рядом и работает
+по `file://`.
 
-## Base
+## Краска
 
-Каждая новая страница уже подключает:
+Пары surface/content не разбивай. Хотя бы одно поле страницы — не бумага.
 
-- `lib/daisyui.css` и `lib/daisyui-themes.css` — component anatomy и palette;
-- `lib/tailwind.js` — utility CSS;
-- `lib/lucide.min.js` — icons; neutral scaffold уже вызывает
-  `lucide.createIcons()`, при ручной странице вызови его после загрузки script;
-- `lib/alpine.js` — небольшие UI states;
-- `assets/shared/components.css` — только повторившийся carrier, которого нет в
-  Daisy; не второй atom system и не palette;
-- `assets/<slug>.css` — дизайн только текущей страницы.
+| Роль | Класс | Токены | В bumblebee |
+|---|---|---|---|
+| бумага | `.surface-paper` | `base-100` / `base-content` | белое, почти чёрный текст |
+| тихая бумага | `.surface-quiet` | `base-200`, `base-300` | лёгкие ступени фона |
+| **чернила** | `.surface-ink` | `accent` / `accent-content` | **чистый чёрный, белый текст** |
+| тёмное поле | `.surface-dark` | `neutral` / `neutral-content` | тёплый тёмно-серый |
+| **бренд** | `.surface-brand` | `primary` / `primary-content` | **жёлтый, тёмно-янтарный текст** |
+| второй бренд | — | `secondary` / `secondary-content` | оранжевый |
 
-## Раскладка Зоны
+`info` `success` `warning` `error` — только настоящие статусы, не категории
+данных; больше трёх категорий берут `color-mix()` от токенов выше.
 
-Классы уже в `assets/shared/components.css`; look-free, только композиция.
-Имена проверены против DaisyUI: его `stack`, `join`, `mask` не занимать.
+## Форма
 
-| Класс | Отношение | Ручки |
+Зона владеет начертанием заголовков (`--display`, засечный) и шкалой
+`--step-hero → --step-fine`; размер каждого заголовка выбирает страница.
+Роли текста opt-in: `.display` `.title` `.lede` `.eyebrow` `.stat` `.fine`.
+
+| Класс | Отношение | Ручка |
 |---|---|---|
-| `flow` | поток сверху вниз, один ритм | `--space` |
+| `page` + `.wide` `.full` | полоса страницы, выход во всю ширину | — |
+| `flow` · `rhythm` | поток сверху вниз | `--space` |
 | `cluster` | ряд меток, перенос по содержимому | `--gap` |
-| `switcher` | ряд ↔ колонка целиком | `--threshold` = минимум ряда |
-| `with-sidebar` | панель + текучее тело | `--side` = минимум панели |
-| `auto-grid` | равноправные карточки | `--min` = минимум карточки |
+| `switcher` | ряд ↔ колонка целиком | `--threshold` |
+| `with-sidebar` | панель + текучее тело | `--side` |
+| `auto-grid` | равноправные карточки | `--min` |
+| `bento` + `.lead` `.wide-tile` | плитки разного веса | `--min` |
+| `tile` + `-ink` `-dark` `-brand` | плитка с назначенной поверхностью | — |
 | `reel` | горизонтальная лента в рамке | `--gap` |
 
-Порог всегда — минимум ширины блока, не ширина экрана. Композиция, которой
-здесь и в Daisy нет, — свой класс, названный за отношение, а не за вид.
+Порог переноса — минимум ширины блока, не ширина экрана. Имена DaisyUI
+`stack`, `join`, `mask`, `indicator` не занимать.
 
-## Table
+## Носители
+
+Подключай только тот, который показывает отношение.
+
+**Таблица** — источником остаётся обычный `<table>`; adapter даёт поиск, фильтр
+и сортировку.
 
 ```html
 <script defer src="assets/shared/artifact-table.js"></script>
-<script defer src="lib/alpine.js"></script>
 ```
 
-HTML остаётся source: обычные `<table>`, `<caption>`, `<tr data-table-row>`.
-Adapter добавляет Alpine `artifactTable()` для search/filter/sort.
-
-## Mermaid
+**Mermaid** — topology, sequence, state, timeline; определение читаемым текстом
+в `<pre class="mermaid">`. Цвета внутри определения не задавай: `var()` в
+`classDef` роняет парсер и схема не рендерится вовсе — роли различай формой
+узла, `stroke-width`, `stroke-dasharray`.
 
 ```html
 <link href="assets/shared/diagram-viewer.css" rel="stylesheet">
@@ -56,21 +66,16 @@ Adapter добавляет Alpine `artifactTable()` для search/filter/sort.
 <script defer src="assets/shared/mermaid-init.js"></script>
 ```
 
-Используй для topology, sequence, state, timeline и простых charts. Definition
-остаётся читаемым text source в `<pre class="mermaid">`.
-
-## ECharts
+**ECharts** — величины, доли, изменение. Host `<div data-echart="id">`, option в
+`<script type="application/json" id="id">`.
 
 ```html
 <script defer src="lib/echarts.min.js"></script>
 <script defer src="assets/shared/echarts-init.js"></script>
 ```
 
-Host: `<div data-echart="option-id" aria-label="..."></div>`. Option хранится в
-`<script type="application/json" id="option-id">`. Размер, данные и page
-composition принадлежат текущей странице; palette приходит из cupcake.
-
-## React Flow
+**React Flow** — граф с произвольной анатомией узла. Host
+`<div data-react-flow="id">`, содержимое узлов — semantic HTML из `<template>`.
 
 ```html
 <link href="lib/react-flow.css" rel="stylesheet">
@@ -79,15 +84,4 @@ composition принадлежат текущей странице; palette пр
 <script defer src="assets/shared/react-flow-init.js"></script>
 ```
 
-Host: `<div data-react-flow="flow-id" aria-label="..."></div>`. Config хранится
-в JSON; содержимое nodes — произвольный semantic HTML из `<template>`. Shared
-bridge не задаёт node anatomy, surface, padding или количество disclosures.
-Внутри свободной node совпавшие button, badge, collapse и alert остаются Daisy
-components.
-
-Все shared bridges наследуют Daisy cupcake tokens. Они не принимают
-`--artifact-*` palette aliases и не используют status colors как нейтральные
-data categories.
-
-Все runtimes локальны и работают через `file://`; server, CDN и build step не
-нужны. Подключай только carrier, который действительно показывает отношение.
+Adapters сами берут токены темы — свою палитру им не передавай.
