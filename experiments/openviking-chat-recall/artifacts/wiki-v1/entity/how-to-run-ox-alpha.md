@@ -6,7 +6,7 @@ topic: hermes
 ---
 # Как запускать Ox Alpha через Hermes?
 
-`1hermes` развивается для запуска `Ox Alpha` через Hermes harness; отдельный скил для этого не создаётся. `Nous` — основной провайдер `Ox Alpha`: ошибочный OpenRouter-only gate удалён, а допуск определяется по subscription/free semantics в Nous Portal. Применяется provider-specific zero-pricing gate без fallback и со strict resume identity в контракте `Ox Alpha`. Лимиты подписки Nous Portal не должны сдерживать вызовы Hermes: агент сам вызывает Hermes при необходимости.
+`1hermes` развивается для запуска `Ox Alpha` через Hermes harness; отдельный скил для этого владелец решил не создавать. Владелец решил сделать `Nous` основным провайдером `Ox Alpha`: удалить ошибочный OpenRouter-only gate и определять допуск по subscription/free semantics в Nous Portal. Владелец решил применять provider-specific zero-pricing gate без fallback и сохранять strict resume identity в контракте `Ox Alpha`. Лимиты подписки Nous Portal не должны сдерживать вызовы Hermes: агент сам вызывает Hermes при необходимости.
 
 ## Решения
 

@@ -6,7 +6,7 @@ topic: codex-background-threads
 ---
 # Когда архивировать Codex-ветки и как устроен recovery?
 
-По правилу владельца ветки архивируются после вызова `1codex-bg-threads`; root архивирует retained-ветку при принятии зонтичной работы, а до принятия — только по явному слову владельца. Правка самого скилла ограничена stable title, pin и recovery через `list_threads` и `unarchive` — queue, revert, Goal, Cloud и handoff исключены.
+Владелец предложил как правило архивировать ветки после вызова `1codex-bg-threads`; root архивирует retained-ветку при принятии зонтичной работы, а до принятия — только по явному слову владельца. Правка самого скилла ограничена stable title, pin и recovery через `list_threads` и `unarchive` — queue, revert, Goal, Cloud и handoff исключены.
 
 ## Архивирование
 
