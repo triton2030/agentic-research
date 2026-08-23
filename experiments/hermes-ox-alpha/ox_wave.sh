@@ -24,7 +24,7 @@
 #                 когда агенты правят одни и те же файлы. Сливает оркестратор.
 set -u
 HERMES="$HOME/.claude/skills/1hermes/scripts/hermes_advisor.py"
-HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+HERE="${OX_WAVE_HOME:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}"
 
 # Bash читает скрипт по мере исполнения, а не целиком. Правка файла во время
 # работы волны сдвигает смещения и роняет уже запущенный экземпляр посреди
@@ -33,7 +33,10 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [ -z "${OX_WAVE_PINNED:-}" ]; then
   PINNED=$(mktemp -t ox_wave)
   cat "${BASH_SOURCE[0]}" > "$PINNED"
-  export OX_WAVE_PINNED=1
+  # HERE считается от BASH_SOURCE, а у копии он указывает во временную папку.
+  # Без переноса настоящего каталога предикат повтора не находится, каждый
+  # прогон читается как неудачный и волна жжёт все попытки впустую.
+  export OX_WAVE_PINNED=1 OX_WAVE_HOME="$HERE"
   bash "$PINNED" "$@"
   status=$?
   rm -f "$PINNED"
