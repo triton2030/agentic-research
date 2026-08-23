@@ -19,21 +19,25 @@ import json
 import os
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from wave import skip_done
+
 ART = "experiments/openviking-chat-recall/artifacts"
 NORMATIVE = ["AGENTS.md", "CLAUDE.md", "_ops/GOAL.md", "_ops/AGENTS.md",
              "_ops/product-frames/agentic-research.md",
              "_ops/product-frames/agentic-research.principles.md"]
 
 
-def main(topics_dir: str, out_dir: str) -> int:
+def main(topics_dir: str, out_dir: str, runs_dir: str | None, redo: bool) -> int:
     core = "\n\n".join(
         f"### `{path}`\n\n```\n{open(path, encoding='utf-8').read().strip()}\n```"
         for path in NORMATIVE if os.path.exists(path)
     )
     os.makedirs(out_dir, exist_ok=True)
     written = 0
-    for path in sorted(glob.glob(os.path.join(topics_dir, "*.md"))):
-        topic = os.path.basename(path)[:-3]
+    paths = {os.path.basename(p)[:-3]: p for p in sorted(glob.glob(os.path.join(topics_dir, "*.md")))}
+    for topic in skip_done(sorted(paths), runs_dir, redo):
+        path = paths[topic]
         open(os.path.join(out_dir, topic + ".txt"), "w", encoding="utf-8").write(
             f"""Роль: ревизор инструкций. У тебя одна тема знаний владельца и нормативные
 файлы проекта. Вопрос ровно один: **что из этой темы ещё нигде не записано.**
@@ -99,5 +103,8 @@ tracked owner, лежат в `skills/shared/**`, `skills/claude/**`, `skills/cod
 
 
 if __name__ == "__main__":
-    raise SystemExit(main(sys.argv[1] if len(sys.argv) > 1 else f"{ART}/flatten-v1/topics",
-                          sys.argv[2] if len(sys.argv) > 2 else "_workspace/ox-delta/tasks"))
+    plain = [a for a in sys.argv[1:] if not a.startswith("--")]
+    raise SystemExit(main(plain[0] if plain else f"{ART}/flatten-v1/topics",
+                          plain[1] if len(plain) > 1 else "_workspace/ox-delta/tasks",
+                          plain[2] if len(plain) > 2 else None,
+                          "--redo" in sys.argv))

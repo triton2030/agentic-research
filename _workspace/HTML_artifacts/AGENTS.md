@@ -27,6 +27,9 @@ brand-content roles; status colors означают только реальны�
 - общие libraries уже лежат в `lib/`, components/styles/adapters — в
   `assets/shared/`;
 - точные local tags носителей лежат в `COMPONENTS.md`; открывай только нужный;
+- свои классы — ноль по дефолту: композицию сначала ищи в Daisy и классах
+  раскладки зоны (`COMPONENTS.md`); свой класс существует только объявленным
+  в плане страницы;
 - подробности выбора visual и component лежат в skill `1html`; не дублируй их
   здесь;
 - не создавай per-page bundle directory и не копируй `lib/assets`;

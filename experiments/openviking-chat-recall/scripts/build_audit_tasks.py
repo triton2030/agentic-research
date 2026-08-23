@@ -17,10 +17,13 @@ import json
 import os
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from wave import skip_done
+
 ART = "experiments/openviking-chat-recall/artifacts"
 
 
-def main(out_dir: str, only_clean: bool) -> int:
+def main(out_dir: str, only_clean: bool, runs_dir: str | None, redo: bool) -> int:
     topics = json.load(open(f"{ART}/flatten-v1/topics.json", encoding="utf-8"))["topics"]
     topic_of = {name: t["id"] for t in topics for name in t["files"]}
     touched = {topic_of[row.split("\t")[0]]
@@ -38,7 +41,7 @@ def main(out_dir: str, only_clean: bool) -> int:
 
     os.makedirs(out_dir, exist_ok=True)
     written = 0
-    for topic in sorted(pages_by_topic):
+    for topic in skip_done(sorted(pages_by_topic), runs_dir, redo):
         if only_clean and topic in touched:
             continue
         source = f"{ART}/flatten-v1/topics/{topic}.md"
@@ -101,5 +104,8 @@ def main(out_dir: str, only_clean: bool) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main(sys.argv[1] if len(sys.argv) > 1 else "_workspace/ox-audit/tasks",
-                          "--only-clean" in sys.argv))
+    plain = [a for a in sys.argv[1:] if not a.startswith("--")]
+    raise SystemExit(main(plain[0] if plain else "_workspace/ox-audit/tasks",
+                          "--only-clean" in sys.argv,
+                          plain[1] if len(plain) > 1 else None,
+                          "--redo" in sys.argv))
