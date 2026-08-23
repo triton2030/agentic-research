@@ -116,12 +116,29 @@ def main(rev: str) -> int:
         seen = reached & known
 
     library = stages[-1][1]
-    uncovered = sorted(known - library)
+    # Запись без адреса в библиотеке бывает двух разных вещей, и мешать их
+    # нельзя: пропущенная молча — дефект, а признанная не несущей знания —
+    # результат работы. Весь смысл добора в том, чтобы вторых не оставалось
+    # без имени, поэтому они считаются отдельно и в дефект не идут.
+    declared: dict[Address, str] = {}
+    decisions = f"{ART}/coverage-decisions.tsv"
+    if os.path.exists(decisions):
+        for row in open(decisions, encoding="utf-8"):
+            anchor, verdict = row.split("\t", 2)[:2]
+            name, _, number = anchor.rpartition("#L")
+            if number.isdigit():
+                declared[(name, int(number))] = verdict
+    silent = sorted(a for a in known - library if declared.get(a) in (None, "без-решения"))
+    named = sorted(a for a in known - library if declared.get(a) not in (None, "без-решения"))
+    uncovered = silent
     dangling = sorted(library - known)
-    covered = len(records) - len(uncovered)
-    print(f"\nдошло до библиотеки: {covered} из {len(records)}"
-          f" ({100 * covered / max(len(records), 1):.1f}%)")
-    print(f"НЕ покрыто (П5): {len(uncovered)}")
+    accounted = len(records) - len(silent)
+    print(f"\nстоит на страницах: {len(known & library)} из {len(records)}"
+          f" ({100 * len(known & library) / max(len(records), 1):.1f}%)")
+    print(f"учтено — на странице либо названо: {accounted}"
+          f" ({100 * accounted / max(len(records), 1):.1f}%)")
+    print(f"НЕ покрыто молча (П5): {len(silent)}")
+    print(f"названо не несущим знания (не дефект): {len(named)}")
     print(f"адрес библиотеки не указывает на запись снимка: {len(dangling)}")
 
     if uncovered:
@@ -139,7 +156,7 @@ def main(rev: str) -> int:
         print("\nвисячие адреса библиотеки:")
         for name, number in dangling:
             print(f"  {name}#L{number}")
-    return 1 if uncovered or dangling else 0
+    return 1 if silent or dangling else 0
 
 
 if __name__ == "__main__":
