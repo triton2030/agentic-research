@@ -9,8 +9,10 @@
 #   TASKS=<папка с *.txt брифами> [PAR=3] [MODE=read|write] bash ox_wave.sh
 #
 # MODE=read  — только чтение, брифы возвращают вердикт в JSON.
-# MODE=write — правки в отдельном git worktree на каждого агента; сливает
-#              оркестратор после проверки диффа, не агент.
+# MODE=write    — агенты пишут прямо в дерево. Годится, когда участки не
+#                 пересекаются по файлам: каждый создаёт свои.
+# MODE=worktree — правки в отдельном git worktree на каждого агента. Нужен,
+#                 когда агенты правят одни и те же файлы. Сливает оркестратор.
 set -u
 HERMES="$HOME/.claude/skills/1hermes/scripts/hermes_advisor.py"
 TASKS=${TASKS:?нужна папка с брифами}
@@ -21,9 +23,10 @@ CWD=${CWD:-$PWD}
 mkdir -p "$OUT"
 
 case "$MODE" in
-  read)  EXTRA=(--toolsets file) ;;
-  write) EXTRA=(--allow-write --worktree --toolsets file) ;;
-  *) echo "MODE должен быть read или write" >&2; exit 2 ;;
+  read)     EXTRA=(--toolsets file) ;;
+  write)    EXTRA=(--allow-write --toolsets file) ;;
+  worktree) EXTRA=(--allow-write --worktree --toolsets file) ;;
+  *) echo "MODE должен быть read, write или worktree" >&2; exit 2 ;;
 esac
 
 run_one() {
