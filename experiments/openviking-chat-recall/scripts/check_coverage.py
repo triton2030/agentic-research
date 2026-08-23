@@ -91,9 +91,16 @@ def flat_anchors() -> set[Address]:
     return found
 
 
+# Слой тем держит рядом свой контракт для агентов; пример якоря внутри него
+# засчитался бы покрытой записью и молча выбросил её из дельты обновления.
+NOT_A_TOPIC = {"AGENTS.md", "README.md"}
+
+
 def anchors(pattern: str) -> set[Address]:
     found: set[Address] = set()
     for path in glob.glob(pattern, recursive=True):
+        if os.path.basename(path) in NOT_A_TOPIC:
+            continue
         text = open(path, encoding="utf-8").read()
         found |= {(name, int(n)) for name, n in ANCHOR.findall(text)}
     return found
@@ -104,7 +111,7 @@ def main(rev: str) -> int:
     known = set(records)
     stages = [
         ("1  снимок -> сжатые файлы", flat_anchors()),
-        ("3  сжатые -> темы", anchors(f"_ops/chat-recall/topics/*.md")),
+        ("3  сжатые -> темы", anchors("_ops/chat-recall/topics/*.md")),
         ("4  темы -> страницы", anchors(f"{ART}/wiki-v1/**/*.md")),
     ]
 

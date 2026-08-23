@@ -19,6 +19,10 @@ import json
 import os
 import sys
 
+# Слой тем лежит внутри корпуса и держит рядом свой контракт для агентов.
+# Без этого списка инструкция читается как сорок первая тема.
+NOT_A_TOPIC = {"AGENTS.md", "README.md"}
+
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from wave import skip_done
 
@@ -35,7 +39,8 @@ def main(topics_dir: str, out_dir: str, runs_dir: str | None, redo: bool) -> int
     )
     os.makedirs(out_dir, exist_ok=True)
     written = 0
-    paths = {os.path.basename(p)[:-3]: p for p in sorted(glob.glob(os.path.join(topics_dir, "*.md")))}
+    paths = {os.path.basename(p)[:-3]: p for p in sorted(glob.glob(os.path.join(topics_dir, "*.md")))
+             if os.path.basename(p) not in NOT_A_TOPIC}
     for topic in skip_done(sorted(paths), runs_dir, redo):
         path = paths[topic]
         open(os.path.join(out_dir, topic + ".txt"), "w", encoding="utf-8").write(
