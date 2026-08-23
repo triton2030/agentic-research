@@ -13,6 +13,9 @@ import os
 import re
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from wave import strip_fence
+
 WIKI = "experiments/openviking-chat-recall/artifacts/wiki-v1"
 ANCHOR = re.compile(r"([0-9]{4}-[0-9]{2}-[0-9]{2}-[^\s#\],)]+\.md)#L(\d+)")
 BLOCK = re.compile(r"^=== ФАЙЛ (\S+\.md)\s*$", re.M)
@@ -62,7 +65,7 @@ def main(runs: str, dry: bool) -> int:
             target = os.path.join(WIKI, rel)
             if not dry:
                 os.makedirs(os.path.dirname(target), exist_ok=True)
-                open(target, "w", encoding="utf-8").write(text.strip() + "\n")
+                open(target, "w", encoding="utf-8").write(strip_fence(text) + "\n")
         print(f"  {name}: страниц {len(pages)} ({', '.join(rel for rel, _ in pages)})")
         done += 1
     print(f"правок применено: {done} | находка отклонена агентом: {skipped} | отвергнуто: {refused}"

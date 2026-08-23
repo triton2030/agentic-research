@@ -16,6 +16,9 @@ import os
 import re
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from wave import expand_corpus_links, strip_fence
+
 SHORT = re.compile(r"L(\d+)")
 FULL = re.compile(r"([0-9]{4}-[0-9]{2}-[0-9]{2}-[^\s#\],)]+\.md)#L(\d+)")
 BLOCK = re.compile(r"^=== ФАЙЛ (\S+\.md)\s*$", re.M)
@@ -35,7 +38,7 @@ def flat_anchors(flat: str, names: list[str]) -> set[tuple[str, str]]:
     return want
 
 
-def main(stage: str, runs: str, material: str, out_dir: str) -> int:
+def main(stage: str, runs: str, material: str, out_dir: str, corpus: str) -> int:
     os.makedirs(out_dir, exist_ok=True)
     topics = None
     if stage == "merge":
@@ -51,7 +54,7 @@ def main(stage: str, runs: str, material: str, out_dir: str) -> int:
             print(f"  {topic}: нет JSON"); refused += 1; continue
         if not payload.get("ok"):
             print(f"  {topic}: прогон не принят"); refused += 1; continue
-        body = (payload.get("response") or "").strip()
+        body = strip_fence(payload.get("response") or "")
 
         if stage == "merge":
             if not body.startswith("---"):
@@ -84,11 +87,13 @@ def main(stage: str, runs: str, material: str, out_dir: str) -> int:
             for rel, page_text in pages:
                 target = os.path.join(out_dir, rel)
                 os.makedirs(os.path.dirname(target), exist_ok=True)
-                open(target, "w", encoding="utf-8").write(page_text.strip() + "\n")
+                body = expand_corpus_links(strip_fence(page_text), target, corpus)
+                open(target, "w", encoding="utf-8").write(body + "\n")
         taken += 1
     print(f"тем принято: {taken} | отвергнуто: {refused}")
     return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]))
+    raise SystemExit(main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4],
+                          sys.argv[5] if len(sys.argv) > 5 else "_ops/chat-recall"))

@@ -18,6 +18,7 @@ from __future__ import annotations
 import glob
 import json
 import os
+import re
 import sys
 
 
@@ -33,6 +34,37 @@ def accepted(runs_dir: str) -> set[str]:
         if payload.get("ok") and body and body not in {"(empty)", "(пусто)"}:
             done.add(os.path.basename(path)[:-5])
     return done
+
+
+def strip_fence(text: str) -> str:
+    """Снять обёртку из тройных кавычек вокруг содержимого файла.
+
+    Контракт просит вернуть файл без markdown-обёртки, и большинство прогонов
+    так и делают. Десять страниц из шестидесяти двух пришли обёрнутыми — форма
+    ответа модели колеблется на границе, и спорить с этим дороже, чем снять
+    обёртку одной строкой. Отвергать содержательно верный результат из-за
+    трёх обратных кавычек — та же ошибка, что отвергать вердикт из-за языка.
+    """
+    body = text.strip()
+    if body.startswith("```"):
+        body = body.split("\n", 1)[1] if "\n" in body else ""
+        if body.rstrip().endswith("```"):
+            body = body.rstrip()[:-3]
+    return body.strip()
+
+
+def expand_corpus_links(text: str, page_path: str, corpus: str) -> str:
+    """Раскрыть служебный префикс `corpus:` в путь от страницы до разговоров.
+
+    Модель путей не считает — ни одна константа не верна для всех корпусов
+    сразу. Считает скрипт, ровно один раз и в одном месте.
+    """
+    relative = os.path.relpath(os.path.abspath(corpus), os.path.dirname(os.path.abspath(page_path)))
+    text = text.replace("](corpus:", f"]({relative}/")
+    # Старые прогоны написаны до появления метки и несут посчитанный самой
+    # моделью путь. Он неверен всюду, кроме родного репо, но узнаётся по
+    # хвосту — и тогда чиниться должен так же, скриптом, а не перепрогоном.
+    return re.sub(r"\]\((?:\.\./)+_ops/chat-recall/", f"]({relative}/", text)
 
 
 def skip_done(names: list[str], runs_dir: str | None, redo: bool) -> list[str]:
