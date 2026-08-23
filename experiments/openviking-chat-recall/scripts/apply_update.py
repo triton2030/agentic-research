@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from wave import strip_fence
 
 ART = "experiments/openviking-chat-recall/artifacts"
-TOPICS = f"{ART}/flatten-v1/topics"
+TOPICS = "_ops/chat-recall/topics"
 SHORT = re.compile(r"L(\d+)")
 
 

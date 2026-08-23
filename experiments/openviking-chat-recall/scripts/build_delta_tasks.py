@@ -104,7 +104,7 @@ tracked owner, лежат в `skills/shared/**`, `skills/claude/**`, `skills/cod
 
 if __name__ == "__main__":
     plain = [a for a in sys.argv[1:] if not a.startswith("--")]
-    raise SystemExit(main(plain[0] if plain else f"{ART}/flatten-v1/topics",
+    raise SystemExit(main(plain[0] if plain else "_ops/chat-recall/topics",
                           plain[1] if len(plain) > 1 else "_workspace/ox-delta/tasks",
                           plain[2] if len(plain) > 2 else None,
                           "--redo" in sys.argv))

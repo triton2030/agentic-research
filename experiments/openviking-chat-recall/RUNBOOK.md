@@ -16,14 +16,20 @@ date: 2026-08-24
 `scripts/*.py`, а исполнение — в волне агентов.
 
 Всё написано так, чтобы работать над **любой** папкой `_ops/chat-recall/`, а не
-только над своей. Единственное, что меняется от проекта к проекту, — три
+только над своей. Единственное, что меняется от проекта к проекту, — четыре
 переменные:
 
 ```bash
-CORPUS=/путь/к/чужому/проекту/_ops/chat-recall   # только читается
+CORPUS=/путь/к/чужому/проекту/_ops/chat-recall   # файлы разговоров только читаются
+TOPICS="$CORPUS/topics"                          # готовый слой — внутри корпуса
 ART=experiments/openviking-chat-recall/artifacts/<имя-проекта>
 WORK=_workspace/ox-<имя-проекта>                 # рабочие файлы, не в git
 ```
+
+Слой тем кладётся **в саму папку цитат**, подпапкой `topics/` — решение
+владельца 2026-08-24. Причина адреса: читателю нужен один вход, а якорь пункта
+(`<файл>.md#L16`) из подпапки разрешается на разговор этажом выше без
+дополнительной константы. Промежуточные артефакты сборки остаются в `$ART`.
 
 Исходная папка не правится, не переименовывается и не удаляется — инвариант 1.
 Все артефакты живут отдельно и пересобираемы.
@@ -95,7 +101,7 @@ python3 scripts/apply_topicmap.py "$WORK-topics/runs/topics.json" "$ART/flat" "$
 ```bash
 python3 scripts/build_stage_tasks.py merge "$ART/topics.json" "$ART/flat" "$WORK-merge/tasks"
 # волна
-python3 scripts/apply_stage.py merge "$WORK-merge/runs" "$ART/flat" "$ART/topics"
+python3 scripts/apply_stage.py merge "$WORK-merge/runs" "$ART/flat" "$TOPICS"
 python3 scripts/check_topics.py "$ART"
 ```
 
@@ -178,7 +184,7 @@ python3 scripts/apply_drift.py "$WORK-drift/runs"
 # вопросы пишет окно, видящее ТОЛЬКО разговоры
 TASKS=... CWD="$CORPUS" ...   # волна
 python3 scripts/build_accept_tasks.py "$WORK-accept/runs/questions.json" "$WORK-answer/tasks"
-# рукава: CWD="$ART/topics", штатный поиск через run_digest.py, CWD="$CORPUS"
+# рукава: CWD="$TOPICS", штатный поиск через run_digest.py, CWD="$CORPUS"
 python3 scripts/build_grade_task.py <library.json> <corpus.json> "$WORK-grade/tasks"
 # волна
 ```
