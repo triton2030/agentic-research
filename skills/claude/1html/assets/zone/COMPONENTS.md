@@ -17,6 +17,11 @@
 | **бренд** | `.surface-brand` | `primary` / `primary-content` | **жёлтый, тёмно-янтарный текст** |
 | второй бренд | — | `secondary` / `secondary-content` | оранжевый |
 
+**Жёлтый — цвет поверхности, а не текста.** `primary` на бумаге даёт контраст
+1,57:1 и не читается. Значимая краска на бумаге берётся из `*-content`:
+`primary-content`, `secondary-content`, `accent-content`. Сам `primary` идёт
+заливкой, а текст на нём — `primary-content`.
+
 `info` `success` `warning` `error` — только настоящие статусы, не категории
 данных; больше трёх категорий берут `color-mix()` от токенов выше.
 
@@ -24,7 +29,7 @@
 
 Зона владеет начертанием заголовков (`--display`, засечный) и шкалой
 `--step-hero → --step-fine`; размер каждого заголовка выбирает страница.
-Роли текста opt-in: `.display` `.title` `.lede` `.eyebrow` `.stat` `.fine`.
+Роли текста opt-in: `.display` `.title` `.lede` `.eyebrow` `.figure-big` `.fine`.
 
 | Класс | Отношение | Ручка |
 |---|---|---|
