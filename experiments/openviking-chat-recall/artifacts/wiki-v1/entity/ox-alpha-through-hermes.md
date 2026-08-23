@@ -14,11 +14,11 @@ Ox Alpha запускается через Hermes harness силами `1hermes`
 
 ## Провайдер и допуск
 
-- Владелец решил сделать `Nous` основным провайдером `Ox Alpha`, удалить ошибочный OpenRouter-only gate и определять допуск по subscription/free semantics в Nous Portal. [решил: Nous — основной провайдер, допуск по семантике Nous Portal](../../../../../_ops/chat-recall/2026-08-22-063718-codex-01a0271b.md#L26), [решил: Nous — основной провайдер, допуск по семантике Nous Portal](../../../../../_ops/chat-recall/2026-08-22-063718-codex-01a0271b.md#L27), [решил: Nous — основной провайдер, допуск по семантике Nous Portal](../../../../../_ops/chat-recall/2026-08-22-063718-codex-01a0271b.md#L28)
+- Владелец решил сделать `Nous` основным провайдером `Ox Alpha`, удалить ошибочный OpenRouter-only gate и определять допуск по subscription/free semantics в Nous Portal. [решил: Nous — основной провайдер, допуск по семантике Nous Portal](../../../../../_ops/chat-recall/2026-08-22-063718-codex-01a0271b.md#L27), [решил: Nous — основной провайдер, допуск по семантике Nous Portal](../../../../../_ops/chat-recall/2026-08-22-063718-codex-01a0271b.md#L27), [решил: Nous — основной провайдер, допуск по семантике Nous Portal](../../../../../_ops/chat-recall/2026-08-22-063718-codex-01a0271b.md#L24)
 
 ## Гейт и resume identity
 
-- Владелец решил применять provider-specific zero-pricing gate, не использовать fallback и сохранять strict resume identity в контракте `Ox Alpha`. [решил: provider-specific zero-pricing gate и strict resume identity](../../../../../_ops/chat-recall/2026-08-22-063718-codex-01a0271b.md#L28)
+- Владелец решил применять provider-specific zero-pricing gate, не использовать fallback и сохранять strict resume identity в контракте `Ox Alpha`. [решил: provider-specific zero-pricing gate и strict resume identity](../../../../../_ops/chat-recall/2026-08-22-063718-codex-01a0271b.md#L24)
 
 ## Лимиты подписки
 
@@ -26,7 +26,7 @@ Ox Alpha запускается через Hermes harness силами `1hermes`
 
 ## Бесплатность
 
-- Владелец поправил, что `Ox Alpha` используется только пока она бесплатна, а при переходе на платный режим её нужно сразу отключать. [поправил: Ox Alpha только пока бесплатна](../../../../../_ops/chat-recall/2026-08-22-063718-codex-01a0271b.md#L24), [поправил: Ox Alpha только пока бесплатна](../../../../../_ops/chat-recall/2026-08-22-063718-codex-01a0271b.md#L28)
+- Владелец поправил, что `Ox Alpha` используется только пока она бесплатна, а при переходе на платный режим её нужно сразу отключать. [поправил: Ox Alpha только пока бесплатна](../../../../../_ops/chat-recall/2026-08-22-063718-codex-01a0271b.md#L24), [поправил: Ox Alpha только пока бесплатна](../../../../../_ops/chat-recall/2026-08-22-063718-codex-01a0271b.md#L24)
 
 ## Маршрут к документации
 
@@ -36,11 +36,11 @@ Ox Alpha запускается через Hermes harness силами `1hermes`
 
 - [решил: Ox Alpha через Hermes harness, без отдельного скила](../../../../../_ops/chat-recall/2026-08-22-063718-codex-01a0271b.md#L21)
 - [решил: Ox Alpha через Hermes harness, без отдельного скила](../../../../../_ops/chat-recall/2026-08-22-063718-codex-01a0271b.md#L22)
-- [решил: Nous — основной провайдер, допуск по семантике Nous Portal](../../../../../_ops/chat-recall/2026-08-22-063718-codex-01a0271b.md#L26)
 - [решил: Nous — основной провайдер, допуск по семантике Nous Portal](../../../../../_ops/chat-recall/2026-08-22-063718-codex-01a0271b.md#L27)
-- [решил: Nous — основной провайдер, допуск по семантике Nous Portal](../../../../../_ops/chat-recall/2026-08-22-063718-codex-01a0271b.md#L28)
-- [решил: provider-specific zero-pricing gate и strict resume identity](../../../../../_ops/chat-recall/2026-08-22-063718-codex-01a0271b.md#L28)
+- [решил: Nous — основной провайдер, допуск по семантике Nous Portal](../../../../../_ops/chat-recall/2026-08-22-063718-codex-01a0271b.md#L27)
+- [решил: Nous — основной провайдер, допуск по семантике Nous Portal](../../../../../_ops/chat-recall/2026-08-22-063718-codex-01a0271b.md#L24)
+- [решил: provider-specific zero-pricing gate и strict resume identity](../../../../../_ops/chat-recall/2026-08-22-063718-codex-01a0271b.md#L24)
 - [решил: лимиты подписки не сдерживают вызовы Hermes](../../../../../_ops/chat-recall/2026-08-06-113200-claude-712763b3.md#L24)
 - [поправил: Ox Alpha только пока бесплатна](../../../../../_ops/chat-recall/2026-08-22-063718-codex-01a0271b.md#L24)
-- [поправил: Ox Alpha только пока бесплатна](../../../../../_ops/chat-recall/2026-08-22-063718-codex-01a0271b.md#L28)
+- [поправил: Ox Alpha только пока бесплатна](../../../../../_ops/chat-recall/2026-08-22-063718-codex-01a0271b.md#L24)
 - [поправил: маршрут к Hermes по пути для Claude](../../../../../_ops/chat-recall/2026-08-06-113200-claude-712763b3.md#L21)
