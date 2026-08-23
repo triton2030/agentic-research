@@ -156,6 +156,30 @@ def main(rev: str) -> int:
         print("\nвисячие адреса библиотеки:")
         for name, number in dangling:
             print(f"  {name}#L{number}")
+
+    # Горизонт библиотеки. Проверка выше судит только то, что сборка видела, —
+    # иначе она наказывала бы за разговоры, которых на момент сборки не было.
+    # Но у этой честности есть цена: провалиться на свежих записях она не может
+    # по построению, а именно там и живёт опасность. Библиотека, ставшая
+    # рекомендуемым маршрутом, всегда отстаёт от разговора, и отставание растёт
+    # молча. Поэтому горизонт считается отдельным числом и печатается всегда.
+    live: set[Address] = set()
+    for path in sorted(glob.glob(f"{CORPUS}/*.md")):
+        name = os.path.basename(path)
+        if name == "README.md":
+            continue
+        for number, line in enumerate(open(path, encoding="utf-8").read().splitlines(), start=1):
+            if line.startswith("* ") and TYPE.search(line):
+                live.add((name, number))
+    beyond = len(live) - len(records)
+    print(f"\nгоризонт: сборка видела {len(records)} записей, в корпусе сейчас {len(live)}")
+    print(f"новее сборки: {beyond} записей"
+          f" ({100 * beyond / max(len(live), 1):.1f}%) — библиотека их не видела никогда")
+    fresh = sorted({name for name, _ in live} - {name for name, _ in records})
+    if fresh:
+        print(f"разговоров целиком вне сборки: {len(fresh)}")
+        for name in fresh[:10]:
+            print(f"  {name}")
     return 1 if silent or dangling else 0
 
 

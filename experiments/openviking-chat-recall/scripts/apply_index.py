@@ -12,6 +12,10 @@ WIKI = f"{ART}/wiki-v1"
 
 def main(skeleton_path: str, run_path: str) -> int:
     skeleton = json.load(open(skeleton_path, encoding="utf-8"))
+    horizon = {}
+    horizon_path = os.path.join(WIKI, "snapshot.json")
+    if os.path.exists(horizon_path):
+        horizon = json.load(open(horizon_path, encoding="utf-8"))
     payload = json.load(open(run_path, encoding="utf-8"))
     if not payload.get("ok"):
         print(f"прогон не принят: ok={payload.get('ok')}")
@@ -39,6 +43,12 @@ def main(skeleton_path: str, run_path: str) -> int:
         "исполнить нельзя. Нашёл ответ и цена ошибки высока — открой разговор "
         "по ссылке внизу страницы и проверь его тремя источниками отмены, как "
         "предписывает скил `1chat-recall`.", "",
+        f"**Горизонт: {horizon.get('date', 'дата снимка не проставлена')}.** "
+        "Разговоров и решений новее этой даты здесь нет и быть не может: "
+        "библиотека — снимок, а корпус растёт каждый день. Прежде чем "
+        "действовать по найденному, спроси корпус про то же самое с "
+        f"`--since {horizon.get('date', '<дата снимка>')}` — свежая поправка "
+        "владельца сильнее любой страницы.", "",
     ]
     for section in sections:
         order, name, cue = named.get(section["topic"], (999, section["title"], ""))
