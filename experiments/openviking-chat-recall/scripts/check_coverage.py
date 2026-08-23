@@ -1,0 +1,146 @@
+#!/usr/bin/env python3
+"""Провал П5 из ACCEPTANCE.md — исчерпывающе, а не выборкой, и с адресом потери.
+
+«Молчаливая неполнота» задумывалась выборкой: берём случайные записи корпуса и
+ищем их в библиотеке. Но у каждой записи есть точный адрес `файл.md#Lстрока`, а
+каждая стадия конвейера носит эти же адреса. Значит отсутствие не оценивается,
+а считается — и считается постадийно: разность множеств называет не только
+сколько потеряно, но и где.
+
+Корпус живёт дальше и после сборки, поэтому судить его состоянием на диске
+нечестно вдвойне: появились новые разговоры, а старые доросли новыми строками.
+Правду о том, что библиотека вообще видела, хранит git — снимок читается из
+коммита сборки.
+
+    python3 check_coverage.py [<коммит-снимка>]
+"""
+from __future__ import annotations
+
+import glob
+import os
+import re
+import subprocess
+import sys
+from collections import Counter
+
+CORPUS = "_ops/chat-recall"
+ART = "experiments/openviking-chat-recall/artifacts"
+
+# Разделитель перед `type:` за год поменялся: ранние записи пишут `— type:`,
+# поздние — `| type:`. Оба формата остаются живыми записями корпуса.
+TYPE = re.compile(r"(?:—|\|)\s*type:\s*([^\s|]+)")
+QUOTE = re.compile(r'—\s*"(.*?)"\s*—', re.S)
+# Якорь одинаков во всех трёх записях: голый в темах, в ссылке на страницах.
+ANCHOR = re.compile(r"([0-9]{4}-[0-9]{2}-[0-9]{2}-[^\s#\],)]+\.md)#L(\d+)")
+
+Address = tuple[str, int]
+
+
+def blob_at(rev: str, path: str) -> str | None:
+    done = subprocess.run(["git", "show", f"{rev}:{path}"], capture_output=True, text=True)
+    return done.stdout if done.returncode == 0 else None
+
+
+def as_of_snapshot(name: str, rev: str) -> str:
+    """Разговор в том виде, в каком его взяла сборка.
+
+    Копия на диске взята из рабочего дерева, а часть разговоров попала в git
+    позже неё — в том числе разговор, который сессия сборки писала про себя
+    же. Для таких берём первый коммит, где файл появился: ближайшее к снимку
+    зафиксированное состояние. Читать их сегодняшними — приписать библиотеке
+    пропуск строк, которых на момент сборки не существовало.
+    """
+    text = blob_at(rev, f"{CORPUS}/{name}")
+    if text is not None:
+        return text
+    added = subprocess.run(
+        ["git", "log", "--format=%H", "--diff-filter=A", "--", f"{CORPUS}/{name}"],
+        capture_output=True, text=True, check=True,
+    ).stdout.split()
+    if added:
+        text = blob_at(added[-1], f"{CORPUS}/{name}")
+        if text is not None:
+            return text
+    return open(os.path.join(CORPUS, name), encoding="utf-8").read()
+
+
+def snapshot(rev: str) -> dict[Address, str]:
+    """Записи корпуса на момент сборки: адрес -> строка целиком.
+
+    Состав снимка задаёт не git, а сама сборка: имена файлов в `flat/`.
+    """
+    records: dict[Address, str] = {}
+    for path in sorted(glob.glob(f"{ART}/flatten-v1/flat/*.md")):
+        name = os.path.basename(path)
+        for number, line in enumerate(as_of_snapshot(name, rev).splitlines(), start=1):
+            if line.startswith("* ") and TYPE.search(line):
+                records[(name, number)] = line.strip()
+    return records
+
+
+def flat_anchors() -> set[Address]:
+    """Стадия 1 адресует строки числом `L20`, а файл называет в шапке."""
+    found: set[Address] = set()
+    for path in glob.glob(f"{ART}/flatten-v1/flat/*.md"):
+        text = open(path, encoding="utf-8").read()
+        head = re.search(r"^source:\s*(\S+)", text, re.M)
+        source = head.group(1) if head else os.path.basename(path)
+        for line in text.splitlines():
+            if line.startswith("- "):
+                found |= {(source, int(n)) for n in re.findall(r"L(\d+)", line)}
+    return found
+
+
+def anchors(pattern: str) -> set[Address]:
+    found: set[Address] = set()
+    for path in glob.glob(pattern, recursive=True):
+        text = open(path, encoding="utf-8").read()
+        found |= {(name, int(n)) for name, n in ANCHOR.findall(text)}
+    return found
+
+
+def main(rev: str) -> int:
+    records = snapshot(rev)
+    known = set(records)
+    stages = [
+        ("1  снимок -> сжатые файлы", flat_anchors()),
+        ("3  сжатые -> темы", anchors(f"{ART}/flatten-v1/topics/*.md")),
+        ("4  темы -> страницы", anchors(f"{ART}/wiki-v1/**/*.md")),
+    ]
+
+    print(f"снимок {rev}: {len(records)} записей корпуса\n")
+    seen = known
+    for label, reached in stages:
+        print(f"стадия {label:28s} адресов {len(reached):5d}"
+              f" | дошло {len(reached & known):5d} | потеряно {len(seen - reached):4d}")
+        seen = reached & known
+
+    library = stages[-1][1]
+    uncovered = sorted(known - library)
+    dangling = sorted(library - known)
+    covered = len(records) - len(uncovered)
+    print(f"\nдошло до библиотеки: {covered} из {len(records)}"
+          f" ({100 * covered / max(len(records), 1):.1f}%)")
+    print(f"НЕ покрыто (П5): {len(uncovered)}")
+    print(f"адрес библиотеки не указывает на запись снимка: {len(dangling)}")
+
+    if uncovered:
+        print("\nнепокрытые по типу записи:",
+              dict(Counter(TYPE.search(records[a]).group(1) for a in uncovered).most_common()))
+        gaps = f"{ART}/coverage-gaps.tsv"
+        with open(gaps, "w", encoding="utf-8") as out:
+            for name, number in uncovered:
+                line = records[(name, number)]
+                quote = QUOTE.search(line)
+                out.write(f"{name}\t{number}\t{TYPE.search(line).group(1)}\t"
+                          f"{(quote.group(1) if quote else line)}\n")
+        print(f"все непокрытые адреса с цитатами -> {gaps}")
+    if dangling:
+        print("\nвисячие адреса библиотеки:")
+        for name, number in dangling:
+            print(f"  {name}#L{number}")
+    return 1 if uncovered or dangling else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv[1] if len(sys.argv) > 1 else "dd1ff113"))
