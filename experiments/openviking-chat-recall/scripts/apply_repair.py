@@ -33,6 +33,10 @@ def main(runs: str, dry: bool) -> int:
                 refused += 1
                 continue
             text = open(target, encoding="utf-8").read()
+            if was.startswith("# ") or was.startswith("title:") or now.startswith("# "):
+                print(f"  {topic} · {page}: правка метит в заголовок — это состав, не слова")
+                refused += 1
+                continue
             if was.strip() in EMPTY:
                 fresh = text.replace("\n## Источники", f"\n- {now}\n\n## Источники", 1)
                 if fresh == text:

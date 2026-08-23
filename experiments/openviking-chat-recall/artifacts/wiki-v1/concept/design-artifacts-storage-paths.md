@@ -1,7 +1,7 @@
 ---
 type: concept
 title: Где хранить артефакты дизайн-скиллов?
-description: Артефакты recraft-images хранятся в Workspace/Design/Recraft; для design skills с project artifacts действует общий namespace Workspace/Design, включая скриншоты 1design-review.
+description: Артефакты recraft-images хранятся в Workspace/Design/Recraft; для design skills с project artifacts владелец предложил общий namespace Workspace/Design, включая скриншоты 1design-review.
 topic: recraft-images
 ---
 # Где хранить артефакты дизайн-скиллов?
