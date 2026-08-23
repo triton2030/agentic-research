@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Оценка двух наборов ответов вслепую: судья не знает, где библиотека.
+"""Оценка рукавов приёмки вслепую: судья не знает, какой ответ чей.
 
 Судить самому нельзя: я библиотеку и строил, и любое «ну тут же по сути верно»
-пойдёт в её пользу. Но и назвать судье колонки честными именами нельзя —
-знание, какой ответ чей, само по себе смещает оценку. Поэтому источники
-переименованы в `A` и `B`, а их порядок в каждом вопросе выбирается
+пойдёт в её пользу совершенно искренне. Но и назвать судье рукава честными
+именами нельзя — знание, где чей ответ, смещает оценку само по себе. Поэтому
+рукава переименованы в буквы, а их порядок в каждом вопросе выбирается
 детерминированным жребием от номера вопроса. Расшифровка остаётся здесь.
 """
 from __future__ import annotations
@@ -14,6 +14,8 @@ import os
 import sys
 
 ART = "experiments/openviking-chat-recall/artifacts"
+ARMS = ["library", "topics", "digest", "corpus"]
+RUNS = "_workspace/ox-answer/runs"
 
 
 def answers(path: str) -> dict[int, list[str]]:
@@ -31,41 +33,39 @@ def answers(path: str) -> dict[int, list[str]]:
     return rows
 
 
-def main(library: str, corpus: str, out_dir: str) -> int:
+def main(runs: str, out_dir: str) -> int:
     gold = [line.rstrip("\n").split("\t") for line in open(f"{ART}/accept-questions.tsv", encoding="utf-8")]
-    lib, cor = answers(library), answers(corpus)
+    got = {arm: answers(os.path.join(runs, f"{arm}.json")) for arm in ARMS}
 
     blocks, key = [], {}
+    letters = "ABCD"
     for i, row in enumerate(gold, start=1):
         question, right, anchors, types = (row + ["", "", ""])[:4]
         # Жребий детерминирован номером вопроса: воспроизводим и не подбираем.
-        first_is_library = i % 2 == 1
-        pair = [("library", lib.get(i)), ("corpus", cor.get(i))]
-        if not first_is_library:
-            pair.reverse()
-        key[i] = [name for name, _ in pair]
+        order = ARMS[i % len(ARMS):] + ARMS[:i % len(ARMS)]
+        key[i] = order
         shown = []
-        for label, (_, got) in zip("AB", pair):
-            if got is None:
-                shown.append(f"   {label}: (ответа нет)")
+        for letter, arm in zip(letters, order):
+            cell = got[arm].get(i)
+            if cell is None:
+                shown.append(f"   {letter}: (ответа нет)")
             else:
-                text, opened, count, sure = got
-                shown.append(f"   {label}: {text}\n      открыл файлов: {count} ({opened}) · {sure}")
+                text, opened, count, sure = cell
+                shown.append(f"   {letter}: {text}\n      открыл файлов: {count} · {sure}")
         blocks.append(
             f"{i}. Вопрос: {question}\n   Верный ответ: {right}\n"
-            f"   Модальность записей: {types}\n" + "\n".join(shown)
-        )
+            f"   Модальность записей: {types}\n" + "\n".join(shown))
 
     os.makedirs(out_dir, exist_ok=True)
-    open(os.path.join(out_dir, "grade.txt"), "w", encoding="utf-8").write(f"""Роль: строгий проверяющий. Ты сравниваешь два набора ответов на одни и те же
-вопросы. Что за источники стоят за `A` и `B`, тебе не сообщается и угадывать не
-надо: разные вопросы могут иметь разный порядок.
+    brief = f"""Роль: строгий проверяющий. Ты сравниваешь четыре набора ответов на одни и те же
+вопросы. Что стоит за буквами `A`, `B`, `C`, `D`, тебе не сообщается и угадывать
+не надо: у разных вопросов порядок разный.
 
 ## Что сделать
 
-По каждому вопросу вынеси три вердикта.
+По каждому вопросу вынеси два вердикта на каждую букву.
 
-**Совпадение с верным ответом** — отдельно для A и для B:
+**Совпадение с верным ответом:**
 
 - `совпал` — по существу то же самое, пусть другими словами;
 - `частично` — верно, но потеряна существенная часть верного ответа;
@@ -73,18 +73,22 @@ def main(library: str, corpus: str, out_dir: str) -> int:
 - `нет` — ответа нет или сказано «не нашёл».
 
 `разошёлся` — самый важный вердикт, не смягчай его до `частично`: уверенно
-сказанное не то опаснее, чем честное «не нашёл».
+сказанное не то опаснее честного «не нашёл».
 
-**Модальность** — отдельно для A и для B. Указана модальность записей
-владельца: решение, критерий, коррекция, идея, предпочтение, правило-кандидат.
-Ответ обязан её сохранить. `верна` или `сдвинута`, и если сдвинута — куда.
+**Модальность.** Указана модальность записей владельца: решение, критерий,
+коррекция, идея, предпочтение, правило-кандидат. Ответ обязан её сохранить.
+`верна` или `сдвинута`.
+
+Отдельно следи за одним сдвигом: решение владельца, поданное как уже
+сделанное. «Строка внесена» вместо «владелец решил внести строку» — это
+`сдвинута`, даже если все слова взяты из источника.
 
 ## Формат ответа
 
-Только строки TSV, по одной на вопрос, без шапки и пояснений. Шесть колонок:
+Только строки TSV, по одной на вопрос, без шапки и пояснений. Десять колонок:
 
 ```
-<номер>\t<A: совпал|частично|разошёлся|нет>\t<B: то же>\t<A: верна|сдвинута>\t<B: то же>\t<одна фраза: чем ответы отличались по существу>
+<номер>\t<A: совпал|частично|разошёлся|нет>\t<B>\t<C>\t<D>\t<A: верна|сдвинута>\t<B>\t<C>\t<D>\t<одна фраза: чем ответы отличались по существу>
 ```
 
 ## Материал
@@ -95,16 +99,13 @@ def main(library: str, corpus: str, out_dir: str) -> int:
 
 Ничего не правь и никаких файлов не открывай — весь материал выше. Ответ —
 ровно {len(gold)} строк TSV.
-""", encoding="utf-8")
+"""
+    open(os.path.join(out_dir, "grade.txt"), "w", encoding="utf-8").write(brief)
     json.dump(key, open(f"{ART}/accept-blinding.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-    print(f"вопросов {len(gold)} | ответов библиотеки {len(lib)} | ответов корпуса {len(cor)}")
-    print(f"задание -> {out_dir}/grade.txt | расшифровка -> {ART}/accept-blinding.json")
+    print(f"вопросов {len(gold)} | рукавов {len(ARMS)} | задание -> {out_dir}/grade.txt")
     return 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main(
-        sys.argv[1] if len(sys.argv) > 1 else "_workspace/ox-answer/runs/library.json",
-        sys.argv[2] if len(sys.argv) > 2 else "_workspace/ox-answer/runs/corpus.json",
-        sys.argv[3] if len(sys.argv) > 3 else "_workspace/ox-grade/tasks",
-    ))
+    raise SystemExit(main(sys.argv[1] if len(sys.argv) > 1 else RUNS,
+                          sys.argv[2] if len(sys.argv) > 2 else "_workspace/ox-grade/tasks"))
