@@ -11,6 +11,10 @@ from typing import Any
 
 import _ox_policy as ox
 
+# Статусы, которые живой Ox пишет на бесплатном маршруте; любой другой —
+# в том числе отсутствующий или появившийся после обновления Hermes — fail-closed.
+TRUSTED_COST_STATUSES = frozenset({"unknown"})
+
 UsageKey = tuple[str, str, str, str, str]
 
 
@@ -48,6 +52,8 @@ def read_metadata(
         try:
             record = json.loads(line)
         except json.JSONDecodeError:
+            continue
+        if not isinstance(record, dict):
             continue
         if str(record.get("id") or "") == session_id:
             return record, None
@@ -140,8 +146,9 @@ def ox_cost_verdict(usage: dict[str, Any]) -> tuple[bool, str]:
 
     Живой Ox пишет estimated_cost_usd=0.0, actual_cost_usd=None,
     cost_status="unknown" — провайдер фактическую стоимость не заполняет.
-    Поэтому требуется числовой ноль там, где число есть, и обязательно
-    присутствует estimated: отсутствие всякой оценки доказательством не является.
+    Поэтому требуется числовой ноль там, где число есть, обязательно
+    присутствует estimated, а cost_status входит в доверенное множество
+    TRUSTED_COST_STATUSES; незнакомый статус доказательством не является.
     """
     estimated = usage.get("estimated_cost_usd")
     actual = usage.get("actual_cost_usd")
@@ -154,6 +161,9 @@ def ox_cost_verdict(usage: dict[str, Any]) -> tuple[bool, str]:
             return False, f"{label} cost is not zero: {value}"
     if estimated is None:
         return False, "session carries no estimated cost to prove the free route"
+    status = usage.get("cost_status")
+    if not isinstance(status, str) or status not in TRUSTED_COST_STATUSES:
+        return False, f"cost_status is not trusted: {status!r}"
     return True, "session cost evidence is zero"
 
 
