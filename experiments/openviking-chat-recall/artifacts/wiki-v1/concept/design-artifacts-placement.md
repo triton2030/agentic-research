@@ -21,6 +21,6 @@ topic: ui-design-review
 - Владелец решил хранить документы и отчёты субагента в `Workspace/Design/1ui-reading-audit` с отдельными папками по дням.
 
 ## Источники
-- [уточнение: артефакты запуска 1design-review в project-local папке](../../../../../../../_ops/chat-recall/2026-08-13-153240-codex-019ffa9f.md#L27)
-- [правило: общий cross-project namespace Workspace/Design](../../../../../../../_ops/chat-recall/2026-08-13-153240-codex-019ffa9f.md#L28)
-- [решение: документы 1ui-reading-audit с папками по дням](../../../../../../../_ops/chat-recall/2026-08-13-165151-codex-019ffaf5.md#L30)
+- [уточнение: артефакты запуска 1design-review в project-local папке](../../../../../_ops/chat-recall/2026-08-13-153240-codex-019ffa9f.md#L27)
+- [правило: общий cross-project namespace Workspace/Design](../../../../../_ops/chat-recall/2026-08-13-153240-codex-019ffa9f.md#L28)
+- [решение: документы 1ui-reading-audit с папками по дням](../../../../../_ops/chat-recall/2026-08-13-165151-codex-019ffaf5.md#L30)

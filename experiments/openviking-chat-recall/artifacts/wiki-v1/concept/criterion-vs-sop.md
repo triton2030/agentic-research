@@ -13,6 +13,6 @@ topic: skill-instruction-authoring
 - Владелец предложил превращать расплывчатое прилагательное в observable stop condition.
 
 ## Источники
-- [решил — скиллы задают условия мышления и наблюдаемые критерии, а не внутренний маршрут](../../../../../../../_ops/chat-recall/2026-08-08-134900-codex-019fe08d.md#L21)
-- [решил — результат шага заменяется criterion / invariant / constraint / stop condition, путь остаётся SOP](../../../../../../../_ops/chat-recall/2026-08-08-134900-codex-019fe08d.md#L22)
-- [предложил — расплывчатое прилагательное превращать в observable stop condition](../../../../../../../_ops/chat-recall/2026-08-08-135005-claude-dfa9fb5c.md#L29)
+- [решил — скиллы задают условия мышления и наблюдаемые критерии, а не внутренний маршрут](../../../../../_ops/chat-recall/2026-08-08-134900-codex-019fe08d.md#L21)
+- [решил — результат шага заменяется criterion / invariant / constraint / stop condition, путь остаётся SOP](../../../../../_ops/chat-recall/2026-08-08-134900-codex-019fe08d.md#L22)
+- [предложил — расплывчатое прилагательное превращать в observable stop condition](../../../../../_ops/chat-recall/2026-08-08-135005-claude-dfa9fb5c.md#L29)

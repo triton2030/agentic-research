@@ -18,5 +18,5 @@ topic: mantine
 
 ## Источники
 
-- [решил оставить две reference в 1mantine-dev](../../../../../../../_ops/chat-recall/2026-08-11-000000-claude-e8af9475.md#L18)
-- [решил пока не устанавливать официальные носители Mantine](../../../../../../../_ops/chat-recall/2026-08-11-000000-claude-e8af9475.md#L19)
+- [решил оставить две reference в 1mantine-dev](../../../../../_ops/chat-recall/2026-08-11-000000-claude-e8af9475.md#L18)
+- [решил пока не устанавливать официальные носители Mantine](../../../../../_ops/chat-recall/2026-08-11-000000-claude-e8af9475.md#L19)

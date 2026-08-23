@@ -8,9 +8,9 @@ topic: mental-model-checks
 
 Совет по `1model-check` владелец предпочитает запрашивать у `stealth/ox-alpha` через Hermes.
 
-- Владелец предпочитает запрашивать у `stealth/ox-alpha` совет по `1model-check` через Hermes. [предпочитает: совет по 1model-check — у Ox Alpha через Hermes](../../../../../../../_ops/chat-recall/2026-08-22-060958-codex-01a02701.md#L29), [предпочитает: совет по 1model-check — у Ox Alpha через Hermes](../../../../../../../_ops/chat-recall/2026-08-22-060958-codex-01a02701.md#L30)
+- Владелец предпочитает запрашивать у `stealth/ox-alpha` совет по `1model-check` через Hermes. [предпочитает: совет по 1model-check — у Ox Alpha через Hermes](../../../../../_ops/chat-recall/2026-08-22-060958-codex-01a02701.md#L29), [предпочитает: совет по 1model-check — у Ox Alpha через Hermes](../../../../../_ops/chat-recall/2026-08-22-060958-codex-01a02701.md#L30)
 
 ## Источники
 
-- [предпочитает: совет по 1model-check — у Ox Alpha через Hermes](../../../../../../../_ops/chat-recall/2026-08-22-060958-codex-01a02701.md#L29)
-- [предпочитает: совет по 1model-check — у Ox Alpha через Hermes](../../../../../../../_ops/chat-recall/2026-08-22-060958-codex-01a02701.md#L30)
+- [предпочитает: совет по 1model-check — у Ox Alpha через Hermes](../../../../../_ops/chat-recall/2026-08-22-060958-codex-01a02701.md#L29)
+- [предпочитает: совет по 1model-check — у Ox Alpha через Hermes](../../../../../_ops/chat-recall/2026-08-22-060958-codex-01a02701.md#L30)

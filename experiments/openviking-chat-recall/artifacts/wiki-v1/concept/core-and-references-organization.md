@@ -13,6 +13,6 @@ topic: semantic-compression
 - Владелец решил сжимать 1skill-architect и 1instruction-layer, закрепив правило о пределах размера за 1skill-architect.
 
 ## Источники
-- [решение выносить алгоритмы сжатия в отдельные reference-файлы по дистилляции](../../../../../../../_ops/chat-recall/2026-08-06-235654-claude-36fcbf96.md#L19)
-- [поправка формы ядро плюс references: перемещение текста не есть сжатие](../../../../../../../_ops/chat-recall/2026-08-06-235654-claude-36fcbf96.md#L21)
-- [решение сжать 1skill-architect и 1instruction-layer, закрепив правило пределов](../../../../../../../_ops/chat-recall/2026-08-06-235654-claude-36fcbf96.md#L20)
+- [решение выносить алгоритмы сжатия в отдельные reference-файлы по дистилляции](../../../../../_ops/chat-recall/2026-08-06-235654-claude-36fcbf96.md#L19)
+- [поправка формы ядро плюс references: перемещение текста не есть сжатие](../../../../../_ops/chat-recall/2026-08-06-235654-claude-36fcbf96.md#L21)
+- [решение сжать 1skill-architect и 1instruction-layer, закрепив правило пределов](../../../../../_ops/chat-recall/2026-08-06-235654-claude-36fcbf96.md#L20)

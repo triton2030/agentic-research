@@ -20,8 +20,8 @@ topic: product-shaping
 
 ## Источники
 
-- [1skill-architect и skill-creator устарели](../../../../../../../_ops/chat-recall/2026-08-04-120529-codex-019fcb8f.md#L19)
-- [исправить 1skill-architect методами 1product-shaping](../../../../../../../_ops/chat-recall/2026-08-04-120529-codex-019fcb8f.md#L22)
-- [сохранять идеи старой версии без противоречий](../../../../../../../_ops/chat-recall/2026-08-04-120529-codex-019fcb8f.md#L23)
-- [похожие версии для Claude и Codex](../../../../../../../_ops/chat-recall/2026-08-04-120529-codex-019fcb8f.md#L25)
-- [устаревание подтверждено во втором разговоре](../../../../../../../_ops/chat-recall/2026-08-04-124042-claude-3f4b2db2.md#L20)
+- [1skill-architect и skill-creator устарели](../../../../../_ops/chat-recall/2026-08-04-120529-codex-019fcb8f.md#L19)
+- [исправить 1skill-architect методами 1product-shaping](../../../../../_ops/chat-recall/2026-08-04-120529-codex-019fcb8f.md#L22)
+- [сохранять идеи старой версии без противоречий](../../../../../_ops/chat-recall/2026-08-04-120529-codex-019fcb8f.md#L23)
+- [похожие версии для Claude и Codex](../../../../../_ops/chat-recall/2026-08-04-120529-codex-019fcb8f.md#L25)
+- [устаревание подтверждено во втором разговоре](../../../../../_ops/chat-recall/2026-08-04-124042-claude-3f4b2db2.md#L20)

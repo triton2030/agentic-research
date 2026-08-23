@@ -14,4 +14,4 @@ topic: mantine
 
 ## Источники
 
-- [задал критерий качества для 1mantine-dev](../../../../../../../_ops/chat-recall/2026-08-11-000000-claude-e8af9475.md#L17)
+- [задал критерий качества для 1mantine-dev](../../../../../_ops/chat-recall/2026-08-11-000000-claude-e8af9475.md#L17)

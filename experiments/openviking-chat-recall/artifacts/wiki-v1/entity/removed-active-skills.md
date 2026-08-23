@@ -11,5 +11,5 @@ topic: semantic-compression
 - Владелец решил удалить из активного набора Claude и Codex скиллы 1assumption-audit, 1expert-questions, 1gemini-mcp, 1impeccable, 1pdf, 1vercel-composition-patterns, 1vercel-react-view-transitions и grilling.
 
 ## Источники
-- [решение удалить часть скилов из активного набора](../../../../../../../_ops/chat-recall/2026-08-10-184723-codex-019febdf.md#L15)
-- [то же решение об удалении, вторая привязка строки источника](../../../../../../../_ops/chat-recall/2026-08-10-184723-codex-019febdf.md#L16)
+- [решение удалить часть скилов из активного набора](../../../../../_ops/chat-recall/2026-08-10-184723-codex-019febdf.md#L15)
+- [то же решение об удалении, вторая привязка строки источника](../../../../../_ops/chat-recall/2026-08-10-184723-codex-019febdf.md#L16)

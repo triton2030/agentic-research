@@ -12,5 +12,5 @@ topic: skill-instruction-authoring
 - Владелец предложил для references двухчастную типологию: cognitive protocol или предметное знание вроде design system; документацию следует делить по смыслу.
 
 ## Источники
-- [решил — SKILL.md управляющее ядро поведения, references/* предметные знания](../../../../../../../_ops/chat-recall/2026-08-08-134900-codex-019fe08d.md#L24)
-- [предложил типологию — references это cognitive protocol или предметное знание](../../../../../../../_ops/chat-recall/2026-08-07-132700-claude-ab88e176.md#L21)
+- [решил — SKILL.md управляющее ядро поведения, references/* предметные знания](../../../../../_ops/chat-recall/2026-08-08-134900-codex-019fe08d.md#L24)
+- [предложил типологию — references это cognitive protocol или предметное знание](../../../../../_ops/chat-recall/2026-08-07-132700-claude-ab88e176.md#L21)

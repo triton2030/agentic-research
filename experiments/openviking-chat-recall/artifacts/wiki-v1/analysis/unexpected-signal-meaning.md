@@ -14,4 +14,4 @@ topic: openviking-wiki
 
 ## Источники
 
-- [поправка поведения root-agent про ⚡ UNEXPECTED](../../../../../../../_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md#L29)
+- [поправка поведения root-agent про ⚡ UNEXPECTED](../../../../../_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md#L29)

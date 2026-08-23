@@ -12,5 +12,5 @@ topic: semantic-compression
 - Владелец решил вернуть в 1expert-lens имитацию, wording-handoff, отказ от дублирования критериев и оси buy-before-build; методологию, имя критерия и остаточный риск он принял как потери, а скилл должен мотивировать вызывать эксперта субагентом.
 
 ## Источники
-- [поправка 1expert-lens: вызов экспертной мудрости до работы](../../../../../../../_ops/chat-recall/2026-08-07-121413-claude-833c44a4.md#L27)
-- [решение вернуть в 1expert-lens имитацию, wording-handoff и оси buy-before-build](../../../../../../../_ops/chat-recall/2026-08-07-121413-claude-833c44a4.md#L28)
+- [поправка 1expert-lens: вызов экспертной мудрости до работы](../../../../../_ops/chat-recall/2026-08-07-121413-claude-833c44a4.md#L27)
+- [решение вернуть в 1expert-lens имитацию, wording-handoff и оси buy-before-build](../../../../../_ops/chat-recall/2026-08-07-121413-claude-833c44a4.md#L28)

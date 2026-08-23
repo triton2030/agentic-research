@@ -11,4 +11,4 @@ topic: owner-intent
 - Владелец решил удалить `md-lint` и skill lossy product refactor из глобальных установок Codex и Claude.
 
 ## Источники
-- [решение: удалить md-lint и skill lossy product refactor из глобальных установок](../../../../../../../_ops/chat-recall/2026-08-09-030700-codex-019fe36a.md#L24)
+- [решение: удалить md-lint и skill lossy product refactor из глобальных установок](../../../../../_ops/chat-recall/2026-08-09-030700-codex-019fe36a.md#L24)

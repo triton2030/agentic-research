@@ -15,6 +15,6 @@ topic: ui-design-review
 - Владелец решил создать единый `1design-review` и проверить на `/Users/triton/Documents/My_projects/kumysbekov` работу скриптов, которые создают, подкрашивают скриншоты и делают коллажи.
 
 ## Источники
-- [решение улучшать 1design-review по референсам и 1skill-shaping](../../../../../../../_ops/chat-recall/2026-08-13-031328-codex-019ff806.md#L15)
-- [решение объединить три дизайн-скила в единый 1design-review](../../../../../../../_ops/chat-recall/2026-08-13-153240-codex-019ffa9f.md#L20)
-- [решение создать единый 1design-review и проверить скрипты на kumysbekov](../../../../../../../_ops/chat-recall/2026-08-13-153240-codex-019ffa9f.md#L26)
+- [решение улучшать 1design-review по референсам и 1skill-shaping](../../../../../_ops/chat-recall/2026-08-13-031328-codex-019ff806.md#L15)
+- [решение объединить три дизайн-скила в единый 1design-review](../../../../../_ops/chat-recall/2026-08-13-153240-codex-019ffa9f.md#L20)
+- [решение создать единый 1design-review и проверить скрипты на kumysbekov](../../../../../_ops/chat-recall/2026-08-13-153240-codex-019ffa9f.md#L26)

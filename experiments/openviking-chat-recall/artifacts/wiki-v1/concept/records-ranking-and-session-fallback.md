@@ -24,10 +24,10 @@ Card-only fallback с `--timeline` возвращает все записи на
 
 ## Источники
 
-- [решил: records ranking по цитатам и context-note; BM25+dense схлопывает до одного на файл](../../../../../../../_ops/chat-recall/2026-08-14-124028-codex-019fff2e.md#L26)
-- [решил: session_candidates top-5 без изменения порядка records; fallback при пустых records](../../../../../../../_ops/chat-recall/2026-08-14-124028-codex-019fff2e.md#L26)
-- [решил: card-only fallback с --timeline; карточка выбирает файл, не доказывает позицию](../../../../../../../_ops/chat-recall/2026-08-14-124028-codex-019fff2e.md#L35)
-- [решил: file-level rank только выбирает файл для чтения](../../../../../../../_ops/chat-recall/2026-08-14-124028-codex-019fff2e.md#L35)
-- [решил: --json address + session_candidates; --lexical два раздельных маршрута](../../../../../../../_ops/chat-recall/2026-08-14-124028-codex-019fff2e.md#L26)
-- [решил: session-context отдельный BM25 file-route, карточка не входит в records](../../../../../../../_ops/chat-recall/2026-08-14-124028-codex-019fff2e.md#L35)
-- [решил: acceptance-проверка термина только в session-context через top-5 session_candidates](../../../../../../../_ops/chat-recall/2026-08-14-124028-codex-019fff2e.md#L26)
+- [решил: records ranking по цитатам и context-note; BM25+dense схлопывает до одного на файл](../../../../../_ops/chat-recall/2026-08-14-124028-codex-019fff2e.md#L26)
+- [решил: session_candidates top-5 без изменения порядка records; fallback при пустых records](../../../../../_ops/chat-recall/2026-08-14-124028-codex-019fff2e.md#L26)
+- [решил: card-only fallback с --timeline; карточка выбирает файл, не доказывает позицию](../../../../../_ops/chat-recall/2026-08-14-124028-codex-019fff2e.md#L35)
+- [решил: file-level rank только выбирает файл для чтения](../../../../../_ops/chat-recall/2026-08-14-124028-codex-019fff2e.md#L35)
+- [решил: --json address + session_candidates; --lexical два раздельных маршрута](../../../../../_ops/chat-recall/2026-08-14-124028-codex-019fff2e.md#L26)
+- [решил: session-context отдельный BM25 file-route, карточка не входит в records](../../../../../_ops/chat-recall/2026-08-14-124028-codex-019fff2e.md#L35)
+- [решил: acceptance-проверка термина только в session-context через top-5 session_candidates](../../../../../_ops/chat-recall/2026-08-14-124028-codex-019fff2e.md#L26)

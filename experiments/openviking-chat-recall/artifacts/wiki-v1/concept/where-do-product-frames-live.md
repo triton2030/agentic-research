@@ -18,5 +18,5 @@ topic: product-shaping
 
 ## Источники
 
-- [1product-frames удалить, результаты — в рамках](../../../../../../../_ops/chat-recall/2026-08-05-144851-codex-019fd153.md#L38)
-- [рамки скилов — в их папках, agentic-research — всегда актуальные](../../../../../../../_ops/chat-recall/2026-08-09-124507-codex-019fe57b.md#L15)
+- [1product-frames удалить, результаты — в рамках](../../../../../_ops/chat-recall/2026-08-05-144851-codex-019fd153.md#L38)
+- [рамки скилов — в их папках, agentic-research — всегда актуальные](../../../../../_ops/chat-recall/2026-08-09-124507-codex-019fe57b.md#L15)

@@ -20,8 +20,13 @@ def check(wiki_root: str) -> list[str]:
     problems: list[str] = []
     pages = sorted(glob.glob(os.path.join(wiki_root, "**", "*.md"), recursive=True))
     index_path = os.path.join(wiki_root, "index.md")
-    if index_path not in pages:
-        return [f"{wiki_root}: нет index.md"]
+    # Указатель собирается последним, а ссылки ломаются с первой же страницы.
+    # Ранний выход отсюда отключал разом все проверки формы на всё время сборки:
+    # 1693 битые ссылки прожили сорок прогонов именно так. Отсутствие индекса —
+    # одна проблема из списка, а не причина ничего не проверять.
+    has_index = index_path in pages
+    if not has_index:
+        problems.append(f"{wiki_root}: нет index.md")
 
     linked: list[str] = []
     for path in pages:
@@ -44,7 +49,9 @@ def check(wiki_root: str) -> list[str]:
         elif titles and h1s[0].strip() != titles[0].strip():
             problems.append(f"{rel}: H1 не совпадает с title")
 
-        sources = text.count("\n## Источники")
+        # Заголовок считается строкой целиком: `## Источники для изучения` —
+        # содержательный раздел страницы, а не второй раздел провенанса.
+        sources = len(re.findall(r"^## Источники\s*$", text, re.M))
         if is_index and sources:
             problems.append("index.md: индекс не должен иметь раздел Источники")
         if not is_index and sources != 1:
@@ -60,7 +67,7 @@ def check(wiki_root: str) -> list[str]:
             if is_index and "_ops/" not in target:
                 linked.append(os.path.normpath(os.path.join(wiki_root, target)))
 
-    for path in pages:
+    for path in pages if has_index else []:
         if path == index_path:
             continue
         count = linked.count(os.path.normpath(path))

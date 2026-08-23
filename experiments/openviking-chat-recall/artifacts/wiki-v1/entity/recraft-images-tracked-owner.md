@@ -10,4 +10,4 @@ topic: recraft-images
 
 ## Источники
 
-- [решение: tracked owner для recraft-images](../../../../../../../_ops/chat-recall/2026-08-13-165535-codex-019ffaf7.md#L19)
+- [решение: tracked owner для recraft-images](../../../../../_ops/chat-recall/2026-08-13-165535-codex-019ffaf7.md#L19)
