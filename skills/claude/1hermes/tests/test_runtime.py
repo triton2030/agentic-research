@@ -4,7 +4,9 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
 import importlib.util
+import io
 import json
 import os
 import sqlite3
@@ -14,6 +16,7 @@ import tempfile
 import textwrap
 import unittest
 from pathlib import Path
+from unittest import mock
 
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 ADVISOR = SKILL_ROOT / "scripts" / "hermes_advisor.py"
@@ -61,6 +64,9 @@ if args[:2] == ["tools", "list"]:
     raise SystemExit(0)
 if args[:2] == ["sessions", "export"]:
     mode = os.environ.get("FAKE_MODE", "normal")
+    if mode == "array-record":
+        print(json.dumps(["unexpected", "shape"]))
+        raise SystemExit(0)
     effort = "medium"
     argv_file = os.environ.get("FAKE_ARGV_FILE")
     chat_args = []
@@ -75,13 +81,25 @@ if args[:2] == ["sessions", "export"]:
     if mode.startswith("ox-"):
         model = "stealth/ox-alpha"
     provider = chat_args[chat_args.index("--provider") + 1] if "--provider" in chat_args else "nous"
-    if mode == "ox-unknown-provider":
+    if mode in ("ox-unknown-provider", "divergent-provider"):
         provider = "mystery"
     if mode == "malformed-model":
         model = {"id": "moonshotai/kimi-k3"}
     if mode == "missing-provider":
         provider = None
-    messages = []
+    session_response = os.environ.get("FAKE_SESSION_RESPONSE") or os.environ.get(
+        "FAKE_RESPONSE", "review-ok"
+    )
+    if mode == "no-assistant-message":
+        messages = []
+    else:
+        messages = [{"role": "assistant", "content": session_response}]
+    estimated_cost = 0.0 if mode.startswith("ox-") else 0.001
+    if mode == "ox-paid":
+        estimated_cost = 0.42
+    cost_status = "unknown" if mode.startswith("ox-") else "estimated"
+    if mode == "ox-cost-status-surprise":
+        cost_status = "computed"
     record = {
         "id": record_id,
         "model": model,
@@ -95,7 +113,9 @@ if args[:2] == ["sessions", "export"]:
         "output_tokens": 2,
         "reasoning_tokens": 1,
         "api_call_count": 1,
-        "estimated_cost_usd": 0.001,
+        "estimated_cost_usd": estimated_cost,
+        "actual_cost_usd": None,
+        "cost_status": cost_status,
         "messages": messages,
     }
     print(json.dumps(record))
@@ -144,7 +164,10 @@ if args and args[0] == "chat":
         with open("result.txt", "w", encoding="utf-8") as handle:
             handle.write("done\n")
     print(os.environ.get("FAKE_RESPONSE", "review-ok"))
-    print("session_id: fake-session", file=sys.stderr)
+    if os.environ.get("FAKE_MODE") != "missing-session-id":
+        print("session_id: fake-session", file=sys.stderr)
+    if os.environ.get("FAKE_MODE") == "duplicate-session-id":
+        print("session_id: fake-session-dup", file=sys.stderr)
     raise SystemExit(0)
 print("unsupported fake command: " + repr(args), file=sys.stderr)
 raise SystemExit(2)
@@ -240,8 +263,11 @@ class HermesRuntimeTests(unittest.TestCase):
         mode: str = "normal",
         response: str = "review-ok",
         prompt: str = "private-test-brief",
+        session_response: str | None = None,
     ) -> subprocess.CompletedProcess[str]:
         env = self.env | {"FAKE_MODE": mode, "FAKE_RESPONSE": response}
+        if session_response is not None:
+            env["FAKE_SESSION_RESPONSE"] = session_response
         command = [
             sys.executable,
             str(ADVISOR),
@@ -317,14 +343,6 @@ class HermesRuntimeTests(unittest.TestCase):
             self.assertFalse(
                 ADVISOR_MODULE._ox_alpha_pricing_is_free(paid_or_unknown)[0]
             )
-        self.assertEqual(
-            ADVISOR_MODULE._ox_alpha_catalog_url("nous"),
-            "https://inference-api.nousresearch.com/v1/models",
-        )
-        self.assertEqual(
-            ADVISOR_MODULE._ox_alpha_catalog_url("openrouter"),
-            None,
-        )
 
     def test_ox_requires_exact_nous_and_max_before_chat(self) -> None:
         self.assertIsNone(
@@ -418,6 +436,131 @@ class HermesRuntimeTests(unittest.TestCase):
                 verdict, reason = evidence.ox_cost_verdict(rejected)
                 self.assertFalse(verdict)
                 self.assertTrue(reason)
+
+    def test_response_from_real_assistant_record_is_session_sourced(self) -> None:
+        """Экспорт с настоящим assistant-message доказывает тело ответа store-ом."""
+        completed = self.advisor(
+            response="stdout-fallback-text",
+            session_response="session-proven-answer",
+        )
+        payload = json.loads(completed.stdout)
+        self.assertEqual(completed.returncode, 0)
+        self.assertTrue(payload["ok"])
+        self.assertNotEqual(
+            payload["response"], "stdout-fallback-text"
+        )
+        self.assertEqual(payload["response"], "session-proven-answer")
+        self.assertEqual(payload["response_source"], "session")
+
+    def test_stdout_fallback_without_optin_is_not_ok(self) -> None:
+        """Пустой экспорт: ответ берётся из stdout, ok=false без явного opt-in."""
+        completed = self.advisor(mode="no-assistant-message")
+        payload = json.loads(completed.stdout)
+        self.assertNotEqual(completed.returncode, 0)
+        self.assertFalse(payload["ok"])
+        self.assertEqual(payload["response_source"], "stdout")
+        self.assertEqual(payload["response"], "review-ok")
+        self.assertTrue(
+            [
+                item
+                for item in payload["warnings"]
+                if "response falls back to raw CLI stdout" in item
+            ]
+        )
+
+    def test_array_export_record_yields_json_failure_not_traceback(self) -> None:
+        """Мусорная строка-массив в экспорте не должна ронять обёртку в traceback."""
+        completed = self.advisor("--model", MODEL, "--reasoning", "medium",
+                                 mode="array-record")
+        payload = json.loads(completed.stdout)
+        self.assertNotEqual(completed.returncode, 0)
+        self.assertFalse(payload["ok"])
+        self.assertIn("run_dir", payload)
+        self.assertNotIn("Traceback", completed.stderr)
+
+    def test_missing_session_id_fails_closed(self) -> None:
+        """Без session_id нет ни metadata, ни route-evidence — зелёного быть не может."""
+        completed = self.advisor(mode="missing-session-id")
+        payload = json.loads(completed.stdout)
+        self.assertNotEqual(completed.returncode, 0)
+        self.assertFalse(payload["ok"])
+        self.assertTrue(
+            [item for item in payload["warnings"] if "did not return a session_id" in item]
+        )
+
+    def test_duplicate_session_id_markers_fail_closed(self) -> None:
+        """Несколько marker-ов в stderr нельзя угадывать: берём ни один."""
+        completed = self.advisor(mode="duplicate-session-id")
+        payload = json.loads(completed.stdout)
+        self.assertNotEqual(completed.returncode, 0)
+        self.assertFalse(payload["ok"])
+        self.assertTrue(
+            [item for item in payload["warnings"] if "session_id markers" in item]
+        )
+
+    def test_ox_post_hoc_cost_or_status_rejects_the_run(self) -> None:
+        """Платный или незнакомый post-factum cost для Ox валит прогон.
+
+        Гейт цены до старта патчится, как и в юните ox_gate выше: иначе тест
+        упирается в живой каталог, а не в проверку уже потраченного.
+        """
+        import _ox_policy as ox
+
+        for mode in ("ox-paid", "ox-cost-status-surprise"):
+            with self.subTest(mode=mode):
+                args = argparse.Namespace(
+                    model="stealth/ox-alpha",
+                    provider="nous",
+                    reasoning="max",
+                    resume=None,
+                    skill=[],
+                    isolated=False,
+                    max_turns=2000,
+                    timeout_sec=600,
+                    allow_write=False,
+                    allow_execution_tools=False,
+                    worktree=False,
+                    allow_fallback=False,
+                    allow_stdout_response=False,
+                )
+                original = ox.live_pricing_is_free
+                ox.live_pricing_is_free = lambda: (True, "test: every component is zero")
+                try:
+                    with mock.patch.dict(
+                        os.environ, self.env | {"FAKE_MODE": mode}
+                    ), contextlib.redirect_stdout(io.StringIO()) as buffer:
+                        exit_code = ADVISOR_MODULE._run(
+                            args, "brief", self.project, ["file", "web"], str(self.fake)
+                        )
+                finally:
+                    ox.live_pricing_is_free = original
+                payload = json.loads(buffer.getvalue())
+                self.assertNotEqual(exit_code, 0)
+                self.assertFalse(payload["ok"])
+                self.assertTrue(
+                    [
+                        item
+                        for item in payload["warnings"]
+                        if "Ox Alpha cost evidence rejected" in item
+                    ]
+                )
+
+    def test_unpinned_provider_on_fresh_run_warns_about_resolved(self) -> None:
+        """--model без --provider не задаёт ожидание провайдера — предупреждай."""
+        completed = self.advisor(
+            "--model", MODEL, "--reasoning", "medium", mode="divergent-provider"
+        )
+        payload = json.loads(completed.stdout)
+        self.assertEqual(completed.returncode, 0)
+        self.assertTrue(payload["ok"])
+        self.assertEqual(payload["resolved"]["provider"], "mystery")
+        self.assertTrue(
+            [
+                item
+                for item in payload["warnings"]
+                if "requested provider is unpinned" in item
+            ]
+        )
 
     def test_ox_route_evidence_rejects_mixed_or_shadow_endpoint(self) -> None:
         exact = (

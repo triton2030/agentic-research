@@ -65,7 +65,7 @@ Anthropic и OpenAI через Hermes оправданы ровно в одно�
 ```bash
 python3 "$HOME/.claude/skills/1hermes/scripts/hermes_advisor.py" --cwd "$PWD" \
   --model google/gemini-3.1-pro-preview --provider nous --reasoning high \
-  > /tmp/hermes-gemini.json 2>&1 <<'HERMES_BRIEF'
+  > /tmp/hermes-gemini.json 2> /tmp/hermes-gemini.err <<'HERMES_BRIEF'
 <самодостаточный brief>
 HERMES_BRIEF
 ```
@@ -73,7 +73,7 @@ HERMES_BRIEF
 Если передан только `--model`, provider выбирается из живого каталога. С
 `--resume` менять runtime нельзя — начинай новый прогон.
 
-Reasoning: `none|minimal|low|medium|high|xhigh|max|ultra`. Дефолт скила `high`.
+Reasoning: `none|minimal|low|medium|high|xhigh|max|ultra`. Дефолт скила `medium`.
 Не всякая модель поддерживает верхние уровни — несовпадение придёт как
 `runtime mismatch` в `warnings` и `ok=false`; это ответ «модель не та», а не
 повод принять результат.

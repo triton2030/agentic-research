@@ -148,6 +148,13 @@ def runtime_verdict(
             warnings.append(
                 f"runtime mismatch: requested {label} {expected}, got {actual}"
             )
+        elif label == "provider" and expected is None and actual:
+            # Свежий прогон с --model без --provider: ожидание не зафиксировано,
+            # сравнивать не с чем, но биллинг зависит от провайдера — молчать
+            # нельзя, поэтому предупреждение без вердикта mismatch.
+            warnings.append(
+                f"requested provider is unpinned; session resolved {actual}"
+            )
     resolved_reasoning = resolved.get("reasoning")
     if not isinstance(resolved_reasoning, dict):
         mismatch = True
