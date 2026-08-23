@@ -98,8 +98,10 @@ if args[:2] == ["sessions", "export"]:
     if mode == "ox-paid":
         estimated_cost = 0.42
     cost_status = "unknown" if mode.startswith("ox-") else "estimated"
-    if mode == "ox-cost-status-surprise":
-        cost_status = "computed"
+    if mode == "ox-cost-estimated":
+        cost_status = "estimated"
+    if mode == "ox-cost-status-missing":
+        cost_status = None
     record = {
         "id": record_id,
         "model": model,
@@ -498,15 +500,47 @@ class HermesRuntimeTests(unittest.TestCase):
             [item for item in payload["warnings"] if "session_id markers" in item]
         )
 
+    def test_ox_zero_cost_is_accepted_whatever_the_status_is_called(self) -> None:
+        """Ярлык статуса меняется провайдером; ноль остаётся нулём.
+
+        Регрессия 2026-08-23: белый список из одного "unknown" отклонил семь
+        живых прогонов Ox, у которых стоимость была 0.0, а статус назывался
+        "estimated". Гейт обязан судить сумму, а не словарь.
+        """
+        import _runtime_evidence as evidence
+
+        for status in ("unknown", "estimated", "computed"):
+            with self.subTest(status=status):
+                ok, why = evidence.ox_cost_verdict(
+                    {
+                        "estimated_cost_usd": 0.0,
+                        "actual_cost_usd": None,
+                        "cost_status": status,
+                    }
+                )
+                self.assertTrue(ok, why)
+        ok, why = evidence.ox_cost_verdict(
+            {"estimated_cost_usd": 0.0, "actual_cost_usd": None, "cost_status": None}
+        )
+        self.assertFalse(ok, why)
+        ok, why = evidence.ox_cost_verdict(
+            {"estimated_cost_usd": 0.42, "actual_cost_usd": None, "cost_status": "estimated"}
+        )
+        self.assertFalse(ok, why)
+
     def test_ox_post_hoc_cost_or_status_rejects_the_run(self) -> None:
-        """Платный или незнакомый post-factum cost для Ox валит прогон.
+        """Платный прогон или запись без статуса стоимости валят приёмку Ox.
+
+        Незнакомое НАЗВАНИЕ статуса прогон не валит: словарь принадлежит
+        провайдеру, а доказывает нулевую трату число. Живой Ox отдаёт и
+        "unknown", и "estimated" — см. соседний тест.
 
         Гейт цены до старта патчится, как и в юните ox_gate выше: иначе тест
         упирается в живой каталог, а не в проверку уже потраченного.
         """
         import _ox_policy as ox
 
-        for mode in ("ox-paid", "ox-cost-status-surprise"):
+        for mode in ("ox-paid", "ox-cost-status-missing"):
             with self.subTest(mode=mode):
                 args = argparse.Namespace(
                     model="stealth/ox-alpha",

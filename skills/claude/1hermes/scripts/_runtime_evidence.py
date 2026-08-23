@@ -13,7 +13,9 @@ import _ox_policy as ox
 
 # Статусы, которые живой Ox пишет на бесплатном маршруте; любой другой —
 # в том числе отсутствующий или появившийся после обновления Hermes — fail-closed.
-TRUSTED_COST_STATUSES = frozenset({"unknown"})
+# Словарь статусов принадлежит провайдеру и меняется без нашего ведома:
+# живой Ox отдаёт и "unknown", и "estimated" при нулевой стоимости.
+# Поэтому доказательством служит число, а статус лишь обязан присутствовать.
 
 UsageKey = tuple[str, str, str, str, str]
 
@@ -144,11 +146,16 @@ def ox_cost_verdict(usage: dict[str, Any]) -> tuple[bool, str]:
     Гейт цены до запуска доказывает каталог, а не прогон: между проверкой и
     последним вызовом проходят часы. Здесь проверяется уже потраченное.
 
-    Живой Ox пишет estimated_cost_usd=0.0, actual_cost_usd=None,
-    cost_status="unknown" — провайдер фактическую стоимость не заполняет.
-    Поэтому требуется числовой ноль там, где число есть, обязательно
-    присутствует estimated, а cost_status входит в доверенное множество
-    TRUSTED_COST_STATUSES; незнакомый статус доказательством не является.
+    Живой Ox пишет estimated_cost_usd=0.0 и actual_cost_usd=None: фактическую
+    стоимость провайдер не заполняет. Требуется числовой ноль там, где число
+    есть, и обязательное присутствие estimated — именно число доказывает, что
+    прогон ничего не стоил.
+
+    Статус стоимости провайдер отдаёт по своему словарю и меняет без нашего
+    ведома: на одном и том же бесплатном маршруте встречаются и "unknown", и
+    "estimated". Судить по ярлыку значит отклонять прогоны за различие в
+    словах при нулевой сумме, поэтому от статуса требуется лишь быть непустой
+    строкой — его отсутствие означает запись, по которой ничего не доказано.
     """
     estimated = usage.get("estimated_cost_usd")
     actual = usage.get("actual_cost_usd")
@@ -162,8 +169,8 @@ def ox_cost_verdict(usage: dict[str, Any]) -> tuple[bool, str]:
     if estimated is None:
         return False, "session carries no estimated cost to prove the free route"
     status = usage.get("cost_status")
-    if not isinstance(status, str) or status not in TRUSTED_COST_STATUSES:
-        return False, f"cost_status is not trusted: {status!r}"
+    if not isinstance(status, str) or not status.strip():
+        return False, f"session carries no cost status: {status!r}"
     return True, "session cost evidence is zero"
 
 
