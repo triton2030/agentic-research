@@ -25,6 +25,20 @@
 set -u
 HERMES="$HOME/.claude/skills/1hermes/scripts/hermes_advisor.py"
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Bash читает скрипт по мере исполнения, а не целиком. Правка файла во время
+# работы волны сдвигает смещения и роняет уже запущенный экземпляр посреди
+# цикла — так 2026-08-23 умерла волна, чей вывод при этом выглядел нормальным.
+# Поэтому волна сразу переходит на собственную неизменяемую копию.
+if [ -z "${OX_WAVE_PINNED:-}" ]; then
+  PINNED=$(mktemp -t ox_wave)
+  cat "${BASH_SOURCE[0]}" > "$PINNED"
+  export OX_WAVE_PINNED=1
+  bash "$PINNED" "$@"
+  status=$?
+  rm -f "$PINNED"
+  exit $status
+fi
 TASKS=${TASKS:?нужна папка с брифами}
 OUT=${OUT:-$TASKS/../runs}
 PAR=${PAR:-3}
