@@ -19,7 +19,7 @@ from wave import strip_fence
 
 ART = "experiments/openviking-chat-recall/artifacts"
 TOPICS = "_ops/chat-recall-topics"
-FIELD = re.compile(r"^(тема|новая|почему):\s*(.+)$", re.M)
+FIELD = re.compile(r"^(тема|новая|заголовок|почему):\s*(.+)$", re.M)
 
 
 def main(runs: str, dry: bool) -> int:
@@ -48,11 +48,18 @@ def main(runs: str, dry: bool) -> int:
                 print(f"  тема `{topic}` не существует и не объявлена новой: {name}")
                 refused += 1
                 continue
-            by_id[topic] = {"id": topic, "title": topic,
+            title = (fields.get("заголовок") or "").strip().strip("-—").strip()
+            by_id[topic] = {"id": topic, "title": title or topic,
                             "why": (fields.get("почему") or "").strip(), "files": []}
             data["topics"].append(by_id[topic])
             created += 1
             print(f"  новая тема: {topic}")
+        # Заголовок-заглушка держится ровно до первого прогона, который его
+        # назвал: иначе шапка темы навсегда остаётся slug-ом и расходится с
+        # контрактом слияния.
+        named = (fields.get("заголовок") or "").strip().strip("-—").strip()
+        if named and by_id[topic]["title"] == topic:
+            by_id[topic]["title"] = named
         if name not in by_id[topic]["files"]:
             by_id[topic]["files"].append(name)
             added += 1
@@ -66,9 +73,12 @@ def main(runs: str, dry: bool) -> int:
     for topic in data["topics"]:
         path = os.path.join(TOPICS, topic["id"] + ".md")
         if not os.path.exists(path):
+            # `sources` — число разговоров темы, как в контракте слияния; ноль
+            # в свежем файле разошёлся бы с картой в тот же миг.
             open(path, "w", encoding="utf-8").write(
-                f"---\ntopic: {topic['id']}\ntitle: {topic['title']}\nsources: 0\n---\n"
-                f"# {topic['title']}\n\n{topic['why']}\n")
+                f"---\ntopic: {topic['id']}\ntitle: {topic['title']}\n"
+                f"sources: {len(topic['files'])}\n---\n"
+                f"# {topic['title']}\n\nГраница темы: {topic['why']}\n")
             print(f"  заведён файл темы: {topic['id']}.md")
     print("карта тем обновлена")
     return 0

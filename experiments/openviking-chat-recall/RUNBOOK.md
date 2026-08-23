@@ -19,11 +19,16 @@ date: 2026-08-24
 только над своей. Единственное, что меняется от проекта к проекту, — четыре
 переменные:
 
+**Всё запускается из корня репозитория.** Скрипты внутри себя адресуют
+`_ops/...` от корня; из папки эксперимента они не найдут ни корпус, ни слой.
+Поэтому путь до них — тоже переменная, а не `scripts/` под рукой.
+
 ```bash
-CORPUS=/путь/к/чужому/проекту/_ops/chat-recall   # файлы разговоров только читаются
-TOPICS="${CORPUS%/}-topics"                      # готовый слой — папкой рядом
+S=experiments/openviking-chat-recall/scripts      # где лежат скрипты
+CORPUS=/путь/к/чужому/проекту/_ops/chat-recall    # файлы разговоров только читаются
+TOPICS="${CORPUS%/}-topics"                       # готовый слой — папкой рядом
 ART=experiments/openviking-chat-recall/artifacts/<имя-проекта>
-WORK=_workspace/ox-<имя-проекта>                 # рабочие файлы, не в git
+WORK=_workspace/ox-<имя-проекта>                  # рабочие файлы, не в git
 ```
 
 Слой тем кладётся **папкой рядом с корпусом**, не внутрь него — решение
@@ -72,9 +77,9 @@ git rev-parse --short HEAD          # запиши: этим коммитом с
 ## Стадия 1 — пофайловое сжатие
 
 ```bash
-python3 scripts/build_flatten_tasks.py "$CORPUS" "$WORK-flat/tasks"
+python3 $S/build_flatten_tasks.py "$CORPUS" "$WORK-flat/tasks"
 # волна
-python3 scripts/apply_flatten.py "$WORK-flat/runs" "$CORPUS" "$ART/flat"
+python3 $S/apply_flatten.py "$WORK-flat/runs" "$CORPUS" "$ART/flat"
 ```
 
 `apply_flatten.py` сразу печатает баланс: сколько записей перенесено, сколько
@@ -84,9 +89,9 @@ python3 scripts/apply_flatten.py "$WORK-flat/runs" "$CORPUS" "$ART/flat"
 ## Стадия 2 — карта тем
 
 ```bash
-python3 scripts/build_topicmap_task.py "$ART/flat" "$WORK-topics/tasks"
+python3 $S/build_topicmap_task.py "$ART/flat" "$WORK-topics/tasks"
 # волна, PAR=1
-python3 scripts/apply_topicmap.py "$WORK-topics/runs/topics.json" "$ART/flat" "$ART/topics.json"
+python3 $S/apply_topicmap.py "$WORK-topics/runs/topics.json" "$ART/flat" "$ART/topics.json"
 ```
 
 На вход идут только строки «о чём» из шапок сжатых файлов. Цитаты в эту стадию
@@ -99,10 +104,10 @@ python3 scripts/apply_topicmap.py "$WORK-topics/runs/topics.json" "$ART/flat" "$
 ## Стадия 3 — слияние по темам
 
 ```bash
-python3 scripts/build_stage_tasks.py merge "$ART/topics.json" "$ART/flat" "$WORK-merge/tasks"
+python3 $S/build_stage_tasks.py merge "$ART/topics.json" "$ART/flat" "$WORK-merge/tasks"
 # волна
-python3 scripts/apply_stage.py merge "$WORK-merge/runs" "$ART/flat" "$TOPICS"
-python3 scripts/check_topics.py "$ART"
+python3 $S/apply_stage.py merge "$WORK-merge/runs" "$ART/flat" "$TOPICS"
+python3 $S/check_topics.py "$ART" "$TOPICS"
 ```
 
 Раскладка сверяет якоря входа и выхода и отвергает тему целиком, если они не
@@ -112,11 +117,11 @@ python3 scripts/check_topics.py "$ART"
 ## Стадия 4 — покрытие и добор
 
 ```bash
-python3 scripts/check_coverage.py <коммит-снимка>
-python3 scripts/build_backfill_tasks.py "$WORK-backfill/tasks" "$WORK-backfill/runs"
+python3 $S/check_coverage.py <коммит-снимка>
+python3 $S/build_backfill_tasks.py "$WORK-backfill/tasks" "$WORK-backfill/runs"
 # волна
-python3 scripts/apply_backfill.py --dry "$WORK-backfill/runs"
-python3 scripts/apply_backfill.py "$WORK-backfill/runs"
+python3 $S/apply_backfill.py --dry "$WORK-backfill/runs"
+python3 $S/apply_backfill.py "$WORK-backfill/runs"
 ```
 
 Пропуск не оценивается выборкой, а вычитается: у каждой записи есть адрес.
@@ -126,11 +131,11 @@ python3 scripts/apply_backfill.py "$WORK-backfill/runs"
 ## Стадия 5 — аудит смысла и правки
 
 ```bash
-python3 scripts/build_audit_tasks.py "$WORK-audit/tasks" "$WORK-audit/runs"
+python3 $S/build_audit_tasks.py "$WORK-audit/tasks" "$WORK-audit/runs"
 # волна
-python3 scripts/build_repair_tasks.py "$WORK-audit/runs" "$WORK-repair/tasks"
+python3 $S/build_repair_tasks.py "$WORK-audit/runs" "$WORK-repair/tasks"
 # волна
-python3 scripts/apply_repair.py "$WORK-repair/runs"
+python3 $S/apply_repair.py "$WORK-repair/runs"
 ```
 
 Билдеры помнят сделанное: передай папку прогонов вторым аргументом, и уже
@@ -141,11 +146,11 @@ python3 scripts/apply_repair.py "$WORK-repair/runs"
 Главная регулярная работа. Всё остальное делается один раз, это — постоянно.
 
 ```bash
-python3 scripts/build_update_tasks.py "$WORK-update/tasks"
+python3 $S/build_update_tasks.py "$WORK-update/tasks"
 # волна
-python3 scripts/apply_update.py "$WORK-update/runs"
-python3 scripts/reanchor.py fix
-python3 scripts/check_coverage.py <коммит-снимка>
+python3 $S/wave.py "$WORK-update/tasks" "$WORK-update/runs"   # ненулевой код — волна не закрыта
+python3 $S/apply_update.py --dry "$WORK-update/runs"          # баланс: дельта против покрытого
+python3 $S/apply_update.py "$WORK-update/runs"
 ```
 
 `build_update_tasks.py` сам считает дельту: адреса корпуса, которых нет ни в
@@ -153,29 +158,58 @@ python3 scripts/check_coverage.py <коммит-снимка>
 только за перечисленные строки — реплика без соседей теряет предмет, а уже
 разобранное переразбирать незачем.
 
-После вливания обнови дату снимка в `snapshot.json`: слой, знающий больше, чем
-обещает горизонт, врёт в другую сторону.
+### Разговоры, которых карта тем не знает
+
+`apply_update.py` их называет и пропускает: дописывать пункт некуда. Это не
+сбой, а отдельная стадия — и без неё обновление не закончено. В первой дельте
+на них пришлась половина записей.
+
+```bash
+python3 $S/build_assign_tasks.py "$WORK-assign/tasks"
+# волна
+python3 $S/apply_assign.py --dry "$WORK-assign/runs"
+python3 $S/apply_assign.py "$WORK-assign/runs"
+```
+
+Прогон выбирает одну из существующих тем по их границам либо честно объявляет
+новую; вручную тему не заводят. Новая тема получает пустой файл, который
+наполнит обычное обновление, — поэтому после назначения `build_update_tasks.py`
+и волну повторяют.
+
+### Закрытие обновления
+
+```bash
+python3 $S/reanchor.py fix     # переставить якоря, разъехавшиеся от роста файлов
+python3 $S/reanchor.py map     # завести отпечатки новых якорей
+python3 $S/check_coverage.py <коммит-снимка>
+```
+
+Без `map` следующий `fix` не найдёт свежие якоря по отпечатку. Любое другое
+слово команды `reanchor.py` отвергает — раньше оно молча означало `fix`.
+
+После вливания обнови дату и счёт в `horizon.json` рядом с темами: слой,
+знающий больше, чем обещает горизонт, врёт в другую сторону.
 
 ## Дрейф якорей — когда проверка назвала висячие адреса
 
 ```bash
-python3 scripts/build_audit_tasks.py "$WORK-audit/tasks"
+python3 $S/build_audit_tasks.py "$WORK-audit/tasks"
 # волна
-python3 scripts/build_repair_tasks.py "$WORK-audit/runs" "$WORK-repair/tasks"
+python3 $S/build_repair_tasks.py "$WORK-audit/runs" "$WORK-repair/tasks"
 # волна
-python3 scripts/apply_repair.py "$WORK-repair/runs"
+python3 $S/apply_repair.py "$WORK-repair/runs"
 
-python3 scripts/build_split_tasks.py "$ART/audit-structural.tsv" "$WORK-split/tasks"
+python3 $S/build_split_tasks.py "$ART/audit-structural.tsv" "$WORK-split/tasks"
 # волна
-python3 scripts/apply_split.py "$WORK-split/runs"
+python3 $S/apply_split.py "$WORK-split/runs"
 ```
 
 Дрейф якорей проверяй, только если `check_coverage.py` назвал висячие адреса:
 
 ```bash
-python3 scripts/build_drift_tasks.py "$WORK-drift/tasks" <имена разговоров>
+python3 $S/build_drift_tasks.py "$WORK-drift/tasks" <имена разговоров>
 # волна
-python3 scripts/apply_drift.py "$WORK-drift/runs"
+python3 $S/apply_drift.py "$WORK-drift/runs"
 ```
 
 ## Стадия 7 — приёмка поиском
@@ -183,9 +217,9 @@ python3 scripts/apply_drift.py "$WORK-drift/runs"
 ```bash
 # вопросы пишет окно, видящее ТОЛЬКО разговоры
 TASKS=... CWD="$CORPUS" ...   # волна
-python3 scripts/build_accept_tasks.py "$WORK-accept/runs/questions.json" "$WORK-answer/tasks"
+python3 $S/build_accept_tasks.py "$WORK-accept/runs/questions.json" "$WORK-answer/tasks"
 # рукава: CWD="$TOPICS", штатный поиск через run_digest.py, CWD="$CORPUS"
-python3 scripts/build_grade_task.py <library.json> <corpus.json> "$WORK-grade/tasks"
+python3 $S/build_grade_task.py "$WORK-answer/runs" "$WORK-grade/tasks"
 # волна
 ```
 
@@ -201,7 +235,7 @@ python3 scripts/build_grade_task.py <library.json> <corpus.json> "$WORK-grade/ta
 Волна закрывается не ощущением, а разностью множеств:
 
 ```bash
-python3 scripts/wave.py <папка заданий> <папка прогонов>
+python3 $S/wave.py <папка заданий> <папка прогонов>
 ```
 
 Печатает построено · запущено · принято и три разницы: задания, не дошедшие до
@@ -220,6 +254,6 @@ python3 scripts/wave.py <папка заданий> <папка прогонов
 - **ответ не в формате** — чини бриф, а не число повторов;
 - **упёрся в потолок итераций** — смотри, на чём крутился; бюджет тут ни при чём;
 - **`ok=true`, а ответ пустой** — обёртка кладёт заглушку, гейт её ловит;
-  если проскочило, проверь `route_started.py`;
+  если проскочило, проверь `experiments/hermes-ox-alpha/route_started.py`;
 - **прогон затёрт повтором** — сырой результат лежит в
   `~/.hermes/1hermes-runs/<run_id>/result.json`.

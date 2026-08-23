@@ -24,14 +24,20 @@ def flat_anchors(base: str, name: str) -> set[tuple[str, str]]:
     return {(name, n) for b in BULLET.findall(text) for n in LINE.findall(b)}
 
 
-def check(base: str) -> list[str]:
+# Слой тем уехал из `base/topics/` в отдельную папку рядом с корпусом
+# (решение владельца 2026-08-24), а `flat/` и карта остались в мастерской.
+# Пока адрес был один, проверка провенанса падала на отсутствующей папке.
+TOPICS = "_ops/chat-recall-topics"
+
+
+def check(base: str, topics_dir: str = TOPICS) -> list[str]:
     topics = json.load(open(os.path.join(base, "topics.json"), encoding="utf-8"))["topics"]
     problems: list[str] = []
     for topic in topics:
         want: set[tuple[str, str]] = set()
         for name in topic["files"]:
             want |= flat_anchors(base, name)
-        path = os.path.join(base, "topics", topic["id"] + ".md")
+        path = os.path.join(topics_dir, topic["id"] + ".md")
         if not os.path.exists(path):
             problems.append(f"{topic['id']}: файла темы нет")
             continue
@@ -50,7 +56,7 @@ def check(base: str) -> list[str]:
 
 
 if __name__ == "__main__":
-    found = check(sys.argv[1])
+    found = check(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else TOPICS)
     for line in found:
         print(line)
     print(f"проблем: {len(found)}")

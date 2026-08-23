@@ -13,7 +13,7 @@ WIKI = f"{ART}/wiki-v1"
 def main(skeleton_path: str, run_path: str) -> int:
     skeleton = json.load(open(skeleton_path, encoding="utf-8"))
     horizon = {}
-    horizon_path = os.path.join(WIKI, "snapshot.json")
+    horizon_path = "_ops/chat-recall-topics/horizon.json"
     if os.path.exists(horizon_path):
         horizon = json.load(open(horizon_path, encoding="utf-8"))
     payload = json.load(open(run_path, encoding="utf-8"))

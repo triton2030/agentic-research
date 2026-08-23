@@ -109,10 +109,12 @@ def anchors(pattern: str) -> set[Address]:
 def main(rev: str) -> int:
     records = snapshot(rev)
     known = set(records)
+    # Конечный продукт — слой тем. Стадия страниц снята 2026-08-24, и пока она
+    # стояла здесь последней, вердикт «ничего не потеряно» выносился по снятой
+    # библиотеке: проверка честно судила продукт, которым никто не пользуется.
     stages = [
         ("1  снимок -> сжатые файлы", flat_anchors()),
         ("3  сжатые -> темы", anchors("_ops/chat-recall-topics/*.md")),
-        ("4  темы -> страницы", anchors(f"{ART}/wiki-v1/**/*.md")),
     ]
 
     print(f"снимок {rev}: {len(records)} записей корпуса\n")
@@ -122,7 +124,7 @@ def main(rev: str) -> int:
               f" | дошло {len(reached & known):5d} | потеряно {len(seen - reached):4d}")
         seen = reached & known
 
-    library = stages[-1][1]
+    library = stages[-1][1]  # слой тем
     # Запись без адреса в библиотеке бывает двух разных вещей, и мешать их
     # нельзя: пропущенная молча — дефект, а признанная не несущей знания —
     # результат работы. Весь смысл добора в том, чтобы вторых не оставалось
@@ -140,13 +142,13 @@ def main(rev: str) -> int:
     uncovered = silent
     dangling = sorted(library - known)
     accounted = len(records) - len(silent)
-    print(f"\nстоит на страницах: {len(known & library)} из {len(records)}"
+    print(f"\nстоит в слое тем: {len(known & library)} из {len(records)}"
           f" ({100 * len(known & library) / max(len(records), 1):.1f}%)")
-    print(f"учтено — на странице либо названо: {accounted}"
+    print(f"учтено — в теме либо названо: {accounted}"
           f" ({100 * accounted / max(len(records), 1):.1f}%)")
     print(f"НЕ покрыто молча (П5): {len(silent)}")
     print(f"названо не несущим знания (не дефект): {len(named)}")
-    print(f"адрес библиотеки не указывает на запись снимка: {len(dangling)}")
+    print(f"адрес слоя не указывает на запись снимка: {len(dangling)}")
 
     if uncovered:
         print("\nнепокрытые по типу записи:",
@@ -160,7 +162,7 @@ def main(rev: str) -> int:
                           f"{(quote.group(1) if quote else line)}\n")
         print(f"все непокрытые адреса с цитатами -> {gaps}")
     if dangling:
-        print("\nвисячие адреса библиотеки:")
+        print("\nвисячие адреса слоя:")
         for name, number in dangling:
             print(f"  {name}#L{number}")
 

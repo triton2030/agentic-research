@@ -357,10 +357,13 @@ date: 2026-08-24
 - источник: `_ops/chat-recall/`;
 - перенос на чужой корпус: `artifacts/transfer-kumysbekov/`;
 - контракты: `experiments/openviking-chat-recall/prompts/flatten-file.v1.md`,
-  `merge-topic.v1.md`, `pages-from-topic.v1.md`, `backfill-missed.v1.md`;
+  `merge-topic.v1.md`, `backfill-missed.v1.md`; контракты снятых стадий —
+  `prompts/_snyatye-stadii/`;
 - проверки: `scripts/check_wiki.py` (форма), `scripts/check_topics.py`
   (провенанс слияния), `scripts/check_coverage.py` (постадийное покрытие);
 - добор: `scripts/build_backfill_tasks.py` и `scripts/apply_backfill.py`;
-- продукт: `_ops/chat-recall-topics/` (в чужом проекте — `<его корпус>/topics/`);
+- продукт: `_ops/chat-recall-topics/` (в чужом проекте — папка рядом с его
+  корпусом, `<корпус>-topics/`);
 - промежуточные артефакты стадий: `experiments/openviking-chat-recall/artifacts/flatten-v1/`;
-- исполнители — через мост `experiments/codex-bridge`.
+- исполнители — Ox Alpha волной `experiments/hermes-ox-alpha/ox_wave.sh`;
+  мост `experiments/codex-bridge` остаётся историей ранних стадий.
