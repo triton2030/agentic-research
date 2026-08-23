@@ -10,7 +10,7 @@
     "ask:test": "NODE_ENV=test node --test ./test/*.test.js"
   },
   "dependencies": {
-    "@anthropic-ai/claude-agent-sdk": "0.3.232",
+    "@anthropic-ai/claude-agent-sdk": "0.3.241",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "zod": "^4.4.1"
   },
