@@ -133,5 +133,11 @@ def fix() -> int:
 
 
 if __name__ == "__main__":
+    # Раньше любое слово, кроме `map`, запускало `fix()` — и он пишет. Вызов
+    # `reanchor.py check`, сделанный ради проверки, молча переставил десять
+    # якорей и уехал в чужой коммит. Незнакомый глагол теперь отказывает.
     command = sys.argv[1] if len(sys.argv) > 1 else "map"
+    if command not in {"map", "fix"}:
+        print(f"неизвестная команда {command!r}: только map (читает) или fix (пишет)", file=sys.stderr)
+        raise SystemExit(2)
     raise SystemExit(build_map() if command == "map" else fix())
