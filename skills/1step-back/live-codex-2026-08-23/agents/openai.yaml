@@ -1,0 +1,10 @@
+interface:
+  display_name: "1-Шаг назад"
+  short_description: "Проверка, не туда ли мы думаем"
+  default_prompt: >
+    При явном вызове $1step-back восстанови финальную цель и фактическую
+    траекторию, проверь несущую предпосылку и дай исправленную рамку. Один
+    read-only ход: без файлов, плана и исполнения.
+
+policy:
+  allow_implicit_invocation: false
