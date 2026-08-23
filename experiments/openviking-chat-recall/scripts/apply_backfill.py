@@ -22,6 +22,14 @@ ART = "experiments/openviking-chat-recall/artifacts"
 WIKI = f"{ART}/wiki-v1"
 PREFIX = "../../../../../_ops/chat-recall"
 TYPES = {"entity", "concept", "method", "comparison", "analysis"}
+# Агент работает по-русски и естественно переводит служебное слово вердикта.
+# Отвергать суждение из-за словаря — терять оплаченную работу на пустом месте:
+# решение принято, названо иначе. Нормализуем вход, а не спорим с ним.
+VERDICT = {
+    "add": "add", "добавить": "add", "дополнить": "add",
+    "new": "new", "новая": "new", "создать": "new", "новую": "new",
+    "skip": "skip", "пропустить": "skip", "отказ": "skip", "пропуск": "skip",
+}
 
 
 def expected() -> dict[str, tuple[str, str]]:
@@ -49,7 +57,8 @@ def decisions(runs: str, allowed: dict[str, tuple[str, str]]) -> tuple[list, lis
             if raw.count("\t") < 4:
                 continue
             anchor, verdict, target, text, label = raw.split("\t", 4)
-            anchor, verdict = anchor.strip().strip("`"), verdict.strip()
+            anchor = anchor.strip().strip("`*")
+            verdict = VERDICT.get(verdict.strip().strip("`*").lower(), verdict.strip())
             if anchor not in allowed:
                 refused.append((topic, anchor, "якоря нет во входе"))
             elif verdict not in {"add", "new", "skip"}:
