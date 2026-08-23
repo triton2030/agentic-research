@@ -1,0 +1,2824 @@
+{
+ "page_count": 367,
+ "section_count": 40,
+ "types": {
+  "analysis": 8,
+  "comparison": 7,
+  "concept": 177,
+  "entity": 80,
+  "method": 95
+ },
+ "missing_title": [],
+ "missing_description": [],
+ "sections": [
+  {
+   "topic": "skill-instruction-authoring",
+   "title": "Проектирование и рефакторинг skills, prompts и агентных инструкций",
+   "pages": [
+    {
+     "type": "concept",
+     "title": "Как 1goal, принципы и планирование делят цели?",
+     "description": "1goal отвечает за бизнес- или проектную цель, агентные инструкции — за цель агента помогать ей качественным кодом и документацией; цель задаёт траекторию, планирование — шаги, а Product Principles закрывают незапланированные развилки автономно.",
+     "topic": "skill-instruction-authoring",
+     "path": "concept/goal-principles-planning-goal-split.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как владелец делит скил на управляющее ядро и предметные знания?",
+     "description": "SKILL.md — управляющее ядро поведения, references/* — предметные знания; references бывают cognitive protocol или предметным знанием, а документация делится по смыслу.",
+     "topic": "skill-instruction-authoring",
+     "path": "concept/skill-core-versus-reference-knowledge.md"
+    },
+    {
+     "type": "method",
+     "title": "Как владелец предписывает оформлять точечные правки мета-скилов?",
+     "description": "Формат согласования — только заменяемые строки и соответствующие новые строки без полного текста черновика; validation scope после правки ограничивается минимальным доказательным циклом вместо трёхоконного forward-test.",
+     "topic": "skill-instruction-authoring",
+     "path": "method/how-point-edits-to-meta-skills-are-agreed.md"
+    },
+    {
+     "type": "method",
+     "title": "Как владелец предписывает переписывать корпус skills и инструкций?",
+     "description": "Сначала обновить 1skill-shaping и 1instruction-shaping, затем их помощью переработать остальные глобальные скилы по методу Matt Pocock — с многоагентным анализом переусложнения, объединения имён и удаления противоречащих инструкций.",
+     "topic": "skill-instruction-authoring",
+     "path": "method/how-the-skill-corpus-migration-is-run.md"
+    },
+    {
+     "type": "method",
+     "title": "Как владелец предписывает планировать и записывать планы?",
+     "description": "1planning переписывается как скилл создания задач с целями и критериями успеха; Wayfinding и Execution — разные режимы задач; без утверждения владельца план не записывается, а 1break-down поглощается планированием.",
+     "topic": "skill-instruction-authoring",
+     "path": "method/how-plans-and-tasks-are-made.md"
+    },
+    {
+     "type": "method",
+     "title": "Как владелец предписывает рефакторить существующие инструкции и скилы?",
+     "description": "Отдельный режим из-за неразличимости сказанного и выдуманного, плоская карта кластеров, объединение и переформулирование, предложения удалений через модельные дефолты с решением владельца.",
+     "topic": "skill-instruction-authoring",
+     "path": "method/how-to-refactor-existing-instructions-and-skills.md"
+    },
+    {
+     "type": "method",
+     "title": "Как владелец предписывает синхронизировать и переписывать операционные скилы?",
+     "description": "Синхронизация остальных документов относительно установленных 1product-shaping, 1use-principles, 1planning и 1index; 1index переписывается; правка мета-скилов идёт переформулированием существующих строк с одновременным добавлением содержания.",
+     "topic": "skill-instruction-authoring",
+     "path": "method/how-operating-skills-get-synced-and-rewritten.md"
+    },
+    {
+     "type": "method",
+     "title": "Как владелец предписывает создавать скилы?",
+     "description": "Понять предмет, проверить конфликты, учесть историческую эффективность моделей, отличить доказанный провал от возможной ошибки владельца и закрепить аудит когнитивных пустот для каждого будущего скила.",
+     "topic": "skill-instruction-authoring",
+     "path": "method/how-skills-are-created.md"
+    },
+    {
+     "type": "method",
+     "title": "Как владелец предписывает строить ориентировку проекта?",
+     "description": "Поведение задаётся корневыми инструкциями, знания живут в файлах проекта; INDEX — карта прочитанных источников с форматом Failure Map / Risk Index; папочные инструкции делятся по крупным категориям и разгружают корень.",
+     "topic": "skill-instruction-authoring",
+     "path": "method/how-project-orientation-is-built.md"
+    },
+    {
+     "type": "method",
+     "title": "Как заставить агента читать reference-файлы?",
+     "description": "Агенты читают референсы неохотно — короткое триггерное описание должно быть немного настойчивым, тело скила объяснять контекст и важность чтения конкретного reference.",
+     "topic": "skill-instruction-authoring",
+     "path": "method/how-to-get-agent-to-read-references.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как инструкции должны направлять сильную модель?",
+     "description": "Цель вместо реактивных запретов, оценка последствий до действия, использование стереотипической склонности модели и обучение через примеры общения.",
+     "topic": "skill-instruction-authoring",
+     "path": "concept/steering-strong-models.md"
+    },
+    {
+     "type": "analysis",
+     "title": "Как оценивать mattpocock/skills?",
+     "description": "Критерий оценки — реальный пользовательский опыт и практическая эффективность, а не научное подтверждение; метод создания skills по нему изучается, а отчёт сохраняется в базе знаний для повторного использования.",
+     "topic": "skill-instruction-authoring",
+     "path": "analysis/how-to-evaluate-mattpocock-skills.md"
+    },
+    {
+     "type": "method",
+     "title": "Как переписывать промты именных агентов?",
+     "description": "Сначала определить зачем созданы агенты и их ожидаемый эффект, затем применить полный канон семи разделов с md-scout шестым в проходе, убрав списки фреймворков и советы о мышлении; обновление проверяется субагентами против лучших практик 1instruction-shaping.",
+     "topic": "skill-instruction-authoring",
+     "path": "method/how-to-rewrite-named-agent-prompts.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как писать триггерные описания скилов?",
+     "description": "Триггеры нельзя строить на буквальных цитатах владельца — в момент вызова их невозможно угадать; описание опирается на состояние задачи и тип решения.",
+     "topic": "skill-instruction-authoring",
+     "path": "concept/trigger-descriptions-from-task-state.md"
+    },
+    {
+     "type": "method",
+     "title": "Как проверять, что инструкция реально применена?",
+     "description": "Чтение и пересказ скила не доказывают соблюдение — нужно evidence наблюдаемого влияния; каждое применимое требование подтверждается результатом или помечается неприменимым; быстрее всего когнитивный аудит и Codex-субагент.",
+     "topic": "skill-instruction-authoring",
+     "path": "method/how-to-prove-instruction-was-applied.md"
+    },
+    {
+     "type": "method",
+     "title": "Как сжимать управляющие тексты?",
+     "description": "Оптимизируется minimum behavior-preserving context и смысл на токен, сокращение проверяется ablation evals; дубли одного смысла — дефект, причина которого требует общего принципа или точных правил разделов.",
+     "topic": "skill-instruction-authoring",
+     "path": "method/how-control-texts-are-compressed.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как субагенты допускаются к анализу и проверке скилов?",
+     "description": "Любой subagent, привлечённый 1skill-shaping к анализу или проверке skill, обязан до суждения прочитать полный пакет references 1skill-shaping и 1instruction-shaping.",
+     "topic": "skill-instruction-authoring",
+     "path": "concept/subagent-access-to-skill-review.md"
+    },
+    {
+     "type": "analysis",
+     "title": "Как формулировки и плотность инструкций влияют на adherence агентов?",
+     "description": "Исследование влияния формулировок и плотности инструкций на adherence оформляется отдельным knowledge-файлом как база для последующего создания скилов и инструкций.",
+     "topic": "skill-instruction-authoring",
+     "path": "analysis/wording-density-effect-on-adherence.md"
+    },
+    {
+     "type": "concept",
+     "title": "Когда владелец требует процедуру, а когда критерий результата?",
+     "description": "Если важен итог шага — criterion, cognitive invariant, constraint или stop condition вместо процедуры; SOP остаётся там, где важен путь и порядок; расплывчатое прилагательное превращается в observable stop condition.",
+     "topic": "skill-instruction-authoring",
+     "path": "concept/criterion-vs-sop.md"
+    },
+    {
+     "type": "concept",
+     "title": "Может ли агент писать или менять инструкции без владельца?",
+     "description": "Нет — обязательный разговор, предупреждение ошибок, утверждение любых изменений и опора только на сказанное владельцем; скилл из одних желаний без его вводных не создаётся.",
+     "topic": "skill-instruction-authoring",
+     "path": "concept/no-authoring-without-owner.md"
+    },
+    {
+     "type": "concept",
+     "title": "По каким признакам владелец судит о качестве агентной инструкции?",
+     "description": "Критерии качества — скорость и снижение ошибок, загрузка релевантных файлов, направление с ограничителями, отсутствие ухудшения против варианта без скила, общий способ проектирования вместо тестов.",
+     "topic": "skill-instruction-authoring",
+     "path": "concept/good-agent-instruction-criteria.md"
+    },
+    {
+     "type": "concept",
+     "title": "Почему короткая инструкция сильнее?",
+     "description": "Чем короче инструкция и меньше её содержание, тем сильнее отдельные инструкции; большие мета-скилы допущены как исключение ради того, чтобы остальные оставались маленькими.",
+     "topic": "skill-instruction-authoring",
+     "path": "concept/why-short-instructions-are-stronger.md"
+    },
+    {
+     "type": "concept",
+     "title": "Почему коррекцию поведения модели нужно доказывать?",
+     "description": "Даже прямое указание способа не отменяет требования доказать модели необходимость коррекции, назвав её default, иначе модель может не принять изменение.",
+     "topic": "skill-instruction-authoring",
+     "path": "concept/why-correction-needs-proof.md"
+    },
+    {
+     "type": "analysis",
+     "title": "Почему у владельца появились скилы длиной в десятки тысяч строк?",
+     "description": "Противоречие между подходами — подробные процедуры против одной цели — привело к раздуванию, после чего владелец стал отделять когнитивные процедуры, которые нужно оставлять, от тех, что сильная модель выведет сама.",
+     "topic": "skill-instruction-authoring",
+     "path": "analysis/why-skills-grew-to-tens-of-thousands-of-lines.md"
+    },
+    {
+     "type": "concept",
+     "title": "Чем когнитивный скил отличается от справочного?",
+     "description": "Два жанра — у когнитивного скила провал определяет владелец, а сложная работа оформляется целым протоколом; справочный вроде design system опирается на поведение модели, а не на пожелания владельца.",
+     "topic": "skill-instruction-authoring",
+     "path": "concept/cognitive-vs-reference-skill-genres.md"
+    },
+    {
+     "type": "concept",
+     "title": "Что владелец считает правильным источником для новых инструкций?",
+     "description": "Для чистого нового проекта инструкции создаются на основе официальных рекомендаций по агентным инструкциям, а не только известных провалов моделей; знания исследований предпочитаются за последние полгода, когда модели уже сильные.",
+     "topic": "skill-instruction-authoring",
+     "path": "concept/sources-for-new-instructions.md"
+    },
+    {
+     "type": "concept",
+     "title": "Что владелец считает правильным размером тела скила и референсов?",
+     "description": "Длина скила и объём важной информации в reference-файлах не ограничиваются, перегруз поведенческими инструкциями избегается; тело сокращается в пользу референсов и короткого описания, а P-014 заменён файлом бюджета правил.",
+     "topic": "skill-instruction-authoring",
+     "path": "concept/skill-body-and-reference-size-limits.md"
+    },
+    {
+     "type": "concept",
+     "title": "Что владелец считает правильным устройством папок и версий скила?",
+     "description": "Один скилл — одна папка с историей изменений и правилами, не вошедшими в текущую версию; версии хранятся внутри при необходимости без деления на Claude и Codex, хотя скиллы обычно зеркалятся.",
+     "topic": "skill-instruction-authoring",
+     "path": "concept/skill-folder-and-version-layout.md"
+    },
+    {
+     "type": "concept",
+     "title": "Что владелец считает скиллом и инструкцией?",
+     "description": "Границы понятий — скилл как продукт и хранилище дельты между компетентностью модели и требуемым поведением, инструкция как любой объект, влияющий на агента, хуки как канал подачи.",
+     "topic": "skill-instruction-authoring",
+     "path": "concept/what-counts-as-skill-and-instruction.md"
+    },
+    {
+     "type": "concept",
+     "title": "Что владелец требует от структуры и стиля скилов?",
+     "description": "Тело — преимущественно роутер когнитивного протокола, телеграфный семантически плотный стиль, методологии называются по именам, пустые разделы сохраняются, заголовок не дублирует тело, а неописанное восстанавливает структуру письма.",
+     "topic": "skill-instruction-authoring",
+     "path": "concept/skill-body-and-style-requirements.md"
+    },
+    {
+     "type": "concept",
+     "title": "Что владелец требует от формата самих мета-скилов?",
+     "description": "Пять точечных замен пары — не фундаментальное решение, её центральную модель нужно пересмотреть; мета-скилы допущено не держать в формате, который они задают остальным, а начинать 1skill-shaping с короткого свободного поля контекста.",
+     "topic": "skill-instruction-authoring",
+     "path": "concept/meta-skill-format-freedom-and-central-model.md"
+    },
+    {
+     "type": "concept",
+     "title": "Что делать с недвусмысленностью формулировок?",
+     "description": "Формулировки инструкций должны читаться агентом с чистым окном только одним правильным образом; недвусмысленность входит в критерии когнитивного аудита мета-скилов, а чистое окно относится к субагенту.",
+     "topic": "skill-instruction-authoring",
+     "path": "concept/unambiguous-wording-and-clean-window.md"
+    },
+    {
+     "type": "concept",
+     "title": "Что должно быть описано в любой инструкции?",
+     "description": "Обязательный состав — слово «цель» в начале, определение цели, критерии её выполнения, желаемое и нежелаемое, а также чем цель не является; формат канонических разделов можно не делать, если цель уже работает и границы не нарушаются.",
+     "topic": "skill-instruction-authoring",
+     "path": "concept/what-every-instruction-must-contain.md"
+    },
+    {
+     "type": "concept",
+     "title": "Что значит проверять связность инструкций?",
+     "description": "Проверяются логические конфликты и влияния между папочными, корневыми, глобальными и локальными скилами и инструкциями, а не только взаимодействие с одной картой инструкций.",
+     "topic": "skill-instruction-authoring",
+     "path": "concept/instruction-coherence-checks.md"
+    },
+    {
+     "type": "entity",
+     "title": "Что такое 1document-system?",
+     "description": "Скилл сокращает лишнюю прозу через заранее заданные типы документов и их жанровой стиль; название типа подсказывает структуру и место информации, а критерий строгого следования жанру держит документы в форме.",
+     "topic": "skill-instruction-authoring",
+     "path": "entity/1document-system.md"
+    },
+    {
+     "type": "concept",
+     "title": "Что такое 1goal и его критерий?",
+     "description": "Цель — самый верхнеуровневый, обширный и одновременно короткий файл контекста и принципов; идеальный критерий — агент, получив файл цели, завершает весь проект к удовлетворению владельца; приоритет над текущими просьбами защищает от усложнения продукта.",
+     "topic": "skill-instruction-authoring",
+     "path": "entity/1goal-and-its-criterion.md"
+    },
+    {
+     "type": "entity",
+     "title": "Что такое 1instruction-shaping как функция от проекта?",
+     "description": "Сначала понять, что в проекте нужно делать, предугадать поведение агента и его проблемы по целям проекта, затем сформировать инструкции, облегчающие и ускоряющие работу; при обнаружении проблемы вызывает скилл формирования скилов.",
+     "topic": "skill-instruction-authoring",
+     "path": "entity/1instruction-shaping-as-project-function.md"
+    },
+    {
+     "type": "entity",
+     "title": "Что такое 1use-principles?",
+     "description": "Скилл выбирает из длинных файлов принципов нужные следствия для текущей работы, входит в состав планирования; проверяет принципы перед любой работой с риском неподходящего дефолта, читая только файлы принципов и файл цели.",
+     "topic": "skill-instruction-authoring",
+     "path": "entity/1use-principles.md"
+    },
+    {
+     "type": "concept",
+     "title": "Что такое Failure Map / Risk Index?",
+     "description": "INDEX отвечает на вопрос, что модель особенно склонна забывать, в формате When → Failure → Cost → Source; обслуживание — ручной вызов скилла индекса как часть handoff-протокола, самостоятельное обновление ненадёжно.",
+     "topic": "skill-instruction-authoring",
+     "path": "concept/failure-map-risk-index.md"
+    },
+    {
+     "type": "concept",
+     "title": "Что такое налог вмешательства?",
+     "description": "Каждая инструкция, процедура или скил усложняет работу агента; их держат только в объёме, нужном для эффекта без общего ухудшения работы, а необходимость каждой инструкции доказывается наблюдаемым ухудшением от её удаления.",
+     "topic": "skill-instruction-authoring",
+     "path": "concept/intervention-tax.md"
+    }
+   ]
+  },
+  {
+   "topic": "codex-fleet",
+   "title": "Codex как управляемый флот исполнителей и советников",
+   "pages": [
+    {
+     "type": "method",
+     "title": "В каком порядке перестраивались bridge, приложение долгих прогонов и тело скила?",
+     "description": "Заданный порядок работ: сначала мост, затем приложение про долгие прогоны, затем тело скила.",
+     "topic": "codex-fleet",
+     "path": "method/bridge-app-skill-body-order-of-work.md"
+    },
+    {
+     "type": "concept",
+     "title": "Где видно продвижение Codex-агентов?",
+     "description": "Треды больших работ видимы в Codex Desktop — он служит способом наблюдать прогресс; одиночные review и scout остаются эфемерными.",
+     "topic": "codex-fleet",
+     "path": "concept/codex-progress-visibility-via-desktop.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как агент вмешивается в долгий прогон Codex?",
+     "description": "Агент может отслеживать стадию долгого прогона, направлять Codex при уходе не туда и отправлять корректирующий комментарий после результата.",
+     "topic": "codex-fleet",
+     "path": "concept/intervening-in-a-long-codex-run.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как владелец делит работу между Codex-воркерами и что такое дефолт флота?",
+     "description": "Главный агент — оркестратор, анализ и разбор уходят Codex-агентам; дефолт флота учитывает стоимость worktrees: один воркер может вести большую задачу с субагентами, либо задачи делятся группами.",
+     "topic": "codex-fleet",
+     "path": "concept/codex-fleet-defaults-and-worker-split.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как выглядит сводка прогресса Codex?",
+     "description": "Над сводкой прогресса исходное задание показывается одной строкой.",
+     "topic": "codex-fleet",
+     "path": "concept/task-line-above-progress-summary.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как поделены роли Opus и Claude при рефакторинге Codex-моста?",
+     "description": "Пишет Opus, Claude только проверяет его работу.",
+     "topic": "codex-fleet",
+     "path": "concept/opus-writes-claude-reviews.md"
+    },
+    {
+     "type": "method",
+     "title": "Как работает фоновый Codex-советник перед существенной работой?",
+     "description": "Перед существенной работой запускается фоновый Codex-советник: цель он получает независимо от выбранного подхода и параллельно предлагает собственный путь решения.",
+     "topic": "codex-fleet",
+     "path": "method/background-codex-advisor-before-substantial-work.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как ставить задачу Codex-воркеру?",
+     "description": "Воркеру задаётся желаемый результат без пошаговой опеки — он сам читает контекст и берёт skills; в 1codex усиливается обучающая часть о формулировке промптов и стиле заданий для движка.",
+     "topic": "codex-fleet",
+     "path": "concept/how-to-brief-a-codex-worker.md"
+    },
+    {
+     "type": "method",
+     "title": "Как устроено тело SKILL.md 1codex?",
+     "description": "Тело SKILL.md ужато втрое, роутер поднят наверх, дубли перенесены в приложения.",
+     "topic": "codex-fleet",
+     "path": "method/skill-md-body-router-appendices.md"
+    },
+    {
+     "type": "method",
+     "title": "Как устроены worktrees и персистентные треды у ролей флота?",
+     "description": "Инвариант: worktree только для пишущего воркера, пишущий воркер всегда получает персистентный тред; reviewer/scout/researcher обходятся без того и другого, второй LLM-судья не заводится.",
+     "topic": "codex-fleet",
+     "path": "method/worktree-and-persistent-thread-invariant.md"
+    },
+    {
+     "type": "concept",
+     "title": "Какие маршруты моделей владелец держит штатными?",
+     "description": "Уровни max и ultra не используются; штатно — sol+xhigh для всего и luna для простой большой работы.",
+     "topic": "codex-fleet",
+     "path": "concept/sol-xhigh-and-luna-standard-routes.md"
+    },
+    {
+     "type": "method",
+     "title": "Когда wave 1codex считается закрытой?",
+     "description": "Wave закрыта только при квитанции в fleet.md с полями wave.cleanup_done, wave.kept_branches и wave.threads_archived; SKILL.md держит указатель на квитанцию, а не её копию.",
+     "topic": "codex-fleet",
+     "path": "method/wave-closure-receipt-in-fleet-md.md"
+    },
+    {
+     "type": "concept",
+     "title": "Когда привлекать /1deep-agents при архитектурном разборе?",
+     "description": "При архитектурном разборе /1deep-agents учитывается в зависимости от цели.",
+     "topic": "codex-fleet",
+     "path": "concept/deep-agents-in-architecture-review.md"
+    },
+    {
+     "type": "concept",
+     "title": "Когда проблему скила решать инструкцией, а не кодом?",
+     "description": "Для скилов часть проблем проще закрыть инструкцией агенту, чем исправлять код.",
+     "topic": "codex-fleet",
+     "path": "concept/instruction-over-code-for-skill-problems.md"
+    },
+    {
+     "type": "concept",
+     "title": "Сколько хода Codex попадает в контекст оркестратора?",
+     "description": "Контекстное окно оркестратора не заполняется ходом Codex автоматически: происходящее читается только по запросу и в сжатом виде.",
+     "topic": "codex-fleet",
+     "path": "concept/orchestrator-context-economy-on-codex-run.md"
+    },
+    {
+     "type": "concept",
+     "title": "Чем выбирать на развилках технической работы?",
+     "description": "Продуктовые рамки применяются как инструмент выбора на технических развилках, без отдельного продуктового обсуждения.",
+     "topic": "codex-fleet",
+     "path": "concept/product-frames-as-fork-selector.md"
+    },
+    {
+     "type": "concept",
+     "title": "Чем мониторить Codex и откуда брать подсказки?",
+     "description": "Мониторинг — нативный инструмент плюс возможности Claude; документация Claude рассматривается как возможный источник подсказок.",
+     "topic": "codex-fleet",
+     "path": "concept/native-monitoring-over-docs-hints.md"
+    },
+    {
+     "type": "concept",
+     "title": "Чем подтверждать поведение Codex при расследовании?",
+     "description": "При расследовании поведения Codex обращаются к документации или GitHub, не полагаясь на один эмпирический опыт; официальная документация анализируется через интернет.",
+     "topic": "codex-fleet",
+     "path": "concept/codex-behavior-evidence-from-docs-and-github.md"
+    },
+    {
+     "type": "method",
+     "title": "Что добавляет канал вмешательства в codex-bridge?",
+     "description": "В codex-bridge добавляется вмешательство в идущий ход через ящик прогона и сторожа рядом с ходом — примерно 120 строк в codex_progress.py, без смены точки входа; надзор заменяется с двух ходов на четыре, одной репликой.",
+     "topic": "codex-fleet",
+     "path": "method/codex-bridge-intervention-channel.md"
+    },
+    {
+     "type": "method",
+     "title": "Что должно быть убрано после работы Codex-воркеров?",
+     "description": "Временные git worktrees и ветки после завершения работы воркеров убираются обязательно; контроль GitHub, worktrees и веток опирается на готовые инструменты, а не собственный код.",
+     "topic": "codex-fleet",
+     "path": "method/cleanup-after-codex-workers.md"
+    },
+    {
+     "type": "entity",
+     "title": "Что такое 1codex и зачем владелец его вызывает?",
+     "description": "1codex — оркестраторский слой над Codex: разведка, мнение умной модели, флот пишущих агентов, поиск, читающий review и вызов Codex в том числе как советника.",
+     "topic": "codex-fleet",
+     "path": "entity/1codex-orchestrator-layer.md"
+    },
+    {
+     "type": "entity",
+     "title": "Что такое codex-bridge и как его меняют?",
+     "description": "codex-bridge правится сам, а не только текст skill: глубокий рефакторинг для поддерживаемости; код держит необратимые гарантии, агент — семантику diff и выбор маршрута; флаг приоритета, влияющий на скорость, убран.",
+     "topic": "codex-fleet",
+     "path": "entity/codex-bridge-and-its-rework.md"
+    }
+   ]
+  },
+  {
+   "topic": "hermes",
+   "title": "Hermes, Kimi и Ox Alpha как внешние модели и советники",
+   "pages": [
+    {
+     "type": "concept",
+     "title": "В каких ролях владелец использует Codex-субагентов?",
+     "description": "Позиция: Codex-субагентов предпочитают чаще использовать как советников и аудиторов; вариант «только после основной работы и только аудиторы» не принят.",
+     "topic": "hermes",
+     "path": "concept/codex-subagent-roles.md"
+    },
+    {
+     "type": "entity",
+     "title": "Где живёт код 1hermes и как его упрощают?",
+     "description": "Позиция: код 1hermes хранится под git рядом с product-frame как owner, ~/.claude — проекция; код сверяют с документацией, рефакторят и переносят обучение из кода в скил.",
+     "topic": "hermes",
+     "path": "entity/1hermes-code-home-and-simplification.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как агент должен понимать запросы владельца и исправлять ошибки?",
+     "description": "Позиция: агент работает по цели владельца, а не по буквальному исполнению команд, и сразу исправляет выявленные проблемы по своему усмотрению без дополнительных вопросов.",
+     "topic": "hermes",
+     "path": "concept/goal-over-literal-instructions.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как владелец делегирует работу субагентам?",
+     "description": "Позиция: субагентам отдают внимательное чтение слов владельца и токеносберегающие задачи; связки агентов строятся последовательно, контекст основного агента не заполняется чужими ответами.",
+     "topic": "hermes",
+     "path": "concept/delegation-to-subagents.md"
+    },
+    {
+     "type": "entity",
+     "title": "Как владелец запускает Ox Alpha через Hermes?",
+     "description": "Позиция: Ox Alpha живёт в 1hermes через Hermes harness без отдельного скила, провайдер — Nous, гейт zero-pricing без fallback, использование только пока модель бесплатна.",
+     "topic": "hermes",
+     "path": "entity/ox-alpha-through-hermes.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как владелец судит о качестве инструмента в 1hermes?",
+     "description": "Инструмент в 1hermes хорош, когда health показывает работу и новый агент понимает его с первого раза",
+     "topic": "hermes",
+     "path": "concept/tool-health-and-cold-start.md"
+    },
+    {
+     "type": "method",
+     "title": "Как делегировать работу субагентам и внешним агентам?",
+     "description": "Субагентам отдают исследование слов владельца и экономию токенов основного агента; внешний агент обязан погружаться и читать инструкции",
+     "topic": "hermes",
+     "path": "method/delegating-to-subagents.md"
+    },
+    {
+     "type": "entity",
+     "title": "Как запускать Ox Alpha через Hermes?",
+     "description": "Провайдер Nous, provider-specific zero-pricing gate без fallback, strict resume identity и лимиты подписки не сдерживают вызовы",
+     "topic": "hermes",
+     "path": "entity/how-to-run-ox-alpha.md"
+    },
+    {
+     "type": "method",
+     "title": "Как менять код 1hermes?",
+     "description": "Сверка с документацией Hermes, рефакторинг перегруженного файла, перенос методик обучения в скил",
+     "topic": "hermes",
+     "path": "method/refactoring-1hermes-code.md"
+    },
+    {
+     "type": "entity",
+     "title": "Какая модель по умолчанию работает в 1hermes?",
+     "description": "Дефолт 1hermes — Kimi K3 с высоким reasoning effort плюс привычка перепроверять конкретные значения настроек",
+     "topic": "hermes",
+     "path": "entity/default-model-kimi-k3.md"
+    },
+    {
+     "type": "entity",
+     "title": "Какая модель по умолчанию стоит у 1hermes?",
+     "description": "Позиция: дефолт 1hermes — Kimi K3 с высоким reasoning effort; конкретные значения настроек владелец просит проверять, а не брать на веру.",
+     "topic": "hermes",
+     "path": "entity/hermes-default-model.md"
+    },
+    {
+     "type": "concept",
+     "title": "Какие права владелец даёт внешним агентам и Ox Alpha?",
+     "description": "Внешним агентам и Ox Alpha — полные права; приватность и гейт бесплатности их не ограничивают",
+     "topic": "hermes",
+     "path": "concept/external-agent-rights.md"
+    },
+    {
+     "type": "concept",
+     "title": "Каким должен быть внешний агент по требованиям владельца?",
+     "description": "Позиция: внешний агент читает все инструкции, глубоко погружается в проект и использует скилы основного агента; health показывает работоспособность инструмента, cold-start понятен новичку.",
+     "topic": "hermes",
+     "path": "concept/external-agent-requirements.md"
+    },
+    {
+     "type": "method",
+     "title": "Можно ли строить связки из нескольких внешних агентов?",
+     "description": "Скилл вызова внешних моделей должен уметь строить последовательные связки агентов",
+     "topic": "hermes",
+     "path": "method/chains-of-external-agents.md"
+    },
+    {
+     "type": "concept",
+     "title": "По чему агент выбирает способ работы?",
+     "description": "Агент работает по цели владельца, а не исполняет его команды буквально",
+     "topic": "hermes",
+     "path": "concept/agent-by-goal-not-literal-orders.md"
+    },
+    {
+     "type": "concept",
+     "title": "Спрашивать ли владельца перед исправлением выявленных проблем?",
+     "description": "Выявленные проблемы исправляются сразу и по своему усмотрению, без дополнительных вопросов",
+     "topic": "hermes",
+     "path": "concept/fix-problems-without-asking.md"
+    },
+    {
+     "type": "concept",
+     "title": "Что делать с инструкциями создателей в ~/.claude/CLAUDE.md?",
+     "description": "Позиция: в рамках правки ~/.claude/CLAUDE.md владелец предпочитает убирать, а не сохранять заданные создателями инструкции и поведенческие требования.",
+     "topic": "hermes",
+     "path": "concept/removing-creator-instructions-from-claude-md.md"
+    },
+    {
+     "type": "concept",
+     "title": "Что делать с инструкциями создателей при правке ~/.claude/CLAUDE.md?",
+     "description": "При правке ~/.claude/CLAUDE.md инструкции создателей убираются, а не сохраняются",
+     "topic": "hermes",
+     "path": "concept/removing-creator-instructions.md"
+    }
+   ]
+  },
+  {
+   "topic": "global-agent-instructions",
+   "title": "Форма и содержание глобальных инструкций Claude и Codex",
+   "pages": [
+    {
+     "type": "comparison",
+     "title": "Должны ли глобальные инструкции Claude и Codex совпадать?",
+     "description": "Практики Claude и ChatGPT различаются; одобренные блоки применяются только к своему корневому файлу.",
+     "topic": "global-agent-instructions",
+     "path": "comparison/runtime-specific-instructions.md"
+    },
+    {
+     "type": "analysis",
+     "title": "Должны ли инструкции подробно описывать когнитивные шаги?",
+     "description": "Без описанных когнитивных шагов агент пропускает рассуждение и даёт реалистичный, но неверный ответ.",
+     "topic": "global-agent-instructions",
+     "path": "analysis/cognitive-steps-in-instructions.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как агент должен писать долговечные документы и код?",
+     "description": "Только необходимое и подтверждённое, телеграфный стиль, каждая строка перечитывается глазами свежего агента без исходного контекста.",
+     "topic": "global-agent-instructions",
+     "path": "concept/writing-durable-docs-and-code.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как агент должен предлагать владельцу решения?",
+     "description": "Несколько вариантов с рекомендацией лучшего, чтобы владелец видел поле вариантов.",
+     "topic": "global-agent-instructions",
+     "path": "concept/solution-options-with-recommendation.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как глобальные инструкции балансируют автономность Codex с простотой решений?",
+     "description": "Смелость и самостоятельность сохраняются, а простота решений служит защитой от их последствий; остановка допустима только для зависимой ветки.",
+     "topic": "global-agent-instructions",
+     "path": "concept/autonomy-vs-simplicity-in-instructions.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как формулировать строки глобальной инструкции, чтобы агент понял их однозначно?",
+     "description": "Желаемый результат вместо ограничений, предельная однозначность, проверяемый результат, английский язык.",
+     "topic": "global-agent-instructions",
+     "path": "concept/instruction-wording-desired-outcome.md"
+    },
+    {
+     "type": "concept",
+     "title": "Какие рабочие скилы подключает глобальная инструкция?",
+     "description": "Короткие строки о вспомогательных скилах в корневом файле: читать маркдауны через 1md-read и быстро записывать находки по ходу работы.",
+     "topic": "global-agent-instructions",
+     "path": "concept/utility-skills-in-global-instructions.md"
+    },
+    {
+     "type": "concept",
+     "title": "Каким должно быть финальное сообщение агента?",
+     "description": "Длинное объяснение плюс короткое простое резюме с мнением агента, направлением движения и главным риском.",
+     "topic": "global-agent-instructions",
+     "path": "concept/final-message-format.md"
+    },
+    {
+     "type": "entity",
+     "title": "Какое поведение агента не оформляется как отдельная пользовательская дельта?",
+     "description": "Обычное поведение агента не попадает в корневой файл как дельта; слишком очевидные пояснения для Codex вырезаются.",
+     "topic": "global-agent-instructions",
+     "path": "entity/user-delta-not-default-behavior.md"
+    },
+    {
+     "type": "entity",
+     "title": "Когда и как в глобальных инструкциях запускается 1chat-recall?",
+     "description": "Скилл читает и сохраняет слова владельца — до первого существенного решения и перед любым результатом, переживающим ход.",
+     "topic": "global-agent-instructions",
+     "path": "entity/chat-recall-in-global-instructions.md"
+    },
+    {
+     "type": "entity",
+     "title": "Кто владелец с точки зрения глобальной инструкции?",
+     "description": "Технически подкованный не-программист с опытом в 3D и продуктовой работе, которому нужны простые итоги.",
+     "topic": "global-agent-instructions",
+     "path": "entity/owner-profile-for-instructions.md"
+    },
+    {
+     "type": "concept",
+     "title": "Насколько короткой должна быть глобальная инструкция и как её сжимать?",
+     "description": "Semantic compression — меньше слов и повторов, поведение держится зонтичными формулировками.",
+     "topic": "global-agent-instructions",
+     "path": "concept/compressing-global-instructions.md"
+    },
+    {
+     "type": "concept",
+     "title": "Насколько можно доверять словам владельца и что агент должен доказывать?",
+     "description": "Владелец не доверяет агенту без доказанной цепочки — в обе стороны: слова владельца не истина, понимание нужно доказывать.",
+     "topic": "global-agent-instructions",
+     "path": "concept/trust-and-proof-between-owner-and-agent.md"
+    },
+    {
+     "type": "concept",
+     "title": "Что вообще должно оставаться в глобальном AGENTS.md?",
+     "description": "Только пользовательская и проектная дельта, границы, формат общения и наблюдаемая сдача — с двумя исключениями.",
+     "topic": "global-agent-instructions",
+     "path": "concept/what-stays-in-global-instructions.md"
+    },
+    {
+     "type": "method",
+     "title": "Что корневая инструкция требует делать с просьбой, которая может не совпадать с реальностью проекта?",
+     "description": "Сверять формулировки владельца с состоянием проекта, принципами и прежними решениями; польза вычисляется по анализу проекта, а не по промпту.",
+     "topic": "global-agent-instructions",
+     "path": "method/verify-request-against-project-reality.md"
+    },
+    {
+     "type": "entity",
+     "title": "Что корневые инструкции требуют читать перед началом работы?",
+     "description": "Все существующие файлы продуктовых рамок, особенно Product Principles, с кратким объяснением необходимости чтения.",
+     "topic": "global-agent-instructions",
+     "path": "entity/product-frames-reading-rule.md"
+    }
+   ]
+  },
+  {
+   "topic": "chat-recall-retrieval",
+   "title": "Поиск и применение записанных слов владельца",
+   "pages": [
+    {
+     "type": "entity",
+     "title": "В чём задача 1chat-recall и где проходит его граница?",
+     "description": "Позиция владельца о том, что 1chat-recall — продукт для поиска, чтения и записи цитат в любом проекте, и что в его границы не входит.",
+     "topic": "chat-recall-retrieval",
+     "path": "entity/chat-recall-product-scope.md"
+    },
+    {
+     "type": "method",
+     "title": "Как организована проверка, аудит и передача работы над 1chat-recall?",
+     "description": "Позиция владельца о независимом аудите черновиков, советниках Opus и Kimi Max, Codex-аудиторах на потерю информации и handoff как задаче новому агенту.",
+     "topic": "chat-recall-retrieval",
+     "path": "method/review-audit-and-handoff-workflow.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как распределяются роли главного агента и субагентов при поиске?",
+     "description": "Позиция владельца о веере дешёвых субагентов по 20–30 файлов, запрете субагентам пересказывать цитаты и правиле доказывать позицию только полностью прочитанным holder-ом.",
+     "topic": "chat-recall-retrieval",
+     "path": "concept/subagent-fan-out-roles.md"
+    },
+    {
+     "type": "method",
+     "title": "Как создаётся и обновляется карточка сессии (session-context)?",
+     "description": "Позиция владельца об устройстве поисковой карточки сессии и процедуре её backfill из полных rollout-сессий силами Luna.",
+     "topic": "chat-recall-retrieval",
+     "path": "method/session-context-card-and-backfill.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как устроены records ranking, card-only fallback и выдача --json?",
+     "description": "Позиция владельца об устройстве ранжирующего поиска по цитатам с context-note, отдельном file-level маршруте session_candidates и раздельных lexical-маршрутах.",
+     "topic": "chat-recall-retrieval",
+     "path": "concept/records-ranking-and-session-fallback.md"
+    },
+    {
+     "type": "method",
+     "title": "Как формулировать запрос к цитатам владельца, чтобы найти нужное?",
+     "description": "Позиция владельца о форме первого запроса (естественная формулировка для BM25+E5, wildcard-корни) и правиле переформулировать и менять маршруты.",
+     "topic": "chat-recall-retrieval",
+     "path": "method/query-formulation-and-reformulation.md"
+    },
+    {
+     "type": "method",
+     "title": "Как читать найденные файлы цитат, чтобы позиция владельца была доказана?",
+     "description": "Позиция владельца о том, что hit только выбирает holder, файлы читаются целиком с хронологией, а более новые holder-ы проверяются по тому же claim.",
+     "topic": "chat-recall-retrieval",
+     "path": "method/full-holder-reading-and-chronology.md"
+    },
+    {
+     "type": "concept",
+     "title": "Каким должен быть контекст, сопровождающий цитату владельца?",
+     "description": "Позиция владельца о том, что вырванная цитата бывает непонятной и каждая запись получает context-note как дельта-сюрприз, работающий на поиск.",
+     "topic": "chat-recall-retrieval",
+     "path": "concept/context-note-and-quote-context.md"
+    },
+    {
+     "type": "concept",
+     "title": "Когда владелец останавливал запуск новых агентов?",
+     "description": "Позиция владельца о точечных запретах на запуск агентов в конкретные моменты работы.",
+     "topic": "chat-recall-retrieval",
+     "path": "concept/no-new-agents-moments.md"
+    },
+    {
+     "type": "concept",
+     "title": "По каким правилам проектируется и меняется текст 1chat-recall?",
+     "description": "Позиция владельца об устройстве скилла: зонтичные формулировки вместо алгоритма, тело скилла как основная поверхность, парность версий Codex/Claude и выход из положения владельца.",
+     "topic": "chat-recall-retrieval",
+     "path": "concept/skill-text-design-rules.md"
+    },
+    {
+     "type": "comparison",
+     "title": "Чем искать слова владельца: скриптом, hybrid-поиском или стандартными инструментами агента?",
+     "description": "Взвешивание владельцем способов поиска цитат и общий критерий выбора — легко, быстро и лучше стандартного агентного поиска.",
+     "topic": "chat-recall-retrieval",
+     "path": "comparison/search-tooling-hybrid-vs-standard.md"
+    },
+    {
+     "type": "entity",
+     "title": "Что владелец планирует улучшать в 1chat-recall дальше?",
+     "description": "Позиция владельца о слое долгосрочной памяти, модели e5, исследовании LightMem и memsearch, фасете объекта и замене метрики min_hybrid_hit@5.",
+     "topic": "chat-recall-retrieval",
+     "path": "entity/memory-layer-and-planned-improvements.md"
+    },
+    {
+     "type": "concept",
+     "title": "Что владелец требует от capture и метаданных записей?",
+     "description": "Позиция владельца об отборе реплик и ссылках, поведении chat_capture.py, selection, датах восстановления цитат и удалении approximate metadata.",
+     "topic": "chat-recall-retrieval",
+     "path": "concept/capture-and-metadata-rules.md"
+    },
+    {
+     "type": "entity",
+     "title": "Что должен видеть и вызывать агент из корневой инструкции про 1chat-recall?",
+     "description": "Позиция владельца о том, что терминальная команда recall, советы по chat_digest.py и видимость type/topic входят в тело скилла и корневую инструкцию.",
+     "topic": "chat-recall-retrieval",
+     "path": "entity/recall-entry-points-in-instructions.md"
+    },
+    {
+     "type": "entity",
+     "title": "Что изменилось и что запрещено в chat_digest?",
+     "description": "Позиция владельца о том, что выдача отдельных цитат в records вредна, --query объединяются в карту сессий и добавлен режим --support.",
+     "topic": "chat-recall-retrieval",
+     "path": "entity/chat-digest-output-changes.md"
+    },
+    {
+     "type": "concept",
+     "title": "Что показывать в выдаче 1chat-recall и как её сохранять?",
+     "description": "Позиция владельца о том, что выдача начинается с top 10 файлов с полным session-context при сбалансированном рейтинге, с давностью и числом типов/тем.",
+     "topic": "chat-recall-retrieval",
+     "path": "entity/output-shape-top-10-and-freshness.md"
+    }
+   ]
+  },
+  {
+   "topic": "html-artifacts",
+   "title": "Создание и проверка быстрых HTML-артефактов",
+   "pages": [
+    {
+     "type": "entity",
+     "title": "Зачем владельцу скилл 1html и какой результат он считает успехом?",
+     "description": "Назначение 1html как быстрого визуального чернового артефакта и критерии успеха результата.",
+     "topic": "html-artifacts",
+     "path": "entity/1html-purpose.md"
+    },
+    {
+     "type": "entity",
+     "title": "Как 1html развивается и устанавливается в рантаймы?",
+     "description": "Изучение свежих знаний об Alpine, одновременные правки в Claude и Codex, установка в оба рантайма и авто-вызов на черновой артефакт.",
+     "topic": "html-artifacts",
+     "path": "entity/skill-development-and-installation.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как артефакт должен раскрывать и иллюстрировать информацию вместо стены текста?",
+     "description": "Прогрессивное связанное раскрытие, просмотр состояний и замена сплошного текста графиками и интерактивом.",
+     "topic": "html-artifacts",
+     "path": "concept/1html-disclosure-and-visualization.md"
+    },
+    {
+     "type": "method",
+     "title": "Как артефакт отделяет подтверждённое содержание от неподтверждённых дополнений агента?",
+     "description": "Визуально оформляется только уверенное; неуверенность, ошибки и неутверждённое содержание уходят в комментарии.",
+     "topic": "html-artifacts",
+     "path": "method/content-fidelity-and-comments.md"
+    },
+    {
+     "type": "entity",
+     "title": "Как владелец требует использовать React Flow в артефактах?",
+     "description": "Отдельный workflow для больших нод с анимированными линиями и подчинение шрифтам и цветам общей палитры.",
+     "topic": "html-artifacts",
+     "path": "entity/react-flow-in-artifacts.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как должен быть устроен текст самого скилла 1html?",
+     "description": "Карточки лучших практик вместо буквального кода и целых страниц-примеров; текст маршрутизирует к файлам и учит практикам дизайна.",
+     "topic": "html-artifacts",
+     "path": "concept/skill-text-composition.md"
+    },
+    {
+     "type": "entity",
+     "title": "Как должен выглядеть многостраничный каталог артефактов?",
+     "description": "Каталог главной страницы с таблицей страниц, тегами, избранным и копированием ссылок плюс выбранный рефактор многостраничности.",
+     "topic": "html-artifacts",
+     "path": "entity/multi-page-catalog.md"
+    },
+    {
+     "type": "method",
+     "title": "Как организован процесс переработки 1html?",
+     "description": "Переработка по 1planning, совет независимых Opus-субагентов для финального аудита и изолированная smoke-задача Codex.",
+     "topic": "html-artifacts",
+     "path": "method/rework-process.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как оформлять быстро и не допустить дрейфа стилей?",
+     "description": "Скорость важнее оригинальности — переиспользовать существующее и не допускать собственного оформления в обход Дейзи.",
+     "topic": "html-artifacts",
+     "path": "concept/speed-over-style-drift.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как совмещаются быстрая работа без проверок и периодический аудит?",
+     "description": "Работа в основном без обязательных проверок, аудит красоты не блокирует быстрый путь, а переработка идёт через 1planning и рамку мышления.",
+     "topic": "html-artifacts",
+     "path": "concept/speed-vs-audit-balance.md"
+    },
+    {
+     "type": "entity",
+     "title": "Как устроена общая папка артефактов HTML_artifacts?",
+     "description": "Одна папка с переиспользуемыми components, styles и libraries, showcase-артефакт в agentic-research и правила галереи файлов.",
+     "topic": "html-artifacts",
+     "path": "entity/html-artifacts-folder.md"
+    },
+    {
+     "type": "method",
+     "title": "Какая когнитивная работа должна предшествовать коду артефакта?",
+     "description": "Протокол когнитивной работы и плана до кода, встроенный жёстко, с правилами «План До Кода» и критерием проверки правила.",
+     "topic": "html-artifacts",
+     "path": "method/plan-before-code.md"
+    },
+    {
+     "type": "entity",
+     "title": "Какая тема и палитра DaisyUI утверждены для 1html?",
+     "description": "Cupcake как локальная тема по умолчанию, правило primary и primary-content и перевод всего скилла на DaisyUI-цвета.",
+     "topic": "html-artifacts",
+     "path": "entity/daisyui-cupcake-theme.md"
+    },
+    {
+     "type": "method",
+     "title": "Какие проверки геометрии и поведения артефактов владелец считает правильными?",
+     "description": "Playwright-проверки только самых очевидных вещей без ложных тревог, верхнеуровневые умные проверки и допуск намеренных оверлеев.",
+     "topic": "html-artifacts",
+     "path": "method/geometry-behavior-checks.md"
+    },
+    {
+     "type": "method",
+     "title": "Что владелец решил про собственные классы и линтер в 1html?",
+     "description": "Зафиксированные классы шаблона, идея запрета новых классов с проверкой линтером и advisory-режим запуска по явному запросу.",
+     "topic": "html-artifacts",
+     "path": "method/custom-classes-and-linter.md"
+    },
+    {
+     "type": "concept",
+     "title": "Что должна доносить одна страница артефакта?",
+     "description": "Каждая страница артефакта доносит одну цель или одно сообщение, а не выглядит сборником разных вещей.",
+     "topic": "html-artifacts",
+     "path": "concept/single-goal-per-page.md"
+    }
+   ]
+  },
+  {
+   "topic": "semantic-compression",
+   "title": "Смысловое сжатие и lossy product refactor документов",
+   "pages": [
+    {
+     "type": "method",
+     "title": "Как 1smart-simple работает с ядром и уровнями расширения?",
+     "description": "Схема 1smart-simple: суть до 200 символов, замена оригинала только после утверждения владельцем, затем три уровня расширения с вариантами.",
+     "topic": "semantic-compression",
+     "path": "method/smart-simple-core-and-levels.md"
+    },
+    {
+     "type": "entity",
+     "title": "Как должен работать 1expert-lens?",
+     "description": "Форма 1expert-lens: вызов экспертной мудрости до работы, возвращённые элементы и принятые потери, мотивация вызывать эксперта субагентом.",
+     "topic": "semantic-compression",
+     "path": "entity/expert-lens.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как организовать ядро, references и файлы скилов?",
+     "description": "Алгоритмы разных плоскостей выносятся в отдельные reference-файлы, простое перемещение текста не считается сжатием, правило пределов закреплено за 1skill-architect.",
+     "topic": "semantic-compression",
+     "path": "concept/core-and-references-organization.md"
+    },
+    {
+     "type": "method",
+     "title": "Как переписывать текст с нуля от смыслового ядра?",
+     "description": "Требование полного прочтения и разбора смыслов с пересборкой от самых важных функций вместо сокращения поверху.",
+     "topic": "semantic-compression",
+     "path": "method/rewrite-from-meaning-core.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как переработать сами скилы упрощения?",
+     "description": "Переработка 1instruction-shaping и 1smart-simple: убрать собственную тревожность и ограничители, усилить контекст и цель.",
+     "topic": "semantic-compression",
+     "path": "concept/rework-simplification-skills.md"
+    },
+    {
+     "type": "method",
+     "title": "Как проводить цикл дистилляции скила?",
+     "description": "Маршрут сжатия скила через 1distill: запись мудрости, работа субагента, выбор подопытных, модель-переписчик и проверка плана Kimi.",
+     "topic": "semantic-compression",
+     "path": "method/skill-distillation-cycle.md"
+    },
+    {
+     "type": "method",
+     "title": "Как сжимать текст названиями методик и плотным стилем?",
+     "description": "Приёмы плотности: названия популярных методик как встроенная информация, одна-две сильные методики вместо списка, телеграфный стиль.",
+     "topic": "semantic-compression",
+     "path": "method/method-names-and-density.md"
+    },
+    {
+     "type": "method",
+     "title": "Как собирать текст под бюджет длины?",
+     "description": "Сборка от короткого ядра: начинать с 2–3 предложений и добавлять смыслы до нужной длины, не поджимая готовый текст реактивно.",
+     "topic": "semantic-compression",
+     "path": "method/build-up-to-length.md"
+    },
+    {
+     "type": "method",
+     "title": "Как упрощать инструкции и продуктовые документы?",
+     "description": "Разделение работы между 1instruction-shaping и 1smart-simple, смелые формулировки методов в compress.md, разные режимы для инструкций и информационных разделов.",
+     "topic": "semantic-compression",
+     "path": "method/simplify-instructions.md"
+    },
+    {
+     "type": "entity",
+     "title": "Какие скилы владелец удалил из активного набора Claude и Codex?",
+     "description": "Перечень из восьми скилов, которые владелец решил удалить из активного набора Claude и Codex.",
+     "topic": "semantic-compression",
+     "path": "entity/removed-active-skills.md"
+    },
+    {
+     "type": "concept",
+     "title": "Какой баланс между силой сжатия и сохранением смыслов задан критерием?",
+     "description": "Критерий качества сжатия: сокращать сильнее, не теряя смыслы и правила; нынешний алгоритм сжатия смысла признаётся слабым.",
+     "topic": "semantic-compression",
+     "path": "concept/compression-strength-and-meaning-preservation.md"
+    },
+    {
+     "type": "concept",
+     "title": "Какой предел размера файла и что важнее лимита?",
+     "description": "Предел 2000 символов на файл слоя инструкций с reference-файлами без ограничений; 2000 — budget constraint, а цель — минимальный prompt с эквивалентным поведением.",
+     "topic": "semantic-compression",
+     "path": "concept/size-limit-and-budget.md"
+    },
+    {
+     "type": "concept",
+     "title": "Чем измеряется упрощение и почему это не «сжатие»?",
+     "description": "Упрощение меряется количеством инструкций и когнитивной нагрузкой, а не длиной или токенами; операция называется упрощением, а не сжатием.",
+     "topic": "semantic-compression",
+     "path": "concept/simplification-metric.md"
+    },
+    {
+     "type": "method",
+     "title": "Что делать с процедурами (HOW) при сжатии?",
+     "description": "Процедуры сворачиваются в цели, границы и названия методик; HOW удаляется там, где модель выведет его сама.",
+     "topic": "semantic-compression",
+     "path": "method/procedures-folded-into-goals.md"
+    },
+    {
+     "type": "concept",
+     "title": "Что должно быть видно в чате во время работы скилов?",
+     "description": "Наблюдаемость: пошаговый ответ в объясняющих скилах и показанный в чате когнитивный процесс рефактора.",
+     "topic": "semantic-compression",
+     "path": "concept/chat-visible-process.md"
+    },
+    {
+     "type": "concept",
+     "title": "Что такое lossy product refactor и какие потери он допускает?",
+     "description": "Позиция владельца: инструкции и скилы пересобираются как продукты вокруг функции, потери смысла допускаются сознательно и минимизируются.",
+     "topic": "semantic-compression",
+     "path": "concept/lossy-product-refactor.md"
+    }
+   ]
+  },
+  {
+   "topic": "product-shaping",
+   "title": "Формирование продукта через Product Frame и Product Principles",
+   "pages": [
+    {
+     "type": "concept",
+     "title": "Где хранятся продуктовые рамки?",
+     "description": "Результаты 1product-shaping хранятся в продуктовых рамках, рамки каждого скила — в его папках, а в agentic-research — всегда актуальные рамки.",
+     "topic": "product-shaping",
+     "path": "concept/where-do-product-frames-live.md"
+    },
+    {
+     "type": "entity",
+     "title": "Как 1product-shaping изменил статус 1skill-architect?",
+     "description": "1skill-architect и skill-creator владелец считает устаревшими рядом с работающим иначе 1product-shaping; сам 1skill-architect решено исправить его же методами, сохранив непротиворечащие идеи старой версии.",
+     "topic": "product-shaping",
+     "path": "entity/1skill-architect-after-product-shaping.md"
+    },
+    {
+     "type": "method",
+     "title": "Как агент записывает новое знание в продуктовые рамки?",
+     "description": "Перед любой записью вызывать скилл продуктовых рамок; скрипт только читает, а ручная запись начинается с поиска дубликата и ведёт к улучшению существующей рамки, а не к новой.",
+     "topic": "product-shaping",
+     "path": "method/writing-to-product-frames-workflow.md"
+    },
+    {
+     "type": "method",
+     "title": "Как агент работает с продуктовыми рамками перед размышлением?",
+     "description": "Перед началом размышлений читать все существующие материалы рамок ради контекста продукта; писать новое при этом необязательно.",
+     "topic": "product-shaping",
+     "path": "method/read-product-frames-before-reasoning.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как выглядит выход 1product-shaping для темы или части продукта?",
+     "description": "На каждую тему, функцию или крупную часть — пара файлов с одинаковым названием: рамка и файл принципов из powerful questions, влияний и закрываемых вопросов.",
+     "topic": "product-shaping",
+     "path": "concept/product-frame-and-principles-pair-output.md"
+    },
+    {
+     "type": "method",
+     "title": "Как методы 1product-shaping переносятся на другие скилы и создание скилов вообще?",
+     "description": "Переносить подход 1product-shaping на общий метод создания любых скилов; у Claude сделать такой же скил; цитаты о мышлении интегрировать в тело скила и оценивать перенос научно-когнитивным ревью.",
+     "topic": "product-shaping",
+     "path": "method/transferring-product-shaping-method-to-skills.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как оформлен сам файл Product Frame?",
+     "description": "После рамки идут расшифровка сфер влияния и раздел рабочего смысла; имя продукта называется в самой рамке, а в метаданных хранится уверенность владельца.",
+     "topic": "product-shaping",
+     "path": "concept/product-frame-form-and-metadata.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как соотносятся продуктовые рамки и канон?",
+     "description": "Продуктовые рамки в иерархии знаний владельца стоят выше канона.",
+     "topic": "product-shaping",
+     "path": "concept/product-frames-above-canon.md"
+    },
+    {
+     "type": "concept",
+     "title": "Какие мысли получают отдельный Product Frame, а какие не записываются?",
+     "description": "Отдельная рамка — для каждой важной продуктовой мысли, один файл на одну мысль; записываются верхнеуровневые вечные предпочтения, малые факты с узким влиянием — нет.",
+     "topic": "product-shaping",
+     "path": "concept/what-gets-its-own-product-frame.md"
+    },
+    {
+     "type": "concept",
+     "title": "Какие ограничения заданы для размера и содержания 1product-shaping?",
+     "description": "Тайбрейкеров в 1product-shaping максимум десять; сокращать скилл слишком сильно нельзя.",
+     "topic": "product-shaping",
+     "path": "concept/1product-shaping-size-and-tiebreaker-limits.md"
+    },
+    {
+     "type": "concept",
+     "title": "Какие ссылки допустимы в продуктовых рамках?",
+     "description": "Обычные ссылки в самих рамках и их метаданных запрещены как гниющие и со временем начинающие врать; исключение — одна ссылка на конкретную цитату владельца, которую он предпочитает хранить в метаданных.",
+     "topic": "product-shaping",
+     "path": "concept/product-frame-links-and-quote-references.md"
+    },
+    {
+     "type": "concept",
+     "title": "Каким критериям должен отвечать скил, чтобы его использовали?",
+     "description": "Скил обязан доказать ИИ, зачем нужен, иначе ИИ не будет качественно его использовать.",
+     "topic": "product-shaping",
+     "path": "concept/skill-must-prove-its-usefulness-to-the-model.md"
+    },
+    {
+     "type": "concept",
+     "title": "Что должен понимать новый проект о скиле продуктовых рамок?",
+     "description": "Cold-start-критерий — из самого скила видно, какие папки создавать и как с ним работать; корневая инструкция объявляет скилл и требует прислушиваться к нему и записывать полезное в рамки.",
+     "topic": "product-shaping",
+     "path": "concept/product-frames-skill-cold-start-and-root-instruction.md"
+    }
+   ]
+  },
+  {
+   "topic": "goals-plans-principles",
+   "title": "Связка проектной цели, планов и принципов принятия решений",
+   "pages": [
+    {
+     "type": "concept",
+     "title": "Где должна жить логика решения конфликтов принципов?",
+     "description": "Идея: разрешение конфликтов принципов относится к скилу написания продуктовой формы 1product-shaping, а 1use-principles не должен нести эту логику в себе.",
+     "topic": "goals-plans-principles",
+     "path": "concept/conflict-logic-in-product-shaping.md"
+    },
+    {
+     "type": "comparison",
+     "title": "Дублировать ли автоматические вызовы между шейпинг-скилами?",
+     "description": "Позиция: небольшое осознанное дублирование допустимо, ставка на дисциплину против дрейфа вместо раздувания контекста.",
+     "topic": "goals-plans-principles",
+     "path": "comparison/duplication-between-shaping-skills.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как использовать прошлые разговоры владельца как контекст?",
+     "description": "Позиция: прошлые разговоры — источник контекста через 1chat-recall, поиск точечный скриптом, субагенты читают цитаты по теме.",
+     "topic": "goals-plans-principles",
+     "path": "concept/past-chats-as-context.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как писать trigger description скила?",
+     "description": "Позиция: description — короткая императивная команда по лучшим практикам; точный вызов важнее риска излишнего триггера.",
+     "topic": "goals-plans-principles",
+     "path": "concept/trigger-description-form.md"
+    },
+    {
+     "type": "entity",
+     "title": "Как файлы 1index должны ссылаться друг на друга?",
+     "description": "Позиция: индексы не дублируют друг друга, каждый ссылается вниз в пределах своей папки, корневой может ссылаться на другие индексы.",
+     "topic": "goals-plans-principles",
+     "path": "entity/index-files-linking.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как цель превращается в планы через продуктовые рамки?",
+     "description": "Позиция: высокоуровневые вопросы задаются на этапе 1product-shaping, а планирование строится на продуктовых рамках через 1use-principles без отдельного скила протокола вопросов.",
+     "topic": "goals-plans-principles",
+     "path": "concept/planning-on-product-frames.md"
+    },
+    {
+     "type": "concept",
+     "title": "Какие скилы держат мышление верхнего уровня?",
+     "description": "Позиция: мышление верхнего уровня и высокорычажные вопросы закреплены за 1product-shaping и шейпинг-скилами с учётом слабости моделей в обобщении.",
+     "topic": "goals-plans-principles",
+     "path": "concept/high-level-thinking-in-skills.md"
+    },
+    {
+     "type": "concept",
+     "title": "Когда 1product-shaping должен вызываться автоматически?",
+     "description": "Позиция: 1product-shaping вызывается чаще, когда обсуждение похоже на обсуждение продукта; правило закрепляется также в корневых инструкциях Claude и Codex.",
+     "topic": "goals-plans-principles",
+     "path": "concept/product-shaping-auto-trigger.md"
+    },
+    {
+     "type": "concept",
+     "title": "Когда 1use-principles выводит новую информацию?",
+     "description": "Критерий: новая информация выводится только при конфликте информации или её отсутствии; если информация есть, выводить ничего не нужно.",
+     "topic": "goals-plans-principles",
+     "path": "concept/inference-only-on-conflict-or-absence.md"
+    },
+    {
+     "type": "concept",
+     "title": "Почему применение принципов поддерживает автономию агента?",
+     "description": "Позиция: 1use-principles удерживает агента от самого вероятного решения вопреки принципам и при этом усиливает его автономность — качественные решения при неопределённости за счёт правильной работы с имеющимися принципами.",
+     "topic": "goals-plans-principles",
+     "path": "concept/use-principles-strengthens-autonomy.md"
+    },
+    {
+     "type": "concept",
+     "title": "Что агент вправе делать сам, а что остаётся за владельцем?",
+     "description": "Позиция: полная свобода выводов внутри проекта, включая денежные величины; финальные решения владельца — deploy production и опасные исключения вроде удаления ОС.",
+     "topic": "goals-plans-principles",
+     "path": "concept/agent-autonomy-and-owner-review.md"
+    },
+    {
+     "type": "entity",
+     "title": "Что такое 1goal и как связан файл GOAL?",
+     "description": "Позиция: 1goal проводит стратегическое интервью для глобальной цели репозитория, цель живёт в GOAL, читается агентами всегда и уточняется по мере продуктовой формы.",
+     "topic": "goals-plans-principles",
+     "path": "entity/goal-skill-and-goal-file.md"
+    }
+   ]
+  },
+  {
+   "topic": "fresh-eyes",
+   "title": "Независимые критические линзы и проверка траектории работы",
+   "pages": [
+    {
+     "type": "method",
+     "title": "Как проверяется, туда ли идёт работа?",
+     "description": "Позиция владельца о проверке траектории — отдельная линза «туда ли идём», глобальная оценка против изначальной задумки и выявление ухода в откладываемые детали.",
+     "topic": "fresh-eyes",
+     "path": "method/trajectory-check.md"
+    },
+    {
+     "type": "method",
+     "title": "Как работает 1deep-agents?",
+     "description": "Позиция владельца о 1deep-agents — минимум три чистых субагента с трассируемым прохождением фреймворков, выбор фреймворка по ситуации и границы автономии.",
+     "topic": "fresh-eyes",
+     "path": "method/deep-agents-framework-panel.md"
+    },
+    {
+     "type": "method",
+     "title": "Как сжимать инструкции скилла?",
+     "description": "Позиция владельца о сжатии инструкций — зонтичные инструкции верхнего уровня, распределение по правильным разделам и сокращение примерно вдвое без потери смысла.",
+     "topic": "fresh-eyes",
+     "path": "method/compress-skill-instructions.md"
+    },
+    {
+     "type": "method",
+     "title": "Как устроена панель экспертов 1fresh-eyes?",
+     "description": "Позиция владельца о панели 1fresh-eyes — субагенты по экспертным ролям, отдельная задача и зона чтения на роль, состав ladder/solvent/prospector с зеркальным premortem.",
+     "topic": "fresh-eyes",
+     "path": "method/fresh-eyes-expert-panel.md"
+    },
+    {
+     "type": "method",
+     "title": "Как устроено тело скилла?",
+     "description": "Позиция владельца о структуре тела скилла — контекст «зачем скил нужен» перед Целью, reference-файлы с моментами использования, гейт приёмки по уникальному входу.",
+     "topic": "fresh-eyes",
+     "path": "method/skill-body-context-and-gate.md"
+    },
+    {
+     "type": "concept",
+     "title": "Какой критике позволено влиять на работу?",
+     "description": "Позиция владельца о пользе критики — она ведёт к рекомендациям и идеям-альтернативам, а экстракритичные агенты требуют осторожного отношения.",
+     "topic": "fresh-eyes",
+     "path": "concept/critique-usefulness-boundary.md"
+    },
+    {
+     "type": "concept",
+     "title": "Куда деваются удалённые из скила вещи?",
+     "description": "Позиция владельца об обращении с удалённым из скила — карта удалённого, сортировка по пользе, мнение о возврате или удалении с цитатами, плюс фиксация scope правки.",
+     "topic": "fresh-eyes",
+     "path": "concept/removed-items-map.md"
+    },
+    {
+     "type": "entity",
+     "title": "Что 1deep-agents учитывает о когнитивных фреймворках и где живёт?",
+     "description": "Позиция владельца о составе 1deep-agents — учёт фреймворков пяти областей вместо их копирования и наличие скилла также у Claude.",
+     "topic": "fresh-eyes",
+     "path": "entity/1deep-agents.md"
+    },
+    {
+     "type": "entity",
+     "title": "Что такое 1fresh-eyes и когда его вызывают?",
+     "description": "Позиция владельца о назначении 1fresh-eyes — взгляд с высоты и общая картина разных личностей с проверкой движения к результату — и о моментах его вызова.",
+     "topic": "fresh-eyes",
+     "path": "entity/1fresh-eyes.md"
+    },
+    {
+     "type": "entity",
+     "title": "Что такое premortem?",
+     "description": "Позиция владельца о смысле premortem — поиск того, как даже отлично выполненная задача может привести к ужасным последствиям.",
+     "topic": "fresh-eyes",
+     "path": "entity/premortem.md"
+    },
+    {
+     "type": "concept",
+     "title": "Что траектория-критики ищут помимо отклонений от курса?",
+     "description": "Позиция владельца о работе траектория-критиков — креативные альтернативные пути и подъём выше локальной задачи, деление когнитивной работы вместо типов критики.",
+     "topic": "fresh-eyes",
+     "path": "concept/alternative-paths-critique.md"
+    },
+    {
+     "type": "concept",
+     "title": "Что читает независимый метаагент?",
+     "description": "Позиция владельца об изоляции метаагента — он не читает файлы основного агента, а читает цели или документацию, которую основной агент мог упустить.",
+     "topic": "fresh-eyes",
+     "path": "concept/metaagent-isolation.md"
+    }
+   ]
+  },
+  {
+   "topic": "chat-recall-corpus",
+   "title": "Фиксация, формат и жизненный цикл корпуса 1chat-recall",
+   "pages": [
+    {
+     "type": "concept",
+     "title": "Где лежат записи 1chat-recall и как устроены имена файлов и метаданные?",
+     "description": "Записи глобально хранятся в `_ops/chat-recall`; один сеанс чата — один файл, в имени — агент, в метаданных — время до секунды, session ID и максимально точная дата.",
+     "topic": "chat-recall-corpus",
+     "path": "concept/session-file-location-and-metadata.md"
+    },
+    {
+     "type": "entity",
+     "title": "Зачем владельцу корпус 1chat-recall и что он фиксирует?",
+     "description": "Назначение корпуса — временный лог ещё не окончательных идей и забываемого контекста задач, который потом питает правку инструкций.",
+     "topic": "chat-recall-corpus",
+     "path": "entity/what-is-1chat-recall-for.md"
+    },
+    {
+     "type": "method",
+     "title": "Как владелец классифицирует записи 1chat-recall?",
+     "description": "Записи размечаются по возможной инструкции и по темам; сведения о собственном поведении агентов выделяются в отдельную классификацию, а `type` и `topic` пишутся по-английски.",
+     "topic": "chat-recall-corpus",
+     "path": "method/how-records-are-classified.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как владелец развивает и поддерживает инструкции 1chat-recall?",
+     "description": "Инструкции обновляются по лучшим рекомендациям, сортируются по важности без изменения цели скилла; reference-файл даёт самый быстрый путь на основе экспериментов, а краткое описание явно требует сохранять цитаты.",
+     "topic": "chat-recall-corpus",
+     "path": "concept/instructions-and-skill-evolution.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как владелец читает и использует уже записанный корпус?",
+     "description": "Чтение — извлечение максимальной пользы из записанных цитат: обычный поиск агента, различение актуального по датам, фоновое терминальное чтение и улучшение поиска вместо переписывания корпуса.",
+     "topic": "chat-recall-corpus",
+     "path": "concept/reading-and-using-the-corpus.md"
+    },
+    {
+     "type": "method",
+     "title": "Как записывать цитаты из старых чатов и с какой датой?",
+     "description": "При фиксации используется дата исходной реплики: в древнем чате нужные цитаты извлекаются со старой датой и указываются в файле цитат, а без точной даты допускается приблизительная.",
+     "topic": "chat-recall-corpus",
+     "path": "method/retro-capture-from-old-chats.md"
+    },
+    {
+     "type": "method",
+     "title": "Как исправлять и восстанавливать записи 1chat-recall?",
+     "description": "Автор правит свою запись обычной правкой context-note, type/topic и дубля; текст цитаты меняется только удалением, удаление записи — только словом владельца, а восстановление идёт с явно переданной точной датой.",
+     "topic": "chat-recall-corpus",
+     "path": "method/repairing-records.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как корпус работает при параллельной работе агентов и между runtime?",
+     "description": "Владелец пишет промпты двум-трём агентам одновременно; Claude и Codex предложено читать общую папку записей друг друга, а capture-механика синхронизируется одинаково в обоих runtime.",
+     "topic": "chat-recall-corpus",
+     "path": "concept/parallel-agents-and-runtime-parity.md"
+    },
+    {
+     "type": "concept",
+     "title": "Каким должен быть context-note при каждой записи?",
+     "description": "Context-note обязателен и даёт дельту конкретной сцены: помогает поиску через синонимы и индексацию, но не повторяет quote и не превращает ситуативное согласие в долговременное предпочтение.",
+     "topic": "chat-recall-corpus",
+     "path": "concept/context-note-rules.md"
+    },
+    {
+     "type": "method",
+     "title": "Когда и кто должен запускать запись 1chat-recall?",
+     "description": "Вызов — обязанность любого агента владельца, включая параллельные Codex и Claude; сессию предложено открывать вместе с хэндоффом, а триггером служит само краткое описание скилла.",
+     "topic": "chat-recall-corpus",
+     "path": "method/capture-triggers-and-callers.md"
+    },
+    {
+     "type": "concept",
+     "title": "Насколько дословно записи передают слова владельца?",
+     "description": "Запись — ручное лёгкое сокращение самого важного сказанного без агентской интерпретации: извлекаются именно слова владельца, а не вставленный им текст.",
+     "topic": "chat-recall-corpus",
+     "path": "concept/fidelity-to-owner-words.md"
+    },
+    {
+     "type": "concept",
+     "title": "По каким критериям владелец оценивает работу 1chat-recall?",
+     "description": "Критерии — работать от цели и пользы скилла, часто записывать сказанное и вспоминать его в начале проекта, править тело без потери содержания.",
+     "topic": "chat-recall-corpus",
+     "path": "concept/chat-recall-success-criteria.md"
+    }
+   ]
+  },
+  {
+   "topic": "markdown-knowledge",
+   "title": "Поиск, чтение и навигация по Markdown-знаниям",
+   "pages": [
+    {
+     "type": "entity",
+     "title": "Для чего нужен 1md-graph и что он проверяет в сложных скиллах?",
+     "description": "1md-graph требует явно описывать скрытую последовательными шагами когнитивную работу и её порядок, а его аудит опирается на исследования ошибок мышления языковых моделей.",
+     "topic": "markdown-knowledge",
+     "path": "entity/1md-graph-audit-of-complex-skills.md"
+    },
+    {
+     "type": "method",
+     "title": "Как во время работы замечать устаревшие части скиллов?",
+     "description": "Во время использования 1cli-tools агент прислушивается к ощущениям о полезности скилла и отмечает устаревшие или требующие переформулировки части.",
+     "topic": "markdown-knowledge",
+     "path": "method/noticing-stale-skill-parts-during-use.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как описывать в скилле порядок использования его инструментов?",
+     "description": "В скилле описывается практический порядок использования его инструментов — какой особенно полезен, каким пользоваться чаще, а каким реже; минимальность инструкций сохраняется, потому что переусложнение их ослабляет.",
+     "topic": "markdown-knowledge",
+     "path": "concept/skill-tool-usage-order-and-minimality.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как устроить тело сложного skill package и ссылки на reference?",
+     "description": "Основное тело сложного skill package не перегружается — в нём остаются критичные вещи, а агента эффективно направляют к reference-файлам, где находится существенная суть.",
+     "topic": "markdown-knowledge",
+     "path": "concept/skill-package-body-and-reference-pointers.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как формулировать инструкции скилла, чтобы они работали на агента?",
+     "description": "Инструкции объясняют, чем полезны агенту, и содержат только дельту — то, чего агент сам не выведет, по принципу «информация равно сюрприз»; скиллы делаются плотнее и суше.",
+     "topic": "markdown-knowledge",
+     "path": "concept/skill-instructions-benefit-and-delta.md"
+    },
+    {
+     "type": "method",
+     "title": "Какие версии скилла обновлять при правке?",
+     "description": "Объём обновления поправлен так, что при правке скилла обновляется и Claude-версия, а не только исходная.",
+     "topic": "markdown-knowledge",
+     "path": "method/which-skill-versions-to-update.md"
+    },
+    {
+     "type": "entity",
+     "title": "Когда вызывать 1md-read и какую задачу он решает?",
+     "description": "1md-read зовут при чтении многих или нескольких файлов сразу; цель — быстрая ориентировка по заголовкам и коротким описаниям без открытия самих файлов; runtime-текст минимальный.",
+     "topic": "markdown-knowledge",
+     "path": "entity/1md-read-purpose-and-trigger.md"
+    },
+    {
+     "type": "concept",
+     "title": "Почему нельзя искать смысловые дубли через эмбеддинги?",
+     "description": "Поиск смысловых дублей через эмбеддинги запрещён правилом владельца — граница зафиксирована красной линией в скиллах; поиск по эмбеддингам описывается как математический поиск похожестей, а не смысловой.",
+     "topic": "markdown-knowledge",
+     "path": "concept/no-semantic-duplicate-search-via-embeddings.md"
+    },
+    {
+     "type": "method",
+     "title": "Что агент делает после ознакомления с инструментами чтения и поиска?",
+     "description": "Критерий ориентации 1md-read — очень короткое подтверждение, что агент ознакомился с инструментами чтения и поиска, после чего он продолжает работу.",
+     "topic": "markdown-knowledge",
+     "path": "method/short-confirmation-after-orientation.md"
+    },
+    {
+     "type": "concept",
+     "title": "Что должен позволять индекс и какими должны быть его ссылки?",
+     "description": "Индекс ведёт на дельту, частично выполняет роль хэндофа; ссылки описывают действия раздела с указанием важности; индекс находит разделы внутри файлов, а не только сами файлы.",
+     "topic": "markdown-knowledge",
+     "path": "concept/what-index-must-enable-and-link-criteria.md"
+    },
+    {
+     "type": "concept",
+     "title": "Что должно защищать planning-файл и насколько подробно планировать?",
+     "description": "Planning-файл защищает от чрезмерной детализации: задаёт цель, границы и контекст, способ выполнения описывает лишь настолько, насколько нужно; работа планируется от начала до конца без фиксации мелких деталей.",
+     "topic": "markdown-knowledge",
+     "path": "concept/planning-files-guard-against-overdetailing.md"
+    },
+    {
+     "type": "entity",
+     "title": "Что сказал владелец о статусе инструмента поиска по эмбеддингам?",
+     "description": "Инструмент поиска по эмбеддингам глобален; скиллы автоматически запускаются во всех проектах и передают агенту особенности работы этого поиска.",
+     "topic": "markdown-knowledge",
+     "path": "entity/embedding-search-tool-global-status.md"
+    }
+   ]
+  },
+  {
+   "topic": "openviking-wiki",
+   "title": "Эксперимент OpenViking по сборке owner-attributed библиотеки знаний",
+   "pages": [
+    {
+     "type": "method",
+     "title": "Как владелец симулирует OpenViking собственным compiler'ом?",
+     "description": "Свой пакетный compiler с точным evidence-слоем, официальными OpenViking prompts и IA, layered-проекция без их runtime — не изобретая их систему обновления заново.",
+     "topic": "openviking-wiki",
+     "path": "method/compiler-simulation-approach.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как по ходу эксперимента сохраняются находки, планы и документация?",
+     "description": "Важные находки — в отдельную папку для будущего инструмента конвертации, ветки архивируются, планы и документация регулярно обновляются, история выносится из основных файлов.",
+     "topic": "openviking-wiki",
+     "path": "concept/findings-plans-docs-upkeep.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как устроен запуск множества агентов и кто ими управляет?",
+     "description": "Один workflow одной командой запускает множество Luna Max в видимых фоновых тредах без worktree; root-agent — оркестратор, планирование — в отдельной локальной папке.",
+     "topic": "openviking-wiki",
+     "path": "concept/multi-agent-workflow-orchestration.md"
+    },
+    {
+     "type": "comparison",
+     "title": "Какие модели на каких работах — Luna Max или более сильные модели?",
+     "description": "Luna Max — понятная повторяющаяся работа по пересказу цитат; стратегия и связная система — самому с Opus-советниками, размышления и конфликты — умным моделям «сол Хай».",
+     "topic": "openviking-wiki",
+     "path": "comparison/model-role-split-luna-max-vs-stronger-models.md"
+    },
+    {
+     "type": "concept",
+     "title": "Какие ссылки допустимы внутри Wiki?",
+     "description": "В Wiki можно ссылаться на цитаты, но нельзя — на корпус знаний и проектные файлы; упомянутые документы не ищутся и не разрешаются.",
+     "topic": "openviking-wiki",
+     "path": "concept/wiki-link-boundary.md"
+    },
+    {
+     "type": "method",
+     "title": "Насколько автономно выполняется эксперимент — нужен ли approval gate?",
+     "description": "Без отдельного approval gate и без changeset-слоя: цель преследуется автономно, git служит откатом, дополнительные согласования не запрашиваются.",
+     "topic": "openviking-wiki",
+     "path": "method/run-without-approval-gate.md"
+    },
+    {
+     "type": "method",
+     "title": "По какой процедуре обрабатываются цитаты — батчами или слиянием?",
+     "description": "Хронологические батчи по десять holder-файлов; новый writer получает свой батч и текущую Wiki и дополняет или переписывает её, без чтения предыдущих цитат.",
+     "topic": "openviking-wiki",
+     "path": "method/batch-processing-topology.md"
+    },
+    {
+     "type": "concept",
+     "title": "По какому критерию принимается собранная Wiki?",
+     "description": "Приёмка по удобству и скорости поиска знаний для агентов; сжатие и длина не гейтятся, качество проверяется по реальным примерам OpenViking.",
+     "topic": "openviking-wiki",
+     "path": "concept/wiki-acceptance-findability.md"
+    },
+    {
+     "type": "analysis",
+     "title": "Что означает сигнал ⚡ UNEXPECTED у root-agent?",
+     "description": "Сигнал означает, что текущая ментальная модель и предсказания root-agent, возможно, неверны на более высоком уровне.",
+     "topic": "openviking-wiki",
+     "path": "analysis/unexpected-signal-meaning.md"
+    },
+    {
+     "type": "entity",
+     "title": "Что такое Wiki в этом эксперименте и что она хранит?",
+     "description": "Пересобираемая производная библиотека поверх архива цитат: distilled facts без истории, свежий факт переписывает прежний.",
+     "topic": "openviking-wiki",
+     "path": "entity/openviking-wiki-library.md"
+    },
+    {
+     "type": "concept",
+     "title": "Чьи знания фиксирует Wiki — как оформлена привязка к владельцу?",
+     "description": "Концепты Wiki говорят, что владелец сказал о факте или концепте; повторы сокращаются, более свежий факт переписывает прежнее знание от третьего лица.",
+     "topic": "openviking-wiki",
+     "path": "concept/owner-attributed-concepts.md"
+    }
+   ]
+  },
+  {
+   "topic": "codex-background-threads",
+   "title": "Жизненный цикл видимых фоновых Codex-тредов",
+   "pages": [
+    {
+     "type": "method",
+     "title": "В каком виде владелец правит формулировки 1codex-bg-threads?",
+     "description": "Одна строка с точным местом и заменой; очевидность формулировок проверяется глазами свежего агента, а не объёмом пояснений.",
+     "topic": "codex-background-threads",
+     "path": "method/how-corrections-to-1codex-bg-threads-are-written.md"
+    },
+    {
+     "type": "method",
+     "title": "Как вызывать Codex-ветки и кто держит контекст между ними?",
+     "description": "Триггерные фразы и официальные названия thread tools задают вызов; специализированный тред-библиотекарь цитат постоянно держит информацию в контекстном окне и принимает обращения от orchestrator и peer threads.",
+     "topic": "codex-background-threads",
+     "path": "method/how-to-invoke-codex-threads-and-who-holds-context.md"
+    },
+    {
+     "type": "method",
+     "title": "Как устроено тело 1codex-bg-threads и его reference-файлы?",
+     "description": "Body закрепляет архитектуру: называет существование reference-файлов и условия их использования, когнитивные процессы разделены по reference-файлам, формат подчинён skill-creator.",
+     "topic": "codex-background-threads",
+     "path": "method/body-and-references-of-1codex-bg-threads.md"
+    },
+    {
+     "type": "concept",
+     "title": "Какая модель работает на фоновых Codex-тредах и когда включается эскалация?",
+     "description": "Luna Max — default и обычный маршрут фоновой работы; умная ветка с экстра высоким мышлением — только в крайнем случае для когнитивной работы высокого уровня.",
+     "topic": "codex-background-threads",
+     "path": "concept/luna-max-routing-for-background-threads.md"
+    },
+    {
+     "type": "method",
+     "title": "Когда архивировать Codex-ветки и как устроен recovery?",
+     "description": "Ветки архивируются после вызова 1codex-bg-threads, retained-ветку архивирует root при принятии зонтичной работы; recovery — через list_threads и unarchive.",
+     "topic": "codex-background-threads",
+     "path": "method/archive-and-recovery-of-codex-threads.md"
+    },
+    {
+     "type": "method",
+     "title": "Когда создавать Git-worktree для параллельных агентов и когда удалять?",
+     "description": "Worktree создаётся только при уверенности, что агенты будут писать в одни и те же файлы; при раздельных файлах пишут прямо в основную ветку; worktree старше трёх дней — кандидат на удаление.",
+     "topic": "codex-background-threads",
+     "path": "method/worktrees-for-parallel-agents.md"
+    },
+    {
+     "type": "concept",
+     "title": "Может ли агент внутри Codex-ветки запускать субагентов?",
+     "description": "Да: same-thread субагенты разрешены, 1fresh-eyes и 1deep-agents — рекомендованный, но не единственный маршрут; отдельные видимые Codex-задачи они создавать не могут.",
+     "topic": "codex-background-threads",
+     "path": "concept/subagents-inside-codex-threads.md"
+    },
+    {
+     "type": "concept",
+     "title": "Нужно ли проверять Codex-инструменты на актуальность перед использованием?",
+     "description": "Да: перед использованием выбранного thread, model или environment primitive — проверка в интернете, не изменилось ли что-нибудь в инструменте.",
+     "topic": "codex-background-threads",
+     "path": "concept/check-tool-freshness-before-use.md"
+    },
+    {
+     "type": "concept",
+     "title": "Почему избыток инструкций ослабляет скилл и что с этим делать?",
+     "description": "Повторяющиеся инструкции схлопываются в зонтичные, покрывающие методологию и подразумеваемые частные инструкции; reference-файлы не раздуваются.",
+     "topic": "codex-background-threads",
+     "path": "concept/excess-instructions-weaken-a-skill.md"
+    },
+    {
+     "type": "entity",
+     "title": "Что такое 1codex-bg-threads и зачем он нужен?",
+     "description": "Скилл о создании и управлении видимыми Codex-ветками — фоновыми исполнителями; его границы с 1orchestration проведены явно.",
+     "topic": "codex-background-threads",
+     "path": "entity/what-is-1codex-bg-threads-for.md"
+    }
+   ]
+  },
+  {
+   "topic": "orchestration-waves",
+   "title": "Оркестрация многозадачных волн и durable manifest",
+   "pages": [
+    {
+     "type": "method",
+     "title": "Где оркестрация живёт в Workspace?",
+     "description": "Специальная папка 1orchestration в Workspace, внутри — отдельная папка на каждую сессию оркестрации.",
+     "topic": "orchestration-waves",
+     "path": "method/workspace-layout-for-orchestration-sessions.md"
+    },
+    {
+     "type": "concept",
+     "title": "За что оркестратор отвечает перед траекторией и пользой проекта?",
+     "description": "Позиция технического директора, экономия контекста, волевые решения при проблемах и автономность против неполезных или невыполнимых просьб.",
+     "topic": "orchestration-waves",
+     "path": "concept/orchestrator-trajectory-keeper.md"
+    },
+    {
+     "type": "method",
+     "title": "Как 1orchestration распределяет задачи и инструкции между субагентами?",
+     "description": "Что кладёт оркестратор в задание субагенту — свод инструкций всех слоёв, посильная задача, учёт нагрузки моделей, фокус внимания вместо запретов.",
+     "topic": "orchestration-waves",
+     "path": "method/distributing-tasks-to-subagents.md"
+    },
+    {
+     "type": "method",
+     "title": "Как 1orchestration связана с 1instruction-shaping?",
+     "description": "Оркестратор пользуется знаниями 1instruction-shaping при написании инструкций субагентам, точечно ссылаясь на его reference-файлы вместо вызова всего скилла.",
+     "topic": "orchestration-waves",
+     "path": "method/orchestration-instruction-shaping-link.md"
+    },
+    {
+     "type": "entity",
+     "title": "Как устроена папка волны в 1orchestration v4.2?",
+     "description": "Схема папки волны вынесена в references/wave-folder.md, а шаблон context.md получил блок Закрытие; деление скилла отложено до первой боевой волны.",
+     "topic": "orchestration-waves",
+     "path": "entity/orchestration-wave-folder.md"
+    },
+    {
+     "type": "entity",
+     "title": "Какие root-источники читает оркестратор?",
+     "description": "Прямое чтение root-источников самим оркестратором — критичная правка общего 1orchestration наряду с durable manifest восстановления.",
+     "topic": "orchestration-waves",
+     "path": "entity/root-sources-direct-read.md"
+    },
+    {
+     "type": "method",
+     "title": "Куда записываются самостоятельные решения оркестратора?",
+     "description": "В папке оркестрации ведётся отдельный реестр самостоятельных решений с их обоснованиями, чтобы они не терялись.",
+     "topic": "orchestration-waves",
+     "path": "method/orchestrator-decisions-registry.md"
+    },
+    {
+     "type": "concept",
+     "title": "Можно ли переписывать общий 1orchestration?",
+     "description": "Общий скилл не переписывать и не раздувать словами — владельцу важна компактность.",
+     "topic": "orchestration-waves",
+     "path": "concept/rewriting-general-orchestration.md"
+    },
+    {
+     "type": "method",
+     "title": "Что оркестратор показывает как доказательство работы?",
+     "description": "Отчёт 1orchestration выводится прямо в чат как доказательство работы агента.",
+     "topic": "orchestration-waves",
+     "path": "method/orchestration-report-as-proof.md"
+    },
+    {
+     "type": "method",
+     "title": "Что такое durable manifest восстановления?",
+     "description": "Критичная правка общего 1orchestration — durable manifest восстановления вместе с прямым чтением root-источников.",
+     "topic": "orchestration-waves",
+     "path": "method/durable-manifest-recovery.md"
+    }
+   ]
+  },
+  {
+   "topic": "graphiti-memory",
+   "title": "Эксперимент Graphiti для преобразования цитат в память",
+   "pages": [
+    {
+     "type": "comparison",
+     "title": "Как владелец проверяет, что память улучшает ответы, — внутри Graphiti и против 1chat-recall?",
+     "description": "Память должна улучшать качество ответа; ручное сравнение на разных сериях вопросов, включая A/B shared и Ephemeral и тот же запрос в Graphiti и 1chat-recall.",
+     "topic": "graphiti-memory",
+     "path": "comparison/memory-usefulness-comparison.md"
+    },
+    {
+     "type": "method",
+     "title": "Как восстановить время для записей Graphiti без точного времени?",
+     "description": "Восстанавливать время по часовому окну между соседними файлами из даты сессии и порядка цитат внутри файла; для двухнедельного корпуса порядок важнее минут и секунд.",
+     "topic": "graphiti-memory",
+     "path": "method/graphiti-timestamp-recovery.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как встроить Graphiti в проект и что можно менять?",
+     "description": "Опираться на штатную реализацию Graphiti, меняя обработку языковыми моделями на свою; установка в experiments/agentic-research и лёгкая адаптация под Codex.",
+     "topic": "graphiti-memory",
+     "path": "concept/graphiti-integration-approach.md"
+    },
+    {
+     "type": "method",
+     "title": "Как прогнать полный ingest корпуса цитат через Graphiti?",
+     "description": "Полный ingest всей папки чата по полной методике под надзором фоновых тредов с Luna Max, короткими наблюдаемыми запусками; затем запросы через 1codex-bg-threads.",
+     "topic": "graphiti-memory",
+     "path": "method/graphiti-full-ingest-run.md"
+    },
+    {
+     "type": "method",
+     "title": "Как устроена параллельность и форма запусков внутри одного episode?",
+     "description": "Episodes последовательные, четыре параллельных Luna-turn внутри одного episode, один тёплый Codex app-server с новым Ephemeral thread на каждый вызов; параллельность ingest ускорять, если возможно.",
+     "topic": "graphiti-memory",
+     "path": "method/graphiti-episode-concurrency.md"
+    },
+    {
+     "type": "comparison",
+     "title": "Какие модели выбрать для LLM-вызовов Graphiti?",
+     "description": "Luna Max выбрана для LLM-вызовов (Terra не дала выигрыша по скорости, Luna дешевле); Sol/medium или даже Luna Max предположительно справятся с записью целого файла цитат.",
+     "topic": "graphiti-memory",
+     "path": "comparison/graphiti-model-choice.md"
+    },
+    {
+     "type": "method",
+     "title": "Кто советник по стратегии кода?",
+     "description": "При работе над кодом владелец предпочитает чаще вызывать Opus как советника по стратегии кода.",
+     "topic": "graphiti-memory",
+     "path": "method/opus-code-strategy-advisor.md"
+    },
+    {
+     "type": "method",
+     "title": "По каким источникам изучать Graphiti и каким критерием проверять guide?",
+     "description": "Официальная документация, GitHub и код на GitHub, оценка самой системы, а не скорости; guide принимается, только если агент чинит интеграцию без повторного поиска с нуля.",
+     "topic": "graphiti-memory",
+     "path": "method/graphiti-study-guide.md"
+    },
+    {
+     "type": "concept",
+     "title": "Что владелец хочет получить от Graphiti в этом эксперименте?",
+     "description": "Цель — связанная база знаний с заново сформулированным смыслом цитат; пользовательская поверхность не должна давать ссылки на существующие цитаты.",
+     "topic": "graphiti-memory",
+     "path": "concept/graphiti-goal-and-surface.md"
+    }
+   ]
+  },
+  {
+   "topic": "ui-design-review",
+   "title": "Аудит визуального UI и порядка чтения страницы",
+   "pages": [
+    {
+     "type": "concept",
+     "title": "Где хранить артефакты design skills?",
+     "description": "Запуск 1design-review — проектно-локально в _workspace/design/1design-review/MM-DD; общее правило — cross-project namespace Workspace/Design; для 1ui-reading-audit — с папками по дням.",
+     "topic": "ui-design-review",
+     "path": "concept/design-artifacts-placement.md"
+    },
+    {
+     "type": "method",
+     "title": "Как 1design-review управляет работой субагентов?",
+     "description": "Главный агент сам отбирает выводы субагентов, заслуживающие внимания; скил обрабатывает 50–60 субагентов последовательно при максимуме трёх одновременно работающих.",
+     "topic": "ui-design-review",
+     "path": "method/subagent-orchestration.md"
+    },
+    {
+     "type": "method",
+     "title": "Как вызывающий агент готовит скриншотный evidence?",
+     "description": "Критерий владельца — полный протокол подготовки evidence требует от вызывающего главного агента множества разных скриншотов.",
+     "topic": "ui-design-review",
+     "path": "method/screenshot-evidence-preparation.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как называть display_name скилов с техническим именем на «1»?",
+     "description": "Глобальные Codex skills с техническими именами на «1» сохраняют эту начальную «1» в русскоязычном display_name из agents/openai.yaml.",
+     "topic": "ui-design-review",
+     "path": "concept/leading-1-in-display-name.md"
+    },
+    {
+     "type": "method",
+     "title": "Как составлять карту страницы?",
+     "description": "Почти телеграфный технический стиль, существенные порядок и размеры, назначение блока вместо его текста, десктопная PC-версия как viewport по умолчанию.",
+     "topic": "ui-design-review",
+     "path": "method/page-map-composition.md"
+    },
+    {
+     "type": "entity",
+     "title": "Как устроен 1ui-reading-audit?",
+     "description": "Code-only аудит — карта страницы восстанавливается из кода без анализа скриншотов, проверка построена на паре «один пишет документ — другой читает и рекомендует».",
+     "topic": "ui-design-review",
+     "path": "entity/1ui-reading-audit.md"
+    },
+    {
+     "type": "method",
+     "title": "Какие картинки получают субагенты 1design-review?",
+     "description": "Каждому субагенту — одна узкая производная картинка, вырезанная из большой; большую не передают, а для текста, отступов и кнопок готовятся специальные изображения.",
+     "topic": "ui-design-review",
+     "path": "method/subagent-images.md"
+    },
+    {
+     "type": "method",
+     "title": "Что делает субагент-рецензент после карты страницы?",
+     "description": "После создания карты вызывается субагент — анализирует документ и выдаёт рекомендации под цель страницы, как эксперт, с доказательствами и логикой в subagent-review.md.",
+     "topic": "ui-design-review",
+     "path": "method/map-review-subagent.md"
+    },
+    {
+     "type": "entity",
+     "title": "Что такое 1design-review и из чего он собран?",
+     "description": "Единый скил дизайн-ревью — объединение 1screenshot-design, 1design-subagents и 1design-review, улучшение по референсам и 1skill-shaping, проверка скриптов на реальном проекте.",
+     "topic": "ui-design-review",
+     "path": "entity/1design-review.md"
+    }
+   ]
+  },
+  {
+   "topic": "mental-model-checks",
+   "title": "Проверка допущений и ремонт ментальной модели по неожиданностям",
+   "pages": [
+    {
+     "type": "analysis",
+     "title": "Как владелец разбирает найденные `⚡ UNEXPECTED` и правки глобальных механизмов?",
+     "description": "Позиция: все ⚡ UNEXPECTED конкретного Codex task находятся и устраняются, чтобы предотвратить повторение; глобальные правки 1orchestration и 1planning принимаются с восстановленным handoff после двух repair, а вопросы по каждому поводу во время применения правок не нужны.",
+     "topic": "mental-model-checks",
+     "path": "analysis/unexpected-triage-and-global-fixes.md"
+    },
+    {
+     "type": "entity",
+     "title": "Как должен идти рефакторинг `1assumption-audit`?",
+     "description": "Позиция: рефактор обязан менять смыслы и механику скила, сокращать число более сильных инструкций и убирать дубли.",
+     "topic": "mental-model-checks",
+     "path": "entity/1assumption-audit-refactor.md"
+    },
+    {
+     "type": "entity",
+     "title": "Каким должен быть субагент-советчик при повторных ⚡ UNEXPECTED?",
+     "description": "Субагент-советчик глубже `123-explain`, но более сфокусирован; его совет отправляется прямо в чат через инструмент работы с чатами и виден владельцу; это не терминальный субагент, а рождающийся автоматически в новом треде, из которого он шлёт сообщение в другой тред; совет короткий, максимально полезный и не забивает контекстное окно агента.",
+     "topic": "mental-model-checks",
+     "path": "entity/visible-thread-advisor-construction.md"
+    },
+    {
+     "type": "entity",
+     "title": "Какую модель владелец привлекает для анализа реальной пользы нового советчика?",
+     "description": "Для независимого анализа упрощённого self-invoked скила владелец поправил выбор модели: лучше Kimi Max вместо Opus.",
+     "topic": "mental-model-checks",
+     "path": "entity/usefulness-reviewer-model.md"
+    },
+    {
+     "type": "method",
+     "title": "Когда и как агент должен запускать `1model-check`?",
+     "description": "Позиция: агент сам вызывает более простой 1model-check после каждой пятёрки не разобранных собственных ⚡ UNEXPECTED, внутри скила обязателен протокол работы с ментальной моделью, доказательство — ответы на когнитивные вопросы в чате.",
+     "topic": "mental-model-checks",
+     "path": "method/1model-check-launch-and-protocol.md"
+    },
+    {
+     "type": "entity",
+     "title": "У кого владелец предпочитает запрашивать совет по `1model-check`?",
+     "description": "Позиция: совет по 1model-check владелец предпочитает запрашивать у stealth/ox-alpha через Hermes.",
+     "topic": "mental-model-checks",
+     "path": "entity/ox-alpha-advisor-for-model-check.md"
+    },
+    {
+     "type": "concept",
+     "title": "Что владелец предложил делать при повторных ⚡ UNEXPECTED в чате?",
+     "description": "Владелец высказал идею Codex-hook, который срабатывает после трёх ⚡ UNEXPECTED в чате и вызывает субагента-советчика: тот читает чат, понимает по философии predictive coding ментальную модель агента и даёт совет.",
+     "topic": "mental-model-checks",
+     "path": "concept/predictive-coding-unexpected-advisor.md"
+    },
+    {
+     "type": "concept",
+     "title": "Что должно быть изучено до утверждения точного протокола `1model-check`?",
+     "description": "Позиция: перед утверждением точного протокола критерий владельца — изучить исследования последних 2–3 месяцев об улучшении когнитивных способностей агентов при неправильной ментальной модели.",
+     "topic": "mental-model-checks",
+     "path": "concept/research-before-model-check-protocol.md"
+    }
+   ]
+  },
+  {
+   "topic": "agent-autonomy",
+   "title": "Автономность агента, доказательность и восстановимые границы действий",
+   "pages": [
+    {
+     "type": "concept",
+     "title": "Зачем агент часто коммитит и держит репозиторий свежим?",
+     "description": "Частые коммиты с комментариями, чтение актуального состояния из GitHub и свежий, закоммиченный, запушенный репозиторий дают основу для безопасной и свободной работы агента.",
+     "topic": "agent-autonomy",
+     "path": "concept/frequent-commits-safe-freedom.md"
+    },
+    {
+     "type": "concept",
+     "title": "Какие границы у полной свободы агента в проекте?",
+     "description": "Полная свобода — цены, бизнес-модель, смена СУБД — действует, пока проект сохраняется в GitHub и остаётся восстанавливаемым; нельзя удалить ОС или навсегда удалить что-либо без сохранённой копии.",
+     "topic": "agent-autonomy",
+     "path": "concept/project-full-freedom-boundaries.md"
+    },
+    {
+     "type": "concept",
+     "title": "Может ли агент спорить с владельцем и чем он обосновывает свои предложения?",
+     "description": "Спорить — да, когда просьба расходится с лучшими практиками; обоснованием служат методологии, лучшие практики, компании и специалисты, а собственное мнение агента доказательством не является.",
+     "topic": "agent-autonomy",
+     "path": "concept/agent-argues-with-best-practices.md"
+    },
+    {
+     "type": "concept",
+     "title": "Насколько смело агент принимает решения и когда владелец их оценивает?",
+     "description": "Решения принимаются более автономно и смело после обдумывания и логических выводов, с принятием риска ненадёжности; оценка — только в контексте полностью готовой работы, а не отдельной суммы в спецификации.",
+     "topic": "agent-autonomy",
+     "path": "concept/bold-autonomous-decisions.md"
+    },
+    {
+     "type": "concept",
+     "title": "Сколько агент пишет и что ему разрешено менять в форме записи?",
+     "description": "Агент пишет только необходимое и минимальное количество кода и текста; лёгкость чтения и красота меняют стиль, но не состав знаний, а подача — кратко, понятно, крупными заголовками.",
+     "topic": "agent-autonomy",
+     "path": "concept/write-minimal-style-not-composition.md"
+    },
+    {
+     "type": "concept",
+     "title": "Что агент может записывать в сохраняемые тексты без вопросов?",
+     "description": "Только проверенное и уверенное: непроверенное не записывается даже с пометкой, логически выведенное показывается владельцу в чате с источником и логикой; осторожность касается любого сохраняемого формата, но не свободного объяснения в чате, а жанр документа важнее цитаты.",
+     "topic": "agent-autonomy",
+     "path": "concept/verified-only-writing.md"
+    },
+    {
+     "type": "method",
+     "title": "Что делает агент, когда запись опасна?",
+     "description": "Порядок блока «Запись опасна»: не записывать рискованную экстраполяцию, останавливать только зависимую ветку, завершать независимую уверенную работу и затем сжимать пробелы до минимума вопросов с опорой и логикой каждого пункта.",
+     "topic": "agent-autonomy",
+     "path": "method/dangerous-recording-procedure.md"
+    },
+    {
+     "type": "entity",
+     "title": "Что такое раздел Autonomous Progress в глобальном AGENTS.md Codex?",
+     "description": "Replacement-раздел `Autonomous Progress` в /Users/triton/.codex/AGENTS.md, применённый без иных изменений, чтобы агент меньше останавливался и больше действовал самостоятельно.",
+     "topic": "agent-autonomy",
+     "path": "entity/autonomous-progress-agents-md.md"
+    }
+   ]
+  },
+  {
+   "topic": "business-growth",
+   "title": "Долгосрочный анализ бизнес-ценности и реакций участников",
+   "pages": [
+    {
+     "type": "concept",
+     "title": "Из чего складывается вход business-growth-analyst и его понимание бизнеса?",
+     "description": "Вход строится по модели нового бизнес-аналитика в незнакомой компании; чтение документации не ограничено, прошлые цитаты владельца изучаются через 1chat-recall.",
+     "topic": "business-growth",
+     "path": "concept/business-growth-analyst-input-and-context.md"
+    },
+    {
+     "type": "method",
+     "title": "Как проверяется текст скила и синхронизируются его версии?",
+     "description": "Одобрение требует полностью прочитать все live reference-файлы 1skill-shaping и 1instruction-shaping и лично проверить текст; создаётся Claude-версия, правится Codex-версия, обе синхронизируются.",
+     "topic": "business-growth",
+     "path": "method/skill-approval-and-version-sync.md"
+    },
+    {
+     "type": "concept",
+     "title": "Когда решение нужно отдать бизнес-анализу вместо интуиции?",
+     "description": "Выбор функции, конкретной суммы или влияния цены — повод для бизнес-анализа прибыли и платежей; после каждого вызова методологии показываются в чате.",
+     "topic": "business-growth",
+     "path": "concept/when-to-run-business-analysis.md"
+    },
+    {
+     "type": "entity",
+     "title": "Кто такой business-growth-analyst и где проходит его рабочая граница?",
+     "description": "Каноническое имя роли — business-growth-analyst; стратег над движением денег и мотивациями игроков рынка, работающий вне кода и без оглядки на стоимость разработки.",
+     "topic": "business-growth",
+     "path": "entity/business-growth-analyst-role.md"
+    },
+    {
+     "type": "concept",
+     "title": "На чём основан прогноз бизнес-анализа и что в нём считается доказательством?",
+     "description": "Прогноз последствий на годы вперёд генерируется как фантазия из лучших практик и знаний о людях и рынке; единственная доказательная часть — логическая цепочка без внутренних конфликтов. Методики: Lean Six Sigma DMAIC, PMBOK, Porter VCA, cohort analysis, LTV, dopamine loops, Big Five OCEAN, CNS analysis, поведенческие паттерны.",
+     "topic": "business-growth",
+     "path": "concept/growth-forecast-evidence.md"
+    },
+    {
+     "type": "entity",
+     "title": "Что такое скилл 1business-growth-analysis и почему бизнес-разбор ведёт субагент?",
+     "description": "Бизнес-разбор требует вызова отдельного субагента; вызывающий агент роль аналитика на себя не берёт.",
+     "topic": "business-growth",
+     "path": "entity/business-growth-analysis-skill.md"
+    },
+    {
+     "type": "concept",
+     "title": "Является ли позиция владельца о бизнесе готовым выводом анализа?",
+     "description": "Позиция владельца задаёт ограничение и знание, но не готовый вывод; вердикт выводится из денег и стимулов, а расхождение с предпочтением называется вместе с порогом перевеса предпочтения.",
+     "topic": "business-growth",
+     "path": "concept/owner-position-vs-verdict.md"
+    }
+   ]
+  },
+  {
+   "topic": "claude-bridge",
+   "title": "Claude/Opus/Fable bridge и 1claude-mcp",
+   "pages": [
+    {
+     "type": "method",
+     "title": "Как должен пройти полный рефактор `1claude-mcp`?",
+     "description": "По контракту `1skill-shaping`, с проверкой кода против изменений инструмента Claude и переработкой инструкций по протоколу упрощения.",
+     "topic": "claude-bridge",
+     "path": "method/claude-mcp-full-refactor.md"
+    },
+    {
+     "type": "method",
+     "title": "Как обновлять Claude Code и Agent SDK?",
+     "description": "Решение владельца — обновить до последней версии и провести полный проверочный цикл.",
+     "topic": "claude-bridge",
+     "path": "method/updating-claude-code-agent-sdk.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как писать промпты для Claude?",
+     "description": "Критерий владельца — по лучшим практикам Anthropic, отталкиваясь от цели и проблемы, без предписания модели хода мыслей или действий.",
+     "topic": "claude-bridge",
+     "path": "concept/writing-prompts-for-claude.md"
+    },
+    {
+     "type": "entity",
+     "title": "Какие модели можно вызывать через `1claude-mcp`?",
+     "description": "Модельная граница `1claude-mcp`: Fable запрещена, использовать только Opus.",
+     "topic": "claude-bridge",
+     "path": "entity/claude-mcp-allowed-models.md"
+    },
+    {
+     "type": "concept",
+     "title": "Какую роль владелец отводит Claude в своей работе?",
+     "description": "Роль Claude по решению владельца — советник/ревьюер, подключаемый до начала работы и параллельно во время неё.",
+     "topic": "claude-bridge",
+     "path": "concept/claude-advisor-reviewer-role.md"
+    },
+    {
+     "type": "concept",
+     "title": "Может ли Claude читать другие файлы?",
+     "description": "Право Claude читать другие файлы закреплено критерием владельца.",
+     "topic": "claude-bridge",
+     "path": "concept/claude-file-read-access.md"
+    },
+    {
+     "type": "entity",
+     "title": "Что умеет MCP tool `claude_sessions`?",
+     "description": "Read-only инструмент для списка активных локальных Claude-сессий и чтения видимой переписки; необязательная дополнительная возможность.",
+     "topic": "claude-bridge",
+     "path": "entity/claude-sessions-tool.md"
+    }
+   ]
+  },
+  {
+   "topic": "explain-status",
+   "title": "Простое мета-объяснение происходящей работы через 123-explain",
+   "pages": [
+    {
+     "type": "concept",
+     "title": "В какой форме `123-explain` должен излагать объяснение?",
+     "description": "Позиция: простое объяснение с emoji, карточками и графиками; краткость — высотой обзора, вопросы только неотвечаемые и не более трёх.",
+     "topic": "explain-status",
+     "path": "concept/explain-form-and-brevity.md"
+    },
+    {
+     "type": "concept",
+     "title": "В чём состоит продуктовая рамка скила `123-explain`?",
+     "description": "Позиция: рамка — окно понимания при доверии к агенту, с восьмизвенной дугой, шестью тайбрейкерами и пересмотром по gap.",
+     "topic": "explain-status",
+     "path": "concept/product-frame-of-123-explain.md"
+    },
+    {
+     "type": "method",
+     "title": "Из каких шагов и разделов складывается объяснение статуса?",
+     "description": "Позиция: объяснение опирается на перечитывание инструкций и оценку пользы и строится из разделов `Моя ментальная модель` и `Мой дефолт`.",
+     "topic": "explain-status",
+     "path": "method/explain-steps-mental-model-default.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как объяснение честно разделяет, какие тексты реально читались?",
+     "description": "Позиция: чтение фиксируется по моменту; ложь о времени чтения — провал всего объяснения, серьёзнее признанного нарушения.",
+     "topic": "explain-status",
+     "path": "concept/honest-reading-status.md"
+    },
+    {
+     "type": "method",
+     "title": "Какими источниками и решениями владелец определил работу над правкой `123-explain`?",
+     "description": "Позиция: правка идёт без субагентов, по research-документу и своим цитатам, до принятия полного кандидата v2 для `SKILL.md`.",
+     "topic": "explain-status",
+     "path": "method/skill-edit-workflow-sources.md"
+    },
+    {
+     "type": "concept",
+     "title": "Что можно менять в тексте `SKILL.md` пакета `123-explain`?",
+     "description": "Позиция: смысл, механизмы и методы `SKILL.md` неизменны; правится только однозначная переформулировка когнитивных шагов.",
+     "topic": "explain-status",
+     "path": "concept/skill-md-edit-boundaries.md"
+    },
+    {
+     "type": "entity",
+     "title": "Что такое скил `123-explain` и как он ведёт себя при вызове?",
+     "description": "Позиция: `123-explain` — ручной глобальный скилл, объясняющий последние ходы и общую картину, и не останавливающий работу.",
+     "topic": "explain-status",
+     "path": "entity/123-explain-role-and-flow.md"
+    }
+   ]
+  },
+  {
+   "topic": "document-system",
+   "title": "Владение документами, информационная архитектура и progressive disclosure",
+   "pages": [
+    {
+     "type": "concept",
+     "title": "Как разбивать сложную задачу на когнитивные подшаги и что усиливать инструкциями?",
+     "description": "Дробить когнитивно тяжёлую задачу на точные мелкие подшаги; направления усиления брать из статей об ошибках мышления языковых моделей.",
+     "topic": "document-system",
+     "path": "concept/cognitive-decomposition-of-hard-tasks.md"
+    },
+    {
+     "type": "entity",
+     "title": "Какие правки структуры 1ia-audit задал владелец?",
+     "description": "Правки 1ia-audit — избыточный объём разбить на reference files; когнитивные скачки и процесс мышления править в обеих версиях, Claude и Codex.",
+     "topic": "document-system",
+     "path": "entity/1ia-audit.md"
+    },
+    {
+     "type": "entity",
+     "title": "На каком языке собран 1document-system и почему?",
+     "description": "Пересобранный 1document-system остаётся на английском: скилл помогает писать английские тексты, а названия процедур и термины корпоративных документов — на английском.",
+     "topic": "document-system",
+     "path": "entity/1document-system-english-language.md"
+    },
+    {
+     "type": "entity",
+     "title": "Что владелец сказал о правках 1product-shaping?",
+     "description": "Текущая глобальная версия 1product-shaping идеальна; правки сначала показываются в чате, тело сокращается не более чем на 10%, examples сверяются с телом.",
+     "topic": "document-system",
+     "path": "entity/1product-shaping.md"
+    },
+    {
+     "type": "entity",
+     "title": "Что владелец сказал про 1instruction-layer?",
+     "description": "Критерии слоя инструкций — 50 шагов прописать и не превращать слой в свалку; плюс поправка: обновить Claude-версию, если не обновлена.",
+     "topic": "document-system",
+     "path": "entity/1instruction-layer.md"
+    },
+    {
+     "type": "concept",
+     "title": "Что оставлять в основном тексте скила, а что прятать в reference files?",
+     "description": "В основном тексте скила — основные правила и методы мышления; остальные детали прячутся в reference files.",
+     "topic": "document-system",
+     "path": "concept/main-text-vs-reference-files.md"
+    }
+   ]
+  },
+  {
+   "topic": "gemini",
+   "title": "Gemini/Antigravity skill и обработка audio/video",
+   "pages": [
+    {
+     "type": "method",
+     "title": "В каком режиме создаётся Gemini skill и что служит критерием реализации?",
+     "description": "Создание Gemini skill определено как полностью автономная работа без промежуточных вопросов, а критерием реализации задано изучение свежей документации.",
+     "topic": "gemini",
+     "path": "method/gemini-skill-autonomous-build.md"
+    },
+    {
+     "type": "entity",
+     "title": "Где лежат аудиофайлы, которые владелец планирует обрабатывать через Gemini?",
+     "description": "Аудиофайлы для обработки через Gemini находятся в /Users/triton/Documents/My_projects/kumysbekov/_workspace/оцифровка.",
+     "topic": "gemini",
+     "path": "entity/audio-files-for-gemini-processing.md"
+    },
+    {
+     "type": "entity",
+     "title": "Есть ли отдельный скилл для вызова Gemini и каким маршрутом он должен работать?",
+     "description": "Отдельный Gemini skill решено сделать по образцу маршрута Hermes, чтобы Gemini можно было вызывать; маршрутом определён Antigravity, подключённый через аккаунт владельца.",
+     "topic": "gemini",
+     "path": "entity/gemini-skill-via-antigravity.md"
+    },
+    {
+     "type": "method",
+     "title": "Как владелец определил создание Gemini skill (режим и критерий)?",
+     "description": "Создание Gemini skill выполняется полностью автономно, без промежуточных вопросов, с изучением свежей документации как критерием реализации.",
+     "topic": "gemini",
+     "path": "method/gemini-skill-creation.md"
+    },
+    {
+     "type": "entity",
+     "title": "Какие инструкции по обработке audio/video включены в Gemini skill?",
+     "description": "В Gemini skill включаются инструкции по отправке Gemini аудио- и видеофайлов для мультимодального анализа.",
+     "topic": "gemini",
+     "path": "entity/gemini-audio-video-instructions.md"
+    },
+    {
+     "type": "entity",
+     "title": "Что внутри Gemini skill отвечает за обработку аудио и видео?",
+     "description": "В Gemini skill решено включить инструкции по отправке Gemini аудио- и видеофайлов для мультимодального анализа.",
+     "topic": "gemini",
+     "path": "entity/gemini-skill-audio-video-instructions.md"
+    }
+   ]
+  },
+  {
+   "topic": "recraft-images",
+   "title": "Генерация изображений через Recraft и хранение дизайн-артефактов",
+   "pages": [
+    {
+     "type": "concept",
+     "title": "Где хранить артефакты дизайн-скиллов?",
+     "description": "Артефакты recraft-images хранятся в Workspace/Design/Recraft; для design skills с project artifacts владелец предложил общий namespace Workspace/Design, включая скриншоты 1design-review.",
+     "topic": "recraft-images",
+     "path": "concept/design-artifacts-storage-paths.md"
+    },
+    {
+     "type": "entity",
+     "title": "Как владелец оформил пакет recraft-images?",
+     "description": "У recraft-images будет tracked owner в agentic-research, синхронизируемый с установленной projection.",
+     "topic": "recraft-images",
+     "path": "entity/recraft-images-tracked-owner.md"
+    },
+    {
+     "type": "concept",
+     "title": "Можно ли менять storage paths в дизайн-скиллах без shaping-аудита?",
+     "description": "Текущую смену storage paths в recraft-images и 1design-review владелец разрешил вносить сразу, без полного shaping-аудита.",
+     "topic": "recraft-images",
+     "path": "concept/storage-path-change-without-shaping-audit.md"
+    },
+    {
+     "type": "entity",
+     "title": "Что владелец решил о будущем Recraft MCP?",
+     "description": "Recraft понадобится в будущем; код Recraft MCP планируется отредактировать, чтобы массовые попытки открыть Recraft не повторялись.",
+     "topic": "recraft-images",
+     "path": "entity/recraft-mcp-future-plans.md"
+    },
+    {
+     "type": "analysis",
+     "title": "Что известно о массовом открытии Recraft в браузере?",
+     "description": "Владелец наблюдал массовые попытки открыть Recraft, остановил обращавшийся к нему неизвестный повторяющийся процесс и предположил вирусную причину.",
+     "topic": "recraft-images",
+     "path": "analysis/recraft-browser-opening-incident.md"
+    }
+   ]
+  },
+  {
+   "topic": "skill-routing",
+   "title": "Имена, descriptions и автоматическая активация skills",
+   "pages": [
+    {
+     "type": "concept",
+     "title": "Как отображать имена skills?",
+     "description": "Названия скиллов с префиксом 1 показываются в Codex русскими именами, по звучанию близкими к оригиналу.",
+     "topic": "skill-routing",
+     "path": "concept/how-skill-names-are-displayed.md"
+    },
+    {
+     "type": "method",
+     "title": "Как экспортировать и проверить стартовый контекст Codex?",
+     "description": "Повторяемым скриптом одним текстом экспортировать нулевой стартовый input и проверить, попадают ли туда короткие описания даже отключённых скилов.",
+     "topic": "skill-routing",
+     "path": "method/exporting-and-checking-codex-start-context.md"
+    },
+    {
+     "type": "entity",
+     "title": "Какие скиллы отключить, а каким разрешить автоматический вызов?",
+     "description": "Аудит всех установленных скилов в таблице описаний и поимённый вердикт владельца об удалении, отключении автозова и включении автозова.",
+     "topic": "skill-routing",
+     "path": "entity/skill-audit-disable-and-auto-invoke-list.md"
+    },
+    {
+     "type": "concept",
+     "title": "Когда skill должен активироваться автоматически?",
+     "description": "Точные trigger-описания должны звать нужный скилл в момент входа агента в релевантную часть работы — так писать скиллы по умолчанию.",
+     "topic": "skill-routing",
+     "path": "concept/when-do-skills-auto-activate.md"
+    },
+    {
+     "type": "analysis",
+     "title": "Что короткие описания скилов делают с поведением агента?",
+     "description": "Даже без вызова полного скила описания — дополнительный контекст, способный менять поведение; поэтому инструкции поведению из них вычищаются.",
+     "topic": "skill-routing",
+     "path": "analysis/what-skill-descriptions-do-to-behavior.md"
+    }
+   ]
+  },
+  {
+   "topic": "project-structure",
+   "title": "Структура проекта, служебных зон и корневой навигации",
+   "pages": [
+    {
+     "type": "concept",
+     "title": "Какими должны быть корневые инструкции репозитория agentic-research?",
+     "description": "Короткими в части влияния на поведение агента, но полными по ссылкам и знаниям; сухие данные внутри, когнитивных инструкций поведения нет.",
+     "topic": "project-structure",
+     "path": "concept/agentic-research-root-instructions-genre.md"
+    },
+    {
+     "type": "concept",
+     "title": "Какую структуру служебной зоны создают скиллы владельца?",
+     "description": "Все скиллы создают папку _ops; глобальная структура папок по замыслу владельца должна быть одинаковой везде.",
+     "topic": "project-structure",
+     "path": "concept/ops-folder-uniform-across-skills.md"
+    },
+    {
+     "type": "concept",
+     "title": "На что распространяется разделение корневых инструкций на правила и справочные данные?",
+     "description": "Только на репозиторий agentic-research; это решение не меняет скиллы или правила в целом.",
+     "topic": "project-structure",
+     "path": "concept/root-instructions-split-scope.md"
+    },
+    {
+     "type": "concept",
+     "title": "Стоит ли переспрашивать владельца, прежде чем его исправить?",
+     "description": "Нет: владелец предпочитает, чтобы его сразу исправляли без предварительного вопроса.",
+     "topic": "project-structure",
+     "path": "concept/correct-immediately-without-asking.md"
+    },
+    {
+     "type": "entity",
+     "title": "Что выполняет роль корневой навигации в agentic-research?",
+     "description": "Индекс-файл INDEX.md в корне agentic-research; владелец решил его создать.",
+     "topic": "project-structure",
+     "path": "entity/index-md-root-navigation.md"
+    }
+   ]
+  },
+  {
+   "topic": "expert-lens",
+   "title": "Получение практического взгляда предметного эксперта",
+   "pages": [
+    {
+     "type": "concept",
+     "title": "Должен ли эксперт искать готовые решения вместо переизобретения?",
+     "description": "Позиция владельца: эксперт ищет в интернете готовые решения и не переизобретает то, что можно сделать проще.",
+     "topic": "expert-lens",
+     "path": "concept/expert-searches-ready-solutions.md"
+    },
+    {
+     "type": "entity",
+     "title": "Зачем агенту вызывать 1expert-lens?",
+     "description": "Позиция владельца: линза борется с распространёнными проблемами языковых моделей, и её вызов работает.",
+     "topic": "expert-lens",
+     "path": "entity/expert-lens-purpose.md"
+    },
+    {
+     "type": "concept",
+     "title": "К какой ситуации применять экспертную линзу?",
+     "description": "Позиция владельца: линза и связанная с ней мудрость применяются именно к соответствующей ситуации.",
+     "topic": "expert-lens",
+     "path": "concept/expert-lens-matching-situation.md"
+    },
+    {
+     "type": "concept",
+     "title": "Почему скилл должен объяснять агенту свою пользу?",
+     "description": "Позиция владельца: скилл обязан раскрыть агенту свою пользу и своё знание, которого у агента нет, — иначе инструкции выполняются неохотно.",
+     "topic": "expert-lens",
+     "path": "concept/skill-must-explain-its-usefulness.md"
+    },
+    {
+     "type": "entity",
+     "title": "Сохраняется ли исходный смысл 1expert-lens при усилении лучшими практиками?",
+     "description": "Позиция владельца: scope 1expert-lens — сохранить исходный смысл скила и усилить его лучшими практиками.",
+     "topic": "expert-lens",
+     "path": "entity/expert-lens-scope-strengthening.md"
+    }
+   ]
+  },
+  {
+   "topic": "findings",
+   "title": "Фиксация побочных находок без остановки основной работы",
+   "pages": [
+    {
+     "type": "concept",
+     "title": "Как владелец подошёл к рефактору `1findings`?",
+     "description": "Рефактор `1findings`: аудит с системным швом вызова и записи через управляющие инструкции, полный черновик, критерий — минимум инструкций.",
+     "topic": "findings",
+     "path": "concept/refactor-of-findings.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как сделать так, чтобы агент находил и использовал `1findings`?",
+     "description": "Заметность `1findings` для агента: короткие route-строки в обоих глобальных root и широкое, активное, агрессивное описание в discovery metadata.",
+     "topic": "findings",
+     "path": "concept/findings-discoverability.md"
+    },
+    {
+     "type": "method",
+     "title": "Когда агент должен зафиксировать находку, а не разбираться на месте?",
+     "description": "Trigger и friction-сигнал `1findings`: заметил плохое или попал в долгую цепочку чтения — записал находку и продолжил работу.",
+     "topic": "findings",
+     "path": "method/when-to-record-a-finding.md"
+    },
+    {
+     "type": "concept",
+     "title": "Что обновлять в парной глобальной skill-проекции?",
+     "description": "Правило паритета: если у скила существуют Codex- и Claude-версии, обновлять надо обе проекции.",
+     "topic": "findings",
+     "path": "concept/update-both-skill-projections.md"
+    },
+    {
+     "type": "entity",
+     "title": "Что такое `1findings`?",
+     "description": "`1findings` — скил на русском языке, который собирает задачи на будущее и замеченные проблемы, не отвлекая агента от основной работы.",
+     "topic": "findings",
+     "path": "entity/1findings.md"
+    }
+   ]
+  },
+  {
+   "topic": "owner-intent",
+   "title": "Понимание скрытого намерения владельца за буквальной просьбой",
+   "pages": [
+    {
+     "type": "entity",
+     "title": "Входят ли md-lint и skill lossy product refactor в глобальные установки?",
+     "description": "Позиция: md-lint и skill lossy product refactor решено удалить из глобальных установок Codex и Claude.",
+     "topic": "owner-intent",
+     "path": "entity/md-lint-and-skill-lossy-product-refactor.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как понимать скрытое намерение владельца за буквальной просьбой?",
+     "description": "Позиция: буквальная просьба неполна, агент обязан восстанавливать скрытое намерение из контекста и доказывать понимание поведением.",
+     "topic": "owner-intent",
+     "path": "concept/hidden-intent-behind-literal-request.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как принцип чтения воздуха проявляется в диалоге?",
+     "description": "Позиция: принцип действует постоянно как общий стиль общения, а вопросы задаются только когда это действительно нужно.",
+     "topic": "owner-intent",
+     "path": "concept/read-air-in-dialogue.md"
+    },
+    {
+     "type": "concept",
+     "title": "Какие Product Principles читать перед задачей?",
+     "description": "Позиция: из Product Principles читаются только те, что релевантны текущей задаче.",
+     "topic": "owner-intent",
+     "path": "concept/read-only-relevant-product-principles.md"
+    },
+    {
+     "type": "concept",
+     "title": "Через что формулировать скил?",
+     "description": "Позиция: скил описывается через желаемый результат, а не через внутренние действия агента.",
+     "topic": "owner-intent",
+     "path": "concept/formulate-skill-through-desired-result.md"
+    }
+   ]
+  },
+  {
+   "topic": "handoff",
+   "title": "Закрытие сессии и передача продолжения следующему агенту",
+   "pages": [
+    {
+     "type": "entity",
+     "title": "Для чего существует 1handoff и что считается его успехом?",
+     "description": "1handoff — историческая летопись для следующего агента; успех — когда новый агент успешно продолжает работу, а сам скилл рассматривается как продукт с задачей.",
+     "topic": "handoff",
+     "path": "entity/1handoff-purpose-and-success.md"
+    },
+    {
+     "type": "method",
+     "title": "Как проверяется готовность handoff перед передачей?",
+     "description": "Гейты против пересказа решений с опорой на якоря recall, ось verified/unverified, цепочку хендофов и преамбулу читателю; самопроверка вместо отдельного субагентного consumer proof.",
+     "topic": "handoff",
+     "path": "method/handoff-gates-and-self-check.md"
+    },
+    {
+     "type": "method",
+     "title": "Как проходит закрытие сессии с 1handoff?",
+     "description": "Единый ритуал закрытия оркестрирует независимые 1handoff и 1chat-recall с ручной передачей по явному пути; сам 1handoff вызывается не более одного раза за сессию, перед ним убирается слой агентного управления.",
+     "topic": "handoff",
+     "path": "method/session-closure-with-handoff.md"
+    },
+    {
+     "type": "method",
+     "title": "Каким должно быть содержание handoff?",
+     "description": "Основной handoff — летопись трудностей, ошибок и открытий без рекомендаций; совет следующему агенту живёт в одном отдельном разделе, плюс задан уровень мета-анализа агентской работы.",
+     "topic": "handoff",
+     "path": "method/what-goes-into-handoff.md"
+    },
+    {
+     "type": "concept",
+     "title": "Что решено о переработке 1handoff?",
+     "description": "Переработка принята с целью continuation-sufficient вместо conversation-complete, с удалением нормы 20k, полного шаблона и llm-divergences и расширением объёма на Claude-native live skill.",
+     "topic": "handoff",
+     "path": "concept/handoff-rework-decisions.md"
+    }
+   ]
+  },
+  {
+   "topic": "mantine",
+   "title": "Разработка и обновление интерфейсов на Mantine",
+   "pages": [
+    {
+     "type": "entity",
+     "title": "Из каких источников 1mantine-dev берёт знания о Mantine?",
+     "description": "Внутри — карта «симптом → help.mantine.dev» и лестница размещения; снаружи — llms.txt и help.mantine.dev по URL, официальные носители пока не ставятся.",
+     "topic": "mantine",
+     "path": "entity/mantine-sources-of-1mantine-dev.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как владелец предпочитает проверять Mantine независимо?",
+     "description": "Повторная проверка Mantine независимыми субагентами из разных сторон с итогом в виде списка рекомендаций.",
+     "topic": "mantine",
+     "path": "concept/independent-review-of-mantine-by-subagents.md"
+    },
+    {
+     "type": "method",
+     "title": "Как утверждается и синхронизируется переработка 1mantine-dev?",
+     "description": "Полный draft показывается и утверждается перед записью; после утверждённого рефактора глобальный 1mantine-dev синхронизируется в live Codex- и Claude-пакеты.",
+     "topic": "mantine",
+     "path": "method/approval-and-sync-of-1mantine-dev-refactor.md"
+    },
+    {
+     "type": "concept",
+     "title": "Каким владелец видит критерий качества 1mantine-dev?",
+     "description": "Агенты успешно используют Mantine, Mantine работает качественно, код и скилл понятны и легко изменяемы — с меньшим количеством проблем для агентов.",
+     "topic": "mantine",
+     "path": "concept/quality-criteria-of-1mantine-dev.md"
+    },
+    {
+     "type": "method",
+     "title": "Что нужно сделать перед любой записью в 1mantine-dev?",
+     "description": "До записи — прочитать все references 1instruction-shaping и 1skill-shaping и подготовить draft исправления глобального 1mantine-dev.",
+     "topic": "mantine",
+     "path": "method/before-any-write-to-1mantine-dev.md"
+    }
+   ]
+  },
+  {
+   "topic": "cli-tools",
+   "title": "Маршрутизация к установленным CLI по версии и ситуации",
+   "pages": [
+    {
+     "type": "entity",
+     "title": "Зачем нужен 1cli-tools?",
+     "description": "Скил сообщает агенту о новых возможностях терминальных инструментов, которых нет в его памяти, и ведёт к проверке и переиспользованию уже установленных.",
+     "topic": "cli-tools",
+     "path": "entity/what-is-1cli-tools-for.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как выполнять переработку 1cli-tools?",
+     "description": "Автономное выполнение всего цикла переработки без дополнительных вопросов.",
+     "topic": "cli-tools",
+     "path": "concept/cli-tools-rework-autonomous-mode.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как решать конфликты терминальных инструментов?",
+     "description": "Обновлять обе конфликтующие вещи до новых версий: последние версии могут не конфликтовать между собой.",
+     "topic": "cli-tools",
+     "path": "concept/resolving-cli-tool-version-conflicts.md"
+    },
+    {
+     "type": "method",
+     "title": "Что должно быть в теле 1cli-tools и его основном тексте?",
+     "description": "Тело — маленькое и компактное, подробности — в разделённых по разделам reference-файлах; основной текст описывает ситуации применения и содержит минимальное число строк с самым главным.",
+     "topic": "cli-tools",
+     "path": "method/what-goes-into-1cli-tools-body.md"
+    }
+   ]
+  },
+  {
+   "topic": "interview-tool",
+   "title": "Структурированные интервью и Markdown-формы для решений владельца",
+   "pages": [
+    {
+     "type": "concept",
+     "title": "Как оформлять вопросы в plain-Markdown формах 1interview-tool?",
+     "description": "Позиция: каждый вопрос в формах 1interview-tool владелец решил оформлять заголовком H3.",
+     "topic": "interview-tool",
+     "path": "concept/h3-question-markdown-forms.md"
+    },
+    {
+     "type": "concept",
+     "title": "Как понять, что интервью полезно?",
+     "description": "Позиция: критерий полезности — агент создаёт интервью с чётким пониманием того, что он хочет узнать.",
+     "topic": "interview-tool",
+     "path": "concept/interview-usefulness-criterion.md"
+    },
+    {
+     "type": "entity",
+     "title": "Что писать рядом с заполненным интервью?",
+     "description": "Позиция: рядом с заполненным интервью владелец предложил писать файл SPEC.",
+     "topic": "interview-tool",
+     "path": "entity/spec-file-next-to-interview.md"
+    },
+    {
+     "type": "entity",
+     "title": "Что такое 1interview-tool и как владелец его развивает?",
+     "description": "Позиция: предмет — скил интервью 1interview-tool; в него предлагалось встроить хорошие идеи гриллинга, а сам скил владелец решил переписать по рекомендациям.",
+     "topic": "interview-tool",
+     "path": "entity/1interview-tool.md"
+    }
+   ]
+  },
+  {
+   "topic": "readable-code",
+   "title": "Проектирование читаемого кода и устойчивых программных границ",
+   "pages": [
+    {
+     "type": "entity",
+     "title": "Должна ли версия 1readable-code для Codex отличаться от версии для Claude?",
+     "description": "Позиция владельца: версия 1readable-code для Codex должна быть такой же, как версия для Claude.",
+     "topic": "readable-code",
+     "path": "entity/readable-code-codex-claude-parity.md"
+    },
+    {
+     "type": "concept",
+     "title": "Каким принципам должен следовать код?",
+     "description": "Позиция владельца: весь код должен следовать концептуальной целостности Брукса и принципам deep modules Ousterhout.",
+     "topic": "readable-code",
+     "path": "concept/readable-code-brooks-deep-modules.md"
+    },
+    {
+     "type": "concept",
+     "title": "Каковы границы входа 1readable-code?",
+     "description": "Границы входа 1readable-code — не только предпочтения coding-агентов к коду, но и общие системные промпты, помогающие им успешно писать код.",
+     "topic": "readable-code",
+     "path": "concept/readable-code-entry-boundaries.md"
+    },
+    {
+     "type": "concept",
+     "title": "На чём строится содержание 1readable-code?",
+     "description": "Основание содержания 1readable-code — свежие внешние исследования о коде, который предпочитают LLM-агенты, а не читаемость для владельца.",
+     "topic": "readable-code",
+     "path": "concept/readable-code-content-basis.md"
+    }
+   ]
+  },
+  {
+   "topic": "domain-modeling",
+   "title": "Выделение доменных понятий, правил и границ компонентов",
+   "pages": [
+    {
+     "type": "concept",
+     "title": "Как владелец скорректировал подход к работе над скилом?",
+     "description": "Сразу продумывать всю фундаментальную логику скила, а не сосредотачиваться на мелких правках.",
+     "topic": "domain-modeling",
+     "path": "concept/skill-work-fundamental-logic-first.md"
+    },
+    {
+     "type": "entity",
+     "title": "Что владелец решил о скилле domain-modeling?",
+     "description": "Решения владельца о судьбе нашей версии 1domain-modeling и о названии, фокусе и границах глобального скилла domain-modeling.",
+     "topic": "domain-modeling",
+     "path": "entity/domain-modeling-skill.md"
+    },
+    {
+     "type": "entity",
+     "title": "Что владелец решил улучшить в скилле планирования?",
+     "description": "Скилл планирования владелец решил улучшить с помощью идей скила Wayfinder.",
+     "topic": "domain-modeling",
+     "path": "entity/planning-skill-wayfinder.md"
+    }
+   ]
+  },
+  {
+   "topic": "notion-integration",
+   "title": "Интеграция агента с Notion Developer Platform",
+   "pages": [
+    {
+     "type": "entity",
+     "title": "Как устроено тело скилла архитектора для Notion?",
+     "description": "Позиция владельца: тело скилла — короткий роутер, а содержимое вынесено в референс-файлы.",
+     "topic": "notion-integration",
+     "path": "entity/notion-architect-skill-body.md"
+    },
+    {
+     "type": "entity",
+     "title": "Установлен ли скилл архитектора для Notion в Claude?",
+     "description": "Позиция владельца: скилл архитектора решено установить также в Claude.",
+     "topic": "notion-integration",
+     "path": "entity/notion-architect-skill-claude-install.md"
+    },
+    {
+     "type": "entity",
+     "title": "Чем скилл архитектора для Notion отличается от официального 1my-notion?",
+     "description": "Позиция владельца: скилл архитектора назван отдельно от официального 1my-notion, чтобы эти две вещи не путали.",
+     "topic": "notion-integration",
+     "path": "entity/notion-architect-skill-naming.md"
+    }
+   ]
+  },
+  {
+   "topic": "playwright",
+   "title": "Playwright-скилл для браузерной проверки",
+   "pages": [
+    {
+     "type": "comparison",
+     "title": "Какой Playwright-скилл владелец предпочитает в Codex?",
+     "description": "Владелец предпочитает в Codex официальный Playwright-скилл вместо ручного, возможно удалив ручной.",
+     "topic": "playwright",
+     "path": "comparison/official-vs-manual-playwright-in-codex.md"
+    },
+    {
+     "type": "concept",
+     "title": "По какому критерию владелец оценивает Playwright-скилл?",
+     "description": "Владелец задал критерием, чтобы Playwright-скилл одинаково хорошо работал в Claude и Codex.",
+     "topic": "playwright",
+     "path": "concept/playwright-skill-parity-criterion.md"
+    }
+   ]
+  },
+  {
+   "topic": "context-efficiency",
+   "title": "Экономия контекстного окна при чтении инструментального вывода",
+   "pages": [
+    {
+     "type": "concept",
+     "title": "Как экономить контекстное окно при чтении инструментального вывода?",
+     "description": "Терминальный и 1md-read вывод не должен содержать лишних текста и символов, а агент должен оценивать, действительно ли ему нужна вся выдача.",
+     "topic": "context-efficiency",
+     "path": "concept/context-economy-of-tool-output.md"
+    },
+    {
+     "type": "entity",
+     "title": "Что владелец требует от использования скилла 1md-read?",
+     "description": "Агент должен знать номера строк при работе со скиллом, сам оценивать возникающие при его использовании проблемы или дискомфорт и оценивать, насколько выдача скилла заполняет контекстное окно.",
+     "topic": "context-efficiency",
+     "path": "entity/1md-read.md"
+    }
+   ]
+  },
+  {
+   "topic": "llm-science",
+   "title": "Научное исследование поведения и управления LLM",
+   "pages": [
+    {
+     "type": "method",
+     "title": "Как оценивать пользу исследования для скилов и базы знаний?",
+     "description": "Заданный владельцем критерий — полностью прочитать исследование arXiv 2605.06717 при оценке его пользы.",
+     "topic": "llm-science",
+     "path": "method/full-read-criterion-for-research-value.md"
+    },
+    {
+     "type": "concept",
+     "title": "Каков статус работы по изучению LLM?",
+     "description": "Владелец решил считать её новым важным научным проектом, а не только набором скиллов или экспериментов.",
+     "topic": "llm-science",
+     "path": "concept/llm-study-as-new-science-project.md"
+    }
+   ]
+  }
+ ]
+}
