@@ -32,7 +32,7 @@ def check(wiki_root: str) -> list[str]:
     for path in pages:
         rel = os.path.relpath(path, wiki_root)
         text = open(path, encoding="utf-8").read()
-        is_index = rel == "index.md"
+        is_index = rel == "index.md" or rel.startswith("sections" + os.sep)
 
         if not text.startswith("---\n"):
             problems.append(f"{rel}: нет YAML-шапки")
@@ -65,10 +65,13 @@ def check(wiki_root: str) -> list[str]:
             if not os.path.exists(resolved):
                 problems.append(f"{rel}: битая ссылка {target}")
             if is_index and "_ops/" not in target:
-                linked.append(os.path.normpath(os.path.join(wiki_root, target)))
+                # Маршрут считается от файла указателя, а не от корня: файлы
+                # разделов лежат на уровень глубже и ссылаются через `../`.
+                linked.append(os.path.normpath(os.path.join(os.path.dirname(path), target)))
 
     for path in pages if has_index else []:
-        if path == index_path:
+        rel = os.path.relpath(path, wiki_root)
+        if rel == "index.md" or rel.startswith("sections" + os.sep):
             continue
         count = linked.count(os.path.normpath(path))
         if count != 1:

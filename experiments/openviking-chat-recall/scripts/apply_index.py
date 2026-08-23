@@ -50,16 +50,22 @@ def main(skeleton_path: str, run_path: str) -> int:
         f"`--since {horizon.get('date', '<дата снимка>')}` — свежая поправка "
         "владельца сильнее любой страницы.", "",
     ]
+    # Двухуровневый на самом деле, а не на словах. Корневой файл читают все и
+    # всегда, поэтому в нём только сорок разделов с подсказками: шесть
+    # килобайт вместо шестидесяти семи. Список страниц раздела живёт в файле
+    # раздела, и его открывает лишь тот, кто этот раздел выбрал.
+    os.makedirs(os.path.join(WIKI, "sections"), exist_ok=True)
     for section in sections:
         order, name, cue = named.get(section["topic"], (999, section["title"], ""))
-        body.append(f"## {name}")
-        if cue:
-            body.append("")
-            body.append(cue)
-        body.append("")
-        for page in section["pages"]:
-            body.append(f"- [{page['title']}]({page['path']}) — {page['description']}")
-        body.append("")
+        rel = f"sections/{section['topic']}.md"
+        body.append(f"- **[{name}]({rel})** — {cue or section['title']}"
+                    f" · страниц {len(section['pages'])}")
+        rows = [f"- [{page['title']}](../{page['path']}) — {page['description']}"
+                for page in section["pages"]]
+        open(os.path.join(WIKI, rel), "w", encoding="utf-8").write(
+            f"---\ntype: index\ntitle: {name}\ndescription: {cue or section['title']}\n"
+            f"topic: {section['topic']}\n---\n# {name}\n\n{cue}\n\n" + "\n".join(rows) + "\n")
+    body.append("")
     open(os.path.join(WIKI, "index.md"), "w", encoding="utf-8").write("\n".join(body).rstrip() + "\n")
     print(f"указатель собран: {skeleton['page_count']} страниц, {len(sections)} разделов")
     if missing:
