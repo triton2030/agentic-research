@@ -130,6 +130,13 @@ python3 $S/apply_backfill.py "$WORK-backfill/runs"
 
 ## Стадия 5 — аудит смысла и правки
 
+> **Не запускай применялки этой стадии, не перенаправив их.** `apply_repair.py`,
+> `apply_split.py` и `apply_backfill.py` до сих пор пишут в
+> `artifacts/wiki-v1/` — снятую библиотеку страниц. Слой тем они не чинят, а
+> замороженное evidence портят. Билдеры уже читают слой; расхождение
+> зафиксировано находкой 2026-08-24. `apply_drift.py` работает по обоим и
+> безопасен.
+
 ```bash
 python3 $S/build_audit_tasks.py "$WORK-audit/tasks" "$WORK-audit/runs"
 # волна
