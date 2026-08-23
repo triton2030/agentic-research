@@ -32,7 +32,11 @@ def acceptable(result: dict) -> tuple[bool, str]:
     if not result.get("ok"):
         warnings = result.get("warnings") or []
         return False, (warnings[0] if warnings else "гейт не принял прогон")
-    if not (result.get("response") or "").strip():
+    # Обёртка кладёт в пустой ответ строку-заглушку, и она не пуста как текст.
+    # Проверка «непустой строки» на ней зеленеет — ровно тот случай, о котором
+    # предупреждает сам скил: гейт выдаёт зелёное на пустом результате.
+    body = (result.get("response") or "").strip()
+    if not body or body in {"(empty)", "(пусто)"}:
         return False, "ответ пуст"
     return True, "принят"
 
