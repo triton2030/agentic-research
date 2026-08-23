@@ -15,6 +15,7 @@
 #                 когда агенты правят одни и те же файлы. Сливает оркестратор.
 set -u
 HERMES="$HOME/.claude/skills/1hermes/scripts/hermes_advisor.py"
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TASKS=${TASKS:?нужна папка с брифами}
 OUT=${OUT:-$TASKS/../runs}
 PAR=${PAR:-3}
@@ -29,20 +30,31 @@ case "$MODE" in
   *) echo "MODE должен быть read, write или worktree" >&2; exit 2 ;;
 esac
 
+# Вероятностный отказ маршрута имеет точный отпечаток и проходит на повторе,
+# поэтому вызывающему его видеть незачем — раннер поглощает его сам.
 run_one() {
-  local brief="$1" id
+  local brief="$1" id attempt=1
   id=$(basename "$brief" .txt)
-  python3 "$HERMES" --cwd "$CWD" \
-    --model stealth/ox-alpha --provider nous --reasoning max \
-    --max-turns 2000 --timeout-sec 10800 \
-    "${EXTRA[@]}" \
-    > "$OUT/$id.json" 2> "$OUT/$id.err" < "$brief"
+  while [ "$attempt" -le "${RETRIES:-3}" ]; do
+    python3 "$HERMES" --cwd "$CWD" \
+      --model stealth/ox-alpha --provider nous --reasoning max \
+      --max-turns 2000 --timeout-sec 10800 \
+      "${EXTRA[@]}" \
+      > "$OUT/$id.json" 2> "$OUT/$id.err" < "$brief"
+    if python3 "$HERE/route_started.py" "$OUT/$id.json"; then
+      break
+    fi
+    echo "$id: маршрут не стартовал, повтор $attempt"
+    attempt=$((attempt + 1))
+    sleep 5
+  done
   local ok
   ok=$(python3 -c "import json,sys;print(json.load(open('$OUT/$id.json')).get('ok'))" 2>/dev/null || echo "нет JSON")
-  echo "$id: ok=$ok"
+  echo "$id: ok=$ok (попыток $attempt)"
 }
+
 export -f run_one
-export HERMES OUT CWD
+export HERMES OUT CWD HERE RETRIES
 export EXTRA_STR="${EXTRA[*]}"
 
 # xargs не переносит массивы, поэтому пересобираем флаги внутри агента
