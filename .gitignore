@@ -17,3 +17,4 @@ experiments/clickup-tool/.state/
 **/.repomap.tags.cache.v1/
 _workspace/
 experiments/flowpage-v4-elk/dist/
+.firecrawl/
