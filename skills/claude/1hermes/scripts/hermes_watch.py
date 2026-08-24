@@ -193,24 +193,33 @@ def watch(root: Path, poll: int, max_hours: float) -> int:
 
 def look(root: Path) -> int:
     now = time.time()
-    live = []
+    live: list[tuple[float, Path]] = []
+    dead: list[float] = []
     for run in _runs(root):
         if (run / "result.json").is_file():
             continue
-        began = _opened_at(run)
-        live.append((began or now, run))
+        began = _opened_at(run) or now
+        if _pid_alive(run.name):
+            live.append((began, run))
+        else:
+            dead.append(began)
+
+    # Незакрытые квитанции копятся навсегда: их 3.3%, и за неделю они утопят
+    # живых. Факт их существования сохраняем одной строкой, поимённо не
+    # перечисляем — для разбора есть отдельный проход.
+    if dead:
+        emit(f"мёртвых без результата: {len(dead)} · старейшему {_dur(now - min(dead))}")
 
     if not live:
-        emit(f"живых прогонов Hermes нет: {root}")
+        emit("живых прогонов Hermes нет")
         return 0
 
     emit(f"живых прогонов Hermes: {len(live)}")
     for began, run in sorted(live):
-        state = "идёт" if _pid_alive(run.name) else "МЁРТВ"
         # Содержания прогона на диске нет: обёртка не пишет промежуточных
         # шагов, а общий agent.log к run_id не привязывается. Честный максимум —
         # жив ли он и сколько идёт.
-        emit(f"  {run.name} · {state} {_dur(now - began)}")
+        emit(f"  {run.name} · идёт {_dur(now - began)}")
     return 0
 
 
