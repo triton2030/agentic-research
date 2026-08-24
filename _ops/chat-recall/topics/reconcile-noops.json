@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "records": [
+    {
+      "topic": "chat-recall-corpus",
+      "session": "01a0347a-9ae2-70d0-8af9-1e3f61bf914f",
+      "record_sha256": "971e8b61f4208192fe9107ed1f1877537a3529132ee0b370482e4921ea9297ca",
+      "anchor": "2026-08-24-205601-codex-01a0347a.md#L21"
+    },
+    {
+      "topic": "global-agent-instructions",
+      "session": "01a0347a-9ae2-70d0-8af9-1e3f61bf914f",
+      "record_sha256": "b3dbe929785bafa434763edd6d23aae845a8218a502d69a1fbeb9524d9c44d16",
+      "anchor": "2026-08-24-205601-codex-01a0347a.md#L24"
+    },
+    {
+      "topic": "global-agent-instructions",
+      "session": "01a0347a-9ae2-70d0-8af9-1e3f61bf914f",
+      "record_sha256": "8c90ed2a8f8e90eac31928e30e9c4140ee31d43578a9ec76a8f17055b42de0e2",
+      "anchor": "2026-08-24-205601-codex-01a0347a.md#L25"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "88e98710-8fd4-462e-acd0-9e2f54f6262f",
+      "record_sha256": "9c3d7617fb7fce0f4f407ccd086ee9c42d2c4e368b3d98c88dcb105ca5007731",
+      "anchor": "2026-08-25-010615-claude-88e98710.md#L18"
+    }
+  ]
+}
