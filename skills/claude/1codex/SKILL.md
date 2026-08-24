@@ -102,7 +102,10 @@ effects в непишущем профиле — запрещай их зада�
 - **Любой оплаченный turn — через `Bash` с `run_in_background: true`.** Заранее
   ты не знаешь, что окажется долгим, а форграунд вешает сессию на минуты.
   Запустив, скажи пользователю `RUN_DIR` и что Codex **в списке агентов не
-  виден** — это фоновый процесс, не Agent-субагент.
+  виден** — это фоновый процесс, не Agent-субагент. Тем же ходом повесь витрину
+  завершений (`codex_watch.py`, [`references/orchestration.md`](references/orchestration.md)):
+  владелец должен видеть в панели десктопа, что агенты работают, и получать
+  строку, когда каждый кончил.
 - **В задание ЛЮБОГО прогона клади запрет обратного вызова:** «не вызывай
   инструменты claude-mcp, работай файлами и shell». У Codex есть свой скил
   `1claude-mcp` с блокирующим `claude_ask`; ответить ему некому — замер
@@ -127,6 +130,8 @@ $B/.venv/bin/python $B/codex_review.py --doctor --project "$PWD"   # не раб
 $B/.venv/bin/python $B/codex_threads.py list --project "$PWD"
 $B/.venv/bin/python $B/codex_progress.py "$RUN_DIR" [--steer "ТЕКСТ"] [--worker ID]
 $B/.venv/bin/python $B/codex_progress.py --board "$PWD"   # доска идёт ОДНА, без RUN_DIR
+$B/.venv/bin/python $B/codex_watch.py watch "$RUN_DIR"    # витрина: строка на каждое завершение — вешай нативным Monitor
+$B/.venv/bin/python $B/codex_watch.py look "$PWD"         # «над чем они там» — снимок живых агентов по запросу владельца
 $B/.venv/bin/python $B/codex_investigate.py "ЗАДАНИЕ + формат выхода" --project "$PWD"
 (cd /Users/triton/Documents/My_projects/md-tools && uv run python scripts/run_md_scout.py КОРПУС --question "ВОПРОС")
 # Флот воркеров — codex_orchestrate.py: см. references/fleet.md
