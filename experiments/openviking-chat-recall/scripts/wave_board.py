@@ -96,7 +96,12 @@ def route_health() -> str:
 
 
 def circle() -> str:
-    out = subprocess.run(["pgrep", "-f", "grind.sh"], capture_output=True, text=True).stdout
+    # Шаблон якорится на `bash`, потому что `pgrep -f grind.sh` ловит любого,
+    # кто это слово лишь называет: 2026-08-25 так был опознан «живым кругом»
+    # процесс ревьюера, у которого grind.sh стоял в тексте задания. Тем же
+    # промахом широкий `pkill -f` дважды снёс собственного наблюдателя.
+    out = subprocess.run(["pgrep", "-f", r"^bash .*grind\.sh"],
+                         capture_output=True, text=True).stdout
     if not out.strip():
         return "круг НЕ ИДЁТ"
     pid = out.split()[0]
