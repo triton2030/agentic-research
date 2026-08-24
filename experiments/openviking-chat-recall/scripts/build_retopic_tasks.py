@@ -47,11 +47,22 @@ def star_blocks(lines: list[str]) -> list[tuple[int, str]]:
     return blocks
 
 
+def meta_at(block: str) -> int | None:
+    """Начало служебного хвоста записи — ПОСЛЕДНИЙ разделитель, не первый.
+
+    Первый ломается о речь владельца: реплика «пиши так — topic: X» выглядит
+    служебной с начала строки, и правка съедала бы остаток цитаты. Служебные
+    поля стоят в конце записи, поэтому счёт идёт с конца.
+    """
+    starts = list(META_START.finditer(block))
+    return starts[-1].end() if starts else None
+
+
 def topic_of(block: str) -> str | None:
-    meta = META_START.search(block)
-    if not meta:
+    meta = meta_at(block)
+    if meta is None:
         return None
-    field = TOPIC_FIELD.search(block, meta.end())
+    field = TOPIC_FIELD.search(block, meta)
     return field.group(2).strip() if field else None
 
 

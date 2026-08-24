@@ -25,7 +25,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from wave import strip_fence
-from build_retopic_tasks import META_START, TOPIC_FIELD, star_blocks, topic_of
+from build_retopic_tasks import META_START, TOPIC_FIELD, meta_at, star_blocks, topic_of
 
 ART = "experiments/openviking-chat-recall/artifacts"
 CORPUS = "_ops/chat-recall/raw"
@@ -35,14 +35,33 @@ REPAIR_TOPIC = "без-темы"
 
 
 def retopic_block(block: str, topic: str) -> str:
-    meta = META_START.search(block)
-    field = TOPIC_FIELD.search(block, meta.end())
+    meta = meta_at(block)
+    field = TOPIC_FIELD.search(block, meta)
     return block[: field.start()] + f"{field.group(1)}{topic}{field.group(3)}" + block[field.end():]
 
 
+def mask_block(block: str) -> str:
+    """Одна запись с вычеркнутой темой — только в служебном хвосте."""
+    meta = meta_at(block)
+    if meta is None:
+        return block
+    field = TOPIC_FIELD.search(block, meta)
+    if not field:
+        return block
+    return block[: field.start()] + field.group(1) + "@" + field.group(3) + block[field.end():]
+
+
 def masked(text: str) -> str:
-    """Файл с вычеркнутыми значениями тем: инвариант всего остального."""
-    body = TOPIC_FIELD.sub(r"\1@\3", text)
+    """Файл с вычеркнутыми значениями тем: инвариант всего остального.
+
+    Вычёркивается только тема служебного хвоста. Глобальная замена вычёркивала
+    бы и `topic:` внутри самой реплики, а значит признала бы порчу цитаты
+    «изменением только тем» — проверено фальсификатором 2026-08-24.
+    """
+    body = "\n".join(
+        mask_block(part) if part.startswith("* ") else part
+        for part in re.split(r"\n(?=\* )", text)
+    )
     lines = []
     in_topics = in_front = False
     for line in body.splitlines():

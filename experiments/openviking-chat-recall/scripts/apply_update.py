@@ -19,16 +19,37 @@ from collections import defaultdict
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from wave import strip_fence
+from build_retopic_tasks import star_blocks, topic_of
 
 ART = "experiments/openviking-chat-recall/artifacts"
 TOPICS = "_ops/chat-recall/topics"
+CORPUS = "_ops/chat-recall/raw"
 SHORT = re.compile(r"L(\d+)")
+
+
+def record_topics(name: str) -> dict[int, str]:
+    """Тема каждой записи разговора: с переразметки она позаписная.
+
+    Карта тем размещает разговор целиком, и до 2026-08-24 этого хватало. После
+    переразметки 93 разговора из 213 несут по нескольку тем, и holder-маршрут
+    отправлял бы новый пункт в тему соседней реплики.
+    """
+    path = os.path.join(CORPUS, name)
+    if not os.path.exists(path):
+        return {}
+    lines = open(path, encoding="utf-8").read().splitlines()
+    found: dict[int, str] = {}
+    for number, block in star_blocks(lines):
+        topic = topic_of(block)
+        if topic:
+            found[number] = topic
+    return found
 
 
 def main(runs: str, dry: bool) -> int:
     delta = json.load(open(f"{ART}/update-delta.json", encoding="utf-8"))
-    topic_of = {f: t["id"] for t in json.load(open(f"{ART}/flatten-v1/topics.json", encoding="utf-8"))["topics"]
-                for f in t["files"]}
+    holder_of = {f: t["id"] for t in json.load(open(f"{ART}/flatten-v1/topics.json", encoding="utf-8"))["topics"]
+                 for f in t["files"]}
     fresh: dict[str, list[str]] = defaultdict(list)
     taken = refused = orphan = 0
     covered: set[tuple[str, int]] = set()
@@ -45,8 +66,9 @@ def main(runs: str, dry: bool) -> int:
             print(f"  не принят: {name}")
             refused += 1
             continue
-        topic = topic_of.get(name)
-        if topic is None:
+        holder_topic = holder_of.get(name)
+        by_record = record_topics(name)
+        if holder_topic is None and not by_record:
             orphan += 1
             print(f"  разговор без темы, ждёт назначения: {name}")
             continue
@@ -54,6 +76,12 @@ def main(runs: str, dry: bool) -> int:
             if line.startswith("- "):
                 anchors = SHORT.findall(line)
                 if not anchors:
+                    continue
+                # Пункт живёт в теме своей записи; тема разговора — только
+                # запасной маршрут для корпуса, который ещё не переразмечен.
+                topic = by_record.get(int(anchors[0])) or holder_topic
+                if topic is None:
+                    orphan += 1
                     continue
                 full = ", ".join(f"[{name}#L{n}]" for n in anchors)
                 text = re.sub(r"\s*\[L[^\]]*\]\s*$", "", line[2:]).strip()

@@ -22,12 +22,24 @@ from collections import defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from build_retopic_tasks import TOPIC_FIELD
+from build_retopic_tasks import TOPIC_FIELD, meta_at
 from reanchor import ANCHOR, CORPUS, ROOTS, library_files
 
 
 def masked(line: str) -> str:
-    return TOPIC_FIELD.sub(r"\1@\3", line.strip())
+    """Строка с вычеркнутой темой служебного хвоста, а не любой `topic:`.
+
+    Глобальная замена вычеркнула бы и `topic:` внутри самой реплики, и тогда
+    две разные записи выглядели бы одинаково — якорь встал бы на соседнюю.
+    """
+    line = line.strip()
+    meta = meta_at(line)
+    if meta is None:
+        return line
+    field = TOPIC_FIELD.search(line, meta)
+    if not field:
+        return line
+    return line[: field.start()] + field.group(1) + "@" + field.group(3) + line[field.end():]
 
 
 def blob(commit: str, path: str) -> list[str] | None:
