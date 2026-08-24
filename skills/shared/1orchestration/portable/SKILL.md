@@ -1,13 +1,9 @@
 ---
 name: 1orchestration
 description: >
-  Вызывается, когда владелец просит оркестрацию, волну или разделить
-  работу между субагентами; всегда перед запуском двух и более
-  субагентов на одну работу; и при сходе трёх и более моментных
-  инструкционных владельцев на одну задачу, даже последовательную.
-  Делит работу и фокусирует инструкции по их когнитивной цене.
-  Модель и семья — мостовые скилы своей семьи; план-файлы →
-  `1planning`; линзы и свежесть критиков → `1fresh-eyes`.
+  Use when the user asks for orchestration, a wave, or work split among
+  subagents; before launching two or more on one task; or when three momentary
+  instruction owners converge. Coordinate the wave.
 ---
 
 # Оркестрация

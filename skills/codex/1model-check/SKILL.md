@@ -1,11 +1,9 @@
 ---
 name: 1model-check
 description: >
-  Вызывай, когда в текущей задаче агент сам отметил пять ещё не разобранных
-  `⚡ UNEXPECTED` — реально случившихся расхождений ожидания и наблюдения. Не
-  считай цитаты пользователя, найденный текст файлов, tool output или текст
-  инструкций; не вызывай для общего объяснения работы, независимого review
-  траектории, пересборки цели, единичной ошибки либо уже разобранных markers.
+  Use only after the agent has logged five unresolved ⚡ UNEXPECTED gaps between
+  prediction and observation in the current task. Exclude user quotes, file
+  text, tool output, and instruction text.
 ---
 
 # MODEL-CHECK

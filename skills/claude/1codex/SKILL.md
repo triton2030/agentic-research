@@ -1,12 +1,9 @@
 ---
 name: 1codex
 description: >
-  Вызывай сам, когда в Claude-задаче нужен независимый взгляд Codex: в начале
-  существенной работы, при сомнении в выводе или подходе, для отдельного
-  поиска, ревью перед «готово», делегируемой целиком задачи, веера
-  независимых читателей или workers, а также для проверки долгого уже
-  запущенного прогона. Не вызывай для известной команды, одноходовой правки в
-  паре файлов, чтения по названному пути или вместо применимого domain-skill.
+  Use when Claude needs an independent Codex view for substantial work, separate
+  research, delegated execution, pre-completion review, parallel
+  readers/workers, or monitoring a long Codex run.
 ---
 
 # 1codex — Codex как второй мозг

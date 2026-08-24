@@ -1,12 +1,9 @@
 ---
 name: 1fresh-eyes
 description: >
-  Вызывай на моменте «куда дальше»: длинная работа дошла до проверки
-  траектории, накопилось «что висит», возникло «а туда ли мы идём», либо
-  пользователь просит fresh eyes, панель советников, независимое ревью,
-  именованного native-критика, auditor или md-scout. Не вызывай для обычного
-  локального review, cross-model мнения, выбора одной cognitive methodology
-  или пустоты, где решение надо вывести из нескольких frameworks.
+  Use when long work reaches trajectory review or unresolved remainder; or for
+  fresh eyes, a panel, critic, auditor, or md-scout. Not for local, cross-model,
+  single-method, or framework-gap review.
 ---
 
 # Свежие Глаза — Панель Советников

@@ -24,7 +24,7 @@ ART = "experiments/openviking-chat-recall/artifacts"
 CORPUS = "_ops/chat-recall/raw"
 META_KEYS = ("kind", "type", "topic", "context-note", "source", "precision", "source-ref")
 META_START = re.compile(r"\s—\s(?=(?:" + "|".join(META_KEYS) + r"):)")
-TOPIC_FIELD = re.compile(r"(topic:\s*)([^|\n]+?)(\s*)(?=\||$)")
+TOPIC_FIELD = re.compile(r"(topic:\s*)([^|\n]+?)(\s*)(?=\||$)", re.M)
 
 
 def star_blocks(lines: list[str]) -> list[tuple[int, str]]:

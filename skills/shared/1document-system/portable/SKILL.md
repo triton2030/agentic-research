@@ -1,12 +1,9 @@
 ---
 name: 1document-system
 description: >
-  Вызывай сам, без просьбы владельца, когда работа с несколькими документами
-  меняет semantic owner, тип артефакта или топологию корпуса; также когда из
-  нескольких источников нужно собрать один typed artifact либо projection с
-  устойчивым владельцем. Не вызывай для обычной прозы, локальной правки
-  одного абзаца, простого чтения/summary, форматирования или нескольких
-  независимых файлов без общего document-system решения.
+  Use when multi-document work changes a semantic owner, artifact type, or
+  corpus topology, or combines sources into one durable typed artifact or stable
+  projection. Not for editing or summarizing.
 ---
 
 # Document System

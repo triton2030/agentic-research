@@ -1,12 +1,9 @@
 ---
 name: 1readable-code
 description: >
-  Вызывай перед правкой кода больше one-liner: добавлением правила, check,
-  flag, helper, слоя или dependency; когда существующая логика уже живёт в
-  нескольких местах; при refactor, restructure, code review или выборе
-  владельца нового behavior. Не вызывай для механического formatting/rename,
-  чтения без суждения или одной очевидной строки. Если решение именно об
-  interface, seam, adapter или test boundary, используй codebase-design.
+  Use before nontrivial code changes, refactors, code review, or choosing the
+  owner of new behavior. Not for mechanical edits or one obvious line; use
+  1codebase-design for contract decisions.
 ---
 
 # Readable Code

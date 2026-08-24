@@ -1,12 +1,9 @@
 ---
 name: 1html
 description: >
-  Вызывай, когда пользователь просит «черновой артефакт» или «черновые
-  артефакты», даже без слов HTML/visualization; также когда быстрый локальный
-  HTML лучше текста показывает explainer, report, comparison, plan, diagram,
-  data story или UI states. Не вызывай для обычного текстового черновика,
-  production website/app, deploy, встроенной в чат визуализации, небольшого
-  списка или одного простого отношения.
+  Use when asked for a draft artifact, or local HTML explains a report,
+  comparison, plan, diagram, data story, or UI states. Not for text drafts,
+  production apps, chat visuals, or simple lists.
 ---
 
 # HTML

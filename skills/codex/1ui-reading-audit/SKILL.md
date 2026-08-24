@@ -1,12 +1,9 @@
 ---
 name: 1ui-reading-audit
 description: >
-  Вызывай, когда исходный код одной web-страницы нужно превратить в аудит
-  порядка чтения, смысловой иерархии и относительного визуального веса без
-  rendered evidence. Не вызывай для screenshot/design review, live-browser
-  или click QA, accessibility conformance, user testing, multi-page flow,
-  mobile варианта без отдельного запроса, общей UX-стратегии либо исправления
-  кода. Для готового render используй `1design-review`.
+  Use when source code for one web page needs an audit of reading order,
+  semantic hierarchy, and visual weight without rendered evidence. Use
+  1design-review for a finished render.
 ---
 
 # Аудит чтения интерфейса

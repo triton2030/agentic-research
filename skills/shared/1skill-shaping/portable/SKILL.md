@@ -1,12 +1,9 @@
 ---
 name: 1skill-shaping
 description: >
-  Вызывай перед созданием или переработкой skill; когда skill не срабатывает,
-  читается без применения, разрастается или исполняется как ритуал; также по
-  фразам «хочу скил про X», «надо бы скил» и при описании повторяющейся боли
-  агента либо преждевременно заданной формы skill. Не вызывай для обычной
-  прозы `AGENTS.md`/`CLAUDE.md`, project-local rule-skill без
-  shaping-вопроса, простой установки готового skill или разовой инструкции.
+  Use for skill creation/refactoring, or when one fails to trigger, affect
+  behavior, stay small, or avoid ritual. Not for prose, ready installs,
+  one-offs, or settled project-local 2* rules.
 ---
 
 # Форма скилов

@@ -1,12 +1,9 @@
 ---
 name: 1planning
 description: >
-  Вызывай сам, без просьбы владельца, когда выбранная работа должна пережить
-  сессию или compaction, нужен общий остаток проекта, начинается
-  multi-session работа, продолжается существующий план либо пользователь
-  спрашивает «составь план», «где остановились», «сколько осталось», «обнови
-  карту эпиков». Не вызывай в native Plan Mode, для одноходового checklist,
-  локальной декомпозиции в текущем окне или изменения самой цели проекта.
+  Use when work must survive sessions or compaction, a plan continues, or the
+  user asks for a plan, project remainder, stopping point, or epic map. Not in
+  native Plan mode or for local checklists.
 ---
 
 # Планирование

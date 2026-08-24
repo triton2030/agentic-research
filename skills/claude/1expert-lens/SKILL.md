@@ -2,10 +2,9 @@
 name: 1expert-lens
 disable-model-invocation: true
 description: >
-  Use when «качественно» / proper / robust, профессиональный DoD или риск
-  пропустить материальное неявное обязательство: вызови взгляд эксперта с
-  высоты — мудрости против типовых стажёрских ошибок. Не для простых задач,
-  выбора подхода, question-only экспертов или уже достаточной owner-приёмки.
+  Use only when explicitly invoked to define a professional DoD and surface
+  hidden obligations behind requests for proper or robust quality. Not for
+  simple tasks or approach selection.
 ---
 
 # Экспертная линза

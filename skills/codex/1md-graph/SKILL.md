@@ -1,12 +1,9 @@
 ---
 name: 1md-graph
 description: >
-  Вызывай, когда смысл Markdown-файла или раздела изменился и нужно понять,
-  что зависит от него, что устарело или должно быть перечитано; также когда
-  link, `depends-on`, rename/move либо смена semantic address требуют verdict
-  о силе, доверии или влиянии связи. Не вызывай для простого поиска похожих
-  кандидатов, чтения неизменённого корпуса, исправления битого пути без
-  смыслового вопроса или одного structural link check.
+  Use after Markdown meaning, links, depends-on edges, names, moves, or semantic
+  addresses change and downstream impact needs a verdict. Not for similarity
+  search or purely broken paths.
 ---
 
 # 1md-graph

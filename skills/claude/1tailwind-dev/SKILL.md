@@ -1,12 +1,9 @@
 ---
 name: 1tailwind-dev
 description: >
-  Вызывай, когда в разговоре появляется «обнови Tailwind», «что нового в
-  свежем Tailwind», «почему после обновления всё сломалось» или «с какой версии
-  это работает». Также вызывай, если совместимость или изменившееся поведение
-  связывают с Tailwind CSS v4.1.12–v4.3.3, @tailwindcss/webpack, Vite 8,
-  @container-size, scrollbar-*, logical properties, @variant либо @utility. Не
-  вызывай для обычной вёрстки и подбора utilities без вопроса о свежей версии.
+  Use for Tailwind version, compatibility, or regression on v4.1.12–v4.3.3,
+  @tailwindcss/webpack, Vite 8, @container-size, scrollbar-*, logical
+  properties, @variant, or @utility; not routine styling.
 ---
 
 # Tailwind CSS v4.1.12–v4.3.3 delta — проверено 2026-08-22

@@ -1,12 +1,9 @@
 ---
 name: 1cli-tools
 description: >
-  Вызывай сам, без просьбы владельца, перед version-sensitive выбором
-  route/default в active `agent-browser`, `ast-grep`, npm 12, uv tools,
-  TypeScript 7, локальном `md`, GitHub/Vercel agent CLI или FFmpeg 9; также
-  после update, ошибки прежней команды, конфликта версий и перед helper-ом
-  для этих инструментов. Не вызывай для общего CLI inventory, стабильной
-  команды без current-развилки или нового CLI поверх API.
+  Use before a version-sensitive choice, helper, or recovery in active
+  agent-browser, ast-grep, npm 12, uv, TypeScript 7, md, GitHub/Vercel CLI, or
+  FFmpeg 9; also after updates or version conflicts.
 ---
 
 # Свежие возможности CLI

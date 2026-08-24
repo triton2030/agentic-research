@@ -1,12 +1,9 @@
 ---
 name: 1hermes
 description: >
-  Вызывай, когда пользователь просит Hermes, Kimi K3, DeepSeek или Ox Alpha;
-  когда нужно продолжить их session, выбрать model/provider route либо
-  проверить здоровье уже настроенного Hermes/OpenRouter вызова. Не вызывай
-  для справочных вопросов о Hermes или OpenRouter, общего сравнения моделей,
-  Gemini/Claude second opinion, OpenAI-вызова или задачи, где внешний model
-  run вообще не требуется.
+  Use when the user asks for Hermes, Kimi K3, DeepSeek, or Ox Alpha; to continue
+  their session, choose a model/provider route, or check a configured
+  Hermes/OpenRouter run. Not for model comparisons.
 ---
 
 # 1hermes — третья семья и стенд моделей

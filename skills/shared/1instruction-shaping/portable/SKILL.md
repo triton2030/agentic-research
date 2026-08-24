@@ -1,13 +1,9 @@
 ---
 name: 1instruction-shaping
 description: >
-  Вызывай, когда проект настраивают под агента или меняют управляющий слой:
-  корневые/папочные инструкции, skills, hooks и plans; по фразам «настроим
-  проект», «напиши AGENTS.md / CLAUDE.md», «агент блуждает», «куда положить
-  правило», «наведи порядок в инструкциях», а также при сокращении
-  разросшегося свода. Не вызывай для устройства одного skill, обычной
-  редактуры прозы, INDEX-маршрутов или task-плана без изменения instruction
-  surface.
+  Use when configuring or refactoring an agent instruction surface across roots,
+  folders, skills, hooks, or plans. Owns placement and coherence; use
+  1skill-shaping for one skill's design.
 ---
 
 # Форма инструкций

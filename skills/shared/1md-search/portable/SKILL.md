@@ -1,12 +1,9 @@
 ---
 name: 1md-search
 description: >
-  Вызывай сам, без просьбы владельца, когда Markdown-доказательство не имеет
-  известного адреса и его нужно найти по смыслу: «где у нас про X», «есть ли
-  такое в базе», «поищи похожее», «нет ли дублей»; также для similarity,
-  near-copy, повторяющихся тем и semantic topology корпуса. Не вызывай, если
-  точный файл или раздел уже назван и его нужно только прочитать, либо вопрос
-  касается влияния уже сделанной Markdown-правки по графу.
+  Use when Markdown evidence lacks a known address and must be found
+  semantically, including similar, duplicate, or recurring topics. Not when the
+  exact location is known or impact is the question.
 ---
 
 # 1md-search

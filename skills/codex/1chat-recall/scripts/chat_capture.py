@@ -28,6 +28,42 @@ def resolve_log_dir(root: Path) -> Path:
     """Prefer the nested raw/ corpus layout when the project uses it."""
     nested = root / LOG_DIR / "raw"
     return nested if nested.is_dir() else root / LOG_DIR
+
+
+NON_THEME_STEMS = {"AGENTS", "CLAUDE", "README", "INDEX"}
+NEW_THEME_ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+
+
+def topics_dir(root: Path) -> Path | None:
+    """The topic-layer directory, when this project keeps one."""
+    candidate = root / LOG_DIR / "topics"
+    return candidate if candidate.is_dir() else None
+
+
+def theme_topics(layer: Path) -> dict[str, int]:
+    """Vocabulary owned by theme files; counts come from the corpus later."""
+    return {
+        path.stem: 0
+        for path in sorted(layer.glob("*.md"))
+        if path.stem not in NON_THEME_STEMS
+    }
+
+
+def create_theme_stub(layer: Path, topic: str, boundary: str) -> Path:
+    """A small theme file so the new topic and its file are born together.
+
+    Title stays a placeholder on purpose: the merge run names it, matching
+    the assign stage's contract for freshly created themes.
+    """
+    path = layer / f"{topic}.md"
+    if path.exists():
+        return path
+    path.write_text(
+        f"---\ntopic: {topic}\ntitle: {topic}\nsources: 0\n---\n"
+        f"# {topic}\n\nГраница темы: {boundary}\n",
+        encoding="utf-8",
+    )
+    return path
 KINDS = ("quote", "selection", "note")
 PRECISIONS = ("exact", "minute", "date", "unknown")
 ENV_BY_AGENT = {
@@ -107,11 +143,22 @@ def metadata_choice(
     return selected
 
 
-def topic_choice(value: str, existing: dict[str, int], allow_new: bool) -> str:
+def topic_choice(
+    value: str,
+    existing: dict[str, int],
+    new_topic: str | bool | None,
+    layer: Path | None,
+) -> tuple[str, Path | None]:
     selected = handle(value, "topic")
     if selected == REPAIR_TOPIC or selected in existing:
-        return selected
-    if not allow_new:
+        return selected, None
+    if not new_topic:
+        if layer is not None:
+            raise CaptureError(
+                f"topic {selected!r} has no theme file in {layer}. Pick a topic "
+                "named by an existing theme file, or create it deliberately: "
+                '--new-topic "<one-sentence boundary of the theme>".'
+            )
         known = ", ".join(sorted(existing)) or "none recorded yet"
         raise CaptureError(
             f"topic {selected!r} does not exist in this corpus yet "
@@ -119,7 +166,19 @@ def topic_choice(value: str, existing: dict[str, int], allow_new: bool) -> str:
             "to deliberately create this one after checking that no existing "
             "topic already owns the subject."
         )
-    return selected
+    if layer is None:
+        return selected, None
+    boundary = new_topic if isinstance(new_topic, str) else ""
+    if not boundary.strip():
+        raise CaptureError(
+            "a new theme needs its boundary: "
+            '--new-topic "<one-sentence boundary of the theme>"'
+        )
+    if not NEW_THEME_ID_RE.fullmatch(selected):
+        raise CaptureError(
+            f"new theme id must be a short latin-hyphen name: {selected!r}"
+        )
+    return selected, one_line(boundary, "boundary")
 
 
 def validate_metadata(type_: str, topic: str, kind: str) -> None:
@@ -135,18 +194,34 @@ def render_metadata_vocabulary(log_dir: Path) -> str:
     lines.extend(f"  {name}: {meaning}" for name, meaning in TYPE_DESCRIPTIONS.items())
     lines.append(f"  {REPAIR_TYPE}: repair-only sentinel")
     lines.append("")
-    topics = corpus_topics(log_dir)
-    if topics:
-        lines.append("Topics (existing in this corpus; conversations using each):")
+    container = log_dir.parent if log_dir.name == "raw" else log_dir
+    layer = container / "topics"
+    layer = layer if layer.is_dir() else None
+    counts = corpus_topics(log_dir)
+    if layer is not None:
+        topics = theme_topics(layer)
+        topics.update({k: v for k, v in counts.items() if k in topics})
+        lines.append(f"Topics (theme files in {layer}; conversations using each):")
         lines.extend(
             f"  {name}: {count}"
             for name, count in sorted(topics.items(), key=lambda kv: (-kv[1], kv[0]))
+        )
+        orphans = sorted(set(counts) - set(topics))
+        if orphans:
+            lines.append("Corpus topics without a theme file (do not reuse): "
+                         + ", ".join(orphans))
+    elif counts:
+        lines.append("Topics (existing in this corpus; conversations using each):")
+        lines.extend(
+            f"  {name}: {count}"
+            for name, count in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
         )
     else:
         lines.append(f"Topics: none recorded yet in {log_dir}")
     lines.append(f"  {REPAIR_TOPIC}: repair-only sentinel")
     lines.append(
-        "Pick an existing topic; create a missing one deliberately with --new-topic."
+        "Pick an existing topic; create a missing one deliberately with "
+        '--new-topic (with a theme layer: --new-topic "<boundary>").'
     )
     return "\n".join(lines)
 
@@ -516,10 +591,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--topic", required=True)
     parser.add_argument(
         "--new-topic",
-        action="store_true",
+        nargs="?",
+        const=True,
+        default=False,
+        metavar="BOUNDARY",
         help=(
-            "deliberately create a topic that is not in this corpus yet; "
-            "without it --topic must name an existing corpus topic"
+            "deliberately create a topic that does not exist yet; with a theme "
+            "layer (_ops/chat-recall/topics/) pass the one-sentence boundary of "
+            "the theme — a small theme file is created together with the record"
         ),
     )
     parser.add_argument("--kind", choices=KINDS, default="quote")
@@ -598,7 +677,9 @@ def main() -> int:
         if not root.is_dir():
             raise CaptureError(f"project root not found: {root}")
         log_dir = resolve_log_dir(root)
-        topic = topic_choice(topic, corpus_topics(log_dir), args.new_topic)
+        layer = topics_dir(root)
+        existing = theme_topics(layer) if layer is not None else corpus_topics(log_dir)
+        topic, theme_boundary = topic_choice(topic, existing, args.new_topic, layer)
         session = resolve_session(args.session, agent)
         if not session:
             checked = ", ".join(ENV_BY_AGENT.get(agent, ())) or "none"
@@ -606,6 +687,11 @@ def main() -> int:
                 f"session id unknown for agent '{agent}' (env checked: {checked})"
             )
         path = find_session_file(log_dir, agent, session, source)
+        theme_stub = (
+            create_theme_stub(layer, topic, theme_boundary)
+            if theme_boundary is not None and layer is not None
+            else None
+        )
         if path.exists():
             written, context_updated, path = append_entry(
                 path,
@@ -636,6 +722,8 @@ def main() -> int:
             )
             written = True
             context_updated = session_card is not None
+        if theme_stub is not None:
+            print(f"new theme file created: {theme_stub}")
         if written:
             print(f"appended to {path}")
         elif context_updated:

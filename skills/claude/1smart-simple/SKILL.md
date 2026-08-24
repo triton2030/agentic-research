@@ -1,12 +1,9 @@
 ---
 name: 1smart-simple
 description: >
-  Вызывай, когда существующий не-кодовый текст намерены упростить и заменить:
-  продуктовый документ, артефакт, инструкция, заметка или письмо по фразам
-  «сожми», «сократи», «слишком длинно», «упрости». Не вызывай для кода,
-  нового текста с нуля, proofreading без смыслового сокращения, краткого
-  пересказа при сохранении оригинала, изменения только тона либо одноразового
-  summary.
+  Use when an existing non-code text will be replaced by a simpler, shorter
+  version. Not for new writing, code, proofreading, tone-only edits, summaries,
+  or preserving the original.
 ---
 
 # Умное упрощение

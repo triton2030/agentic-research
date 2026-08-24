@@ -58,7 +58,7 @@ class ChatCaptureTests(unittest.TestCase):
         session_context: str | None = DEFAULT_SESSION_CONTEXT,
         session: str | None = None,
         source_timestamp: str | None = DEFAULT_SOURCE_TIMESTAMP,
-        new_topic: bool = True,
+        new_topic: bool | str = True,
         expect_ok: bool = True,
     ) -> subprocess.CompletedProcess[str]:
         clean_env = {k: v for k, v in os.environ.items() if k not in SESSION_ENV_VARS}
@@ -69,8 +69,10 @@ class ChatCaptureTests(unittest.TestCase):
             "--quote", quote, "--type", type_, "--topic", topic,
             "--project", str(self.root),
         ]
-        if new_topic:
+        if new_topic is True:
             command.append("--new-topic")
+        elif new_topic:
+            command += ["--new-topic", new_topic]
         if source_timestamp is not None:
             command += ["--source-timestamp", source_timestamp]
         if agent:
@@ -577,6 +579,48 @@ class ChatCaptureTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 2)
         self.assertIn("type is outside the controlled vocabulary", result.stderr)
+
+    def test_theme_layer_owns_vocabulary_and_new_topic_creates_stub(self) -> None:
+        layer = self.root / "_ops" / "chat-recall" / "topics"
+        layer.mkdir(parents=True)
+        (layer / "agent-autonomy.md").write_text(
+            "---\ntopic: agent-autonomy\n---\n", encoding="utf-8"
+        )
+
+        self.run_capture(
+            "Тезис по существующей теме", "решение", "agent-autonomy",
+            env=self.claude_env(), new_topic=False,
+        )
+
+        rejected = self.run_capture(
+            "Тезис без темы", "решение", "chat-tools",
+            env=self.claude_env(), new_topic=False, expect_ok=False,
+        )
+        self.assertIn("has no theme file", rejected.stderr)
+
+        bare_flag = self.run_capture(
+            "Тезис без границы", "решение", "chat-tools",
+            env=self.claude_env(), expect_ok=False,
+        )
+        self.assertIn("needs its boundary", bare_flag.stderr)
+
+        cyrillic = self.run_capture(
+            "Тезис с кириллическим id", "решение", "новая-тема",
+            env=self.claude_env(), new_topic="Граница темы.", expect_ok=False,
+        )
+        self.assertIn("latin-hyphen", cyrillic.stderr)
+        self.assertFalse((layer / "новая-тема.md").exists())
+
+        created = self.run_capture(
+            "Тезис новой темы", "решение", "chat-tools",
+            env=self.claude_env(), new_topic="CLI-инструменты вокруг чатов.",
+        )
+        self.assertIn("new theme file created", created.stdout)
+        stub = (layer / "chat-tools.md").read_text(encoding="utf-8")
+        self.assertIn("topic: chat-tools", stub)
+        self.assertIn("Граница темы: CLI-инструменты вокруг чатов.", stub)
+        text = self.recall_files()[0].read_text(encoding="utf-8")
+        self.assertIn("topic: chat-tools", text)
 
     def test_nested_raw_layout_is_preferred(self) -> None:
         nested = self.root / "_ops" / "chat-recall" / "raw"
