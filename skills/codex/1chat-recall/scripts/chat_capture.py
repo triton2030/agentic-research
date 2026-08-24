@@ -16,13 +16,18 @@ from typing import NamedTuple
 from recall_metadata import (
     REPAIR_TOPIC,
     REPAIR_TYPE,
-    TOPIC_DESCRIPTIONS,
-    TOPICS,
     TYPE_DESCRIPTIONS,
     TYPES,
+    corpus_topics,
 )
 
 LOG_DIR = Path("_ops/chat-recall")
+
+
+def resolve_log_dir(root: Path) -> Path:
+    """Prefer the nested raw/ corpus layout when the project uses it."""
+    nested = root / LOG_DIR / "raw"
+    return nested if nested.is_dir() else root / LOG_DIR
 KINDS = ("quote", "selection", "note")
 PRECISIONS = ("exact", "minute", "date", "unknown")
 ENV_BY_AGENT = {
@@ -102,6 +107,21 @@ def metadata_choice(
     return selected
 
 
+def topic_choice(value: str, existing: dict[str, int], allow_new: bool) -> str:
+    selected = handle(value, "topic")
+    if selected == REPAIR_TOPIC or selected in existing:
+        return selected
+    if not allow_new:
+        known = ", ".join(sorted(existing)) or "none recorded yet"
+        raise CaptureError(
+            f"topic {selected!r} does not exist in this corpus yet "
+            f"(existing: {known}). Pick an existing topic, or pass --new-topic "
+            "to deliberately create this one after checking that no existing "
+            "topic already owns the subject."
+        )
+    return selected
+
+
 def validate_metadata(type_: str, topic: str, kind: str) -> None:
     uses_repair_metadata = type_ == REPAIR_TYPE or topic == REPAIR_TOPIC
     if uses_repair_metadata and kind != "note":
@@ -110,16 +130,24 @@ def validate_metadata(type_: str, topic: str, kind: str) -> None:
         )
 
 
-def render_metadata_vocabulary() -> str:
+def render_metadata_vocabulary(log_dir: Path) -> str:
     lines = ["Types:"]
     lines.extend(f"  {name}: {meaning}" for name, meaning in TYPE_DESCRIPTIONS.items())
     lines.append(f"  {REPAIR_TYPE}: repair-only sentinel")
     lines.append("")
-    lines.append("Topics:")
-    lines.extend(
-        f"  {name}: {meaning}" for name, meaning in TOPIC_DESCRIPTIONS.items()
-    )
+    topics = corpus_topics(log_dir)
+    if topics:
+        lines.append("Topics (existing in this corpus; conversations using each):")
+        lines.extend(
+            f"  {name}: {count}"
+            for name, count in sorted(topics.items(), key=lambda kv: (-kv[1], kv[0]))
+        )
+    else:
+        lines.append(f"Topics: none recorded yet in {log_dir}")
     lines.append(f"  {REPAIR_TOPIC}: repair-only sentinel")
+    lines.append(
+        "Pick an existing topic; create a missing one deliberately with --new-topic."
+    )
     return "\n".join(lines)
 
 
@@ -137,7 +165,14 @@ class PrintMetadataAction(argparse.Action):
         option_string: str | None = None,
     ) -> None:
         del namespace, values, option_string
-        print(render_metadata_vocabulary())
+        argv = sys.argv[1:]
+        project = "."
+        for index, arg in enumerate(argv):
+            if arg == "--project" and index + 1 < len(argv):
+                project = argv[index + 1]
+            elif arg.startswith("--project="):
+                project = arg.split("=", 1)[1]
+        print(render_metadata_vocabulary(resolve_log_dir(Path(project).resolve())))
         parser.exit()
 
 
@@ -479,6 +514,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--quote", required=True)
     parser.add_argument("--type", required=True, dest="type_")
     parser.add_argument("--topic", required=True)
+    parser.add_argument(
+        "--new-topic",
+        action="store_true",
+        help=(
+            "deliberately create a topic that is not in this corpus yet; "
+            "without it --topic must name an existing corpus topic"
+        ),
+    )
     parser.add_argument("--kind", choices=KINDS, default="quote")
     parser.add_argument(
         "--source-timestamp",
@@ -513,7 +556,7 @@ def main() -> int:
     try:
         quote = one_line(args.quote, "quote")
         type_ = metadata_choice(args.type_, "type", TYPES)
-        topic = metadata_choice(args.topic, "topic", TOPICS)
+        topic = handle(args.topic, "topic")
         validate_metadata(type_, topic, args.kind)
         agent = handle(args.agent, "agent")
         model = handle(args.model, "model") if args.model else None
@@ -554,13 +597,15 @@ def main() -> int:
         root = Path(args.project).resolve()
         if not root.is_dir():
             raise CaptureError(f"project root not found: {root}")
+        log_dir = resolve_log_dir(root)
+        topic = topic_choice(topic, corpus_topics(log_dir), args.new_topic)
         session = resolve_session(args.session, agent)
         if not session:
             checked = ", ".join(ENV_BY_AGENT.get(agent, ())) or "none"
             raise CaptureError(
                 f"session id unknown for agent '{agent}' (env checked: {checked})"
             )
-        path = find_session_file(root / LOG_DIR, agent, session, source)
+        path = find_session_file(log_dir, agent, session, source)
         if path.exists():
             written, context_updated, path = append_entry(
                 path,

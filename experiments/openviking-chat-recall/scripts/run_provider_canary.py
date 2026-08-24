@@ -48,7 +48,7 @@ OWNED_ARTIFACT_NAMES = frozenset(
 # opens them; the scanner uses them to fail closed if a future change leaks a
 # private source address or deterministic evidence file into a public receipt.
 FORBIDDEN_PUBLIC_FRAGMENTS = (
-    "_ops/chat-recall",
+    "_ops/chat-recall/raw",
     "records.jsonl",
     "coverage-input.json",
     "partition-manifest.json",

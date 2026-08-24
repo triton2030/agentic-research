@@ -116,9 +116,9 @@ class ChatDigestTests(unittest.TestCase):
         self.assertIn("параллельно\nи сохраняют", records[1]["text"])
         self.assertEqual(records[1]["precision"], "minute")
         self.assertIn("unmarked-approximate", records[1]["diagnostics"])
-        self.assertEqual(records[1]["topic"], "без-темы")
-        self.assertEqual(records[1]["topic_raw"], "мой-workflow")
-        self.assertIn("invalid-topic", records[1]["diagnostics"])
+        self.assertEqual(records[1]["topic"], "мой-workflow")
+        self.assertIsNone(records[1]["topic_raw"])
+        self.assertNotIn("invalid-topic", records[1]["diagnostics"])
         self.assertEqual(records[2]["kind"], "selection")
         self.assertEqual(records[2]["precision"], "date")
         self.assertEqual(records[2]["source_ref"], "transcript.jsonl")
@@ -478,16 +478,21 @@ class ChatDigestTests(unittest.TestCase):
         self.assertEqual(full_record["record_id"], record_id)
         self.assertIn("quote", full_record)
 
-    def test_invalid_topic_is_visible_and_searchable(self) -> None:
+    def test_free_topic_is_native_and_searchable(self) -> None:
         check = self.call("--check")
-        self.assertIn("invalid-topic", check.stdout)
+        self.assertNotIn("invalid-topic", check.stdout)
+        self.assertIn("missing-topic", check.stdout)
         found = json.loads(self.call("--query", "мой-workflow", "--json").stdout)
         self.assertEqual(found["matched"], 1)
-        self.assertEqual(found["holders"][0]["topics"]["без-темы"], 3)
+        self.assertEqual(found["holders"][0]["topics"]["мой-workflow"], 1)
+        self.assertEqual(found["holders"][0]["topics"]["без-темы"], 2)
         records, _ = DIGEST.load(self.corpus)
-        invalid_topic = next(record for record in records if record["topic_raw"])
-        shown_topic = self.call("--show", invalid_topic["record_id"])
-        self.assertIn("topic_raw=мой-workflow", shown_topic.stdout)
+        free_topic = next(
+            record for record in records if record["topic"] == "мой-workflow"
+        )
+        self.assertIsNone(free_topic["topic_raw"])
+        shown_topic = self.call("--show", free_topic["record_id"])
+        self.assertIn("topic=мой-workflow", shown_topic.stdout)
 
         invalid_type = next(
             record
@@ -499,9 +504,8 @@ class ChatDigestTests(unittest.TestCase):
 
     def test_controlled_vocabulary_is_shared(self) -> None:
         self.assertEqual(len(DIGEST.TYPES), 9)
-        self.assertEqual(len(DIGEST.TOPICS), 21)
         self.assertIn("неопределено", DIGEST.TYPES)
-        self.assertIn("без-темы", DIGEST.TOPICS)
+        self.assertEqual(DIGEST.REPAIR_TOPIC, "без-темы")
 
     def test_bounded_json_and_zero_result(self) -> None:
         bounded = json.loads(self.call("--digest", "--limit", "2", "--json").stdout)

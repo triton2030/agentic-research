@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from wave import strip_fence
 
 ART = "experiments/openviking-chat-recall/artifacts"
-TOPICS = "_ops/chat-recall-topics"
+TOPICS = "_ops/chat-recall/topics"
 FIELD = re.compile(r"^(тема|новая|заголовок|почему):\s*(.+)$", re.M)
 
 

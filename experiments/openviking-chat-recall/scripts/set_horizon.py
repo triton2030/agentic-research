@@ -18,8 +18,8 @@ import subprocess
 import sys
 from datetime import date
 
-CORPUS = "_ops/chat-recall"
-TOPICS = "_ops/chat-recall-topics"
+CORPUS = "_ops/chat-recall/raw"
+TOPICS = "_ops/chat-recall/topics"
 HORIZON = f"{TOPICS}/horizon.json"
 TYPE = re.compile(r"(?:—|\|)\s*type:\s*([^\s|]+)")
 NOT_A_TOPIC = {"AGENTS.md", "README.md"}

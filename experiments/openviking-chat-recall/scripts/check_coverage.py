@@ -24,7 +24,7 @@ import subprocess
 import sys
 from collections import Counter
 
-CORPUS = "_ops/chat-recall"
+CORPUS = "_ops/chat-recall/raw"
 ART = "experiments/openviking-chat-recall/artifacts"
 
 # Разделитель перед `type:` за год поменялся: ранние записи пишут `— type:`,
@@ -115,7 +115,7 @@ def main(rev: str) -> int:
     # библиотеке: проверка честно судила продукт, которым никто не пользуется.
     stages = [
         ("1  снимок -> сжатые файлы", flat_anchors()),
-        ("3  сжатые -> темы", anchors("_ops/chat-recall-topics/*.md")),
+        ("3  сжатые -> темы", anchors("_ops/chat-recall/topics/*.md")),
     ]
 
     print(f"снимок {rev}: {len(records)} записей корпуса\n")
@@ -204,7 +204,7 @@ def snapshot_commit() -> str:
     полного догона она продолжала печатать «слой их не видел никогда» про
     записи, которые в слое уже стоят.
     """
-    horizon = "_ops/chat-recall-topics/horizon.json"
+    horizon = "_ops/chat-recall/topics/horizon.json"
     if os.path.exists(horizon):
         return json.load(open(horizon, encoding="utf-8")).get("commit") or "dd1ff113"
     return "dd1ff113"

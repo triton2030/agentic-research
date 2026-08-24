@@ -19,7 +19,7 @@ import sys
 from collections import defaultdict
 
 WIKI = "experiments/openviking-chat-recall/artifacts/wiki-v1"
-TOPICS = "_ops/chat-recall-topics"
+TOPICS = "_ops/chat-recall/topics"
 LINE = re.compile(r"L(\d+)")
 
 

@@ -20,7 +20,7 @@ import re
 import sys
 
 ART = "experiments/openviking-chat-recall/artifacts"
-CORPUS = "_ops/chat-recall"
+CORPUS = "_ops/chat-recall/raw"
 TYPE = re.compile(r"(?:—|\|)\s*type:\s*([^\s|]+)")
 
 

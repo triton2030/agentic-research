@@ -1,4 +1,11 @@
-"""Controlled metadata vocabulary shared by capture and retrieval."""
+"""Controlled metadata vocabulary shared by capture and retrieval.
+
+Types stay a fixed speech-act vocabulary. Topics are owned by the corpus
+itself: the set of long-lived subjects already used by its records, extended
+deliberately at capture time rather than drawn from a hardcoded list.
+"""
+
+from pathlib import Path
 
 TYPE_DESCRIPTIONS = {
     "решение": "принятый долгоживущий курс или состояние",
@@ -11,30 +18,35 @@ TYPE_DESCRIPTIONS = {
     "факт": "фактическое утверждение владельца, не независимая проверка истины",
 }
 
-TOPIC_DESCRIPTIONS = {
-    "цели-и-приоритеты": "зачем работа существует и что важнее",
-    "границы-и-объём": "scope, красные линии и намеренно исключённое",
-    "продукт-и-ценность": "предложение, поведение продукта и его польза",
-    "пользователи-и-потребности": "аудитории, задачи, боли и сценарии людей",
-    "бизнес-и-монетизация": "модель бизнеса, цены, продажи и экономика",
-    "бренд-и-коммуникация": "позиционирование, голос и внешняя подача",
-    "контент-и-редактура": "тексты, медиа, публикация и редакционные решения",
-    "дизайн-и-опыт": "визуальный язык, интерфейс и опыт использования",
-    "исследования-и-источники": "поиск, provenance, evidence и цитирование",
-    "данные-и-аналитика": "данные, метрики, расчёты и интерпретация",
-    "архитектура-и-модель": "структура системы, доменная модель и связи",
-    "код-и-реализация": "поведение кода, API и техническая реализация",
-    "инструменты-и-автоматизация": "CLI, приложения и автоматизированные потоки",
-    "агенты-и-ии": "модели, агенты, prompts и agentic-поведение",
-    "работа-и-процессы": "workflow, координация, порядок и рабочие привычки",
-    "документация-и-знания": "документы, память, навигация и owner truth",
-    "качество-и-проверка": "acceptance, review, тесты и критерии готовности",
-    "безопасность-и-доступ": "секреты, права, приватность и допустимый риск",
-    "операции-и-инфраструктура": "среды, сервисы, deployment и эксплуатация",
-    "обо-мне-и-предпочтения": "личный контекст, вкус и устойчивые ожидания",
-}
-
 REPAIR_TYPE = "неопределено"
 REPAIR_TOPIC = "без-темы"
 TYPES = (*TYPE_DESCRIPTIONS, REPAIR_TYPE)
-TOPICS = (*TOPIC_DESCRIPTIONS, REPAIR_TOPIC)
+
+
+def corpus_topics(log_dir: Path) -> dict[str, int]:
+    """Topics already used by this corpus: name -> number of conversations."""
+    counts: dict[str, int] = {}
+    if not log_dir.is_dir():
+        return counts
+    for path in sorted(log_dir.glob("*.md")):
+        try:
+            lines = path.read_text(encoding="utf-8-sig").splitlines()
+        except OSError:
+            continue
+        if not lines or lines[0].strip() != "---":
+            continue
+        in_topics = False
+        for line in lines[1:]:
+            if line.strip() == "---":
+                break
+            if line.startswith("topics:"):
+                in_topics = True
+                continue
+            if in_topics:
+                if line.startswith("  - "):
+                    topic = line[4:].strip()
+                    if topic and topic != REPAIR_TOPIC:
+                        counts[topic] = counts.get(topic, 0) + 1
+                else:
+                    in_topics = False
+    return counts

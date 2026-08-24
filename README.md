@@ -24,9 +24,11 @@ baseline.
    добавляется `product-frame*.md` из tracked owner-папки скила
    (`skills/shared|claude|codex/<skill>/`); `skills/1<skill>/` — архив истории,
    его Frame не действует.
-6. `_ops/chat-recall/` — руда source-bound выдержек слов владельца, файл на
-   разговор; пишет `1chat-recall` в момент, когда прозвучало;
-   `_ops/user-said/` — его замороженный предшественник, только для чтения.
+6. `_ops/chat-recall/` — слова владельца: `raw/` — руда source-bound выдержек,
+   файл на разговор, пишет `1chat-recall` в момент, когда прозвучало; `topics/`
+   — производный слой тем, поверхность чтения по предметам; контракт обоих —
+   `_ops/chat-recall/AGENTS.md`. `_ops/user-said/` — замороженный
+   предшественник, только для чтения.
 7. `knowledge/` — wisdom, guides, practical guides, examples и research.
    Для написания скилов начинать с
    `knowledge/practical-guides/how-to-write-skills/`.

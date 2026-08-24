@@ -6,7 +6,7 @@
 другое — раскладывают знание по вопросам. Обе работы законны, но вторая до
 сегодня не делалась вовсе, хотя вход у неё готовый: те же 40 тем.
 
-Замер самого корпуса (`_ops/chat-recall/README.md`): 16 находок из 19 не
+Замер самого корпуса (`_ops/chat-recall/AGENTS.md`): 16 находок из 19 не
 существуют нигде в нормативных файлах. Значит разрыв не гипотеза.
 
 Агент судит одну тему против нормативных файлов и раскладывает её пункты на
@@ -109,7 +109,7 @@ tracked owner, лежат в `skills/shared/**`, `skills/claude/**`, `skills/cod
 
 if __name__ == "__main__":
     plain = [a for a in sys.argv[1:] if not a.startswith("--")]
-    raise SystemExit(main(plain[0] if plain else "_ops/chat-recall-topics",
+    raise SystemExit(main(plain[0] if plain else "_ops/chat-recall/topics",
                           plain[1] if len(plain) > 1 else "_workspace/ox-delta/tasks",
                           plain[2] if len(plain) > 2 else None,
                           "--redo" in sys.argv))

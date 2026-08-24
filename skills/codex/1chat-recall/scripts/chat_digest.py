@@ -28,7 +28,7 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
-from recall_metadata import REPAIR_TOPIC, REPAIR_TYPE, TOPICS, TYPES
+from recall_metadata import REPAIR_TOPIC, REPAIR_TYPE, TYPES
 
 KINDS = {"quote", "selection", "note", "raw"}
 PRECISIONS = {"exact", "minute", "date", "unknown"}
@@ -207,9 +207,9 @@ def _parse_block(
     if type_raw not in TYPES:
         diagnostics.append("missing-type" if not type_raw else "invalid-type")
     topic_raw = metadata.get("topic", "").strip()
-    topic = topic_raw if topic_raw in TOPICS else REPAIR_TOPIC
-    if topic_raw not in TOPICS:
-        diagnostics.append("missing-topic" if not topic_raw else "invalid-topic")
+    topic = topic_raw or REPAIR_TOPIC
+    if not topic_raw:
+        diagnostics.append("missing-topic")
 
     sortable, precision, timestamp_raw, timestamp_diagnostics = _timestamp(
         timestamp_raw,
@@ -1611,6 +1611,9 @@ def main() -> int:
             raise CliError("укажите папку `_ops/chat-recall` или используйте --prepare")
         if not args.records_dir.is_dir():
             raise CliError(f"нет папки: {args.records_dir}")
+        nested_raw = args.records_dir / "raw"
+        if nested_raw.is_dir() and not any(args.records_dir.glob("2*.md")):
+            args.records_dir = nested_raw
         holder_mode = bool(args.query and not args.timeline and not args.show)
         if args.max_chars is None:
             args.max_chars = sys.maxsize if holder_mode else DEFAULT_MAX_CHARS

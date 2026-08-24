@@ -21,7 +21,7 @@ import re
 import sys
 
 ART = "experiments/openviking-chat-recall/artifacts"
-CORPUS = "_ops/chat-recall"
+CORPUS = "_ops/chat-recall/raw"
 CONTRACT = "experiments/openviking-chat-recall/prompts/flatten-file.v1.md"
 TYPE = re.compile(r"(?:—|\|)\s*type:\s*([^\s|]+)")
 NOT_A_TOPIC = {"AGENTS.md", "README.md"}
@@ -30,7 +30,7 @@ ANCH = re.compile(r"([0-9]{4}-[0-9]{2}-[0-9]{2}-[^\s#\],)]+\.md)#L(\d+)")
 
 def delta() -> dict[str, list[int]]:
     covered: set[tuple[str, int]] = set()
-    for path in glob.glob("_ops/chat-recall-topics/*.md"):
+    for path in glob.glob("_ops/chat-recall/topics/*.md"):
         if os.path.basename(path) in NOT_A_TOPIC:
             continue
         covered |= {(n, int(i)) for n, i in ANCH.findall(open(path, encoding="utf-8").read())}

@@ -97,7 +97,7 @@ batch-001 prior. Текущий artifact root —
 - control plane — bounded named instructions, не Wiki evidence.
 
 До batch-002 read-set audit и prior-page bindings стали обязательным gate.
-Owner evidence: `_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:71-73`.
+Owner evidence: `_ops/chat-recall/raw/2026-08-21-133152-codex-01a0236d.md:71-73`.
 
 ## 8. Refactor control plane и первый clean attempt
 

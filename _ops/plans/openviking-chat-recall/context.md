@@ -19,7 +19,7 @@ kind: context
 holders и релевантные страницы Wiki.
 
 Owner evidence:
-`_ops/chat-recall/2026-08-21-133152-codex-01a0236d.md:21-24,35,40-42,64-73`.
+`_ops/chat-recall/raw/2026-08-21-133152-codex-01a0236d.md:21-24,35,40-42,64-73`.
 
 ## Ожидаемый эффект
 

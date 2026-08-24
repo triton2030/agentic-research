@@ -58,6 +58,7 @@ class ChatCaptureTests(unittest.TestCase):
         session_context: str | None = DEFAULT_SESSION_CONTEXT,
         session: str | None = None,
         source_timestamp: str | None = DEFAULT_SOURCE_TIMESTAMP,
+        new_topic: bool = True,
         expect_ok: bool = True,
     ) -> subprocess.CompletedProcess[str]:
         clean_env = {k: v for k, v in os.environ.items() if k not in SESSION_ENV_VARS}
@@ -68,6 +69,8 @@ class ChatCaptureTests(unittest.TestCase):
             "--quote", quote, "--type", type_, "--topic", topic,
             "--project", str(self.root),
         ]
+        if new_topic:
+            command.append("--new-topic")
         if source_timestamp is not None:
             command += ["--source-timestamp", source_timestamp]
         if agent:
@@ -575,47 +578,87 @@ class ChatCaptureTests(unittest.TestCase):
         self.assertEqual(result.returncode, 2)
         self.assertIn("type is outside the controlled vocabulary", result.stderr)
 
-    def test_unknown_and_unsafe_topics_are_rejected(self) -> None:
-        unknown = self.run_capture(
+    def test_nested_raw_layout_is_preferred(self) -> None:
+        nested = self.root / "_ops" / "chat-recall" / "raw"
+        nested.mkdir(parents=True)
+        self.run_capture(
+            "Решение в raw", "решение", "агенты-и-ии", env=self.claude_env()
+        )
+        self.assertEqual(self.recall_files(), [])
+        self.assertEqual(len(list(nested.glob("*.md"))), 1)
+
+    def test_new_topic_requires_explicit_flag(self) -> None:
+        rejected = self.run_capture(
             "Что-то",
             "решение",
             "mockup-zone-editor",
             env=self.claude_env(),
+            new_topic=False,
             expect_ok=False,
         )
-        self.assertEqual(unknown.returncode, 2)
-        self.assertIn("topic is outside the controlled vocabulary", unknown.stderr)
+        self.assertEqual(rejected.returncode, 2)
+        self.assertIn("does not exist in this corpus yet", rejected.stderr)
+        self.assertEqual(self.recall_files(), [])
+
+        self.run_capture(
+            "Что-то", "решение", "mockup-zone-editor", env=self.claude_env()
+        )
+        listed = self.run_capture(
+            "Другая цитата про тот же предмет",
+            "решение",
+            "mockup-zone-editor",
+            env=self.claude_env(),
+            new_topic=False,
+        )
+        self.assertEqual(listed.returncode, 0, listed.stderr)
+
+        missing = self.run_capture(
+            "Ещё что-то",
+            "решение",
+            "другая-тема",
+            env=self.claude_env(),
+            new_topic=False,
+            expect_ok=False,
+        )
+        self.assertIn("existing: mockup-zone-editor", missing.stderr)
 
         result = self.run_capture(
             "Что-то", "решение", "foo: bar", env=self.claude_env(), expect_ok=False
         )
         self.assertEqual(result.returncode, 2)
         self.assertIn("plain handle", result.stderr)
-        self.assertEqual(self.recall_files(), [])
 
-    def test_metadata_vocabulary_is_listed_without_capture_arguments(self) -> None:
+    def test_metadata_vocabulary_lists_corpus_topics(self) -> None:
+        empty = subprocess.run(
+            [sys.executable, str(SCRIPT), "--list-metadata", "--project", str(self.root)],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(empty.returncode, 0, empty.stderr)
+        self.assertIn("Types:\n  решение:", empty.stdout)
+        self.assertIn("none recorded yet", empty.stdout)
+        self.assertIn("--new-topic", empty.stdout)
+
+        self.run_capture(
+            "Первое решение", "решение", "агенты-и-ии", env=self.claude_env()
+        )
         result = subprocess.run(
-            [sys.executable, str(SCRIPT), "--list-metadata"],
+            [sys.executable, str(SCRIPT), "--list-metadata", "--project", str(self.root)],
             capture_output=True,
             text=True,
             check=False,
         )
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("Types:\n  решение:", result.stdout)
-        self.assertIn("Topics:\n  цели-и-приоритеты:", result.stdout)
-        self.assertIn("  обо-мне-и-предпочтения:", result.stdout)
+        self.assertIn("агенты-и-ии: 1", result.stdout)
         self.assertIn("repair-only sentinel", result.stdout)
 
-    def test_runtime_owner_documents_russian_metadata_vocabulary(self) -> None:
-        topics = CHAT_CAPTURE.TOPIC_DESCRIPTIONS
-        self.assertEqual(len(topics), 20)
-        for topic in topics:
-            self.assertRegex(topic, r"^[а-яё]+(?:-[а-яё]+)*$")
-
+    def test_runtime_owner_documents_metadata_vocabulary(self) -> None:
         skill_text = SKILL.read_text(encoding="utf-8")
         self.assertIn("--list-metadata", skill_text)
+        self.assertIn("--new-topic", skill_text)
         result = subprocess.run(
-            [sys.executable, str(SCRIPT), "--list-metadata"],
+            [sys.executable, str(SCRIPT), "--list-metadata", "--project", str(self.root)],
             capture_output=True,
             text=True,
             check=False,
@@ -623,7 +666,6 @@ class ChatCaptureTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         for value in (
             *CHAT_CAPTURE.TYPE_DESCRIPTIONS,
-            *topics,
             CHAT_CAPTURE.REPAIR_TYPE,
             CHAT_CAPTURE.REPAIR_TOPIC,
         ):
@@ -750,6 +792,7 @@ class ChatCaptureTests(unittest.TestCase):
                 shlex.quote("факт"),
                 "--topic",
                 shlex.quote("документация-и-знания"),
+                "--new-topic",
                 "--source-timestamp",
                 shlex.quote(DEFAULT_SOURCE_TIMESTAMP),
                 "--context-note",

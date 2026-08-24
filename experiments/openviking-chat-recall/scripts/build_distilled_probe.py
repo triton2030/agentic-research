@@ -515,9 +515,9 @@ def validate_default_wiki(
         for target in MARKDOWN_LINK_RE.findall(content):
             path_target = target.split("#", 1)[0]
             internal_target = Path(relative_path).parent / path_target
-            if path_target.startswith("_ops/chat-recall/"):
+            if path_target.startswith("_ops/chat-recall/raw/"):
                 continue
-            if "_ops/chat-recall/" in path_target and ".." in Path(path_target).parts:
+            if "_ops/chat-recall/raw/" in path_target and ".." in Path(path_target).parts:
                 continue
             if internal_target.as_posix() in wiki_files:
                 continue

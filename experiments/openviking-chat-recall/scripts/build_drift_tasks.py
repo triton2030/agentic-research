@@ -18,13 +18,13 @@ import sys
 from collections import defaultdict
 
 ART = "experiments/openviking-chat-recall/artifacts"
-CORPUS = "_ops/chat-recall"
+CORPUS = "_ops/chat-recall/raw"
 TYPE = re.compile(r"(?:—|\|)\s*type:\s*([^\s|]+)")
 # Страницы ссылаются двумя способами: якорь внутри пункта и якорь в разделе
 # источников, где текста перед ссылкой нет вовсе. Оба несут утверждение —
 # в первом случае это сам пункт, во втором метка ссылки. Берём оба, иначе
 # шесть разговоров из четырнадцати выпадают из проверки молча.
-TOPICS = "_ops/chat-recall-topics"
+TOPICS = "_ops/chat-recall/topics"
 NOT_A_TOPIC = {"AGENTS.md", "README.md"}
 BARE = re.compile(r"\[?([0-9]{4}-[0-9]{2}-[0-9]{2}-[^\s#\],]+\.md)#L(\d+)")
 CITED = re.compile(r"\[([^\]]*)\]\(\.\./[^)]*?/([0-9]{4}-[^)/]+\.md)#L(\d+)\)")

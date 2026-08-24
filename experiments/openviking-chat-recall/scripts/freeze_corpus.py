@@ -18,7 +18,7 @@ class FreezeError(ValueError):
 
 MANIFEST_SCHEMA = "openviking-chat-recall/source-manifest.v1"
 LOCK_SCHEMA = "openviking-chat-recall/source-lock.v1"
-DEFAULT_SOURCE_ROOT = "_ops/chat-recall"
+DEFAULT_SOURCE_ROOT = "_ops/chat-recall/raw"
 DEFAULT_OUTPUT_DIR = Path(
     "experiments/openviking-chat-recall/artifacts/full-build/frozen"
 )

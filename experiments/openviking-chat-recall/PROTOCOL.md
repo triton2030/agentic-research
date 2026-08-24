@@ -26,7 +26,7 @@ date: 2026-08-24
 растущего корпуса.
 
 Протокол написан так, чтобы его можно было применить к любой папке
-`_ops/chat-recall/` в любом проекте. Локальные пути этого репозитория вынесены
+`_ops/chat-recall/raw/` в любом проекте. Локальные пути этого репозитория вынесены
 в конец. Если протокол подтвердится приёмкой, он становится основой глобального
 скила — решение владельца 2026-08-22.
 
@@ -354,7 +354,7 @@ date: 2026-08-24
 ## Локальные адреса этого репозитория
 
 - исполнимая последовательность: [`RUNBOOK.md`](RUNBOOK.md);
-- источник: `_ops/chat-recall/`;
+- источник: `_ops/chat-recall/raw/`;
 - перенос на чужой корпус: `artifacts/transfer-kumysbekov/`;
 - контракты: `experiments/openviking-chat-recall/prompts/flatten-file.v1.md`,
   `merge-topic.v1.md`, `backfill-missed.v1.md`; контракты снятых стадий —
@@ -362,7 +362,7 @@ date: 2026-08-24
 - проверки: `scripts/check_wiki.py` (форма), `scripts/check_topics.py`
   (провенанс слияния), `scripts/check_coverage.py` (постадийное покрытие);
 - добор: `scripts/build_backfill_tasks.py` и `scripts/apply_backfill.py`;
-- продукт: `_ops/chat-recall-topics/` (в чужом проекте — папка рядом с его
+- продукт: `_ops/chat-recall/topics/` (в чужом проекте — папка рядом с его
   корпусом, `<корпус>-topics/`);
 - промежуточные артефакты стадий: `experiments/openviking-chat-recall/artifacts/flatten-v1/`;
 - исполнители — Ox Alpha волной `experiments/hermes-ox-alpha/ox_wave.sh`;

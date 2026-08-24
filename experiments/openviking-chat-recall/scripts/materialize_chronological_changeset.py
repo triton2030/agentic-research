@@ -120,7 +120,7 @@ def _read_records(path: Path) -> tuple[dict[str, dict[str, Any]], bytes]:
         quote = record.get("quote")
         if (
             not isinstance(source_path, str)
-            or not source_path.startswith("_ops/chat-recall/")
+            or not source_path.startswith("_ops/chat-recall/raw/")
             or not isinstance(source_line, int)
             or source_line < 1
             or source_address != f"{source_path}:{source_line}"
@@ -358,7 +358,7 @@ def _manifest_record_ids(manifest: dict[str, Any]) -> list[str]:
         holder_records = holder.get("record_ids")
         if (
             not isinstance(source_path, str)
-            or not source_path.startswith("_ops/chat-recall/")
+            or not source_path.startswith("_ops/chat-recall/raw/")
             or source_path in holder_paths
             or not isinstance(holder_records, list)
             or not holder_records

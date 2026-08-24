@@ -26,7 +26,7 @@ class EvidenceError(ValueError):
     """Raised when an input or generated surface cannot be trusted."""
 
 
-SOURCE_ROOT = "_ops/chat-recall"
+SOURCE_ROOT = "_ops/chat-recall/raw"
 CORPUS_COMMIT = "6f98fcccdbf4b4de45ef787239ad101f70d106e2"
 F1_COMMITS = (
     "acb3deff4bbbfa502e7e990d5c6d36fbb5772660",

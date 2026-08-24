@@ -65,7 +65,7 @@ def expand_corpus_links(text: str, page_path: str, corpus: str) -> str:
     # Старые прогоны написаны до появления метки и несут посчитанный самой
     # моделью путь. Он неверен всюду, кроме родного репо, но узнаётся по
     # хвосту — и тогда чиниться должен так же, скриптом, а не перепрогоном.
-    return re.sub(r"\]\((?:\.\./)+_ops/chat-recall/", f"]({relative}/", text)
+    return re.sub(r"\]\((?:\.\./)+_ops/chat-recall/raw/", f"]({relative}/", text)
 
 
 def skip_done(names: list[str], runs_dir: str | None, redo: bool) -> list[str]:

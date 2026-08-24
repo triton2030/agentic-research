@@ -93,5 +93,5 @@ def main(corpus: str, out_dir: str) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main(sys.argv[1] if len(sys.argv) > 1 else "_ops/chat-recall",
+    raise SystemExit(main(sys.argv[1] if len(sys.argv) > 1 else "_ops/chat-recall/raw",
                           sys.argv[2] if len(sys.argv) > 2 else "_workspace/ox-answer/digest-task"))

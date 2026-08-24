@@ -96,4 +96,4 @@ def main(stage: str, runs: str, material: str, out_dir: str, corpus: str) -> int
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4],
-                          sys.argv[5] if len(sys.argv) > 5 else "_ops/chat-recall"))
+                          sys.argv[5] if len(sys.argv) > 5 else "_ops/chat-recall/raw"))

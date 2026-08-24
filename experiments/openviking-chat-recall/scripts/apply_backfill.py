@@ -20,7 +20,7 @@ from collections import defaultdict
 
 ART = "experiments/openviking-chat-recall/artifacts"
 WIKI = f"{ART}/wiki-v1"
-PREFIX = "../../../../../_ops/chat-recall"
+PREFIX = "../../../../../_ops/chat-recall/raw"
 TYPES = {"entity", "concept", "method", "comparison", "analysis"}
 # Агент работает по-русски и естественно переводит служебное слово вердикта.
 # Отвергать суждение из-за словаря — терять оплаченную работу на пустом месте:

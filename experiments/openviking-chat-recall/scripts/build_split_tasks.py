@@ -28,7 +28,7 @@ def main(findings: str, out_dir: str) -> int:
         if not os.path.exists(target):
             print(f"  страницы нет: {page}")
             continue
-        source = f"_ops/chat-recall-topics/{topic}.md"
+        source = f"_ops/chat-recall/topics/{topic}.md"
         open(os.path.join(out_dir, f"{topic}--{os.path.basename(page)[:-3]}.txt"), "w",
              encoding="utf-8").write(
             f"""Роль: редактор библиотеки знаний. Проверяющий нашёл на одной странице
