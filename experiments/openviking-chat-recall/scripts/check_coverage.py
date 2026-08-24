@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import glob
+import json
 import os
 import re
 import subprocess
@@ -180,17 +181,34 @@ def main(rev: str) -> int:
         for number, line in enumerate(open(path, encoding="utf-8").read().splitlines(), start=1):
             if line.startswith("* ") and TYPE.search(line):
                 live.add((name, number))
-    beyond = len(live) - len(records)
-    print(f"\nгоризонт: сборка видела {len(records)} записей, в корпусе сейчас {len(live)}")
-    print(f"новее сборки: {beyond} записей"
-          f" ({100 * beyond / max(len(live), 1):.1f}%) — библиотека их не видела никогда")
-    fresh = sorted({name for name, _ in live} - {name for name, _ in records})
+    # Горизонт мерится по слою, а не по снимку стадии сжатия: обновление идёт
+    # из корпуса прямо в темы, минуя `flat/`, и разница со снимком говорит о
+    # маршруте, которым свежие разговоры не ходят. Читателю важно одно —
+    # сколько живых записей корпуса слой ещё не знает.
+    unseen = sorted(live - library)
+    print(f"\nгоризонт: в корпусе {len(live)} записей, слой знает {len(live & library)}")
+    print(f"слой ещё не знает: {len(unseen)} записей"
+          f" ({100 * len(unseen) / max(len(live), 1):.1f}%)")
+    fresh = sorted({name for name, _ in unseen})
     if fresh:
-        print(f"разговоров целиком вне сборки: {len(fresh)}")
+        print(f"разговоров с непрочитанными записями: {len(fresh)}")
         for name in fresh[:10]:
             print(f"  {name}")
     return 1 if silent or dangling else 0
 
 
+def snapshot_commit() -> str:
+    """Коммит снимка живёт рядом со слоем, а не константой в проверке.
+
+    Зашитый коммит делает проверку вечно привязанной к одной сборке: после
+    полного догона она продолжала печатать «слой их не видел никогда» про
+    записи, которые в слое уже стоят.
+    """
+    horizon = "_ops/chat-recall-topics/horizon.json"
+    if os.path.exists(horizon):
+        return json.load(open(horizon, encoding="utf-8")).get("commit") or "dd1ff113"
+    return "dd1ff113"
+
+
 if __name__ == "__main__":
-    raise SystemExit(main(sys.argv[1] if len(sys.argv) > 1 else "dd1ff113"))
+    raise SystemExit(main(sys.argv[1] if len(sys.argv) > 1 else snapshot_commit()))
