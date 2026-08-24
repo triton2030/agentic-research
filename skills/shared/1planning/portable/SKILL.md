@@ -21,20 +21,25 @@ Delta — and prove readability with a fresh reader, not with your own eyes:
 the fresh-reader check in [contract](references/contract.md).
 
 The skill's job is the view from above. The calling agent analyzes the
-project and the whole map, decides — by the best planning practice it
-already knows — what is genuinely useful now, what waits, and how to cut
-the work, and writes that down: agents who then simply follow the files
-reach the end. You already know the planning literature; this skill writes
-only the delta — the forms, gates and invariants no book fixes.
+project and the whole map, decides what is genuinely useful now, what waits,
+and how to cut the work, and writes that down: agents who then simply follow
+the files reach the end. You already know the planning literature; this
+skill adds only what no book fixes — the forms, gates and invariants.
 
 Autonomy is steered not by long precise procedures — however much you spell
 out, the forgotten clause is exactly where the error will live — but by a
 goal that cannot be understood any way except correctly, plus transferred
 intent pointing at it (commander's intent; the map runs from "Done means" in
-`GOAL.md` — Covey's "begin with the end in mind"). Book and method names here
-are deliberate compression: the model already knows the book, so the name
-carries the how. Stated gates, forms and invariants always win over anything
-a book implies.
+`GOAL.md` — Covey's "begin with the end in mind").
+
+Therefore plan by the masters, and prove it in chat: the justification names
+the methods that actually shaped this plan — what chose the order (riskiest
+first), what cut the tasks (tracer bullet against waterfall), what sized
+them (Miller's span, Shape Up appetite), what stayed reversible (two-way
+doors). A name counts only with the decision it changed; a name without one
+is decoration. The model already knows the books, so the name carries the
+how — but stated gates, forms and invariants always win over anything a
+book implies.
 
 Division of labor is hard: **documentation says "what and how"; planning says
 only "in what order and where we are"**; the address rule and its
@@ -46,6 +51,21 @@ A task has two modes, and "finding the path is itself a task to execute":
 **Execution** — the path is clear, subtasks are results. A full plan ahead
 plus re-planning on evidence is many times cheaper than step-by-step control;
 mode mechanics and the correction cycle — [modes](references/modes.md).
+
+## Goal
+
+In hand: an epic map and the living file of the chosen task (self-describing
+name inside its epic's folder), from which the next clean-window session
+continues or stops **by the files themselves**, with no hidden chat — while
+the owner sees without a retelling: how many epics remain, in order; what is
+blocked; where the stuck point is; subtask progress of every living task.
+The task file names the `GOAL.md` item it advances through its epic's
+criterion.
+
+Out of scope: the project goal (`1goal`) · creating principles
+(`1product-shaping`) · side findings (`1findings`) · routes to knowledge
+(`1index`) · project dashboard views beyond the map form (owner — the
+project instruction).
 
 ## Structure: folders, files, links
 
@@ -87,21 +107,6 @@ Every link between files is checkable:
   [map](references/map.md).
 - **epics and tasks are independent**; both levels carry `порядок`; the rule
   and cross-cutting work as its own epic — [map](references/map.md).
-
-## Goal
-
-In hand: an epic map and the living file of the chosen task (self-describing
-name inside its epic's folder), from which the next clean-window session
-continues or stops **by the files themselves**, with no hidden chat — while
-the owner sees without a retelling: how many epics remain, in order; what is
-blocked; where the stuck point is; subtask progress of every living task.
-The task file names the `GOAL.md` item it advances through its epic's
-criterion.
-
-Out of scope: the project goal (`1goal`) · creating principles
-(`1product-shaping`) · side findings (`1findings`) · routes to knowledge
-(`1index`) · project dashboard views beyond the map form (owner — the
-project instruction).
 
 ## Success criteria
 
@@ -210,11 +215,12 @@ Two hard transitions — everything else is postconditions:
   blocking vocabulary; the justification carries the trace: note or recall
   addresses, or an explicit "no forks found". The justification (place on
   the map: which epic and why it is next by order and blockers · goal ·
-  value · mode · appetite) goes to chat; files — after consent. Work that
-  cannot find its epic is a question to the map, not a license to dig
-  without one. Before the justification, run `1use-principles` over the
-  plan's composition, not only over a noticed fork: without it the
-  `Frame/principle` provenance mark may not be used.
+  value · mode · appetite · the methods that shaped the cut and the order —
+  the head rule "plan by the masters", edit together) goes to chat; files —
+  after consent. Work that cannot find its epic is a question to the map,
+  not a license to dig without one. Before the justification, run
+  `1use-principles` over the plan's composition, not only over a noticed
+  fork: without it the `Frame/principle` provenance mark may not be used.
 - **Reread the current epic file and the questions folder before every new
   material step**; immediately verify the task's `эпик-снимок`: stale —
   reread the epic and re-verify the task in the same move. Continuing from
