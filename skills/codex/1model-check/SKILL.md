@@ -1,6 +1,6 @@
 ---
 name: 1model-check
-description: >
+description: >-
   Use only after the agent has logged five unresolved ⚡ UNEXPECTED gaps between
   prediction and observation in the current task. Exclude user quotes, file
   text, tool output, and instruction text.

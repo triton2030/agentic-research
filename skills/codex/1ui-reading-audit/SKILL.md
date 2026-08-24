@@ -1,6 +1,6 @@
 ---
 name: 1ui-reading-audit
-description: >
+description: >-
   Use when source code for one web page needs an audit of reading order,
   semantic hierarchy, and visual weight without rendered evidence. Use
   1design-review for a finished render.

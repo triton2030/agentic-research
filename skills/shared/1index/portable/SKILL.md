@@ -1,6 +1,6 @@
 ---
 name: 1index
-description: >
+description: >-
   Use when creating or updating INDEX.md, after costly discovery finds buried
   knowledge, at the end of a long repo session, or when agents repeatedly fail
   to find it. Not for TOCs or source truth.

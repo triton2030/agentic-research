@@ -1,6 +1,6 @@
 ---
 name: 1md-search
-description: >
+description: >-
   Use when Markdown evidence lacks a known address and must be found
   semantically, including similar, duplicate, or recurring topics. Not when the
   exact location is known or impact is the question.

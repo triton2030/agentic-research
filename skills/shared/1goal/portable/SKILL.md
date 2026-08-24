@@ -1,6 +1,6 @@
 ---
 name: 1goal
-description: >
+description: >-
   Use when project purpose, scope, vision, done, stop, or governing context
   changes, conflicts with a request, or cannot guide the next step. Not for task
   plans, principles, rules, or indexes.

@@ -1,13 +1,9 @@
 ---
 name: 1goal
-description: >
-  Вызывай сам, без просьбы владельца, когда меняются цель проекта, scope,
-  done/stop, vision или входной контекст; когда просьба конфликтует с
-  записанной целью, работа не может назвать свой шаг к ней либо цель
-  существует только в контексте сессии. Не вызывай для task-плана без смены
-  цели, отдельного правила, продуктового принципа или навигационного
-  маршрута; эти случаи относятся к `1planning`, `1instruction-shaping`,
-  `1product-shaping` и `1index`.
+description: >-
+  Use when project purpose, scope, vision, done, stop, or governing context
+  changes, conflicts with a request, or cannot guide the next step. Not for task
+  plans, principles, rules, or indexes.
 ---
 
 # Цель проекта

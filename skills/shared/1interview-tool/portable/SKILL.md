@@ -1,6 +1,6 @@
 ---
 name: 1interview-tool
-description: >
+description: >-
   Use when several related owner decisions are best collected asynchronously in
   one addressable form and later routed to durable owners. Not for live
   interviews or a few chat questions.

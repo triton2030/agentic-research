@@ -1,12 +1,9 @@
 ---
 name: 1index
-description: >
-  Вызывай сам, без просьбы владельца, при создании или обновлении `INDEX.md`;
-  когда пользователь говорит «обнови индекс», в конце длинной repo-сессии,
-  после дорогого поиска, нашедшего знание в неочевидном месте, либо при
-  жалобе «агент долго ищет / не находит». Не вызывай для обычного оглавления,
-  чтения по уже известному адресу, semantic search, правки инструкций или
-  попытки перенести в INDEX саму предметную истину.
+description: >-
+  Use when creating or updating INDEX.md, after costly discovery finds buried
+  knowledge, at the end of a long repo session, or when agents repeatedly fail
+  to find it. Not for TOCs or source truth.
 ---
 
 # Индекс оплаченных маршрутов

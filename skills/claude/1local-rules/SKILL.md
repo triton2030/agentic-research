@@ -1,6 +1,6 @@
 ---
 name: 1local-rules
-description: >
+description: >-
   Use when creating a project-local 2* rule skill for one project action and
   syncing Claude/Codex. Use 1skill-shaping for the surface and
   1instruction-shaping for its prose.

@@ -1,6 +1,6 @@
 ---
 name: 1instruction-shaping
-description: >
+description: >-
   Use when configuring or refactoring an agent instruction surface across roots,
   folders, skills, hooks, or plans. Owns placement and coherence; use
   1skill-shaping for one skill's design.

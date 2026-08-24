@@ -1,6 +1,6 @@
 ---
 name: 1codex
-description: >
+description: >-
   Use when Claude needs an independent Codex view for substantial work, separate
   research, delegated execution, pre-completion review, parallel
   readers/workers, or monitoring a long Codex run.

@@ -1,6 +1,6 @@
 ---
 name: 1tailwind-dev
-description: >
+description: >-
   Use for Tailwind version, compatibility, or regression on v4.1.12–v4.3.3,
   @tailwindcss/webpack, Vite 8, @container-size, scrollbar-*, logical
   properties, @variant, or @utility; not routine styling.

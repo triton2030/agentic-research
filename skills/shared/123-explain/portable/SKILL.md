@@ -1,6 +1,6 @@
 ---
 name: 123-explain
-description: >
+description: >-
   Use only when explicitly invoked to explain what is happening, why, and how it
   fits the larger picture in very simple language. Use /112-learning-mode for
   method training.

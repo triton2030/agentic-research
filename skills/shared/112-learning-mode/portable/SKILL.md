@@ -1,6 +1,6 @@
 ---
 name: 112-learning-mode
-description: >
+description: >-
   Use only when explicitly invoked to teach the owner the root instruction's
   named methods through evidence from current work. Use /123-explain for status
   and rationale.

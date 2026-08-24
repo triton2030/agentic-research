@@ -1,6 +1,6 @@
 ---
 name: 1document-system
-description: >
+description: >-
   Use when multi-document work changes a semantic owner, artifact type, or
   corpus topology, or combines sources into one durable typed artifact or stable
   projection. Not for editing or summarizing.

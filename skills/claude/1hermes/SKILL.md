@@ -1,6 +1,6 @@
 ---
 name: 1hermes
-description: >
+description: >-
   Use when the user asks for Hermes, Kimi K3, DeepSeek, or Ox Alpha; to continue
   their session, choose a model/provider route, or check a configured
   Hermes/OpenRouter run. Not for model comparisons.

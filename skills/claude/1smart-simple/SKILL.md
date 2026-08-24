@@ -1,6 +1,6 @@
 ---
 name: 1smart-simple
-description: >
+description: >-
   Use when an existing non-code text will be replaced by a simpler, shorter
   version. Not for new writing, code, proofreading, tone-only edits, summaries,
   or preserving the original.

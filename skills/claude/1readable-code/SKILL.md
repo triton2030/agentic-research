@@ -1,6 +1,6 @@
 ---
 name: 1readable-code
-description: >
+description: >-
   Use before nontrivial code changes, refactors, code review, or choosing the
   owner of new behavior. Not for mechanical edits or one obvious line; use
   1codebase-design for contract decisions.

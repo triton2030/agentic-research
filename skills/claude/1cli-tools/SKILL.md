@@ -1,6 +1,6 @@
 ---
 name: 1cli-tools
-description: >
+description: >-
   Use before a version-sensitive choice, helper, or recovery in active
   agent-browser, ast-grep, npm 12, uv, TypeScript 7, md, GitHub/Vercel CLI, or
   FFmpeg 9; also after updates or version conflicts.

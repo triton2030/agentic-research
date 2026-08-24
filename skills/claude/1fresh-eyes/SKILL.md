@@ -1,6 +1,6 @@
 ---
 name: 1fresh-eyes
-description: >
+description: >-
   Use when long work reaches trajectory review or unresolved remainder; or for
   fresh eyes, a panel, critic, auditor, or md-scout. Not for local, cross-model,
   single-method, or framework-gap review.

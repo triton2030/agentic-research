@@ -1,6 +1,6 @@
 ---
 name: 1handoff
-description: >
+description: >-
   Use for $1handoff or /1handoff, or when long repo work must continue in a new
   session without losing irrecoverable state. Not for summaries, file transfer,
   final reports, or a second handoff per chat.

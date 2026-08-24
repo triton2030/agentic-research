@@ -1,13 +1,9 @@
 ---
 name: 1use-principles
-description: >
-  Вызывай перед генерацией нового кода, документа или спеки; когда работа
-  упёрлась в материальное решение, которого нет в задании: развилка вне
-  плана, недостающий вход, состав без owner-а, расходящиеся источники; также
-  до обоснования нового плана. Не вызывай для scratch, не переживающего
-  сессию, создания или правки самих принципов, решения с уже записанным
-  прямым ответом, чисто механического шага либо внешнего необратимого
-  действия.
+description: >-
+  Use before new code/docs/specs or unowned decisions, missing input, off-plan
+  work, source conflicts, or plans. Skip scratch, mechanics, principle edits,
+  direct answers, and irreversible external acts.
 ---
 
 # Применение принципов

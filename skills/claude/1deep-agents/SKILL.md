@@ -1,12 +1,9 @@
 ---
 name: 1deep-agents
-description: >
-  Вызывай по явному `$1deep-agents`, просьбе о «глубоких агентах» или
-  нескольких framework-разборах; также когда работа упёрлась в решение,
-  которого нет у живого owner-а, принципы и прошлые слова не отвечают, либо
-  источники несовместимы, а продолжать нужно автономно. Не вызывай для
-  реализации, обычного review, одного question-only эксперта, именованного
-  критика или проверки траектории длинной работы.
+description: >-
+  Use for deep-agent or multi-framework requests, or when owners, principles,
+  and prior words leave a decision unresolved but must continue. Not for
+  implementation, one expert, or trajectory review.
 ---
 
 # Глубокие Агенты

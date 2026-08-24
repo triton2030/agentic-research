@@ -1,7 +1,7 @@
 ---
 name: 1business-growth-analysis
 disable-model-invocation: true
-description: >
+description: >-
   Use when current work shows a concrete business signal—or when explicitly
   invoked—to reconstruct who gains value, pays, decides, trusts, adopts, or
   loses, then forecast stakeholder and market effects.

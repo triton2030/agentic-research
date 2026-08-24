@@ -1,6 +1,6 @@
 ---
 name: 1orchestration
-description: >
+description: >-
   Use when the user asks for orchestration, a wave, or work split among
   subagents; before launching two or more on one task; or when three momentary
   instruction owners converge. Coordinate the wave.

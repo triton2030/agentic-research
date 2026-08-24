@@ -1,12 +1,9 @@
 ---
 name: 1handoff
-description: >
-  Вызывай по явному `$1handoff` или `/1handoff`; также самостоятельно, когда
-  длинная repo-сессия разрослась настолько, что её продолжение в новом окне
-  рискует потерять невосстановимую разговорную дельту. Не вызывай для
-  обычного mid-session summary, короткой задачи, передачи одного известного
-  файла, финального отчёта без будущего продолжения или повторного handoff в
-  том же chat-сеансе.
+description: >-
+  Use for $1handoff or /1handoff, or when long repo work must continue in a new
+  session without losing irrecoverable state. Not for summaries, file transfer,
+  final reports, or a second handoff per chat.
 ---
 
 # Хендоф

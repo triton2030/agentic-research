@@ -1,6 +1,6 @@
 ---
 name: 1use-principles
-description: >
+description: >-
   Use before new code/docs/specs or unowned decisions, missing input, off-plan
   work, source conflicts, or plans. Skip scratch, mechanics, principle edits,
   direct answers, and irreversible external acts.

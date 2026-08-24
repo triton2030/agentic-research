@@ -1,6 +1,6 @@
 ---
 name: 1chat-recall
-description: >
+description: >-
   Use on correction, decision, criterion, preference, or boundary; before
   fresh-window decisions or later questions, durable artifacts, or work changes
   using prior words; for recall/repair. Skip assent.

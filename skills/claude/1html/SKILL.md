@@ -1,6 +1,6 @@
 ---
 name: 1html
-description: >
+description: >-
   Use when asked for a draft artifact, or local HTML explains a report,
   comparison, plan, diagram, data story, or UI states. Not for text drafts,
   production apps, chat visuals, or simple lists.

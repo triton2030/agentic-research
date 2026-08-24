@@ -1,13 +1,9 @@
 ---
 name: 123-explain
-description: >
-  Только при явном вызове /123-explain: владелец хочет понять, что сейчас
-  происходит, зачем и как это связано с общей картиной. Объясни последнее
-  сообщение или последние ходы очень простым языком и одной последовательной
-  дугой: управляющие инструкции → сделанное → ментальная модель → дефолт →
-  нерешённое → нумерованные варианты и один выбор → польза и ошибки →
-  вопросы владельцу. Режим обучения методам книг корневой инструкции — сосед
-  /112-learning-mode.
+description: >-
+  Use only when explicitly invoked to explain what is happening, why, and how it
+  fits the larger picture in very simple language. Use /112-learning-mode for
+  method training.
 disable-model-invocation: true
 ---
 

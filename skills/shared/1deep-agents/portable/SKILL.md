@@ -1,6 +1,6 @@
 ---
 name: 1deep-agents
-description: >
+description: >-
   Use for deep-agent or multi-framework requests, or when owners, principles,
   and prior words leave a decision unresolved but must continue. Not for
   implementation, one expert, or trajectory review.

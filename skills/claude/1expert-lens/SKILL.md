@@ -1,7 +1,7 @@
 ---
 name: 1expert-lens
 disable-model-invocation: true
-description: >
+description: >-
   Use only when explicitly invoked to define a professional DoD and surface
   hidden obligations behind requests for proper or robust quality. Not for
   simple tasks or approach selection.

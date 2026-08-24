@@ -1,12 +1,9 @@
 ---
 name: 112-learning-mode
-description: >
-  Только при явном вызове /112-learning-mode: владелец объявляет режим своего
-  обучения методам книг и методик корневой инструкции на живых примерах
-  текущей работы. Дай обучающий блок — где методы уже сработали, где были
-  упущены и что это стоило, чем помогут в предстоящих задачах — с цитатами,
-  привязанными к реальным ходам, и назови выбранное продолжение работы.
-  Вопрос «что происходит и зачем» — сосед /123-explain.
+description: >-
+  Use only when explicitly invoked to teach the owner the root instruction's
+  named methods through evidence from current work. Use /123-explain for status
+  and rationale.
 disable-model-invocation: true
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: 1skill-shaping
-description: >
+description: >-
   Use for skill creation/refactoring, or when one fails to trigger, affect
   behavior, stay small, or avoid ritual. Not for prose, ready installs,
   one-offs, or settled project-local 2* rules.

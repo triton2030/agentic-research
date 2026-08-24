@@ -1,12 +1,9 @@
 ---
 name: 1interview-tool
-description: >
-  Вызывай, когда несколько связанных решений пользователя удобнее собрать
-  асинхронно в одной форме; когда просят создать форму интервью,
-  questionnaire, structured intake или получить ответы, которые затем
-  разойдутся по разным долговечным owners. Не вызывай для живого
-  разговорного интервью, одного решения, двух-трёх коротких вопросов в чате,
-  опроса без будущих адресов результата или обычного документа с вопросами.
+description: >-
+  Use when several related owner decisions are best collected asynchronously in
+  one addressable form and later routed to durable owners. Not for live
+  interviews or a few chat questions.
 ---
 
 # Инструмент интервью

@@ -1,6 +1,6 @@
 ---
 name: 1product-shaping
-description: >
+description: >-
   Use before product work; to check users, behavior, priorities, or
   understanding; or when Product Frames conflict, drift, diverge, duplicate, or
   repeatedly escalate. Skip settled/local choices.

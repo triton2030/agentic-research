@@ -1,6 +1,6 @@
 ---
 name: 1md-graph
-description: >
+description: >-
   Use after Markdown meaning, links, depends-on edges, names, moves, or semantic
   addresses change and downstream impact needs a verdict. Not for similarity
   search or purely broken paths.
