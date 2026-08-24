@@ -18,44 +18,14 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from wave import expand_corpus_links, strip_fence
-from wave_ready import language_gap
+from wave_ready import FULL, flat_anchors, theme_gap, topic_files
 
-SHORT = re.compile(r"L(\d+)")
-FULL = re.compile(r"([0-9]{4}-[0-9]{2}-[0-9]{2}-[^\s#\],)]+\.md)#L(\d+)")
 BLOCK = re.compile(r"^=== ФАЙЛ (\S+\.md)\s*$", re.M)
-
-
-def flat_anchors(flat: str, names: list[str]) -> set[tuple[str, str]]:
-    want: set[tuple[str, str]] = set()
-    for name in names:
-        path = os.path.join(flat, name)
-        if not os.path.exists(path):
-            continue
-        text = open(path, encoding="utf-8").read()
-        source = (re.search(r"^source:\s*(\S+)", text, re.M) or [None, name])[1]
-        for line in text.splitlines():
-            if line.startswith("- "):
-                want |= {(source, n) for n in SHORT.findall(line)}
-    return want
-
-
-def flat_text(flat: str, names: list[str]) -> str:
-    """Материал темы одной строкой — против него сверяется язык ответа."""
-    parts = []
-    for name in names:
-        path = os.path.join(flat, name)
-        if os.path.exists(path):
-            parts.append(open(path, encoding="utf-8").read())
-    return "\n".join(parts)
 
 
 def main(stage: str, runs: str, material: str, out_dir: str, corpus: str) -> int:
     os.makedirs(out_dir, exist_ok=True)
-    topics = None
-    if stage == "merge":
-        topics = {t["id"]: t["files"] for t in json.load(
-            open(os.path.join(os.path.dirname(material.rstrip("/")), "topics.json"),
-                 encoding="utf-8"))["topics"]}
+    topics = topic_files(material) if stage == "merge" else None
     taken = refused = 0
     for path in sorted(glob.glob(os.path.join(runs, "*.json"))):
         topic = os.path.basename(path)[:-5]
@@ -68,18 +38,9 @@ def main(stage: str, runs: str, material: str, out_dir: str, corpus: str) -> int
         body = strip_fence(payload.get("response") or "")
 
         if stage == "merge":
-            if not body.startswith("---"):
-                print(f"  {topic}: ответ не похож на файл темы"); refused += 1; continue
-            gap = language_gap(body, flat_text(material, topics.get(topic, [])))
+            gap = theme_gap(body, material, topics.get(topic, []))
             if gap:
                 print(f"  {topic}: {gap}"); refused += 1; continue
-            want = flat_anchors(material, topics.get(topic, []))
-            got = set(FULL.findall(body))
-            lost, fake = want - got, got - want
-            if lost or fake:
-                print(f"  {topic}: якоря не сходятся — потеряно {len(lost)}, лишних {len(fake)}")
-                refused += 1
-                continue
             open(os.path.join(out_dir, topic + ".md"), "w", encoding="utf-8").write(body + "\n")
         else:
             source = os.path.join(material, topic + ".md")

@@ -27,7 +27,7 @@ import sys
 import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from wave_ready import cyr_share, run_verdict
+from wave_ready import survey
 
 RECEIPTS = os.path.expanduser("~/.hermes/1hermes-runs")
 BAR = 20
@@ -105,21 +105,19 @@ def circle() -> str:
     return f"круг идёт {elapsed_minutes(age)}м"
 
 
-def state(tasks: str, runs: str, good: str) -> tuple[list[str], dict[str, str]]:
-    wanted = sorted(os.path.basename(p)[:-4] for p in glob.glob(os.path.join(tasks, "*.txt")))
-    ready: dict[str, str] = {}
-    for folder in (good, runs):
-        for path in sorted(glob.glob(os.path.join(folder, "*.json"))):
-            payload, _ = run_verdict(path)
-            if payload is None:
-                continue
-            body = payload["response"]
-            ready[os.path.basename(path)[:-5]] = f"{len(body) // 1000}к · {cyr_share(body):.0%} рус"
+def state(tasks: str, runs: str, good: str, flat: str | None
+          ) -> tuple[list[str], dict[str, str]]:
+    """Готовность доски — та же, что у раскладки, и это не удобство.
+
+    Пока доска судила по непустому ответу, а раскладка по якорям, владельцу
+    было названо пятнадцать собранных тем там, где раскладка взяла одиннадцать.
+    """
+    wanted, ready, _ = survey(tasks, (good, runs), flat)
     return wanted, ready
 
 
-def frame(tasks: str, runs: str, good: str) -> str:
-    wanted, ready = state(tasks, runs, good)
+def frame(tasks: str, runs: str, good: str, flat: str | None = None) -> str:
+    wanted, ready = state(tasks, runs, good, flat)
     done = [t for t in wanted if t in ready]
     live = running(runs)
     lines = [f"══ {time.strftime('%H:%M')} · собрано {len(done)} из {len(wanted)} · {circle()} ══"]
@@ -141,16 +139,17 @@ def main(argv: list[str]) -> int:
     args = [a for a in argv if not a.startswith("--")]
     tasks, runs, good = args[0], args[1], args[2]
     events = "--events" in argv
+    flat = next((a.split("=", 1)[1] for a in argv if a.startswith("--flat=")), None)
     step = next((int(a.split("=")[1]) for a in argv if a.startswith("--watch=")), None)
     if "--watch" in argv and step is None:
         step = int(argv[argv.index("--watch") + 1])
     if not events and step is None:
-        print(frame(tasks, runs, good), flush=True)
+        print(frame(tasks, runs, good, flat), flush=True)
         return 0
     seen: set[str] = set()
     while True:
         if events:
-            wanted, ready = state(tasks, runs, good)
+            wanted, ready = state(tasks, runs, good, flat)
             fresh = [t for t in wanted if t in ready and t not in seen]
             if seen:  # первый проход только знакомится с уже собранным
                 for theme in fresh:
@@ -161,7 +160,7 @@ def main(argv: list[str]) -> int:
                 print("ВСЕ ТЕМЫ СОБРАНЫ", flush=True)
                 return 0
         else:
-            print(frame(tasks, runs, good), flush=True)
+            print(frame(tasks, runs, good, flat), flush=True)
         time.sleep(step or 60)
 
 
