@@ -18,7 +18,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from wave import expand_corpus_links, strip_fence
-from wave_ready import FULL, flat_anchors, theme_gap, topic_files
+from wave_ready import FULL, answers_in, flat_anchors, read_answer, theme_gap, topic_files
 
 BLOCK = re.compile(r"^=== ФАЙЛ (\S+\.md)\s*$", re.M)
 
@@ -27,15 +27,11 @@ def main(stage: str, runs: str, material: str, out_dir: str, corpus: str) -> int
     os.makedirs(out_dir, exist_ok=True)
     topics = topic_files(material) if stage == "merge" else None
     taken = refused = 0
-    for path in sorted(glob.glob(os.path.join(runs, "*.json"))):
-        topic = os.path.basename(path)[:-5]
-        try:
-            payload = json.load(open(path, encoding="utf-8"))
-        except Exception:
-            print(f"  {topic}: нет JSON"); refused += 1; continue
-        if not payload.get("ok"):
-            print(f"  {topic}: прогон не принят"); refused += 1; continue
-        body = strip_fence(payload.get("response") or "")
+    for path in answers_in(runs):
+        topic = os.path.splitext(os.path.basename(path))[0]
+        body, why = read_answer(path)
+        if body is None:
+            print(f"  {topic}: {why}"); refused += 1; continue
 
         if stage == "merge":
             gap = theme_gap(body, material, topics.get(topic, []))

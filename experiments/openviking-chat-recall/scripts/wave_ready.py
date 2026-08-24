@@ -124,6 +124,26 @@ def run_verdict(path: str) -> tuple[dict | None, str]:
     return payload, ""
 
 
+def read_answer(path: str) -> tuple[str | None, str]:
+    """Ответ темы, кем бы он ни был сделан: квитанция волны или файл субагента.
+
+    Производителей у слоя два, а судья должен остаться один — иначе счёт снова
+    разойдётся с раскладкой, как разошёлся 2026-08-25 на четырёх темах.
+    """
+    if path.endswith(".md"):
+        body = open(path, encoding="utf-8").read()
+        if len(body) < MIN_RESPONSE:
+            return None, f"ответ пуст или короток ({len(body)} симв)"
+        return strip_fence(body), ""
+    payload, why = run_verdict(path)
+    return (strip_fence(payload["response"]) if payload else None), why
+
+
+def answers_in(folder: str) -> list[str]:
+    return sorted(glob.glob(os.path.join(folder, "*.json"))
+                  + glob.glob(os.path.join(folder, "*.md")))
+
+
 def survey(tasks: str, answers: tuple[str, ...], flat: str | None
            ) -> tuple[list[str], dict[str, str], dict[str, str]]:
     """Что заказано, что готово и почему остальное — нет. Одна правда на всех."""
@@ -133,13 +153,12 @@ def survey(tasks: str, answers: tuple[str, ...], flat: str | None
     ready: dict[str, str] = {}
     refused: dict[str, str] = {}
     for folder in answers:
-        for path in sorted(glob.glob(os.path.join(folder, "*.json"))):
-            name = os.path.basename(path)[:-5]
-            payload, why = run_verdict(path)
-            if payload is None:
+        for path in answers_in(folder):
+            name = os.path.splitext(os.path.basename(path))[0]
+            body, why = read_answer(path)
+            if body is None:
                 refused.setdefault(name, why)
                 continue
-            body = strip_fence(payload["response"])
             gap = theme_gap(body, flat, files.get(name, [])) if flat else None
             if gap:
                 refused[name] = gap
