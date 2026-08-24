@@ -65,3 +65,26 @@ baseline-2026-08-09-codex-SKILL.md (Codex). Потери против baseline:
 Не потеряно: ручная доставка пути, две независимые ветки, cleanup всего
 затронутого слоя, recall-only owner anchors, два ярлыка состояния, incident,
 terrain model, отдельный advice, трёхстрочная преамбула и consumer proof.
+
+## Outcome-first пересборка — потери 2026-08-24
+
+- Нумерованный четырёхшаговый `Closeout` снят; остался один причинный порядок:
+  recall и live state до packet, consumer evidence до delivery.
+- Перечень cleanup-операций перестал быть знаменателем выполненности; его
+  поглотил outcome «каждый затронутый management owner current либо точно
+  передан», а названные поверхности остались неограничивающей ориентировкой.
+- Трёхветочный алгоритм отбора каждой candidate-delta снят; его поглотил один
+  action-changing gate.
+- Команды `mkdir`/`date`, квоты `3–5` строк и `2–4` traps,
+  Markdown-микроправила и повторные списки packet content сняты как procedural
+  scaffolding.
+- Consumer questions переписаны как способности clean-window reader; наличие
+  всех headings прямо объявлено недостаточным stop-condition.
+- `skills/shared/1handoff/portable/SKILL.md` снят как двусмысленный второй
+  source: registry назначает shared-папке только Product Frame.
+
+Не потеряно: one-per-chat, manual path, live-truth priority, независимый
+`1chat-recall`, cleanup неназванных session-affected owners, owner anchors,
+HEAD и previous handoff, два ярлыка state-claim, causal terrain model,
+incident/advice separation, repeated-lesson guardrail, strong-signal placement
+и независимые completion outcomes.

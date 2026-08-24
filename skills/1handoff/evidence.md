@@ -46,3 +46,27 @@ conditional Git outcome. Это source-supported evidence изменения д�
 конфликтных решений и сохранения continuation на одном случае, не
 probabilistic proof. Остались неоднозначности ширины management/advice scan и
 гранулярности claim labels; реальный handoff остаётся следующим behavior test.
+
+## Outcome-first пересборка — 2026-08-24
+
+Baseline → результат: 209 → 168 строк; 1,285 → 1,138 слов; 8,328 → 7,446
+байт. Семантическая мера — снятая четырёхшаговая процедура, квоты и
+candidate-algorithm при сохранённом consumer contract, а не длина сама по себе.
+
+Pre-edit: три независимых read-only окна вернули outcome-map, loss-map и
+adversarial clean-window misreads. Post-draft: architecture audit нашёл два
+дефекта центральной модели; acceptance audit — четыре material fail. После
+ремонта оба окна подтвердили pass по всем шести находкам.
+
+Paired holdout из двух чистых окон дал старому и новому контракту одну сцену:
+неназванный stale lease-owner, owner correction без recall-address, чужие code
+edits и 40-минутный disproved route. Обе версии исправили неназванный owner,
+не затронули чужие edits и передали causal dead-end history. Новый текст
+сначала смешал `recall: no qualifying evidence` с continuation blocker;
+явное разделение было добавлено, повторный reader-check подтвердил исправление.
+
+Structure/distribution: `quick_validate.py`, `rumdl` и `git diff --check`
+проходят на candidate. Tracked Codex/Claude и обе installed projections имеют
+SHA-256 `ef587b7f5f4675a6f1be33abf3fda2518f2e1c7ed1437597c05ecfe66e40c413`.
+Ambiguous shared portable body удалён; shared-папка снова содержит только
+product truth.

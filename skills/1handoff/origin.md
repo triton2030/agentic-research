@@ -111,3 +111,29 @@ runtime-копии; tracked `skills/{codex,claude}/1handoff` отставали 
 `1skill-shaping` + `1instruction-shaping`, Product Frame, историю и raw
 owner-evidence. Линза лишнего нашла десять дублей/конфликтов; acceptance-аудит
 дал 21 pass, 8 исправленных fail и один ожидаемый unknown до runtime-проверки.
+
+## Outcome-first пересборка — 2026-08-24
+
+Владелец скорректировал уже принятую английскую версию: меньше процедур,
+больше целей; агент должен выводить всю необходимую работу из желаемого
+результата, а не считать перечисление исчерпывающим
+(`_ops/chat-recall/raw/2026-08-24-183916-codex-01a033fe.md`). Для этого
+рефактора владелец отдельно отменил промежуточные approval-гейты, потребовал
+сначала выслушать субагентов и довести изменение до конца автономно.
+
+Три pre-edit read-only линзы независимо разобрали поглощение процедур
+outcome-ами, карту потерь и clean-window misreads. Общий вывод: автономность
+расширяет выбор средств, но не authority; примеры не ограничивают состав
+необходимой работы, а явные boundaries и packet contract остаются
+обязательными.
+
+Два post-draft окна проверили структуру и acceptance. После их fail-ов
+возвращены три исхода в центральную модель, точный timestamp-contract,
+`no recall address`, адресуемые блоки и recoverability boundary. Парный
+holdout старого и нового текста сохранил исправление неназванного stale-owner,
+границу чужих edits и paid-dead-end history; новый прогон дополнительно нашёл
+и закрыл смешение фактического recall outcome с continuation blocker.
+
+Topology drift разрешён по живому registry: `skills/shared/1handoff/` снова
+владеет только Product Frame, runtime owner-ы —
+`skills/{codex,claude}/1handoff`, installed packages — их projections.
