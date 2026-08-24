@@ -155,7 +155,9 @@ python3 $S/apply_repair.py "$WORK-repair/runs"
 ```bash
 python3 $S/build_update_tasks.py "$WORK-update/tasks"
 # волна
-python3 $S/wave.py "$WORK-update/tasks" "$WORK-update/runs"   # ненулевой код — волна не закрыта
+python3 $S/wave.py "$WORK-update/tasks" "$WORK-update/runs" \
+  --pending "$WORK-update/pending"        # ненулевой код — волна не закрыта
+# повторная волна идёт по --pending, OUT прежний: принятые ответы не трогаются
 python3 $S/apply_update.py --dry "$WORK-update/runs"          # баланс: дельта против покрытого
 python3 $S/apply_update.py "$WORK-update/runs"
 ```

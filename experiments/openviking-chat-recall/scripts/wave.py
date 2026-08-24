@@ -19,6 +19,7 @@ import glob
 import json
 import os
 import re
+import shutil
 import sys
 
 
@@ -84,7 +85,7 @@ def skip_done(names: list[str], runs_dir: str | None, redo: bool) -> list[str]:
     return kept
 
 
-def main(tasks_dir: str, runs_dir: str) -> int:
+def main(tasks_dir: str, runs_dir: str, pending_dir: str | None = None) -> int:
     built = {os.path.basename(p)[:-4] for p in glob.glob(os.path.join(tasks_dir, "*.txt"))}
     launched = {os.path.basename(p)[:-5] for p in glob.glob(os.path.join(runs_dir, "*.json"))}
     taken = accepted(runs_dir)
@@ -108,8 +109,29 @@ def main(tasks_dir: str, runs_dir: str) -> int:
             print(f"  {name}")
     if not (never or rejected or orphan):
         print("разница пуста — волну можно закрывать")
+
+    # Назвать непринятые мало: волну по ним всё равно надо чем-то пустить, а
+    # пустить её по исходной папке значит переписать уже принятые ответы.
+    # Папку повтора собирали руками, и это тот самый шаг, на котором волна
+    # затирала готовое.
+    if pending_dir:
+        again = sorted(set(never) | set(rejected))
+        shutil.rmtree(pending_dir, ignore_errors=True)
+        os.makedirs(pending_dir, exist_ok=True)
+        for name in again:
+            src = os.path.join(tasks_dir, name + ".txt")
+            if os.path.exists(src):
+                shutil.copy(src, os.path.join(pending_dir, name + ".txt"))
+        print(f"\nпапка повтора: {len(again)} заданий -> {pending_dir}")
+
     return 1 if (never or rejected or orphan) else 0
 
 
 if __name__ == "__main__":
-    raise SystemExit(main(sys.argv[1], sys.argv[2]))
+    plain = [a for a in sys.argv[1:] if not a.startswith("--")]
+    out = None
+    if "--pending" in sys.argv:
+        i = sys.argv.index("--pending")
+        out = sys.argv[i + 1] if len(sys.argv) > i + 1 and not sys.argv[i + 1].startswith("--") \
+            else os.path.join(plain[0], "..", "pending")
+    raise SystemExit(main(plain[0], plain[1], out))
