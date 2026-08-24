@@ -370,8 +370,10 @@ Composition postconditions — before the owner's "yes":
   day of work (riskiest first) → external gates: work later, order earlier.
   Every epic carries a "why here" line.
 - **Grounds are closed.** A `1use-principles` run and the product frames
-  read — before composition; the trace is the names in the justification
-  (copy of the plan gate in the body — edit together). Owner conflicts and
+  read — before composition; the trace is the names in the justification:
+  the principles applied and the planning methods that shaped the
+  composition, each with the decision it changed (copy of the plan gate in
+  the body — edit together). Owner conflicts and
   unresolved buy-vs-build forks on the path of the early epics form a
   «Подготовка» (Preparation) epic: only what affects the nearest epics,
   closed by presentable evidence.

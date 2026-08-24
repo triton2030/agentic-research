@@ -27,9 +27,9 @@ evidence: ""               # mandatory at ✅ — proof of the task as a whole
 
 ## Зачем
 
-<intent: what problem the owner sees (their words, with a recall address),
-what effect completion must produce, boundaries; addresses of
-SPEC/Canon/instructions instead of a retelling>
+<intent to transfer (commander's intent): what problem the owner sees
+(their words, with a recall address), what effect completion must produce,
+boundaries; addresses of SPEC/Canon/instructions instead of a retelling>
 
 - происхождение: <owner (recall address) / Frame principle / document /
   planner's assumption with an escalation condition>
@@ -90,9 +90,10 @@ the reports are collapsed.
   rather than replacing your enumeration with it. A missed requirement
   announces itself neither on screen nor in a green build — only in the
   coverage line.
-- **Subtasks go in order** and do not touch other tasks' subtasks. The
-  report is the only place for status; status sits physically under its
-  subtask.
+- **Subtasks go in order** and do not touch other tasks' subtasks — in this
+  epic or any other (the task-level form of the non-overlap invariant,
+  SKILL.md). The report is the only place for status; status sits
+  physically under its subtask.
 - **Wayfinding**: a subtask is phrased as a question; its proof is a
   recorded decision with provenance; the question map and the transition to
   Execution — [modes](modes.md).

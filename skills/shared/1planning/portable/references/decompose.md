@@ -7,7 +7,8 @@ function of planning and must live inside planning".
 
 Name the cut axis and, in one line, why it is material: a dependent chain ·
 independent branches · research with a decision gate · probing hard limits
-· another natural shape.
+· another natural shape. A good cut yields INVEST-like pieces: independent,
+small, each carrying its own proof.
 
 Without a named axis the cut collapses into chronology — waterfall
 ("design → implement → verify") is always the most available narrative: a

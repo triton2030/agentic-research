@@ -26,6 +26,11 @@ def main(run_path: str, flat: str, out_path: str) -> int:
         if line.count("\t") < 2:
             continue
         name, topic, title = [p.strip().strip("`") for p in line.split("\t", 2)]
+        # Строка, чья первая колонка не имя файла, размещением не является:
+        # ответ бывает с шапкой или обрывком темы сверху. Инвариант разбиения
+        # это не ослабляет — он считается по живым файлам ниже.
+        if not name.endswith(".md"):
+            continue
         if name in assigned:
             twice.append(name)
             continue

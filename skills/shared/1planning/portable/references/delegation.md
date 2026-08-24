@@ -1,7 +1,9 @@
 # Delegation — work wider than one context
 
-A staged run is a shape for recovery and delegation, not a third mode: it
-carries Wayfinding or Execution and does not change the task's Outcome.
+The default shape of this skill is a sequence of autonomous windows; a
+worker fleet is the exception for work wider than one context. A staged run
+is a shape for recovery and delegation, not a third mode: it carries
+Wayfinding or Execution and does not change the task's Outcome.
 
 ## When
 
@@ -27,7 +29,8 @@ for an independently closeable Outcome.
   (what accepts the result) · prohibitions. The worker sees no chat. The
   brief is immutable: a clarification is a message marked "amendment",
   accounted for in the return.
-- **File-disjoint:** every worker gets a non-overlapping file footprint.
+- **File-disjoint:** every worker gets a non-overlapping file footprint —
+  the fleet-level form of "tasks never steal work" (SKILL.md invariant).
   Overlap means clobbered edits — the most expensive fleet failure.
 - **A worker's return** is a file in the epic's `_evidence/` (placed before
   the barrier — a crash at the barrier does not lose the wave's evidence):

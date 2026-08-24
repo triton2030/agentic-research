@@ -50,7 +50,7 @@ move.
 At equal outcomes take the two-way door: the smallest reversible commitment
 that keeps live branches alive until evidence.
 
-## Correction cycle — event-driven
+## Correction cycle — an event-driven OODA loop
 
 After material evidence, before a new material step, on returning to the
 task:

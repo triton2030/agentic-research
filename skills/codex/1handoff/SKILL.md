@@ -1,146 +1,209 @@
 ---
 name: 1handoff
 description: >-
-  Use for $1handoff or /1handoff, or when long repo work must continue in a new
-  session without losing irrecoverable state. Not for summaries, file transfer,
-  final reports, or a second handoff per chat.
+  Use when $1handoff or /1handoff is requested, or when long repository work
+  must move to a fresh session before continuation-critical state is lost. Not
+  for summaries, final reports, file transfer, or a second handoff in the same
+  chat.
 ---
 
-# Хендоф
+# Handoff
 
-Закрытие сессии — один вызов и две независимые ветки: durable-тезисы владельца
-уходят в `$1chat-recall` по его собственному контракту, а continuation packet в
-`_ops/handoffs/` несёт датированную разговорную дельту, по которой свежая
-сессия, получившая путь файла, продолжит без старого чата. Это композиция
-владельцев, не слияние: procedure и metadata recall сюда не копируются; один
-тезис может пройти оба разных gate.
+Close one repository work session so a fresh agent can continue without the old
+chat. Produce two independent outcomes:
 
-Хендофы накапливаются: вместе они — историческая летопись работ, ошибок и
-самонаблюдений, из которой будущие агенты и будущие правки инструкций берут
-оплаченный опыт. Пишется файл для следующего агента, читаться будет всеми
-будущими.
+- `1chat-recall` preserves qualifying owner evidence under its own contract.
+- A continuation packet in `_ops/handoffs/` preserves the dated,
+  action-changing session delta.
 
-## Цель
+Successful continuation—not conversation completeness—decides what belongs in
+the packet. Together, packets form a history of work, mistakes, and useful
+observations.
 
-Главная цель одна: новый агент, прочитав хендоф, успешно продолжает работу —
-каждая процедура ниже служит ей, и при конфликте побеждает продолжение.
-Свежая сессия по одному пути называет следующий шаг и его причину, видит
-pending decision, blocker или veto, не повторяет оплаченные тупики и не
-наступает на грабли этой сессии — а полезное, что здесь помогало, знает
-заранее. Слой агентного управления достаётся ей прибранным. Recall-ветка
-разрешена по собственному gate.
+## Outcome
 
-## Критерии успеха
+With only the repository and the explicit packet path, a fresh agent can begin
+the correct next action for the right reason, avoid errors and disproved models
+paid for in this session, and inherit the management layer without state made
+stale by this session.
 
-- Обе ветки в наблюдаемом исходе: `recall` = captured / no qualifying
-  evidence / blocked; `handoff` = точный путь / blocked. Blocked не стирает
-  успех другой ветки и не превращается в молчаливое done.
-- Consumer proof пройден: четыре ответа выводимы из файла без чата
-  (Механика 8).
-- Решения и поправки владельца — только якорями на recall-записи
-  (Механика 3).
-- Каждый claim о состоянии работы несёт «чем проверено» либо метку
-  `непроверено` (Механика 4).
-- Уборка в наблюдаемом исходе с именами файлов (Механика 2).
-- Совет следующему агенту несёт наблюдения с привязкой к файлам и типам
-  работ — не рекомендации «как улучшить» и не абстрактные уроки.
-- В чат возвращены путь + одна строка о содержимом + исходы recall, уборки и
-  proof; residual risk — только если часть контекста была недоступна или не
-  подтверждена.
+## Boundaries
 
-## Инварианты
+- Create no more than one handoff in a chat.
+- Deliver the returned path manually to the next session. Do not create or use
+  a “latest handoff” index, hook, automatic discovery, or consumed state.
+- A packet is not a transcript, chat summary, task plan, or new project canon.
+  Include only the dated delta from the current session. Do not transfer other
+  sessions, a user profile, or general project rules.
+- Follow the owning skill for plans, findings, indexes, instructions, and other
+  managed surfaces. Outside those named contracts, change only work authorized
+  by the project, recoverable in one Git operation, and not requiring owner
+  approval. Hand off everything else with an exact anchor.
+- Record the actual running model with a short, honest identifier. Do not invent
+  a subversion.
 
-- Хендоф — не transcript, не summary, не task plan и не новый канон: live
-  owner-файлы и runtime сильнее; файл хранит только датированную дельту поверх
-  них.
-- Самовызов — только при явно разросшемся окне сессии и не больше одного
-  хендофа на сессию чата: уже созданный хендоф этой сессии блокирует
-  повторный самовызов.
-- Доставка явная: новая сессия получает возвращённый путь вручную. «Последний»
-  хендоф, индекс, hook или consumed-state не создаются.
-- Просмотр уборки — весь слой управления; молчаливая правка — только
-  обратимая одним git-ходом и не требующая «да» владельца или отдельного
-  скила.
-- Чужие сессии, профиль владельца и общие правила проекта не переносятся.
-- Пустой раздел не создаётся, раздел ради шаблона не добавляется; единственный
-  фиксированный блок — трёхстрочная преамбула читателю; длину задаёт только
-  continuation-critical дельта и честные самонаблюдения.
-- Имя модели — честный короткий идентификатор фактически запущенной модели,
-  без выдуманных подверсий.
+## Closeout
 
-## Дельта
+The order matters: recall and cleanup must resolve before their outcomes enter
+the packet, and the packet must pass its consumer check before delivery.
 
-Модель умеет писать summary. Не умеет: гладкий пересказ прячет причины
-решений, поправки и неудачные маршруты — следующая сессия повторяет оплаченный
-тупик; видимый handoff-файл кажется завершением — recall-ветка и грязный слой
-управления остаются молча; инцидент сглаживается до общего «урока» — цена
-повторения исчезает; собственные неудобства и неожиданно помогшие инструменты
-не замечаются вовсе — опыт сессии умирает вместе с ней.
+1. **Resolve recall.** Invoke `1chat-recall` through the current runtime’s skill
+   mechanism and follow its contract. If unavailable or blocked, continue the
+   packet and state the exact reason; never imitate recall inside the handoff.
+   A statement may enter both recall and the packet when it passes both gates.
 
-## Известные сбои
+2. **Clean the management layer.** Review the entire layer for state affected
+   by this session:
 
-Пакет однофайловый: сбои названы в Дельте, лечение — шаги Механики; внешних
-references нет.
+   - update the active plan and status through `1planning`;
+   - close or mark findings made stale by this session;
+   - add an `INDEX.md` route through `1index` when expensive discovery found
+     knowledge somewhere non-obvious;
+   - update instructions or documentation made stale by this session;
+   - resolve Git state as project instructions authorize—commit and push only
+     when allowed; otherwise record the exact state;
+   - remove only temporary material whose loss is recoverable or reproducible.
 
-## Механика
+   Search earlier `Advice to the Next Agent` sections for each candidate
+   recurring observation. If it has recurred, install a guardrail when current
+   authority and its owning contract allow the change; otherwise create a
+   finding and anchor the reason.
 
-1. **Ветка recall.** Запусти `$1chat-recall` и следуй его
-   контракту. Недоступен или blocker → всё равно создай packet, назови
-   closeout частичным с точной причиной; recall внутри хендофа не имитируется.
-2. **Уборка за собой.** Просмотри слой агентного управления целиком: план и
-   статус (по контракту `1planning`) · находки — пометь закрытые этой сессией
-   и устаревшие · маршруты `INDEX.md` — запиши оплаченный маршрут, если
-   дорогой поиск сессии нашёл знание не там, где очевидно (контракт `1index`) ·
-   строки инструкций и доков, устаревшие после работы этой сессии · git —
-   незакоммиченное закоммить и запушь, мусор и временные файлы убери. Почини
-   то, что обратимо одним git-ходом и не требует «да» владельца или отдельного
-   скила; остальное — строка `1findings` + якорь в packet. Исход: починено
-   (что) / нечего убирать / передано.
-3. **Контроллер дельты** — для каждого кандидата: восстановимо из live-файла
-   или runtime → только `path: что изменилось / почему адрес важен`; потеря не
-   изменит шаг, решение, veto, риск или повторяемую ошибку → пропустить;
-   иначе — короткий блок «факт или выбор → причина / evidence → последствие
-   для продолжения». Решение или поправка владельца: процитируй адрес его
-   recall-записи (файл + timestamp) и оставь только якорь с сутью одной
-   строкой; адреса нет → сначала запиши recall-веткой; recall отверг по
-   своему гейту, а потеря изменит продолжение → короткий блок с пометкой
-   `без recall-адреса`.
-4. **Ядро:** где работа реально остановилась (включая незавершённое и
-   непроверенное) · один следующий шаг и его причина · якоря: точные пути,
-   команды, ID, runtime state с одной строкой дельты. Каждый claim о состоянии
-   несёт «чем проверено» (команда, тест, diff) либо метку `непроверено`:
-   неотличимость проверенного от непроверенного — главный сбой жанра.
-   Прошедшее контроллер: решения и поправки владельца якорями, открытые
-   вопросы, rejected routes, tool failures, surprises — один смысл = один
-   адресуемый `###`-блок.
-5. **Incident cell** — только когда новое чтение, tool output или поправка
-   владельца сменили маршрут либо отменили начатое: **до** → **trigger** →
-   **цена** (wall time по timestamps либо `unknown`) → **почему поздно** (либо
-   `unknown`) → **предотвращение** (точный owner или check). Безвредное
-   расхождение ожиданий — не инцидент; telemetry не выдумывается.
-6. **Совет следующему агенту** — мета-анализ собственной сессии, содержательно
-   и с привязкой: что было сложно, некомфортно или неожиданно долго; где
-   ошибся или неправильно понял владельца либо задачу; что реально помогало —
-   инструмент, приём, маршрут, — включая то, что помогло незаметно; какие
-   грабли не повторять. Формат наблюдения: `что наблюдал → файл или тип
-   работы → цена или выгода`. Рекомендации «как улучшить» не пишутся — только
-   наблюдения; будущие правки инструкций сделают выводы сами.
-7. **Файл:** `mkdir -p _ops/handoffs && date +"%Y-%m-%d-%H%M%S"` →
-   `_ops/handoffs/<ts>-<model>.md`; frontmatter `description`
-   («Хендоф <ts>: одна строка»), `model`, `date` = тот же ts; сразу после
-   frontmatter — преамбула читателю в три строки: читай файл целиком ·
-   live-файлы и runtime сильнее снимка · первый ход — назови следующий шаг с
-   причиной и сверь HEAD-якорь с `git log`. Каркас `## Где мы сейчас ·
-   ## Следующий шаг · ## Совет следующему агенту · ## Якоря` — минимум, не
-   шаблон. В якорях: HEAD-коммит на момент хендофа, исходы recall-ветки и
-   уборки, путь предыдущего полученного хендофа, если он был.
-8. **Consumer proof (жёсткий переход).** Перечитай файл как свежий агент с
-   repo и путём, но без чата: следующий шаг и почему · pending/blocker/veto ·
-   какой тупик не повторять · где live truth. Невыводимо → добавь дельту; блок
-   заменяется чтением одного live-файла → сократи до якоря.
+   Report named changes, `nothing to clean`, or what was handed off.
 
-## Завершение
+3. **Select the continuation delta.** For each candidate:
 
-Обе ветки разрешены, уборка в наблюдаемом исходе, proof пройден, чат получил
-путь + строку + исходы. Дальше текст не способен изменить продолжение — стоп.
-Широкая индексация или repo-wide checks ради хендофа не запускаются.
+   - If a live file or runtime state can recover it, keep only
+     `path: what changed / why this address matters`.
+   - If losing it cannot change the next action, decision, veto, risk, or a
+     repeated mistake, omit it.
+   - Otherwise record
+     `fact or choice -> reason or evidence -> consequence for continuation`.
+
+   Represent an owner decision or correction only with its `1chat-recall`
+   address and a one-line statement of relevance. Capture a missing address
+   through the recall branch first. If recall rejects the evidence but losing
+   it would change continuation, mark the block `no recall address`.
+
+4. **Write the packet.** Create `_ops/handoffs/` if needed. Generate the
+   timestamp with `date +"%Y-%m-%d-%H%M%S"` and write
+   `_ops/handoffs/<timestamp>-<model>.md`.
+
+   Frontmatter contains `description`
+   (`Handoff <timestamp>: <one line>`), `model`, and `date` using the same
+   timestamp.
+
+## Packet Content
+
+Place these three lines immediately after frontmatter:
+
+1. Read this file in full.
+2. Live files and runtime state override this dated snapshot.
+3. First state the next action and why, then compare the recorded HEAD with
+   `git log`.
+
+Place every continuation-changing veto, blocker, or unverified state from this
+session immediately after the preamble or in `## Anchors`; do not bury it in the
+middle.
+
+Always include:
+
+- `## Terrain Model`
+- `## Where We Are`
+- `## Next Step`
+- `## Anchors`
+
+Add `## Incidents` and `## Advice to the Next Agent` only when their gates admit
+content. Do not create empty sections. Use one addressable `###` block per
+meaning.
+
+The packet records:
+
+- where work actually stopped, including unfinished and unverified work;
+- continuation-changing completed work, what changed, and why;
+- one next action and its reason;
+- exact paths, commands, IDs, and runtime state, each with one line explaining
+  why the anchor matters;
+- relevant owner decisions and corrections as recall addresses;
+- open questions, rejected routes, tool failures, and surprises that passed
+  delta selection;
+- the HEAD commit, recall and cleanup outcomes, and the path of the previous
+  received handoff, if there was one.
+
+Every state claim carries two labels:
+
+- `knowledge`: the command, test, or diff that verified it, or `unverified`;
+- `consequence`: `none`, `accepted assumption`, `blocker`, or `reframe`.
+
+### Terrain Model
+
+Write a 3–5 line working model of the system as understood when the session
+ended. Preserve causal history as addressable beliefs:
+
+`initial model or action -> evidence or result -> resulting model`.
+
+Do not write a chronological diary.
+
+Add 2–4 trap blocks only for misleading terrain that still exists:
+
+`obvious reading -> model it suggests -> evidence that disproved it -> what is
+true`.
+
+Do not record a corrected file as a trap or a surprise with no consequence for
+the next agent.
+
+### Incident
+
+Add an incident only when new evidence, tool output, or an owner correction
+changed the route or invalidated work already begun:
+
+`before -> trigger -> cost -> why discovered late -> cleanup outcome`.
+
+Use timestamps for cost or write `unknown`. Write `unknown` when the reason for
+late discovery is unavailable. Point to the guardrail or finding produced
+during cleanup; do not decide or install it here. Advice to a future reader is
+not a guardrail.
+
+### Advice to the Next Agent
+
+Record observations, not improvement proposals:
+
+`what was difficult, mistaken, slow, or unexpectedly helpful -> file or work
+type -> cost or benefit`.
+
+A new observation remains advice. If cleanup found the observation in an
+earlier handoff, do not repeat it as advice; record only the guardrail or finding
+produced during cleanup.
+
+## Consumer Check
+
+Before returning the path, reread the packet as an agent with the repository
+and path but no chat. It must answer:
+
+- What is the next action, and why?
+- Which continuation-changing decision, blocker, veto, or unverified state from
+  this session is pending?
+- Which paid dead end must not be repeated, if any?
+- Which obvious reading of the terrain is false, if any?
+- Where is current live truth?
+
+Confirm absence rather than inventing a dead end or trap. If an answer is
+missing, add the continuation-changing delta. If a block can be replaced by
+reading one live file, replace it with that file’s anchor.
+
+## Completion
+
+Return the exact packet path or the exact packet blocker. When a packet exists,
+add one line describing it.
+
+Report these outcomes once:
+
+- `recall`: `captured`, `no qualifying evidence`, or `blocked`;
+- `cleanup`: named changes, `nothing to clean`, or `handed off`;
+- `packet`: exact path or `blocked`;
+- `consumer check`: `passed`, or the exact blocker.
+
+A blocked outcome does not erase a successful one or become silent completion.
+State residual risk only for unavailable context or unverified claims. Stop when
+more text cannot change continuation. Do not run broad indexing or
+repository-wide checks only for the handoff.
