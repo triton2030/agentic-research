@@ -58,7 +58,13 @@ def topic_of(block: str) -> str | None:
 def main(out_dir: str, corpus: str = CORPUS, catalog_path: str | None = None) -> int:
     catalog_path = catalog_path or f"{ART}/flatten-v1/topics.json"
     topics = json.load(open(catalog_path, encoding="utf-8"))["topics"]
-    catalog = "\n".join(f"- `{t['id']}` — {t['title']}. Граница: {t['why']}" for t in topics)
+    # Свежая карта стадии 2 несёт только заголовок; `why` появляется позже, у
+    # тем, чью границу уже назвал прогон назначения.
+    catalog = "\n".join(
+        f"- `{t['id']}` — {t['title']}."
+        + (f" Граница: {t['why']}" if t.get("why") else "")
+        for t in topics
+    )
     os.makedirs(out_dir, exist_ok=True)
     built = skipped = 0
     for path in sorted(glob.glob(f"{corpus}/*.md")):
