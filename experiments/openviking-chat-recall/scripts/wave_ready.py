@@ -73,6 +73,105 @@ def flat_text(flat: str, names: list[str]) -> str:
     return "\n".join(read_flat(flat, n) for n in names)
 
 
+ANCHOR = re.compile(r"\[[^\]]*#?L\d+[^\]]*\]")
+BRACKET = re.compile(r"\[([^\]]*)\]")
+CANCELLED = re.compile(r"^#+\s*Отменено", re.M)
+
+
+def normal(text: str) -> str:
+    return re.sub(r"\s+", " ", ANCHOR.sub("", text)).strip(" .;·—-").strip()
+
+
+def raw_bullets(text: str) -> list[str]:
+    """Пункты как единицы, целиком и без разбора: многострочный пункт — один."""
+    out: list[str] = []
+    current: list[str] = []
+    for line in text.splitlines() + ["- "]:
+        if line.startswith("- "):
+            if current:
+                out.append(" ".join(current))
+            current = [line[2:]]
+        elif current and line.strip() and not line.startswith("#"):
+            current.append(line.strip())
+        elif current:
+            out.append(" ".join(current))
+            current = []
+    return out
+
+
+def bullets(text: str) -> list[tuple[list[tuple[str, str]], str]]:
+    """Пункт темы: его полные якоря и его текст без них."""
+    return [(FULL.findall(b), normal(b)) for b in raw_bullets(text)]
+
+
+def material_items(flat: str, names: list[str]) -> dict[tuple[str, str], list[str]]:
+    """(источник, строка) -> тексты пунктов материала. Список, а не строка:
+    одна запись разговора даёт несколько сухих пунктов под одним якорем."""
+    items: dict[tuple[str, str], list[str]] = {}
+    for name in names:
+        text = read_flat(flat, name)
+        if not text:
+            continue
+        source = (re.search(r"^source:\s*(\S+)", text, re.M) or [None, name])[1]
+        for body in raw_bullets(text):
+            # Якоря материала бывают групповыми: `[L30, L31]` — одна запись
+            # разговора, давшая один сухой пункт. Разбор «ровно [L21]» терял
+            # каждый третий и объявлял выдуманными полсотни настоящих якорей.
+            for span in BRACKET.findall(body):
+                for num in SHORT.findall(span):
+                    items.setdefault((source, num), []).append(normal(body))
+    return items
+
+
+def coverage_gap(body: str, flat: str, names: list[str]) -> str | None:
+    """Каждый пункт материала обязан присутствовать целиком — вот инвариант.
+
+    Прежняя редакция сравнивала множества якорей, и Codex показал, чем за это
+    платят: 83 якоря из 1586 несут по нескольку пунктов, поэтому удаление
+    одного из них множество не меняет. Подмена тезиса на противоположный при
+    сохранённом якоре тоже проходила. Считать надо пункты, а не подписи.
+    """
+
+    parts = CANCELLED.split(body, maxsplit=1)
+    live, cancelled = parts[0], (parts[1] if len(parts) > 1 else "")
+    # Отменённый пункт исчезает из тела вместе со своим текстом, а его якорь
+    # называется первым в строке отмены — только он и освобождается от переноса.
+    excused = {b[0][0] for b in bullets(cancelled) if b[0]}
+    holders: dict[tuple[str, str], list[str]] = {}
+    for anchors, text in bullets(live):
+        if len(set(anchors)) > 1:
+            # Пункт с несколькими якорями — законное схлопывание дублей из
+            # разных разговоров: контракт даёт ему одну формулировку и все
+            # источники, поэтому дословного вхождения каждого требовать нельзя.
+            excused |= set(anchors)
+            continue
+        for anchor in anchors:
+            holders.setdefault(anchor, []).append(text)
+    items = material_items(flat, names)
+    lost = [key for key, texts in items.items()
+            if key not in excused
+            and any(not any(t in h for h in holders.get(key, [])) for t in texts)]
+    # Встречное направление обязательно. Сторона материала спрашивает «всё ли
+    # доехало» и молчит, когда пункт подменён: якорь на месте, а тезис чужой —
+    # именно так подмена на противоположный проходила гейт. Сторона темы
+    # спрашивает «откуда это взялось» и подмену видит.
+    drift = [key for key, texts in holders.items()
+             if items.get(key)
+             and any(t not in items[key] and not all(o in t for o in items[key])
+                     for t in texts)]
+    invented = sorted(set(FULL.findall(body)) - set(items))
+    if lost or drift or invented:
+        parts_out = []
+        if lost:
+            parts_out.append(f"пункты материала не доехали: {len(lost)}")
+        if drift:
+            parts_out.append(f"текст разошёлся с источником: {len(drift)}")
+        if invented:
+            parts_out.append(f"выдуманных якорей: {len(invented)}")
+        return " · ".join(parts_out)
+    return None
+
+
 def theme_gap(body: str, flat: str, names: list[str]) -> str | None:
     """Единственный владелец слова «готова» для темы: форма, язык, происхождение.
 
@@ -89,7 +188,7 @@ def theme_gap(body: str, flat: str, names: list[str]) -> str | None:
     lost, fake = want - got, got - want
     if lost or fake:
         return f"якоря не сходятся — потеряно {len(lost)}, лишних {len(fake)}"
-    return None
+    return coverage_gap(body, flat, names)
 
 
 def cyr_share(text: str) -> float:

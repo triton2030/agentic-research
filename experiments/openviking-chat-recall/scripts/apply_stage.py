@@ -23,9 +23,33 @@ from wave_ready import FULL, answers_in, flat_anchors, read_answer, theme_gap, t
 BLOCK = re.compile(r"^=== ФАЙЛ (\S+\.md)\s*$", re.M)
 
 
+def write_atomic(path: str, text: str) -> None:
+    """Публикация в чужое дерево — либо целиком, либо никак.
+
+    Прямая запись `"w"` создаёт пустой файл первым делом: обрыв посреди
+    раскладки оставляет в продукте соседнего проекта обрубок темы, который
+    выглядит как готовый.
+    """
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as handle:
+        handle.write(text)
+    os.replace(tmp, path)
+
+
 def main(stage: str, runs: str, material: str, out_dir: str, corpus: str) -> int:
     os.makedirs(out_dir, exist_ok=True)
     topics = topic_files(material) if stage == "merge" else None
+    seen: dict[str, str] = {}
+    for path in answers_in(runs):
+        name = os.path.splitext(os.path.basename(path))[0]
+        if name in seen:
+            # Производителей у темы теперь двое — волна и субагент, — и молча
+            # побеждал последний по алфавиту расширения. Замена принятой работы
+            # обязана быть решением, а не побочным эффектом сортировки.
+            print(f"  {name}: две версии одной темы — {seen[name]} и {path}")
+            return 2
+        seen[name] = path
+
     taken = refused = 0
     for path in answers_in(runs):
         topic = os.path.splitext(os.path.basename(path))[0]
@@ -37,7 +61,7 @@ def main(stage: str, runs: str, material: str, out_dir: str, corpus: str) -> int
             gap = theme_gap(body, material, topics.get(topic, []))
             if gap:
                 print(f"  {topic}: {gap}"); refused += 1; continue
-            open(os.path.join(out_dir, topic + ".md"), "w", encoding="utf-8").write(body + "\n")
+            write_atomic(os.path.join(out_dir, topic + ".md"), body + "\n")
         else:
             source = os.path.join(material, topic + ".md")
             text = open(source, encoding="utf-8").read() if os.path.exists(source) else ""
@@ -62,7 +86,9 @@ def main(stage: str, runs: str, material: str, out_dir: str, corpus: str) -> int
                 open(target, "w", encoding="utf-8").write(body + "\n")
         taken += 1
     print(f"тем принято: {taken} | отвергнуто: {refused}")
-    return 0
+    # Ненулевой код — единственное, что мешает следующей стадии стартовать
+    # после неполной раскладки: сообщение об отказе она не читает.
+    return 1 if refused else 0
 
 
 if __name__ == "__main__":
