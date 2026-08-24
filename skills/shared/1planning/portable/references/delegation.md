@@ -1,72 +1,77 @@
-# Делегирование — работа шире одного контекста
+# Delegation — work wider than one context
 
-Staged run — форма восстановления и делегирования, не третий режим: он несёт
-Wayfinding или Execution и не меняет Outcome задачи.
+A staged run is a shape for recovery and delegation, not a third mode: it
+carries Wayfinding or Execution and does not change the task's Outcome.
 
-## Когда
+## When
 
-Точное восстановление после границы сессии · несколько независимых
-context/write-слайсов · флот воркеров. Не заводи staged shape из-за размера,
-отдельного вопроса или блокера — sibling-задача появляется только для
-независимо закрываемого Outcome.
+Exact recovery across a session boundary · several independent
+context/write slices · a worker fleet. Do not open a staged shape because
+of size, a standalone question, or a blocker — a sibling task appears only
+for an independently closeable Outcome.
 
-## Контракт делегирования
+## Delegation contract
 
-- **Файлы планов пишет только оркестрирующее окно.** Воркеры и субагенты не
-  пишут в карту и файлы задач; их право записи — `_evidence/**` эпика и свои
-  рабочие футпринты вне карты. Хуки и прибор проекта держат этот запрет
-  механически; исключение-миграция включается только словом владельца.
-- **Бриф воркера эфемерен**: живёт в run_dir оркестратора вне карты, вместе с
-  файловым футпринтом волны («кто куда пишет»). Состав брифа — как у модуля
-  v2, дом сменился, поля нет: вклад (в какую подзадачу и чем) · источники
-  (точные адреса; список требований сверяется актом вывода из
-  [contract](contract.md), не заменяет его) · границы (чтение · запись:
-  конечные файлы) · экипировка (скилы, которые воркер обязан поднять) ·
-  бюджет (N шагов; «достаточно, когда …») · проверки оркестратора (чем
-  принимается) · запреты. Чата воркер не видит. Бриф неизменяем: уточнение —
-  репликой с пометкой «амендмент», учтённой в возврате.
-- **File-disjoint:** каждый воркер получает непересекающийся footprint файлов.
-  Пересечение — перетёртые правки, самый дорогой сбой флота.
-- **Возврат воркера** — файл в `_evidence/` эпика (кладётся до барьера — обрыв
-  на барьере не теряет evidence волны): статус success|blocked|split-proposal ·
-  изменения · evidence · пробелы · экипировка: поднял/нет + причина · след
-  принципов (решение + имена). Приняв возврат, оркестратор тем же ходом пишет
-  строку в отчёт подзадачи и обновляет счётчики прибором.
-- Порядок волны, барьеры и лимиты параллельности — `1orchestration`; тяжёлая
-  подзадача несёт в отчёте строку разметки
-  `волна: чтение <зоны> · запись <футпринты> · проверка <линзы>`.
+- **Plan files are written only by the orchestrating window.** Workers and
+  subagents do not write to the map or the task files; their write rights
+  are the epic's `_evidence/**` and their own working footprints outside
+  the map. Hooks and the project instrument enforce the ban mechanically; a
+  migration exception is enabled only by the owner's word.
+- **A worker brief is ephemeral**: it lives in the orchestrator's run_dir
+  outside the map, together with the wave's file footprint ("who writes
+  where"). Brief composition: contribution (into which subtask and with
+  what) · sources (exact addresses; the requirement list is verified by the
+  derivation act from [contract](contract.md), not replaced by it) ·
+  boundaries (read · write: the exact files) · equipment (skills the worker
+  must load) · budget (N steps; "enough when …") · orchestrator checks
+  (what accepts the result) · prohibitions. The worker sees no chat. The
+  brief is immutable: a clarification is a message marked "amendment",
+  accounted for in the return.
+- **File-disjoint:** every worker gets a non-overlapping file footprint.
+  Overlap means clobbered edits — the most expensive fleet failure.
+- **A worker's return** is a file in the epic's `_evidence/` (placed before
+  the barrier — a crash at the barrier does not lose the wave's evidence):
+  status success|blocked|split-proposal · changes · evidence · gaps ·
+  equipment: loaded/not + reason · principles trace (decision + names).
+  Having accepted a return, the orchestrator in the same move writes a line
+  into the subtask report and refreshes the counters via the instrument.
+- Wave order, barriers and parallelism limits — `1orchestration`; a heavy
+  subtask carries a layout line in its report:
+  `волна: чтение <zones> · запись <footprints> · проверка <lenses>`.
 
-## Проверка воркеров
+## Verifying workers
 
-Самоотчёт воркера — не свидетельство. Проверяй свежим прогоном по исходным
-критериям и путям: `git diff`, тесты, приёмка потребителем стыка. Транскрипт
-исполнителя — материал для диагноза, не для приёмки.
+A worker's self-report is not evidence. Verify with a fresh run against the
+original criteria and paths: `git diff`, tests, consumer acceptance of the
+seam. The executor's transcript is material for diagnosis, not for
+acceptance.
 
-Протокол ожидания, probe и repair зависшего воркера держит `1orchestration`;
-дельта планирования одна: исход каждого probe/repair фиксируется строкой в
-отчёте затронутой подзадачи — `UNKNOWN` и blocker тоже; итоговый blocker,
-требующий слова владельца, уходит по [questions](questions.md).
+The wait/probe/repair protocol for a stalled worker is owned by
+`1orchestration`; planning's delta is one line: the outcome of every
+probe/repair lands as a line in the affected subtask's report — `UNKNOWN`
+and blockers too; a final blocker that needs the owner's word goes through
+[questions](questions.md).
 
-## Восстановление после обрыва
+## Recovery after a break
 
-Волна — единица автономии: обрыв стоит одну волну, не работу. Воркер по
-файлам плана не восстанавливается — волна перевыдаётся целиком.
+A wave is the unit of autonomy: a break costs one wave, not the work. A
+worker is not restored from plan files — the wave is reissued whole.
 
-- Холодный старт, бюджет чтения: папка эпика → folder note эпика → файл
-  задачи → `_evidence/` волны → точные якоря источников. Сразу сверь
-  `эпик-снимок`; протух → пересверь задачу с эпиком тем же ходом до перевыдачи
-  (копия гейта [contract](contract.md) — правь вместе). Архив, backlog и
-  соседние задачи не преподгружаются.
-- До перевыдачи — сверка «что уже сделано»: git status/diff против отчётов
-  подзадач. Внешнее действие не повторяется вслепую: повторный флот по уже
-  применённым правкам — перетёртые правки и двойные коммиты.
-- Пауза — состояние: открытые вопросы владельцу живут заметками-вопросами
-  ([questions](questions.md)); ответ может принять другое окно.
-- Отчёты расходятся с git → верить git, чинить отчёт, потом продолжать:
-  чекпойнт, который врёт, хуже отсутствующего.
+- Cold start, reading budget: epic folder → epic folder note → task file →
+  the wave's `_evidence/` → exact source anchors. Verify `эпик-снимок` at
+  once; stale → re-verify the task against the epic in the same move,
+  before reissuing (copy of the [contract](contract.md) gate — edit
+  together). The archive, backlog and neighboring tasks are not preloaded.
+- Before reissuing — reconcile "what is already done": git status/diff
+  against the subtask reports. An external action is never repeated blind:
+  a repeat fleet over already-applied edits means clobbered edits and
+  double commits.
+- A pause is a state: open owner questions live as question notes
+  ([questions](questions.md)); another window may accept the answer.
+- Reports diverge from git → trust git, fix the report, then continue: a
+  checkpoint that lies is worse than none.
 
-## Инвалидация
+## Invalidation
 
-Изменился upstream-артефакт или контракт стыка → downstream-доказательства
-недействительны: перепроверь затронутые задачи, не доверяй их старому
-«готово».
+An upstream artifact or a seam contract changed → downstream proofs are
+void: re-verify the affected tasks; do not trust their old "done".

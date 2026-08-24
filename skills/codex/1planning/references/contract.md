@@ -1,171 +1,187 @@
-# Контракт файла задачи
+# Task file contract
 
-Одна задача — один файл с говорящим именем внутри папки своего эпика. Ровно
-три раздела: «Зачем», «Принципы», «Подзадачи» — недостающий обязательный и
-лишний раздел оба ломают прибор. Контекст, статус и доказательства живут в
-этом же файле: контекст — в «Зачем», статус и evidence — в отчётах подзадач.
+One task — one file with a self-describing name inside its epic's folder.
+Exactly three sections: «Зачем», «Принципы», «Подзадачи» — a missing
+mandatory section and an extra one both break the instrument. Context,
+status and proofs live in this same file: context in «Зачем», status and
+evidence in the subtask reports.
 
-## Форма
+## Form
 
 ```markdown
 ---
 тип: задача
-эпик: "[[<Имя эпика>]]"
-эпик-снимок: "<hash значимой части эпика — пишет тот, кто перечитал>"
-траектория: "<чем двигаю критерий эпика и почему важнее очереди>"
+эпик: "[[<Epic name>]]"
+эпик-снимок: "<hash of the epic's significant part — written by whoever reread it>"
+траектория: "<how this moves the epic criterion and why it beats the queue>"
 режим: execution | wayfinding
-статус: <из словаря map>
-порядок: <номер в очереди задач эпика>
-подзадач: 0                # производное — пишет прибор
-подзадач-готово: 0         # производное — пишет прибор
-обновлено: <дата>          # производное — пишет прибор
-evidence: ""               # обязательна при ✅ — доказательство задачи целиком
+статус: <from the map vocabulary>
+порядок: <number in the epic's task queue>
+подзадач: 0                # derived — the instrument writes it
+подзадач-готово: 0         # derived — the instrument writes it
+обновлено: <date>          # derived — the instrument writes it
+evidence: ""               # mandatory at ✅ — proof of the task as a whole
 ---
 
-# <Говорящее имя задачи — проверяемый результат>
+# <Self-describing task name — a checkable result>
 
 ## Зачем
 
-<замысел: какую проблему видит владелец (его словами, с recall-адресом),
-какой эффект должно дать завершение, границы; адреса SPEC/Canon/инструкций
-вместо пересказа>
+<intent: what problem the owner sees (their words, with a recall address),
+what effect completion must produce, boundaries; addresses of
+SPEC/Canon/instructions instead of a retelling>
 
-- происхождение: <владелец (recall-адрес) / Frame-принцип / документ /
-  допущение планировщика с условием эскалации>
-- верно, пока: <предпосылка; она рухнула → стоп и пересборка, не доделка>
-- отпавшие ходы: <обсуждённое и отвергнутое + причина — чтобы ре-план не
-  открывал заново; мёртвую ветку вычёркивай, блок не хроника>
+- происхождение: <owner (recall address) / Frame principle / document /
+  planner's assumption with an escalation condition>
+- верно, пока: <premise; it collapsed → stop and rebuild, don't finish up>
+- отпавшие ходы: <discussed and rejected + the reason — so a re-plan does
+  not reopen them; cross out dead branches, the block is not a chronicle>
 
 ## Принципы
 
-- [[<принцип или пара>]] — <на что влияет именно в этой задаче>
-- <нет подходящего — явная строка: нет принципа — <причина>; раздел
-  присутствует всегда>
+- [[<principle or pair>]] — <what it affects in this task specifically>
+- <none fits — an explicit line: нет принципа — <reason>; the section is
+  always present>
 
 ## Подзадачи
 
-- [x] <подзадача — результат (Execution) или вопрос (Wayfinding)>
+- [x] <subtask — a result (Execution) or a question (Wayfinding)>
 
 > [!note]- Отчёт
-> статус <дата>: <одна строка — где мы>
-> доказательство: <адрес: прогон, файл в `_evidence/`, приёмка потребителем>
-> решение: <волевое решение по `1use-principles`, если было>
-> <дальше свободная форма: что сделал, почему, находки>
+> статус <date>: <one line — where we are>
+> доказательство: <address: a run, a file in `_evidence/`, consumer acceptance>
+> решение: <a willful decision via `1use-principles`, if any>
+> <then free form: what was done, why, findings>
 
-- [ ] <следующая подзадача>
+- [ ] <next subtask>
 
 > [!note]- Отчёт
-> статус <дата>: <одна строка>
+> статус <date>: <one line>
 ```
 
-Callout отчёта стоит **без отступа**, сразу после строки чекбокса: с отступом
-внутри списка Obsidian рисует его кодовым блоком, а не свёрнутым тоглом.
-«Зачем» всегда видимо — его читает владелец; свёрнуты только отчёты.
+The report callout stands **without indentation**, right after the checkbox
+line: indented inside a list, Obsidian renders it as a code block instead of
+a collapsed toggle. «Зачем» is always visible — the owner reads it; only
+the reports are collapsed.
 
-## Правила
+## Rules
 
-- **`[x]` — только при строке `доказательство:` с адресом в отчёте.**
-  Самоотчёт «сделал» и транскрипт исполнителя доказательством не являются
-  (копия правила map «✅ только с evidence» — правь вместе). Счётчики
-  `подзадач`/`подзадач-готово` пишет прибор, рука — никогда.
-- **`✅` задачи требует `evidence`** — доказательство задачи целиком; прогресс
-  10/10 чекбоксов закрытием не является. Стык с соседней задачей подтверждает
-  **потребитель** — приёмкой или контрактным тестом, не сдающая сторона.
-- **Не дублируй документацию.** Допуск строки в файл задачи один: её правды
-  нет ни у одного owner-а в репо; иначе — адрес, не копия. Проверка в момент
-  письма: назови owner-а, у которого проверил отсутствие; не можешь — пиши
-  ссылку. Содержание судит не-писавшее окно при приёмке — машинно это не
-  ловится.
-- **Акт вывода — противовес правилу адреса.** Когда составом deliverable
-  владеет contract/canon/spec: первым ходом перечисли состав из источника и
-  держи в отчёте Done-строку «требуется → построено», падающую при непокрытом
-  требовании. Список внутри задания всегда побеждает ссылку на источник —
-  поэтому чужой список сверяй с источником, а не заменяй им перечисление.
-  Пропущенное требование не сообщает о себе ни экраном, ни зелёной сборкой —
-  только строкой покрытия.
-- **Подзадачи идут по порядку** и не трогают чужие подзадачи. Отчёт —
-  единственное место статуса; статус лежит физически под своей подзадачей.
-- **Wayfinding**: подзадача формулируется вопросом, её доказательство —
-  записанное решение с происхождением; карта вопросов и переход в Execution —
-  [modes](modes.md).
-- Лимита строк у файла задачи нет: отчёты подзадач — свободное поле и могут
-  расти; размер держится числом подзадач (раздел ниже), не строками.
+- **`[x]` — only with a `доказательство:` line carrying an address in the
+  report.** A self-report of "done" and the executor's transcript are not
+  proof (copy of the map rule "✅ only with evidence" — edit together). The
+  `подзадач`/`подзадач-готово` counters are written by the instrument,
+  never by hand.
+- **`✅` on the task requires `evidence`** — proof of the task as a whole;
+  10/10 checkboxes is not closure. A seam with a neighboring task is
+  confirmed by the **consumer** — acceptance or a contract test, not the
+  delivering side.
+- **Single source of truth — do not duplicate documentation.** A line may
+  enter the task file on one admission only: its truth has no owner anywhere
+  in the repo; otherwise — an address, not a copy. The check at writing
+  time: name the owner where you verified the absence; can't — write a
+  link. Content is judged at acceptance by a window that didn't write it —
+  machines don't catch this.
+- **The derivation act is the counterweight to the address rule**
+  (requirements traceability). When deliverable composition is owned by a
+  contract/canon/spec: as the first move, enumerate the composition from
+  the source and keep a Done line "required → built" in the report that
+  fails on any uncovered requirement. A list inside the assignment always
+  beats a link to the source — so verify a foreign list against the source
+  rather than replacing your enumeration with it. A missed requirement
+  announces itself neither on screen nor in a green build — only in the
+  coverage line.
+- **Subtasks go in order** and do not touch other tasks' subtasks. The
+  report is the only place for status; status sits physically under its
+  subtask.
+- **Wayfinding**: a subtask is phrased as a question; its proof is a
+  recorded decision with provenance; the question map and the transition to
+  Execution — [modes](modes.md).
+- The task file has no line limit: subtask reports are a free field and may
+  grow; size is held by the number of subtasks (below), not by lines.
 
-## Размер: мерило — подзадачи
+## Size: measured in subtasks
 
-- **3–7 подзадач.** Меньше трёх — это подзадача чужой задачи, влейся в неё.
-  Больше семи — режь: модель надёжно держит список до ~7, дальше хвост
-  исполняется хуже (записанный сбой «удержать обязательства к концу длинного
-  списка», Дельта SKILL.md).
-- **Подзадача — один ход с одним доказательством.** Понадобились собственные
-  чекбоксы — повышай до задачи.
-- **Имя задачи — проверяемый результат, evidence называется при создании.**
-  Нельзя заранее назвать доказательство — это Wayfinding из вопросов либо
-  размытая формулировка.
+- **3–7 subtasks** — Miller's span. Fewer than three — this is a subtask of
+  someone else's task; merge into it. More than seven — cut: past ~7 the
+  grip on the tail of the list degrades (the recorded Delta failure
+  "commitments at the tail of a long list", SKILL.md).
+- **A subtask is one move with one proof.** It grew its own checkboxes —
+  promote it to a task.
+- **The task name is a checkable result; the evidence is named at
+  creation.** Cannot name the proof up front — that is Wayfinding in
+  disguise, or a blurry formulation.
 
-## Границы: три теста до создания файла
+## Boundaries: three tests before creating the file
 
-- **Тест эпика.** Задача тянет два эпика — чини границы эпиков или ставь
-  `зависит-от`; общих задач не существует.
-- **Тест дубля.** Перечитай имена задач в папке эпика — они лежат рядом
-  именно для этого. Новая подзадача одинаково уместна в двух задачах —
-  граница неверна: двигай границу, не дублируй работу. Две живые задачи
-  одного Outcome — сигнал пересборки, не соседства.
-- **Тест очереди (just-in-time).** Задача создаётся, когда она следующая по
-  `порядок` либо разблокирует следующую; эпик не нарезается впрок — заранее
-  нарезанное стареет быстрее, чем исполняется. Живых задач у эпика немного
-  (≈до пяти); больше — эпик велик или задачи мелки.
+- **Epic test.** The task pulls two epics — fix the epic boundaries or set
+  `зависит-от`; shared tasks do not exist.
+- **Duplicate test.** Reread the task names in the epic's folder — that is
+  what they lie side by side for. A new subtask fits two tasks equally —
+  the boundary is wrong: move the boundary, don't duplicate work. Two
+  living tasks for one Outcome — a rebuild signal, not neighbors.
+- **Queue test (just-in-time).** A task is created when it is next by
+  `порядок` or unblocks the next one; an epic is not pre-cut into tasks —
+  what is cut in advance goes stale faster than it gets executed. An epic
+  has few living tasks (≈up to five); more — the epic is too big or the
+  tasks too small.
 
-## Гейт сверки задача↔эпик
+## Task↔epic reconciliation gate
 
-Создание файла задачи и каждая пересборка начинаются с перечитки текущего
-полного файла эпика. Тем же ходом планировщик сверяет цель и границы,
-записывает свежий `эпик-снимок`, цитирует критерий эпика в «Зачем» (третий
-след, что эпик действительно читали) и формулирует `траектория` — два
-связанных ответа: чем задача двигает критерий эпика и почему она важнее
-других открытых задач и эпиков, стоящих ближе по `порядок`. `эпик-снимок` — hash значимой
-части эпика (frontmatter без производных + тело вне «Апдейтов»; точную
-нормализацию задаёт прибор проекта). Его пишет **тот, кто перечитал**; прибор
-только сверяет свежесть — автозапись сделала бы гейт неспособным покраснеть.
-Протухший снимок требует той же перечитки и пересверки; замена одного hash
-без пересверки гейт не закрывает. Расхождение задача↔эпик чинится тем же
-ходом: правкой эпика (по правилам «Изменение карты» в [map](map.md)), если
-изменилась его правда, либо пересборкой задачи.
+Creating a task file and every rebuild begin by rereading the current full
+epic file. In the same move the planner verifies the goal and boundaries,
+writes a fresh `эпик-снимок`, quotes the epic's criterion in «Зачем» (the
+third trace that the epic was actually read), and phrases `траектория` —
+two linked answers: how the task moves the epic's criterion, and why it
+matters more than other open tasks and epics closer in `порядок`.
+`эпик-снимок` is a hash of the epic's significant part (frontmatter minus
+derived fields + body outside «Апдейты»; the exact normalization is set by
+the project instrument). It is written by **whoever reread**; the
+instrument only checks freshness — an auto-written hash would make the gate
+unable to turn red. A stale snapshot demands the same rereading and
+re-verification; swapping the hash without re-verifying does not close the
+gate. A task↔epic mismatch is fixed in the same move: by editing the epic
+(per "Changing the map" in [map](map.md)) if its truth changed, or by
+rebuilding the task.
 
-## Происхождение — зачем каждая строка
+## Provenance — why every line
 
-Дефолт планировщика через два пересказа становится «волей владельца», и
-переделка приходит на приёмке, где она дороже всего. Поэтому в «Зачем»:
+A planner's default becomes "the owner's will" after two retellings, and
+the redo arrives at acceptance, where it costs the most. Hence in «Зачем»:
 
-- **владелец** — только при записи chat-recall или прямой цитате; «он бы
-  хотел» — это допущение;
-- **Frame/принцип** — назови `P-*` или пункт Frame;
-- **документ** — файл#раздел;
-- **допущение планировщика** — честная метка + условие эскалации: при каком
-  ответе владельца требование выпадает.
+- **owner** — only with a chat-recall record or a direct quote; "they would
+  want it" is an assumption;
+- **Frame/principle** — name the `P-*` or the Frame item;
+- **document** — file#section;
+- **planner's assumption** — an honest label + an escalation condition:
+  which owner answer makes the requirement drop out.
 
 ## Lifecycle
 
-- Активные и закрытые задачи живут в папке своего эпика; закрытая остаётся по
-  тому же адресу — видимой, как закрытый эпик. История — в git.
-- `_ops/backlog/**` — отдельная поверхность явно отложенного; backlog —
-  стабильное ядро, не очередь исполнения: устаревший режим не переносит право
-  управлять работой через backlog. Один Outcome — один живой файл: папка
-  эпика либо backlog, не оба.
-- Проектный `STATUS.md` — проекция, не второй владелец: без собственных
-  решений и свидетельств.
-- Вопросы владельцу в файле задачи не живут — их lifecycle у
+- Active and closed tasks live in their epic's folder; a closed one stays
+  at the same address — visible, like a closed epic. History lives in git.
+- `_ops/backlog/**` is a separate surface for the explicitly deferred;
+  backlog is a stable core, not an execution queue: a stale regime does not
+  carry the right to steer work through backlog. One Outcome — one living
+  file: the epic folder or backlog, not both.
+- The project `STATUS.md` is a projection, not a second owner: no decisions
+  or evidence of its own.
+- Owner questions do not live in the task file — their lifecycle is
   [questions](questions.md).
-- Состояние внешнего runtime (`thread`, job, deployment) в отчёте — только
-  датированный snapshot `handle · observed_at · source`; перед зависимым
-  действием заново разреши handle через live owner; источник недоступен —
-  `unknown`, не `active`.
+- External runtime state (`thread`, job, deployment) in a report is only a
+  dated snapshot `handle · observed_at · source`; before a dependent
+  action, re-resolve the handle through the live owner; source unreachable
+  — `unknown`, not `active`.
 
-## Cold-start проверка
+## Fresh-reader check
 
-Перед сдачей перечитай текущий файл эпика, затем файл задачи глазами агента
-без этого чата. Сначала сверь свежесть `эпик-снимок` и смысл `траектория`
-(копия гейта выше — правь вместе); затем восстанови: что делаем · зачем ·
-границы · на каком свидетельстве стоим · что дальше · когда остановиться ·
-чем задача двигает критерий эпика. Ответ не восстанавливается — файл не
-самодостаточен: чини файл, не рассказывай в чате.
+Before handing off, the file must survive a reader who was not in this chat
+— and the writer cannot judge that: ambiguity is invisible to its author.
+Run a fresh subagent with no chat context over the current epic file and
+the task file; no subagent runtime available — reread both with cold eyes
+as a degraded fallback. The reader first verifies the freshness of
+`эпик-снимок` and the sense of `траектория` (copy of the gate above — edit
+together); then it must reconstruct: what we are doing · why · boundaries ·
+what evidence we stand on · what is next · when to stop · how the task
+moves the epic's criterion — and name any line it can read two ways.
+Anything not reconstructed means the file is not self-sufficient: fix the
+file, don't explain in chat.

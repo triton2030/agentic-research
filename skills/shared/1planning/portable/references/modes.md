@@ -1,83 +1,86 @@
-# Два режима задачи
+# Two task modes
 
-«Искать путь — тоже задача, которую надо исполнять»: нельзя планировать
-глубоко, пока не выполнены части, дающие свидетельства. Режим — свойство
-задачи (`режим` во frontmatter), не скила; один файл переходит между режимами
-без нового файла и не держит обе формы одновременно.
+"Finding the path is itself a task to execute": you cannot plan deep until
+the parts that yield evidence have run. Mode is a property of the task
+(`режим` in frontmatter), not of the skill; one file moves between modes
+without a new file and never holds both forms at once.
 
-## Wayfinding — путь материально не ясен
+## Wayfinding — the path is materially unclear
 
-Задача разрешает решения, а не изображает преждевременный план исполнения.
-Подзадачи — вопросы; доказательство закрытого вопроса — записанное решение с
-происхождением в отчёте ([contract](contract.md)).
+The task resolves decisions; it does not draw a premature execution plan.
+Subtasks are questions; the proof of a closed question is a recorded
+decision with provenance in the report ([contract](contract.md)).
 
-Держи карту вопросов честной по четырём состояниям:
+Keep the question map honest across four states:
 
-- **готовые** — точный вопрос, ответ на который меняет маршрут: живые
-  варианты, расхождение маршрутов, различающее свидетельство;
-- **заблокированные** — точный вопрос + названный пререквизит (порядок
-  подзадач);
-- **туман** — in-scope область, которую пока нельзя честно выразить
-  вопросом; из тумана не делают подзадач — строка в «Зачем» или отчёте;
-- **решено** — `[x]` с отчётом: компактный вывод + указатель на
-  свидетельство, не копия.
+- **ready** — a precise question whose answer changes the route: live
+  options, diverging routes, discriminating evidence;
+- **blocked** — a precise question + a named prerequisite (subtask order);
+- **fog** — an in-scope area that cannot yet be honestly phrased as a
+  question; fog does not become subtasks — a line in «Зачем» or a report;
+- **resolved** — `[x]` with a report: a compact conclusion + a pointer to
+  the evidence, not a copy.
 
-`Next` — один готовый вопрос: выбирай по раннему дорогому расхождению и
-снятию блокеров, не по лёгкости. Неизвестный факт → ограниченное
-исследование; наблюдаемая форма → прототип; разовый tradeoff → решение
-владельца. Повторяющийся класс владельческих вопросов — дыра в принципах
-(`1product-shaping`), не поток эскалаций.
+`Next` is one ready question: pick by the earliest expensive divergence and
+by unblocking, not by ease. An unknown fact → bounded research; an
+observable form → a prototype; a one-off tradeoff → an owner decision. A
+recurring class of owner questions is a hole in the principles
+(`1product-shaping`), not a stream of escalations.
 
-## Переход в Execution
+## Transition to Execution
 
-Только после пробы первого действия:
+Only after probing the first action:
 
-> Первый шаг исполнения не заставляет исполнителя изобрести продуктовое,
-> архитектурное или полномочное решение?
+> Does the first execution step force the executor to invent a product,
+> architecture, or authority decision?
 
-Заставляет — неснятый вопрос вернулся подзадачей, задача осталась в
-Wayfinding. Пустой список вопросов «выглядит готовым» — проба ловит именно
-это.
+It does — the unresolved question returns as a subtask and the task stays
+in Wayfinding. An empty question list "looks ready" — the probe exists to
+catch exactly that.
 
-## Execution — путь ясен
+## Execution — the path is clear
 
-3–7 подзадач-результатов одного независимо закрываемого Outcome — от оси
-разреза ([decompose](decompose.md)), не от хронологии; размер держит
-[contract](contract.md). `Next` называет ближайшее наблюдаемое состояние.
-Обратимую процедуру оставь исполнителю: полнота файла — покрытие результата,
-границ, решений и proof, не пересказ каждого будущего движения.
+3–7 result-subtasks of one independently closeable Outcome — cut along a
+named axis ([decompose](decompose.md)), not chronology; size per
+[contract](contract.md). `Next` names the nearest observable state. Leave
+reversible procedure to the executor: file completeness is coverage of the
+result, boundaries, decisions and proof — not a retelling of every future
+move.
 
-При равном результате выбирай минимальный обратимый commitment, сохраняющий
-живые ветки до свидетельства.
+At equal outcomes take the two-way door: the smallest reversible commitment
+that keeps live branches alive until evidence.
 
-## Цикл корректировки — по событию
+## Correction cycle — event-driven
 
-После material-свидетельства, перед новым material-шагом, при возврате в
-задачу:
+After material evidence, before a new material step, on returning to the
+task:
 
-1. перечитай текущий файл эпика и папку вопросов; сразу сверь `эпик-снимок`
-   задачи. Протухший → перечитай файл задачи целиком, пересверь с текущим
-   эпиком и обнови тем же ходом (копия гейта [contract](contract.md); не
-   продолжай по памяти чата);
-2. классифицируй свидетельство: подтверждает · противоречит · недостаточно ·
-   конфликтует;
-3. следствие: продолжить · принятое допущение · блокер · пересборка · handoff;
-4. при противоречии — **пересобери** затронутые подзадачи из текущих фактов;
-   заплатка поверх устаревших подзадач оставляет зомби-план, который выглядит
-   живым и ведёт работу;
-5. допиши статус в отчёты затронутых подзадач (текущая правда, не хроника —
-   история в git); новое материальное неизвестное → задача возвращается в
-   Wayfinding сменой `режим`.
+1. reread the current epic file and the questions folder; immediately
+   verify the task's `эпик-снимок`. Stale → reread the whole task file,
+   re-verify it against the current epic and update in the same move (copy
+   of the [contract](contract.md) gate; do not continue from chat memory);
+2. classify the evidence: confirms · contradicts · insufficient ·
+   conflicts;
+3. consequence: continue · accepted assumption · blocker · rebuild ·
+   handoff;
+4. on contradiction — **rebuild** the affected subtasks from current facts;
+   a patch over stale subtasks leaves a zombie plan that looks alive and
+   keeps steering the work;
+5. append status to the affected subtask reports (current truth, not a
+   chronicle — history lives in git); a new material unknown → the task
+   returns to Wayfinding by flipping `режим`.
 
-## Контрастные случаи
+## Contrast cases
 
-**Преждевременное исполнение.** Destination принят, но первый шаг требует
-выбрать модель владения данными. Пустой список вопросов выглядит готовым;
-проба первого действия возвращает выбор в Wayfinding.
+**Premature execution.** The destination is accepted, but the first step
+requires choosing a data-ownership model. The empty question list looks
+ready; probing the first action returns the choice to Wayfinding.
 
-**Театр планирования.** До первого прототипа расписаны 40 файловых действий
-по трём непроверенным маршрутам. Оставь Outcome, границы, конкурирующие
-посылки и один различающий прототип — остальное появится из его свидетельств.
+**Planning theater.** Forty file-level actions written across three
+unverified routes before the first prototype. Keep the Outcome, the
+boundaries, the competing premises and one discriminating prototype — the
+rest will grow from its evidence.
 
-**Лёгкий фронтир.** UI-текст закрывается быстро, а владелец хранилища меняет
-API и миграции. Дешёвый вопрос выигрывает только при равном downstream-весе.
+**The easy frontier.** UI copy closes fast while the storage owner changes
+the API and migrations. A cheap question wins only at equal downstream
+weight.
