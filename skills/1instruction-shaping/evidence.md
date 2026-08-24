@@ -126,3 +126,12 @@ precedence/handoff оба дали `resolved`. `quick_validate.py`, `qv-skill`,
 
 Статус изменения: **structural pass, behavioral unknown** — seam однозначен в
 тексте, отдельный live activation test пары не проводился.
+
+## 2026-08-25 — рефактор «аудит отмен + флип зеркал»
+
+См. запись 2026-08-25 в `skills/1skill-shaping/evidence.md`: общий comparator
+на заказе «сократи 1interview-tool», две линзы аудита, счёт 61 → 39
+нумерованных операций, sync-check зелёный. Этот пакет стал источником зеркал
+audit/check/refactor и общих разделов interview (выбор владельца 2026-08-25);
+принял раздел «Контекст», инвариант «Цена строки двойная» и след операции 7
+«пусто + кандидат».
