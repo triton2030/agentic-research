@@ -239,6 +239,26 @@ python3 $S/build_grade_task.py "$WORK-answer/runs" "$WORK-grade/tasks"
 Сравнивай с **действующим маршрутом**, а не с голой папкой: у этого корпуса
 действующий маршрут — скил `1chat-recall`. Голая папка остаётся полом.
 
+## Стадия 8 — переразметка тем записей (однократная миграция)
+
+Решение владельца 2026-08-24: поле `topic` каждой записи `raw/` переводится на
+словарь слоя — имена файлов `topics/`. Меняется только тема; текст, timestamp,
+type и context-note охраняются применялкой инвариантом «файл с вычеркнутыми
+темами совпадает до и после».
+
+```bash
+python3 $S/build_retopic_tasks.py _workspace/ox-retopic/tasks
+# волна: TASKS=_workspace/ox-retopic/tasks OUT=_workspace/ox-retopic/runs MODE=read
+python3 $S/apply_retopic.py --dry _workspace/ox-retopic/runs
+python3 $S/apply_retopic.py _workspace/ox-retopic/runs
+```
+
+Прогон принимается только при полном покрытии записей файла и темах из
+каталога (`artifacts/flatten-v1/topics.json`) либо явно объявленных
+`новая-тема:`. После применения новые записи получают тему уже при capture:
+скил `1chat-recall` выбирает из существующих в корпусе, новую создаёт только
+флагом `--new-topic`.
+
 ## Закрытие волны
 
 Волна закрывается не ощущением, а разностью множеств:
