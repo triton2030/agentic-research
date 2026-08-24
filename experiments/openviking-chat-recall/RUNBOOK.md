@@ -26,15 +26,22 @@ date: 2026-08-24
 ```bash
 S=experiments/openviking-chat-recall/scripts      # где лежат скрипты
 CORPUS=/путь/к/чужому/проекту/_ops/chat-recall/raw    # файлы разговоров только читаются
-TOPICS="${CORPUS%/}-topics"                       # готовый слой — папкой рядом
+TOPICS="$(dirname "$CORPUS")/topics"              # готовый слой — сосед raw/ в контейнере
 ART=experiments/openviking-chat-recall/artifacts/<имя-проекта>
 WORK=_workspace/ox-<имя-проекта>                  # рабочие файлы, не в git
 ```
 
-Слой тем кладётся **папкой рядом с корпусом**, не внутрь него — решение
-владельца 2026-08-24. Причина адреса: у руды и её пересказа разные контракты,
-и подпапка затягивала слой под правила корпуса, а корпус — под скрипты слоя.
-Промежуточные артефакты сборки остаются в `$ART`.
+Корпус и слой лежат **двумя папками одного контейнера** — решение владельца
+2026-08-24: `_ops/chat-recall/{raw,topics}` с общим `AGENTS.md`. Слой не
+подпапка корпуса: у руды и её пересказа разные контракты, и вложение затянуло бы
+слой под правила корпуса, а корпус — под скрипты слоя. Промежуточные артефакты
+сборки остаются в `$ART`.
+
+**Свежий корпус собирается в этом порядке:** стадии 1–3 дают темы и файлы тем,
+затем стадия 8 переставляет темы внутри записей, и только после неё якоря
+чинятся один раз (`fix_anchors_after_retopic.py <коммит-снимка> --write`,
+затем `reanchor.py map`). Обратный порядок дороже: слой пришлось бы
+перепривязывать дважды.
 
 Исходная папка не правится, не переименовывается и не удаляется — инвариант 1.
 Все артефакты живут отдельно и пересобираемы.
@@ -247,10 +254,19 @@ type и context-note охраняются применялкой инвариа�
 темами совпадает до и после».
 
 ```bash
-python3 $S/build_retopic_tasks.py _workspace/ox-retopic/tasks
-# волна: TASKS=_workspace/ox-retopic/tasks OUT=_workspace/ox-retopic/runs MODE=read
-python3 $S/apply_retopic.py --dry _workspace/ox-retopic/runs
-python3 $S/apply_retopic.py _workspace/ox-retopic/runs
+python3 $S/build_retopic_tasks.py "$WORK-retopic/tasks" "$CORPUS" "$ART/topics.json"
+# волна: TASKS=$WORK-retopic/tasks OUT=$WORK-retopic/runs MODE=read
+python3 $S/apply_retopic.py --dry "$WORK-retopic/runs" "$CORPUS" "$ART/topics.json"
+python3 $S/apply_retopic.py "$WORK-retopic/runs" "$CORPUS" "$ART/topics.json"
+```
+
+Без второго и третьего аргументов обе команды работают над корпусом своего
+репозитория. Смена тем сдвигает строки записей, поэтому сразу после применения
+идёт разовый ремонт якорей слоя от снимка стадии 0:
+
+```bash
+python3 $S/fix_anchors_after_retopic.py <коммит-снимка> --write
+python3 $S/reanchor.py map
 ```
 
 Прогон принимается только при полном покрытии записей файла и темах из

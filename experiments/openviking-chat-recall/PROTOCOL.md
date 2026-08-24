@@ -362,8 +362,8 @@ date: 2026-08-24
 - проверки: `scripts/check_wiki.py` (форма), `scripts/check_topics.py`
   (провенанс слияния), `scripts/check_coverage.py` (постадийное покрытие);
 - добор: `scripts/build_backfill_tasks.py` и `scripts/apply_backfill.py`;
-- продукт: `_ops/chat-recall/topics/` (в чужом проекте — папка рядом с его
-  корпусом, `<корпус>-topics/`);
+- продукт: `_ops/chat-recall/topics/` — сосед `raw/` в контейнере корпуса;
+  в чужом проекте тот же адрес относительно его `_ops/`;
 - промежуточные артефакты стадий: `experiments/openviking-chat-recall/artifacts/flatten-v1/`;
 - исполнители — Ox Alpha волной `experiments/hermes-ox-alpha/ox_wave.sh`;
   мост `experiments/codex-bridge` остаётся историей ранних стадий.
