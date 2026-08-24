@@ -35,3 +35,14 @@ body delta снята переносимой строкой invocation.
 
 Behavior-preservation до внешнего consumer/comparator case остаётся
 `candidate`; чтение текста и parity его не доказывают.
+
+Парный read-only comparator на одной реалистичной closeout-сцене прогнал
+старый `HEAD`-текст и новую installed-копию в изолированных окнах. Оба сохранили
+тот же следующий validation-шаг, owner anchors, recall/cleanup outcomes и
+границу чужих concurrent changes. Старый текст требовал 2–4 trap-блока при
+явном отсутствии surviving trap и оставлял безусловный commit/push рядом с
+чужими изменениями; новый пропустил Incidents/Advice/traps по гейтам и выбрал
+conditional Git outcome. Это source-supported evidence изменения двух
+конфликтных решений и сохранения continuation на одном случае, не
+probabilistic proof. Остались неоднозначности ширины management/advice scan и
+гранулярности claim labels; реальный handoff остаётся следующим behavior test.
