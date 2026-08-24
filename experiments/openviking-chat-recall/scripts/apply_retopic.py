@@ -10,7 +10,10 @@
 `topic` получила тему, каждая тема существует в каталоге слоя либо объявлена
 новой в том же прогоне.
 
-    python3 apply_retopic.py [--dry] [<папка прогонов>]
+    python3 apply_retopic.py [--dry] [<папка прогонов> [<папка реплик> <каталог тем>]]
+
+Без второго и третьего аргументов работает над корпусом своего репозитория;
+с ними — над любой чужой папкой реплик.
 """
 from __future__ import annotations
 
@@ -74,13 +77,14 @@ def rewrite_inventory(lines: list[str], ordered_topics: list[str]) -> list[str]:
     return keep[:closing] + inventory + keep[closing:] + lines[end + 1:]
 
 
-def main(runs: str, dry: bool) -> int:
+def main(runs: str, dry: bool, corpus: str = CORPUS, catalog: str | None = None) -> int:
     known = {t["id"] for t in
-             json.load(open(f"{ART}/flatten-v1/topics.json", encoding="utf-8"))["topics"]}
+             json.load(open(catalog or f"{ART}/flatten-v1/topics.json",
+                            encoding="utf-8"))["topics"]}
     done = refused = records = 0
     for path in sorted(glob.glob(os.path.join(runs, "*.json"))):
         name = os.path.basename(path)[:-5] + ".md"
-        target = os.path.join(CORPUS, name)
+        target = os.path.join(corpus, name)
         try:
             payload = json.load(open(path, encoding="utf-8"))
         except Exception:
@@ -136,4 +140,9 @@ def main(runs: str, dry: bool) -> int:
 
 if __name__ == "__main__":
     args = [a for a in sys.argv[1:] if a != "--dry"]
-    raise SystemExit(main(args[0] if args else "_workspace/ox-retopic/runs", "--dry" in sys.argv))
+    raise SystemExit(main(
+        args[0] if args else "_workspace/ox-retopic/runs",
+        "--dry" in sys.argv,
+        args[1] if len(args) > 1 else CORPUS,
+        args[2] if len(args) > 2 else None,
+    ))

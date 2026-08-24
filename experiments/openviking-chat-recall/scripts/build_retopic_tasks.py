@@ -10,7 +10,10 @@
 Одно задание — один разговор: агент видит все записи файла со строковыми
 якорями и выбирает тему каждой записи из каталога слоя.
 
-    python3 build_retopic_tasks.py <папка заданий>
+    python3 build_retopic_tasks.py <папка заданий> [<папка реплик> <каталог тем>]
+
+Без второго и третьего аргументов работает над корпусом своего репозитория;
+с ними — над любой чужой папкой реплик, как того требует RUNBOOK.
 """
 from __future__ import annotations
 
@@ -52,12 +55,13 @@ def topic_of(block: str) -> str | None:
     return field.group(2).strip() if field else None
 
 
-def main(out_dir: str) -> int:
-    topics = json.load(open(f"{ART}/flatten-v1/topics.json", encoding="utf-8"))["topics"]
+def main(out_dir: str, corpus: str = CORPUS, catalog_path: str | None = None) -> int:
+    catalog_path = catalog_path or f"{ART}/flatten-v1/topics.json"
+    topics = json.load(open(catalog_path, encoding="utf-8"))["topics"]
     catalog = "\n".join(f"- `{t['id']}` — {t['title']}. Граница: {t['why']}" for t in topics)
     os.makedirs(out_dir, exist_ok=True)
     built = skipped = 0
-    for path in sorted(glob.glob(f"{CORPUS}/*.md")):
+    for path in sorted(glob.glob(f"{corpus}/*.md")):
         name = os.path.basename(path)
         lines = open(path, encoding="utf-8").read().splitlines()
         rows = [(n, block) for n, block in star_blocks(lines) if topic_of(block)]
@@ -112,4 +116,8 @@ L<номер>: <id темы>
 
 if __name__ == "__main__":
     plain = [a for a in sys.argv[1:] if not a.startswith("--")]
-    raise SystemExit(main(plain[0] if plain else "_workspace/ox-retopic/tasks"))
+    raise SystemExit(main(
+        plain[0] if plain else "_workspace/ox-retopic/tasks",
+        plain[1] if len(plain) > 1 else CORPUS,
+        plain[2] if len(plain) > 2 else None,
+    ))
