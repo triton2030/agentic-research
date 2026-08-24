@@ -50,6 +50,10 @@ DETAIL_LIMIT = 60
 STEP_METHOD = "item/completed"
 FAILURE_METHODS = frozenset({"error", "turn/failed"})
 
+# Статусы приходят от движка по-английски. Известные переводим, чтобы витрина
+# читалась одним языком; незнакомый пойдёт дословно — см. absorb().
+STATUS_MARK = {"completed": "OK", "failed": "ПРОВАЛ", "exception": "ИСКЛЮЧЕНИЕ"}
+
 
 def _short(text: Any, limit: int = DETAIL_LIMIT) -> str:
     value = " ".join(str(text or "").split())
@@ -148,7 +152,9 @@ class Run:
             status = event.get("worker_status") or "?"
             ms = event.get("duration_ms")
             span = _dur(ms / 1000) if isinstance(ms, (int, float)) else "?"
-            mark = "OK" if status == "completed" else status.upper()
+            # Незнакомый статус оставляем дословно: перевод по догадке спрятал
+            # бы исход, которого мы ещё не видели.
+            mark = STATUS_MARK.get(status, status.upper())
             yield f"{mark} {wid} · {span} · {self.steps.get(wid, 0)}ш"
             return
         if kind == "codex":
