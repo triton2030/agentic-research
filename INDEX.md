@@ -19,6 +19,16 @@
 - [`skills/shared/sync_simple_projections.py`](skills/shared/sync_simple_projections.py)
   — сборка projection после правки shared owner-а; `--check` останавливается на
   неизвестных лишних файлах вместо тихого удаления.
+- **`1hermes` и `1codex` синхронизируются по-разному, и это стоит проверки.**
+  `~/.claude/skills/1hermes` — симлинк, правка tracked owner-а видна сразу.
+  `~/.claude/skills/1codex` — **настоящая папка**: после правки
+  `skills/claude/1codex/` копируй `SKILL.md` и `references/` руками, иначе
+  живой скил останется старым. Ловушка рядом: `skills/shared/1hermes/` — не
+  runtime owner, а Product Owner (только `product-frame*.md`); `cut.md` и
+  `origin.md` внутри относятся к shaping рамки, не к снятому скилу.
+- Бэкенд Codex-моста — `experiments/codex-bridge/` (правится от своего
+  `AGENTS.md`), operator/router — `skills/claude/1codex/`. Витрина прогонов:
+  `codex_watch.py` там же, `hermes_watch.py` — в `scripts/` скила Hermes.
 
 ## Ищу, что владелец говорил или решал
 
