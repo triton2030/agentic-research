@@ -9,201 +9,160 @@ description: >-
 
 # Handoff
 
-Close one repository work session so a fresh agent can continue without the old
-chat. Produce two independent outcomes:
+Close one repository work session as a reliable bridge to a fresh agent. The
+closeout has three independent outcomes: `1chat-recall` preserves qualifying
+owner evidence under its own contract, affected management state is current or
+explicitly unresolved, and a dated packet in `_ops/handoffs/` preserves the
+action-changing session delta.
 
-- `1chat-recall` preserves qualifying owner evidence under its own contract.
-- A continuation packet in `_ops/handoffs/` preserves the dated,
-  action-changing session delta.
-
-Successful continuation—not conversation completeness—decides what belongs in
-the packet. Together, packets form a history of work, mistakes, and useful
-observations.
-
-## Outcome
+## Goal
 
 With only the repository and the explicit packet path, a fresh agent can begin
-the correct next action for the right reason, avoid errors and disproved models
-paid for in this session, and inherit the management layer without state made
-stale by this session.
+the correct next action for the right reason, inherit current project state,
+and avoid paid mistakes or disproved mental models from this session.
+
+Choose whatever means are necessary to make that outcome true within the
+active task's existing authority and the project's rules. Named means and
+examples are non-exhaustive; explicit boundaries and the packet contract remain
+required. This skill grants no new permission: resolve what current authority
+allows and anchor the rest with its consequence.
 
 ## Boundaries
 
 - Create no more than one handoff in a chat.
-- Deliver the returned path manually to the next session. Do not create or use
-  a “latest handoff” index, hook, automatic discovery, or consumed state.
-- A packet is not a transcript, chat summary, task plan, or new project canon.
-  Include only the dated delta from the current session. Do not transfer other
-  sessions, a user profile, or general project rules.
-- Follow the owning skill for plans, findings, indexes, instructions, and other
-  managed surfaces. Outside those named contracts, change only work authorized
-  by the project, recoverable in one Git operation, and not requiring owner
-  approval. Hand off everything else with an exact anchor.
-- Record the actual running model with a short, honest identifier. Do not invent
-  a subversion.
+- Return the exact packet path for manual delivery. Do not add a latest-handoff
+  index, hook, automatic discovery, consumed state, or another lifecycle
+  surface.
+- Treat the packet as a dated delta, never as live truth. It is not a
+  transcript, summary, task plan, user profile, or project canon. Live files
+  and runtime state override it.
+- Resolve owner evidence through `1chat-recall` under its own contract. Never
+  imitate recall inside the packet.
+- Follow the owning contract for every managed surface. Change only state made
+  stale or unsafe by this session and already within the active task's
+  authority; hand off everything else with an exact anchor.
+- Outside an owning contract, change only project-authorized state recoverable
+  in one Git operation. Anchor irreversible, veto-class, or approval-dependent
+  work instead of treating closeout as permission.
+- Record the actual running model with a short, honest identifier. Do not
+  invent a subversion.
 
-## Closeout
+## Required State Before Delivery
 
-The order matters: recall and cleanup must resolve before their outcomes enter
-the packet, and the packet must pass its consumer check before delivery.
+Recall and project-state outcomes must exist before the packet records them;
+consumer evidence must exist before the path is returned. Within that causal
+order, derive the work from the goal.
 
-1. **Resolve recall.** Invoke `1chat-recall` through the current runtime’s skill
-   mechanism and follow its contract. If unavailable or blocked, continue the
-   packet and state the exact reason; never imitate recall inside the handoff.
-   A statement may enter both recall and the packet when it passes both gates.
+### Owner Evidence
 
-2. **Clean the management layer.** Review the entire layer for state affected
-   by this session:
+Qualifying owner decisions and corrections have a `1chat-recall` outcome. If
+recall is unavailable or blocked, preserve the independent packet outcome and
+state the exact reason. Represent owner evidence in the packet only by its
+recall address plus one line explaining how it changes continuation.
+If recall provides no address for continuation-changing owner evidence, expose
+`no recall address` separately as a continuation blocker with its consequence;
+do not relabel recall's own outcome.
 
-   - update the active plan and status through `1planning`;
-   - close or mark findings made stale by this session;
-   - add an `INDEX.md` route through `1index` when expensive discovery found
-     knowledge somewhere non-obvious;
-   - update instructions or documentation made stale by this session;
-   - resolve Git state as project instructions authorize—commit and push only
-     when allowed; otherwise record the exact state;
-   - remove only temporary material whose loss is recoverable or reproducible.
+### Project State
 
-   Search earlier `Advice to the Next Agent` sections for each candidate
-   recurring observation. If it has recurred, install a guardrail when current
-   authority and its owning contract allow the change; otherwise create a
-   finding and anchor the reason.
+Leave every management owner affected by this session current, or expose its
+exact unresolved state and consequence. The management layer includes plans
+and status, findings, paid-search INDEX routes, instructions and documentation,
+Git, and temporary state; this list does not limit the outcome. Do not audit or
+improve unrelated project state.
 
-   Report named changes, `nothing to clean`, or what was handed off.
+A recurring paid lesson does not remain another advice item. Before delivery,
+it has an authorized decision-time guardrail at the correct owner, or a finding
+that anchors why the guardrail could not be installed.
 
-3. **Select the continuation delta.** For each candidate:
+### Continuation Delta
 
-   - If a live file or runtime state can recover it, keep only
-     `path: what changed / why this address matters`.
-   - If losing it cannot change the next action, decision, veto, risk, or a
-     repeated mistake, omit it.
-   - Otherwise record
-     `fact or choice -> reason or evidence -> consequence for continuation`.
+Preserve any current-session fact, choice, failure, or observation whose loss
+could change the next action, decision, veto, risk, or repeat a paid mistake.
+Omit everything else. When live state can recover the information, prefer one
+exact address and why it matters over a copied explanation. Preserve material
+causal history as:
 
-   Represent an owner decision or correction only with its `1chat-recall`
-   address and a one-line statement of relevance. Capture a missing address
-   through the recall branch first. If recall rejects the evidence but losing
-   it would change continuation, mark the block `no recall address`.
+`initial model or action -> evidence or result -> resulting model`
 
-4. **Write the packet.** Create `_ops/handoffs/` if needed. Generate the
-   timestamp with `date +"%Y-%m-%d-%H%M%S"` and write
-   `_ops/handoffs/<timestamp>-<model>.md`.
+## Packet Contract
 
-   Frontmatter contains `description`
-   (`Handoff <timestamp>: <one line>`), `model`, and `date` using the same
-   timestamp.
+Write one `_ops/handoffs/<timestamp>-<actual-model>.md` file, where
+`<timestamp>` is the current system time in `YYYY-MM-DD-HHMMSS` form. Its
+frontmatter contains `description` (`Handoff <timestamp>: <one line>`),
+`model`, and `date` using that same value.
 
-## Packet Content
-
-Place these three lines immediately after frontmatter:
+Place these lines immediately after frontmatter:
 
 1. Read this file in full.
 2. Live files and runtime state override this dated snapshot.
 3. First state the next action and why, then compare the recorded HEAD with
    `git log`.
 
-Place every continuation-changing veto, blocker, or unverified state from this
-session immediately after the preamble or in `## Anchors`; do not bury it in the
-middle.
+Put every continuation-changing veto, blocker, or unverified state immediately
+after this preamble or in `## Anchors`; do not bury it in the middle.
 
-Always include:
+The consumer interface has four required sections:
 
 - `## Terrain Model`
 - `## Where We Are`
 - `## Next Step`
 - `## Anchors`
 
-Add `## Incidents` and `## Advice to the Next Agent` only when their gates admit
-content. Do not create empty sections. Use one addressable `###` block per
-meaning.
+It exposes where work stopped, one next action and its reason, exact live
+anchors, HEAD, recall and cleanup outcomes, and the previous received handoff
+if any. Every continuation-changing state claim names both:
 
-The packet records:
-
-- where work actually stopped, including unfinished and unverified work;
-- continuation-changing completed work, what changed, and why;
-- one next action and its reason;
-- exact paths, commands, IDs, and runtime state, each with one line explaining
-  why the anchor matters;
-- relevant owner decisions and corrections as recall addresses;
-- open questions, rejected routes, tool failures, and surprises that passed
-  delta selection;
-- the HEAD commit, recall and cleanup outcomes, and the path of the previous
-  received handoff, if there was one.
-
-Every state claim carries two labels:
-
-- `knowledge`: the command, test, or diff that verified it, or `unverified`;
+- `knowledge`: the command, test, diff, or other observation that verified it,
+  or `unverified`;
 - `consequence`: `none`, `accepted assumption`, `blocker`, or `reframe`.
 
-### Terrain Model
+`## Terrain Model` preserves the minimal causal model needed to continue. Add
+misleading terrain only when an obvious reading is still plausible and this
+session produced evidence that disproved it. Do not invent traps or write a
+chronological diary.
 
-Write a 3–5 line working model of the system as understood when the session
-ended. Preserve causal history as addressable beliefs:
+Add `## Incidents` only when new evidence invalidated work already begun or
+changed the route. Record the prior model, trigger, paid cost, why it was found
+late, and the durable cleanup outcome. Use timestamps for cost or `unknown`;
+write `unknown` when the late cause is unavailable.
 
-`initial model or action -> evidence or result -> resulting model`.
+Add one separate `## Advice to the Next Agent` only for new, session-grounded
+observations tied to a file or work type and their cost or benefit. Do not put
+improvement proposals in the history, and do not repeat a lesson already
+routed to a guardrail or finding. Omit optional sections when their evidence
+gate is not met.
 
-Do not write a chronological diary.
+Use one addressable `###` block for each independent terrain correction,
+incident, or advice item.
 
-Add 2–4 trap blocks only for misleading terrain that still exists:
+## Consumer Evidence
 
-`obvious reading -> model it suggests -> evidence that disproved it -> what is
-true`.
+Before delivery, reread the packet as an agent with the repository and path but
+no chat. The packet passes only if that reader can:
 
-Do not record a corrected file as a trap or a surprise with no consequence for
-the next agent.
+- name and begin the correct next action, and explain why;
+- distinguish dated claims from live truth and find evidence for material
+  state;
+- see every pending decision, veto, blocker, risk, and unverified assumption
+  that can change continuation;
+- avoid any paid dead end or surviving false terrain from this session; and
+- locate the current owners of live truth.
 
-### Incident
-
-Add an incident only when new evidence, tool output, or an owner correction
-changed the route or invalidated work already begun:
-
-`before -> trigger -> cost -> why discovered late -> cleanup outcome`.
-
-Use timestamps for cost or write `unknown`. Write `unknown` when the reason for
-late discovery is unavailable. Point to the guardrail or finding produced
-during cleanup; do not decide or install it here. Advice to a future reader is
-not a guardrail.
-
-### Advice to the Next Agent
-
-Record observations, not improvement proposals:
-
-`what was difficult, mistaken, slow, or unexpectedly helpful -> file or work
-type -> cost or benefit`.
-
-A new observation remains advice. If cleanup found the observation in an
-earlier handoff, do not repeat it as advice; record only the guardrail or finding
-produced during cleanup.
-
-## Consumer Check
-
-Before returning the path, reread the packet as an agent with the repository
-and path but no chat. It must answer:
-
-- What is the next action, and why?
-- Which continuation-changing decision, blocker, veto, or unverified state from
-  this session is pending?
-- Which paid dead end must not be repeated, if any?
-- Which obvious reading of the terrain is false, if any?
-- Where is current live truth?
-
-Confirm absence rather than inventing a dead end or trap. If an answer is
-missing, add the continuation-changing delta. If a block can be replaced by
-reading one live file, replace it with that file’s anchor.
+Confirm absence instead of inventing a dead end, incident, or trap. Completing
+the named sections is not a stop condition: repair the packet or report the
+exact blocker whenever the consumer outcome is still false.
 
 ## Completion
 
-Return the exact packet path or the exact packet blocker. When a packet exists,
-add one line describing it.
-
-Report these outcomes once:
+Return the exact packet path or exact packet blocker, plus one line describing
+the packet when it exists. Report these independent outcomes once:
 
 - `recall`: `captured`, `no qualifying evidence`, or `blocked`;
 - `cleanup`: named changes, `nothing to clean`, or `handed off`;
 - `packet`: exact path or `blocked`;
-- `consumer check`: `passed`, or the exact blocker.
+- `consumer check`: `passed` or the exact blocker.
 
-A blocked outcome does not erase a successful one or become silent completion.
-State residual risk only for unavailable context or unverified claims. Stop when
-more text cannot change continuation. Do not run broad indexing or
-repository-wide checks only for the handoff.
+A blocked outcome does not erase a successful one. State residual risk only
+for unavailable context or unverified claims. Stop when further text or
+cleanup cannot change continuation.
