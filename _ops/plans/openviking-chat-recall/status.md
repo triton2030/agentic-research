@@ -36,9 +36,17 @@ kind: status
 4. `fix_anchors_after_retopic.py 13738dd5 --write` в дереве mavo, затем
    `reanchor.py map`, `set_horizon.py`, `check_coverage.py`.
 
-**Блокер:** `stealth/ox-alpha` отдаёт пустые ответы (92 за пять минут по
-`~/.hermes/logs/agent.log`), поэтому проходит примерно каждый пятый прогон.
-Смена исполнителя — решение владельца, не агента.
+**Исполнитель сменён владельцем 2026-08-24 вечером:** Ox ушёл под `429
+temporarily at capacity upstream` (311 отказов за десять минут), и волна
+переведена на `deepseek/deepseek-v4-flash-0731`, провайдер `nous`, reasoning
+`max`. Раннер `experiments/hermes-ox-alpha/ox_wave.sh` берёт модель из
+`WAVE_MODEL`/`WAVE_PROVIDER`/`WAVE_REASONING`, умолчание осталось Ox.
+Проба DeepSeek на теме `proto-web`: 54 якоря из 54, ни одного выдуманного,
+ответ по-русски.
+
+**Тема `html-artifacts` отвергнута и ждёт пересборки:** Ox собрал её целиком
+по-английски при русском корпусе; старый ответ сохранён как
+`_workspace/ox-mavo-merge/rejected-english-html-artifacts.json`.
 
 Вторым номером — схлопывание повторов слоя: две волны обновления извлекли одни
 и те же факты в разное время, и слой копит по два пункта на факт с разными
