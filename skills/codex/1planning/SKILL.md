@@ -1,9 +1,12 @@
 ---
 name: 1planning
 description: >-
-  Use when work must survive sessions or compaction, a plan continues, or the
-  user asks for a plan, project remainder, stopping point, or epic map. Not in
-  native Plan mode or for local checklists.
+  Use at any mention of planning and at any thought about what to do next:
+  choosing or cutting the next task, checking trajectory, continuing a plan,
+  deciding what matters now and what waits. All work follows the plan — so
+  before reacting to a large error or surprise, read the plans first: it may
+  be deferred work, not breakage. Not in native Plan mode or for local
+  checklists.
 ---
 
 # Planning
@@ -16,6 +19,13 @@ through the dashboard; agents live in the files. So write every line for a
 reader who has none of your context and all of the weaknesses listed in
 Delta — and prove readability with a fresh reader, not with your own eyes:
 the fresh-reader check in [contract](references/contract.md).
+
+The skill's job is the view from above. The calling agent analyzes the
+project and the whole map, decides — by the best planning practice it
+already knows — what is genuinely useful now, what waits, and how to cut
+the work, and writes that down: agents who then simply follow the files
+reach the end. You already know the planning literature; this skill writes
+only the delta — the forms, gates and invariants no book fixes.
 
 Autonomy is steered not by long precise procedures — however much you spell
 out, the forgotten clause is exactly where the error will live — but by a
@@ -109,6 +119,9 @@ project instruction).
 
 ## Invariants
 
+- Epics are the order of the work and never overlap; a task never steals
+  work from another task — inside its epic and across epics; `порядок` and
+  `зависит-от` are the only links (rule owner — [map](references/map.md)).
 - The plan trusts the executor with the route but never lets them invent the
   intent: a gap in intent is a question or an assumption with provenance,
   not a silent default.

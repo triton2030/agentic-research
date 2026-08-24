@@ -1,7 +1,7 @@
 interface:
   display_name: "1-Планирование"
   short_description: "Epic map to GOAL + owner dashboard; the living work contract inside its epic's home"
-  default_prompt: "Use $1planning when chosen work must survive sessions or compaction: get the owner's yes on a short justification (goal, value, mode, appetite) before creating any planning files, keep the epic map from current state to GOAL's 'done' together with the owner dashboard, one living contract for the chosen work inside its epic's home with provenance per requirement, honest Wayfinding/Execution mode, dependency-cut milestones, and current truth instead of chronology."
+  default_prompt: "Use $1planning at any mention of planning or any thought about what to do next — choosing or cutting the next task, checking trajectory, continuing a plan, or before reacting to a large error (read the plans first: it may be deferred work, not breakage): get the owner's yes on a short justification (goal, value, mode, appetite) before creating any planning files, keep the epic map from current state to GOAL's 'done' together with the owner dashboard, one living contract for the chosen work inside its epic's home with provenance per requirement, honest Wayfinding/Execution mode, dependency-cut milestones, and current truth instead of chronology."
 
 policy:
   allow_implicit_invocation: true

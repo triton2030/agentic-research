@@ -24,7 +24,8 @@ The epic folder is the only home of its tasks; nothing else lives there — a
 stray file turns the instrument red. The exact task form is held by
 [contract](contract.md). Epics are independent: an epic is constructed so
 that work inside it does not take work away from other epics; a task does
-not touch other tasks; `порядок` and `зависит-от` are the only links.
+not touch other tasks — in its own epic or in any other; `порядок` and
+`зависит-от` are the only links.
 Internal decomposition by itself changes neither the number nor the status
 of epics, but every task rereads its current epic and serves its closure
 criterion. There is no class of "cross-cutting plan on top of other
