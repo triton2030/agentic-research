@@ -119,3 +119,52 @@ tracked/installed проекции совпадают. SHA-256 пяти `SKILL.m
 Статус: **candidate с одним matched decision-map pilot**. Доказано изменение
 решения на одном downstream case; систематическое улучшение target models и
 безопасность будущей массовой волны не заявляются.
+
+## Goal-owned compression — 2026-08-24
+
+**Claim.** Главный controller теперь держит один semantic owner результата —
+`Goal`. Отдельные заголовки `Критерии успеха`, `Инварианты`, `Дельта` и
+`Завершение` сняты; невыводимые смыслы остались в автономной границе, трёх
+правилах, failure map и conditional references. Объём `SKILL.md` сократился с
+204 строк / 1 454 слов / 17 883 байт до 121 / 768 / 9 722.
+
+**Owner evidence.** Владелец назвал дублирование Goal с criteria/invariants и
+выбрал полный автономный refactor, затем снял обязательные повторные вопросы и
+approval перед редактированием и записью:
+`_ops/chat-recall/raw/2026-08-24-201459-codex-01a03446.md:16-18`. Owner review
+теперь обратная связь, не lifecycle gate; `candidate` сохраняется из-за
+ограниченного behavioral evidence.
+
+**Loss/excess audit.** Два независимых окна прочитали по 20/20 файлов обеих
+live shaping-пар и их references. Первый проход вернул шесть потерь с одной
+новой двусмысленностью и шесть дублей/излишков. После отмены approval-гейтов
+оба окна снова дали 20/20: excess нашёл три seam/duplicate-дефекта, loss — риск
+возврата ритуала соседним пакетом. Финальные recheck-и закрыли всё. Сохранены
+provenance, material owner-only escalation, admission, независимый audit,
+claim-specific evidence, loss controls и distinction
+criterion/invariant/non-goal.
+
+**Matched decision-map probe.** На одном prompt старый `HEAD` controller
+рекомендовал обязательную последовательность `Context → Goal → Criteria →
+Invariants → Failure map → Completion`, owner curation и точное «да» перед
+записью. Текущий controller поглощает выводимые criteria/invariants, не
+спрашивает разрешения на draft/edit/write и эскалирует только невыводимый
+материальный выбор. Оба сохраняют admission и audit. Это доказывает нужную
+разницу решения на одном случае, но не вероятностный uplift.
+
+**Structure and distribution.** `quick_validate.py` и `qv-skill` прошли на
+10 shared/tracked/installed пакетах `1skill-shaping` и
+`1instruction-shaping`; `md check` вернул ноль issues для всех изменённых
+Markdown-зон; `sync_simple_projections.py 1skill-shaping
+1instruction-shaping --check` подтвердил parity. SHA-256 пяти runtime/tracked
+`1skill-shaping/SKILL.md` одинаков: `d753add632b632ded60e1d4f3b5fae7bdefc690de49bd5cf3b53c3e3ab46c2ac`.
+`md deps/impact` не нашёл declared dependents; 11 body edges = шесть
+датированных `_workspace/codex-artifacts/**`, два датированных research
+snapshot-а и три current internal-ссылки из `audit.md`, `interview.md` и
+`refactor.md` на owner автономной границы. Исторические утверждения и
+downstream-owner ссылки остаются валидны, поэтому они не переписывались;
+внутренние edges проверены `md check`.
+
+Статус: **candidate с двумя matched decision-map pilots**. Сжатие и сохранение
+известных уникальных смыслов проверены; переносимость результата на другие
+targets/models остаётся `unknown`.

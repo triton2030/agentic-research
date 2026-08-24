@@ -109,3 +109,20 @@ architecture-critic, два пост-записных окна: «потерян
 замера нет. Форма «перечень скилов — указателем по типам работы, не
 каталогом» — выведено из замера активации, не из слов владельца.
 Операция свежести ориентировки (audit оп. 9) не имеет прогона.
+
+## Handoff target-layer `skill` — 2026-08-24
+
+**Claim.** Для target-layer `skill` пакет теперь владеет только placement и
+передаёт содержание, вопросы, refactor, audit findings, запись и завершение
+автономной границе `1skill-shaping`. Approval остальных surfaces не менялся.
+Источник решения:
+`_ops/chat-recall/raw/2026-08-24-201459-codex-01a03446.md:18`.
+
+**Проверено.** Два независимых окна с покрытием 20/20 файлов shaping-пары
+нашли возврат снятого skill approval через соседний пакет; после явного
+precedence/handoff оба дали `resolved`. `quick_validate.py`, `qv-skill`,
+`md check` и projection sync проходят; SHA-256 пяти runtime/tracked
+`SKILL.md`: `6c9d5cc616f20e77fedc159f2411e14abea161d24de8aa0177791c17d5b6b576`.
+
+Статус изменения: **structural pass, behavioral unknown** — seam однозначен в
+тексте, отдельный live activation test пары не проводился.

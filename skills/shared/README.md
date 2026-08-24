@@ -9,8 +9,8 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
 
 ## Живые Owners
 
-- `1skill-shaping/portable/` — общий controller (семь фиксированных разделов) и
-  семь условных reference-маршрутов для Codex и Claude.
+- `1skill-shaping/portable/` — общий controller: цель, автономная граница, три
+  невыводимых правила и девять условных reference-маршрутов для Codex и Claude.
   `platforms/codex/agents/openai.yaml` — только Codex UI и invocation metadata.
   Заменил `1skill-architect`, снятый 2026-08-08 в `skills/1skill-architect/`.
 - `1instruction-shaping/portable/` — agent harness: шов между пятью слоями,
