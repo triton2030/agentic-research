@@ -61,6 +61,20 @@ from codex_worktrees import (
 )
 
 
+def _human_ms(ms: Any) -> str:
+    # Панель Background tasks — окно владельца в идущую волну, и читает он её
+    # глазами: `84469мс` там требует деления в уме.
+    try:
+        seconds = int(ms) // 1000
+    except (TypeError, ValueError):
+        return str(ms)
+    if seconds < 60:
+        return f"{seconds}с"
+    if seconds < 3600:
+        return f"{seconds // 60}м{seconds % 60:02d}с"
+    return f"{seconds // 3600}ч{(seconds % 3600) // 60:02d}м"
+
+
 def _safe_print(message: str, *, stream: Any = None) -> None:
     # Прогресс и финальный дамп — телеметрия поверх канонического результата
     # на диске: закрытый пайп (| head, оборванный терминал) не должен ронять
@@ -158,6 +172,10 @@ async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict
     async with sem:
         t0 = time.monotonic()
         append_event(run_dir, "worker_start", id=task.id)
+        # Старт печатается, а не только журналируется: без него владелец видит
+        # в панели пустую карточку до первого финиша — на длинной волне это
+        # десятки минут, неотличимые от «ничего не запустилось».
+        _safe_print(f"[orch] → {task.id} пошёл")
         thread_id: str | None = None
         try:
             if task.thread_id:
@@ -228,7 +246,7 @@ async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict
             worker_status = worker_status_from_codex_status(codex_status, result.error)
             worker_ok = worker_status == "completed"
             _safe_print(
-                f"[orch] {'✓' if worker_ok else '✗'} {task.id} ({duration_ms}мс)"
+                f"[orch] {'✓' if worker_ok else '✗'} {task.id} ({_human_ms(duration_ms)})"
                 + ("" if worker_ok else f" — {result.error}")
             )
             record = {
@@ -289,6 +307,20 @@ async def _heartbeat_loop(
                 total=progress["total"],
                 **extra,
             )
+            # Тот же пульс — в панель владельца. Между финишами воркеров карточка
+            # иначе стоит без движения часами, и живая волна там неотличима от
+            # мёртвой. Печатается в stderr: stdout занят финальным JSON.
+            line = f"[orch] пульс {progress['completed']}/{progress['total']}"
+            if extra.get("active"):
+                line += f" · живых {extra['active']}"
+            if extra.get("steps"):
+                line += f" · шагов {extra['steps']}"
+            if extra.get("stalest"):
+                line += (
+                    f" · дольше всех молчит {extra['stalest']}"
+                    f" ({_human_ms((extra.get('stalest_idle_sec') or 0) * 1000)})"
+                )
+            _safe_print(line)
     except asyncio.CancelledError:
         return
 
