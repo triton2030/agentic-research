@@ -13,6 +13,9 @@ import os
 import re
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from wave import strip_fence
+
 TYPE = re.compile(r"(?:—|\|)\s*type:\s*([^\s|]+)")
 
 
@@ -27,7 +30,9 @@ def main(runs: str, corpus: str, out_dir: str) -> int:
         except Exception:
             refused += 1
             continue
-        body = (payload.get("response") or "").strip()
+        # Забор ```…``` вокруг ответа снимают все остальные применялки; здесь
+        # его отсутствие стоило двух честных прогонов из 170.
+        body = strip_fence(payload.get("response") or "").strip()
         if not payload.get("ok") or not body.startswith("---"):
             report.append(f"  не принят: {name} (ok={payload.get('ok')})")
             refused += 1

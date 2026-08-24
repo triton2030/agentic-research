@@ -84,6 +84,23 @@ Wrapper блокирует до terminal result и возвращает compact 
 агент открыл delegation/execution toolsets, необходимость и способ декомпозиции
 определяет Hermes по brief и этому skill, а не Python-wrapper.
 
+Когда после запуска остаётся полезная независимая работа Codex, запусти ту же
+wrapper-команду через нативный yielded `functions.exec` terminal wake. Cell
+сначала возвращает короткую запись `family: hermes, phase: started`, затем
+вызывает `yield_control()` и владеет exec session. Каждая yielded cell вызывает
+ровно один финальный `notify()`. После наблюдаемого выхода процесса уведомление
+несёт `observer: terminal`, `process: exited`, exit code, exec `session_id` и
+`result: receipt|stdout|malformed`. Читаемый `result.json` адресуется только
+через `run_dir`; если квитанция недоступна, сохрани разобранный wrapper stdout
+или bounded malformed-output diagnostic под task-scoped `fallback_ref` и
+передай в уведомлении только эту opaque-ссылку вместо payload. `external`
+определяется лишь после чтения результата и применения контракта приёмки ниже.
+Пойманный отказ cell или transport до наблюдаемого выхода сохраняет diagnostic
+под `failure_ref` и уведомляет `observer: failed`, `process: unknown`,
+`external: unknown` и известные адреса; неопределённый run не повторяй. Это
+прямой внешний процесс, не нативный Codex-субагент. Progress-уведомлений нет.
+Если команда закончилась до выдачи session, обработай обычный direct result.
+
 Дефолт — 2000 tool-итераций и 3 часа. Это потолок автономности, не требование
 использовать бюджет: brief задаёт цель, evidence и stop, а порядок чтения,
 глубину исследования и рабочий маршрут выбирает Hermes.
