@@ -63,8 +63,13 @@ run_one() {
   local brief="$1" id attempt=1
   id=$(basename "$brief" .txt)
   while [ "$attempt" -le "${RETRIES:-3}" ]; do
+    # Исполнитель меняется переменными, а не правкой раннера: 2026-08-24 Ox
+    # ушёл под 429 «temporarily at capacity», и владелец перевёл волну на
+    # DeepSeek. Умолчание остаётся прежним, чтобы старые вызовы не изменились.
     python3 "$HERMES" --cwd "$CWD" \
-      --model stealth/ox-alpha --provider nous --reasoning max \
+      --model "${WAVE_MODEL:-stealth/ox-alpha}" \
+      ${WAVE_PROVIDER:+--provider "$WAVE_PROVIDER"} \
+      --reasoning "${WAVE_REASONING:-max}" \
       --max-turns 2000 --timeout-sec 10800 \
       "${EXTRA[@]}" \
       > "$OUT/$id.json" 2> "$OUT/$id.err" < "$brief"

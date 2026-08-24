@@ -18,6 +18,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from wave import expand_corpus_links, strip_fence
+from wave_ready import language_gap
 
 SHORT = re.compile(r"L(\d+)")
 FULL = re.compile(r"([0-9]{4}-[0-9]{2}-[0-9]{2}-[^\s#\],)]+\.md)#L(\d+)")
@@ -36,6 +37,16 @@ def flat_anchors(flat: str, names: list[str]) -> set[tuple[str, str]]:
             if line.startswith("- "):
                 want |= {(source, n) for n in SHORT.findall(line)}
     return want
+
+
+def flat_text(flat: str, names: list[str]) -> str:
+    """Материал темы одной строкой — против него сверяется язык ответа."""
+    parts = []
+    for name in names:
+        path = os.path.join(flat, name)
+        if os.path.exists(path):
+            parts.append(open(path, encoding="utf-8").read())
+    return "\n".join(parts)
 
 
 def main(stage: str, runs: str, material: str, out_dir: str, corpus: str) -> int:
@@ -59,6 +70,9 @@ def main(stage: str, runs: str, material: str, out_dir: str, corpus: str) -> int
         if stage == "merge":
             if not body.startswith("---"):
                 print(f"  {topic}: ответ не похож на файл темы"); refused += 1; continue
+            gap = language_gap(body, flat_text(material, topics.get(topic, [])))
+            if gap:
+                print(f"  {topic}: {gap}"); refused += 1; continue
             want = flat_anchors(material, topics.get(topic, []))
             got = set(FULL.findall(body))
             lost, fake = want - got, got - want
