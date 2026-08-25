@@ -38,8 +38,8 @@ pre-phase · return the move to the owner of the approach, not of the
 decomposition.
 
 If the object of the work itself is ambiguous and different readings give
-different frontiers — one owner question and stop; do not pick a reading by
-the repo's theme.
+different frontiers — an interview address for the owner question stops only
+the affected branch; do not pick a reading by the repo's theme.
 
 ## The epic map comes before the cut
 

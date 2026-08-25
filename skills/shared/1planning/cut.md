@@ -1,5 +1,15 @@
 # Cut — 1planning
 
+## 2026-08-25 — post-audit correction
+
+- Снято `prove it in chat`: имя методики и самоотчёт не являются proof;
+  сохранён адресный trace `пункт методики → элемент плана`.
+- Не добавлен общий lifecycle в оба скила: planning сохраняет admission-гейт,
+  planning-specific transfer/archive живёт у `1interview-tool`.
+- Не возвращены question-note, questions-folder или отдельный checklist:
+  task хранит только адрес интервью, а Wayfinding — только agent-resolvable
+  вопросы.
+
 ## 2026-08-25 — вопросы переданы `1interview-tool`
 
 - Удалён `portable/references/questions.md`: отдельная question-note и её

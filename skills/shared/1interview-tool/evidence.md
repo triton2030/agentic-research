@@ -1,9 +1,18 @@
 # Evidence — 1interview-tool
 
+## 2026-08-25 — lifecycle planning-формы
+
+Методический след и дословный fresh-window return живут у общего evidence
+owner-а —
+[`../1planning/evidence.md`](../1planning/evidence.md#2026-08-25--граница-wayfinding-и-planning-интервью).
+
+Локальный claim: после «проверь» planning-форма остаётся активной; отдельное
+«да» разрешает plan-owner, затем ответы переносятся и форма архивируется.
+
 ## 2026-08-25 — одиночный planning-вопрос
 
 Evidence owner для общего cutover —
-[`../1planning/evidence.md`](../1planning/evidence.md#2026-08-25--planning-вопросы-переданы-1interview-tool).
+[`../1planning/evidence.md`](../1planning/evidence.md#2026-08-25--граница-wayfinding-и-planning-интервью).
 
 Локальный claim: исключение «даже один вопрос из `1planning`» не расширило
 обычные ad hoc вопросы. Fresh-window probe выбрал interview-form для одного

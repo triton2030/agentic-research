@@ -32,14 +32,10 @@ goal that cannot be understood any way except correctly, plus transferred
 intent pointing at it (commander's intent; the map runs from "Done means" in
 `GOAL.md` — Covey's "begin with the end in mind").
 
-Therefore plan by the masters, and prove it in chat: the justification names
-the methods that actually shaped this plan — what chose the order (riskiest
-first), what cut the tasks (tracer bullet against waterfall), what sized
-them (Miller's span, Shape Up appetite), what stayed reversible (two-way
-doors). A name counts only with the decision it changed; a name without one
-is decoration. The model already knows the books, so the name carries the
-how — but stated gates, forms and invariants always win over anything a
-book implies.
+Therefore plan by the masters, and trace it in chat: the justification names
+the specific point of each method and the exact plan element it changed.
+Names are not proof; the artifact and its fresh-reader check are. Stated
+gates, forms and invariants always win over anything a book implies.
 
 Division of labor is hard: **documentation says "what and how"; planning says
 only "in what order and where we are"**; the address rule and its
@@ -47,7 +43,7 @@ counterweight — the derivation act — are held by
 [contract](references/contract.md).
 
 A task has two modes, and "finding the path is itself a task to execute":
-**Wayfinding** — the path is materially unclear, subtasks are questions;
+**Wayfinding** — the path is materially unclear, subtasks resolve uncertainty;
 **Execution** — the path is clear, subtasks are results. A full plan ahead
 plus re-planning on evidence is many times cheaper than step-by-step control;
 mode mechanics and the correction cycle — [modes](references/modes.md).

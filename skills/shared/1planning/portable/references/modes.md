@@ -8,8 +8,10 @@ without a new file and never holds both forms at once.
 ## Wayfinding — the path is materially unclear
 
 The task resolves decisions; it does not draw a premature execution plan.
-Subtasks are questions; the proof of a closed question is a recorded
-decision with provenance in the report ([contract](contract.md)).
+Subtasks are agent-resolvable questions; owner-only questions live in an
+interview form, and the task carries only its address
+([contract](contract.md)). The proof of a closed subtask is a recorded
+decision with provenance in the report.
 
 Keep the question map honest across four states:
 
@@ -23,9 +25,9 @@ Keep the question map honest across four states:
 
 `Next` is one ready question: pick by the earliest expensive divergence and
 by unblocking, not by ease. An unknown fact → bounded research; an
-observable form → a prototype; a one-off tradeoff → an owner decision. A
-recurring class of owner questions is a hole in the principles
-(`1product-shaping`), not a stream of escalations.
+observable form → a prototype; a one-off owner tradeoff → an interview
+address, not a task subtask. A recurring class of owner questions is a hole
+in the principles (`1product-shaping`), not a stream of escalations.
 
 ## Transition to Execution
 
@@ -34,9 +36,9 @@ Only after probing the first action:
 > Does the first execution step force the executor to invent a product,
 > architecture, or authority decision?
 
-It does — the unresolved question returns as a subtask and the task stays
-in Wayfinding. An empty question list "looks ready" — the probe exists to
-catch exactly that.
+It does — an agent-resolvable uncertainty returns as a subtask; an owner-only
+choice is carried by its interview address. The task stays in Wayfinding. An
+empty question list "looks ready" — the probe exists to catch exactly that.
 
 ## Execution — the path is clear
 

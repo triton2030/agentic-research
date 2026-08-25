@@ -45,7 +45,7 @@ boundaries; addresses of SPEC/Canon/instructions instead of a retelling>
 
 ## Подзадачи
 
-- [x] <subtask — a result (Execution) or a question (Wayfinding)>
+- [x] <subtask — a result (Execution) or an agent-resolvable question (Wayfinding)>
 
 > [!note]- Отчёт
 > статус <date>: <one line — where we are>
@@ -94,7 +94,7 @@ the reports are collapsed.
   epic or any other (the task-level form of the non-overlap invariant,
   SKILL.md). The report is the only place for status; status sits
   physically under its subtask.
-- **Wayfinding**: a subtask is phrased as a question; its proof is a
+- **Wayfinding**: a subtask is an agent-resolvable question; its proof is a
   recorded decision with provenance; the question map and the transition to
   Execution — [modes](modes.md).
 - The task file has no line limit: subtask reports are a free field and may
@@ -167,7 +167,8 @@ the redo arrives at acceptance, where it costs the most. Hence in «Зачем»
 - The project `STATUS.md` is a projection, not a second owner: no decisions
   or evidence of its own.
 - Owner questions do not live in the task file — `1interview-tool` owns their
-  form and lifecycle in the project's interviews folder.
+  form and lifecycle in the project's interviews folder; the task carries
+  only the interview address.
 - External runtime state (`thread`, job, deployment) in a report is only a
   dated snapshot `handle · observed_at · source`; before a dependent
   action, re-resolve the handle through the live owner; source unreachable
