@@ -166,8 +166,8 @@ the redo arrives at acceptance, where it costs the most. Hence in «Зачем»
   file: the epic folder or backlog, not both.
 - The project `STATUS.md` is a projection, not a second owner: no decisions
   or evidence of its own.
-- Owner questions do not live in the task file — their lifecycle is
-  [questions](questions.md).
+- Owner questions do not live in the task file — `1interview-tool` owns their
+  form and lifecycle in the project's interviews folder.
 - External runtime state (`thread`, job, deployment) in a report is only a
   dated snapshot `handle · observed_at · source`; before a dependent
   action, re-resolve the handle through the live owner; source unreachable

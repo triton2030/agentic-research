@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import os
 import re
 import shlex
@@ -59,6 +60,7 @@ class ChatCaptureTests(unittest.TestCase):
         session: str | None = None,
         source_timestamp: str | None = DEFAULT_SOURCE_TIMESTAMP,
         new_topic: bool | str = True,
+        json_output: bool = False,
         expect_ok: bool = True,
     ) -> subprocess.CompletedProcess[str]:
         clean_env = {k: v for k, v in os.environ.items() if k not in SESSION_ENV_VARS}
@@ -89,6 +91,8 @@ class ChatCaptureTests(unittest.TestCase):
             command += ["--session-context", session_context]
         if session:
             command += ["--session", session]
+        if json_output:
+            command.append("--json")
         result = subprocess.run(
             command, capture_output=True, text=True, env=clean_env, check=False
         )
@@ -335,6 +339,31 @@ class ChatCaptureTests(unittest.TestCase):
         )
         self.assertNotIn('session-context: "chat recall capture; session files"\n', text)
 
+    def test_json_receipt_addresses_the_saved_raw_record(self) -> None:
+        result = self.run_capture(
+            "Адресуемая мысль",
+            "решение",
+            "агенты-и-ии",
+            env=self.claude_env(),
+            json_output=True,
+        )
+
+        receipt = json.loads(result.stdout)
+        holder = self.recall_files()[0]
+        line_number = next(
+            number
+            for number, line in enumerate(
+                holder.read_text(encoding="utf-8").splitlines(), start=1
+            )
+            if '"Адресуемая мысль"' in line
+        )
+        self.assertEqual(receipt["status"], "written")
+        self.assertEqual(receipt["anchor"], f"{holder.name}#L{line_number}")
+        self.assertEqual(receipt["session"], self.session)
+        self.assertEqual(receipt["topic"], "агенты-и-ии")
+        self.assertRegex(receipt["record_sha256"], r"^[0-9a-f]{64}$")
+        self.assertNotIn(CHAT_CAPTURE.CONTEXT_NOTE_REMINDER, result.stdout)
+
     def test_earlier_source_quote_redates_the_single_session_file(self) -> None:
         later = "2010-06-15T12:00:00+00:00"
         earlier = "1999-01-02T03:04:05+00:00"
@@ -453,6 +482,25 @@ class ChatCaptureTests(unittest.TestCase):
         recovered = self.recall_files()[0].read_text(encoding="utf-8")
         self.assertIn("Existing quote", recovered)
         self.assertIn("Earlier quote", recovered)
+
+    def test_atomic_rewrite_preserves_existing_permissions(self) -> None:
+        self.run_capture(
+            "Existing quote",
+            "факт",
+            "документация-и-знания",
+            env=self.claude_env(),
+        )
+        holder = self.recall_files()[0]
+        holder.chmod(0o640)
+
+        self.run_capture(
+            "Next quote",
+            "идея",
+            "документация-и-знания",
+            env=self.claude_env(),
+        )
+
+        self.assertEqual(holder.stat().st_mode & 0o777, 0o640)
 
     def test_timestamp_accepts_date_and_minute_rejects_unknown_for_quote(self) -> None:
         omitted = self.run_capture(
@@ -621,6 +669,37 @@ class ChatCaptureTests(unittest.TestCase):
         self.assertIn("Граница темы: CLI-инструменты вокруг чатов.", stub)
         text = self.recall_files()[0].read_text(encoding="utf-8")
         self.assertIn("topic: chat-tools", text)
+
+    def test_new_topic_failure_keeps_the_raw_record(self) -> None:
+        layer = self.root / "_ops" / "chat-recall" / "topics"
+        layer.mkdir(parents=True)
+        argv = [
+            str(SCRIPT),
+            "--quote", "Raw сначала",
+            "--context-note", DEFAULT_CONTEXT_NOTE,
+            "--session-context", DEFAULT_SESSION_CONTEXT,
+            "--source-timestamp", DEFAULT_SOURCE_TIMESTAMP,
+            "--type", "решение",
+            "--topic", "chat-tools",
+            "--new-topic", "CLI-инструменты вокруг чатов.",
+            "--agent", "claude",
+            "--project", str(self.root),
+            "--session", self.session,
+        ]
+        with mock.patch.object(sys, "argv", argv), mock.patch.object(
+            CHAT_CAPTURE,
+            "create_theme_stub",
+            side_effect=OSError("simulated topic failure"),
+        ):
+            result = CHAT_CAPTURE.main()
+
+        self.assertEqual(result, 3)
+        self.assertFalse((layer / "chat-tools.md").exists())
+        self.assertEqual(len(self.recall_files()), 1)
+        self.assertIn(
+            '"Raw сначала"',
+            self.recall_files()[0].read_text(encoding="utf-8"),
+        )
 
     def test_nested_raw_layout_is_preferred(self) -> None:
         nested = self.root / "_ops" / "chat-recall" / "raw"

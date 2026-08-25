@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Вписать назначенные темы в карту тем.
+"""Apply the historical pre-per-record conversation assignment.
+
+Not part of the normal update route after the 2026-08-24 per-record topic
+migration. Kept only to reproduce or inspect the earlier pipeline.
 
 Прогон возвращает решение тремя строками; сюда попадает только раскладка.
 Новая тема заводится с пустым файлом — наполнит его обычное обновление.

@@ -108,20 +108,15 @@
 
 ## Ищу позицию владельца по предмету — сначала слой тем
 
-`_ops/chat-recall/topics/` — сорок файлов, имя файла работает оглавлением;
-как читать и обновлять — `AGENTS.md` там же. Слепая приёмка 2026-08-24 на пятнадцати
-вопросах: один открытый файл на вопрос, двенадцать верных ответов из пятнадцати,
-ни одного уверенно-неверного. Штатный поиск `chat_digest.py` даёт те же двенадцать
-за три файла и один уверенно-неверный.
-
-Слой — **обзорный**: он показывает итог без даты и без отменённого. Цена ошибки
-высока — открой разговор по якорю пункта и проверь отмену тремя источниками из
-`1chat-recall`. Горизонт слоя лежит в
-`artifacts/wiki-v1/snapshot.json`; новее этой даты слой не знает ничего.
-
-Метод и команды: `experiments/openviking-chat-recall/PROTOCOL.md` и
-`RUNBOOK.md`. Стадии письма страниц и указателя сняты — `artifacts/wiki-v1/`
-остаётся evidence замера, не маршрутом.
+- [`_ops/chat-recall/topics/`](_ops/chat-recall/topics/) — один обзорный файл на
+  предмет; имя файла выбирает тему, а raw-якоря пунктов ведут к owner evidence.
+- [`_ops/chat-recall/AGENTS.md`](_ops/chat-recall/AGENTS.md) — как читать слой,
+  когда тот же погружённый агент делает same-turn typed patch и почему no-op
+  остаётся default.
+- [`PROTOCOL.md`](experiments/openviking-chat-recall/PROTOCOL.md) и
+  [`RUNBOOK.md`](experiments/openviking-chat-recall/RUNBOOK.md) — как отдельно
+  догонять append-only backlog, карантинить corrections, чинить их typed
+  helper-ом и принимать слой.
 
 ## Зову Ox Alpha или чиню 1hermes — где доказательства прогона
 

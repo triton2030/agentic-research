@@ -43,6 +43,10 @@ premise теперь закрывается через `1use-principles` либ�
 
 ## Синхронизация после правки owner-а
 
+2026-08-24: живой MAVO falsifier разделил формулы v3 — процент задачи
+сохранён, процент эпика удалён из-за открытого JIT-знаменателя. Провенанс —
+`origin.md`, потери — `cut.md`, comparator — `evidence.md`.
+
 ```bash
 python3 skills/shared/sync_simple_projections.py 1planning --write --install
 python3 skills/shared/sync_simple_projections.py 1planning --check

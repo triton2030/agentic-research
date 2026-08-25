@@ -7,7 +7,8 @@ function of planning and must live inside planning".
 
 Name the cut axis and, in one line, why it is material: a dependent chain ·
 independent branches · research with a decision gate · probing hard limits
-· another natural shape.
+· another natural shape. A good cut yields INVEST-like pieces: independent,
+small, each carrying its own proof.
 
 Without a named axis the cut collapses into chronology — waterfall
 ("design → implement → verify") is always the most available narrative: a
@@ -31,8 +32,8 @@ decision gate on the path. A **premise** already holds the outcome, the
 scope, or the path itself, being assumed true. Do not let an unknown become
 a silent premise; a material premise stops the cut: one derivable from the
 goal, the principles or owner records is resolved via `1use-principles`;
-one requiring the owner's word — a blocking question per
-[questions](questions.md). Once resolved: continue · cut the revealed
+one requiring the owner's word stops the cut until answered. Once resolved:
+continue · cut the revealed
 pre-phase · return the move to the owner of the approach, not of the
 decomposition.
 

@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""Назначение темы разговорам, которых карта тем ещё не знает.
+"""Historical pre-per-record assignment of one topic to a whole conversation.
+
+Not part of the normal update route after the 2026-08-24 per-record topic
+migration. Kept only to reproduce or inspect the earlier pipeline.
 
 `apply_update.py` такие разговоры пропускает и называет — по построению, потому
 что дописывать пункт некуда. Их накапливается тем больше, чем дольше живёт

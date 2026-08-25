@@ -55,8 +55,8 @@ that keeps live branches alive until evidence.
 After material evidence, before a new material step, on returning to the
 task:
 
-1. reread the current epic file and the questions folder; immediately
-   verify the task's `эпик-снимок`. Stale → reread the whole task file,
+1. reread the current epic file; immediately verify the task's
+   `эпик-снимок`. Stale → reread the whole task file,
    re-verify it against the current epic and update in the same move (copy
    of the [contract](contract.md) gate; do not continue from chat memory);
 2. classify the evidence: confirms · contradicts · insufficient ·

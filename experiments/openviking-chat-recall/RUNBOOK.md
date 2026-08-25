@@ -135,29 +135,25 @@ python3 $S/apply_backfill.py "$WORK-backfill/runs"
 Каждая недошедшая получает судьбу — место, новая тема или отказ с причиной.
 Отказ полноправен; молчание — нет.
 
-## Стадия 5 — аудит смысла и правки
+## Стадия 5 — semantic repair живых тем
 
-> **Не запускай применялки этой стадии, не перенаправив их.** `apply_repair.py`,
-> `apply_split.py` и `apply_backfill.py` до сих пор пишут в
-> `artifacts/wiki-v1/` — снятую библиотеку страниц. Слой тем они не чинят, а
-> замороженное evidence портят. Билдеры уже читают слой; расхождение
-> зафиксировано находкой 2026-08-24. `apply_drift.py` работает по обоим и
-> безопасен.
+Старые `build_repair_tasks.py`, `apply_repair.py`, `apply_split.py` и
+`apply_backfill.py` принадлежат снятой библиотеке `artifacts/wiki-v1/`. Для
+живых `_ops/chat-recall/topics/` их не запускают и не перенаправляют: этот
+runbook не обещает им совместимость с topic-контрактом.
 
-```bash
-python3 $S/build_audit_tasks.py "$WORK-audit/tasks" "$WORK-audit/runs"
-# волна
-python3 $S/build_repair_tasks.py "$WORK-audit/runs" "$WORK-repair/tasks"
-# волна
-python3 $S/apply_repair.py "$WORK-repair/runs"
-```
+Живую проблему исправляй только по одной записи: найди source-record по
+`session + record_sha256`, полностью загрузи его и topic, затем выполни
+`topic_reconcile.py prepare`, заполни typed operations из сгенерированной
+schema и вызови `topic_reconcile.py apply`. Перед следующей записью снова
+готовь patch против свежего hash. Структурную проблему, которую четыре typed
+operation не выражают, оставь pending как finding, а не обходи прямой записью.
 
-Билдеры помнят сделанное: передай папку прогонов вторым аргументом, и уже
-принятые темы не будут построены заново. Повторить всё — `--redo`.
+## Стадия 6 — пакетное обновление backlog
 
-## Стадия 6 — обновление, когда корпус вырос
-
-Главная регулярная работа. Всё остальное делается один раз, это — постоянно.
+Главная регулярная работа batch-маршрута. Same-turn сверка уже загруженной темы
+описана в `_ops/chat-recall/AGENTS.md`; покрытые ею anchors билдер дельты
+пропускает, а эта стадия догоняет остальной корпус.
 
 ```bash
 python3 $S/build_update_tasks.py "$WORK-update/tasks"
@@ -174,23 +170,27 @@ python3 $S/apply_update.py "$WORK-update/runs"
 только за перечисленные строки — реплика без соседей теряет предмет, а уже
 разобранное переразбирать незачем.
 
-### Разговоры, которых карта тем не знает
+Пары `session + record_sha256` из `topics/reconcile-noops.json` также считаются
+разобранными: они не создают topic claims, не схлопывают одинаковые слова двух
+сессий и не возвращаются в batch-дельту.
 
-`apply_update.py` их называет и пропускает: дописывать пункт некуда. Это не
-сбой, а отдельная стадия — и без неё обновление не закончено. В первой дельте
-на них пришлась половина записей.
+Эта стадия владеет только append-only coverage. Непокрытые записи типа
+`коррекция` builder исключает из append и пишет в
+`artifacts/update-repair-pending.json` со стабильными `topic + session +
+record_sha256`; anchor там только для показа. Для каждой такой записи заново
+найди source-record по identity, отдельно загрузи topic, подготовь typed patch
+живым `topic_reconcile.py`, примени его и только затем готовь следующую правку
+против свежего hash. Исторические `build_repair_tasks.py` / `apply_repair.py`
+работают со снятым `artifacts/wiki-v1`, не с живыми topics.
 
-```bash
-python3 $S/build_assign_tasks.py "$WORK-assign/tasks"
-# волна
-python3 $S/apply_assign.py --dry "$WORK-assign/runs"
-python3 $S/apply_assign.py "$WORK-assign/runs"
-```
+### Записи с повреждённой темой
 
-Прогон выбирает одну из существующих тем по их границам либо честно объявляет
-новую; вручную тему не заводят. Новая тема получает пустой файл, который
-наполнит обычное обновление, — поэтому после назначения `build_update_tasks.py`
-и волну повторяют.
+После позаписной миграции тема берётся из `topic:` каждой raw-записи, а не из
+старой карты разговоров. Builder показывает строки задания по темам; applier
+отклоняет пункт, который смешал разные темы, сослался вне текущей дельты либо
+пришёл без живого topic-файла. Такой случай требует явного retopic/repair.
+Исторические `build_assign_tasks.py` / `apply_assign.py`, назначавшие одну тему
+целому разговору, в обычном обновлении больше не запускаются.
 
 ### Закрытие обновления
 
@@ -209,15 +209,9 @@ python3 $S/check_coverage.py <коммит-снимка>
 ## Дрейф якорей — когда проверка назвала висячие адреса
 
 ```bash
-python3 $S/build_audit_tasks.py "$WORK-audit/tasks"
-# волна
-python3 $S/build_repair_tasks.py "$WORK-audit/runs" "$WORK-repair/tasks"
-# волна
-python3 $S/apply_repair.py "$WORK-repair/runs"
-
-python3 $S/build_split_tasks.py "$ART/audit-structural.tsv" "$WORK-split/tasks"
-# волна
-python3 $S/apply_split.py "$WORK-split/runs"
+python3 $S/reanchor.py fix
+python3 $S/reanchor.py map
+python3 $S/check_coverage.py
 ```
 
 Дрейф якорей проверяй, только если `check_coverage.py` назвал висячие адреса:

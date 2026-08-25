@@ -12,37 +12,70 @@
 Правду о том, что библиотека вообще видела, хранит git — снимок читается из
 коммита сборки.
 
-    python3 check_coverage.py [<коммит-снимка>]
+    python3 check_coverage.py [--live] [--project-root ROOT] \
+        [--artifact-dir ART] [<коммит-снимка>]
 """
+
 from __future__ import annotations
 
-import glob
+import argparse
 import json
-import os
 import re
 import subprocess
 import sys
 from collections import Counter
+from pathlib import Path
 
-CORPUS = "_ops/chat-recall/raw"
-ART = "experiments/openviking-chat-recall/artifacts"
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from build_retopic_tasks import topics_by_line
+from record_identity import (
+    RecordIdentity,
+    load_noop_identities,
+    record_identity,
+    session_from_lines,
+)
+
+SCRIPT_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_ARTIFACT_ROOT = SCRIPT_ROOT / "artifacts"
 
 # Разделитель перед `type:` за год поменялся: ранние записи пишут `— type:`,
 # поздние — `| type:`. Оба формата остаются живыми записями корпуса.
 TYPE = re.compile(r"(?:—|\|)\s*type:\s*([^\s|]+)")
-QUOTE = re.compile(r'—\s*"(.*?)"\s*—', re.S)
 # Якорь одинаков во всех трёх записях: голый в темах, в ссылке на страницах.
 ANCHOR = re.compile(r"([0-9]{4}-[0-9]{2}-[0-9]{2}-[^\s#\],)]+\.md)#L(\d+)")
 
 Address = tuple[str, int]
 
 
-def blob_at(rev: str, path: str) -> str | None:
-    done = subprocess.run(["git", "show", f"{rev}:{path}"], capture_output=True, text=True)
+def project_paths(project_root: str | Path | None = None) -> tuple[Path, Path]:
+    root = Path.cwd() if project_root is None else Path(project_root)
+    root = root.resolve()
+    return root / "_ops/chat-recall/raw", root / "_ops/chat-recall/topics"
+
+
+def noop_identities(project_root: str | Path | None = None) -> set[RecordIdentity]:
+    _, topics = project_paths(project_root)
+    return load_noop_identities(topics / "reconcile-noops.json")
+
+
+def blob_at(
+    rev: str, path: str, project_root: str | Path | None = None
+) -> str | None:
+    root = Path.cwd() if project_root is None else Path(project_root)
+    done = subprocess.run(
+        ["git", "show", f"{rev}:{path}"],
+        capture_output=True,
+        text=True,
+        cwd=root,
+    )
     return done.stdout if done.returncode == 0 else None
 
 
-def as_of_snapshot(name: str, rev: str) -> str:
+def as_of_snapshot(
+    name: str,
+    rev: str | None,
+    project_root: str | Path | None = None,
+) -> str:
     """Разговор в том виде, в каком его взяла сборка.
 
     Копия на диске взята из рабочего дерева, а часть разговоров попала в git
@@ -51,41 +84,79 @@ def as_of_snapshot(name: str, rev: str) -> str:
     зафиксированное состояние. Читать их сегодняшними — приписать библиотеке
     пропуск строк, которых на момент сборки не существовало.
     """
-    text = blob_at(rev, f"{CORPUS}/{name}")
+    corpus, _ = project_paths(project_root)
+    if rev is None:
+        return (corpus / name).read_text(encoding="utf-8")
+    text = blob_at(rev, f"_ops/chat-recall/raw/{name}", project_root)
     if text is not None:
         return text
     added = subprocess.run(
-        ["git", "log", "--format=%H", "--diff-filter=A", "--", f"{CORPUS}/{name}"],
-        capture_output=True, text=True, check=True,
+        [
+            "git",
+            "log",
+            "--format=%H",
+            "--diff-filter=A",
+            "--",
+            f"_ops/chat-recall/raw/{name}",
+        ],
+        capture_output=True,
+        text=True,
+        check=True,
+        cwd=project_root,
     ).stdout.split()
     if added:
-        text = blob_at(added[-1], f"{CORPUS}/{name}")
+        text = blob_at(added[-1], f"_ops/chat-recall/raw/{name}", project_root)
         if text is not None:
             return text
-    return open(os.path.join(CORPUS, name), encoding="utf-8").read()
+    return (corpus / name).read_text(encoding="utf-8")
 
 
-def snapshot(rev: str) -> dict[Address, str]:
+def snapshot(
+    rev: str | None,
+    project_root: str | Path | None = None,
+    artifact_root: str | Path | None = None,
+) -> tuple[
+    dict[Address, str],
+    dict[str, str | None],
+    dict[Address, str | None],
+]:
     """Записи корпуса на момент сборки: адрес -> строка целиком.
 
     Состав снимка задаёт не git, а сама сборка: имена файлов в `flat/`.
     """
     records: dict[Address, str] = {}
-    for path in sorted(glob.glob(f"{ART}/flatten-v1/flat/*.md")):
-        name = os.path.basename(path)
-        for number, line in enumerate(as_of_snapshot(name, rev).splitlines(), start=1):
+    sessions: dict[str, str | None] = {}
+    topics: dict[Address, str | None] = {}
+    artifacts = (
+        DEFAULT_ARTIFACT_ROOT
+        if artifact_root is None
+        else Path(artifact_root).resolve()
+    )
+    flat_dir = artifacts / "flatten-v1/flat"
+    for path in sorted(flat_dir.glob("*.md")):
+        name = path.name
+        lines = as_of_snapshot(name, rev, project_root).splitlines()
+        sessions[name] = session_from_lines(lines)
+        by_line = topics_by_line(lines)
+        for number, line in enumerate(lines, start=1):
             if line.startswith("* ") and TYPE.search(line):
                 records[(name, number)] = line.strip()
-    return records
+                topics[(name, number)] = by_line.get(number)
+    return records, sessions, topics
 
 
-def flat_anchors() -> set[Address]:
+def flat_anchors(artifact_root: str | Path | None = None) -> set[Address]:
     """Стадия 1 адресует строки числом `L20`, а файл называет в шапке."""
     found: set[Address] = set()
-    for path in glob.glob(f"{ART}/flatten-v1/flat/*.md"):
-        text = open(path, encoding="utf-8").read()
+    artifacts = (
+        DEFAULT_ARTIFACT_ROOT
+        if artifact_root is None
+        else Path(artifact_root).resolve()
+    )
+    for path in sorted((artifacts / "flatten-v1/flat").glob("*.md")):
+        text = path.read_text(encoding="utf-8")
         head = re.search(r"^source:\s*(\S+)", text, re.M)
-        source = head.group(1) if head else os.path.basename(path)
+        source = head.group(1) if head else path.name
         for line in text.splitlines():
             if line.startswith("- "):
                 found |= {(source, int(n)) for n in re.findall(r"L(\d+)", line)}
@@ -97,32 +168,47 @@ def flat_anchors() -> set[Address]:
 NOT_A_TOPIC = {"AGENTS.md", "README.md"}
 
 
-def anchors(pattern: str) -> set[Address]:
+def anchors(topics_dir: str | Path) -> set[Address]:
     found: set[Address] = set()
-    for path in glob.glob(pattern, recursive=True):
-        if os.path.basename(path) in NOT_A_TOPIC:
+    for path in sorted(Path(topics_dir).glob("*.md")):
+        if path.name in NOT_A_TOPIC:
             continue
-        text = open(path, encoding="utf-8").read()
+        text = path.read_text(encoding="utf-8")
         found |= {(name, int(n)) for name, n in ANCHOR.findall(text)}
     return found
 
 
-def main(rev: str) -> int:
-    records = snapshot(rev)
+def main(
+    rev: str | None,
+    project_root: str | Path | None = None,
+    artifact_root: str | Path | None = None,
+) -> int:
+    _, topics_dir = project_paths(project_root)
+    artifacts = (
+        DEFAULT_ARTIFACT_ROOT
+        if artifact_root is None
+        else Path(artifact_root).resolve()
+    )
+    records, snapshot_sessions, snapshot_topics = snapshot(
+        rev, project_root, artifacts
+    )
     known = set(records)
+    acknowledged_noops = noop_identities(project_root)
     # Конечный продукт — слой тем. Стадия страниц снята 2026-08-24, и пока она
     # стояла здесь последней, вердикт «ничего не потеряно» выносился по снятой
     # библиотеке: проверка честно судила продукт, которым никто не пользуется.
     stages = [
-        ("1  снимок -> сжатые файлы", flat_anchors()),
-        ("3  сжатые -> темы", anchors("_ops/chat-recall/topics/*.md")),
+        ("1  снимок -> сжатые файлы", flat_anchors(artifacts)),
+        ("3  сжатые -> темы", anchors(topics_dir)),
     ]
 
-    print(f"снимок {rev}: {len(records)} записей корпуса\n")
+    print(f"снимок {rev or 'live'}: {len(records)} записей корпуса\n")
     seen = known
     for label, reached in stages:
-        print(f"стадия {label:28s} адресов {len(reached):5d}"
-              f" | дошло {len(reached & known):5d} | потеряно {len(seen - reached):4d}")
+        print(
+            f"стадия {label:28s} адресов {len(reached):5d}"
+            f" | дошло {len(reached & known):5d} | потеряно {len(seen - reached):4d}"
+        )
         seen = reached & known
 
     library = stages[-1][1]  # слой тем
@@ -131,37 +217,64 @@ def main(rev: str) -> int:
     # результат работы. Весь смысл добора в том, чтобы вторых не оставалось
     # без имени, поэтому они считаются отдельно и в дефект не идут.
     declared: dict[Address, str] = {}
-    decisions = f"{ART}/coverage-decisions.tsv"
-    if os.path.exists(decisions):
-        for row in open(decisions, encoding="utf-8"):
-            anchor, verdict = row.split("\t", 2)[:2]
+    decisions = artifacts / "coverage-decisions.tsv"
+    if decisions.is_file():
+        for row in decisions.read_text(encoding="utf-8").splitlines():
+            fields = row.split("\t", 2)
+            if len(fields) < 2:
+                continue
+            anchor, verdict = fields[:2]
             name, _, number = anchor.rpartition("#L")
             if number.isdigit():
                 declared[(name, int(number))] = verdict
-    silent = sorted(a for a in known - library if declared.get(a) in (None, "без-решения"))
-    named = sorted(a for a in known - library if declared.get(a) not in (None, "без-решения"))
-    uncovered = silent
+    noop_addresses = {
+        address
+        for address, line in records.items()
+        if record_identity(snapshot_sessions.get(address[0]), line)
+        in acknowledged_noops
+    }
+    no_topic = sorted(
+        address
+        for address in known
+        if snapshot_topics.get(address) is None and address not in noop_addresses
+    )
+    no_topic_set = set(no_topic)
+    silent = sorted(
+        address
+        for address in known - library - noop_addresses - no_topic_set
+        if declared.get(address) in (None, "без-решения")
+    )
+    named = sorted((known - library) - set(silent) - no_topic_set)
     dangling = sorted(library - known)
-    accounted = len(records) - len(silent)
-    print(f"\nстоит в слое тем: {len(known & library)} из {len(records)}"
-          f" ({100 * len(known & library) / max(len(records), 1):.1f}%)")
-    print(f"учтено — в теме либо названо: {accounted}"
-          f" ({100 * accounted / max(len(records), 1):.1f}%)")
+    accounted = len(records) - len(silent) - len(no_topic)
+    print(
+        f"\nстоит в слое тем: {len(known & library)} из {len(records)}"
+        f" ({100 * len(known & library) / max(len(records), 1):.1f}%)"
+    )
+    print(
+        f"учтено — в теме либо названо: {accounted}"
+        f" ({100 * accounted / max(len(records), 1):.1f}%)"
+    )
     print(f"НЕ покрыто молча (П5): {len(silent)}")
+    print(f"typed records без topic: {len(no_topic)}")
     print(f"названо не несущим знания (не дефект): {len(named)}")
     print(f"адрес слоя не указывает на запись снимка: {len(dangling)}")
 
-    if uncovered:
-        print("\nнепокрытые по типу записи:",
-              dict(Counter(TYPE.search(records[a]).group(1) for a in uncovered).most_common()))
-        gaps = f"{ART}/coverage-gaps.tsv"
-        with open(gaps, "w", encoding="utf-8") as out:
-            for name, number in uncovered:
-                line = records[(name, number)]
-                quote = QUOTE.search(line)
-                out.write(f"{name}\t{number}\t{TYPE.search(line).group(1)}\t"
-                          f"{(quote.group(1) if quote else line)}\n")
-        print(f"все непокрытые адреса с цитатами -> {gaps}")
+    if silent:
+        print(
+            "\nнепокрытые по типу записи:",
+            dict(
+                Counter(
+                    TYPE.search(records[a]).group(1) for a in silent
+                ).most_common()
+            ),
+        )
+        for name, number in silent:
+            print(f"  {name}#L{number}")
+    if no_topic:
+        print("\ntyped records без topic:")
+        for name, number in no_topic:
+            print(f"  {name}#L{number}")
     if dangling:
         print("\nвисячие адреса слоя:")
         for name, number in dangling:
@@ -174,41 +287,78 @@ def main(rev: str) -> int:
     # рекомендуемым маршрутом, всегда отстаёт от разговора, и отставание растёт
     # молча. Поэтому горизонт считается отдельным числом и печатается всегда.
     live: set[Address] = set()
-    for path in sorted(glob.glob(f"{CORPUS}/*.md")):
-        name = os.path.basename(path)
+    live_noops: set[Address] = set()
+    live_no_topic: set[Address] = set()
+    corpus, _ = project_paths(project_root)
+    for path in sorted(corpus.glob("*.md")):
+        name = path.name
         if name == "README.md":
             continue
-        for number, line in enumerate(open(path, encoding="utf-8").read().splitlines(), start=1):
+        lines = path.read_text(encoding="utf-8").splitlines()
+        session = session_from_lines(lines)
+        by_line = topics_by_line(lines)
+        for number, line in enumerate(lines, start=1):
             if line.startswith("* ") and TYPE.search(line):
-                live.add((name, number))
+                address = (name, number)
+                live.add(address)
+                identity = record_identity(session, line)
+                if by_line.get(number) is None and identity not in acknowledged_noops:
+                    live_no_topic.add(address)
+                if identity in acknowledged_noops:
+                    live_noops.add(address)
     # Горизонт мерится по слою, а не по снимку стадии сжатия: обновление идёт
     # из корпуса прямо в темы, минуя `flat/`, и разница со снимком говорит о
     # маршруте, которым свежие разговоры не ходят. Читателю важно одно —
     # сколько живых записей корпуса слой ещё не знает.
-    unseen = sorted(live - library)
-    print(f"\nгоризонт: в корпусе {len(live)} записей, слой знает {len(live & library)}")
-    print(f"слой ещё не знает: {len(unseen)} записей"
-          f" ({100 * len(unseen) / max(len(live), 1):.1f}%)")
+    unseen = sorted(live - library - live_noops)
+    print(
+        f"\nгоризонт: в корпусе {len(live)} записей, слой знает {len(live & library)}"
+    )
+    print(f"признано без эффекта на тему: {len(live_noops)}")
+    print(f"в живом корпусе без topic: {len(live_no_topic)}")
+    print(
+        f"слой ещё не знает: {len(unseen)} записей"
+        f" ({100 * len(unseen) / max(len(live), 1):.1f}%)"
+    )
     fresh = sorted({name for name, _ in unseen})
     if fresh:
         print(f"разговоров с непрочитанными записями: {len(fresh)}")
         for name in fresh[:10]:
             print(f"  {name}")
-    return 1 if silent or dangling else 0
+    return 1 if silent or no_topic or live_no_topic or dangling else 0
 
 
-def snapshot_commit() -> str:
+def snapshot_commit(project_root: str | Path | None = None) -> str | None:
     """Коммит снимка живёт рядом со слоем, а не константой в проверке.
 
     Зашитый коммит делает проверку вечно привязанной к одной сборке: после
     полного догона она продолжала печатать «слой их не видел никогда» про
     записи, которые в слое уже стоят.
     """
-    horizon = "_ops/chat-recall/topics/horizon.json"
-    if os.path.exists(horizon):
-        return json.load(open(horizon, encoding="utf-8")).get("commit") or "dd1ff113"
-    return "dd1ff113"
+    _, topics = project_paths(project_root)
+    horizon = topics / "horizon.json"
+    if not horizon.is_file():
+        return None
+    commit = json.loads(horizon.read_text(encoding="utf-8")).get("commit")
+    return commit if isinstance(commit, str) and commit else None
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("revision", nargs="?")
+    parser.add_argument("--project-root", type=Path, default=Path.cwd())
+    parser.add_argument("--artifact-dir", type=Path, default=DEFAULT_ARTIFACT_ROOT)
+    parser.add_argument("--live", action="store_true")
+    args = parser.parse_args(argv)
+    if args.live and args.revision is not None:
+        parser.error("--live cannot be combined with a revision")
+    if not args.live and args.revision is None:
+        args.revision = snapshot_commit(args.project_root)
+    if args.live:
+        args.revision = None
+    return args
 
 
 if __name__ == "__main__":
-    raise SystemExit(main(sys.argv[1] if len(sys.argv) > 1 else snapshot_commit()))
+    args = parse_args()
+    raise SystemExit(main(args.revision, args.project_root, args.artifact_dir))

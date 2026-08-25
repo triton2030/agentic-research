@@ -1,5 +1,26 @@
 # Cut — 1planning
 
+## 2026-08-25 — вопросы переданы `1interview-tool`
+
+- Удалён `portable/references/questions.md`: отдельная question-note и её
+  lifecycle создавали второго владельца формы рядом с `1interview-tool`.
+- Из карты удалены questions-folder, её checker-обязанность и view
+  «Открытые вопросы». Вопросы больше не являются частью map/dashboard
+  topology.
+- В `1planning` сохранён один гейт: оставшийся после derivation вопрос идёт в
+  `1interview-tool` и останавливает только затронутую ветку. Форма, хранение,
+  перенос ответа и архив принадлежат `1interview-tool` и папке interviews.
+- Question-note frontmatter, deadline и автоматический default по истечении
+  срока не перенесены: planning-вопрос живёт по readiness/archive lifecycle
+  интервью; незатронутые ветки продолжаются.
+- Повторы этого гейта сняты из Invariants, Known failures, decompose,
+  delegation и modes; в contract/map остались только их собственные схемы —
+  граница task-файла и обозначение остановленной ветки.
+- Приём ответа через любой канал и отдельный question-note шаг записи в
+  chat-recall не дублируются: ответ проходит существующий lifecycle
+  `1interview-tool` — «проверь» → перенос к owner-у → архив; общий same-turn
+  capture владельца остаётся обязанностью `1chat-recall`.
+
 ## 2026-08-24 — English v3.1: agent-reader reframing (recall agentic-research `_ops/chat-recall/raw/2026-08-24-181208-claude-13fd1279.md`)
 
 - Вся инструкционная проза переведена на английский по слову владельца

@@ -14,6 +14,7 @@ sentinels; it never makes the block disappear.
 from __future__ import annotations
 
 import argparse
+import fcntl
 import hashlib
 import importlib.metadata
 import json
@@ -23,7 +24,8 @@ import sqlite3
 import struct
 import sys
 from collections import Counter, defaultdict
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from datetime import date, datetime
 from pathlib import Path
 from typing import Any
@@ -520,6 +522,23 @@ def _embedding_cache_path() -> Path:
     return _cache_root() / "embeddings.sqlite3"
 
 
+@contextmanager
+def _hybrid_queue() -> Iterator[None]:
+    """Serialize memory-heavy hybrid retrieval across projects and runtimes."""
+    path = _cache_root() / "hybrid.lock"
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        stream = path.open("a+b")
+    except OSError as error:
+        raise CliError(f"не удалось открыть hybrid queue {path}: {error}") from error
+    with stream:
+        try:
+            fcntl.flock(stream.fileno(), fcntl.LOCK_EX)
+        except OSError as error:
+            raise CliError(f"не удалось войти в hybrid queue {path}: {error}") from error
+        yield
+
+
 def _content_hash(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
@@ -984,12 +1003,12 @@ def _retrieve(
     filtered = _filter(records, args)
     if not args.query:
         return filtered, None, [], None
-    session_routes, card_route = search_session_routes(
-        filtered,
-        args.query,
-        hybrid=not args.lexical,
-    )
     if args.lexical:
+        session_routes, card_route = search_session_routes(
+            filtered,
+            args.query,
+            hybrid=False,
+        )
         lexical = search_bm25(filtered, args.query)
         return (
             _merge_file_rankings(filtered, (lexical,)),
@@ -997,11 +1016,17 @@ def _retrieve(
             session_routes,
             card_route,
         )
-    hybrid = search_hybrid(
-        filtered,
-        args.query,
-        collapse_files=True,
-    )
+    with _hybrid_queue():
+        session_routes, card_route = search_session_routes(
+            filtered,
+            args.query,
+            hybrid=True,
+        )
+        hybrid = search_hybrid(
+            filtered,
+            args.query,
+            collapse_files=True,
+        )
     return hybrid, "hybrid", session_routes, card_route
 
 

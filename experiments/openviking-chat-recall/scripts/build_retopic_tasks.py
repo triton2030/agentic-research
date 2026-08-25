@@ -27,7 +27,8 @@ ART = "experiments/openviking-chat-recall/artifacts"
 CORPUS = "_ops/chat-recall/raw"
 META_KEYS = ("kind", "type", "topic", "context-note", "source", "precision", "source-ref")
 META_START = re.compile(r"\s—\s(?=(?:" + "|".join(META_KEYS) + r"):)")
-TOPIC_FIELD = re.compile(r"(topic:\s*)([^|\n]+?)(\s*)(?=\||$)", re.M)
+TOPIC_FIELD = re.compile(r"(topic:\s*)([^|\n]+?)(\s*)(?=\||$)", re.MULTILINE)
+TYPE_FIELD = re.compile(r"(?:^|\|)\s*type:\s*([^\s|]+)")
 
 
 def star_blocks(lines: list[str]) -> list[tuple[int, str]]:
@@ -66,11 +67,75 @@ def topic_of(block: str) -> str | None:
     return field.group(2).strip() if field else None
 
 
+def is_typed_record(block: str) -> bool:
+    """Return whether a block has a typed metadata tail.
+
+    A missing ``topic`` is an input defect for retopic, not a reason to drop
+    the record from the task denominator.  Keep this check separate from
+    ``topic_of`` so callers can distinguish those two cases.
+    """
+    meta = meta_at(block)
+    return meta is not None and TYPE_FIELD.search(block[meta:]) is not None
+
+
+def typed_blocks(lines: list[str]) -> list[tuple[int, str]]:
+    """Return every typed record, including records whose topic is missing."""
+    return [
+        (number, block)
+        for number, block in star_blocks(lines)
+        if is_typed_record(block)
+    ]
+
+
+def topics_by_line(lines: list[str]) -> dict[int, str]:
+    """Canonical per-record topic keyed by the record's 1-based start line."""
+    return {
+        number: topic
+        for number, block in star_blocks(lines)
+        if (topic := topic_of(block)) is not None
+    }
+
+
+def load_catalog(catalog_path: str) -> list[dict[str, object]]:
+    """Load and validate the complete supplied topic catalog."""
+    with open(catalog_path, encoding="utf-8-sig") as handle:
+        payload = json.load(handle)
+    if not isinstance(payload, dict):
+        raise TypeError(f"каталог тем не является объектом: {catalog_path}")
+    topics = payload.get("topics")
+    if not isinstance(topics, list):
+        raise TypeError(f"каталог тем не содержит списка topics: {catalog_path}")
+
+    seen: set[str] = set()
+    for index, topic in enumerate(topics, 1):
+        if not isinstance(topic, dict):
+            raise TypeError(
+                f"тема {index} в каталоге не является объектом: {catalog_path}"
+            )
+        topic_id = topic.get("id")
+        title = topic.get("title")
+        if not isinstance(topic_id, str) or not topic_id:
+            raise ValueError(f"тема {index} не имеет непустого id: {catalog_path}")
+        if not isinstance(title, str) or not title:
+            raise ValueError(
+                f"тема {topic_id!r} не имеет непустого title: {catalog_path}"
+            )
+        if topic_id in seen:
+            raise ValueError(f"дублирующаяся тема {topic_id!r}: {catalog_path}")
+        seen.add(topic_id)
+    return topics
+
+
 def main(out_dir: str, corpus: str = CORPUS, catalog_path: str | None = None) -> int:
-    catalog_path = catalog_path or f"{ART}/flatten-v1/topics.json"
-    topics = json.load(open(catalog_path, encoding="utf-8"))["topics"]
+    if not os.path.isdir(corpus):
+        raise FileNotFoundError(f"корпус не найден или не папка: {corpus}")
+    if catalog_path is None:
+        if str(corpus) != CORPUS:
+            raise ValueError("для внешнего корпуса каталог тем нужно передать явно")
+        catalog_path = f"{ART}/flatten-v1/topics.json"
+    topics = load_catalog(catalog_path)
     # Свежая карта стадии 2 несёт только заголовок; `why` появляется позже, у
-    # тем, чью границу уже назвал прогон назначения.
+    # тем, чью границу назвал исторический прогон сборки.
     catalog = "\n".join(
         f"- `{t['id']}` — {t['title']}."
         + (f" Граница: {t['why']}" if t.get("why") else "")
@@ -80,15 +145,22 @@ def main(out_dir: str, corpus: str = CORPUS, catalog_path: str | None = None) ->
     built = skipped = 0
     for path in sorted(glob.glob(f"{corpus}/*.md")):
         name = os.path.basename(path)
-        lines = open(path, encoding="utf-8").read().splitlines()
-        rows = [(n, block) for n, block in star_blocks(lines) if topic_of(block)]
+        with open(path, encoding="utf-8") as handle:
+            lines = handle.read().splitlines()
+        # The task denominator is every typed record.  In particular, a
+        # typed record without a legacy topic must be shown to the agent so it
+        # can be repaired or assigned; filtering on topic_of() silently lost
+        # exactly those records.
+        rows = typed_blocks(lines)
         if not rows:
             skipped += 1
             continue
         context = next((l for l in lines if l.startswith("session-context: ")), "")
         body = "\n\n".join(f"### L{n}\n```\n{block}\n```" for n, block in rows)
-        open(os.path.join(out_dir, name[:-3] + ".txt"), "w", encoding="utf-8").write(
-            f"""Роль: библиотекарь слоя тем. У тебя один разговор, разобранный на записи,
+        task_path = os.path.join(out_dir, name[:-3] + ".txt")
+        with open(task_path, "w", encoding="utf-8") as handle:
+            handle.write(
+                f"""Роль: библиотекарь слоя тем. У тебя один разговор, разобранный на записи,
 и каталог существующих тем. Вопрос ровно один: **какая тема у каждой записи.**
 
 Тема — предмет записи, а не проект, не дата и не тип высказывания. Записи

@@ -57,9 +57,8 @@ health: 🟢 | 🟠 | 🔴
 зависит-от:
   - "[[<blocking epic>]]"
 задач: 0                   # derived — the instrument writes it
+задач-готово: 0            # derived — closed among the tasks created so far
 задачи: []                 # derived — the instrument writes it
-подзадач: 0                # derived — the instrument writes it
-подзадач-готово: 0         # derived — the instrument writes it
 evidence: "<link to the accepted proof — mandatory at ✅>"
 обновлено: <date of the last update>
 ---
@@ -93,11 +92,13 @@ form comes from Shape Up>
 The body section set is fixed: «Принципы» · «Аппетит» · «No-gos» ·
 «Апдейты»; a missing section and an extra one are both red. Updates are
 append-only: `date · 🟢/🟠/🔴 · one line`; earlier entries are never
-rewritten. `health` and `обновлено` derive from the last «Апдейты» line;
-`задач`, `задачи`, `подзадач`, `подзадач-готово` derive from the task
-files; everything derived is written by the instrument (write mode), never
-by hand. `health` describes the risk of the course, `статус` — the position
-on the map; 🔴 does not substitute for 🛑.
+rewritten. Every epic has at least one update; closing an epic appends the
+dated closure event instead of leaving terminal telemetry empty. `health` and
+`обновлено` derive from the last «Апдейты» line;
+`задач`, `задач-готово` and `задачи` derive from the task files; an epic
+never carries subtask totals. Everything derived is written by the instrument
+(write mode), never by hand. `health` describes the risk of the course,
+`статус` — the position on the map; 🔴 does not substitute for 🛑.
 
 **«Принципы» is always present**, even when nothing applies. Principles and
 frames are blurry direction-setters; the influence line says what they act
@@ -116,36 +117,50 @@ rumdl normalization.
 
 ## Status vocabulary
 
-`✅ готово · 🔨 в работе · 🟡 надо сделать · 🔒 заблокировано · 🛑 затык ·
+`✅ готово · 🔨 в работе · ◽ в очереди · 🔒 заблокировано · 🛑 затык ·
 ⏳ отложено`
 
-(done · in progress · to do · blocked · stuck · deferred — the tokens
+(done · in progress · queued · blocked · stuck · deferred — the tokens
 themselves are literal and never translated)
 
 - `✅` — only with a link in `evidence`: a fresh run or consumer
   acceptance; the executor's transcript and self-report are not proof
   (copy of the contract rule "[x] with proof" — edit together).
-- `🔒` is true exactly when `зависит-от` contains an unclosed epic;
-  blockers closed — `🟡`. The move that closes an epic flips `🔒 → 🟡` in
+- `◽` is ready by dependencies but waits behind the current frontier. Its
+  small neutral mark is intentionally quieter than `🔨` and `✅`.
+- `🔒` is the dependency-derived status when `зависит-от` contains an
+  unclosed epic and the owner has not deliberately deferred the work;
+  blockers closed — `◽`. The move that closes an epic flips `🔒 → ◽` in
   the same move.
 - `🛑` — the branch is stopped on a decision or an external event; an open
-  question sits next to it ([questions](questions.md)) or the external gate
-  is named.
-- `⏳` — deliberately deferred; excluded from "how much is left to launch"
-  and shown as its own number: a growing "deferred" is also a signal.
+  interview form owned by `1interview-tool` names the stopped branch, or the
+  external gate is named.
+- `⏳` — deliberately deferred; this owner-authored intent overrides
+  dependency-derived `🔒`, so unmet dependencies do not rewrite it. It is
+  excluded from "how much is left to launch" and shown as its own number: a
+  growing "deferred" is also a signal. It is never exempt from the ban on a
+  `🔨` task outside the launch frontier.
 
 The vocabulary is shared by epics and tasks.
 
 ## "How much is left"
 
 Statuses in execution order answer it: the `✅` bar descends from the top;
-below it — `🔨`, `🛑` and the queue. A hand-written percent is never
-written — an uncheckable number drifts toward optimism; a **computed**
-subtask percent is legitimate only as the dashboard formula over the
-instrument's counters (owner decision 2026-08-24) and shows progress
-inside, without replacing the in-order bar. `область` and `запуск` are the
-map's axes: "how much is left to launch" is counted over `запуск: true`
-only.
+below it — `🔨`, `🛑` and the queue. An epic percentage is never written or
+computed. Its current JIT task set cannot be a denominator: that set is open,
+and `100%` would mean only "all tasks currently present are closed". A task may
+compute its own subtask percentage over its current explicit 3–7-subtask list;
+this reports checklist progress, not task closure, and never rolls up to the
+epic. `область` and `запуск` are the map's axes: "how much is left to launch"
+is counted over `запуск: true` only.
+
+The **frontier** is the first launch epic by `порядок` that is neither `✅` nor
+`⏳`. It alone may be `🔨`. If it is `◽`, the planner rereads its criterion and
+does one of two things in the same move: closes the epic with accepted evidence,
+or creates the next JIT task and sets both task and epic to `🔨`. A later queued
+epic may contain only closed tasks: those files are accepted foundations and
+history, not proof that the epic itself is closed and not permission to reorder
+the map.
 
 ## The project instrument
 
@@ -161,17 +176,23 @@ violated:
   with a non-empty context paragraph before the first section;
 - a subtask checkbox has no report callout, or the callout does not stand
   right after the checkbox line;
+- a task has fewer than three or more than seven subtasks;
 - a task lacks the `эпик` link, the link does not match the folder, there
   is no `эпик-снимок` or `траектория` line, or `эпик-снимок` is stale;
-- `[x]` without a `доказательство:` line carrying an address; the
-  `подзадач`/`подзадач-готово`/`задач`/`задачи` counters diverge from the
-  files;
+- `[x]` without a `доказательство:` line carrying an address; a task's
+  `подзадач`/`подзадач-готово` or an epic's
+  `задач`/`задач-готово`/`задачи` diverge from the files; an epic carries
+  obsolete subtask rollups;
 - an epic lacks `ранний-индикатор` or the «Аппетит» and «No-gos» slots;
 - updates or their derived fields violate
   ["An epic is one note"](#an-epic-is-one-note); the epic body exceeds 60
   non-empty lines;
 - `статус`, `зависит-от`, `порядок` or the `evidence` mandatory at `✅`
   violate ["Changing the map"](#changing-the-map).
+- the launch frontier is queued without a living task, is `🔨` without a
+  `🔨` task, any `🔨` task in **any epic** lives outside that frontier
+  (including `⏳` and `запуск: false`), or a queued non-frontier epic contains
+  a task that is not `✅`. If no launch frontier exists, no task may be `🔨`.
 
 The instrument also warns (not red): more than one `🔨` task in an epic — a
 sign the tasks were cut wrong, or they conflict ("cannot do one without
@@ -196,19 +217,20 @@ through the dashboard, not the files. When a map is created, the dashboard
 is created at once; on any other map edit a missing file is created from
 the template, while existing files are never overwritten — project views
 live in them. The dashboard's home is the folder above the map root;
-`<map root folder>` and `<questions folder>` are named by the project
-instruction. The dashboard is the owner's surface: its file names, headings
-and view names stay in the owner's language.
+`<map root folder>` is named by the project instruction. The dashboard is the
+owner's surface: its file names, headings and view names stay in the owner's
+language.
 
-`Дашборд.base` — epics and open questions:
+`Дашборд.base` — epics:
 
 ```yaml
 filters:
-  or:
+  and:
     - file.inFolder("<map root folder>")
-    - file.inFolder("<questions folder>")
 formulas:
-  Прогресс: 'if(note["подзадач"] > 0, ((note["подзадач-готово"] / note["подзадач"]) * 100).round().toString() + "%", "—")'
+  Задачи: >-
+    note["задач-готово"].toString() + "/" + note["задач"].toString()
+    + " созданных"
 views:
   - type: table
     name: По порядку
@@ -222,9 +244,8 @@ views:
       - описание
       - статус
       - health
-      - задач
-      - formula.Прогресс
       - задачи
+      - formula.Задачи
       - зависит-от
     sort:
       - property: порядок
@@ -238,15 +259,6 @@ views:
     order:
       - file.name
       - критерий
-  - type: table
-    name: Открытые вопросы
-    filters:
-      and:
-        - тип == "вопрос"
-        - статус == "открыт"
-    order:
-      - file.name
-      - касается
   - type: table
     name: Отложенное
     filters:
@@ -267,7 +279,10 @@ filters:
     - file.inFolder("<map root folder>")
     - тип == "задача"
 formulas:
-  Прогресс: 'if(note["подзадач"] > 0, ((note["подзадач-готово"] / note["подзадач"]) * 100).round().toString() + "%", "—")'
+  Прогресс: >-
+    if(note["подзадач"] > 0,
+    ((note["подзадач-готово"] / note["подзадач"]) * 100).round().toString()
+    + "%", "—")
 views:
   - type: table
     name: Живые задачи
@@ -287,10 +302,25 @@ views:
         direction: ASC
       - property: порядок
         direction: ASC
+  - type: table
+    name: Завершённые задачи
+    filters:
+      and:
+        - статус == "✅ готово"
+    order:
+      - file.name
+      - эпик
+      - статус
+      - режим
+      - порядок
+      - formula.Прогресс
+      - обновлено
+    sort:
+      - property: эпик
+        direction: ASC
+      - property: порядок
+        direction: ASC
 ```
-
-No questions folder — the «Открытые вопросы» view stays empty; an address
-is not invented.
 
 `Дашборд.md` — the owner's single screen, embedding the views:
 
@@ -307,13 +337,13 @@ is not invented.
 
 ![[Планы.base#Живые задачи]]
 
+## ✅ Завершённые задачи
+
+![[Планы.base#Завершённые задачи]]
+
 ## 🛑 Где затык
 
 ![[Дашборд.base#Затыки]]
-
-## ❓ Вопросы ко мне
-
-![[Дашборд.base#Открытые вопросы]]
 
 ## ⏳ Отложенное
 
@@ -323,6 +353,10 @@ is not invented.
 Project views and columns are added in these same files. Hyphenated
 property names in formulas are addressed as `note["имя-с-дефисом"]` — a
 bare name parses as subtraction.
+
+The epic dashboard renders closed/created tasks, for example
+`1/1 созданных`. This is an inventory of the JIT files that already exist,
+not an epic completion fraction; only `Планы.base` renders subtask progress.
 
 ## Changing the map
 

@@ -58,7 +58,8 @@ In hand: an epic map and the living file of the chosen task (self-describing
 name inside its epic's folder), from which the next clean-window session
 continues or stops **by the files themselves**, with no hidden chat — while
 the owner sees without a retelling: how many epics remain, in order; what is
-blocked; where the stuck point is; subtask progress of every living task.
+blocked; where the stuck point is; subtask progress of every task file,
+including closed history.
 The task file names the `GOAL.md` item it advances through its epic's
 criterion.
 
@@ -95,15 +96,17 @@ Every link between files is checkable:
   `эпик-снимок`, the `траектория` line and a quoted epic criterion — traces
   that the epic was actually read; the reconciliation gate —
   [contract](references/contract.md).
-- **epic → tasks, progress**: task and subtask counters are derived; only
-  the project instrument writes them; form and full list —
+- **epic → task inventory; task → progress**: the epic derives created and
+  closed task counts; each task derives only its own subtask counters. Subtask
+  progress never rolls up to the epic because the JIT task set is open. Only
+  the project instrument writes these fields; inventory and progress contract —
   [map](references/map.md).
 - **epic and task → principles**: the mandatory «Принципы» section with an
   influence line — the entry point of `1use-principles`; rule owner —
   [map](references/map.md), task form — [contract](references/contract.md).
 - **map → owner dashboard**: the map ships with a dashboard in the folder
-  above the map root: `Дашборд.md` — one screen, `Дашборд.base` — epics and
-  questions, `Планы.base` — tasks; forms and progress formulas —
+  above the map root: `Дашборд.md` — one screen, `Дашборд.base` — epics,
+  `Планы.base` — tasks; forms and the task progress formula —
   [map](references/map.md).
 - **epics and tasks are independent**; both levels carry `порядок`; the rule
   and cross-cutting work as its own epic — [map](references/map.md).
@@ -141,9 +144,6 @@ Every link between files is checkable:
 - The map's composition changes only by the rules of
   [map](references/map.md): silently editing the denominator turns "how much
   is left" into decoration.
-- A question to the owner lives as a question note per
-  [questions](references/questions.md), not as a chat line that dies with
-  the window.
 
 ## Delta — the weaknesses this skill compensates
 
@@ -201,34 +201,31 @@ its author.
 - a plan written or a task continued without rereading the epic → a local
   Next drives against the shared trajectory — caught by the owner →
   [contract](references/contract.md)
-- an owner question asked as a chat line mid-wave → lost with the window →
-  the branch stalls or gets invented → [questions](references/questions.md)
 
 ## Mechanics
 
 Two hard transitions — everything else is postconditions:
 
-- **The owner's "yes" before any files; questions before the
-  justification**: first, every visible owner question is filed as a
-  question note per [questions](references/questions.md) — what stops the
-  affected branch and what continues on an assumption is decided by its
-  blocking vocabulary; the justification carries the trace: note or recall
-  addresses, or an explicit "no forks found". The justification (place on
-  the map: which epic and why it is next by order and blockers · goal ·
-  value · mode · appetite · the methods that shaped the cut and the order —
-  the head rule "plan by the masters", edit together) goes to chat; files —
-  after consent. Work that cannot find its epic is a question to the map,
-  not a license to dig without one. Before the justification, run
+- **The owner's "yes" before any plan files; questions before the
+  justification**: route every owner question left after Goal, principles and
+  owner records through `1interview-tool`, even one; planning stops only its
+  affected branch. The justification carries interview or recall addresses,
+  or an explicit "no owner questions after derivation". The justification
+  (place on the map: which epic and why it is next by order and blockers ·
+  goal · value · mode · appetite · the methods that shaped the cut and the
+  order — the head rule "plan by the masters", edit together) goes to chat; plan
+  files — after consent. Work that cannot find its epic is a question to the
+  map, not a license to dig without one. Before the justification, run
   `1use-principles` over the plan's composition, not only over a noticed
   fork: without it the `Frame/principle` provenance mark may not be used.
-- **Reread the current epic file and the questions folder before every new
-  material step**; immediately verify the task's `эпик-снимок`: stale —
+- **Reread the current epic file before every new material step**; immediately
+  verify the task's `эпик-снимок`: stale —
   reread the epic and re-verify the task in the same move. Continuing from
   chat memory is where zombie plans come from; evidence classification and
   rebuild — [modes](references/modes.md).
 
 Admission: the work is chosen and outlives the session; native Plan Mode
-active → stay silent; otherwise — a discussion in chat, no file.
+active → stay silent; otherwise — a discussion in chat, no plan file.
 
 Postconditions of the living task file — per
 [contract](references/contract.md): exactly the fixed sections, provenance

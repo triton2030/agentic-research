@@ -28,8 +28,9 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
 - `1product-shaping/portable/` создаёт чистые Product Principles + Frame и
   журнал обоснований; `1use-principles/portable/` применяет их к развилкам и
   пустотам.
-- `1planning/portable/` создаёт живой контракт и `context.md` для работы через
-  сессии; `1index/portable/` держит карты оплаченных поиском маршрутов.
+- `1planning/portable/` создаёт карту эпиков и один живой task-файл внутри
+  эпика для работы через сессии; `1index/portable/` держит карты оплаченных
+  поиском маршрутов.
 - `1interview-tool/portable/` создаёт адресуемую plain-Markdown форму и держит
   lifecycle `решения владельца → настоящие owners → архив`; Codex invocation
   metadata живёт в `platforms/codex/agents/openai.yaml`.

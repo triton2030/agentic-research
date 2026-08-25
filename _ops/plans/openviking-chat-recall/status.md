@@ -13,47 +13,89 @@ kind: status
 
 ## Next
 
-**Слой тем в `mavo-short2` собран: 16 из 16.** Исполнителя сменил владелец
-2026-08-25: «остатки уже исправь сам и со своими субагентами». Пакетная волна
-на DeepSeek снята вместе с кругом `grind.sh`, пять оставшихся тем и починку
-четырёх испорченных сделали субагенты Claude. Коммит в том проекте — `cc708bf6`.
+**MAVO-слой не принят.** Снимок коммита `e6ccc3e0` содержал 173 raw-holder-а
+и 1807 typed records. После обязательной capture текущей коррекции live-слой
+содержит 174 raw-holder-а, 1808 typed records, 20 tracked topic-файлов и 16
+непустых тем. Четыре файла остаются пустыми:
+`agent-surfaces`, `goals-and-priorities`, `planning-system`, `pricing`.
+`horizon.json` и `reconcile-noops.json` отсутствуют.
 
-Состояние слоя проверено, а не заявлено:
+Снимочный `check_topics.py` даёт ноль проблем, но current denominator шире
+его карты. Read-only сверка живого корпуса дала 1791 уникальный topic-anchor,
+47 current records без topic-effect, 30 якорей не на typed record и 23
+source-anchor-а одновременно в активной части и в `## Отменено`.
+`chat_digest.py` использует другой parser и считает больше records; разницу
+parser-ов надо закрыть отдельным falsifying check, а не выбором удобного
+знаменателя.
 
-- гейт `theme_gap` проходят все 16 тем;
-- 1791 якорь, каждый попадает в **живую** реплику корпуса (не в снимок);
-- дословность: у всех тем одиночные пункты совпадают с материалом.
+Существующий pipeline тоже не терминален:
 
-Стадия 4 закрыта не штатным инструментом: `check_coverage.py` жёстко привязан
-к корпусу этого репо и вдобавок переписывается параллельным агентом. Пропажа
-посчитана напрямую сверкой снимка `13738dd5` с якорями материала: 24 записи,
-судьбы розданы все — 4 добраны, 16 уже стояли под другим якорем (это не дубли,
-а вытеснение поздними репликами), 4 отклонены как служебные.
+- MAVO merge: построено 16, запущено 12, принято штатным `wave.py` 10;
+  semantic `wave_ready.py` с явными `tasks`, `runs`, `good` и `--flat`
+  принимает только 5 из 16, но сейчас всегда возвращает exit 0; пока checker
+  не падает на неполной волне, он diagnostic, а не barrier;
+- retopic: построено 169, запущено 0, принято 0; live raw/task set имеет пять
+  пропусков, а каталог содержит 16 topic-id против 20 live topic-файлов;
+- `build_update_tasks.py`, `apply_update.py`, `reanchor.py` и соседние
+  post-retopic инструменты ещё не доказаны на внешнем project root;
+- существующие focused update-tests не доказывают full MAVO path, retopic с
+  двадцатью темами и matched semantic acceptance.
 
-Остаток по шагам:
+Discriminating merge-check запускается из корня `agentic-research`:
 
-1. **стадия 8 — переразметка тем внутри цитат mavo**: задания собраны,
-   `_workspace/ox-mavo-retopic/tasks`, 169 штук. Делать субагентами, не волной;
-2. **горизонт**: слой отстаёт от живого корпуса на 11 записей, появившихся
-   после снимка. В этом репо разрыв называет `set_horizon.py`, у mavo он не
-   записан — находка `_ops/findings/2026-08-25-024106-28512-24595.md`;
-3. **два места на решение владельца** внутри самих тем: раздел «Отменено»
-   гасит часть пункта, а частичной отмены в контракте слияния нет —
-   `_ops/findings/2026-08-25-021204-23212-27687.md`.
+```bash
+python3 experiments/openviking-chat-recall/scripts/wave_ready.py \
+  _workspace/ox-mavo-merge/tasks \
+  _workspace/ox-mavo-merge/runs \
+  _workspace/ox-mavo-merge/good \
+  --flat=experiments/openviking-chat-recall/artifacts/mavo-short2/flat
+```
 
-**Приёмка усилена по ревью Codex.** Прежде равенство множеств якорей не
-сохраняло пункты: 83 якоря из 1586 несут больше одного пункта, поэтому
-удаление одного множество не меняло, а подмена тезиса при живом якоре
-проходила. Теперь `wave_ready.theme_gap` читает в обе стороны — «всё ли из
-материала доехало» и «откуда взялось то, что стоит в теме». Проверено пробами
-на 16 честных темах (ноль ложных отказов) и на искусственных дефектах.
-Предел механики назван отдельно: пункт с двумя и более якорями — законный
-синтез, его текст не проверяется ничем.
+Порядок продолжения — по dependency seam, без ручной правки generated текста:
 
-Вторым номером — схлопывание повторов слоя в **этом** репо: две волны
-обновления извлекли одни и те же факты в разное время, и слой копит по два
-пункта на факт с разными якорями; стадии слияния, обещанной docstring-ом
-`apply_update.py`, не существует.
+1. сделать semantic `wave_ready.py` fail-closed, параметризировать и покрыть
+   falsifying tests external-root маршруты update/coverage/reanchor/horizon и
+   gap записей без `topic`;
+2. закрыть либо заново принять merge всех 20 current тем; пустой stub не
+   считается темой;
+3. пересобрать retopic-задания по current 174-holder corpus и 20-topic catalog,
+   выполнить Luna/max, применить только поле `topic` и frontmatter inventory;
+4. восстановить якоря deterministic writer-ом и повторить current coverage;
+5. добрать append-only records, corrections провести typed
+   `topic_reconcile.py`, evidence-backed no-op записать helper-ом;
+6. записать `horizon.json` только после нулевого backlog;
+7. провести matched blind acceptance против действующего `1chat-recall`, а не
+   против голой папки;
+8. отдельным cold-start прогоном доказать, что свежий агент по triad
+   `task.md` · `context.md` · `status.md` восстанавливает owner-маршрут,
+   следующий шаг и stop predicate, не читая `HISTORY.md`/`modules/**` как
+   current instruction. До этого план и MAVO-слой не терминальны.
+
+Опоры маршрута: `experiments/openviking-chat-recall/{PROTOCOL,RUNBOOK}.md`,
+`scripts/{wave,wave_ready,build_retopic_tasks,apply_retopic}.py`; MAVO boundary —
+`_ops/chat-recall/AGENTS.md` того проекта. Следующий observable result —
+fail-closed semantic gate, external-root tests и regenerated manifests, после
+которых Luna получает писательские задания с непересекающимися outputs.
+
+Wave 1 от 2026-08-25 — **candidate, не accepted**:
+
+- `wave_ready.py`: focused CLI 4/4; current MAVO merge даёт 5/16 и exit 1;
+- update/coverage/horizon: 15/15 на temporary foreign roots;
+- retopic/reanchor: 6/6 на temporary foreign root, static checks чисты.
+
+Первый independent acceptance вернул **FAIL**: ephemeral foreign-root probe
+дал две delta-records, покрылась одна, но `apply_update.py` вернул exit 0.
+Owner добавил barrier до dry/write и subprocess regression; повторная приёмка
+дала 26/26, partial delta exit 1 и byte-identical temporary roots. Шаг 1
+принят. Current MAVO merge остаётся 5/16 и exit 1: это блокирует `apply_stage`
+и любые записи MAVO, но разрешает построение и выполнение недостающих merge
+tasks только в новом external `_workspace` до 16/16. Legacy `--help` probe во
+время волны оказался рабочим запуском:
+созданная им папка удалена, tracked `coverage-gaps.tsv` восстановлен byte-exact
+из доказанного clean HEAD. Preexisting dirty `update-delta.json` и untracked
+`update-repair-pending.json` были перезаписаны, а их прежние bytes не сохранились;
+оба артефакта invalidated и должны быть пересобраны штатным writer-ом, не
+приняты и не восстановлены догадкой.
 
 ## Свидетельства и статус
 
@@ -132,6 +174,8 @@ kind: status
 - карта тем `artifacts/flatten-v1/topics.json` узнаёт новые темы только от
   стадии назначения; темы, рождённые capture-ом через `--new-topic`, в неё не
   попадают до выверки при следующем обновлении слоя;
-- продуктовая рамка `skills/shared/1chat-recall/product-frame.md` запрещает
-  второй summary-store. Владелец утвердил систему, но отдельного слова о снятии
-  этого запрета не давал: рамку правит её owner-скил, не эта задача.
+- current продуктовая рамка `skills/shared/1chat-recall/product-frame.md`
+  называет `topics` производной картой над raw. Внешняя мастерская остаётся
+  compiler-механикой, а не вторым reader-store; этот seam считается закрытым
+  только когда foreign-root test доказывает запись в MAVO через штатный writer
+  и отсутствие второй читающей правды.

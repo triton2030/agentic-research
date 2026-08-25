@@ -1,7 +1,9 @@
 # Delegation — work wider than one context
 
-A staged run is a shape for recovery and delegation, not a third mode: it
-carries Wayfinding or Execution and does not change the task's Outcome.
+The default shape of this skill is a sequence of autonomous windows; a
+worker fleet is the exception for work wider than one context. A staged run
+is a shape for recovery and delegation, not a third mode: it carries
+Wayfinding or Execution and does not change the task's Outcome.
 
 ## When
 
@@ -27,7 +29,8 @@ for an independently closeable Outcome.
   (what accepts the result) · prohibitions. The worker sees no chat. The
   brief is immutable: a clarification is a message marked "amendment",
   accounted for in the return.
-- **File-disjoint:** every worker gets a non-overlapping file footprint.
+- **File-disjoint:** every worker gets a non-overlapping file footprint —
+  the fleet-level form of "tasks never steal work" (SKILL.md invariant).
   Overlap means clobbered edits — the most expensive fleet failure.
 - **A worker's return** is a file in the epic's `_evidence/` (placed before
   the barrier — a crash at the barrier does not lose the wave's evidence):
@@ -49,8 +52,7 @@ acceptance.
 The wait/probe/repair protocol for a stalled worker is owned by
 `1orchestration`; planning's delta is one line: the outcome of every
 probe/repair lands as a line in the affected subtask's report — `UNKNOWN`
-and blockers too; a final blocker that needs the owner's word goes through
-[questions](questions.md).
+and blockers too; a final blocker that needs the owner's word stops its branch.
 
 ## Recovery after a break
 
@@ -66,8 +68,7 @@ worker is not restored from plan files — the wave is reissued whole.
   against the subtask reports. An external action is never repeated blind:
   a repeat fleet over already-applied edits means clobbered edits and
   double commits.
-- A pause is a state: open owner questions live as question notes
-  ([questions](questions.md)); another window may accept the answer.
+- A pause is a state: another window may accept the answer and resume it.
 - Reports diverge from git → trust git, fix the report, then continue: a
   checkpoint that lies is worse than none.
 

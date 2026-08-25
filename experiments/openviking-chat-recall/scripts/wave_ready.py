@@ -277,7 +277,7 @@ def main(tasks: str, *rest: str) -> int:
         else:
             print(f"  {name}: {refused.get(name, 'ответа нет')}")
     print(f"готово: {len(set(wanted) & set(ready))} из {len(wanted)}")
-    return 0
+    return 0 if wanted and all(name in ready for name in wanted) else 1
 
 
 if __name__ == "__main__":

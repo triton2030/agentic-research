@@ -1,102 +1,192 @@
 #!/usr/bin/env python3
-"""Самоизлечение ссылок: адрес остаётся кликабельным, но перестаёт протухать.
+"""Пересчитать адреса записей по явному корпусу и слою тем.
 
-Номер строки — единственная форма адреса, по которой ссылка открывается в
-редакторе и на GitHub. И он же ломается, как только файл разговора дорастает
-шапкой: все записи съезжают вниз, а ссылка тихо указывает на соседнюю. Правка
-руками не помогает — через неделю то же самое.
+Номер строки — удобный адрес для человека, но он ломается, когда корпус
+дорастает шапкой. Отпечаток самой строки записи остаётся машинным адресом:
+по нему ``fix`` находит новую строку и меняет только ссылки в переданных
+файлах слоя.
 
-Поэтому у ссылки два адреса: номер строки для человека и отпечаток записи для
-машины. Отпечатком служит хеш самой строки записи — он не зависит ни от места
-в файле, ни от соседей.
+По умолчанию CLI сохраняет старый локальный вызов ``reanchor.py map|fix``.
+Для чужого проекта пути должны быть переданы явно:
 
-Первая версия брала за отпечаток timestamp записи, и это было неверно: 27%
-записей корпуса делят timestamp с соседом, потому что владелец говорит
-несколько тезисов в одну минуту. Проверка уникальности до применения стоила бы
-одной команды; вместо неё 845 ссылок схлопнулись в первые попавшиеся строки и
-были откачены git-ом.
+    python3 reanchor.py map \
+        --corpus /foreign/_ops/chat-recall/raw \
+        --library-root /foreign/_ops/chat-recall/topics \
+        --artifact-root /foreign/work/anchors
 
-    python3 reanchor.py map    — снять карту «якорь -> отпечаток» по живому корпусу
-    python3 reanchor.py fix    — пересчитать номера строк по карте и живому корпусу
+``--artifact-root`` означает папку, в которой будет ``anchor-map.json``;
+``--map`` позволяет назвать файл карты напрямую. Эти параметры нельзя
+смешивать.
 """
 from __future__ import annotations
 
-import glob
+import argparse
 import hashlib
 import json
 import os
 import re
 import sys
-
-CORPUS = "_ops/chat-recall/raw"
-ART = "experiments/openviking-chat-recall/artifacts"
-MAP = f"{ART}/anchor-map.json"
-# Только живой слой. Пока сюда входил `wiki-v1`, починка якорей
-# дописывала замороженное evidence снятой ветки.
-ROOTS = ["_ops/chat-recall/topics"]
+from collections.abc import Iterable
+from pathlib import Path
 
 TYPE = re.compile(r"(?:—|\|)\s*type:\s*([^\s|]+)")
-ANCHOR = re.compile(r"([0-9]{4}-[0-9]{2}-[0-9]{2}-[^\s#\],)]+\.md)#L(\d+)")
+# Holder names are a corpus contract, not a local date/UUID naming convention.
+ANCHOR = re.compile(r"([^\s#\[\](),/]+\.md)#L(\d+)")
+
+
+def _as_paths(
+    values: Iterable[str | os.PathLike[str]] | str | os.PathLike[str],
+) -> list[Path]:
+    if isinstance(values, (str, os.PathLike)):
+        return [Path(values)]
+    return [Path(value) for value in values]
+
+
+def _default_corpus() -> Path:
+    return Path.cwd() / "_ops" / "chat-recall" / "raw"
+
+
+def _default_map() -> Path:
+    # The default is only for the historical local CLI. Foreign calls must
+    # supply --map/--artifact-root when they supply --corpus.
+    return Path(__file__).resolve().parents[1] / "artifacts" / "anchor-map.json"
+
+
+def resolve_inputs(
+    corpus: str | os.PathLike[str] | None = None,
+    roots: Iterable[str | os.PathLike[str]] | str | os.PathLike[str] | None = None,
+    map_path: str | os.PathLike[str] | None = None,
+    artifact_root: str | os.PathLike[str] | None = None,
+) -> tuple[Path, list[Path], Path]:
+    """Resolve one complete corpus/library/artifact boundary.
+
+    Explicit foreign inputs never fall back to this repository's artifact
+    path. If a foreign caller omits the map destination, fail before reading
+    or writing anything.
+    """
+    if map_path is not None and artifact_root is not None:
+        raise ValueError("передайте либо map_path, либо artifact_root, но не оба")
+
+    explicit_corpus = corpus is not None
+    corpus_path = Path(corpus) if explicit_corpus else _default_corpus()
+    root_paths = (
+        _as_paths(roots)
+        if roots is not None
+        else [corpus_path.parent / "topics"]
+    )
+    if artifact_root is not None:
+        output_map = Path(artifact_root) / "anchor-map.json"
+    elif map_path is not None:
+        output_map = Path(map_path)
+    elif explicit_corpus:
+        raise ValueError("для внешнего корпуса карта обязательна: map_path или artifact_root")
+    else:
+        output_map = _default_map()
+
+    if not corpus_path.is_dir():
+        raise FileNotFoundError(f"корпус не найден или не папка: {corpus_path}")
+    for root in root_paths:
+        if not root.is_dir():
+            raise FileNotFoundError(f"слой тем не найден или не папка: {root}")
+    return corpus_path, root_paths, output_map
 
 
 def fingerprint(line: str) -> str:
     return hashlib.sha1(line.strip().encode("utf-8")).hexdigest()[:12]
 
 
-def records() -> dict[str, dict[int, str]]:
-    """Разговор -> {номер строки: отпечаток записи} по живому корпусу."""
+def records(corpus: str | os.PathLike[str] | None = None) -> dict[str, dict[int, str]]:
+    """Return holder -> {1-based record line: fingerprint} for one corpus."""
+    corpus_path = Path(corpus) if corpus is not None else _default_corpus()
     found: dict[str, dict[int, str]] = {}
-    for path in sorted(glob.glob(f"{CORPUS}/*.md")):
-        name = os.path.basename(path)
+    for path in sorted(corpus_path.glob("*.md")):
+        name = path.name
         if name == "README.md":
             continue
         rows: dict[int, str] = {}
-        for number, line in enumerate(open(path, encoding="utf-8").read().splitlines(), start=1):
+        for number, line in enumerate(
+            path.read_text(encoding="utf-8").splitlines(), start=1
+        ):
             if line.startswith("* ") and TYPE.search(line):
                 rows[number] = fingerprint(line)
         found[name] = rows
     return found
 
 
-def library_files() -> list[str]:
-    return [p for root in ROOTS for p in glob.glob(os.path.join(root, "**", "*.md"), recursive=True)]
+def library_files(
+    roots: Iterable[str | os.PathLike[str]] | str | os.PathLike[str] | None = None,
+) -> list[Path]:
+    """Return unique Markdown files below the supplied library roots."""
+    root_paths = _as_paths(roots) if roots is not None else [
+        _default_corpus().parent / "topics"
+    ]
+    unique = {
+        path.resolve()
+        for root in root_paths
+        for path in root.glob("**/*.md")
+        if path.is_file()
+    }
+    return sorted(unique, key=lambda path: str(path))
 
 
-def build_map() -> int:
-    live = records()
+def build_map(
+    corpus: str | os.PathLike[str] | None = None,
+    roots: Iterable[str | os.PathLike[str]] | str | os.PathLike[str] | None = None,
+    map_path: str | os.PathLike[str] | None = None,
+    *,
+    artifact_root: str | os.PathLike[str] | None = None,
+) -> int:
+    corpus_path, root_paths, output_map = resolve_inputs(
+        corpus, roots, map_path, artifact_root
+    )
+    live = records(corpus_path)
     mapped: dict[str, str] = {}
     missing: list[str] = []
-    for path in library_files():
-        for name, number in ANCHOR.findall(open(path, encoding="utf-8").read()):
+    for path in library_files(root_paths):
+        for name, number in ANCHOR.findall(path.read_text(encoding="utf-8")):
             key = f"{name}#L{number}"
             mark = live.get(name, {}).get(int(number))
             if mark:
                 mapped[key] = f"{name}@{mark}"
             elif key not in missing:
                 missing.append(key)
-    # Отпечаток обязан быть уникален внутри разговора, иначе пересчёт схлопнет
-    # соседей. Проверяем до записи карты, а не после первой порчи.
+
+    # The fingerprint must be unique within each holder or fix could select a
+    # neighbor. Check before writing the supplied map destination.
     for name, rows in live.items():
         marks = list(rows.values())
         if len(marks) != len(set(marks)):
             print(f"ОТКАЗ: в {name} отпечатки не уникальны — карта не записана")
             return 1
-    json.dump(mapped, open(MAP, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-    print(f"якорей в карте: {len(mapped)} -> {MAP}")
+
+    output_map.parent.mkdir(parents=True, exist_ok=True)
+    output_map.write_text(
+        json.dumps(mapped, ensure_ascii=False, indent=1) + "\n", encoding="utf-8"
+    )
+    print(f"якорей в карте: {len(mapped)} -> {output_map}")
     print(f"не попали ни в одну живую запись: {len(missing)}")
     for key in missing[:12]:
         print(f"  {key}")
     return 0
 
 
-def fix() -> int:
-    if not os.path.exists(MAP):
-        print("карты нет — сначала `map`")
+def fix(
+    corpus: str | os.PathLike[str] | None = None,
+    roots: Iterable[str | os.PathLike[str]] | str | os.PathLike[str] | None = None,
+    map_path: str | os.PathLike[str] | None = None,
+    *,
+    artifact_root: str | os.PathLike[str] | None = None,
+) -> int:
+    corpus_path, root_paths, map_file = resolve_inputs(
+        corpus, roots, map_path, artifact_root
+    )
+    if not map_file.exists():
+        print(f"карты нет — сначала создай {map_file}")
         return 1
-    mapped = json.load(open(MAP, encoding="utf-8"))
-    live = records()
-    # отпечаток -> текущий номер строки; коллизия внутри файла означает, что
-    # пересчёт неоднозначен, и тогда лучше не трогать ничего
+    mapped = json.loads(map_file.read_text(encoding="utf-8"))
+    live = records(corpus_path)
+
+    # fingerprint -> current line; a collision makes the entire fix unsafe.
     where: dict[str, int] = {}
     clash: set[str] = set()
     for name, rows in live.items():
@@ -110,10 +200,10 @@ def fix() -> int:
         return 1
 
     moved = lost = 0
-    for path in library_files():
-        text = open(path, encoding="utf-8").read()
+    for path in library_files(root_paths):
+        text = path.read_text(encoding="utf-8")
 
-        def swap(hit: re.Match) -> str:
+        def swap(hit: re.Match[str]) -> str:
             nonlocal moved, lost
             key = f"{hit.group(1)}#L{hit.group(2)}"
             mark = mapped.get(key)
@@ -129,17 +219,37 @@ def fix() -> int:
 
         fresh = ANCHOR.sub(swap, text)
         if fresh != text:
-            open(path, "w", encoding="utf-8").write(fresh)
+            path.write_text(fresh, encoding="utf-8")
     print(f"ссылок пересчитано: {moved} | запись по отпечатку не найдена: {lost}")
     return 0
 
 
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("command", choices=("map", "fix"))
+    parser.add_argument("positional", nargs="*", help="corpus, library root, map path")
+    parser.add_argument("--corpus", dest="corpus")
+    parser.add_argument("--library-root", "--root", dest="roots", action="append")
+    parser.add_argument("--map", dest="map_path")
+    parser.add_argument("--artifact-root", dest="artifact_root")
+    return parser.parse_args(argv)
+
+
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
+    if len(args.positional) > 3:
+        raise SystemExit("ожидались: corpus library-root map-path")
+    corpus = args.corpus or (args.positional[0] if args.positional else None)
+    roots = args.roots or (args.positional[1] if len(args.positional) > 1 else None)
+    map_path = args.map_path or (args.positional[2] if len(args.positional) > 2 else None)
+    try:
+        if args.command == "map":
+            return build_map(corpus, roots, map_path, artifact_root=args.artifact_root)
+        return fix(corpus, roots, map_path, artifact_root=args.artifact_root)
+    except (FileNotFoundError, ValueError) as error:
+        print(f"ОТКАЗ: {error}", file=sys.stderr)
+        return 2
+
+
 if __name__ == "__main__":
-    # Раньше любое слово, кроме `map`, запускало `fix()` — и он пишет. Вызов
-    # `reanchor.py check`, сделанный ради проверки, молча переставил десять
-    # якорей и уехал в чужой коммит. Незнакомый глагол теперь отказывает.
-    command = sys.argv[1] if len(sys.argv) > 1 else "map"
-    if command not in {"map", "fix"}:
-        print(f"неизвестная команда {command!r}: только map (читает) или fix (пишет)", file=sys.stderr)
-        raise SystemExit(2)
-    raise SystemExit(build_map() if command == "map" else fix())
+    raise SystemExit(main())

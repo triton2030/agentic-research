@@ -4,10 +4,13 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
+import stat
 import sys
+import tempfile
 import uuid
 from datetime import date, datetime
 from pathlib import Path
@@ -58,10 +61,10 @@ def create_theme_stub(layer: Path, topic: str, boundary: str) -> Path:
     path = layer / f"{topic}.md"
     if path.exists():
         return path
-    path.write_text(
+    write_atomic_new(
+        path,
         f"---\ntopic: {topic}\ntitle: {topic}\nsources: 0\n---\n"
         f"# {topic}\n\nГраница темы: {boundary}\n",
-        encoding="utf-8",
     )
     return path
 KINDS = ("quote", "selection", "note")
@@ -464,9 +467,83 @@ def _set_file_date(lines: list[str], source_start: datetime) -> None:
 
 def write_atomic(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_name(path.name + ".tmp")
-    temporary.write_text(text, encoding="utf-8")
-    os.replace(temporary, path)
+    descriptor, temporary_name = tempfile.mkstemp(
+        dir=path.parent,
+        prefix=f".{path.name}.",
+        suffix=".tmp",
+    )
+    temporary = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+            os.fchmod(
+                stream.fileno(),
+                stat.S_IMODE(path.stat().st_mode) if path.exists() else 0o644,
+            )
+            stream.write(text)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, path)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def write_atomic_new(path: Path, text: str) -> None:
+    """Create a file atomically without replacing a concurrent creator."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary_name = tempfile.mkstemp(
+        dir=path.parent,
+        prefix=f".{path.name}.",
+        suffix=".tmp",
+    )
+    temporary = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+            os.fchmod(stream.fileno(), 0o644)
+            stream.write(text)
+            stream.flush()
+            os.fsync(stream.fileno())
+        try:
+            os.link(temporary, path)
+        except FileExistsError:
+            pass
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def record_receipt(
+    path: Path,
+    quote: str,
+    topic: str,
+    session: str,
+    status: str,
+    layer: Path | None,
+    theme_status: str,
+) -> dict[str, object]:
+    """Return a stable record identity plus its current human-readable anchor."""
+    marker = f'— "{quote}" —'
+    matches = [
+        (number, line)
+        for number, line in enumerate(
+            path.read_text(encoding="utf-8-sig").splitlines(), start=1
+        )
+        if marker in line
+    ]
+    if len(matches) != 1:
+        raise CaptureError(
+            f"cannot address captured record uniquely in {path}: {len(matches)} matches"
+        )
+    line_number, line = matches[0]
+    return {
+        "status": status,
+        "path": str(path),
+        "topic": topic,
+        "session": session,
+        "anchor": f"{path.name}#L{line_number}",
+        "record_sha256": hashlib.sha256(line.encode("utf-8")).hexdigest(),
+        "topic_layer": layer is not None,
+        "topic_file": str(layer / f"{topic}.md") if layer is not None else None,
+        "theme_status": theme_status,
+    }
 
 
 def _earliest_known(text: str, incoming: SourceTimestamp) -> datetime:
@@ -627,6 +704,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--agent", required=True)
     parser.add_argument("--model")
     parser.add_argument("--session")
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        help="print one machine-readable capture receipt",
+    )
     return parser
 
 
@@ -687,11 +769,6 @@ def main() -> int:
                 f"session id unknown for agent '{agent}' (env checked: {checked})"
             )
         path = find_session_file(log_dir, agent, session, source)
-        theme_stub = (
-            create_theme_stub(layer, topic, theme_boundary)
-            if theme_boundary is not None and layer is not None
-            else None
-        )
         if path.exists():
             written, context_updated, path = append_entry(
                 path,
@@ -722,22 +799,60 @@ def main() -> int:
             )
             written = True
             context_updated = session_card is not None
-        if theme_stub is not None:
-            print(f"new theme file created: {theme_stub}")
-        if written:
-            print(f"appended to {path}")
-        elif context_updated:
-            print(f"quote already present; session-context updated in {path}")
+        theme_stub = None
+        theme_error = None
+        if theme_boundary is not None and layer is not None:
+            try:
+                theme_stub = create_theme_stub(layer, topic, theme_boundary)
+            except OSError as error:
+                theme_error = error
+        status = (
+            "written"
+            if written
+            else "context-updated"
+            if context_updated
+            else "already-present"
+        )
+        receipt = record_receipt(
+            path,
+            quote,
+            topic,
+            session,
+            status,
+            layer,
+            "absent"
+            if layer is None
+            else "pending"
+            if theme_error
+            else "created"
+            if theme_stub
+            else "existing",
+        )
+        if args.json:
+            print(json.dumps(receipt, ensure_ascii=False))
         else:
-            print(f"already present in {path}")
-        if written and implicit_now:
+            if theme_stub is not None:
+                print(f"new theme file created: {theme_stub}")
+            if written:
+                print(f"appended to {path}")
+            elif context_updated:
+                print(f"quote already present; session-context updated in {path}")
+            else:
+                print(f"already present in {path}")
+            if written and implicit_now:
+                print(
+                    "note: source-timestamp not given — used the write time "
+                    f"({source.rendered}). Correct for a same-turn capture; "
+                    "for backfill pass --source-timestamp explicitly"
+                )
+            if written and args.kind == "quote":
+                print(CONTEXT_NOTE_REMINDER)
+        if theme_error is not None:
             print(
-                "note: source-timestamp not given — used the write time "
-                f"({source.rendered}). Correct for a same-turn capture; "
-                "for backfill pass --source-timestamp explicitly"
+                f"chat-capture: raw saved in {path}; theme pending: {theme_error}",
+                file=sys.stderr,
             )
-        if written and args.kind == "quote":
-            print(CONTEXT_NOTE_REMINDER)
+            return 3
         return 0
     except (CaptureError, OSError) as error:
         print(f"chat-capture: error: {error}", file=sys.stderr)

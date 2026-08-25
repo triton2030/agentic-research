@@ -996,3 +996,69 @@ scout-hit отклонены: они меняли бы точный owner-select
 квоту без owner-source. Найдены два pre-existing расхождения вне текущего diff:
 полная tracked/install Codex parity и трактовка `off-domain`; оба вынесены через
 `1findings`, а runtime candidate из-за них не расширялся.
+
+## Same-agent reconcile загруженной темы, 2026-08-24
+
+Owner evidence:
+`_ops/chat-recall/raw/2026-08-24-205601-codex-01a0347a.md#L20-L23`.
+Владелец предложил при capture использовать уже загруженный topic-контекст,
+редактировать тему только при реальном расхождении и после всестороннего
+анализа одобрил полную реализацию с независимой проверкой.
+
+Реализованный контракт:
+
+- raw-запись атомарно коммитится первой и возвращает JSON receipt с session,
+  anchor и fingerprint; ошибка создания новой темы не откатывает evidence;
+- reconcile доступен только для уже прочитанной ради той же работы темы;
+  default — no-op, материальны новая долговечная позиция, изменение границы,
+  коррекция или отмена показанного claim-а;
+- агент формулирует typed patch из `insert`, exact `replace`, `move` и
+  `replace-boundary`; whole-file content helper не принимает;
+- осознанный no-op получает idempotent fingerprint-квитанцию без мутации topic;
+  batch, coverage и horizon исключают только точную пару `session + raw hash`,
+  поэтому line drift безопасен, а одинаковые слова разных сессий не
+  схлопываются;
+- writer под общим с batch per-topic lock проверяет CAS исходной версии,
+  raw topic ownership, живой anchor после сдвига строк и каждый изменённый
+  claim, сам собирает файл, пересчитывает уникальные source-holder-ы и делает
+  atomic replace; same-turn правка не сдвигает общий horizon;
+- batch update использует per-record topic и владеет append-only coverage;
+  непокрытая `коррекция` исключается в repair-pending manifest со стабильными
+  `topic + session + record_sha256` и чинится по одной тем же typed helper
+  после явной загрузки topic и source-record.
+
+Живой проход этой задачи сохранил шесть owner-записей в holder-е `205601`.
+Материальные L20/L22/L23 сведены в один пункт темы `chat-recall-corpus`;
+ситуативные L21/L24/L25 получили no-op квитанции и не вернулись в batch-дельту.
+В topic-файле 21 уникальный source-holder и `sources: 21`.
+
+Falsifying checks и regressions:
+
+- 38 сфокусированных тестов: destructive whole-file payload, CAS/no mutation,
+  raw line shift, wrong topic, multi-claim, uppercase historical holder,
+  exact replacement, boundary slot, cancellation move, per-record batch route,
+  no-op idempotency и batch exclusion, trailing anchors и общий lock — зелёные;
+- полные runtime suites: Codex `106/106`, Claude `105/105`; active batch seam
+  `12/12`; scoped Ruff, одиннадцать `md check`, `git diff --check` и оба
+  `quick_validate.py` — зелёные;
+- common scripts/tests Codex и Claude байт-в-байт равны; installed Codex
+  projection совпадает с tracked, Claude projection — symlink на tracked;
+- fresh-agent black-box без чтения кода собрал `replace` и cancellation `move`
+  с первой попытки только по `SKILL.md` и сгенерированной `operation_schema`;
+  destructive content и stale patch отклонены без мутации, no-op тему не менял,
+  формат секций после move канонический.
+
+Живой batch-проход после no-op квитанций построил 29 append-only записей в
+8 разговорах, отдельно оставил 7 коррекций для typed repair и исключил 3
+осознанных no-op. Coverage видит 1409 raw-записей: 1370 topic anchors, 3
+no-topic-effect и 36 ещё не разобранных записей; общий horizon не сдвигался.
+
+Независимые проверки сначала нашли и заставили закрыть whole-file trust,
+неполную публичную schema, неправильный подсчёт исторических `Codex` anchors,
+multi-claim, boundary и cancellation seams. Финальный developer-critic не
+оставил blocker-а в same-agent пути; forward test — `PASS`. Вне closure
+остались проверенные долги concurrent same-session raw writers и частичного,
+неидемпотентного batch apply; они сохранены в `_ops/findings/2026-08-24-221910-64612-5392.md`
+и `_ops/findings/2026-08-24-221910-64619-10222.md`. Старые experiment-suite
+failures после raw-path migration отдельно сохранены в
+`_ops/findings/2026-08-24-220319-61550-3008.md`.

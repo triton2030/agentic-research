@@ -12,6 +12,25 @@
   строку и короткими поисковыми фрагментами через `;`.
 - `context-note` не снят: он владеет сценой одной записи; `session-context` —
   задачей и лексикой целого разговора.
+- Прежний абсолютный запрет capture-time per-record курации снят 2026-08-24
+  только для уже загруженной темы в продолжающейся работе. Не введены
+  универсальный projector после каждой цитаты, обязательное открытие темы ради
+  ритуала, blind append или второй truth-store: при отсутствии материального
+  расхождения результат — no-op.
+- Агент не получил прямую запись и whole-file candidate общего topic-файла. Он
+  владеет только typed patch из адресных insert / exact replace / move /
+  replace-boundary операций; сборка файла, version check, raw-якорь, topic
+  ownership, source count, блокировка и atomic replace принадлежат
+  deterministic helper. Это сохраняет урок испорченных моделью файлов, не
+  отказываясь от context locality.
+- Same-turn правка не сдвигает общий `horizon.json`: один обновлённый предмет
+  не доказывает покрытие остального raw-snapshot. Batch update догоняет
+  append-only coverage; непокрытая `коррекция` остаётся raw-only в manifest и
+  чинится по одной тем же typed helper после явной загрузки topic и source, а
+  не скрытым merge после append.
+- No-op не кодируется фиктивным topic-пунктом и не теряется как «непокрытый»:
+  guarded квитанция `session + fingerprint` в `reconcile-noops.json` оставляет raw
+  evidence на месте и исключает запись из поздней batch-дельты.
 - Прежние отдельные `records` и `session_candidates` сняты 2026-08-19 после
   нового owner-контракта единого `holders`. Не введены literal 50/50, сумма
   всех quote-hits и бонус за размер: сильнейшая цитата остаётся primary, а

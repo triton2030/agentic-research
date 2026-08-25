@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -841,6 +843,60 @@ class ChatDigestTests(unittest.TestCase):
 
         self.assertFalse(default.lexical)
         self.assertTrue(lexical.lexical)
+
+    def test_hybrid_queue_serializes_processes_across_project_cwds(self) -> None:
+        shared_cache = self.corpus / "shared-cache"
+        other_project = self.corpus / "other-project"
+        other_project.mkdir()
+        ready = self.corpus / "queue-ready"
+        environment = os.environ.copy()
+        environment["CHAT_RECALL_CACHE_DIR"] = str(shared_cache)
+        environment["CHAT_RECALL_QUEUE_READY"] = str(ready)
+        probe = f"""
+import importlib.util
+import os
+import sys
+import time
+from pathlib import Path
+
+script = Path({str(SCRIPT)!r})
+sys.path.insert(0, str(script.parent))
+spec = importlib.util.spec_from_file_location("chat_digest_queue_probe", script)
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
+Path(os.environ["CHAT_RECALL_QUEUE_READY"]).write_text("ready", encoding="utf-8")
+started = time.monotonic()
+with module._hybrid_queue():
+    print(time.monotonic() - started, flush=True)
+"""
+        process: subprocess.Popen[str] | None = None
+        try:
+            with mock.patch.dict(
+                os.environ,
+                {"CHAT_RECALL_CACHE_DIR": str(shared_cache)},
+            ):
+                with DIGEST._hybrid_queue():
+                    process = subprocess.Popen(
+                        [sys.executable, "-c", probe],
+                        cwd=other_project,
+                        env=environment,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                        text=True,
+                    )
+                    deadline = time.monotonic() + 3
+                    while not ready.exists() and time.monotonic() < deadline:
+                        time.sleep(0.01)
+                    self.assertTrue(ready.exists(), "probe did not reach queue")
+                    time.sleep(0.2)
+                    self.assertIsNone(process.poll(), "probe bypassed held queue")
+                stdout, stderr = process.communicate(timeout=5)
+            self.assertEqual(process.returncode, 0, stderr)
+            self.assertGreaterEqual(float(stdout.strip()), 0.18)
+        finally:
+            if process is not None and process.poll() is None:
+                process.kill()
+                process.wait()
 
     def test_hybrid_abstains_before_loading_dense_model(self) -> None:
         records, _ = DIGEST.load(self.corpus)
