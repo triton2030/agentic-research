@@ -99,6 +99,21 @@ test("list_active returns metadata without reading conversation text", async () 
   assert.doesNotMatch(JSON.stringify(result), /PRIVATE_/u);
 });
 
+test("list_active accepts limit and bounds metadata reads", async () => {
+  let metadataReads = 0;
+  const result = await reader({
+    listActive: async () => [active(), active(OTHER_SESSION)],
+    getSessionInfo: async (sessionId) => {
+      metadataReads += 1;
+      return { sessionId, customTitle: "Active work" };
+    }
+  }).read({ op: "list_active", limit: 1 });
+
+  assert.equal(result.sessions.length, 1);
+  assert.equal(result.sessions[0].session_id, ACTIVE_SESSION);
+  assert.equal(metadataReads, 1);
+});
+
 test("read requires an active native session and returns only the requested tail", async () => {
   const result = await reader().read({ op: "read", session_id: ACTIVE_SESSION, limit: 2 });
 

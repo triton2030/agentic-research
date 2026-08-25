@@ -52,14 +52,13 @@ function canonicalRequest(request) {
   if (parsed.data.op === "list_active" && parsed.data.session_id) {
     throw new ClaudeAskError("invalid_request", "claude_sessions list_active does not accept session_id.");
   }
-  if (parsed.data.op === "list_active" && parsed.data.limit !== undefined) {
-    throw new ClaudeAskError("invalid_request", "claude_sessions list_active does not accept limit.");
-  }
   return {
     op: parsed.data.op,
     cwd: canonicalDirectory(parsed.data.cwd),
     sessionId: parsed.data.session_id,
-    limit: parsed.data.limit ?? DEFAULT_MESSAGE_LIMIT
+    limit: parsed.data.limit ?? (
+      parsed.data.op === "list_active" ? MAX_ACTIVE_SESSIONS : DEFAULT_MESSAGE_LIMIT
+    )
   };
 }
 
@@ -200,7 +199,7 @@ export function createClaudeSessionsReader(options = {}) {
       const active = await activeSessions(canonical, signal);
 
       if (canonical.op === "list_active") {
-        const sessions = await Promise.all(active.map(async (entry) => {
+        const sessions = await Promise.all(active.slice(0, canonical.limit).map(async (entry) => {
           const info = await readMetadata(entry);
           return sessionPacket(entry, info);
         }));

@@ -123,7 +123,7 @@ Code and Claude Desktop sessions:
 
 - `list_active` returns at most twenty active native sessions with their native
   `session_id`, name, kind, cwd, title, branch, and start time, but no
-  conversation text;
+  conversation text; an optional `limit` requests a smaller result;
 - `read` accepts one active native `session_id` plus an optional cwd scope and
   returns a bounded tail of visible user/assistant messages.
 
