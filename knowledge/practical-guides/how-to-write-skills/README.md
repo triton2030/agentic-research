@@ -26,6 +26,12 @@ workflow.
 - [`research-instruction-wording-adherence-2026-08.md`](research-instruction-wording-adherence-2026-08.md)
   — evidence snapshot о неоднозначности, числе активных правил, порядке,
   проверяемом результате и границе prompt-only соблюдения.
+- [`research-method-names-vs-procedures-2026-08.md`](research-method-names-vs-procedures-2026-08.md)
+  — evidence snapshot о названии канонического метода, смысловом каркасе и
+  полной процедуре как разных уровнях сжатия агентной инструкции.
+- [`research-skill-instruction-authoring-jun-aug-2026.md`](research-skill-instruction-authoring-jun-aug-2026.md)
+  — свежий evidence snapshot о пользе, вреде, составе, routing и live-evaluation
+  Agent Skills по исследованиям 25 июня–25 августа 2026 года.
 - [`research-mid-trajectory-trigger-descriptions-2026-08.md`](research-mid-trajectory-trigger-descriptions-2026-08.md)
   — датированный evidence-report о short descriptions и позднем автоматическом
   вызове по состоянию длинной работы.
