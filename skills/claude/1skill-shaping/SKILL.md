@@ -95,6 +95,19 @@ governing context; действуй автономно. Спроси один р
   пакета: [wording](../1instruction-shaping/references/wording.md). Чтение,
   заполненность и «я учёл» не evidence; falsifier выбирается по claim и риску.
 
+## Канон методик
+
+Помеченная копия — владелец блока в теле
+[1instruction-shaping](../1instruction-shaping/SKILL.md), правь вместе. Одно
+правило: в сдаче цитируй, какой пункт какой методики повлиял на какие строки;
+имя без процитированного пункта — не применение. Строки канона: Minimalism
+(Carroll) — состав от реальной задачи, починка ошибки дешевле запрета ·
+Cognitive Load Theory (Sweller) — redundancy, split-attention, expertise
+reversal · Checklist Manifesto (Gawande) — killer items, pause point, read-do
+против do-confirm · TWI Job Instruction — причина при ключевом пункте ·
+Грайс, количество — информация = сюрприз · commander's intent — цель вместо
+способа. Локальное отклонение от канона пишется явно.
+
 ## Известные сбои
 
 `когда → сбой → цена → куда`
@@ -145,5 +158,5 @@ governing context; действуй автономно. Спроси один р
 
 Рядом с owner-ом живёт история `origin.md`, `cut.md`, `evidence.md`.
 Непроверенный claim оставляет пакет `candidate`, который не распространяется
-как принятый. Не вошедшее записывается в `cut.md` с причиной; сдача — по
-owner-у проверки.
+как принятый. Не вошедшее записывается в `cut.md` с причиной; в сдаче —
+применённые пункты канона методик; сдача — по owner-у проверки.
