@@ -24,6 +24,30 @@
       "session": "88e98710-8fd4-462e-acd0-9e2f54f6262f",
       "record_sha256": "9c3d7617fb7fce0f4f407ccd086ee9c42d2c4e368b3d98c88dcb105ca5007731",
       "anchor": "2026-08-25-010615-claude-88e98710.md#L18"
+    },
+    {
+      "topic": "global-agent-instructions",
+      "session": "01a03474-ba65-76f0-b58c-f2bba3e80e9d",
+      "record_sha256": "dc2319574021680dc6211d998666903345ef77db5514f40e0b5bee43a0ef7259",
+      "anchor": "2026-08-24-205351-codex-01a03474.md#L22"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "01a037ac-e8d3-76f0-a643-c630c1403f36",
+      "record_sha256": "6e92827c9be8d6b0c7b6bd2f356dc71970cccc1c974f32e3479f9b5bd8ab2291",
+      "anchor": "2026-08-25-115044-codex-01a037ac.md#L15"
+    },
+    {
+      "topic": "chat-recall-retrieval",
+      "session": "01a037ae-a774-7b43-b8ad-997871fd0bd9",
+      "record_sha256": "913e85c5de504937503109ae570a205ee26946abb96393b364bed2b9504068e2",
+      "anchor": "2026-08-25-115344-codex-01a037ae.md#L15"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "88e98710-8fd4-462e-acd0-9e2f54f6262f",
+      "record_sha256": "f9f7c58d87299996050ece801e00a615ff0f99f31a321629c0d1bdbd413b5ea1",
+      "anchor": "2026-08-25-010615-claude-88e98710.md#L24"
     }
   ]
 }
