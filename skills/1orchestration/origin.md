@@ -89,3 +89,21 @@ Recall владельца: `_ops/chat-recall/2026-08-10-000000-claude-a0af5c40.m
 | После первого bounded wait progress-report не считается delta; один probe носителя, затем `UNKNOWN`/blocker без нового окна | 25 `⚡ UNEXPECTED` из task `01a0236d-cbaf-72e1-95dd-0832b58fd23b`: повторные waits и writer-report без owner-файлов |
 | Planned repair принадлежит `1planning/references/delegation.md` | два независимых architecture-аудита: no-plan owner не должен дублировать plan lifecycle |
 | Locator wording разрешается через названный skill-owner | тот же task: относительный `references/wording.md` оказался неразрешимым из `1orchestration` |
+
+## v5, 2026-08-25 — решение вместо процедурного свода
+
+Запрос владельца: `_ops/chat-recall/raw/2026-08-25-152639-codex-01a03873.md`.
+Интерпретация сверена с темой `_ops/chat-recall/topics/orchestration-waves.md`
+и исходными репликами владельца из сессий `a0af5c40`, `019feadb` и
+`b378aa7e`. Рефактор выполнен по обновлённым live-контрактам
+`1skill-shaping` и `1instruction-shaping`, а не по их историческим копиям.
+
+| Правило v5 | Источник |
+|---|---|
+| Центральная модель: субагенты покупают независимость и чистоту контекста, root распределяет work + instruction load и удерживает usefulness/trajectory/integration | владелец, `a0af5c40`; проектные Product Frame и Principles P-002/P-004 |
+| Admission по реальной выгоде, минимальное число окон; parallel только для независимого, dependent handoff — лишь когда окупается отдельное окно | текущие OpenAI Subagents и Claude Opus 5 prompting docs; доктрина владельца 2026-08-25 «меньше инструкций, больше ясной цели» |
+| Деление по самостоятельному результату или owner-границе; brief фокусирует инструкции момента без статической таблицы | владелец, `a0af5c40`; обновлённый `1instruction-shaping` |
+| Root сам читает load-bearing owners, принимает возвраты по evidence, разрешает конфликты и синтезирует | owner-approved v4.1; сохранено после независимых architecture и acceptance-аудитов v5 |
+| Живой план владеет state/outcome, `1orchestration` — order/barriers/wait-probe-repair; no-plan carrier создаётся только когда окупает cold start | seam-аудит против live `1planning/references/delegation.md`; owner-approved pause point v4.2 |
+| Волны `1fresh-eyes` и `1deep-agents` не перехватываются и не загружают общий body; отрицательная граница стоит первой в router-е | граница специализированных live owners; acceptance и clean-window routing-аудиты v5 |
+| Потеря worker-а и обрыв root-session разведены: первая чинит один поток и считается repair, второй применяет recovery всей волны; после второго неуспеха — final blocker | clean-window two-stream routing run v5 нашёл неоднозначность; live seam с `1planning` |

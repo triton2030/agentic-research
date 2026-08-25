@@ -95,3 +95,27 @@
   это владельцы конкретных инструментов и эксперимента, не глобальной волны.
 - Новый plan lifecycle в `1orchestration` не создан: с живым планом repair
   остаётся у `1planning/references/delegation.md`.
+
+## v5 (2026-08-25, decision surface)
+
+- Триггеры `3+ instructional owners`, `3–4 окна` и объявление состава `>4`
+  сняты: числа были агентской конкретизацией, не инвариантом владельца, и
+  подменяли вопрос «покупает ли окно независимость или чистый контекст».
+- `references/instruction-cost.md` и статическая таблица overlap сняты:
+  instruction focus теперь выбирается для конкретного потока как адрес,
+  повтор в момент или отдельный evidence owner.
+- `references/preflight.md` снят: карта и brief уже владеют admission,
+  write ownership, барьером и return packet; отдельный чек-лист был вторым
+  носителем тех же решений.
+- Автоматический verifier, обязательный executor/verifier split и панель
+  принципов сняты: независимая приёмка открывается только риском или live
+  контрактом, а специализированные волны остаются у `1fresh-eyes` и
+  `1deep-agents`.
+- Безусловный no-plan carrier снят: durable папка окупается только когда
+  потеря root-контекста дороже переиздания волны.
+- Роутер очищен от bridge/runtime-перечней и identity-прозы: `description`
+  различает two-plus coordinated wave от one worker/advisor/critic и чужих
+  специализированных волн.
+- Не сняты: root-usefulness, прямое чтение owner-источников, instruction-load
+  allocation, карта/return/evidence, staged handoff, repair terminal и
+  owner-approved pause point `Закрытие`.

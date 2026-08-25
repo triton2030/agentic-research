@@ -2,6 +2,16 @@
 
 Только измеренное. Самоотчёт агента и «читается лучше» сюда не попадают.
 
+## Semantic edge repair, 2026-08-25
+
+- `md impact` не увидел declared graph edge от shared `1orchestration`, но
+  corpus-wide exact search нашёл два body claims в `references/fleet.md`.
+- Слабая версия «fleet лишь упоминает внешний skill» отвергнута самими
+  фразами: они приписывали ему конкретный cap и preflight ownership.
+- После локальной дельты fleet по-прежнему владеет runtime enforcement;
+  общий owner — admission, write isolation и sequential handoff. Поведение
+  bridge не менялось; runtime test этой правке не требуется.
+
 ## Вмешательство в идущий ход работает (2026-08-16)
 
 **Вопрос:** можно ли развернуть уже идущий turn Codex, не начиная заново?

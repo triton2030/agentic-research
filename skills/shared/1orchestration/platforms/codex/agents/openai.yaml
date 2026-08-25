@@ -1,7 +1,7 @@
 interface:
   display_name: "1-Оркестрация"
-  short_description: "Wave orchestration: divide work and focus instructions per subagent"
-  default_prompt: "Use $1orchestration before launching two or more subagents on one piece of work, or when 3+ momentary instruction owners converge beyond the standing layer: post the wave map in chat before launch (task, assignee, focus addresses, weight of heavy classes, what to present in return), keep executor and verifier in separate windows, record wilful decisions in the wave registry, and close with the in-chat wave report."
+  short_description: "Coordinate independent subagent streams into one result"
+  default_prompt: "Use $1orchestration to coordinate the requested subagent wave and return one integrated result."
 
 policy:
   allow_implicit_invocation: true

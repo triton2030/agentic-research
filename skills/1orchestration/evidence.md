@@ -112,3 +112,77 @@
   shared owner, tracked Codex/Claude и обе installed projections.
 - Не проверено: forced live interruption реальной волны; claim ограничен
   clean-window decision, locator и distribution.
+
+## v5 (2026-08-25, внимательный рефактор)
+
+- **Comparator:** portable package до правки — `SKILL.md` 147 строк и три
+  reference-файла, всего 219 строк. Candidate — `SKILL.md` 103 строки и два
+  reference-файла, всего 168 строк. Удаление — не самостоятельный критерий:
+  оно принято только после obligation map и source check.
+- **Obligation map:** около 20 прежних карточек сведены к 14 decision-bearing
+  карточкам: routing; root usefulness/trajectory/direct owners; admission;
+  parallel против staged handoff; outcome/owner split; instruction focus;
+  map/brief/return; write isolation; barrier/evidence; conditional acceptance;
+  root conflict+synthesis+report; carrier/state seam; repair; completion.
+  Снятые карточки и причины перечислены в `cut.md`.
+- **Owner evidence:** текущий запрос захвачен в recall и сверен с исходными
+  требованиями владельца: work + instruction-load allocation, root как CTO,
+  прямое owner-чтение, chat map/report, durable decisions и pause-point copy.
+  Числового порога, обязательного verifier-а и статической instruction-cost
+  таблицы в словах владельца не найдено.
+- **Current external check:** OpenAI Subagents поддерживает независимые
+  потоки, изоляцию шумного контекста, summary-return и осторожность с
+  параллельными writes; Claude Opus 5 prompting отдельно предупреждает не
+  делегировать малые задачи, держать число subagents низким и не создавать
+  их только для общей перепроверки. Это источник для admission boundary, не
+  для локальной формы skill-а.
+- **Независимый structural re-audit:** пять прежних finding-ов закрыты —
+  instruction load, staged handoff, specialized-owner exclusions,
+  `1planning` repair seam и pause point. Итог: `architecture_ok`.
+- **Независимый acceptance re-audit:** B1–B4 и A1–A3 pass по прямому
+  evidence. B5 оставлен unknown до clean-window routing-прогона: чтение
+  metadata не доказывает runtime selection.
+- **Первый clean-window two-plus run:** без имени скила агент открыл два
+  независимых read-only потока и root-синтез, то есть положительная routing
+  граница сработала. Один поток нашёл новый seam-дефект: terminal после
+  второго repair не был назван, а потеря worker-а смешивалась с recovery
+  root-session. Candidate исправлен: replacement считается repair, второй
+  неуспех даёт final blocker, session break отдаётся recovery всей волны.
+- **Near-miss one worker / one critic:** оба чистых запроса открыли ровно одно
+  требуемое окно, не общую orchestration-wave. Critic нашёл двусмысленность:
+  цель звучала безусловно, хотя admission законно оставляет работу у root.
+  Цель и completion уточнены как два успешных исхода: полезная запущенная
+  волна или мотивированный no-launch.
+- **Specialized-owner near-misses:** запрос `1fresh-eyes` применил только его
+  trajectory route. Запрос deep agents отдал controller, три framework-stream
+  и synthesis владельцу `1deep-agents`; `1orchestration` не применялся, но
+  его live body было прочитано ради seam. Это оставило лишнюю instruction
+  load, поэтому отрицательная граница вынесена в начало description, а
+  положительный trigger ограничен general wave без другого controller-а.
+- **Post-reorder deep-agent probe:** чистое окно открыло только
+  `1chat-recall` и `1deep-agents`; `1orchestration` больше не загружался.
+- **Staged contrast:** phase-name-only цепочка на тех же источниках и критерии
+  осталась в одном окне. General extraction → writer case выбрал staged
+  handoff и назвал material delta — clean writer context + новое write
+  ownership — вместе с ценой передачи. Независимая acceptance ушла к своему
+  специализированному владельцу `1fresh-eyes`.
+- **Финальный независимый acceptance re-audit:** repair R1–R4, goal/completion
+  G1–G3, description D1–D4, positive routing B1 и staged S1–S3 — pass;
+  blocking findings нет.
+- **Semantic edge review status for live `1orchestration` seams:** outgoing
+  `SKILL → wave-folder/repair`, `wave-folder → repair`, `1planning →
+  wait/probe/repair owner` и `1codex → general wave contract` прочитаны с
+  обеих сторон и остаются верными. Exact search нашёл два stale body claims в
+  `skills/claude/1codex/references/fleet.md`: старый cap `3–4/>4` и preflight
+  attribution. Они исправлены локальной дельтой holder-а и установлены;
+  непрочитанного остатка в зафиксированном scope нет. Исторические упоминания
+  удалённых references не менялись: они описывают происхождение и снятие.
+- **Статическая проверка candidate:** `quick_validate.py` — valid;
+  `git diff --check` — clean; удалённые reference-адреса в shared owner не
+  остались.
+- **Distribution:** `sync_simple_projections.py 1orchestration --check`
+  подтвердил shared owner, tracked Codex/Claude и обе installed projection;
+  `1codex --check` подтвердил Claude runtime owner и installed package.
+- **Остаточный риск после этой версии:** forced live interruption настоящей
+  волны по-прежнему не проведён; repair доказан как decision contract, не как
+  fault-injection run.
