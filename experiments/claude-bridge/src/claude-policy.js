@@ -31,7 +31,7 @@ const requestSchema = z.object({
   effort: claudeAskInputSchema.effort
 }).strict();
 
-// Personal-tool hygiene, not a hostile-config sandbox. Native Claude settings stay active.
+// Personal-tool hygiene, not a hostile-config sandbox. SDK launch owns context isolation.
 const EXPLICIT_ROUTE_ENV = Object.freeze([
   "ANTHROPIC_API_KEY",
   "ANTHROPIC_AUTH_TOKEN",

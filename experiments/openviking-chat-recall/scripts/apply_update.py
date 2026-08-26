@@ -30,6 +30,7 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from wave import strip_fence
+from wave_ready import TOMBSTONE_HEADING
 
 from build_retopic_tasks import topics_by_line
 
@@ -162,13 +163,17 @@ def append_topic_rows(
         if not path.is_file():
             return False
         text = path.read_text(encoding="utf-8").rstrip("\n")
-        head, sep, tail = text.partition("\n## Отменено")
+        # Legacy tombstones are history, not reader-facing topic content.
+        # The immutable raw holder remains the provenance owner.
+        tombstone = TOMBSTONE_HEADING.search(text)
+        if tombstone:
+            text = text[: tombstone.start()].rstrip()
         block = (
             f"\n\n## Добавлено {datetime.now().astimezone().date().isoformat()}\n\n"
             + "\n".join(rows)
             + "\n"
         )
-        rendered = normalize_sources(head.rstrip() + block + sep + tail + "\n")
+        rendered = normalize_sources(text + block + "\n")
         write_atomic(path, rendered)
     return True
 

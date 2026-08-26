@@ -32,8 +32,25 @@ HEAD = {
 TAIL = {
     "merge": """## Формат ответа
 
-Верни только содержимое файла темы — от `---` до последней строки. Ни пояснений
-вокруг, ни markdown-обёртки. Класть файл на место не твоя работа.
+Сначала верни содержимое файла темы — от `---` до последней строки, без
+пояснений вокруг и без markdown-обёртки. Если старый пункт отменён более поздним, удали его
+из topic и не создавай раздел `## Отменено` или другой tombstone.
+
+После последней строки topic добавь технический блок учёта. Он остаётся в
+`response` run JSON и writer удаляет его перед записью reader-facing topic:
+
+```
+<!-- TOPIC_ANCHOR_ACCOUNTING
+{{"superseded":[{{"anchor":"<old-file>#L<line>","by":"<surviving-file>#L<line>"}}],"unresolved":[{{"anchor":"<file>#L<line>","reason":"chronology or scope cannot resolve"}}]}}
+-->
+```
+
+Если ничего не superseded или unresolved, оставь соответствующие массивы
+пустыми. При unresolved conflict опубликуй только один neutral marker в
+разделе `## Не разрешено`; обе конфликтующие формулировки остаются в
+raw/run evidence. В учёт попадают только исчезнувшие или unresolved входные
+якоря; схлопнутые дубли остаются видимыми в topic. Класть файл на место не твоя
+работа.
 
 Шапка файла темы:
 
@@ -61,15 +78,28 @@ sources: {count}
 def main(stage: str, map_path: str, material: str, out_dir: str) -> int:
     topics = json.load(open(map_path, encoding="utf-8"))["topics"]
     contract = open(CONTRACT[stage], encoding="utf-8").read()
+    prepared: dict[str, list[tuple[str, str]]] = {}
+    if stage == "merge":
+        for topic in topics:
+            sources: list[tuple[str, str]] = []
+            for name in topic["files"]:
+                path = os.path.join(material, name)
+                try:
+                    source = open(path, encoding="utf-8").read().strip()
+                except OSError:
+                    print(
+                        f"  {topic['id']}: входной материал отсутствует или исчез: {name}"
+                    )
+                    return 1
+                sources.append((name, source))
+            prepared[topic["id"]] = sources
     os.makedirs(out_dir, exist_ok=True)
     written = 0
     for topic in topics:
         if stage == "merge":
             parts = []
-            for name in topic["files"]:
-                path = os.path.join(material, name)
-                if os.path.exists(path):
-                    parts.append(f"### `{name}`\n\n```\n{open(path, encoding='utf-8').read().strip()}\n```")
+            for name, source in prepared[topic["id"]]:
+                parts.append(f"### `{name}`\n\n```\n{source}\n```")
             body = f"## Сжатые файлы темы ({len(parts)})\n\n" + "\n\n".join(parts)
             count = len(parts)
         else:

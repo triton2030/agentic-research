@@ -22,10 +22,12 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
     установить причину, чинить настоящего виновника (инструкции, документ,
     скил, слова владельца); владеет `refactor.md` (схема карты смыслов),
     `coherence.md`, `simplify.md`, базовыми `audit.md`/`check.md`;
-  - `1skill-authoring/portable/` — новый скил: дефицит, триада, пакеты;
-    владеет `canon.md` (канон методик), `behavior-package.md` («налог на
-    строгость»), `knowledge-package.md`, `reference.md`, бюджетом ~10
-    обязанностей на скил;
+  - `1skill-creation/portable/` — создание скиллов (бывший `1skill-authoring`,
+    полная перекройка 2026-08-26, архив в `skills/1skill-authoring/`): извлечь
+    из слов владельца функцию, которую он подразумевает под именем скила, и
+    написать кратчайший недвусмысленный скил; владеет `canon.md` (канон
+    методик), `formulation.md`, `agent-defaults.md` («налог на строгость»),
+    `skills-science.md` и мягким бюджетом ~20 единиц на тело и на reference;
   - `1skill-routing/portable/` — кнопка запуска: имя, description, триггер;
     владеет `description.md` и лимитом 200 символов на описания и
     строки-аннотации;

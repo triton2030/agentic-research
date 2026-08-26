@@ -18,7 +18,17 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from wave import expand_corpus_links, strip_fence
-from wave_ready import FULL, answers_in, flat_anchors, read_answer, theme_gap, topic_files
+from wave_ready import (
+    FULL,
+    TOMBSTONE_HEADING,
+    answer_details,
+    answers_in,
+    flat_anchors,
+    read_answer,
+    read_flat,
+    theme_gap,
+    topic_files,
+)
 
 BLOCK = re.compile(r"^=== ФАЙЛ (\S+\.md)\s*$", re.M)
 
@@ -37,8 +47,16 @@ def write_atomic(path: str, text: str) -> None:
 
 
 def main(stage: str, runs: str, material: str, out_dir: str, corpus: str) -> int:
-    os.makedirs(out_dir, exist_ok=True)
     topics = topic_files(material) if stage == "merge" else None
+    if stage == "merge":
+        for topic, names in topics.items():
+            for name in names:
+                try:
+                    read_flat(material, name)
+                except OSError:
+                    print(f"  {topic}: входной материал отсутствует или исчез: {name}")
+                    return 1
+    os.makedirs(out_dir, exist_ok=True)
     seen: dict[str, str] = {}
     for path in answers_in(runs):
         name = os.path.splitext(os.path.basename(path))[0]
@@ -53,19 +71,29 @@ def main(stage: str, runs: str, material: str, out_dir: str, corpus: str) -> int
     taken = refused = 0
     for path in answers_in(runs):
         topic = os.path.splitext(os.path.basename(path))[0]
-        body, why = read_answer(path)
+        if stage == "merge":
+            body, accounting, why = answer_details(path)
+        else:
+            body, why = read_answer(path)
+            accounting = {}
         if body is None:
             print(f"  {topic}: {why}"); refused += 1; continue
 
         if stage == "merge":
-            gap = theme_gap(body, material, topics.get(topic, []))
+            gap = theme_gap(body, material, topics.get(topic, []), accounting)
             if gap:
                 print(f"  {topic}: {gap}"); refused += 1; continue
             write_atomic(os.path.join(out_dir, topic + ".md"), body + "\n")
         else:
             source = os.path.join(material, topic + ".md")
             text = open(source, encoding="utf-8").read() if os.path.exists(source) else ""
-            head = text.split("## Отменено", 1)[0]
+            if TOMBSTONE_HEADING.search(text):
+                print(
+                    f"  {topic}: reader-facing topic содержит запрещённый раздел ## Отменено"
+                )
+                refused += 1
+                continue
+            head = text
             want = set(FULL.findall(head))
             parts = BLOCK.split(body)
             pages = list(zip(parts[1::2], parts[2::2]))

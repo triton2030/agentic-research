@@ -129,9 +129,11 @@ scope или принадлежность предмету — достаточ�
 2. осознанный no-op helper записывает по `session + fingerprint` в
    `topics/reconcile-noops.json`, не меняя topic-файл;
 3. этот же агент при реальном расхождении формулирует typed patch: вставку в
-   точный раздел, exact replacement существующего claim-а, перенос отменённого
-   claim-а или replacement вводной границы; каждая операция получает новый
-   anchor;
+   точный раздел, exact replacement существующего claim-а, replacement
+   surviving claim-а или replacement вводной границы; superseded claim не
+   переносится в исторический раздел. При unresolved conflict topic получает
+   один нейтральный abstain-marker, а спорные anchors остаются в raw/run
+   evidence; каждая применённая операция получает новый anchor;
 4. `topic_reconcile.py apply` под блокировкой проверяет исходный hash,
    принадлежность записи теме, адрес каждой операции и живой anchor,
    пересчитывает `sources`, сам собирает и атомарно заменяет общий файл.

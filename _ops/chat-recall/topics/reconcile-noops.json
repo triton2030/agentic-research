@@ -382,6 +382,41 @@
       "record_sha256": "8ce5adbd89b0158e8b12ecffb99f8054797271430b7da9433071c79332782e61",
       "anchor": "2026-08-26-201025-claude-4e40828f.md#L22",
       "topic_sha256": "cf9c6276986f11c60cc66a4127a1f1d9c43bfbfb6c452c233b09334236d6717b"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "1a12f637-58af-40be-91b5-39e67b573a87",
+      "record_sha256": "b46f2147ec291ad3f43b532bc194ec65492180a0b4b0c764f070e7f65ec135f0",
+      "anchor": "2026-08-26-215943-claude-1a12f637.md#L16",
+      "topic_sha256": "acf6b177fd7f044d20d4e8adf8c9d6d6f21348b5d1d2c63930c80a7cbfeb1159"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "1a12f637-58af-40be-91b5-39e67b573a87",
+      "record_sha256": "a196016bed5ac3287101b2e2cfc241ae783fa1aa92858c0d708ef10c5e08a992",
+      "anchor": "2026-08-26-215943-claude-1a12f637.md#L17",
+      "topic_sha256": "acf6b177fd7f044d20d4e8adf8c9d6d6f21348b5d1d2c63930c80a7cbfeb1159"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "1a12f637-58af-40be-91b5-39e67b573a87",
+      "record_sha256": "6b1f946fddc8181c0d9792996a3e042687bb4af20ca4cc44a38ef4d5edb12fb8",
+      "anchor": "2026-08-26-215943-claude-1a12f637.md#L18",
+      "topic_sha256": "acf6b177fd7f044d20d4e8adf8c9d6d6f21348b5d1d2c63930c80a7cbfeb1159"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "4ee6bbef-2755-47cc-aa2b-68dcfb1d82c1",
+      "record_sha256": "e0613a9371a9e62378d49fe5d039e34e4a71fe0886a64cd9641a792551a6ee08",
+      "anchor": "2026-08-26-220614-claude-4ee6bbef.md#L15",
+      "topic_sha256": "05c108cd6129d282e7311400cc0d29f32fc0df1a69cf0c90298b53c21bd993c0"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "1a12f637-58af-40be-91b5-39e67b573a87",
+      "record_sha256": "ad053422bd5a44f6765bb98248674c4306bb01c56aadd6e20cdf48bf6c2e550e",
+      "anchor": "2026-08-26-215943-claude-1a12f637.md#L21",
+      "topic_sha256": "05c108cd6129d282e7311400cc0d29f32fc0df1a69cf0c90298b53c21bd993c0"
     }
   ]
 }

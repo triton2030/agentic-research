@@ -344,6 +344,46 @@ class UpdatePipelineTests(unittest.TestCase):
         self.assertIn("- Новое.", rendered)
         self.assertEqual(topic_file.stat().st_mode & 0o777, 0o640)
 
+    def test_batch_append_drops_legacy_tombstone_from_reader_topic(self) -> None:
+        topic_file = self.write_topic(
+            "topic-a",
+            "\n- Текущее. [2026-08-20-120000-codex-aaaaaaaa.md#L10]\n"
+            "\n## Отменено\n\n- Историческое. "
+            "[2026-08-19-120000-codex-zzzzzzzz.md#L8]\n",
+        )
+
+        written = APPLY.append_topic_rows(
+            "topic-a",
+            ["- Новое. [2026-08-24-120000-codex-bbbbbbbb.md#L20]"],
+        )
+
+        rendered = topic_file.read_text(encoding="utf-8")
+        self.assertTrue(written)
+        self.assertNotIn("## Отменено", rendered)
+        self.assertNotIn("Историческое.", rendered)
+        self.assertIn("Текущее.", rendered)
+        self.assertIn("Новое.", rendered)
+
+    def test_batch_append_drops_tombstone_at_any_markdown_heading_level(self) -> None:
+        for index, heading in enumerate(("### ОТМЕНЕНО #", "#   отменено")):
+            topic = f"topic-{index}"
+            topic_file = self.write_topic(
+                topic,
+                "\n- Текущее. [2026-08-20-120000-codex-aaaaaaaa.md#L10]\n"
+                f"\n{heading}\n\n- Историческое. "
+                "[2026-08-19-120000-codex-zzzzzzzz.md#L8]\n",
+            )
+
+            written = APPLY.append_topic_rows(
+                topic,
+                ["- Новое. [2026-08-24-120000-codex-bbbbbbbb.md#L20]"],
+            )
+
+            rendered = topic_file.read_text(encoding="utf-8")
+            self.assertTrue(written)
+            self.assertNotIn("Историческое.", rendered)
+            self.assertNotRegex(rendered, r"(?im)^\s*#{1,6}\s+отменено")
+
     def test_batch_and_runtime_share_one_lock_address(self) -> None:
         topic = "topic-a"
 

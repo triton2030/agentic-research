@@ -130,7 +130,9 @@ export function createClaudeAskServer(
       title: "Ask Claude",
       description:
         "Ask native Claude Opus 5 for blocking independent advice or review through the logged-in Claude.ai subscription. " +
-        "Claude retains native local tools, skills, hooks, settings and MCP integrations; instruct it not to modify state. " +
+        "A fresh call omits filesystem-sourced user/project instructions, custom skills, hooks, MCP integrations, and auto-memory; " +
+        "resumed calls retain their prior conversation. Claude keeps native local tools and may read any evidence it considers relevant; " +
+        "managed policy and account state remain runtime-owned, and the caller must instruct Claude not to modify state. " +
         "Returns one bounded answer and native session_id.",
       inputSchema: claudeAskInputSchema,
       outputSchema: askResultSchema,

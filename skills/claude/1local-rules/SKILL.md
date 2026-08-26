@@ -2,7 +2,7 @@
 name: 1local-rules
 description: >-
   Use when creating a project-local 2* rule skill for one project action and
-  syncing Claude/Codex. Surface via 1skill-authoring, trigger via
+  syncing Claude/Codex. Surface via 1skill-creation, trigger via
   1skill-routing, prose via 1instruction-authoring.
 ---
 
@@ -11,7 +11,7 @@ description: >-
 всплыть **в момент действия**, а не выцвести в начале сессии. Корневая добродетель
 та же, что у `1skill-routing` (**moment-fit**), но жанр узкий: правило,
 привязанное к наблюдаемому действию, и его обновление по мере взросления проекта.
-Surface/owner design держит `1skill-authoring`, trigger/collision — `1skill-routing`; общий
+Surface/owner design держит `1skill-creation`, trigger/collision — `1skill-routing`; общий
 create/update/scaffold/validate contract — официальный Claude `skill-creator`;
 размещение и формулировку обычных текстовых правил — `1instruction-authoring`. Этот скил
 добавляет только то, что специфично жанру локального правила-скила.
@@ -26,7 +26,7 @@ create/update/scaffold/validate contract — официальный Claude `skil
 
 Не делай скил, если правило снимается одним-двумя предложениями текста и модель
 его и так выполняет — правило, не меняющее решение агента, лишнее (это владение `1instruction-authoring`). «Куда вообще положить правило / как сформулировать» —
-сначала `1instruction-authoring`; «какой surface/owner» — `1skill-authoring`; «почему не срабатывает или где collision» — `1skill-routing`; «создать/обновить/scaffold/validate skill» —
+сначала `1instruction-authoring`; «какой surface/owner» — `1skill-creation`; «почему не срабатывает или где collision» — `1skill-routing`; «создать/обновить/scaffold/validate skill» —
 `skill-creator`.
 
 Если repo уже имеет cold rule directory и always-on root надёжно маршрутизирует
@@ -129,7 +129,7 @@ Condition × Delta и collision ownership — у `1skill-routing`.
 - провенанс: названо, против какого расхождения модели стоит правило (наблюдалось /
   общий перекос);
 - имя и размещение: имя с `2` (`2<имя>`); одинаковая копия у обоих агентов из одного
-  источника правды; surface делегируй `1skill-authoring`, trigger/collision — `1skill-routing`, а
+  источника правды; surface делегируй `1skill-creation`, trigger/collision — `1skill-routing`, а
   create/update/scaffold/validate — `skill-creator`.
 
 Остановись, когда правило срабатывает в свой момент, несёт дельту и привязано к

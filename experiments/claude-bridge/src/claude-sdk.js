@@ -4,6 +4,8 @@ import { ClaudeAskError } from "./claude-result.js";
 
 const CLIENT_APP = "claude-bridge/2.0";
 const MAX_TURNS = 48;
+const DEFAULT_INTERRUPT_GRACE_MS = 5_000;
+const TERMINAL_COMMAND_STATES = new Set(["cancelled", "completed", "discarded"]);
 const ADVISOR_INSTRUCTION = [
   "Act as an independent advisor.",
   "Investigate and read whatever evidence is necessary, but do not modify files, run state-changing commands, or take external actions.",
@@ -21,7 +23,7 @@ function deferred() {
 }
 
 function advisorTask(prompt) {
-  return `<task>\n${prompt}\n</task>`;
+  return `<advisor_request>\n${prompt}\n</advisor_request>`;
 }
 
 function collectModel(models, value) {
@@ -96,21 +98,37 @@ function queryOptions(launch, options) {
     abortController: options.abortController,
     additionalDirectories: ["/"],
     agentProgressSummaries: true,
+    allowDangerouslySkipPermissions: true,
     cwd: launch.cwd,
-    env: { ...launch.env, CLAUDE_AGENT_SDK_CLIENT_APP: CLIENT_APP },
+    env: {
+      ...launch.env,
+      CLAUDE_AGENT_SDK_CLIENT_APP: CLIENT_APP,
+      CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1"
+    },
     forwardSubagentText: false,
     includeHookEvents: false,
     includePartialMessages: false,
     maxTurns: MAX_TURNS,
+    mcpServers: {},
     pathToClaudeCodeExecutable: launch.executable,
+    permissionMode: "bypassPermissions",
     persistSession: true,
     resume: launch.sessionId || undefined,
-    spawnClaudeCodeProcess: options.spawnClaudeCodeProcess,
-    systemPrompt: {
-      type: "preset",
-      preset: "claude_code",
-      append: ADVISOR_INSTRUCTION
+    settingSources: [],
+    settings: {
+      allowedMcpServers: [],
+      autoMemoryEnabled: false,
+      disableAllHooks: true,
+      disableBundledSkills: true,
+      disableClaudeAiConnectors: true,
+      disableWorkflows: true,
+      enableArtifact: false
     },
+    skills: [],
+    spawnClaudeCodeProcess: options.spawnClaudeCodeProcess,
+    strictMcpConfig: true,
+    systemPrompt: ADVISOR_INSTRUCTION,
+    tools: { type: "preset", preset: "claude_code" },
     ...(!isResume ? { effort: launch.profile.effort, model: launch.profile.model } : {})
   };
 }
@@ -221,11 +239,11 @@ export function startClaudeSdkSession(launch, options = {}) {
           settleCurrentTurn();
           continue;
         }
-        // Claude Code 2.1.219 emits this runtime event after result in streaming
-        // mode even though the pinned SDK declaration omits it.
+        // Claude Code emits a terminal lifecycle after result in streaming mode.
+        // The installed SDK declaration still omits this top-level message type.
         if (
           message.type === "command_lifecycle" &&
-          message.state === "completed" &&
+          TERMINAL_COMMAND_STATES.has(message.state) &&
           message.command_uuid === currentTurn?.uuid
         ) {
           currentTurn.completed = true;
@@ -276,9 +294,9 @@ export function startClaudeSdkSession(launch, options = {}) {
       mailbox.push(message);
       return { completion: turn.promise, uuid: message.uuid };
     },
-    async interrupt() {
+    async interrupt(options) {
       if (stopping) return undefined;
-      return handle.interrupt?.();
+      return handle.interrupt?.(options);
     },
     closeInput() {
       mailbox.close();
@@ -294,16 +312,55 @@ export function startClaudeSdkSession(launch, options = {}) {
   };
 }
 
+function gracefulCancellation(engine, signal, graceMs, messageUuid, onEvent) {
+  let hardStopTimer = null;
+  const emit = (event) => {
+    try {
+      onEvent?.(Object.freeze({ message_uuid: messageUuid, ...event }));
+    } catch {
+      // Cancellation observation must never change process ownership.
+    }
+  };
+  const interrupt = () => {
+    if (hardStopTimer) return;
+    const reason = signal.reason || new Error("Claude request was cancelled.");
+    hardStopTimer = setTimeout(() => {
+      emit({ type: "hard_abort" });
+      void engine.stop(reason).catch(() => {});
+    }, graceMs);
+    hardStopTimer.unref?.();
+    void Promise.resolve(engine.interrupt({ cancelQueued: true })).then(
+      (receipt) => emit({ receipt: receipt ?? null, type: "native_interrupt" }),
+      () => emit({ type: "interrupt_error" })
+    );
+  };
+  if (signal?.aborted) interrupt();
+  else signal?.addEventListener("abort", interrupt, { once: true });
+  return {
+    close() {
+      signal?.removeEventListener("abort", interrupt);
+      if (hardStopTimer) clearTimeout(hardStopTimer);
+    }
+  };
+}
+
 /** Execute one native Claude turn through the shared streaming engine. */
 export async function runClaudeSdk(launch, options = {}) {
   const engine = startClaudeSdkSession(launch, options);
+  let cancellation = null;
   try {
     // Pinned Claude Code does not emit system/init until streaming input begins.
     // The exact-environment auth preflight already ran; validate SDK evidence
     // immediately after init and abort before waiting for the model result.
     const turn = engine.send(launch.prompt);
+    cancellation = gracefulCancellation(
+      engine,
+      options.signal,
+      options.interruptGraceMs ?? DEFAULT_INTERRUPT_GRACE_MS,
+      turn.uuid,
+      options.onCancellationEvent
+    );
     void turn.completion.catch(() => {});
-    engine.closeInput();
     let ready;
     try {
       ready = await engine.ready;
@@ -318,6 +375,10 @@ export async function runClaudeSdk(launch, options = {}) {
     await engine.completion;
     return raw;
   } finally {
-    await engine.stop(new Error("Claude one-shot query closed.")).catch(() => {});
+    cancellation?.close();
+    const reason = options.signal?.aborted
+      ? undefined
+      : new Error("Claude one-shot query closed.");
+    await engine.stop(reason).catch(() => {});
   }
 }

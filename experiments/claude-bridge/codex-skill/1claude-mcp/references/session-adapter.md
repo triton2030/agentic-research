@@ -1,8 +1,10 @@
 # Claude Session Adapter
 
-Read this only when a blocking call would prevent useful parallel work, or when
-the task materially benefits from follow-up, mid-turn correction, user-visible
-progress, liveness checks, or explicit stop.
+Read this only when the task materially benefits from follow-up, mid-turn
+correction, user-visible progress, liveness checks, or explicit stop. For one
+terminal answer while useful independent work remains, use the yielded
+`claude_ask` route in the main skill; do not open a transient session only to
+make the call background.
 
 ## Start And Address
 
@@ -10,8 +12,9 @@ progress, liveness checks, or explicit stop.
   `profile: opus_advisor`, `cwd`, and optional `effort: max`.
 - Native continuation after a bridge restart: `op: open_resume` with the known
   `session_id`, same project `cwd`, and a new prompt.
-- Resume preserves the native session model. Start fresh for a blind review,
-  another project or a materially new frame.
+- Resume preserves the native session model and prior conversation context;
+  clean launch settings do not erase that history. Start fresh for a blind or
+  independent review, another project, or a materially new frame.
 - Keep the returned native `session_id`. It is both the live address and
   Claude's durable conversation identity; there is no second bridge handle.
 - Use distinct IDs for independent parallel advisors. Never open two live

@@ -1,7 +1,0 @@
-interface:
-  display_name: "1-Новый скил"
-  short_description: "Design a new skill from the owner's deficit: triad, package class, references"
-  default_prompt: "Use $1skill-authoring when a new deficit and triad the existing package does not cover require a skill. Name the deficit class (knowledge vs behavior in the moment), fix the owner's triad (goal, done, non-goal), build the matching package, audit before spreading."
-
-policy:
-  allow_implicit_invocation: true

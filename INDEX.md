@@ -59,6 +59,9 @@
 
 ## Записанное правило не доходит до поведения
 
+- [`exa-results/frontier-model-failures-2026-08-25.md#жёсткий-фильтр`](exa-results/frontier-model-failures-2026-08-25.md#жёсткий-фильтр)
+  — проверить model-release cutoff, актуальное evidence и исключённые старые
+  панели до переноса исследования в root instructions или skills.
 - [`science/how-to-make-llm-obey.md#четыре-механизма-отказа`](science/how-to-make-llm-obey.md)
   — обвал по числу одновременных правил, затухание по длине траектории,
   нечитаемый носитель, конкуренция формы вывода с мышлением.

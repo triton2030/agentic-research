@@ -71,7 +71,7 @@
 - **Перед правкой skill / agent / instruction** начинай с ближайшего
   `knowledge/wisdom-*` и одного guide; для skills сперва
   `knowledge/practical-guides/how-to-write-skills/`.
-- **Новый скил — через `1skill-authoring`, перекройка — `1skill-refactor`,
+- **Новый скил — через `1skill-creation`, перекройка — `1skill-refactor`,
   триггер — `1skill-routing`**; невыводимый материальный выбор решает владелец.
 - **`experiments/**` правь от локальной инструкции**, не от корневой. Эти папки
   не входят в polygon scope `_ops/GOAL.md`.

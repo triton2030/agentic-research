@@ -60,8 +60,11 @@ permission inputs, denial prose, tool output, or fallback explanation text.
 
 Claude owns the conversation through `session_id`; this bridge does not persist
 or index it. A resumed session also owns its model, so `requested_model` is
-`null` on continuation. Host cancellation is forwarded through the SDK's
-`AbortController`. External-data approval happens in the Codex host before
+`null` on continuation. Host cancellation first uses the SDK's native
+`interrupt()`, then hard-aborts after a five-second grace period if the query does
+not settle. The pinned SDK runtime requests queued-message cancellation; the
+live suite requires its native receipt and rejects a hard-abort-only success.
+External-data approval happens in the Codex host before
 dispatch and is explicitly configured as `prompt`; the host may retain a prior
 authorization instead of showing a new prompt.
 
@@ -145,10 +148,16 @@ process, so its ID is not permission to open another live writer through
 ### Local authority
 
 Advisor runs receive broad local access, subject to the permissions that macOS
-and the Claude process actually have. They retain the current Claude session's
-native tools, commands, skills, hooks, settings and deferred tool discovery.
-The exact tool set is runtime-owned and can vary with version, provider, mode
-and settings.
+and the Claude process actually have. Every fresh bridge process keeps Claude
+Code's native tool preset but omits filesystem-sourced user, project, and local
+instructions, custom skills, hooks, MCP integrations, plugins, and auto-memory.
+Managed policy, account state, and unavoidable built-in capabilities remain
+runtime-owned. A resumed
+native session still carries its prior conversation context, so a blind or
+independent review must start fresh. The project `cwd` remains available, so
+Claude may deliberately read any instruction or evidence file when the task
+makes it relevant. The exact built-in tool set is runtime-owned and can vary
+with Claude Code version.
 
 The advisor prompt says to investigate and advise without changing anything.
 That is a behavioral instruction, not an enforced read-only sandbox: a native
@@ -158,9 +167,11 @@ folder allowlists, command classification, write detection, hook suppression, or
 tool deny lists; those controls would add code without providing the chosen
 trust boundary. macOS privacy controls remain the real outer boundary.
 
-The bridge does not auto-approve a native Claude permission prompt. A denied
-tool remains fail-closed and its name becomes compact warning/activity evidence;
-the prompt arguments and denial body do not cross the observation seam.
+The bridge explicitly preserves its accepted broad-access trust boundary with
+the SDK's `bypassPermissions` mode after filesystem settings are disabled. A
+tool rejected by an outer macOS or runtime boundary remains fail-closed and its
+name becomes compact warning/activity evidence; the prompt arguments and denial
+body do not cross the observation seam.
 
 ### Subscription route
 
@@ -168,8 +179,10 @@ Every new native process removes explicit API/provider route variables from the
 SDK query environment and runs `claude auth status` in that same environment.
 The process starts only when the receipt reports a logged-in `claude.ai` /
 `firstParty` subscription. The bridge exposes no API key, provider, base URL, or
-fallback parameter. Native Claude settings remain active and are intentionally
-not scanned; this is personal-tool hygiene, not an adversarial configuration
+fallback parameter. The SDK query disables filesystem setting sources and
+auto-memory, and accepts no filesystem MCP configuration; managed policy and
+Claude's account-level runtime configuration remain outside this adapter's
+control. This is prompt-context isolation, not an adversarial configuration
 guard.
 
 Pinned Claude Code emits its SDK initialization only after the first streaming
@@ -238,11 +251,15 @@ intended:
 
 ```bash
 npm run ask:live
+# Addressable private evidence for an acceptance audit:
+CLAUDE_LIVE_RECEIPT="$HOME/.codex/claude-bridge-evidence/latest-live.json" npm run ask:live
 ```
 
 The live suite exercises parallel blocking Opus calls,
 native resume, bounded observation, follow-up, steer, stop, broad
 cwd/home/system reads, and cancellation with no observed SDK process tail. A
+configured receipt is written atomically into a `0700` directory as a `0600`
+file and contains the same JSON printed to stdout. A
 schema or entrypoint change also requires fresh Codex discovery of exactly the
 four supported tools, one real blocking call, one real session flow, and one
 real active-session list/read. An already-open task may retain an old MCP

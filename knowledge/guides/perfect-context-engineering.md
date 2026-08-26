@@ -99,6 +99,28 @@ state; найти высокоточную reference/interface; отличить
   partial-loading risk. Для GPT-5.6 minimal outcome-first context обычно лучше
   старого defensive repetition; добавление оправдывает measured failure mode.
 
+## Стабильный Контракт И Накопленная Траектория
+
+Контекст длинной агентной работы неоднороден:
+
+- **стабильный контракт** — objective, hard constraints, authority, done и stop;
+- **рабочее состояние** — принятые решения, текущая фаза, blockers и следующий
+  outcome;
+- **эпизодическая история** — старые ответы, рассуждения, логи и tool outputs.
+
+Не хранить их одной лентой с одинаковой retention policy. Предыдущий ответ
+ассистента формально не заменяет инструкцию, но статистически работает как
+demonstration: последовательный ошибочный паттерн в истории повышает вероятность
+его продолжения. Поэтому после invalidating evidence, смены фазы и compaction
+нужно возвращать в активный контекст стабильный контракт и краткое актуальное
+state, а не только summary старой траектории.
+
+Бюджет считать по двум осям: **сколько обязательств активно** и **сколько раз
+каждое должно повлиять на решение**. Тридцать простых требований к одному
+короткому output и восемь правил, применяемых в десятках edit/tool/phase
+развилок, — разные нагрузки. Wall-clock duration ничего не измеряет; важны
+decision points, tool-output volume, self-conditioning и compaction rounds.
+
 ## Правила По Длине
 
 - Сначала короче, чем хочется; добавлять только то, что реально меняет
@@ -137,6 +159,9 @@ state; найти высокоточную reference/interface; отличить
   доказывает?
 - Учтён ли model-specific state/effort/tool-policy baseline из нужного
   `wisdom-*` файла?
+- Отделены ли stable constraints от episodic history, которую допустимо сжать?
+- Посчитаны ли повторные точки применения hard rules, а не только число строк?
+- После compaction или смены фазы есть ли re-grounding по owner/outcome/state?
 
 ## Эмпирика и Сигналы Деградации
 
@@ -145,14 +170,19 @@ state; найти высокоточную reference/interface; отличить
 
 - Факторный эксперимент по Claude Code config files не нашёл надёжного эффекта
   от size, position и file architecture. Не оптимизируй форму файлов как
-  магическую ручку adherence. **Поправка 2026-08-06: `adjacent conflicts` из
-  этого списка снят.** Прямой замер на стеках правил даёт 96% соблюдения при
-  одном правиле и 20–60% при двадцати, причём падение идёт через воспроизводимый
-  набор попарных конфликтов. Считать надо не длину файла, а число одновременно
-  действующих правил.
-- Самый заметный сигнал там — drift внутри сессии: чем дальше агент генерирует
-  функции в одном проходе, тем хуже держит target rule. Для длинной работы
-  помогай chunking, state refresh и verification gates.
+  магическую ручку adherence. Несколько verifier-based benchmarks подтверждают
+  collapse при росте active constraints, но расходятся в механизме: pairwise
+  conflicts объясняют только часть, независимые per-constraint ошибки тоже
+  перемножаются. Универсального cap нет.
+- Multi-turn и coding-agent benchmarks показывают drift по мере накопления
+  interaction history. Риск растёт не только из-за доли токенов: каждое
+  повторное применение правила — новая возможность нарушить его, а предыдущие
+  assistant responses становятся demonstrations. Для длинной работы нужны
+  chunking, state refresh, phase re-grounding и verification gates.
+- Type-blind compaction может терять constraints существенно быстрее
+  эпизодического gist. Hard rules держать в отдельном exact/pinned lane и после
+  сжатия проверять их восстановление; конкретную runtime-семантику читать в
+  model/platform `wisdom-*`.
 - AGENTS/context files могут ухудшать success и cost, если добавляют лишние
   требования. Контекст должен держать minimal requirements и exact validation.
 - Если ограничение дорого нарушить, текст слабоват: нужен executable check,

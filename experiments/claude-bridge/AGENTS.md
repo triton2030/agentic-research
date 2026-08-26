@@ -43,12 +43,18 @@ copy, or old bridge source as current runtime truth.
 
 ## Preserve The Chosen Trust Boundary
 
-- Advisor access is broad and uses Claude's native commands, skills, hooks, and
-  settings. The prompt instructs Claude to investigate without modifying data;
-  this is deliberately a trust-based behavior contract, not an enforced
-  read-only sandbox. Do not add folder allowlists, command classification,
-  write detection, hook suppression, or tool deny lists unless the owner changes
-  that product decision. Preserve host cancellation and process-tail checks.
+- Advisor access is broad and keeps Claude Code's native tool preset. Each fresh
+  process omits filesystem-sourced user/project/local instructions, custom
+  skills, hooks, MCP integrations, plugins, and auto-memory; managed policy and
+  account state remain runtime-owned, and a resumed native
+  session still retains its prior conversation context. The project `cwd` stays
+  available: Claude may deliberately read any instruction or evidence file it
+  considers relevant. The prompt instructs
+  Claude to investigate without modifying data; this is deliberately a
+  trust-based behavior contract, not an enforced read-only sandbox. Do not add
+  folder allowlists, command classification, write detection, or tool deny
+  lists unless the owner changes that product decision. Preserve host
+  cancellation and process-tail checks.
 - Keep `claude_ask` and `claude_session` explicitly configured for
   `approval_mode = "prompt"` in the Codex host. MCP annotations describe the
   tools but do not enforce host approval.

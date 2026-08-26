@@ -116,7 +116,7 @@ async function waitForFile(file) {
   assert.equal(fs.existsSync(file), true, `Timed out waiting for ${file}`);
 }
 
-test("one-shot uses fixed profile and native SDK authority", async () => {
+test("one-shot uses fixed profile and clean SDK authority", async () => {
   const capture = {};
   const result = await askTest(
     { prompt: "Challenge this design.", profile: "opus_advisor", cwd: bridgeRoot },
@@ -139,18 +139,33 @@ test("one-shot uses fixed profile and native SDK authority", async () => {
   assert.equal(input.value.message.role, "user");
   assert.match(input.value.message.content, /Challenge this design/u);
   assert.equal((await capture.prompt.next()).done, true, "blocking ask must close streaming input after one message");
-  assert.deepEqual(capture.options.systemPrompt, {
-    type: "preset",
-    preset: "claude_code",
-    append:
-      "Act as an independent advisor. Investigate and read whatever evidence is necessary, but do not modify files, " +
+  assert.equal(
+    capture.options.systemPrompt,
+    "Act as an independent advisor. Investigate and read whatever evidence is necessary, but do not modify files, " +
       "run state-changing commands, or take external actions. Return compact, decision-useful answers to the user's tasks."
-  });
+  );
   assert.equal(capture.options.model, "claude-opus-5");
   assert.equal(capture.options.effort, "xhigh");
   assert.deepEqual(capture.options.additionalDirectories, ["/"]);
+  assert.equal(capture.options.allowDangerouslySkipPermissions, true);
+  assert.equal(capture.options.permissionMode, "bypassPermissions");
   assert.equal(capture.options.persistSession, true);
-  for (const absent of ["allowedTools", "disallowedTools", "permissionMode", "settingSources", "strictMcpConfig", "fallbackModel"]) {
+  assert.deepEqual(capture.options.settingSources, []);
+  assert.deepEqual(capture.options.settings, {
+    allowedMcpServers: [],
+    autoMemoryEnabled: false,
+    disableAllHooks: true,
+    disableBundledSkills: true,
+    disableClaudeAiConnectors: true,
+    disableWorkflows: true,
+    enableArtifact: false
+  });
+  assert.deepEqual(capture.options.skills, []);
+  assert.equal(capture.options.strictMcpConfig, true);
+  assert.deepEqual(capture.options.mcpServers, {});
+  assert.deepEqual(capture.options.tools, { type: "preset", preset: "claude_code" });
+  assert.equal(capture.options.env.CLAUDE_CODE_DISABLE_AUTO_MEMORY, "1");
+  for (const absent of ["allowedTools", "disallowedTools", "fallbackModel", "hooks", "plugins"]) {
     assert.equal(capture.options[absent], undefined, `${absent} must remain native/unset`);
   }
   assert.equal(capture.closed, true);
@@ -229,7 +244,7 @@ test("parallel subscription preflights and sessions remain independent", async (
   assert.equal(fs.readdirSync(path.join(root, "barrier")).length, 2);
 });
 
-test("minimal guard strips explicit routes while preserving native config", async (t) => {
+test("route guard strips explicit providers while preserving account config", async (t) => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "claude-sdk-env-"));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
   const configDir = path.join(root, "native-config");
@@ -327,6 +342,7 @@ test("cancellation during auth stops the probe before SDK query", async (t) => {
 });
 
 function blockingQueryFactory(capture) {
+  capture.events = [];
   capture.started = new Promise((resolve) => {
     capture.markStarted = resolve;
   });
@@ -334,39 +350,141 @@ function blockingQueryFactory(capture) {
     async *[Symbol.asyncIterator]() {
       const aborted = new Promise((resolve, reject) => {
         if (options.abortController.signal.aborted) reject(new Error("SDK aborted"));
-        else options.abortController.signal.addEventListener("abort", () => reject(new Error("SDK aborted")), { once: true });
+        else options.abortController.signal.addEventListener("abort", () => {
+          capture.events.push("abort");
+          reject(new Error("SDK aborted"));
+        }, { once: true });
       });
       capture.markStarted();
       yield sdkMessages()[0];
       await aborted;
     },
+    async interrupt(interruptOptions) {
+      capture.interruptOptions = interruptOptions;
+      capture.events.push("interrupt");
+    },
     close() {
+      capture.events.push("close");
       capture.closed = true;
     }
   });
 }
 
-test("host cancellation and timeout close the SDK query", async () => {
-  const cancelled = {};
+function interruptibleQueryFactory(capture) {
+  capture.events = [];
+  capture.started = new Promise((resolve) => {
+    capture.markStarted = resolve;
+  });
+  capture.interrupted = new Promise((resolve) => {
+    capture.finishInterrupt = resolve;
+  });
+  return ({ prompt, options }) => ({
+    async *[Symbol.asyncIterator]() {
+      capture.input = await prompt.next();
+      void prompt.next().then(({ done }) => {
+        capture.inputEnded = done;
+        capture.events.push("input_end");
+      });
+      options.abortController.signal.addEventListener("abort", () => {
+        capture.events.push("abort");
+      }, { once: true });
+      capture.markStarted();
+      yield sdkMessages()[0];
+      await capture.interrupted;
+      yield {
+        type: "result",
+        subtype: "error_during_execution",
+        is_error: true,
+        errors: ["Interrupted by user."],
+        session_id: OPUS_SESSION,
+        terminal_reason: "aborted_streaming",
+        user_message_uuid: capture.input.value.uuid
+      };
+      yield {
+        type: "command_lifecycle",
+        command_uuid: capture.input.value.uuid,
+        state: "cancelled"
+      };
+    },
+    async interrupt(interruptOptions) {
+      capture.inputEndedAtInterrupt = capture.inputEnded === true;
+      capture.interruptOptions = interruptOptions;
+      capture.events.push("interrupt");
+      capture.finishInterrupt();
+      return { cancelled: [], still_queued: [] };
+    },
+    close() {
+      capture.events.push("close");
+      capture.closed = true;
+    }
+  });
+}
+
+test("host cancellation keeps streaming input open and settles through native interrupt", async () => {
+  const capture = {};
+  const cancellationEvents = [];
   const controller = new AbortController();
   const pending = askTest(
     { prompt: "Wait.", profile: "opus_advisor", cwd: bridgeRoot },
-    { executable: fakeClaude, queryFactory: blockingQueryFactory(cancelled), signal: controller.signal }
+    {
+      executable: fakeClaude,
+      interruptGraceMs: 200,
+      onCancellationEvent: (event) => cancellationEvents.push(event),
+      queryFactory: interruptibleQueryFactory(capture),
+      signal: controller.signal
+    }
+  );
+  await capture.started;
+  controller.abort();
+  await expectClaudeError(pending, "cancelled");
+  assert.equal(capture.inputEndedAtInterrupt, false);
+  assert.equal(capture.interruptOptions.cancelQueued, true);
+  assert.equal(capture.events.includes("abort"), false);
+  assert.equal(capture.closed, true);
+  assert.deepEqual(cancellationEvents, [{
+    message_uuid: capture.input.value.uuid,
+    receipt: { cancelled: [], still_queued: [] },
+    type: "native_interrupt"
+  }]);
+});
+
+test("host cancellation and timeout interrupt before hard-closing the SDK query", async () => {
+  const cancelled = {};
+  const cancellationEvents = [];
+  const controller = new AbortController();
+  const pending = askTest(
+    { prompt: "Wait.", profile: "opus_advisor", cwd: bridgeRoot },
+    {
+      executable: fakeClaude,
+      interruptGraceMs: 20,
+      onCancellationEvent: (event) => cancellationEvents.push(event),
+      queryFactory: blockingQueryFactory(cancelled),
+      signal: controller.signal
+    }
   );
   await cancelled.started;
   controller.abort();
   await expectClaudeError(pending, "cancelled");
   assert.equal(cancelled.closed, true);
+  assert.deepEqual(cancelled.events.slice(0, 2), ["interrupt", "abort"]);
+  assert.equal(cancelled.interruptOptions.cancelQueued, true);
+  assert.deepEqual(cancellationEvents.map(({ type }) => type), ["native_interrupt", "hard_abort"]);
 
   const timedOut = {};
   await expectClaudeError(
     askTest(
       { prompt: "Wait.", profile: "opus_advisor", cwd: bridgeRoot },
-      { executable: fakeClaude, queryFactory: blockingQueryFactory(timedOut), timeoutMs: 500 }
+      {
+        executable: fakeClaude,
+        interruptGraceMs: 20,
+        queryFactory: blockingQueryFactory(timedOut),
+        timeoutMs: 50
+      }
     ),
     "timeout"
   );
   assert.equal(timedOut.closed, true);
+  assert.deepEqual(timedOut.events.slice(0, 2), ["interrupt", "abort"]);
 });
 
 test("typed SDK failures are bounded and incomplete evidence fails closed", async () => {

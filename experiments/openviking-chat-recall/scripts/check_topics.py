@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Провенанс слияния: у каждого якоря входа ровно одна судьба.
 
-Якорь либо стоит при пункте, либо назван отменённым в разделе `## Отменено`.
-Якорь, которого нет во входе, — выдуманная ссылка.
+Якорь либо стоит при текущем пункте, либо его superseded/unresolved судьба
+названа в техническом run-receipt. Reader-facing topic не хранит tombstone.
 
 Инвариант 6 протокола quotes-to-wiki: ничего не исчезает молча. Проверка
 механическая, потому что переписанный по памяти якорь выглядит правдоподобно.
@@ -13,6 +13,14 @@ import json
 import os
 import re
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from wave_ready import (
+    TOMBSTONE_HEADING,
+    accounting_gap,
+    answer_details,
+    unresolved_marker_gap,
+)
 
 BULLET = re.compile(r"^- .+$", re.M)
 ANCHOR = re.compile(r"([0-9]{4}-[0-9]{2}-[0-9]{2}-[^\s#\],]+\.md)#L(\d+)")
@@ -30,7 +38,11 @@ def flat_anchors(base: str, name: str) -> set[tuple[str, str]]:
 TOPICS = "_ops/chat-recall/topics"
 
 
-def check(base: str, topics_dir: str = TOPICS) -> list[str]:
+def check(
+    base: str,
+    topics_dir: str = TOPICS,
+    runs_dir: str | None = None,
+) -> list[str]:
     topics = json.load(open(os.path.join(base, "topics.json"), encoding="utf-8"))["topics"]
     problems: list[str] = []
     for topic in topics:
@@ -43,20 +55,42 @@ def check(base: str, topics_dir: str = TOPICS) -> list[str]:
             continue
         text = open(path, encoding="utf-8").read()
         got = {m for b in BULLET.findall(text) for m in ANCHOR.findall(b)}
-        superseded = set()
-        if "## Отменено" in text:
-            tail = text.split("## Отменено", 1)[1]
-            superseded = set(ANCHOR.findall(tail))
-        lost, fake = want - got - superseded, (got | superseded) - want
-        if lost:
-            problems.append(f"{topic['id']}: потеряно якорей {len(lost)} из {len(want)}")
-        if fake:
-            problems.append(f"{topic['id']}: якорей нет в источнике {len(fake)}")
+        if TOMBSTONE_HEADING.search(text):
+            problems.append(
+                f"{topic['id']}: reader-facing topic содержит запрещённый раздел ## Отменено"
+            )
+
+        accounting: dict[str, object] | None = None
+        if runs_dir is not None:
+            answer_path = os.path.join(runs_dir, topic["id"] + ".json")
+            if not os.path.exists(answer_path):
+                answer_path = os.path.join(runs_dir, topic["id"] + ".md")
+            if not os.path.exists(answer_path):
+                problems.append(f"{topic['id']}: нет run-receipt")
+            else:
+                body, accounting, why = answer_details(answer_path)
+                if body is None:
+                    problems.append(f"{topic['id']}: {why}")
+                elif body.rstrip() != text.rstrip():
+                    problems.append(
+                        f"{topic['id']}: topic не совпадает с принятым response"
+                    )
+
+        gap = accounting_gap(accounting, want, got)
+        if gap:
+            problems.append(f"{topic['id']}: {gap}")
+        gap = unresolved_marker_gap(text, accounting)
+        if gap:
+            problems.append(f"{topic['id']}: {gap}")
     return problems
 
 
 if __name__ == "__main__":
-    found = check(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else TOPICS)
+    found = check(
+        sys.argv[1],
+        sys.argv[2] if len(sys.argv) > 2 else TOPICS,
+        sys.argv[3] if len(sys.argv) > 3 else None,
+    )
     for line in found:
         print(line)
     print(f"проблем: {len(found)}")

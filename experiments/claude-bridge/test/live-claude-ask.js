@@ -6,7 +6,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { askClaude } from "../src/claude-ask.js";
+import { askClaude, withClaudeAskTestDependencies } from "../src/claude-ask.js";
 import { createClaudeSessionAdapter } from "../src/claude-session.js";
 
 const testDir = path.dirname(fileURLToPath(import.meta.url));
@@ -44,6 +44,32 @@ const observationKeys = [
 
 function token(prefix) {
   return `${prefix}_${randomUUID().slice(0, 8).toUpperCase()}`;
+}
+
+function writePrivateReceipt(target, text) {
+  const receiptPath = path.resolve(target);
+  const receiptDir = path.dirname(receiptPath);
+  fs.mkdirSync(receiptDir, { mode: 0o700, recursive: true });
+  fs.chmodSync(receiptDir, 0o700);
+  const partial = `${receiptPath}.${process.pid}.${randomUUID()}.part`;
+  fs.writeFileSync(partial, text, { encoding: "utf8", flag: "wx", mode: 0o600 });
+  fs.chmodSync(partial, 0o600);
+  fs.renameSync(partial, receiptPath);
+  fs.chmodSync(receiptPath, 0o600);
+}
+
+function observedAskClaude(request, signal, observers) {
+  const previousNodeEnv = process.env.NODE_ENV;
+  process.env.NODE_ENV = "test";
+  try {
+    return withClaudeAskTestDependencies(
+      observers,
+      () => askClaude(request, signal)
+    );
+  } finally {
+    if (previousNodeEnv === undefined) delete process.env.NODE_ENV;
+    else process.env.NODE_ENV = previousNodeEnv;
+  }
 }
 
 function alive(pid) {
@@ -95,12 +121,12 @@ async function waitUntilDead(pid) {
 async function observeTreeUntilSettled(rootPid, observedTree, completion) {
   let settled = false;
   completion.finally(() => { settled = true; });
-  const deadline = Date.now() + 5000;
+  const deadline = Date.now() + 10_000;
   while (!settled && Date.now() < deadline) {
     for (const pid of descendants(processSnapshot(), rootPid)) observedTree.add(pid);
     await new Promise((resolve) => setTimeout(resolve, 10));
   }
-  assert.equal(settled, true, "Claude cancellation did not settle within five seconds");
+  assert.equal(settled, true, "Claude cancellation did not settle within ten seconds");
   for (const pid of descendants(processSnapshot(), rootPid)) observedTree.add(pid);
   await completion;
 }
@@ -371,14 +397,27 @@ try {
   }
 
   let abortRootPid = null;
+  const cancellationEvents = [];
+  const abortMessages = [];
   const abortController = new AbortController();
-  const abortPromise = askClaude(
+  const abortPromise = observedAskClaude(
     {
       cwd: bridgeRoot,
       profile: "opus_advisor",
       prompt: "Think silently for several minutes before replying. Do not use tools."
     },
-    abortController.signal
+    abortController.signal,
+    {
+      onCancellationEvent: (event) => cancellationEvents.push(event),
+      onMessage: (message) => abortMessages.push({
+        command_uuid: message.command_uuid,
+        state: message.state,
+        subtype: message.subtype,
+        terminal_reason: message.terminal_reason,
+        type: message.type,
+        user_message_uuid: message.user_message_uuid
+      })
+    }
   );
   await waitForPid(() => {
     abortRootPid ||= directClaudeChildren(processSnapshot())[0] || null;
@@ -394,15 +433,33 @@ try {
   const cancellation = assert.rejects(abortPromise, (error) => error?.code === "cancelled");
   await observeTreeUntilSettled(abortRootPid, observedTree, cancellation);
   for (const pid of observedTree) await waitUntilDead(pid);
+  const nativeInterrupt = cancellationEvents.find(({ type }) => type === "native_interrupt");
+  assert.ok(nativeInterrupt, "Claude cancellation returned no native interrupt receipt");
+  assert.deepEqual(nativeInterrupt.receipt?.still_queued, []);
+  assert.ok(
+    Array.isArray(nativeInterrupt.receipt?.cancelled),
+    "Claude Code did not prove interrupt_cancel_queued_v1"
+  );
+  assert.equal(
+    cancellationEvents.some(({ type }) => type === "hard_abort"),
+    false,
+    `Claude cancellation settled through hard abort: ${JSON.stringify({ cancellationEvents, abortMessages })}`
+  );
   receipts.abort = {
     root_pid: abortRootPid,
     observed_process_tree: [...observedTree].sort((left, right) => left - right),
     observed_after_abort: [...observedTree]
       .filter((pid) => !observedBeforeAbort.has(pid))
       .sort((left, right) => left - right),
-    alive_after: [...observedTree].filter(alive)
+    alive_after: [...observedTree].filter(alive),
+    cancellation_events: cancellationEvents,
+    message_shapes: abortMessages
   };
-  process.stdout.write(`${JSON.stringify(receipts, null, 2)}\n`);
+  const serialized = `${JSON.stringify(receipts, null, 2)}\n`;
+  if (process.env.CLAUDE_LIVE_RECEIPT) {
+    writePrivateReceipt(process.env.CLAUDE_LIVE_RECEIPT, serialized);
+  }
+  process.stdout.write(serialized);
 } finally {
   await sessionAdapter?.shutdown();
   fs.rmSync(scratch, { recursive: true, force: true });

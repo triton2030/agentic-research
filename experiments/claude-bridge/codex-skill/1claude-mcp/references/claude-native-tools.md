@@ -10,11 +10,15 @@ provider, mode, permissions and settings. Do not paste a static inventory into
 the advisor brief. Describe the needed capability and let Claude choose its
 visible native tools.
 
-- Do not add manual directories. Native sessions retain settings, skills,
-  hooks, MCP and deferred tool discovery, and can use any OS-accessible path.
-- Name a `Skill` when that specific reusable workflow is required.
-- Name the MCP capability or server when it matters; `ToolSearch` discovers
-  deferred schemas on demand.
+- Do not add manual directories. Fresh bridge sessions keep Claude Code's native
+  tools and the project `cwd`, but omit filesystem-sourced user/project/local
+  instructions, custom skills, hooks, MCP integrations, plugins, and auto-memory.
+  Managed policy and account state remain runtime-owned, and resumed sessions
+  retain their prior conversation. Claude may deliberately read any OS-accessible
+  instruction or evidence file when the task makes it relevant.
+- A named `Skill` or MCP capability is not automatically available in the clean
+  route. If the task truly requires one, include its exact file/address or
+  capability owner in `<context>` and let Claude inspect what is available.
 - Use `Agent` for one genuinely independent sizeable evidence stream.
   `SendMessage` can continue a useful subagent instead of starting another.
 - Use `Monitor` when the task must react to an ongoing command, log, file or
@@ -38,5 +42,4 @@ separate runtime diagnostic.
 Official volatile owners:
 
 - <https://code.claude.com/docs/en/tools-reference>
-- <https://code.claude.com/docs/en/agent-sdk/tool-search>
-- <https://code.claude.com/docs/en/workflows>
+- <https://code.claude.com/docs/en/agent-sdk/claude-code-features>

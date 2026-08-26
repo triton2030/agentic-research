@@ -14,17 +14,17 @@ description: "Датированный evidence snapshot свежих иссле
 
 ## Модельная Граница
 
-Cutoff владельца — 25 февраля 2026 года: более старые либо не pinned по точной
-версии модели панели остаются historical/non-target evidence. Они могут
-подсказать failure mode или дизайн comparator, но не доказывают поведение
-текущих моделей.
+Текущий рабочий набор владельца — GPT-5.6, Claude Opus 5 и Claude Fable 5.
+GPT-5.5, Claude 4.x и панели без точного совпадения с этим набором остаются
+historical/non-target evidence. Они могут подсказать failure mode или дизайн
+comparator, но не доказывают поведение текущих моделей.
 
 | Раздел | Статус для target-вывода |
 | --- | --- |
 | Signal or Noise? | Mixed historical/non-target: в основных результатах есть GPT-5.1, а даты остальных точных версий здесь не подтверждены |
 | Data Science skill ablations, SkillAlchemy, ACES | Model-unpinned/mixed: полезны для дизайна evaluation, не для прямого переноса rates |
-| KDD framework | Mixed/unpinned; judge Sonnet 4.6 старше cutoff |
-| ASI-Bench | **Target-supported:** GPT-5.5, GPT-5.6 Sol и Claude Opus 5 |
+| KDD framework | Mixed/unpinned; judge Sonnet 4.6 — non-target |
+| ASI-Bench | **Target-supported:** GPT-5.6 Sol и Claude Opus 5; GPT-5.5 — historical |
 | SIGIL | Historical/non-target: GPT-4o и GPT-5 |
 | Reusability corpus | Model-independent observation; defect frequencies не являются behavioral effect |
 

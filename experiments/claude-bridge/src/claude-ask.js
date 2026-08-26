@@ -43,12 +43,18 @@ export async function askClaude(request, signal) {
       executable: dependencies.executable,
       signal: lifetime.controller.signal
     });
+    if (lifetime.stoppedBy()) throw new Error("Claude request stopped before SDK launch.");
     const raw = await runClaudeSdk(launch, {
-      abortController: lifetime.controller,
+      abortController: new AbortController(),
+      interruptGraceMs: dependencies.interruptGraceMs,
+      onCancellationEvent: dependencies.onCancellationEvent,
+      onMessage: dependencies.onMessage,
       queryFactory: dependencies.queryFactory,
+      signal: lifetime.controller.signal,
       spawnClaudeCodeProcess: dependencies.spawnClaudeCodeProcess,
       validateInit: assertSdkRuntimeEvidence
     });
+    if (lifetime.stoppedBy()) throw new Error("Claude request stopped during execution.");
     assertSdkRuntimeEvidence(raw.init);
     return formatClaudeResult(raw, launch);
   } catch (error) {

@@ -20,7 +20,7 @@ description: >-
 пережить, не длина справочного знания, а context volume — отдельная цена.
 Сомнение, что строка неожиданно уведёт мысль агента, — не пиши её вовсе. Полный
 владелец цены — «налог на строгость» в
-[behavior-package](../1skill-authoring/references/behavior-package.md).
+[agent-defaults](../1skill-creation/references/agent-defaults.md).
 
 ## Цель
 
@@ -54,10 +54,10 @@ description: >-
 ## Соседи
 
 - скил не поднимается или перехватывается соседом → `1skill-routing`;
-- нужна принципиально новая функция, а не курация → `1skill-authoring`;
+- нужна принципиально новая функция, а не курация → `1skill-creation`;
 - виноват не скил, а контекст прошедшей работы → `1context-refactor`;
 - нужно правило деления тело/`references/` →
-  [reference](../1skill-authoring/references/reference.md).
+  [skills-science](../1skill-creation/references/skills-science.md).
 
 ## Завершение
 
@@ -66,4 +66,4 @@ description: >-
 проверено изменившееся решение · какой claim остался candidate. Не вошедшее
 записывается в `cut.md` с причиной; support envelope — в `evidence.md`. В сдаче
 цитируй применённые пункты канона; имя без пункта — не применение →
-[canon](../1skill-authoring/references/canon.md).
+[canon](../1skill-creation/references/canon.md).

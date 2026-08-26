@@ -4,9 +4,10 @@ description: "Датированный evidence snapshot о содержании
 
 # Root Instructions — Research 2026-08
 
-Срез публикаций с 25 июня по 25 августа 2026 года о persistent context files,
-system prompts и always-on instructions coding agents. Поиск и чтение
-источников выполнены только через Keenable.
+Срез публикаций с 25 июня по 26 августа 2026 года о persistent context files,
+system prompts и always-on instructions coding agents. Исходный поиск и чтение
+выполнены через Keenable; дополнение 26 августа найдено отдельным литературным
+проходом и сверено по телам первичных работ.
 
 Это Research and Evidence Report, а не инструкция и не portable-канон.
 Практическими выводами владеют
@@ -16,27 +17,28 @@ system prompts и always-on instructions coding agents. Поиск и чтени
 
 ## Модельная Граница
 
-Cutoff владельца — 25 февраля 2026 года. Из model-specific результатов ниже
-прямо допустимы для target-вывода только GPT-5.5, Claude Opus 5 и Claude Fable
-5. Sonnet 4.6 (17 февраля), GPT-5-mini, Gemini 2.5 Flash, GPT-5.2, GPT-4o,
-Llama и версии без подтверждённой даты — historical/non-target evidence.
+Текущий рабочий набор владельца — GPT-5.6, Claude Opus 5 и Claude Fable 5.
+GPT-5.5, Claude 4.x, GPT-5-mini, Gemini 2.5 Flash, GPT-5.2, GPT-4o, Llama и
+версии без точного совпадения с этим набором — historical/non-target evidence.
 
 | Evidence | Статус для target-вывода |
 | --- | --- |
-| Context-file ablation | GPT-5.5 row — target-supported; Sonnet 4.6 row — historical |
+| Context-file ablation | GPT-5.5 и Sonnet 4.6 — historical evidence |
 | Instruction Stacking Collapse | Historical/non-target panel; только гипотеза о conflict mechanism |
-| VeyraBench | Model panel здесь не pinned по cutoff; формат/scale rates не переносить |
-| Anthropic Claude 5 report | **Target-supported vendor evidence**, но без открытой методологии |
-| Bad Memory | GPT-5.5 rows — target-supported; остальные rows — historical/non-target |
+| VeyraBench | Model panel не совпадает с текущим target set; формат/scale rates не переносить |
+| CSE | GPT-5.5 и Claude 4.7 — historical evidence; constraint taxonomy и multiplicative collapse — гипотеза механизма, не target threshold |
+| Harness-IF | Opus 4.7/GPT-5.5 и другие non-target builds; surfaces и against-prior — design evidence, не универсальная иерархия |
+| Anthropic Claude 5 report | **Target-supported vendor evidence** для Claude 5, но без открытой методологии и без раздельного benchmark Opus/Fable |
+| Bad Memory | GPT-5.5 и Claude 4.x rows — historical evidence |
 | Guardrails as Scapegoats | Historical/non-target |
 | CAPO | Model-unpinned для этой границы; переносится только multi-threshold evaluation design |
 | Configuration Smells | Model-independent observational corpus, не причинный эффект |
 
-Следовательно, target-supported часть показывает три вещи: GPT-5.5 не получил
-общего роста correctness от always-on context в малой выборке; Claude 5 vendor
-сократил always-on system prompt; GPT-5.5 подвержен некоторым persistent-file
-атакам. Остальные числа сохраняются для дизайна проверки и не поддерживают
-portable правило о текущих моделях.
+Следовательно, прямой target-supported материал здесь ограничен vendor-отчётом
+Claude 5 о сокращении always-on system prompt. Результаты GPT-5.5, Claude 4.x
+и несовпадающих панелей сохраняются как historical/design evidence: они задают
+гипотезы и форму проверки, но не числовое portable-правило для GPT-5.6, Opus 5
+или Fable 5.
 
 ## Ответ В Одной Фразе
 
@@ -70,7 +72,7 @@ suite сократили wall-clock Claude примерно на 24%, а сле�
 эффект correctness диапазоном примерно до 10–15 п.п., но не доказывает ноль и
 не тестирует специально написанные task-critical root rules.
 
-### Стек Правил Разрушается Через Конфликты
+### Стек Правил Разрушается, Но Механизм Не Сведён К Конфликтам
 
 [Instruction Stacking Collapse](https://arxiv.org/abs/2608.02639) складывает
 до 20 verifier-checked инструкций:
@@ -88,6 +90,47 @@ suite сократили wall-clock Claude примерно на 24%, а сле�
 LLM compiler дал `+11.8` п.п. GPT-5-mini и `+5.0` Gemini, но `−6.7` п.п.
 Sonnet 4.6. Semantic compilation помогает слабым targets, но не является
 универсальной ручкой для frontier model.
+
+[Constraint Saturation Evaluation / CSE](https://arxiv.org/abs/2608.12426)
+даёт другой механизм на 15 моделях, 36 типах ограничений и `k=1–12`. У GPT-5.5
+strict all-pass становится ниже 50% при семи ограничениях, у Claude 4.7 Opus —
+при шести; к `k>=10` success почти нулевой у всей панели. Но co-failures в CSE
+почти независимы: небольшое падение надёжности каждого правила перемножается,
+а остаточная связь в основном идёт через общий output feature. Structural
+constraints деградируют примерно вдвое быстрее lexical; непрерывный контроль
+во время генерации предсказывает потерю лучше одной категории правила.
+
+Работы сходятся на эффекте accumulation и расходятся в объяснении основного
+механизма. Поэтому root-аудит должен искать и логические конфликты, и число
+независимо активных обязательств; объявлять pairwise conflict универсальной
+причиной нельзя.
+
+### Нагрузка — Не Однородные «Единицы Знаний»
+
+Instruction-count benchmarks считают обязательства, которые надо выполнить
+совместно. Справочный факт платит другую цену: его надо сначала извлечь, а
+удерживать и проверять на каждом действии — только если из него выведено
+поведенческое правило.
+
+| Содержимое root | Основной риск |
+| --- | --- |
+| `код лежит в src/` | retrieval нужного факта в нужный момент |
+| `не редактируй tests/` | постоянное распознавание применимости и veto действия |
+| `перед каждым edit выполни A→B→C` | несколько зависимых обязательств + состояние процедуры |
+| `минимизируй diff` | широкий criterion, повторно влияющий на выбор маршрута |
+
+Одна строка может содержать несколько атомарных требований; сотня справочных
+фактов не равна сотне одновременно активных constraints. И наоборот, один
+короткий запрет, противоречащий default модели, может быть дороже длинной
+ориентировки.
+
+[Harness-IF](https://arxiv.org/abs/2608.11727) подтверждает обе оговорки на
+operational rules coding agents. Against-prior accuracy у каждой из 12 моделей
+была ниже общей на 3.6–7.4 п.п. (в среднем 5.81). В отдельном конфликтном
+пилоте system prompt, project file и user instruction pooled-уровнем опередили
+tool и skill descriptions; prompt depth не объяснил precedence. Это не
+универсальный surface ranking: controlled pilot мал, а main-panel surfaces
+имели разную admissibility и состав правил.
 
 ### Формат Не Спасает Перегруженную Инструкцию
 
@@ -188,8 +231,9 @@ safety и format. CAPO достиг всех заданных thresholds во в
    lint/style rules, one-off task, длинный workflow и редкие examples.
 4. **Progressive disclosure:** task/domain procedure живёт в skill/reference;
    tool behavior — в schema/description.
-5. **Instruction budget:** считать active obligations и pairwise conflicts,
-   а не только строки или токены.
+5. **Instruction budget:** считать active obligations, maintenance cost,
+   зависимости, расхождение с model default и pairwise conflicts, а не строки,
+   токены или все справочные факты как равные слоты.
 6. **Mechanism boundary:** hard invariant обеспечивается hook, schema,
    validator, sandbox, permission или test; root prose — не enforcement.
 7. **Integrity:** auto-loaded root и memory files — privileged persistent
@@ -199,7 +243,7 @@ safety и format. CAPO достиг всех заданных thresholds во в
 9. **Model conditioning:** placement, compilation и examples проверяются на
    target model.
 
-## Contradiction Audit — 25 Августа 2026
+## Contradiction Audit — 26 Августа 2026
 
 | Current owner | Вердикт |
 | --- | --- |
@@ -208,7 +252,7 @@ safety и format. CAPO достиг всех заданных thresholds во в
 | [`perfect-context-engineering.md`](perfect-context-engineering.md) | Совместим; изменений не потребовал, integrity-boundary остаётся в этом датированном evidence snapshot |
 | [`authoring-canon.md`](../practical-guides/how-to-write-skills/authoring-canon.md) | Совместим: no-skill comparator, progressive disclosure, interface-first tools и workflow только для order-sensitive failure |
 | [`wisdom-skills-plugins.md`](../wisdom-skills-plugins.md) | Уточнён overbroad перенос постоянного индекса: resident delivery — крайний вариант, не enforcement |
-| [`science/how-to-make-llm-obey.md`](../../science/how-to-make-llm-obey.md) | Числовой ориентир уточнён cost/security/evaluation boundary; исходный замер сохранён |
+| [`science/how-to-make-llm-obey.md`](../../science/how-to-make-llm-obey.md) | Уточнены неоднородность правил, disagreement о механизме и граница `constraint ≠ fact`; старый замер сохранён как отдельная постановка |
 
 ## Что Не Доказано
 
@@ -219,6 +263,10 @@ safety и format. CAPO достиг всех заданных thresholds во в
 - Что on-demand delivery всегда лучше always-on.
 - Что один benchmark переносится на все models, repositories и long-horizon
   tasks.
+- Что существует общий лимит «10–20 единиц знаний»: constraints, retrieval
+  фактов и процедуры измеряют разные способности.
+- Что информация бесплатна: её retrieval и применение могут провалиться; не
+  доказано лишь равенство её стоимости активному ограничению.
 - Что prose может заменить runtime enforcement для high-risk действия.
 
 ## Confidence
@@ -226,7 +274,9 @@ safety и format. CAPO достиг всех заданных thresholds во в
 | Claim | Confidence | Причина |
 | --- | --- | --- |
 | Generic repository tour не имеет доказанного correctness lift | Medium | Прямой, но малый paired study + vendor guidance |
-| Большой стек конфликтующих правил снижает adherence | High в synthetic constraints | Два verifier-based benchmarks |
+| Большой стек активных правил снижает adherence | High в synthetic constraints | Три verifier-based benchmarks |
+| Pairwise conflicts — главный механизм collapse | Medium–Low | Instruction Stacking Collapse поддерживает; CSE находит почти независимое накопление |
+| Тип и maintenance demand меняют стоимость правила | Medium–High в synthetic constraints | CSE: structural ≈2× lexical; противоречие default подтверждает Harness-IF |
 | Progressive disclosure уменьшает resident tax | Medium–High | Vendor deployment + независимый skill evidence |
 | Root prose не является hard enforcement | High | Runtime и security experiments |
 | Auto-loaded files требуют integrity review | High | Stored-injection на Claude Code и Codex |
@@ -240,6 +290,10 @@ safety и format. CAPO достиг всех заданных thresholds во в
   count, conflicts и compilation; 31 июля 2026.
 - [Prompt Design at Scale](https://arxiv.org/abs/2607.19257) — format,
   placement и instruction-count scale; 22 июля 2026.
+- [Large Language Models Can Follow Instructions, But Not Many at Once / CSE](https://arxiv.org/abs/2608.12426)
+  — `k=1–12`, constraint taxonomy и multiplicative collapse; 12 августа 2026.
+- [Harness-IF](https://arxiv.org/abs/2608.11727) — operational rules across
+  instruction surfaces и against-prior control; август 2026.
 - [Anthropic context engineering for Claude 5](https://claude.com/blog/the-new-rules-of-context-engineering-for-claude-5-generation-models)
   — first-party deployment report; 24 июля 2026.
 - [Bad Memory](https://arxiv.org/abs/2607.14611) — persistent instruction-file

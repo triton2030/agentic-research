@@ -42,7 +42,7 @@ description: >-
 
 ## Соседи
 
-- скила ещё нет → `1skill-authoring`;
+- скила ещё нет → `1skill-creation`;
 - скил поднимается, но раздут или ничего не меняет → `1skill-refactor`;
 - смысл, возможно, вообще не скиловый → `1instruction-authoring`.
 
@@ -52,4 +52,4 @@ description: >-
 near-miss, проверенные без подсказок и без имени скила · какие соседние скилы
 перестали или начали перехватывать · что осталось candidate. В сдаче цитируй
 применённые пункты канона; имя без пункта — не применение →
-[canon](../1skill-authoring/references/canon.md).
+[canon](../1skill-creation/references/canon.md).

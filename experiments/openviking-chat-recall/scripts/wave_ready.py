@@ -35,6 +35,14 @@ CYR = re.compile(r"[а-яА-ЯёЁ]")
 LAT = re.compile(r"[A-Za-z]")
 SHORT = re.compile(r"L(\d+)")
 FULL = re.compile(r"([0-9]{4}-[0-9]{2}-[0-9]{2}-[^\s#\],)]+\.md)#L(\d+)")
+ACCOUNTING_RE = re.compile(
+    r"\n<!-- TOPIC_ANCHOR_ACCOUNTING\n(?P<data>\{.*?\})\n-->\s*$",
+    re.S,
+)
+TOMBSTONE_HEADING = re.compile(
+    r"^[ \t]{0,3}#{1,6}[ \t]+отменено(?:[ \t]+#+)?[ \t]*$",
+    re.IGNORECASE | re.MULTILINE,
+)
 
 MIN_RESPONSE = 500
 LANGUAGE_FLOOR = 0.5
@@ -42,10 +50,21 @@ LANGUAGE_FLOOR = 0.5
 _material: dict[str, str] = {}
 
 
+def material_gap(flat: str, names: list[str]) -> str | None:
+    missing = [
+        name for name in names if not os.path.isfile(os.path.join(flat, name))
+    ]
+    if missing:
+        return f"входной материал отсутствует: {', '.join(missing)}"
+    return None
+
+
 def read_flat(flat: str, name: str) -> str:
     path = os.path.join(flat, name)
+    if not os.path.isfile(path):
+        raise FileNotFoundError(path)
     if path not in _material:
-        _material[path] = open(path, encoding="utf-8").read() if os.path.exists(path) else ""
+        _material[path] = open(path, encoding="utf-8").read()
     return _material[path]
 
 
@@ -75,7 +94,6 @@ def flat_text(flat: str, names: list[str]) -> str:
 
 ANCHOR = re.compile(r"\[[^\]]*#?L\d+[^\]]*\]")
 BRACKET = re.compile(r"\[([^\]]*)\]")
-CANCELLED = re.compile(r"^#+\s*Отменено", re.M)
 
 
 def normal(text: str) -> str:
@@ -123,7 +141,146 @@ def material_items(flat: str, names: list[str]) -> dict[tuple[str, str], list[st
     return items
 
 
-def coverage_gap(body: str, flat: str, names: list[str]) -> str | None:
+def accounting_gap(
+    accounting: dict[str, object] | None,
+    want: set[tuple[str, str]],
+    got: set[tuple[str, str]],
+) -> str | None:
+    """Validate missing-anchor accounting kept in the run receipt.
+
+    A merge may remove a superseded claim from the reader-facing topic, but the
+    omission must be declared in the accepted response that produced it. This
+    deliberately uses the existing run JSON response as the evidence carrier;
+    it does not create a second topic-side store.
+    """
+    value = {"superseded": []} if accounting is None else accounting
+    if not isinstance(value, dict) or set(value) not in (
+        {"superseded"},
+        {"superseded", "unresolved"},
+    ):
+        return "учёт якорей имеет лишние или отсутствующие поля"
+    entries = value["superseded"]
+    unresolved_entries = value.get("unresolved", [])
+    if not isinstance(entries, list) or not isinstance(unresolved_entries, list):
+        return "учёт якорей: superseded должен быть массивом"
+
+    declared: set[tuple[str, str]] = set()
+    for entry in entries:
+        if not isinstance(entry, dict) or set(entry) != {"anchor", "by"}:
+            return "учёт якорей: запись должна содержать только anchor и by"
+        anchor, by = entry.get("anchor"), entry.get("by")
+        if not isinstance(anchor, str) or not FULL.fullmatch(anchor):
+            return "учёт якорей: anchor имеет неверный формат"
+        if not isinstance(by, str) or not FULL.fullmatch(by):
+            return "учёт якорей: by имеет неверный формат"
+        anchor_match = FULL.fullmatch(anchor)
+        by_match = FULL.fullmatch(by)
+        if anchor_match is None or by_match is None:
+            return "учёт якорей: anchor/by имеет неверный формат"
+        anchor_key, by_key = anchor_match.groups(), by_match.groups()
+        if anchor_key in declared:
+            return f"учёт якорей: anchor повторяется {anchor}"
+        if anchor_key not in want:
+            return f"учёт якорей: anchor отсутствует во входе {anchor}"
+        if by_key not in want or by_key not in got:
+            return f"учёт якорей: surviving by не стоит в текущей теме {by}"
+        declared.add(anchor_key)
+
+    for entry in unresolved_entries:
+        if not isinstance(entry, dict) or set(entry) != {"anchor", "reason"}:
+            return "учёт якорей: unresolved должен содержать anchor и reason"
+        anchor, reason = entry.get("anchor"), entry.get("reason")
+        if not isinstance(anchor, str) or not FULL.fullmatch(anchor):
+            return "учёт якорей: unresolved anchor имеет неверный формат"
+        if not isinstance(reason, str) or not reason.strip():
+            return "учёт якорей: unresolved reason не должен быть пустым"
+        anchor_match = FULL.fullmatch(anchor)
+        if anchor_match is None:
+            return "учёт якорей: unresolved anchor имеет неверный формат"
+        anchor_key = anchor_match.groups()
+        if anchor_key in declared:
+            return f"учёт якорей: anchor повторяется {anchor}"
+        if anchor_key not in want:
+            return f"учёт якорей: unresolved anchor отсутствует во входе {anchor}"
+        if anchor_key in got:
+            return f"учёт якорей: unresolved anchor попал в topic {anchor}"
+        declared.add(anchor_key)
+
+    fake = got - want
+    if fake:
+        return f"якоря не сходятся — лишних {len(fake)}"
+    missing = want - got
+    if declared != missing:
+        return (
+            "учёт якорей не сходится — необъявленных исчезнувших: "
+            f"{len(missing - declared)}, лишних объявлений: {len(declared - missing)}"
+        )
+    return None
+
+
+def parse_answer(text: str) -> tuple[str, dict[str, object], str | None]:
+    """Split reader-facing topic text from its run-receipt accounting footer."""
+    body = strip_fence(text)
+    match = ACCOUNTING_RE.search(body)
+    if match is None:
+        if "TOPIC_ANCHOR_ACCOUNTING" in body:
+            return "", {}, "учёт якорей повреждён или не стоит в конце ответа"
+        return body, {"superseded": []}, None
+    try:
+        value = json.loads(match.group("data"))
+    except json.JSONDecodeError:
+        return "", {}, "учёт якорей не является JSON"
+    return body[: match.start()].rstrip(), value, None
+
+
+def unresolved_marker_gap(
+    body: str,
+    accounting: dict[str, object] | None,
+) -> str | None:
+    """Allow one neutral unresolved marker, never both conflicting claims."""
+    entries = (
+        accounting.get("unresolved", [])
+        if isinstance(accounting, dict)
+        else []
+    )
+    has_heading = bool(re.search(r"^## Не разрешено\s*$", body, re.M))
+    if not entries:
+        return (
+            "topic содержит ## Не разрешено без внешнего unresolved-учёта"
+            if has_heading
+            else None
+        )
+    if not has_heading:
+        return "unresolved-учёт требует нейтральный раздел ## Не разрешено"
+    match = re.search(
+        r"^## Не разрешено\s*$([\s\S]*?)(?=^## |\Z)",
+        body,
+        re.M,
+    )
+    section = match.group(1) if match else ""
+    lines = [line for line in section.splitlines() if line.startswith("- ")]
+    if len(lines) != 1:
+        return "## Не разрешено должен содержать ровно один neutral abstain marker"
+    if FULL.findall(section):
+        return "neutral unresolved marker не должен публиковать raw anchors"
+    neutral_words = (
+        "не разреш",
+        "unresolved",
+        "abstain",
+        "сверить raw",
+        "consult raw",
+    )
+    if not any(word in section.casefold() for word in neutral_words):
+        return "## Не разрешено должен назвать текущую позицию unresolved"
+    return None
+
+
+def coverage_gap(
+    body: str,
+    flat: str,
+    names: list[str],
+    accounting: dict[str, object] | None = None,
+) -> str | None:
     """Каждый пункт материала обязан присутствовать целиком — вот инвариант.
 
     Прежняя редакция сравнивала множества якорей, и Codex показал, чем за это
@@ -132,13 +289,18 @@ def coverage_gap(body: str, flat: str, names: list[str]) -> str | None:
     сохранённом якоре тоже проходила. Считать надо пункты, а не подписи.
     """
 
-    parts = CANCELLED.split(body, maxsplit=1)
-    live, cancelled = parts[0], (parts[1] if len(parts) > 1 else "")
-    # Отменённый пункт исчезает из тела вместе со своим текстом, а его якорь
-    # называется первым в строке отмены — только он и освобождается от переноса.
-    excused = {b[0][0] for b in bullets(cancelled) if b[0]}
+    excused = {
+        FULL.fullmatch(entry["anchor"]).groups()
+        for entry in (
+            list((accounting or {}).get("superseded", []))
+            + list((accounting or {}).get("unresolved", []))
+        )
+        if isinstance(entry, dict)
+        and isinstance(entry.get("anchor"), str)
+        and FULL.fullmatch(entry["anchor"])
+    }
     holders: dict[tuple[str, str], list[str]] = {}
-    for anchors, text in bullets(live):
+    for anchors, text in bullets(body):
         if len(set(anchors)) > 1:
             # Пункт с несколькими якорями — законное схлопывание дублей из
             # разных разговоров: контракт даёт ему одну формулировку и все
@@ -172,7 +334,12 @@ def coverage_gap(body: str, flat: str, names: list[str]) -> str | None:
     return None
 
 
-def theme_gap(body: str, flat: str, names: list[str]) -> str | None:
+def theme_gap(
+    body: str,
+    flat: str,
+    names: list[str],
+    accounting: dict[str, object] | None = None,
+) -> str | None:
     """Единственный владелец слова «готова» для темы: форма, язык, происхождение.
 
     Раздельные проверки уже дважды разошлись между собой: доска считала тему
@@ -181,14 +348,25 @@ def theme_gap(body: str, flat: str, names: list[str]) -> str | None:
     """
     if not body.startswith("---"):
         return "ответ не похож на файл темы"
-    gap = language_gap(body, flat_text(flat, names))
+    if TOMBSTONE_HEADING.search(body):
+        return "reader-facing topic содержит запрещённый раздел ## Отменено"
+    gap = material_gap(flat, names)
     if gap:
         return gap
-    want, got = flat_anchors(flat, names), set(FULL.findall(body))
-    lost, fake = want - got, got - want
-    if lost or fake:
-        return f"якоря не сходятся — потеряно {len(lost)}, лишних {len(fake)}"
-    return coverage_gap(body, flat, names)
+    try:
+        gap = language_gap(body, flat_text(flat, names))
+        if gap:
+            return gap
+        want, got = flat_anchors(flat, names), set(FULL.findall(body))
+        gap = accounting_gap(accounting, want, got)
+        if gap:
+            return gap
+        gap = unresolved_marker_gap(body, accounting)
+        if gap:
+            return gap
+        return coverage_gap(body, flat, names, accounting)
+    except FileNotFoundError as error:
+        return f"входной материал исчез: {error.filename or error}"
 
 
 def cyr_share(text: str) -> float:
@@ -229,13 +407,25 @@ def read_answer(path: str) -> tuple[str | None, str]:
     Производителей у слоя два, а судья должен остаться один — иначе счёт снова
     разойдётся с раскладкой, как разошёлся 2026-08-25 на четырёх темах.
     """
+    body, _, why = answer_details(path)
+    return body, why
+
+
+def answer_details(path: str) -> tuple[str | None, dict[str, object], str]:
+    """Read a response and retain its non-reader-facing accounting footer."""
     if path.endswith(".md"):
-        body = open(path, encoding="utf-8").read()
-        if len(body) < MIN_RESPONSE:
-            return None, f"ответ пуст или короток ({len(body)} симв)"
-        return strip_fence(body), ""
-    payload, why = run_verdict(path)
-    return (strip_fence(payload["response"]) if payload else None), why
+        raw = open(path, encoding="utf-8").read()
+        if len(raw) < MIN_RESPONSE:
+            return None, {}, f"ответ пуст или короток ({len(raw)} симв)"
+    else:
+        payload, why = run_verdict(path)
+        if payload is None:
+            return None, {}, why
+        raw = payload.get("response") or ""
+    body, accounting, why = parse_answer(raw)
+    if why:
+        return None, {}, why
+    return body, accounting, ""
 
 
 def answers_in(folder: str) -> list[str]:
@@ -254,11 +444,15 @@ def survey(tasks: str, answers: tuple[str, ...], flat: str | None
     for folder in answers:
         for path in answers_in(folder):
             name = os.path.splitext(os.path.basename(path))[0]
-            body, why = read_answer(path)
+            body, accounting, why = answer_details(path)
             if body is None:
                 refused.setdefault(name, why)
                 continue
-            gap = theme_gap(body, flat, files.get(name, [])) if flat else None
+            gap = (
+                theme_gap(body, flat, files.get(name, []), accounting)
+                if flat
+                else None
+            )
             if gap:
                 refused[name] = gap
                 continue

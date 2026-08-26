@@ -114,12 +114,13 @@ python3 $S/apply_topicmap.py "$WORK-topics/runs/topics.json" "$ART/flat" "$ART/t
 python3 $S/build_stage_tasks.py merge "$ART/topics.json" "$ART/flat" "$WORK-merge/tasks"
 # волна
 python3 $S/apply_stage.py merge "$WORK-merge/runs" "$ART/flat" "$TOPICS"
-python3 $S/check_topics.py "$ART" "$TOPICS"
+python3 $S/check_topics.py "$ART" "$TOPICS" "$WORK-merge/runs"
 ```
 
-Раскладка сверяет якоря входа и выхода и отвергает тему целиком, если они не
-сходятся. Переписанный по памяти якорь выглядит правдоподобно — ловится только
-счётом.
+Раскладка сверяет якоря входа и выхода, а superseded-учёт читает из того же
+run JSON, который породил topic. Технический блок не публикуется в reader-facing
+файле. Тема целиком отвергается, если якорь переписан, потерян молча или
+reader-facing topic содержит tombstone.
 
 ## Стадия 4 — покрытие и добор
 
@@ -148,6 +149,23 @@ runbook не обещает им совместимость с topic-контр�
 schema и вызови `topic_reconcile.py apply`. Перед следующей записью снова
 готовь patch против свежего hash. Структурную проблему, которую четыре typed
 operation не выражают, оставь pending как finding, а не обходи прямой записью.
+
+Единственное узкое исключение для legacy topic, где запрещённый tombstone уже
+стоит последним разделом и содержит только канонические replacement-буллеты с
+raw-якорями, — guarded recovery:
+
+```bash
+python3 ~/.codex/skills/1chat-recall/scripts/topic_reconcile.py \
+  repair-legacy-tombstone --project "$PROJECT" --topic "$TOPIC" \
+  --expected-sha256 "$OBSERVED_TOPIC_SHA256"
+```
+
+Команда откажется при изменившемся hash, любом разделе после tombstone,
+не-legacy грамматике либо отсутствующем holder/record любого raw-якоря. Это
+операторская миграция известного legacy, а не fallback для обычного
+`prepare/apply`: текущая ветка capture всё равно
+закрывается как `raw saved; topic pending`, а finding лишь сохраняет побочный
+структурный дефект.
 
 ## Стадия 6 — пакетное обновление backlog
 
