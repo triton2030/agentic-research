@@ -417,6 +417,27 @@
       "record_sha256": "ad053422bd5a44f6765bb98248674c4306bb01c56aadd6e20cdf48bf6c2e550e",
       "anchor": "2026-08-26-215943-claude-1a12f637.md#L21",
       "topic_sha256": "05c108cd6129d282e7311400cc0d29f32fc0df1a69cf0c90298b53c21bd993c0"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "1a12f637-58af-40be-91b5-39e67b573a87",
+      "record_sha256": "a05402de86915d554d6921071cd552796f78ebcbef19ee6d01a7b01968c34c9c",
+      "anchor": "2026-08-26-215943-claude-1a12f637.md#L22",
+      "topic_sha256": "05c108cd6129d282e7311400cc0d29f32fc0df1a69cf0c90298b53c21bd993c0"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "1a12f637-58af-40be-91b5-39e67b573a87",
+      "record_sha256": "f97c9f255bfb62b10327358d8a3a0aae51851d915fdd7b00a77d622771c03ae7",
+      "anchor": "2026-08-26-215943-claude-1a12f637.md#L23",
+      "topic_sha256": "05c108cd6129d282e7311400cc0d29f32fc0df1a69cf0c90298b53c21bd993c0"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "1a12f637-58af-40be-91b5-39e67b573a87",
+      "record_sha256": "ade0ba330497e11666843bfe05d37d018f7f983196599694d9053707a9c35c1e",
+      "anchor": "2026-08-26-215943-claude-1a12f637.md#L24",
+      "topic_sha256": "05c108cd6129d282e7311400cc0d29f32fc0df1a69cf0c90298b53c21bd993c0"
     }
   ]
 }

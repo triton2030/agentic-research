@@ -31,9 +31,10 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   - `1skill-routing/portable/` — кнопка запуска: имя, description, триггер;
     владеет `description.md` и лимитом 200 символов на описания и
     строки-аннотации;
-  - `1skill-refactor/portable/` — курация вызывающегося скила; владеет своими
-    `refactor.md`, `failures.md`, `check.md` (дельты поверх базы
-    `1context-refactor`).
+  - `1skill-refactor/portable/` — рефактор скила: сверка со `1skill-creation`
+    и пошаговый протокол абстрагирования инструкций в высший порядок без потери
+    смысла; владеет своими `refactor.md`, `failures.md`, `check.md` (дельты
+    поверх базы `1context-refactor`).
   У каждого `platforms/codex/agents/openai.yaml` — только Codex UI metadata.
   Reference-файл живёт ровно у одного владельца; соседи ссылаются относительно.
 - `1md-search/portable/` — общий cognitive/tool core для
