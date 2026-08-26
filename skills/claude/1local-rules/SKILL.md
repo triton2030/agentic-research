@@ -2,18 +2,18 @@
 name: 1local-rules
 description: >-
   Use when creating a project-local 2* rule skill for one project action and
-  syncing Claude/Codex. Use 1skill-shaping for the surface and
-  1instruction-shaping for its prose.
+  syncing Claude/Codex. Surface via 1skill-authoring, trigger via
+  1skill-routing, prose via 1instruction-placement.
 ---
 
 Локальное **правило-скил** — критичная инструкция одного проекта, которая обычно
 осела бы текстом в `AGENTS.md`/`CLAUDE.md`, но вынесена в скил, потому что обязана
 всплыть **в момент действия**, а не выцвести в начале сессии. Корневая добродетель
-та же, что у `1skill-shaping` (**moment-fit**), но жанр узкий: правило,
+та же, что у `1skill-routing` (**moment-fit**), но жанр узкий: правило,
 привязанное к наблюдаемому действию, и его обновление по мере взросления проекта.
-Surface/owner/trigger/collision design держит `1skill-shaping`; общий
+Surface/owner design держит `1skill-authoring`, trigger/collision — `1skill-routing`; общий
 create/update/scaffold/validate contract — официальный Claude `skill-creator`;
-размещение и формулировку обычных текстовых правил — `1instruction-shaping`. Этот скил
+размещение и формулировку обычных текстовых правил — `1instruction-placement`. Этот скил
 добавляет только то, что специфично жанру локального правила-скила.
 
 ## Когда это правило-скил, а когда нет
@@ -25,11 +25,14 @@ create/update/scaffold/validate contract — официальный Claude `skil
 Правило-скил возвращает пропущенный шаг ровно тогда, когда он нужен.
 
 Не делай скил, если правило снимается одним-двумя предложениями текста и модель
-его и так выполняет — правило, не меняющее решение агента, лишнее (это владение
-`1instruction-shaping`). «Куда вообще положить правило / как сформулировать» —
-сначала `1instruction-shaping`; «какой surface/owner, почему не срабатывает или где
-collision» — `1skill-shaping`; «создать/обновить/scaffold/validate skill» —
+его и так выполняет — правило, не меняющее решение агента, лишнее (это владение `1instruction-placement`). «Куда вообще положить правило / как сформулировать» —
+сначала `1instruction-placement`; «какой surface/owner» — `1skill-authoring`; «почему не срабатывает или где collision» — `1skill-routing`; «создать/обновить/scaffold/validate skill» —
 `skill-creator`.
+
+Если repo уже имеет cold rule directory и always-on root надёжно маршрутизирует
+observable trigger к exact file, оставь правило там через `1instruction-placement`.
+`2*` нужен только когда такого чтения по route недостаточно и правило должно
+всплывать через skill discovery в момент действия.
 
 ## Закон триггера: условие × дельта
 
@@ -51,7 +54,7 @@ marketing/`) — жёстче всего; глагол действия (`пиш
 вкладывай, *что неочевидного или что сломается*: не «когда пишешь в `marketing/` —
 проверь оформление», а «когда пишешь в `marketing/` — текст обязан влезть в
 фиксированный бюджет, иначе молча перерасходуешь». Это та же дельта, что у
-`1instruction-shaping` («правило закрывает место, где дефолт модели расходится с
+`1instruction-placement` («правило закрывает место, где дефолт модели расходится с
 нужным»), перенесённая на саму поверхность обнаружения.
 
 Оба слоя обязательны: очевидное условие без дельты — модель не откроет; сильная
@@ -69,10 +72,12 @@ marketing/`) — жёстче всего; глагол действия (`пиш
   выбери осознанно: <палитра, раскладка, имена, …>». Возвращает пропущенный шаг
   рассуждения.
 
-Тело держи тонким; глубину — в `references/`, по условию. Общую дисциплину письма
+Тело держи тонким; глубину — в `references/`, по условию. Разделы тонкого
+тела: результат · стандарт решения · границы проекта · required evidence ·
+стоп. Общую дисциплину письма
 скила (concrete examples, degrees of freedom, progressive disclosure,
 validation) не дублируй — она у системного `skill-creator`; design gate,
-Condition × Delta и collision ownership — у `1skill-shaping`.
+Condition × Delta и collision ownership — у `1skill-routing`.
 
 ## Имя, размещение, синхронизация (`1` vs `2`)
 
@@ -124,7 +129,7 @@ Condition × Delta и collision ownership — у `1skill-shaping`.
 - провенанс: названо, против какого расхождения модели стоит правило (наблюдалось /
   общий перекос);
 - имя и размещение: имя с `2` (`2<имя>`); одинаковая копия у обоих агентов из одного
-  источника правды; surface/trigger/collision делегируй `1skill-shaping`, а
+  источника правды; surface делегируй `1skill-authoring`, trigger/collision — `1skill-routing`, а
   create/update/scaffold/validate — `skill-creator`.
 
 Остановись, когда правило срабатывает в свой момент, несёт дельту и привязано к

@@ -97,12 +97,12 @@ def boundary_prompt(args: argparse.Namespace, prompt: str) -> str:
 def command(
     args: argparse.Namespace,
     hermes_bin: str,
-    prompt: str,
+    query_file: Path,
     toolsets: list[str],
     runtime: tuple[str, str | None, str],
 ) -> list[str]:
     model, provider, reasoning = runtime
-    result = [hermes_bin, "chat", "-q", boundary_prompt(args, prompt)]
+    result = [hermes_bin, "chat", "--query-file", str(query_file)]
     if args.resume:
         result.extend(["--resume", args.resume])
     result.extend(["--model", model, "--reasoning", reasoning])
@@ -147,6 +147,13 @@ def runtime_verdict(
             mismatch = mismatch or not allow_fallback
             warnings.append(
                 f"runtime mismatch: requested {label} {expected}, got {actual}"
+            )
+        elif label == "provider" and expected is None and actual:
+            # Свежий прогон с --model без --provider: ожидание не зафиксировано,
+            # сравнивать не с чем, но биллинг зависит от провайдера — молчать
+            # нельзя, поэтому предупреждение без вердикта mismatch.
+            warnings.append(
+                f"requested provider is unpinned; session resolved {actual}"
             )
     resolved_reasoning = resolved.get("reasoning")
     if not isinstance(resolved_reasoning, dict):

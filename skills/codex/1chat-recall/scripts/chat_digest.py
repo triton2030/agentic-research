@@ -30,7 +30,15 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
-from recall_metadata import REPAIR_TOPIC, REPAIR_TYPE, TYPES
+from recall_metadata import (
+    NON_TOPIC_STEMS,
+    REPAIR_TOPIC,
+    REPAIR_TYPE,
+    TYPES,
+    topic_description,
+    topic_diagnostics,
+    topic_search_text,
+)
 
 KINDS = {"quote", "selection", "note", "raw"}
 PRECISIONS = {"exact", "minute", "date", "unknown"}
@@ -72,6 +80,7 @@ HYBRID_DEPTH = 40
 RRF_CONSTANT = 60
 SESSION_ROUTE_LIMIT = 5
 CONTEXT_RESCUE_LIMIT = 2
+TOPIC_ROUTE_LIMIT = 5
 FILE_SUPPORT_WEIGHT = 0.1
 DEFAULT_MAX_CHARS = 8000
 EMBEDDING_PROFILE = (
@@ -292,6 +301,24 @@ def load(records_dir: Path) -> tuple[list[dict[str, Any]], int]:
     return records, sum(bool(record["diagnostics"]) for record in records)
 
 
+def load_topic_cards(corpus_dir: Path) -> list[dict[str, Any]]:
+    """Load the current topic vocabulary as a separate retrieval route."""
+    root = corpus_dir.parent if corpus_dir.name == "raw" else corpus_dir
+    layer = root / "topics"
+    if not layer.is_dir():
+        return []
+    return [
+        {
+            "topic": path.stem,
+            "description": topic_description(path),
+            "search_text": topic_search_text(path),
+            "file": f"topics/{path.name}",
+        }
+        for path in sorted(layer.glob("*.md"))
+        if path.stem not in NON_TOPIC_STEMS
+    ]
+
+
 def inventory(records: list[dict[str, Any]], diagnostic_count: int) -> str:
     topics: dict[str, dict[str, Any]] = defaultdict(
         lambda: {"n": 0, "types": Counter(), "dates": []}
@@ -371,6 +398,39 @@ def search_bm25(records: list[dict[str, Any]], query: str) -> list[dict[str, Any
         record["score"] = score
         result.append(record)
     return result
+
+
+def search_topic_descriptions_bm25(
+    cards: list[dict[str, Any]], query: str
+) -> list[dict[str, Any]]:
+    if not cards:
+        return []
+    connection = sqlite3.connect(":memory:")
+    try:
+        connection.execute(
+            "CREATE VIRTUAL TABLE topic_cards USING fts5("
+            "topic, description, tokenize='unicode61')"
+        )
+        connection.executemany(
+            "INSERT INTO topic_cards(rowid, topic, description) VALUES (?, ?, ?)",
+            (
+                (index, card["topic"], card["search_text"])
+                for index, card in enumerate(cards, 1)
+            ),
+        )
+        rows = connection.execute(
+            "SELECT rowid, bm25(topic_cards, 0.5, 1.0) AS score "
+            "FROM topic_cards WHERE topic_cards MATCH ? ORDER BY score, rowid",
+            (_fts_query(query),),
+        ).fetchall()
+    except sqlite3.Error as error:
+        raise CliError(f"BM25 query недопустим: {error}") from error
+    finally:
+        connection.close()
+    return [
+        {**cards[rowid - 1], "score": score}
+        for rowid, score in rows
+    ]
 
 
 def search_session_context_bm25(
@@ -777,6 +837,48 @@ def _search_dense_texts(
         candidate["score"] = score
         result.append(candidate)
     return result
+
+
+def search_topic_candidates(
+    cards: list[dict[str, Any]],
+    query: str,
+    *,
+    hybrid: bool,
+    limit: int = TOPIC_ROUTE_LIMIT,
+) -> tuple[list[dict[str, Any]], int]:
+    """Rank topic descriptions without mixing them into quote-holder scores."""
+    lexical = search_topic_descriptions_bm25(cards, query)
+    dense = (
+        _search_dense_texts(cards, query, lambda card: card["search_text"])
+        if hybrid and cards
+        else []
+    )
+    ordered = dense if hybrid else lexical
+    if not ordered:
+        return [], 0
+    by_topic = {card["topic"]: card for card in cards}
+    lexical_topics = {card["topic"] for card in lexical}
+    candidates: list[dict[str, Any]] = []
+    for rank, ranked_card in enumerate(ordered[:limit], 1):
+        topic = ranked_card["topic"]
+        card = by_topic[topic]
+        admitted_by = (
+            "lexical+dense"
+            if hybrid and topic in lexical_topics
+            else "dense"
+            if hybrid
+            else "lexical"
+        )
+        candidates.append(
+            {
+                "topic": topic,
+                "description": card["description"],
+                "file": card["file"],
+                "topic_rank": rank,
+                "admitted_by": admitted_by,
+            }
+        )
+    return candidates, len(ordered)
 
 
 _DENSE_TOP1: float | None = None
@@ -1320,20 +1422,32 @@ def _show(record: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def _check_report(records: list[dict[str, Any]], total: int, max_chars: int) -> str:
+def _check_report(
+    records: list[dict[str, Any]],
+    total: int,
+    max_chars: int,
+    topic_issues: tuple[str, ...] = (),
+) -> str:
     issues = [record for record in records if record["diagnostics"]]
-    if not issues:
+    if not issues and not topic_issues:
         return f"OK: {total} записей без diagnostics"
 
-    issue_lines = [
+    raw_issue_lines = [
         f"{record['address']} {record['record_id']}: {','.join(record['diagnostics'])}"
         for record in issues
     ]
+    issue_lines = [*topic_issues, *raw_issue_lines]
+    issue_label = (
+        f"corpus diagnostics ({len(raw_issue_lines)} raw, "
+        f"{len(topic_issues)} topic)"
+        if topic_issues
+        else "records with diagnostics"
+    )
     visible: list[str] = []
     for line in issue_lines:
         candidate_count = len(visible) + 1
         candidate_summary = (
-            f"{candidate_count}/{len(issues)} records with diagnostics shown · "
+            f"{candidate_count}/{len(issue_lines)} {issue_label} shown · "
             f"{total} records · truncated"
         )
         candidate = "\n".join((candidate_summary, *visible, line))
@@ -1343,10 +1457,10 @@ def _check_report(records: list[dict[str, Any]], total: int, max_chars: int) -> 
 
     truncated = len(visible) < len(issue_lines)
     summary = (
-        f"{len(visible)}/{len(issues)} records with diagnostics shown · "
+        f"{len(visible)}/{len(issue_lines)} {issue_label} shown · "
         f"{total} records · truncated"
         if truncated
-        else f"{len(issues)} records with diagnostics · {total} records"
+        else f"{len(issue_lines)} {issue_label} · {total} records"
     )
     return "\n".join((summary, *visible))
 
@@ -1390,6 +1504,8 @@ def _render_digest(
 def _render_holders(
     cards: list[dict[str, Any]],
     *,
+    topic_candidates: list[dict[str, Any]] | None = None,
+    topic_matched: int = 0,
     matched: int,
     total: int,
     truncated_by: str | None,
@@ -1401,10 +1517,20 @@ def _render_holders(
     )
     if truncated_by:
         status += f" · truncated by --{truncated_by.replace('_', '-')}"
+    topics = topic_candidates or []
+    if topic_matched or topics:
+        status += f" · {len(topics)}/{topic_matched} topic candidates"
     lines = [status]
     domain = _domain_verdict(_DENSE_TOP1)
     if domain is not None:
         lines.append(f"query-domain={domain} · dense_top1={_DENSE_TOP1:.3f}")
+    for topic in topics:
+        lines.append(
+            f"topic-candidate={topic['topic']} · "
+            f"topic_rank={topic['topic_rank']} · "
+            f"admitted_by={topic['admitted_by']} · file={topic['file']}"
+        )
+        lines.append(f"description: {topic['description']}")
     for card in cards:
         lines.append(
             f"holder={card['file']} · {card['age']} · "
@@ -1438,11 +1564,13 @@ def _render_holders(
 def _bounded_holder_cards(
     cards: list[dict[str, Any]],
     *,
+    topic_candidates: list[dict[str, Any]],
+    topic_matched: int,
     matched: int,
     total: int,
     max_chars: int,
     retrieval: str,
-) -> tuple[list[dict[str, Any]], str | None]:
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], str | None]:
     selected: list[dict[str, Any]] = []
     truncated_by: str | None = None
     for card in cards:
@@ -1463,7 +1591,45 @@ def _bounded_holder_cards(
             "первая holder-card не помещается в --max-chars; "
             "уменьшите --head или увеличьте лимит"
         )
-    return selected, truncated_by
+    selected_topics: list[dict[str, Any]] = []
+    for topic in topic_candidates:
+        candidate_topics = [*selected_topics, topic]
+        rendered = _render_holders(
+            selected,
+            topic_candidates=candidate_topics,
+            topic_matched=topic_matched,
+            matched=matched,
+            total=total,
+            truncated_by=(
+                "max_chars"
+                if len(candidate_topics) < len(topic_candidates)
+                else truncated_by
+            ),
+            retrieval=retrieval,
+        )
+        if len(rendered) > max_chars:
+            truncated_by = "max_chars"
+            break
+        selected_topics = candidate_topics
+    if topic_candidates and not cards and not selected_topics:
+        raise CliError(
+            "первый topic-candidate не помещается в --max-chars; "
+            "увеличьте лимит"
+        )
+    return selected, selected_topics, truncated_by
+
+
+def _query_selection(
+    holders: list[dict[str, Any]],
+    topics: list[dict[str, Any]],
+) -> str:
+    if holders and topics:
+        return "holders+topic_candidates"
+    if holders:
+        return "holders"
+    if topics:
+        return "topic_candidates"
+    return "none"
 
 
 def _bounded_digest(
@@ -1636,6 +1802,8 @@ def main() -> int:
             raise CliError("укажите папку `_ops/chat-recall` или используйте --prepare")
         if not args.records_dir.is_dir():
             raise CliError(f"нет папки: {args.records_dir}")
+        topic_cards = load_topic_cards(args.records_dir)
+        topic_issues = tuple(topic_diagnostics(args.records_dir))
         nested_raw = args.records_dir / "raw"
         if nested_raw.is_dir() and not any(args.records_dir.glob("2*.md")):
             args.records_dir = nested_raw
@@ -1649,6 +1817,8 @@ def main() -> int:
         session_routes: list[dict[str, Any]] = []
         card_route: str | None = None
         holder_cards: list[dict[str, Any]] = []
+        topic_candidates: list[dict[str, Any]] = []
+        topic_candidate_count = 0
         candidate_count = 0
         inventory_mode = not any(
             (
@@ -1682,6 +1852,28 @@ def main() -> int:
                 records,
                 args,
             )
+            if args.topics:
+                wanted_topics = {
+                    value.strip()
+                    for value in args.topics.split(",")
+                    if value.strip()
+                }
+                topic_cards = [
+                    card for card in topic_cards if card["topic"] in wanted_topics
+                ]
+            if args.lexical:
+                topic_candidates, topic_candidate_count = search_topic_candidates(
+                    topic_cards,
+                    args.query,
+                    hybrid=False,
+                )
+            else:
+                with _hybrid_queue():
+                    topic_candidates, topic_candidate_count = search_topic_candidates(
+                        topic_cards,
+                        args.query,
+                        hybrid=True,
+                    )
             selected_holders, candidate_count = _select_holders(
                 quote_ranking,
                 session_routes,
@@ -1693,8 +1885,14 @@ def main() -> int:
                 "limit" if len(selected_holders) < candidate_count else None
             )
             if not args.json:
-                holder_cards, character_truncation = _bounded_holder_cards(
+                (
                     holder_cards,
+                    topic_candidates,
+                    character_truncation,
+                ) = _bounded_holder_cards(
+                    holder_cards,
+                    topic_candidates=topic_candidates,
+                    topic_matched=topic_candidate_count,
                     matched=matched,
                     total=total,
                     max_chars=args.max_chars,
@@ -1754,8 +1952,8 @@ def main() -> int:
             "truncated": truncated_by is not None,
             "truncated_by": truncated_by,
             "selection": (
-                "holders"
-                if holder_mode and holder_cards
+                _query_selection(holder_cards, topic_candidates)
+                if holder_mode
                 else "records"
                 if not holder_mode and matched
                 else "none"
@@ -1765,6 +1963,10 @@ def main() -> int:
         }
         if holder_mode:
             envelope["holders"] = holder_cards
+            if topic_cards:
+                envelope["topic_candidates"] = topic_candidates
+                envelope["topic_candidate_count"] = topic_candidate_count
+                envelope["topic_returned"] = len(topic_candidates)
             envelope["order"] = "newest-first"
             envelope["semantic_order"] = "semantic_rank"
         else:
@@ -1798,6 +2000,21 @@ def main() -> int:
                 raise CliError(
                     "полная запись превышает --max-chars; увеличьте лимит для --show"
                 )
+            if holder_mode and "topic_candidates" in envelope:
+                while (
+                    len(rendered) > args.max_chars
+                    and envelope["topic_candidates"]
+                ):
+                    envelope["topic_candidates"].pop()
+                    envelope["topic_returned"] = len(envelope["topic_candidates"])
+                    envelope["selection"] = _query_selection(
+                        envelope["holders"], envelope["topic_candidates"]
+                    )
+                    envelope["truncated"] = True
+                    envelope["truncated_by"] = "max_chars"
+                    rendered = json.dumps(
+                        envelope, ensure_ascii=False, separators=(",", ":")
+                    )
             output_key = "holders" if holder_mode else "records"
             while (
                 not args.show
@@ -1806,6 +2023,11 @@ def main() -> int:
             ):
                 envelope[output_key].pop()
                 envelope["returned"] = len(envelope[output_key])
+                if holder_mode:
+                    envelope["selection"] = _query_selection(
+                        envelope["holders"],
+                        envelope.get("topic_candidates", []),
+                    )
                 envelope["truncated"] = True
                 envelope["truncated_by"] = "max_chars"
                 rendered = json.dumps(
@@ -1817,7 +2039,7 @@ def main() -> int:
                 )
             print(rendered)
         elif args.check:
-            print(_check_report(records, total, args.max_chars))
+            print(_check_report(records, total, args.max_chars, topic_issues))
         elif args.show:
             rendered = (
                 json.dumps(selected[0], ensure_ascii=False, indent=2)
@@ -1835,6 +2057,8 @@ def main() -> int:
             print(
                 _render_holders(
                     holder_cards,
+                    topic_candidates=topic_candidates,
+                    topic_matched=topic_candidate_count,
                     matched=matched,
                     total=total,
                     truncated_by=truncated_by,
@@ -1853,7 +2077,7 @@ def main() -> int:
                     retrieval=retrieval,
                 )
             )
-        if args.check and args.strict and diagnostic_count:
+        if args.check and args.strict and (diagnostic_count or topic_issues):
             return 1
         return 0
     except CliError as error:

@@ -31,9 +31,9 @@ HERMES_BRIEF
 ```
 
 Если указан только `--model`, Hermes выбирает provider из live catalog. Не
-используй top-level `hermes -z ... --reasoning ...` на Hermes Agent `0.20.0`:
-oneshot adapter не проводит effort в session evidence. Wrapper использует
-`hermes chat -q -Q` и проверяет фактический reasoning.
+используй top-level `hermes -z ... --reasoning ...`: oneshot adapter не
+доказывает effort в session evidence. Wrapper передаёт brief через
+`hermes chat --query-file ... -Q` и проверяет фактический reasoning.
 
 ## Toolsets И Декомпозиция
 
@@ -86,6 +86,9 @@ tests, затем интегрируй результат.
 - Большой цикл tool calls с промежуточной фильтрацией: добавь
   `code_execution --allow-execution-tools`; для одного tool call это лишнее.
 - Hermes skill: передай повторяемый `--skill NAME`.
+- Проверка на эхо: добавь `--isolated`, чтобы снять project rules, identity,
+  memory и preloaded skills. `--skill` вместе с ним отвергается, потому что
+  изоляция снимает и skill context.
 - Exact runtime остаётся default. `--allow-fallback` используй только когда
   continuity важнее model identity; всегда покажи фактический `resolved`.
 - MoA: используй `--model PRESET --provider moa` только по явному запросу на

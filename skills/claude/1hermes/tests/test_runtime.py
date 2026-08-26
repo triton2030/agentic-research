@@ -44,7 +44,7 @@ if args == ["--version"]:
     raise SystemExit(0)
 if args[:2] == ["chat", "--help"]:
     flags = [
-        "--query", "--model", "--provider", "--reasoning", "--resume",
+        "--query", "--query-file", "--model", "--provider", "--reasoning", "--resume",
         "--toolsets", "--skills", "--max-turns", "--checkpoints",
         "--worktree", "--source", "--quiet",
         "--ignore-user-config",
@@ -127,6 +127,20 @@ if args and args[0] == "chat":
     if argv_file:
         with open(argv_file, "w", encoding="utf-8") as handle:
             json.dump(args, handle)
+    query_path = args[args.index("--query-file") + 1]
+    query_capture_file = os.environ.get("FAKE_QUERY_CAPTURE_FILE")
+    if query_capture_file:
+        with open(query_path, encoding="utf-8") as handle:
+            query_text = handle.read()
+        with open(query_capture_file, "w", encoding="utf-8") as handle:
+            json.dump(
+                {
+                    "mode": oct(os.stat(query_path).st_mode & 0o777),
+                    "path": query_path,
+                    "text": query_text,
+                },
+                handle,
+            )
     safe_root_file = os.environ.get("FAKE_SAFE_ROOT_FILE")
     if safe_root_file:
         with open(safe_root_file, "w", encoding="utf-8") as handle:
@@ -247,14 +261,19 @@ class HermesRuntimeTests(unittest.TestCase):
         self.fake.write_text(textwrap.dedent(FAKE_HERMES), encoding="utf-8")
         self.fake.chmod(0o755)
         self.argv_file = self.root / "chat-argv.json"
+        self.query_capture_file = self.root / "query-capture.json"
         self.safe_root_file = self.root / "safe-root.txt"
         self.env = os.environ.copy()
         self.env["HERMES_HOME"] = str(self.hermes_home)
         self.env["FAKE_ARGV_FILE"] = str(self.argv_file)
+        self.env["FAKE_QUERY_CAPTURE_FILE"] = str(self.query_capture_file)
         self.env["FAKE_SAFE_ROOT_FILE"] = str(self.safe_root_file)
 
     def chat_argv(self) -> list[str]:
         return json.loads(self.argv_file.read_text(encoding="utf-8"))
+
+    def query_capture(self) -> dict[str, str]:
+        return json.loads(self.query_capture_file.read_text(encoding="utf-8"))
 
     def tearDown(self) -> None:
         self.temporary.cleanup()
@@ -296,6 +315,18 @@ class HermesRuntimeTests(unittest.TestCase):
         self.assertEqual(payload["requested"]["toolsets"], "file,web")
         self.assertEqual(payload["requested"]["reasoning"], "medium")
         self.assertEqual(payload["requested"]["max_turns"], 2000)
+
+    def test_query_file_keeps_the_brief_out_of_process_arguments(self) -> None:
+        completed = self.advisor(prompt="private-test-brief")
+        self.assertEqual(completed.returncode, 0)
+        argv = self.chat_argv()
+        capture = self.query_capture()
+        self.assertIn("--query-file", argv)
+        self.assertNotIn("-q", argv)
+        self.assertNotIn("private-test-brief", argv)
+        self.assertEqual(capture["text"], "private-test-brief")
+        self.assertEqual(capture["mode"], "0o600")
+        self.assertFalse(Path(capture["path"]).exists())
 
     def test_default_run_keeps_project_context(self) -> None:
         completed = self.advisor()
@@ -397,12 +428,37 @@ class HermesRuntimeTests(unittest.TestCase):
     def test_paid_run_survives_an_unexpected_crash_as_json_and_receipt(self) -> None:
         """Прогон стоит денег. Любой исход обязан стать адресуемым результатом,
         а не traceback-ом в stderr вызывающего агента."""
-        completed = self.advisor(
-            "--model", MODEL, "--reasoning", "medium", prompt="brief\x00tail"
+        args = argparse.Namespace(
+            model=MODEL,
+            provider="nous",
+            reasoning="medium",
+            resume=None,
+            skill=[],
+            isolated=False,
+            max_turns=4,
+            timeout_sec=30,
+            allow_write=False,
+            allow_execution_tools=False,
+            worktree=False,
+            allow_fallback=False,
+            allow_stdout_response=False,
         )
-        payload = json.loads(completed.stdout)
+        with (
+            mock.patch.dict(os.environ, self.env),
+            mock.patch.object(
+                ADVISOR_MODULE.execution,
+                "run_process_group",
+                side_effect=RuntimeError("paid-run-crash"),
+            ),
+            contextlib.redirect_stdout(io.StringIO()) as buffer,
+        ):
+            exit_code = ADVISOR_MODULE._run(
+                args, "private-test-brief", self.project, ["file", "web"], str(self.fake)
+            )
+        payload = json.loads(buffer.getvalue())
+        self.assertNotEqual(exit_code, 0)
         self.assertFalse(payload["ok"])
-        self.assertIn("embedded null byte", payload["error"])
+        self.assertIn("paid-run-crash", payload["error"])
         receipt = Path(payload["run_dir"]) / "result.json"
         self.assertTrue(receipt.is_file())
         self.assertEqual(json.loads(receipt.read_text())["error"], payload["error"])
@@ -411,8 +467,16 @@ class HermesRuntimeTests(unittest.TestCase):
         completed = self.advisor("--model", MODEL, "--reasoning", "medium")
         payload = json.loads(completed.stdout)
         run_dir = Path(payload["run_dir"])
-        self.assertTrue((run_dir / "manifest.json").is_file())
-        self.assertTrue((run_dir / "prompt.md").is_file())
+        receipt_files = [
+            run_dir / "manifest.json",
+            run_dir / "prompt.md",
+            run_dir / "result.json",
+        ]
+        self.assertEqual(run_dir.stat().st_mode & 0o777, 0o700)
+        for receipt_file in receipt_files:
+            with self.subTest(receipt_file=receipt_file.name):
+                self.assertTrue(receipt_file.is_file())
+                self.assertEqual(receipt_file.stat().st_mode & 0o777, 0o600)
         self.assertEqual(
             json.loads((run_dir / "result.json").read_text())["ok"], payload["ok"]
         )
@@ -708,7 +772,8 @@ class HermesRuntimeTests(unittest.TestCase):
             self.safe_root_file.read_text(encoding="utf-8"), payload["worktree"]["path"]
         )
         argv = self.chat_argv()
-        prompt = argv[argv.index("-q") + 1]
+        self.assertIn("--query-file", argv)
+        prompt = self.query_capture()["text"]
         self.assertIn("the host creates the commit", prompt)
 
     def test_commit_failure_preserves_recovery_path(self) -> None:

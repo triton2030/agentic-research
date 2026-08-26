@@ -17,11 +17,13 @@ from pathlib import Path
 from typing import NamedTuple
 
 from recall_metadata import (
+    NON_TOPIC_STEMS,
     REPAIR_TOPIC,
     REPAIR_TYPE,
     TYPE_DESCRIPTIONS,
     TYPES,
     corpus_topics,
+    topic_description,
 )
 
 LOG_DIR = Path("_ops/chat-recall")
@@ -33,7 +35,6 @@ def resolve_log_dir(root: Path) -> Path:
     return nested if nested.is_dir() else root / LOG_DIR
 
 
-NON_THEME_STEMS = {"AGENTS", "CLAUDE", "README", "INDEX"}
 NEW_THEME_ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
 
@@ -48,7 +49,7 @@ def theme_topics(layer: Path) -> dict[str, int]:
     return {
         path.stem: 0
         for path in sorted(layer.glob("*.md"))
-        if path.stem not in NON_THEME_STEMS
+        if path.stem not in NON_TOPIC_STEMS
     }
 
 
@@ -155,22 +156,17 @@ def topic_choice(
     selected = handle(value, "topic")
     if selected == REPAIR_TOPIC or selected in existing:
         return selected, None
-    if not new_topic:
-        if layer is not None:
-            raise CaptureError(
-                f"topic {selected!r} has no theme file in {layer}. Pick a topic "
-                "named by an existing theme file, or create it deliberately: "
-                '--new-topic "<one-sentence boundary of the theme>".'
-            )
-        known = ", ".join(sorted(existing)) or "none recorded yet"
-        raise CaptureError(
-            f"topic {selected!r} does not exist in this corpus yet "
-            f"(existing: {known}). Pick an existing topic, or pass --new-topic "
-            "to deliberately create this one after checking that no existing "
-            "topic already owns the subject."
-        )
     if layer is None:
+        # A raw-only project has no topic-layer inventory to scan on the delta
+        # path.  The caller has already supplied the prefiltered topic handle;
+        # broad inventory remains explicit via --list-metadata.
         return selected, None
+    if not new_topic:
+        raise CaptureError(
+            f"topic {selected!r} has no theme file in {layer}. Pick a topic "
+            "named by an existing theme file, or create it deliberately: "
+            '--new-topic "<one-sentence boundary of the theme>".'
+        )
     boundary = new_topic if isinstance(new_topic, str) else ""
     if not boundary.strip():
         raise CaptureError(
@@ -206,7 +202,7 @@ def render_metadata_vocabulary(log_dir: Path) -> str:
         topics.update({k: v for k, v in counts.items() if k in topics})
         lines.append(f"Topics (theme files in {layer}; conversations using each):")
         lines.extend(
-            f"  {name}: {count}"
+            f"  {name}: {count} — {topic_description(layer / f'{name}.md')}"
             for name, count in sorted(topics.items(), key=lambda kv: (-kv[1], kv[0]))
         )
         orphans = sorted(set(counts) - set(topics))
@@ -662,6 +658,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--list-metadata",
         action=PrintMetadataAction,
+        help="print canonical types and existing topics with short descriptions",
     )
     parser.add_argument("--quote", required=True)
     parser.add_argument("--type", required=True, dest="type_")
@@ -760,7 +757,7 @@ def main() -> int:
             raise CaptureError(f"project root not found: {root}")
         log_dir = resolve_log_dir(root)
         layer = topics_dir(root)
-        existing = theme_topics(layer) if layer is not None else corpus_topics(log_dir)
+        existing = theme_topics(layer) if layer is not None else {}
         topic, theme_boundary = topic_choice(topic, existing, args.new_topic, layer)
         session = resolve_session(args.session, agent)
         if not session:

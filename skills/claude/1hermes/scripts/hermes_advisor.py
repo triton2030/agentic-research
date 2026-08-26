@@ -137,6 +137,19 @@ def _terminal_failure(
     return exit_code
 
 
+def _private_query_file(prompt: str) -> Path:
+    """Persist one CLI query outside argv; mkstemp creates it mode 0600."""
+    descriptor, name = tempfile.mkstemp(prefix="1hermes-query-", suffix=".md")
+    path = Path(name)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+            handle.write(prompt)
+    except Exception:
+        path.unlink(missing_ok=True)
+        raise
+    return path
+
+
 def _run(
     args: argparse.Namespace,
     prompt: str,
@@ -146,6 +159,7 @@ def _run(
 ) -> int:
     resume_lock = None
     worktree: dict[str, str] | None = None
+    query_file: Path | None = None
     try:
         if args.resume:
             resume_lock, error = execution.acquire_resume_lock(args.resume)
@@ -176,7 +190,6 @@ def _run(
                 return _fail(error or "worktree creation failed")
             run_cwd = Path(worktree["path"])
 
-        command = contract.command(args, hermes_bin, prompt, toolsets, runtime)
         requested = {
             "model": runtime[0],
             "provider": runtime[1],
@@ -195,6 +208,8 @@ def _run(
         }
         global _RECEIPT
         _RECEIPT = receipt_store.open_receipt(requested, prompt)
+        query_file = _private_query_file(contract.boundary_prompt(args, prompt))
+        command = contract.command(args, hermes_bin, query_file, toolsets, runtime)
 
         run_env = os.environ.copy()
         read_only_root: tempfile.TemporaryDirectory[str] | None = None
@@ -366,6 +381,8 @@ def _run(
             worktree=recovery,
         )
     finally:
+        if query_file:
+            query_file.unlink(missing_ok=True)
         execution.release_resume_lock(resume_lock)
 
 

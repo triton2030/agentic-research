@@ -42,10 +42,6 @@ def pricing_is_free(catalog: Any) -> tuple[bool, str]:
     return True, "all official pricing components are zero"
 
 
-def catalog_url(provider: str) -> str | None:
-    return CATALOG_URL if provider.strip().lower() == PROVIDER else None
-
-
 def live_pricing_is_free() -> tuple[bool, str]:
     request = Request(
         CATALOG_URL,

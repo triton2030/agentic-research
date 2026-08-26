@@ -22,6 +22,22 @@ def _root() -> Path:
     return base / "1hermes-runs"
 
 
+def _write_private(path: Path, text: str, *, exclusive: bool = False) -> None:
+    """Create receipt data without a world-readable umask window."""
+    flags = os.O_WRONLY | os.O_CREAT | (os.O_EXCL if exclusive else os.O_TRUNC)
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    descriptor = os.open(path, flags, 0o600)
+    try:
+        os.fchmod(descriptor, 0o600)
+        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+            descriptor = -1
+            stream.write(text)
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
+
+
 def open_receipt(requested: dict[str, Any], prompt: str) -> dict[str, Any] | None:
     """Создать каталог прогона до первого платного вызова.
 
@@ -32,15 +48,17 @@ def open_receipt(requested: dict[str, Any], prompt: str) -> dict[str, Any] | Non
     run_id = f"{stamp}-{os.getpid()}-{uuid.uuid4().hex[:6]}"
     try:
         path = _root() / run_id
-        path.mkdir(parents=True, exist_ok=False)
-        (path / "prompt.md").write_text(prompt, encoding="utf-8")
-        (path / "manifest.json").write_text(
+        path.mkdir(parents=True, mode=0o700, exist_ok=False)
+        path.chmod(0o700)
+        _write_private(path / "prompt.md", prompt, exclusive=True)
+        _write_private(
+            path / "manifest.json",
             json.dumps(
                 {"run_id": run_id, "opened_at": stamp, "requested": requested},
                 ensure_ascii=False,
                 indent=2,
             ),
-            encoding="utf-8",
+            exclusive=True,
         )
     except OSError:
         return None
@@ -54,9 +72,7 @@ def close_receipt(receipt: dict[str, Any] | None, payload: dict[str, Any]) -> No
     try:
         target = Path(receipt["path"]) / "result.json"
         tmp = target.with_suffix(".json.part")
-        tmp.write_text(
-            json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
-        )
+        _write_private(tmp, json.dumps(payload, ensure_ascii=False, indent=2))
         tmp.replace(target)
     except OSError:
         return

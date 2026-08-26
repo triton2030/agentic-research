@@ -60,6 +60,321 @@
       "session": "01a037c5-aa57-7f60-addb-1c25c5635ca9",
       "record_sha256": "61b780e4141085cf7b0c3273935956a281c40cb02a1e3b65764478ba0bf3576d",
       "anchor": "2026-08-25-121714-codex-01a037c5.md#L17"
+    },
+    {
+      "topic": "llm-science",
+      "session": "01a039d8-aeeb-7be1-8579-f6c63bf0b92a",
+      "record_sha256": "7d43de0008ca7da2a03f494dea35d35a5f1f4a67be4b72ceb22874ed195a5cb2",
+      "anchor": "2026-08-25-215639-codex-01a039d8.md#L15",
+      "topic_sha256": "ebb8de5b88726bb7cddc50920d0519804867f7769eca5b2d51012607b7f5416c"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "01a039d8-aeeb-7be1-8579-f6c63bf0b92a",
+      "record_sha256": "d11077da4c852757661104848e267f0f2759eb88785173bf50ea406f7f4f3446",
+      "anchor": "2026-08-25-215639-codex-01a039d8.md#L18",
+      "topic_sha256": "b8f2cdae7d5893f1c56989765b90d60a8bb9a1cde247058c476074dbedd47456"
+    },
+    {
+      "topic": "llm-science",
+      "session": "01a039d8-aeeb-7be1-8579-f6c63bf0b92a",
+      "record_sha256": "1f6ea04105b845c99905a5002cf3893755297ee8ac7a6476d9d28f6851726734",
+      "anchor": "2026-08-25-215639-codex-01a039d8.md#L19",
+      "topic_sha256": "ebb8de5b88726bb7cddc50920d0519804867f7769eca5b2d51012607b7f5416c"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "01a039d8-aeeb-7be1-8579-f6c63bf0b92a",
+      "record_sha256": "91dfa4acde99721ea55de538ad35cc5205ab3d73da543011793bdccda07a16c2",
+      "anchor": "2026-08-25-215639-codex-01a039d8.md#L21",
+      "topic_sha256": "b8f2cdae7d5893f1c56989765b90d60a8bb9a1cde247058c476074dbedd47456"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "01a039d8-aeeb-7be1-8579-f6c63bf0b92a",
+      "record_sha256": "a90472563cf6aef83efe7f6240f6eed47829501613e26921f859214f30fb3b6a",
+      "anchor": "2026-08-25-215639-codex-01a039d8.md#L23",
+      "topic_sha256": "b8f2cdae7d5893f1c56989765b90d60a8bb9a1cde247058c476074dbedd47456"
+    },
+    {
+      "topic": "chat-recall-corpus",
+      "session": "01a039d8-492b-7da0-a9ab-ce11687e90b5",
+      "record_sha256": "44fa49b9bb3cc013ec48b6e7afaa6c7d066fce19ed96a50b0c04b1a11856b97e",
+      "anchor": "2026-08-25-215514-codex-01a039d8.md#L17",
+      "topic_sha256": "913585c48e1f9b810a7ae1b495be80b0c3b27a12cc2f8293dadd2d9a27f4d44a"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "01a039d8-aeeb-7be1-8579-f6c63bf0b92a",
+      "record_sha256": "adc606757d61276917327f804aa991b10ff3f7a6fb0bf1324fbb33daa8272630",
+      "anchor": "2026-08-25-215639-codex-01a039d8.md#L24",
+      "topic_sha256": "b8f2cdae7d5893f1c56989765b90d60a8bb9a1cde247058c476074dbedd47456"
+    },
+    {
+      "topic": "claude-bridge",
+      "session": "01a03a0c-335c-7071-a810-6474e566450e",
+      "record_sha256": "675edfbb2f8cae6d77d64db92785a20706f63584d5f78e6db0daf525186b828f",
+      "anchor": "2026-08-25-225217-codex-01a03a0c.md#L15",
+      "topic_sha256": "30daeedf3a1725294f97dbd53e134062bce24241a36fd0d01bd28c27a1b041ff"
+    },
+    {
+      "topic": "claude-bridge",
+      "session": "01a03a0c-335c-7071-a810-6474e566450e",
+      "record_sha256": "ea304992ea81decce7ef7272b9f4105cd0649759c89725dced82330c8b294206",
+      "anchor": "2026-08-25-225217-codex-01a03a0c.md#L18",
+      "topic_sha256": "30daeedf3a1725294f97dbd53e134062bce24241a36fd0d01bd28c27a1b041ff"
+    },
+    {
+      "topic": "owner-intent",
+      "session": "01a039d8-492b-7da0-a9ab-ce11687e90b5",
+      "record_sha256": "39598620b34d974b3b5acfcb6b1136b77f2ffc176c697a9cd80984c5ac7a8c3f",
+      "anchor": "2026-08-25-215514-codex-01a039d8.md#L25",
+      "topic_sha256": "7364dd399ed751ea106ccfc3e59e7e9b7811b94a914e3b962d9410de51e1ad61"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "01a039d8-aeeb-7be1-8579-f6c63bf0b92a",
+      "record_sha256": "b89cb19f26c7ccb1536caeb52fe803e1c566884d49e0f3bc6d74c17a0ecc3b2c",
+      "anchor": "2026-08-25-215639-codex-01a039d8.md#L27",
+      "topic_sha256": "b8f2cdae7d5893f1c56989765b90d60a8bb9a1cde247058c476074dbedd47456"
+    },
+    {
+      "topic": "chat-recall-corpus",
+      "session": "01a039d8-492b-7da0-a9ab-ce11687e90b5",
+      "record_sha256": "42714549c0846ec01ed46705a436953e689ce884b9175079dcefa43e94fd4bad",
+      "anchor": "2026-08-25-215514-codex-01a039d8.md#L28",
+      "topic_sha256": "be7256621fb3f6cc3c5d79d4ef26387dbbab2a32078570fbc84753e516a39556"
+    },
+    {
+      "topic": "chat-recall-corpus",
+      "session": "01a039d8-492b-7da0-a9ab-ce11687e90b5",
+      "record_sha256": "663b532de3d0ccd2ea573da1c412d9f22165bddf8556be587495174e926b9d3c",
+      "anchor": "2026-08-25-215514-codex-01a039d8.md#L29",
+      "topic_sha256": "be7256621fb3f6cc3c5d79d4ef26387dbbab2a32078570fbc84753e516a39556"
+    },
+    {
+      "topic": "skill-routing",
+      "session": "01a03c84-92b2-7043-9b21-389340ef04bf",
+      "record_sha256": "690c966a5747b7d51cd967984989eb7be24806b358e1114f1107d1015b2bcb7f",
+      "anchor": "2026-08-26-102434-codex-01a03c84.md#L15",
+      "topic_sha256": "49e79c5db05c2de9c6bf53feba43e40bd635b561b9bcf2ac154baa252548533c"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "01a03ce1-8ddc-71b1-8ce4-30fb33dd675c",
+      "record_sha256": "1fbebaa6576de12e3c97845fa1052d6611b02c7ec30f427e5531316762e56339",
+      "anchor": "2026-08-26-120437-codex-01a03ce1.md#L15",
+      "topic_sha256": "b8f2cdae7d5893f1c56989765b90d60a8bb9a1cde247058c476074dbedd47456"
+    },
+    {
+      "topic": "chat-recall-corpus",
+      "session": "01a03ce4-de7b-76e0-aa3e-bfd7cca4ffb4",
+      "record_sha256": "11721600e008ee3bee112226a3575920c17b5fc44b47e786441f9d3561076d2d",
+      "anchor": "2026-08-26-120948-codex-01a03ce4.md#L15",
+      "topic_sha256": "be7256621fb3f6cc3c5d79d4ef26387dbbab2a32078570fbc84753e516a39556"
+    },
+    {
+      "topic": "chat-recall-corpus",
+      "session": "01a03ce4-de7b-76e0-aa3e-bfd7cca4ffb4",
+      "record_sha256": "b5d07b9b387d8a08d90f0ddf6e5e92e08823bd5d13e28b9c26f24c355893c669",
+      "anchor": "2026-08-26-120948-codex-01a03ce4.md#L17",
+      "topic_sha256": "be7256621fb3f6cc3c5d79d4ef26387dbbab2a32078570fbc84753e516a39556"
+    },
+    {
+      "topic": "daily-work-reporting",
+      "session": "01a03ded-cbc5-7ae3-b03e-11d49e041e51",
+      "record_sha256": "0a78740172bcd4fefb4ced77e733c0a1677e0e4595c0fc436350853b3eec1941",
+      "anchor": "2026-08-26-170908-codex-01a03ded.md#L15",
+      "topic_sha256": "1eb31cc422889515995063abf8959d89b278ae05cd92889b359fd58c26cffff8"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "01a039d8-aeeb-7be1-8579-f6c63bf0b92a",
+      "record_sha256": "9022d9e4a6bb6ac3f46984036a04851166f118754fd7a96a6b27922f643c4b46",
+      "anchor": "2026-08-25-215639-codex-01a039d8.md#L29",
+      "topic_sha256": "de2c42d8db1dcf0c10b792668548adfd50e9e723fe6b93f0ff37560e6ad528e8"
+    },
+    {
+      "topic": "daily-work-reporting",
+      "session": "01a03ded-cbc5-7ae3-b03e-11d49e041e51",
+      "record_sha256": "e4e4fb14456277204691af4dd072907f9e49a7b48c03f15a40760ab2c38e824c",
+      "anchor": "2026-08-26-170908-codex-01a03ded.md#L17",
+      "topic_sha256": "1eb31cc422889515995063abf8959d89b278ae05cd92889b359fd58c26cffff8"
+    },
+    {
+      "topic": "claude-config",
+      "session": "01a03e0c-2965-70c0-bfdf-3855e197804f",
+      "record_sha256": "e4d37c79ce8f93038f53bcdb014ab5e55ee177bce39e441552162ede7405cd3a",
+      "anchor": "2026-08-26-173027-codex-01a03e0c.md#L15",
+      "topic_sha256": "ba43113aee098b2348d392cfaa84048d3b28debcbd6d7760628552145bba35f2"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "01a03dfe-bc94-7a83-be1b-44e8d8841a9b",
+      "record_sha256": "d104e168d85f548274fe54c8a896d9b3c452f2dcc64c668b97bca02ceb75908b",
+      "anchor": "2026-08-26-173953-codex-01a03dfe.md#L15",
+      "topic_sha256": "de2c42d8db1dcf0c10b792668548adfd50e9e723fe6b93f0ff37560e6ad528e8"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "01a03dfe-bc94-7a83-be1b-44e8d8841a9b",
+      "record_sha256": "e6435d4754bca267a0d1f8b70e4a27cf6567c173da3b648bc8f66e1f9abaa8e8",
+      "anchor": "2026-08-26-173953-codex-01a03dfe.md#L17",
+      "topic_sha256": "de2c42d8db1dcf0c10b792668548adfd50e9e723fe6b93f0ff37560e6ad528e8"
+    },
+    {
+      "topic": "daily-work-reporting",
+      "session": "01a03ded-cbc5-7ae3-b03e-11d49e041e51",
+      "record_sha256": "8c037e14e743e4322fddd27a561274e00f265e63e3807daf1992265f22e2c254",
+      "anchor": "2026-08-26-170908-codex-01a03ded.md#L18",
+      "topic_sha256": "1eb31cc422889515995063abf8959d89b278ae05cd92889b359fd58c26cffff8"
+    },
+    {
+      "topic": "daily-work-reporting",
+      "session": "01a03ded-cbc5-7ae3-b03e-11d49e041e51",
+      "record_sha256": "abe1d59fb1b56b13bc6009ca68bfacfe74ee4a98b61b6eb518dd5d49e9abc793",
+      "anchor": "2026-08-26-170908-codex-01a03ded.md#L19",
+      "topic_sha256": "1eb31cc422889515995063abf8959d89b278ae05cd92889b359fd58c26cffff8"
+    },
+    {
+      "topic": "daily-work-reporting",
+      "session": "01a03ded-cbc5-7ae3-b03e-11d49e041e51",
+      "record_sha256": "26c9213c96dee1e7f952d5f206515de2b5fa2f79327811dc6f442dbe92df871d",
+      "anchor": "2026-08-26-170908-codex-01a03ded.md#L20",
+      "topic_sha256": "1eb31cc422889515995063abf8959d89b278ae05cd92889b359fd58c26cffff8"
+    },
+    {
+      "topic": "llm-science",
+      "session": "01a03dfe-bc94-7a83-be1b-44e8d8841a9b",
+      "record_sha256": "8b83cde0cc8b10c8b2f54d8a18d3d5f6240b3f1686496d0c92386b15380a3022",
+      "anchor": "2026-08-26-173953-codex-01a03dfe.md#L19",
+      "topic_sha256": "ebb8de5b88726bb7cddc50920d0519804867f7769eca5b2d51012607b7f5416c"
+    },
+    {
+      "topic": "daily-work-reporting",
+      "session": "01a03ded-cbc5-7ae3-b03e-11d49e041e51",
+      "record_sha256": "512e2e8b1659ca29fa5fbeed01d0eb6c258f76ff7b64e414968a3b6975483af4",
+      "anchor": "2026-08-26-170908-codex-01a03ded.md#L21",
+      "topic_sha256": "1eb31cc422889515995063abf8959d89b278ae05cd92889b359fd58c26cffff8"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "01a03dfe-bc94-7a83-be1b-44e8d8841a9b",
+      "record_sha256": "22d8c5f71f121c7ca4a46f9417bbc792975b7589de91a217cf73b14af411def4",
+      "anchor": "2026-08-26-173953-codex-01a03dfe.md#L21",
+      "topic_sha256": "c1dbf34ca0b01a36d204014b2dbb832b54eac17e8ffd29a7d5be6b1a6bcae3fc"
+    },
+    {
+      "topic": "fresh-eyes",
+      "session": "01a03ded-cbc5-7ae3-b03e-11d49e041e51",
+      "record_sha256": "4a285e7e00d355c454a873fb5323bba7e924cc9f9fdb9b2e352c9b0e3bc9a832",
+      "anchor": "2026-08-26-170908-codex-01a03ded.md#L23",
+      "topic_sha256": "41048238efe7388eb5d04aefceb59739e270966b36a4da650eca700fb43b60c7"
+    },
+    {
+      "topic": "daily-work-reporting",
+      "session": "01a03ded-cbc5-7ae3-b03e-11d49e041e51",
+      "record_sha256": "528245869ac7b7e25e84b18057e3ba67a37007fcf072ab43afd968fa3359c530",
+      "anchor": "2026-08-26-170908-codex-01a03ded.md#L24",
+      "topic_sha256": "1eb31cc422889515995063abf8959d89b278ae05cd92889b359fd58c26cffff8"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "01a03dfe-bc94-7a83-be1b-44e8d8841a9b",
+      "record_sha256": "2a610f5235914b45ec4e3178111eeede26bc596a0e150ba8a3aa9edc3e5a03d3",
+      "anchor": "2026-08-26-173953-codex-01a03dfe.md#L23",
+      "topic_sha256": "c1dbf34ca0b01a36d204014b2dbb832b54eac17e8ffd29a7d5be6b1a6bcae3fc"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "01a03dfe-bc94-7a83-be1b-44e8d8841a9b",
+      "record_sha256": "b55dd57a26fc8921da8813d5ba077d89cd1160388b6e5c1d68c7217dddba694c",
+      "anchor": "2026-08-26-173953-codex-01a03dfe.md#L24",
+      "topic_sha256": "c1dbf34ca0b01a36d204014b2dbb832b54eac17e8ffd29a7d5be6b1a6bcae3fc"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "01a03dfe-bc94-7a83-be1b-44e8d8841a9b",
+      "record_sha256": "16873dfb676449e958a392adbfeb39a2658f2b4331d1226167f841d448129b37",
+      "anchor": "2026-08-26-173953-codex-01a03dfe.md#L25",
+      "topic_sha256": "c1dbf34ca0b01a36d204014b2dbb832b54eac17e8ffd29a7d5be6b1a6bcae3fc"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "01a03dfe-bc94-7a83-be1b-44e8d8841a9b",
+      "record_sha256": "8238b1119be9ee6cd2749b8596a161101f2f0212e19a462807b09c1bfd63a3b8",
+      "anchor": "2026-08-26-173953-codex-01a03dfe.md#L26",
+      "topic_sha256": "c1dbf34ca0b01a36d204014b2dbb832b54eac17e8ffd29a7d5be6b1a6bcae3fc"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "01a03dfe-bc94-7a83-be1b-44e8d8841a9b",
+      "record_sha256": "2fd19dadcd8fa74f06e0537675b6a9449dd2a0f620b401866411b7bff8db52ae",
+      "anchor": "2026-08-26-173953-codex-01a03dfe.md#L27",
+      "topic_sha256": "c1dbf34ca0b01a36d204014b2dbb832b54eac17e8ffd29a7d5be6b1a6bcae3fc"
+    },
+    {
+      "topic": "daily-work-reporting",
+      "session": "01a03ded-cbc5-7ae3-b03e-11d49e041e51",
+      "record_sha256": "2ec4b7490f304ae62615d5a59172b6c9f4ae058597cb65853bcad30f932ae984",
+      "anchor": "2026-08-26-170908-codex-01a03ded.md#L25",
+      "topic_sha256": "1eb31cc422889515995063abf8959d89b278ae05cd92889b359fd58c26cffff8"
+    },
+    {
+      "topic": "daily-work-reporting",
+      "session": "01a03ded-cbc5-7ae3-b03e-11d49e041e51",
+      "record_sha256": "76bcef2db7402586726d6a6ff53fb584b1b9f4b671581b96614490c14631265a",
+      "anchor": "2026-08-26-170908-codex-01a03ded.md#L26",
+      "topic_sha256": "1eb31cc422889515995063abf8959d89b278ae05cd92889b359fd58c26cffff8"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "01a03dfe-bc94-7a83-be1b-44e8d8841a9b",
+      "record_sha256": "76ded7d43a4fd4fdaea1861d91f510e02620cedb235c20262adbc77142a2fc56",
+      "anchor": "2026-08-26-173953-codex-01a03dfe.md#L28",
+      "topic_sha256": "c1dbf34ca0b01a36d204014b2dbb832b54eac17e8ffd29a7d5be6b1a6bcae3fc"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "4e40828f-2938-40d5-9203-87a0f269b8d9",
+      "record_sha256": "d67eb316a1b9ad21e7adafe3bce8c3c05469de84d39acbcc060d870406ba6e35",
+      "anchor": "2026-08-26-201025-claude-4e40828f.md#L17",
+      "topic_sha256": "c4db1e649d8167a7def4595ffbe22a4b139fdb9e58c45c9d7b2a9412277e9076"
+    },
+    {
+      "topic": "daily-work-reporting",
+      "session": "01a03ded-cbc5-7ae3-b03e-11d49e041e51",
+      "record_sha256": "a8866e8aa3731dbec755c83fd43cb4d82e915058da824e35b82123939d590143",
+      "anchor": "2026-08-26-170908-codex-01a03ded.md#L28",
+      "topic_sha256": "1eb31cc422889515995063abf8959d89b278ae05cd92889b359fd58c26cffff8"
+    },
+    {
+      "topic": "daily-work-reporting",
+      "session": "01a03ded-cbc5-7ae3-b03e-11d49e041e51",
+      "record_sha256": "fa17d94befc534189ea5c635aad277076f2114331381e94bbddb31c0a034898d",
+      "anchor": "2026-08-26-170908-codex-01a03ded.md#L29",
+      "topic_sha256": "1eb31cc422889515995063abf8959d89b278ae05cd92889b359fd58c26cffff8"
+    },
+    {
+      "topic": "daily-work-reporting",
+      "session": "01a03ded-cbc5-7ae3-b03e-11d49e041e51",
+      "record_sha256": "1c56de338066122e66b6fc369afd93d786d82df3b5688dddef1dad2e2c3af87a",
+      "anchor": "2026-08-26-170908-codex-01a03ded.md#L30",
+      "topic_sha256": "1eb31cc422889515995063abf8959d89b278ae05cd92889b359fd58c26cffff8"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "4e40828f-2938-40d5-9203-87a0f269b8d9",
+      "record_sha256": "343cefee2f71e06709d546b8031efdbc6680468332aa5aea375a754c47de7768",
+      "anchor": "2026-08-26-201025-claude-4e40828f.md#L18",
+      "topic_sha256": "c4db1e649d8167a7def4595ffbe22a4b139fdb9e58c45c9d7b2a9412277e9076"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "4e40828f-2938-40d5-9203-87a0f269b8d9",
+      "record_sha256": "5eefd719bc5b0b46805e32845c54cce12f8d2739cb9ed850aa98be1992cb0249",
+      "anchor": "2026-08-26-201025-claude-4e40828f.md#L19",
+      "topic_sha256": "c4db1e649d8167a7def4595ffbe22a4b139fdb9e58c45c9d7b2a9412277e9076"
     }
   ]
 }

@@ -26,9 +26,9 @@ HERMES_BRIEF
 Чтобы сменить runtime, начни fresh run — выбор модели и команда живут в
 [`model-bench.md`](model-bench.md), здесь не дублируются.
 
-Не используй top-level `hermes -z ... --reasoning ...` на Hermes Agent `0.20.0`:
-oneshot adapter не проводит effort в session evidence. Wrapper использует
-`hermes chat -q -Q` и проверяет фактический reasoning.
+Не используй top-level `hermes -z ... --reasoning ...`: oneshot adapter не
+доказывает effort в session evidence. Wrapper передаёт brief через
+`hermes chat --query-file ... -Q` и проверяет фактический reasoning.
 
 ## Toolsets И Декомпозиция
 
@@ -120,6 +120,7 @@ session-backed `resolved` evidence из wrapper JSON.
 - **Загружается только один проектный файл**: порядок `.hermes.md` → `AGENTS.md`
   → `CLAUDE.md` → `.cursorrules`, первый найденный выигрывает, поиск только в
   cwd (кроме `.hermes.md`, который идёт вверх до git root).
-- **`--ignore-rules` работает на пути `chat -q`, но игнорируется на oneshot
-  `hermes -z`** — известный открытый баг. Обёртка использует `chat -q`; если
-  соберёшь свой вызов на `-z`, изоляции у тебя не будет, а флаг промолчит.
+- **`--ignore-rules` работает на пути `chat --query-file`, но игнорируется на
+  oneshot `hermes -z`** — известный открытый баг. Обёртка использует первый
+  путь; если соберёшь свой вызов на `-z`, изоляции у тебя не будет, а флаг
+  промолчит.

@@ -15,6 +15,7 @@ description: >-
 | Мнение, review или задача через Hermes | Запусти Golden Path ниже |
 | «Работает ли Hermes?» | Сначала выполни бесплатный static health check |
 | Явный end-to-end/live health | Выполни платный `--live` probe |
+| Проверка на эхо без project rules и памяти | Добавь `--isolated`; прочитай advanced reference |
 | Продолжить session | Используй `--resume`; прочитай advanced reference |
 | Другая model/provider/reasoning | Начни fresh run; прочитай advanced reference |
 | Явно названа Ox Alpha | Выполни бесплатный preflight и exact override ниже |
@@ -141,7 +142,9 @@ delegation/execution tools, brief задаёт только разрешённы
 заводит квитанцию в `~/.hermes/1hermes-runs/<run_id>/`: brief, manifest и
 `result.json` с терминальным исходом. Поле `run_dir` есть в любом ответе,
 включая аварийный: неожиданная ошибка теперь возвращает JSON с причиной, а не
-traceback, и оплаченный run не исчезает вместе с ним.
+traceback, и оплаченный run не исчезает вместе с ним. Каталог создаётся с mode
+`0700`, каждый receipt-файл — `0600`: долговечный brief не должен быть доступнее
+приватного query-файла.
 
 ## Прими Или Отклони Result
 
@@ -151,16 +154,22 @@ traceback, и оплаченный run не исчезает вместе с н�
 2. `resolved.model`, `resolved.provider` и `resolved.reasoning` доказывают
    запрошенный runtime;
 3. `session.id` присутствует;
-4. `warnings` не содержат material gap;
+4. `response_source` равен `session`: тогда `response` взят из последнего
+   assistant-message session store. `stdout` допустим только с явным
+   `--allow-stdout-response` и остаётся более слабым evidence;
+5. `warnings` не содержат material gap;
    Для Ox сюда же попадает `Ox Alpha cost evidence rejected` — стоимость
    проверяется дважды: каталогом до запуска и записью сессии после. Каталог
    доказывает цену на момент старта, а run идёт часами;
-5. `response` несёт запрошенную форму ответа, а не служебный текст: уведомление
+6. `response` несёт запрошенную форму ответа, а не служебный текст: уведомление
    о достигнутом потолке итераций и ошибка провайдера ответом не являются.
+7. Если результат назван независимым от project instructions,
+   `requested.isolated` равен `true`; иначе называй его советом с контекстом
+   проекта.
 
-Первые четыре условия проходят и на run, который не ответил вообще: runtime
-верный, session есть, `ok` истинно — а внутри уведомление об исчерпанном
-бюджете. Без пятого приёмка выдаёт зелёное на пустом результате.
+Runtime и session evidence могут быть зелёными на run, который не ответил
+вообще, либо на сыром stdout без доказанного assistant-message. Поэтому форма
+ответа и `response_source` проверяются отдельно.
 
 `usage.api_calls` рядом с `resolved.max_turns` — подсказка о причине обрыва, но
 не критерий: `usage.scope` равен `session_cumulative`, поэтому после `--resume`

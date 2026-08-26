@@ -29,11 +29,8 @@ DEFAULT_TIMEOUT_SEC = 10800
 SESSION_ID_RE = re.compile(r"^\s*session_id:\s*(\S+)\s*$", re.MULTILINE)
 BENIGN_STDERR_PREFIXES = ("↻ Resumed session ",)
 
-# Compatibility aliases for focused pure-function tests.
-OX_ALPHA_MODEL = ox.MODEL
 UsageKey = evidence.UsageKey
 _ox_alpha_pricing_is_free = ox.pricing_is_free
-_ox_alpha_catalog_url = ox.catalog_url
 _ox_alpha_admission_error = ox.admission_error
 _runtime_usage_evidence = evidence.runtime_usage_evidence
 
@@ -59,6 +56,11 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--skill", action="append", default=[], help="Hermes skill to preload"
     )
+    parser.add_argument(
+        "--isolated",
+        action="store_true",
+        help="Skip project rules, identity, memory, and preloaded skills",
+    )
     parser.add_argument("--max-turns", type=int, default=DEFAULT_MAX_TURNS)
     parser.add_argument("--timeout-sec", type=int, default=DEFAULT_TIMEOUT_SEC)
     parser.add_argument(
@@ -70,7 +72,14 @@ def _parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--allow-fallback", action="store_true")
     parser.add_argument("--hermes-bin", help="Hermes executable override")
-    parser.add_argument("--expect-exact", help=argparse.SUPPRESS)
+    parser.add_argument(
+        "--allow-stdout-response",
+        action="store_true",
+        help=(
+            "Explicit opt-in: accept a response taken from raw CLI stdout when "
+            "the session export proves no assistant message"
+        ),
+    )
     return parser
 
 
@@ -128,6 +137,19 @@ def _terminal_failure(
     return exit_code
 
 
+def _private_query_file(prompt: str) -> Path:
+    """Persist one CLI query outside argv; mkstemp creates it mode 0600."""
+    descriptor, name = tempfile.mkstemp(prefix="1hermes-query-", suffix=".md")
+    path = Path(name)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+            handle.write(prompt)
+    except Exception:
+        path.unlink(missing_ok=True)
+        raise
+    return path
+
+
 def _run(
     args: argparse.Namespace,
     prompt: str,
@@ -136,11 +158,13 @@ def _run(
     hermes_bin: str,
 ) -> int:
     resume_lock = None
-    if args.resume:
-        resume_lock, error = execution.acquire_resume_lock(args.resume)
-        if error or resume_lock is None:
-            return _fail(error or "session resume lock is unavailable")
+    worktree: dict[str, str] | None = None
+    query_file: Path | None = None
     try:
+        if args.resume:
+            resume_lock, error = execution.acquire_resume_lock(args.resume)
+            if error or resume_lock is None:
+                return _fail(error or "session resume lock is unavailable")
         resumed = None
         usage_before: dict[UsageKey, int] = {}
         if args.resume:
@@ -159,7 +183,6 @@ def _run(
         if error:
             return _fail(error)
 
-        worktree = None
         run_cwd = source_cwd
         if args.worktree:
             worktree, error = execution.create_worktree(source_cwd)
@@ -167,13 +190,13 @@ def _run(
                 return _fail(error or "worktree creation failed")
             run_cwd = Path(worktree["path"])
 
-        command = contract.command(args, hermes_bin, prompt, toolsets, runtime)
         requested = {
             "model": runtime[0],
             "provider": runtime[1],
             "reasoning": runtime[2],
             "toolsets": ",".join(toolsets),
             "skills": args.skill,
+            "isolated": args.isolated,
             "max_turns": args.max_turns,
             "resume": args.resume,
             "allow_write": args.allow_write,
@@ -185,6 +208,8 @@ def _run(
         }
         global _RECEIPT
         _RECEIPT = receipt_store.open_receipt(requested, prompt)
+        query_file = _private_query_file(contract.boundary_prompt(args, prompt))
+        command = contract.command(args, hermes_bin, query_file, toolsets, runtime)
 
         run_env = os.environ.copy()
         read_only_root: tempfile.TemporaryDirectory[str] | None = None
@@ -216,8 +241,8 @@ def _run(
             if read_only_root:
                 read_only_root.cleanup()
         response = completed.stdout.strip()
-        session_match = SESSION_ID_RE.search(completed.stderr)
-        session_id = session_match.group(1) if session_match else None
+        session_matches = SESSION_ID_RE.findall(completed.stderr)
+        session_id = session_matches[0] if len(session_matches) == 1 else None
         stderr_lines = [
             line
             for line in completed.stderr.splitlines()
@@ -229,15 +254,33 @@ def _run(
             if any(line.strip() for line in stderr_lines)
             else []
         )
-        if not session_id:
+        if len(session_matches) > 1:
+            warnings.append(
+                f"stderr carries {len(session_matches)} session_id markers;"
+                " failing closed instead of guessing"
+            )
+        elif not session_matches:
             warnings.append("Hermes did not return a session_id")
+        if args.isolated:
+            warnings.append(
+                "isolated run: project rules, identity, memory and preloaded skills were skipped"
+            )
 
         metadata: dict[str, Any] = {}
         if session_id:
             metadata, warning = evidence.read_metadata(hermes_bin, session_id, run_cwd)
             if warning:
                 warnings.append(warning)
-        response = evidence.final_assistant_content(metadata) or response
+        session_response = evidence.final_assistant_content(metadata)
+        response_source = "session" if session_response else "stdout"
+        if session_response:
+            response = session_response
+        elif metadata:
+            warnings.append(
+                "response falls back to raw CLI stdout:"
+                " session export proved no assistant message;"
+                " pass --allow-stdout-response to accept it"
+            )
         resolved, session, usage = evidence.compact_metadata(metadata)
         if session_id and not session.get("id"):
             session["id"] = session_id
@@ -281,19 +324,16 @@ def _run(
                 cost_mismatch = True
                 warnings.append("Ox Alpha cost evidence rejected: " + cost_reason)
 
-        response_mismatch = (
-            args.expect_exact is not None and response != args.expect_exact
-        )
-
+        response_proven = response_source == "session" or args.allow_stdout_response
         pre_commit_ok = bool(
             completed.returncode == 0
             and response
             and metadata
+            and response_proven
             and not missing_runtime
             and not runtime_mismatch
             and not route_mismatch
             and not cost_mismatch
-            and not response_mismatch
         )
         worktree_evidence = worktree
         worktree_mismatch = False
@@ -327,10 +367,22 @@ def _run(
                 "worktree": worktree_evidence,
                 "warnings": warnings,
                 "response": response,
+                "response_source": response_source,
             }
         )
         return wrapper_exit
+    except Exception as exc:  # noqa: BLE001 - прогон мог быть уже оплачен
+        # Любой исход обязан остаться терминальным JSON на stdout, а созданный
+        # worktree — не сиротой: пустой удаляется, грязный сохраняется.
+        recovery = execution.recover_failed_worktree(worktree)
+        return _terminal_failure(
+            exit_code=1,
+            error=f"{type(exc).__name__}: {exc}",
+            worktree=recovery,
+        )
     finally:
+        if query_file:
+            query_file.unlink(missing_ok=True)
         execution.release_resume_lock(resume_lock)
 
 

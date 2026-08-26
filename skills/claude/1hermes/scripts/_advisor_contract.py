@@ -97,12 +97,12 @@ def boundary_prompt(args: argparse.Namespace, prompt: str) -> str:
 def command(
     args: argparse.Namespace,
     hermes_bin: str,
-    prompt: str,
+    query_file: Path,
     toolsets: list[str],
     runtime: tuple[str, str | None, str],
 ) -> list[str]:
     model, provider, reasoning = runtime
-    result = [hermes_bin, "chat", "-q", boundary_prompt(args, prompt)]
+    result = [hermes_bin, "chat", "--query-file", str(query_file)]
     if args.resume:
         result.extend(["--resume", args.resume])
     result.extend(["--model", model, "--reasoning", reasoning])

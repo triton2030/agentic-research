@@ -104,6 +104,19 @@ class ChatDigestTests(unittest.TestCase):
         )
         (self.corpus / name).write_text(content, encoding="utf-8")
 
+    def write_topic(self, topic: str, description: str) -> None:
+        layer = self.corpus / "topics"
+        layer.mkdir(exist_ok=True)
+        (layer / f"{topic}.md").write_text(
+            "---\n"
+            f"topic: {topic}\n"
+            f"title: {description}\n"
+            "sources: 0\n"
+            "---\n"
+            f"# {description}\n",
+            encoding="utf-8",
+        )
+
     def test_every_star_block_is_a_record(self) -> None:
         records, diagnostics = DIGEST.load(self.corpus)
         self.assertEqual(len(records), FILE.count("\n* "))
@@ -207,6 +220,77 @@ class ChatDigestTests(unittest.TestCase):
         self.assertIn("holder=recall.md", result.stdout)
         self.assertIn("admitted_by=card", result.stdout)
         self.assertNotIn("Канон живёт отдельно", result.stdout)
+
+    def test_topic_description_is_a_separate_query_route(self) -> None:
+        self.write_topic(
+            "topic-lifecycle",
+            "Редактированиетематическихфактов после новых слов владельца",
+        )
+
+        result = self.call(
+            "--query",
+            "Редактированиетематическихфактов",
+            "--json",
+        )
+        data = json.loads(result.stdout)
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(data["selection"], "topic_candidates")
+        self.assertEqual(data["holders"], [])
+        self.assertEqual(data["topic_candidate_count"], 1)
+        self.assertEqual(data["topic_returned"], 1)
+        self.assertEqual(
+            data["topic_candidates"][0],
+            {
+                "topic": "topic-lifecycle",
+                "description": (
+                    "Редактированиетематическихфактов после новых слов владельца"
+                ),
+                "file": "topics/topic-lifecycle.md",
+                "topic_rank": 1,
+                "admitted_by": "lexical",
+            },
+        )
+
+        human = self.call("--query", "Редактированиетематическихфактов")
+        self.assertIn("topic-candidate=topic-lifecycle", human.stdout)
+        self.assertIn("description: Редактированиетематическихфактов", human.stdout)
+
+    def test_topic_and_quote_routes_remain_separate(self) -> None:
+        self.write_topic("subagent-search", "Субагенты для дополнительного поиска")
+
+        data = json.loads(
+            self.call("--query", "субагент*", "--json").stdout
+        )
+
+        self.assertEqual(data["selection"], "holders+topic_candidates")
+        self.assertEqual(data["topic_candidates"][0]["topic"], "subagent-search")
+        self.assertEqual(data["topic_candidates"][0]["topic_rank"], 1)
+        self.assertEqual(data["holders"][0]["file"], "recall.md")
+        self.assertIn("Субагенты", data["holders"][0]["strongest_quote"]["text"])
+
+    def test_topic_search_indexes_the_short_intro_without_exposing_it(self) -> None:
+        layer = self.corpus / "topics"
+        layer.mkdir()
+        (layer / "capture-flow.md").write_text(
+            "---\n"
+            "topic: capture-flow\n"
+            "title: Жизненный цикл записи\n"
+            "sources: 0\n"
+            "---\n"
+            "# Жизненный цикл записи\n\n"
+            "Уникальныймаршрут выбора и обновления тематического факта.\n",
+            encoding="utf-8",
+        )
+
+        data = json.loads(
+            self.call("--query", "Уникальныймаршрут", "--json").stdout
+        )
+
+        candidate = data["topic_candidates"][0]
+        self.assertEqual(candidate["topic"], "capture-flow")
+        self.assertEqual(candidate["description"], "Жизненный цикл записи")
+        self.assertNotIn("search_text", candidate)
 
     def test_selected_holders_display_newest_first_with_semantic_rank_and_counts(
         self,
@@ -536,6 +620,36 @@ class ChatDigestTests(unittest.TestCase):
         self.assertIsNone(none["truncated_by"])
         self.assertEqual(none["retrieval"], "hybrid")
 
+    def test_truncated_result_preserves_returned_quote_evidence(self) -> None:
+        for hour in range(3):
+            self.write_file(
+                f"evidence-{hour}.md",
+                [
+                    (
+                        f'* 2026-07-01T{hour:02d}:00:00+00:00 — '
+                        f'"EvidenceNeedle position {hour}" — type: решение | '
+                        "topic: работа-и-процессы"
+                    )
+                ],
+                session=f"00000000-0000-4000-8000-{hour:012d}",
+            )
+
+        data = json.loads(
+            self.call(
+                "--query",
+                "EvidenceNeedle",
+                "--limit",
+                "1",
+                "--json",
+            ).stdout
+        )
+
+        self.assertTrue(data["truncated"])
+        self.assertEqual(data["truncated_by"], "limit")
+        self.assertEqual(data["returned"], 1)
+        self.assertIsNotNone(data["holders"][0]["strongest_quote"])
+        self.assertIn("EvidenceNeedle", data["holders"][0]["strongest_quote"]["text"])
+
     def test_default_query_keeps_all_ten_full_holder_cards(self) -> None:
         for hour in range(10):
             self.write_file(
@@ -813,6 +927,31 @@ class ChatDigestTests(unittest.TestCase):
         strict = self.call("--check", "--strict")
         self.assertEqual(strict.returncode, 1)
 
+    def test_strict_check_reports_forbidden_topic_tombstone(self) -> None:
+        self.write_entries(
+            [
+                (
+                    '* 2026-07-01T10:00:00+00:00 — "Clean record" '
+                    '— type: решение | topic: работа-и-процессы'
+                )
+            ]
+        )
+        self.write_topic("topic-lifecycle", "Жизненный цикл темы")
+        topic = self.corpus / "topics" / "topic-lifecycle.md"
+        topic.write_text(
+            topic.read_text(encoding="utf-8")
+            + "\n## Отменено\n\n- Исторический claim.\n",
+            encoding="utf-8",
+        )
+
+        strict = self.call("--check", "--strict")
+
+        self.assertEqual(strict.returncode, 1)
+        self.assertIn(
+            "topics/topic-lifecycle.md: forbidden-topic-tombstone",
+            strict.stdout,
+        )
+
     def test_check_truncation_counts_visible_diagnostics(self) -> None:
         self.write_entries([f"* broken record {index:02d}" for index in range(20)])
 
@@ -825,6 +964,25 @@ class ChatDigestTests(unittest.TestCase):
         )
         shown = int(lines[0].split("/", 1)[0])
         self.assertEqual(len(lines) - 1, shown)
+
+    def test_bounded_strict_check_keeps_topic_drift_visible(self) -> None:
+        self.write_entries([f"* broken record {index:02d}" for index in range(20)])
+        self.write_topic("topic-lifecycle", "Жизненный цикл темы")
+        topic = self.corpus / "topics" / "topic-lifecycle.md"
+        topic.write_text(
+            topic.read_text(encoding="utf-8")
+            + "\n## Отменено\n\n- Исторический claim.\n",
+            encoding="utf-8",
+        )
+
+        strict = self.call("--check", "--strict", "--max-chars", "512")
+
+        self.assertEqual(strict.returncode, 1)
+        self.assertIn("corpus diagnostics (20 raw, 1 topic)", strict.stdout)
+        self.assertIn(
+            "topics/topic-lifecycle.md: forbidden-topic-tombstone",
+            strict.stdout,
+        )
 
     def test_global_bounds_validate_check_and_inventory(self) -> None:
         for args in (("--check", "--max-chars", "511"), ("--limit", "0")):

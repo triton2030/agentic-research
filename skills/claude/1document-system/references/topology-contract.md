@@ -28,7 +28,7 @@ From [catalog](catalog.md) unless a local registry is stronger. Service homes:
 `DOCS`, `MIG` → `_ops/documentation/`; goal → `_ops/GOAL.md` (`1goal`); work →
 `_ops/plans/`, `_ops/backlog/` (`1planning`); defects → `_ops/findings/`
 (`1findings`); risks → `_ops/risks/`; instruction rules → the live instruction
-hierarchy (`1instruction-shaping`). Materialize a home together with its first
+hierarchy (`1instruction-placement`). Materialize a home together with its first
 artifact, never in advance.
 
 ## Canon folder algorithm

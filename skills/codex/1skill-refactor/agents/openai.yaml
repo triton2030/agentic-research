@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Разбор скила"
+  short_description: "Curate a firing skill that is bloated, ritual, or changes nothing"
+  default_prompt: "Use $1skill-refactor when a skill fires but underdelivers. Rebuild from the original with provenance per meaning, one verdict per meaning, resplit body and references, prove the change in behavior — removal of the whole skill is a legitimate best outcome."
+
+policy:
+  allow_implicit_invocation: true

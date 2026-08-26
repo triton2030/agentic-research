@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Пересборка свода"
+  short_description: "Build or rebuild a whole instruction set from a meaning map, not line by line"
+  default_prompt: "Use $1instruction-refactor when a whole instruction set must be built from scratch or rebuilt: name the mode (clean project / failure history / audit), build the meaning map with provenance, give each meaning one verdict, check coherence across layers, account every loss, and write non-skill surfaces only after the owner approves."
+
+policy:
+  allow_implicit_invocation: true

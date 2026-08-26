@@ -9,14 +9,28 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
 
 ## Живые Owners
 
-- `1skill-shaping/portable/` — общий controller: цель, автономная граница, три
-  невыводимых правила и девять условных reference-маршрутов для Codex и Claude.
-  `platforms/codex/agents/openai.yaml` — только Codex UI и invocation metadata.
-  Заменил `1skill-architect`, снятый 2026-08-08 в `skills/1skill-architect/`.
-- `1instruction-shaping/portable/` — agent harness: шов между пятью слоями,
-  влияющими на поведение агента (корень, папка, скил, хук, план). Семь
-  фиксированных разделов, семь условных reference-маршрутов.
-  Заменил `1instruction-layer`, снятый 2026-08-08 в `skills/1instruction-layer/`.
+- Семья авторинга — пять скилов по различимым моментам запуска, заменили пару
+  `1skill-shaping` + `1instruction-shaping`, снятую 2026-08-26 (архивы в
+  `skills/1skill-shaping/` и `skills/1instruction-shaping/`; решение владельца —
+  `_ops/chat-recall/raw/2026-08-26-201025-claude-4e40828f.md#L15`):
+  - `1instruction-placement/portable/` — место одного правила: класс, слой,
+    формулировка; владеет `wording.md`, `knowledge-out.md`, `placement.md`
+    (траекторный счёт);
+  - `1instruction-refactor/portable/` — свод целиком, с нуля или пересборка;
+    владеет `interview.md`, `refactor.md` (схема карты смыслов), `coherence.md`,
+    `simplify.md`, базовыми `audit.md`/`check.md`;
+  - `1skill-authoring/portable/` — новый скил: дефицит, триада, пакеты;
+    владеет `canon.md` (канон методик), `behavior-package.md` («налог на
+    строгость»), `knowledge-package.md`, `reference.md`, бюджетом ~10
+    обязанностей на скил;
+  - `1skill-routing/portable/` — кнопка запуска: имя, description, триггер;
+    владеет `description.md` и лимитом 200 символов на описания и
+    строки-аннотации;
+  - `1skill-refactor/portable/` — курация вызывающегося скила; владеет своими
+    `refactor.md`, `failures.md`, `check.md` (дельты поверх базы
+    `1instruction-refactor`).
+  У каждого `platforms/codex/agents/openai.yaml` — только Codex UI metadata.
+  Reference-файл живёт ровно у одного владельца; соседи ссылаются относительно.
 - `1md-search/portable/` — общий cognitive/tool core для
   Codex и Claude; `platforms/codex/agents/openai.yaml` — только Codex UI и
   invocation metadata. Сосед `1md-read` снят 2026-08-22 по решению владельца,

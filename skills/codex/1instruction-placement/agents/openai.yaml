@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Место правила"
+  short_description: "Choose the cheapest layer for one rule — root, folder, skill, hook, plan, or nowhere"
+  default_prompt: "Use $1instruction-placement when one rule needs a home. Separate behavior, orientation, and values; name the agent's natural course without the rule; pick the cheapest layer that reaches the first decision it changes; word it so a clean window reads it one way. For root, folder, hook, or plan write the final text only after the owner approves."
+
+policy:
+  allow_implicit_invocation: true
