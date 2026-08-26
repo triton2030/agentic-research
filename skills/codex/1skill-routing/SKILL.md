@@ -44,7 +44,7 @@ description: >-
 
 - скила ещё нет → `1skill-authoring`;
 - скил поднимается, но раздут или ничего не меняет → `1skill-refactor`;
-- смысл, возможно, вообще не скиловый → `1instruction-placement`.
+- смысл, возможно, вообще не скиловый → `1instruction-authoring`.
 
 ## Завершение
 

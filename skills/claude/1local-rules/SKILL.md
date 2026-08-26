@@ -3,7 +3,7 @@ name: 1local-rules
 description: >-
   Use when creating a project-local 2* rule skill for one project action and
   syncing Claude/Codex. Surface via 1skill-authoring, trigger via
-  1skill-routing, prose via 1instruction-placement.
+  1skill-routing, prose via 1instruction-authoring.
 ---
 
 Локальное **правило-скил** — критичная инструкция одного проекта, которая обычно
@@ -13,7 +13,7 @@ description: >-
 привязанное к наблюдаемому действию, и его обновление по мере взросления проекта.
 Surface/owner design держит `1skill-authoring`, trigger/collision — `1skill-routing`; общий
 create/update/scaffold/validate contract — официальный Claude `skill-creator`;
-размещение и формулировку обычных текстовых правил — `1instruction-placement`. Этот скил
+размещение и формулировку обычных текстовых правил — `1instruction-authoring`. Этот скил
 добавляет только то, что специфично жанру локального правила-скила.
 
 ## Когда это правило-скил, а когда нет
@@ -25,12 +25,12 @@ create/update/scaffold/validate contract — официальный Claude `skil
 Правило-скил возвращает пропущенный шаг ровно тогда, когда он нужен.
 
 Не делай скил, если правило снимается одним-двумя предложениями текста и модель
-его и так выполняет — правило, не меняющее решение агента, лишнее (это владение `1instruction-placement`). «Куда вообще положить правило / как сформулировать» —
-сначала `1instruction-placement`; «какой surface/owner» — `1skill-authoring`; «почему не срабатывает или где collision» — `1skill-routing`; «создать/обновить/scaffold/validate skill» —
+его и так выполняет — правило, не меняющее решение агента, лишнее (это владение `1instruction-authoring`). «Куда вообще положить правило / как сформулировать» —
+сначала `1instruction-authoring`; «какой surface/owner» — `1skill-authoring`; «почему не срабатывает или где collision» — `1skill-routing`; «создать/обновить/scaffold/validate skill» —
 `skill-creator`.
 
 Если repo уже имеет cold rule directory и always-on root надёжно маршрутизирует
-observable trigger к exact file, оставь правило там через `1instruction-placement`.
+observable trigger к exact file, оставь правило там через `1instruction-authoring`.
 `2*` нужен только когда такого чтения по route недостаточно и правило должно
 всплывать через skill discovery в момент действия.
 
@@ -54,7 +54,7 @@ marketing/`) — жёстче всего; глагол действия (`пиш
 вкладывай, *что неочевидного или что сломается*: не «когда пишешь в `marketing/` —
 проверь оформление», а «когда пишешь в `marketing/` — текст обязан влезть в
 фиксированный бюджет, иначе молча перерасходуешь». Это та же дельта, что у
-`1instruction-placement` («правило закрывает место, где дефолт модели расходится с
+`1instruction-authoring` («правило закрывает место, где дефолт модели расходится с
 нужным»), перенесённая на саму поверхность обнаружения.
 
 Оба слоя обязательны: очевидное условие без дельты — модель не откроет; сильная

@@ -6,20 +6,23 @@
   или касании файла, а отсутствие у untouched legacy не diagnostic. Отдельно
   разрешён один owner-requested backfill исторического корпуса для реального
   retrieval-теста: он читает полный transcript и не переписывает записи.
-- Карточка не стала summary решений или owner evidence: она только выбирает
-  файл для полного чтения.
+- Карточка не стала summary решений или owner evidence: она только участвует в
+  отдельном holder-route. Полный holder больше не обязателен по умолчанию.
 - Не придуман числовой лимит длины: форма ограничена одним YAML scalar в одну
   строку и короткими поисковыми фрагментами через `;`.
 - `context-note` не снят: он владеет сценой одной записи; `session-context` —
   задачей и лексикой целого разговора.
-- Прежний абсолютный запрет capture-time per-record курации снят 2026-08-24
-  только для уже загруженной темы в продолжающейся работе. Не введены
-  универсальный projector после каждой цитаты, обязательное открытие темы ради
-  ритуала, blind append или второй truth-store: при отсутствии материального
-  расхождения результат — no-op.
+- Прежний абсолютный запрет capture-time per-record курации снят 2026-08-24, а
+  ограничение уже загруженной темой отменено владельцем 2026-08-25. После
+  нового durable capture выбранная тема читается обязательно, но не введены
+  универсальный projector, blind append или второй truth-store: mutation
+  ограничена exact replace явно конфликтующего старого факта, иначе no-op или
+  `raw saved; topic pending`.
 - Агент не получил прямую запись и whole-file candidate общего topic-файла. Он
-  владеет только typed patch из адресных insert / exact replace / move /
-  replace-boundary операций; сборка файла, version check, raw-якорь, topic
+  владеет только typed patch из адресных insert / exact replace /
+  move-or-replace surviving claim / replace-boundary операций; сборка файла,
+  version check,
+  raw-якорь, topic
   ownership, source count, блокировка и atomic replace принадлежат
   deterministic helper. Это сохраняет урок испорченных моделью файлов, не
   отказываясь от context locality.
@@ -40,14 +43,15 @@
   ranking contract.
 - Внешний `codex_recall.py` снят из нормативного Retrieval: global skill не
   зависит от project-local experiment, owner corpus не уходит другой модели,
-  а full-holder / later-holder postcondition остаётся у одного runtime-owner.
+  а later-check остаётся у одного runtime-owner; чтение holder-а условно.
 - Для чтения top-10 не введены формула freshness × relevance, числовой порог
   свежести, жёсткая квота, алгоритм «гейт → якоря → заполнение» или иерархия
   типов цитат. Скил объясняет конфликт двух порядков выдачи и желаемую глубину
   контекста; конкретный состав остаётся профессиональным суждением агента.
 - Не введены отдельные references для обычных Capture, Retrieval или чтения
-  top-10: агент не обязан открыть cold-файл. Горячее тело сохраняет обычную
-  команду, интерпретацию выдачи, full-holder / later-holder / abstain gates.
+  выдачи: агент не обязан открыть cold-файл. Горячее тело сохраняет обычную
+  команду, интерпретацию двух маршрутов, conditional-holder, later-check и
+  abstain gates.
 - BM25/E5, MaxP, top-5 gates, cache и другие внутренности ranking сняты из
   runtime-инструкции: ими владеют код, тесты и evidence, а не решение читателя.
 - Принятые query-константы не удалены, но перенесены в существующий
@@ -145,3 +149,61 @@
 - Снято делегирование синтеза и доказательного full-holder чтения: разведчик
   владеет только адресом и краткой связью; позицию доказывает текст, прочитанный
   главным агентом.
+
+## 2026-08-25 — current-only topic output
+
+- Не переносится прежняя возможность move отменённого claim-а в
+  reader-facing исторический раздел. Superseded claim удаляется из topic;
+  chronology/provenance остаются только в raw и внешнем run evidence.
+- Неразрешимый конфликт не сериализуется двумя claims: topic получает один
+  нейтральный abstain-marker, а спорные anchors учитываются как unresolved
+  во внешнем response accounting. Отдельный manifest для этого не вводится.
+
+## 2026-08-25 — краткие описания тем перед capture
+
+- Отдельный скрипт или новый CLI-флаг не создан: существующий
+  `chat_capture.py --list-metadata` уже владеет pre-capture inventory и
+  расширяет его без нового интерфейса.
+- Полный вводный абзац каждой зрелой темы не печатается: её коротким
+  reader-facing описанием уже служит frontmatter `title`; body используется
+  только для свежего stub с placeholder-title. Это удерживает inventory
+  bounded и не создаёт вторую description-метадату.
+- Предшествующее текущей задаче ослабление raw-only topic gate не чинится в
+  этом diff: его provenance и требуемое решение другие, сигнал сохранён в
+  `_ops/findings/2026-08-25-221045-8224-269.md`.
+
+## 2026-08-25 — обязательный reconcile и отдельный topic-route
+
+- Несколько фоновых разведчиков и ожидание их до зависимого решения сняты:
+  остался ровно один неблокирующий субагент только для важной темы.
+- Topic descriptions не примешаны к holder ranking. `topic_candidates` и
+  `holders` имеют отдельные scores и counts; агент выбирает полный topic либо
+  короткую буквальную цитату.
+- Второй поисковый скрипт и новая база не введены: существующий
+  `chat_digest.py` индексирует краткое описание темы отдельным route.
+- Полный holder не является default. Он открывается только когда применимость
+  зависит от сцены или chronology; later-check и live owner остаются
+  обязательными для quote-route.
+- После prior-art поиска не введены graph backend, belief store, confidence,
+  temporal edges или полный `ADD/UPDATE/DELETE/NOOP`. Взята только локальная
+  защита: совместимое дополнение не считается конфликтом и не вызывает
+  `replace`.
+
+## 2026-08-26 — truncated retrieval и legacy tombstone recovery
+
+- `truncated=true` не превращён в автоматический `abstain`: он описывает
+  неполноту candidate set, а не недействительность уже возвращённой буквальной
+  цитаты. Остановка нужна только когда невидимые кандидаты способны изменить
+  решение.
+- `1findings` не сделан заменой исхода capture/reconcile. После структурного
+  отказа обязательным остаётся `raw saved; topic pending`; finding хранит лишь
+  побочную проблему.
+- Обычный `prepare/apply` не ослаблен. Legacy tombstone удаляет отдельная
+  operator-only команда с expected SHA-256 и строгой проверкой, что tombstone —
+  последний раздел, каждый bullet имеет legacy replacement-грамматику, а все
+  его raw-якоря ведут к существующим record-строкам.
+- Второй project-validator не создан: существующая tombstone-инварианта
+  включена в ежедневный strict check runtime-пакета и оставлена также в
+  существующем experiment checker.
+- Не исправлялись посторонние diagnostics сырого корпуса, уже видимые strict
+  check: они не связаны с двумя ошибочными агентскими выводами.

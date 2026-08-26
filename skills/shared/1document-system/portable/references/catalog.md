@@ -38,7 +38,7 @@ second vocabulary beside it.
 - `OM` → `OPM` · `BR` → `BRC` · `STATE` → `SEM` · `DATA` → `DOM` · `EVD` →
   `RPT` · `SOP`, Runbook → `PROC` · UX Specification → PRD UX module.
 - Task → `1planning` · Finding → `1findings` · Rule/Instruction →
-  `1instruction-placement` · Product Frame / Principles / their journal →
+  `1instruction-authoring` · Product Frame / Principles / their journal →
   `1product-shaping`.
 - Reserved system type: filename code `DOCS` → `docs-system-map`, lives in
   `_ops/documentation/`, not in the domain catalog.

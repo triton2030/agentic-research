@@ -9,10 +9,19 @@ import shutil
 import sys
 from pathlib import Path
 
-
 SHARED_ROOT = Path(__file__).resolve().parent
 SKILLS_ROOT = SHARED_ROOT.parent
 RUNTIMES = ("codex", "claude")
+GENERATED_DIRS = frozenset({"__pycache__"})
+GENERATED_SUFFIXES = frozenset({".pyc"})
+
+
+def is_generated_cache(path: Path, root: Path) -> bool:
+    relative = path.relative_to(root)
+    return bool(
+        set(relative.parts) & GENERATED_DIRS
+        or path.suffix in GENERATED_SUFFIXES
+    )
 
 
 def files_under(root: Path) -> dict[str, Path]:
@@ -21,7 +30,8 @@ def files_under(root: Path) -> dict[str, Path]:
     return {
         path.relative_to(root).as_posix(): path
         for path in sorted(root.rglob("*"))
-        if path.is_file() or path.is_symlink()
+        if (path.is_file() or path.is_symlink())
+        and not is_generated_cache(path, root)
     }
 
 

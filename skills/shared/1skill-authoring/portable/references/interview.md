@@ -7,23 +7,23 @@
 
 ## Поверхность
 
-Выбор поверхности принадлежит `1instruction-placement`. Прямой заказ владельца
+Выбор поверхности принадлежит `1instruction-authoring`. Прямой заказ владельца
 «нужен скил» уже подтверждает `surface=skill`.
 
-Если решения нет, передай выбор `1instruction-placement`
-([placement](../../1instruction-placement/references/placement.md)): правило в
+Если решения нет, передай выбор `1instruction-authoring`
+([placement](../../1instruction-authoring/references/placement.md)): правило в
 корне (всегда-истинное) · скрипт (детерминированное) · нигде (выводимое) ·
 живой сосед (его дельта). Лишний скил не нейтрален: выигрыш держится на двух-трёх
 скилах на задачу и падает втрое на четырёх и больше (копия числа — владелец
 [description](../../1skill-routing/references/description.md)).
 
-Размещение правил по файлам репо — не сюда, это `1instruction-placement`.
+Размещение правил по файлам репо — не сюда, это `1instruction-authoring`.
 
 ## Подъём на высоту, аппетит, анти-цели, недостающий контекст
 
 Владелец этих разборов —
-[interview.md](../../1instruction-refactor/references/interview.md) пакета
-`1instruction-refactor` (решение владельца 2026-08-25: основа зеркал живёт
+[interview.md](../../1instruction-authoring/references/interview.md) пакета
+`1instruction-authoring` (решение владельца 2026-08-25: основа зеркал живёт
 там). Дельты скила:
 
 - продукт здесь — будущий скил: потребитель — агент в конкретный момент, цена —

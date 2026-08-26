@@ -1012,8 +1012,9 @@ Owner evidence:
 - reconcile доступен только для уже прочитанной ради той же работы темы;
   default — no-op, материальны новая долговечная позиция, изменение границы,
   коррекция или отмена показанного claim-а;
-- агент формулирует typed patch из `insert`, exact `replace`, `move` и
-  `replace-boundary`; whole-file content helper не принимает;
+- агент формулирует typed patch из `insert`, exact `replace`,
+  `move`-or-replace surviving claim и `replace-boundary`;
+  whole-file content helper не принимает;
 - осознанный no-op получает idempotent fingerprint-квитанцию без мутации topic;
   batch, coverage и horizon исключают только точную пару `session + raw hash`,
   поэтому line drift безопасен, а одинаковые слова разных сессий не
@@ -1036,7 +1037,8 @@ Falsifying checks и regressions:
 
 - 38 сфокусированных тестов: destructive whole-file payload, CAS/no mutation,
   raw line shift, wrong topic, multi-claim, uppercase historical holder,
-  exact replacement, boundary slot, cancellation move, per-record batch route,
+  exact replacement, boundary slot, current-only superseded replacement,
+  per-record batch route,
   no-op idempotency и batch exclusion, trailing anchors и общий lock — зелёные;
 - полные runtime suites: Codex `106/106`, Claude `105/105`; active batch seam
   `12/12`; scoped Ruff, одиннадцать `md check`, `git diff --check` и оба
@@ -1046,7 +1048,9 @@ Falsifying checks и regressions:
 - fresh-agent black-box без чтения кода собрал `replace` и cancellation `move`
   с первой попытки только по `SKILL.md` и сгенерированной `operation_schema`;
   destructive content и stale patch отклонены без мутации, no-op тему не менял,
-  формат секций после move канонический.
+  формат секций после move канонический. Этот cancellation-move evidence
+  superseded owner correction-ом 2026-08-25: текущий helper оставляет только
+  surviving replacement и отклоняет tombstone section.
 
 Живой batch-проход после no-op квитанций построил 29 append-only записей в
 8 разговорах, отдельно оставил 7 коррекций для typed repair и исключил 3
@@ -1062,3 +1066,182 @@ multi-claim, boundary и cancellation seams. Финальный developer-critic
 и `_ops/findings/2026-08-24-221910-64619-10222.md`. Старые experiment-suite
 failures после raw-path migration отдельно сохранены в
 `_ops/findings/2026-08-24-220319-61550-3008.md`.
+
+## Current-only topic surface, 2026-08-25
+
+Owner evidence:
+/Users/triton/Documents/My_projects/mavo-short2/_ops/chat-recall/raw/2026-08-25-123519-codex-01a03584.md:18.
+
+The live contract now removes a superseded claim from reader-facing topics and
+keeps its history/provenance in raw. The existing run JSON response carries the
+small machine-readable superseded/unresolved accounting footer; no separate
+manifest is introduced. An unresolved chronology/scope conflict publishes one
+neutral abstain marker, never both conflicting claims.
+
+## Краткие описания тем перед capture, 2026-08-25
+
+Support envelope: tracked Codex и Claude runtime owners; Python 3.14; текущий
+Codex runtime и отдельное чистое Codex-окно; локальный filesystem и shell без
+network-зависимости.
+
+- Живой `--list-metadata` в `agentic-research` вывел `42/42` theme handle-ов в
+  форме `name: conversations — description`; fallback-маркеров не было. Полный
+  inventory — 57 строк и 6503 байта.
+- Для зрелой темы description берётся из её frontmatter `title`; для нового
+  stub, где title равен handle, — из первого вводного абзаца `Граница темы`.
+  Отдельный invalid-UTF-8 тест доказывает, что повреждение одного topic-файла
+  даёт локальный placeholder и не скрывает соседние темы.
+- Falsifier маршрута прошёл в чистом temp-проекте с двумя близкими темами:
+  агент прочитал skill, затем вызвал `--list-metadata`, увидел оба описания,
+  выбрал `chat-recall-corpus` вместо `chat-recall-retrieval` и только после
+  этого записал raw receipt `status: written`; mtime обоих topic-файлов не
+  изменился.
+- Первый независимый developer-audit обнаружил отсутствующий pause point и
+  неполный Unicode fallback. После исправления повторный audit закрыл обе
+  находки и не нашёл новых blocker/P1; scripts Codex и Claude byte-identical.
+- Полные suites: Codex `119/119`, Claude `118/118`; scoped Ruff и
+  `git diff --check` зелёные. `quick_validate.py` принял оба tracked package и
+  installed Codex projection. Финальный projection `--check` подтвердил
+  совпадение обоих tracked/install owners.
+
+Вне claim этой правки осталось снятие raw-only controlled-vocabulary gate,
+которое уже находилось в dirty tree; оно сохранено отдельно:
+`_ops/findings/2026-08-25-221045-8224-269.md`. Повторяющийся `SameFileError`
+sync-helper-а на Claude symlink также вынесен в
+`_ops/findings/2026-08-25-221528-9788-9132.md`; после него projection-check
+зелёный.
+
+## Обязательный reconcile и отдельный topic-route, 2026-08-25
+
+Owner evidence:
+`_ops/chat-recall/raw/2026-08-25-215514-codex-01a039d8.md#L23-L25`.
+
+Реализованный контракт:
+
+- capture начинает с importance gate; новый durable record сначала попадает в
+  raw, после чего target topic читается независимо от прежней загрузки;
+- same-turn topic mutation допускает только exact typed `replace` явно
+  конфликтующего старого факта в том же scope; иначе остаётся guarded no-op
+  либо `raw saved; topic pending`;
+- Retrieval запускает не больше одного фонового субагента и только для важной
+  темы; главный агент не ждёт его и учитывает поздний verdict по возвращении;
+- `chat_digest.py` возвращает отдельные `topic_candidates` и `holders`.
+  Первый route ищет по handle, title и короткому введению темы; второй — по
+  `session-context` и буквальным цитатам. Scores и counts не смешиваются;
+- runtime разрешает выбрать полный current-only topic либо короткую
+  самодостаточную цитату. Holder открывается условно при нужной сцене или
+  chronology; later-check и live owner обязательны для quote-route.
+
+Falsifying checks:
+
+- temp-corpus тесты отдельно доказали topic-only selection, одновременное
+  присутствие topic и quote routes и поиск по короткому введению без утечки
+  внутреннего `search_text` в JSON;
+- полные tracked suites: Codex `123/123`, Claude `122/122`; installed Codex
+  suite `123/123`;
+- scoped Ruff, `git diff --check`, оба tracked `quick_validate.py`, installed
+  Codex `quick_validate.py` и Markdown lint прошли; общие scripts и digest tests
+  Codex/Claude byte-identical;
+- installed lexical smoke вернул `chat-recall-corpus` с description
+  «Фиксация, формат и жизненный цикл корпуса 1chat-recall» отдельно от holder;
+- два финальных installed hybrid-запроса естественным языком поставили текущий
+  holder первым: capture/reconcile вернул новую owner-цитату `#L23`, а выбор
+  topic-or-quote — `#L25`; соответствующие topics также стояли первыми;
+- hybrid smoke по поиску слов владельца ранжировал current-only
+  `chat-recall-retrieval` первым topic-кандидатом, но первым holder-ом оставил
+  старую буквальную цитату про несколько субагентов. Это подтверждает, что
+  routes не смешаны и выбор current topic действительно нужен;
+- projection `--check` подтвердил совпадение обоих tracked/install owners.
+  Запись снова встретила известный `SameFileError` на Claude symlink после
+  успешной установки Codex; отдельная finding уже названа выше.
+
+Независимый fresh-agent audit в этом ходе не запускался. Наблюдаемый остаток:
+широкий запрос с общими словами про субагента может поднять старый holder;
+без чтения current topic или later-check короткую цитату применять нельзя.
+
+Внешний falsifier проверен по первичным источникам после owner-разрешения
+улучшать протокол, не подменяя его (`#L28-L29`):
+
+- Graphiti подтверждает форму raw episodes как provenance и текущих facts с
+  temporal invalidation, но требует graph backend и отдельную ontology;
+- текущий Mem0 prompt использует memory operations
+  `ADD/UPDATE/DELETE/NONE`, что шире owner-протокола;
+- Memory-R1 документирует конкретный сбой: второй совместимый факт был принят
+  за contradiction и стёр первый. В runtime добавлена только защита от этого
+  сбоя: совместимая деталь не вызывает `replace`.
+
+Источники:
+<https://github.com/getzep/graphiti/blob/main/README.md>,
+<https://github.com/mem0ai/mem0/blob/main/mem0/configs/prompts.py>,
+<https://arxiv.org/abs/2508.19828>.
+
+## Truncated retrieval и legacy topic recovery, 2026-08-26
+
+Owner evidence:
+`_ops/chat-recall/raw/2026-08-26-120948-codex-01a03ce4.md#L15-L17`.
+
+Исправленный контракт:
+
+- `truncated=true` означает неполный candidate set, но не обесценивает уже
+  возвращённые буквальные цитаты. Если невидимые кандидаты не могут изменить
+  текущий claim, агент называет gap и продолжает; иначе abstains;
+- структурный отказ после `status: written` закрывает исходную ветку как
+  `raw saved; topic pending`. Запись в `1findings` допустима дополнительно, но
+  не заменяет этот исход;
+- `chat_digest.py --check --strict` теперь включает запрещённый topic
+  tombstone в corpus diagnostics;
+- `topic_reconcile.py repair-legacy-tombstone` удаляет только строго хвостовой
+  legacy-раздел с каноническими replacement-буллетами, чьи raw-якоря ведут к
+  существующим record-строкам, под file lock и expected SHA-256; обычные
+  `prepare/apply` по-прежнему fail closed.
+
+Falsifying checks:
+
+- до изменения новые тесты падали на strict topic diagnostic, recovery helper
+  и двух обязательных формулировках SKILL; тест literal quote при
+  `truncated=true` уже был зелёным и подтвердил, что дефект находился в
+  агентской интерпретации, а не в выдаче runtime;
+- после независимой критики recovery ужесточён: незаякоренный, произвольный,
+  ведущий в отсутствующий holder либо не-record строку bullet отказывает без
+  записи; manifest семи миграций содержит 18 допустимых legacy-буллетов и 48
+  живых raw-якорей;
+- bounded strict-report показывает topic-category первой и на смешанном
+  corpus не скрывает tombstone за 20 raw diagnostics;
+- полные tracked suites: Codex `132/132`, Claude `131/131`; isolated
+  `test_topic_reconcile.py` проходит отдельно в обоих пакетах;
+- семь текущих topic-файлов мигрированы только через guarded helper; повторный
+  поиск не нашёл ни одного запрещённого tombstone;
+- projection sync/check подтвердил совпадение tracked и installed owners обоих
+  runtime-пакетов.
+
+Support envelope behavioral check: два чистых нативных Codex-subagent окна,
+одинаковые реалистичные сценарии, без repo/tools; одно получило текущие строки,
+второе — ablation. Current-run применил возвращённую цитату с named truncation
+gap и закрыл structural failure точной квитанцией `raw saved; topic pending`,
+finding optional. Ablation сохранил решение narrow quote в явно безопасной
+сцене, но потерял точную reconcile-квитанцию (`refused/no-op`) и назвал finding
+достаточным для долга. Для quote-ветки синтетическая ablation не доказала
+каузальную необходимость строки; comparator — наблюдавшийся owner-ом живой
+сбой этого хода, где агент именно из `truncated=true` вывел непригодность уже
+возвращённых цитат. Support envelope не переносится с Codex на Claude.
+
+Claude support envelope: два отдельных blocking `claude_ask`, профиль
+`opus_advisor`, requested `opus` / `xhigh`, resolved `claude-opus-5`, без
+warnings, без чтения repo и tools. Current-run применил narrow quote, назвал
+`matched=24, returned=5, 19 unseen` и не abstain; structural failure закрыл
+`raw saved; topic pending`, finding optional, primary work continues. Ablation
+для quote снова не изменила решение, но для reconcile вернула `clean no-op` и
+сделала finding обязательной заменой долга вместо точной веточной квитанции.
+Тем самым применение и completion новых reconcile-строк различены и в Claude;
+для quote-строки evidence остаётся current clean pass плюс исходный
+наблюдавшийся owner-ом failure, а не чувствительная synthetic ablation.
+
+Финальный projection gate дважды воспроизвёл self-drift: живой runtime создаёт
+`scripts/__pycache__/recall_metadata.*.pyc`, а sync-helper считал generated
+cache частью пакета. `sync_simple_projections.py` теперь исключает
+`__pycache__` и `.pyc` из обоих manifest-ов; отдельный unit-test и два
+последовательных `1chat-recall --check` прошли. Source-файлы и любые другие
+unexpected files по-прежнему проверяются без ослабления.
+
+Остаток вне claim: strict corpus check продолжает видеть ранее существовавшие
+raw diagnostics. Они не скрыты и не исправлялись этой правкой.

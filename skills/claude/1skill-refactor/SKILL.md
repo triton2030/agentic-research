@@ -3,7 +3,7 @@ name: 1skill-refactor
 description: >-
   Use when a skill fires but is bloated, ritual, or changes nothing: map its
   meanings, curate, resplit body and references. Not for a new skill, its
-  trigger, or a whole instruction set.
+  trigger, or the surrounding context.
 ---
 
 # Разбор существующего скила
@@ -55,7 +55,7 @@ description: >-
 
 - скил не поднимается или перехватывается соседом → `1skill-routing`;
 - нужна принципиально новая функция, а не курация → `1skill-authoring`;
-- перегружен весь свод, а не один скил → `1instruction-refactor`;
+- виноват не скил, а контекст прошедшей работы → `1context-refactor`;
 - нужно правило деления тело/`references/` →
   [reference](../1skill-authoring/references/reference.md).
 

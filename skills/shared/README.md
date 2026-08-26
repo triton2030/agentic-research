@@ -13,12 +13,15 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   `1skill-shaping` + `1instruction-shaping`, снятую 2026-08-26 (архивы в
   `skills/1skill-shaping/` и `skills/1instruction-shaping/`; решение владельца —
   `_ops/chat-recall/raw/2026-08-26-201025-claude-4e40828f.md#L15`):
-  - `1instruction-placement/portable/` — место одного правила: класс, слой,
-    формулировка; владеет `wording.md`, `knowledge-out.md`, `placement.md`
-    (траекторный счёт);
-  - `1instruction-refactor/portable/` — свод целиком, с нуля или пересборка;
-    владеет `interview.md`, `refactor.md` (схема карты смыслов), `coherence.md`,
-    `simplify.md`, базовыми `audit.md`/`check.md`;
+  - `1instruction-authoring/portable/` — создание инструкций: корень-роутер
+    (≤20 единиц знаний, связки «папка → её инструкция»), цепочка папочных
+    инструкций, новое правило; владеет `interview.md`, `wording.md`,
+    `knowledge-out.md`, `placement.md` (траекторный счёт);
+  - `1context-refactor/portable/` — рефактор контекста: мета-анализ прошедшего
+    диалога — найти шероховатости (лишнее чтение, переделки, долгая работа),
+    установить причину, чинить настоящего виновника (инструкции, документ,
+    скил, слова владельца); владеет `refactor.md` (схема карты смыслов),
+    `coherence.md`, `simplify.md`, базовыми `audit.md`/`check.md`;
   - `1skill-authoring/portable/` — новый скил: дефицит, триада, пакеты;
     владеет `canon.md` (канон методик), `behavior-package.md` («налог на
     строгость»), `knowledge-package.md`, `reference.md`, бюджетом ~10
@@ -28,7 +31,7 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
     строки-аннотации;
   - `1skill-refactor/portable/` — курация вызывающегося скила; владеет своими
     `refactor.md`, `failures.md`, `check.md` (дельты поверх базы
-    `1instruction-refactor`).
+    `1context-refactor`).
   У каждого `platforms/codex/agents/openai.yaml` — только Codex UI metadata.
   Reference-файл живёт ровно у одного владельца; соседи ссылаются относительно.
 - `1md-search/portable/` — общий cognitive/tool core для
