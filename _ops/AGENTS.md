@@ -42,12 +42,12 @@
   `self-learning:`; старые тематические файлы, счётчики и архивы не
   восстанавливать.
 - `rules/` — условные холодные rule-docs для редких правил с явным trigger,
-  owner и check. Wording держит `1instruction-shaping`; механизм — live settings/hook
+  owner и check. Wording держит `1instruction-placement`; механизм — live settings/hook
   pass. Если route/owner rule-doc меняется, синхронизировать root `AGENTS.md`.
   Читать только по конкретному
   trigger из `AGENTS.md` или owner-файла, не как preload.
 - `interviews/` — временные интерактивные вопросники. Маршрут задаёт
-  `1interview-tool`, wording чинит `1instruction-shaping`. После разбора смысл
+  `1interview-tool`, wording чинит `1instruction-placement`. После разбора смысл
   переносится к владельцам
   (task-файлы, roadmap, GOAL/README, knowledge).
 - `interviews/_archive/` — архив полностью разобранных интервью.
