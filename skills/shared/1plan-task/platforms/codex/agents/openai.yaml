@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Задача плана"
+  short_description: "A self-sufficient, hard-bounded living task file inside its epic"
+  default_prompt: "Use $1plan-task when chosen work will outlive the session, a task file is created or continued, or new evidence arrives: reread the current epic and verify эпик-снимок, confirm the task is bounded (steals no work from other tasks or epics, exactly one epic, 3–7 subtasks), write per the task form with provenance on every material requirement and addresses instead of retellings, hold Wayfinding/Execution honestly and rebuild on contradicting evidence, close [x] only with a доказательство address and ✅ only with whole-task evidence accepted by the seam's consumer, let only the orchestrating window write plan files (workers return to _evidence/), and prove the file on a fresh clean-window reader before handoff."
+
+policy:
+  allow_implicit_invocation: true

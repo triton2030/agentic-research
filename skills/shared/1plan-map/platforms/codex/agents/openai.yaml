@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Карта планов"
+  short_description: "Epic map from product frames and GOAL, with the owner dashboard"
+  default_prompt: "Use $1plan-map when the epic map is created, audited or changed, when an epic closes, or at owner words about working on epics or the top level of the project: read every product frame and principle and GOAL.md first (frames drive whether an epic exists, its content and order; no frames → the goal file), run 1use-principles over the composition, name the principle files in every epic's «Принципы», then create the map from 'Done means', audit/refactor it, or edit it on events — ✅ only with carrier-accepted evidence, epics never deleted, every composition change visible with a reason and the owner's recorded yes; keep the Obsidian dashboard per the reference forms."
+
+policy:
+  allow_implicit_invocation: true

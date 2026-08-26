@@ -48,9 +48,20 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
 - `1product-shaping/portable/` создаёт чистые Product Principles + Frame и
   журнал обоснований; `1use-principles/portable/` применяет их к развилкам и
   пустотам.
-- `1planning/portable/` создаёт карту эпиков и один живой task-файл внутри
-  эпика для работы через сессии; `1index/portable/` держит карты оплаченных
-  поиском маршрутов.
+- Семья планирования — тройка по моментам запуска, раскроена 2026-08-26 из
+  монолита `1planning` (решение владельца —
+  `_ops/chat-recall/raw/2026-08-26-220614-claude-4ee6bbef.md`; карта раскройки
+  и снимок — `skills/1planning/`):
+  - `1planning/portable/` — страж и когнитивный протокол в чате: любая мысль
+    «что дальше», спор о допуске задачи, доказанная пошаговая декомпозиция по
+    книжным методикам до любых план-файлов; без references;
+  - `1plan-map/portable/` — эпики и верхний уровень проекта: рамки и принципы
+    до состава, карта от GOAL, дашборд Obsidian; владеет `map-form.md`,
+    `dashboard.md`;
+  - `1plan-task/portable/` — изолированность задач: самодостаточный жёстко
+    ограниченный task-файл, режимы, доказательства, fresh-reader; владеет
+    `task-form.md`.
+- `1index/portable/` держит карты оплаченных поиском маршрутов.
 - `1interview-tool/portable/` создаёт адресуемую plain-Markdown форму и держит
   lifecycle `решения владельца → настоящие owners → архив`; Codex invocation
   metadata живёт в `platforms/codex/agents/openai.yaml`.
