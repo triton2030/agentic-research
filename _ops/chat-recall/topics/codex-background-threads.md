@@ -45,7 +45,7 @@ sources: 12
 
 - Владелец предложил как правило архивировать ветки после вызова `1codex-bg-threads`. [2026-08-04-121600-codex-019fcb91.md#L18]
 - Владелец решил, что root архивирует retained-ветку при принятии зонтичной работы, а до принятия — только по явному слову владельца. [2026-08-11-002528-claude-5fcdde37.md#L16]
-- Владелец решил ограничить правку `1codex-bg-threads` stable title, pin и recovery через `list_threads` и `unarchive`, исключив queue, revert, Goal, Cloud и handoff. [2026-08-14-201110-codex-019fff9f.md#L17]
+- Владелец отменил закрепление фоновых тредов: background threads, включая retained-хранителей, должны оставаться unpinned; stable title и recovery сохраняются. [2026-08-26-221254-codex-01a03f0a.md#L21]
 
 ## Freshness и worktrees
 

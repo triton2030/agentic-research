@@ -438,6 +438,83 @@
       "record_sha256": "ade0ba330497e11666843bfe05d37d018f7f983196599694d9053707a9c35c1e",
       "anchor": "2026-08-26-215943-claude-1a12f637.md#L24",
       "topic_sha256": "05c108cd6129d282e7311400cc0d29f32fc0df1a69cf0c90298b53c21bd993c0"
+    },
+    {
+      "topic": "goals-plans-principles",
+      "session": "4ee6bbef-2755-47cc-aa2b-68dcfb1d82c1",
+      "record_sha256": "44ab1ef41528fae0eda290290cdec4b14acbd4b0ccdbcd1dea40c890323cb218",
+      "anchor": "2026-08-26-220614-claude-4ee6bbef.md#L20",
+      "topic_sha256": "dd974d5760b5e1822739d020032d3ebe787862eb8fce4ce6e67df9b713a394c9"
+    },
+    {
+      "topic": "goals-plans-principles",
+      "session": "4ee6bbef-2755-47cc-aa2b-68dcfb1d82c1",
+      "record_sha256": "4ff2f51fd7d63ee03d253de86079bf2a9ac5c673059daa3ea6bc91306c703df7",
+      "anchor": "2026-08-26-220614-claude-4ee6bbef.md#L21",
+      "topic_sha256": "dd974d5760b5e1822739d020032d3ebe787862eb8fce4ce6e67df9b713a394c9"
+    },
+    {
+      "topic": "goals-plans-principles",
+      "session": "4ee6bbef-2755-47cc-aa2b-68dcfb1d82c1",
+      "record_sha256": "91ec45bd496187642e65ccd95535be1e93a0f6617e40bf0ad9c7b8f0437bceb3",
+      "anchor": "2026-08-26-220614-claude-4ee6bbef.md#L22",
+      "topic_sha256": "dd974d5760b5e1822739d020032d3ebe787862eb8fce4ce6e67df9b713a394c9"
+    },
+    {
+      "topic": "goals-plans-principles",
+      "session": "4ee6bbef-2755-47cc-aa2b-68dcfb1d82c1",
+      "record_sha256": "b613276a52f7d594150d259abc140dc1ee76b5bbeaf6aa67d916b04be2c0e9dc",
+      "anchor": "2026-08-26-220614-claude-4ee6bbef.md#L23",
+      "topic_sha256": "dd974d5760b5e1822739d020032d3ebe787862eb8fce4ce6e67df9b713a394c9"
+    },
+    {
+      "topic": "goals-plans-principles",
+      "session": "4ee6bbef-2755-47cc-aa2b-68dcfb1d82c1",
+      "record_sha256": "1d9edd42cfbf36f42db88eb618f94ef391fa7af311dcdc38496b483964886794",
+      "anchor": "2026-08-26-220614-claude-4ee6bbef.md#L24",
+      "topic_sha256": "dd974d5760b5e1822739d020032d3ebe787862eb8fce4ce6e67df9b713a394c9"
+    },
+    {
+      "topic": "goals-plans-principles",
+      "session": "4ee6bbef-2755-47cc-aa2b-68dcfb1d82c1",
+      "record_sha256": "568dc60c4d30d5b0f5dd1c56b771db06f0e9f564d4d4f17e26e02487bdee8563",
+      "anchor": "2026-08-26-220614-claude-4ee6bbef.md#L25",
+      "topic_sha256": "dd974d5760b5e1822739d020032d3ebe787862eb8fce4ce6e67df9b713a394c9"
+    },
+    {
+      "topic": "goals-plans-principles",
+      "session": "4ee6bbef-2755-47cc-aa2b-68dcfb1d82c1",
+      "record_sha256": "85c8fa1f764880cc3c5e7d2b029e28a6437d3c68cf466ae1bd1b36e8ca7419ef",
+      "anchor": "2026-08-26-220614-claude-4ee6bbef.md#L26",
+      "topic_sha256": "dd974d5760b5e1822739d020032d3ebe787862eb8fce4ce6e67df9b713a394c9"
+    },
+    {
+      "topic": "goals-plans-principles",
+      "session": "4ee6bbef-2755-47cc-aa2b-68dcfb1d82c1",
+      "record_sha256": "bcdd9e65ac012d83f723673770d6490e4caf07a50a1f31101ede7b82d5806abc",
+      "anchor": "2026-08-26-220614-claude-4ee6bbef.md#L27",
+      "topic_sha256": "dd974d5760b5e1822739d020032d3ebe787862eb8fce4ce6e67df9b713a394c9"
+    },
+    {
+      "topic": "goals-plans-principles",
+      "session": "4ee6bbef-2755-47cc-aa2b-68dcfb1d82c1",
+      "record_sha256": "2272c570590b0a01513c58fb3bf54dac1af03989c8b20b7480d435fc5759ae63",
+      "anchor": "2026-08-26-220614-claude-4ee6bbef.md#L28",
+      "topic_sha256": "dd974d5760b5e1822739d020032d3ebe787862eb8fce4ce6e67df9b713a394c9"
+    },
+    {
+      "topic": "gemini",
+      "session": "01a03a0c-335c-7071-a810-6474e566450e",
+      "record_sha256": "70c72e55f0fa8f33ab582ae302beb6c0b018eda3c8aa1855512f0fffe331b896",
+      "anchor": "2026-08-25-225217-codex-01a03a0c.md#L27",
+      "topic_sha256": "8370549e2e450fc68c6f7223be474b84b54850d18f19b96c63260f6f83c823c9"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "1a12f637-58af-40be-91b5-39e67b573a87",
+      "record_sha256": "ed7cdc26c1c4a422b0f45aaf5e8bcb0d4bb089ff718299cee43d34236581f5b7",
+      "anchor": "2026-08-26-215943-claude-1a12f637.md#L25",
+      "topic_sha256": "05c108cd6129d282e7311400cc0d29f32fc0df1a69cf0c90298b53c21bd993c0"
     }
   ]
 }
