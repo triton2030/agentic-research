@@ -522,6 +522,20 @@
       "record_sha256": "15dd9937241d926d6ffcfd0387a5bc2a1bc132d29f409d6c7c060e4cbd9f4e1c",
       "anchor": "2026-08-26-215943-claude-1a12f637.md#L27",
       "topic_sha256": "05c108cd6129d282e7311400cc0d29f32fc0df1a69cf0c90298b53c21bd993c0"
+    },
+    {
+      "topic": "gemini",
+      "session": "01a03a0c-335c-7071-a810-6474e566450e",
+      "record_sha256": "637eb2b2d7693464f3cbccd4da3c02ba082f41280d9f281bd07afa2d73ad3173",
+      "anchor": "2026-08-25-225217-codex-01a03a0c.md#L29",
+      "topic_sha256": "d028358d2f24a88cea45837a1a7af42b97c3305b81be51d50fcbd3082e658a4c"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "01a03a0c-335c-7071-a810-6474e566450e",
+      "record_sha256": "c39df04415d5f516204b587cc3ea6c8b0f06900b3ea8297fa3114bc963a5c3dc",
+      "anchor": "2026-08-25-225217-codex-01a03a0c.md#L31",
+      "topic_sha256": "dec8deec427b0d138580ff68b5ab21dcd996946b61a6c882c19eac0cc2c61732"
     }
   ]
 }

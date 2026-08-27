@@ -14,9 +14,9 @@ description: >-
 | --- | --- |
 | Мнение, review или задача через Hermes | Запусти Golden Path ниже |
 | «Работает ли Hermes?» | Сначала выполни бесплатный static health check |
-| Явный end-to-end/live health | Выполни платный `--live` probe |
+| Явный end-to-end/live health | Выполни bounded Golden Path probe |
 | Проверка на эхо без project rules и памяти | Добавь `--isolated`; прочитай advanced reference |
-| Продолжить session | Используй `--resume`; прочитай advanced reference |
+| Продолжить session | Используй plain resume ниже |
 | Другая model/provider/reasoning | Начни fresh run; прочитай advanced reference |
 | Явно названа Ox Alpha | Выполни бесплатный preflight и exact override ниже |
 | Hermes должен писать или исполнять команды | Прочитай advanced reference до вызова |
@@ -84,6 +84,20 @@ HERMES_BRIEF
 Wrapper блокирует до terminal result и возвращает compact JSON. Если вызывающий
 агент открыл delegation/execution toolsets, необходимость и способ декомпозиции
 определяет Hermes по brief и этому skill, а не Python-wrapper.
+
+### Plain resume
+
+Продолжай ту же session без повторения уже переданного evidence. Follow-up
+должен назвать требуемую дельту, форму ответа и stop:
+
+```bash
+python3 "$HERMES_ADVISOR" --cwd "$PWD" --resume "$SESSION_ID" <<'HERMES_BRIEF'
+<follow-up>
+HERMES_BRIEF
+```
+
+Не передавай `--model`, `--provider` или `--reasoning` вместе с `--resume`.
+Принимай continuation только если возвращённый `session.id` равен `SESSION_ID`.
 
 Когда после запуска остаётся полезная независимая работа Codex, запусти ту же
 wrapper-команду через нативный yielded `functions.exec` terminal wake. Cell
@@ -153,7 +167,7 @@ traceback, и оплаченный run не исчезает вместе с н�
 1. `ok` равен `true`;
 2. `resolved.model`, `resolved.provider` и `resolved.reasoning` доказывают
    запрошенный runtime;
-3. `session.id` присутствует;
+3. `session.id` присутствует; на resume он равен переданному `SESSION_ID`;
 4. `response_source` равен `session`: тогда `response` взят из последнего
    assistant-message session store. `stdout` допустим только с явным
    `--allow-stdout-response` и остаётся более слабым evidence;
@@ -203,9 +217,9 @@ session-backed JSON.
 
 ## Условные Ветки
 
-Прочитай [advanced-usage.md](references/advanced-usage.md) только для resume,
-model override, writes/worktree, execution/delegation tools, Hermes skills,
-browser/X research, fallback либо MoA. Не загружай его для обычного review.
+Прочитай [advanced-usage.md](references/advanced-usage.md) только для model
+override, writes/worktree, execution/delegation tools, Hermes skills, browser/X
+research, fallback либо MoA. Не загружай его для обычного review или plain resume.
 
 ## Стоп
 

@@ -10,17 +10,8 @@ Worktree; Hermes-Native Возможности; Data И Failure Boundary.
 HERMES_ADVISOR="${CODEX_HOME:-$HOME/.codex}/skills/1hermes/scripts/hermes_advisor.py"
 ```
 
-## Session И Runtime Override
+## Runtime Override
 
-Продолжить существующую session с её прежними model/provider/reasoning:
-
-```bash
-python3 "$HERMES_ADVISOR" --cwd "$PWD" --resume "$SESSION_ID" <<'HERMES_BRIEF'
-<самодостаточный follow-up>
-HERMES_BRIEF
-```
-
-Не передавай `--model`, `--provider` или `--reasoning` вместе с `--resume`.
 Чтобы сменить runtime, начни fresh run:
 
 ```bash

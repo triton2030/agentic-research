@@ -107,6 +107,10 @@ The caller selects a summary, activity, conversation, or diagnostic view:
 - diagnostic reports compact session, model, queue, timeout, and failure
   evidence.
 
+Every observation exposes a typed terminal outcome: `terminal.kind` is one of
+`success`, `error`, or `timeout` when a turn has ended, and is `null` while no
+terminal outcome is available.
+
 Observation is pull-only: there is no push stream, background feed, or raw event
 log. The bridge never copies a continuous transcript, extended thinking, or raw
 tool inputs/outputs into Codex context. Bounds apply to retained state and every

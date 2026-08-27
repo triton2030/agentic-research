@@ -22,6 +22,15 @@ const askResultSchema = {
   warnings: z.array(z.string())
 };
 
+const visibleTerminalSchema = z.object({
+  kind: z.enum(["success", "error", "timeout"]),
+  duration_ms: z.number().int().nonnegative().optional(),
+  num_turns: z.number().int().nonnegative().optional(),
+  code: z.string().optional(),
+  resumable: z.boolean().optional(),
+  message: z.string().optional()
+});
+
 const observationFields = {
   session_id: z.string().uuid(),
   state: z.enum([
@@ -49,7 +58,7 @@ const observationFields = {
   requested_model: z.literal("opus").nullable(),
   requested_effort: z.enum(["xhigh", "max"]).nullable(),
   resolved_model: z.string().nullable(),
-  terminal: z.record(z.string(), z.unknown()).nullable(),
+  terminal: visibleTerminalSchema.nullable(),
   warnings: z.array(z.string()),
   events: z.array(z.object({
     cursor: z.number().int().nonnegative(),

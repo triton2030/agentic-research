@@ -726,6 +726,9 @@ test("MCP exposes exactly four tools with honest annotations", async () => {
     assert.match(JSON.stringify(byName.claude_ask.outputSchema.properties.requested_effort), /null/u);
     assert.match(JSON.stringify(byName.claude_observe.outputSchema.properties.state), /requires_action/u);
     assert.match(JSON.stringify(byName.claude_observe.outputSchema.properties.state), /closing/u);
+    assert.match(JSON.stringify(byName.claude_observe.outputSchema.properties.terminal), /success/u);
+    assert.match(JSON.stringify(byName.claude_observe.outputSchema.properties.terminal), /timeout/u);
+    assert.match(JSON.stringify(byName.claude_observe.outputSchema.properties.terminal), /error/u);
     assert.deepEqual(
       byName.claude_sessions.inputSchema.properties.op.enum,
       ["list_active", "read"]

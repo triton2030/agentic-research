@@ -55,7 +55,7 @@ its raw inputs, output, denial prose, and fallback explanation never do.
   one diagnostic snapshot, then steer or stop deliberately. `closing` reserves
   capacity until process cleanup is actually complete; never reopen or send
   while it remains visible.
-- State `idle` with terminal success: request one bounded `conversation` view
+- State `idle` with `terminal.kind: "success"`: request one bounded `conversation` view
   to read the answer, verify material claims locally, then `stop` unless another
   follow-up is already justified.
 - Use `stop` to end the process-local lease. Native history remains resumable.
