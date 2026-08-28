@@ -790,7 +790,7 @@ class ChatCaptureTests(unittest.TestCase):
             env=self.claude_env(), supersedes=f"{target.name}#L{line_number}",
         )
         written = target.read_text(encoding="utf-8")
-        self.assertRegex(written, rf"supersedes: {target.name}#L{line_number} sha:\w{{8}}")
+        self.assertRegex(written, rf"supersedes: {target.name}:{line_number} sha:\w{{8}}")
 
         missing = self.run_capture(
             "Ещё реплика", "коррекция", "chat-recall-corpus",
@@ -798,13 +798,14 @@ class ChatCaptureTests(unittest.TestCase):
         )
         self.assertEqual(missing.returncode, 2)
         self.assertIn("does not address a record line", missing.stderr)
+        self.assertIn(f"{target.name}:", missing.stderr)
 
         malformed = self.run_capture(
             "И ещё", "коррекция", "chat-recall-corpus",
             env=self.claude_env(), contested="просто текст", expect_ok=False,
         )
         self.assertEqual(malformed.returncode, 2)
-        self.assertIn("<file>.md#L<line>", malformed.stderr)
+        self.assertIn("<file>.md:<line>", malformed.stderr)
 
     def test_runtime_owner_documents_metadata_vocabulary(self) -> None:
         skill_text = SKILL.read_text(encoding="utf-8")

@@ -276,11 +276,25 @@ def _parse_block(
 
 
 def _parse_anchor(value: str) -> tuple[str, str | None]:
-    """Split `file.md#L12 sha:1bda2acd` into an address and its fingerprint."""
+    """Split `file.md:12 sha:1bda2acd` into an address and its fingerprint."""
     address, _, suffix = value.partition(" sha:")
     name, separator, line = address.strip().partition("#L")
     resolved = f"{name}:{line}" if separator and line.isdigit() else address.strip()
     return resolved, suffix.strip() or None
+
+
+def _quote_card(record: dict[str, Any], head: int) -> dict[str, Any]:
+    """One addressable quote: enough to cite it or to point a correction at it."""
+    text = record["text"]
+    card: dict[str, Any] = {
+        "text": text[:head].rstrip() + ("…" if len(text) > head else ""),
+        "address": record["address"],
+    }
+    for back_reference in ("superseded_by", "contested_by"):
+        marker = record.get(back_reference)
+        if marker:
+            card[back_reference] = marker
+    return card
 
 
 def link_supersessions(records: list[dict[str, Any]]) -> None:
@@ -1215,17 +1229,8 @@ def _holder_cards(
         holder_records = by_file[candidate["file"]]
         latest = _latest_holder_datetime(holder_records)
         evidence = candidate.get("quote_evidence", [])
-        strongest_quote = None
-        if evidence:
-            text = evidence[0]["text"]
-            strongest_quote = {
-                "text": text[:head].rstrip() + ("…" if len(text) > head else ""),
-                "address": evidence[0]["address"],
-            }
-            for back_reference in ("superseded_by", "contested_by"):
-                marker = evidence[0].get(back_reference)
-                if marker:
-                    strongest_quote[back_reference] = marker
+        strongest_quote = _quote_card(evidence[0], head) if evidence else None
+        supporting = [_quote_card(record, head) for record in evidence[1:3]]
         types = Counter(record["type"] for record in holder_records)
         topics = Counter(record["topic"] for record in holder_records)
         session_context = candidate.get("session_context")
@@ -1238,6 +1243,7 @@ def _holder_cards(
                 "semantic_rank": candidate["semantic_rank"],
                 "session_context": session_context,
                 "strongest_quote": strongest_quote,
+                "supporting_quotes": supporting,
                 "supporting_quote_count": min(max(len(evidence) - 1, 0), 2),
                 "types": dict(types.most_common()),
                 "topics": dict(topics.most_common()),
@@ -1285,6 +1291,10 @@ def _summary(record: dict[str, Any]) -> dict[str, Any]:
         "session",
         "agent",
         "address",
+        "supersedes",
+        "contested",
+        "superseded_by",
+        "contested_by",
         "diagnostics",
         "score",
     )

@@ -13,6 +13,7 @@ import sys
 import tempfile
 import uuid
 from datetime import date, datetime
+from difflib import SequenceMatcher
 from pathlib import Path
 from typing import NamedTuple
 
@@ -35,7 +36,7 @@ def resolve_log_dir(root: Path) -> Path:
 TOPIC_MAP = LOG_DIR / "topics.md"
 TOPIC_ROW_RE = re.compile(r"^-\s+`(?P<handle>[^`]+)`\s+—\s+(?P<description>.+?)\s*$")
 RETIRED_HEADING_RE = re.compile(r"^##\s+Не переиспользовать\s*$")
-ANCHOR_RE = re.compile(r"^[\w.\-]+\.md#L\d+$")
+ANCHOR_RE = re.compile(r"^(?P<file>[\w.\-]+\.md)(?:#L|:)(?P<line>\d+)$")
 
 
 class TopicMap(NamedTuple):
@@ -90,14 +91,34 @@ def _after_retired(lines: list[str], index: int) -> bool:
     return any(RETIRED_HEADING_RE.match(line) for line in lines[:index])
 
 
+def nearest_topics(topic_map: TopicMap, wanted: str, count: int = 5) -> str:
+    """Show the closest topics on a miss, instead of the whole map."""
+    scored = sorted(
+        topic_map.live.items(),
+        key=lambda row: -max(
+            SequenceMatcher(None, wanted, row[0]).ratio(),
+            SequenceMatcher(None, wanted, row[1].lower()).ratio(),
+        ),
+    )
+    return "Closest topics in the map:\n" + "\n".join(
+        f"  {name} — {description}" for name, description in scored[:count]
+    )
+
+
 def anchor(value: str, field: str) -> str:
-    """A corpus address: conversation file plus the line of one record."""
+    """A corpus address, in either form the agent has at hand.
+
+    Search prints `file.md:21`, a capture receipt prints `file.md#L21`, and the
+    same address arrives here from both. Accept both and store one.
+    """
     collapsed = one_line(value, field)
-    if not ANCHOR_RE.fullmatch(collapsed):
+    match = ANCHOR_RE.fullmatch(collapsed)
+    if not match:
         raise CaptureError(
-            f"{field} must address one record as <file>.md#L<line>: {collapsed!r}"
+            f"{field} must address one record as <file>.md:<line> "
+            f"(the form search prints): {collapsed!r}"
         )
-    return collapsed
+    return f"{match['file']}:{match['line']}"
 
 
 def verify_anchor(log_dir: Path, value: str, field: str) -> str:
@@ -107,7 +128,7 @@ def verify_anchor(log_dir: Path, value: str, field: str) -> str:
     down with it. A bare line number would quietly stop pointing at the record
     it was written for; the fingerprint lets the reader find it again.
     """
-    name, _, line_number = value.partition("#L")
+    name, _, line_number = value.rpartition(":")
     path = log_dir / name
     try:
         lines = path.read_text(encoding="utf-8-sig").splitlines()
@@ -116,10 +137,20 @@ def verify_anchor(log_dir: Path, value: str, field: str) -> str:
     index = int(line_number) - 1
     if not 0 <= index < len(lines) or not lines[index].startswith("* "):
         raise CaptureError(
-            f"{field} does not address a record line: {value}. Re-read the file: "
-            "addresses move down as a conversation grows."
+            f"{field} does not address a record line: {value}. Addresses move "
+            f"down as a conversation grows; records in {name} are now:\n"
+            + current_records(name, lines)
         )
     return f"{value} sha:{fingerprint(lines[index])}"
+
+
+def current_records(name: str, lines: list[str], width: int = 70) -> str:
+    """The file's live addresses, so the retry needs no second read."""
+    return "\n".join(
+        f"  {name}:{number} {line[:width]}…"
+        for number, line in enumerate(lines, start=1)
+        if line.startswith("* ")
+    )
 
 
 def fingerprint(line: str) -> str:
@@ -798,9 +829,10 @@ def main() -> int:
             if topic not in topic_map.live:
                 if not args.new_topic:
                     raise CaptureError(
-                        f"topic {topic!r} is not in {topic_map.path}. Read the map, "
-                        "pick the topic whose subject this reply belongs to, or "
-                        'create one deliberately: --new-topic "<one-line boundary>".'
+                        f"topic {topic!r} is not in {topic_map.path}.\n"
+                        + nearest_topics(topic_map, topic)
+                        + "\nPick the one whose subject this reply belongs to, or "
+                        'create a topic deliberately: --new-topic "<boundary>".'
                     )
                 new_topic_row = one_line(args.new_topic, "new topic boundary")
         supersedes = (
