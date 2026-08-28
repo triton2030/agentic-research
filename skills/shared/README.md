@@ -22,19 +22,18 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
     установить причину, чинить настоящего виновника (инструкции, документ,
     скил, слова владельца); владеет `refactor.md` (схема карты смыслов),
     `coherence.md`, `simplify.md`, базовыми `audit.md`/`check.md`;
-  - `1skill-creation/portable/` — создание скиллов (бывший `1skill-authoring`,
-    полная перекройка 2026-08-26, архив в `skills/1skill-authoring/`): извлечь
-    из слов владельца функцию, которую он подразумевает под именем скила, и
-    написать кратчайший недвусмысленный скил; владеет `canon.md` (канон
-    методик), `formulation.md`, `agent-defaults.md` («налог на строгость»),
-    `skills-science.md` и мягким бюджетом ~20 единиц на тело и на reference;
-  - `1skill-routing/portable/` — кнопка запуска: имя, description, триггер;
-    владеет `description.md` и лимитом 200 символов на описания и
-    строки-аннотации;
-  - `1skill-refactor/portable/` — рефактор скила: сверка со `1skill-creation`
-    и пошаговый протокол абстрагирования инструкций в высший порядок без потери
-    смысла; владеет своими `refactor.md`, `failures.md`, `check.md` (дельты
-    поверх базы `1context-refactor`).
+  - `1skill-creation/portable/` — создание, рефактор и кнопка запуска скилов
+    одним пакетом (v5, 2026-08-28: поглотил `1skill-refactor` и
+    `1skill-routing`, их снапшоты в `skills/1skill-refactor/` и
+    `skills/1skill-routing/`; предшественник — `skills/1skill-authoring/`).
+    Тело — дирижёр: нулевой референс `writing-rules.md` (правила письма и
+    адреса), разделы по разделам создаваемого скила (`goal-context`,
+    `behavior-protocol`, `reference-files`, `check-approve`), режимы
+    `refactor.md` и `routing.md`; условные `canon.md`, `formulation.md`,
+    `agent-defaults.md` («налог на строгость»), `skills-science.md`,
+    `description.md` (лимит 200), `refactor-check.md`, `refactor-failures.md`
+    (дельты поверх базы `1context-refactor`). Бюджет — меньше 20 единиц на
+    тело и на reference, желательно ~10.
   У каждого `platforms/codex/agents/openai.yaml` — только Codex UI metadata.
   Reference-файл живёт ровно у одного владельца; соседи ссылаются относительно.
 - `1md-search/portable/` — общий cognitive/tool core для

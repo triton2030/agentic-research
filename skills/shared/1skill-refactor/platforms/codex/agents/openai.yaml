@@ -1,7 +1,0 @@
-interface:
-  display_name: "1-Рефактор скила"
-  short_description: "Refactor a skill: check against 1skill-creation, abstract instructions into fewer higher-order ones"
-  default_prompt: "Use $1skill-refactor when the user asks to refactor a skill or a firing skill is bloated. Check it against 1skill-creation (rerun its protocol if instructions exceed budgets or wording breaks its rules), then abstract: list every instruction, group by goal, derive higher-order instructions that entail each removed detail, keep the underivable explicit, back mandatory steps with unfakeable traces, and run the two mandatory subagents (reducer and behavior-harm checker)."
-
-policy:
-  allow_implicit_invocation: true

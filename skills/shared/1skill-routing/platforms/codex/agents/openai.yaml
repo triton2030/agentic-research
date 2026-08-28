@@ -1,7 +1,0 @@
-interface:
-  display_name: "1-Кнопка запуска"
-  short_description: "Fix a skill that never fires, fires early, or collides: name, description, trigger"
-  default_prompt: "Use $1skill-routing when the skill's body is fine but its activation is wrong. Rewrite the description from observable moment × stake, keep it under 200 characters, add the negative boundary and one named neighbour, verify with bare owner phrases against the live skill list."
-
-policy:
-  allow_implicit_invocation: true
