@@ -543,6 +543,20 @@
       "record_sha256": "70c24aabc32d095d7d7d0c578912adeb64bee66eb52f35b05f4d5aef3bbc8867",
       "anchor": "2026-08-27-190611-claude-029784d5.md#L18",
       "topic_sha256": "46330b5435641b7d9a8a4c1eafd5b5732f9936ded6b4c572064427a53cde81cd"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "029784d5-9cd4-428b-87fc-e22f79dd543d",
+      "record_sha256": "f122032496b7e1a5a9a2309ede1f89cd7e875a6631bed374783837e93677b94f",
+      "anchor": "2026-08-27-190611-claude-029784d5.md#L21",
+      "topic_sha256": "46330b5435641b7d9a8a4c1eafd5b5732f9936ded6b4c572064427a53cde81cd"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "029784d5-9cd4-428b-87fc-e22f79dd543d",
+      "record_sha256": "472872fcaa91a252518ae6cbc23ef83b9f5263621f8fa155b60247d73e725312",
+      "anchor": "2026-08-27-190611-claude-029784d5.md#L23",
+      "topic_sha256": "46330b5435641b7d9a8a4c1eafd5b5732f9936ded6b4c572064427a53cde81cd"
     }
   ]
 }
