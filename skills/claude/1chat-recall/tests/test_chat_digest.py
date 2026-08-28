@@ -54,6 +54,27 @@ class ChatDigestTests(unittest.TestCase):
     def tearDown(self) -> None:
         self.temp.cleanup()
 
+    def test_search_address_is_accepted_by_capture_unchanged(self) -> None:
+        """The address search prints must be the address capture takes.
+
+        These live in two scripts and drifted apart once already: search
+        printed `file.md:21`, capture demanded `file.md#L21`, and the skill
+        told the agent to copy one into the other. Bind them here so the next
+        change to either side fails loudly instead of at the agent's hands.
+        """
+        import importlib.util
+
+        capture_path = SCRIPT.parent / "chat_capture.py"
+        spec = importlib.util.spec_from_file_location("capture_for_address", capture_path)
+        assert spec is not None and spec.loader is not None
+        capture = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(capture)
+
+        records, _ = DIGEST.load(self.corpus)
+        self.assertTrue(records)
+        printed = records[0]["address"]
+        self.assertEqual(capture.anchor(printed, "supersedes"), printed)
+
     def call(self, *args: str) -> subprocess.CompletedProcess[str]:
         command = list(args)
         if "--query" in command and "--lexical" not in command:

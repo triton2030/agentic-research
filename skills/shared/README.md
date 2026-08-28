@@ -78,6 +78,13 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
 sync. Поведение остаётся у tracked или live `SKILL.md`; при расхождении product
 intent и runtime нужен явный reconcile, а не копия пары в оба runtime.
 
+**Их runtime-деревья расходятся намеренно, и файлы между ними не копируются.**
+У `1chat-recall` различаются `allowed-tools`, переменные сессии, пути запуска и
+имя агента — а тесты сверяются с этими строками. Правь оба дерева руками:
+2026-08-28 копирование tracked-теста из `skills/claude/1chat-recall/` в
+`skills/codex/` уронило два контрактных теста и стёрло codex-специфичные
+проверки.
+
 Runtime `1hermes` с 2026-08-22 tracked: `skills/claude/1hermes/` и
 `skills/codex/1hermes/` — owner-ы своих семей, установленные пути стали
 симлинками. Общего portable-ядра у них нет и не планируется: копии расходятся
