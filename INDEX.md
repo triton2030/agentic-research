@@ -32,13 +32,13 @@
 
 ## Ищу, что владелец говорил или решал
 
-- `_ops/chat-recall/raw/` — дословные выдержки, файл на разговор. Читать не глазами,
+- `_ops/chat-recall/` — дословные выдержки, файл на разговор. Читать не глазами,
   а запросом:
 
   ```bash
   uv run --locked --script \
     ~/.claude/skills/1chat-recall/scripts/chat_digest.py \
-    _ops/chat-recall/raw --query "<предмет решения>" --json
+    _ops/chat-recall --query "<предмет решения>" --json
   ```
 
 - `_ops/user-said/` — замороженный предшественник (по 2026-05-28), read-only.
@@ -109,17 +109,13 @@
 - `_workspace/orchestration/<дата>-<тема>/` — снапшоты волн субагентов, включая
   чужие проекты-подопытные.
 
-## Ищу позицию владельца по предмету — сначала слой тем
+## Ищу позицию владельца по предмету
 
-- [`_ops/chat-recall/topics/`](_ops/chat-recall/topics/) — один обзорный файл на
-  предмет; имя файла выбирает тему, а raw-якоря пунктов ведут к owner evidence.
-- [`_ops/chat-recall/AGENTS.md`](_ops/chat-recall/AGENTS.md) — как читать слой,
-  когда тот же погружённый агент делает same-turn typed patch и почему no-op
-  остаётся default.
-- [`PROTOCOL.md`](experiments/openviking-chat-recall/PROTOCOL.md) и
-  [`RUNBOOK.md`](experiments/openviking-chat-recall/RUNBOOK.md) — как отдельно
-  догонять append-only backlog, карантинить corrections, чинить их typed
-  helper-ом и принимать слой.
+- [`_ops/chat-recall/AGENTS.md`](_ops/chat-recall/AGENTS.md) — контракт корпуса:
+  цитаты ищутся напрямую запросом выше, промежуточного слоя нет.
+- Производный слой тем снят владельцем 2026-08-28 вместе со всей его
+  машинерией; его прогоны в `experiments/openviking-chat-recall/` остаются
+  снятой веткой и evidence замера, а не рабочим маршрутом.
 
 ## Зову Ox Alpha или чиню 1hermes — где доказательства прогона
 

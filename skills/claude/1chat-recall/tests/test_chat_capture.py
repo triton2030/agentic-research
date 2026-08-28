@@ -17,7 +17,6 @@ from pathlib import Path
 from unittest import mock
 
 SCRIPT = Path(__file__).parents[1] / "scripts" / "chat_capture.py"
-RECONCILE = SCRIPT.parent / "topic_reconcile.py"
 SKILL = SCRIPT.parents[1] / "SKILL.md"
 if str(SCRIPT.parent) not in sys.path:
     sys.path.insert(0, str(SCRIPT.parent))
@@ -42,6 +41,10 @@ SESSION_ENV_VARS = (
 )
 
 
+RUNTIME_ROOT_LINE = 'ROOT="${CLAUDE_SKILL_DIR}"'
+RUNTIME_AGENT = "claude"
+
+
 class ChatCaptureTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temp = tempfile.TemporaryDirectory()
@@ -60,9 +63,11 @@ class ChatCaptureTests(unittest.TestCase):
         session_context: str | None = DEFAULT_SESSION_CONTEXT,
         session: str | None = None,
         source_timestamp: str | None = DEFAULT_SOURCE_TIMESTAMP,
-        new_topic: bool | str = True,
         json_output: bool = False,
         expect_ok: bool = True,
+        new_topic: str | None = None,
+        supersedes: str | None = None,
+        contested: str | None = None,
     ) -> subprocess.CompletedProcess[str]:
         clean_env = {k: v for k, v in os.environ.items() if k not in SESSION_ENV_VARS}
         if env:
@@ -72,10 +77,6 @@ class ChatCaptureTests(unittest.TestCase):
             "--quote", quote, "--type", type_, "--topic", topic,
             "--project", str(self.root),
         ]
-        if new_topic is True:
-            command.append("--new-topic")
-        elif new_topic:
-            command += ["--new-topic", new_topic]
         if source_timestamp is not None:
             command += ["--source-timestamp", source_timestamp]
         if agent:
@@ -92,6 +93,12 @@ class ChatCaptureTests(unittest.TestCase):
             command += ["--session-context", session_context]
         if session:
             command += ["--session", session]
+        if new_topic:
+            command += ["--new-topic", new_topic]
+        if supersedes:
+            command += ["--supersedes", supersedes]
+        if contested:
+            command += ["--contested", contested]
         if json_output:
             command.append("--json")
         result = subprocess.run(
@@ -102,7 +109,11 @@ class ChatCaptureTests(unittest.TestCase):
         return result
 
     def recall_files(self) -> list[Path]:
-        return sorted((self.root / "_ops" / "chat-recall").glob("*.md"))
+        return sorted(
+            path
+            for path in (self.root / "_ops" / "chat-recall").glob("*.md")
+            if path.stem not in {"AGENTS", "CLAUDE", "README", "INDEX", "topics"}
+        )
 
     def claude_env(self, session: str | None = None) -> dict[str, str]:
         return {"CLAUDE_CODE_SESSION_ID": session or self.session}
@@ -629,137 +640,32 @@ class ChatCaptureTests(unittest.TestCase):
         self.assertEqual(result.returncode, 2)
         self.assertIn("type is outside the controlled vocabulary", result.stderr)
 
-    def test_theme_layer_owns_vocabulary_and_new_topic_creates_stub(self) -> None:
-        layer = self.root / "_ops" / "chat-recall" / "topics"
-        layer.mkdir(parents=True)
-        (layer / "agent-autonomy.md").write_text(
-            "---\ntopic: agent-autonomy\n---\n", encoding="utf-8"
-        )
-
-        self.run_capture(
-            "Тезис по существующей теме", "решение", "agent-autonomy",
-            env=self.claude_env(), new_topic=False,
-        )
-
-        rejected = self.run_capture(
-            "Тезис без темы", "решение", "chat-tools",
-            env=self.claude_env(), new_topic=False, expect_ok=False,
-        )
-        self.assertIn("has no theme file", rejected.stderr)
-
-        bare_flag = self.run_capture(
-            "Тезис без границы", "решение", "chat-tools",
-            env=self.claude_env(), expect_ok=False,
-        )
-        self.assertIn("needs its boundary", bare_flag.stderr)
-
-        cyrillic = self.run_capture(
-            "Тезис с кириллическим id", "решение", "новая-тема",
-            env=self.claude_env(), new_topic="Граница темы.", expect_ok=False,
-        )
-        self.assertIn("latin-hyphen", cyrillic.stderr)
-        self.assertFalse((layer / "новая-тема.md").exists())
-
-        created = self.run_capture(
-            "Тезис новой темы", "решение", "chat-tools",
-            env=self.claude_env(), new_topic="CLI-инструменты вокруг чатов.",
-        )
-        self.assertIn("new theme file created", created.stdout)
-        stub = (layer / "chat-tools.md").read_text(encoding="utf-8")
-        self.assertIn("topic: chat-tools", stub)
-        self.assertIn("Граница темы: CLI-инструменты вокруг чатов.", stub)
-        text = self.recall_files()[0].read_text(encoding="utf-8")
-        self.assertIn("topic: chat-tools", text)
-
-    def test_new_topic_failure_keeps_the_raw_record(self) -> None:
-        layer = self.root / "_ops" / "chat-recall" / "topics"
-        layer.mkdir(parents=True)
-        argv = [
-            str(SCRIPT),
-            "--quote", "Raw сначала",
-            "--context-note", DEFAULT_CONTEXT_NOTE,
-            "--session-context", DEFAULT_SESSION_CONTEXT,
-            "--source-timestamp", DEFAULT_SOURCE_TIMESTAMP,
-            "--type", "решение",
-            "--topic", "chat-tools",
-            "--new-topic", "CLI-инструменты вокруг чатов.",
-            "--agent", "claude",
-            "--project", str(self.root),
-            "--session", self.session,
-        ]
-        with mock.patch.object(sys, "argv", argv), mock.patch.object(
-            CHAT_CAPTURE,
-            "create_theme_stub",
-            side_effect=OSError("simulated topic failure"),
-        ):
-            result = CHAT_CAPTURE.main()
-
-        self.assertEqual(result, 3)
-        self.assertFalse((layer / "chat-tools.md").exists())
-        self.assertEqual(len(self.recall_files()), 1)
-        self.assertIn(
-            '"Raw сначала"',
-            self.recall_files()[0].read_text(encoding="utf-8"),
-        )
-
-    def test_nested_raw_layout_is_preferred(self) -> None:
-        nested = self.root / "_ops" / "chat-recall" / "raw"
-        nested.mkdir(parents=True)
-        self.run_capture(
-            "Решение в raw", "решение", "агенты-и-ии", env=self.claude_env()
-        )
-        self.assertEqual(self.recall_files(), [])
-        self.assertEqual(len(list(nested.glob("*.md"))), 1)
-
-    def test_new_topic_requires_explicit_flag(self) -> None:
-        layer = self.root / "_ops" / "chat-recall" / "topics"
-        layer.mkdir(parents=True)
-        (layer / "known-topic.md").write_text(
-            "---\ntopic: known-topic\n---\n", encoding="utf-8"
-        )
-        rejected = self.run_capture(
-            "Что-то",
-            "решение",
-            "mockup-zone-editor",
-            env=self.claude_env(),
-            new_topic=False,
-            expect_ok=False,
-        )
-        self.assertEqual(rejected.returncode, 2)
-        self.assertIn("has no theme file", rejected.stderr)
-        self.assertEqual(self.recall_files(), [])
-
+    def test_any_plain_handle_topic_is_accepted(self) -> None:
         self.run_capture(
             "Что-то",
             "решение",
             "mockup-zone-editor",
             env=self.claude_env(),
-            new_topic="Редактор мокапов.",
         )
-        listed = self.run_capture(
+        again = self.run_capture(
             "Другая цитата про тот же предмет",
             "решение",
             "mockup-zone-editor",
             env=self.claude_env(),
-            new_topic=False,
         )
-        self.assertEqual(listed.returncode, 0, listed.stderr)
-
-        missing = self.run_capture(
-            "Ещё что-то",
-            "решение",
-            "другая-тема",
-            env=self.claude_env(),
-            new_topic=False,
-            expect_ok=False,
+        self.assertEqual(again.returncode, 0, again.stderr)
+        self.assertIn(
+            "topic: mockup-zone-editor",
+            self.recall_files()[0].read_text(encoding="utf-8"),
         )
-        self.assertIn("has no theme file", missing.stderr)
 
+    def test_topic_that_is_not_a_plain_handle_is_rejected(self) -> None:
         result = self.run_capture(
             "Что-то", "решение", "foo: bar", env=self.claude_env(), expect_ok=False
         )
         self.assertEqual(result.returncode, 2)
         self.assertIn("plain handle", result.stderr)
+        self.assertEqual(self.recall_files(), [])
 
     def test_delta_capture_does_not_scan_raw_corpus(self) -> None:
         argv = [
@@ -795,7 +701,7 @@ class ChatCaptureTests(unittest.TestCase):
         self.assertEqual(empty.returncode, 0, empty.stderr)
         self.assertIn("Types:\n  решение:", empty.stdout)
         self.assertIn("none recorded yet", empty.stdout)
-        self.assertIn("--new-topic", empty.stdout)
+        self.assertNotIn("--new-topic", empty.stdout)
 
         self.run_capture(
             "Первое решение", "решение", "агенты-и-ии", env=self.claude_env()
@@ -810,48 +716,99 @@ class ChatCaptureTests(unittest.TestCase):
         self.assertIn("агенты-и-ии: 1", result.stdout)
         self.assertIn("repair-only sentinel", result.stdout)
 
-    def test_metadata_vocabulary_describes_theme_topics(self) -> None:
-        layer = self.root / "_ops" / "chat-recall" / "topics"
-        layer.mkdir(parents=True)
-        (layer / "agent-autonomy.md").write_text(
-            "---\ntopic: agent-autonomy\n"
-            "title: Автономность агента и границы действий\nsources: 0\n---\n"
-            "# Автономность агента и границы действий\n\n"
-            "Более длинное вводное описание темы.\n",
-            encoding="utf-8",
-        )
-        (layer / "chat-tools.md").write_text(
-            "---\ntopic: chat-tools\ntitle: chat-tools\nsources: 0\n---\n"
-            "# chat-tools\n\nГраница темы: CLI-инструменты вокруг чатов.\n",
-            encoding="utf-8",
-        )
-        (layer / "damaged-topic.md").write_bytes(b"---\ntitle: damaged\n---\n\xff")
+    def write_topic_map(self, *rows: str, retired: str = "") -> Path:
+        path = self.root / "_ops" / "chat-recall" / "topics.md"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        body = "# Карта тем\n\n## Темы\n\n" + "\n".join(rows) + "\n"
+        if retired:
+            body += f"\n## Не переиспользовать\n\n- `{retired}` — поглощена\n"
+        path.write_text(body, encoding="utf-8")
+        return path
 
-        result = subprocess.run(
+    def test_topic_map_owns_the_vocabulary(self) -> None:
+        self.write_topic_map(
+            "- `chat-recall-corpus` — Фиксация и формат корпуса",
+            retired="deep-agents",
+        )
+        listed = subprocess.run(
             [sys.executable, str(SCRIPT), "--list-metadata", "--project", str(self.root)],
-            capture_output=True,
-            text=True,
-            check=False,
+            capture_output=True, text=True, check=False,
+        )
+        self.assertIn("chat-recall-corpus [0] — Фиксация и формат корпуса", listed.stdout)
+        self.assertIn("Retired (do not reuse): deep-agents", listed.stdout)
+
+        unknown = self.run_capture(
+            "Реплика", "решение", "выдуманная-тема",
+            env=self.claude_env(), expect_ok=False,
+        )
+        self.assertEqual(unknown.returncode, 2)
+        self.assertIn("is not in", unknown.stderr)
+        self.assertEqual(self.recall_files(), [])
+
+        retired = self.run_capture(
+            "Реплика", "решение", "deep-agents",
+            env=self.claude_env(), expect_ok=False,
+        )
+        self.assertEqual(retired.returncode, 2)
+        self.assertIn("is retired", retired.stderr)
+
+        self.run_capture(
+            "Реплика", "решение", "chat-recall-corpus", env=self.claude_env()
+        )
+        self.assertEqual(len(self.recall_files()), 1)
+
+    def test_new_topic_adds_its_row_to_the_map(self) -> None:
+        topic_map = self.write_topic_map("- `chat-recall-corpus` — Формат корпуса")
+        self.run_capture(
+            "Реплика про новое", "решение", "html-artifacts",
+            env=self.claude_env(), new_topic="Быстрые HTML-артефакты",
+        )
+        self.assertIn(
+            "- `html-artifacts` — Быстрые HTML-артефакты",
+            topic_map.read_text(encoding="utf-8"),
+        )
+        self.run_capture(
+            "Вторая реплика", "решение", "html-artifacts", env=self.claude_env()
+        )
+        self.assertEqual(
+            topic_map.read_text(encoding="utf-8").count("html-artifacts"), 1
         )
 
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn(
-            "agent-autonomy: 0 — Автономность агента и границы действий",
-            result.stdout,
+    def test_supersedes_binds_the_address_to_a_fingerprint(self) -> None:
+        self.write_topic_map("- `chat-recall-corpus` — Формат корпуса")
+        self.run_capture(
+            "Старая позиция", "решение", "chat-recall-corpus", env=self.claude_env()
         )
-        self.assertIn(
-            "chat-tools: 0 — Граница темы: CLI-инструменты вокруг чатов.",
-            result.stdout,
+        target = self.recall_files()[0]
+        lines = target.read_text(encoding="utf-8").splitlines()
+        line_number = next(
+            index for index, line in enumerate(lines, start=1)
+            if line.startswith("* ")
         )
-        self.assertIn(
-            "damaged-topic: 0 — [краткое описание недоступно]",
-            result.stdout,
+        self.run_capture(
+            "Новая позиция отменяет старую", "коррекция", "chat-recall-corpus",
+            env=self.claude_env(), supersedes=f"{target.name}#L{line_number}",
         )
+        written = target.read_text(encoding="utf-8")
+        self.assertRegex(written, rf"supersedes: {target.name}#L{line_number} sha:\w{{8}}")
+
+        missing = self.run_capture(
+            "Ещё реплика", "коррекция", "chat-recall-corpus",
+            env=self.claude_env(), supersedes=f"{target.name}#L999", expect_ok=False,
+        )
+        self.assertEqual(missing.returncode, 2)
+        self.assertIn("does not address a record line", missing.stderr)
+
+        malformed = self.run_capture(
+            "И ещё", "коррекция", "chat-recall-corpus",
+            env=self.claude_env(), contested="просто текст", expect_ok=False,
+        )
+        self.assertEqual(malformed.returncode, 2)
+        self.assertIn("<file>.md#L<line>", malformed.stderr)
 
     def test_runtime_owner_documents_metadata_vocabulary(self) -> None:
         skill_text = SKILL.read_text(encoding="utf-8")
         self.assertIn("--list-metadata", skill_text)
-        self.assertIn("--new-topic", skill_text)
         inventory_command = '--list-metadata --project "$PWD"'
         self.assertIn(inventory_command, skill_text)
         self.assertLess(skill_text.index(inventory_command), skill_text.index("--quote"))
@@ -869,159 +826,31 @@ class ChatCaptureTests(unittest.TestCase):
         ):
             self.assertIn(f"  {value}:", result.stdout)
 
-    def test_capture_contract_requires_same_turn_reconcile(self) -> None:
+    def test_capture_contract_gates_on_materiality(self) -> None:
         skill_text = SKILL.read_text(encoding="utf-8")
         repair_text = (SKILL.parent / "references" / "repairing-the-log.md").read_text(
             encoding="utf-8"
         )
 
-        self.assertIn("allowed-tools: Bash(python3 *), Bash(uv *), Read, Grep, Glob", skill_text)
-        self.assertIn('ROOT="${CLAUDE_SKILL_DIR}"', skill_text)
-        self.assertIn("--agent claude", skill_text)
-        self.assertIn("### Capture → Reconcile", skill_text)
+        self.assertIn(RUNTIME_ROOT_LINE, skill_text)
+        self.assertIn(f"--agent {RUNTIME_AGENT}", skill_text)
         self.assertIn("Сначала реши, является ли новая реплика самостоятельным важным тезисом", skill_text)
-        self.assertIn(
-            "после каждого нового durable capture\n`quote`/`selection` с receipt `status: written`",
-            skill_text,
-        )
-        self.assertIn("сразу прочитай target topic,\nдаже если он не был загружен", skill_text)
-        self.assertIn("конфликтуют с одним старым фактом в том же scope", skill_text)
-        self.assertIn("typed `replace`", skill_text)
-        self.assertIn("каждое `after` цитирует raw anchor", skill_text)
-        self.assertIn("Новая деталь", skill_text)
-        self.assertIn("не могут одновременно быть истинны в одном\nscope", skill_text)
-        self.assertIn("Не добавляй в тему каждую новую цитату", " ".join(skill_text.split()))
-        for outcome in (
-            "`acknowledge-noop`",
-            "`raw saved; topic pending`",
-        ):
-            self.assertIn(outcome, skill_text)
         self.assertIn("### Самоисправление метаданных текущей сессии", skill_text)
         self.assertIn("Самоисправление метаданных текущей сессии", repair_text)
-        self.assertNotIn("Если topic не загружен и материальность неясна", skill_text)
-        self.assertNotIn("непрочитанную тему специально ради записи", skill_text)
-        self.assertNotIn("Детерминированный prefilter", skill_text)
-        self.assertNotIn("Отменено", skill_text)
+        self.assertIn("topics.md", skill_text)
+        self.assertIn("--supersedes", skill_text)
+        self.assertNotIn("topic_reconcile.py", skill_text)
 
     def test_retrieval_contract_keeps_holder_read_conditional(self) -> None:
         skill_text = SKILL.read_text(encoding="utf-8")
 
-        self.assertIn("агент выбирает\nполный topic либо короткую буквальную цитату", skill_text)
         self.assertIn("truncated=true` не обесценивает уже возвращённые цитаты", skill_text)
         self.assertIn("Проверка более нового evidence и живого владельца обязательна", skill_text)
         self.assertIn("полный holder не является default", skill_text)
         self.assertIn("«теперь», «вместо» или «больше не»", skill_text)
         self.assertNotIn("Три источника отмены, все обязательны", skill_text)
-        self.assertIn("finding не заменяет исход ветки", skill_text)
-
-    def test_recovery_audit_has_explicit_trigger_and_budget(self) -> None:
-        skill_text = SKILL.read_text(encoding="utf-8")
-        self.assertIn("Recovery audit — отдельный режим", skill_text)
-        for trigger in ("initial migration", "threshold", "disk drift"):
-            self.assertIn(trigger, skill_text)
-        for recovery_rule in (
-            "fresh disk-derived manifest",
-            "duplicate/suspect",
-            "conflict clusters",
-            "одного pooled auditor",
-            "retry только failed topics",
-        ):
-            self.assertIn(recovery_rule, skill_text)
-        for accepted_loss in (
-            "stylistic polish",
-            "perfect sectioning",
-            "weak distant-duplicate search",
-            "second opinions",
-        ):
-            self.assertIn(accepted_loss, " ".join(skill_text.split()))
-        for invariant in (
-            "raw immutability",
-            "exact anchors",
-            "typed coverage",
-            "current-only/no contradictions",
-            "fail-closed apply",
-        ):
-            self.assertIn(invariant, skill_text)
-
-    def test_capture_receipt_feeds_same_turn_typed_reconcile(self) -> None:
-        layer = self.root / "_ops" / "chat-recall" / "topics"
-        layer.mkdir(parents=True)
-        topic = "agent-autonomy"
-        topic_file = layer / f"{topic}.md"
-        topic_file.write_text(
-            f"---\ntopic: {topic}\ntitle: Autonomy\nsources: 0\n---\n"
-            "# Autonomy\n\n## Current\n",
-            encoding="utf-8",
-        )
-
-        capture = self.run_capture(
-            "Свежая позиция",
-            "решение",
-            topic,
-            env=self.claude_env(),
-            new_topic=False,
-            json_output=True,
-        )
-        receipt = json.loads(capture.stdout)
-        self.assertEqual(receipt["status"], "written")
-
-        patch = self.root / "topic-patch.json"
-        prepared = subprocess.run(
-            [
-                sys.executable,
-                str(RECONCILE),
-                "prepare",
-                "--project",
-                str(self.root),
-                "--topic",
-                topic,
-                "--patch",
-                str(patch),
-            ],
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(prepared.returncode, 0, prepared.stderr)
-        patch_payload = json.loads(patch.read_text(encoding="utf-8"))
-        patch_payload["operations"] = [
-            {
-                "kind": "insert",
-                "section": "## Current",
-                "claim": f"- Свежая позиция. [{receipt['anchor']}]",
-            }
-        ]
-        patch.write_text(json.dumps(patch_payload, ensure_ascii=False), encoding="utf-8")
-        applied = subprocess.run(
-            [
-                sys.executable,
-                str(RECONCILE),
-                "apply",
-                "--project",
-                str(self.root),
-                "--topic",
-                topic,
-                "--patch",
-                str(patch),
-                "--expected-sha256",
-                json.loads(prepared.stdout)["expected_sha256"],
-                "--session",
-                receipt["session"],
-                "--record-sha256",
-                receipt["record_sha256"],
-                "--source-anchor",
-                receipt["anchor"],
-            ],
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        self.assertEqual(applied.returncode, 0, applied.stderr)
-        self.assertEqual(json.loads(applied.stdout)["status"], "applied")
-        self.assertIn(
-            f"- Свежая позиция. [{receipt['anchor']}]",
-            topic_file.read_text(encoding="utf-8"),
-        )
+        self.assertNotIn("topic_candidates", skill_text)
+        self.assertIn("## Восстановление смыслов", skill_text)
 
     def test_repair_sentinels_are_independent_and_note_only(self) -> None:
         fresh_unknown_type = self.run_capture(
@@ -1144,7 +973,6 @@ class ChatCaptureTests(unittest.TestCase):
                 shlex.quote("факт"),
                 "--topic",
                 shlex.quote("документация-и-знания"),
-                "--new-topic",
                 "--source-timestamp",
                 shlex.quote(DEFAULT_SOURCE_TIMESTAMP),
                 "--context-note",

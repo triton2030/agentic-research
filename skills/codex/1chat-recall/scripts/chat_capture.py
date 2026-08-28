@@ -17,57 +17,115 @@ from pathlib import Path
 from typing import NamedTuple
 
 from recall_metadata import (
-    NON_TOPIC_STEMS,
     REPAIR_TOPIC,
     REPAIR_TYPE,
     TYPE_DESCRIPTIONS,
     TYPES,
     corpus_topics,
-    topic_description,
 )
 
 LOG_DIR = Path("_ops/chat-recall")
 
 
 def resolve_log_dir(root: Path) -> Path:
-    """Prefer the nested raw/ corpus layout when the project uses it."""
-    nested = root / LOG_DIR / "raw"
-    return nested if nested.is_dir() else root / LOG_DIR
+    """The corpus is one flat folder of conversation files."""
+    return root / LOG_DIR
 
 
-NEW_THEME_ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+TOPIC_MAP = LOG_DIR / "topics.md"
+TOPIC_ROW_RE = re.compile(r"^-\s+`(?P<handle>[^`]+)`\s+—\s+(?P<description>.+?)\s*$")
+RETIRED_HEADING_RE = re.compile(r"^##\s+Не переиспользовать\s*$")
+ANCHOR_RE = re.compile(r"^[\w.\-]+\.md#L\d+$")
 
 
-def topics_dir(root: Path) -> Path | None:
-    """The topic-layer directory, when this project keeps one."""
-    candidate = root / LOG_DIR / "topics"
-    return candidate if candidate.is_dir() else None
+class TopicMap(NamedTuple):
+    """The vocabulary of topics, owned by one file instead of a folder."""
+
+    path: Path
+    live: dict[str, str]
+    retired: dict[str, str]
 
 
-def theme_topics(layer: Path) -> dict[str, int]:
-    """Vocabulary owned by theme files; counts come from the corpus later."""
-    return {
-        path.stem: 0
-        for path in sorted(layer.glob("*.md"))
-        if path.stem not in NON_TOPIC_STEMS
-    }
+def read_topic_map(root: Path) -> TopicMap | None:
+    """Parse the topic map, when this project keeps one."""
+    path = root / TOPIC_MAP
+    try:
+        lines = path.read_text(encoding="utf-8-sig").splitlines()
+    except OSError:
+        return None
+    live: dict[str, str] = {}
+    retired: dict[str, str] = {}
+    target = live
+    for line in lines:
+        if RETIRED_HEADING_RE.match(line):
+            target = retired
+            continue
+        match = TOPIC_ROW_RE.match(line)
+        if match:
+            target[match["handle"]] = match["description"]
+    return TopicMap(path, live, retired)
 
 
-def create_theme_stub(layer: Path, topic: str, boundary: str) -> Path:
-    """A small theme file so the new topic and its file are born together.
+def add_topic_row(topic_map: TopicMap, topic: str, boundary: str) -> None:
+    """Record a new topic in the map, in the same turn as the quote."""
+    lines = topic_map.path.read_text(encoding="utf-8-sig").splitlines()
+    row = f"- `{topic}` — {boundary}"
+    rows = [
+        index
+        for index, line in enumerate(lines)
+        if TOPIC_ROW_RE.match(line) and not _after_retired(lines, index)
+    ]
+    if not rows:
+        raise CaptureError(f"topic map has no topic rows to extend: {topic_map.path}")
+    following = [
+        index
+        for index in rows
+        if TOPIC_ROW_RE.match(lines[index])["handle"] > topic  # type: ignore[index]
+    ]
+    lines.insert(following[0] if following else rows[-1] + 1, row)
+    write_atomic(topic_map.path, "\n".join(lines) + "\n")
 
-    Title stays a placeholder on purpose: the merge run names it, matching
-    the assign stage's contract for freshly created themes.
+
+def _after_retired(lines: list[str], index: int) -> bool:
+    return any(RETIRED_HEADING_RE.match(line) for line in lines[:index])
+
+
+def anchor(value: str, field: str) -> str:
+    """A corpus address: conversation file plus the line of one record."""
+    collapsed = one_line(value, field)
+    if not ANCHOR_RE.fullmatch(collapsed):
+        raise CaptureError(
+            f"{field} must address one record as <file>.md#L<line>: {collapsed!r}"
+        )
+    return collapsed
+
+
+def verify_anchor(log_dir: Path, value: str, field: str) -> str:
+    """Bind the address to the record's fingerprint, so it survives line drift.
+
+    A conversation file grows while it is open, and every earlier line moves
+    down with it. A bare line number would quietly stop pointing at the record
+    it was written for; the fingerprint lets the reader find it again.
     """
-    path = layer / f"{topic}.md"
-    if path.exists():
-        return path
-    write_atomic_new(
-        path,
-        f"---\ntopic: {topic}\ntitle: {topic}\nsources: 0\n---\n"
-        f"# {topic}\n\nГраница темы: {boundary}\n",
-    )
-    return path
+    name, _, line_number = value.partition("#L")
+    path = log_dir / name
+    try:
+        lines = path.read_text(encoding="utf-8-sig").splitlines()
+    except OSError as error:
+        raise CaptureError(f"{field} points outside the corpus: {value}") from error
+    index = int(line_number) - 1
+    if not 0 <= index < len(lines) or not lines[index].startswith("* "):
+        raise CaptureError(
+            f"{field} does not address a record line: {value}. Re-read the file: "
+            "addresses move down as a conversation grows."
+        )
+    return f"{value} sha:{fingerprint(lines[index])}"
+
+
+def fingerprint(line: str) -> str:
+    return hashlib.sha256(line.encode("utf-8")).hexdigest()[:8]
+
+
 KINDS = ("quote", "selection", "note")
 PRECISIONS = ("exact", "minute", "date", "unknown")
 ENV_BY_AGENT = {
@@ -147,39 +205,6 @@ def metadata_choice(
     return selected
 
 
-def topic_choice(
-    value: str,
-    existing: dict[str, int],
-    new_topic: str | bool | None,
-    layer: Path | None,
-) -> tuple[str, Path | None]:
-    selected = handle(value, "topic")
-    if selected == REPAIR_TOPIC or selected in existing:
-        return selected, None
-    if layer is None:
-        # A raw-only project has no topic-layer inventory to scan on the delta
-        # path.  The caller has already supplied the prefiltered topic handle;
-        # broad inventory remains explicit via --list-metadata.
-        return selected, None
-    if not new_topic:
-        raise CaptureError(
-            f"topic {selected!r} has no theme file in {layer}. Pick a topic "
-            "named by an existing theme file, or create it deliberately: "
-            '--new-topic "<one-sentence boundary of the theme>".'
-        )
-    boundary = new_topic if isinstance(new_topic, str) else ""
-    if not boundary.strip():
-        raise CaptureError(
-            "a new theme needs its boundary: "
-            '--new-topic "<one-sentence boundary of the theme>"'
-        )
-    if not NEW_THEME_ID_RE.fullmatch(selected):
-        raise CaptureError(
-            f"new theme id must be a short latin-hyphen name: {selected!r}"
-        )
-    return selected, one_line(boundary, "boundary")
-
-
 def validate_metadata(type_: str, topic: str, kind: str) -> None:
     uses_repair_metadata = type_ == REPAIR_TYPE or topic == REPAIR_TOPIC
     if uses_repair_metadata and kind != "note":
@@ -188,40 +213,44 @@ def validate_metadata(type_: str, topic: str, kind: str) -> None:
         )
 
 
-def render_metadata_vocabulary(log_dir: Path) -> str:
+def render_metadata_vocabulary(log_dir: Path, topic_map: TopicMap | None) -> str:
     lines = ["Types:"]
     lines.extend(f"  {name}: {meaning}" for name, meaning in TYPE_DESCRIPTIONS.items())
     lines.append(f"  {REPAIR_TYPE}: repair-only sentinel")
     lines.append("")
-    container = log_dir.parent if log_dir.name == "raw" else log_dir
-    layer = container / "topics"
-    layer = layer if layer.is_dir() else None
     counts = corpus_topics(log_dir)
-    if layer is not None:
-        topics = theme_topics(layer)
-        topics.update({k: v for k, v in counts.items() if k in topics})
-        lines.append(f"Topics (theme files in {layer}; conversations using each):")
-        lines.extend(
-            f"  {name}: {count} — {topic_description(layer / f'{name}.md')}"
-            for name, count in sorted(topics.items(), key=lambda kv: (-kv[1], kv[0]))
+    if topic_map is not None:
+        lines.append(
+            f"Topics (map: {topic_map.path}; conversations using each). "
+            "Choose by the meaning of the subject, not by matching words:"
         )
-        orphans = sorted(set(counts) - set(topics))
-        if orphans:
-            lines.append("Corpus topics without a theme file (do not reuse): "
-                         + ", ".join(orphans))
+        lines.extend(
+            f"  {name} [{counts.get(name, 0)}] — {description}"
+            for name, description in sorted(topic_map.live.items())
+        )
+        if topic_map.retired:
+            lines.append(
+                "Retired (do not reuse): " + ", ".join(sorted(topic_map.retired))
+            )
+        lines.append(f"  {REPAIR_TOPIC}: repair-only sentinel")
+        lines.append(
+            'No topic fits the subject? Create one: --new-topic "<one-line '
+            'boundary>" adds its row to the map together with the record.'
+        )
     elif counts:
         lines.append("Topics (existing in this corpus; conversations using each):")
         lines.extend(
             f"  {name}: {count}"
             for name, count in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
         )
+        lines.append(f"  {REPAIR_TOPIC}: repair-only sentinel")
+        lines.append(
+            "Reuse an existing topic when the subject is the same; name a new one "
+            "only when the corpus has no topic for it yet."
+        )
     else:
         lines.append(f"Topics: none recorded yet in {log_dir}")
-    lines.append(f"  {REPAIR_TOPIC}: repair-only sentinel")
-    lines.append(
-        "Pick an existing topic; create a missing one deliberately with "
-        '--new-topic (with a theme layer: --new-topic "<boundary>").'
-    )
+        lines.append(f"  {REPAIR_TOPIC}: repair-only sentinel")
     return "\n".join(lines)
 
 
@@ -246,7 +275,8 @@ class PrintMetadataAction(argparse.Action):
                 project = argv[index + 1]
             elif arg.startswith("--project="):
                 project = arg.split("=", 1)[1]
-        print(render_metadata_vocabulary(resolve_log_dir(Path(project).resolve())))
+        root = Path(project).resolve()
+        print(render_metadata_vocabulary(resolve_log_dir(root), read_topic_map(root)))
         parser.exit()
 
 
@@ -403,11 +433,17 @@ def _entry_line(
     source: SourceTimestamp,
     kind: str,
     context: str | None = None,
+    supersedes: str | None = None,
+    contested: str | None = None,
 ) -> str:
     fields = []
     if kind != "quote":
         fields.append(f"kind: {kind}")
     fields.extend((f"type: {type_}", f"topic: {topic}"))
+    if supersedes:
+        fields.append(f"supersedes: {supersedes}")
+    if contested:
+        fields.append(f"contested: {contested}")
     if context:
         fields.append(f"context-note: {context}")
     return f'* {source.rendered} — "{quote}" — ' + " | ".join(fields) + "\n"
@@ -483,37 +519,12 @@ def write_atomic(path: Path, text: str) -> None:
         temporary.unlink(missing_ok=True)
 
 
-def write_atomic_new(path: Path, text: str) -> None:
-    """Create a file atomically without replacing a concurrent creator."""
-    path.parent.mkdir(parents=True, exist_ok=True)
-    descriptor, temporary_name = tempfile.mkstemp(
-        dir=path.parent,
-        prefix=f".{path.name}.",
-        suffix=".tmp",
-    )
-    temporary = Path(temporary_name)
-    try:
-        with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
-            os.fchmod(stream.fileno(), 0o644)
-            stream.write(text)
-            stream.flush()
-            os.fsync(stream.fileno())
-        try:
-            os.link(temporary, path)
-        except FileExistsError:
-            pass
-    finally:
-        temporary.unlink(missing_ok=True)
-
-
 def record_receipt(
     path: Path,
     quote: str,
     topic: str,
     session: str,
     status: str,
-    layer: Path | None,
-    theme_status: str,
 ) -> dict[str, object]:
     """Return a stable record identity plus its current human-readable anchor."""
     marker = f'— "{quote}" —'
@@ -536,9 +547,6 @@ def record_receipt(
         "session": session,
         "anchor": f"{path.name}#L{line_number}",
         "record_sha256": hashlib.sha256(line.encode("utf-8")).hexdigest(),
-        "topic_layer": layer is not None,
-        "topic_file": str(layer / f"{topic}.md") if layer is not None else None,
-        "theme_status": theme_status,
     }
 
 
@@ -566,6 +574,8 @@ def create_file(
     kind: str,
     context: str | None = None,
     session_card: str | None = None,
+    supersedes: str | None = None,
+    contested: str | None = None,
 ) -> None:
     local = source.file_when.astimezone()
     lines = [
@@ -599,6 +609,8 @@ def create_file(
             source,
             kind,
             context,
+            supersedes,
+            contested,
         ).rstrip(),
     ]
     write_atomic(path, "\n".join(lines) + "\n")
@@ -615,6 +627,8 @@ def append_entry(
     kind: str = "quote",
     context: str | None = None,
     session_card: str | None = None,
+    supersedes: str | None = None,
+    contested: str | None = None,
 ) -> tuple[bool, bool, Path]:
     text = path.read_text(encoding="utf-8-sig")
     lines = text.splitlines()
@@ -646,6 +660,8 @@ def append_entry(
         source,
         kind,
         context,
+        supersedes,
+        contested,
     )
     write_atomic(target, rendered)
     if target != path:
@@ -658,24 +674,39 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--list-metadata",
         action=PrintMetadataAction,
-        help="print canonical types and existing topics with short descriptions",
+        help=(
+            "print canonical types and the topic map with one-line boundaries, "
+            "with the number of conversations behind each"
+        ),
     )
     parser.add_argument("--quote", required=True)
     parser.add_argument("--type", required=True, dest="type_")
     parser.add_argument("--topic", required=True)
     parser.add_argument(
         "--new-topic",
-        nargs="?",
-        const=True,
-        default=False,
         metavar="BOUNDARY",
         help=(
-            "deliberately create a topic that does not exist yet; with a theme "
-            "layer (_ops/chat-recall/topics/) pass the one-sentence boundary of "
-            "the theme — a small theme file is created together with the record"
+            "the subject fits no topic in the map: add its row — a one-line "
+            "boundary — together with this record"
         ),
     )
     parser.add_argument("--kind", choices=KINDS, default="quote")
+    parser.add_argument(
+        "--supersedes",
+        metavar="ANCHOR",
+        help=(
+            "address <file>.md#L<line> of the earlier record this reply cancels; "
+            "only when both cannot be true at once in the same scope"
+        ),
+    )
+    parser.add_argument(
+        "--contested",
+        metavar="ANCHOR",
+        help=(
+            "address <file>.md#L<line> this reply conflicts with when the winner "
+            "is unclear; marks the conflict instead of choosing silently"
+        ),
+    )
     parser.add_argument(
         "--source-timestamp",
         help=(
@@ -756,9 +787,32 @@ def main() -> int:
         if not root.is_dir():
             raise CaptureError(f"project root not found: {root}")
         log_dir = resolve_log_dir(root)
-        layer = topics_dir(root)
-        existing = theme_topics(layer) if layer is not None else {}
-        topic, theme_boundary = topic_choice(topic, existing, args.new_topic, layer)
+        topic_map = read_topic_map(root)
+        new_topic_row = None
+        if topic_map is not None and topic != REPAIR_TOPIC:
+            if topic in topic_map.retired:
+                raise CaptureError(
+                    f"topic {topic!r} is retired in {topic_map.path}: "
+                    f"{topic_map.retired[topic]}"
+                )
+            if topic not in topic_map.live:
+                if not args.new_topic:
+                    raise CaptureError(
+                        f"topic {topic!r} is not in {topic_map.path}. Read the map, "
+                        "pick the topic whose subject this reply belongs to, or "
+                        'create one deliberately: --new-topic "<one-line boundary>".'
+                    )
+                new_topic_row = one_line(args.new_topic, "new topic boundary")
+        supersedes = (
+            verify_anchor(log_dir, anchor(args.supersedes, "supersedes"), "supersedes")
+            if args.supersedes
+            else None
+        )
+        contested = (
+            verify_anchor(log_dir, anchor(args.contested, "contested"), "contested")
+            if args.contested
+            else None
+        )
         session = resolve_session(args.session, agent)
         if not session:
             checked = ", ".join(ENV_BY_AGENT.get(agent, ())) or "none"
@@ -778,6 +832,8 @@ def main() -> int:
                 args.kind,
                 context,
                 session_card,
+                supersedes,
+                contested,
             )
         else:
             create_file(
@@ -793,16 +849,13 @@ def main() -> int:
                 args.kind,
                 context,
                 session_card,
+                supersedes,
+                contested,
             )
             written = True
             context_updated = session_card is not None
-        theme_stub = None
-        theme_error = None
-        if theme_boundary is not None and layer is not None:
-            try:
-                theme_stub = create_theme_stub(layer, topic, theme_boundary)
-            except OSError as error:
-                theme_error = error
+        if written and new_topic_row is not None and topic_map is not None:
+            add_topic_row(topic_map, topic, new_topic_row)
         status = (
             "written"
             if written
@@ -816,20 +869,10 @@ def main() -> int:
             topic,
             session,
             status,
-            layer,
-            "absent"
-            if layer is None
-            else "pending"
-            if theme_error
-            else "created"
-            if theme_stub
-            else "existing",
         )
         if args.json:
             print(json.dumps(receipt, ensure_ascii=False))
         else:
-            if theme_stub is not None:
-                print(f"new theme file created: {theme_stub}")
             if written:
                 print(f"appended to {path}")
             elif context_updated:
@@ -844,12 +887,6 @@ def main() -> int:
                 )
             if written and args.kind == "quote":
                 print(CONTEXT_NOTE_REMINDER)
-        if theme_error is not None:
-            print(
-                f"chat-capture: raw saved in {path}; theme pending: {theme_error}",
-                file=sys.stderr,
-            )
-            return 3
         return 0
     except (CaptureError, OSError) as error:
         print(f"chat-capture: error: {error}", file=sys.stderr)

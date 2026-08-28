@@ -5,7 +5,6 @@ itself: the set of long-lived subjects already used by its records, extended
 deliberately at capture time rather than drawn from a hardcoded list.
 """
 
-import re
 from pathlib import Path
 
 TYPE_DESCRIPTIONS = {
@@ -22,82 +21,6 @@ TYPE_DESCRIPTIONS = {
 REPAIR_TYPE = "неопределено"
 REPAIR_TOPIC = "без-темы"
 TYPES = (*TYPE_DESCRIPTIONS, REPAIR_TYPE)
-NON_TOPIC_STEMS = frozenset({"AGENTS", "CLAUDE", "README", "INDEX"})
-TOMBSTONE_HEADING = re.compile(
-    r"^[ \t]{0,3}#{1,6}[ \t]+отменено(?:[ \t]+#+)?[ \t]*$",
-    re.IGNORECASE | re.MULTILINE,
-)
-
-
-def _topic_parts(path: Path) -> tuple[str | None, str | None, bool]:
-    try:
-        lines = path.read_text(encoding="utf-8-sig").splitlines()
-    except (OSError, UnicodeError):
-        return None, None, False
-
-    title: str | None = None
-    body_start = 0
-    if lines and lines[0].strip() == "---":
-        body_start = len(lines)
-        for index, line in enumerate(lines[1:], start=1):
-            if line.strip() == "---":
-                body_start = index + 1
-                break
-            key, separator, value = line.partition(":")
-            if separator and key.strip() == "title":
-                title = " ".join(value.strip().strip("\"'").split()) or None
-
-    paragraph: list[str] = []
-    for raw_line in lines[body_start:]:
-        line = raw_line.strip()
-        if not line:
-            if paragraph:
-                break
-            continue
-        if line.startswith("#"):
-            continue
-        if line.startswith(("- ", "* ")):
-            break
-        paragraph.append(line)
-    return title, " ".join(paragraph) or None, True
-
-
-def topic_description(path: Path) -> str:
-    """Return the shortest useful reader-facing description of a topic."""
-    title, introduction, readable = _topic_parts(path)
-    if not readable:
-        return "[краткое описание недоступно]"
-    if title and title != path.stem:
-        return title
-    return introduction or title or "[краткое описание отсутствует]"
-
-
-def topic_search_text(path: Path) -> str:
-    """Return title plus the topic boundary used only for retrieval."""
-    title, introduction, readable = _topic_parts(path)
-    if not readable:
-        return "[краткое описание недоступно]"
-    parts = [part for part in (title, introduction) if part]
-    return "\n".join(dict.fromkeys(parts)) or "[краткое описание отсутствует]"
-
-
-def topic_diagnostics(corpus_dir: Path) -> list[str]:
-    """Return reader-facing topic schema violations beside a raw corpus."""
-    root = corpus_dir.parent if corpus_dir.name == "raw" else corpus_dir
-    layer = root / "topics"
-    if not layer.is_dir():
-        return []
-    problems: list[str] = []
-    for path in sorted(layer.glob("*.md")):
-        if path.stem in NON_TOPIC_STEMS:
-            continue
-        try:
-            text = path.read_text(encoding="utf-8-sig")
-        except (OSError, UnicodeError):
-            continue
-        if TOMBSTONE_HEADING.search(text):
-            problems.append(f"topics/{path.name}: forbidden-topic-tombstone")
-    return problems
 
 
 def corpus_topics(log_dir: Path) -> dict[str, int]:
