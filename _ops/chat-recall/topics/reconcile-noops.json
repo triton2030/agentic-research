@@ -536,6 +536,13 @@
       "record_sha256": "c39df04415d5f516204b587cc3ea6c8b0f06900b3ea8297fa3114bc963a5c3dc",
       "anchor": "2026-08-25-225217-codex-01a03a0c.md#L31",
       "topic_sha256": "dec8deec427b0d138580ff68b5ab21dcd996946b61a6c882c19eac0cc2c61732"
+    },
+    {
+      "topic": "skill-instruction-authoring",
+      "session": "029784d5-9cd4-428b-87fc-e22f79dd543d",
+      "record_sha256": "70c24aabc32d095d7d7d0c578912adeb64bee66eb52f35b05f4d5aef3bbc8867",
+      "anchor": "2026-08-27-190611-claude-029784d5.md#L18",
+      "topic_sha256": "46330b5435641b7d9a8a4c1eafd5b5732f9936ded6b4c572064427a53cde81cd"
     }
   ]
 }
