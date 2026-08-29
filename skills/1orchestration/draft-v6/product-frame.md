@@ -32,7 +32,9 @@ root оркестратором. Root выбирает минимальную о
 
 - Каждый режим — не более 20 самостоятельных активных единиц: body + один reference +
   ещё действующие обязательства прошлых стадий.
-- Normal wave, no-plan carrier и repair разнесены по трём references; в каждый момент читается один.
+- Admission, carrier, map, brief, execute, integrate, stalled-return repair и
+  root recovery разнесены по самостоятельным стадиям; в каждый момент читается
+  один reference.
 - Пересмотр: representative routing путает general wave, managed offload и specialized controller; root-break recovery ведёт в stale owner; повторная волна показывает потерю траектории или evidence.
 
 Прямые owner-источники: `_ops/chat-recall/2026-08-10-000000-claude-a0af5c40.md:19-29`,

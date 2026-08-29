@@ -6,5 +6,5 @@
 - Параллельно запускай только независимое.
 - Пересекающиеся записи получают одного писателя либо последовательный handoff.
 - Root продолжает только то, что не зависит от незавершённых обязательных потоков.
-- Tool-specific launch, wait, follow-up и lifecycle выполняй по live runtime owner-у; эта стадия
-  владеет только wave-level барьером.
+- Tool-specific launch, wait, follow-up и lifecycle выполняй по live runtime
+  owner-у; эта стадия владеет только wave-level барьером.

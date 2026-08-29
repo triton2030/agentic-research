@@ -13,12 +13,6 @@
   попыткой repair.
 - Повторный repair выполняет свежее окно. Нет принятого возврата после него →
   запиши final blocker и переход, останови зависимую ветку; третьего repair нет.
-
-Обрыв окна root — не stalled-worker repair. Восстанови карту волны целиком:
-при живом плане — из task-file и его evidence-адресов, без плана — из carrier,
-если он был создан. Сверь записанный state с surviving artifacts и live runtime state;
-переиздай только непринятые потоки и не повторяй external action вслепую.
-
-Outcome каждого probe/repair записывается в том же ходе: при живом плане — в
-report затронутой подзадачи, без плана — в carrier, если он существует, иначе в
-отчёт волны в чате. После принятия продолжай от записанного перехода, не от памяти чата.
+- Outcome probe/repair запиши в живой task-file, созданный carrier или отчёт
+  волны в чате.
+- Tool-specific wait, follow-up и lifecycle оставь live runtime owner-у.

@@ -18,10 +18,10 @@
   recovery принадлежит `1orchestration`. В `repair.md` восстановление
   карты стало self-contained.
 - Не добавлены: числовой fan-out, обязательный verifier, новый runtime/model
-  routing или новый control surface. Третий reference `wave.md` добавлен после
-  буквального аудита v6: normal-wave body + один из двух recovery references
-  превышали 20 активных единиц, а символьное сжатие запрещено
-  `1skill-creation`.
+  routing или новый control surface. Normal flow разделён на `admission`,
+  `map`, `brief`, `execute`, `integrate`, а stalled-return и root-break — на
+  разные recovery-стадии: прежние смешанные моменты превышали 20 активных
+  единиц, и символьное сжатие это не исправляло.
 
 ## v1–v2 (2026-08-10, mavo-short2)
 
