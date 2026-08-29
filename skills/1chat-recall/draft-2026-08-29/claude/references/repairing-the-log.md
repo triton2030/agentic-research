@@ -33,7 +33,8 @@
    ROOT="${CLAUDE_SKILL_DIR}"
    SESSION="<канонический UUID сессии>"
 
-   python3 "$ROOT/scripts/chat_recall.py" --session-id "$SESSION"
+   python3 "$ROOT/scripts/chat_recall.py" --session-id "$SESSION" \
+     --all --include-current-turn
    ```
 
 5. Используй один semantic type; только невосстановимая Repair-метадата может

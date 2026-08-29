@@ -3,166 +3,242 @@ name: 1handoff
 description: >-
   Use when $1handoff or /1handoff is requested, or when long repository work
   must move to a fresh session before continuation-critical state is lost. Not
-  for summaries, final reports, file transfer, or a second handoff in the same
-  chat.
+  for a summary, report, or task plan.
 ---
 
-# Handoff
+# Хендоф
 
-Close one repository work session as a reliable bridge to a fresh agent. The
-closeout has three independent outcomes: `1chat-recall` preserves qualifying
-owner evidence under its own contract, affected management state is current or
-explicitly unresolved, and a dated packet in `_ops/handoffs/` preserves the
-action-changing session delta.
+## Уникальный контекст
 
-## Goal
+У следующего агента будет этот репозиторий и один путь к файлу, и больше
+ничего. Он не увидит ваш с владельцем разговор и не сможет ни о чём переспросить
+тебя. Вместе с этим чатом умирает ровно то, чего файлы не держат: маршрут,
+который эта сессия попробовала и опровергла; решение владельца, сказанное один
+раз вслух; прочтение местности, которое выглядело очевидным и оказалось ложным;
+и уже оплаченное время, за которое всё это выяснилось.
 
-With only the repository and the explicit packet path, a fresh agent can begin
-the correct next action for the right reason, inherit current project state,
-and avoid paid mistakes or disproved mental models from this session.
+Есть и вторая половина, менее очевидная. Файлы этого репозитория читают агенты,
+а не только люди. Поэтому план, находка, маршрут `INDEX` или строка инструкции,
+которые твоя сессия сделала ложными, не просто устареют и будут проигнорированы.
+Они продолжат уверенно вести следующего агента не туда, потому что он примет их
+за текущую правду проекта.
 
-Choose whatever means are necessary to make that outcome true within the
-active task's existing authority and the project's rules. Named means and
-examples are non-exhaustive; explicit boundaries and the packet contract remain
-required. This skill grants no new permission: resolve what current authority
-allows and anchor the rest with its consequence.
+## Цель пользователя
 
-## Boundaries
+- Следующий агент, у которого есть только этот репозиторий и путь к пакету,
+  уверенно начинает верное следующее действие, не повторяет ошибок, за которые
+  эта сессия уже заплатила временем, и не собирает заново ту модель предмета,
+  которую эта сессия уже опровергла.
+- Слой агентного управления, который эта сессия сделала ложным, остаётся либо
+  приведённым в текущее состояние, либо точно названным как незакрытый вместе с
+  последствием того, что он таким остался.
+- Долговременные слова владельца сохранены скилом `1chat-recall` по его
+  собственному контракту, а не пересказаны твоими словами внутри пакета.
 
-- Create no more than one handoff in a chat.
-- Return the exact packet path for manual delivery. Do not add a latest-handoff
-  index, hook, automatic discovery, consumed state, or another lifecycle
-  surface.
-- Treat the packet as a dated delta, never as live truth. It is not a
-  transcript, summary, task plan, user profile, or project canon. Live files
-  and runtime state override it.
-- Resolve owner evidence through `1chat-recall` under its own contract. Never
-  imitate recall inside the packet.
-- Follow the owning contract for every managed surface. Change only state made
-  stale or unsafe by this session and already within the active task's
-  authority; hand off everything else with an exact anchor.
-- Outside an owning contract, change only project-authorized state recoverable
-  in one Git operation. Anchor irreversible, veto-class, or approval-dependent
-  work instead of treating closeout as permission.
-- Record the actual running model with a short, honest identifier. Do not
-  invent a subversion.
+## Пять правил, которые действуют всё время, от вызова до остановки
 
-## Required State Before Delivery
+- Создавай не больше одного хендофа за один чат. Если хендоф в этом чате уже
+  сделан, второй не создаётся ни при каких обстоятельствах.
+- Не бери себе полномочий, которых у этой сессии не было. Приведение в порядок
+  того, что сессия сама сделала ложным, в эти полномочия входит — даже если
+  исходная задача, которую тебе поставили, этих файлов вообще не касалась.
+- Помни, что закрытие сессии не является разрешением действовать. Работу
+  необратимую, veto-класса или требующую отдельного утверждения владельца ты не
+  выполняешь, а фиксируешь якорем вместе с последствием того, что она осталась
+  невыполненной.
+- Не заводи индекс «последнего хендофа», хук, автоматическое обнаружение,
+  consumed-state и любую другую поверхность жизненного цикла. Ручная передача
+  пути владельцем — это его стоящее решение, а не пробел, который надо закрыть.
+  Маршрутную правду в `INDEX` держать можно и нужно, а указатель на последний
+  созданный пакет — нельзя.
+- Читай списки в этом скиле правильно. Имена, перечисления и примеры здесь
+  ориентируют тебя и не ограничивают состав необходимой работы. Запреты, гейты,
+  перечисленные исходы, обязательные разделы пакета и словари ярлыков, наоборот,
+  ограничивают её строго.
 
-Recall and project-state outcomes must exist before the packet records them;
-consumer evidence must exist before the path is returned. Within that causal
-order, derive the work from the goal.
+Дальше идут шесть частей, выстроенных в причинном порядке. Каждая часть
+заканчивается своим исходом, и следующая часть работает уже с этим исходом на
+руках.
 
-### Owner Evidence
+## Часть 1. Сохрани слова владельца в их собственном хранилище
 
-Qualifying owner decisions and corrections have a `1chat-recall` outcome. If
-recall is unavailable or blocked, preserve the independent packet outcome and
-state the exact reason. Represent owner evidence in the packet only by its
-recall address plus one line explaining how it changes continuation.
-If recall provides no address for continuation-changing owner evidence, expose
-`no recall address` separately as a continuation blocker with its consequence;
-do not relabel recall's own outcome.
+Не заводи второе хранилище речи владельца нигде, кроме корпуса `1chat-recall`.
+Этот корпус держит его буквальные слова и является активом сам по себе; любая
+запись тех же слов в другом месте этим активом не становится, а только создаёт
+вторую правду о том, что владелец сказал.
 
-### Project State
+1. Проведи через `1chat-recall`, по его собственному контракту, каждое
+   квалифицирующее решение, коррекцию, критерий и границу, которые владелец
+   произнёс в этой сессии.
+2. Назови исход этой части словом `recall`: `captured`, если слова сохранены;
+   `no qualifying evidence`, если сохранять было нечего; `blocked`, если
+   сохранить не удалось.
+3. Если `1chat-recall` оказался недоступен или заблокирован, назови точную
+   причину, по которой это произошло, а не общее «recall недоступен».
+4. Помни, что недоступный или заблокированный `1chat-recall` не отменяет
+   остальных частей работы. Доведи каждую из них до её собственного исхода.
+5. Если у тебя есть меняющее продолжение owner-evidence, но `1chat-recall` не
+   даёт для него адреса, назови отдельный блокер `no recall address` и укажи
+   рядом последствие того, что этого адреса нет.
+6. Не переклеивай блокер `no recall address` на исход `recall`. Это разные
+   состояния: `no qualifying evidence` означает, что сохранять было нечего, а
+   `no recall address` означает, что сохранять было что, а адреса у этого нет.
+7. Для позиции владельца, у которой не оказалось адреса, назови её предмет и ту
+   развилку, которую она закрывает. Но не выдавай собственную формулировку за
+   слова владельца: назвать предмет разрешено, процитировать по памяти нельзя.
 
-Leave every management owner affected by this session current, or expose its
-exact unresolved state and consequence. The management layer includes plans
-and status, findings, paid-search INDEX routes, instructions and documentation,
-Git, and temporary state; this list does not limit the outcome. Do not audit or
-improve unrelated project state.
+## Часть 2. Приведи в порядок слой агентного управления
 
-A recurring paid lesson does not remain another advice item. Before delivery,
-it has an authorized decision-time guardrail at the correct owner, or a finding
-that anchors why the guardrail could not be installed.
+Всё время этой части действуют пять границ.
 
-### Continuation Delta
+- Меняй любую поверхность только через её собственный владеющий контракт, то
+  есть через тот скил или ту инструкцию, которая этой поверхностью владеет.
+- Поверхность, у которой владеющего контракта нет, меняй только в том случае,
+  если одного хода git хватит, чтобы это изменение откатить.
+- Считай файл сделанным ложным и тогда, когда он по-прежнему подразумевает то,
+  что эта сессия опровергла, даже если сессия этот файл ни разу не открывала.
+- Не проверяй и не улучшай то состояние проекта, которое эта сессия не сделала
+  устаревшим, небезопасным или неполным. Закрытие сессии — не повод для общей
+  ревизии проекта.
+- Отдели свои изменения от чужих и от тех, чьё происхождение тебе неизвестно. В
+  рабочем дереве могут лежать правки другой сессии или другого агента, и твоя
+  уборка не должна их откатывать.
 
-Preserve any current-session fact, choice, failure, or observation whose loss
-could change the next action, decision, veto, risk, or repeat a paid mistake.
-Omit everything else. When live state can recover the information, prefer one
-exact address and why it matters over a copied explanation. Preserve material
-causal history as:
+Внутри этих границ выполни четыре действия по порядку.
 
-`initial model or action -> evidence or result -> resulting model`
+1. Найди всех владельцев слоя агентного управления, которых эта сессия сделала
+   устаревшими, небезопасными или неполными. Слой агентного управления включает
+   планы и статусы, находки, оплаченные поиском маршруты `INDEX`, инструкции и
+   документацию, git и временное состояние.
+2. Приведи в текущее состояние тех из них, кого можешь привести здесь и сейчас,
+   не выходя за пять границ выше.
+3. Остальных назови незакрытыми вместе с последствием. Если пять границ выше
+   позволяют дописать это предупреждение прямо в сам файл — допиши, потому что
+   читатель того файла может никогда не получить твой пакет и никогда не узнать,
+   что файл больше не верен. Если те же границы запрещают трогать этот файл,
+   предупреждение остаётся только в пакете, и туда идёт точный адрес файла
+   вместе с последствием. Затем передай список незакрытых владельцев дальше
+   вместе с исходом `cleanup`.
+4. Если один и тот же урок оплачен уже более одного раза — по записанной истории
+   проекта или дважды внутри этой сессии, — поставь бортик в момент принятия
+   решения у того владельца, который бы этот урок поймал. Если поставить бортик
+   нельзя, заведи находку и зафиксируй в ней, почему именно это невозможно.
 
-## Packet Contract
+Исход этой части — слово `cleanup` и вместе с ним список незакрытых владельцев
+с их последствиями. Значение `cleanup` составное: назови «названные изменения»,
+назови `handed off`, либо назови их оба сразу, если часть владельцев ты исправил,
+а часть передал дальше. Значение `nothing to clean` называется только в
+одиночку и означает, что исправлять было нечего.
 
-Write one `_ops/handoffs/<timestamp>-<actual-model>.md` file, where
-`<timestamp>` is the current system time in `YYYY-MM-DD-HHMMSS` form. Its
-frontmatter contains `description` (`Handoff <timestamp>: <one line>`),
-`model`, and `date` using that same value.
+## Часть 3. Отбери то, что должно пережить эту сессию
 
-Place these lines immediately after frontmatter:
+Читатель того, что ты сейчас отберёшь, — это агент, у которого есть репозиторий
+и путь к пакету, и нет вашего разговора. Отбирай по перечисленным ниже
+критериям; порядок между ними значения не имеет.
 
-1. Read this file in full.
-2. Live files and runtime state override this dated snapshot.
-3. First state the next action and why, then compare the recorded HEAD with
-   `git log`.
+- Состояние проекта восстанавливай по диску и по командам, а не по своей памяти
+  о сессии. Длинная сессия сжимается, и утверждение, взятое из памяти, уходит в
+  пакет как проверенный факт, хотя проверено оно не было.
+- Факт, выбор, провал или наблюдение проходят в пакет только тогда, когда их
+  потеря может изменить следующее действие, решение, veto или риск, либо
+  позволить повторить уже оплаченную ошибку.
+- Там, где живое состояние проекта по-прежнему держит информацию, в пакет
+  проходит один точный адрес и объяснение, чем он важен, а не скопированное туда
+  содержание.
+- Owner-evidence проходит в пакет только своим recall-адресом плюс одной строкой
+  о том, как оно меняет продолжение работы. Твой пересказ слов владельца в пакет
+  не проходит никогда.
+- Owner-evidence, отмеченное блокером `no recall address`, — единственное
+  исключение из предыдущего правила. Для него в пакет проходят предмет позиции,
+  закрываемая ею развилка и последствие самого блокера.
+- Причинная история проходит в пакет в форме
+  `исходная модель или действие -> evidence или результат -> получившаяся
+  модель`. Так следующий агент унаследует то, чему сессия научилась, а не ту
+  модель, с которой она начала и которую по дороге бросила.
+- Хронологический дневник сессии в пакет не проходит. Пакет несёт причинные
+  связи между тем, что ты думал и что выяснилось, а не последовательность того,
+  что происходило по времени.
+- В совет следующему агенту проходят только наблюдения этой сессии, привязанные
+  к конкретному файлу или роду работ, и вместе с ними цена или польза каждого
+  наблюдения.
+- Предложения о том, как что-нибудь улучшить, в совет следующему агенту не
+  проходят. Совет состоит из наблюдений, а не из твоих пожеланий.
+- Урок, который ты уже направил в бортик или в находку в части 2, в совет
+  следующему агенту тоже не проходит. Он уже получил своего владельца.
 
-Put every continuation-changing veto, blocker, or unverified state immediately
-after this preamble or in `## Anchors`; do not bury it in the middle.
+## Часть 4. Запиши файл пакета
 
-The consumer interface has four required sections:
+Всё время этой части помни две вещи о том, чем пакет является и чем он не
+является. Пакет остаётся датированной дельтой и никогда не становится второй
+правдой: живые файлы и состояние runtime всегда его перекрывают. И пакет не
+превращается в транскрипт, сводку, план задачи, профиль пользователя или канон
+проекта, потому что у каждой из этих вещей уже есть свой отдельный владелец.
 
-- `## Terrain Model`
-- `## Where We Are`
-- `## Next Step`
-- `## Anchors`
+1. Скопируй файл `assets/packet-skeleton.md` в
+   `_ops/handoffs/<timestamp>-<фактическая-модель>.md`, где `<timestamp>` — это
+   текущее системное время в форме `YYYY-MM-DD-HHMMSS`.
+2. В поле `model` напиши короткий и честный идентификатор той модели, которая
+   фактически сейчас работает, и не выдумывай несуществующую субверсию.
+3. Каждый veto, каждый блокер и каждое непроверённое состояние, которые меняют
+   продолжение работы, поставь сразу после преамбулы или в раздел `## Anchors`.
+   Середина файла — это та зона, где читатель перестаёт видеть написанное.
+4. Каждому меняющему продолжение утверждению о состоянии поставь ярлык
+   `knowledge` и укажи в нём команду, тест, diff или другое наблюдение, которым
+   это утверждение проверено. Если проверки не было, напиши `unverified`.
+5. Тому же самому утверждению поставь второй ярлык `consequence` со значением
+   `none`, `accepted assumption`, `blocker` или `reframe`.
+6. Не позволяй одному ярлыку нести оба смысла сразу. Статус знания и рабочее
+   последствие не кодируются одним словом, потому что читатель тогда не сможет
+   отличить «я это не проверял» от «это тебя остановит».
+7. Раздел или строку скелета, помеченные маркером `<Гейт: …>`, оставляй в файле
+   только при наличии их evidence, а иначе удаляй вместе с плейсхолдером:
+   нераскрытый плейсхолдер читается следующим агентом как настоящий сигнал. Всё,
+   что этим маркером не помечено, гейтованным не является и не удаляется.
+8. Отсутствие тупика, инцидента или ловушки подтверждай прямо, а не выдумывай их
+   ради того, чтобы раздел не выглядел пустым.
+9. Если запись файла прервалась и довести его до заполненного состояния
+   невозможно, удали этот неполный файл.
+10. Тогда назови точный блокер записи, часть 5 пропусти — перечитывать нечего, и
+    её исход равен `не выполнялся`, — и переходи сразу к части 6.
 
-It exposes where work stopped, one next action and its reason, exact live
-anchors, HEAD, recall and cleanup outcomes, and the previous received handoff
-if any. Every continuation-changing state claim names both:
+## Часть 5. Перечитай пакет глазами следующего агента
 
-- `knowledge`: the command, test, diff, or other observation that verified it,
-  or `unverified`;
-- `consequence`: `none`, `accepted assumption`, `blocker`, or `reframe`.
+Отбрось всё, что ты знаешь из этого чата, и прочитай написанный файл так, как
+его прочтёт агент, который его получит: у него есть этот репозиторий, есть этот
+путь и нет никакого разговора.
 
-`## Terrain Model` preserves the minimal causal model needed to continue. Add
-misleading terrain only when an obvious reading is still plausible and this
-session produced evidence that disproved it. Do not invent traps or write a
-chronological diary.
+Пакет проходит проверку только тогда, когда такой читатель:
 
-Add `## Incidents` only when new evidence invalidated work already begun or
-changed the route. Record the prior model, trigger, paid cost, why it was found
-late, and the durable cleanup outcome. Use timestamps for cost or `unknown`;
-write `unknown` when the late cause is unavailable.
+- называет верное следующее действие, начинает его и объясняет, почему верным
+  является именно оно;
+- отличает датированное утверждение пакета от живой правды проекта;
+- находит evidence для каждого материального утверждения о состоянии;
+- находит текущих владельцев живой правды по названным в пакете адресам;
+- видит каждое отложенное решение, veto, блокер, риск и непроверённое
+  допущение, способное изменить продолжение работы;
+- обходит каждый тупик, за который эта сессия заплатила, и каждое ложное
+  прочтение местности, которое эту сессию пережило.
 
-Add one separate `## Advice to the Next Agent` only for new, session-grounded
-observations tied to a file or work type and their cost or benefit. Do not put
-improvement proposals in the history, and do not repeat a lesson already
-routed to a guardrail or finding. Omit optional sections when their evidence
-gate is not met.
+Заполненность названных разделов условием остановки не является. Пока хотя бы
+один из перечисленных критериев ложен, чини пакет или называй точный блокер.
+Исход этой части — `consumer check` со значением `passed`, точный блокер либо
+`не выполнялся`.
 
-Use one addressable `###` block for each independent terrain correction,
-incident, or advice item.
+## Часть 6. Отчитайся владельцу и остановись
 
-## Consumer Evidence
+Всё время этой части помни две вещи. Заблокированный исход не стирает исход
+успешный, и о них надо отчитаться обоим. Остаточный риск называй только для того
+контекста, до которого не удалось добраться, и для тех утверждений, которые не
+удалось проверить.
 
-Before delivery, reread the packet as an agent with the repository and path but
-no chat. The packet passes only if that reader can:
-
-- name and begin the correct next action, and explain why;
-- distinguish dated claims from live truth and find evidence for material
-  state;
-- see every pending decision, veto, blocker, risk, and unverified assumption
-  that can change continuation;
-- avoid any paid dead end or surviving false terrain from this session; and
-- locate the current owners of live truth.
-
-Confirm absence instead of inventing a dead end, incident, or trap. Completing
-the named sections is not a stop condition: repair the packet or report the
-exact blocker whenever the consumer outcome is still false.
-
-## Completion
-
-Return the exact packet path or exact packet blocker, plus one line describing
-the packet when it exists. Report these independent outcomes once:
-
-- `recall`: `captured`, `no qualifying evidence`, or `blocked`;
-- `cleanup`: named changes, `nothing to clean`, or `handed off`;
-- `packet`: exact path or `blocked`;
-- `consumer check`: `passed` or the exact blocker.
-
-A blocked outcome does not erase a successful one. State residual risk only
-for unavailable context or unverified claims. Stop when further text or
-cleanup cannot change continuation.
+1. Отчитайся по каждому независимому исходу ровно один раз: `recall` со
+   значением `captured`, `no qualifying evidence` или `blocked`; `cleanup` со
+   значением «названные изменения», `handed off`, обоими сразу либо
+   `nothing to clean` в одиночку; `packet` с точным путём или значением
+   `blocked`; `consumer check` со значением `passed`, точным блокером или
+   `не выполнялся`.
+2. Назови отдельно каждый блокер, который не является ни одним из этих четырёх
+   исходов.
+3. Добавь одну строку о том, что именно лежит в пакете, если пакет существует.
+4. Остановись в тот момент, когда ни новый текст, ни новая уборка уже не могут
+   изменить того, что сделает следующий агент.

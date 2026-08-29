@@ -34,11 +34,11 @@
    SESSION="<канонический UUID сессии>"
 
    python3 "$ROOT/scripts/chat_recall.py" --repair-session "$SESSION" \
-     read --scope user --limit all
+     read --scope user --limit all --include-current-turn
    python3 "$ROOT/scripts/chat_recall.py" --repair-session "$SESSION" \
-     search "<точный фрагмент>" --scope user --limit 20
+     search "<точный фрагмент>" --scope user --limit 20 --include-current-turn
    python3 "$ROOT/scripts/chat_recall.py" --repair-session "$SESSION" \
-     show "<record id>"
+     show "<record id>" --include-current-turn
    ```
 
 5. Используй один semantic type; только невосстановимая Repair-метадата может
