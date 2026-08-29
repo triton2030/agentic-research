@@ -175,3 +175,15 @@ programming и взгляд CTO/архитектора на будущее си�
 Их заменяют named practices: Ousterhout's strategic programming/deep modules и
 Brooks's conceptual integrity. Requested-behavior falsifier оставлен как
 correctness gate, а не как tutorial по testing.
+
+## Язык и установка — решение владельца 2026-08-29 17:42 +05:00
+
+Владелец потребовал завершить рефактор установкой обеих runtime-проекций,
+писать тело скилов по-русски, а `description` оставить коротким английским
+trigger-only текстом. Поэтому английский body SHA
+`5ebb79da8ddd2e62c8974e9f548a31e238faaf9ac5a8c04b311141283c958dd8` снят как
+кандидат до установки.
+
+Requested-behavior post-check также снят из active body: это общий coding
+default, а не уникальное решение о читаемости; terminal acceptance всё равно
+проверяет behavior вне устанавливаемого текста.

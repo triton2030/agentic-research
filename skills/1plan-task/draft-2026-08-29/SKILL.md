@@ -1,9 +1,8 @@
 ---
 name: 1plan-task
 description: >-
-  Use after one task is approved, or when new evidence must be tested against
-  its accepted bounds, to write, continue, or rebuild its isolated contract.
-  Not for admission or epic composition.
+  Use when creating, continuing, rebuilding, handing off, or closing one
+  approved task file.
 ---
 
 # План задачи — изолированный контракт исполнения

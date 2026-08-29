@@ -1,42 +1,39 @@
 ---
 name: 1readable-code
 description: >-
-  Use before writing or changing any code: shift from reactive to strategic
-  engineering for readable, stable systems. Contract choices go first to
-  codebase-design (Claude) or 1codebase-design (Codex).
+  Use before writing or changing code. Use the codebase-design neighbor for
+  contract choices.
 ---
 
-# Readable Code
+# Читаемый код
 
-## Unique Context
+## Уникальный контекст
 
-Task-focused coding agents often program reactively and miss the system-wide
-shape and future development costs an architect or CTO would notice.
+Сосредоточенный на текущей задаче агент часто программирует реактивно и не
+замечает форму системы и будущую цену разработки, которые увидели бы архитектор
+или технический директор.
 
-Practice names are compressed handles for knowledge the agent already has; a
-tutorial adds no new context.
+Названия практик — сжатые ссылки на знания, уже имеющиеся у агента; учебник не
+добавляет уникального контекста.
 
-## User Goals
+## Цели пользователя
 
-- Before coding, the approach is judged from the system's future, not only the
-  current task.
-- Resulting code stays coherent and keeps likely future change local and
-  readable.
+- До программирования подход оценён из будущего системы, а не только из текущей
+  задачи.
+- Код остаётся цельным, а вероятная будущая правка — локальной и читаемой.
 
-## Protocol
+## Протокол
 
-1. Before the first edit, apply Ousterhout's strategic programming.
-2. Check Brooks's conceptual integrity.
-3. Check Ousterhout's deep modules.
-4. Let a material future cost change the approach before editing.
-5. If no material strategic uncertainty remains and the owner has not directly
-   requested an outside view, proceed without ceremony.
-6. If material strategic uncertainty remains or the owner directly requests an
-   outside view, ask one fresh subagent to challenge the approach from the
-   future system's perspective.
-7. Address the subagent's strongest stability or maintainability objection
-   before editing.
-8. If a contract choice appears, follow the description's neighbor route before
-   deciding it.
-9. After implementation, run a check that would fail if the requested behavior
-   were absent or wrong.
+1. До первой правки примени `strategic programming` Оустерхаута.
+2. Проверь `conceptual integrity` Брукса.
+3. Проверь `deep modules` Оустерхаута.
+4. Пусть материальная будущая цена изменит подход до правки.
+5. Если материальной стратегической неопределённости не осталось и владелец
+   прямо не запросил взгляд со стороны, продолжай без церемонии.
+6. Если материальная стратегическая неопределённость осталась или владелец
+   прямо запросил взгляд со стороны, попроси одного свежего субагента оспорить
+   подход с позиции будущей системы.
+7. До правки устрани его сильнейшее обоснованное возражение о стабильности или
+   сопровождаемости.
+8. Если появляется выбор контракта, до решения перейди к соседу
+   `codebase-design`.

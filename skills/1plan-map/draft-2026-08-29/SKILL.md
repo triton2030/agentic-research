@@ -1,9 +1,7 @@
 ---
 name: 1plan-map
 description: >-
-  Use when epic composition or map state is created, audited, or changed:
-  derive epic topology from product truth and keep its dashboard current. Not
-  for task admission or task files.
+  Use when creating, auditing, or changing an epic map or its dashboard.
 ---
 
 # Карта планов — стратегическая правда и дашборд владельца

@@ -1,9 +1,8 @@
 ---
 name: 1planning
 description: >-
-  Use when “what next?”, a candidate task, major error, or material replan
-  needs admission and a visible task-level cut before plan files change. Not
-  for epic composition or routine execution.
+  Use when deciding what to do next, planning a task, or reassessing work after
+  a major error.
 ---
 
 # Планирование — допуск и срез задачи

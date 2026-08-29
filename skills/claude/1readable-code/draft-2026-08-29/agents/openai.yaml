@@ -1,4 +1,4 @@
 interface:
   display_name: "1-Читаемый код"
-  short_description: "Switch coding from reactive to strategic"
-  default_prompt: "Use $1readable-code before this coding work to think strategically about readable, stable system design."
+  short_description: "Use before writing or changing code"
+  default_prompt: "Используй $1readable-code перед этой работой с кодом."
