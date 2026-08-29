@@ -1,54 +1,60 @@
-# Refactor map — 1plan-map — 2026-08-29
+# Карта рефактора — 1plan-map — 2026-08-29
 
-Approved family boundary: `_ops/chat-recall/2026-08-29-152644-codex-01a04d0d.md:18-19`.
-Earlier function: `_ops/chat-recall/2026-08-26-220614-claude-4ee6bbef.md:24`.
+Утверждённая граница семьи:
+`_ops/chat-recall/2026-08-29-152644-codex-01a04d0d.md:18-19`.
+Более ранняя функция:
+`_ops/chat-recall/2026-08-26-220614-claude-4ee6bbef.md:24`.
+Аудитория карты:
+`_ops/chat-recall/2026-08-29-152644-codex-01a04d0d.md:25`.
 
-## Function
+## Функция
 
-Decision and durable owner for epic composition and epic state, including the
-owner dashboard. It exposes a task-admission need but never decides or writes
-the task.
+Владелец решений и долговечной правды о композиции и состоянии эпиков, включая
+дашборд владельца. Показывает потребность в допуске задачи, но не решает и не
+пишет её.
 
-## Old instruction groups
+## Группы старых инструкций
 
-| Group | Disposition | Target owner |
+| Группа | Решение | Целевой владелец |
 | --- | --- | --- |
-| Frames, principles and GOAL before composition | keep | protocol 1 |
-| Bootstrap map root and instrument | keep, compress | protocol 1 |
-| Create, audit/refactor, event update | keep as two authorities | protocol 2 |
-| Outcome epics, non-overlap, order and dependencies | keep | protocol 3 + map-form |
-| Carrier evidence, permanent closed/deferred history | keep | protocol 5 + map-form |
-| Visible composition approval | keep | protocol 3 |
-| Dashboard templates and machine schema | keep | references |
-| Frontier creates the next JIT task | move decision/write | `1planning` → `1plan-task` |
-| Task-side invariants in map red-list | keep as instrument integration | map-form |
+| Рамки, принципы и GOAL до композиции | оставить | протокол 1 |
+| Создание корня карты и прибора | оставить, сжать | протокол 1 |
+| Создание, аудит/рефактор, event update | оставить как два полномочия | протокол 2 |
+| Эпики-результаты, непересечение, порядок и зависимости | оставить | протокол 3 + форма |
+| Evidence носителя, постоянная история закрытого и отложенного | оставить | протокол 5 + форма |
+| Видимое утверждение композиции | оставить | протокол 3 |
+| Шаблоны дашборда и машинная схема | оставить | references |
+| Карта — поверхность человека, не task-промп | добавить | уникальный контекст + протокол 4 |
+| Фронтир создаёт следующую JIT-задачу | перенести решение/запись | `1planning` → `1plan-task` |
+| Инварианты задачи в красном списке карты | оставить как интеграцию прибора | форма карты |
 
-## New constraints
+## Новые ограничения
 
-- Composition and state are two named write scopes. This closes the observed
-  two-writer ambiguity; it removes freedom for a state update to alter epic
-  topology incidentally.
-- A taskless frontier is a planning signal, not task authorization. This closes
-  triple ownership of JIT creation; it removes the map's freedom to create a
-  task in the same state move.
+- Композиция и состояние — два названных write-scope. Событие состояния не
+  может попутно менять топологию эпиков.
+- Карта оптимизирована для чтения владельцем. Исполнительная цель, критичный
+  контекст и ограничения одной задачи принадлежат task-файлу.
+- Фронтир без задачи — planning-сигнал, а не разрешение создать задачу. Это
+  снимает тройное владение JIT-созданием.
 
-## Predicted misreadings closed
+## Закрытые неверные прочтения
 
-- “Advancing the frontier includes inventing the next task” → protocol 4
-  exposes the need and routes admission.
-- “Updating status permits opportunistic reorder” → protocol 2 separates state
-  from composition before the write.
-- “Task closure lets `1plan-task` edit the epic directly” → boundary makes the
-  map skill the state writer.
+- «Продвинуть фронтир значит придумать следующую задачу» → протокол 4 лишь
+  показывает потребность и маршрутизирует допуск.
+- «Обновление статуса позволяет попутно переставить эпики» → протокол 2 до
+  записи разделяет состояние и композицию.
+- «Эпик должен содержать инструкции исполнителю» → протокол 4 оставляет их в
+  `1plan-task`.
+- «Закрытие задачи позволяет `1plan-task` напрямую править эпик» → граница
+  оставляет запись состояния карте.
 
-## Routing cases
+## Маршруты
 
-- use: `Audit and reorder the current epic map.`
-- use: `Close this epic and advance the frontier.`
-- skip: `Write the approved task file now.` → `1plan-task`
-- near miss: `Should this candidate task start now?` → `1planning`
+- использовать: `Проверь и переставь текущую карту эпиков.`
+- использовать: `Закрой этот эпик и продвинь фронтир.`
+- пропустить: `Теперь запиши утверждённый task-файл.` → `1plan-task`
+- near miss: `Стоит ли сейчас начинать эту задачу?` → `1planning`
 
-## Current draft count
+## Текущий счётчик черновика
 
-Top-level author count: `SKILL.md` 14 · `map-form.md` 18 · `dashboard.md` 6;
-independent-predicate recount belongs to `check-approve`.
+Счёт по независимым предикатам принадлежит стадии `check-approve`.

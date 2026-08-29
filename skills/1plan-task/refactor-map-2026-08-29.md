@@ -1,57 +1,70 @@
-# Refactor map — 1plan-task — 2026-08-29
+# Карта рефактора — 1plan-task — 2026-08-29
 
-Approved family boundary: `_ops/chat-recall/2026-08-29-152644-codex-01a04d0d.md:18-19`.
-Earlier function: `_ops/chat-recall/2026-08-26-220614-claude-4ee6bbef.md:25-26`.
+Утверждённая граница семьи:
+`_ops/chat-recall/2026-08-29-152644-codex-01a04d0d.md:18-19`.
+Более ранняя функция:
+`_ops/chat-recall/2026-08-26-220614-claude-4ee6bbef.md:25-26`.
+Контекстный контракт task-файла:
+`_ops/chat-recall/2026-08-29-152644-codex-01a04d0d.md:23-28`.
 
-## Function
+## Функция
 
-Durable owner for one approved task and its routine execution lifecycle. It
-serializes admission decisions but does not make them, and it requests rather
-than owns epic state writes.
+Долговечный владелец одной утверждённой задачи и её обычного жизненного цикла
+исполнения. Сериализует решения о допуске, но не принимает их, и запрашивает,
+а не пишет события состояния эпика.
 
-## Old instruction groups
+## Группы старых инструкций
 
-| Group | Disposition | Target owner |
+| Группа | Решение | Целевой владелец |
 | --- | --- | --- |
-| Epic reread, snapshot and exactly-one-epic bound | keep | protocol 2 + task-form |
-| Provenance and address-over-retelling | keep | protocol 3 + task-form |
-| Wayfinding/Execution mode and zombie rebuild | keep with gate | protocol 4 |
-| Evidence-gated closure and proof invalidation | keep | protocol 6 |
-| Update epic in the same move | move write authority | `1plan-map` state event |
-| Orchestrator-only plan writes and worker evidence | keep | protocol 5 |
-| Fresh-reader reconstruction | keep | protocol 7 |
-| Why this beats the queue | keep only as receipt | accepted `1planning` trajectory |
-| JIT rule decides task creation | move decision | `1planning`; task-form records precondition |
+| Перечитать эпик, snapshot и граница одного эпика | оставить | протокол 2 + форма |
+| Provenance и адрес вместо пересказа | оставить | протокол 3 + форма |
+| Wayfinding/Execution и zombie rebuild | оставить со шлюзом | протокол 5 |
+| Evidence-закрытие и инвалидирование доказательств | оставить | протокол 6 |
+| Обновить эпик тем же ходом | перенести write-authority | событие `1plan-map` |
+| Plan пишет оркестратор, workers возвращают evidence | оставить | протокол 6 |
+| Восстановление чистым читателем | оставить | протокол 7 |
+| Почему задача важнее очереди | оставить только квитанцией | принятая `траектория` |
+| JIT-правило решает создание задачи | перенести решение | `1planning` |
+| Одна задача — один агент и task-файл как промп | добавить | контекст + форма |
+| Цель и бюджет до 20 активных единиц | добавить | протокол 3–4 + форма |
+| Релевантные источники и критичные повторы | добавить | форма, «Зачем» |
 
-## New constraints
+## Новые ограничения
 
-- Required `ось:` in «Зачем» gives the planning cut a durable carrier. This
-  closes clean-window guessing; it removes freedom to rebuild without knowing
-  the accepted decomposition basis.
-- The five-invariant gate separates routine rebuild from material replan. It
-  closes `1plan-task`'s open-ended rebuild authority; it removes freedom to
-  continue after the accepted task decision changes.
-- Epic state changes are requested from `1plan-map`. This closes the two-writer
-  seam; it removes direct epic writes from the task lifecycle.
+- Обязательная `Цель` удерживает результат, эффект, главный провал и
+  доказательство даже без дополнительных документов.
+- Активное ядро task-промпа ограничено 20 независимыми смыслами; длинное
+  предложение не уменьшает счётчик, а превышение требует нового среза.
+- `критично помнить` маршрутизирует только релевантные источники и повторяет
+  дословно лишь несущие строки: так адрес не превращается в свалку документов.
+- Обязательная `ось:` переносит planning-срез между чистыми окнами.
+- Пять инвариантов отделяют обычную пересборку от существенного переплана.
+- Событие состояния эпика запрашивается у `1plan-map`, поэтому у эпика один
+  писатель.
 
-## Predicted misreadings closed
+## Закрытые неверные прочтения
 
-- “Trajectory asks me to choose priority again” → the form labels it an
-  accepted admission receipt.
-- “Contradictory evidence always means rebuild locally” → the five-invariant
-  comparison precedes rebuild.
-- “Closing the task authorizes editing epic composition” → protocol 6 allows
-  only a map-owned state event.
+- «Само имя задачи заменяет цель» → форма требует самостоятельную `Цель`.
+- «Я перечислю все документы на всякий случай» → контекстный бюджет оставляет
+  только surprise-информацию и её эффект.
+- «Двадцать bullets соблюдают лимит» → считаются независимые смыслы, а не
+  форматирование.
+- «Траектория просит заново выбрать приоритет» → это квитанция принятого
+  допуска.
+- «Противоречащее evidence всегда можно пересобрать локально» → до пересборки
+  проверяются пять инвариантов.
+- «Закрытие задачи разрешает менять композицию эпика» → протокол 6 допускает
+  только запрос map-owned события состояния.
 
-## Routing cases
+## Маршруты
 
-- use: `Write the approved task contract now.`
-- use before evidence classification: `New evidence arrived for the current task.`
-- use after classification: `The accepted bounds still hold; rebuild subtasks.`
-- skip: `Evidence changed the accepted task axis.` → `1planning`
-- near miss: `Update the epic after task closure.` → `1plan-map`
+- использовать: `Теперь запиши утверждённый task-контракт.`
+- использовать до классификации: `Появилось новое evidence текущей задачи.`
+- использовать после классификации: `Границы держатся; пересобери подзадачи.`
+- пропустить: `Evidence изменило принятую ось задачи.` → `1planning`
+- near miss: `Обнови эпик после закрытия задачи.` → `1plan-map`
 
-## Current draft count
+## Текущий счётчик черновика
 
-Top-level author count: `SKILL.md` 16 · `task-form.md` 18;
-independent-predicate recount belongs to `check-approve`.
+Счёт по независимым предикатам принадлежит стадии `check-approve`.

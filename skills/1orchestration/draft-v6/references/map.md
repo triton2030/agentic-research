@@ -1,15 +1,14 @@
 # Карта волны
 
-Вход: каждый provisional task получил verdict `manageable`. Выход: до launch
-в чате показана карта минимальной формы.
+Вход: `shape` выбрал собственную delegation topology. Выход: до launch в чате
+показана карта минимальной формы.
 
 Для каждого потока назови:
 
-- outcome;
-- agent или root;
-- active-unit estimate;
-- независимость или место в staged-порядке;
+- brief address;
+- actor и основание capability fit;
+- порядок;
 - обязательный барьер;
 - write ownership;
-- brief address;
-- return packet и acceptance owner.
+- return channel для evidence против `done_when` и непрохождения;
+- acceptance owner.

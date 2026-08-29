@@ -1,110 +1,111 @@
-# Epic form and machine invariants
+# Форма эпика и машинные инварианты
 
-Schema tokens are literal: frontmatter keys, section headings, and status
-vocabulary are validated byte-for-byte and read by the owner. File content is
-written in the project's language.
+Токены схемы литеральны: frontmatter-ключи, заголовки разделов и словарь
+статусов проверяются байт-в-байт и читаются владельцем. Содержимое файла
+пишется на языке проекта.
 
-## Home
+## Дом
 
 ```text
-<map root folder>/
-  <Epic name>/
-    <Epic name>.md
-    <Self-describing task name>.md
+<корневая папка карты>/
+  <Имя эпика>/
+    <Имя эпика>.md
+    <Самоописывающее имя задачи>.md
     _evidence/
 ```
 
-The epic file is the folder note and shares its name with the folder. Nothing
-else lives here; task form belongs to `1plan-task`.
+Файл эпика — folder note и называется так же, как папка. Других сущностей
+здесь нет; формой задачи владеет `1plan-task`.
 
-## Epic file
+## Файл эпика
 
 ```markdown
 ---
 тип: эпик
-описание: "<one short owner-facing line>"
-область: <part of the project>
-порядок: <number in execution order>
-статус: <from the vocabulary below>
+описание: "<одна короткая строка для владельца>"
+область: <часть проекта>
+порядок: <номер в порядке исполнения>
+статус: <из словаря ниже>
 health: 🟢 | 🟠 | 🔴
 запуск: true | false
-критерий: "<evidence to present for closure>"
-ранний-индикатор: "<falsifiable signal before closure>"
+критерий: "<evidence, предъявляемое при закрытии>"
+ранний-индикатор: "<фальсифицируемый сигнал до закрытия>"
 зависит-от:
-  - "[[<blocking epic>]]"
+  - "[[<блокирующий эпик>]]"
 задач: 0
 задач-готово: 0
 задачи: []
-evidence: "<accepted carrier proof; mandatory at ✅>"
-обновлено: <date>
+evidence: "<принятое доказательство носителя; обязательно при ✅>"
+обновлено: <дата>
 ---
 
-# <Epic name>
+# <Имя эпика>
 
-<what this is, in the owner's plain words — one paragraph>
+<что это такое простыми словами владельца — один абзац>
 
 ## Принципы
 
-- "[[<principle or pair>]] — <which fork or criterion it settles here>"
+- "[[<принцип или пара>]] — <какую развилку или критерий он здесь решает>"
 
 ## Аппетит
 
-<time or effort before revisiting>
+<время или усилие до пересмотра>
 
 ## No-gos
 
-- <what is deliberately excluded; none — say so>
+- <что намеренно исключено; если ничего — так и написать>
 
 > [!note]- Технические подробности
-> <agent-facing detail>
+> <деталь, скрытая от первого чтения владельца; не промп задачи>
 
 ## Апдейты
 
-- <YYYY-MM-DD> · <🟢/🟠/🔴> · <one line of increment>
+- <YYYY-MM-DD> · <🟢/🟠/🔴> · <одна строка инкремента>
 ```
 
-Composition owns `описание`, `область`, `порядок`, `запуск`, `критерий`,
-`ранний-индикатор`, `зависит-от`, «Принципы», «Аппетит», and «No-gos».
-State events own `статус`, `health`, `evidence`, and append-only «Апдейты»;
-they never alter composition.
+Композиция владеет `описание`, `область`, `порядок`, `запуск`, `критерий`,
+`ранний-индикатор`, `зависит-от`, «Принципы», «Аппетит» и «No-gos». События
+состояния владеют `статус`, `health`, `evidence` и append-only «Апдейты»; они
+никогда не меняют композицию.
 
-The section set is fixed in both directions. `health` and `обновлено` derive
-from the last update; `задач*` derive from task files and are written only by
-the instrument. The task's inverse `эпик-снимок` is written by whoever reread
-the epic and checked by the instrument. Unless the project instrument names a
-different normalization, significant content is frontmatter minus derived
-fields plus the body outside «Апдейты». The criterion names closure evidence;
-the early indicator is a separate signal able to refute the course before
-closure. The epic body is at most 60 non-empty lines outside frontmatter and
-updates.
+Набор разделов фиксирован в обе стороны. `health` и `обновлено` выводятся из
+последнего апдейта; `задач*` выводятся из task-файлов и пишутся только
+прибором. Обратный `эпик-снимок` задачи пишет тот, кто перечитал эпик, а прибор
+его проверяет. Если проектный прибор не задал иную нормализацию, значимое
+содержимое — frontmatter без производных полей плюс тело вне «Апдейтов».
+Критерий называет evidence закрытия; ранний индикатор — отдельный сигнал,
+способный опровергнуть курс до закрытия. Тело эпика содержит не более 60
+непустых строк вне frontmatter и апдейтов. Цель, источники и ограничения одной
+задачи хранятся в её task-файле, а не в эпике.
 
-## Status and frontier
+## Статус и фронтир
 
 `✅ готово · 🔨 в работе · ◽ в очереди · 🔒 заблокировано · 🛑 затык ·
-⏳ отложено` is shared by epics and tasks.
+⏳ отложено` — общий словарь эпиков и задач.
 
-- `✅` requires accepted `evidence`; `🔒` derives from an open dependency and
-  becomes `◽` when the blocker closes.
-- `🛑` names the decision or external gate; `⏳` records the owner's reason,
-  overrides derived `🔒`, and does not count as left to launch.
-- Statuses in `порядок` answer how much is left; epic percentage is forbidden
-  because the JIT task denominator is open, and left to launch counts only
-  `запуск: true`.
-- The frontier is the first launch epic neither `✅` nor `⏳`; it alone may be
-  `🔨`, and only it may contain a `🔨` task.
-- Frontier `◽` without a live task is a visible admission need. `1planning`
-  decides whether and how to cut the task; `1plan-task` writes it; only then a
-  map state event sets the task and epic to `🔨`.
-- A queued non-frontier epic may contain only closed tasks accepted as
-  foundations; their presence never permits reorder.
+- `✅` требует принятое `evidence`; `🔒` выводится из открытой зависимости и
+  становится `◽`, когда блокер закрыт.
+- `🛑` называет решение или внешний шлюз; `⏳` записывает причину владельца,
+  перекрывает производный `🔒` и не считается остатком до запуска.
+- Статусы в порядке `порядок` отвечают, сколько осталось; процент эпика
+  запрещён, потому что знаменатель JIT-задач открыт, а остаток до запуска
+  считает только `запуск: true`.
+- Фронтир — первый запускной эпик, который не `✅` и не `⏳`; только он может
+  быть `🔨`, и только в нём может находиться задача `🔨`.
+- Фронтир `◽` без живой задачи показывает потребность в допуске. `1planning`
+  решает, нужна ли задача и как её разрезать; `1plan-task` пишет её; лишь после
+  этого событие состояния карты переводит задачу и эпик в `🔨`.
+- Эпик вне фронтира может содержать только закрытые задачи, принятые как
+  основания; их наличие не разрешает перестановку.
 
-## Instrument
+## Прибор
 
-The instrument rejects a broken home or folder note, wrong section set,
-overlong body, changed append-only updates, divergent derived fields, `✅`
-without evidence, an empty «Принципы», missing context paragraph, or a broken
-frontier invariant; it also checks task-side invariants owned by `1plan-task`.
+Прибор отвергает сломанный дом или folder note, неверный набор разделов,
+слишком длинное тело, изменение append-only апдейтов, расхождение производных
+полей, `✅` без evidence, пустые «Принципы», отсутствие контекстного абзаца и
+нарушенный инвариант фронтира; также он проверяет task-инварианты, которыми
+владеет `1plan-task`.
 
-More than one `🔨` task in an epic is a warning that task boundaries need
-replanning, not a working mode. Trajectory, principle influence, and absence
-of documentation retelling are accepted by a window that did not write them.
+Больше одной задачи `🔨` в эпике — предупреждение, что границы задач требуют
+переплана, а не рабочий режим. Траекторию, влияние принципов и отсутствие
+пересказа документации принимает окно, которое их не писало.

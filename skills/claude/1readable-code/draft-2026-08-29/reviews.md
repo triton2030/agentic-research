@@ -111,3 +111,27 @@ intent: automatic strategic-programming trigger на переходе к код�
 локального owner/falsifier contract. Раунды 1–3 и behavioral fixtures выше
 остаются evidence о снятой версии, но не проверяют новый черновик. Проверка
 новой версии начинается заново.
+
+## Strategic-programming версия — раунд 1
+
+Проверяемая версия: SHA-256
+`1559b8185c9126140637d52ff04c2ac94869995919b5a477fe06313b5b22cafc`.
+
+Принято из буквального и trajectory-аудитов:
+
+- tentative owner wording про subagent нельзя превращать в обязательный turn
+  для любой неочевидной правки; новый trigger — только material strategic
+  uncertainty либо прямой запрос владельца;
+- named practices должны менять engineering decision при реальной развилке, а
+  не требовать `strategic choice`, avoided-cost и future-change отчёты;
+- conceptual integrity, deep modules и strategic programming разнесены по
+  самостоятельным строкам;
+- contract choice целиком остаётся у runtime-соседа, который получает приоритет
+  до решения;
+- глобальный `unverified`-гейт повторно снят из active body;
+- current automatic trigger требует новых use/skip/near-miss receipts, потому
+  что mechanical code edit теперь use, а не skip.
+
+Принятое направление подтверждено новой live-границей владельца:
+`_ops/chat-recall/2026-08-29-163434-codex-01a04d4a.md:15` — сохранять идею и
+слова без вредного буквального ритуала.

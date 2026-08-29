@@ -1,36 +1,43 @@
 ---
 name: 1chat-recall
 description: >-
-  Use when owner speech should be captured; before consequential work that may
-  depend on it; or to recover, restore, validate, repair, or backfill source
-  evidence. Skip assent.
+  Use when owner speech may matter later; before consequential work that may
+  depend on prior owner words; or for bounded recall recovery, restoration,
+  repair, backfill, or validation.
 ---
 
 # Chat recall
 
-## Unique context
+## Goals
 
-The corpus preserves what the owner said; it does not say what is true now.
-Corpus evidence stays local.
+- Preserve consequential owner speech during the turn in which it is spoken.
+- Before consequential work that may depend on earlier owner speech, recover an
+  applicable position from literal evidence or `abstain`.
+- After a source-bound mode receipt, continue the original work instead of
+  treating recall as its final product.
 
-## Choose the current mode
+## Shared boundaries
 
-1. Owner speech may matter after this turn → fully read
+- Search metadata routes reading; it is neither owner evidence nor current
+  truth.
+- Keep corpus evidence local; never send it to network tools.
+
+## Choose exactly one current mode
+
+Fully read the one matching reference and complete that mode before selecting
+another:
+
+1. Owner speech may matter after this turn →
    [Capture](references/capture.md).
 2. Prior owner speech may affect consequential work or a later answer →
-   fully read [Retrieval](references/retrieval.md).
+   [Retrieval](references/retrieval.md).
 3. Retrieval ended `recovery-needed` because its normal route could not support
-   a decision → fully read
+   a decision →
    [Recovering recall coverage](references/reading-the-log.md).
 4. This session is explicitly transferring recovered meanings into existing
-   owner files → finish Retrieval first, then fully read
+   owner files after completed Retrieval →
    [Restoring meanings](references/restoring-meanings.md).
 5. A record needs provenance repair or the owner requests pre-capture backfill
-   → fully read
-   [Repairing the log](references/repairing-the-log.md).
-6. The owner requests corpus structural validation → fully read
+   → [Repairing the log](references/repairing-the-log.md).
+6. The owner requests corpus structural validation →
    [Validating the corpus](references/validating-the-corpus.md).
-
-Complete triggered modes in numbered order, returning here after each; only the
-reference-defined receipt closes a mode, never a candidate list or unread
-address.

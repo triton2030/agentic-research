@@ -1,18 +1,17 @@
-# The owner's dashboard (Obsidian)
+# Дашборд владельца в Obsidian
 
-The owner follows the project through the dashboard, not the files. When a map
-is created, the dashboard is created at once; on a later map edit a missing
-file is created from the template, while existing files are never overwritten
-because project views live in them. The dashboard lives above the map root;
-names and headings stay in the owner's language. Dashboards read frontmatter
-only.
+Владелец следует за проектом через дашборд, а не через файлы. При создании
+карты дашборд создаётся сразу; при последующей правке карты отсутствующий файл
+создаётся из шаблона, а существующие файлы не перезаписываются, потому что в
+них живут проектные представления. Дашборд лежит над корнем карты; имена и
+заголовки остаются на языке владельца. Дашборды читают только frontmatter.
 
-`Дашборд.base` — epics:
+`Дашборд.base` — эпики:
 
 ```yaml
 filters:
   and:
-    - file.inFolder("<map root folder>")
+    - file.inFolder("<корневая папка карты>")
 formulas:
   Задачи: >-
     note["задач-готово"].toString() + "/" + note["задач"].toString()
@@ -57,13 +56,14 @@ views:
       - критерий
 ```
 
-`Планы.base` — tasks. `Прогресс` reports the current subtask list, never task
-closure; epic `Задачи` is created-file inventory, not a completion fraction.
+`Планы.base` — задачи. `Прогресс` показывает текущий список подзадач, а не
+закрытие задачи; эпическое `Задачи` — число созданных файлов, а не доля
+завершения.
 
 ```yaml
 filters:
   and:
-    - file.inFolder("<map root folder>")
+    - file.inFolder("<корневая папка карты>")
     - тип == "задача"
 formulas:
   Прогресс: >-
@@ -109,12 +109,12 @@ views:
         direction: ASC
 ```
 
-`Дашборд.md` — the owner's single screen:
+`Дашборд.md` — единый экран владельца:
 
 ```markdown
-# 🚀 <project name> — путь к цели
+# 🚀 <имя проекта> — путь к цели
 
-<one or two lines: status legend and what the ✅ bar means>
+<одна-две строки: легенда статусов и смысл полосы ✅>
 
 ## 🗺️ Путь по порядку
 
@@ -137,5 +137,5 @@ views:
 ![[Дашборд.base#Отложенное]]
 ```
 
-Project views and columns are added in these same files. Hyphenated properties
-use `note["имя-с-дефисом"]`; a bare name parses as subtraction.
+Проектные представления и колонки добавляются в эти же файлы. Свойства с
+дефисом пишутся как `note["имя-с-дефисом"]`; голое имя парсится как вычитание.

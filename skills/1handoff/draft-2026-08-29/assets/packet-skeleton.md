@@ -18,9 +18,11 @@ date: <тот же timestamp, YYYY-MM-DD-HHMMSS>
 
 ### <Одна независимая поправка местности — свой адресуемый блок>
 
+<исходная модель или действие -> evidence или результат -> получившаяся модель>
+
 ## Where We Are
 
-<Где работа остановилась. У каждого claim-а о состоянии два ярлыка:
+<Где работа остановилась. Ярлыки claim-а:
 `knowledge`: <наблюдение | unverified> · `consequence`: <none | accepted
 assumption | blocker | reframe>>
 

@@ -40,11 +40,18 @@
    text/selection verification, otherwise `minute` or `date`; `unknown` is only
    valid for `note`. Holder filename/frontmatter/heading follow the earliest
    `exact|minute` source date, while `date` precision never moves the holder.
-8. Supply the same searchable metadata as fresh Capture: a short keyword-like,
-   non-paraphrasing `context-note` for each quote; the complete non-truth
-   `session-context` for each quote/selection; and one type/topic, project,
-   agent, source timestamp, and source session. Write via `chat_capture.py` with
-   only applicable optional flags:
+8. Before writing any recovered `quote` or `selection`, read
+   `_ops/chat-recall/topics.md` in full, name the record's durable subject,
+   compare every topic boundary by meaning, and reuse the nearest fit. Create a
+   short Latin topic and one-line boundary only when none fits; inventory output
+   never substitutes for reading the map. Use `неопределено` or `без-темы` only
+   when native evidence cannot recover the field after this attempt.
+9. Supply searchable metadata for every recovered `quote` or `selection`: a
+   short keyword-like, non-paraphrasing `context-note` containing missing named
+   referents, an opaque selected option, stable artifact names, and useful
+   synonyms; plus the complete non-truth `session-context`. Write via
+   `chat_capture.py`, adding `--kind selection` only for a selected option and
+   adding other optional flags only when applicable:
 
    ```bash
    python3 "$ROOT/scripts/chat_capture.py" \
@@ -54,13 +61,13 @@
      --agent codex --project "<project root>" --session "$SESSION" --json
    ```
 
-9. In read-only work, report the backlog without mutation. When mutation is
+10. In read-only work, report the backlog without mutation. When mutation is
    authorized, first preserve checksums and untracked backups outside the
    scanned corpus; merge duplicate holders only within one project and session.
-10. Validate the result with `chat_digest.py "<project root>/_ops/chat-recall"
+11. Validate the result with `chat_digest.py "<project root>/_ops/chat-recall"
     --check --strict`, then prove that prior text/raw-block multisets did not
     shrink, new quotes exist in native sources, timestamps/sessions remain
     honest, records open by exact address, diagnostics remain visible or are
-    fixed, and each project has at most one holder per session.
-11. Report restored signal and exact record addresses plus provenance,
-    chronology, structure proof, unresolved diagnostics, or the precise blocker.
+    fixed, and each project has at most one holder per session. Report restored
+    signal and exact addresses plus provenance, chronology, structure proof,
+    unresolved diagnostics, or the precise blocker.

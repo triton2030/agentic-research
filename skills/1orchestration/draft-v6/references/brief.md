@@ -1,13 +1,11 @@
 # Brief окна
 
-Вход: root прочитал карту влияющих owners. Выход: сформирован provisional
+Вход: root прочитал owner map. Выход: сформирован provisional
 self-contained brief, достаточный для первого решения.
 
-- `goal/outcome` — какое состояние должен сделать истинным этот поток.
-- `done_when` — все критерии принятия и требуемое evidence.
-- `read` — live-адрес каждого влияющего owner-а и причина чтения.
-- `delta` — только task-specific факты и границы, которых нет в owners.
-- `write ownership` — единственный носитель записи или read-only.
-- `return` — результат · адресуемое evidence · gaps · blockers.
-- Не пересказывай доступный owner-файл; исключение — live receiving owner прямо
-  требует критичную выдержку, которая сохраняет owner-адрес и входит в budget.
+- `goal/outcome` — состояние, которое должен сделать истинным actor.
+- `done_when` — evidence, которое доказывает outcome.
+- `read` — адреса принятого owner ledger-а.
+- `delta` — только task-specific информация, отсутствующая в owners.
+- Доступный owner не пересказывай; требуемая live receiving owner-ом выдержка
+  сохраняет адрес и считается в active set.

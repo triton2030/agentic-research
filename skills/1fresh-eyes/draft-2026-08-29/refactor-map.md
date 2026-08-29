@@ -33,6 +33,12 @@ brief templates одиночных вызовов не имеют второго
 обязательность Premortem. A/B фиксированной панели против динамической не
 проводился.
 
+Новая owner-boundary 2026-08-29: верность идее выше буквального копирования;
+агентские добавки не должны вредить скилу. Поэтому потолок 20 остаётся
+диагностикой внимания, а не product goal; reference существует только для
+самостоятельной когнитивной фазы, не для каждого тривиального handback.
+Источник: `_ops/chat-recall/2026-08-29-163434-codex-01a04d4a.md:15`.
+
 ## Плоский список старых указаний
 
 1. Вызывать skill, когда длинная работа дошла до проверки траектории или неразрешённого остатка.
@@ -101,34 +107,32 @@ brief templates одиночных вызовов не имеют второго
 
 | Обслуживаемая цель | Старые указания | Новый владелец | Решение |
 |---|---:|---|---|
-| Routing и admission | 1–8, 28–30 | `description` + `decision.md` | Сжаты до наблюдаемой развилки; named mode включается только буквальным выбором profile пользователем. |
-| Телос и anti-harm | 9–15 | три цели + `synthesis.md` | Решение принадлежит main; surviving route завершает только Fresh Eyes pass. |
-| Состав и независимый запуск | 16–27, 51–54, 58–61 | `panel-packet.md` / `panel-launch.md` / `named-packet.md` / `named-launch.md` / Codex `premortem.md` | Packet construction, launch и cross-family report стали самостоятельными artifact stages. |
-| Приёмка и синтез | 31–44, 55–57 | `classification.md` → `synthesis.md` | Evidence ledger отделён от выбора; named product эти стадии не читает. |
+| Routing и admission | 1–8, 28–30 | `description` + три anchor-шагa body | Named mode включается только буквальным выбором profile пользователем. |
+| Телос и anti-harm | 9–15 | три цели + `synthesis.md` | Решение принадлежит main; surviving route остаётся полноценным. |
+| Состав и независимый запуск | 16–27, 51–54, 58–61 | `packet.md` + `panel.md` / `named.md` + Codex `premortem.md` | Пять крупных фаз вместо 19–23 файлов; packet остаётся frozen boundary, runtime launch — отдельный deep module. |
+| Приёмка и синтез | 31–44, 55–57 | `synthesis.md` | Verify, preserve disagreement и decision handback собраны в одной когнитивной фазе; named product её не читает. |
 | Retained dialogue | 45–50 | `steering.md` | Сохранён отдельной условной стадией; не активен в первом проходе. |
 | Датированная runtime-гипотеза | 27, 60–61 | runtime refs + validation notes | Постоянны только проверяемая loop-boundary и metadata; остальная механика проверяется перед install. |
 
 ## Карта стадий и активный набор
 
 Счёт ручной: одна единица — независимо исполнимое действие, ограничение или
-критерий. Пояснение той же единицы повторно не считается. Две прежние оценки
-отозваны literal checkers: смысловое разделение было недостаточным. Ниже —
-консервативный candidate после artifact-stage split; final checker пересчитает
-его с нуля.
+критерий; schema считается одной только когда поля не задают самостоятельных
+выборов. Выполненные anchor-решения становятся artifact и не остаются активной
+процедурой следующей фазы. Число показывает риск потери внимания, но не
+оправдывает церемониальное дробление.
 
 | Стадия | Вход | Один reference | Выход | Активных единиц |
 |---|---|---|---|---:|
-| Admission | observed trigger | runtime `decision.md` | decision anchor + mode | candidate 13 |
-| Panel freeze | panel anchor | runtime `panel-packet.md` | four frozen packets | candidate 15 |
-| Claude panel run | frozen packets | `claude/references/panel-launch.md` | four terminal reports | candidate 13 |
-| Codex cross-family run | frozen Premortem packet | `codex/references/premortem.md` | Claude report или explicit skip | candidate 18 |
-| Codex native run | frozen native packets + retained Premortem outcome | `codex/references/panel-launch.md` | three terminal reports + retained outcome | candidate 15 |
-| Panel classification | available reports/skip | runtime `classification.md` | evidence ledger | candidate 18 |
-| Panel synthesis | evidence ledger | runtime `synthesis.md` | decision handback | candidate 12 |
-| Named freeze | named anchor | runtime `named-packet.md` | one frozen role packet | candidate 16 |
-| Named run | frozen role packet | runtime `named-launch.md` | terminal native product | candidate 12 |
-| Correction, only if needed | wrong premise/residual question | runtime `steering.md` | repaired report | candidate 14 Claude / 15 Codex |
-| Named handback | terminal native product | — | unchanged native product | candidate 8 |
+| Admission | observed trigger | body | decision anchor + mode | 14 |
+| Packet, panel | panel anchor | runtime `packet.md` | frozen role packets | 20 |
+| Packet, named | named anchor | runtime `packet.md` | frozen role packet | 18 |
+| Claude panel run | frozen packets | `claude/references/panel.md` | four terminal reports | 18 |
+| Codex Premortem | frozen packet | `codex/references/premortem.md` | Claude report / explicit skip | 22 |
+| Codex native panel | frozen packets + retained outcome | `codex/references/panel.md` | three native reports + retained outcome | 19 |
+| Panel synthesis | reports / explicit skip | runtime `synthesis.md` | decision handback | 20 |
+| Named run + handback | frozen named packet | runtime `named.md` | unchanged native product | 18 |
+| Correction | wrong premise/residual question | runtime `steering.md` | repaired report | 14 Claude / 15 Codex |
 
 Текущий live surface до refactor: body ≈15 единиц по последнему историческому
 счёту; panel brief ≈10; named templates 6–9; steering ≈8; synthesis ≈18;
@@ -148,15 +152,15 @@ Codex Premortem ≈11. Некоторые поздние стадии перес
 | Одинаковый итог допустим при разных evidence paths | Агент перезапустит честный consensus → owner phrase «разные отчёты» легко спутать с разными выводами → считать ли равный verdict провалом → полезное подтверждение расходует новые потоки → стилистическое разнообразие больше не proxy независимости. |
 | Source verification decision-changing claims | Агент примет уверенный native report → профиль выглядит authority → менять ли decision по citation → ложная опора попадёт в синтез → synthesis тратит внимание на проверку. |
 | No final acceptance | Панель объявит проверяемый артефакт готовым → четыре experts выглядят как acceptance gate → кто закрывает done-state → critique подменит auditor evidence → нужен отдельный acceptance owner. |
-| Один reference на стадию | Агент прочитает все procedural refs «для полноты» → progressive disclosure выглядит необязательной → какой instruction set активен сейчас → competing rules переполняют внимание → поздняя стадия требует нового чтения. |
+| Не более одного reference на фазу | Агент прочитает все procedural refs «для полноты» → competing rules кажутся полезной полнотой → какой instruction set активен сейчас → внимание распадается → body-only handback остаётся допустимым escape; отдельный файл создаётся лишь для самостоятельной когнитивной работы. |
 
 Fixed four-lens panel — не новая добавка refactor-а, а буквальное owner-bound
 ограничение; оно вытесняет dynamic roster до отдельного решения владельца/A-B.
 
 ## Остаточные gaps до install
 
-- Проверить trigger use/skip/near-miss на фактически resolved Claude Opus 5 и GPT-5.6.
-- Проверить один real panel holdout и один named exception holdout; structural validation не докажет поведение.
+- Trigger use/skip/near-miss пройден на clean current GPT runtime и `claude-opus-5`; точные traces — `trigger-probes-round-{1,2}.md`.
+- Повторить named trial после упрощения и провести real panel trial; structural validation не докажет поведение.
 - Reconcile tracked Claude owner с более новой installed Claude delta 2026-08-12; не перетирать её молча.
-- Повторно проверить candidate active-set count: текущие числа не acceptance evidence.
+- Final checker пересчитывает active set; единственное намеренное превышение candidate — Codex Premortem 22, потому что split bridge/prompt уже доказуемо делал controller церемониальным.
 - Решить tracked Codex owner отдельно: сейчас live Codex package — единственный runtime owner, второй source tree не изобретён.

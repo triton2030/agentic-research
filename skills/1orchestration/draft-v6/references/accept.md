@@ -1,9 +1,11 @@
 # Acceptance возвратов
 
-Вход: обязательный поток вернул packet или terminal blocker. Выход: каждый
-mandatory return принят по контракту либо зависимая ветка остановлена.
+Вход: mandatory packet или terminal blocker получен. Выход: return принят по
+контракту либо зависимая ветка остановлена.
 
-- Сверь результат и адресуемое evidence со всеми пунктами `done_when`.
-- Progress report и самоотчёт исполнителя evidence не заменяют.
-- Независимую приёмку назначай по риску или live-контракту и не автору работы.
-- Unknown, gap или blocker не превращай в pass; останови зависящую от него ветку.
+1. Pass существует, только если addressable evidence доказывает каждый
+   `done_when`; progress и самоотчёт не доказывают.
+2. Independent verifier нужен только по риску или live-контракту и не может
+   быть автором проверяемой работы.
+3. Иначе зафиксируй unknown/blocker и останови зависимую ветку.
+4. До integration append acceptance transition в state owner.

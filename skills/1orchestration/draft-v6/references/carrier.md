@@ -1,15 +1,10 @@
 # Durable carrier без живого плана
 
-Вход: delegation допущена без живого плана, а потеря root-контекста стоит
-дороже переиздания волны. Выход: создан достаточный носитель холодного
-продолжения.
+Вход: собственная launch map не имеет живого state owner-а, а cold loss дороже
+переиздания. Выход: до launch создан адресуемый recovery ledger.
 
-- Используй объявленный project-local scratch/workspace owner; если его нет,
-  создай узкий ignored carrier и назови точный адрес в чате.
-- В `context.md` запиши зачем, цель, границы и runtime/session handles.
-- Для каждого потока запиши outcome, worker, brief, active-unit estimate,
-  return/artifact, write ownership и status
-  `pending|running|returned|accepted|repair|blocked`.
-- Запиши обязательный барьер и следующий разрешённый ход.
-- Запиши адрес live acceptance owner-а и принятое evidence.
-- Запиши unresolved conflicts и blockers.
+1. Используй объявленный project-local state owner либо создай узкий ignored
+   carrier и назови его адрес.
+2. Carrier адресует launch map и принимает каждый recovery-bearing transition
+   до следующего зависимого хода.
+3. Branch-changing decision является transition с basis и evidence.

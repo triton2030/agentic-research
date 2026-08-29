@@ -1,104 +1,128 @@
-# Task file form
+# Форма task-файла
 
-One task is one self-describing file inside one epic folder. Exactly three
-sections are allowed; schema tokens are literal and file content uses the
-project's language. «Зачем» stays visible; status and proof live only in the
-collapsed subtask reports.
+Одна задача — один самоописывающий файл, один эпик и один агент. Файл — промп
+чистого окна, а не архив всего известного. Разрешены ровно три
+верхнеуровневых раздела; токены схемы литеральны, содержимое пишется на языке
+проекта. «Зачем» остаётся раскрытым; статус и доказательства живут только в
+свёрнутых отчётах подзадач.
 
 ```markdown
 ---
 тип: задача
-эпик: "[[<Epic name>]]"
-эпик-снимок: "<hash written after rereading the epic>"
-траектория: "<accepted 1planning answer: epic movement and why it beats the queue>"
+эпик: "[[<Имя эпика>]]"
+эпик-снимок: "<hash после перечитывания эпика>"
+траектория: "<принятый ответ 1planning: движение эпика и приоритет>"
 режим: execution | wayfinding
-статус: <map vocabulary>
-порядок: <number in the epic task queue>
+статус: <словарь карты>
+порядок: <номер в очереди задач эпика>
 подзадач: 0
 подзадач-готово: 0
-обновлено: <date>
-evidence: "<mandatory at ✅ — proof of the whole task>"
+обновлено: <дата>
+evidence: "<обязательно при ✅ — доказательство всей задачи>"
 ---
 
-# <Self-describing task name — a checkable result>
+# <Самоописывающее имя задачи — проверяемый результат>
 
 ## Зачем
 
-<owner problem, required effect, and boundary; addresses of SPEC, canon, and
-instructions instead of retelling>
+**Цель:** <что получить; какой эффект это даёт; какого главного провала
+избежать; каким evidence доказать результат — понятно без других документов>
 
-- происхождение: <owner address / principle / document / explicit assumption>
-- ось: <accepted decomposition axis and nearest checkable frontier>
-- верно, пока: <material premise; collapsed → stop and replan>
-- отпавшие ходы: <rejected route + reason>
+- граница: <что входит и что намеренно не входит>
+- происхождение: <адрес владельца / принцип / документ / явная посылка>
+- ось: <утверждённая ось декомпозиции и ближайший проверяемый рубеж>
+- верно, пока: <существенная посылка; рухнула → остановка и переплан>
+- критично помнить:
+  - `<точный адрес>` — <что способный агент иначе упустит и что это меняет>
+  - «<дословная критичная строка>» — <почему одного адреса недостаточно>
+- контекст-бюджет: <N>/20 активных единиц
+- отпавшие ходы: <отклонённый маршрут + причина>
 
 ## Принципы
 
-- [[<principle or pair>]] — <what it settles here>
-- <none fits: нет принципа — <reason>>
+- [[<принцип или пара>]] — <что он здесь решает>
+- <ничего не подходит: нет принципа — <причина>>
 
 ## Подзадачи
 
-- [x] <Execution result or Wayfinding agent-resolvable question>
+- [x] <результат Execution или разрешимый агентом вопрос Wayfinding>
 
 > [!note]- Отчёт
-> статус <date>: <where we are>
-> доказательство: <run, `_evidence/` file, or consumer acceptance>
-> решение: <a willful decision via `1use-principles`, if any>
-> <free-form result and findings>
+> статус <дата>: <где мы находимся>
+> доказательство: <запуск, файл `_evidence/` или приёмка потребителя>
+> решение: <осознанное решение через `1use-principles`, если было>
+> <свободный результат и findings>
 
-- [ ] <next subtask>
+- [ ] <следующая подзадача>
 
 > [!note]- Отчёт
-> статус <date>: <where we are>
+> статус <дата>: <где мы находимся>
 ```
 
-The report callout stands without indentation immediately after its checkbox;
-indented, Obsidian renders code instead of a collapsed toggle.
+Блок отчёта стоит без отступа сразу после флажка; с отступом Obsidian
+показывает код вместо свёрнутого блока.
 
-## Admission and reconciliation
+## Допуск и сверка
 
-A new task requires the exact `1planning` approval that produced its
-`траектория`, `режим`, `ось`, boundary, premise, and evidence target. The form
-records these values and never recomputes whether the task should exist.
+Новая задача требует точного утверждения `1planning`, которое произвело её
+цель, `траектория`, `режим`, `ось`, границу, посылку, критичный контекст,
+контекстный бюджет и целевое доказательство. Форма лишь записывает эти значения
+и не решает заново, должна ли задача существовать.
 
-Creation and every rebuild reread the full current epic, write a fresh
-`эпик-снимок`, quote the epic criterion in «Зачем», and reconcile any mismatch
-before execution. A missing `ось:` in an older task is unresolved planning
-state: establish it through `1planning` before the next rebuild.
+При создании и каждой пересборке полностью перечитай актуальный эпик, запиши
+свежий `эпик-снимок`, приведи критерий эпика в «Зачем» и сверь расхождения до
+исполнения. Отсутствующая `ось:` в старой задаче — нерешённое planning-
+состояние: установи её через `1planning` до следующей пересборки.
 
-## Routine rebuild versus material replan
+## Контекстный бюджет
 
-Before changing subtasks after new evidence, compare five accepted invariants:
-goal/effect in «Зачем», `эпик`, priority in `траектория`, boundary in «Зачем»,
-and `ось`. If all hold, rebuild only affected subtasks. If one breaks, append
-`- разрыв: <invariant · evidence>` in «Зачем», stop execution, and return to
-`1planning`; the break is removed only by a newly approved cut.
+«Информация = сюрприз»: в активное ядро входит только то, что способный чистый
+агент иначе вероятно упустит и что изменит решение, качество или доказательство.
+Одна единица — один независимый факт, критерий, запрет или указание; несколько
+смыслов в одной фразе считаются отдельно.
 
-## Task rules
+В бюджет входят смыслы из цели, границы, оси, посылки, `критично помнить`,
+применимых принципов, целевого доказательства и открытых подзадач. Не входят
+токены схемы, адреса происхождения сами по себе, статусы и закрытые отчёты.
+Двадцать — потолок, не цель: сначала убери ожидаемое знание и лишний пересказ,
+затем оставь только релевантные Product Frames, принципы, инструкции,
+дизайн-системы или компоненты. Для несущей строки дай точный адрес и коротко
+скажи, что она меняет; цитируй дословно только когда пропуск сломает результат.
+Ядро всё ещё больше 20 — раздели задачу по утверждённой оси через `1planning`.
 
-- The task name is a checkable result and its evidence target is known at
-  creation; if proof cannot be named, the task is Wayfinding or blurry.
-- The file contains 3–7 ordered subtasks, each one move with one proof; work
-  that grows its own checklist becomes another admitted task. Reports may grow;
-  the task file has no line limit.
-- A line enters only when no semantic owner exists; otherwise use an address.
-  For source-owned composition, keep a `required → built` coverage line.
-- Subtasks never touch another task or epic, and `[x]` requires a
-  `доказательство:` address.
-- Fog remains a line in «Зачем», not a subtask; an owner-only question appears
-  only as its `1interview-tool` address, and a recurring class of such questions
-  signals a principles gap for `1product-shaping`.
-- Before writing a new task, reject duplicates against names in the epic. A
-  frontier or JIT need is only a trigger for `1planning`; after approval,
-  `1plan-task` alone creates the file.
+## Обычная пересборка и существенный переплан
 
-## Lifecycle
+Перед изменением подзадач после нового evidence сравни пять принятых
+инвариантов: цель/эффект в «Зачем», `эпик`, приоритет в `траектория`, границу и
+`ось`. Все держатся — пересобери только затронутые подзадачи. Нарушен один —
+добавь в «Зачем» `- разрыв: <инвариант · evidence>`, остановись и вернись в
+`1planning`; разрыв снимается лишь новым утверждённым срезом.
 
-Active and closed tasks remain in the epic folder; history lives in git, and a
-report diverging from git is repaired before continuation. `⏳` records the
-owner's deferral and reason; re-entry passes admission and reconciliation
-again. Explicit backlog work lives once under `_ops/backlog/**`, while project
-`STATUS.md` is only a projection. External runtime state is only a dated
-`handle · observed_at · source` snapshot and must be re-resolved before a
-dependent action; an unreachable source is `unknown`, never `active`.
+## Правила задачи
+
+- Имя задачи — проверяемый результат, а evidence известно при создании; если
+  доказательство нельзя назвать, задача относится к Wayfinding или размыта.
+- В файле 3–7 упорядоченных подзадач, каждая — один ход с одним
+  доказательством. Работа, у которой появляется собственный список,
+  становится отдельной допущенной задачей; у файла нет лимита строк.
+- Строка появляется только когда нет смыслового владельца; иначе используется
+  адрес. Для композиции из источника остаётся строка покрытия
+  `требование → построено`.
+- Подзадачи не касаются другой задачи или эпика, а `[x]` требует адрес
+  `доказательство:`.
+- Туман остаётся строкой в «Зачем», не подзадачей. Доступный только владельцу
+  вопрос появляется адресом `1interview-tool`; повторяющийся класс таких
+  вопросов означает пробел принципов для `1product-shaping`.
+- До записи новой задачи отвергни дубликаты по именам в эпике. Фронтир или
+  JIT-потребность лишь вызывает `1planning`; после утверждения файл создаёт
+  только `1plan-task`.
+
+## Жизненный цикл
+
+Активные и закрытые задачи остаются в папке эпика; история живёт в git, а
+расхождение отчёта с git исправляется до продолжения. `⏳` записывает отсрочку
+владельца и причину; возврат снова проходит допуск и сверку. Явный backlog
+живёт в одном месте под `_ops/backlog/**`, а проектный `STATUS.md` — только
+проекция. Внешнее runtime-состояние существует лишь как датированный снимок
+`handle · observed_at · source` и перепроверяется до зависимого действия;
+недоступный источник — `unknown`, а не `active`.

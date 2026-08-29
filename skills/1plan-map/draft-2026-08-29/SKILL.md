@@ -6,52 +6,55 @@ description: >-
   for task admission or task files.
 ---
 
-# Plan map — strategic truth and owner dashboard
+# Карта планов — стратегическая правда и дашборд владельца
 
-## Unique Context
+## Уникальный контекст
 
-The owner follows the project through one map, not through task files or an
-agent's retelling. The map is the durable strategic truth from current state to
-`GOAL.md` Done: outcome epics, their order, frontier, evidence-backed state,
-and the dashboard that makes the path visible.
+Владелец следует за проектом через одну карту, а не через task-файлы или
+пересказ агента. Карта — долговечная стратегическая правда от текущего
+состояния до Done из `GOAL.md`: эпики-результаты, порядок, фронтир, доказанное
+состояние и дашборд, который делает путь видимым. Это поверхность человека;
+она не подменяет промп исполнителя.
 
-## User Goals
+## Цели владельца
 
-- Product frames, principles, `GOAL.md`, and real carriers produce
-  non-overlapping, commensurate outcome epics with explicit dependencies,
-  order, frontier, and a reason for each position.
-- The dashboard shows the path, blockers, deferred work, and accepted state
-  without opening epics; closure and status come from carrier evidence.
-- Composition changes are explicitly approved and remain visible, while state
-  events preserve history and never silently rewrite composition.
+- Product Frames, принципы, `GOAL.md` и реальные носители дают непересекающиеся
+  и сопоставимые эпики-результаты с явными зависимостями, порядком, фронтиром и
+  причиной позиции.
+- Дашборд показывает путь, блокеры, отложенное и принятое состояние без
+  открытия эпиков; закрытие и статус опираются на evidence носителя.
+- Изменения композиции явно утверждаются и остаются видимыми, а события
+  состояния сохраняют историю и не переписывают композицию исподтишка.
 
-## Behavior Protocol
+## Поведенческий протокол
 
-> «скилл карты, это скилл карты планов, это скилл эпиков, и уже более
-> детального работы и планирования верхнего уровня во всего проекта»
+> «карта планирования, она пишется для человека. Эпики, дашборды и так далее,
+> чтобы я видел. Но вот именно сами задачи, они пишутся для агентов»
 
-1. Read every applicable product frame and principle plus `GOAL.md`, then run
-   `1use-principles`; no frames means `GOAL.md` is the source, while every epic
-   names its principle files and a missing fit goes through `1product-shaping`
-   or an explicit `нет принципа — <reason>`. Resolve the project instruction
-   that owns the map root and instrument, creating that route only with the
-   first substantive map.
-2. Name the move before writing: composition creates, audits, splits, merges,
-   reorders, or changes epic criteria; a state event only records accepted
-   carrier evidence, status, updates, released blockers, and frontier state.
-3. For composition, derive results, dependencies, risk order, external gates,
-   and cross-cutting epics, show the exact change with its reason, and obtain
-   the owner's approval; a state event cannot smuggle in composition.
-4. Write only map-owned truth per [map-form](references/map-form.md) and the
-   owner surface per [dashboard](references/dashboard.md); a frontier without
-   a live task signals admission through `1planning`, never permission to
-   create the task here.
-5. Validate machine invariants with the project instrument; a divergence is a
-   finding, `✅` requires accepted carrier evidence, and closed or deferred
-   epics remain visible.
+1. Прочитай все применимые Product Frames и принципы вместе с `GOAL.md`, затем
+   примени `1use-principles`. Если рамок нет, источником остаётся `GOAL.md`;
+   каждый эпик называет файлы принципов, а отсутствие подходящей пары идёт в
+   `1product-shaping` или строку `нет принципа — <причина>`. Найди проектную
+   инструкцию — владельца корня карты и прибора; создавай этот маршрут только
+   вместе с первой содержательной картой.
+2. До записи назови ход: композиция создаёт, проверяет, делит, объединяет,
+   переставляет эпики или меняет их критерии; событие состояния лишь записывает
+   принятое evidence носителя, статус, апдейт, снятый блокер и состояние
+   фронтира.
+3. Для композиции выведи результаты, зависимости, риск-порядок, внешние шлюзы
+   и сквозные эпики; покажи точное изменение с причиной и получи утверждение
+   владельца. Событие состояния не может протащить изменение композиции.
+4. Записывай только принадлежащую карте правду по
+   [форме карты](references/map-form.md) и человеческую поверхность по
+   [дашборду](references/dashboard.md). Не складывай сюда цель, критичный
+   контекст или ограничения исполнения задачи: фронтир без живой задачи лишь
+   вызывает допуск через `1planning`, но не разрешает создать её.
+5. Проверь машинные инварианты проектным прибором. Расхождение — finding, `✅`
+   требует принятое evidence носителя, а закрытые и отложенные эпики остаются
+   видимыми.
 
-## Boundaries
+## Границы
 
-Task admission and task-level decomposition belong to `1planning`. Task files
-and routine execution belong to `1plan-task`; when they need an epic state
-event, this skill owns that write.
+Допуск и срез задачи принадлежат `1planning`. Файлы задач и обычное исполнение
+принадлежат `1plan-task`; когда им нужно событие состояния эпика, эту запись
+делает данный скилл.

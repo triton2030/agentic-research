@@ -1,7 +1,8 @@
 # Check round 2 — 2026-08-29
 
-Статус: все findings сопоставлены с owner evidence или буквальным
-`1skill-creation`; candidate перестроен, final repeat ещё не выполнен.
+Статус: findings сопоставлены с evidence; последующая micro-stage перестройка
+была отменена после clean trial и нового owner-criterion против вредного
+буквализма. Current candidate проще; final repeat ещё не выполнен.
 
 ## Принято
 
@@ -22,6 +23,13 @@
 - Недостижимые `satisfied` / `architecture_ok` удалены.
 - Surviving route завершает Fresh Eyes pass, не внешнюю проектную работу.
 - Classification применяется к каждому material finding, не к report целиком.
+
+## Поздняя коррекция рамки
+
+Требование active-set count сохранено как диагностика, но число 20 не является
+product goal. 19–23 micro-stages удалены: они снижали локальный счёт ценой
+церемониального controller-а. Source:
+`_ops/chat-recall/2026-08-29-163434-codex-01a04d4a.md:15`.
 
 ## Pending evidence
 

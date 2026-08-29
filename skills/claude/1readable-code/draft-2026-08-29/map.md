@@ -18,10 +18,8 @@ Ousterhout's strategic programming/deep modules и Brooks's conceptual integrity
 
 1. До программирования подход оценён из будущего системы, а не только из
    текущей задачи.
-2. Код сохраняет conceptual integrity и концентрирует сложность в deep modules,
-   чтобы будущая правка оставалась локальной и читаемой.
-3. Материальный риск будущей стабильности получает свежий внешний challenge до
-   реализации.
+2. Получившийся код остаётся связным и удерживает вероятную будущую правку
+   локальной и читаемой.
 
 ## Старые указания и новый владелец смысла
 
@@ -43,10 +41,10 @@ Ousterhout's strategic programming/deep modules и Brooks's conceptual integrity
 
 | Добавка | Дефолт → механизм → решение → вред без строки → цена строгости |
 | --- | --- |
-| pause before first edit | task focus запускает правку раньше system view → observable pre-edit gate → назвать strategic choice → tactical shape закрепляется первым diff → короткая задержка на каждом coding transition |
+| strategic lens before first edit | task focus запускает правку раньше system view → named-practice gate → дать будущей цене изменить подход → tactical shape закрепляется первым diff → короткая задержка на каждом coding transition |
 | named practices, no tutorial | автор может пересказать handbook → знания уже в модели → использовать practice handles → длинный skill конкурирует с самой задачей → результат зависит от знания модели |
-| fresh subagent beyond one local edit | исполнитель наследует собственную рамку → independent view → атаковать future stability до edit → скрытая связность становится дорогой позже → latency и отдельный agent turn |
-| future-locality trace | общий совет не меняет решение → назвать вероятную следующую правку → проверить форму через её будущую цену → strategic rhetoric без design consequence → прогноз остаётся гипотезой, не гарантией |
+| fresh subagent only on material uncertainty or direct request | исполнитель может наследовать собственную рамку именно на открытой развилке → independent view → атаковать unresolved future stability до edit → скрытая связность становится дорогой позже → latency только там, где есть стратегическая неопределённость |
+| proceed without ceremony | named lens может породить отчёт без решения → explicit escape path → продолжить при отсутствии material consequence → ritual заменяет coding → не остаётся обязательного trace, что линза была применена |
 
 ## Evidence и gaps
 
@@ -58,8 +56,8 @@ Ousterhout's strategic programming/deep modules и Brooks's conceptual integrity
   навигации и слабость cross-file refactoring, но не доказывает этот exact
   prompt или subagent mechanism.
 - Формулировка владельца про subagent — `идея`, не безусловное решение;
-  черновик делает его обязательным только beyond one obvious local edit и
-  предъявляет эту цену на approval.
+  черновик включает его только при материальной стратегической неопределённости
+  либо прямом запросе владельца.
 - Старые audit/probe rounds проверяли прежнюю owner-функцию и не утверждают
   эту версию.
 - Product Frame у пакета отсутствует.

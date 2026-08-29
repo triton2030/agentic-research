@@ -6,53 +6,60 @@ description: >-
   or epic composition.
 ---
 
-# Plan task — isolated execution contract
+# План задачи — изолированный контракт исполнения
 
-## Unique Context
+## Уникальный контекст
 
-The task file is the interface for a parallel agent or clean window that does
-not share the planning chat. Its special job is isolation: preserve the
-accepted decision, make execution and stopping unambiguous, and prevent one
-task from taking work owned by another task or epic.
+Файл задачи — промп одного агента в чистом окне, которое не разделяет чат
+планирования. Его особая работа — изоляция: сохранить принятое решение, сделать
+исполнение и остановку однозначными и не дать задаче забрать работу другой
+задачи или эпика. Файл пишется агентом для агента, поэтому внимание исполнителя
+считается ограниченным ресурсом.
 
-## User Goals
+## Цели владельца
 
-- One approved task becomes one self-sufficient, hard-bounded contract inside
-  exactly one current epic, using addresses instead of retelling owned truth.
-- A clean window can execute, hand off, or stop from the file alone: intent,
-  boundary, mode, axis, ordered outcomes, provenance, evidence, next, and stop.
-- State remains evidence-true: routine execution may rebuild within the
-  accepted decision, while a broken goal, epic, priority, boundary, or axis
-  stops the task and returns it to `1planning`.
+- Одна утверждённая задача становится одним самодостаточным и жёстко
+  ограниченным промптом одного агента внутри ровно одного актуального эпика.
+- Цель сама сообщает, что получить, зачем, какого главного провала избежать и
+  чем доказать результат; остальное активное ядро содержит не более 20
+  независимых единиц знания, критериев, ограничений и указаний.
+- Чистое окно исполняет, передаёт или останавливает работу по одному файлу, а
+  новое evidence либо пересобирает подзадачи внутри принятого решения, либо
+  возвращает изменившуюся задачу в `1planning`.
 
-## Behavior Protocol
+## Поведенческий протокол
 
 > «скилл задач — это скилл изолированности задач»
+>
+> «надо рассматривать каждую задачу как промп для агента»
 
-1. For a new task, require the approved `1planning` landing values; for an
-   existing task, treat its recorded values as the accepted decision until
-   evidence breaks them.
-2. Reread the full current epic, write and verify `эпик-снимок`, and confirm
-   exactly one epic contains the task; a mismatch stops serialization and
-   returns to the planning/map owners.
-3. Write or reconcile the contract per [task-form](references/task-form.md),
-   preserving provenance and recording trajectory, mode, axis, boundary,
-   premise, evidence target, and rejected routes without re-deciding admission.
-4. On new evidence, compare goal, epic, priority, boundary, and axis with their
-   accepted carriers; if all hold, rebuild only affected subtasks, otherwise
-   record the break, stop execution, and re-enter `1planning`.
-5. Only the orchestrating window writes the task file; workers and subagents
-   return addressable proof under the epic's `_evidence/**`, while wave
-   mechanics remain with `1orchestration`.
-6. Close only with evidence for the task as a whole and consumer acceptance;
-   invalidate downstream proofs after an upstream change, then ask
-   `1plan-map` to own the epic state event and run the project instrument.
-7. Before handoff, a clean reader reconstructs intent, boundary, mode, axis,
-   evidence, next, and stop and names every ambiguous line; fix the file, not
-   the chat.
+1. Для новой задачи потребуй утверждённые значения `1planning`; для
+   существующей считай записанные значения принятым решением, пока evidence не
+   нарушит их.
+2. Полностью перечитай актуальный эпик, запиши и проверь `эпик-снимок` и
+   подтверди, что задача находится ровно в одном эпике. Несовпадение
+   останавливает сериализацию и возвращает работу в `1planning`/`1plan-map`.
+3. Запиши или сверь контракт по [форме задачи](references/task-form.md). Цель
+   должна быть понятна без дополнительных документов; затем выбери только
+   релевантные адреса и несколько критичных строк, которые агент иначе может
+   упустить. Не пересказывай документацию.
+4. Посчитай активное ядро по независимым смыслам, а не строкам: цель, граница,
+   ось, посылка, критичный контекст, применимые принципы, доказательство и
+   открытые подзадачи вместе дают не более 20 единиц. Превышение означает новый
+   срез через `1planning`, а не более плотную прозу.
+5. При новом evidence сравни цель, эпик, приоритет, границу и ось с принятыми
+   носителями. Все пять держатся — пересобери только затронутые подзадачи;
+   нарушен хотя бы один — запиши разрыв, остановись и вернись в `1planning`.
+6. Только оркестрирующее окно пишет task-файл; исполнители возвращают
+   адресуемое доказательство в `_evidence/**`. Закрывай задачу лишь по evidence
+   целого результата и приёмке потребителя, затем попроси `1plan-map` записать
+   событие состояния эпика и запусти проектный прибор.
+7. Перед передачей чистый читатель восстанавливает цель, границу, ось,
+   критичный контекст, evidence, следующий ход и условие остановки и называет
+   каждую двусмысленную строку; исправляй файл, не чат.
 
-## Boundaries
+## Границы
 
-Admission and material replan belong to `1planning`. Epic composition, state,
-and dashboard writes belong to `1plan-map`; owner-only questions live through
-`1interview-tool`, with only their address in the task.
+Допуск и существенный переплан принадлежат `1planning`. Композиция, состояние
+эпиков и дашборд принадлежат `1plan-map`; доступные только владельцу вопросы
+живут через `1interview-tool`, а в задаче остаётся только их адрес.

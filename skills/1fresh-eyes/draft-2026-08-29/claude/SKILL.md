@@ -10,13 +10,12 @@ description: >-
 
 ## Уникальный контекст
 
-Долгая работа сужает рамку main.
-Свежесть создаёт новый поток, который получает проверяемый объект без интерпретации main и применяет собственную роль.
+Долгая работа сужает рамку main; fresh stream проверяет тот же объект без интерпретации main и собственным способом.
 
 ## Цель пользователя
 
-- Материальная развилка получает четыре независимых отчёта; явно названная пользователем роль получает один native report.
-- Fresh streams опираются на raw evidence и разные panel zones, а не на объяснение main.
+- Материальная развилка получает четыре независимых отчёта; явно названная роль — один native product.
+- Панель ищет другие evidence paths, а не четыре варианта объяснения main.
 - Владелец решения выбирает следующий ход, альтернативу или подтверждённое продолжение без изменений.
 
 ## Протокол поведения
@@ -25,14 +24,13 @@ description: >-
 
 > «не будем использовать в скилле свежих глаз никаких других субагентов, кроме вот этих трёх»; «У нас три агента […] и 4 агент премортем».
 
-## Стадии
+## Ход
 
-1. Наблюдаемый trigger → decision anchor: прочитай [decision](references/decision.md).
-2. Panel anchor → frozen packets: прочитай [panel packet](references/panel-packet.md).
-3. Frozen panel packets → terminal reports: прочитай [panel launch](references/panel-launch.md).
-4. Terminal panel reports → evidence ledger: прочитай [classification](references/classification.md).
-5. Evidence ledger → decision handback: прочитай [synthesis](references/synthesis.md).
-6. Named anchor → frozen role packet: прочитай [named packet](references/named-packet.md).
-7. Frozen role packet → terminal native product: прочитай [named launch](references/named-launch.md).
-8. Terminal native product → handback: верни его без смены формы.
-9. Wrong source-bound premise или residual question той же линзе → repaired report: прочитай [steering](references/steering.md).
+1. Назови вопрос на столе.
+2. Назови решение, которое изменит ответ.
+3. Назови конечный результат из GOAL/Product Frames; при пробеле выведи professional outcome из доступного evidence.
+4. Decision anchor → frozen packet: прочитай [packet](references/packet.md).
+5. Panel packet → четыре terminal reports: прочитай [panel](references/panel.md).
+6. Panel reports → decision handback: прочитай [synthesis](references/synthesis.md).
+7. Named packet → terminal native product: прочитай [named](references/named.md).
+8. Wrong source-bound premise или residual question той же линзе → repaired report: прочитай [steering](references/steering.md).
