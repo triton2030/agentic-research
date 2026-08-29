@@ -1,0 +1,4 @@
+interface:
+  display_name: "1-Читаемый код"
+  short_description: "Keep code cheap for the next coding agent"
+  default_prompt: "Use $1readable-code to keep this nontrivial code change, refactor, or review cheap for the next coding agent."

@@ -30,9 +30,9 @@ root оркестратором. Root выбирает минимальную о
 
 ## Аппетит
 
-- `SKILL.md` — не более 20 самостоятельных активных единиц; order-sensitive только карта →
-  brief → launch → acceptance → synthesis.
-- References — только для редкого no-plan cold start и stalled/root-break recovery; обычная волна их не читает.
+- Каждый режим — не более 20 самостоятельных активных единиц: body + один reference +
+  ещё действующие обязательства прошлых стадий.
+- Normal wave, no-plan carrier и repair разнесены по трём references; в каждый момент читается один.
 - Пересмотр: representative routing путает general wave, managed offload и specialized controller; root-break recovery ведёт в stale owner; повторная волна показывает потерю траектории или evidence.
 
 Прямые owner-источники: `_ops/chat-recall/2026-08-10-000000-claude-a0af5c40.md:19-29`,

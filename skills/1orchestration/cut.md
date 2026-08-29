@@ -18,7 +18,10 @@
   recovery принадлежит `1orchestration`. В `repair.md` восстановление
   карты стало self-contained.
 - Не добавлены: числовой fan-out, обязательный verifier, новый runtime/model
-  routing, третий reference или новый control surface.
+  routing или новый control surface. Третий reference `wave.md` добавлен после
+  буквального аудита v6: normal-wave body + один из двух recovery references
+  превышали 20 активных единиц, а символьное сжатие запрещено
+  `1skill-creation`.
 
 ## v1–v2 (2026-08-10, mavo-short2)
 

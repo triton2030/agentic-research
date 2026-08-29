@@ -29,6 +29,14 @@ load, защитить ownership и барьеры, а затем принять
 - Skip: один ordinary worker/advisor/critic и волна, формой которой уже владеет
   `1fresh-eyes` или `1deep-agents`.
 
+Representative naked-trigger candidates, 5–10 слов; это ещё не результаты
+прогона:
+
+- use: `Раздели аудит и реализацию между тремя субагентами`;
+- skip: `Попроси одного субагента проверить этот файл`;
+- managed-offload: `Вынеси анализ логов в один фоновый тред`;
+- near-miss: `Проведи свежими глазами аудит траектории проекта`.
+
 ## Три цели
 
 1. Минимальная окупающаяся форма без лишних окон.
@@ -78,6 +86,18 @@ load, защитить ownership и барьеры, а затем принять
 |---|---|---|
 | Managed-offload является отдельной ветвью admission | Общий skip отменял явно запрошенный one-thread offload. | Root больше не может отменить offload из-за общего порога; всё ещё может отказаться от лишних окон. |
 | Root-break recovery self-contained в `repair.md` | Ссылка вела в снятый `1planning/references/delegation.md`. | Root больше не может переложить recovery на несуществующий owner. |
+
+## Протокол поведения
+
+Буквальные owner-формулировки в `SKILL.md` владеют двумя концами протокола:
+brief несёт задачу+инструкции, а chat-report доказывает завершение.
+
+| Правдоподобное неверное прочтение | Пробел | Цена | Правка / TWI момент |
+|---|---|---|---|
+| Карту можно дописать после launch. | Без карты независимость, ownership и барьер не проверены. | Плохое деление уже не чинится поздним синтезом. | `До запуска` — preparation. |
+| Ссылка на скилл отменяет нужду повторить критическую инструкцию в её момент. | Instruction focus сведён к locator-у. | Worker пропускает load-bearing ограничение. | Выбор `адрес · повтор в момент · evidence owner` — action. |
+| Independent потоки можно запустить до явного write ownership и barrier. | Parallelism понят как независимость тем. | Конфликты записи и преждевременный dependent move. | `Только независимое` + one-writer/handoff — key point. |
+| Progress report достаточен для synthesis. | Return не связан с evidence. | Root решает по неполному материалу. | `Evidence до synthesis` + root chat-report — check result. |
 
 ## Принципы
 

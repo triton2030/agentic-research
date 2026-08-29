@@ -22,12 +22,14 @@
 5. Preserve owner speech as deletion-only `quote`; an owner-selected ready-made
    option is `selection`, agent explanation is `note`, and malformed evidence
    remains read-side `raw`. Never turn an agent paraphrase into owner speech.
-6. Write one `context-note` containing only the external circumstance or named
-   referent missing from the quote. If no non-repeating delta can be named,
-   return to source context instead of leaving it empty or paraphrasing.
-7. Write one complete `session-context` line that retains earlier major
-   tasks/artifacts/operations/names and adds the new subject with useful
-   synonyms; it helps search but never states decisions or current truth.
+6. For each `quote`, write one `context-note` containing only the external
+   circumstance or named referent missing from it. If no non-repeating delta can
+   be named, return to source context instead of leaving it empty or
+   paraphrasing.
+7. For each `quote` or `selection`, write one complete `session-context` line
+   that retains earlier major tasks/artifacts/operations/names and adds the new
+   subject with useful synonyms; it helps search but never states decisions or
+   current truth.
 8. Keep the record project-local unless the owner explicitly gives
    cross-project scope. Use project language for ordinary concepts, preserve
    exact names, and pair a stable foreign term with a useful local synonym.

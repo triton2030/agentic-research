@@ -27,9 +27,10 @@
    lexical and empty output, and `off-domain` proves neither that no position was
    recorded nor that the query lies outside the corpus subject.
 7. Treat `truncated=true` as invisible candidates. Continue with a named gap
-   only when they cannot change the claim; otherwise end this mode
-   `recovery-needed`. Empty, excessively broad, conflicting, or unavailable
-   hybrid routes also end `recovery-needed`, never as a final candidate list.
+   only when they cannot change the claim; otherwise close Retrieval with a
+   `recovery-needed` handoff containing the claim, scope, date, diagnostics,
+   read addresses, and gaps. Empty, excessively broad, conflicting, or
+   unavailable hybrid routes use the same terminal handoff.
 8. Resolve later speech inside each needed holder; a later record or speech-act
    change may reverse an earlier one, while a self-contained quote remains the
    short route.
@@ -40,6 +41,6 @@
     active `SKILL.md`, Product Frame, or plan). Live owner evidence wins, but
     expose both addresses; a missing carrier or neighboring task neither proves
     cancellation nor supplies current status.
-11. If no recovery is needed, report: applicable position or `abstain` · scope ·
+11. Without a recovery handoff, report: applicable position or `abstain` · scope ·
     date · read record/holder addresses · query routes · later/live-owner checks
     · remaining gaps. Quote dumps and unread selected addresses are not results.

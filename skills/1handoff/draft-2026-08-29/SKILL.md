@@ -6,47 +6,42 @@ description: >-
   for a summary, report, or task plan.
 ---
 
-# Handoff
+# Хендоф
 
-## Unique Context
+## Уникальный контекст
 
-The next agent will hold this repository and one file path, and nothing else.
-What dies with this chat is exactly what the files cannot hold: a route this
-session disproved, an owner decision spoken once, a reading of the terrain that
-looked obvious and turned out wrong, and the cost already paid to find that out.
+У следующего агента будет этот репозиторий и один путь к файлу, больше ничего.
+С этим чатом умирает ровно то, чего файлы не держат: маршрут, который эта
+сессия опровергла; решение владельца, сказанное один раз; прочтение местности,
+которое выглядело очевидным и оказалось ложным; и уже оплаченная цена того,
+что это выяснилось.
 
-## Owner's Goal
+## Цель пользователя
 
-«хэндофф это для меня инструмент, чтобы один агент передал следующему агенту с
-чистым окном все необходимое, чтобы тот агент не совершал его ошибок и уверенно
-прошел работу дальше»
+- Следующий агент, у которого есть только репозиторий и путь к пакету, уверенно
+  начинает верное действие, не повторяет оплаченных ошибок этой сессии и не
+  собирает заново модель предмета, которую она уже опровергла.
+- Слой агентного управления, который эта сессия сделала ложным, остаётся
+  текущим либо точно названным как незакрытый вместе с последствием.
+- Долговременные слова владельца сохранены скилом `1chat-recall` по его
+  собственному контракту, а не пересказаны в пакете.
 
-«не забывай про самую главную цель, чтобы новый агент прочитав хендоф мог
-успешно продолжить работу а все процедуры хендофа как раз для этого и служат»
+## Всегда верно
 
-Every name, list and example below orients you toward that outcome and does not
-bound it: do whatever the outcome needs inside the authority this task already
-has, and never treat a list as the full extent of the work.
+- Не больше одного хендофа на чат.
+- Имена, списки и примеры в этом скиле ориентируют и не ограничивают состав
+  работы; запреты этого раздела, обязательные разделы пакета и словари ярлыков,
+  наоборот, ограничивают её.
 
-## Always True
+## Стадии
 
-- Create no more than one handoff in a chat.
-- Deliver by returning the exact packet path, and let the owner open the next
-  session by hand.
-- Add no latest-handoff index, hook, automatic discovery, consumed state or any
-  other lifecycle surface: manual delivery is the owner's standing choice, not
-  a gap waiting to be closed.
-- The packet is a dated delta and never a second truth. Live files and runtime
-  state override it, and it never becomes a transcript, a summary, a task plan,
-  a user profile or project canon — each of those already has its own owner.
+Работай стадиями по порядку. Читай ровно один файл стадии за раз и не открывай
+следующий, пока текущая стадия не закрыта своим выходом.
 
-## Work Through These Stages
-
-1. Before anything is written into `_ops/handoffs/`, read
-   `references/leave-the-project-current.md` and finish it, because the packet
-   can only record what has already happened to the owner's words and to
-   project state.
-2. Once that stage is closed, read `references/write-the-packet.md` and write
-   the file.
-3. Before the path leaves this chat, read
-   `references/read-it-as-the-next-agent.md`.
+1. До того как что-либо записано в `_ops/handoffs/`, прочитай
+   `references/preserve-owner-words.md`.
+2. Получив исход recall, прочитай `references/leave-management-current.md`.
+3. Получив исход уборки, прочитай `references/choose-what-survives.md`.
+4. Имея отобранную дельту, прочитай `references/write-the-packet.md`.
+5. Когда файл пакета лежит на диске, прочитай `references/read-as-next-agent.md`.
+6. Перед тем как путь уйдёт в чат, прочитай `references/report-and-stop.md`.

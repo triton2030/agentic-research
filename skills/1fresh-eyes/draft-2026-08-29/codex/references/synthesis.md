@@ -1,17 +1,33 @@
 ---
-description: "Verify panel findings and return one owner decision without voting."
+description: "Verify panel reports and return one owner decision without voting."
 ---
 
 # Synthesis
 
-Вход: terminal reports. Выход: проверяемый owner decision либо native product
-одиночного исключения.
+Вход: three native reports plus Claude verdict or explicit recursive-parent
+skip. Выход: next, alternative или unchanged.
 
-- Critic finding: `accepted` только при direct/source-supported evidence и альтернативе; иначе `rejected`, `deferred`, `needs verification` или `incomplete`.
-- Citation не support сама по себе: проверь, что source говорит именно то, что claims finding.
-- Для каждой panel lens сохрани native verdict, falsifier, source anchor и отдельное следствие для решения.
-- Одинаковый итог допустим при разных evidence paths; одинаковый метод, источник и следствие — `invalid-test`, а не консенсус.
-- `auditor` сохраняет матрицу pass/fail/unknown, `md-scout` — packet coverage/gaps; не нормализуй их в critic classification.
-- Не голосуй и не усредняй. Проверь material claims, сохрани расхождения и выбери по конечному результату.
-- Верни: следующий ход · ближайшая альтернатива · продолжить без изменений · чем выбранный лучше обеих.
-- Честный `satisfied` / `architecture_ok` завершает линзу; не покупай повтор без нового material reason.
+Классифицируй сверху вниз; первый применимый label побеждает:
+
+1. `invalid-test` — brief был leading/inherited, спрашивал не того actor-а либо reports повторяют method, source и consequence.
+2. `rejected` — source противоречит finding или finding вне scope.
+3. `needs verification` — decision зависит от claim без direct/source-supported evidence.
+4. `incomplete` — supported objection не даёт alternative или smaller probe.
+5. `deferred` — finding поддержан, но не нужен текущему decision.
+6. `accepted` — evidence и alternative меняют текущий decision.
+
+Citation не support сама по себе; проверь, что source говорит именно то, что
+claims finding.
+
+Для каждой доступной линзы сохрани native verdict, falsifier, source anchor и
+отдельное следствие для решения.
+
+Одинаковый итог допустим при разных evidence paths.
+
+Группируй findings по source, label и severity; raw output не переноси молча в canon.
+
+Не голосуй и не усредняй; выбери по конечному результату.
+
+Верни next · nearest alternative · unchanged · почему выбранный лучше обеих.
+
+Честный `satisfied` / `architecture_ok` завершает линзу без повторного запуска.

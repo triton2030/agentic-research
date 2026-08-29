@@ -1,0 +1,7 @@
+interface:
+  display_name: "1 Chat Recall"
+  short_description: "Captures and retrieves source-bound owner evidence"
+  default_prompt: "Use $1chat-recall to capture important owner speech and recover applicable source evidence for the current decision."
+
+policy:
+  allow_implicit_invocation: true
