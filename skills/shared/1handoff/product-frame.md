@@ -25,10 +25,11 @@
 реальный или чистый consumer-side resume, а не полнота шаблона, lint или
 самооценка автора.
 
-Frame владеет общим обещанием и правилами конфликта. Platform-native процедурой
-continuation владеют live `~/.codex/skills/1handoff/SKILL.md` и
-`~/.claude/skills/1handoff/SKILL.md`; source-bound owner memory — live
-`1chat-recall` соответствующего runtime.
+Frame владеет общим обещанием и правилами конфликта. Процедурой continuation
+владеют tracked `skills/claude/1handoff/` и `skills/codex/1handoff/`
+(`~/.claude/skills/1handoff/`, `~/.codex/skills/1handoff/` — их projections);
+с 2026-08-29 процедура разложена на тело и три стадийных reference-файла.
+Source-bound owner memory — `1chat-recall` соответствующего runtime.
 
 ## Тайбрейкеры
 
