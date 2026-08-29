@@ -103,3 +103,11 @@ Delta для review наблюдалась; probabilistic improvement не до�
 
 Это offline routing receipt точного текста, не runtime discovery test. Реальная
 активация Claude/Codex остаётся непроверенной.
+
+## Коррекция функции владельцем
+
+Слова владельца от 2026-08-29 16:24 +05:00 материально сменили Commander's
+intent: automatic strategic-programming trigger на переходе к коду вместо
+локального owner/falsifier contract. Раунды 1–3 и behavioral fixtures выше
+остаются evidence о снятой версии, но не проверяют новый черновик. Проверка
+новой версии начинается заново.

@@ -1,26 +1,12 @@
 ---
-description: "Launch one user-named Claude critic, auditor or md-scout without a panel."
+description: "Run one user-named Claude specialist and preserve its native product."
 ---
 
 # Named Launch
 
-Вход: пользователь явно назвал специализированную роль. Выход: один terminal
-native product без панели.
+Вход: frozen role packet. Выход: terminal native product.
 
-Общий пакет передаёт current decision/state как source-bound факт, но не
-rationale main, diagnosis, подозреваемую причину или желаемый verdict.
-
-```text
-Решение: {объект judgment · что изменит ответ · конечный результат}.
-Professional question: {нейтральный вопрос выбранной роли}.
-Evidence zone: {raw paths}. Факты: {source-bound или none}. Gaps: {unknown}.
-Границы: in — {scope}; out — {scope}; side effects — read-only.
-```
-
-- Critic получает общий пакет и возвращает native verdict.
-- `auditor` получает `claimed done · atomic acceptance conditions · raw checks · known evidence/gaps`; brief не подсказывает pass/fail.
-- `md-scout` получает `corpus · retrieval question · scope/exclusions · dependent decision · facts/gaps`; он возвращает coverage/gaps packet, не critic verdict.
-
-Запусти новый ordinary non-fork `Agent` stream выбранного профиля.
-
-Роль недоступна — верни точный blocker и остановись, не подменяя профиль.
+1. Запусти один новый ordinary non-fork `Agent` stream выбранного профиля.
+2. Передай stream только frozen packet.
+3. Недоступный профиль верни как точный blocker; не подменяй его другой ролью.
+4. Сохрани terminal product в native форме.

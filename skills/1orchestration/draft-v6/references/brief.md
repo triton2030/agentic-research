@@ -9,4 +9,5 @@ self-contained brief, достаточный для первого решени�
 - `delta` — только task-specific факты и границы, которых нет в owners.
 - `write ownership` — единственный носитель записи или read-only.
 - `return` — результат · адресуемое evidence · gaps · blockers.
-- Не пересказывай в prompt содержание доступного owner-файла.
+- Не пересказывай доступный owner-файл; исключение — live receiving owner прямо
+  требует критичную выдержку, которая сохраняет owner-адрес и входит в budget.

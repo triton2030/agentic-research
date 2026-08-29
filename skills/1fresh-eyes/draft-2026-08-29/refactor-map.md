@@ -101,31 +101,34 @@ brief templates одиночных вызовов не имеют второго
 
 | Обслуживаемая цель | Старые указания | Новый владелец | Решение |
 |---|---:|---|---|
-| Routing и admission | 1–8, 28–30 | `description` + шаги 1–5 body | Сжаты до наблюдаемой развилки; named mode включается только буквальным выбором пользователя. |
-| Телос и anti-harm | 9–15 | три цели + Stop | Сохранены; критика не самоцель и surviving route остались явными. |
-| Состав и независимый запуск | 16–27, 51–54, 58–61 | шаг 5 + `panel-launch.md` / `named-launch.md` / Codex `premortem.md` | Panel, named и cross-family bridge разделены на последовательные стадии; runtime-механика разнесена по формам. |
-| Приёмка и синтез | 31–44, 55–57 | шаг 7 + `synthesis.md` | Перезапуск вызывается одинаковым method/evidence path, не честным совпадением выводов; named product synthesis не читает. |
-| Retained dialogue | 45–50 | шаг 6 + `steering.md` | Сохранён отдельной условной стадией; не активен в первом проходе. |
+| Routing и admission | 1–8, 28–30 | `description` + `decision.md` | Сжаты до наблюдаемой развилки; named mode включается только буквальным выбором profile пользователем. |
+| Телос и anti-harm | 9–15 | три цели + `synthesis.md` | Решение принадлежит main; surviving route завершает только Fresh Eyes pass. |
+| Состав и независимый запуск | 16–27, 51–54, 58–61 | `panel-packet.md` / `panel-launch.md` / `named-packet.md` / `named-launch.md` / Codex `premortem.md` | Packet construction, launch и cross-family report стали самостоятельными artifact stages. |
+| Приёмка и синтез | 31–44, 55–57 | `classification.md` → `synthesis.md` | Evidence ledger отделён от выбора; named product эти стадии не читает. |
+| Retained dialogue | 45–50 | `steering.md` | Сохранён отдельной условной стадией; не активен в первом проходе. |
 | Датированная runtime-гипотеза | 27, 60–61 | runtime refs + validation notes | Постоянны только проверяемая loop-boundary и metadata; остальная механика проверяется перед install. |
 
 ## Карта стадий и активный набор
 
 Счёт ручной: одна единица — независимо исполнимое действие, ограничение или
-критерий. Пояснение той же единицы повторно не считается. Старые числа первого
-draft отозваны literal checker: объединённые launch surfaces имели нижнюю
-оценку ≥23 Claude и ≥37 Codex. Ниже — candidate после stage split; round-2
-checker обязан пересчитать его с нуля.
+критерий. Пояснение той же единицы повторно не считается. Две прежние оценки
+отозваны literal checkers: смысловое разделение было недостаточным. Ниже —
+консервативный candidate после artifact-stage split; final checker пересчитает
+его с нуля.
 
 | Стадия | Вход | Один reference | Выход | Активных единиц |
 |---|---|---|---|---:|
-| Admission | наблюдаемая развилка или explicit named request | — | decision anchor + mode | candidate 12 |
-| Claude panel launch | anchor + panel mode | `claude/references/panel-launch.md` | 4 terminal reports | candidate 18 |
-| Codex native launch | anchor + panel mode | `codex/references/panel-launch.md` | 3 native reports | candidate 18 |
-| Codex cross-family pass | 3 native reports | `codex/references/premortem.md` | Claude verdict или explicit skip | candidate 15 |
-| Named launch | anchor + explicit user-named role | runtime `named-launch.md` | 1 native report | candidate 16 |
-| Correction, only if needed | wrong premise or residual question | runtime `steering.md` | repaired/retained report | candidate 14 |
-| Panel synthesis | terminal reports | runtime `synthesis.md` | next/alternative/continue | candidate 19 |
-| Named handback | terminal native output | — | unchanged native product | candidate 5 |
+| Admission | observed trigger | runtime `decision.md` | decision anchor + mode | candidate 13 |
+| Panel freeze | panel anchor | runtime `panel-packet.md` | four frozen packets | candidate 15 |
+| Claude panel run | frozen packets | `claude/references/panel-launch.md` | four terminal reports | candidate 13 |
+| Codex cross-family run | frozen Premortem packet | `codex/references/premortem.md` | Claude report или explicit skip | candidate 18 |
+| Codex native run | frozen native packets + retained Premortem outcome | `codex/references/panel-launch.md` | three terminal reports + retained outcome | candidate 15 |
+| Panel classification | available reports/skip | runtime `classification.md` | evidence ledger | candidate 18 |
+| Panel synthesis | evidence ledger | runtime `synthesis.md` | decision handback | candidate 12 |
+| Named freeze | named anchor | runtime `named-packet.md` | one frozen role packet | candidate 16 |
+| Named run | frozen role packet | runtime `named-launch.md` | terminal native product | candidate 12 |
+| Correction, only if needed | wrong premise/residual question | runtime `steering.md` | repaired report | candidate 14 Claude / 15 Codex |
+| Named handback | terminal native product | — | unchanged native product | candidate 8 |
 
 Текущий live surface до refactor: body ≈15 единиц по последнему историческому
 счёту; panel brief ≈10; named templates 6–9; steering ≈8; synthesis ≈18;

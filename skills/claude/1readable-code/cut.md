@@ -156,3 +156,22 @@ transactions` (точные перечни работают только дос�
 Product Frame у пакета отсутствует. Черновик не создаёт его молча: функцию,
 Уникальный контекст и три цели пока держит history-map; topology решается до
 официальной записи.
+
+## Коррекция функции владельцем 2026-08-29 16:24 +05:00
+
+Владелец переопределил центр скила: не локальная концентрация owner-а сама по
+себе, а обязательное переключение с реактивного task focus на strategic
+programming и взгляд CTO/архитектора на будущее системы. Поэтому версия SHA
+`f54e42ea9516ee5e26e876831979b7e072280f1ce617ca31009160ae181a756e` и все
+предшествующие ей проверки не являются кандидатом на approval.
+
+Дополнительно сняты из active body как уже известные агенту particulars:
+
+- отдельные co-change/co-failure правила;
+- data-edge-first как универсальный список;
+- формула цены readability-only surface;
+- owner-boundary evidence packet.
+
+Их заменяют named practices: Ousterhout's strategic programming/deep modules и
+Brooks's conceptual integrity. Requested-behavior falsifier оставлен как
+correctness gate, а не как tutorial по testing.

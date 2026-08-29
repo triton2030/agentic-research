@@ -2,26 +2,30 @@
 
 ## v6 candidate (2026-08-29, строгий `1skill-creation`)
 
-- Функция v5 не переоткрыта: work + instruction-load allocation,
-  root-usefulness/trajectory, direct owner reading, chat map/report, evidence
-  barriers и conditional carrier сохранены.
-- Отрицательный one-worker router сужен до ordinary worker: более
-  новый owner-контракт managed background offload требует применять
-  `1orchestration` и к одному bounded потоку. Это не разрешает лишние окна.
-- Главный use case возвращён в hot zone `description`; specialized-controller
-  exclusion остался вторым предложением и требует повторного near-miss
-  probe.
-- Четыре строки `Неснимаемые сбои` сняты как повторы admission,
+- Функция восстановлена последней прямой коррекцией владельца: orchestration
+  развивает cognitive work до выполнимых задач через source-reading,
+  goal/acceptance/address/delta brief и active-unit budget.
+- One ordinary worker больше не skip: protocol применяется перед любым
+  subagent prompt. Specialized controller сохраняет topology, но каждый его
+  brief проходит тот же cognitive contract.
+- Отдельная managed-offload ветвь снята: она полностью поглощена общим
+  one-subagent trigger и больше не искажает центральную функцию.
+- Старое «повторить инструкцию в моменте» сужено свежей owner-коррекцией:
+  доступный owner адресуется, а prompt повторяет только отсутствующую delta.
+  Scoped exception принадлежит live receiving owner-у: `1plan-task` может
+  потребовать пару адресованных критичных выдержек в durable task-файле.
+- `>20` записан как soft decomposition threshold; сказанные владельцем `75%`
+  не превращены в неподтверждённый research claim.
+- Четыре строки `Неснимаемые сбои` сняты как повторы sources/decomposition,
   brief, return-evidence и barrier-before-synthesis в их собственных моментах.
 - Stale route `1planning → Delegation → Recovery after a break` снят:
   после раскройки семьи `1planning` этого live reference нет, а wave
   recovery принадлежит `1orchestration`. В `repair.md` восстановление
   карты стало self-contained.
-- Не добавлены: числовой fan-out, обязательный verifier, новый runtime/model
-  routing или новый control surface. Normal flow разделён на `admission`,
-  `map`, `brief`, `execute`, `integrate`, а stalled-return и root-break — на
-  разные recovery-стадии: прежние смешанные моменты превышали 20 активных
-  единиц, и символьное сжатие это не исправляло.
+- Не добавлены: числовой fan-out, безусловный verifier, новый runtime/model
+  routing или новый control surface. Flow разделён на самостоятельные
+  `sources → brief → budget → decompose → map → execute → accept → integrate`
+  стадии; carrier, persistence и два recovery-момента остаются условными.
 
 ## v1–v2 (2026-08-10, mavo-short2)
 

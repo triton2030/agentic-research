@@ -1,56 +1,63 @@
-# Refactor map — 1planning — 2026-08-29
+# Карта рефактора — 1planning — 2026-08-29
 
-Approved family boundary: `_ops/chat-recall/2026-08-29-152644-codex-01a04d0d.md:18-19`.
-Earlier function: `_ops/chat-recall/2026-08-26-220614-claude-4ee6bbef.md:20-23`.
+Утверждённая граница семьи:
+`_ops/chat-recall/2026-08-29-152644-codex-01a04d0d.md:18-19`.
+Более ранняя функция:
+`_ops/chat-recall/2026-08-26-220614-claude-4ee6bbef.md:20-23`.
+Язык и контекстный контракт:
+`_ops/chat-recall/2026-08-29-152644-codex-01a04d0d.md:21-28`.
 
-## Function
+## Функция
 
-Decision owner for task admission and material task-level decomposition in
-chat. It owns no durable planning file; accepted decisions land in fields owned
-by `1plan-map` or `1plan-task`.
+Владелец решения о допуске и существенной декомпозиции задачи в чате. Не
+владеет долговечным план-файлом; принятые значения попадают в поля, которыми
+владеют `1plan-map` или `1plan-task`.
 
-## Old instruction groups
+## Группы старых инструкций
 
-| Group | Disposition | Target owner |
+| Группа | Решение | Целевой владелец |
 | --- | --- | --- |
-| Aggressive trigger, native Plan Mode exclusion | keep | description + boundary |
-| Read GOAL, map, tasks, root and domain rules | keep, compress | protocol 1 |
-| Challenge order, blockers, displacement and epic membership | keep | protocol 2 |
-| Visible steps, book-method trace, axis, nearest frontier | keep | protocol 3 |
-| Wayfinding/Execution probe and material premises | keep, compress | protocol 3 |
-| `1use-principles`, owner questions, exact approval | keep | protocol 4-5 |
-| Map/task routing | keep as authority handoff | protocol 6 |
-| Reread epic before every material execution step | move | `1plan-task` reconciliation |
-| Keep epics/tasks fresh as execution proceeds | absorb | map/task lifecycle owners |
-| Goal/product/finding routing menu | cut | generic discovery; not family function |
+| Агрессивный trigger, исключение native Plan Mode | оставить | description + граница |
+| Читать GOAL, карту, задачи, корневые и предметные правила | оставить, сжать | протокол 1 |
+| Оспаривать порядок, блокеры, вытеснение и принадлежность эпику | оставить | протокол 2 |
+| Видимые шаги, след метода, ось и ближайший рубеж | оставить | протокол 3 |
+| Wayfinding/Execution probe и существенные посылки | оставить, сжать | протокол 3 |
+| Одна задача — один агент, бюджет до 20 единиц | добавить | протокол 3–4 |
+| `1use-principles`, вопросы владельцу, точное утверждение | оставить | протокол 5 |
+| Маршрутизация к карте и задаче | оставить как handoff полномочий | протокол 6 |
+| Перечитывать эпик перед каждым существенным шагом | перенести | reconciliation в `1plan-task` |
+| Обновлять эпики и задачи по ходу исполнения | поглотить | lifecycle-владельцы карты и задачи |
+| Меню маршрутов goal/product/finding | удалить | общая discovery-работа, не функция семьи |
 
-## New constraints
+## Новые ограничения
 
-- Every accepted planning decision names its durable landing value. This closes
-  the observed loss of the decomposition axis across clean windows; it removes
-  freedom to leave planning truth only in chat.
-- The five-invariant replan seam closes ambiguous ownership after new evidence;
-  it removes `1plan-task`'s freedom to rebuild across a changed task decision.
-- One approval message may cover two explicitly named results. This preserves
-  exact approval while removing a two-message ritual that adds no authority.
+- Каждый принятый planning-вывод называет долговечное поле назначения. Так ось
+  декомпозиции не теряется между окнами, а planning-правда не остаётся в чате.
+- Допуск разрешён лишь для среза одного чистого агента с активным ядром не
+  более 20 независимых единиц. Лимит нельзя обходить длинной фразой.
+- Пять инвариантов отделяют обычную пересборку от существенного переплана и не
+  дают `1plan-task` перестраивать изменившееся решение.
+- Одно сообщение может утвердить два явно названных результата. Точность
+  согласия сохраняется без ритуала двух сообщений.
 
-## Predicted misreadings closed
+## Закрытые неверные прочтения
 
-- “Planning writes the plan file” → protocol 4 forbids the write and emits
-  landing values.
-- “A map frontier authorizes the next task” → protocol 2 requires admission.
-- “Any new evidence means full re-planning” → protocol 6 names five material
-  changes; routine execution remains with the task owner.
+- «Planning пишет plan-файл» → протокол 5 запрещает запись и выдаёт значения.
+- «Фронтир карты разрешает следующую задачу» → протокол 2 требует допуска.
+- «20 пунктов можно спрятать в одно предложение» → протокол 4 считает
+  независимые смыслы.
+- «Любое новое evidence требует полного переплана» → протокол 6 называет пять
+  существенных изменений; обычное исполнение остаётся у task-владельца.
 
-## Routing cases
+## Маршруты
 
-- use: `What should we do next?`
-- use: `This evidence changed the accepted task boundary.`
-- use: `A major error may invalidate our current plan.`
-- skip: `Continue the next approved subtask.` → `1plan-task`
-- near miss: `Reorder the project epics after launch.` → `1plan-map`
+- использовать: `Что нам делать дальше?`
+- использовать: `Это evidence изменило принятую границу задачи.`
+- использовать: `Крупная ошибка могла сделать текущий план неверным.`
+- пропустить: `Продолжи следующую утверждённую подзадачу.` → `1plan-task`
+- near miss: `Переставь эпики проекта после запуска.` → `1plan-map`
 
-## Current draft count
+## Текущий счётчик черновика
 
-`draft-2026-08-29/SKILL.md`: 16 top-level instruction units by the current
-author count; independent-predicate recount belongs to `check-approve`.
+Авторский счёт будет пересобран по независимым предикатам на стадии
+`check-approve`.

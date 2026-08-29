@@ -1,35 +1,13 @@
 ---
-description: "Launch the three isolated native Codex panel lenses from one neutral packet."
+description: "Run the fixed three native Codex panel profiles from frozen isolated packets."
 ---
 
 # Native Panel Launch
 
-Вход: decision anchor. Выход: terminal reports `ladder`, `solvent`,
-`prospector`.
+Вход: frozen native packets и retained Premortem outcome. Выход: три terminal native reports плюс retained outcome.
 
-```text
-Текущий маршрут/решение: {source-bound состояние без rationale main}.
-Вопрос на столе: {что взвешиваем}.
-Что изменит ответ: {следующий decision}.
-Конечный результат: {owner goal или выведенный профессиональный outcome}.
-Main уже читал: {paths; только список}.
-Зона линзы: {другие главные sources, где проявится её falsifier}.
-Факты: {source-bound или none}. Gaps: {material unknown}.
-Границы: in — {scope}; out — {scope}; side effects — read-only.
-Кругов пройдено: {только число, без маршрута и результатов}.
-```
-
-Не включай rationale main, его diagnosis, подозреваемую причину, желаемый
-verdict или пересказ метода роли.
-
-Запусти новые `fork_turns: "none"` streams трёх named profiles.
-
-Параллельный запуск предпочтителен; при нехватке capacity используй bounded
-waves и сохрани уже полученные reports.
-
-Каждая линза до вывода читает raw sources своей зоны, а не делает главным
-входом файлы из `Main уже читал`.
-
-Взаимозаменяемые briefs проваливают swap-test; исправь zones до запуска.
-
-Не переходи к Premortem без трёх terminal reports.
+1. Запусти `ladder`, `solvent`, `prospector` как новые streams с `fork_turns: "none"`.
+2. Передай каждому stream только его packet; не передавай Premortem outcome.
+3. При ограниченной capacity используй bounded waves и сохраняй готовые reports.
+4. Недоступный профиль верни как точный blocker; не имитируй его другой ролью.
+5. Не завершай стадию без terminal outcome каждой native линзы.

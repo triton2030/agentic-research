@@ -2,42 +2,44 @@
 
 ## Цель-сцена
 
-Работа требует general wave или живой managed-offload контракт уже назначил
-root оркестратором. Root выбирает минимальную окупающуюся форму,
-распределяет посильные outcomes и instruction load, защищает ownership и
-барьеры, а затем принимает evidence и собирает один полезный результат.
-Исполнители не тащат весь свод инструкций, а root не тонет в промежуточном шуме
-и остаётся хранителем пользы, траектории, решений и интеграции.
+Root собирается поручить работу субагенту либо видит, что задача перегружена.
+Он читает всю влияющую instruction/truth chain, формирует brief с правильной
+целью, полной приёмкой, owner-адресами и только невыводимой дельтой, затем
+оценивает active cognitive units. Работа делится или стадируется, пока каждый
+исполнитель не получает выполнимый срез, а root сохраняет траекторию и собирает
+один доказанный результат.
 
-Приёмка: наблюдаемы обоснованный no-wave либо минимальная запущенная форма;
-карта и instruction focus видны до launch; обязательные возвраты приняты по
-адресуемому evidence до синтеза; root показал интеграцию, решения, gaps и blockers.
+Приёмка: наблюдаемы source map · provisional briefs · честный active-unit count ·
+обоснованная форма · launch map · returns по done_when · root integration и
+видимый chat proof.
 
 ## Привязка к цели проекта
 
-Служит `agentic-research` как глобальный cross-project контракт для стабильной агентной
-среды: субагенты покупают context hygiene и независимость, но не создают вторую
-продуктовую правду и не подменяют root-решения. Runtime/model lifecycle, методология
-советника, форма плана и специализированные панели остаются у своих live owners.
+Это cross-project контракт качества delegation. Субагенты разгружают cognitive
+work, не создавая второй продуктовый канон: изменяемые значения остаются у
+owners, topology специализированных волн — у специализированных controllers,
+tool lifecycle — у runtime skills.
 
 ## Тайбрейкеры
 
-1. Польза и независимость сильнее числа окон; минимальная форма побеждает fan-out.
-2. Прямое чтение load-bearing owner-источника root-ом сильнее summary советника.
-3. Зависимый барьер и адресуемое evidence сильнее быстрого синтеза и progress report.
-4. Явный managed-offload контракт сильнее ordinary one-worker skip, но не авторизует лишние окна.
-5. Специализированный controller сильнее general wave; `1orchestration` не перехватывает его форму.
+1. Полная применимая owner-цепочка сильнее быстрого prompt-а по памяти.
+2. Выполнимый active set сильнее числа агентов и субъективной простоты задачи.
+3. Owner-address + task delta сильнее пересказа доступного канона; live
+   receiving owner может потребовать адресованную критичную выдержку.
+4. Порог 20 мягкий: coupling и длинная траектория могут потребовать split раньше;
+   неразложимый overload можно принять только явно и с усиленной проверкой.
+5. Specialized controller владеет topology; `1orchestration` — cognitive contract.
 
 ## Аппетит
 
-- Каждый режим — не более 20 самостоятельных активных единиц: body + один reference +
-  ещё действующие обязательства прошлых стадий.
-- Admission, carrier, map, brief, execute, integrate, stalled-return repair и
-  root recovery разнесены по самостоятельным стадиям; в каждый момент читается
-  один reference.
-- Пересмотр: representative routing путает general wave, managed offload и specialized controller; root-break recovery ведёт в stale owner; повторная волна показывает потерю траектории или evidence.
+- В каждый момент тело + один reference + продолжающиеся обязательства дают не
+  более 20 активных единиц; карта с честным счётом — в `refactor-map.md`.
+- `75%` остаётся owner-эвристикой, не research claim и не обещанием модели.
+- Пересмотр: actual prompt повторяет owner content, не называет влияющий файл,
+  считает строки вместо обязанностей или запускает overload без явного решения.
 
-Прямые owner-источники: `_ops/chat-recall/2026-08-10-000000-claude-a0af5c40.md:19-29`,
-`_ops/chat-recall/2026-08-10-134812-codex-019feadb.md:18-19`,
-`_ops/chat-recall/2026-08-26-221254-codex-01a03f0a.md:20`,
-`_ops/chat-recall/2026-08-29-152721-codex-01a04d0e.md:15-18`.
+Прямые owner-источники: `_ops/chat-recall/2026-08-29-152721-codex-01a04d0e.md:20`,
+`_ops/chat-recall/2026-08-29-152644-codex-01a04d0d.md:23-28`,
+`_ops/chat-recall/2026-08-10-000000-claude-a0af5c40.md:20-26`,
+`_ops/chat-recall/2026-08-26-173953-codex-01a03dfe.md:19-27`,
+`_ops/chat-recall/2026-08-28-193846-claude-76aa0843.md:18-33`.

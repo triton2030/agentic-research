@@ -28,7 +28,8 @@
 Frame владеет общим обещанием и правилами конфликта. Процедурой continuation
 владеют tracked `skills/claude/1handoff/` и `skills/codex/1handoff/`
 (`~/.claude/skills/1handoff/`, `~/.codex/skills/1handoff/` — их projections);
-с 2026-08-29 процедура разложена на тело и три стадийных reference-файла.
+с 2026-08-29 процедура разложена на тело, шесть стадийных reference-файлов и
+скелет пакета в `assets/`.
 Source-bound owner memory — `1chat-recall` соответствующего runtime.
 
 ## Тайбрейкеры

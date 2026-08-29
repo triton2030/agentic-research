@@ -1,37 +1,13 @@
 ---
-description: "Launch the four isolated Claude panel lenses from one neutral decision packet."
+description: "Run the fixed four Claude panel profiles from frozen isolated packets."
 ---
 
 # Panel Launch
 
-Вход: decision anchor. Выход: terminal reports `ladder`, `solvent`,
-`prospector`, `premortem`.
+Вход: четыре frozen packets. Выход: четыре terminal native reports.
 
-## Пакет каждой линзы
-
-```text
-Текущий маршрут/решение: {source-bound состояние без rationale main}.
-Вопрос на столе: {что взвешиваем}.
-Что изменит ответ: {следующий decision}.
-Конечный результат: {owner goal или выведенный профессиональный outcome}.
-Main уже читал: {paths; только список}.
-Зона линзы: {другие главные sources, где проявится её falsifier}.
-Факты: {source-bound или none}. Gaps: {material unknown}.
-Границы: in — {scope}; out — {scope}; side effects — read-only.
-Кругов пройдено: {только число, без маршрута и результатов}.
-```
-
-Не включай rationale main, его diagnosis, подозреваемую причину, желаемый
-verdict или пересказ метода роли.
-
-Запусти новые ordinary non-fork `Agent` streams четырёх named profiles.
-
-Параллельный запуск предпочтителен; при нехватке capacity используй bounded
-waves и сохрани уже полученные reports.
-
-Каждая линза до вывода читает raw sources своей зоны, а не делает главным
-входом файлы из `Main уже читал`.
-
-Взаимозаменяемые briefs проваливают swap-test; исправь zones до запуска.
-
-Не переходи к synthesis без четырёх terminal reports.
+1. Запусти новые ordinary non-fork `Agent` streams профилей `ladder`, `solvent`, `prospector`, `premortem`.
+2. Передай каждому stream только его packet; роль читает raw sources своей зоны.
+3. При ограниченной capacity используй bounded waves и сохраняй готовые reports.
+4. Недоступный профиль верни как точный blocker; не имитируй его другой ролью.
+5. Не завершай стадию без terminal outcome каждой линзы.
