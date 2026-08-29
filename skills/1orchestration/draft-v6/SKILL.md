@@ -48,12 +48,16 @@ Root видит всю owner-цепочку и интеграцию, а суба
    переиздания волны → прочитай [carrier](references/carrier.md).
 7. Карта и briefs готовы, обязательные возвраты ещё не получены → прочитай
    [execute](references/execute.md).
-8. Обязательные возвраты получены → прочитай [integrate](references/integrate.md).
-9. Первый bounded wait не изменил названный return/artifact/diff → прочитай
+8. Обязательные возвраты получены → прочитай [accept](references/accept.md).
+9. Обязательные возвраты приняты либо получили terminal blocker → прочитай
+   [integrate](references/integrate.md).
+10. Интеграция изменила task-file, carrier, решение или durable truth → прочитай
+   [persist](references/persist.md).
+11. Первый bounded wait не изменил названный return/artifact/diff → прочитай
    [repair](references/repair.md).
-10. Оборвалось окно root → прочитай [recover-root](references/recover-root.md).
+12. Оборвалось окно root → прочитай [recover-root](references/recover-root.md).
 
 ## Завершение
 
-No-delegation обоснован оценённой нагрузкой либо выход выбранной стадии достигнут;
-иного terminal у скила нет.
+No-delegation обоснован оценённой нагрузкой либо обязательные returns приняты,
+один результат интегрирован и durable state синхронизирован; terminal blocker назван.

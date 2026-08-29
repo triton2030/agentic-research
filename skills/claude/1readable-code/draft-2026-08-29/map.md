@@ -36,7 +36,7 @@ Ousterhout/deep modules поэтому задают owner-высоту и эвр
 | Inventory what disappears | readability-only surface rule | Условно для surface, добавленной ради формы, не ритуал для required behavior |
 | Units that fail together/independently | co-failure rule | Сохранён как граница единицы |
 | Read the data edge first | conditional data-edge rule | Сохранён только при реальном data trigger |
-| Prove requested thing | falsifying check | Сохранён на owning boundary |
+| Prove requested thing | falsifying check | Сохранён на owning boundary и, когда это другая поверхность, на requested artifact |
 | Re-enter at each structural choice | снято | Старый прогон не проверил эффект; observed degradation на старых моделях не доказывает повторный skill gate |
 | Six traces or explain each absence | один evidence packet | Снята отчётная нагрузка, оставлены owner и claim-specific falsifier |
 

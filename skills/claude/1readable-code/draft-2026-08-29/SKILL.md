@@ -37,7 +37,8 @@ It never substitutes for correctness, data integrity, or security.
 5. Keep behavior that changes independently separate.
 6. When a surface is added solely for readability, add it only if it reduces
    rule copies or callers that must know the rule.
-7. Finish with the owner.
-8. For each implementation or review claim, give its owning-boundary falsifier
-   and observed result.
+7. For each implementation or review claim, give the observed result of a
+   falsifier at the owning boundary.
+8. When an implementation's requested artifact lies outside that boundary,
+   falsify it there too.
 9. Mark unavailable evidence unverified.

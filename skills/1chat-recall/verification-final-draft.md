@@ -15,6 +15,10 @@ Target: uninstalled Codex runtime candidate in `draft-2026-08-29/codex/`.
   not behavioral acceptance.
 - Existing unchanged helpers: 101 tests plus 12 subtests passed before drafting;
   no script or test file changed.
+- Code inspection confirms `context-note` is indexed by both FTS5/BM25
+  (`chat_digest.py:402-427`) and dense retrieval (`:801-808`); the existing
+  test `test_context_note_is_searchable_but_shown_only_on_show` proves a term
+  found only there retrieves its record.
 
 ## Clean trajectory A — Capture then Retrieval
 
@@ -47,6 +51,21 @@ The Recovery probe created a fresh `.uv-cache` and reported dependency download
 output. No web/browser tool sent corpus records anywhere, but the probe does not
 prove a completely network-free first bootstrap; the Product Frame already
 permits one-time model/cache bootstrap.
+
+## Clean trajectory D — topic selection and keyword context
+
+After the owner's new correction, a fresh executor received a pronoun-bearing
+quote about the local `1chat-recall` corpus. It opened body → Capture, read
+`topics.md` in full before writing, compared `chat-recall-corpus` with
+`chat-recall-retrieval` and `skill-instruction-authoring`, then chose the corpus
+boundary. It wrote the literal quote with:
+
+`context-note: локальный корпус 1chat-recall; формат записей корпуса; chat recall corpus`
+
+The note restores the pronoun referent and adds stable search vocabulary without
+restating the owner's rule. Receipt:
+`2026-08-29-161819-codex-01a04d3c.md#L15` in the isolated fixture; no new topic
+was created and no live package changed.
 
 ## Remaining owner decision
 
