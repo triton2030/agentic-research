@@ -5,11 +5,14 @@ Target: uninstalled Codex runtime candidate in `draft-2026-08-29/codex/`.
 ## Static evidence
 
 - System `quick_validate.py`: `Skill is valid!`.
-- `description`: 174 characters and begins with `Use when`.
+- `description`: 181 characters and begins with `Use when`.
 - Codex `agents/openai.yaml`: valid YAML and English UI text.
 - Every body route points to an existing reference.
-- Operational mode counts: body 9; Capture 20 total, Retrieval 20, Recovery
-  19, Restoration 16, Repair 20, Structural validation 12.
+- The earlier paragraph-level 9 + reference count is withdrawn. Independent R4
+  literal audit found 16 loaded / 11 applicable body units and maximum coherent
+  active paths of Capture 48, Retrieval 47, Recovery 59, Restoration 28, Repair
+  68, and Structural validation 21. This is an unresolved installation blocker,
+  not a table-only defect.
 - `plugin-eval analyze`: 100/100, 0 failures, 0 warnings, trigger 47 tokens,
   invoked body 355 tokens, deferred files 3352 tokens. This is static evidence,
   not behavioral acceptance.
@@ -67,9 +70,29 @@ restating the owner's rule. Receipt:
 `2026-08-29-161819-codex-01a04d3c.md#L15` in the isolated fixture; no new topic
 was created and no live package changed.
 
-## Remaining owner decision
+## Clean trajectory E — opaque selection through the router
 
-The clean traces show that the reference router works in these cases. They do
-not themselves cancel the older explicit decision to keep ordinary Capture and
-Retrieval in the guaranteed-read body. Installation therefore still requires
-the owner's approval of this exact reference topology and exact English draft.
+After the owner selected the second of two offered topology options with
+`да, второй вариант`, a clean executor opened body → Capture, treated the
+statement as `selection` rather than empty assent, read the final `topics.md` in
+full, and selected `skill-instruction-authoring`. It wrote:
+
+`context-note: option B; Capture and Retrieval references; short router; 1chat-recall refactor`
+
+Only after the Capture receipt did it open Retrieval. It read the literal
+record, ran the inclusive later check, found no live owner in the fixture,
+returned the selected reference topology, and continued the original refactor.
+Receipt: `2026-08-29-164617-codex-44444444.md#L15` in
+`/tmp/chat-recall-r4.2OpeKm`; the main repository and live packages were not
+changed by the executor.
+
+## Remaining blocker
+
+The owner selected the independent reference topology at
+`_ops/chat-recall/2026-08-29-150002-codex-01a04cf3.md:21` and later required the
+invariant rather than eternalizing the former hot-body implementation at
+`_ops/chat-recall/2026-08-29-163434-codex-01a04d4a.md:15`. Clean trajectories A,
+B, and E observe ordinary Capture/Retrieval through the router, so topology is
+no longer an owner-choice. The unresolved blocker is the conservative atomic
+instruction budget above; the exact draft must not be installed while it is
+present.

@@ -30,7 +30,7 @@ description: >-
 2. Назови решение, которое изменит ответ.
 3. Назови конечный результат из GOAL/Product Frames; при пробеле выведи professional outcome из доступного evidence.
 4. Decision anchor → frozen packet: прочитай [packet](references/packet.md).
-5. Panel packet → четыре terminal reports: прочитай [panel](references/panel.md).
-6. Panel reports → decision handback: прочитай [synthesis](references/synthesis.md).
-7. Named packet → terminal native product: прочитай [named](references/named.md).
+5. Если mode `named`, packet → terminal native product: прочитай [named](references/named.md), верни product и останови Fresh Eyes pass.
+6. Иначе panel packet → четыре terminal reports: прочитай [panel](references/panel.md).
+7. Panel reports → decision handback: прочитай [synthesis](references/synthesis.md).
 8. Wrong source-bound premise или residual question той же линзе → repaired report: прочитай [steering](references/steering.md).

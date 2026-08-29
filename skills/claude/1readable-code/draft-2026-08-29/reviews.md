@@ -133,5 +133,78 @@ intent: automatic strategic-programming trigger на переходе к код�
   что mechanical code edit теперь use, а не skip.
 
 Принятое направление подтверждено новой live-границей владельца:
-`_ops/chat-recall/2026-08-29-163434-codex-01a04d4a.md:15` — сохранять идею и
+`_ops/chat-recall/2026-08-29-163434-codex-01a04d4a.md:17` — сохранять идею и
 слова без вредного буквального ритуала.
+
+### Clean executor на исправленной версии
+
+Проверяемая версия: SHA-256
+`db0e9914f5807dd28be8ef1955e9297dac2dd5e8ac555b221f532a7678195912`.
+
+Holdout: перевести API-delete и purge на soft delete без изменения публичных
+сигнатур и без реализации restore.
+
+- Исполнитель сам признал material strategic uncertainty: должна ли повторная
+  purge снова выбирать уже удалённую запись.
+- Поэтому exact conditional gate вызвал одного fresh read-only subagent.
+- Strongest objection: marker только в `delete()` и filter только в `get()`
+  оставят `expired_ids()` неидемпотентным и позволят перетирать первый
+  `deleted_at`.
+- Это изменило engineering decision: repository стал владельцем полного
+  инварианта — первый marker сохраняется, `get()` и `expired_ids()` скрывают
+  deleted records; API/jobs и их сигнатуры не менялись.
+- `python3 -m unittest -v` — 3/3 `OK`; compileall прошёл; signatures
+  подтверждены прежними.
+
+Наблюдаемая Delta есть: fresh view добавил повторную purge и сохранение первого
+marker в решение до edit. Остаток fixture: локальный `datetime.now()` без
+injected clock; restore/read-with-deleted намеренно не реализованы.
+
+### Cold routing на исправленном description
+
+Проверялся exact `description` SHA
+`db0e9914f5807dd28be8ef1955e9297dac2dd5e8ac555b221f532a7678195912`;
+все prompts содержат 5–10 слов:
+
+- «Переименуй локальную переменную в функции расчёта» → `1readable-code`.
+- «Исправь опечатку в тексте отчёта» → `none`.
+- «Выбери интерфейс адаптера между API и хранилищем» → `1codebase-design`.
+
+Offline selection различила automatic code use, non-code skip и contract
+near-miss. Runtime activation ещё не доказана.
+
+## Strategic-programming версия — повтор 1
+
+Проверяемая версия checker-ов: SHA-256
+`db0e9914f5807dd28be8ef1955e9297dac2dd5e8ac555b221f532a7678195912`.
+
+### Два независимых checker-а
+
+Trajectory checker не нашёл отклонений: тривиальная правка проходит без
+ритуала, contract-развилка сначала уходит runtime-соседу, а fresh subagent
+остаётся только для unresolved material uncertainty или прямого запроса.
+
+Буквальный checker нашёл и минимально исправлено:
+
+- отрицательное условие `no A or B` не задавало однозначной границы;
+- два самостоятельных subagent-шага могли буквально вызвать двух исполнителей;
+- `falsify the requested behavior` можно было прочитать как «сломать поведение»;
+- evidence-address указывал на заголовок, а не owner-boundary.
+
+Исправленная версия: SHA-256
+`80336a5c53f73dc0cf7509791b991b15a2ef429e9637ed3865d861d56b11f4b7`;
+`quick_validate.py` — `Skill is valid!`.
+
+### Clean executor после checker-ов
+
+Holdout: переименовать локальную переменную `value` в `total` без изменения
+поведения.
+
+- Strategic programming, conceptual integrity и deep modules были применены,
+  но не обнаружили material future cost, contract choice или uncertainty.
+- Subagent не вызывался; исполнитель сразу сделал один локальный rename.
+- Самостоятельная проверка: старое имя отсутствует, `python3 -m unittest -v` —
+  1/1 `OK`.
+
+Наблюдаемая Delta отрицательной ветки: automatic coding trigger не превращает
+простую правку в отчёт или обязательный внешний review.

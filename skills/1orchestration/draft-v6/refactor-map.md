@@ -2,35 +2,34 @@
 
 ## Функция
 
-Перед любым поручением субагенту превратить работу в один или несколько
-выполнимых cognitive tasks: root читает все влияющие owners, формирует
-goal/acceptance/address/delta brief, оценивает одновременно активные единицы,
-декомпозирует перегруженное и принимает один evidence-backed результат.
+Перед любым поручением субагенту превратить работу в выполнимые cognitive sets:
+root читает влияющие owners, формирует goal/acceptance/address/delta contract,
+считает active units root-а и исполнителей, делит только там, где следующий
+actor сможет отбросить часть units, и принимает один evidence-backed результат.
 
 ## Уникальный контекст
 
-Prompt субагенту — временный instruction layer поверх system, проекта, skills,
-plan-а и truth owners. Оркестратор единственный видит целую source/work map и
-может уменьшить active set исполнителя, не потеряв общую траекторию.
+Prompt — временный instruction layer поверх project truth. Только оркестратор
+видит целую карту actors и может уменьшать их одновременную нагрузку, сохраняя
+траекторию во внешнем state, а не в памяти одного окна.
 
 ## Цель владельца
 
-Развивать когнитивную работу до выполнимого списка задач: качество определяется
-не только субъективной сложностью, но и числом независимо удерживаемых
-инструкций, критериев и знаний. Brief сообщает невыводимую дельту и адресует
-доступных owners вместо пересказа.
+Развивать когнитивную работу до выполнимого списка задач. Качество зависит не
+только от субъективной сложности, но и от числа независимо удерживаемых
+инструкций, критериев и знаний. Contract адресует owners, сообщает отсутствующую
+delta и получает budget verdict после формирования.
 
 ## Момент вызова
 
-- Use: перед поручением любому субагенту, включая один ordinary или managed
-  offload поток.
-- Use: до разделения перегруженной работы на root/subagent, parallel или staged
-  tasks.
-- Specialized controller сохраняет topology и роли своей волны;
-  `1orchestration` формирует cognitive contract каждого её окна.
-- Skip: root выполняет локальную работу сам, и признака cognitive overload нет.
+- Use: перед prompt-ом любому subagent, включая ordinary one-worker и managed
+  offload.
+- Use: когда root делит собственную перегруженную cognitive work.
+- Specialized controller сохраняет topology; сюда отдаёт только contracts и
+  budget verdicts своих actors.
+- Skip: локальную root-работу без delegation и признака overload.
 
-Representative naked-trigger candidates; это ещё не результаты прогона:
+Naked-trigger candidates до actual probes:
 
 - ordinary use: `Поручи субагенту проверить этот файл`;
 - overloaded use: `Разбей сложную задачу между агентами`;
@@ -40,101 +39,88 @@ Representative naked-trigger candidates; это ещё не результаты
 
 ## Три цели
 
-1. Полная карта влияющих owners прочитана root-ом.
-2. Каждый исполнитель получает load-bounded brief.
-3. Root интегрирует принятые returns в один доказанный результат.
+1. Root прочитал полный owner ledger.
+2. Каждый actor, включая root, получил выполнимый cognitive contract.
+3. Root закрыл одну evidence-backed orchestration с текущим state.
 
 ## Карта стадий и active sets
 
-Применимая часть тела — 9 единиц: центральная модель · три цели · четыре
-независимых смысла буквальных owner-цитат · одна выбранная route-строка.
-`Завершение` становится десятой единицей только в terminal-момент без reference.
-Description — отдельное trigger-решение до входа в протокол.
+Runtime body содержит 17 independently actionable units: unique context · три
+цели · одиннадцать взаимоисключающих route decisions · две terminal branches.
+На выбранной стадии применимы 5: context · goals · одна route. Description —
+отдельное trigger decision до входа в protocol.
 
-| Стадия | Вход → наблюдаемый выход | Reference units | Ещё активны из прошлого | Итого |
+| Stage | Наблюдаемый выход | Ref units | Carried | Active total |
 |---|---|---:|---:|---:|
-| sources | работа известна → root прочитал source map | 10 | 0 | 19 |
-| brief | source map есть → provisional brief записан | 9 | 1 cursor карты | 19 |
-| budget | brief есть → `manageable|decompose` | 9 | 2: cursor + running count | 20 |
-| decompose | verdict overload → provisional child list | 9 | 2: общая цель + source-map pointer | 20 |
-| map | все tasks manageable → launch map в чате | 10 | 1: verdict set | 20 |
-| carrier | карта есть, cold-loss дорог → durable carrier | 9 | 1: launch-map pointer | 19 |
-| execute | карта и briefs готовы → packets или blocker | 7 | 3: order/barrier · write owner · return | 19 |
-| accept | packet есть → pass либо stopped branch | 6 | 2: done_when · evidence owner | 17 |
-| integrate | returns приняты → один результат и chat proof | 6 | 2: accepted set · общая цель | 17 |
-| persist | durable state изменён → owners синхронизированы | 5 | 1: current transition | 15 |
-| repair | первый wait без delta → return либо final blocker | 9 | 2: named return · dependent barrier | 20 |
-| recover-root | root оборван → restored state либо blocker | 10 | 1: plan/carrier pointer | 20 |
+| orient | root-read owner ledger | 8 | 0 | 13 |
+| brief | provisional cognitive contract | 10 | 1 owner-ledger cursor | 16 |
+| count | active-unit ledger per actor/root decision | 9 | 2 owner+brief pointers | 16 |
+| budget | `manageable|decompose` + basis | 10 | 2 ledger+decision point | 17 |
+| decompose | smaller sets or named overload | 12 | 2 global goal+owner pointer | 19 |
+| shape | `no-delegation|controller-handoff|own topology` | 14 | 1 verdict set | 20 |
+| map | visible launch map | 12 | 1 shape decision | 18 |
+| carrier | addressable recovery ledger | 11 | 1 launch-map pointer | 17 |
+| execute | returns or terminal blocker behind barrier | 13 | 2 launch/state pointers | 20 |
+| accept | pass or stopped dependent branch | 13 | 2 done_when/state pointers | 20 |
+| integrate | one result, chat proof, final transition | 12 | 3 accepted/global/state pointers | 20 |
 
-Source map и briefs — внешние ledger-артефакты: стадия budget обходит их
-последовательно и держит одновременно одну проверяемую единицу и running count.
-Это не исключает task units из счёта; это способ не загружать весь кандидат до
-того, как verdict определит его форму.
+Past artifacts stay external. A stage keeps only named cursors and the current
+unit/decision active; exclusion from simultaneous memory does not exclude any
+task unit from its own count.
 
-## Карта старых указаний
+## Correspondence к прежнему live contract
 
-| ID | Старое указание | Цель | Вердикт v6 |
-|---|---|---:|---|
-| R1 | General 2+ wave trigger | 2 | Расширен прямой owner-коррекцией 2026-08-29: protocol нужен перед любым subagent prompt. |
-| R2 | Skip one ordinary worker и specialized controller | 2 | Ordinary skip снят; specialized owner сохраняет topology, но не отменяет cognitive contract. |
-| U1 | Independence/context hygiene против coordination cost | 2 | Переформулирован как active-set design, а не ценность числа окон. |
-| G1 | Минимальная окупающаяся форма | 2 | Сохранён через budget, decompose и launch map. |
-| G2 | Обоснованный no-wave | 2 | Сохранён как `no-delegation` после budget. |
-| G3 | Волна не владеет продуктом/планом/методологией | 1,3 | Сохранён owner-map и specialized-topology seam. |
-| D1 | Root сам читает load-bearing owners | 1 | Усилен до полной применимой instruction/truth chain; summary чтение не заменяет. |
-| D2 | Root хранит пользу, выполнимость и authority boundary | 3 | Сохранён в `sources`. |
-| D3 | Допуск по independence/ownership/context/time gain | 2 | Заменён более фундаментальным budget/decomposition verdict. |
-| D4 | Parallel только independent; dependent handoff условен | 2 | Сохранён в `decompose` и `execute`. |
-| D5 | Минимум окон; не создавать generic reviewer | 2 | Сохранён через cheaper staged-task и risk-based acceptance. |
-| D6 | Деление по outcome или owner | 2 | Расширен decision/stage boundaries и проверкой уменьшения active set. |
-| W1 | Chat map до launch | 2 | Сохранён в `map`; добавлен active-unit estimate. |
-| W2 | Self-contained brief с addresses, boundaries и return | 2 | Перестроен в goal · done_when · read · delta · write · return. |
-| W3 | One writer и dependent barrier | 2 | Сохранён в `execute`. |
-| W4 | Evidence до synthesis; progress ≠ evidence | 3 | Сохранён в `accept`. |
-| W5 | Независимая acceptance только по риску/контракту | 3 | Сохранён в `accept`. |
-| W6 | Root разрешает conflicts, claims, integration и chat report | 3 | Разнесён на `integrate` и `persist`. |
-| C1 | Plan state vs wave mechanics seam | 3 | Живой task-file остаётся owner-ом state; orchestration владеет cognitive map. |
-| C2 | Conditional no-plan carrier | 3 | Сохранён после launch map. |
-| C3 | No-delta repair terminal | 3 | Сохранён; root-break вынесен в самостоятельную стадию. |
-| Z1 | Completion для no-launch и launch | 1–3 | Сохранён по budget, acceptance, integration и durable sync. |
-
-## Новые ограничения
-
-| Ограничение | Закрываемый провал | Вытесненная свобода |
-|---|---|---|
-| Protocol перед любым subagent prompt | Один ordinary worker мог получить когнитивно перегруженное поручение без анализа. | Быстрый delegation без source/brief/budget прохода. |
-| Root читает всю применимую owner-цепочку | Prompt мог пропустить спецификацию, plan или acceptance owner. | Делегирование по summary без прямого owner-reading. |
-| Brief по умолчанию не повторяет доступный owner content | Повтор увеличивал active load и мог расходиться с каноном. | Риторическое усиление копированием; live receiving owner может потребовать адресованную критичную выдержку. |
-| `>20` — soft decomposition threshold | Перегруженный prompt запускался как будто количество обязанностей не меняет adherence. | Безоговорочный launch; escape — named overload с checkpoints и независимой приёмкой. |
-
-## Добавки по agent-defaults
-
-| Добавка | Дефолт → механизм → решение → вред → цена строгости |
+| Старый смысл | Текущий owner |
 |---|---|
-| Specialized controller сохраняет topology | General skill видит subagents и перестраивает wave → overlapping controller кажется универсальнее → не менять роли/линзы specialized wave → теряются её acceptance и freshness contracts → cognitive brief обязан вписаться в уже выбранную topology. |
-| Scope delta возвращает поток к cognitive stages | Worker продолжает прежний brief → уже начатый ход психологически дешевле остановки → не исполнять новую scope до source/brief/budget → незагруженный owner или overload остаётся невидимым → платим повторным shaping. |
-| Неразложимый overload можно принять явно | `decompose` читается как hard prohibition → число 20 выглядит точным gate → разрешить named overload с checkpoints/acceptance → иначе цель урезается или работа не стартует → допускается более слабое adherence с явным риском. |
-| Root recovery требует адресуемый state | После обрыва хочется восстановить по памяти чата → продолжение выглядит полезнее остановки → без task-file/carrier вернуть blocker → возможен duplicate external action или ложный accepted state → безопасно recoverable wave иногда останавливается. |
-| Runtime owner сохраняет lifecycle | Wave-level repair выглядит владельцем любого wait/follow-up → ближайшая инструкция перехватывает tool semantics → orchestration решает барьер, runtime — lifecycle → неверный polling/retry/archive → root читает дополнительный live owner. |
+| General wave trigger | Broadened by 2026-08-29 owner correction to every subagent prompt. |
+| Ordinary one-worker skip | Removed; `shape` can still return no-delegation. |
+| Specialized controller exclusion | Recast as `controller-handoff`, not a second topology. |
+| Root direct owner-reading | `orient`. |
+| Work + instruction-load allocation | `brief → count → budget → decompose`. |
+| Model/cognitive suitability | `budget` and capability gate in `shape`; no static model table. |
+| Minimal windows and dependent stages | `decompose` and `shape`. |
+| Chat map, ownership, barrier, return, acceptance owner | `map`. |
+| Evidence before synthesis, verifier only by risk/contract | `accept`. |
+| Root conflict/claim/integration/chat proof | `integrate`. |
+| Conditional no-plan carrier and decision registry | `carrier` as transition ledger. |
+| Stalled wait/follow-up/retry lifecycle | Live runtime owner; orchestration retains semantic barrier only. |
+| Root recovery | Live plan/carrier transition history; no separate procedural controller. |
+
+## Agent-default chains для добавок
+
+| Добавка | default → mechanism → decision → harm without → price |
+|---|---|
+| `no-delegation` in shape | Invoked orchestration tends to launch → work already spent on a brief → compare cognitive gain with handoff → needless worker ceremony → root may retain a manageable task. |
+| Specialized handoff | General protocol tends to finish its own wave → nearby topology feels complete → return contracts to live controller → duplicated barriers/acceptance → general skill cannot redesign specialized roles. |
+| Capability gate | Low count looks sufficient → budget ignores domain ability → prove actor sufficiency before assignment → manageable but incapable worker fails → runtime keeps freedom to choose exact implementation. |
+| Scope change invalidates contract | Started work tends to continue → sunk trajectory masks new owners/units → re-enter cognitive stages → stale brief or hidden overload → reshaping costs another pass. |
+| Soft threshold escape | `20` looks like enforcement → numeric gate invites harmful splitting → allow named overload when no honest boundary shrinks units → goal mutilation or infinite split → accepted lower adherence needs checkpoints. |
+| Pre-integration state append | Agents defer bookkeeping to the end → integration feels like natural save point → append recovery transition before dependent move → root break replays action or loses acceptance → more state writes during a wave. |
+| Runtime owns lifecycle | Barrier semantics resemble wait/retry mechanics → closest instruction takes over tool behavior → orchestration stops at semantic state; runtime launches/waits/repairs → invalid polling/retry/archive → another live owner must be read. |
+
+Owner-exact rules — every subagent trigger, root owner-reading, address+delta,
+brief-before-count and cognitive threshold — do not need agent-default invention.
+Scoped `1plan-task` exception may carry a few owner-addressed critical excerpts;
+each remains an active unit.
 
 ## Протокол поведения
 
-| Правдоподобное неверное прочтение | Пробел | Цена | Правка / TWI момент |
-|---|---|---|---|
-| Сначала разделить работу, потом посмотреть инструкции. | Границы проведены без реального active set. | Каждый child наследует тот же перегруз. | `sources → brief → budget` стоит до `decompose`. |
-| Ссылок достаточно, goal и acceptance можно оставить в owner-файлах. | Агенту не задано конкретное состояние текущего поручения. | Формально полезное чтение без завершённого outcome. | `brief` отдельно владеет goal/done_when. |
-| Для надёжности всегда надо повторить текст owner-а в prompt. | Канон и prompt становятся двумя владельцами смысла. | Дубликат съедает бюджет и устаревает. | `read` адресует; только receiving owner может потребовать критичную выдержку. |
-| Двадцать строк равно двадцати единицам. | Несколько независимо нарушимых обязанностей склеены синтаксисом. | Счёт врёт, декомпозиция не срабатывает. | `budget` считает independently forgettable units. |
-| `>20` автоматически требует больше агентов. | Parallelism перепутан с cognitive decomposition. | Handoff дороже staged work, write conflicts. | `decompose` сначала выбирает decision/owner/stage boundary. |
-| Progress report достаточен для синтеза. | Return не связан с `done_when`. | Root принимает неполный результат. | `accept` отделён от `integrate`. |
+| Likely misread | Gap / price | Structural correction |
+|---|---|---|
+| Split first, inspect owners later | Every child inherits hidden load. | `orient → brief → count → budget` precedes decomposition. |
+| Count prompt lines | Independent obligations disappear syntactically. | `count` defines independently forgettable units. |
+| More agents always lower load | Handoff and shared owners can increase it. | Boundary must let the next actor drop units; `shape` prices handoff. |
+| Only worker needs a budget | Root becomes the overloaded CTO bottleneck. | `count` names root at each decision point. |
+| Specialized wave continues through general execute | Two controllers own topology. | `controller-handoff` is terminal after shape. |
+| Save carrier after synthesis | Root break loses launch/acceptance state. | execute/accept append before dependent moves. |
+| Progress means accepted | Synthesis consumes an unproved return. | `accept` is a separate evidence gate. |
 
 ## Принципы
 
-- `agentic-research:P-002` — сохранять root-у целую траекторию и уменьшать
-  active set исполнителя, а не плодить окна.
-- `agentic-research:P-003` — latest owner correction переопределяет router:
-  ordinary one-worker теперь тоже проходит cognitive protocol.
-- `agentic-research:P-005` — проверять actual source map, brief, count,
-  decomposition и acceptance, а не только lint.
-- `agentic-research:P-007/P-008` — owners остаются каноном; brief адресует их и
-  не создаёт второй truth surface.
+- `agentic-research:P-002` — active set and capability, not agent count, choose form.
+- `agentic-research:P-003` — latest owner corrections broaden trigger but reject
+  harmful literalism and runtime owner quotes.
+- `agentic-research:P-005` — proof is actual ledger, verdict, trajectory,
+  evidence acceptance and state transition.
+- `agentic-research:P-007/P-008` — canonical owners keep truth, specialized
+  controllers keep topology, runtime owners keep lifecycle.

@@ -29,13 +29,14 @@ tutorial adds no new context.
 2. Check Brooks's conceptual integrity.
 3. Check Ousterhout's deep modules.
 4. Let a material future cost change the approach before editing.
-5. If no material future cost or strategic uncertainty appears, proceed without
-   ceremony.
-6. If material strategic uncertainty remains, ask one fresh subagent to
-   challenge the approach from the future system's perspective.
-7. If the owner directly requests an outside view, ask one fresh subagent.
-8. Address the subagent's strongest stability or maintainability objection
+5. If neither a material future cost nor material strategic uncertainty
+   appears, proceed without ceremony.
+6. If material strategic uncertainty remains or the owner directly requests an
+   outside view, ask one fresh subagent to challenge the approach from the
+   future system's perspective.
+7. Address the subagent's strongest stability or maintainability objection
    before editing.
-9. If a contract choice appears, follow the description's neighbor route before
+8. If a contract choice appears, follow the description's neighbor route before
    deciding it.
-10. After implementation, falsify the requested behavior.
+9. After implementation, run a check that would fail if the requested behavior
+   were absent or wrong.

@@ -54,20 +54,26 @@
    adding other optional flags only when applicable:
 
    ```bash
-   python3 "$ROOT/scripts/chat_capture.py" \
+   python3 "${CODEX_HOME:-$HOME/.codex}/skills/1chat-recall/scripts/chat_capture.py" \
      --quote "<source text>" --context-note "<missing source context>" \
      --session-context "<tasks; artifacts; operations; names and synonyms>" \
      --source-timestamp "<native timestamp>" --type <type> --topic <topic> \
-     --agent codex --project "<project root>" --session "$SESSION" --json
+     --agent codex --project "<project root>" \
+     --session "<canonical source session UUID>" --json
    ```
 
 10. In read-only work, report the backlog without mutation. When mutation is
    authorized, first preserve checksums and untracked backups outside the
    scanned corpus; merge duplicate holders only within one project and session.
-11. Validate the result with `chat_digest.py "<project root>/_ops/chat-recall"
-    --check --strict`, then prove that prior text/raw-block multisets did not
-    shrink, new quotes exist in native sources, timestamps/sessions remain
-    honest, records open by exact address, diagnostics remain visible or are
-    fixed, and each project has at most one holder per session. Report restored
-    signal and exact addresses plus provenance, chronology, structure proof,
-    unresolved diagnostics, or the precise blocker.
+11. Validate the result with the explicit local command below, then prove that
+    prior text/raw-block multisets did not shrink, new quotes exist in native
+    sources, timestamps/sessions remain honest, records open by exact address,
+    diagnostics remain visible or are fixed, and each project has at most one
+    holder per session. Report restored signal and exact addresses plus
+    provenance, chronology, structure proof, unresolved diagnostics, or the
+    precise blocker.
+
+    ```bash
+    python3 "${CODEX_HOME:-$HOME/.codex}/skills/1chat-recall/scripts/chat_digest.py" \
+      "<project root>/_ops/chat-recall" --check --strict
+    ```

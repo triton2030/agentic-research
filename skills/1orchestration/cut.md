@@ -16,16 +16,18 @@
   потребовать пару адресованных критичных выдержек в durable task-файле.
 - `>20` записан как soft decomposition threshold; сказанные владельцем `75%`
   не превращены в неподтверждённый research claim.
-- Четыре строки `Неснимаемые сбои` сняты как повторы sources/decomposition,
+- Дословные owner-цитаты сняты из runtime body по более новому прямому решению;
+  их evidence и TWI-разбор остаются в history.
+- Четыре строки `Неснимаемые сбои` сняты как повторы orient/decomposition,
   brief, return-evidence и barrier-before-synthesis в их собственных моментах.
 - Stale route `1planning → Delegation → Recovery after a break` снят:
-  после раскройки семьи `1planning` этого live reference нет, а wave
-  recovery принадлежит `1orchestration`. В `repair.md` восстановление
-  карты стало self-contained.
+  после раскройки planning-family этого live reference нет. Recovery-bearing
+  state теперь пишет live plan либо короткий carrier transition ledger;
+  wait/follow-up/retry остаются у runtime owner-а.
 - Не добавлены: числовой fan-out, безусловный verifier, новый runtime/model
   routing или новый control surface. Flow разделён на самостоятельные
-  `sources → brief → budget → decompose → map → execute → accept → integrate`
-  стадии; carrier, persistence и два recovery-момента остаются условными.
+  `orient → brief → count → budget → decompose → shape → map → execute →
+  accept → integrate` stages; carrier — единственный условный state-mode.
 
 ## v1–v2 (2026-08-10, mavo-short2)
 

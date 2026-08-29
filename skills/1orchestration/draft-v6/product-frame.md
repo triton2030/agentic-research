@@ -2,44 +2,45 @@
 
 ## Цель-сцена
 
-Root собирается поручить работу субагенту либо видит, что задача перегружена.
-Он читает всю влияющую instruction/truth chain, формирует brief с правильной
-целью, полной приёмкой, owner-адресами и только невыводимой дельтой, затем
-оценивает active cognitive units. Работа делится или стадируется, пока каждый
-исполнитель не получает выполнимый срез, а root сохраняет траекторию и собирает
-один доказанный результат.
+Root собирается поручить работу либо сам не удерживает её active set. Он читает
+влияющие owners, формирует contract из goal, evidence-based done, addresses и
+task delta, затем считает independently forgettable units каждого actor-а и
+root decision point. Декомпозиция законна только когда следующий actor сможет
+отбросить часть units. `shape` выбирает минимальную capable topology, а root
+принимает evidence и оставляет recovery-bearing state до integration.
 
-Приёмка: наблюдаемы source map · provisional briefs · честный active-unit count ·
-обоснованная форма · launch map · returns по done_when · root integration и
-видимый chat proof.
+Приёмка: наблюдаемы owner ledger · contracts · active-unit ledgers · verdicts ·
+form decision · при собственной topology launch map · evidence acceptance ·
+chat proof · state transitions.
 
 ## Привязка к цели проекта
 
-Это cross-project контракт качества delegation. Субагенты разгружают cognitive
-work, не создавая второй продуктовый канон: изменяемые значения остаются у
-owners, topology специализированных волн — у специализированных controllers,
-tool lifecycle — у runtime skills.
+Это cross-project contract качества delegation. Brief не создаёт второй канон,
+specialized controller не получает второго orchestrator-а, runtime lifecycle
+не дублируется, а carrier остаётся только transition ledger-ом.
 
 ## Тайбрейкеры
 
-1. Полная применимая owner-цепочка сильнее быстрого prompt-а по памяти.
-2. Выполнимый active set сильнее числа агентов и субъективной простоты задачи.
-3. Owner-address + task delta сильнее пересказа доступного канона; live
-   receiving owner может потребовать адресованную критичную выдержку.
-4. Порог 20 мягкий: coupling и длинная траектория могут потребовать split раньше;
-   неразложимый overload можно принять только явно и с усиленной проверкой.
-5. Specialized controller владеет topology; `1orchestration` — cognitive contract.
+1. Выполнимость active set и способность actor-а сильнее числа окон.
+2. Owner address + task delta сильнее пересказа; receiving owner может требовать
+   адресованную критичную выдержку.
+3. Порог 20 мягкий; честная неразложимость сильнее дробления ради compliance.
+4. Root владеет общей траекторией, но его decision points budget-ятся так же.
+5. Specialized topology и runtime lifecycle сильнее general mechanism.
 
 ## Аппетит
 
-- В каждый момент тело + один reference + продолжающиеся обязательства дают не
-  более 20 активных единиц; карта с честным счётом — в `refactor-map.md`.
-- `75%` остаётся owner-эвристикой, не research claim и не обещанием модели.
-- Пересмотр: actual prompt повторяет owner content, не называет влияющий файл,
-  считает строки вместо обязанностей или запускает overload без явного решения.
+- Runtime body — 17 units; каждый reference — не больше 14; каждый active set —
+  не больше 20 по карте в `refactor-map.md`.
+- Quotes владельца живут в history/proof, не в runtime body по прямому решению
+  `_ops/chat-recall/2026-08-29-160553-claude-0bee3f3d.md:17`.
+- Пересмотр: prompt пропускает owner, повторяет канон без receiving-owner
+  основания, считает строки, не budget-ит root, назначает incapable actor-а,
+  перехватывает specialized topology или сохраняет state только после synthesis.
 
-Прямые owner-источники: `_ops/chat-recall/2026-08-29-152721-codex-01a04d0e.md:20`,
+Прямые owner-источники:
+`_ops/chat-recall/2026-08-29-152721-codex-01a04d0e.md:20`,
 `_ops/chat-recall/2026-08-29-152644-codex-01a04d0d.md:23-28`,
-`_ops/chat-recall/2026-08-10-000000-claude-a0af5c40.md:20-26`,
-`_ops/chat-recall/2026-08-26-173953-codex-01a03dfe.md:19-27`,
-`_ops/chat-recall/2026-08-28-193846-claude-76aa0843.md:18-33`.
+`_ops/chat-recall/2026-08-29-163434-codex-01a04d4a.md:15`,
+`_ops/chat-recall/2026-08-29-160553-claude-0bee3f3d.md:17`,
+`_ops/chat-recall/2026-08-10-000000-claude-a0af5c40.md:20-29`.
