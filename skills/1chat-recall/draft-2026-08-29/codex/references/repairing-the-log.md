@@ -40,11 +40,11 @@
    text/selection verification, otherwise `minute` or `date`; `unknown` is only
    valid for `note`. Holder filename/frontmatter/heading follow the earliest
    `exact|minute` source date, while `date` precision never moves the holder.
-8. Supply the same searchable metadata as fresh Capture: a non-paraphrasing
-   `context-note` for each quote, the complete non-truth `session-context` for
-   each quote/selection, and one type/topic, project, agent, source timestamp,
-   and source session. Write via `chat_capture.py` with only applicable optional
-   flags:
+8. Supply the same searchable metadata as fresh Capture: a short keyword-like,
+   non-paraphrasing `context-note` for each quote; the complete non-truth
+   `session-context` for each quote/selection; and one type/topic, project,
+   agent, source timestamp, and source session. Write via `chat_capture.py` with
+   only applicable optional flags:
 
    ```bash
    python3 "$ROOT/scripts/chat_capture.py" \

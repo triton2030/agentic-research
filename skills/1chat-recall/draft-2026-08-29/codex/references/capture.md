@@ -10,9 +10,13 @@
 3. Read the current session holder. Do not duplicate the same thesis; repeat
    capture only to supply the complete current `session-context`, which may
    return `context-updated` without rewriting the record.
-4. Inspect the canonical types and topic map, then choose by subject meaning.
-   If no nearby boundary exists, create one short Latin name for the durable
-   subject with `--new-topic`.
+4. Before writing any `quote`, complete topic selection in this order: read
+   `_ops/chat-recall/topics.md` in full; name the quote's durable subject; compare
+   it with every existing boundary by meaning rather than word overlap; reuse
+   the nearest fitting topic. Only when none fits, create one short Latin topic
+   name and one-line boundary with `--new-topic`. Poor topic metadata can make
+   the quote effectively unrecoverable, so inventory output never substitutes
+   for reading the map.
 
    ```bash
    python3 "${CODEX_HOME:-$HOME/.codex}/skills/1chat-recall/scripts/chat_capture.py" \
@@ -22,10 +26,11 @@
 5. Preserve owner speech as deletion-only `quote`; an owner-selected ready-made
    option is `selection`, agent explanation is `note`, and malformed evidence
    remains read-side `raw`. Never turn an agent paraphrase into owner speech.
-6. For each `quote`, write one `context-note` containing only the external
-   circumstance or named referent missing from it. If no non-repeating delta can
-   be named, return to source context instead of leaving it empty or
-   paraphrasing.
+6. For each `quote`, write a short `context-note` as keyword-like noun phrases:
+   missing named referents, stable artifact names, and useful search synonyms.
+   Do not write prose, repeat/paraphrase the thesis, assert current truth, or
+   widen its scope. If no non-repeating search keys can be named, return to
+   source context instead of inventing them.
 7. For each `quote` or `selection`, write one complete `session-context` line
    that retains earlier major tasks/artifacts/operations/names and adds the new
    subject with useful synonyms; it helps search but never states decisions or
@@ -45,7 +50,7 @@
 
     python3 "$ROOT/scripts/chat_capture.py" \
       --quote "<literal owner words>" \
-      --context-note "<one missing circumstance or named referent>" \
+      --context-note "<short keyword-like referents, artifact names, synonyms>" \
       --session-context "<tasks; artifacts; operations; names and synonyms>" \
       --source-timestamp "$(date -Iseconds)" \
       --type <speech-act> --topic <topic> \
