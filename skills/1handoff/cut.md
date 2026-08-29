@@ -113,7 +113,7 @@ installed-копиям). Дефект — ёмкость: ~56 самостоят
   `Owner Evidence` ×4) → 3 единицы стадии 1 + carrier-правило стадии 2.
 - Cleanup ×5 → 4 единицы стадии 1 («follow owning contract» выводится из
   «change a surface only through its own owning contract»).
-- `Continuation Delta` causal chain + `## Terrain Model` минимальная модель → 
+- `Continuation Delta` causal chain + `## Terrain Model` минимальная модель →
   одна единица стадии 2: форма цепочки объявлена там, где она пишется.
 - «Omit optional sections when gate not met» + «Confirm absence instead of
   inventing» + «one addressable `###` block» → одна единица стадии 2.
