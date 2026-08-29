@@ -1,5 +1,25 @@
 # Вырезано — с причиной
 
+## v6 candidate (2026-08-29, строгий `1skill-creation`)
+
+- Функция v5 не переоткрыта: work + instruction-load allocation,
+  root-usefulness/trajectory, direct owner reading, chat map/report, evidence
+  barriers и conditional carrier сохранены.
+- Отрицательный one-worker router сужен до ordinary worker: более
+  новый owner-контракт managed background offload требует применять
+  `1orchestration` и к одному bounded потоку. Это не разрешает лишние окна.
+- Главный use case возвращён в hot zone `description`; specialized-controller
+  exclusion остался вторым предложением и требует повторного near-miss
+  probe.
+- Четыре строки `Неснимаемые сбои` сняты как повторы admission,
+  brief, return-evidence и barrier-before-synthesis в их собственных моментах.
+- Stale route `1planning → Delegation → Recovery after a break` снят:
+  после раскройки семьи `1planning` этого live reference нет, а wave
+  recovery принадлежит `1orchestration`. В `repair.md` восстановление
+  карты стало self-contained.
+- Не добавлены: числовой fan-out, обязательный verifier, новый runtime/model
+  routing, третий reference или новый control surface.
+
 ## v1–v2 (2026-08-10, mavo-short2)
 
 - Секция `## Continuity` в task.md — двойник живых «Свидетельства и

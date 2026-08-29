@@ -121,7 +121,7 @@ reversal · Checklist Manifesto (Gawande) — killer items, pause point, read-do
   [behavior-package](references/behavior-package.md)
 - `description` написан как аннотация или под тему → скил не поднимается либо
   поднимается не в свой момент работы → его Дельта потеряна →
-  [description](references/description.md)
+  [description](skills/1skill-shaping/tracked-claude-2026-08-26/references/description.md)
 - черновик проверен чтением → убедительный текст прячет лазейку →
   [audit](references/audit.md)
 - сдан без evidence, различающего заявленное свойство → читается лучше
@@ -130,7 +130,7 @@ reversal · Checklist Manifesto (Gawande) — killer items, pause point, read-do
 - reference собирает правила впрок → перегруз глушит и правила тела →
   соблюдение падает кратно (96% → 20–60%) → [reference](references/reference.md)
 - существующий скил перерабатывается на глаз → выдумка остаётся, слова
-  владельца теряются → [refactor](references/refactor.md)
+  владельца теряются → [refactor](skills/1skill-shaping/tracked-claude-2026-08-26/references/refactor.md)
 - скил не сработал в живой задаче → лечится добавлением правил → разрастание
   и сужение поля решений → [failures](references/failures.md)
 
@@ -142,7 +142,7 @@ reversal · Checklist Manifesto (Gawande) — killer items, pause point, read-do
    рефактор.
 2. **Допуск.** Выполни автономную границу: полный путь —
    [интервью](references/interview.md) и пакет класса; рефактор — карта
-   смыслов и курация по [refactor](references/refactor.md); короткий путь
+   смыслов и курация по [refactor](skills/1skill-shaping/tracked-claude-2026-08-26/references/refactor.md); короткий путь
    переиспользует прежний допуск, но сохраняет аудит.
 3. **Черновик.** На полном пути дай связный текст и карту смыслов по убыванию
    важности: `смысл → меняемое решение → что закрывает → дефолт модели →

@@ -94,7 +94,7 @@ trigger → точное имя → ключевые инварианты или
 - замысел или admission неясны → [interview](references/interview.md);
 - выбирается поверхность → [placement](references/placement.md);
 - пересекаются правила или слои → [coherence](references/coherence.md);
-- существующий свод сокращается → [refactor](references/refactor.md);
+- существующий свод сокращается → [refactor](skills/1instruction-shaping/shared-owner-2026-08-26/portable/references/refactor.md);
 - формулировка допускает дешёвое прочтение → [wording](references/wording.md);
 - значение смешано с поведением → [knowledge-out](references/knowledge-out.md);
 - нужен независимый falsifier → [audit](references/audit.md);

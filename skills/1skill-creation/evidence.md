@@ -83,3 +83,41 @@
 - Счёт по строкам-инструкциям: тело ~20 · writing-rules 15 · goal-context 12 ·
   behavior-protocol 8 · reference-files 14 · check-approve ~20 · refactor 12 ·
   routing 8; check-approve и тело на пределе — кандидаты следующего рефактора.
+
+2026-08-29, v7:
+
+- Финальные независимые вердикты по полному пакету: буквальный проверяющий —
+  `CLEAN`; проверяющий цели и траектории — `CLEAN`. Разбор принятых находок —
+  `skills/1skill-creation/reviews-v7.md`.
+- Holdout `1dependency-decision` прошёл `goal-context` →
+  `skill-short-description` → `writing-pass` → `check-approve` без единого
+  перехода reference→reference. Он не создал лишний протокол, не задал
+  выводимый вопрос и получил скил из шести активных единиц. След —
+  `/tmp/1skill-creation-holdout.Dortm8/postfix/skills/1dependency-decision/`.
+- `rumdl` проверил 60 Markdown-файлов owner-а, tracked и installed проекций без
+  замечаний; `quick_validate.py` вернул `Skill is valid!` для всех пяти копий.
+- `sync_simple_projections.py 1skill-creation --check` подтвердил совпадение
+  shared owner, tracked Claude/Codex и обеих установленных проекций. В Codex
+  сохранён runtime-only `agents/openai.yaml`; у Claude его нет.
+- Из четырёх проекций удалены восемь superseded references, перечисленные в
+  `cut.md`; repo-копии восстановимы через Git, installed — повторной
+  синхронизацией из owner-а.
+- Ограничение evidence: один holdout доказывает исполнимость и наблюдаемую
+  траекторию, но не вероятность соблюдения на всех моделях.
+
+2026-08-29, v7 — утверждение коррекции и повторная установка:
+
+- Владелец выбрал операционную модель бюджета: считаются самостоятельные
+  поведенческие инструкции текущего режима, а не строгая сумма всех фактов,
+  целей и завершённых обязательств (`_ops/chat-recall/2026-08-28-180725-codex-01a04879.md`,
+  L31).
+- Утверждённый `мой draft-v7` без последующих изменений записан в shared owner
+  и синхронизирован в tracked и installed Claude/Codex. Удалённый
+  `writing-pass.md` отсутствует во всех активных копиях; Codex metadata
+  `agents/openai.yaml` сохранён только в Codex.
+- `diff -qr` подтвердил равенство draft и portable owner;
+  `sync_simple_projections.py 1skill-creation --check` подтвердил проекции;
+  `rumdl` и `quick_validate.py` прошли для всех пяти копий по 11
+  Markdown-файлов; внутренние маршруты разрешаются.
+- Остаточный эмпирический риск не изменился: holdout подтверждает возможную
+  правильную траекторию, но не частоту соблюдения на разных моделях.

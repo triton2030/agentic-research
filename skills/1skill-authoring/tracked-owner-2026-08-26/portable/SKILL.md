@@ -83,4 +83,4 @@ envelope — в `evidence.md`. Сдача: дефицит и триада сло
 обязанностей, что скил закрывает у агента, чем проверено изменившееся решение,
 residual candidate claims и допущения, способные изменить результат. В сдаче
 цитируй применённые пункты канона; имя без пункта — не применение →
-[canon](references/canon.md).
+[canon](skills/1skill-authoring/tracked-owner-2026-08-26/portable/references/canon.md).

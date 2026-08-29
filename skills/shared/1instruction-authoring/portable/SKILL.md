@@ -60,8 +60,10 @@ description: >-
 
 - работа уже прошла, и надо разобрать, что в контексте её испортило →
   `1context-refactor`;
-- смысл живёт в скиле → `1skill-creation`; вызов скила → `1skill-routing`;
-- разбор существующего скила → `1skill-refactor`.
+- смысл живёт в скиле → `1skill-creation`; вызов скила → `1skill-creation`,
+  режим `references/routing.md`;
+- разбор существующего скила → `1skill-creation`, режим
+  `references/refactor.md`.
 
 ## Завершение
 
