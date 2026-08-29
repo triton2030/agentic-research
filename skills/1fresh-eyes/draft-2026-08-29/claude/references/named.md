@@ -1,12 +1,12 @@
 ---
-description: "Run one user-named Claude specialist and preserve its native product."
+description: "Use after one named Claude specialist packet is frozen."
 ---
 
-# Named
+# Именованный специалист
 
-Вход: frozen named packet. Выход: terminal native product.
+Вход: замороженный пакет именованного специалиста. Выход: терминальный родной результат.
 
-1. Запусти ровно один явно выбранный profile в новом ordinary non-fork `Agent` stream.
-2. Передай только frozen packet; method и output принадлежат role definition.
-3. Недоступный профиль верни как точный blocker без подмены.
-4. Верни terminal product без смены native form.
+1. Запусти ровно один явно выбранный `profile` в новом обычном `Agent`-потоке без fork.
+2. Передай только замороженный пакет; метод и форма ответа принадлежат определению роли.
+3. Недоступный профиль верни как точный `blocker` без подмены.
+4. Верни терминальный результат без смены родной формы.

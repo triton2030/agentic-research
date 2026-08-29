@@ -2,8 +2,11 @@
 
 ## v1–v2, 2026-08-10, сессия mavo-short2
 
-Recall владельца: `_ops/chat-recall/2026-08-10-140336-claude-8a35dd6a.md`
-(далее R1) и `2026-08-10-160510-claude-0ddcd0d4.md` (R2, «да» на запись).
+Recall владельца:
+`/Users/triton/Documents/My_projects/mavo-short2/_ops/chat-recall/2026-08-10-140336-claude-8a35dd6a.md`
+(далее R1) и
+`/Users/triton/Documents/My_projects/mavo-short2/_ops/chat-recall/2026-08-10-160510-claude-0ddcd0d4.md`
+(R2, «да» на запись).
 
 Класс: поведение в момент. Дефицит словами владельца: «один агент
 использует все эти скиллы… сам пишет код, потом сам проверяет — это
@@ -92,10 +95,11 @@ Recall владельца: `_ops/chat-recall/2026-08-10-000000-claude-a0af5c40.m
 
 ## v5, 2026-08-25 — решение вместо процедурного свода
 
-Запрос владельца: `_ops/chat-recall/raw/2026-08-25-152639-codex-01a03873.md`.
-Интерпретация сверена с темой `_ops/chat-recall/topics/orchestration-waves.md`
-и исходными репликами владельца из сессий `a0af5c40`, `019feadb` и
-`b378aa7e`. Рефактор выполнен по обновлённым live-контрактам
+Запрос владельца: `_ops/chat-recall/2026-08-25-152639-codex-01a03873.md`.
+Интерпретация сверена с исходными репликами владельца
+`_ops/chat-recall/2026-08-10-000000-claude-a0af5c40.md`,
+`_ops/chat-recall/2026-08-10-134812-codex-019feadb.md` и
+`_ops/chat-recall/2026-08-11-003000-claude-b378aa7e.md`. Рефактор выполнен по обновлённым live-контрактам
 `1skill-shaping` и `1instruction-shaping`, а не по их историческим копиям.
 
 | Правило v5 | Источник |

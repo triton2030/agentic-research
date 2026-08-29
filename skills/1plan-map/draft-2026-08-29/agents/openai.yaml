@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Карта планов"
+  short_description: "Use for epic-map or dashboard creation, audit, or change"
+  default_prompt: "При создании, аудите или изменении карты эпиков, состояния эпика или дашборда используй $1plan-map; допуск и файлы задач оставляй их владельцам."
+
+policy:
+  allow_implicit_invocation: true

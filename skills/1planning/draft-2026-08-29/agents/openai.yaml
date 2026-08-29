@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Планирование"
+  short_description: "Use for what-next decisions, task planning, or major-error reassessment"
+  default_prompt: "При выборе следующей работы, планировании задачи или пересмотре после крупной ошибки используй $1planning; долговечную карту и файл задачи передавай их владельцам."
+
+policy:
+  allow_implicit_invocation: true

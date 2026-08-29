@@ -334,3 +334,24 @@ Escape paths:
 пакета отсутствует; topology не зарегистрирована как shared owner и отдельного
 `skills/codex/1readable-code` нет, хотя текущие live Claude/Codex copies и
 tracked Claude owner исторически поддерживали побайтовую parity.
+
+## Прямая коррекция владельца перед установкой
+
+English-body candidate SHA
+`5ebb79da8ddd2e62c8974e9f548a31e238faaf9ac5a8c04b311141283c958dd8` снят до
+установки по двум новым решениям владельца:
+
+- terminal outcome обязан включать установку;
+- body скила должен быть русским, а `description` — коротким английским
+  trigger-only текстом.
+
+Новый draft SHA-256:
+`f4d0c9bc5c295d5ed81f360edc1366a949bfdcd6c9d86fbb0f5f512022f89af7`.
+
+Дополнительно снят requested-behavior post-check: `agent-defaults` признал его
+общим coding default без уникального readability-решения. Functional clean-run
+остаётся acceptance-проверкой пакета, но не active instruction.
+
+Topology-кандидат — `skills/shared/1readable-code/portable/` с Codex UI delta в
+`platforms/codex/agents/openai.yaml`: generic sync поддерживает такую форму, а
+runtime-specific различий в `SKILL.md` не найдено.

@@ -1,15 +1,15 @@
 ---
-description: "Turn four Claude reports into one evidence-backed decision handback."
+description: "Use after four stable Claude panel reports exist."
 ---
 
-# Synthesis
+# Синтез
 
-Вход: four terminal native reports. Выход: decision handback.
+Вход: четыре терминальных родных отчёта. Выход: передача решения.
 
-1. Проверь по source каждый material claim; citation сама по себе не support.
-2. Сохрани native decision record каждой линзы: verdict, falsifier, source anchor, consequence.
-3. Одинаковый итог допустим только при разных evidence paths.
-4. Дай каждому finding один action label: unusable, needs verification, later или decision-changing.
-5. Группируй по source, label и severity; raw output не переноси в canon.
+1. Проверь по источнику каждое существенное утверждение; ссылка сама по себе не является подтверждением.
+2. Сохрани родную запись решения каждой линзы: вердикт, `falsifier`, опору на источник и следствие.
+3. Одинаковый итог допустим только при разных путях проверки.
+4. Дай каждой находке одну метку действия: `unusable`, `needs verification`, `later` или `decision-changing`.
+5. Группируй по источнику, метке и серьёзности; исходный ответ не переноси в канон.
 6. Не голосуй и не усредняй; владелец решения выбирает по конечному результату.
-7. Верни decision handback: `next · nearest alternative · unchanged · почему выбранный лучше обеих`; это не final acceptance проверяемого артефакта.
+7. Верни передачу решения: `next · nearest alternative · unchanged · почему выбранный лучше обеих`; это не финальная приёмка проверяемого артефакта.

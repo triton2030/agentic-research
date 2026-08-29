@@ -2,34 +2,35 @@
 
 ## Функция
 
-Перед любым поручением субагенту превратить работу в выполнимые cognitive sets:
-root читает влияющие owners, формирует goal/acceptance/address/delta contract,
-считает active units root-а и исполнителей, делит только там, где следующий
-actor сможет отбросить часть units, и принимает один evidence-backed результат.
+Перед любым поручением субагенту превратить работу в выполнимые когнитивные
+наборы: root читает влияющие источники, формирует полный
+`goal/done_when/read/delta` контракт, перечисляет активные единицы root и
+исполнителей, делит только там, где следующий участник сможет отбросить часть
+единиц, и принимает единый доказанный результат.
 
 ## Уникальный контекст
 
-Prompt — временный instruction layer поверх project truth. Только оркестратор
-видит целую карту actors и может уменьшать их одновременную нагрузку, сохраняя
-траекторию во внешнем state, а не в памяти одного окна.
+Поручение — временный слой инструкций поверх канонической правды. Только
+оркестратор видит целую карту участников и может уменьшать их одновременную
+нагрузку, сохраняя траекторию во внешнем владельце, а не в памяти одного окна.
 
 ## Цель владельца
 
 Развивать когнитивную работу до выполнимого списка задач. Качество зависит не
 только от субъективной сложности, но и от числа независимо удерживаемых
-инструкций, критериев и знаний. Contract адресует owners, сообщает отсутствующую
-delta и получает budget verdict после формирования.
+инструкций, критериев и знаний. Контракт адресует источники, сообщает
+отсутствующую `delta` и получает вердикт нагрузки после формирования.
 
 ## Момент вызова
 
-- Use: перед prompt-ом любому subagent, включая ordinary one-worker и managed
-  offload.
-- Use: когда root делит собственную перегруженную cognitive work.
-- Specialized controller сохраняет topology; сюда отдаёт только contracts и
-  budget verdicts своих actors.
-- Skip: локальную root-работу без delegation и признака overload.
+- Use: перед поручением любому субагенту, включая одного обычного исполнителя
+  и управляемый фоновый тред.
+- Use: когда root делит собственную перегруженную когнитивную работу.
+- Специализированный контроллер сохраняет схему; сюда отдаёт только контракты
+  и вердикты нагрузки своих исполнителей.
+- Skip: локальная работа root без делегирования и признака перегруза.
 
-Naked-trigger candidates до actual probes:
+Проверенные trigger-пробы:
 
 - ordinary use: `Поручи субагенту проверить этот файл`;
 - overloaded use: `Разбей сложную задачу между агентами`;
@@ -39,9 +40,9 @@ Naked-trigger candidates до actual probes:
 
 ## Три цели
 
-1. Root прочитал полный owner ledger.
-2. Каждый actor, включая root, получил выполнимый cognitive contract.
-3. Root закрыл одну evidence-backed orchestration с текущим state.
+1. Root прочитал полную карту источников.
+2. Каждый исполнитель и root получили выполнимый когнитивный контракт.
+3. Root закрыл одну оркестрацию доказанным результатом и актуальным состоянием.
 
 ## Карта стадий и active sets
 
@@ -52,17 +53,17 @@ Runtime body содержит 17 independently actionable units: unique context 
 
 | Stage | Наблюдаемый выход | Ref units | Carried | Active total |
 |---|---|---:|---:|---:|
-| orient | root-read owner ledger | 8 | 0 | 13 |
-| brief | provisional cognitive contract | 10 | 1 owner-ledger cursor | 16 |
-| count | active-unit ledger per actor/root decision | 9 | 2 owner+brief pointers | 16 |
-| budget | `manageable|decompose` + basis | 10 | 2 ledger+decision point | 17 |
-| decompose | smaller sets or named overload | 12 | 2 global goal+owner pointer | 19 |
-| shape | `no-delegation|controller-handoff|own topology` | 14 | 1 verdict set | 20 |
-| map | visible launch map | 12 | 1 shape decision | 18 |
-| carrier | addressable recovery ledger | 11 | 1 launch-map pointer | 17 |
-| execute | returns or terminal blocker behind barrier | 13 | 2 launch/state pointers | 20 |
-| accept | pass or stopped dependent branch | 13 | 2 done_when/state pointers | 20 |
-| integrate | one result, chat proof, final transition | 12 | 3 accepted/global/state pointers | 20 |
+| orient | прочитанная карта источников | 6 | 0 | 11 |
+| brief | полный когнитивный контракт | 12 | 1 адрес карты | 18 |
+| count | перечисленный реестр участника/root | 7 | 2 адреса источников и поручения | 14 |
+| budget | `manageable|decompose` с основанием | 9 | 2 адреса реестра и точки решения | 16 |
+| decompose | меньшие наборы либо названный перегруз | 11 | 2 адреса общей цели и источников | 18 |
+| shape | `no-delegation|controller-handoff|own topology` | 9 | 1 набор вердиктов | 15 |
+| map | видимая карта запуска | 10 | 1 решение о форме | 16 |
+| carrier | адресуемый реестр восстановления | 10 | 1 адрес карты запуска | 16 |
+| execute | следующий возврат либо blocker за барьером | 12 | 2 адреса запуска и состояния | 19 |
+| accept | вердикт одного возврата | 11 | 2 адреса `done_when` и состояния | 18 |
+| integrate | единый результат и финальный переход | 11 | 3 адреса приёмки, цели и состояния | 19 |
 
 Past artifacts stay external. A stage keeps only named cursors and the current
 unit/decision active; exclusion from simultaneous memory does not exclude any
@@ -97,6 +98,7 @@ task unit from its own count.
 | Soft threshold escape | `20` looks like enforcement → numeric gate invites harmful splitting → allow named overload when no honest boundary shrinks units → goal mutilation or infinite split → accepted lower adherence needs checkpoints. |
 | Pre-integration state append | Agents defer bookkeeping to the end → integration feels like natural save point → append recovery transition before dependent move → root break replays action or loses acceptance → more state writes during a wave. |
 | Runtime owns lifecycle | Barrier semantics resemble wait/retry mechanics → closest instruction takes over tool behavior → orchestration stops at semantic state; runtime launches/waits/repairs → invalid polling/retry/archive → another live owner must be read. |
+| Auditable count | Agent estimates a plausible number → a bare total looks sufficient → total must equal separately listed entries → hidden overload passes budget → a longer external ledger. |
 
 Owner-exact rules — every subagent trigger, root owner-reading, address+delta,
 brief-before-count and cognitive threshold — do not need agent-default invention.
@@ -108,12 +110,14 @@ each remains an active unit.
 | Likely misread | Gap / price | Structural correction |
 |---|---|---|
 | Split first, inspect owners later | Every child inherits hidden load. | `orient → brief → count → budget` precedes decomposition. |
-| Count prompt lines | Independent obligations disappear syntactically. | `count` defines independently forgettable units. |
+| Count prompt lines | Independent obligations disappear syntactically. | `count` requires separate entries and derives the total from them. |
 | More agents always lower load | Handoff and shared owners can increase it. | Boundary must let the next actor drop units; `shape` prices handoff. |
 | Only worker needs a budget | Root becomes the overloaded CTO bottleneck. | `count` names root at each decision point. |
 | Specialized wave continues through general execute | Two controllers own topology. | `controller-handoff` is terminal after shape. |
+| Conditional carrier becomes mandatory | Cheap work creates bookkeeping or cannot finish. | State writes are conditional in execute/accept/integrate and completion. |
 | Save carrier after synthesis | Root break loses launch/acceptance state. | execute/accept append before dependent moves. |
 | Progress means accepted | Synthesis consumes an unproved return. | `accept` is a separate evidence gate. |
+| First return triggers synthesis | Later mandatory packets are skipped. | Body cycles execute → accept until every return has a verdict. |
 
 ## Принципы
 

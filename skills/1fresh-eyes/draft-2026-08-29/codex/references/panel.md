@@ -1,14 +1,14 @@
 ---
-description: "Run the fixed native Codex panel without leaking the Premortem report."
+description: "Use after the Codex Premortem report and native packets are ready."
 ---
 
-# Native Panel
+# Нативная панель
 
-Вход: frozen native packets и retained Premortem outcome. Выход: three terminal native reports плюс retained outcome.
+Вход: замороженные нативные пакеты и сохранённый результат Premortem. Выход: три терминальных родных отчёта и сохранённый результат.
 
-1. Native panel — `ladder`, `solvent`, `prospector`.
-2. Запусти каждый профиль как новый stream с `fork_turns: "none"` и только его packet.
-3. Не передавай Premortem outcome native streams.
-4. При ограниченной capacity используй bounded waves и сохраняй terminal reports.
-5. Недоступный профиль верни как `panel_incomplete` с точным blocker без подмены и останови Fresh Eyes pass.
-6. Иначе не переходи к handback без terminal report каждой native линзы.
+1. Нативная панель — `ladder`, `solvent`, `prospector`.
+2. Запусти каждый профиль как новый поток с `fork_turns: "none"` и только с его пакетом.
+3. Не передавай результат Premortem нативным потокам.
+4. При ограниченной вместимости используй ограниченные волны и сохраняй терминальные отчёты.
+5. Недоступный профиль верни как `panel_incomplete` с точным `blocker` без подмены и останови проход Fresh Eyes.
+6. Иначе не переходи к передаче решения без терминального отчёта каждой нативной линзы.

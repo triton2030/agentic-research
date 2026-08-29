@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Задача плана"
+  short_description: "Use for one approved task file's creation, continuation, handoff, or closure"
+  default_prompt: "Для создания, продолжения, пересборки, передачи или закрытия одного утверждённого файла задачи используй $1plan-task; допуск и правду эпика оставляй их владельцам."
+
+policy:
+  allow_implicit_invocation: true

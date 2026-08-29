@@ -173,8 +173,8 @@ programming и взгляд CTO/архитектора на будущее си�
 - owner-boundary evidence packet.
 
 Их заменяют named practices: Ousterhout's strategic programming/deep modules и
-Brooks's conceptual integrity. Requested-behavior falsifier оставлен как
-correctness gate, а не как tutorial по testing.
+Brooks's conceptual integrity. Requested-behavior falsifier на этой стадии ещё
+оставался как correctness gate, а не как tutorial по testing.
 
 ## Язык и установка — решение владельца 2026-08-29 17:42 +05:00
 

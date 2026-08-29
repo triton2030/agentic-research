@@ -1,14 +1,14 @@
 ---
-description: "Repair one retained Codex lens without manufacturing another vote."
+description: "Use when a retained Codex report has a wrong source-bound premise."
 ---
 
-# Steering
+# Коррекция
 
-Вход: wrong source-bound premise или residual question. Выход: repaired report.
+Вход: ошибочная привязанная к источнику посылка или остаточный вопрос. Выход: исправленный отчёт.
 
-1. Running target получит fact/source/scope/boundary/missing-evidence delta через `send_message`; idle target — через `followup_task`.
-2. Не передавай conclusion или новый method.
-3. Сохрани initial verdict, intervention и revised/unchanged verdict.
-4. Новый `fork_turns: "none"` stream используй только после смены identity вопроса/линзы/scope или contaminated first pass.
-5. Не расширяй permissions или write scope.
-6. Остановись без нового evidence step, falsifier или сужения decision boundary.
+1. Работающая цель получает изменение факта, источника, `scope`, границы или недостающего доказательства через `send_message`; бездействующая — через `followup_task`.
+2. Не передавай вывод или новый метод.
+3. Сохрани начальный вердикт, вмешательство и пересмотренный либо неизменившийся вердикт.
+4. Новый поток с `fork_turns: "none"` используй только после смены сущности вопроса, линзы или `scope`, либо после загрязнённого первого прохода.
+5. Не расширяй разрешения или `write scope`.
+6. Остановись, если нельзя назвать новый шаг проверки, `falsifier` или сужение границы решения.

@@ -1,22 +1,21 @@
 ---
 name: 1fresh-eyes
 description: >-
-  Use when a material trajectory fork in long work needs fresh views, fresh
-  eyes are requested, or the user names one specialist profile such as auditor.
-  Not for unnamed local/framework-gap review.
+  Use when long work reaches a material trajectory fork, the user requests
+  fresh eyes, or names one specialist profile.
 ---
 
 # Свежие Глаза
 
 ## Уникальный контекст
 
-Долгая работа сужает рамку main; fresh stream проверяет тот же объект без интерпретации main и собственным способом.
+Долгая работа сужает рамку главного агента; свежий поток проверяет тот же объект без его интерпретации и своим способом.
 
 ## Цель пользователя
 
-- Материальная развилка получает четыре независимых отчёта; явно названная роль — один native product.
-- Панель ищет другие evidence paths, а не четыре варианта объяснения main.
-- Владелец выбирает next/alternative/unchanged; критика может испортить хорошую работу, поэтому source-supported unchanged полноценен.
+- Материальная развилка получает четыре независимых отчёта; явно названная роль — один родной результат.
+- Панель ищет разные пути проверки, а не четыре варианта объяснения главного агента.
+- Владелец выбирает `next` / `alternative` / `unchanged`; критика может испортить хорошую работу, поэтому подтверждённый источниками `unchanged` полноценен.
 
 ## Протокол поведения
 
@@ -28,11 +27,11 @@ description: >-
 
 1. Назови вопрос на столе.
 2. Назови решение, которое изменит ответ.
-3. Назови конечный результат из GOAL/Product Frames; при пробеле выведи professional outcome из доступного evidence.
-4. Decision anchor → frozen packet: прочитай [packet](references/packet.md).
-5. Если mode `named` и profile `premortem`, packet → terminal native outcome: прочитай [Premortem](references/premortem.md), верни outcome и останови Fresh Eyes pass.
-6. Если mode `named` с другим profile, packet → terminal native product: прочитай [named](references/named.md); wrong premise исправь через [steering](references/steering.md), верни native product и останови Fresh Eyes pass.
-7. Иначе frozen Premortem packet → terminal cross-family outcome: прочитай [Premortem](references/premortem.md); blocker останавливает panel pass как `panel_incomplete`.
-8. Terminal Premortem report + native packets → three terminal native reports: прочитай [native panel](references/panel.md).
-9. Wrong premise в panel report → repaired report: прочитай [steering](references/steering.md) и замени исходный report.
-10. Four stable panel reports → decision handback: прочитай [synthesis](references/synthesis.md).
+3. Назови конечный результат из GOAL/Product Frames; при пробеле выведи профессиональный конечный результат из доступных доказательств.
+4. Из якоря решения собери замороженный пакет: прочитай [пакет](references/packet.md).
+5. Если `mode` — `named`, а `profile` — `premortem`, передай пакет в [Premortem](references/premortem.md), верни терминальный родной результат и останови проход Fresh Eyes.
+6. Если `mode` — `named` с другим `profile`, передай пакет [именованному специалисту](references/named.md); ошибочную посылку исправь через [коррекцию](references/steering.md), верни родной результат и останови проход Fresh Eyes.
+7. Иначе передай замороженный пакет Premortem в [Premortem](references/premortem.md); `blocker` останавливает панель как `panel_incomplete`.
+8. Терминальный отчёт Premortem и остальные пакеты передай в [нативную панель](references/panel.md), чтобы получить три терминальных родных отчёта.
+9. Ошибочную посылку в отчёте панели исправь через [коррекцию](references/steering.md) и замени исходный отчёт.
+10. Четыре устойчивых отчёта передай в [синтез](references/synthesis.md).
