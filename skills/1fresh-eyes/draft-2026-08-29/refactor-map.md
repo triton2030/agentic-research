@@ -46,6 +46,12 @@ boundary, критичного порядка или falsifying acceptance. В b
 перенесены причина изоляции, разные пути проверки, native handback и запрет
 голосования; дубли удалены без нового дробления. Источник: тот же holder, `:21`.
 
+Уточнение `:22` переносит тот же принцип внутрь содержательных references.
+Локальную `Цель` получили `packet`, `panel`, `premortem`, `steering` и
+`synthesis`; малый `named` остался служебным. Точные runtime API, схемы,
+authority/terminal boundaries, критичный порядок и falsifying acceptance не
+поглощены целью.
+
 ## Плоский список старых указаний
 
 1. Вызывать skill, когда длинная работа дошла до проверки траектории или неразрешённого остатка.
@@ -131,20 +137,21 @@ boundary, критичного порядка или falsifying acceptance. В b
 
 | Стадия | Вход | Один reference | Выход | Активных единиц |
 |---|---|---|---|---:|
-| Admission | observed trigger | body | decision anchor + mode | 19 |
-| Packet, panel | panel anchor | runtime `packet.md` | frozen role packets | 21 |
-| Packet, named | named anchor | runtime `packet.md` | frozen role packet | 18 |
-| Claude panel run | frozen packets | `claude/references/panel.md` | four reports / `panel_incomplete` | 20 |
-| Codex Premortem, local | frozen packet | `codex/references/premortem.md` | Claude report / blocker | 23 |
-| Codex Premortem, nested | prompt + `$1claude-mcp` | nested skill | terminal outcome | 59 |
-| Codex native panel | frozen packets + retained outcome | `codex/references/panel.md` | three reports / `panel_incomplete` | 21 |
-| Claude/Codex synthesis | four stable reports | runtime `synthesis.md` | decision handback | 28 / 28 |
-| Named run + handback | frozen named packet | runtime `named.md` / named Premortem | unchanged native product | 15 |
-| Correction | wrong premise/residual question | runtime `steering.md` | replaced report then handback | 19 Claude / 21 Codex |
+| Admission | наблюдаемый trigger | body | якорь решения + `mode` | 30 / 30 |
+| Packet, panel | якорь панели | runtime `packet.md` | замороженные пакеты ролей | 27 / 27 |
+| Packet, named | якорь named | runtime `packet.md` | замороженный пакет роли | 23 / 23 |
+| Premortem bridge, local | замороженный пакет | runtime `premortem.md` | отчёт другой семьи / blocker | 29 / 29 |
+| Native panel | замороженные пакеты + Premortem | runtime `panel.md` | три отчёта / `panel_incomplete` | 25 Claude / 24 Codex |
+| Synthesis | четыре устойчивых отчёта | runtime `synthesis.md` | decision handback | 24 Claude / 25 Codex |
+| Named run + correction + handback | замороженный named packet | `named.md` / Premortem + условный `steering.md` | native product / blocker | 13 / 13 |
+| Native correction | ошибочная посылка | runtime `steering.md` | заменённый отчёт | 22 Claude / 24 Codex |
+| Cross-family correction, local | ошибочная посылка Premortem | runtime `steering.md` | заменённый отчёт | 24 / 24 |
 
-Текущий live surface до refactor: body ≈15 единиц по последнему историческому
-счёту; panel brief ≈10; named templates 6–9; steering ≈8; synthesis ≈18;
-Codex Premortem ≈11. Некоторые поздние стадии пересекают потолок 20.
+Nested `$1codex` / `$1claude-mcp` bodies не входят в локальные закрытые суммы;
+фактический active set на их вызове выше локальной фазы. Все excess остаются
+диагностикой внимания: локальные цели увеличили conservative semantic count,
+но clean probe не показал потери packet behavior; нового церемониального
+дробления ради числа нет.
 
 ## Новые ограничения и вытесненная свобода
 
@@ -165,10 +172,20 @@ Codex Premortem ≈11. Некоторые поздние стадии перес
 Fixed four-lens panel — не новая добавка refactor-а, а буквальное owner-bound
 ограничение; оно вытесняет dynamic roster до отдельного решения владельца/A-B.
 
-## Остаточные gaps до install
+## Install evidence и остаточные gaps
 
-- Trigger use/skip/near-miss пройден на clean current GPT runtime и `claude-opus-5`; точные traces — `trigger-probes-round-{1,2}.md`.
-- Named и panel trials выполнены; traces — `named-trial-round-2.md` и `panel-trial-round-1.md`.
-- Reconcile tracked Claude owner с installed Claude delta и создать отсутствующий tracked Codex runtime owner до синхронизации projections.
-- Post-fix conservative manual recount выше; clean checker baseline до четырёх boundary-fixes был synthesis 26/28 и nested `$1claude-mcp` 55. Panel trial не показал functional omission, поэтому ради цифры controller снова не дробится.
-- Shared portable owner не создаётся: runtime-формы различаются cross-family механикой; installed copies становятся только projections своих tracked runtime owners.
+- Trigger use/skip/near-miss пройден на clean current GPT runtime и
+  `claude-opus-5`; финальный English description отдельно вернул expected
+  B/C/D/H use и A/E/F/G skip/near-miss.
+- Named и panel trials выполнены; final hash-bound trace сохранён в
+  `checks-install.md`.
+- После reference-goal pass отдельный clean packet probe сохранил все девять
+  falsifying fields panel/named packet без утечки main rationale.
+- Claude и Codex tracked runtime owners синхронизированы с installed
+  projections; byte parity и exact hash проверены.
+- Финальный независимый recount после bounded-pass приведён выше; admission 30
+  и nested runtime-owner остаются видимым excess. Functional probes не показали
+  omission, поэтому ради цифры controller снова не дробится.
+- Shared portable owner не создаётся: runtime-формы различаются cross-family
+  механикой; installed copies — только projections своих tracked runtime
+  owners.

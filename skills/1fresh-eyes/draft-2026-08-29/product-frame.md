@@ -1,7 +1,7 @@
 # Product Frame — 1fresh-eyes — draft 2026-08-29
 
-Статус: installation candidate под финальной проверкой. Tracked owners и
-installed projections ещё не обновлены.
+Статус: installed generation `SKILL 901cda9c…fef9`; package fingerprints:
+Claude `1cd6171…a648`, Codex `c3165347…2e5b`; evidence — `checks-install.md`.
 
 ## Цель-сцена
 
@@ -43,12 +43,20 @@ Hard lines сохранены только у невыводимых швов: �
 handback. Их абстрактная замена снова откроет наблюдавшиеся зависание,
 подмену четвёртой линзы или усреднение голосов.
 
+Тот же pass применён к references: локальная `Цель` теперь ведёт `packet`,
+`panel`, `premortem`, `steering` и `synthesis`; `premortem` также объясняет
+уникальную cross-family границу. `named` намеренно остался малым интерфейсным
+файлом без декоративной цели. Clean packet probe показал, что agent вывел все
+девять полей panel/named packet и не перенёс rationale main.
+
 ## Диагностика внимания
 
 Число 20 — сигнал риска, не product goal или acceptance gate; оно не
 оправдывает дробление, которое делает панель церемониальной. Финальный
-независимый пересчёт после bounded-pass сохраняется в install evidence; nested
-runtime-owner остаётся открыто более тяжёлым, чем локальная фаза.
+независимый пересчёт после reference-goal pass: admission `30/30`, panel
+packet `27/27`, native panel Claude/Codex `25/24`, synthesis `24/25`;
+nested runtime-owner открыто тяжелее локальной фазы. Functional probes не
+показали omission.
 Пересмотр: панель запускается без decision consequence; briefs взаимозаменяемы;
 named exception теряет isolation; consensus принимается без разных оснований;
 одна линза регулярно не даёт отдельного decision input.
