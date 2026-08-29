@@ -208,3 +208,129 @@ Holdout: переименовать локальную переменную `val
 
 Наблюдаемая Delta отрицательной ветки: automatic coding trigger не превращает
 простую правку в отчёт или обязательный внешний review.
+
+## Strategic-programming версия — повтор 2
+
+Проверяемая версия checker-ов: SHA-256
+`80336a5c53f73dc0cf7509791b991b15a2ef429e9637ed3865d861d56b11f4b7`.
+
+### Два независимых checker-а
+
+Trajectory checker не нашёл дефекта в направлении, но потребовал missing
+validator: положительная subagent-траектория ещё не была проверена на exact
+исправленном SHA.
+
+Буквальный checker нашёл и минимально исправлено:
+
+- прямой owner-request одновременно разрешал `proceed without ceremony` и
+  требовал fresh subagent;
+- `map.md` обрывал correction-address до строки с принятой owner-границей.
+
+Финальная кандидатная версия: SHA-256
+`5ebb79da8ddd2e62c8974e9f548a31e238faaf9ac5a8c04b311141283c958dd8`;
+`quick_validate.py` — `Skill is valid!`.
+
+### Clean positive executor после checker-ов
+
+Holdout: добавить cache повторных profile reads при двух независимых
+write-paths, сохранив публичные сигнатуры и поведение.
+
+- Исполнитель обнаружил material strategic uncertainty в ownership cache и
+  вызвал ровно одного fresh read-only subagent.
+- Strongest objection: service-local cache пропустит importer writes, а
+  write-through cache станет второй изменяемой истиной; менять `loads` на
+  miss-counter также нарушило бы наблюдаемую семантику.
+- До решения contract choice был передан `1codebase-design`; выбран simplest
+  no-new-public-seam route.
+- Решение после objection: cache и coherence принадлежат `ProfileStore`,
+  `save()` инвалидирует один ключ, `load()` возвращает copy, `loads` сохраняет
+  прежний смысл, cache miss скрыт за private `_load_uncached`.
+- Самостоятельная проверка: публичные сигнатуры сохранены, exact draft SHA не
+  менялся, `python3 -m unittest discover -v` — 5/5 `OK`.
+
+Наблюдаемая Delta положительной ветки: внешний взгляд не создал отчётный
+артефакт, а предотвратил stale-read path и изменил owner/invalidation strategy
+до edit. Остаток fixture: concurrency не проверялась и не входила в исходный
+контракт.
+
+## Runtime routing финального candidate
+
+Exact candidate SHA-256:
+`5ebb79da8ddd2e62c8974e9f548a31e238faaf9ac5a8c04b311141283c958dd8`.
+Обе project-local probe surfaces побайтово совпали с candidate; live/global
+owners были явно отключены либо перекрыты, но не изменены.
+
+### Claude Code 2.1.245 · Fable 5
+
+- Coding use: «Переименуй `value` в `total` в `calc.py`» → runtime вызвал
+  `Skill(1readable-code)` и загрузил exact project-local body до чтения кода.
+  Сам probe остановился по budget после activation; редактирование не входило в
+  routing receipt.
+- Non-code skip: «Исправь опечатку в тексте отчёта» → `Skill` не вызывался.
+- Contract near-miss: «Выбери интерфейс адаптера между API и хранилищем» →
+  runtime вызвал `Skill(codebase-design)`.
+
+### Codex CLI 0.150.0-alpha.12.2
+
+`codex debug prompt-input` показал exact project-local paths для
+`1readable-code` и `1codebase-design`.
+
+- Coding use → агент назвал `1readable-code` обязательным до правки и прочитал
+  exact project-local `SKILL.md`.
+- Non-code skip → агент явно исключил `1readable-code`, потому что отчёт не код.
+- Contract near-miss → агент выбрал `1codebase-design` и прочитал exact
+  project-local `SKILL.md` до решения.
+
+Runtime receipts подтверждают discovery и взаимную границу descriptions; они
+не являются доказательством вероятностного улучшения любого будущего coding
+run.
+
+## Approval packet
+
+### Буквальное соответствие
+
+- «автоматически, когда переходим к программированию» → `description`:
+  `Use before writing or changing any code`;
+- CTO/архитектор и bird's-eye future development → `Unique Context` +
+  strategic-programming gate до первого edit;
+- «упоминание практик должно обрезать инструкции» → три named handles без
+  tutorial: Ousterhout's strategic programming, Brooks's conceptual integrity,
+  Ousterhout's deep modules;
+- tentative subagent idea + поздняя owner-коррекция → ровно один fresh view
+  только при material strategic uncertainty или прямом запросе;
+- readable/stable future code → цели coherence и local readable future change.
+
+### Эталонная и фактическая траектории
+
+Эталон: coding transition → named practices до edit → material future cost
+меняет approach → без uncertainty сразу coding; с unresolved uncertainty либо
+owner-request ровно один fresh view → strongest objection учтён → contract
+choice до решения у runtime-соседа → requested-behavior check.
+
+Фактическая отрицательная ветка: local rename → practices применены → material
+uncertainty нет → subagent `0` → один rename → 1/1 `OK`.
+
+Фактическая положительная ветка: profile cache → material owner/invalidation
+uncertainty → subagent `1` → objection снял service-local/write-through route →
+`1codebase-design` до решения → store-owned invalidating cache без нового
+public seam → 5/5 `OK`.
+
+### Активный набор, лишнее и escape paths
+
+Активный набор — 19 самостоятельных единиц по правилу `agent-defaults`, включая
+`agents/openai.yaml`; runtime-варианты contract route посчитаны раздельно.
+Лишних owner-неподтверждённых ограничений после двух повторов не осталось.
+
+Escape paths:
+
+- нет material uncertainty и прямого запроса → proceed without ceremony;
+- contract choice → сосед получает приоритет, этот skill не проектирует
+  contract;
+- named practice не раскрывается в handbook;
+- completion проверяет только requested behavior, без глобального отчёта
+  `unverified` и без unrelated cleanup.
+
+Остатки перед установкой: exact text требует owner approval; product frame у
+пакета отсутствует; topology не зарегистрирована как shared owner и отдельного
+`skills/codex/1readable-code` нет, хотя текущие live Claude/Codex copies и
+tracked Claude owner исторически поддерживали побайтовую parity.

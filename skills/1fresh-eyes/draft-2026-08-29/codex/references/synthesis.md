@@ -4,7 +4,7 @@ description: "Turn available Codex panel reports into one evidence-backed decisi
 
 # Synthesis
 
-Вход: three native reports плюс Claude report или explicit skip. Выход: decision handback.
+Вход: three native reports плюс terminal Claude report. Выход: decision handback.
 
 1. Проверь по source каждый material claim; citation сама по себе не support.
 2. Сохрани native decision record каждой доступной линзы: verdict, falsifier, source anchor, consequence.

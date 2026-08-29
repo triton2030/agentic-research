@@ -27,11 +27,13 @@ synthesis. Role definitions владеют методом и native output. Runt
 launch/steering живут только в соответствующей draft-форме; история и Product
 Frame не устанавливаются в runtime package.
 
-## Аппетит
+## Диагностика внимания
 
-Цель — не более 20 активных единиц; число не оправдывает дробление, которое
-делает панель церемониальной. Candidate ledger — 14–20 в обычных фазах и 22 в
-Codex Premortem; последнее явно предъявлено для проверки реальным trial.
+Число 20 — сигнал риска, не product goal или acceptance gate; оно не
+оправдывает дробление, которое делает панель церемониальной. Post-fix
+conservative ledger: 15–23 в обычных фазах, synthesis 28/28, nested
+`$1claude-mcp` 59. Real panel trial не показал functional omission; excess
+остаётся наблюдаемым риском.
 Пересмотр: панель запускается без decision consequence; briefs взаимозаменяемы;
 named exception теряет isolation; consensus принимается без разных оснований;
 одна линза регулярно не даёт отдельного decision input.

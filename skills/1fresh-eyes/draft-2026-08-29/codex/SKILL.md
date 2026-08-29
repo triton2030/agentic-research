@@ -16,7 +16,7 @@ description: >-
 
 - Материальная развилка получает четыре независимых отчёта; явно названная роль — один native product.
 - Панель ищет другие evidence paths, а не четыре варианта объяснения main.
-- Владелец решения выбирает следующий ход, альтернативу или подтверждённое продолжение без изменений.
+- Владелец выбирает next/alternative/unchanged; критика может испортить хорошую работу, поэтому source-supported unchanged полноценен.
 
 ## Протокол поведения
 
@@ -30,8 +30,9 @@ description: >-
 2. Назови решение, которое изменит ответ.
 3. Назови конечный результат из GOAL/Product Frames; при пробеле выведи professional outcome из доступного evidence.
 4. Decision anchor → frozen packet: прочитай [packet](references/packet.md).
-5. Если mode `named`, packet → terminal native product: прочитай [named](references/named.md), верни product и останови Fresh Eyes pass.
-6. Иначе frozen Premortem packet → terminal cross-family outcome: прочитай [Premortem](references/premortem.md).
-7. Retained Premortem outcome + native packets → three terminal native reports: прочитай [native panel](references/panel.md).
-8. Available panel reports и explicit skip → decision handback: прочитай [synthesis](references/synthesis.md).
-9. Wrong source-bound premise или residual question той же линзе → repaired report: прочитай [steering](references/steering.md).
+5. Если mode `named` и profile `premortem`, packet → terminal native outcome: прочитай [Premortem](references/premortem.md), верни outcome и останови Fresh Eyes pass.
+6. Если mode `named` с другим profile, packet → terminal native product: прочитай [named](references/named.md); wrong premise исправь через [steering](references/steering.md), верни native product и останови Fresh Eyes pass.
+7. Иначе frozen Premortem packet → terminal cross-family outcome: прочитай [Premortem](references/premortem.md); blocker останавливает panel pass как `panel_incomplete`.
+8. Terminal Premortem report + native packets → three terminal native reports: прочитай [native panel](references/panel.md).
+9. Wrong premise в panel report → repaired report: прочитай [steering](references/steering.md) и замени исходный report.
+10. Four stable panel reports → decision handback: прочитай [synthesis](references/synthesis.md).

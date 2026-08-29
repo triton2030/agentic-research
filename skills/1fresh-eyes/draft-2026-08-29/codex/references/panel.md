@@ -10,5 +10,5 @@ description: "Run the fixed native Codex panel without leaking the Premortem rep
 2. Запусти каждый профиль как новый stream с `fork_turns: "none"` и только его packet.
 3. Не передавай Premortem outcome native streams.
 4. При ограниченной capacity используй bounded waves и сохраняй terminal reports.
-5. Недоступный профиль верни как точный blocker без подмены.
-6. Не переходи к handback без terminal outcome каждой native линзы.
+5. Недоступный профиль верни как `panel_incomplete` с точным blocker без подмены и останови Fresh Eyes pass.
+6. Иначе не переходи к handback без terminal report каждой native линзы.

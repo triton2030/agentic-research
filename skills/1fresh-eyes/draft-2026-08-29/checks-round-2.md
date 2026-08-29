@@ -18,8 +18,10 @@
 - «Панель выбирает» исправлено: authority остаётся у владельца решения.
 - Требование другой source zone ограничено panel lenses; named auditor может
   проверять тот же claimed artifact/raw checks.
-- Codex Premortem стал self-contained direct `claude_ask` stage; второй
-  procedural owner `$1claude-mcp` удалён.
+- В промежуточной версии Codex Premortem был self-contained direct
+  `claude_ask`; real panel trial показал, что host всё равно применяет
+  `$1claude-mcp`. Current candidate поэтому оставляет domain prompt локально,
+  а call mechanics — runtime-owner.
 - Недостижимые `satisfied` / `architecture_ok` удалены.
 - Surviving route завершает Fresh Eyes pass, не внешнюю проектную работу.
 - Classification применяется к каждому material finding, не к report целиком.

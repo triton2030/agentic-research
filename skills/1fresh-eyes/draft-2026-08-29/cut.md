@@ -23,7 +23,7 @@
 
 - Packet construction отделён от launch; frozen packet — единственный обязательный промежуточный артефакт.
 - Codex cross-family prompt остаётся отдельным self-contained `premortem.md` и выполняется из frozen packet до native launch; native reports в него не входят.
-- Codex `premortem.md` напрямую владеет одним `claude_ask`; `$1claude-mcp` больше не является вторым procedural owner этой стадии.
+- Codex `premortem.md` готовит frozen domain prompt; call mechanics принадлежат current `$1claude-mcp` runtime-owner.
 - Runtime drift/date hypothesis → `refactor-map.md` как validation note, не постоянное behavioral rule.
 - Полный inventory и причины каждого среза → `refactor-map.md`.
 
@@ -50,4 +50,4 @@
 - Claude/Codex body: 117/107-ish current lines → 36/37 draft lines.
 - Claude references: 183 current lines → 70 строк в пяти фазах.
 - Codex references: 242 current lines → 85 строк в шести фазах.
-- Atomic candidate ledger: 14–20 в обычных фазах; Codex Premortem — честные 22. Это risk note, не повод снова дробить cross-family call.
+- Post-fix conservative ledger: обычные фазы 15–23; synthesis 28/28; nested `$1claude-mcp` 59. Real trial прошёл; excess остаётся risk note, не повод снова дробить bridge.

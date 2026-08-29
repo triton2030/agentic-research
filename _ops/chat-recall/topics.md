@@ -51,6 +51,7 @@
 - `project-structure` — Структура проекта, служебных зон и корневой навигации
 - `readable-code` — Проектирование читаемого кода и устойчивых программных границ
 - `recraft-images` — Генерация изображений через Recraft и хранение дизайн-артефактов
+- `response-language` — Предпочтительный язык ответов и рабочих сообщений агента
 - `semantic-compression` — Смысловое сжатие и lossy product refactor документов
 - `skill-instruction-authoring` — Проектирование и рефакторинг skills, prompts и агентных инструкций
 - `skill-routing` — Имена, descriptions и автоматическая активация skills

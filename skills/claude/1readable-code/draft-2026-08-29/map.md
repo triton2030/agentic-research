@@ -49,7 +49,7 @@ Ousterhout's strategic programming/deep modules и Brooks's conceptual integrity
 ## Evidence и gaps
 
 - Новая owner-коррекция:
-  `_ops/chat-recall/2026-08-29-153512-codex-01a04d13.md:21-27`.
+  `_ops/chat-recall/2026-08-29-153512-codex-01a04d13.md:21-28`.
 - Прежние owner-слова про coding-agent, Brooks/Ousterhout и parity:
   `_ops/chat-recall/2026-08-11-050000-claude-ad4c0fa8.md:18-22`.
 - Primary research остаётся в `../evidence.md`; оно поддерживает цену

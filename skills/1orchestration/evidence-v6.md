@@ -46,4 +46,41 @@ why: 1orchestration формирует contract, а специализирова
 
 ## Full executor
 
-Pending.
+Clean executor прочитал тело, а затем только routed references в порядке:
+
+`orient → brief → count → budget → shape → map → carrier → execute → accept → integrate`.
+
+`decompose` не читался: оба verdict-а были `manageable`.
+
+Наблюдаемый lifecycle:
+
+1. Root принял owner map и provisional brief.
+2. Root записал раздельные оценки `worker: 14`, `root: 18`.
+3. `shape` выбрал одного ordinary read-only worker-а; capability обоснована
+   локальным bounded textual audit.
+4. До launch создан [executor carrier](executor-carrier-v6.md), записаны map и
+   `ready_to_launch`.
+5. Реально запущен один nested worker; root ждал на mandatory barrier.
+6. Return записан как `return_received_root_verification_pending`; barrier
+   удержан.
+7. Root отдельно перечитал target и owners, после чего записал acceptance.
+8. Только затем записан final transition и выполнена integration.
+
+Exact nested return, root-check и пять причинно упорядоченных transitions
+сохранены в carrier. Candidate, tracked owners и projections executor не
+редактировал.
+
+### Непринятые выводы executor-а
+
+- Scoped audit назвал `brief.md` failed за отсутствие обязанностей `count`,
+  `budget` и `decompose`. Это не finding пакета: staged runtime намеренно
+  распределяет эти обязанности по следующим routed references.
+- Planning-owner требует повторять критичные строки внутри task-файла. Для
+  общего orchestration brief это не безусловный default: `brief.md` сохраняет
+  адресуемую выдержку, когда её требует live receiving owner, и считает её в
+  active set.
+- Executor показал только числа `14/18`, хотя nested return развернул 27
+  source-specific rows. Это nonadherence самому `count.md:6–9`: файл уже
+  требует переносить независимо забываемые units по одной и запрещает снижать
+  число склейкой. Новое дублирующее runtime-правило не добавлено; расхождение
+  остаётся falsifier-ом для финальных checker-ов.

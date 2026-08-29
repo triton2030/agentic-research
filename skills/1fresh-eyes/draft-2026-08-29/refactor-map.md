@@ -6,7 +6,7 @@
 
 На материальной развилке вынести judgment в новый изолированный поток, который
 не наследует рамку main: панель четырёх направлений — продукт по умолчанию;
-один явно названный critic, auditor или md-scout — исключение с тем же
+один явно названный доступный specialist profile — исключение с тем же
 контрактом свежести и своим native output.
 
 ## Уникальный контекст
@@ -68,9 +68,9 @@ brief templates одиночных вызовов не имеют второго
 25. `story_unfalsifiable` — terminal Premortem verdict, а не находка.
 26. Недоступная роль или runtime — честный stop, не имитация.
 27. Смена runtime, roster или cross-family route переоткрывает механическую часть.
-28. Явно названный critic/auditor/md-scout запускается один, без панели.
+28. Явно названный доступный specialist profile запускается один, без панели.
 29. Named exception проходит тот же decision gate и isolation contract.
-30. Native output auditor/md-scout не превращается в critic verdict.
+30. Native output named profile не превращается в critic verdict.
 31. Каждый panel report предъявляет native verdict.
 32. Каждый panel report предъявляет собственный falsifier.
 33. Каждый panel report предъявляет source anchor.
@@ -124,15 +124,16 @@ brief templates одиночных вызовов не имеют второго
 
 | Стадия | Вход | Один reference | Выход | Активных единиц |
 |---|---|---|---|---:|
-| Admission | observed trigger | body | decision anchor + mode | 14 |
-| Packet, panel | panel anchor | runtime `packet.md` | frozen role packets | 20 |
+| Admission | observed trigger | body | decision anchor + mode | 19 |
+| Packet, panel | panel anchor | runtime `packet.md` | frozen role packets | 21 |
 | Packet, named | named anchor | runtime `packet.md` | frozen role packet | 18 |
-| Claude panel run | frozen packets | `claude/references/panel.md` | four terminal reports | 18 |
-| Codex Premortem | frozen packet | `codex/references/premortem.md` | Claude report / explicit skip | 22 |
-| Codex native panel | frozen packets + retained outcome | `codex/references/panel.md` | three native reports + retained outcome | 19 |
-| Panel synthesis | reports / explicit skip | runtime `synthesis.md` | decision handback | 20 |
-| Named run + handback | frozen named packet | runtime `named.md` | unchanged native product | 18 |
-| Correction | wrong premise/residual question | runtime `steering.md` | repaired report | 14 Claude / 15 Codex |
+| Claude panel run | frozen packets | `claude/references/panel.md` | four reports / `panel_incomplete` | 20 |
+| Codex Premortem, local | frozen packet | `codex/references/premortem.md` | Claude report / blocker | 23 |
+| Codex Premortem, nested | prompt + `$1claude-mcp` | nested skill | terminal outcome | 59 |
+| Codex native panel | frozen packets + retained outcome | `codex/references/panel.md` | three reports / `panel_incomplete` | 21 |
+| Claude/Codex synthesis | four stable reports | runtime `synthesis.md` | decision handback | 28 / 28 |
+| Named run + handback | frozen named packet | runtime `named.md` / named Premortem | unchanged native product | 15 |
+| Correction | wrong premise/residual question | runtime `steering.md` | replaced report then handback | 19 Claude / 21 Codex |
 
 Текущий live surface до refactor: body ≈15 единиц по последнему историческому
 счёту; panel brief ≈10; named templates 6–9; steering ≈8; synthesis ≈18;
@@ -160,7 +161,7 @@ Fixed four-lens panel — не новая добавка refactor-а, а бук�
 ## Остаточные gaps до install
 
 - Trigger use/skip/near-miss пройден на clean current GPT runtime и `claude-opus-5`; точные traces — `trigger-probes-round-{1,2}.md`.
-- Повторить named trial после упрощения и провести real panel trial; structural validation не докажет поведение.
+- Named и panel trials выполнены; traces — `named-trial-round-2.md` и `panel-trial-round-1.md`.
 - Reconcile tracked Claude owner с более новой installed Claude delta 2026-08-12; не перетирать её молча.
-- Final checker пересчитывает active set; единственное намеренное превышение candidate — Codex Premortem 22, потому что split bridge/prompt уже доказуемо делал controller церемониальным.
+- Post-fix conservative manual recount выше; clean checker baseline до четырёх boundary-fixes был synthesis 26/28 и nested `$1claude-mcp` 55. Panel trial не показал functional omission, поэтому ради цифры controller снова не дробится.
 - Решить tracked Codex owner отдельно: сейчас live Codex package — единственный runtime owner, второй source tree не изобретён.

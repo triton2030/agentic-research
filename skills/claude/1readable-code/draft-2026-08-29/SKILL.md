@@ -29,8 +29,8 @@ tutorial adds no new context.
 2. Check Brooks's conceptual integrity.
 3. Check Ousterhout's deep modules.
 4. Let a material future cost change the approach before editing.
-5. If neither a material future cost nor material strategic uncertainty
-   appears, proceed without ceremony.
+5. If no material strategic uncertainty remains and the owner has not directly
+   requested an outside view, proceed without ceremony.
 6. If material strategic uncertainty remains or the owner directly requests an
    outside view, ask one fresh subagent to challenge the approach from the
    future system's perspective.
