@@ -14,7 +14,7 @@
 ## Поглощено зонтиками
 
 - «Цель / Критерии / Инварианты / Дельта» → Контекст + три цели пользователя.
-- Карта известных сбоев → пять когнитивных фаз с одним reference только там, где он реально снижает нагрузку.
+- Карта известных сбоев → несколько когнитивных владельцев; reference читается только когда его локальная механика реально нужна.
 - Gate, isolation, launch, evidence judgment и handback → body + `packet/panel/named/synthesis/steering`.
 - Детальная шестиуровневая taxonomy → четыре action labels в `synthesis.md`; native disagreement и source verification сохранены.
 - Send/resume/follow-up matrix → короткий runtime `steering.md`.
@@ -22,8 +22,8 @@
 ## Перемещено
 
 - Packet construction отделён от launch; frozen packet — единственный обязательный промежуточный артефакт.
-- Codex cross-family prompt остаётся отдельным self-contained `premortem.md` и выполняется из frozen packet до native launch; native reports в него не входят.
-- Codex `premortem.md` готовит frozen domain prompt; call mechanics принадлежат current `$1claude-mcp` runtime-owner.
+- Cross-family Premortem обеих сред остаётся отдельным self-contained `premortem.md` и выполняется из frozen packet до native launch; native reports в него не входят.
+- Claude `premortem.md` использует `$1codex`, Codex `premortem.md` — `$1claude-mcp`; call mechanics и retained correction принадлежат этим runtime-owner-ам.
 - Runtime drift/date hypothesis → `refactor-map.md` как validation note, не постоянное behavioral rule.
 - Полный inventory и причины каждого среза → `refactor-map.md`.
 
@@ -43,11 +43,11 @@
 - Panel-only scope: фальсифицирован отсутствием второго owner-а isolation для named roles и прямым owner-решением про named exception.
 - Dynamic roster или optional Premortem: внешние прецеденты и Solvent дали гипотезу, но буквальное owner-решение фиксирует четвёрку; A/B нет.
 - Перенос non-leading rules в шесть agent definitions: дублирует instruction budget и слабее caller-side gate.
-- Новый shared owner: текущая owner-топология асимметрична; refactor не изобретает второй source tree.
+- Новый shared owner: runtime-формы различаются cross-family и launch-механикой, поэтому сохраняются два tracked runtime owner-а, а portable-дерево не изобретается.
 
 ## Размер и внимание
 
-- Claude/Codex body: 117/107-ish current lines → 36/37 draft lines.
-- Claude references: 183 current lines → 70 строк в пяти фазах.
-- Codex references: 242 current lines → 85 строк в шести фазах.
-- Post-fix conservative ledger: обычные фазы 15–23; synthesis 28/28; nested `$1claude-mcp` 59. Real trial прошёл; excess остаётся risk note, не повод снова дробить bridge.
+- Body обеих сред после bounded-pass содержит шесть шагов вместо десяти.
+- Named, packet, panel и synthesis потеряли только строки, уже вытекающие из усиленных `Уникального контекста` и `Цели пользователя`.
+- Premortem и steering почти не сжаты: они держат невыводимые runtime interfaces, recursive guard, retained route и falsifying stop.
+- Финальный atomic ledger хранится в install evidence; excess остаётся risk note, не повод снова дробить bridge.

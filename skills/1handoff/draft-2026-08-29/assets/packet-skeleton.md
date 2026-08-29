@@ -7,11 +7,12 @@ date: <тот же timestamp в форме YYYY-MM-DD-HHMMSS>
 1. Read this file in full.
 2. Live files and runtime state override this dated snapshot.
 3. First state the next action and why, then compare the recorded HEAD with
-   `git log`.
+   `git log`. If they diverge, re-derive the action from live state before
+   starting it.
 
 <Сюда выпиши каждый veto, каждый блокер и каждое непроверённое состояние,
-которые меняют продолжение работы. Ни одно из них не должно оказаться в
-середине файла.>
+которые меняют продолжение работы и которые ты не вынес в раздел `## Anchors`.
+Ни одно из них не должно оказаться в середине файла.>
 
 ## Terrain Model
 
@@ -36,7 +37,8 @@ date: <тот же timestamp в форме YYYY-MM-DD-HHMMSS>
 - recall: <captured | no qualifying evidence | blocked, и причина, если blocked>
 - no recall address: <Гейт: часть 1 назвала этот блокер. Предмет позиции
   владельца, закрываемая ею развилка и последствие блокера>
-- cleanup: <названные изменения | nothing to clean | handed off>
+- cleanup: <названные изменения и/или handed off; либо nothing to clean
+  в одиночку>
 - предыдущий полученный хендоф: <Гейт: эта сессия унаследовала хендоф. Путь к
   нему>
 - <точные живые адреса: файл, строка и чем именно этот адрес важен>

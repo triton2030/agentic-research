@@ -24,10 +24,8 @@
    способен изменить набор кандидатов:
 
    ```bash
-   ROOT="${CODEX_HOME:-$HOME/.codex}/skills/1chat-recall"
-
-   uv run --locked --script "$ROOT/scripts/chat_digest.py" --prepare
-   uv run --locked --script "$ROOT/scripts/chat_digest.py" \
+   uv run --locked --script "${CLAUDE_SKILL_DIR}/scripts/chat_digest.py" --prepare
+   uv run --locked --script "${CLAUDE_SKILL_DIR}/scripts/chat_digest.py" \
      _ops/chat-recall --query "<claim или корни>" --lexical --json
    ```
 

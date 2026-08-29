@@ -26,19 +26,14 @@
    уникальный локальный фрагмент → ограниченный локальный semantic/manual поиск
    точной native-записи → явный gap. Semantic similarity, имя файла,
    frontmatter, сырое время или `unknown` сами по себе не разрешают Capture.
-4. Читай evidence Codex transcript отдельными командами; для не текущей сессии
-   ставь `--repair-session` перед подкомандой:
+4. Читай evidence Claude transcript по явно названной сессии; для чужой сессии
+   передай её точный `--session-id`:
 
    ```bash
-   ROOT="${CODEX_HOME:-$HOME/.codex}/skills/1chat-recall"
+   ROOT="${CLAUDE_SKILL_DIR}"
    SESSION="<канонический UUID сессии>"
 
-   python3 "$ROOT/scripts/chat_recall.py" --repair-session "$SESSION" \
-     read --scope user --limit all
-   python3 "$ROOT/scripts/chat_recall.py" --repair-session "$SESSION" \
-     search "<точный фрагмент>" --scope user --limit 20
-   python3 "$ROOT/scripts/chat_recall.py" --repair-session "$SESSION" \
-     show "<record id>"
+   python3 "$ROOT/scripts/chat_recall.py" --session-id "$SESSION"
    ```
 
 5. Используй один semantic type; только невосстановимая Repair-метадата может
@@ -65,11 +60,13 @@
    флаги лишь когда они применимы:
 
    ```bash
-   python3 "${CODEX_HOME:-$HOME/.codex}/skills/1chat-recall/scripts/chat_capture.py" \
+   ROOT="${CLAUDE_SKILL_DIR}"
+
+   python3 "$ROOT/scripts/chat_capture.py" \
      --quote "<исходный текст>" --context-note "<ключевые референты и синонимы>" \
      --session-context "<задачи; артефакты; операции; имена и синонимы>" \
      --source-timestamp "<native timestamp>" --type <type> --topic <topic> \
-     --agent codex --project "<корень проекта>" \
+     --agent claude --project "<корень проекта>" \
      --session "<канонический UUID исходной сессии>" --json
    ```
 
@@ -86,6 +83,6 @@
     точный blocker.
 
     ```bash
-    python3 "${CODEX_HOME:-$HOME/.codex}/skills/1chat-recall/scripts/chat_digest.py" \
+    python3 "${CLAUDE_SKILL_DIR}/scripts/chat_digest.py" \
       "<корень проекта>/_ops/chat-recall" --check --strict
     ```

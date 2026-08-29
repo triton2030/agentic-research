@@ -5,9 +5,7 @@
 2. Запусти строгий локальный validator без изменения записей:
 
    ```bash
-   ROOT="${CODEX_HOME:-$HOME/.codex}/skills/1chat-recall"
-
-   python3 "$ROOT/scripts/chat_digest.py" \
+   python3 "${CLAUDE_SKILL_DIR}/scripts/chat_digest.py" \
      "$PWD/_ops/chat-recall" --check --strict
    ```
 

@@ -12,7 +12,7 @@
 3. Выполни обычный маршрут:
 
    ```bash
-   uv run --locked --script "${CODEX_HOME:-$HOME/.codex}/skills/1chat-recall/scripts/chat_digest.py" \
+   uv run --locked --script "${CLAUDE_SKILL_DIR}/scripts/chat_digest.py" \
      _ops/chat-recall --query "<короткая естественная формулировка предмета>" --json
    ```
 

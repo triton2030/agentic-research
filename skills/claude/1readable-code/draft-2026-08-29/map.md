@@ -33,7 +33,7 @@ Ousterhout's strategic programming/deep modules и Brooks's conceptual integrity
 | Data edge first | снято как известное | Это локальная best practice, не уникальный strategic context |
 | Name owner before first edit | strategic choice before first edit | Gate поднят с локального owner-а к форме будущей системы |
 | Readability-only surface cost | deep modules | Оставлен смысл меньшего interface burden без отдельной формулы |
-| Contract choice route | `codebase-design` / `1codebase-design` | Скил напоминает линзу, но не присваивает contract design |
+| Contract choice route | `codebase-design` / `1codebase-design` | Скил называет оба runtime-соседа и не присваивает contract design |
 | Claim-specific falsifier | снято как agent default | Общая проверка поведения не является уникальной функцией readability-skill |
 | Re-enter at each structural choice | automatic trigger on coding transition | Момент задаётся discovery surface, а не повторным ритуалом внутри тела |
 
@@ -45,7 +45,9 @@ Ousterhout's strategic programming/deep modules и Brooks's conceptual integrity
 | named practices, no tutorial | автор может пересказать handbook → знания уже в модели → использовать practice handles → длинный skill конкурирует с самой задачей → результат зависит от знания модели |
 | fresh subagent only on material uncertainty or direct request | исполнитель может наследовать собственную рамку именно на открытой развилке → independent view → атаковать unresolved future stability до edit → скрытая связность становится дорогой позже → latency только там, где есть стратегическая неопределённость |
 | proceed without ceremony | named lens может породить отчёт без решения → explicit escape path → продолжить при отсутствии material consequence → ritual заменяет coding → не остаётся обязательного trace, что линза была применена |
+| conditional strategic closure | обычный test не проверяет будущую цену формы → вернуться к той же цене только если она меняла подход → убедиться, что итог её снял → стратегическое решение остаётся декларацией → проверка условна и не требует отчёта |
 | русский body + английский trigger-only `description` | смешение discovery и instruction body раздувает кнопку запуска → разделить язык и поверхности по прямому решению владельца → routing остаётся коротким, active body понятен владельцу → длинное описание рекламирует процесс вместо момента → runtime-сосед назван только как near-miss |
+| commander intent прежде procedure | автор лечит каждый риск отдельным шагом → цели и Unique Context формируют ментальную модель → агент сам выводит известные practices и anti-ritual stop → checklist конкурирует с задачей → точные runtime seams остаются hard lines |
 
 ## Evidence и gaps
 
@@ -53,6 +55,8 @@ Ousterhout's strategic programming/deep modules и Brooks's conceptual integrity
   `_ops/chat-recall/2026-08-29-153512-codex-01a04d13.md:21-28`.
 - Решение установить обе runtime-проекции и языковой контракт:
   `_ops/chat-recall/2026-08-29-163434-codex-01a04d4a.md:19-20`.
+- Общий принцип commander intent прежде procedure:
+  `_ops/chat-recall/2026-08-29-163434-codex-01a04d4a.md:21`.
 - Прежние owner-слова про coding-agent, Brooks/Ousterhout и parity:
   `_ops/chat-recall/2026-08-11-050000-claude-ad4c0fa8.md:18-22`.
 - Primary research остаётся в `../evidence.md`; оно поддерживает цену

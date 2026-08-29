@@ -4,6 +4,7 @@ description: >-
   Use when consequential owner speech needs capture, prior owner words need
   retrieval for current work, or the owner-evidence corpus needs repair,
   backfill, or validation.
+allowed-tools: Bash(python3 *), Bash(uv *), Read, Grep, Glob
 ---
 
 # Память чата

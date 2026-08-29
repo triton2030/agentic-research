@@ -355,3 +355,33 @@ English-body candidate SHA
 Topology-кандидат — `skills/shared/1readable-code/portable/` с Codex UI delta в
 `platforms/codex/agents/openai.yaml`: generic sync поддерживает такую форму, а
 runtime-specific различий в `SKILL.md` не найдено.
+
+### Русская версия — раунд 1
+
+Оба независимых checker-а нашли один и тот же runtime-дефект: portable body и
+`description` называли только Claude-соседа `codebase-design`, хотя в Codex
+доступен только `1codebase-design`. Оба имени возвращены с явной runtime
+границей.
+
+Trajectory checker дополнительно нашёл missing validator после снятия общего
+requested-behavior check. Принят не общий test, а условная strategic closure:
+только когда материальная будущая цена изменила подход, итоговая форма
+проверяется на той же цене без обязательного отчёта.
+
+### Bounded commander-intent pass
+
+По owner-evidence
+`_ops/chat-recall/2026-08-29-163434-codex-01a04d4a.md:21` в цели и
+`Уникальный контекст` перенесены:
+
+- три named practices как единая ментальная рамка;
+- решение платить текущую цену только ради более дешёвых будущих изменений;
+- anti-ritual вывод: без material future cost/uncertainty внешний взгляд —
+  накладные расходы.
+
+Hard lines оставлены только потому, что безопасно не выводятся из цели:
+
+- условие, точное число и механизм fresh subagent;
+- применение strongest justified objection, иначе call остаётся ритуалом;
+- точные Claude/Codex neighbor names;
+- условный same-cost falsifier после material approach change.

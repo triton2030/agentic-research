@@ -184,6 +184,13 @@ trigger-only текстом. Поэтому английский body SHA
 `5ebb79da8ddd2e62c8974e9f548a31e238faaf9ac5a8c04b311141283c958dd8` снят как
 кандидат до установки.
 
-Requested-behavior post-check также снят из active body: это общий coding
-default, а не уникальное решение о читаемости; terminal acceptance всё равно
-проверяет behavior вне устанавливаемого текста.
+Generic requested-behavior post-check снят из active body: это общий coding
+default, а не уникальное решение о читаемости. После checker-а возвращена только
+условная strategic closure: если будущая цена изменила подход, итог проверяется
+на той же цене без обязательного отчёта.
+
+После owner-принципа «решать через ум агента» отдельные шаги применения трёх
+practices, изменения подхода будущей ценой и `proceed without ceremony`
+перенесены в `Уникальный контекст` и цели. Hard protocol оставляет только
+невыводимые механизмы: conditional single subagent, обязательное применение его
+обоснованного возражения, точные runtime-соседи и same-cost acceptance.

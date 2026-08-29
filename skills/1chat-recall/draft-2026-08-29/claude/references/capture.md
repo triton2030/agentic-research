@@ -26,7 +26,7 @@
    поэтому inventory-вывод не заменяет чтение карты.
 
    ```bash
-   python3 "${CODEX_HOME:-$HOME/.codex}/skills/1chat-recall/scripts/chat_capture.py" \
+   python3 "${CLAUDE_SKILL_DIR}/scripts/chat_capture.py" \
      --list-metadata --project "$PWD"
    ```
 
@@ -50,8 +50,8 @@
    применимы:
 
     ```bash
-    ROOT="${CODEX_HOME:-$HOME/.codex}/skills/1chat-recall"
-    SESSION="${CODEX_THREAD_ID:-${CODEX_SESSION_ID:-}}"
+    ROOT="${CLAUDE_SKILL_DIR}"
+    SESSION="${CLAUDE_SESSION_ID:-${CLAUDE_CODE_SESSION_ID:-}}"
 
     python3 "$ROOT/scripts/chat_capture.py" \
       --quote "<дословные слова владельца>" \
@@ -59,7 +59,7 @@
       --session-context "<задачи; артефакты; операции; имена и синонимы>" \
       --source-timestamp "$(date -Iseconds)" \
       --type <речевой-акт> --topic <тема> \
-      --agent codex --project "$PWD" --session "$SESSION" --json
+      --agent claude --project "$PWD" --session "$SESSION" --json
     ```
 
 8. Проверь JSON-квитанцию и открой возвращённый адрес. Сообщи этот адрес; для

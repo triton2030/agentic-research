@@ -39,6 +39,13 @@ brief templates одиночных вызовов не имеют второго
 самостоятельной когнитивной фазы, не для каждого тривиального handback.
 Источник: `_ops/chat-recall/2026-08-29-163434-codex-01a04d4a.md:15`.
 
+Owner-boundary той же даты: правильное поведение сначала выводится из
+`Уникального контекста` и `Цели пользователя` как commander's intent;
+процедурная строка остаётся только у невыводимой runtime-механики, safety
+boundary, критичного порядка или falsifying acceptance. В bounded-pass туда
+перенесены причина изоляции, разные пути проверки, native handback и запрет
+голосования; дубли удалены без нового дробления. Источник: тот же holder, `:21`.
+
 ## Плоский список старых указаний
 
 1. Вызывать skill, когда длинная работа дошла до проверки траектории или неразрешённого остатка.
@@ -153,7 +160,7 @@ Codex Premortem ≈11. Некоторые поздние стадии перес
 | Одинаковый итог допустим при разных evidence paths | Агент перезапустит честный consensus → owner phrase «разные отчёты» легко спутать с разными выводами → считать ли равный verdict провалом → полезное подтверждение расходует новые потоки → стилистическое разнообразие больше не proxy независимости. |
 | Source verification decision-changing claims | Агент примет уверенный native report → профиль выглядит authority → менять ли decision по citation → ложная опора попадёт в синтез → synthesis тратит внимание на проверку. |
 | No final acceptance | Панель объявит проверяемый артефакт готовым → четыре experts выглядят как acceptance gate → кто закрывает done-state → critique подменит auditor evidence → нужен отдельный acceptance owner. |
-| Не более одного reference на фазу | Агент прочитает все procedural refs «для полноты» → competing rules кажутся полезной полнотой → какой instruction set активен сейчас → внимание распадается → body-only handback остаётся допустимым escape; отдельный файл создаётся лишь для самостоятельной когнитивной работы. |
+| Только релевантный reference в текущем режиме | Агент прочитает все procedural refs «для полноты» → competing rules кажутся полезной полнотой → какой instruction set активен сейчас → внимание распадается → body-only handback остаётся допустимым escape; отдельный файл не обязателен для каждой стадии. |
 
 Fixed four-lens panel — не новая добавка refactor-а, а буквальное owner-bound
 ограничение; оно вытесняет dynamic roster до отдельного решения владельца/A-B.
@@ -162,6 +169,6 @@ Fixed four-lens panel — не новая добавка refactor-а, а бук�
 
 - Trigger use/skip/near-miss пройден на clean current GPT runtime и `claude-opus-5`; точные traces — `trigger-probes-round-{1,2}.md`.
 - Named и panel trials выполнены; traces — `named-trial-round-2.md` и `panel-trial-round-1.md`.
-- Reconcile tracked Claude owner с более новой installed Claude delta 2026-08-12; не перетирать её молча.
+- Reconcile tracked Claude owner с installed Claude delta и создать отсутствующий tracked Codex runtime owner до синхронизации projections.
 - Post-fix conservative manual recount выше; clean checker baseline до четырёх boundary-fixes был synthesis 26/28 и nested `$1claude-mcp` 55. Panel trial не показал functional omission, поэтому ради цифры controller снова не дробится.
-- Решить tracked Codex owner отдельно: сейчас live Codex package — единственный runtime owner, второй source tree не изобретён.
+- Shared portable owner не создаётся: runtime-формы различаются cross-family механикой; installed copies становятся только projections своих tracked runtime owners.
