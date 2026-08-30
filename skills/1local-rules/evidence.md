@@ -153,3 +153,36 @@ source tree не создаётся. После этой механическо�
   недоступен в текущей среде, а подмена другой модельной семьи запрещена.
   Literal, trajectory и clean-executor проверки завершены отдельно; полный
   четырёхлинзовый отчёт не заявляется.
+
+## Коррекция раскладки после установки
+
+Владелец прямо указал, что в теле достаточно места для критичных подробностей
+(`_ops/chat-recall/2026-08-30-034608-codex-01a04fb2.md:21`). Два обязательных
+reference-перехода не давали progressive disclosure: каждый install, update и
+retire всё равно требовал оба файла. Их содержание перенесено в один
+самодостаточный `SKILL.md`; функция, portable parity surface, registry/root
+lookup, conflict gate, retirement и evidence contract сохранены.
+
+Первый аудит однофайловой версии нашёл circular producer order, риск двойной
+установки, conflict gate на снятии, неразрешённое расхождение registry/root и
+пропуск portable agent-role files. Clean executor независимо подтвердил первые
+два дефекта. Body теперь передаёт `$1skill-creation` ограничения кандидата,
+останавливает общий маршрут на утверждённом кандидате, заменяет его generic
+install одной local-установкой, не блокирует retire конфликтом, fail-closed
+обрабатывает topology disagreement и синхронизирует portable `agents/` content
+кроме явно runtime-owned metadata.
+
+Второй trajectory-review и clean-executor не нашли path escape, duplicate
+install, conflict, parity или retire-дефектов. Второй literal-review нашёл одну
+несогласованную квитанцию: retire пропускал conflict gate, но output требовал
+conflict result. Финальный output разделён: create/update возвращают conflict +
+parity evidence, retire — absence evidence; после лимита двух повторов новый
+review-loop не запускался.
+
+Текущая однофайловая версия установлена из tracked owner в Claude и Codex.
+`quick_validate.py` прошёл на owner и обеих installed projections. Recursive
+owner↔Claude parity и owner↔Codex portable parity прошли побайтно; portable
+shape во всех трёх поверхностях состоит только из `SKILL.md`, старые
+`references/conflict.md` и `references/sync.md` отсутствуют. Единственная
+Codex-дельта — сохранённый runtime-owned `agents/openai.yaml`. Предыдущие
+installed packages сохранены в `/tmp/1local-rules-install-backup.wU8Len`.
