@@ -94,3 +94,33 @@ routing; 61 активна в create/update и 55 в retire. Candidate сохр�
 approval. Отдельная skill-specific Product Frame отсутствует; новая пара не
 создана, чтобы не вводить второй semantic owner рядом с owner-словами и
 history.
+
+## Новый bounded cycle v5 · простота как owner-критерий
+
+Владелец распространил на все текущие refactor-ы прямой критерий «не
+переусложнять весь процесс»
+(`_ops/chat-recall/2026-08-29-163434-codex-01a04d4a.md:33`). Это новый
+commander's intent, а не третий повтор заблокированного v4.
+
+Clean-room исполнитель без старого package восстановил семь смысловых единиц и
+не потребовал references. Авторская версия разделила независимо нарушимые
+границы на 13 body-единиц, не добавляя новой функции.
+
+Сняты все runtime-копии authoring, review, approval, install, rollback,
+drift-recovery и receipt process. Они принадлежат `$1skill-creation`, проектным
+инструкциям либо terminal evidence текущей работы, а не функции
+`1local-rules`.
+
+Сохранены только четыре прямых local-различия владельца и три необходимые
+границы результата: project-declared topology, present parity и complete
+absence. Полная карта конкретного вреда при удалении лежит в
+`loss-map-2026-08-30-v5.md`.
+
+V5 остаётся candidate-only. Official owner и live packages не меняются до
+exact approval.
+
+Два полных checker/probe раунда завершены на конечном SHA
+`c4982fe302d9e2e3ae3d64dd13fe90be6b02a937132bd5b7c2a8efeb90bf61b0`.
+Literal и trajectory checker-ы не оставили candidate-дефектов; exact clean
+probe не потребовал вернуть снятые procedures. Runtime active set равен 14
+для create/update и 11 для retire вместе с routing.

@@ -220,3 +220,28 @@ Codex runtime-owner для non-shared package, но `skills/codex/1local-rules/`
 approval/authoring contract, и отверг четвёртый повтор, потому что
 `check-approve.md` требует остановиться после двух повторов. Итог текущего
 прохода остаётся `blocked-before-approval`; official/live не менялись.
+
+## Упрощённый candidate v5
+
+Новый общий критерий владельца о запрете переусложнения сохранён в
+`source-basis-2026-08-30-v5.md` и преобразован в отдельный bounded cycle, а не
+в третий повтор v4.
+
+Clean-room исполнитель без старого package восстановил семь смысловых единиц.
+После authoring-route candidate остался одним `SKILL.md` без references и
+runtime-копии review/approval/install процесса.
+
+Round 1 удалил compound predicates, обязательный registry, повтор topology
+lookup и неопределённый retire scope. Round 2 на exact SHA
+`c4982fe302d9e2e3ae3d64dd13fe90be6b02a937132bd5b7c2a8efeb90bf61b0`
+завершился без candidate-находок.
+
+Structural validator, use/skip/near-miss, literal checker, trajectory checker
+и exact Atlas update/retire probe прошли. Подтверждён active set: 14 для
+create/update и 11 для retire вместе с routing; references — 0.
+
+Candidate готов только к exact approval. Official owner и обе live projections
+остаются на SHA
+`16e3b0e3c8017cbbb875842f0c5640200c7d810106f7a2103df0eb0911de3f01`;
+Codex metadata остаётся на SHA
+`9455f25c3d8293c455e2915c8632d5db872f92e1d5092451d4e6eab3ee698c68`.
