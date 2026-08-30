@@ -186,3 +186,37 @@ shape во всех трёх поверхностях состоит тольк�
 `references/conflict.md` и `references/sync.md` отсутствуют. Единственная
 Codex-дельта — сохранённый runtime-owned `agents/openai.yaml`. Предыдущие
 installed packages сохранены в `/tmp/1local-rules-install-backup.wU8Len`.
+
+## Повторная проверка по обновлённому creator contract
+
+Source basis, новый FAST/commander's intent, clean-room semantic draft,
+loss-map и три exact probe сохранены в адресных v4-файлах. Старый package
+использовался только как evidence; clean-room исполнитель его не видел.
+
+Candidate SHA `eb262405dccb9250a53d58ed3870445299cc6df9f50601a6093932dfa0fc030d`
+валиден структурно, имеет русский instructional body, 119-символьный English
+trigger-only description и не содержит внутренних ссылок. Финальный clean
+probe прошёл use/skip/near-miss, update и fail-closed retire trajectory.
+
+Два checker-а и два повторных review-loop завершены. Trajectory checker не
+оставил candidate-дефектов. Literal checker насчитал 80 body-единиц плюс одну
+routing-единицу, 61 активную в create/update и 55 в retire, и оставил blocker:
+самостоятельные инструкции находятся внутри составных абзацев, а новый
+`1skill-creation` требует писать каждую с новой строки. После лимита review
+candidate не переписывался и не передавался на approval.
+
+Official owner и обе live `SKILL.md` сохранили исходный SHA
+`16e3b0e3c8017cbbb875842f0c5640200c7d810106f7a2103df0eb0911de3f01`;
+Codex `agents/openai.yaml` сохранил SHA
+`9455f25c3d8293c455e2915c8632d5db872f92e1d5092451d4e6eab3ee698c68`.
+Отдельно обнаружено topology-расхождение: `skills/claude/README.md` требует
+Codex runtime-owner для non-shared package, но `skills/codex/1local-rules/`
+отсутствует. Новый source tree не создавался.
+
+Обязательный Fresh Eyes после длинной работы сохранён в
+`fresh-eyes-2026-08-30-v4.md`. Premortem и три нативные линзы разошлись между
+`no-change`, отдельным baseline-probe и новым candidate-cycle. Прямой синтез
+отверг ложный `no-change`, потому что baseline сам расходится с обновлённым
+approval/authoring contract, и отверг четвёртый повтор, потому что
+`check-approve.md` требует остановиться после двух повторов. Итог текущего
+прохода остаётся `blocked-before-approval`; official/live не менялись.
