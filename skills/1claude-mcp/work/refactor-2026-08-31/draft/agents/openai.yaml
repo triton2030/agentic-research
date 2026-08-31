@@ -1,7 +1,7 @@
 interface:
   display_name: "1-Claude MCP"
   short_description: "Independent Claude Opus advice or session control"
-  default_prompt: "Use $1claude-mcp for an independent Claude Opus perspective on this task or decision."
+  default_prompt: "Use $1claude-mcp for the requested Opus advice/review or Claude session inspection/control."
 
 dependencies:
   tools:

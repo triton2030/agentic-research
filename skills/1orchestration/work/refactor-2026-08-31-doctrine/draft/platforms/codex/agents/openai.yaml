@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Оркестрация"
+  short_description: "Use when work is about to go to a subagent or its return is being accepted, or it no longer fits one context, and every actor needs a set it can carry. Specialist panels keep their own skills."
+  default_prompt: "Используй $1orchestration, когда работа вот-вот уйдёт субагенту или её возврат принимается, либо когда она перестала помещаться в одно окно."
+
+policy:
+  allow_implicit_invocation: true
