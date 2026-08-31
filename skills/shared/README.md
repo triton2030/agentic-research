@@ -32,14 +32,16 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
     скил, слова владельца); весь переносимый контракт теперь помещается в
     `SKILL.md`;
   - `1skill-creation/portable/` — создание, рефактор и кнопка запуска скилов
-    одним пакетом (v14, 2026-09-01; предшественники и снапшоты —
+    одним пакетом (v15, 2026-09-01; предшественники и снапшоты —
     `skills/1skill-authoring/`, `skills/1skill-refactor/` и
     `skills/1skill-routing/`). Тело — единственный router независимых стадий;
-    references друг друга не вызывают, кроме `refactor.md`, который запускает
-    `goal-context.md` и возвращает агента в полный протокол создания. Пакет
-    владеет `goal-context.md`, `skill-short-description.md`,
-    `behavior-protocol.md`, `reference-files.md`, `agent-defaults.md`,
-    `refactor.md`, `check-approve.md` и `install-approved.md`, а также парой
+    references друг друга не вызывают, кроме `refactor.md`, у которого два
+    входа — clean-room и адресная правка намерения по дословным словам
+    владельца — и который запускает `goal-context.md` и возвращает агента в
+    полный протокол создания. Пакет владеет `goal-context.md`,
+    `skill-short-description.md`, `behavior-protocol.md`,
+    `reference-files.md`, `agent-defaults.md`, `refactor.md`,
+    `check-approve.md` и `install-approved.md`, а также парой
     `agents/check-instructions.md` + `agents/check-trajectory.md`. Намерение
     скила состоит из четырёх разделов в порядке Уникальный контекст, Задача,
     Цель, Критерии принятия; протокол поведения и reference-файлы идут после
