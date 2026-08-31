@@ -102,100 +102,6 @@ def nearest_topics(topic_map: TopicMap, wanted: str, count: int = 5) -> str:
     )
 
 
-POSITION_TYPES = frozenset(
-    {"решение", "коррекция", "критерий", "правило-кандидат", "предпочтение"}
-)
-CANDIDATE_LIMIT = 3
-
-
-def _moment(value: str | None) -> datetime | None:
-    """One comparable instant, or nothing when the record has no usable time."""
-    if not value:
-        return None
-    try:
-        parsed = datetime.fromisoformat(value)
-    except ValueError:
-        return None
-    return parsed if parsed.tzinfo else parsed.astimezone()
-
-
-def standing_positions(
-    log_dir: Path,
-    *,
-    topic: str,
-    before: datetime | None,
-    limit: int = CANDIDATE_LIMIT,
-) -> list[dict[str, str]]:
-    """The latest positions this topic still holds, newest first.
-
-    Deliberately no similarity ranking. Measured on this corpus, neither word
-    overlap nor the dense retriever surfaces the position a reply overturns:
-    a reversal states the opposite of an earlier claim and therefore shares
-    almost none of its wording — the appetite pair shares one word stem out of
-    twenty-six. A matcher that pretends to have found the cancelled position
-    would mislead; the standing positions are shown as what they are, and the
-    caller, who heard the owner speak, decides.
-
-    Retrieval owns the corpus format, so its parser is reused rather than
-    copied — these two scripts drifted apart once already. A corpus that cannot
-    be read must never stop the owner's words from being recorded, so any
-    failure yields nothing instead of raising.
-    """
-    try:
-        scripts = str(Path(__file__).resolve().parent)
-        if scripts not in sys.path:
-            sys.path.insert(0, scripts)
-        import chat_digest
-
-        records, _ = chat_digest.load(log_dir)
-    except Exception:
-        return []
-    live: list[tuple[datetime, dict[str, object]]] = []
-    for record in records:
-        if record.get("topic") != topic:
-            continue
-        if record.get("kind") not in ("quote", "selection"):
-            continue
-        if record.get("type") not in POSITION_TYPES:
-            continue
-        if record.get("superseded_by") or record.get("contested_by"):
-            continue
-        when = _moment(record.get("sort_timestamp"))
-        if when is None or (before is not None and when >= before):
-            continue
-        live.append((when, record))
-    live.sort(key=lambda row: (row[0], str(row[1]["address"])), reverse=True)
-    return [
-        {
-            "address": str(record["address"]),
-            "date": str(record.get("date") or "без даты"),
-            "head": _position_head(record),
-        }
-        for _, record in live[:limit]
-    ]
-
-
-def _position_head(record: dict[str, object]) -> str:
-    """Enough of a position to judge it against the reply in hand.
-
-    A selection reads `да` on its own and decides nothing for the reader; what
-    it decided lives in its context note. Carry the note whenever the quote is
-    too short to stand by itself.
-    """
-    text = " ".join(str(record.get("text") or "").split())
-    note = " ".join(str(record.get("context_note") or "").split())
-    if len(text) < 40 and note:
-        text = f"{text} — {note}"
-    return text[:110]
-
-
-def render_candidates(candidates: list[dict[str, str]]) -> str:
-    """The addresses a retry needs, so nobody has to search twice."""
-    return "Positions this topic currently holds:\n" + "\n".join(
-        f"  {row['address']} · {row['date']} · {row['head']}" for row in candidates
-    )
-
-
 def anchor(value: str, field: str) -> str:
     """A corpus address, in either form the agent has at hand.
 
@@ -893,14 +799,6 @@ def build_parser() -> argparse.ArgumentParser:
             + SESSION_CONTEXT_GUIDANCE
         ),
     )
-    parser.add_argument(
-        "--supersedes-none",
-        action="store_true",
-        help=(
-            "this reply cancels no earlier position: proceed when the corpus "
-            "offers candidates and none of them is overturned"
-        ),
-    )
     parser.add_argument("--project", default=default_project())
     parser.add_argument("--agent", required=True)
     parser.add_argument("--model")
@@ -1002,28 +900,6 @@ def main() -> int:
         already_present = path.exists() and f'"{quote}"' in path.read_text(
             encoding="utf-8-sig"
         )
-        if (
-            not already_present
-            and supersedes is None
-            and not args.supersedes_none
-            and args.kind in ("quote", "selection")
-            and type_ in POSITION_TYPES
-            and topic != REPAIR_TOPIC
-        ):
-            candidates = standing_positions(
-                log_dir, topic=topic, before=source.ordering
-            )
-            if candidates:
-                raise CaptureError(
-                    "does this reply cancel a position this topic already "
-                    "holds? An unmarked cancellation lets a later query answer "
-                    "with a position the owner has overturned, and only you "
-                    "heard him say it — the corpus cannot tell.\n"
-                    + render_candidates(candidates)
-                    + "\nPass the one it cancels: --supersedes <file>.md:<line>. "
-                    "A wrong link hides a position that is still live, so when "
-                    "this reply overturns none of them, say so: --supersedes-none."
-                )
         topic_transaction = bool(
             not already_present and new_topic_row is not None and topic_map is not None
         )

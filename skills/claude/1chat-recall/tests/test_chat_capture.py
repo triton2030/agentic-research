@@ -68,7 +68,6 @@ class ChatCaptureTests(unittest.TestCase):
         expect_ok: bool = True,
         new_topic: str | None = None,
         supersedes: str | None = None,
-        supersedes_none: bool = False,
         contested: str | None = None,
         ensure_topic_map: bool = True,
     ) -> subprocess.CompletedProcess[str]:
@@ -111,8 +110,6 @@ class ChatCaptureTests(unittest.TestCase):
             command += ["--new-topic", new_topic]
         if supersedes:
             command += ["--supersedes", supersedes]
-        if supersedes_none:
-            command.append("--supersedes-none")
         if contested:
             command += ["--contested", contested]
         if json_output:
@@ -877,75 +874,6 @@ class ChatCaptureTests(unittest.TestCase):
         self.assertEqual(topic_map.read_text(encoding="utf-8"), map_before)
         self.assertEqual(self.recall_files(), [old_path])
         self.assertEqual(old_path.read_text(encoding="utf-8"), holder_before)
-
-    def standing_position(self) -> str:
-        """One earlier position on the topic, and its address."""
-        self.run_capture(
-            "Запускаемся через три месяца, режем объём",
-            "решение",
-            "цели-и-приоритеты",
-            env=self.claude_env(),
-            source_timestamp="2026-08-01T10:00:00+05:00",
-        )
-        holder = self.recall_files()[0]
-        line = next(
-            index
-            for index, text in enumerate(
-                holder.read_text(encoding="utf-8").splitlines(), start=1
-            )
-            if text.startswith("* ")
-        )
-        return f"{holder.name}:{line}"
-
-    def test_position_capture_names_the_standing_positions_it_may_cancel(self) -> None:
-        """The rule to mark a cancellation was ignored while finding the
-        address cost a search nobody ran. The address now arrives unasked."""
-        address = self.standing_position()
-        refused = self.run_capture(
-            "Нет, две недели и весь состав целиком",
-            "решение",
-            "цели-и-приоритеты",
-            env=self.claude_env(),
-            source_timestamp="2026-08-02T10:00:00+05:00",
-            expect_ok=False,
-        )
-        self.assertNotEqual(refused.returncode, 0)
-        self.assertIn(address, refused.stderr)
-        self.assertIn("--supersedes-none", refused.stderr)
-
-    def test_answering_the_cancellation_question_either_way_writes(self) -> None:
-        address = self.standing_position()
-        self.run_capture(
-            "Нет, две недели и весь состав целиком",
-            "решение",
-            "цели-и-приоритеты",
-            env=self.claude_env(),
-            source_timestamp="2026-08-02T10:00:00+05:00",
-            supersedes=address,
-        )
-        self.run_capture(
-            "Каталог должен открываться быстро",
-            "критерий",
-            "цели-и-приоритеты",
-            env=self.claude_env(),
-            source_timestamp="2026-08-03T10:00:00+05:00",
-            supersedes_none=True,
-        )
-        body = self.recall_files()[0].read_text(encoding="utf-8")
-        self.assertIn(f"supersedes: {address} sha:", body)
-        self.assertIn("Каталог должен открываться быстро", body)
-        self.assertEqual(body.count("supersedes:"), 1)
-
-    def test_a_reply_that_states_no_position_is_never_gated(self) -> None:
-        """An idea proposes; it cannot overturn. Gating it would be noise."""
-        self.standing_position()
-        self.run_capture(
-            "А что если печатать ещё и на кружках",
-            "идея",
-            "цели-и-приоритеты",
-            env=self.claude_env(),
-            source_timestamp="2026-08-02T10:00:00+05:00",
-        )
 
     def test_supersedes_binds_the_address_to_a_fingerprint(self) -> None:
         self.write_topic_map("- `chat-recall-corpus` — Формат корпуса")
