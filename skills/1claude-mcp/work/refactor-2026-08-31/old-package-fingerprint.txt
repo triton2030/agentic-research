@@ -1,0 +1,7 @@
+eda1387285805e53ed5a4dc81bd86105458432b88899a1206d5fbe8a79511d62  experiments/claude-bridge/codex-skill/1claude-mcp/SKILL.md
+cc15b7b764e1b33d0bea3dcfcb82f9cbda5b89fb35df438f59f00dd9f67774ca  experiments/claude-bridge/codex-skill/1claude-mcp/agents/openai.yaml
+f8fa8bbc57ebce042db0b582bc727b4ea8ab3f13387a4872ec3943c9b4a9694d  experiments/claude-bridge/codex-skill/1claude-mcp/references/claude-native-tools.md
+84e7934d776f2a8894db2e801b88ca2517154cd11af940eec601ef598d63a2ef  experiments/claude-bridge/codex-skill/1claude-mcp/references/existing-sessions.md
+6d012d1a418b976a6933b8469ce62a4bb8225112e59978d75ba73ee0f1c9bdf2  experiments/claude-bridge/codex-skill/1claude-mcp/references/mcp-failure-handling.md
+7a07ef72b37aad92968f4226f8e1a07bd48c679329adff3761983291d3573cff  experiments/claude-bridge/codex-skill/1claude-mcp/references/opus-agent-prompting.md
+149f4db9990e96e2c68f23386e31622dabb212faa389da2badad1a5a369aa1d6  experiments/claude-bridge/codex-skill/1claude-mcp/references/session-adapter.md
