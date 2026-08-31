@@ -1,7 +1,7 @@
 interface:
-  display_name: "1-Индекс маршрутов"
-  short_description: "Record search-paid routes to buried knowledge in INDEX.md"
-  default_prompt: "Use $1index to create or update INDEX.md — a map of routes paid for by past searches: intent → file#section → what to learn there. Only search-paid entries, no file trees, no second truth; folder INDEX only next to a folder instruction; verify with five representative intents."
+  display_name: "1-Индекс оплаченных маршрутов"
+  short_description: "Use when costly search or a direct owner statement identifies a specific hard-to-find location."
+  default_prompt: "Используй $1index после наблюдаемо дорогого поиска либо прямого слова владельца о конкретном трудно находимом месте."
 
 policy:
   allow_implicit_invocation: true

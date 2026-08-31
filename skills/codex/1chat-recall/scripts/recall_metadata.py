@@ -5,7 +5,9 @@ itself: the set of long-lived subjects already used by its records, extended
 deliberately at capture time rather than drawn from a hardcoded list.
 """
 
+import re
 from pathlib import Path
+from typing import NamedTuple
 
 TYPE_DESCRIPTIONS = {
     "решение": "принятый долгоживущий курс или состояние",
@@ -21,6 +23,36 @@ TYPE_DESCRIPTIONS = {
 REPAIR_TYPE = "неопределено"
 REPAIR_TOPIC = "без-темы"
 TYPES = (*TYPE_DESCRIPTIONS, REPAIR_TYPE)
+
+TOPIC_ROW_RE = re.compile(r"^-\s+`(?P<handle>[^`]+)`\s+—\s+(?P<description>.+?)\s*$")
+RETIRED_HEADING_RE = re.compile(r"^##\s+Не переиспользовать\s*$")
+
+
+class TopicMap(NamedTuple):
+    """The vocabulary of topics, owned by one file instead of a folder."""
+
+    path: Path
+    live: dict[str, str]
+    retired: dict[str, str]
+
+
+def parse_topic_map(path: Path) -> TopicMap | None:
+    """Parse the live and retired rows of one topic-map file."""
+    try:
+        lines = path.read_text(encoding="utf-8-sig").splitlines()
+    except OSError:
+        return None
+    live: dict[str, str] = {}
+    retired: dict[str, str] = {}
+    target = live
+    for line in lines:
+        if RETIRED_HEADING_RE.match(line):
+            target = retired
+            continue
+        match = TOPIC_ROW_RE.match(line)
+        if match:
+            target[match["handle"]] = match["description"]
+    return TopicMap(path, live, retired)
 
 
 def corpus_topics(log_dir: Path) -> dict[str, int]:

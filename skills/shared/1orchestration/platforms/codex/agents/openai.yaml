@@ -1,7 +1,7 @@
 interface:
   display_name: "1-Оркестрация"
-  short_description: "Coordinate independent subagent streams into one result"
-  default_prompt: "Use $1orchestration to coordinate the requested subagent wave and return one integrated result."
+  short_description: "Use when assigning a subagent or splitting overloaded cognitive work."
+  default_prompt: "Используй $1orchestration перед поручением субагенту или разделением собственной перегруженной когнитивной работы."
 
 policy:
   allow_implicit_invocation: true

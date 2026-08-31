@@ -1,0 +1,7 @@
+# Terminal result
+
+- **Verification verdict:** `pass` for exact candidate `46b9fff6954ab1a8e13b6c83233f0910e9ddea9087dca6d8e112ebf760903dc5`.
+- **Authority verdict:** installation is **not allowed**: the sole unconditional exact approval identifies `36b9fff6954ab1a8e13b6c83233f0910e9ddea9087dca6d8e112ebf760903dc5`, not the verified candidate.
+- **Active set (SMS-facing dashboard route):** four independently violable meanings: root `AGENTS.md` (find applicable canonical truth and do not load unrelated zones); `dashboard/AGENTS.md` (route SMS-facing UI decisions to `specs/notifications.md`); `specs/notifications.md` (check current status owner); `_ops/product-frames/notifications.md` (SMS is paused and no new SMS-facing text before its owner separately decides). `specs/accessibility.md` is not active because it is scoped only to keyboard navigation and focus order.
+- **Addressed observable grounds:** evidence 01 identifies the exact candidate; evidence 06 records a single-blind matched read-only trial with the same immutable manifest, where the candidate reached and quoted the notification veto after the long trajectory; evidence 07 records lawful non-use on the API-contract and human-onboarding paths; evidence 08 establishes the approval/candidate identifier mismatch.
+- **Remaining gaps:** there is no unconditional exact approval for the verified candidate, and the pre-approved tree is unavailable for comparison; consequently no installation, projection, or live-sync verification is authorized.

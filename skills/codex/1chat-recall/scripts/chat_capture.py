@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Append one owner-memory record and preserve its non-inferable context."""
+"""Append one caller-confirmed owner excerpt and preserve its non-inferable context."""
 
 from __future__ import annotations
 
@@ -20,9 +20,13 @@ from typing import NamedTuple
 from recall_metadata import (
     REPAIR_TOPIC,
     REPAIR_TYPE,
+    RETIRED_HEADING_RE,
+    TOPIC_ROW_RE,
     TYPE_DESCRIPTIONS,
     TYPES,
+    TopicMap,
     corpus_topics,
+    parse_topic_map,
 )
 
 LOG_DIR = Path("_ops/chat-recall")
@@ -34,37 +38,19 @@ def resolve_log_dir(root: Path) -> Path:
 
 
 TOPIC_MAP = LOG_DIR / "topics.md"
-TOPIC_ROW_RE = re.compile(r"^-\s+`(?P<handle>[^`]+)`\s+—\s+(?P<description>.+?)\s*$")
-RETIRED_HEADING_RE = re.compile(r"^##\s+Не переиспользовать\s*$")
 ANCHOR_RE = re.compile(r"^(?P<file>[\w.\-]+\.md)(?:#L|:)(?P<line>\d+)$")
 
 
-class TopicMap(NamedTuple):
-    """The vocabulary of topics, owned by one file instead of a folder."""
+class FileState(NamedTuple):
+    """The exact pre-operation state of one transaction file."""
 
-    path: Path
-    live: dict[str, str]
-    retired: dict[str, str]
+    text: str | None
+    mode: int | None
 
 
 def read_topic_map(root: Path) -> TopicMap | None:
     """Parse the topic map, when this project keeps one."""
-    path = root / TOPIC_MAP
-    try:
-        lines = path.read_text(encoding="utf-8-sig").splitlines()
-    except OSError:
-        return None
-    live: dict[str, str] = {}
-    retired: dict[str, str] = {}
-    target = live
-    for line in lines:
-        if RETIRED_HEADING_RE.match(line):
-            target = retired
-            continue
-        match = TOPIC_ROW_RE.match(line)
-        if match:
-            target[match["handle"]] = match["description"]
-    return TopicMap(path, live, retired)
+    return parse_topic_map(root / TOPIC_MAP)
 
 
 def add_topic_row(topic_map: TopicMap, topic: str, boundary: str) -> None:
@@ -169,9 +155,10 @@ CONTEXT_LINK_RE = re.compile(
     r"(?:https?://|file://|www\.|\[[^\]]+\]\([^)]+\))", re.IGNORECASE
 )
 CONTEXT_NOTE_GUIDANCE = (
-    "context-note adds only missing context; never repeat or paraphrase the quote,"
-    " never widen a situational reply into a standing preference;"
-    " name searchable referents (skill/file/doc/date), not session-local pointers"
+    "context-note is a short set of searchable noun phrases, not prose; name "
+    "stable referents and useful synonyms; never repeat or paraphrase the quote "
+    "or widen a situational reply into a standing preference; if no grounded "
+    "keyword exists, inspect the source context instead of inventing one"
 )
 CONTEXT_NOTE_REMINDER = f"remember: {CONTEXT_NOTE_GUIDANCE}"
 SESSION_CONTEXT_GUIDANCE = (
@@ -550,6 +537,28 @@ def write_atomic(path: Path, text: str) -> None:
         temporary.unlink(missing_ok=True)
 
 
+def snapshot_files(paths: set[Path]) -> dict[Path, FileState]:
+    return {
+        path: FileState(
+            path.read_text(encoding="utf-8-sig"),
+            stat.S_IMODE(path.stat().st_mode),
+        )
+        if path.exists()
+        else FileState(None, None)
+        for path in paths
+    }
+
+
+def restore_files(states: dict[Path, FileState]) -> None:
+    for path, before in states.items():
+        if before.text is None:
+            path.unlink(missing_ok=True)
+            continue
+        write_atomic(path, before.text)
+        if before.mode is not None:
+            path.chmod(before.mode)
+
+
 def record_receipt(
     path: Path,
     quote: str,
@@ -590,6 +599,25 @@ def _earliest_known(text: str, incoming: SourceTimestamp) -> datetime:
     if incoming.ordering is not None:
         known.append(incoming.ordering)
     return min(known) if known else incoming.file_when
+
+
+def append_target(
+    path: Path,
+    agent: str,
+    session: str,
+    source: SourceTimestamp,
+    text: str,
+) -> Path:
+    if source.precision not in ("exact", "minute"):
+        return path
+    earliest = _earliest_known(text, source)
+    return dated_path(
+        path.parent,
+        agent,
+        session,
+        SourceTimestamp(earliest.isoformat(), "exact", earliest, earliest),
+        current=path,
+    )
 
 
 def create_file(
@@ -673,17 +701,10 @@ def append_entry(
         return False, context_updated, path
     ensure_inventory(lines, "types", type_)
     ensure_inventory(lines, "topics", topic)
-    target = path
-    if source.precision in ("exact", "minute"):
+    target = append_target(path, agent, session, source, text)
+    if target != path:
         earliest = _earliest_known(text, source)
         _set_file_date(lines, earliest)
-        target = dated_path(
-            path.parent,
-            agent,
-            session,
-            SourceTimestamp(earliest.isoformat(), "exact", earliest, earliest),
-            current=path,
-        )
     rendered = "\n".join(lines) + "\n" + _entry_line(
         quote,
         type_,
@@ -710,7 +731,15 @@ def build_parser() -> argparse.ArgumentParser:
             "with the number of conversations behind each"
         ),
     )
-    parser.add_argument("--quote", required=True)
+    parser.add_argument(
+        "--quote",
+        required=True,
+        help=(
+            "caller-confirmed owner excerpt; shorten only by deletion while "
+            "preserving wording and order; exclude pasted documents, quoted "
+            "conversations, and other people's or agents' words"
+        ),
+    )
     parser.add_argument("--type", required=True, dest="type_")
     parser.add_argument("--topic", required=True)
     parser.add_argument(
@@ -748,7 +777,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--context-note",
         help=(
-            "required for --kind quote; "
+            "required for --kind quote and --kind selection; "
             f"{CONTEXT_NOTE_GUIDANCE}; links rejected"
         ),
     )
@@ -790,9 +819,9 @@ def main() -> int:
             if args.session_context is not None
             else None
         )
-        if args.kind == "quote" and context is None:
+        if args.kind in ("quote", "selection") and context is None:
             raise CaptureError(
-                "--context-note is required for --kind quote; "
+                "--context-note is required for --kind quote and --kind selection; "
                 + CONTEXT_NOTE_GUIDANCE
             )
         if args.kind in ("quote", "selection") and session_card is None:
@@ -819,6 +848,11 @@ def main() -> int:
             raise CaptureError(f"project root not found: {root}")
         log_dir = resolve_log_dir(root)
         topic_map = read_topic_map(root)
+        if topic_map is None and topic != REPAIR_TOPIC:
+            raise CaptureError(
+                f"topic map not found: {root / TOPIC_MAP}. Read or repair the "
+                "target project's complete topic map before capture"
+            )
         new_topic_row = None
         if topic_map is not None and topic != REPAIR_TOPIC:
             if topic in topic_map.retired:
@@ -852,56 +886,87 @@ def main() -> int:
                 f"session id unknown for agent '{agent}' (env checked: {checked})"
             )
         path = find_session_file(log_dir, agent, session, source)
-        if path.exists():
-            written, context_updated, path = append_entry(
+        already_present = path.exists() and f'"{quote}"' in path.read_text(
+            encoding="utf-8-sig"
+        )
+        topic_transaction = bool(
+            not already_present and new_topic_row is not None and topic_map is not None
+        )
+        planned_path = (
+            append_target(
                 path,
                 agent,
                 session,
-                type_,
-                topic,
-                quote,
                 source,
-                args.kind,
-                context,
-                session_card,
-                supersedes,
-                contested,
+                path.read_text(encoding="utf-8-sig"),
             )
-        else:
-            create_file(
+            if path.exists()
+            else path
+        )
+        transaction_paths = {path, planned_path}
+        if topic_transaction and topic_map is not None:
+            transaction_paths.add(topic_map.path)
+        before = snapshot_files(transaction_paths)
+        try:
+            if topic_transaction and topic_map is not None and new_topic_row is not None:
+                # Validate and commit the dictionary row first. A later holder failure
+                # rolls it back, so a failed operation never leaves only one side.
+                add_topic_row(topic_map, topic, new_topic_row)
+            if path.exists():
+                written, context_updated, path = append_entry(
+                    path,
+                    agent,
+                    session,
+                    type_,
+                    topic,
+                    quote,
+                    source,
+                    args.kind,
+                    context,
+                    session_card,
+                    supersedes,
+                    contested,
+                )
+            else:
+                create_file(
+                    path,
+                    root.name,
+                    agent,
+                    model,
+                    session,
+                    type_,
+                    topic,
+                    quote,
+                    source,
+                    args.kind,
+                    context,
+                    session_card,
+                    supersedes,
+                    contested,
+                )
+                written = True
+                context_updated = session_card is not None
+            if topic_transaction and not written and topic_map is not None:
+                restore_files({topic_map.path: before[topic_map.path]})
+            receipt = record_receipt(
                 path,
-                root.name,
-                agent,
-                model,
-                session,
-                type_,
-                topic,
                 quote,
-                source,
-                args.kind,
-                context,
-                session_card,
-                supersedes,
-                contested,
+                topic,
+                session,
+                "written"
+                if written
+                else "context-updated"
+                if context_updated
+                else "already-present",
             )
-            written = True
-            context_updated = session_card is not None
-        if written and new_topic_row is not None and topic_map is not None:
-            add_topic_row(topic_map, topic, new_topic_row)
-        status = (
-            "written"
-            if written
-            else "context-updated"
-            if context_updated
-            else "already-present"
-        )
-        receipt = record_receipt(
-            path,
-            quote,
-            topic,
-            session,
-            status,
-        )
+        except (CaptureError, OSError) as error:
+            try:
+                restore_files(before)
+            except OSError as rollback_error:
+                raise CaptureError(
+                    f"capture failed and transaction rollback failed: {rollback_error}"
+                ) from error
+            raise
         if args.json:
             print(json.dumps(receipt, ensure_ascii=False))
         else:

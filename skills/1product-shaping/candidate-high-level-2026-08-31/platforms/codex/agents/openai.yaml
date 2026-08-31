@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Формирование продукта"
+  short_description: "Use when product direction should guide future choices"
+  default_prompt: "Используй $1product-shaping, чтобы поднять слова владельца и продуктовые решения до немногих верхнеуровневых принципов и полной Product Principles + Product Frame пары."
+
+policy:
+  allow_implicit_invocation: true

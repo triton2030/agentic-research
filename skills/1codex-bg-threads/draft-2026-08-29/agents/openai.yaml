@@ -1,0 +1,6 @@
+interface:
+  display_name: "Codex Background Threads"
+  short_description: "Use when offloading work to visible Codex threads"
+  default_prompt: "Use $1codex-bg-threads to offload this work to visible Codex threads and manage their lifecycle."
+policy:
+  allow_implicit_invocation: true

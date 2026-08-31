@@ -11,6 +11,6 @@
 файлы принципов в файлах эпиков; держит всю логику Obsidian-дашборда.
 
 Контент — от `map.md` старого пакета (снимок
-`skills/1planning/tracked-owner-2026-08-26/`); карта раскройки —
+`skills/1planning/versions/tracked-owner-2026-08-26/`); карта раскройки —
 `skills/1planning/split-map-2026-08-26.md`. Целевой полигон — mavo-short2
 (#L28), сам скилл project-independent.

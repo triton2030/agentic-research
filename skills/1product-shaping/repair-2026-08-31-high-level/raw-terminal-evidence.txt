@@ -1,0 +1,32 @@
+$ shasum -a 256 /Users/triton/.codex/skills/1skill-creation/SKILL.md
+11e82449797be9615b92976f2fe33f8677f74429a10fc2564a91b7a09fae344e  /Users/triton/.codex/skills/1skill-creation/SKILL.md
+
+$ python3 /Users/triton/.codex/skills/.system/skill-creator/scripts/quick_validate.py /Users/triton/Documents/GitHub/agentic-research/skills/1product-shaping/candidate-high-level-2026-08-31
+Skill is valid!
+
+$ cd /Users/triton/Documents/GitHub/agentic-research/skills/1product-shaping/candidate-high-level-2026-08-31 && find . -type f -print0 | sort -z | xargs -0 shasum -a 256
+25d7109c42f176bd25f3b81108d000a463dd55ea9cc3d0b556ff1849467fa41c  ./SKILL.md
+5e8e66e2b2b42b0f7475cb1293d932f52dfd6cfe24f0eac92d661ceb7498f100  ./platforms/codex/agents/openai.yaml
+
+$ cd /Users/triton/Documents/GitHub/agentic-research/skills/1product-shaping/candidate-high-level-2026-08-31 && find . -type f -print0 | sort -z | xargs -0 shasum -a 256 | shasum -a 256
+97504926e9486a0f2dd5262556063ad6098533d4c34e38a3aa31932e5dbcbeee  -
+
+$ find /Users/triton/Documents/GitHub/agentic-research/skills/1product-shaping/candidate-high-level-2026-08-31 -type f -print | sort
+/Users/triton/Documents/GitHub/agentic-research/skills/1product-shaping/candidate-high-level-2026-08-31/SKILL.md
+/Users/triton/Documents/GitHub/agentic-research/skills/1product-shaping/candidate-high-level-2026-08-31/platforms/codex/agents/openai.yaml
+
+$ wc -l /Users/triton/Documents/GitHub/agentic-research/skills/1product-shaping/candidate-high-level-2026-08-31/SKILL.md /Users/triton/Documents/GitHub/agentic-research/skills/1product-shaping/candidate-high-level-2026-08-31/platforms/codex/agents/openai.yaml
+56 /Users/triton/Documents/GitHub/agentic-research/skills/1product-shaping/candidate-high-level-2026-08-31/SKILL.md
+7 /Users/triton/Documents/GitHub/agentic-research/skills/1product-shaping/candidate-high-level-2026-08-31/platforms/codex/agents/openai.yaml
+63 total
+
+$ shasum -a 256 skills/shared/1product-shaping/portable/SKILL.md /Users/triton/.codex/skills/1product-shaping/SKILL.md
+f1867a192c68200ab72e63a2f05c41ba0306928b7da1337707d4b7070a4fa896  skills/shared/1product-shaping/portable/SKILL.md
+f1867a192c68200ab72e63a2f05c41ba0306928b7da1337707d4b7070a4fa896  /Users/triton/.codex/skills/1product-shaping/SKILL.md
+
+$ shasum -a 256 skills/shared/1use-principles/portable/SKILL.md /Users/triton/.codex/skills/1use-principles/SKILL.md
+f3525c759e7b723b3c5792af3fe693b55826c627ec332c70b9c4a9584497cbf9  skills/shared/1use-principles/portable/SKILL.md
+f3525c759e7b723b3c5792af3fe693b55826c627ec332c70b9c4a9584497cbf9  /Users/triton/.codex/skills/1use-principles/SKILL.md
+
+$ rg -n 'references/|pair-contract|[[:blank:]]+$' candidate-high-level-2026-08-31
+[no output]

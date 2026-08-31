@@ -23,6 +23,7 @@ import re
 import sqlite3
 import struct
 import sys
+import time
 from collections import Counter, defaultdict
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
@@ -34,6 +35,7 @@ from recall_metadata import (
     REPAIR_TOPIC,
     REPAIR_TYPE,
     TYPES,
+    parse_topic_map,
 )
 
 KINDS = {"quote", "selection", "note", "raw"}
@@ -61,6 +63,8 @@ EMBEDDING_REVISION = "00fc3aeb3dbb95842de2ac1961d33c6319acf57b"
 EMBEDDING_DIMENSION = 1024
 EMBEDDING_MODEL_FILE = "onnx/model_quantized.onnx"
 EMBEDDING_BATCH_SIZE = 32
+HYBRID_QUEUE_TIMEOUT_SECONDS = 120.0
+HYBRID_QUEUE_POLL_SECONDS = 0.05
 # Вердикт различает только предметную область запроса, не наличие позиции.
 # Замер 2026-08-20 на 940 записях, Xenova/multilingual-e5-large int8:
 # бытовые темы (гитара, борщ, ипотека) дают top1 0.764-0.812; всё про предмет
@@ -77,6 +81,7 @@ PASSAGE_PREFIX = "passage: "
 HYBRID_DEPTH = 40
 RRF_CONSTANT = 60
 SESSION_ROUTE_LIMIT = 5
+TOPIC_ROUTE_LIMIT = 5
 CONTEXT_RESCUE_LIMIT = 2
 FILE_SUPPORT_WEIGHT = 0.1
 DEFAULT_MAX_CHARS = 8000
@@ -283,12 +288,16 @@ def _parse_anchor(value: str) -> tuple[str, str | None]:
     return resolved, suffix.strip() or None
 
 
-def _quote_card(record: dict[str, Any], head: int) -> dict[str, Any]:
+def _quote_card(
+    record: dict[str, Any], head: int, now: datetime
+) -> dict[str, Any]:
     """One addressable quote: enough to cite it or to point a correction at it."""
     text = record["text"]
     card: dict[str, Any] = {
         "text": text[:head].rstrip() + ("…" if len(text) > head else ""),
         "address": record["address"],
+        "date": record.get("date"),
+        "age": _relative_age(_parse_sort_datetime(record.get("sort_timestamp")), now),
     }
     for back_reference in ("superseded_by", "contested_by"):
         marker = record.get(back_reference)
@@ -303,12 +312,16 @@ def link_supersessions(records: list[dict[str, Any]]) -> None:
     Without this the corpus answers a query with a position the owner has
     already overturned, and nothing in the answer says so. Line numbers drift
     as a conversation file grows, so the fingerprint decides and the address
-    only says which file to look in.
+    only says which file to look in. A supersession is accepted only inside one
+    topic and when its timestamp is strictly newer; otherwise it remains a
+    diagnostic conflict.
     """
     by_address = {record["address"]: record for record in records}
     by_fingerprint: dict[tuple[str, str], dict[str, Any]] = {}
     for record in records:
-        digest = hashlib.sha256(record["raw"].encode("utf-8")).hexdigest()[:8]
+        digest = hashlib.sha256(
+            record["raw"].split("\n", 1)[0].encode("utf-8")
+        ).hexdigest()[:8]
         by_fingerprint.setdefault((record["file"], digest), record)
     for record in records:
         for field, back_reference in (
@@ -319,17 +332,74 @@ def link_supersessions(records: list[dict[str, Any]]) -> None:
             if not anchor:
                 continue
             address, digest = _parse_anchor(anchor)
-            target = by_address.get(address)
-            if digest is not None:
-                relocated = by_fingerprint.get((address.split(":")[0], digest))
-                if relocated is not None:
-                    target = relocated
+            if digest is None:
+                target = by_address.get(address)
+            else:
+                target = by_fingerprint.get((address.split(":")[0], digest))
             if target is None:
                 record["diagnostics"] = sorted(
                     {*record.get("diagnostics", []), f"dangling-{field}"}
                 )
+                if field == "supersedes":
+                    record["invalid_supersedes"] = True
+                    address_target = by_address.get(address)
+                    if address_target is not None:
+                        address_target.setdefault("contested_by", []).append(
+                            record["address"]
+                        )
                 continue
+            if record.get("topic") != target.get("topic"):
+                record["diagnostics"] = sorted(
+                    {*record.get("diagnostics", []), f"cross-scope-{field}"}
+                )
+                if field == "supersedes":
+                    record["invalid_supersedes"] = True
+                continue
+            if field == "supersedes":
+                newer = _parse_sort_datetime(record.get("sort_timestamp"))
+                older = _parse_sort_datetime(target.get("sort_timestamp"))
+                if newer is None or older is None or newer <= older:
+                    record["diagnostics"] = sorted(
+                        {
+                            *record.get("diagnostics", []),
+                            "supersedes-not-newer",
+                        }
+                    )
+                    record["invalid_supersedes"] = True
+                    target.setdefault("contested_by", []).append(record["address"])
+                    continue
             target.setdefault(back_reference, []).append(record["address"])
+
+
+def _dateable_owner_record(record: dict[str, Any]) -> bool:
+    """Return whether a record can be presented as a dated owner position."""
+    return (
+        record.get("kind") in {"quote", "selection"}
+        and bool(record.get("sort_timestamp"))
+        and record.get("precision") != "unknown"
+    )
+
+
+def _decision_records(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Keep only dateable, owner-shaped evidence for a decision query.
+
+    An empty result is an abstention; explicit timeline remains available for
+    inspecting excluded diagnostics.
+    """
+    superseded = {
+        record["address"]
+        for record in records
+        if record.get("superseded_by")
+    }
+    return [
+        record
+        for record in records
+        if record["address"] not in superseded
+        and _dateable_owner_record(record)
+        and not record.get("contested")
+        and not record.get("contested_by")
+        and not record.get("invalid_supersedes")
+    ]
 
 
 NOT_A_CONVERSATION = frozenset({"AGENTS", "CLAUDE", "README", "INDEX", "topics"})
@@ -392,6 +462,23 @@ def inventory(records: list[dict[str, Any]], diagnostic_count: int) -> str:
     return "\n".join(lines)
 
 
+def load_topic_cards(corpus_dir: Path) -> list[dict[str, Any]]:
+    """Load live topic boundaries as a route separate from owner evidence."""
+    root = corpus_dir.parent if corpus_dir.name == "raw" else corpus_dir
+    topic_map = parse_topic_map(root / "topics.md")
+    if topic_map is None:
+        return []
+    return [
+        {
+            "topic": topic,
+            "description": description,
+            "search_text": f"{topic}\n{description}",
+            "file": "topics.md",
+        }
+        for topic, description in topic_map.live.items()
+    ]
+
+
 def _fts_query(query: str) -> str:
     tokens = QUERY_TOKEN_RE.findall(query.casefold())
     if not tokens:
@@ -443,6 +530,39 @@ def search_bm25(records: list[dict[str, Any]], query: str) -> list[dict[str, Any
         record["score"] = score
         result.append(record)
     return result
+
+
+def search_topic_descriptions_bm25(
+    cards: list[dict[str, Any]], query: str
+) -> list[dict[str, Any]]:
+    if not cards:
+        return []
+    connection = sqlite3.connect(":memory:")
+    try:
+        connection.execute(
+            "CREATE VIRTUAL TABLE topic_cards USING fts5("
+            "topic, description, tokenize='unicode61')"
+        )
+        connection.executemany(
+            "INSERT INTO topic_cards(rowid, topic, description) VALUES (?, ?, ?)",
+            (
+                (index, card["topic"], card["search_text"])
+                for index, card in enumerate(cards, 1)
+            ),
+        )
+        rows = connection.execute(
+            "SELECT rowid, bm25(topic_cards, 0.5, 1.0) AS score "
+            "FROM topic_cards WHERE topic_cards MATCH ? ORDER BY score, rowid",
+            (_fts_query(query),),
+        ).fetchall()
+    except sqlite3.Error as error:
+        raise CliError(f"BM25 query недопустим: {error}") from error
+    finally:
+        connection.close()
+    return [
+        {**cards[rowid - 1], "score": score}
+        for rowid, score in rows
+    ]
 
 
 def search_session_context_bm25(
@@ -604,10 +724,20 @@ def _hybrid_queue() -> Iterator[None]:
     except OSError as error:
         raise CliError(f"не удалось открыть hybrid queue {path}: {error}") from error
     with stream:
-        try:
-            fcntl.flock(stream.fileno(), fcntl.LOCK_EX)
-        except OSError as error:
-            raise CliError(f"не удалось войти в hybrid queue {path}: {error}") from error
+        deadline = time.monotonic() + HYBRID_QUEUE_TIMEOUT_SECONDS
+        while True:
+            try:
+                fcntl.flock(stream.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except BlockingIOError:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise CliError(
+                        f"тайм-аут ожидания hybrid queue {path}"
+                    )
+                time.sleep(min(HYBRID_QUEUE_POLL_SECONDS, remaining))
+            except OSError as error:
+                raise CliError(f"не удалось войти в hybrid queue {path}: {error}") from error
         yield
 
 
@@ -851,6 +981,51 @@ def _search_dense_texts(
     return result
 
 
+def search_topic_candidates(
+    cards: list[dict[str, Any]],
+    query: str,
+    *,
+    hybrid: bool,
+    limit: int = TOPIC_ROUTE_LIMIT,
+) -> tuple[list[dict[str, Any]], int]:
+    """Rank topic boundaries without mixing them into holder scores."""
+    lexical = search_topic_descriptions_bm25(cards, query)
+    if not lexical:
+        return [], 0
+    if hybrid:
+        dense = _search_dense_texts(cards, query, lambda card: card["search_text"])
+        dense_rank = {
+            card["topic"]: rank for rank, card in enumerate(dense, 1)
+        }
+        ordered = sorted(
+            lexical,
+            key=lambda card: (dense_rank.get(card["topic"], len(cards) + 1), card["topic"]),
+        )
+    else:
+        ordered = lexical
+    by_topic = {card["topic"]: card for card in cards}
+    lexical_topics = {card["topic"] for card in lexical}
+    candidates: list[dict[str, Any]] = []
+    for rank, ranked_card in enumerate(ordered[:limit], 1):
+        topic = ranked_card["topic"]
+        card = by_topic[topic]
+        admitted_by = (
+            "lexical+dense"
+            if hybrid
+            else "lexical"
+        )
+        candidates.append(
+            {
+                "topic": topic,
+                "description": card["description"],
+                "file": card["file"],
+                "topic_rank": rank,
+                "admitted_by": admitted_by,
+            }
+        )
+    return candidates, len(lexical_topics)
+
+
 _DENSE_TOP1: float | None = None
 
 
@@ -1069,12 +1244,30 @@ def _filter(records: list[dict[str, Any]], args: argparse.Namespace) -> list[dic
     return result
 
 
-def _retrieve(
-    records: list[dict[str, Any]], args: argparse.Namespace
-) -> tuple[list[dict[str, Any]], str | None, list[dict[str, Any]], str | None]:
+def _retrieve_with_topics(
+    records: list[dict[str, Any]],
+    args: argparse.Namespace,
+    topic_cards: list[dict[str, Any]],
+) -> tuple[
+    list[dict[str, Any]],
+    str | None,
+    list[dict[str, Any]],
+    str | None,
+    list[dict[str, Any]],
+    int,
+]:
     filtered = _filter(records, args)
+    if args.topics:
+        wanted_topics = {
+            value.strip() for value in args.topics.split(",") if value.strip()
+        }
+        topic_cards = [
+            card for card in topic_cards if card["topic"] in wanted_topics
+        ]
+    if args.query and not args.timeline:
+        filtered = _decision_records(filtered)
     if not args.query:
-        return filtered, None, [], None
+        return filtered, None, [], None, [], 0
     if args.lexical:
         session_routes, card_route = search_session_routes(
             filtered,
@@ -1082,11 +1275,18 @@ def _retrieve(
             hybrid=False,
         )
         lexical = search_bm25(filtered, args.query)
+        topic_candidates, topic_count = search_topic_candidates(
+            topic_cards,
+            args.query,
+            hybrid=False,
+        )
         return (
             _merge_file_rankings(filtered, (lexical,)),
             "lexical",
             session_routes,
             card_route,
+            topic_candidates,
+            topic_count,
         )
     with _hybrid_queue():
         session_routes, card_route = search_session_routes(
@@ -1099,7 +1299,30 @@ def _retrieve(
             args.query,
             collapse_files=True,
         )
-    return hybrid, "hybrid", session_routes, card_route
+        topic_candidates, topic_count = search_topic_candidates(
+            topic_cards,
+            args.query,
+            hybrid=True,
+        )
+    return (
+        hybrid,
+        "hybrid",
+        session_routes,
+        card_route,
+        topic_candidates,
+        topic_count,
+    )
+
+
+def _retrieve(
+    records: list[dict[str, Any]], args: argparse.Namespace
+) -> tuple[list[dict[str, Any]], str | None, list[dict[str, Any]], str | None]:
+    ranking, retrieval, routes, card_route, _, _ = _retrieve_with_topics(
+        records,
+        args,
+        [],
+    )
+    return ranking, retrieval, routes, card_route
 
 
 def _select_holders(
@@ -1197,22 +1420,11 @@ def _relative_age(value: datetime | None, now: datetime) -> str:
         return "время неизвестно"
     localized = value.astimezone(now.tzinfo)
     seconds = max(0, int((now - localized).total_seconds()))
-    if seconds < 60:
-        return "только что"
-    minutes = seconds // 60
-    if minutes < 60:
-        return _russian_count(minutes, ("минуту", "минуты", "минут"))
-    hours = minutes // 60
+    hours = seconds // 3600
     if hours < 24:
         return _russian_count(hours, ("час", "часа", "часов"))
     days = hours // 24
-    if days < 30:
-        return _russian_count(days, ("день", "дня", "дней"))
-    months = days // 30
-    if months < 12:
-        return _russian_count(months, ("месяц", "месяца", "месяцев"))
-    years = days // 365
-    return _russian_count(years, ("год", "года", "лет"))
+    return _russian_count(days, ("день", "дня", "дней"))
 
 
 def _holder_cards(
@@ -1229,8 +1441,8 @@ def _holder_cards(
         holder_records = by_file[candidate["file"]]
         latest = _latest_holder_datetime(holder_records)
         evidence = candidate.get("quote_evidence", [])
-        strongest_quote = _quote_card(evidence[0], head) if evidence else None
-        supporting = [_quote_card(record, head) for record in evidence[1:3]]
+        strongest_quote = _quote_card(evidence[0], head, now) if evidence else None
+        supporting = [_quote_card(record, head, now) for record in evidence[1:3]]
         types = Counter(record["type"] for record in holder_records)
         topics = Counter(record["topic"] for record in holder_records)
         session_context = candidate.get("session_context")
@@ -1275,12 +1487,23 @@ def _quality(records: list[dict[str, Any]]) -> dict[str, int]:
     }
 
 
+def _with_age(record: dict[str, Any], now: datetime) -> dict[str, Any]:
+    enriched = dict(record)
+    enriched["date"] = record.get("date")
+    enriched["age"] = _relative_age(
+        _parse_sort_datetime(record.get("sort_timestamp")), now
+    )
+    return enriched
+
+
 def _summary(record: dict[str, Any]) -> dict[str, Any]:
     fields = (
         "record_id",
         "kind",
         "text",
         "timestamp",
+        "date",
+        "age",
         "source",
         "precision",
         "source_ref",
@@ -1298,7 +1521,15 @@ def _summary(record: dict[str, Any]) -> dict[str, Any]:
         "diagnostics",
         "score",
     )
-    return {field: record[field] for field in fields if field in record}
+    summary = {field: record[field] for field in fields if field in record}
+    if "date" not in summary:
+        summary["date"] = record.get("date")
+    if "age" not in summary:
+        summary["age"] = _relative_age(
+            _parse_sort_datetime(record.get("sort_timestamp")),
+            datetime.now().astimezone(),
+        )
+    return summary
 
 
 def _snippet_summary(record: dict[str, Any], head: int) -> dict[str, Any]:
@@ -1346,13 +1577,16 @@ def _bounded(
 def _digest(records: list[dict[str, Any]], head: int, *, verbose: bool) -> str:
     if head < 1:
         raise CliError("--head должен быть положительным")
+    now = datetime.now().astimezone()
     lines: list[str] = []
     for record in records:
         clipped = record["text"][:head] + ("…" if len(record["text"]) > head else "")
         score = f" score={record['score']:.4f}" if verbose and "score" in record else ""
         diagnostics = " !diagnostics" if record["diagnostics"] else ""
+        age = _relative_age(_parse_sort_datetime(record.get("sort_timestamp")), now)
         lines.append(
             f"{record['record_id']} {record['date'] or 'unknown'} "
+            f"({age}) "
             f"{record['precision']} {record['kind']} "
             f"{record['type']}/{record['topic']}{diagnostics}{score} · {clipped}"
         )
@@ -1360,8 +1594,12 @@ def _digest(records: list[dict[str, Any]], head: int, *, verbose: bool) -> str:
 
 
 def _show(record: dict[str, Any]) -> str:
+    now = datetime.now().astimezone()
+    date = record.get("date") or "unknown"
+    age = _relative_age(_parse_sort_datetime(record.get("sort_timestamp")), now)
     source = (
-        f"timestamp={record['timestamp']} · precision={record['precision']} · "
+        f"date={date} · age={age} · timestamp={record['timestamp']} · "
+        f"precision={record['precision']} · "
         f"source={record['source']}"
     )
     if record["source_ref"]:
@@ -1467,6 +1705,8 @@ def _render_digest(
 def _render_holders(
     cards: list[dict[str, Any]],
     *,
+    topic_candidates: list[dict[str, Any]] | None = None,
+    topic_matched: int = 0,
     matched: int,
     total: int,
     truncated_by: str | None,
@@ -1478,10 +1718,20 @@ def _render_holders(
     )
     if truncated_by:
         status += f" · truncated by --{truncated_by.replace('_', '-')}"
+    topics = topic_candidates or []
+    if topic_matched or topics:
+        status += f" · {len(topics)}/{topic_matched} topic candidates"
     lines = [status]
     domain = _domain_verdict(_DENSE_TOP1)
     if domain is not None:
         lines.append(f"query-domain={domain} · dense_top1={_DENSE_TOP1:.3f}")
+    for topic in topics:
+        lines.append(
+            f"topic-candidate={topic['topic']} · "
+            f"topic_rank={topic['topic_rank']} · "
+            f"admitted_by={topic['admitted_by']} · file={topic['file']}"
+        )
+        lines.append(f"description: {topic['description']}")
     for card in cards:
         lines.append(
             f"holder={card['file']} · {card['age']} · "
@@ -1496,7 +1746,8 @@ def _render_holders(
         if strongest:
             text = " ".join(strongest["text"].split())
             lines.append(
-                f"strongest-quote: {text} · {strongest['address']} · "
+                f"strongest-quote: {text} · date={strongest['date'] or 'unknown'} · "
+                f"age={strongest['age']} · {strongest['address']} · "
                 f"supporting={card['supporting_quote_count']}"
             )
         else:
@@ -1515,11 +1766,13 @@ def _render_holders(
 def _bounded_holder_cards(
     cards: list[dict[str, Any]],
     *,
+    topic_candidates: list[dict[str, Any]],
+    topic_matched: int,
     matched: int,
     total: int,
     max_chars: int,
     retrieval: str,
-) -> tuple[list[dict[str, Any]], str | None]:
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], str | None]:
     selected: list[dict[str, Any]] = []
     truncated_by: str | None = None
     for card in cards:
@@ -1540,11 +1793,44 @@ def _bounded_holder_cards(
             "первая holder-card не помещается в --max-chars; "
             "уменьшите --head или увеличьте лимит"
         )
-    return selected, truncated_by
+    selected_topics: list[dict[str, Any]] = []
+    for topic in topic_candidates:
+        candidate_topics = [*selected_topics, topic]
+        rendered = _render_holders(
+            selected,
+            topic_candidates=candidate_topics,
+            topic_matched=topic_matched,
+            matched=matched,
+            total=total,
+            truncated_by=(
+                "max_chars"
+                if len(candidate_topics) < len(topic_candidates)
+                else truncated_by
+            ),
+            retrieval=retrieval,
+        )
+        if len(rendered) > max_chars:
+            truncated_by = "max_chars"
+            break
+        selected_topics = candidate_topics
+    if topic_candidates and not cards and not selected_topics:
+        raise CliError(
+            "первый topic-candidate не помещается в --max-chars; увеличьте лимит"
+        )
+    return selected, selected_topics, truncated_by
 
 
-def _query_selection(holders: list[dict[str, Any]]) -> str:
-    return "holders" if holders else "none"
+def _query_selection(
+    holders: list[dict[str, Any]],
+    topics: list[dict[str, Any]],
+) -> str:
+    if holders and topics:
+        return "holders+topic_candidates"
+    if holders:
+        return "holders"
+    if topics:
+        return "topic_candidates"
+    return "none"
 
 
 def _bounded_digest(
@@ -1617,6 +1903,8 @@ def _warnings(records: list[dict[str, Any]]) -> list[str]:
         warnings.append("repair-backlog-present")
     if any(record["precision"] != "exact" for record in records):
         warnings.append("approximate-or-unknown-time-present")
+    if any(record.get("contested") or record.get("contested_by") for record in records):
+        warnings.append("contested-evidence-present")
     return warnings
 
 
@@ -1717,6 +2005,7 @@ def main() -> int:
             raise CliError("укажите папку `_ops/chat-recall` или используйте --prepare")
         if not args.records_dir.is_dir():
             raise CliError(f"нет папки: {args.records_dir}")
+        topic_cards = load_topic_cards(args.records_dir)
         nested_raw = args.records_dir / "raw"
         if nested_raw.is_dir() and not any(args.records_dir.glob("2*.md")):
             args.records_dir = nested_raw
@@ -1725,12 +2014,15 @@ def main() -> int:
             args.max_chars = sys.maxsize if holder_mode else DEFAULT_MAX_CHARS
         if not args.show:
             _validate_bounds(args.limit, args.max_chars)
-        records, diagnostic_count = load(args.records_dir)
+        records, _ = load(args.records_dir)
         link_supersessions(records)
+        diagnostic_count = sum(bool(record["diagnostics"]) for record in records)
         total = len(records)
         session_routes: list[dict[str, Any]] = []
         card_route: str | None = None
         holder_cards: list[dict[str, Any]] = []
+        topic_candidates: list[dict[str, Any]] = []
+        topic_candidate_count = 0
         candidate_count = 0
         inventory_mode = not any(
             (
@@ -1760,9 +2052,17 @@ def main() -> int:
             matched = len(selected)
             retrieval = None
         elif holder_mode:
-            quote_ranking, retrieval, session_routes, card_route = _retrieve(
+            (
+                quote_ranking,
+                retrieval,
+                session_routes,
+                card_route,
+                topic_candidates,
+                topic_candidate_count,
+            ) = _retrieve_with_topics(
                 records,
                 args,
+                topic_cards,
             )
             selected_holders, candidate_count = _select_holders(
                 quote_ranking,
@@ -1775,8 +2075,14 @@ def main() -> int:
                 "limit" if len(selected_holders) < candidate_count else None
             )
             if not args.json:
-                holder_cards, character_truncation = _bounded_holder_cards(
+                (
                     holder_cards,
+                    topic_candidates,
+                    character_truncation,
+                ) = _bounded_holder_cards(
+                    holder_cards,
+                    topic_candidates=topic_candidates,
+                    topic_matched=topic_candidate_count,
                     matched=matched,
                     total=total,
                     max_chars=args.max_chars,
@@ -1805,6 +2111,11 @@ def main() -> int:
                     if record["file"] in holder_files
                 ]
             if args.timeline:
+                if args.query:
+                    candidates = [
+                        record for record in candidates
+                        if _dateable_owner_record(record)
+                    ]
                 candidates = _timeline(candidates)
             matched = len(candidates)
             if args.json:
@@ -1823,12 +2134,17 @@ def main() -> int:
                     total=total,
                     retrieval=retrieval,
                 )
+        now = datetime.now().astimezone()
         if holder_mode:
+            display_records: list[dict[str, Any]] = []
             rendered_records: list[dict[str, Any]] = []
-        elif args.show:
-            rendered_records = selected
         else:
-            rendered_records = [_summary(record) for record in selected]
+            display_records = [_with_age(record, now) for record in selected]
+            rendered_records = (
+                display_records
+                if args.show
+                else [_summary(record) for record in display_records]
+            )
         envelope: dict[str, Any] = {
             "total": total,
             "matched": matched,
@@ -1836,7 +2152,7 @@ def main() -> int:
             "truncated": truncated_by is not None,
             "truncated_by": truncated_by,
             "selection": (
-                _query_selection(holder_cards)
+                _query_selection(holder_cards, topic_candidates)
                 if holder_mode
                 else "records"
                 if not holder_mode and matched
@@ -1847,6 +2163,10 @@ def main() -> int:
         }
         if holder_mode:
             envelope["holders"] = holder_cards
+            if topic_candidate_count or topic_candidates:
+                envelope["topic_candidates"] = topic_candidates
+                envelope["topic_candidate_count"] = topic_candidate_count
+                envelope["topic_returned"] = len(topic_candidates)
             envelope["order"] = "newest-first"
             envelope["semantic_order"] = "semantic_rank"
         else:
@@ -1880,6 +2200,21 @@ def main() -> int:
                 raise CliError(
                     "полная запись превышает --max-chars; увеличьте лимит для --show"
                 )
+            if holder_mode:
+                while (
+                    len(rendered) > args.max_chars
+                    and envelope.get("topic_candidates")
+                ):
+                    envelope["topic_candidates"].pop()
+                    envelope["topic_returned"] = len(envelope["topic_candidates"])
+                    envelope["selection"] = _query_selection(
+                        envelope["holders"], envelope.get("topic_candidates", [])
+                    )
+                    envelope["truncated"] = True
+                    envelope["truncated_by"] = "max_chars"
+                    rendered = json.dumps(
+                        envelope, ensure_ascii=False, separators=(",", ":")
+                    )
             output_key = "holders" if holder_mode else "records"
             while (
                 not args.show
@@ -1889,7 +2224,9 @@ def main() -> int:
                 envelope[output_key].pop()
                 envelope["returned"] = len(envelope[output_key])
                 if holder_mode:
-                    envelope["selection"] = _query_selection(envelope["holders"])
+                    envelope["selection"] = _query_selection(
+                        envelope["holders"], envelope.get("topic_candidates", [])
+                    )
                 envelope["truncated"] = True
                 envelope["truncated_by"] = "max_chars"
                 rendered = json.dumps(
@@ -1904,9 +2241,9 @@ def main() -> int:
             print(_check_report(records, total, args.max_chars))
         elif args.show:
             rendered = (
-                json.dumps(selected[0], ensure_ascii=False, indent=2)
+                json.dumps(display_records[0], ensure_ascii=False, indent=2)
                 if args.verbose
-                else _show(selected[0])
+                else _show(display_records[0])
             )
             if len(rendered) > args.max_chars:
                 raise CliError(
@@ -1919,6 +2256,8 @@ def main() -> int:
             print(
                 _render_holders(
                     holder_cards,
+                    topic_candidates=topic_candidates,
+                    topic_matched=topic_candidate_count,
                     matched=matched,
                     total=total,
                     truncated_by=truncated_by,

@@ -54,11 +54,11 @@ acceptance or integration; counts approximate. Это доказало cognitive
 
 ## Новая owner-граница после раунда
 
-`_ops/chat-recall/2026-08-29-163434-codex-01a04d4a.md:15` требует строгости без
+`_ops/chat-recall/2026-08-29-163434-codex-01a04d4a.md:17` требует строгости без
 вредного буквализма. Поэтому `20` остаётся attention budget с overload escape,
 а findings исправлены owner-seams, не новыми ритуалами.
 
-`_ops/chat-recall/2026-08-29-160553-claude-0bee3f3d.md:17` прямо отказывает
+`_ops/chat-recall/2026-08-29-160553-claude-0bee3f3d.md:19` прямо отказывает
 runtime skill-у в дословных owner-цитатах. Цитаты удалены из candidate body и
 сохранены в history/evidence; behavior order остался.
 

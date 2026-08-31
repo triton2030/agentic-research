@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Оркестрация"
+  short_description: "Use when about to assign a subagent or split cognitive work into feasible actor loads."
+  default_prompt: "Используй $1orchestration перед поручением субагенту или разделением собственной перегруженной когнитивной работы."
+
+policy:
+  allow_implicit_invocation: true

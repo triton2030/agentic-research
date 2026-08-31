@@ -1,53 +1,23 @@
 ---
-description: "Origin, rejected rules and archived versions of 1planning."
+description: "Version packages and refactor evidence for 1planning."
 ---
 
-# 1planning — папка скила: происхождение, потери, версии
+# История 1planning
 
-Живой owner: `skills/shared/1planning/`. Tracked проекции — `skills/claude/` и
-`skills/codex/`; installed — `~/.claude/skills/` и `~/.codex/skills/`. Их не
-редактируют напрямую.
+Живой owner находится в `skills/shared/1planning/portable/`.
+Эта папка хранит историю и не является runtime package.
 
-2026-08-18, второй заход (полевой тест на карте эпиков mavo-short2, «внеси
-свои правки» владельца): в `map.md` § Создание карты добавлены постусловия
-состава — статус эпика доказывается носителем (не план-файлом), инженерная
-соизмеримость эпиков, сквозная нить (tracer bullet) как ось, порядок с
-правилом выбора, гейт принципов/рамок + эпик «Подготовка». Мотив: все пять
-коррекций владельца в тесте били в непокрытое создание карты; гейт «да» при
-этом сработал (пять разворотов до записи файлов). Провенанс — chat-recall
-mavo-short2 `2026-08-18-141026-claude-cecfaca9.md`.
+## Топология
 
-2026-08-18 (после «Да» на текст): в `decompose.md` снят мёртвый указатель
-`1assumption-audit` (скила не существует, наследие 1break-down) — material
-premise теперь закрывается через `1use-principles` либо блокирующий вопрос
-по `questions.md`; «да» владельца — в сессии аудита 2026-08-18.
+- `versions/<version-id>/` — самостоятельный снимок package: `SKILL.md`,
+  runtime metadata и принадлежащие версии assets или references.
+- `work/<work-id>/` — служебные материалы создания и проверки: intent, cut,
+  evidence, reviews и probes.
+- `origin.md`, `cut.md`, `evidence.md`, `product-frame.md` — общая история,
+  относящаяся к нескольким версиям.
 
-Переформирован 2026-08-18 через `1skill-shaping` (рефактор): два результата —
-карта эпиков (map.md) + план работы папкой `task/status/context`; гейт «да»
-владельца сохранён и усилен гейтом вопросов со следом; вопросы владельцу —
-заметки-конверты (questions.md) со сроком и дефолтом; прогресс — полоса
-статусов по порядку, проценты запрещены; последний эпик закрывается только
-внешними людьми. Прежняя версия целиком — `live-shared-2026-08-18/`.
-Провенанс решений — chat-recall mavo-short2 за 2026-08-17/18.
+Последний кандидат: `versions/candidate-2026-08-31/`.
+Его служебное evidence: `work/recheck-2026-08-31/`.
 
-Переформирован 2026-08-09 через `1skill-shaping`: план — живой контракт плюс
-`context.md`, который переносит отсутствующий у project owners замысел из
-чата. Разбивка (`1break-down`) поглощена; развилки вне плана идут в
-`1use-principles`; файлы не создаются без «да» владельца.
-
-- `origin.md` — решения владельца о `context.md` и дедупликации тела;
-- `cut.md` — таблица потерь и принятых рисков;
-- `evidence.md` — различающий прогон и внешнее ревью;
-- `live-claude-2026-08-08/`, `live-codex-2026-08-08/` — прежние версии
-  целиком (включая все старые references — источник точечных возвратов).
-
-## Синхронизация после правки owner-а
-
-2026-08-24: живой MAVO falsifier разделил формулы v3 — процент задачи
-сохранён, процент эпика удалён из-за открытого JIT-знаменателя. Провенанс —
-`origin.md`, потери — `cut.md`, comparator — `evidence.md`.
-
-```bash
-python3 skills/shared/sync_simple_projections.py 1planning --write --install
-python3 skills/shared/sync_simple_projections.py 1planning --check
-```
+Предыдущий подробный README сохранён в
+`work/README-before-2026-08-31.md` как исторический service artifact.

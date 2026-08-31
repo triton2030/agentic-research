@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Карта планов"
+  short_description: "Use to maintain epics, a map, or dashboard"
+  default_prompt: "Используй $1plan-map, чтобы создать, проверить или изменить человеческую карту эпиков."
+
+policy:
+  allow_implicit_invocation: true

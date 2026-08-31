@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Локальные скилы"
+  short_description: "Use for project-local 2* skills"
+  default_prompt: "Используй $1local-rules вместе с $1skill-creation для project-local 2*: сохрани префикс 2, совместимость со старшими инструкциями и синхронизацию owner↔Claude↔Codex."
+
+policy:
+  allow_implicit_invocation: true

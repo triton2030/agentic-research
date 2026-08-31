@@ -1,7 +1,7 @@
 # Reviews v6 — round 3 (second repeat, terminal residue)
 
 Проверяемая версия: `draft-v6/**` после пяти trajectory findings round 2.
-По `1skill-creation/references/check-approve.md:18–19` после второго повтора
+По `1skill-creation/references/check-approve.md:23–24` после второго повтора
 правки не продолжаются молча: остаток назван, live/projections не меняются.
 
 ## Пять исходных trajectory findings

@@ -1,7 +1,7 @@
 interface:
   display_name: "1-Рефактор контекста"
-  short_description: "Meta-analyse the session: find friction, diagnose its cause, fix the real culprit"
-  default_prompt: "Use $1context-refactor to re-read the whole session and find friction: redundant reading, work redone after a mistake, work that took too long. Diagnose what caused each and whether knowing something earlier would have prevented it. Then fix the real culprit — instructions, a misleading document, a skill, or the owner's own wording. Not always the instructions. Instruction surfaces are rewritten only after the owner approves."
+  short_description: "Use after session errors, rework, or needless searches recur."
+  default_prompt: "Используй $1context-refactor после повторившегося сбоя: проанализируй всю доступную сессию, независимо проверь маршрут и системную находку, при доказанном влиянии слов дай совет, а источник ремонтируй только с разрешением и повтором эпизода."
 
 policy:
   allow_implicit_invocation: true

@@ -45,5 +45,5 @@
    вернуть evidence, но не менять контракт.
 
 Источники владельца:
-`_ops/chat-recall/2026-08-29-152644-codex-01a04d0d.md:18-30` и
-`_ops/chat-recall/2026-08-29-163434-codex-01a04d4a.md:15,19-20`.
+`_ops/chat-recall/2026-08-29-152644-codex-01a04d0d.md:19-30` и
+`_ops/chat-recall/2026-08-29-163434-codex-01a04d4a.md:17,19-22`.

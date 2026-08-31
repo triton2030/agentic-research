@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Продуктовый разговор"
+  short_description: "High-leverage owner questions for product boundaries"
+  default_prompt: "Используй $1product-shaping, чтобы проверить существующие продуктовые рамки, найти один пробел, ответ на который знаю только я, и провести со мной короткий разговор, который закроет целый класс будущих решений."
+
+policy:
+  allow_implicit_invocation: true

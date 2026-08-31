@@ -13,20 +13,22 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   `1skill-shaping` + `1instruction-shaping`, снятую 2026-08-26 (архивы в
   `skills/1skill-shaping/` и `skills/1instruction-shaping/`; решение владельца —
   `_ops/chat-recall/raw/2026-08-26-201025-claude-4e40828f.md#L15`):
-  - `1instruction-authoring/portable/` — создание инструкций: корень-роутер
-    (≤20 единиц знаний, связки «папка → её инструкция»), цепочка папочных
-    инструкций, новое правило; владеет `interview.md`, `wording.md`,
-    `knowledge-out.md`, `placement.md` (траекторный счёт);
+  - `1instruction-authoring/portable/` — создание и переписывание инструкций:
+    корень-роутер, самостоятельные папочные инструкции, один владелец смысла,
+    активный бюджет до 20 единиц и причинный пробник до установки; владеет
+    `references/verification.md` и `agents/zone-scout.md`;
   - `1context-refactor/portable/` — рефактор контекста: мета-анализ прошедшего
     диалога — найти шероховатости (лишнее чтение, переделки, долгая работа),
     установить причину, чинить настоящего виновника (инструкции, документ,
-    скил, слова владельца); владеет `refactor.md` (схема карты смыслов),
-    `coherence.md`, `simplify.md`, базовыми `audit.md`/`check.md`;
+    скил, слова владельца); весь переносимый контракт теперь помещается в
+    `SKILL.md`;
   - `1skill-creation/portable/` — создание, рефактор и кнопка запуска скилов
-    одним пакетом (v7, 2026-08-29; предшественники и снапшоты —
+    одним пакетом (v12, 2026-08-31; предшественники и снапшоты —
     `skills/1skill-authoring/`, `skills/1skill-refactor/` и
     `skills/1skill-routing/`). Тело — единственный router независимых стадий;
-    references друг друга не вызывают. Пакет владеет `goal-context.md`,
+    references друг друга не вызывают, кроме `refactor.md`, который запускает
+    `goal-context.md` и возвращает агента в полный протокол создания. Пакет
+    владеет `goal-context.md`,
     `skill-short-description.md`, `behavior-protocol.md`, `reference-files.md`,
     `agent-defaults.md`, `refactor.md`, `check-approve.md` и
     `install-approved.md`, а также парой `agents/check-instructions.md` +
@@ -43,6 +45,15 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   contract; runtime launch deltas для Codex `spawn_agent` и Claude `Agent`
   живут в одной адресуемой reference, а Codex UI metadata — в
   `platforms/codex/agents/openai.yaml`.
+- `1readable-code/portable/` — общий стратегический pre-code контекст для
+  Claude и Codex; `platforms/codex/agents/openai.yaml` содержит только Codex UI
+  metadata.
+- `1orchestration/portable/` — общий минимальный контракт делегирования и
+  разгрузки активных наборов для Claude и Codex;
+  `platforms/codex/agents/openai.yaml` содержит только Codex UI metadata.
+- `1local-rules/portable/` — общая локальная дельта для project-local `2*`
+  скилов Claude и Codex; `platforms/codex/agents/openai.yaml` содержит только
+  Codex UI metadata.
 - `1product-shaping/portable/` создаёт чистые Product Principles + Frame и
   журнал обоснований; `1use-principles/portable/` применяет их к развилкам и
   пустотам.
@@ -52,13 +63,16 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   и снимок — `skills/1planning/`):
   - `1planning/portable/` — страж и когнитивный протокол в чате: любая мысль
     «что дальше», спор о допуске задачи, доказанная пошаговая декомпозиция по
-    книжным методикам до любых план-файлов; без references;
+    книжным методикам до любых план-файлов; владеет router-ом и стадиями
+    опоры, допуска, среза, режима, контекста и утверждения;
   - `1plan-map/portable/` — эпики и верхний уровень проекта: рамки и принципы
-    до состава, карта от GOAL, дашборд Obsidian; владеет `map-form.md`,
-    `dashboard.md`;
+    до состава, карта от GOAL, дашборд Obsidian; владеет формой и состоянием
+    эпика, словарём/frontier, structural/state validation, независимой
+    приёмкой и bootstrap/update дашборда;
   - `1plan-task/portable/` — изолированность задач: самодостаточный жёстко
     ограниченный task-файл, режимы, доказательства, fresh-reader; владеет
-    `task-form.md`.
+    размещением, схемой, контекстом, бюджетом, work/report, state/lifecycle,
+    closure, handoff и retention.
 - `1index/portable/` держит карты оплаченных поиском маршрутов.
 - `1interview-tool/portable/` создаёт адресуемую plain-Markdown форму и держит
   lifecycle `решения владельца → настоящие owners → архив`; Codex invocation

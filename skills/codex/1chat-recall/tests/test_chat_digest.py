@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import importlib.util
+import fcntl
+import hashlib
 import json
 import os
 import subprocess
@@ -50,6 +52,15 @@ class ChatDigestTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.corpus = Path(self.temp.name)
         (self.corpus / "recall.md").write_text(FILE, encoding="utf-8")
+        (self.corpus / "topics.md").write_text(
+            "# Карта тем\n\n"
+            "- `документация-и-знания` — канон, документы, "
+            "навигационномаршрут\n"
+            "- `работа-и-процессы` — способ работы и операционные решения\n\n"
+            "## Не переиспользовать\n\n"
+            "- `старая-тема` — секретныймаршрут\n",
+            encoding="utf-8",
+        )
 
     def tearDown(self) -> None:
         self.temp.cleanup()
@@ -229,15 +240,47 @@ class ChatDigestTests(unittest.TestCase):
         self.assertIn("admitted_by=card", result.stdout)
         self.assertNotIn("Канон живёт отдельно", result.stdout)
 
-    def test_query_returns_only_the_holder_route(self) -> None:
+    def test_topic_description_is_a_separate_route_not_owner_evidence(self) -> None:
         data = json.loads(
-            self.call("--query", "субагент*", "--json").stdout
+            self.call("--query", "навигационномаршрут", "--json").stdout
         )
 
-        self.assertEqual(data["selection"], "holders")
-        self.assertNotIn("topic_candidates", data)
+        self.assertEqual(data["selection"], "topic_candidates")
+        self.assertEqual(data["holders"], [])
+        self.assertEqual(data["topic_candidate_count"], 1)
+        self.assertEqual(
+            data["topic_candidates"],
+            [
+                {
+                    "topic": "документация-и-знания",
+                    "description": "канон, документы, навигационномаршрут",
+                    "file": "topics.md",
+                    "topic_rank": 1,
+                    "admitted_by": "lexical",
+                }
+            ],
+        )
+        self.assertNotIn("strongest_quote", data["topic_candidates"][0])
+
+    def test_holder_and_topic_routes_can_both_answer_without_score_mixing(self) -> None:
+        data = json.loads(self.call("--query", "канон", "--json").stdout)
+
+        self.assertEqual(data["selection"], "holders+topic_candidates")
         self.assertEqual(data["holders"][0]["file"], "recall.md")
-        self.assertIn("Субагенты", data["holders"][0]["strongest_quote"]["text"])
+        self.assertEqual(
+            data["topic_candidates"][0]["topic"],
+            "документация-и-знания",
+        )
+        self.assertIn("semantic_rank", data["holders"][0])
+        self.assertIn("topic_rank", data["topic_candidates"][0])
+
+    def test_retired_topic_is_not_a_retrieval_candidate(self) -> None:
+        data = json.loads(
+            self.call("--query", "секретныймаршрут", "--json").stdout
+        )
+
+        self.assertEqual(data["selection"], "none")
+        self.assertEqual(data.get("topic_candidates", []), [])
 
     def test_selected_holders_display_newest_first_with_semantic_rank_and_counts(
         self,
@@ -791,6 +834,191 @@ class ChatDigestTests(unittest.TestCase):
         self.assertEqual(records[0]["type"], "коррекция")
         self.assertEqual(records[1]["type"], "решение")
 
+    def test_retrieval_quotes_show_date_age_and_newer_conflict_wins(self) -> None:
+        old_entry = (
+            '* 2026-07-01T10:00:00+00:00 — "Storage local old" '
+            "— type: решение | topic: работа-и-процессы"
+        )
+        self.write_entries([old_entry])
+        old_records, _ = DIGEST.load(self.corpus)
+        old = old_records[0]
+        fingerprint = hashlib.sha256(
+            old["raw"].encode("utf-8")
+        ).hexdigest()[:8]
+        new_entry = (
+            '* 2026-07-03T10:00:00+00:00 — "Storage remote new" '
+            "— type: коррекция | topic: работа-и-процессы | "
+            f"supersedes: {old['address']} sha:{fingerprint}"
+        )
+        self.write_entries([old_entry, new_entry])
+
+        data = json.loads(self.call("--query", "Storage", "--json").stdout)
+        strongest = data["holders"][0]["strongest_quote"]
+        self.assertEqual(strongest["text"], "Storage remote new")
+        self.assertEqual(strongest["date"], "2026-07-03")
+        self.assertRegex(
+            strongest["age"],
+            r"\d+ (?:час|часа|часов|день|дня|дней) назад",
+        )
+        for quote in [
+            strongest,
+            *data["holders"][0]["supporting_quotes"],
+        ]:
+            self.assertTrue(quote.get("date"))
+            self.assertTrue(quote.get("age"))
+        self.assertNotIn("Storage local old", json.dumps(data, ensure_ascii=False))
+
+        timeline = json.loads(
+            self.call("--query", "Storage", "--timeline", "--json").stdout
+        )["records"]
+        self.assertEqual(
+            [record["text"] for record in timeline],
+            ["Storage remote new", "Storage local old"],
+        )
+        self.assertTrue(all(record.get("date") and record.get("age") for record in timeline))
+
+        final_records, _ = DIGEST.load(self.corpus)
+        shown = json.loads(
+            self.call("--show", final_records[1]["record_id"], "--json").stdout
+        )
+        self.assertEqual(shown["records"][0]["date"], "2026-07-03")
+        self.assertRegex(
+            shown["records"][0]["age"],
+            r"\d+ (?:час|часа|часов|день|дня|дней) назад",
+        )
+
+        human = self.call("--query", "Storage")
+        self.assertIn("date=2026-07-03", human.stdout)
+        self.assertRegex(
+            human.stdout,
+            r"age=\d+ (?:час|часа|часов|день|дня|дней) назад",
+        )
+
+    def test_decision_query_excludes_undated_and_non_owner_kinds(self) -> None:
+        self.write_entries(
+            [
+                (
+                    '* 2026-07-01T10:00:00+00:00 — "Needle owner quote" '
+                    "— type: решение | topic: работа-и-процессы"
+                ),
+                (
+                    '* 2026-07-02T10:00:00+00:00 — Needle agent note '
+                    "— type: идея | topic: работа-и-процессы"
+                ),
+                (
+                    '* unknown — "Needle undated quote" — type: решение | '
+                    "topic: работа-и-процессы | precision: unknown"
+                ),
+                "* Needle raw fragment",
+            ]
+        )
+
+        data = json.loads(self.call("--query", "Needle", "--json").stdout)
+        self.assertEqual(data["returned"], 1)
+        quote = data["holders"][0]["strongest_quote"]
+        self.assertEqual(quote["text"], "Needle owner quote")
+        self.assertEqual(quote["date"], "2026-07-01")
+        self.assertRegex(
+            quote["age"],
+            r"\d+ (?:час|часа|часов|день|дня|дней) назад",
+        )
+        self.assertNotIn("Needle agent note", json.dumps(data, ensure_ascii=False))
+        self.assertNotIn("Needle undated quote", json.dumps(data, ensure_ascii=False))
+
+        timeline = json.loads(
+            self.call("--query", "Needle", "--timeline", "--json").stdout
+        )["records"]
+        self.assertEqual([record["text"] for record in timeline], ["Needle owner quote"])
+        self.assertTrue(all(record.get("date") and record.get("age") for record in timeline))
+
+    def test_supersedes_and_contested_require_valid_scope_and_order(self) -> None:
+        def record(address: str, topic: str, timestamp: str) -> dict[str, object]:
+            return {
+                "address": address,
+                "file": "recall.md",
+                "raw": address,
+                "topic": topic,
+                "sort_timestamp": timestamp,
+                "diagnostics": [],
+            }
+
+        old = record("recall.md:10", "работа-и-процессы", "2026-07-01T10:00:00+00:00")
+        cross_scope = record("recall.md:11", "документация-и-знания", "2026-07-03T10:00:00+00:00")
+        cross_scope["supersedes"] = "recall.md:10"
+        records = [old, cross_scope]
+        DIGEST.link_supersessions(records)
+        self.assertNotIn("superseded_by", old)
+        self.assertIn("cross-scope-supersedes", cross_scope["diagnostics"])
+
+        older_reply = record("recall.md:12", "работа-и-процессы", "2026-06-30T10:00:00+00:00")
+        older_reply["supersedes"] = "recall.md:10"
+        records = [old, older_reply]
+        DIGEST.link_supersessions(records)
+        self.assertNotIn("superseded_by", old)
+        self.assertIn("supersedes-not-newer", older_reply["diagnostics"])
+        self.assertEqual(old["contested_by"], ["recall.md:12"])
+
+        wrong_fingerprint = record(
+            "recall.md:14", "работа-и-процессы", "2026-07-05T10:00:00+00:00"
+        )
+        wrong_fingerprint["supersedes"] = "recall.md:10 sha:deadbeef"
+        records = [old, wrong_fingerprint]
+        DIGEST.link_supersessions(records)
+        self.assertNotIn("superseded_by", old)
+        self.assertIn("dangling-supersedes", wrong_fingerprint["diagnostics"])
+        self.assertTrue(wrong_fingerprint["invalid_supersedes"])
+
+        relocated_target = record(
+            "recall.md:20", "работа-и-процессы", "2026-07-01T10:00:00+00:00"
+        )
+        relocated_target["raw"] = "recall.md:20\n<!-- rumdl-enable MD013 -->"
+        relocated_source = record(
+            "recall.md:21", "работа-и-процессы", "2026-07-06T10:00:00+00:00"
+        )
+        digest = hashlib.sha256("recall.md:20".encode("utf-8")).hexdigest()[:8]
+        relocated_source["supersedes"] = f"recall.md:10 sha:{digest}"
+        records = [relocated_target, relocated_source]
+        DIGEST.link_supersessions(records)
+        self.assertEqual(relocated_target["superseded_by"], ["recall.md:21"])
+
+        contested = record("recall.md:13", "работа-и-процессы", "2026-07-04T10:00:00+00:00")
+        contested["contested"] = "recall.md:10"
+        records = [old, contested]
+        DIGEST.link_supersessions(records)
+        decision = DIGEST._decision_records(records)
+        self.assertEqual(decision, [])
+
+        old_entry = (
+            '* 2026-07-01T10:00:00+00:00 — "Strict old" '
+            "— type: решение | topic: работа-и-процессы"
+        )
+        self.write_entries([old_entry])
+        old_address = DIGEST.load(self.corpus)[0][0]["address"]
+        self.write_entries(
+            [
+                old_entry,
+                (
+                    '* 2026-07-03T10:00:00+00:00 — "Cross scope" '
+                    f"— type: коррекция | topic: документация-и-знания | supersedes: {old_address}"
+                ),
+                (
+                    '* 2026-06-30T10:00:00+00:00 — "Older reply" '
+                    f"— type: коррекция | topic: работа-и-процессы | supersedes: {old_address}"
+                ),
+                (
+                    '* 2026-07-04T10:00:00+00:00 — "Wrong digest" '
+                    f"— type: коррекция | topic: работа-и-процессы | supersedes: {old_address} sha:deadbeef"
+                ),
+            ]
+        )
+        strict = self.call_default("--check", "--strict")
+        self.assertEqual(strict.returncode, 1)
+        self.assertIn("cross-scope-supersedes", strict.stdout)
+        self.assertIn("supersedes-not-newer", strict.stdout)
+        self.assertIn("dangling-supersedes", strict.stdout)
+        decision = json.loads(self.call("--query", "Strict", "--json").stdout)
+        self.assertEqual(decision["returned"], 0)
+
     def test_timeline_ties_are_stable_and_unknown_is_not_duplicated(self) -> None:
         self.write_entries(
             [
@@ -958,6 +1186,37 @@ with module._hybrid_queue():
             if process is not None and process.poll() is None:
                 process.kill()
                 process.wait()
+
+    def test_hybrid_queue_times_out_when_lock_is_held(self) -> None:
+        shared_cache = self.corpus / "timeout-cache"
+        shared_cache.mkdir()
+        lock = shared_cache / "hybrid.lock"
+        holder = lock.open("a+b")
+        fcntl.flock(holder.fileno(), fcntl.LOCK_EX)
+        try:
+            with (
+                mock.patch.dict(
+                    os.environ,
+                    {"CHAT_RECALL_CACHE_DIR": str(shared_cache)},
+                ),
+                mock.patch.object(DIGEST, "HYBRID_QUEUE_TIMEOUT_SECONDS", 0.1),
+            ):
+                started = time.monotonic()
+                args = DIGEST.build_parser().parse_args(
+                    [str(self.corpus), "--query", "канон"]
+                )
+                records, _ = DIGEST.load(self.corpus)
+                with mock.patch.object(DIGEST, "search_dense") as dense:
+                    with self.assertRaises(DIGEST.CliError) as raised:
+                        DIGEST._retrieve(records, args)
+                    dense.assert_not_called()
+                elapsed = time.monotonic() - started
+            self.assertGreaterEqual(elapsed, 0.1)
+            self.assertLess(elapsed, 1.0)
+            self.assertIn("тайм-аут ожидания hybrid queue", str(raised.exception))
+        finally:
+            fcntl.flock(holder.fileno(), fcntl.LOCK_UN)
+            holder.close()
 
     def test_hybrid_abstains_before_loading_dense_model(self) -> None:
         records, _ = DIGEST.load(self.corpus)

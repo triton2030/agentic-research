@@ -1,58 +1,43 @@
 ---
 name: 1plan-task
 description: >-
-  Use when chosen work outlives the session, a task file is created or
-  continued, or new evidence arrives: verify the epic first, keep the file
-  self-sufficient and hard-bounded. Not for the epic map.
+  Use when one approved task file must be created, continued, rebuilt, handed
+  off, or closed.
 ---
 
-# Plan task — the isolation of tasks
+# План задачи
 
-A task file is the working contract of one agent window — and the skill's
-core is **isolation**: among all the project's instructions the file must be
-self-sufficient and hard-bounded, so that a parallel agent or a fresh window
-executing it cannot touch other tasks or other epics. The concrete how-to of
-task files lives here and in [task-form](references/task-form.md) — nowhere
-else.
+## Уникальный контекст
 
-## Goal
+Файл задачи — автономное поручение одного чистого окна с одним действующим
+автором.
+Документация легко скрывает в нём цель; около `20` активных единиц — бюджет
+упаковки, а не разрешение урезать результат. Полный пакет передачи содержит
+утверждённый результат, границу, доказательство и критичный неожиданный
+контекст. Допустимый вход — такой полный пакет без смыслового дрейфа для
+недублирующей работы первого незавершённого и неотложенного эпика принятой
+карты.
 
-A task file from which a clean window continues or stops by the file alone:
-what · why · boundaries · on what evidence · when to stop — with no line
-readable two ways, and no way to drift into someone else's work.
+## Цели пользователя
 
-## Protocol
+- Один файл задачи ведёт действующего автора к целому результату допустимого
+  входа.
+- Из внешнего контекста файл несёт только точные адреса релевантных источников
+  и редкие несущие строки.
+- Смысловой разрыв возвращается в `1planning`, а правда эпика остаётся у
+  `1plan-map`.
 
-1. **Check the epic and the bounds first.** Before creating or continuing:
-   reread the current epic file and verify `эпик-снимок` — stale means
-   reread and re-verify in the same move, never continue from chat memory.
-   Confirm the task sits inside exactly one epic — pulling two epics means
-   the epic boundaries are wrong.
-2. **Write per the form, with provenance.** Every material requirement
-   carries provenance — the vocabulary lives in the form; a planner's
-   default becomes "the owner's will" after two retellings.
-3. **Hold the mode honestly.** Fog stays a line in «Зачем», not subtasks; a
-   recurring class of owner questions is a hole in the principles
-   (`1product-shaping`). A new material unknown flips `режим` back to
-   Wayfinding; evidence that contradicts the plan means **rebuild** the
-   affected subtasks — a patch over stale subtasks is a zombie plan that
-   keeps steering the work.
-4. **Close only on proof.** `✅` on the task requires `evidence` for the
-   whole and the seam accepted by its consumer — 10/10 checkboxes is not
-   closure. An upstream artifact or seam contract changed → downstream
-   proofs are void; re-verify before trusting old "done". Update the
-   affected epic per `1plan-map` in the same move and run the project
-   instrument.
-5. **Only the orchestrating window writes plan files.** Workers and
-   subagents return files to the epic's `_evidence/**`; wave mechanics —
-   `1orchestration`.
-6. **Prove the file on a fresh reader before handoff.** A clean subagent
-   without this chat reconstructs what · why · boundaries · evidence · next
-   · stop, and names any line it can read two ways — ambiguity is invisible
-   to its author. Anything not reconstructed → fix the file, not the chat.
+## Создание, пересборка или возобновление
 
-## Boundaries
+1. Перед созданием, пересборкой или возобновлением прочитай полный пакет
+   передачи, актуальные карту, эпик и соседние файлы задач.
+2. При недопустимом входе, включая смысловой дрейф пакета передачи, не пиши и не
+   исполняй; верни решение в `1planning`.
 
-Epic map, statuses and dashboard — `1plan-map` · choosing what to start and
-the chat decomposition — `1planning` · owner questions — `1interview-tool`
-(the task carries only the address).
+## Продолжение, передача, отложение или закрытие
+
+1. Новый автор до передачи без записи перечитывает файл задачи и эпик, называет
+   следующий шаг и условие остановки; прежний автор явно передаёт полномочия,
+   после чего новый становится единственным автором.
+2. При отложении сохрани причину; закрывай файл только по доказательству целого
+   результата.

@@ -19,3 +19,21 @@ Candidate (не проверено поведенчески): срабатыва
 независимое Opus-окно (потери против прежнего тела, верность словам построчно,
 швы семьи и внешних соседей, механика); блокирующие находки применены до
 установки, каскад переименования — одной операцией со снятием прежнего пакета.
+
+2026-08-31, уборка истории по критерию владельца
+`_ops/chat-recall/2026-08-29-184951-codex-01a04dbd.md:22`:
+
+- package snapshots собраны в `versions/`, а checks, probes, receipts и raw
+  run artifacts — в `evidence/`;
+- `TRACE.md` вынесен из `cleanroom-candidate`, остальные snapshots перенесены
+  без изменения байтов;
+- fingerprint v7 остался
+  `b6dd5b397cc78d49b6edd7212a48bb021a7c6b41b6feec359b81aaeaf378b1ee`;
+- `md check` по всему архиву: 109 targets, 0 issues; preflight шести snapshots:
+  blockers 0, downstream holders 0.
+
+2026-08-31, v7 повторно проверен по установленному `1skill-creation` v11 и
+установлен по разрешению владельца. Exact candidate, shared owner и обе Codex
+проекции имеют normalized fingerprint `b6dd5b397…`; portable candidate и обе
+Claude-проекции — `db9c08c2…`. Обновлённый audit, property/falsifier map,
+installation parity и residual risk — `evidence/2026-08-31-v11-install.md`.

@@ -1,7 +1,114 @@
 # Вырезано — с причиной
 
+## v12 pre-install repair (2026-08-31)
+
+- Решение v11 поглотить upstream rollback словом `актуального` отменено после
+  Opus-falsifier: оно блокировало новый ход, но не инвалидировало уже
+  выполненную downstream-работу. Одна явная rollback-строка восстановлена.
+- Scope `delta` изменён с содержимого уже адресованного `read` на все доступные
+  actor-у файлы, чтобы совпасть с буквальной owner-границей.
+- Trigger теперь называет не только before-момент, но и функцию преобразования
+  cognitive work в feasible actor loads.
+- Новые references не созданы: обязательный для всех форм rollback не стал бы
+  локальным режимом и не снизил бы active set.
+
+## v11 commander-intent correction (2026-08-31)
+
+- Общеизвестное «поручение перераспределяет нагрузку» снято из Уникального
+  контекста; туда перенесена пользовательская проблема многих instruction
+  layers, разной когнитивной цены и мягкого ориентира 20.
+- CTO-authority перенесена из контекста в первую цель вместе с посильностью
+  активного набора root и конкретного actor/model.
+- Agent-derived граница «root читает только owner/authority, evidence читает
+  actor» снята как противоречащая буквальному требованию владельца root-ом
+  читать всё, что влияет на качество поручения.
+- Evidence-gate и stale invalidation поглощены целями и требованием
+  актуального наблюдаемого `pass`; release-boundary оставлен явно после
+  falsifying counterexample первой checker-волны.
+- References и новый runtime lifecycle не созданы: один связный момент
+  остаётся ниже мягкого когнитивного ориентира.
+
+## v10 post-install minimal repair (2026-08-31)
+
+- Clean-room форма с пятью разделами и шестнадцатью новыми runtime-строками не
+  принята: она подтвердила смысл, но повторяла выводимое поведение и ухудшала
+  active set.
+- Не возвращены state machine, references, carrier, map, roles и многошаговый
+  lifecycle: два наблюдаемых дефекта закрываются тремя локальными смысловыми
+  швами.
+- Root ownership не превращён в обязанность самому читать delegated evidence:
+  CTO владеет общей пользой и verdict-ом, actor — чтением evidence своего
+  решения.
+- Assertion/progress/`done` оставлены допустимыми navigation signals, но не
+  acceptance evidence.
+
+## v9 mode-specific semantic pass (2026-08-30)
+
+- Отдельные строки capability, actor-count, root-count, root-work,
+  drop-units, soft `20` и configuration re-estimate поглощены одним решением
+  о простейшей выполнимой форме; их independently violable смыслы сохранены
+  внутри этого критерия.
+- Runtime-строка «любая сложность требует вреда без неё» снята: простейшая
+  форма уже является целью и decision standard, а авторский counterfactual
+  принадлежит `1skill-creation`, не каждому runtime-вызову.
+- Definition активной единицы встроена в объект оценки: независимо забываемые
+  требования, знания и решения; отдельный шаг больше не нужен.
+- Evidence каждого критерия объединено с `done_when`; root evidence-check и
+  all-pass barrier объединены в одну точку приёмки.
+- Upstream invalidation оставлена одной причинной строкой вместо отдельных
+  обязанностей пересобрать brief, оценки и приёмку.
+- References не добавлены: реальных независимых режимов чтения у runtime нет.
+
+## v8 simplest sufficient candidate (2026-08-30)
+
+- Сняты все шесть v7 references и route-cascade. Их разделение не уменьшало
+  одновременно активный набор, а заставляло простое поручение проходить
+  внутренний workflow.
+- Orient, brief, estimate/shape и accept поглощены тремя причинными
+  зависимостями commander's intent: sources до brief, brief до оценки именно
+  выбранных actor/root, current evidence до dependency.
+- Полный count-ledger и отдельный budget verdict больше не runtime-режимы:
+  агент приблизительно считает единицы, а перечисляет их только когда иначе не
+  может честно оценить набор.
+- Отдельные topology, slots, map, carrier, execute и integration не возвращены:
+  ими владеют специализированный controller, live runtime либо task owner.
+- Сохранены только поля `outcome · done_when · read · delta`, soft `20`,
+  capability, root-work, drop-units, re-estimate выбранной формы,
+  authority-boundary, evidence-gate и upstream-currentness. Для каждого
+  записан конкретный вред от удаления в `refactor-v8.md`.
+- Authoring checkers, receipts и approval-gate остаются в history и
+  `1skill-creation`, а не в runtime-пакете.
+
+## v7 clean-room candidate (2026-08-30)
+
+- Старый пакет использован только как evidence после zero-based черновика; его
+  control-plane не принят как форма по умолчанию.
+- Полный `count → budget` снова условный. После обязательной отдельной
+  примерной оценки actor/root очевидно посильный одиночный результат идёт к
+  `shape`, а внешние реестры появляются при неуверенной, близкой к ориентиру,
+  высокой нагрузке или root-координации нескольких результатов.
+- Номинальные лозунги заменены полным commander's intent: source-bound
+  контракт без второго канона, посильные actor/root наборы с мягким `20`,
+  минимальная способная форма с сохранёнными authority и evidence-gate.
+- Локальный `done_when` включает критерии общей цели, каждого адресованного
+  источника, входа задачи и применимой `delta`; один high-order переход
+  инвалидирует затронутые производные после изменения входа.
+- Не возвращены launch map, slots, carrier, общий runtime lifecycle,
+  обязательный reviewer или вторая topology специализированного controller-а.
+- Runtime/topology формулировки сохранены только как граница владельцев в
+  `shape`, а не как новый общий механизм выполнения.
+
 ## v6 bounded repair-cycle (2026-08-29)
 
+- Все 14 самостоятельных references получили локальную `Цель`; `carrier`
+  получил также контекст recovery-not-canon. Сняты только выводимые из этих
+  целей повторы, а schema, authority, order, runtime и acceptance seams остались.
+- Последняя owner-коррекция перенесла нормальное поведение в `Уникальный
+  контекст` и три цели. Из procedure сняты выводимые повторы о root,
+  `no-delegation` и обязательном `decompose` после verdict-а.
+- Условными стали полный count-ledger и control-plane: после
+  `orient → brief` очевидное поручение заканчивается `direct-assignment`, а
+  реестр и budget открываются только при спорной нагрузке или root-coordination.
 - Конечный outcome расширен прямым решением владельца: после clean-проверок
   точная версия устанавливается через tracked owner и его проекции.
 - Runtime body и references русифицированы; `description` сокращён до одного

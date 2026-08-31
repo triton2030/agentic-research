@@ -1,3 +1,34 @@
+# Cut — deletion-only owner spans and honest CLI, 2026-08-31
+
+- Message-level provenance отделена от авторства фрагмента: transcript helper
+  фильтрует известные tool/controller/subagent carriers, но не объявляет весь
+  текст внутри сообщения словами владельца.
+- Пасты документов, разговоров и слова других людей или агентов исключаются;
+  подтверждённый owner span можно сокращать только удалением, без перестановки,
+  дописывания или перефразирования.
+- Новый source-text interface и эвристический классификатор не введены: агент
+  владеет смысловой границей, extractor — carrier provenance, capture helper —
+  атомарной записью caller-confirmed excerpt.
+- Старый Codex `event_msg.user_message` получил тот же fail-closed фильтр
+  известных carriers, что current `response_item.message`; Claude plain-text
+  tool follow-up закреплён characterization test.
+- CLI больше не называет transcript-кандидаты доказанными цитатами и прямо
+  сообщает ответственность caller-а. Несуществующий `--new-topic-boundary`
+  заменён фактическим `--new-topic <BOUNDARY>`.
+
+# Cut — corpus-only runtime boundary, 2026-08-31
+
+- Обычный Retrieval читает только сохранённые holder-файлы
+  `_ops/chat-recall`; native transcript не является поисковым fallback.
+- Capture сохранил полную карту тем, создание отсутствующей boundary,
+  актуальный `session-context` и короткий keyword-like `context-note`.
+- Native transcript не удалён как восстановительная возможность, но доступен
+  только после явного owner request на Repair/backfill named session.
+- Corpus-only граница выражена через `Цель` и `Уникальный контекст`; отдельный
+  новый runtime-файл, режим или стадия не созданы.
+- Codex и Claude сохраняют разные transcript adapters только для explicit
+  Repair; общий Capture/Retrieval core остаётся побайтно одинаковым.
+
 # Cut — session-context, 2026-08-14
 
 - Не введены Zep, граф памяти, второй store или автоматический профиль:
@@ -226,8 +257,9 @@
   честный `abstain` этого продукта.
 - Не сокращается полезная инструкция ради числа символов и не маскируется
   несколько независимо нарушимых обязанностей одной строкой.
-- Не меняется язык live-пакета до отдельного решения владельца: в корпусе есть
-  несовместимые пожелания о русском и английском тексте.
+- Языковая граница теперь решена владельцем: instructional body и references —
+  по-русски; только короткий trigger-only `description` — по-английски
+  (`_ops/chat-recall/2026-08-29-163434-codex-01a04d4a.md:20`).
 - Старое решение выше — не выносить обычные Capture/Retrieval в references —
   остаётся evidence прежней предполагаемой реализации, но больше не является
   вечной архитектурой. Владелец выбрал независимую reference-topology после
@@ -249,3 +281,20 @@
   получает ту же тему и keyword-like metadata, иначе его смысл теряется.
 - Repair/backfill не импортирует Capture неявно: перед своей quote/selection-
   записью он сам полностью читает карту тем и сам формирует поисковые metadata.
+
+## 2026-08-29 — локальные цели reference-файлов
+
+- Самостоятельные Capture, Retrieval, Recovery, Restoring и Repair получили
+  локальную `Цель`; Retrieval, Recovery, Restoring и Repair — ещё и
+  `Уникальный контекст`. Малый служебный validator отдельной цели не получил.
+- В цель и контекст перенесены причина semantic topic-choice, модель
+  candidate-not-answer, граница пустой recovery, запрет производного summary и
+  asset-модель Repair. Удалены только их пояснительные повторы.
+- Не сокращались exact CLI/schema, полный read `topics.md`, chronology и
+  live-owner check, provenance order, safety/authority, terminal receipts,
+  Repair→`capture-needed`→body-router и integrity acceptance: clean-agent
+  должен видеть эти швы буквально.
+- Консервативный active-set каждого режима остаётся выше 20. Это не лечится
+  декоративными целями или микродроблением: два clean-pass не показали потери
+  функции, а каждый режим по-прежнему открывает ровно один reference.
+- Основание: `_ops/chat-recall/2026-08-29-163434-codex-01a04d4a.md:21-22`.

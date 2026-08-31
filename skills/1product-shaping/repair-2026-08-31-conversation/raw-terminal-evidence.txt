@@ -1,0 +1,12 @@
+Skill is valid!
+openai.yaml: valid
+b6da31492ecd00c786aa59fb540fb9320e721a50b300b7821a074104b81e6e60  candidate-conversation-2026-08-31/SKILL.md
+cbae0913cca710c9fcc112492ba859278cfa85c288ba1d334560a8bd1f2db7c5  candidate-conversation-2026-08-31/platforms/codex/agents/openai.yaml
+a9ba639fabcb8eebf42001dc0826d76794ddc9c44d5c15b8b923beafa97cd1ea  candidate-conversation-2026-08-31/references/pair-contract.md
+765a85b5fbc0fe593199cce7d54065d457f8711b2066d96876ff1be61aa89fb5  package(sorted-relative-path+NUL+bytes)
+92 7523 candidate-conversation-2026-08-31/SKILL.md
+51 3387 candidate-conversation-2026-08-31/references/pair-contract.md
+7 581 candidate-conversation-2026-08-31/platforms/codex/agents/openai.yaml
+150 11491 total
+f1867a192c68200ab72e63a2f05c41ba0306928b7da1337707d4b7070a4fa896  shared/codex/claude/live 1product-shaping SKILL.md
+f3525c759e7b723b3c5792af3fe693b55826c627ec332c70b9c4a9584497cbf9  shared/live 1use-principles SKILL.md

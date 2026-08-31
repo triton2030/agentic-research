@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Рефактор контекста"
+  short_description: "Use after recurring session errors, rework loops, needless search loops, or a request to refactor context"
+  default_prompt: "Use $1context-refactor after recurring errors, rework, or needless search. Reconstruct the causal trace, then apply only evidenced result branches: append a proven route to an existing INDEX through $1index, record a deferred systemic problem through $1findings, advise the owner about wording that caused an error, or repair an authorized source. Do not fabricate outputs for inapplicable branches."
+
+policy:
+  allow_implicit_invocation: true
