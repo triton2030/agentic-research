@@ -73,3 +73,11 @@ installation parity и residual risk — `evidence/2026-08-31-v11-install.md`.
   shared owner, обеих tracked-проекций и обеих установленных;
 - остаточный риск: волна `check-approve.md` по этим байтам не прогонялась.
 
+2026-09-01, reference-файлы отредактированы механически и установлены:
+`SKILL.md` 5 единиц, `discovery.md` 16, `writing.md` 13, `zone-reader.md` 8;
+отпечаток `d32b72fe0e0ed954553f286a252269bc3db8afe87503b695a6fc78a2dbdf12e0`
+совпал у shared owner, обеих tracked-проекций и обеих установленных; ссылки
+разрешаются, нумерация без разрывов. Проверяющие не запускались по решению
+владельца. `knowledge`: механические проверки основного агента.
+`consequence`: `accepted assumption`.
+
