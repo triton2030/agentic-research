@@ -89,6 +89,14 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
 - `1interview-tool/portable/` создаёт адресуемую plain-Markdown форму и держит
   lifecycle `решения владельца → настоящие owners → архив`; Codex invocation
   metadata живёт в `platforms/codex/agents/openai.yaml`.
+- `1document-system/portable/` — письмо и существенная правка одного документа
+  проекта: стандартное деловое имя типа как адрес, жанровая дисциплина и
+  вытеснение замещённого вместо дописывания рядом (v2, 2026-09-01; v1 из 24
+  файлов снят, снапшот — `skills/1document-system/v1-2026-08-09/`). Пакет — два
+  файла: тело и `references/type-selection.md`, который открывается только
+  тогда, когда тип документа корпусом ещё не задан. Имена типов, разделы и
+  метаданные уступают живому реестру проекта, жанровые запреты — никогда.
+  `platforms/codex/agents/openai.yaml` — только Codex UI metadata.
 
 `skills/codex/<name>/` и `skills/claude/<name>/` — tracked projections owner-а.
 `~/.codex/skills/<name>/` и `~/.claude/skills/<name>/` — installed projections
