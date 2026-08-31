@@ -16,8 +16,8 @@ description: "Version packages and refactor evidence for 1planning."
 - `origin.md`, `cut.md`, `evidence.md`, `product-frame.md` — общая история,
   относящаяся к нескольким версиям.
 
-Последний кандидат: `versions/candidate-2026-08-31/`.
-Его служебное evidence: `work/recheck-2026-08-31/`.
+Последний кандидат: `versions/candidate-2026-08-31-genie-v2/`.
+Его служебное evidence: `work/refactor-2026-08-31-doctrine/`.
 
 Предыдущий подробный README сохранён в
 `work/README-before-2026-08-31.md` как исторический service artifact.

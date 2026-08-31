@@ -161,3 +161,10 @@ main-pane frame after navigation, so no fresh pixel-level contrast claim is
 made. The accidental empty note created by the failed Quick Switcher route and
 its two empty directories were deleted immediately; filesystem checks and the
 map instrument remained green.
+
+## 2026-08-31 — прогон 2026-08-09 больше не относится к живому пакету
+
+Наблюдения выше сделаны на пакете с `references/contract.md` и `modes.md`,
+которых в живом скиле нет. Ими нельзя обосновывать текущее сжатие 19 → 7:
+его единственная проверка — волна из двух проверяющих 2026-08-31, её находки и
+их разбор записаны в `cut.md`.
