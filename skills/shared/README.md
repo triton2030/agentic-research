@@ -23,7 +23,7 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
     скил, слова владельца); весь переносимый контракт теперь помещается в
     `SKILL.md`;
   - `1skill-creation/portable/` — создание, рефактор и кнопка запуска скилов
-    одним пакетом (v12, 2026-08-31; предшественники и снапшоты —
+    одним пакетом (v13, 2026-08-31; предшественники и снапшоты —
     `skills/1skill-authoring/`, `skills/1skill-refactor/` и
     `skills/1skill-routing/`). Тело — единственный router независимых стадий;
     references друг друга не вызывают, кроме `refactor.md`, который запускает
@@ -32,9 +32,12 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
     `skill-short-description.md`, `behavior-protocol.md`, `reference-files.md`,
     `agent-defaults.md`, `refactor.md`, `check-approve.md` и
     `install-approved.md`, а также парой `agents/check-instructions.md` +
-    `agents/check-trajectory.md`. Бюджет — до 20 самостоятельных единиц,
-    которыми агент фактически руководствуется в текущем режиме; пояснения
-    одной единицы и обязательства завершённых стадий повторно не считаются.
+    `agents/check-trajectory.md`. Бюджет пофайловый: до 20 самостоятельных
+    единиц, где единица — отдельная инструкция или ограничение; Уникальный
+    контекст и цели в счёт не входят, а сумма тела и одного reference-файла
+    ограничением не является. Пакет производит `product-frame.principles.md`
+    скила в его папке-истории; композиция управляющего текста — в
+    `science/how-to-command-agents-with-text.md`.
   У каждого `platforms/codex/agents/openai.yaml` — только Codex UI metadata.
   Reference-файл живёт ровно у одного владельца; соседи ссылаются относительно.
 - `1md-search/portable/` — общий cognitive/tool core для
