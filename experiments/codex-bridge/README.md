@@ -221,6 +221,27 @@ pseudo-member, в stderr — warning-once: дрейф виден, но не ро
 присылает в `CollabAgentTool` значения `search_openai_docs` и
 `fetch_openai_doc`, которых схема не знает (замер 2026-07-27).
 
+**Сверка с upstream 2026-09-01: пин остаётся `0.144.4`.** На PyPI вышел
+`openai-codex` `0.147.0` (2026-08-18) — взяли его wheel и сравнили с
+установленным: `_run.py`, `retry.py`, `client.py`, `_sandbox.py` побайтово
+идентичны, `__init__.py` экспортирует ровно тот же набор, в `api.py` добавлен
+один необязательный `section_id`. В схеме +63 класса, и все — поверхность
+Codex Desktop (apps/connectors, scheduled tasks, thread sections, audio,
+plugins, Bedrock); мост не трогает ни одного. Открытых enum'ов стало 3 из 109
+(добавлен `PlanType`), то есть шим нужен ровно так же — движок
+`0.151.0-alpha.7.2` шлёт `SubAgentActivityKind='completed'`, которого не знает
+ни `0.144.4`, ни `0.147.0`, ни `main`. Апстрим-причина структурная и открыта:
+`openai/codex#32478` (Python SDK отстаёт от CLI) и `#21871` (skew
+десериализации) — оба open на дату сверки. Правило пина не меняется: бампаем
+на конкретную поломку, как 2026-08-14 на `subAgentActivity`, а не по дате
+релиза.
+
+Проверено тогда же и оказалось прежним: `_sandbox.py` по-прежнему собирает
+per-turn политику из пресета без `writable_roots` (оговорка в
+`codex_defaults.py` в силе), `service_tier` по-прежнему реально уходит в
+`ThreadStartParams` — в `sdk/python/docs/api-reference.md` его в сигнатуре
+`thread_start` нет, но это неполнота доки, а не удаление параметра.
+
 Нижний рабочий порог — `low`, и он enforced: `--effort` ниже (`minimal`/`none`)
 отсекается на валидации флагов (`REASONING_EFFORTS` в `codex_defaults.py`).
 Причина: turn'у по умолчанию доступны инструменты (`web_search`/`image_gen`), и
