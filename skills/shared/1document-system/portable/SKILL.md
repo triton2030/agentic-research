@@ -1,120 +1,82 @@
 ---
 name: 1document-system
 description: >-
-  Use when multi-document work changes a semantic owner, artifact type, or
-  corpus topology, or combines sources into one durable typed artifact or stable
-  projection. Not for editing or summarizing.
+  Use when about to write or substantially edit a project document: give it a
+  standard type name and hold it to what must be acted on. Not for artifacts
+  another skill owns, code comments, or chat.
 ---
 
-# Document System
+# Система документов
 
-Familiar commercial document types are compression: the model already knows how
-a PRD, ADR or API spec is written, so a type name activates a professional
-prior — dense style, known sections, a genre ban — without spelling any of it
-out. This skill spends that prior to make agents write less, find truth by
-name, and keep every document inside its genre.
+## Уникальный Контекст
 
-## Goal
+Всё, что ты напишешь, будет читать не человек, а следующий агент. Он видит имя
+файла раньше содержимого и по стандартному деловому типу в имени уже знает
+жанр, порядок разделов и где внутри лежит ответ. Он поверит прочитанному без
+проверки, подействует по нему и не удалит ни строки. Скопированный сюда чужой
+ответ станет вторым: через месяц они разойдутся, и оба будут выглядеть верными.
+Твой навык письма натренирован на документах для отсутствующего проверяющего —
+оттуда покрытие, оправдания, история ревизий и summary. Документы в этом
+проекте уже начали раздуваться.
 
-A typed corpus where any mutable answer has exactly one owner, every artifact
-obeys its genre, and the next clean session routes intent → zone → file by
-name and description alone. Writing less is the point: structure comes from
-the type, not from emitted text.
+## Твоя задача
 
-## Success criteria
+Закрыть один вопрос одним документом.
 
-- Every mutable answer has one semantic owner; a view, index or map never owns
-  truth.
-- Each artifact passes its genre ban: a spec carries no opinions, a decision
-  record no chronicle, a catalog no rationale essays.
-- No empty structure exists: nothing was materialized without content.
-- A clean session finds the owner of a question without opening wrong files:
-  filename code + description are sufficient routing.
-- The corpus and its control layer (contracts, maps, indexes) both shrink or
-  hold; growth without displaced text is a defect.
+## Твоя цель
 
-## Invariants
+Вопрос назван в имени файла, отвечен внутри полностью и больше нигде в проекте
+не отвечен; всё, что этому вопросу не служит, ушло к своему владельцу ссылкой
+или удалено, а замещённый текст не остался рядом с тем, что его заместило.
 
-- A live local contract wins entirely; this skill is the fallback, never the
-  enforcement. Local registry codes, sections and metadata replace defaults
-  wholesale — do not normalize them back.
-- A skill-owned artifact family is a live contract too. When another skill
-  owns a family's form and lifecycle — e.g. `1product-shaping` owns Product
-  Frame + Principles + their journal — never reclassify, rewrite, move or
-  delete its members yourself: in the truth chain principles sit above
-  canon. A found cross-layer duplicate is routed to the owning skill as a
-  genre defect — neither resolved here nor preserved as protected truth.
-  This skill decides only family admission and home; form, meaning and
-  lifecycle stay with the owning skill.
-- Design order: claims → owner → typed carrier → derived views → control.
-  Starting from a catalog of documents distributes one idea across every genre
-  that can mention it.
-- Type name = activated prior + genre ban. Standard sections live in the
-  model; write only deviations, ownership modes and bans.
-- Template inversion: an empty slot is not materialized — no heading, no
-  placeholder row, no «not applicable». A status marker exists only for a real
-  question that has no answer yet. Coverage is checked in the head, not
-  emitted.
-- Current truth, decision history, derived view, ops state and evidence stay
-  distinguishable; promotion of any view into a second truth is the central
-  failure this system exists to prevent.
-- New type admission is atomic: registry entry + first substantive artifact in
-  the same change; a type needs an independent seam (owner, lifecycle, reader
-  or validation) — scope alone is not a seam.
-- A structural rule without an executable gate drifts: prose bans hold style,
-  scripts hold structure. Anything that must not drift names its project-local
-  script owner.
-- The control layer pays the same rule budget as the corpus: contracts, maps
-  and indexes about documents also grow silently; each addition names what it
-  displaces.
+## Протокол
 
-## Delta
+1. Прими словарь проекта целиком, если он у проекта есть. Реестр, конвенция
+   имён или контракт разделов живы тогда, когда текущие файлы проекта им
+   действительно следуют. Возьми его имена типов, разделы и метаданные без
+   изменений и не подмешивай к ним своего: два словаря в одном корпусе
+   уничтожают тот самый адрес, ради которого этот скил существует. Уступают
+   только эти три вещи — остальное действует в любом проекте.
+2. Прочитай `references/type-selection.md`, когда своего словаря у проекта нет
+   и тип этого документа корпусом ещё не задан; вернись оттуда с термином типа
+   и именем файла.
+3. Бери у стереотипа только то, что относится к жанру, и в каком порядке. Не
+   бери его объём, его церемониальные разделы и его регистр: прайор
+   отсутствующего проверяющего платит покрытием ради полноты, оправданиями,
+   статусами и summary. Твой читатель действует, а не визирует.
+4. Удаляя вытесненное, считай вытесненным только то, на место чего встаёт твой
+   новый текст, а не то, что ты сформулировал бы иначе. Авторство роли не
+   играет, историю держит git. Проверь по diff: он несёт удаления, а не только
+   добавления, и объём, выросший без нового охвата, означает, что вытеснения не
+   было.
+5. Закрывай работу по готовому файлу, а не по своему отчёту о ней. Все слоты
+   жанра заполнены — это подпись покрытия: пройди по каждому блоку и назови в
+   несколько слов действие, которое он позволяет, или вопрос, на который он
+   отвечает.
 
-The model writes documents well. It does not:
+## Правила, действующие всегда
 
-- keep one mutable answer in one home — it re-explains truth everywhere a
-  genre allows a mention;
-- resist filling every slot a template shows — coverage feels like quality;
-- notice mid-file genre drift — a spec becomes a chronicle one paragraph at a
-  time;
-- see corpus-level cost — each document looks justified alone.
-
-## Known failures
-
-`when → failure → cost → where`
-
-- owners, types or topology change → catalog-first design → empty taxonomy and
-  parallel truth → [system-mode](references/system-mode.md)
-- one typed artifact or projection to write → slot-filling ceremony → prose
-  nobody asked for → [direct-mode](references/direct-mode.md)
-- type choice without a local registry → wrong prior activated → wrong genre
-  ban applied → [catalog](references/catalog.md), then exactly one template
-- frontmatter → questionnaire metadata → retrieval noise instead of routing →
-  [metadata-contract](references/metadata-contract.md)
-- reader view needed → view silently becomes second truth →
-  [projections](references/projections.md)
-- files need homes → mixed folder axes, premature folders →
-  [topology-contract](references/topology-contract.md)
-- live corpus is compressed or deduplicated → silent loss behind resolving
-  links → [compaction-safety](references/compaction-safety.md)
-- corpus too large for one context → inventory worker becomes reviewer →
-  [delegation](references/delegation.md)
-
-## Mechanics
-
-1. **Mode gate.** Owner/type/topology change → system mode. One typed artifact
-   or projection with a known zone → direct mode. Known owner + known local
-   contract + ordinary prose → this skill stays silent.
-2. **Local first.** Read the local registry/contract before any default; its
-   vocabulary is the working vocabulary.
-3. **Hard transition: mapping before cutover.** A refactor of a live corpus
-   stops at a target owner map; rewrite, move and delete belong to a
-   separately accepted task under compaction-safety.
-4. **Hard transition: admission before materialization.** No folder, template
-   or registry entry exists before its first substantive artifact.
-
-## Completion
-
-Artifact or map delivered + genre ban checked + inverted slots listed (what
-was consciously not written) + affected owners updated or named. A result that
-grew the corpus names what it displaced.
+- Жанровая дисциплина не уступает никогда. Живой словарь проекта заменяет
+  имена, разделы и метаданные, которые выбрал бы ты, но не разрешает ни мнений,
+  ни летописи, ни церемониальных разделов, ни роста без вытеснения.
+- Семья артефактов, которой владеет другой скил — файлы задач, находки,
+  продуктовые рамки, инструкции агентам, — остаётся за ним. Маршрутизируй туда
+  вместо того, чтобы её типизировать, переименовывать или перекраивать, как бы
+  её нынешняя форма ни выглядела.
+- Не вноси эти семьи в документ, который ими не владеет: история ревизий, поля
+  статуса и версии; executive summary, введение, предыстория, заключение;
+  преамбула о границах, глоссарий внутри документа, приложение. Они читаются
+  как структура, а не как содержание, поэтому проверка по блокам их не берёт, и
+  они же парадные двери: провенанс так вносит летопись, summary так вносит
+  пересказ.
+- Документ, который пересказывает чужую правду — отчёт, дашборд, выжимка для
+  читателя, — несёт в себе, из какого источника и на каком его состоянии он
+  снят, и не добавляет к нему ни одного собственного факта. Пересказ вправе
+  переупорядочить, подчеркнуть и объяснить; факт, которого в источнике нет,
+  превращает его во вторую правду.
+- Изменившееся состояние источника делает пересказ устаревшим, пока его не
+  перепроверили по источнику. Пересказ короче и понятнее оригинала, поэтому
+  следующий агент читает именно его и действует по нему; свежая дата файла и
+  целые ссылки этого не ловят.
+- Документ, переросший один файл, письмом не чинится: раздели его через
+  `1ia-audit`, а не дописывай и не сжимай на месте.
