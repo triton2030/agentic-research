@@ -2,7 +2,7 @@
 
 Состояние: `установлено`. Владелец безусловно утвердил точную версию
 (`_ops/chat-recall/2026-08-31-222311-claude-a7a340d8.md`, запись
-2026-08-31T23:5x «Да, устанавливай как есть»), и пакет
+2026-08-31T23:38:26 «Да, устанавливай как есть»), и пакет
 `83db2e5dda2fb64aedb220ad04c31e9291f9b57b53b5d9719016c97cd682f744` записан в
 шесть поверхностей: tracked owner `skills/shared/1orchestration/`, проекции
 `skills/claude/1orchestration/` и `skills/codex/1orchestration/`, живые пакеты
