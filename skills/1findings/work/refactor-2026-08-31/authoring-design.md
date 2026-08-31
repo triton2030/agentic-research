@@ -35,17 +35,27 @@
 
 ## Routing
 
-Candidate `description`:
+Исправленный candidate `description`:
 
-> Use when ongoing work reveals a concrete side signal that can be recorded
-> without investigation, then immediately resume the interrupted action.
+> Use when ongoing work surfaces a side concern or deferred consequence that
+> does not require investigation to continue honestly; record it, then resume.
 
 | Проверка | Голая фраза | Ожидание |
 | --- | --- | --- |
 | Before observable signal | `Continue implementing the requested parser change` | not yet |
-| Use after observable signal | `That mismatch may break another workflow later` | use now |
+| Use after observable signal | `That mismatch may break another workflow later; current work remains valid` | use now |
 | Hypothetical search | `Review this helper for possible future problems` | skip |
-| Current blocker | `This migration failure blocks the current release` | near-miss; do not defer |
+| Current blocker | `This migration failure blocks the current release` | near-miss; explicit condition fails |
 
 Имя `1findings` сохранено: оно уже является установленным owner handle; его
 смена создала бы новый surface без изменения единственной функции.
+
+## Возврат после проверки потерь
+
+- Два runtime-helper route — принятый пользователем способ; Codex-only команда
+  потеряла поддержку утверждённого Claude-пакета.
+- `policy.allow_implicit_invocation: true` — часть утверждённого Codex-пакета и
+  необходима позднему автоматическому вызову посреди работы.
+- `concrete side signal` заменён на `side concern or deferred consequence`,
+  потому что owner trigger включает ощущение «что-то не нравится», а не только
+  уже сформулированный факт.

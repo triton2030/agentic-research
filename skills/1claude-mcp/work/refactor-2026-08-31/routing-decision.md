@@ -8,7 +8,11 @@
 
 ## Description — 195 символов
 
+<!-- rumdl-disable MD013 -->
+
 > Use when work needs a Claude/Opus or unspecified-model opinion/review, an Opus-only boundary for non-Opus Claude, or inspection/control of a Claude session. Not for Claude facts or Gemini/Hermes.
+
+<!-- rumdl-enable MD013 -->
 
 ## Trigger probes
 

@@ -12,5 +12,3 @@
   `resolved_model`, начинающемся с `claude-opus-5`; затем прочитай одну bounded
   visible conversation.
 - Отсутствующее или несовпавшее model/terminal evidence верни как typed failure.
-- Сохрани raw identity, state, cursor и terminal evidence; activity label или
-  progress содержательную работу не доказывают.

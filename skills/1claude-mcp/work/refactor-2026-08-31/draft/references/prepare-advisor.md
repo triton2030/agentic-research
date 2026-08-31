@@ -1,14 +1,13 @@
 # Prepare Opus Advisor
 
-Вход: body выбрал нового advisor. Выход: approved prompt, real `cwd`, effort и
-immutable one-shot call envelope; управляемая session использует те же prompt,
-`cwd`, effort и approval evidence.
+Вход: body выбрал нового advisor. Выход: approved advisor artifact для one-shot
+или управляемой session.
 
 - Попроси исследовать задачу и дать мнение, не изменяя внешнее состояние.
 - Если outcome зависит от custom skill, MCP или named capability, включи её
   exact owner/address в `Context`: clean launch не загружает её автоматически.
-- Откалибруй requested deliverable и verification effort к задаче; не проси
-  generic recheck, verifier-subagent или ненужный fan-out.
+- Откалибруй границы deliverable и verification/delegation effort к задаче; не
+  добавляй generic rechecking или fan-out.
 - До dispatch следуй host approval: prompt и прочитанные материалы уходят в
   Anthropic, а clean launch не является local sandbox.
 - Для one-shot envelope укажи `mcp__claude_mcp__claude_ask`,

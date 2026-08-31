@@ -34,13 +34,13 @@ Prompt строится от верхнеуровневой цели, конте
   [owner-protocol.md](references/owner-protocol.md).
 - Перед новым one-shot или управляемым advisor прочитай
   [prepare-advisor.md](references/prepare-advisor.md).
-- Готовый one-shot без полезной независимой работы выполни по
+- Готовый blocking one-shot без полезной независимой работы выполни по
   [fresh-one-shot.md](references/fresh-one-shot.md).
 - Готовый one-shot параллельно с полезной работой выполни по
   [parallel-one-shot.md](references/parallel-one-shot.md).
 - Raw one-shot packet прими или отклони по
   [accept-one-shot.md](references/accept-one-shot.md).
-- Новую управляемую консультацию или восстановление lost lease открой по
+- Новую управляемую консультацию открой по
   [session-open.md](references/session-open.md).
 - Действие над live Opus session выполни по
   [session-action.md](references/session-action.md).
@@ -48,6 +48,8 @@ Prompt строится от верхнеуровневой цели, конте
   [session-observe.md](references/session-observe.md).
 - Список или видимую переписку active Claude sessions прочитай по
   [existing-sessions.md](references/existing-sessions.md).
+- Session-specific typed failure обработай по
+  [session-recovery.md](references/session-recovery.md).
 - Typed failure обработай по [failure-recovery.md](references/failure-recovery.md).
 
 ## Стоп

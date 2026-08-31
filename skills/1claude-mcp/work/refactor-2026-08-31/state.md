@@ -2,29 +2,26 @@
 
 ## Текущее состояние
 
-`проверка волны 2` — третий кандидат после двух loss-check corrections и
-исправлений первой reviewer-волны сохранён в
+`ожидается безусловное утверждение` — точный кандидат после двух loss-check и
+двух reviewer-волн сохранён в
 `skills/1claude-mcp/work/refactor-2026-08-31/draft/`. Живой пакет не менялся.
 
 Цепь израсходованных состояний: `нужен новый commander's intent` → `готово
 новое намерение` → `ожидается смысловой черновик` → `нужен полный авторский
 черновик` → `готов полный черновик`.
 
-Первая проверка потерь вернула работу к `behavior-protocol.md`: named capability
-в clean launch теперь требует exact owner/address в `Context`, а отправка prompt
-и прочитанных материалов в Anthropic снова ограничена host approval. Оба
-разрыва исправлены. Повторная проверка нашла потерянный unnamed-other-model
-trigger и неполное представление действующего официального Opus prompting
-contract; они возвращены в `skill-short-description.md` и
-`behavior-protocol.md` и исправлены до финальной проверки потерь. Живой
-tracked owner и установленная проекция до утверждения полного черновика не
-меняются.
+Loss-check вернул named capability exact owner/address, Anthropic data boundary,
+unnamed-other-model trigger и current Opus prompting deltas. Wave 1 исправила
+tool/model evidence, session Opus gate, recovery scope и неверные evidence
+addresses. Wave 2 обнаружила завышенную когнитивную нагрузку и потерянные
+`open_fresh`/follow-up seams; финальная версия разделена на короткие стадии.
 
-Финальная проверка потерь пройдена: функция, end states и требуемые способы
-сохранены. Первая волна `check-approve.md` исправила unit count, exact tool/result
-contract, session Opus gate, evidence addresses и global-artifact boundary.
-Вторая и последняя волна проверяет точные исправленные байты. Установка всё ещё
-запрещена до безусловного «да» владельца.
+После второй terminal wave владелец уточнил условие blocking режима:
+`_ops/chat-recall/2026-08-31-212001-Codex-01a0589c.md:18`. Router теперь выбирает
+blocking one-shot, когда полезной параллельной работы нет, и yielded route —
+только когда она есть. Причинно затронутые байты и semantic evidence повторно
+проверены root; receipt сохранён в `validation-evidence.md`, новые reviewers
+запрещены протоколом. Установка всё ещё запрещена до безусловного «да» владельца.
 
 ## Основание решения
 

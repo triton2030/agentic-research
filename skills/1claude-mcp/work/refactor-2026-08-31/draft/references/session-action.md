@@ -1,7 +1,7 @@
 # Act on Live Opus Session
 
 Вход: live native Opus `session_id`, typed current state и запрошенное действие.
-Выход: typed action state либо маркер ожидаемого содержательного ответа.
+Выход: raw typed action packet либо маркер ожидаемого содержательного ответа.
 
 - В `idle` используй `mcp__claude_mcp__claude_session` с `op: send`; в active
   state используй `op: steer` только для материальной коррекции.
@@ -12,4 +12,3 @@
 - Status/steer/stop-only запрос заканчивается typed state запрошенного action.
 - Follow-up с ожидаемым ответом после accepted `send`/`steer` переходит в
   session observation; accepted operation содержательным успехом не является.
-- Evidence сохраняет тот же `session_id`, `accepted_op`, `state` и `cursor`.

@@ -3,38 +3,9 @@
 
 set -euo pipefail
 
-usage() {
-	echo "использование: $(basename "$0") \"что заметил | где | почему вернуться\"" >&2
-	exit 1
-}
-
-[ "$#" -eq 1 ] || usage
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+"$SCRIPT_DIR/validate.sh" "$@"
 LINE="$1"
-
-[ -n "${LINE//[[:space:]]/}" ] || {
-	echo "находка не может быть пустой" >&2
-	exit 1
-}
-
-[[ "$LINE" != *$'\n'* && "$LINE" != *$'\r'* ]] || {
-	echo "находка должна занимать одну строку" >&2
-	exit 1
-}
-
-WITHOUT_PIPES="${LINE//|/}"
-PIPE_COUNT=$(( ${#LINE} - ${#WITHOUT_PIPES} ))
-[ "$PIPE_COUNT" -eq 2 ] || {
-	echo "находка должна иметь вид: что заметил | где | почему вернуться" >&2
-	exit 1
-}
-
-IFS='|' read -r SIGNAL WHERE WHY <<< "$LINE"
-for PART in "$SIGNAL" "$WHERE" "$WHY"; do
-	[ -n "${PART//[[:space:]]/}" ] || {
-		echo "все три части находки должны быть заполнены" >&2
-		exit 1
-	}
-done
 
 START_DIR="$(pwd)"
 [ "$START_DIR" != "/" ] || {
@@ -64,16 +35,20 @@ while :; do
 	CAPTURE_ID="$(date +%H%M%S)-$$-$RANDOM"
 	FILE="$FINDINGS_DIR/${DATE}-${CAPTURE_ID}.md"
 
-	if (
+	if ERROR="$( (
 		set -o noclobber
 		{
 			echo "# Находка — $DATE — запись:$CAPTURE_ID"
 			echo
 			printf -- "- %s — %s\n" "$TIME" "$LINE"
 		} >"$FILE"
-	) 2>/dev/null; then
+	) 2>&1 )"; then
 		break
 	fi
+
+	[ -e "$FILE" ] && continue
+	printf '%s\n' "$ERROR" >&2
+	exit 1
 done
 
 echo "добавлено → ${FILE#"$PWD"/}"
