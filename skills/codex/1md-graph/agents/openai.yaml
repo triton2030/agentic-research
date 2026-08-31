@@ -4,4 +4,4 @@ interface:
   default_prompt: "Используй $1md-graph: раздели serialized carrier на attribution atoms, независимо извлеки Y/X и weaker/null counterframe, проверь concrete X₀→X₁→ΔY и передавай на следующий reverse hop только выведенный ΔY."
 
 policy:
-  allow_implicit_invocation: true
+  allow_implicit_invocation: false

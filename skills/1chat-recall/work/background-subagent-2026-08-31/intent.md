@@ -1,6 +1,6 @@
 # Candidate — дешёвый фоновый Retrieval subagent
 
-Статус: `candidate; official и installed packages не менялись`.
+Статус: `installed 2026-08-31`; owner-пакеты и живые проекции несут эти bytes.
 
 ## Новое owner-evidence
 

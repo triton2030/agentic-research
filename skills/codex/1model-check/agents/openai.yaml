@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Model Check"
+  short_description: "Manual working-model reassessment"
+  default_prompt: "Используй $1model-check, чтобы вручную разобрать до пяти неразрешённых расхождений прогноза с наблюдением и связать проверку со следующим действием."
+
+policy:
+  allow_implicit_invocation: false

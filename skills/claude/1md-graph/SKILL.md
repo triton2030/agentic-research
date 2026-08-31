@@ -1,9 +1,9 @@
 ---
 name: 1md-graph
 description: >-
-  Use after Markdown meaning, links, depends-on edges, names, moves, or semantic
-  addresses change and downstream impact needs a verdict. Not for similarity
-  search or purely broken paths.
+  Use only when explicitly invoked to review semantic integrity and downstream
+  impact of Markdown links and dependencies.
+disable-model-invocation: true
 ---
 
 # 1md-graph

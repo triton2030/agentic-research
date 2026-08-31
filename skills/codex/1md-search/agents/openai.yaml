@@ -4,4 +4,4 @@ interface:
   default_prompt: "Используй $1md-search, чтобы найти и прочитать тела-доказательства по смыслу и продолжить исходную задачу; владельца, дубль и отсутствие из ранга не выводи."
 
 policy:
-  allow_implicit_invocation: true
+  allow_implicit_invocation: false

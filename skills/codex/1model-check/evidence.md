@@ -2,25 +2,26 @@
 
 ## Status
 
-`candidate`: структура, distribution и один late-trigger smoke проверены.
-Полное adherence и улучшение решения требуют отдельного behavioral evidence.
+`candidate`: структура и distribution manual-only версии проверяются заново.
+Старый late-trigger smoke ниже остаётся историческим evidence и не доказывает
+действующую routing policy. Полное adherence и улучшение решения требуют
+отдельного behavioral evidence.
 
 ## Support Envelope
 
-- Target: Codex `GPT-5.6` working set из `_ops/GOAL.md`.
-- Harness: Codex desktop; каталог skills доступен модели внутри agentic turn.
-- Surface: tracked owner `skills/codex/1model-check/`; installed projection
-  `~/.codex/skills/1model-check/`.
-- Trigger: каждые пять ещё не разобранных assistant-authored
-  `⚡ UNEXPECTED` в текущей задаче.
+- Target: Codex `GPT-5.6`, Claude Opus 5 и Claude Fable 5 из `_ops/GOAL.md`.
+- Surfaces: tracked runtime owners `skills/{codex,claude}/1model-check/` и
+  installed projections `~/.{codex,claude}/skills/1model-check/`.
+- Trigger: только явный ручной вызов; внутри разбираются до пяти ещё не
+  разобранных assistant-authored `⚡ UNEXPECTED` текущей задачи.
 
 ## Claims And Falsifiers
 
 - Structure: system `quick_validate.py` и `qv-skill` на owner и projection.
 - Distribution: побайтовая parity `SKILL.md` owner/projection и smoke из чужого
   project cwd.
-- Routing: trajectory-positive после пятого marker; pre-trigger negative после
-  четырёх; near-miss с пятью процитированными marker из файла/tool output.
+- Routing: explicit-call positive; implicit trajectory negative; near-miss с
+  marker из цитат, файла, tool output или instruction text.
 - Behavior: bounded replay до пяти прошлых эпизодов, включая partial/no-common
   case, с anonymized no-skill comparator; затем один live case.
 

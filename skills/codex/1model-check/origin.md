@@ -9,14 +9,18 @@
   `⚡ UNEXPECTED`, чтобы не вызывать skill лишний раз.
 - Полный runtime-кандидат и Product Frame утверждены владельцем командой
   `делай` 2026-08-22 после предъявления точных замен для порога 5.
+- 2026-08-31 владелец отменил self-invocation: `1model-check` вызывается только
+  вручную и должен быть доступен в Claude и Codex. Источник —
+  `_ops/chat-recall/2026-08-31-155258-codex-01a0576e.md#L16`.
 
 ## Механизм
 
-`пять prediction errors → адресуемые ожидание/наблюдение → компактная рабочая
+`явный вызов → до пяти prediction errors → адресуемые ожидание/наблюдение → компактная рабочая
 модель или честный gap → различающий probe → evidence-bound следующее действие`.
 
 Skill-specific product truth и runtime-contract живут в этой папке.
-`~/.codex/skills/1model-check/` — установленная projection.
+`skills/claude/1model-check/` — paired runtime owner;
+`~/.{codex,claude}/skills/1model-check/` — установленные projections.
 
 ## Исследовательские границы
 

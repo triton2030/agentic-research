@@ -1,7 +1,14 @@
 # Проверка candidate — дешёвый фоновый Retrieval subagent
 
-Статус: `candidate`. Tracked owners и installed projections не менялись;
-переустановка возможна только после безусловного одобрения этих exact bytes.
+Статус: `installed 2026-08-31`. Владелец безусловно одобрил эти exact bytes
+(`_ops/chat-recall/2026-08-31-160900-claude-eae04032.md#L16`), после чего они
+записаны в оба tracked owner-а и в обе живые проекции без изменений; снимок
+установленного пакета — `versions/installed-2026-08-31-background-subagent/`.
+
+Проверка после установки: tracked claude 111/111, tracked codex 114/114, живой
+`~/.codex/skills/1chat-recall` 114/114; все внутренние ссылки обоих пакетов
+разрешаются; состав и содержимое обеих проекций побайтно равны утверждённому
+кандидату.
 
 ## Входы и решение
 
