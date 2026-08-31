@@ -37,3 +37,25 @@ Candidate (не проверено поведенчески): срабатыва
 проекции имеют normalized fingerprint `b6dd5b397…`; portable candidate и обе
 Claude-проекции — `db9c08c2…`. Обновлённый audit, property/falsifier map,
 installation parity и residual risk — `evidence/2026-08-31-v11-install.md`.
+
+2026-08-31, v9 отрефакторен по установленному `1skill-creation` v13 и установлен
+по безусловному разрешению владельца:
+
+- функция сменилась с «ориентировки» на предотвращение критичного конфликта по
+  прямой отмене владельца
+  (`_ops/chat-recall/2026-08-31-202215-claude-da15d86c.md#L19`);
+- пакет: `SKILL.md` 10 единиц, `references/discovery.md` 18,
+  `references/writing.md` 13, `agents/zone-reader.md` 8 — ни один файл не
+  выходит за 20;
+- волна `check-approve.md` израсходована: два проверяющих, 12 и 12 находок, все
+  приняты полностью либо по существу, отклонённых нет; решения — в
+  `work/v9/decisions.md`;
+- normalized fingerprint markdown-состава
+  `ee2be132ef95708ac640cfe5c7de1c809b27b80db5b06bf4c1aeb5c30d86bb33` совпал у
+  shared owner, tracked Claude, tracked Codex и обеих установленных проекций;
+  `platforms/codex/agents/openai.yaml` идентичен в трёх местах;
+- все внутренние ссылки установленных пакетов разрешаются, нумерация без
+  разрывов;
+- остаточный риск: clean-room не выполнен, причинной пробы у скила нет по
+  решению владельца — проверка слоя осталась осмотром маршрута.
+

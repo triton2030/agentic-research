@@ -32,6 +32,13 @@
 
 - **Правка скила — глобальный артефакт** (cross-project, veto-class): пиши
   project-independent, без путей и допущений текущего проекта.
+  **Названное исключение — семья планирования** (`1planning`, `1plan-map`,
+  `1plan-task`): решением владельца 2026-08-31 точная схема планирования
+  mavo-short2 — адреса `_ops/map`, колокация задач внутри эпика, ключи
+  frontmatter, словарь статусов и Obsidian Bases — объявлена общим
+  стандартом для всех проектов
+  (`_ops/chat-recall/2026-08-31-202257-claude-86d85f7e.md#L25`). Не
+  откатывай эти адреса как нарушение правила выше.
 - **Владелец пакета — сначала tracked owner.** Есть папка в `skills/shared/**`
   или `skills/{claude,codex}/**` — правь её, а `~/.claude/skills/` и
   `~/.codex/skills/` считай projection. Нет tracked owner — live installed

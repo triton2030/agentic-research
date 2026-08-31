@@ -15,4 +15,4 @@ description: "Origin, versions and refactor evidence of 1findings."
 - `cut.md` — будущая карта сохранённых, поглощённых и снятых смыслов;
 - `evidence.md` — статус проверок.
 
-Текущая стадия: `нужен новый commander's intent`.
+Текущая стадия: `ожидается смысловой черновик`.
