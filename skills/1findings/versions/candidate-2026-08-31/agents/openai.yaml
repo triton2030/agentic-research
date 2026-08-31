@@ -1,7 +1,7 @@
 interface:
   display_name: "1-Находки без отвлечения"
   short_description: "Record a side signal and immediately resume the interrupted work"
-  default_prompt: "Используй $1findings, когда по ходу работы что-то не нравится или замечено возможное последствие на потом, но без его разбора можно честно продолжить: сохрани одну короткую строку и сразу вернись к прерванному действию."
+  default_prompt: "Используй $1findings, чтобы побочный сигнал остался доступен для будущего разбора, не стал новой целью и не прервал движение к основной."
 
 policy:
   allow_implicit_invocation: true

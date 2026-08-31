@@ -1,11 +1,8 @@
----
-name: 1findings
-description: >-
-  Use when ongoing work surfaces a side concern or deferred consequence that
-  does not require investigation to continue honestly; record it, then resume.
----
+# Clean-room смысловой черновик v2
 
-# Находки без отвлечения
+Исполнитель получил только обновлённый owner-approved вариант 2 и не читал
+старый пакет, историю либо первый candidate. Он буквально применил
+**Clean-room reimplementation** и **Zero-based design**.
 
 ## Уникальный Контекст
 
@@ -25,3 +22,7 @@ description: >-
 Побочный сигнал можно узнать и разобрать позже, а всё доступное усилие снова
 направлено на исходную цель. Исследование, исправление или остановка после одной
 записи этой цели не достигают.
+
+Основной автор принял текст без добавления мысленного протокола. Bundled scripts
+остаются детерминированным механизмом пакета, но runtime-body не задаёт порядок
+мышления либо исполнения.
