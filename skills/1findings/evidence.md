@@ -17,9 +17,8 @@
 - вторая, последняя независимая волна завершена; её решения записаны в
   `work/refactor-2026-08-31/review-wave-2.md`;
 - прежние exact checks аннулированы новым owner-intent без мысленного протокола;
-- approval exact bytes и установка ещё не завершены; утверждённые ранее
-  route-строки двух runtime roots остаются открытой distribution-потерей до
-  installation boundary.
+- exact bytes безусловно утверждены владельцем и установлены в Codex и Claude;
+- route-строки восстановлены в двух runtime roots; distribution-потеря закрыта.
 
 ## Goal-only exact candidate
 
@@ -35,6 +34,20 @@
 - две reviewer-волны относятся к предыдущей procedural версии и не доказывают
   поведение goal-only body;
 - behavioral falsifier goal-only эксперимента ещё не прогнан.
+
+## Установка
+
+| Поверхность | Проверка | Результат |
+| --- | --- | --- |
+| `~/.codex/skills/1findings/` | `qv-skill`; полный directory diff с candidate | pass; точное совпадение |
+| `~/.claude/skills/1findings/` | `qv-skill`; `cmp` portable `SKILL.md` и двух scripts | pass; точное portable-совпадение |
+| Codex metadata | `agents/openai.yaml`; `allow_implicit_invocation` | установлен |
+| Claude platform delta | отсутствие Codex-only `agents/openai.yaml` | соблюдено |
+| Internal script edge | оба `add.sh` ссылаются на существующий исполнимый `validate.sh` | pass |
+| Global routes | exact route найден в `~/.codex/AGENTS.md:60` и `~/.claude/CLAUDE.md:24` | pass |
+
+Residual risk: goal-only body механически и структурно проверен, но live
+поведенческий прогон на target models намеренно остаётся экспериментом.
 
 ## Материальные свойства и фальсификаторы
 

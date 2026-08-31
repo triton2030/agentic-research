@@ -75,6 +75,10 @@ exact approval нужно восстановить короткий route в о�
 получить новое owner-evidence, явно заменяющее этот способ. До этого
 distribution-потеря остаётся открытой.
 
+**Закрыто после approval:** одинаковая короткая route-строка восстановлена в
+`~/.codex/AGENTS.md` и `~/.claude/CLAUDE.md`; Codex implicit invocation также
+сохранён.
+
 ## 2026-08-31 — goal-only experiment
 
 После двух проверочных волн владелец утвердил новый способ формулирования:
