@@ -21,6 +21,21 @@
   route-строки двух runtime roots остаются открытой distribution-потерей до
   installation boundary.
 
+## Goal-only exact candidate
+
+- новый body: 736 символов и 27 строк;
+- active headings: только `Уникальный Контекст`, `Твоя задача`, `Твоя цель`;
+- scan не нашёл мысленного вопроса, последовательности, code block,
+  `scripts/`, `add.sh` или команды помощника;
+- `qv-skill`: pass;
+- `bash -n` bundled scripts: pass;
+- `git diff --check`: pass;
+- прежние script probes остаются причинно действующими: scripts после них не
+  менялись;
+- две reviewer-волны относятся к предыдущей procedural версии и не доказывают
+  поведение goal-only body;
+- behavioral falsifier goal-only эксперимента ещё не прогнан.
+
 ## Материальные свойства и фальсификаторы
 
 | Property | Falsifier | Наблюдаемый результат |

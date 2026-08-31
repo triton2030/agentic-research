@@ -15,5 +15,5 @@ description: "Origin, versions and refactor evidence of 1findings."
 - `cut.md` — будущая карта сохранённых, поглощённых и снятых смыслов;
 - `evidence.md` — статус проверок.
 
-Текущая стадия: `готов обновлённый полный черновик`; причинно затронутое
-evidence перепроверяется без новых reviewer-волн.
+Текущая стадия: `рефактор завершён`; goal-only exact candidate механически
+проверен и ожидает безусловного approval.

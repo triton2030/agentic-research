@@ -1,7 +1,7 @@
 interface:
   display_name: "1-Оркестрация"
-  short_description: "Use when assigning a subagent or splitting overloaded cognitive work."
-  default_prompt: "Используй $1orchestration перед поручением субагенту или разделением собственной перегруженной когнитивной работы."
+  short_description: "Use before any prompt to another agent, when a return is accepted, or when work no longer fits one context, to cut the load into sets each actor can carry. Choosing a panel stays with its own skill."
+  default_prompt: "Используй $1orchestration до любого промпта другому агенту, при приёмке возврата или когда работа перестала помещаться в одно окно."
 
 policy:
   allow_implicit_invocation: true
