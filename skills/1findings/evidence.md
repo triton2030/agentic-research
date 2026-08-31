@@ -16,6 +16,7 @@
   отклонённые находки записаны в `work/refactor-2026-08-31/review-wave-1.md`;
 - вторая, последняя независимая волна завершена; её решения записаны в
   `work/refactor-2026-08-31/review-wave-2.md`;
+- прежние exact checks аннулированы новым owner-intent без мысленного протокола;
 - approval exact bytes и установка ещё не завершены; утверждённые ранее
   route-строки двух runtime roots остаются открытой distribution-потерей до
   installation boundary.
