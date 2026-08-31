@@ -1076,7 +1076,12 @@ class ChatCaptureTests(unittest.TestCase):
         self.assertIn("прочитай выбранный holder целиком", normalized_retrieval)
         self.assertIn("в хронологическом порядке", normalized_retrieval)
         self.assertIn("три вытеснения", normalized_retrieval)
-        self.assertIn("жив ли сегодня носитель цитаты", normalized_retrieval)
+        # Природа корпуса лечится строкой в теле, а не обязательной операцией в
+        # Retrieval: cut.md снял «проверку существования носителя» по прямому
+        # решению владельца (_ops/chat-recall/2026-08-20-041346-claude-12da2cc9.md:35).
+        skill_body = " ".join(SKILL.read_text(encoding="utf-8").split())
+        self.assertIn("мог исчезнуть, не оставив в корпусе ни слова", skill_body)
+        self.assertNotIn("жив ли сегодня носитель цитаты", normalized_retrieval)
         self.assertIn("_ops/findings/", retrieval_text)
         self.assertIn("--lexical", retrieval_text)
         self.assertIn("--prepare", retrieval_text)
