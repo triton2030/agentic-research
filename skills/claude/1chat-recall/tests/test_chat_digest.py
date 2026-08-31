@@ -179,7 +179,7 @@ class ChatDigestTests(unittest.TestCase):
         changed_records, _ = DIGEST.load(self.corpus)
         self.assertEqual(original, changed_records[0]["record_id"])
 
-    def test_context_note_is_searchable_but_shown_only_on_show(self) -> None:
+    def test_context_note_is_searchable_and_absent_only_from_holder_cards(self) -> None:
         records, _ = DIGEST.load(self.corpus)
         record = records[0]
         record_id = record["record_id"]
@@ -215,6 +215,73 @@ class ChatDigestTests(unittest.TestCase):
             shown_json["records"][0]["context_note"],
             "Речь о владельце канона, а не о BM25.",
         )
+
+        digest_json = json.loads(self.call("--digest", "--json").stdout)
+        self.assertIn(
+            "Речь о владельце канона, а не о BM25.",
+            [entry.get("context_note") for entry in digest_json["records"]],
+        )
+
+    def test_query_quality_describes_the_answer_and_check_keeps_the_corpus(
+        self,
+    ) -> None:
+        """An alarm about records nobody was shown is an alarm nobody believes."""
+        self.write_file(
+            "precise.md",
+            [
+                (
+                    '* 2026-07-02T10:00:00+00:00 — "Хронометражное решение владельца" '
+                    "— type: решение | topic: работа-и-процессы"
+                ),
+            ],
+            session="44444444-4444-4444-8444-444444444444",
+            session_context="precise session",
+        )
+        self.write_file(
+            "vague.md",
+            [
+                (
+                    '* 2026-07-03 — "Расплывчатое замечание про склад" '
+                    "— type: идея | topic: работа-и-процессы | "
+                    "source: repaired | precision: date"
+                ),
+            ],
+            session="55555555-5555-4555-8555-555555555555",
+            session_context="vague session",
+        )
+
+        answer = json.loads(
+            self.call("--query", "Хронометражное", "--json").stdout
+        )
+        self.assertEqual(answer["returned"], 1)
+        self.assertEqual(answer["quality"]["exact"], 1)
+        self.assertEqual(answer["quality"]["approximate"], 0)
+        self.assertNotIn(
+            "approximate-or-unknown-time-present", answer["warnings"]
+        )
+
+        corpus = json.loads(self.call_default("--check", "--json").stdout)
+        self.assertGreater(corpus["quality"]["approximate"], 0)
+        self.assertIn(
+            "approximate-or-unknown-time-present", corpus["warnings"]
+        )
+
+    def test_owner_words_precede_topic_candidates_in_text_output(self) -> None:
+        """The reader came for the owner's words, not for the topic map."""
+        lines = self.call("--query", "канон").stdout.splitlines()
+        quotes = [
+            index
+            for index, line in enumerate(lines)
+            if line.startswith("strongest-quote:")
+        ]
+        topics = [
+            index
+            for index, line in enumerate(lines)
+            if line.startswith("topic-candidate=")
+        ]
+        self.assertTrue(quotes, "no owner quote in holder output")
+        self.assertTrue(topics, "no topic candidate in holder output")
+        self.assertLess(quotes[0], topics[0])
 
     def test_session_context_is_the_only_searchable_source_for_task_wording(self) -> None:
         data = json.loads(
@@ -282,7 +349,7 @@ class ChatDigestTests(unittest.TestCase):
         self.assertEqual(data["selection"], "none")
         self.assertEqual(data.get("topic_candidates", []), [])
 
-    def test_selected_holders_display_newest_first_with_semantic_rank_and_counts(
+    def test_selected_holders_display_by_relevance_with_semantic_rank_and_counts(
         self,
     ) -> None:
         self.write_file(
@@ -316,15 +383,16 @@ class ChatDigestTests(unittest.TestCase):
             self.call("--query", "Needle", "--limit", "2", "--json").stdout
         )
 
+        self.assertEqual(data["order"], "relevance")
         self.assertEqual(
             [holder["file"] for holder in data["holders"]],
-            ["z-new.md", "a-old.md"],
+            ["a-old.md", "z-new.md"],
         )
         self.assertEqual(
             [holder["semantic_rank"] for holder in data["holders"]],
-            [2, 1],
+            [1, 2],
         )
-        old = data["holders"][1]
+        old = data["holders"][0]
         self.assertEqual(old["session_context"], "old needle session")
         self.assertEqual(old["types"], {"решение": 1, "идея": 1})
         self.assertEqual(old["topics"], {"архитектура-и-модель": 2})
@@ -956,7 +1024,8 @@ class ChatDigestTests(unittest.TestCase):
         DIGEST.link_supersessions(records)
         self.assertNotIn("superseded_by", old)
         self.assertIn("supersedes-not-newer", older_reply["diagnostics"])
-        self.assertEqual(old["contested_by"], ["recall.md:12"])
+        self.assertTrue(older_reply["invalid_supersedes"])
+        self.assertNotIn("contested_by", old)
 
         wrong_fingerprint = record(
             "recall.md:14", "работа-и-процессы", "2026-07-05T10:00:00+00:00"
@@ -1017,7 +1086,10 @@ class ChatDigestTests(unittest.TestCase):
         self.assertIn("supersedes-not-newer", strict.stdout)
         self.assertIn("dangling-supersedes", strict.stdout)
         decision = json.loads(self.call("--query", "Strict", "--json").stdout)
-        self.assertEqual(decision["returned"], 0)
+        self.assertEqual(decision["returned"], 1)
+        self.assertEqual(
+            decision["holders"][0]["strongest_quote"]["text"], "Strict old"
+        )
 
     def test_timeline_ties_are_stable_and_unknown_is_not_duplicated(self) -> None:
         self.write_entries(

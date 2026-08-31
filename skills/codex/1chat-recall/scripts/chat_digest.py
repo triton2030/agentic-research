@@ -314,7 +314,9 @@ def link_supersessions(records: list[dict[str, Any]]) -> None:
     as a conversation file grows, so the fingerprint decides and the address
     only says which file to look in. A supersession is accepted only inside one
     topic and when its timestamp is strictly newer; otherwise it remains a
-    diagnostic conflict.
+    diagnostic conflict. A rejected supersession marks only the record that
+    attempted it: a position must never leave an answer because someone else
+    addressed it wrongly.
     """
     by_address = {record["address"]: record for record in records}
     by_fingerprint: dict[tuple[str, str], dict[str, Any]] = {}
@@ -342,11 +344,6 @@ def link_supersessions(records: list[dict[str, Any]]) -> None:
                 )
                 if field == "supersedes":
                     record["invalid_supersedes"] = True
-                    address_target = by_address.get(address)
-                    if address_target is not None:
-                        address_target.setdefault("contested_by", []).append(
-                            record["address"]
-                        )
                 continue
             if record.get("topic") != target.get("topic"):
                 record["diagnostics"] = sorted(
@@ -366,7 +363,6 @@ def link_supersessions(records: list[dict[str, Any]]) -> None:
                         }
                     )
                     record["invalid_supersedes"] = True
-                    target.setdefault("contested_by", []).append(record["address"])
                     continue
             target.setdefault(back_reference, []).append(record["address"])
 
@@ -1461,20 +1457,35 @@ def _holder_cards(
                 "topics": dict(topics.most_common()),
                 "admitted_by": candidate["admitted_by"],
                 "card_evidence": candidate.get("card_evidence", []),
-                "_latest": latest,
             }
         )
-    cards.sort(
-        key=lambda card: (
-            card["_latest"] is not None,
-            card["_latest"] or datetime.min.replace(tzinfo=now.tzinfo),
-            -card["semantic_rank"],
-        ),
-        reverse=True,
-    )
-    for card in cards:
-        del card["_latest"]
+    cards.sort(key=lambda card: card["semantic_rank"])
     return cards
+
+
+def _surfaced_records(
+    holder_cards: list[dict[str, Any]], records: list[dict[str, Any]]
+) -> list[dict[str, Any]]:
+    """The records a holder answer actually shows.
+
+    Quality and warnings must describe the answer in front of the reader. Read
+    over the whole corpus instead, every query carries the same alarm and the
+    reader stops believing it. Corpus-wide modes keep the corpus as their
+    subject: `--check` and `--digest` report on the whole corpus by design.
+    """
+    by_address = {record["address"]: record for record in records}
+    surfaced: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for card in holder_cards:
+        for quote in (card.get("strongest_quote"), *card.get("supporting_quotes", [])):
+            if not quote:
+                continue
+            address = quote.get("address")
+            if address in seen or address not in by_address:
+                continue
+            seen.add(address)
+            surfaced.append(by_address[address])
+    return surfaced
 
 
 def _quality(records: list[dict[str, Any]]) -> dict[str, int]:
@@ -1510,6 +1521,7 @@ def _summary(record: dict[str, Any]) -> dict[str, Any]:
         "type",
         "topic",
         "topic_raw",
+        "context_note",
         "session_context",
         "session",
         "agent",
@@ -1714,7 +1726,7 @@ def _render_holders(
 ) -> str:
     status = (
         f"{len(cards)}/{matched} holders shown · {total} records · "
-        f"retrieval={retrieval} · order=newest-first"
+        f"retrieval={retrieval} · order=relevance"
     )
     if truncated_by:
         status += f" · truncated by --{truncated_by.replace('_', '-')}"
@@ -1725,13 +1737,6 @@ def _render_holders(
     domain = _domain_verdict(_DENSE_TOP1)
     if domain is not None:
         lines.append(f"query-domain={domain} · dense_top1={_DENSE_TOP1:.3f}")
-    for topic in topics:
-        lines.append(
-            f"topic-candidate={topic['topic']} · "
-            f"topic_rank={topic['topic_rank']} · "
-            f"admitted_by={topic['admitted_by']} · file={topic['file']}"
-        )
-        lines.append(f"description: {topic['description']}")
     for card in cards:
         lines.append(
             f"holder={card['file']} · {card['age']} · "
@@ -1760,6 +1765,13 @@ def _render_holders(
         )
         lines.append(f"types: {type_counts or '[нет]'}")
         lines.append(f"topics: {topic_counts or '[нет]'}")
+    for topic in topics:
+        lines.append(
+            f"topic-candidate={topic['topic']} · "
+            f"topic_rank={topic['topic_rank']} · "
+            f"admitted_by={topic['admitted_by']} · file={topic['file']}"
+        )
+        lines.append(f"description: {topic['description']}")
     return "\n".join(lines)
 
 
@@ -2135,6 +2147,9 @@ def main() -> int:
                     retrieval=retrieval,
                 )
         now = datetime.now().astimezone()
+        reported_records = (
+            _surfaced_records(holder_cards, records) if holder_mode else records
+        )
         if holder_mode:
             display_records: list[dict[str, Any]] = []
             rendered_records: list[dict[str, Any]] = []
@@ -2158,8 +2173,8 @@ def main() -> int:
                 if not holder_mode and matched
                 else "none"
             ),
-            "quality": _quality(records),
-            "warnings": _warnings(records),
+            "quality": _quality(reported_records),
+            "warnings": _warnings(reported_records),
         }
         if holder_mode:
             envelope["holders"] = holder_cards
@@ -2167,7 +2182,7 @@ def main() -> int:
                 envelope["topic_candidates"] = topic_candidates
                 envelope["topic_candidate_count"] = topic_candidate_count
                 envelope["topic_returned"] = len(topic_candidates)
-            envelope["order"] = "newest-first"
+            envelope["order"] = "relevance"
             envelope["semantic_order"] = "semantic_rank"
         else:
             envelope["records"] = rendered_records
