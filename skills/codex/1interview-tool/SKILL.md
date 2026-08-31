@@ -2,8 +2,8 @@
 name: 1interview-tool
 description: >-
   Use when related owner decisions need one addressable asynchronous form, or
-  when 1planning delegates any owner question. Not for live interviews or ad
-  hoc chat questions outside planning.
+  when 1planning delegates a question that is not about admitting work. Not for
+  live interviews or ad hoc chat questions.
 ---
 
 # Инструмент интервью
@@ -51,9 +51,11 @@ root, иначе явный project cwd.
    (примеры адресов: продуктовое — Frame/Principles, ход работ — план).
    При рефакторе каждый атомарный элемент получает отдельный блок. Форму
    заводи, когда связанных user-owned решений несколько и их ответы уходят
-   к разным owners либо зависят друг от друга. Вопрос из `1planning` всегда
-   получает форму, даже один; один-два ad hoc вопроса вне planning остаются в
-   чате.
+   к разным owners либо зависят друг от друга. Вопрос из `1planning` получает
+   форму, когда он не о допуске работы: возражение и утверждение пакета живут в
+   том разговоре, за которым владелец пришёл, и в асинхронную форму не уезжают.
+   Остальные делегированные им вопросы получают форму, даже один; один-два ad
+   hoc вопроса вне planning остаются в чате.
    Если один ответ выбирает owner, тип результата или отменяет ветку,
    сначала создай маленькую форму только для этой развилки с адресом
    `owner unresolved`; продолжи после ответа.
