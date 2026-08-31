@@ -6,9 +6,8 @@
 
 | Файл/стадия | Наблюдаемый вход | Выход | Единицы |
 | --- | --- | --- | ---: |
-| `SKILL.md` / router | Skill выбран по `description`. | Следующая одна stage либо stop. | 20 |
-| `owner-protocol.md` | Первый advice/review в task. | Дословные owner methods прочитаны; возврат в body. | 19 |
-| `prepare-advisor.md` | Body выбрал нового advisor. | Approved advisor artifact. | 18 |
+| `SKILL.md` / router | Skill выбран по `description`. | Следующая одна stage либо stop. | 19 |
+| `prepare-advisor.md` | Body выбрал нового advisor. | Approved advisor artifact. | 20 |
 | `fresh-one-shot.md` | Immutable one-shot envelope; независимой работы нет. | Один raw packet или invocation failure. | 16 |
 | `parallel-one-shot.md` | Immutable envelope; полезная независимая работа есть. | Один opaque outcome ref. | 18 |
 | `accept-one-shot.md` | Raw one-shot packet. | Validated Opus result или typed failure. | 13 |
@@ -34,9 +33,11 @@
 
 ## Проверка удаления
 
-- Без `owner-protocol` теряются буквальные способы владельца.
 - Без `prepare-advisor` execution stages снова дублируют prompt/data/tool
   contract и выходят за budget.
+- Без задачи и цели semantic core допускает поверхностное мнение; дословный
+  owner protocol больше не нужен runtime, потому что поздний выбор владельца
+  передал его функцию трём смысловым секциям.
 - Без отдельного acceptance transport receipt смешивается с Opus result.
 - Без session split один файл одновременно требует initialization, state action,
   waiting и recovery и превышает двадцать единиц.

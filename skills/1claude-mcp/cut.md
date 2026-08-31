@@ -7,11 +7,11 @@ Clean-room кандидат: `skills/1claude-mcp/work/refactor-2026-08-31/draft/
 
 | Смысл старого пакета | Носитель кандидата |
 | --- | --- |
-| Opus — независимый советник/reviewer до работы, параллельно и после; Codex владеет проверкой и финальным ответом | Уникальный контекст, цели и one-shot stages |
+| Opus — независимый советник/reviewer до работы, параллельно и после; Codex владеет проверкой и финальным ответом | `Уникальный Контекст`, задача, цель и one-shot stages |
 | Blocking one-shot — default без полезной параллельной работы; yielded route условен | Router, `fresh-one-shot.md`, `parallel-one-shot.md` |
 | Session — opt-in только для follow-up/steer/status/stop | `session-open.md`, `session-action.md`, `session-observe.md` |
-| Opus-only и fail-closed для fresh, resumed и inspected sessions | Description, owner protocol, acceptance и session gates |
-| Goal/Context, максимум десять существенных границ и outcome вместо процедуры | Цель 3, `owner-protocol.md`, `prepare-advisor.md` |
+| Opus-only и fail-closed для fresh, resumed и inspected sessions | Description, semantic core, acceptance и session gates |
+| `Уникальный Контекст / Твоя задача / Твоя цель`, максимум десять существенных границ и outcome вместо процедуры | Semantic core и `prepare-advisor.md` |
 | Clean launch без auto-loaded instruction stack, но с чтением нужных файлов и exact owner named capability | Уникальный контекст и `prepare-advisor.md` |
 | `xhigh` default, `max` только для оправданного fresh call | `prepare-advisor.md` |
 | Один yielded Promise без polling, duplicate call или transient session | `parallel-one-shot.md` |
@@ -25,7 +25,7 @@ Clean-room кандидат: `skills/1claude-mcp/work/refactor-2026-08-31/draft/
 
 | Старый носитель | Куда поглощён смысл |
 | --- | --- |
-| `opus-agent-prompting.md` | Task-scaled deliverable и verification/delegation effort находятся в `prepare-advisor.md`; Goal/Context и непродуцедурность держат цели и owner protocol. |
+| `opus-agent-prompting.md` | Task-scaled deliverable и verification/delegation effort находятся в `prepare-advisor.md`; три смысловые секции держат outcome и непродуцедурность. |
 | `claude-native-tools.md` | Volatile inventory снят; outcome-зависимая capability передаётся exact owner/address, а выбор доступного инструмента оставлен Opus. |
 | Развёрнутый список hidden/raw session data | Сжат до typed state, bounded observe и visible conversation; точный public schema остаётся у bridge. |
 | Повторяющиеся stop/retry запреты | Stop принадлежит body, а recovery разделена по non-session и session failure. |
@@ -39,6 +39,7 @@ Clean-room кандидат: `skills/1claude-mcp/work/refactor-2026-08-31/draft/
 | Статические советы выбирать `Agent`, `Monitor`, `Workflow`, `SendMessage` | Tool set volatile, а владелец запрещает навязывать Opus процедуру; named capability остаётся task context. |
 | Project-specific billing path | Глобальный runtime не зависит от одного repo; bridge остаётся owner typed subscription failure. |
 | Обязательная start-телеметрия parallel call | `yield_control`, единый Promise, opaque outcome ref и один terminal notification полностью доказывают route; отдельная start-запись outcome не меняет. |
+| Дословный runtime `owner-protocol.md` | После позднего явного выбора владельца задача и цель стали носителем поведения; цитаты сохранены в history, но их повторное чтение не меняет runtime outcome. Это снимает прежнее решение только на новом owner evidence, а не молча возвращает отклонённую рекомендацию wave 1. |
 
 ## Почему оставшиеся инструкции нельзя вывести из intent
 
@@ -67,9 +68,11 @@ Clean-room кандидат: `skills/1claude-mcp/work/refactor-2026-08-31/draft/
 | Named non-Opus Claude не проходит как advisor | Owner разрешил только Opus: `_ops/chat-recall/2026-08-14-135604-Codex-019ffae9.md:21`; terminal gate проверяет actual model. | Sonnet/Fable route останавливается либо предлагает Opus, но не подменяет attribution. | Near-miss probe принимает non-Opus result как мнение Opus. |
 | Session list/read/control входит в trigger | Старый public surface сохранён; `experiments/claude-bridge/src/ask-server.js:158-225` различает stateful и read-only tools. | Запрос к Claude session активирует ровно нужный stage. | Representative list/read/continue phrase пропускает skill или превращает inspection в advice. |
 | Blocking и yielded routes условны | Поздняя коррекция владельца: `_ops/chat-recall/2026-08-31-212001-Codex-01a0589c.md:18`. | Без независимой работы Codex blocking ждёт Opus; при ней используется один yielded call. | Probe без полезной работы запускает background protocol либо parallel probe блокирует Codex. |
+| Протокол заменён задачей и целью | Поздний критерий и выбранный текст владельца: `_ops/chat-recall/2026-08-31-212001-Codex-01a0589c.md:20-21`. | Opus владеет полным исследованием/review до законченного независимого заключения без предписанного хода мысли. | Реалистичный prompt возвращает поверхностное мнение, смешивает роли Codex/Opus или не имеет законной границы остановки. |
 
 ## Итог
 
-Потерь функции, end state или требуемого владельцем способа нет. Пакет уменьшен
-с 301 до 229 строк; пять старых references заменены одиннадцатью короткими
-стадиями с отдельными входами и выходами. Объём не был критерием удаления.
+Потерь функции, end state или требуемого владельцем способа нет. Точный размер
+и число references фиксируются после финальной проверки в
+`work/refactor-2026-08-31/validation-evidence.md`; объём не был критерием
+удаления.
