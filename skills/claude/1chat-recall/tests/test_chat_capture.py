@@ -69,6 +69,7 @@ class ChatCaptureTests(unittest.TestCase):
         new_topic: str | None = None,
         supersedes: str | None = None,
         contested: str | None = None,
+        supersedes_none: bool | None = None,
         ensure_topic_map: bool = True,
     ) -> subprocess.CompletedProcess[str]:
         topic_map = self.root / "_ops" / "chat-recall" / "topics.md"
@@ -112,6 +113,12 @@ class ChatCaptureTests(unittest.TestCase):
             command += ["--supersedes", supersedes]
         if contested:
             command += ["--contested", contested]
+        # A well-formed call now answers what the position overturns. Tests that
+        # exercise the demand itself pass supersedes_none=False.
+        if supersedes_none is None:
+            supersedes_none = not supersedes and not contested
+        if supersedes_none:
+            command.append("--supersedes-none")
         if json_output:
             command.append("--json")
         result = subprocess.run(
@@ -860,6 +867,7 @@ class ChatCaptureTests(unittest.TestCase):
             "--context-note", DEFAULT_CONTEXT_NOTE,
             "--session-context", DEFAULT_SESSION_CONTEXT,
             "--source-timestamp", "1999-01-02T03:04:05Z",
+            "--supersedes-none",
             "--agent", "claude",
             "--project", str(self.root),
             "--session", self.session,
@@ -874,6 +882,54 @@ class ChatCaptureTests(unittest.TestCase):
         self.assertEqual(topic_map.read_text(encoding="utf-8"), map_before)
         self.assertEqual(self.recall_files(), [old_path])
         self.assertEqual(old_path.read_text(encoding="utf-8"), holder_before)
+
+    def test_position_must_answer_what_it_overturns(self) -> None:
+        """The rule to mark a cancellation was written down all along and used
+        once in 1931 records, because it was the one field nobody had to fill."""
+        refused = self.run_capture(
+            "Запускаемся через две недели, весь состав целиком",
+            "решение",
+            "цели-и-приоритеты",
+            env=self.claude_env(),
+            supersedes_none=False,
+            expect_ok=False,
+        )
+        self.assertEqual(refused.returncode, 2)
+        self.assertIn("--supersedes-none", refused.stderr)
+        self.assertIn("only you can say it", refused.stderr)
+        self.assertEqual(self.recall_files(), [])
+
+    def test_a_reply_that_states_no_position_answers_nothing(self) -> None:
+        """An idea proposes and cannot overturn; demanding an answer is noise."""
+        self.run_capture(
+            "А что если печатать ещё и на кружках",
+            "идея",
+            "цели-и-приоритеты",
+            env=self.claude_env(),
+            supersedes_none=False,
+        )
+        self.run_capture(
+            "Пояснение агента про сроки",
+            "неопределено",
+            "без-темы",
+            env=self.claude_env(),
+            kind="note",
+            supersedes_none=False,
+        )
+        self.assertEqual(len(self.recall_files()), 1)
+
+    def test_the_two_answers_contradict_each_other(self) -> None:
+        refused = self.run_capture(
+            "Запускаемся через две недели",
+            "решение",
+            "цели-и-приоритеты",
+            env=self.claude_env(),
+            supersedes="recall.md:15",
+            supersedes_none=True,
+            expect_ok=False,
+        )
+        self.assertEqual(refused.returncode, 2)
+        self.assertIn("contradicts", refused.stderr)
 
     def test_supersedes_binds_the_address_to_a_fingerprint(self) -> None:
         self.write_topic_map("- `chat-recall-corpus` — Формат корпуса")
@@ -1096,6 +1152,7 @@ class ChatCaptureTests(unittest.TestCase):
             "--type", "решение", "--topic", "агенты-и-ии",
             "--context-note", DEFAULT_CONTEXT_NOTE,
             "--session-context", DEFAULT_SESSION_CONTEXT,
+            "--supersedes-none",
             "--agent", "claude",
         ]
         result = subprocess.run(

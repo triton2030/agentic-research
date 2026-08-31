@@ -172,6 +172,19 @@ CONTEXT_NOTE_GUIDANCE = (
     "keyword exists, inspect the source context instead of inventing one"
 )
 CONTEXT_NOTE_REMINDER = f"remember: {CONTEXT_NOTE_GUIDANCE}"
+POSITION_TYPES = frozenset(
+    {"решение", "коррекция", "критерий", "правило-кандидат", "предпочтение"}
+)
+SUPERSESSION_GUIDANCE = (
+    "a position must say what it overturns, and only you can say it: you heard "
+    "the reply, and no search will find the overturned position for you — a "
+    "cancellation is worded as the opposite of what it cancels and shares "
+    "almost none of its words. Overturns an earlier position: pass its address, "
+    "--supersedes <file>.md:<line>. Overturns none: --supersedes-none. Conflicts "
+    "without a clear winner: --contested <file>.md:<line>. A wrong link hides a "
+    "position that is still live, so a considered --supersedes-none is a real "
+    "answer, not a way past this"
+)
 SESSION_CONTEXT_GUIDANCE = (
     "one-line search card for the whole session; pass the complete current card, "
     "not a delta; keep earlier major subjects when work changes; use brief "
@@ -799,6 +812,14 @@ def build_parser() -> argparse.ArgumentParser:
             + SESSION_CONTEXT_GUIDANCE
         ),
     )
+    parser.add_argument(
+        "--supersedes-none",
+        action="store_true",
+        help=(
+            "this reply overturns no earlier position — the answer required of "
+            "every position when it cancels nothing"
+        ),
+    )
     parser.add_argument("--project", default=default_project())
     parser.add_argument("--agent", required=True)
     parser.add_argument("--model")
@@ -834,6 +855,23 @@ def main() -> int:
             raise CaptureError(
                 "--context-note is required for --kind quote and --kind selection; "
                 + CONTEXT_NOTE_GUIDANCE
+            )
+        if args.supersedes_none and (args.supersedes or args.contested):
+            raise CaptureError(
+                "--supersedes-none contradicts --supersedes and --contested; "
+                "pass exactly one answer"
+            )
+        if (
+            args.kind in ("quote", "selection")
+            and type_ in POSITION_TYPES
+            and topic != REPAIR_TOPIC
+            and not args.supersedes
+            and not args.contested
+            and not args.supersedes_none
+        ):
+            raise CaptureError(
+                "--supersedes, --contested or --supersedes-none is required for "
+                "a position; " + SUPERSESSION_GUIDANCE
             )
         if args.kind in ("quote", "selection") and session_card is None:
             raise CaptureError(
