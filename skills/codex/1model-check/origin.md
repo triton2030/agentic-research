@@ -15,8 +15,9 @@
 
 ## Механизм
 
-`явный вызов → до пяти prediction errors → адресуемые ожидание/наблюдение → компактная рабочая
-модель или честный gap → различающий probe → evidence-bound следующее действие`.
+`явный вызов → до пяти prediction errors → адресуемые ожидание/наблюдение →
+компактная рабочая модель или честный gap → различающий probe → evidence-bound
+следующее действие`.
 
 Skill-specific product truth и runtime-contract живут в этой папке.
 `skills/claude/1model-check/` — paired runtime owner;

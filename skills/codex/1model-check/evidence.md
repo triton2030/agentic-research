@@ -2,10 +2,10 @@
 
 ## Status
 
-`candidate`: структура и distribution manual-only версии проверяются заново.
+`candidate`: структура и distribution manual-only версии проверены статически.
 Старый late-trigger smoke ниже остаётся историческим evidence и не доказывает
-действующую routing policy. Полное adherence и улучшение решения требуют
-отдельного behavioral evidence.
+действующую routing policy. Полное adherence, runtime reload и улучшение
+решения требуют отдельного behavioral evidence.
 
 ## Support Envelope
 
@@ -46,6 +46,20 @@
 - Harness сообщил, что descriptions сокращены из-за общего skills-context
   budget. Skill всё равно сработал в этом прогоне; устойчивость к truncation
   не доказана.
+
+## Manual-only delta · 2026-08-31
+
+- Exact owner evidence:
+  `_ops/chat-recall/2026-08-31-155258-codex-01a0576e.md#L16`.
+- Claude и Codex descriptions начинаются с `Use only when explicitly invoked`;
+  Claude frontmatter содержит `disable-model-invocation: true`.
+- Codex UI metadata содержит `allow_implicit_invocation: false`.
+- Tracked и installed `SKILL.md` обеих платформ совпадают побайтно; Codex
+  `agents/openai.yaml` совпадает с установленной projection.
+- Structural `md check` по изменённым Markdown-файлам: 10 targets, 0 issues.
+- Системный Codex `quick_validate.py` не принимает Claude-native ключ
+  `disable-model-invocation`; этот validator-gap не заменён ложным pass.
+- Fresh-runtime explicit/implicit smoke после reload не выполнен.
 
 ## Limits
 
