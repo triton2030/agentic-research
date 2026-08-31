@@ -7,6 +7,7 @@ import json
 import os
 import re
 import shlex
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -1071,6 +1072,63 @@ class ChatCaptureTests(unittest.TestCase):
             "без-темы",
             env=self.claude_env(),
             kind="note",
+        )
+
+    def test_capture_and_retrieval_resolve_the_same_target_corpus(self) -> None:
+        """Capture must not write to one project while retrieval reads another.
+
+        Retrieval and integrity address the corpus as
+        `${TARGET_PROJECT_ROOT:-$PWD}/_ops/chat-recall`. Without `--project`,
+        capture has to land in exactly that folder.
+        """
+        other = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, other, True)
+        (other / "_ops" / "chat-recall").mkdir(parents=True)
+        (other / "_ops" / "chat-recall" / "topics.md").write_text(
+            "- `агенты-и-ии` — Тема тестовой записи\n", encoding="utf-8"
+        )
+        clean_env = {k: v for k, v in os.environ.items() if k not in SESSION_ENV_VARS}
+        clean_env.update(self.claude_env())
+        clean_env["TARGET_PROJECT_ROOT"] = str(other)
+        command = [
+            sys.executable, str(SCRIPT),
+            "--quote", "Целевой проект берётся из окружения",
+            "--type", "решение", "--topic", "агенты-и-ии",
+            "--context-note", DEFAULT_CONTEXT_NOTE,
+            "--session-context", DEFAULT_SESSION_CONTEXT,
+            "--agent", "claude",
+        ]
+        result = subprocess.run(
+            command, capture_output=True, text=True, check=False,
+            env=clean_env, cwd=str(self.root),
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+        retrieval_dir = other / "_ops" / "chat-recall"
+        written = [p for p in retrieval_dir.glob("*.md") if p.name != "topics.md"]
+        self.assertEqual(len(written), 1, f"ожидался один файл в {retrieval_dir}")
+        self.assertIn(
+            "Целевой проект берётся из окружения",
+            written[0].read_text(encoding="utf-8"),
+        )
+        self.assertEqual(
+            [], list((self.root / "_ops" / "chat-recall").glob("2*.md")),
+            "запись не должна попадать в текущую папку, когда задан TARGET_PROJECT_ROOT",
+        )
+
+    def test_explicit_project_outranks_target_project_root(self) -> None:
+        other = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, other, True)
+        (other / "_ops" / "chat-recall").mkdir(parents=True)
+        self.run_capture(
+            "Явный project побеждает переменную",
+            "решение",
+            "агенты-и-ии",
+            env={**self.claude_env(), "TARGET_PROJECT_ROOT": str(other)},
+        )
+        self.assertEqual(len(self.recall_files()), 1)
+        self.assertEqual(
+            [], list((other / "_ops" / "chat-recall").glob("*.md")),
         )
 
     def test_env_is_scoped_by_agent(self) -> None:

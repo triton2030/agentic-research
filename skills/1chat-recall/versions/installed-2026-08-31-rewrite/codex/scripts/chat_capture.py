@@ -32,6 +32,17 @@ from recall_metadata import (
 LOG_DIR = Path("_ops/chat-recall")
 
 
+def default_project() -> str:
+    """Capture and retrieval must resolve the same corpus.
+
+    Retrieval and integrity address the corpus as
+    `${TARGET_PROJECT_ROOT:-$PWD}/_ops/chat-recall`. Capture honours the same
+    variable so that a caller working on one project cannot silently write to
+    the corpus of another. An explicit `--project` still wins.
+    """
+    return os.environ.get("TARGET_PROJECT_ROOT") or "."
+
+
 def resolve_log_dir(root: Path) -> Path:
     """The corpus is one flat folder of conversation files."""
     return root / LOG_DIR
@@ -287,7 +298,7 @@ class PrintMetadataAction(argparse.Action):
     ) -> None:
         del namespace, values, option_string
         argv = sys.argv[1:]
-        project = "."
+        project = default_project()
         for index, arg in enumerate(argv):
             if arg == "--project" and index + 1 < len(argv):
                 project = argv[index + 1]
@@ -788,7 +799,7 @@ def build_parser() -> argparse.ArgumentParser:
             + SESSION_CONTEXT_GUIDANCE
         ),
     )
-    parser.add_argument("--project", default=".")
+    parser.add_argument("--project", default=default_project())
     parser.add_argument("--agent", required=True)
     parser.add_argument("--model")
     parser.add_argument("--session")
