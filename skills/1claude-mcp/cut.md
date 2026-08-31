@@ -12,7 +12,7 @@ Clean-room кандидат: `skills/1claude-mcp/work/refactor-2026-08-31/draft/
 | Session — opt-in только для follow-up/steer/status/stop | `session-open.md`, `session-action.md`, `session-observe.md` |
 | Opus-only и fail-closed для fresh, resumed и inspected sessions | Description, semantic core, acceptance и session gates |
 | `Уникальный Контекст / Твоя задача / Твоя цель`, максимум десять существенных границ и outcome вместо процедуры | Semantic core и `prepare-advisor.md` |
-| Clean launch без auto-loaded instruction stack, но с чтением нужных файлов и exact owner named capability | Уникальный контекст и `prepare-advisor.md` |
+| Clean launch без auto-loaded instruction stack, но с чтением нужных файлов и exact owner named capability | `Уникальный Контекст` и `prepare-advisor.md` |
 | `xhigh` default, `max` только для оправданного fresh call | `prepare-advisor.md` |
 | Один yielded Promise без polling, duplicate call или transient session | `parallel-one-shot.md` |
 | Exact tool, model/session/effort/warnings evidence и локальная проверка claims | `prepare-advisor.md`, `accept-one-shot.md`, Stop |
