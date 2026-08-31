@@ -32,21 +32,25 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
     скил, слова владельца); весь переносимый контракт теперь помещается в
     `SKILL.md`;
   - `1skill-creation/portable/` — создание, рефактор и кнопка запуска скилов
-    одним пакетом (v13, 2026-08-31; предшественники и снапшоты —
+    одним пакетом (v14, 2026-09-01; предшественники и снапшоты —
     `skills/1skill-authoring/`, `skills/1skill-refactor/` и
     `skills/1skill-routing/`). Тело — единственный router независимых стадий;
     references друг друга не вызывают, кроме `refactor.md`, который запускает
     `goal-context.md` и возвращает агента в полный протокол создания. Пакет
-    владеет `goal-context.md`,
-    `skill-short-description.md`, `behavior-protocol.md`, `reference-files.md`,
-    `agent-defaults.md`, `refactor.md`, `check-approve.md` и
-    `install-approved.md`, а также парой `agents/check-instructions.md` +
-    `agents/check-trajectory.md`. Бюджет пофайловый: до 20 самостоятельных
-    единиц, где единица — отдельная инструкция или ограничение; Уникальный
-    контекст и цели в счёт не входят, а сумма тела и одного reference-файла
-    ограничением не является. Пакет производит `product-frame.principles.md`
-    скила в его папке-истории; композиция управляющего текста — в
-    `science/how-to-command-agents-with-text.md`.
+    владеет `goal-context.md`, `skill-short-description.md`,
+    `behavior-protocol.md`, `reference-files.md`, `agent-defaults.md`,
+    `refactor.md`, `check-approve.md` и `install-approved.md`, а также парой
+    `agents/check-instructions.md` + `agents/check-trajectory.md`. Намерение
+    скила состоит из четырёх разделов в порядке Уникальный контекст, Задача,
+    Цель, Критерии принятия; протокол поведения и reference-файлы идут после
+    них и только по требованию владельца либо по выходу гейта
+    `behavior-protocol.md` — метод «сломанный джин», решение владельца
+    2026-08-31. Бюджет пофайловый: до 20 самостоятельных единиц, где единица —
+    отдельная инструкция или ограничение; эти четыре раздела в счёт не входят
+    при пределе в пять Критериев принятия на файл, а сумма тела и одного
+    reference-файла ограничением не является. Пакет производит
+    `product-frame.principles.md` скила в его папке-истории; композиция
+    управляющего текста — в `science/how-to-command-agents-with-text.md`.
   У каждого `platforms/codex/agents/openai.yaml` — только Codex UI metadata.
   Reference-файл живёт ровно у одного владельца; соседи ссылаются относительно.
 - `1md-search/portable/` — общий cognitive/tool core для
