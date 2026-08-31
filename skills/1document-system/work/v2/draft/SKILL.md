@@ -6,103 +6,111 @@ description: >-
   another skill owns, code comments, or chat.
 ---
 
-# Document System
+# Система документов
 
-## Unique context
+## Уникальный контекст
 
-Agents think in stereotypes: from a document's name alone the model already
-knows what lives where and how to write it, and the sections take it straight to
-the right place. But the same corporate stereotype carries corporate volume, and
-the documents have started to bloat. Without a type name the agent writes prose
-and its own opinions, and turns a specification into a chronicle. The type name
-is visible before the file is opened: the agent knows in advance which section
-to look in.
+Агенты думают стереотипами: по одному имени документа модель уже знает, что где
+лежит и как это писать, а разделы приводят её сразу к нужному месту. Но тот же
+корпоративный стереотип тянет за собой корпоративный объём, и документы начали
+раздуваться. Без имени типа агент пишет прозу и свои мнения, превращает
+спецификацию в летопись. Имя типа видно до открытия файла: агент заранее знает,
+в каком разделе что искать.
 
-## Your main goals
+## Твои Главные Цели
 
-- A document ships in startup style: only what is needed to act or to find the
-  answer is written, and a full set of sections filled for coverage is not
-  success.
-- Every mutable answer has one place, and from the type name and its sections
-  the agent finds that place without opening extra files.
-- A document never leaves its genre — no opinions and no chronicle in a
-  specification; a corpus that grew without displacing text is not success.
+- Документ выходит в стартап-стиле: написано только то, без чего нельзя
+  действовать или найти ответ, а полный набор разделов, заполненный ради
+  покрытия, успехом не считается.
+- У каждого изменяемого ответа одно место, и по имени типа и его разделам агент
+  находит это место, не открывая лишних файлов.
+- Документ не выходит за свой жанр — ни мнений, ни летописи в спецификации, — а
+  корпус, выросший без вытесненного текста, успехом не считается.
 
-## Protocol
+## Протокол
 
-1. Adopt the project's own vocabulary wholesale when it has one: a registry,
-   naming convention or section contract is live when the project's current
-   files actually follow it. Take its type names, sections and metadata
-   entirely and blend nothing of your own into them, because two naming systems
-   in one corpus destroy the address this skill exists to protect. No live
-   vocabulary — continue with the steps below.
-2. Find whether this answer already has a home before you create a file. Search
-   by type term and by subject; an answer with an existing owner is written
-   there. A second file for the same answer is sprawl that no later pass
-   undoes, because both files then look legitimate.
-3. Choose the type from the question that outlives this conversation, not from
-   what the material is about. A startup carries few document types, and a type
-   earns its place only when some question keeps coming back and someone has to
-   act on the answer.
-4. Take the lightest standard business-document term whose genre owns that
-   question. The whole mechanism is the model's existing prior, so an invented
-   label — "Payment Intelligence Brief" — fires no stereotype and delivers
-   neither genre nor address; the closest standard term beats a more precise
-   invented one.
-5. Admit a new type into the project only together with the first real document
-   written in it. A registered type with nothing in it is an empty promise that
-   the next agent reads as a home and fills for coverage.
-6. Name the file `<TYPE> — <subject>.md`. The type is read before the file is
-   opened, so it lives in the filename; a type that appears only in a heading
-   is invisible at the moment it is needed. Where a filename is fixed by
-   convention — `README.md`, `AGENTS.md` — declare the type in the first line
-   instead.
-7. Make the subject a stable thing that will still exist next quarter, never
-   the occasion of writing. `auth-refactor-notes-aug.md` types correctly and
-   still hides its answer: the next agent cannot guess the occasion, so it
-   writes a second file for the same answer.
-8. Take from the stereotype only what belongs in this genre and in what order.
-   Never take its length, its ceremonial sections or its register: the
-   enterprise prior is trained on documents written for an absent reviewer, and
-   every generator of corporate volume — coverage, justification, provenance,
-   restatement — exists to serve that absent reader. Your reader is present and
-   acts today.
-9. Treat the genre's sections as an ordered slot list, never a template. Order
-   is fixed so a reader can scan for a heading; presence is decided by content.
-   A slot with no answer is not materialized — no heading, no placeholder, no
-   "not applicable" — and a missing heading is itself the answer: this document
-   holds no answer of that kind.
-10. Admit each block by naming, in a few words, the action it enables or the
-    question it answers. No such name, no block. This is the only stop for
-    justification prose and recap, which are well-formed, on-topic and useless
-    and therefore survive every instruction to write concisely.
-11. Never write these families at all: revision history, status and version
-    fields; executive summary, introduction, background, conclusion; scope
-    preamble, in-document glossary, appendix. They read as structure rather
-    than content, so a block-level test does not bite them, and they are the
-    front doors — provenance is how chronicle enters a specification, summary
-    is how restatement enters everything.
-12. Move out what this genre does not own instead of deleting it. Every kind of
-    content has one owning genre: rationale and opinion belong to a proposal or
-    decision record, sequence of events to a log or changelog, definitions to a
-    glossary, findings at a point in time to a report. Route the content to its
-    owner — this single move is both the genre ban and the one-place rule.
-13. Remove what your new content supersedes instead of writing beside it.
-    Superseded means the new text replaces it, not that you would have phrased
-    it differently; authorship makes no difference and git holds the history.
-    Appending is the whole bloat engine on the edit path: the file grows
-    monotonically, its strata start contradicting each other, and a chronicle
-    forms by accretion.
-14. Close on the finished file rather than on your account of it, by two
-    signals. Every slot filled is the coverage signature — re-run step 10 on
-    each block. Volume grew while no new scope entered means step 13 did not
-    happen.
+1. Прими словарь проекта целиком, если он у проекта есть. Реестр, конвенция
+   имён или контракт разделов живы тогда, когда текущие файлы проекта им
+   действительно следуют. Возьми его имена типов, разделы и метаданные без
+   изменений и не подмешивай к ним своего: два словаря в одном корпусе
+   уничтожают тот самый адрес, ради которого этот скил существует. Своего
+   словаря у проекта нет — работай по шагам ниже.
+2. Найди, есть ли у этого ответа дом, прежде чем заводить файл. Ищи по термину
+   типа и по предмету; ответ с уже существующим владельцем пишется туда. Второй
+   файл о том же — разрастание, которое потом никто не разберёт, потому что оба
+   файла выглядят законными.
+3. Выбирай тип от вопроса, который переживёт этот разговор, а не от того, о чём
+   материал. Стартап несёт мало типов, и тип заслуживает места только тогда,
+   когда вопрос возвращается снова и кто-то должен действовать по ответу.
+4. Бери самый лёгкий стандартный деловой термин, чей жанр владеет этим
+   вопросом. Весь механизм — уже готовый прайор модели, поэтому придуманное имя
+   («Сводка платёжной аналитики») не включает стереотип и не даёт ни жанра, ни
+   адреса: ближайший стандартный термин побеждает более точный придуманный.
+   Термин остаётся деловым стандартом, как правило английским, даже когда тело
+   документа на языке проекта.
+5. Заводи новый тип в проекте только вместе с первым настоящим документом в
+   нём. Зарегистрированный пустой тип — обещание дома, которое следующий агент
+   прочтёт как приглашение заполнить его ради покрытия.
+6. Называй файл `<ТИП> — <предмет>.md`. Тип читают до того, как файл открыли,
+   поэтому он живёт в имени файла: тип, стоящий только в заголовке, невидим
+   ровно в тот момент, когда он нужен. Где имя задано конвенцией (`README.md`,
+   `AGENTS.md`), объявляй тип первой строкой.
+7. Делай предметом устойчивую вещь, которая будет существовать и через квартал,
+   а не повод написания. `auth-refactor-notes-aug.md` типизирован верно и всё
+   равно прячет свой ответ: повод следующему агенту не угадать, и он заведёт
+   второй файл о том же.
+8. Бери у стереотипа только то, что относится к жанру, и в каком порядке. Не
+   бери его объём, его церемониальные разделы и его регистр: корпоративный
+   прайор натренирован на документах для отсутствующего проверяющего, и все
+   генераторы корпоративного объёма — покрытие, оправдание, провенанс,
+   пересказ — обслуживают именно этого отсутствующего читателя. Твой читатель
+   присутствует и действует сегодня.
+9. Считай разделы жанра упорядоченным списком слотов, а не шаблоном. Порядок
+   фиксирован, чтобы читатель искал заголовок взглядом, а присутствие решает
+   содержание. Слот без ответа не материализуется — ни заголовка, ни заглушки,
+   ни «не применимо», — и отсутствующий заголовок сам по себе ответ: такого
+   рода ответа в документе нет.
+10. Допускай каждый блок, называя в несколько слов действие, которое он
+    позволяет, или вопрос, на который он отвечает. Нет такого названия — нет
+    блока. Это единственный стоп для оправдательной прозы и пересказа: они
+    корректны, по теме и бесполезны, поэтому переживают любую просьбу писать
+    короче.
+11. Не пиши эти семьи никогда: история ревизий, поля статуса и версии;
+    executive summary, введение, предыстория, заключение; преамбула о границах,
+    глоссарий внутри документа, приложение. Они читаются как структура, а не
+    как содержание, поэтому блочный тест их не берёт, и они же парадные двери:
+    провенанс так вносит летопись, summary так вносит пересказ.
+12. Уводи к владельцу то, чем этот жанр не владеет, вместо того чтобы это
+    удалять. У каждого рода содержимого есть один владеющий жанр: обоснование и
+    мнение принадлежат предложению или записи решения, последовательность
+    событий — логу или changelog, определения — глоссарию, наблюдения на момент
+    времени — отчёту. Этот единственный ход и есть одновременно жанровый запрет
+    и правило одного места.
+13. Документ, который пересказывает чужую правду — отчёт, дашборд, выжимка для
+    читателя, — называет свой источник и не добавляет к нему ни одного
+    собственного факта. Пересказ вправе переупорядочить, подчеркнуть и
+    объяснить; факт, которого в источнике нет, превращает его во вторую правду.
+14. Изменившийся источник делает пересказ устаревшим, пока его не перепроверили
+    по источнику. Пересказ короче и понятнее оригинала, поэтому следующий агент
+    читает именно его и действует по нему; свежая дата файла и целые ссылки
+    этого не ловят.
+15. Удаляй то, что замещает твоё новое содержимое, вместо того чтобы писать
+    рядом. Замещено — значит новый текст встаёт на его место, а не то, что ты
+    сформулировал бы иначе; авторство роли не играет, историю держит git.
+    Дописывание рядом — весь механизм раздувания на пути правок: файл растёт
+    монотонно, слои начинают противоречить друг другу, летопись собирается сама
+    собой.
+16. Закрывай работу по готовому файлу, а не по своему отчёту о ней, двумя
+    сигналами. Все слоты заполнены — это подпись покрытия: прогони шаг 10
+    заново по каждому блоку. Объём вырос, а нового охвата не прибавилось —
+    значит шаг 15 не случился.
 
-## Always
+## Правила, действующие всегда
 
-- Genre discipline never yields. A project's live vocabulary replaces the names
-  and sections you would have chosen, and never licenses opinions, chronicle,
-  ceremonial sections or growth without displacement.
-- An artifact family another skill owns — task files, findings, product frames,
-  agent instructions — stays with that skill. Route there instead of retyping,
-  renaming or reshaping it, whatever its current form looks like.
+- Жанровая дисциплина не уступает никогда. Живой словарь проекта заменяет
+  имена и разделы, которые выбрал бы ты, но не разрешает ни мнений, ни
+  летописи, ни церемониальных разделов, ни роста без вытеснения.
+- Семья артефактов, которой владеет другой скил — файлы задач, находки,
+  продуктовые рамки, инструкции агентам, — остаётся за ним. Маршрутизируй туда
+  вместо того, чтобы её типизировать, переименовывать или перекраивать, как бы
+  её нынешняя форма ни выглядела.
