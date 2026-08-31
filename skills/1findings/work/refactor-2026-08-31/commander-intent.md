@@ -1,7 +1,7 @@
 # Рефактор `1findings`
 
-Состояние: `рефактор завершён`; candidate ожидает независимых проверок и
-approval exact bytes.
+Состояние: `рефактор завершён`; exact candidate проверен и ожидает
+безусловного approval. Installation boundary включает две global route-строки.
 
 ## Вход
 

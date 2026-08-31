@@ -15,5 +15,6 @@ description: "Origin, versions and refactor evidence of 1findings."
 - `cut.md` — будущая карта сохранённых, поглощённых и снятых смыслов;
 - `evidence.md` — статус проверок.
 
-Текущая стадия: `рефактор завершён`; candidate ожидает независимых проверок и
-approval exact bytes.
+Текущая стадия: `рефактор завершён`; exact candidate проверен и ожидает
+безусловного approval. При установке нужно закрыть route-строки в двух runtime
+roots.
