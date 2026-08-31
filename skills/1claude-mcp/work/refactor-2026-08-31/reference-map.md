@@ -4,8 +4,8 @@
 | --- | --- | --- | ---: |
 | Router | Skill выбран по `description`. | Ровно один применимый режим либо stop. | 17 |
 | Fresh one-shot | Нужен один ответ; независимой работы до него нет. | Terminal Opus packet либо typed failure. | 15 |
-| Parallel one-shot | Нужен один ответ; полезная работа Codex остаётся. | Terminal Opus packet либо один diagnostic. | 16 |
-| Session control | Нужен follow-up, steer, status/liveness или stop известной Opus session. | Одно действие и typed state/result того же native ID. | 18 |
+| Parallel one-shot | Нужен один ответ; полезная работа Codex остаётся. | Terminal Opus packet либо один diagnostic. | 18 |
+| Session control | Нужен follow-up, steer, status/liveness или stop известной Opus session. | Одно действие и typed state/result того же native ID. | 16 |
 | Existing-session inspection | Владелец просит list/read активной Claude session. | Один read-only bounded result без Opus attribution. | 7 |
 | Failure recovery | Уже есть exact typed failure packet. | Одна recovery action либо честный stop. | 17 |
 

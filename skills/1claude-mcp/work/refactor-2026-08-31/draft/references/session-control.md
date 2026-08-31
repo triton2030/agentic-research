@@ -3,11 +3,9 @@
 Вход: нужен follow-up, steer, status/liveness или stop известной Opus session.
 Выход: одно адресуемое действие и typed state/result того же native ID.
 
-- `mcp__claude_mcp__claude_session` с `op: open_fresh`, initial prompt,
-  `profile: opus_advisor` и реальным `cwd` начинает новый advisor и возвращает
-  единственный native `session_id`.
-- `open_resume` принимает известные native `session_id`, тот же project `cwd` и
-  новый prompt только при сохранённом affirmative Opus model evidence.
+- `mcp__claude_mcp__claude_session` с `op: open_resume` принимает известные
+  native `session_id`, тот же project `cwd` и новый prompt только при сохранённом
+  affirmative Opus model evidence.
 - Без `resolved_model`, начинающегося с `claude-opus-5`, не используй session
   как advisor и не приписывай ей мнение Opus.
 - Независимые advisors получают разные IDs; два live lease одного ID запрещены.
