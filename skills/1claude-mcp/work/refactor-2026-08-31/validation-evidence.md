@@ -1,4 +1,4 @@
-# Validation evidence — exact candidate before approval
+# Validation evidence — approved and installed package
 
 ## Exact bytes
 
@@ -22,6 +22,10 @@
 | Every reference is routed exactly once from `SKILL.md` | pass; 10/10 |
 | Global-artifact path scan | no user, repo or bridge-local runtime path |
 | `git diff --check` on owned changes | pass |
+| Candidate ↔ tracked owner ↔ installed projection | byte-identical |
+| Validators on tracked owner and installed projection | `Skill is valid!` |
+| `rumdl check` on both installed package trees | 22 files, no issues |
+| `npm run ask:test` in `experiments/claude-bridge` | 41/41 pass on final run |
 
 ## Semantic evidence
 
@@ -43,13 +47,15 @@
 
 ## Residual risks
 
-- No live Anthropic call was made against an uninstalled draft; doing so would
-  test the old installed skill and spend an external call without proving draft
-  installation.
-- The behavioral falsifier remains a post-install representative call: a
+- No live Anthropic call was made after installation; deterministic bridge
+  contracts pass, but real prompt behavior remains unmeasured.
+- The behavioral falsifier remains a representative live call: a
   superficial opinion, role confusion or work continuing past the stated goal
   would invalidate the new semantic contract.
-- Installation, owner/projection parity and bridge regression tests remain
-  intentionally pending until unconditional owner approval.
+- The first full bridge suite run exposed a timing flake in
+  `test/claude-ask.test.js:451-488`: 40/41 with `timedOut.closed` unset. The
+  isolated test and unchanged full rerun passed; the side finding is recorded
+  in `_ops/findings/2026-08-31-235145-53322-14076.md` rather than repaired in
+  this skill-only change.
 - Official Anthropic prompting guidance is volatile; the skill keeps only the
   current Opus deltas and records the official page in `cut.md`.
