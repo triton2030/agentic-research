@@ -3,7 +3,7 @@
 **Purpose:** own exact changeable rules and decision tables instead of free
 policy prose. **Default authority:** `canon`. Alias: BR. Near-miss: decision
 rationale → DEC; lifecycle → SEM; execution steps → PROC; agent rule →
-`1instruction-placement`.
+`1instruction-authoring`.
 
 **Ban:** BRC owns the normative rule text, not why it was chosen and not how it
 is executed. Each Rule ID has exactly one normative logic representation — the

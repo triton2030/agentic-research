@@ -1,6 +1,6 @@
 interface:
   display_name: "1-Система документов"
-  short_description: "Route mutable truth before choosing document form"
-  default_prompt: "Use $1document-system to run the tomorrow-change test before choosing owners, types, projections, or topology."
+  short_description: "Give a project document a standard type name and hold it to what must be acted on"
+  default_prompt: "Use $1document-system when about to write or substantially edit a project document."
 policy:
   allow_implicit_invocation: true
