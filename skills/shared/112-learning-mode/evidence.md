@@ -93,3 +93,30 @@ Cross-runtime YAML/content validator, ссылки, русский instructional
 ключа нарушило бы manual-only поведение Claude, а разнос frontmatter нарушил
 бы exact parity. Это известная schema-несовместимость валидатора, а не новая
 ошибка пакета.
+
+## 2026-08-31 — восстановление и установка богатого протокола
+
+Владелец потребовал вернуть длинный описываемый в чате когнитивный протокол,
+богатый контекст и богатую цель
+(`_ops/chat-recall/2026-08-31-124829-codex-01a056c8.md:16-18`). Точная версия
+после двух независимых checker-волн безусловно утверждена владельцем словом
+«Отлично установи» по адресу того же файла, строка 19.
+
+После утверждения candidate не менялся. Tracked owner записан первым, затем
+штатный `sync_simple_projections.py 112-learning-mode --write --install`
+обновил tracked и live Claude/Codex; отдельный `--check` подтвердил совпадение.
+
+Во всех пяти пакетах состав одинаков: `SKILL.md` и
+`references/activation.md`. SHA-256 соответственно:
+
+- `aefd3fb503f02cf62b995b34aec4f237d1460b3232065ba097158dbba25f5e5b`;
+- `78e0b50665f0497b630035c7fbc015ce42cf06272ff033422cfab71249c36590`.
+
+Побайтовый `cmp`, существование внутренней ссылки, cross-runtime sync check и
+`git diff --check` прошли. Общий Codex `quick_validate.py` по-прежнему
+отвергает Claude-native `disable-model-invocation`; это сохранённая известная
+schema-несовместимость, а не расхождение installed package.
+
+Остаточный риск принят владельцем вместе с точной версией: богатый visible
+output превышает authoring-ориентир active set 20. Counting convention, режимы
+и mitigation записаны в `recovery-2026-08-31/preservation.md`.
