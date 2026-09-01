@@ -110,7 +110,8 @@ python — `<backend>/.venv/bin/python`. Ярус по умолчанию вер
 усилие `xhigh`, передавать ничего не надо; `gpt-5.6-luna` существует для тупого и
 большого, где нужна пропускная способность, а не суждение. Бесплатны и полезны до
 траты: `codex_review.py --doctor --project "$PWD"`, когда мост не работает, и
-`codex debug prompt-input`, когда неясно, что Codex получит на вход помимо твоего
-задания. Остальная runtime-правда (ledger, профили sandbox, версии) живёт в
+`/Applications/ChatGPT.app/Contents/Resources/codex debug prompt-input` (в PATH
+его нет), когда неясно, что Codex получит на вход помимо твоего задания.
+Остальная runtime-правда (ledger, профили sandbox, версии) живёт в
 `<backend>/README.md` и меняется вместе с кодом: сюда её не копируй, устареет
 молча.
