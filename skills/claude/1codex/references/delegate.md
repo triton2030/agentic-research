@@ -87,8 +87,9 @@ Handle воркера пиши в носитель волны как `thread_id`
 окно после обрыва восстанавливает соответствие «воркер → тред» вручную. Треды
 персистентны, но не активны: закрытая волна свои архивирует, и resume архивного
 падает `session is archived`, не начав работы. Поэтому тёплый круг открывается
-`codex_threads.py unarchive THREAD_ID --project "$PWD"` — не `codex unarchive` из
-текста ошибки, того CLI здесь нет. Находятся треды `codex_threads.py mine`.
+`codex_threads.py unarchive THREAD_ID --project "$PWD"`: совет `codex unarchive`
+из текста ошибки — вендорский CLI, которого рядом с мостом может не быть.
+Находятся треды `codex_threads.py mine`.
 
 ```bash
 B=/Users/triton/Documents/GitHub/agentic-research/experiments/codex-bridge
