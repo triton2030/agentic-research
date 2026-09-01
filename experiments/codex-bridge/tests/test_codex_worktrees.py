@@ -45,9 +45,13 @@ class WorktreeIsolationTests(unittest.TestCase):
         self._tmp.cleanup()
 
     def make_tree(self, run_id: str, task_id: str, allowlist: set[str] | None = None) -> wt.WorkerTree:
-        return wt.create_worker_tree(
+        # Как в проде: снимок «что лежало до старта» — последний шаг подготовки,
+        # после создания дерева и провижининга (`open_wave`).
+        tree = wt.create_worker_tree(
             self.project, run_id, task_id, base=self.base, allowlist=allowlist or set()
         )
+        wt.snapshot_preexisting(tree)
+        return tree
 
     def test_worker_tree_is_a_separate_checkout_on_its_own_branch(self) -> None:
         tree = self.make_tree("run1", "t1", {"a.md"})
@@ -347,6 +351,84 @@ class WorktreeIsolationTests(unittest.TestCase):
         self.assertEqual(wave["merged"], ["t1"])
         self.assertEqual((self.project / "a.md").read_text(), "работа воркера\n")
         self.assertFalse((self.project / "probes" / "warp.png").exists())
+
+    def test_symlink_outside_the_tree_does_not_hold_the_worker(self) -> None:
+        """Живой случай: воркер подменил установку линком `node_modules` на
+        соседнее дерево. `.gitignore` с завершающим слэшем такой линк не ловит,
+        git считает его записью вне allowlist — и вся работа воркера уходила на
+        ручной разбор. Ссылка наружу не забирается и волну не удерживает."""
+        (self.project / ".gitignore").write_text("node_modules/\n")
+        git(self.project, "add", "-A")
+        git(self.project, "commit", "-m", "ignore")
+        self.base = git(self.project, "rev-parse", "HEAD")
+        neighbour = Path(self._tmp.name) / "neighbour_modules"
+        neighbour.mkdir()
+        (neighbour / "pkg.txt").write_text("dep\n")
+
+        tree = self.make_tree("run1", "t1", {"a.md"})
+        (tree.path / "node_modules").symlink_to(neighbour)
+        (tree.path / "a.md").write_text("работа воркера\n")
+
+        wave = wt.close_wave(
+            self.project, [tree], run_id="run1", integrate=True, cleanup=True
+        )
+        self.assertNotIn("node_modules", tree.changed_files)
+        self.assertEqual(tree.out_of_scope_files, ())
+        self.assertEqual(wave["merged"], ["t1"])
+        self.assertEqual((self.project / "a.md").read_text(), "работа воркера\n")
+        self.assertFalse((self.project / "node_modules").exists())
+
+    def test_setup_touching_an_owned_file_refuses_the_wave_before_any_turn(self) -> None:
+        """Подготовка тронула файл из списка задачи — отличить кодогенерацию от
+        работы воркера в нём уже нечем, и дальше по коду это `held_dirty_birth`,
+        то есть задача, оплаченная полностью и мёртвая. Отказ идёт до первого
+        хода: деревьев и веток после него не остаётся."""
+        def setup(trees: list[wt.WorkerTree]) -> None:
+            for tree in trees:
+                (tree.path / "a.md").write_text("сгенерировано подготовкой\n")
+
+        with self.assertRaises(wt.WorktreeError) as caught:
+            wt.open_wave(
+                self.project, "run1", [("t1", {"a.md"})], base=self.base, setup=setup
+            )
+        self.assertIn("a.md", str(caught.exception))
+        self.assertEqual(git(self.project, "branch", "--list", "codex-fleet/*"), "")
+        self.assertEqual(len(git(self.project, "worktree", "list").splitlines()), 1)
+
+    def test_setup_failure_abandons_every_tree_of_the_wave(self) -> None:
+        """Красная подготовка ОДНОГО дерева отменяет волну целиком: полволны
+        изолировать нельзя, а выкладка стоит сотни МБ на дерево."""
+        def setup(trees: list[wt.WorkerTree]) -> None:
+            (trees[0].path / "ok.txt").write_text("готово\n")
+            raise wt.WorktreeError("npm ci упал в t2")
+
+        with self.assertRaises(wt.WorktreeError):
+            wt.open_wave(
+                self.project,
+                "run1",
+                [("t1", {"a.md"}), ("t2", {"b.md"}), ("t3", {"a.md"})],
+                base=self.base,
+                setup=setup,
+            )
+        self.assertEqual(git(self.project, "branch", "--list", "codex-fleet/*"), "")
+        self.assertEqual(len(git(self.project, "worktree", "list").splitlines()), 1)
+
+    def test_interrupt_during_setup_leaves_no_trees_behind(self) -> None:
+        """Подготовка — произвольный shell на минуты: Ctrl-C в ней не должен
+        оставлять N полных выкладок проекта молча."""
+        def setup(trees: list[wt.WorkerTree]) -> None:
+            raise KeyboardInterrupt
+
+        with self.assertRaises(KeyboardInterrupt):
+            wt.open_wave(
+                self.project,
+                "run1",
+                [("t1", {"a.md"}), ("t2", {"b.md"})],
+                base=self.base,
+                setup=setup,
+            )
+        self.assertEqual(git(self.project, "branch", "--list", "codex-fleet/*"), "")
+        self.assertEqual(len(git(self.project, "worktree", "list").splitlines()), 1)
 
     def test_red_gate_keeps_project_untouched_and_work_in_branches(self) -> None:
         """Проверка — ворота ПЕРЕД проектом. Красная проверка не вливает ничего:

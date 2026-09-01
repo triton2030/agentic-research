@@ -12,7 +12,7 @@
 
 Здесь только порядок закрытия волны и его защиты. Инвентарь, ручная уборка и
 разбор конфликтов — готовым `git worktree` / `git merge` по рецепту в
-`~/.claude/skills/1codex/references/fleet.md`: обёртки над ними этот модуль не
+`~/.claude/skills/1codex/references/delegate.md`, «Остановка и ремонт»: обёртки над ними этот модуль не
 держит. Цена изоляции — выкладка рабочего дерева на воркера (замер: 22 МБ для
 agentic-research, 650–780 МБ для mavo-short2), поэтому уборка идёт в том же
 прогоне, а не остаётся на память оркестратора.
@@ -21,6 +21,7 @@ agentic-research, 650–780 МБ для mavo-short2), поэтому уборк�
 """
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 from collections.abc import Callable
@@ -122,25 +123,34 @@ def create_worker_tree(
     target.parent.mkdir(parents=True, exist_ok=True)
     branch = f"{BRANCH_PREFIX}/{run_id}/{task_id}"
     _git(project, "worktree", "add", "-b", branch, str(target), base, check=True)
-    # post-checkout hook может испачкать дерево ещё до старта воркера — тогда
-    # его правки влились бы как работа воркера (находка аудита 2026-08-14).
-    # -uall: без него новый каталог схлопывается в одну строку «probes/», и
-    # сверить его с изменениями воркера (там — точные пути файлов) нечем.
-    dirty = _git(target, "status", "--porcelain", "-uall", check=True).stdout.splitlines()
-    preexisting = tuple(sorted(line[3:] for line in dirty if len(line) > 3))
-    tree = WorkerTree(
+    return WorkerTree(
         task_id=task_id,
         path=target,
         branch=branch,
         base_commit=base,
         allowlist=frozenset(allowlist),
-        preexisting=preexisting,
     )
-    if preexisting:
+
+
+def snapshot_preexisting(tree: WorkerTree) -> None:
+    """Что лежало в дереве ДО первого хода воркера — это не его работа.
+
+    Снимок берётся последним шагом подготовки, после провижининга: всё, что
+    оставила подготовка (установленные зависимости, локальные линки, кэши), иначе
+    попало бы воркеру в атрибуцию и удержало бы от merge всю его работу — та же
+    авария, что и с post-checkout hook, только устроенная нами (hook: находка
+    аудита 2026-08-14).
+
+    -uall: без него новый каталог схлопывается в одну строку «probes/», и сверить
+    его с изменениями воркера (там — точные пути файлов) нечем.
+    """
+    dirty = _git(tree.path, "status", "--porcelain", "-uall", check=True).stdout.splitlines()
+    tree.preexisting = tuple(sorted(line[3:] for line in dirty if len(line) > 3))
+    if tree.preexisting:
         tree.notes.append(
-            "дерево грязное сразу после создания (hook?): " + ", ".join(preexisting[:3])
+            "дерево непустое до старта воркера (hook/подготовка): "
+            + ", ".join(tree.preexisting[:3])
         )
-    return tree
 
 
 def open_wave(
@@ -149,6 +159,7 @@ def open_wave(
     footprints: list[tuple[str, set[str]]],
     *,
     base: str,
+    setup: "Callable[[list[WorkerTree]], None] | None" = None,
 ) -> list[WorkerTree]:
     """Развернуть деревья всей волны или ни одного.
 
@@ -166,14 +177,58 @@ def open_wave(
             trees.append(
                 create_worker_tree(project, run_id, task_id, base=base, allowlist=allowlist)
             )
-    except WorktreeError:
+        # Провижининг — часть выкладки, а не первая работа воркера: он идёт до
+        # снимка, поэтому созданное им не попадает воркеру в атрибуцию.
+        if setup is not None:
+            setup(trees)
         for tree in trees:
-            remove_worker_tree(project, tree)
-            # На свежесозданной ветке нет ни одного коммита — удалять безопасно,
-            # а оставленная, она блокировала бы повтор той же волны.
-            _git(project, "branch", "-D", tree.branch)
+            snapshot_preexisting(tree)
+        if setup is not None:
+            _refuse_setup_over_allowlist(trees)
+    # BaseException, а не WorktreeError: подготовка — это произвольный shell на
+    # минуты, и Ctrl-C или OSError посреди неё оставили бы N полных выкладок
+    # проекта (сотни МБ каждая) молча, без строки на экране.
+    except BaseException:
+        abandon_wave(project, trees)
         raise
     return trees
+
+
+def _refuse_setup_over_allowlist(trees: list[WorkerTree]) -> None:
+    """Подготовка тронула файл из списка задачи — отказ до траты, а не hold после.
+
+    Вычитание `preexisting` работает только вне allowlist (см. `collect_changes`):
+    файл, который подготовка изменила, а воркер обязан менять, при рождении уже
+    грязен, и отличить кодогенерацию от работы воркера в нём нечем. Живой случай —
+    `--tree-setup "npm ci"` и задача, владеющая `package-lock.json`. Дальше по
+    коду это `held_dirty_birth`, то есть мёртвая задача, оплаченная полностью;
+    здесь — отменённая волна ценой нуля.
+    """
+    for tree in trees:
+        collision = sorted(set(tree.preexisting) & tree.allowlist)
+        if collision:
+            raise WorktreeError(
+                f"tree setup touched files owned by {tree.task_id}: {', '.join(collision)} "
+                "— убери их из списка задачи либо из команды подготовки"
+            )
+
+
+def abandon_wave(project: Path, trees: list[WorkerTree]) -> None:
+    """Снести деревья волны, которая ещё не начиналась.
+
+    Единственный законный случай удаления без коммита: Codex на этих деревьях
+    хода не делал, поэтому терять в них нечего, а `close_wave` зафиксировал бы
+    коммитом то, что оставила после себя неудавшаяся подготовка. На
+    свежесозданной ветке нет ни одного коммита — удалять безопасно, а
+    оставленная, она блокировала бы повтор той же волны.
+    """
+    for tree in trees:
+        remove_worker_tree(project, tree)
+        _git(project, "branch", "-D", tree.branch)
+    if trees:
+        run_home = trees[0].path.parent
+        if run_home.exists() and not any(run_home.iterdir()):
+            run_home.rmdir()
 
 
 def collect_changes(tree: WorkerTree) -> None:
@@ -205,8 +260,40 @@ def collect_changes(tree: WorkerTree) -> None:
     # влились. Грязный файл ИЗ списка воркера так не прощается: там hook и работа
     # неразличимы, дерево удерживается целиком (held_dirty_birth).
     changed -= set(tree.preexisting) - tree.allowlist
+    changed -= _escaping_symlinks(tree, changed)
     tree.changed_files = tuple(sorted(changed))
     tree.out_of_scope_files = tuple(path for path in tree.changed_files if path not in tree.allowlist)
+
+
+def _escaping_symlinks(tree: WorkerTree, changed: set[str]) -> set[str]:
+    """Ссылки наружу дерева, которых нет в списке воркера, работой не считаются.
+
+    Воркер, которому нужны зависимости, подменяет установку линком на соседнее
+    дерево — и правило `.gitignore` с завершающим слэшем такой линк не ловит
+    (`node_modules/` не совпадает с записью `node_modules`). Дальше git считает
+    его записью вне allowlist, и ВСЯ работа воркера уходит на ручной разбор:
+    запрет об этом воркеру сказан, но запрет держится на его дисциплине, а волна
+    теряется по-настоящему.
+
+    Отбрасывать безопасно: `commit_worker_tree` фиксирует ровно `changed_files`,
+    значит невключённая ссылка не попадёт ни в ветку, ни в проект — она умрёт
+    вместе с деревом, где и была нужна. Внутренние ссылки и ссылки из списка
+    задачи остаются: их воркер сделал как работу.
+    """
+    escaping: set[str] = set()
+    root = os.path.realpath(tree.path)
+    for path in changed:
+        if path in tree.allowlist:
+            continue
+        full = tree.path / path
+        if not full.is_symlink():
+            continue
+        target = os.path.realpath(full)
+        if target == root or target.startswith(root + os.sep):
+            continue
+        escaping.add(path)
+        tree.notes.append(f"ссылка наружу дерева не забрана и не удержала работу: {path}")
+    return escaping
 
 
 def commit_worker_tree(tree: WorkerTree, *, message: str) -> None:
@@ -386,6 +473,13 @@ def _gated_integration(
                     tree.integration_status = "conflict"
                     tree.integration_error = (merged.stderr or merged.stdout).strip()
                     tree.notes.append(f"работа цела в ветке {tree.branch}, забрать вручную")
+        elif report.get("status") == "setup_failed":
+            for tree in staged:
+                tree.integration_status = "held_setup_failed"
+                tree.notes.append(
+                    f"подготовка слитого дерева упала, проверка НЕ шла — "
+                    f"в проект не влито; работа в {tree.branch}"
+                )
         elif not passed:
             for tree in staged:
                 tree.integration_status = "held_verify_failed"

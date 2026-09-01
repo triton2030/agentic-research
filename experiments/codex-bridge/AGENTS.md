@@ -16,9 +16,12 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
   любого codex-процесса. Не убирай и не обходи — это защита от ухода на платный
   API. Любой новый вход (скрипт/режим) обязан звать его первым.
 - **Модель и effort фиксируются backend-ом; tier — нет.** Default для всех
-  Codex turns: `model=gpt-5.6-sol`, `effort=xhigh` — явно в каждом
-  `thread_start` + `thread_resume` + `thread.turn`, независимо от дрейфа
-  `~/.codex/config.toml`. Ярусы вызова (владелец, 2026-08-14): `sol`+`xhigh` — дефолт на всё;
+  Codex turns: `model=gpt-5.6-sol`, `effort=xhigh` — явно, независимо от дрейфа
+  `~/.codex/config.toml`: `model` в каждом `thread_start` + `thread_resume` +
+  `thread.turn`, `effort` на ходе (`thread.turn`), где его и принимает SDK. Во флоте ярус объявляет ЗАДАЧА (`model`/`effort` в
+  task JSON), а флаги прогона — дно для тех, кто молчит: одна волна может быть
+  разноярусной. Фактический ярус воркера ищи в `results.jsonl`, не в
+  `codex.model` манифеста — там ярус прогона. Ярусы вызова (владелец, 2026-08-14): `sol`+`xhigh` — дефолт на всё;
   `luna` — только тупые и большие задания; `max`/`ultra` сняты («не будем
   использовать, чтобы было проще») — флаг `--effort` остаётся техническим
   opt-in.

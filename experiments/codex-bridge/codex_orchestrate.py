@@ -10,6 +10,8 @@ import signal
 import subprocess
 import sys
 import time
+from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -85,8 +87,16 @@ def _safe_print(message: str, *, stream: Any = None) -> None:
         pass
 
 
-def _files_constraint(files: tuple[str, ...], *, isolated: bool = False, subagents: bool = False) -> str:
-    """Файловый контракт воркера — канал `developer_instructions` треда.
+def _files_constraint(
+    files: tuple[str, ...],
+    *,
+    isolated: bool = False,
+    subagents: bool = False,
+    tree_setup: str | None = None,
+    contracts_changed: tuple[str, ...] = (),
+    contracts_read: tuple[str, ...] = (),
+) -> str:
+    """Контракт воркера — канал `developer_instructions` треда.
 
     Это политика прогона, а не задание: она уходит при thread_start отдельно от
     реплики, поэтому task.prompt остаётся заданием пользователя, а allowlist не
@@ -98,37 +108,96 @@ def _files_constraint(files: tuple[str, ...], *, isolated: bool = False, subagen
     удержит всю его работу в ветке на ручной разбор. Модели честнее сказать про
     удержание, чем запрещать то, что песочница разрешает.
 
+    Здесь же живут правила, которые иначе каждый воркер переоткрывает своим
+    кругом, а оркестратор оплачивает своим окном: состояние дерева, отказы
+    песочницы, запрет симлинка вместо установки, невидимость соседей, смысловая
+    зона задачи и форма возврата. Сказанное отсюда доезжает до КАЖДОГО воркера и
+    не стоит оркестратору ни токена; то же самое в тексте скила он оплачивал бы
+    дважды — чтением и переписыванием в промпт каждого воркера.
+
+    Секции помечены словами, а не слиты в абзац: воркер должен находить нужную
+    строку взглядом, а аудит прогона — сверять её с поведением по одной.
+
     Делегация запрашивается здесь же: системный промпт движка молчит про
     субагентов, пока их явно не попросят («Do not spawn sub-agents unless the
     user or applicable AGENTS.md/skill instructions explicitly ask»). Разрешение
     осмысленно только в своём дереве — иначе субагенты пишут в общее.
     """
     joined = ", ".join(files)
+    parts: list[str] = []
     if isolated:
-        contract = (
-            f"Ты работаешь в отдельном git worktree — это твоя копия проекта. "
+        parts.append(
+            f"ЗОНА. Ты работаешь в отдельном git worktree — это твоя копия проекта. "
             f"В проект будут забраны ТОЛЬКО эти файлы: {joined}. "
             "Изменишь любой другой файл — ВСЯ твоя работа не будет влита автоматически "
             "и уйдёт в ветку на ручной разбор: нужен другой файл — назови его в "
             "ответе, не правь молча. "
             "Не создавай коммитов и не переключай ветки: сбор делает оркестратор."
         )
+        parts.append(
+            "СИМЛИНКИ. Не подменяй установку симлинком на соседнее дерево: "
+            "правило `.gitignore` с завершающим слэшем симлинк не ловит, git считает "
+            "его записью вне твоего списка, и это удержит ВСЮ твою работу."
+        )
+        parts.append(
+            "СОСЕДИ. Рядом параллельно работают другие воркеры, и их правок в твоём "
+            "дереве нет. Провал, корень которого вне твоего списка файлов, — "
+            "сообщение оркестратору в ответе, а не твой вердикт: в объединённом "
+            "дереве этого провала может не быть."
+        )
     else:
-        contract = (
-            f"Тебе разрешено создавать и редактировать ТОЛЬКО эти файлы: {joined}. "
+        parts.append(
+            f"ЗОНА. Тебе разрешено создавать и редактировать ТОЛЬКО эти файлы: {joined}. "
             "Не трогай никакие другие файлы. Если задача требует иного — опиши это "
             "в ответе, но не делай."
         )
-    if subagents:
-        contract += (
-            " Задача крупная: тебе РАЗРЕШЕНО делить её на собственных субагентов "
-            "и работать ими параллельно, оставаясь в границах своего дерева и "
-            "своего списка файлов."
+
+    if isolated and tree_setup:
+        tree_state = f"Дерево подготовлено командой `{tree_setup}` и больше ничем"
+    elif isolated:
+        tree_state = (
+            "Дерево — свежая выкладка версионированного: ничего неверсионированного "
+            "(установленные зависимости, сборки, локальные линки) в нём нет"
         )
-    return contract
+    else:
+        tree_state = "Ты в рабочем дереве проекта, как оно есть"
+    parts.append(
+        f"ПРИБОРЫ. {tree_state}. Песочница прогона отказывает в shared memory "
+        "(на этом не поднимается локальный PostgreSQL) и в Mach-портах. Прибор, не "
+        "запустившийся по среде, — блокер среды, а не вердикт по работе: назови "
+        "команду и дословный отказ, проверь другим доступным способом и скажи, чем "
+        "проверил. «Нечем проверить» ответом не является."
+    )
+    if contracts_changed or contracts_read:
+        owned = f"Ты владеешь: {', '.join(contracts_changed)}. " if contracts_changed else ""
+        borrowed = (
+            f"Читаешь как есть, не меняя их смысла: {', '.join(contracts_read)}. "
+            if contracts_read
+            else ""
+        )
+        parts.append(
+            f"КОНТРАКТЫ. {owned}{borrowed}"
+            "Список файлов границу зоны не исчерпывает: смысл, который меняешь ты, "
+            "рядом кто-то характеризует. Нужно тронуть чужой — назови это в ответе."
+        )
+    if subagents:
+        parts.append(
+            "СУБАГЕНТЫ. Задача крупная: тебе РАЗРЕШЕНО делить её на собственных "
+            "субагентов и работать ими параллельно, оставаясь в границах своего "
+            "дерева и своего списка файлов."
+        )
+    parts.append(
+        "ВОЗВРАТ. Первой строкой — вердикт. Дальше по пункту на вывод: прибор и его "
+        "exit code дословно, адрес `путь:строка`, блокеры отдельным списком. Логи "
+        "целиком не пересказывай: они лежат в run_dir прогона, а в ответе стоят "
+        "чужого окна."
+    )
+    return "\n".join(parts)
 
 
-def _manifest_task_record(task: TaskSpec, *, isolated: bool = False) -> dict[str, Any]:
+def _manifest_task_record(
+    task: TaskSpec, *, isolated: bool = False, tree_setup: str | None = None
+) -> dict[str, Any]:
     """Запись задачи в manifest: контракт задачи + её эффективная инструкция.
 
     Файловый контракт уходит воркеру каналом `developer_instructions`, минуя
@@ -138,7 +207,12 @@ def _manifest_task_record(task: TaskSpec, *, isolated: bool = False) -> dict[str
     здесь, до первого хода: инструкция, которой нет в run_dir, для аудита не
     существует."""
     developer_instructions = _files_constraint(
-        task.files, isolated=isolated, subagents=task.subagents
+        task.files,
+        isolated=isolated,
+        subagents=task.subagents,
+        tree_setup=tree_setup,
+        contracts_changed=task.contracts_changed,
+        contracts_read=task.contracts_read,
     )
     return {
         **task.to_json(),
@@ -160,10 +234,20 @@ async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict
     tree: WorkerTree | None = defaults.get("trees", {}).get(task.id)
     worker_cwd = str(tree.path) if tree is not None else defaults["cwd"]
     files_contract = _files_constraint(
-        task.files, isolated=isolated, subagents=task.subagents
+        task.files,
+        isolated=isolated,
+        subagents=task.subagents,
+        tree_setup=defaults.get("tree_setup"),
+        contracts_changed=task.contracts_changed,
+        contracts_read=task.contracts_read,
     )
     run_dir: Path = defaults["run_dir"]
-    effort = ReasoningEffort(defaults["effort"])
+    # Ярус берётся с задачи, а ярус прогона остаётся дном. Один `--model` на
+    # весь запуск заставлял резать логически одну волну на два флота — пишущие
+    # на luna, аудиторы на sol, — и оркестратор дважды платил запуском и
+    # мониторингом за одну работу.
+    model = task.model or defaults["model"]
+    effort = ReasoningEffort(task.effort or defaults["effort"])
     # registry ставит _run_fleet; при прямом вызове воркера его может не быть —
     # тогда прогресс локальный, но ход не падает.
     registry = defaults.get("registry")
@@ -189,7 +273,7 @@ async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict
                         cwd=worker_cwd,
                         sandbox=Sandbox.workspace_write,
                         approval_mode=ApprovalMode.auto_review,
-                        model=defaults["model"],
+                        model=model,
                         service_tier=defaults["service_tier"],
                         developer_instructions=files_contract,
                     ),
@@ -203,7 +287,7 @@ async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict
                         cwd=worker_cwd,
                         sandbox=Sandbox.workspace_write,
                         approval_mode=ApprovalMode.auto_review,
-                        model=defaults["model"],
+                        model=model,
                         service_tier=defaults["service_tier"],
                         developer_instructions=files_contract,
                         ephemeral=FLEET_THREAD_EPHEMERAL,
@@ -227,7 +311,7 @@ async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict
                     prompt,
                     approval_mode=ApprovalMode.auto_review,
                     effort=effort,
-                    model=defaults["model"],
+                    model=model,
                     service_tier=defaults["service_tier"],
                     sandbox=Sandbox.workspace_write,
                 ),
@@ -252,6 +336,10 @@ async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict
             record = {
                 "id": task.id,
                 "thread_id": thread_id,
+                # Ярус пишется фактический: при разноярусной волне «на чём это
+                # считалось» по флагам прогона больше не восстановить.
+                "model": model,
+                "effort": str(effort.value if hasattr(effort, "value") else effort),
                 "worker_status": worker_status,
                 "codex_status": codex_status,
                 "error": str(result.error) if result.error else None,
@@ -265,6 +353,8 @@ async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict
             record = {
                 "id": task.id,
                 "thread_id": thread_id,
+                "model": model,
+                "effort": str(effort.value if hasattr(effort, "value") else effort),
                 "worker_status": "exception",
                 "codex_status": "exception",
                 "error": str(exc),
@@ -428,6 +518,142 @@ def run_verification(commands: list[str], project: Path, run_dir: Path) -> tuple
     return status, results
 
 
+# Провижининг живёт в минутах, а не в секундах (`npm ci` на большом монорепо),
+# но и висеть вечно не должен: волна без ворот дороже волны без дерева.
+TREE_SETUP_TIMEOUT_SEC = 1200
+
+
+def _as_text(raw: Any) -> str:
+    """`TimeoutExpired` отдаёт частичный вывод байтами даже при `text=True`.
+
+    Именно этот вывод и нужен: по таймауту в нём последнее, что успела сказать
+    установка, и выбросить его как «не строку» значило бы остаться с одним
+    кодом 124 на руках.
+    """
+    if isinstance(raw, bytes):
+        return raw.decode(errors="replace")
+    return raw or ""
+
+
+def _kill_process_group(proc: "subprocess.Popen[str]") -> None:
+    try:
+        os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+    except (ProcessLookupError, PermissionError, OSError):
+        proc.kill()
+
+
+def run_tree_setup(command: str, tree: Path, run_dir: Path, *, label: str) -> dict[str, Any]:
+    """Подготовить свежее дерево к тому, чтобы в нём работали приборы.
+
+    `git worktree add` выкладывает только версионированное, поэтому в дереве нет
+    ни `node_modules`, ни workspace-линков, ни собранного: любой воркер, которому
+    нужен `npm test`, упирается в это первым же ходом. То же дерево-пустышка
+    делает лживыми и ворота волны — `--verify "npm test"` в нём падал бы всегда.
+    Поэтому одна и та же команда идёт и в деревья воркеров, и во временное слитое
+    дерево под `--verify`.
+    """
+    started = time.monotonic()
+    append_event(run_dir, "tree_setup_start", tree=label, command=command)
+    # Своя сессия процессов, потому что `shell=True` даёт нам pid оболочки, а
+    # ставит зависимости внук: убив по таймауту только `/bin/sh`, мы оставили бы
+    # `npm` писать в дерево, которое отменённая волна уже сносит.
+    proc = subprocess.Popen(
+        command,
+        cwd=tree,
+        shell=True,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        start_new_session=True,
+    )
+    try:
+        stdout, stderr = proc.communicate(timeout=TREE_SETUP_TIMEOUT_SEC)
+        exit_code = proc.returncode
+    except subprocess.TimeoutExpired as exc:
+        _kill_process_group(proc)
+        stdout, stderr = proc.communicate()
+        exit_code = 124
+        stdout = _as_text(exc.stdout) or stdout
+        stderr = (
+            f"tree setup timed out after {TREE_SETUP_TIMEOUT_SEC}s\n"
+            f"{_as_text(exc.stderr) or stderr}"
+        )
+    record = {
+        "tree": label,
+        "command": command,
+        "exit_code": exit_code,
+        "duration_ms": int((time.monotonic() - started) * 1000),
+        "stdout": (stdout or "")[-4000:],
+        "stderr": (stderr or "")[-4000:],
+    }
+    append_event(run_dir, "tree_setup_done", tree=label, exit_code=exit_code)
+    return record
+
+
+def _tier_overrides(tasks: list[TaskSpec]) -> str:
+    """Приписка к баннеру, когда волна разноярусная.
+
+    Без неё строка `model=gpt-5.6-sol` — ложь для половины воркеров: ярус теперь
+    объявляется задачей, а баннер печатает ярус прогона. Фактический ярус каждого
+    воркера всё равно лежит в `results.jsonl`, но владелец читает баннер.
+    """
+    overrides = [
+        f"{task.id}:{task.model or 'по прогону'}/{task.effort or 'по прогону'}"
+        for task in tasks
+        if task.model or task.effort
+    ]
+    return f" (свой ярус у {', '.join(overrides)})" if overrides else ""
+
+
+def _tree_setup_step(
+    command: str | None, run_dir: Path, concurrency: int
+) -> "Callable[[list[WorkerTree]], None] | None":
+    """Подготовка всех деревьев волны — шаг выкладки, а не первый ход воркера.
+
+    Параллельно, потому что двенадцать `npm ci` подряд стоят дороже самой волны.
+    Красная подготовка хотя бы одного дерева отменяет волну целиком, до первого
+    оплаченного хода: воркер в неподготовленном дереве вернул бы «нечем
+    проверить» за деньги.
+
+    Фаза печатается и кладёт свой лог в `run_dir`: на большом монорепо это
+    десятки минут до первого `worker_start`, и без строки на экране они
+    неотличимы от «ничего не запустилось», а без лога провал установки в
+    двенадцати деревьях разбирать не по чему.
+    """
+    if not command:
+        return None
+
+    def step(trees: list[WorkerTree]) -> None:
+        started = time.monotonic()
+        _safe_print(f"[orch] подготовка {len(trees)} деревьев: {command}")
+        pool = ThreadPoolExecutor(max_workers=max(1, concurrency))
+        try:
+            records = list(
+                pool.map(
+                    lambda tree: run_tree_setup(
+                        command, tree.path, run_dir, label=tree.task_id
+                    ),
+                    trees,
+                )
+            )
+        finally:
+            # wait=False: по Ctrl-C владелец ждал бы завершения всех уже
+            # запущенных установок, а это минуты неотзывчивости на `npm ci`.
+            pool.shutdown(wait=False, cancel_futures=True)
+        (run_dir / "tree_setup.json").write_text(
+            json.dumps(records, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+        _safe_print(f"[orch] подготовка готова за {int(time.monotonic() - started)}с")
+        failed = [record for record in records if record["exit_code"] != 0]
+        if failed:
+            detail = "; ".join(
+                f"{r['tree']} exit={r['exit_code']} {r['stderr'][-200:].strip()}" for r in failed
+            )
+            raise WorktreeError(f"tree setup failed: {detail}")
+
+    return step
+
+
 def build_manifest(
     run_id: str,
     run_dir: Path,
@@ -440,6 +666,7 @@ def build_manifest(
     dry_run: bool,
     codex_runtime: dict[str, Any],
     isolation: str,
+    tree_setup: str | None = None,
 ) -> dict[str, Any]:
     return {
         "run_id": run_id,
@@ -452,9 +679,13 @@ def build_manifest(
         "isolation": isolation,
         "codex": codex_runtime,
         "verify": verify_commands,
+        "tree_setup": tree_setup,
         "allowlist": sorted(allowlist),
         "tasks": [
-            _manifest_task_record(task, isolated=isolation == "worktree") for task in tasks
+            _manifest_task_record(
+                task, isolated=isolation == "worktree", tree_setup=tree_setup
+            )
+            for task in tasks
         ],
     }
 
@@ -566,6 +797,14 @@ def _build_parser() -> argparse.ArgumentParser:
         help="worktree: не убирать деревья после волны (разбор мусора воркеров). "
         "Помни: каждое дерево — выкладка проекта, чистить придётся руками.",
     )
+    parser.add_argument(
+        "--tree-setup",
+        default=None,
+        help="worktree: shell-команда, которой готовится КАЖДОЕ свежее дерево воркера "
+        "и временное слитое дерево под --verify (например 'npm ci'). Без неё в дереве "
+        "нет ни node_modules, ни workspace-линков: приборы воркера и ворота волны "
+        "падают по среде, а не по работе. Красная подготовка отменяет волну до траты.",
+    )
     parser.add_argument("--allow-dirty-overlap", action="store_true", help="Allow launch when existing dirty files overlap task files.")
     parser.add_argument("--summary-stdout", action="store_true", help="Print compact JSON to stdout; full results stay in result.json/results.jsonl.")
     parser.add_argument("--heartbeat-sec", type=int, default=120, help="Seconds between ledger heartbeat events while Codex workers run; 0 disables.")
@@ -588,6 +827,10 @@ def _plan_run(args: argparse.Namespace, project: Path) -> RunPlan:
         raise UsageError(f"--project must be an existing directory: {project}")
     if args.isolation == "shared" and (args.no_integrate or args.keep_worktrees):
         raise UsageError("--no-integrate/--keep-worktrees apply to --isolation worktree only.")
+    if args.isolation == "shared" and args.tree_setup:
+        # В shared воркеры уже в дереве проекта: там зависимости есть, а команда
+        # вроде `npm ci` тронула бы рабочее дерево владельца до первого хода.
+        raise UsageError("--tree-setup applies to --isolation worktree only.")
 
     tasks = normalize_tasks(project, _load_tasks(args))
     allowlist = {path for task in tasks for path in task.files}
@@ -643,6 +886,7 @@ def _plan_run(args: argparse.Namespace, project: Path) -> RunPlan:
         dry_run=args.dry_run,
         codex_runtime=codex_runtime,
         isolation=args.isolation,
+        tree_setup=args.tree_setup,
     )
     manifest["paths"] = paths
     write_json(run_dir / "manifest.json", manifest)
@@ -728,8 +972,23 @@ def _assess_wave(
     # во временное дерево, `--verify` идёт там, и красный результат оставляет
     # проект нетронутым, а работу — в ветках воркеров.
     def run_gate(integration_tree: Path) -> tuple[bool, dict[str, Any]]:
+        # Слитое дерево — такая же свежая выкладка, как деревья воркеров: без той
+        # же подготовки `--verify "npm test"` красен всегда и ворота лгут.
+        setup = (
+            run_tree_setup(args.tree_setup, integration_tree, plan.run_dir, label="_integration")
+            if args.tree_setup
+            else None
+        )
+        if setup is not None and setup["exit_code"] != 0:
+            # Не "failed": проверка не запускалась. Отказ среды, выданный за
+            # красную проверку, — та же ложь, что красный воркера на чужом шве:
+            # владелец пойдёт разбирать двенадцать зелёных работ вместо `npm ci`.
+            return False, {"status": "setup_failed", "checks": [], "tree_setup": setup}
         status, checks = run_verification(args.verify, integration_tree, plan.run_dir)
-        return status == "passed", {"status": status, "checks": checks}
+        report: dict[str, Any] = {"status": status, "checks": checks}
+        if setup is not None:
+            report["tree_setup"] = setup
+        return status == "passed", report
 
     gate = run_gate if (args.verify and not args.no_integrate) else None
 
@@ -847,7 +1106,8 @@ def main() -> int:
     removed = scrub_billing_env()
     print(
         f"[orch] старт: {len(tasks)} задач, лимит {args.concurrency}, project={project}, "
-        f"run_dir={run_dir}, model={args.model}, effort={args.effort}, tier={args.service_tier or 'inherit'}, "
+        f"run_dir={run_dir}, model={args.model}{_tier_overrides(tasks)}, "
+        f"effort={args.effort}, tier={args.service_tier or 'inherit'}, "
         f"binary={codex_runtime['binary_source']}, "
         f"sandbox={WORKER_SANDBOX}, approval={WORKER_APPROVAL_MODE}"
         + (f" | вырезано из env: {', '.join(removed)}" if removed else " | env чист"),
@@ -865,24 +1125,31 @@ def main() -> int:
         "isolation": args.isolation,
     }
 
+    # SIGTERM обязан пройти тем же rescue-путём, что и Ctrl-C: без обработчика
+    # процесс умирает сразу, и работа воркеров остаётся незафиксированной
+    # (находка аудита 2026-08-14). Ставится до open_wave: подготовка деревьев
+    # длится минуты, и сигнал в ней оставил бы выкладки на диске.
+    signal.signal(signal.SIGTERM, lambda _s, _f: sys.exit(143))
+
     trees: list[WorkerTree] = []
     if args.isolation == "worktree":
         base = initial_git.git_head or "HEAD"
         try:
             trees = open_wave(
-                project, run_id, [(task.id, set(task.files)) for task in tasks], base=base
+                project,
+                run_id,
+                [(task.id, set(task.files)) for task in tasks],
+                base=base,
+                setup=_tree_setup_step(args.tree_setup, run_dir, args.concurrency),
             )
         except WorktreeError as exc:
             print(f"[orch] worktree isolation failed: {exc}", file=sys.stderr)
             append_event(run_dir, "done", ok=False, worker_status="not_started", scope_status="unknown")
             return 2
         defaults["trees"] = {tree.task_id: tree for tree in trees}
+        defaults["tree_setup"] = args.tree_setup
         append_event(run_dir, "worktrees_ready", count=len(trees), base=base)
 
-    # SIGTERM обязан пройти тем же rescue-путём, что и Ctrl-C: без обработчика
-    # процесс умирает сразу, и работа воркеров остаётся незафиксированной
-    # (находка аудита 2026-08-14).
-    signal.signal(signal.SIGTERM, lambda _s, _f: sys.exit(143))
     try:
         results = asyncio.run(_run_fleet(tasks, defaults, args.concurrency, args.heartbeat_sec))
     except (KeyboardInterrupt, SystemExit):

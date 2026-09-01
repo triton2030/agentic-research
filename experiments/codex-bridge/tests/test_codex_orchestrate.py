@@ -921,6 +921,338 @@ class CodexOrchestrateCliTests(unittest.TestCase):
                 sys.modules.pop(name, None)
 
 
+class TaskTierAndContractTests(unittest.TestCase):
+    """Ярус и смысловая зона объявляются задачей, а не прогоном."""
+
+    def setUp(self) -> None:
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self.tmp.name).resolve()
+        (self.root / "a.md").write_text("x\n")
+        (self.root / "b.md").write_text("x\n")
+
+    def tearDown(self) -> None:
+        self.tmp.cleanup()
+
+    def test_task_carries_its_own_model_and_effort(self) -> None:
+        tasks = normalize_tasks(
+            self.root,
+            [
+                {"id": "w", "prompt": "пиши", "files": ["a.md"], "model": "gpt-5.6-luna"},
+                {"id": "a", "prompt": "суди", "files": ["b.md"], "effort": "medium"},
+            ],
+        )
+        self.assertEqual(tasks[0].model, "gpt-5.6-luna")
+        self.assertIsNone(tasks[0].effort)
+        self.assertIsNone(tasks[1].model)
+        self.assertEqual(tasks[1].effort, "medium")
+
+    def test_unknown_effort_in_task_rejected_before_spend(self) -> None:
+        with self.assertRaises(UsageError) as ctx:
+            normalize_tasks(
+                self.root, [{"id": "w", "prompt": "x", "files": ["a.md"], "effort": "extreme"}]
+            )
+        self.assertIn("effort must be one of", str(ctx.exception))
+
+    def test_two_tasks_changing_one_contract_are_rejected(self) -> None:
+        with self.assertRaises(UsageError) as ctx:
+            normalize_tasks(
+                self.root,
+                [
+                    {"id": "w", "prompt": "x", "files": ["a.md"], "contracts_changed": ["m.py#load"]},
+                    {"id": "v", "prompt": "y", "files": ["b.md"], "contracts_changed": ["m.py#load"]},
+                ],
+            )
+        self.assertIn("contract overlap", str(ctx.exception))
+
+    def test_reading_a_contract_someone_else_changes_is_rejected(self) -> None:
+        """Тихий случай: файлов не делили, merge зелёный, семантика разъехалась."""
+        with self.assertRaises(UsageError) as ctx:
+            normalize_tasks(
+                self.root,
+                [
+                    {"id": "w", "prompt": "x", "files": ["a.md"], "contracts_changed": ["m.py#load"]},
+                    {"id": "a", "prompt": "y", "files": ["b.md"], "contracts_read": ["m.py#load"]},
+                ],
+            )
+        self.assertIn("sequence these tasks", str(ctx.exception))
+
+    def test_own_contract_may_be_both_read_and_changed(self) -> None:
+        tasks = normalize_tasks(
+            self.root,
+            [
+                {
+                    "id": "w",
+                    "prompt": "x",
+                    "files": ["a.md"],
+                    "contracts_changed": ["m.py#load"],
+                    "contracts_read": ["m.py#load", " m.py#dump "],
+                },
+                {"id": "v", "prompt": "y", "files": ["b.md"], "contracts_read": ["other.py#f"]},
+            ],
+        )
+        self.assertEqual(tasks[0].contracts_read, ("m.py#load", "m.py#dump"))
+
+
+class WorkerContractTextTests(unittest.TestCase):
+    """Что воркеру сказано про среду — это факт прогона, а не вежливость."""
+
+    def test_isolated_worker_is_told_the_tree_is_bare(self) -> None:
+        import codex_orchestrate
+
+        text = codex_orchestrate._files_constraint(("a.md",), isolated=True)
+        self.assertIn("неверсионированного", text)
+        self.assertIn("блокер среды", text)
+        self.assertIn("симлинк", text.lower())
+        self.assertIn("СОСЕДИ", text)
+
+    def test_provisioned_tree_is_described_by_its_own_command(self) -> None:
+        import codex_orchestrate
+
+        text = codex_orchestrate._files_constraint(("a.md",), isolated=True, tree_setup="npm ci")
+        self.assertIn("`npm ci`", text)
+        self.assertNotIn("неверсионированного", text)
+
+    def test_return_form_is_asked_by_the_bridge_not_by_the_orchestrator(self) -> None:
+        """За сутки владелец прочитал 3683 строки evidence на пять карточек.
+        Форма возврата универсальна, значит стоит быть в канале моста: в тексте
+        скила оркестратор оплачивал бы её дважды — чтением и переписыванием в
+        промпт каждого воркера."""
+        import codex_orchestrate
+
+        for isolated in (True, False):
+            text = codex_orchestrate._files_constraint(("a.md",), isolated=isolated)
+            self.assertIn("ВОЗВРАТ", text)
+            self.assertIn("exit code", text)
+            self.assertIn("путь:строка", text)
+
+    def test_declared_contracts_reach_the_worker(self) -> None:
+        """Непересечение файлов зону не доказывает: два воркера не делили ни
+        одного файла и столкнулись через общий контракт. Объявленная смысловая
+        зона бесполезна, если о ней знает только препроверка оркестратора."""
+        import codex_orchestrate
+
+        text = codex_orchestrate._files_constraint(
+            ("a.md",),
+            isolated=True,
+            contracts_changed=("api/orders.py#submit",),
+            contracts_read=("api/cart.py#total",),
+        )
+        self.assertIn("КОНТРАКТЫ", text)
+        self.assertIn("api/orders.py#submit", text)
+        self.assertIn("api/cart.py#total", text)
+        # Молчание задачи о контрактах не порождает пустую секцию.
+        self.assertNotIn("КОНТРАКТЫ", codex_orchestrate._files_constraint(("a.md",), isolated=True))
+
+
+class TreeSetupTests(unittest.TestCase):
+    """Провижининг дерева: приборы воркера и ворота волны на одном основании."""
+
+    def temp_project(self) -> tempfile.TemporaryDirectory[str]:
+        return tempfile.TemporaryDirectory()
+
+    def init_repo(self, root: Path) -> None:
+        git(root, "init")
+        git(root, "config", "user.email", "t@example.com")
+        git(root, "config", "user.name", "t")
+
+    def test_tree_setup_rejected_in_shared_isolation(self) -> None:
+        with self.temp_project() as tmp:
+            root = Path(tmp).resolve()
+            (root / "a.md").write_text("x\n")
+            self.init_repo(root)
+            proc = run_cli(
+                root,
+                [{"id": "t1", "prompt": "x", "files": ["a.md"]}],
+                "--isolation",
+                "shared",
+                "--tree-setup",
+                "npm ci",
+            )
+            self.assertEqual(proc.returncode, 2)
+            self.assertIn("--tree-setup applies to --isolation worktree only", proc.stderr)
+
+    def _run_wave(self, root: Path, tasks: list[dict], *extra: str) -> dict:
+        import codex_orchestrate
+
+        run_dir = root / "run"
+        argv = [
+            "codex_orchestrate.py",
+            "--project", str(root),
+            "--run-dir", str(run_dir),
+            "--summary-stdout",
+            "--heartbeat-sec", "0",
+            *extra,
+        ]
+        original_argv, original_stdin = sys.argv, sys.stdin
+        sys.argv = argv
+        sys.stdin = io.StringIO(json.dumps(tasks))
+        globals_ = codex_orchestrate.__dict__["open_wave"].__globals__
+        original_home = globals_["FLEET_WORKTREE_HOME"]
+        globals_["FLEET_WORKTREE_HOME"] = root.parent / "wt"
+        try:
+            exit_code = codex_orchestrate.main()
+        finally:
+            sys.argv, sys.stdin = original_argv, original_stdin
+            globals_["FLEET_WORKTREE_HOME"] = original_home
+        result = run_dir / "result.json"
+        payload = json.loads(result.read_text()) if result.exists() else {}
+        payload["_exit_code"] = exit_code
+        return payload
+
+    def test_setup_runs_in_every_worker_tree_and_task_tier_is_recorded(self) -> None:
+        captured: dict = {}
+        fake_names = _install_fake_openai_codex(captured)
+        try:
+            with self.temp_project() as tmp:
+                root = Path(tmp).resolve()
+                (root / "a.md").write_text("старое\n")
+                self.init_repo(root)
+                git(root, "add", "-A")
+                git(root, "commit", "-m", "init")
+                payload = self._run_wave(
+                    root,
+                    [
+                        {
+                            "id": "t1",
+                            "prompt": "правь",
+                            "files": ["a.md"],
+                            "model": "gpt-5.6-luna",
+                            "effort": "medium",
+                        }
+                    ],
+                    "--tree-setup",
+                    "echo provisioned > .provisioned",
+                )
+                manifest = json.loads((root / "run" / "manifest.json").read_text())
+                merged = (root / "a.md").read_text()
+            # Ярус задачи доехал до движка и попал в аудит прогона.
+            self.assertEqual(captured.get("model"), "gpt-5.6-luna")
+            self.assertEqual(captured["run_kwargs"]["effort"], "medium")
+            self.assertEqual(captured["run_kwargs"]["model"], "gpt-5.6-luna")
+            self.assertEqual(payload["results"][0]["model"], "gpt-5.6-luna")
+            self.assertEqual(payload["results"][0]["effort"], "medium")
+            # Воркеру сказана правда о подготовленном дереве.
+            self.assertIn("echo provisioned", manifest["tasks"][0]["developer_instructions"])
+            # Не тавтология: `.provisioned` в снимке доказывает, что подготовка
+            # отработала И что снимок взят после неё. Её артефакт НЕ приписан
+            # воркеру — иначе внесписочный `.provisioned` удержал бы всю волну.
+            self.assertEqual(payload["wave"]["workers"][0]["preexisting"], [".provisioned"])
+            self.assertEqual(payload["scope_status"], "passed")
+            self.assertEqual(payload["out_of_scope_files"], [])
+            self.assertEqual(payload["wave"]["merged"], ["t1"])
+            self.assertEqual(merged, "готово\n")
+            self.assertEqual(payload["_exit_code"], 0)
+        finally:
+            for name in fake_names:
+                sys.modules.pop(name, None)
+
+    def test_red_setup_abandons_the_wave_before_any_credit_is_spent(self) -> None:
+        captured: dict = {}
+        fake_names = _install_fake_openai_codex(captured)
+        try:
+            with self.temp_project() as tmp:
+                root = Path(tmp).resolve()
+                (root / "a.md").write_text("старое\n")
+                self.init_repo(root)
+                git(root, "add", "-A")
+                git(root, "commit", "-m", "init")
+                payload = self._run_wave(
+                    root,
+                    [{"id": "t1", "prompt": "правь", "files": ["a.md"]}],
+                    "--tree-setup",
+                    "exit 3",
+                )
+                branches = subprocess.run(
+                    ["git", "branch", "--list", "codex-fleet/*"],
+                    cwd=root, text=True, stdout=subprocess.PIPE, check=False,
+                ).stdout.strip()
+                self.assertEqual(branches, "")
+                self.assertEqual((root / "a.md").read_text(), "старое\n")
+                # Дерево снесено начисто: волна не начиналась.
+                self.assertEqual(
+                    subprocess.run(
+                        ["git", "worktree", "list", "--porcelain"],
+                        cwd=root, text=True, stdout=subprocess.PIPE, check=False,
+                    ).stdout.count("worktree "),
+                    1,
+                )
+                # Провал подготовки разбирают по логу, а не по коду возврата.
+                setup_log = json.loads((root / "run" / "tree_setup.json").read_text())
+                self.assertEqual(setup_log[0]["exit_code"], 3)
+            self.assertEqual(payload["_exit_code"], 2)
+            # Ни одного хода: движок не трогали вовсе.
+            self.assertNotIn("run_kwargs", captured)
+        finally:
+            for name in fake_names:
+                sys.modules.pop(name, None)
+
+    def test_red_setup_of_the_integration_tree_is_not_a_red_verification(self) -> None:
+        """Отказ среды, выданный за красную проверку, — та же ложь, что красный
+        воркера на чужом шве: владелец пойдёт разбирать зелёную работу вместо
+        своего `npm ci`. Проект при этом не тронут в обоих случаях."""
+        captured: dict = {}
+        fake_names = _install_fake_openai_codex(captured)
+        try:
+            with self.temp_project() as tmp:
+                root = Path(tmp).resolve()
+                (root / "a.md").write_text("старое\n")
+                self.init_repo(root)
+                git(root, "add", "-A")
+                git(root, "commit", "-m", "init")
+                # Подготовка красна ТОЛЬКО в слитом дереве: работа воркера в
+                # нём уже есть, в деревьях воркеров на момент подготовки — нет.
+                payload = self._run_wave(
+                    root,
+                    [{"id": "t1", "prompt": "правь", "files": ["a.md"]}],
+                    "--tree-setup",
+                    "! grep -q готово a.md",
+                    "--verify",
+                    "true",
+                )
+                self.assertEqual((root / "a.md").read_text(), "старое\n")
+            self.assertEqual(payload["verification_status"], "setup_failed")
+            self.assertEqual(payload["verification_results"], [])
+            statuses = [w["integration_status"] for w in payload["wave"]["workers"]]
+            self.assertEqual(statuses, ["held_setup_failed"])
+            self.assertNotIn("held_verify_failed", statuses)
+        finally:
+            for name in fake_names:
+                sys.modules.pop(name, None)
+
+    def test_warm_worker_resumes_on_the_tier_of_its_own_task(self) -> None:
+        """Тёплый воркер поднимается через `thread_resume`, и ярус задачи обязан
+        дойти и туда: иначе прогретый на luna воркер молча просыпается на sol,
+        а владелец узнаёт цену постфактум."""
+        captured: dict = {}
+        fake_names = _install_fake_openai_codex(captured)
+        try:
+            with self.temp_project() as tmp:
+                root = Path(tmp).resolve()
+                (root / "a.md").write_text("старое\n")
+                self.init_repo(root)
+                git(root, "add", "-A")
+                git(root, "commit", "-m", "init")
+                self._run_wave(
+                    root,
+                    [
+                        {
+                            "id": "t1",
+                            "prompt": "правь",
+                            "files": ["a.md"],
+                            "thread_id": "thread-warm-1",
+                            "model": "gpt-5.6-luna",
+                            "effort": "low",
+                        }
+                    ],
+                )
+            self.assertEqual(captured.get("resumed_thread_id"), "thread-warm-1")
+            self.assertEqual(captured.get("model"), "gpt-5.6-luna")
+            self.assertEqual(captured["run_kwargs"]["effort"], "low")
+        finally:
+            for name in fake_names:
+                sys.modules.pop(name, None)
+
+
 class TelemetryResilienceTest(unittest.TestCase):
     """Телеметрия (журнал, прогресс-принты) не имеет права ронять флот:
     реальные случаи — чужой cleanup _workspace во время прогона (md-tools)

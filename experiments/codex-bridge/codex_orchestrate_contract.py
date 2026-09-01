@@ -5,7 +5,20 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-ALLOWED_TASK_KEYS = {"id", "prompt", "files", "allow_create", "subagents", "thread_id"}
+from codex_defaults import REASONING_EFFORTS
+
+ALLOWED_TASK_KEYS = {
+    "id",
+    "prompt",
+    "files",
+    "allow_create",
+    "subagents",
+    "thread_id",
+    "model",
+    "effort",
+    "contracts_changed",
+    "contracts_read",
+}
 COMPLETED_CODEX_STATUS = "completed"
 
 
@@ -26,6 +39,17 @@ class TaskSpec:
     # (`results.jsonl` → thread_id) вместо старта с нуля. Контекст задачи у него
     # уже в голове; дерево, файловый контракт и атрибуция — свежие, этой волны.
     thread_id: str | None = None
+    # Ярус на задачу, а не на прогон. Без него логически одна волна режется на
+    # два флота — пишущие на luna, аудиторы на sol, — и оркестратор дважды
+    # платит запуском и мониторингом за одну работу. None = ярус прогона.
+    model: str | None = None
+    effort: str | None = None
+    # Смысловая зона поверх файловой. Непересечение файлов зону не доказывает:
+    # два воркера без общих файлов сталкиваются через общий контракт, и merge
+    # при этом зелёный. Имя контракта — строка, сверяется буквально, поэтому
+    # брать его надо адресом (`path#symbol`), а не описанием.
+    contracts_changed: tuple[str, ...] = ()
+    contracts_read: tuple[str, ...] = ()
 
     def to_json(self) -> dict[str, Any]:
         return {
@@ -35,6 +59,10 @@ class TaskSpec:
             "allow_create": self.allow_create,
             "subagents": self.subagents,
             "thread_id": self.thread_id,
+            "model": self.model,
+            "effort": self.effort,
+            "contracts_changed": list(self.contracts_changed),
+            "contracts_read": list(self.contracts_read),
         }
 
 
@@ -104,6 +132,55 @@ def _normalize_file(project: Path, raw: Any, allow_create: bool, task_id: str) -
     return normalized
 
 
+def _normalize_contracts(raw: Any, task_id: str, key: str) -> tuple[str, ...]:
+    """Список имён контрактов задачи: свободные строки, сверяемые буквально.
+
+    Сверка буквальная, поэтому нормализуется только то, что заведомо не несёт
+    смысла: края и повторные пробелы. Имя, набранное двумя воркерами по-разному,
+    останется двумя контрактами — это цена свободной строки, и скил велит брать
+    имя адресом (`path#symbol`), а не описанием.
+    """
+    if raw is None:
+        return ()
+    if not isinstance(raw, list):
+        raise UsageError(f"{task_id}: {key} must be a list of strings when provided.")
+    seen: list[str] = []
+    for item in raw:
+        if not isinstance(item, str) or not item.strip():
+            raise UsageError(f"{task_id}: {key} must contain non-empty strings.")
+        name = " ".join(item.split())
+        if name not in seen:
+            seen.append(name)
+    return tuple(seen)
+
+
+def check_contract_overlap(tasks: list[TaskSpec]) -> None:
+    """Пересечение смысловых зон — отказ до траты, как и пересечение файлов.
+
+    Считается по МЕНЯЮЩЕЙ стороне: владелец контракта один. Чтение чужого
+    меняемого контракта — тот самый тихий случай (один менял семантику, второй
+    её характеризовал, файлов не делили, merge зелёный), поэтому оно тоже
+    отказ: такие две задачи не волна, а очередь.
+    """
+    changed_by: dict[str, str] = {}
+    for task in tasks:
+        for name in task.contracts_changed:
+            owner = changed_by.get(name)
+            if owner is not None:
+                raise UsageError(
+                    f"{task.id}: contract overlap with {owner}: both change {name!r}"
+                )
+            changed_by[name] = task.id
+    for task in tasks:
+        for name in task.contracts_read:
+            owner = changed_by.get(name)
+            if owner is not None and owner != task.id:
+                raise UsageError(
+                    f"{task.id}: reads contract {name!r} that {owner} changes "
+                    "— sequence these tasks instead of running them in one wave"
+                )
+
+
 def normalize_tasks(project: Path, raw_tasks: Any) -> list[TaskSpec]:
     if not isinstance(raw_tasks, list) or not raw_tasks:
         raise UsageError("Expected a non-empty JSON array of tasks.")
@@ -141,6 +218,24 @@ def normalize_tasks(project: Path, raw_tasks: Any) -> list[TaskSpec]:
         if type(raw_subagents) is not bool:
             raise UsageError(f"{task_id}: subagents must be a boolean when provided.")
 
+        raw_model = task.get("model")
+        if raw_model is not None and (not isinstance(raw_model, str) or not raw_model.strip()):
+            raise UsageError(f"{task_id}: model must be a non-empty string when provided.")
+        model = raw_model.strip() if isinstance(raw_model, str) else None
+
+        raw_effort = task.get("effort")
+        if raw_effort is not None and raw_effort not in REASONING_EFFORTS:
+            raise UsageError(
+                f"{task_id}: effort must be one of {', '.join(REASONING_EFFORTS)} when provided."
+            )
+
+        contracts_changed = _normalize_contracts(
+            task.get("contracts_changed"), task_id, "contracts_changed"
+        )
+        contracts_read = _normalize_contracts(
+            task.get("contracts_read"), task_id, "contracts_read"
+        )
+
         raw_thread = task.get("thread_id")
         if raw_thread is not None and (not isinstance(raw_thread, str) or not raw_thread.strip()):
             raise UsageError(f"{task_id}: thread_id must be a non-empty string when provided.")
@@ -170,6 +265,11 @@ def normalize_tasks(project: Path, raw_tasks: Any) -> list[TaskSpec]:
                 allow_create=allow_create,
                 subagents=raw_subagents,
                 thread_id=thread_id,
+                model=model,
+                effort=raw_effort,
+                contracts_changed=contracts_changed,
+                contracts_read=contracts_read,
             )
         )
+    check_contract_overlap(tasks)
     return tasks
