@@ -63,6 +63,61 @@ from codex_worktrees import (
 )
 
 
+# Сколько секунд молчания превращают «чем занят» из шума в единственный факт,
+# который в этот момент нужен. Ниже порога воркер просто работает.
+STALE_HINT_SEC = 15
+
+# Типы элементов приходят из схемы движка (`codex_progress._item_projection`)
+# англоязычным camelCase, а строку читает человек. Неизвестный тип печатается
+# сырым, а не прячется: дрейф схемы обязан быть виден.
+KIND_LABELS = {
+    "commandExecution": "команда",
+    "fileChange": "правит файлы",
+    "reasoning": "думает",
+    "agentMessage": "пишет ответ",
+    "webSearch": "ищет в вебе",
+    "mcpToolCall": "зовёт MCP",
+    "plan": "план",
+    "userMessage": "принял задание",
+}
+
+
+def _fleet_pulse_lines(
+    elapsed_sec: float,
+    completed: int,
+    total: int,
+    snapshot: dict[str, Any],
+) -> list[str]:
+    """Пульс флота: заголовок и строка на каждого живого воркера.
+
+    Одной строкой это не помещалось. Сумма шагов по флоту не отвечает на
+    единственный вопрос, ради которого пульс читают, — кто из воркеров встал;
+    а имена в колонке дают увидеть расхождение чисел, не читая их.
+    """
+    head = f"[orch] пульс {_human_ms(elapsed_sec * 1000)} · {completed}/{total}"
+    if snapshot.get("steps"):
+        head += f" · шагов {snapshot['steps']}"
+    lines = [head]
+    workers = snapshot.get("workers") or {}
+    # Обе колонки выравниваются: расхождение чисел ловится взглядом только
+    # когда они стоят друг под другом, а ради этого блок и заводился.
+    name_width = max((len(str(wid)) for wid in workers), default=0)
+    step_width = max(
+        (len(str(snap.get("steps", 0))) for snap in workers.values()), default=0
+    )
+    for wid, snap in sorted(workers.items()):
+        idle = int(snap.get("idle_sec", 0) or 0)
+        line = (
+            f"   {str(wid).ljust(name_width)}  {str(snap.get('steps', 0)).rjust(step_width)}ш"
+            f" · тихо {_human_ms(idle * 1000)}"
+        )
+        if idle >= STALE_HINT_SEC and snap.get("last"):
+            kind = str(snap["last"])
+            line += f" · {KIND_LABELS.get(kind, kind)}"
+        lines.append(line)
+    return lines
+
+
 def _human_ms(ms: Any) -> str:
     # Панель Background tasks — окно владельца в идущую волну, и читает он её
     # глазами: `84469мс` там требует деления в уме.
@@ -394,6 +449,9 @@ async def _heartbeat_loop(
             # Сводка по живым воркерам: без неё пульс флота говорил только
             # «сколько закрыто», а зависший воркер был неотличим от думающего.
             extra = registry.snapshot() if registry is not None else {}
+            # Разбор по воркерам уходит только в панель владельца: в ledger он
+            # лёг бы словарём на каждый пульс всю волну, а читать его там некому.
+            workers = extra.pop("workers", None)
             append_heartbeat(
                 run_dir,
                 started_monotonic,
@@ -404,17 +462,12 @@ async def _heartbeat_loop(
             # Тот же пульс — в панель владельца. Между финишами воркеров карточка
             # иначе стоит без движения часами, и живая волна там неотличима от
             # мёртвой. Печатается в stderr: stdout занят финальным JSON.
-            line = f"[orch] пульс {progress['completed']}/{progress['total']}"
-            if extra.get("active"):
-                line += f" · живых {extra['active']}"
-            if extra.get("steps"):
-                line += f" · шагов {extra['steps']}"
-            if extra.get("stalest"):
-                line += (
-                    f" · дольше всех молчит {extra['stalest']}"
-                    f" ({_human_ms((extra.get('stalest_idle_sec') or 0) * 1000)})"
-                )
-            _safe_print(line)
+            _safe_print("\n".join(_fleet_pulse_lines(
+                time.monotonic() - started_monotonic,
+                progress["completed"],
+                progress["total"],
+                {**extra, "workers": workers or {}},
+            )))
     except asyncio.CancelledError:
         return
 

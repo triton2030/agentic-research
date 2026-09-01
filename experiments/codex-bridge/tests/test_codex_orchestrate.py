@@ -1425,6 +1425,51 @@ class OrphanThreadHygieneTests(unittest.TestCase):
             self.assertEqual(orch.archive_orphaned_threads(Path(tmp), [], Path(tmp)), [])
 
 
+
+class FleetPulseLinesTest(unittest.TestCase):
+    """Пульс флота: строка на воркера, метка занятия только у молчащего."""
+
+    SNAP = {
+        "steps": 621,
+        "workers": {
+            "w16-web-seed": {"steps": 209, "idle_sec": 28, "last": "reasoning"},
+            "w16-walkthrough-truth": {"steps": 412, "idle_sec": 1, "last": "fileChange"},
+        },
+    }
+
+    def test_worker_gets_own_line_with_own_steps(self) -> None:
+        import codex_orchestrate
+
+        lines = codex_orchestrate._fleet_pulse_lines(1080, 1, 3, self.SNAP)
+        self.assertEqual(len(lines), 3)
+        self.assertIn("18м00с", lines[0])
+        self.assertIn("1/3", lines[0])
+        body = "\n".join(lines[1:])
+        self.assertIn("412ш", body)
+        self.assertIn("209ш", body)
+
+    def test_activity_shown_only_for_the_silent_one(self) -> None:
+        import codex_orchestrate
+
+        lines = codex_orchestrate._fleet_pulse_lines(1080, 1, 3, self.SNAP)
+        silent = next(line for line in lines if "web-seed" in line)
+        busy = next(line for line in lines if "walkthrough-truth" in line)
+        self.assertIn("думает", silent)
+        self.assertNotIn("правит файлы", busy)
+
+    def test_unknown_kind_is_printed_raw(self) -> None:
+        import codex_orchestrate
+
+        lines = codex_orchestrate._fleet_pulse_lines(
+            60, 0, 1, {"workers": {"t1": {"steps": 1, "idle_sec": 99, "last": "somethingNew"}}}
+        )
+        self.assertIn("somethingNew", lines[1])
+
+    def test_no_workers_leaves_only_the_header(self) -> None:
+        import codex_orchestrate
+
+        self.assertEqual(len(codex_orchestrate._fleet_pulse_lines(5, 3, 3, {})), 1)
+
 if __name__ == "__main__":
     unittest.main()
 

@@ -179,6 +179,10 @@ class ProgressRegistry:
             "stalest": stalest[0],
             "stalest_idle_sec": stalest[1].get("idle_sec", 0),
             "stalest_last": stalest[1].get("last"),
+            # Разбор по воркерам считался и здесь же выбрасывался: сумма шагов
+            # по флоту не отличает воркера, сделавшего четыреста шагов, от
+            # соседа, вставшего на девятом. Кто это читает — решает вызывающий.
+            "workers": snaps,
         }
 
 

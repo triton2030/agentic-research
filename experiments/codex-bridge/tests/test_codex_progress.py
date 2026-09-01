@@ -237,5 +237,41 @@ class BoardCliTests(unittest.TestCase):
         self.assertIn("--board идёт один", proc.stderr)
 
 
+
+class _FakeItem:
+    def __init__(self, kind: str) -> None:
+        self.type = kind
+
+
+class _FakePayload:
+    def __init__(self, item: _FakeItem) -> None:
+        self.item = item
+
+
+class _FakeNotification:
+    """Нотификация движка в объёме, который читает `ProgressTracker.observe`."""
+
+    def __init__(self, kind: str, method: str = "item/completed") -> None:
+        self.method = method
+        self.payload = _FakePayload(_FakeItem(kind))
+
+
+class ProgressRegistryWorkersTest(unittest.TestCase):
+    """Срез флота несёт каждого воркера отдельно, а не только сумму."""
+
+    def test_snapshot_carries_each_worker_separately(self) -> None:
+        registry = codex_progress.ProgressRegistry()
+        registry.tracker("w1").observe(_FakeNotification("fileChange"))
+        registry.tracker("w1").observe(_FakeNotification("fileChange"))
+        registry.tracker("w2").observe(_FakeNotification("reasoning"))
+
+        snapshot = registry.snapshot()
+
+        self.assertEqual(snapshot["steps"], 3)
+        self.assertEqual(snapshot["workers"]["w1"]["steps"], 2)
+        self.assertEqual(snapshot["workers"]["w2"]["steps"], 1)
+        self.assertEqual(snapshot["workers"]["w2"]["last"], "reasoning")
+
+
 if __name__ == "__main__":
     unittest.main()
