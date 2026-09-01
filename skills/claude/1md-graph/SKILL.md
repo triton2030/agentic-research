@@ -65,7 +65,7 @@ labels — рабочая рамка аудита, не универсальна
 |---|---|
 | Прочитать известные holder и target sections | `1md-read` |
 | Найти candidates на отсутствующую связь | `1md-search` |
-| Решить owner, split/merge/move или placement истины | `1ia-audit` |
+| Решить дом ответа, placement истины и разделение переросшего документа | `1document-system` |
 | Exact refs, path/anchor resolution, counts и live CLI contract | `1cli-tools` |
 | Оценить смысл, необходимость, силу и propagation edge | `1md-graph` |
 | Применить разрешённый prose/edge repair и проверить Markdown | direct scoped edit + local Markdown checks |
@@ -125,12 +125,14 @@ target.
    Open-world поиск без seed и denominator запрещён.
 9. **Разреши конфликт на правильном слое.** Ясный owner + stale holder =
    `affected` или `retarget`. Два владельца одного инварианта, несовместимые
-   claims или непонятная authority = `conflict` и handoff `1ia-audit`; не
-   придумывай reciprocal edge как лечение.
+   claims или непонятная authority = `conflict` и вынос владельцу: выбор между двумя
+   владельцами одного инварианта есть установление, и его не делает ни один
+   скил. Не придумывай reciprocal edge как лечение.
 10. **Применяй только разрешённый verdict.** При write-intent исправь exact
    holder/target edge и затронутый смысл, затем выполни local Markdown и
-   structural checks. Owner, container или placement change остаётся у
-   `1ia-audit`.
+   structural checks. Placement change остаётся у
+   `1document-system`; смена владельца истины есть установление и выносится
+   владельцу.
 
 ## Relation Strength
 

@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-ИА-аудит"
+  short_description: "Form-fit через operation delta и owner truth"
+  default_prompt: "Используй $1ia-audit, чтобы отдельно восстановить current и candidate operation traces на одном reader job, доказать material delta и выбрать smallest shape без duplicate truth."
+
+policy:
+  allow_implicit_invocation: true
