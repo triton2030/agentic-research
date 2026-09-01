@@ -28,6 +28,11 @@
   в skill-файле, `AGENTS.md` и системном промпте это чинит. Владеет формой,
   объёмом, размещением и проверкой соблюдения; закон и рычаги мышления не
   дублирует, а опирается на них.
+- [`instruction-capacity-frontier-models-2026-09.md`](instruction-capacity-frontier-models-2026-09.md)
+  — датированный сравнительный отчёт по моделям марта–августа 2026: CSE,
+  IFScale, VeyraBench, ComplexConstraints и long-horizon evidence; объясняет,
+  почему 5–7 разнотипных constraints и тысячи lexical requirements не
+  противоречат друг другу. Инженерными правилами не владеет.
 - Постоянный архив проверки: исходные
   [`тезисы`](verification/2026-08-04/theses.md),
   [`прокурорский вердикт`](verification/2026-08-04/prosecutor-verdict.md) и
