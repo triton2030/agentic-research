@@ -98,6 +98,16 @@ python codex_progress.py <RUN_DIR> --steer "ТЕКСТ" [--worker TASK_ID]
 начала хода означал бы второй оплаченный turn. Каждый повтор виден в
 `events.jsonl` событием `retry` (`operation`, `attempt`, у флота — `worker`).
 
+**Архивный тред не съедает ремонтный круг.** Мост сам архивирует треды воркеров
+на закрытии волны, поэтому тёплый `thread_id` штатно приходит архивным, и голый
+`thread_resume` падал `session ... is archived`, не начав работы.
+`resume_thread[_async]` поднимает тред и повторяет старт один раз: подъём виден
+событием `thread_unarchived`, отказ подъёма — `thread_unarchive_failed`, и
+наружу тогда идёт исходная ошибка resume, а не подъёма. Предикат намеренно
+широкий — код `-32600` ИЛИ подстрока `archiv`: текст движка интерфейсом не
+объявлен. Цена ложного срабатывания — лишний `thread_unarchive` на уже
+провалившемся старте; цена пропуска — потерянная задача.
+
 ## Audit surface — только run_dir прогона
 
 Единственный audit/debug owner прогона — его `run_dir`. Все входы пишут
@@ -340,6 +350,9 @@ Reviewer всегда создаёт `run_dir` и пишет `manifest.json`, `e
   `archive THREAD_ID | --stale [--older-hours 48]` (штатный SDK
   `thread_archive`; per-target ошибки не обрывают батч, rc=1 при частичном
   провале; `--stale` fail closed на битом реестре) и `unarchive THREAD_ID`.
+  Ручной `unarchive` перед `--continue` не нужен: архивный тред поднимает сам
+  resume, а успешный подъём пишет в реестр событие `unarchive` — доска считает
+  статус по событиям, и `continue` архивность не снимает.
   Руками `~/.codex` не чистить. Archive-событие provenance НЕ даёт — чужой
   тред нельзя «легализовать» его архивацией. Реестр append-only без локов:
   «чужой живой тред не трогай» — дисциплина агента, не backend-гарантия.
@@ -556,7 +569,7 @@ run_dir и его collapsed-предков (`_workspace/`) — своя площ
   Идёт ревьюером на `luna` + `xhigh`, без диалога.
 - `cbcommon.py` — биллинг-гигиена; `codex_defaults.py` — runtime-дефолты;
   `codex_sdk_compat.py` — open-enum hardening; `codex_retry.py` — ретрай
-  стартовых вызовов под перегрузкой.
+  стартовых вызовов под перегрузкой и подъём архивного треда при resume.
 - `codex_run_ledger.py` — журнал прогона (run_dir, события, пульс) + форма его
   артефактов: `prompt.md` и финал `result.json` (`RunResult`).
 - `codex_git_scope.py` — снимок дерева и постфлайт-вердикт.

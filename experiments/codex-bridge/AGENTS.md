@@ -165,8 +165,9 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
   входов (`first_nonblank`).
 - `codex_sdk_compat.py` — open-enum hardening запиненного SDK: дрейф движка
   ChatGPT.app не роняет мост.
-- `codex_retry.py` — ретрай стартовых вызовов под перегрузкой движка (sync +
-  async), события `retry` в ledger.
+- `codex_retry.py` — восстановимые отказы СТАРТА: ретрай под перегрузкой движка
+  (sync + async) и подъём архивного треда при resume; события `retry`,
+  `thread_unarchived`, `thread_unarchive_failed` в ledger.
 - `codex_defaults.py` — ярусы вызова и runtime default (`gpt-5.6-sol`+`xhigh`),
   sandbox и approval labels для ledger/docs, `BRIDGE_THREAD_EPHEMERAL`.
 - `codex_review.py` — консультант/ревьюер с built-in filesystem read-only.
