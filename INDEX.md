@@ -84,7 +84,10 @@
   вместе с evidence.
 - Развилка владения: *как сделать нужное продолжение вероятным* →
   `how-to-steer-llm-thinking.md`; *как носитель довести правило до поведения* →
-  `how-to-make-llm-obey.md`; *физика машины* → `knowledge/how-llms-think.md`.
+  `how-to-make-llm-obey.md`; *что писать и в каком порядке* →
+  `how-to-command-agents-with-text.md`; *когда снимать процедуру и чем её
+  заменить* → `how-to-command-with-goal-not-procedure.md`; *физика машины* →
+  `knowledge/how-llms-think.md`.
 
 ## Куда положить временный файл или находку
 
