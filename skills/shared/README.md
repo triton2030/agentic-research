@@ -41,7 +41,7 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
     скил, слова владельца); весь переносимый контракт теперь помещается в
     `SKILL.md`;
   - `1skill-creation/portable/` — создание, рефактор и кнопка запуска скилов
-    одним пакетом (v17, 2026-09-01; предшественники и снапшоты —
+    одним пакетом (v18, 2026-09-02; предшественники и снапшоты —
     `skills/1skill-authoring/`, `skills/1skill-refactor/` и
     `skills/1skill-routing/`). Тело — единственный router независимых стадий;
     references друг друга не вызывают, кроме `refactor.md`, у которого два
