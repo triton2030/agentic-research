@@ -16,5 +16,5 @@ description: "Version packages and refactor evidence for 1plan-task."
 - `origin.md`, `cut.md`, `evidence.md`, `product-frame.md` — общая история,
   относящаяся к нескольким версиям.
 
-Последний кандидат: `versions/candidate-2026-08-31/`.
-Его служебное evidence: `work/recheck-2026-08-31/`.
+Последний кандидат: `versions/candidate-2026-09-02-criteria/` — установлен 2026-09-02.
+Его служебное evidence: `work/refactor-2026-09-02/` (intent, clean-room-draft, loss-map, wave-1, wave-2).

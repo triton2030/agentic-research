@@ -100,10 +100,11 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
     до состава, карта от GOAL, дашборд Obsidian; владеет формой и состоянием
     эпика, словарём/frontier, structural/state validation, независимой
     приёмкой и bootstrap/update дашборда;
-  - `1plan-task/portable/` — изолированность задач: самодостаточный жёстко
-    ограниченный task-файл, режимы, доказательства, fresh-reader; владеет
-    размещением, схемой, контекстом, бюджетом, work/report, state/lifecycle,
-    closure, handoff и retention.
+  - `1plan-task/portable/` — изолированность задач: файл задачи как промпт
+    для чужого окна; пять критериев принятия (лазейки закрыты проверкой,
+    цитаты адресом до строки, бюджет 20, состояние тем же ходом, цель не
+    переписывается) вместо инструкций; владеет схемой и шаблоном файла,
+    размещением, бюджетом, state/lifecycle и closure.
 - `1index/portable/` держит карты оплаченных поиском маршрутов.
 - `1interview-tool/portable/` создаёт адресуемую plain-Markdown форму и держит
   lifecycle `решения владельца → настоящие owners → архив`; Codex invocation
@@ -145,10 +146,11 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
     до состава, карта от GOAL, дашборд Obsidian; владеет формой и состоянием
     эпика, словарём/frontier, structural/state validation, независимой
     приёмкой и bootstrap/update дашборда;
-  - `1plan-task/portable/` — изолированность задач: самодостаточный жёстко
-    ограниченный task-файл, режимы, доказательства, fresh-reader; владеет
-    размещением, схемой, контекстом, бюджетом, work/report, state/lifecycle,
-    closure, handoff и retention.
+  - `1plan-task/portable/` — изолированность задач: файл задачи как промпт
+    для чужого окна; пять критериев принятия (лазейки закрыты проверкой,
+    цитаты адресом до строки, бюджет 20, состояние тем же ходом, цель не
+    переписывается) вместо инструкций; владеет схемой и шаблоном файла,
+    размещением, бюджетом, state/lifecycle и closure.
 - `1index/portable/` держит карты оплаченных поиском маршрутов.
 - `1interview-tool/portable/` создаёт адресуемую plain-Markdown форму и держит
   lifecycle `решения владельца → настоящие owners → архив`; Codex invocation
