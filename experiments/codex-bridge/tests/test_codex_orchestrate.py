@@ -1470,6 +1470,25 @@ class FleetPulseLinesTest(unittest.TestCase):
 
         self.assertEqual(len(codex_orchestrate._fleet_pulse_lines(5, 3, 3, {})), 1)
 
+
+class OrchClockTest(unittest.TestCase):
+    """Часы у строк волны: событие сверяется с внешним миром по времени."""
+
+    def test_orch_line_carries_wall_clock(self) -> None:
+        import codex_orchestrate
+
+        buf = io.StringIO()
+        codex_orchestrate._safe_print("[orch] пульс 19м00с · 1/3", stream=buf)
+        self.assertRegex(buf.getvalue(), r"^\[orch\] \d{2}:\d{2}:\d{2} пульс")
+
+    def test_final_json_is_not_stamped(self) -> None:
+        import codex_orchestrate
+
+        buf = io.StringIO()
+        codex_orchestrate._safe_print('{"wave": 1}', stream=buf)
+        self.assertEqual(buf.getvalue().strip(), '{"wave": 1}')
+
+
 if __name__ == "__main__":
     unittest.main()
 
