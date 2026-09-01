@@ -12,6 +12,12 @@ SDK возит готовый `retry_on_overload` (`openai_codex/retry.py`) и �
 
 Каждая повторная попытка пишется в ledger событием `retry`: молчаливый ретрай
 прятал бы нестабильность движка ровно там, где её надо видеть.
+
+Вторая восстановимая причина отказа старта — АРХИВНЫЙ тред: мост сам архивирует
+треды воркеров на закрытии волны (`archive_orphaned_threads`), симметричного
+подъёма перед `thread_resume` не было, и штатный ремонтный круг умирал
+`session ... is archived` до начала работы. `resume_thread[_async]` поднимает
+тред и повторяет старт один раз.
 """
 from __future__ import annotations
 
@@ -134,3 +140,108 @@ async def retry_start_async(
             if sleep_for > 0:
                 await asyncio.sleep(sleep_for)
             delay = min(MAX_DELAY_S, delay * 2)
+
+
+# -32600 = InvalidRequestError: движок отверг СОСТОЯНИЕ запроса, а не его форму.
+# Сегодня архивный тред приходит именно так ("session ... is archived"), но текст
+# движка не контракт, поэтому предикат широкий: код ИЛИ подстрока. Цена ложного
+# срабатывания — один лишний `thread_unarchive` на уже провалившемся старте
+# (например, тред открыт в Codex Desktop: тот же -32600 про занятую запись).
+# Цена пропуска — потерянная задача ремонтного круга.
+ARCHIVED_RPC_CODE = -32600
+
+
+def is_archived_error(exc: BaseException) -> bool:
+    """True, если старт отвергнут из-за архивного треда (или похоже на это)."""
+    if "archiv" in str(exc).lower():
+        return True
+    return getattr(exc, "code", None) == ARCHIVED_RPC_CODE
+
+
+def resume_thread(
+    codex: Any,
+    thread_id: str,
+    op: Callable[[], T],
+    *,
+    run_dir: Any | None,
+    fields: dict[str, Any] | None = None,
+    max_attempts: int = MAX_START_ATTEMPTS,
+) -> tuple[T, bool]:
+    """`thread_resume` c подъёмом архивного треда. Возвращает (тред, поднимали ли).
+
+    Флаг нужен вызывающему: у ревьюера доска моста знает свои треды поимённо и
+    без события `unarchive` продолжит звать поднятый тред архивным.
+    """
+    def start() -> T:
+        return retry_start(
+            op, run_dir=run_dir, operation="thread_resume",
+            max_attempts=max_attempts, fields=fields,
+        )
+
+    try:
+        return start(), False
+    except Exception as exc:
+        if not is_archived_error(exc):
+            raise
+        try:
+            codex.thread_unarchive(thread_id)
+        except Exception as unarchive_exc:
+            _log_unarchive_failed(run_dir, thread_id, unarchive_exc, fields)
+            # Наружу идёт ошибка resume, а не подъёма: воркер умер на ней.
+            raise exc from unarchive_exc
+        _log_unarchived(run_dir, thread_id, exc, fields)
+        return start(), True
+
+
+async def resume_thread_async(
+    codex: Any,
+    thread_id: str,
+    op: Callable[[], Awaitable[T]],
+    *,
+    run_dir: Any | None,
+    fields: dict[str, Any] | None = None,
+    max_attempts: int = MAX_START_ATTEMPTS,
+) -> tuple[T, bool]:
+    """Async-зеркало `resume_thread` для флота."""
+    async def start() -> T:
+        return await retry_start_async(
+            op, run_dir=run_dir, operation="thread_resume",
+            max_attempts=max_attempts, fields=fields,
+        )
+
+    try:
+        return await start(), False
+    except Exception as exc:
+        if not is_archived_error(exc):
+            raise
+        try:
+            await codex.thread_unarchive(thread_id)
+        except Exception as unarchive_exc:
+            _log_unarchive_failed(run_dir, thread_id, unarchive_exc, fields)
+            raise exc from unarchive_exc
+        _log_unarchived(run_dir, thread_id, exc, fields)
+        return await start(), True
+
+
+def _log_unarchived(
+    run_dir: Any | None, thread_id: str, exc: BaseException,
+    fields: dict[str, Any] | None,
+) -> None:
+    if run_dir is None:
+        return
+    append_event(
+        run_dir, "thread_unarchived",
+        thread_id=thread_id, after=str(exc), **(fields or {}),
+    )
+
+
+def _log_unarchive_failed(
+    run_dir: Any | None, thread_id: str, exc: BaseException,
+    fields: dict[str, Any] | None,
+) -> None:
+    if run_dir is None:
+        return
+    append_event(
+        run_dir, "thread_unarchive_failed",
+        thread_id=thread_id, error=str(exc), **(fields or {}),
+    )

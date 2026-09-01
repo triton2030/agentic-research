@@ -529,8 +529,10 @@ run_dir и его collapsed-предков (`_workspace/`) — своя площ
   34 тредов моста висели на снесённых деревьях, и список проектов владельца
   состоял из имён наших задач. Закрытие волны с уборкой архивирует их само
   (`wave.threads_orphaned` → `wave.threads_archived`; отказ движка — событие
-  `thread_archive_failed`, волну не роняет). Архив обратим:
-  `codex_threads.py unarchive THREAD_ID`. `--keep-worktrees` и `--no-integrate`
+  `thread_archive_failed`, волну не роняет). Архив обратим и снимается САМ:
+  ремонтный круг штатно приходит к архивному треду, и `thread_resume` поднимает
+  его перед повтором старта (событие `thread_unarchived`; ручной путь остался —
+  `codex_threads.py unarchive THREAD_ID`). `--keep-worktrees` и `--no-integrate`
   держат и дерево, и тред: карточка рабочая, убирать нечего. `archive --stale`
   сюда не относится — он ходит по реестру диалогов, воркеров в нём нет.
 

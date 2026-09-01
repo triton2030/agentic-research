@@ -33,7 +33,7 @@ import time
 from pathlib import Path
 
 from cbcommon import first_nonblank, scrub_billing_env
-from codex_retry import retry_start
+from codex_retry import resume_thread, retry_start
 from codex_sdk_compat import harden_sdk_enums
 from codex_defaults import (
     BRIDGE_THREAD_EPHEMERAL,
@@ -665,7 +665,12 @@ def main() -> int:
     try:
         with Codex(config) as codex:
             if args.continue_thread:
-                thread = retry_start(
+                # Тред мог быть архивирован уборкой доски (`codex_threads.py
+                # archive --stale`): resume архивного падает до начала хода,
+                # поэтому подъём делает сам вызов.
+                thread, unarchived = resume_thread(
+                    codex,
+                    args.continue_thread,
                     lambda: codex.thread_resume(
                         args.continue_thread,
                         cwd=str(project_cwd),
@@ -676,7 +681,6 @@ def main() -> int:
                         developer_instructions=dev_instructions,
                     ),
                     run_dir=run_dir,
-                    operation="thread_resume",
                 )
             else:
                 thread = retry_start(
@@ -694,6 +698,15 @@ def main() -> int:
                 )
             codex_runtime["thread_id"] = getattr(thread, "id", None)
             if args.continue_thread:
+                if unarchived:
+                    # Доска считает статус по событиям, и `continue` архивность
+                    # не снимает: без этой строки она продолжит звать поднятый
+                    # тред архивным.
+                    _append_registry_event(project_cwd, {
+                        "event": "unarchive",
+                        "thread_id": args.continue_thread,
+                        "at": utc_now(),
+                    })
                 event = {
                     "event": "continue",
                     "thread_id": args.continue_thread,

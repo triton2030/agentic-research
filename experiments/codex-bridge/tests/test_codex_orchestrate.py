@@ -46,12 +46,22 @@ except ImportError:  # pragma: no cover — окружение без SDK
         return isinstance(exc, ServerBusyError)
 
 
-def _install_fake_openai_codex(captured: dict, *, start_failures: int = 0) -> list[str]:
+def _install_fake_openai_codex(
+    captured: dict, *, start_failures: int = 0, archived_threads: tuple[str, ...] = (),
+) -> list[str]:
     """Put a fake `openai_codex` into sys.modules so the worker's lazy SDK import
     resolves to a stub that records thread_start kwargs instead of launching a
     real Codex process. Returns the module names to pop in teardown.
 
-    `start_failures` — сколько первых thread_start падают transient-перегрузкой."""
+    `start_failures` — сколько первых thread_start падают transient-перегрузкой.
+    `archived_threads` — треды, которые движок отдаёт архивными, пока их не
+    поднимут: так закрытая волна оставляет тред своего воркера."""
+    archived = set(archived_threads)
+
+    class _ArchivedError(Exception):
+        def __init__(self, thread_id: str) -> None:
+            super().__init__(f"JSON-RPC error -32600: session {thread_id} is archived")
+            self.code = -32600
 
     class _Sandbox:
         read_only = "read_only"
@@ -118,9 +128,16 @@ def _install_fake_openai_codex(captured: dict, *, start_failures: int = 0) -> li
             return _FakeThread()
 
         async def thread_resume(self, thread_id, **kwargs):  # noqa: ANN001, ANN003
+            captured["resume_attempts"] = captured.get("resume_attempts", 0) + 1
+            if thread_id in archived:
+                raise _ArchivedError(thread_id)
             captured["resumed_thread_id"] = thread_id
             captured.update(kwargs)
             return _FakeThread()
+
+        async def thread_unarchive(self, thread_id):  # noqa: ANN001
+            captured["unarchived_thread_id"] = thread_id
+            archived.discard(thread_id)
 
     class _CodexConfig:
         def __init__(self, **kwargs):  # noqa: ANN003
@@ -878,6 +895,57 @@ class CodexOrchestrateCliTests(unittest.TestCase):
             self.assertEqual(len(retries), 1)
             self.assertEqual(retries[0]["operation"], "thread_start")
             self.assertEqual(retries[0]["worker"], "t1")
+        finally:
+            for name in fake_names:
+                sys.modules.pop(name, None)
+
+    def test_archived_warm_thread_is_unarchived_and_resumed(self) -> None:
+        """Ремонтный круг штатно приходит к АРХИВНОМУ треду: волна, прогревшая
+        воркера, сама архивирует его тред на закрытии. Без подъёма resume падал
+        `session ... is archived` до начала работы, а возврат был обманчив —
+        `worker_ok: false` при `scope_status: passed` (волны 9 и 10, 2026-09-01)."""
+        import codex_orchestrate
+
+        captured: dict = {}
+        fake_names = _install_fake_openai_codex(
+            captured, archived_threads=("thread-warm-1",)
+        )
+        try:
+            with self.temp_project() as tmp:
+                root = Path(tmp).resolve()
+                self.write(root, "a.md")
+                tasks = normalize_tasks(
+                    root,
+                    [{"id": "t1", "prompt": "hi", "files": ["a.md"],
+                      "thread_id": "thread-warm-1"}],
+                )
+                run_dir = root / "run"
+                run_dir.mkdir()
+                defaults = {
+                    "cwd": str(root),
+                    "model": "gpt-5.6-sol",
+                    "effort": "high",
+                    "service_tier": None,
+                    "run_dir": run_dir,
+                    "progress": {"completed": 0, "total": 1},
+                }
+                fake_codex = sys.modules["openai_codex"].FakeCodex()
+                record = asyncio.run(
+                    codex_orchestrate._run_one(
+                        fake_codex, asyncio.Semaphore(1), tasks[0], defaults
+                    )
+                )
+                events = [
+                    json.loads(line)
+                    for line in (run_dir / "events.jsonl").read_text().splitlines()
+                ]
+            self.assertEqual(record["worker_status"], "completed")
+            self.assertEqual(captured.get("unarchived_thread_id"), "thread-warm-1")
+            self.assertEqual(captured.get("resumed_thread_id"), "thread-warm-1")
+            self.assertEqual(captured.get("resume_attempts"), 2)
+            raised = [e for e in events if e.get("event") == "thread_unarchived"]
+            self.assertEqual(len(raised), 1)
+            self.assertEqual(raised[0]["worker"], "t1")
         finally:
             for name in fake_names:
                 sys.modules.pop(name, None)

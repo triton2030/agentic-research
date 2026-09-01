@@ -17,7 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from cbcommon import scrub_billing_env
-from codex_retry import retry_start_async
+from codex_retry import resume_thread_async, retry_start_async
 from codex_sdk_compat import harden_sdk_enums
 from codex_defaults import (
     FLEET_THREAD_EPHEMERAL,
@@ -267,7 +267,12 @@ async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict
                 # воркера по handle»): resume несёт контекст прошлой волны, но cwd,
                 # файловый контракт и sandbox перепиняются на ЭТУ волну — воркер
                 # просыпается в свежем дереве, а не в снесённом старом.
-                thread = await retry_start_async(
+                # Тред приходит сюда штатно АРХИВНЫМ: его архивировала волна,
+                # которая его прогрела (`archive_orphaned_threads`). Подъём делает
+                # `resume_thread_async` — без него ремонтный круг умирал до работы.
+                thread, _ = await resume_thread_async(
+                    codex,
+                    task.thread_id,
                     lambda: codex.thread_resume(
                         task.thread_id,
                         cwd=worker_cwd,
@@ -278,7 +283,6 @@ async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict
                         developer_instructions=files_contract,
                     ),
                     run_dir=run_dir,
-                    operation="thread_resume",
                     fields={"worker": task.id},
                 )
             else:
@@ -465,8 +469,9 @@ def archive_orphaned_threads(project: Path, thread_ids: list[str], run_dir: Path
     34 тредов моста висели на удалённых деревьях, и список проектов владельца
     состоял из имён наших задач). Дерево и его тред уходят вместе.
 
-    Архивирование — штатная обратимая операция движка (`codex_threads.py
-    unarchive THREAD_ID`), не удаление; транскрипт воркера остаётся на диске.
+    Архивирование — штатная обратимая операция движка, не удаление: транскрипт
+    воркера остаётся на диске, а ремонтный круг поднимает тред сам
+    (`resume_thread_async`); ручной путь — `codex_threads.py unarchive THREAD_ID`.
     """
     if not thread_ids:
         return []

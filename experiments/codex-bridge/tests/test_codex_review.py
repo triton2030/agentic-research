@@ -50,12 +50,21 @@ def _install_fake_openai_codex(
     *,
     status: str = "completed",
     start_failures: int = 0,
+    archived_threads: tuple[str, ...] = (),
 ) -> list[str]:
     """Stub `openai_codex` in sys.modules so main()'s lazy SDK import resolves to
     a fake that records thread_start kwargs instead of launching a real Codex.
 
     `start_failures` — сколько первых thread_start падают transient-перегрузкой:
-    так проверяется ретрай старта, не трогая потребление потока."""
+    так проверяется ретрай старта, не трогая потребление потока.
+    `archived_threads` — треды, которые движок отдаёт архивными, пока их не
+    поднимут: так уборка доски оставляет тред диалога."""
+    archived = set(archived_threads)
+
+    class _ArchivedError(Exception):
+        def __init__(self, thread_id: str) -> None:
+            super().__init__(f"JSON-RPC error -32600: session {thread_id} is archived")
+            self.code = -32600
 
     class _Sandbox:
         read_only = "read_only"
@@ -151,10 +160,17 @@ def _install_fake_openai_codex(
             return _FakeThread()
 
         def thread_resume(self, thread_id, **kwargs):  # noqa: ANN001, ANN003
+            captured["resume_attempts"] = captured.get("resume_attempts", 0) + 1
+            if thread_id in archived:
+                raise _ArchivedError(thread_id)
             captured["resumed_thread_id"] = thread_id
             captured["thread_resume_kwargs"] = dict(kwargs)
             captured.update(kwargs)
             return _FakeThread()
+
+        def thread_unarchive(self, thread_id):  # noqa: ANN001
+            captured["unarchived_thread_id"] = thread_id
+            archived.discard(thread_id)
 
     class _CodexConfig:
         def __init__(self, **kwargs):  # noqa: ANN003
@@ -492,6 +508,53 @@ class CodexReviewCliTests(unittest.TestCase):
             self.assertEqual(run_kwargs.get("model"), "gpt-5.6-sol")
             self.assertEqual(run_kwargs.get("effort"), "xhigh")
             self.assertIsNone(run_kwargs.get("service_tier"))
+        finally:
+            sys.argv = saved_argv
+            for name in fake_names:
+                sys.modules.pop(name, None)
+
+    def test_continue_raises_archived_thread_and_tells_the_board(self) -> None:
+        """Диалог старше двух суток штатно архивирует уборка доски, и до сих пор
+        `--continue` умирал на нём `session ... is archived`. Тред поднимается
+        сам, а доска обязана узнать об этом: `continue` архивность не снимает,
+        и без события `unarchive` она продолжила бы звать тред архивным."""
+        import codex_review
+        import codex_threads
+
+        captured: dict = {}
+        fake_names = _install_fake_openai_codex(
+            captured, archived_threads=("thread-abc",)
+        )
+        saved_argv = sys.argv[:]
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                reg = Path(tmp) / "_workspace" / "codex-artifacts" / "dialog-threads.jsonl"
+                reg.parent.mkdir(parents=True, exist_ok=True)
+                reg.write_text(
+                    json.dumps({"event": "start", "thread_id": "thread-abc"}) + "\n"
+                    + json.dumps({"event": "archive", "thread_id": "thread-abc"}) + "\n",
+                    encoding="utf-8",
+                )
+                sys.argv = [
+                    "codex_review.py",
+                    "--task", "продолжим",
+                    "--project", tmp,
+                    "--continue", "thread-abc",
+                ]
+                with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(
+                    io.StringIO()
+                ), mock.patch.object(
+                    codex_review, "resolve_codex_bin",
+                    return_value="/sentinel/chatgpt/codex",
+                ):
+                    rc = codex_review.main()
+                events, _bad = codex_threads.read_events(Path(tmp))
+                board = {t["thread_id"]: t for t in codex_threads.collapse(events)}
+            self.assertEqual(rc, 0)
+            self.assertEqual(captured.get("unarchived_thread_id"), "thread-abc")
+            self.assertEqual(captured.get("resumed_thread_id"), "thread-abc")
+            self.assertEqual(captured.get("resume_attempts"), 2)
+            self.assertFalse(board["thread-abc"]["archived"])
         finally:
             sys.argv = saved_argv
             for name in fake_names:
