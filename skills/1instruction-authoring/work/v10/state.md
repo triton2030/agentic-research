@@ -4,7 +4,7 @@
 
 `рефактор завершён` — 2026-09-01. Владелец утвердил версию безусловно, она
 установлена на пять поверхностей, отпечаток markdown-состава
-`3b3d94cebd369cc4e8749c7ad259a81997ef5476f324decee9c42ded4b0fce9d`.
+`df86bcaab6db695617d9955cecbc6e82e6ce0d86455e9975841f5e2735cd34e7`.
 
 ## Маршрут
 
@@ -60,7 +60,7 @@
 
 ## Единицы
 
-`SKILL.md` 5 · `references/discovery.md` 17 · `references/writing.md` 18 ·
+`SKILL.md` 5 · `references/discovery.md` 17 · `references/writing.md` 20 ·
 `agents/zone-reader.md` 8. Уникальный контекст 540 символов при ориентире 500 —
 принято сознательно по прецеденту `1skill-creation` v14 (845 при том же
 ориентире).
