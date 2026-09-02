@@ -1,0 +1,6 @@
+interface:
+  display_name: "Codex Background Threads"
+  short_description: "Use when offloading work to visible Codex threads"
+
+policy:
+  allow_implicit_invocation: true

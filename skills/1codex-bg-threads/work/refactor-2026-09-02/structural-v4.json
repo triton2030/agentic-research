@@ -1,0 +1,28 @@
+{
+  "version": "candidate-2026-09-02-v4",
+  "checks": {
+    "quick_validate": "pass",
+    "description_chars": 110,
+    "unique_context_chars": 337,
+    "owner_quotes_exact": 4,
+    "internal_links_resolve": true,
+    "cross_project_paths": true,
+    "ui_metadata_unchanged": true,
+    "body_identical_to_reviewed_v3": true
+  },
+  "unit_counts": {
+    "SKILL.md": 10,
+    "references/codex-native.md": 19,
+    "agents/openai.yaml": 3
+  },
+  "count_basis": "final literal checker v3 count minus three source-supported redundant instructions",
+  "sha256": {
+    "SKILL.md": "6b0d7eb51fa5fb003d946d93574acf2378cb8a246c671cd3d513c6bdbb698a78",
+    "agents/openai.yaml": "ea87017ef37334f83b3831e20cd7980d8191a7ece2bd5393436614b47f3d64de",
+    "references/codex-native.md": "b80c593fd3d7da4886f4e5acad3e184a9ecacf8834c0a203e493416e29e60059"
+  },
+  "limits": [
+    "No real task create, fork, continue, or archive scenario was executed.",
+    "Post-review v4 native edits were checked by the parent; both allowed checker waves are exhausted."
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "version": "candidate-2026-09-02-v2",
+  "checks": {
+    "quick_validate": "pass",
+    "description_chars": 110,
+    "unique_context_chars": 337,
+    "owner_quotes_exact": 3,
+    "internal_links_resolve": true,
+    "cross_project_paths": true,
+    "ui_metadata_unchanged": true
+  },
+  "sha256": {
+    "SKILL.md": "c8229f80383327c0b72515bda7f75139e497153835feeb79f506a8e21b76fda0",
+    "agents/openai.yaml": "ea87017ef37334f83b3831e20cd7980d8191a7ece2bd5393436614b47f3d64de",
+    "references/codex-native.md": "9509cdaa945d1ed2ae9ed752aad84b328aaa04b26d2a040bd4ff2b2fe790988e"
+  },
+  "limits": [
+    "Checks cover package bytes, not real task launch or persisted app lifecycle.",
+    "Behavior and semantic review are pending the two independent checkers."
+  ]
+}

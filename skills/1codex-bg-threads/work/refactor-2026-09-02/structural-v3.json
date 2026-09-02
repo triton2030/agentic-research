@@ -1,0 +1,14 @@
+{
+  "version": "candidate-2026-09-02-v3",
+  "checks": {
+    "quick_validate": "pass",
+    "description_chars": 110,
+    "owner_quotes_exact": 4,
+    "internal_links_resolve": true
+  },
+  "sha256": {
+    "SKILL.md": "6b0d7eb51fa5fb003d946d93574acf2378cb8a246c671cd3d513c6bdbb698a78",
+    "agents/openai.yaml": "ea87017ef37334f83b3831e20cd7980d8191a7ece2bd5393436614b47f3d64de",
+    "references/codex-native.md": "b6053ef23aa2228cf9dc872932f75859d4e6b310f47c20722dce8fa8dcad2528"
+  }
+}
