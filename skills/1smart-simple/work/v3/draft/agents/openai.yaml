@@ -1,0 +1,10 @@
+interface:
+  display_name: "1-Умное упрощение"
+  short_description: "Use when a text an agent must act on exceeds what it can hold"
+  default_prompt: >
+    Use $1smart-simple to archive the original and replace the entry point
+    with texts grown from the goal of each reading moment, with deliberate,
+    named losses.
+
+policy:
+  allow_implicit_invocation: true
