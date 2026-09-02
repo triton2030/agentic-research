@@ -1,0 +1,34 @@
+{
+  "installed_at": "2026-09-02T08:56:50.167633+00:00",
+  "candidate": "candidate-2026-09-02-v4",
+  "approval": "_ops/chat-recall/2026-09-02-135620-codex-01a060f2.md#L15",
+  "owner": "/Users/triton/.codex/skills/1codex-bg-threads",
+  "tracked_owner": null,
+  "installed_runtimes": [
+    "Codex"
+  ],
+  "other_runtimes": "Claude package absent; skill is intended for Codex only.",
+  "checks": {
+    "candidate_unchanged": true,
+    "preinstall_live_matches_baseline": true,
+    "file_set_and_bytes_match": true,
+    "internal_links_resolve": true
+  },
+  "removed_files": [
+    "references/receiver-message.md"
+  ],
+  "sha256": {
+    "SKILL.md": "6b0d7eb51fa5fb003d946d93574acf2378cb8a246c671cd3d513c6bdbb698a78",
+    "references/codex-native.md": "b80c593fd3d7da4886f4e5acad3e184a9ecacf8834c0a203e493416e29e60059",
+    "agents/openai.yaml": "ea87017ef37334f83b3831e20cd7980d8191a7ece2bd5393436614b47f3d64de"
+  },
+  "internal_links": [
+    {
+      "source": "SKILL.md",
+      "target": "references/codex-native.md"
+    }
+  ],
+  "limits": [
+    "No real task create, fork, continue, or archive scenario was executed."
+  ]
+}
