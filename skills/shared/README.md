@@ -105,6 +105,12 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
     цитаты адресом до строки, бюджет 20, состояние тем же ходом, цель не
     переписывается) вместо инструкций; владеет схемой и шаблоном файла,
     размещением, бюджетом, state/lifecycle и closure.
+- `1smart-simple` — tracked owner отсутствует; живые пакеты
+  `~/.claude/skills/1smart-simple/` и `~/.codex/skills/1smart-simple/` —
+  единственная правда (v3, 2026-09-02; история — `skills/1smart-simple/`).
+  На него маршрутизируют по одной строке `1skill-creation` (критерий 4,
+  `reference-files.md` шаг 6), `1instruction-authoring/writing.md`,
+  `1document-system/overgrown.md` и `1plan-task` (C3).
 - `1index/portable/` держит карты оплаченных поиском маршрутов.
 - `1interview-tool/portable/` создаёт адресуемую plain-Markdown форму и держит
   lifecycle `решения владельца → настоящие owners → архив`; Codex invocation
