@@ -1,0 +1,39 @@
+{
+  "installed_at": "2026-09-02T09:19:29.678271+00:00",
+  "version": "candidate-2026-09-02-v5",
+  "authorization": {
+    "kind": "direct_owner_request_for_targeted_addition",
+    "source": "_ops/chat-recall/2026-09-02-135620-codex-01a060f2.md#L17",
+    "previous_exact_approval": "candidate-2026-09-02-v4",
+    "new_exact_approval_requested": false,
+    "basis": "Direct request to add this behavior authorizes this reversible addition; no scope expansion."
+  },
+  "owner": "/Users/triton/.codex/skills/1codex-bg-threads",
+  "installed_runtimes": [
+    "Codex"
+  ],
+  "checks": {
+    "quick_validate_candidate": "pass",
+    "new_owner_quote_exact": true,
+    "only_one_body_block_added": true,
+    "all_previous_text_unchanged": true,
+    "reference_and_ui_unchanged": true,
+    "installed_file_set_and_bytes_match": true,
+    "internal_links_resolve": true
+  },
+  "conservative_unit_counts": {
+    "SKILL.md": 14,
+    "references/codex-native.md": 19,
+    "agents/openai.yaml": 3
+  },
+  "count_basis": "Previous body count 10 plus up to four separately observable properties: chat channel, contemporaneous report, concrete step and subject, brevity.",
+  "sha256": {
+    "SKILL.md": "ae30be519f73a2dfe74a1b946be9239d3b811610bea198295a1783ddc0b4fe18",
+    "references/codex-native.md": "b80c593fd3d7da4886f4e5acad3e184a9ecacf8834c0a203e493416e29e60059",
+    "agents/openai.yaml": "ea87017ef37334f83b3831e20cd7980d8191a7ece2bd5393436614b47f3d64de"
+  },
+  "limits": [
+    "The targeted addition was checked by the parent; the two independent review waves of the completed refactor were not restarted.",
+    "Actual task execution under the new chat-reporting instruction was not tested."
+  ]
+}
