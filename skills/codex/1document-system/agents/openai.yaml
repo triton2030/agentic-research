@@ -1,6 +1,6 @@
 interface:
   display_name: "1-Система документов"
-  short_description: "Put durable information where it will be looked for and write only what is established"
-  default_prompt: "Use $1document-system when something that outlives the conversation must be recorded into a project document."
+  short_description: "Минимально достаточная документация: только нужная читателю дельта"
+  default_prompt: "Use $1document-system before creating or editing any documentation, including documents governed by other skills."
 policy:
   allow_implicit_invocation: true
