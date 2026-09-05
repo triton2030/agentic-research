@@ -1,0 +1,39 @@
+[
+  {
+    "case": "first_capture",
+    "status": "written",
+    "topic_map_exists": true
+  },
+  {
+    "case": "conflict_only",
+    "mode": "lexical",
+    "returned": 0,
+    "selection": "conflicts",
+    "conflict_matched": 1,
+    "warnings": [
+      "conflict-evidence-present"
+    ]
+  },
+  {
+    "case": "conflict_only",
+    "mode": "hybrid",
+    "returned": 0,
+    "selection": "conflicts",
+    "conflict_matched": 1,
+    "warnings": [
+      "conflict-evidence-present"
+    ]
+  },
+  {
+    "case": "unresolved_capture_and_query",
+    "status": "written",
+    "reasons": [
+      "contested",
+      "unresolved-supersession"
+    ]
+  },
+  {
+    "case": "strict_integrity",
+    "exit": 0
+  }
+]

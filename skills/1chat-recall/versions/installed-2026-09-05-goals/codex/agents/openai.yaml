@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Память чата"
+  short_description: "When owner speech needs attention."
+  default_prompt: "Используй $1chat-recall, чтобы сохранить важные слова владельца или восстановить применимую позицию для текущей работы."
+
+policy:
+  allow_implicit_invocation: true

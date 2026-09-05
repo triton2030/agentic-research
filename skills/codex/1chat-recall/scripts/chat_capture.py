@@ -66,7 +66,10 @@ def read_topic_map(root: Path) -> TopicMap | None:
 
 def add_topic_row(topic_map: TopicMap, topic: str, boundary: str) -> None:
     """Record a new topic in the map, in the same turn as the quote."""
-    lines = topic_map.path.read_text(encoding="utf-8-sig").splitlines()
+    lines = (
+        topic_map.path.read_text(encoding="utf-8-sig").splitlines()
+        if topic_map.path.exists() else ["# Карта тем", ""]
+    )
     row = f"- `{topic}` — {boundary}"
     rows = [
         index
@@ -74,7 +77,13 @@ def add_topic_row(topic_map: TopicMap, topic: str, boundary: str) -> None:
         if TOPIC_ROW_RE.match(line) and not _after_retired(lines, index)
     ]
     if not rows:
-        raise CaptureError(f"topic map has no topic rows to extend: {topic_map.path}")
+        insertion = next(
+            (i for i, line in enumerate(lines) if RETIRED_HEADING_RE.match(line)),
+            len(lines),
+        )
+        lines[insertion:insertion] = [row, ""]
+        write_atomic(topic_map.path, "\n".join(lines) + "\n")
+        return
     following = [
         index
         for index in rows
@@ -176,15 +185,13 @@ POSITION_TYPES = frozenset(
     {"решение", "коррекция", "критерий", "правило-кандидат", "предпочтение"}
 )
 SUPERSESSION_GUIDANCE = (
-    "a position must say what it overturns, and only you can say it: you heard "
-    "the reply, and no search will find the overturned position for you — a "
-    "cancellation is worded as the opposite of what it cancels and shares "
-    "almost none of its words. Overturns an earlier position: pass its address, "
-    "--supersedes <file>.md:<line>. Overturns none: --supersedes-none. Conflicts "
-    "without a clear winner: --contested <file>.md:<line>. A wrong link hides a "
-    "position that is still live, so a considered --supersedes-none is a real "
-    "answer, not a way past this"
+    "identify the relation before writing: --supersedes <file>.md:<line> for a "
+    "verified cancellation, --supersedes-none for no cancellation, --contested "
+    "<file>.md:<line> for a conflict without a winner. If the old quote was not "
+    "found after search, use --supersedes-unresolved <search-note>; the new "
+    "quote is saved without guessing which old record it cancels."
 )
+
 SESSION_CONTEXT_GUIDANCE = (
     "one-line search card for the whole session; pass the complete current card, "
     "not a delta; keep earlier major subjects when work changes; use brief "
@@ -477,6 +484,7 @@ def _entry_line(
     context: str | None = None,
     supersedes: str | None = None,
     contested: str | None = None,
+    supersedes_unresolved: str | None = None,
 ) -> str:
     fields = []
     if kind != "quote":
@@ -486,6 +494,8 @@ def _entry_line(
         fields.append(f"supersedes: {supersedes}")
     if contested:
         fields.append(f"contested: {contested}")
+    if supersedes_unresolved:
+        fields.append(f"supersedes-unresolved: {supersedes_unresolved}")
     if context:
         fields.append(f"context-note: {context}")
     return f'* {source.rendered} — "{quote}" — ' + " | ".join(fields) + "\n"
@@ -659,6 +669,7 @@ def create_file(
     session_card: str | None = None,
     supersedes: str | None = None,
     contested: str | None = None,
+    supersedes_unresolved: str | None = None,
 ) -> None:
     local = source.file_when.astimezone()
     lines = [
@@ -694,6 +705,7 @@ def create_file(
             context,
             supersedes,
             contested,
+            supersedes_unresolved,
         ).rstrip(),
     ]
     write_atomic(path, "\n".join(lines) + "\n")
@@ -712,6 +724,7 @@ def append_entry(
     session_card: str | None = None,
     supersedes: str | None = None,
     contested: str | None = None,
+    supersedes_unresolved: str | None = None,
 ) -> tuple[bool, bool, Path]:
     text = path.read_text(encoding="utf-8-sig")
     lines = text.splitlines()
@@ -738,6 +751,7 @@ def append_entry(
         context,
         supersedes,
         contested,
+        supersedes_unresolved,
     )
     write_atomic(target, rendered)
     if target != path:
@@ -771,8 +785,12 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="BOUNDARY",
         help=(
             "the subject fits no topic in the map: add its row — a one-line "
-            "boundary — together with this record"
+            "boundary — together with this record; creates the map on first capture"
         ),
+    )
+    parser.add_argument(
+        "--supersedes-unresolved", metavar="SEARCH_NOTE",
+        help="old quote was not found after search: preserve the new quote and the search gap without cancelling an address",
     )
     parser.add_argument("--kind", choices=KINDS, default="quote")
     parser.add_argument(
@@ -856,11 +874,16 @@ def main() -> int:
                 "--context-note is required for --kind quote and --kind selection; "
                 + CONTEXT_NOTE_GUIDANCE
             )
-        if args.supersedes_none and (args.supersedes or args.contested):
-            raise CaptureError(
-                "--supersedes-none contradicts --supersedes and --contested; "
-                "pass exactly one answer"
-            )
+        if sum(bool(value) for value in (
+            args.supersedes_none, args.supersedes, args.contested, args.supersedes_unresolved
+        )) > 1:
+            raise CaptureError("one supersession answer contradicts another; pass exactly one answer")
+        unresolved = (
+            one_line(args.supersedes_unresolved, "unresolved supersession search note")
+            if args.supersedes_unresolved is not None else None
+        )
+        if unresolved and "|" in unresolved:
+            raise CaptureError("unresolved supersession search note cannot contain metadata delimiter '|'")
         if (
             args.kind in ("quote", "selection")
             and type_ in POSITION_TYPES
@@ -868,9 +891,10 @@ def main() -> int:
             and not args.supersedes
             and not args.contested
             and not args.supersedes_none
+            and unresolved is None
         ):
             raise CaptureError(
-                "--supersedes, --contested or --supersedes-none is required for "
+                "--supersedes, --contested, --supersedes-unresolved or --supersedes-none is required for "
                 "a position; " + SUPERSESSION_GUIDANCE
             )
         if args.kind in ("quote", "selection") and session_card is None:
@@ -898,10 +922,12 @@ def main() -> int:
         log_dir = resolve_log_dir(root)
         topic_map = read_topic_map(root)
         if topic_map is None and topic != REPAIR_TOPIC:
-            raise CaptureError(
-                f"topic map not found: {root / TOPIC_MAP}. Read or repair the "
-                "target project's complete topic map before capture"
-            )
+            if not args.new_topic:
+                raise CaptureError(
+                    f"topic map not found: {root / TOPIC_MAP}. "
+                    'Use --new-topic "<boundary>" to create the first topic with the record.'
+                )
+            topic_map = TopicMap(root / TOPIC_MAP, {}, {})
         new_topic_row = None
         if topic_map is not None and topic != REPAIR_TOPIC:
             if topic in topic_map.retired:
@@ -975,6 +1001,7 @@ def main() -> int:
                     session_card,
                     supersedes,
                     contested,
+                    unresolved,
                 )
             else:
                 create_file(
@@ -992,6 +1019,7 @@ def main() -> int:
                     session_card,
                     supersedes,
                     contested,
+                    unresolved,
                 )
                 written = True
                 context_updated = session_card is not None

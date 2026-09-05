@@ -1,0 +1,57 @@
+{
+  "codex": {
+    "files": 20,
+    "description_chars": 182,
+    "installed": "/Users/triton/.codex/skills/1chat-recall",
+    "sha256": {
+      "SKILL.md": "47d47463adee930b7fe6ba5ea8f803f2d67038cdd23388ed85647e054abae66e",
+      "references/retrieval.md": "8647122afb53d69ff03db0b8e354d1ba082b8da8ba564e381a8646b1a96f8aa3",
+      "references/capture.md": "2f46a6e2b02f12b77a53320df1099227105e9a21fd49eabee433df936222aa85",
+      "references/integrity.md": "f83b878e859ee59248699e518cd3a199c5e2da18d0e0ef27c414c45819724de2",
+      "tests/evaluate_support.py": "839f396c67f2d2f3ad9ef9281b82dc4919c9003ded27858d8ef4de1b4a592d81",
+      "tests/test_evaluate_retrieval.py": "2dba8f8f4d293b2961078283c78b5b57c9d6caeaf14e6e2860b80ac6776fb194",
+      "tests/blind_mavo_short2_cases.json": "b2f892f98d643f63ed7dbbfccc9852c749786875055e154850486c4f257b7b3c",
+      "tests/test_chat_capture.py": "8171be6cd4e123d45d50e161dd13547c6f0c1f30237488f902e60844f9442d35",
+      "tests/test_chat_recall.py": "4b78fb0b00eb83b33a5da359df7b915a4d7740f630eb3d2622366723c2f16efa",
+      "tests/retrieval_cases.json": "421b458ab4c04c637cd0484f7b7296a6dd9797102902c01355e312d3f5283f92",
+      "tests/test_chat_digest.py": "7fde8ab6d484b03ba21555c7b913a9469d80c708ac9792b6254894671ff5d103",
+      "tests/evaluate_anchors.py": "912bbce6e89c4d0bfcb241ec5626740ed69dba51f4bd52451ba53c86c899eb2c",
+      "tests/support_cases.json": "e032f9cba99e1420753f833f0c226a4d7d9c24cd0bf8380ca14a50433b09f98f",
+      "tests/evaluate_retrieval.py": "f6edce0670c7310d5eb7ef9f2884d2207d90b8129957ea809b464847efc5d0d7",
+      "agents/openai.yaml": "13ff748aad37ce40b8bd0d870f28a67d997e60ac70247511fef9f2fa641959ce",
+      "scripts/chat_recall.py": "2028ab28f1b405d7d5260b156dd9c9e27f980994e78b94f4c20ac42cc86ab231",
+      "scripts/chat_digest.py": "909ea38f5edcd65560ac9b82f000e49b4b0cf84b65cf6b05e84a8b3215fc7869",
+      "scripts/chat_digest.py.lock": "06eb6a046269477497f3a8f38a10476ac12793930309b6eac5a9457ae4738840",
+      "scripts/chat_capture.py": "d66aec4e69a2c018f727794140d9e1552a658f69c644f3931326b6263c984205",
+      "scripts/recall_metadata.py": "305481b0daa3396e8b725adf6c727769db5a868d67c39006d9588a7d05161e65"
+    }
+  },
+  "claude": {
+    "files": 21,
+    "description_chars": 182,
+    "installed": "/Users/triton/.claude/skills/1chat-recall",
+    "sha256": {
+      "SKILL.md": "4f9287e126ebcca8c4ea81a01f76a868380d97fe981c1634affb1311df110443",
+      "references/retrieval.md": "0e36ce9ef526ad226c3f68e912654177e5e404165f66a331b58c631e8d393e0f",
+      "references/capture.md": "2577c35e53848722c891a0188e55d4b6f56ef2ed3f2d600eb50a4be92dc84a8c",
+      "references/integrity.md": "d8c11326cf380731bc395283c061ce2e077ac19ec519e831f0302eb46d9d5e53",
+      "tests/check_anchors.py": "8ed1b90710d9ad933beeb341cf2cd1e49beef6026ed8b6dd0b3c4a06f93ca57a",
+      "tests/evaluate_support.py": "839f396c67f2d2f3ad9ef9281b82dc4919c9003ded27858d8ef4de1b4a592d81",
+      "tests/capture_cases.json": "985a72ad855d07c348810872e30f9158d59b1b655c3688d9e6434ab0e4704d75",
+      "tests/test_evaluate_retrieval.py": "2dba8f8f4d293b2961078283c78b5b57c9d6caeaf14e6e2860b80ac6776fb194",
+      "tests/test_chat_capture.py": "814b2d4d439f7a278431fcd77a204716c118feb5ceaf08a1f3dbbf11e3aa2815",
+      "tests/test_chat_recall.py": "0f9e8312f9ea0b99a918ca9f80c0703534fef1811d24b05d3b0e50dcf9500b6d",
+      "tests/retrieval_cases.json": "421b458ab4c04c637cd0484f7b7296a6dd9797102902c01355e312d3f5283f92",
+      "tests/test_chat_digest.py": "7fde8ab6d484b03ba21555c7b913a9469d80c708ac9792b6254894671ff5d103",
+      "tests/evaluate_anchors.py": "912bbce6e89c4d0bfcb241ec5626740ed69dba51f4bd52451ba53c86c899eb2c",
+      "tests/evaluate_capture.py": "4ec62171bc160de0cf6ed06bd35528a6c385662442ec237295fbb883ecb3e705",
+      "tests/support_cases.json": "e032f9cba99e1420753f833f0c226a4d7d9c24cd0bf8380ca14a50433b09f98f",
+      "tests/evaluate_retrieval.py": "f6edce0670c7310d5eb7ef9f2884d2207d90b8129957ea809b464847efc5d0d7",
+      "scripts/chat_recall.py": "7b58e21df62f8543da89c6d8194561e3b60b060fd3078b00b514464bcee00dc6",
+      "scripts/chat_digest.py": "909ea38f5edcd65560ac9b82f000e49b4b0cf84b65cf6b05e84a8b3215fc7869",
+      "scripts/chat_digest.py.lock": "06eb6a046269477497f3a8f38a10476ac12793930309b6eac5a9457ae4738840",
+      "scripts/chat_capture.py": "d66aec4e69a2c018f727794140d9e1552a658f69c644f3931326b6263c984205",
+      "scripts/recall_metadata.py": "305481b0daa3396e8b725adf6c727769db5a868d67c39006d9588a7d05161e65"
+    }
+  }
+}

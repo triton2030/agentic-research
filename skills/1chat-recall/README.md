@@ -4,8 +4,9 @@ description: "Product truth, version packages, and refactor evidence for 1chat-r
 
 # 1chat-recall
 
-Эта папка владеет продуктовой рамкой и историей `1chat-recall`, но не является
-runtime package. Живые runtime owners находятся в
+Эта папка хранит историю `1chat-recall` и evidence принятых решений, но не
+является runtime package. Product owner по корневому реестру —
+`skills/shared/1chat-recall/product-frame.md`. Живые runtime owners находятся в
 `skills/codex/1chat-recall/` и `skills/claude/1chat-recall/`; установленные
 `~/.codex/skills/1chat-recall/` и `~/.claude/skills/1chat-recall/` — их
 projections.
@@ -16,14 +17,18 @@ projections.
   Claude расходятся намеренно, версия хранит отдельные `codex/` и `claude/`.
 - `work/<work-id>/` — служебные материалы создания и проверки: intent, cut,
   preservation map, reviews, probes и verification.
-- `product-frame.md` — живая продуктовая правда скила.
+- `product-frame.md` — историческая продуктовая рамка; действующий owner указан выше.
 - `cut.md` — общая история снятых и перенесённых смыслов между версиями.
 
 Текущая установленная версия:
-`versions/installed-2026-08-31-rewrite/` — полное переписывание пакета по
-протоколу `1skill-creation` из нового commander's intent, с проверкой потерь
-против прежнего пакета. Её намерение, смысловой черновик из чистой комнаты и
-карта потерь: `work/rewrite-2026-08-31/`.
+`versions/installed-2026-09-05-goals/` — три режима через цели и наблюдаемые
+исходы, первая Capture в новом проекте, видимые конфликты и неустановленные
+отмены. Evidence и продолжение: [verification](work/goal-rewrite-2026-09-05/verification.md),
+[состояние](work/goal-rewrite-2026-09-05/state.md),
+[карта потерь](work/goal-rewrite-2026-09-05/intent.md).
+
+Предыдущая версия: `versions/installed-2026-08-31-rewrite/`,
+её intent и clean-room — `work/rewrite-2026-08-31/`.
 
 Предшествующая установленная версия:
 `versions/installed-2026-08-31-background-subagent/`.

@@ -41,7 +41,7 @@ from recall_metadata import (
 KINDS = {"quote", "selection", "note", "raw"}
 PRECISIONS = {"exact", "minute", "date", "unknown"}
 META_KEY = (
-    r"kind|type|topic|source|precision|source-ref|supersedes|contested|context-note"
+    r"kind|type|topic|source|precision|source-ref|supersedes|supersedes-unresolved|contested|context-note"
 )
 ENTRY_RE = re.compile(
     r"^\*\s+(?P<timestamp>.+?)\s+—\s+"
@@ -273,6 +273,8 @@ def _parse_block(
         record["context_note"] = context_note
     if session_context:
         record["session_context"] = session_context
+    if metadata.get("supersedes-unresolved"):
+        record["supersedes_unresolved"] = metadata["supersedes-unresolved"].strip()
     for field in ("supersedes", "contested"):
         value = metadata.get(field)
         if value:
@@ -395,6 +397,7 @@ def _decision_records(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
         and not record.get("contested")
         and not record.get("contested_by")
         and not record.get("invalid_supersedes")
+        and not record.get("supersedes_unresolved")
     ]
 
 
@@ -1240,6 +1243,54 @@ def _filter(records: list[dict[str, Any]], args: argparse.Namespace) -> list[dic
     return result
 
 
+def _query_conflicts(records: list[dict[str, Any]], args: argparse.Namespace) -> list[dict[str, Any]]:
+    """Use the query runtime for separate conflict evidence, never for a position."""
+    disputed = [r for r in _filter(records, args) if r.get("contested") or r.get("contested_by") or r.get("supersedes_unresolved")]
+    if not disputed:
+        return []
+    if args.lexical:
+        ranking = search_bm25(disputed, args.query)
+        routes, _ = search_session_routes(disputed, args.query, hybrid=False)
+    else:
+        with _hybrid_queue():
+            ranking = search_hybrid(disputed, args.query, collapse_files=False)
+            routes, _ = search_session_routes(disputed, args.query, hybrid=True)
+    quote_addresses = {r["address"] for r in ranking}
+    hits = list(ranking)
+    for route in routes:
+        hits.extend(r for r in disputed if r["file"] == route["file"] and r["address"] not in quote_addresses)
+    by_address = {r["address"]: r for r in records}
+    pairs: dict[str, list[str]] = defaultdict(list)
+    for record in records:
+        for challenger in record.get("contested_by", []):
+            pairs[record["address"]].append(challenger)
+            pairs[challenger].append(record["address"])
+    evidence = []
+    seen: set[tuple[str, ...]] = set()
+    for hit in hits:
+        addresses = tuple(sorted({hit["address"], *pairs[hit["address"]]}))
+        if addresses in seen:
+            continue
+        seen.add(addresses)
+        evidence.append({
+            "reason": "unresolved-supersession" if hit.get("supersedes_unresolved") else "contested",
+            "records": [_summary(by_address[a]) for a in addresses],
+        })
+    return evidence
+
+
+def _render_conflicts(conflicts: list[dict[str, Any]], matched: int, retrieval: str) -> str:
+    if not matched:
+        return ""
+    lines = [f"conflicts={len(conflicts)}/{matched} · conflict_retrieval={retrieval} · warning=conflict-evidence-present"]
+    if len(conflicts) < matched:
+        lines.append("conflict_truncated=true; increase --limit or --max-chars")
+    for conflict in conflicts:
+        lines.append(conflict["reason"] + ": " + " ↔ ".join(r["address"] for r in conflict["records"]))
+        lines.extend(f"  {r['address']}: {r['text']}" + (f" [supersedes_unresolved: {r['supersedes_unresolved']}]" if r.get("supersedes_unresolved") else "") for r in conflict["records"])
+    return "\n".join(lines) + "\n"
+
+
 def _retrieve_with_topics(
     records: list[dict[str, Any]],
     args: argparse.Namespace,
@@ -1527,6 +1578,7 @@ def _summary(record: dict[str, Any]) -> dict[str, Any]:
         "agent",
         "address",
         "supersedes",
+        "supersedes_unresolved",
         "contested",
         "superseded_by",
         "contested_by",
@@ -1835,6 +1887,7 @@ def _bounded_holder_cards(
 def _query_selection(
     holders: list[dict[str, Any]],
     topics: list[dict[str, Any]],
+    conflict_matched: int = 0,
 ) -> str:
     if holders and topics:
         return "holders+topic_candidates"
@@ -1842,7 +1895,7 @@ def _query_selection(
         return "holders"
     if topics:
         return "topic_candidates"
-    return "none"
+    return "conflicts" if conflict_matched else "none"
 
 
 def _bounded_digest(
@@ -1917,6 +1970,8 @@ def _warnings(records: list[dict[str, Any]]) -> list[str]:
         warnings.append("approximate-or-unknown-time-present")
     if any(record.get("contested") or record.get("contested_by") for record in records):
         warnings.append("contested-evidence-present")
+    if any(record.get("supersedes_unresolved") for record in records):
+        warnings.append("unresolved-supersession-present")
     return warnings
 
 
@@ -1959,7 +2014,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--limit",
         type=int,
         default=10,
-        help="maximum holders for a query, records for other modes",
+        help="maximum holders for a query (also separately caps conflict groups), records for other modes",
     )
     parser.add_argument(
         "--max-chars",
@@ -2036,6 +2091,15 @@ def main() -> int:
         topic_candidates: list[dict[str, Any]] = []
         topic_candidate_count = 0
         candidate_count = 0
+        conflicts = _query_conflicts(records, args) if holder_mode else []
+        conflict_matched = len(conflicts)
+        conflicts = conflicts[:args.limit]
+        conflict_text = ""
+        if holder_mode and not args.json:
+            conflict_text = _render_conflicts(conflicts, conflict_matched, "lexical" if args.lexical else "hybrid")
+            while conflicts and len(conflict_text) + 300 > args.max_chars:
+                conflicts.pop()
+                conflict_text = _render_conflicts(conflicts, conflict_matched, "lexical" if args.lexical else "hybrid")
         inventory_mode = not any(
             (
                 args.digest,
@@ -2087,6 +2151,16 @@ def main() -> int:
                 "limit" if len(selected_holders) < candidate_count else None
             )
             if not args.json:
+                minimum_holders = _render_holders(
+                    holder_cards[:1],
+                    topic_candidates=topic_candidates[:1] if not holder_cards else [],
+                    topic_matched=topic_candidate_count,
+                    matched=matched, total=total, truncated_by="max_chars",
+                    retrieval=retrieval or "lexical",
+                )
+                while conflicts and len(conflict_text) + len(minimum_holders) > args.max_chars:
+                    conflicts.pop()
+                    conflict_text = _render_conflicts(conflicts, conflict_matched, retrieval or "lexical")
                 (
                     holder_cards,
                     topic_candidates,
@@ -2097,7 +2171,7 @@ def main() -> int:
                     topic_matched=topic_candidate_count,
                     matched=matched,
                     total=total,
-                    max_chars=args.max_chars,
+                    max_chars=args.max_chars - len(conflict_text),
                     retrieval=retrieval or "lexical",
                 )
                 if character_truncation:
@@ -2167,7 +2241,7 @@ def main() -> int:
             "truncated": truncated_by is not None,
             "truncated_by": truncated_by,
             "selection": (
-                _query_selection(holder_cards, topic_candidates)
+                _query_selection(holder_cards, topic_candidates, conflict_matched)
                 if holder_mode
                 else "records"
                 if not holder_mode and matched
@@ -2177,6 +2251,14 @@ def main() -> int:
             "warnings": _warnings(reported_records),
         }
         if holder_mode:
+            envelope["conflict_matched"] = conflict_matched
+            if conflict_matched:
+                envelope.update(
+                    conflicts=conflicts, conflict_returned=len(conflicts),
+                    conflict_truncated=len(conflicts) < conflict_matched,
+                    conflict_retrieval="lexical" if args.lexical else "hybrid",
+                )
+                envelope["warnings"] = sorted(set(envelope["warnings"]) | {"conflict-evidence-present"})
             envelope["holders"] = holder_cards
             if topic_candidate_count or topic_candidates:
                 envelope["topic_candidates"] = topic_candidates
@@ -2223,7 +2305,7 @@ def main() -> int:
                     envelope["topic_candidates"].pop()
                     envelope["topic_returned"] = len(envelope["topic_candidates"])
                     envelope["selection"] = _query_selection(
-                        envelope["holders"], envelope.get("topic_candidates", [])
+                        envelope["holders"], envelope.get("topic_candidates", []), conflict_matched
                     )
                     envelope["truncated"] = True
                     envelope["truncated_by"] = "max_chars"
@@ -2240,13 +2322,20 @@ def main() -> int:
                 envelope["returned"] = len(envelope[output_key])
                 if holder_mode:
                     envelope["selection"] = _query_selection(
-                        envelope["holders"], envelope.get("topic_candidates", [])
+                        envelope["holders"], envelope.get("topic_candidates", []), conflict_matched
                     )
                 envelope["truncated"] = True
                 envelope["truncated_by"] = "max_chars"
                 rendered = json.dumps(
                     envelope, ensure_ascii=False, separators=(",", ":")
                 )
+            while holder_mode and len(rendered) > args.max_chars and envelope.get("conflicts"):
+                envelope["conflicts"].pop()
+                envelope["conflict_returned"] = len(envelope["conflicts"])
+                envelope["conflict_truncated"] = True
+                envelope["truncated"] = True
+                envelope["truncated_by"] = "max_chars"
+                rendered = json.dumps(envelope, ensure_ascii=False, separators=(",", ":"))
             if len(rendered) > args.max_chars:
                 raise CliError(
                     "--max-chars слишком мал для обязательного JSON envelope"
@@ -2269,7 +2358,7 @@ def main() -> int:
             print(inventory(records, diagnostic_count))
         elif holder_mode:
             print(
-                _render_holders(
+                conflict_text + _render_holders(
                     holder_cards,
                     topic_candidates=topic_candidates,
                     topic_matched=topic_candidate_count,

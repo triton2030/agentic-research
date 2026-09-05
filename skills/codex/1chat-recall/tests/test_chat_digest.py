@@ -65,6 +65,92 @@ class ChatDigestTests(unittest.TestCase):
     def tearDown(self) -> None:
         self.temp.cleanup()
 
+    def test_query_reports_conflict_pair_without_admitting_positions(self) -> None:
+        self.write_entries(['* 2026-07-01 — "quartz enable" — type: решение | topic: mode'])
+        address = DIGEST.load(self.corpus)[0][0]["address"]
+        with (self.corpus / "recall.md").open("a") as out:
+            out.write(f'\n* 2026-07-02 — "disable it" — type: решение | topic: mode | contested: {address}\n')
+        result = self.call("--query", "quartz", "--json")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        data = json.loads(result.stdout)
+        self.assertEqual(data["returned"], 0)
+        self.assertEqual(data["conflict_matched"], 1)
+        self.assertEqual(len(data["conflicts"][0]["records"]), 2)
+        self.assertIn("conflict-evidence-present", data["warnings"])
+        text = self.call("--query", "quartz")
+        self.assertIn("conflicts=1/1", text.stdout)
+        self.assertIn(address, text.stdout)
+        unrelated = json.loads(self.call("--query", "unrelatedword", "--json").stdout)
+        self.assertEqual(unrelated["conflict_matched"], 0)
+        self.assertNotIn("conflict-evidence-present", unrelated["warnings"])
+        scoped = json.loads(self.call("--query", "quartz", "--topic", "other", "--json").stdout)
+        self.assertEqual(scoped["conflict_matched"], 0)
+        bounded = self.call("--query", "quartz", "--json", "--max-chars", "1000")
+        self.assertEqual(bounded.returncode, 0, bounded.stderr)
+        cut = json.loads(bounded.stdout)
+        self.assertTrue(cut["conflict_truncated"])
+        self.assertEqual(cut["conflict_matched"], 1)
+        self.assertIn("conflict-evidence-present", cut["warnings"])
+        self.assertLessEqual(len(bounded.stdout.strip()), 1000)
+
+    def test_conflict_search_uses_hybrid_and_session_routes(self) -> None:
+        self.write_entries(['* 2026-07-01 — "opaque words" — type: решение | topic: mode | supersedes-unresolved: search failed'])
+        records, _ = DIGEST.load(self.corpus)
+        args = DIGEST.build_parser().parse_args([str(self.corpus), "--query", "paraphrase"])
+        with mock.patch.object(DIGEST, "search_hybrid", return_value=[records[0]]) as hybrid, mock.patch.object(
+            DIGEST, "search_session_routes", return_value=([], "hybrid")
+        ) as routes:
+            evidence = DIGEST._query_conflicts(records, args)
+        self.assertEqual(len(evidence), 1)
+        hybrid.assert_called_once()
+        self.assertTrue(routes.call_args.kwargs["hybrid"])
+        args.lexical = True
+        with mock.patch.object(DIGEST, "search_session_routes", return_value=([records[0]], "lexical")):
+            self.assertEqual(len(DIGEST._query_conflicts(records, args)), 1)
+
+    def test_conflict_query_does_not_add_other_conflicts_from_same_file(self) -> None:
+        self.write_entries([
+            '* 2026-07-01 — "quartz new" — type: решение | topic: mode | supersedes-unresolved: search failed',
+            '* 2026-07-02 — "amber new" — type: решение | topic: mode | supersedes-unresolved: search failed',
+        ])
+        result = json.loads(self.call("--query", "quartz", "--json").stdout)
+        self.assertEqual(result["conflict_matched"], 1)
+        self.assertNotIn("amber", json.dumps(result["conflicts"]))
+        limited = json.loads(self.call("--query", "new", "--json", "--limit", "1").stdout)
+        self.assertEqual(limited["conflict_matched"], 2)
+        self.assertEqual(limited["conflict_returned"], 1)
+        self.assertTrue(limited["conflict_truncated"])
+
+    def test_conflict_ranking_survives_limit_and_text_budget_preserves_holder(self) -> None:
+        self.write_entries([
+            '* 2026-07-01 — "quartz ' + 'padding ' * 80 + '" — type: решение | topic: mode | supersedes-unresolved: search failed',
+            '* 2026-07-02 — "quartz" — type: решение | topic: mode | supersedes-unresolved: search failed',
+            '* 2026-07-03 — "quartz independent" — type: решение | topic: mode',
+        ])
+        data = json.loads(self.call("--query", "quartz", "--json", "--limit", "1").stdout)
+        self.assertEqual(data["conflicts"][0]["records"][0]["text"], "quartz")
+        text = self.call("--query", "quartz", "--max-chars", "700")
+        self.assertEqual(text.returncode, 0, text.stderr)
+        self.assertIn("conflict-evidence-present", text.stdout)
+        self.assertIn("holder=", text.stdout)
+        self.assertLessEqual(len(text.stdout.rstrip()), 700)
+
+    def test_unresolved_supersession_surfaces_without_cancelling_old(self) -> None:
+        self.write_entries([
+            '* 2026-07-01 — "quartz old" — type: решение | topic: mode',
+            '* 2026-07-02 — "quartz new" — type: решение | topic: mode | supersedes-unresolved: searched old variant',
+        ])
+        records, _ = DIGEST.load(self.corpus)
+        DIGEST.link_supersessions(records)
+        self.assertEqual(len(DIGEST._decision_records(records)), 1)
+        self.assertNotIn("superseded_by", records[0])
+        result = self.call("--query", "quartz", "--json")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        data = json.loads(result.stdout)
+        self.assertEqual(data["returned"], 1)
+        self.assertEqual(data["conflicts"][0]["reason"], "unresolved-supersession")
+        self.assertEqual(data["conflicts"][0]["records"][0]["supersedes_unresolved"], "searched old variant")
+
     def test_search_address_is_accepted_by_capture_unchanged(self) -> None:
         """The address search prints must be the address capture takes.
 
