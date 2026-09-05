@@ -18,3 +18,10 @@ description: "Version packages and refactor evidence for 1plan-task."
 
 Последний кандидат: `versions/candidate-2026-09-02-criteria/` — установлен 2026-09-02.
 Его служебное evidence: `work/refactor-2026-09-02/` (intent, clean-room-draft, loss-map, wave-1, wave-2).
+
+## Рефактор 2026-09-03
+
+Текущий черновик: [candidate-2026-09-03-v3](versions/candidate-2026-09-03-v3/SKILL.md), ещё не установлен.
+Исходный пакет: [baseline-2026-09-03](versions/baseline-2026-09-03/SKILL.md).
+Продолжение: [состояние](work/refactor-2026-09-03/state.md).
+Общее намерение и карта потерь: [рабочая папка тройки](../1planning/work/refactor-2026-09-03/intent.md).

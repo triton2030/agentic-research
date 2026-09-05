@@ -1,0 +1,31 @@
+{
+  "version": "draft-2026-09-05-v3",
+  "package_files": 5,
+  "package_chars": 13454,
+  "description_chars": 143,
+  "why_chars": 416,
+  "task_sentences": 1,
+  "goal_sentences": 3,
+  "examples": {
+    "цель": {
+      "chars": 490,
+      "criteria": 3
+    },
+    "сценарий": {
+      "chars": 658,
+      "criteria": 4
+    },
+    "факты": {
+      "chars": 389,
+      "criteria": 0
+    }
+  },
+  "links_and_fences": "pass",
+  "sha256": {
+    "SKILL.md": "039cca6911f485e047d2137fc8430a249d9af0539247a9b735517ea999305442",
+    "references/размещение.md": "ac6cdaafa03835acc8d33afb6efe14a6bb36cea36d1b55785f86fb016020516e",
+    "references/сценарий.md": "43855a810c4465ab7c6503c356cf04472d84e10f194d70884a3d02c9ede569bd",
+    "references/факты.md": "0a42a9d2093014c1151fbbd4a3ff7dd71667628d27f00fedb108c13067a01bbd",
+    "references/цель.md": "09d3cbbc5e1ed072fc3d2fc6349a351558c37220aa554983766b438d8ad2600d"
+  }
+}

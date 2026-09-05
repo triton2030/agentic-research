@@ -1,0 +1,159 @@
+{
+  "approved_files": {
+    "SKILL.md": "856ae6be740a363384e12a13c79bd3ccce2af4947c3ac171841028208807a718",
+    "references/steering-science.md": "74cf3aa5c2465f75769f47448547a6b67fc9a7b59be1c8f546809b010034a18e"
+  },
+  "consumer_changes": [
+    {
+      "path": "/Users/triton/Documents/GitHub/agentic-research/skills/shared/1skill-creation/portable/SKILL.md",
+      "before_sha256": "85ff70270e156aaa32ff9eb898bc47f36b6b7269ad18ac3b2d689449eb882518",
+      "after_sha256": "a9453070943ebdf84927919f5473c9875c1b585f23697213510877dbda82a6f3",
+      "inserted": "Перед созданием или смысловой переработкой скилла вызови `1agent-steering`:\nон передаёт науку управления агентами через текст и требует объяснять в чате,\nкакое знание определило конкретные формулировки. Формат и жизненный цикл\nфайла остаются у этого скилла.\n\n"
+    },
+    {
+      "path": "/Users/triton/Documents/GitHub/agentic-research/skills/claude/1skill-creation/SKILL.md",
+      "before_sha256": "85ff70270e156aaa32ff9eb898bc47f36b6b7269ad18ac3b2d689449eb882518",
+      "after_sha256": "a9453070943ebdf84927919f5473c9875c1b585f23697213510877dbda82a6f3",
+      "inserted": "Перед созданием или смысловой переработкой скилла вызови `1agent-steering`:\nон передаёт науку управления агентами через текст и требует объяснять в чате,\nкакое знание определило конкретные формулировки. Формат и жизненный цикл\nфайла остаются у этого скилла.\n\n"
+    },
+    {
+      "path": "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1skill-creation/SKILL.md",
+      "before_sha256": "85ff70270e156aaa32ff9eb898bc47f36b6b7269ad18ac3b2d689449eb882518",
+      "after_sha256": "a9453070943ebdf84927919f5473c9875c1b585f23697213510877dbda82a6f3",
+      "inserted": "Перед созданием или смысловой переработкой скилла вызови `1agent-steering`:\nон передаёт науку управления агентами через текст и требует объяснять в чате,\nкакое знание определило конкретные формулировки. Формат и жизненный цикл\nфайла остаются у этого скилла.\n\n"
+    },
+    {
+      "path": "/Users/triton/.claude/skills/1skill-creation/SKILL.md",
+      "before_sha256": "85ff70270e156aaa32ff9eb898bc47f36b6b7269ad18ac3b2d689449eb882518",
+      "after_sha256": "a9453070943ebdf84927919f5473c9875c1b585f23697213510877dbda82a6f3",
+      "inserted": "Перед созданием или смысловой переработкой скилла вызови `1agent-steering`:\nон передаёт науку управления агентами через текст и требует объяснять в чате,\nкакое знание определило конкретные формулировки. Формат и жизненный цикл\nфайла остаются у этого скилла.\n\n"
+    },
+    {
+      "path": "/Users/triton/.codex/skills/1skill-creation/SKILL.md",
+      "before_sha256": "85ff70270e156aaa32ff9eb898bc47f36b6b7269ad18ac3b2d689449eb882518",
+      "after_sha256": "a9453070943ebdf84927919f5473c9875c1b585f23697213510877dbda82a6f3",
+      "inserted": "Перед созданием или смысловой переработкой скилла вызови `1agent-steering`:\nон передаёт науку управления агентами через текст и требует объяснять в чате,\nкакое знание определило конкретные формулировки. Формат и жизненный цикл\nфайла остаются у этого скилла.\n\n"
+    },
+    {
+      "path": "/Users/triton/Documents/GitHub/agentic-research/skills/shared/1instruction-authoring/portable/SKILL.md",
+      "before_sha256": "b991b77862ae29fcc1ec43ed5769f7758d68e5a2f395edb65911c44f37529724",
+      "after_sha256": "e50ed794c6de0154408aad4fa91f10a6fc2d7ef5bbf3ca4a092ee740e16b4138",
+      "inserted": "Перед созданием или смысловой переработкой слоя инструкций вызови `1agent-steering`:\nон передаёт науку управления агентами через текст и требует объяснять в чате,\nкакое знание определило конкретные формулировки. Формат и жизненный цикл\nфайла остаются у этого скилла.\n\n"
+    },
+    {
+      "path": "/Users/triton/Documents/GitHub/agentic-research/skills/claude/1instruction-authoring/SKILL.md",
+      "before_sha256": "b991b77862ae29fcc1ec43ed5769f7758d68e5a2f395edb65911c44f37529724",
+      "after_sha256": "e50ed794c6de0154408aad4fa91f10a6fc2d7ef5bbf3ca4a092ee740e16b4138",
+      "inserted": "Перед созданием или смысловой переработкой слоя инструкций вызови `1agent-steering`:\nон передаёт науку управления агентами через текст и требует объяснять в чате,\nкакое знание определило конкретные формулировки. Формат и жизненный цикл\nфайла остаются у этого скилла.\n\n"
+    },
+    {
+      "path": "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1instruction-authoring/SKILL.md",
+      "before_sha256": "b991b77862ae29fcc1ec43ed5769f7758d68e5a2f395edb65911c44f37529724",
+      "after_sha256": "e50ed794c6de0154408aad4fa91f10a6fc2d7ef5bbf3ca4a092ee740e16b4138",
+      "inserted": "Перед созданием или смысловой переработкой слоя инструкций вызови `1agent-steering`:\nон передаёт науку управления агентами через текст и требует объяснять в чате,\nкакое знание определило конкретные формулировки. Формат и жизненный цикл\nфайла остаются у этого скилла.\n\n"
+    },
+    {
+      "path": "/Users/triton/.claude/skills/1instruction-authoring/SKILL.md",
+      "before_sha256": "b991b77862ae29fcc1ec43ed5769f7758d68e5a2f395edb65911c44f37529724",
+      "after_sha256": "e50ed794c6de0154408aad4fa91f10a6fc2d7ef5bbf3ca4a092ee740e16b4138",
+      "inserted": "Перед созданием или смысловой переработкой слоя инструкций вызови `1agent-steering`:\nон передаёт науку управления агентами через текст и требует объяснять в чате,\nкакое знание определило конкретные формулировки. Формат и жизненный цикл\nфайла остаются у этого скилла.\n\n"
+    },
+    {
+      "path": "/Users/triton/.codex/skills/1instruction-authoring/SKILL.md",
+      "before_sha256": "b991b77862ae29fcc1ec43ed5769f7758d68e5a2f395edb65911c44f37529724",
+      "after_sha256": "e50ed794c6de0154408aad4fa91f10a6fc2d7ef5bbf3ca4a092ee740e16b4138",
+      "inserted": "Перед созданием или смысловой переработкой слоя инструкций вызови `1agent-steering`:\nон передаёт науку управления агентами через текст и требует объяснять в чате,\nкакое знание определило конкретные формулировки. Формат и жизненный цикл\nфайла остаются у этого скилла.\n\n"
+    },
+    {
+      "path": "/Users/triton/Documents/GitHub/agentic-research/skills/shared/1plan-map/portable/SKILL.md",
+      "before_sha256": "1c91dd18dcdeb2d924d295fb24b153519f42047fde08b5747fccf4ba7a4d5458",
+      "after_sha256": "48af067174596172b3dd9fe1402aab816122a0a99d8b3f9562758387c4f65cf3",
+      "inserted": "Перед созданием или смысловой переработкой эпика вызови `1agent-steering`:\nон передаёт науку управления агентами через текст и требует объяснять в чате,\nкакое знание определило конкретные формулировки. Формат и жизненный цикл\nфайла остаются у этого скилла.\n\n"
+    },
+    {
+      "path": "/Users/triton/Documents/GitHub/agentic-research/skills/claude/1plan-map/SKILL.md",
+      "before_sha256": "1c91dd18dcdeb2d924d295fb24b153519f42047fde08b5747fccf4ba7a4d5458",
+      "after_sha256": "48af067174596172b3dd9fe1402aab816122a0a99d8b3f9562758387c4f65cf3",
+      "inserted": "Перед созданием или смысловой переработкой эпика вызови `1agent-steering`:\nон передаёт науку управления агентами через текст и требует объяснять в чате,\nкакое знание определило конкретные формулировки. Формат и жизненный цикл\nфайла остаются у этого скилла.\n\n"
+    },
+    {
+      "path": "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1plan-map/SKILL.md",
+      "before_sha256": "1c91dd18dcdeb2d924d295fb24b153519f42047fde08b5747fccf4ba7a4d5458",
+      "after_sha256": "48af067174596172b3dd9fe1402aab816122a0a99d8b3f9562758387c4f65cf3",
+      "inserted": "Перед созданием или смысловой переработкой эпика вызови `1agent-steering`:\nон передаёт науку управления агентами через текст и требует объяснять в чате,\nкакое знание определило конкретные формулировки. Формат и жизненный цикл\nфайла остаются у этого скилла.\n\n"
+    },
+    {
+      "path": "/Users/triton/.claude/skills/1plan-map/SKILL.md",
+      "before_sha256": "6eb88ee0e561c418f8f6e68ab9fea721f634dca491a79b71d048528d126fffe0",
+      "after_sha256": "ae893ed8f7a6e2ee93808ecbd744e5eee655b1d07df35edc12079a85a48e0fb3",
+      "inserted": "Перед созданием или смысловой переработкой эпика вызови `1agent-steering`:\nон передаёт науку управления агентами через текст и требует объяснять в чате,\nкакое знание определило конкретные формулировки. Формат и жизненный цикл\nфайла остаются у этого скилла.\n\n"
+    },
+    {
+      "path": "/Users/triton/.codex/skills/1plan-map/SKILL.md",
+      "before_sha256": "1c91dd18dcdeb2d924d295fb24b153519f42047fde08b5747fccf4ba7a4d5458",
+      "after_sha256": "48af067174596172b3dd9fe1402aab816122a0a99d8b3f9562758387c4f65cf3",
+      "inserted": "Перед созданием или смысловой переработкой эпика вызови `1agent-steering`:\nон передаёт науку управления агентами через текст и требует объяснять в чате,\nкакое знание определило конкретные формулировки. Формат и жизненный цикл\nфайла остаются у этого скилла.\n\n"
+    },
+    {
+      "path": "/Users/triton/Documents/GitHub/agentic-research/skills/shared/1plan-task/portable/SKILL.md",
+      "before_sha256": "1c59b8d38ce1044d605bd12a9e80956f0bb46f9c5fab0d9a1c034f545341d2a9",
+      "after_sha256": "bc64f14d63370ed4813f631fe5d8fd067b35e1db1046922a9d6562a511871c05",
+      "inserted": "Перед созданием или смысловой переработкой файла задачи вызови `1agent-steering`:\nон передаёт науку управления агентами через текст и требует объяснять в чате,\nкакое знание определило конкретные формулировки. Формат и жизненный цикл\nфайла остаются у этого скилла.\n\n"
+    },
+    {
+      "path": "/Users/triton/Documents/GitHub/agentic-research/skills/claude/1plan-task/SKILL.md",
+      "before_sha256": "1c59b8d38ce1044d605bd12a9e80956f0bb46f9c5fab0d9a1c034f545341d2a9",
+      "after_sha256": "bc64f14d63370ed4813f631fe5d8fd067b35e1db1046922a9d6562a511871c05",
+      "inserted": "Перед созданием или смысловой переработкой файла задачи вызови `1agent-steering`:\nон передаёт науку управления агентами через текст и требует объяснять в чате,\nкакое знание определило конкретные формулировки. Формат и жизненный цикл\nфайла остаются у этого скилла.\n\n"
+    },
+    {
+      "path": "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1plan-task/SKILL.md",
+      "before_sha256": "1c59b8d38ce1044d605bd12a9e80956f0bb46f9c5fab0d9a1c034f545341d2a9",
+      "after_sha256": "bc64f14d63370ed4813f631fe5d8fd067b35e1db1046922a9d6562a511871c05",
+      "inserted": "Перед созданием или смысловой переработкой файла задачи вызови `1agent-steering`:\nон передаёт науку управления агентами через текст и требует объяснять в чате,\nкакое знание определило конкретные формулировки. Формат и жизненный цикл\nфайла остаются у этого скилла.\n\n"
+    },
+    {
+      "path": "/Users/triton/.claude/skills/1plan-task/SKILL.md",
+      "before_sha256": "1c59b8d38ce1044d605bd12a9e80956f0bb46f9c5fab0d9a1c034f545341d2a9",
+      "after_sha256": "bc64f14d63370ed4813f631fe5d8fd067b35e1db1046922a9d6562a511871c05",
+      "inserted": "Перед созданием или смысловой переработкой файла задачи вызови `1agent-steering`:\nон передаёт науку управления агентами через текст и требует объяснять в чате,\nкакое знание определило конкретные формулировки. Формат и жизненный цикл\nфайла остаются у этого скилла.\n\n"
+    },
+    {
+      "path": "/Users/triton/.codex/skills/1plan-task/SKILL.md",
+      "before_sha256": "1c59b8d38ce1044d605bd12a9e80956f0bb46f9c5fab0d9a1c034f545341d2a9",
+      "after_sha256": "bc64f14d63370ed4813f631fe5d8fd067b35e1db1046922a9d6562a511871c05",
+      "inserted": "Перед созданием или смысловой переработкой файла задачи вызови `1agent-steering`:\nон передаёт науку управления агентами через текст и требует объяснять в чате,\nкакое знание определило конкретные формулировки. Формат и жизненный цикл\nфайла остаются у этого скилла.\n\n"
+    },
+    {
+      "path": "/Users/triton/Documents/GitHub/agentic-research/skills/shared/1goal/portable/SKILL.md",
+      "before_sha256": "b046960d86b03e76c56c19c1f46acef5724925aef35a0de5bffe9e75d5818756",
+      "after_sha256": "91f940bde55c8e9e0afe8d4f3541b00b5bbdec937e5a781443bd6c13dafbb9e7",
+      "inserted": "Перед созданием или смысловой переработкой GOAL вызови `1agent-steering`:\nон передаёт науку управления агентами через текст и требует объяснять в чате,\nкакое знание определило конкретные формулировки. Формат и жизненный цикл\nфайла остаются у этого скилла.\n\n"
+    },
+    {
+      "path": "/Users/triton/Documents/GitHub/agentic-research/skills/claude/1goal/SKILL.md",
+      "before_sha256": "b046960d86b03e76c56c19c1f46acef5724925aef35a0de5bffe9e75d5818756",
+      "after_sha256": "91f940bde55c8e9e0afe8d4f3541b00b5bbdec937e5a781443bd6c13dafbb9e7",
+      "inserted": "Перед созданием или смысловой переработкой GOAL вызови `1agent-steering`:\nон передаёт науку управления агентами через текст и требует объяснять в чате,\nкакое знание определило конкретные формулировки. Формат и жизненный цикл\nфайла остаются у этого скилла.\n\n"
+    },
+    {
+      "path": "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1goal/SKILL.md",
+      "before_sha256": "b046960d86b03e76c56c19c1f46acef5724925aef35a0de5bffe9e75d5818756",
+      "after_sha256": "91f940bde55c8e9e0afe8d4f3541b00b5bbdec937e5a781443bd6c13dafbb9e7",
+      "inserted": "Перед созданием или смысловой переработкой GOAL вызови `1agent-steering`:\nон передаёт науку управления агентами через текст и требует объяснять в чате,\nкакое знание определило конкретные формулировки. Формат и жизненный цикл\nфайла остаются у этого скилла.\n\n"
+    },
+    {
+      "path": "/Users/triton/.claude/skills/1goal/SKILL.md",
+      "before_sha256": "d5a51b56b7615000a8b6e96ed9dbb70e73854bbae632da4ea889f3402baf656f",
+      "after_sha256": "edb868f834176c3ca14ef17a79daf1bd2b16c300e0b68f78ca4f865ef630c206",
+      "inserted": "Перед созданием или смысловой переработкой GOAL вызови `1agent-steering`:\nон передаёт науку управления агентами через текст и требует объяснять в чате,\nкакое знание определило конкретные формулировки. Формат и жизненный цикл\nфайла остаются у этого скилла.\n\n"
+    },
+    {
+      "path": "/Users/triton/.codex/skills/1goal/SKILL.md",
+      "before_sha256": "b046960d86b03e76c56c19c1f46acef5724925aef35a0de5bffe9e75d5818756",
+      "after_sha256": "91f940bde55c8e9e0afe8d4f3541b00b5bbdec937e5a781443bd6c13dafbb9e7",
+      "inserted": "Перед созданием или смысловой переработкой GOAL вызови `1agent-steering`:\nон передаёт науку управления агентами через текст и требует объяснять в чате,\nкакое знание определило конкретные формулировки. Формат и жизненный цикл\nфайла остаются у этого скилла.\n\n"
+    }
+  ],
+  "projection_mode": "Owner-authored delta only; pre-existing runtime drift preserved"
+}

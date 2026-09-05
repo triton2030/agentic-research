@@ -1,0 +1,60 @@
+filters:
+  and:
+    - file.inFolder("_ops/plans/эпики")
+    - тип == "задача"
+formulas:
+  Прогресс: if(note["подзадач"] > 0, ((note["подзадач-готово"] / note["подзадач"]) * 100).round().toString() + "%", "—")
+properties:
+  note.порядок:
+    displayName: №
+  note.подзадач-готово:
+    displayName: Подзадач ✓
+  note.подзадач:
+    displayName: Подзадач всего
+views:
+  - type: table
+    name: Живые планы
+    filters:
+      and:
+        - статус != "✅ готово"
+    order:
+      - file.name
+      - эпик
+      - статус
+      - режим
+      - порядок
+      - formula.Прогресс
+      - подзадач-готово
+      - подзадач
+      - обновлено
+    sort:
+      - property: обновлено
+        direction: DESC
+      - property: file.name
+        direction: ASC
+    columnSize:
+      file.name: 220
+      note.эпик: 200
+  - type: table
+    name: Завершённые задачи
+    filters:
+      and:
+        - статус == "✅ готово"
+    order:
+      - file.name
+      - эпик
+      - статус
+      - режим
+      - порядок
+      - formula.Прогресс
+      - подзадач-готово
+      - подзадач
+      - обновлено
+    sort:
+      - property: обновлено
+        direction: DESC
+      - property: file.name
+        direction: ASC
+    columnSize:
+      file.name: 220
+      note.эпик: 200

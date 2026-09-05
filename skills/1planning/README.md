@@ -21,3 +21,10 @@ description: "Version packages and refactor evidence for 1planning."
 
 Предыдущий подробный README сохранён в
 `work/README-before-2026-08-31.md` как исторический service artifact.
+
+## Рефактор 2026-09-03
+
+Текущий черновик: [candidate-2026-09-03-v3](versions/candidate-2026-09-03-v3/SKILL.md), ещё не установлен.
+Исходный пакет: [baseline-2026-09-03](versions/baseline-2026-09-03/SKILL.md).
+Продолжение: [состояние](work/refactor-2026-09-03/state.md).
+Общее намерение и карта потерь: [рабочая папка тройки](../1planning/work/refactor-2026-09-03/intent.md).

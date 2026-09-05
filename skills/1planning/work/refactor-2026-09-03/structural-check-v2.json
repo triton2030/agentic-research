@@ -1,0 +1,50 @@
+[
+  {
+    "skill": "1planning",
+    "headings": [
+      "Задача",
+      "Цель",
+      "Зачем",
+      "Критерии принятия"
+    ],
+    "criteria": 4,
+    "broken_links": [],
+    "sha256": {
+      "SKILL.md": "33ab4569f1b93f0ffcb31de1fb2df2a8069dcb721a68166a95cb86404c94fd55",
+      "agents/openai.yaml": "af9507b10e62e8f3304f92024684c34e93398811312f6ddc837753684714cadf"
+    }
+  },
+  {
+    "skill": "1plan-map",
+    "headings": [
+      "Задача",
+      "Цель",
+      "Зачем",
+      "Критерии принятия"
+    ],
+    "criteria": 5,
+    "broken_links": [],
+    "sha256": {
+      "SKILL.md": "a32ec9bd886ea58416b75aa372b4808d936da025531e2de3082102571037e2db",
+      "agents/openai.yaml": "5d45563862bee0cc4f47abb2eeaa2e4a91a0c0b84b038e0d658b86bc67226a88",
+      "references/epic-schema.md": "e016d072f51451446ebba19c4a7bd3fa4c1b9dad3e8fcd8410869aa2c6cbe074"
+    }
+  },
+  {
+    "skill": "1plan-task",
+    "headings": [
+      "Задача",
+      "Цель",
+      "Зачем",
+      "Критерии принятия"
+    ],
+    "criteria": 5,
+    "broken_links": [],
+    "sha256": {
+      "SKILL.md": "02c6bd7c6816dfc65ff6430fe2267e9ea9dc3ddb0410e55a492ce4199976165f",
+      "agents/openai.yaml": "fc543e4ac96cc2514f550803178096e41c419cfbebf55c053ae7a830f0e86549",
+      "assets/task-template.md": "4d8662b05ca6f723e56a70ec693d87e303dc92b1c3280c1745e9f8827b8c4da7",
+      "references/task-schema.md": "52564209dfed3c6fa604c8acec7db0a3bcf131e00879a3ff0cda4722fc90a4e6"
+    }
+  }
+]

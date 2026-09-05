@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Управление агентом через текст"
+  short_description: "Наука управления агентами для авторов скиллов, инструкций, целей и планов"
+  default_prompt: "Изучи $1agent-steering и объясняй применение его научных оснований при написании управляющих файлов."
+
+policy:
+  allow_implicit_invocation: true

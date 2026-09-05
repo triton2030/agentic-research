@@ -1,0 +1,12 @@
+[
+  {
+    "path": "SKILL.md",
+    "sha256": "63db7afb14826ddd08f13680069fc234f2348518bb2c1ba6d5e21903d33959be",
+    "matches": {
+      "tracked-codex": true,
+      "tracked-claude": true,
+      "live-codex": true,
+      "live-claude": true
+    }
+  }
+]

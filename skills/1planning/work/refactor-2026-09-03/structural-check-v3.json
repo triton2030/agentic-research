@@ -1,0 +1,40 @@
+[
+  {
+    "skill": "1planning",
+    "sha256": {
+      "SKILL.md": "05d8220c307c79cdf6ece9eeb1a48732271099dbee9914c0c020bf7ecff42e74",
+      "agents/openai.yaml": "af9507b10e62e8f3304f92024684c34e93398811312f6ddc837753684714cadf"
+    }
+  },
+  {
+    "skill": "1plan-map",
+    "sha256": {
+      "SKILL.md": "cd9c7089265b7421437291274c7f089bf374cb264e995089bd52ef982f764f9d",
+      "agents/openai.yaml": "5d45563862bee0cc4f47abb2eeaa2e4a91a0c0b84b038e0d658b86bc67226a88",
+      "assets/epic-template.md": "61ef747c138f88de3ecb9f55357c116a44dbf08381bc8fb3833203486ff43216",
+      "assets/map/Дашборд.base": "5a685677b706b09dc7564c59f79d3b38e368970235dd13b4256028c1b8cdc33f",
+      "assets/map/Дашборд.md": "3c509d38098bc3e97d0743e961ad64630b6d7b6a523c630d793900aacbd00aba",
+      "assets/map/Планы.base": "1959909f462e81ab507d6dbfa5f1cd4e933e390cfa34073519e5890b4e8441d9",
+      "references/epic-schema.md": "9965de9354d7912706e263d7787033e9a8d10a691037dd66f7bcce8c06081809"
+    }
+  },
+  {
+    "skill": "1plan-task",
+    "sha256": {
+      "SKILL.md": "02c6bd7c6816dfc65ff6430fe2267e9ea9dc3ddb0410e55a492ce4199976165f",
+      "agents/openai.yaml": "fc543e4ac96cc2514f550803178096e41c419cfbebf55c053ae7a830f0e86549",
+      "assets/task-template.md": "cd5115e64171ed7e6e07cc865146f08f77478935f9b6a47cb233acb8b89b4475",
+      "references/task-schema.md": "9696cb031e52409f35c889f0318bd687bacfbdd4cd832f683a8e306d1e455520"
+    }
+  },
+  {
+    "format_checks": "pass",
+    "old_root_occurrences": 0,
+    "base_templates": "identical to live source except authorized root",
+    "epic_frontmatter_fields": 15,
+    "task_keys_and_sections": "unchanged",
+    "dashboard_wikilinks": "resolve to bundled views",
+    "epic_percentage": "absent",
+    "closed_epics": "not filtered from main view"
+  }
+]

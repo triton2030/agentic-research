@@ -1,0 +1,69 @@
+filters:
+  and:
+    - file.inFolder("_ops/plans")
+formulas:
+  Задачи: note["задач-готово"].toString() + "/" + note["задач"].toString() + " созданных"
+properties:
+  note.порядок:
+    displayName: №
+  formula.Задачи:
+    displayName: Закрыто задач
+views:
+  - type: table
+    name: По порядку
+    filters:
+      and:
+        - тип == "эпик"
+        - запуск == true
+    order:
+      - порядок
+      - статус
+      - file.name
+      - описание
+      - задачи
+      - formula.Задачи
+      - health
+      - зависит-от
+    sort:
+      - property: порядок
+        direction: ASC
+      - property: file.name
+        direction: ASC
+    columnSize:
+      note.порядок: -32
+      note.статус: 149
+      note.описание: 262
+      note.задачи: 308
+      formula.Задачи: 126
+  - type: table
+    name: Затыки
+    filters:
+      and:
+        - тип == "эпик"
+        - статус == "🛑 затык"
+    order:
+      - file.name
+      - критерий
+  - type: table
+    name: Открытые вопросы
+    filters:
+      and:
+        - тип == "вопрос"
+        - статус == "открыт"
+    order:
+      - file.name
+      - касается
+      - срок
+    sort:
+      - property: срок
+        direction: ASC
+  - type: table
+    name: Отложенное
+    filters:
+      and:
+        - тип == "эпик"
+        - статус == "⏳ отложено"
+    order:
+      - file.name
+      - область
+      - критерий

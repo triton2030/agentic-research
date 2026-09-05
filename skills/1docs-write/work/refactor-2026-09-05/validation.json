@@ -1,0 +1,17 @@
+{
+  "version": "draft-2026-09-05-v3",
+  "package_files": 4,
+  "package_chars": 9005,
+  "description_chars": 175,
+  "why_chars": 434,
+  "task_sentences": 1,
+  "goal_sentences": 3,
+  "examples": {},
+  "links_and_fences": "pass",
+  "sha256": {
+    "SKILL.md": "82c22a0c1b3ab016d1f71325d89659306677bef7ae600879b26218c348bdbce3",
+    "references/запись-на-месте.md": "88f5864709f63268f77f80010a3752caa65ca7b12b0bddd3aab9046d5eaaff05",
+    "references/разбор-источника.md": "b638907823bbef89f78253391e760e183637b5143a5c4cebe9c859b41dc6a705",
+    "references/размещение.md": "9c93ee7b9aeabd89bbb67d525e6184b5ccec0ebb2663fe73877bdd6a51b01d3b"
+  }
+}

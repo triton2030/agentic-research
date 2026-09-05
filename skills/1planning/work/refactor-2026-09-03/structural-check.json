@@ -1,0 +1,43 @@
+[
+  {
+    "package": "1planning",
+    "heading_order": true,
+    "frontmatter_unchanged": true,
+    "metadata_unchanged": true,
+    "criteria_count": 4,
+    "broken_links": [],
+    "files": {
+      "SKILL.md": "e990f31a8ce407bac9f3f831131f4ec0b62a30d2bf0902535ee5b4f71c37b1bb",
+      "agents/openai.yaml": "af9507b10e62e8f3304f92024684c34e93398811312f6ddc837753684714cadf"
+    }
+  },
+  {
+    "package": "1plan-map",
+    "heading_order": true,
+    "frontmatter_unchanged": true,
+    "metadata_unchanged": true,
+    "criteria_count": 5,
+    "broken_links": [],
+    "files": {
+      "SKILL.md": "d52d1495e82d40fa5af41926246ee6eadb8711be43ce131a6875fd17c3a08660",
+      "agents/openai.yaml": "5d45563862bee0cc4f47abb2eeaa2e4a91a0c0b84b038e0d658b86bc67226a88",
+      "references/epic-schema.md": "6b5d0ae0088025fc24c6fd93facab272cc6d229bec62815fe884409b2aa040a0"
+    }
+  },
+  {
+    "package": "1plan-task",
+    "heading_order": true,
+    "frontmatter_unchanged": true,
+    "metadata_unchanged": true,
+    "criteria_count": 5,
+    "broken_links": [],
+    "template_identical": true,
+    "schema_keys_identical": true,
+    "files": {
+      "SKILL.md": "445431ea75fa05cf08ee3c78a3461ce5f86195c8b57e5889c50ee01ea7719018",
+      "agents/openai.yaml": "fc543e4ac96cc2514f550803178096e41c419cfbebf55c053ae7a830f0e86549",
+      "assets/task-template.md": "4d8662b05ca6f723e56a70ec693d87e303dc92b1c3280c1745e9f8827b8c4da7",
+      "references/task-schema.md": "f414f1db3e422cdf1f1113f3d12b409f4ae9090bfad30deba8d7d24da4bc83b1"
+    }
+  }
+]

@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Карта планов"
+  short_description: "Use to write, change, close or audit an epic and its map"
+  default_prompt: "Используй $1plan-map, чтобы написать, изменить, закрыть или проверить эпик и карту."
+
+policy:
+  allow_implicit_invocation: true

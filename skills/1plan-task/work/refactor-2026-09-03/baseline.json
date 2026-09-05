@@ -1,0 +1,32 @@
+[
+  {
+    "path": "SKILL.md",
+    "sha256": "1c59b8d38ce1044d605bd12a9e80956f0bb46f9c5fab0d9a1c034f545341d2a9",
+    "matches": {
+      "tracked-codex": true,
+      "tracked-claude": true,
+      "live-codex": true,
+      "live-claude": true
+    }
+  },
+  {
+    "path": "references/task-schema.md",
+    "sha256": "8ea45a0f76a698224b18ec79bb5ea3165001a7883612485a2b8296cba409c634",
+    "matches": {
+      "tracked-codex": true,
+      "tracked-claude": true,
+      "live-codex": true,
+      "live-claude": true
+    }
+  },
+  {
+    "path": "references/task-template.md",
+    "sha256": "4d8662b05ca6f723e56a70ec693d87e303dc92b1c3280c1745e9f8827b8c4da7",
+    "matches": {
+      "tracked-codex": true,
+      "tracked-claude": true,
+      "live-codex": true,
+      "live-claude": true
+    }
+  }
+]
