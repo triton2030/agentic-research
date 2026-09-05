@@ -1,0 +1,4 @@
+interface:
+  display_name: "1-Канон"
+  short_description: "Пиши и переписывай утверждённый канон продукта"
+  default_prompt: "Используй $1canon-write, чтобы записать или переписать утверждённые решения в _canon."

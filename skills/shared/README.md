@@ -192,6 +192,12 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   тогда, когда тип документа корпусом ещё не задан. Имена типов, разделы и
   метаданные уступают живому реестру проекта, жанровые запреты — никогда.
   `platforms/codex/agents/openai.yaml` — только Codex UI metadata.
+- `1docs-write/portable/` — вход для записи и существенной правки знания в
+  документах проекта: определяет статус и дом, разбирает старый источник и
+  передаёт утверждённый канон соседу `1canon-write`.
+- `1canon-write/portable/` — запись утверждённых дорогих решений владельца в
+  короткие согласованные Цель, Сценарий и Факты внутри `_canon`.
+  У обоих пакетов `platforms/codex/agents/openai.yaml` содержит только Codex UI metadata.
 
 `skills/codex/<name>/` и `skills/claude/<name>/` — tracked projections owner-а.
 `~/.codex/skills/<name>/` и `~/.claude/skills/<name>/` — installed projections
