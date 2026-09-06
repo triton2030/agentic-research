@@ -1,8 +1,15 @@
 # 1orchestration — папка-история
 
-Owner: `skills/shared/1orchestration/portable/` (+ `platforms/codex/`).
-Tracked projections: `skills/{claude,codex}/1orchestration/`.
-Installed: `~/.claude/skills/`, `~/.codex/skills/` — напрямую не правятся.
+Owners с 2026-09-06: `skills/codex/1orchestration/` и
+`skills/claude/1orchestration/`. Installed `~/.codex/skills/1orchestration/`
+и `~/.claude/skills/1orchestration/` — проекции соответствующих runtime owners.
+Общий portable owner снят; sync: `skills/shared/sync_simple_projections.py`.
+
+Codex: [версия 2026-09-06](versions/codex-2026-09-06/SKILL.md),
+[карта переноса](work/codex-merge-2026-09-06/preservation.md),
+[решения по проверке](work/codex-merge-2026-09-06/review-decisions.md).
+Объединяет прежний Codex 1orchestration и 1codex-bg-threads; Claude сохранён
+побайтно относительно начала этой работы.
 
 Здесь: происхождение правил, вырезанное, evidence, снятые файлы.
 
@@ -26,3 +33,8 @@ Installed: `~/.claude/skills/`, `~/.codex/skills/` — напрямую не п�
 
 - `roles-retired-2026-08-10.md` — снятая таблица прав ролей и форматы
   промпта/возврата v2; заменены картой волны и фокусировкой (v3).
+
+Предыдущая правка 2026-09-05: разделение с `1agent-steering`; карта сохранения
+в `cut.md`, исходный пакет в `work/steering-2026-09-05/before/`.
+Прежний общий состав: `SKILL.md`, `references/brief.md`, `references/session.md`
+и Codex UI metadata. Описание v13 выше относится к истории.

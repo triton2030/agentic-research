@@ -1,0 +1,15 @@
+{
+  "relative_links_valid": true,
+  "link_failures": [],
+  "description_chars": 155,
+  "description_under_200": true,
+  "claude_tracked_unchanged": true,
+  "candidate_files": [
+    "SKILL.md",
+    "agents/openai.yaml",
+    "references/accept.md",
+    "references/choose.md",
+    "references/execute.md"
+  ],
+  "authoring_state": "review pending; no live behavioral improvement claim"
+}

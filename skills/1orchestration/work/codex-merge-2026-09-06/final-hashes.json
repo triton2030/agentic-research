@@ -1,0 +1,7 @@
+{
+  "SKILL.md": "0a74d60a97490dba35c2135f2177e987cf5f62c88e6a68cde365d5f411d0cff2",
+  "references/accept.md": "3632348b9f24177fa2ae1865d72ea0882fca6985de995c3458e2deeec37bd5a4",
+  "references/choose.md": "f69611e3840ba4a62810188cecbc1cd1c369b4cdf957e9a5e3eb7dec621d837d",
+  "references/execute.md": "33230ef84046e81b11e8762b36c7eca7dccd000f0d7e743919465935f8e527fc",
+  "agents/openai.yaml": "14966b89a22117833da0f9a354e0b813ad2a92d5c8670fda960263ec2f99b81e"
+}

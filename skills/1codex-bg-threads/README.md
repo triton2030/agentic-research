@@ -1,10 +1,14 @@
 # История 1codex-bg-threads
 
-Живой владелец — `~/.codex/skills/1codex-bg-threads/`. Tracked owner и
-Claude-пакет отсутствуют; эта папка хранит историю, а не второй источник скилла.
+Скилл снят 2026-09-06 и поглощён Codex-версией `1orchestration`.
+Живой owner преемника — `skills/codex/1orchestration/`; installed projection —
+`~/.codex/skills/1orchestration/`. Отдельного активного `1codex-bg-threads` нет.
+[Полный снятый пакет](versions/retired-2026-09-06/SKILL.md) сохранён для отката.
+
+Ниже — история прежней установки, не текущая продуктовая правда.
 
 Снимок до рефактора: [live-codex-2026-09-02](versions/live-codex-2026-09-02/SKILL.md).
-Текущая установленная версия: [candidate-2026-09-02-v5](versions/candidate-2026-09-02-v5/SKILL.md).
+Прежняя установленная версия: [candidate-2026-09-02-v5](versions/candidate-2026-09-02-v5/SKILL.md).
 Проверка установки: [installation-v5.json](work/refactor-2026-09-02/installation-v5.json).
 Последнее дополнение: [когнитивные шаги в чате](work/refactor-2026-09-02/chat-steps-v5.md).
 Разбор: [рефактор 2026-09-02](work/refactor-2026-09-02/review.md).

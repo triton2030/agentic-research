@@ -1,4 +1,5 @@
-Состояние: ожидается смысловой черновик.
-Маршрут: новое намерение, рефактор двух пакетов.
-Источник: intent-proposal.md и подтверждение владельца в текущем чате.
-Рабочая оркестрация: _workspace/orchestration/2026-09-06-codex-orchestration-merge/.
+Состояние: рефактор завершён; установлено.
+Версия: ../../versions/codex-2026-09-06/.
+Новый owner: skills/codex/1orchestration. Claude сохранён, background skill снят.
+Evidence: installation.json, property-evidence.md, review-decisions.md.
+Далее: финальное сохранение GitHub и сдача.

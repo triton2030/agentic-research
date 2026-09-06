@@ -9,7 +9,7 @@ Use native `spawn_agent` with `agent_type: "default"` and
 `fork_turns: "none"`. Each stream is a new conversation-history-isolated
 subagent. Dispatch in parallel when slots permit; otherwise dispatch
 sequentially. Do not use named critic roles. User-owned background Codex tasks
-belong to `1codex-bg-threads`, not this same-thread surface.
+belong to the Codex version of `1orchestration`, not this same-thread surface.
 
 ## Claude Code
 

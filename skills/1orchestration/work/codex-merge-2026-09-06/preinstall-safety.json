@@ -1,0 +1,6 @@
+{
+  "shared_source_stable_since_snapshot": true,
+  "claude_tracked_stable_since_snapshot": true,
+  "claude_installed_matches_tracked": true,
+  "retiring_live_package_stable": true
+}

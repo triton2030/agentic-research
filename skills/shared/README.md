@@ -98,9 +98,12 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
 - `1readable-code/portable/` — общий стратегический pre-code контекст для
   Claude и Codex; `platforms/codex/agents/openai.yaml` содержит только Codex UI
   metadata.
-- `1orchestration/portable/` — общий минимальный контракт делегирования и
-  разгрузки активных наборов для Claude и Codex;
-  `platforms/codex/agents/openai.yaml` содержит только Codex UI metadata.
+- `1orchestration` с 2026-09-06 имеет два runtime owners:
+  `skills/codex/1orchestration/` — выбор фоновых Luna Max, Opus и собственных
+  субагентов ради скорости, стоимости и качества; поглотил `1codex-bg-threads`.
+  `skills/claude/1orchestration/` — прежний контракт делегирования и разгрузки
+  активных наборов, сохранён побайтно. Общий portable owner снят; установка
+  обоих пакетов — `sync_simple_projections.py 1orchestration --write --install`.
   С 2026-09-02 поручение несёт причину результата и причину у каждой строки
   дельты (`_ops/chat-recall/2026-09-02-151925-claude-0c84f259.md#L25`).
 - `1local-rules/portable/` — общая локальная дельта для project-local `2*`
@@ -128,7 +131,7 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
     размещением, бюджетом, state/lifecycle и closure.
 - `1smart-simple` — tracked owner отсутствует; живые пакеты
   `~/.claude/skills/1smart-simple/` и `~/.codex/skills/1smart-simple/` —
-  единственная правда (v3, 2026-09-02; история — `skills/1smart-simple/`).
+  единственная правда (v4, 2026-09-06; история — `skills/1smart-simple/`).
   На него маршрутизируют по одной строке `1skill-creation` (критерий 4,
   `reference-files.md` шаг 6), `1instruction-authoring/writing.md`,
   `1document-system/overgrown.md` и `1plan-task` (C3).
@@ -154,9 +157,12 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
 - `1readable-code/portable/` — общий стратегический pre-code контекст для
   Claude и Codex; `platforms/codex/agents/openai.yaml` содержит только Codex UI
   metadata.
-- `1orchestration/portable/` — общий минимальный контракт делегирования и
-  разгрузки активных наборов для Claude и Codex;
-  `platforms/codex/agents/openai.yaml` содержит только Codex UI metadata.
+- `1orchestration` с 2026-09-06 имеет два runtime owners:
+  `skills/codex/1orchestration/` — выбор фоновых Luna Max, Opus и собственных
+  субагентов ради скорости, стоимости и качества; поглотил `1codex-bg-threads`.
+  `skills/claude/1orchestration/` — прежний контракт делегирования и разгрузки
+  активных наборов, сохранён побайтно. Общий portable owner снят; установка
+  обоих пакетов — `sync_simple_projections.py 1orchestration --write --install`.
 - `1local-rules/portable/` — общая локальная дельта для project-local `2*`
   скилов Claude и Codex; `platforms/codex/agents/openai.yaml` содержит только
   Codex UI metadata.

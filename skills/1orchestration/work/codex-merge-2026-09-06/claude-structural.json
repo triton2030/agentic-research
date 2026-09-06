@@ -1,0 +1,8 @@
+{
+  "claude_internal_links": true,
+  "no_desktop_api_or_project_paths": true,
+  "memory_contract_exactly_shared": true,
+  "separate_1codex_unchanged": true,
+  "description_chars": 156,
+  "scope": "structural checks only; native Claude runtime not executed"
+}
