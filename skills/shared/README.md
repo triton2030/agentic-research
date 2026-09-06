@@ -198,6 +198,10 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
 - `1canon-write/portable/` — запись утверждённых дорогих решений владельца в
   короткие согласованные Цель, Сценарий и Факты внутри `_canon`.
   У обоих пакетов `platforms/codex/agents/openai.yaml` содержит только Codex UI metadata.
+  Общий `scripts/doc_map.py` принадлежит `1docs-write/portable/`; в portable
+  пакете `1canon-write` это относительный симлинк. Sync разносит обычные
+  самодостаточные копии скрипта в обе среды. Он выводит карту путей,
+  description и aliases без записи в документы.
 
 `skills/codex/<name>/` и `skills/claude/<name>/` — tracked projections owner-а.
 `~/.codex/skills/<name>/` и `~/.claude/skills/<name>/` — installed projections
