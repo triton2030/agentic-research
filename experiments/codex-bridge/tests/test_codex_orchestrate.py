@@ -246,7 +246,7 @@ class CodexOrchestrateCliTests(unittest.TestCase):
             self.assertFalse(payload["git"]["available"])
             self.assertEqual(payload["tasks"][0]["files"], ["a.md"])
             self.assertEqual(payload["codex"]["model"], "gpt-5.6-sol")
-            self.assertEqual(payload["codex"]["effort"], "xhigh")
+            self.assertEqual(payload["codex"]["effort"], "medium")
             self.assertIsNone(payload["codex"]["service_tier"])
             self.assertEqual(payload["codex"]["worker_sandbox"], "workspace_write")
             self.assertEqual(payload["codex"]["worker_approval_mode"], "auto_review")

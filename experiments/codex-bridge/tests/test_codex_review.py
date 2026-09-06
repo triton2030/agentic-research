@@ -334,7 +334,7 @@ class CodexReviewCliTests(unittest.TestCase):
             self.assertEqual(payload["status"], "validated")
             self.assertEqual(payload["mode"], "ask")
             self.assertEqual(payload["codex"]["model"], "gpt-5.6-sol")
-            self.assertEqual(payload["codex"]["effort"], "xhigh")
+            self.assertEqual(payload["codex"]["effort"], "medium")
             self.assertIsNone(payload["codex"]["service_tier"])
             self.assertTrue(payload["codex"]["thread_ephemeral"])
             self.assertNotIn("final_response", payload)
@@ -506,7 +506,7 @@ class CodexReviewCliTests(unittest.TestCase):
             self.assertEqual(run_kwargs.get("sandbox"), "read_only")
             self.assertEqual(run_kwargs.get("approval_mode"), "deny_all")
             self.assertEqual(run_kwargs.get("model"), "gpt-5.6-sol")
-            self.assertEqual(run_kwargs.get("effort"), "xhigh")
+            self.assertEqual(run_kwargs.get("effort"), "medium")
             self.assertIsNone(run_kwargs.get("service_tier"))
         finally:
             sys.argv = saved_argv
