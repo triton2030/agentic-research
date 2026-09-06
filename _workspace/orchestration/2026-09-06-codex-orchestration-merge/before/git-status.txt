@@ -1,0 +1,17 @@
+ M skills/1orchestration/README.md
+ M skills/1orchestration/cut.md
+ M skills/claude/1orchestration/SKILL.md
+ M skills/claude/1orchestration/references/brief.md
+ M skills/claude/1orchestration/references/session.md
+ M skills/codex/1orchestration/SKILL.md
+ M skills/codex/1orchestration/references/brief.md
+ M skills/codex/1orchestration/references/session.md
+ M skills/shared/1orchestration/portable/SKILL.md
+ M skills/shared/1orchestration/portable/references/brief.md
+ M skills/shared/1orchestration/portable/references/session.md
+?? _ops/chat-recall/2026-09-05-211735-codex-01a07252.md
+?? _ops/chat-recall/2026-09-05-211847-codex-01a07252.md
+?? _ops/chat-recall/2026-09-06-140429-codex-01a075f5.md
+?? _ops/chat-recall/2026-09-06-141145-codex-01a0725f.md
+?? skills/1orchestration/work/codex-merge-2026-09-06/
+?? skills/1orchestration/work/steering-2026-09-05/
