@@ -8,8 +8,12 @@ Owners с 2026-09-06: `skills/codex/1orchestration/` и
 Codex: [версия 2026-09-06](versions/codex-2026-09-06/SKILL.md),
 [карта переноса](work/codex-merge-2026-09-06/preservation.md),
 [решения по проверке](work/codex-merge-2026-09-06/review-decisions.md).
-Объединяет прежний Codex 1orchestration и 1codex-bg-threads; Claude сохранён
-побайтно относительно начала этой работы.
+Объединяет прежний Codex 1orchestration и 1codex-bg-threads.
+Claude: [версия 2026-09-06](versions/claude-2026-09-06/SKILL.md),
+[решение владельца](work/codex-merge-2026-09-06/claude-intent.md),
+[проверка дельты](work/codex-merge-2026-09-06/claude-review-decisions.md).
+Отдельный Claude `1codex` сохранён без изменений; обе версии используют
+датированную рабочую память и разные способы исполнения.
 
 Здесь: происхождение правил, вырезанное, evidence, снятые файлы.
 

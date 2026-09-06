@@ -101,8 +101,9 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
 - `1orchestration` с 2026-09-06 имеет два runtime owners:
   `skills/codex/1orchestration/` — выбор фоновых Luna Max, Opus и собственных
   субагентов ради скорости, стоимости и качества; поглотил `1codex-bg-threads`.
-  `skills/claude/1orchestration/` — прежний контракт делегирования и разгрузки
-  активных наборов, сохранён побайтно. Общий portable owner снят; установка
+  `skills/claude/1orchestration/` — основное исполнение через отдельный `1codex`,
+  дешёвые собственные агенты и собственные Opus для аудита; та же рабочая память.
+  Общий portable owner снят; установка
   обоих пакетов — `sync_simple_projections.py 1orchestration --write --install`.
   С 2026-09-02 поручение несёт причину результата и причину у каждой строки
   дельты (`_ops/chat-recall/2026-09-02-151925-claude-0c84f259.md#L25`).
@@ -160,8 +161,9 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
 - `1orchestration` с 2026-09-06 имеет два runtime owners:
   `skills/codex/1orchestration/` — выбор фоновых Luna Max, Opus и собственных
   субагентов ради скорости, стоимости и качества; поглотил `1codex-bg-threads`.
-  `skills/claude/1orchestration/` — прежний контракт делегирования и разгрузки
-  активных наборов, сохранён побайтно. Общий portable owner снят; установка
+  `skills/claude/1orchestration/` — основное исполнение через отдельный `1codex`,
+  дешёвые собственные агенты и собственные Opus для аудита; та же рабочая память.
+  Общий portable owner снят; установка
   обоих пакетов — `sync_simple_projections.py 1orchestration --write --install`.
 - `1local-rules/portable/` — общая локальная дельта для project-local `2*`
   скилов Claude и Codex; `platforms/codex/agents/openai.yaml` содержит только

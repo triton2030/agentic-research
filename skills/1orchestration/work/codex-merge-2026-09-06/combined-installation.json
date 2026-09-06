@@ -1,0 +1,35 @@
+{
+  "checks": {
+    "codex_version_owner_live_equal": true,
+    "codex_internal_links_valid": true,
+    "codex_obsolete_references_absent": true,
+    "claude_version_owner_live_equal": true,
+    "claude_internal_links_valid": true,
+    "claude_obsolete_references_absent": true,
+    "separate_1codex_source_unchanged": true,
+    "separate_1codex_live_matches_source": true,
+    "retired_background_live_absent": true,
+    "retired_background_archive_valid": true,
+    "memory_contract_identical": true
+  },
+  "manifests": {
+    "codex": {
+      "SKILL.md": "0a74d60a97490dba35c2135f2177e987cf5f62c88e6a68cde365d5f411d0cff2",
+      "references/accept.md": "3632348b9f24177fa2ae1865d72ea0882fca6985de995c3458e2deeec37bd5a4",
+      "references/choose.md": "f69611e3840ba4a62810188cecbc1cd1c369b4cdf957e9a5e3eb7dec621d837d",
+      "references/execute.md": "33230ef84046e81b11e8762b36c7eca7dccd000f0d7e743919465935f8e527fc",
+      "agents/openai.yaml": "14966b89a22117833da0f9a354e0b813ad2a92d5c8670fda960263ec2f99b81e"
+    },
+    "claude": {
+      "SKILL.md": "570dac332dad593c073162fa16651504baf97013a7276c68418b98fd1608c87c",
+      "references/accept.md": "5806049f8e3b3bf12e9720ee758218e6583f3d135d6b0f691ec449831a7a3131",
+      "references/choose.md": "759fbf8773077f3cdf80630576f555df3a3e3e16aa40ed57f9dab75e42341b19",
+      "references/execute.md": "cf6451801e8aee9e8e2dba4afb3e41e7936e8685292842a06847b916088ab01b"
+    }
+  },
+  "limits": [
+    "No end-to-end Claude run",
+    "No live Codex background run: current host restrictions",
+    "No measured cost/speed improvement"
+  ]
+}

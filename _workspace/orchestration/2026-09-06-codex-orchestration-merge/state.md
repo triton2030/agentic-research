@@ -1,8 +1,9 @@
 # Состояние
 
-Codex-версия установлена; отдельный background skill снят с сохранённым снимком.
-Новое решение владельца: Claude использует отдельный 1codex для основной работы, дешёвых своих субагентов и собственных Opus для проверки; память та же.
-Стадия: Claude-кандидат готов, вторая волна независимой проверки.
-Пакеты: skills/1orchestration/work/codex-merge-2026-09-06/{candidate-v2,claude-candidate}/.
-Root: установка и Git. Проверяющие read-only. 1codex сохраняется без изменений.
-Далее: закрыть review → установить Claude → parity обоих → GitHub.
+Завершено: обе версии 1orchestration установлены.
+Codex: фоновые Luna Max + Opus + свои субагенты. Claude: основной Codex через отдельный 1codex + дешёвые свои + native Opus.
+Память: датированная папка, rules, runs, decisions, state и log; контракт одинаков.
+Проверки: Luna clean-room, Opus-совет, две волны независимой проверки; final parity — skills/1orchestration/work/codex-merge-2026-09-06/combined-installation.json.
+Исходник: before/, GitHub bbe71d62. Codex-этап: 703f8b65. Решения: decisions.md.
+Активных исполнителей нет. Работа закрыта; продолжение начинает с актуального runtime owner.
+Live Claude/background маршруты и экономия не измерялись.
