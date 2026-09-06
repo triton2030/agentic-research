@@ -1,7 +1,7 @@
-Состояние: рефактор завершён; обе версии установлены.
+Состояние: рефактор завершён; коррекция стоимости контроля установлена 2026-09-06.
 Owners: skills/codex/1orchestration и skills/claude/1orchestration.
-Версии: versions/{codex,claude}-2026-09-06 в истории 1orchestration.
-Отдельный 1codex сохранён; 1codex-bg-threads снят с архивом.
-Приёмка: review-decisions.md, claude-review-decisions.md; parity: combined-installation.json.
-Память: _workspace/orchestration/2026-09-06-codex-orchestration-merge/.
-Граница: текст и установка проверены; live end-to-end/экономия не измерены.
+Актуальная карта изменений и принятых проверок — skills/1orchestration/cut.md.
+Память: _workspace/orchestration/2026-09-06-codex-orchestration-merge/state.md.
+Прежние snapshots и receipts относятся к версии до сокращения контроля.
+Оба validator и полная parity текущих installed owners пройдены.
+Экономия и длительное end-to-end восстановление не измерены.

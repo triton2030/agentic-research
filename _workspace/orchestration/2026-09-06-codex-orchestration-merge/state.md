@@ -1,9 +1,11 @@
 # Состояние
 
-Завершено: обе версии 1orchestration установлены.
-Codex: фоновые Luna Max + Opus + свои субагенты. Claude: основной Codex через отдельный 1codex + дешёвые свои + native Opus.
-Память: датированная папка, rules, runs, decisions, state и log; контракт одинаков.
-Проверки: Luna clean-room, Opus-совет, две волны независимой проверки; final parity — skills/1orchestration/work/codex-merge-2026-09-06/combined-installation.json.
-Исходник: before/, GitHub bbe71d62. Codex-этап: 703f8b65. Решения: decisions.md.
-Активных исполнителей нет. Работа закрыта; продолжение начинает с актуального runtime owner.
-Live Claude/background маршруты и экономия не измерялись.
+Завершено 2026-09-06: обе версии 1orchestration обновлены и установлены.
+Условия: подробная проверка у проверяющих; root получает краткий вердикт;
+state + decisions по умолчанию; runtime-маршруты и Git сохранены.
+Версии: skills/{codex,claude}/1orchestration, текущие Git-байты.
+Проверки: compact_instruction_check + Opus 5, session b157a34e-d972-4d3e-8583-fb692ef9020f;
+замечания исправлены, решения — skills/1orchestration/cut.md.
+Оба validator прошли; состав, байты и ссылки installed-пакетов совпадают с owners.
+Активных исполнителей нет. Следующий шаг: наблюдать реальную волну;
+измеренная экономия и длительное восстановление пока не проверены.
