@@ -231,12 +231,12 @@ try {
     askClaude({
       cwd: opusCwd,
       session_id: opus.session_id,
-      prompt: "Return only the exact scope token from the previous turn."
+      prompt: "What text did you read from scope-marker.txt earlier? Answer from our conversation without reading files again."
     }),
     askClaude({
       cwd: secondCwd,
       session_id: second.session_id,
-      prompt: "Return only the exact scope token from the previous turn."
+      prompt: "What text did you read from scope-marker.txt earlier? Answer from our conversation without reading files again."
     })
   ]);
   assert.match(opusResume.text, new RegExp(opusMarker, "u"));
@@ -315,7 +315,7 @@ try {
     const followUp = await sessionAdapter.command({
       op: "send",
       session_id: controlledSessionId,
-      prompt: "Return only the exact token from your immediately previous answer. Do not use tools."
+      prompt: "Compute 17 + 25. Reply with the number only without using tools."
     });
     assert.equal(followUp.accepted_op, "send");
     assert.equal(followUp.session_id, controlledSessionId);
@@ -334,7 +334,7 @@ try {
     assertBoundedObservation(followUpConversation, "conversation", { limit: 4, maxChars: 800 });
     assert.match(
       followUpConversation.messages.filter(({ role }) => role === "assistant").at(-1)?.text || "",
-      new RegExp(sessionMarker, "u")
+      /^42$/u
     );
 
     const longTurn = await sessionAdapter.command({

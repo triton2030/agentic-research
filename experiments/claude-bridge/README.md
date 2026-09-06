@@ -71,8 +71,9 @@ authorization instead of showing a new prompt.
 `claude_ask` remains the ordinary path: it runs one advisor turn, waits, and
 returns one bounded terminal packet. The session tools do not make blocking ask
 a compatibility afterthought or require callers to manage a lifecycle. Use the
-advisor before work, during a parallel host track, or after work as a review;
-parallel execution uses the opt-in session path below.
+advisor before work, during a parallel host track, or after work as a review.
+The Codex skill can yield a blocking call while the host does independent work;
+the session path below is for explicit observation and control.
 
 ### Transient Session Control
 
@@ -238,6 +239,19 @@ policy, SDK execution, transport state, and formatting into a god module. Add
 an abstraction only when current complexity makes the seam real.
 
 ## Develop And Verify
+
+The current dependency pair is Agent SDK `0.3.263` and local Claude Code
+`2.1.263`. The SDK is pinned in the lockfile; the local executable is managed
+separately with `claude install 2.1.263`. Check `claude --version` on upgrades:
+installing the npm dependency does not update that executable.
+The [official SDK changelog](https://github.com/anthropics/claude-agent-sdk-typescript/blob/main/CHANGELOG.md)
+identifies the corresponding Claude Code release.
+
+Verified on 2026-09-06: clean install with optional binaries omitted, 42
+deterministic tests, and the live suite including native resume, follow-up,
+steer, stop, and native interruption with no surviving observed processes.
+Result-validation failures retain turn ownership until the adapter publishes
+their terminal error; regression coverage prevents them becoming endless waits.
 
 Install the exact lockfile and run the deterministic contract suite:
 

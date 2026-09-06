@@ -41,6 +41,8 @@ claims проверены тобой. Inspection/control завершён его
   [parallel-one-shot.md](references/parallel-one-shot.md).
 - Raw one-shot packet прими или отклони по
   [accept-one-shot.md](references/accept-one-shot.md).
+- Обрезанный или содержательно неполный успешный ответ дополни по
+  [continue-answer.md](references/continue-answer.md).
 - Новую управляемую консультацию открой по
   [session-open.md](references/session-open.md).
 - Действие над live Opus session выполни по

@@ -546,8 +546,10 @@ export function createClaudeSessionAdapter(options = {}) {
     const done = (async () => {
       try {
         const raw = await completion;
-        if (!clearTurn(record, token)) return;
+        if (record.turnToken !== token) return;
         const result = formatClaudeResult(raw, launch);
+        // Validation can throw; retain ownership so catch can publish the failure.
+        if (!clearTurn(record, token)) return;
         for (const warning of result.warnings) addWarning(record, warning);
         rememberMessage(record, "assistant", result.text);
         update(record, {

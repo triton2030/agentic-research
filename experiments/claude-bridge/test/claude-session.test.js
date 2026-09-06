@@ -7,6 +7,23 @@ const OPUS_SESSION = "11111111-1111-4111-8111-111111111111";
 const SECOND_SESSION = "22222222-2222-4222-8222-222222222222";
 const THIRD_SESSION = "33333333-3333-4333-8333-333333333333";
 
+test("rejected SDK results become terminal failures instead of losing turn ownership", async () => {
+  const { adapter, engines } = createHarness();
+  try {
+    const opened = await adapter.command({
+      op: "open_fresh", cwd: "/workspace", profile: "opus_advisor", prompt: "Inspect."
+    });
+    engines[0].finish("", { is_error: true, terminal_reason: "api_error" });
+    await new Promise((resolve) => setImmediate(resolve));
+    const snapshot = await adapter.observe({ session_id: opened.session_id, detail: "summary" });
+    assert.equal(snapshot.state, "failed");
+    assert.equal(snapshot.terminal?.kind, "error");
+    assert.equal(snapshot.terminal?.code, "claude_sdk_result");
+  } finally {
+    await adapter.shutdown();
+  }
+});
+
 function deferred() {
   let reject;
   let resolve;
