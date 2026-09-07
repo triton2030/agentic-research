@@ -20,6 +20,7 @@
 - `claude-bridge` — Claude/Opus/Fable bridge и 1claude-mcp
 - `claude-config` — Состав глобального окружения Claude Code: настройки, MCP и стартовый след агентов
 - `cli-tools` — Маршрутизация к установленным CLI по версии и ситуации
+- `codebase-agent-context` — Понимание, навигация и контекст кодовой базы для программирующих агентов
 - `codex-background-threads` — Жизненный цикл видимых фоновых Codex-тредов
 - `codex-fleet` — Codex как управляемый флот исполнителей и советников
 - `context-efficiency` — Экономия контекстного окна при чтении инструментального вывода
