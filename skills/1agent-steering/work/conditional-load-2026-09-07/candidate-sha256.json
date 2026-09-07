@@ -1,0 +1,19 @@
+{
+  "skills/shared/1agent-steering/portable/SKILL.md": "1fdecc93660614e1f303ff8e98c67a3ad274e200694cf20fa507c4f1a2841531",
+  "skills/shared/1agent-steering/portable/references/steering-science.md": "4909d2010de1943fe60044c457009ba4dbf4533685684fd6e2d589128b2d252d",
+  "skills/shared/1instruction-authoring/portable/SKILL.md": "7e7b3e8115f859292bcc29f71e7fb6861f83039267ae9bb75c0e9d0f69670dbc",
+  "skills/shared/1instruction-authoring/portable/references/discovery.md": "7d41657142e3793933f40001b042adc041e27125dc0a5eaaaa6c1476f44d3f0a",
+  "skills/shared/1instruction-authoring/portable/references/writing.md": "87c5e25d2366a75269f80a792689e92da26686844b3ecb8ddf237308d561d62c",
+  "skills/shared/1instruction-authoring/portable/agents/zone-reader.md": "a04f354c0c3749122b06067479321265129afa52c78afcb67b6b0c16310b1172",
+  "skills/shared/1skill-creation/portable/SKILL.md": "ff54fda6d489741a8b4641d11166fbb447dada5267cf1800a54b487a1e991dc6",
+  "skills/shared/1skill-creation/portable/references/check-approve.md": "6930cde941020b4beda411e8f6c5d620a13173150f4abff0c9ed63af64051834",
+  "skills/shared/1skill-creation/portable/references/install-approved.md": "94691f16175500c371f1c87ad6f093786b59a131c9b832ce395416cb6afa6b5e",
+  "skills/shared/1skill-creation/portable/references/refactor.md": "729b966d0cd7bb041eb947a20f7cd85c4bca8c51bac0212801715cf316c3c68d",
+  "skills/shared/1skill-creation/portable/references/agent-defaults.md": "2c742dee6b604af219a0d48f2114476ae7434daa6b4a835a2f24c5c3dd1220f6",
+  "skills/shared/1skill-creation/portable/references/behavior-protocol.md": "93f45a74a805230817ca131639923ef69588af5f39e3a6d9fdfa071d98eb3003",
+  "skills/shared/1skill-creation/portable/references/skill-short-description.md": "85ad4d5ddabf5b51c3ebb5955e5740730770406c43f400dcd7af1645ca914bec",
+  "skills/shared/1skill-creation/portable/references/reference-files.md": "a856ed41d18c67e1225cc26cf696fdf2f3249017f4f02a457d9a442d7c5f75c3",
+  "skills/shared/1skill-creation/portable/references/goal-context.md": "d611d526c9052fe9624a5a0d7f8cdd3d7826850147a1d859bb37461028bc41d6",
+  "skills/shared/1skill-creation/portable/agents/check-trajectory.md": "c3414154e60aff72ea6ab1baed3b5c4daeda4455b2798c6a8f2eb5235748566c",
+  "skills/shared/1skill-creation/portable/agents/check-instructions.md": "c705744bc2b49aff05c0d94ac6ab115a066cc6901d8ba64b9296bc64ef32e1a7"
+}

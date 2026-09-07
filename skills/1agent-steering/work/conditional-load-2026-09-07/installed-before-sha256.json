@@ -1,0 +1,51 @@
+{
+  "/Users/triton/.codex/skills/1agent-steering": {
+    "SKILL.md": "856ae6be740a363384e12a13c79bd3ccce2af4947c3ac171841028208807a718",
+    "references/steering-science.md": "74cf3aa5c2465f75769f47448547a6b67fc9a7b59be1c8f546809b010034a18e",
+    "agents/openai.yaml": "f3fdc5f1256275ea5be948fb19e41b7515dcd22be9f79f7eeb2cf4797977a05c"
+  },
+  "/Users/triton/.claude/skills/1agent-steering": {
+    "SKILL.md": "856ae6be740a363384e12a13c79bd3ccce2af4947c3ac171841028208807a718",
+    "references/steering-science.md": "74cf3aa5c2465f75769f47448547a6b67fc9a7b59be1c8f546809b010034a18e"
+  },
+  "/Users/triton/.codex/skills/1skill-creation": {
+    "SKILL.md": "a9453070943ebdf84927919f5473c9875c1b585f23697213510877dbda82a6f3",
+    "references/check-approve.md": "45c07196e650e285f72eb3a4c954d0129aad406a35a1abb3291581525faf36ab",
+    "references/install-approved.md": "94691f16175500c371f1c87ad6f093786b59a131c9b832ce395416cb6afa6b5e",
+    "references/refactor.md": "729b966d0cd7bb041eb947a20f7cd85c4bca8c51bac0212801715cf316c3c68d",
+    "references/agent-defaults.md": "2c742dee6b604af219a0d48f2114476ae7434daa6b4a835a2f24c5c3dd1220f6",
+    "references/behavior-protocol.md": "93f45a74a805230817ca131639923ef69588af5f39e3a6d9fdfa071d98eb3003",
+    "references/skill-short-description.md": "85ad4d5ddabf5b51c3ebb5955e5740730770406c43f400dcd7af1645ca914bec",
+    "references/reference-files.md": "b6462a75890f0f072171ed21ccb43c086066833763adc26846c5b50aa4a133f4",
+    "references/goal-context.md": "d611d526c9052fe9624a5a0d7f8cdd3d7826850147a1d859bb37461028bc41d6",
+    "agents/openai.yaml": "897debc6e94b38ff328d14ad6760061dd4e1b61f59fe972d9e13ed185262aced",
+    "agents/check-trajectory.md": "c3414154e60aff72ea6ab1baed3b5c4daeda4455b2798c6a8f2eb5235748566c",
+    "agents/check-instructions.md": "3b97df979c339ce0b57973cd8023652a6d43b2a2a728f8be6d3de2fb69c4824f"
+  },
+  "/Users/triton/.claude/skills/1skill-creation": {
+    "SKILL.md": "a9453070943ebdf84927919f5473c9875c1b585f23697213510877dbda82a6f3",
+    "references/check-approve.md": "45c07196e650e285f72eb3a4c954d0129aad406a35a1abb3291581525faf36ab",
+    "references/install-approved.md": "94691f16175500c371f1c87ad6f093786b59a131c9b832ce395416cb6afa6b5e",
+    "references/refactor.md": "729b966d0cd7bb041eb947a20f7cd85c4bca8c51bac0212801715cf316c3c68d",
+    "references/agent-defaults.md": "2c742dee6b604af219a0d48f2114476ae7434daa6b4a835a2f24c5c3dd1220f6",
+    "references/behavior-protocol.md": "93f45a74a805230817ca131639923ef69588af5f39e3a6d9fdfa071d98eb3003",
+    "references/skill-short-description.md": "85ad4d5ddabf5b51c3ebb5955e5740730770406c43f400dcd7af1645ca914bec",
+    "references/reference-files.md": "b6462a75890f0f072171ed21ccb43c086066833763adc26846c5b50aa4a133f4",
+    "references/goal-context.md": "d611d526c9052fe9624a5a0d7f8cdd3d7826850147a1d859bb37461028bc41d6",
+    "agents/check-trajectory.md": "c3414154e60aff72ea6ab1baed3b5c4daeda4455b2798c6a8f2eb5235748566c",
+    "agents/check-instructions.md": "3b97df979c339ce0b57973cd8023652a6d43b2a2a728f8be6d3de2fb69c4824f"
+  },
+  "/Users/triton/.codex/skills/1instruction-authoring": {
+    "SKILL.md": "e50ed794c6de0154408aad4fa91f10a6fc2d7ef5bbf3ca4a092ee740e16b4138",
+    "references/discovery.md": "7d41657142e3793933f40001b042adc041e27125dc0a5eaaaa6c1476f44d3f0a",
+    "references/writing.md": "eb6d254a4420e7555af03e35fb3b9d73153cf3d9010dce435c075df39dfe42c0",
+    "agents/openai.yaml": "95425a51c2fa6bcf4fc49474b876f97b615d3537c3e455e3f7ce1e2118cc4864",
+    "agents/zone-reader.md": "a04f354c0c3749122b06067479321265129afa52c78afcb67b6b0c16310b1172"
+  },
+  "/Users/triton/.claude/skills/1instruction-authoring": {
+    "SKILL.md": "e50ed794c6de0154408aad4fa91f10a6fc2d7ef5bbf3ca4a092ee740e16b4138",
+    "references/discovery.md": "7d41657142e3793933f40001b042adc041e27125dc0a5eaaaa6c1476f44d3f0a",
+    "references/writing.md": "eb6d254a4420e7555af03e35fb3b9d73153cf3d9010dce435c075df39dfe42c0",
+    "agents/zone-reader.md": "a04f354c0c3749122b06067479321265129afa52c78afcb67b6b0c16310b1172"
+  }
+}

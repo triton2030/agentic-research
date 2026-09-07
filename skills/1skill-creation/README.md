@@ -19,3 +19,6 @@
 имеющегося снимка `v5`. Проекции для Claude и Codex находятся соответственно в
 [`skills/claude/1skill-creation/`](../claude/1skill-creation/) и
 [`skills/codex/1skill-creation/`](../codex/1skill-creation/).
+
+Последняя адресная правка — 2026-09-07: нагрузка по условиям применения,
+установлено в Claude и Codex. [Решения и проверка](../1agent-steering/work/conditional-load-2026-09-07/decisions.md).
