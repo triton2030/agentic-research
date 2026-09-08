@@ -1,3 +1,25 @@
+# 2026-09-08 — психолог Claude как отдельная headless-сессия (черновик, ждёт утверждения)
+
+Предложение другого агента, одобренное владельцем
+(`_ops/chat-recall/2026-09-08-161113-claude-4c325be0.md#L29`): `SendMessage` в
+desktop-приложении вырезан deny-правилом командной строки, а контекст
+переносится через `claude -p --session-id/--resume`. Материалы —
+`work/headless-session-2026-09-08/`.
+
+- Психолог Claude — сессия `claude -p` с заранее назначенным uuid в
+  `_ops/chat-recall/psychologist-session.txt`; продолжение `--resume`; одна на
+  проект, к ней обращаются все сессии — симметрично Codex-треду.
+- Снято: `Agent` + `SendMessage` как механизм и аварийный режим «новый Agent
+  с прежними ответами» (терял накопленное окно — аудит Codex B3); `Agent`,
+  `SendMessage` убраны из `allowed-tools`.
+- Флаги зафиксированы по прогонам: роль через `--append-system-prompt` при
+  каждом вызове; `--disallowedTools Skill,Agent,Edit,Write` против рекурсии в
+  этот же скил и записи в корпус; `--permission-mode dontAsk` с
+  `--allowedTools Bash,Read,Glob,Grep`; `--model fable` по словам владельца о
+  сильной модели.
+- Не проверено: два одновременных `--resume` одного uuid; поведение картины
+  после auto-compact длинной сессии психолога.
+
 # 2026-09-08 — ответы психолога по делу
 
 Поправка владельца после установки (`_ops/chat-recall/2026-09-08-161113-claude-4c325be0.md#L28`):
