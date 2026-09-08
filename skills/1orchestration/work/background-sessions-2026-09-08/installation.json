@@ -1,0 +1,14 @@
+{
+  "parity": "pass: final, owner, installed Codex, version",
+  "installed_links_from_other_cwd": "pass",
+  "unchanged_execute": "pass",
+  "hashes": {
+    "SKILL.md": "7c376336229bd77527143cf9c2f80d0d2e64ceb10beae65d4abae8063b24fe21",
+    "agents/openai.yaml": "9fd1d6feb682b052d40713df0a93a202f3e6d0f00bc147fa151b7dabf3c571f5",
+    "product-frame.principles.md": "b2baeda6ac8f417c8eccc0667409ee9ea40aadb1267726ff0330cef944183941",
+    "references/accept.md": "d513f1430dad474b275368fce94846e08467c26a1c3048a23894c939a6fdb15f",
+    "references/background-sessions.md": "55eec35bfc06360bccafa27cfc8a96f24a6661900c8d61315a7092e49f45c5c0",
+    "references/choose.md": "d32aee0d326b7ccaa832cc4b451c16332a9d34a12f18b0eda7c1d135e78399b7",
+    "references/execute.md": "c0e05bc3ce3b83067a66e9bdd9b19dbc51d6ade975e152a2aa7df9af457dff50"
+  }
+}

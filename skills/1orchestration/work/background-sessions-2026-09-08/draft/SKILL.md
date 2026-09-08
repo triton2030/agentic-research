@@ -1,7 +1,8 @@
 ---
 name: 1orchestration
 description: >-
-  Use when work is large, spans many files or sessions, or when delegating, discovering, reusing or managing background Codex sessions, or accepting agent results to balance cost, speed, and quality.
+  Use when large work needs delegation, background sessions need discovery or
+  reuse, or agent results need acceptance to balance cost, speed, and quality.
 ---
 
 # Оркестрация Codex
@@ -9,8 +10,7 @@ description: >-
 ## Задача
 
 Эффективно распределяй работу между доступными Claude-агентами, фоновыми
-задачами Codex и собственными субагентами, используя сильные стороны каждого.
-Находи подходящих фоновых специалистов
+задачами Codex и собственными субагентами, используя сильные стороны каждого. Находи подходящих фоновых специалистов
 и используй их накопленный опыт для следующих поручений.
 
 ## Цель
