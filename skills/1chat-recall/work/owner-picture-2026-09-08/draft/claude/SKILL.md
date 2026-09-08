@@ -1,9 +1,9 @@
 ---
 name: 1chat-recall
 description: >-
-  Use when a material decision needs the owner's intent, feelings and
-  attitudes recovered from recorded words, or the owner states something
-  material; also corpus validation, repair or backfill.
+  Use when a decision needs the owner's intent, feelings, attitudes from
+  recorded words, or the owner says something material; also corpus repair.
+  Excludes handoffs and project-truth updates.
 allowed-tools: Bash Read Glob Grep Agent SendMessage
 ---
 
@@ -52,6 +52,10 @@ allowed-tools: Bash Read Glob Grep Agent SendMessage
 копится прочитанными разговорами, и с каждым вопросом он отвечает точнее.
 Вызывающий агент сам цитаты не ищет; ответ психолога содержит дословные цитаты
 с адресами, поэтому применение проверяемо без повторного чтения корпуса.
+Исключительность психолога относится к поиску прежних слов: чтение своего
+файла разговора при Capture и детерминированная проверка корпуса при
+Integrity поиском не являются; восстановление записи по поручению владельца
+остаётся у Integrity, потому что психолог в корпус не пишет.
 
 Психолога создаёт `Agent` с `subagent_type: general-purpose`, без `model` —
 нужен сильный, — и `run_in_background: true`; prompt — полный текст
@@ -60,9 +64,10 @@ allowed-tools: Bash Read Glob Grep Agent SendMessage
 первый вопрос или, пока его нет, задача сессии: созданный при входе в скил,
 он читает корпус, пока идёт работа. Следующие вопросы — `SendMessage` тому же
 агенту: второй психолог теряет накопленную картину. Если `SendMessage` в среде
-нет, новый `Agent` получает ту же роль, все прежние ответы психолога этой
-сессии и новый вопрос: цитаты с адресами в прежних ответах переносят картину
-дешевле повторного чтения. Субагент без права создавать агентов получает
+нет — аварийный режим, а не выполнение решения владельца: новый `Agent`
+получает ту же роль, все прежние ответы психолога этой сессии и новый
+вопрос; переносятся опоры с адресами, но не накопленное окно. Субагент без
+права создавать агентов получает
 позицию владельца в brief от вызвавшего. Пока психолог ищет, продолжается
 независимая работа; зависимое решение ждёт ответа.
 
