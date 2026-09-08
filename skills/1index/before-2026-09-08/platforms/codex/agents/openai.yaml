@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Индекс оплаченных маршрутов"
+  short_description: "Use when costly search or a direct owner statement identifies a specific hard-to-find location."
+  default_prompt: "Используй $1index после наблюдаемо дорогого поиска либо прямого слова владельца о конкретном трудно находимом месте."
+
+policy:
+  allow_implicit_invocation: true
