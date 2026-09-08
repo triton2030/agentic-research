@@ -20,18 +20,27 @@ projections.
 - `product-frame.md` — историческая продуктовая рамка; действующий owner указан выше.
 - `cut.md` — общая история снятых и перенесённых смыслов между версиями.
 
-Черновик в работе (2026-09-08, не установлен): психолог владельца в `agents/`,
-retrieval только через него — `work/owner-picture-2026-09-08/` (intent, state,
-draft, verification, reviews).
-
 Текущая установленная версия:
+`versions/installed-2026-09-08-psychologist/` — корпус читает только
+агент-психолог (`agents/psychologist.md`): в Claude повторно опрашиваемый
+субагент на сессию, в Codex фоновый тред на проект; Retrieval — протокол
+вызывающего; полное чтение разговора возвращено; description про понимание
+владельца как личности. Утверждено владельцем 2026-09-08 («Да, устанавливай
+оба варианта»). Evidence: [intent](work/owner-picture-2026-09-08/intent.md),
+[verification](work/owner-picture-2026-09-08/verification.md),
+[reviews](work/owner-picture-2026-09-08/reviews.md), Codex-аудиты —
+`work/owner-picture-2026-09-08/codex-audit/`, байты —
+`work/owner-picture-2026-09-08/installed-manifest.json`. Не проверено живьём:
+проектный тред Codex (см. verification, последний раздел).
+
+Предыдущая версия:
 `versions/installed-2026-09-05-goals/` — три режима через цели и наблюдаемые
 исходы, первая Capture в новом проекте, видимые конфликты и неустановленные
-отмены. Evidence и продолжение: [verification](work/goal-rewrite-2026-09-05/verification.md),
+отмены. Evidence: [verification](work/goal-rewrite-2026-09-05/verification.md),
 [состояние](work/goal-rewrite-2026-09-05/state.md),
 [карта потерь](work/goal-rewrite-2026-09-05/intent.md).
 
-Предыдущая версия: `versions/installed-2026-08-31-rewrite/`,
+Ранее: `versions/installed-2026-08-31-rewrite/`,
 её intent и clean-room — `work/rewrite-2026-08-31/`.
 
 Предшествующая установленная версия:

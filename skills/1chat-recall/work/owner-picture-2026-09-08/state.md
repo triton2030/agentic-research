@@ -1,5 +1,5 @@
 Маршрут: адресная правка намерения, расширенная владельцем до смены механизма Retrieval (психолог).
-Состояние: готов полный черновик v6 (`draft/{claude,codex}`); проверка потерь — `intent.md`; обе волны проверки исчерпаны (`reviews.md`); живой прогон психолога и тесты — `verification.md`; Codex-аудиты A/B проведены и учтены (`reviews.md`, `codex-audit/`); черновик предъявлен владельцу.
-Слова владельца: `_ops/chat-recall/2026-09-08-161113-claude-4c325be0.md#L18–L24`.
-Карта: `../../cut.md` (раздел 2026-09-08). Product owner обновлён: `skills/shared/1chat-recall/product-frame.md`.
-Установка не выполнена: ждёт утверждения владельцем (единственный гейт, где он хочет быть спрошен — `2026-08-29-152721-codex-01a04d0e.md#L24`).
+Состояние: рефактор завершён — v6 утверждена владельцем 2026-09-08 («Да, устанавливай оба варианта», `_ops/chat-recall/2026-09-08-161113-claude-4c325be0.md#L25`) и установлена.
+Установлено: tracked owners `skills/claude/1chat-recall/` (symlink из `~/.claude/skills/`) и `skills/codex/1chat-recall/` → `~/.codex/skills/1chat-recall/`; снимок `versions/installed-2026-09-08-psychologist/`; байты — `installed-manifest.json`; тесты из установленных мест OK.
+Слова владельца: тот же файл, `#L18–L25`. Намерение, допуск, потери — `intent.md`; волны и аудиты Codex — `reviews.md`, `codex-audit/`; живые прогоны — `verification.md`; карта — `../../cut.md`.
+Открыто после установки: живой запуск проектного треда психолога из Codex-сессии (verification.md, последний раздел).

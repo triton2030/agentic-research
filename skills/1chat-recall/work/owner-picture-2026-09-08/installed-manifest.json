@@ -1,0 +1,61 @@
+{
+  "installed_at": "2026-09-08T17:32:17+05:00",
+  "version": "versions/installed-2026-09-08-psychologist",
+  "claude": {
+    "files": 22,
+    "description_chars": 189,
+    "installed": "/Users/triton/.claude/skills/1chat-recall",
+    "sha256": {
+      "SKILL.md": "b531e76fd03e78da3074d28f47e3a0571a9bfab2f0d9e348693bcf84c96b54f5",
+      "agents/psychologist.md": "2d4c0a6923c060bd7c36422eedd8427ea1dff74f1323d1e946f9e13e74106ded",
+      "references/capture.md": "1c9ccdaaedf8651bf367b9a4bed93da8d66f5937c81c1efa618bca91649a44cc",
+      "references/integrity.md": "d8c11326cf380731bc395283c061ce2e077ac19ec519e831f0302eb46d9d5e53",
+      "references/retrieval.md": "a4abde94af47cfc610c25e2b41bfa2d3d84b977cec854942fc9ca8e026728ab4",
+      "scripts/chat_capture.py": "d66aec4e69a2c018f727794140d9e1552a658f69c644f3931326b6263c984205",
+      "scripts/chat_digest.py": "909ea38f5edcd65560ac9b82f000e49b4b0cf84b65cf6b05e84a8b3215fc7869",
+      "scripts/chat_digest.py.lock": "06eb6a046269477497f3a8f38a10476ac12793930309b6eac5a9457ae4738840",
+      "scripts/chat_recall.py": "7b58e21df62f8543da89c6d8194561e3b60b060fd3078b00b514464bcee00dc6",
+      "scripts/recall_metadata.py": "305481b0daa3396e8b725adf6c727769db5a868d67c39006d9588a7d05161e65",
+      "tests/capture_cases.json": "985a72ad855d07c348810872e30f9158d59b1b655c3688d9e6434ab0e4704d75",
+      "tests/check_anchors.py": "8ed1b90710d9ad933beeb341cf2cd1e49beef6026ed8b6dd0b3c4a06f93ca57a",
+      "tests/evaluate_anchors.py": "912bbce6e89c4d0bfcb241ec5626740ed69dba51f4bd52451ba53c86c899eb2c",
+      "tests/evaluate_capture.py": "4ec62171bc160de0cf6ed06bd35528a6c385662442ec237295fbb883ecb3e705",
+      "tests/evaluate_retrieval.py": "f6edce0670c7310d5eb7ef9f2884d2207d90b8129957ea809b464847efc5d0d7",
+      "tests/evaluate_support.py": "839f396c67f2d2f3ad9ef9281b82dc4919c9003ded27858d8ef4de1b4a592d81",
+      "tests/retrieval_cases.json": "421b458ab4c04c637cd0484f7b7296a6dd9797102902c01355e312d3f5283f92",
+      "tests/support_cases.json": "e032f9cba99e1420753f833f0c226a4d7d9c24cd0bf8380ca14a50433b09f98f",
+      "tests/test_chat_capture.py": "3e55dd7c59e934527635e1c56599b06f8f30770e480e4f2e5a1916558550387a",
+      "tests/test_chat_digest.py": "7fde8ab6d484b03ba21555c7b913a9469d80c708ac9792b6254894671ff5d103",
+      "tests/test_chat_recall.py": "0f9e8312f9ea0b99a918ca9f80c0703534fef1811d24b05d3b0e50dcf9500b6d",
+      "tests/test_evaluate_retrieval.py": "2dba8f8f4d293b2961078283c78b5b57c9d6caeaf14e6e2860b80ac6776fb194"
+    }
+  },
+  "codex": {
+    "files": 21,
+    "description_chars": 189,
+    "installed": "/Users/triton/.codex/skills/1chat-recall",
+    "sha256": {
+      "SKILL.md": "1046c23615f24b02d713ed067813e231af4d9ae1482a14e072cd3d7a61487c29",
+      "agents/openai.yaml": "49400c35916618f33c8192569b2df4c15b73bf5c22fbaf25da361b4e92d89309",
+      "agents/psychologist.md": "2236ddc265197ad2ee3918ddaccfd0be4222be31c6ba622995bb5234b922cf3c",
+      "references/capture.md": "1c9ccdaaedf8651bf367b9a4bed93da8d66f5937c81c1efa618bca91649a44cc",
+      "references/integrity.md": "f83b878e859ee59248699e518cd3a199c5e2da18d0e0ef27c414c45819724de2",
+      "references/retrieval.md": "a4abde94af47cfc610c25e2b41bfa2d3d84b977cec854942fc9ca8e026728ab4",
+      "scripts/chat_capture.py": "d66aec4e69a2c018f727794140d9e1552a658f69c644f3931326b6263c984205",
+      "scripts/chat_digest.py": "909ea38f5edcd65560ac9b82f000e49b4b0cf84b65cf6b05e84a8b3215fc7869",
+      "scripts/chat_digest.py.lock": "06eb6a046269477497f3a8f38a10476ac12793930309b6eac5a9457ae4738840",
+      "scripts/chat_recall.py": "2028ab28f1b405d7d5260b156dd9c9e27f980994e78b94f4c20ac42cc86ab231",
+      "scripts/recall_metadata.py": "305481b0daa3396e8b725adf6c727769db5a868d67c39006d9588a7d05161e65",
+      "tests/blind_mavo_short2_cases.json": "b2f892f98d643f63ed7dbbfccc9852c749786875055e154850486c4f257b7b3c",
+      "tests/evaluate_anchors.py": "912bbce6e89c4d0bfcb241ec5626740ed69dba51f4bd52451ba53c86c899eb2c",
+      "tests/evaluate_retrieval.py": "f6edce0670c7310d5eb7ef9f2884d2207d90b8129957ea809b464847efc5d0d7",
+      "tests/evaluate_support.py": "839f396c67f2d2f3ad9ef9281b82dc4919c9003ded27858d8ef4de1b4a592d81",
+      "tests/retrieval_cases.json": "421b458ab4c04c637cd0484f7b7296a6dd9797102902c01355e312d3f5283f92",
+      "tests/support_cases.json": "e032f9cba99e1420753f833f0c226a4d7d9c24cd0bf8380ca14a50433b09f98f",
+      "tests/test_chat_capture.py": "21ad08c7b73144bd5ecfded527465b12084a0df152664eefd4607c22991c70e8",
+      "tests/test_chat_digest.py": "7fde8ab6d484b03ba21555c7b913a9469d80c708ac9792b6254894671ff5d103",
+      "tests/test_chat_recall.py": "4b78fb0b00eb83b33a5da359df7b915a4d7740f630eb3d2622366723c2f16efa",
+      "tests/test_evaluate_retrieval.py": "2dba8f8f4d293b2961078283c78b5b57c9d6caeaf14e6e2860b80ac6776fb194"
+    }
+  }
+}
