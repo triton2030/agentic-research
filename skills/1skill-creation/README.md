@@ -12,7 +12,7 @@
 | `origin.md` | Исходный материал до переработки |
 | `user-said.md` | Сохранённые слова владельца |
 | `cut.md` | Удалённые или не вошедшие правила и причины |
-| `product-frame.principles.md` | Продуктовые принципы этого скила |
+| `product-frame.principles.md` | Исторический снимок принципов; действующие — у shared owner |
 | `evidence.md` | Сквозные доказательства и проверки истории |
 
 Версии `v1`–`v4` в этой папке не сохранились; нумерация начинается с первого
@@ -20,5 +20,8 @@
 [`skills/claude/1skill-creation/`](../claude/1skill-creation/) и
 [`skills/codex/1skill-creation/`](../codex/1skill-creation/).
 
-Последняя адресная правка — 2026-09-07: нагрузка по условиям применения,
-установлено в Claude и Codex. [Решения и проверка](../1agent-steering/work/conditional-load-2026-09-07/decisions.md).
+Последняя установленная редакция — 2026-09-08: Контекст → Задача → необходимые
+Критерии → Цель → условные знания и инструкции. Тело соответствует утверждённому
+в чате; references и роли согласованы, пакеты Claude и Codex проверены.
+[Решения и проверка](work/conditional-intent-2026-09-08/decisions.md).
+[Действующие принципы](../shared/1skill-creation/product-frame.principles.md).

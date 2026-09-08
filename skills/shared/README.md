@@ -53,40 +53,21 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
     `SKILL.md`. С 2026-09-02 контекст скила называет, что содержимое зоны
     сильнее инструкции, а ремонт файла инструкций отдаёт `1instruction-authoring`
     (`_ops/chat-recall/2026-09-02-151925-claude-0c84f259.md#L28`);
-  - `1skill-creation/portable/` — создание, рефактор и кнопка запуска скилов
-    одним пакетом (v19, 2026-09-02; предшественники и снапшоты —
-    `skills/1skill-authoring/`, `skills/1skill-refactor/` и
-    `skills/1skill-routing/`). Тело — единственный router независимых стадий;
-    references друг друга не вызывают, кроме `refactor.md`, у которого два
-    входа — clean-room и адресная правка намерения по дословным словам
-    владельца — и который запускает `goal-context.md` и возвращает агента в
-    полный протокол создания. Пакет владеет `goal-context.md`,
-    `skill-short-description.md`, `behavior-protocol.md`,
-    `reference-files.md`, `agent-defaults.md`, `refactor.md`,
-    `check-approve.md` и `install-approved.md`, а также парой
-    `agents/check-instructions.md` + `agents/check-trajectory.md`. Намерение
-    скила состоит из четырёх разделов в порядке Задача, Цель, Зачем, Критерии
-    принятия — решение владельца 2026-09-02
-    (`_ops/chat-recall/2026-09-02-151925-claude-0c84f259.md#L23`), сменившее
-    порядок v14 с Уникальным контекстом впереди: раздел Зачем занял его место,
-    по-прежнему погружает в мир, но назван по функции, потому что сильная
-    модель выполняет те инструкции, чью причину понимает (там же, `#L22`).
-    По той же причине каждая инструкция и критерий готового скила несут свою
-    причину (критерий 3, шаг 5 `agent-defaults.md`). Протокол поведения и
-    reference-файлы идут после четырёх разделов и только по требованию
-    владельца либо по выходу гейта `behavior-protocol.md` — метод «сломанный
-    джин», решение владельца 2026-08-31. Отбор инструкций — по Minimal Critical Specification (Cherns,
-    1976): продиктованный владельцем протокол проходит его наравне с агентским
-    и снимается там, где чистый агент приходит к тому же поведению по одному
-    намерению, а снятие называется владельцу в разборе. Редакционный ориентир — 20 единиц на файл; активная нагрузка считается
-    по одновременно действующим обязательствам независимо от раздела и файла.
-    Ориентир критериев — пять, без потери существенных препятствий.
-    Дорогое снятие инструкции требует сравнительного прогона, а прогноз
-    проверяющего остаётся гипотезой (точечная правка 2026-09-05). Пакет производит `product-frame.principles.md`
-    скила в его папке-истории; композиция управляющего текста — в
-    `science/how-to-command-agents-with-text.md`.
+  - `1skill-creation/portable/` — создание, рефактор и кнопка запуска скилов.
+    С 2026-09-08 тело служит примером семи условных наборов знаний и инструкций.
+    Порядок: Контекст → Задача → необходимые Критерии принятия → Цель → условия.
+    Контекст передаёт неизвестный мир; критерии добавляют невыводимые уточнения;
+    Цель работает как главный принцип выбора при неопределённости и конфликте.
+    Важность и сложность решения оправдывают отдельный случай активации.
+    Намерение — `references/goal-context.md`, допуск дополнительного содержания —
+    `behavior-protocol.md`, границы режимов — `reference-files.md`, вызов —
+    `skill-short-description.md`. `refactor.md` восстанавливает намерение и
+    проверяет потери; `check-approve.md` использует две независимые роли;
+    `install-approved.md` отвечает за точную доставку. Продуктовая правда —
+    `1skill-creation/product-frame.principles.md`; история — `skills/1skill-creation/`.
   У каждого `platforms/codex/agents/openai.yaml` — только Codex UI metadata.
   Reference-файл живёт ровно у одного владельца; соседи ссылаются относительно.
+
 - `1md-search/portable/` — общий cognitive/tool core для
   Codex и Claude; `platforms/codex/agents/openai.yaml` — только Codex UI и
   invocation metadata. Сосед `1md-read` снят 2026-08-22 по решению владельца,
@@ -133,8 +114,8 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
 - `1smart-simple` — tracked owner отсутствует; живые пакеты
   `~/.claude/skills/1smart-simple/` и `~/.codex/skills/1smart-simple/` —
   единственная правда (v4, 2026-09-06; история — `skills/1smart-simple/`).
-  На него маршрутизируют по одной строке `1skill-creation` (критерий 4,
-  `reference-files.md` шаг 6), `1instruction-authoring/writing.md`,
+  На него маршрутизируют `1skill-creation/reference-files.md` (случай проверки
+  нагрузки), `1instruction-authoring/writing.md`,
   `1document-system/overgrown.md` и `1plan-task` (C3).
 - `1index/portable/` держит карты оплаченных поиском маршрутов.
 - `1interview-tool/portable/` создаёт адресуемую plain-Markdown форму и держит
