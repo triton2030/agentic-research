@@ -1,0 +1,98 @@
+filters:
+  and:
+    - file.inFolder("_ops/plans")
+    - file.ext == "md"
+formulas:
+  Задачи: note["задач-готово"].toString() + "/" + note["задач"].toString() + " созданных"
+properties:
+  note.порядок:
+    displayName: №
+  formula.Задачи:
+    displayName: Закрыто задач
+views:
+  - type: table
+    name: Главный путь
+    filters:
+      and:
+        - note.тип == "эпик"
+        - note.запуск == true
+    order:
+      - note.порядок
+      - note.статус
+      - file.name
+      - note.описание
+      - formula.Задачи
+      - note.health
+      - note.ранний-индикатор
+      - note.зависит-от
+      - note.задачи
+      - note.обновлено
+    sort:
+      - property: note.порядок
+        direction: ASC
+  - type: table
+    name: Остальные эпики
+    filters:
+      and:
+        - note.тип == "эпик"
+        - note.запуск == false
+    order:
+      - file.name
+      - note.область
+      - note.статус
+      - note.описание
+      - formula.Задачи
+      - note.health
+      - note.обновлено
+    sort:
+      - property: note.порядок
+        direction: ASC
+  - type: table
+    name: Блокировки и затыки
+    filters:
+      and:
+        - note.тип == "эпик" || note.тип == "задача"
+        - note.статус == "🔒 заблокировано" || note.статус == "🛑 затык"
+    order:
+      - file.name
+      - note.тип
+      - note.эпик
+      - note.статус
+      - note.вопрос
+      - note.обновлено
+  - type: table
+    name: Открытые вопросы
+    filters:
+      and:
+        - note.тип == "вопрос"
+        - note.статус == "открыт"
+    order:
+      - file.name
+      - note.касается
+      - note.адресат
+      - note.срок
+    sort:
+      - property: note.срок
+        direction: ASC
+  - type: table
+    name: Отложенное
+    filters:
+      and:
+        - note.тип == "эпик" || note.тип == "задача"
+        - note.статус == "⏳ отложено"
+    order:
+      - file.name
+      - note.тип
+      - note.эпик
+      - note.область
+      - note.обновлено
+  - type: table
+    name: Ошибки типа
+    filters:
+      or:
+        - file.name.startsWith("epic - ") && note.тип != "эпик"
+        - file.name.startsWith("task - ") && note.тип != "задача"
+    order:
+      - file.name
+      - file.folder
+      - note.тип

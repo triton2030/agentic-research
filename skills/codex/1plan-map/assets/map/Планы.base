@@ -1,0 +1,63 @@
+filters:
+  and:
+    - file.inFolder("_ops/plans/эпики")
+    - file.ext == "md"
+formulas:
+  Прогресс: if(note["подзадач"] > 0, ((note["подзадач-готово"] / note["подзадач"]) * 100).round().toString() + "%", "—")
+properties:
+  note.порядок:
+    displayName: №
+  note.подзадач-готово:
+    displayName: Подзадач ✓
+  note.подзадач:
+    displayName: Подзадач всего
+views:
+  - type: table
+    name: Живые задачи
+    filters:
+      and:
+        - note.тип == "задача"
+        - note.статус != "✅ готово"
+    groupBy:
+      property: note.эпик
+      direction: ASC
+    order:
+      - file.name
+      - note.эпик
+      - note.статус
+      - note.порядок
+      - formula.Прогресс
+      - note.режим
+      - note.вопрос
+      - note.обновлено
+    sort:
+      - property: note.порядок
+        direction: ASC
+  - type: table
+    name: Завершённые задачи
+    filters:
+      and:
+        - note.тип == "задача"
+        - note.статус == "✅ готово"
+    groupBy:
+      property: note.эпик
+      direction: ASC
+    order:
+      - file.name
+      - note.эпик
+      - formula.Прогресс
+      - note.evidence
+      - note.обновлено
+    sort:
+      - property: note.обновлено
+        direction: DESC
+  - type: table
+    name: Ошибки типа
+    filters:
+      and:
+        - file.name.startsWith("task - ")
+        - note.тип != "задача"
+    order:
+      - file.name
+      - file.folder
+      - note.тип

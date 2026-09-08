@@ -1,0 +1,14 @@
+{
+  "1plan-map/SKILL.md": "8efdfe8feda476e29dfe6e1307f75780daa9341646fb75fb6fced1b31d20c540",
+  "1plan-map/assets/epic-template.md": "aa67114172c2863f01f88513f3bb801222a093f4271220bc4d142d21aac499c8",
+  "1plan-map/assets/map/Дашборд.base": "dc8087838afcdf0aca68c296f4acdc17836dc423fb24a706559e2c860b739321",
+  "1plan-map/assets/map/Планы.base": "6bd66411e7b762caafc63eef45b50cf976983f842bdbdc194cf23fe09b9089a8",
+  "1plan-map/assets/question-template.md": "2f3743154224b532afbe05c0c66f9934c538480d35aaeb63029d9620b0ea2964",
+  "1plan-map/references/epic-schema.md": "ceac48c65bcbdae91b73060c5f69ff779d306b838d77543bc796bdcc709b8d10",
+  "1plan-map/references/question-schema.md": "0612caa4df7abcd0a956b34671262fac34d15403e4b0b31c02c6e968f1d1c652",
+  "1plan-map/scripts/check_plans.py": "3fcd5362744bdb8dbe76a4687775da32c710894b3271a37981d561d0ec47a334",
+  "1plan-task/SKILL.md": "2dd3bbf261b236ff492cc82f6470232ddf8c95f4b0bf504ff95c397ae7b5dc61",
+  "1plan-task/assets/task-template.md": "14ac4b129f09abecc8355940bb36b402d0b19789fecf23963f7fa2feeb010ac4",
+  "1plan-task/references/task-schema.md": "23a9162f788e5b9819f297224577f8ac01c15a22885c532844ed37e927463f2d",
+  "1planning/SKILL.md": "d7c3e1537cfdcf66839097965f78aa1cdd030ffe668c48486e96aa5a967cc728"
+}

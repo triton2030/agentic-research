@@ -7,6 +7,12 @@ description: "Version packages and refactor evidence for 1planning."
 Живой owner находится в `skills/shared/1planning/portable/`.
 Эта папка хранит историю и не является runtime package.
 
+## Установлено 2026-09-08
+
+[Точная версия](versions/installed-2026-09-08/SKILL.md) установлена в tracked owner,
+Codex и Claude. [Результат и проверка](../1planning/work/implementation-2026-09-08/state.md).
+Существующие планы не мигрировались.
+
 ## Топология
 
 - `versions/<version-id>/` — самостоятельный снимок package: `SKILL.md`,
@@ -16,7 +22,7 @@ description: "Version packages and refactor evidence for 1planning."
 - `origin.md`, `cut.md`, `evidence.md`, `product-frame.md` — общая история,
   относящаяся к нескольким версиям.
 
-Последний кандидат: `versions/candidate-2026-08-31-genie-v2/`.
+Версия до этой правки: `versions/candidate-2026-08-31-genie-v2/`.
 Его служебное evidence: `work/refactor-2026-08-31-doctrine/`.
 
 Предыдущий подробный README сохранён в
@@ -24,7 +30,7 @@ description: "Version packages and refactor evidence for 1planning."
 
 ## Рефактор 2026-09-03
 
-Текущий черновик: [candidate-2026-09-03-v3](versions/candidate-2026-09-03-v3/SKILL.md), ещё не установлен.
+Исторический черновик: [candidate-2026-09-03-v3](versions/candidate-2026-09-03-v3/SKILL.md), ещё не установлен.
 Исходный пакет: [baseline-2026-09-03](versions/baseline-2026-09-03/SKILL.md).
 Продолжение: [состояние](work/refactor-2026-09-03/state.md).
 Общее намерение и карта потерь: [рабочая папка тройки](../1planning/work/refactor-2026-09-03/intent.md).

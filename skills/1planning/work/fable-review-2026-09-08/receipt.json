@@ -1,0 +1,14 @@
+{
+  "requested_model": "claude-fable-5-1",
+  "resolved_models": [
+    "claude-fable-5-1"
+  ],
+  "session_id": "8cee9fca-bd7d-405e-85e6-97e13e62e641",
+  "subtype": "success",
+  "stop_reason": "end_turn",
+  "duration_ms": 366235,
+  "permission_denials": [],
+  "prompt": "prompt.md",
+  "review": "review.md",
+  "source_scope": "Three tracked owner SKILL.md files and related materials selected independently by Fable"
+}

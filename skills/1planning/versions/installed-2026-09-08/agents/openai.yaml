@@ -1,0 +1,7 @@
+interface:
+  display_name: "1-Планирование"
+  short_description: "Use before starting work, to settle if it is the right next work"
+  default_prompt: "Используй $1planning, чтобы решить, стоит ли начинать эту работу и кому её передать."
+
+policy:
+  allow_implicit_invocation: true
