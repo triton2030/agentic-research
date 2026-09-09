@@ -42,10 +42,15 @@ DERIVED_FIELDS = DERIVED_EPIC_FIELDS | DERIVED_TASK_FIELDS
 SERVICE_NAMES = {"readme.md", "agents.md", "claude.md"}
 MISSING = object()
 EXPECTED_SECTIONS = {
-    "эпик": ("Зачем", "Цель", "Канон", "Границы", "Критерии завершения", "Аппетит", "Состояние"),
-    "задача": ("Задача", "Зачем", "Цель", "Критерии приёмки", "Канон", "Подзадачи", "Состояние"),
+    "эпик": ("Зачем", "Цель", "Основания", "Границы", "Критерии завершения", "Аппетит", "Состояние"),
+    "задача": ("Задача", "Зачем", "Цель", "Критерии приёмки", "Основания", "Подзадачи", "Состояние"),
     "вопрос": ("Вопрос", "Влияние", "Варианты", "Ответ"),
 }
+# «Канон» — прежнее имя раздела и поля «Основания» (слой канона снят 2026-09-09).
+# Существующие планы читаются без миграции; новые файлы пишутся новым именем.
+LEGACY_SECTION_TITLES = {"Канон": "Основания"}
+GROUNDS_FIELD = "основания"
+LEGACY_GROUNDS_FIELD = "канон"
 
 FRONTMATTER_OPEN = "---"
 WIKILINK_RE = re.compile(r"^\[\[(?P<target>[^\[\]]+)\]\]$")
@@ -417,7 +422,7 @@ def _validate_frontmatter_common(doc: Document, report: Report) -> None:
 def _validate_sections(doc: Document, report: Report) -> None:
     if doc.kind not in EXPECTED_SECTIONS:
         return
-    actual = tuple(section.title for section in doc.sections)
+    actual = tuple(LEGACY_SECTION_TITLES.get(section.title, section.title) for section in doc.sections)
     expected = EXPECTED_SECTIONS[doc.kind]
     if actual != expected:
         report.add(doc.path, f"H2 sections must be exactly {list(expected)!r} in order; got {list(actual)!r}")
@@ -469,11 +474,13 @@ def _validate_epic_fields(doc: Document, report: Report) -> None:
     health = _require(fm, "health", doc, report)
     if health is not MISSING and (not isinstance(health, str) or health not in HEALTH_VALUES):
         report.add(doc.path, "field 'health' must be 🟢, 🟠, 🔴 or не проверено")
-    canon = _require(fm, "канон", doc, report)
-    if canon is not MISSING and _list(canon, doc, report, "канон"):
-        for item in canon:
+    grounds_key, grounds = _grounds(fm)
+    if grounds is MISSING:
+        report.add(doc.path, f"missing required field '{GROUNDS_FIELD}'")
+    elif _list(grounds, doc, report, grounds_key):
+        for item in grounds:
             if not isinstance(item, str):
-                report.add(doc.path, "every канон item must be a project-relative Markdown path")
+                report.add(doc.path, "every основания item must be a project-relative Markdown path")
     deps = _require(fm, "зависит-от", doc, report)
     if deps is not MISSING and _list(deps, doc, report, "зависит-от"):
         for item in deps:
@@ -608,17 +615,26 @@ def _inside(root: Path, path: Path) -> bool:
     return True
 
 
-def _validate_canon_path(project: Project, doc: Document, value: str, report: Report) -> None:
+def _grounds(fm: Mapping[str, Any]) -> tuple[str, Any]:
+    """Return the grounds field under its new name, reading the legacy `канон` key too."""
+    if GROUNDS_FIELD in fm:
+        return GROUNDS_FIELD, fm[GROUNDS_FIELD]
+    if LEGACY_GROUNDS_FIELD in fm:
+        return LEGACY_GROUNDS_FIELD, fm[LEGACY_GROUNDS_FIELD]
+    return GROUNDS_FIELD, MISSING
+
+
+def _validate_grounds_path(project: Project, doc: Document, value: str, report: Report) -> None:
     if not value or "\\" in value or "\x00" in value:
-        report.add(doc.path, "канон paths must be project-relative Markdown files")
+        report.add(doc.path, "основания paths must be project-relative Markdown files")
         return
     path_value = Path(value)
     if path_value.is_absolute() or ".." in path_value.parts or not value.lower().endswith(".md"):
-        report.add(doc.path, f"канон path is not a project-relative Markdown path: {value!r}")
+        report.add(doc.path, f"основания path is not a project-relative Markdown path: {value!r}")
         return
     candidate = (project.root / path_value).resolve()
     if not _inside(project.root, candidate) or not candidate.is_file():
-        report.add(doc.path, f"канон path does not exist inside project root: {value!r}")
+        report.add(doc.path, f"основания path does not exist inside project root: {value!r}")
 
 
 def _checkbox_entries(content: str) -> list[tuple[int, bool, str, list[str]]]:
@@ -716,10 +732,10 @@ def _intent_body(doc: Document) -> str:
 def compute_epic_snapshot(project: Project, epic: Document) -> str:
     excluded = {"статус", "health", "обновлено", "задач", "задачи", "задач-готово", "evidence"}
     frontmatter = {key: value for key, value in epic.frontmatter.items() if key not in excluded}
-    canon_values = epic.frontmatter.get("канон", [])
+    _, grounds_values = _grounds(epic.frontmatter)
     canon_files: list[dict[str, str]] = []
-    if isinstance(canon_values, list):
-        for value in canon_values:
+    if isinstance(grounds_values, list):
+        for value in grounds_values:
             if not isinstance(value, str):
                 continue
             candidate = (project.root / Path(value)).resolve()
@@ -738,6 +754,8 @@ def compute_epic_snapshot(project: Project, epic: Document) -> str:
         "frontmatter": _normalise_value(frontmatter),
         "intent": _intent_body(epic),
         "goal": goal_text,
+        # Ключ payload намеренно прежний: переименование поля в «основания»
+        # не должно обесценить уже записанные снимки живых задач.
         "canon": canon_files,
     }
     serialised = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
@@ -966,11 +984,11 @@ def validate_root(root: Path, *, include_derived: bool = True) -> Report:
             _validate_question_fields(document, report)
     report.project = project
     for epic in project.epics:
-        canon = epic.frontmatter.get("канон")
-        if isinstance(canon, list):
-            for value in canon:
+        _, grounds = _grounds(epic.frontmatter)
+        if isinstance(grounds, list):
+            for value in grounds:
                 if isinstance(value, str):
-                    _validate_canon_path(project, epic, value, report)
+                    _validate_grounds_path(project, epic, value, report)
     parent_by_task = _validate_relationships(project, report, include_derived=include_derived)
     _validate_order(project, report, parent_by_task)
     _validate_derived(project, report, parent_by_task, include_derived=include_derived)
@@ -1170,19 +1188,19 @@ def snapshot_path(root: Path, path_value: str) -> tuple[str | None, Report]:
         report.add(path, error or "cannot parse snapshot target")
         return None, report
     project = Project(root.resolve(), plans.resolve(), [document])
-    # The target's canonical files and GOAL are validated enough for snapshot
+    # The target's grounds files and GOAL are validated enough for snapshot
     # mode to avoid silently hashing an unreadable source.
     if not (root / "_ops" / "GOAL.md").is_file():
         report.add(root / "_ops" / "GOAL.md", "required _ops/GOAL.md is missing")
-    canon = document.frontmatter.get("канон")
-    if not isinstance(canon, list):
-        report.add(path, "epic канон must be a list")
+    _, grounds = _grounds(document.frontmatter)
+    if not isinstance(grounds, list):
+        report.add(path, f"epic {GROUNDS_FIELD} must be a list")
     else:
-        for value in canon:
+        for value in grounds:
             if isinstance(value, str):
-                _validate_canon_path(project, document, value, report)
+                _validate_grounds_path(project, document, value, report)
             else:
-                report.add(path, "every канон item must be a project-relative Markdown path")
+                report.add(path, "every основания item must be a project-relative Markdown path")
     if report.issues:
         return None, report
     return compute_epic_snapshot(project, document), report

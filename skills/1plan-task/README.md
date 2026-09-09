@@ -7,6 +7,14 @@ description: "Version packages and refactor evidence for 1plan-task."
 Живой owner находится в `skills/shared/1plan-task/portable/`.
 Эта папка хранит историю и не является runtime package.
 
+## Установлено 2026-09-09
+
+[Точная версия](versions/installed-2026-09-09/SKILL.md) установлена в tracked
+owner, Codex и Claude: слой канона снят, у эпика и задачи «Основания» вместо
+«Канон», маршруты записи решений — `1docs-write` и `1goal`. Основание и карта —
+[cut.md](cut.md#2026-09-09--снятие-слоя-канона). Существующие планы не
+мигрировались; чекер читает прежние имена.
+
 ## Установлено 2026-09-08
 
 [Точная версия](versions/installed-2026-09-08/SKILL.md) установлена в tracked owner,

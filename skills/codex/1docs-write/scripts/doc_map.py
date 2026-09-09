@@ -53,7 +53,7 @@ def main():
         "Exit codes: 0 complete, 1 metadata gaps/read errors, 2 invalid root. "
         "Writes only stdout/stderr; no map file or source edits."
     ))
-    parser.add_argument("root", type=Path, help="Documentation directory, e.g. _canon or _docs")
+    parser.add_argument("root", type=Path, help="Documentation directory, e.g. _docs")
     args = parser.parse_args()
     root = args.root.expanduser().resolve()
     if not root.is_dir():

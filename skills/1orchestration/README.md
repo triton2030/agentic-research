@@ -5,6 +5,14 @@ Owners с 2026-09-06: `skills/codex/1orchestration/` и
 и `~/.claude/skills/1orchestration/` — проекции соответствующих runtime owners.
 Общий portable owner снят; sync: `skills/shared/sync_simple_projections.py`.
 
+2026-09-09, обе версии — [Claude](versions/claude-2026-09-09/SKILL.md),
+[Codex](versions/codex-2026-09-09/SKILL.md): память работы по файлу задачи
+`1plan-task` — «Состояние» и свёрнутый отчёт под подзадачей, без второго
+`state.md` и без копий возвратов исполнителей; папка оркестрации — когда файлов
+задач нет или волна шире одной задачи; приёмка отражается там, где живёт
+память. Решение владельца —
+`_ops/chat-recall/2026-09-09-111723-claude-code-571bf7e3.md#L18`.
+
 Codex: [версия 2026-09-08](versions/codex-2026-09-08/SKILL.md) —
 точечное дополнение «Фоновые сессии», повторное использование специалистов
 и наблюдение без вмешательства; [карта и основания](work/background-sessions-2026-09-08/intent-and-preservation.md),

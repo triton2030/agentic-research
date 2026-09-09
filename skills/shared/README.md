@@ -111,6 +111,12 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
     цитаты адресом до строки, бюджет 20, состояние тем же ходом, цель не
     переписывается) вместо инструкций; владеет схемой и шаблоном файла,
     размещением, бюджетом, state/lifecycle и closure.
+  - С 2026-09-09 у эпика и задачи раздел и поле «Основания» (адреса GOAL,
+    утверждённых решений в `_docs` и слов владельца) вместо «Канон»; чекер
+    читает прежнее имя как legacy, существующие планы не мигрировались.
+    Снимок эпика сохраняет прежний payload-ключ, поэтому записанные снимки
+    живых задач не обесценены. Версии — `versions/installed-2026-09-09/`,
+    тесты против живого owner — `skills/1plan-map/work/grounds-2026-09-09/`.
 - `1smart-simple` — tracked owner отсутствует; живые пакеты
   `~/.claude/skills/1smart-simple/` и `~/.codex/skills/1smart-simple/` —
   единственная правда (v4, 2026-09-06; история — `skills/1smart-simple/`).
@@ -182,15 +188,17 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   метаданные уступают живому реестру проекта, жанровые запреты — никогда.
   `platforms/codex/agents/openai.yaml` — только Codex UI metadata.
 - `1docs-write/portable/` — вход для записи и существенной правки знания в
-  документах проекта: определяет статус и дом, разбирает старый источник и
-  передаёт утверждённый канон соседу `1canon-write`.
-- `1canon-write/portable/` — запись утверждённых дорогих решений владельца в
-  короткие согласованные Цель, Сценарий и Факты внутри `_canon`.
-  У обоих пакетов `platforms/codex/agents/openai.yaml` содержит только Codex UI metadata.
-  Общий `scripts/doc_map.py` принадлежит `1docs-write/portable/`; в portable
-  пакете `1canon-write` это относительный симлинк. Sync разносит обычные
-  самодостаточные копии скрипта в обе среды. Он выводит карту путей,
-  description и aliases без записи в документы.
+  документах проекта, включая утверждённые решения о продукте: определяет
+  статус и дом, разбирает старый источник, пишет на месте. С 2026-09-09
+  `_docs` — единственный дом продуктовой правды рядом с GOAL: слой `_canon`
+  и скил `1canon-write` сняты решением владельца
+  (`_ops/chat-recall/2026-09-09-111723-claude-code-571bf7e3.md#L17`; полный
+  снятый пакет и карта переноса — `skills/1canon-write/`). Ценное из канона
+  ушло в семью планирования (раздел и поле «Основания» вместо «Канон»,
+  фильтр «дорого после кода») и в этот скил (дом решения, минимум после
+  кода). `platforms/codex/agents/openai.yaml` — только Codex UI metadata;
+  `scripts/doc_map.py` выводит карту путей, description и aliases без записи
+  в документы.
 
 `skills/codex/<name>/` и `skills/claude/<name>/` — tracked projections owner-а.
 `~/.codex/skills/<name>/` и `~/.claude/skills/<name>/` — installed projections
