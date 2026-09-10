@@ -11,9 +11,9 @@ depends-on:
 Trigger: создаёшь, двигаешь, переименовываешь или делишь файл, папку, раздел,
 правило, заметку, задачу или знание.
 
-Owner: container shape, split/merge/move, file-vs-folder и truth-vs-view держит
-`1ia-audit`; folder criteria и формулировку инструкции держит
-`1instruction-shaping`; GOAL/README shape держит `1goal`.
+Owner: дом, имя и адресацию вещи — file-vs-folder, split/merge/move — держит
+`1folder-tree`; формулировку знания внутри файла — `1docs-write`; формулировку
+инструкции — `1instruction-authoring`; GOAL/README shape — `1goal`.
 
 Check: один owner truth, понятный retrieval path, нет второго source of truth,
 нет нового файла без функции.
@@ -28,11 +28,9 @@ Check: один owner truth, понятный retrieval path, нет второ�
 
 ## Куда Класть
 
-- Общие выводы для агентов, skills, LLM или платформ -> `knowledge/`.
-- Короткие практические гайды -> `knowledge/practical-guides/`.
-- Канонические guides/playbooks/pattern studies -> `knowledge/guides/`.
-- Эталонные артефакты -> `knowledge/examples/`.
-- Категорийные learnings/inventories -> `knowledge/research/{business,design,dev,meta}/`.
+- Знание о вещи -> в папку этой вещи в `knowledge/`: модель, рантайм, агент,
+  скил, инструкция, понятия. Датированный срез внешнего поля и чужой эталон —
+  туда же, соседней стороной, а не на отдельную полку по жанру.
 - Reader on-ramp -> `README.md` через `1goal`.
 - Scope, NOT in scope, definition of done, stop rules -> `_ops/GOAL.md` через
   `1goal`.
@@ -47,9 +45,10 @@ Check: один owner truth, понятный retrieval path, нет второ�
 
 ## Folder Shape
 
-- В корне `knowledge/` держать только `wisdom-*.md`.
-- Новые подпапки в `knowledge/guides/` не создавать.
-- Новые подпапки в `knowledge/research/{category}/` не создавать.
+- В корне `knowledge/` держать только папки-вещи и `README.md`.
+- Полок по жанру и по стадии готовности документа не заводить.
+- Папка держит либо файлы, либо папки; `README.md` и дословный чужой эталон —
+  два названных исключения.
 - `_ops/` — не склад заметок, идей, research или backlog.
 - `INTERVIEW.md`, `LEARNINGS.md` и `projects/` не восстанавливать как живые
   поверхности.

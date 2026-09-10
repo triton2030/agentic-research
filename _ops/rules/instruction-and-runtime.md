@@ -11,9 +11,9 @@ depends-on:
 Trigger: правишь `AGENTS.md`, `CLAUDE.md`, `SKILL.md`, prompt, hook, runtime
 guardrail, `config.toml`, skill reference или модельный baseline.
 
-Owner: wording, instruction placement и folder criteria держит
-`1instruction-shaping`; `SKILL.md`/metadata и skill/hook surface держит
-`1skill-architect`; GOAL/README держит `1goal`; runtime settings, permissions и
+Owner: формулировку и размещение инструкции держит `1instruction-authoring`;
+дом и имя файла — `1folder-tree`; `SKILL.md`, metadata и skill/hook surface —
+`1skill-creation`; GOAL/README — `1goal`; runtime settings, permissions и
 CLI wiring держит отдельный live settings/hook pass.
 
 Check: правило меняет следующий ход агента, не дублирует skill body, не держит
@@ -37,14 +37,14 @@ Check: правило меняет следующий ход агента, не 
 - Claude instruction/runtime surfaces читать можно, редактировать только по
   отдельной явной просьбе именно на эти surfaces.
 - Claude skills можно редактировать только по явной просьбе и через
-  `1skill-architect`.
+  `1skill-creation`.
 - Новые/изменяемые skill-поверхности писать на русском; английский оставлять
   для кода, команд, API/tool names, путей, handles, цитат, model/product names
   и trigger words.
 
 ## Перед Правкой
 
-- Для instruction/skill/prompt work читать ближайший `wisdom-*` и один
+- Для instruction/skill/prompt work читать папку той вещи, о которой правка, и один
   релевантный guide/practical guide.
 - Для Codex skill-структуры сверяться с текущими официальными OpenAI Agent
   Skills docs; `agents/openai.yaml` — optional metadata/policy surface.

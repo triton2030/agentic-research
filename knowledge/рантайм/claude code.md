@@ -10,7 +10,7 @@ description: "Claude Code platform baseline: context, skills, tools, memory, age
 
 Model-level baselines держат `knowledge/модель/claude opus 5.md` и
 `knowledge/модель/claude fable 5.md`.
-Доменные выводы — `knowledge/research/{category}/`.
+Доменные выводы — `knowledge/`, у той вещи, о которой они верны.
 Skill deltas —
 `knowledge/скил/где расходятся платформы.md`.
 

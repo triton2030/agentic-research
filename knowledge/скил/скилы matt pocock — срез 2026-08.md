@@ -1,7 +1,7 @@
 ---
-description: "Source-bound форензика 25 promoted skills Matt Pocock: формулировки, порядок, размеры, отрицательное пространство и границы переноса в 1skill-shaping."
+description: "Source-bound форензика 25 promoted skills Matt Pocock: формулировки, порядок, размеры, отрицательное пространство и границы переноса в скил-канон."
 read-before-edit:
-  - authoring-canon.md
+  - как писать.md
 edit-after-edit: []
 ---
 
