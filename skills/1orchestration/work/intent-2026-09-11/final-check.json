@@ -1,0 +1,55 @@
+{
+  "status": "draft_awaiting_owner_approval",
+  "candidate": "candidate-v3",
+  "packages": {
+    "codex": {
+      "hashes": {
+        "SKILL.md": "f765ceaed4d8dd05d1e66befade505d4fcddffe61b64d2c3d0122d5625c983ef",
+        "agents/openai.yaml": "3ed7ceb015b9828db9bf2e2487a1bebe72a3ce758dbb44f4fea4fe0415614148",
+        "product-frame.principles.md": "982083f4813db53d77fb6a4ea17263a268248c6ee5a892b8fec708e2314d744d"
+      },
+      "owner_unchanged": true,
+      "installed_matches_unchanged_owner": true,
+      "quick_validate": "pass",
+      "v2_to_v3_diff": "exactly_three_accepted_corrections",
+      "dependencies_exist": {
+        "1claude-mcp": true,
+        "1agent-steering": true,
+        "1plan-task": true
+      },
+      "old_operating_characters": 22815,
+      "new_operating_characters": 7322,
+      "reduction_percent": 67.9
+    },
+    "claude": {
+      "hashes": {
+        "SKILL.md": "32f20951819fb5ef96e2c4ffc88e55b300715edf05d398f15cc03bce987dd665"
+      },
+      "owner_unchanged": true,
+      "installed_matches_unchanged_owner": true,
+      "quick_validate": "pass",
+      "v2_to_v3_diff": "exactly_three_accepted_corrections",
+      "dependencies_exist": {
+        "1codex": true,
+        "1agent-steering": true,
+        "1plan-task": true
+      },
+      "old_operating_characters": 19214,
+      "new_operating_characters": 6816,
+      "reduction_percent": 64.5
+    }
+  },
+  "review_boundary": "Two independent readers reviewed v1/v2. Final v3 has exactly three accepted local corrections per runtime; bounded v1 behavior probe is not an end-to-end test of v3.",
+  "introduced_history_links_exist": [
+    "skills/1orchestration/work/intent-2026-09-11/candidate-v3/codex/SKILL.md",
+    "skills/1orchestration/work/intent-2026-09-11/candidate-v3/claude/SKILL.md",
+    "skills/1orchestration/cut.md",
+    "skills/1orchestration/work/intent-2026-09-11/review-context.md",
+    "skills/1orchestration/work/intent-2026-09-11/state.md",
+    "skills/1orchestration/work/intent-2026-09-11/candidate-v3/codex/SKILL.md",
+    "skills/1orchestration/work/intent-2026-09-11/candidate-v3/claude/SKILL.md",
+    "skills/1orchestration/work/intent-2026-09-11/intent.md",
+    "skills/1orchestration/work/intent-2026-09-11/review-context.md",
+    "skills/1orchestration/work/intent-2026-09-11/state.md"
+  ]
+}

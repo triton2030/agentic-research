@@ -1,0 +1,17 @@
+{
+  "question": "Does reintroducing the old mandatory preflight change concrete assignment/acceptance output on otherwise identical candidate text?",
+  "condition_a": "candidate plus exact old preflight block",
+  "condition_b": "candidate as proposed",
+  "limits": "One draft-action case, no actual delegation or end-to-end execution; no statistical claim.",
+  "hashes": {
+    "inbox.md": "77805fa87bc64c838afab7823c68da8f6fc49776e9387f834abf20c9e4540c52",
+    "spec-v2.md": "90d63df04020761da8f4664afd47f01fd08769db03a02e84536dd04ad89e1df8",
+    "task.md": "d8ffa24977977f249890e491b3b99f618c4b96c822e4dc552ecef0bddf3f544c",
+    "b/skill/SKILL.md": "7bf10dd61816524a1984fec3bd31a677538ef58d1c9229e139f7cd6c4e1154ce",
+    "b/skill/product-frame.principles.md": "982083f4813db53d77fb6a4ea17263a268248c6ee5a892b8fec708e2314d744d",
+    "b/skill/agents/openai.yaml": "3ed7ceb015b9828db9bf2e2487a1bebe72a3ce758dbb44f4fea4fe0415614148",
+    "a/skill/SKILL.md": "ea763419c5f2e30119a33258b540dbb56e623317bddc16e08ceb8607c7e3410a",
+    "a/skill/product-frame.principles.md": "982083f4813db53d77fb6a4ea17263a268248c6ee5a892b8fec708e2314d744d",
+    "a/skill/agents/openai.yaml": "3ed7ceb015b9828db9bf2e2487a1bebe72a3ce758dbb44f4fea4fe0415614148"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "codex": {
+    "SKILL.md": "7ea04f61011ab16f9d294b0fa202b6de906537fc81d05b2fb56acad62d1ff488",
+    "product-frame.principles.md": "8530742c58c6c7edbb93761d9e565ba6ae3db7f82295916ea6c2c484fef20808",
+    "references/background-sessions.md": "c73d3716aa9961b5a3d07c6fdb5003fd8e970ed8f7916285f432dde57e5c9de7",
+    "references/accept.md": "ce6cdf0003ea5626e9c692460729ac555c264c701992cf93beb83a51bb2284b9",
+    "references/choose.md": "bee30bdc553373ffedcea3734a69389178be359146b4177e2717ddfde4569157",
+    "references/execute.md": "aa021561104157b9a59eded59bd77bbccf69d7fb70c4fb08ae97d02c33b66599",
+    "agents/openai.yaml": "3ed7ceb015b9828db9bf2e2487a1bebe72a3ce758dbb44f4fea4fe0415614148"
+  },
+  "claude": {
+    "SKILL.md": "cf1f582327f9e18c12c4a214a665644493a02ba197c86829c420a95f901e451f",
+    "references/accept.md": "8da1d607de244f8fae0b401ec58140af78a95a9f9ec1680d03c6b34fc145e063",
+    "references/choose.md": "759fbf8773077f3cdf80630576f555df3a3e3e16aa40ed57f9dab75e42341b19",
+    "references/execute.md": "a47028c4d1d091ec85d0aabd59a0eea149b079f56ed52590392c87922b398f9c"
+  },
+  "git_head": "af79984d4a89b08ae364125e9fd97fa25adbd819",
+  "existing_status": " M skills/claude/1orchestration/SKILL.md\n M skills/claude/1orchestration/references/execute.md\n M skills/codex/1orchestration/SKILL.md\n M skills/codex/1orchestration/product-frame.principles.md\n M skills/codex/1orchestration/references/background-sessions.md\n M skills/codex/1orchestration/references/choose.md\n M skills/codex/1orchestration/references/execute.md\n?? skills/1orchestration/work/decomposition-2026-09-10.md\n?? skills/1orchestration/work/intent-2026-09-11/\n?? skills/1orchestration/work/steering-2026-09-05/\n?? skills/1orchestration/work/worktree-ban-2026-09-10.md\n"
+}
