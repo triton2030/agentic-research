@@ -5,12 +5,13 @@ Owners с 2026-09-06: `skills/codex/1orchestration/` и
 и `~/.claude/skills/1orchestration/` — проекции соответствующих runtime owners.
 Общий portable owner снят; sync: `skills/shared/sync_simple_projections.py`.
 
-2026-09-11: готов неустановленный черновик упрощения через намерение —
-[Codex](work/intent-2026-09-11/candidate-v3/codex/SKILL.md) и
-[Claude](work/intent-2026-09-11/candidate-v3/claude/SKILL.md).
+2026-09-11: упрощение через намерение утверждено и установлено —
+[Codex](versions/codex-2026-09-11/SKILL.md) и
+[Claude](versions/claude-2026-09-11/SKILL.md).
 [Карта сохранения](cut.md),
 [результаты проверки](work/intent-2026-09-11/review-context.md),
-[следующий ход](work/intent-2026-09-11/state.md).
+[подтверждение установки](work/intent-2026-09-11/installation.json),
+[состояние](work/intent-2026-09-11/state.md).
 
 2026-09-09, обе версии — [Claude](versions/claude-2026-09-09/SKILL.md),
 [Codex](versions/codex-2026-09-09/SKILL.md): память работы по файлу задачи
