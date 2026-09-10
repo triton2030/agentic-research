@@ -1,5 +1,5 @@
 interface:
-  display_name: "1-Система документов"
+  display_name: "1document-system"
   short_description: "Минимально достаточная документация: только нужная читателю дельта"
   default_prompt: "Use $1document-system before creating or editing any documentation, including documents governed by other skills."
 policy:

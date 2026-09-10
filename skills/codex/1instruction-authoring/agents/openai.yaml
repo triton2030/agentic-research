@@ -1,5 +1,5 @@
 interface:
-  display_name: "1-Уникальный способ пользователя писать инструкции"
+  display_name: "1instruction-authoring"
   short_description: "Уникальный способ пользователя писать инструкции."
   default_prompt: "Use $1instruction-authoring for the requested agent-facing project instructions."
 

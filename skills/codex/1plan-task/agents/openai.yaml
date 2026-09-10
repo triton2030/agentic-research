@@ -1,5 +1,5 @@
 interface:
-  display_name: "1-Задача плана"
+  display_name: "1plan-task"
   short_description: "Use to write a task file under an epic, or to work by one"
   default_prompt: "Используй $1plan-task, чтобы написать файл задачи под эпиком или работать по нему."
 

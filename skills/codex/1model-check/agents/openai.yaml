@@ -1,5 +1,5 @@
 interface:
-  display_name: "1-Model Check"
+  display_name: "1model-check"
   short_description: "Manual working-model reassessment"
   default_prompt: "Используй $1model-check, чтобы вручную разобрать до пяти неразрешённых расхождений прогноза с наблюдением и связать проверку со следующим действием."
 

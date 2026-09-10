@@ -1,5 +1,5 @@
 interface:
-  display_name: "1-Hermes"
+  display_name: "1hermes"
   short_description: "Hermes advisor and runtime health"
   default_prompt: "Use $1hermes to get a compact Kimi K3 High perspective on this task."
 

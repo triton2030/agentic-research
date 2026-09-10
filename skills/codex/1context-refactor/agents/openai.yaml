@@ -1,5 +1,5 @@
 interface:
-  display_name: "1-Рефактор контекста"
+  display_name: "1context-refactor"
   short_description: "Use after session errors, rework, or needless searches recur."
   default_prompt: "Используй $1context-refactor после повторившегося сбоя: проанализируй всю доступную сессию, независимо проверь маршрут и системную находку, при доказанном влиянии слов дай совет, а источник ремонтируй только с разрешением и повтором эпизода."
 

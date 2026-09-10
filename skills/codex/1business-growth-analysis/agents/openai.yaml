@@ -1,5 +1,5 @@
 interface:
-  display_name: "1-Бизнес-анализ роста"
+  display_name: "1business-growth-analysis"
   short_description: "Вызывает отдельного аналитика денег и роста"
   default_prompt: "Use $1business-growth-analysis to bring in a separate analyst who will understand the business situation, find the material question, and forecast its consequences."
 
