@@ -140,6 +140,11 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   markdown-сноски с адресами источников остаются как доказательство работы
   (`#L22`). Парные примеры — `references/`;
   `platforms/codex/agents/openai.yaml` — только Codex UI metadata.
+  2026-09-10 по решению владельца правило «либо файлы, либо папки» распространено
+  с полок на любую папку: вещь держит либо файлы, либо подвещи, никогда вместе
+  (`/Users/triton/Documents/My_projects/mavo3/_ops/chat-recall/2026-09-10-125652-claude-code-c2a5de2f.md#L19`); тем же днём во владельца принят текст установленных проекций
+  от 2026-09-09 23:46 (имя файла — короткое словосочетание, переименование вещи
+  только решением владельца), который до этого жил только в `~/.claude` и `~/.codex`.
   Потребитель — `1docs-write` (имена, появление папки, отсылки).
 - `1index/portable/` держит карты оплаченных поиском маршрутов.
 - `1interview-tool/portable/` создаёт адресуемую plain-Markdown форму и держит
@@ -216,7 +221,11 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   фильтр «дорого после кода») и в этот скил (дом решения, минимум после
   кода). `platforms/codex/agents/openai.yaml` — только Codex UI metadata;
   `scripts/doc_map.py` выводит карту путей, description и aliases без записи
-  в документы.
+  в документы. С 2026-09-10 тело документа держит только знание в двух режимах —
+  есть целиком либо знак пробела `[!question]`; состояние проекта только в
+  сносках, предложения агента и расхождения с кодом только в чат владельцу
+  (P-008 в `skills/1docs-write/product-frame.principles.md`; решение —
+  `/Users/triton/Documents/My_projects/mavo3/_ops/chat-recall/2026-09-10-125652-claude-code-c2a5de2f.md#L26`, `#L29`–`#L32`).
 
 `skills/codex/<name>/` и `skills/claude/<name>/` — tracked projections owner-а.
 `~/.codex/skills/<name>/` и `~/.claude/skills/<name>/` — installed projections
