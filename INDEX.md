@@ -48,13 +48,13 @@
 
 ## Пишу или переписываю скил
 
-- [`knowledge/practical-guides/how-to-write-skills/authoring-canon.md`](knowledge/practical-guides/how-to-write-skills/authoring-canon.md)
+- [`knowledge/скил/как писать.md`](<knowledge/скил/как писать.md>)
   — канон: когда скил вообще писать, форма `description`, тело, progressive
   disclosure, жёсткость, типовые провалы.
-- [`.../mid-trajectory-trigger-descriptions.md`](knowledge/practical-guides/how-to-write-skills/mid-trajectory-trigger-descriptions.md)
+- [`.../mid-trajectory-trigger-descriptions.md`](<knowledge/скил/почему скил не поднимается.md>)
   — почему скил не поднимается в середине траектории и как это чинит
   `description`.
-- [`.../platform-deltas.md`](knowledge/practical-guides/how-to-write-skills/platform-deltas.md)
+- [`.../platform-deltas.md`](<knowledge/скил/где расходятся платформы.md>)
   — где Claude и Codex расходятся, чтобы не копировать дельту в тело скила.
 
 ## Записанное правило не доходит до поведения
@@ -75,7 +75,7 @@
 
 ## Нужна физика: как модель думает
 
-- [`knowledge/how-llms-think.md`](knowledge/how-llms-think.md) — единственный
+- [`knowledge/модель/как мыслит машина.md`](<knowledge/модель/как мыслит машина.md>) — единственный
   владелец физики: вероятностная машина → перекосы → контекст → траектория →
   отбор рабочего набора из репозитория.
   Совпадения в скилах — намеренные спицы одной оси, не дубли под удаление.
@@ -87,7 +87,7 @@
   `how-to-make-llm-obey.md`; *что писать и в каком порядке* →
   `how-to-command-agents-with-text.md`; *когда снимать процедуру и чем её
   заменить* → `how-to-command-with-goal-not-procedure.md`; *физика машины* →
-  `knowledge/how-llms-think.md`.
+  `knowledge/модель/как мыслит машина.md`.
 
 ## Куда положить временный файл или находку
 
@@ -97,12 +97,12 @@
 
 ## Дельты моделей и рантаймов
 
-- `knowledge/wisdom-claude-opus-5.md`, `wisdom-claude-fable-5.md`,
-  `wisdom-gpt-5.6.md`, `wisdom-codex.md`, `wisdom-claude-code.md` — routing и
+- `knowledge/модель/claude opus 5.md`, `knowledge/модель/claude fable 5.md`,
+  `knowledge/модель/gpt-5.6.md`, `knowledge/рантайм/codex.md`, `knowledge/рантайм/claude code.md` — routing и
   prompting-дельты живут здесь, а не копируются в каждый скил.
-- `knowledge/wisdom-skills-plugins.md`, `wisdom-systems-thinking.md`,
-  `wisdom-llm.md` — общие оси.
-- [`knowledge/practical-guides/hooks-runtime-guardrails.md`](knowledge/practical-guides/hooks-runtime-guardrails.md)
+- `knowledge/скил/упаковка знания.md`, `knowledge/понятия/системное мышление.md`,
+  `knowledge/модель/свойства рабочего набора.md` — общие оси.
+- [`knowledge/агент/хуки.md`](knowledge/агент/хуки.md)
   — хуки как слой принуждения, когда прозы недостаточно.
 
 ## Артефакты прошлых проверок

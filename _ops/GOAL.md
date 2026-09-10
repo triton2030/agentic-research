@@ -18,11 +18,11 @@ target для самых сложных long-horizon, ambiguous и high-stakes �
 
 ## In scope
 
-- Собирать и поддерживать `knowledge/`: wisdom, guides, practical guides,
-  examples и research для агентных систем.
+- Собирать и поддерживать `knowledge/` — базу знаний об агентных системах,
+  разложенную по предметам: модель, рантайм, агент, скил, инструкция, понятия.
 - Вести научную программу `science/` (решение владельца 2026-08-04): тезисы,
   evidence-статусы и эксперименты по управлению мышлением ЛЛМ; физику владеет
-  `knowledge/how-llms-think.md`, дубли не создаются.
+  `knowledge/модель/как мыслит машина.md`, дубли не создаются.
 - Улучшать skill contracts, instruction files, routing, prompt-подходы, hooks,
   guardrails и owner-модели.
 - Держать `_ops/chat-recall/` как руду source-bound выдержек слов владельца —

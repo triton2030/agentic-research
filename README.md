@@ -29,9 +29,9 @@ baseline.
    Соседний `topics.md` — словарь тем, а не пересказ; производный слой тем снят
    владельцем 2026-08-28. Контракт — `_ops/chat-recall/AGENTS.md`.
    `_ops/user-said/` — замороженный предшественник, только для чтения.
-7. `knowledge/` — wisdom, guides, practical guides, examples и research.
-   Для написания скилов начинать с
-   `knowledge/practical-guides/how-to-write-skills/`.
+7. `knowledge/` — база знаний, разложенная по предметам: `модель/`,
+   `рантайм/`, `агент/`, `скил/`, `инструкция/`, `понятия/`. Для написания
+   скилов начинать с `knowledge/скил/`.
 8. `science/` — научная программа изучения мышления ЛЛМ: тезисы с
    evidence-статусами, верификация и эксперименты; вход —
    [`science/README.md`](science/README.md).

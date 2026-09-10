@@ -49,7 +49,7 @@ Check: правило меняет следующий ход агента, не 
 - Для Codex skill-структуры сверяться с текущими официальными OpenAI Agent
   Skills docs; `agents/openai.yaml` — optional metadata/policy surface.
 - Для hooks/runtime сначала читать живой owner, текущую схему и
-  `knowledge/practical-guides/hooks-runtime-guardrails.md`; не писать ключи из
+  `knowledge/агент/хуки.md`; не писать ключи из
   памяти.
 - Prompt enforcement не считать guardrail: дорогой запрет держит hook,
   validator, permission, checkpoint или test.

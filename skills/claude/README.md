@@ -23,4 +23,4 @@ installed projection, не отдельный owner.
   near-miss probes по риску, а helper-команды — smoke из чужого project cwd.
 
 Точный рабочий model set задаёт `_ops/GOAL.md`; общий authoring contract —
-`knowledge/practical-guides/how-to-write-skills/`.
+`knowledge/скил/`.

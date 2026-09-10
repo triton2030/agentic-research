@@ -576,7 +576,7 @@ evidence.
   соблюдения и числовые ориентиры принадлежат ему; здесь они не повторяются.
 - **Закон и рычаги мышления, статусы тезисов T1–T9** —
   [`how-to-steer-llm-thinking.md`](how-to-steer-llm-thinking.md).
-- **Физика машины** — `knowledge/how-llms-think.md`.
+- **Физика машины** — `knowledge/модель/как мыслит машина.md`.
 - **Свежая evidence-таблица и границы обобщения** —
   [`verification/2026-09-01/goal-vs-procedure-literature-synthesis.md`](verification/2026-09-01/goal-vs-procedure-literature-synthesis.md).
 
