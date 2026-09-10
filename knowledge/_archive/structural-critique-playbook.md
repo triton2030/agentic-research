@@ -111,7 +111,7 @@ Direct evidence-closeout and `pulse-check`:
 
 ## Subagent Fallback
 
-Use `brooks` when:
+Use `architecture-critic` when:
 
 - artifact feels structurally wrong but the failure is not yet nameable;
 - cross-cutting consistency across several artifacts matters;
@@ -131,9 +131,9 @@ Never use Brooks/Smith:
 
 ## Skill Map
 
-- `1skill-architect`: Brooks full-domain; `brooks` primary fallback.
-- `instruction-layer`: language-quality critique; `brooks` available.
-- `1ia-audit`: structural owner/shape critique; `brooks` available.
+- `1skill-architect`: Brooks full-domain; `architecture-critic` primary fallback.
+- `instruction-layer`: language-quality critique; `architecture-critic` available.
+- `1ia-audit`: structural owner/shape critique; `architecture-critic` available.
 - `project-roadmap`: Smith full-domain; `smith` primary fallback.
 - `task-contract`: Smith-light; `smith` available.
 - `plan-drift-watch`: Smith-light; `smith` available.

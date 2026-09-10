@@ -12,6 +12,10 @@ edit-after-edit: []
 Тип: Research & Evidence Report. Это evidence, не новый authoring canon и не
 принятая правка `1skill-shaping`.
 
+Скил, с которым здесь всё сравнивается, назывался тогда `1skill-shaping`; сейчас
+это `1skill-creation`. Имя в тексте ниже не меняется — снимок фиксирует то, что
+сравнивали тогда.
+
 ## Вопрос
 
 Нужно восстановить не тему skills Pocock, а его способ письма:
@@ -323,8 +327,7 @@ Change-Amplification агент проверил пять типичных бу�
 
 - main `SKILL.md`: 9 670 символов;
 - все Markdown package files: 34 958;
-- installed main совпадает с tracked owner
-  [`skills/shared/1skill-shaping/portable/SKILL.md`](../../../skills/shared/1skill-shaping/portable/SKILL.md).
+- installed main совпадает с tracked owner скила `1skill-creation`.
 
 Total package size не равен active load: reference должен считаться только на
 фактически достигаемом пути.
@@ -442,7 +445,7 @@ Matched A/B одной инструкции:
 
 - [Authoring canon](authoring-canon.md)
 - [Research 2026 Mar-May](research-2026-mar-may.md)
-- [`1skill-shaping` tracked owner](../../../skills/shared/1skill-shaping/portable/SKILL.md)
+- Tracked owner скила — `1skill-creation`
 - Owner evidence:
   `../../../_ops/chat-recall/2026-08-15-134233-codex-01a00494.md:18-22`
 

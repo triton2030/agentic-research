@@ -337,8 +337,6 @@ Stop: когда не продолжать и не расширять работ
 - Portable skill authoring truth: [`authoring-canon.md`](authoring-canon.md).
 - System prompt guide:
   [`perfect-system-prompts.md`](../../guides/perfect-system-prompts.md).
-- Runtime shaping и approval:
-  [`1skill-shaping`](../../../skills/shared/1skill-shaping/portable/SKILL.md) и
-  [`1instruction-shaping`](../../../skills/shared/1instruction-shaping/portable/SKILL.md).
+- Runtime shaping и approval: `1skill-creation` и `1instruction-authoring`.
 - Promotion в канон или runtime skill: отдельное решение, cognitive audit и
   behavioral proof на рабочем model set.

@@ -101,6 +101,3 @@ Fable — target для самых сложных long-horizon, ambiguous и hig
 - <https://platform.claude.com/docs/en/about-claude/models/migration-guide>
   Thinking modes, refusal details и API-level migration surface; официальный
   legacy fallback не является локальным рабочим baseline.
-- `experiments/claude-bridge/codex-skill/1claude-mcp/references/fable-agent-prompting.md`
-  Локальный bounded brief для вызова Fable через bridge; profile/session details
-  остаются bridge-specific и не входят в этот owner.

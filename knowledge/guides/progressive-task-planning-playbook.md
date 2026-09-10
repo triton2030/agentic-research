@@ -178,19 +178,22 @@ outcome.
 - Approach-choice truth stays in the current owner/context pass: separate goal
   from method, surface consequential branches, and do not freeze scope before
   the decision is clear.
-- `1planning` owns durable active/deferred task state and task prerequisites. См.
-  `/Users/triton/.codex/skills/1planning/SKILL.md`.
-- `1goal` owns project-level goal, scope, done/stop and README on-ramp;
-  `1break-down` owns the first in-chat verifiable frontier.
+- `1planning` owns durable active/deferred task state and task prerequisites.
+- `1goal` owns project-level goal, scope, done/stop and README on-ramp.
 - Substantive-write discipline is distributed through local instructions,
   criteria delivery, owner skills, and direct evidence-closeout by the current
   execution owner.
 - Durable user truth не держит отдельный installed skill. Закрепляй её у
   правильного project owner-а или в memory layer только по явной просьбе
   пользователя.
-- `1skill-architect` owns skill control-surface changes; `1ia-audit` owns
-  structural owner/shape decisions; `1instruction-layer` owns wording and
+- `1skill-creation` owns skill control-surface changes; `1folder-tree` owns
+  structural owner/shape decisions; `1instruction-authoring` owns wording and
   placement of instruction prose.
+
+> [!question]
+> Первый проверяемый фронтир в чате принадлежал `1break-down`; скил снят, и кто
+> владеет этой работой сейчас — `1planning`, `1plan-task` или никто, — не
+> установлено.
 
 ## Research Tie-Back — Историческая Родословная GPT-4-Эры
 
