@@ -1,7 +1,7 @@
 interface:
   display_name: "1-Дерево папок"
-  short_description: "Use when the owner says «дерево папок», «информационная архитектура», «куда положить файл», «как назовём папку», «в какой папке что хранить», or long-lived product knowledge needs a home in the project's folder tree. Not for task plans or code."
-  default_prompt: "Используй $1folder-tree, когда владелец говорит про дерево папок, информационную архитектуру, куда положить файл, как назвать папку или что в какой папке хранить."
+  short_description: "Дом, имя и проверка дерева базы документов; не код и не планы"
+  default_prompt: "Используй $1folder-tree, когда владелец говорит про дерево папок, информационную архитектуру, куда положить файл, как назвать папку или в какой папке что должно храниться."
 
 policy:
   allow_implicit_invocation: true
