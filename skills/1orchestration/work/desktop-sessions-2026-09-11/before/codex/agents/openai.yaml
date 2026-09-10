@@ -1,0 +1,7 @@
+interface:
+  display_name: "1orchestration"
+  short_description: "Выбор исполнителей и повторное использование фоновых сессий"
+  default_prompt: "Используй $1orchestration: эффективно распредели работу между фоновыми Luna Max, Claude Opus и собственными субагентами."
+
+policy:
+  allow_implicit_invocation: true

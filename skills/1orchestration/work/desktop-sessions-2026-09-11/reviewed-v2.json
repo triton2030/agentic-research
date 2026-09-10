@@ -1,0 +1,14 @@
+{
+  "version": "desktop-v2",
+  "candidate": {
+    "SKILL.md": "92e6c84239009bba0be24ab83dedb05780729d095e9910e72fe2c38b81271b0e",
+    "agents/openai.yaml": "3ed7ceb015b9828db9bf2e2487a1bebe72a3ce758dbb44f4fea4fe0415614148",
+    "product-frame.principles.md": "852d49d459c936d59018383ac3e71318064ce044f01c1fd0014c547dd4452671",
+    "references/desktop-sessions.md": "22bc6b825e6581124729f031ba0ba04a4775bfa5f9dcff2d4a5fd055f3c942dc"
+  },
+  "changes_from_v1": [
+    "remove three repeated statements per intent review",
+    "move existing task-address sentence outside state.md-only case per trajectory review"
+  ],
+  "resume_input_sha256": "81dfa0f510336438f4bcf35a56177147a663913c6ac15d446965c355c8b169eb"
+}

@@ -1,0 +1,23 @@
+{
+  "version": "desktop-v3",
+  "manifest": {
+    "SKILL.md": "6cf944e03fd5d5e716314e178de7d2e3fcacbdd17a53b5359eac33e7b71ce9b5",
+    "agents/openai.yaml": "3ed7ceb015b9828db9bf2e2487a1bebe72a3ce758dbb44f4fea4fe0415614148",
+    "product-frame.principles.md": "852d49d459c936d59018383ac3e71318064ce044f01c1fd0014c547dd4452671",
+    "references/desktop-sessions.md": "22bc6b825e6581124729f031ba0ba04a4775bfa5f9dcff2d4a5fd055f3c942dc"
+  },
+  "checks": {
+    "metadata_validator": "separate quick_validate command passed",
+    "local_links_resolve": true,
+    "json_create_example_valid": true,
+    "addresses_apply_to_both_state_locations": true,
+    "both_owners_and_installs_still_match_baseline": true,
+    "v3_is_exact_accepted_local_clarification": true,
+    "owner_and_install_match_final": true,
+    "claude_bytes_and_installed_mtime_unchanged": true
+  },
+  "limits": [
+    "A/B/C are prepared operations on v1, not live execution",
+    "resume is a read-only continuation by the same reviewer, not an independent cold-start"
+  ]
+}

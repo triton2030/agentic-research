@@ -1,0 +1,24 @@
+{
+  "status": "installed_verified",
+  "version": "desktop-v3",
+  "owner": "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1orchestration",
+  "installed": "/Users/triton/.codex/skills/1orchestration",
+  "manifest": {
+    "SKILL.md": "6cf944e03fd5d5e716314e178de7d2e3fcacbdd17a53b5359eac33e7b71ce9b5",
+    "agents/openai.yaml": "3ed7ceb015b9828db9bf2e2487a1bebe72a3ce758dbb44f4fea4fe0415614148",
+    "product-frame.principles.md": "852d49d459c936d59018383ac3e71318064ce044f01c1fd0014c547dd4452671",
+    "references/desktop-sessions.md": "22bc6b825e6581124729f031ba0ba04a4775bfa5f9dcff2d4a5fd055f3c942dc"
+  },
+  "claude_unchanged": {
+    "owner_and_installed_hashes_match_baseline": true,
+    "installed_mtime_unchanged": true
+  },
+  "sync": "existing sync_simple_projections.write_projection, Codex only",
+  "editorial_review": "two waves; v3 matches exactly one local clarification proposed in second intent review",
+  "remaining": null,
+  "independent_delivery_check": {
+    "agent": "/root/skill_delta_audit",
+    "verdict": "pass",
+    "evidence": "direct file inventories and SHA-256, including unchanged Claude and resolving runtime reference"
+  }
+}

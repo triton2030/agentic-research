@@ -1,0 +1,10 @@
+{
+  "version": "desktop-v1",
+  "candidate": {
+    "SKILL.md": "fe3a0edf544cabbd2442ba5f6f7490dad094740a22ffc25e6bcf13d9471c3b3f",
+    "agents/openai.yaml": "3ed7ceb015b9828db9bf2e2487a1bebe72a3ce758dbb44f4fea4fe0415614148",
+    "product-frame.principles.md": "852d49d459c936d59018383ac3e71318064ce044f01c1fd0014c547dd4452671",
+    "references/desktop-sessions.md": "32534e6ea197e6e9d06a01b2f98edf2b0ae783a33844a6bb2c403b7edabec786"
+  },
+  "probe_input_sha256": "87101ec1468e80628070cd91aa3b3ab17ffe7aac0d136a0859a26d65cf9d232a"
+}

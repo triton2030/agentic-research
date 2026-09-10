@@ -1,0 +1,25 @@
+{
+  "git_head": "88193cf33d5b610e00b97e190f74906e21fa7f2f",
+  "runtime": {
+    "codex": {
+      "owner": {
+        "SKILL.md": "f765ceaed4d8dd05d1e66befade505d4fcddffe61b64d2c3d0122d5625c983ef",
+        "agents/openai.yaml": "3ed7ceb015b9828db9bf2e2487a1bebe72a3ce758dbb44f4fea4fe0415614148",
+        "product-frame.principles.md": "982083f4813db53d77fb6a4ea17263a268248c6ee5a892b8fec708e2314d744d"
+      },
+      "installed": {
+        "SKILL.md": "f765ceaed4d8dd05d1e66befade505d4fcddffe61b64d2c3d0122d5625c983ef",
+        "agents/openai.yaml": "3ed7ceb015b9828db9bf2e2487a1bebe72a3ce758dbb44f4fea4fe0415614148",
+        "product-frame.principles.md": "982083f4813db53d77fb6a4ea17263a268248c6ee5a892b8fec708e2314d744d"
+      }
+    },
+    "claude": {
+      "owner": {
+        "SKILL.md": "32f20951819fb5ef96e2c4ffc88e55b300715edf05d398f15cc03bce987dd665"
+      },
+      "installed": {
+        "SKILL.md": "32f20951819fb5ef96e2c4ffc88e55b300715edf05d398f15cc03bce987dd665"
+      }
+    }
+  }
+}

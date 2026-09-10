@@ -5,6 +5,14 @@ Owners с 2026-09-06: `skills/codex/1orchestration/` и
 и `~/.claude/skills/1orchestration/` — проекции соответствующих runtime owners.
 Общий portable owner снят; sync: `skills/shared/sync_simple_projections.py`.
 
+2026-09-11: только Codex дополнен механикой задач ПК-приложения —
+[установленная версия](versions/codex-2026-09-11-desktop/SKILL.md),
+[связи и возвраты](versions/codex-2026-09-11-desktop/references/desktop-sessions.md).
+Claude сохраняет предыдущую версию. [Намерение и граница](work/desktop-sessions-2026-09-11/intent.md),
+[решения по проверке](work/desktop-sessions-2026-09-11/review-decisions.md),
+[проба действий](work/desktop-sessions-2026-09-11/probe/result.md),
+[доставка](work/desktop-sessions-2026-09-11/installation.json).
+
 2026-09-11: упрощение через намерение утверждено и установлено —
 [Codex](versions/codex-2026-09-11/SKILL.md) и
 [Claude](versions/claude-2026-09-11/SKILL.md).
