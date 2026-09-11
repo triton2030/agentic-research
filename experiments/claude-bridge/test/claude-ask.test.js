@@ -127,7 +127,7 @@ test("one-shot uses fixed profile and clean SDK authority", async () => {
     text: "ADVICE_OK",
     session_id: OPUS_SESSION,
     requested_model: "opus",
-    requested_effort: "xhigh",
+    requested_effort: "high",
     resolved_model: "claude-opus-5",
     duration_ms: 123,
     warnings: []
@@ -145,7 +145,7 @@ test("one-shot uses fixed profile and clean SDK authority", async () => {
       "run state-changing commands, or take external actions. Return compact, decision-useful answers to the user's tasks."
   );
   assert.equal(capture.options.model, "claude-opus-5");
-  assert.equal(capture.options.effort, "xhigh");
+  assert.equal(capture.options.effort, "high");
   assert.deepEqual(capture.options.additionalDirectories, ["/"]);
   assert.equal(capture.options.allowDangerouslySkipPermissions, true);
   assert.equal(capture.options.permissionMode, "bypassPermissions");
@@ -186,30 +186,36 @@ test("resume keeps the native session model and omits caller model routing", asy
   assert.match(result.warnings.join(" "), /resume_session_owns_model/u);
 });
 
-test("Fable profile and native Fable evidence fail closed", async () => {
-  await expectClaudeError(
-    askTest(
-      { prompt: "Do not run.", profile: "fable_advisor", cwd: bridgeRoot },
-      fakeOptions(sdkMessages())
-    ),
-    "unsupported_profile"
+test("Fable medium launches and resumes; selected model fallback fails closed", async () => {
+  const capture = {};
+  const messages = sdkMessages({ initModel: "claude-fable-5" });
+  const fresh = await askTest(
+    { prompt: "Important review.", profile: "fable_advisor", cwd: bridgeRoot },
+    fakeOptions(messages, { queryFactory: queryFactoryFor(messages, capture) })
   );
-
-  await expectClaudeError(
-    askTest(
-      { prompt: "Continue.", cwd: bridgeRoot, session_id: OPUS_SESSION },
-      fakeOptions(sdkMessages({ initModel: "claude-fable-5", mainModel: "claude-fable-5" }))
-    ),
-    "unsupported_model"
+  assert.equal(fresh.requested_model, "fable");
+  assert.equal(fresh.requested_effort, "medium");
+  assert.equal(capture.options.model, "claude-fable-5");
+  assert.equal(capture.options.effort, "medium");
+  const resumed = await askTest(
+    { prompt: "Continue.", cwd: bridgeRoot, session_id: OPUS_SESSION },
+    fakeOptions(messages)
   );
-
-  await expectClaudeError(
-    askTest(
-      { prompt: "Reject fallback.", profile: "opus_advisor", cwd: bridgeRoot },
-      fakeOptions(sdkMessages({ mainModel: "claude-fable-5" }))
-    ),
-    "unsupported_model"
-  );
+  assert.equal(resumed.requested_model, null);
+  assert.equal(resumed.resolved_model, "claude-fable-5");
+  for (const [profile, initModel, mainModel, session_id] of [
+    ["opus_advisor", "claude-fable-5", "claude-fable-5"],
+    ["opus_advisor", "claude-opus-5", "claude-fable-5"],
+    ["fable_advisor", "claude-fable-5", "claude-opus-5"],
+    ["fable_advisor", "claude-opus-5", "claude-opus-5"],
+    [undefined, "claude-fable-5", "claude-opus-5", OPUS_SESSION],
+    [undefined, "claude-sonnet-5", "claude-sonnet-5", OPUS_SESSION]
+  ]) {
+    await expectClaudeError(askTest(
+      { prompt: "Reject fallback.", profile, cwd: bridgeRoot, session_id },
+      fakeOptions(sdkMessages({ initModel, mainModel }))
+    ), "unsupported_model");
+  }
 });
 
 test("parallel subscription preflights and sessions remain independent", async (t) => {
@@ -688,9 +694,9 @@ test("MCP exposes exactly four tools with honest annotations", async () => {
     );
     const byName = Object.fromEntries(tools.tools.map((tool) => [tool.name, tool]));
     assert.match(byName.claude_ask.description, /Opus 5/u);
-    assert.doesNotMatch(byName.claude_ask.description, /Fable/u);
-    assert.equal(byName.claude_ask.inputSchema.properties.profile.const, "opus_advisor");
-    assert.equal(byName.claude_session.inputSchema.properties.profile.const, "opus_advisor");
+    assert.match(byName.claude_ask.description, /Fable/u);
+    assert.deepEqual(byName.claude_ask.inputSchema.properties.profile.enum, ["opus_advisor", "fable_advisor"]);
+    assert.deepEqual(byName.claude_session.inputSchema.properties.profile.enum, ["opus_advisor", "fable_advisor"]);
     assert.deepEqual(byName.claude_ask.annotations, {
       readOnlyHint: false,
       destructiveHint: true,

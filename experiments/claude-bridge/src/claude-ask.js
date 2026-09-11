@@ -52,10 +52,10 @@ export async function askClaude(request, signal) {
       queryFactory: dependencies.queryFactory,
       signal: lifetime.controller.signal,
       spawnClaudeCodeProcess: dependencies.spawnClaudeCodeProcess,
-      validateInit: assertSdkRuntimeEvidence
+      validateInit: (init) => assertSdkRuntimeEvidence(init, launch)
     });
     if (lifetime.stoppedBy()) throw new Error("Claude request stopped during execution.");
-    assertSdkRuntimeEvidence(raw.init);
+    assertSdkRuntimeEvidence(raw.init, launch);
     return formatClaudeResult(raw, launch);
   } catch (error) {
     const stoppedBy = lifetime.stoppedBy();

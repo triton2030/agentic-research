@@ -1,14 +1,15 @@
-# Accept Opus One-shot
+# Accept Claude One-shot
 
 Вход: raw one-shot `CallToolResult` и исходный call envelope. Выход: validated
-Opus result, необходимость дополнить ответ либо typed failure packet.
+Claude result, необходимость дополнить ответ либо typed failure packet.
 
 - Прими только успешный `CallToolResult` с непустым `structuredContent.text`,
   native `session_id` и `resolved_model`, соответствующим
-  `^claude-opus-5(?:$|-)`. One-shot возвращается после завершения; отдельного
+  `^claude-(opus|fable)-5(?:$|-)`. One-shot возвращается после завершения; отдельного
   поля `terminal` в его success schema нет.
-- Для fresh envelope требуются `requested_model: opus` и
-  `requested_effort: xhigh | max`, совпадающий с запросом (default `xhigh`).
+- Для fresh envelope `requested_model` (`opus` или `fable`) и
+  `requested_effort` должны совпадать с выбранными profile и effort.
+  Семейство `resolved_model` должно совпадать с запрошенным.
   Для envelope с `session_id` ответ должен вернуть тот же ID и оба requested
   fields как `null`: продолжение сохраняет модель и effort native session.
 - Сохрани `warnings` и названные model/session/effort fields как evidence.

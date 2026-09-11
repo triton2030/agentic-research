@@ -1,4 +1,4 @@
-# Parallel Opus One-shot
+# Parallel Claude One-shot
 
 Вход: immutable one-shot call envelope и полезная независимая работа Codex.
 Выход: один task-scoped opaque outcome ref.

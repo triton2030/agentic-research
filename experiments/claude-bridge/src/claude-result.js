@@ -30,8 +30,9 @@ export function isClaudeSessionId(value) {
   return UUID_PATTERN.test(String(value || ""));
 }
 
-export function isOpusModel(value) {
-  return /^claude-opus-5(?:$|-)/iu.test(String(value || ""));
+export function isAdvisorModel(value, family) {
+  const match = /^claude-(opus|fable)-5(?:$|-)/iu.exec(String(value || ""));
+  return Boolean(match && (!family || match[1].toLowerCase() === family));
 }
 
 /** Validate SDK evidence and create the only public success packet. */
@@ -74,10 +75,12 @@ export function formatClaudeResult(raw, launch) {
 
   const resolvedModel = raw.primaryModels.at(-1) || raw.init?.model;
   if (!resolvedModel) throw new ClaudeAskError("missing_model", "Claude SDK did not identify the session model.");
-  if (!isOpusModel(resolvedModel)) {
+  if (![raw.init?.model, ...raw.primaryModels].every((model) =>
+    isAdvisorModel(model, launch.profile?.requestedModel || (/^claude-(opus|fable)-5/iu.exec(raw.init?.model || "")?.[1]))
+  )) {
     throw new ClaudeAskError(
       "unsupported_model",
-      `Claude bridge permits Opus 5 only; resolved model is ${resolvedModel}.`
+      `Claude bridge requires the selected Opus 5 or Fable 5 model; resolved model is ${resolvedModel}.`
     );
   }
 

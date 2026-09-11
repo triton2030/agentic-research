@@ -1,10 +1,10 @@
-# Prepare Opus Advisor
+# Prepare Claude Advisor
 
 Вход: body выбрал нового advisor. Выход: approved advisor artifact для one-shot
 или управляемой session.
 
 - Prompt содержит ровно три смысловые секции:
-  - `Уникальный Контекст:` Opus — независимый советник, приглашённый потому,
+  - `Уникальный Контекст:` Claude — независимый советник, приглашённый потому,
     что Codex уже может быть связан своими допущениями и маршрутом; ценность —
     самостоятельное суждение, способное изменить решение или результат. Укажи
     релевантный task context, clean launch без унаследованных project
@@ -18,7 +18,7 @@
     почему именно оно и какие существенные риски или неизвестные ещё способны
     его изменить.
 - Выбери не более десяти материальных ограничений или границ; не предписывай
-  Opus процедуру мышления.
+  Claude процедуру мышления.
 - Если outcome зависит от custom skill, MCP или named capability, включи её
   exact owner/address в `Уникальный Контекст`: clean launch не загружает её
   автоматически.
@@ -26,7 +26,19 @@
   добавляй generic rechecking или fan-out.
 - До dispatch следуй host approval: prompt и прочитанные материалы уходят в
   Anthropic, а clean launch не является local sandbox.
-- Для one-shot envelope укажи `mcp__claude_mcp__claude_ask`,
-  `profile: opus_advisor`, готовый prompt, реальный `cwd` и без `session_id`.
-- Оставь default `xhigh`; `max` выбирай только когда цена решения оправдывает
-  более долгий свежий вызов.
+- Выбери модель до dispatch по первому применимому условию:
+
+  | Работа | Profile | Effort |
+  | --- | --- | --- |
+  | Умная или важная, включая документы и код | `fable_advisor` | `medium` |
+  | Код | `opus_advisor` | `max` |
+  | Документы и остальные задачи по умолчанию | `opus_advisor` | `high` |
+
+  Явный выбор модели владельцем определяет конкретный вызов. Обозначение
+  `claude-opus-5-high` передаётся SDK как модель `claude-opus-5` и отдельный
+  `effort: high`; Fable закреплён на `claude-fable-5`.
+- Для one-shot envelope укажи `mcp__claude_mcp__claude_ask`, выбранные
+  `profile` и `effort`, готовый prompt, реальный `cwd` и без `session_id`.
+- Перед вызовом проверь callable schema: старый MCP с одним `opus_advisor`
+  и `xhigh | max` не поддерживает этот выбор. Применяй
+  [failure-recovery.md](failure-recovery.md), не подменяя модель или effort.

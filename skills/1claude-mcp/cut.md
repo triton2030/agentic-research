@@ -76,3 +76,11 @@ Clean-room кандидат: `skills/1claude-mcp/work/refactor-2026-08-31/draft/
 и число references фиксируются после финальной проверки в
 `work/refactor-2026-08-31/validation-evidence.md`; объём не был критерием
 удаления.
+
+
+## 2026-09-11 — адресный выбор моделей
+
+Opus-only и default xhigh заменены разрешёнными владельцем Opus High
+(default/документы), Opus Max (код), Fable Medium (умная/важная работа,
+приоритет над типом артефакта). Остальной advisor/session контракт сохранён.
+Проверка и границы доставки: [evidence](work/model-routing-2026-09-11/evidence.md).

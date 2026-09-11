@@ -1,6 +1,6 @@
-# Act on Live Opus Session
+# Act on Live Claude Session
 
-Вход: live native Opus `session_id`, typed current state и запрошенное действие.
+Вход: live native Claude `session_id`, typed current state и запрошенное действие.
 Выход: raw typed action packet либо маркер ожидаемого содержательного ответа.
 
 - В `idle` используй `mcp__claude_mcp__claude_session` с `op: send`; в active

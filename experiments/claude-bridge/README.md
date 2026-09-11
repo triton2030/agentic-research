@@ -1,6 +1,6 @@
 # Claude Advisor Bridge
 
-This project lets Codex ask Claude for an independent Opus 5 opinion
+This project lets Codex ask Claude for an independent Opus 5 or Fable 5 opinion
 through a blocking default or an opt-in transient session adapter, while using
 the owner's Claude.ai subscription and Claude's native session history.
 
@@ -35,18 +35,22 @@ four tools: blocking `claude_ask`, transient `claude_session`, pull-only
 `claude_ask` accepts:
 
 - a non-empty `prompt`;
-- the fixed `opus_advisor` profile;
+- an `opus_advisor` or `fable_advisor` profile;
 - an existing `cwd`;
 - an optional native Claude `session_id` for continuation.
 
-Fresh calls pin the profile to the exact `claude-opus-5` model ID. The compact
-public `requested_model` field is `opus`; `resolved_model` carries Claude's exact
-runtime evidence.
+Fresh calls pin Opus to `claude-opus-5` with default effort `high`, and Fable
+to `claude-fable-5` with default effort `medium`. Optional `effort` accepts
+`medium`, `high`, `xhigh`, or `max`; the skill selects Fable Medium for smart or
+important work first, otherwise Opus Max for code and Opus High for documents
+and other work. `claude-opus-5-high` denotes the model plus effort, not a
+separate SDK model ID. The compact public `requested_model` is `opus` or
+`fable`; `resolved_model` carries exact runtime evidence.
 
 The terminal packet contains bounded `text`, native `session_id`, requested and
-resolved models, duration, and warnings. A fresh call, resumed session, or
-runtime fallback that exposes a non-Opus primary model fails closed with
-`unsupported_model`.
+resolved models, duration, and warnings. Fresh calls must resolve to the selected family. Resumed sessions accept
+Opus 5 or Fable 5 and retain their initial family; a primary-model fallback to
+another family fails closed with `unsupported_model`.
 
 A nominal SDK success with a non-completing `terminal_reason`, such as
 `background_requested`, fails closed with a resumable typed error. The blocking

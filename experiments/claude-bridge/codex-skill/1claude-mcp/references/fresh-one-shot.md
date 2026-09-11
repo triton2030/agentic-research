@@ -1,4 +1,4 @@
-# Fresh Opus One-shot
+# Fresh Claude One-shot
 
 Вход: immutable one-shot call envelope. Выход: один raw `CallToolResult` либо
 typed invocation failure.

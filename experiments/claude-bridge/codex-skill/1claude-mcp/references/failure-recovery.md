@@ -8,6 +8,6 @@ failed layer, packet evidence и одним следующим действие�
 - Не повторяй автоматически externally attempted call.
 - Missing/stale tool или schema — сохрани diagnosis, остановись и предложи
   владельцу fresh Codex task; сам task не создавай.
-- Approval, auth, billing, unsupported model/profile или non-Opus evidence —
+- Approval, auth, billing, unsupported model/profile или evidence другой модели —
   назови точную границу и stop.
 - Invalid path или permission исправляй только в прежнем approved scope.

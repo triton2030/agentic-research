@@ -15,8 +15,8 @@ import {
 const askResultSchema = {
   text: z.string(),
   session_id: z.string().uuid(),
-  requested_model: z.literal("opus").nullable(),
-  requested_effort: z.enum(["xhigh", "max"]).nullable(),
+  requested_model: z.enum(["opus", "fable"]).nullable(),
+  requested_effort: z.enum(["medium", "high", "xhigh", "max"]).nullable(),
   resolved_model: z.string().min(1),
   duration_ms: z.number().int().nonnegative(),
   warnings: z.array(z.string())
@@ -55,8 +55,8 @@ const observationFields = {
   thinking_tokens: z.number().int().nonnegative().nullable(),
   background_tasks: z.number().int().nonnegative(),
   possibly_stalled: z.boolean(),
-  requested_model: z.literal("opus").nullable(),
-  requested_effort: z.enum(["xhigh", "max"]).nullable(),
+  requested_model: z.enum(["opus", "fable"]).nullable(),
+  requested_effort: z.enum(["medium", "high", "xhigh", "max"]).nullable(),
   resolved_model: z.string().nullable(),
   terminal: visibleTerminalSchema.nullable(),
   warnings: z.array(z.string()),
@@ -138,7 +138,7 @@ export function createClaudeAskServer(
     {
       title: "Ask Claude",
       description:
-        "Ask native Claude Opus 5 for blocking independent advice or review through the logged-in Claude.ai subscription. " +
+        "Ask native Claude Opus 5 or Fable 5 for blocking independent advice or review through the logged-in Claude.ai subscription. " +
         "A fresh call omits filesystem-sourced user/project instructions, custom skills, hooks, MCP integrations, and auto-memory; " +
         "resumed calls retain their prior conversation. Claude keeps native local tools and may read any evidence it considers relevant; " +
         "managed policy and account state remain runtime-owned, and the caller must instruct Claude not to modify state. " +

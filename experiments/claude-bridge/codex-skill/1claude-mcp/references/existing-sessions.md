@@ -9,5 +9,5 @@
   visible user/assistant text, но не hidden reasoning, system или tool I/O.
 - Active session нельзя одновременно брать через `open_resume`: текущий Claude
   process уже владеет ею.
-- Non-Opus session можно показать как найденную Claude session, но нельзя
-  использовать как advisor или приписывать ей мнение Opus.
+- Session с моделью вне Opus 5/Fable 5 можно показать как найденную Claude
+  session, но нельзя использовать как advisor в этом маршруте.

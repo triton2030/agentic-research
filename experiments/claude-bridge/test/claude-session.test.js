@@ -34,7 +34,7 @@ function deferred() {
   return { promise, reject, resolve };
 }
 
-function profileFor(name, effort = "xhigh") {
+function profileFor(name, effort = "high") {
   assert.equal(name, "opus_advisor");
   return {
     effort,
@@ -200,7 +200,7 @@ test("session operation schema stays strict while remaining MCP-visible", async 
       op: "open_fresh",
       cwd: "/workspace",
       prompt: "Forbidden profile.",
-      profile: "fable_advisor"
+      profile: "unknown_advisor"
     }),
     "invalid_request",
     /profile/u

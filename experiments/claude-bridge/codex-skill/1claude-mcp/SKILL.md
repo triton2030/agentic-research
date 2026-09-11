@@ -1,32 +1,31 @@
 ---
 name: 1claude-mcp
 description: >-
-  Use when work needs a Claude/Opus or unspecified-model opinion/review, an
-  Opus-only boundary for non-Opus Claude, or inspection/control of a Claude
+  Use when work needs a Claude/Opus/Fable or unspecified-model opinion/review, or inspection/control of a Claude
   session. Not for Claude facts or Gemini/Hermes.
 ---
 
-# Claude Opus Advisor
+# Claude Advisor
 
 ## Уникальный Контекст
 
-Opus — независимый советник. Подключай его потому, что уже можешь быть связан
+Claude — независимый советник. Подключай его потому, что уже можешь быть связан
 собственными допущениями и выбранным маршрутом. Его ценность не в подтверждении
 твоей позиции, а в самостоятельном профессиональном суждении, способном
 изменить решение или результат. Clean launch не наследует инструкции проекта,
-но Opus может читать релевантные материалы. Ты проверяешь claims и отвечаешь
+но Claude может читать релевантные материалы. Ты проверяешь claims и отвечаешь
 владельцу.
 
 ## Твоя задача
 
-Для advice/review получи от Opus полное разрешение исследовательского вопроса
+Для advice/review получи от Claude полное разрешение исследовательского вопроса
 либо содержательный review результата с достаточным контекстом и материалами.
 Если владелец просит только inspection/control Claude session, выполни ровно
 эту операцию.
 
 ## Твоя цель
 
-Advice/review завершён законченным независимым заключением Opus: ясно, какое
+Advice/review завершён законченным независимым заключением Claude: ясно, какое
 решение лучше всего служит верхнеуровневой цели владельца, почему именно оно и
 какие существенные риски или неизвестные способны его изменить. Используемые
 claims проверены тобой. Inspection/control завершён его typed result.
@@ -45,7 +44,7 @@ claims проверены тобой. Inspection/control завершён его
   [continue-answer.md](references/continue-answer.md).
 - Новую управляемую консультацию открой по
   [session-open.md](references/session-open.md).
-- Действие над live Opus session выполни по
+- Действие над live Claude session выполни по
   [session-action.md](references/session-action.md).
 - Status/liveness либо ожидаемый содержательный ответ получи по
   [session-observe.md](references/session-observe.md).
@@ -57,7 +56,7 @@ claims проверены тобой. Inspection/control завершён его
 
 ## Стоп
 
-Содержательный маршрут завершён только на validated Opus result и локальной
+Содержательный маршрут завершён только на validated Claude result и локальной
 проверке используемых claims; явно запрошенное control/inspection action — на
 его typed result. Не выводи завершённость из non-terminal evidence и не
-подменяй отсутствующее мнение Opus выводом Codex.
+подменяй отсутствующее мнение Claude выводом Codex.

@@ -1,6 +1,6 @@
-# Observe Opus Session
+# Observe Claude Session
 
-Вход: native Opus `session_id`, ожидающий status/liveness или содержательный
+Вход: native Claude `session_id`, ожидающий status/liveness или содержательный
 ответ. Выход: bounded typed snapshot, validated terminal result либо failure.
 
 - Вызови `mcp__claude_mcp__claude_observe` с `detail: summary`. Сохрани
@@ -15,7 +15,7 @@
 - Status/liveness запрос может завершиться typed snapshot, но не content success.
 - Содержательный ответ первого turn или follow-up требует
   `terminal.kind: success` и `resolved_model`, соответствующего
-  `^claude-opus-5(?:$|-)`; затем прочитай `detail: conversation` без cursor
+  `^claude-(opus|fable)-5(?:$|-)` и выбранному семейству; затем прочитай `detail: conversation` без cursor
   последнего summary: фильтр по нему может скрыть уже полученный ответ.
 - Проверь, что видимый assistant text отвечает на ожидаемый запрос.
   При обрезке или существенном пробеле используй

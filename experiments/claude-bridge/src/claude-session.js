@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
-import { assertSdkRuntimeEvidence, prepareClaudeRequest } from "./claude-policy.js";
+import { assertSdkRuntimeEvidence, claudeAskInputSchema, prepareClaudeRequest } from "./claude-policy.js";
 import { ClaudeAskError, compactClaudeAskError, formatClaudeResult, isClaudeSessionId } from "./claude-result.js";
 import { claudeRuntimeWarning, startClaudeSdkSession } from "./claude-sdk.js";
 
@@ -46,10 +46,10 @@ export const claudeSessionInputSchema = z.object({
     .describe("Session operation."),
   prompt: promptSchema.optional()
     .describe("Advisor task or follow-up; required except for stop."),
-  profile: z.literal("opus_advisor").optional()
+  profile: claudeAskInputSchema.profile.optional()
     .describe("Fresh-session model profile."),
-  effort: z.enum(["xhigh", "max"]).optional()
-    .describe("Fresh-session effort; defaults to xhigh."),
+  effort: claudeAskInputSchema.effort
+    .describe("Fresh-session effort; defaults to high for Opus and medium for Fable."),
   cwd: z.string().min(1).optional()
     .describe("Existing working directory for open operations."),
   session_id: sessionIdSchema.optional()
@@ -673,7 +673,7 @@ export function createClaudeSessionAdapter(options = {}) {
     try {
       engine = startSession(launch, {
         abortController: controller,
-        validateInit: assertSdkRuntimeEvidence,
+        validateInit: (init) => assertSdkRuntimeEvidence(init, launch),
         onMessage: (message) => observeMessage(record, message),
         onTerminal: ({ error, lastRaw }) => {
           if (record.engine !== engine) return;
@@ -714,7 +714,7 @@ export function createClaudeSessionAdapter(options = {}) {
       // environment; reservations/capacity are held before this dispatch.
       beginTurn(record, engine, prompt, launch);
       const { init } = await waitWithSignal(engine.ready, signal);
-      assertSdkRuntimeEvidence(init);
+      assertSdkRuntimeEvidence(init, launch);
       if (!isClaudeSessionId(init.session_id)) {
         throw new ClaudeAskError("missing_session", "Claude SDK init did not include a native session UUID.");
       }

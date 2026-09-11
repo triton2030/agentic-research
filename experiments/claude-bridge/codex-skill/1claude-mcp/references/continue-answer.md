@@ -1,6 +1,6 @@
-# Complete an Opus Answer
+# Complete an Claude Answer
 
-Вход: успешный Opus result с обрезкой либо существенным пробелом в заключении.
+Вход: успешный Claude result с обрезкой либо существенным пробелом в заключении.
 Выход: достаточное заключение из проверенных частей либо честно названный пробел.
 
 Мост ограничивает one-shot text до 12 000 символов, а observation хранит до
@@ -14,7 +14,7 @@
 - Для idle управляемой session используй `send` и
   [session-observe.md](session-observe.md). Пока она active, дождись завершения.
 - После завершённого blocking one-shot используй `claude_ask` с тем же
-  `session_id`, прежним `cwd`, `profile: opus_advisor` и follow-up prompt;
+  `session_id`, прежним `cwd`, прежним `profile` и follow-up prompt;
   не задавай новый effort. Прими packet по
   [accept-one-shot.md](accept-one-shot.md). Не открывай второго writer для
   conversation с активным процессом.
