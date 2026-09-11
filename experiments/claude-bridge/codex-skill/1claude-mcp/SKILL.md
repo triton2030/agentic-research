@@ -1,62 +1,48 @@
 ---
 name: 1claude-mcp
 description: >-
-  Use when work needs a Claude/Opus/Fable or unspecified-model opinion/review, or inspection/control of a Claude
-  session. Not for Claude facts or Gemini/Hermes.
+  Use when invoking Claude/Opus/Fable for research, review, coding or another
+  task, seeking an unspecified-model second opinion, or inspecting and
+  controlling Claude sessions. Provides model,
+  prompting and tool knowledge; not general Claude product support.
 ---
 
-# Claude Advisor
+# Claude
 
-## Уникальный Контекст
+Мост подключает Claude Code через Claude.ai-подписку. Claude получает штатный
+системный промпт и native tools; роль, результат и допустимые изменения задаёт
+переданный запрос. Поэтому один и тот же инструмент подходит для независимого
+мнения, исследования, работы с документами и исполнения кода.
 
-Claude — независимый советник. Подключай его потому, что уже можешь быть связан
-собственными допущениями и выбранным маршрутом. Его ценность не в подтверждении
-твоей позиции, а в самостоятельном профессиональном суждении, способном
-изменить решение или результат. Clean launch не наследует инструкции проекта,
-но Claude может читать релевантные материалы. Ты проверяешь claims и отвечаешь
-владельцу.
+Этот скил сообщает особенности подключения и моделей. Выбор функций,
+организация работы и проверка результата остаются у вызывающего агента.
 
-## Твоя задача
+## Выбор модели
 
-Для advice/review получи от Claude полное разрешение исследовательского вопроса
-либо содержательный review результата с достаточным контекстом и материалами.
-Если владелец просит только inspection/control Claude session, выполни ровно
-эту операцию.
+Предпочтения владельца применяются в порядке таблицы; явный выбор для
+конкретного вызова имеет приоритет.
 
-## Твоя цель
+| Когда | Модель | Параметры свежего вызова |
+| --- | --- | --- |
+| Умная или важная работа, включая документы и код | Fable 5.1 Medium | `profile: fable_advisor`, `effort: medium` |
+| Работа с кодом | Opus 5 Max | `profile: opus_advisor`, `effort: max` |
+| Документы и остальные случаи по умолчанию | Opus 5 High | `profile: opus_advisor`, `effort: high` |
 
-Advice/review завершён законченным независимым заключением Claude: ясно, какое
-решение лучше всего служит верхнеуровневой цели владельца, почему именно оно и
-какие существенные риски или неизвестные способны его изменить. Используемые
-claims проверены тобой. Inspection/control завершён его typed result.
+`claude-opus-5-high` — модель `claude-opus-5` с отдельным `effort: high`.
+Fable закреплён на `claude-fable-5-1`. Имена профилей с суффиксом `_advisor`
+сохранены для совместимости: профиль выбирает модель, а не роль.
 
-## Маршрут
+## Знание по ситуации
 
-- Перед новым one-shot или управляемым advisor прочитай
-  [prepare-advisor.md](references/prepare-advisor.md).
-- Готовый blocking one-shot без полезной независимой работы выполни по
-  [fresh-one-shot.md](references/fresh-one-shot.md).
-- Готовый one-shot параллельно с полезной работой выполни по
-  [parallel-one-shot.md](references/parallel-one-shot.md).
-- Raw one-shot packet прими или отклони по
-  [accept-one-shot.md](references/accept-one-shot.md).
-- Обрезанный или содержательно неполный успешный ответ дополни по
-  [continue-answer.md](references/continue-answer.md).
-- Новую управляемую консультацию открой по
-  [session-open.md](references/session-open.md).
-- Действие над live Claude session выполни по
-  [session-action.md](references/session-action.md).
-- Status/liveness либо ожидаемый содержательный ответ получи по
-  [session-observe.md](references/session-observe.md).
-- Список или видимую переписку active Claude sessions прочитай по
-  [existing-sessions.md](references/existing-sessions.md).
-- Session-specific typed failure обработай по
-  [session-recovery.md](references/session-recovery.md).
-- Typed failure обработай по [failure-recovery.md](references/failure-recovery.md).
+| Когда сведения нужны | Где они находятся |
+| --- | --- |
+| Составляешь запрос Claude: исполнение, исследование или независимое мнение | [Особенности промптов](references/prompting.md) |
+| Выбираешь one-shot, продолжение, параллельный запуск, управление или просмотр сессий | [Инструменты и сессии](references/tools-and-sessions.md) |
+| Разбираешь результат, обрезку, ожидание, ошибку или несовпадение модели | [Результаты и ограничения](references/results-and-recovery.md) |
+| Задаче нужны дополнительные возможности Claude Code или SDK | [Native-возможности](references/native-capabilities.md) |
 
-## Стоп
-
-Содержательный маршрут завершён только на validated Claude result и локальной
-проверке используемых claims; явно запрошенное control/inspection action — на
-его typed result. Не выводи завершённость из non-terminal evidence и не
-подменяй отсутствующее мнение Claude выводом Codex.
+Свежий процесс не подхватывает пользовательские и проектные инструкции,
+скилы, hooks, MCP и auto-memory автоматически. `cwd` и файлы доступны Claude:
+нужные правила проекта и материалы можно передать адресами в запросе.
+Продолжение сохраняет разговор native session. Вызов может менять файлы и
+внешнее состояние; read-only характер исследования задаётся конкретной задачей.

@@ -16,7 +16,7 @@ const PROFILES = Object.freeze({
   }),
   fable_advisor: Object.freeze({
     requestedModel: "fable",
-    model: "claude-fable-5",
+    model: "claude-fable-5-1",
     effort: "medium"
   })
 });

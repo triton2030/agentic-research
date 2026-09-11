@@ -139,11 +139,10 @@ test("one-shot uses fixed profile and clean SDK authority", async () => {
   assert.equal(input.value.message.role, "user");
   assert.match(input.value.message.content, /Challenge this design/u);
   assert.equal((await capture.prompt.next()).done, true, "blocking ask must close streaming input after one message");
-  assert.equal(
-    capture.options.systemPrompt,
-    "Act as an independent advisor. Investigate and read whatever evidence is necessary, but do not modify files, " +
-      "run state-changing commands, or take external actions. Return compact, decision-useful answers to the user's tasks."
-  );
+  assert.deepEqual(capture.options.systemPrompt, {
+    type: "preset", preset: "claude_code", snapshot: false
+  });
+  assert.equal(input.value.message.content, "Challenge this design.");
   assert.equal(capture.options.model, "claude-opus-5");
   assert.equal(capture.options.effort, "high");
   assert.deepEqual(capture.options.additionalDirectories, ["/"]);
@@ -188,21 +187,21 @@ test("resume keeps the native session model and omits caller model routing", asy
 
 test("Fable medium launches and resumes; selected model fallback fails closed", async () => {
   const capture = {};
-  const messages = sdkMessages({ initModel: "claude-fable-5" });
+  const messages = sdkMessages({ initModel: "claude-fable-5-1" });
   const fresh = await askTest(
     { prompt: "Important review.", profile: "fable_advisor", cwd: bridgeRoot },
     fakeOptions(messages, { queryFactory: queryFactoryFor(messages, capture) })
   );
   assert.equal(fresh.requested_model, "fable");
   assert.equal(fresh.requested_effort, "medium");
-  assert.equal(capture.options.model, "claude-fable-5");
+  assert.equal(capture.options.model, "claude-fable-5-1");
   assert.equal(capture.options.effort, "medium");
   const resumed = await askTest(
     { prompt: "Continue.", cwd: bridgeRoot, session_id: OPUS_SESSION },
     fakeOptions(messages)
   );
   assert.equal(resumed.requested_model, null);
-  assert.equal(resumed.resolved_model, "claude-fable-5");
+  assert.equal(resumed.resolved_model, "claude-fable-5-1");
   for (const [profile, initModel, mainModel, session_id] of [
     ["opus_advisor", "claude-fable-5", "claude-fable-5"],
     ["opus_advisor", "claude-opus-5", "claude-fable-5"],

@@ -1,13 +1,13 @@
 interface:
   display_name: "1claude-mcp"
-  short_description: "Independent Claude advice or session control"
-  default_prompt: "Use $1claude-mcp for the requested Claude advice/review or Claude session inspection/control."
+  short_description: "Claude tasks, model guidance and session control"
+  default_prompt: "Use $1claude-mcp for Claude research, review, implementation, or session control."
 
 dependencies:
   tools:
     - type: "mcp"
       value: "claude-mcp"
-      description: "Subscription-backed native Claude advisor"
+      description: "Subscription-backed native Claude Code bridge"
 
 policy:
   allow_implicit_invocation: true

@@ -1,6 +1,7 @@
-# Claude Advisor Bridge
+# Claude Bridge
 
-This project lets Codex ask Claude for an independent Opus 5 or Fable 5 opinion
+This project lets Codex use Claude Opus 5 or Fable 5.1 for research,
+independent review, document work, or implementation
 through a blocking default or an opt-in transient session adapter, while using
 the owner's Claude.ai subscription and Claude's native session history.
 
@@ -40,7 +41,7 @@ four tools: blocking `claude_ask`, transient `claude_session`, pull-only
 - an optional native Claude `session_id` for continuation.
 
 Fresh calls pin Opus to `claude-opus-5` with default effort `high`, and Fable
-to `claude-fable-5` with default effort `medium`. Optional `effort` accepts
+to `claude-fable-5-1` (Fable 5.1) with default effort `medium`. Optional `effort` accepts
 `medium`, `high`, `xhigh`, or `max`; the skill selects Fable Medium for smart or
 important work first, otherwise Opus Max for code and Opus High for documents
 and other work. `claude-opus-5-high` denotes the model plus effort, not a
@@ -72,10 +73,9 @@ External-data approval happens in the Codex host before
 dispatch and is explicitly configured as `prompt`; the host may retain a prior
 authorization instead of showing a new prompt.
 
-`claude_ask` remains the ordinary path: it runs one advisor turn, waits, and
+`claude_ask` remains the ordinary path: it runs one Claude turn, waits, and
 returns one bounded terminal packet. The session tools do not make blocking ask
-a compatibility afterthought or require callers to manage a lifecycle. Use the
-advisor before work, during a parallel host track, or after work as a review.
+a compatibility afterthought or require callers to manage a lifecycle. A call can execute a task, advise before work, or review a result.
 The Codex skill can yield a blocking call while the host does independent work;
 the session path below is for explicit observation and control.
 
@@ -156,7 +156,7 @@ process, so its ID is not permission to open another live writer through
 
 ### Local authority
 
-Advisor runs receive broad local access, subject to the permissions that macOS
+Claude runs receive broad local access, subject to the permissions that macOS
 and the Claude process actually have. Every fresh bridge process keeps Claude
 Code's native tool preset but omits filesystem-sourced user, project, and local
 instructions, custom skills, hooks, MCP integrations, plugins, and auto-memory.
@@ -168,13 +168,17 @@ Claude may deliberately read any instruction or evidence file when the task
 makes it relevant. The exact built-in tool set is runtime-owned and can vary
 with Claude Code version.
 
-The advisor prompt says to investigate and advise without changing anything.
-That is a behavioral instruction, not an enforced read-only sandbox: a native
-command or tool can write or delete local data if Claude ignores the instruction.
-The owner accepts that residual risk. Do not recreate a pseudo-sandbox with
-folder allowlists, command classification, write detection, hook suppression, or
-tool deny lists; those controls would add code without providing the chosen
-trust boundary. macOS privacy controls remain the real outer boundary.
+The bridge selects the native `claude_code` system-prompt preset. It does not
+inject a fixed advisor role or a write prohibition: the caller's task supplies
+its intended result and permitted changes. Profile names ending in `_advisor`
+remain backward-compatible model selectors, not role selectors.
+`snapshot: false` renders this native prompt on each launch, including resume
+of a conversation that originally used the old custom advisor prompt. A fresh
+session is still needed for an opinion independent of the previous conversation.
+
+The owner explicitly includes execution and file changes in the bridge's scope
+(2026-09-12). A read-only review is requested in its prompt; the bridge is not
+an enforced read-only sandbox. macOS privacy controls remain the outer boundary.
 
 The bridge explicitly preserves its accepted broad-access trust boundary with
 the SDK's `bypassPermissions` mode after filesystem settings are disabled. A
@@ -244,16 +248,17 @@ an abstraction only when current complexity makes the seam real.
 
 ## Develop And Verify
 
-The current dependency pair is Agent SDK `0.3.263` and local Claude Code
-`2.1.263`. The SDK is pinned in the lockfile; the local executable is managed
-separately with `claude install 2.1.263`. Check `claude --version` on upgrades:
+The current dependency pair is Agent SDK `0.3.268` and local Claude Code
+`2.1.268`. The SDK is pinned in the lockfile; the local executable is managed
+separately with `claude install 2.1.268`. Check `claude --version` on upgrades:
 installing the npm dependency does not update that executable.
 The [official SDK changelog](https://github.com/anthropics/claude-agent-sdk-typescript/blob/main/CHANGELOG.md)
 identifies the corresponding Claude Code release.
 
-Verified on 2026-09-06: clean install with optional binaries omitted, 42
-deterministic tests, and the live suite including native resume, follow-up,
-steer, stop, and native interruption with no surviving observed processes.
+Verified on 2026-09-12: clean install with optional binaries omitted, 42
+deterministic tests, the upgrade live suite including native resume, follow-up,
+steer, stop, and native interruption with no surviving observed processes,
+plus final native-prompt implementation and read-only review probes.
 Result-validation failures retain turn ownership until the adapter publishes
 their terminal error; regression coverage prevents them becoming endless waits.
 

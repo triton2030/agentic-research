@@ -50,7 +50,9 @@ function writePrivateReceipt(target, text) {
   const receiptPath = path.resolve(target);
   const receiptDir = path.dirname(receiptPath);
   fs.mkdirSync(receiptDir, { mode: 0o700, recursive: true });
-  fs.chmodSync(receiptDir, 0o700);
+  if ((fs.statSync(receiptDir).mode & 0o077) !== 0) {
+    throw new Error("Live receipt requires a dedicated private directory; existing parent permissions are unchanged.");
+  }
   const partial = `${receiptPath}.${process.pid}.${randomUUID()}.part`;
   fs.writeFileSync(partial, text, { encoding: "utf8", flag: "wx", mode: 0o600 });
   fs.chmodSync(partial, 0o600);

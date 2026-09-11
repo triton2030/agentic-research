@@ -43,15 +43,16 @@ copy, or old bridge source as current runtime truth.
 
 ## Preserve The Chosen Trust Boundary
 
-- Advisor access is broad and keeps Claude Code's native tool preset. Each fresh
+- Claude access is broad and keeps Claude Code's native tool preset. Each fresh
   process omits filesystem-sourced user/project/local instructions, custom
   skills, hooks, MCP integrations, plugins, and auto-memory; managed policy and
   account state remain runtime-owned, and a resumed native
   session still retains its prior conversation context. The project `cwd` stays
   available: Claude may deliberately read any instruction or evidence file it
-  considers relevant. The prompt instructs
-  Claude to investigate without modifying data; this is deliberately a
-  trust-based behavior contract, not an enforced read-only sandbox. Do not add
+  considers relevant. The native Claude Code system prompt remains intact;
+  the caller chooses research, review, or execution and defines permitted changes.
+  The owner explicitly authorized execution and file changes on 2026-09-12.
+  Do not restore the old fixed advisor role or read-only prompt. Do not add
   folder allowlists, command classification, write detection, or tool deny
   lists unless the owner changes that product decision. Preserve host
   cancellation and process-tail checks.

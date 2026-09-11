@@ -138,10 +138,10 @@ export function createClaudeAskServer(
     {
       title: "Ask Claude",
       description:
-        "Ask native Claude Opus 5 or Fable 5 for blocking independent advice or review through the logged-in Claude.ai subscription. " +
+        "Ask native Claude Opus 5 or Fable 5 for a blocking task, research, implementation, or independent review through the logged-in Claude.ai subscription. " +
         "A fresh call omits filesystem-sourced user/project instructions, custom skills, hooks, MCP integrations, and auto-memory; " +
         "resumed calls retain their prior conversation. Claude keeps native local tools and may read any evidence it considers relevant; " +
-        "managed policy and account state remain runtime-owned, and the caller must instruct Claude not to modify state. " +
+        "managed policy and account state remain runtime-owned, and the caller defines the task and permitted changes. " +
         "Returns one bounded answer and native session_id.",
       inputSchema: claudeAskInputSchema,
       outputSchema: askResultSchema,
@@ -160,7 +160,7 @@ export function createClaudeAskServer(
     {
       title: "Control Claude Session",
       description:
-        "Open, continue, steer, or stop a transient native Claude advisor process. " +
+        "Open, continue, steer, or stop a transient native Claude process. " +
         "Use open_fresh/open_resume with an initial prompt, send only while idle, and steer only while a turn is active. " +
         "The returned native session_id remains resumable after this process-local lease disappears.",
       inputSchema: claudeSessionInputSchema,

@@ -6,11 +6,6 @@ const CLIENT_APP = "claude-bridge/2.0";
 const MAX_TURNS = 48;
 const DEFAULT_INTERRUPT_GRACE_MS = 5_000;
 const TERMINAL_COMMAND_STATES = new Set(["cancelled", "completed", "discarded"]);
-const ADVISOR_INSTRUCTION = [
-  "Act as an independent advisor.",
-  "Investigate and read whatever evidence is necessary, but do not modify files, run state-changing commands, or take external actions.",
-  "Return compact, decision-useful answers to the user's tasks."
-].join(" ");
 
 function deferred() {
   let resolve;
@@ -20,10 +15,6 @@ function deferred() {
     reject = rejectPromise;
   });
   return { promise, reject, resolve };
-}
-
-function advisorTask(prompt) {
-  return `<advisor_request>\n${prompt}\n</advisor_request>`;
 }
 
 function collectModel(models, value) {
@@ -127,7 +118,9 @@ function queryOptions(launch, options) {
     skills: [],
     spawnClaudeCodeProcess: options.spawnClaudeCodeProcess,
     strictMcpConfig: true,
-    systemPrompt: ADVISOR_INSTRUCTION,
+    // Native Claude behavior; the caller supplies the task and its write scope.
+    // Re-render on resume instead of inheriting a previous custom advisor prompt.
+    systemPrompt: { type: "preset", preset: "claude_code", snapshot: false },
     tools: { type: "preset", preset: "claude_code" },
     ...(!isResume ? { effort: launch.profile.effort, model: launch.profile.model } : {})
   };
@@ -136,7 +129,7 @@ function queryOptions(launch, options) {
 function userMessage(prompt, priority) {
   return {
     type: "user",
-    message: { role: "user", content: advisorTask(prompt) },
+    message: { role: "user", content: prompt },
     parent_tool_use_id: null,
     priority,
     uuid: randomUUID()

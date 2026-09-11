@@ -45,7 +45,7 @@ export const claudeSessionInputSchema = z.object({
   op: z.enum(["open_fresh", "open_resume", "send", "steer", "stop"])
     .describe("Session operation."),
   prompt: promptSchema.optional()
-    .describe("Advisor task or follow-up; required except for stop."),
+    .describe("Claude task or follow-up; required except for stop."),
   profile: claudeAskInputSchema.profile.optional()
     .describe("Fresh-session model profile."),
   effort: claudeAskInputSchema.effort

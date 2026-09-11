@@ -36,7 +36,7 @@
 
   Явный выбор модели владельцем определяет конкретный вызов. Обозначение
   `claude-opus-5-high` передаётся SDK как модель `claude-opus-5` и отдельный
-  `effort: high`; Fable закреплён на `claude-fable-5`.
+  `effort: high`; Fable закреплён на `claude-fable-5-1` (Fable 5.1).
 - Для one-shot envelope укажи `mcp__claude_mcp__claude_ask`, выбранные
   `profile` и `effort`, готовый prompt, реальный `cwd` и без `session_id`.
 - Перед вызовом проверь callable schema: старый MCP с одним `opus_advisor`
