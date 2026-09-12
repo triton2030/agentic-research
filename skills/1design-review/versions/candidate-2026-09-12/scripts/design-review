@@ -1,0 +1,169 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SKILL_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+usage() {
+  cat <<'USAGE'
+Usage:
+  design-review --plan FILE [--project DIR] [--url URL] [--capture-only]
+  design-review --review-only --run-dir DIR [--parallel N]
+
+Plan version 2 produces narrow screenshot evidence and one clean task per
+question. The script never captures a tall full-page image and never runs a
+blind aggregate reviewer. Capture always stops for root visual approval before
+the reviewer queue can start.
+
+Options:
+  --plan FILE        Curated plan version 2.
+  --project DIR      Project receiving _workspace/design/1design-review artifacts.
+                     Default: current directory.
+  --run-dir DIR      Exact run directory. Required for --review-only.
+  --label NAME       Run directory suffix.
+  --url URL          Fallback URL for a URL source without url.
+  --questions FILE   Reviewer contract. Default: skill questions.md.
+  --settle-ms N      Post-load/action settle delay. Default: 350.
+  --parallel N       Concurrent clean reviewers globally, 1-3. Default: 3.
+  --model NAME       Reviewer model. Default: gpt-5.6-sol.
+  --effort LEVEL     Reviewer reasoning effort. Default: high.
+  --capture-only     Explicit capture-only alias; capture always stops at approval.
+  --review-only      Review a successful existing run.
+  --dry-run          Print resolved route without capture or reviewers.
+  -h, --help         Show this help.
+USAGE
+}
+
+die() {
+  printf 'design-review: %s\n' "$*" >&2
+  exit 2
+}
+
+PROJECT="$(pwd)"
+PLAN=""
+RUN_DIR=""
+LABEL=""
+URL=""
+QUESTIONS="$SKILL_DIR/questions.md"
+SETTLE_MS="350"
+PARALLEL="3"
+MODEL="${DESIGN_REVIEW_MODEL:-gpt-5.6-sol}"
+EFFORT="${DESIGN_REVIEW_EFFORT:-high}"
+CAPTURE_ONLY=0
+REVIEW_ONLY=0
+DRY_RUN=0
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --plan) PLAN="${2:-}"; shift 2 ;;
+    --project) PROJECT="${2:-}"; shift 2 ;;
+    --run-dir) RUN_DIR="${2:-}"; shift 2 ;;
+    --label) LABEL="${2:-}"; shift 2 ;;
+    --url) URL="${2:-}"; shift 2 ;;
+    --questions) QUESTIONS="${2:-}"; shift 2 ;;
+    --settle-ms) SETTLE_MS="${2:-}"; shift 2 ;;
+    --parallel) PARALLEL="${2:-}"; shift 2 ;;
+    --model) MODEL="${2:-}"; shift 2 ;;
+    --effort) EFFORT="${2:-}"; shift 2 ;;
+    --capture-only) CAPTURE_ONLY=1; shift ;;
+    --review-only) REVIEW_ONLY=1; shift ;;
+    --dry-run) DRY_RUN=1; shift ;;
+    -h|--help) usage; exit 0 ;;
+    *) die "unknown argument: $1" ;;
+  esac
+done
+
+[[ "$CAPTURE_ONLY" == "1" && "$REVIEW_ONLY" == "1" ]] && die "choose capture-only or review-only"
+[[ -d "$PROJECT" ]] || die "project directory not found: $PROJECT"
+[[ -f "$QUESTIONS" ]] || die "questions file not found: $QUESTIONS"
+[[ "$PARALLEL" =~ ^[1-3]$ ]] || die "--parallel must be an integer from 1 to 3"
+[[ "$SETTLE_MS" =~ ^[0-9]+$ ]] || die "--settle-ms must be a non-negative integer"
+
+PROJECT="$(cd "$PROJECT" && pwd)"
+QUESTIONS="$(cd "$(dirname "$QUESTIONS")" && pwd)/$(basename "$QUESTIONS")"
+
+if [[ "$REVIEW_ONLY" == "0" ]]; then
+  [[ -n "$PLAN" ]] || die "--plan is required for capture"
+  case "$PLAN" in
+    /*) ;;
+    *) PLAN="$PROJECT/$PLAN" ;;
+  esac
+  [[ -f "$PLAN" ]] || die "plan file not found: $PLAN"
+  PLAN="$(cd "$(dirname "$PLAN")" && pwd)/$(basename "$PLAN")"
+fi
+
+if [[ -z "$RUN_DIR" ]]; then
+  [[ "$REVIEW_ONLY" == "0" ]] || die "--review-only requires --run-dir"
+  day="$(date +%m-%d)"
+  stamp="$(date +%Y%m%dT%H%M%S)"
+  safe_label="$(printf '%s' "$LABEL" | tr -cs '[:alnum:]_.-' '-' | sed 's/^-//;s/-$//')"
+  if [[ -n "$safe_label" ]]; then
+    RUN_DIR="$PROJECT/_workspace/design/1design-review/$day/$stamp-$safe_label"
+  else
+    RUN_DIR="$PROJECT/_workspace/design/1design-review/$day/$stamp"
+  fi
+else
+  case "$RUN_DIR" in
+    /*) ;;
+    *) RUN_DIR="$PROJECT/$RUN_DIR" ;;
+  esac
+fi
+
+printf '[design-review] project: %s\n' "$PROJECT"
+printf '[design-review] run_dir: %s\n' "$RUN_DIR"
+printf '[design-review] plan: %s\n' "${PLAN:-"(existing manifest)"}"
+printf '[design-review] route: capture_only=%s review_only=%s parallel=%s\n'   "$CAPTURE_ONLY" "$REVIEW_ONLY" "$PARALLEL"
+
+if [[ "$DRY_RUN" == "1" ]]; then
+  exit 0
+fi
+
+if [[ "$REVIEW_ONLY" == "0" ]]; then
+  module_root=""
+  for candidate in "$SKILL_DIR/node_modules" "$PROJECT/node_modules"; do
+    if [[ -d "$candidate/playwright" ]]; then
+      module_root="$candidate"
+      break
+    fi
+  done
+  if [[ -z "$module_root" ]] && command -v npm >/dev/null 2>&1; then
+    global_root="$(npm root -g 2>/dev/null || true)"
+    if [[ -n "$global_root" && -d "$global_root/playwright" ]]; then
+      module_root="$global_root"
+    fi
+  fi
+  [[ -n "$module_root" ]] || die "Playwright runtime not found; install it in the skill/project or expose an existing npm module root"
+
+  mkdir -p "$RUN_DIR"
+  plan_snapshot="$RUN_DIR/screenshot-plan.json"
+  if [[ "$(realpath "$PLAN")" != "$(realpath "$plan_snapshot" 2>/dev/null || true)" ]]; then
+    cp "$PLAN" "$plan_snapshot"
+  fi
+  capture=(
+    node "$SCRIPT_DIR/capture-design-screenshots.mjs"
+    --plan "$plan_snapshot"
+    --out-dir "$RUN_DIR"
+    --settle-ms "$SETTLE_MS"
+  )
+  if [[ -n "$URL" ]]; then
+    capture+=(--url "$URL")
+  fi
+  PLAYWRIGHT_MODULE_ROOT="$module_root" "${capture[@]}"
+fi
+
+if [[ "$REVIEW_ONLY" == "0" ]]; then
+  printf '[design-review] capture complete: %s\n' "$RUN_DIR"
+  printf '[design-review] root must open every reviewer PNG, then approve:\n'
+  printf '  %s/approve-design-evidence.mjs --run-dir %s --all-reviewer-evidence\n' "$SCRIPT_DIR" "$RUN_DIR"
+  printf '[design-review] after approval, launch the queue with --review-only --run-dir %s\n' "$RUN_DIR"
+  exit 0
+fi
+
+"$SCRIPT_DIR/run-clean-design-agent.sh" \
+  --run-dir "$RUN_DIR" \
+  --questions "$QUESTIONS" \
+  --parallel "$PARALLEL" \
+  --model "$MODEL" \
+  --effort "$EFFORT"
+
+printf '[design-review] focused reviews complete; root adjudication remains: %s\n' "$RUN_DIR"

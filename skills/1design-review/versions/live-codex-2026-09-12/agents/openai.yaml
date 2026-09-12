@@ -1,0 +1,6 @@
+interface:
+  display_name: "1design-review"
+  short_description: "Focused screenshot evidence and root-verified design verdict."
+  default_prompt: "Use $1design-review at this visual checkpoint. The root may judge one already isolated condition directly; for a substantive screen or page review, build focused screenshot tasks, use clean reviewers, and re-check every candidate finding before the final verdict."
+policy:
+  allow_implicit_invocation: true

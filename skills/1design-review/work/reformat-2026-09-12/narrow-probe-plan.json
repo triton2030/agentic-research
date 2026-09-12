@@ -1,0 +1,32 @@
+{
+  "version": 2,
+  "context": {
+    "audience": "design tool evaluator",
+    "primaryAction": "verify the evidence pipeline",
+    "intendedCharacter": "clear and deliberate",
+    "tasteConstraints": [
+      "strong hierarchy",
+      "no accidental noise"
+    ]
+  },
+  "sources": [
+    {
+      "id": "fixture",
+      "type": "url",
+      "url": "file:///Users/triton/.codex/skills/1design-review/tests/fixtures/evidence-page.html"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "viewport-hero",
+      "kind": "viewport",
+      "sourceId": "fixture",
+      "viewport": {
+        "width": 1200,
+        "height": 700,
+        "deviceScaleFactor": 1
+      }
+    }
+  ],
+  "tasks": []
+}
