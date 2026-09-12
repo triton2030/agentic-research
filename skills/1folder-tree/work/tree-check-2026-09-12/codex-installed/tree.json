@@ -1,0 +1,41 @@
+{
+  "root_name": "holdout",
+  "entries": [
+    {
+      "path": "Деньги",
+      "kind": "directory"
+    },
+    {
+      "path": "Деньги/Возврат",
+      "kind": "directory"
+    },
+    {
+      "path": "Деньги/Возврат/Деньги покупателю.md",
+      "kind": "file"
+    },
+    {
+      "path": "Корзина",
+      "kind": "directory"
+    },
+    {
+      "path": "Корзина/Действия",
+      "kind": "directory"
+    },
+    {
+      "path": "Корзина/Действия/Удаление товара.md",
+      "kind": "file"
+    },
+    {
+      "path": "Корзина/Корзина.md",
+      "kind": "file"
+    },
+    {
+      "path": "Корзина/Потеря корзины.md",
+      "kind": "file"
+    }
+  ],
+  "excluded": [],
+  "exclude_patterns": [
+    ".git"
+  ]
+}

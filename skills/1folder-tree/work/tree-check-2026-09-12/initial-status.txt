@@ -1,0 +1,97 @@
+ M skills/1agent-steering/README.md
+ M skills/1agent-steering/cut.md
+ M skills/1instruction-authoring/README.md
+ M skills/1instruction-authoring/cut.md
+ M skills/1readable-code/cut.md
+ M skills/1skill-creation/README.md
+ M skills/1skill-creation/cut.md
+ M skills/1skill-creation/state.md
+ M skills/1smart-simple/cut.md
+ M skills/1smart-simple/product-frame.principles.md
+ M skills/1smart-simple/state.md
+ M skills/claude/1agent-steering/SKILL.md
+ M skills/claude/1agent-steering/references/steering-science.md
+ M skills/claude/1instruction-authoring/SKILL.md
+ M skills/claude/1instruction-authoring/references/discovery.md
+ M skills/claude/1instruction-authoring/references/writing.md
+ M skills/claude/1readable-code/SKILL.md
+ M skills/claude/1skill-creation/SKILL.md
+ M skills/claude/1skill-creation/agents/check-instructions.md
+ M skills/claude/1skill-creation/agents/check-trajectory.md
+ M skills/claude/1skill-creation/references/agent-defaults.md
+ M skills/claude/1skill-creation/references/behavior-protocol.md
+ M skills/claude/1skill-creation/references/check-approve.md
+ M skills/claude/1skill-creation/references/goal-context.md
+ M skills/claude/1skill-creation/references/install-approved.md
+ M skills/claude/1skill-creation/references/refactor.md
+ M skills/claude/1skill-creation/references/reference-files.md
+ M skills/codex/1agent-steering/SKILL.md
+ M skills/codex/1agent-steering/references/steering-science.md
+ M skills/codex/1chat-recall/SKILL.md
+ M skills/codex/1instruction-authoring/SKILL.md
+ M skills/codex/1instruction-authoring/references/discovery.md
+ M skills/codex/1instruction-authoring/references/writing.md
+ M skills/codex/1readable-code/SKILL.md
+ M skills/codex/1readable-code/agents/openai.yaml
+ M skills/codex/1skill-creation/SKILL.md
+ M skills/codex/1skill-creation/agents/check-instructions.md
+ M skills/codex/1skill-creation/agents/check-trajectory.md
+ M skills/codex/1skill-creation/references/agent-defaults.md
+ M skills/codex/1skill-creation/references/behavior-protocol.md
+ M skills/codex/1skill-creation/references/check-approve.md
+ M skills/codex/1skill-creation/references/goal-context.md
+ M skills/codex/1skill-creation/references/install-approved.md
+ M skills/codex/1skill-creation/references/refactor.md
+ M skills/codex/1skill-creation/references/reference-files.md
+ M skills/shared/1agent-steering/portable/SKILL.md
+ M skills/shared/1agent-steering/portable/references/steering-science.md
+ M skills/shared/1agent-steering/product-frame.principles.md
+ M skills/shared/1instruction-authoring/portable/SKILL.md
+ M skills/shared/1instruction-authoring/portable/references/discovery.md
+ M skills/shared/1instruction-authoring/portable/references/writing.md
+ M skills/shared/1readable-code/platforms/codex/agents/openai.yaml
+ M skills/shared/1readable-code/portable/SKILL.md
+ M skills/shared/1skill-creation/portable/SKILL.md
+ M skills/shared/1skill-creation/portable/agents/check-instructions.md
+ M skills/shared/1skill-creation/portable/agents/check-trajectory.md
+ M skills/shared/1skill-creation/portable/references/agent-defaults.md
+ M skills/shared/1skill-creation/portable/references/behavior-protocol.md
+ M skills/shared/1skill-creation/portable/references/check-approve.md
+ M skills/shared/1skill-creation/portable/references/goal-context.md
+ M skills/shared/1skill-creation/portable/references/install-approved.md
+ M skills/shared/1skill-creation/portable/references/refactor.md
+ M skills/shared/1skill-creation/portable/references/reference-files.md
+ M skills/shared/1skill-creation/product-frame.principles.md
+ M skills/shared/README.md
+?? _ops/chat-recall/2026-09-11-234848-codex-01a091cc.md
+?? _ops/chat-recall/2026-09-11-235250-codex-01a091cf.md
+?? skills/1agent-steering/versions/installed-2026-09-11/
+?? skills/1agent-steering/versions/installed-2026-09-12/
+?? skills/1agent-steering/work/activation-2026-09-11/
+?? skills/1agent-steering/work/persuasion-2026-09-12/
+?? skills/1codebase-design/
+?? skills/1folder-tree/work/tree-check-2026-09-12/
+?? skills/1instruction-authoring/versions/v18/
+?? skills/1instruction-authoring/work/activation-2026-09-11/
+?? skills/1orchestration/work/decomposition-2026-09-10.md
+?? skills/1orchestration/work/steering-2026-09-05/
+?? skills/1orchestration/work/worktree-ban-2026-09-10.md
+?? skills/1readable-code/README.md
+?? skills/1readable-code/versions/
+?? skills/1readable-code/work/
+?? skills/1skill-creation/versions/v20/
+?? skills/1skill-creation/work/activation-2026-09-11/
+?? skills/1skill-creation/work/reader-review-2026-09-11.md
+?? skills/1smart-simple/README.md
+?? skills/1smart-simple/versions/installed-2026-09-06/
+?? skills/1smart-simple/versions/live-claude-2026-09-06/
+?? skills/1smart-simple/versions/live-codex-2026-09-06/
+?? skills/1smart-simple/work/v4/
+?? skills/claude/1instruction-authoring/references/verification.md
+?? skills/claude/1skill-creation/agents/check-intent.md
+?? skills/codex/1chat-recall/references/search-mechanics.md
+?? skills/codex/1instruction-authoring/references/verification.md
+?? skills/codex/1skill-creation/agents/check-intent.md
+?? skills/shared/1instruction-authoring/portable/references/verification.md
+?? skills/shared/1instruction-authoring/product-frame.principles.md
+?? skills/shared/1skill-creation/portable/agents/check-intent.md

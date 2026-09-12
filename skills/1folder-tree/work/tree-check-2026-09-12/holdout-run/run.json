@@ -1,0 +1,39 @@
+{
+  "status": "completed",
+  "root": "/Users/triton/Documents/GitHub/agentic-research/skills/1folder-tree/work/tree-check-2026-09-12/holdout",
+  "model_requested": "gpt-5.6-sol",
+  "reasoning_effort": "low",
+  "entries": 8,
+  "command": [
+    "/Applications/ChatGPT.app/Contents/Resources/codex",
+    "exec",
+    "--ignore-user-config",
+    "--ephemeral",
+    "--skip-git-repo-check",
+    "-C",
+    "/var/folders/mr/ft3j0yjx6w5_191wrt58_45m0000gn/T/folder-tree-codex-wep5agmb",
+    "-m",
+    "gpt-5.6-sol",
+    "-c",
+    "model_reasoning_effort=\"low\"",
+    "-c",
+    "project_doc_max_bytes=0",
+    "-c",
+    "features.shell_tool=false",
+    "--sandbox",
+    "read-only",
+    "--json",
+    "-o",
+    "/Users/triton/Documents/GitHub/agentic-research/skills/1folder-tree/work/tree-check-2026-09-12/holdout-run/response.md",
+    "-"
+  ],
+  "base_codex_context": "not removed",
+  "usage": {
+    "input_tokens": 23862,
+    "cached_input_tokens": 0,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1441,
+    "reasoning_output_tokens": 104
+  },
+  "elapsed_seconds": 39.17
+}

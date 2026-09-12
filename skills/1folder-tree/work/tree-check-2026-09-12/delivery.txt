@@ -1,0 +1,2 @@
+all requested tracked and installed projections match their owners
+Installed Codex and Claude dry-run prompts are byte-identical.

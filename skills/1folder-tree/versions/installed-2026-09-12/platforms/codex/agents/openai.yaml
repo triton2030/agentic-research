@@ -1,0 +1,7 @@
+interface:
+  display_name: "1folder-tree"
+  short_description: "Дом, имя и проверка дерева базы документов; не код и не планы"
+  default_prompt: "Используй $1folder-tree, когда владелец говорит про дерево папок, информационную архитектуру, куда положить файл, как назвать папку или в какой папке что должно храниться."
+
+policy:
+  allow_implicit_invocation: true
