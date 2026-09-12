@@ -1,0 +1,19 @@
+{
+  "claude/product-frame.md": "92953db5cb916bf676768e34c684e280cd2884f86809a6b35e98f904bd7b5869",
+  "claude/SKILL.md": "f53e2c82e8260f3f5d1fbd1319f540560aa9a5a5673fb4e98b72e4b92aa16f2e",
+  "claude/product-frame.principles.md": "d40e939b7f291f11395d00a9d69812f50819a707a8154e92f6c67e14981722a4",
+  "codex/SKILL.md": "f53e2c82e8260f3f5d1fbd1319f540560aa9a5a5673fb4e98b72e4b92aa16f2e",
+  "codex/references/packet.md": "5d28cde8e54bbfa5d1152b8aac4f10cfab29b228e6df37ddbc937066056f0103",
+  "codex/references/premortem.md": "11e4c51a4ca1cca573ffdbf8fede8d4b23d4c10359914bc2cfa1ca1ea21116b8",
+  "codex/references/named.md": "dd4a24dcb3c29011ecf85fa0b34150d95be0989b7130c9068f75d40c0a00f10d",
+  "codex/references/synthesis.md": "6f06899f2430956e31c328c685994b50c0321a106714bb8453ded1c0645c6d15",
+  "codex/references/panel.md": "7eb51a04ed1002a47455dfad1a36efdec26fbfcff9366c8affc4874b5614bff5",
+  "codex/references/steering.md": "e308c69e015a580affc44dc3ec7a82b2e53fff826c2fc22b551e68bac3810fef",
+  "codex/agents/openai.yaml": "ad17fb86462620417c4cec9846b2e0a7222b53b39f0f6134bf0f767abf5de8d6",
+  "claude/references/packet.md": "5d28cde8e54bbfa5d1152b8aac4f10cfab29b228e6df37ddbc937066056f0103",
+  "claude/references/premortem.md": "9d217b4bdaa7e2d668990536f6b8e00ad8ddf08cb99c782df4f3594ba3850768",
+  "claude/references/named.md": "4251b9d01eed0232305ee8db391cdb316c7a803481b60fbdb9bb92f89a7c667b",
+  "claude/references/synthesis.md": "6f06899f2430956e31c328c685994b50c0321a106714bb8453ded1c0645c6d15",
+  "claude/references/panel.md": "bf45008ec2b7def406d1b24b10ddb626229a493d92596afc1a3d82e8b551b784",
+  "claude/references/steering.md": "14b52b0958e073c6070d238004f151fe722e7f8ee9c4fb50686be5c85f26d91c"
+}

@@ -14,10 +14,24 @@
 проверки и межмодельное суждение, установить в оба runtime и сверить файлы.
 Не утверждать рост вероятности успеха по единичному прогону.
 
-Текущая стадия: восстановление намерения и характеристика baseline.
+Текущая стадия: рефактор, две волны проверки и доставка завершены.
+Единственный вход доставки — `final-candidate/` и
+`final-runtime-manifest.json`. `candidate/` и `candidate-v2/` сохраняют
+проверенные промежуточные версии и не являются указателем на установку.
+Карта и решения: `intent-and-preservation.md`.
 Психолог: `01a08109-e8c6-74d3-8be5-20e35fbd7357`, local;
 request_id `fresh-eyes-refactor-20260912-01a0940c`, ответ сюда:
 `01a0940c-213e-7d41-9688-5bb62ff5fa49`, local.
-Opus: read-only review baseline, ожидается functions cell 29.
+Opus baseline завершён: `opus-baseline-review.md`, session
+`fe57aa49-de92-44a3-933a-513693eea101`, resolved `claude-opus-5`.
+Принятые и отклонённые находки записаны в карте. Native reviewers:
+`fresh_intent_review`, `fresh_requirement_review`, `fresh_application_review`:
+две волны завершены, последние три отчёта `review-*-v2.md` без находок.
+Opus final — `opus-final-review.md`; все замечания закрыты, последняя
+поправка относится только к сцене source-only frame. Runtime-файлы
+`final-candidate` побайтно равны проверенному candidate-v2.
 
-Следующий ход: принять ответы, составить карту сохранения и новый черновик.
+Owners, установленные копии и самостоятельные снимки сверены по
+`final-runtime-manifest.json`; квитанция — `delivery.json`.
+Следующий ход этой сессии: сохранить git remote и сдать результат.
+Продолжать рефактор без нового заказа или существенного основания не требуется.

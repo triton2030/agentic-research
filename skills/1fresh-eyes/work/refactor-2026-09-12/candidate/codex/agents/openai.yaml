@@ -1,0 +1,7 @@
+interface:
+  display_name: "1fresh-eyes"
+  short_description: "Use for fresh eyes, trajectory forks, or a named specialist"
+  default_prompt: "Используй $1fresh-eyes для изолированной панели или явно названной специализированной роли."
+
+policy:
+  allow_implicit_invocation: true
