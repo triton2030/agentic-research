@@ -1,0 +1,31 @@
+{
+  "scope": "All files changed or created for the 1docs-write draft, excluding this self-referential manifest.",
+  "files": [
+    {
+      "path": "skills/shared/1docs-write/portable/SKILL.md",
+      "status": "modified",
+      "before_sha256": "ef1d11ad8cb9f29ff8be2a97dbe6b85f2484808c0c4dcff22654d0b695e3b28c",
+      "after_sha256": "d3564737b0bff1c610a7b2bcc21d5e3add9d8af31b64e8c27a8a140225fe0db6"
+    },
+    {
+      "path": "skills/1docs-write/work/taxonomy-2026-09-13/before/portable/SKILL.md",
+      "status": "created",
+      "sha256": "ef1d11ad8cb9f29ff8be2a97dbe6b85f2484808c0c4dcff22654d0b695e3b28c"
+    },
+    {
+      "path": "skills/1docs-write/work/taxonomy-2026-09-13/before/product-frame.principles.md",
+      "status": "created",
+      "sha256": "3370edc450972c46a5c23f1fa75486e2ae84845855efa1385124e51ed1370185"
+    },
+    {
+      "path": "skills/1docs-write/work/taxonomy-2026-09-13/cut.md",
+      "status": "created",
+      "sha256": "f0b9676f5870ff27784e185d226d12e055908063f4e81541e5a3faa5a70cc713"
+    },
+    {
+      "path": "skills/1docs-write/work/taxonomy-2026-09-13/decisions.md",
+      "status": "created",
+      "sha256": "b5141472281cf03eb4d30b61f8e793bc17a55d7f7b916eefdf72f993a63c59cb"
+    }
+  ]
+}

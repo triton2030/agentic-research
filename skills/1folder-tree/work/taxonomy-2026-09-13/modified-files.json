@@ -1,0 +1,32 @@
+{
+  "scope": "All files changed or created for the 1folder-tree draft, excluding this self-referential manifest.",
+  "files": [
+    {
+      "path": "skills/shared/1folder-tree/portable/SKILL.md",
+      "status": "modified",
+      "before_sha256": "e670331e711c0af94b7faf3bdb2904acd3ea0be4fc2ed990089ef220115d8467",
+      "after_sha256": "d61e64f213fa1ce96345e2193273260a5828a9a669dbc7c28f373ef3b6be1fc6"
+    },
+    {
+      "path": "skills/shared/1folder-tree/portable/references/как надо и как не надо.md",
+      "status": "modified",
+      "before_sha256": "3b2fe164c8bd60a6dfce38c11c8e865bf7c3894724f1221ad60aa5a1696344b3",
+      "after_sha256": "22807acf9c18e46e2262440c4b045085732255a7d8f8c27321ad03177229f1b5"
+    },
+    {
+      "path": "skills/1folder-tree/work/taxonomy-2026-09-13/before/portable/SKILL.md",
+      "status": "created",
+      "sha256": "e670331e711c0af94b7faf3bdb2904acd3ea0be4fc2ed990089ef220115d8467"
+    },
+    {
+      "path": "skills/1folder-tree/work/taxonomy-2026-09-13/before/portable/references/как надо и как не надо.md",
+      "status": "created",
+      "sha256": "3b2fe164c8bd60a6dfce38c11c8e865bf7c3894724f1221ad60aa5a1696344b3"
+    },
+    {
+      "path": "skills/1folder-tree/work/taxonomy-2026-09-13/cut.md",
+      "status": "created",
+      "sha256": "f2861c051ef2098918a076b67669613e371d6452eed6ceda62c2a9a9ef91b283"
+    }
+  ]
+}
