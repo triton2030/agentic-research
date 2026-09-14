@@ -1,0 +1,33 @@
+{
+  "delegated": {
+    "changed_files": [
+      "docs/Доставка/Очередь/Хранилище/Удаление.md",
+      "docs/Печатный файл/AGENTS.md",
+      "docs/Печатный файл/Выдача.md",
+      "docs/Печатный файл/Повтор.md",
+      "docs/Экран файла/Действия.md",
+      "docs/Экран файла/Текст.md"
+    ],
+    "protected_inputs_unchanged": true,
+    "diff_check": true
+  },
+  "baseline": {
+    "changed_files": [
+      "docs/Доставка/Очередь/Хранилище/Удаление.md",
+      "docs/Печатный файл/AGENTS.md",
+      "docs/Печатный файл/Выдача.md",
+      "docs/Печатный файл/Повтор.md",
+      "docs/Экран файла/Действия.md",
+      "docs/Экран файла/Текст.md"
+    ],
+    "protected_inputs_unchanged": true,
+    "diff_check": true
+  },
+  "local": {
+    "changed_files": [
+      "docs/Экран файла/Текст.md"
+    ],
+    "protected_inputs_unchanged": true,
+    "diff_check": true
+  }
+}
