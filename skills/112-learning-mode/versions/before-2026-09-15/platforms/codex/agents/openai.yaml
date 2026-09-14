@@ -1,4 +1,2 @@
 interface:
   display_name: "112-learning-mode"
-policy:
-  allow_implicit_invocation: false
