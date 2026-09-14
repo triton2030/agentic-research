@@ -1,5 +1,6 @@
 # 1folder-tree — история
 
+- **Адресная правка 2026-09-14:** [самостоятельные вопросы и полнота ответов](work/questions-2026-09-14/cut.md); исходные байты — в `before/`, результат проверки — в `work/questions-2026-09-14/validation.md`.
 - **Адресная правка 2026-09-13:** [масштаб, владение и внешние зависимости](work/ownership-2026-09-13/cut.md); изменён live owner, снимок до правки и результаты проверки — в этой рабочей папке.
 - **Живой владелец:** `skills/shared/1folder-tree/portable/`; Codex metadata — `skills/shared/1folder-tree/platforms/codex/agents/openai.yaml`.
 - **Версия до адресной правки:** [installed-2026-09-12](versions/installed-2026-09-12/SKILL.md) — адресное дополнение: терминальная проверка имён и структуры, Sol low + полный скилл, для Claude и Codex. [Намерение](work/tree-check-2026-09-12/intent.md), [сохранность](work/tree-check-2026-09-12/cut.md), [проверки и состояние](work/tree-check-2026-09-12/state.md).

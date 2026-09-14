@@ -1,5 +1,6 @@
 # 1docs-write — история
 
+- **Адресная правка 2026-09-14:** [самостоятельные вопросы и полнота ответов](work/questions-2026-09-14/cut.md); исходные байты — в `before/`, результат проверки — в `work/questions-2026-09-14/validation.md`.
 - **Адресная правка 2026-09-13:** [масштаб, владение и внешние зависимости](work/ownership-2026-09-13/cut.md); изменён live owner, снимок до правки и результаты проверки — в этой рабочей папке.
 - **Живой владелец:** `skills/shared/1docs-write/portable/`; Codex metadata — в `skills/shared/1docs-write/platforms/codex/agents/openai.yaml`.
 - **Версия до адресной правки:** [draft-2026-09-10-v3](versions/draft-2026-09-10-v3/SKILL.md) — полный рефактор по `1skill-creation` вместе с `1folder-tree`; утверждена владельцем и установлена 2026-09-10; намерение — [intent.md](work/refactor-2026-09-10/intent.md), карта потерь — [cut.md](cut.md), волны — [wave-1.md](work/refactor-2026-09-10/wave-1.md), [wave-2.md](work/refactor-2026-09-10/wave-2.md); снимок владельца перед рефактором — `versions/tracked-owner-2026-09-10/`.
