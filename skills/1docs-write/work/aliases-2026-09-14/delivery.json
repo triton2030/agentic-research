@@ -1,0 +1,10 @@
+{
+  "sha256": "360caede270805dd58cd7ebfabeb18b5be86b8db5dc054efc13fd060ad8d99bc",
+  "matching_skill_files": [
+    "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1docs-write/SKILL.md",
+    "/Users/triton/Documents/GitHub/agentic-research/skills/claude/1docs-write/SKILL.md",
+    "/Users/triton/.codex/skills/1docs-write/SKILL.md",
+    "/Users/triton/.claude/skills/1docs-write/SKILL.md"
+  ],
+  "package_check": "sync_simple_projections.py --write --install --check passed"
+}
