@@ -141,7 +141,7 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   (`_ops/chat-recall/2026-09-10-135753-claude-code-c2a5de2f.md#L22`). Парные примеры — `references/`;
   `platforms/codex/agents/openai.yaml` — только Codex UI metadata.
   Потребитель — `1docs-write` (дом, имя, отсылки).
-- `1index/portable/` держит подтверждённые маршруты к источникам, включая локальную навигацию по задачам при авторинге инструкций.
+- `1index/portable/` держит карты оплаченных поиском маршрутов.
 - `1interview-tool/portable/` создаёт адресуемую plain-Markdown форму и держит
   lifecycle `решения владельца → настоящие owners → архив`; Codex invocation
   metadata живёт в `platforms/codex/agents/openai.yaml`.
@@ -193,7 +193,7 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
     цитаты адресом до строки, бюджет 20, состояние тем же ходом, цель не
     переписывается) вместо инструкций; владеет схемой и шаблоном файла,
     размещением, бюджетом, state/lifecycle и closure.
-- `1index/portable/` держит подтверждённые маршруты к источникам, включая локальную навигацию по задачам при авторинге инструкций.
+- `1index/portable/` держит карты оплаченных поиском маршрутов.
 - `1interview-tool/portable/` создаёт адресуемую plain-Markdown форму и держит
   lifecycle `решения владельца → настоящие owners → архив`; Codex invocation
   metadata живёт в `platforms/codex/agents/openai.yaml`.

@@ -1,0 +1,110 @@
+{
+  "command": "python3 skills/shared/sync_simple_projections.py 1index 1instruction-authoring --write --install --check",
+  "exit_code": 0,
+  "projections": [
+    {
+      "skill": "1index",
+      "runtime": "codex",
+      "kind": "tracked",
+      "target": "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1index",
+      "files": {
+        "SKILL.md": "410f5bdebd2b5c999e5378118e0d92cddf8b60cabca22a9ba963c8805ed5367e",
+        "agents/openai.yaml": "e69ed166cc07ec936624e86043b8c68cbba6e90bc49e7d7f8858658b553413ef"
+      },
+      "pass": true
+    },
+    {
+      "skill": "1index",
+      "runtime": "codex",
+      "kind": "installed",
+      "target": "/Users/triton/.codex/skills/1index",
+      "files": {
+        "SKILL.md": "410f5bdebd2b5c999e5378118e0d92cddf8b60cabca22a9ba963c8805ed5367e",
+        "agents/openai.yaml": "e69ed166cc07ec936624e86043b8c68cbba6e90bc49e7d7f8858658b553413ef"
+      },
+      "pass": true
+    },
+    {
+      "skill": "1index",
+      "runtime": "claude",
+      "kind": "tracked",
+      "target": "/Users/triton/Documents/GitHub/agentic-research/skills/claude/1index",
+      "files": {
+        "SKILL.md": "410f5bdebd2b5c999e5378118e0d92cddf8b60cabca22a9ba963c8805ed5367e"
+      },
+      "pass": true
+    },
+    {
+      "skill": "1index",
+      "runtime": "claude",
+      "kind": "installed",
+      "target": "/Users/triton/.claude/skills/1index",
+      "files": {
+        "SKILL.md": "410f5bdebd2b5c999e5378118e0d92cddf8b60cabca22a9ba963c8805ed5367e"
+      },
+      "pass": true
+    },
+    {
+      "skill": "1instruction-authoring",
+      "runtime": "codex",
+      "kind": "tracked",
+      "target": "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1instruction-authoring",
+      "files": {
+        "SKILL.md": "6e0fa3517359e52779d0b18e80106046641277b2caf68d581e567bfc84c3e84c",
+        "agents/zone-reader.md": "a04f354c0c3749122b06067479321265129afa52c78afcb67b6b0c16310b1172",
+        "references/discovery.md": "2087b15aef5a9324ce68b6d7387e5cdf9cd67860512e7ef39ec7e1c1e15bb163",
+        "references/verification.md": "9ea7800e1be9ff1de9152abb275d28e5cd31c512649d3c11d3cb23170060fbf1",
+        "references/writing.md": "767be7912bce82cb66891cde019711cdf1497a37ce13a1d34e7480d66cc96e0b",
+        "agents/openai.yaml": "5673dc69248b01d4e58832cafbcc34874f5ddb3fab9acab9e998f5342de0299f"
+      },
+      "pass": true
+    },
+    {
+      "skill": "1instruction-authoring",
+      "runtime": "codex",
+      "kind": "installed",
+      "target": "/Users/triton/.codex/skills/1instruction-authoring",
+      "files": {
+        "SKILL.md": "6e0fa3517359e52779d0b18e80106046641277b2caf68d581e567bfc84c3e84c",
+        "agents/zone-reader.md": "a04f354c0c3749122b06067479321265129afa52c78afcb67b6b0c16310b1172",
+        "references/discovery.md": "2087b15aef5a9324ce68b6d7387e5cdf9cd67860512e7ef39ec7e1c1e15bb163",
+        "references/verification.md": "9ea7800e1be9ff1de9152abb275d28e5cd31c512649d3c11d3cb23170060fbf1",
+        "references/writing.md": "767be7912bce82cb66891cde019711cdf1497a37ce13a1d34e7480d66cc96e0b",
+        "agents/openai.yaml": "5673dc69248b01d4e58832cafbcc34874f5ddb3fab9acab9e998f5342de0299f"
+      },
+      "pass": true
+    },
+    {
+      "skill": "1instruction-authoring",
+      "runtime": "claude",
+      "kind": "tracked",
+      "target": "/Users/triton/Documents/GitHub/agentic-research/skills/claude/1instruction-authoring",
+      "files": {
+        "SKILL.md": "6e0fa3517359e52779d0b18e80106046641277b2caf68d581e567bfc84c3e84c",
+        "agents/zone-reader.md": "a04f354c0c3749122b06067479321265129afa52c78afcb67b6b0c16310b1172",
+        "references/discovery.md": "2087b15aef5a9324ce68b6d7387e5cdf9cd67860512e7ef39ec7e1c1e15bb163",
+        "references/verification.md": "9ea7800e1be9ff1de9152abb275d28e5cd31c512649d3c11d3cb23170060fbf1",
+        "references/writing.md": "767be7912bce82cb66891cde019711cdf1497a37ce13a1d34e7480d66cc96e0b"
+      },
+      "pass": true
+    },
+    {
+      "skill": "1instruction-authoring",
+      "runtime": "claude",
+      "kind": "installed",
+      "target": "/Users/triton/.claude/skills/1instruction-authoring",
+      "files": {
+        "SKILL.md": "6e0fa3517359e52779d0b18e80106046641277b2caf68d581e567bfc84c3e84c",
+        "agents/zone-reader.md": "a04f354c0c3749122b06067479321265129afa52c78afcb67b6b0c16310b1172",
+        "references/discovery.md": "2087b15aef5a9324ce68b6d7387e5cdf9cd67860512e7ef39ec7e1c1e15bb163",
+        "references/verification.md": "9ea7800e1be9ff1de9152abb275d28e5cd31c512649d3c11d3cb23170060fbf1",
+        "references/writing.md": "767be7912bce82cb66891cde019711cdf1497a37ce13a1d34e7480d66cc96e0b"
+      },
+      "pass": true
+    }
+  ],
+  "limitations": [
+    "File parity only; Claude runtime behavior not tested.",
+    "Preexisting uncommitted instruction-authoring edits preserved as installed before this task."
+  ]
+}

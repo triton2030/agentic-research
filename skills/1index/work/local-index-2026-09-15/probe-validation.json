@@ -1,0 +1,230 @@
+{
+  "new": {
+    "changed": [
+      "Файлы/AGENTS.md"
+    ],
+    "untracked": [
+      "Файлы/INDEX.md"
+    ],
+    "protected_unchanged": true,
+    "links": [
+      {
+        "from": "Файлы/AGENTS.md",
+        "to": "Источники/Границы.md",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/AGENTS.md",
+        "to": "INDEX.md",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Выдача/Срок.md#срок",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Выдача/Повтор.md#повтор",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Выдача/Удаление.md#удаление",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Экран/Состояния.md#состояния",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Экран/Сообщения.md#сообщения",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Оплата/Списание.md#списание",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Оплата/Возврат.md#возврат",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Выдача/Повтор.md#повтор",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Доставка/Ошибки.md#ошибки",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Доставка/Очередь.md#очередь",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Доставка/Ошибки.md#ошибки",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Оплата/Списание.md#списание",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Выдача/Повтор.md#повтор",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Экран/Состояния.md#состояния",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Экран/Сообщения.md#сообщения",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Выдача/Срок.md#срок",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Оплата/Возврат.md#возврат",
+        "resolves": true
+      }
+    ]
+  },
+  "simple": {
+    "changed": [],
+    "untracked": [],
+    "protected_unchanged": true,
+    "links": [
+      {
+        "from": "Файлы/AGENTS.md",
+        "to": "Источники/Выдача/Срок.md",
+        "resolves": true
+      }
+    ]
+  },
+  "existing": {
+    "changed": [
+      "Файлы/AGENTS.md",
+      "Файлы/INDEX.md"
+    ],
+    "untracked": [],
+    "protected_unchanged": true,
+    "links": [
+      {
+        "from": "Файлы/AGENTS.md",
+        "to": "Источники/Границы.md",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/AGENTS.md",
+        "to": "INDEX.md",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Выдача/Срок.md",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Выдача/Повтор.md",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Выдача/Удаление.md",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Экран/Состояния.md",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Экран/Сообщения.md",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Доставка/Очередь.md",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Оплата/Списание.md",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Оплата/Возврат.md",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Выдача/Повтор.md",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Доставка/Ошибки.md",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Доставка/Очередь.md",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Доставка/Ошибки.md",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Оплата/Списание.md",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Выдача/Повтор.md",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Экран/Состояния.md",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Экран/Сообщения.md",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Выдача/Срок.md",
+        "resolves": true
+      },
+      {
+        "from": "Файлы/INDEX.md",
+        "to": "Источники/Оплата/Возврат.md",
+        "resolves": true
+      }
+    ]
+  }
+}

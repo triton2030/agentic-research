@@ -1,7 +1,7 @@
 interface:
   display_name: "1index"
-  short_description: "Use when costly search or a direct owner statement identifies a specific hard-to-find location."
-  default_prompt: "Используй $1index после наблюдаемо дорогого поиска либо прямого слова владельца о конкретном трудно находимом месте."
+  short_description: "Use when preserving a confirmed source route after costly search, an owner pointer, or separating task-specific navigation from agent instructions."
+  default_prompt: "Используй $1index, чтобы сохранить подтверждённый маршрут к источникам после поиска, указания владельца или при отделении навигации от агентных инструкций."
 
 policy:
   allow_implicit_invocation: true

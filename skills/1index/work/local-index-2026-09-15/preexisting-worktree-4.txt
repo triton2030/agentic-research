@@ -18,34 +18,17 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   `1skill-shaping` + `1instruction-shaping`, снятую 2026-08-26 (архивы в
   `skills/1skill-shaping/` и `skills/1instruction-shaping/`; решение владельца —
   `_ops/chat-recall/raw/2026-08-26-201025-claude-4e40828f.md#L15`):
-  - `1instruction-authoring/portable/` — создание и переписывание агентных
-    инструкций проекта (v12, 2026-09-02). Функция — предотвратить критичный
-    конфликт: доставить в точку работы правду, которую сильная модель по
-    привычке нарушит и из этой точки не увидит. Форма: Уникальный контекст,
-    Задача, Цель, Критерии принятия; тело — трёхшаговый роутер, единиц 6.
-    С v12 критерий 1 требует у каждой единицы слоя причину её нарушения, а
-    правило «Содержимое старше строки» запрещает писать и усиливать
-    инструкцию, которой противоречат код или документы зоны, и отсылает
-    повторившееся нарушение в `1context-refactor` (решение владельца
-    2026-09-02, `_ops/chat-recall/2026-09-02-151925-claude-0c84f259.md#L24`
-    и `#L28`).
-    Обе стадии держатся Задачей, Целью и Критериями принятия:
-    `references/discovery.md` (обнаружение критичного вычитанием привычки агента
-    из правды проекта, семь вопросов зоны, 11 единиц, 5 критериев),
-    `references/writing.md` (адресат обязательства, размещение, форма единицы,
-    бюджет головы зоны, 17 единиц, 4 критерия) и `agents/zone-reader.md` (веерное чтение
-    папок с возвратом заявленных в тексте связей и механизмов, 8 единиц).
-    У обязательства есть адресат помимо строки: цель зоны, её критерий или
-    механизм проекта — по доктрине
-    `science/how-to-command-with-goal-not-procedure.md`. Цель зоны пишется
-    Maintain-целью по KAOS и проверяется отрицанием на пустоту, критерий —
-    только контрмерой названному препятствию.
-    Бюджет считает не файл, а голову агента в зоне: корневая инструкция плюс
-    папочная плюс протокол скила, к которому зона отсылает; сумма называется
-    числом и предъявляется владельцу, а не подгоняется. Причинной пробы пакет не
-    содержит — решение владельца 2026-08-31; `references/verification.md` и
-    `agents/zone-scout.md` сняты, история — в
-    `skills/1instruction-authoring/cut.md`;
+  - `1instruction-authoring/portable/` — местные корневые и папочные
+    инструкции. Дельта сильной модели, объяснение важности через ситуацию,
+    остаточные критерии и минимальный одновременно необходимый набор.
+    `references/discovery.md` находит подтверждённые местные обязательства,
+    `writing.md` выбирает носитель, владельца и момент применения,
+    `verification.md` разделяет три проверки: смысл, необходимость, доставка.
+    Пробы применимости, неприменимости и конфликта выполняются до передачи
+    проверяющему ожидаемого ответа. Сохраняются необследованные зоны,
+    Maintain-цель зоны, реальные механизмы и нормативное старшинство.
+    Принципы — `1instruction-authoring/product-frame.principles.md`;
+    история — `skills/1instruction-authoring/`.
   - `1context-refactor/portable/` — рефактор контекста: мета-анализ прошедшего
     диалога — найти шероховатости (лишнее чтение, переделки, долгая работа),
     установить причину, чинить настоящего виновника (инструкции, документ,
@@ -53,18 +36,18 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
     `SKILL.md`. С 2026-09-02 контекст скила называет, что содержимое зоны
     сильнее инструкции, а ремонт файла инструкций отдаёт `1instruction-authoring`
     (`_ops/chat-recall/2026-09-02-151925-claude-0c84f259.md#L28`);
-  - `1skill-creation/portable/` — создание, рефактор и кнопка запуска скилов.
-    С 2026-09-08 тело служит примером семи условных наборов знаний и инструкций.
-    Порядок: Контекст → Задача → необходимые Критерии принятия → Цель → условия.
-    Контекст передаёт неизвестный мир; критерии добавляют невыводимые уточнения;
-    Цель работает как главный принцип выбора при неопределённости и конфликте.
-    Важность и сложность решения оправдывают отдельный случай активации.
-    Намерение — `references/goal-context.md`, допуск дополнительного содержания —
-    `behavior-protocol.md`, границы режимов — `reference-files.md`, вызов —
-    `skill-short-description.md`. `refactor.md` восстанавливает намерение и
-    проверяет потери; `check-approve.md` использует две независимые роли;
-    `install-approved.md` отвечает за точную доставку. Продуктовая правда —
-    `1skill-creation/product-frame.principles.md`; история — `skills/1skill-creation/`.
+  - `1skill-creation/portable/` — создание, адресная правка и переработка
+    скилов в общей мастерской. Контекст, Задача, необходимые Критерии и Цель
+    несут разные смыслы; число разделов и пунктов не задаётся квотой.
+    `references/goal-context.md` восстанавливает основания намерения,
+    `behavior-protocol.md` отбирает дополнения, `reference-files.md` разводит
+    моменты чтения, `skill-short-description.md` управляет вызовом.
+    `refactor.md` сохраняет границу заказа и ведёт автора до карты потерь;
+    отдельного пишущего агента не требует. `check-approve.md` задаёт три
+    независимые роли: смысл, необходимость, применение и результат.
+    `install-approved.md` доставляет изменение в пределах уже данного
+    разрешения. Принципы — `1skill-creation/product-frame.principles.md`;
+    история — `skills/1skill-creation/`.
   У каждого `platforms/codex/agents/openai.yaml` — только Codex UI metadata.
   Reference-файл живёт ровно у одного владельца; соседи ссылаются относительно.
 
@@ -76,8 +59,8 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   contract; runtime launch deltas для Codex `spawn_agent` и Claude `Agent`
   живут в одной адресуемой reference, а Codex UI metadata — в
   `platforms/codex/agents/openai.yaml`.
-- `1readable-code/portable/` — общий стратегический pre-code контекст для
-  Claude и Codex; `platforms/codex/agents/openai.yaml` содержит только Codex UI
+- `1readable-code/portable/` — стратегический взгляд при существенном выборе
+  в коде для Claude и Codex; `platforms/codex/agents/openai.yaml` содержит только Codex UI
   metadata.
 - `1orchestration` с 2026-09-06 имеет два runtime owners:
   `skills/codex/1orchestration/` — выбор фоновых Luna Max, Opus и собственных
@@ -141,7 +124,7 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   (`_ops/chat-recall/2026-09-10-135753-claude-code-c2a5de2f.md#L22`). Парные примеры — `references/`;
   `platforms/codex/agents/openai.yaml` — только Codex UI metadata.
   Потребитель — `1docs-write` (дом, имя, отсылки).
-- `1index/portable/` держит подтверждённые маршруты к источникам, включая локальную навигацию по задачам при авторинге инструкций.
+- `1index/portable/` держит карты оплаченных поиском маршрутов.
 - `1interview-tool/portable/` создаёт адресуемую plain-Markdown форму и держит
   lifecycle `решения владельца → настоящие owners → архив`; Codex invocation
   metadata живёт в `platforms/codex/agents/openai.yaml`.
@@ -160,8 +143,8 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   contract; runtime launch deltas для Codex `spawn_agent` и Claude `Agent`
   живут в одной адресуемой reference, а Codex UI metadata — в
   `platforms/codex/agents/openai.yaml`.
-- `1readable-code/portable/` — общий стратегический pre-code контекст для
-  Claude и Codex; `platforms/codex/agents/openai.yaml` содержит только Codex UI
+- `1readable-code/portable/` — стратегический взгляд при существенном выборе
+  в коде для Claude и Codex; `platforms/codex/agents/openai.yaml` содержит только Codex UI
   metadata.
 - `1orchestration` с 2026-09-06 имеет два runtime owners:
   `skills/codex/1orchestration/` — выбор фоновых Luna Max, Opus и собственных
@@ -193,7 +176,7 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
     цитаты адресом до строки, бюджет 20, состояние тем же ходом, цель не
     переписывается) вместо инструкций; владеет схемой и шаблоном файла,
     размещением, бюджетом, state/lifecycle и closure.
-- `1index/portable/` держит подтверждённые маршруты к источникам, включая локальную навигацию по задачам при авторинге инструкций.
+- `1index/portable/` держит карты оплаченных поиском маршрутов.
 - `1interview-tool/portable/` создаёт адресуемую plain-Markdown форму и держит
   lifecycle `решения владельца → настоящие owners → архив`; Codex invocation
   metadata живёт в `platforms/codex/agents/openai.yaml`.
@@ -243,12 +226,9 @@ intent и runtime нужен явный reconcile, а не копия пары �
 
 **Их runtime-деревья расходятся намеренно, и файлы между ними не копируются.**
 У `1chat-recall` различаются `allowed-tools`, переменные сессии, пути запуска,
-имя агента, раздел «Психолог» тела и Контекст роли `agents/psychologist.md`
-(субагент сессии в Claude, тред проекта в Codex) — а тесты сверяются с этими
-строками. Правь оба дерева руками:
-2026-08-28 копирование tracked-теста из `skills/claude/1chat-recall/` в
-`skills/codex/` уронило два контрактных теста и стёрло codex-специфичные
-проверки.
+имя агента и runtime-тесты. Поиск выполняет сам рабочий агент в обоих рантаймах
+(решение владельца 2026-09-14). Правь оба дерева адресно: копирование
+runtime-теста целиком уже стирало Codex-специфичные проверки.
 
 Runtime `1hermes` с 2026-08-22 tracked: `skills/claude/1hermes/` и
 `skills/codex/1hermes/` — owner-ы своих семей, установленные пути стали
