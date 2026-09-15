@@ -25,3 +25,13 @@ python3 skills/shared/sync_simple_projections.py 1interview-tool --check
 [Установленная версия](versions/installed-2026-09-15/SKILL.md) исследует ошибки будущего исполнения документов. Варианты полноценно обоснованы; найденные ценные ответы сохраняются в конце. Формы и их архив лежат в `_ops/interviews/` и `_ops/interviews/_archive/`; архив не является каноном.
 
 [Источники и карта изменений](work/foresight-2026-09-15/cut.md), [проверки](work/foresight-2026-09-15/evidence.md), [состояние работы](work/foresight-2026-09-15/state.md).
+
+## Форма из двух документов — 2026-09-15
+
+По уточнению владельца форма отделена от подробных материалов. Каждый вопрос
+содержит свёрнутый контекст о причине и последствиях выбора, вопрос, варианты
+и поле своего ответа. Оба файла остаются архивными свидетельствами.
+
+[Образец формы](work/template-reading-2026-09-15/demo-pair/interview.md),
+[материалы образца](work/template-reading-2026-09-15/demo-pair/interview-materials.md),
+[граница проверки](work/template-reading-2026-09-15/evidence-pair.md).
