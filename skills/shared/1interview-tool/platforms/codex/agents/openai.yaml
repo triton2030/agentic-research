@@ -1,7 +1,7 @@
 interface:
   display_name: "1interview-tool"
-  short_description: "Адресуемая форма с переносом решений"
-  default_prompt: "Используй $1interview-tool, чтобы собрать связанные решения в адресуемой Markdown-форме и перенести ответы в их owner-артефакты."
+  short_description: "Будущие ошибки в документах и вопросы владельцу"
+  default_prompt: "Используй $1interview-tool: проверь документы глазами будущего агента и составь Markdown-интервью для архивного хранения с полноценными вариантами и найденными ответами."
 
 policy:
   allow_implicit_invocation: true

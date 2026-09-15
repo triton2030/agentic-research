@@ -1,0 +1,58 @@
+{
+  "scope": "Byte identity and artifact structure only; no model execution or semantic completeness claim.",
+  "candidate_skill_hashes": {
+    "SKILL.md": "0541f01da68b009898b897b53471ffead2e5aa6d4525ad69616edfe078a0487b",
+    "references/plain-markdown-cookbook.md": "7e4f8759d4846be08e708932ff73fac014061b02ee9cb4c3af47da73ecf63c22"
+  },
+  "candidate_matches_new_probe_skill": true,
+  "before_matches_old_probe_skill": true,
+  "project_hashes": {
+    "README.md": "638475f4de222fc9c2844470dd6cee13201d14ec3f98c79de2b09f6772fba76c",
+    "docs/decisions.md": "62be5ad5db2da617491baafada105158dd9dee2bc35d72b10963ee5cc8fa2cd0",
+    "docs/rules.md": "0a8f8a8e91609cd78a2652c245c908f2956e434b9c4eae81b60df5c56ade2527",
+    "docs/screens.md": "03a9370ee6ce45f59804bda4338e3d8e3136b3ba56f559411ea7ba0c139f0044"
+  },
+  "projects_are_byte_identical": true,
+  "new_interview": {
+    "sha256": "cf20a7e9c9e4c6872d516380e06729f0d7ca67365fe503e506aa317b2e840298",
+    "missing_local_link_files": [],
+    "question_headings": [
+      "Q01. Что происходит, когда участник отменяет запись за несколько часов до начала?",
+      "Q02. Как распределять одно освободившееся место между несколькими людьми в листе ожидания?",
+      "Q03. Сколько времени даём одному человеку, прежде чем предложить место следующему?",
+      "Q04. Если предложение получили несколько человек, сохраняем ли место за первым согласившимся на время оплаты?",
+      "Q05. Что делать, когда покупатель просит отдать оплаченную запись другому человеку?",
+      "Q06. При разрешённой отмене удерживается ли комиссия платёжного сервиса?"
+    ],
+    "h4_answer_fields": [
+      "Ответ пользователя — Q01",
+      "Ответ пользователя — Q02",
+      "Ответ пользователя — Q03",
+      "Ответ пользователя — Q04",
+      "Ответ пользователя — Q05",
+      "Найденный ответ — Q06"
+    ],
+    "html_details_count": 0,
+    "selected_checkboxes_before_found_answers": [],
+    "has_service_search_phrase": true
+  },
+  "old_interview": {
+    "sha256": "7a65c8f8de1905dec6a50e853e4d49e43cbcdad02bd934e601079ac0b96aabf8",
+    "missing_local_link_files": [],
+    "question_headings": [
+      "1. Что должно произойти, если участник хочет отменить запись за два часа до начала мастер-класса?",
+      "2. Когда освобождается одно место, кто из нескольких ожидающих должен получить предложение?",
+      "3. Что должно произойти, если участник получил предложение или согласился на него, но отложил оплату?",
+      "4. Что должно произойти, если оплативший участник просит передать свою запись другому человеку?"
+    ],
+    "h4_answer_fields": [
+      "Ответ пользователя — CANCEL_DEADLINE",
+      "Ответ пользователя — WAITLIST_ORDER",
+      "Ответ пользователя — PAYMENT_WINDOW",
+      "Ответ пользователя — PARTICIPANT_CHANGE"
+    ],
+    "html_details_count": 5,
+    "selected_checkboxes_before_found_answers": [],
+    "has_service_search_phrase": false
+  }
+}

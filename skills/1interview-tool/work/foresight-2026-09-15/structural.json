@@ -1,0 +1,14 @@
+{
+  "links": [
+    {
+      "file": "candidate/SKILL.md",
+      "target": "references/plain-markdown-cookbook.md",
+      "exists": true
+    }
+  ],
+  "skill_validator": "pass",
+  "candidate_hashes": {
+    "candidate/SKILL.md": "0541f01da68b009898b897b53471ffead2e5aa6d4525ad69616edfe078a0487b",
+    "candidate/references/plain-markdown-cookbook.md": "7e4f8759d4846be08e708932ff73fac014061b02ee9cb4c3af47da73ecf63c22"
+  }
+}

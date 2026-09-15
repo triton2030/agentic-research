@@ -142,9 +142,10 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   `platforms/codex/agents/openai.yaml` — только Codex UI metadata.
   Потребитель — `1docs-write` (дом, имя, отсылки).
 - `1index/portable/` держит подтверждённые маршруты к источникам, включая локальную навигацию по задачам при авторинге инструкций.
-- `1interview-tool/portable/` создаёт адресуемую plain-Markdown форму и держит
-  lifecycle `решения владельца → настоящие owners → архив`; Codex invocation
-  metadata живёт в `platforms/codex/agents/openai.yaml`.
+- `1interview-tool/portable/` исследует будущие ошибки исполнения документов
+  и создаёт Markdown-интервью с полноценными вариантами. Разобранные формы
+  сохраняются как архив контекста в `_ops/interviews/_archive/`, не канон.
+  Codex invocation metadata — `platforms/codex/agents/openai.yaml`.
 - `1document-system/portable/` — запись долгоживущего в документы проекта: где
   живёт ответ, каким деловым типом он назван и что вообще считается
   установленным. Пакет — тело плюс четыре стадии по состоянию дома
@@ -194,9 +195,10 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
     переписывается) вместо инструкций; владеет схемой и шаблоном файла,
     размещением, бюджетом, state/lifecycle и closure.
 - `1index/portable/` держит подтверждённые маршруты к источникам, включая локальную навигацию по задачам при авторинге инструкций.
-- `1interview-tool/portable/` создаёт адресуемую plain-Markdown форму и держит
-  lifecycle `решения владельца → настоящие owners → архив`; Codex invocation
-  metadata живёт в `platforms/codex/agents/openai.yaml`.
+- `1interview-tool/portable/` исследует будущие ошибки исполнения документов
+  и создаёт Markdown-интервью с полноценными вариантами. Разобранные формы
+  сохраняются как архив контекста в `_ops/interviews/_archive/`, не канон.
+  Codex invocation metadata — `platforms/codex/agents/openai.yaml`.
 - `1document-system/portable/` — письмо и существенная правка одного документа
   проекта: стандартное деловое имя типа как адрес, жанровая дисциплина и
   вытеснение замещённого вместо дописывания рядом (v2, 2026-09-01; v1 из 24

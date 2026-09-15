@@ -1,0 +1,7 @@
+interface:
+  display_name: "1interview-tool"
+  short_description: "Будущие ошибки в документах и вопросы владельцу"
+  default_prompt: "Используй $1interview-tool: проверь документы глазами будущего агента и составь сохраняемое Markdown-интервью с полноценными вариантами и найденными ответами."
+
+policy:
+  allow_implicit_invocation: true

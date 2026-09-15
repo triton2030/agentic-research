@@ -1,0 +1,20 @@
+{
+  "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1interview-tool": {
+    "SKILL.md": "cdf7c14956a06e868945ce0dd505c8b59885532911399ca036fb3f9b1755c7ff",
+    "references/plain-markdown-cookbook.md": "d5a4da5ec38bb11e341f77a62ffff318160c425f59aa7bedda319482e276ada8",
+    "agents/openai.yaml": "ccc89982054559587ef4753c1424c39da9fe55e8d485b37e70f1124bb38835d8"
+  },
+  "/Users/triton/Documents/GitHub/agentic-research/skills/claude/1interview-tool": {
+    "SKILL.md": "cdf7c14956a06e868945ce0dd505c8b59885532911399ca036fb3f9b1755c7ff",
+    "references/plain-markdown-cookbook.md": "d5a4da5ec38bb11e341f77a62ffff318160c425f59aa7bedda319482e276ada8"
+  },
+  "/Users/triton/.codex/skills/1interview-tool": {
+    "SKILL.md": "cdf7c14956a06e868945ce0dd505c8b59885532911399ca036fb3f9b1755c7ff",
+    "references/plain-markdown-cookbook.md": "d5a4da5ec38bb11e341f77a62ffff318160c425f59aa7bedda319482e276ada8",
+    "agents/openai.yaml": "ccc89982054559587ef4753c1424c39da9fe55e8d485b37e70f1124bb38835d8"
+  },
+  "/Users/triton/.claude/skills/1interview-tool": {
+    "SKILL.md": "cdf7c14956a06e868945ce0dd505c8b59885532911399ca036fb3f9b1755c7ff",
+    "references/plain-markdown-cookbook.md": "d5a4da5ec38bb11e341f77a62ffff318160c425f59aa7bedda319482e276ada8"
+  }
+}

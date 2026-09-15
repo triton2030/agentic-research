@@ -1,0 +1,19 @@
+{
+  "same_project_bytes": true,
+  "source_hashes": {
+    "README.md": "638475f4de222fc9c2844470dd6cee13201d14ec3f98c79de2b09f6772fba76c",
+    "docs/decisions.md": "62be5ad5db2da617491baafada105158dd9dee2bc35d72b10963ee5cc8fa2cd0",
+    "docs/rules.md": "0a8f8a8e91609cd78a2652c245c908f2956e434b9c4eae81b60df5c56ade2527",
+    "docs/screens.md": "03a9370ee6ce45f59804bda4338e3d8e3136b3ba56f559411ea7ba0c139f0044"
+  },
+  "new_output": "/Users/triton/Documents/GitHub/agentic-research/skills/1interview-tool/work/foresight-2026-09-15/probe-new/result/interview.md",
+  "old_output": "/Users/triton/Documents/GitHub/agentic-research/skills/1interview-tool/work/foresight-2026-09-15/probe-old/result/2026-09-15-masterclass-booking.md",
+  "dispatch": {
+    "tool": "collaboration.spawn_agent",
+    "agent_type": "worker",
+    "fork_turns": "none",
+    "model_override": null,
+    "reasoning_override": null
+  },
+  "execution_evidence_limit": "Native tool dispatch exists in parent conversation; separate raw traces and actually resolved model/settings were not extracted. Compare observable artifacts; do not claim full reading or statistical improvement."
+}
