@@ -6,5 +6,8 @@
 
 - [Версия до правки](versions/before-2026-09-15/SKILL.md).
 - [Установленная версия 2026-09-15](versions/installed-2026-09-15/SKILL.md).
+- [Текущая версия 2026-09-15-v2](versions/installed-2026-09-15-v2/SKILL.md).
 - [Правка роли учителя-стратега](work/mentor-2026-09-15/intent.md).
 - [Проверки и ограничения](work/mentor-2026-09-15/reviews.md).
+- [Переработка по уточнениям владельца](work/rewrite-2026-09-15/intent.md).
+- [Проверки текущей версии](work/rewrite-2026-09-15/reviews.md).
