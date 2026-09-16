@@ -16,3 +16,7 @@
 Последняя редакция после уточнения владельца о методиках и чистой роли:
 `versions/installed-2026-09-16-{codex,claude}-v2/`.
 [Основания и проверка](work/review-2026-09-16/methods-correction.md).
+
+Последняя редакция с отдельным `agents/prompt.md`:
+`versions/installed-2026-09-16-{codex,claude}-v3/`.
+[Источник системного промпта](work/review-2026-09-16/prompt-source.md).
