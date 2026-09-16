@@ -12,3 +12,7 @@
 Доставленные версии: `versions/installed-2026-09-16-codex/` и
 `versions/installed-2026-09-16-claude/`. Проверка и доставка завершены;
 границы непроверенного явно названы в evidence.
+
+Последняя редакция после уточнения владельца о методиках и чистой роли:
+`versions/installed-2026-09-16-{codex,claude}-v2/`.
+[Основания и проверка](work/review-2026-09-16/methods-correction.md).
