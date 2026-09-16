@@ -4,4 +4,4 @@ interface:
   default_prompt: "Use $1business-growth-analysis to bring in a separate analyst who will understand the business situation, find the material question, and forecast its consequences."
 
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true

@@ -8,7 +8,7 @@
   reading, `1chat-recall` Retrieval, optional web research.
 - Required isolation: отдельный субагент в чистом окне.
 
-## Acceptance
+## Acceptance — версия 2026-08-14
 
 - `qv-skill` passed on the installed package; `rumdl` reported no Markdown
   issues; Python `tomllib` parsed the custom-agent configuration.
@@ -84,3 +84,14 @@
   доказательством handoff или результата.
 - После установки tracked и global Codex agent byte-identical, SHA-256
   `f28484a1...1cc31`.
+
+## Версия 2026-09-16
+
+Прежние прогоны выше относятся к прежним текстам; автоматический вход снят
+по решению владельца 22 августа и больше не является обещаемым поведением.
+Новая проверка текста роли выполнена в чистом Codex-окне с прямым чтением
+кандидата из tracked owner: [probe.md](../../1business-growth-analysis/work/review-2026-09-16/probe.md).
+След методов появился после одного возврата; первый ответ не выполнил все
+требования. Это не проверка named launch или Claude runtime и не доказательство
+вероятностного улучшения. Состояние проверки и доставки —
+[validation.md](../../1business-growth-analysis/work/review-2026-09-16/validation.md).
