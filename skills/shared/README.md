@@ -9,6 +9,7 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
 
 ## Живые Owners
 
+- `1illustrations-and-charts/portable/` — компактные схемы, SVG и макеты интерфейса рядом со сложным объяснением; переносимое ядро для Claude и Codex. Проектные пути и CSS остаются в документации проекта.
 - `1agent-steering/portable/` — общий скилл знания: полное чтение науки
   управления агентами и объяснение её применения при авторинге. Материал —
   `references/steering-science.md`; потребители — `1skill-creation`,
