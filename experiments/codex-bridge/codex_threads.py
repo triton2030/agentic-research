@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Статусная доска тредов Codex: list / mine / archive / unarchive.
+"""Статусная доска тредов Codex: list / mine / history / archive / unarchive.
 
 Источник `list` — append-only реестр `<project>/_workspace/codex-artifacts/
 dialog-threads.jsonl` (события start/continue/archive/unarchive; legacy-строки
@@ -14,6 +14,11 @@ dialog-threads.jsonl` (события start/continue/archive/unarchive; legacy-�
 Зачем: новый или параллельный агент видит тематику и свежесть чужих диалогов,
 не читая переписку; «где остановились» — final.md последнего run (упавший ход
 — result.json там же); продолжить — `codex_review.py "..." --continue ID`.
+
+`history THREAD_ID` — переписка треда штатным `thread/read` с историей ходов
+(SDK ≥ 0.154.0), а не чтением `~/.codex/sessions/rollout-*.jsonl`: формат
+rollout вендором не объявлен интерфейсом и уже дрейфовал. Только чтение,
+writer-lock не берёт, кредитов не тратит; эфемерные треды в store нет.
 
 Границы: реестр append-only без межпроцессных локов — правило «чужой ЖИВОЙ
 тред не трогай» обеспечивается дисциплиной агента (references/threads.md
@@ -294,6 +299,65 @@ def cmd_mine(project_cwd: Path, as_json: bool, limit: int, all_projects: bool) -
     return 0
 
 
+def _item_line(item) -> str | None:
+    """Одна строка на элемент хода: роль и суть, без служебных подробностей."""
+    d = item.model_dump() if hasattr(item, "model_dump") else dict(item)
+    kind = str(d.get("type") or "?")
+    if kind == "userMessage":
+        parts = d.get("content") or []
+        text = " ".join(
+            str(c.get("text") or "") for c in parts if isinstance(c, dict)
+        ).strip()
+        return f"  user: {text}"
+    if kind == "agentMessage":
+        return f"  agent: {str(d.get('text') or '').strip()}"
+    if kind in ("commandExecution", "fileChange", "mcpToolCall", "dynamicToolCall",
+                "webSearch", "subAgentActivity"):
+        label = d.get("command") or d.get("tool") or d.get("query") or d.get("status")
+        return f"  [{kind}] {label}" if label else f"  [{kind}]"
+    return None  # reasoning, plan, compaction и прочее — не переписка
+
+
+def cmd_history(project_cwd: Path, thread_id: str, as_json: bool, last: int, full: bool) -> int:
+    """Переписка треда из store движка: ходы, их статус и сообщения.
+
+    `thread/read` с `includeTurns` — штатный интерфейс SDK 0.154.0; заменяет
+    чтение rollout-файлов. Ничего не резюмирует: длинные ответы обрезаются
+    до 400 символов, `--full` печатает целиком.
+    """
+    with _open_sdk(project_cwd) as codex:
+        resp = codex._client.thread_read(thread_id, include_turns=True)  # noqa: SLF001
+    thread = resp.thread
+    turns = list(thread.turns or [])
+    if last > 0:
+        turns = turns[-last:]
+    if as_json:
+        print(json.dumps(
+            {"thread_id": thread.id, "name": getattr(thread, "name", None),
+             "turns": [t.model_dump(mode="json") for t in turns]},
+            ensure_ascii=False, indent=2,
+        ))
+        return 0
+    name = getattr(thread, "name", None)
+    print(f"{thread.id}  {name or '(без имени)'}  ходов показано: {len(turns)}\n")
+    for t in turns:
+        status = getattr(t.status, "value", t.status)
+        when = _epoch_iso(getattr(t, "started_at", None)) or "?"
+        print(f"— ход {t.id}  {status}  {when}")
+        for item in t.items or []:
+            line = _item_line(item)
+            if line is None:
+                continue
+            if not full and len(line) > 400:
+                line = line[:400] + "…"
+            print(line)
+        err = getattr(t, "error", None)
+        if err is not None:
+            print(f"  error: {getattr(err, 'message', err)}")
+        print()
+    return 0
+
+
 def _epoch_iso(value) -> str | None:
     """Движок отдаёт время треда unix-секундами; доска моста живёт в ISO."""
     if value is None:
@@ -383,8 +447,10 @@ def cmd_unarchive(project_cwd: Path, thread_id: str) -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("command", choices=("list", "mine", "archive", "unarchive"))
-    parser.add_argument("thread_id", nargs="?", help="THREAD_ID для archive/unarchive.")
+    parser.add_argument("command", choices=("list", "mine", "history", "archive", "unarchive"))
+    parser.add_argument("thread_id", nargs="?", help="THREAD_ID для history/archive/unarchive.")
+    parser.add_argument("--last", type=int, default=3, help="history: сколько последних ходов (0 = все).")
+    parser.add_argument("--full", action="store_true", help="history: не обрезать длинные сообщения.")
     parser.add_argument("--project", default=".", help="Корень проекта (default cwd).")
     parser.add_argument("--stale", action="store_true", help="archive: все треды старше --older-hours.")
     parser.add_argument(
@@ -433,6 +499,10 @@ def main() -> int:
     project_cwd = Path(args.project).expanduser().resolve()
     if args.command == "list":
         return cmd_list(project_cwd, args.json, args.older_hours)
+    if args.command == "history":
+        if not args.thread_id:
+            parser.error("history требует THREAD_ID")
+        return cmd_history(project_cwd, args.thread_id, args.json, args.last, args.full)
     if args.command == "mine":
         return cmd_mine(project_cwd, args.json, args.limit, args.all_projects)
     if args.command == "archive":

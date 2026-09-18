@@ -491,12 +491,19 @@ CONTROL_INBOX_NAME = "control.jsonl"
 CONTROL_POLL_SEC = 2.0
 
 
-def file_steer_request(run_dir: Any, text: str, *, worker: str | None = None) -> dict[str, Any]:
+def file_steer_request(
+    run_dir: Any, text: str, *, worker: str | None = None, external: bool = False
+) -> dict[str, Any]:
     """Положить реплику в ящик идущего прогона. Кредитов не стоит, хода не начинает.
 
     Ящик существует потому, что прогон — отдельный процесс: SDK-ручка хода
     принадлежит ему, и снаружи её не позвать. Диск — единственный носитель,
     общий у оркестратора и прогона.
+
+    `external=True` — контент не от владельца и не от оркестратора, а из файла,
+    от другого агента или инструмента: доставляется как `ExternalMessage`
+    (SDK ≥ 0.154.0) с правами инструмента, ниже user/developer-инструкций.
+    Реплика самого оркестратора остаётся `steer` с правами пользователя.
     """
     from pathlib import Path
     import uuid as _uuid
@@ -505,11 +512,70 @@ def file_steer_request(run_dir: Any, text: str, *, worker: str | None = None) ->
         "id": _uuid.uuid4().hex[:12],
         "text": text,
         "worker": worker,
+        "authority": "external" if external else "user",
         "created_at": utc_now(),
     }
     append_jsonl(Path(run_dir) / CONTROL_INBOX_NAME, request)
-    append_event(run_dir, "steer_requested", request_id=request["id"], worker=worker)
+    append_event(
+        run_dir, "steer_requested", request_id=request["id"], worker=worker,
+        authority=request["authority"],
+    )
     return request
+
+
+EXTERNAL_TOOL_NAME = "codex_bridge_relay"
+
+
+def _external_message(text: str) -> Any:
+    """`ExternalMessage` SDK; отсутствие класса (старый SDK) — ImportError наверх."""
+    from openai_codex import ExternalMessage  # noqa: PLC0415
+
+    return ExternalMessage(tool_name=EXTERNAL_TOOL_NAME, content=text)
+
+
+def _deliver_steer(handle: Any, thread: Any, request: dict[str, Any]) -> Any:
+    """Синхронная доставка одной реплики: user → `steer`, external → join хода."""
+    if request.get("authority") == "external":
+        if thread is None:
+            raise RuntimeError("external-реплика требует ручку треда, у этого хода её нет")
+        joined = thread.turn(_external_message(str(request.get("text") or "")))
+        _close_subscription(joined)
+        return joined
+    return handle.steer(request["text"])
+
+
+async def _deliver_steer_async(handle: Any, thread: Any, request: dict[str, Any]) -> Any:
+    if request.get("authority") == "external":
+        if thread is None:
+            raise RuntimeError("external-реплика требует ручку треда, у этого хода её нет")
+        joined = await thread.turn(_external_message(str(request.get("text") or "")))
+        await _aclose_subscription(joined)
+        return joined
+    return await handle.steer(request["text"])
+
+
+def _close_subscription(joined: Any) -> None:
+    """Join возвращает второй handle на тот же ход; его подписку закрываем сразу —
+    поток событий уже читает основной handle."""
+    sub = getattr(joined, "_subscription", None)
+    close = getattr(sub, "close", None)
+    if callable(close):
+        try:
+            close()
+        except Exception:  # noqa: BLE001
+            pass
+
+
+async def _aclose_subscription(joined: Any) -> None:
+    sub = getattr(joined, "_subscription", None)
+    close = getattr(sub, "aclose", None) or getattr(sub, "close", None)
+    if callable(close):
+        try:
+            result = close()
+            if hasattr(result, "__await__"):
+                await result
+        except Exception:  # noqa: BLE001
+            pass
 
 
 class _ControlInbox:
@@ -562,7 +628,8 @@ class _ControlInbox:
             "steer_accepted",
             request_id=request.get("id"),
             worker=self._worker,
-            turn_id=getattr(response, "turn_id", None),
+            turn_id=getattr(response, "turn_id", None) or getattr(response, "id", None),
+            authority=request.get("authority", "user"),
         )
 
     def rejected(self, request: dict[str, Any], error: BaseException) -> None:
@@ -583,8 +650,12 @@ class _ControlWatcher:
     ровно тогда, когда вмешиваться уже поздно.
     """
 
-    def __init__(self, handle: Any, run_dir: Any | None, worker: str | None = None) -> None:
+    def __init__(
+        self, handle: Any, run_dir: Any | None, worker: str | None = None, thread: Any = None
+    ) -> None:
         self._handle = handle
+        # Не `_thread`: это имя ниже занято рабочим потоком сторожа.
+        self._sdk_thread = thread
         self._inbox = _ControlInbox(run_dir, worker) if run_dir is not None else None
         self._stop = threading.Event()
         self._thread: threading.Thread | None = None
@@ -594,7 +665,9 @@ class _ControlWatcher:
             assert self._inbox is not None
             for request in self._inbox.pending():
                 try:
-                    self._inbox.accepted(request, self._handle.steer(request["text"]))
+                    self._inbox.accepted(
+                        request, _deliver_steer(self._handle, self._sdk_thread, request)
+                    )
                 except Exception as exc:  # noqa: BLE001
                     # Отказ движка — нормальный ответ (ход уже сменился, вид
                     # хода не управляем), а не авария прогона.
@@ -614,7 +687,9 @@ class _ControlWatcher:
             self._thread.join(timeout=CONTROL_POLL_SEC + 1)
 
 
-async def _watch_control_async(handle: Any, run_dir: Any, worker: str | None) -> None:
+async def _watch_control_async(
+    handle: Any, run_dir: Any, worker: str | None, thread: Any = None
+) -> None:
     """Тот же сторож для асинхронного хода флота: `steer` там — корутина."""
     import asyncio
 
@@ -623,7 +698,7 @@ async def _watch_control_async(handle: Any, run_dir: Any, worker: str | None) ->
         await asyncio.sleep(CONTROL_POLL_SEC)
         for request in inbox.pending():
             try:
-                inbox.accepted(request, await handle.steer(request["text"]))
+                inbox.accepted(request, await _deliver_steer_async(handle, thread, request))
             except Exception as exc:  # noqa: BLE001
                 inbox.rejected(request, exc)
 
@@ -634,14 +709,19 @@ def run_turn(
     run_dir: Any | None,
     tracker: ProgressTracker,
     extra: dict[str, Any] | None = None,
+    thread: Any = None,
 ) -> Any:
-    """Синхронный ход с журналом активности. Возвращает штатный `TurnResult`."""
+    """Синхронный ход с журналом активности. Возвращает штатный `TurnResult`.
+
+    `thread` нужен только external-репликам ящика (join хода `ExternalMessage`);
+    без него такая реплика отклоняется, обычный `steer` работает как прежде.
+    """
     collect, _ = _load_collectors()
     if collect is None:
         return handle.run()
     stream = handle.stream()
     try:
-        with _InterruptOnSignal(handle, run_dir), _ControlWatcher(handle, run_dir):
+        with _InterruptOnSignal(handle, run_dir), _ControlWatcher(handle, run_dir, thread=thread):
             return collect(_tee(stream, tracker, run_dir, extra), turn_id=handle.id)
     finally:
         stream.close()
@@ -653,6 +733,7 @@ async def run_async_turn(
     run_dir: Any | None,
     tracker: ProgressTracker,
     extra: dict[str, Any] | None = None,
+    thread: Any = None,
 ) -> Any:
     """Асинхронный ход с журналом активности (флот)."""
     _, collect_async = _load_collectors()
@@ -663,7 +744,7 @@ async def run_async_turn(
     stream = handle.stream()
     watcher = (
         asyncio.ensure_future(
-            _watch_control_async(handle, run_dir, (extra or {}).get("worker"))
+            _watch_control_async(handle, run_dir, (extra or {}).get("worker"), thread)
         )
         if run_dir is not None
         else None
@@ -712,6 +793,12 @@ def main() -> int:
         metavar="ID",
         help="Кому из воркеров волны адресована реплика (--steer). У одиночного прогона не нужен.",
     )
+    parser.add_argument(
+        "--external",
+        action="store_true",
+        help="--steer: текст не от владельца/оркестратора, а из файла, от другого агента или "
+        "инструмента — доставить с правами инструмента (ExternalMessage), не пользователя.",
+    )
     args = parser.parse_args()
     if args.board is not None:
         if args.run_dir or args.steer:
@@ -721,12 +808,12 @@ def main() -> int:
     if not args.run_dir:
         parser.error("нужен RUN_DIR или --board [PROJECT]")
     if args.steer:
-        return _steer_cli(args.run_dir, args.steer, args.worker)
+        return _steer_cli(args.run_dir, args.steer, args.worker, external=args.external)
     print(digest(args.run_dir, tail=args.tail))
     return 0
 
 
-def _steer_cli(run_dir: Any, text: str, worker: str | None) -> int:
+def _steer_cli(run_dir: Any, text: str, worker: str | None, *, external: bool = False) -> int:
     """Отдать реплику ящику прогона, отказав честно, когда принимать её некому."""
     import json
     from pathlib import Path
@@ -748,9 +835,9 @@ def _steer_cli(run_dir: Any, text: str, worker: str | None) -> int:
             names = ", ".join(str(task.get("id")) for task in tasks)
             print(f"это волна — назови адресата: --worker ID (есть: {names})")
             return 2
-    request = file_steer_request(root, text, worker=worker)
+    request = file_steer_request(root, text, worker=worker, external=external)
     print(
-        f"реплика {request['id']} в ящике; её судьба и курс — в сводке "
+        f"реплика {request['id']} ({request['authority']}) в ящике; её судьба и курс — в сводке "
         f"`codex_progress.py {root}`"
     )
     return 0

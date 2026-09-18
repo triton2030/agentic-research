@@ -395,6 +395,7 @@ async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict
                 run_dir=run_dir,
                 tracker=tracker,
                 extra={"worker": task.id},
+                thread=thread,
             )
             duration_ms = int((time.monotonic() - t0) * 1000)
             codex_status = codex_status_value(getattr(result, "status", ""))

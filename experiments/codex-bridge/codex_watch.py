@@ -118,8 +118,16 @@ class Journal:
 class Run:
     """Состояние одного прогона, собранное только из его журнала."""
 
-    def __init__(self, run_dir: Path) -> None:
+    # Шаги, которые видны владельцу как «ход работы»; reasoning и userMessage —
+    # шум для ленты (первый молчит минутами, второй — сам запрос).
+    PULSE_KINDS = frozenset({
+        "commandExecution", "fileChange", "mcpToolCall", "dynamicToolCall",
+        "webSearch", "agentMessage", "subAgentActivity", "imageGeneration",
+    })
+
+    def __init__(self, run_dir: Path, pulse: bool = False) -> None:
         self.dir = run_dir
+        self.pulse = pulse
         self.journal = Journal(run_dir / "events.jsonl")
         self.started: dict[str, float] = {}
         self.done: set[str] = set()
@@ -165,6 +173,10 @@ class Run:
                 self.last_kind[worker] = str(event["kind"])
             if event.get("method") == STEP_METHOD:
                 self.steps[worker] = self.steps.get(worker, 0) + 1
+                if self.pulse and event.get("kind") in self.PULSE_KINDS:
+                    who = f"{worker} · " if worker else ""
+                    detail = _short(event.get("detail") or "", 96)
+                    yield f"→ {who}{self.steps[worker]}ш {event['kind']}: {detail}"
             elif event.get("method") in FAILURE_METHODS:
                 who = f"{worker} · " if worker else ""
                 yield f"СБОЙ {who}{_short(event.get('detail') or event['method'])}"
@@ -201,12 +213,26 @@ class Run:
             yield f"{state} {self.dir.name} · {span} · {steps}ш"
 
 
-def watch(run_dir: Path, poll: int, max_hours: float) -> int:
-    if not run_dir.is_dir():
-        emit(f"НАБЛЮДЕНИЕ НЕ ВСТАЛО: нет каталога {run_dir}")
-        return 2
+WAIT_SEC = 180
 
-    run = Run(run_dir)
+
+def watch(
+    run_dir: Path, poll: int, max_hours: float, wait_sec: int = WAIT_SEC, pulse: bool = False
+) -> int:
+    # Monitor ставится в момент запуска прогона, на заранее выбранный
+    # `--run-dir`, — каталог появится, когда мост создаст его. Ждём ограниченно:
+    # прогон, не стартовавший за wait_sec, — отказ запуска, а не тишина.
+    waited = 0
+    while not run_dir.is_dir():
+        if waited >= wait_sec:
+            emit(f"НАБЛЮДЕНИЕ НЕ ВСТАЛО: каталог {run_dir} не появился за {wait_sec}с")
+            return 2
+        time.sleep(min(2, max(0, wait_sec - waited)) or 1)
+        waited += 2
+    if waited:
+        emit(f"НАБЛЮДЕНИЕ ВСТАЛО: {run_dir.name} появился через ~{waited}с")
+
+    run = Run(run_dir, pulse=pulse)
     deadline = time.time() + max_hours * 3600
     while True:
         for event in run.journal.new_events():
@@ -283,13 +309,22 @@ def main(argv: list[str] | None = None) -> int:
     watcher.add_argument("run_dir")
     watcher.add_argument("--poll", type=int, default=POLL_SEC)
     watcher.add_argument("--max-hours", type=float, default=MAX_HOURS)
+    watcher.add_argument(
+        "--pulse", action="store_true",
+        help="строка на каждый шаг работы (команда, файл, инструмент, ответ) — ход "
+        "прогона виден владельцу в ленте; без флага — только завершения",
+    )
+    watcher.add_argument(
+        "--wait-sec", type=int, default=WAIT_SEC,
+        help="сколько ждать появления run_dir, если Monitor поставлен раньше прогона",
+    )
 
     snapshot = sub.add_parser("look", help="снимок живых агентов и их шагов")
     snapshot.add_argument("project", nargs="?", default=".")
 
     args = parser.parse_args(argv)
     if args.mode == "watch":
-        return watch(Path(args.run_dir), args.poll, args.max_hours)
+        return watch(Path(args.run_dir), args.poll, args.max_hours, args.wait_sec, args.pulse)
     return look(Path(args.project))
 
 

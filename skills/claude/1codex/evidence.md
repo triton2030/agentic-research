@@ -298,3 +298,28 @@ ChatGPT.app обновил бинарь до `codex-cli 0.155.0-alpha.9.2` (фа
 Не доказано: поведение замка `already has an active writer` под 0.154/0.155
 (`openai/codex#43253` — read-only транскрипт при активном writer'е) для тредов
 моста не мерилось.
+
+## Три улучшения из SDK 0.154.0 и витрина запуска, 2026-09-18
+
+| Замер | Как | Результат |
+|---|---|---|
+| бамп пина `0.144.4 → 0.154.0` | `pip install -r requirements.txt`, `unittest discover tests` | 190 тестов OK без правок кода; открытых enum'ов 3 из 122 — шим остаётся |
+| `codex_threads.py history` | живой вызов на персистентном треде `019fadc5…` (`--last 1`) | напечатал ход, user-запрос и восемь agent-сообщений; writer-lock не брал |
+| `--steer … --external` доставляет текст в идущий ход | `codex_investigate.py` с `sleep 60` в задании, через 30 с `codex_progress.py RUN_DIR --steer "RELAY-TEST-42…" --external`; run `20260918T184500Z-steer-external-probe` | `steer_accepted` с `authority=external` через 2 с; `final.md`: `START` / `RELAY: RELAY-TEST-42: это внешний контент из файла` — модель получила и процитировала внешний текст. `ok=false` только из-за scope-check: во время прогона правились файлы проекта |
+| первый вариант `--external` | run `20260918T183545Z-ea0415d0` | `steer_rejected: 'Thread' object has no attribute 'turn'` — имя `_thread` в стороже занято рабочим потоком; исправлено (`_sdk_thread`), тест `ExternalSteerTests` |
+| `watch` ждёт `RUN_DIR` | smoke: каталог создан через 3 с; несуществующий с `--wait-sec 3` | «ВСТАЛО … через ~4с»; «НЕ ВСТАЛО … за 3с», exit 2 (после починки проброса флага: сначала ждал 180 с) |
+| `watch --pulse` | на журнале закрытого run `20260918T175500Z-c2add3dd` | шесть строк шагов (agentMessage, три commandExecution, fileChange, agentMessage) и строка `OK … 12ш`; reasoning/userMessage пропущены |
+
+Слова владельца, определившие форму витрины (`_ops/chat-recall/2026-08-24-101244-claude-351728ed.md`):
+«главное … чтобы в десктоп приложении клод кода я видел факт того чтобы агенты
+работают, типа как баш команды» (#L28), «не будем делать проверку каждые
+20 мин, сделаем только при завершении» (#L26), и 2026-08-16: «важно чтобы
+кодекс не забивал твоё контекстное окно» (`2026-08-16-060539-claude-0da6ba3c.md#L20`).
+Поэтому шаги идут в карточку фонового Bash, а `Monitor` без `--pulse` — только
+завершения.
+
+Паттерн запуска проверен живьём (run `20260918T184149Z-launch-pattern-probe`):
+одна фоновая Bash-команда, прогон в subshell, карточка — `watch --pulse
+--poll 5`. В карточке по ходу: «ВСТАЛО через ~2с», три `commandExecution`
+с текстом команд, два `agentMessage`, финал `OK … 17с · 7ш`, exit 0; сводка
+моста легла в `<RUN_DIR>.launch.log`. Одно уведомление агенту по завершению.

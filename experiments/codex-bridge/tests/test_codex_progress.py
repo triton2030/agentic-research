@@ -7,6 +7,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import types
 import unittest
 from pathlib import Path
 
@@ -275,3 +276,67 @@ class ProgressRegistryWorkersTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ExternalSteerTests(unittest.TestCase):
+    """`--external`: реплика с правами инструмента идёт join'ом хода, не steer'ом."""
+
+    def test_request_carries_authority(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp)
+            user = codex_progress.file_steer_request(run_dir, "вернись к цели")
+            ext = codex_progress.file_steer_request(run_dir, "чужой текст", external=True)
+            self.assertEqual(user["authority"], "user")
+            self.assertEqual(ext["authority"], "external")
+            events = [
+                json.loads(line)
+                for line in (run_dir / "events.jsonl").read_text(encoding="utf-8").splitlines()
+            ]
+            self.assertEqual(
+                [e.get("authority") for e in events if e.get("event") == "steer_requested"],
+                ["user", "external"],
+            )
+
+    def test_delivery_routes_by_authority(self) -> None:
+        calls: list[tuple[str, object]] = []
+
+        class Handle:
+            def steer(self, text):
+                calls.append(("steer", text))
+                return types.SimpleNamespace(turn_id="t-1")
+
+        class Sub:
+            closed = False
+
+            def close(self):
+                Sub.closed = True
+
+        class Joined:
+            id = "t-1"
+            _subscription = Sub()
+
+        class Thread:
+            def turn(self, message):
+                calls.append(("join", message))
+                return Joined()
+
+        codex_progress._deliver_steer(Handle(), Thread(), {"text": "a", "authority": "user"})
+        self.assertEqual(calls, [("steer", "a")])
+        try:
+            from openai_codex import ExternalMessage
+        except ImportError:  # SDK-стаб без ExternalMessage — маршрут проверить нечем
+            self.skipTest("SDK без ExternalMessage")
+        codex_progress._deliver_steer(Handle(), Thread(), {"text": "b", "authority": "external"})
+        self.assertEqual(calls[1][0], "join")
+        self.assertIsInstance(calls[1][1], ExternalMessage)
+        self.assertEqual(calls[1][1].content, "b")
+        self.assertTrue(Sub.closed)
+        with self.assertRaises(RuntimeError):
+            codex_progress._deliver_steer(Handle(), None, {"text": "c", "authority": "external"})
+
+    def test_watcher_keeps_sdk_thread_apart_from_worker_thread(self) -> None:
+        sentinel = object()
+        watcher = codex_progress._ControlWatcher(object(), None, thread=sentinel)
+        self.assertIs(watcher._sdk_thread, sentinel)
+        with watcher:
+            self.assertIs(watcher._sdk_thread, sentinel)

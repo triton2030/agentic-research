@@ -794,7 +794,10 @@ def main() -> int:
                     run_dir=run_dir,
                     operation="turn_start",
                 )
-            result = run_turn(handle, run_dir=run_dir, tracker=progress)
+            result = run_turn(
+                handle, run_dir=run_dir, tracker=progress,
+                thread=None if args.mode == "diff" else thread,
+            )
     except Exception as exc:  # noqa: BLE001 — показать пользователю причину как есть
         heartbeat_stop.set()
         if heartbeat_thread is not None:
