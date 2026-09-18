@@ -1,0 +1,21 @@
+{
+  "root_name": "Риски",
+  "entries": [
+    {
+      "path": "Бесплатное использование.md",
+      "kind": "file"
+    },
+    {
+      "path": "Внешние требования.md",
+      "kind": "file"
+    },
+    {
+      "path": "Непокрытые расходы.md",
+      "kind": "file"
+    }
+  ],
+  "excluded": [],
+  "exclude_patterns": [
+    ".git"
+  ]
+}
