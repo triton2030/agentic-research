@@ -71,7 +71,12 @@ def _item_projection(item: Any) -> tuple[str, str]:
         text = getattr(node, "text", "") or ""
         # Длина плюс начало текста: витрине есть что показать, кроме числа.
         return kind, f"{len(text)} симв.: {_short(text, 400)}" if text else "0 симв."
-    if kind in {"reasoning", "userMessage"}:
+    if kind == "reasoning":
+        # Мысли — это summary (список строк), а не text; текст у reasoning пуст.
+        parts = [str(x) for x in (getattr(node, "summary", None) or []) if x]
+        text = " ".join(parts) or (getattr(node, "text", "") or "")
+        return kind, f"{len(text)} симв.: {_short(text, 400)}" if text else "0 симв."
+    if kind == "userMessage":
         text = getattr(node, "text", "") or ""
         return kind, f"{len(text)} симв."
     return kind, ""

@@ -82,6 +82,7 @@ def main() -> int:
         signal.signal(sig, _forward)
 
     watch_rc = 1
+    rc: int | None = None
     try:
         watch = subprocess.run(
             [sys.executable, str(HERE / "codex_watch.py"), "watch", str(run_dir),
@@ -105,7 +106,9 @@ def main() -> int:
                 proc.wait(timeout=60)
             except subprocess.TimeoutExpired:
                 proc.kill()
-            rc = proc.returncode
+        # Витрина упала исключением, а прогон уже кончился — код берём у него
+        # (замечание Codex 2026-09-19: иначе `rc` не инициализирован).
+        rc = proc.returncode if rc is None else rc
     if rc != 0:
         print(f"вход моста завершился с кодом {rc} — читай {log_path}", flush=True)
     return rc or watch_rc

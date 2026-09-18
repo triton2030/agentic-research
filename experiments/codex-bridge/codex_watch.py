@@ -122,8 +122,9 @@ class Run:
     # шум для ленты (первый молчит минутами, второй — сам запрос).
     PULSE_KINDS = frozenset({
         "commandExecution", "fileChange", "mcpToolCall", "dynamicToolCall",
-        "webSearch", "agentMessage", "subAgentActivity", "imageGeneration",
+        "webSearch", "agentMessage", "reasoning", "subAgentActivity", "imageGeneration",
     })
+    WORD_KINDS = frozenset({"agentMessage", "reasoning"})
 
     READ_CMDS = frozenset({
         "cat", "sed", "nl", "rg", "grep", "ls", "head", "tail", "wc", "find", "fd",
@@ -150,8 +151,14 @@ class Run:
         """Одна строка витрины: время от старта, значок шага, суть без обёрток."""
         span = _dur(self.last_ts - self.run_start) if self.run_start and self.last_ts else "?"
         who = f"{worker} " if worker else ""
-        if self.words_only and kind != "agentMessage":
+        if self.words_only and kind not in self.WORD_KINDS:
             return None
+        if kind == "reasoning":
+            text = detail.split(": ", 1)[1] if ": " in detail else ""
+            if not text:
+                return None  # старый журнал без текста сводки или пустая сводка
+            icon, body = "…", _short(text, 360)
+            return f"{span:>5} {who}{icon} {body}".rstrip()
         if kind == "commandExecution":
             cmd = self._bare_command(detail)
             first = cmd.split(" ", 1)[0] if cmd else ""
