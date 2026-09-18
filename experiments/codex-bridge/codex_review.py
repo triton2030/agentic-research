@@ -764,20 +764,47 @@ def main() -> int:
 
                 target = _review_target(args, payload)
                 append_event(run_dir, "review_target", target=target)
-                response = codex._client._request_raw(  # noqa: SLF001
-                    "review/start",
-                    {
-                        "threadId": codex_runtime["thread_id"],
-                        "delivery": "inline",
-                        "target": target,
-                    },
-                )
-                review_thread_id = response.get("reviewThreadId") or codex_runtime["thread_id"]
-                turn_id = (response.get("turn") or {}).get("id")
-                if not turn_id:
-                    raise RuntimeError("review/start не вернул turn.id")
+                # Подписка регистрируется ДО RPC, как в `Thread.turn()` SDK 0.154:
+                # ручной `TurnHandle` после ответа цеплялся с конца очереди, и
+                # быстрый `turn/completed` терялся навсегда (аудит Codex
+                # 2026-09-18). `pending_turn` + `prepare_turn` — тот же маршрут,
+                # что у `_start_turn`.
+                client = codex._client  # noqa: SLF001
+                router = getattr(client, "_router", None)
+                request = {
+                    "threadId": codex_runtime["thread_id"],
+                    "delivery": "inline",
+                    "target": target,
+                }
+                if router is not None and hasattr(router, "pending_turn"):
+                    with client._thread_start_lock(codex_runtime["thread_id"]):  # noqa: SLF001
+                        with router.pending_turn(codex_runtime["thread_id"]) as cursors:
+                            response = client._request_raw("review/start", request)  # noqa: SLF001
+                            review_thread_id = (
+                                response.get("reviewThreadId") or codex_runtime["thread_id"]
+                            )
+                            turn_id = (response.get("turn") or {}).get("id")
+                            if not turn_id:
+                                raise RuntimeError("review/start не вернул turn.id")
+                            # Ключ — тред, зарегистрированный в pending_turn: по
+                            # reviewThreadId роутер ищет pending-запись и падает
+                            # KeyError (нативное ревью 2026-09-18). События
+                            # маршрутизируются по turn_id, тред здесь — только ключ.
+                            subscription = router.prepare_turn(
+                                turn_id, codex_runtime["thread_id"], cursors, for_handle=True
+                            )
+                    handle = TurnHandle(
+                        client, review_thread_id, turn_id, _subscription=subscription
+                    )
+                else:
+                    # Клиент без роутера (стаб в тестах): прежний маршрут.
+                    response = client._request_raw("review/start", request)  # noqa: SLF001
+                    review_thread_id = response.get("reviewThreadId") or codex_runtime["thread_id"]
+                    turn_id = (response.get("turn") or {}).get("id")
+                    if not turn_id:
+                        raise RuntimeError("review/start не вернул turn.id")
+                    handle = TurnHandle(client, review_thread_id, turn_id)
                 codex_runtime["review_thread_id"] = review_thread_id
-                handle = TurnHandle(codex._client, review_thread_id, turn_id)  # noqa: SLF001
             else:
                 # turn() вместо run(): тот же ход, но с доступом к потоку
                 # нотификаций — активность уезжает в ledger, heartbeat перестаёт

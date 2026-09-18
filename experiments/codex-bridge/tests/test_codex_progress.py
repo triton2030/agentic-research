@@ -301,6 +301,8 @@ class ExternalSteerTests(unittest.TestCase):
         calls: list[tuple[str, object]] = []
 
         class Handle:
+            id = "t-1"
+
             def steer(self, text):
                 calls.append(("steer", text))
                 return types.SimpleNamespace(turn_id="t-1")
@@ -340,3 +342,28 @@ class ExternalSteerTests(unittest.TestCase):
         self.assertIs(watcher._sdk_thread, sentinel)
         with watcher:
             self.assertIs(watcher._sdk_thread, sentinel)
+
+    def test_external_join_after_turn_end_is_rejected_and_interrupted(self) -> None:
+        try:
+            from openai_codex import ExternalMessage  # noqa: F401
+        except ImportError:
+            self.skipTest("SDK без ExternalMessage")
+        interrupted: list[str] = []
+
+        class Handle:
+            id = "t-main"
+
+        class Stray:
+            id = "t-new"
+            _subscription = None
+
+            def interrupt(self):
+                interrupted.append(self.id)
+
+        class Thread:
+            def turn(self, message):
+                return Stray()
+
+        with self.assertRaises(RuntimeError):
+            codex_progress._deliver_steer(Handle(), Thread(), {"text": "x", "authority": "external"})
+        self.assertEqual(interrupted, ["t-new"])

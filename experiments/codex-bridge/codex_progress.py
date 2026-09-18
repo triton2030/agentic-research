@@ -67,7 +67,11 @@ def _item_projection(item: Any) -> tuple[str, str]:
         server = getattr(node, "server", "") or ""
         tool = getattr(node, "tool", "") or ""
         return kind, _short(f"{server}/{tool}".strip("/"))
-    if kind in {"agentMessage", "reasoning", "userMessage"}:
+    if kind == "agentMessage":
+        text = getattr(node, "text", "") or ""
+        # Длина плюс начало текста: витрине есть что показать, кроме числа.
+        return kind, f"{len(text)} симв.: {_short(text, 400)}" if text else "0 симв."
+    if kind in {"reasoning", "userMessage"}:
         text = getattr(node, "text", "") or ""
         return kind, f"{len(text)} симв."
     return kind, ""
@@ -540,8 +544,27 @@ def _deliver_steer(handle: Any, thread: Any, request: dict[str, Any]) -> Any:
             raise RuntimeError("external-реплика требует ручку треда, у этого хода её нет")
         joined = thread.turn(_external_message(str(request.get("text") or "")))
         _close_subscription(joined)
+        _require_same_turn(joined, handle)
         return joined
     return handle.steer(request["text"])
+
+
+def _require_same_turn(joined: Any, handle: Any) -> None:
+    """`Thread.turn(ExternalMessage)` — «start or join»: кончился основной ход между
+    чтением ящика и вызовом — SDK завёл бы НОВЫЙ оплаченный ход без потребителя.
+    Аудит Codex 2026-09-18. Чужой ход прерываем и отказываем реплике."""
+    joined_id = getattr(joined, "id", None)
+    if joined_id and joined_id != getattr(handle, "id", None):
+        try:
+            result = joined.interrupt()
+            if hasattr(result, "__await__"):
+                result.close()  # async-вариант обрабатывается своей функцией
+        except Exception:  # noqa: BLE001
+            pass
+        raise RuntimeError(
+            f"основной ход {getattr(handle, 'id', '?')} уже завершился: реплика завела бы "
+            f"новый ход {joined_id} — прерван, реплика не доставлена"
+        )
 
 
 async def _deliver_steer_async(handle: Any, thread: Any, request: dict[str, Any]) -> Any:
@@ -550,6 +573,16 @@ async def _deliver_steer_async(handle: Any, thread: Any, request: dict[str, Any]
             raise RuntimeError("external-реплика требует ручку треда, у этого хода её нет")
         joined = await thread.turn(_external_message(str(request.get("text") or "")))
         await _aclose_subscription(joined)
+        joined_id = getattr(joined, "id", None)
+        if joined_id and joined_id != getattr(handle, "id", None):
+            try:
+                await joined.interrupt()
+            except Exception:  # noqa: BLE001
+                pass
+            raise RuntimeError(
+                f"основной ход {getattr(handle, 'id', '?')} уже завершился: реплика завела бы "
+                f"новый ход {joined_id} — прерван, реплика не доставлена"
+            )
         return joined
     return await handle.steer(request["text"])
 

@@ -125,9 +125,93 @@ class Run:
         "webSearch", "agentMessage", "subAgentActivity", "imageGeneration",
     })
 
-    def __init__(self, run_dir: Path, pulse: bool = False) -> None:
+    READ_CMDS = frozenset({
+        "cat", "sed", "nl", "rg", "grep", "ls", "head", "tail", "wc", "find", "fd",
+        "git", "less", "stat", "file", "tree", "python3 -c", "jq", "diff",
+    })
+
+    @staticmethod
+    def _bare_command(text: str) -> str:
+        """Снять обёртку движка `/bin/zsh -lc '…'` и внешние кавычки."""
+        cmd = text.strip()
+        for prefix in ("/bin/zsh -lc ", "/bin/bash -lc ", "bash -lc ", "zsh -lc ", "sh -c "):
+            if cmd.startswith(prefix):
+                cmd = cmd[len(prefix):].strip()
+                break
+        # Ledger режет команду до 200 символов, закрывающей кавычки может не быть.
+        if cmd and cmd[0] in "'\"":
+            quote = cmd[0]
+            cmd = cmd[1:]
+            if cmd.endswith(quote):
+                cmd = cmd[:-1]
+        return " ".join(cmd.split())
+
+    def pulse_line(self, worker: str, step: int, kind: str, detail: str) -> str | None:
+        """Одна строка витрины: время от старта, значок шага, суть без обёрток."""
+        span = _dur(self.last_ts - self.run_start) if self.run_start and self.last_ts else "?"
+        who = f"{worker} " if worker else ""
+        if self.words_only and kind != "agentMessage":
+            return None
+        if kind == "commandExecution":
+            cmd = self._bare_command(detail)
+            first = cmd.split(" ", 1)[0] if cmd else ""
+            icon = "📖" if first in self.READ_CMDS else "⌘"
+            body = _short(cmd, 110)
+        elif kind == "fileChange":
+            names = [Path(x.strip()).name for x in detail.split(",") if x.strip()]
+            icon, body = "✎", _short(", ".join(names), 110)
+        elif kind == "agentMessage":
+            text = detail.split(": ", 1)[1] if ": " in detail else detail
+            icon, body = "💬", _short(text, 360)
+        elif kind == "mcpToolCall" or kind == "dynamicToolCall":
+            icon, body = "🔧", _short(detail, 110)
+        elif kind == "webSearch":
+            icon, body = "🌐", _short(detail, 110)
+        elif kind == "subAgentActivity":
+            icon, body = "🤖", _short(detail, 110)
+        elif kind == "imageGeneration":
+            icon, body = "🖼", _short(detail, 110)
+        else:
+            return None
+        if self.words_only:
+            return f"{span:>5} {who}{body}".rstrip()
+        return f"{span:>5} {who}{icon} {body}".rstrip()
+
+    def header_line(self) -> str:
+        """Первая строка витрины: чем занят прогон, по prompt.md."""
+        prompt = self.dir / "prompt.md"
+        task = ""
+        if prompt.is_file():
+            try:
+                lines = [ln.strip() for ln in prompt.read_text(encoding="utf-8").splitlines()]
+                # Мост кладёт преамбулу роли, потом «===== ЗАДАНИЕ =====»: показываем задание.
+                start = 0
+                for i, ln in enumerate(lines):
+                    if "ЗАДАНИЕ" in ln and ln.startswith("="):
+                        start = i + 1
+                        break
+                task = next((ln for ln in lines[start:] if ln and not ln.startswith(("#", "="))), "")
+            except OSError:
+                task = ""
+        tier = ""
+        manifest = self.dir / "manifest.json"
+        if manifest.is_file():
+            try:
+                m = json.loads(manifest.read_text(encoding="utf-8"))
+                codex = m.get("codex") if isinstance(m.get("codex"), dict) else m
+                model, effort = codex.get("model"), codex.get("effort")
+                if model:
+                    tier = f" · {model}" + (f"/{effort}" if effort else "")
+            except (OSError, ValueError):
+                tier = ""
+        return f"▶ {self.dir.name}{tier}" + (f" · {_short(task, 100)}" if task else "")
+
+    def __init__(self, run_dir: Path, pulse: bool = False, words_only: bool = True) -> None:
         self.dir = run_dir
         self.pulse = pulse
+        # Владелец 2026-09-18: «мне нравится что я вижу его мысли, но можно не
+        # показывать всякие команды, ссылки, код — чисто его текстовые слова».
+        self.words_only = words_only
         self.journal = Journal(run_dir / "events.jsonl")
         self.started: dict[str, float] = {}
         self.done: set[str] = set()
@@ -174,9 +258,12 @@ class Run:
             if event.get("method") == STEP_METHOD:
                 self.steps[worker] = self.steps.get(worker, 0) + 1
                 if self.pulse and event.get("kind") in self.PULSE_KINDS:
-                    who = f"{worker} · " if worker else ""
-                    detail = _short(event.get("detail") or "", 96)
-                    yield f"→ {who}{self.steps[worker]}ш {event['kind']}: {detail}"
+                    line = self.pulse_line(
+                        worker, self.steps[worker], str(event["kind"]),
+                        str(event.get("detail") or ""),
+                    )
+                    if line:
+                        yield line
             elif event.get("method") in FAILURE_METHODS:
                 who = f"{worker} · " if worker else ""
                 yield f"СБОЙ {who}{_short(event.get('detail') or event['method'])}"
@@ -217,7 +304,8 @@ WAIT_SEC = 180
 
 
 def watch(
-    run_dir: Path, poll: int, max_hours: float, wait_sec: int = WAIT_SEC, pulse: bool = False
+    run_dir: Path, poll: int, max_hours: float, wait_sec: int = WAIT_SEC,
+    pulse: bool = False, words_only: bool = True,
 ) -> int:
     # Monitor ставится в момент запуска прогона, на заранее выбранный
     # `--run-dir`, — каталог появится, когда мост создаст его. Ждём ограниченно:
@@ -231,8 +319,11 @@ def watch(
         waited += 2
     if waited:
         emit(f"НАБЛЮДЕНИЕ ВСТАЛО: {run_dir.name} появился через ~{waited}с")
+    if pulse:
+        time.sleep(1)  # prompt.md пишется сразу после создания каталога
+        emit(Run(run_dir).header_line())
 
-    run = Run(run_dir, pulse=pulse)
+    run = Run(run_dir, pulse=pulse, words_only=words_only)
     deadline = time.time() + max_hours * 3600
     while True:
         for event in run.journal.new_events():
@@ -311,8 +402,12 @@ def main(argv: list[str] | None = None) -> int:
     watcher.add_argument("--max-hours", type=float, default=MAX_HOURS)
     watcher.add_argument(
         "--pulse", action="store_true",
-        help="строка на каждый шаг работы (команда, файл, инструмент, ответ) — ход "
-        "прогона виден владельцу в ленте; без флага — только завершения",
+        help="ход прогона в карточке: слова Codex по мере работы (его сообщения), "
+        "без команд, путей и кода; без флага — только завершения",
+    )
+    watcher.add_argument(
+        "--pulse-all", action="store_true",
+        help="с --pulse: показывать и команды, файлы, инструменты (для отладки моста)",
     )
     watcher.add_argument(
         "--wait-sec", type=int, default=WAIT_SEC,
@@ -324,7 +419,10 @@ def main(argv: list[str] | None = None) -> int:
 
     args = parser.parse_args(argv)
     if args.mode == "watch":
-        return watch(Path(args.run_dir), args.poll, args.max_hours, args.wait_sec, args.pulse)
+        return watch(
+            Path(args.run_dir), args.poll, args.max_hours, args.wait_sec,
+            args.pulse or args.pulse_all, words_only=not args.pulse_all,
+        )
     return look(Path(args.project))
 
 

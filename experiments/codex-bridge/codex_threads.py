@@ -326,7 +326,18 @@ def cmd_history(project_cwd: Path, thread_id: str, as_json: bool, last: int, ful
     до 400 символов, `--full` печатает целиком.
     """
     with _open_sdk(project_cwd) as codex:
-        resp = codex._client.thread_read(thread_id, include_turns=True)  # noqa: SLF001
+        try:
+            resp = codex._client.thread_read(thread_id, include_turns=True)  # noqa: SLF001
+        except Exception as exc:  # noqa: BLE001
+            # Эфемерный тред после финала для store не существует; чужой id —
+            # тоже. Короткий отказ вместо traceback (аудит Codex 2026-09-18).
+            print(
+                f"history FAILED: {thread_id}: {exc}\n"
+                "эфемерных тредов моста в store нет — их переписка в run_dir "
+                "(final.md, events.jsonl)",
+                file=sys.stderr,
+            )
+            return 1
     thread = resp.thread
     turns = list(thread.turns or [])
     if last > 0:

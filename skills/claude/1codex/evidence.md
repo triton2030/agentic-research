@@ -323,3 +323,10 @@ ChatGPT.app обновил бинарь до `codex-cli 0.155.0-alpha.9.2` (фа
 --poll 5`. В карточке по ходу: «ВСТАЛО через ~2с», три `commandExecution`
 с текстом команд, два `agentMessage`, финал `OK … 17с · 7ш`, exit 0; сводка
 моста легла в `<RUN_DIR>.launch.log`. Одно уведомление агенту по завершению.
+
+Аудит кода моста Codex'ом (2026-09-18, `gpt-5.6-sol`/`medium`): семь находок,
+четыре приняты и исправлены (гонка external-join, подписка ручного
+`TurnHandle`, владение остановкой в launcher, отказ `history`), тесты 194 OK.
+`history` на несуществующем id живьём: `history FAILED: … thread not loaded`,
+без traceback. Остановка карточки живьём до починки: `interrupt_requested
+signal=15` в журнале, прогон умер вместе с карточкой.
