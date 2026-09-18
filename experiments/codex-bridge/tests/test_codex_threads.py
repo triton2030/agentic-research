@@ -295,3 +295,68 @@ class CliValidationTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class HistoryTests(unittest.TestCase):
+    """`history`: переписка через thread/read, короткий отказ вместо traceback."""
+
+    def _fake_sdk(self, read):
+        client = types.SimpleNamespace(thread_read=read)
+        codex = types.SimpleNamespace(_client=client)
+
+        @contextlib.contextmanager
+        def opener(project_cwd):
+            yield codex
+
+        return opener
+
+    def _capture(self, fn):
+        out, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            rc = fn()
+        return rc, out.getvalue(), err.getvalue()
+
+    def test_prints_turns_and_messages(self) -> None:
+        item_user = types.SimpleNamespace(model_dump=lambda: {"type": "userMessage", "content": [{"text": "вопрос"}]})
+        item_agent = types.SimpleNamespace(model_dump=lambda: {"type": "agentMessage", "text": "ответ " * 100})
+        item_cmd = types.SimpleNamespace(model_dump=lambda: {"type": "commandExecution", "command": "ls"})
+        turn = types.SimpleNamespace(
+            id="turn-1", status=types.SimpleNamespace(value="completed"), started_at=1_700_000_000,
+            items=[item_user, item_agent, item_cmd], error=None,
+            model_dump=lambda mode=None: {"id": "turn-1"},
+        )
+        empty = types.SimpleNamespace(
+            id="turn-0", status="completed", started_at=None, items=[], error=None,
+            model_dump=lambda mode=None: {"id": "turn-0"},
+        )
+        resp = types.SimpleNamespace(thread=types.SimpleNamespace(id="th", name="тема", turns=[empty, turn]))
+        original = codex_threads._open_sdk
+        codex_threads._open_sdk = self._fake_sdk(lambda tid, include_turns=False: resp)
+        try:
+            rc, out, _ = self._capture(lambda: codex_threads.cmd_history(Path("."), "th", False, 1, False))
+            self.assertEqual(rc, 0)
+            self.assertIn("ходов показано: 1", out)
+            self.assertIn("user: вопрос", out)
+            self.assertIn("[commandExecution] ls", out)
+            self.assertIn("…", out)  # длинный ответ обрезан без --full
+            self.assertNotIn("turn-0", out)  # --last 1
+            rc, out, _ = self._capture(lambda: codex_threads.cmd_history(Path("."), "th", True, 0, True))
+            self.assertEqual(rc, 0)
+            self.assertEqual(len(json.loads(out)["turns"]), 2)
+        finally:
+            codex_threads._open_sdk = original
+
+    def test_missing_thread_is_a_short_failure(self) -> None:
+        def read(tid, include_turns=False):
+            raise RuntimeError("JSON-RPC error -32600: thread not loaded")
+
+        original = codex_threads._open_sdk
+        codex_threads._open_sdk = self._fake_sdk(read)
+        try:
+            rc, out, err = self._capture(lambda: codex_threads.cmd_history(Path("."), "nope", False, 3, False))
+        finally:
+            codex_threads._open_sdk = original
+        self.assertEqual(rc, 1)
+        self.assertIn("history FAILED: nope", err)
+        self.assertIn("эфемерных тредов", err)
+        self.assertEqual(out, "")

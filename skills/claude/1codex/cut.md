@@ -470,5 +470,6 @@ stderr. Все семь приняты и исправлены; артефакт
   и мог навсегда пропустить `turn/completed` — подписка через
   `pending_turn`/`prepare_turn` до RPC; (3) launcher не владел остановкой —
   пересылка сигналов и grace-периоды; (4) `history` на чужом id падал
-  traceback'ом — короткий отказ. Не покрыто тестами (принято как долг):
-  async-маршрут external, `codex_launch.py`, `history` на живом store.
+  traceback'ом — короткий отказ. Долг по тестам закрыт
+  той же ночью: `ExternalSteerAsyncTests`, `HistoryTests`, `test_codex_launch.py`
+  (витрина, SIGTERM → interrupt прогона, отказы), 202 теста OK.

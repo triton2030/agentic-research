@@ -367,3 +367,78 @@ class ExternalSteerTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             codex_progress._deliver_steer(Handle(), Thread(), {"text": "x", "authority": "external"})
         self.assertEqual(interrupted, ["t-new"])
+
+
+class ExternalSteerAsyncTests(unittest.TestCase):
+    """Асинхронный маршрут флота: join того же хода принимается, чужой — прерывается."""
+
+    def _run(self, coro):
+        import asyncio
+
+        return asyncio.run(coro)
+
+    def test_async_join_same_turn_closes_subscription(self) -> None:
+        try:
+            from openai_codex import ExternalMessage
+        except ImportError:
+            self.skipTest("SDK без ExternalMessage")
+        closed: list[str] = []
+
+        class Sub:
+            def close(self):
+                closed.append("closed")
+
+        class Joined:
+            id = "t-1"
+            _subscription = Sub()
+
+        class Thread:
+            async def turn(self, message):
+                assert isinstance(message, ExternalMessage)
+                return Joined()
+
+        class Handle:
+            id = "t-1"
+
+        result = self._run(
+            codex_progress._deliver_steer_async(Handle(), Thread(), {"text": "x", "authority": "external"})
+        )
+        self.assertEqual(result.id, "t-1")
+        self.assertEqual(closed, ["closed"])
+
+    def test_async_join_after_turn_end_is_rejected_and_interrupted(self) -> None:
+        try:
+            from openai_codex import ExternalMessage  # noqa: F401
+        except ImportError:
+            self.skipTest("SDK без ExternalMessage")
+        interrupted: list[str] = []
+
+        class Stray:
+            id = "t-new"
+            _subscription = None
+
+            async def interrupt(self):
+                interrupted.append(self.id)
+
+        class Thread:
+            async def turn(self, message):
+                return Stray()
+
+        class Handle:
+            id = "t-main"
+
+        with self.assertRaises(RuntimeError):
+            self._run(
+                codex_progress._deliver_steer_async(Handle(), Thread(), {"text": "x", "authority": "external"})
+            )
+        self.assertEqual(interrupted, ["t-new"])
+
+    def test_async_user_steer_goes_to_handle(self) -> None:
+        class Handle:
+            id = "t-1"
+
+            async def steer(self, text):
+                return types.SimpleNamespace(turn_id="t-1", text=text)
+
+        result = self._run(codex_progress._deliver_steer_async(Handle(), None, {"text": "к цели", "authority": "user"}))
+        self.assertEqual(result.text, "к цели")
