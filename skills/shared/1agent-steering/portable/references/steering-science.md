@@ -79,7 +79,12 @@
 что должно быть в итоге, а не кучу критериев: из цели и границ агент сам
 выводит частные проверки. Границы — что в задачу не входит и чего не трогать.
 Критерий остаётся там, где сломанный джин ещё возможен или его требует
-контракт носителя. При параллельных исполнителях каждому сообщай, что делают
+контракт носителя. Две границы. Если задача для исполнителя новая, одной
+цели мало: ему нужен недостающий способ, иначе внимание уходит к результату,
+которого он не умеет достичь.[^learning-goal] Инвариант, нарушение которого
+недопустимо, закрывается составом инструментов, доступом к папкам или
+валидатором, а не строкой «не трогай»: текст удерживает предпочтения,
+не инварианты.[^tool-topology] При параллельных исполнителях каждому сообщай, что делают
 и читают другие: так он понимает, что читает он, а что читают соседи, и все
 не читают одно и то же. Так ставится и задача в файле планирования, и
 поручение субагенту.
@@ -116,5 +121,7 @@
 [^kaos]: [KAOS, van Lamsweerde, Goal-Oriented Requirements Engineering (RE'01)](https://webperso.info.ucl.ac.be/~avl/files/RE01.pdf).
 [^driftbench]: [DriftBench](https://arxiv.org/abs/2604.28031v2).
 [^cse]: [CSE](https://arxiv.org/abs/2608.12426v1).
+[^learning-goal]: Seijts & Latham, *Learning versus performance goals: When should each be used?* (Academy of Management Perspectives, 2005); различие outcome- и learning-целей у Locke & Latham.
+[^tool-topology]: [Compliance scales with reward-signal alignment](https://arxiv.org/abs/2605.01771) (препринт, май 2026): удаление инструментов подняло соблюдение с 0% до 74,7% при неизменном тексте.
 [^persuasion-study]: Meincke et al., *Call Me A Jerk: Persuading AI to Comply with Objectionable Requests* (2025), Abstract, Method, Discussion, стр. 1, 8, 11–12. [SSRN](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5357179), [доступная копия работы](https://www.rivista.ai/wp-content/uploads/2025/09/ssrn-5357179-1.pdf). Проверено 2026-09-12. Исследование измеряло выполнение запросов; пользу при авторинге управляющего текста не проверяло.
 [^persuasion-skills]: [Superpowers: Persuasion Principles for Skill Design](https://github.com/obra/superpowers/blob/b36e0829c6d0140e93cfef2ca599b1b07d4a7797/skills/writing-skills/persuasion-principles.md), прочитано 2026-09-12.
