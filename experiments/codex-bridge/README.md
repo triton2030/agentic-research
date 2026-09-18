@@ -156,11 +156,17 @@ when using Codex with a ChatGPT account"` (исторический probe 2026-0
 аналогично отсёк `gpt-5.5-pro`). `gpt-6-astra` проверен живым пробником
 2026-09-06 через `codex_review.py --model gpt-6-astra --effort medium`:
 `status=completed`, `ok=true` (run `20260906T120214Z-4c9019f7`). Каталог
-движка 0.153.4 (`~/.codex/models_cache.json`) несёт `gpt-6-astra` первым
-(«Our most capable model for complex, demanding work», default effort
-`medium`), 5.6-семейство `sol` / `terra` / `luna`, а также `gpt-5.5`,
-`gpt-5.4-mini`, `gpt-5.3-codex-spark`; `luna` и `terra` были проверены
-пробниками 2026-07-13. `terra` остаётся model-override внутренних
+движка 0.155.0 (`~/.codex/models_cache.json`, снимок 2026-09-18) идёт в
+порядке `gpt-5.6-sol`, `gpt-6-astra` («Our most capable model for complex,
+demanding work», default effort `medium`), дальше `terra` / `luna`, `gpt-5.5`;
+скрытыми (`visibility=hide`) — `gpt-reserve` («Fast and affordable»,
+запасной ярус при исчерпании луны, `openai/codex#42372`) и
+`codex-auto-review` (модель автоматического approval-ревью). `gpt-5.4-mini` и
+`gpt-5.3-codex-spark`, которые прежний текст этого абзаца относил к каталогу
+0.153.4, в снимке 0.155.0 отсутствуют. Дефолт усилия у
+`sol` в каталоге — `low`; мост шлёт усилие явно, а `--mode diff` берёт его из
+`config.toml` (`medium`), так что на ярусы это не влияет. `luna` и `terra`
+были проверены пробниками 2026-07-13. `terra` остаётся model-override внутренних
 collaboration-субагентов движка и дефолтом `md-scout`, рекомендованного
 применения во внешних вызовах не имеет. Новую модель до штатного маршрута
 проверяй тем же дешёвым пробником: каталог показывает наличие, а не доступ
@@ -191,7 +197,12 @@ banner фиксируют ЗАПРОШЕННЫЙ тир из `args` до SDK-в�
 вместе с приложением и потому идёт впереди любого пина. Фактический движок
 фиксируется в ledger: `codex_bin` + `binary_source` (`chatgpt-app` |
 `sdk-bundle`) в блоке `codex` каждого manifest/result и в stderr-banner
-(`binary=…`).
+(`binary=…`). Бинарь приложения — не полный пакет: `codex agents` (обзор
+сессий на общем app-server-демоне) на нём отвечает `this CLI has no complete
+local package; install a packaged Codex CLI or use the standalone installer`
+(замер 2026-09-18, вывод в
+`_workspace/codex-artifacts/audit-input-20260918/codex-agents.txt`);
+`codex doctor` и `codex debug` работают.
 
 Выбор в пользу приложения — осознанный, и его цена названа ниже (дрейф схемы).
 Запинить бандл не даёт воспроизводимости: оба бинаря делят один `~/.codex`
@@ -263,6 +274,23 @@ per-turn политику из пресета без `writable_roots` (огов�
 `ThreadStartParams` — в `sdk/python/docs/api-reference.md` его в сигнатуре
 `thread_start` нет, но это неполнота доки, а не удаление параметра.
 
+**Сверка с upstream 2026-09-18: пин остаётся `0.144.4`.** ChatGPT.app
+обновил движок до `0.155.0-alpha.9.2` (стабильный `rust-v0.155.0` — 2026-09-17).
+На PyPI `openai-codex` `0.154.0` (2026-09-10): штатно знает `max` и `ultra`
+(`openai/codex#39662`), даёт `turn_service_tier` на один ход и `include_turns`
+при resume/fork (`#44084`), `ExternalMessage` (`#44086`) и меняет момент
+подписки turn-handle на события — ранний вывод больше не реплеится (`#44400`).
+С 0.155.0 Python-пакеты публикуются вслед за каждым стабильным CLI (`#44067`),
+так что довод «SDK отстаёт от CLI» ослаб. Поломки нет: пробник
+`codex_review.py` на новом движке дал `status=completed`, `ok=true` (run
+`20260918T175027Z-814e6400`, run_dir внутри `<backend>/_workspace/codex-artifacts/`),
+а в захваченном stderr прогона нет ни одного warning'а шима
+(`_workspace/codex-artifacts/audit-input-20260918/probe-20260918T175027Z-814e6400-stdout-stderr.txt`;
+сам run_dir stderr не хранит). Правило пина прежнее — бамп на
+конкретную поломку; при бампе на `0.154.0` учесть миграции из release notes:
+`HookMetadata.root`, типизированные notifications, семантика attachment у
+turn-handle.
+
 Нижний рабочий порог — `low`, и он enforced: `--effort` ниже (`minimal`/`none`)
 отсекается на валидации флагов (`REASONING_EFFORTS` в `codex_defaults.py`).
 Причина: turn'у по умолчанию доступны инструменты (`web_search`/`image_gen`), и
@@ -279,6 +307,20 @@ Permissions тоже задаются backend-ом явно:
 scope, а значит backend не сможет честно доказать postflight allowlist. Максимум
 для v1 — свободная работа внутри workspace-write под declared `files`,
 dirty-gate, ledger и scope-check.
+
+**Сеть в песочнице.** Сводка апгрейда `0.153.4 → 0.154.0` в
+`github/gh-aw#61043` (не сам текст release notes `rust-v0.154.0` — там этой
+фразы нет) предупреждает: «On macOS and Linux, sandboxed commands can no
+longer reach host-local services by default». На мосту это не
+воспроизводится: замер 2026-09-18 на движке 0.155.0 из
+`workspace_write` (пресет investigate и флота) — `curl` к `127.0.0.1`,
+`localhost` и `https://example.com` вернули exit 0 (run
+`20260918T175500Z-c2add3dd`). Мост поле `networkAccess` в per-turn политике
+не задаёт, а эффективная конфигурация движка держит сеть включённой
+(`codex doctor`: «sandbox … network enabled»; в `config.toml` поля сети нет,
+источник — сводный invocation config). Правило о localhost для `--verify` /
+`--tree-setup` в скиле поэтому не заводилось; изменится движок или его
+конфигурация — перемерь тем же пробником.
 
 ## Биллинг: только ChatGPT-аккаунт, не API
 

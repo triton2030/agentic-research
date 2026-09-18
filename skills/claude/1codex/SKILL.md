@@ -122,9 +122,11 @@ python — `<backend>/.venv/bin/python`. Ярус выбирай по роду �
 `--model` и в `thread_resume`, поэтому `--continue` идёт с тем же флагом, что и
 первый ход, иначе диалог astra молча доделывает sol.
 
-Бесплатны и полезны до траты: `codex_review.py --doctor --project "$PWD"`, когда мост не работает, и
-`/Applications/ChatGPT.app/Contents/Resources/codex debug prompt-input` (в PATH
-его нет), когда неясно, что Codex получит на вход помимо твоего задания.
+Бесплатны и полезны до траты: `codex_review.py --doctor --project "$PWD"`,
+когда не работает мост; `/Applications/ChatGPT.app/Contents/Resources/codex
+doctor` (в PATH его нет), когда подозреваешь сам движок — auth, конфиг, базу
+тредов, диск; тот же бинарь с `debug prompt-input`, когда неясно, что Codex
+получит на вход помимо твоего задания.
 Остальная runtime-правда (ledger, профили sandbox, версии) живёт в
 `<backend>/README.md` и меняется вместе с кодом: сюда её не копируй, устареет
 молча.

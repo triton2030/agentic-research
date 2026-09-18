@@ -281,3 +281,20 @@ apps packages tools` — восемь файлов.
 прогона не было: форма ошибки движка взята из замера владельца и
 `openai/codex#35091`, не из собственного вызова.
 
+
+## Движок 0.155.0 под SDK 0.144.4, 2026-09-18
+
+ChatGPT.app обновил бинарь до `codex-cli 0.155.0-alpha.9.2` (файл от
+2026-09-18 21:35); последний прогон моста в этом проекте до того — 2026-09-06
+(каталог тогда описывался как 0.153.4).
+
+| Замер | Как | Результат |
+|---|---|---|
+| мост живой на новом движке | `codex_review.py` task-mode, `gpt-5.6-sol`/`medium`, run `20260918T175027Z-814e6400` (run_dir в `<backend>/_workspace/`) | `status=completed`, `ok=true`, 21 с, ledger `binary_source=chatgpt-app`; в захваченном stderr (`_workspace/codex-artifacts/audit-input-20260918/probe-…-stdout-stderr.txt`) 0 warning'ов `codex_sdk_compat` |
+| `codex agents` как поверхность владельца | pty-запуск `codex agents --no-alt-screen` из бинаря ChatGPT.app | `Error: this CLI has no complete local package; install a packaged Codex CLI or use the standalone installer` — в текущей установке недоступен; вывод сохранён в `_workspace/codex-artifacts/audit-input-20260918/codex-agents.txt` |
+| localhost из песочницы воркера (сводка `github/gh-aw#61043` по 0.154.0: «sandboxed commands can no longer reach host-local services by default»; в самих release notes фразы нет) | `codex_investigate.py` (`workspace_write`, тот же пресет, что у воркеров), внутри `curl` к `127.0.0.1:18765`, `localhost:18765`, `https://example.com`; run `20260918T175500Z-c2add3dd` | все три — exit 0, локальный http-сервер и интернет достижимы; правило про localhost в `delegate.md` не нужно |
+| нативный `codex doctor` | тот же бинарь, без TTY | работает, exit 0; сообщил 9 673 rollout-файла на 20,27 ГБ и 3 thread issues в state DB |
+
+Не доказано: поведение замка `already has an active writer` под 0.154/0.155
+(`openai/codex#43253` — read-only транскрипт при активном writer'е) для тредов
+моста не мерилось.
