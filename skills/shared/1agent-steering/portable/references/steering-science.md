@@ -117,6 +117,18 @@
 наблюдаемое свидетельство, доступное владельцу или проверяющему, а не на
 самоотчёт «выполнено».
 
+**Проба снятия.** Автор, снимающий строку, легко доказывает себе, что «цель
+уже это подразумевает»: в рефакторе `1skill-creation` четыре из пяти таких
+снятий независимые проверяющие вернули как необоснованные.[^removals] Поэтому
+снятие делится по цене нарушения. Дешёвое снятие решает автор сам. Дорогое,
+чьё нарушение по цепочке последствий бьёт по цели, проверяется свежим окном:
+агент без истории правки получает намерение без снятой строки, и смотрят его
+поведение, а не согласие. Это не вызов чистого агента на каждую правку и не
+способ управлять исполнителем: для нагрузки исполнителя работает декомпозиция.
+Проба — ворота только для дорогого снятия.
+
+[^removals]: `science/how-to-command-agents-with-text.md`, раздел «Провенанс»: волна `1skill-creation` v13–v16, 2026-09-01.
+
 [^anthropic-context]: [Anthropic, Effective context engineering for AI agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents).
 [^kaos]: [KAOS, van Lamsweerde, Goal-Oriented Requirements Engineering (RE'01)](https://webperso.info.ucl.ac.be/~avl/files/RE01.pdf).
 [^driftbench]: [DriftBench](https://arxiv.org/abs/2604.28031v2).
