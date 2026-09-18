@@ -1,0 +1,24 @@
+{
+  "/Users/triton/Documents/GitHub/agentic-research/skills/shared/1agent-steering/portable": {
+    "SKILL.md": "56b5d504ab7f64e35bf17cafe371bbb6f913f77cb8fb3b6b3d7137372a6d2c9b",
+    "references/steering-science.md": "617d0b6346068a273c1cfbe07dc0f6ac208562aed85f2d85ca7b3e5bab519b43"
+  },
+  "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1agent-steering": {
+    "SKILL.md": "56b5d504ab7f64e35bf17cafe371bbb6f913f77cb8fb3b6b3d7137372a6d2c9b",
+    "agents/openai.yaml": "cc1ee59b6019370bb1870bc50122c6a8c4ddda9ad180897cc39a000a019a9e2c",
+    "references/steering-science.md": "617d0b6346068a273c1cfbe07dc0f6ac208562aed85f2d85ca7b3e5bab519b43"
+  },
+  "/Users/triton/Documents/GitHub/agentic-research/skills/claude/1agent-steering": {
+    "SKILL.md": "56b5d504ab7f64e35bf17cafe371bbb6f913f77cb8fb3b6b3d7137372a6d2c9b",
+    "references/steering-science.md": "617d0b6346068a273c1cfbe07dc0f6ac208562aed85f2d85ca7b3e5bab519b43"
+  },
+  "/Users/triton/.codex/skills/1agent-steering": {
+    "SKILL.md": "56b5d504ab7f64e35bf17cafe371bbb6f913f77cb8fb3b6b3d7137372a6d2c9b",
+    "agents/openai.yaml": "cc1ee59b6019370bb1870bc50122c6a8c4ddda9ad180897cc39a000a019a9e2c",
+    "references/steering-science.md": "617d0b6346068a273c1cfbe07dc0f6ac208562aed85f2d85ca7b3e5bab519b43"
+  },
+  "/Users/triton/.claude/skills/1agent-steering": {
+    "SKILL.md": "56b5d504ab7f64e35bf17cafe371bbb6f913f77cb8fb3b6b3d7137372a6d2c9b",
+    "references/steering-science.md": "617d0b6346068a273c1cfbe07dc0f6ac208562aed85f2d85ca7b3e5bab519b43"
+  }
+}

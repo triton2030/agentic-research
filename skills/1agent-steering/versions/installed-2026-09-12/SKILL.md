@@ -1,9 +1,9 @@
 ---
 name: 1agent-steering
 description: >-
-  Use when creating or revising agent-facing plans, goals, instructions,
-  skills or subagent briefs: learn the steering science and explain its
-  application in chat. Not prose editing or plan execution.
+  Use when creating or revising agent-facing plans, goals, instructions or
+  skills: learn the steering science and explain its application in chat.
+  Not prose editing or plan execution.
 ---
 
 # Управление агентом через текст
@@ -40,7 +40,7 @@ description: >-
 
 [Наука управления агентом через текст](references/steering-science.md) —
 обязательный материал полного чтения при вызове: контекст, цели, сломанный
-джин, зонтичные требования, дельта, нагрузка по условиям применения,
-декомпозиция работы на задачи с целью, границами и итогом; приёмы убеждения
-и их границы. Он общий для названных носителей; формат, согласования и
-жизненный цикл остаются у их собственных контрактов.
+джин, зонтичные требования, дельта и нагрузка по условиям применения
+и минимальный одновременно применимый набор; приёмы убеждения, границы их
+доказательств и проверка влияния на поведение. Он общий для названных носителей;
+формат, согласования и жизненный цикл остаются у их собственных контрактов.
