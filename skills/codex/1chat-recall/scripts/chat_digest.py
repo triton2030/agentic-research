@@ -301,6 +301,8 @@ def _quote_card(
         "date": record.get("date"),
         "age": _relative_age(_parse_sort_datetime(record.get("sort_timestamp")), now),
     }
+    if record.get("channels"):
+        card["channels"] = record["channels"]
     for back_reference in ("superseded_by", "contested_by"):
         marker = record.get(back_reference)
         if marker:
@@ -991,8 +993,10 @@ def search_topic_candidates(
     lexical = search_topic_descriptions_bm25(cards, query)
     if not lexical:
         return [], 0
+    dense_topics: set[str] = set()
     if hybrid:
         dense = _search_dense_texts(cards, query, lambda card: card["search_text"])
+        dense_topics = {card["topic"] for card in dense[:limit]}
         dense_rank = {
             card["topic"]: rank for rank, card in enumerate(dense, 1)
         }
@@ -1010,7 +1014,7 @@ def search_topic_candidates(
         card = by_topic[topic]
         admitted_by = (
             "lexical+dense"
-            if hybrid
+            if topic in dense_topics
             else "lexical"
         )
         candidates.append(
@@ -1084,6 +1088,7 @@ def _merge_file_rankings(
     records: list[dict[str, Any]],
     rankings: tuple[list[dict[str, Any]], ...],
 ) -> list[dict[str, Any]]:
+    # Positional contract: BM25 first (all literal matches), optional dense second.
     file_rankings = tuple(
         _first_per_file(ranking)[:HYBRID_DEPTH]
         for ranking in rankings
@@ -1095,6 +1100,13 @@ def _merge_file_rankings(
             for rank, record in enumerate(ranking[:HYBRID_DEPTH], 1)
         }
         for ranking in rankings
+    )
+    evidence_addresses = tuple(
+        {record["address"] for record in ranking}
+        if index == 0 else
+        {record["address"] for record in ranking[:HYBRID_DEPTH]}
+        | {record["address"] for record in _first_per_file(ranking)[:HYBRID_DEPTH]}
+        for index, ranking in enumerate(rankings)
     )
     rank_by_file = tuple(
         {
@@ -1152,7 +1164,13 @@ def _merge_file_rankings(
             if record["address"] in seen_addresses:
                 continue
             seen_addresses.add(record["address"])
-            evidence[filename].append(record)
+            evidence[filename].append({
+                **record,
+                "channels": [
+                    name for name, addresses in zip(("bm25", "dense"), evidence_addresses)
+                    if record["address"] in addresses
+                ],
+            })
             if len(evidence[filename]) == 3:
                 break
 
@@ -1181,9 +1199,10 @@ def search_hybrid(
     query: str,
     *,
     collapse_files: bool = False,
+    allow_semantic_only: bool = True,
 ) -> list[dict[str, Any]]:
     lexical = search_bm25(records, query)
-    if not lexical:
+    if not records or (not lexical and not allow_semantic_only):
         return []
     dense = search_dense(records, query)
     rankings = (lexical, dense)
@@ -1201,8 +1220,17 @@ def search_hybrid(
             scores,
             key=lambda address: (-scores[address], original_order[address]),
         )
+        channel_addresses = [
+            {record["address"] for record in ranking}
+            if index == 0 else
+            {record["address"] for record in ranking[:HYBRID_DEPTH]}
+            for index, ranking in enumerate(rankings)
+        ]
         return [
-            {**representatives[address], "score": scores[address]}
+            {**representatives[address], "score": scores[address], "channels": [
+                name for name, addresses in zip(("bm25", "dense"), channel_addresses)
+                if address in addresses
+            ]}
             for address in ordered
         ]
 
@@ -1253,7 +1281,11 @@ def _query_conflicts(records: list[dict[str, Any]], args: argparse.Namespace) ->
         routes, _ = search_session_routes(disputed, args.query, hybrid=False)
     else:
         with _hybrid_queue():
-            ranking = search_hybrid(disputed, args.query, collapse_files=False)
+            # Conflicts trigger a different reader action from candidate sources.
+            # Keep their previous admission until semantic conflict relevance is validated.
+            ranking = search_hybrid(
+                disputed, args.query, collapse_files=False, allow_semantic_only=False
+            )
             routes, _ = search_session_routes(disputed, args.query, hybrid=True)
     quote_addresses = {r["address"] for r in ranking}
     hits = list(ranking)
@@ -1584,6 +1616,7 @@ def _summary(record: dict[str, Any]) -> dict[str, Any]:
         "contested_by",
         "diagnostics",
         "score",
+        "channels",
     )
     summary = {field: record[field] for field in fields if field in record}
     if "date" not in summary:
@@ -1775,6 +1808,8 @@ def _render_holders(
     total: int,
     truncated_by: str | None,
     retrieval: str,
+    lexical_matched: int | None = None,
+    eligible_records: int | None = None,
 ) -> str:
     status = (
         f"{len(cards)}/{matched} holders shown · {total} records · "
@@ -1785,6 +1820,12 @@ def _render_holders(
     topics = topic_candidates or []
     if topic_matched or topics:
         status += f" · {len(topics)}/{topic_matched} topic candidates"
+    if lexical_matched is not None:
+        status += f" · lexical_matched={lexical_matched}"
+        if eligible_records == 0:
+            status += " · warning=no-eligible-records"
+        elif lexical_matched == 0:
+            status += " · warning=no-lexical-match"
     lines = [status]
     domain = _domain_verdict(_DENSE_TOP1)
     if domain is not None:
@@ -1802,8 +1843,9 @@ def _render_holders(
         strongest = card["strongest_quote"]
         if strongest:
             text = " ".join(strongest["text"].split())
+            via = "+".join(strongest.get("channels", [])) or "unknown"
             lines.append(
-                f"strongest-quote: {text} · date={strongest['date'] or 'unknown'} · "
+                f"strongest-quote: {text} · via={via} · date={strongest['date'] or 'unknown'} · "
                 f"age={strongest['age']} · {strongest['address']} · "
                 f"supporting={card['supporting_quote_count']}"
             )
@@ -1836,6 +1878,8 @@ def _bounded_holder_cards(
     total: int,
     max_chars: int,
     retrieval: str,
+    lexical_matched: int | None = None,
+    eligible_records: int | None = None,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], str | None]:
     selected: list[dict[str, Any]] = []
     truncated_by: str | None = None
@@ -1847,6 +1891,8 @@ def _bounded_holder_cards(
             total=total,
             truncated_by=("max_chars" if len(candidate) < len(cards) else None),
             retrieval=retrieval,
+            lexical_matched=lexical_matched,
+            eligible_records=eligible_records,
         )
         if len(rendered) > max_chars:
             truncated_by = "max_chars"
@@ -1872,6 +1918,8 @@ def _bounded_holder_cards(
                 else truncated_by
             ),
             retrieval=retrieval,
+            lexical_matched=lexical_matched,
+            eligible_records=eligible_records,
         )
         if len(rendered) > max_chars:
             truncated_by = "max_chars"
@@ -2031,6 +2079,8 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> int:
+    global _DENSE_TOP1
+    _DENSE_TOP1 = None
     try:
         args = build_parser().parse_args()
         if args.prepare:
@@ -2085,6 +2135,10 @@ def main() -> int:
         link_supersessions(records)
         diagnostic_count = sum(bool(record["diagnostics"]) for record in records)
         total = len(records)
+        # Count exactly the same eligible set as ordinary holder retrieval.
+        eligible = _decision_records(_filter(records, args)) if holder_mode else []
+        eligible_records = len(eligible) if holder_mode else None
+        lexical_matched = len(search_bm25(eligible, args.query)) if holder_mode else None
         session_routes: list[dict[str, Any]] = []
         card_route: str | None = None
         holder_cards: list[dict[str, Any]] = []
@@ -2092,6 +2146,7 @@ def main() -> int:
         topic_candidate_count = 0
         candidate_count = 0
         conflicts = _query_conflicts(records, args) if holder_mode else []
+        _DENSE_TOP1 = None  # The query-domain verdict belongs to ordinary candidates.
         conflict_matched = len(conflicts)
         conflicts = conflicts[:args.limit]
         conflict_text = ""
@@ -2157,6 +2212,8 @@ def main() -> int:
                     topic_matched=topic_candidate_count,
                     matched=matched, total=total, truncated_by="max_chars",
                     retrieval=retrieval or "lexical",
+                    lexical_matched=lexical_matched,
+                    eligible_records=eligible_records,
                 )
                 while conflicts and len(conflict_text) + len(minimum_holders) > args.max_chars:
                     conflicts.pop()
@@ -2173,6 +2230,8 @@ def main() -> int:
                     total=total,
                     max_chars=args.max_chars - len(conflict_text),
                     retrieval=retrieval or "lexical",
+                    lexical_matched=lexical_matched,
+                    eligible_records=eligible_records,
                 )
                 if character_truncation:
                     truncated_by = character_truncation
@@ -2251,6 +2310,11 @@ def main() -> int:
             "warnings": _warnings(reported_records),
         }
         if holder_mode:
+            envelope["lexical_matched"] = lexical_matched
+            if eligible_records == 0:
+                envelope["warnings"].append("no-eligible-records")
+            elif lexical_matched == 0:
+                envelope["warnings"].append("no-lexical-match")
             envelope["conflict_matched"] = conflict_matched
             if conflict_matched:
                 envelope.update(
@@ -2366,6 +2430,8 @@ def main() -> int:
                     total=total,
                     truncated_by=truncated_by,
                     retrieval=retrieval or "lexical",
+                    lexical_matched=lexical_matched,
+                    eligible_records=eligible_records,
                 )
             )
         else:

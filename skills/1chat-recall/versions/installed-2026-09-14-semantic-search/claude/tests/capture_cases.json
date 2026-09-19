@@ -1,0 +1,1165 @@
+{
+ "schema": 1,
+ "denominator": "правила производных слоёв: ~/.claude/CLAUDE.md, AGENTS.md, память проекта. Знаменатель взят ВНЕ корпуса.",
+ "unit": "session holder: опора засчитывается, если позиция владельца лежит в одном из выданных скилом файлов",
+ "search": "полный dense-текст записи (цитата + context-note): note называет вещи своими именами, когда цитата сформулирована как попало",
+ "verdict_rule": "вердикт всегда ссылается на строку с цитатой владельца; совпадение только с context-note опорой не считается",
+ "measured": "2026-08-20, корпус 953 записи / 165 holder-ов",
+ "scale": {
+  "опора": "позиция владельца сказана прямо",
+  "частичная": "сказана смежная позиция, часть правила выведена агентом",
+  "нет": "в выданных сессиях позиции нет",
+  "противоречие": "более поздняя цитата отменяет правило",
+  "н/п": "файл памяти не правило владельца, а запись о работе"
+ },
+ "rules": [
+  {
+   "id": "G-01",
+   "layer": "global-claude-md",
+   "class": "owner-attributed",
+   "source": "~/.claude/CLAUDE.md:3-4",
+   "rule": "Владелец — соло-стартап, один на все роли: продукт, разработка, маркетинг",
+   "verdict": "нет"
+  },
+  {
+   "id": "G-02",
+   "layer": "global-claude-md",
+   "class": "owner-attributed",
+   "source": "~/.claude/CLAUDE.md:3-4",
+   "rule": "Владелец не программист: код пишет агент, владелец ревизует смысл и структуру",
+   "verdict": "частичная",
+   "evidence": "2026-08-08-135137-claude-457be55d.md:24"
+  },
+  {
+   "id": "G-03",
+   "layer": "global-claude-md",
+   "class": "owner-attributed",
+   "source": "~/.claude/CLAUDE.md:4-6",
+   "rule": "20 лет в 3D-графике, 10 лет в стартапах и маркетинге; термины понимает, чужой код не читает",
+   "verdict": "опора",
+   "evidence": "2026-08-08-135137-claude-457be55d.md:24",
+   "query_short": "кто владелец по опыту"
+  },
+  {
+   "id": "G-04",
+   "layer": "global-claude-md",
+   "class": "owner-attributed",
+   "source": "~/.claude/CLAUDE.md:6-7",
+   "rule": "Всё прочитать не успевает — модульность и читаемость для него выживание",
+   "verdict": "нет"
+  },
+  {
+   "id": "G-05",
+   "layer": "global-claude-md",
+   "class": "owner-attributed",
+   "source": "~/.claude/CLAUDE.md:7-8",
+   "rule": "Промт владельца почти всегда неполон: агент должен читать ситуацию — чего он добивается, что сохранить, чего избежать",
+   "verdict": "опора",
+   "evidence": "2026-08-14-201233-codex-01a000d3.md:17",
+   "query_short": "владелец плохо формулирует просьбы"
+  },
+  {
+   "id": "G-06",
+   "layer": "global-claude-md",
+   "class": "owner-attributed",
+   "source": "~/.claude/CLAUDE.md:12-14",
+   "rule": "Каждый ход агента продвигает проект так, как сделал бы лучший профессионал, и это можно проверить не веря на слово",
+   "verdict": "опора",
+   "evidence": "2026-08-11-183344-claude-6bb7881b.md:18",
+   "query_short": "агент доказывает свои утверждения"
+  },
+  {
+   "id": "G-07",
+   "layer": "global-claude-md",
+   "class": "owner-attributed",
+   "source": "~/.claude/CLAUDE.md:13-14",
+   "rule": "Что не служит цели — не делается, даже если заказано владельцем",
+   "verdict": "опора",
+   "evidence": "2026-08-09-192537-codex-019fe6e9.md:25",
+   "query_short": "буквальное выполнение просьбы вредит проекту"
+  },
+  {
+   "id": "G-08",
+   "layer": "global-claude-md",
+   "class": "owner-attributed",
+   "source": "~/.claude/CLAUDE.md:16-18",
+   "rule": "Существенное предложение начинай с того, как это делают лучшие, и называй опору по имени: методология, стандарт, компания, автор",
+   "verdict": "опора",
+   "evidence": "2026-08-11-181825-codex-019ff0f9.md:16",
+   "query_short": "опираться на лучшие практики"
+  },
+  {
+   "id": "G-09",
+   "layer": "global-claude-md",
+   "class": "owner-attributed",
+   "source": "~/.claude/CLAUDE.md:18-19",
+   "rule": "Нет источника — пиши «общая практика» или «моё мнение», это честный ответ, не провал",
+   "verdict": "нет"
+  },
+  {
+   "id": "G-10",
+   "layer": "global-claude-md",
+   "class": "owner-attributed",
+   "source": "~/.claude/CLAUDE.md:19-20",
+   "rule": "У существенного утверждения покажи чем проверено; нет ответа — пиши «непроверено»",
+   "verdict": "частичная",
+   "evidence": "2026-08-09-150249-codex-019fe5f7.md:24"
+  },
+  {
+   "id": "G-11",
+   "layer": "global-claude-md",
+   "class": "owner-attributed",
+   "source": "~/.claude/CLAUDE.md:22-24",
+   "rule": "Документы и код вести по KISS/YAGNI и DRY после реального повтора: достаточный минимум даже ценой неудобства владельца",
+   "verdict": "опора",
+   "evidence": "2026-08-18-135026-claude-a42b965e.md:15",
+   "query_short": "KISS YAGNI DRY в коде и документах"
+  },
+  {
+   "id": "G-12",
+   "layer": "global-claude-md",
+   "class": "owner-attributed",
+   "source": "~/.claude/CLAUDE.md:24",
+   "rule": "Непрошеных улучшений не предлагать",
+   "verdict": "нет"
+  },
+  {
+   "id": "G-13",
+   "layer": "global-claude-md",
+   "class": "owner-attributed",
+   "source": "~/.claude/CLAUDE.md:24-26",
+   "rule": "Перед написанием своего кода искать готовое — библиотеки, приложения, сервисы; запускать агентов-исследователей интернета",
+   "verdict": "опора",
+   "evidence": "2026-08-04-215717-codex-019fcdb4.md:17",
+   "query_short": "искать готовые решения вместо своего кода"
+  },
+  {
+   "id": "G-14",
+   "layer": "global-claude-md",
+   "class": "owner-attributed",
+   "source": "~/.claude/CLAUDE.md:28-30",
+   "rule": "Просьба владельца — направление, не истина; сверь её с реальностью проекта и практикой",
+   "verdict": "опора",
+   "evidence": "2026-08-11-183344-claude-6bb7881b.md:19",
+   "query_short": "не воспринимать просьбу буквально"
+  },
+  {
+   "id": "G-15",
+   "layer": "global-claude-md",
+   "class": "owner-attributed",
+   "source": "~/.claude/CLAUDE.md:29-30",
+   "rule": "Одной строкой назови, почему этот ход — верный следующий шаг именно сейчас",
+   "verdict": "нет"
+  },
+  {
+   "id": "G-16",
+   "layer": "global-claude-md",
+   "class": "owner-attributed",
+   "source": "~/.claude/CLAUDE.md:30-32",
+   "rule": "Если просьба расходится с практикой — скажи прямо и предложи ход по практике",
+   "verdict": "опора",
+   "evidence": "2026-08-10-151230-codex-019feb11.md:22",
+   "query_short": "предлагать варианты решения"
+  },
+  {
+   "id": "G-17",
+   "layer": "global-claude-md",
+   "class": "owner-attributed",
+   "source": "~/.claude/CLAUDE.md:34-35",
+   "rule": "Решай сам смело и доводи работу до полного конца; решение оценивается только в готовой работе, не в куске спеки",
+   "verdict": "опора",
+   "evidence": "2026-08-11-050000-claude-97cc05a9.md:21",
+   "query_short": "доводить работу до конца"
+  },
+  {
+   "id": "G-18",
+   "layer": "global-claude-md",
+   "class": "owner-attributed",
+   "source": "~/.claude/CLAUDE.md:35-37",
+   "rule": "Внутри проекта опасных действий нет пока GitHub свежий; коммить и пушь часто, откат страхует любой смелый ход",
+   "verdict": "опора",
+   "evidence": "2026-08-11-050000-claude-97cc05a9.md:20",
+   "query_short": "коммитить в GitHub чаще"
+  },
+  {
+   "id": "G-19",
+   "layer": "global-claude-md",
+   "class": "owner-attributed",
+   "source": "~/.claude/CLAUDE.md:37-38",
+   "rule": "Необратимо лишь внешнее — деплой, прод, траты — и потеря невосстановимого",
+   "verdict": "опора",
+   "evidence": "2026-08-11-050000-claude-97cc05a9.md:20",
+   "query_short": "опасные действия агента"
+  },
+  {
+   "id": "G-20",
+   "layer": "global-claude-md",
+   "class": "owner-attributed",
+   "source": "~/.claude/CLAUDE.md:38-41",
+   "rule": "Развилку, пустоту или недостающий вход закрывай выводом по 1use-principles и записывай сразу с provenance «выведено», не дожидаясь «да» владельца",
+   "verdict": "опора",
+   "evidence": "2026-08-08-135005-claude-dfa9fb5c.md:67",
+   "query_short": "выводить решение по принципам"
+  },
+  {
+   "id": "G-21",
+   "layer": "global-claude-md",
+   "class": "owner-attributed",
+   "source": "~/.claude/CLAUDE.md:41",
+   "rule": "Где живой скил требует «да» владельца — требование скила сильнее автономии",
+   "verdict": "опора",
+   "evidence": "2026-08-14-201110-codex-019fff9f.md:16",
+   "query_short": "скил требует утверждения владельца"
+  },
+  {
+   "id": "G-22",
+   "layer": "global-claude-md",
+   "class": "owner-attributed",
+   "source": "~/.claude/CLAUDE.md:43-46",
+   "rule": "Перед первым существенным решением и перед тем что переживёт ход — восстанови прежние слова владельца через 1chat-recall",
+   "verdict": "опора",
+   "evidence": "2026-08-08-190948-claude-60e39467.md:24",
+   "query_short": "использовать chat-recall"
+  },
+  {
+   "id": "G-23",
+   "layer": "global-claude-md",
+   "class": "owner-attributed",
+   "source": "~/.claude/CLAUDE.md:45-46",
+   "rule": "Результат retrieval — применимая позиция либо честный gap, а не отдельная цитата",
+   "verdict": "опора",
+   "evidence": "2026-08-19-221010-claude-3a023b71.md:35",
+   "query_short": "отдавать сессию целиком а не цитату"
+  },
+  {
+   "id": "G-24",
+   "layer": "global-claude-md",
+   "class": "owner-attributed",
+   "source": "~/.claude/CLAUDE.md:46",
+   "rule": "На продуктовой работе проверяй продуктовые рамки в _ops/product-frames",
+   "verdict": "опора",
+   "evidence": "2026-08-06-141534-claude-481c094d.md:23",
+   "query_short": "читать продуктовые рамки перед работой"
+  },
+  {
+   "id": "G-25",
+   "layer": "global-claude-md",
+   "class": "owner-attributed",
+   "source": "~/.claude/CLAUDE.md:47-48",
+   "rule": "Сроки, коррекции и живые границы в продуктовые рамки по жанру не попадают — они есть только в цитатах, рамки их не заменяют",
+   "verdict": "частичная",
+   "evidence": "2026-08-05-144851-codex-019fd153.md:38"
+  },
+  {
+   "id": "G-26",
+   "layer": "global-claude-md",
+   "class": "owner-attributed",
+   "source": "~/.claude/CLAUDE.md:48-49",
+   "rule": "Важный новый тезис владельца записывать сразу тем же скилом chat-recall",
+   "verdict": "опора",
+   "evidence": "2026-07-22-105500-claude-d8a832a4.md:20",
+   "query_short": "записывать цитаты владельца"
+  },
+  {
+   "id": "G-27",
+   "layer": "global-claude-md",
+   "class": "owner-attributed",
+   "source": "~/.claude/CLAUDE.md:49-50",
+   "rule": "Разговор владельца про устройство продукта — как работает, для кого, что важнее — это вход в 1product-shaping, а не просто разговор",
+   "verdict": "опора",
+   "evidence": "2026-08-04-161131-codex-019fcc75.md:22",
+   "query_short": "разговор про продукт"
+  },
+  {
+   "id": "G-28",
+   "layer": "global-claude-md",
+   "class": "owner-attributed",
+   "source": "~/.claude/CLAUDE.md:52-55",
+   "rule": "Запись в файлы опасна: только допустимое типом файла и минимально достаточное; свежий агент примет записанное за правду, поэтому голая догадка не записывается",
+   "verdict": "опора",
+   "evidence": "2026-08-09-150249-codex-019fe5f7.md:21",
+   "query_short": "что нельзя писать в файлы"
+  },
+  {
+   "id": "G-29",
+   "layer": "global-claude-md",
+   "class": "owner-attributed",
+   "source": "~/.claude/CLAUDE.md:59",
+   "rule": "В чате писать по-русски и без программистского жаргона, язык веб-дизайна допустим",
+   "verdict": "нет"
+  },
+  {
+   "id": "G-30",
+   "layer": "global-claude-md",
+   "class": "owner-attributed",
+   "source": "~/.claude/CLAUDE.md:59-60",
+   "rule": "Крупные заголовки в чате: владелец ориентируется визуально",
+   "verdict": "опора",
+   "evidence": "2026-08-06-141534-claude-481c094d.md:26",
+   "query_short": "крупные заголовки в чате"
+  },
+  {
+   "id": "G-31",
+   "layer": "global-claude-md",
+   "class": "owner-attributed",
+   "source": "~/.claude/CLAUDE.md:60-61",
+   "rule": "В файлах писать телеграфно; перед сдачей перечитать глазами свежего агента и показать что вырезал",
+   "verdict": "опора",
+   "evidence": "2026-08-08-135137-claude-457be55d.md:32",
+   "query_short": "телеграфный стиль в документах"
+  },
+  {
+   "id": "G-32",
+   "layer": "global-claude-md",
+   "class": "owner-attributed",
+   "source": "~/.claude/CLAUDE.md:61",
+   "rule": "Побочную проблему записывать строкой через 1findings и продолжать прерванное дело",
+   "verdict": "опора",
+   "evidence": "2026-08-09-171636-Codex-019fe662.md:21",
+   "query_short": "побочные находки"
+  },
+  {
+   "id": "G-33",
+   "layer": "global-claude-md",
+   "class": "owner-attributed",
+   "source": "~/.claude/CLAUDE.md:62-63",
+   "rule": "Финал существенной работы — один абзац мнения от названной профессиональной роли: главный риск или полезный ход",
+   "verdict": "опора",
+   "evidence": "2026-08-11-181825-codex-019ff0f9.md:17",
+   "query_short": "финальный абзац мнения"
+  },
+  {
+   "id": "A-01",
+   "layer": "repo-agents-md",
+   "class": "owner-attributed",
+   "source": "AGENTS.md:2-3",
+   "rule": "В этом репо работать как хранитель agentic-research: усиливать глобальную инструкцию локальной правдой, не повторять её",
+   "verdict": "нет"
+  },
+  {
+   "id": "A-02",
+   "layer": "repo-agents-md",
+   "class": "owner-attributed",
+   "source": "AGENTS.md:7-11",
+   "rule": "Продукт этого репозитория всегда снаружи репо — глобальные скилы и общие паттерны инструкций; knowledge и разговоры обслуживают эту цель",
+   "verdict": "нет"
+  },
+  {
+   "id": "A-03",
+   "layer": "repo-agents-md",
+   "class": "owner-attributed",
+   "source": "AGENTS.md:11-12",
+   "rule": "Правка скила — глобальный cross-project артефакт, писать project-independent",
+   "verdict": "опора",
+   "evidence": "2026-07-26-163413-claude-2be60fdc.md:19",
+   "query_short": "скилы глобальные для всех проектов"
+  },
+  {
+   "id": "A-04",
+   "layer": "repo-agents-md",
+   "class": "owner-attributed",
+   "source": "AGENTS.md:12-14",
+   "rule": "Если у пакета есть tracked owner в skills или experiments — правим его, а глобальную установку считаем проекцией",
+   "verdict": "частичная",
+   "evidence": "2026-08-13-165535-codex-019ffaf7.md:19"
+  },
+  {
+   "id": "A-05",
+   "layer": "repo-agents-md",
+   "class": "owner-attributed",
+   "source": "AGENTS.md:14-16",
+   "rule": "Если tracked owner отсутствует, установленный пакет остаётся единственной правдой; не выдумывать parity и второй source tree",
+   "verdict": "опора",
+   "evidence": "2026-08-09-202532-codex-019fe71b.md:15",
+   "query_short": "установленные скилы это правда"
+  },
+  {
+   "id": "A-06",
+   "layer": "repo-agents-md",
+   "class": "owner-attributed",
+   "source": "AGENTS.md:16-17",
+   "rule": "experiments — независимые под-проекты со своей правдой",
+   "verdict": "нет"
+  },
+  {
+   "id": "A-07",
+   "layer": "repo-agents-md",
+   "class": "owner-attributed",
+   "source": "AGENTS.md:21-23",
+   "rule": "Цель репо — делать систему скилов, хуков, промптов и знаний понятнее для будущей ИИ-сессии под рабочий набор моделей",
+   "verdict": "опора",
+   "evidence": "2026-08-08-135005-claude-dfa9fb5c.md:43",
+   "query_short": "зачем нужны агентные инструкции"
+  },
+  {
+   "id": "A-08",
+   "layer": "repo-agents-md",
+   "class": "owner-attributed",
+   "source": "AGENTS.md:23-25",
+   "rule": "Канон не расширяется до model-neutral; старые OpenAI-модели остаются историческим evidence, не рабочим target",
+   "verdict": "нет"
+  },
+  {
+   "id": "A-09",
+   "layer": "repo-agents-md",
+   "class": "owner-attributed",
+   "source": "AGENTS.md:29-31",
+   "rule": "Стартовать от _ops/GOAL.md и живых SKILL.md; README — входной контекст",
+   "verdict": "опора",
+   "evidence": "2026-04-28-111714-claude-74356077.md:17",
+   "query_short": "файл цели и рамки"
+  },
+  {
+   "id": "A-10",
+   "layer": "repo-agents-md",
+   "class": "owner-attributed",
+   "source": "AGENTS.md:33-34",
+   "rule": "До первого существенного суждения прочитать целиком project-wide пару продуктовых рамок",
+   "verdict": "опора",
+   "evidence": "2026-08-05-000000-codex-019fd2d3.md:15",
+   "query_short": "читать рамки до суждения"
+  },
+  {
+   "id": "A-11",
+   "layer": "repo-agents-md",
+   "class": "owner-attributed",
+   "source": "AGENTS.md:34-37",
+   "rule": "При правке скила найти ровно одну tracked owner-папку с product-frame и прочитать весь набор; несколько таких папок — owner-conflict",
+   "verdict": "опора",
+   "evidence": "2026-08-09-124507-codex-019fe57b.md:15",
+   "query_short": "рамки по папкам скилов"
+  },
+  {
+   "id": "A-12",
+   "layer": "repo-agents-md",
+   "class": "owner-attributed",
+   "source": "AGENTS.md:37-38",
+   "rule": "Product Frame владеет продуктовым намерением, живой SKILL.md — runtime-контрактом",
+   "verdict": "частичная",
+   "evidence": "2026-08-08-134900-codex-019fe08d.md:24"
+  },
+  {
+   "id": "A-13",
+   "layer": "repo-agents-md",
+   "class": "owner-attributed",
+   "source": "AGENTS.md:38",
+   "rule": "Рамки неприменимых скилов заранее не читаются",
+   "verdict": "нет"
+  },
+  {
+   "id": "A-14",
+   "layer": "repo-agents-md",
+   "class": "owner-attributed",
+   "source": "AGENTS.md:42-44",
+   "rule": "Skill contract сильнее старых repo notes: расходятся живой SKILL.md и инструкция — следуй SKILL.md",
+   "verdict": "нет"
+  },
+  {
+   "id": "A-15",
+   "layer": "repo-agents-md",
+   "class": "owner-attributed",
+   "source": "AGENTS.md:45-47",
+   "rule": "Перед правкой skill, agent или instruction начинать с ближайшего knowledge/wisdom и одного guide",
+   "verdict": "нет"
+  },
+  {
+   "id": "A-16",
+   "layer": "repo-agents-md",
+   "class": "owner-attributed",
+   "source": "AGENTS.md:48-49",
+   "rule": "До принятия любого нового или переписанного скила обязательно вызвать 1skill-shaping и провести когнитивный аудит черновика",
+   "verdict": "опора",
+   "evidence": "2026-08-05-205001-codex-019fd29d.md:17",
+   "query_short": "как писать скилы протокол"
+  },
+  {
+   "id": "A-17",
+   "layer": "repo-agents-md",
+   "class": "owner-attributed",
+   "source": "AGENTS.md:49-51",
+   "rule": "Наблюдаемый гейт обязателен всегда: правило без предъявляемого следа соблюдается в единицах процентов",
+   "verdict": "опора",
+   "evidence": "2026-08-08-134900-codex-019fe08d.md:28",
+   "query_short": "доказывать соблюдение правила"
+  },
+  {
+   "id": "A-18",
+   "layer": "repo-agents-md",
+   "class": "owner-attributed",
+   "source": "AGENTS.md:51-55",
+   "rule": "Требовать операцию — процитируй строку, назови источник — а не совет о мышлении вроде «рассмотри несколько подходов»",
+   "verdict": "опора",
+   "evidence": "2026-08-10-150726-claude-f93c43cf.md:18",
+   "query_short": "убрать советы о мышлении"
+  },
+  {
+   "id": "A-19",
+   "layer": "repo-agents-md",
+   "class": "owner-attributed",
+   "source": "AGENTS.md:55-56",
+   "rule": "Голая последовательность шагов и checklist compliance ничего не доказывают",
+   "verdict": "опора",
+   "evidence": "2026-08-08-134900-codex-019fe08d.md:27",
+   "query_short": "чтение не равно соблюдение"
+  },
+  {
+   "id": "A-20",
+   "layer": "repo-agents-md",
+   "class": "owner-attributed",
+   "source": "AGENTS.md:56-57",
+   "rule": "Скил нельзя писать без разговора с владельцем и его «да»",
+   "verdict": "опора",
+   "evidence": "2026-08-08-135005-claude-dfa9fb5c.md:33",
+   "query_short": "скилы только с моим утверждением"
+  },
+  {
+   "id": "A-21",
+   "layer": "repo-agents-md",
+   "class": "owner-attributed",
+   "source": "AGENTS.md:61-67",
+   "rule": "В experiments править субтри от локальной инструкции, а не от корневой; эти папки не входят в scope GOAL",
+   "verdict": "нет"
+  },
+  {
+   "id": "A-22",
+   "layer": "repo-agents-md",
+   "class": "owner-attributed",
+   "source": "AGENTS.md:71-73",
+   "rule": "GitHub здесь backup-диск локального main: коммить и пушь свободно, без веток, без спроса",
+   "verdict": "опора",
+   "evidence": "2026-08-11-183344-claude-6bb7881b.md:24",
+   "query_short": "гитхаб коммиты"
+  },
+  {
+   "id": "A-23",
+   "layer": "repo-agents-md",
+   "class": "owner-attributed",
+   "source": "AGENTS.md:77-78",
+   "rule": "Перед финалом показывать только существенное evidence: что изменено, чем проверено, какие риски остались; писать по-русски и коротко",
+   "verdict": "опора",
+   "evidence": "2026-08-08-135137-claude-457be55d.md:29",
+   "query_short": "финальный отчёт"
+  },
+  {
+   "id": "M-feedback_autonomy_bold_derivation",
+   "layer": "memory",
+   "class": "owner-attributed",
+   "source": "memory/feedback_autonomy_bold_derivation.md",
+   "rule": "Курс 2026-08-11 — автономия и смелость; качественный вывод действует без «да» владельца",
+   "verdict": "опора",
+   "evidence": "2026-08-11-183344-claude-6bb7881b.md:21",
+   "query_short": "автономность агента"
+  },
+  {
+   "id": "M-feedback_ceremony",
+   "layer": "memory",
+   "class": "owner-attributed",
+   "source": "memory/feedback_ceremony.md",
+   "rule": "User rejects over-engineered execution workflows (multi-stage review, self-application tests, worktrees) when the task itself is a simple content/markdown write.",
+   "verdict": "опора",
+   "evidence": "2026-08-11-163847-codex-019ff09d.md:34",
+   "query_short": "простые системы лучше"
+  },
+  {
+   "id": "M-feedback_codex_generous_proactive",
+   "layer": "memory",
+   "class": "owner-attributed",
+   "source": "memory/feedback_codex_generous_proactive.md",
+   "rule": "Зови Codex щедро и проактивно — кредиты подписки use-it-or-lose-it, Codex/Claude комплементарны",
+   "verdict": "опора",
+   "evidence": "2026-08-14-122215-claude-2e4e5183.md:41",
+   "query_short": "вызывать кодекс чаще"
+  },
+  {
+   "id": "M-feedback_cognitive_skill_review",
+   "layer": "memory",
+   "class": "owner-attributed",
+   "source": "memory/feedback_cognitive_skill_review.md",
+   "rule": "Ревью скила = сначала научно-когнитивный анализ переноса знаний (каналы жанр > экономика > словарь), тех-поправки вторичны; коррекция владельца 2026-08-04.",
+   "verdict": "опора",
+   "evidence": "2026-08-04-124042-claude-3f4b2db2.md:23",
+   "query_short": "как ревьюить скил"
+  },
+  {
+   "id": "M-feedback_commit_freely",
+   "layer": "memory",
+   "class": "owner-attributed",
+   "source": "memory/feedback_commit_freely.md",
+   "rule": "Solo project — commit and push freely to main, no asking, no branching; GitHub is a backup drive.",
+   "verdict": "опора",
+   "evidence": "2026-08-11-183344-claude-6bb7881b.md:24",
+   "query_short": "гитхаб коммиты"
+  },
+  {
+   "id": "M-feedback_concept_to_skill_substance",
+   "layer": "memory",
+   "class": "owner-attributed",
+   "source": "memory/feedback_concept_to_skill_substance.md",
+   "rule": "When converting a user-authored concept document (essay, framework, methodology) into a skill, agent, or instruction, extract the underlying mechanism and the intended user-facing effect, not the surface vocabulary; cargo-cult of terms produces form without function.",
+   "verdict": "нет"
+  },
+  {
+   "id": "M-feedback_corrections_as_test_corpus",
+   "layer": "memory",
+   "class": "owner-attributed",
+   "source": "memory/feedback_corrections_as_test_corpus.md",
+   "rule": "Ревизия инструкций проверяется корпусом дословных коррекций владельца из _ops/chat-recall (--type коррекция/обо-мне), а не вкусом ревизора",
+   "verdict": "частичная",
+   "evidence": "2026-08-14-124028-codex-019fff2e.md:21"
+  },
+  {
+   "id": "M-feedback_criticism_theater",
+   "layer": "memory",
+   "class": "owner-attributed",
+   "source": "memory/feedback_criticism_theater.md",
+   "rule": "User flagged that I manufacture non-existent problems to look non-sycophantic; criticism-theater is sycophancy's mirror, softened the root instruction.",
+   "verdict": "нет"
+  },
+  {
+   "id": "M-feedback_description_compression_phase2",
+   "layer": "memory",
+   "class": "owner-attributed",
+   "source": "memory/feedback_description_compression_phase2.md",
+   "rule": "Compressing skill trigger-descriptions means proper Фаза-2 (указатель-не-выжимка + budget), not surface trimming.",
+   "verdict": "частичная",
+   "evidence": "2026-08-06-215508-claude-224b8c51.md:28"
+  },
+  {
+   "id": "M-feedback_description_recognizable_cases",
+   "layer": "memory",
+   "class": "owner-attributed",
+   "source": "memory/feedback_description_recognizable_cases.md",
+   "rule": "Skill description must list recognizable request cases, not ask the agent to classify its own move; measured trigger failure 2026-08-11.",
+   "verdict": "опора",
+   "evidence": "2026-08-08-135005-claude-dfa9fb5c.md:63",
+   "query_short": "триггерное описание скила"
+  },
+  {
+   "id": "M-feedback_embedding_chunking",
+   "layer": "memory",
+   "class": "owner-attributed",
+   "source": "memory/feedback_embedding_chunking.md",
+   "rule": "For retrieval over Markdown, chunks must be heading-bounded AND long sections sub-chunked to ~400 tokens; otherwise model max_seq_length silently truncates dense recall tails",
+   "verdict": "нет"
+  },
+  {
+   "id": "M-feedback_global_skill_project_independent",
+   "layer": "memory",
+   "class": "owner-attributed",
+   "source": "memory/feedback_global_skill_project_independent.md",
+   "rule": "editing a global (1*) skill — keep every word true from ANY project, not just the repo you're standing in; verify from a foreign-cwd lens.",
+   "verdict": "опора",
+   "evidence": "2026-07-26-163413-claude-2be60fdc.md:19",
+   "query_short": "скил глобальный"
+  },
+  {
+   "id": "M-feedback_instruction_over_code",
+   "layer": "memory",
+   "class": "owner-attributed",
+   "source": "memory/feedback_instruction_over_code.md",
+   "rule": "Владелец 2026-08-18 — в скиле многое дешевле написать инструкцией агенту, чем чинить кодом; когда исключение оправдано",
+   "verdict": "опора",
+   "evidence": "2026-08-18-143416-claude-9d58ffa2.md:18",
+   "query_short": "инструкция агенту вместо кода"
+  },
+  {
+   "id": "M-feedback_large_work_orchestration",
+   "layer": "memory",
+   "class": "owner-attributed",
+   "source": "memory/feedback_large_work_orchestration.md",
+   "rule": "For multi-file refactors/audits, run dependency-ordered Workflow waves with halt-on-red test barriers and file-disjoint parallelism; never trust subagent self-reports — re-verify; a refactor isn't done until owner-contracts/docs are synced with code.",
+   "verdict": "нет"
+  },
+  {
+   "id": "M-feedback_marketplace_version_bump",
+   "layer": "memory",
+   "class": "owner-attributed",
+   "source": "memory/feedback_marketplace_version_bump.md",
+   "rule": "When editing any skill file inside a marketplace plugin (~/.claude/marketplaces/<name>/skills/), always bump version in both .claude-plugin/plugin.json and .claude-plugin/marketplace.json; Claude Code cache invalidation is version-driven, so same-version edits are silently invisible to the user even after `/plugin update`.",
+   "verdict": "частичная",
+   "evidence": "2026-08-03-232246-codex-019fc8d8.md:33"
+  },
+  {
+   "id": "M-feedback_moment_layer_no_skip",
+   "layer": "memory",
+   "class": "owner-attributed",
+   "source": "memory/feedback_moment_layer_no_skip.md",
+   "rule": "Even on routine skill-install or boilerplate file writes, run the moment-of-action orientation/scope check before substantive Edit/Write — user flagged this miss explicitly.",
+   "verdict": "опора",
+   "evidence": "2026-08-08-135005-claude-dfa9fb5c.md:68",
+   "query_short": "проверять принципы перед записью"
+  },
+  {
+   "id": "M-feedback_no_hooks",
+   "layer": "memory",
+   "class": "owner-attributed",
+   "source": "memory/feedback_no_hooks.md",
+   "rule": "Позиция по хукам развернулась 2026-08-08 — хук снова законный механизм принуждения; прежний запрет снят.",
+   "verdict": "опора",
+   "evidence": "2026-08-08-135005-claude-dfa9fb5c.md:45",
+   "query_short": "хуки"
+  },
+  {
+   "id": "M-feedback_obsidian_form_bare_controls",
+   "layer": "memory",
+   "class": "owner-attributed",
+   "source": "memory/feedback_obsidian_form_bare_controls.md",
+   "rule": "Obsidian interactive forms — Meta Bind controls stand bare (no callout/styling wrap); branching is progressive via the agent, not plugin JS.",
+   "verdict": "нет"
+  },
+  {
+   "id": "M-feedback_opus_writes_fable_reviews",
+   "layer": "memory",
+   "class": "owner-attributed",
+   "source": "memory/feedback_opus_writes_fable_reviews.md",
+   "rule": "Владелец просит делегировать написание кода Opus-субагентам, а Fable оставить только приёмку/верификацию",
+   "verdict": "противоречие",
+   "evidence": "2026-08-14-135604-Codex-019ffae9.md:22"
+  },
+  {
+   "id": "M-feedback_plan_as_simplification",
+   "layer": "memory",
+   "class": "owner-attributed",
+   "source": "memory/feedback_plan_as_simplification.md",
+   "rule": "User's stance on how PROJECT-ROADMAP.md should be used by downstream skills (instruction-layer, task-contract)",
+   "verdict": "нет"
+  },
+  {
+   "id": "M-feedback_proactive_opinion",
+   "layer": "memory",
+   "class": "owner-attributed",
+   "source": "memory/feedback_proactive_opinion.md",
+   "rule": "User explicitly wants proactive opinion-giving — give your own position, behave as if you are smarter, anticipate what he needs vs what he literally asks",
+   "verdict": "опора",
+   "evidence": "2026-08-08-195321-codex-019fe1dd.md:40",
+   "query_short": "понять моё намерение"
+  },
+  {
+   "id": "M-feedback_recall_blind_to_approvals",
+   "layer": "memory",
+   "class": "owner-attributed",
+   "source": "memory/feedback_recall_blind_to_approvals.md",
+   "rule": "chat-recall по контракту не пишет согласий владельца, поэтому «слов нет» ≠ «не заказывал»; проверяй транскрипты сессий",
+   "verdict": "нет"
+  },
+  {
+   "id": "M-feedback_russian_triggers_primary",
+   "layer": "memory",
+   "class": "owner-attributed",
+   "source": "memory/feedback_russian_triggers_primary.md",
+   "rule": "При authoring skill description русские разговорные фразы — primary trigger surface, английские handles — добавка для технических терминов; не предлагать удалять русские триггеры как «дубликаты» английских.",
+   "verdict": "частичная",
+   "evidence": "2026-08-12-163448-claude-1d2d9841.md:22"
+  },
+  {
+   "id": "M-feedback_serena_for_code",
+   "layer": "memory",
+   "class": "owner-attributed",
+   "source": "memory/feedback_serena_for_code.md",
+   "rule": "For code-navigation/review tasks in this repo, prefer Serena semantic tools over reading whole files with Read",
+   "verdict": "нет"
+  },
+  {
+   "id": "M-feedback_skills_as_moment_refreshers",
+   "layer": "memory",
+   "class": "owner-attributed",
+   "source": "memory/feedback_skills_as_moment_refreshers.md",
+   "rule": "User's framing — skills are instruction-layer refreshers fired at specific moments; fresher than root instructions, more flexible than hooks. Prefer many small moment-based skills over few big topic-based skills.",
+   "verdict": "нет"
+  },
+  {
+   "id": "M-feedback_subagent_skill_testing",
+   "layer": "memory",
+   "class": "owner-attributed",
+   "source": "memory/feedback_subagent_skill_testing.md",
+   "rule": "When testing skill triggering via subagents, send only the bare user prompt (5-10 words). Subagents auto-load skills from marketplaces — no need to embed descriptions, simulation framing, or labeled expectations.",
+   "verdict": "нет"
+  },
+  {
+   "id": "M-feedback_thinking_partner",
+   "layer": "memory",
+   "class": "owner-attributed",
+   "source": "memory/feedback_thinking_partner.md",
+   "rule": "when user asks me to think with him (vs help him decide), start with silent analysis, not questions",
+   "verdict": "нет"
+  },
+  {
+   "id": "M-feedback_value_from_telos",
+   "layer": "memory",
+   "class": "owner-attributed",
+   "source": "memory/feedback_value_from_telos.md",
+   "rule": "When asked to make an artifact more valuable, diagnose its telos and the real value leak first — don't reapply the previous task's audit checklist.",
+   "verdict": "нет"
+  },
+  {
+   "id": "M-feedback_verify_artifact_purpose_from_source",
+   "layer": "memory",
+   "class": "owner-attributed",
+   "source": "memory/feedback_verify_artifact_purpose_from_source.md",
+   "rule": "When fixing a skill/artifact because \\\"an agent said/did X with it\\\", don't take that framing of its purpose as truth — recover intent from the source (artifact body + author).",
+   "verdict": "частичная",
+   "evidence": "2026-08-01-122602-claude-5db612ad.md:19"
+  },
+  {
+   "id": "M-project_1handoff_v5_strengthening",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_1handoff_v5_strengthening.md",
+   "rule": "1handoff усилен 2026-08-18 — уборка слоя управления, якорь-гейт решений, ось проверено/непроверено; субагентный proof отклонён владельцем",
+   "verdict": "н/п",
+   "note": "дословных цитат владельца в файле нет — запись о работе, не правило"
+  },
+  {
+   "id": "M-project_1html_fact_vs_comment",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_1html_fact_vs_comment.md",
+   "rule": "1html identity = точный перевод фактов в визуальный вид; слой «комментарий агента» отделён от фактов и не прячется за toggle",
+   "verdict": "н/п",
+   "note": "дословных цитат владельца в файле нет — запись о работе, не правило"
+  },
+  {
+   "id": "M-project_1index_delta_handoff",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_1index_delta_handoff.md",
+   "rule": "2026-08-01 — 1index переориентирован на дельту/handoff — маршруты к информации не там, где очевидно, вплоть до разделов внутри файлов",
+   "verdict": "н/п",
+   "note": "дословных цитат владельца в файле нет — запись о работе, не правило"
+  },
+  {
+   "id": "M-project_break_down_skill",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_break_down_skill.md",
+   "rule": "1break-down skill — cognitive corrector for LLM decomposition biases; why it's NOT a 1strategy rewrite; Codex mirror pending.",
+   "verdict": "н/п",
+   "note": "дословных цитат владельца в файле нет — запись о работе, не правило"
+  },
+  {
+   "id": "M-project_chat_recall_capture",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_chat_recall_capture.md",
+   "rule": "1chat-recall теперь владеет и записью — дословные цитаты владельца в _ops/chat-recall; триггер записи конкурирует с системной памятью, развод прописан в CLAUDE.md",
+   "verdict": "опора",
+   "evidence": "2026-07-22-105500-claude-d8a832a4.md:21"
+  },
+  {
+   "id": "M-project_chat_recall_facet_search",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_chat_recall_facet_search.md",
+   "rule": "1chat-recall получил фасетный поиск из живого эксперимента и сниппет-выдачу вместо полных цитат; аудит двух линз пост-фактум, статус candidate",
+   "verdict": "н/п",
+   "note": "дословных цитат владельца в файле нет — запись о работе, не правило"
+  },
+  {
+   "id": "M-project_chat_recall_reader_role",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_chat_recall_reader_role.md",
+   "rule": "Замер 79 сессий 2026-08-12: reader-роль 1chat-recall реальна (56% чтений в рабочих проектах), но невидима в agentic-research; типовой читатель — субагент из свежего окна",
+   "verdict": "н/п",
+   "note": "дословных цитат владельца в файле нет — запись о работе, не правило"
+  },
+  {
+   "id": "M-project_codex_bridge",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_codex_bridge.md",
+   "rule": "codex-bridge subproject + 1codex skill — call Codex from Claude as reviewer/investigator/worker fleet, billed via ChatGPT account; default sol+xhigh, worker fleet runs worktree-isolated with self-closing waves, live progress from the notification stream",
+   "verdict": "опора",
+   "evidence": "2026-07-25-134829-claude-d96a2888.md:15"
+  },
+  {
+   "id": "M-project_codex_dir_cleanup_pending",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_codex_dir_cleanup_pending.md",
+   "rule": "Deferred cleanup of ~/.codex (~12GB disk hog) — constraints for the future pass.",
+   "verdict": "н/п",
+   "note": "дословных цитат владельца в файле нет — запись о работе, не правило"
+  },
+  {
+   "id": "M-project_codex_front",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_codex_front.md",
+   "rule": "Codex global working-style front = ~/.codex/AGENTS.md (OUTSIDE repo), edited from agentic-research sessions; philosophy = outcome-form, anti-sycophancy via value-redefinition, no procedures/protocols.",
+   "verdict": "опора",
+   "evidence": "2026-08-08-135137-claude-457be55d.md:31"
+  },
+  {
+   "id": "M-project_codex_skill_mirror",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_codex_skill_mirror.md",
+   "rule": "Global 1* skills are mirrored into ~/.codex/skills/; owner decided 2026-08-11 that Codex copies must be byte-identical to Claude, not re-worded per platform.",
+   "verdict": "опора",
+   "evidence": "2026-08-11-050000-claude-ad4c0fa8.md:23"
+  },
+  {
+   "id": "M-project_critic_family",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_critic_family.md",
+   "rule": "Family of global subagents in ~/.claude/agents/ acting as antibodies to LLM entropy; rewritten 2026-08-10 into the seven-section canon, product-first.",
+   "verdict": "нет",
+   "note": "1 дословных цитат владельца, ни одной в корпусе"
+  },
+  {
+   "id": "M-project_distill_parity_gate",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_distill_parity_gate.md",
+   "rule": "1distill получил датчик паритета как входной билет; разбор Kimi K3 назвал ddmin и опроверг обратимость как критерий безопасности",
+   "verdict": "н/п",
+   "note": "дословных цитат владельца в файле нет — запись о работе, не правило"
+  },
+  {
+   "id": "M-project_e10_battle_distillation",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_e10_battle_distillation.md",
+   "rule": "E10 2026-08-07 — предел 2000/файл, три скила пересобраны в ядро+references и установлены; форма приёмки и открытые долги",
+   "verdict": "нет",
+   "note": "2 дословных цитат владельца, ни одной в корпусе"
+  },
+  {
+   "id": "M-project_fresh_eyes_telos_recovered",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_fresh_eyes_telos_recovered.md",
+   "rule": "Телос 1fresh-eyes восстановлен из сырых логов 2026-08-11 — критика не самоцель, ценность в альтернативе; корпус chat-recall слеп до 2026-07-22",
+   "verdict": "опора",
+   "evidence": "2026-04-28-111714-claude-74356077.md:21"
+  },
+  {
+   "id": "M-project_global_claude_md_revision",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_global_claude_md_revision.md",
+   "rule": "2026-07-23 глобальный ~/.claude/CLAUDE.md пересобран под Fable — что срезано, что сознательно оставлено",
+   "verdict": "опора",
+   "evidence": "2026-08-06-141534-claude-481c094d.md:24"
+  },
+  {
+   "id": "M-project_harvest_repo_to_global_skill",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_harvest_repo_to_global_skill.md",
+   "rule": "repo knowledge/guides — верстак pull-дистилляции, работает только в этом репо; cross-project носитель = глобальный скил; периодически harvest созревшую мудрость из guides/wisdom в скилы.",
+   "verdict": "н/п",
+   "note": "дословных цитат владельца в файле нет — запись о работе, не правило"
+  },
+  {
+   "id": "M-project_hermes_skill_claude",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_hermes_skill_claude.md",
+   "rule": "1hermes для Claude — ценность в чужих model-family, а не в «ещё одном агенте»; MCP Hermes — тупик (мост к мессенджерам)",
+   "verdict": "н/п",
+   "note": "дословных цитат владельца в файле нет — запись о работе, не правило"
+  },
+  {
+   "id": "M-project_how_llms_think_hub",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_how_llms_think_hub.md",
+   "rule": "knowledge/how-llms-think.md = theory hub for LLM cognition; why the catalog \\\"dupes\\\" are intentional spokes, not removable.",
+   "verdict": "н/п",
+   "note": "дословных цитат владельца в файле нет — запись о работе, не правило"
+  },
+  {
+   "id": "M-project_instruction_compliance_doctrine",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_instruction_compliance_doctrine.md",
+   "rule": "Свод 2026-08-06 «как заставить модель соблюдать инструкции» — расписывание когнитивных шагов на фронтире не работает, работает гейт и бюджет правил",
+   "verdict": "опора",
+   "evidence": "2026-08-04-120529-codex-019fcb8f.md:20"
+  },
+  {
+   "id": "M-project_llm_divergence_catalog",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_llm_divergence_catalog.md",
+   "rule": "shared LLM-bias catalog reference wired into four global skills as a detect→crystallize→harvest pipeline around the delta principle",
+   "verdict": "н/п",
+   "note": "дословных цитат владельца в файле нет — запись о работе, не правило"
+  },
+  {
+   "id": "M-project_local_rules_skill",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_local_rules_skill.md",
+   "rule": "1local-rules skill, the 1*/2* naming + Claude↔Codex sync convention, and where the trigger-description canon (Условие × Дельта + budget) lives",
+   "verdict": "н/п",
+   "note": "дословных цитат владельца в файле нет — запись о работе, не правило"
+  },
+  {
+   "id": "M-project_lossy_v2_expert_lens",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_lossy_v2_expert_lens.md",
+   "rule": "2026-08-07 вторая волна — ядро 1lossy-product-refactor продиктовано владельцем (1024 симв.), слепой замер исключён; 1expert-lens переписан им же 5803→1953 («мудрость эксперта против стажёрских ошибок»)",
+   "verdict": "нет",
+   "note": "2 дословных цитат владельца, ни одной в корпусе"
+  },
+  {
+   "id": "M-project_mantine_skill_knowledge_rewrite",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_mantine_skill_knowledge_rewrite.md",
+   "rule": "1mantine-dev переписан 2026-08-11 из скила-поведения в скил-знание; парный прогон показал, что скил читается и игнорируется",
+   "verdict": "н/п",
+   "note": "дословных цитат владельца в файле нет — запись о работе, не правило"
+  },
+  {
+   "id": "M-project_md_graph_redesign",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_md_graph_redesign.md",
+   "rule": "1md-graph переписан 2026-07-12 (change-contract packet, admission X→Y); eval на ловушках ещё не прогнан",
+   "verdict": "н/п",
+   "note": "дословных цитат владельца в файле нет — запись о работе, не правило"
+  },
+  {
+   "id": "M-project_md_read_skill_field_test",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_md_read_skill_field_test.md",
+   "rule": "Полевой тест 1md-read 2026-08-01 — замеры контекст-стоимости маршрута, занозы UX md CLI, вывод про строчки/шум выдачи",
+   "verdict": "н/п",
+   "note": "дословных цитат владельца в файле нет — запись о работе, не правило"
+  },
+  {
+   "id": "M-project_md_tools_architecture",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_md_tools_architecture.md",
+   "rule": "md-tools refactor strategy + full idea inventory — one backend in repo, MCP-only bridge to skills, workflow tools concept, NetworkX direct (obsidiantools rejected after spike), Tier 1/2/3 ideas with skill ownership map",
+   "verdict": "н/п",
+   "note": "дословных цитат владельца в файле нет — запись о работе, не правило"
+  },
+  {
+   "id": "M-project_meta_skills_2026_08_08",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_meta_skills_2026_08_08.md",
+   "rule": "1skill-shaping и 1instruction-shaping заменили 1skill-architect и 1instruction-layer — интервью-жанр, семь разделов, папка-история; поведение не измерено",
+   "verdict": "н/п",
+   "note": "дословных цитат владельца в файле нет — запись о работе, не правило"
+  },
+  {
+   "id": "M-project_meta_skills_telos",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_meta_skills_telos.md",
+   "rule": "Телос переписывания мета-скилов 2026-08-08 — триада цель/критерии/анти-цель как ядро любой инструкции; корневая боль владельца — контекстное голодание агентов",
+   "verdict": "н/п",
+   "note": "дословных цитат владельца в файле нет — запись о работе, не правило"
+  },
+  {
+   "id": "M-project_planning_replan_gate",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_planning_replan_gate.md",
+   "rule": "1planning: история 2026-07-01 (replan gate) → полный редизайн 2026-08-18 (карта эпиков + триада task/status/context, owner shared/1planning)",
+   "verdict": "н/п",
+   "note": "дословных цитат владельца в файле нет — запись о работе, не правило"
+  },
+  {
+   "id": "M-project_playwright_skill_three_owners",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_playwright_skill_three_owners.md",
+   "rule": "2026-07-26; Playwright skill сжат до поведенческого слоя, карта команд читается из установленного пакета, wrapper владеет выбором executable; hard-won факты про env-гейт и local pin.",
+   "verdict": "н/п",
+   "note": "дословных цитат владельца в файле нет — запись о работе, не правило"
+  },
+  {
+   "id": "M-project_product_shaping_why_it_works",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_product_shaping_why_it_works.md",
+   "rule": "Разбор 2026-08-04 — почему 1product-shaping работает (протез когнитивных дефицитов + смена экономики) и 5 переносимых ходов для метода создания скиллов; кристаллизация ждёт правки владельца.",
+   "verdict": "н/п",
+   "note": "дословных цитат владельца в файле нет — запись о работе, не правило"
+  },
+  {
+   "id": "M-project_readable_code_research_rebuild",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_readable_code_research_rebuild.md",
+   "rule": "1readable-code rebuilt 2026-08-11 from six-month research window; cleanliness cuts navigation cost, not pass rate; skill influence on decisions still unproven.",
+   "verdict": "н/п",
+   "note": "дословных цитат владельца в файле нет — запись о работе, не правило"
+  },
+  {
+   "id": "M-project_skill_architect_glossary",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_skill_architect_glossary.md",
+   "rule": "1skill-architect переделан в жанр-словарь по образцу writing-great-skills Мэтта Покока (2026-06-18)",
+   "verdict": "нет",
+   "note": "1 дословных цитат владельца, ни одной в корпусе"
+  },
+  {
+   "id": "M-project_thinking_frameworks_into_skills",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/project_thinking_frameworks_into_skills.md",
+   "rule": "Перенос когнитивных схем в наши скилы — маркер поиска дыры, форма вставки, что сделано 2026-08-05",
+   "verdict": "н/п",
+   "note": "дословных цитат владельца в файле нет — запись о работе, не правило"
+  },
+  {
+   "id": "M-reference_claude_code_env",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/reference_claude_code_env.md",
+   "rule": "Real env var name in Claude Code 2.1.x for session id is CLAUDE_CODE_SESSION_ID, not CLAUDE_SESSION_ID",
+   "verdict": "н/п",
+   "note": "дословных цитат владельца в файле нет — запись о работе, не правило"
+  },
+  {
+   "id": "M-reference_claude_code_midturn_transcript_gap",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/reference_claude_code_midturn_transcript_gap.md",
+   "rule": "Сообщения пользователя, отправленные во время активного хода агента, могут не персиститься в session jsonl — модель их видит, транскрипт нет",
+   "verdict": "н/п",
+   "note": "дословных цитат владельца в файле нет — запись о работе, не правило"
+  },
+  {
+   "id": "M-reference_skill_creator_run_loop",
+   "layer": "memory",
+   "class": "work-record",
+   "source": "memory/reference_skill_creator_run_loop.md",
+   "rule": "skill-creator run_loop даёт ложный 0% recall для уже-установленного глобального скила — детект слеп к настоящему вызову",
+   "verdict": "нет",
+   "note": "1 дословных цитат владельца, ни одной в корпусе"
+  },
+  {
+   "id": "M-user_reads_via_obsidian",
+   "layer": "memory",
+   "class": "owner-attributed",
+   "source": "memory/user_reads_via_obsidian.md",
+   "rule": "User reads ALL text through Obsidian; substantive md for him needs the visual scan layer (colorful by default) via skill 1writing-style (ex-1obsidian).",
+   "verdict": "нет"
+  },
+  {
+   "id": "M-user_role",
+   "layer": "memory",
+   "class": "owner-attributed",
+   "source": "memory/user_role.md",
+   "rule": "User does not code directly — LLM writes code for him. Shapes how explanations, reviews, and agent designs should be framed.",
+   "verdict": "опора",
+   "evidence": "2026-08-08-135137-claude-457be55d.md:24",
+   "query_short": "кто владелец по опыту"
+  }
+ ],
+ "query_note": "`rule` — правило как его сформулирует агент, не знающий адреса; `query_short` — короткая естественная формулировка предмета по контракту скила. Меряются обе: они находят РАЗНЫЕ сессии."
+}

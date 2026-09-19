@@ -1,0 +1,62 @@
+{
+  "corpus": {
+    "fixture_project": "agentic-research",
+    "observed_projects": [
+      "agentic-research",
+      "codex-bridge",
+      "handoffs"
+    ]
+  },
+  "records": 2184,
+  "cases": 20,
+  "relevance_unit": "file",
+  "model": "Xenova/multilingual-e5-large",
+  "revision": "00fc3aeb3dbb95842de2ac1961d33c6319acf57b",
+  "hybrid_depth": 40,
+  "lexical": {
+    "hit@1": 0.2,
+    "hit@5": 0.25,
+    "hit@10": 0.3,
+    "coverage@10": 0.3,
+    "mrr@10": 0.219
+  },
+  "hybrid": {
+    "hit@1": 0.2,
+    "hit@5": 0.6,
+    "hit@10": 0.85,
+    "coverage@10": 0.8,
+    "mrr@10": 0.381
+  },
+  "delta_hit@5": 0.35,
+  "failed_at_five": {
+    "lexical": [
+      "whole-skill-logic",
+      "lint-context",
+      "skill-router",
+      "quote-shortening",
+      "tool-context-cost",
+      "compact-not-shallow",
+      "newer-owner-position",
+      "embedding-not-understanding",
+      "style-drift",
+      "reuse-design-tokens",
+      "one-db-or-markdown",
+      "multipage-prototype",
+      "outcome-instructions",
+      "surprising-delta",
+      "shared-recall"
+    ],
+    "hybrid": [
+      "lint-context",
+      "quote-shortening",
+      "index-inside-files",
+      "compact-not-shallow",
+      "embedding-not-understanding",
+      "style-drift",
+      "multipage-prototype",
+      "surprising-delta"
+    ]
+  },
+  "threshold": "не задан: это регрессионный отчёт, приёмка в evaluate_anchors.py",
+  "passed": null
+}

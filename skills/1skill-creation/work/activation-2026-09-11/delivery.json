@@ -1,0 +1,182 @@
+{
+  "checked_at_utc": "2026-09-10T19:50:08.087987+00:00",
+  "packages": {
+    "1skill-creation": {
+      "owner": "/Users/triton/Documents/GitHub/agentic-research/skills/shared/1skill-creation",
+      "portable_sha256": {
+        "SKILL.md": "b9f0b013d55a86d09e283d26f4277eff2ede95450c700fdd6dcae26427988ec1",
+        "agents/check-instructions.md": "10d602dbd150bbb2595448b44603e5caf5cb6d6d94c00d82b8358bbc99432919",
+        "agents/check-intent.md": "7b6241e61746aa50196a24391fb9120bc0b90f16d21a6b831aafd21f3d545b3d",
+        "agents/check-trajectory.md": "b8fdf574a46cc54d2c89b6de680e97b5f4130ed3f2b3fa28b97d1813598ec7df",
+        "references/agent-defaults.md": "bb6e20d14a37c95b393b92b23fa89158f428a65139c23a00062f5841b5a4d0c4",
+        "references/behavior-protocol.md": "4168a66969c0dc43a8bd059c64f510df6d2a2542cb058586345f5b40013db06a",
+        "references/check-approve.md": "961d8fabfe87b9da7f98a0a7a4ec299b641ca82b570567eccafaa7efe677834e",
+        "references/goal-context.md": "3af0e7c1ac63c84fd6bd74e71da18ca79aa91f37db9083521f958e5aad092e16",
+        "references/install-approved.md": "2b9f071a9f7fcea4284225bad10e6b6a0421448fd5e71cb9cfa4f93bc141b8fd",
+        "references/refactor.md": "e5abe31b5ceb9c2e6d603ffeab19a052222193a98b3ae41af85a27ce0ff4fc79",
+        "references/reference-files.md": "0e4ef3c840437012104ada0b648392d73f710f2ce7ed5aead169ee5f3078245b",
+        "references/skill-short-description.md": "8edeac852e0fc1052ffca836caebf92cb44b1e89953482fa50bde092ca34bdea"
+      },
+      "snapshot": "/Users/triton/Documents/GitHub/agentic-research/skills/1skill-creation/versions/v20",
+      "snapshot_sha256": {
+        "SKILL.md": "b9f0b013d55a86d09e283d26f4277eff2ede95450c700fdd6dcae26427988ec1",
+        "agents/check-instructions.md": "10d602dbd150bbb2595448b44603e5caf5cb6d6d94c00d82b8358bbc99432919",
+        "agents/check-intent.md": "7b6241e61746aa50196a24391fb9120bc0b90f16d21a6b831aafd21f3d545b3d",
+        "agents/check-trajectory.md": "b8fdf574a46cc54d2c89b6de680e97b5f4130ed3f2b3fa28b97d1813598ec7df",
+        "references/agent-defaults.md": "bb6e20d14a37c95b393b92b23fa89158f428a65139c23a00062f5841b5a4d0c4",
+        "references/behavior-protocol.md": "4168a66969c0dc43a8bd059c64f510df6d2a2542cb058586345f5b40013db06a",
+        "references/check-approve.md": "961d8fabfe87b9da7f98a0a7a4ec299b641ca82b570567eccafaa7efe677834e",
+        "references/goal-context.md": "3af0e7c1ac63c84fd6bd74e71da18ca79aa91f37db9083521f958e5aad092e16",
+        "references/install-approved.md": "2b9f071a9f7fcea4284225bad10e6b6a0421448fd5e71cb9cfa4f93bc141b8fd",
+        "references/refactor.md": "e5abe31b5ceb9c2e6d603ffeab19a052222193a98b3ae41af85a27ce0ff4fc79",
+        "references/reference-files.md": "0e4ef3c840437012104ada0b648392d73f710f2ce7ed5aead169ee5f3078245b",
+        "references/skill-short-description.md": "8edeac852e0fc1052ffca836caebf92cb44b1e89953482fa50bde092ca34bdea",
+        "platforms/codex/agents/openai.yaml": "17330a897a6300849469592a1d21d807fe28a3e7787bc262888fd63dc72808a6"
+      },
+      "baseline_unchanged": true,
+      "validation": "Skill is valid!",
+      "runtimes": {
+        "codex": {
+          "file_sha256": {
+            "SKILL.md": "b9f0b013d55a86d09e283d26f4277eff2ede95450c700fdd6dcae26427988ec1",
+            "agents/check-instructions.md": "10d602dbd150bbb2595448b44603e5caf5cb6d6d94c00d82b8358bbc99432919",
+            "agents/check-intent.md": "7b6241e61746aa50196a24391fb9120bc0b90f16d21a6b831aafd21f3d545b3d",
+            "agents/check-trajectory.md": "b8fdf574a46cc54d2c89b6de680e97b5f4130ed3f2b3fa28b97d1813598ec7df",
+            "references/agent-defaults.md": "bb6e20d14a37c95b393b92b23fa89158f428a65139c23a00062f5841b5a4d0c4",
+            "references/behavior-protocol.md": "4168a66969c0dc43a8bd059c64f510df6d2a2542cb058586345f5b40013db06a",
+            "references/check-approve.md": "961d8fabfe87b9da7f98a0a7a4ec299b641ca82b570567eccafaa7efe677834e",
+            "references/goal-context.md": "3af0e7c1ac63c84fd6bd74e71da18ca79aa91f37db9083521f958e5aad092e16",
+            "references/install-approved.md": "2b9f071a9f7fcea4284225bad10e6b6a0421448fd5e71cb9cfa4f93bc141b8fd",
+            "references/refactor.md": "e5abe31b5ceb9c2e6d603ffeab19a052222193a98b3ae41af85a27ce0ff4fc79",
+            "references/reference-files.md": "0e4ef3c840437012104ada0b648392d73f710f2ce7ed5aead169ee5f3078245b",
+            "references/skill-short-description.md": "8edeac852e0fc1052ffca836caebf92cb44b1e89953482fa50bde092ca34bdea",
+            "agents/openai.yaml": "17330a897a6300849469592a1d21d807fe28a3e7787bc262888fd63dc72808a6"
+          },
+          "targets": {
+            "tracked": "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1skill-creation",
+            "installed": "/Users/triton/.codex/skills/1skill-creation"
+          },
+          "files_match": true
+        },
+        "claude": {
+          "file_sha256": {
+            "SKILL.md": "b9f0b013d55a86d09e283d26f4277eff2ede95450c700fdd6dcae26427988ec1",
+            "agents/check-instructions.md": "10d602dbd150bbb2595448b44603e5caf5cb6d6d94c00d82b8358bbc99432919",
+            "agents/check-intent.md": "7b6241e61746aa50196a24391fb9120bc0b90f16d21a6b831aafd21f3d545b3d",
+            "agents/check-trajectory.md": "b8fdf574a46cc54d2c89b6de680e97b5f4130ed3f2b3fa28b97d1813598ec7df",
+            "references/agent-defaults.md": "bb6e20d14a37c95b393b92b23fa89158f428a65139c23a00062f5841b5a4d0c4",
+            "references/behavior-protocol.md": "4168a66969c0dc43a8bd059c64f510df6d2a2542cb058586345f5b40013db06a",
+            "references/check-approve.md": "961d8fabfe87b9da7f98a0a7a4ec299b641ca82b570567eccafaa7efe677834e",
+            "references/goal-context.md": "3af0e7c1ac63c84fd6bd74e71da18ca79aa91f37db9083521f958e5aad092e16",
+            "references/install-approved.md": "2b9f071a9f7fcea4284225bad10e6b6a0421448fd5e71cb9cfa4f93bc141b8fd",
+            "references/refactor.md": "e5abe31b5ceb9c2e6d603ffeab19a052222193a98b3ae41af85a27ce0ff4fc79",
+            "references/reference-files.md": "0e4ef3c840437012104ada0b648392d73f710f2ce7ed5aead169ee5f3078245b",
+            "references/skill-short-description.md": "8edeac852e0fc1052ffca836caebf92cb44b1e89953482fa50bde092ca34bdea"
+          },
+          "targets": {
+            "tracked": "/Users/triton/Documents/GitHub/agentic-research/skills/claude/1skill-creation",
+            "installed": "/Users/triton/.claude/skills/1skill-creation"
+          },
+          "files_match": true
+        }
+      }
+    },
+    "1instruction-authoring": {
+      "owner": "/Users/triton/Documents/GitHub/agentic-research/skills/shared/1instruction-authoring",
+      "portable_sha256": {
+        "SKILL.md": "6e0fa3517359e52779d0b18e80106046641277b2caf68d581e567bfc84c3e84c",
+        "agents/zone-reader.md": "a04f354c0c3749122b06067479321265129afa52c78afcb67b6b0c16310b1172",
+        "references/discovery.md": "2087b15aef5a9324ce68b6d7387e5cdf9cd67860512e7ef39ec7e1c1e15bb163",
+        "references/verification.md": "9ea7800e1be9ff1de9152abb275d28e5cd31c512649d3c11d3cb23170060fbf1",
+        "references/writing.md": "18114de0ad1f2c23ab6b4c51978f8ef2eab88871a53c07dac15df1af3ea57c5e"
+      },
+      "snapshot": "/Users/triton/Documents/GitHub/agentic-research/skills/1instruction-authoring/versions/v18",
+      "snapshot_sha256": {
+        "portable/SKILL.md": "6e0fa3517359e52779d0b18e80106046641277b2caf68d581e567bfc84c3e84c",
+        "portable/agents/zone-reader.md": "a04f354c0c3749122b06067479321265129afa52c78afcb67b6b0c16310b1172",
+        "portable/references/discovery.md": "2087b15aef5a9324ce68b6d7387e5cdf9cd67860512e7ef39ec7e1c1e15bb163",
+        "portable/references/verification.md": "9ea7800e1be9ff1de9152abb275d28e5cd31c512649d3c11d3cb23170060fbf1",
+        "portable/references/writing.md": "18114de0ad1f2c23ab6b4c51978f8ef2eab88871a53c07dac15df1af3ea57c5e",
+        "platforms/codex/agents/openai.yaml": "5673dc69248b01d4e58832cafbcc34874f5ddb3fab9acab9e998f5342de0299f"
+      },
+      "baseline_unchanged": true,
+      "validation": "Skill is valid!",
+      "runtimes": {
+        "codex": {
+          "file_sha256": {
+            "SKILL.md": "6e0fa3517359e52779d0b18e80106046641277b2caf68d581e567bfc84c3e84c",
+            "agents/zone-reader.md": "a04f354c0c3749122b06067479321265129afa52c78afcb67b6b0c16310b1172",
+            "references/discovery.md": "2087b15aef5a9324ce68b6d7387e5cdf9cd67860512e7ef39ec7e1c1e15bb163",
+            "references/verification.md": "9ea7800e1be9ff1de9152abb275d28e5cd31c512649d3c11d3cb23170060fbf1",
+            "references/writing.md": "18114de0ad1f2c23ab6b4c51978f8ef2eab88871a53c07dac15df1af3ea57c5e",
+            "agents/openai.yaml": "5673dc69248b01d4e58832cafbcc34874f5ddb3fab9acab9e998f5342de0299f"
+          },
+          "targets": {
+            "tracked": "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1instruction-authoring",
+            "installed": "/Users/triton/.codex/skills/1instruction-authoring"
+          },
+          "files_match": true
+        },
+        "claude": {
+          "file_sha256": {
+            "SKILL.md": "6e0fa3517359e52779d0b18e80106046641277b2caf68d581e567bfc84c3e84c",
+            "agents/zone-reader.md": "a04f354c0c3749122b06067479321265129afa52c78afcb67b6b0c16310b1172",
+            "references/discovery.md": "2087b15aef5a9324ce68b6d7387e5cdf9cd67860512e7ef39ec7e1c1e15bb163",
+            "references/verification.md": "9ea7800e1be9ff1de9152abb275d28e5cd31c512649d3c11d3cb23170060fbf1",
+            "references/writing.md": "18114de0ad1f2c23ab6b4c51978f8ef2eab88871a53c07dac15df1af3ea57c5e"
+          },
+          "targets": {
+            "tracked": "/Users/triton/Documents/GitHub/agentic-research/skills/claude/1instruction-authoring",
+            "installed": "/Users/triton/.claude/skills/1instruction-authoring"
+          },
+          "files_match": true
+        }
+      }
+    },
+    "1agent-steering": {
+      "owner": "/Users/triton/Documents/GitHub/agentic-research/skills/shared/1agent-steering",
+      "portable_sha256": {
+        "SKILL.md": "9a4d88407ed6d247448d9843afb8112d391bc6d364ce8a1a5bafdb03ad807758",
+        "references/steering-science.md": "30b3a21486362fb0f3610b21c5c47b305fda28974783fd57bc1a909b05fcf67e"
+      },
+      "snapshot": "/Users/triton/Documents/GitHub/agentic-research/skills/1agent-steering/versions/installed-2026-09-11",
+      "snapshot_sha256": {
+        "SKILL.md": "9a4d88407ed6d247448d9843afb8112d391bc6d364ce8a1a5bafdb03ad807758",
+        "references/steering-science.md": "30b3a21486362fb0f3610b21c5c47b305fda28974783fd57bc1a909b05fcf67e",
+        "platforms/codex/agents/openai.yaml": "cc1ee59b6019370bb1870bc50122c6a8c4ddda9ad180897cc39a000a019a9e2c"
+      },
+      "baseline_unchanged": true,
+      "validation": "Skill is valid!",
+      "runtimes": {
+        "codex": {
+          "file_sha256": {
+            "SKILL.md": "9a4d88407ed6d247448d9843afb8112d391bc6d364ce8a1a5bafdb03ad807758",
+            "references/steering-science.md": "30b3a21486362fb0f3610b21c5c47b305fda28974783fd57bc1a909b05fcf67e",
+            "agents/openai.yaml": "cc1ee59b6019370bb1870bc50122c6a8c4ddda9ad180897cc39a000a019a9e2c"
+          },
+          "targets": {
+            "tracked": "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1agent-steering",
+            "installed": "/Users/triton/.codex/skills/1agent-steering"
+          },
+          "files_match": true
+        },
+        "claude": {
+          "file_sha256": {
+            "SKILL.md": "9a4d88407ed6d247448d9843afb8112d391bc6d364ce8a1a5bafdb03ad807758",
+            "references/steering-science.md": "30b3a21486362fb0f3610b21c5c47b305fda28974783fd57bc1a909b05fcf67e"
+          },
+          "targets": {
+            "tracked": "/Users/triton/Documents/GitHub/agentic-research/skills/claude/1agent-steering",
+            "installed": "/Users/triton/.claude/skills/1agent-steering"
+          },
+          "files_match": true
+        }
+      }
+    }
+  },
+  "limits": "Synthetic authoring and route probes only; no future adherence-rate measurement or real instruction-layer runtime probe.",
+  "package_references_checked": 90,
+  "sync_command": "python3 skills/shared/sync_simple_projections.py 1skill-creation 1instruction-authoring 1agent-steering --check",
+  "sync_status": "passed",
+  "diff_whitespace_status": "passed"
+}

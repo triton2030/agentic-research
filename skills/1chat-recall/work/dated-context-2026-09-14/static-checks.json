@@ -1,0 +1,16 @@
+{
+  "skills/codex/1chat-recall/SKILL.md": {
+    "broken_links": []
+  },
+  "skills/codex/1chat-recall/references/retrieval.md": {
+    "broken_links": []
+  },
+  "codex runtime command preserved": true,
+  "skills/claude/1chat-recall/SKILL.md": {
+    "broken_links": []
+  },
+  "skills/claude/1chat-recall/references/retrieval.md": {
+    "broken_links": []
+  },
+  "claude runtime command preserved": true
+}

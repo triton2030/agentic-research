@@ -1,0 +1,16 @@
+{
+  "/Users/triton/.codex/skills/1chat-recall/SKILL.md": "43f6be80b6fb4b9c274a2b90b47f20fa06d0eaa229b61e2d8429bf8d36b2e7cf",
+  "/Users/triton/.codex/skills/1chat-recall/references/capture.md": "d4e8a19006bba4d45214b61a86f807e130e3cfd4b5baa5187d973a6598c37d46",
+  "/Users/triton/.codex/skills/1chat-recall/references/retrieval.md": "95b42b2db02276ec40b5bce9bd0d6d4df44d0f7a57e7e3c7fb8ca2041c5b76dc",
+  "/Users/triton/.codex/skills/1chat-recall/references/search-mechanics.md": "748d33ff868c41fea20602bf901cbf0f6925249302ac1f00fc0d4c250594eb24",
+  "/Users/triton/.codex/skills/1chat-recall/references/integrity.md": "f83b878e859ee59248699e518cd3a199c5e2da18d0e0ef27c414c45819724de2",
+  "/Users/triton/.codex/skills/1chat-recall/tests/test_chat_capture.py": "46ad1913bf7acacc07d0724f7ce5d1f5b54b2ee599fe2b30c00d1d46d75f1b52",
+  "/Users/triton/.claude/skills/1chat-recall/SKILL.md": "44eea01a7dac41d63c79f718d8b11517d83437cfb20ed2ee6b7b82115f0170e7",
+  "/Users/triton/.claude/skills/1chat-recall/references/capture.md": "d4e8a19006bba4d45214b61a86f807e130e3cfd4b5baa5187d973a6598c37d46",
+  "/Users/triton/.claude/skills/1chat-recall/references/retrieval.md": "1f0069923d5e4fba41ba20a26544a345e1c0f4a17ea09bda3ef52e2fdeb40596",
+  "/Users/triton/.claude/skills/1chat-recall/references/search-mechanics.md": "748d33ff868c41fea20602bf901cbf0f6925249302ac1f00fc0d4c250594eb24",
+  "/Users/triton/.claude/skills/1chat-recall/references/integrity.md": "d8c11326cf380731bc395283c061ce2e077ac19ec519e831f0302eb46d9d5e53",
+  "/Users/triton/.claude/skills/1chat-recall/tests/test_chat_capture.py": "511cac3e0673565a0b98087d8e6e7f0ed8908d452f2ccbe55c5bd0467d2fd0c2",
+  "/Users/triton/.codex/AGENTS.md": "95fc7570e2fee34ef8548c1288cecc12612a75307104d636e2baf20c0a929822",
+  "/Users/triton/.claude/CLAUDE.md": "5884c32808fceb28f929e1be335d28aecf0e582bdaec58d0dfe2129dd4759c76"
+}

@@ -1,0 +1,10 @@
+interface:
+  display_name: "1-Умное упрощение"
+  short_description: "Радикальное сокращение документа через его назначение"
+  default_prompt: >
+    Используй $1smart-simple, чтобы многократно сократить документ через
+    FAST, Pyramid Principle, проектирование с нуля и проверку по сценариям.
+    Покажи конкретный результат каждого этапа в чате.
+
+policy:
+  allow_implicit_invocation: true

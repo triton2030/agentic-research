@@ -45,9 +45,6 @@ def _probe(corpus: Path, query: str) -> dict[str, Any]:
         raise RuntimeError(f"digest failed for {query!r}: {result.stderr[-400:]}")
     payload = json.loads(result.stdout)
     verdict = payload.get("query_domain")
-    if verdict is None and not payload.get("matched"):
-        # Лексический канал не нашёл ничего, dense не запускался: выдача пуста.
-        verdict = "off-domain"
     holders = payload.get("holders") or []
     return {
         "query": query,

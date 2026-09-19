@@ -1,6 +1,6 @@
 ---
 name: 1illustrations-and-charts
-description: Use when a document needs compact diagrams, illustrations, or interface mockups near difficult explanations.
+description: Use when a document needs diagrams, illustrations, interface mockups, or sequential screens showing user journeys, roles, and states in Obsidian.
 ---
 
 # Иллюстрации и графики
@@ -28,3 +28,7 @@ description: Use when a document needs compact diagrams, illustrations, or inter
 ## Когда показываешь интерфейс
 
 Для экрана, карточки, формы или футера используй компактный HTML-макет рядом с объяснением, если редактор документа его отображает. Сначала проверь местные правила и доступные стили: обычные классы Tailwind работают только при установленном CSS. Демонстрационные данные обозначай как пример; макет сам по себе не устанавливает поведение продукта.
+
+
+Когда нужно показать путь пользователя, взаимодействие ролей или смену
+состояний, используй [последовательность экранов в одном файле Obsidian](references/последовательность-экранов.md).

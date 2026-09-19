@@ -1,0 +1,14 @@
+======================================================================
+FAIL: test_bounded_json_and_zero_result (test_chat_digest.ChatDigestTests.test_bounded_json_and_zero_result)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1chat-recall/tests/test_chat_digest.py", line 762, in test_bounded_json_and_zero_result
+    self.assertEqual(none_result.returncode, 0, none_result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 0 : chat-digest: error: hybrid runtime не подготовлен; выполните `uv run --locked --script chat_digest.py --prepare` или используйте --lexical
+
+
+----------------------------------------------------------------------
+Ran 67 tests in 7.265s
+
+FAILED (failures=1)

@@ -1,0 +1,53 @@
+[
+  {
+    "id": "speed",
+    "query": "скорость разработки",
+    "expected_file": "2026-09-01-speed.md",
+    "expected_topic": "speed"
+  },
+  {
+    "id": "quotes",
+    "query": "цитирование точность",
+    "expected_file": "2026-09-02-quotes.md",
+    "expected_topic": "quotes"
+  },
+  {
+    "id": "folders",
+    "query": "разбиение директории",
+    "expected_file": "2026-09-03-folders.md",
+    "expected_topic": "folders"
+  },
+  {
+    "id": "tables",
+    "query": "табличное представление",
+    "expected_file": "2026-09-04-tables.md",
+    "expected_topic": "tables"
+  },
+  {
+    "id": "reports",
+    "query": "сводка регулярность",
+    "expected_file": "2026-09-05-reports.md",
+    "expected_topic": "reports"
+  },
+  {
+    "id": "release",
+    "query": "релиз задержка",
+    "expected_file": "2026-09-06-release.md",
+    "expected_topic": "release"
+  },
+  {
+    "id": "off-domain-0",
+    "query": "рецепт борща",
+    "expected_file": null
+  },
+  {
+    "id": "off-domain-1",
+    "query": "дрессировка щенка",
+    "expected_file": null
+  },
+  {
+    "id": "off-domain-2",
+    "query": "астрономия квазары",
+    "expected_file": null
+  }
+]

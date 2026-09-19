@@ -1,0 +1,7 @@
+interface:
+  display_name: "1instruction-authoring"
+  short_description: "Уникальный способ пользователя писать инструкции."
+  default_prompt: "Use $1instruction-authoring for the requested agent-facing project instructions."
+
+policy:
+  allow_implicit_invocation: true

@@ -1,0 +1,267 @@
+[
+  {
+    "id": "speed",
+    "query": "скорость разработки",
+    "expected_file": "2026-09-01-speed.md",
+    "expected_topic": "speed",
+    "seconds": 2.192,
+    "files": [
+      "2026-09-01-speed.md",
+      "2026-09-05-reports.md",
+      "2026-09-06-release.md",
+      "2026-09-04-tables.md",
+      "2026-09-03-folders.md"
+    ],
+    "hit_at_5": true,
+    "topics": [],
+    "holder_routes": [
+      "quote",
+      "quote",
+      "quote",
+      "quote",
+      "quote"
+    ],
+    "candidate_holders": 5,
+    "warnings": [
+      "no-lexical-match"
+    ],
+    "query_domain": "in-domain",
+    "dense_top1": 0.8248
+  },
+  {
+    "id": "quotes",
+    "query": "цитирование точность",
+    "expected_file": "2026-09-02-quotes.md",
+    "expected_topic": "quotes",
+    "seconds": 1.388,
+    "files": [
+      "2026-09-02-quotes.md",
+      "2026-09-01-speed.md",
+      "2026-09-04-tables.md",
+      "2026-09-05-reports.md",
+      "2026-09-06-release.md"
+    ],
+    "hit_at_5": true,
+    "topics": [],
+    "holder_routes": [
+      "quote",
+      "quote",
+      "quote",
+      "quote",
+      "quote"
+    ],
+    "candidate_holders": 5,
+    "warnings": [
+      "no-lexical-match",
+      "query-off-domain"
+    ],
+    "query_domain": "off-domain",
+    "dense_top1": 0.7875
+  },
+  {
+    "id": "folders",
+    "query": "разбиение директории",
+    "expected_file": "2026-09-03-folders.md",
+    "expected_topic": "folders",
+    "seconds": 1.328,
+    "files": [
+      "2026-09-03-folders.md",
+      "2026-09-04-tables.md",
+      "2026-09-05-reports.md",
+      "2026-09-02-quotes.md",
+      "2026-09-06-release.md"
+    ],
+    "hit_at_5": true,
+    "topics": [],
+    "holder_routes": [
+      "quote",
+      "quote",
+      "quote",
+      "quote",
+      "quote"
+    ],
+    "candidate_holders": 5,
+    "warnings": [
+      "no-lexical-match",
+      "query-edge"
+    ],
+    "query_domain": "edge",
+    "dense_top1": 0.8169
+  },
+  {
+    "id": "tables",
+    "query": "табличное представление",
+    "expected_file": "2026-09-04-tables.md",
+    "expected_topic": "tables",
+    "seconds": 1.336,
+    "files": [
+      "2026-09-04-tables.md",
+      "2026-09-05-reports.md",
+      "2026-09-06-release.md",
+      "2026-09-03-folders.md",
+      "2026-09-02-quotes.md"
+    ],
+    "hit_at_5": true,
+    "topics": [],
+    "holder_routes": [
+      "quote",
+      "quote",
+      "quote",
+      "quote",
+      "quote"
+    ],
+    "candidate_holders": 5,
+    "warnings": [
+      "no-lexical-match",
+      "query-edge"
+    ],
+    "query_domain": "edge",
+    "dense_top1": 0.8128
+  },
+  {
+    "id": "reports",
+    "query": "сводка регулярность",
+    "expected_file": "2026-09-05-reports.md",
+    "expected_topic": "reports",
+    "seconds": 1.342,
+    "files": [
+      "2026-09-05-reports.md",
+      "2026-09-02-quotes.md",
+      "2026-09-06-release.md",
+      "2026-09-01-speed.md",
+      "2026-09-04-tables.md"
+    ],
+    "hit_at_5": true,
+    "topics": [],
+    "holder_routes": [
+      "quote",
+      "quote",
+      "quote",
+      "quote",
+      "quote"
+    ],
+    "candidate_holders": 5,
+    "warnings": [
+      "no-lexical-match"
+    ],
+    "query_domain": "in-domain",
+    "dense_top1": 0.8208
+  },
+  {
+    "id": "release",
+    "query": "релиз задержка",
+    "expected_file": "2026-09-06-release.md",
+    "expected_topic": "release",
+    "seconds": 1.367,
+    "files": [
+      "2026-09-01-speed.md",
+      "2026-09-06-release.md",
+      "2026-09-03-folders.md",
+      "2026-09-05-reports.md",
+      "2026-09-02-quotes.md"
+    ],
+    "hit_at_5": true,
+    "topics": [],
+    "holder_routes": [
+      "quote",
+      "quote",
+      "quote",
+      "quote",
+      "quote"
+    ],
+    "candidate_holders": 5,
+    "warnings": [
+      "no-lexical-match",
+      "query-edge"
+    ],
+    "query_domain": "edge",
+    "dense_top1": 0.8172
+  },
+  {
+    "id": "off-domain-0",
+    "query": "рецепт борща",
+    "expected_file": null,
+    "seconds": 1.556,
+    "files": [
+      "2026-09-04-tables.md",
+      "2026-09-02-quotes.md",
+      "2026-09-01-speed.md",
+      "2026-09-06-release.md",
+      "2026-09-05-reports.md"
+    ],
+    "hit_at_5": null,
+    "topics": [],
+    "holder_routes": [
+      "quote",
+      "quote",
+      "quote",
+      "quote",
+      "quote"
+    ],
+    "candidate_holders": 5,
+    "warnings": [
+      "no-lexical-match",
+      "query-off-domain"
+    ],
+    "query_domain": "off-domain",
+    "dense_top1": 0.777
+  },
+  {
+    "id": "off-domain-1",
+    "query": "дрессировка щенка",
+    "expected_file": null,
+    "seconds": 1.393,
+    "files": [
+      "2026-09-04-tables.md",
+      "2026-09-02-quotes.md",
+      "2026-09-05-reports.md",
+      "2026-09-01-speed.md",
+      "2026-09-03-folders.md"
+    ],
+    "hit_at_5": null,
+    "topics": [],
+    "holder_routes": [
+      "quote",
+      "quote",
+      "quote",
+      "quote",
+      "quote"
+    ],
+    "candidate_holders": 5,
+    "warnings": [
+      "no-lexical-match",
+      "query-off-domain"
+    ],
+    "query_domain": "off-domain",
+    "dense_top1": 0.7619
+  },
+  {
+    "id": "off-domain-2",
+    "query": "астрономия квазары",
+    "expected_file": null,
+    "seconds": 1.375,
+    "files": [
+      "2026-09-06-release.md",
+      "2026-09-04-tables.md",
+      "2026-09-03-folders.md",
+      "2026-09-05-reports.md",
+      "2026-09-02-quotes.md"
+    ],
+    "hit_at_5": null,
+    "topics": [],
+    "holder_routes": [
+      "quote",
+      "quote",
+      "quote",
+      "quote",
+      "quote"
+    ],
+    "candidate_holders": 5,
+    "warnings": [
+      "no-lexical-match",
+      "query-off-domain"
+    ],
+    "query_domain": "off-domain",
+    "dense_top1": 0.7894
+  }
+]

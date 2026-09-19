@@ -1,0 +1,12 @@
+{
+  "/Users/triton/.codex/skills/1chat-recall/scripts/chat_digest.py": "8eb1a5f5d050fa9cd96ae6274ef9311fd2a0390e92bd72f716825ae42e5f5e6b",
+  "/Users/triton/.codex/skills/1chat-recall/tests/test_chat_digest.py": "e53602a9b7bd13c861eb0b3a6624b675d581bc0a475b4940af98c58edf88805e",
+  "/Users/triton/.codex/skills/1chat-recall/tests/evaluate_support.py": "6dca8180d7da59ebbeb024a2c7cd4a259b9e306942474851efb9ac4aad08e789",
+  "/Users/triton/.codex/skills/1chat-recall/references/search-mechanics.md": "a64d58806d317f47f3be58046a68cae09d10db09028833244fbdd4b474eded18",
+  "/Users/triton/.codex/skills/1chat-recall/references/retrieval.md": "4fb38604b60cc587480a70e48a0829a2af0df81921e2a0310f7e9b8f14ca11ac",
+  "/Users/triton/.claude/skills/1chat-recall/scripts/chat_digest.py": "8eb1a5f5d050fa9cd96ae6274ef9311fd2a0390e92bd72f716825ae42e5f5e6b",
+  "/Users/triton/.claude/skills/1chat-recall/tests/test_chat_digest.py": "e53602a9b7bd13c861eb0b3a6624b675d581bc0a475b4940af98c58edf88805e",
+  "/Users/triton/.claude/skills/1chat-recall/tests/evaluate_support.py": "6dca8180d7da59ebbeb024a2c7cd4a259b9e306942474851efb9ac4aad08e789",
+  "/Users/triton/.claude/skills/1chat-recall/references/search-mechanics.md": "a64d58806d317f47f3be58046a68cae09d10db09028833244fbdd4b474eded18",
+  "/Users/triton/.claude/skills/1chat-recall/references/retrieval.md": "2eec7443ceb36647fc882488262edb6946d4f2ee2a566784a3a8278b8ce68d26"
+}

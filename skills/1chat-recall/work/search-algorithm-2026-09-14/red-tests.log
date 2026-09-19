@@ -1,0 +1,45 @@
+======================================================================
+ERROR: test_evidence_channels_describe_each_quote_not_the_file (test_chat_digest.ChatDigestTests.test_evidence_channels_describe_each_quote_not_the_file)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1chat-recall/tests/test_chat_digest.py", line 1393, in test_evidence_channels_describe_each_quote_not_the_file
+    self.assertEqual(evidence[records[0]["address"]]["channels"], ["bm25"])
+                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+KeyError: 'channels'
+
+======================================================================
+FAIL: test_hybrid_finds_semantic_candidate_without_lexical_overlap (test_chat_digest.ChatDigestTests.test_hybrid_finds_semantic_candidate_without_lexical_overlap)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1chat-recall/tests/test_chat_digest.py", line 1385, in test_hybrid_finds_semantic_candidate_without_lexical_overlap
+    dense.assert_called_once()
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/unittest/mock.py", line 965, in assert_called_once
+    raise AssertionError(msg)
+AssertionError: Expected 'search_dense' to have been called once. Called 0 times.
+
+======================================================================
+FAIL: test_topic_admission_names_actual_top_channels (test_chat_digest.ChatDigestTests.test_topic_admission_names_actual_top_channels)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1chat-recall/tests/test_chat_digest.py", line 1442, in test_topic_admission_names_actual_top_channels
+    self.assertEqual(found[0]["admitted_by"], "lexical")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'lexical+dense' != 'lexical'
+- lexical+dense
++ lexical
+
+
+======================================================================
+FAIL: test_zero_lexical_matches_are_visible_in_json_and_text (test_chat_digest.ChatDigestTests.test_zero_lexical_matches_are_visible_in_json_and_text)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1chat-recall/tests/test_chat_digest.py", line 1416, in test_zero_lexical_matches_are_visible_in_json_and_text
+    self.assertIn("lexical_matched=0", output.getvalue())
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'lexical_matched=0' not found in '0/0 holders shown · 5 records · retrieval=hybrid · order=relevance\nquery-domain=off-domain · dense_top1=0.000\n'
+
+----------------------------------------------------------------------
+Ran 67 tests in 6.181s
+
+FAILED (failures=3, errors=1)

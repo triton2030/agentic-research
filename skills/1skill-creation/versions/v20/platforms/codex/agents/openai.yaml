@@ -1,0 +1,7 @@
+interface:
+  display_name: "1skill-creation"
+  short_description: "Create or refactor a skill from the user's intent with minimal unambiguous instructions"
+  default_prompt: "Use $1skill-creation to create or refactor the requested skill, following its current protocol."
+
+policy:
+  allow_implicit_invocation: true

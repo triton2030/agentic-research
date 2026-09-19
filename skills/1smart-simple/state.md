@@ -1,3 +1,9 @@
 # Состояние рефактора — `1smart-simple`
 
-**Состояние:** `рефактор завершён` — v3 утверждена «да» (`_ops/chat-recall/2026-08-31-202215-claude-da15d86c.md#L58`) и установлена 2026-09-02 в `~/.claude/skills/1smart-simple/` и `~/.codex/skills/1smart-simple/` (SKILL.md + agents/openai.yaml). v2 не устанавливалась: отклонена как переусложнённая (#L55).
+**Состояние:** `рефактор завершён` — v4, установлена 2026-09-06.
+Согласованный маршрут и намерение: `work/v4/intent.md`.
+Владелец утвердил четыре этапа и поручил написать скил.
+Одинаковый SKILL.md + agents/openai.yaml установлен в Codex и Claude.
+Пакет: `versions/installed-2026-09-06/`; проверка: `work/v4/verification.md`.
+Снимки прежних runtime — `versions/live-codex-2026-09-06/` и
+`versions/live-claude-2026-09-06/`.

@@ -1,0 +1,27 @@
+{
+  "1readable-code": {
+    "description_characters": 153,
+    "files": {
+      "SKILL.md": "817e5863107b2a6c7f8a7b86ce43d3bbf7c398a00a90195b4a9aa086058353d3",
+      "agents/openai.yaml": "1193ebc27f1573302011924990c385cce5359f83977e5c574cf7cce63ba39c50"
+    }
+  },
+  "1codebase-design": {
+    "description_characters": 181,
+    "files": {
+      "SKILL.md": "d87346df07c0ec35d075df3ca86c02d94e592218d8b8207419c07aa065f61077",
+      "agents/openai.yaml": "7be80d4934ede85fc7f13bfe2406914e427057bea365478bd98dc8203abc04bb",
+      "references/dependencies.md": "5e49b9fb5739bb6e841c08d0852c43ae8f97c54423f7d48c65700120857915ae",
+      "references/design-alternatives.md": "dc252ba3d7b345d32c02b9b9191b7a61f8a3caf868671ef40e928a6d9e4dbe25"
+    }
+  },
+  "checks": [
+    "YAML parses",
+    "names match",
+    "English descriptions <= 200 characters",
+    "relative Markdown links resolve",
+    "readable-code body matches all four other owners/projections",
+    "final package snapshots match installed files"
+  ],
+  "limits": "Static validation only; no independent model runs."
+}

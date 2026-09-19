@@ -1,0 +1,6 @@
+interface:
+  display_name: "Правило письма"
+  short_description: "Короткий, достаточный и достоверный текст"
+  default_prompt: "Примени $1writing-rule при написании или редактировании текста."
+policy:
+  allow_implicit_invocation: true

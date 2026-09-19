@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import importlib.util
+import io
+from contextlib import redirect_stdout
 import fcntl
 import hashlib
 import json
@@ -51,6 +53,9 @@ class ChatDigestTests(unittest.TestCase):
     def setUp(self) -> None:
         self.temp = tempfile.TemporaryDirectory()
         self.corpus = Path(self.temp.name)
+        cache_environment = mock.patch.dict(os.environ, {"CHAT_RECALL_CACHE_DIR": str(self.corpus / "cache")})
+        cache_environment.start()
+        self.addCleanup(cache_environment.stop)
         (self.corpus / "recall.md").write_text(FILE, encoding="utf-8")
         (self.corpus / "topics.md").write_text(
             "# Карта тем\n\n"
@@ -756,13 +761,13 @@ class ChatDigestTests(unittest.TestCase):
         tiny_payload = json.loads(tiny.stdout)
         self.assertTrue(tiny_payload["truncated"])
         self.assertEqual(tiny_payload["truncated_by"], "max_chars")
-        none_result = self.call_default("--query", "несуществующее", "--json")
+        none_result = self.call("--query", "несуществующее", "--json")
         self.assertEqual(none_result.returncode, 0, none_result.stderr)
         none = json.loads(none_result.stdout)
         self.assertEqual(none["selection"], "none")
         self.assertEqual(none["returned"], 0)
         self.assertIsNone(none["truncated_by"])
-        self.assertEqual(none["retrieval"], "hybrid")
+        self.assertEqual(none["retrieval"], "lexical")
 
     def test_truncated_result_preserves_returned_quote_evidence(self) -> None:
         for hour in range(3):
@@ -1376,13 +1381,96 @@ with module._hybrid_queue():
             fcntl.flock(holder.fileno(), fcntl.LOCK_UN)
             holder.close()
 
-    def test_hybrid_abstains_before_loading_dense_model(self) -> None:
-        records, _ = DIGEST.load(self.corpus)
-        with mock.patch.object(DIGEST, "search_dense") as dense:
-            result = DIGEST.search_hybrid(records, "несуществующее")
+    def test_literal_match_beyond_rrf_depth_keeps_bm25_provenance(self) -> None:
+        records = [{"file": "long.md", "address": f"long.md:{i}"} for i in range(50)]
+        result = DIGEST._merge_file_rankings(records, (records, [records[-1]]))
+        quoted = next(r for r in result[0]["quote_evidence"] if r["address"] == records[-1]["address"])
+        self.assertEqual(quoted["channels"], ["bm25", "dense"])
 
-        self.assertEqual(result, [])
-        dense.assert_not_called()
+    def test_empty_scope_is_not_reported_as_missing_query_words(self) -> None:
+        result = self.call("--query", "канон", "--topic", "nonexistent", "--json")
+        payload = json.loads(result.stdout)
+        self.assertEqual(payload["returned"], 0)
+        self.assertIn("no-eligible-records", payload["warnings"])
+        self.assertNotIn("no-lexical-match", payload["warnings"])
+        self.assertNotIn("query_domain", payload)
+
+    def test_conflict_domain_score_does_not_leak_into_empty_candidate_scope(self) -> None:
+        self.write_entries(['* 2026-07-01 — "quartz" — type: решение | topic: mode | supersedes-unresolved: old words missing'])
+        output = io.StringIO()
+        def conflict_score(*args):
+            DIGEST._DENSE_TOP1 = 0.99
+            return []
+        with mock.patch.object(sys, "argv", [str(SCRIPT), str(self.corpus), "--query", "quartz", "--json"]), mock.patch.object(
+            DIGEST, "_query_conflicts", side_effect=conflict_score
+        ), redirect_stdout(output):
+            self.assertEqual(DIGEST.main(), 0)
+        payload = json.loads(output.getvalue())
+        self.assertEqual(payload["returned"], 0)
+        self.assertNotIn("query_domain", payload)
+
+    def test_hybrid_finds_semantic_candidate_without_lexical_overlap(self) -> None:
+        records, _ = DIGEST.load(self.corpus)
+        with mock.patch.object(DIGEST, "search_dense", return_value=[records[0]]) as dense:
+            result = DIGEST.search_hybrid(records, "переформулировка")
+        dense.assert_called_once()
+        self.assertEqual(result[0]["address"], records[0]["address"])
+        self.assertEqual(result[0]["channels"], ["dense"])
+
+    def test_evidence_channels_describe_each_quote_not_the_file(self) -> None:
+        records, _ = DIGEST.load(self.corpus)
+        results = DIGEST._merge_file_rankings(records, ([records[0]], [records[1]]))
+        evidence = {r["address"]: r for r in results[0]["quote_evidence"]}
+        self.assertEqual(evidence[records[0]["address"]]["channels"], ["bm25"])
+        self.assertEqual(evidence[records[1]["address"]]["channels"], ["dense"])
+        self.assertEqual(evidence[records[1]["address"]]["text"], records[1]["text"])
+
+    def test_zero_lexical_matches_are_visible_in_json_and_text(self) -> None:
+        records, _ = DIGEST.load(self.corpus)
+        for json_mode in (False, True):
+            output = io.StringIO()
+            argv = [str(SCRIPT), str(self.corpus), "--query", "переформулировка"]
+            if json_mode:
+                argv.append("--json")
+            with mock.patch.object(sys, "argv", argv), mock.patch.object(
+                DIGEST, "search_dense", return_value=[records[0]]
+            ), redirect_stdout(output):
+                self.assertEqual(DIGEST.main(), 0)
+            if json_mode:
+                data = json.loads(output.getvalue())
+                self.assertEqual(data["lexical_matched"], 0)
+                self.assertIn("no-lexical-match", data["warnings"])
+                quote = data["holders"][0]["strongest_quote"]
+                self.assertEqual(quote["channels"], ["dense"])
+                self.assertEqual(quote["address"], records[0]["address"])
+            else:
+                self.assertIn("lexical_matched=0", output.getvalue())
+                self.assertIn("warning=no-lexical-match", output.getvalue())
+                self.assertIn("via=dense", output.getvalue())
+
+    def test_semantic_search_keeps_empty_and_invalid_queries_safe(self) -> None:
+        with mock.patch.object(DIGEST, "search_dense") as dense:
+            self.assertEqual(DIGEST.search_hybrid([], "смысл"), [])
+            with self.assertRaises(DIGEST.CliError):
+                DIGEST.search_hybrid([], "???")
+            dense.assert_not_called()
+
+    def test_unrelated_query_does_not_promote_conflicts_via_dense_only(self) -> None:
+        self.write_entries(['* 2026-07-01 — "quartz" — type: решение | topic: mode | supersedes-unresolved: search failed'])
+        records, _ = DIGEST.load(self.corpus)
+        args = DIGEST.build_parser().parse_args([str(self.corpus), "--query", "unrelatedword"])
+        with mock.patch.object(DIGEST, "search_dense", return_value=records) as dense:
+            self.assertEqual(DIGEST._query_conflicts(records, args), [])
+            dense.assert_not_called()
+
+    def test_topic_admission_names_actual_top_channels(self) -> None:
+        cards = [{"topic": str(i), "description": str(i), "search_text": str(i), "file": "topics.md"} for i in range(6)]
+        with mock.patch.object(DIGEST, "search_topic_descriptions_bm25", return_value=[cards[5]]), mock.patch.object(
+            DIGEST, "_search_dense_texts", return_value=cards
+        ):
+            found, count = DIGEST.search_topic_candidates(cards, "query", hybrid=True)
+        self.assertEqual(count, 1)
+        self.assertEqual(found[0]["admitted_by"], "lexical")
 
     def test_session_card_fallback_does_not_displace_quote_hybrid(self) -> None:
         records = [
@@ -1499,6 +1587,7 @@ with module._hybrid_queue():
             (1 + DIGEST.FILE_SUPPORT_WEIGHT) * 2 / (DIGEST.RRF_CONSTANT + 1),
         )
         self.assertEqual(len(result[0]["quote_evidence"]), 1)
+        self.assertEqual(result[1]["quote_evidence"][0]["channels"], ["bm25", "dense"])
         self.assertAlmostEqual(
             result[1]["score"],
             DIGEST.FILE_SUPPORT_WEIGHT * 2 / (DIGEST.RRF_CONSTANT + 2),

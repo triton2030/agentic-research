@@ -11,6 +11,10 @@ description: "Product truth, version packages, and refactor evidence for 1chat-r
 `~/.codex/skills/1chat-recall/` и `~/.claude/skills/1chat-recall/` — их
 projections.
 
+Адресная установленная правка 2026-09-13: область действия цитат в обоих
+рантаймах и глобальных инструкциях. [Проверка и границы](work/scope-2026-09-13/verification.md),
+точные байты — `work/scope-2026-09-13/installed-sha256.json`.
+
 ## Топология
 
 - `versions/<version-id>/` — самостоятельный снимок package. Если Codex и
@@ -21,6 +25,19 @@ projections.
 - `cut.md` — общая история снятых и перенесённых смыслов между версиями.
 
 Текущая установленная версия:
+`versions/installed-2026-09-14-dated-context/` — датированный контекст с
+приоритетом нынешнего разговора и проверенного состояния; прежний смысловой
+поиск сохранён. [Авторинг и проверка](work/dated-context-2026-09-14/verification.md).
+
+Предыдущая версия:
+`versions/installed-2026-09-14-semantic-search/` — независимый поиск цитат по
+смыслу и provenance совпадений в обоих runtime. [Консультация и проверки](work/search-algorithm-2026-09-14/verification.md).
+
+Предыдущая версия:
+`versions/installed-2026-09-14-direct-quotes/` — прямой поиск и чтение рабочим
+агентом в обоих runtime, без посредника. [Проверки и карта сохранности](work/direct-quotes-2026-09-14/verification.md).
+
+Предыдущая версия:
 `versions/installed-2026-09-09-answer-by-links/` — Claude: отчёт психолога ссылками,
 без цитат, простые вопросы (`#L32`); Codex в руках другой сессии. Предыдущая —
 `versions/installed-2026-09-08-search-notes/` — Claude-роль с блоком «Как устроен

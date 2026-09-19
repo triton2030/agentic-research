@@ -1,0 +1,27 @@
+{
+  "/Users/triton/.codex/skills/1chat-recall/SKILL.md": {
+    "owner": "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1chat-recall/SKILL.md",
+    "sha256": "812c202068bc6ac1af590d891f362f34c79b1d085af71c565952cbad88ea6a16"
+  },
+  "/Users/triton/.codex/skills/1chat-recall/references/retrieval.md": {
+    "owner": "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1chat-recall/references/retrieval.md",
+    "sha256": "a2a152551cfeaed17d914b6e4c3d99bcb9c8016d0315100601b3fe6521448fa1"
+  },
+  "/Users/triton/.claude/skills/1chat-recall/SKILL.md": {
+    "owner": "/Users/triton/Documents/GitHub/agentic-research/skills/claude/1chat-recall/SKILL.md",
+    "sha256": "5fc6e0bf72c7d23fde92f73351bd8a81faf79c60c0106e8c6073026118a112b7"
+  },
+  "/Users/triton/.claude/skills/1chat-recall/references/retrieval.md": {
+    "owner": "/Users/triton/Documents/GitHub/agentic-research/skills/claude/1chat-recall/references/retrieval.md",
+    "sha256": "8d4015e794b53aa2a0cdedabb5da040bfd4ab632c1b667b413a8b57cb33508fb"
+  },
+  "/Users/triton/.codex/AGENTS.md": {
+    "sha256": "eaf50648b48d56b5823b1c374fcb16842562b467d46461d4d59a312c6bbfed76"
+  },
+  "/Users/triton/.claude/CLAUDE.md": {
+    "sha256": "02f145e51518a99e5436904d54edec83bb73d8bc9783060ef5a67372267dac38"
+  },
+  "/Users/triton/Documents/GitHub/agentic-research/skills/shared/1chat-recall/product-frame.md": {
+    "sha256": "d175f79c8c4ffe857898acf37feab833c432bf6e71ed4fcb5ca6d14aaabe730f"
+  }
+}
