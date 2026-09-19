@@ -1,4 +1,0 @@
-interface:
-  display_name: "MaxRevie"
-  short_description: "Полная распределённая проверка требований"
-  default_prompt: "Используй $maxrevie для полной проверки инструкций, применимых к выбранным файлам."

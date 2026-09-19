@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Seal and check MaxRevie coverage manifests and packet reports."""
+"""Seal and check 1-max-review coverage manifests and packet reports."""
 
 from __future__ import annotations
 

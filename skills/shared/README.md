@@ -9,7 +9,7 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
 
 ## Живые Owners
 
-- `maxrevie/portable/` — полная распределённая проверка применимых требований
+- `1-max-review/portable/` — полная распределённая проверка применимых требований
   к выбранным файлам или корпусу: отдельный координатор, малые связанные
   пакеты, независимая сверка списка правил и машинный учёт покрытия.
   `platforms/{codex,claude}/references/runtime.md` держат запуск и выбор

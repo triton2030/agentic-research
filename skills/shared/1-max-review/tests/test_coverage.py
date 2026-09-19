@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Behavioral tests for the narrow MaxRevie coverage helper."""
+"""Behavioral tests for the narrow 1-max-review coverage helper."""
 
 from __future__ import annotations
 
