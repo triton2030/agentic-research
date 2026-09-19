@@ -181,7 +181,6 @@ class MaxReviewTests(unittest.TestCase):
         argv = json.loads((self.fake_state / "ONE.argv.json").read_text())
         self.assertEqual(argv[1], "exec")
         self.assertIn("--ignore-user-config", argv)
-        self.assertIn("--skip-git-repo-check", argv)
         self.assertEqual(argv[argv.index("-m") + 1], "gpt-5.6-luna")
         self.assertIn('model_reasoning_effort="max"', argv)
         self.assertIn('approval_policy="never"', argv)

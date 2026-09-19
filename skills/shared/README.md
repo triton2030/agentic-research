@@ -9,11 +9,11 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
 
 ## Живые Owners
 
-- `1-max-review/portable/` — полная распределённая проверка применимых требований
-  к выбранным файлам или корпусу: отдельный координатор, малые связанные
-  пакеты, независимая сверка списка правил и машинный учёт покрытия.
-  `platforms/{codex,claude}/references/runtime.md` держат запуск и выбор
-  моделей; Codex metadata — `platforms/codex/agents/openai.yaml`.
+- `1-max-review/portable/` — проверка выбранных файлов или корпуса по исходным
+  участкам применимых правил: готовые небольшие пакеты, отдельный координатор
+  и общий CLI с учётом покрытия участков и ответов. Luna Max закреплена в теле.
+  `platforms/{codex,claude}/references/runtime.md` держат особенности запуска;
+  Codex metadata — `platforms/codex/agents/openai.yaml`.
   Локальная история создания и проверки — `_workspace/orchestration/2026-09-19-maxrevie/`.
 - `1illustrations-and-charts/portable/` — компактные схемы, SVG и макеты интерфейса рядом со сложным объяснением; переносимое ядро для Claude и Codex. Проектные пути и CSS остаются в документации проекта.
 - `1writing-rule/portable/` — личное «Правило письма»: качество любой прозы,

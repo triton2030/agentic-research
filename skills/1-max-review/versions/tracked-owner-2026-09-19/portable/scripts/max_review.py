@@ -20,8 +20,6 @@ import time
 from datetime import datetime, timezone
 from typing import Any
 
-from packets import PacketError, check as check_packets, prepare as prepare_packets
-
 
 MODEL = "gpt-5.6-luna"
 EFFORT = "max"
@@ -316,7 +314,6 @@ class Runner:
             self.codex,
             "exec",
             "--ignore-user-config",
-            "--skip-git-repo-check",
             "-m",
             MODEL,
             "-c",
@@ -567,18 +564,6 @@ def command_doctor(args: argparse.Namespace) -> int:
     return 0 if healthy else 1
 
 
-def command_prepare(args: argparse.Namespace) -> int:
-    base = Path(__file__).resolve().parents[1]
-    payload = prepare_packets(
-        Path(args.plan),
-        Path(args.out),
-        base / "references/reviewer.md",
-        base / "assets/report.schema.json",
-    )
-    _emit(payload, args.json)
-    return 0
-
-
 def command_run(args: argparse.Namespace) -> int:
     codex = _require_ready()
     run_dir = Path(args.run_dir).resolve()
@@ -663,12 +648,6 @@ def command_retry(args: argparse.Namespace) -> int:
     return 0 if _all_succeeded(payload) else 1
 
 
-def command_check(args: argparse.Namespace) -> int:
-    payload, exit_code = check_packets(Path(args.prepared), Path(args.run_dir))
-    _emit(payload, args.json)
-    return exit_code
-
-
 def build_parser() -> argparse.ArgumentParser:
     parser = ArgumentParser(
         prog="max-review", description="Run bounded Luna Max reviews through codex exec."
@@ -681,14 +660,6 @@ def build_parser() -> argparse.ArgumentParser:
         "--json", action="store_true", default=argparse.SUPPRESS, help=argparse.SUPPRESS
     )
     doctor.set_defaults(handler=command_doctor)
-
-    prepare = subparsers.add_parser("prepare", help="prepare self-contained review packets")
-    prepare.add_argument(
-        "--json", action="store_true", default=argparse.SUPPRESS, help=argparse.SUPPRESS
-    )
-    prepare.add_argument("--plan", required=True)
-    prepare.add_argument("--out", required=True)
-    prepare.set_defaults(handler=command_prepare)
 
     run = subparsers.add_parser("run", help="run all tasks from a JSONL file")
     run.add_argument(
@@ -723,14 +694,6 @@ def build_parser() -> argparse.ArgumentParser:
     retry.add_argument("--failed", action="store_true", required=True)
     retry.add_argument("--parallel", required=True, type=_validate_positive)
     retry.set_defaults(handler=command_retry)
-
-    check = subparsers.add_parser("check", help="validate current packet reports")
-    check.add_argument(
-        "--json", action="store_true", default=argparse.SUPPRESS, help=argparse.SUPPRESS
-    )
-    check.add_argument("--prepared", required=True)
-    check.add_argument("--run-dir", required=True)
-    check.set_defaults(handler=command_check)
     return parser
 
 
@@ -748,7 +711,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command in {"run", "retry"}:
             previous_sigterm = signal.signal(signal.SIGTERM, _interrupt_on_signal)
         return int(args.handler(args))
-    except (CliError, PacketError, OSError) as exc:
+    except (CliError, OSError) as exc:
         payload = {"status": "error", "error": str(exc)}
         if getattr(args, "json", False):
             print(json.dumps(payload, sort_keys=True))
