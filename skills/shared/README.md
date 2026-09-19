@@ -9,6 +9,12 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
 
 ## Живые Owners
 
+- `maxrevie/portable/` — полная распределённая проверка применимых требований
+  к выбранным файлам или корпусу: отдельный координатор, малые связанные
+  пакеты, независимая сверка списка правил и машинный учёт покрытия.
+  `platforms/{codex,claude}/references/runtime.md` держат запуск и выбор
+  моделей; Codex metadata — `platforms/codex/agents/openai.yaml`.
+  Локальная история создания и проверки — `_workspace/orchestration/2026-09-19-maxrevie/`.
 - `1illustrations-and-charts/portable/` — компактные схемы, SVG и макеты интерфейса рядом со сложным объяснением; переносимое ядро для Claude и Codex. Проектные пути и CSS остаются в документации проекта.
 - `1writing-rule/portable/` — личное «Правило письма»: качество любой прозы,
   подробный материал для файлов и маршруты к `1docs-write`, `1folder-tree`
