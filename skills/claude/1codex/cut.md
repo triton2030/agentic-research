@@ -473,3 +473,21 @@ stderr. Все семь приняты и исправлены; артефакт
   traceback'ом — короткий отказ. Долг по тестам закрыт
   той же ночью: `ExternalSteerAsyncTests`, `HistoryTests`, `test_codex_launch.py`
   (витрина, SIGTERM → interrupt прогона, отказы), 202 теста OK.
+
+### Аудит Astra (2026-09-19, `gpt-6-astra`/`medium`)
+
+Вердикт: код и скил — есть разрывы. Приняты и исправлены: витрина уходила по
+provisional `result.json` (теперь финал только не-provisional либо смерть
+процесса прогона по `--pid`); разрыв UTF-8 в хвосте журнала ронял витрину
+(чтение по байтам до decode); launcher ждал витрину, когда прогон уже умер
+(волна без `result.json`) — pid уходит витрине; `--run-dir` у launcher'а,
+двойной флаг после `--` отвергается; провал interrupt чужого хода больше не
+маскируется «прерван»; `history` печатает `functionCallOutput`, то есть
+внешние сообщения; reference-файлы (audit, advise, delegate, threads) больше не
+обходят launcher; `arbitrate.md` указывает на `evidence.md` в мастерской, а не
+в пакете; `watch.md` оговаривает старт нового хода у `--external`; README —
+подписка ручного handle и роль `#44084`. Принято как остаток риска: события
+отдельного review-треда до ответа RPC роутер SDK не удерживает; финал ревью
+идёт минутами, поэтому потеря `turn/completed` до ответа RPC практически
+исключена — закрыть может только SDK. Тесты: `test_codex_watch.py`,
+`test_failed_interrupt_is_reported_not_hidden`; 206 OK.

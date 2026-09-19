@@ -788,8 +788,12 @@ def main() -> int:
                                 raise RuntimeError("review/start не вернул turn.id")
                             # Ключ — тред, зарегистрированный в pending_turn: по
                             # reviewThreadId роутер ищет pending-запись и падает
-                            # KeyError (нативное ревью 2026-09-18). События
-                            # маршрутизируются по turn_id, тред здесь — только ключ.
+                            # KeyError (нативное ревью 2026-09-18). Остаток риска
+                            # (аудит Astra 2026-09-19): события ОТДЕЛЬНОГО
+                            # review-треда до ответа RPC роутер не удерживает —
+                            # закрыть это может только SDK; финал ревью идёт
+                            # минутами, потеря первых событий практична,
+                            # потеря turn/completed до ответа RPC — нет.
                             subscription = router.prepare_turn(
                                 turn_id, codex_runtime["thread_id"], cursors, for_handle=True
                             )

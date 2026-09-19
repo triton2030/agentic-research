@@ -311,6 +311,17 @@ def _item_line(item) -> str | None:
         return f"  user: {text}"
     if kind == "agentMessage":
         return f"  agent: {str(d.get('text') or '').strip()}"
+    if kind == "functionCallOutput":
+        # Так store хранит ExternalMessage (--external): внешнее свидетельство,
+        # на котором основан ответ (аудит Astra 2026-09-19).
+        out = d.get("output")
+        if isinstance(out, dict):
+            text = out.get("text") or out.get("body") or " ".join(
+                str(c.get("text") or "") for c in (out.get("content") or []) if isinstance(c, dict)
+            )
+        else:
+            text = str(out or "")
+        return f"  external({d.get('name') or 'tool'}): {str(text).strip()}"
     if kind in ("commandExecution", "fileChange", "mcpToolCall", "dynamicToolCall",
                 "webSearch", "subAgentActivity"):
         label = d.get("command") or d.get("tool") or d.get("query") or d.get("status")

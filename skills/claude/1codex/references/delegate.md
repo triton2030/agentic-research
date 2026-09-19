@@ -6,8 +6,8 @@
 
 | Куда падает результат | Вход |
 |---|---|
-| себе в папку прогона, проект для записи недостижим | `codex_investigate.py "ЗАДАНИЕ + формат выхода" --project "$PWD" --summary-stdout` |
-| в файлы проекта | `codex_orchestrate.py` — волна воркеров, контракт ниже |
+| себе в папку прогона, проект для записи недостижим | `codex_launch.py investigate --name <суть> --prompt-file ЗАДАНИЕ.md --project "$PWD"` — задание с форматом выхода |
+| в файлы проекта | `codex_launch.py orchestrate --name <волна> --project "$PWD" -- --tasks tasks.json` — волна воркеров, контракт ниже |
 | адреса в markdown-корпусе | `(cd /Users/triton/Documents/My_projects/md-tools && uv run python scripts/run_md_scout.py КОРПУС --question "ВОПРОС")` — read-only executor `1md-search`, без вердиктов; приёмка по пакету, не по exit code |
 
 **Веер вместо одного прогона** — когда работа делится: каждому свой участок или
@@ -89,14 +89,13 @@ Handle воркера пиши в носитель волны как `thread_id`
 
 ```bash
 B=/Users/triton/Documents/GitHub/agentic-research/experiments/codex-bridge
-echo '[{"id":"t1","prompt":"...","files":["a.md"]}]' \
-  | $B/.venv/bin/python $B/codex_orchestrate.py --project "$PWD" --summary-stdout
-# большой список — --tasks tasks.json ; сухой план — --dry-run (это план, не результат)
+$B/.venv/bin/python $B/codex_launch.py orchestrate --name <волна> --project "$PWD" -- --tasks tasks.json
+# аргументы входа после -- ; сухой план — --dry-run (это план, не результат)
 # --concurrency N — сколько разом, дефолт 4 ; --no-integrate — посмотреть до забора
 # --verify "команда" — повтори для КАЖДОЙ проверки, которую иначе прогнал бы руками
 #   после интеграции: в worktree это ворота по временному СЛИТОМУ дереву до merge
 # --tree-setup "команда" — готовит КАЖДОЕ дерево воркера и слитое дерево
-# --run-dir ПУТЬ — папка обязана НЕ существовать: mkdir -p заранее гасит волну
+# --run-dir ПУТЬ — у launcher'а, не после --; папка обязана НЕ существовать
 ```
 
 **`--tree-setup` обязателен там, где приборы нужны в дереве.** Свежий worktree
@@ -162,7 +161,8 @@ echo '[{"id":"t1","prompt":"...","files":["a.md"]}]' \
 ## Остановка и ремонт
 
 Мост не подключил interrupt на асинхронном пути: работа воркеров фиксируется в
-ветках и печатается, но `result.json` не пишется, а деревья остаются. Ручки —
+ветках и печатается, но `result.json` не пишется, а деревья остаются; витрина
+закрывается по смерти процесса и говорит «без result.json». Ручки —
 готовый git, обёрток мост не держит:
 
 ```bash

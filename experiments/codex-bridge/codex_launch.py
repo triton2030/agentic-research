@@ -43,20 +43,28 @@ def main() -> int:
     parser.add_argument("--name", required=True, help="суффикс RUN_DIR и подпись карточки: роль-суть, без пробелов")
     parser.add_argument("--prompt-file", help="файл с заданием (review/investigate); orchestrate берёт --tasks после --")
     parser.add_argument("--project", default=".", help="корень проекта (default cwd)")
+    parser.add_argument("--run-dir", help="явный RUN_DIR (обязан не существовать); вне проекта, если _workspace чистят тесты или хуки")
     parser.add_argument("--poll", type=int, default=10, help="шаг опроса журнала витриной, с")
     parser.epilog = "после `--` — аргументы входа моста как есть"
     args, rest = parser.parse_known_args()
 
     project = Path(args.project).expanduser().resolve()
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    run_dir = project / "_workspace" / "codex-artifacts" / f"{stamp}-{args.name}"
+    if rest and rest[0] == "--":
+        rest = rest[1:]
+    if "--run-dir" in rest:
+        print("--run-dir задаётся launcher'у, не входу моста: иначе витрина смотрит не туда", file=sys.stderr)
+        return 2
+    run_dir = (
+        Path(args.run_dir).expanduser().resolve()
+        if args.run_dir
+        else project / "_workspace" / "codex-artifacts" / f"{stamp}-{args.name}"
+    )
     if run_dir.exists():
         print(f"RUN_DIR уже существует: {run_dir}", file=sys.stderr)
         return 2
     run_dir.parent.mkdir(parents=True, exist_ok=True)
 
-    if rest and rest[0] == "--":
-        rest = rest[1:]
     cmd = [sys.executable, str(HERE / ENTRIES[args.entry])]
     if args.prompt_file:
         if args.entry == "orchestrate":
@@ -84,12 +92,28 @@ def main() -> int:
     watch_rc = 1
     rc: int | None = None
     try:
-        watch = subprocess.run(
+        # Витрина получает pid прогона: умер прогон без result.json (rescue-путь
+        # волны) — витрина закрывается сама, а не ждёт шесть часов (аудит Astra
+        # 2026-09-19).
+        watch = subprocess.Popen(
             [sys.executable, str(HERE / "codex_watch.py"), "watch", str(run_dir),
-             "--pulse", "--poll", str(args.poll)],
+             "--pulse", "--poll", str(args.poll), "--pid", str(proc.pid)],
             cwd=str(project),
         )
-        watch_rc = watch.returncode
+        while True:
+            try:
+                watch_rc = watch.wait(timeout=5)
+                break
+            except subprocess.TimeoutExpired:
+                if proc.poll() is not None:
+                    # Прогон кончился, витрина дочитывает; дольше двух опросов
+                    # ей нечего ждать.
+                    try:
+                        watch_rc = watch.wait(timeout=2 * args.poll + 5)
+                    except subprocess.TimeoutExpired:
+                        watch.terminate()
+                        watch_rc = watch.wait(timeout=10)
+                    break
         # Витрина кончилась раньше прогона (не встала, потолок часов) —
         # прогон без окна не живёт: ждём недолго и гасим.
         grace = 30 if watch_rc == 2 else 600

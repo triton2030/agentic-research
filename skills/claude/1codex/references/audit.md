@@ -7,9 +7,12 @@
 
 ```bash
 B=/Users/triton/Documents/GitHub/agentic-research/experiments/codex-bridge
-$B/.venv/bin/python $B/codex_review.py "ЗАДАНИЕ" --project "$PWD" --summary-stdout
-$B/.venv/bin/python $B/codex_review.py --mode diff [--base REF | --commit SHA] --project "$PWD"
+$B/.venv/bin/python $B/codex_launch.py review --name аудитор-<суть> --prompt-file ЗАДАНИЕ.md --project "$PWD"
+$B/.venv/bin/python $B/codex_launch.py review --name ревью-дифа --project "$PWD" -- --mode diff [--base REF | --commit SHA]
 ```
+
+Запуск всегда через `codex_launch.py` (витрина владельца, правило в `SKILL.md`);
+здесь и ниже показаны только аргументы входа `codex_review.py` после `--`.
 
 Дефолтный режим проверяет что угодно по твоему заданию. `--mode diff` — нативный
 ревьюер движка вместо твоего промпта: усилие он берёт из конфига движка, `--effort`

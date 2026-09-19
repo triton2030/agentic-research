@@ -442,3 +442,28 @@ class ExternalSteerAsyncTests(unittest.TestCase):
 
         result = self._run(codex_progress._deliver_steer_async(Handle(), None, {"text": "к цели", "authority": "user"}))
         self.assertEqual(result.text, "к цели")
+
+    def test_failed_interrupt_is_reported_not_hidden(self) -> None:
+        try:
+            from openai_codex import ExternalMessage  # noqa: F401
+        except ImportError:
+            self.skipTest("SDK без ExternalMessage")
+
+        class Stray:
+            id = "t-new"
+            _subscription = None
+
+            def interrupt(self):
+                raise RuntimeError("transport down")
+
+        class Thread:
+            def turn(self, message):
+                return Stray()
+
+        class Handle:
+            id = "t-main"
+
+        with self.assertRaises(RuntimeError) as ctx:
+            codex_progress._deliver_steer(Handle(), Thread(), {"text": "x", "authority": "external"})
+        self.assertIn("ПРЕРВАТЬ НЕ УДАЛОСЬ", str(ctx.exception))
+        self.assertIn("transport down", str(ctx.exception))

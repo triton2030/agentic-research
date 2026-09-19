@@ -39,8 +39,8 @@
 
 ```bash
 B=/Users/triton/Documents/GitHub/agentic-research/experiments/codex-bridge
-$B/.venv/bin/python $B/codex_review.py "ВОПРОС" --dialog --topic "ТЕМА" --project "$PWD" --summary-stdout
-$B/.venv/bin/python $B/codex_review.py "УТОЧНЕНИЕ" --continue THREAD_ID --project "$PWD"
+$B/.venv/bin/python $B/codex_launch.py review --name советник-<тема> --prompt-file ВОПРОС.md --project "$PWD" -- --dialog --topic "ТЕМА"
+$B/.venv/bin/python $B/codex_launch.py review --name советник-<тема> --prompt-file УТОЧНЕНИЕ.md --project "$PWD" -- --continue THREAD_ID
 ```
 
 Рабочее дерево есть по праву только у пишущего воркера; тред советнику — названное
@@ -64,7 +64,7 @@ $B/.venv/bin/python $B/codex_review.py "УТОЧНЕНИЕ" --continue THREAD_ID
 ## Птичий взгляд на траекторию сессии
 
 ```bash
-$B/.venv/bin/python $B/codex_review.py --mode ask --question "…" --project "$PWD"
+$B/.venv/bin/python $B/codex_launch.py review --name траектория --project "$PWD" -- --mode ask --question "…"
 ```
 
 Транскрипт подтянется сам; чужая или прошлая сессия — `--transcript FILE`. Не

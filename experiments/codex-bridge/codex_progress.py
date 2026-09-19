@@ -548,8 +548,10 @@ def _deliver_steer(handle: Any, thread: Any, request: dict[str, Any]) -> Any:
         if thread is None:
             raise RuntimeError("external-реплика требует ручку треда, у этого хода её нет")
         joined = thread.turn(_external_message(str(request.get("text") or "")))
-        _close_subscription(joined)
-        _require_same_turn(joined, handle)
+        try:
+            _require_same_turn(joined, handle)
+        finally:
+            _close_subscription(joined)
         return joined
     return handle.steer(request["text"])
 
@@ -560,16 +562,29 @@ def _require_same_turn(joined: Any, handle: Any) -> None:
     Аудит Codex 2026-09-18. Чужой ход прерываем и отказываем реплике."""
     joined_id = getattr(joined, "id", None)
     if joined_id and joined_id != getattr(handle, "id", None):
-        try:
-            result = joined.interrupt()
-            if hasattr(result, "__await__"):
-                result.close()  # async-вариант обрабатывается своей функцией
-        except Exception:  # noqa: BLE001
-            pass
-        raise RuntimeError(
-            f"основной ход {getattr(handle, 'id', '?')} уже завершился: реплика завела бы "
-            f"новый ход {joined_id} — прерван, реплика не доставлена"
-        )
+        raise RuntimeError(_stray_turn_message(handle, joined_id, _try_interrupt(joined)))
+
+
+def _try_interrupt(joined: Any) -> str | None:
+    """Прервать чужой ход; вернуть текст ошибки, если не удалось (не глотать:
+    «прерван» без подтверждения — ложная квитанция, аудит Astra 2026-09-19)."""
+    try:
+        result = joined.interrupt()
+        if hasattr(result, "__await__"):
+            result.close()
+    except Exception as exc:  # noqa: BLE001
+        return f"{type(exc).__name__}: {exc}"
+    return None
+
+
+def _stray_turn_message(handle: Any, joined_id: str, interrupt_error: str | None) -> str:
+    base = (
+        f"основной ход {getattr(handle, 'id', '?')} уже завершился: реплика завела бы "
+        f"новый ход {joined_id}"
+    )
+    if interrupt_error:
+        return f"{base} — ПРЕРВАТЬ НЕ УДАЛОСЬ ({interrupt_error}): ход идёт без потребителя, проверь тред"
+    return f"{base} — прерван, реплика не доставлена"
 
 
 async def _deliver_steer_async(handle: Any, thread: Any, request: dict[str, Any]) -> Any:
@@ -577,17 +592,17 @@ async def _deliver_steer_async(handle: Any, thread: Any, request: dict[str, Any]
         if thread is None:
             raise RuntimeError("external-реплика требует ручку треда, у этого хода её нет")
         joined = await thread.turn(_external_message(str(request.get("text") or "")))
-        await _aclose_subscription(joined)
-        joined_id = getattr(joined, "id", None)
-        if joined_id and joined_id != getattr(handle, "id", None):
-            try:
-                await joined.interrupt()
-            except Exception:  # noqa: BLE001
-                pass
-            raise RuntimeError(
-                f"основной ход {getattr(handle, 'id', '?')} уже завершился: реплика завела бы "
-                f"новый ход {joined_id} — прерван, реплика не доставлена"
-            )
+        try:
+            joined_id = getattr(joined, "id", None)
+            if joined_id and joined_id != getattr(handle, "id", None):
+                error: str | None = None
+                try:
+                    await joined.interrupt()
+                except Exception as exc:  # noqa: BLE001
+                    error = f"{type(exc).__name__}: {exc}"
+                raise RuntimeError(_stray_turn_message(handle, joined_id, error))
+        finally:
+            await _aclose_subscription(joined)
         return joined
     return await handle.steer(request["text"])
 

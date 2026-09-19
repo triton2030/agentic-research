@@ -36,6 +36,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -95,16 +96,18 @@ class Journal:
         if not self.path.is_file():
             return
         try:
-            with self.path.open("r", encoding="utf-8") as handle:
+            with self.path.open("rb") as handle:
                 handle.seek(self.offset)
-                chunk = handle.read()
-                # Хвостовая неполная строка: писатель мог не дописать её в этот
-                # момент. Оставляем её следующему кругу, offset не двигаем.
-                cut = chunk.rfind("\n")
-                if cut == -1:
-                    return
-                self.offset += len(chunk[: cut + 1].encode("utf-8"))
-                body = chunk[: cut + 1]
+                raw_chunk = handle.read()
+            # Хвостовая неполная строка: писатель мог не дописать её (или
+            # дописать полсимвола UTF-8) в этот момент. Режем по байтам ДО
+            # декодирования и оставляем хвост следующему кругу (аудит Astra
+            # 2026-09-19: decode всего хвоста падал на разорванном символе).
+            cut = raw_chunk.rfind(b"\n")
+            if cut == -1:
+                return
+            body = raw_chunk[: cut + 1].decode("utf-8", errors="replace")
+            self.offset += cut + 1
         except OSError as err:
             emit(f"НАБЛЮДЕНИЕ СЛОМАНО: журнал не читается — {err}")
             return
@@ -310,9 +313,34 @@ class Run:
 WAIT_SEC = 180
 
 
+def _result_is_final(run_dir: Path) -> bool:
+    """`result.json` считается финалом, только если он не provisional: обработчик
+    сигнала пишет provisional-запись ДО interrupt, и витрина уходила раньше
+    подтверждённого конца (аудит Astra 2026-09-19)."""
+    path = run_dir / "result.json"
+    if not path.is_file():
+        return False
+    try:
+        return not json.loads(path.read_text(encoding="utf-8")).get("provisional")
+    except (OSError, ValueError):
+        return True  # нечитаемый файл — закрывающие строки сами это скажут
+
+
+def _pid_alive(pid: int | None) -> bool:
+    if not pid:
+        return True
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
+
+
 def watch(
     run_dir: Path, poll: int, max_hours: float, wait_sec: int = WAIT_SEC,
-    pulse: bool = False, words_only: bool = True,
+    pulse: bool = False, words_only: bool = True, pid: int | None = None,
 ) -> int:
     # Monitor ставится в момент запуска прогона, на заранее выбранный
     # `--run-dir`, — каталог появится, когда мост создаст его. Ждём ограниченно:
@@ -337,9 +365,12 @@ def watch(
             for line in run.absorb(event):
                 emit(line)
 
-        if run.finished or (run_dir / "result.json").is_file():
+        backend_gone = not _pid_alive(pid)
+        if run.finished or _result_is_final(run_dir) or backend_gone:
             # Ещё круг чтения: `done` и `result.json` могли обогнать хвост
             # журнала, а недосчитанный `worker_done` дал бы ложный «ПРОПАЛ».
+            if backend_gone and not (run.finished or _result_is_final(run_dir)):
+                emit(f"ПРОЦЕСС ПРОГОНА ЗАВЕРШИЛСЯ без result.json — {run_dir.name}")
             time.sleep(1)
             for event in run.journal.new_events():
                 for line in run.absorb(event):
@@ -417,6 +448,9 @@ def main(argv: list[str] | None = None) -> int:
         help="с --pulse: показывать и команды, файлы, инструменты (для отладки моста)",
     )
     watcher.add_argument(
+        "--pid", type=int, help="pid процесса прогона: его смерть без result.json закрывает витрину",
+    )
+    watcher.add_argument(
         "--wait-sec", type=int, default=WAIT_SEC,
         help="сколько ждать появления run_dir, если Monitor поставлен раньше прогона",
     )
@@ -428,7 +462,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.mode == "watch":
         return watch(
             Path(args.run_dir), args.poll, args.max_hours, args.wait_sec,
-            args.pulse or args.pulse_all, words_only=not args.pulse_all,
+            args.pulse or args.pulse_all, words_only=not args.pulse_all, pid=args.pid,
         )
     return look(Path(args.project))
 
