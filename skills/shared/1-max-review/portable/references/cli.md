@@ -28,11 +28,13 @@ max-review doctor --json
 ```
 
 Пути абсолютные; `id` уникален. Prompt содержит только brief данного пакета,
-адреса первичных источников, версию, unit ID и контракт короткого ответа.
+адреса первичных источников, версию, unit ID и полный текст
+[контракта проверяющего](reviewer.md).
 Проверяющий возвращает финальный отчёт; файл за него сохраняет оболочка.
 Сам проверяющий работает с shell sandbox read-only, без разрешения исправлять
 цели или рекурсивно запускать другие проверки. Для отчёта, совместимого
-с механизмом покрытия, добавь к run `--output-schema <skill>/assets/report.schema.json`.
+с механизмом покрытия, добавь к run
+`--output-schema <skill>/assets/report.schema.json`.
 
 ```sh
 max-review run --tasks /absolute/session/tasks.jsonl --run-dir /absolute/session/run --parallel 4 --timeout 300 --json
