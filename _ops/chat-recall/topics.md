@@ -32,6 +32,7 @@
 - `findings` — Фиксация побочных находок без остановки основной работы
 - `fresh-eyes` — Независимые критические линзы и проверка траектории работы
 - `gemini` — Gemini/Antigravity skill и обработка audio/video
+- `github-repos` — Репозитории на GitHub: бэкап, push, видимость и доступ
 - `global-agent-instructions` — Форма и содержание глобальных инструкций Claude и Codex
 - `goals-plans-principles` — Связка проектной цели, планов и принципов принятия решений
 - `graphiti-memory` — Эксперимент Graphiti для преобразования цитат в память
