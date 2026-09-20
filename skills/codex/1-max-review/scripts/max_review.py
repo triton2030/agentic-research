@@ -572,7 +572,7 @@ def command_prepare(args: argparse.Namespace) -> int:
     payload = prepare_packets(
         Path(args.plan),
         Path(args.out),
-        base / "references/reviewer.md",
+        base / "assets/packet-reviewer.md",
         base / "assets/report.schema.json",
     )
     _emit(payload, args.json)

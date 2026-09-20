@@ -1,0 +1,37 @@
+{
+  "baseline": "3744c6a5322148d1589860cda769df4c8ad9aaf2",
+  "files": [
+    {
+      "path": "skills/shared/1-max-review/portable/SKILL.md",
+      "sha256": "cdefe8bfd97f10096ef8e95f7dd944f6b1d121ee2e498eb94c0fef8525ca6434"
+    },
+    {
+      "path": "skills/shared/1-max-review/portable/references/prepare.md",
+      "sha256": "8735c6725d367b7ed0846527534fa85f7a4547ca3b2c60262207ac08a6981f4b"
+    },
+    {
+      "path": "skills/shared/1-max-review/portable/references/reviewer.md",
+      "sha256": "96a1ebe860788035368ebac058f8137e527e820ae7f615fbf3dce88958456380"
+    },
+    {
+      "path": "skills/shared/1-max-review/portable/references/cli.md",
+      "sha256": "b7c18e333c9768325762f79cb0d8428ac8456a7e04a1da9327e8a4316e79a830"
+    },
+    {
+      "path": "skills/shared/1-max-review/portable/references/results.md",
+      "sha256": "ee64ea66e35bc7d7d4e77cbdeaec36eebb7e473d23f6f06a12eca774a1642195"
+    },
+    {
+      "path": "skills/shared/1-max-review/platforms/codex/references/runtime.md",
+      "sha256": "2d36d84bee2012ec3d2144bf7f92cacb545e4ac5b8c7853c74570fa809598a77"
+    },
+    {
+      "path": "skills/shared/1-max-review/platforms/claude/references/runtime.md",
+      "sha256": "cf618cf075684e96f04d66d3894b00984088a2ed7c65363a0c0c81274a5b46e3"
+    },
+    {
+      "path": "skills/shared/1-max-review/validation.md",
+      "sha256": "94e8750377ff091f6702cc5c6a6c1c665ad057305ed61f393641331b743a459d"
+    }
+  ]
+}

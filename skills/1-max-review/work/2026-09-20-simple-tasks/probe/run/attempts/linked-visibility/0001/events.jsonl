@@ -1,0 +1,4 @@
+{"type":"thread.started","thread_id":"01a0bd5b-bfe1-7fe2-b862-7bd56361c478"}
+{"type":"turn.started"}
+{"type":"item.completed","item":{"id":"item_0","type":"agent_message","text":"Ошибок не нашёл. Выключенный физический вариант не попадает в новый выбор; при наличии других подходящих вариантов товар-финал остаётся доступен. Если вариантов не осталось, он скрывается, а прямая ссылка показывает состояние отсутствия доступной вещи. Уже собранные заказы не меняются."}}
+{"type":"turn.completed","usage":{"input_tokens":23004,"cached_input_tokens":9984,"cache_write_input_tokens":0,"output_tokens":3697,"reasoning_output_tokens":3624}}

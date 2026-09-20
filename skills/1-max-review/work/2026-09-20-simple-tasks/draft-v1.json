@@ -1,0 +1,9 @@
+{
+  "skills/shared/1-max-review/portable/SKILL.md": "1f82375f6bb2c0d4ca98efcddce4102c8370eef9b7caaddd01433f03b8e3904b",
+  "skills/shared/1-max-review/portable/references/reviewer.md": "856179e127ab9d8f6b635e3e24e2fda56a4a95e7525b003d2d8021a589454d01",
+  "skills/shared/1-max-review/portable/references/cli.md": "c7113b566994e85793ec17dc57dd3f8048c5d9485f443fefff35b10364c5cc24",
+  "skills/shared/1-max-review/portable/references/prepare.md": "5e318f009827eab511e607e26aeabc2b75bc3512f55ca2161279de9075bd98ab",
+  "skills/shared/1-max-review/portable/references/results.md": "ad1c65075c60285722c2806c99bf953eb69d1cda2aaaea22f9574fc88521eb17",
+  "skills/shared/1-max-review/platforms/claude/references/runtime.md": "32a187c00198fe69594c614cafa954d5f29297647ccbbac909c245c28dc4c137",
+  "skills/shared/1-max-review/platforms/codex/references/runtime.md": "aa995c52f1a6b7e619afda12ff8f3c36d8f2d8cd5015bc3466701f9032d1c99d"
+}

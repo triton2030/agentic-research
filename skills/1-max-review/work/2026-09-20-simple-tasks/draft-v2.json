@@ -1,0 +1,17 @@
+{
+  "skills/shared/1-max-review/platforms/claude/references/runtime.md": "32a187c00198fe69594c614cafa954d5f29297647ccbbac909c245c28dc4c137",
+  "skills/shared/1-max-review/platforms/codex/agents/openai.yaml": "5310d9a3ad4bee393e8bdcf3d46e33aa0f73392e30edea2660075c74f342e1f3",
+  "skills/shared/1-max-review/platforms/codex/references/runtime.md": "aa995c52f1a6b7e619afda12ff8f3c36d8f2d8cd5015bc3466701f9032d1c99d",
+  "skills/shared/1-max-review/portable/SKILL.md": "c6b50475532ed0b76bb765c9b599248248ca59ff39eae88ae51e44139de69c09",
+  "skills/shared/1-max-review/portable/assets/packet-reviewer.md": "96a1ebe860788035368ebac058f8137e527e820ae7f615fbf3dce88958456380",
+  "skills/shared/1-max-review/portable/assets/report.schema.json": "9ff1759184a7c847c9ec8aafd375680ff6e21f83d384bc039f44b5b75f2d51ee",
+  "skills/shared/1-max-review/portable/references/cli.md": "ef04d44d85cae36d5a9d1b53768612c89d4330d2048768beedca71a7e318e2e7",
+  "skills/shared/1-max-review/portable/references/prepare.md": "d4fc7258992224e739ecb0ad9367f56705364a9b4009ad12b0bcc54c3f9a3b43",
+  "skills/shared/1-max-review/portable/references/results.md": "f05e283a59ae058965d249e784974d40c5957d17bd026f2970b004c0b8692f0e",
+  "skills/shared/1-max-review/portable/references/reviewer.md": "988d3ce93e285b4c12720ac831730d21a14981fb027b858cdcca2e9563b4bec1",
+  "skills/shared/1-max-review/portable/scripts/install_cli.py": "c68af1f3eae337062acfa8c5e9042e187cdc7b64d24415674d1bfabc4ab9e50f",
+  "skills/shared/1-max-review/portable/scripts/max_review.py": "8cce26cc1acff433a19bfbe213f22101bcb343b8c67f9d396bf556292405dc8d",
+  "skills/shared/1-max-review/portable/scripts/packets.py": "5db37e1723bf0a39a79618aeee7fd42480e3acf105ef3e3c71ac83a2b4287697",
+  "skills/shared/1-max-review/tests/test_max_review.py": "9204fae34acbf0c7d04c4efa9d585e44848cb89b6c926b08c5b3131594849cd0",
+  "skills/shared/1-max-review/tests/test_packets.py": "c77e299d7dbf4c98880e16cf5b1c988c2427f3c85b6eb628dc27fcbcf924669f"
+}

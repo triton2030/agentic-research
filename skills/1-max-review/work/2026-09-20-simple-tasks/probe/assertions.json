@@ -1,0 +1,26 @@
+[
+  {
+    "id": "known-defect",
+    "assertion": "Contradictory stock requirement at line 11 must be found; other product questions outside scope.",
+    "prompt_sha256": "c22075dd1e9e5dca895efe0ce741344586971645bcd390b68b2bd8cbabeb7fc4",
+    "words": 467
+  },
+  {
+    "id": "clean-offer",
+    "assertion": "No stock-policy violation in this actual current document.",
+    "prompt_sha256": "84672105ef5692ee20cad5cdb173c6b690a458823bf67a123e5d7a9b8dcc4c78",
+    "words": 470
+  },
+  {
+    "id": "missing-process-evidence",
+    "assertion": "Cannot prove historical reading from final prose; explicitly missing action evidence, not clean or invented failure.",
+    "prompt_sha256": "30c825325de7dd9624d0b7fb43149cf14920e2ee3ae1d105a8378de9ab0361e6",
+    "words": 452
+  },
+  {
+    "id": "linked-visibility",
+    "assertion": "Review a relation with both sides supplied; do not claim buyer documents are absent as in original q108.",
+    "prompt_sha256": "35026d3209d483367dfa211503d2f3e56546ab4d7d13e6541c3841d89c3873c7",
+    "words": 2092
+  }
+]

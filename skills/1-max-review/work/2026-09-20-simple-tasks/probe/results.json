@@ -1,0 +1,80 @@
+{
+  "model_requested": "gpt-5.6-luna",
+  "reasoning_effort": "max",
+  "resolved_model": "not exposed by CLI",
+  "records": [
+    {
+      "id": "clean-offer",
+      "status": "succeeded",
+      "attempts": 1,
+      "seconds": 30.04,
+      "answer": "Ошибок не нашёл.",
+      "answer_words": 3,
+      "tool_events": 0,
+      "prompt_sha256": "84672105ef5692ee20cad5cdb173c6b690a458823bf67a123e5d7a9b8dcc4c78",
+      "report_sha256": "6b448ade480f54b4ce7a8ad8e520da97295e3d1a3902b76b46476059a9dbaf64",
+      "usage": {
+        "cache_write_input_tokens": 0,
+        "cached_input_tokens": 14080,
+        "input_tokens": 18465,
+        "output_tokens": 904,
+        "reasoning_output_tokens": 891
+      }
+    },
+    {
+      "id": "known-defect",
+      "status": "succeeded",
+      "attempts": 1,
+      "seconds": 29.5,
+      "answer": "Ошибка: `предложение-с-ошибкой.md:11` — нарушено правило отсутствия складского учёта: MAVO не должен хранить количество заготовок или требовать подтверждения остатков перед включением предложения.",
+      "answer_words": 21,
+      "tool_events": 2,
+      "prompt_sha256": "c22075dd1e9e5dca895efe0ce741344586971645bcd390b68b2bd8cbabeb7fc4",
+      "report_sha256": "b787b121df4e69cbb75211c4723bf947673bc0bc2b3945835bbe087d1e6710de",
+      "usage": {
+        "cache_write_input_tokens": 0,
+        "cached_input_tokens": 28160,
+        "input_tokens": 38289,
+        "output_tokens": 922,
+        "reasoning_output_tokens": 746
+      }
+    },
+    {
+      "id": "linked-visibility",
+      "status": "succeeded",
+      "attempts": 1,
+      "seconds": 71.35,
+      "answer": "Ошибок не нашёл. Выключенный физический вариант не попадает в новый выбор; при наличии других подходящих вариантов товар-финал остаётся доступен. Если вариантов не осталось, он скрывается, а прямая ссылка показывает состояние отсутствия доступной вещи. Уже собранные заказы не меняются.",
+      "answer_words": 38,
+      "tool_events": 0,
+      "prompt_sha256": "35026d3209d483367dfa211503d2f3e56546ab4d7d13e6541c3841d89c3873c7",
+      "report_sha256": "f84c0b2f0bb0b94be3a01f43bd0f582e774e96d5bf83e3fb603c052735ad0f9a",
+      "usage": {
+        "cache_write_input_tokens": 0,
+        "cached_input_tokens": 9984,
+        "input_tokens": 23004,
+        "output_tokens": 3697,
+        "reasoning_output_tokens": 3624
+      }
+    },
+    {
+      "id": "missing-process-evidence",
+      "status": "succeeded",
+      "attempts": 1,
+      "seconds": 17.81,
+      "answer": "Не смог проверить: итоговый документ не содержит свидетельства, что перед правкой были прочитаны применимые `AGENTS.md`; история правки и журнал чтения инструкций не предоставлены.",
+      "answer_words": 23,
+      "tool_events": 0,
+      "prompt_sha256": "30c825325de7dd9624d0b7fb43149cf14920e2ee3ae1d105a8378de9ab0361e6",
+      "report_sha256": "ad754caac5daed4f4f7b0a5f1a863e5c2a6695e71980e4944f113667f8694c3e",
+      "usage": {
+        "cache_write_input_tokens": 0,
+        "cached_input_tokens": 14080,
+        "input_tokens": 18425,
+        "output_tokens": 562,
+        "reasoning_output_tokens": 516
+      }
+    }
+  ],
+  "limits": "Four bounded examples show possible behavior; not a statistical improvement claim or full MAVO rerun."
+}

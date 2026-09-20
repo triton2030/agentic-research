@@ -1,0 +1,135 @@
+{
+  "created_at": "2026-09-20T05:48:21.389599+00:00",
+  "model_requested": "gpt-5.6-luna",
+  "reasoning_effort": "max",
+  "tasks": {
+    "clean-offer": {
+      "attempts": [
+        {
+          "events": "attempts/clean-offer/0001/events.jsonl",
+          "exit_code": 0,
+          "finished_at": "2026-09-20T05:48:51.426472+00:00",
+          "model_requested": "gpt-5.6-luna",
+          "number": 1,
+          "process_group_id": 6406,
+          "report": "attempts/clean-offer/0001/report.txt",
+          "started_at": "2026-09-20T05:48:21.391370+00:00",
+          "status": "succeeded",
+          "stderr": "attempts/clean-offer/0001/stderr.txt",
+          "thread_id": "01a0bd5b-bfe1-7381-b6ad-24787b7127c9",
+          "timed_out": false,
+          "usage": {
+            "cache_write_input_tokens": 0,
+            "cached_input_tokens": 14080,
+            "input_tokens": 18465,
+            "output_tokens": 904,
+            "reasoning_output_tokens": 891
+          }
+        }
+      ],
+      "cwd": "/Users/triton/Documents/GitHub/agentic-research",
+      "id": "clean-offer",
+      "prompt_copy": "inputs/clean-offer.txt",
+      "prompt_sha256": "84672105ef5692ee20cad5cdb173c6b690a458823bf67a123e5d7a9b8dcc4c78",
+      "prompt_source": "/Users/triton/Documents/GitHub/agentic-research/skills/1-max-review/work/2026-09-20-simple-tasks/probe/prompts/clean-offer.txt",
+      "status": "succeeded"
+    },
+    "known-defect": {
+      "attempts": [
+        {
+          "events": "attempts/known-defect/0001/events.jsonl",
+          "exit_code": 0,
+          "finished_at": "2026-09-20T05:48:50.895568+00:00",
+          "model_requested": "gpt-5.6-luna",
+          "number": 1,
+          "process_group_id": 6407,
+          "report": "attempts/known-defect/0001/report.txt",
+          "started_at": "2026-09-20T05:48:21.391394+00:00",
+          "status": "succeeded",
+          "stderr": "attempts/known-defect/0001/stderr.txt",
+          "thread_id": "01a0bd5b-bfe1-71f0-810a-1e65a94f0767",
+          "timed_out": false,
+          "usage": {
+            "cache_write_input_tokens": 0,
+            "cached_input_tokens": 28160,
+            "input_tokens": 38289,
+            "output_tokens": 922,
+            "reasoning_output_tokens": 746
+          }
+        }
+      ],
+      "cwd": "/Users/triton/Documents/GitHub/agentic-research",
+      "id": "known-defect",
+      "prompt_copy": "inputs/known-defect.txt",
+      "prompt_sha256": "c22075dd1e9e5dca895efe0ce741344586971645bcd390b68b2bd8cbabeb7fc4",
+      "prompt_source": "/Users/triton/Documents/GitHub/agentic-research/skills/1-max-review/work/2026-09-20-simple-tasks/probe/prompts/known-defect.txt",
+      "status": "succeeded"
+    },
+    "linked-visibility": {
+      "attempts": [
+        {
+          "events": "attempts/linked-visibility/0001/events.jsonl",
+          "exit_code": 0,
+          "finished_at": "2026-09-20T05:49:32.736685+00:00",
+          "model_requested": "gpt-5.6-luna",
+          "number": 1,
+          "process_group_id": 6405,
+          "report": "attempts/linked-visibility/0001/report.txt",
+          "started_at": "2026-09-20T05:48:21.391299+00:00",
+          "status": "succeeded",
+          "stderr": "attempts/linked-visibility/0001/stderr.txt",
+          "thread_id": "01a0bd5b-bfe1-7fe2-b862-7bd56361c478",
+          "timed_out": false,
+          "usage": {
+            "cache_write_input_tokens": 0,
+            "cached_input_tokens": 9984,
+            "input_tokens": 23004,
+            "output_tokens": 3697,
+            "reasoning_output_tokens": 3624
+          }
+        }
+      ],
+      "cwd": "/Users/triton/Documents/GitHub/agentic-research",
+      "id": "linked-visibility",
+      "prompt_copy": "inputs/linked-visibility.txt",
+      "prompt_sha256": "35026d3209d483367dfa211503d2f3e56546ab4d7d13e6541c3841d89c3873c7",
+      "prompt_source": "/Users/triton/Documents/GitHub/agentic-research/skills/1-max-review/work/2026-09-20-simple-tasks/probe/prompts/linked-visibility.txt",
+      "status": "succeeded"
+    },
+    "missing-process-evidence": {
+      "attempts": [
+        {
+          "events": "attempts/missing-process-evidence/0001/events.jsonl",
+          "exit_code": 0,
+          "finished_at": "2026-09-20T05:49:08.707741+00:00",
+          "model_requested": "gpt-5.6-luna",
+          "number": 1,
+          "process_group_id": 6710,
+          "report": "attempts/missing-process-evidence/0001/report.txt",
+          "started_at": "2026-09-20T05:48:50.897248+00:00",
+          "status": "succeeded",
+          "stderr": "attempts/missing-process-evidence/0001/stderr.txt",
+          "thread_id": "01a0bd5c-318c-7260-a9ec-320c14f1541e",
+          "timed_out": false,
+          "usage": {
+            "cache_write_input_tokens": 0,
+            "cached_input_tokens": 14080,
+            "input_tokens": 18425,
+            "output_tokens": 562,
+            "reasoning_output_tokens": 516
+          }
+        }
+      ],
+      "cwd": "/Users/triton/Documents/GitHub/agentic-research",
+      "id": "missing-process-evidence",
+      "prompt_copy": "inputs/missing-process-evidence.txt",
+      "prompt_sha256": "30c825325de7dd9624d0b7fb43149cf14920e2ee3ae1d105a8378de9ab0361e6",
+      "prompt_source": "/Users/triton/Documents/GitHub/agentic-research/skills/1-max-review/work/2026-09-20-simple-tasks/probe/prompts/missing-process-evidence.txt",
+      "status": "succeeded"
+    }
+  },
+  "tasks_source": "/Users/triton/Documents/GitHub/agentic-research/skills/1-max-review/work/2026-09-20-simple-tasks/probe/tasks.jsonl",
+  "timeout_seconds": 180,
+  "updated_at": "2026-09-20T05:49:32.736795+00:00",
+  "version": 1
+}
