@@ -1,0 +1,162 @@
+{
+  "command": "git diff --cached --check",
+  "exit_code": 2,
+  "disposition": "Retain verbatim archived evidence and byte-identical TOML; only EOF blank line affects a live owner, TOML parser passed. Full whitespace check does not pass.",
+  "diagnostics": [
+    {
+      "path": "skills/1fresh-eyes/versions/installed-codex-2026-09-22-full-panel/agents/expansionist.toml",
+      "line": 70,
+      "diagnostic": "new blank line at EOF."
+    },
+    {
+      "path": "skills/1fresh-eyes/versions/installed-codex-2026-09-22/agents/expansionist.toml",
+      "line": 70,
+      "diagnostic": "new blank line at EOF."
+    },
+    {
+      "path": "skills/1fresh-eyes/work/expansionist-2026-09-22/native-codex/output.md",
+      "line": 1,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "skills/1fresh-eyes/work/expansionist-2026-09-22/panel-audit/baseline-agents/codex/expansionist.toml",
+      "line": 70,
+      "diagnostic": "new blank line at EOF."
+    },
+    {
+      "path": "skills/1fresh-eyes/work/expansionist-2026-09-22/panel-audit/candidate-release/input.md",
+      "line": 37,
+      "diagnostic": "new blank line at EOF."
+    },
+    {
+      "path": "skills/1fresh-eyes/work/expansionist-2026-09-22/panel-audit/manual-pilot/input.md",
+      "line": 26,
+      "diagnostic": "new blank line at EOF."
+    },
+    {
+      "path": "skills/1fresh-eyes/work/expansionist-2026-09-22/panel-audit/manual-release/input.md",
+      "line": 37,
+      "diagnostic": "new blank line at EOF."
+    },
+    {
+      "path": "skills/1fresh-eyes/work/expansionist-2026-09-22/panel-audit/run-pilot/reports/solvent.md",
+      "line": 10,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "skills/1fresh-eyes/work/expansionist-2026-09-22/panel-audit/run-pilot/reports/solvent.md",
+      "line": 11,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "skills/1fresh-eyes/work/expansionist-2026-09-22/panel-audit/run-pilot/reports/solvent.md",
+      "line": 12,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "skills/1fresh-eyes/work/expansionist-2026-09-22/panel-audit/run-pilot/reports/solvent.md",
+      "line": 13,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "skills/1fresh-eyes/work/expansionist-2026-09-22/panel-audit/run-pilot/reports/solvent.md",
+      "line": 14,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "skills/1fresh-eyes/work/expansionist-2026-09-22/panel-audit/run-pilot/reports/solvent.md",
+      "line": 15,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "skills/1fresh-eyes/work/expansionist-2026-09-22/panel-audit/run-pilot/reports/solvent.md",
+      "line": 18,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "skills/1fresh-eyes/work/expansionist-2026-09-22/panel-audit/run-pilot/reports/solvent.md",
+      "line": 19,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "skills/1fresh-eyes/work/expansionist-2026-09-22/panel-audit/run-pilot/reports/solvent.md",
+      "line": 20,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "skills/1fresh-eyes/work/expansionist-2026-09-22/panel-audit/run-pilot/reports/solvent.md",
+      "line": 21,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "skills/1fresh-eyes/work/expansionist-2026-09-22/panel-audit/run-pilot/reports/solvent.md",
+      "line": 22,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "skills/1fresh-eyes/work/expansionist-2026-09-22/panel-audit/run-pilot/reports/solvent.md",
+      "line": 23,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "skills/1fresh-eyes/work/expansionist-2026-09-22/panel-audit/run-release/packets/expansionist.md",
+      "line": 39,
+      "diagnostic": "new blank line at EOF."
+    },
+    {
+      "path": "skills/1fresh-eyes/work/expansionist-2026-09-22/panel-audit/run-release/packets/ladder.md",
+      "line": 39,
+      "diagnostic": "new blank line at EOF."
+    },
+    {
+      "path": "skills/1fresh-eyes/work/expansionist-2026-09-22/panel-audit/run-release/packets/premortem.md",
+      "line": 39,
+      "diagnostic": "new blank line at EOF."
+    },
+    {
+      "path": "skills/1fresh-eyes/work/expansionist-2026-09-22/panel-audit/run-release/packets/prospector.md",
+      "line": 39,
+      "diagnostic": "new blank line at EOF."
+    },
+    {
+      "path": "skills/1fresh-eyes/work/expansionist-2026-09-22/panel-audit/run-release/packets/solvent.md",
+      "line": 39,
+      "diagnostic": "new blank line at EOF."
+    },
+    {
+      "path": "skills/1fresh-eyes/work/expansionist-2026-09-22/panel-audit/run-release/packets/sources.json",
+      "line": 37,
+      "diagnostic": "new blank line at EOF."
+    },
+    {
+      "path": "skills/1fresh-eyes/work/expansionist-2026-09-22/panel-audit/run-release/synthesis.md",
+      "line": 43,
+      "diagnostic": "new blank line at EOF."
+    },
+    {
+      "path": "skills/1fresh-eyes/work/expansionist-2026-09-22/probes/boundary.md",
+      "line": 18,
+      "diagnostic": "new blank line at EOF."
+    },
+    {
+      "path": "skills/1fresh-eyes/work/expansionist-2026-09-22/probes/opportunity.md",
+      "line": 27,
+      "diagnostic": "new blank line at EOF."
+    },
+    {
+      "path": "skills/1fresh-eyes/work/expansionist-2026-09-22/review-application-round2.md",
+      "line": 17,
+      "diagnostic": "new blank line at EOF."
+    },
+    {
+      "path": "skills/1fresh-eyes/work/expansionist-2026-09-22/review-application.md",
+      "line": 41,
+      "diagnostic": "new blank line at EOF."
+    },
+    {
+      "path": "skills/codex/1fresh-eyes/agents/expansionist.toml",
+      "line": 70,
+      "diagnostic": "new blank line at EOF."
+    }
+  ]
+}

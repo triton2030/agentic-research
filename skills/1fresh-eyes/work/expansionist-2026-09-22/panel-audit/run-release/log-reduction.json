@@ -1,0 +1,6 @@
+{
+  "stdout_sha256_before_reduction": "cc91b2d23e51869f7921dfd4c36bf096845c8b7555ef18d873c606eb226c6e8e",
+  "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderr_bytes": 0,
+  "preserved": "thread and turn boundaries; tool outcome metadata; exact spawn calls in spawn-calls.json; terminal reports in reports/; no intermediate reasoning or repeated instruction texts"
+}

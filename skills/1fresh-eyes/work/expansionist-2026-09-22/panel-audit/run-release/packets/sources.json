@@ -1,0 +1,37 @@
+{
+  "root": "/private/var/folders/mr/ft3j0yjx6w5_191wrt58_45m0000gn/T/fresh-panel-release-q_udvzad",
+  "recorded_at": "2026-09-22T12:55:40.060482+00:00",
+  "files": {
+    "case/GOAL.md": {
+      "sha256": "fa586389eeb023b59d22437222df1307770008ef0a08a66112e7fdf5f908f91f",
+      "bytes": 764,
+      "lines": 8
+    },
+    "case/README.md": {
+      "sha256": "ec7760b816db4d571e09a0f6c2a1d8b1f7ee1f910f8722f7ddbff3b6134749e0",
+      "bytes": 1203,
+      "lines": 18
+    },
+    "case/current-plan.md": {
+      "sha256": "41f983bfc86358cacb4d46e38dcc347e515e39ce88e3c94aba148422fbcdff75",
+      "bytes": 924,
+      "lines": 10
+    },
+    "case/implementation.md": {
+      "sha256": "a3b77178a93cf9698403509a7c63019dd51a4323d52f8f09662be920d176a857",
+      "bytes": 1249,
+      "lines": 12
+    },
+    "case/operations.md": {
+      "sha256": "2b381adb12fa6153885fb4d7363e3beadd1388d8f8f063b5f6a673d66cbb5d87",
+      "bytes": 840,
+      "lines": 9
+    },
+    "case/pilot-evidence.md": {
+      "sha256": "fed0dd6c81379355388670dd46e362360445bab9bef9c34872867adb8e64728f",
+      "bytes": 1216,
+      "lines": 12
+    }
+  }
+}
+

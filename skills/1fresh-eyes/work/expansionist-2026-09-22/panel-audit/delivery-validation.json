@@ -1,0 +1,14 @@
+{
+  "runtime_files_checked_against_owner_installed_snapshot": 17,
+  "native_agent_copies": 2,
+  "existing_agent_hashes_unchanged": 9,
+  "case_source_hashes_unchanged": 12,
+  "candidate_premortem_hashes_match_installed": true,
+  "shared_documents_equal": true,
+  "expansionist_body_equal": true,
+  "toml_parse": true,
+  "claude_tools": "Read,Grep,Glob,WebFetch",
+  "owner_markdown_files": 17,
+  "relative_links_resolve": 14,
+  "source_only_frames_absent": true
+}

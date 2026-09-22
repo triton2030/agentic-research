@@ -1,0 +1,10 @@
+{
+  "session_id": "864ed9cd-62a9-496f-b67c-fc3c2bc05610",
+  "requested_model": null,
+  "requested_effort": null,
+  "resolved_model": "claude-fable-5-1",
+  "duration_ms": 46148,
+  "warnings": [
+    "resume_session_owns_model"
+  ]
+}

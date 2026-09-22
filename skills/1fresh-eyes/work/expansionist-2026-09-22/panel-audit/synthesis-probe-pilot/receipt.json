@@ -1,0 +1,26 @@
+{
+  "agent": "/root/panel_synthesis_probe",
+  "agent_type": "default",
+  "fork_turns": "none",
+  "phase": "synthesis_only",
+  "instruction": "/Users/triton/.codex/skills/1fresh-eyes/references/synthesis.md",
+  "instruction_sha256": "3964d7ebd8ee4318868fbebd17c0cc11d29e380305badcca2d840738c9e6d6f1",
+  "input_file_hashes": {
+    "cases/pilot/GOAL.md": "eea1bd0f4c972cc31363dbdf7e462d272deb4ef547b8b8cd329dbf6cfb68d583",
+    "cases/pilot/README.md": "b0a1eaf4e798f55e5843aeb4d3c953032560108581adbb5b6dda5bafdfd9c78e",
+    "cases/pilot/current-plan.md": "09b10acd49872c3583e7e42289a51a6c7f924c5df23a639b2a72e55a4c9e74ba",
+    "cases/pilot/implementation.md": "145b5054455b952367f35dc3d04c0051af602da1dcad219ddd8dd2e13b69fbb2",
+    "cases/pilot/interviews.md": "224ab036b67ec543992049464bba6ee6e564577454f3a5b81b46cc10dd5397d9",
+    "cases/pilot/operations.md": "be15dc62446da9cf0b16cf3105b453138a7eb14f9a9fa7f4cff37e7c56bb48a7",
+    "run-pilot/reports/ladder.md": "aadd944c45b586d39f831a6a22fefe2ae6a14ad325439d94d8975215013f11e4",
+    "run-pilot/reports/solvent.md": "71e5e24e50c3cc56d97602149846e50b35e0004ebfd9ae16f0bb7fd64a299005",
+    "run-pilot/reports/prospector.md": "63ef831afeb2ed672d043337ba53bc614564a797ed03533589395070367a3b93",
+    "run-pilot/reports/expansionist.md": "d3beadef5e04699e21e8948e07103e7677846bebbbf1ec17652107a1a57d303d",
+    "manual-pilot/premortem-corrected.md": "f37e62e347f938dfaa0533114afeec24cc551ea84a10ed1c411efcee4bacd9d7"
+  },
+  "output_sha256": "2556befbde659846ec76e4e47e3e9719d0ff56b90372e46dff1bae9015297c36",
+  "model_actual": null,
+  "model_note": "Native API returns task path; resolved model not exposed",
+  "cli_panel_status_unchanged": "panel_incomplete",
+  "provenance_note": "Inputs and output archived; original native tool message field is encrypted in persisted transcript. No independently readable plaintext transcript is claimed."
+}

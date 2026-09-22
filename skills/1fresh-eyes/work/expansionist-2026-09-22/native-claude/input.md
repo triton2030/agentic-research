@@ -1,0 +1,1 @@
+Прочти пакет /Users/triton/Documents/GitHub/agentic-research/skills/1fresh-eyes/work/expansionist-2026-09-22/probes/boundary.md и выполни свою роль Expansionist для указанного вопроса. Это ограниченная проверка установленного native-профиля на синтетическом случае. Исследование и отчёт; файлы не меняй, других агентов не запускай.

@@ -1,0 +1,1 @@
+2026-09-22T12:24:34.121911Z  WARN codex_core::hook_runtime: failed to resolve parent transcript path for subagent hook parent_thread_id=01a0c911-9ed7-7fa1-9034-5345d515c3bd error=invalid thread-store request: no rollout found for thread id 01a0c911-9ed7-7fa1-9034-5345d515c3bd

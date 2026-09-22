@@ -1,0 +1,11 @@
+{
+  "session_id": "d4cf72ed-5ec3-4db3-85a4-8ceb2d555048",
+  "requested_model": "fable",
+  "requested_effort": "medium",
+  "resolved_model": "claude-fable-5-1",
+  "duration_ms": 56181,
+  "warnings": [],
+  "instruction_manifest": "../premortem-candidate-sha256.json",
+  "test_kind": "fresh_desktop_read_only",
+  "cli_panel_status_unchanged": "panel_incomplete"
+}

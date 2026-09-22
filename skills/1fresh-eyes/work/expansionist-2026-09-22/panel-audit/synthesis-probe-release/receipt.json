@@ -1,0 +1,26 @@
+{
+  "agent": "/root/release_synthesis_probe",
+  "agent_type": "default",
+  "fork_turns": "none",
+  "phase": "synthesis_only",
+  "instruction": "/Users/triton/.codex/skills/1fresh-eyes/references/synthesis.md",
+  "instruction_sha256": "3964d7ebd8ee4318868fbebd17c0cc11d29e380305badcca2d840738c9e6d6f1",
+  "input_file_hashes": {
+    "cases/release/GOAL.md": "fa586389eeb023b59d22437222df1307770008ef0a08a66112e7fdf5f908f91f",
+    "cases/release/README.md": "ec7760b816db4d571e09a0f6c2a1d8b1f7ee1f910f8722f7ddbff3b6134749e0",
+    "cases/release/current-plan.md": "41f983bfc86358cacb4d46e38dcc347e515e39ce88e3c94aba148422fbcdff75",
+    "cases/release/implementation.md": "a3b77178a93cf9698403509a7c63019dd51a4323d52f8f09662be920d176a857",
+    "cases/release/operations.md": "2b381adb12fa6153885fb4d7363e3beadd1388d8f8f063b5f6a673d66cbb5d87",
+    "cases/release/pilot-evidence.md": "fed0dd6c81379355388670dd46e362360445bab9bef9c34872867adb8e64728f",
+    "run-release/reports/ladder.md": "8454aefc1e88b5c49ecc50cde742a96cd9ea876928e603f8938c4941477dc60b",
+    "run-release/reports/solvent.md": "10c70d34f0098105badfb3b229f878b2e65154272ab76c2ac7e32d4b69805d50",
+    "run-release/reports/prospector.md": "1e9bc10b2a3d7fa17f873c97f0a6fad5afe1f68f50ce916f80bd93f01defb54a",
+    "run-release/reports/expansionist.md": "cfd69b51feac460a3817f0fbff97d2d8bb67d269baeb523f9691320f27ea8d8a",
+    "candidate-release/output-corrected.md": "98fd82877d42d0a7cc638671fd32d3c65e99b45859459a8b796945660e9040e1"
+  },
+  "output_sha256": "cc3da05e6a1a8f15a61b75679f2d1991dff85474b1814a323cc66fccf9938830",
+  "model_actual": null,
+  "model_note": "Native API returns task path; resolved model not exposed",
+  "cli_panel_status_unchanged": "panel_incomplete",
+  "provenance_note": "Inputs and output archived; original native tool message field is encrypted in persisted transcript. No independently readable plaintext transcript is claimed."
+}

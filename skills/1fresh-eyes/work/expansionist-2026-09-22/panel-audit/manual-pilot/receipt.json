@@ -1,0 +1,9 @@
+{
+  "session_id": "e4ffbfc3-f0db-4468-842c-b5fc8dbad4d0",
+  "requested_model": "fable",
+  "resolved_model": "claude-fable-5-1",
+  "duration_ms": 92499,
+  "warnings": [],
+  "route": "Authorized desktop read-only Claude MCP call; separate from CLI integration failure",
+  "input_delta": "Same frozen question and sources; report returned in chat instead of writing into CLI run"
+}

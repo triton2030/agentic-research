@@ -9,6 +9,12 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
 
 ## Живые Owners
 
+- `1fresh-eyes` — два runtime owners: `skills/{claude,codex}/1fresh-eyes/`.
+  Общая продуктовая пара живёт у Claude owner и не устанавливается.
+  Профиль Expansionist принадлежит `agents/expansionist.{md,toml}` этих
+  пакетов и дополнительно доставляется в `~/.{claude,codex}/agents/`.
+  Остальные native-профили сохраняют существующих владельцев.
+  Доставка — по явному manifest из истории `skills/1fresh-eyes/`.
 - `1-max-review/portable/` — проверка выбранных файлов или корпуса по исходным
   участкам применимых правил: готовые небольшие пакеты, отдельный координатор
   и общий CLI с учётом покрытия участков и ответов. Luna Max закреплена в теле.

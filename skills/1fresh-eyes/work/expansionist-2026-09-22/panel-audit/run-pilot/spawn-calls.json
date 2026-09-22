@@ -1,0 +1,82 @@
+{
+  "rollout": "/Users/triton/.codex/sessions/2026/09/22/rollout-2026-09-22T17-37-44-01a0c91f-4537-7d02-818d-0b5b1a27367f.jsonl",
+  "evidence_limit": "agent_type and fork_turns are directly visible; packet-only plaintext input is recorded by coordinator in run.json, not independently readable in this rollout",
+  "events": [
+    {
+      "timestamp": "2026-09-22T12:42:25.873Z",
+      "kind": "function_call",
+      "call_id": "call_l47wBmIzbd8W8DxtoTGLna09",
+      "name": "spawn_agent",
+      "arguments": {
+        "task_name": "ladder",
+        "agent_type": "ladder",
+        "fork_turns": "none"
+      },
+      "message_storage": "opaque encrypted field; not inspected as plaintext",
+      "message_sha256": "675113b4966d3acb98e43f80054cefd3c4d88966036fc09c1ec90841e6d4113d"
+    },
+    {
+      "timestamp": "2026-09-22T12:42:26.157Z",
+      "kind": "function_call_output",
+      "call_id": "call_l47wBmIzbd8W8DxtoTGLna09",
+      "output": "{\"task_name\":\"/root/ladder\"}"
+    },
+    {
+      "timestamp": "2026-09-22T12:42:32.315Z",
+      "kind": "function_call",
+      "call_id": "call_1wHSQtHK1lEmZ3Gtw0oOtgk1",
+      "name": "spawn_agent",
+      "arguments": {
+        "task_name": "solvent",
+        "agent_type": "solvent",
+        "fork_turns": "none"
+      },
+      "message_storage": "opaque encrypted field; not inspected as plaintext",
+      "message_sha256": "33520924dd8fbb536a8f14f12ed4e534759b332397436e5a6f434e769e2759d6"
+    },
+    {
+      "timestamp": "2026-09-22T12:42:32.573Z",
+      "kind": "function_call_output",
+      "call_id": "call_1wHSQtHK1lEmZ3Gtw0oOtgk1",
+      "output": "{\"task_name\":\"/root/solvent\"}"
+    },
+    {
+      "timestamp": "2026-09-22T12:42:38.936Z",
+      "kind": "function_call",
+      "call_id": "call_fThHqZHn1lKjtBo7Yp2xUvE7",
+      "name": "spawn_agent",
+      "arguments": {
+        "task_name": "prospector",
+        "agent_type": "prospector",
+        "fork_turns": "none"
+      },
+      "message_storage": "opaque encrypted field; not inspected as plaintext",
+      "message_sha256": "1c27452e6859fa7f418af2fbb12999dde6ce15df3523a17ff96b3816aced01bd"
+    },
+    {
+      "timestamp": "2026-09-22T12:42:39.150Z",
+      "kind": "function_call_output",
+      "call_id": "call_fThHqZHn1lKjtBo7Yp2xUvE7",
+      "output": "{\"task_name\":\"/root/prospector\"}"
+    },
+    {
+      "timestamp": "2026-09-22T12:44:42.487Z",
+      "kind": "function_call",
+      "call_id": "call_PEn76XCeYufkTGSbIF0oP0S9",
+      "name": "spawn_agent",
+      "arguments": {
+        "task_name": "expansionist",
+        "agent_type": "expansionist",
+        "fork_turns": "none"
+      },
+      "message_storage": "opaque encrypted field; not inspected as plaintext",
+      "message_sha256": "794a290f9db6f267aace725ff907b1b2c538d52cb49a6c0ca03fe2ec04d184af"
+    },
+    {
+      "timestamp": "2026-09-22T12:44:42.803Z",
+      "kind": "function_call_output",
+      "call_id": "call_PEn76XCeYufkTGSbIF0oP0S9",
+      "output": "{\"task_name\":\"/root/expansionist\"}"
+    }
+  ]
+}

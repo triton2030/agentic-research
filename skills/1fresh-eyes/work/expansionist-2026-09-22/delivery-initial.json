@@ -1,0 +1,26 @@
+{
+  "at": "2026-09-22T12:21:45.545931+00:00",
+  "manifest": "final-runtime-manifest.json",
+  "projections": [
+    {
+      "runtime": "codex",
+      "installed": "/Users/triton/.codex/skills/1fresh-eyes",
+      "snapshot": "skills/1fresh-eyes/versions/installed-codex-2026-09-22",
+      "runtime_files": 9,
+      "native_agent": "/Users/triton/.codex/agents/expansionist.toml",
+      "bytes_match": true,
+      "source_only_absent": true
+    },
+    {
+      "runtime": "claude",
+      "installed": "/Users/triton/.claude/skills/1fresh-eyes",
+      "snapshot": "skills/1fresh-eyes/versions/installed-claude-2026-09-22",
+      "runtime_files": 8,
+      "native_agent": "/Users/triton/.claude/agents/expansionist.md",
+      "bytes_match": true,
+      "source_only_absent": true
+    }
+  ],
+  "config_changed": false,
+  "other_agents_changed": false
+}

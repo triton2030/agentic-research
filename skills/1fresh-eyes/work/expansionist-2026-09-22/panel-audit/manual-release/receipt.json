@@ -1,0 +1,8 @@
+{
+  "session_id": "738a789e-6219-4209-8030-669e90cd17cc",
+  "resolved_model": "claude-fable-5-1",
+  "requested_model": "fable",
+  "duration_ms": 64548,
+  "warnings": [],
+  "route": "Authorized desktop read-only call; same frozen case, no file writes"
+}

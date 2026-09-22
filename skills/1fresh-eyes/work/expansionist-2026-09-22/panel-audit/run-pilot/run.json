@@ -1,0 +1,320 @@
+{
+  "mode": "panel",
+  "status": "panel_incomplete",
+  "started_at": "2026-09-22T12:40:43.219010+00:00",
+  "question_version": "case-v1-542621807dfeeda4",
+  "packet_frozen_at": "2026-09-22T12:40:43.219010+00:00",
+  "workspace": "/private/var/folders/mr/ft3j0yjx6w5_191wrt58_45m0000gn/T/fresh-panel-pilot-pfmoyezf",
+  "skill": "/Users/triton/.codex/skills/1fresh-eyes/SKILL.md",
+  "blockers": [
+    {
+      "role": "premortem",
+      "stage": "launch",
+      "code": "approval_required_with_policy_never",
+      "message": "MCP tool call requires approval, but approval policy is never",
+      "observed_at": "2026-09-22T12:41:10.110Z",
+      "source": "mcp__claude_mcp__claude_ask tool response",
+      "retry": "Not retried through another route; environment approval policy is never."
+    }
+  ],
+  "case_sha256_before": {
+    "case/GOAL.md": "eea1bd0f4c972cc31363dbdf7e462d272deb4ef547b8b8cd329dbf6cfb68d583",
+    "case/README.md": "b0a1eaf4e798f55e5843aeb4d3c953032560108581adbb5b6dda5bafdfd9c78e",
+    "case/current-plan.md": "09b10acd49872c3583e7e42289a51a6c7f924c5df23a639b2a72e55a4c9e74ba",
+    "case/implementation.md": "145b5054455b952367f35dc3d04c0051af602da1dcad219ddd8dd2e13b69fbb2",
+    "case/interviews.md": "224ab036b67ec543992049464bba6ee6e564577454f3a5b81b46cc10dd5397d9",
+    "case/operations.md": "be15dc62446da9cf0b16cf3105b453138a7eb14f9a9fa7f4cff37e7c56bb48a7"
+  },
+  "native_capacity": {
+    "total_slots": 4,
+    "root_slots": 1,
+    "simultaneous_reviewers": 3
+  },
+  "roles": [
+    {
+      "role": "premortem",
+      "route": "mcp__claude_mcp__claude_ask",
+      "native_profile": null,
+      "profile": "fable_advisor",
+      "requested_model": "claude-fable-5-1",
+      "requested_effort": "medium",
+      "actual_model": null,
+      "model_family": null,
+      "id": null,
+      "packet": "packets/premortem.md",
+      "packet_sha256": "94d0a783c1c145f66a487512d6ceb2af1b13f41f7476c2795bdfeaac80f21986",
+      "report": null,
+      "status": "launch_blocked",
+      "launch_requested_at": "2026-09-22T12:41:10.070467+00:00",
+      "launch_returned_at": "2026-09-22T12:41:10.110Z",
+      "terminal_observed_at": null,
+      "report_saved_at": null,
+      "blocker": "MCP tool call requires approval, but approval policy is never",
+      "error_artifact": "reports/premortem.blocker.json",
+      "model_verification": "No session_id or resolved_model returned; different model family unverified."
+    },
+    {
+      "role": "ladder",
+      "route": "collaboration.spawn_agent",
+      "native_profile": "ladder",
+      "profile": "ladder",
+      "requested_model": "inherit_parent",
+      "requested_effort": "profile high",
+      "actual_model": null,
+      "model_family": "GPT (inherited parent)",
+      "id": "/root/ladder",
+      "packet": "packets/ladder.md",
+      "packet_sha256": "8a974b04118eb435a6905493cdc83c2e6978eb5113d9952a8a6ee6a784d19163",
+      "report": "reports/ladder.md",
+      "status": "completed",
+      "launch_requested_at": "2026-09-22T12:42:18.307319+00:00",
+      "launch_returned_at": "2026-09-22T12:43:10.301611+00:00",
+      "terminal_observed_at": "2026-09-22T12:44:31.735495+00:00",
+      "report_saved_at": "2026-09-22T12:44:31.735495+00:00",
+      "blocker": null,
+      "id_kind": "canonical native task identifier returned by collaboration.spawn_agent",
+      "fork_turns": "none",
+      "model_verification": "No model override. Native tool exposes canonical task name, not a model id or separate UUID.",
+      "report_sha256": "aadd944c45b586d39f831a6a22fefe2ae6a14ad325439d94d8975215013f11e4",
+      "verdict": "rederive_task",
+      "report_saved_by": "root",
+      "verbatim_source": "Complete FINAL_ANSWER payload returned by /root/ladder, no appended text or newline.",
+      "role_write_boundary": "Native read-only profile prohibited its own artifact write; parent saved the terminal payload. No attempted source write."
+    },
+    {
+      "role": "solvent",
+      "route": "collaboration.spawn_agent",
+      "native_profile": "solvent",
+      "profile": "solvent",
+      "requested_model": "inherit_parent",
+      "requested_effort": "profile high",
+      "actual_model": null,
+      "model_family": "GPT (inherited parent)",
+      "id": "/root/solvent",
+      "packet": "packets/solvent.md",
+      "packet_sha256": "91f89c527c64957a22ed083b0dda9eac29a2b314597108fe243084ce1e6707bf",
+      "report": "reports/solvent.md",
+      "status": "completed",
+      "launch_requested_at": "2026-09-22T12:42:18.307664+00:00",
+      "launch_returned_at": "2026-09-22T12:43:10.301611+00:00",
+      "terminal_observed_at": "2026-09-22T12:45:38.421486+00:00",
+      "report_saved_at": "2026-09-22T12:45:38.421486+00:00",
+      "blocker": null,
+      "id_kind": "canonical native task identifier returned by collaboration.spawn_agent",
+      "fork_turns": "none",
+      "model_verification": "No model override. Native tool exposes canonical task name, not a model id or separate UUID.",
+      "report_sha256": "71e5e24e50c3cc56d97602149846e50b35e0004ebfd9ae16f0bb7fd64a299005",
+      "verdict": "dissolve",
+      "secondary_verdicts": [
+        "assumption_untested"
+      ],
+      "report_saved_by": "root",
+      "verbatim_source": "Complete FINAL_ANSWER payload returned by /root/solvent, no appended text or newline.",
+      "role_write_boundary": "Native read-only profile prohibited its own artifact write; parent saved the terminal payload. No attempted source write."
+    },
+    {
+      "role": "prospector",
+      "route": "collaboration.spawn_agent",
+      "native_profile": "prospector",
+      "profile": "prospector",
+      "requested_model": "inherit_parent",
+      "requested_effort": "profile high",
+      "actual_model": null,
+      "model_family": "GPT (inherited parent)",
+      "id": "/root/prospector",
+      "packet": "packets/prospector.md",
+      "packet_sha256": "7ce0163d76ca0b600a65d803f0b64a0b935977e03e9606e48e4aac1d4b63fcf5",
+      "report": "reports/prospector.md",
+      "status": "completed",
+      "launch_requested_at": "2026-09-22T12:42:18.307667+00:00",
+      "launch_returned_at": "2026-09-22T12:43:10.301611+00:00",
+      "terminal_observed_at": "2026-09-22T12:47:53.137503+00:00",
+      "report_saved_at": "2026-09-22T12:47:53.137503+00:00",
+      "blocker": null,
+      "id_kind": "canonical native task identifier returned by collaboration.spawn_agent",
+      "fork_turns": "none",
+      "model_verification": "No model override. Native tool exposes canonical task name, not a model id or separate UUID.",
+      "report_sha256": "63ef831afeb2ed672d043337ba53bc614564a797ed03533589395070367a3b93",
+      "verdict": "different_class_exists",
+      "report_saved_by": "root",
+      "verbatim_source": "Complete FINAL_ANSWER payload returned by /root/prospector, no appended text or newline.",
+      "report_preexisted": true,
+      "preexisting_report_equal_to_terminal": false
+    },
+    {
+      "role": "expansionist",
+      "route": "collaboration.spawn_agent",
+      "native_profile": "expansionist",
+      "profile": "expansionist",
+      "requested_model": "inherit_parent",
+      "requested_effort": "profile high",
+      "actual_model": null,
+      "model_family": "GPT (inherited parent)",
+      "id": "/root/expansionist",
+      "packet": "packets/expansionist.md",
+      "packet_sha256": "9b10795193746b9108736f8b350738a7d7c24b81fb5bab05de0d73a230146574",
+      "report": "reports/expansionist.md",
+      "status": "completed",
+      "launch_requested_at": "2026-09-22T12:44:31.735495+00:00",
+      "launch_returned_at": "2026-09-22T12:45:38.421486+00:00",
+      "terminal_observed_at": "2026-09-22T12:48:44.011494+00:00",
+      "report_saved_at": "2026-09-22T12:48:44.011494+00:00",
+      "blocker": null,
+      "id_kind": "canonical native task identifier returned by collaboration.spawn_agent",
+      "fork_turns": "none",
+      "model_verification": "No model override. Native tool exposes canonical task name, not a model id or separate UUID.",
+      "report_sha256": "d3beadef5e04699e21e8948e07103e7677846bebbbf1ec17652107a1a57d303d",
+      "verdict": "opportunity_to_test",
+      "report_saved_by": "root",
+      "verbatim_source": "Complete FINAL_ANSWER payload returned by /root/expansionist, no appended text or newline.",
+      "report_preexisted": true,
+      "preexisting_report_equal_to_terminal": false
+    }
+  ],
+  "continuation": "Run the four available native profiles independently; resulting recommendation cannot be a full five-report synthesis.",
+  "main_read_after_freeze": [
+    "case/interviews.md",
+    "case/operations.md"
+  ],
+  "timestamp_semantics": "UTC observation timestamps recorded by the orchestrator. launch_requested_at precedes tool dispatch; launch_returned_at records receipt of the launch result (the first three launches were logged together). Tool-internal execution timestamps are not exposed. Terminal return timestamps will record observation, not infer an earlier completion.",
+  "native_spawn_results": [
+    {
+      "task_name": "/root/ladder"
+    },
+    {
+      "task_name": "/root/solvent"
+    },
+    {
+      "task_name": "/root/prospector"
+    },
+    {
+      "task_name": "/root/expansionist"
+    }
+  ],
+  "native_reports_completed": 4,
+  "synthesis_status": "partial_recommendation_saved; full_five_lens_synthesis_not_performed",
+  "finished_at": "2026-09-22T12:53:37.561925+00:00",
+  "synthesis": "synthesis.md",
+  "full_panel_completed": false,
+  "terminal_reports_received": 4,
+  "case_sha256_after": {
+    "case/GOAL.md": "eea1bd0f4c972cc31363dbdf7e462d272deb4ef547b8b8cd329dbf6cfb68d583",
+    "case/README.md": "b0a1eaf4e798f55e5843aeb4d3c953032560108581adbb5b6dda5bafdfd9c78e",
+    "case/current-plan.md": "09b10acd49872c3583e7e42289a51a6c7f924c5df23a639b2a72e55a4c9e74ba",
+    "case/implementation.md": "145b5054455b952367f35dc3d04c0051af602da1dcad219ddd8dd2e13b69fbb2",
+    "case/interviews.md": "224ab036b67ec543992049464bba6ee6e564577454f3a5b81b46cc10dd5397d9",
+    "case/operations.md": "be15dc62446da9cf0b16cf3105b453138a7eb14f9a9fa7f4cff37e7c56bb48a7"
+  },
+  "verification": {
+    "verified_at": "2026-09-22T12:52:50.601049+00:00",
+    "case_unchanged": true,
+    "all_five_packets_unchanged": true,
+    "packets_prepared_before_any_role_launch": true,
+    "terminal_report_verbatim_checks": {
+      "ladder": {
+        "verbatim_utf8_equal": true,
+        "bytes": 4757,
+        "sha256": "aadd944c45b586d39f831a6a22fefe2ae6a14ad325439d94d8975215013f11e4"
+      },
+      "solvent": {
+        "verbatim_utf8_equal": true,
+        "bytes": 8775,
+        "sha256": "71e5e24e50c3cc56d97602149846e50b35e0004ebfd9ae16f0bb7fd64a299005"
+      },
+      "prospector": {
+        "verbatim_utf8_equal": true,
+        "bytes": 11498,
+        "sha256": "63ef831afeb2ed672d043337ba53bc614564a797ed03533589395070367a3b93"
+      },
+      "expansionist": {
+        "verbatim_utf8_equal": true,
+        "bytes": 7176,
+        "sha256": "d3beadef5e04699e21e8948e07103e7677846bebbbf1ec17652107a1a57d303d"
+      }
+    },
+    "synthesis_local_links_resolve": true,
+    "import_execution": "Not performed: case provides narrative source facts, not executable code or CSV samples."
+  },
+  "independence": {
+    "native_fork_turns": "none",
+    "each_native_received_only_own_frozen_packet": true,
+    "other_reports_added_to_packets": false,
+    "prior_rounds": 0,
+    "shared_anchor": "case-v1-542621807dfeeda4",
+    "independent_grounding": {
+      "ladder": "Goal-to-task relation grounded in client observations.",
+      "solvent": "Necessity of universal editor tested against file shapes and known mappings.",
+      "prospector": "External precedents in Xero, AWS DMS and OpenRefine.",
+      "expansionist": "Unexploited support knowledge, samples, telemetry and trial capacity."
+    },
+    "corrections": []
+  },
+  "primary_source_verification": [
+    {
+      "source": "case/GOAL.md",
+      "location": "3-13",
+      "claim": "Pilot outcome and boundaries",
+      "status": "confirmed"
+    },
+    {
+      "source": "case/current-plan.md",
+      "location": "3-11",
+      "claim": "Current work and unvalidated two-day estimate",
+      "status": "confirmed"
+    },
+    {
+      "source": "case/interviews.md",
+      "location": "3-13",
+      "claim": "File shapes, observed obstacles, different units with identical heading",
+      "status": "confirmed"
+    },
+    {
+      "source": "case/implementation.md",
+      "location": "3-16",
+      "claim": "Existing base, common rule auto-application, no observed bad import, two-hour removal estimate",
+      "status": "confirmed"
+    },
+    {
+      "source": "case/operations.md",
+      "location": "3-14",
+      "claim": "Known mappings, six samples, four support hours, two trials, existing events, excluded ideas",
+      "status": "confirmed"
+    },
+    {
+      "source": "https://central.xero.com/s/article/Import-a-CSV-bank-statement-US",
+      "method": "Keenable fetch_page_content",
+      "claim": "Template, mandatory fields, mappings, review and duplicate handling",
+      "status": "confirmed",
+      "note": "Initial web open returned zero lines; Keenable returned readable article."
+    },
+    {
+      "source": "https://central.xero.com/s/article/Delete-a-bank-statement",
+      "method": "Keenable fetch_page_content",
+      "claim": "Whole-statement deletion and choice about reconciled transactions",
+      "status": "confirmed"
+    },
+    {
+      "source": "https://docs.aws.amazon.com/dms/latest/userguide/CHAP_Validating.html",
+      "method": "web open",
+      "location": "Data validation; Validation only tasks",
+      "claim": "Row comparison, validation-only tasks, resource/time costs",
+      "status": "confirmed"
+    },
+    {
+      "source": "https://openrefine.org/docs/manual/running",
+      "method": "web open and find",
+      "location": "History (Undo/Redo); Reusing operations",
+      "claim": "Undo history, explicit extract/apply operations, single-cell extraction limitation",
+      "status": "confirmed"
+    },
+    {
+      "source": "https://openrefine.org/docs/manual/exporting",
+      "method": "web open",
+      "location": "Export data; Export a project",
+      "claim": "Filtered exports and complete project history export",
+      "status": "confirmed"
+    }
+  ],
+  "report_preservation_note": "The authoritative saved text is each complete native FINAL_ANSWER payload, with no reformatting or appended text. Two roles also wrote files before returning; parent replaced those file versions with the exact returned payload. The earlier file-byte difference was not used as a research blocker.",
+  "synthesis_sha256": "e6e84ed1162a37b628228b67eb11ae3bf225377680f77a0c1b630ac2a60c642d"
+}

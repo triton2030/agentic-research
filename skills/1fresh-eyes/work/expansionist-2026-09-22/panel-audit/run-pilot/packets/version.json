@@ -1,0 +1,26 @@
+{
+  "question_version": "case-v1-542621807dfeeda4",
+  "frozen_at": "2026-09-22T12:40:43.219010+00:00",
+  "case_sha256": {
+    "case/GOAL.md": "eea1bd0f4c972cc31363dbdf7e462d272deb4ef547b8b8cd329dbf6cfb68d583",
+    "case/README.md": "b0a1eaf4e798f55e5843aeb4d3c953032560108581adbb5b6dda5bafdfd9c78e",
+    "case/current-plan.md": "09b10acd49872c3583e7e42289a51a6c7f924c5df23a639b2a72e55a4c9e74ba",
+    "case/implementation.md": "145b5054455b952367f35dc3d04c0051af602da1dcad219ddd8dd2e13b69fbb2",
+    "case/interviews.md": "224ab036b67ec543992049464bba6ee6e564577454f3a5b81b46cc10dd5397d9",
+    "case/operations.md": "be15dc62446da9cf0b16cf3105b453138a7eb14f9a9fa7f4cff37e7c56bb48a7"
+  },
+  "packet_sha256": {
+    "premortem": "94d0a783c1c145f66a487512d6ceb2af1b13f41f7476c2795bdfeaac80f21986",
+    "ladder": "8a974b04118eb435a6905493cdc83c2e6978eb5113d9952a8a6ee6a784d19163",
+    "solvent": "91f89c527c64957a22ed083b0dda9eac29a2b314597108fe243084ce1e6707bf",
+    "prospector": "7ce0163d76ca0b600a65d803f0b64a0b935977e03e9606e48e4aac1d4b63fcf5",
+    "expansionist": "9b10795193746b9108736f8b350738a7d7c24b81fb5bab05de0d73a230146574"
+  },
+  "main_read": [
+    "case/README.md",
+    "case/GOAL.md",
+    "case/current-plan.md",
+    "case/implementation.md"
+  ],
+  "previous_panel_rounds": 0
+}
