@@ -1,0 +1,13 @@
+[
+  "SKILL.md",
+  "references/retrieval.md",
+  "references/capture.md",
+  "references/integrity.md",
+  "tests/test_identity_repair.py",
+  "tests/test_chat_capture.py",
+  "tests/test_chat_digest.py",
+  "scripts/chat_digest.py",
+  "scripts/chat_repair.py",
+  "scripts/chat_capture.py",
+  "scripts/record_identity.py"
+]

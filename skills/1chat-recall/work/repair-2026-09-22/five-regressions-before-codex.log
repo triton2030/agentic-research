@@ -1,0 +1,84 @@
+Baseline: before/codex; original snapshot left unchanged; current regression file copied into temporary package.
+Command: python3 -m unittest -v test_two_yes_answers_in_one_message_are_distinct_source_fragments test_exact_timestamp_fallback_distinguishes_context_in_same_message test_date_only_without_source_ref_does_not_claim_idempotency test_relations_keep_target_after_manual_insertion_and_header_growth test_failed_transaction_cannot_rollback_another_writers_capture
+
+test_two_yes_answers_in_one_message_are_distinct_source_fragments (test_identity_repair.IdentityRepairTests.test_two_yes_answers_in_one_message_are_distinct_source_fragments) ... FAIL
+test_exact_timestamp_fallback_distinguishes_context_in_same_message (test_identity_repair.IdentityRepairTests.test_exact_timestamp_fallback_distinguishes_context_in_same_message) ... FAIL
+test_date_only_without_source_ref_does_not_claim_idempotency (test_identity_repair.IdentityRepairTests.test_date_only_without_source_ref_does_not_claim_idempotency) ... FAIL
+test_relations_keep_target_after_manual_insertion_and_header_growth (test_identity_repair.IdentityRepairTests.test_relations_keep_target_after_manual_insertion_and_header_growth) ... FAIL
+test_failed_transaction_cannot_rollback_another_writers_capture (test_identity_repair.IdentityRepairTests.test_failed_transaction_cannot_rollback_another_writers_capture) ... FAIL
+
+======================================================================
+FAIL: test_two_yes_answers_in_one_message_are_distinct_source_fragments (test_identity_repair.IdentityRepairTests.test_two_yes_answers_in_one_message_are_distinct_source_fragments)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/mr/ft3j0yjx6w5_191wrt58_45m0000gn/T/recall-before-five-bar5i9qq/codex/tests/test_identity_repair.py", line 127, in test_two_yes_answers_in_one_message_are_distinct_source_fragments
+    first = self.capture("да", "2026-09-22T10:00:00Z", "--source-ref", message + "#goal")
+            ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/var/folders/mr/ft3j0yjx6w5_191wrt58_45m0000gn/T/recall-before-five-bar5i9qq/codex/tests/test_identity_repair.py", line 41, in capture
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 0 : usage: chat_capture.py [-h] [--list-metadata] --quote QUOTE --type TYPE_
+                       --topic TOPIC [--new-topic BOUNDARY]
+                       [--supersedes-unresolved SEARCH_NOTE]
+                       [--kind {quote,selection,note}] [--supersedes ANCHOR]
+                       [--contested ANCHOR]
+                       [--source-timestamp SOURCE_TIMESTAMP]
+                       [--context-note CONTEXT_NOTE]
+                       [--session-context SESSION_CONTEXT] [--supersedes-none]
+                       [--project PROJECT] --agent AGENT [--model MODEL]
+                       [--session SESSION] [--json]
+chat_capture.py: error: unrecognized arguments: --source-ref 3351cd9c-ec7d-4158-b76d-c0aa8ab56cfe#goal
+
+
+======================================================================
+FAIL: test_exact_timestamp_fallback_distinguishes_context_in_same_message (test_identity_repair.IdentityRepairTests.test_exact_timestamp_fallback_distinguishes_context_in_same_message)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/mr/ft3j0yjx6w5_191wrt58_45m0000gn/T/recall-before-five-bar5i9qq/codex/tests/test_identity_repair.py", line 138, in test_exact_timestamp_fallback_distinguishes_context_in_same_message
+    self.assertNotEqual(first["anchor"], second["anchor"])
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '2026-09-22-150000-codex-11111111.md#L15' == '2026-09-22-150000-codex-11111111.md#L15'
+
+======================================================================
+FAIL: test_date_only_without_source_ref_does_not_claim_idempotency (test_identity_repair.IdentityRepairTests.test_date_only_without_source_ref_does_not_claim_idempotency)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/mr/ft3j0yjx6w5_191wrt58_45m0000gn/T/recall-before-five-bar5i9qq/codex/tests/test_identity_repair.py", line 144, in test_date_only_without_source_ref_does_not_claim_idempotency
+    self.assertNotEqual(first["anchor"], second["anchor"])
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: '2026-09-22-000000-codex-11111111.md#L15' == '2026-09-22-000000-codex-11111111.md#L15'
+
+======================================================================
+FAIL: test_relations_keep_target_after_manual_insertion_and_header_growth (test_identity_repair.IdentityRepairTests.test_relations_keep_target_after_manual_insertion_and_header_growth)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/mr/ft3j0yjx6w5_191wrt58_45m0000gn/T/recall-before-five-bar5i9qq/codex/tests/test_identity_repair.py", line 158, in test_relations_keep_target_after_manual_insertion_and_header_growth
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 0 : chat-capture: error: supersedes does not address a record line: 2026-09-22-150000-codex-11111111.md:15. Addresses move down as a conversation grows; records in 2026-09-22-150000-codex-11111111.md are now:
+  2026-09-22-150000-codex-11111111.md:16 * 2026-09-22T10:00:00+00:00 — "первое решение" — type: решение | topic…
+  2026-09-22-150000-codex-11111111.md:17 * 2026-09-22T10:01:00+00:00 — "другая тема" — type: решение | topic: o…
+
+
+======================================================================
+FAIL: test_failed_transaction_cannot_rollback_another_writers_capture (test_identity_repair.IdentityRepairTests.test_failed_transaction_cannot_rollback_another_writers_capture)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/private/var/folders/mr/ft3j0yjx6w5_191wrt58_45m0000gn/T/recall-before-five-bar5i9qq/codex/tests/test_identity_repair.py", line 241, in test_failed_transaction_cannot_rollback_another_writers_capture
+    self.assertEqual([r["text"] for r in self.records()], ["successful quote"])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Lists differ: [] != ['successful quote']
+
+Second list contains 1 additional elements.
+First extra element 0:
+'successful quote'
+
+- []
++ ['successful quote']
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.892s
+
+FAILED (failures=5)
+
+Exit code: 1

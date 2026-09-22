@@ -1,0 +1,33 @@
+FFF
+======================================================================
+FAIL: test_show_help_names_record_id_and_complete_stable_address (test_identity_repair.IdentityRepairTests.test_show_help_names_record_id_and_complete_stable_address)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1chat-recall/tests/test_identity_repair.py", line 306, in test_show_help_names_record_id_and_complete_stable_address
+    self.assertIn("record_id", result.stdout)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'record_id' not found in 'usage: chat_digest.py [-h] [--prepare] [--digest] [--check] [--strict]\n                      [--query QUERY] [--lexical] [--show SHOW] [--timeline]\n                      [--type TYPES] [--topic TOPICS] [--grep GREP]\n                      [--since SINCE] [--until UNTIL] [--agent AGENT]\n                      [--session SESSION] [--head HEAD] [--limit LIMIT]\n                      [--max-chars MAX_CHARS] [--verbose] [--json]\n                      [records_dir]\n\nLossless inventory and bounded retrieval for `_ops/chat-recall`. Every\nMarkdown star block is a record. Broken metadata becomes diagnostics and\nsentinels; it never makes the block disappear.\n\npositional arguments:\n  records_dir\n\noptions:\n  -h, --help            show this help message and exit\n  --prepare             download and verify the pinned local embedding model\n  --digest\n  --check\n  --strict\n  --query QUERY\n  --lexical             use BM25 only instead of the default local hybrid\n                        retrieval\n  --show SHOW           show complete record, provenance, and context-note\n                        when present\n  --timeline\n  --type TYPES\n  --topic TOPICS\n  --grep GREP\n  --since SINCE\n  --until UNTIL\n  --agent AGENT\n  --session SESSION\n  --head HEAD           excerpt length for human digest and strongest quote\n                        text\n  --limit LIMIT         maximum holders for a query (also separately caps\n                        conflict groups), records for other modes\n  --max-chars MAX_CHARS\n                        hard output cap; default: full query holder cards,\n                        8000 characters in other modes\n  --verbose\n  --json\n'
+
+======================================================================
+FAIL: test_show_reads_receipt_address_and_record_id_after_header_growth (test_identity_repair.IdentityRepairTests.test_show_reads_receipt_address_and_record_id_after_header_growth) (selector='2026-09-22-150000-codex-11111111.md#recall-2325a99872ae4b31b78641f3d33eb2c2')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1chat-recall/tests/test_identity_repair.py", line 286, in test_show_reads_receipt_address_and_record_id_after_header_growth
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 0 : chat-digest: error: record_id не найден: 2026-09-22-150000-codex-11111111.md#recall-2325a99872ae4b31b78641f3d33eb2c2
+
+
+======================================================================
+FAIL: test_show_rejects_duplicate_stable_address_and_record_id (test_identity_repair.IdentityRepairTests.test_show_rejects_duplicate_stable_address_and_record_id) (selector='2026-09-22-150000-codex-11111111.md#recall-51ec463de3834f3aa83d907120d6bec0')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1chat-recall/tests/test_identity_repair.py", line 301, in test_show_rejects_duplicate_stable_address_and_record_id
+    self.assertIn("неоднозначен", result.stderr)
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'неоднозначен' not found in 'chat-digest: error: record_id не найден: 2026-09-22-150000-codex-11111111.md#recall-51ec463de3834f3aa83d907120d6bec0\n'
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.617s
+
+FAILED (failures=3)

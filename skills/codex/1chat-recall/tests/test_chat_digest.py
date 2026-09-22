@@ -72,7 +72,8 @@ class ChatDigestTests(unittest.TestCase):
 
     def test_query_reports_conflict_pair_without_admitting_positions(self) -> None:
         self.write_entries(['* 2026-07-01 — "quartz enable" — type: решение | topic: mode'])
-        address = DIGEST.load(self.corpus)[0][0]["address"]
+        old_record = DIGEST.load(self.corpus)[0][0]
+        address = old_record["address"] + " sha:" + old_record["record_sha256"]
         with (self.corpus / "recall.md").open("a") as out:
             out.write(f'\n* 2026-07-02 — "disable it" — type: решение | topic: mode | contested: {address}\n')
         result = self.call("--query", "quartz", "--json")
@@ -84,7 +85,7 @@ class ChatDigestTests(unittest.TestCase):
         self.assertIn("conflict-evidence-present", data["warnings"])
         text = self.call("--query", "quartz")
         self.assertIn("conflicts=1/1", text.stdout)
-        self.assertIn(address, text.stdout)
+        self.assertIn(address.split(" sha:")[0], text.stdout)
         unrelated = json.loads(self.call("--query", "unrelatedword", "--json").stdout)
         self.assertEqual(unrelated["conflict_matched"], 0)
         self.assertNotIn("conflict-evidence-present", unrelated["warnings"])
@@ -1103,14 +1104,14 @@ class ChatDigestTests(unittest.TestCase):
 
         old = record("recall.md:10", "работа-и-процессы", "2026-07-01T10:00:00+00:00")
         cross_scope = record("recall.md:11", "документация-и-знания", "2026-07-03T10:00:00+00:00")
-        cross_scope["supersedes"] = "recall.md:10"
+        cross_scope["supersedes"] = "recall.md:10 sha:" + DIGEST.record_hash(old["raw"])
         records = [old, cross_scope]
         DIGEST.link_supersessions(records)
         self.assertNotIn("superseded_by", old)
         self.assertIn("cross-scope-supersedes", cross_scope["diagnostics"])
 
         older_reply = record("recall.md:12", "работа-и-процессы", "2026-06-30T10:00:00+00:00")
-        older_reply["supersedes"] = "recall.md:10"
+        older_reply["supersedes"] = "recall.md:10 sha:" + DIGEST.record_hash(old["raw"])
         records = [old, older_reply]
         DIGEST.link_supersessions(records)
         self.assertNotIn("superseded_by", old)
@@ -1142,7 +1143,7 @@ class ChatDigestTests(unittest.TestCase):
         self.assertEqual(relocated_target["superseded_by"], ["recall.md:21"])
 
         contested = record("recall.md:13", "работа-и-процессы", "2026-07-04T10:00:00+00:00")
-        contested["contested"] = "recall.md:10"
+        contested["contested"] = "recall.md:10 sha:" + DIGEST.record_hash(old["raw"])
         records = [old, contested]
         DIGEST.link_supersessions(records)
         decision = DIGEST._decision_records(records)
@@ -1153,7 +1154,7 @@ class ChatDigestTests(unittest.TestCase):
             "— type: решение | topic: работа-и-процессы"
         )
         self.write_entries([old_entry])
-        old_address = DIGEST.load(self.corpus)[0][0]["address"]
+        old_address = DIGEST.load(self.corpus)[0][0]["address"] + " sha:" + DIGEST.record_hash(old_entry)
         self.write_entries(
             [
                 old_entry,
@@ -1167,7 +1168,7 @@ class ChatDigestTests(unittest.TestCase):
                 ),
                 (
                     '* 2026-07-04T10:00:00+00:00 — "Wrong digest" '
-                    f"— type: коррекция | topic: работа-и-процессы | supersedes: {old_address} sha:deadbeef"
+                    f"— type: коррекция | topic: работа-и-процессы | supersedes: {old_address.split(" sha:")[0]} sha:deadbeef"
                 ),
             ]
         )
@@ -1238,7 +1239,7 @@ class ChatDigestTests(unittest.TestCase):
                 "--limit",
                 "20",
                 "--max-chars",
-                "900",
+                "1100",
                 "--json",
             ).stdout
         )

@@ -31,6 +31,8 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
+from record_identity import record_blocks, record_hash, ADDRESS_RE
+
 from recall_metadata import (
     REPAIR_TOPIC,
     REPAIR_TYPE,
@@ -119,17 +121,7 @@ def _frontmatter(lines: list[str]) -> dict[str, str]:
 
 
 def _star_blocks(lines: list[str]) -> list[tuple[int, str]]:
-    starts = [index for index, line in enumerate(lines) if line.startswith("* ")]
-    blocks: list[tuple[int, str]] = []
-    for number, start in enumerate(starts):
-        end = starts[number + 1] if number + 1 < len(starts) else len(lines)
-        raw_lines = lines[start:end]
-        while raw_lines and not raw_lines[-1].strip():
-            raw_lines.pop()
-        while raw_lines and raw_lines[-1].startswith("#"):
-            raw_lines.pop()
-        blocks.append((start + 1, "\n".join(raw_lines).strip()))
-    return blocks
+    return [(number, block) for number, block, _ in record_blocks(lines)]
 
 
 def _normalized_text(value: str) -> str:
@@ -301,6 +293,10 @@ def _quote_card(
         "date": record.get("date"),
         "age": _relative_age(_parse_sort_datetime(record.get("sort_timestamp")), now),
     }
+    if record.get("record_sha256"):
+        card["record_sha256"] = record["record_sha256"]
+    if record.get("line_anchor"):
+        card["line_anchor"] = record["line_anchor"]
     if record.get("channels"):
         card["channels"] = record["channels"]
     for back_reference in ("superseded_by", "contested_by"):
@@ -322,13 +318,6 @@ def link_supersessions(records: list[dict[str, Any]]) -> None:
     attempted it: a position must never leave an answer because someone else
     addressed it wrongly.
     """
-    by_address = {record["address"]: record for record in records}
-    by_fingerprint: dict[tuple[str, str], dict[str, Any]] = {}
-    for record in records:
-        digest = hashlib.sha256(
-            record["raw"].split("\n", 1)[0].encode("utf-8")
-        ).hexdigest()[:8]
-        by_fingerprint.setdefault((record["file"], digest), record)
     for record in records:
         for field, back_reference in (
             ("supersedes", "superseded_by"),
@@ -338,10 +327,18 @@ def link_supersessions(records: list[dict[str, Any]]) -> None:
             if not anchor:
                 continue
             address, digest = _parse_anchor(anchor)
-            if digest is None:
-                target = by_address.get(address)
-            else:
-                target = by_fingerprint.get((address.split(":")[0], digest))
+            parsed = ADDRESS_RE.fullmatch(anchor)
+            target = None
+            if parsed and parsed["id"]:
+                candidates = [candidate for candidate in records if candidate["address"] == f"{parsed['file']}#{parsed['id']}"]
+                if len(candidates) == 1 and (not digest or record_hash(candidates[0]["raw"]).startswith(digest)):
+                    target = candidates[0]
+            elif parsed and digest:
+                candidates = [candidate for candidate in records if candidate["file"] == parsed["file"] and record_hash(candidate["raw"]).startswith(digest)]
+                if len(candidates) == 1:
+                    target = candidates[0]
+            elif parsed:
+                record["diagnostics"] = sorted({*record.get("diagnostics", []), f"unverified-{field}"})
             if target is None:
                 record["diagnostics"] = sorted(
                     {*record.get("diagnostics", []), f"dangling-{field}"}
@@ -417,8 +414,14 @@ def load(records_dir: Path) -> tuple[list[dict[str, Any]], int]:
         except OSError as error:
             raise CliError(f"не удалось прочитать {path}: {error}") from error
         header = _frontmatter(lines)
-        for lineno, block in _star_blocks(lines):
-            records.append(_parse_block(path, lineno, block, header))
+        for lineno, block, identity in record_blocks(lines):
+            record = _parse_block(path, lineno, block, header)
+            record["line_anchor"] = f"{path.name}#L{lineno}"
+            record["record_sha256"] = record_hash(block)
+            if identity:
+                record["record_id"] = identity
+                record["address"] = f"{path.name}#{identity}"
+            records.append(record)
     session_holders: dict[str, set[str]] = defaultdict(set)
     id_counts: Counter[str] = Counter()
     for record in records:
@@ -1593,6 +1596,8 @@ def _with_age(record: dict[str, Any], now: datetime) -> dict[str, Any]:
 def _summary(record: dict[str, Any]) -> dict[str, Any]:
     fields = (
         "record_id",
+        "line_anchor",
+        "record_sha256",
         "kind",
         "text",
         "timestamp",
@@ -2042,7 +2047,10 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--show",
-        help="show complete record, provenance, and context-note when present",
+        help=(
+            "show complete record by record_id (recall-<id> or legacy cr-<hash>) "
+            "or stable address <file>.md#recall-<id>; includes provenance and context-note"
+        ),
     )
     parser.add_argument("--timeline", action="store_true")
     parser.add_argument("--type", dest="types")
@@ -2171,13 +2179,16 @@ def main() -> int:
         )
 
         if args.show:
-            matches = [record for record in records if record["record_id"] == args.show]
+            address = ADDRESS_RE.fullmatch(args.show)
+            stable_address = bool(address and address["id"] and not address["sha"])
+            key = "address" if stable_address else "record_id"
+            matches = [record for record in records if record[key] == args.show]
             if not matches:
-                raise CliError(f"record_id не найден: {args.show}")
+                raise CliError(f"{key} не найден: {args.show}")
             if len(matches) > 1:
                 addresses = ", ".join(record["address"] for record in matches)
                 raise CliError(
-                    f"record_id неоднозначен ({addresses}); сначала почините duplicate"
+                    f"{key} неоднозначен ({addresses}); сначала почините duplicate"
                 )
             selected, truncated_by = matches, None
             matched = len(selected)

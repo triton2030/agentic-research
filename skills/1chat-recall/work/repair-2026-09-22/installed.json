@@ -1,0 +1,16 @@
+{
+  "codex": {
+    "path": "/Users/triton/.codex/skills/1chat-recall",
+    "resolved_path": "/Users/triton/.codex/skills/1chat-recall",
+    "verified_files": 24,
+    "changed_files": 11,
+    "mode": "copied changed files atomically"
+  },
+  "claude": {
+    "path": "/Users/triton/.claude/skills/1chat-recall",
+    "resolved_path": "/Users/triton/Documents/GitHub/agentic-research/skills/claude/1chat-recall",
+    "verified_files": 25,
+    "changed_files": 11,
+    "mode": "existing symlink to owner"
+  }
+}

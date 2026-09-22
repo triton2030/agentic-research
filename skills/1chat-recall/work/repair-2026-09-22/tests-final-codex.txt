@@ -1,0 +1,14 @@
+......chat-capture: error: --supersedes, --contested, --supersedes-unresolved or --supersedes-none is required for a position; identify the relation before writing: --supersedes <file>.md#recall-<id> for a verified cancellation, --supersedes-none for no cancellation, --contested <file>.md#recall-<id> for a conflict without a winner. If the old quote was not found after search, use --supersedes-unresolved <search-note>; the new quote is saved without guessing which old record it cancels.
+..............chat-capture: error: simulated holder failure
+............chat-capture: error: receipt failure
+....................chat-capture: error: one supersession answer contradicts another; pass exactly one answer
+chat-capture: error: one supersession answer contradicts another; pass exactly one answer
+chat-capture: error: one supersession answer contradicts another; pass exactly one answer
+.........................................................................................................
+----------------------------------------------------------------------
+Ran 157 tests in 18.107s
+
+OK
+appended to /private/var/folders/mr/ft3j0yjx6w5_191wrt58_45m0000gn/T/tmpxcgqhcvo/_ops/chat-recall/2001-02-03-100506-claude-f37364a7.md
+anchor: 2001-02-03-100506-claude-f37364a7.md#recall-51ac38b9f5844ceba1124acd9e9f2823
+remember: context-note is a short set of searchable noun phrases, not prose; name stable referents and useful synonyms; never repeat or paraphrase the quote or widen a situational reply into a standing preference; if no grounded keyword exists, inspect the source context instead of inventing one

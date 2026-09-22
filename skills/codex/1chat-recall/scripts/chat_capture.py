@@ -17,6 +17,8 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from typing import NamedTuple
 
+from record_identity import corpus_lock, record_blocks, record_hash, resolve_record
+
 from recall_metadata import (
     REPAIR_TOPIC,
     REPAIR_TYPE,
@@ -112,42 +114,17 @@ def nearest_topics(topic_map: TopicMap, wanted: str, count: int = 5) -> str:
 
 
 def anchor(value: str, field: str) -> str:
-    """A corpus address, in either form the agent has at hand.
-
-    Search prints `file.md:21`, a capture receipt prints `file.md#L21`, and the
-    same address arrives here from both. Accept both and store one.
-    """
-    collapsed = one_line(value, field)
-    match = ANCHOR_RE.fullmatch(collapsed)
-    if not match:
-        raise CaptureError(
-            f"{field} must address one record as <file>.md:<line> "
-            f"(the form search prints): {collapsed!r}"
-        )
-    return f"{match['file']}:{match['line']}"
+    return one_line(value, field)
 
 
 def verify_anchor(log_dir: Path, value: str, field: str) -> str:
-    """Bind the address to the record's fingerprint, so it survives line drift.
-
-    A conversation file grows while it is open, and every earlier line moves
-    down with it. A bare line number would quietly stop pointing at the record
-    it was written for; the fingerprint lets the reader find it again.
-    """
-    name, _, line_number = value.rpartition(":")
-    path = log_dir / name
+    """Never infer an old quote's identity from the line currently at its address."""
     try:
-        lines = path.read_text(encoding="utf-8-sig").splitlines()
-    except OSError as error:
-        raise CaptureError(f"{field} points outside the corpus: {value}") from error
-    index = int(line_number) - 1
-    if not 0 <= index < len(lines) or not lines[index].startswith("* "):
-        raise CaptureError(
-            f"{field} does not address a record line: {value}. Addresses move "
-            f"down as a conversation grows; records in {name} are now:\n"
-            + current_records(name, lines)
-        )
-    return f"{value} sha:{fingerprint(lines[index])}"
+        path, number, raw, identity = resolve_record(log_dir, value)
+    except (ValueError, OSError) as error:
+        raise CaptureError(f"{field}: {error}") from error
+    return (f"{path.name}#{identity}" if identity else
+            f"{path.name}:{number} sha:{record_hash(raw)}")
 
 
 def current_records(name: str, lines: list[str], width: int = 70) -> str:
@@ -185,9 +162,9 @@ POSITION_TYPES = frozenset(
     {"решение", "коррекция", "критерий", "правило-кандидат", "предпочтение"}
 )
 SUPERSESSION_GUIDANCE = (
-    "identify the relation before writing: --supersedes <file>.md:<line> for a "
+    "identify the relation before writing: --supersedes <file>.md#recall-<id> for a "
     "verified cancellation, --supersedes-none for no cancellation, --contested "
-    "<file>.md:<line> for a conflict without a winner. If the old quote was not "
+    "<file>.md#recall-<id> for a conflict without a winner. If the old quote was not "
     "found after search, use --supersedes-unresolved <search-note>; the new "
     "quote is saved without guessing which old record it cancels."
 )
@@ -485,6 +462,8 @@ def _entry_line(
     supersedes: str | None = None,
     contested: str | None = None,
     supersedes_unresolved: str | None = None,
+    record_id: str | None = None,
+    source_ref: str | None = None,
 ) -> str:
     fields = []
     if kind != "quote":
@@ -498,7 +477,10 @@ def _entry_line(
         fields.append(f"supersedes-unresolved: {supersedes_unresolved}")
     if context:
         fields.append(f"context-note: {context}")
-    return f'* {source.rendered} — "{quote}" — ' + " | ".join(fields) + "\n"
+    if source_ref:
+        fields.append(f"source-ref: {source_ref}")
+    heading = f"### {record_id}\n\n" if record_id else ""
+    return heading + f'* {source.rendered} — "{quote}" — ' + " | ".join(fields) + "\n"
 
 
 def ensure_inventory(lines: list[str], key: str, value: str) -> None:
@@ -574,7 +556,7 @@ def write_atomic(path: Path, text: str) -> None:
 def snapshot_files(paths: set[Path]) -> dict[Path, FileState]:
     return {
         path: FileState(
-            path.read_text(encoding="utf-8-sig"),
+            path.read_bytes().decode("utf-8"),
             stat.S_IMODE(path.stat().st_mode),
         )
         if path.exists()
@@ -593,35 +575,37 @@ def restore_files(states: dict[Path, FileState]) -> None:
             path.chmod(before.mode)
 
 
-def record_receipt(
-    path: Path,
-    quote: str,
-    topic: str,
-    session: str,
-    status: str,
-) -> dict[str, object]:
-    """Return a stable record identity plus its current human-readable anchor."""
-    marker = f'— "{quote}" —'
-    matches = [
-        (number, line)
-        for number, line in enumerate(
-            path.read_text(encoding="utf-8-sig").splitlines(), start=1
-        )
-        if marker in line
-    ]
-    if len(matches) != 1:
-        raise CaptureError(
-            f"cannot address captured record uniquely in {path}: {len(matches)} matches"
-        )
-    line_number, line = matches[0]
-    return {
-        "status": status,
-        "path": str(path),
-        "topic": topic,
-        "session": session,
-        "anchor": f"{path.name}#L{line_number}",
-        "record_sha256": hashlib.sha256(line.encode("utf-8")).hexdigest(),
-    }
+def record_receipt(path, quote, topic, session, status, record_id=None):
+    rows = list(record_blocks(path.read_text(encoding="utf-8-sig").splitlines()))
+    matches = [row for row in rows if row[2] == record_id] if record_id else [row for row in rows if f'— "{quote}" —' in row[1]]
+    if len(matches) != 1 or not matches[0][2]:
+        raise CaptureError(f"cannot address captured record uniquely in {path}")
+    number, raw, identity = matches[0]
+    return {"status": status, "path": str(path), "topic": topic, "session": session,
+            "anchor": f"{path.name}#{identity}", "record_id": identity,
+            "line_anchor": f"{path.name}#L{number}", "record_sha256": record_hash(raw)}
+
+
+def matching_occurrence(path, quote, kind, source, source_ref, context, topic, type_, supersedes, contested, unresolved):
+    """A source occurrence plus an exact excerpt, never matching words alone."""
+    if not path.exists() or source_ref is None:
+        return None
+    from chat_digest import _parse_block, _frontmatter
+    lines = path.read_text(encoding="utf-8-sig").splitlines()
+    matches = []
+    for number, raw, identity in record_blocks(lines):
+        record = _parse_block(path, number, raw, _frontmatter(lines))
+        if record["text"] != quote or record["kind"] != kind or record.get("source_ref") != source_ref:
+            continue
+        expected = {"context_note": context, "topic": topic, "type": type_,
+                    "supersedes": supersedes, "contested": contested,
+                    "supersedes_unresolved": unresolved}
+        if any(record.get(key) != value for key, value in expected.items()):
+            raise CaptureError("source occurrence already exists with different metadata; inspect and repair explicitly")
+        matches.append((number, raw, identity))
+    if len(matches) > 1:
+        raise CaptureError("source occurrence has multiple records; repair explicitly")
+    return matches[0] if matches else None
 
 
 def _earliest_known(text: str, incoming: SourceTimestamp) -> datetime:
@@ -635,23 +619,9 @@ def _earliest_known(text: str, incoming: SourceTimestamp) -> datetime:
     return min(known) if known else incoming.file_when
 
 
-def append_target(
-    path: Path,
-    agent: str,
-    session: str,
-    source: SourceTimestamp,
-    text: str,
-) -> Path:
-    if source.precision not in ("exact", "minute"):
-        return path
-    earliest = _earliest_known(text, source)
-    return dated_path(
-        path.parent,
-        agent,
-        session,
-        SourceTimestamp(earliest.isoformat(), "exact", earliest, earliest),
-        current=path,
-    )
+def append_target(path, agent, session, source, text):
+    """Once published, a holder path is stable even when earlier speech is backfilled."""
+    return path
 
 
 def create_file(
@@ -670,6 +640,8 @@ def create_file(
     supersedes: str | None = None,
     contested: str | None = None,
     supersedes_unresolved: str | None = None,
+    record_id: str | None = None,
+    source_ref: str | None = None,
 ) -> None:
     local = source.file_when.astimezone()
     lines = [
@@ -706,6 +678,8 @@ def create_file(
             supersedes,
             contested,
             supersedes_unresolved,
+            record_id or "recall-" + uuid.uuid4().hex,
+            source_ref,
         ).rstrip(),
     ]
     write_atomic(path, "\n".join(lines) + "\n")
@@ -725,6 +699,8 @@ def append_entry(
     supersedes: str | None = None,
     contested: str | None = None,
     supersedes_unresolved: str | None = None,
+    record_id: str | None = None,
+    source_ref: str | None = None,
 ) -> tuple[bool, bool, Path]:
     text = path.read_text(encoding="utf-8-sig")
     lines = text.splitlines()
@@ -732,7 +708,8 @@ def append_entry(
         session_card is not None
         and set_frontmatter_scalar(lines, "session-context", session_card)
     )
-    if f'"{quote}"' in text:
+    existing = matching_occurrence(path, quote, kind, source, source_ref, context, topic, type_, supersedes, contested, supersedes_unresolved)
+    if existing is not None:
         if context_updated:
             write_atomic(path, "\n".join(lines) + "\n")
         return False, context_updated, path
@@ -742,7 +719,7 @@ def append_entry(
     if target != path:
         earliest = _earliest_known(text, source)
         _set_file_date(lines, earliest)
-    rendered = "\n".join(lines) + "\n" + _entry_line(
+    rendered = "\n".join(lines) + "\n\n" + _entry_line(
         quote,
         type_,
         topic,
@@ -752,6 +729,8 @@ def append_entry(
         supersedes,
         contested,
         supersedes_unresolved,
+        record_id or "recall-" + uuid.uuid4().hex,
+        source_ref,
     )
     write_atomic(target, rendered)
     if target != path:
@@ -797,7 +776,8 @@ def build_parser() -> argparse.ArgumentParser:
         "--supersedes",
         metavar="ANCHOR",
         help=(
-            "address <file>.md#L<line> of the earlier record this reply cancels; "
+            "address <file>.md#recall-<id> or verified legacy <file>.md:<line> sha:<record_sha256> "
+            "from retrieval after reading the earlier quote; "
             "only when both cannot be true at once in the same scope"
         ),
     )
@@ -805,7 +785,8 @@ def build_parser() -> argparse.ArgumentParser:
         "--contested",
         metavar="ANCHOR",
         help=(
-            "address <file>.md#L<line> this reply conflicts with when the winner "
+            "address <file>.md#recall-<id> or verified legacy <file>.md:<line> sha:<record_sha256> "
+            "from retrieval after reading the conflicting quote; when the winner "
             "is unclear; marks the conflict instead of choosing silently"
         ),
     )
@@ -842,6 +823,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--agent", required=True)
     parser.add_argument("--model")
     parser.add_argument("--session")
+    parser.add_argument("--source-ref", help="source message/selection occurrence ID; exact excerpts from the same occurrence retry idempotently. Without it, an explicit exact source timestamp plus kind, quote, topic and context identify the occurrence; date/minute or implicit write time do not deduplicate")
     parser.add_argument(
         "--json",
         action="store_true",
@@ -920,152 +902,177 @@ def main() -> int:
         if not root.is_dir():
             raise CaptureError(f"project root not found: {root}")
         log_dir = resolve_log_dir(root)
-        topic_map = read_topic_map(root)
-        if topic_map is None and topic != REPAIR_TOPIC:
-            if not args.new_topic:
-                raise CaptureError(
-                    f"topic map not found: {root / TOPIC_MAP}. "
-                    'Use --new-topic "<boundary>" to create the first topic with the record.'
-                )
-            topic_map = TopicMap(root / TOPIC_MAP, {}, {})
-        new_topic_row = None
-        if topic_map is not None and topic != REPAIR_TOPIC:
-            if topic in topic_map.retired:
-                raise CaptureError(
-                    f"topic {topic!r} is retired in {topic_map.path}: "
-                    f"{topic_map.retired[topic]}"
-                )
-            if topic not in topic_map.live:
-                if not args.new_topic:
-                    raise CaptureError(
-                        f"topic {topic!r} is not in {topic_map.path}.\n"
-                        + nearest_topics(topic_map, topic)
-                        + "\nPick the one whose subject this reply belongs to, or "
-                        'create a topic deliberately: --new-topic "<boundary>".'
-                    )
-                new_topic_row = one_line(args.new_topic, "new topic boundary")
-        supersedes = (
-            verify_anchor(log_dir, anchor(args.supersedes, "supersedes"), "supersedes")
-            if args.supersedes
-            else None
-        )
-        contested = (
-            verify_anchor(log_dir, anchor(args.contested, "contested"), "contested")
-            if args.contested
-            else None
-        )
-        session = resolve_session(args.session, agent)
-        if not session:
-            checked = ", ".join(ENV_BY_AGENT.get(agent, ())) or "none"
-            raise CaptureError(
-                f"session id unknown for agent '{agent}' (env checked: {checked})"
-            )
-        path = find_session_file(log_dir, agent, session, source)
-        already_present = path.exists() and f'"{quote}"' in path.read_text(
-            encoding="utf-8-sig"
-        )
-        topic_transaction = bool(
-            not already_present and new_topic_row is not None and topic_map is not None
-        )
-        planned_path = (
-            append_target(
-                path,
-                agent,
-                session,
-                source,
-                path.read_text(encoding="utf-8-sig"),
-            )
-            if path.exists()
-            else path
-        )
-        transaction_paths = {path, planned_path}
-        if topic_transaction and topic_map is not None:
-            transaction_paths.add(topic_map.path)
-        before = snapshot_files(transaction_paths)
-        try:
-            if topic_transaction and topic_map is not None and new_topic_row is not None:
-                # Validate and commit the dictionary row first. A later holder failure
-                # rolls it back, so a failed operation never leaves only one side.
-                add_topic_row(topic_map, topic, new_topic_row)
-            if path.exists():
-                written, context_updated, path = append_entry(
-                    path,
-                    agent,
-                    session,
-                    type_,
-                    topic,
-                    quote,
-                    source,
-                    args.kind,
-                    context,
-                    session_card,
-                    supersedes,
-                    contested,
-                    unresolved,
-                )
-            else:
-                create_file(
-                    path,
-                    root.name,
-                    agent,
-                    model,
-                    session,
-                    type_,
-                    topic,
-                    quote,
-                    source,
-                    args.kind,
-                    context,
-                    session_card,
-                    supersedes,
-                    contested,
-                    unresolved,
-                )
-                written = True
-                context_updated = session_card is not None
-            if topic_transaction and not written and topic_map is not None:
-                restore_files({topic_map.path: before[topic_map.path]})
-            receipt = record_receipt(
-                path,
-                quote,
-                topic,
-                session,
-                "written"
-                if written
-                else "context-updated"
-                if context_updated
-                else "already-present",
-            )
-        except (CaptureError, OSError) as error:
-            try:
-                restore_files(before)
-            except OSError as rollback_error:
-                raise CaptureError(
-                    f"capture failed and transaction rollback failed: {rollback_error}"
-                ) from error
-            raise
-        if args.json:
-            print(json.dumps(receipt, ensure_ascii=False))
-        else:
-            if written:
-                print(f"appended to {path}")
-            elif context_updated:
-                print(f"quote already present; session-context updated in {path}")
-            else:
-                print(f"already present in {path}")
-            if written and implicit_now:
-                print(
-                    "note: source-timestamp not given — used the write time "
-                    f"({source.rendered}). Correct for a same-turn capture; "
-                    "for backfill pass --source-timestamp explicitly"
-                )
-            if written and args.kind == "quote":
-                print(CONTEXT_NOTE_REMINDER)
-        return 0
+        with corpus_lock(log_dir):
+            return capture_locked(args, root, log_dir, quote, type_, topic, agent, model, context, session_card, source, implicit_now, unresolved)
     except (CaptureError, OSError) as error:
         print(f"chat-capture: error: {error}", file=sys.stderr)
         return 2
 
+
+def capture_locked(args, root, log_dir, quote, type_, topic, agent, model, context, session_card, source, implicit_now, unresolved):
+    topic_map = read_topic_map(root)
+    if topic_map is None and topic != REPAIR_TOPIC:
+        if not args.new_topic:
+            raise CaptureError(
+                f"topic map not found: {root / TOPIC_MAP}. "
+                'Use --new-topic "<boundary>" to create the first topic with the record.'
+            )
+        topic_map = TopicMap(root / TOPIC_MAP, {}, {})
+    new_topic_row = None
+    if topic_map is not None and topic != REPAIR_TOPIC:
+        if topic in topic_map.retired:
+            raise CaptureError(
+                f"topic {topic!r} is retired in {topic_map.path}: "
+                f"{topic_map.retired[topic]}"
+            )
+        if topic not in topic_map.live:
+            if not args.new_topic:
+                raise CaptureError(
+                    f"topic {topic!r} is not in {topic_map.path}.\n"
+                    + nearest_topics(topic_map, topic)
+                    + "\nPick the one whose subject this reply belongs to, or "
+                    'create a topic deliberately: --new-topic "<boundary>".'
+                )
+            new_topic_row = one_line(args.new_topic, "new topic boundary")
+    supersedes = (
+        verify_anchor(log_dir, anchor(args.supersedes, "supersedes"), "supersedes")
+        if args.supersedes
+        else None
+    )
+    contested = (
+        verify_anchor(log_dir, anchor(args.contested, "contested"), "contested")
+        if args.contested
+        else None
+    )
+    session = resolve_session(args.session, agent)
+    if not session:
+        checked = ", ".join(ENV_BY_AGENT.get(agent, ())) or "none"
+        raise CaptureError(
+            f"session id unknown for agent '{agent}' (env checked: {checked})"
+        )
+    path = find_session_file(log_dir, agent, session, source)
+    source_ref = one_line(args.source_ref, "source-ref") if args.source_ref else None
+    if source_ref and ("|" in source_ref or any(c.isspace() for c in source_ref)):
+        raise CaptureError("source-ref must be one source occurrence ID without whitespace or '|'")
+    deduplication = "source-ref" if source_ref else "none"
+    if source_ref is None and not implicit_now and source.precision == "exact":
+        payload = json.dumps([source.rendered, args.kind, quote, topic, context], ensure_ascii=False)
+        source_ref = "timestamp-" + hashlib.sha256(payload.encode()).hexdigest()
+        deduplication = "exact-timestamp-and-scene"
+    existing = matching_occurrence(path, quote, args.kind, source, source_ref, context, topic, type_, supersedes, contested, unresolved)
+    already_present = existing is not None
+    record_id = existing[2] if existing else "recall-" + uuid.uuid4().hex
+    if existing and not record_id:
+        raise CaptureError("source occurrence exists without stable heading; use the repair helper first")
+    topic_transaction = bool(
+        not already_present and new_topic_row is not None and topic_map is not None
+    )
+    planned_path = (
+        append_target(
+            path,
+            agent,
+            session,
+            source,
+            path.read_text(encoding="utf-8-sig"),
+        )
+        if path.exists()
+        else path
+    )
+    transaction_paths = {path, planned_path}
+    if topic_transaction and topic_map is not None:
+        transaction_paths.add(topic_map.path)
+    before = snapshot_files(transaction_paths)
+    try:
+        if topic_transaction and topic_map is not None and new_topic_row is not None:
+            # Validate and commit the dictionary row first. A later holder failure
+            # rolls it back, so a failed operation never leaves only one side.
+            add_topic_row(topic_map, topic, new_topic_row)
+        if path.exists():
+            written, context_updated, path = append_entry(
+                path,
+                agent,
+                session,
+                type_,
+                topic,
+                quote,
+                source,
+                args.kind,
+                context,
+                session_card,
+                supersedes,
+                contested,
+                unresolved,
+                record_id,
+                source_ref,
+            )
+        else:
+            create_file(
+                path,
+                root.name,
+                agent,
+                model,
+                session,
+                type_,
+                topic,
+                quote,
+                source,
+                args.kind,
+                context,
+                session_card,
+                supersedes,
+                contested,
+                unresolved,
+                record_id,
+                source_ref,
+            )
+            written = True
+            context_updated = session_card is not None
+        if topic_transaction and not written and topic_map is not None:
+            restore_files({topic_map.path: before[topic_map.path]})
+        receipt = record_receipt(
+            path,
+            quote,
+            topic,
+            session,
+            "written"
+            if written
+            else "context-updated"
+            if context_updated
+            else "already-present",
+            record_id,
+        )
+        receipt["deduplication"] = deduplication
+        if deduplication == "none":
+            receipt["warning"] = "no source occurrence identity; retries create separate records; pass --source-ref"
+    except (CaptureError, OSError) as error:
+        try:
+            restore_files(before)
+        except OSError as rollback_error:
+            raise CaptureError(
+                f"capture failed and transaction rollback failed: {rollback_error}"
+            ) from error
+        raise
+    if args.json:
+        print(json.dumps(receipt, ensure_ascii=False))
+    else:
+        if written:
+            print(f"appended to {path}")
+        elif context_updated:
+            print(f"quote already present; session-context updated in {path}")
+        else:
+            print(f"already present in {path}")
+        print(f"anchor: {receipt['anchor']}")
+        if receipt.get("warning"):
+            print(f"warning: {receipt['warning']}")
+        if written and implicit_now:
+            print(
+                "note: source-timestamp not given — used the write time "
+                f"({source.rendered}). Correct for a same-turn capture; "
+                "for backfill pass --source-timestamp explicitly"
+            )
+        if written and args.kind == "quote":
+            print(CONTEXT_NOTE_REMINDER)
+    return 0
 
 if __name__ == "__main__":
     raise SystemExit(main())

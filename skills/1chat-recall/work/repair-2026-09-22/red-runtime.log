@@ -1,0 +1,108 @@
+FFFFFFFF
+======================================================================
+FAIL: test_bare_line_reference_cannot_bind_to_neighbor (test_identity_repair.IdentityRepairTests.test_bare_line_reference_cannot_bind_to_neighbor)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1chat-recall/tests/test_identity_repair.py", line 87, in test_bare_line_reference_cannot_bind_to_neighbor
+    self.assertEqual(result.returncode, 2, "unverified line was accepted as identity")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 != 2 : unverified line was accepted as identity
+
+======================================================================
+FAIL: test_capture_waits_for_corpus_lock (test_identity_repair.IdentityRepairTests.test_capture_waits_for_corpus_lock)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1chat-recall/tests/test_identity_repair.py", line 104, in test_capture_waits_for_corpus_lock
+    self.assertIsNone(process.poll(), "capture ignored the active corpus transaction")
+    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 0 is not None : capture ignored the active corpus transaction
+
+======================================================================
+FAIL: test_explicit_source_occurrence_retry_is_idempotent (test_identity_repair.IdentityRepairTests.test_explicit_source_occurrence_retry_is_idempotent)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1chat-recall/tests/test_identity_repair.py", line 67, in test_explicit_source_occurrence_retry_is_idempotent
+    first = self.capture("да", "2026-09-22T10:00:00Z", "--source-ref", "q7-answer")
+            ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1chat-recall/tests/test_identity_repair.py", line 41, in capture
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 0 : usage: chat_capture.py [-h] [--list-metadata] --quote QUOTE --type TYPE_
+                       --topic TOPIC [--new-topic BOUNDARY]
+                       [--supersedes-unresolved SEARCH_NOTE]
+                       [--kind {quote,selection,note}] [--supersedes ANCHOR]
+                       [--contested ANCHOR]
+                       [--source-timestamp SOURCE_TIMESTAMP]
+                       [--context-note CONTEXT_NOTE]
+                       [--session-context SESSION_CONTEXT] [--supersedes-none]
+                       [--project PROJECT] --agent AGENT [--model MODEL]
+                       [--session SESSION] [--json]
+chat_capture.py: error: unrecognized arguments: --source-ref q7-answer
+
+
+======================================================================
+FAIL: test_legacy_relation_without_identity_remains_unresolved (test_identity_repair.IdentityRepairTests.test_legacy_relation_without_identity_remains_unresolved)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1chat-recall/tests/test_identity_repair.py", line 95, in test_legacy_relation_without_identity_remains_unresolved
+    self.assertNotIn("superseded_by", records[0])
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'superseded_by' unexpectedly found in {'record_id': 'cr-6ef18ac9c8ad483f', 'kind': 'quote', 'text': 'старое', 'quote': 'старое', 'timestamp': '2026-09-22T10:00:00Z', 'sort_timestamp': '2026-09-22T10:00:00+00:00', 'date': '2026-09-22', 'source': 'transcript', 'precision': 'exact', 'source_ref': None, 'type': 'решение', 'type_raw': 'решение', 'topic': 'scenes', 'topic_raw': None, 'session': 'legacy', 'agent': 'unknown', 'model': None, 'project': None, 'file': 'legacy.md', 'line': 5, 'address': 'legacy.md:5', 'raw': '* 2026-09-22T10:00:00Z — "старое" — type: решение | topic: scenes', 'diagnostics': [], 'superseded_by': ['legacy.md:6']}
+
+======================================================================
+FAIL: test_parallel_captures_preserve_all_quotes_and_new_topics (test_identity_repair.IdentityRepairTests.test_parallel_captures_preserve_all_quotes_and_new_topics)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1chat-recall/tests/test_identity_repair.py", line 122, in test_parallel_captures_preserve_all_quotes_and_new_topics
+    self.assertTrue(all(f"`topic-{i}`" in topics for i in range(12)))
+    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_receipt_and_retrieval_keep_same_anchor_after_header_growth_and_backfill (test_identity_repair.IdentityRepairTests.test_receipt_and_retrieval_keep_same_anchor_after_header_growth_and_backfill)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1chat-recall/tests/test_identity_repair.py", line 49, in test_receipt_and_retrieval_keep_same_anchor_after_header_growth_and_backfill
+    self.assertRegex(first["anchor"], r"\.md#recall-[a-f0-9]{32}$")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Regex didn't match: '\\.md#recall-[a-f0-9]{32}$' not found in '2026-09-22-150000-codex-11111111.md#L15'
+
+======================================================================
+FAIL: test_same_source_ref_changed_context_is_not_silently_rebound (test_identity_repair.IdentityRepairTests.test_same_source_ref_changed_context_is_not_silently_rebound)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1chat-recall/tests/test_identity_repair.py", line 74, in test_same_source_ref_changed_context_is_not_silently_rebound
+    self.capture("да", "2026-09-22T10:00:00Z", "--source-ref", "q7-answer")
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1chat-recall/tests/test_identity_repair.py", line 41, in capture
+    self.assertEqual(result.returncode, 0, result.stderr)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 2 != 0 : usage: chat_capture.py [-h] [--list-metadata] --quote QUOTE --type TYPE_
+                       --topic TOPIC [--new-topic BOUNDARY]
+                       [--supersedes-unresolved SEARCH_NOTE]
+                       [--kind {quote,selection,note}] [--supersedes ANCHOR]
+                       [--contested ANCHOR]
+                       [--source-timestamp SOURCE_TIMESTAMP]
+                       [--context-note CONTEXT_NOTE]
+                       [--session-context SESSION_CONTEXT] [--supersedes-none]
+                       [--project PROJECT] --agent AGENT [--model MODEL]
+                       [--session SESSION] [--json]
+chat_capture.py: error: unrecognized arguments: --source-ref q7-answer
+
+
+======================================================================
+FAIL: test_same_words_at_two_source_times_are_distinct (test_identity_repair.IdentityRepairTests.test_same_words_at_two_source_times_are_distinct)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1chat-recall/tests/test_identity_repair.py", line 60, in test_same_words_at_two_source_times_are_distinct
+    self.assertEqual(second["status"], "written")
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'already-present' != 'written'
+- already-present
++ written
+
+
+----------------------------------------------------------------------
+Ran 8 tests in 1.005s
+
+FAILED (failures=8)
