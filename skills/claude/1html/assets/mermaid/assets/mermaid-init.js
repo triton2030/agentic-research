@@ -220,15 +220,34 @@
     }
   };
 
-  const render = async (diagrams) => {
-    for (const diagram of diagrams) {
-      await renderOne(diagram);
-    }
+  const initViewers = () => {
     try {
       window.HTMLDiagramViewer?.initAll(document);
     } catch (_error) {
       // The diagram remains readable when optional pan/zoom setup fails.
     }
+  };
+
+  // Mermaid measures text while drawing: a diagram drawn inside a hidden tab,
+  // x-show block or closed details comes out as an empty 16 px box. Such a
+  // diagram waits until it gets a width and is drawn then.
+  const isShown = (element) => element.getBoundingClientRect().width > 0;
+
+  const renderWhenShown = (element) => {
+    const observer = new ResizeObserver(() => {
+      if (!isShown(element)) return;
+      observer.disconnect();
+      void renderOne(element).then(initViewers);
+    });
+    observer.observe(element);
+  };
+
+  const render = async (diagrams) => {
+    for (const diagram of diagrams) {
+      if (isShown(diagram)) await renderOne(diagram);
+      else renderWhenShown(diagram);
+    }
+    initViewers();
   };
 
   if (!window.mermaid) return;

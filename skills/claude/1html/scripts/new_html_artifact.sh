@@ -81,8 +81,9 @@ copy_once "$skill_dir/assets/mermaid/lib/MERMAID_THIRD_PARTY_NOTICES.txt" \
 for license in "$skill_dir/assets/mermaid/lib/licenses"/*.txt; do
   copy_once "$license" "$shared_lib/licenses/$(basename "$license")"
 done
+# The Mermaid adapter is skill runtime too: refresh it on every page creation.
 for asset in "$skill_dir/assets/mermaid/assets"/*; do
-  copy_once "$asset" "$shared_assets/$(basename "$asset")"
+  cp "$asset" "$shared_assets/$(basename "$asset")"
 done
 
 copy_once "$skill_dir/assets/echarts/lib/echarts.min.js" \
