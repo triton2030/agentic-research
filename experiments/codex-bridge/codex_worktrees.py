@@ -64,6 +64,10 @@ class WorkerTree:
     preexisting: tuple[str, ...] = ()
     integration_status: str = "pending"
     integration_error: str | None = None
+    # Судьба записи вне списка: `accepted_after_verify` — влита вместе со всей
+    # работой после зелёной проверки волны; `held_without_verify` — проверки не
+    # было, работа удержана в ветке. None — вне списка воркер не писал.
+    scope_decision: str | None = None
     cleanup_status: str = "pending"
     notes: list[str] = field(default_factory=list)
 
@@ -81,6 +85,7 @@ class WorkerTree:
             "preexisting": list(self.preexisting),
             "integration_status": self.integration_status,
             "integration_error": self.integration_error,
+            "scope_decision": self.scope_decision,
             "cleanup_status": self.cleanup_status,
             "notes": list(self.notes),
         }
@@ -331,7 +336,13 @@ def commit_worker_tree(tree: WorkerTree, *, message: str) -> None:
     tree.commit = _git(tree.path, "rev-parse", "HEAD", check=True).stdout.strip()
 
 
-def integrate_worker_tree(project: Path, tree: WorkerTree, *, into: Path | None = None) -> None:
+def integrate_worker_tree(
+    project: Path,
+    tree: WorkerTree,
+    *,
+    into: Path | None = None,
+    accept_out_of_scope: bool = False,
+) -> None:
     """Забрать ветку воркера одним merge.
 
     `--no-ff` намеренно: отдельный merge-коммит на воркера — единственное место,
@@ -342,6 +353,13 @@ def integrate_worker_tree(project: Path, tree: WorkerTree, *, into: Path | None 
     `into` — дерево, куда вливать. По умолчанию проект; при проверке перед
     вливанием сюда приходит интеграционное дерево, и основная ветка не трогается
     до зелёной проверки.
+
+    `accept_out_of_scope` — только для интеграционного дерева под проверкой:
+    запись вне списка тогда вливается вместе со всей работой, а решает зелёная
+    проверка волны. Владелец 2026-09-23 выбрал больше пользы ценой меньшей
+    безопасности (`_ops/chat-recall/2026-09-23-051553-claude-483a304e.md#recall-94036c7a45b24ae2aa0cbdeaa094b974`);
+    узкая зона производила обходы — алиас со старым именем (2026-09-01).
+    Без проверки внесписочная работа по-прежнему удерживается целиком.
     """
     target = into or project
     if tree.commit is None:
@@ -352,9 +370,10 @@ def integrate_worker_tree(project: Path, tree: WorkerTree, *, into: Path | None 
         tree.integration_status = "held_failed_worker"
         tree.notes.append(f"ход воркера не завершён; работа зафиксирована в {tree.branch}")
         return
-    if tree.out_of_scope_files:
-        # Запись вне своего списка — сорванный контракт. Отбраковать её одну
+    if tree.out_of_scope_files and not accept_out_of_scope:
+        # Запись вне своего списка без проверки волны. Отбраковать её одну
         # нельзя честно: воркер мог опираться на неё в файлах, которые в списке.
+        tree.scope_decision = "held_without_verify"
         tree.integration_status = "held_out_of_scope"
         tree.notes.append(
             f"писал вне своего списка ({', '.join(tree.out_of_scope_files[:3])}); "
@@ -458,7 +477,7 @@ def _gated_integration(
         raise WorktreeError(f"integration worktree failed: {(added.stderr or '').strip()}")
     try:
         for tree in trees:
-            integrate_worker_tree(project, tree, into=path)
+            integrate_worker_tree(project, tree, into=path, accept_out_of_scope=True)
         staged = [t for t in trees if t.integration_status == "merged"]
         passed, report = gate(path)
         if passed and staged:
@@ -473,6 +492,14 @@ def _gated_integration(
                     tree.integration_status = "conflict"
                     tree.integration_error = (merged.stderr or merged.stdout).strip()
                     tree.notes.append(f"работа цела в ветке {tree.branch}, забрать вручную")
+            else:
+                for tree in staged:
+                    if tree.out_of_scope_files:
+                        tree.scope_decision = "accepted_after_verify"
+                        tree.notes.append(
+                            "вне списка влито после зелёной проверки волны: "
+                            + ", ".join(tree.out_of_scope_files)
+                        )
         elif report.get("status") == "setup_failed":
             for tree in staged:
                 tree.integration_status = "held_setup_failed"
@@ -539,6 +566,7 @@ def close_wave(
             run_home.rmdir()
 
     conflicts = [t.task_id for t in trees if t.integration_status == "conflict"]
+    accepted = [t.task_id for t in trees if t.scope_decision == "accepted_after_verify"]
     held = [t.task_id for t in trees if t.integration_status.startswith("held")]
     if not integrate:
         status = "held"
@@ -554,6 +582,8 @@ def close_wave(
         "isolation": "worktree",
         "integration_status": status,
         "merged": [t.task_id for t in trees if t.integration_status == "merged"],
+        # Влиты вместе с записью вне своего списка — под зелёной проверкой волны.
+        "out_of_scope_accepted": accepted,
         "conflicts": conflicts,
         "held": held,
         # Незабранная работа, не «ветка осталась»: merged-ветка при

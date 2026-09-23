@@ -472,6 +472,58 @@ class WorktreeIsolationTests(unittest.TestCase):
         branches = git(self.project, "branch", "--list", f"{wt.BRANCH_PREFIX}/run1/integration")
         self.assertEqual(branches.strip(), "")
 
+    def test_green_gate_accepts_work_outside_the_list(self) -> None:
+        """Под зелёной проверкой волны запись вне списка вливается вместе со
+        всей работой и названа в отчёте (решение владельца 2026-09-23)."""
+        tree = self.make_tree("run1", "t1", {"a.md"})
+        (tree.path / "a.md").write_text("по списку\n")
+        (tree.path / "b.md").write_text("вне списка\n")
+
+        wave = wt.close_wave(
+            self.project, [tree], run_id="run1", integrate=True, cleanup=True,
+            gate=lambda path: (True, {"status": "passed", "checks": []}),
+        )
+        self.assertEqual(wave["merged"], ["t1"])
+        self.assertEqual(wave["out_of_scope_accepted"], ["t1"])
+        self.assertEqual(tree.scope_decision, "accepted_after_verify")
+        self.assertEqual(tree.out_of_scope_files, ("b.md",))
+        self.assertEqual((self.project / "b.md").read_text(), "вне списка\n")
+        self.assertEqual(wave["held"], [])
+
+    def test_red_gate_holds_work_outside_the_list(self) -> None:
+        tree = self.make_tree("run1", "t1", {"a.md"})
+        (tree.path / "b.md").write_text("вне списка\n")
+
+        wave = wt.close_wave(
+            self.project, [tree], run_id="run1", integrate=True, cleanup=True,
+            gate=lambda path: (False, {"status": "failed", "checks": []}),
+        )
+        self.assertEqual(tree.integration_status, "held_verify_failed")
+        self.assertIsNone(tree.scope_decision)
+        self.assertEqual(wave["out_of_scope_accepted"], [])
+        self.assertEqual((self.project / "b.md").read_text(), "B\n")
+
+    def test_without_gate_work_outside_the_list_is_held(self) -> None:
+        tree = self.make_tree("run1", "t1", {"a.md"})
+        (tree.path / "b.md").write_text("вне списка\n")
+
+        wave = wt.close_wave(self.project, [tree], run_id="run1", integrate=True, cleanup=True)
+        self.assertEqual(tree.integration_status, "held_out_of_scope")
+        self.assertEqual(tree.scope_decision, "held_without_verify")
+        self.assertEqual(wave["out_of_scope_accepted"], [])
+
+    def test_wave_verdict_fails_on_any_held_work_but_not_on_accepted_extension(self) -> None:
+        import codex_orchestrate
+
+        accepted = wt.WorkerTree("t1", Path("/x"), "b", "c", out_of_scope_files=("b.md",),
+                                 integration_status="merged", scope_decision="accepted_after_verify")
+        dirty = wt.WorkerTree("t2", Path("/y"), "b2", "c", integration_status="held_dirty_birth")
+        wave = {"integration_status": "partial"}
+        self.assertFalse(codex_orchestrate.wave_failed([accepted], {"integration_status": "integrated"}, integrated=True))
+        self.assertTrue(codex_orchestrate.wave_failed([accepted, dirty], wave, integrated=True))
+        held_plain = wt.WorkerTree("t3", Path("/z"), "b3", "c", integration_status="held")
+        self.assertFalse(codex_orchestrate.wave_failed([held_plain], {"integration_status": "held"}, integrated=False))
+
     def test_open_wave_rolls_back_partially_opened_wave(self) -> None:
         """Полволны изолировать нельзя: отказ на втором дереве убирает первое
         целиком — деревья, ветки, записи git."""

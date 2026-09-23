@@ -52,6 +52,7 @@ def _install_fake_openai_codex(
     class _Sandbox:
         read_only = "read_only"
         workspace_write = "workspace_write"
+        full_access = "full_access"
 
     class _ApprovalMode:
         deny_all = "deny_all"
@@ -209,6 +210,38 @@ class CodexInvestigateSdkContractTests(unittest.TestCase):
                     os.environ.pop(key, None)
                 else:
                     os.environ[key] = value
+
+    def test_full_access_is_an_explicit_per_run_opt_in(self) -> None:
+        """--full-access снимает песочницу на один прогон, говорит об этом роли
+        и ledger, а проверку охвата не выдаёт за доказательство."""
+        import codex_investigate
+
+        captured: dict = {}
+        fake_names = _install_fake_openai_codex(captured)
+        saved_argv = sys.argv[:]
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp).resolve()
+                run_dir = root / ".runs" / uuid.uuid4().hex
+                sys.argv = [
+                    "codex_investigate.py", "--task", "поставь пакет",
+                    "--project", str(root), "--run-dir", str(run_dir),
+                    "--heartbeat-sec", "0", "--full-access",
+                ]
+                with contextlib.redirect_stdout(io.StringIO()):
+                    rc = codex_investigate.main()
+                result = json.loads((run_dir / "result.json").read_text(encoding="utf-8"))
+                manifest = json.loads((run_dir / "manifest.json").read_text(encoding="utf-8"))
+            self.assertEqual(rc, 0)
+            self.assertEqual(captured.get("sandbox"), "full_access")
+            self.assertEqual(manifest["runtime"]["sandbox"], "full_access")
+            self.assertEqual(result["permissions"], {"sandbox": "full_access", "explicit_opt_in": True})
+            self.assertEqual(result["scope_status"], "not_enforced")
+            self.assertIn("Песочницы нет", captured.get("developer_instructions") or "")
+        finally:
+            sys.argv = saved_argv
+            for name in fake_names:
+                sys.modules.pop(name, None)
 
     def test_generated_image_lands_in_run_dir_and_result(self) -> None:
         """Мост сам забирает картинку хода: файл по savedPath копируется в

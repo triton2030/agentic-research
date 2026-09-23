@@ -26,12 +26,13 @@ from pathlib import Path
 
 from cbcommon import first_nonblank, scrub_billing_env
 from codex_retry import retry_start
-from codex_sdk_compat import harden_sdk_enums
+from codex_sdk_compat import harden_sdk_enums, open_sandbox_network
 from codex_defaults import (
     BRIDGE_THREAD_EPHEMERAL,
     DEFAULT_CODEX_EFFORT,
     DEFAULT_CODEX_MODEL,
     DEFAULT_CODEX_SERVICE_TIER,
+    FULL_ACCESS_SANDBOX,
     INVESTIGATE_APPROVAL_MODE,
     INVESTIGATE_SANDBOX,
     REASONING_EFFORTS,
@@ -60,18 +61,33 @@ from codex_git_scope import (
 from codex_progress import ProgressTracker, collect_images, run_turn
 
 
-def build_instructions(project_cwd: Path, out_dir: Path) -> str:
+def build_instructions(project_cwd: Path, out_dir: Path, *, full_access: bool = False) -> str:
     """Роль исследователя и sandbox-контракт — канал `developer_instructions`.
 
     Это политика прогона, а не задание: она уходит при thread_start отдельно от
     реплики, поэтому user-промпт остаётся чистым заданием, а контракт не тонет
-    в его тексте."""
+    в его тексте.
+
+    При полном доступе запрет на правку проекта был бы неправдой: песочницы
+    нет, и границу задаёт само задание."""
+    if full_access:
+        rights = (
+            f"- Песочницы нет: читать и писать можно по всему диску, сеть открыта. "
+            f"Что и где менять, определяет задание; проект ({project_cwd}) "
+            "меняй только если задание этого требует.\n"
+            "- Перечисли в `result.md` всё, что изменил вне своей папки: мост "
+            "видит только git-изменения проекта.\n"
+        )
+    else:
+        rights = (
+            f"- ЧИТАТЬ можно свободно весь проект ({project_cwd}) и файловую систему.\n"
+            f"- Файлы проекта править НЕЛЬЗЯ (запись в проект заблокирована sandbox).\n"
+        )
     return (
         "Ты — исследователь-субагент. Тебе дано самодостаточное задание.\n\n"
-        f"SANDBOX-КОНТРАКТ:\n"
-        f"- ЧИТАТЬ можно свободно весь проект ({project_cwd}) и файловую систему.\n"
-        f"- Твоя выходная папка — cwd ({out_dir}). Файлы проекта править НЕЛЬЗЯ "
-        "(запись в проект заблокирована sandbox).\n"
+        "SANDBOX-КОНТРАКТ:\n"
+        + rights
+        + f"- Твоя выходная папка — cwd ({out_dir}).\n"
         "- Все артефакты (отчёты, находки, черновики, данные) складывай в cwd — "
         "это твоё рабочее место: свободно создавай подпапки и структуру под "
         "задачу (drafts/, data/, archive/ …), переписывай и архивируй своё.\n"
@@ -147,7 +163,14 @@ def main() -> int:
     parser.add_argument("--summary-stdout", action="store_true", help="Компактный JSON в stdout; полный ответ — на диске.")
     parser.add_argument("--heartbeat-sec", type=int, default=120, help="Секунды между heartbeat-событиями; 0 отключает.")
     parser.add_argument("--dry-run", action="store_true", help="Собрать промпт и вывести его, НЕ вызывая Codex.")
+    parser.add_argument(
+        "--full-access",
+        action="store_true",
+        help="Без песочницы на этот прогон: запись по всему диску (задачи вне git-проекта). "
+        "Запись вне проекта мост не видит и не откатывает.",
+    )
     args = parser.parse_args()
+    sandbox_name = FULL_ACCESS_SANDBOX if args.full_access else INVESTIGATE_SANDBOX
 
     task = first_nonblank(args.task, args.task_text)
     if not task:
@@ -175,7 +198,7 @@ def main() -> int:
     # Задание уходит репликой, роль и sandbox-контракт — каналом
     # developer_instructions при thread_start.
     prompt = task
-    dev_instructions = build_instructions(project_cwd, out_dir)
+    dev_instructions = build_instructions(project_cwd, out_dir, full_access=args.full_access)
     prompt_document = render_prompt_document(prompt, dev_instructions)
     paths = _investigate_paths(run_dir, out_dir)
     codex_bin = resolve_codex_bin()
@@ -203,7 +226,7 @@ def main() -> int:
         "developer_instructions_chars": len(dev_instructions),
         "codex": dict(codex_runtime),
         "runtime": {
-            "sandbox": INVESTIGATE_SANDBOX,
+            "sandbox": sandbox_name,
             "approval": INVESTIGATE_APPROVAL_MODE,
             "cwd": str(out_dir),
         },
@@ -230,7 +253,7 @@ def main() -> int:
             f"[codex-bridge] DRY-RUN investigate project={project_cwd} out={out_dir} "
             f"model={args.model} effort={args.effort} tier={args.service_tier or 'inherit'} "
             f"binary={codex_runtime['binary_source']} "
-            f"sandbox={INVESTIGATE_SANDBOX} approval={INVESTIGATE_APPROVAL_MODE}"
+            f"sandbox={sandbox_name} approval={INVESTIGATE_APPROVAL_MODE}"
             + (f" | вырезаны из env: {', '.join(removed)}" if removed else " | env чист"),
             file=sys.stderr,
         )
@@ -253,6 +276,7 @@ def main() -> int:
     # Дрейф движка ChatGPT.app под запиненным SDK: новые enum-значения в
     # ответах не должны ронять мост (см. codex_sdk_compat.py).
     harden_sdk_enums()
+    open_sandbox_network()
 
     # Scope-снимок проекта ДО прогона: sandbox уже блокирует запись вне out/, но
     # снимок даёт независимое доказательство «проект не тронут» в ledger (uniform
@@ -263,7 +287,7 @@ def main() -> int:
         f"[codex-bridge] profile=investigate project={project_cwd} out={out_dir} "
         f"model={args.model} effort={args.effort} tier={args.service_tier or 'inherit'} "
         f"binary={codex_runtime['binary_source']} "
-        f"sandbox={INVESTIGATE_SANDBOX} approval={INVESTIGATE_APPROVAL_MODE}"
+        f"sandbox={sandbox_name} approval={INVESTIGATE_APPROVAL_MODE}"
         + (f" | вырезаны из env: {', '.join(removed)}" if removed else " | env чист"),
         file=sys.stderr,
     )
@@ -288,7 +312,7 @@ def main() -> int:
             thread = retry_start(
                 lambda: codex.thread_start(
                     cwd=str(out_dir),
-                    sandbox=Sandbox.workspace_write,
+                    sandbox=getattr(Sandbox, sandbox_name),
                     approval_mode=ApprovalMode.deny_all,
                     model=args.model,
                     service_tier=args.service_tier,
@@ -304,7 +328,7 @@ def main() -> int:
                     model=args.model,
                     effort=ReasoningEffort(args.effort),
                     service_tier=args.service_tier,
-                    sandbox=Sandbox.workspace_write,
+                    sandbox=getattr(Sandbox, sandbox_name),
                     approval_mode=ApprovalMode.deny_all,
                 ),
                 run_dir=run_dir,
@@ -386,6 +410,10 @@ def main() -> int:
         changed = [f for f in check.changed_files if not _is_own_output(f)]
         out_of_scope = [f for f in check.out_of_scope_files if not _is_own_output(f)]
         scope_status = "passed" if (not out_of_scope and not check.head_changed) else "failed"
+        if args.full_access:
+            # Без песочницы запись в проект — законная часть задания, а запись
+            # вне проекта git не видит: чек остаётся наблюдением.
+            scope_status = "not_enforced"
         scope_detail = {
             "changed_files": changed,
             "out_of_scope_files": out_of_scope,
@@ -418,11 +446,14 @@ def main() -> int:
         failure_reasons.append(f"Codex turn did not complete (status={status}).")
     if scope_status == "failed":
         failure_reasons.append("Investigator changed project scope.")
+    if args.full_access and scope_status == "not_checked":
+        scope_status = "not_enforced"
     error = " ".join(failure_reasons) if failure_reasons else None
     extra: dict[str, object] = {
         "artifacts": artifacts,
         "scope_status": scope_status,
         "scope": scope_detail,
+        "permissions": {"sandbox": sandbox_name, "explicit_opt_in": args.full_access},
         "duration_ms": getattr(result, "duration_ms", None),
         "usage": str(usage),
         "final_response": final_response,

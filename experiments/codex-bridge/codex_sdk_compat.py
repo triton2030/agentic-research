@@ -81,3 +81,43 @@ def harden_sdk_enums() -> list[str]:
         obj._missing_ = classmethod(_open_enum_missing)  # type: ignore[method-assign]
         hardened.append(name)
     return sorted(hardened)
+
+
+def open_sandbox_network() -> bool:
+    """Открыть сеть командам в песочнице `read_only` и `workspace_write`.
+
+    SDK разворачивает enum `Sandbox` в политику хода без поля сети, и схема
+    подставляет `networkAccess: false` (`generated/v2_all.py`,
+    `ReadOnlySandboxPolicy` и `WorkspaceWriteSandboxPolicy`); `client.py`
+    вырезает только `None`, так что `false` уходит в движок. Замер 2026-09-18
+    на 0.155.0 при этом дал рабочий `curl` — на такое совпадение не опираемся.
+    Владелец 2026-09-23 решил дать Codex интернет
+    (`_ops/chat-recall/2026-09-23-051553-claude-483a304e.md#recall-94036c7a45b24ae2aa0cbdeaa094b974`),
+    поэтому мост явно шлёт `networkAccess: true`, не трогая права на запись.
+
+    Подменяет ссылку в `openai_codex.api`: туда `_sandbox_policy` импортирован
+    по имени. Идемпотентно; без SDK — no-op с `False`.
+    """
+    try:
+        from openai_codex import api
+        from openai_codex.generated.v2_all import SandboxPolicy
+    except ImportError as exc:
+        print(f"[codex-bridge] сеть песочницы не открыта: {exc}", file=sys.stderr)
+        return False
+    original = api._sandbox_policy  # noqa: SLF001
+    if getattr(original, "_bridge_network", False):
+        return True
+
+    def with_network(sandbox):  # noqa: ANN001, ANN202
+        policy = original(sandbox)
+        if policy is None:
+            return None
+        wire = policy.model_dump(by_alias=True, exclude_none=True)
+        if wire.get("type") not in {"readOnly", "workspaceWrite"}:
+            return policy
+        wire["networkAccess"] = True
+        return SandboxPolicy.model_validate(wire)
+
+    with_network._bridge_network = True  # type: ignore[attr-defined]
+    api._sandbox_policy = with_network  # noqa: SLF001
+    return True

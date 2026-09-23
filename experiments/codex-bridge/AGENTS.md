@@ -39,19 +39,31 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
   осознанный per-run opt-in. НЕ цитируй issues `#15853`/`#26391` как «SDK не
   наследует» — они про другой клиент. Новый вход: используй
   `codex_defaults.py`.
-- **Ревьюер не получает права править проект.** `codex_review.py` всегда задаёт
-  built-in filesystem `Sandbox.read_only` + `ApprovalMode.deny_all`; backend
-  пишет только audit ledger в отдельный `run_dir`. Внешние MCP живут вне этого
-  sandbox, поэтому их наличие не является разрешением на side effects.
+- **Ослабления прав — решение владельца 2026-09-23**: «Все три и дать доступ в
+  интеренет, кодекс очень умная модель она ничего плохо делать не будет»
+  (`_ops/chat-recall/2026-09-23-051553-claude-483a304e.md#recall-94036c7a45b24ae2aa0cbdeaa094b974`).
+  Это `--scratch` у ревьюера, `--full-access` у исследователя, запись вне
+  `files` под `--verify` у флота и явный `networkAccess: true`
+  (`codex_sdk_compat.open_sandbox_network()`). Не откатывай их как нарушение
+  инвариантов ниже; таблица профилей — README, «Модель и runtime-доступ».
+- **Ревьюер не получает права править проект.** `codex_review.py` задаёт
+  built-in filesystem `Sandbox.read_only` + `ApprovalMode.deny_all`; с
+  `--scratch` — `workspace_write` в свежей копии проекта вне него
+  (`codex_scratch.py`), исходник для записи недостижим. Backend пишет только
+  audit ledger в отдельный `run_dir`. Внешние MCP живут вне этого sandbox,
+  поэтому их наличие не является разрешением на side effects.
 - **Исследователь пишет deliverables себе.** `codex_investigate.py` задаёт
   `Sandbox.workspace_write` c cwd=`run_dir/out`: built-in filesystem пишет в
   `out/` + system temp, а project path блокируется. Внешние MCP находятся вне
   sandbox; postflight scope-check обнаруживает project drift и роняет `ok`.
-  Не переводи cwd в проект и не давай `full_access`. Scope-чек исключает
-  поддерево `run_dir` (свой scratch/ledger ≠ правка проекта).
+  Не переводи cwd в проект. `full_access` — только явным `--full-access` одного
+  прогона: тогда scope-check — наблюдение (`scope_status: not_enforced`), а не
+  повод ронять `ok`. Scope-чек исключает поддерево `run_dir` (свой
+  scratch/ledger ≠ правка проекта).
 - **Backend владеет safety.** `codex_orchestrate.py` — не thin launcher, а
   guarded orchestrator. Runtime safety живёт в backend:
-  strict schema/preflight до импорта Codex, exact file allowlist, git fail-closed
+  strict schema/preflight до импорта Codex, exact file allowlist (под `--verify`
+  запись вне него решает проверка слитого дерева), git fail-closed
   для real run, dirty fingerprint snapshot, run ledger, aggregate postflight
   allowlist и optional verification. Skill `1codex` — router/operator guide, не
   источник runtime enforcement.
@@ -93,8 +105,10 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
   и enforced preflight/postflight. Не ставь `Sandbox.full_access` default-ом:
   изменения вне project/git scope нельзя честно проверить postflight allowlist.
   `--isolation worktree` (default) даёт воркеру отдельный git worktree от HEAD:
-  атрибуция становится фактом, запись вне allowlist в проект не попадает (она
-  удерживает от merge всю работу воркера — held_out_of_scope), а параллельная
+  атрибуция становится фактом, запись вне allowlist без `--verify` в проект не
+  попадает (удерживает от merge всю работу воркера — held_out_of_scope), а под
+  `--verify` вливается после зелёной проверки слитого дерева
+  (accepted_after_verify); параллельная
   запись оркестратора в основное дерево перестаёт валить волну (замер
   2026-08-14: 41 провал `scope_status` из 106 боевых волн, 68% записей
   `out_of_scope_files` — служебные файлы оркестратора). Вердикт `scope_status`
@@ -105,7 +119,7 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
 - **Волна закрывается в том же прогоне.** Собрать → коммит в ветку воркера
   ВСЕГО изменённого (фиксация ≠ интеграция; gitignored-мусор отсечён
   `--exclude-standard`) → `merge --no-ff` на воркера, и только чистого:
-  упавший ход, внесписочная правка или конфликт держат его в ветке →
+  упавший ход, внесписочная правка без `--verify` или конфликт держат его в ветке →
   снести деревья, ветки — только у merged/empty; порядок не переставляется, и
   закоммиченная работа никогда не удаляется. С `--verify` merge идёт не в
   проект, а во временное дерево волны: проверка бежит там и служит воротами —

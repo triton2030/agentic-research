@@ -15,11 +15,16 @@
   - **`review` / `ask`** — с транскриптом текущей сессии Claude: стороннее ревью
     ХОДА работы или вопрос «по нашему диалогу». Дороже; бери, только когда Codex
     реально нужна история, а не файлы проекта.
+  - **`--scratch`** — вместо read-only свежая APFS-копия проекта с правом
+    записи: тесты, сборки и линтеры идут делом, исходник не меняется
+    (`codex_scratch.py`). Копия стоит времени (~30 с на 127 тыс. файлов) и
+    удаляется после хода, поэтому это флаг по задаче, а не дефолт.
 - **Исследователь** (`codex_investigate.py`) — built-in filesystem пишет в
   `run_dir/out/` + system temp, а project path блокируется sandbox-ом;
   postflight ловит project drift. Для «изучи X, собери данные, напиши отчёт»
   Codex складывает deliverables в `out/`, Claude забирает `result.json` и сливает
-  фан-аут кодом. Как вызов субагента: транскрипт не тянется.
+  фан-аут кодом. Как вызов субагента: транскрипт не тянется. `--full-access`
+  снимает песочницу на один прогон — для задач вне git-проекта.
 - **Флот воркеров** (`codex_orchestrate.py`) — guarded workspace-write, по
   умолчанию с worktree-изоляцией: каждый воркер работает в своём git worktree от
   HEAD. Claude как оркестратор раздаёт file-disjoint задачи, backend валидирует
@@ -370,15 +375,25 @@ Codex на `minimal` отвечает `HTTP 400 — "The following tools cannot 
 reasoning.effort 'minimal': image_gen, web_search"` — валидация превращает этот
 поздний runtime-фейл в мгновенный.
 
-Permissions тоже задаются backend-ом явно:
+Permissions тоже задаются backend-ом явно. Владелец 2026-09-23 выбрал больше
+пользы от Codex ценой меньшей безопасности: «Все три и дать доступ в интеренет,
+кодекс очень умная модель она ничего плохо делать не будет»[^loosen]. Отсюда
+три ослабления, каждое там, где прежняя граница стоила пользы:
 
-- reviewer: `Sandbox.read_only` + `ApprovalMode.deny_all`;
-- write-fleet: `Sandbox.workspace_write` + `ApprovalMode.auto_review`.
+| Профиль | Права | Что ослаблено |
+|---|---|---|
+| reviewer | `read_only` + `deny_all` | — |
+| reviewer `--scratch` | `workspace_write` + `deny_all`, cwd = копия проекта | запись в копии: проверка тестами, а не чтением |
+| investigator | `workspace_write` + `deny_all`, cwd = `run_dir/out` | — |
+| investigator `--full-access` | `full_access` + `deny_all` | песочницы нет на один прогон; scope-check — наблюдение (`scope_status: not_enforced`), успех не роняет |
+| fleet | `workspace_write` + `auto_review` в своём worktree | при `--verify` запись вне `files` вливается после зелёной проверки волны |
 
-`Sandbox.full_access` не является default: он может менять файлы вне git/project
-scope, а значит backend не сможет честно доказать postflight allowlist. Максимум
-для v1 — свободная работа внутри workspace-write под declared `files`,
-dirty-gate, ledger и scope-check.
+`full_access` остаётся явным флагом одного прогона: запись вне проекта мост не
+видит и не откатывает. `auto_review` проверяет запросы на эскалацию, а не
+качество правок. Совет по устройству — Codex astra 2026-09-23,
+`_workspace/codex-artifacts/20260923T164405Z-advisor-loosen/final.md`.
+
+[^loosen]: `_ops/chat-recall/2026-09-23-051553-claude-483a304e.md#recall-94036c7a45b24ae2aa0cbdeaa094b974`.
 
 **Сеть в песочнице.** Сводка апгрейда `0.153.4 → 0.154.0` в
 `github/gh-aw#61043` (не сам текст release notes `rust-v0.154.0` — там этой
@@ -387,12 +402,15 @@ longer reach host-local services by default». На мосту это не
 воспроизводится: замер 2026-09-18 на движке 0.155.0 из
 `workspace_write` (пресет investigate и флота) — `curl` к `127.0.0.1`,
 `localhost` и `https://example.com` вернули exit 0 (run
-`20260918T175500Z-c2add3dd`). Мост поле `networkAccess` в per-turn политике
-не задаёт, а эффективная конфигурация движка держит сеть включённой
-(`codex doctor`: «sandbox … network enabled»; в `config.toml` поля сети нет,
-источник — сводный invocation config). Правило о localhost для `--verify` /
-`--tree-setup` в скиле поэтому не заводилось; изменится движок или его
-конфигурация — перемерь тем же пробником.
+`20260918T175500Z-c2add3dd`). Объяснение того замера было неверным: SDK
+разворачивает enum `Sandbox` в политику хода, и схема подставляет
+`networkAccess: false` (совет Codex astra 2026-09-23 проверил сериализацию).
+Почему `curl` тогда прошёл, не выяснено. С 2026-09-23 мост не опирается на
+совпадение: `codex_sdk_compat.open_sandbox_network()` явно шлёт
+`networkAccess: true` для `read_only` и `workspace_write`, права записи не
+меняя, — решение владельца дать Codex интернет[^loosen]. Нативный
+`--mode diff` идёт через `review/start` без политики хода, и на него это не
+распространяется. `web_search` от сети команд не зависит.
 
 ## Биллинг: только ChatGPT-аккаунт, не API
 
@@ -643,11 +661,16 @@ run_dir и его collapsed-предков (`_workspace/`) — своя площ
   попадает — `commit_worker_tree` фиксирует ровно `changed_files`.
 - **Закрытие волны в том же прогоне.** Собрать изменения → коммит в ветку
   воркера ВСЕГО изменённого (gitignored-мусор отсечён `--exclude-standard`;
-  фиксация ≠ интеграция) → `merge --no-ff`, но только чистого воркера: упавший
-  ход (`held_failed_worker`), внесписочная правка (`held_out_of_scope`) и
-  конфликт остаются в ветке — merge несёт только файлы списка, потому что
-  чистый воркер другого и не менял → снести деревья; ветки — только у
-  merged/empty. Закоммиченная работа не удаляется никогда; неразобранное видно
+  фиксация ≠ интеграция) → `merge --no-ff`, но только завершённого воркера:
+  упавший ход (`held_failed_worker`) и конфликт остаются в ветке → снести
+  деревья; ветки — только у merged/empty. Внесписочная правка решается
+  проверкой волны (владелец 2026-09-23[^loosen]): при `--verify` работа
+  вливается целиком после зелёной проверки слитого дерева
+  (`scope_decision: accepted_after_verify`, `wave.out_of_scope_accepted`), и
+  воркеру заранее сказано, что список — план, а не граница; без `--verify`
+  удерживается целиком (`held_out_of_scope`, `held_without_verify`), как
+  раньше. `--isolation shared` держит строгий список: там ворот перед
+  проектом нет. Закоммиченная работа не удаляется никогда; неразобранное видно
   в `wave.kept_branches`, и `ok` падает. `--no-integrate` останавливается на
   коммитах в ветках и держит деревья, `--keep-worktrees` держит деревья при
   интеграции. Инвентарь и ручная уборка — готовым
@@ -724,7 +747,8 @@ run_dir и его collapsed-предков (`_workspace/`) — своя площ
   для Claude и Codex: владеет промптом, чтобы обе стороны спрашивали одинаково.
   Идёт ревьюером на `luna` + `xhigh`, без диалога.
 - `cbcommon.py` — биллинг-гигиена; `codex_defaults.py` — runtime-дефолты;
-  `codex_sdk_compat.py` — open-enum hardening; `codex_retry.py` — ретрай
+  `codex_sdk_compat.py` — open-enum hardening и явная сеть песочницы;
+  `codex_scratch.py` — копия проекта для проверяющего `--scratch`; `codex_retry.py` — ретрай
   стартовых вызовов под перегрузкой и подъём архивного треда при resume.
 - `codex_run_ledger.py` — журнал прогона (run_dir, события, пульс) + форма его
   артефактов: `prompt.md` и финал `result.json` (`RunResult`).

@@ -108,6 +108,9 @@ REASONING_EFFORTS = ("low", "medium", "high", "xhigh", "max", "ultra")
 
 REVIEW_SANDBOX = "read_only"
 REVIEW_APPROVAL_MODE = "deny_all"
+# Проверяющий с `--scratch` пишет в свою копию проекта (codex_scratch.py):
+# тесты и сборки идут делом, исходник недостижим для записи.
+REVIEW_SCRATCH_SANDBOX = "workspace_write"
 WORKER_SANDBOX = "workspace_write"
 WORKER_APPROVAL_MODE = "auto_review"
 
@@ -122,6 +125,16 @@ WORKER_APPROVAL_MODE = "auto_review"
 # guarantee we rely on is "project unreachable", not "only out/".
 INVESTIGATE_SANDBOX = "workspace_write"
 INVESTIGATE_APPROVAL_MODE = "deny_all"
+
+# Полный доступ — явный флаг исследователя на один прогон (`--full-access`),
+# не дефолт ни одного профиля. Владелец 2026-09-23 выбрал больше пользы от
+# Codex ценой меньшей безопасности: «Все три и дать доступ в интеренет, кодекс
+# очень умная модель она ничего плохо делать не будет»
+# (_ops/chat-recall/2026-09-23-051553-claude-483a304e.md#recall-94036c7a45b24ae2aa0cbdeaa094b974).
+# Нужен задачам вне git-проекта: поставить пакет, настроить домашнюю папку.
+# Цена: запись вне проекта мост не видит и не откатывает — scope-check
+# остаётся наблюдением и успех не роняет.
+FULL_ACCESS_SANDBOX = "full_access"
 
 # Bridge threads must NOT persist into the shared ~/.codex session store. That
 # store is the runtime owner (auth/config/runtime) shared with Codex Desktop,

@@ -256,3 +256,27 @@ class HardenRealSdkTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class SandboxNetworkTests(unittest.TestCase):
+    """Сеть командам — явным полем политики, а не совпадением движка."""
+
+    def test_policies_carry_network_and_keep_their_type(self) -> None:
+        try:
+            from openai_codex import Sandbox, api
+        except ImportError:
+            self.skipTest("SDK не установлен")
+        original = api._sandbox_policy  # noqa: SLF001
+        try:
+            self.assertTrue(codex_sdk_compat.open_sandbox_network())
+            self.assertTrue(codex_sdk_compat.open_sandbox_network())  # идемпотентно
+            wire = {
+                s.name: api._sandbox_policy(s).model_dump(by_alias=True, exclude_none=True)  # noqa: SLF001
+                for s in Sandbox
+            }
+        finally:
+            api._sandbox_policy = original  # noqa: SLF001
+        self.assertEqual(wire["read_only"], {"type": "readOnly", "networkAccess": True})
+        self.assertTrue(wire["workspace_write"]["networkAccess"])
+        self.assertEqual(wire["workspace_write"]["type"], "workspaceWrite")
+        self.assertEqual(wire["full_access"], {"type": "dangerFullAccess"})

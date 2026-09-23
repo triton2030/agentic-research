@@ -421,3 +421,22 @@ Monitor, Edit, Write, Agent, NotebookEdit):
 | «убери фон с логотипа /tmp/rocket-on-white.png» | `1codex` | без терминала назвала риск дыр в белом корпусе и план вырезки |
 | «сделай иконку настроек для кнопки в интерфейсе» | нет | ищет интерфейс в репо, `1codex` не вызван — верно |
 
+
+## Ослабление прав, 2026-09-23
+
+Устройство выбрано по совету Codex astra до реализации
+(`_workspace/codex-artifacts/20260923T164405Z-advisor-loosen/final.md`):
+копия — флаг `--scratch`, а не дефолт, потому что стоит ~30 с; полный доступ —
+только у исследователя; запись вне списка — только под `--verify`. Он же нашёл,
+что прежнее объяснение сети в README неверно: SDK шлёт `networkAccess: false`.
+
+Живые пробники (gpt-6-luna/low, мост на движке ChatGPT.app):
+
+| Прогон | Что проверено | Итог |
+|---|---|---|
+| `*probe-readonly-net` | читающий проверяющий: `curl https://example.com`, `touch` в проекте | 200, exit 0; запись — `Operation not permitted` |
+| `*probe-scratch` | `--scratch` на agentic-research: `pwd`, `touch` в копии и в исходнике, `curl`, unittest в копии | копия 32 387 мс; запись в копию — да, в исходник — `Operation not permitted`; 200; `Ran 2 tests … OK` из `.venv` копии; `cleanup_status: removed` |
+
+Вживую не гонялись `--full-access` и волна с записью вне списка: они проверены
+тестами моста на настоящем git (`tests/test_codex_worktrees.py`,
+`tests/test_codex_investigate.py`), 221 тест зелёный.

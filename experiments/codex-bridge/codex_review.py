@@ -34,7 +34,7 @@ from pathlib import Path
 
 from cbcommon import first_nonblank, scrub_billing_env
 from codex_retry import resume_thread, retry_start
-from codex_sdk_compat import harden_sdk_enums
+from codex_sdk_compat import harden_sdk_enums, open_sandbox_network
 from codex_defaults import (
     BRIDGE_THREAD_EPHEMERAL,
     DEFAULT_CODEX_EFFORT,
@@ -43,6 +43,7 @@ from codex_defaults import (
     REASONING_EFFORTS,
     REVIEW_APPROVAL_MODE,
     REVIEW_SANDBOX,
+    REVIEW_SCRATCH_SANDBOX,
     SDK_BUNDLE_WARNING,
     codex_bin_source,
     resolve_codex_bin,
@@ -62,6 +63,7 @@ from codex_run_ledger import (
     write_json,
 )
 from codex_progress import ProgressTracker, collect_images, run_turn
+from codex_scratch import make_scratch_copy, plan_scratch, remove_scratch_copy, scratch_note
 
 CLAUDE_PROJECTS = Path.home() / ".claude" / "projects"
 
@@ -391,6 +393,13 @@ def main() -> int:
         help="Осознанный override: продолжить тред НЕ из реестра диалогов этого проекта (чужой контекст и роль не проверены).",
     )
     parser.add_argument(
+        "--scratch",
+        action="store_true",
+        help="Работать в свежей APFS-копии проекта с правом записи: тесты и сборки "
+        "идут делом, исходник не меняется. Копия ~30 с на 127 тыс. файлов, "
+        "удаляется после хода. Не для --mode diff.",
+    )
+    parser.add_argument(
         "--topic",
         help="Тема диалога для реестра (--dialog): видна другим агентам в codex_threads.py list; default — первые 80 симв. задания.",
     )
@@ -451,6 +460,13 @@ def main() -> int:
     if args.heartbeat_sec < 0:
         print("--heartbeat-sec must be >= 0.", file=sys.stderr)
         return 2
+    if args.scratch and args.mode == "diff":
+        # Нативный review/start политику песочницы в запросе не принимает:
+        # обещать ему запись в копии без отдельного испытания нельзя. Тесты по
+        # изменениям — `--mode task --scratch` с таким заданием.
+        print("--scratch несовместим с --mode diff: используй --mode task --scratch.", file=sys.stderr)
+        return 2
+    sandbox_name = REVIEW_SCRATCH_SANDBOX if args.scratch else REVIEW_SANDBOX
 
     project_cwd = Path(args.project).expanduser().resolve()
 
@@ -546,6 +562,13 @@ def main() -> int:
         print(f"[codex-bridge] {exc}", file=sys.stderr)
         return 2
     paths = _review_paths(run_dir)
+    workspace = plan_scratch(project_cwd, run_id) if args.scratch else None
+    if workspace is not None:
+        # Роль говорит про копию на каждом ходе, и в --continue тоже: история
+        # треда цела, а копия прошлого хода уже удалена.
+        dev_instructions = (dev_instructions or "") + scratch_note(workspace)
+        prompt_document = render_prompt_document(prompt, dev_instructions)
+    work_cwd = workspace["cwd"] if workspace is not None else str(project_cwd)
     manifest = {
         "run_id": run_id,
         "run_dir": str(run_dir),
@@ -560,9 +583,10 @@ def main() -> int:
         "developer_instructions_chars": len(dev_instructions or ""),
         "codex": dict(codex_runtime),
         "runtime": {
-            "sandbox": REVIEW_SANDBOX,
+            "sandbox": sandbox_name,
             "approval_mode": REVIEW_APPROVAL_MODE,
             "heartbeat_sec": args.heartbeat_sec,
+            "workspace": workspace,
         },
         "paths": paths,
     }
@@ -590,7 +614,7 @@ def main() -> int:
               f"model={args.model} effort={args.effort} tier={args.service_tier or 'inherit'} "
               f"binary={codex_runtime['binary_source']} "
               f"run_dir={run_dir} "
-              f"sandbox={REVIEW_SANDBOX} approval={REVIEW_APPROVAL_MODE}", file=sys.stderr)
+              f"sandbox={sandbox_name} approval={REVIEW_APPROVAL_MODE}", file=sys.stderr)
         ledger.finish(
             status="validated",
             ok=True,
@@ -629,6 +653,7 @@ def main() -> int:
     # Дрейф движка ChatGPT.app под запиненным SDK: новые enum-значения в
     # ответах не должны ронять мост (см. codex_sdk_compat.py).
     harden_sdk_enums()
+    open_sandbox_network()
 
     print(
         f"[codex-bridge] режим={args.mode} транскрипт={transcript_name} "
@@ -636,7 +661,7 @@ def main() -> int:
         f"model={args.model} effort={args.effort} tier={args.service_tier or 'inherit'} "
         f"binary={codex_runtime['binary_source']} "
         f"run_dir={run_dir} "
-        f"sandbox={REVIEW_SANDBOX} approval={REVIEW_APPROVAL_MODE}"
+        f"sandbox={sandbox_name} approval={REVIEW_APPROVAL_MODE}"
         + (f" | вырезаны из env: {', '.join(removed)}" if removed else " | env чист"),
         file=sys.stderr,
     )
@@ -648,8 +673,32 @@ def main() -> int:
         requested_thread_id=args.continue_thread,
     )
 
+    if workspace is not None:
+        try:
+            make_scratch_copy(workspace)
+        except (OSError, RuntimeError) as exc:
+            ledger.finish(
+                status="scratch_failed",
+                ok=False,
+                event="failed",
+                extra={"error": str(exc), "workspace": workspace},
+                event_fields={"status": "scratch_failed", "error": str(exc)},
+            )
+            print(f"[codex-bridge] {exc}", file=sys.stderr)
+            return 1
+        append_event(run_dir, "scratch_ready", **workspace)
+        print(
+            f"[codex-bridge] копия проекта: {workspace['cwd']} "
+            f"за {workspace['copy_duration_ms']} мс",
+            file=sys.stderr,
+        )
+
+    def cleanup_scratch() -> None:
+        if workspace is not None and workspace["cleanup_status"] == "pending":
+            remove_scratch_copy(workspace)
+
     config = CodexConfig(
-        cwd=str(project_cwd),
+        cwd=work_cwd,
         codex_bin=codex_bin,
     )
     started_monotonic = time.monotonic()
@@ -673,8 +722,8 @@ def main() -> int:
                     args.continue_thread,
                     lambda: codex.thread_resume(
                         args.continue_thread,
-                        cwd=str(project_cwd),
-                        sandbox=Sandbox.read_only,
+                        cwd=work_cwd,
+                        sandbox=getattr(Sandbox, sandbox_name),
                         approval_mode=ApprovalMode.deny_all,
                         model=args.model,
                         service_tier=args.service_tier,
@@ -685,8 +734,8 @@ def main() -> int:
             else:
                 thread = retry_start(
                     lambda: codex.thread_start(
-                        cwd=str(project_cwd),
-                        sandbox=Sandbox.read_only,
+                        cwd=work_cwd,
+                        sandbox=getattr(Sandbox, sandbox_name),
                         approval_mode=ApprovalMode.deny_all,
                         model=args.model,
                         service_tier=args.service_tier,
@@ -819,7 +868,7 @@ def main() -> int:
                         model=args.model,
                         effort=ReasoningEffort(args.effort),
                         service_tier=args.service_tier,
-                        sandbox=Sandbox.read_only,
+                        sandbox=getattr(Sandbox, sandbox_name),
                         approval_mode=ApprovalMode.deny_all,
                     ),
                     run_dir=run_dir,
@@ -829,6 +878,8 @@ def main() -> int:
                 handle, run_dir=run_dir, tracker=progress,
                 thread=None if args.mode == "diff" else thread,
             )
+            # Забрать картинки до уборки копии: генератор может сохранить их в cwd.
+            images = collect_images(progress, run_dir)
     except Exception as exc:  # noqa: BLE001 — показать пользователю причину как есть
         heartbeat_stop.set()
         if heartbeat_thread is not None:
@@ -837,6 +888,9 @@ def main() -> int:
         images = collect_images(progress, run_dir)
         if images:
             failed_extra["images"] = images
+        cleanup_scratch()
+        if workspace is not None:
+            failed_extra["workspace"] = workspace
         ledger.finish(
             status="exception",
             ok=False,
@@ -854,6 +908,9 @@ def main() -> int:
         heartbeat_stop.set()
         if heartbeat_thread is not None:
             heartbeat_thread.join(timeout=1)
+        # Копия живёт ровно один ход: картинки к этому моменту уже забраны в
+        # run_dir, а следующий ход получит свежую.
+        cleanup_scratch()
 
     # Провалившийся ход сюда не доходит: штатный сборщик SDK поднимает
     # RuntimeError на TurnStatus.failed (`openai_codex/_run.py`
@@ -883,9 +940,16 @@ def main() -> int:
         "usage": str(usage),
         "final_response": final_response,
     }
-    images = collect_images(progress, run_dir)
     if images:
         extra["images"] = images
+    if workspace is not None:
+        extra["workspace"] = workspace
+        if workspace["cleanup_status"] == "stuck":
+            # Ответ годен, но копия проекта осталась на диске — это не молчит.
+            print(
+                f"[codex-bridge] КОПИЯ НЕ УБРАНА: {Path(workspace['cwd']).parent} — удали вручную",
+                file=sys.stderr,
+            )
     if error:
         extra["error"] = error
     ledger.finish(

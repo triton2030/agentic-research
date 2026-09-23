@@ -69,6 +69,7 @@ def _install_fake_openai_codex(
     class _Sandbox:
         read_only = "read_only"
         workspace_write = "workspace_write"
+        full_access = "full_access"
 
     class _ApprovalMode:
         deny_all = "deny_all"
@@ -880,6 +881,59 @@ class CodexReviewCliTests(unittest.TestCase):
                     os.environ.pop(key, None)
                 else:
                     os.environ[key] = value
+
+    def test_scratch_runs_in_a_writable_copy_and_removes_it(self) -> None:
+        """--scratch: ход идёт в свежей копии с правом записи, исходник не
+        тронут, копия убрана, а result.json говорит, где она была и убрана ли."""
+        import codex_review
+        import codex_scratch
+
+        captured: dict = {}
+        fake_names = _install_fake_openai_codex(captured)
+        saved_argv = sys.argv[:]
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp).resolve()
+                project = root / "proj"
+                project.mkdir()
+                (project / "a.txt").write_text("A")
+                run_dir = root / "run"
+                sys.argv = [
+                    "codex_review.py", "--task", "прогони тесты",
+                    "--project", str(project), "--run-dir", str(run_dir),
+                    "--heartbeat-sec", "0", "--scratch",
+                ]
+                with contextlib.redirect_stdout(io.StringIO()), mock.patch.object(
+                    codex_scratch, "SCRATCH_HOME", root / "scratch"
+                ):
+                    rc = codex_review.main()
+                result = json.loads((run_dir / "result.json").read_text(encoding="utf-8"))
+                copy = Path(captured["cwd"])
+                self.assertEqual(rc, 0)
+                self.assertEqual(captured.get("sandbox"), "workspace_write")
+                self.assertEqual(copy.parent.parent, root / "scratch")
+                self.assertEqual(captured["codex_config"].get("cwd"), str(copy))
+                self.assertFalse(copy.exists())
+                self.assertEqual((project / "a.txt").read_text(), "A")
+                self.assertEqual(result["workspace"]["copy_status"], "copied")
+                self.assertEqual(result["workspace"]["cleanup_status"], "removed")
+                self.assertIn("КОПИЯ", captured.get("developer_instructions") or "")
+        finally:
+            sys.argv = saved_argv
+            for name in fake_names:
+                sys.modules.pop(name, None)
+
+    def test_scratch_is_refused_for_native_diff(self) -> None:
+        import codex_review
+
+        saved_argv = sys.argv[:]
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                sys.argv = ["codex_review.py", "--mode", "diff", "--scratch", "--project", tmp]
+                with contextlib.redirect_stderr(io.StringIO()):
+                    self.assertEqual(codex_review.main(), 2)
+        finally:
+            sys.argv = saved_argv
 
     def test_thread_is_never_created_without_explicit_dialog(self) -> None:
         """Тред заводит только явный `--dialog`, на любом ярусе усилия.

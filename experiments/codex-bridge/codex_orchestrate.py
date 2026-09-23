@@ -18,7 +18,7 @@ from typing import Any
 
 from cbcommon import scrub_billing_env
 from codex_retry import resume_thread_async, retry_start_async
-from codex_sdk_compat import harden_sdk_enums
+from codex_sdk_compat import harden_sdk_enums, open_sandbox_network
 from codex_defaults import (
     FLEET_THREAD_EPHEMERAL,
     DEFAULT_CODEX_EFFORT,
@@ -162,6 +162,7 @@ def _files_constraint(
     tree_setup: str | None = None,
     contracts_changed: tuple[str, ...] = (),
     contracts_read: tuple[str, ...] = (),
+    gated: bool = False,
 ) -> str:
     """Контракт воркера — канал `developer_instructions` треда.
 
@@ -174,6 +175,11 @@ def _files_constraint(
     писать вне списка воркер физически может (дерево его), но внесписочная правка
     удержит всю его работу в ветке на ручной разбор. Модели честнее сказать про
     удержание, чем запрещать то, что песочница разрешает.
+
+    `gated` — волна вливается через `--verify` в слитом дереве: тогда список —
+    план, а не граница, и нужный для критерия файл воркер правит сам (решение
+    владельца 2026-09-23). Прежний запрет при ослабленном merge продолжал бы
+    производить обходы вроде алиаса со старым именем.
 
     Здесь же живут правила, которые иначе каждый воркер переоткрывает своим
     кругом, а оркестратор оплачивает своим окном: состояние дерева, отказы
@@ -192,7 +198,18 @@ def _files_constraint(
     """
     joined = ", ".join(files)
     parts: list[str] = []
-    if isolated:
+    if isolated and gated:
+        parts.append(
+            f"ЗОНА. Ты работаешь в отдельном git worktree — это твоя копия проекта. "
+            f"Твой план — эти файлы: {joined}. Если для критерия задачи нужно "
+            "изменить другой файл, измени его: вся твоя работа будет влита после "
+            "зелёной проверки волны — кроме файлов, которые игнорирует git: они "
+            "считаются мусором среды и не забираются. Каждый файл вне плана назови в ответе с "
+            "причиной — рядом работают другие воркеры, и их файлы трогай, только "
+            "когда без этого задача не решается. "
+            "Не создавай коммитов и не переключай ветки: сбор делает оркестратор."
+        )
+    elif isolated:
         parts.append(
             f"ЗОНА. Ты работаешь в отдельном git worktree — это твоя копия проекта. "
             f"В проект будут забраны ТОЛЬКО эти файлы: {joined}. "
@@ -263,7 +280,7 @@ def _files_constraint(
 
 
 def _manifest_task_record(
-    task: TaskSpec, *, isolated: bool = False, tree_setup: str | None = None
+    task: TaskSpec, *, isolated: bool = False, tree_setup: str | None = None, gated: bool = False
 ) -> dict[str, Any]:
     """Запись задачи в manifest: контракт задачи + её эффективная инструкция.
 
@@ -280,6 +297,7 @@ def _manifest_task_record(
         tree_setup=tree_setup,
         contracts_changed=task.contracts_changed,
         contracts_read=task.contracts_read,
+        gated=gated,
     )
     return {
         **task.to_json(),
@@ -307,6 +325,7 @@ async def _run_one(codex, sem, task: TaskSpec, defaults: dict[str, Any]) -> dict
         tree_setup=defaults.get("tree_setup"),
         contracts_changed=task.contracts_changed,
         contracts_read=task.contracts_read,
+        gated=bool(defaults.get("gated")),
     )
     run_dir: Path = defaults["run_dir"]
     # Ярус берётся с задачи, а ярус прогона остаётся дном. Один `--model` на
@@ -496,6 +515,7 @@ async def _run_fleet(
     # Дрейф движка ChatGPT.app под запиненным SDK: новые enum-значения в
     # ответах не должны ронять воркеров (см. codex_sdk_compat.py).
     harden_sdk_enums()
+    open_sandbox_network()
 
     sem = asyncio.Semaphore(concurrency)
     defaults["progress"] = {"completed": 0, "total": len(tasks)}
@@ -738,6 +758,7 @@ def build_manifest(
     codex_runtime: dict[str, Any],
     isolation: str,
     tree_setup: str | None = None,
+    gated: bool = False,
 ) -> dict[str, Any]:
     return {
         "run_id": run_id,
@@ -754,7 +775,7 @@ def build_manifest(
         "allowlist": sorted(allowlist),
         "tasks": [
             _manifest_task_record(
-                task, isolated=isolation == "worktree", tree_setup=tree_setup
+                task, isolated=isolation == "worktree", tree_setup=tree_setup, gated=gated
             )
             for task in tasks
         ],
@@ -945,6 +966,8 @@ def _plan_run(args: argparse.Namespace, project: Path) -> RunPlan:
 
     run_id, run_dir = prepare_run_dir(args.run_dir, project=project)
     paths = _orchestrate_paths(run_dir)
+    # Волна с воротами перед проектом: запись вне списка там решает проверка.
+    gated = args.isolation == "worktree" and bool(args.verify) and not args.no_integrate
     manifest = build_manifest(
         run_id=run_id,
         run_dir=run_dir,
@@ -958,6 +981,7 @@ def _plan_run(args: argparse.Namespace, project: Path) -> RunPlan:
         codex_runtime=codex_runtime,
         isolation=args.isolation,
         tree_setup=args.tree_setup,
+        gated=gated,
     )
     manifest["paths"] = paths
     write_json(run_dir / "manifest.json", manifest)
@@ -995,6 +1019,23 @@ class WaveVerdict:
     head_changed: bool
     wave: dict[str, Any]
     after_git: GitSnapshot
+
+
+def wave_failed(trees: list[WorkerTree], wave: dict[str, Any], *, integrated: bool) -> bool:
+    """Вердикт scope по деревьям воркеров.
+
+    Запись вне списка, влитая под зелёной проверкой волны, — принятое
+    расширение, а не провал (владелец 2026-09-23); провалом остаётся удержанная.
+    Удержанная работа — провал при любой причине (held_dirty_birth,
+    held_base_rewritten…): без этого зелёная проверка оставшегося давала
+    `ok=true`, пока работа воркера лежала в ветке (аудит Codex 2026-09-23).
+    """
+    unaccepted = any(
+        tree.out_of_scope_files and tree.scope_decision != "accepted_after_verify"
+        for tree in trees
+    )
+    held = integrated and any(tree.integration_status.startswith("held") for tree in trees)
+    return unaccepted or held or wave.get("integration_status") in {"conflict", "error"}
 
 
 def _assess_wave(
@@ -1091,7 +1132,7 @@ def _assess_wave(
     wave["threads_stuck"] = [tid for tid in orphaned if tid not in archived]
 
     worker_out_of_scope = sorted({path for tree in trees for path in tree.out_of_scope_files})
-    failed = bool(worker_out_of_scope) or wave.get("integration_status") in {"conflict", "error"}
+    failed = wave_failed(trees, wave, integrated=not args.no_integrate)
     return WaveVerdict(
         scope_status="failed" if failed else "passed",
         changed_files=sorted({path for tree in trees for path in tree.changed_files}),
@@ -1194,6 +1235,9 @@ def main() -> int:
         "run_dir": run_dir,
         "codex_bin": codex_runtime["codex_bin"],
         "isolation": args.isolation,
+        # Тот же признак, что у manifest (`_plan_run`): текст контракта в
+        # аудите и у воркера обязан совпадать.
+        "gated": args.isolation == "worktree" and bool(args.verify) and not args.no_integrate,
     }
 
     # SIGTERM обязан пройти тем же rescue-путём, что и Ctrl-C: без обработчика
