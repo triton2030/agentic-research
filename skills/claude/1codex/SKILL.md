@@ -1,9 +1,9 @@
 ---
 name: 1codex
 description: >-
-  Use when work nears done, a route is unchosen, heavy work or image generation
-  needs other hands, a Codex run is in flight, or a Codex verdict conflicts with
-  Claude's. Own subagents: 1orchestration.
+  Use when work nears done, a route is unchosen, heavy work or images (mockups,
+  transparent assets) need other hands, a Codex run is live, or Codex and Claude
+  disagree. Own subagents: 1orchestration.
 ---
 
 # 1codex — чужие глаза, чужая голова, чужие руки
@@ -41,7 +41,8 @@ description: >-
 |---|---|
 | отдаёшь Codex проверку уже сделанного: работы, текста, дифа, вывода | [`audit.md`](references/audit.md) |
 | отдаёшь суждение до реализации: маршрут, план, прочтение намерения, взгляд на траекторию сессии | [`advise.md`](references/advise.md) |
-| отдаёшь саму работу: исследование в его папку, правку файлов проекта или картинку | [`delegate.md`](references/delegate.md) |
+| отдаёшь саму работу: исследование в его папку либо правку файлов проекта | [`delegate.md`](references/delegate.md) |
+| нужна картинка: иллюстрация, элемент дизайна с прозрачным фоном, макет интерфейса до кода, правка изображения | [`images.md`](references/images.md) |
 | прогон уже идёт: жив ли, туда ли идёт, вернуть ли репликой, остановить | [`watch.md`](references/watch.md) |
 | тред пережил свой прогон: чужой, старый, оборванный, занятый | [`threads.md`](references/threads.md) |
 | твой вывод и его вывод разошлись — или совпали, и ты счёл это доказательством | [`arbitrate.md`](references/arbitrate.md) |
