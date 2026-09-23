@@ -66,3 +66,27 @@
 [^obs]: `_ops/chat-recall/2026-09-23-051928-claude-c8de9b43.md#recall-ef6afd08e425400d834a6f167be3f19f`.
 [^keep]: `_ops/chat-recall/2026-08-23-122727-claude-91113be9.md:20`.
 [^key]: `_ops/chat-recall/2026-09-23-051928-claude-c8de9b43.md#recall-162cf218c98b418ab2462b8efb9e31fe`.
+
+## Итерация 2 — описание про инструмент
+
+Решение владельца[^split2]: описание — про инструмент и его преимущества,
+причина чаще звать скил — в глобальной инструкции. Итоговое описание —
+`live-2026-09-23.md`.
+
+| Снято из описания V20 | Куда ушло |
+| --- | --- |
+| «Use before writing new code, even unasked — a quick script, parser, or workaround mid-task» | корень: «перед любым новым кодом, даже разовым скриптом, при сбое чужого инструмента» |
+| «a package, an upgrade, or the documented way» | корень: «пакет, обновление или описанный способ» |
+| «the surer it feels with no source opened, the more it applies» | корень: «чем увереннее ответ без открытого источника, тем вероятнее велосипед» |
+| «before stating a version, default, or that a bug is fixed» | корень: «перед ответом о версии, дефолте или поведении библиотеки»; описание: «what was fixed» |
+| «research a library, API, or error in READMEs, docs, issues, and merged PRs» | описание: индекс и «how it behaves» |
+| граница с `1cli-tools` | снята: в описании больше нет слов соседа «upgrade» и «version». Живьём не проверялось. |
+
+По поправке владельца корень говорит не только о библиотеках: платформы вроде
+Vercel и программы, новые функции и смена позиционирования, момент обсуждения
+архитектуры. В тело добавлен маршрут «Platform or product capability».
+
+Codex корень Claude не читает: в нём остаётся только описание и своя строка
+`~/.codex/AGENTS.md:53-55`.
+
+[^split2]: `_ops/chat-recall/2026-09-23-051928-claude-c8de9b43.md#recall-64d96bf6d42a4491bfb162ce92b68c4e`.

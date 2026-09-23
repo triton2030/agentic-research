@@ -38,6 +38,32 @@ P4-vcard-1     FIRED-before-code  skills=['firecrawl-developer-index'] tools=8 e
 P4-vcard-2     FIRED-before-code  skills=['firecrawl-developer-index'] tools=7 end=success
 
 
+=== v21 (10 runs)
+N1-rename-1    no                 skills=[] tools=6 end=success
+N2-bug-1       no                 skills=[] tools=4 end=success
+P1-cron-1      FIRED-before-code  skills=['firecrawl-developer-index'] tools=8 end=success
+P1-cron-2      FIRED-before-code  skills=['firecrawl-developer-index'] tools=7 end=success
+P2-retry-1     FIRED-before-code  skills=['firecrawl-developer-index'] tools=5 end=success
+P2-retry-2     FIRED-before-code  skills=['firecrawl-developer-index'] tools=8 end=success
+P3-links-1     FIRED-before-code  skills=['firecrawl-developer-index'] tools=6 end=success
+P3-links-2     FIRED-before-code  skills=['firecrawl-developer-index'] tools=6 end=success
+P4-vcard-1     FIRED-before-code  skills=['firecrawl-developer-index'] tools=7 end=success
+P4-vcard-2     FIRED-before-code  skills=['firecrawl-developer-index'] tools=8 end=success
+
+
+=== v22 (10 runs)
+N1-rename-1    no                 skills=[] tools=6 end=success
+N2-bug-1       no                 skills=['diagnosing-bugs'] tools=5 end=success
+P1-cron-1      FIRED-before-code  skills=['firecrawl-developer-index'] tools=6 end=success
+P1-cron-2      FIRED-before-code  skills=['firecrawl-developer-index'] tools=8 end=success
+P2-retry-1     FIRED-before-code  skills=['firecrawl-developer-index'] tools=5 end=success
+P2-retry-2     FIRED-before-code  skills=['firecrawl-developer-index'] tools=6 end=success
+P3-links-1     FIRED-before-code  skills=['firecrawl-developer-index'] tools=5 end=success
+P3-links-2     FIRED-before-code  skills=['firecrawl-developer-index'] tools=7 end=success
+P4-vcard-1     FIRED-before-code  skills=['firecrawl-developer-index'] tools=8 end=success
+P4-vcard-2     FIRED-before-code  skills=['firecrawl-developer-index'] tools=8 end=success
+
+
 === baseline-mid (6 runs)
 M1-links-1     no                 skills=[] tools=4 end=success
 M1-links-2     no                 skills=[] tools=4 end=success
@@ -63,6 +89,15 @@ M2-vcf-1       no                 skills=[] tools=3 end=success
 M2-vcf-2       no                 skills=[] tools=3 end=success
 M3-frontmatter-1 no                 skills=[] tools=4 end=success
 M3-frontmatter-2 no                 skills=[] tools=3 end=success
+
+
+=== v21-mid (6 runs)
+M1-links-1     no                 skills=[] tools=3 end=success
+M1-links-2     no                 skills=[] tools=5 end=success
+M2-vcf-1       no                 skills=[] tools=3 end=success
+M2-vcf-2       no                 skills=[] tools=2 end=success
+M3-frontmatter-1 no                 skills=[] tools=4 end=success
+M3-frontmatter-2 no                 skills=[] tools=5 end=success
 
 
 === hook-mid (6 runs)
@@ -99,4 +134,36 @@ Q1-default-1   FIRED-before-code  skills=['firecrawl-developer-index'] tools=2 e
 Q1-default-2   FIRED-before-code  skills=['firecrawl-developer-index'] tools=1 end=success
 Q2-version-1   FIRED-before-code  skills=['firecrawl-developer-index'] tools=1 end=success
 Q2-version-2   FIRED-before-code  skills=['firecrawl-developer-index'] tools=1 end=success
+
+
+=== v21-q (6 runs)
+E1-esm-1       FIRED-before-code  skills=['firecrawl-developer-index'] tools=6 end=success
+E1-esm-2       FIRED-before-code  skills=['firecrawl-developer-index'] tools=6 end=success
+Q1-default-1   FIRED-before-code  skills=['firecrawl-developer-index'] tools=2 end=success
+Q1-default-2   FIRED-before-code  skills=['firecrawl-developer-index'] tools=2 end=success
+Q2-version-1   FIRED-before-code  skills=['firecrawl-developer-index'] tools=2 end=success
+Q2-version-2   FIRED-before-code  skills=['firecrawl-developer-index', '1writing-rule'] tools=2 end=success
+
+
+=== v22-q (6 runs)
+E1-esm-1       FIRED-before-code  skills=['firecrawl-developer-index'] tools=6 end=success
+E1-esm-2       no                 skills=[] tools=5 end=success
+Q1-default-1   FIRED-before-code  skills=['firecrawl-developer-index'] tools=2 end=success
+Q1-default-2   FIRED-before-code  skills=['firecrawl-developer-index'] tools=1 end=success
+Q2-version-1   FIRED-before-code  skills=['firecrawl-developer-index'] tools=2 end=success
+Q2-version-2   FIRED-before-code  skills=['firecrawl-developer-index'] tools=2 end=success
+
+
+=== v21-a (4 runs)
+A1-jobs-1      FIRED-before-code  skills=['firecrawl-developer-index'] tools=7 end=success
+A1-jobs-2      FIRED-before-code  skills=['firecrawl-developer-index'] tools=7 end=success
+A2-emails-1    FIRED-before-code  skills=['1writing-rule', 'firecrawl-developer-index', '1chat-recall'] tools=8 end=success
+A2-emails-2    FIRED-before-code  skills=['1writing-rule', 'firecrawl-developer-index', '1chat-recall'] tools=8 end=success
+
+
+=== v22-a (4 runs)
+A1-jobs-1      FIRED-before-code  skills=['firecrawl-developer-index'] tools=6 end=success
+A1-jobs-2      FIRED-before-code  skills=['firecrawl-developer-index'] tools=7 end=success
+A2-emails-1    FIRED-before-code  skills=['1writing-rule', 'firecrawl-developer-index'] tools=9 end=success
+A2-emails-2    FIRED-before-code  skills=['1writing-rule', 'firecrawl-developer-index', '1chat-recall'] tools=10 end=success
 

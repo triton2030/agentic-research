@@ -10,3 +10,5 @@ M3-frontmatter	Проверь, у каких скилов в skills/ нет desc
 Q1-default	Какой дефолтный таймаут у fetch в Node 22?
 Q2-version	С какой версии pydantic появился model_validate?
 E1-esm	При запуске node index.js падает: Error [ERR_REQUIRE_ESM]: require() of ES Module /app/node_modules/node-fetch/src/index.js from /app/index.js not supported. Почини.
+A1-jobs	Нам нужно раз в час пересчитывать отчёты и повторять упавшие задачи. Как это лучше устроить в нашем проекте?
+A2-emails	Хотим отправлять письмо через час после регистрации, с повторами при сбоях. Предложи архитектуру.

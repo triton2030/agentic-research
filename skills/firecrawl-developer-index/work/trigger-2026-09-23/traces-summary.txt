@@ -288,6 +288,101 @@
   - Edit(private/tmp/reuse-probe/work/v20/P4-vcard-2/cli.py)
   =>  Я добавил в `cli.py` команду `import`, но не запускал её: у меня здесь нет терминала. Я проверил код, мысленно прогнав его на вашем `contacts.vcf`.  **Как запускать:** - `python3 cli.py import` читает `contacts.vcf`; - ` 
 
+## v21/N1-rename-1
+  - Grep()
+  - Read(/tmp/reuse-probe/work/v21/N1-rename-1/src/index.js)
+  - Read(p/reuse-probe/work/v21/N1-rename-1/src/schedule.js)
+  - Edit(/tmp/reuse-probe/work/v21/N1-rename-1/src/index.js)
+  - Edit(p/reuse-probe/work/v21/N1-rename-1/src/schedule.js)
+  - Grep()
+  =>  Я переименовал `nextRuns` в `getNextRuns` во всём проекте. Функция встречалась в двух файлах:  - `src/schedule.js:2` — само объявление функции; - `src/index.js:1` и `src/index.js:3` — её импорт и вызов.  Повторный поиск  
+
+## v21/N2-bug-1
+  - Glob()
+  - Read(/private/tmp/reuse-probe/work/v21/N2-bug-1/cart.py)
+  - Read(ate/tmp/reuse-probe/work/v21/N2-bug-1/test_cart.py)
+  - Edit(/private/tmp/reuse-probe/work/v21/N2-bug-1/cart.py)
+  =>  Я исправил ошибку, но тест не запускал: в этой сессии нет инструмента для запуска команд.  **Причина.** Функция `total` в `cart.py` считала товары со второго, а первый пропускала. Цикл начинался с позиции 1, хотя в Pytho 
+
+## v21/P1-cron-1
+  - Glob()
+  - Read(tmp/reuse-probe/work/v21/P1-cron-1/src/schedule.js)
+  - Read(te/tmp/reuse-probe/work/v21/P1-cron-1/package.json)
+  - Read(te/tmp/reuse-probe/work/v21/P1-cron-1/src/index.js)
+  - Skill(firecrawl-developer-index)
+  - ToolSearch()
+  - Write(tmp/reuse-probe/work/v21/P1-cron-1/src/schedule.js)
+  - Edit(te/tmp/reuse-probe/work/v21/P1-cron-1/package.json)
+  =>  `nextRuns` написана, но я её не проверил и не запускал.  ## Что сделано  - В `src/schedule.js` `nextRuns` разбирает cron-выражение через готовую библиотеку `cron-parser` и возвращает `count` ближайших дат. Разбор cron я  
+
+## v21/P1-cron-2
+  - Glob()
+  - Read(tmp/reuse-probe/work/v21/P1-cron-2/src/schedule.js)
+  - Read(te/tmp/reuse-probe/work/v21/P1-cron-2/package.json)
+  - Read(te/tmp/reuse-probe/work/v21/P1-cron-2/src/index.js)
+  - Skill(firecrawl-developer-index)
+  - ToolSearch()
+  - Write(tmp/reuse-probe/work/v21/P1-cron-2/src/schedule.js)
+  =>  Функция `nextRuns` в [src/schedule.js](src/schedule.js) готова, но я её не запускал и не проверял: у меня нет терминала, и не удалось открыть индекс документации.  ## Что сделано  Я не стал писать свой разбор cron-выраже 
+
+## v21/P2-retry-1
+  - Glob()
+  - Read(private/tmp/reuse-probe/work/v21/P2-retry-1/app.py)
+  - Read(p/reuse-probe/work/v21/P2-retry-1/requirements.txt)
+  - Skill(firecrawl-developer-index)
+  - Write(private/tmp/reuse-probe/work/v21/P2-retry-1/app.py)
+  =>  `fetch_data` в `app.py` теперь повторяет запрос при временных сбоях, и пауза между попытками растёт. Я ничего не запускал: не было доступа к терминалу.  ## Что сделано Я не стал писать свой цикл повторов, а подключил мех 
+
+## v21/P2-retry-2
+  - Glob()
+  - Read(private/tmp/reuse-probe/work/v21/P2-retry-2/app.py)
+  - Read(p/reuse-probe/work/v21/P2-retry-2/requirements.txt)
+  - Skill(firecrawl-developer-index)
+  - ToolSearch()
+  - Glob()
+  - Glob()
+  - Write(private/tmp/reuse-probe/work/v21/P2-retry-2/app.py)
+  =>  `fetch_data` теперь повторяет неудачный запрос с растущей паузой. Я её не запускал и не тестировал.  ## Что изменилось Файл: [app.py](app.py).  Своего цикла повторов я не писал. Повторы уже умеет делать `urllib3`: он ста 
+
+## v21/P3-links-1
+  - Glob()
+  - Read(vate/tmp/reuse-probe/work/v21/P3-links-1/README.md)
+  - Read(/tmp/reuse-probe/work/v21/P3-links-1/docs/setup.md)
+  - Read(/tmp/reuse-probe/work/v21/P3-links-1/docs/usage.md)
+  - Skill(firecrawl-developer-index)
+  - ToolSearch()
+  =>  Проверку я не запустил. В этой сессии нет терминала и нет доступа к сети, поэтому нельзя ни поставить инструмент, ни открыть внешние ссылки, ни свериться с его текущей документацией. Что удалось проверить вручную и что п 
+
+## v21/P3-links-2
+  - Glob()
+  - Read(vate/tmp/reuse-probe/work/v21/P3-links-2/README.md)
+  - Read(/tmp/reuse-probe/work/v21/P3-links-2/docs/setup.md)
+  - Read(/tmp/reuse-probe/work/v21/P3-links-2/docs/usage.md)
+  - Skill(firecrawl-developer-index)
+  - ToolSearch()
+  =>  ## Готовой проверки пока нет  Я не сделал постоянную проверку. В этой сессии у меня нет терминала, поэтому я не могу ничего установить или запустить. Поиск через `firecrawl-developer-index` тоже не сработал: у меня нет н 
+
+## v21/P4-vcard-1
+  - Glob()
+  - Read(private/tmp/reuse-probe/work/v21/P4-vcard-1/cli.py)
+  - Read(e/tmp/reuse-probe/work/v21/P4-vcard-1/contacts.vcf)
+  - Read(/tmp/reuse-probe/work/v21/P4-vcard-1/contacts.json)
+  - Skill(firecrawl-developer-index)
+  - ToolSearch()
+  - Edit(private/tmp/reuse-probe/work/v21/P4-vcard-1/cli.py)
+  =>  Я добавил в [cli.py](cli.py) команду `python3 cli.py import`. Она читает `contacts.vcf` и дописывает контакты в `contacts.json`. Можно передать другой файл: `python3 cli.py import other.vcf`.  **Я её не запускал:** в это 
+
+## v21/P4-vcard-2
+  - Glob()
+  - Read(private/tmp/reuse-probe/work/v21/P4-vcard-2/cli.py)
+  - Read(e/tmp/reuse-probe/work/v21/P4-vcard-2/contacts.vcf)
+  - Read(/tmp/reuse-probe/work/v21/P4-vcard-2/contacts.json)
+  - Skill(firecrawl-developer-index)
+  - ToolSearch()
+  - Edit(private/tmp/reuse-probe/work/v21/P4-vcard-2/cli.py)
+  - Edit(private/tmp/reuse-probe/work/v21/P4-vcard-2/cli.py)
+  =>  Я добавил команду `import` в [cli.py](cli.py), но не запускал её: в этой сессии нет терминала. По той же причине не удалось проверить через `firecrawl-developer-index`, как библиотека `vobject` сейчас работает с vCard 4. 
+
 ## baseline-mid/M1-links-1
   - Bash(cd /tmp/reuse-probe/work/baseline-mid/M1-links-1 && find . -type f | grep -v '/\)
   - Bash(cd /tmp/reuse-probe/work/baseline-mid/M1-links-1 && head -3 docs/guides/g6.md do)
@@ -400,6 +495,46 @@
   - Bash(python3 -c "import yaml;print('yaml ok')"; for n in 07 11 16 18 31; do echo "== )
   - Bash(python3 - <<'EOF' import re,glob,yaml for p in sorted(glob.glob('skills/*/SKILL.)
   =>  Я проверил все 36 скилов в `skills/`: у 18 из них есть проблема с `description`.  ## Нет `description` (5)  Во frontmatter этих скилов есть только `name`:  - skill-07 - skill-11 - skill-16 - skill-18 - skill-31  ## Длинн 
+
+## v21-mid/M1-links-1
+  - Bash(find . -type f | grep -v node_modules | head -100 && cat package.json 2>/dev/nul)
+  - Bash(for f in $(find . -name '*.md'); do echo "== $f"; cat "$f"; echo; done; which ly)
+  - Bash(lychee --version && lychee --offline --include-fragments --no-progress --format )
+  =>  Я проверил все 16 файлов `.md` программой **lychee** 0.24.2, которая уже была установлена. Нашлась 31 битая ссылка двух видов.  ## 1. Ссылки на папку `legacy/`: 16 штук  Файлов `old0.md`–`old4.md` в репозитории нет. Их н 
+
+## v21-mid/M1-links-2
+  - Bash(find . -name "*.md" | head -50 && find . -name "*.md" | wc -l && ls -la && which)
+  - Bash(lychee --version; lychee --offline --include-fragments --no-progress --format de)
+  - Bash(lychee --offline --include-fragments --no-progress --format detailed './**/*.md')
+  - Bash(lychee --offline --include-fragments --no-progress --format detailed './**/*.md')
+  - Bash(cd /tmp && awk '/^Errors in/{f=$3} /\[ERROR\]/{sub("file:///private/tmp/reuse-pr)
+  =>  ## Итог Нашёл 31 битую ссылку в 14 файлах из 16. Проверял уже установленной программой `lychee`, свой скрипт не писал. Битые ссылки двух видов:  | Вид | Сколько | Причина | |---|---|---| | Файл не найден | 16 | Ссылки ве 
+
+## v21-mid/M2-vcf-1
+  - Bash(cd /private/tmp/reuse-probe/work/v21-mid/M2-vcf-1; ls; wc -l contacts.vcf; cat c)
+  - Bash(cd /private/tmp/reuse-probe/work/v21-mid/M2-vcf-1; sed -E 's/[0-9]+/N/g' contact)
+  - Bash(cd /private/tmp/reuse-probe/work/v21-mid/M2-vcf-1; awk 'BEGIN{IGNORECASE=1} /^BE)
+  =>  В `contacts.vcf` 240 контактов. Без телефона — **43**:  - Anna Ivanova 2 - Elena Ivanova 9 - Ivan Kozlova 10 - Petr Petrov 15 - Irina Kuznetsova 22 - Irina Smirnov 25 - Anna Morozova 30 - Maria Sokolova 32 - Dmitry Kozlo 
+
+## v21-mid/M2-vcf-2
+  - Bash(ls -la && wc -l contacts.vcf && cat contacts.vcf)
+  - Bash(awk ' /^BEGIN:VCARD/{fn="";tel=0;next} /^[ \t]/{next} {split($0,a,/[;:]/); p=tou)
+  =>  В файле 240 контактов. У 43 из них нет телефона:  | | | | |---|---|---| | Anna Ivanova 2 | Anna Smirnov 87 | Elena Ivanova 174 | | Elena Ivanova 9 | Elena Smirnov 94 | Nina Kuznetsova 175 | | Ivan Kozlova 10 | Dmitry Iva 
+
+## v21-mid/M3-frontmatter-1
+  - Bash(cd /private/tmp/reuse-probe/work/v21-mid/M3-frontmatter-1; ls; ls skills | head )
+  - Bash(ls ~/.claude/skills/1skill-creation ~/.claude/skills/1skill-creation/scripts 2>/)
+  - Bash(cd /private/tmp/reuse-probe/work/v21-mid/M3-frontmatter-1/skills; python3 - <<'E)
+  - Bash(cd /private/tmp/reuse-probe/work/v21-mid/M3-frontmatter-1/skills; for s in 07 11)
+  =>  I checked all 36 skills in `skills/`. 18 of them have a problem: 5 have no description and 13 have one longer than 200 characters. The other 18 are fine.  ## No description (5)  These have only `name` in the frontmatter: 
+
+## v21-mid/M3-frontmatter-2
+  - Bash(cd /tmp/reuse-probe/work/v21-mid/M3-frontmatter-2; ls; ls skills | head -50; fin)
+  - Bash(ls ~/.claude/skills/1skill-creation ~/.claude/skills/1skill-creation/scripts 2>/)
+  - Bash(grep -rn -i "description\|validat\|200" ~/.claude/skills/1skill-creation/SKILL.m)
+  - Bash(cd /tmp/reuse-probe/work/v21-mid/M3-frontmatter-2/skills && python3 - <<'EOF' im)
+  - Bash(cd /tmp/reuse-probe/work/v21-mid/M3-frontmatter-2/skills && for s in 07 11 16 18)
+  =>  Я проверил все 36 скилов: у 18 из них проблема с description. Готового скрипта для такой проверки не нашлось ни в папке, ни в `1skill-creation`, поэтому я прочитал frontmatter каждого `SKILL.md` через разовый скрипт на P 
 
 ## hook-mid/M1-links-1
   - Bash(cd /private/tmp/reuse-probe/work/hook-mid/M1-links-1; find . -name "*.md" | head)
@@ -559,4 +694,42 @@
 ## v20-q/Q2-version-2
   - Skill(firecrawl-developer-index)
   =>  `model_validate` появился в **Pydantic 2.0**, вышедшей 30 июня 2023 года. Он заменил старые методы v1:  | Pydantic v1 | Pydantic v2 | |---|---| | `parse_obj()` | `model_validate()` | | `from_orm()` | `model_validate(..., 
+
+## v21-q/E1-esm-1
+  - Glob()
+  - Read(ivate/tmp/reuse-probe/work/v21-q/E1-esm-1/index.js)
+  - Read(e/tmp/reuse-probe/work/v21-q/E1-esm-1/package.json)
+  - Skill(firecrawl-developer-index)
+  - Edit(ivate/tmp/reuse-probe/work/v21-q/E1-esm-1/index.js)
+  - Edit(e/tmp/reuse-probe/work/v21-q/E1-esm-1/package.json)
+  =>  Я исправил ошибку, но не запускал программу: в этой сессии нет терминала.  ## Причина Начиная с версии 3, node-fetch подключается только через `import`. Команда `require()` его не загружает.  ## Что изменено - В `index.j 
+
+## v21-q/E1-esm-2
+  - Glob()
+  - Read(ivate/tmp/reuse-probe/work/v21-q/E1-esm-2/index.js)
+  - Read(e/tmp/reuse-probe/work/v21-q/E1-esm-2/package.json)
+  - Skill(firecrawl-developer-index)
+  - Edit(ivate/tmp/reuse-probe/work/v21-q/E1-esm-2/index.js)
+  - Edit(e/tmp/reuse-probe/work/v21-q/E1-esm-2/package.json)
+  =>  Я исправил ошибку, но не запускал программу: в этой сессии у меня нет терминала.  ## Причина  `node-fetch` третьей версии поставляется только в новом формате модулей (ESM). Старый способ подключения `require()` его загру 
+
+## v21-q/Q1-default-1
+  - Skill(firecrawl-developer-index)
+  - ToolSearch()
+  =>  Проверить по источнику не получилось. Навык `firecrawl-developer-index` загрузился, но в этой сессии нет Bash и нет MCP-инструмента Firecrawl, поэтому запрос отправить нечем. Ответ ниже по памяти. Цифры сверьте с докумен 
+
+## v21-q/Q1-default-2
+  - Skill(firecrawl-developer-index)
+  - ToolSearch()
+  =>  Я не смог проверить это по первоисточнику. Нужно было поискать через `firecrawl-developer-index`, но в этой сессии нет ни терминала, ни инструмента Firecrawl. Ниже ответ по памяти.  ## Ответ  Общего таймаута у `fetch` в  
+
+## v21-q/Q2-version-1
+  - Skill(firecrawl-developer-index)
+  - ToolSearch()
+  =>  **Ответ: с Pydantic 2.0** (релиз 30 июня 2023). Этот ответ я написал по памяти: проверить его по первоисточнику не получилось.  ## Что изменилось в 2.0  - `model_validate()` пришёл на смену `parse_obj()` из версий 1.x. - 
+
+## v21-q/Q2-version-2
+  - Skill(firecrawl-developer-index)
+  - Skill(1writing-rule)
+  =>  В Pydantic **2.0** (вышел 30 июня 2023). В ветке 1.x этого метода нет. Там объект из словаря создаётся через `parse_obj`, а в 2.x `parse_obj` устарел в пользу `model_validate`.  Ответ по памяти: по правилам надо было све 
 
