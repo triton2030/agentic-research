@@ -226,8 +226,8 @@ try {
   assert.notEqual(opus.session_id, second.session_id);
   assert.equal(opus.requested_model, "opus");
   assert.equal(second.requested_model, "opus");
-  assert.equal(opus.resolved_model, "claude-opus-5");
-  assert.equal(second.resolved_model, "claude-opus-5");
+  assert.equal(opus.resolved_model, "claude-opus-5-5");
+  assert.equal(second.resolved_model, "claude-opus-5-5");
 
   const [opusResume, secondResume] = await Promise.all([
     askClaude({
@@ -273,6 +273,7 @@ try {
     });
     controlledSessionId = opened.session_id;
     assert.equal(opened.accepted_op, "open_fresh");
+    assert.equal(opened.resolved_model, "claude-opus-5-5");
     assert.ok(activeSessionStates.has(opened.state), `open_fresh returned in unexpected state ${opened.state}`);
     assert.equal(opened.terminal, null, "open_fresh waited for the terminal result");
 

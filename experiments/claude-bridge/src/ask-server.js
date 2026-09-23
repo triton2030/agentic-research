@@ -138,7 +138,7 @@ export function createClaudeAskServer(
     {
       title: "Ask Claude",
       description:
-        "Ask native Claude Opus 5 or Fable 5 for a blocking task, research, implementation, or independent review through the logged-in Claude.ai subscription. " +
+        "Ask native Claude Opus 5.5 or Fable 5.1 for a blocking task, research, implementation, or independent review through the logged-in Claude.ai subscription. " +
         "A fresh call omits filesystem-sourced user/project instructions, custom skills, hooks, MCP integrations, and auto-memory; " +
         "resumed calls retain their prior conversation. Claude keeps native local tools and may read any evidence it considers relevant; " +
         "managed policy and account state remain runtime-owned, and the caller defines the task and permitted changes. " +

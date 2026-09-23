@@ -25,12 +25,12 @@ description: >-
 | Когда | Модель | Параметры свежего вызова |
 | --- | --- | --- |
 | Умная или важная работа, включая документы и код | Fable 5.1 Medium | `profile: fable_advisor`, `effort: medium` |
-| Работа с кодом | Opus 5 Max | `profile: opus_advisor`, `effort: max` |
-| Документы и остальные случаи по умолчанию | Opus 5 High | `profile: opus_advisor`, `effort: high` |
+| Работа с кодом | Opus 5.5 Max | `profile: opus_advisor`, `effort: max` |
+| Документы и остальные случаи по умолчанию | Opus 5.5 High | `profile: opus_advisor`, `effort: high` |
 
-`claude-opus-5-high` — модель `claude-opus-5` с отдельным `effort: high`.
-Fable закреплён на `claude-fable-5-1`. Имена профилей с суффиксом `_advisor`
-сохранены для совместимости: профиль выбирает модель, а не роль.
+Opus 5.5 закреплён на `claude-opus-5-5`; High задаётся отдельным `effort: high`.
+Fable закреплён на `claude-fable-5-1`.[^models] Имена профилей с суффиксом
+`_advisor` сохранены для совместимости: профиль выбирает модель, а не роль.
 
 ## Знание по ситуации
 
@@ -46,3 +46,5 @@ Fable закреплён на `claude-fable-5-1`. Имена профилей с
 нужные правила проекта и материалы можно передать адресами в запросе.
 Продолжение сохраняет разговор native session. Вызов может менять файлы и
 внешнее состояние; read-only характер исследования задаётся конкретной задачей.
+
+[^models]: [Anthropic, выпуск Opus 5.5](https://platform.claude.com/docs/en/release-notes/overview) и [настройка моделей Claude Code](https://code.claude.com/docs/en/model-config), проверены 2026-09-23.

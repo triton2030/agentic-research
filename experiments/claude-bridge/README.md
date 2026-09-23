@@ -1,6 +1,6 @@
 # Claude Bridge
 
-This project lets Codex use Claude Opus 5 or Fable 5.1 for research,
+This project lets Codex use Claude Opus 5.5 or Fable 5.1 for research,
 independent review, document work, or implementation
 through a blocking default or an opt-in transient session adapter, while using
 the owner's Claude.ai subscription and Claude's native session history.
@@ -40,18 +40,19 @@ four tools: blocking `claude_ask`, transient `claude_session`, pull-only
 - an existing `cwd`;
 - an optional native Claude `session_id` for continuation.
 
-Fresh calls pin Opus to `claude-opus-5` with default effort `high`, and Fable
+Fresh calls pin Opus to `claude-opus-5-5` with default effort `high`, and Fable
 to `claude-fable-5-1` (Fable 5.1) with default effort `medium`. Optional `effort` accepts
 `medium`, `high`, `xhigh`, or `max`; the skill selects Fable Medium for smart or
 important work first, otherwise Opus Max for code and Opus High for documents
-and other work. `claude-opus-5-high` denotes the model plus effort, not a
+and other work. Opus 5.5 High denotes the model plus effort, not a
 separate SDK model ID. The compact public `requested_model` is `opus` or
 `fable`; `resolved_model` carries exact runtime evidence.
 
 The terminal packet contains bounded `text`, native `session_id`, requested and
-resolved models, duration, and warnings. Fresh calls must resolve to the selected family. Resumed sessions accept
-Opus 5 or Fable 5 and retain their initial family; a primary-model fallback to
-another family fails closed with `unsupported_model`.
+resolved models, duration, and warnings. Fresh calls must resolve to the selected
+version. Resumed sessions accept Opus 5 or Fable 5 and retain their initial
+family; cross-family fallback fails closed. Fresh calls also reject a fallback
+to an older version of the selected family.
 
 A nominal SDK success with a non-completing `terminal_reason`, such as
 `background_requested`, fails closed with a resumable typed error. The blocking
@@ -249,11 +250,11 @@ an abstraction only when current complexity makes the seam real.
 ## Develop And Verify
 
 The current dependency pair is Agent SDK `0.3.268` and local Claude Code
-`2.1.268`. The SDK is pinned in the lockfile; the local executable is managed
-separately with `claude install 2.1.268`. Check `claude --version` on upgrades:
+`2.1.280`. The SDK is pinned in the lockfile; the local executable is managed
+separately with `claude install 2.1.280`. Check `claude --version` on upgrades:
 installing the npm dependency does not update that executable.
 The [official SDK changelog](https://github.com/anthropics/claude-agent-sdk-typescript/blob/main/CHANGELOG.md)
-identifies the corresponding Claude Code release.
+records SDK runtime changes; this installed pair is verified below.
 
 Verified on 2026-09-12: clean install with optional binaries omitted, 42
 deterministic tests, the upgrade live suite including native resume, follow-up,
@@ -261,6 +262,9 @@ steer, stop, and native interruption with no surviving observed processes,
 plus final native-prompt implementation and read-only review probes.
 Result-validation failures retain turn ownership until the adapter publishes
 their terminal error; regression coverage prevents them becoming endless waits.
+On 2026-09-23, the same 42 tests, clean install, and live Opus 5.5 suite passed
+with Claude Code 2.1.280. A live Fable 5.1 Medium call resolved to
+`claude-fable-5-1`.
 
 Install the exact lockfile and run the deterministic contract suite:
 

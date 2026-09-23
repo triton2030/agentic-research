@@ -75,12 +75,13 @@ export function formatClaudeResult(raw, launch) {
 
   const resolvedModel = raw.primaryModels.at(-1) || raw.init?.model;
   if (!resolvedModel) throw new ClaudeAskError("missing_model", "Claude SDK did not identify the session model.");
+  const resumedFamily = /^claude-(opus|fable)-5/iu.exec(raw.init?.model || "")?.[1];
   if (![raw.init?.model, ...raw.primaryModels].every((model) =>
-    isAdvisorModel(model, launch.profile?.requestedModel || (/^claude-(opus|fable)-5/iu.exec(raw.init?.model || "")?.[1]))
+    launch.profile ? model === launch.profile.model : isAdvisorModel(model, resumedFamily)
   )) {
     throw new ClaudeAskError(
       "unsupported_model",
-      `Claude bridge requires the selected Opus 5 or Fable 5 model; resolved model is ${resolvedModel}.`
+      `Claude bridge requires the selected Opus or Fable model; resolved model is ${resolvedModel}.`
     );
   }
 

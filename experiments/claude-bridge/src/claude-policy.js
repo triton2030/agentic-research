@@ -11,7 +11,7 @@ export const CLAUDE_EXECUTABLE = "/Users/triton/.local/bin/claude";
 const PROFILES = Object.freeze({
   opus_advisor: Object.freeze({
     requestedModel: "opus",
-    model: "claude-opus-5",
+    model: "claude-opus-5-5",
     effort: "high"
   }),
   fable_advisor: Object.freeze({
@@ -167,10 +167,11 @@ export function assertSdkRuntimeEvidence(init, launch) {
       `Claude SDK exposed a non-subscription credential source: ${init?.apiKeySource || "missing"}.`
     );
   }
-  if (!isAdvisorModel(init.model, launch?.profile?.requestedModel)) {
+  const selectedModel = launch?.profile?.model;
+  if (selectedModel ? init.model !== selectedModel : !isAdvisorModel(init.model)) {
     throw new ClaudeAskError(
       "unsupported_model",
-      `Claude bridge requires the selected Opus 5 or Fable 5 model; native session model is ${init?.model || "missing"}.`
+      `Claude bridge requires the selected Opus or Fable model; native session model is ${init?.model || "missing"}.`
     );
   }
 }

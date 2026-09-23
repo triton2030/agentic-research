@@ -63,8 +63,8 @@ copy, or old bridge source as current runtime truth.
   details and the external Usage credits prerequisite have one owner:
   [`docs/subscription-billing.md`](docs/subscription-billing.md). Do not copy that
   contract into the task-time skill.
-- Keep the active bridge limited to Opus 5 and Fable 5. Fresh calls must
-  match the selected profile; resumed sessions retain their initial family.
+- Keep fresh calls pinned to Opus 5.5 or Fable 5.1 and reject a different
+  resolved version. Resumed Opus 5 or Fable 5 sessions retain their initial family.
   Reject other primary models and cross-family fallback instead of silently routing.
 - Preserve compact typed warnings for subscription overage/credits,
   model-refusal fallback, and denied tool names. Never expose denial prose,

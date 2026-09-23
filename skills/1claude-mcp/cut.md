@@ -93,3 +93,12 @@ Opus-only и default xhigh заменены разрешёнными владе�
 технические условия сохранены. Native-возможности вынесены в справочник,
 который различает SDK API и callable MCP-поля.
 [Карта и evidence](work/information-skill-2026-09-12/evidence.md).
+
+## 2026-09-23 — Opus 5.5
+
+Свежий `opus_advisor` и таблица скила переведены с Opus 5 на
+`claude-opus-5-5` по [выпуску Anthropic](https://platform.claude.com/docs/en/release-notes/overview)
+от 2026-09-22. Приоритет Fable 5.1 Medium, Opus High/Max и продолжение старых
+сессий сохранены. Свежий вызов отвергает подмену точной версии.
+Проверены 42 локальных теста, живой Opus 5.5 вызов/продолжение/управление/
+отмена и живой Fable 5.1 Medium; установленная копия скила синхронизирована.

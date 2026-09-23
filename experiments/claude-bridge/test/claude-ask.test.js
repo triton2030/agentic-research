@@ -17,7 +17,7 @@ const SECOND_SESSION = "22222222-2222-4222-8222-222222222222";
 
 function sdkMessages({
   sessionId = OPUS_SESSION,
-  initModel = "claude-opus-5",
+  initModel = "claude-opus-5-5",
   mainModel = initModel,
   auxiliaryModel,
   text = "ADVICE_OK",
@@ -34,7 +34,7 @@ function sdkMessages({
       apiKeySource,
       model: initModel,
       session_id: sessionId,
-      claude_code_version: "2.1.219"
+      claude_code_version: "2.1.280"
     },
     ...(auxiliaryModel ? [{
       type: "assistant",
@@ -128,7 +128,7 @@ test("one-shot uses fixed profile and clean SDK authority", async () => {
     session_id: OPUS_SESSION,
     requested_model: "opus",
     requested_effort: "high",
-    resolved_model: "claude-opus-5",
+    resolved_model: "claude-opus-5-5",
     duration_ms: 123,
     warnings: []
   });
@@ -143,7 +143,7 @@ test("one-shot uses fixed profile and clean SDK authority", async () => {
     type: "preset", preset: "claude_code", snapshot: false
   });
   assert.equal(input.value.message.content, "Challenge this design.");
-  assert.equal(capture.options.model, "claude-opus-5");
+  assert.equal(capture.options.model, "claude-opus-5-5");
   assert.equal(capture.options.effort, "high");
   assert.deepEqual(capture.options.additionalDirectories, ["/"]);
   assert.equal(capture.options.allowDangerouslySkipPermissions, true);
@@ -174,7 +174,9 @@ test("resume keeps the native session model and omits caller model routing", asy
   const capture = {};
   const result = await askTest(
     { prompt: "Continue.", cwd: bridgeRoot, session_id: OPUS_SESSION },
-    fakeOptions(sdkMessages(), { queryFactory: queryFactoryFor(sdkMessages(), capture) })
+    fakeOptions(sdkMessages({ initModel: "claude-opus-5" }), {
+      queryFactory: queryFactoryFor(sdkMessages({ initModel: "claude-opus-5" }), capture)
+    })
   );
   assert.equal(capture.options.resume, OPUS_SESSION);
   assert.equal(capture.options.model, undefined);
@@ -204,7 +206,10 @@ test("Fable medium launches and resumes; selected model fallback fails closed", 
   assert.equal(resumed.resolved_model, "claude-fable-5-1");
   for (const [profile, initModel, mainModel, session_id] of [
     ["opus_advisor", "claude-fable-5", "claude-fable-5"],
-    ["opus_advisor", "claude-opus-5", "claude-fable-5"],
+    ["opus_advisor", "claude-opus-5", "claude-opus-5"],
+    ["opus_advisor", "claude-opus-5-5", "claude-opus-5"],
+    ["opus_advisor", "claude-opus-5-5", "claude-fable-5"],
+    ["fable_advisor", "claude-fable-5", "claude-fable-5"],
     ["fable_advisor", "claude-fable-5", "claude-opus-5"],
     ["fable_advisor", "claude-opus-5", "claude-opus-5"],
     [undefined, "claude-fable-5", "claude-opus-5", OPUS_SESSION],
@@ -244,8 +249,8 @@ test("parallel subscription preflights and sessions remain independent", async (
   ]);
   assert.deepEqual([left.text, right.text], ["LEFT", "RIGHT"]);
   assert.notEqual(left.session_id, right.session_id);
-  assert.equal(opusCapture.options.model, "claude-opus-5");
-  assert.equal(secondCapture.options.model, "claude-opus-5");
+  assert.equal(opusCapture.options.model, "claude-opus-5-5");
+  assert.equal(secondCapture.options.model, "claude-opus-5-5");
   assert.equal(fs.readdirSync(path.join(root, "barrier")).length, 2);
 });
 
@@ -591,7 +596,7 @@ test("bounded result ignores auxiliary-model evidence", async () => {
   );
   assert.ok(result.text.length <= 12000);
   assert.match(result.text, /chars omitted/u);
-  assert.equal(result.resolved_model, "claude-opus-5");
+  assert.equal(result.resolved_model, "claude-opus-5-5");
   assert.doesNotMatch(result.warnings.join(" "), /haiku/u);
   assert.doesNotMatch(result.warnings.join(" "), /safety/u);
 });
@@ -616,7 +621,7 @@ test("typed limit, fallback, and permission evidence stays compact", async () =>
         {
           type: "system",
           subtype: "model_refusal_fallback",
-          original_model: "claude-opus-5",
+          original_model: "claude-opus-5-5",
           fallback_model: "claude-sonnet-5",
           api_refusal_category: "safety",
           content: "RAW_FALLBACK_EXPLANATION",
@@ -636,7 +641,7 @@ test("typed limit, fallback, and permission evidence stays compact", async () =>
   assert.match(result.warnings.join(" "), /permission_denied:Write/u);
   assert.match(
     result.warnings.join(" "),
-    /model_refusal_fallback:claude-opus-5:claude-sonnet-5:safety/u
+    /model_refusal_fallback:claude-opus-5-5:claude-sonnet-5:safety/u
   );
   assert.doesNotMatch(JSON.stringify(result), /RAW_/u);
 });
@@ -692,7 +697,7 @@ test("MCP exposes exactly four tools with honest annotations", async () => {
       ["claude_ask", "claude_session", "claude_observe", "claude_sessions"]
     );
     const byName = Object.fromEntries(tools.tools.map((tool) => [tool.name, tool]));
-    assert.match(byName.claude_ask.description, /Opus 5/u);
+    assert.match(byName.claude_ask.description, /Opus 5\.5/u);
     assert.match(byName.claude_ask.description, /Fable/u);
     assert.deepEqual(byName.claude_ask.inputSchema.properties.profile.enum, ["opus_advisor", "fable_advisor"]);
     assert.deepEqual(byName.claude_session.inputSchema.properties.profile.enum, ["opus_advisor", "fable_advisor"]);

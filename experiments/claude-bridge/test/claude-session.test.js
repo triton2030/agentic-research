@@ -38,7 +38,7 @@ function profileFor(name, effort = "high") {
   assert.equal(name, "opus_advisor");
   return {
     effort,
-    model: "claude-opus-5",
+    model: "claude-opus-5-5",
     requestedModel: "opus"
   };
 }
@@ -243,7 +243,7 @@ test("open_fresh returns the native UUID while its first turn is still running",
   assert.equal(opened.state, "thinking");
   assert.equal(opened.requested_model, "opus");
   assert.equal(opened.requested_effort, "max");
-  assert.equal(opened.resolved_model, "claude-opus-5");
+  assert.equal(opened.resolved_model, "claude-opus-5-5");
   assert.deepEqual(prepared, [{
     cwd: "/workspace",
     prompt: "PRIVATE_INITIAL_TASK",
@@ -327,7 +327,7 @@ test("explicit observations are bounded and omit thinking and raw tool I/O", asy
     type: "assistant",
     parent_tool_use_id: null,
     message: {
-      model: "claude-opus-5",
+      model: "claude-opus-5-5",
       content: [
         { type: "thinking", thinking: "HIDDEN_ASSISTANT_THINKING" },
         {
@@ -768,7 +768,7 @@ test("delayed cleanup remains closing and reserves capacity until completion", a
         type: "system",
         subtype: "init",
         apiKeySource: "none",
-        model: "claude-opus-5",
+        model: "claude-opus-5-5",
         session_id: OPUS_SESSION
       }
     }),
@@ -823,7 +823,7 @@ test("session turn timeout is typed while native cleanup retains capacity", asyn
         type: "system",
         subtype: "init",
         apiKeySource: "none",
-        model: "claude-opus-5",
+        model: "claude-opus-5-5",
         session_id: OPUS_SESSION
       }
     }),
