@@ -42,11 +42,12 @@ four tools: blocking `claude_ask`, transient `claude_session`, pull-only
 
 Fresh calls pin Opus to `claude-opus-5-5` with default effort `high`, and Fable
 to `claude-fable-5-1` (Fable 5.1) with default effort `medium`. Optional `effort` accepts
-`medium`, `high`, `xhigh`, or `max`; the skill selects Fable Medium for smart or
-important work first, otherwise Opus Max for code and Opus High for documents
-and other work. Opus 5.5 High denotes the model plus effort, not a
-separate SDK model ID. The compact public `requested_model` is `opus` or
-`fable`; `resolved_model` carries exact runtime evidence.
+`medium`, `high`, `xhigh`, or `max`; the skill prioritizes Opus 5.5 Max for code
+and Opus 5.5 High for documents and other work. Fable 5.1 Medium is reserved
+for exceptional cases needing extra intelligence. Opus 5.5 High denotes the
+model plus effort, not a separate SDK model ID. The compact public
+`requested_model` is `opus` or `fable`; `resolved_model` carries exact runtime
+evidence.
 
 The terminal packet contains bounded `text`, native `session_id`, requested and
 resolved models, duration, and warnings. Fresh calls must resolve to the selected
