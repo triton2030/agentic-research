@@ -1,9 +1,9 @@
 ---
 name: 1codex
 description: >-
-  Use when work is nearing done, a route is not yet chosen, heavy work needs
-  other hands, a Codex run is in flight, or a Codex verdict conflicts with
-  Claude's. Claude's own subagents are 1orchestration.
+  Use when work nears done, a route is unchosen, heavy work or image generation
+  needs other hands, a Codex run is in flight, or a Codex verdict conflicts with
+  Claude's. Own subagents: 1orchestration.
 ---
 
 # 1codex — чужие глаза, чужая голова, чужие руки
@@ -17,6 +17,8 @@ description: >-
 почти всегда руками — исполнителем уже принятого решения, а не аудитором своей
 работы и не советником до неё. Владелец хочет видеть в Клоде оркестратора, а
 живых агентов — своими глазами.
+
+Ещё в Codex встроен генератор растровых картинок, которого у Клода нет.
 
 ## Твои главные цели
 
@@ -39,7 +41,7 @@ description: >-
 |---|---|
 | отдаёшь Codex проверку уже сделанного: работы, текста, дифа, вывода | [`audit.md`](references/audit.md) |
 | отдаёшь суждение до реализации: маршрут, план, прочтение намерения, взгляд на траекторию сессии | [`advise.md`](references/advise.md) |
-| отдаёшь саму работу: исследование в его папку либо правку файлов проекта | [`delegate.md`](references/delegate.md) |
+| отдаёшь саму работу: исследование в его папку, правку файлов проекта или картинку | [`delegate.md`](references/delegate.md) |
 | прогон уже идёт: жив ли, туда ли идёт, вернуть ли репликой, остановить | [`watch.md`](references/watch.md) |
 | тред пережил свой прогон: чужой, старый, оборванный, занятый | [`threads.md`](references/threads.md) |
 | твой вывод и его вывод разошлись — или совпали, и ты счёл это доказательством | [`arbitrate.md`](references/arbitrate.md) |
@@ -72,7 +74,7 @@ description: >-
 
   Заголовок карточки — твоё `description`, и владелец по нему решает, туда
   ли ушли его кредиты: модель и усилие в нём обязательны, даже дефолтные
-  (`Codex gpt-5.6-sol/medium · аудитор · диф моста`). Команда в карточке —
+  (`Codex gpt-6-sol/medium · аудитор · диф моста`). Команда в карточке —
   только запуск: подготовку файлов делай отдельным вызовом.
 
   `RUN_DIR` печатается первой строкой; сводка моста уходит в
@@ -147,8 +149,8 @@ python — `<backend>/.venv/bin/python`. Ярус выбирай по роду �
 
 | Род работы | Ярус | Флаги |
 |---|---|---|
-| средняя работа | `gpt-5.6-sol` + `medium` | нет — это дефолт |
-| много тупой работы: механика, объём, исполнение чёткой воли | `gpt-5.6-luna` + `max` | `--model gpt-5.6-luna --effort max` |
+| средняя работа | `gpt-6-sol` + `medium` | нет — это дефолт |
+| много тупой работы: механика, объём, исполнение чёткой воли | `gpt-6-luna` + `max` | `--model gpt-6-luna --effort max` |
 | суперумная работа: развилка маршрута, архитектура, стратегия, продумывание сложных систем | `gpt-6-astra` + `medium` | `--model gpt-6-astra` |
 
 Это дефолты, а не границы: каталог движка открыт, и другую модель или усилие

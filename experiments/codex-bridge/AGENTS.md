@@ -16,7 +16,7 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
   любого codex-процесса. Не убирай и не обходи — это защита от ухода на платный
   API. Любой новый вход (скрипт/режим) обязан звать его первым.
 - **Модель и effort фиксируются backend-ом; tier — нет.** Default для всех
-  Codex turns: `model=gpt-5.6-sol`, `effort=medium` — явно, независимо от дрейфа
+  Codex turns: `model=gpt-6-sol`, `effort=medium` — явно, независимо от дрейфа
   `~/.codex/config.toml`: `model` в каждом `thread_start` + `thread_resume` +
   `thread.turn`, `effort` на ходе (`thread.turn`), где его и принимает SDK. Во флоте ярус объявляет ЗАДАЧА (`model`/`effort` в
   task JSON), а флаги прогона — дно для тех, кто молчит: одна волна может быть
@@ -25,7 +25,10 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
   2026-09-06, `_ops/chat-recall/2026-09-06-170311-claude-557afe59.md#L16`):
   `sol`+`medium` — дефолт, средняя работа; `luna`+`max` — много тупой работы;
   `astra`+`medium` (`gpt-6-astra`, живой пробник 2026-09-06 — `completed`) —
-  суперумная работа. Это дефолты по роду работы, каталог не блокируется
+  суперумная работа. Все три — поколения 6 (`gpt-6-sol`, `gpt-6-luna`,
+  `gpt-6-astra`; владелец 2026-09-23,
+  `_ops/chat-recall/2026-09-23-051553-claude-483a304e.md#recall-9805fef9e16041928ddf6a675d7d952d`).
+  Это дефолты по роду работы, каталог не блокируется
   (там же, `#L17`): `--model`/`--effort` — выбор по ситуации, включая
   `max`/`ultra`.
   `terra` доступен явным `--model` (дефолт `md-scout`), штатным ярусом моста
@@ -171,7 +174,7 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
 - `codex_retry.py` — восстановимые отказы СТАРТА: ретрай под перегрузкой движка
   (sync + async) и подъём архивного треда при resume; события `retry`,
   `thread_unarchived`, `thread_unarchive_failed` в ledger.
-- `codex_defaults.py` — ярусы вызова и runtime default (`gpt-5.6-sol`+`medium`),
+- `codex_defaults.py` — ярусы вызова и runtime default (`gpt-6-sol`+`medium`),
   sandbox и approval labels для ledger/docs, `BRIDGE_THREAD_EPHEMERAL`.
 - `codex_review.py` — консультант/ревьюер с built-in filesystem read-only.
   Default режим `task`:

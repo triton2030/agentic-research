@@ -165,7 +165,7 @@ Desktop, и делит с ним `~/.codex`; без `ephemeral` каждый в�
 
 ## Модель и runtime-доступ
 
-Backend явно закрепляет Codex turn defaults: `model=gpt-5.6-sol`,
+Backend явно закрепляет Codex turn defaults: `model=gpt-6-sol`,
 `effort=medium` — дефолт моста (см. «Ярусы вызова» в `AGENTS.md`). Модель и
 effort не зависят от текущего `~/.codex/config.toml`; флаги `--model` и
 `--effort` — осознанный выбор яруса под род работы. Service tier мост по
@@ -173,12 +173,13 @@ effort не зависят от текущего `~/.codex/config.toml`; фла�
 
 Три яруса по роду работы (решение владельца 2026-09-06,
 `_ops/chat-recall/2026-09-06-170311-claude-557afe59.md#L16`; заменило
-«sol + xhigh на всё» от 2026-08-14):
+«sol + xhigh на всё» от 2026-08-14). Поколение ярусов — 6: владелец
+2026-09-23 перевёл луну и сол с 5.6 на `gpt-6-*` (`_ops/chat-recall/2026-09-23-051553-claude-483a304e.md#recall-9805fef9e16041928ddf6a675d7d952d`):
 
 | Род работы | Модель | Effort | Как звать |
 |---|---|---|---|
-| средняя работа | `gpt-5.6-sol` | `medium` | дефолт, флаги не нужны |
-| много тупой работы: механика, объём, чёткая воля | `gpt-5.6-luna` | `max` | `--model gpt-5.6-luna --effort max` |
+| средняя работа | `gpt-6-sol` | `medium` | дефолт, флаги не нужны |
+| много тупой работы: механика, объём, чёткая воля | `gpt-6-luna` | `max` | `--model gpt-6-luna --effort max` |
 | суперумная работа: развилка, архитектура, независимое суждение | `gpt-6-astra` | `medium` | `--model gpt-6-astra` |
 
 Это дефолты, а не границы: каталог открыт (там же, `#L17`), другие модели и
@@ -189,7 +190,9 @@ effort не зависят от текущего `~/.codex/config.toml`; фла�
 when using Codex with a ChatGPT account"` (исторический probe 2026-07-02
 аналогично отсёк `gpt-5.5-pro`). `gpt-6-astra` проверен живым пробником
 2026-09-06 через `codex_review.py --model gpt-6-astra --effort medium`:
-`status=completed`, `ok=true` (run `20260906T120214Z-4c9019f7`). Каталог
+`status=completed`, `ok=true` (run `20260906T120214Z-4c9019f7`). `gpt-6-luna` проверен так же 2026-09-23
+(`--model gpt-6-luna --effort low`, run `20260923T002234Z-luna6-probe`:
+`completed`, `ok=true`), `gpt-6-sol` — пробником картинки ниже. Каталог
 движка 0.155.0 (`~/.codex/models_cache.json`, снимок 2026-09-18) идёт в
 порядке `gpt-5.6-sol`, `gpt-6-astra` («Our most capable model for complex,
 demanding work», default effort `medium`), дальше `terra` / `luna`, `gpt-5.5`;
@@ -197,8 +200,11 @@ demanding work», default effort `medium`), дальше `terra` / `luna`, `gpt-
 запасной ярус при исчерпании луны, `openai/codex#42372`) и
 `codex-auto-review` (модель автоматического approval-ревью). `gpt-5.4-mini` и
 `gpt-5.3-codex-spark`, которые прежний текст этого абзаца относил к каталогу
-0.153.4, в снимке 0.155.0 отсутствуют. Дефолт усилия у
-`sol` в каталоге — `low`; мост шлёт усилие явно, а `--mode diff` берёт его из
+0.153.4, в снимке 0.155.0 отсутствуют. Снимок 2026-09-23 (движок 0.155.0-alpha.16)
+открывается поколением 6: `gpt-6-astra`, `gpt-6-sol`, `gpt-6-luna`, дальше
+скрытый `gpt-reserve`, прежние `gpt-5.6-sol` / `terra` / `luna`, `gpt-5.5` и
+скрытый `codex-auto-review`. Дефолт усилия у
+`gpt-5.6-sol` в каталоге — `low`, у `gpt-6-sol` — `medium`; мост шлёт усилие явно, а `--mode diff` берёт его из
 `config.toml` (`medium`), так что на ярусы это не влияет. `luna` и `terra`
 были проверены пробниками 2026-07-13. `terra` остаётся model-override внутренних
 collaboration-субагентов движка и дефолтом `md-scout`, рекомендованного
@@ -253,14 +259,16 @@ local package; install a packaged Codex CLI or use the standalone installer`
 `codex_sdk_compat.py` остаётся.
 
 **Шкала reasoning effort.** Каталог движка (`~/.codex/models_cache.json`,
-`supported_reasoning_levels`) для `gpt-5.6-sol` и `gpt-5.6-terra` даёт
+`supported_reasoning_levels`) для `gpt-6-sol` и `gpt-6-astra` (как прежде для
+`gpt-5.6-sol` и `gpt-5.6-terra`) даёт
 `low → medium → high → xhigh → max → ultra`, где по его же описаниям:
 
 - `max` — «Maximum reasoning depth for the hardest problems»;
 - `ultra` — «Maximum reasoning **with automatic task delegation**».
 
 То есть глубина одиночного прогона — это `max`, а `ultra` — та же глубина плюс
-делегация внутренним субагентам. У `gpt-5.6-luna` потолок `max`, и именно он —
+делегация внутренним субагентам. У `gpt-6-luna` (как у `gpt-5.6-luna`) потолок
+`max`, и именно он —
 штатное усилие лёгкого яруса («Луна Макс»). Дефолт моста — `medium` (решение
 владельца 2026-09-06, сменило `xhigh` от 2026-08-14); остальные усилия — выбор
 по ситуации, каталог не блокируется. Тред на любом усилии заводит только явный
@@ -514,6 +522,27 @@ investigator складывает deliverables в `out/` и валит project d
 fleet пишет в проект под file-disjoint контрактом. Внешние MCP — исключение из
 sandbox-enforcement, не из permission contract.
 
+**Картинки.** Встроенный генератор движка (`image_gen`, фича
+`image_generation` — stable, включена) приходит в каждый ход моста; из-за него
+же нижний порог усилия — `low`. Движок сохраняет оригинал в
+`~/.codex/generated_images/<id треда>/`; у исследователя id треда в
+`result.json` не пишется, а путь из элемента `imageGeneration` (`savedPath`)
+журнал не хранит. Поэтому картинка доходит до `artifacts` результата, только
+если задание велит Codex скопировать её в `out/`, — это маршрут исследователя;
+ревьюер read-only скопировать не может. Витрина показывает шаг генерации
+значком 🖼. Живые пробники 2026-09-23: `gpt-5.6-sol`/`low` (run
+`20260923T001119Z-image-probe`) и `gpt-6-sol`/`low`
+(`20260923T002233Z-image-probe-gpt6`) — PNG 1254×1254 примерно за минуту, копия
+в `out/` побайтно совпала с оригиналом.
+
+Scope-чек исследователя не различает авторов: правка или коммит самого
+вызывающего, пока идёт ход, тоже роняет `ok`. Так упал второй пробник —
+`out_of_scope_files` назвал только `skills/claude/1codex/SKILL.md`, который в эти
+секунды правил Claude, а сам ход и картинка были в порядке. Коммит виден иначе:
+файл, изменённый и закоммиченный за время хода, в `out_of_scope_files` не
+попадает, и `head_changed=true` при пустом списке означает коммит вызывающего
+(`codex_investigate.py` роняет scope по одному `head_changed`).
+
 ## Флот воркеров
 
 ```bash
@@ -600,7 +629,7 @@ run_dir и его collapsed-предков (`_workspace/`) — своя площ
 - **Ярус на задачу.** `model`/`effort` в задаче побеждают `--model`/`--effort`
   прогона: `model` — во всех трёх точках движка (`thread_start`, `thread_resume`,
   `thread.turn`), `effort` — на ходе (`thread.turn`), там его и принимает SDK. Одна волна может быть разноярусной — пишущие
-  механику на `gpt-5.6-luna`, думающие над непересекающимся предметом на
+  механику на `gpt-6-luna`, думающие над непересекающимся предметом на
   `gpt-6-astra`, — и делить её на два запуска ради
   ярусов больше не нужно. Фактический ярус воркера пишется в `results.jsonl`
   (`model`, `effort`) и в `manifest.tasks[]`; `codex.model` манифеста и баннер

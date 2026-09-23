@@ -61,7 +61,7 @@ class DeadProjectEntryTests(unittest.TestCase):
             root = Path(tmp)
             config = root / "config.toml"
             config.write_text(
-                f'model = "gpt-5.6-sol"\n\n'
+                f'model = "gpt-6-sol"\n\n'
                 f'[projects."{root}"]\ntrust_level = "trusted"\n\n'
                 f'[projects."{root}/нет"]\ntrust_level = "trusted"\n',
                 encoding="utf-8",

@@ -22,13 +22,17 @@ from pathlib import Path
 #                    capable model for complex, demanding work» (каталог движка),
 #                    живой пробник 2026-09-06 под ChatGPT-биллингом: completed.
 #
+# Поколение ярусов — 6: luna и sol переехали с 5.6 на gpt-6-* (владелец
+# 2026-09-23: «теперь будем использавть луна 6 и сол 6 и астру» —
+# _ops/chat-recall/2026-09-23-051553-claude-483a304e.md#recall-9805fef9e16041928ddf6a675d7d952d).
+#
 # Каталог не блокируется (там же, #L17): --model и --effort — выбор по ситуации,
-# terra, gpt-5.5, max/ultra и прочее остаются доступны явным флагом.
-DEFAULT_CODEX_MODEL = "gpt-5.6-sol"
+# terra, gpt-5.6-*, gpt-5.5, max/ultra и прочее остаются доступны явным флагом.
+DEFAULT_CODEX_MODEL = "gpt-6-sol"
 DEFAULT_CODEX_EFFORT = "medium"
 
 # Лёгкий ярус для тупой и объёмной работы; выбирается явным --model/--effort.
-LIGHT_CODEX_MODEL = "gpt-5.6-luna"
+LIGHT_CODEX_MODEL = "gpt-6-luna"
 LIGHT_CODEX_EFFORT = "max"
 
 # Умный ярус для суперумной работы; выбирается явным --model.
@@ -86,7 +90,8 @@ SDK_BUNDLE_WARNING = (
 #
 # The upper scale mirrors the engine's own catalogue
 # (~/.codex/models_cache.json → supported_reasoning_levels), read 2026-07-27 for
-# gpt-5.6-sol/terra. Its wording is the contract:
+# gpt-5.6-sol/terra and re-read 2026-09-23 for gpt-6-sol/astra/luna — the same
+# scale. Its wording is the contract:
 #   "max"   — "Maximum reasoning depth for the hardest problems"
 #   "ultra" — "Maximum reasoning with automatic task delegation"
 # So "max" is depth for ONE run and "ultra" is that depth plus internal

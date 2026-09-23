@@ -245,7 +245,7 @@ class CodexOrchestrateCliTests(unittest.TestCase):
             self.assertTrue(payload["dry_run"])
             self.assertFalse(payload["git"]["available"])
             self.assertEqual(payload["tasks"][0]["files"], ["a.md"])
-            self.assertEqual(payload["codex"]["model"], "gpt-5.6-sol")
+            self.assertEqual(payload["codex"]["model"], "gpt-6-sol")
             self.assertEqual(payload["codex"]["effort"], "medium")
             self.assertIsNone(payload["codex"]["service_tier"])
             self.assertEqual(payload["codex"]["worker_sandbox"], "workspace_write")
@@ -495,7 +495,7 @@ class CodexOrchestrateCliTests(unittest.TestCase):
                 run_dir.mkdir()
                 defaults = {
                     "cwd": str(root),
-                    "model": "gpt-5.6-sol",
+                    "model": "gpt-6-sol",
                     "effort": "high",
                     "service_tier": None,
                     "run_dir": run_dir,
@@ -533,7 +533,7 @@ class CodexOrchestrateCliTests(unittest.TestCase):
                 run_dir.mkdir()
                 defaults = {
                     "cwd": str(root),
-                    "model": "gpt-5.6-sol",
+                    "model": "gpt-6-sol",
                     "effort": "high",
                     "service_tier": None,
                     "run_dir": run_dir,
@@ -584,7 +584,7 @@ class CodexOrchestrateCliTests(unittest.TestCase):
                         run_dir.mkdir()
                         defaults = {
                             "cwd": str(root),
-                            "model": "gpt-5.6-sol",
+                            "model": "gpt-6-sol",
                             "effort": "high",
                             "service_tier": None,
                             "run_dir": run_dir,
@@ -747,7 +747,7 @@ class CodexOrchestrateCliTests(unittest.TestCase):
                 run_dir = root / "run"
                 run_dir.mkdir()
                 defaults = {
-                    "cwd": str(root), "model": "gpt-5.6-sol", "effort": "high",
+                    "cwd": str(root), "model": "gpt-6-sol", "effort": "high",
                     "service_tier": None, "run_dir": run_dir,
                     "progress": {"completed": 0, "total": 1}, "isolation": "shared",
                 }
@@ -873,7 +873,7 @@ class CodexOrchestrateCliTests(unittest.TestCase):
                 run_dir.mkdir()
                 defaults = {
                     "cwd": str(root),
-                    "model": "gpt-5.6-sol",
+                    "model": "gpt-6-sol",
                     "effort": "high",
                     "service_tier": None,
                     "run_dir": run_dir,
@@ -923,7 +923,7 @@ class CodexOrchestrateCliTests(unittest.TestCase):
                 run_dir.mkdir()
                 defaults = {
                     "cwd": str(root),
-                    "model": "gpt-5.6-sol",
+                    "model": "gpt-6-sol",
                     "effort": "high",
                     "service_tier": None,
                     "run_dir": run_dir,
@@ -967,7 +967,7 @@ class CodexOrchestrateCliTests(unittest.TestCase):
                 run_dir.mkdir()
                 defaults = {
                     "cwd": str(root),
-                    "model": "gpt-5.6-sol",
+                    "model": "gpt-6-sol",
                     "effort": "high",
                     "service_tier": None,
                     "run_dir": run_dir,
@@ -1005,11 +1005,11 @@ class TaskTierAndContractTests(unittest.TestCase):
         tasks = normalize_tasks(
             self.root,
             [
-                {"id": "w", "prompt": "пиши", "files": ["a.md"], "model": "gpt-5.6-luna"},
+                {"id": "w", "prompt": "пиши", "files": ["a.md"], "model": "gpt-6-luna"},
                 {"id": "a", "prompt": "суди", "files": ["b.md"], "effort": "medium"},
             ],
         )
-        self.assertEqual(tasks[0].model, "gpt-5.6-luna")
+        self.assertEqual(tasks[0].model, "gpt-6-luna")
         self.assertIsNone(tasks[0].effort)
         self.assertIsNone(tasks[1].model)
         self.assertEqual(tasks[1].effort, "medium")
@@ -1184,7 +1184,7 @@ class TreeSetupTests(unittest.TestCase):
                             "id": "t1",
                             "prompt": "правь",
                             "files": ["a.md"],
-                            "model": "gpt-5.6-luna",
+                            "model": "gpt-6-luna",
                             "effort": "medium",
                         }
                     ],
@@ -1194,10 +1194,10 @@ class TreeSetupTests(unittest.TestCase):
                 manifest = json.loads((root / "run" / "manifest.json").read_text())
                 merged = (root / "a.md").read_text()
             # Ярус задачи доехал до движка и попал в аудит прогона.
-            self.assertEqual(captured.get("model"), "gpt-5.6-luna")
+            self.assertEqual(captured.get("model"), "gpt-6-luna")
             self.assertEqual(captured["run_kwargs"]["effort"], "medium")
-            self.assertEqual(captured["run_kwargs"]["model"], "gpt-5.6-luna")
-            self.assertEqual(payload["results"][0]["model"], "gpt-5.6-luna")
+            self.assertEqual(captured["run_kwargs"]["model"], "gpt-6-luna")
+            self.assertEqual(payload["results"][0]["model"], "gpt-6-luna")
             self.assertEqual(payload["results"][0]["effort"], "medium")
             # Воркеру сказана правда о подготовленном дереве.
             self.assertIn("echo provisioned", manifest["tasks"][0]["developer_instructions"])
@@ -1308,13 +1308,13 @@ class TreeSetupTests(unittest.TestCase):
                             "prompt": "правь",
                             "files": ["a.md"],
                             "thread_id": "thread-warm-1",
-                            "model": "gpt-5.6-luna",
+                            "model": "gpt-6-luna",
                             "effort": "low",
                         }
                     ],
                 )
             self.assertEqual(captured.get("resumed_thread_id"), "thread-warm-1")
-            self.assertEqual(captured.get("model"), "gpt-5.6-luna")
+            self.assertEqual(captured.get("model"), "gpt-6-luna")
             self.assertEqual(captured["run_kwargs"]["effort"], "low")
         finally:
             for name in fake_names:

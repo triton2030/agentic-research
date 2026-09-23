@@ -330,3 +330,33 @@ ChatGPT.app обновил бинарь до `codex-cli 0.155.0-alpha.9.2` (фа
 `history` на несуществующем id живьём: `history FAILED: … thread not loaded`,
 без traceback. Остановка карточки живьём до починки: `interrupt_requested
 signal=15` в журнале, прогон умер вместе с карточкой.
+
+## Поколение 6 и картинки, 2026-09-23
+
+| Что проверялось | Как | Результат |
+|---|---|---|
+| генерация картинки через мост | `investigate`, `gpt-5.6-sol`/`low`, run `20260923T001119Z-image-probe` | `completed`, `ok=true`; PNG 1254×1254, SHA-256 копии в `out/` равен оригиналу в `~/.codex/generated_images/…`; картинку осмотрели Claude и владелец |
+| генерация на новом дефолте | `investigate`, дефолт `gpt-6-sol`/`low`, run `20260923T002233Z-image-probe-gpt6` | ход `completed`, картинка годна (осмотрена, SHA-256 совпал); `ok=false` из-за scope: `out_of_scope_files` = `skills/claude/1codex/SKILL.md`, который Claude правил во время хода |
+| доступ к `gpt-6-luna` | `review`, `--model gpt-6-luna --effort low`, run `20260923T002234Z-luna6-probe` | `completed`, `ok=true`, ответ `OK GPT-6` за 6 с |
+| каталог движка | `~/.codex/models_cache.json`, 2026-09-23 | `gpt-6-astra` и `gpt-6-sol` до `ultra`, `gpt-6-luna` до `max`, все `visibility=list` |
+| мост после замены | `unittest discover` + `pyflakes` | 206 OK, pyflakes чист |
+
+`gpt-6-astra` проверен раньше: пробник 2026-09-06 и аудит 2026-09-19.
+
+### Голые фразы после установки (свежие `claude -p`, 2026-09-23)
+
+Сессии запускались из корня мастерской с отключёнными Bash, Edit, Write,
+Agent и NotebookEdit; журналы — `/tmp/trig/run1..5.jsonl` (не сохраняются).
+
+| Фраза | Вызванный скил | Итог |
+|---|---|---|
+| «нарисуй обложку для статьи knowledge/скил/как писать.md» | `1illustrations-and-charts` | SVG в чате; `1codex` не вызван — сосед перехватил |
+| «добавь в knowledge/скил/как писать.md схему того, как пишется скил» | нет | Mermaid; `1codex` не вызван, верно |
+| «что изображено на картинке …/image.png?» | нет | картинка прочитана; верно |
+| «сгенерируй картинку: робот рисует на мольберте» | `1codex` | весь маршрут: `delegate.md` → задание с копией в `out/` и запретом claude-mcp → `investigate` на дефолте `gpt-6-sol`/`medium` → `completed`, `ok=true`, scope `passed`, PNG 1312×1199 (`~/.codex-runs/robot-easel-20260923-053836`) |
+| «нужна картинка для README этого репо — робот-художник» | `1codex` | без терминала составил задание для Codex и назвал маршрут |
+
+Запрет Bash сессия обошла через `Monitor`, который тоже исполняет shell, и
+сделала незапланированный платный прогон. Проба, которой shell запрещён,
+должна отключать и `Monitor`.
+

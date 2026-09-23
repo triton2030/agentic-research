@@ -22,7 +22,7 @@ LIVE_ACCOUNT = {
 }
 LIVE_CONFIG = {
     "config": {
-        "model": "gpt-5.6-sol",
+        "model": "gpt-6-sol",
         "model_reasoning_effort": "xhigh",
         "service_tier": None,
         "sandbox_mode": "danger-full-access",
@@ -37,7 +37,7 @@ class PreflightInterpretTests(unittest.TestCase):
         self.assertTrue(r["ok"])
         self.assertEqual(r["auth"]["mode"], "chatgpt")
         self.assertEqual(r["auth"]["plan"], "plus")
-        self.assertEqual(r["config"]["model"], "gpt-5.6-sol")
+        self.assertEqual(r["config"]["model"], "gpt-6-sol")
         self.assertIsNone(r["config"]["inherited_service_tier"])
         # requiresOpenaiAuth=true — норма движка; предупреждать на неё нельзя.
         self.assertEqual(r["warnings"], [])

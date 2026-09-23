@@ -18,7 +18,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 REVIEW = HERE / "codex_review.py"
 PYTHON = HERE / ".venv" / "bin" / "python"
-DEFAULT_MODEL = "gpt-5.6-luna"
+DEFAULT_MODEL = "gpt-6-luna"
 DEFAULT_CORPUS = "_ops/chat-recall"
 
 TEMPLATE = """Цель: ответить на вопрос владельца проекта по корпусу его сохранённых цитат.
