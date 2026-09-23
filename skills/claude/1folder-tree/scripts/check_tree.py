@@ -15,6 +15,8 @@ import time
 
 MODEL = "gpt-6-sol"
 EFFORT = "low"
+# ChatGPT.app ships the Codex engine here without putting `codex` on PATH.
+APP_CODEX = Path("/Applications/ChatGPT.app/Contents/Resources/codex")
 SKILL = Path(__file__).resolve().parents[1] / "SKILL.md"
 TASK = """Ты впервые видишь дерево базы знаний. Владелец ориентируется по именам,
 не открывая файлы: оцени, понятно ли новому человеку, что где лежит и когда
@@ -116,9 +118,12 @@ def main(argv=None):
             raise ValueError("Evidence must be outside the reviewed root; choose --output-dir")
         tree = snapshot(root, [".git", *args.exclude], args.max_entries)
         skill = SKILL.read_text(encoding="utf-8")
-        codex = shutil.which("codex")
+        # The real path matters: a symlinked engine looks for codex-code-mode-host
+        # next to the link (openai/codex#32495).
+        found = shutil.which("codex")
+        codex = os.path.realpath(found) if found else str(APP_CODEX) if APP_CODEX.is_file() else None
         if not args.dry_run and codex is None:
-            raise ValueError("codex is not on PATH; install and sign in to Codex CLI")
+            raise ValueError("codex not found on PATH or in ChatGPT.app; install and sign in to Codex")
         if args.output_dir:
             destination.mkdir(parents=True, exist_ok=False)
             run_dir = destination

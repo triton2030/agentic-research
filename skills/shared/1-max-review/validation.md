@@ -37,3 +37,15 @@ CLI сохранил requested gpt-5.6-luna/max; resolved model не раскр�
 упрощение устранит все ошибки; прежние статусы этой редакцией не меняются.
 Предыдущий validation сохранён в `work/2026-09-20-simple-tasks/before/`
 [истории скилла](../../1-max-review/README.md).
+
+## 2026-09-23: Codex без PATH и поколение 6
+
+Лист перешёл на `gpt-6-luna`/`max`. На Mac с ChatGPT.app `codex` в PATH нет,
+поэтому `_codex_path` после PATH берёт движок
+`/Applications/ChatGPT.app/Contents/Resources/codex`, а найденный в PATH путь
+раскрывает до настоящего файла: симлинк движка не находит
+`codex-code-mode-host` (openai/codex#32495). Запрос владельца: «Это надо
+решить» — `_ops/chat-recall/2026-09-23-051553-claude-483a304e.md#recall-f7afc4982d01441fb558b444c94f128b`. Проверено: `doctor --json` → `status: ready`, движок
+0.155.0-alpha.16, ChatGPT-вход; живой `run` одной проверкой — `succeeded`,
+ответ совпал с файлом; тесты 24 OK. Resolved model CLI по-прежнему не раскрывает.
+

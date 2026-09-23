@@ -1,6 +1,7 @@
 # Терминальный запуск
 
-`max-review` использует Python 3, установленный Codex CLI и его ChatGPT-вход.
+`max-review` использует Python 3, Codex и его ChatGPT-вход: `codex` из PATH, а
+без него — движок из ChatGPT.app.
 Установка launcher в `~/.local/bin` и проверка маршрута:
 
 ```sh

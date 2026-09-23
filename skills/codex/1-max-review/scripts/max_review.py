@@ -24,6 +24,8 @@ from packets import PacketError, check as check_packets, prepare as prepare_pack
 
 
 MODEL = "gpt-6-luna"
+# ChatGPT.app ships the Codex engine here without putting `codex` on PATH.
+APP_CODEX = Path("/Applications/ChatGPT.app/Contents/Resources/codex")
 EFFORT = "max"
 DOCTOR_TIMEOUT_SECONDS = 10
 STATE_FILE = "run.json"
@@ -85,10 +87,14 @@ def _clean_env() -> dict[str, str]:
 
 
 def _codex_path() -> str:
+    # The real path matters: a symlinked engine looks for codex-code-mode-host
+    # next to the link and every tool call fails (openai/codex#32495).
     path = shutil.which("codex")
-    if not path:
-        raise CliError("codex executable was not found on PATH")
-    return path
+    if path:
+        return os.path.realpath(path)
+    if APP_CODEX.is_file():
+        return str(APP_CODEX)
+    raise CliError("codex executable was not found on PATH or in ChatGPT.app")
 
 
 def _doctor_payload() -> tuple[dict[str, Any], bool]:
