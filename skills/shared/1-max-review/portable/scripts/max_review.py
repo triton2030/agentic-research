@@ -23,7 +23,7 @@ from typing import Any
 from packets import PacketError, check as check_packets, prepare as prepare_packets
 
 
-MODEL = "gpt-5.6-luna"
+MODEL = "gpt-6-luna"
 EFFORT = "max"
 DOCTOR_TIMEOUT_SECONDS = 10
 STATE_FILE = "run.json"

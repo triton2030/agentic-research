@@ -31,8 +31,8 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
   Это дефолты по роду работы, каталог не блокируется
   (там же, `#L17`): `--model`/`--effort` — выбор по ситуации, включая
   `max`/`ultra`.
-  `terra` доступен явным `--model` (дефолт `md-scout`), штатным ярусом моста
-  не является. Service tier мост по умолчанию НЕ шлёт (вердикт
+  `terra` доступен явным `--model`, штатным ярусом моста не является
+  (`md-scout` с 2026-09-23 работает на `gpt-6-luna`). Service tier мост по умолчанию НЕ шлёт (вердикт
   владельца 2026-07-25, снят форсинг fast от 2026-07-20): `None` опускается
   SDK (`exclude_none`), движок наследует tier из config; `features.fast_mode`
   через `config_overrides` тоже не форсится. `--service-tier` — только

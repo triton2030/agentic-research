@@ -58,7 +58,7 @@ message-парой `Agent: <context>`. Это обычный episode body, а н
 Graphiti messages сериализуются для Codex без добавленной adapter-инструкции:
 исходные `role` и `content` сохраняются. Один `codex app-server` живёт только
 на время текущего CLI-run; каждый Graphiti LLM-call получает новый ephemeral
-thread с `gpt-5.6-luna`, reasoning effort `low`, read-only и approvals never.
+thread с `gpt-6-luna`, reasoning effort `low`, read-only и approvals never.
 Shell, memory, apps, browser/computer и остальные workspace-tools явно
 отключены, а каталог skills не добавляется в model context: один Graphiti call
 может дать только один terminal schema-answer;
@@ -95,7 +95,7 @@ uv sync --python 3.12
 uv run graphiti-codex doctor
 ```
 
-`doctor` проверяет ChatGPT login, наличие `gpt-5.6-luna/low`, локальные
+`doctor` проверяет ChatGPT login, наличие `gpt-6-luna/low`, локальные
 embeddings, fail-closed reranker seam и embedded FalkorDBLite. Codex inference
 не offline: episode content отправляется через уже авторизованный Codex/ChatGPT
 аккаунт. Внешний embedding API и OpenAI reranker не используются.

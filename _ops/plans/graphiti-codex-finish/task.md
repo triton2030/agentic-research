@@ -9,7 +9,7 @@ kind: task
 
 Получить законченный `experiments/graphiti-codex`: stock
 `graphiti-core==0.29.3` обрабатывает двухнедельный корпус цитат,
-но вместо его API-LLM использует изолированную `gpt-5.6-luna/low`,
+но вместо его API-LLM использует изолированную `gpt-6-luna/low`,
 а вместо внешних embeddings — локальную модель chat-recall.
 
 Root `_ops/GOAL.md` не владеет runtime-экспериментами; поэтому эта работа

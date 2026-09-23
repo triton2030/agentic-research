@@ -37,7 +37,7 @@ description: Use when 1-max-review or a broad review through many small independ
 
 ## Запуск
 
-Листовые агенты в обеих средах — **Luna `gpt-5.6-luna`, effort `max`** через
+Листовые агенты в обеих средах — **Luna `gpt-6-luna`, effort `max`** через
 общий CLI `max-review`. Модель закреплена в оболочке; молчаливой замены нет.
 [Команды](references/cli.md) запускают обычные задания и сохраняют ответы.
 Схема JSON для ответа и отдельная подготовка пакетов не нужны.

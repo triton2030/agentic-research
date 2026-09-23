@@ -360,3 +360,17 @@ Agent и NotebookEdit; журналы — `/tmp/trig/run1..5.jsonl` (не сох
 сделала незапланированный платный прогон. Проба, которой shell запрещён,
 должна отключать и `Monitor`.
 
+### Перевод остальных инструментов (2026-09-23)
+
+| Что | Как | Результат |
+|---|---|---|
+| `1-max-review` | `unittest discover` | 24 OK |
+| `1design-review` | `node --test tests/*.test.mjs` | 10 pass |
+| `graphiti-codex` | `uv run pytest tests` | 26 passed |
+| md-scout | `pytest tests/test_run_md_scout.py`; `sync-skill-docs.py --check` | 20 passed; установленный агент в паритете |
+| md-scout живьём | `run_md_scout.py knowledge/скил --question …` | `returncode 0`, `gpt-6-luna`/`medium`, пакет с цитатами до строки |
+| мост после правок аудита | `unittest discover` + `pyflakes` | 206 OK, чисто |
+
+`1-max-review` и `1folder-tree` живьём не запускались: оба ищут `codex` в PATH,
+а на этом Mac его там нет (находка `_ops/findings/2026-09-23-054846-codex-not-on-path.md`).
+

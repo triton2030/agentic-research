@@ -19,7 +19,7 @@ from openai_codex import ApprovalMode, AsyncCodex, CodexConfig, Sandbox
 from openai_codex.generated.v2_all import ReasoningEffort
 from pydantic import BaseModel
 
-CODEX_MODEL = "gpt-5.6-luna"
+CODEX_MODEL = "gpt-6-luna"
 CODEX_EFFORT = "low"
 CODEX_MAX_PARALLEL_TURNS = 4
 DEFAULT_TIMEOUT_SECONDS = 180.0

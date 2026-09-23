@@ -14,7 +14,7 @@ There is no lens multiplication and no aggregate reviewer.
 Options:
   --run-dir DIR     Existing run directory with manifest.json.
   --questions FILE  Clean reviewer contract.
-  --model NAME      Codex model. Default: gpt-5.6-sol.
+  --model NAME      Codex model. Default: gpt-6-sol.
   --effort LEVEL    Reasoning effort. Default: high.
   --parallel N      Concurrent reviewers, 1-3. Default: 3.
   --dry-run         Build prompts and print task/image mapping without Codex.
@@ -29,7 +29,7 @@ die() {
 
 RUN_DIR=""
 QUESTIONS=""
-MODEL="${DESIGN_REVIEW_MODEL:-gpt-5.6-sol}"
+MODEL="${DESIGN_REVIEW_MODEL:-gpt-6-sol}"
 EFFORT="${DESIGN_REVIEW_EFFORT:-high}"
 PARALLEL="3"
 DRY_RUN=0

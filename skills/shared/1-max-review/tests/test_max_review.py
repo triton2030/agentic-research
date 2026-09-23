@@ -74,7 +74,7 @@ try:
         raise SystemExit(0)
     report = Path(sys.argv[sys.argv.index("-o") + 1])
     report.write_text(f"report for {identifier}\n")
-    resolved_model = "gpt-5.6-sol" if identifier == "FALLBACK" else "gpt-5.6-luna"
+    resolved_model = "gpt-6-sol" if identifier == "FALLBACK" else "gpt-6-luna"
     print(json.dumps({"type": "thread.started", "thread_id": "fake-thread", "model": resolved_model}))
     print(json.dumps({"type": "turn.completed", "usage": {"input_tokens": 10, "output_tokens": 2}}))
 finally:
@@ -150,7 +150,7 @@ class MaxReviewTests(unittest.TestCase):
         self.assertEqual(payload["status"], "ready")
         self.assertTrue(payload["chatgpt_login"])
         self.assertEqual(payload["auth_source"], "chatgpt")
-        self.assertEqual(payload["model_requested"], "gpt-5.6-luna")
+        self.assertEqual(payload["model_requested"], "gpt-6-luna")
 
     def test_doctor_does_not_return_raw_non_chatgpt_login_output(self) -> None:
         self.env["FAKE_LOGIN_STATUS"] = "Bearer secret-value"
@@ -182,7 +182,7 @@ class MaxReviewTests(unittest.TestCase):
         self.assertEqual(argv[1], "exec")
         self.assertIn("--ignore-user-config", argv)
         self.assertIn("--skip-git-repo-check", argv)
-        self.assertEqual(argv[argv.index("-m") + 1], "gpt-5.6-luna")
+        self.assertEqual(argv[argv.index("-m") + 1], "gpt-6-luna")
         self.assertIn('model_reasoning_effort="max"', argv)
         self.assertIn('approval_policy="never"', argv)
         self.assertEqual(argv[argv.index("--sandbox") + 1], "read-only")
@@ -194,7 +194,7 @@ class MaxReviewTests(unittest.TestCase):
         task = state["tasks"]["one"]
         prompt_copy = run_dir / task["prompt_copy"]
         self.assertEqual(prompt_copy.read_text(), "ONE\nReview this file.\n")
-        self.assertEqual(task["attempts"][0]["model_resolved"], "gpt-5.6-luna")
+        self.assertEqual(task["attempts"][0]["model_resolved"], "gpt-6-luna")
         self.assertEqual(task["attempts"][0]["thread_id"], "fake-thread")
         self.assertEqual(task["attempts"][0]["usage"]["output_tokens"], 2)
         self.assertTrue((run_dir / task["attempts"][0]["events"]).is_file())
@@ -231,8 +231,8 @@ class MaxReviewTests(unittest.TestCase):
         self.assertEqual(payload["counts"]["failed"], 1)
         state = json.loads((run_dir / "run.json").read_text())
         attempt = state["tasks"]["fallback"]["attempts"][0]
-        self.assertEqual(attempt["model_requested"], "gpt-5.6-luna")
-        self.assertEqual(attempt["model_resolved"], "gpt-5.6-sol")
+        self.assertEqual(attempt["model_requested"], "gpt-6-luna")
+        self.assertEqual(attempt["model_resolved"], "gpt-6-sol")
         self.assertIn("does not match requested model", attempt["error"])
         self.assertEqual((run_dir / attempt["report"]).read_text(), "report for FALLBACK\n")
 

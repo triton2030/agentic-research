@@ -70,7 +70,7 @@ scope-формат не передаются. Adapter не синтезируе�
    Один `codex app-server` живёт на время CLI-run; каждый Graphiti call начинает
    в нём новый ephemeral thread и передаёт response schema через штатный
    `output_schema`.
-3. Invocation фиксирован на `gpt-5.6-luna`, reasoning effort `low`, sandbox
+3. Invocation фиксирован на `gpt-6-luna`, reasoning effort `low`, sandbox
    `read-only`, approvals `never`. Shell, memory, apps,
    browser/computer и workspace-tools явно отключены; каталог skills,
    permissions/apps/collaboration/environment context не добавляется в model

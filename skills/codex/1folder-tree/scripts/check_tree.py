@@ -13,7 +13,7 @@ import tempfile
 import time
 
 
-MODEL = "gpt-5.6-sol"
+MODEL = "gpt-6-sol"
 EFFORT = "low"
 SKILL = Path(__file__).resolve().parents[1] / "SKILL.md"
 TASK = """Ты впервые видишь дерево базы знаний. Владелец ориентируется по именам,

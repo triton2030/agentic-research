@@ -30,3 +30,11 @@
   масштаб сложной страницы, а число задач определяется полным semantic coverage.
 - Передача whole-frame, двух PNG одному reviewer-у и одного PNG двум reviewers
   исключена машинным контрактом, а не оставлена prompt-просьбой.
+
+## 2026-09-23: дефолт ревьюера — `gpt-6-sol`
+
+`scripts/design-review` и `scripts/run-clean-design-agent.sh`: дефолт модели
+`gpt-5.6-sol` → `gpt-6-sol` по слову владельца «да надо везде исправить»
+(`_ops/chat-recall/2026-09-23-051553-claude-483a304e.md#recall-8788e893664d4afc89720e08904244c2`). Переменная `DESIGN_REVIEW_MODEL` по-прежнему перекрывает дефолт.
+Тесты `node --test`: 10 pass.
+

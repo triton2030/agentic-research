@@ -76,12 +76,15 @@ def codex_bin_source(codex_bin: str | None) -> str:
     return "chatgpt-app" if codex_bin else "sdk-bundle"
 
 
-# The fallback engine is not a silent equivalent: the default model fails on it.
+# The fallback engine is not a silent equivalent: it lags the app engine, and
+# old bundles answered newer models with HTTP 400 (verified for gpt-5.6-sol on
+# 0.137.0a4; the current default on the current bundle is not probed).
 SDK_BUNDLE_WARNING = (
     "[codex-bridge] ChatGPT.app не найден — запуск на бандл-бинаре SDK; "
-    f"default-модель {DEFAULT_CODEX_MODEL} на нём отвечает HTTP 400 "
-    "'requires a newer version of Codex' (поставь ChatGPT.app или передай "
-    "--model, который старый движок ещё знает)."
+    f"default-модель {DEFAULT_CODEX_MODEL} на нём может не работать: старые "
+    "бинари отвечали на новые модели HTTP 400 'requires a newer version of "
+    "Codex' (поставь ChatGPT.app или передай --model, который старый движок "
+    "ещё знает)."
 )
 
 # Floor is "low": default turn tools (web_search/image_gen) reject lower
