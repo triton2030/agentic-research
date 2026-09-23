@@ -1,0 +1,13 @@
+BEGIN:VCARD
+VERSION:3.0
+N:Petrov;Ivan;;;
+FN:Ivan Petrov
+TEL;TYPE=CELL:+7 900 000-00-02
+EMAIL:ivan@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Olga Ivanova
+TEL;VALUE=uri;TYPE=work:tel:+7-900-000-00-03
+NOTE:Line one\nline two
+END:VCARD

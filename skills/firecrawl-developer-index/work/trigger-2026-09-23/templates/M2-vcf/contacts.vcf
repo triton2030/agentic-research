@@ -1,0 +1,1337 @@
+BEGIN:VCARD
+VERSION:4.0
+FN:Dmitry Novikov 0
+TEL;TYPE=CELL:+7 900 000-00-00
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Irina Kozlova 1
+TEL;VALUE=uri;TYPE=work:tel:+7-900-001-11-01
+EMAIL:user1@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Anna Ivanova 2
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Elena Kozlova 3
+item1.TEL:+7 901 003-22-03
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Irina Ivanova 4
+TEL;TYPE=CELL:+7 900 004-00-04
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Dmitry Sokolova 5
+TEL;VALUE=uri;TYPE=work:tel:+7-900-005-11-05
+EMAIL:user5@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Maria Kozlova 6
+TEL;VALUE=uri;TYPE=work:tel:+7-900-006-11-06
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Irina Ivanova 7
+TEL;TYPE=CELL:+7 900 007-00-07
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Ivan Ivanova 8
+item1.TEL:+7 901 008-22-08
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Elena Ivanova 9
+EMAIL:user9@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Ivan Kozlova 10
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Nina Kuznetsova 11
+TEL;TYPE=CELL:+7 900 011-00-11
+EMAIL:user11@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Elena Ivanova 12
+TEL;TYPE=CELL:+7 900 012-00-12
+EMAIL:user12@example.com
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Dmitry Smirnov 13
+TEL;VALUE=uri;TYPE=work:tel:+7-900-013-11-13
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Oleg Smirnov 14
+TEL;VALUE=uri;TYPE=work:tel:+7-900-014-11-14
+EMAIL:user14@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Petr Petrov 15
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Ivan Kuznetsova 16
+TEL;TYPE=CELL:+7 900 016-00-16
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Olga Petrov 17
+TEL;TYPE=CELL:+7 900 017-00-17
+EMAIL:user17@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Sergey Popov 18
+TEL;TYPE=CELL:+7 900 018-00-18
+EMAIL:user18@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Petr Petrov 19
+TEL;TYPE=CELL:+7 900 019-00-19
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Pavel Kozlova 20
+TEL;TYPE=CELL:+7 900 020-00-20
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Maria Kuznetsova 21
+TEL;TYPE=CELL:+7 900 021-00-21
+EMAIL:user21@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Irina Kuznetsova 22
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Elena Petrov 23
+TEL;TYPE=CELL:+7 900 023-00-23
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Oleg Lebedev 24
+TEL;TYPE=CELL:+7 900 024-00-24
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Irina Smirnov 25
+EMAIL:user25@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Nina Morozova 26
+TEL;TYPE=CELL:+7 900 026-00-26
+EMAIL:user26@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Oleg Petrov 27
+TEL;TYPE=CELL:+7 900 027-00-27
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Anna Popov 28
+TEL;TYPE=CELL:+7 900 028-00-28
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Anna Kozlova 29
+TEL;VALUE=uri;TYPE=work:tel:+7-900-029-11-29
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Anna Morozova 30
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Maria Petrov 31
+TEL;VALUE=uri;TYPE=work:tel:+7-900-031-11-31
+EMAIL:user31@example.com
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Maria Sokolova 32
+EMAIL:user32@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Oleg Petrov 33
+item1.TEL:+7 901 033-22-33
+EMAIL:user33@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Sergey Sokolova 34
+TEL;VALUE=uri;TYPE=work:tel:+7-900-034-11-34
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Elena Petrov 35
+TEL;VALUE=uri;TYPE=work:tel:+7-900-035-11-35
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Pavel Petrov 36
+TEL;TYPE=CELL:+7 900 036-00-36
+EMAIL:user36@example.com
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Maria Lebedev 37
+TEL;TYPE=CELL:+7 900 037-00-37
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Dmitry Kozlova 38
+EMAIL:user38@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Ivan Popov 39
+TEL;TYPE=CELL:+7 900 039-00-39
+EMAIL:user39@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Olga Kozlova 40
+TEL;VALUE=uri;TYPE=work:tel:+7-900-040-11-40
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Sergey Popov 41
+TEL;VALUE=uri;TYPE=work:tel:+7-900-041-11-41
+EMAIL:user41@example.com
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Sergey Kozlova 42
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Petr Lebedev 43
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Sergey Kuznetsova 44
+TEL;TYPE=CELL:+7 900 044-00-44
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Ivan Ivanova 45
+EMAIL:user45@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Petr Lebedev 46
+TEL;VALUE=uri;TYPE=work:tel:+7-900-046-11-46
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Pavel Kozlova 47
+TEL;TYPE=CELL:+7 900 047-00-47
+EMAIL:user47@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Ivan Popov 48
+TEL;TYPE=CELL:+7 900 048-00-48
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Nina Smirnov 49
+TEL;TYPE=CELL:+7 900 049-00-49
+EMAIL:user49@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Petr Smirnov 50
+EMAIL:user50@example.com
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Irina Sokolova 51
+TEL;VALUE=uri;TYPE=work:tel:+7-900-051-11-51
+EMAIL:user51@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Anna Petrov 52
+TEL;TYPE=CELL:+7 900 052-00-52
+EMAIL:user52@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Sergey Novikov 53
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Anna Lebedev 54
+EMAIL:user54@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Oleg Lebedev 55
+TEL;TYPE=CELL:+7 900 055-00-55
+EMAIL:user55@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Ivan Lebedev 56
+TEL;VALUE=uri;TYPE=work:tel:+7-900-056-11-56
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Sergey Kozlova 57
+TEL;VALUE=uri;TYPE=work:tel:+7-900-057-11-57
+EMAIL:user57@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Nina Ivanova 58
+TEL;TYPE=CELL:+7 900 058-00-58
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Maria Novikov 59
+TEL;TYPE=CELL:+7 900 059-00-59
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Irina Ivanova 60
+TEL;TYPE=CELL:+7 900 060-00-60
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Dmitry Petrov 61
+EMAIL:user61@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Anna Novikov 62
+TEL;VALUE=uri;TYPE=work:tel:+7-900-062-11-62
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Irina Novikov 63
+TEL;VALUE=uri;TYPE=work:tel:+7-900-063-11-63
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Oleg Ivanova 64
+TEL;TYPE=CELL:+7 900 064-00-64
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Irina Smirnov 65
+TEL;TYPE=CELL:+7 900 065-00-65
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Nina Lebedev 66
+TEL;TYPE=CELL:+7 900 066-00-66
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Irina Popov 67
+TEL;TYPE=CELL:+7 900 067-00-67
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Ivan Morozova 68
+TEL;TYPE=CELL:+7 900 068-00-68
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Elena Novikov 69
+TEL;TYPE=CELL:+7 900 069-00-69
+EMAIL:user69@example.com
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Irina Kozlova 70
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Petr Kozlova 71
+TEL;TYPE=CELL:+7 900 071-00-71
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Dmitry Novikov 72
+TEL;TYPE=CELL:+7 900 072-00-72
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Maria Smirnov 73
+item1.TEL:+7 901 073-22-73
+EMAIL:user73@example.com
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Petr Petrov 74
+TEL;TYPE=CELL:+7 900 074-00-74
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Dmitry Ivanova 75
+item1.TEL:+7 901 075-22-75
+EMAIL:user75@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Maria Kuznetsova 76
+TEL;TYPE=CELL:+7 900 076-00-76
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Elena Novikov 77
+TEL;TYPE=CELL:+7 900 077-00-77
+EMAIL:user77@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Nina Kuznetsova 78
+TEL;TYPE=CELL:+7 900 078-00-78
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Anna Kuznetsova 79
+TEL;VALUE=uri;TYPE=work:tel:+7-900-079-11-79
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Pavel Sokolova 80
+TEL;TYPE=CELL:+7 900 080-00-80
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Anna Kuznetsova 81
+item1.TEL:+7 901 081-22-81
+EMAIL:user81@example.com
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Elena Novikov 82
+TEL;TYPE=CELL:+7 900 082-00-82
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Ivan Ivanova 83
+TEL;VALUE=uri;TYPE=work:tel:+7-900-083-11-83
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Sergey Ivanova 84
+TEL;TYPE=CELL:+7 900 084-00-84
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Nina Kuznetsova 85
+TEL;TYPE=CELL:+7 900 085-00-85
+EMAIL:user85@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Pavel Novikov 86
+TEL;TYPE=CELL:+7 900 086-00-86
+EMAIL:user86@example.com
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Anna Smirnov 87
+EMAIL:user87@example.com
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Nina Kozlova 88
+item1.TEL:+7 901 088-22-88
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Irina Sokolova 89
+TEL;TYPE=CELL:+7 900 089-00-89
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Ivan Kuznetsova 90
+TEL;TYPE=CELL:+7 900 090-00-90
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Petr Morozova 91
+TEL;TYPE=CELL:+7 900 091-00-91
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Olga Lebedev 92
+TEL;VALUE=uri;TYPE=work:tel:+7-900-092-11-92
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Maria Popov 93
+item1.TEL:+7 901 093-22-93
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Elena Smirnov 94
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Anna Lebedev 95
+item1.TEL:+7 901 095-22-95
+EMAIL:user95@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Dmitry Ivanova 96
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Ivan Kuznetsova 97
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Nina Lebedev 98
+TEL;TYPE=CELL:+7 900 098-00-98
+EMAIL:user98@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Dmitry Kuznetsova 99
+TEL;TYPE=CELL:+7 900 099-00-99
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Olga Morozova 100
+item1.TEL:+7 901 100-22-00
+EMAIL:user100@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Ivan Kuznetsova 101
+TEL;TYPE=CELL:+7 900 101-00-01
+EMAIL:user101@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Sergey Novikov 102
+TEL;TYPE=CELL:+7 900 102-00-02
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Olga Kozlova 103
+TEL;TYPE=CELL:+7 900 103-00-03
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Ivan Lebedev 104
+TEL;TYPE=CELL:+7 900 104-00-04
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Irina Morozova 105
+TEL;TYPE=CELL:+7 900 105-00-05
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Irina Lebedev 106
+TEL;TYPE=CELL:+7 900 106-00-06
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Maria Novikov 107
+TEL;VALUE=uri;TYPE=work:tel:+7-900-107-11-07
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Petr Morozova 108
+TEL;VALUE=uri;TYPE=work:tel:+7-900-108-11-08
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Ivan Sokolova 109
+TEL;TYPE=CELL:+7 900 109-00-09
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Sergey Ivanova 110
+TEL;TYPE=CELL:+7 900 110-00-10
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Petr Petrov 111
+TEL;TYPE=CELL:+7 900 111-00-11
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Anna Kuznetsova 112
+item1.TEL:+7 901 112-22-12
+EMAIL:user112@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Olga Kuznetsova 113
+TEL;TYPE=CELL:+7 900 113-00-13
+EMAIL:user113@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Anna Lebedev 114
+TEL;VALUE=uri;TYPE=work:tel:+7-900-114-11-14
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Sergey Novikov 115
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Olga Novikov 116
+item1.TEL:+7 901 116-22-16
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Maria Morozova 117
+item1.TEL:+7 901 117-22-17
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Maria Kuznetsova 118
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Petr Petrov 119
+TEL;TYPE=CELL:+7 900 119-00-19
+EMAIL:user119@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Pavel Petrov 120
+TEL;TYPE=CELL:+7 900 120-00-20
+EMAIL:user120@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Nina Smirnov 121
+TEL;TYPE=CELL:+7 900 121-00-21
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Sergey Kuznetsova 122
+TEL;TYPE=CELL:+7 900 122-00-22
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Olga Ivanova 123
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Petr Kozlova 124
+item1.TEL:+7 901 124-22-24
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Anna Morozova 125
+TEL;TYPE=CELL:+7 900 125-00-25
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Anna Lebedev 126
+TEL;TYPE=CELL:+7 900 126-00-26
+EMAIL:user126@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Olga Novikov 127
+TEL;TYPE=CELL:+7 900 127-00-27
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Dmitry Popov 128
+TEL;TYPE=CELL:+7 900 128-00-28
+EMAIL:user128@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Olga Popov 129
+item1.TEL:+7 901 129-22-29
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Anna Kuznetsova 130
+TEL;VALUE=uri;TYPE=work:tel:+7-900-130-11-30
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Sergey Kozlova 131
+TEL;VALUE=uri;TYPE=work:tel:+7-900-131-11-31
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Maria Kozlova 132
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Elena Novikov 133
+TEL;TYPE=CELL:+7 900 133-00-33
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Nina Lebedev 134
+TEL;TYPE=CELL:+7 900 134-00-34
+EMAIL:user134@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Elena Novikov 135
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Dmitry Popov 136
+TEL;TYPE=CELL:+7 900 136-00-36
+EMAIL:user136@example.com
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Maria Petrov 137
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Maria Novikov 138
+TEL;TYPE=CELL:+7 900 138-00-38
+EMAIL:user138@example.com
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Sergey Ivanova 139
+TEL;VALUE=uri;TYPE=work:tel:+7-900-139-11-39
+EMAIL:user139@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Nina Lebedev 140
+item1.TEL:+7 901 140-22-40
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Sergey Kozlova 141
+TEL;TYPE=CELL:+7 900 141-00-41
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Anna Kozlova 142
+TEL;TYPE=CELL:+7 900 142-00-42
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Ivan Lebedev 143
+TEL;TYPE=CELL:+7 900 143-00-43
+EMAIL:user143@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Olga Kozlova 144
+TEL;VALUE=uri;TYPE=work:tel:+7-900-144-11-44
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Olga Lebedev 145
+EMAIL:user145@example.com
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Nina Lebedev 146
+TEL;TYPE=CELL:+7 900 146-00-46
+EMAIL:user146@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Maria Popov 147
+TEL;TYPE=CELL:+7 900 147-00-47
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Anna Smirnov 148
+item1.TEL:+7 901 148-22-48
+EMAIL:user148@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Ivan Sokolova 149
+TEL;TYPE=CELL:+7 900 149-00-49
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Pavel Kozlova 150
+TEL;TYPE=CELL:+7 900 150-00-50
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Elena Smirnov 151
+TEL;VALUE=uri;TYPE=work:tel:+7-900-151-11-51
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Maria Kozlova 152
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Olga Kozlova 153
+TEL;TYPE=CELL:+7 900 153-00-53
+EMAIL:user153@example.com
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Elena Novikov 154
+item1.TEL:+7 901 154-22-54
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Petr Petrov 155
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Elena Morozova 156
+TEL;TYPE=CELL:+7 900 156-00-56
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Irina Smirnov 157
+item1.TEL:+7 901 157-22-57
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Ivan Smirnov 158
+item1.TEL:+7 901 158-22-58
+EMAIL:user158@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Anna Smirnov 159
+TEL;TYPE=CELL:+7 900 159-00-59
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Dmitry Kozlova 160
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Maria Petrov 161
+TEL;TYPE=CELL:+7 900 161-00-61
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Dmitry Kuznetsova 162
+TEL;TYPE=CELL:+7 900 162-00-62
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Maria Sokolova 163
+TEL;TYPE=CELL:+7 900 163-00-63
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Nina Ivanova 164
+TEL;TYPE=CELL:+7 900 164-00-64
+EMAIL:user164@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Nina Kozlova 165
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Ivan Lebedev 166
+item1.TEL:+7 901 166-22-66
+EMAIL:user166@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Dmitry Petrov 167
+TEL;TYPE=CELL:+7 900 167-00-67
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Elena Novikov 168
+TEL;TYPE=CELL:+7 900 168-00-68
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Nina Ivanova 169
+TEL;TYPE=CELL:+7 900 169-00-69
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Maria Popov 170
+TEL;TYPE=CELL:+7 900 170-00-70
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Elena Ivanova 171
+TEL;TYPE=CELL:+7 900 171-00-71
+EMAIL:user171@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Oleg Smirnov 172
+TEL;TYPE=CELL:+7 900 172-00-72
+EMAIL:user172@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Oleg Ivanova 173
+TEL;TYPE=CELL:+7 900 173-00-73
+EMAIL:user173@example.com
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Elena Ivanova 174
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Nina Kuznetsova 175
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Elena Morozova 176
+item1.TEL:+7 901 176-22-76
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Petr Morozova 177
+TEL;TYPE=CELL:+7 900 177-00-77
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Nina Kozlova 178
+TEL;VALUE=uri;TYPE=work:tel:+7-900-178-11-78
+EMAIL:user178@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Maria Ivanova 179
+item1.TEL:+7 901 179-22-79
+EMAIL:user179@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Maria Novikov 180
+TEL;TYPE=CELL:+7 900 180-00-80
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Oleg Kuznetsova 181
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Pavel Petrov 182
+TEL;VALUE=uri;TYPE=work:tel:+7-900-182-11-82
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Dmitry Morozova 183
+TEL;VALUE=uri;TYPE=work:tel:+7-900-183-11-83
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Sergey Popov 184
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Petr Morozova 185
+TEL;TYPE=CELL:+7 900 185-00-85
+EMAIL:user185@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Anna Sokolova 186
+TEL;TYPE=CELL:+7 900 186-00-86
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Nina Sokolova 187
+item1.TEL:+7 901 187-22-87
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Pavel Novikov 188
+TEL;TYPE=CELL:+7 900 188-00-88
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Nina Smirnov 189
+item1.TEL:+7 901 189-22-89
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Pavel Morozova 190
+EMAIL:user190@example.com
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Dmitry Petrov 191
+TEL;TYPE=CELL:+7 900 191-00-91
+EMAIL:user191@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Sergey Novikov 192
+TEL;TYPE=CELL:+7 900 192-00-92
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Nina Petrov 193
+TEL;VALUE=uri;TYPE=work:tel:+7-900-193-11-93
+EMAIL:user193@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Pavel Ivanova 194
+TEL;TYPE=CELL:+7 900 194-00-94
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Pavel Lebedev 195
+TEL;TYPE=CELL:+7 900 195-00-95
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Oleg Lebedev 196
+TEL;TYPE=CELL:+7 900 196-00-96
+EMAIL:user196@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Sergey Novikov 197
+TEL;TYPE=CELL:+7 900 197-00-97
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Ivan Popov 198
+TEL;VALUE=uri;TYPE=work:tel:+7-900-198-11-98
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Sergey Popov 199
+EMAIL:user199@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Petr Novikov 200
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Petr Novikov 201
+TEL;VALUE=uri;TYPE=work:tel:+7-900-201-11-01
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Oleg Sokolova 202
+TEL;TYPE=CELL:+7 900 202-00-02
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Oleg Lebedev 203
+TEL;TYPE=CELL:+7 900 203-00-03
+EMAIL:user203@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Anna Ivanova 204
+TEL;VALUE=uri;TYPE=work:tel:+7-900-204-11-04
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Oleg Popov 205
+TEL;TYPE=CELL:+7 900 205-00-05
+EMAIL:user205@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Irina Lebedev 206
+TEL;TYPE=CELL:+7 900 206-00-06
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Ivan Kozlova 207
+TEL;TYPE=CELL:+7 900 207-00-07
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Dmitry Kuznetsova 208
+TEL;TYPE=CELL:+7 900 208-00-08
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Petr Sokolova 209
+EMAIL:user209@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Oleg Novikov 210
+TEL;TYPE=CELL:+7 900 210-00-10
+EMAIL:user210@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Ivan Ivanova 211
+item1.TEL:+7 901 211-22-11
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Elena Smirnov 212
+TEL;VALUE=uri;TYPE=work:tel:+7-900-212-11-12
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Olga Smirnov 213
+EMAIL:user213@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Maria Smirnov 214
+TEL;TYPE=CELL:+7 900 214-00-14
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Sergey Novikov 215
+TEL;VALUE=uri;TYPE=work:tel:+7-900-215-11-15
+EMAIL:user215@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Anna Kuznetsova 216
+TEL;TYPE=CELL:+7 900 216-00-16
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Olga Kozlova 217
+TEL;TYPE=CELL:+7 900 217-00-17
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Pavel Popov 218
+TEL;TYPE=CELL:+7 900 218-00-18
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Maria Kuznetsova 219
+TEL;TYPE=CELL:+7 900 219-00-19
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Anna Petrov 220
+TEL;TYPE=CELL:+7 900 220-00-20
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Dmitry Petrov 221
+TEL;TYPE=CELL:+7 900 221-00-21
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Sergey Kozlova 222
+TEL;TYPE=CELL:+7 900 222-00-22
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Nina Novikov 223
+EMAIL:user223@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Anna Ivanova 224
+TEL;TYPE=CELL:+7 900 224-00-24
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Maria Kuznetsova 225
+TEL;TYPE=CELL:+7 900 225-00-25
+EMAIL:user225@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Dmitry Popov 226
+TEL;TYPE=CELL:+7 900 226-00-26
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Dmitry Smirnov 227
+TEL;TYPE=CELL:+7 900 227-00-27
+EMAIL:user227@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Elena Novikov 228
+item1.TEL:+7 901 228-22-28
+NOTE:Long note that is folded across lines according to the vCard spec and continues
+  on the next line here
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Olga Smirnov 229
+TEL;VALUE=uri;TYPE=work:tel:+7-900-229-11-29
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Pavel Smirnov 230
+TEL;TYPE=CELL:+7 900 230-00-30
+EMAIL:user230@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Pavel Novikov 231
+item1.TEL:+7 901 231-22-31
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Irina Smirnov 232
+TEL;TYPE=CELL:+7 900 232-00-32
+EMAIL:user232@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Pavel Kozlova 233
+TEL;TYPE=CELL:+7 900 233-00-33
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Oleg Petrov 234
+TEL;TYPE=CELL:+7 900 234-00-34
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Anna Kozlova 235
+item1.TEL:+7 901 235-22-35
+EMAIL:user235@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:3.0
+FN:Irina Smirnov 236
+TEL;TYPE=CELL:+7 900 236-00-36
+EMAIL:user236@example.com
+END:VCARD
+BEGIN:VCARD
+VERSION:2.1
+FN:Olga Petrov 237
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Petr Popov 238
+TEL;TYPE=CELL:+7 900 238-00-38
+END:VCARD
+BEGIN:VCARD
+VERSION:4.0
+FN:Olga Kuznetsova 239
+TEL;TYPE=CELL:+7 900 239-00-39
+END:VCARD

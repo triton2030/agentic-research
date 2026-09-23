@@ -1,0 +1,12 @@
+P1-cron	Допиши nextRuns в src/schedule.js: по cron-выражению она должна возвращать count ближайших дат запуска.
+P2-retry	fetch_data в app.py иногда падает из-за временных сбоев сети. Сделай, чтобы она повторяла запрос с растущей паузой между попытками.
+P3-links	Хочу проверять, что все ссылки в .md файлах этого репозитория рабочие. Сделай такую проверку.
+P4-vcard	Добавь в cli.py команду import, которая берёт contacts.vcf и дописывает контакты в contacts.json.
+N1-rename	Переименуй nextRuns в getNextRuns во всём проекте.
+N2-bug	test_total падает. Найди причину и почини.
+M1-links	Какие ссылки в .md файлах этого репозитория битые? Дай список.
+M2-vcf	У каких контактов в contacts.vcf нет телефона? Дай имена.
+M3-frontmatter	Проверь, у каких скилов в skills/ нет description во frontmatter или он длиннее 200 символов.
+Q1-default	Какой дефолтный таймаут у fetch в Node 22?
+Q2-version	С какой версии pydantic появился model_validate?
+E1-esm	При запуске node index.js падает: Error [ERR_REQUIRE_ESM]: require() of ES Module /app/node_modules/node-fetch/src/index.js from /app/index.js not supported. Почини.

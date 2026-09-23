@@ -1,0 +1,562 @@
+## baseline/N1-rename-1
+  - Grep()
+  - Read(reuse-probe/work/baseline/N1-rename-1/src/index.js)
+  - Read(se-probe/work/baseline/N1-rename-1/src/schedule.js)
+  - Edit(se-probe/work/baseline/N1-rename-1/src/schedule.js)
+  - Edit(reuse-probe/work/baseline/N1-rename-1/src/index.js)
+  - Grep()
+  =>  I renamed `nextRuns` to `getNextRuns` in both places it appeared:  - [src/schedule.js:2](src/schedule.js:2), where the function is defined. - [src/index.js](src/index.js), in the import on line 1 and the call on line 3.  
+
+## baseline/N2-bug-1
+  - Skill(diagnosing-bugs)
+  - Glob()
+  - Read(ate/tmp/reuse-probe/work/baseline/N2-bug-1/cart.py)
+  - Read(mp/reuse-probe/work/baseline/N2-bug-1/test_cart.py)
+  - Edit(ate/tmp/reuse-probe/work/baseline/N2-bug-1/cart.py)
+  =>  I fixed the bug but couldn't run the test: this session has no terminal. Please run `pytest test_cart.py` to confirm it passes.  ## Cause  `total` in `cart.py` started counting from the second item, so the first item in  
+
+## baseline/P1-cron-1
+  - Glob()
+  - Read(euse-probe/work/baseline/P1-cron-1/src/schedule.js)
+  - Read(p/reuse-probe/work/baseline/P1-cron-1/package.json)
+  - Read(p/reuse-probe/work/baseline/P1-cron-1/src/index.js)
+  - Skill(firecrawl-developer-index)
+  - ToolSearch()
+  - Write(euse-probe/work/baseline/P1-cron-1/src/schedule.js)
+  =>  Я написал `nextRuns` в [src/schedule.js](src/schedule.js). Код я ни разу не запускал: в этой сессии нет инструмента для выполнения команд.  ## Что умеет функция  - **Вызов:** `nextRuns(expr, count, from?)` возвращает мас 
+
+## baseline/P1-cron-2
+  - Glob()
+  - Read(euse-probe/work/baseline/P1-cron-2/src/schedule.js)
+  - Read(p/reuse-probe/work/baseline/P1-cron-2/package.json)
+  - Read(p/reuse-probe/work/baseline/P1-cron-2/src/index.js)
+  - Skill(firecrawl-developer-index)
+  - ToolSearch()
+  - Write(euse-probe/work/baseline/P1-cron-2/src/schedule.js)
+  =>  `nextRuns` готова: [src/schedule.js](src/schedule.js). Код я не запускал, потому что в этой сессии нет терминала. Проверить можно так: `npm start`. Пример из `src/index.js` должен вывести 5 ближайших дат в будни с 9:00 д 
+
+## baseline/P2-retry-1
+  - Read(te/tmp/reuse-probe/work/baseline/P2-retry-1/app.py)
+  - Glob()
+  - Read(se-probe/work/baseline/P2-retry-1/requirements.txt)
+  - Skill(firecrawl-developer-index)
+  - ToolSearch()
+  - Write(te/tmp/reuse-probe/work/baseline/P2-retry-1/app.py)
+  =>  `fetch_data` в [app.py](app.py) теперь повторяет запрос сама. Я ничего не запускал: в этой сессии нет инструмента для выполнения кода.  ## Как сделано  Повторы делает механизм, который уже есть внутри `requests` (класс ` 
+
+## baseline/P2-retry-2
+  - Glob()
+  - Read(te/tmp/reuse-probe/work/baseline/P2-retry-2/app.py)
+  - Read(se-probe/work/baseline/P2-retry-2/requirements.txt)
+  - Skill(firecrawl-developer-index)
+  - Edit(te/tmp/reuse-probe/work/baseline/P2-retry-2/app.py)
+  =>  Готово: `fetch_data` теперь повторяет запрос сам, с растущей паузой между попытками. Изменения в `app.py:1-23`. Я не запускал код и не проверял его на реальной сети.  ## Как устроено  Отдельную библиотеку я не добавлял.  
+
+## baseline/P3-links-1
+  - Glob()
+  - Read(tmp/reuse-probe/work/baseline/P3-links-1/README.md)
+  - Read(reuse-probe/work/baseline/P3-links-1/docs/setup.md)
+  - Read(reuse-probe/work/baseline/P3-links-1/docs/usage.md)
+  - Skill(firecrawl-developer-index)
+  - ToolSearch()
+  - Skill(1writing-rule)
+  =>  Проверку я не настроил: в этой сессии у меня нет терминала и поиска Firecrawl. Поэтому я не могу ни поставить инструмент, ни запустить его, ни сверить его настройки с документацией. Писать непроверенный скрипт или конфиг 
+
+## baseline/P3-links-2
+  - Glob()
+  - Read(tmp/reuse-probe/work/baseline/P3-links-2/README.md)
+  - Read(reuse-probe/work/baseline/P3-links-2/docs/setup.md)
+  - Read(reuse-probe/work/baseline/P3-links-2/docs/usage.md)
+  - Skill(firecrawl-developer-index)
+  - ToolSearch()
+  - Write(rk/baseline/P3-links-2/.github/workflows/links.yml)
+  =>  Я добавил проверку ссылок, но ещё ни разу её не запускал: в этой сессии у меня нет терминала.  ## Что сделано  Файл [.github/workflows/links.yml](.github/workflows/links.yml) использует готовый инструмент **lychee** — пи 
+
+## baseline/P4-vcard-1
+  - Glob()
+  - Read(te/tmp/reuse-probe/work/baseline/P4-vcard-1/cli.py)
+  - Read(/reuse-probe/work/baseline/P4-vcard-1/contacts.vcf)
+  - Read(reuse-probe/work/baseline/P4-vcard-1/contacts.json)
+  - Skill(firecrawl-developer-index)
+  - Edit(te/tmp/reuse-probe/work/baseline/P4-vcard-1/cli.py)
+  - Edit(te/tmp/reuse-probe/work/baseline/P4-vcard-1/cli.py)
+  =>  В [cli.py](cli.py) теперь есть команда `import`. Я её не запускал: в этой сессии нет терминала.  ## Как пользоваться  - `python3 cli.py import` читает `contacts.vcf` и дописывает контакты в конец `contacts.json`. - `pyth 
+
+## baseline/P4-vcard-2
+  - Glob()
+  - Read(te/tmp/reuse-probe/work/baseline/P4-vcard-2/cli.py)
+  - Read(/reuse-probe/work/baseline/P4-vcard-2/contacts.vcf)
+  - Read(reuse-probe/work/baseline/P4-vcard-2/contacts.json)
+  - Skill(firecrawl-developer-index)
+  - Edit(te/tmp/reuse-probe/work/baseline/P4-vcard-2/cli.py)
+  - Edit(te/tmp/reuse-probe/work/baseline/P4-vcard-2/cli.py)
+  =>  I added the `import` command to [cli.py](cli.py), but I haven't run it: there's no shell in this session.  ## How to run it ``` python3 cli.py import              # reads contacts.vcf python3 cli.py import other.vcf    # 
+
+## v17/N1-rename-1
+  - Grep()
+  - Read(/tmp/reuse-probe/work/v17/N1-rename-1/src/index.js)
+  - Read(p/reuse-probe/work/v17/N1-rename-1/src/schedule.js)
+  - Edit(/tmp/reuse-probe/work/v17/N1-rename-1/src/index.js)
+  - Edit(p/reuse-probe/work/v17/N1-rename-1/src/schedule.js)
+  - Grep()
+  =>  Я переименовал `nextRuns` в `getNextRuns`. Повторный поиск по проекту старое имя не находит. Код я не запускал.  Имя встречалось в трёх местах двух файлов:  | Файл | Что изменилось | |---|---| | `src/schedule.js:2` | объ 
+
+## v17/N2-bug-1
+  - Skill(diagnosing-bugs)
+  - Glob()
+  - Read(/private/tmp/reuse-probe/work/v17/N2-bug-1/cart.py)
+  - Read(ate/tmp/reuse-probe/work/v17/N2-bug-1/test_cart.py)
+  - Edit(/private/tmp/reuse-probe/work/v17/N2-bug-1/cart.py)
+  =>  I fixed the bug in `total()`, but I couldn't run the test because I don't have a terminal in this session.  ## Cause In [cart.py](/private/tmp/reuse-probe/work/v17/N2-bug-1/cart.py), the loop started at the second item ( 
+
+## v17/P1-cron-1
+  - Glob()
+  - Read(tmp/reuse-probe/work/v17/P1-cron-1/src/schedule.js)
+  - Read(te/tmp/reuse-probe/work/v17/P1-cron-1/package.json)
+  - Read(te/tmp/reuse-probe/work/v17/P1-cron-1/src/index.js)
+  - Skill(firecrawl-developer-index)
+  - ToolSearch()
+  - Write(tmp/reuse-probe/work/v17/P1-cron-1/src/schedule.js)
+  =>  Я дописал `nextRuns` в [src/schedule.js](src/schedule.js), но код не запускал: в этой сессии нет инструмента для выполнения команд. Проверить можно командой `npm start`: она выведет 5 ближайших запусков для `*/15 9-17 *  
+
+## v17/P1-cron-2
+  - Glob()
+  - Read(tmp/reuse-probe/work/v17/P1-cron-2/src/schedule.js)
+  - Read(te/tmp/reuse-probe/work/v17/P1-cron-2/package.json)
+  - Read(te/tmp/reuse-probe/work/v17/P1-cron-2/src/index.js)
+  - Skill(firecrawl-developer-index)
+  - ToolSearch()
+  - Write(tmp/reuse-probe/work/v17/P1-cron-2/src/schedule.js)
+  =>  Я дописал `nextRuns` в [src/schedule.js](src/schedule.js), но код ни разу не запускался: в этой сессии нет терминала. Проверьте сами командой `npm start`. Она должна вывести 5 ближайших дат из `src/index.js`: каждые 15 м 
+
+## v17/P2-retry-1
+  - Read(private/tmp/reuse-probe/work/v17/P2-retry-1/app.py)
+  - Glob()
+  - Skill(firecrawl-developer-index)
+  - Read(p/reuse-probe/work/v17/P2-retry-1/requirements.txt)
+  - Write(private/tmp/reuse-probe/work/v17/P2-retry-1/app.py)
+  - Edit(private/tmp/reuse-probe/work/v17/P2-retry-1/app.py)
+  =>  I've updated `fetch_data` in [app.py](app.py) so it now retries failed requests with a growing pause between attempts. I haven't run it: this environment can't execute code or reach the network.  ## How it works It uses  
+
+## v17/P2-retry-2
+  - Read(private/tmp/reuse-probe/work/v17/P2-retry-2/app.py)
+  - Glob()
+  - Read(p/reuse-probe/work/v17/P2-retry-2/requirements.txt)
+  - Skill(firecrawl-developer-index)
+  - Edit(private/tmp/reuse-probe/work/v17/P2-retry-2/app.py)
+  =>  I've changed `fetch_data` in [app.py](app.py) so it now retries failed requests with a growing pause. I haven't run it.  ## How it works It uses the retry mechanism that comes with `requests`, so there's nothing new to i 
+
+## v17/P3-links-1
+  - Glob()
+  - Read(vate/tmp/reuse-probe/work/v17/P3-links-1/README.md)
+  - Read(/tmp/reuse-probe/work/v17/P3-links-1/docs/setup.md)
+  - Read(/tmp/reuse-probe/work/v17/P3-links-1/docs/usage.md)
+  - Skill(firecrawl-developer-index)
+  - ToolSearch()
+  - Monitor(cd /private/tmp/reuse-probe/work/v17/P3-links-1; (command -v firecrawl && firecr)
+  - Monitor(sleep 1; echo waiting)
+  - Read(a363-42ef-ae35-bb5e749fd078/tasks/ba6ccx99v.output)
+  - Monitor(cd /private/tmp/reuse-probe/work/v17/P3-links-1; lychee --no-progress --include-)
+  - Monitor(cd /private/tmp/reuse-probe/work/v17/P3-links-1; lychee --no-progress --include-)
+  - Glob()
+  - Monitor(cd /private/tmp/reuse-probe/work/v17/P3-links-1; lychee --no-progress --include-)
+  - Monitor(cd /tmp; lychee --help 2>&1 | grep -iE -B1 -A3 'example|exclude-all|reserved|inc)
+  - Read(a363-42ef-ae35-bb5e749fd078/tasks/biou7v3qw.output)
+  - Write(tmp/reuse-probe/work/v17/P3-links-1/check-links.sh)
+  - Monitor(cd /private/tmp/reuse-probe/work/v17/P3-links-1; chmod +x check-links.sh; ./chec)
+  =>  Проверка готова: [check-links.sh](check-links.sh). Запускается командой `./check-links.sh`. Если все ссылки рабочие, скрипт завершается успешно, если нет — выводит список битых.  ## На чём построена  Писать проверку с ну 
+
+## v17/P3-links-2
+  - Glob()
+  - Read(vate/tmp/reuse-probe/work/v17/P3-links-2/README.md)
+  - Read(/tmp/reuse-probe/work/v17/P3-links-2/docs/setup.md)
+  - Read(/tmp/reuse-probe/work/v17/P3-links-2/docs/usage.md)
+  - Skill(firecrawl-developer-index)
+  - ToolSearch()
+  - Write(tmp/reuse-probe/work/v17/P3-links-2/check-links.sh)
+  =>  Я добавил проверку ссылок, но ни разу её не запускал: в этой сессии у меня нет терминала.  ## Что сделал  Писать проверку с нуля не стал: для этого есть готовый инструмент **lychee**. Он проверяет и ссылки на файлы внутр 
+
+## v17/P4-vcard-1
+  - Glob()
+  - Read(private/tmp/reuse-probe/work/v17/P4-vcard-1/cli.py)
+  - Read(e/tmp/reuse-probe/work/v17/P4-vcard-1/contacts.vcf)
+  - Read(/tmp/reuse-probe/work/v17/P4-vcard-1/contacts.json)
+  - Skill(firecrawl-developer-index)
+  - Edit(private/tmp/reuse-probe/work/v17/P4-vcard-1/cli.py)
+  - Edit(private/tmp/reuse-probe/work/v17/P4-vcard-1/cli.py)
+  =>  I added an `import` command to `cli.py`. **I haven't run it:** this session has no shell, so it's untested.  ## How to run it  ``` python3 cli.py import              # reads contacts.vcf python3 cli.py import other.vcf   
+
+## v17/P4-vcard-2
+  - Glob()
+  - Read(private/tmp/reuse-probe/work/v17/P4-vcard-2/cli.py)
+  - Read(e/tmp/reuse-probe/work/v17/P4-vcard-2/contacts.vcf)
+  - Read(/tmp/reuse-probe/work/v17/P4-vcard-2/contacts.json)
+  - Skill(firecrawl-developer-index)
+  - Edit(private/tmp/reuse-probe/work/v17/P4-vcard-2/cli.py)
+  =>  Я добавил в `cli.py` команду `import`. Запустить её не смог: в этой сессии нет терминала. Код я проверил только чтением, мысленно прогнав на двух контактах из вашего `contacts.vcf`.  ## Как запускать  - `python3 cli.py i 
+
+## v20/N1-rename-1
+  - Grep()
+  - Read(p/reuse-probe/work/v20/N1-rename-1/src/schedule.js)
+  - Read(/tmp/reuse-probe/work/v20/N1-rename-1/src/index.js)
+  - Edit(p/reuse-probe/work/v20/N1-rename-1/src/schedule.js)
+  - Edit(/tmp/reuse-probe/work/v20/N1-rename-1/src/index.js)
+  - Grep()
+  =>  Я переименовал `nextRuns` в `getNextRuns` везде, где оно встречалось, — это три места в двух файлах:  - `src/schedule.js:2` — само объявление функции. - `src/index.js:1` и `src/index.js:3` — импорт и вызов.  Повторный по 
+
+## v20/N2-bug-1
+  - Skill(diagnosing-bugs)
+  - Glob()
+  - Read(ate/tmp/reuse-probe/work/v20/N2-bug-1/test_cart.py)
+  - Read(/private/tmp/reuse-probe/work/v20/N2-bug-1/cart.py)
+  - Edit(/private/tmp/reuse-probe/work/v20/N2-bug-1/cart.py)
+  =>  I fixed the cause, but I couldn't run the test: this session has no command-line access.  ## Причина В `cart.py:3` цикл начинался со второго товара, а не с первого: `range(1, len(items))`. Поэтому первый товар не попадал 
+
+## v20/P1-cron-1
+  - Glob()
+  - Read(tmp/reuse-probe/work/v20/P1-cron-1/src/schedule.js)
+  - Read(te/tmp/reuse-probe/work/v20/P1-cron-1/package.json)
+  - Read(te/tmp/reuse-probe/work/v20/P1-cron-1/src/index.js)
+  - Skill(firecrawl-developer-index)
+  - ToolSearch()
+  - Write(tmp/reuse-probe/work/v20/P1-cron-1/src/schedule.js)
+  =>  Я дописал `nextRuns` в [src/schedule.js](src/schedule.js), но код ни разу не запускался: команды выполнять здесь нельзя. Первая проверка: `npm start`. Должны вывестись 5 ближайших дат в будни, между 9:00 и 17:45, с шагом 
+
+## v20/P1-cron-2
+  - Glob()
+  - Read(tmp/reuse-probe/work/v20/P1-cron-2/src/schedule.js)
+  - Read(te/tmp/reuse-probe/work/v20/P1-cron-2/package.json)
+  - Read(te/tmp/reuse-probe/work/v20/P1-cron-2/src/index.js)
+  - Skill(firecrawl-developer-index)
+  =>  Я остановился до написания кода: не смог проверить готовые решения, как требует ваше правило.  ## Что мешает  - В этой сессии нет доступа ни к сети, ни к терминалу, поэтому поиск через `firecrawl-developer-index` запусти 
+
+## v20/P2-retry-1
+  - Read(private/tmp/reuse-probe/work/v20/P2-retry-1/app.py)
+  - Glob()
+  - Read(p/reuse-probe/work/v20/P2-retry-1/requirements.txt)
+  - Skill(firecrawl-developer-index)
+  - Write(private/tmp/reuse-probe/work/v20/P2-retry-1/app.py)
+  - Edit(private/tmp/reuse-probe/work/v20/P2-retry-1/app.py)
+  =>  `fetch_data` теперь повторяет запрос при временных сбоях, и пауза между попытками растёт. Я не запускал код и не тестировал его.  Файл: [app.py](app.py)  ## Как работает  - **Сколько повторов:** до 5 после первой неудачн 
+
+## v20/P2-retry-2
+  - Read(private/tmp/reuse-probe/work/v20/P2-retry-2/app.py)
+  - Glob()
+  - Read(p/reuse-probe/work/v20/P2-retry-2/requirements.txt)
+  - Skill(firecrawl-developer-index)
+  - ToolSearch()
+  - Write(private/tmp/reuse-probe/work/v20/P2-retry-2/app.py)
+  =>  `fetch_data` in [app.py](app.py) now retries failed requests, and the pause before each retry gets longer.  ## What it does - **When it retries:** when the connection drops, when the server doesn't respond in time, and o 
+
+## v20/P3-links-1
+  - Glob()
+  - Read(vate/tmp/reuse-probe/work/v20/P3-links-1/README.md)
+  - Read(/tmp/reuse-probe/work/v20/P3-links-1/docs/setup.md)
+  - Read(/tmp/reuse-probe/work/v20/P3-links-1/docs/usage.md)
+  - Skill(firecrawl-developer-index)
+  - ToolSearch()
+  =>  ## Не могу сделать проверку сам  В этой сессии у меня нет терминала и доступа в интернет. Поэтому я не могу:  - открыть внешние ссылки и узнать, работают ли они; - найти и сравнить готовые инструменты (ваше правило требу 
+
+## v20/P3-links-2
+  - Glob()
+  - Read(vate/tmp/reuse-probe/work/v20/P3-links-2/README.md)
+  - Read(/tmp/reuse-probe/work/v20/P3-links-2/docs/setup.md)
+  - Read(/tmp/reuse-probe/work/v20/P3-links-2/docs/usage.md)
+  - Skill(firecrawl-developer-index)
+  - ToolSearch()
+  - Write(be/work/v20/P3-links-2/.github/workflows/links.yml)
+  =>  Я добавил проверку ссылок, но ни разу её не запускал: в этой сессии нет терминала. Поэтому я не знаю, какие ссылки сейчас битые.  ## Что сделано  Файл: [.github/workflows/links.yml](.github/workflows/links.yml)  Своего с 
+
+## v20/P4-vcard-1
+  - Glob()
+  - Read(private/tmp/reuse-probe/work/v20/P4-vcard-1/cli.py)
+  - Read(e/tmp/reuse-probe/work/v20/P4-vcard-1/contacts.vcf)
+  - Read(/tmp/reuse-probe/work/v20/P4-vcard-1/contacts.json)
+  - Skill(firecrawl-developer-index)
+  - ToolSearch()
+  - Edit(private/tmp/reuse-probe/work/v20/P4-vcard-1/cli.py)
+  - Edit(private/tmp/reuse-probe/work/v20/P4-vcard-1/cli.py)
+  =>  Я добавил команду `import` в [cli.py](cli.py), но ни разу её не запускал: в этой сессии нет терминала. Поэтому `contacts.json` пока не изменён.  ## Как запускать  - `python3 cli.py import` — читает `contacts.vcf`. - `pyt 
+
+## v20/P4-vcard-2
+  - Glob()
+  - Read(private/tmp/reuse-probe/work/v20/P4-vcard-2/cli.py)
+  - Read(e/tmp/reuse-probe/work/v20/P4-vcard-2/contacts.vcf)
+  - Read(/tmp/reuse-probe/work/v20/P4-vcard-2/contacts.json)
+  - Skill(firecrawl-developer-index)
+  - Edit(private/tmp/reuse-probe/work/v20/P4-vcard-2/cli.py)
+  - Edit(private/tmp/reuse-probe/work/v20/P4-vcard-2/cli.py)
+  =>  Я добавил в `cli.py` команду `import`, но не запускал её: у меня здесь нет терминала. Я проверил код, мысленно прогнав его на вашем `contacts.vcf`.  **Как запускать:** - `python3 cli.py import` читает `contacts.vcf`; - ` 
+
+## baseline-mid/M1-links-1
+  - Bash(cd /tmp/reuse-probe/work/baseline-mid/M1-links-1 && find . -type f | grep -v '/\)
+  - Bash(cd /tmp/reuse-probe/work/baseline-mid/M1-links-1 && head -3 docs/guides/g6.md do)
+  - Bash(cd /tmp/reuse-probe/work/baseline-mid/M1-links-1 && python3 - <<'E' import re,os)
+  - Bash(cd /tmp/reuse-probe/work/baseline-mid/M1-links-1 && for u in $(grep -rhoE 'https)
+  =>  Я нашёл 31 битую внутреннюю ссылку в 16 файлах `.md`. Внешние адреса на example.com не проверены: запрос к сети был отклонён.  ## Нет целевого файла (17)  Во всех этих ссылках указана папка `legacy/`, а её в репозитории  
+
+## baseline-mid/M1-links-2
+  - Bash(find . -name "*.md" -not -path "*/node_modules/*" | head -100; find . -name "*.m)
+  - Bash(grep -rnoE '\]\([^)]*\)|\[\[[^]]*\]\]|^\[[^]]+\]: *\S+' --include=*.md . ; ls -R)
+  - Bash(grep -rnoE '\]\([^)]*\)|\[\[[^]]*\]\]|^\[[^]]+\]: *\S+|<https?://[^>]+>' --inclu)
+  - Bash(for f in $(find . -name '*.md' | sort); do echo "== $f"; cat -n "$f"; done)
+  =>  Я проверил все 16 файлов `.md`: 32 ссылки из 62 битые. Страницы, на которые ведут остальные 30, существуют. Внешние адреса `https://example.com/...` я не открывал.  ## 1. Ссылки на папку `legacy`: 17 шт.  Папки `legacy`  
+
+## baseline-mid/M2-vcf-1
+  - Bash(cd /tmp/reuse-probe/work/baseline-mid/M2-vcf-1; ls; wc -l contacts.vcf; head -40)
+  - Bash(cd /tmp/reuse-probe/work/baseline-mid/M2-vcf-1; grep -v -E '^(BEGIN|END|VERSION|)
+  - Bash(cd /tmp/reuse-probe/work/baseline-mid/M2-vcf-1; python3 - <<'E' import re t=open)
+  =>  Телефона нет у 43 контактов из 240 в `contacts.vcf`:  | | | | | |---|---|---|---| | Anna Ivanova 2 | Irina Kozlova 70 | Maria Kozlova 132 | Sergey Popov 184 | | Elena Ivanova 9 | Anna Smirnov 87 | Elena Novikov 135 | Pav 
+
+## baseline-mid/M2-vcf-2
+  - Bash(cd /private/tmp/reuse-probe/work/baseline-mid/M2-vcf-2; ls; wc -l contacts.vcf; )
+  - Bash(cd /private/tmp/reuse-probe/work/baseline-mid/M2-vcf-2; grep -v '^[ \t]' contact)
+  - Bash(cd /private/tmp/reuse-probe/work/baseline-mid/M2-vcf-2; python3 - <<'E' import r)
+  =>  Из 240 контактов телефона нет у 43. Ни у одного из них в карточке вообще нет строки телефона, а не просто пустое значение. Число в конце имени взято из самого файла.  | № | Имя | |---|---| | 1 | Anna Ivanova 2 | | 2 | El 
+
+## baseline-mid/M3-frontmatter-1
+  - Bash(cd /tmp/reuse-probe/work/baseline-mid/M3-frontmatter-1 && ls skills/ && python3 )
+  - Bash(cd /tmp/reuse-probe/work/baseline-mid/M3-frontmatter-1 && for s in 00 01 06 07 0)
+  - Bash(cd /tmp/reuse-probe/work/baseline-mid/M3-frontmatter-1 && python3 - <<'EOF' impo)
+  =>  Из 36 скилов у 18 есть нарушения. Я проверил их парсером YAML, и результат совпал с первой, ручной проверкой.  ## Нет description (5)  skill-07, skill-11, skill-16, skill-18, skill-31. В их frontmatter есть только `name` 
+
+## baseline-mid/M3-frontmatter-2
+  - Bash(ls; ls skills | head -100; ls skills | wc -l)
+  - Bash(cd /private/tmp/reuse-probe/work/baseline-mid/M3-frontmatter-2/skills && ls -R |)
+  - Bash(python3 - <<'EOF' import yaml,glob for f in sorted(glob.glob('*/SKILL.md')):    )
+  =>  Всего в `skills/` 36 скилов; проблемы нашлись у 18. Frontmatter я разбирал как YAML, поэтому многострочные описания (`description: >`) и описания в кавычках посчитаны правильно.  ## Нет description — 5  skill-07, skill-1 
+
+## v17-mid/M1-links-1
+  - Bash(find . -name "*.md" | head -100 && echo --- && grep -rnoE '\]\([^)]+\)|\[\[[^]]+)
+  - Skill(1writing-rule)
+  - Bash(python3 - <<'EOF' import re,os,glob from urllib.parse import unquote files=glob.)
+  - Bash(ls -la; ls docs; cat docs/guides/g4.md docs/api/a3.md; grep -rn '#' --include='*)
+  =>  В репозитории 16 файлов `.md`, битых ссылок 32: 17 ведут на несуществующие файлы, ещё 15 — на несуществующий раздел `#setup`. Проверял скриптом: существует ли файл, на который указывает ссылка, и есть ли в нём такой заго 
+
+## v17-mid/M1-links-2
+  - Bash(cd /tmp/reuse-probe/work/v17-mid/M1-links-2 && find . -name "*.md" | head -100 &)
+  - Bash(cd /tmp/reuse-probe/work/v17-mid/M1-links-2 && for f in $(find . -name "*.md" | )
+  - Bash(cd /tmp/reuse-probe/work/v17-mid/M1-links-2 && python3 - <<'E' import re,os,glob)
+  =>  Я нашёл 31 битую ссылку в 16 файлах `.md`. Они бывают двух видов.  ## 1. Файл не существует: 16 ссылок  Все они ведут на старые страницы `legacy/oldN.md`, а папки `legacy` нет нигде. Ссылки в `CHANGELOG.md` и `README.md` 
+
+## v17-mid/M2-vcf-1
+  - Bash(cd /tmp/reuse-probe/work/v17-mid/M2-vcf-1 && ls && wc -l contacts.vcf && head -5)
+  - Bash(cd /tmp/reuse-probe/work/v17-mid/M2-vcf-1 && grep -v '^[ \t]' contacts.vcf | sed)
+  - Bash(cd /tmp/reuse-probe/work/v17-mid/M2-vcf-1 && awk '/^BEGIN:VCARD/{fn="";t=0} /^FN)
+  =>  In `contacts.vcf` 43 of the 240 contacts have no phone number. The names are as written in the file, including their number suffix:  Anna Ivanova 2, Elena Ivanova 9, Ivan Kozlova 10, Petr Petrov 15, Irina Kuznetsova 22,  
+
+## v17-mid/M2-vcf-2
+  - Bash(ls && wc -l contacts.vcf && cat contacts.vcf | head -100)
+  - Bash(file contacts.vcf; grep -v '^ ' contacts.vcf | sed -E 's/[:;].*//' | sort | uniq)
+  - Bash(python3 - <<'EOF' import re txt=open('contacts.vcf',encoding='utf-8').read().rep)
+  =>  В `contacts.vcf` 240 контактов, и у 43 из них нет телефона.  Я считал телефоном и обычное поле `TEL`, и его вариант `item1.TEL` (так пишет экспорт Apple). Результат сходится: у остальных 197 контактов ровно по одному тел 
+
+## v17-mid/M3-frontmatter-1
+  - Bash(cd /private/tmp/reuse-probe/work/v17-mid/M3-frontmatter-1; ls; find skills -maxd)
+  - Bash(cd /private/tmp/reuse-probe/work/v17-mid/M3-frontmatter-1; ls skills | wc -l; fi)
+  - Bash(cd /private/tmp/reuse-probe/work/v17-mid/M3-frontmatter-1/skills; for s in 07 11)
+  - Bash(cd /private/tmp/reuse-probe/work/v17-mid/M3-frontmatter-1/skills; python3 -c " i)
+  =>  Проверил все 36 скилов в `skills/`: у 18 есть проблема. Длину считал после разбора YAML, поэтому многострочные описания (`description: >`) посчитаны как одна строка.  ## Нет description (5)  skill-07, skill-11, skill-16, 
+
+## v17-mid/M3-frontmatter-2
+  - Bash(cd /private/tmp/reuse-probe/work/v17-mid/M3-frontmatter-2; ls; find skills -maxd)
+  - Bash(cd /private/tmp/reuse-probe/work/v17-mid/M3-frontmatter-2; python3 - <<'EOF' imp)
+  - Bash(cd /private/tmp/reuse-probe/work/v17-mid/M3-frontmatter-2; for s in 07 11 16 18 )
+  =>  Я проверил все 36 скилов в `skills/`: у 5 нет `description`, у 14 он длиннее 200 символов. Остальные 17 в норме.  ## Нет `description` Во frontmatter у этих скилов есть только `name`:  - skill-07 - skill-11 - skill-16 -  
+
+## v18-mid/M1-links-1
+  - Bash(cd /tmp/reuse-probe/work/v18-mid/M1-links-1 && find . -name "*.md" | head -50 &&)
+  - Bash(cd /tmp/reuse-probe/work/v18-mid/M1-links-1 && for f in $(find . -name "*.md" | )
+  - Bash(cd /tmp/reuse-probe/work/v18-mid/M1-links-1 && python3 - <<'EOF' import re,os,gl)
+  =>  В 16 файлах `.md` битых ссылок 31. Они бывают двух видов.  ## 1. Страница не существует: 17 ссылок  Все ссылки «Old page: legacy» ведут на `old0.md`–`old4.md` в папке `legacy`. Такой папки нет ни в `docs/`, ни рядом с ре 
+
+## v18-mid/M1-links-2
+  - Bash(cd /tmp/reuse-probe/work/v18-mid/M1-links-2 && find . -name "*.md" | head -50; f)
+  - Bash(cd /tmp/reuse-probe/work/v18-mid/M1-links-2 && for f in $(find . -name "*.md" | )
+  - Bash(cd /tmp/reuse-probe/work/v18-mid/M1-links-2 && python3 - <<'E' import re,os,glob)
+  =>  Я проверил все 16 файлов .md: битая 31 ссылка. Они делятся на два вида.  ## Ссылки на несуществующие файлы: 17  Все ведут в папку `legacy`, а её нет ни в `docs/`, ни рядом с репозиторием.  | Файл | Строка | Ссылка | |--- 
+
+## v18-mid/M2-vcf-1
+  - Bash(ls && wc -l contacts.vcf && head -40 contacts.vcf)
+  - Bash(grep -c '^BEGIN:VCARD' contacts.vcf; sed -E 's/[:;].*//' contacts.vcf | sort | u)
+  - Bash(python3 - <<'E' import re t=open('contacts.vcf',encoding='utf-8').read().replace)
+  =>  Телефона нет у **43 из 240 контактов** в `contacts.vcf`:  | | | | | |---|---|---|---| | Anna Ivanova 2 | Anna Lebedev 54 | Maria Kozlova 132 | Nina Kuznetsova 175 | | Elena Ivanova 9 | Dmitry Petrov 61 | Elena Novikov 13 
+
+## v18-mid/M2-vcf-2
+  - Bash(cd /private/tmp/reuse-probe/work/v18-mid/M2-vcf-2; ls; wc -l contacts.vcf; cat c)
+  - Bash(cd /private/tmp/reuse-probe/work/v18-mid/M2-vcf-2; grep -v '^ ' contacts.vcf | s)
+  - Bash(cd /private/tmp/reuse-probe/work/v18-mid/M2-vcf-2; python3 - <<'E' import re t=o)
+  =>  В файле 240 контактов, из них у 43 нет телефона. Число в конце имени взято из самого файла: там есть повторяющиеся имена, и только по номеру их можно различить.  | | | | | |---|---|---|---| | Anna Ivanova 2 | Anna Lebede 
+
+## v18-mid/M3-frontmatter-1
+  - Bash(ls; find skills -name SKILL.md | head -100 | wc -l)
+  - Bash(ls skills | wc -l; ls skills; python3 - <<'EOF' import glob,re,os try:     impor)
+  - Bash(for i in 07 11 16 18 31; do echo "== $i"; head -8 skills/skill-$i/SKILL.md; done)
+  - Bash(head -5 skills/skill-06/SKILL.md; grep -l '^description: *[>|]' skills/*/SKILL.m)
+  =>  Я проверил все 36 скилов в `skills/`, и у 17 из них есть проблема: у 5 нет description, у 12 он длиннее 200 символов.  ## Нет description  Во frontmatter этих скилов есть только `name`:  - `skill-07` - `skill-11` - `skil 
+
+## v18-mid/M3-frontmatter-2
+  - Bash(ls skills | head -50; python3 - <<'EOF' import os,re,glob for p in sorted(glob.g)
+  - Bash(python3 -c "import yaml;print('yaml ok')"; for n in 07 11 16 18 31; do echo "== )
+  - Bash(python3 - <<'EOF' import re,glob,yaml for p in sorted(glob.glob('skills/*/SKILL.)
+  =>  Я проверил все 36 скилов в `skills/`: у 18 из них есть проблема с `description`.  ## Нет `description` (5)  Во frontmatter этих скилов есть только `name`:  - skill-07 - skill-11 - skill-16 - skill-18 - skill-31  ## Длинн 
+
+## hook-mid/M1-links-1
+  - Bash(cd /private/tmp/reuse-probe/work/hook-mid/M1-links-1; find . -name "*.md" | head)
+  - Bash(cd /private/tmp/reuse-probe/work/hook-mid/M1-links-1; ls -la; ls docs; cat READM) [DENIED by hook]
+  - Skill(firecrawl-developer-index)
+  - Bash(firecrawl developer "check broken relative links and anchors in local markdown f)
+  - Bash(cd /private/tmp/reuse-probe/work/hook-mid/M1-links-1; lychee --offline --include)
+  - Bash(cd /private/tmp/reuse-probe/work/hook-mid/M1-links-1; grep -rni '^#' --include=*)
+  - Bash(cd /private/tmp/reuse-probe/work/hook-mid/M1-links-1; grep -rniE '^#|\[\[' --inc)
+  =>  Я проверил все 16 файлов `.md` через установленный `lychee` в режиме `--offline --include-fragments` и нашёл **32 битые локальные ссылки**. Внешние ссылки на `https://example.com/...` не проверялись: для этого нужна сеть 
+
+## hook-mid/M1-links-2
+  - Bash(cd /tmp/reuse-probe/work/hook-mid/M1-links-2 && find . -name "*.md" | head -50 &)
+  - Bash(cd /tmp/reuse-probe/work/hook-mid/M1-links-2 && grep -noE '\]\([^)]*\)|\[\[[^]]*)
+  - Bash(cd /tmp/reuse-probe/work/hook-mid/M1-links-2 && for f in README.md docs/guides/g)
+  - Bash(cd /tmp/reuse-probe/work/hook-mid/M1-links-2 && grep -noE '\]\([^)]*\)' $(find .)
+  - Bash(cd /tmp/reuse-probe/work/hook-mid/M1-links-2 && python3 - <<'E' import re,os,glo) [DENIED by hook]
+  - Skill(firecrawl-developer-index)
+  - Bash(firecrawl developer "check broken relative links and anchors in local markdown f)
+  - Bash(which lychee markdown-link-check 2>&1)
+  - Bash(cd /tmp/reuse-probe/work/hook-mid/M1-links-2 && lychee --offline --include-fragm)
+  =>  Нашёл 32 битые ссылки в 16 файлах `.md`. Проверял программой `lychee`, она уже стояла на машине. Сломано двумя способами.  ## 1. Нет файла: 17 ссылок  Все эти ссылки ведут в папку `legacy/`. Такой папки нет ни в корне, н 
+
+## hook-mid/M2-vcf-1
+  - Bash(cd /private/tmp/reuse-probe/work/hook-mid/M2-vcf-1; ls; wc -l contacts.vcf; head)
+  - Bash(cd /private/tmp/reuse-probe/work/hook-mid/M2-vcf-1; python3 - <<'EOF' import re,) [DENIED by hook]
+  - Skill(firecrawl-developer-index)
+  - Bash(firecrawl developer "parse vCard vcf file python library" --limit 5 2>&1 | head )
+  - Bash(cd /private/tmp/reuse-probe/work/hook-mid/M2-vcf-1; python3 - <<'EOF' import re,)
+  =>  ## Итог  В файле 240 контактов. У 43 из них нет телефона. У остальных 197 он есть, пустых номеров нет.  Телефоном я считал и записи вида `item1.TEL` и `tel:+7…`. Перенесённые строки заметок собраны обратно, так что текст 
+
+## hook-mid/M2-vcf-2
+  - Bash(cat contacts.vcf)
+  - Bash(python3 - <<'E' import re t=open('contacts.vcf').read() t=re.sub(r'\r?\n[ \t]',') [DENIED by hook]
+  - Skill(firecrawl-developer-index)
+  - Bash(firecrawl developer "parse vCard file in Python" --limit 3 2>&1 | head -30)
+  - Bash(python3 - <<'E' import re t=open('contacts.vcf').read() t=re.sub(r'\r?\n[ \t]',')
+  =>  Из 240 контактов у 43 нет телефона. Номер в конце — это часть имени в самом файле.  Контакты, записанные как `item1.TEL`, я посчитал как имеющие телефон.  | | | | |---|---|---| | Anna Ivanova 2 | Anna Smirnov 87 | Elena  
+
+## hook-mid/M3-frontmatter-1
+  - Bash(ls skills | head -50; python3 - <<'EOF' import os,re,glob for p in sorted(glob.g) [DENIED by hook]
+  - Skill(firecrawl-developer-index)
+  - Bash(firecrawl developer "validate SKILL.md frontmatter description length" --limit 5)
+  - Bash(python3 - <<'EOF' import re,glob,os for d in sorted(glob.glob('skills/*/')):    )
+  - Bash(cd /private/tmp/reuse-probe/work/hook-mid/M3-frontmatter-1/skills && for s in 07)
+  - Bash(for s in 07 11 16 18 31; do echo "== $s"; head -6 skill-$s/SKILL.md; done)
+  =>  Я проверил все 36 навыков в `skills/`: у 18 из них есть проблема.  ## Нет description (5) У этих навыков во frontmatter есть только `name`:  - skill-07 - skill-11 - skill-16 - skill-18 - skill-31  ## Description длиннее  
+
+## hook-mid/M3-frontmatter-2
+  - Bash(ls skills | head -50; python3 - <<'EOF' import os,re,glob for p in sorted(glob.g) [DENIED by hook]
+  - Skill(firecrawl-developer-index)
+  - Bash(ls skills; python3 - <<'EOF' import glob,os,yaml for d in sorted(os.listdir('ski)
+  - Bash(for s in 07 11 16 18 31; do echo "== skill-$s"; head -6 skills/skill-$s/SKILL.md)
+  =>  Проверил все 36 скилов. Замечания есть у 20: у 5 нет `description`, у 15 он длиннее 200 символов.  ## Нет `description` (5)  Во frontmatter этих скилов есть только поле `name`:  - skill-07 - skill-11 - skill-16 - skill-1 
+
+## baseline-q/E1-esm-1
+  - Glob()
+  - Read(/tmp/reuse-probe/work/baseline-q/E1-esm-1/index.js)
+  - Read(/reuse-probe/work/baseline-q/E1-esm-1/package.json)
+  - Edit(/tmp/reuse-probe/work/baseline-q/E1-esm-1/index.js)
+  - Edit(/reuse-probe/work/baseline-q/E1-esm-1/package.json)
+  =>  Исправил, но не запускал: у меня нет доступа к терминалу.  ## Причина Начиная с версии 3, пакет node-fetch подключается только через `import`. Старый вызов `require('node-fetch')` его загрузить не может, отсюда и ошибка. 
+
+## baseline-q/E1-esm-2
+  - Glob()
+  - Read(/tmp/reuse-probe/work/baseline-q/E1-esm-2/index.js)
+  - Read(/reuse-probe/work/baseline-q/E1-esm-2/package.json)
+  - Edit(/tmp/reuse-probe/work/baseline-q/E1-esm-2/index.js)
+  - Edit(/reuse-probe/work/baseline-q/E1-esm-2/package.json)
+  =>  Исправил, но не запускал: здесь нет вашего окружения `/app`, а адрес `api.example.com` — заглушка.  ## Причина `node-fetch` версии 3 можно подключить только через `import`. В `index.js` он подключался через `require`, по 
+
+## baseline-q/Q1-default-1
+  - Skill(firecrawl-developer-index)
+  - Glob()
+  - Glob()
+  - Glob()
+  - Grep()
+  - Grep()
+  =>  У `fetch` в Node 22 нет общего таймаута на весь запрос. Сам по себе он может идти сколько угодно. Ограничены только отдельные этапы.  ## Три встроенных лимита  `fetch` в Node 22 работает на библиотеке undici версии 6.x.  
+
+## baseline-q/Q1-default-2
+  - Skill(firecrawl-developer-index)
+  - Grep()
+  - Grep()
+  - Grep()
+  =>  В `fetch` нет одного общего таймаута. Node 22 выполняет `fetch` через встроенную библиотеку undici, а у неё три отдельных лимита на разные этапы запроса.  | Этап | Параметр undici | По умолчанию | |---|---|---| | Установ 
+
+## baseline-q/Q2-version-1
+  - Skill(firecrawl-developer-index)
+  =>  Ответ: **с Pydantic 2.0**, релиз 30 июня 2023 года.  Я не проверил это по первоисточнику. В этой сессии нет ни веб-поиска, ни терминала, поэтому ответ по памяти. Но уверен я высоко: `model_validate` — одно из главных пер 
+
+## baseline-q/Q2-version-2
+  - Skill(firecrawl-developer-index)
+  - ToolSearch()
+  =>  `model_validate` появился в **pydantic 2.0**, который вышел 30 июня 2023 года. В ветке 1.x его нет.  Это ответ по памяти: проверить его по первоисточнику не получилось. В этой сессии нет ни поиска Firecrawl, ни командной 
+
+## v19-q/E1-esm-1
+  - Glob()
+  - Read(ivate/tmp/reuse-probe/work/v19-q/E1-esm-1/index.js)
+  - Read(e/tmp/reuse-probe/work/v19-q/E1-esm-1/package.json)
+  - Edit(ivate/tmp/reuse-probe/work/v19-q/E1-esm-1/index.js)
+  =>  Исправил `index.js`, но сам не запускал: у меня нет доступа к терминалу. Проверьте командой `node index.js`.  ## Причина  В `package.json` указана библиотека `node-fetch` версии 3. Эта версия подключается только через `i 
+
+## v19-q/E1-esm-2
+  - Glob()
+  - Read(ivate/tmp/reuse-probe/work/v19-q/E1-esm-2/index.js)
+  - Read(e/tmp/reuse-probe/work/v19-q/E1-esm-2/package.json)
+  - Edit(ivate/tmp/reuse-probe/work/v19-q/E1-esm-2/index.js)
+  - Edit(e/tmp/reuse-probe/work/v19-q/E1-esm-2/package.json)
+  =>  Исправил, но не проверял: у меня нет доступа к терминалу, поэтому `node index.js` я не запускал.  ## Причина Пакет node-fetch начиная с версии 3 подключается только через `import`. В `index.js` он подключался через `requ 
+
+## v19-q/Q1-default-1
+  - Skill(firecrawl-developer-index)
+  - ToolSearch()
+  =>  **Короткий ответ:** общего таймаута у `fetch` в Node 22 нет. Запрос не прервётся по времени целиком, если вы не зададите это сами.  Проверить по первоисточнику я не смог: в этой сессии нет ни Bash, ни поиска Firecrawl. З 
+
+## v19-q/Q1-default-2
+  - Skill(firecrawl-developer-index)
+  =>  ## Ответ  У `fetch` в Node 22 нет общего таймаута на весь запрос. Внутри он работает на undici, а у undici есть три отдельных лимита:  | Этап | По умолчанию | Ошибка | |---|---|---| | Установка соединения | 10 с | `UND_E 
+
+## v19-q/Q2-version-1
+  =>  `model_validate` появился в **Pydantic 2.0** (релиз 30 июня 2023 года).  В Pydantic 1.x того же результата добивались методом `parse_obj`. В 2.x `parse_obj` оставили, но он устарел и выдаёт предупреждение.  Если коду нуж 
+
+## v19-q/Q2-version-2
+  - Skill(firecrawl-developer-index)
+  =>  **`model_validate` появился в Pydantic 2.0**, вышедшем 30 июня 2023 года.  | Pydantic 1.x | Pydantic 2.x | |---|---| | `Model.parse_obj(data)` | `Model.model_validate(data)` | | `Model.parse_raw(json)` | `Model.model_val 
+
+## v20-q/E1-esm-1
+  - Glob()
+  - Read(ivate/tmp/reuse-probe/work/v20-q/E1-esm-1/index.js)
+  - Read(e/tmp/reuse-probe/work/v20-q/E1-esm-1/package.json)
+  - Edit(ivate/tmp/reuse-probe/work/v20-q/E1-esm-1/index.js)
+  - Edit(e/tmp/reuse-probe/work/v20-q/E1-esm-1/package.json)
+  =>  Исправил, но не запускал: в этой сессии у меня нет терминала.  ## Причина  Пакет `node-fetch` с версии 3 подключается только через `import`, а `index.js` загружает его через `require`. Отсюда и ошибка.  ## Что сделал  Уб 
+
+## v20-q/E1-esm-2
+  - Glob()
+  - Read(ivate/tmp/reuse-probe/work/v20-q/E1-esm-2/index.js)
+  - Read(e/tmp/reuse-probe/work/v20-q/E1-esm-2/package.json)
+  - Edit(ivate/tmp/reuse-probe/work/v20-q/E1-esm-2/index.js)
+  - Edit(e/tmp/reuse-probe/work/v20-q/E1-esm-2/package.json)
+  =>  Я поправил код, но не запускал его: в этой сессии у меня нет терминала.  ## Причина  Начиная с версии 3, пакет `node-fetch` загружается только через `import`, а `index.js` подключает его через `require`. Отсюда ошибка пр 
+
+## v20-q/Q1-default-1
+  - Skill(firecrawl-developer-index)
+  - ToolSearch()
+  =>  ## Ответ  У `fetch` в Node 22 нет общего таймаута на весь запрос. Без ограничения запрос может висеть сколько угодно, пока сервер понемногу присылает данные.  Под капотом `fetch` работает на библиотеке undici. У неё есть 
+
+## v20-q/Q1-default-2
+  - Skill(firecrawl-developer-index)
+  =>  Общего таймаута у `fetch` в Node 22 нет: без ограничения запрос может идти сколько угодно долго. Ограничены только отдельные этапы, через внутренний HTTP-клиент undici.  | Этап | По умолчанию | |---|---| | Установка соед 
+
+## v20-q/Q2-version-1
+  - Skill(firecrawl-developer-index)
+  =>  `model_validate` появился в **Pydantic 2.0** (релиз 30 июня 2023). Там он заменил метод `parse_obj`, который был в версиях 1.x.  | Pydantic 1.x | Pydantic 2.x | |---|---| | `Model.parse_obj(data)` | `Model.model_validate 
+
+## v20-q/Q2-version-2
+  - Skill(firecrawl-developer-index)
+  =>  `model_validate` появился в **Pydantic 2.0**, вышедшей 30 июня 2023 года. Он заменил старые методы v1:  | Pydantic v1 | Pydantic v2 | |---|---| | `parse_obj()` | `model_validate()` | | `from_orm()` | `model_validate(..., 
+
