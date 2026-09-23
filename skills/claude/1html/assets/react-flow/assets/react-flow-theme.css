@@ -84,3 +84,8 @@
     animation-iteration-count: 1 !important;
   }
 }
+
+/* Auto layout: nodes are measured while hidden, then shown already in place. */
+.react-flow.rf-layout-pending .react-flow__viewport {
+  visibility: hidden;
+}

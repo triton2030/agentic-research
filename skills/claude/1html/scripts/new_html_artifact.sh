@@ -50,6 +50,8 @@ mkdir -p "$shared_assets" "$shared_lib/licenses"
 
 for file in \
   THIRD_PARTY_NOTICES.txt \
+  alpine-collapse.js \
+  alpine-intersect.js \
   alpine.js \
   daisyui-themes.css \
   daisyui.css \
@@ -94,18 +96,20 @@ copy_once "$skill_dir/assets/echarts/lib/licenses/LICENSE-d3" \
 copy_once "$skill_dir/assets/echarts/assets/echarts-init.js" \
   "$shared_assets/echarts-init.js"
 
-copy_once "$skill_dir/assets/react-flow/lib/react-flow.vendor.js" \
+# The React Flow runtime follows the skill: pages without node positions need
+# the auto-layout adapter, and pages with positions render the same on it.
+cp "$skill_dir/assets/react-flow/lib/react-flow.vendor.js" \
   "$shared_lib/react-flow.vendor.js"
 copy_once "$skill_dir/assets/react-flow/lib/react-flow.css" \
   "$shared_lib/react-flow.css"
-copy_once "$skill_dir/assets/react-flow/lib/REACT_FLOW_THIRD_PARTY_NOTICES.txt" \
+cp "$skill_dir/assets/react-flow/lib/REACT_FLOW_THIRD_PARTY_NOTICES.txt" \
   "$shared_lib/REACT_FLOW_THIRD_PARTY_NOTICES.txt"
 for license in "$skill_dir/assets/react-flow/lib/licenses"/*.txt; do
   copy_once "$license" "$shared_lib/licenses/$(basename "$license")"
 done
-copy_once "$skill_dir/assets/react-flow/assets/react-flow-theme.css" \
+cp "$skill_dir/assets/react-flow/assets/react-flow-theme.css" \
   "$shared_assets/react-flow-theme.css"
-copy_once "$skill_dir/assets/react-flow/assets/react-flow-init.js" \
+cp "$skill_dir/assets/react-flow/assets/react-flow-init.js" \
   "$shared_assets/react-flow-init.js"
 
 cp "$skill_dir/assets/catalog/catalog.css" "$shared_assets/catalog.css"

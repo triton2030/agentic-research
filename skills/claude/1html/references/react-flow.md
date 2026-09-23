@@ -1,12 +1,8 @@
 # React Flow — Свободные Интерактивные Nodes
 
-Читай только когда одновременно нужны:
-
-1. разные nodes содержат полезный произвольный HTML или controls;
-2. canvas больше экрана и требует pan/zoom;
-3. edges являются направленными потоками данных, а не декором.
-
-Во всех остальных случаях используй native HTML/SVG или Mermaid.
+Бери React Flow, когда блоки со стрелками должны быть живыми: внутри узла есть
+что нажать или раскрыть или по стрелкам надо показать течение. Схеме из
+подписанных узлов без этого хватает Mermaid.
 
 ## Подключение
 
@@ -80,9 +76,9 @@ Topology хранится в JSON, а содержимое каждой слож
   <script type="application/json" id="order-flow">
   {
     "nodes": [
-      {"id":"signal","template":"node-signal","className":"signal-node","position":{"x":0,"y":80}},
-      {"id":"check","template":"node-check","className":"check-node","position":{"x":320,"y":0}},
-      {"id":"ready","template":"node-ready","className":"signal-node","position":{"x":820,"y":80}}
+      {"id":"signal","template":"node-signal","className":"signal-node"},
+      {"id":"check","template":"node-check","className":"check-node"},
+      {"id":"ready","template":"node-ready","className":"signal-node"}
     ],
     "edges": [
       {"id":"signal-check","source":"signal","target":"check","label":"получено"},
@@ -114,10 +110,32 @@ Runtime добавляет только аварийный `min-block-size`, е�
 ноль; обычную геометрию и surface всегда задай здесь сам.
 
 Config root — object с массивами `nodes` и `edges`. Node требует уникальный
-`id`, числовой `position` и может получить `template`, короткий `label`, любые
-React Flow node options и `data`. Template ID должен существовать. Edge требует
-уникальный `id`, существующие `source`/`target`; default `dataFlow` показывает
-движение пакета по линии.
+`id` и может получить `template`, короткий `label`, любые React Flow node
+options и `data`. Template ID должен существовать. Edge требует уникальный
+`id`, существующие `source`/`target`; default `dataFlow` показывает движение
+пакета по линии.
+
+## Раскладка Без Координат
+
+Координаты узлам не пиши: адаптер измеряет узлы и раскладывает их по связям
+(dagre), а после поздних стилей, шрифтов или раскрытия внутри узла раскладывает
+заново, чтобы узлы не наехали друг на друга. Новый узел — строка в `nodes`,
+новая стрелка — строка в `edges`; пересчитывать соседей не нужно.
+
+Направление и промежутки — в `options.layout`:
+
+```json
+"options": {"layout": {"direction": "TB", "nodeGap": 48, "rankGap": 96}}
+```
+
+`direction` — `LR` (по умолчанию, слева направо), `RL`, `TB` (сверху вниз) или
+`BT`; ручки узлов по умолчанию встают по этому направлению. Вид подгоняется под
+рамку, пока читатель не тронул полотно.
+
+Ручной `position` нужен только когда само место несёт смысл: карта, схема
+помещения. Тогда `position` получает каждый узел; если хотя бы у одного его
+нет, адаптер раскладывает все узлы сам и пишет предупреждение в консоль.
+Вложенные sub-flows (`parentId`) раскладываются только вручную.
 
 ## Интерактивность В Node
 

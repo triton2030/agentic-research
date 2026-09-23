@@ -22,6 +22,9 @@
 
 body { font-family: var(--sans); font-size: var(--step-body); line-height: 1.5; }
 
+/* Alpine прячет x-cloak до запуска: без этого скрытые ветки мелькают при загрузке. */
+[x-cloak] { display: none !important; }
+
 /* Зона владеет НАЧЕРТАНИЕМ заголовков, страница — их размером.
    Поэтому здесь нет ни одного font-size на h1/h2/h3. */
 h1, h2, h3, .display, .title {
@@ -61,13 +64,15 @@ h1 { letter-spacing: -0.05em; line-height: 0.9; }
 .surface-brand { background: var(--color-primary);  color: var(--color-primary-content); }
 .surface-paper, .surface-quiet, .surface-ink, .surface-dark, .surface-brand { padding-block: var(--rhythm); }
 
-/* ── Полоса страницы: текст по центру, блок может уйти во всю ширину. ── */
+/* ── Полоса страницы: текст по центру, блок может уйти во всю ширину.
+      Колонка текста берёт ширину первой: поля .wide растут только из остатка,
+      иначе на телефоне текст сжимается до трети экрана. ── */
 .page {
   display: grid;
   grid-template-columns:
     [full-start] minmax(1.25rem, 1fr)
     [wide-start] minmax(0, 10rem)
-    [text-start] minmax(0, 66rem) [text-end]
+    [text-start] min(66rem, 100% - 2.5rem) [text-end]
     minmax(0, 10rem) [wide-end]
     minmax(1.25rem, 1fr) [full-end];
 }

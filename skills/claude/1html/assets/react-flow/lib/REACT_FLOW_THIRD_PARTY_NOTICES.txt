@@ -1,7 +1,10 @@
 React Flow local bundle
 =======================
 
-Built for 1html on 2026-08-20 with esbuild 0.28.2 from these exact npm packages:
+Built for 1html on 2026-08-20 with esbuild 0.28.2 from these exact npm packages;
+rebuilt on 2026-09-23 with the same packages plus @dagrejs/dagre for auto layout
+(esbuild --bundle --format=iife --minify --legal-comments=none,
+NODE_ENV=production):
 
 - @xyflow/react 12.11.3
 - @xyflow/system 0.0.80
@@ -20,6 +23,8 @@ Built for 1html on 2026-08-20 with esbuild 0.28.2 from these exact npm packages:
 - d3-timer 3.0.1
 - d3-transition 3.0.1
 - d3-zoom 3.0.0
+- @dagrejs/dagre 3.1.1
+- @dagrejs/graphlib 4.0.5
 
 All listed runtime dependencies are distributed under the MIT License. Their
 license texts are stored in lib/licenses/. The bundle is self-contained and

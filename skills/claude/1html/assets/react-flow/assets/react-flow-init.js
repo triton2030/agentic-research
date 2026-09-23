@@ -24,8 +24,13 @@
     Position,
     ReactFlow,
     getSmoothStepPath,
+    getViewportForBounds,
+    useNodesInitialized,
+    useReactFlow,
+    useStore,
     useUpdateNodeInternals,
   } = XYFlow;
+  const { dagre } = vendor;
   const mounted = new WeakMap();
   const h = React.createElement;
 
@@ -40,6 +45,24 @@
 
   function finiteNumber(value, fallback) {
     return Number.isFinite(value) ? value : fallback;
+  }
+
+  function hasPosition(node) {
+    return Boolean(node.position)
+      && Number.isFinite(node.position.x)
+      && Number.isFinite(node.position.y);
+  }
+
+  const LAYOUT_HANDLES = Object.freeze({
+    LR: ["Left", "Right"],
+    RL: ["Right", "Left"],
+    TB: ["Top", "Bottom"],
+    BT: ["Bottom", "Top"],
+  });
+
+  function layoutDirection(options) {
+    const direction = String(options.layout?.direction || "LR").toUpperCase();
+    return LAYOUT_HANDLES[direction] ? direction : "LR";
   }
 
   function nodeTemplate(templateId) {
@@ -89,9 +112,6 @@
       }
       if (nodeIds.has(node.id)) fail(`Duplicate React Flow node id: ${node.id}`);
       nodeIds.add(node.id);
-      if (!node.position || !Number.isFinite(node.position.x) || !Number.isFinite(node.position.y)) {
-        fail(`React Flow node needs a numeric position: ${node.id}`);
-      }
       if (node.data?.template !== undefined) {
         if (typeof node.data.template !== "string" || !node.data.template) {
           fail(`React Flow node template id must be a non-empty string: ${node.id}`);
@@ -99,6 +119,20 @@
         nodeTemplate(node.data.template);
       }
       nodes.push(node);
+    }
+
+    const autoLayout = nodes.some((node) => !hasPosition(node));
+    if (autoLayout) {
+      if (!dagre) {
+        fail("Nodes without position need lib/react-flow.vendor.js with auto layout; update the zone runtime or give every node a numeric position");
+      }
+      if (nodes.some((node) => node.parentId)) {
+        fail("Auto layout does not arrange sub-flows (parentId); give every node a numeric position");
+      }
+      if (nodes.some(hasPosition)) {
+        console.warn("React Flow: some nodes have no position, so auto layout places every node and ignores the given positions");
+      }
+      for (const node of nodes) node.position = { x: 0, y: 0 };
     }
 
     const edgeIds = new Set();
@@ -112,17 +146,18 @@
         fail(`React Flow edge points to an unknown node: ${edge.id}`);
       }
     }
-    return { ...config, nodes };
+    return { ...config, nodes, autoLayout };
   }
 
   function HtmlNode({ id, data = {} }) {
     const contentRef = React.useRef(null);
     const updateNodeInternals = useUpdateNodeInternals();
+    const [targetSide, sourceSide] = LAYOUT_HANDLES[data.layoutDirection] || LAYOUT_HANDLES.LR;
     const handles = Array.isArray(data.handles) && data.handles.length
       ? data.handles
       : [
-          { id: "in", type: "target", position: "Left" },
-          { id: "out", type: "source", position: "Right" },
+          { id: "in", type: "target", position: targetSide },
+          { id: "out", type: "source", position: sourceSide },
         ];
 
     React.useLayoutEffect(() => {
@@ -264,15 +299,131 @@
     return validateConfig(JSON.parse(source.textContent || "{}"));
   }
 
+  function layoutPositions(nodes, edges, options) {
+    const graph = new dagre.Graph();
+    graph.setGraph({
+      rankdir: layoutDirection(options),
+      nodesep: finiteNumber(options.layout?.nodeGap, 48),
+      ranksep: finiteNumber(options.layout?.rankGap, 96),
+      edgesep: 24,
+      marginx: 0,
+      marginy: 0,
+    });
+    graph.setDefaultEdgeLabel(() => ({}));
+    for (const node of nodes) {
+      graph.setNode(node.id, {
+        width: node.measured?.width ?? node.width ?? 160,
+        height: node.measured?.height ?? node.height ?? 64,
+      });
+    }
+    for (const edge of edges) graph.setEdge(edge.source, edge.target);
+    dagre.layout(graph);
+
+    const positions = new Map();
+    const bounds = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
+    for (const node of nodes) {
+      const box = graph.node(node.id);
+      const x = box.x - box.width / 2;
+      const y = box.y - box.height / 2;
+      positions.set(node.id, { x, y });
+      bounds.minX = Math.min(bounds.minX, x);
+      bounds.minY = Math.min(bounds.minY, y);
+      bounds.maxX = Math.max(bounds.maxX, x + box.width);
+      bounds.maxY = Math.max(bounds.maxY, y + box.height);
+    }
+    return {
+      positions,
+      bounds: {
+        x: bounds.minX,
+        y: bounds.minY,
+        width: bounds.maxX - bounds.minX,
+        height: bounds.maxY - bounds.minY,
+      },
+    };
+  }
+
+  function measuredSizes(state) {
+    let key = "";
+    for (const node of state.nodeLookup.values()) {
+      key += `${node.id}:${Math.round(node.measured?.width || 0)}x${Math.round(node.measured?.height || 0)};`;
+    }
+    return key;
+  }
+
+  // Lays nodes out from their measured sizes and repeats when a size changes:
+  // late styles, fonts or an opened disclosure never leave nodes overlapping.
+  // The view is fitted until the reader first touches the canvas.
+  function AutoLayout({ host, options, fitAfterLayout, onDone }) {
+    const initialized = useNodesInitialized();
+    const sizes = useStore(measuredSizes);
+    const width = useStore((state) => state.width);
+    const height = useStore((state) => state.height);
+    const { getEdges, getNodes, setNodes, setViewport } = useReactFlow();
+    const touched = React.useRef(false);
+    const announced = React.useRef(false);
+
+    React.useEffect(() => {
+      const touch = () => { touched.current = true; };
+      host.addEventListener("pointerdown", touch, true);
+      host.addEventListener("wheel", touch, { capture: true, passive: true });
+      return () => {
+        host.removeEventListener("pointerdown", touch, true);
+        host.removeEventListener("wheel", touch, true);
+      };
+    }, [host]);
+
+    React.useEffect(() => {
+      if (!initialized) return undefined;
+      const frame = requestAnimationFrame(() => {
+        try {
+          const { positions, bounds } = layoutPositions(getNodes(), getEdges(), options);
+          setNodes((nodes) => nodes.map((node) => ({
+            ...node,
+            position: positions.get(node.id) || node.position,
+          })));
+          if (fitAfterLayout && !touched.current && width > 0 && height > 0) {
+            const fit = options.fitViewOptions || {};
+            setViewport(getViewportForBounds(
+              bounds,
+              width,
+              height,
+              finiteNumber(fit.minZoom, finiteNumber(options.minZoom, 0.15)),
+              finiteNumber(fit.maxZoom, finiteNumber(options.maxZoom, 1.6)),
+              fit.padding ?? 0.16,
+            ));
+          }
+        } catch (error) {
+          console.error("React Flow auto layout failed; nodes stay in a row", error);
+          setNodes((nodes) => nodes.map((node, index) => ({
+            ...node,
+            position: { x: index * 320, y: 0 },
+          })));
+        }
+        if (!announced.current) {
+          announced.current = true;
+          onDone();
+        }
+      });
+      return () => cancelAnimationFrame(frame);
+    }, [initialized, sizes, width, height, getEdges, getNodes, setNodes, setViewport, options, fitAfterLayout, onDone]);
+
+    return null;
+  }
+
   function FlowCanvas({ config, host }) {
-    const options = config.options || {};
+    const options = React.useMemo(() => config.options || {}, [config]);
     const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
     const narrowViewport = window.matchMedia?.("(max-width: 42rem)").matches === true;
     const [motionPaused, setMotionPaused] = React.useState(false);
+    const [layoutDone, setLayoutDone] = React.useState(!config.autoLayout);
+    const direction = layoutDirection(options);
     const nodes = React.useMemo(() => config.nodes.map((node) => ({
       ...node,
       type: node.type || "html",
-    })), [config]);
+      data: config.autoLayout && !node.data?.handles
+        ? { ...node.data, layoutDirection: direction }
+        : node.data,
+    })), [config, direction]);
     const edges = React.useMemo(() => (config.edges || []).map((edge) => ({
       ...edge,
       type: edge.type || "dataFlow",
@@ -288,18 +439,27 @@
       svg?.[method]?.();
     }, [host, motionPaused]);
 
+    const fitOnOpen = options.fitView !== false && (
+      !narrowViewport || options.fitViewOnMobile === true
+    );
+    const markReady = React.useCallback(() => {
+      setLayoutDone(true);
+      host.dataset.reactFlowReady = "true";
+      host.removeAttribute("data-react-flow-loading");
+      host.dispatchEvent(new CustomEvent("html-react-flow:ready"));
+    }, [host]);
+
     return h(
       ReactFlow,
       {
+        className: layoutDone ? undefined : "rf-layout-pending",
         defaultEdges: edges,
         defaultNodes: nodes,
         defaultViewport: options.defaultViewport || (
           narrowViewport ? { x: 16, y: 72, zoom: 0.88 } : undefined
         ),
         edgeTypes,
-        fitView: options.fitView !== false && (
-          !narrowViewport || options.fitViewOnMobile === true
-        ),
+        fitView: fitOnOpen,
         fitViewOptions: options.fitViewOptions || { padding: 0.16 },
         maxZoom: finiteNumber(options.maxZoom, 1.6),
         minZoom: finiteNumber(options.minZoom, 0.15),
@@ -307,9 +467,7 @@
         nodesConnectable: options.nodesConnectable === true,
         nodesDraggable: options.nodesDraggable === true,
         onInit: () => {
-          host.dataset.reactFlowReady = "true";
-          host.removeAttribute("data-react-flow-loading");
-          host.dispatchEvent(new CustomEvent("html-react-flow:ready"));
+          if (!config.autoLayout) markReady();
         },
         panOnScroll: options.panOnScroll === true,
         proOptions: { hideAttribution: true },
@@ -321,6 +479,9 @@
             size: finiteNumber(options.gridDot, 1),
           }),
       options.controls === false ? null : h(Controls),
+      config.autoLayout
+        ? h(AutoLayout, { fitAfterLayout: fitOnOpen, host, onDone: markReady, options })
+        : null,
       hasMotion && !reducedMotion
         ? h(
             Panel,

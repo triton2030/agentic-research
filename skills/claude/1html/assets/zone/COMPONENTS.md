@@ -4,6 +4,10 @@
 Тема — DaisyUI `bumblebee`, второй палитры нет. Всё ниже лежит рядом и работает
 по `file://`.
 
+Alpine — ядро с плагинами Intersect и Collapse; Focus, Mask и Persist не
+подключены. Иконку Lucide, вставленную после загрузки, дорисуй
+`lucide.createIcons()`.
+
 ## Краска
 
 Пары surface/content не разбивай. Хотя бы одно поле страницы — не бумага.
@@ -89,7 +93,8 @@
 ```
 
 **React Flow** — граф с произвольной анатомией узла. Host
-`<div data-react-flow="id">`, содержимое узлов — semantic HTML из `<template>`.
+`<div data-react-flow="id">`, содержимое узлов — semantic HTML из `<template>`;
+координаты узлам не нужны, раскладку по связям строит адаптер.
 
 ```html
 <link href="lib/react-flow.css" rel="stylesheet">
