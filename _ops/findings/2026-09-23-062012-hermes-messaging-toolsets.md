@@ -1,0 +1,1 @@
+Hermes Agent v0.21.4 config migration reports that `teams` and `google_chat` reference unknown toolsets `hermes-teams` and `hermes-google_chat` and have no valid toolsets configured; current status says both platforms are not configured. Seen during `hermes update` on 2026-09-23. Check whether these stale entries need repair if either messaging platform is configured later.

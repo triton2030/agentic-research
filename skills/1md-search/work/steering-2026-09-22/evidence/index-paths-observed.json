@@ -1,0 +1,11 @@
+{
+  "scope_before": [
+    "docs/current/recovery.md"
+  ],
+  "scope_after": [
+    "docs/current/recovery.md"
+  ],
+  "cold_after": [
+    "docs/current/recovery.md"
+  ]
+}

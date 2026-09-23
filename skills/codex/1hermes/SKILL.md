@@ -2,8 +2,9 @@
 name: 1hermes
 description: >-
   Use when the user asks for Hermes, Kimi K3, DeepSeek, or Ox Alpha; to continue
-  their session, choose a model/provider route, or check a configured
-  Hermes/OpenRouter run. Not for model comparisons.
+  their session, choose a model/provider route, check a configured
+  Hermes/OpenRouter run, or check/update the Hermes CLI installation. Not for
+  model comparisons.
 ---
 
 # Hermes Advisor
@@ -21,6 +22,7 @@ description: >-
 | Явно названа Ox Alpha | Выполни бесплатный preflight и exact override ниже |
 | Hermes должен писать или исполнять команды | Прочитай advanced reference до вызова |
 | MoA, fallback, skills или расширенные toolsets | Прочитай advanced reference до вызова |
+| Проверить актуальность или обновить Hermes CLI | Сверь установленную версию и официальные release notes; для обновления смотри процедуру ниже |
 
 Выбери роль по задаче и передай обычные Hermes flags; отдельного role-router в
 коде нет:
@@ -214,6 +216,21 @@ hermes tools list
 Они доказывают установку, auth и наличие tools, но не model execution. Для
 execution evidence выполни bounded `hermes_advisor.py` run и прими только его
 session-backed JSON.
+
+## Актуальность Hermes CLI
+
+Для проверки версии используй `hermes --version` и `hermes update --check`, а
+различия сверяй с официальными
+[релизами Hermes Agent](https://github.com/NousResearch/hermes-agent/releases).
+Само наличие нового релиза не меняет runtime-маршруты этого скила.
+
+Если пользователь просит обновить CLI, сначала выполни read-only
+`hermes update --plan`, затем `hermes update` без `--yes`, чтобы не принимать
+миграции конфигурации вслепую. После обновления проверь `hermes --version`,
+`hermes status` и `hermes tools list`; прочитай предупреждения о миграциях и
+toolsets. Не считай обновление доказательством авторизации или успешного
+model run: при недействительной авторизации сообщи это отдельно и не запускай
+платный запрос без отдельной задачи на live health.
 
 ## Условные Ветки
 

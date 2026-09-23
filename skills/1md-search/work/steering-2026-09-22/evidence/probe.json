@@ -1,0 +1,8 @@
+{
+  "root": "/private/var/folders/mr/ft3j0yjx6w5_191wrt58_45m0000gn/T/md-steering-proof-u9gips2o",
+  "scope_before": "/private/var/folders/mr/ft3j0yjx6w5_191wrt58_45m0000gn/T/md-steering-proof-u9gips2o/scope-before",
+  "scope_after": "/private/var/folders/mr/ft3j0yjx6w5_191wrt58_45m0000gn/T/md-steering-proof-u9gips2o/scope-after",
+  "cold_after": "/private/var/folders/mr/ft3j0yjx6w5_191wrt58_45m0000gn/T/md-steering-proof-u9gips2o/cold-after",
+  "endpoint": "http://127.0.0.1:51528/v1",
+  "model": "test/steering-synthetic"
+}

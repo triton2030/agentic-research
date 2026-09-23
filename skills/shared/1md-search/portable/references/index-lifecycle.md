@@ -1,116 +1,86 @@
-# 1md-search — Жизненный Цикл Индекса
+---
+description: "Границы корневого индекса, фильтры, готовность и разрешённый warmup."
+---
 
-## Содержание
+# Готовность и восстановление индекса
 
-- Owner и scope
-- States и default recovery
-- Delta, cleanup и conflicts
-- Transaction contract
+## Область действия
 
-Vector index лежит в `<corpus>/.md-navigator/index.sqlite`: один generated
-index на один corpus root. Вложенные indexes не сужают поиск; они создают
-shadowed ownership и `INDEX_CONFLICT`.
+Открывай при выборе новых фильтров, первой индексации или ответе о неготовом
+индексе. Существующий индекс обычно лежит в `CORPUS/.md-navigator/index.sqlite`.
+Не создавай вложенный индекс для сужения поиска: сначала проверь общий корень.
 
-## Owner И Scope
-
-`md` индексирует только Markdown. Постоянные границы покрытия принадлежат
-корневому `.md-tools.toml`:
+Постоянные фильтры задаёт `.md-tools.toml`, например:
 
 ```toml
 [index]
-include = []
-exclude = ["_workspace/**", "drafts/**"]
+include = ["docs/**"]
+exclude = ["docs/drafts/**"]
 ```
 
-Config задаёт baseline. CLI `--path-include` / `--path-exclude` добавляют
-operation scope; excludes применяются после includes. Command include может
-объединиться с config include по OR и не сузить corpus.
+CLI-фильтры не заменяют конфигурацию: includes могут объединяться через OR,
+а excludes удаляют совпавшее из результата. Поэтому `--path-include` сам
+по себе не доказывает сужение до этой папки. Проверяй `path_scope` в status,
+`engine.path_include` и `engine.path_exclude` в search-read, а также пути
+результатов. Не меняй конфигурацию или scope молча ради удачной выдачи.
 
-Для внешнего corpus используй абсолютный root и сначала прочитай его
-`AGENTS.md` / `.md-tools.toml`. Не создавай отдельный index внутри уже
-индексируемого subtree.
+## Как читать состояние
 
-До первой semantic command effective project instructions или явное current
-user approval должны разрешать передачу in-scope Markdown/query внешнему
-provider-у и изменение generated index/cache. Сам запрос «найди по смыслу»
-такого разрешения не создаёт. Без него не запускай `search`, `search-read`,
-auto-embed или warmup; вернись к filesystem/exact route либо запроси согласие на
-точный scope.
-
-Default ignored parts: `.git`, `.github`, `.claude`, `.codex`,
-`.md-navigator`, caches, virtualenvs, `node_modules`, build outputs,
-`_archive`. Live `.md-tools.toml` остаётся owner-ом дополнительных границ.
-
-## States И Default Recovery
-
-Если local project не требует status перед каждой semantic command, сначала
-запусти исходный search: его envelope уже несёт corpus state и exact recovery.
-После material corpus edits либо при explicit index question сначала выполни:
+Обычный поиск сам сообщает о готовности; отдельный status перед каждым
+запросом не нужен. После изменения корпуса или при диагностике используй
+status с теми же CLI-фильтрами, что у проверяемого поиска. Ниже пример
+без дополнительных фильтров:
 
 ```bash
 md status CORPUS --json
 ```
 
-States:
+| Состояние | Следствие |
+| --- | --- |
+| `FRESH` | Индекс не сообщает ожидающих изменений. |
+| `HEALTHY` | Небольшое изменение может обновиться при поиске. |
+| `NO_INDEX` | Индекса нет; это не пустой результат поиска. |
+| `NEEDS_WARMUP` | Изменений больше допустимого автообновления. |
+| `NEEDS_REBUILD` | Нужно разбирать несовместимость или целостность индекса. |
+| `INDEX_CONFLICT` / `index_busy` | Есть конфликт корней или другой writer; не удаляй lock вручную. |
 
-- `FRESH` — pending changes отсутствуют.
-- `HEALTHY` — small delta; search может auto-embed inline.
-- `NEEDS_WARMUP` — large delta; search возвращает
-  `index_warmup_required`, partial search не выполняется.
-- `NEEDS_REBUILD` — schema/model/integrity mismatch.
-- `NO_INDEX` — index ещё не создан.
+Ошибка и `_envelope.next_step` конкретного ответа определяют следующий ход.
+Проверяй названную причину и разрешение на действие; следующая команда
+инструмента не расширяет полномочия.
 
-Required recovery:
+## Обычная индексация
+
+При разрешённой отправке данных и обновлении индекса следуй параметрам
+из ответа, включая предложенный общий корень и фильтры. Типовой обмен
+без дополнительных CLI-фильтров:
 
 ```bash
 md index CORPUS --dry-run --json
-md index CORPUS --confirm --transaction-id TRANSACTION_ID --json
+md index CORPUS --confirm --transaction-id ID_ИЗ_ЭТОГО_DRY_RUN --json
 md status CORPUS --json
-# replay original query with the same filters
 ```
 
-Если envelope предлагает parent corpus или filters в
-`_envelope.next_step.args`, используй их as-is. При нулевых pending/cleanup
-confirm не нужен.
+Если область ограничена CLI-фильтрами, передай их во все три команды
+и последующий поиск. Иначе status покажет область конфигурации, а следующий
+поиск может обновить документы за пределами выбранной папки.
 
-## Delta, Cleanup И Conflicts
+Перед confirm прочитай план: какой корпус, сколько изменений и какие
+действия будут выполнены. Используй `transaction_id` либо `fingerprint`
+из `_envelope.lock` или соответствующего `_envelope.next_step[].args`
+того же dry-run; bare `--confirm` не является корректным продолжением.
+Если план не требует записи, confirm не нужен.
 
-- Small delta может быть auto-embedded во время `search`/`search-read`.
-- Large delta требует explicit dry-run/confirm.
-- Removed sections/files и stale config rows чистятся generated index route;
-  source Markdown не меняется.
-- `semantic-neighbors` при nested indexes возвращает `INDEX_CONFLICT`, а не
-  выбирает nearest index.
-- Для диагностики roots:
+После восстановления повтори исходный вопрос с теми же фильтрами и проверь
+готовность и dense-канал. Успешная индексация ещё не означает найденный ответ.
 
-  ```bash
-  md corpus-scan CORPUS --json
-  ```
+`transaction_not_found` требует проверки состояния: другой writer мог
+закончить работу. При `FRESH` повтори поиск; иначе получи новый план и его ID.
+Не используй старый ID для изменённого scope или набора аргументов.
 
-- `cleanup-shadowed`, `vacuum`, ручное удаление SQLite/WAL/SHM и forced rebuild
-  не входят в ordinary warmup. Делай их только после отдельного основания и
-  dry-run.
-- Schema/model/backend mismatch определяется из stored metadata и требует
-  rebuild через normal index transaction.
+## За пределами обычного обновления
 
-## Transaction Contract
-
-Confirm всегда использует `transaction_id` или `fingerprint` **из того же
-dry-run**. Ищи их в:
-
-- `_envelope.lock.transaction_id`;
-- `_envelope.lock.fingerprint`;
-- `_envelope.next_step[].args`.
-
-Никогда не запускай bare `--confirm`.
-
-`transaction_not_found` означает expired/replaced lock, а не автоматически
-сломанный corpus. Если error envelope уже показывает `FRESH`, другой writer
-завершил warmup — replay query. Иначе выполни новый dry-run и confirm его id.
-
-Query pack по одному corpus сериализуй, чтобы агенты не перехватывали общий
-lock. Independent corpus roots можно обрабатывать параллельно.
-
-Если effective owner authorization покрывает ordinary warmup и передачу
-in-scope Markdown configured embedding provider, она всё равно не покрывает
-profile generation, cleanup/vacuum, manual rebuild или расширение scope.
+`cleanup-shadowed`, vacuum, удаление SQLite/WAL/SHM, принудительная перестройка,
+смена модели или endpoint, генерация профилей и расширение корпуса —
+самостоятельные изменения. Разрешение на обычный поиск и warmup их не покрывает.
+Сначала установи причину, последствия и полномочие на конкретное действие.
+Не подменяй восстановление ручным удалением состояния.

@@ -1,11 +1,6 @@
-# 1md-search — Setup И Runtime Recovery
+# Если поиск не запускается
 
-Открывай только при `md` spawn failure, missing dependency/key или backend
-error. Обычный search route не перечитывает setup.
-
-## Active Runtime
-
-Сначала проверь live owner:
+## Проверка команды
 
 ```bash
 command -v md
@@ -13,40 +8,22 @@ md --version
 md ping --json
 ```
 
-`md` обычно установлен как uv-managed CLI. Не запускай `python3 md ...`:
-это обходит console entry point и создаёт import/dependency drift.
+Вызывай установленный console entry point. Сбой импорта или отсутствующая
+команда требует исправления установки; пустая выдача не является причиной
+переустанавливать инструмент. Не подменяй рабочий runtime произвольным
+`python3` из другой среды.
 
-Если active binary принадлежит editable checkout, переустановка/обновление —
-отдельная tooling задача. Не выполняй install только потому, что search вернул
-no-hit.
+## Провайдер и ключ
 
-## Embedding Credential
+Следуй диагностике текущего ответа. Проверяй наличие ожидаемой переменной
+или файла ключа, не выводя значение. Не копируй ключи между проектами и
+не включай их в логи или поручения агентам.
 
-Semantic commands используют configured OpenAI-compatible embedding endpoint.
-При missing-key error проверяй **наличие**, никогда не печатай значение:
+Индекс сохраняет сведения о модели. Смена endpoint или модели может сделать
+старые векторы несовместимыми; сначала прочитай `md index --help` и причину
+сбоя. Не переключай модель, чтобы просто избавиться от ошибки.
 
-```bash
-test -n "${OPENROUTER_API_KEY:-}${MD_EMBEDDING_API_KEY:-}" \
-  && echo "embedding key present"
-test -f .openrouter.key && echo "cwd key present"
-test -f ~/.openrouter.key && echo "home key present"
-```
-
-Следуй lookup paths из live error. Не копируй secret между projects молча, не
-логируй его и не вставляй в prompt/tool output.
-
-## Backend Overrides
-
-Endpoint/model могут приходить из environment, command flags или stored index
-metadata. Existing corpus обычно сохраняет stored model; explicit model override
-может потребовать rebuild.
-
-Перед изменением endpoint/model проверь live help:
-
-```bash
-md index --help
-md search --help
-```
-
-Backend/network failure — runtime gap. Он не доказывает пустоту Markdown
-corpus; filesystem reading остаётся независимым.
+Отказ провайдера, timeout и отсутствие ключа оставляют семантический поиск
+непроверенным. Если доступно чтение файлов, используй его и явно назови
+ограничение результата. Не называй техническую недоступность отсутствием
+нужного текста.

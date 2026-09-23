@@ -1,0 +1,11 @@
+{
+  "premortem": {
+    "session_id": "dff38068-5ce0-4317-ac49-48f445400798",
+    "model": "claude-fable-5-1",
+    "effort": "medium"
+  },
+  "ladder": "/root/fresh_ladder",
+  "solvent": "/root/fresh_solvent",
+  "prospector": "/root/fresh_prospector",
+  "baseline": "/root/steering_baseline"
+}

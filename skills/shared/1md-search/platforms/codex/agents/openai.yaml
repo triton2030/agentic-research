@@ -1,7 +1,7 @@
 interface:
   display_name: "1md-search"
-  short_description: "Semantic discovery across Markdown corpora"
-  default_prompt: "Используй $1md-search, чтобы найти и прочитать тела-доказательства по смыслу и продолжить исходную задачу; владельца, дубль и отсутствие из ранга не выводи."
+  short_description: "Find Markdown by meaning and read the evidence"
+  default_prompt: "Используй $1md-search для поиска Markdown по смыслу: найди подходящие фрагменты, прочитай их и продолжи исходную задачу с адресами источников и честными ограничениями."
 
 policy:
-  allow_implicit_invocation: false
+  allow_implicit_invocation: true
