@@ -87,14 +87,22 @@ def _clean_env() -> dict[str, str]:
 
 
 def _codex_path() -> str:
-    # The real path matters: a symlinked engine looks for codex-code-mode-host
-    # next to the link and every tool call fails (openai/codex#32495).
+    # One rule for every direct Codex caller (codex-bridge README, «Codex binary»):
+    # explicit CODEX_BIN, then the self-updating ChatGPT.app engine, then PATH.
+    # Real paths only: a symlinked engine misses codex-code-mode-host
+    # (openai/codex#32495).
+    explicit = os.environ.get("CODEX_BIN")
+    if explicit:
+        path = os.path.realpath(explicit)
+        if not os.path.isfile(path):
+            raise CliError(f"CODEX_BIN is not a file: {explicit}")
+        return path
+    if APP_CODEX.is_file():
+        return str(APP_CODEX)
     path = shutil.which("codex")
     if path:
         return os.path.realpath(path)
-    if APP_CODEX.is_file():
-        return str(APP_CODEX)
-    raise CliError("codex executable was not found on PATH or in ChatGPT.app")
+    raise CliError("codex not found: set CODEX_BIN, install ChatGPT.app or put codex on PATH")
 
 
 def _doctor_payload() -> tuple[dict[str, Any], bool]:

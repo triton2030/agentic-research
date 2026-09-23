@@ -107,6 +107,8 @@ class MaxReviewTests(unittest.TestCase):
         self.env = {
             **os.environ,
             "PATH": f"{self.bin}{os.pathsep}{os.environ.get('PATH', '')}",
+            # ChatGPT.app outranks PATH, so the fake is pinned explicitly.
+            "CODEX_BIN": str(self.fake),
             "FAKE_STATE": str(self.fake_state),
             "CODEX_API_KEY": "must-not-leak",
             "OPENAI_API_KEY": "must-not-leak",

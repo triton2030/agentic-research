@@ -467,3 +467,76 @@ class ExternalSteerAsyncTests(unittest.TestCase):
             codex_progress._deliver_steer(Handle(), Thread(), {"text": "x", "authority": "external"})
         self.assertIn("ПРЕРВАТЬ НЕ УДАЛОСЬ", str(ctx.exception))
         self.assertIn("transport down", str(ctx.exception))
+
+
+def _image_event(**fields) -> types.SimpleNamespace:
+    values = {"status": "completed", "saved_path": None, "failure": None, "result": "", **fields}
+    item = types.SimpleNamespace(type="imageGeneration", **values)
+    return types.SimpleNamespace(method="item/completed", payload=types.SimpleNamespace(item=item))
+
+
+class ImageCollectionTests(unittest.TestCase):
+    """Картинку хода забирает мост, а не фраза в задании."""
+
+    PNG = b"\x89PNG\r\n\x1a\n" + b"pixels"
+
+    def test_saved_path_is_copied_and_journal_names_it(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "exec-1.png"
+            source.write_bytes(self.PNG)
+            tracker = codex_progress.ProgressTracker()
+            record = tracker.observe(_image_event(saved_path=str(source)))
+            self.assertEqual(record["detail"], str(source))
+            entries = codex_progress.collect_images(tracker, root / "run")
+            self.assertEqual(entries, [{"status": "completed", "saved_path": str(source),
+                                        "file": "images/01-exec-1.png"}])
+            self.assertEqual((root / "run" / "images" / "01-exec-1.png").read_bytes(), self.PNG)
+
+    def test_base64_result_is_the_fallback_when_file_is_absent(self) -> None:
+        import base64
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp)
+            tracker = codex_progress.ProgressTracker()
+            encoded = base64.b64encode(self.PNG).decode()
+            tracker.observe(_image_event(saved_path="/missing/exec-2.png", result=encoded))
+            tracker.observe(_image_event(result="data:image/png;base64," + encoded))
+            entries = codex_progress.collect_images(tracker, run_dir)
+            self.assertEqual([e["file"] for e in entries], ["images/01.png", "images/02.png"])
+            self.assertEqual((run_dir / "images" / "02.png").read_bytes(), self.PNG)
+
+    def test_failure_is_reported_without_a_file(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            tracker = codex_progress.ProgressTracker()
+            record = tracker.observe(_image_event(failure="usage limit exceeded", status="failed"))
+            self.assertIn("отказ", record["detail"])
+            entries = codex_progress.collect_images(tracker, Path(tmp))
+            self.assertEqual(entries, [{"status": "failed", "failure": "usage limit exceeded"}])
+
+    def test_no_images_means_no_entries(self) -> None:
+        tracker = codex_progress.ProgressTracker()
+        self.assertEqual(codex_progress.collect_images(tracker, Path("/nonexistent")), [])
+
+    def test_sdk_wrappers_are_unwrapped(self) -> None:
+        """В SDK путь — AbsolutePathBuf (RootModel[str]), отказ — RootModel над
+        моделью usageLimitExceeded; без развёртки в result.json попадал `root='…'`."""
+
+        class _Failure:
+            def model_dump(self):
+                return {"type": "usageLimitExceeded", "limit_id": "images", "resets_at": None}
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "exec-3.png"
+            source.write_bytes(self.PNG)
+            tracker = codex_progress.ProgressTracker()
+            tracker.observe(_image_event(saved_path=types.SimpleNamespace(root=str(source))))
+            record = tracker.observe(_image_event(
+                status="failed", failure=types.SimpleNamespace(root=_Failure())))
+            self.assertEqual(record["detail"], "отказ: type=usageLimitExceeded, limit_id=images")
+            entries = codex_progress.collect_images(tracker, root / "run")
+            self.assertEqual(entries[0]["saved_path"], str(source))
+            self.assertEqual(entries[0]["file"], "images/01-exec-3.png")
+            self.assertEqual(entries[1], {"status": "failed",
+                                          "failure": "type=usageLimitExceeded, limit_id=images"})
+

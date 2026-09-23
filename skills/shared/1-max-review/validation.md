@@ -49,3 +49,4 @@ CLI сохранил requested gpt-5.6-luna/max; resolved model не раскр�
 0.155.0-alpha.16, ChatGPT-вход; живой `run` одной проверкой — `succeeded`,
 ответ совпал с файлом; тесты 24 OK. Resolved model CLI по-прежнему не раскрывает.
 
+Поправка того же дня: порядок поиска стал общим для всех вызывающих — `CODEX_BIN`, затем движок ChatGPT.app, затем PATH (README моста, «Одно правило поиска движка»; решение `_ops/chat-recall/2026-09-23-051553-claude-483a304e.md#recall-7441f336bd9c49ae940d812c8e16700a`).

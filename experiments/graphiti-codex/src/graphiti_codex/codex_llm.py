@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import copy
 import json
+import os
 import shutil
 import tempfile
 from collections.abc import Callable
@@ -87,12 +88,20 @@ def strict_codex_schema(schema: dict[str, Any]) -> dict[str, Any]:
 
 
 def resolve_codex_binary() -> str:
-    """Prefer the current ChatGPT.app binary, then the active PATH binary."""
+    """Explicit CODEX_BIN, then the current ChatGPT.app binary, then PATH.
+
+    One rule for every direct Codex caller (codex-bridge README, «Codex binary»);
+    real paths only, since a symlinked engine misses codex-code-mode-host
+    (openai/codex#32495).
+    """
+    explicit = os.environ.get("CODEX_BIN")
+    if explicit:
+        return os.path.realpath(explicit)
     if CHATGPT_CODEX.is_file():
         return str(CHATGPT_CODEX)
     active = shutil.which("codex")
     if active:
-        return active
+        return os.path.realpath(active)
     raise CodexInvocationError("Codex CLI not found; install or open ChatGPT.app")
 
 

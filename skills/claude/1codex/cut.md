@@ -576,3 +576,33 @@ md-scout (`terra` → `gpt-6-luna`: в поколении 6 терры нет, �
 каталог («Весь список возможностей мы не блокируем»,
 `_ops/chat-recall/2026-09-06-170311-claude-557afe59.md#L17`), модель задаёт
 конфиг. Качество md-scout на луне против терры не сравнивалось.
+
+## Адресная правка 2026-09-23, после архитектурного критика
+
+Критик (`_workspace/fresh-eyes-2026-09-23-codex-session/report-architecture-critic.md`)
+нашёл две утечки владения; владелец принял обе — «1 ок 2 ок» (`_ops/chat-recall/2026-09-23-051553-claude-483a304e.md#recall-7441f336bd9c49ae940d812c8e16700a`).
+
+### Изменено
+
+- Картинку забирает мост, а не фраза задания: `collect_images` в
+  `codex_progress.py` копирует файл по `savedPath` (запас — base64 из `result`)
+  в `run_dir/images/` и пишет `images` в `result.json` ревьюера и
+  исследователя. `delegate.md`: «Картинка — хватает `review`», просьба
+  копировать снята.
+- Одно правило поиска движка (`CODEX_BIN` → ChatGPT.app → PATH, путь настоящий)
+  записано в README моста с таблицей вызывающих; по нему переведены
+  `1-max-review`, `1folder-tree`, md-scout, `1design-review` (без `codex` в PATH
+  он падал) и `graphiti-codex`.
+- Ошибка, найденная владельцем на скриншоте: сессия в mavo3 помнила имя
+  `codex_launch.py` без пути и искала его `find /`. В `SKILL.md` пример запуска
+  теперь сам задаёт `B=…`, а `1fresh-eyes/references/premortem.md` велит
+  открыть скил `1codex` заново вместо `$1codex` (синтаксис Codex).
+
+### Проверено
+
+Тесты моста 212 OK. Живой пробник в read-only без просьбы копировать
+(`20260923T092405Z-image-bridge-collect`) показал, что `savedPath` в SDK —
+`AbsolutePathBuf`: без развёртки `.root` путь записался `root='…'`, картинку спас
+base64-запас. После развёртки повтор (`20260923T092643Z-image-bridge-collect-2`):
+`completed`, `ok=true`, файл по `savedPath` скопирован, SHA-256 совпал.
+

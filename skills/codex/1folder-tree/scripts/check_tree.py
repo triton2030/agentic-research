@@ -118,12 +118,17 @@ def main(argv=None):
             raise ValueError("Evidence must be outside the reviewed root; choose --output-dir")
         tree = snapshot(root, [".git", *args.exclude], args.max_entries)
         skill = SKILL.read_text(encoding="utf-8")
-        # The real path matters: a symlinked engine looks for codex-code-mode-host
-        # next to the link (openai/codex#32495).
+        # One rule for every direct Codex caller (codex-bridge README, «Codex binary»):
+        # explicit CODEX_BIN, then the self-updating ChatGPT.app engine, then PATH.
+        # Real paths only: a symlinked engine misses codex-code-mode-host
+        # (openai/codex#32495).
+        explicit = os.environ.get("CODEX_BIN")
         found = shutil.which("codex")
-        codex = os.path.realpath(found) if found else str(APP_CODEX) if APP_CODEX.is_file() else None
-        if not args.dry_run and codex is None:
-            raise ValueError("codex not found on PATH or in ChatGPT.app; install and sign in to Codex")
+        codex = (os.path.realpath(explicit) if explicit
+                 else str(APP_CODEX) if APP_CODEX.is_file()
+                 else os.path.realpath(found) if found else None)
+        if not args.dry_run and (codex is None or not os.path.isfile(codex)):
+            raise ValueError("codex not found: set CODEX_BIN, install ChatGPT.app or put codex on PATH")
         if args.output_dir:
             destination.mkdir(parents=True, exist_ok=False)
             run_dir = destination

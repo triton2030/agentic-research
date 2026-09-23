@@ -57,7 +57,7 @@ from codex_git_scope import (
     capture_git_snapshot,
     compare_scope,
 )
-from codex_progress import ProgressTracker, run_turn
+from codex_progress import ProgressTracker, collect_images, run_turn
 
 
 def build_instructions(project_cwd: Path, out_dir: Path) -> str:
@@ -315,11 +315,15 @@ def main() -> int:
         heartbeat_stop.set()
         if heartbeat_thread is not None:
             heartbeat_thread.join(timeout=1)
+        failed_extra: dict[str, object] = {"error": str(exc), "artifacts": _list_artifacts(out_dir)}
+        images = collect_images(progress, run_dir)
+        if images:
+            failed_extra["images"] = images
         ledger.finish(
             status="exception",
             ok=False,
             event="failed",
-            extra={"error": str(exc), "artifacts": _list_artifacts(out_dir)},
+            extra=failed_extra,
             event_fields={"status": "exception", "error": str(exc)},
         )
         print(f"[codex-bridge] ошибка вызова Codex: {exc}", file=sys.stderr)
@@ -393,6 +397,7 @@ def main() -> int:
     final_response = result.final_response or "[пустой ответ Codex]"
     (run_dir / "final.md").write_text(final_response, encoding="utf-8")
     artifacts = _list_artifacts(out_dir)
+    images = collect_images(progress, run_dir)
 
     print(
         f"[codex-bridge] статус={status} scope={scope_status} "
@@ -422,6 +427,8 @@ def main() -> int:
         "usage": str(usage),
         "final_response": final_response,
     }
+    if images:
+        extra["images"] = images
     if error:
         extra["error"] = error
     ledger.finish(

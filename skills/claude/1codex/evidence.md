@@ -374,3 +374,11 @@ Agent и NotebookEdit; журналы — `/tmp/trig/run1..5.jsonl` (не сох
 `1-max-review` и `1folder-tree` живьём не запускались: оба ищут `codex` в PATH,
 а на этом Mac его там нет (находка `_ops/findings/2026-09-23-054846-codex-not-on-path.md`).
 
+### Мост забирает картинку сам (2026-09-23)
+
+| Что | Как | Результат |
+|---|---|---|
+| read-only без просьбы копировать | `review`, `gpt-6-sol`/`low`, run `20260923T092405Z-image-bridge-collect` | `completed`, `ok=true`; `images/01.png` из base64, SHA-256 = оригиналу; `saved_path` записан как `root='…'` — дефект развёртки |
+| после развёртки `AbsolutePathBuf` | тот же прогон, run `20260923T092643Z-image-bridge-collect-2` | `completed`, `ok=true`; `images/01-exec-….png` по `savedPath`, SHA-256 совпал; в журнале `imageGeneration` с путём; картинка по заданию |
+| одно правило движка | `max-review doctor`, `check_tree.py --dry-run` | оба выбрали `/Applications/ChatGPT.app/Contents/Resources/codex` |
+

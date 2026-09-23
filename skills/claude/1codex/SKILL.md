@@ -66,6 +66,7 @@ description: >-
 
   ```bash
   # задание — в файл (владелец видит команду, а не простыню текста)
+  B=/Users/triton/Documents/GitHub/agentic-research/experiments/codex-bridge
   $B/.venv/bin/python $B/codex_launch.py review --name <роль-суть> \
       --prompt-file ЗАДАНИЕ.md --project "$PWD" -- [--model … --effort … --dialog …]
   # investigate — так же; orchestrate — без --prompt-file: -- --tasks tasks.json

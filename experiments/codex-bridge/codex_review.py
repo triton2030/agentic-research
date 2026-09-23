@@ -61,7 +61,7 @@ from codex_run_ledger import (
     utc_now,
     write_json,
 )
-from codex_progress import ProgressTracker, run_turn
+from codex_progress import ProgressTracker, collect_images, run_turn
 
 CLAUDE_PROJECTS = Path.home() / ".claude" / "projects"
 
@@ -833,11 +833,15 @@ def main() -> int:
         heartbeat_stop.set()
         if heartbeat_thread is not None:
             heartbeat_thread.join(timeout=1)
+        failed_extra: dict[str, object] = {"error": str(exc)}
+        images = collect_images(progress, run_dir)
+        if images:
+            failed_extra["images"] = images
         ledger.finish(
             status="exception",
             ok=False,
             event="failed",
-            extra={"error": str(exc)},
+            extra=failed_extra,
             event_fields={
                 "status": "exception",
                 "error": str(exc),
@@ -879,6 +883,9 @@ def main() -> int:
         "usage": str(usage),
         "final_response": final_response,
     }
+    images = collect_images(progress, run_dir)
+    if images:
+        extra["images"] = images
     if error:
         extra["error"] = error
     ledger.finish(

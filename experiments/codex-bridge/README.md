@@ -244,6 +244,28 @@ local package; install a packaged Codex CLI or use the standalone installer`
 `_workspace/codex-artifacts/audit-input-20260918/codex-agents.txt`);
 `codex doctor` и `codex debug` работают.
 
+**Одно правило поиска движка для всех, кто зовёт Codex напрямую.** Сначала
+`CODEX_BIN`, если задан; затем `/Applications/ChatGPT.app/Contents/Resources/codex`
+— он обновляется вместе с приложением, а отстающий движок отвечает новым
+моделям HTTP 400; затем `codex` из PATH. Путь всегда настоящий (`realpath`):
+движок, запущенный через симлинк, не находит `codex-code-mode-host`, и падает
+каждый вызов инструмента (`openai/codex#32495`, открыта); а песочница
+`1design-review` пускает только папку найденного файла, поэтому `CODEX_BIN`
+указывает на сам движок, не на скрипт-обёртку. В PATH этого Mac `codex` нет
+(замер 2026-09-23). Правилу следуют:
+
+| Вызывающий | Где |
+|---|---|
+| `1-max-review` | `skills/shared/1-max-review/portable/scripts/max_review.py`, `_codex_path` |
+| `1folder-tree` | `skills/shared/1folder-tree/portable/scripts/check_tree.py` |
+| md-scout | `md-tools/scripts/run_md_scout.py`, `resolve_codex` (плюс флаг `--codex`) |
+| `1design-review` | `experiments/1design-review/scripts/run-clean-design-agent.sh` |
+| `graphiti-codex` | `experiments/graphiti-codex/src/graphiti_codex/codex_llm.py`, `resolve_codex_binary` |
+
+Мост — исключение по устройству: PATH он не читает, а его запас — движок из
+SDK (`binary_source=sdk-bundle`). Новый инструмент, который зовёт Codex сам,
+добавляется в эту таблицу или объясняет здесь же, почему ищет иначе.
+
 Выбор в пользу приложения — осознанный, и его цена названа ниже (дрейф схемы).
 Запинить бандл не даёт воспроизводимости: оба бинаря делят один `~/.codex`
 (auth, config, кэш моделей), и старый бандл ломается на состоянии, записанном
@@ -524,16 +546,20 @@ sandbox-enforcement, не из permission contract.
 
 **Картинки.** Встроенный генератор движка (`image_gen`, фича
 `image_generation` — stable, включена) приходит в каждый ход моста; из-за него
-же нижний порог усилия — `low`. Движок сохраняет оригинал в
-`~/.codex/generated_images/<id треда>/`; у исследователя id треда в
-`result.json` не пишется, а путь из элемента `imageGeneration` (`savedPath`)
-журнал не хранит. Поэтому картинка доходит до `artifacts` результата, только
-если задание велит Codex скопировать её в `out/`, — это маршрут исследователя;
-ревьюер read-only скопировать не может. Витрина показывает шаг генерации
-значком 🖼. Живые пробники 2026-09-23: `gpt-5.6-sol`/`low` (run
-`20260923T001119Z-image-probe`) и `gpt-6-sol`/`low`
-(`20260923T002233Z-image-probe-gpt6`) — PNG 1254×1254 примерно за минуту, копия
-в `out/` побайтно совпала с оригиналом.
+же нижний порог усилия — `low`. Движок кладёт оригинал в
+`~/.codex/generated_images/<id треда>/`, а мост после хода забирает каждую
+картинку сам (`collect_images` в `codex_progress.py`): файл по `savedPath`
+копируется в `run_dir/images/`, а без файла пишутся байты из поля `result` — оно
+несёт полный PNG в base64 (`openai/codex#40249`). `result.json` перечисляет
+картинки в `images`: `file` — путь внутри `run_dir`, `saved_path` — оригинал,
+`failure` — отказ генерации (например, исчерпан лимит). Собирают ревьюер и
+исследователь; флот картинки не собирает. Ревьюера хватает: пробник 2026-09-23
+в read-only сгенерировал картинку без просьбы что-либо копировать. В SDK путь —
+`AbsolutePathBuf` (`RootModel[str]`), отказ — тоже `RootModel`: без развёртки
+тот пробник записал `root='…'` вместо пути, и картинку спас только
+base64-запас. Витрина показывает шаг генерации значком 🖼 с путём. Ранние
+пробники с копированием в `out/` силами Codex: `20260923T001119Z-image-probe`
+(`gpt-5.6-sol`), `20260923T002233Z-image-probe-gpt6` (`gpt-6-sol`).
 
 Scope-чек исследователя не различает авторов: правка или коммит самого
 вызывающего, пока идёт ход, тоже роняет `ok`. Так упал второй пробник —

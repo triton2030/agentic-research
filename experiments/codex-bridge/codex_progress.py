@@ -19,6 +19,10 @@
 """
 from __future__ import annotations
 
+import base64
+import binascii
+from pathlib import Path
+import shutil
 import threading
 import time
 from typing import Any, AsyncIterator, Callable, Iterator
@@ -79,7 +83,45 @@ def _item_projection(item: Any) -> tuple[str, str]:
     if kind == "userMessage":
         text = getattr(node, "text", "") or ""
         return kind, f"{len(text)} симв."
+    if kind == "imageGeneration":
+        failure = _failure_text(getattr(node, "failure", None))
+        if failure:
+            return kind, _short(f"отказ: {failure}")
+        return kind, _short(_saved_path(node) or getattr(node, "status", ""))
     return kind, ""
+
+
+def _saved_path(node: Any) -> str:
+    # В SDK это AbsolutePathBuf — RootModel[str]: строка лежит в `.root`
+    # (живой пробник 2026-09-23 без развёртки получил `root='…'` вместо пути).
+    value = getattr(node, "saved_path", None) or getattr(node, "savedPath", None)
+    return str(getattr(value, "root", value) or "")
+
+
+def _failure_text(failure: Any) -> str:
+    """ImageGenerationFailure — RootModel над моделью отказа (`usageLimitExceeded`)."""
+    failure = getattr(failure, "root", failure)
+    if not failure:
+        return ""
+    dump = getattr(failure, "model_dump", None)
+    if callable(dump):
+        fields = {key: value for key, value in dump().items() if value is not None}
+        return ", ".join(f"{key}={value}" for key, value in fields.items())
+    return str(failure)
+
+
+def _image_record(node: Any) -> dict[str, Any]:
+    """Что нужно, чтобы забрать картинку после хода: путь движка и байты.
+
+    `result` несёт полный PNG в base64 даже при наличии `savedPath`
+    (openai/codex#40249) — это запас, если файла на месте нет.
+    """
+    return {
+        "status": str(getattr(node, "status", "") or ""),
+        "saved_path": _saved_path(node),
+        "failure": _failure_text(getattr(node, "failure", None)),
+        "result": getattr(node, "result", None) or "",
+    }
 
 
 class ProgressTracker:
@@ -94,6 +136,7 @@ class ProgressTracker:
         self._last_monotonic = time.monotonic()
         self._deltas = 0
         self._errors = 0
+        self._images: list[dict[str, Any]] = []
 
     def observe(self, event: Any) -> dict[str, Any] | None:
         """Учесть нотификацию. Вернуть запись для ledger или None (шум)."""
@@ -123,6 +166,9 @@ class ProgressTracker:
                 if method == "item/completed":
                     self._steps += 1
                     self._by_kind[kind] = self._by_kind.get(kind, 0) + 1
+                    if kind == "imageGeneration":
+                        item = getattr(payload, "item", None)
+                        self._images.append(_image_record(getattr(item, "root", item)))
         else:
             message = getattr(payload, "message", None) or getattr(payload, "error", None)
             if message is not None:
@@ -133,6 +179,11 @@ class ProgressTracker:
                     self._errors += 1
 
         return record
+
+    def images(self) -> list[dict[str, Any]]:
+        """Картинки, которые ход сгенерировал, в порядке появления."""
+        with self._lock:
+            return [dict(image) for image in self._images]
 
     def snapshot(self) -> dict[str, Any]:
         """Компактный срез для heartbeat: чем занят и давно ли молчит."""
@@ -148,6 +199,51 @@ class ProgressTracker:
             if self._errors:
                 data["errors"] = self._errors
             return data
+
+
+def _image_suffix(data: bytes) -> str:
+    if data.startswith(b"\x89PNG"):
+        return ".png"
+    if data.startswith(b"\xff\xd8"):
+        return ".jpg"
+    if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        return ".webp"
+    return ".bin"
+
+
+def collect_images(tracker: ProgressTracker, run_dir: Any) -> list[dict[str, Any]]:
+    """Забрать картинки хода в `run_dir/images/` и описать их для result.json.
+
+    Генератор кладёт оригинал в `~/.codex/generated_images/<тред>/`, а тред моста
+    эфемерный — без этого шага картинка доезжала до прогона, только если задание
+    просило Codex скопировать её самому. Файл по `savedPath` в приоритете,
+    base64 из `result` — запас. Отказ генерации пишется полем `failure`.
+    """
+    collected: list[dict[str, Any]] = []
+    for index, image in enumerate(tracker.images(), 1):
+        entry = {key: image[key] for key in ("status", "saved_path", "failure") if image.get(key)}
+        target: Path | None = None
+        try:
+            source = Path(image["saved_path"]) if image.get("saved_path") else None
+            if source is not None and source.is_file():
+                target = Path(run_dir) / "images" / f"{index:02d}-{source.name}"
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(source, target)
+            elif image.get("result"):
+                encoded = str(image["result"])
+                if encoded.startswith("data:"):
+                    encoded = encoded.split(",", 1)[-1]
+                data = base64.b64decode(encoded, validate=True)
+                target = Path(run_dir) / "images" / f"{index:02d}{_image_suffix(data)}"
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(data)
+        except (OSError, ValueError, binascii.Error) as exc:
+            entry["copy_error"] = str(exc)
+            target = None
+        if target is not None:
+            entry["file"] = str(target.relative_to(Path(run_dir)))
+        collected.append(entry)
+    return collected
 
 
 class ProgressRegistry:

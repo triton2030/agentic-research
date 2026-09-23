@@ -40,6 +40,7 @@ def _install_fake_openai_codex(
     *,
     status: str = "completed",
     turn_failures: int = 0,
+    extra_items: tuple = (),
 ) -> list[str]:
     """Stub `openai_codex` in sys.modules so main()'s lazy SDK import resolves to
     a fake that records thread_start/CodexConfig kwargs instead of launching a
@@ -76,6 +77,10 @@ def _install_fake_openai_codex(
                     item=types.SimpleNamespace(type="commandExecution", command="ls")
                 ),
             )
+            for item in extra_items:
+                yield types.SimpleNamespace(
+                    method="item/completed", payload=types.SimpleNamespace(item=item)
+                )
             yield types.SimpleNamespace(
                 method="turn/completed", payload=types.SimpleNamespace()
             )
@@ -204,6 +209,46 @@ class CodexInvestigateSdkContractTests(unittest.TestCase):
                     os.environ.pop(key, None)
                 else:
                     os.environ[key] = value
+
+    def test_generated_image_lands_in_run_dir_and_result(self) -> None:
+        """Мост сам забирает картинку хода: файл по savedPath копируется в
+        run_dir/images, а result.json перечисляет его — без просьбы в задании."""
+        import codex_investigate
+
+        captured: dict = {}
+        saved_argv = sys.argv[:]
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            engine_image = root / "engine" / "exec-abc.png"
+            engine_image.parent.mkdir()
+            engine_image.write_bytes(b"\x89PNG\r\n\x1a\nfake")
+            item = types.SimpleNamespace(
+                type="imageGeneration", status="completed", saved_path=str(engine_image),
+                failure=None, result="",
+            )
+            fake_names = _install_fake_openai_codex(captured, extra_items=(item,))
+            try:
+                run_dir = root / ".runs" / uuid.uuid4().hex
+                sys.argv = [
+                    "codex_investigate.py", "--task", "нарисуй картинку",
+                    "--project", str(root), "--run-dir", str(run_dir), "--heartbeat-sec", "0",
+                ]
+                with contextlib.redirect_stdout(io.StringIO()), mock.patch.object(
+                    codex_investigate, "resolve_codex_bin", return_value="/sentinel/codex",
+                ):
+                    rc = codex_investigate.main()
+                result = json.loads((run_dir / "result.json").read_text(encoding="utf-8"))
+                self.assertEqual(rc, 0)
+                self.assertEqual(result["images"], [{
+                    "status": "completed", "saved_path": str(engine_image),
+                    "file": "images/01-exec-abc.png",
+                }])
+                self.assertEqual((run_dir / "images" / "01-exec-abc.png").read_bytes(),
+                                 engine_image.read_bytes())
+            finally:
+                sys.argv = saved_argv
+                for name in fake_names:
+                    sys.modules.pop(name, None)
 
     def test_sandbox_contract_travels_developer_channel(self) -> None:
         """SANDBOX-КОНТРАКТ — политика треда, а не задание: он уходит

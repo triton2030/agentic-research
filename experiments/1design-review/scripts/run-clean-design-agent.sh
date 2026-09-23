@@ -52,10 +52,23 @@ done
 [[ -d "$RUN_DIR" ]] || die "run-dir not found: $RUN_DIR"
 [[ -f "$QUESTIONS" ]] || die "questions file not found: $QUESTIONS"
 [[ "$PARALLEL" =~ ^[1-3]$ ]] || die "--parallel must be an integer from 1 to 3"
-command -v codex >/dev/null 2>&1 || die "codex CLI not found"
 command -v sandbox-exec >/dev/null 2>&1 || die "sandbox-exec is required for reviewer evidence isolation"
 command -v shasum >/dev/null 2>&1 || die "shasum is required for approved pixel verification"
-CODEX_BIN="$(realpath "$(command -v codex)")"
+# One rule for every direct Codex caller (codex-bridge README, «Codex binary»):
+# explicit CODEX_BIN, then the self-updating ChatGPT.app engine, then PATH. The
+# sandbox admits only the engine's own folder, so it must be the real binary,
+# not a wrapper script (openai/codex#32495 covers the symlink case).
+APP_CODEX=/Applications/ChatGPT.app/Contents/Resources/codex
+if [[ -n "${CODEX_BIN:-}" ]]; then
+  CODEX_BIN="$(realpath "$CODEX_BIN")"
+elif [[ -x "$APP_CODEX" ]]; then
+  CODEX_BIN="$APP_CODEX"
+elif command -v codex >/dev/null 2>&1; then
+  CODEX_BIN="$(realpath "$(command -v codex)")"
+else
+  die "codex not found: set CODEX_BIN, install ChatGPT.app or put codex on PATH"
+fi
+[[ -x "$CODEX_BIN" ]] || die "codex is not executable: $CODEX_BIN"
 CODEX_BIN_DIR="$(dirname "$CODEX_BIN")"
 
 RUN_DIR="$(cd "$RUN_DIR" && pwd)"
