@@ -5,7 +5,7 @@ description: "Active owner and joint-update route for conflicting terminal tools
 # Конфликт Версий И Update
 
 Момент: две active terminal tools конфликтуют либо update не изменил active
-binary. Сверено 2026-08-19; быстрее всего меняются manager dry-run/output.
+binary. Сверено 2026-09-24; быстрее всего меняются manager dry-run/output.
 
 ## Active Owner
 
@@ -35,3 +35,10 @@ HOMEBREW_NO_AUTO_UPDATE=1 brew upgrade --dry-run --formula FORMULA...
 
 `Would upgrade ... dependency` может принести major transition и относится к
 тому же planned pass.
+
+## После Обновления Node Через Homebrew
+
+`brew upgrade node` может перезаписать ссылки `npm` / `npx` своей комплектной
+версией, даже если глобальный npm уже новее. Наблюдалось с Node 26.9.0:
+active npm сменился с 12.0.2 на 11.19.1. Поэтому кандидата npm устанавливают
+после Node и повторно проверяют active path/version обоих инструментов.

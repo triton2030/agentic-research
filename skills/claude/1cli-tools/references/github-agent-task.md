@@ -1,11 +1,11 @@
 ---
-description: "Preview GitHub agent sessions in active gh 2.97.0."
+description: "Preview GitHub agent sessions in active gh 2.101.0."
 ---
 
 # GitHub CLI: agent-task
 
-Момент: создаётся или читается GitHub agent session. Сверено 2026-08-19 с
-active `gh 2.97.0`; family помечена preview и меняется быстро.
+Момент: создаётся или читается GitHub agent session. Сверено 2026-09-24 с
+active `gh 2.101.0`; family помечена preview и меняется быстро.
 
 ## Дельта
 

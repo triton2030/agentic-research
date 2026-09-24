@@ -1,11 +1,11 @@
 ---
-description: "Hardware and quality capabilities compiled into active FFmpeg 9.0.1."
+description: "Hardware and quality capabilities compiled into active FFmpeg 9.0.2."
 ---
 
 # FFmpeg 9: Active Build
 
-Момент: выбирается codec/quality route на этом Mac. Сверено 2026-08-19 с active
-Homebrew FFmpeg 9.0.1; build options меняются при reinstall/upgrade.
+Момент: выбирается codec/quality route на этом Mac. Сверено 2026-09-24 с active
+Homebrew FFmpeg 9.0.2; build options меняются при reinstall/upgrade.
 
 ## Локальная Дельта
 

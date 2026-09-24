@@ -1,11 +1,11 @@
 ---
-description: "Version-matched skills active agent-browser 0.34.0."
+description: "Version-matched skills active agent-browser 0.38.1."
 ---
 
 # agent-browser: Bundled Skills
 
 Момент: выбирается workflow до первой команды `agent-browser`. Сверено
-2026-08-19 с active `agent-browser 0.34.0`; быстрее всего меняется список skills.
+2026-09-24 с active `agent-browser 0.38.1`; быстрее всего меняется список skills.
 
 ## Дельта
 
@@ -25,6 +25,8 @@ agent-browser skills get NAME --full
 | `slack` | Slack browser workflow |
 | `agentcore` | AWS Bedrock AgentCore cloud browser |
 | `vercel-sandbox` | Chrome внутри Vercel Sandbox microVM |
+| `protected-vercel-deployments` | доступ к защищённому preview через текущую Vercel identity и короткоживущий OIDC token |
+| `webmcp-gen` | создание и проверка экспериментальных WebMCP tools для workflow страницы |
 
 Канонический владелец содержания — вывод `skills get`; этот файл хранит только
 факт существования version-matched routes.

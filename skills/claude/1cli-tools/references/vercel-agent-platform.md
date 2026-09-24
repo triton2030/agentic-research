@@ -1,11 +1,11 @@
 ---
-description: "Agent, skills, sandbox and observability routes in Vercel CLI 59.1.4."
+description: "Agent, skills, sandbox and observability routes in Vercel CLI 59.26.0."
 ---
 
 # Vercel CLI 59: Agent Platform
 
 Момент: до ручного API/helper-а выбирается Vercel agent/platform route. Сверено
-2026-08-19 с active Vercel CLI 59.1.4; beta/preview families меняются быстро.
+2026-09-24 с active Vercel CLI 59.26.0; beta/preview families меняются быстро.
 
 ## Дельта
 

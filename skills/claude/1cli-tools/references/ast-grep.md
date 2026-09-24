@@ -1,10 +1,10 @@
 ---
-description: "Canonical search, scan and outline routes in active ast-grep 0.45.1."
+description: "Canonical search, scan and outline routes in active ast-grep 0.45.3."
 ---
 
-# ast-grep 0.45.1
+# ast-grep 0.45.3
 
-Момент: выбирается structural code search/rewrite. Сверено 2026-08-19; быстрее
+Момент: выбирается structural code search/rewrite. Сверено 2026-09-24; быстрее
 всего меняются subcommands и outline views.
 
 ## Дельта

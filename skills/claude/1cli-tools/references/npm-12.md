@@ -1,11 +1,11 @@
 ---
-description: "Deny-by-default dependency lifecycle scripts in active npm 12.0.2."
+description: "Deny-by-default dependency lifecycle scripts in active npm 12.1.0."
 ---
 
 # npm 12: allowScripts
 
 Момент: install завершился, но package с native asset/generator не работает или
-npm перечислил skipped lifecycle scripts. Сверено 2026-08-19 с npm 12.0.2;
+npm перечислил skipped lifecycle scripts. Сверено 2026-09-24 с npm 12.1.0;
 быстрее всего меняется `allowScripts` policy.
 
 ## Дельта

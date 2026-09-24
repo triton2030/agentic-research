@@ -4,7 +4,7 @@ description: "Локальный md-tools для больших Markdown-кор�
 
 # Markdown И Project Knowledge
 
-Момент: выбирается операция над большим Markdown corpus. Сверено 2026-08-19 с
+Момент: выбирается операция над большим Markdown corpus. Сверено 2026-09-24 с
 `md-tools 0.7.0`; быстрее всего меняются catalog/signatures. Это локальный
 продукт, его контракт нельзя восстановить из имени `md`.
 
@@ -33,7 +33,10 @@ contract. Не угадывай аргументы и не разбирай JSON
 | проверить поток мысли с раскрытием anchored wikilinks | `md coherence-audit ... --json` |
 | проверить freshness semantic index | `md status CORPUS --json` |
 
-`md search --rerank` обращается к внешнему reranker и сообщает примерную цену.
+`md search` может отправлять некэшированный запрос и небольшие изменения
+корпуса во внешний embedding endpoint; `--rerank` добавляет внешний reranker.
+Холодный индекс или большой накопленный diff возвращает
+`index_warmup_required` (exit 4), а не неполную выдачу.
 `orient --expanded` возвращает явную полную filesystem map вместо обычного
 ограниченного view.
 

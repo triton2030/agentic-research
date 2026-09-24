@@ -1,11 +1,11 @@
 ---
-description: "Preview agent-skill lifecycle in active gh 2.97.0."
+description: "Preview agent-skill lifecycle in active gh 2.101.0."
 ---
 
 # GitHub CLI: skill
 
 Момент: agent skill ищется, preview-ится, обновляется или готовится к publish.
-Сверено 2026-08-19 с active `gh 2.97.0`; family помечена preview и меняется
+Сверено 2026-09-24 с active `gh 2.101.0`; family помечена preview и меняется
 быстро.
 
 ## Дельта
