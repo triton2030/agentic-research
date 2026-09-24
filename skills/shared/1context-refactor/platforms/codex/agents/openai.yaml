@@ -1,7 +1,7 @@
 interface:
   display_name: "1context-refactor"
-  short_description: "Use after session errors, rework, or needless searches recur."
-  default_prompt: "Используй $1context-refactor после повторившегося сбоя: проанализируй всю доступную сессию, независимо проверь маршрут и системную находку, при доказанном влиянии слов дай совет, а источник ремонтируй только с разрешением и повтором эпизода."
+  short_description: "Use after repeated errors, rework, needless searches, premature stops, or excessive verification."
+  default_prompt: "Используй $1context-refactor для разбора повторившегося сбоя, лишних остановок или проверок по следу сессии. Установи причину либо пробел в свидетельствах и продолжи разрешённую работу; ремонтируй источник в пределах уже данного разрешения."
 
 policy:
   allow_implicit_invocation: true
