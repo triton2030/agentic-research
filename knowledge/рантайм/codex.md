@@ -32,6 +32,14 @@ aliases: []
   Codex называть путь, о котором пользователь не спрашивал. То же правило
   в `developer_instructions` из `~/.codex/config.toml` пересилило.[^dev-layer]
   Проверено на одной задаче: на других случаях эффект не измерен.
+- `developer_instructions` из `config.toml` доходит до модели только в
+  терминальном Codex (`codex exec`, SDK). Приложение Codex Desktop передаёт в
+  `thread/start` свой `developerInstructions` и этим подменяет значение из
+  конфига, поэтому в чатах приложения правила оттуда нет.[^desktop-dev]
+  Путь, который приложение не подменяет, — `additional_developer_instructions`
+  в `/etc/codex/requirements.toml`; нужны права администратора.
+  > [!question] Доходит ли `additional_developer_instructions` до модели в чатах
+  > приложения, ещё не проверено.
 - Цель без привязки к моменту gpt-6-sol в Codex выполнял формально, а правило,
   привязанное к моменту, — по существу. Цель «ответ, по которому видно, что ты
   понял мою цель» дала строки «Цель — …» даже при простом переименовании и
@@ -99,3 +107,13 @@ aliases: []
     прогонов: 2 с исходной инструкцией, 2 с итоговой AGENTS.md. С правилом
     расхождение названо, а план не тронут в 3 из 3. В четырёх задачах без
     конфликта остановок с вопросом — 0.
+
+[^desktop-dev]: Проверено 2026-09-24 по журналам сессий `~/.codex/sessions`.
+    Во всех сессиях приложения Codex Desktop, начатых после записи правила в
+    `config.toml`, первое сообщение разработчика — блок приложения
+    `<app-context>`, и правила там нет. В сессии `codex exec` того же дня правило
+    стоит первым сообщением разработчика. Тот же дефект описан в
+    [openai/codex#11004](https://github.com/openai/codex/issues/11004) и
+    [openai/codex#33238](https://github.com/openai/codex/issues/33238). Ключ
+    `additionalDeveloperInstructions` есть в схеме `configRequirements/read`
+    сервера приложения Codex 0.155.0-alpha.
