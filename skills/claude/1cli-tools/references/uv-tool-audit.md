@@ -1,11 +1,11 @@
 ---
-description: "Vulnerability audit of isolated CLI environments in active uv 0.12.18."
+description: "Vulnerability audit of isolated CLI environments in active uv 0.12.19."
 ---
 
 # uv tool audit
 
 Момент: проверяются vulnerabilities зависимостей изолированного Python CLI.
-Сверено 2026-09-24 с uv 0.12.18; быстрее всего меняются audit service и formats.
+Сверено 2026-09-25 с uv 0.12.19; быстрее всего меняются audit service и formats.
 
 ## Дельта
 

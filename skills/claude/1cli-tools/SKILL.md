@@ -34,7 +34,7 @@ description: >-
 | работать с большим Markdown corpus | [локальный md-tools](references/markdown-knowledge.md) |
 | работать с GitHub agent session | [`gh agent-task`](references/github-agent-task.md) |
 | искать/обновлять GitHub agent skill | [`gh skill`](references/github-skills.md) |
-| выбрать Vercel agent/platform route | [новые команды Vercel 59](references/vercel-agent-platform.md) |
+| выбрать Vercel agent/platform route | [новые команды Vercel 60](references/vercel-agent-platform.md) |
 | выбрать codec в локальном FFmpeg | [возможности active build](references/ffmpeg-build.md) |
 | обновить конфликтующие active CLI | [owner и совместный smoke](references/runtime-update.md) |
 

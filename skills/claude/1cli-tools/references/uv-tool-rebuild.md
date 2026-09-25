@@ -1,11 +1,11 @@
 ---
-description: "Owner-preserving rebuild of an isolated CLI environment in active uv 0.12.18."
+description: "Owner-preserving rebuild of an isolated CLI environment in active uv 0.12.19."
 ---
 
 # uv tool Rebuild
 
 Момент: изолированный Python CLI нужно пересобрать с изменённой dependency или
-source. Сверено 2026-09-24 с uv 0.12.18; быстрее всего меняются install options.
+source. Сверено 2026-09-25 с uv 0.12.19; быстрее всего меняются install options.
 
 ## Дельта
 
