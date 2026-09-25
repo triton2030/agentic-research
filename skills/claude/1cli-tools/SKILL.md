@@ -1,15 +1,24 @@
 ---
 name: 1cli-tools
 description: >-
-  Use before a version-sensitive choice, helper, or recovery in active
-  agent-browser, ast-grep, npm 12, uv, TypeScript 7, md, GitHub/Vercel CLI, or
-  FFmpeg 9; also after updates or version conflicts.
+  Use before running npm install/ci, global tsc, agent-browser, vercel,
+  gh agent-task/skill, uv tool, ast-grep or ffmpeg, and when an install
+  succeeds but a package fails or tool versions conflict: memory predates these
+  versions. Returns the local capability that changes the next command. Skip
+  tool inventories; Markdown corpus search belongs to 1md-search.
 ---
 
 # Свежие возможности CLI
 
 Память модели старее инструментов на этом Mac. Знакомое имя не означает
 знакомые возможности.
+
+## Тихие Ловушки
+
+- Успешный `npm install` не доказывает, что install-скрипты зависимостей
+  выполнены: npm 12 блокирует их по умолчанию → [npm 12](references/npm-12.md).
+- `brew upgrade node` может откатить глобальный npm до комплектного →
+  [обновление](references/runtime-update.md).
 
 ## Открой Один Reference В Текущий Момент
 
