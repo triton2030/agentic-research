@@ -23,3 +23,12 @@ native-binary proof, credential remediation и stop contract по той же п
 
 Не создавался полный changelog. В references вошли возможности, которые на этом
 Mac отменяют helper, открывают новый route или меняют смысл успешного install.
+
+## Возврат 2026-09-25
+
+Перечень установленных инструментов возвращён в тело решением владельца:
+«Думаю перечень стоит добавить» —
+`_ops/chat-recall/2026-09-25-131053-claude-021aa195.md#recall-0aec999fe2674ef586d6fef85c4cc4be`.
+Перечень сгруппирован по видам работы, как требовал владелец 2026-08-09
+(`_ops/chat-recall/2026-08-09-165811-codex-019fe662.md`), без обычных `git` и
+системных утилит. Строка `Skip tool inventories` снята из description.

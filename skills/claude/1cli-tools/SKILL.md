@@ -1,17 +1,43 @@
 ---
 name: 1cli-tools
 description: >-
-  Use before running npm install/ci, global tsc, agent-browser, vercel,
-  gh agent-task/skill, uv tool, ast-grep or ffmpeg, and when an install
-  succeeds but a package fails or tool versions conflict: memory predates these
-  versions. Returns the local capability that changes the next command. Skip
-  tool inventories; Markdown corpus search belongs to 1md-search.
+  Use before writing a helper script or choosing a CLI for data, YAML, text
+  edits, lint, security, media or browser work; before npm install/ci, global
+  tsc, agent-browser, vercel, gh agent-task/skill, uv tool or ffmpeg; and when
+  an install succeeds but a package fails. Lists what is installed on this Mac
+  and capabilities newer than model memory. Markdown corpus search belongs to
+  1md-search.
 ---
 
-# Свежие возможности CLI
+# CLI На Этом Mac
 
-Память модели старее инструментов на этом Mac. Знакомое имя не означает
+Память модели не знает, что установлено на этом Mac, и старее установленных
+версий. Готовый инструмент дешевле своего скрипта; знакомое имя не означает
 знакомые возможности.
+
+## Что Уже Установлено
+
+Перечень сверен 2026-09-25. Перед использованием — `command -v TOOL`.
+
+| Работа | Инструменты |
+|---|---|
+| данные: JSONL, CSV, JSON, история сессий | `duckdb` — SQL прямо по файлам и glob, `jq`, `gron` |
+| YAML, frontmatter Markdown | `yq --front-matter=extract` |
+| поиск и замена в тексте | `rg`, `fd`, `sd` — без различий BSD/GNU `sed` |
+| структура кода | `ast-grep` — поиск и переписывание по AST |
+| Markdown | `md` (md-tools), `rumdl`, `markdownlint-cli2`, `mdq`, `lychee` — ссылки |
+| JS/TS | `biome`, `eslint`, `prettier`, `stylelint`, `tsc` 7, `vitest` 5, `knip`, `dependency-cruiser`, `publint`, `attw`, `syncpack` |
+| Python | `ruff`, `pyright`, `mypy`, `pytest`, `coverage`, `vulture`, `deptry`, `xenon` |
+| shell и CI | `shellcheck`, `shfmt`, `actionlint`, `pre-commit`, `just` |
+| безопасность | `semgrep`, `gitleaks`, `trufflehog`, `trivy`, `osv-scanner`, `bandit`, `pip-audit` |
+| браузер и UI | `agent-browser`, `playwright`, `impeccable detect` — анти-паттерны UI |
+| медиа и документы | `ffmpeg`, `whisper-cli`, `fpcalc`, `pdftotext`, `soffice` |
+| сервисы | `gh`, `vercel`, `supabase`, `firecrawl`, `ntn` — Notion |
+| модели и агенты | `claude`, `hermes`, `droid`, Codex — `/Applications/ChatGPT.app/Contents/Resources/codex` |
+| токены и скилы | `token-counter`, `qv-skill` — проверка пакета скила |
+
+Нужного нет — сравни установку через `brew`, `npm -g` или `uv tool` со своим
+кодом.
 
 ## Тихие Ловушки
 

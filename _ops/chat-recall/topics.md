@@ -43,6 +43,7 @@
 - `llm-science` — Научное исследование поведения и управления LLM
 - `mantine` — Разработка и обновление интерфейсов на Mantine
 - `markdown-knowledge` — Поиск, чтение и навигация по Markdown-знаниям
+- `markdown-viewer` — Программы и способы быстрого просмотра Markdown-файлов на macOS
 - `mental-model-checks` — Проверка допущений и ремонт ментальной модели по неожиданностям
 - `notion-integration` — Интеграция агента с Notion Developer Platform
 - `openviking-wiki` — Эксперимент OpenViking по сборке owner-attributed библиотеки знаний
