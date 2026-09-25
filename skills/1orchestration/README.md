@@ -5,6 +5,8 @@ Owners с 2026-09-06: `skills/codex/1orchestration/` и
 и `~/.claude/skills/1orchestration/` — проекции соответствующих runtime owners.
 Общий portable owner снят; sync: `skills/shared/sync_simple_projections.py`.
 
+2026-09-25: обе версии дополнены возвратом новой развилки оркестратору без второго адресата — [карта](cut.md), [пробы](work/fork-return-2026-09-25/probe/result.md), [решения](work/fork-return-2026-09-25/review-decisions.md).
+
 2026-09-11: только Codex дополнен механикой задач ПК-приложения —
 [установленная версия](versions/codex-2026-09-11-desktop/SKILL.md),
 [связи и возвраты](versions/codex-2026-09-11-desktop/references/desktop-sessions.md).
