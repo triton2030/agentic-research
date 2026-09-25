@@ -4,7 +4,10 @@ description: "Version packages and refactor evidence for 1plan-task."
 
 # История 1plan-task
 
-Живой owner находится в `skills/shared/1plan-task/portable/`.
+Снят 2026-09-25: поглощён `1planning` — файл задачи стал роутером (цель,
+ссылки на места документации, что не входит, чеклист проверок). Последний
+пакет — [installed-2026-09-09](versions/installed-2026-09-09/SKILL.md); основы
+слияния — [работа 2026-09-25](../1planning/work/router-2026-09-25/intent.md).
 Эта папка хранит историю и не является runtime package.
 
 ## Установлено 2026-09-09

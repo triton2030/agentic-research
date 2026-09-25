@@ -4,7 +4,9 @@ description: "Version packages and refactor evidence for 1plan-map."
 
 # История 1plan-map
 
-Живой owner находится в `skills/shared/1plan-map/portable/`.
+Снят 2026-09-25: поглощён `1planning` — эпики, `Порядок`, Bases и чекер
+живут теперь там. Последний пакет — [installed-2026-09-09](versions/installed-2026-09-09/SKILL.md);
+основы слияния — [работа 2026-09-25](../1planning/work/router-2026-09-25/intent.md).
 Эта папка хранит историю и не является runtime package.
 
 ## Установлено 2026-09-09

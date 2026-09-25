@@ -1,7 +1,7 @@
 interface:
   display_name: "1planning"
-  short_description: "Use before starting work, to settle if it is the right next work"
-  default_prompt: "Используй $1planning, чтобы решить, стоит ли начинать эту работу и кому её передать."
+  short_description: "Use to order work and write task briefs in _ops/plans"
+  default_prompt: "Используй $1planning, чтобы выбрать и упорядочить работу или собрать роутер задачи."
 
 policy:
   allow_implicit_invocation: true
