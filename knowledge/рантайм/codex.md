@@ -37,9 +37,11 @@ aliases: []
   `thread/start` свой `developerInstructions` и этим подменяет значение из
   конфига, поэтому в чатах приложения правила оттуда нет.[^desktop-dev]
   Путь, который приложение не подменяет, — `additional_developer_instructions`
-  в `/etc/codex/requirements.toml`; нужны права администратора.
-  > [!question] Доходит ли `additional_developer_instructions` до модели в чатах
-  > приложения, ещё не проверено.
+  в `/etc/codex/requirements.toml`; нужны права администратора. Этот текст
+  приходит к модели отдельным блоком `<managed_developer_instructions>` и
+  остаётся на месте, даже когда клиент подменяет `developerInstructions`.[^managed]
+  > [!question] В живом приложении после его перезапуска доставка ещё не
+  > проверена.
 - Цель без привязки к моменту gpt-6-sol в Codex выполнял формально, а правило,
   привязанное к моменту, — по существу. Цель «ответ, по которому видно, что ты
   понял мою цель» дала строки «Цель — …» даже при простом переименовании и
@@ -117,3 +119,11 @@ aliases: []
     [openai/codex#33238](https://github.com/openai/codex/issues/33238). Ключ
     `additionalDeveloperInstructions` есть в схеме `configRequirements/read`
     сервера приложения Codex 0.155.0-alpha.
+
+[^managed]: Проверено 2026-09-25. Свой сервер приложения Codex получил
+    `thread/start` с подменённым `developerInstructions`, как это делает
+    приложение. Правило из `config.toml` пропало, а блок
+    `<managed_developer_instructions>` с текстом из `requirements.toml` дошёл до
+    модели. После переноса правила в этот блок пробы повторили прежнее
+    поведение: при расхождении с планом Codex спросил и план не тронул, в
+    задаче с таймаутом починил причину и объяснил выбор (по одному прогону).
