@@ -45,6 +45,9 @@ uv run --locked --script "$ROOT/scripts/chat_digest.py" \
 Для явно заказанного восстановления названной сессии `chat_recall.py`
 запускается через `python3`; его интерфейс — `--help`. Транскрипт не становится
 fallback обычного поиска: доступ к нему относится только к этому поручению.
+Сессия не названа — найди её id через `duckdb`: `select filename from
+read_text('~/.codex/sessions/**/*.jsonl') where content like '%<фрагмент сцены>%'`.
+Цитата и её provenance берутся только из `chat_recall.py`.
 
 До изменения нужны исходная validation, доказанный источник и внешний backup;
 после изменения — повторная validation. Это необходимый порядок для сравнения,
