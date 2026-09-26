@@ -60,8 +60,10 @@ DEFAULT_CODEX_SERVICE_TIER = None
 # gone. History of why: the old pin (SDK 0.1.0b3 → codex-cli 0.137.0a4) answered
 # HTTP 400 "requires a newer version of Codex" on gpt-5.6-sol (verified live
 # 2026-07-10). Pins now track 0.144.4, still behind the app engine
-# (0.148.0-alpha.9 on 2026-08-14), so the preference stays.
-CHATGPT_APP_CODEX_BIN = "/Applications/ChatGPT.app/Contents/Resources/codex"
+# (0.148.0-alpha.9 on 2026-08-14), so the preference stays. On 2026-09-26 the app
+# moved the engine to codex-cli/bin/ (0.158.0-alpha.2.1); the old path vanished and
+# the SDK-bundle fallback answered gpt-6-sol with HTTP 400 for a ChatGPT account.
+CHATGPT_APP_CODEX_BIN = "/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex"
 
 
 def resolve_codex_bin() -> str | None:
