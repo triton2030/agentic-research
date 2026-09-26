@@ -33,7 +33,7 @@ description: >-
 | браузер и UI | `agent-browser`, `playwright`, `impeccable detect` — анти-паттерны UI |
 | медиа и документы | `ffmpeg`, `whisper-cli`, `fpcalc`, `pdftotext`, `soffice` |
 | сервисы | `gh`, `vercel`, `supabase`, `firecrawl`, `ntn` — Notion |
-| модели и агенты | `claude`, `hermes`, `droid`, Codex — `/Applications/ChatGPT.app/Contents/Resources/codex` |
+| модели и агенты | `claude`, `hermes`, `droid`, Codex — `/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex` |
 | токены и скилы | `token-counter`, `qv-skill` — проверка пакета скила |
 
 Нужного нет — сравни установку через `brew`, `npm -g` или `uv tool` со своим

@@ -25,7 +25,7 @@ from packets import PacketError, check as check_packets, prepare as prepare_pack
 
 MODEL = "gpt-6-luna"
 # ChatGPT.app ships the Codex engine here without putting `codex` on PATH.
-APP_CODEX = Path("/Applications/ChatGPT.app/Contents/Resources/codex")
+APP_CODEX = Path("/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex")
 EFFORT = "max"
 DOCTOR_TIMEOUT_SECONDS = 10
 STATE_FILE = "run.json"

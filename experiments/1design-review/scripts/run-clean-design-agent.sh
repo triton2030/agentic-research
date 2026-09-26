@@ -56,9 +56,12 @@ command -v sandbox-exec >/dev/null 2>&1 || die "sandbox-exec is required for rev
 command -v shasum >/dev/null 2>&1 || die "shasum is required for approved pixel verification"
 # One rule for every direct Codex caller (codex-bridge README, «Codex binary»):
 # explicit CODEX_BIN, then the self-updating ChatGPT.app engine, then PATH. The
-# sandbox admits only the engine's own folder, so it must be the real binary,
-# not a wrapper script (openai/codex#32495 covers the symlink case).
-APP_CODEX=/Applications/ChatGPT.app/Contents/Resources/codex
+# sandbox admits only the engine's own folder, so a bare engine must be the real
+# binary, not a wrapper (openai/codex#32495 covers the symlink case). Since
+# 2026-09-26 the app ships a packaged CLI instead: bin/codex is a sh wrapper that
+# execs ../CodexCLI.app/Contents/MacOS/codex, so the sandbox admits the whole
+# package root (marked by codex-package.json).
+APP_CODEX=/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex
 if [[ -n "${CODEX_BIN:-}" ]]; then
   CODEX_BIN="$(realpath "$CODEX_BIN")"
 elif [[ -x "$APP_CODEX" ]]; then
@@ -70,6 +73,9 @@ else
 fi
 [[ -x "$CODEX_BIN" ]] || die "codex is not executable: $CODEX_BIN"
 CODEX_BIN_DIR="$(dirname "$CODEX_BIN")"
+if [[ -f "$(dirname "$CODEX_BIN_DIR")/codex-package.json" ]]; then
+  CODEX_BIN_DIR="$(dirname "$CODEX_BIN_DIR")"
+fi
 
 RUN_DIR="$(cd "$RUN_DIR" && pwd)"
 QUESTIONS="$(cd "$(dirname "$QUESTIONS")" && pwd)/$(basename "$QUESTIONS")"

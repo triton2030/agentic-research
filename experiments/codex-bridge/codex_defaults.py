@@ -82,7 +82,10 @@ def codex_bin_source(codex_bin: str | None) -> str:
 # old bundles answered newer models with HTTP 400 (verified for gpt-5.6-sol on
 # 0.137.0a4; the current default on the current bundle is not probed).
 SDK_BUNDLE_WARNING = (
-    "[codex-bridge] ChatGPT.app не найден — запуск на бандл-бинаре SDK; "
+    "[codex-bridge] движок ChatGPT.app не найден по CHATGPT_APP_CODEX_BIN "
+    "(приложение могло перенести его: 2026-09-26 он переехал в codex-cli/bin/; "
+    "найди `find /Applications/ChatGPT.app -name codex -type f` и поправь "
+    "codex_defaults.py) — запуск на бандл-бинаре SDK; "
     f"default-модель {DEFAULT_CODEX_MODEL} на нём может не работать: старые "
     "бинари отвечали на новые модели HTTP 400 'requires a newer version of "
     "Codex' (поставь ChatGPT.app или передай --model, который старый движок "

@@ -238,8 +238,13 @@ banner фиксируют ЗАПРОШЕННЫЙ тир из `args` до SDK-в�
 
 **Codex binary.** `resolve_codex_bin()` в `codex_defaults.py` подставляет в
 `CodexConfig.codex_bin` бинарь ChatGPT Desktop
-(`/Applications/ChatGPT.app/Contents/Resources/codex`) — он авто-обновляется
-вместе с приложением и потому идёт впереди любого пина. Фактический движок
+(`/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex`) — он
+авто-обновляется вместе с приложением и потому идёт впереди любого пина. С
+2026-09-26 (движок 0.158.0-alpha.2.1) приложение кладёт упакованный CLI:
+`codex-cli/bin/codex` — sh-переходник на `../CodexCLI.app/Contents/MacOS/codex`,
+рядом `codex-package.json`, `codex-resources/` и `codex-path/`. Прежний путь
+`Resources/codex` исчез, мост молча ушёл на бандл SDK, и тот ответил
+`gpt-6-sol` HTTP 400 для ChatGPT-аккаунта. Фактический движок
 фиксируется в ledger: `codex_bin` + `binary_source` (`chatgpt-app` |
 `sdk-bundle`) в блоке `codex` каждого manifest/result и в stderr-banner
 (`binary=…`). Бинарь приложения — не полный пакет: `codex agents` (обзор
@@ -250,13 +255,14 @@ local package; install a packaged Codex CLI or use the standalone installer`
 `codex doctor` и `codex debug` работают.
 
 **Одно правило поиска движка для всех, кто зовёт Codex напрямую.** Сначала
-`CODEX_BIN`, если задан; затем `/Applications/ChatGPT.app/Contents/Resources/codex`
+`CODEX_BIN`, если задан; затем `/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex`
 — он обновляется вместе с приложением, а отстающий движок отвечает новым
 моделям HTTP 400; затем `codex` из PATH. Путь всегда настоящий (`realpath`):
 движок, запущенный через симлинк, не находит `codex-code-mode-host`, и падает
 каждый вызов инструмента (`openai/codex#32495`, открыта); а песочница
 `1design-review` пускает только папку найденного файла, поэтому `CODEX_BIN`
-указывает на сам движок, не на скрипт-обёртку. В PATH этого Mac `codex` нет
+указывает на сам движок, не на скрипт-обёртку; для упакованного CLI приложения
+песочница пускает весь пакет — корень с `codex-package.json`. В PATH этого Mac `codex` нет
 (замер 2026-09-23). Правилу следуют:
 
 | Вызывающий | Где |

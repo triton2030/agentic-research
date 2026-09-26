@@ -163,7 +163,7 @@ python — `<backend>/.venv/bin/python`. Ярус выбирай по роду �
 первый ход, иначе диалог astra молча доделывает sol.
 
 Бесплатны и полезны до траты: `codex_review.py --doctor --project "$PWD"`,
-когда не работает мост; `/Applications/ChatGPT.app/Contents/Resources/codex
+когда не работает мост; `/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex
 doctor` (в PATH его нет), когда подозреваешь сам движок — auth, конфиг, базу
 тредов, диск; тот же бинарь с `debug prompt-input`, когда неясно, что Codex
 получит на вход помимо твоего задания.

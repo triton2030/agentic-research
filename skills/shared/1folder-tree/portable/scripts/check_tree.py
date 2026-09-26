@@ -16,7 +16,7 @@ import time
 MODEL = "gpt-6-sol"
 EFFORT = "low"
 # ChatGPT.app ships the Codex engine here without putting `codex` on PATH.
-APP_CODEX = Path("/Applications/ChatGPT.app/Contents/Resources/codex")
+APP_CODEX = Path("/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex")
 SKILL = Path(__file__).resolve().parents[1] / "SKILL.md"
 TASK = """Ты впервые видишь дерево базы знаний. Владелец ориентируется по именам,
 не открывая файлы: оцени, понятно ли новому человеку, что где лежит и когда

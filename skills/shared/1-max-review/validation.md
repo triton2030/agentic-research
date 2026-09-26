@@ -50,3 +50,10 @@ CLI сохранил requested gpt-5.6-luna/max; resolved model не раскр�
 ответ совпал с файлом; тесты 24 OK. Resolved model CLI по-прежнему не раскрывает.
 
 Поправка того же дня: порядок поиска стал общим для всех вызывающих — `CODEX_BIN`, затем движок ChatGPT.app, затем PATH (README моста, «Одно правило поиска движка»; решение `_ops/chat-recall/2026-09-23-051553-claude-483a304e.md#recall-7441f336bd9c49ae940d812c8e16700a`).
+
+## 2026-09-26: движок ChatGPT.app переехал
+
+Приложение перенесло движок в `Resources/codex-cli/bin/codex` (0.158.0-alpha.2.1),
+прежний `Resources/codex` исчез. `APP_CODEX` указывает на новый путь; найденный
+файл — sh-переходник на `CodexCLI.app`, запуск через него проверен
+`codex --version`.

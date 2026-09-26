@@ -25,7 +25,7 @@ CODEX_EFFORT = "low"
 CODEX_MAX_PARALLEL_TURNS = 4
 DEFAULT_TIMEOUT_SECONDS = 180.0
 BILLING_LEAK_VARS = ("OPENAI_API_KEY", "CODEX_API_KEY", "OPENAI_BASE_URL")
-CHATGPT_CODEX = Path("/Applications/ChatGPT.app/Contents/Resources/codex")
+CHATGPT_CODEX = Path("/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex")
 CODEX_DISABLED_FEATURES = (
     "apps",
     "browser_use",
