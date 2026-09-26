@@ -17,7 +17,7 @@ description: >-
 
 ## Что Уже Установлено
 
-Перечень сверен 2026-09-25. Перед использованием — `command -v TOOL`.
+Перечень сверен 2026-09-26. Перед использованием — `command -v TOOL`.
 
 | Работа | Инструменты |
 |---|---|
@@ -28,7 +28,7 @@ description: >-
 | Markdown | `md` (md-tools), `rumdl`, `markdownlint-cli2`, `mdq`, `lychee` — ссылки |
 | JS/TS | `biome`, `eslint`, `prettier`, `stylelint`, `tsc` 7, `vitest` 5, `knip`, `dependency-cruiser`, `publint`, `attw`, `syncpack` |
 | Python | `ruff`, `pyright`, `mypy`, `pytest`, `coverage`, `vulture`, `deptry`, `xenon` |
-| shell и CI | `shellcheck`, `shfmt`, `actionlint`, `pre-commit`, `just` |
+| shell и CI | `shellcheck`, `shfmt`, `actionlint`, `pre-commit`, `just`, `gtimeout` (coreutils) — `timeout` в macOS нет |
 | безопасность | `semgrep`, `gitleaks`, `trufflehog`, `trivy`, `osv-scanner`, `bandit`, `pip-audit` |
 | браузер и UI | `agent-browser`, `playwright`, `impeccable detect` — анти-паттерны UI |
 | медиа и документы | `ffmpeg`, `whisper-cli`, `fpcalc`, `pdftotext`, `soffice` |
@@ -45,6 +45,13 @@ description: >-
   выполнены: npm 12 блокирует их по умолчанию → [npm 12](references/npm-12.md).
 - `brew upgrade node` может откатить глобальный npm до комплектного →
   [обновление](references/runtime-update.md).
+- Оболочка инструмента Bash здесь — zsh: `$VAR` с несколькими аргументами не
+  делится на слова, `=слово` без кавычек раскрывается как путь команды, а
+  `for f in $(…)` рвёт пути с пробелами — используй `-z | xargs -0`.
+- Абзац Markdown часто одна строка: `cut -c` молча прячет её конец, а
+  `rg -M 300 --max-columns-preview` помечает обрезанное.
+- `npx --no-install lychee` добавляет строки `npm notice`, и `tail -1` может
+  вернуть пустую строку — вызывай `lychee` напрямую.
 
 ## Открой Один Reference В Текущий Момент
 

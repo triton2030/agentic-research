@@ -249,11 +249,33 @@ class ChatCaptureTests(unittest.TestCase):
 
                 self.assertEqual(result.returncode, 2)
                 self.assertIn(
-                    "--session-context is required for --kind quote and "
-                    "--kind selection",
+                    "--session-context is required for the first quote or selection",
                     result.stderr,
                 )
                 self.assertEqual(self.recall_files(), [])
+
+    def test_later_capture_without_session_context_keeps_existing_card(self) -> None:
+        self.run_capture(
+            "Первая мысль",
+            "идея",
+            "агенты-и-ии",
+            env=self.claude_env(),
+            session_context="chat recall capture; session files",
+        )
+        self.run_capture(
+            "Вторая мысль",
+            "идея",
+            "агенты-и-ии",
+            env=self.claude_env(),
+            session_context=None,
+        )
+
+        files = self.recall_files()
+        self.assertEqual(len(files), 1)
+        text = files[0].read_text(encoding="utf-8")
+        self.assertIn('"Вторая мысль"', text)
+        self.assertEqual(text.count("session-context:"), 1)
+        self.assertIn('session-context: "chat recall capture; session files"', text)
 
     def test_help_promotes_context_note_check(self) -> None:
         result = subprocess.run(

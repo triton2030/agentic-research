@@ -497,6 +497,16 @@ def ensure_inventory(lines: list[str], key: str, value: str) -> None:
     lines.insert(index, f"  - {value}")
 
 
+def has_session_card(path: Path) -> bool:
+    """True when an existing conversation file already carries a session card."""
+    if not path.exists():
+        return False
+    lines = path.read_text(encoding="utf-8-sig").splitlines()
+    if not lines or lines[0].strip() != "---":
+        return False
+    return any(line.startswith("session-context:") for line in lines[1:frontmatter_end(lines)])
+
+
 def set_frontmatter_scalar(lines: list[str], key: str, value: str) -> bool:
     """Create or replace one JSON-quoted YAML scalar; report whether it changed."""
     end = frontmatter_end(lines)
@@ -807,7 +817,9 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--session-context",
         help=(
-            "required for --kind quote and --kind selection; "
+            "required for the first --kind quote or --kind selection of a "
+            "conversation file; later captures keep its card, so pass it again "
+            "only as the complete updated card; "
             + SESSION_CONTEXT_GUIDANCE
         ),
     )
@@ -879,12 +891,6 @@ def main() -> int:
                 "--supersedes, --contested, --supersedes-unresolved or --supersedes-none is required for "
                 "a position; " + SUPERSESSION_GUIDANCE
             )
-        if args.kind in ("quote", "selection") and session_card is None:
-            raise CaptureError(
-                "--session-context is required for --kind quote and "
-                "--kind selection; "
-                + SESSION_CONTEXT_GUIDANCE
-            )
         if context and args.kind == "note":
             raise CaptureError("--context-note cannot be attached to --kind note")
         implicit_now = args.source_timestamp is None
@@ -951,6 +957,12 @@ def capture_locked(args, root, log_dir, quote, type_, topic, agent, model, conte
             f"session id unknown for agent '{agent}' (env checked: {checked})"
         )
     path = find_session_file(log_dir, agent, session, source)
+    if args.kind in ("quote", "selection") and session_card is None and not has_session_card(path):
+        raise CaptureError(
+            "--session-context is required for the first quote or selection of a "
+            "conversation file; later captures keep its card unless you pass a new "
+            "complete one; " + SESSION_CONTEXT_GUIDANCE
+        )
     source_ref = one_line(args.source_ref, "source-ref") if args.source_ref else None
     if source_ref and ("|" in source_ref or any(c.isspace() for c in source_ref)):
         raise CaptureError("source-ref must be one source occurrence ID without whitespace or '|'")
