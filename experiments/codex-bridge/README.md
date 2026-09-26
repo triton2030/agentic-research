@@ -247,12 +247,13 @@ banner фиксируют ЗАПРОШЕННЫЙ тир из `args` до SDK-в�
 `gpt-6-sol` HTTP 400 для ChatGPT-аккаунта. Фактический движок
 фиксируется в ledger: `codex_bin` + `binary_source` (`chatgpt-app` |
 `sdk-bundle`) в блоке `codex` каждого manifest/result и в stderr-banner
-(`binary=…`). Бинарь приложения — не полный пакет: `codex agents` (обзор
-сессий на общем app-server-демоне) на нём отвечает `this CLI has no complete
-local package; install a packaged Codex CLI or use the standalone installer`
-(замер 2026-09-18, вывод в
-`_workspace/codex-artifacts/audit-input-20260918/codex-agents.txt`);
-`codex doctor` и `codex debug` работают.
+(`binary=…`). До 2026-09-26 бинарь приложения был неполным пакетом, и
+`codex agents` (обзор сессий на общем app-server-демоне) отвечал `this CLI has
+no complete local package` (замер 2026-09-18). Упакованный CLI 0.158 его
+открывает — только в настоящем терминале; первый запуск ставит демон в
+`~/.codex/packages/app-server-daemon` (замер 2026-09-26). Треды моста идут
+через собственный app-server SDK, и видны ли они в этом обзоре, не
+проверялось. `codex doctor` и `codex debug` работают.
 
 **Одно правило поиска движка для всех, кто зовёт Codex напрямую.** Сначала
 `CODEX_BIN`, если задан; затем `/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex`
@@ -373,6 +374,12 @@ review-треда, пришедшие до ответа RPC, роутер SDK н
 122 — шим остаётся. Что взято из `0.154.0`: `codex_threads.py history`
 (`thread/read` с историей вместо rollout-файлов) и `--external` у реплики
 (`ExternalMessage`, см. «Long-run control»).
+
+**Бамп пина на `0.157.1` (2026-09-26) — по правилу выше.** Стабильный CLI
+`0.157.1`, движок ChatGPT.app `0.158.0-alpha.2.1` его догнал. Для моста в
+`0.155`–`0.157` ничего не удалено: снятый `thread/rollback` (`#44915`) мост не
+вызывал. `tests/` прошли без правок (222), открытых enum'ов 3 из 127 — шим
+остаётся; живой пробник `20260926T183238Z-probe-sdk-0157`.
 
 Нижний рабочий порог — `low`, и он enforced: `--effort` ниже (`minimal`/`none`)
 отсекается на валидации флагов (`REASONING_EFFORTS` в `codex_defaults.py`).
