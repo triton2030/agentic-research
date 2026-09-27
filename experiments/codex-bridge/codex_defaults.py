@@ -111,35 +111,18 @@ SDK_BUNDLE_WARNING = (
 # engine's inbound ones parse anyway. See README "Модель и runtime-доступ".
 REASONING_EFFORTS = ("low", "medium", "high", "xhigh", "max", "ultra")
 
-REVIEW_SANDBOX = "read_only"
-REVIEW_APPROVAL_MODE = "deny_all"
-# Проверяющий с `--scratch` пишет в свою копию проекта (codex_scratch.py):
-# тесты и сборки идут делом, исходник недостижим для записи.
-REVIEW_SCRATCH_SANDBOX = "workspace_write"
-WORKER_SANDBOX = "workspace_write"
-WORKER_APPROVAL_MODE = "auto_review"
-
-# Investigator: reads the whole disk; the PROJECT is not writable. cwd = its
-# run_dir/out scratch. Empirically-enforced writable set under workspace_write =
-# cwd (out) + system temp (/tmp, $TMPDIR); everything else — the project, run_dir
-# siblings — is BLOCKED by the sandbox, not merely audited (verified: project
-# write BLOCKED, read outside workspace SUCCEEDS). deny_all = no approval
-# escalation; in-workspace writes still succeed. Note: this SDK sends a fixed
-# per-turn policy for the Sandbox enum, so writable_roots/exclude_slash_tmp via
-# config_overrides do NOT take effect — /tmp cannot be excluded here. The
-# guarantee we rely on is "project unreachable", not "only out/".
-INVESTIGATE_SANDBOX = "workspace_write"
-INVESTIGATE_APPROVAL_MODE = "deny_all"
-
-# Полный доступ — явный флаг исследователя на один прогон (`--full-access`),
-# не дефолт ни одного профиля. Владелец 2026-09-23 выбрал больше пользы от
-# Codex ценой меньшей безопасности: «Все три и дать доступ в интеренет, кодекс
-# очень умная модель она ничего плохо делать не будет»
-# (_ops/chat-recall/2026-09-23-051553-claude-483a304e.md#recall-94036c7a45b24ae2aa0cbdeaa094b974).
-# Нужен задачам вне git-проекта: поставить пакет, настроить домашнюю папку.
-# Цена: запись вне проекта мост не видит и не откатывает — scope-check
-# остаётся наблюдением и успех не роняет.
-FULL_ACCESS_SANDBOX = "full_access"
+# Codex — субагент Claude: полный доступ без запросов повышения прав, что менять —
+# решает задание. Решение владельца 2026-09-27: «Просто надо убрать все эти
+# ограничения. Сделать их более похожими на твоих субагентов. […] Будем
+# рассчитывать на то, что агенты будут слушаться слов»
+# (_ops/chat-recall/2026-09-27-143316-claude-d19cb11d.md#recall-18957d9ea5894a1c99c3618d8c3265fb).
+# Это явная настройка моста, а не наследование прав Claude. Запись вне проекта
+# мост не видит и не откатывает; её границу держат слова задания.
+AGENT_SANDBOX = "full_access"
+AGENT_APPROVAL_MODE = "deny_all"
+# `--scratch`: свежая копия проекта, писать можно только в неё (codex_scratch.py)
+# — для тестов и сборок с побочными изменениями; исходник недостижим.
+SCRATCH_SANDBOX = "workspace_write"
 
 # Bridge threads must NOT persist into the shared ~/.codex session store. That
 # store is the runtime owner (auth/config/runtime) shared with Codex Desktop,
@@ -148,10 +131,3 @@ FULL_ACCESS_SANDBOX = "full_access"
 # Passing ephemeral=True keeps the thread off disk — SDK wire schema: "should
 # not be materialized on disk".
 BRIDGE_THREAD_EPHEMERAL = True
-
-# Воркеры флота — санкционированное исключение (владелец, 2026-08-14: «при
-# большой работе создаваемые треды я видел в кодексе тоже… через приложение
-# кодекс могу также видеть прогресс работы самих агентов»). Материализованный
-# тред воркера = живой монитор его прогресса в Codex Desktop; audit-владельцем
-# прогона остаётся run_dir, thread_id каждого воркера пишется в results.jsonl.
-FLEET_THREAD_EPHEMERAL = False

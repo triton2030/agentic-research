@@ -1,6 +1,6 @@
 """Общая логика codex-bridge: гарантия биллинга через ChatGPT-аккаунт.
 
-Одна правда для review и orchestrate: перед запуском дочернего codex-процесса
+Одна правда для всех входов: перед запуском дочернего codex-процесса
 убираем переменные, которые увели бы Codex на платный API вместо подписки.
 SDK делает os.environ.copy() для дочернего процесса и лишь дополняет его
 config.env, поэтому удалять ключи надо в родительском окружении.
@@ -11,6 +11,7 @@ config.env, поэтому удалять ключи надо в родител�
 from __future__ import annotations
 
 import os
+from typing import Any
 
 # Переменные, способные увести codex на API-биллинг вместо ChatGPT-аккаунта.
 BILLING_LEAK_VARS = ("OPENAI_API_KEY", "CODEX_API_KEY", "OPENAI_BASE_URL")
@@ -32,3 +33,22 @@ def first_nonblank(*values: str | None) -> str | None:
         if value and value.strip():
             return value.strip()
     return None
+
+
+class UsageError(Exception):
+    """Ошибка вызова или контракта входа; отдаётся кодом выхода 2."""
+
+
+COMPLETED_CODEX_STATUS = "completed"
+
+
+def codex_status_value(status: Any) -> str:
+    value = getattr(status, "value", None)
+    if isinstance(value, str):
+        return value
+    return str(status)
+
+
+def codex_turn_completed(status: Any, error: Any) -> bool:
+    """Успешный ход Codex — только явный completed без ошибки."""
+    return not error and codex_status_value(status) == COMPLETED_CODEX_STATUS

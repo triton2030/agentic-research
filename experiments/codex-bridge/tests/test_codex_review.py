@@ -400,7 +400,7 @@ class CodexReviewCliTests(unittest.TestCase):
             self.assertEqual(result["status"], "completed")
             self.assertTrue(result["ok"])
             self.assertIs(captured.get("ephemeral"), True)
-            self.assertEqual(captured.get("sandbox"), "read_only")
+            self.assertEqual(captured.get("sandbox"), "full_access")
             self.assertIsNone(captured.get("service_tier"))
             self.assertEqual(
                 captured["codex_config"].get("codex_bin"), "/sentinel/chatgpt/codex"
@@ -495,16 +495,16 @@ class CodexReviewCliTests(unittest.TestCase):
             self.assertEqual(registry_lines[-1]["event"], "continue")
             self.assertEqual(registry_lines[-1]["thread_id"], "thread-abc")
             resume_kwargs = captured.get("thread_resume_kwargs") or {}
-            self.assertEqual(resume_kwargs.get("sandbox"), "read_only")
+            self.assertEqual(resume_kwargs.get("sandbox"), "full_access")
             self.assertEqual(resume_kwargs.get("approval_mode"), "deny_all")
             self.assertIsNone(resume_kwargs.get("service_tier"))
             # Роль уходит повторно СВОИМ каналом: resume её принимает, роль
             # идемпотентна, а вклейка в текст реплики меняла бы рамку на ходу.
-            self.assertEqual(
-                resume_kwargs.get("developer_instructions"), codex_review.TASK_ROLE
-            )
+            resumed_role = resume_kwargs.get("developer_instructions") or ""
+            self.assertTrue(resumed_role.startswith(codex_review.TASK_ROLE))
+            self.assertIn(codex_review.SHARED_RULES, resumed_role)
             run_kwargs = captured.get("run_kwargs") or {}
-            self.assertEqual(run_kwargs.get("sandbox"), "read_only")
+            self.assertEqual(run_kwargs.get("sandbox"), "full_access")
             self.assertEqual(run_kwargs.get("approval_mode"), "deny_all")
             self.assertEqual(run_kwargs.get("model"), "gpt-6-sol")
             self.assertEqual(run_kwargs.get("effort"), "medium")
@@ -832,9 +832,10 @@ class CodexReviewCliTests(unittest.TestCase):
             self.assertEqual(proc.returncode, 2)
             self.assertIn("task", proc.stderr.lower())
 
-    def test_task_mode_thread_start_ephemeral_readonly(self) -> None:
-        """Новый дефолтный режим обязан держать тот же инвариант, что reviewer:
-        thread стартует ephemeral + read_only, без всякого транскрипта."""
+    def test_task_mode_thread_start_ephemeral_full_access(self) -> None:
+        """Codex — субагент: ephemeral-тред с полным доступом, без транскрипта.
+        Песочницы нет, поэтому общие правила (чужие правки, claude-mcp, папка
+        отчётов) обязаны доехать в роли сами — вызывающий их не повторяет."""
         import codex_review
 
         captured: dict = {}
@@ -860,9 +861,17 @@ class CodexReviewCliTests(unittest.TestCase):
                     return_value="/sentinel/chatgpt/codex",
                 ):
                     rc = codex_review.main()
+                artifacts = root.resolve() / "_workspace" / "codex-artifacts"
+                run_dir = next(p for p in artifacts.iterdir() if p.is_dir())
+                out_exists = (run_dir / "out").is_dir()
             self.assertEqual(rc, 0)
+            self.assertTrue(out_exists)
+            dev = captured.get("developer_instructions") or ""
+            self.assertTrue(dev.startswith(codex_review.TASK_ROLE))
+            self.assertIn(codex_review.SHARED_RULES, dev)
+            self.assertIn(str(run_dir / "out"), dev)
             self.assertIs(captured.get("ephemeral"), True)
-            self.assertEqual(captured.get("sandbox"), "read_only")
+            self.assertEqual(captured.get("sandbox"), "full_access")
             self.assertIsNone(captured.get("service_tier"))
             self.assertEqual(
                 captured["codex_config"].get("codex_bin"), "/sentinel/chatgpt/codex"
@@ -1172,19 +1181,20 @@ class CodexReviewCliTests(unittest.TestCase):
                         prompt_md = (run_dir / "prompt.md").read_text(encoding="utf-8")
                         manifest = json.loads((run_dir / "manifest.json").read_text())
                     self.assertEqual(rc, 0)
-                    self.assertEqual(
-                        captured.get("developer_instructions"), expected_role
-                    )
+                    dev = captured.get("developer_instructions") or ""
+                    self.assertTrue(dev.startswith(expected_role))
+                    self.assertIn(codex_review.SHARED_RULES, dev)
                     user_prompt = captured.get("run_prompt") or ""
                     self.assertNotIn(expected_role, user_prompt)
+                    self.assertNotIn(codex_review.SHARED_RULES, user_prompt)
                     # prompt.md обязан показывать ПОЛНУЮ эффективную инструкцию:
                     # иначе по run_dir не восстановить, что видел Codex.
                     self.assertIn("DEVELOPER INSTRUCTIONS", prompt_md)
-                    self.assertIn(expected_role, prompt_md)
+                    self.assertIn(dev, prompt_md)
                     self.assertIn(user_prompt, prompt_md)
                     self.assertEqual(manifest["prompt_chars"], len(user_prompt))
                     self.assertEqual(
-                        manifest["developer_instructions_chars"], len(expected_role)
+                        manifest["developer_instructions_chars"], len(dev)
                     )
                 finally:
                     sys.argv = saved_argv

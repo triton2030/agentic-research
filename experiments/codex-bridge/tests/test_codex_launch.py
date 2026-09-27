@@ -64,7 +64,7 @@ class LaunchTests(unittest.TestCase):
 
     def _cmd(self, *extra: str) -> list[str]:
         return [
-            sys.executable, str(self.fake_backend / "codex_launch.py"), "review",
+            sys.executable, str(self.fake_backend / "codex_launch.py"), "agent",
             "--name", "probe", "--prompt-file", str(self.prompt),
             "--project", str(self.project), "--poll", "1", *extra,
         ]
@@ -105,15 +105,26 @@ class LaunchTests(unittest.TestCase):
         self.assertIn("ПРОВАЛ", out)
 
     def test_existing_run_dir_refused(self) -> None:
-        stamp_dirs = self.project / "_workspace" / "codex-artifacts"
-        stamp_dirs.mkdir(parents=True)
-        proc = subprocess.run(
-            [sys.executable, str(self.fake_backend / "codex_launch.py"), "orchestrate",
-             "--name", "x", "--prompt-file", str(self.prompt), "--project", str(self.project)],
-            capture_output=True, text=True, timeout=30,
-        )
+        taken = self.tmp / "taken"
+        taken.mkdir()
+        proc = subprocess.run(self._cmd("--run-dir", str(taken)), capture_output=True, text=True, timeout=30)
         self.assertEqual(proc.returncode, 2)
-        self.assertIn("orchestrate не берёт --prompt-file", proc.stderr)
+        self.assertIn("RUN_DIR уже существует", proc.stderr)
+
+    def test_review_is_the_old_name_of_agent(self) -> None:
+        cmd = self._cmd()
+        cmd[cmd.index("agent")] = "review"
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertRegex(proc.stdout, r"OK \S+-probe")
+
+    def test_removed_entries_are_refused(self) -> None:
+        for entry in ("investigate", "orchestrate"):
+            cmd = self._cmd()
+            cmd[cmd.index("agent")] = entry
+            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+            self.assertEqual(proc.returncode, 2, entry)
+            self.assertIn("invalid choice", proc.stderr)
 
 
 if __name__ == "__main__":

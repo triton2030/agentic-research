@@ -7,9 +7,6 @@ Codex Desktop и audit surface НЕ является. Раз владелец о
 (`RunResult`).
 
 Модуль SDK-free: dry-run и валидация флагов не поднимают Codex-рантайм.
-Раньше это жило в `codex_orchestrate_state.py` вместе с git-скоупом — имя
-врало, потому что журналом пользуются все три входа, а не оркестратор.
-Git-половина теперь в `codex_git_scope.py`.
 """
 from __future__ import annotations
 
@@ -24,7 +21,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
-from codex_orchestrate_contract import UsageError
+from cbcommon import UsageError
 
 BACKEND_DIR = Path(__file__).resolve().parent
 
@@ -62,7 +59,7 @@ def prepare_run_dir(raw_run_dir: str | None, *, project: Path | None = None) -> 
 
 
 def _warn_stderr(message: str) -> None:
-    # Журнал — телеметрия: его отказ не должен ронять флот; и само
+    # Журнал — телеметрия: его отказ не должен ронять прогон; и само
     # предупреждение обязано пережить закрытый stderr (SIGPIPE/head).
     try:
         print(message, file=sys.stderr)
@@ -80,7 +77,7 @@ def write_json(path: Path, data: Any) -> None:
 def append_jsonl(path: Path, data: Any) -> None:
     # run_dir может исчезнуть под ногами (чужой cleanup _workspace во время
     # прогона — реальный случай md-tools): пересоздаём и не поднимаем OSError,
-    # иначе журнальная запись убивает флот и теряет готовые результаты воркеров.
+    # иначе журнальная запись убивает прогон и теряет оплаченный результат.
     line = json.dumps(data, ensure_ascii=False) + "\n"
     try:
         path.parent.mkdir(parents=True, exist_ok=True)

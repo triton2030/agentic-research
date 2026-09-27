@@ -156,10 +156,7 @@ class EntrypointWiringTest(unittest.TestCase):
         import importlib
 
         entry = importlib.import_module(module_name)
-        if module_name == "codex_review":
-            from test_codex_review import _install_fake_openai_codex
-        else:
-            from test_codex_investigate import _install_fake_openai_codex
+        from test_codex_review import _install_fake_openai_codex
 
         captured: dict = {}
         fake_names = _install_fake_openai_codex(captured)
@@ -204,16 +201,10 @@ class EntrypointWiringTest(unittest.TestCase):
             "codex_review", ["--task", "посмотри на codex_review.py"]
         )
 
-    def test_investigate_main_calls_harden_before_thread_start(self) -> None:
-        self._run_entrypoint_capturing_order(
-            "codex_investigate", ["--task", "изучи проект", "--heartbeat-sec", "0"]
-        )
-
     def test_all_entrypoints_wire_harden_in_source(self) -> None:
         """Инвариант AGENTS «каждый вход зовёт harden_sdk_enums()» — страховка
-        для orchestrate/threads, где полный runtime-прогон требует git/archive
-        скаффолдинга."""
-        for entry in ("codex_review", "codex_investigate", "codex_orchestrate", "codex_threads"):
+        для threads, где полный runtime-прогон требует archive-скаффолдинга."""
+        for entry in ("codex_review", "codex_threads"):
             source = (BACKEND / f"{entry}.py").read_text(encoding="utf-8")
             self.assertIn(
                 "harden_sdk_enums()", source,

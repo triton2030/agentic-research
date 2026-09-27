@@ -9,16 +9,19 @@ review --prompt-file …`), а stdout карточки — только витр
 заданием, строка на каждый шаг Codex, финал.
 
 Что делает: выбирает свежий `RUN_DIR` (`<project>/_workspace/codex-artifacts/
-<UTC>-<name>`), запускает вход моста (`codex_review.py` / `codex_investigate.py`
-/ `codex_orchestrate.py`) отдельным процессом с выводом в `<RUN_DIR>.launch.log`
-и держит в своём stdout `codex_watch.py watch RUN_DIR --pulse`. Завершается
-вместе с прогоном — одно уведомление агенту; остановка карточки прерывает
-прогон штатно (interrupt), а не оставляет его сиротой. Канон результата — `result.json`
-в `RUN_DIR`; сводка моста — в `launch.log`.
+<UTC>-<name>`), запускает вход моста `codex_review.py` отдельным процессом с
+выводом в `<RUN_DIR>.launch.log` и держит в своём stdout `codex_watch.py watch
+RUN_DIR --pulse`. Завершается вместе с прогоном — одно уведомление агенту;
+остановка карточки прерывает прогон штатно (interrupt), а не оставляет его
+сиротой. Канон результата — `result.json` в `RUN_DIR`; сводка моста — в
+`launch.log`.
+
+Вход один — `agent`: Codex как субагент, роль и границы задаёт задание.
+`review` — прежнее имя того же входа, оставлено для старых вызовов.
 
 Задание берётся из `--prompt-file` (файл, не аргумент: длинный текст в
 командной строке и есть мусор в карточке). Всё после `--` уходит входу моста
-как есть (`--model`, `--effort`, `--mode`, `--dialog`, `--tasks` …).
+как есть (`--model`, `--effort`, `--mode`, `--dialog`, `--continue` …).
 """
 from __future__ import annotations
 
@@ -31,9 +34,8 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 ENTRIES = {
+    "agent": "codex_review.py",
     "review": "codex_review.py",
-    "investigate": "codex_investigate.py",
-    "orchestrate": "codex_orchestrate.py",
 }
 
 
@@ -41,7 +43,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("entry", choices=sorted(ENTRIES))
     parser.add_argument("--name", required=True, help="суффикс RUN_DIR и подпись карточки: роль-суть, без пробелов")
-    parser.add_argument("--prompt-file", help="файл с заданием (review/investigate); orchestrate берёт --tasks после --")
+    parser.add_argument("--prompt-file", help="файл с заданием; без него — только режимы, которым задание не нужно (--mode diff/review)")
     parser.add_argument("--project", default=".", help="корень проекта (default cwd)")
     parser.add_argument("--run-dir", help="явный RUN_DIR (обязан не существовать); вне проекта, если _workspace чистят тесты или хуки")
     parser.add_argument("--poll", type=int, default=10, help="шаг опроса журнала витриной, с")
@@ -67,9 +69,6 @@ def main() -> int:
 
     cmd = [sys.executable, str(HERE / ENTRIES[args.entry])]
     if args.prompt_file:
-        if args.entry == "orchestrate":
-            print("orchestrate не берёт --prompt-file: задачи идут через -- --tasks FILE", file=sys.stderr)
-            return 2
         cmd.append(Path(args.prompt_file).read_text(encoding="utf-8"))
     cmd += ["--project", str(project), "--run-dir", str(run_dir), "--summary-stdout", *rest]
 
@@ -114,15 +113,22 @@ def main() -> int:
                         watch.terminate()
                         watch_rc = watch.wait(timeout=10)
                     break
-        # Витрина кончилась раньше прогона (не встала, потолок часов) —
-        # прогон без окна не живёт: ждём недолго и гасим.
-        grace = 30 if watch_rc == 2 else 600
-        try:
-            rc = proc.wait(timeout=grace)
-        except subprocess.TimeoutExpired:
-            print(f"прогон жив без витрины дольше {grace}с — прерываю", flush=True)
-            proc.send_signal(signal.SIGTERM)
-            rc = proc.wait(timeout=60)
+        if watch_rc == 2:
+            # Витрина не встала: каталог прогона не появился — запуск сорвался
+            # до старта. Ждём недолго и гасим.
+            try:
+                rc = proc.wait(timeout=30)
+            except subprocess.TimeoutExpired:
+                print("прогон не встал за 30с после отказа витрины — прерываю", flush=True)
+                proc.send_signal(signal.SIGTERM)
+                rc = proc.wait(timeout=60)
+        else:
+            # Витрина закрылась раньше прогона (потолок часов) — поломка окна
+            # не останавливает работу: пишущий агент, убитый посреди правки,
+            # оставляет её недоделанной. Остановка — только явным TaskStop.
+            if proc.poll() is None:
+                print("витрина закрылась, прогон идёт — жду его завершения", flush=True)
+            rc = proc.wait()
     finally:
         if proc.poll() is None:
             proc.send_signal(signal.SIGTERM)

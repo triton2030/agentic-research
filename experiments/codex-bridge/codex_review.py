@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""codex-bridge — вызвать Codex как стороннего ревьюера/консультанта из Claude Code.
+"""codex-bridge — вызвать Codex как субагента Claude Code: исполнителя, ревьюера
+или консультанта.
 
 Зеркало `claude-bridge` (тот гоняет Claude из Codex; этот — Codex из Claude).
 
@@ -9,8 +10,10 @@ OPENAI_API_KEY / CODEX_API_KEY / OPENAI_BASE_URL из окружения, что
 переменная не увела ревью на платный API (то же делает claude-bridge с
 ANTHROPIC_API_KEY в обратную сторону).
 
-Codex запускается в sandbox read-only c рабочей папкой = корень проекта:
-он ВИДИТ все файлы проекта, но ничего не пишет.
+Codex работает как субагент Claude: полный доступ без запросов разрешений,
+рабочая папка — корень проекта. Что менять, решает задание; общие правила
+(не трогать чужие правки, не звать claude-mcp, куда класть отчёты) мост
+добавляет к роли сам.
 
 Режимы:
   task "..."            задание/вопрос БЕЗ транскрипта (DEFAULT) — Codex видит
@@ -32,7 +35,13 @@ import sys
 import time
 from pathlib import Path
 
-from cbcommon import first_nonblank, scrub_billing_env
+from cbcommon import (
+    UsageError,
+    codex_status_value,
+    codex_turn_completed,
+    first_nonblank,
+    scrub_billing_env,
+)
 from codex_retry import resume_thread, retry_start
 from codex_sdk_compat import harden_sdk_enums, open_sandbox_network
 from codex_defaults import (
@@ -41,17 +50,12 @@ from codex_defaults import (
     DEFAULT_CODEX_MODEL,
     DEFAULT_CODEX_SERVICE_TIER,
     REASONING_EFFORTS,
-    REVIEW_APPROVAL_MODE,
-    REVIEW_SANDBOX,
-    REVIEW_SCRATCH_SANDBOX,
+    AGENT_APPROVAL_MODE,
+    AGENT_SANDBOX,
+    SCRATCH_SANDBOX,
     SDK_BUNDLE_WARNING,
     codex_bin_source,
     resolve_codex_bin,
-)
-from codex_orchestrate_contract import (
-    UsageError,
-    codex_status_value,
-    codex_turn_completed,
 )
 from codex_run_ledger import (
     RunResult,
@@ -161,19 +165,19 @@ def render_transcript(path: Path, include_thinking: bool) -> str:
 
 
 TASK_ROLE = """\
-Ты — независимый старший эксперт; профессиональную линзу (инженерия, документы,
-стратегия…) бери из задания. У тебя read-only доступ ко всем файлам этого
-проекта — открывай и проверяй реальный код и документы, ничего не домысливай.
-Выполни задание из сообщения пользователя: будь конкретным, опирайся на реальные
-файлы и точные пути, не пересказывай очевидное."""
+Ты — субагент Claude Code и старший специалист; профессиональную линзу
+(инженерия, документы, стратегия…) бери из задания. Открывай и проверяй
+реальные файлы, ничего не домысливай. Что менять, решает задание: просит
+изменить — меняй прямо в проекте; просит проверить, ответить или посоветовать —
+файлы проекта не меняй. Будь конкретным, опирайся на точные пути, не
+пересказывай очевидное."""
 
 
 REVIEW_ROLE = """\
 Ты — независимый старший ревьюер; профессиональную линзу бери из содержания
 работы. В сообщении пользователя — транскрипт рабочей сессии другого
-ИИ-агента (Claude Code) с пользователем. У тебя есть read-only доступ ко всем
-файлам этого проекта — открывай и проверяй реальный код и документы, не верь
-транскрипту на слово.
+ИИ-агента (Claude Code) с пользователем. Открывай и проверяй реальный код и
+документы проекта, не верь транскрипту на слово. Файлы не меняй: ты ревьюер.
 
 Дай стороннее ревью ХОДА РАБОТЫ:
 - что упущено, какие риски и неверные допущения;
@@ -184,8 +188,8 @@ REVIEW_ROLE = """\
 
 ASK_ROLE = """\
 В сообщении пользователя — транскрипт рабочей сессии ИИ-агента (Claude Code) с
-пользователем как контекст и вопрос к тебе. У тебя read-only доступ ко всем
-файлам проекта — сверяйся с ними, а не с пересказом."""
+пользователем как контекст и вопрос к тебе. Сверяйся с файлами проекта, а не с
+пересказом. Файлы не меняй: ты отвечаешь на вопрос."""
 
 
 
@@ -204,7 +208,27 @@ def _review_target(args, payload: str | None) -> dict:
     return {"type": "uncommittedChanges"}
 
 
-def build_instructions(mode: str) -> str | None:
+# Общие правила любого хода. Полный доступ снял песочницу, поэтому то, что она
+# держала, держат слова (решение владельца 2026-09-27), и мост кладёт их в
+# роль сам — вызывающий не обязан помнить их в каждом задании.
+# - Чужие правки: рядом пишут другие агенты и владелец, а git не вернёт
+#   незакоммиченное, перетёртое checkout/reset/stash/clean.
+# - claude-mcp: блокирующий claude_ask некому ответить; замер 2026-07-28 —
+#   девять часов тишины.
+SHARED_RULES = """\
+Общие правила (задаёт мост, действуют при любом задании):
+- Рядом могут работать другие агенты и владелец. Не откатывай и не
+  переписывай чужие изменения; без прямой просьбы задания не запускай git
+  checkout, restore, reset, stash, clean, rebase, не коммить и не пушь.
+- Не вызывай инструменты claude-mcp (claude_ask, claude_session): ответить на
+  них некому, и ход повиснет. Работай файлами и shell."""
+
+OUT_DIR_RULE = """
+- Файлы, которым не место в проекте (отчёты, черновики, данные), клади в
+  {out_dir}, если задание не называет другое место."""
+
+
+def build_instructions(mode: str, out_dir: Path | None = None) -> str | None:
     """Инвариантная роль режима — она уходит каналом `developer_instructions`
     (thread_start/thread_resume), а не вклеивается в реплику.
 
@@ -212,13 +236,14 @@ def build_instructions(mode: str) -> str | None:
     в диалоге её не надо повторять текстом, и она не конкурирует с заданием за
     внимание. mode=diff роли не получает вовсе — контракт ревью несёт сам
     движок (`review/start`)."""
-    if mode == "task":
-        return TASK_ROLE
-    if mode == "review":
-        return REVIEW_ROLE
-    if mode == "ask":
-        return ASK_ROLE
-    return None
+    roles = {"task": TASK_ROLE, "review": REVIEW_ROLE, "ask": ASK_ROLE}
+    role = roles.get(mode)
+    if role is None:
+        return None
+    rules = SHARED_RULES
+    if out_dir is not None:
+        rules += OUT_DIR_RULE.format(out_dir=out_dir)
+    return f"{role}\n\n{rules}"
 
 
 def build_prompt(mode: str, transcript_md: str, payload: str | None) -> str:
@@ -313,7 +338,9 @@ COMPACT_KEYS = (
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Вызвать Codex как ревьюера/консультанта из Claude Code.")
+    parser = argparse.ArgumentParser(
+        description="Вызвать Codex как субагента Claude Code: исполнителя, ревьюера или консультанта."
+    )
     parser.add_argument(
         "task_text",
         nargs="?",
@@ -466,7 +493,7 @@ def main() -> int:
         # изменениям — `--mode task --scratch` с таким заданием.
         print("--scratch несовместим с --mode diff: используй --mode task --scratch.", file=sys.stderr)
         return 2
-    sandbox_name = REVIEW_SCRATCH_SANDBOX if args.scratch else REVIEW_SANDBOX
+    sandbox_name = SCRATCH_SANDBOX if args.scratch else AGENT_SANDBOX
 
     project_cwd = Path(args.project).expanduser().resolve()
 
@@ -503,11 +530,6 @@ def main() -> int:
             tail = transcript_md[-(args.max_chars * 4 // 5):]
             transcript_md = f"{head}\n\n… [середина транскрипта оборвана для бюджета] …\n\n{tail}"
 
-    # Роль отправляется отдельным каналом (developer_instructions) и в
-    # user-промпт не попадает. В --continue она уходит повторно при
-    # thread_resume: роль идемпотентна, а вот переклейка её в текст реплики
-    # ломала бы диалог сменой рамки на каждом ходе.
-    dev_instructions = build_instructions(args.mode)
     if args.mode == "diff":
         # Промпта нет вовсе: контракт ревью несёт сам движок. В prompt.md
         # кладём таргет, чтобы audit-владелец не врал пустотой.
@@ -517,7 +539,6 @@ def main() -> int:
         prompt = payload
     else:
         prompt = build_prompt(args.mode, transcript_md, payload)
-    prompt_document = render_prompt_document(prompt, dev_instructions)
     transcript_name = transcript_path.name if transcript_path else "—"
     # Чей это разговор — решает вызывающий, а не mtime. Без session id в env
     # (типично для фонового Bash) берётся свежайший файл проекта, и при двух
@@ -563,11 +584,24 @@ def main() -> int:
         return 2
     paths = _review_paths(run_dir)
     workspace = plan_scratch(project_cwd, run_id) if args.scratch else None
+    # Отчётам и черновикам нужна своя папка вне проекта — `out/` прогона. В
+    # копии (--scratch) писать можно только в неё, поэтому там папки нет:
+    # отчёт уходит ответом. У нативного diff роли нет вовсе.
+    out_dir: Path | None = None
+    if workspace is None and args.mode != "diff":
+        out_dir = run_dir / "out"
+        out_dir.mkdir()
+        paths["out"] = str(out_dir)
+    # Роль отправляется отдельным каналом (developer_instructions) и в
+    # user-промпт не попадает. В --continue она уходит повторно при
+    # thread_resume: роль идемпотентна, а вот переклейка её в текст реплики
+    # ломала бы диалог сменой рамки на каждом ходе.
+    dev_instructions = build_instructions(args.mode, out_dir)
     if workspace is not None:
         # Роль говорит про копию на каждом ходе, и в --continue тоже: история
         # треда цела, а копия прошлого хода уже удалена.
         dev_instructions = (dev_instructions or "") + scratch_note(workspace)
-        prompt_document = render_prompt_document(prompt, dev_instructions)
+    prompt_document = render_prompt_document(prompt, dev_instructions)
     work_cwd = workspace["cwd"] if workspace is not None else str(project_cwd)
     manifest = {
         "run_id": run_id,
@@ -584,7 +618,7 @@ def main() -> int:
         "codex": dict(codex_runtime),
         "runtime": {
             "sandbox": sandbox_name,
-            "approval_mode": REVIEW_APPROVAL_MODE,
+            "approval_mode": AGENT_APPROVAL_MODE,
             "heartbeat_sec": args.heartbeat_sec,
             "workspace": workspace,
         },
@@ -614,7 +648,7 @@ def main() -> int:
               f"model={args.model} effort={args.effort} tier={args.service_tier or 'inherit'} "
               f"binary={codex_runtime['binary_source']} "
               f"run_dir={run_dir} "
-              f"sandbox={sandbox_name} approval={REVIEW_APPROVAL_MODE}", file=sys.stderr)
+              f"sandbox={sandbox_name} approval={AGENT_APPROVAL_MODE}", file=sys.stderr)
         ledger.finish(
             status="validated",
             ok=True,
@@ -661,7 +695,7 @@ def main() -> int:
         f"model={args.model} effort={args.effort} tier={args.service_tier or 'inherit'} "
         f"binary={codex_runtime['binary_source']} "
         f"run_dir={run_dir} "
-        f"sandbox={sandbox_name} approval={REVIEW_APPROVAL_MODE}"
+        f"sandbox={sandbox_name} approval={AGENT_APPROVAL_MODE}"
         + (f" | вырезаны из env: {', '.join(removed)}" if removed else " | env чист"),
         file=sys.stderr,
     )
