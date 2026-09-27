@@ -39,13 +39,12 @@
 
 ```bash
 B=/Users/triton/Documents/GitHub/agentic-research/experiments/codex-bridge
-$B/.venv/bin/python $B/codex_launch.py review --name советник-<тема> --prompt-file ВОПРОС.md --project "$PWD" -- --dialog --topic "ТЕМА"
-$B/.venv/bin/python $B/codex_launch.py review --name советник-<тема> --prompt-file УТОЧНЕНИЕ.md --project "$PWD" -- --continue THREAD_ID
+$B/.venv/bin/python $B/codex_launch.py agent --name советник-<тема> --prompt-file ВОПРОС.md --project "$PWD" -- --dialog --topic "ТЕМА"
+$B/.venv/bin/python $B/codex_launch.py agent --name советник-<тема> --prompt-file УТОЧНЕНИЕ.md --project "$PWD" -- --continue THREAD_ID
 ```
 
-Рабочее дерево есть по праву только у пишущего воркера; тред советнику — названное
-владельцем исключение через явный `--dialog` (2026-08-14). Чтение, ревью и поиск
-обходятся без обоих.
+Тред советнику заводит только явный `--dialog`; разовому вопросу он не нужен.
+Права у советника полные, поэтому «файлы не меняй» пиши в вопросе словами.
 
 `--dialog` без `--topic` берёт темой первые 80 символов задания. Диалог может
 пережить сессию — задавай `--topic` явно: его увидит следующий агент, и он же
@@ -64,7 +63,7 @@ $B/.venv/bin/python $B/codex_launch.py review --name советник-<тема>
 ## Птичий взгляд на траекторию сессии
 
 ```bash
-$B/.venv/bin/python $B/codex_launch.py review --name траектория --project "$PWD" -- --mode ask --question "…"
+$B/.venv/bin/python $B/codex_launch.py agent --name траектория --project "$PWD" -- --mode ask --question "…"
 ```
 
 Транскрипт подтянется сам; чужая или прошлая сессия — `--transcript FILE`. Не
