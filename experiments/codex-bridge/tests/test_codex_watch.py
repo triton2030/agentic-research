@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import json
-import os
 import subprocess
 import sys
 import tempfile
@@ -51,6 +50,40 @@ class FinalityTests(unittest.TestCase):
             )
             self.assertIn("ПРОЦЕСС ПРОГОНА ЗАВЕРШИЛСЯ", proc.stdout)
             self.assertIn("КОНЕЦ", proc.stdout)
+
+
+class SoloRunTests(unittest.TestCase):
+    def test_pulse_and_closing_line_keep_solo_format(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = Path(tmp)
+            run = codex_watch.Run(run_dir, pulse=True)
+            event = {
+                "ts": "2026-01-01T00:00:00+00:00", "event": "codex",
+                "method": "item/completed", "kind": "agentMessage",
+                "detail": "6 симв.: привет",
+            }
+            self.assertEqual(list(run.absorb(event)), ["   0с привет"])
+            (run_dir / "result.json").write_text(json.dumps({"ok": True}), encoding="utf-8")
+            self.assertEqual(list(run.closing_lines()), [f"OK {run_dir.name} · 0с · 1ш"])
+
+    def test_look_shows_one_live_run(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp)
+            run_dir = project / "_workspace" / "codex-artifacts" / "run-1"
+            run_dir.mkdir(parents=True)
+            (run_dir / "manifest.json").write_text("{}", encoding="utf-8")
+            (run_dir / "events.jsonl").write_text(
+                json.dumps({"ts": "2026-01-01T00:00:00+00:00", "event": "codex",
+                            "method": "item/completed", "kind": "agentMessage"}) + "\n",
+                encoding="utf-8",
+            )
+            proc = subprocess.run(
+                [sys.executable, str(BACKEND / "codex_watch.py"), "look", str(project)],
+                capture_output=True, text=True,
+            )
+            self.assertEqual(proc.returncode, 0)
+            self.assertIn("run-1 · идёт", proc.stdout)
+            self.assertIn("одиночный · 1ш", proc.stdout)
 
 
 if __name__ == "__main__":

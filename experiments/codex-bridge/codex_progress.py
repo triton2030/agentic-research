@@ -25,7 +25,7 @@ from pathlib import Path
 import shutil
 import threading
 import time
-from typing import Any, AsyncIterator, Callable, Iterator
+from typing import Any, Callable, Iterator
 
 from codex_run_ledger import append_event, append_jsonl, utc_now, write_json
 
@@ -246,61 +246,13 @@ def collect_images(tracker: ProgressTracker, run_dir: Any) -> list[dict[str, Any
     return collected
 
 
-class ProgressRegistry:
-    """Сводка по параллельным ходам флота: кто ещё жив и давно ли молчит."""
-
-    def __init__(self) -> None:
-        self._lock = threading.Lock()
-        self._trackers: dict[str, ProgressTracker] = {}
-        self._done: set[str] = set()
-
-    def tracker(self, worker_id: str) -> ProgressTracker:
-        with self._lock:
-            tracker = self._trackers.get(worker_id)
-            if tracker is None:
-                tracker = ProgressTracker()
-                self._trackers[worker_id] = tracker
-            return tracker
-
-    def finish(self, worker_id: str) -> None:
-        with self._lock:
-            self._done.add(worker_id)
-
-    def snapshot(self) -> dict[str, Any]:
-        with self._lock:
-            active = {
-                wid: tracker
-                for wid, tracker in self._trackers.items()
-                if wid not in self._done
-            }
-        if not active:
-            return {"active": 0}
-        snaps = {wid: tracker.snapshot() for wid, tracker in active.items()}
-        stalest = max(snaps.items(), key=lambda kv: kv[1].get("idle_sec", 0))
-        return {
-            "active": len(active),
-            "steps": sum(snap.get("steps", 0) for snap in snaps.values()),
-            # Молчащий дольше всех — то, ради чего пульс вообще читают.
-            "stalest": stalest[0],
-            "stalest_idle_sec": stalest[1].get("idle_sec", 0),
-            "stalest_last": stalest[1].get("last"),
-            # Разбор по воркерам считался и здесь же выбрасывался: сумма шагов
-            # по флоту не отличает воркера, сделавшего четыреста шагов, от
-            # соседа, вставшего на девятом. Кто это читает — решает вызывающий.
-            "workers": snaps,
-        }
-
-
-def _load_collectors() -> tuple[Callable[..., Any] | None, Callable[..., Any] | None]:
+def _load_collector() -> Callable[..., Any] | None:
     """Штатные сборщики SDK. Отсутствуют → работаем без прогресса, но работаем."""
     try:
-        from openai_codex._run import (  # noqa: PLC0415 — импорт после scrub_billing_env
-            _collect_async_turn_result,
-            _collect_turn_result,
-        )
+        from openai_codex._run import _collect_turn_result  # noqa: PLC0415 — после scrub_billing_env
     except Exception:  # noqa: BLE001 — приватная функция SDK могла переехать
-        return None, None
-    return _collect_turn_result, _collect_async_turn_result
+        return None
+    return _collect_turn_result
 
 
 def _tee(
@@ -315,22 +267,6 @@ def _tee(
             if record is not None and run_dir is not None:
                 append_event(run_dir, "codex", **{**(extra or {}), **record})
         except Exception:  # noqa: BLE001 — журнал не роняет оплаченный ход
-            pass
-        yield event
-
-
-async def _atee(
-    stream: AsyncIterator[Any],
-    tracker: ProgressTracker,
-    run_dir: Any | None,
-    extra: dict[str, Any] | None = None,
-) -> AsyncIterator[Any]:
-    async for event in stream:
-        try:
-            record = tracker.observe(event)
-            if record is not None and run_dir is not None:
-                append_event(run_dir, "codex", **{**(extra or {}), **record})
-        except Exception:  # noqa: BLE001
             pass
         yield event
 
@@ -354,8 +290,6 @@ def _task_line(root: Any) -> str:
     Без него сводка честно отвечает «что он делает», но не «туда ли идёт»:
     сравнивать приходится с памятью вызывающего, а у свежего окна её нет.
     """
-    import json
-
     prompt_path = root / "prompt.md"
     if prompt_path.is_file():
         try:
@@ -378,15 +312,6 @@ def _task_line(root: Any) -> str:
                 return _short(row, 160)
         return ""
 
-    manifest_path = root / "manifest.json"
-    if manifest_path.is_file():
-        try:
-            tasks = json.loads(manifest_path.read_text(encoding="utf-8")).get("tasks") or []
-        except Exception:  # noqa: BLE001
-            return ""
-        if tasks:
-            names = ", ".join(str(task.get("id")) for task in tasks[:6])
-            return _short(f"{len(tasks)} воркеров: {names}" + ("…" if len(tasks) > 6 else ""), 160)
     return ""
 
 
@@ -443,7 +368,7 @@ def digest(run_dir: Any, *, tail: int = 6) -> str:
 
     if last_beat:
         parts = [f"elapsed={last_beat.get('elapsed_sec')}s"]
-        for key in ("steps", "idle_sec", "active", "stalest", "stalest_idle_sec"):
+        for key in ("steps", "idle_sec"):
             if last_beat.get(key) is not None:
                 parts.append(f"{key}={last_beat[key]}")
         lines.append("пульс: " + " ".join(parts))
@@ -454,15 +379,13 @@ def digest(run_dir: Any, *, tail: int = 6) -> str:
             "steer_accepted": "принята движком (не значит «послушался»)",
             "steer_rejected": "отвергнута",
         }[event["event"]]
-        who = f"[{event['worker']}] " if event.get("worker") else ""
         why = f" — {_short(event.get('error', ''), 90)}" if event.get("error") else ""
-        lines.append(f"реплика {who}{event.get('request_id')}: {mark}{why}")
+        lines.append(f"реплика {event.get('request_id')}: {mark}{why}")
 
     lines.append(f"шагов записано: {len(activity)}")
     for event in activity[-tail:]:
-        worker = f"[{event['worker']}] " if event.get("worker") else ""
         detail = _short(event.get("detail", ""), 90)
-        lines.append(f"  {worker}{event.get('kind') or event.get('method')}: {detail}")
+        lines.append(f"  {event.get('kind') or event.get('method')}: {detail}")
     return "\n".join(lines)
 
 
@@ -494,16 +417,6 @@ def board(project: Any, *, limit: int = 12) -> str:
             try:
                 data = json.loads(result.read_text(encoding="utf-8"))
                 state = "ok" if data.get("ok") else "провал"
-                for key in ("worker_status", "scope_status", "verification_status"):
-                    if data.get(key):
-                        detail += f" {key.split('_')[0]}={data[key]}"
-                wave = data.get("wave") or {}
-                if wave.get("integration_status"):
-                    detail += f" влито={len(wave.get('merged') or [])}"
-                    if wave.get("kept_branches"):
-                        detail += f" ВЕТОК={len(wave['kept_branches'])}"
-                    if wave.get("cleanup_done") is False:
-                        detail += " ДЕРЕВЬЯ-ВИСЯТ"
             except Exception:  # noqa: BLE001
                 state = "result.json нечитаем"
 
@@ -519,9 +432,9 @@ def board(project: Any, *, limit: int = 12) -> str:
                     beat = event
         if state == "идёт" and beat:
             # Растущий idle при живом процессе — единственный честный признак
-            # зависания; для флота важнее не агрегат, а самый молчащий воркер.
+            # зависания.
             detail += f" elapsed={beat.get('elapsed_sec')}s"
-            for key in ("steps", "idle_sec", "active", "stalest"):
+            for key in ("steps", "idle_sec"):
                 if beat.get(key) is not None:
                     detail += f" {key}={beat[key]}"
 
@@ -597,7 +510,7 @@ CONTROL_POLL_SEC = 2.0
 
 
 def file_steer_request(
-    run_dir: Any, text: str, *, worker: str | None = None, external: bool = False
+    run_dir: Any, text: str, *, external: bool = False
 ) -> dict[str, Any]:
     """Положить реплику в ящик идущего прогона. Кредитов не стоит, хода не начинает.
 
@@ -616,13 +529,12 @@ def file_steer_request(
     request = {
         "id": _uuid.uuid4().hex[:12],
         "text": text,
-        "worker": worker,
         "authority": "external" if external else "user",
         "created_at": utc_now(),
     }
     append_jsonl(Path(run_dir) / CONTROL_INBOX_NAME, request)
     append_event(
-        run_dir, "steer_requested", request_id=request["id"], worker=worker,
+        run_dir, "steer_requested", request_id=request["id"],
         authority=request["authority"],
     )
     return request
@@ -683,26 +595,6 @@ def _stray_turn_message(handle: Any, joined_id: str, interrupt_error: str | None
     return f"{base} — прерван, реплика не доставлена"
 
 
-async def _deliver_steer_async(handle: Any, thread: Any, request: dict[str, Any]) -> Any:
-    if request.get("authority") == "external":
-        if thread is None:
-            raise RuntimeError("external-реплика требует ручку треда, у этого хода её нет")
-        joined = await thread.turn(_external_message(str(request.get("text") or "")))
-        try:
-            joined_id = getattr(joined, "id", None)
-            if joined_id and joined_id != getattr(handle, "id", None):
-                error: str | None = None
-                try:
-                    await joined.interrupt()
-                except Exception as exc:  # noqa: BLE001
-                    error = f"{type(exc).__name__}: {exc}"
-                raise RuntimeError(_stray_turn_message(handle, joined_id, error))
-        finally:
-            await _aclose_subscription(joined)
-        return joined
-    return await handle.steer(request["text"])
-
-
 def _close_subscription(joined: Any) -> None:
     """Join возвращает второй handle на тот же ход; его подписку закрываем сразу —
     поток событий уже читает основной handle."""
@@ -715,20 +607,8 @@ def _close_subscription(joined: Any) -> None:
             pass
 
 
-async def _aclose_subscription(joined: Any) -> None:
-    sub = getattr(joined, "_subscription", None)
-    close = getattr(sub, "aclose", None) or getattr(sub, "close", None)
-    if callable(close):
-        try:
-            result = close()
-            if hasattr(result, "__await__"):
-                await result
-        except Exception:  # noqa: BLE001
-            pass
-
-
 class _ControlInbox:
-    """Читатель ящика для одного адресата: отдаёт новые реплики, ведёт приём.
+    """Читатель ящика: отдаёт новые реплики, ведёт приём.
 
     Событие приёма называется `steer_accepted`, а не `applied`: движок
     подтверждает получение реплики, но не смену курса. Курс проверяется
@@ -736,12 +616,11 @@ class _ControlInbox:
     ровно тот самоотчёт, который здесь нигде не считается доказательством.
     """
 
-    def __init__(self, run_dir: Any, worker: str | None = None) -> None:
+    def __init__(self, run_dir: Any) -> None:
         from pathlib import Path
 
         self._path = Path(run_dir) / CONTROL_INBOX_NAME
         self._run_dir = run_dir
-        self._worker = worker
         self._seen: set[str] = set()
 
     def pending(self) -> list[dict[str, Any]]:
@@ -763,10 +642,6 @@ class _ControlInbox:
             request_id = str(request.get("id") or "")
             if not request_id or request_id in self._seen:
                 continue
-            # Безадресная реплика достаётся только одиночному ходу: в волне
-            # «кому-нибудь» означало бы всем сразу.
-            if request.get("worker") != self._worker:
-                continue
             self._seen.add(request_id)
             fresh.append(request)
         return fresh
@@ -776,7 +651,6 @@ class _ControlInbox:
             self._run_dir,
             "steer_accepted",
             request_id=request.get("id"),
-            worker=self._worker,
             turn_id=getattr(response, "turn_id", None) or getattr(response, "id", None),
             authority=request.get("authority", "user"),
         )
@@ -786,7 +660,6 @@ class _ControlInbox:
             self._run_dir,
             "steer_rejected",
             request_id=request.get("id"),
-            worker=self._worker,
             error=f"{type(error).__name__}: {error}",
         )
 
@@ -800,12 +673,12 @@ class _ControlWatcher:
     """
 
     def __init__(
-        self, handle: Any, run_dir: Any | None, worker: str | None = None, thread: Any = None
+        self, handle: Any, run_dir: Any | None, thread: Any = None
     ) -> None:
         self._handle = handle
         # Не `_thread`: это имя ниже занято рабочим потоком сторожа.
         self._sdk_thread = thread
-        self._inbox = _ControlInbox(run_dir, worker) if run_dir is not None else None
+        self._inbox = _ControlInbox(run_dir) if run_dir is not None else None
         self._stop = threading.Event()
         self._thread: threading.Thread | None = None
 
@@ -836,22 +709,6 @@ class _ControlWatcher:
             self._thread.join(timeout=CONTROL_POLL_SEC + 1)
 
 
-async def _watch_control_async(
-    handle: Any, run_dir: Any, worker: str | None, thread: Any = None
-) -> None:
-    """Тот же сторож для асинхронного хода флота: `steer` там — корутина."""
-    import asyncio
-
-    inbox = _ControlInbox(run_dir, worker)
-    while True:
-        await asyncio.sleep(CONTROL_POLL_SEC)
-        for request in inbox.pending():
-            try:
-                inbox.accepted(request, await _deliver_steer_async(handle, thread, request))
-            except Exception as exc:  # noqa: BLE001
-                inbox.rejected(request, exc)
-
-
 def run_turn(
     handle: Any,
     *,
@@ -865,7 +722,7 @@ def run_turn(
     `thread` нужен только external-репликам ящика (join хода `ExternalMessage`);
     без него такая реплика отклоняется, обычный `steer` работает как прежде.
     """
-    collect, _ = _load_collectors()
+    collect = _load_collector()
     if collect is None:
         return handle.run()
     stream = handle.stream()
@@ -874,38 +731,6 @@ def run_turn(
             return collect(_tee(stream, tracker, run_dir, extra), turn_id=handle.id)
     finally:
         stream.close()
-
-
-async def run_async_turn(
-    handle: Any,
-    *,
-    run_dir: Any | None,
-    tracker: ProgressTracker,
-    extra: dict[str, Any] | None = None,
-    thread: Any = None,
-) -> Any:
-    """Асинхронный ход с журналом активности (флот)."""
-    _, collect_async = _load_collectors()
-    if collect_async is None:
-        return await handle.run()
-    import asyncio
-
-    stream = handle.stream()
-    watcher = (
-        asyncio.ensure_future(
-            _watch_control_async(handle, run_dir, (extra or {}).get("worker"), thread)
-        )
-        if run_dir is not None
-        else None
-    )
-    try:
-        return await collect_async(
-            _atee(stream, tracker, run_dir, extra), turn_id=handle.id
-        )
-    finally:
-        if watcher is not None:
-            watcher.cancel()
-        await stream.aclose()
 
 
 def main() -> int:
@@ -938,11 +763,6 @@ def main() -> int:
         "движок подтверждает приём, но не смену курса — проверяй следующими шагами.",
     )
     parser.add_argument(
-        "--worker",
-        metavar="ID",
-        help="Кому из воркеров волны адресована реплика (--steer). У одиночного прогона не нужен.",
-    )
-    parser.add_argument(
         "--external",
         action="store_true",
         help="--steer: текст не от владельца/оркестратора, а из файла, от другого агента или "
@@ -957,14 +777,13 @@ def main() -> int:
     if not args.run_dir:
         parser.error("нужен RUN_DIR или --board [PROJECT]")
     if args.steer:
-        return _steer_cli(args.run_dir, args.steer, args.worker, external=args.external)
+        return _steer_cli(args.run_dir, args.steer, external=args.external)
     print(digest(args.run_dir, tail=args.tail))
     return 0
 
 
-def _steer_cli(run_dir: Any, text: str, worker: str | None, *, external: bool = False) -> int:
+def _steer_cli(run_dir: Any, text: str, *, external: bool = False) -> int:
     """Отдать реплику ящику прогона, отказав честно, когда принимать её некому."""
-    import json
     from pathlib import Path
 
     root = Path(run_dir)
@@ -974,17 +793,7 @@ def _steer_cli(run_dir: Any, text: str, worker: str | None, *, external: bool = 
     if (root / "result.json").is_file():
         print("прогон закончен — реплику принимать некому; чини следующим прогоном")
         return 2
-    manifest = root / "manifest.json"
-    if worker is None and manifest.is_file():
-        try:
-            tasks = json.loads(manifest.read_text(encoding="utf-8")).get("tasks") or []
-        except Exception:  # noqa: BLE001
-            tasks = []
-        if tasks:
-            names = ", ".join(str(task.get("id")) for task in tasks)
-            print(f"это волна — назови адресата: --worker ID (есть: {names})")
-            return 2
-    request = file_steer_request(root, text, worker=worker, external=external)
+    request = file_steer_request(root, text, external=external)
     print(
         f"реплика {request['id']} ({request['authority']}) в ящике; её судьба и курс — в сводке "
         f"`codex_progress.py {root}`"

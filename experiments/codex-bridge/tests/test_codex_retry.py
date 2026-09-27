@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import json
 import sys
 import tempfile
@@ -67,9 +66,7 @@ def _events(run_dir: Path) -> list[dict]:
 
 
 class ResumeThreadTests(unittest.TestCase):
-    """Ремонтный круг штатно приходит к архивному треду: волна, которая его
-    прогрела, сама его и архивировала на закрытии. Без подъёма он умирал до
-    начала работы (замеры волн 9 и 10, 2026-09-01: потеряны 3 задачи из 4)."""
+    """Подъём архивного треда позволяет повторить его продолжение."""
 
     def setUp(self) -> None:
         self._tmp = tempfile.TemporaryDirectory()
@@ -112,8 +109,7 @@ class ResumeThreadTests(unittest.TestCase):
         self.assertEqual(codex.unarchive_calls, [])
 
     def test_failed_unarchive_surfaces_the_resume_error(self) -> None:
-        """Наружу идёт ошибка resume — воркер умер на ней; провал подъёма
-        остаётся в журнале, а не подменяет причину."""
+        """Исходная ошибка resume сохраняет причину отказа; провал подъёма журналируется."""
         codex = _FakeCodex({"t-1"}, unarchive_fails=True)
         with self.assertRaises(ArchivedRpcError):
             codex_retry.resume_thread(
@@ -122,31 +118,6 @@ class ResumeThreadTests(unittest.TestCase):
         failed = [e for e in _events(self.run_dir) if e["event"] == "thread_unarchive_failed"]
         self.assertEqual(len(failed), 1)
         self.assertIn("отказал", failed[0]["error"])
-
-    def test_async_mirror_raises_the_thread_too(self) -> None:
-        codex = _FakeCodex({"t-1"})
-
-        async def op():
-            return codex.resume("t-1")
-
-        class _AsyncCodex:
-            def __init__(self, inner: _FakeCodex) -> None:
-                self.inner = inner
-
-            async def thread_unarchive(self, thread_id: str) -> None:
-                self.inner.thread_unarchive(thread_id)
-
-        thread, unarchived = asyncio.run(
-            codex_retry.resume_thread_async(
-                _AsyncCodex(codex), "t-1", op, run_dir=self.run_dir,
-                fields={"worker": "w1"},
-            )
-        )
-        self.assertEqual(thread, "thread:t-1")
-        self.assertTrue(unarchived)
-        logged = [e for e in _events(self.run_dir) if e["event"] == "thread_unarchived"]
-        self.assertEqual(logged[0]["worker"], "w1")
-
 
 if __name__ == "__main__":
     unittest.main()

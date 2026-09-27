@@ -1,30 +1,18 @@
-"""Витрина фоновых прогонов Codex: завершения будят, снимок отвечает по запросу.
+"""Витрина фоновых прогонов Codex: карточка показывает ход, снимок — по запросу.
 
-Зачем модуль существует. `codex_progress.py` отвечает на два вопроса — «что
-делает ЭТОТ прогон» (`digest`) и «кто из прогонов ещё жив» (`board`). Обоих не
-хватило для третьего вопроса, который задал владелец: «когда каждый отдельный
-агент заканчивает». Ни digest, ни board не дают per-worker разреза, а
-`completed/total` из heartbeat не печатают вовсе, и машиночитаемого выхода у них
-нет. Поэтому здесь свой читатель журнала, а не обёртка над сводкой.
+Два режима:
 
-Два режима, и они отвечают на разные вопросы:
-
-- `watch` — команда для нативного `Monitor`. Каждая строка stdout становится
-  нотификацией: одна строка на завершившегося агента, по любой причине. Молчит,
-  пока никто не кончился.
-- `look` — одноразовый снимок по всем живым агентам, по запросу владельца
+- `watch` — stdout карточки запуска (`codex_launch.py` ставит `watch --pulse`):
+  заголовок с заданием, слова Codex по мере работы и финал прогона.
+- `look` — одноразовый снимок по всем живым прогонам, по запросу владельца
   «глянь, над чем они там». Печатает и выходит.
 
-Три свойства, купленные ценой кода, и каждое лечит известный отказ:
+Два свойства, купленные ценой кода, и каждое лечит известный отказ:
 
 1. **Читаем по байтовому offset.** `events.jsonl` строго append-only
    (`codex_run_ledger.append_jsonl`), поэтому прирост даёт каждое событие ровно
    один раз — без дублей и без повторного разбора мегабайтного журнала.
-2. **Сверяем стартовавших с отметившимися.** `worker_done` пишется в `except`,
-   а не в `finally`: Ctrl-C, отмена и SIGKILL не оставляют записи. Значит
-   «нет worker_done» не доказывает «работает», и на закрытии прогона каждый
-   несошедшийся агент получает свою строку.
-3. **Молчание не считается успехом.** Любой отказ самого наблюдателя —
+2. **Молчание не считается успехом.** Любой отказ самого наблюдателя —
    пропавший каталог, нечитаемый журнал, потолок по времени — печатается
    строкой. Тихо умереть он не имеет права: тишина здесь означает ровно одно —
    «идёт и не кончилось».
@@ -46,15 +34,10 @@ POLL_SEC = 20
 MAX_HOURS = 6
 DETAIL_LIMIT = 60
 
-# Шаги воркера считаем по границам завершённых item-ов: `item/started` без пары
+# Шаги хода считаем по границам завершённых item-ов: `item/started` без пары
 # посчитал бы незаконченную работу дважды.
 STEP_METHOD = "item/completed"
 FAILURE_METHODS = frozenset({"error", "turn/failed"})
-
-# Статусы приходят от движка по-английски. Известные переводим, чтобы витрина
-# читалась одним языком; незнакомый пойдёт дословно — см. absorb().
-STATUS_MARK = {"completed": "OK", "failed": "ПРОВАЛ", "exception": "ИСКЛЮЧЕНИЕ"}
-
 
 def _short(text: Any, limit: int = DETAIL_LIMIT) -> str:
     value = " ".join(str(text or "").split())
@@ -150,10 +133,9 @@ class Run:
                 cmd = cmd[:-1]
         return " ".join(cmd.split())
 
-    def pulse_line(self, worker: str, step: int, kind: str, detail: str) -> str | None:
+    def pulse_line(self, kind: str, detail: str) -> str | None:
         """Одна строка витрины: время от старта, значок шага, суть без обёрток."""
         span = _dur(self.last_ts - self.run_start) if self.run_start and self.last_ts else "?"
-        who = f"{worker} " if worker else ""
         if self.words_only and kind not in self.WORD_KINDS:
             return None
         if kind == "reasoning":
@@ -161,7 +143,7 @@ class Run:
             if not text:
                 return None  # старый журнал без текста сводки или пустая сводка
             icon, body = "…", _short(text, 360)
-            return f"{span:>5} {who}{icon} {body}".rstrip()
+            return f"{span:>5} {icon} {body}".rstrip()
         if kind == "commandExecution":
             cmd = self._bare_command(detail)
             first = cmd.split(" ", 1)[0] if cmd else ""
@@ -184,8 +166,8 @@ class Run:
         else:
             return None
         if self.words_only:
-            return f"{span:>5} {who}{body}".rstrip()
-        return f"{span:>5} {who}{icon} {body}".rstrip()
+            return f"{span:>5} {body}".rstrip()
+        return f"{span:>5} {icon} {body}".rstrip()
 
     def header_line(self) -> str:
         """Первая строка витрины: чем занят прогон, по prompt.md."""
@@ -223,18 +205,12 @@ class Run:
         # показывать всякие команды, ссылки, код — чисто его текстовые слова».
         self.words_only = words_only
         self.journal = Journal(run_dir / "events.jsonl")
-        self.started: dict[str, float] = {}
-        self.done: set[str] = set()
-        self.steps: dict[str, int] = {}
-        self.last_seen: dict[str, float] = {}
-        self.last_kind: dict[str, str] = {}
+        self.steps = 0
+        self.last_seen = 0.0
+        self.last_kind = "?"
         self.run_start = 0.0
         self.last_ts = 0.0
         self.finished = False
-
-    @property
-    def live(self) -> list[str]:
-        return [wid for wid in self.started if wid not in self.done]
 
     def absorb(self, event: dict[str, Any]) -> Iterator[str]:
         """Событие журнала → ноль или одна строка витрины."""
@@ -245,51 +221,27 @@ class Run:
             if not self.run_start:
                 self.run_start = stamp
 
-        if kind == "worker_start":
-            self.started[str(event.get("id"))] = stamp
-            return
-        if kind == "worker_done":
-            wid = str(event.get("id"))
-            self.done.add(wid)
-            status = event.get("worker_status") or "?"
-            ms = event.get("duration_ms")
-            span = _dur(ms / 1000) if isinstance(ms, (int, float)) else "?"
-            # Незнакомый статус оставляем дословно: перевод по догадке спрятал
-            # бы исход, которого мы ещё не видели.
-            mark = STATUS_MARK.get(status, status.upper())
-            yield f"{mark} {wid} · {span} · {self.steps.get(wid, 0)}ш"
-            return
         if kind == "codex":
-            worker = str(event.get("worker") or "")
             if stamp:
-                self.last_seen[worker] = stamp
+                self.last_seen = stamp
             if event.get("kind"):
-                self.last_kind[worker] = str(event["kind"])
+                self.last_kind = str(event["kind"])
             if event.get("method") == STEP_METHOD:
-                self.steps[worker] = self.steps.get(worker, 0) + 1
+                self.steps += 1
                 if self.pulse and event.get("kind") in self.PULSE_KINDS:
                     line = self.pulse_line(
-                        worker, self.steps[worker], str(event["kind"]),
-                        str(event.get("detail") or ""),
+                        str(event["kind"]), str(event.get("detail") or ""),
                     )
                     if line:
                         yield line
             elif event.get("method") in FAILURE_METHODS:
-                who = f"{worker} · " if worker else ""
-                yield f"СБОЙ {who}{_short(event.get('detail') or event['method'])}"
+                yield f"СБОЙ {_short(event.get('detail') or event['method'])}"
             return
         if kind == "done":
             self.finished = True
 
     def closing_lines(self) -> Iterator[str]:
         """Прогон кончился — договорить то, чего журнал не сказал сам."""
-        for wid in self.live:
-            # `worker_done` живёт в `except`, а не в `finally`: убитый воркер
-            # уходит молча. Без этой сверки он выглядел бы вечно работающим.
-            began = self.started.get(wid) or self.last_ts
-            age = (self.last_ts or time.time()) - began
-            yield f"ПРОПАЛ {wid} · без записи о завершении · шёл {_dur(age)}"
-
         result = self.dir / "result.json"
         if not result.is_file():
             yield f"КОНЕЦ {self.dir.name} · без result.json"
@@ -301,13 +253,7 @@ class Run:
             return
         state = "OK" if data.get("ok") else "ПРОВАЛ"
         span = _dur(self.last_ts - self.run_start) if self.run_start else "?"
-        if self.started:
-            good = sum(1 for wid in self.started if wid in self.done)
-            yield f"{state} волна {self.dir.name} · {good}/{len(self.started)} · {span}"
-        else:
-            # Одиночный прогон: воркеров нет, финиш прогона и есть финиш агента.
-            steps = sum(self.steps.values())
-            yield f"{state} {self.dir.name} · {span} · {steps}ш"
+        yield f"{state} {self.dir.name} · {span} · {self.steps}ш"
 
 
 WAIT_SEC = 180
@@ -367,8 +313,7 @@ def watch(
 
         backend_gone = not _pid_alive(pid)
         if run.finished or _result_is_final(run_dir) or backend_gone:
-            # Ещё круг чтения: `done` и `result.json` могли обогнать хвост
-            # журнала, а недосчитанный `worker_done` дал бы ложный «ПРОПАЛ».
+            # Ещё круг чтения: `done` и `result.json` могли обогнать хвост журнала.
             if backend_gone and not (run.finished or _result_is_final(run_dir)):
                 emit(f"ПРОЦЕСС ПРОГОНА ЗАВЕРШИЛСЯ без result.json — {run_dir.name}")
             time.sleep(1)
@@ -406,18 +351,10 @@ def look(project: Path, limit: int = 12) -> int:
         for event in run.journal.new_events():
             list(run.absorb(event))
 
-        live = run.live
-        if not live and run.started:
-            continue
         span = _dur(now - run.run_start) if run.run_start else "?"
-        emit(f"{run_dir.name} · идёт {span} · живых {len(live) or 1}")
-        # Одиночный прогон воркеров не заводит; его агент — сам прогон.
-        for wid in live or [""]:
-            quiet = _dur(now - run.last_seen[wid]) if run.last_seen.get(wid) else "?"
-            emit(
-                f"  {wid or 'одиночный'} · {run.steps.get(wid, 0)}ш"
-                f" · тихо {quiet} · {run.last_kind.get(wid, '?')}"
-            )
+        emit(f"{run_dir.name} · идёт {span}")
+        quiet = _dur(now - run.last_seen) if run.last_seen else "?"
+        emit(f"  одиночный · {run.steps}ш · тихо {quiet} · {run.last_kind}")
         shown += 1
         if shown >= limit:
             break

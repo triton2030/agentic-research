@@ -49,20 +49,16 @@ class InboxTests(unittest.TestCase):
             self.assertIn("steer_requested", kinds)
             self.assertTrue(request["id"])
 
-    def test_pending_is_addressed_and_read_once(self) -> None:
+    def test_pending_is_read_once(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             run_dir = Path(tmp)
-            codex_progress.file_steer_request(run_dir, "всем", worker=None)
-            codex_progress.file_steer_request(run_dir, "воркеру t1", worker="t1")
+            codex_progress.file_steer_request(run_dir, "реплика")
 
-            solo = codex_progress._ControlInbox(run_dir)
-            first = solo.pending()
-            self.assertEqual([item["text"] for item in first], ["всем"])
+            inbox = codex_progress._ControlInbox(run_dir)
+            first = inbox.pending()
+            self.assertEqual([item["text"] for item in first], ["реплика"])
             # Реплика читается один раз: иначе сторож слал бы её каждый круг.
-            self.assertEqual(solo.pending(), [])
-
-            worker = codex_progress._ControlInbox(run_dir, "t1")
-            self.assertEqual([item["text"] for item in worker.pending()], ["воркеру t1"])
+            self.assertEqual(inbox.pending(), [])
 
     def test_broken_line_does_not_break_inbox(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -133,25 +129,13 @@ class SteerCliTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             run_dir = Path(tmp)
             (run_dir / "result.json").write_text("{}", encoding="utf-8")
-            code, out = self._cli(run_dir, "поздно", None)
+            code, out = self._cli(run_dir, "поздно")
             self.assertEqual(code, 2)
             self.assertIn("закончен", out)
             self.assertFalse((run_dir / codex_progress.CONTROL_INBOX_NAME).exists())
 
-    def test_wave_requires_named_worker(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            run_dir = Path(tmp)
-            (run_dir / "manifest.json").write_text(
-                json.dumps({"tasks": [{"id": "t1"}, {"id": "t2"}]}), encoding="utf-8"
-            )
-            code, out = self._cli(run_dir, "поправка", None)
-            self.assertEqual(code, 2)
-            self.assertIn("t1", out)
-            code, _ = self._cli(run_dir, "поправка", "t1")
-            self.assertEqual(code, 0)
-
     def test_missing_run_dir_fails_cleanly(self) -> None:
-        code, out = self._cli(Path("/nope/never"), "текст", None)
+        code, out = self._cli(Path("/nope/never"), "текст")
         self.assertEqual(code, 2)
         self.assertIn("нет такого прогона", out)
 
@@ -183,14 +167,6 @@ class TaskLineTests(unittest.TestCase):
             (run_dir / "prompt.md").write_text("Проверь ссылки в README.\n", encoding="utf-8")
             self.assertEqual(codex_progress._task_line(run_dir), "Проверь ссылки в README.")
 
-    def test_wave_shows_workers(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            run_dir = Path(tmp)
-            (run_dir / "manifest.json").write_text(
-                json.dumps({"tasks": [{"id": "t1"}, {"id": "t2"}]}), encoding="utf-8"
-            )
-            self.assertIn("2 воркеров", codex_progress._task_line(run_dir))
-
     def test_digest_shows_task_line(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             run_dir = Path(tmp)
@@ -216,12 +192,12 @@ class DigestSteerTests(unittest.TestCase):
     def test_digest_reports_refusal_with_reason(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             run_dir = Path(tmp)
-            request = codex_progress.file_steer_request(run_dir, "поздно", worker="t1")
-            codex_progress._ControlInbox(run_dir, "t1").rejected(
+            request = codex_progress.file_steer_request(run_dir, "поздно")
+            codex_progress._ControlInbox(run_dir).rejected(
                 request, RuntimeError("activeTurnNotSteerable")
             )
             out = codex_progress.digest(run_dir)
-            self.assertIn("[t1]", out)
+            self.assertIn(request["id"], out)
             self.assertIn("отвергнута", out)
             self.assertIn("activeTurnNotSteerable", out)
 
@@ -237,45 +213,21 @@ class BoardCliTests(unittest.TestCase):
         self.assertEqual(proc.returncode, 2)
         self.assertIn("--board идёт один", proc.stderr)
 
-
-
-class _FakeItem:
-    def __init__(self, kind: str) -> None:
-        self.type = kind
-
-
-class _FakePayload:
-    def __init__(self, item: _FakeItem) -> None:
-        self.item = item
-
-
-class _FakeNotification:
-    """Нотификация движка в объёме, который читает `ProgressTracker.observe`."""
-
-    def __init__(self, kind: str, method: str = "item/completed") -> None:
-        self.method = method
-        self.payload = _FakePayload(_FakeItem(kind))
-
-
-class ProgressRegistryWorkersTest(unittest.TestCase):
-    """Срез флота несёт каждого воркера отдельно, а не только сумму."""
-
-    def test_snapshot_carries_each_worker_separately(self) -> None:
-        registry = codex_progress.ProgressRegistry()
-        registry.tracker("w1").observe(_FakeNotification("fileChange"))
-        registry.tracker("w1").observe(_FakeNotification("fileChange"))
-        registry.tracker("w2").observe(_FakeNotification("reasoning"))
-
-        snapshot = registry.snapshot()
-
-        self.assertEqual(snapshot["steps"], 3)
-        self.assertEqual(snapshot["workers"]["w1"]["steps"], 2)
-        self.assertEqual(snapshot["workers"]["w2"]["steps"], 1)
-        self.assertEqual(snapshot["workers"]["w2"]["last"], "reasoning")
-
-
-if __name__ == "__main__":
-    unittest.main()
+    def test_board_shows_solo_heartbeat_and_result(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "_workspace" / "codex-artifacts"
+            live = root / "run-2"
+            live.mkdir(parents=True)
+            (live / "events.jsonl").write_text(
+                json.dumps({"event": "heartbeat", "elapsed_sec": 12,
+                            "steps": 3, "idle_sec": 2}) + "\n", encoding="utf-8"
+            )
+            done = root / "run-1"
+            done.mkdir()
+            (done / "result.json").write_text(json.dumps({"ok": True}), encoding="utf-8")
+            out = codex_progress.board(tmp)
+            self.assertIn("run-2  идёт elapsed=12s steps=3 idle_sec=2", out)
+            self.assertIn("run-1  ok", out)
 
 
 class ExternalSteerTests(unittest.TestCase):
@@ -336,7 +288,7 @@ class ExternalSteerTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             codex_progress._deliver_steer(Handle(), None, {"text": "c", "authority": "external"})
 
-    def test_watcher_keeps_sdk_thread_apart_from_worker_thread(self) -> None:
+    def test_watcher_keeps_sdk_handle_apart_from_watcher_thread(self) -> None:
         sentinel = object()
         watcher = codex_progress._ControlWatcher(object(), None, thread=sentinel)
         self.assertIs(watcher._sdk_thread, sentinel)
@@ -369,80 +321,7 @@ class ExternalSteerTests(unittest.TestCase):
         self.assertEqual(interrupted, ["t-new"])
 
 
-class ExternalSteerAsyncTests(unittest.TestCase):
-    """Асинхронный маршрут флота: join того же хода принимается, чужой — прерывается."""
-
-    def _run(self, coro):
-        import asyncio
-
-        return asyncio.run(coro)
-
-    def test_async_join_same_turn_closes_subscription(self) -> None:
-        try:
-            from openai_codex import ExternalMessage
-        except ImportError:
-            self.skipTest("SDK без ExternalMessage")
-        closed: list[str] = []
-
-        class Sub:
-            def close(self):
-                closed.append("closed")
-
-        class Joined:
-            id = "t-1"
-            _subscription = Sub()
-
-        class Thread:
-            async def turn(self, message):
-                assert isinstance(message, ExternalMessage)
-                return Joined()
-
-        class Handle:
-            id = "t-1"
-
-        result = self._run(
-            codex_progress._deliver_steer_async(Handle(), Thread(), {"text": "x", "authority": "external"})
-        )
-        self.assertEqual(result.id, "t-1")
-        self.assertEqual(closed, ["closed"])
-
-    def test_async_join_after_turn_end_is_rejected_and_interrupted(self) -> None:
-        try:
-            from openai_codex import ExternalMessage  # noqa: F401
-        except ImportError:
-            self.skipTest("SDK без ExternalMessage")
-        interrupted: list[str] = []
-
-        class Stray:
-            id = "t-new"
-            _subscription = None
-
-            async def interrupt(self):
-                interrupted.append(self.id)
-
-        class Thread:
-            async def turn(self, message):
-                return Stray()
-
-        class Handle:
-            id = "t-main"
-
-        with self.assertRaises(RuntimeError):
-            self._run(
-                codex_progress._deliver_steer_async(Handle(), Thread(), {"text": "x", "authority": "external"})
-            )
-        self.assertEqual(interrupted, ["t-new"])
-
-    def test_async_user_steer_goes_to_handle(self) -> None:
-        class Handle:
-            id = "t-1"
-
-            async def steer(self, text):
-                return types.SimpleNamespace(turn_id="t-1", text=text)
-
-        result = self._run(codex_progress._deliver_steer_async(Handle(), None, {"text": "к цели", "authority": "user"}))
-        self.assertEqual(result.text, "к цели")
-
+class ExternalSteerFailureTests(unittest.TestCase):
     def test_failed_interrupt_is_reported_not_hidden(self) -> None:
         try:
             from openai_codex import ExternalMessage  # noqa: F401
@@ -540,3 +419,6 @@ class ImageCollectionTests(unittest.TestCase):
             self.assertEqual(entries[1], {"status": "failed",
                                           "failure": "type=usageLimitExceeded, limit_id=images"})
 
+
+if __name__ == "__main__":
+    unittest.main()

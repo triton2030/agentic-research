@@ -5,10 +5,10 @@
 
 ## Что это
 
-Вызов Codex из Claude Code в трёх профилях: reviewer (built-in filesystem
-read-only), investigator (артефакты в `out/`, project drift ловит postflight) и
-fleet (workspace-write в проект). Backend здесь; operator/router —
-`~/.claude/skills/1codex/`.
+Вызов Codex из Claude Code как субагента: один вход `codex_review.py`
+(`codex_launch.py agent`) — исполнитель, ревьюер или консультант, по заданию.
+Полный доступ, рабочая папка — проект; роль и границы задают слова задания.
+Backend здесь; operator/router — `~/.claude/skills/1codex/`.
 
 ## Инварианты (не ломать)
 
@@ -18,10 +18,8 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
 - **Модель и effort фиксируются backend-ом; tier — нет.** Default для всех
   Codex turns: `model=gpt-6-sol`, `effort=medium` — явно, независимо от дрейфа
   `~/.codex/config.toml`: `model` в каждом `thread_start` + `thread_resume` +
-  `thread.turn`, `effort` на ходе (`thread.turn`), где его и принимает SDK. Во флоте ярус объявляет ЗАДАЧА (`model`/`effort` в
-  task JSON), а флаги прогона — дно для тех, кто молчит: одна волна может быть
-  разноярусной. Фактический ярус воркера ищи в `results.jsonl`, не в
-  `codex.model` манифеста — там ярус прогона. Ярусы вызова (владелец,
+  `thread.turn`, `effort` на ходе (`thread.turn`), где его и принимает SDK.
+  Ярусы вызова (владелец,
   2026-09-06, `_ops/chat-recall/2026-09-06-170311-claude-557afe59.md#L16`):
   `sol`+`medium` — дефолт, средняя работа; `luna`+`max` — много тупой работы;
   `astra`+`medium` (`gpt-6-astra`, живой пробник 2026-09-06 — `completed`) —
@@ -39,52 +37,42 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
   осознанный per-run opt-in. НЕ цитируй issues `#15853`/`#26391` как «SDK не
   наследует» — они про другой клиент. Новый вход: используй
   `codex_defaults.py`.
-- **Ослабления прав — решение владельца 2026-09-23**: «Все три и дать доступ в
-  интеренет, кодекс очень умная модель она ничего плохо делать не будет»
-  (`_ops/chat-recall/2026-09-23-051553-claude-483a304e.md#recall-94036c7a45b24ae2aa0cbdeaa094b974`).
-  Это `--scratch` у ревьюера, `--full-access` у исследователя, запись вне
-  `files` под `--verify` у флота и явный `networkAccess: true`
-  (`codex_sdk_compat.open_sandbox_network()`). Не откатывай их как нарушение
-  инвариантов ниже; таблица профилей — README, «Модель и runtime-доступ».
-- **Ревьюер не получает права править проект.** `codex_review.py` задаёт
-  built-in filesystem `Sandbox.read_only` + `ApprovalMode.deny_all`; с
-  `--scratch` — `workspace_write` в свежей копии проекта вне него
-  (`codex_scratch.py`), исходник для записи недостижим. Backend пишет только
-  audit ledger в отдельный `run_dir`. Внешние MCP живут вне этого sandbox,
-  поэтому их наличие не является разрешением на side effects.
-- **Исследователь пишет deliverables себе.** `codex_investigate.py` задаёт
-  `Sandbox.workspace_write` c cwd=`run_dir/out`: built-in filesystem пишет в
-  `out/` + system temp, а project path блокируется. Внешние MCP находятся вне
-  sandbox; postflight scope-check обнаруживает project drift и роняет `ok`.
-  Не переводи cwd в проект. `full_access` — только явным `--full-access` одного
-  прогона: тогда scope-check — наблюдение (`scope_status: not_enforced`), а не
-  повод ронять `ok`. Scope-чек исключает поддерево `run_dir` (свой
-  scratch/ledger ≠ правка проекта).
-- **Backend владеет safety.** `codex_orchestrate.py` — не thin launcher, а
-  guarded orchestrator. Runtime safety живёт в backend:
-  strict schema/preflight до импорта Codex, exact file allowlist (под `--verify`
-  запись вне него решает проверка слитого дерева), git fail-closed
-  для real run, dirty fingerprint snapshot, run ledger, aggregate postflight
-  allowlist и optional verification. Skill `1codex` — router/operator guide, не
-  источник runtime enforcement.
+- **Права — как у субагента Claude, решение владельца 2026-09-27**: «Просто надо
+  убрать все эти ограничения. Сделать их более похожими на твоих субагентов.
+  […] Будем рассчитывать на то, что агенты будут слушаться слов»
+  (`_ops/chat-recall/2026-09-27-143316-claude-d19cb11d.md#recall-18957d9ea5894a1c99c3618d8c3265fb`).
+  Каждый ход — `AGENT_SANDBOX=full_access` + `ApprovalMode.deny_all`, cwd =
+  проект; что менять, решает задание. Не возвращай песочницу, списки файлов,
+  отдельные деревья или постфлайт-сверку диска как «защиту»: владелец снял их
+  сознательно, чтобы отдавать Codex пишущую работу. Исключение одно и
+  опциональное — `--scratch`: `workspace_write` в свежей копии проекта
+  (`codex_scratch.py`), для проверок с побочными изменениями.
+- **Слова вместо песочницы кладёт мост.** Общие правила хода — не трогать чужие
+  правки и git-откаты, не коммитить без просьбы, не звать `claude-mcp`, отчёты
+  класть в `out/` прогона — живут в `SHARED_RULES`/`OUT_DIR_RULE`
+  (`codex_review.py`) и уходят в роль каждого режима, кроме нативного `diff`.
+  Держи их тут, а не в памяти вызывающего: запрет `claude_ask` родился из
+  девяти часов тишины (замер 2026-07-28), а чужие незакоммиченные правки git не
+  вернёт.
 - **Claude владеет background lifecycle.** Не добавляй Python daemon/process
   manager для долгих runs. Backend только пишет compact stdout, heartbeat events
   и `run_dir` files; Claude skill решает, когда стартовать background Bash,
-  читать status/tail или останавливать task.
+  читать status/tail или останавливать task. Витрина `codex_launch.py`
+  прогон не убивает: закрылась по потолку — карточка ждёт конца хода;
+  остановка — только сигналом (TaskStop).
 - **Ход идёт через `turn()`+`stream()`, активность — на диск.** `thread.run()`
   потребляет поток нотификаций и выбрасывает его: пульс тогда говорит «жив», но
-  не «движется». Каждый вход стартует ход через `thread.turn()` и отдаёт handle
-  в `codex_progress.run_turn` / `run_async_turn`; `TurnResult` собирает штатный
+  не «движется». Вход стартует ход через `thread.turn()` и отдаёт handle
+  в `codex_progress.run_turn`; `TurnResult` собирает штатный
   сборщик SDK, приёмка не меняется. Активность пишется в `events.jsonl` как
   `event=codex` (дельты только считаются — в журнал не идут). **Прогресс скрыт
   по умолчанию:** смысл субагента — беречь контекстное окно, поэтому stdout
   прогона не растёт, а заглядывают через `codex_progress.py RUN_DIR` (сводка на
   несколько строк). Сырой `events.jsonl` в окно оркестратора не читают.
 - **Тред заводит только явный `--dialog`.** Автовключение на тяжёлом усилии
-  снято 2026-08-14: оно решало за вызывающего дважды — навязывало персистентный
-  тред одноразовому вопросу и спорило с инвариантом владельца «дерево и тред —
-  только у пишущего воркера». Глубина мышления не доказывает второй ход.
-- **Bridge threads эфемерны.** Все входы стартуют thread с
+  снято 2026-08-14: оно навязывало персистентный тред одноразовому вопросу.
+  Глубина мышления не доказывает второй ход.
+- **Bridge threads эфемерны.** Вход стартует thread с
   `ephemeral=BRIDGE_THREAD_EPHEMERAL` (`codex_defaults.py`, =`True`). `~/.codex` —
   owner auth/config/runtime, общий с Codex Desktop, который рисует каждый
   материализованный thread как чат. Единственный audit/debug owner прогона — его
@@ -92,41 +80,10 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
   проекте работы; legacy `runs/` — fallback без project); Desktop history audit
   surface'ом НЕ является. Ledger пишет `codex.thread_ephemeral` как
   доказательство. Не убирай флаг и не заводи второй `CODEX_HOME` (это клонирует
-  auth/config/hooks и даёт profile-drift). Санкционированных исключения два:
-  диалог ревьюера `--dialog`/`--continue` (персистентный тред — resume требует
+  auth/config/hooks и даёт profile-drift). Санкционированное исключение одно:
+  диалог `--dialog`/`--continue` (персистентный тред — resume требует
   rollout на диске, обязательный авто-run_dir, provenance-реестр
-  `dialog-threads.jsonl`; см. README «Консультант / ревьюер») и **воркеры
-  флота** (`FLEET_THREAD_EPHEMERAL=False`, владелец 2026-08-14: Codex Desktop —
-  его живой монитор прогресса воркеров; `thread_id` каждого — в
-  `results.jsonl` и событии `worker_thread`; audit-владельцем остаётся
-  run_dir).
-- **Воркер пишет под контрактом, по умолчанию в своём дереве.**
-  `codex_orchestrate.py` — `workspace_write` + `auto_review`; `files` обязательны
-  и enforced preflight/postflight. Не ставь `Sandbox.full_access` default-ом:
-  изменения вне project/git scope нельзя честно проверить postflight allowlist.
-  `--isolation worktree` (default) даёт воркеру отдельный git worktree от HEAD:
-  атрибуция становится фактом, запись вне allowlist без `--verify` в проект не
-  попадает (удерживает от merge всю работу воркера — held_out_of_scope), а под
-  `--verify` вливается после зелёной проверки слитого дерева
-  (accepted_after_verify); параллельная
-  запись оркестратора в основное дерево перестаёт валить волну (замер
-  2026-08-14: 41 провал `scope_status` из 106 боевых волн, 68% записей
-  `out_of_scope_files` — служебные файлы оркестратора). Вердикт `scope_status`
-  в этом режиме строится по per-worker атрибуции, а дрейф основного дерева
-  уходит информационным полем `wave.main_tree_drift`. `--isolation shared` —
-  прежнее поведение с aggregate-чеком, для задач, которым нужно видеть правки
-  друг друга.
-- **Волна закрывается в том же прогоне.** Собрать → коммит в ветку воркера
-  ВСЕГО изменённого (фиксация ≠ интеграция; gitignored-мусор отсечён
-  `--exclude-standard`) → `merge --no-ff` на воркера, и только чистого:
-  упавший ход, внесписочная правка без `--verify` или конфликт держат его в ветке →
-  снести деревья, ветки — только у merged/empty; порядок не переставляется, и
-  закоммиченная работа никогда не удаляется. С `--verify` merge идёт не в
-  проект, а во временное дерево волны: проверка бежит там и служит воротами —
-  красная не вливает ничего, `held_verify_failed`, проект нетронут. Уборка не опция: дерево — выкладка
-  проекта, и мусор копится молча (7.3 ГБ в `~/.codex/worktrees` за три дня к
-  2026-08-14). Инвентарь и ручную уборку мост НЕ оборачивает — это готовый
-  `git worktree`; не заводи для них второй интерфейс.
+  `dialog-threads.jsonl`; см. README «Консультант / ревьюер»).
 - **Дрейф движка не роняет мост.** ChatGPT.app авто-обновляется, SDK запинен —
   неизвестные enum-значения ломали pydantic-валидацию в обоих направлениях:
   исходящий `--effort ultra` (07.2026) и `max` в ответе `thread_start`
@@ -141,7 +98,7 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
   замер 2026-09-01). Пин бампаем на конкретную поломку, не по дате релиза;
   сверка 2026-09-01 показала, что `0.147.0` не меняет ничего, что мост
   использует (см. README).
-- **Успех turn-а точный.** Для review / investigate / worker только SDK-статус
+- **Успех turn-а точный.** Только SDK-статус
   `completed` при отсутствии `error` означает успех. `interrupted`,
   `inProgress` и любой неизвестный статус — `ok=false` + ненулевой exit code;
   не восстанавливай успех по наличию partial response. Провалившийся ход
@@ -151,8 +108,8 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
   доходит. Проверка `result.error` в общем финальном пути остаётся страховкой
   на error при НЕ-failed статусе — не удаляй её как «мёртвую».
 - **Роль и политика — каналом `developer_instructions`.** Инвариантная часть
-  инструкции (роль эксперта/ревьюера, sandbox-контракт исследователя, файловый
-  allowlist воркера) уходит параметром `thread_start`/`thread_resume`, а не
+  инструкции (роль режима и общие правила моста) уходит параметром
+  `thread_start`/`thread_resume`, а не
   вклеивается в реплику; user-промпт остаётся заданием (для review/ask —
   транскрипт + вопрос). `--continue` шлёт ту же роль тем же каналом повторно
   (resume её принимает, роль идемпотентна); `--mode diff` роли не получает
@@ -160,84 +117,74 @@ fleet (workspace-write в проект). Backend здесь; operator/router —
   обязан показывать ПОЛНУЮ эффективную инструкцию — обе секции сразу
   (`codex_run_ledger.render_prompt_document`), а manifest несёт
   `developer_instructions_chars` рядом с `prompt_chars` (`prompt_chars` —
-  длина именно user-промпта). У флота своего `prompt.md` нет: точный текст
-  файлового контракта и его длина лежат в записи задачи —
-  `manifest.tasks[].developer_instructions` (+ `_chars`), пишутся до первого
-  хода, поэтому фиксируются и в `--dry-run`. Новый вход обязан делать так же:
+  длина именно user-промпта). Новый вход обязан делать так же:
   инструкция, которой нет в run_dir, для аудита не существует.
 - **Ретраится только СТАРТ.** `thread_start` / `thread_resume` / `thread.turn`
-  оборачиваются в `codex_retry` (sync — поверх `retry_on_overload` из SDK,
-  async-зеркало для флота — свой backoff на общем `is_retryable_error`):
+  оборачиваются в `codex_retry` (поверх `retry_on_overload` из SDK):
   transient `server_overloaded` не должен терять оплаченный ход. Потребление
   потока НЕ ретраится — повтор после начала хода означал бы второй оплаченный
   turn. Каждая попытка пишется в ledger событием `retry` (`operation`,
-  `attempt`, у флота ещё `worker`): молчаливый повтор прятал бы нестабильность
-  движка. Вторая восстановимая причина отказа старта — АРХИВНЫЙ тред: мост сам
-  архивирует треды воркеров на закрытии волны, поэтому ремонтный круг штатно
-  приходит к архивному. `resume_thread[_async]` поднимает его и повторяет старт
-  один раз (событие `thread_unarchived`); у ревьюера успешный подъём ещё пишется
+  `attempt`): молчаливый повтор прятал бы нестабильность
+  движка. Вторая восстановимая причина отказа старта — АРХИВНЫЙ тред: уборка
+  доски (`codex_threads.py archive`) штатно архивирует диалоги, к которым
+  потом возвращается `--continue`. `resume_thread` поднимает его и повторяет старт
+  один раз (событие `thread_unarchived`), а успешный подъём ещё пишется
   в реестр диалогов событием `unarchive` — доска считает статус по событиям, и
   `continue` архивность не снимает.
 
 ## Карта файлов
 
 - `cbcommon.py` — общая биллинг-гигиена (одна правда) + мелкие общие помощники
-  входов (`first_nonblank`).
+  входов: `first_nonblank`, `UsageError`, точный статус хода
+  (`codex_status_value`, `codex_turn_completed`).
 - `codex_sdk_compat.py` — open-enum hardening запиненного SDK: дрейф движка
   ChatGPT.app не роняет мост.
 - `codex_retry.py` — восстановимые отказы СТАРТА: ретрай под перегрузкой движка
-  (sync + async) и подъём архивного треда при resume; события `retry`,
+  и подъём архивного треда при resume; события `retry`,
   `thread_unarchived`, `thread_unarchive_failed` в ledger.
 - `codex_defaults.py` — ярусы вызова и runtime default (`gpt-6-sol`+`medium`),
-  sandbox и approval labels для ledger/docs, `BRIDGE_THREAD_EPHEMERAL`.
-- `codex_review.py` — консультант/ревьюер с built-in filesystem read-only.
-  Default режим `task`:
+  права хода (`AGENT_SANDBOX`, `SCRATCH_SANDBOX`, approval),
+  `BRIDGE_THREAD_EPHEMERAL`.
+- `codex_launch.py` — короткая команда карточки: свежий `RUN_DIR`, вход моста
+  отдельным процессом, витрина `codex_watch.py watch --pulse` в stdout.
+- `codex_review.py` — единственный вход: Codex-субагент. Default режим `task`:
   самодостаточное задание без транскрипта (вызов «как субагент»). Режимы
-  `review`/`ask` дополнительно ищут и рендерят транскрипт сессии Claude.
-- `codex_investigate.py` — исследователь: deliverables в `run_dir/out`,
-  built-in filesystem также допускает system temp; project drift ловит
-  postflight. Uniform `result.json` c `artifacts` и `scope_status`.
-- `codex_orchestrate.py` — entrypoint/runner для guarded пула воркеров
-  (`AsyncCodex` + semaphore), по умолчанию с worktree-изоляцией. Прогон разложен
-  на этапы: `_plan_run` (всё, что проверяется до трат) → `open_wave` → `_run_fleet`
-  → `_assess_wave` (закрытие волны и вердикт scope) → `_emit`. Новый шаг добавляй
-  этапом, а не строкой в `main()`: она была на 329 строк и любая правка требовала
-  прочитать остальные.
-- `codex_worktrees.py` — жизненный цикл изоляции целиком: `open_wave` разворачивает
-  деревья волны или ни одного, `close_wave` собирает атрибуцию, коммитит только
-  allowlist задачи, мерджит и убирает. Открытие и закрытие живут вместе намеренно —
-  они меняются одним движением. Инвентарь и разбор конфликтов остаются готовому git.
+  `review`/`ask` дополнительно ищут и рендерят транскрипт сессии Claude,
+  `diff` зовёт нативный ревьюер движка. Здесь же роли режимов и
+  `SHARED_RULES`.
+- `codex_scratch.py` — свежая APFS-копия проекта для `--scratch` и её уборка.
 - `codex_recall.py` — глубокий recall по корпусу цитат владельца одним вызовом
   для Claude и Codex; владеет промптом, чтобы обе стороны спрашивали одинаково.
   Ревьюер на `luna`+`xhigh`, `--no-dialog`; тактику поиска модели не диктует.
-- `codex_orchestrate_contract.py` — pure schema/path/status contract:
-  обязательные `prompt`/`files`, exact file allowlist, overlap и status mapping.
 - `codex_run_ledger.py` — журнал прогона: `run_dir`, события, пульс, атомарная
-  запись. Общий для всех трёх входов. Он же владеет формой своих артефактов:
+  запись. Он же владеет формой своих артефактов:
   `render_prompt_document` (полная эффективная инструкция в `prompt.md`) и
   `RunResult` — единый финализатор `result.json` + событие + compact stdout,
-  которым reviewer и investigator закрывают ВСЕ свои ветки (dry-run,
+  которым вход закрывает ВСЕ свои ветки (dry-run,
   недоступный SDK, исключение, завершённый ход).
-- `codex_git_scope.py` — git snapshot и постфлайт-вердикт «писали ли лишнее».
 - `codex_footprint.py` — след моста СНАРУЖИ run_dir: треды на удалённых папках
   и мёртвые записи `[projects.*]`. Локальный бесплатный скан; питает `--doctor`
   и `codex_threads.py archive --orphaned`. Ничего не удаляет.
 - `codex_progress.py` — живая активность хода: tee потока нотификаций в журнал,
-  `ProgressTracker`/`ProgressRegistry` для пульса, `digest()` и CLI-сводка.
+  `ProgressTracker` для пульса, `digest()`, доска и CLI-сводка, реплика в ход
+  (`--steer`).
+- `codex_watch.py` — витрина карточки (`watch --pulse`) и живая доска
+  прогонов (`look`).
+- `codex_threads.py` — доска диалогов, `mine`, история и архив тредов.
 - `requirements.txt` — pinned `openai-codex` SDK + bundled CLI bin. venv в
   `.venv/` (git-ignored).
 
 ## Проверка
 
-`--dry-run` есть у обоих скриптов — гоняет рендер/план без трат. Для оркестрации
-запускай `python -m unittest discover experiments/codex-bridge/tests` и
-`python -m pyflakes experiments/codex-bridge/*.py`. Реальные прогоны тратят
-кредиты аккаунта; тестируй на временных подпапках (`_ftest/`, `_wtest/` —
-git-ignored) и чисти за собой.
+`--dry-run` у `codex_review.py` гоняет рендер без трат. Перед сдачей
+запускай `.venv/bin/python -m unittest discover tests` и
+`.venv/bin/python -m pyflakes *.py` из папки моста. Реальные прогоны тратят
+кредиты аккаунта; тестируй на временных подпапках и чисти за собой.
 
 **pyflakes обязателен, `py_compile` его не заменяет.** Замер 2026-08-14: рефактор
-оставил в `defaults` имя, уехавшее в другую функцию; компиляция прошла, все 106
-тестов остались зелёными, а первый живой прогон упал бы `NameError`. Причина
-дыры — ни один тест не проходил `main()` на НЕ-dry-run пути. Теперь такой тест
-есть один (`test_full_run_path_end_to_end_with_isolation`); правя путь живого
-прогона, держи его зелёным — он единственный, кто там что-то доказывает.
+оставил имя, уехавшее в другую функцию; компиляция прошла, все тесты остались
+зелёными, а первый живой прогон упал бы `NameError`. Причина дыры — ни один
+тест не проходил `main()` на НЕ-dry-run пути. Теперь такие тесты есть у
+`codex_review.py` (стаб SDK, например
+`test_task_mode_thread_start_ephemeral_full_access`); правя путь живого
+прогона, держи их зелёными — только они там что-то доказывают.
