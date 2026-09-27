@@ -13,9 +13,13 @@ description: "Origin, versions and refactor evidence of 1findings."
   версия;
 - `work/refactor-2026-08-31/` — состояние и материалы текущего clean-room
   рефактора;
+- `versions/candidate-2026-09-27/` — строгий допуск записи, установлен в Codex
+  и Claude;
+- `work/strict-admission-2026-09-27/` — граница, пробы и проверка этой правки;
 - `origin.md` — функция и owner-evidence;
 - `cut.md` — будущая карта сохранённых, поглощённых и снятых смыслов;
 - `evidence.md` — статус проверок.
 
-Текущая стадия: `рефактор завершён`; goal-only exact candidate утверждён,
-установлен в Codex и Claude и проверен на обеих live-поверхностях.
+Текущая стадия: `установлено 2026-09-27` — строгий допуск записи поверх
+goal-only версии 2026-08-31; вопросы владельцу — в
+`work/strict-admission-2026-09-27/state.md`.
