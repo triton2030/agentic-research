@@ -139,6 +139,11 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   порядок чтения есть, и что читать раньше; порядок соседей показывается в
   отображении, не вложенностью, способом инструкции базы (в mavo3 — цифра в
   начале имени); история — `skills/1folder-tree/work/order-2026-09-18/`.
+  2026-09-27 — переработка замысла вместе с адресной правкой `1docs-write`:
+  три вида знания о продукте по скорости изменений, место показа без правил
+  и шагов, имя как обещание, проверяемое по тексту файлов, вложенность по
+  общему изменению; одобрено владельцем (`mavo3/_ops/chat-recall/2026-09-27-162252-Claude-7447c57c.md#recall-05230b0e33454b6f92d2f4bf4e6b9e52`);
+  история — `skills/1folder-tree/work/kinds-and-names-2026-09-27/`.
 - `1index/portable/` держит подтверждённые маршруты к источникам, включая локальную навигацию по задачам при авторинге инструкций.
 - `1interview-tool/portable/` исследует будущие ошибки исполнения документов
   и создаёт Markdown-интервью с полноценными вариантами. Разобранные формы
@@ -211,6 +216,9 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   в документ решением владельца 2026-09-10 (`/Users/triton/Documents/My_projects/mavo3/_ops/chat-recall/2026-09-10-125652-claude-code-c2a5de2f.md#L38`, снимает решение
   2026-09-05 `…cfb9aa25.md#L21`). Утверждено и установлено 2026-09-10
   (`_ops/chat-recall/2026-09-10-135753-claude-code-c2a5de2f.md#L22`). `platforms/codex/agents/openai.yaml` — только Codex UI metadata.
+  2026-09-27 — адресная правка вместе с `1folder-tree`: сценарий и экран ведут
+  к правилу, прогон случая на конкретном примере, решение о продукте против
+  примера раскладки; история — `skills/1docs-write/work/kinds-and-names-2026-09-27/`.
 
 `skills/codex/<name>/` и `skills/claude/<name>/` — tracked projections owner-а.
 `~/.codex/skills/<name>/` и `~/.claude/skills/<name>/` — installed projections
