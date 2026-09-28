@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import fcntl
+import functools
 import hashlib
 import importlib.metadata
 import json
@@ -58,6 +59,18 @@ META_RE = re.compile(
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 TIME_RE = re.compile(r"^\d{1,2}:\d{2}(?::\d{2})?$")
 QUERY_TOKEN_RE = re.compile(r"[\w-]+\*?", re.UNICODE)
+CYRILLIC_RE = re.compile(r"[а-яё]")
+# Служебные слова совпадают с большей частью корпуса: при OR-запросе они
+# поднимают посторонние записи в BM25 и через RRF — в общей выдаче.
+QUERY_STOPWORDS = frozenset(
+    """
+    а без бы был была были было быть в во вот все всё вы где да для до его её
+    если есть же за и из или их к как ко когда ли мне мы на нам нас не него нет
+    ни но ну о об он она они от по под при про с со так там то тоже того только
+    ты у уже чем что чтобы это я
+    a an and are for in is it of on or the to
+    """.split()
+)
 
 FASTEMBED_VERSION = "0.8.0"
 EMBEDDING_MODEL = "Xenova/multilingual-e5-large"
@@ -483,11 +496,41 @@ def load_topic_cards(corpus_dir: Path) -> list[dict[str, Any]]:
     ]
 
 
-def _fts_query(query: str) -> str:
+def _query_tokens(query: str) -> list[str]:
     tokens = QUERY_TOKEN_RE.findall(query.casefold())
+    content = [token for token in tokens if token not in QUERY_STOPWORDS]
+    return content or tokens
+
+
+@functools.cache
+def _russian_stemmer() -> Any:
+    # Стеммер Snowball приходит с fastembed. Без него (запуск не через uv)
+    # поиск остаётся буквальным, как до стемминга.
+    try:
+        from py_rust_stemmers import SnowballStemmer
+    except ImportError:
+        return None
+    return SnowballStemmer("russian")
+
+
+def _fts_term(token: str) -> str:
+    if token.endswith("*"):
+        return f'"{token[:-1]}"*'
+    stemmer = _russian_stemmer()
+    if stemmer is not None and CYRILLIC_RE.search(token):
+        # FTS5 unicode61 не знает морфологии: «телефон» не находит «телефона».
+        # Основа Snowball с префиксом ловит формы слова без смены индекса.
+        stem = stemmer.stem_word(token)
+        if len(stem) >= 4:
+            return f'"{stem}"*'
+    return f'"{token}"'
+
+
+def _fts_query(query: str) -> str:
+    tokens = _query_tokens(query)
     if not tokens:
         raise CliError("query не содержит поисковых терминов")
-    return " OR ".join(f'"{token[:-1]}"*' if token.endswith("*") else f'"{token}"' for token in tokens)
+    return " OR ".join(_fts_term(token) for token in tokens)
 
 
 def search_bm25(records: list[dict[str, Any]], query: str) -> list[dict[str, Any]]:
@@ -616,7 +659,7 @@ def search_session_context_bm25(
 def search_session_routes(
     records: list[dict[str, Any]], query: str, *, hybrid: bool
 ) -> tuple[list[dict[str, Any]], str]:
-    tokens = list(dict.fromkeys(QUERY_TOKEN_RE.findall(query.casefold())))
+    tokens = list(dict.fromkeys(_query_tokens(query)))
     wildcard_tokens = {token for token in tokens if token.endswith("*")}
     novel_tokens = {token for token in tokens if not search_bm25(records, token)}
     card_matches: dict[str, set[str]] = defaultdict(set)

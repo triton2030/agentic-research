@@ -1297,6 +1297,23 @@ class ChatDigestTests(unittest.TestCase):
         self.assertFalse(default.lexical)
         self.assertTrue(lexical.lexical)
 
+    def test_fts_query_drops_stopwords_but_keeps_an_all_stopword_query(self) -> None:
+        with mock.patch.object(DIGEST, "_russian_stemmer", return_value=None):
+            self.assertEqual(
+                DIGEST._fts_query("покупатель не оставляет телефон"),
+                '"покупатель" OR "оставляет" OR "телефон"',
+            )
+            self.assertEqual(DIGEST._fts_query("и не"), '"и" OR "не"')
+
+    def test_fts_query_searches_russian_words_by_stem_prefix(self) -> None:
+        stemmer = mock.Mock()
+        stemmer.stem_word.side_effect = lambda word: {"телефона": "телефон", "дом": "дом"}[word]
+        with mock.patch.object(DIGEST, "_russian_stemmer", return_value=stemmer):
+            self.assertEqual(
+                DIGEST._fts_query("телефона дом mockup канон*"),
+                '"телефон"* OR "дом" OR "mockup" OR "канон"*',
+            )
+
     def test_hybrid_queue_serializes_processes_across_project_cwds(self) -> None:
         shared_cache = self.corpus / "shared-cache"
         other_project = self.corpus / "other-project"
