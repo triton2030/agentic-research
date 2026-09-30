@@ -22,7 +22,7 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   Codex metadata — `platforms/codex/agents/openai.yaml`.
   Локальная история создания и проверки — `_workspace/orchestration/2026-09-19-maxrevie/`.
 - `1illustrations-and-charts/portable/` — компактные схемы, SVG и макеты интерфейса рядом со сложным объяснением; переносимое ядро для Claude и Codex. Проектные пути и CSS остаются в документации проекта.
-- `1writing-rule/portable/` — личное «Правило письма»: качество любой прозы,
+- `1writing-rule/portable/` — личное «Правило письма»: качество заказанного текста,
   подробный материал для файлов и маршруты к `1docs-write`, `1folder-tree`
   `1smart-simple` и `1illustrations-and-charts`.
   Codex UI metadata — `platforms/codex/agents/openai.yaml`.
