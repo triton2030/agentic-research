@@ -25,10 +25,14 @@ from pathlib import Path
 # Поколение ярусов — 6: luna и sol переехали с 5.6 на gpt-6-* (владелец
 # 2026-09-23: «теперь будем использавть луна 6 и сол 6 и астру» —
 # _ops/chat-recall/2026-09-23-051553-claude-483a304e.md#recall-9805fef9e16041928ddf6a675d7d952d).
+# Сол — 6.1: gpt-6.1-sol заменил gpt-6-sol (владелец 2026-10-02: «чтобы мы
+# теперь использовали 6.1 версию сол» —
+# _ops/chat-recall/2026-10-02-101553-claude-b40c28c9.md#recall-6e3fc918be584575ac201bde163a183a);
+# живой пробник 2026-10-02 на движке 0.159.2 — ответ получен. Луна и астра — 6.
 #
 # Каталог не блокируется (там же, #L17): --model и --effort — выбор по ситуации,
 # terra, gpt-5.6-*, gpt-5.5, max/ultra и прочее остаются доступны явным флагом.
-DEFAULT_CODEX_MODEL = "gpt-6-sol"
+DEFAULT_CODEX_MODEL = "gpt-6.1-sol"
 DEFAULT_CODEX_EFFORT = "medium"
 
 # Лёгкий ярус для тупой и объёмной работы; выбирается явным --model/--effort.
@@ -98,7 +102,7 @@ SDK_BUNDLE_WARNING = (
 #
 # The upper scale mirrors the engine's own catalogue
 # (~/.codex/models_cache.json → supported_reasoning_levels), read 2026-07-27 for
-# gpt-5.6-sol/terra and re-read 2026-09-23 for gpt-6-sol/astra/luna — the same
+# gpt-5.6-sol/terra and re-read 2026-09-23 for gpt-6-sol/astra/luna and 2026-10-02 for gpt-6.1-sol — the same
 # scale. Its wording is the contract:
 #   "max"   — "Maximum reasoning depth for the hardest problems"
 #   "ultra" — "Maximum reasoning with automatic task delegation"

@@ -92,7 +92,7 @@ manifest учитывает длины обеих частей.
 
 ## Модель и runtime-доступ
 
-Backend явно закрепляет Codex turn defaults: `model=gpt-6-sol`,
+Backend явно закрепляет Codex turn defaults: `model=gpt-6.1-sol`,
 `effort=medium` — дефолт моста (см. «Ярусы вызова» в `AGENTS.md`). Модель и
 effort не зависят от текущего `~/.codex/config.toml`; флаги `--model` и
 `--effort` — осознанный выбор яруса под род работы. Service tier мост по
@@ -101,11 +101,12 @@ effort не зависят от текущего `~/.codex/config.toml`; фла�
 Три яруса по роду работы (решение владельца 2026-09-06,
 `_ops/chat-recall/2026-09-06-170311-claude-557afe59.md#L16`; заменило
 «sol + xhigh на всё» от 2026-08-14). Поколение ярусов — 6: владелец
-2026-09-23 перевёл луну и сол с 5.6 на `gpt-6-*` (`_ops/chat-recall/2026-09-23-051553-claude-483a304e.md#recall-9805fef9e16041928ddf6a675d7d952d`):
+2026-09-23 перевёл луну и сол с 5.6 на `gpt-6-*` (`_ops/chat-recall/2026-09-23-051553-claude-483a304e.md#recall-9805fef9e16041928ddf6a675d7d952d`),
+2026-10-02 сол — на `gpt-6.1-sol` (`_ops/chat-recall/2026-10-02-101553-claude-b40c28c9.md#recall-6e3fc918be584575ac201bde163a183a`):
 
 | Род работы | Модель | Effort | Как звать |
 |---|---|---|---|
-| средняя работа | `gpt-6-sol` | `medium` | дефолт, флаги не нужны |
+| средняя работа | `gpt-6.1-sol` | `medium` | дефолт, флаги не нужны |
 | много тупой работы: механика, объём, чёткая воля | `gpt-6-luna` | `max` | `--model gpt-6-luna --effort max` |
 | суперумная работа: развилка, архитектура, независимое суждение | `gpt-6-astra` | `medium` | `--model gpt-6-astra` |
 
@@ -390,7 +391,7 @@ SDK содержит запасной бинарь Codex и читает общ�
 .venv/bin/python codex_review.py "УТОЧНЕНИЕ" --continue THREAD_ID
 
 # Короткая карточка с витриной:
-.venv/bin/python codex_launch.py agent --name readme --prompt-file /tmp/task.md --project "$PWD" -- --model gpt-6-sol
+.venv/bin/python codex_launch.py agent --name readme --prompt-file /tmp/task.md --project "$PWD" -- --model gpt-6.1-sol
 ```
 
 Для запуска витрины `/tmp/task.md` должен заранее содержать задание. Режим

@@ -334,7 +334,7 @@ class CodexReviewCliTests(unittest.TestCase):
             self.assertTrue(payload["dry_run"])
             self.assertEqual(payload["status"], "validated")
             self.assertEqual(payload["mode"], "ask")
-            self.assertEqual(payload["codex"]["model"], "gpt-6-sol")
+            self.assertEqual(payload["codex"]["model"], "gpt-6.1-sol")
             self.assertEqual(payload["codex"]["effort"], "medium")
             self.assertIsNone(payload["codex"]["service_tier"])
             self.assertTrue(payload["codex"]["thread_ephemeral"])
@@ -506,7 +506,7 @@ class CodexReviewCliTests(unittest.TestCase):
             run_kwargs = captured.get("run_kwargs") or {}
             self.assertEqual(run_kwargs.get("sandbox"), "full_access")
             self.assertEqual(run_kwargs.get("approval_mode"), "deny_all")
-            self.assertEqual(run_kwargs.get("model"), "gpt-6-sol")
+            self.assertEqual(run_kwargs.get("model"), "gpt-6.1-sol")
             self.assertEqual(run_kwargs.get("effort"), "medium")
             self.assertIsNone(run_kwargs.get("service_tier"))
         finally:

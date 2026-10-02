@@ -16,16 +16,18 @@ Backend здесь; operator/router — `~/.claude/skills/1codex/`.
   любого codex-процесса. Не убирай и не обходи — это защита от ухода на платный
   API. Любой новый вход (скрипт/режим) обязан звать его первым.
 - **Модель и effort фиксируются backend-ом; tier — нет.** Default для всех
-  Codex turns: `model=gpt-6-sol`, `effort=medium` — явно, независимо от дрейфа
+  Codex turns: `model=gpt-6.1-sol`, `effort=medium` — явно, независимо от дрейфа
   `~/.codex/config.toml`: `model` в каждом `thread_start` + `thread_resume` +
   `thread.turn`, `effort` на ходе (`thread.turn`), где его и принимает SDK.
   Ярусы вызова (владелец,
   2026-09-06, `_ops/chat-recall/2026-09-06-170311-claude-557afe59.md#L16`):
   `sol`+`medium` — дефолт, средняя работа; `luna`+`max` — много тупой работы;
   `astra`+`medium` (`gpt-6-astra`, живой пробник 2026-09-06 — `completed`) —
-  суперумная работа. Все три — поколения 6 (`gpt-6-sol`, `gpt-6-luna`,
-  `gpt-6-astra`; владелец 2026-09-23,
-  `_ops/chat-recall/2026-09-23-051553-claude-483a304e.md#recall-9805fef9e16041928ddf6a675d7d952d`).
+  суперумная работа. Луна и астра — поколения 6 (`gpt-6-luna`, `gpt-6-astra`;
+  владелец 2026-09-23,
+  `_ops/chat-recall/2026-09-23-051553-claude-483a304e.md#recall-9805fef9e16041928ddf6a675d7d952d`),
+  сол — 6.1 (`gpt-6.1-sol`; владелец 2026-10-02,
+  `_ops/chat-recall/2026-10-02-101553-claude-b40c28c9.md#recall-6e3fc918be584575ac201bde163a183a`).
   Это дефолты по роду работы, каталог не блокируется
   (там же, `#L17`): `--model`/`--effort` — выбор по ситуации, включая
   `max`/`ultra`.
@@ -142,7 +144,7 @@ Backend здесь; operator/router — `~/.claude/skills/1codex/`.
 - `codex_retry.py` — восстановимые отказы СТАРТА: ретрай под перегрузкой движка
   и подъём архивного треда при resume; события `retry`,
   `thread_unarchived`, `thread_unarchive_failed` в ledger.
-- `codex_defaults.py` — ярусы вызова и runtime default (`gpt-6-sol`+`medium`),
+- `codex_defaults.py` — ярусы вызова и runtime default (`gpt-6.1-sol`+`medium`),
   права хода (`AGENT_SANDBOX`, `SCRATCH_SANDBOX`, approval),
   `BRIDGE_THREAD_EPHEMERAL`.
 - `codex_launch.py` — короткая команда карточки: свежий `RUN_DIR`, вход моста

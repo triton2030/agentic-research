@@ -13,7 +13,7 @@ import tempfile
 import time
 
 
-MODEL = "gpt-6-sol"
+MODEL = "gpt-6.1-sol"
 EFFORT = "low"
 # ChatGPT.app ships the Codex engine here without putting `codex` on PATH.
 APP_CODEX = Path("/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex")
