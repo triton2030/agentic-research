@@ -17,7 +17,8 @@ description: >-
 
 ## Что Уже Установлено
 
-Перечень сверен 2026-09-26. Перед использованием — `command -v TOOL`.
+Перечень сверен 2026-09-26; Graphify — 2026-10-02.
+Перед использованием — `command -v TOOL`.
 
 | Работа | Инструменты |
 |---|---|
@@ -25,6 +26,7 @@ description: >-
 | YAML, frontmatter Markdown | `yq --front-matter=extract` |
 | поиск и замена в тексте | `rg`, `fd`, `sd` — без различий BSD/GNU `sed` |
 | структура кода | `ast-grep` — поиск и переписывание по AST |
+| связи кода и последствия изменений | `graphify` 0.9.73 — локальный граф кода; `query` — поиск связей, `affected` — затронутые узлы |
 | Markdown | `md` (md-tools), `rumdl`, `markdownlint-cli2`, `mdq`, `lychee` — ссылки |
 | JS/TS | `biome`, `eslint`, `prettier`, `stylelint`, `tsc` 7, `vitest` 5, `knip`, `dependency-cruiser`, `publint`, `attw`, `syncpack` |
 | Python | `ruff`, `pyright`, `mypy`, `pytest`, `coverage`, `vulture`, `deptry`, `xenon` |
