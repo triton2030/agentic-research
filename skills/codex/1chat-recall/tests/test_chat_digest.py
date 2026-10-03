@@ -756,9 +756,9 @@ class ChatDigestTests(unittest.TestCase):
                 "2/5 records shown · 5 records · truncated by --limit"
             )
         )
-        tiny = self.call("--query", "субагент*", "--max-chars", "512", "--json")
+        tiny = self.call("--query", "субагент*", "--max-chars", "640", "--json")
         self.assertEqual(tiny.returncode, 0, tiny.stderr)
-        self.assertLessEqual(len(tiny.stdout.rstrip("\n")), 512)
+        self.assertLessEqual(len(tiny.stdout.rstrip("\n")), 640)
         tiny_payload = json.loads(tiny.stdout)
         self.assertTrue(tiny_payload["truncated"])
         self.assertEqual(tiny_payload["truncated_by"], "max_chars")
@@ -881,7 +881,7 @@ class ChatDigestTests(unittest.TestCase):
         self.assertLessEqual(len(human.stdout.rstrip("\n")), 4000)
 
         character_limited = self.call(
-            "--query", "Needle", "--limit", "5", "--max-chars", "512"
+            "--query", "Needle", "--limit", "5", "--max-chars", "640"
         )
         self.assertEqual(character_limited.returncode, 0, character_limited.stderr)
         self.assertIn(

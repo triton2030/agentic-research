@@ -44,6 +44,9 @@ description: >-
 
 - Новая материальная реплика или `capture-needed` → [Capture](references/capture.md).
 - Решение зависит от прежних слов владельца → [Retrieval](references/retrieval.md).
+  Найденный разговор читай целиком, а не от найденной строки: позже
+  в том же разговоре владелец мог передумать, а намерение видно между
+  репликами. Адрес из выдачи нужен для ссылки на цитату.
 - Владелец явно заказал validation, repair или backfill → [Integrity](references/integrity.md).
 
 ## Среда

@@ -96,6 +96,7 @@ PASSAGE_PREFIX = "passage: "
 HYBRID_DEPTH = 40
 RRF_CONSTANT = 60
 SESSION_ROUTE_LIMIT = 5
+HOLDER_READ_HINT = "читай holder-файл целиком, без offset/limit; адрес — для цитаты"
 TOPIC_ROUTE_LIMIT = 5
 CONTEXT_RESCUE_LIMIT = 2
 FILE_SUPPORT_WEIGHT = 0.1
@@ -1874,7 +1875,7 @@ def _render_holders(
             status += " · warning=no-eligible-records"
         elif lexical_matched == 0:
             status += " · warning=no-lexical-match"
-    lines = [status]
+    lines = [status, f"read: {HOLDER_READ_HINT}"]
     domain = _domain_verdict(_DENSE_TOP1)
     if domain is not None:
         lines.append(f"query-domain={domain} · dense_top1={_DENSE_TOP1:.3f}")
@@ -2377,6 +2378,7 @@ def main() -> int:
                     conflict_retrieval="lexical" if args.lexical else "hybrid",
                 )
                 envelope["warnings"] = sorted(set(envelope["warnings"]) | {"conflict-evidence-present"})
+            envelope["read"] = HOLDER_READ_HINT
             envelope["holders"] = holder_cards
             if topic_candidate_count or topic_candidates:
                 envelope["topic_candidates"] = topic_candidates
