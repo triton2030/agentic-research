@@ -1,0 +1,7 @@
+interface:
+  display_name: "1chat-recall"
+  short_description: "Record and directly retrieve exact owner quotes."
+  default_prompt: "Используй $1chat-recall, чтобы сохранить важные слова владельца или самостоятельно найти и прочитать дословные цитаты с условиями и адресами для текущей работы."
+
+policy:
+  allow_implicit_invocation: true

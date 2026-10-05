@@ -260,8 +260,11 @@ def render_metadata_vocabulary(log_dir: Path, topic_map: TopicMap | None) -> str
             )
         lines.append(f"  {REPAIR_TOPIC}: repair-only sentinel")
         lines.append(
-            'No topic fits the subject? Create one: --new-topic "<one-line '
-            'boundary>" adds its row to the map together with the record.'
+            'No topic fits the subject, or the fitting topic already holds a '
+            'third of the corpus and the subject is new and independent? Create '
+            'one: --new-topic "<one-line boundary>" adds its row to the map '
+            'together with the record. A superseding or contesting record stays '
+            'in the topic of the record it targets.'
         )
     elif counts:
         lines.append("Topics (existing in this corpus; conversations using each):")
@@ -810,9 +813,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--quote",
         required=True,
         help=(
-            "caller-confirmed owner excerpt; shorten only by deletion while "
-            "preserving wording and order; exclude pasted documents, quoted "
-            "conversations, and other people's or agents' words"
+            "for --kind quote: caller-confirmed owner excerpt; shorten only by "
+            "deletion while preserving wording and order; exclude pasted "
+            "documents, quoted conversations, and other people's or agents' words. "
+            "For selection: the option the owner actually chose; for note: the "
+            "agent's explicit explanation, never owner evidence"
         ),
     )
     parser.add_argument("--type", required=True, dest="type_")
@@ -821,15 +826,17 @@ def build_parser() -> argparse.ArgumentParser:
         "--new-topic",
         metavar="BOUNDARY",
         help=(
-            "the subject fits no topic in the map: add its row — a one-line "
-            "boundary — together with this record; creates the map on first capture"
+            "the subject fits no topic in the map, or it is a new independent "
+            "subject inside a topic that already holds a third of the corpus: add "
+            "its row — a one-line boundary — together with this record; creates "
+            "the map on first capture"
         ),
     )
     parser.add_argument(
         "--supersedes-unresolved", metavar="SEARCH_NOTE",
         help="old quote was not found after search: preserve the new quote and the search gap without cancelling an address",
     )
-    parser.add_argument("--kind", choices=KINDS, default="quote")
+    parser.add_argument("--kind", choices=KINDS, default="quote", help="quote: owner words; selection: the option the owner chose; note: agent explanation, not owner evidence")
     parser.add_argument(
         "--supersedes",
         nargs="+", action="extend",
@@ -894,7 +901,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--project", default=default_project())
     parser.add_argument("--agent", required=True)
     parser.add_argument("--model")
-    parser.add_argument("--session")
+    parser.add_argument("--session", help="conversation id; if omitted, taken from the runtime environment when available (Codex: CODEX_THREAD_ID or CODEX_SESSION_ID); pass it explicitly after a branch")
     parser.add_argument("--source-ref", help="optional source message/selection occurrence ID; may be omitted for same-turn capture without transcript lookup. Exact excerpts from the same occurrence retry idempotently. Without it, an explicit exact source timestamp plus kind, quote, topic and context identify the occurrence; date/minute or implicit write time do not deduplicate")
     parser.add_argument(
         "--json",

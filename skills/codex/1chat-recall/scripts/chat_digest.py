@@ -2110,9 +2110,9 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument("--timeline", action="store_true")
-    parser.add_argument("--type", dest="types")
-    parser.add_argument("--topic", dest="topics")
-    parser.add_argument("--grep")
+    parser.add_argument("--type", dest="types", help="exact type values, comma-separated")
+    parser.add_argument("--topic", dest="topics", help="exact topic handles, comma-separated")
+    parser.add_argument("--grep", help="case-insensitive Python regex over the record text only, not context-note")
     parser.add_argument("--since")
     parser.add_argument("--until")
     parser.add_argument("--agent")
