@@ -739,7 +739,8 @@ class ChatDigestTests(unittest.TestCase):
         self.assertIn("type_raw=идея, коррекция", shown_type.stdout)
 
     def test_controlled_vocabulary_is_shared(self) -> None:
-        self.assertEqual(len(DIGEST.TYPES), 9)
+        self.assertEqual(len(DIGEST.TYPES), 10)
+        self.assertIn("разрешение", DIGEST.TYPES)
         self.assertIn("неопределено", DIGEST.TYPES)
         self.assertEqual(DIGEST.REPAIR_TOPIC, "без-темы")
 

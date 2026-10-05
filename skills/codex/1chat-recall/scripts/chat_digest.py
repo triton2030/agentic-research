@@ -296,6 +296,18 @@ def _parse_anchor(value: str) -> tuple[str, str | None]:
     return resolved, suffix.strip() or None
 
 
+def relation_anchors(value: str) -> list[str]:
+    """Read a legacy single address or a Capture multi-address JSON array."""
+    if value.startswith("["):
+        try:
+            decoded = json.loads(value)
+        except json.JSONDecodeError:
+            return [value]  # Existing dangling-relation diagnostics apply.
+        if isinstance(decoded, list) and decoded and all(isinstance(item, str) for item in decoded):
+            return list(dict.fromkeys(decoded))
+    return [value]
+
+
 def _quote_card(
     record: dict[str, Any], head: int, now: datetime
 ) -> dict[str, Any]:
@@ -340,46 +352,47 @@ def link_supersessions(records: list[dict[str, Any]]) -> None:
             anchor = record.get(field)
             if not anchor:
                 continue
-            address, digest = _parse_anchor(anchor)
-            parsed = ADDRESS_RE.fullmatch(anchor)
-            target = None
-            if parsed and parsed["id"]:
-                candidates = [candidate for candidate in records if candidate["address"] == f"{parsed['file']}#{parsed['id']}"]
-                if len(candidates) == 1 and (not digest or record_hash(candidates[0]["raw"]).startswith(digest)):
-                    target = candidates[0]
-            elif parsed and digest:
-                candidates = [candidate for candidate in records if candidate["file"] == parsed["file"] and record_hash(candidate["raw"]).startswith(digest)]
-                if len(candidates) == 1:
-                    target = candidates[0]
-            elif parsed:
-                record["diagnostics"] = sorted({*record.get("diagnostics", []), f"unverified-{field}"})
-            if target is None:
-                record["diagnostics"] = sorted(
-                    {*record.get("diagnostics", []), f"dangling-{field}"}
-                )
-                if field == "supersedes":
-                    record["invalid_supersedes"] = True
-                continue
-            if record.get("topic") != target.get("topic"):
-                record["diagnostics"] = sorted(
-                    {*record.get("diagnostics", []), f"cross-scope-{field}"}
-                )
-                if field == "supersedes":
-                    record["invalid_supersedes"] = True
-                continue
-            if field == "supersedes":
-                newer = _parse_sort_datetime(record.get("sort_timestamp"))
-                older = _parse_sort_datetime(target.get("sort_timestamp"))
-                if newer is None or older is None or newer <= older:
+            for anchor in relation_anchors(anchor):
+                address, digest = _parse_anchor(anchor)
+                parsed = ADDRESS_RE.fullmatch(anchor)
+                target = None
+                if parsed and parsed["id"]:
+                    candidates = [candidate for candidate in records if candidate["address"] == f"{parsed['file']}#{parsed['id']}"]
+                    if len(candidates) == 1 and (not digest or record_hash(candidates[0]["raw"]).startswith(digest)):
+                        target = candidates[0]
+                elif parsed and digest:
+                    candidates = [candidate for candidate in records if candidate["file"] == parsed["file"] and record_hash(candidate["raw"]).startswith(digest)]
+                    if len(candidates) == 1:
+                        target = candidates[0]
+                elif parsed:
+                    record["diagnostics"] = sorted({*record.get("diagnostics", []), f"unverified-{field}"})
+                if target is None:
                     record["diagnostics"] = sorted(
-                        {
-                            *record.get("diagnostics", []),
-                            "supersedes-not-newer",
-                        }
+                        {*record.get("diagnostics", []), f"dangling-{field}"}
                     )
-                    record["invalid_supersedes"] = True
+                    if field == "supersedes":
+                        record["invalid_supersedes"] = True
                     continue
-            target.setdefault(back_reference, []).append(record["address"])
+                if record.get("topic") != target.get("topic"):
+                    record["diagnostics"] = sorted(
+                        {*record.get("diagnostics", []), f"cross-scope-{field}"}
+                    )
+                    if field == "supersedes":
+                        record["invalid_supersedes"] = True
+                    continue
+                if field == "supersedes":
+                    newer = _parse_sort_datetime(record.get("sort_timestamp"))
+                    older = _parse_sort_datetime(target.get("sort_timestamp"))
+                    if newer is None or older is None or newer <= older:
+                        record["diagnostics"] = sorted(
+                            {
+                                *record.get("diagnostics", []),
+                                "supersedes-not-newer",
+                            }
+                        )
+                        record["invalid_supersedes"] = True
+                        continue
+                target.setdefault(back_reference, []).append(record["address"])
 
 
 def _dateable_owner_record(record: dict[str, Any]) -> bool:

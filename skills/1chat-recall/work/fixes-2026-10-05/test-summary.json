@@ -1,0 +1,14 @@
+{
+  "claude": {
+    "tests": 178,
+    "exit_code": 0
+  },
+  "codex": {
+    "tests": 181,
+    "exit_code": 0
+  },
+  "installed-codex": {
+    "tests": 181,
+    "exit_code": 0
+  }
+}

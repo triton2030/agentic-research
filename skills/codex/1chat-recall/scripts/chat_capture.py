@@ -444,12 +444,60 @@ def find_session_file(
 ) -> Path:
     matches = [
         path
-        for path in sorted(log_dir.glob(f"*-{agent}-{short_session(session)}*.md"))
+        for path in sorted(log_dir.glob(f"*-{short_session(session)}*.md"))
         if file_session(path) == session
     ]
     if len(matches) > 1:
-        raise CaptureError(f"multiple recall files for session {session}; repair first")
+        details = ", ".join(session_file_label(path) for path in matches)
+        raise CaptureError(f"multiple recall files for session {session}: {details}; repair first")
+    if matches:
+        found_agent = session_file_agent(matches[0])
+        if found_agent.casefold() != agent.casefold():
+            raise CaptureError(
+                f"session {session} found in {session_file_label(matches[0])}; "
+                f"requested agent: {agent}; inspect before writing"
+            )
     return matches[0] if matches else dated_path(log_dir, agent, session, source)
+
+
+def session_file_agent(path: Path) -> str:
+    lines = path.read_text(encoding="utf-8-sig").splitlines()
+    return next((line.removeprefix("agent: ").strip()
+                 for line in lines[1:frontmatter_end(lines)]
+                 if line.startswith("agent: ")), "unknown")
+
+
+def session_file_label(path: Path) -> str:
+    return f"{path} (agent: {session_file_agent(path)})"
+
+
+def verified_relations(log_dir: Path, values: list[str] | None, field: str) -> str | None:
+    """Keep the single-address format; multiple addresses are a JSON array."""
+    addresses = list(dict.fromkeys(
+        verify_anchor(log_dir, anchor(value, field), field) for value in values or []
+    ))
+    if not addresses:
+        return None
+    return addresses[0] if len(addresses) == 1 else json.dumps(addresses, ensure_ascii=False)
+
+
+def extend_session_card(path: Path, additions: list[str]) -> str:
+    """Preserve the existing card verbatim and append only new subject fragments."""
+    from chat_digest import _frontmatter
+    card = _frontmatter(path.read_text(encoding="utf-8-sig").splitlines()).get("session-context", "")
+    if not card.strip():
+        raise CaptureError(
+            f"--add-subjects requires an existing session-context in {session_file_label(path)}; "
+            "pass --session-context with the complete initial card"
+        )
+    seen = {piece.strip().casefold() for piece in card.split(";")}
+    for addition in additions:
+        for piece in addition.split(";"):
+            piece = piece.strip()
+            if piece and piece.casefold() not in seen:
+                card += (" " if card.rstrip().endswith(";") else "; ") + piece
+                seen.add(piece.casefold())
+    return card
 
 
 def _entry_line(
@@ -784,18 +832,20 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--kind", choices=KINDS, default="quote")
     parser.add_argument(
         "--supersedes",
+        nargs="+", action="extend",
         metavar="ANCHOR",
         help=(
-            "address <file>.md#recall-<id> or verified legacy <file>.md:<line> sha:<record_sha256> "
+            "one or more addresses (option may repeat): <file>.md#recall-<id> or verified legacy <file>.md:<line> sha:<record_sha256> "
             "from retrieval after reading the earlier quote; "
             "only when both cannot be true at once in the same scope"
         ),
     )
     parser.add_argument(
         "--contested",
+        nargs="+", action="extend",
         metavar="ANCHOR",
         help=(
-            "address <file>.md#recall-<id> or verified legacy <file>.md:<line> sha:<record_sha256> "
+            "one or more addresses (option may repeat): <file>.md#recall-<id> or verified legacy <file>.md:<line> sha:<record_sha256> "
             "from retrieval after reading the conflicting quote; when the winner "
             "is unclear; marks the conflict instead of choosing silently"
         ),
@@ -804,7 +854,17 @@ def build_parser() -> argparse.ArgumentParser:
         "--source-timestamp",
         help=(
             "when the owner said it; omit only when writing in the same turn — "
-            "the write time is then the right mark. For backfill pass it explicitly"
+            "the write time is then the right mark; no transcript lookup needed. "
+            "ISO 8601 accepts fractional seconds, e.g. 2026-10-05T08:39:48.123Z. "
+            "For backfill pass it explicitly"
+        ),
+    )
+    parser.add_argument(
+        "--add-subjects", action="append", metavar="SUBJECTS",
+        help=(
+            "append semicolon-separated search subjects to the existing session card "
+            "with this capture; may repeat; preserves earlier subjects without caller "
+            "reading the whole conversation; cannot combine with --session-context"
         ),
     )
     parser.add_argument(
@@ -835,7 +895,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--agent", required=True)
     parser.add_argument("--model")
     parser.add_argument("--session")
-    parser.add_argument("--source-ref", help="source message/selection occurrence ID; exact excerpts from the same occurrence retry idempotently. Without it, an explicit exact source timestamp plus kind, quote, topic and context identify the occurrence; date/minute or implicit write time do not deduplicate")
+    parser.add_argument("--source-ref", help="optional source message/selection occurrence ID; may be omitted for same-turn capture without transcript lookup. Exact excerpts from the same occurrence retry idempotently. Without it, an explicit exact source timestamp plus kind, quote, topic and context identify the occurrence; date/minute or implicit write time do not deduplicate")
     parser.add_argument(
         "--json",
         action="store_true",
@@ -851,7 +911,7 @@ def main() -> int:
         type_ = metadata_choice(args.type_, "type", TYPES)
         topic = handle(args.topic, "topic")
         validate_metadata(type_, topic, args.kind)
-        agent = handle(args.agent, "agent")
+        agent = handle(args.agent, "agent").casefold()
         model = handle(args.model, "model") if args.model else None
         context = (
             context_note(args.context_note)
@@ -863,6 +923,12 @@ def main() -> int:
             if args.session_context is not None
             else None
         )
+        if args.add_subjects is not None:
+            if session_card is not None:
+                raise CaptureError("--add-subjects cannot combine with --session-context")
+            args.add_subjects = [session_context(value) for value in args.add_subjects]
+            if not any(piece.strip() for value in args.add_subjects for piece in value.split(";")):
+                raise CaptureError("--add-subjects has no subject fragments")
         if args.kind in ("quote", "selection") and context is None:
             raise CaptureError(
                 "--context-note is required for --kind quote and --kind selection; "
@@ -897,7 +963,7 @@ def main() -> int:
         source = source_timestamp(
             args.source_timestamp
             if not implicit_now
-            else datetime.now().astimezone().replace(microsecond=0).isoformat()
+            else datetime.now().astimezone().isoformat()
         )
         if source.precision == "unknown" and args.kind != "note":
             raise CaptureError(
@@ -940,16 +1006,8 @@ def capture_locked(args, root, log_dir, quote, type_, topic, agent, model, conte
                     'create a topic deliberately: --new-topic "<boundary>".'
                 )
             new_topic_row = one_line(args.new_topic, "new topic boundary")
-    supersedes = (
-        verify_anchor(log_dir, anchor(args.supersedes, "supersedes"), "supersedes")
-        if args.supersedes
-        else None
-    )
-    contested = (
-        verify_anchor(log_dir, anchor(args.contested, "contested"), "contested")
-        if args.contested
-        else None
-    )
+    supersedes = verified_relations(log_dir, args.supersedes, "supersedes")
+    contested = verified_relations(log_dir, args.contested, "contested")
     session = resolve_session(args.session, agent)
     if not session:
         checked = ", ".join(ENV_BY_AGENT.get(agent, ())) or "none"
@@ -957,11 +1015,16 @@ def capture_locked(args, root, log_dir, quote, type_, topic, agent, model, conte
             f"session id unknown for agent '{agent}' (env checked: {checked})"
         )
     path = find_session_file(log_dir, agent, session, source)
+    if args.add_subjects is not None:
+        if not path.exists():
+            raise CaptureError("--add-subjects requires an existing conversation card; pass --session-context for the first capture")
+        session_card = extend_session_card(path, args.add_subjects)
     if args.kind in ("quote", "selection") and session_card is None and not has_session_card(path):
         raise CaptureError(
             "--session-context is required for the first quote or selection of a "
             "conversation file; later captures keep its card unless you pass a new "
-            "complete one; " + SESSION_CONTEXT_GUIDANCE
+            "complete one; " + (f"found {session_file_label(path)}; " if path.exists() else "")
+            + SESSION_CONTEXT_GUIDANCE
         )
     source_ref = one_line(args.source_ref, "source-ref") if args.source_ref else None
     if source_ref and ("|" in source_ref or any(c.isspace() for c in source_ref)):
