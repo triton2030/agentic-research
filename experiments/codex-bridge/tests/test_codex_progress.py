@@ -215,7 +215,7 @@ class BoardCliTests(unittest.TestCase):
 
     def test_board_shows_solo_heartbeat_and_result(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp) / "_workspace" / "codex-artifacts"
+            root = Path(tmp) / "_workspace" / "work-artifacts" / "2026-10-05-probe" / "agents" / "codex-artifacts"
             live = root / "run-2"
             live.mkdir(parents=True)
             (live / "events.jsonl").write_text(
@@ -228,6 +228,22 @@ class BoardCliTests(unittest.TestCase):
             out = codex_progress.board(tmp)
             self.assertIn("run-2  идёт elapsed=12s steps=3 idle_sec=2", out)
             self.assertIn("run-1  ok", out)
+
+    def test_board_spans_work_folders_and_limits_by_run_stamp(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp)
+            for work, run_name in (("z-old", "20261001-old"), ("a-new", "20261005-new")):
+                run = project / "_workspace/work-artifacts" / work / "agents/codex-artifacts" / run_name
+                run.mkdir(parents=True)
+                (run / "result.json").write_text(json.dumps({"ok": True}))
+            legacy = project / "_workspace/codex-artifacts/20999999-legacy"
+            legacy.mkdir(parents=True)
+            out = codex_progress.board(project)
+            self.assertLess(out.index("20261005-new"), out.index("20261001-old"))
+            self.assertNotIn("legacy", out)
+            limited = codex_progress.board(project, limit=1)
+            self.assertIn("20261005-new", limited)
+            self.assertNotIn("20261001-old", limited)
 
 
 class ExternalSteerTests(unittest.TestCase):

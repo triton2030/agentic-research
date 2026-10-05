@@ -4,6 +4,7 @@ import contextlib
 import io
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -241,8 +242,17 @@ def _install_fake_openai_codex(
     return names
 
 
+def _registry_path(project: Path) -> Path:
+    from codex_review import _dialog_registry_path
+    return _dialog_registry_path(project)
+
+
+def _artifacts_root(project: Path | str) -> Path:
+    return Path(project) / "_workspace" / "work-artifacts" / "2026-10-05-probe" / "agents" / "codex-artifacts"
+
+
 def _seed_dialog_registry(project: Path, thread_id: str) -> None:
-    reg = project / "_workspace" / "codex-artifacts" / "dialog-threads.jsonl"
+    reg = _registry_path(project)
     reg.parent.mkdir(parents=True, exist_ok=True)
     reg.write_text(json.dumps({"thread_id": thread_id}) + "\n", encoding="utf-8")
 
@@ -295,31 +305,73 @@ def run_review(
 
 
 class CodexReviewCliTests(unittest.TestCase):
-    def test_default_run_auto_creates_project_local_audit_dir(self) -> None:
+    def setUp(self) -> None:
+        home = self.enterContext(tempfile.TemporaryDirectory())
+        self.enterContext(mock.patch("pathlib.Path.home", return_value=Path(home)))
+
+    def test_missing_run_dir_refuses_without_creating_workspace(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
+            for flags in ([], ["--dialog"], ["--mode", "diff"]):
+                with self.subTest(flags=flags):
+                    proc = subprocess.run(
+                        [sys.executable, str(SCRIPT), "Проверь audit owner",
+                         "--project", str(root), "--dry-run", *flags],
+                        text=True, capture_output=True, check=False,
+                    )
+                    self.assertEqual(proc.returncode, 2, proc.stderr)
+                    self.assertIn("Требуется --run-dir", proc.stderr)
+                    self.assertIn("work-artifacts/<дата-тема>/agents/codex-artifacts/", proc.stderr)
+                    self.assertFalse((root / "_workspace").exists())
+
+    def test_missing_run_dir_also_refuses_with_default_project_cwd(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
             proc = subprocess.run(
-                [
-                    sys.executable,
-                    str(SCRIPT),
-                    "Проверь audit owner",
-                    "--project",
-                    str(root),
-                    "--dry-run",
-                ],
-                text=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                check=False,
+                [sys.executable, str(SCRIPT), "задание", "--dry-run"],
+                cwd=tmp, text=True, capture_output=True, check=False,
             )
-            self.assertEqual(proc.returncode, 0, proc.stderr)
-            artifacts_root = root.resolve() / "_workspace" / "codex-artifacts"
-            run_dirs = [path for path in artifacts_root.iterdir() if path.is_dir()]
-            self.assertEqual(len(run_dirs), 1)
-            result = json.loads((run_dirs[0] / "result.json").read_text())
-            self.assertEqual(result["run_dir"], str(run_dirs[0]))
-            self.assertTrue((run_dirs[0] / "manifest.json").exists())
-            self.assertTrue((run_dirs[0] / "events.jsonl").exists())
+            self.assertEqual(proc.returncode, 2)
+            self.assertIn("Требуется --run-dir", proc.stderr)
+            self.assertEqual(list(Path(tmp).iterdir()), [])
+
+    def test_registry_key_is_canonical_and_separates_projects(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            one, two = root / "one", root / "two"
+            one.mkdir()
+            two.mkdir()
+            alias = root / "alias"
+            alias.symlink_to(one, target_is_directory=True)
+            self.assertEqual(_registry_path(one), _registry_path(alias))
+            self.assertNotEqual(_registry_path(one), _registry_path(two))
+            self.assertTrue(_registry_path(one).is_relative_to(Path.home() / ".local/state/codex-bridge/dialog-threads"))
+            self.assertFalse(_registry_path(one).exists())
+            self.assertFalse((one / "_workspace").exists())
+
+    def test_continue_survives_removal_of_work_folder(self) -> None:
+        import codex_review
+
+        captured: dict = {}
+        fake_names = _install_fake_openai_codex(captured)
+        try:
+            with tempfile.TemporaryDirectory() as tmp:
+                project = Path(tmp)
+                for flags, run_name in ((["--dialog"], "start"),
+                                        (["--continue", "thread-fake-1"], "continue")):
+                    argv = ["codex_review.py", "вопрос", "--project", str(project),
+                            "--run-dir", str(_artifacts_root(project) / run_name), *flags]
+                    with mock.patch.object(sys, "argv", argv), contextlib.redirect_stdout(
+                        io.StringIO()
+                    ), contextlib.redirect_stderr(io.StringIO()):
+                        self.assertEqual(codex_review.main(), 0)
+                    shutil.rmtree(project / "_workspace/work-artifacts")
+                rows = [json.loads(line) for line in _registry_path(project).read_text().splitlines()]
+                self.assertEqual([row["event"] for row in rows], ["start", "continue"])
+                self.assertEqual(captured["resumed_thread_id"], "thread-fake-1")
+                self.assertFalse((project / "_workspace/codex-artifacts").exists())
+        finally:
+            for name in fake_names:
+                sys.modules.pop(name, None)
 
     def test_dry_run_summary_stdout_writes_ledger(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -383,6 +435,7 @@ class CodexReviewCliTests(unittest.TestCase):
                     "--question", "where is the hole?",
                     "--project", str(root),
                     "--transcript", str(transcript),
+                    "--run-dir", str(_artifacts_root(root) / "test-run"),
                 ]
                 buf = io.StringIO()
                 # Sentinel вместо среды: на машине без ChatGPT.app обе стороны
@@ -392,7 +445,7 @@ class CodexReviewCliTests(unittest.TestCase):
                     return_value="/sentinel/chatgpt/codex",
                 ):
                     rc = codex_review.main()
-                artifacts_root = root / "_workspace" / "codex-artifacts"
+                artifacts_root = _artifacts_root(root)
                 run_dirs = [path for path in artifacts_root.iterdir() if path.is_dir()]
                 self.assertEqual(len(run_dirs), 1)
                 result = json.loads((run_dirs[0] / "result.json").read_text())
@@ -435,6 +488,7 @@ class CodexReviewCliTests(unittest.TestCase):
                     "--task", "вопрос советнику",
                     "--project", tmp,
                     "--dialog",
+                    "--run-dir", str(_artifacts_root(tmp) / "test-run"),
                 ]
                 out, err = io.StringIO(), io.StringIO()
                 with contextlib.redirect_stdout(out), contextlib.redirect_stderr(
@@ -473,6 +527,7 @@ class CodexReviewCliTests(unittest.TestCase):
                     "--task", "уточни пункт два",
                     "--project", tmp,
                     "--continue", "thread-abc",
+                    "--run-dir", str(_artifacts_root(tmp) / "test-run"),
                 ]
                 out = io.StringIO()
                 with contextlib.redirect_stdout(out), contextlib.redirect_stderr(
@@ -485,7 +540,7 @@ class CodexReviewCliTests(unittest.TestCase):
                 registry_lines = [
                     json.loads(line)
                     for line in (
-                        Path(tmp) / "_workspace" / "codex-artifacts" / "dialog-threads.jsonl"
+                        _registry_path(Path(tmp))
                     ).read_text().splitlines()
                 ]
             self.assertEqual(rc, 0)
@@ -529,7 +584,7 @@ class CodexReviewCliTests(unittest.TestCase):
         saved_argv = sys.argv[:]
         try:
             with tempfile.TemporaryDirectory() as tmp:
-                reg = Path(tmp) / "_workspace" / "codex-artifacts" / "dialog-threads.jsonl"
+                reg = _registry_path(Path(tmp))
                 reg.parent.mkdir(parents=True, exist_ok=True)
                 reg.write_text(
                     json.dumps({"event": "start", "thread_id": "thread-abc"}) + "\n"
@@ -541,6 +596,7 @@ class CodexReviewCliTests(unittest.TestCase):
                     "--task", "продолжим",
                     "--project", tmp,
                     "--continue", "thread-abc",
+                    "--run-dir", str(_artifacts_root(tmp) / "test-run"),
                 ]
                 with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(
                     io.StringIO()
@@ -577,6 +633,7 @@ class CodexReviewCliTests(unittest.TestCase):
                         "--task", "уточнение",
                         "--project", tmp,
                         "--continue", blank,
+                        "--run-dir", str(_artifacts_root(tmp) / "test-run"),
                     ]
                     err = io.StringIO()
                     with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(err):
@@ -605,6 +662,7 @@ class CodexReviewCliTests(unittest.TestCase):
                     "--task", "уточнение",
                     "--project", tmp,
                     "--continue", "thread-foreign",
+                    "--run-dir", str(_artifacts_root(tmp) / "test-run"),
                 ]
                 err = io.StringIO()
                 with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(err):
@@ -626,7 +684,7 @@ class CodexReviewCliTests(unittest.TestCase):
                 registry_lines = [
                     json.loads(line)
                     for line in (
-                        Path(tmp) / "_workspace" / "codex-artifacts" / "dialog-threads.jsonl"
+                        _registry_path(Path(tmp))
                     ).read_text().splitlines()
                 ]
                 self.assertEqual(registry_lines[-1]["event"], "continue")
@@ -644,7 +702,7 @@ class CodexReviewCliTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            reg = root / "_workspace" / "codex-artifacts" / "dialog-threads.jsonl"
+            reg = _registry_path(root)
             reg.parent.mkdir(parents=True, exist_ok=True)
             reg.write_text(
                 json.dumps({"event": "archive", "thread_id": "t-x"}) + "\n",
@@ -657,9 +715,8 @@ class CodexReviewCliTests(unittest.TestCase):
             )
             self.assertTrue(codex_review._dialog_thread_known(root, "t-y"))
 
-    def test_dialog_auto_creates_run_dir_and_registers_thread(self) -> None:
-        """Персистентный диалог без audit owner запрещён: --dialog обязан сам
-        создать project-local run_dir и вписать тред в provenance-реестр."""
+    def test_dialog_uses_explicit_run_dir_and_registers_thread(self) -> None:
+        """Диалог пишет явный run_dir и межсессионный реестр вне проекта."""
         import codex_review
 
         captured: dict = {}
@@ -674,6 +731,7 @@ class CodexReviewCliTests(unittest.TestCase):
                     "--project", tmp,
                     "--dialog",
                     "--topic", "дизайн реестра",
+                    "--run-dir", str(_artifacts_root(tmp) / "test-run"),
                 ]
                 with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(
                     io.StringIO()
@@ -684,8 +742,8 @@ class CodexReviewCliTests(unittest.TestCase):
                     rc = codex_review.main()
                 self.assertEqual(rc, 0)
 
-                artifacts = root / "_workspace" / "codex-artifacts"
-                registry = artifacts / "dialog-threads.jsonl"
+                artifacts = _artifacts_root(root)
+                registry = _registry_path(root)
                 self.assertTrue(registry.exists(), "dialog-threads.jsonl не создан")
                 entry = json.loads(registry.read_text().splitlines()[0])
                 self.assertEqual(entry["thread_id"], "thread-fake-1")
@@ -693,7 +751,7 @@ class CodexReviewCliTests(unittest.TestCase):
                 self.assertEqual(entry["topic"], "дизайн реестра")
 
                 run_dirs = [p for p in artifacts.iterdir() if p.is_dir()]
-                self.assertEqual(len(run_dirs), 1, "авто-run_dir не создан")
+                self.assertEqual(len(run_dirs), 1, "явный run_dir не создан")
                 result = json.loads((run_dirs[0] / "result.json").read_text())
                 self.assertEqual(result["codex"]["thread_id"], "thread-fake-1")
                 self.assertTrue(result["codex"]["thread_persistent"])
@@ -720,6 +778,7 @@ class CodexReviewCliTests(unittest.TestCase):
                 "--project", str(root),
                 "--transcript", str(transcript),
                 "--continue", "thread-abc",
+                "--run-dir", str(_artifacts_root(root) / "test-run"),
             ]
             proc2 = subprocess.run(
                 command, text=True,
@@ -808,7 +867,7 @@ class CodexReviewCliTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             proc = subprocess.run(
-                [sys.executable, str(SCRIPT), "--project", str(root), "--dry-run"],
+                [sys.executable, str(SCRIPT), "--project", str(root), "--dry-run", "--run-dir", str(_artifacts_root(root) / "test-run")],
                 text=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
@@ -823,7 +882,7 @@ class CodexReviewCliTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             proc = subprocess.run(
-                [sys.executable, str(SCRIPT), "   ", "--project", str(root), "--dry-run"],
+                [sys.executable, str(SCRIPT), "   ", "--project", str(root), "--dry-run", "--run-dir", str(_artifacts_root(root) / "test-run")],
                 text=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
@@ -852,6 +911,7 @@ class CodexReviewCliTests(unittest.TestCase):
                     "посмотри на codex_review.py",
                     "--project",
                     str(root),
+                    "--run-dir", str(_artifacts_root(root) / "test-run"),
                 ]
                 buf = io.StringIO()
                 # Sentinel вместо среды: на машине без ChatGPT.app обе стороны
@@ -861,7 +921,7 @@ class CodexReviewCliTests(unittest.TestCase):
                     return_value="/sentinel/chatgpt/codex",
                 ):
                     rc = codex_review.main()
-                artifacts = root.resolve() / "_workspace" / "codex-artifacts"
+                artifacts = _artifacts_root(root).resolve()
                 run_dir = next(p for p in artifacts.iterdir() if p.is_dir())
                 out_exists = (run_dir / "out").is_dir()
             self.assertEqual(rc, 0)
@@ -938,7 +998,7 @@ class CodexReviewCliTests(unittest.TestCase):
         saved_argv = sys.argv[:]
         try:
             with tempfile.TemporaryDirectory() as tmp:
-                sys.argv = ["codex_review.py", "--mode", "diff", "--scratch", "--project", tmp]
+                sys.argv = ["codex_review.py", "--mode", "diff", "--scratch", "--project", tmp, "--run-dir", str(_artifacts_root(tmp) / "test-run")]
                 with contextlib.redirect_stderr(io.StringIO()):
                     self.assertEqual(codex_review.main(), 2)
         finally:
@@ -964,6 +1024,7 @@ class CodexReviewCliTests(unittest.TestCase):
                     sys.argv = [
                         "codex_review.py", "--task", "вопрос",
                         "--project", tmp, "--effort", effort,
+                        "--run-dir", str(_artifacts_root(tmp) / "test-run"),
                     ]
                     with contextlib.redirect_stdout(io.StringIO()):
                         rc = codex_review.main()
@@ -985,6 +1046,7 @@ class CodexReviewCliTests(unittest.TestCase):
                 sys.argv = [
                     "codex_review.py", "--task", "вопрос",
                     "--project", tmp, "--dialog",
+                    "--run-dir", str(_artifacts_root(tmp) / "test-run"),
                 ]
                 with contextlib.redirect_stdout(io.StringIO()):
                     rc = codex_review.main()
@@ -1034,6 +1096,7 @@ class CodexReviewCliTests(unittest.TestCase):
                 sys.argv = [
                     "codex_review.py", "--mode", "diff", "--base", "main",
                     "--project", str(root), "--effort", "xhigh",
+                    "--run-dir", str(_artifacts_root(root) / "test-run"),
                 ]
                 err = io.StringIO()
                 with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(err):
@@ -1054,7 +1117,7 @@ class CodexReviewCliTests(unittest.TestCase):
                 self.assertIsNone(captured.get("developer_instructions"))
 
                 result = json.loads(
-                    next((root / "_workspace" / "codex-artifacts").glob("*/result.json"))
+                    next(_artifacts_root(root).glob("*/result.json"))
                     .read_text(encoding="utf-8")
                 )
                 # Ledger обязан говорить правду: усилие наследуется, не применяется.
@@ -1082,6 +1145,7 @@ class CodexReviewCliTests(unittest.TestCase):
                     "посмотри на codex_review.py",
                     "--project",
                     str(root),
+                    "--run-dir", str(_artifacts_root(root) / "test-run"),
                 ]
                 with contextlib.redirect_stdout(io.StringIO()):
                     rc = codex_review.main()
@@ -1095,7 +1159,7 @@ class CodexReviewCliTests(unittest.TestCase):
                     json.loads(line)
                     for line in (
                         next(
-                            (root / "_workspace" / "codex-artifacts").glob("*/events.jsonl")
+                            _artifacts_root(root).glob("*/events.jsonl")
                         )
                     ).read_text(encoding="utf-8").splitlines()
                 ]
@@ -1171,12 +1235,13 @@ class CodexReviewCliTests(unittest.TestCase):
                             "--project", str(root),
                             "--transcript", str(transcript),
                             *argv_tail,
+                            "--run-dir", str(_artifacts_root(root) / "test-run"),
                         ]
                         with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(
                             io.StringIO()
                         ):
                             rc = codex_review.main()
-                        artifacts = root / "_workspace" / "codex-artifacts"
+                        artifacts = _artifacts_root(root)
                         run_dir = next(p for p in artifacts.iterdir() if p.is_dir())
                         prompt_md = (run_dir / "prompt.md").read_text(encoding="utf-8")
                         manifest = json.loads((run_dir / "manifest.json").read_text())
@@ -1217,13 +1282,14 @@ class CodexReviewCliTests(unittest.TestCase):
                     "--task", "проверь ретрай",
                     "--project", str(root),
                     "--heartbeat-sec", "0",
+                    "--run-dir", str(_artifacts_root(root) / "test-run"),
                 ]
                 with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(
                     io.StringIO()
                 ):
                     rc = codex_review.main()
                 run_dir = next(
-                    p for p in (root / "_workspace" / "codex-artifacts").iterdir() if p.is_dir()
+                    p for p in _artifacts_root(root).iterdir() if p.is_dir()
                 )
                 events = [
                     json.loads(line)
@@ -1280,6 +1346,7 @@ class CodexReviewCliTests(unittest.TestCase):
                     "--heartbeat-sec",
                     "0",
                     "--summary-stdout",
+                    "--run-dir", str(_artifacts_root(root) / "test-run"),
                 ]
                 out = io.StringIO()
                 with contextlib.redirect_stdout(out), contextlib.redirect_stderr(

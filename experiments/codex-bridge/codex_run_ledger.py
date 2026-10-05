@@ -1,7 +1,8 @@
 """Журнал прогона: run_dir, события, пульс, атомарная запись, финал.
 
 Единственный audit-владелец любого прогона моста — его `run_dir` в
-`<проект>/_workspace/codex-artifacts/<run_id>/`. Общий `~/.codex` шарится с
+`<проект>/_workspace/work-artifacts/<дата-тема>/agents/codex-artifacts/<стамп>-<имя>/`.
+Путь задаёт вызывающий через --run-dir. Общий `~/.codex` шарится с
 Codex Desktop и audit surface НЕ является. Раз владелец один, здесь же лежит
 и форма его артефактов: `prompt.md` (`render_prompt_document`) и финал прогона
 (`RunResult`).
@@ -34,20 +35,20 @@ def make_run_id() -> str:
     return datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "-" + uuid.uuid4().hex[:8]
 
 
-# Артефакты прогонов живут В ПРОЕКТЕ работы, не в backend-репо: иначе каждый
-# вызов из чужого проекта сыплет мусор в codex-bridge/runs/. Это и рабочее
-# место субагентов (заметки, архив, findings между кругами цикла).
-PROJECT_ARTIFACTS_SUBDIR = Path("_workspace") / "codex-artifacts"
+RUN_DIR_REQUIRED_MESSAGE = (
+    "Требуется --run-dir: укажи свежую папку прогона внутри рабочей папки работы: "
+    "<project>/_workspace/work-artifacts/<дата-тема>/agents/codex-artifacts/<стамп>-<имя>."
+)
 
 
 def prepare_run_dir(raw_run_dir: str | None, *, project: Path | None = None) -> tuple[str, Path]:
-    """Свежий run_dir. Default — <project>/_workspace/codex-artifacts/<run_id>;
-    без project (не должен случаться из штатных входов) — legacy backend runs/."""
+    """Свежий явный run_dir; с проектом отсутствие пути — ошибка.
+    Без project сохраняется backend runs/ для внутренних вызовов."""
     run_id = make_run_id()
     if raw_run_dir:
         run_dir = Path(raw_run_dir).expanduser().resolve()
     elif project is not None:
-        run_dir = (project / PROJECT_ARTIFACTS_SUBDIR / run_id).resolve()
+        raise UsageError(RUN_DIR_REQUIRED_MESSAGE)
     else:
         run_dir = BACKEND_DIR / "runs" / run_id
     try:

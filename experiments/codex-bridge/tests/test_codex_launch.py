@@ -54,8 +54,12 @@ class LaunchTests(unittest.TestCase):
         shutil.copy(BACKEND / "codex_watch.py", self.fake_backend / "codex_watch.py")
         # launcher резолвит соседей через HERE = папка своего файла
         shutil.copy(BACKEND / "codex_launch.py", self.fake_backend / "codex_launch.py")
+        for module in ("codex_run_ledger.py", "cbcommon.py"):
+            shutil.copy(BACKEND / module, self.fake_backend / module)
         self.project = self.tmp / "project"
         self.project.mkdir()
+        self.run_root = self.project / "_workspace" / "work-artifacts" / "2026-10-05-probe" / "agents" / "codex-artifacts"
+        self.run_dir = self.run_root / "20261005T000000Z-probe"
         self.prompt = self.tmp / "task.md"
         self.prompt.write_text("Задание для пробы", encoding="utf-8")
 
@@ -66,7 +70,8 @@ class LaunchTests(unittest.TestCase):
         return [
             sys.executable, str(self.fake_backend / "codex_launch.py"), "agent",
             "--name", "probe", "--prompt-file", str(self.prompt),
-            "--project", str(self.project), "--poll", "1", *extra,
+            "--project", str(self.project), "--poll", "1",
+            "--run-dir", str(self.run_dir), *extra,
         ]
 
     def test_card_shows_header_words_and_finish(self) -> None:
@@ -90,7 +95,7 @@ class LaunchTests(unittest.TestCase):
         run_dir = None
         deadline = time.time() + 20
         while time.time() < deadline and run_dir is None:
-            for d in (self.project / "_workspace" / "codex-artifacts").glob("*-probe"):
+            for d in self.run_root.glob("*-probe"):
                 if (d / "events.jsonl").is_file():
                     run_dir = d
             time.sleep(0.2)
@@ -110,6 +115,17 @@ class LaunchTests(unittest.TestCase):
         proc = subprocess.run(self._cmd("--run-dir", str(taken)), capture_output=True, text=True, timeout=30)
         self.assertEqual(proc.returncode, 2)
         self.assertIn("RUN_DIR уже существует", proc.stderr)
+
+    def test_missing_run_dir_refused_before_creating_files(self) -> None:
+        cmd = self._cmd()
+        index = cmd.index("--run-dir")
+        del cmd[index:index + 2]
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+        self.assertEqual(proc.returncode, 2)
+        self.assertIn("Требуется --run-dir", proc.stderr)
+        self.assertIn("work-artifacts/<дата-тема>/agents/codex-artifacts/", proc.stderr)
+        self.assertEqual(proc.stdout, "")
+        self.assertFalse((self.project / "_workspace").exists())
 
     def test_review_is_the_old_name_of_agent(self) -> None:
         cmd = self._cmd()

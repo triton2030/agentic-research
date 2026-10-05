@@ -9,6 +9,7 @@ import types
 import unittest
 from datetime import datetime, timezone
 from pathlib import Path
+from unittest import mock
 
 BACKEND = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(BACKEND))
@@ -17,7 +18,7 @@ import codex_threads  # noqa: E402
 
 
 def _write_registry(project: Path, lines: list[dict]) -> None:
-    reg = project / "_workspace" / "codex-artifacts" / "dialog-threads.jsonl"
+    reg = codex_threads._dialog_registry_path(project)
     reg.parent.mkdir(parents=True, exist_ok=True)
     reg.write_text(
         "\n".join(json.dumps(line, ensure_ascii=False) for line in lines) + "\n",
@@ -25,7 +26,13 @@ def _write_registry(project: Path, lines: list[dict]) -> None:
     )
 
 
-class CollapseTests(unittest.TestCase):
+class RegistryTests(unittest.TestCase):
+    def setUp(self) -> None:
+        home = self.enterContext(tempfile.TemporaryDirectory())
+        self.enterContext(mock.patch("pathlib.Path.home", return_value=Path(home)))
+
+
+class CollapseTests(RegistryTests):
     def test_collapse_merges_events_and_legacy_lines(self) -> None:
         events = [
             # legacy-строка без "event" — читается как start
@@ -64,7 +71,7 @@ class CollapseTests(unittest.TestCase):
         self.assertEqual(codex_threads.stale_ids(threads, now, 48), ["old"])
 
 
-class RobustnessTests(unittest.TestCase):
+class RobustnessTests(RegistryTests):
     def test_naive_timestamps_do_not_crash(self) -> None:
         """Naive ISO-метка (без timezone) считается UTC, не роняет доску."""
         now = datetime(2026, 7, 12, 12, 0, tzinfo=timezone.utc)
@@ -78,7 +85,7 @@ class RobustnessTests(unittest.TestCase):
     def test_read_events_counts_bad_lines(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            reg = root / "_workspace" / "codex-artifacts" / "dialog-threads.jsonl"
+            reg = codex_threads._dialog_registry_path(root)
             reg.parent.mkdir(parents=True, exist_ok=True)
             reg.write_text(
                 '{"event": "start", "thread_id": "ok", "created_at": "2026-07-01T10:00:00+00:00"}\n'
@@ -95,7 +102,7 @@ class RobustnessTests(unittest.TestCase):
         """По повреждённой доске нельзя судить о свежести — SDK не зовём."""
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            reg = root / "_workspace" / "codex-artifacts" / "dialog-threads.jsonl"
+            reg = codex_threads._dialog_registry_path(root)
             reg.parent.mkdir(parents=True, exist_ok=True)
             reg.write_text(
                 '{"event": "start", "thread_id": "old", "created_at": "2026-07-01T10:00:00+00:00"}\n'
@@ -125,7 +132,7 @@ class RobustnessTests(unittest.TestCase):
         self.assertFalse(threads[0]["archived"])
 
 
-class ArchiveTests(unittest.TestCase):
+class ArchiveTests(RegistryTests):
     def test_archive_stale_calls_sdk_and_appends_events(self) -> None:
         archived: list[str] = []
 
@@ -160,7 +167,7 @@ class ArchiveTests(unittest.TestCase):
                 self.assertEqual(archived, ["old"])
                 events = [
                     json.loads(line)
-                    for line in (root / "_workspace" / "codex-artifacts" / "dialog-threads.jsonl")
+                    for line in (codex_threads._dialog_registry_path(root))
                     .read_text().splitlines()
                 ]
                 self.assertEqual(events[-1]["event"], "archive")
@@ -214,7 +221,7 @@ class ArchiveTests(unittest.TestCase):
                 self.assertIn("archive FAILED: bad", err.getvalue())
                 events = [
                     json.loads(line)
-                    for line in (root / "_workspace" / "codex-artifacts" / "dialog-threads.jsonl")
+                    for line in (codex_threads._dialog_registry_path(root))
                     .read_text().splitlines()
                 ]
                 archive_events = [e for e in events if e.get("event") == "archive"]
@@ -261,7 +268,7 @@ class ArchiveTests(unittest.TestCase):
             sys.modules.pop("openai_codex", None)
 
 
-class CliValidationTests(unittest.TestCase):
+class CliValidationTests(RegistryTests):
     def _run_main(self, argv: list[str]) -> tuple[int, str]:
         saved = sys.argv[:]
         sys.argv = ["codex_threads.py", *argv]
@@ -297,7 +304,7 @@ if __name__ == "__main__":
     unittest.main()
 
 
-class HistoryTests(unittest.TestCase):
+class HistoryTests(RegistryTests):
     """`history`: переписка через thread/read, короткий отказ вместо traceback."""
 
     def _fake_sdk(self, read):

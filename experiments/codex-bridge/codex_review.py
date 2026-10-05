@@ -29,6 +29,7 @@ Codex работает как субагент Claude: полный доступ
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import sys
@@ -58,6 +59,7 @@ from codex_defaults import (
     resolve_codex_bin,
 )
 from codex_run_ledger import (
+    RUN_DIR_REQUIRED_MESSAGE,
     RunResult,
     append_event,
     prepare_run_dir,
@@ -274,11 +276,10 @@ def _review_paths(run_dir: Path) -> dict[str, str]:
     }
 
 
-DIALOG_REGISTRY_NAME = "dialog-threads.jsonl"
-
-
 def _dialog_registry_path(project_cwd: Path) -> Path:
-    return project_cwd / "_workspace" / "codex-artifacts" / DIALOG_REGISTRY_NAME
+    """Межсессионный реестр вне проекта; ключ — канонический путь проекта."""
+    key = hashlib.sha256(str(project_cwd.expanduser().resolve()).encode("utf-8")).hexdigest()
+    return Path.home() / ".local" / "state" / "codex-bridge" / "dialog-threads" / f"{key}.jsonl"
 
 
 def _session_short() -> str | None:
@@ -384,7 +385,7 @@ def main() -> int:
     parser.add_argument("--max-chars", type=int, default=200_000, help="Бюджет транскрипта; при превышении остаётся свежий хвост.")
     parser.add_argument(
         "--run-dir",
-        help="Fresh ledger directory override (default: <project>/_workspace/codex-artifacts/<run_id>).",
+        help="Обязательный свежий каталог прогона внутри рабочей папки работы (work-artifacts).",
     )
     parser.add_argument(
         "--summary-stdout",
@@ -441,6 +442,10 @@ def main() -> int:
         report = check(cwd=str(Path(args.project).expanduser().resolve()))
         print(render(report))
         return 0 if report.get("ok") else 1
+
+    if not args.run_dir:
+        print(f"[codex-bridge] {RUN_DIR_REQUIRED_MESSAGE}", file=sys.stderr)
+        return 2
 
     # Задание/вопрос берём из любого источника, чтобы вызов не падал из-за того,
     # каким флагом он записан: --task, --question или позиционный аргумент.
@@ -575,8 +580,8 @@ def main() -> int:
         "thread_persistent": thread_persistent,
         "resumed_from_thread": args.continue_thread,
     }
-    # Every reviewer turn gets one audit owner. --run-dir is only an override;
-    # ordinary foreground calls use the project-local default.
+    # Every turn gets one audit owner, explicitly chosen by the caller inside
+    # the work folder. Never recreate the former project-wide artifacts folder.
     try:
         run_id, run_dir = prepare_run_dir(args.run_dir, project=project_cwd)
     except UsageError as exc:
@@ -828,7 +833,7 @@ def main() -> int:
             if thread_persistent:
                 print(
                     f"[codex-bridge] thread_id={codex_runtime['thread_id']} "
-                    f"(persistent; продолжение: --continue {codex_runtime['thread_id']})",
+                    f"(persistent; продолжение: --continue {codex_runtime['thread_id']} --run-dir НОВЫЙ_RUN_DIR)",
                     file=sys.stderr,
                 )
                 append_event(

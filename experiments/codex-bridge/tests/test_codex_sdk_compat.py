@@ -175,7 +175,8 @@ class EntrypointWiringTest(unittest.TestCase):
         try:
             with tempfile.TemporaryDirectory() as tmp:
                 root = Path(tmp).resolve()
-                sys.argv = [f"{module_name}.py", *argv, "--project", str(root)]
+                sys.argv = [f"{module_name}.py", *argv, "--project", str(root),
+                            "--run-dir", str(root / "run")]
                 buf = io.StringIO()
                 with contextlib.redirect_stdout(buf), mock.patch.object(
                     entry, "harden_sdk_enums", side_effect=_harden_spy

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Статусная доска тредов Codex: list / mine / history / archive / unarchive.
 
-Источник `list` — append-only реестр `<project>/_workspace/codex-artifacts/
-dialog-threads.jsonl` (события start/continue/archive/unarchive; legacy-строки
+Источник `list` — append-only реестр `~/.local/state/codex-bridge/dialog-threads/
+<SHA-256 канонического пути проекта>.jsonl` (события start/continue/archive/unarchive; legacy-строки
 без "event" читаются как start). `list` не трогает SDK и Codex — чистое
 чтение; `archive`/`unarchive` зовут штатные SDK-вызовы (env scrub перед
 импортом SDK — биллинг-инвариант), никаких ручных удалений в `~/.codex`.
@@ -13,7 +13,7 @@ dialog-threads.jsonl` (события start/continue/archive/unarchive; legacy-�
 
 Зачем: новый или параллельный агент видит тематику и свежесть чужих диалогов,
 не читая переписку; «где остановились» — final.md последнего run (упавший ход
-— result.json там же); продолжить — `codex_review.py "..." --continue ID`.
+— result.json там же); продолжить — `codex_review.py "..." --continue ID --run-dir НОВЫЙ_RUN_DIR`.
 
 `history THREAD_ID` — переписка треда штатным `thread/read` с историей ходов
 (SDK ≥ 0.154.0), а не чтением `~/.codex/sessions/rollout-*.jsonl`: формат
@@ -166,7 +166,7 @@ def cmd_list(project_cwd: Path, as_json: bool, older_hours: int) -> int:
         )
     print(
         "\n«Где остановились» — final.md последнего run (упавший ход — result.json"
-        ' там же). Продолжить: codex_review.py "..." --continue THREAD_ID'
+        ' там же). Продолжить: codex_review.py "..." --continue THREAD_ID --run-dir НОВЫЙ_RUN_DIR'
     )
     return 0
 
@@ -294,7 +294,7 @@ def cmd_mine(project_cwd: Path, as_json: bool, limit: int, all_projects: bool) -
         )
     print(
         '\nЧужой тред продолжается только осознанно: codex_review.py "..." '
-        "--continue THREAD_ID --continue-foreign. Живой тред другой сессии не трогай."
+        "--continue THREAD_ID --continue-foreign --run-dir НОВЫЙ_RUN_DIR. Живой тред другой сессии не трогай."
     )
     return 0
 

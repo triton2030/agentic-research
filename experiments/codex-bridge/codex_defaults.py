@@ -131,7 +131,8 @@ SCRATCH_SANDBOX = "workspace_write"
 # Bridge threads must NOT persist into the shared ~/.codex session store. That
 # store is the runtime owner (auth/config/runtime) shared with Codex Desktop,
 # which renders every materialized thread as a chat. The bridge's only
-# audit/debug owner is the project-local _workspace/codex-artifacts/<run_id>/.
+# audit/debug owner is the explicit --run-dir inside the work folder:
+# _workspace/work-artifacts/<date-topic>/agents/codex-artifacts/<stamp>-<name>/.
 # Passing ephemeral=True keeps the thread off disk — SDK wire schema: "should
 # not be materialized on disk".
 BRIDGE_THREAD_EPHEMERAL = True

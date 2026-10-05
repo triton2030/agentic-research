@@ -69,7 +69,7 @@ class SoloRunTests(unittest.TestCase):
     def test_look_shows_one_live_run(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             project = Path(tmp)
-            run_dir = project / "_workspace" / "codex-artifacts" / "run-1"
+            run_dir = project / "_workspace" / "work-artifacts" / "2026-10-05-probe" / "agents" / "codex-artifacts" / "run-1"
             run_dir.mkdir(parents=True)
             (run_dir / "manifest.json").write_text("{}", encoding="utf-8")
             (run_dir / "events.jsonl").write_text(

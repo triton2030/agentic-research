@@ -78,14 +78,21 @@ Backend здесь; operator/router — `~/.claude/skills/1codex/`.
   `ephemeral=BRIDGE_THREAD_EPHEMERAL` (`codex_defaults.py`, =`True`). `~/.codex` —
   owner auth/config/runtime, общий с Codex Desktop, который рисует каждый
   материализованный thread как чат. Единственный audit/debug owner прогона — его
-  run_dir (default `<project>/_workspace/codex-artifacts/<run_id>/`, локально в
-  проекте работы; legacy `runs/` — fallback без project); Desktop history audit
+  run_dir: обязательный `--run-dir` внутри рабочей папки работы,
+  `<project>/_workspace/work-artifacts/<дата-тема>/agents/codex-artifacts/<стамп>-<имя>/`.
+  Launcher и прямой вход без пути отказывают с кодом 2 до создания файлов;
+  `<project>/_workspace/codex-artifacts/` автоматически не создаётся.
+  Ledger без project сохраняет fallback `runs/`; `--doctor` run_dir не требует.
+  Desktop history audit
   surface'ом НЕ является. Ledger пишет `codex.thread_ephemeral` как
   доказательство. Не убирай флаг и не заводи второй `CODEX_HOME` (это клонирует
   auth/config/hooks и даёт profile-drift). Санкционированное исключение одно:
   диалог `--dialog`/`--continue` (персистентный тред — resume требует
-  rollout на диске, обязательный авто-run_dir, provenance-реестр
-  `dialog-threads.jsonl`; см. README «Консультант / ревьюер»).
+  rollout на диске, обязательный явный run_dir, provenance-реестр
+  `~/.local/state/codex-bridge/dialog-threads/<SHA-256 канонического пути проекта>.jsonl`;
+  см. README «Вызов агента»). Реестр находится вне проекта, переживает сессии
+  и уборку рабочих папок. Доски прогонов ищут
+  `_workspace/work-artifacts/*/agents/codex-artifacts/*`.
 - **Дрейф движка не роняет мост.** ChatGPT.app авто-обновляется, SDK запинен —
   неизвестные enum-значения ломали pydantic-валидацию в обоих направлениях:
   исходящий `--effort ultra` (07.2026) и `max` в ответе `thread_start`

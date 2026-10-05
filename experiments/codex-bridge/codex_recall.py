@@ -15,6 +15,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from codex_run_ledger import RUN_DIR_REQUIRED_MESSAGE
+
 HERE = Path(__file__).resolve().parent
 REVIEW = HERE / "codex_review.py"
 PYTHON = HERE / ".venv" / "bin" / "python"
@@ -69,7 +71,12 @@ def main() -> int:
     parser.add_argument("--model", default=DEFAULT_MODEL, help=f"Модель (default: {DEFAULT_MODEL}).")
     parser.add_argument("--effort", default="xhigh", help="Reasoning effort (default: xhigh).")
     parser.add_argument("--print-prompt", action="store_true", help="Показать промпт и выйти.")
+    parser.add_argument("--run-dir", help="Обязательный свежий каталог прогона внутри рабочей папки работы.")
     args = parser.parse_args()
+
+    if not args.print_prompt and not args.run_dir:
+        print(f"codex-recall: {RUN_DIR_REQUIRED_MESSAGE}", file=sys.stderr)
+        return 2
 
     project = Path(args.project).resolve()
     corpus = Path(args.corpus).resolve() if args.corpus else project / DEFAULT_CORPUS
@@ -91,6 +98,7 @@ def main() -> int:
         "--model", args.model,
         "--effort", args.effort,
         "--project", str(project),
+        "--run-dir", args.run_dir,
         "--no-dialog",
     ]
     return subprocess.run(command, check=False).returncode

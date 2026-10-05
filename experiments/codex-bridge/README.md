@@ -41,7 +41,7 @@
 Владелец просил «чтобы в десктоп приложении я видел факт того что агенты
 работают, типа как баш команды» (2026-08-24); карточка с длинным заданием
 «выглядит мусорно» (2026-09-18). Для этого
-`codex_launch.py agent --name ИМЯ --prompt-file ФАЙЛ -- АРГУМЕНТЫ` запускает
+`codex_launch.py agent --name ИМЯ --prompt-file ФАЙЛ --run-dir PATH -- АРГУМЕНТЫ` запускает
 `codex_review.py` отдельным процессом, пишет его вывод в
 `<RUN_DIR>.launch.log` и показывает `codex_watch.py watch RUN_DIR --pulse`:
 модель, усилие, задание, текстовые сообщения Codex, сводки размышлений и
@@ -77,12 +77,22 @@
 
 ## Аудит: `run_dir`
 
-Единственный audit/debug owner прогона — `run_dir`, обычно
-`<project>/_workspace/codex-artifacts/<run_id>/`. В нём находятся
+Единственный audit/debug owner прогона — явный `run_dir` внутри рабочей папки работы:
+`<project>/_workspace/work-artifacts/<дата-тема>/agents/codex-artifacts/<стамп>-<имя>/`.
+В нём находятся
 `manifest.json`, `events.jsonl`, `prompt.md`, `result.json`, а после реального
 хода — `final.md`; непроектные артефакты кладут в `out/`. `--run-dir PATH`
-задаёт новый каталог явно. `prompt.md` содержит user-промпт и полную роль;
+обязателен для launcher и прямого входа, в том числе `--dialog`, `--continue` и `--dry-run`.
+Без него вход отказывает с кодом 2 до создания файлов и запуска Codex,
+показывая шаблон пути выше. `--doctor` не запускает прогон и пути не требует.
+Общая `<project>/_workspace/codex-artifacts/` больше не создаётся автоматически.
+Только внутренний вызов ledger без проекта сохраняет fallback `codex-bridge/runs/`.
+`prompt.md` содержит user-промпт и полную роль;
 manifest учитывает длины обеих частей.
+
+`codex_progress.py --board PROJECT` и `codex_watch.py look PROJECT` ищут прогоны по
+`_workspace/work-artifacts/*/agents/codex-artifacts/*`, со свежими стампами сверху.
+Явный путь вне этой схемы допустим; такой прогон смотрят по его `RUN_DIR`.
 
 Обычные треды эфемерны и не появляются отдельными чатами в Codex Desktop.
 `--dialog`/`--continue` создают персистентный тред ради resume. История Desktop
@@ -367,31 +377,38 @@ SDK содержит запасной бинарь Codex и читает общ�
 
 ## Вызов агента
 
+Укажи папку моста и целевой проект независимо от текущей папки shell.
+Для каждой команды прогона выбери новый `RUN_DIR`; команды ниже — отдельные примеры.
+Каталог ещё не должен существовать. `--run-dir` передаётся launcher до `--`.
+
 ```bash
+BRIDGE_DIR="/путь/к/agentic-research/experiments/codex-bridge"
+PROJECT="/путь/к/целевому-проекту"
+RUN_DIR="$PROJECT/_workspace/work-artifacts/2026-10-05-тема/agents/codex-artifacts/20261005T120000Z-имя"
 # Задание без транскрипта — режим task по умолчанию:
-.venv/bin/python codex_review.py "Сверь README с реальными флагами кода"
-.venv/bin/python codex_review.py --task "Исправь ошибку в parser.py"
+"$BRIDGE_DIR/.venv/bin/python" "$BRIDGE_DIR/codex_review.py" --project "$PROJECT" "Сверь README с реальными флагами кода" --run-dir "$RUN_DIR"
+"$BRIDGE_DIR/.venv/bin/python" "$BRIDGE_DIR/codex_review.py" --project "$PROJECT" --task "Исправь ошибку в parser.py" --run-dir "$RUN_DIR"
 
 # Сессия Claude нужна режимам review и ask:
-.venv/bin/python codex_review.py --mode review
-.venv/bin/python codex_review.py --mode ask --question "Где дыра в подходе?"
+"$BRIDGE_DIR/.venv/bin/python" "$BRIDGE_DIR/codex_review.py" --project "$PROJECT" --mode review --run-dir "$RUN_DIR"
+"$BRIDGE_DIR/.venv/bin/python" "$BRIDGE_DIR/codex_review.py" --project "$PROJECT" --mode ask --question "Где дыра в подходе?" --run-dir "$RUN_DIR"
 
 # Нативное ревью незакоммиченных изменений, ветки или коммита:
-.venv/bin/python codex_review.py --mode diff
-.venv/bin/python codex_review.py --mode diff --base main
-.venv/bin/python codex_review.py --mode diff --commit SHA
+"$BRIDGE_DIR/.venv/bin/python" "$BRIDGE_DIR/codex_review.py" --project "$PROJECT" --mode diff --run-dir "$RUN_DIR"
+"$BRIDGE_DIR/.venv/bin/python" "$BRIDGE_DIR/codex_review.py" --project "$PROJECT" --mode diff --base main --run-dir "$RUN_DIR"
+"$BRIDGE_DIR/.venv/bin/python" "$BRIDGE_DIR/codex_review.py" --project "$PROJECT" --mode diff --commit SHA --run-dir "$RUN_DIR"
 
 # Проверки в копии; промпт без траты; бесплатная диагностика движка:
-.venv/bin/python codex_review.py "Запусти тесты" --scratch
-.venv/bin/python codex_review.py "Сверь документы" --dry-run
-.venv/bin/python codex_review.py --doctor
+"$BRIDGE_DIR/.venv/bin/python" "$BRIDGE_DIR/codex_review.py" --project "$PROJECT" "Запусти тесты" --scratch --run-dir "$RUN_DIR"
+"$BRIDGE_DIR/.venv/bin/python" "$BRIDGE_DIR/codex_review.py" --project "$PROJECT" "Сверь документы" --dry-run --run-dir "$RUN_DIR"
+"$BRIDGE_DIR/.venv/bin/python" "$BRIDGE_DIR/codex_review.py" --project "$PROJECT" --doctor
 
 # Диалог:
-.venv/bin/python codex_review.py "ВОПРОС" --dialog --topic "Тема"
-.venv/bin/python codex_review.py "УТОЧНЕНИЕ" --continue THREAD_ID
+"$BRIDGE_DIR/.venv/bin/python" "$BRIDGE_DIR/codex_review.py" --project "$PROJECT" "ВОПРОС" --dialog --topic "Тема" --run-dir "$RUN_DIR"
+"$BRIDGE_DIR/.venv/bin/python" "$BRIDGE_DIR/codex_review.py" --project "$PROJECT" "УТОЧНЕНИЕ" --continue THREAD_ID --run-dir "$RUN_DIR"
 
 # Короткая карточка с витриной:
-.venv/bin/python codex_launch.py agent --name readme --prompt-file /tmp/task.md --project "$PWD" -- --model gpt-6.1-sol
+"$BRIDGE_DIR/.venv/bin/python" "$BRIDGE_DIR/codex_launch.py" agent --name readme --prompt-file /tmp/task.md --project "$PROJECT" --run-dir "$RUN_DIR" -- --model gpt-6.1-sol
 ```
 
 Для запуска витрины `/tmp/task.md` должен заранее содержать задание. Режим
@@ -413,10 +430,10 @@ SDK содержит запасной бинарь Codex и читает общ�
 проверено живыми пробниками 2026-07-12), поэтому диалоговые треды персистентны
 и видны в Desktop-истории. Контракты:
 
-- run_dir создаётся автоматически (audit owner обязателен); ledger фиксирует
+- Свежий run_dir обязателен через `--run-dir` для каждого хода; ledger фиксирует
   `thread_id`, `thread_persistent`, `resumed_from_thread`, событие `thread`.
 - Provenance и статусная доска: `--dialog` пишет в
-  `<project>/_workspace/codex-artifacts/dialog-threads.jsonl` событие `start`
+  `~/.local/state/codex-bridge/dialog-threads/<SHA-256 канонического пути проекта>.jsonl` событие `start`
   (тема из `--topic` или головы задания, короткий id сессии), `--continue` —
   событие `continue`; `--continue` по умолчанию принимает только треды из
   этого реестра — чужой Desktop/API-тред несёт непроверенные роль и контекст.
@@ -433,6 +450,10 @@ SDK содержит запасной бинарь Codex и читает общ�
   Руками `~/.codex` не чистить. Archive-событие provenance НЕ даёт — чужой
   тред нельзя «легализовать» его архивацией. Реестр append-only без локов:
   «чужой живой тред не трогай» — дисциплина агента, не backend-гарантия.
+  Реестр переживает сессии и уборку рабочих папок; он отделён по пути проекта.
+  Старый `dialog-threads.jsonl` автоматически не переносится. Прежний тред можно
+  продолжить через `--continue THREAD_ID --continue-foreign --run-dir НОВЫЙ_RUN_DIR`:
+  этот ход добавит его в новый реестр, сохранив записи уже начатых новых диалогов.
 - Реестр моста знает только свои треды. Что вообще открыто у владельца
   (Codex Desktop, `codex` в терминале) — `codex_threads.py mine [--limit N]
   [--all-projects] [--json]`: нативный `thread_list` движка по общему store
@@ -479,6 +500,7 @@ SDK содержит запасной бинарь Codex и читает общ�
 - `codex_threads.py`, `codex_footprint.py`, `codex_preflight.py` — диалоги,
   след моста вне `run_dir` и `--doctor`. Скан следа ничего не удаляет;
   `archive --orphaned` — отдельная обратимая уборка тредов на удалённых папках.
-- `codex_recall.py` — глубокий поиск цитат одним вызовом для Claude и Codex.
+- `codex_recall.py` — глубокий поиск цитат одним вызовом для Claude и Codex;
+  принимает и передаёт обязательный `--run-dir` (кроме `--print-prompt`).
 
 Пути в скиле `1codex` абсолютные и привязаны к расположению этого репо.

@@ -332,14 +332,18 @@ def watch(
 
 def look(project: Path, limit: int = 12) -> int:
     """Снимок по запросу: над чем сейчас работает каждый живой агент."""
-    root = project / "_workspace" / "codex-artifacts"
+    root = project / "_workspace" / "work-artifacts"
     if not root.is_dir():
         emit(f"прогонов нет: {root} не существует")
         return 0
 
     now = time.time()
     shown = 0
-    for run_dir in sorted((p for p in root.iterdir() if p.is_dir()), reverse=True):
+    runs = sorted(
+        (p for p in root.glob("*/agents/codex-artifacts/*") if p.is_dir()),
+        key=lambda p: (p.name, str(p)), reverse=True,
+    )
+    for run_dir in runs:
         # Каталог артефактов копит и чужие папки. Прогон опознаём по манифесту:
         # ledger пишет его первым, поэтому он есть даже у прогона без единого
         # события. Без этого фильтра мусорная папка выглядит вечно живой.

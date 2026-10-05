@@ -400,11 +400,14 @@ def board(project: Any, *, limit: int = 12) -> str:
     import json
     from pathlib import Path
 
-    root = Path(project) / "_workspace" / "codex-artifacts"
+    root = Path(project) / "_workspace" / "work-artifacts"
     if not root.is_dir():
         return f"прогонов нет: {root} не существует"
 
-    runs = sorted((p for p in root.iterdir() if p.is_dir()), reverse=True)[:limit]
+    runs = sorted(
+        (p for p in root.glob("*/agents/codex-artifacts/*") if p.is_dir()),
+        key=lambda p: (p.name, str(p)), reverse=True,
+    )[:limit]
     if not runs:
         return f"прогонов нет: {root} пуст"
 

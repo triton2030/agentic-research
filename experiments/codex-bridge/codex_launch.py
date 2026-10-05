@@ -8,8 +8,9 @@
 review --prompt-file …`), а stdout карточки — только витрина: заголовок с
 заданием, строка на каждый шаг Codex, финал.
 
-Что делает: выбирает свежий `RUN_DIR` (`<project>/_workspace/codex-artifacts/
-<UTC>-<name>`), запускает вход моста `codex_review.py` отдельным процессом с
+Что делает: принимает свежий `RUN_DIR` через обязательный `--run-dir`
+(`<project>/_workspace/work-artifacts/<дата-тема>/agents/codex-artifacts/<стамп>-<имя>`),
+запускает вход моста `codex_review.py` отдельным процессом с
 выводом в `<RUN_DIR>.launch.log` и держит в своём stdout `codex_watch.py watch
 RUN_DIR --pulse`. Завершается вместе с прогоном — одно уведомление агенту;
 остановка карточки прерывает прогон штатно (interrupt), а не оставляет его
@@ -29,8 +30,9 @@ import argparse
 import signal
 import subprocess
 import sys
-from datetime import datetime, timezone
 from pathlib import Path
+
+from codex_run_ledger import RUN_DIR_REQUIRED_MESSAGE
 
 HERE = Path(__file__).resolve().parent
 ENTRIES = {
@@ -45,23 +47,21 @@ def main() -> int:
     parser.add_argument("--name", required=True, help="суффикс RUN_DIR и подпись карточки: роль-суть, без пробелов")
     parser.add_argument("--prompt-file", help="файл с заданием; без него — только режимы, которым задание не нужно (--mode diff/review)")
     parser.add_argument("--project", default=".", help="корень проекта (default cwd)")
-    parser.add_argument("--run-dir", help="явный RUN_DIR (обязан не существовать); вне проекта, если _workspace чистят тесты или хуки")
+    parser.add_argument("--run-dir", help="обязательный свежий RUN_DIR внутри рабочей папки работы")
     parser.add_argument("--poll", type=int, default=10, help="шаг опроса журнала витриной, с")
     parser.epilog = "после `--` — аргументы входа моста как есть"
     args, rest = parser.parse_known_args()
 
     project = Path(args.project).expanduser().resolve()
-    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     if rest and rest[0] == "--":
         rest = rest[1:]
     if "--run-dir" in rest:
         print("--run-dir задаётся launcher'у, не входу моста: иначе витрина смотрит не туда", file=sys.stderr)
         return 2
-    run_dir = (
-        Path(args.run_dir).expanduser().resolve()
-        if args.run_dir
-        else project / "_workspace" / "codex-artifacts" / f"{stamp}-{args.name}"
-    )
+    if not args.run_dir:
+        print(RUN_DIR_REQUIRED_MESSAGE, file=sys.stderr)
+        return 2
+    run_dir = Path(args.run_dir).expanduser().resolve()
     if run_dir.exists():
         print(f"RUN_DIR уже существует: {run_dir}", file=sys.stderr)
         return 2
