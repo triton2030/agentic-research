@@ -159,12 +159,15 @@ test. Local contract, который явно требует DAG, сильнее
 | Нужен inventory | Команда |
 |---|---|
 | Outgoing declared edges изменяемого holder-а | `md deps FILE --json` |
-| Reverse holders изменяемого owner/source | `md impact FILE --json` |
+| Reverse holders изменяемого owner/source, включая папку | `md impact FILE_OR_FOLDER --json` |
 | Propagation worklist перед rename/move/delete | `md preflight FILE --json` |
 | Broken paths и anchors после правки | `md check --paths SCOPE --json` |
 | Cycle cohort как одна review-группа | `md cycles --json` |
 | Holder-neighborhood перед незнакомой правкой | `md edit-context FILE --json` |
 | Heading-level contract impact | `md section-blast-radius FILE CORPUS --query "..." --json` |
+
+Для папки `external_holders` показывает держателей снаружи, `internal_holders` — внутри.
+Полный список остаётся в `holders`; `affected_targets` называет адреса ссылок внутри папки.
 
 Каждая строка этих ответов несёт `reason` — какое поле или ссылка её породили
 (`declares depends-on: X`, `body wikilink to X at #anchor`, `reached through Y
