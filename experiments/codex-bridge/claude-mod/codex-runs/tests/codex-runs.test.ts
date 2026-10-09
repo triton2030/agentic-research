@@ -1,6 +1,6 @@
 import { expect, test } from 'claude-code/testing'
 
-import { activity, dur, hiddenEnded, meta, rowTime, summary, transition, visible } from '../hooks/view'
+import { activity, dur, hiddenEnded, launchedRunNames, meta, rowTime, summary, transition, visible } from '../hooks/view'
 import type { CodexRun } from '../types'
 
 const NOW = 100_000
@@ -46,4 +46,20 @@ test('строка одной формы: время, действие, свед
   expect(activity(run('a', 'failed', { last_words: '' }))).toBe('ошибка')
   expect(meta(run('a', 'live'))).toBe('gpt-6-luna/max · 3ш · w · тихо 6м40с')
   expect(meta(run('a', 'ok'))).toBe('gpt-6-luna/max · 3ш · w')
+})
+
+test('из команд запуска берётся каталог прогона, переменная в имени — нет', () => {
+  expect(launchedRunNames([
+    'B=/x; $B/.venv/bin/python $B/codex_launch.py agent --name a --run-dir $W/codex-artifacts/20261009T1400-check-intent --prompt-file p.md',
+    `python codex_launch.py agent --run-dir "/w/agents/codex-artifacts/20261009T1500-two/" --name b`,
+    'python codex_launch.py agent --run-dir=$RUN --name c',
+    'git status --run-dir /not/a/launch',
+    'python codex_launch.py agent --run-dir $W/codex-artifacts/20261009T1400-check-intent',
+  ])).toEqual(['20261009T1400-check-intent', '20261009T1500-two'])
+})
+
+test('прогон этой сессии виден и через час после конца', () => {
+  const old = run('old', 'ok', { started: NOW - 3600, elapsed_s: 60 })
+  expect(visible([old], NOW, false, new Set(['old'])).map(r => r.name)).toEqual(['old'])
+  expect(hiddenEnded([old], NOW, new Set(['old']))).toBe(0)
 })

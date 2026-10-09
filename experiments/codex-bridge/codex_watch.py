@@ -391,8 +391,10 @@ RECENT_MIN = 30
 LOST_HEARTBEATS = 3
 
 
-def look_json(project: Path, recent_min: int = RECENT_MIN) -> dict[str, Any]:
-    """Данные для панели-мода: живые прогоны и закончившиеся за `recent_min`.
+def look_json(project: Path, recent_min: int = RECENT_MIN, names: frozenset[str] = frozenset()) -> dict[str, Any]:
+    """Данные для панели-мода: живые прогоны, закончившиеся за `recent_min` и
+    закончившиеся прогоны из `names` — запущенные этой сессией Claude — за любое
+    время.
 
     Панель рисует это владельцу и в контекст Claude не попадает, поэтому здесь
     нет решения «будить ли агента»: только факты журнала, манифеста и result.json.
@@ -408,7 +410,7 @@ def look_json(project: Path, recent_min: int = RECENT_MIN) -> dict[str, Any]:
             continue
         final = _result_is_final(run_dir)
         result_path = run_dir / "result.json"
-        if final and now - result_path.stat().st_mtime > recent_min * 60:
+        if final and run_dir.name not in names and now - result_path.stat().st_mtime > recent_min * 60:
             continue
         run = Run(run_dir)
         for event in run.journal.new_events():
@@ -483,6 +485,10 @@ def main(argv: list[str] | None = None) -> int:
         "--recent-min", type=int, default=RECENT_MIN,
         help="с --json: сколько минут показывать закончившийся прогон",
     )
+    snapshot.add_argument(
+        "--names", default="",
+        help="с --json: имена каталогов прогонов через запятую — их отдавать за любое время",
+    )
 
     args = parser.parse_args(argv)
     if args.mode == "watch":
@@ -491,7 +497,8 @@ def main(argv: list[str] | None = None) -> int:
             args.pulse or args.pulse_all, words_only=not args.pulse_all, pid=args.pid,
         )
     if args.json:
-        print(json.dumps(look_json(Path(args.project).resolve(), args.recent_min), ensure_ascii=False))
+        names = frozenset(n for n in args.names.split(",") if n)
+        print(json.dumps(look_json(Path(args.project).resolve(), args.recent_min, names), ensure_ascii=False))
         return 0
     return look(Path(args.project))
 

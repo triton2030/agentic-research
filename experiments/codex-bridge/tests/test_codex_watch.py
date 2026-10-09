@@ -133,6 +133,9 @@ class LookJsonTests(unittest.TestCase):
             self.assertIsNone(runs["c-ok"]["quiet_s"])
             self.assertEqual(data["runs"][-1]["name"], "c-ok")  # закончившиеся — после живых
 
+            named = codex_watch.look_json(project, recent_min=30, names=frozenset({"d-old"}))
+            self.assertIn("d-old", {r["name"] for r in named["runs"]})  # прогон сессии — за любое время
+
     def test_cli_prints_json_without_runs_dir(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             proc = subprocess.run(

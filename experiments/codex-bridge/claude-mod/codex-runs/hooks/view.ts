@@ -34,15 +34,39 @@ export function summary(list: readonly CodexRun[]): string {
     .join(' · ')
 }
 
-/** Строки панели: идущие всегда, закончившиеся — недавние или по переключателю. */
-export function visible(list: readonly CodexRun[], now: number, showEnded: boolean): CodexRun[] {
+const isStale = (run: CodexRun, now: number, mine: ReadonlySet<string>) =>
+  isEnded(run) && !mine.has(run.name) && now - endedAt(run) > KEEP_ENDED_MIN * 60
+
+/**
+ * Строки панели: идущие всегда, прогоны этой сессии всегда, чужие
+ * закончившиеся — недавние или по переключателю.
+ */
+export function visible(
+  list: readonly CodexRun[], now: number, showEnded: boolean, mine: ReadonlySet<string> = new Set(),
+): CodexRun[] {
   return list
-    .filter(run => !isEnded(run) || showEnded || now - endedAt(run) <= KEEP_ENDED_MIN * 60)
+    .filter(run => showEnded || !isStale(run, now, mine))
     .sort((a, b) => RANK[a.state] - RANK[b.state] || b.started - a.started)
 }
 
-export function hiddenEnded(list: readonly CodexRun[], now: number): number {
-  return list.filter(run => isEnded(run) && now - endedAt(run) > KEEP_ENDED_MIN * 60).length
+export function hiddenEnded(list: readonly CodexRun[], now: number, mine: ReadonlySet<string> = new Set()): number {
+  return list.filter(run => isStale(run, now, mine)).length
+}
+
+/**
+ * Каталоги прогонов, запущенных командами `codex_launch.py`: последнее звено
+ * пути `--run-dir`. Звено с невычисленной переменной (`$RUN`) не угадываем.
+ */
+export function launchedRunNames(commands: readonly string[]): string[] {
+  const names: string[] = []
+  for (const command of commands) {
+    if (!command.includes('codex_launch.py')) continue
+    const found = /--run-dir[= ]+(?:"([^"]+)"|'([^']+)'|(\S+))/.exec(command)
+    const path = found?.[1] ?? found?.[2] ?? found?.[3]
+    const name = path?.replace(/\/+$/, '').split('/').pop()
+    if (name && !name.includes('$') && !names.includes(name)) names.push(name)
+  }
+  return names
 }
 
 /** Правый край первой строки: сколько идёт или как давно кончился. */
