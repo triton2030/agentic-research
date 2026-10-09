@@ -2,39 +2,24 @@ import { atom, read, update } from 'claude-code'
 import type { Register } from 'claude-code'
 
 import type { CodexRun } from '../types'
+import { activity, COLOR, hiddenEnded, LABEL, MARK, meta, rowTime, summary, transition, visible } from './view'
 
 // Панель для владельца, а не для Claude: ни одна строка отсюда не начинает ход
 // и не попадает в контекст агента. Будит Claude по-прежнему только завершение
-// фоновой карточки запуска (решение владельца 2026-08-24).
+// фоновой карточки запуска.
 const BRIDGE = '/Users/triton/Documents/GitHub/agentic-research/experiments/codex-bridge'
 const PYTHON = `${BRIDGE}/.venv/bin/python`
 const WATCH = `${BRIDGE}/codex_watch.py`
 const PANE = 'codex-runs'
 const POLL_MS = 5000
+// Мост отдаёт закончившиеся за два часа; сколько из них видно, решает панель.
+const RECENT_MIN = '120'
 
 const runs = atom({ plugin: 'codex-runs', key: 'runs' } as const, [] as CodexRun[])
+const polledAt = atom({ plugin: 'codex-runs', key: 'polledAt' } as const, 0)
 const error = atom({ plugin: 'codex-runs', key: 'error' } as const, '')
 const isPaneOpen = atom({ plugin: 'codex-runs', key: 'isPaneOpen' } as const, false)
-
-const ICON: Record<CodexRun['state'], string> = { live: '▶', lost: '⚠', ok: '✓', failed: '✗' }
-const COLOR = { live: 'claude', lost: 'warning', ok: 'success', failed: 'error' } as const
-
-export function dur(seconds: number | null): string {
-  if (seconds === null || seconds < 0) return '?'
-  const s = Math.round(seconds)
-  if (s < 60) return `${s}с`
-  if (s < 3600) return `${Math.floor(s / 60)}м${String(s % 60).padStart(2, '0')}с`
-  return `${Math.floor(s / 3600)}ч${String(Math.floor((s % 3600) / 60)).padStart(2, '0')}м`
-}
-
-/** Что сказать владельцу о смене состояния прогона; null — молчать. */
-export function transition(name: string, before: CodexRun['state'] | undefined, run: CodexRun): string | null {
-  if (before === run.state || before === undefined) return null
-  if (run.state === 'ok') return `Codex ${name}: готово · ${dur(run.elapsed_s)} · ${run.steps}ш`
-  if (run.state === 'failed') return `Codex ${name}: провал · ${dur(run.elapsed_s)}`
-  if (run.state === 'lost') return `Codex ${name}: нет событий ${dur(run.quiet_s)} — процесс, похоже, умер`
-  return null
-}
+const showEnded = atom({ plugin: 'codex-runs', key: 'showEnded' } as const, false)
 
 export const register: Register = on => {
   // Состояние модуля начинается заново при каждой перезагрузке мода: первый
@@ -55,13 +40,15 @@ export const register: Register = on => {
       if (busy) return
       busy = true
       try {
-        const r = await $.process.run([PYTHON, WATCH, 'look', '--json', cwd], { timeoutMs: 15000 })
+        const r = await $.process.run([PYTHON, WATCH, 'look', '--json', '--recent-min', RECENT_MIN, cwd], { timeoutMs: 15000 })
         if (r.exitCode !== 0) {
           await update($, error, () => (r.stderr.trim().split('\n').pop() || `код ${r.exitCode}`))
           return
         }
-        const list = (JSON.parse(r.stdout).runs ?? []) as CodexRun[]
+        const data = JSON.parse(r.stdout) as { now: number; runs?: CodexRun[] }
+        const list = data.runs ?? []
         await update($, runs, () => list)
+        await update($, polledAt, () => data.now)
         await update($, error, () => '')
 
         const current = new Map(list.map(run => [run.name, run.state] as const))
@@ -74,15 +61,14 @@ export const register: Register = on => {
         seen = current
         primed = true
 
-        const live = list.filter(run => run.state === 'live').length
-        const lost = list.filter(run => run.state === 'lost').length
-        $.ui.status(live || lost ? `Codex: ${live} идёт` + (lost ? ` · ${lost} пропал` : '') : undefined)
-        if (live && !opened) {
+        const active = list.filter(run => run.state === 'live' || run.state === 'lost')
+        $.ui.status(active.length ? `Codex: ${summary(active)}` : undefined)
+        if (active.some(run => run.state === 'live') && !opened) {
           opened = true
           const shown = await $.ui.open({ id: PANE, title: 'Codex' })
           await update($, isPaneOpen, () => shown.isPlaced)
         }
-        if (!live && !lost) opened = false
+        if (!active.length) opened = false
       } catch (err) {
         await update($, error, () => String((err as Error)?.message ?? err))
       } finally {
@@ -110,13 +96,13 @@ export const register: Register = on => {
   }).catch(($, e, next) => (next.called ? undefined : next(e)))
 
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
-    const list = await read($, runs)
+    const now = await read($, polledAt)
+    const list = visible(await read($, runs), now, false)
     if (e.props.hasSurvey || list.length === 0 || (await read($, isPaneOpen))) return next(e)
-    const live = list.filter(run => run.state === 'live').length
     const { Box, Button, Text } = $.ui.resolve(e)
     return (
       <Box>
-        <Text dimColor>{live ? `Codex: ${live} идёт ` : 'Codex: прогоны закончились '}</Text>
+        <Text dimColor>{`Codex: ${summary(list)} `}</Text>
         <Button
           key="show-codex"
           label="Показать Codex"
@@ -131,22 +117,41 @@ export const register: Register = on => {
   })
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
-    const { Box, Text } = $.ui.resolve(e)
-    const list = await read($, runs)
+    const { Box, Button, Text } = $.ui.resolve(e)
+    const all = await read($, runs)
+    const now = await read($, polledAt)
+    const isShowingEnded = await read($, showEnded)
     const problem = await read($, error)
+    const list = visible(all, now, isShowingEnded)
+    const hidden = hiddenEnded(all, now)
 
     return (
       <Box flexDirection="column">
-        {problem !== '' && <Text color="error">мост не ответил: {problem}</Text>}
-        {list.length === 0 && <Text dimColor>Прогонов Codex нет — ни живых, ни за последние 30 минут.</Text>}
+        <Box flexDirection="row" marginBottom={1}>
+          <Box flexGrow={1}>
+            <Text bold wrap="truncate-end">{summary(list) || 'Прогонов Codex нет'}</Text>
+          </Box>
+          {(hidden > 0 || isShowingEnded) && (
+            <Button
+              key="toggle-ended"
+              label={isShowingEnded ? 'скрыть законченные' : `законченные (${hidden})`}
+              onPress={() => update($, showEnded, value => !value)}
+            />
+          )}
+        </Box>
+        {problem !== '' && <Text color="error" wrap="truncate-end">мост не ответил: {problem}</Text>}
         {list.map(run => (
           <Box key={run.name} flexDirection="column" marginBottom={1}>
-            <Text color={COLOR[run.state]} bold={run.state === 'live'} wrap="truncate-end">
-              {ICON[run.state]} {run.name} · {run.tier || '?'} · {dur(run.elapsed_s)} · {run.steps}ш
-              {run.state === 'live' && run.quiet_s !== null && run.quiet_s >= 60 ? ` · тихо ${dur(run.quiet_s)}` : ''}
-            </Text>
-            {run.task !== '' && <Text dimColor wrap="truncate-end">  {run.task}</Text>}
-            {run.last_words !== '' && <Text wrap="wrap">  {run.last_words}</Text>}
+            <Box flexDirection="row">
+              <Box flexGrow={1}>
+                <Text color={COLOR[run.state]} bold={run.state !== 'ok'} wrap="truncate-end">
+                  {MARK[run.state]} {run.name}
+                </Text>
+              </Box>
+              <Text dimColor>{` ${LABEL[run.state]} · ${rowTime(run, now)}`}</Text>
+            </Box>
+            <Text wrap="truncate-end">{`  ${activity(run)}`}</Text>
+            <Text dimColor wrap="truncate-end">{`  ${meta(run)}`}</Text>
           </Box>
         ))}
       </Box>
