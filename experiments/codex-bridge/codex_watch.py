@@ -8,6 +8,8 @@
   «глянь, над чем они там». Печатает и выходит. `look --json` — те же данные
   плюс недавно закончившиеся прогоны для панели-мода Claude Code
   (`claude-mod/codex-runs/`), которую видит владелец, а не контекст агента.
+- `story RUN_DIR` — история одного прогона для той же панели: задание, слова и
+  мысли Codex по времени, сбои и итоговый отчёт.
 
 Два свойства, купленные ценой кода, и каждое лечит известный отказ:
 
@@ -27,6 +29,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 import time
 from pathlib import Path
@@ -101,6 +104,13 @@ class Journal:
                 yield json.loads(raw)
             except Exception:  # noqa: BLE001
                 continue
+
+
+def _failure_text(detail: str) -> str:
+    """Сбой движка словами для человека; сырой текст — только если не узнали."""
+    if "stream disconnected" in detail:
+        return "обрыв связи с сервером — движок переподключается сам"
+    return _short(detail, 200)
 
 
 class Run:
@@ -188,6 +198,21 @@ class Run:
                 break
         return next((ln for ln in lines[start:] if ln and not ln.startswith(("#", "="))), "")
 
+    def task_text(self, limit: int = 3000) -> str:
+        """Всё задание из prompt.md — после строки «===== ЗАДАНИЕ =====»."""
+        prompt = self.dir / "prompt.md"
+        if not prompt.is_file():
+            return ""
+        try:
+            text = prompt.read_text(encoding="utf-8")
+        except OSError:
+            return ""
+        marker = text.find("ЗАДАНИЕ")
+        if marker != -1:
+            text = text[text.find("\n", marker) + 1:]
+        text = text.strip()
+        return text if len(text) <= limit else text[:limit].rstrip() + "…"
+
     def tier(self) -> str:
         """`модель/усилие` из manifest.json; пусто, если манифест молчит."""
         manifest = self.dir / "manifest.json"
@@ -223,6 +248,8 @@ class Run:
         self.last_ts = 0.0
         self.finished = False
         self.last_words = ""
+        # История для панели: слова и мысли Codex и сбои, со временем от старта.
+        self.story: list[dict[str, Any]] = []
 
     def absorb(self, event: dict[str, Any]) -> Iterator[str]:
         """Событие журнала → ноль или одна строка витрины."""
@@ -245,6 +272,11 @@ class Run:
                     words = detail.split(": ", 1)[1] if ": " in detail else ""
                     if words:
                         self.last_words = words
+                        self.story.append({
+                            "t": round(stamp - self.run_start) if stamp else None,
+                            "kind": "thought" if event.get("kind") == "reasoning" else "words",
+                            "text": words,
+                        })
                 if self.pulse and event.get("kind") in self.PULSE_KINDS:
                     line = self.pulse_line(
                         str(event["kind"]), str(event.get("detail") or ""),
@@ -252,7 +284,13 @@ class Run:
                     if line:
                         yield line
             elif event.get("method") in FAILURE_METHODS:
-                yield f"СБОЙ {_short(event.get('detail') or event['method'])}"
+                detail = str(event.get("detail") or event["method"])
+                self.story.append({
+                    "t": round(stamp - self.run_start) if stamp else None,
+                    "kind": "fail",
+                    "text": _failure_text(detail),
+                })
+                yield f"СБОЙ {_short(detail)}"
             return
         if kind == "done":
             self.finished = True
@@ -391,6 +429,82 @@ RECENT_MIN = 30
 LOST_HEARTBEATS = 3
 
 
+def _run_state(run_dir: Path, run: Run, final: bool, now: float) -> str:
+    """live · lost (нет событий дольше трёх heartbeat) · ok · failed."""
+    if final:
+        try:
+            ok = bool(json.loads((run_dir / "result.json").read_text(encoding="utf-8")).get("ok"))
+        except (OSError, ValueError):
+            ok = False
+        return "ok" if ok else "failed"
+    try:
+        runtime = json.loads((run_dir / "manifest.json").read_text(encoding="utf-8")).get("runtime") or {}
+        beat = float(runtime.get("heartbeat_sec") or 0)
+    except (OSError, ValueError, AttributeError):
+        beat = 0.0
+    silent = now - run.last_ts if run.last_ts else 0.0
+    return "lost" if beat and silent > LOST_HEARTBEATS * beat else "live"
+
+
+STORY_LIMIT = 300
+FINAL_LIMIT = 6000
+_MD_LINK = re.compile(r"\]\(\s*<?([^)>]+?)>?\s*\)")
+
+
+def _linked_report(run_dir: Path, answer: str) -> str:
+    """Текст отчёта, на который ссылается final.md, если он внутри прогона:
+    проверяющие и советники кладут ответ в `out/`, а в final.md — только ссылку."""
+    root = run_dir.resolve()
+    for target in _MD_LINK.findall(answer):
+        path = Path(target.split("#", 1)[0].strip()).expanduser()
+        if not path.is_absolute():
+            path = run_dir / path
+        try:
+            path = path.resolve()
+        except OSError:
+            continue
+        if root in path.parents and path.is_file() and path.suffix in {".md", ".txt"}:
+            try:
+                text = path.read_text(encoding="utf-8").strip()
+            except OSError:
+                continue
+            return text if len(text) <= FINAL_LIMIT else text[:FINAL_LIMIT].rstrip() + "…"
+    return ""
+
+
+def story_json(run_dir: Path, limit: int = STORY_LIMIT) -> dict[str, Any]:
+    """История одного прогона для панели: задание, слова и мысли Codex по
+    времени, сбои и итоговый ответ. Только то, что уже лежит в `run_dir`."""
+    run = Run(run_dir)
+    for event in run.journal.new_events():
+        list(run.absorb(event))
+    now = time.time()
+    final = _result_is_final(run_dir)
+    answer = ""
+    if (run_dir / "final.md").is_file():
+        try:
+            answer = (run_dir / "final.md").read_text(encoding="utf-8").strip()
+        except OSError:
+            answer = ""
+        if len(answer) > FINAL_LIMIT:
+            answer = answer[:FINAL_LIMIT].rstrip() + "…"
+    end = run.last_ts if final else now
+    return {
+        "name": run_dir.name,
+        "run_dir": str(run_dir),
+        "tier": run.tier(),
+        "task": run.task_text(),
+        "report": _linked_report(run_dir, answer),
+        "state": _run_state(run_dir, run, final, now) if (run_dir / "manifest.json").is_file() else "lost",
+        "started": run.run_start,
+        "elapsed_s": round(end - run.run_start) if run.run_start else None,
+        "steps": run.steps,
+        "items": run.story[-limit:],
+        "dropped": max(0, len(run.story) - limit),
+        "final": answer,
+    }
+
+
 def look_json(project: Path, recent_min: int = RECENT_MIN, names: frozenset[str] = frozenset()) -> dict[str, Any]:
     """Данные для панели-мода: живые прогоны, закончившиеся за `recent_min` и
     закончившиеся прогоны из `names` — запущенные этой сессией Claude — за любое
@@ -415,20 +529,7 @@ def look_json(project: Path, recent_min: int = RECENT_MIN, names: frozenset[str]
         run = Run(run_dir)
         for event in run.journal.new_events():
             list(run.absorb(event))
-        if final:
-            try:
-                ok = bool(json.loads(result_path.read_text(encoding="utf-8")).get("ok"))
-            except (OSError, ValueError):
-                ok = False
-            state = "ok" if ok else "failed"
-        else:
-            try:
-                runtime = json.loads(manifest.read_text(encoding="utf-8")).get("runtime") or {}
-                beat = float(runtime.get("heartbeat_sec") or 0)
-            except (OSError, ValueError, AttributeError):
-                beat = 0.0
-            silent = now - run.last_ts if run.last_ts else 0.0
-            state = "lost" if beat and silent > LOST_HEARTBEATS * beat else "live"
+        state = _run_state(run_dir, run, final, now)
         end = run.last_ts if final else now
         out["runs"].append({
             "name": run_dir.name,
@@ -490,7 +591,13 @@ def main(argv: list[str] | None = None) -> int:
         help="с --json: имена каталогов прогонов через запятую — их отдавать за любое время",
     )
 
+    story = sub.add_parser("story", help="история одного прогона для панели-мода (JSON)")
+    story.add_argument("run_dir")
+
     args = parser.parse_args(argv)
+    if args.mode == "story":
+        print(json.dumps(story_json(Path(args.run_dir).expanduser().resolve()), ensure_ascii=False))
+        return 0
     if args.mode == "watch":
         return watch(
             Path(args.run_dir), args.poll, args.max_hours, args.wait_sec,

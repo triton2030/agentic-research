@@ -136,6 +136,37 @@ class LookJsonTests(unittest.TestCase):
             named = codex_watch.look_json(project, recent_min=30, names=frozenset({"d-old"}))
             self.assertIn("d-old", {r["name"] for r in named["runs"]})  # прогон сессии — за любое время
 
+    def test_story_has_words_thoughts_failures_and_linked_report(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = self._run(Path(tmp), "s-1", "2026-01-01T00:00:30+00:00", {"ok": True})
+            with (run_dir / "events.jsonl").open("a", encoding="utf-8") as f:
+                for e in [
+                    {"ts": "2026-01-01T00:01:00+00:00", "event": "codex", "method": "item/completed",
+                     "kind": "reasoning", "detail": "9 симв.: думаю тут"},
+                    {"ts": "2026-01-01T00:01:10+00:00", "event": "codex", "method": "error",
+                     "detail": "stream disconnected before completion"},
+                ]:
+                    f.write(json.dumps(e, ensure_ascii=False) + "\n")
+            (run_dir / "out").mkdir()
+            (run_dir / "out" / "report.md").write_text("Вердикт: держится", encoding="utf-8")
+            (run_dir / "final.md").write_text(f"[Отчёт]({run_dir / 'out' / 'report.md'})", encoding="utf-8")
+
+            story = codex_watch.story_json(run_dir)
+            self.assertEqual([i["kind"] for i in story["items"]], ["words", "thought", "fail"])
+            self.assertEqual(story["items"][0], {"t": 30, "kind": "words", "text": "читаю журнал"})
+            self.assertIn("обрыв связи", story["items"][2]["text"])
+            self.assertEqual(story["report"], "Вердикт: держится")
+            self.assertEqual(story["task"], "# Заголовок\nПочинить витрину")
+            self.assertEqual(story["state"], "ok")
+
+    def test_story_ignores_links_outside_run(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = self._run(Path(tmp), "s-2", "2026-01-01T00:00:30+00:00", {"ok": True})
+            outside = Path(tmp) / "secret.md"
+            outside.write_text("не показывать", encoding="utf-8")
+            (run_dir / "final.md").write_text(f"[x]({outside})", encoding="utf-8")
+            self.assertEqual(codex_watch.story_json(run_dir)["report"], "")
+
     def test_cli_prints_json_without_runs_dir(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             proc = subprocess.run(

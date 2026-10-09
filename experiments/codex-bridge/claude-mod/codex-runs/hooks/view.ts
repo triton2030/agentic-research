@@ -1,4 +1,4 @@
-import type { CodexRun } from '../types'
+import type { CodexRun, StoryItem } from '../types'
 
 type State = CodexRun['state']
 
@@ -163,4 +163,36 @@ export function transition(name: string, before: State | undefined, run: CodexRu
   if (run.state === 'failed') return `Codex ${name}: провал · ${dur(run.elapsed_s)}`
   if (run.state === 'lost') return `Codex ${name}: нет событий ${dur(run.quiet_s)} — процесс, похоже, умер`
   return null
+}
+
+/** Время записи от старта прогона: «0:10», «4:36», «1:02:03». */
+export function clock(t: number | null): string {
+  if (t === null || t < 0) return '  ?'
+  const h = Math.floor(t / 3600)
+  const m = Math.floor((t % 3600) / 60)
+  const sec = String(Math.floor(t % 60)).padStart(2, '0')
+  return h ? `${h}:${String(m).padStart(2, '0')}:${sec}` : `${m}:${sec}`
+}
+
+/** Запись хода работы для показа: мысль, слово или сбой — и её текст без разметки. */
+export function storyLine(item: StoryItem): { kind: StoryItem['kind']; time: string; text: string } {
+  const text = plainText(item.text)
+  return { kind: item.kind, time: clock(item.t), text: item.kind === 'fail' ? `⚠ ${text}` : text }
+}
+
+/**
+ * Отчёт или задание построчно для показа: заголовки отдельно, разметка снята,
+ * подряд идущие пустые строки схлопнуты, длинное обрезано по `limit` строк.
+ */
+export function docLines(text: string, limit = 400): { heading: boolean; text: string }[] {
+  const out: { heading: boolean; text: string }[] = []
+  for (const raw of text.split('\n')) {
+    const heading = /^#{1,6}\s/.test(raw)
+    const line = plainText(raw.replace(/^#{1,6}\s+/, '').replace(/^(\s*)[-*]\s+/, '$1• '))
+    const indent = heading ? '' : (/^\s+/.exec(raw)?.[0] ?? '').replace(/\t/g, '  ')
+    if (!line && (out.length === 0 || out[out.length - 1]?.text === '')) continue
+    out.push({ heading, text: line ? `${indent}${line}` : '' })
+    if (out.length >= limit) break
+  }
+  return out
 }

@@ -1,7 +1,7 @@
 import { expect, test } from 'claude-code/testing'
 
 import {
-  activity, ago, dur, hiddenEnded, launchedRunNames, meta, plainText, plural, rowTime, shortName, summary, tierLabel,
+  activity, ago, clock, docLines, dur, hiddenEnded, launchedRunNames, meta, plainText, plural, rowTime, shortName, summary, tierLabel,
   transition, visible, workLabel,
 } from '../hooks/view'
 import type { CodexRun } from '../types'
@@ -78,4 +78,15 @@ test('прогон этой сессии виден и через час пос�
   const old = run('old', 'ok', { started: NOW - 3600, elapsed_s: 60 })
   expect(visible([old], NOW, false, new Set(['old'])).map(r => r.name)).toEqual(['old'])
   expect(hiddenEnded([old], NOW, new Set(['old']))).toBe(0)
+})
+
+test('история: время от старта и строки документа', () => {
+  expect([null, 9, 276, 3723].map(clock)).toEqual(['  ?', '0:09', '4:36', '1:02:03'])
+  expect(docLines('# Вердикт\n\n\nТекст [ссылка](x.md)\n- пункт\n  - вложенный')).toEqual([
+    { heading: true, text: 'Вердикт' },
+    { heading: false, text: '' },
+    { heading: false, text: 'Текст ссылка' },
+    { heading: false, text: '• пункт' },
+    { heading: false, text: '  • вложенный' },
+  ])
 })
