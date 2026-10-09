@@ -1,4 +1,4 @@
-import type { CodexRun, StoryItem } from '../types'
+import type { CodexRun } from '../types'
 
 type State = CodexRun['state']
 
@@ -113,7 +113,7 @@ export function tierLabel(tier: string): string {
   return [name || '?', effort].filter(Boolean).join(' · ')
 }
 
-/** Слова Codex без разметки: ссылки — их текстом, без звёздочек и обратных кавычек. */
+/** Одна строка превью без разметки; полный текст в истории рисует `Markdown` движка. */
 export function plainText(text: string): string {
   return text
     .replace(/\[([^\]]*)\]\((?:<[^>]*>|[^)]*)\)/g, '$1')
@@ -172,27 +172,4 @@ export function clock(t: number | null): string {
   const m = Math.floor((t % 3600) / 60)
   const sec = String(Math.floor(t % 60)).padStart(2, '0')
   return h ? `${h}:${String(m).padStart(2, '0')}:${sec}` : `${m}:${sec}`
-}
-
-/** Запись хода работы для показа: мысль, слово или сбой — и её текст без разметки. */
-export function storyLine(item: StoryItem): { kind: StoryItem['kind']; time: string; text: string } {
-  const text = plainText(item.text)
-  return { kind: item.kind, time: clock(item.t), text: item.kind === 'fail' ? `⚠ ${text}` : text }
-}
-
-/**
- * Отчёт или задание построчно для показа: заголовки отдельно, разметка снята,
- * подряд идущие пустые строки схлопнуты, длинное обрезано по `limit` строк.
- */
-export function docLines(text: string, limit = 400): { heading: boolean; text: string }[] {
-  const out: { heading: boolean; text: string }[] = []
-  for (const raw of text.split('\n')) {
-    const heading = /^#{1,6}\s/.test(raw)
-    const line = plainText(raw.replace(/^#{1,6}\s+/, '').replace(/^(\s*)[-*]\s+/, '$1• '))
-    const indent = heading ? '' : (/^\s+/.exec(raw)?.[0] ?? '').replace(/\t/g, '  ')
-    if (!line && (out.length === 0 || out[out.length - 1]?.text === '')) continue
-    out.push({ heading, text: line ? `${indent}${line}` : '' })
-    if (out.length >= limit) break
-  }
-  return out
 }

@@ -3,7 +3,7 @@ import type { EngineInterface, Register } from 'claude-code'
 
 import type { CodexRun, CodexStory } from '../types'
 import {
-  activity, COLOR, docLines, hiddenEnded, launchedRunNames, MARK, meta, plural, rowTime, shortName, storyLine, summary,
+  activity, clock, COLOR, hiddenEnded, launchedRunNames, MARK, meta, plural, rowTime, shortName, summary,
   summaryParts, tierLabel, took, transition, visible, workLabel,
 } from './view'
 
@@ -169,15 +169,16 @@ export const register: Register = on => {
   }).catch(($, e, next) => (next.called ? undefined : next(e)))
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
-    const { Box, Button, Text } = $.ui.resolve(e)
+    const { Box, Button, Markdown, Text } = $.ui.resolve(e)
     const problem = await read($, error)
     const open = await read($, selected)
 
     if (open) {
       const shown = await read($, story)
       const isFullTask = await read($, showFullTask)
-      const task = shown ? docLines(shown.task) : []
-      const result = shown ? docLines(shown.report || shown.final) : []
+      const taskLines = shown ? shown.task.split('\n') : []
+      const task = isFullTask ? shown?.task ?? '' : taskLines.slice(0, TASK_PREVIEW_LINES).join('\n')
+      const result = shown ? shown.report || shown.final : ''
       return (
         <Box flexDirection="column">
           <Box flexDirection="row" marginBottom={1}>
@@ -195,13 +196,11 @@ export const register: Register = on => {
               <Text dimColor wrap="truncate-end">{`  ${tierLabel(shown.tier)} · ${plural(shown.steps, "шаг", "шага", "шагов")} · ${workLabel(shown.run_dir.split('/').slice(-4, -3)[0] ?? '')}`}</Text>
 
               <Box marginTop={1}><Text bold>Задание</Text></Box>
-              {(isFullTask ? task : task.slice(0, TASK_PREVIEW_LINES)).map((line, i) => (
-                <Text key={`task-${i}`} bold={line.heading} dimColor={!line.heading} wrap="wrap">{line.text || ' '}</Text>
-              ))}
-              {task.length > TASK_PREVIEW_LINES && (
+              {task !== '' && <Markdown key="task" text={task} dimColor />}
+              {taskLines.length > TASK_PREVIEW_LINES && (
                 <Button
                   key="task-more"
-                  label={isFullTask ? 'свернуть задание' : `всё задание · ещё ${task.length - TASK_PREVIEW_LINES} стр.`}
+                  label={isFullTask ? 'свернуть задание' : `всё задание · ещё ${taskLines.length - TASK_PREVIEW_LINES} стр.`}
                   dimColor
                   onPress={() => update($, showFullTask, value => !value)}
                 />
@@ -210,31 +209,21 @@ export const register: Register = on => {
               <Box marginTop={1}><Text bold>Ход работы</Text></Box>
               {shown.dropped > 0 && <Text dimColor>{`  …ещё ${shown.dropped} записей раньше`}</Text>}
               {shown.items.length === 0 && <Text dimColor>  Codex пока ничего не сказал</Text>}
-              {shown.items.map((item, i) => {
-                const line = storyLine(item)
-                return (
-                  <Box key={`item-${i}`} flexDirection="row">
-                    <Box flexShrink={0} width={8}><Text dimColor>{line.time.padStart(7)}</Text></Box>
-                    <Box flexGrow={1} flexShrink={1}>
-                      <Text
-                        wrap="wrap"
-                        dimColor={line.kind === 'thought'}
-                        italic={line.kind === 'thought'}
-                        color={line.kind === 'fail' ? 'warning' : undefined}
-                      >
-                        {line.text}
-                      </Text>
-                    </Box>
+              {shown.items.map((item, i) => (
+                <Box key={`item-${i}`} flexDirection="row">
+                  <Box flexShrink={0} width={8}><Text dimColor>{clock(item.t).padStart(7)}</Text></Box>
+                  <Box flexGrow={1} flexShrink={1}>
+                    {item.kind === 'fail'
+                      ? <Text color="warning" wrap="wrap">{`⚠ ${item.text}`}</Text>
+                      : <Markdown key={`item-md-${i}`} text={item.text} dimColor={item.kind === 'thought'} />}
                   </Box>
-                )
-              })}
+                </Box>
+              ))}
 
-              {result.length > 0 && (
+              {result !== '' && (
                 <Box flexDirection="column" marginTop={1}>
                   <Text bold>{shown.report ? 'Отчёт' : 'Итог'}</Text>
-                  {result.map((line, i) => (
-                    <Text key={`result-${i}`} bold={line.heading} wrap="wrap">{line.text || ' '}</Text>
-                  ))}
+                  <Markdown key="result" text={result} />
                 </Box>
               )}
             </Box>

@@ -62,10 +62,10 @@ for (const surface of ['terminal', 'desktop'] as const) {
     await ui.press({ key: 'open-c-old' })
     expect(await ui.find({ key: 'back' })).toBeDefined()
     expect(await ui.find({ text: 'Ход работы' })).toBeDefined()
-    expect(await ui.find({ text: 'Прочитаю роль проверяющего' })).toBeDefined()
+    expect(await ui.find({ text: 'Прочитаю **роль** проверяющего' })).toBeDefined()
     expect(await ui.find({ text: '⚠ обрыв связи с сервером — движок переподключается сам' })).toBeDefined()
     expect(await ui.find({ text: 'Отчёт' })).toBeDefined()
-    expect(await ui.find({ text: '• пункт один' })).toBeDefined()
+    expect(await ui.find({ key: 'result' })).toBeDefined()
     await ui.press({ key: 'back' })
     expect(await ui.find({ key: 'open-c-old' })).toBeDefined()
 
