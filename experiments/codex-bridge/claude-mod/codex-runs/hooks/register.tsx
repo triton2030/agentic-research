@@ -14,6 +14,7 @@ const POLL_MS = 5000
 
 const runs = atom({ plugin: 'codex-runs', key: 'runs' } as const, [] as CodexRun[])
 const error = atom({ plugin: 'codex-runs', key: 'error' } as const, '')
+const isPaneOpen = atom({ plugin: 'codex-runs', key: 'isPaneOpen' } as const, false)
 
 const ICON: Record<CodexRun['state'], string> = { live: '▶', lost: '⚠', ok: '✓', failed: '✗' }
 const COLOR = { live: 'claude', lost: 'warning', ok: 'success', failed: 'error' } as const
@@ -78,7 +79,8 @@ export const register: Register = on => {
         $.ui.status(live || lost ? `Codex: ${live} идёт` + (lost ? ` · ${lost} пропал` : '') : undefined)
         if (live && !opened) {
           opened = true
-          void $.ui.open({ id: PANE, title: 'Codex' })
+          const shown = await $.ui.open({ id: PANE, title: 'Codex' })
+          await update($, isPaneOpen, () => shown.isPlaced)
         }
         if (!live && !lost) opened = false
       } catch (err) {
@@ -95,8 +97,37 @@ export const register: Register = on => {
 
   on('command.run', { command: 'codex-runs' }, async $ => {
     opened = true
-    await $.ui.open({ id: PANE, title: 'Codex' })
+    const shown = await $.ui.open({ id: PANE, title: 'Codex' })
+    await update($, isPaneOpen, () => shown.isPlaced)
     return {}
+  })
+
+  // Закрытую панель сам не открываем заново — это выбор владельца; вместо
+  // этого над полем ввода стоит кнопка, пока есть что показать.
+  on('ui.close', async ($, e, next) => {
+    if (e.id === PANE) await update($, isPaneOpen, () => false)
+    return next(e)
+  }).catch(($, e, next) => (next.called ? undefined : next(e)))
+
+  on('ui.render', { component: 'AbovePrompt' }, async ($, e, next) => {
+    const list = await read($, runs)
+    if (e.props.hasSurvey || list.length === 0 || (await read($, isPaneOpen))) return next(e)
+    const live = list.filter(run => run.state === 'live').length
+    const { Box, Button, Text } = $.ui.resolve(e)
+    return (
+      <Box>
+        <Text dimColor>{live ? `Codex: ${live} идёт ` : 'Codex: прогоны закончились '}</Text>
+        <Button
+          key="show-codex"
+          label="Показать Codex"
+          onPress={async () => {
+            opened = true
+            const shown = await $.ui.open({ id: PANE, title: 'Codex' })
+            await update($, isPaneOpen, () => shown.isPlaced)
+          }}
+        />
+      </Box>
+    )
   })
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {

@@ -15,6 +15,6 @@ export type CodexRun = {
 
 declare module 'claude-code' {
   interface PluginState {
-    'codex-runs': { runs: CodexRun[]; error: string }
+    'codex-runs': { runs: CodexRun[]; error: string; isPaneOpen: boolean }
   }
 }

@@ -281,3 +281,162 @@ apps packages tools` — восемь файлов.
 прогона не было: форма ошибки движка взята из замера владельца и
 `openai/codex#35091`, не из собственного вызова.
 
+
+## Движок 0.155.0 под SDK 0.144.4, 2026-09-18
+
+ChatGPT.app обновил бинарь до `codex-cli 0.155.0-alpha.9.2` (файл от
+2026-09-18 21:35); последний прогон моста в этом проекте до того — 2026-09-06
+(каталог тогда описывался как 0.153.4).
+
+| Замер | Как | Результат |
+|---|---|---|
+| мост живой на новом движке | `codex_review.py` task-mode, `gpt-5.6-sol`/`medium`, run `20260918T175027Z-814e6400` (run_dir в `<backend>/_workspace/`) | `status=completed`, `ok=true`, 21 с, ledger `binary_source=chatgpt-app`; в захваченном stderr (`_workspace/codex-artifacts/audit-input-20260918/probe-…-stdout-stderr.txt`) 0 warning'ов `codex_sdk_compat` |
+| `codex agents` как поверхность владельца | pty-запуск `codex agents --no-alt-screen` из бинаря ChatGPT.app | `Error: this CLI has no complete local package; install a packaged Codex CLI or use the standalone installer` — в текущей установке недоступен; вывод сохранён в `_workspace/codex-artifacts/audit-input-20260918/codex-agents.txt` |
+| localhost из песочницы воркера (сводка `github/gh-aw#61043` по 0.154.0: «sandboxed commands can no longer reach host-local services by default»; в самих release notes фразы нет) | `codex_investigate.py` (`workspace_write`, тот же пресет, что у воркеров), внутри `curl` к `127.0.0.1:18765`, `localhost:18765`, `https://example.com`; run `20260918T175500Z-c2add3dd` | все три — exit 0, локальный http-сервер и интернет достижимы; правило про localhost в `delegate.md` не нужно |
+| нативный `codex doctor` | тот же бинарь, без TTY | работает, exit 0; сообщил 9 673 rollout-файла на 20,27 ГБ и 3 thread issues в state DB |
+
+Не доказано: поведение замка `already has an active writer` под 0.154/0.155
+(`openai/codex#43253` — read-only транскрипт при активном writer'е) для тредов
+моста не мерилось.
+
+## Три улучшения из SDK 0.154.0 и витрина запуска, 2026-09-18
+
+| Замер | Как | Результат |
+|---|---|---|
+| бамп пина `0.144.4 → 0.154.0` | `pip install -r requirements.txt`, `unittest discover tests` | 190 тестов OK без правок кода; открытых enum'ов 3 из 122 — шим остаётся |
+| `codex_threads.py history` | живой вызов на персистентном треде `019fadc5…` (`--last 1`) | напечатал ход, user-запрос и восемь agent-сообщений; writer-lock не брал |
+| `--steer … --external` доставляет текст в идущий ход | `codex_investigate.py` с `sleep 60` в задании, через 30 с `codex_progress.py RUN_DIR --steer "RELAY-TEST-42…" --external`; run `20260918T184500Z-steer-external-probe` | `steer_accepted` с `authority=external` через 2 с; `final.md`: `START` / `RELAY: RELAY-TEST-42: это внешний контент из файла` — модель получила и процитировала внешний текст. `ok=false` только из-за scope-check: во время прогона правились файлы проекта |
+| первый вариант `--external` | run `20260918T183545Z-ea0415d0` | `steer_rejected: 'Thread' object has no attribute 'turn'` — имя `_thread` в стороже занято рабочим потоком; исправлено (`_sdk_thread`), тест `ExternalSteerTests` |
+| `watch` ждёт `RUN_DIR` | smoke: каталог создан через 3 с; несуществующий с `--wait-sec 3` | «ВСТАЛО … через ~4с»; «НЕ ВСТАЛО … за 3с», exit 2 (после починки проброса флага: сначала ждал 180 с) |
+| `watch --pulse` | на журнале закрытого run `20260918T175500Z-c2add3dd` | шесть строк шагов (agentMessage, три commandExecution, fileChange, agentMessage) и строка `OK … 12ш`; reasoning/userMessage пропущены |
+
+Слова владельца, определившие форму витрины (`_ops/chat-recall/2026-08-24-101244-claude-351728ed.md`):
+«главное … чтобы в десктоп приложении клод кода я видел факт того чтобы агенты
+работают, типа как баш команды» (#L28), «не будем делать проверку каждые
+20 мин, сделаем только при завершении» (#L26), и 2026-08-16: «важно чтобы
+кодекс не забивал твоё контекстное окно» (`2026-08-16-060539-claude-0da6ba3c.md#L20`).
+Поэтому шаги идут в карточку фонового Bash, а `Monitor` без `--pulse` — только
+завершения.
+
+Паттерн запуска проверен живьём (run `20260918T184149Z-launch-pattern-probe`):
+одна фоновая Bash-команда, прогон в subshell, карточка — `watch --pulse
+--poll 5`. В карточке по ходу: «ВСТАЛО через ~2с», три `commandExecution`
+с текстом команд, два `agentMessage`, финал `OK … 17с · 7ш`, exit 0; сводка
+моста легла в `<RUN_DIR>.launch.log`. Одно уведомление агенту по завершению.
+
+Аудит кода моста Codex'ом (2026-09-18, `gpt-5.6-sol`/`medium`): семь находок,
+четыре приняты и исправлены (гонка external-join, подписка ручного
+`TurnHandle`, владение остановкой в launcher, отказ `history`), тесты 194 OK.
+`history` на несуществующем id живьём: `history FAILED: … thread not loaded`,
+без traceback. Остановка карточки живьём до починки: `interrupt_requested
+signal=15` в журнале, прогон умер вместе с карточкой.
+
+## Поколение 6 и картинки, 2026-09-23
+
+| Что проверялось | Как | Результат |
+|---|---|---|
+| генерация картинки через мост | `investigate`, `gpt-5.6-sol`/`low`, run `20260923T001119Z-image-probe` | `completed`, `ok=true`; PNG 1254×1254, SHA-256 копии в `out/` равен оригиналу в `~/.codex/generated_images/…`; картинку осмотрели Claude и владелец |
+| генерация на новом дефолте | `investigate`, дефолт `gpt-6-sol`/`low`, run `20260923T002233Z-image-probe-gpt6` | ход `completed`, картинка годна (осмотрена, SHA-256 совпал); `ok=false` из-за scope: `out_of_scope_files` = `skills/claude/1codex/SKILL.md`, который Claude правил во время хода |
+| доступ к `gpt-6-luna` | `review`, `--model gpt-6-luna --effort low`, run `20260923T002234Z-luna6-probe` | `completed`, `ok=true`, ответ `OK GPT-6` за 6 с |
+| каталог движка | `~/.codex/models_cache.json`, 2026-09-23 | `gpt-6-astra` и `gpt-6-sol` до `ultra`, `gpt-6-luna` до `max`, все `visibility=list` |
+| мост после замены | `unittest discover` + `pyflakes` | 206 OK, pyflakes чист |
+
+`gpt-6-astra` проверен раньше: пробник 2026-09-06 и аудит 2026-09-19.
+
+### Голые фразы после установки (свежие `claude -p`, 2026-09-23)
+
+Сессии запускались из корня мастерской с отключёнными Bash, Edit, Write,
+Agent и NotebookEdit; журналы — `/tmp/trig/run1..5.jsonl` (не сохраняются).
+
+| Фраза | Вызванный скил | Итог |
+|---|---|---|
+| «нарисуй обложку для статьи knowledge/скил/как писать.md» | `1illustrations-and-charts` | SVG в чате; `1codex` не вызван — сосед перехватил |
+| «добавь в knowledge/скил/как писать.md схему того, как пишется скил» | нет | Mermaid; `1codex` не вызван, верно |
+| «что изображено на картинке …/image.png?» | нет | картинка прочитана; верно |
+| «сгенерируй картинку: робот рисует на мольберте» | `1codex` | весь маршрут: `delegate.md` → задание с копией в `out/` и запретом claude-mcp → `investigate` на дефолте `gpt-6-sol`/`medium` → `completed`, `ok=true`, scope `passed`, PNG 1312×1199 (`~/.codex-runs/robot-easel-20260923-053836`) |
+| «нужна картинка для README этого репо — робот-художник» | `1codex` | без терминала составил задание для Codex и назвал маршрут |
+
+Запрет Bash сессия обошла через `Monitor`, который тоже исполняет shell, и
+сделала незапланированный платный прогон. Проба, которой shell запрещён,
+должна отключать и `Monitor`.
+
+### Перевод остальных инструментов (2026-09-23)
+
+| Что | Как | Результат |
+|---|---|---|
+| `1-max-review` | `unittest discover` | 24 OK |
+| `1design-review` | `node --test tests/*.test.mjs` | 10 pass |
+| `graphiti-codex` | `uv run pytest tests` | 26 passed |
+| md-scout | `pytest tests/test_run_md_scout.py`; `sync-skill-docs.py --check` | 20 passed; установленный агент в паритете |
+| md-scout живьём | `run_md_scout.py knowledge/скил --question …` | `returncode 0`, `gpt-6-luna`/`medium`, пакет с цитатами до строки |
+| мост после правок аудита | `unittest discover` + `pyflakes` | 206 OK, чисто |
+
+`1-max-review` и `1folder-tree` живьём не запускались: оба ищут `codex` в PATH,
+а на этом Mac его там нет (находка `_ops/findings/2026-09-23-054846-codex-not-on-path.md`).
+
+### Мост забирает картинку сам (2026-09-23)
+
+| Что | Как | Результат |
+|---|---|---|
+| read-only без просьбы копировать | `review`, `gpt-6-sol`/`low`, run `20260923T092405Z-image-bridge-collect` | `completed`, `ok=true`; `images/01.png` из base64, SHA-256 = оригиналу; `saved_path` записан как `root='…'` — дефект развёртки |
+| после развёртки `AbsolutePathBuf` | тот же прогон, run `20260923T092643Z-image-bridge-collect-2` | `completed`, `ok=true`; `images/01-exec-….png` по `savedPath`, SHA-256 совпал; в журнале `imageGeneration` с путём; картинка по заданию |
+| одно правило движка | `max-review doctor`, `check_tree.py --dry-run` | оба выбрали `/Applications/ChatGPT.app/Contents/Resources/codex` |
+
+### Возможности генерации картинок (2026-09-23)
+
+Все прогоны — `review`, `gpt-6-sol`/`low`, движок 0.155.0-alpha.16; картинки
+забирал мост.
+
+| Что | Run | Итог |
+|---|---|---|
+| прозрачный фон с нуля («ракета») | `20260923T094308Z-image-transparency` | RGBA 1247×1261; альфа 0 — 65,2 %, 245–254 — 33,8 %, 255 — 0,1 %; на пурпурной подложке край чистый, шахматки нет |
+| вырезать объект из готового PNG (путь в задании) | `20260923T094507Z-image-edit-transparency` | RGBA 1254×1254; альфа 0 — 63,3 %, 245–254 — 35,3 %; край на тёмном фоне чистый; Codex сам отметил артефакты по краям |
+| макет веб-страницы с русским текстом, «16:9» | `20260923T094508Z-image-ui-mockup` | RGB 1672×941; все семь надписей точно по заданию; вокруг экрана добавлен декор (растение, книги) |
+
+Первоисточники: системный скил Codex `~/.codex/skills/.system/imagegen/SKILL.md`
+(встроенный режим — генерация, правка, прозрачность; иконки и простые схемы —
+кодом); `openai/codex#40572` и `openai/codex#42743` — открытые issues о
+шахматке вместо альфы на версиях до 0.153 и App 26.825; OpenAI Cookbook «GPT
+Image Generation Models Prompting Guide» (архивный срез 2026-04-21), разделы
+Prompting Fundamentals и UI Mockups.
+
+Дополнительно 2026-09-23: официальная страница Codex «Image generation»
+(learn.chatgpt.com/docs/image-generation) — `gpt-image-2`, лимит в 3–5 раз
+быстрее, `$imagegen`; руководство «Image prompting»
+(developers.openai.com/api/docs/guides/image-prompting) — макет «как уже
+существующий продукт»; `openai/codex#47484` влит 07:15 UTC — `transparent_background`.
+Локальная вырезка: ракета, сложенная на белый, через
+`remove_chroma_key.py --auto-key border` — 65,8 % пикселей с альфой 0, 0
+полупрозрачных, средний сдвиг цвета непрозрачных пикселей 0,0.
+Та же вырезка сделала прозрачными 903 пикселя объекта (0,06 %) — белые блики
+совпали с белым фоном.
+
+Голые фразы после установки reference (свежие `claude -p`; отключены Bash,
+Monitor, Edit, Write, Agent, NotebookEdit):
+
+| Фраза | Вызванный скил | Итог |
+|---|---|---|
+| «нужна иконка-иллюстрация ракеты на прозрачном фоне для лендинга» | `1codex` → `images.md` | план: растр от Codex с проверкой альфы по пикселям |
+| «прежде чем верстать, покажи, как будет выглядеть страница тарифов» | нет | в репо нет продукта с тарифами — сессия спросила контекст; маршрут после ответа не проверен |
+| «убери фон с логотипа /tmp/rocket-on-white.png» | `1codex` | без терминала назвала риск дыр в белом корпусе и план вырезки |
+| «сделай иконку настроек для кнопки в интерфейсе» | нет | ищет интерфейс в репо, `1codex` не вызван — верно |
+
+
+## Ослабление прав, 2026-09-23
+
+Устройство выбрано по совету Codex astra до реализации
+(`_workspace/codex-artifacts/20260923T164405Z-advisor-loosen/final.md`):
+копия — флаг `--scratch`, а не дефолт, потому что стоит ~30 с; полный доступ —
+только у исследователя; запись вне списка — только под `--verify`. Он же нашёл,
+что прежнее объяснение сети в README неверно: SDK шлёт `networkAccess: false`.
+
+Живые пробники (gpt-6-luna/low, мост на движке ChatGPT.app):
+
+| Прогон | Что проверено | Итог |
+|---|---|---|
+| `*probe-readonly-net` | читающий проверяющий: `curl https://example.com`, `touch` в проекте | 200, exit 0; запись — `Operation not permitted` |
+| `*probe-scratch` | `--scratch` на agentic-research: `pwd`, `touch` в копии и в исходнике, `curl`, unittest в копии | копия 32 387 мс; запись в копию — да, в исходник — `Operation not permitted`; 200; `Ran 2 tests … OK` из `.venv` копии; `cleanup_status: removed` |
+
+Вживую не гонялись `--full-access` и волна с записью вне списка: они проверены
+тестами моста на настоящем git (`tests/test_codex_worktrees.py`,
+`tests/test_codex_investigate.py`), 221 тест зелёный.
