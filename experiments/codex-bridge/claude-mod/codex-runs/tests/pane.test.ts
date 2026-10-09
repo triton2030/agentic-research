@@ -40,10 +40,11 @@ for (const surface of ['terminal', 'desktop'] as const) {
       plugin: 'codex-runs', surface, component: 'Pane', requestId: 'codex-runs',
       props: { title: 'Codex', isFocused: false, bodyColumns: 70, placement: 'dock', scroll: 0 } as never,
     })
-    expect(await ui.find({ text: '◐ 1 в работе · ● 2 готово' })).toBeDefined()
+    expect(await ui.find({ text: ' 1 в работе' })).toBeDefined()
+    expect(await ui.find({ text: ' 2 готово' })).toBeDefined()
     expect(await ui.find({ text: '  читаю журнал' })).toBeDefined()
     // c-old кончился давно, но запущен этой сессией — виден без переключателя
-    expect(await ui.find({ text: '● c-old' })).toBeDefined()
+    expect(await ui.find({ text: 'c-old' })).toBeDefined()
 
     const footer = await $.ui.mount({
       plugin: 'codex-runs', surface, component: 'SessionMode', props: { modes: ['focus'] } as never,

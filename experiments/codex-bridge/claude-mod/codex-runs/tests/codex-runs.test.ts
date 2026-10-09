@@ -1,6 +1,9 @@
 import { expect, test } from 'claude-code/testing'
 
-import { activity, dur, hiddenEnded, launchedRunNames, meta, rowTime, summary, transition, visible } from '../hooks/view'
+import {
+  activity, ago, dur, hiddenEnded, launchedRunNames, meta, plainText, plural, rowTime, shortName, summary, tierLabel,
+  transition, visible, workLabel,
+} from '../hooks/view'
 import type { CodexRun } from '../types'
 
 const NOW = 100_000
@@ -41,11 +44,24 @@ test('законченные старше 15 минут прячутся, вни
 
 test('строка одной формы: время, действие, сведения', () => {
   expect(rowTime(run('a', 'live'), NOW)).toBe('1м15с')
-  expect(rowTime(run('a', 'ok', { started: NOW - 700, elapsed_s: 100 }), NOW)).toBe('10м00с назад')
+  expect(rowTime(run('a', 'ok', { started: NOW - 700, elapsed_s: 100 }), NOW)).toBe('10 мин назад')
   expect(activity(run('a', 'live', { last_words: '' }))).toBe('задача')
   expect(activity(run('a', 'failed', { last_words: '' }))).toBe('ошибка')
-  expect(meta(run('a', 'live'))).toBe('gpt-6-luna/max · 3ш · w · тихо 6м40с')
-  expect(meta(run('a', 'ok'))).toBe('gpt-6-luna/max · 3ш · w')
+  expect(meta(run('a', 'live'))).toBe('luna 6 · max · 3 шага · тихо 7 мин')
+  expect(meta(run('a', 'ok', { elapsed_s: 190 }), true)).toBe('luna 6 · max · 3 шага · 3 мин · w')
+})
+
+test('слова и имена для человека', () => {
+  expect(plainText('[Отчёт сохранён в out/](</Users/a b/x.md>) и **жирный** `код`')).toBe('Отчёт сохранён в out/ и жирный код')
+  expect(plainText('[Отчёт]( /Users/x/out/r.md)')).toBe('Отчёт')
+  expect(shortName('20261009T1400-check-intent')).toBe('check-intent')
+  expect(shortName('20261008T190301Z-4e12f560')).toBe('20261008T190301Z-4e12f560')
+  expect(workLabel('2026-10-09-codex-claude-updates')).toBe('codex-claude-updates')
+  expect(tierLabel('gpt-6.1-sol/medium')).toBe('sol 6.1 · medium')
+  expect(tierLabel('')).toBe('?')
+  expect([1, 2, 5, 11, 21, 43].map(n => plural(n, 'шаг', 'шага', 'шагов'))).toEqual(
+    ['1 шаг', '2 шага', '5 шагов', '11 шагов', '21 шаг', '43 шага'])
+  expect([30, 600, 7200, 200000].map(ago)).toEqual(['только что', '10 мин назад', '2 ч назад', '2 дн назад'])
 })
 
 test('из команд запуска берётся каталог прогона, переменная в имени — нет', () => {

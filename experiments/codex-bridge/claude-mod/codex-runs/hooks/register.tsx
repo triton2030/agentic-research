@@ -2,7 +2,10 @@ import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
 import type { CodexRun } from '../types'
-import { activity, COLOR, hiddenEnded, LABEL, launchedRunNames, MARK, meta, rowTime, summary, transition, visible } from './view'
+import {
+  activity, COLOR, hiddenEnded, launchedRunNames, MARK, meta, rowTime, shortName, summary, summaryParts, transition,
+  visible, workLabel,
+} from './view'
 
 // Панель для владельца, а не для Claude: ни одна строка отсюда не начинает ход
 // и не попадает в контекст агента. Будит Claude по-прежнему только завершение
@@ -149,36 +152,54 @@ export const register: Register = on => {
     const mine = new Set(await read($, sessionRuns))
     const list = visible(all, now, isShowingEnded, mine)
     const hidden = hiddenEnded(all, now, mine)
+    // Одна работа на всех — пишем её один раз под сводкой, а не в каждой строке.
+    const works = [...new Set(list.map(run => run.work))]
+    const sharedWork = works.length === 1 ? workLabel(works[0] ?? '') : ''
 
     return (
       <Box flexDirection="column">
-        <Box flexDirection="row" marginBottom={1}>
-          <Box flexGrow={1}>
-            <Text bold wrap="truncate-end">{summary(list) || 'Прогонов Codex нет'}</Text>
+        <Box flexDirection="row">
+          <Box flexGrow={1} flexShrink={1} flexDirection="row" flexWrap="wrap">
+            {list.length === 0 && <Text dimColor>Прогонов Codex нет</Text>}
+            {summaryParts(list).map((part, i) => (
+              <Text key={part.state}>
+                {i > 0 && <Text dimColor>{'  '}</Text>}
+                <Text color={COLOR[part.state]}>{MARK[part.state]}</Text>
+                <Text bold>{` ${part.text}`}</Text>
+              </Text>
+            ))}
           </Box>
           {(hidden > 0 || isShowingEnded) && (
-            <Button
-              key="toggle-ended"
-              label={isShowingEnded ? 'скрыть законченные' : `законченные (${hidden})`}
-              onPress={() => update($, showEnded, value => !value)}
-            />
+            <Box flexShrink={0}>
+              <Button
+                key="toggle-ended"
+                label={isShowingEnded ? 'скрыть старые' : `старые · ${hidden}`}
+                onPress={() => update($, showEnded, value => !value)}
+              />
+            </Box>
           )}
         </Box>
-        {problem !== '' && <Text color="error" wrap="truncate-end">мост не ответил: {problem}</Text>}
-        {list.map(run => (
-          <Box key={run.name} flexDirection="column" marginBottom={1}>
-            <Box flexDirection="row">
-              <Box flexGrow={1}>
-                <Text color={COLOR[run.state]} bold={run.state !== 'ok'} wrap="truncate-end">
-                  {MARK[run.state]} {run.name}
-                </Text>
+        {sharedWork !== '' && <Text dimColor wrap="truncate-end">{sharedWork}</Text>}
+        {problem !== '' && <Text color="error" wrap="truncate-end">{`мост не ответил: ${problem}`}</Text>}
+        <Box flexDirection="column" marginTop={1}>
+          {list.map(run => (
+            <Box key={run.name} flexDirection="column" marginBottom={1}>
+              <Box flexDirection="row">
+                <Box flexShrink={0}>
+                  <Text color={COLOR[run.state]}>{`${MARK[run.state]} `}</Text>
+                </Box>
+                <Box flexGrow={1} flexShrink={1}>
+                  <Text bold={run.state !== 'ok'} wrap="truncate-end">{shortName(run.name)}</Text>
+                </Box>
+                <Box flexShrink={0}>
+                  <Text dimColor wrap="truncate">{` ${rowTime(run, now)}`}</Text>
+                </Box>
               </Box>
-              <Text dimColor>{` ${LABEL[run.state]} · ${rowTime(run, now)}`}</Text>
+              <Text wrap="truncate-end">{`  ${activity(run)}`}</Text>
+              <Text dimColor wrap="truncate-end">{`  ${meta(run, sharedWork === '')}`}</Text>
             </Box>
-            <Text wrap="truncate-end">{`  ${activity(run)}`}</Text>
-            <Text dimColor wrap="truncate-end">{`  ${meta(run)}`}</Text>
-          </Box>
-        ))}
+          ))}
+        </Box>
       </Box>
     )
   })

@@ -69,23 +69,91 @@ export function launchedRunNames(commands: readonly string[]): string[] {
   return names
 }
 
+/** «12 мин назад»: секунды у давно закончившегося — шум. */
+export function ago(seconds: number): string {
+  if (seconds < 60) return 'только что'
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} мин назад`
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)} ч назад`
+  return `${Math.floor(seconds / 86400)} дн назад`
+}
+
+/** «3 мин» / «1 ч 05 мин» — сколько шёл прогон. */
+export function took(seconds: number | null): string {
+  if (seconds === null || seconds < 0) return '?'
+  if (seconds < 60) return `${Math.round(seconds)} с`
+  if (seconds < 3600) return `${Math.round(seconds / 60)} мин`
+  return `${Math.floor(seconds / 3600)} ч ${String(Math.round((seconds % 3600) / 60)).padStart(2, '0')} мин`
+}
+
+export function plural(n: number, one: string, few: string, many: string): string {
+  const tens = n % 100
+  const units = n % 10
+  if (tens >= 11 && tens <= 14) return `${n} ${many}`
+  if (units === 1) return `${n} ${one}`
+  if (units >= 2 && units <= 4) return `${n} ${few}`
+  return `${n} ${many}`
+}
+
+/** `20261009T1400-check-intent` → `check-intent`; имя без смысла оставляем как есть. */
+export function shortName(name: string): string {
+  const rest = name.replace(/^\d{8}T\d{4,6}Z?-/, '')
+  return rest && !/^[0-9a-f]{8}$/.test(rest) ? rest : name
+}
+
+/** `2026-10-09-codex-claude-updates` → `codex-claude-updates`. */
+export function workLabel(work: string): string {
+  return work.replace(/^\d{4}-\d{2}-\d{2}-/, '') || work
+}
+
+/** `gpt-6.1-sol/medium` → `sol 6.1 · medium`. */
+export function tierLabel(tier: string): string {
+  const [model = '', effort] = tier.split('/')
+  const found = /^gpt-([\d.]+)-([a-z]+)$/.exec(model)
+  const name = found ? `${found[2]} ${found[1]}` : model.replace(/^gpt-/, '')
+  return [name || '?', effort].filter(Boolean).join(' · ')
+}
+
+/** Слова Codex без разметки: ссылки — их текстом, без звёздочек и обратных кавычек. */
+export function plainText(text: string): string {
+  return text
+    .replace(/\[([^\]]*)\]\((?:<[^>]*>|[^)]*)\)/g, '$1')
+    .replace(/[*_`]{1,3}/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 /** Правый край первой строки: сколько идёт или как давно кончился. */
 export function rowTime(run: CodexRun, now: number): string {
-  return isEnded(run) ? `${dur(now - endedAt(run))} назад` : dur(run.elapsed_s)
+  return isEnded(run) ? ago(now - endedAt(run)) : dur(run.elapsed_s)
 }
 
 /** Вторая строка: что прогон делает сейчас или чем кончился. */
 export function activity(run: CodexRun): string {
-  if (run.state === 'lost') return `нет событий ${dur(run.quiet_s)} — процесс, похоже, умер`
-  if (run.state === 'failed') return run.last_words ? `ошибка: ${run.last_words}` : 'ошибка'
-  if (run.state === 'ok') return run.last_words || 'готово'
-  return run.last_words || run.task || 'думает…'
+  const words = plainText(run.last_words)
+  if (run.state === 'lost') return `нет событий ${took(run.quiet_s)} — процесс, похоже, умер`
+  if (run.state === 'failed') return words ? `ошибка: ${words}` : 'ошибка'
+  if (run.state === 'ok') return words || 'готово'
+  return words || plainText(run.task) || 'думает…'
 }
 
-/** Третья строка: модель, шаги, работа и тишина живого прогона. */
-export function meta(run: CodexRun): string {
-  const quiet = run.state === 'live' && run.quiet_s !== null && run.quiet_s >= 60 ? `тихо ${dur(run.quiet_s)}` : ''
-  return [run.tier || '?', `${run.steps}ш`, run.work, quiet].filter(Boolean).join(' · ')
+/** Третья строка: модель, шаги, длительность или тишина, работа — если их несколько. */
+export function meta(run: CodexRun, showWork = false): string {
+  const quiet = run.state === 'live' && run.quiet_s !== null && run.quiet_s >= 60 ? `тихо ${took(run.quiet_s)}` : ''
+  return [
+    tierLabel(run.tier),
+    plural(run.steps, 'шаг', 'шага', 'шагов'),
+    isEnded(run) ? took(run.elapsed_s) : quiet,
+    showWork ? workLabel(run.work) : '',
+  ].filter(Boolean).join(' · ')
+}
+
+/** Части сводки для цветной шапки: состояние и его текст. */
+export function summaryParts(list: readonly CodexRun[]): { state: State; text: string }[] {
+  const order: State[] = ['live', 'lost', 'ok', 'failed']
+  return order
+    .map(state => ({ state, n: list.filter(run => run.state === state).length }))
+    .filter(part => part.n > 0)
+    .map(part => ({ state: part.state, text: `${part.n} ${LABEL[part.state]}` }))
 }
 
 /** Что сказать владельцу о смене состояния прогона; null — молчать. */
