@@ -1,0 +1,12 @@
+{
+  "name": "codex-bridge-mods",
+  "owner": { "name": "triton2030" },
+  "description": "Моды Claude Code для моста codex-bridge",
+  "plugins": [
+    {
+      "name": "codex-runs",
+      "source": "./codex-runs",
+      "description": "Панель прогонов Codex: кто жив, история по клику, кнопка «Codex N» в нижней строке. Только чтение; в контекст Claude не попадает."
+    }
+  ]
+}
