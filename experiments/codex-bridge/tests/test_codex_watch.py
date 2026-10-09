@@ -86,5 +86,62 @@ class SoloRunTests(unittest.TestCase):
             self.assertIn("одиночный · 1ш", proc.stdout)
 
 
+class LookJsonTests(unittest.TestCase):
+    """`look --json` кормит панель-мод: состояние каждого прогона из его файлов."""
+
+    @staticmethod
+    def _run(project: Path, name: str, last_ts: str, result: dict | None = None) -> Path:
+        run_dir = project / "_workspace" / "work-artifacts" / "2026-10-09-w" / "agents" / "codex-artifacts" / name
+        run_dir.mkdir(parents=True)
+        (run_dir / "manifest.json").write_text(json.dumps({
+            "codex": {"model": "gpt-6-luna", "effort": "max"}, "runtime": {"heartbeat_sec": 120},
+        }), encoding="utf-8")
+        (run_dir / "prompt.md").write_text("роль\n===== ЗАДАНИЕ =====\n# Заголовок\nПочинить витрину\n", encoding="utf-8")
+        (run_dir / "events.jsonl").write_text("\n".join(json.dumps(e, ensure_ascii=False) for e in [
+            {"ts": "2026-01-01T00:00:00+00:00", "event": "codex_start"},
+            {"ts": last_ts, "event": "codex", "method": "item/completed", "kind": "agentMessage",
+             "detail": "12 симв.: читаю журнал"},
+        ]) + "\n", encoding="utf-8")
+        if result is not None:
+            (run_dir / "result.json").write_text(json.dumps(result), encoding="utf-8")
+        return run_dir
+
+    def test_states_and_fields(self) -> None:
+        from datetime import datetime, timezone
+        import os
+        fresh = datetime.now(timezone.utc).isoformat()
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp)
+            self._run(project, "a-live", fresh)
+            self._run(project, "b-lost", "2026-01-01T00:01:00+00:00")
+            self._run(project, "c-ok", fresh, {"ok": True})
+            old = self._run(project, "d-old", "2026-01-01T00:01:00+00:00", {"ok": False})
+            os.utime(old / "result.json", (0, 0))
+            self._run(project, "e-stopping", fresh, {"provisional": True})
+
+            data = codex_watch.look_json(project, recent_min=30)
+            runs = {r["name"]: r for r in data["runs"]}
+            self.assertNotIn("d-old", runs)
+            self.assertEqual(runs["a-live"]["state"], "live")
+            self.assertEqual(runs["b-lost"]["state"], "lost")
+            self.assertEqual(runs["c-ok"]["state"], "ok")
+            self.assertEqual(runs["e-stopping"]["state"], "live")
+            self.assertEqual(runs["a-live"]["tier"], "gpt-6-luna/max")
+            self.assertEqual(runs["a-live"]["task"], "Починить витрину")
+            self.assertEqual(runs["a-live"]["last_words"], "читаю журнал")
+            self.assertEqual(runs["a-live"]["work"], "2026-10-09-w")
+            self.assertIsNone(runs["c-ok"]["quiet_s"])
+            self.assertEqual(data["runs"][-1]["name"], "c-ok")  # закончившиеся — после живых
+
+    def test_cli_prints_json_without_runs_dir(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            proc = subprocess.run(
+                [sys.executable, str(BACKEND / "codex_watch.py"), "look", "--json", tmp],
+                capture_output=True, text=True,
+            )
+            self.assertEqual(proc.returncode, 0)
+            self.assertEqual(json.loads(proc.stdout)["runs"], [])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -5,7 +5,9 @@
 - `watch` — stdout карточки запуска (`codex_launch.py` ставит `watch --pulse`):
   заголовок с заданием, слова Codex по мере работы и финал прогона.
 - `look` — одноразовый снимок по всем живым прогонам, по запросу владельца
-  «глянь, над чем они там». Печатает и выходит.
+  «глянь, над чем они там». Печатает и выходит. `look --json` — те же данные
+  плюс недавно закончившиеся прогоны для панели-мода Claude Code
+  (`claude-mod/codex-runs/`), которую видит владелец, а не контекст агента.
 
 Два свойства, купленные ценой кода, и каждое лечит известный отказ:
 
@@ -169,34 +171,43 @@ class Run:
             return f"{span:>5} {body}".rstrip()
         return f"{span:>5} {icon} {body}".rstrip()
 
+    def task(self) -> str:
+        """Первая содержательная строка задания из prompt.md."""
+        prompt = self.dir / "prompt.md"
+        if not prompt.is_file():
+            return ""
+        try:
+            lines = [ln.strip() for ln in prompt.read_text(encoding="utf-8").splitlines()]
+        except OSError:
+            return ""
+        # Мост кладёт преамбулу роли, потом «===== ЗАДАНИЕ =====»: показываем задание.
+        start = 0
+        for i, ln in enumerate(lines):
+            if "ЗАДАНИЕ" in ln and ln.startswith("="):
+                start = i + 1
+                break
+        return next((ln for ln in lines[start:] if ln and not ln.startswith(("#", "="))), "")
+
+    def tier(self) -> str:
+        """`модель/усилие` из manifest.json; пусто, если манифест молчит."""
+        manifest = self.dir / "manifest.json"
+        if not manifest.is_file():
+            return ""
+        try:
+            m = json.loads(manifest.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return ""
+        codex = m.get("codex") if isinstance(m.get("codex"), dict) else m
+        model, effort = codex.get("model"), codex.get("effort")
+        if not model:
+            return ""
+        return f"{model}" + (f"/{effort}" if effort else "")
+
     def header_line(self) -> str:
         """Первая строка витрины: чем занят прогон, по prompt.md."""
-        prompt = self.dir / "prompt.md"
-        task = ""
-        if prompt.is_file():
-            try:
-                lines = [ln.strip() for ln in prompt.read_text(encoding="utf-8").splitlines()]
-                # Мост кладёт преамбулу роли, потом «===== ЗАДАНИЕ =====»: показываем задание.
-                start = 0
-                for i, ln in enumerate(lines):
-                    if "ЗАДАНИЕ" in ln and ln.startswith("="):
-                        start = i + 1
-                        break
-                task = next((ln for ln in lines[start:] if ln and not ln.startswith(("#", "="))), "")
-            except OSError:
-                task = ""
-        tier = ""
-        manifest = self.dir / "manifest.json"
-        if manifest.is_file():
-            try:
-                m = json.loads(manifest.read_text(encoding="utf-8"))
-                codex = m.get("codex") if isinstance(m.get("codex"), dict) else m
-                model, effort = codex.get("model"), codex.get("effort")
-                if model:
-                    tier = f" · {model}" + (f"/{effort}" if effort else "")
-            except (OSError, ValueError):
-                tier = ""
-        return f"▶ {self.dir.name}{tier}" + (f" · {_short(task, 100)}" if task else "")
+        task, tier = self.task(), self.tier()
+        return (f"▶ {self.dir.name}" + (f" · {tier}" if tier else "")
+                + (f" · {_short(task, 100)}" if task else ""))
 
     def __init__(self, run_dir: Path, pulse: bool = False, words_only: bool = True) -> None:
         self.dir = run_dir
@@ -211,6 +222,7 @@ class Run:
         self.run_start = 0.0
         self.last_ts = 0.0
         self.finished = False
+        self.last_words = ""
 
     def absorb(self, event: dict[str, Any]) -> Iterator[str]:
         """Событие журнала → ноль или одна строка витрины."""
@@ -228,6 +240,11 @@ class Run:
                 self.last_kind = str(event["kind"])
             if event.get("method") == STEP_METHOD:
                 self.steps += 1
+                if event.get("kind") in self.WORD_KINDS:
+                    detail = str(event.get("detail") or "")
+                    words = detail.split(": ", 1)[1] if ": " in detail else ""
+                    if words:
+                        self.last_words = words
                 if self.pulse and event.get("kind") in self.PULSE_KINDS:
                     line = self.pulse_line(
                         str(event["kind"]), str(event.get("detail") or ""),
@@ -368,6 +385,66 @@ def look(project: Path, limit: int = 12) -> int:
     return 0
 
 
+RECENT_MIN = 30
+# Живой прогон пишет heartbeat раз в `runtime.heartbeat_sec`; три пропуска
+# подряд — процесс, скорее всего, умер без result.json.
+LOST_HEARTBEATS = 3
+
+
+def look_json(project: Path, recent_min: int = RECENT_MIN) -> dict[str, Any]:
+    """Данные для панели-мода: живые прогоны и закончившиеся за `recent_min`.
+
+    Панель рисует это владельцу и в контекст Claude не попадает, поэтому здесь
+    нет решения «будить ли агента»: только факты журнала, манифеста и result.json.
+    """
+    root = project / "_workspace" / "work-artifacts"
+    out: dict[str, Any] = {"project": str(project), "now": time.time(), "runs": []}
+    if not root.is_dir():
+        return out
+    now = time.time()
+    for run_dir in root.glob("*/agents/codex-artifacts/*"):
+        manifest = run_dir / "manifest.json"
+        if not run_dir.is_dir() or not manifest.is_file():
+            continue
+        final = _result_is_final(run_dir)
+        result_path = run_dir / "result.json"
+        if final and now - result_path.stat().st_mtime > recent_min * 60:
+            continue
+        run = Run(run_dir)
+        for event in run.journal.new_events():
+            list(run.absorb(event))
+        if final:
+            try:
+                ok = bool(json.loads(result_path.read_text(encoding="utf-8")).get("ok"))
+            except (OSError, ValueError):
+                ok = False
+            state = "ok" if ok else "failed"
+        else:
+            try:
+                runtime = json.loads(manifest.read_text(encoding="utf-8")).get("runtime") or {}
+                beat = float(runtime.get("heartbeat_sec") or 0)
+            except (OSError, ValueError, AttributeError):
+                beat = 0.0
+            silent = now - run.last_ts if run.last_ts else 0.0
+            state = "lost" if beat and silent > LOST_HEARTBEATS * beat else "live"
+        end = run.last_ts if final else now
+        out["runs"].append({
+            "name": run_dir.name,
+            "run_dir": str(run_dir),
+            "work": run_dir.parents[2].name,
+            "tier": run.tier(),
+            "task": _short(run.task(), 160),
+            "state": state,
+            "started": run.run_start,
+            "elapsed_s": round(end - run.run_start) if run.run_start else None,
+            "quiet_s": round(now - run.last_seen) if run.last_seen and not final else None,
+            "steps": run.steps,
+            "last_words": _short(run.last_words, 240),
+        })
+    out["runs"].sort(key=lambda r: (r["state"] not in ("live", "lost"), -(r["started"] or 0)))
+    return out
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Витрина Codex-прогонов: watch — поток завершений для Monitor,"
@@ -398,6 +475,14 @@ def main(argv: list[str] | None = None) -> int:
 
     snapshot = sub.add_parser("look", help="снимок живых агентов и их шагов")
     snapshot.add_argument("project", nargs="?", default=".")
+    snapshot.add_argument(
+        "--json", action="store_true",
+        help="данные для панели-мода Claude Code: живые и недавно закончившиеся прогоны",
+    )
+    snapshot.add_argument(
+        "--recent-min", type=int, default=RECENT_MIN,
+        help="с --json: сколько минут показывать закончившийся прогон",
+    )
 
     args = parser.parse_args(argv)
     if args.mode == "watch":
@@ -405,6 +490,9 @@ def main(argv: list[str] | None = None) -> int:
             Path(args.run_dir), args.poll, args.max_hours, args.wait_sec,
             args.pulse or args.pulse_all, words_only=not args.pulse_all, pid=args.pid,
         )
+    if args.json:
+        print(json.dumps(look_json(Path(args.project).resolve(), args.recent_min), ensure_ascii=False))
+        return 0
     return look(Path(args.project))
 
 

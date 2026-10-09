@@ -1,2 +1,2 @@
-openai-codex==0.157.1
-openai-codex-cli-bin==0.157.1
+openai-codex==0.161.0
+openai-codex-cli-bin==0.161.0
