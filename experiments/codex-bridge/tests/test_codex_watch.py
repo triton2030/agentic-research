@@ -12,6 +12,7 @@ BACKEND = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(BACKEND))
 
 import codex_watch  # noqa: E402
+from datetime import datetime, timezone  # noqa: E402
 
 
 class JournalTests(unittest.TestCase):
@@ -107,7 +108,6 @@ class LookJsonTests(unittest.TestCase):
         return run_dir
 
     def test_states_and_fields(self) -> None:
-        from datetime import datetime, timezone
         import os
         fresh = datetime.now(timezone.utc).isoformat()
         with tempfile.TemporaryDirectory() as tmp:
@@ -166,6 +166,62 @@ class LookJsonTests(unittest.TestCase):
             outside.write_text("не показывать", encoding="utf-8")
             (run_dir / "final.md").write_text(f"[x]({outside})", encoding="utf-8")
             self.assertEqual(codex_watch.story_json(run_dir)["report"], "")
+
+    def test_abandoned_run_hidden_unless_this_session(self) -> None:
+        import os
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp)
+            old = self._run(project, "x-abandoned", "2026-01-01T00:01:00+00:00")
+            os.utime(old / "events.jsonl", (0, 0))
+            mine = self._run(project, "y-mine", "2026-01-01T00:01:00+00:00")
+            os.utime(mine / "events.jsonl", (0, 0))
+            manifest = json.loads((mine / "manifest.json").read_text(encoding="utf-8"))
+            manifest["claude_session"] = "sess-1"
+            (mine / "manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+
+            data = codex_watch.look_json(project, recent_min=30, session="sess-1")
+            runs = {r["name"]: r for r in data["runs"]}
+            self.assertNotIn("x-abandoned", runs)
+            self.assertEqual(runs["y-mine"]["state"], "lost")
+            self.assertTrue(runs["y-mine"]["mine"])
+
+    def test_broken_run_dir_is_skipped_not_fatal(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp)
+            fresh = datetime.now(timezone.utc).isoformat()
+            self._run(project, "good", fresh)
+            broken = self._run(project, "broken", fresh)
+            (broken / "manifest.json").write_text("[]", encoding="utf-8")
+            data = codex_watch.look_json(project)
+            self.assertEqual([r["name"] for r in data["runs"]], ["good"])
+            self.assertEqual(data["skipped"], 1)
+
+    def test_board_and_panel_agree_on_lost(self) -> None:
+        import codex_progress
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp)
+            self._run(project, "gone", "2026-01-01T00:01:00+00:00")
+            self.assertEqual(codex_watch.look_json(project)["runs"][0]["state"], "lost")
+            self.assertIn("gone  без связи", codex_progress.board(project))
+
+    def test_json_fields_match_mod_types(self) -> None:
+        """Контракт с панелью-модом: поля моста = поля типов мода. Переименовал
+        поле здесь — поправь `claude-mod/codex-runs/types/index.d.ts`, и наоборот."""
+        import re
+        types = (BACKEND / "claude-mod" / "codex-runs" / "types" / "index.d.ts").read_text(encoding="utf-8")
+
+        def fields(name: str) -> set[str]:
+            body = re.search(r"export type " + name + r" = \{(.*?)\n\}", types, re.S)
+            assert body, name
+            return set(re.findall(r"^\s+([a-z_]+)\??:", body.group(1), re.M))
+
+        with tempfile.TemporaryDirectory() as tmp:
+            project = Path(tmp)
+            run_dir = self._run(project, "c-1", datetime.now(timezone.utc).isoformat(), {"ok": True})
+            look_run = codex_watch.look_json(project)["runs"][0]
+            story = codex_watch.story_json(run_dir)
+        self.assertEqual(set(look_run), fields("CodexRun"))
+        self.assertEqual(set(story), fields("CodexStory"))
 
     def test_cli_prints_json_without_runs_dir(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

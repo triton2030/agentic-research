@@ -5,14 +5,14 @@ import type { CodexRun } from '../types'
 const NOW = 100_000
 const run = (name: string, state: CodexRun['state'], over: Partial<CodexRun> = {}): CodexRun => ({
   name, run_dir: `/x/${name}`, work: 'w', tier: 'gpt-6-luna/max', task: 'задача',
-  state, started: NOW - 75, elapsed_s: 75, quiet_s: 30, steps: 3, last_words: 'читаю журнал', ...over,
+  state, mine: false, started: NOW - 75, elapsed_s: 75, quiet_s: 30, steps: 3, last_words: 'читаю журнал', ...over,
 })
 const BRIDGE_ANSWER = JSON.stringify({
   now: NOW,
   runs: [
     run('a-live', 'live'),
     run('b-done', 'ok', { started: NOW - 200, elapsed_s: 100 }),
-    run('c-old', 'ok', { started: NOW - 7200, elapsed_s: 100 }),
+    run('c-old', 'ok', { started: NOW - 7200, elapsed_s: 100, mine: true }),
   ],
 })
 
@@ -32,15 +32,14 @@ for (const surface of ['terminal', 'desktop'] as const) {
     mock.clock(on)
     let opened = 0
     on('session.start', () => ({ cwd: '/project' }) as never)
-    on('session.messages', () => ({ value: [{ role: 'assistant', text: '', toolUses: [{
-      tool_use_id: 't1', tool: 'Bash',
-      input: { command: 'python codex_launch.py agent --name x --run-dir /w/agents/codex-artifacts/c-old' },
-    }] }] }) as never)
+    on('session.id', () => ({ value: 'sess-1' }) as never)
     on('session.cwd', () => ({ value: '/project' }) as never)
     on('command.register', () => ({ value: undefined }) as never)
-    on('process.run', (_$, e) => ({
-      value: { exitCode: 0, stdout: e.argv.includes('story') ? STORY_ANSWER : BRIDGE_ANSWER, stderr: '' },
-    }) as never)
+    const argvs: string[][] = []
+    on('process.run', (_$, e) => {
+      argvs.push([...e.argv])
+      return { value: { exitCode: 0, stdout: e.argv.includes('story') ? STORY_ANSWER : BRIDGE_ANSWER, stderr: '' } } as never
+    })
     on('ui.open', () => {
       opened += 1
       return { value: { isPlaced: true } } as never
@@ -56,6 +55,8 @@ for (const surface of ['terminal', 'desktop'] as const) {
     expect(await ui.find({ text: ' 1 в работе' })).toBeDefined()
     expect(await ui.find({ text: ' 2 готово' })).toBeDefined()
     expect(await ui.find({ text: '  читаю журнал' })).toBeDefined()
+    // мост спрашивают про прогоны этой сессии по её id
+    expect(argvs.some(argv => argv.includes('--session=sess-1'))).toBe(true)
     // c-old кончился давно, но запущен этой сессией — виден без переключателя
     expect(await ui.find({ text: 'c-old' })).toBeDefined()
 

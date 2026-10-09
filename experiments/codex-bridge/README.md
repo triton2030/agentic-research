@@ -103,25 +103,13 @@ manifest учитывает длины обеих частей.
 ## Модель и runtime-доступ
 
 Backend явно закрепляет Codex turn defaults: `model=gpt-6.1-sol`,
-`effort=medium` — дефолт моста (см. «Ярусы вызова» в `AGENTS.md`). Модель и
+`effort=medium` — дефолт моста (`codex_defaults.py`). Модель и
 effort не зависят от текущего `~/.codex/config.toml`; флаги `--model` и
 `--effort` — осознанный выбор яруса под род работы. Service tier мост по
 умолчанию НЕ шлёт (см. ниже).
 
-Три яруса по роду работы (решение владельца 2026-09-06,
-`_ops/chat-recall/2026-09-06-170311-claude-557afe59.md#L16`; заменило
-«sol + xhigh на всё» от 2026-08-14). Поколение ярусов — 6: владелец
-2026-09-23 перевёл луну и сол с 5.6 на `gpt-6-*` (`_ops/chat-recall/2026-09-23-051553-claude-483a304e.md#recall-9805fef9e16041928ddf6a675d7d952d`),
-2026-10-02 сол — на `gpt-6.1-sol` (`_ops/chat-recall/2026-10-02-101553-claude-b40c28c9.md#recall-6e3fc918be584575ac201bde163a183a`):
-
-| Род работы | Модель | Effort | Как звать |
-|---|---|---|---|
-| средняя работа | `gpt-6.1-sol` | `medium` | дефолт, флаги не нужны |
-| много тупой работы: механика, объём, чёткая воля | `gpt-6-luna` | `max` | `--model gpt-6-luna --effort max` |
-| суперумная работа: развилка, архитектура, независимое суждение | `gpt-6-astra` | `medium` | `--model gpt-6-astra` |
-
-Это дефолты, а не границы: каталог открыт (там же, `#L17`), другие модели и
-усилия выбираются флагами по ситуации.
+Какой ярус брать по роду работы, решает скил `1codex` — его таблица ярусов
+единственная; мосту принадлежит только дефолт в `codex_defaults.py`.
 
 Под ChatGPT-биллингом работают не все слаги каталога: пробники 2026-07-10
 отсекли `gpt-5.6-pro` и `gpt-5.6` (без суффикса) — `HTTP 400 — "not supported
@@ -497,6 +485,26 @@ RUN_DIR="$PROJECT/_workspace/work-artifacts/2026-10-05-тема/agents/codex-art
 `20260923T001119Z-image-probe` (`gpt-5.6-sol`) и
 `20260923T002233Z-image-probe-gpt6` (`gpt-6-sol`). После снятия песочницы
 генерацию живым прогоном не перемеряли.
+
+## Панель Codex в Claude Code
+
+`claude-mod/codex-runs/` — мод Claude Code: панель прогонов, история по клику и
+кнопка «Codex N» в нижней строке. Он ничего не пишет в контекст Claude и
+никого не будит — только показывает владельцу то, что отдают
+`codex_watch.py look --json --session ID` и `codex_watch.py story RUN_DIR`.
+«Прогоны этой сессии» — по полю `claude_session` в `manifest.json`, которое
+пишет `codex_review.py` из `CLAUDE_CODE_SESSION_ID`.
+
+Поля этих JSON — контракт с модом: их сверяет с `types/index.d.ts` тест
+`test_json_fields_match_mod_types`. Переименовал поле — поправь типы мода.
+
+Мод установлен для всех сессий из локального магазина
+`claude-mod/.claude-plugin/marketplace.json` и живёт **копией** в кеше
+плагинов. После правки мода подними `version` в его
+`.claude-plugin/plugin.json` и выполни
+`claude plugin marketplace update codex-bridge-mods && claude plugin update codex-runs@codex-bridge-mods`;
+в открытой сессии — `/reload-plugins`. Тесты мода:
+`claude plugin test claude-mod/codex-runs`.
 
 ## Карта кода
 

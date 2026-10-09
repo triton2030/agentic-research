@@ -19,18 +19,8 @@ Backend здесь; operator/router — `~/.claude/skills/1codex/`.
   Codex turns: `model=gpt-6.1-sol`, `effort=medium` — явно, независимо от дрейфа
   `~/.codex/config.toml`: `model` в каждом `thread_start` + `thread_resume` +
   `thread.turn`, `effort` на ходе (`thread.turn`), где его и принимает SDK.
-  Ярусы вызова (владелец,
-  2026-09-06, `_ops/chat-recall/2026-09-06-170311-claude-557afe59.md#L16`):
-  `sol`+`medium` — дефолт, средняя работа; `luna`+`max` — много тупой работы;
-  `astra`+`medium` (`gpt-6-astra`, живой пробник 2026-09-06 — `completed`) —
-  суперумная работа. Луна и астра — поколения 6 (`gpt-6-luna`, `gpt-6-astra`;
-  владелец 2026-09-23,
-  `_ops/chat-recall/2026-09-23-051553-claude-483a304e.md#recall-9805fef9e16041928ddf6a675d7d952d`),
-  сол — 6.1 (`gpt-6.1-sol`; владелец 2026-10-02,
-  `_ops/chat-recall/2026-10-02-101553-claude-b40c28c9.md#recall-6e3fc918be584575ac201bde163a183a`).
-  Это дефолты по роду работы, каталог не блокируется
-  (там же, `#L17`): `--model`/`--effort` — выбор по ситуации, включая
-  `max`/`ultra`.
+  Какой ярус брать по роду работы, решает скил `1codex` (его таблица
+  ярусов единственная); мосту принадлежит только этот дефолт.
   `terra` доступен явным `--model`, штатным ярусом моста не является
   (`md-scout` с 2026-09-23 работает на `gpt-6-luna`). Service tier мост по умолчанию НЕ шлёт (вердикт
   владельца 2026-07-25, снят форсинг fast от 2026-07-20): `None` опускается
@@ -104,9 +94,9 @@ Backend здесь; operator/router — `~/.claude/skills/1codex/`.
   в `0.147.0` — 3 из 109; дрейф наблюдается живьём (движок 0.146 присылает в
   `CollabAgentTool` значения `search_openai_docs` и `fetch_openai_doc`,
   замер 2026-07-27; движок 0.151 — `SubAgentActivityKind='completed'`,
-  замер 2026-09-01). Пин бампаем на конкретную поломку, не по дате релиза;
-  сверка 2026-09-01 показала, что `0.147.0` не меняет ничего, что мост
-  использует (см. README).
+  замер 2026-09-01). Пин бампаем вслед за стабильным CLI, когда движок
+  ChatGPT.app его догнал, — с прогоном `tests/` и живым пробником (README,
+  «Бамп пина»).
 - **Успех turn-а точный.** Только SDK-статус
   `completed` при отсутствии `error` означает успех. `interrupted`,
   `inProgress` и любой неизвестный статус — `ok=false` + ненулевой exit code;
@@ -151,7 +141,7 @@ Backend здесь; operator/router — `~/.claude/skills/1codex/`.
 - `codex_retry.py` — восстановимые отказы СТАРТА: ретрай под перегрузкой движка
   и подъём архивного треда при resume; события `retry`,
   `thread_unarchived`, `thread_unarchive_failed` в ledger.
-- `codex_defaults.py` — ярусы вызова и runtime default (`gpt-6.1-sol`+`medium`),
+- `codex_defaults.py` — runtime default (`gpt-6.1-sol`+`medium`),
   права хода (`AGENT_SANDBOX`, `SCRATCH_SANDBOX`, approval),
   `BRIDGE_THREAD_EPHEMERAL`.
 - `codex_launch.py` — короткая команда карточки: свежий `RUN_DIR`, вход моста
@@ -177,8 +167,11 @@ Backend здесь; operator/router — `~/.claude/skills/1codex/`.
 - `codex_progress.py` — живая активность хода: tee потока нотификаций в журнал,
   `ProgressTracker` для пульса, `digest()`, доска и CLI-сводка, реплика в ход
   (`--steer`).
-- `codex_watch.py` — витрина карточки (`watch --pulse`) и живая доска
-  прогонов (`look`).
+- `codex_watch.py` — витрина карточки (`watch --pulse`), снимок прогонов
+  (`look`) и данные панели-мода: `look --json`, `story RUN_DIR`, а также
+  `run_state()` — одно состояние прогона для панели, доски и сводки.
+- `claude-mod/codex-runs/` — мод Claude Code, панель прогонов для владельца;
+  читает только `look --json`/`story` (контракт — README «Панель Codex»).
 - `codex_threads.py` — доска диалогов, `mine`, история и архив тредов.
 - `requirements.txt` — pinned `openai-codex` SDK + bundled CLI bin. venv в
   `.venv/` (git-ignored).

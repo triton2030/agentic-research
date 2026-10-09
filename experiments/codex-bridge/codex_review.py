@@ -616,6 +616,9 @@ def main() -> int:
         "mode": args.mode,
         "project": str(project_cwd),
         "transcript": str(transcript_path) if transcript_path else None,
+        # Какая сессия Claude запустила прогон: по нему панель-мод находит
+        # «прогоны этой сессии», не угадывая их по тексту команд.
+        "claude_session": os.environ.get("CLAUDE_CODE_SESSION_ID") or os.environ.get("CLAUDE_SESSION_ID"),
         "prompt_chars": len(prompt),
         # Роль ушла отдельным каналом; без её длины manifest занижал бы объём
         # реально отправленной инструкции.

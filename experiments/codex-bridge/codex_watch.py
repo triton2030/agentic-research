@@ -446,6 +446,18 @@ def _run_state(run_dir: Path, run: Run, final: bool, now: float) -> str:
     return "lost" if beat and silent > LOST_HEARTBEATS * beat else "live"
 
 
+STATE_RU = {"live": "идёт", "lost": "без связи", "ok": "ok", "failed": "провал"}
+
+
+def run_state(run_dir: Path) -> str:
+    """Одно состояние прогона для всех читателей — панели, доски и сводки:
+    live · lost (нет событий дольше трёх heartbeat) · ok · failed."""
+    run = Run(run_dir)
+    for event in run.journal.new_events():
+        list(run.absorb(event))
+    return _run_state(run_dir, run, _result_is_final(run_dir), time.time())
+
+
 STORY_LIMIT = 300
 FINAL_LIMIT = 6000
 _MD_LINK = re.compile(r"\]\(\s*<?([^)>]+?)>?\s*\)")
@@ -505,45 +517,66 @@ def story_json(run_dir: Path, limit: int = STORY_LIMIT) -> dict[str, Any]:
     }
 
 
-def look_json(project: Path, recent_min: int = RECENT_MIN, names: frozenset[str] = frozenset()) -> dict[str, Any]:
+def _manifest(run_dir: Path) -> dict[str, Any]:
+    try:
+        data = json.loads((run_dir / "manifest.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def look_json(
+    project: Path, recent_min: int = RECENT_MIN, names: frozenset[str] = frozenset(), session: str = "",
+) -> dict[str, Any]:
     """Данные для панели-мода: живые прогоны, закончившиеся за `recent_min` и
-    закончившиеся прогоны из `names` — запущенные этой сессией Claude — за любое
-    время.
+    прогоны сессии Claude `session` (по `manifest.claude_session`) или из
+    `names` — за любое время.
 
     Панель рисует это владельцу и в контекст Claude не попадает, поэтому здесь
     нет решения «будить ли агента»: только факты журнала, манифеста и result.json.
+    Неоконченный прогон, чей журнал молчит дольше `recent_min`, — брошенный:
+    его не показываем, иначе он висел бы «без связи» вечно. Битый каталог
+    пропускается и считается в `skipped`, а не роняет всю панель.
     """
     root = project / "_workspace" / "work-artifacts"
-    out: dict[str, Any] = {"project": str(project), "now": time.time(), "runs": []}
+    out: dict[str, Any] = {"project": str(project), "now": time.time(), "runs": [], "skipped": 0}
     if not root.is_dir():
         return out
     now = time.time()
+    horizon = recent_min * 60
     for run_dir in root.glob("*/agents/codex-artifacts/*"):
-        manifest = run_dir / "manifest.json"
-        if not run_dir.is_dir() or not manifest.is_file():
-            continue
-        final = _result_is_final(run_dir)
-        result_path = run_dir / "result.json"
-        if final and run_dir.name not in names and now - result_path.stat().st_mtime > recent_min * 60:
-            continue
-        run = Run(run_dir)
-        for event in run.journal.new_events():
-            list(run.absorb(event))
-        state = _run_state(run_dir, run, final, now)
-        end = run.last_ts if final else now
-        out["runs"].append({
-            "name": run_dir.name,
-            "run_dir": str(run_dir),
-            "work": run_dir.parents[2].name,
-            "tier": run.tier(),
-            "task": _short(run.task(), 160),
-            "state": state,
-            "started": run.run_start,
-            "elapsed_s": round(end - run.run_start) if run.run_start else None,
-            "quiet_s": round(now - run.last_seen) if run.last_seen and not final else None,
-            "steps": run.steps,
-            "last_words": _short(run.last_words, 240),
-        })
+        try:
+            if not run_dir.is_dir() or not (run_dir / "manifest.json").is_file():
+                continue
+            manifest = _manifest(run_dir)
+            mine = run_dir.name in names or bool(session and manifest.get("claude_session") == session)
+            final = _result_is_final(run_dir)
+            if not mine:
+                anchor = run_dir / ("result.json" if final else "events.jsonl")
+                stamp = anchor.stat().st_mtime if anchor.is_file() else (run_dir / "manifest.json").stat().st_mtime
+                if now - stamp > horizon:
+                    continue
+            run = Run(run_dir)
+            for event in run.journal.new_events():
+                list(run.absorb(event))
+            state = _run_state(run_dir, run, final, now)
+            end = run.last_ts if final else now
+            out["runs"].append({
+                "name": run_dir.name,
+                "run_dir": str(run_dir),
+                "work": run_dir.parents[2].name,
+                "tier": run.tier(),
+                "task": _short(run.task(), 160),
+                "state": state,
+                "mine": mine,
+                "started": run.run_start,
+                "elapsed_s": round(end - run.run_start) if run.run_start else None,
+                "quiet_s": round(now - run.last_seen) if run.last_seen and not final else None,
+                "steps": run.steps,
+                "last_words": _short(run.last_words, 240),
+            })
+        except (OSError, ValueError, AttributeError, TypeError):
+            out["skipped"] += 1
     out["runs"].sort(key=lambda r: (r["state"] not in ("live", "lost"), -(r["started"] or 0)))
     return out
 
@@ -590,6 +623,10 @@ def main(argv: list[str] | None = None) -> int:
         "--names", default="",
         help="с --json: имена каталогов прогонов через запятую — их отдавать за любое время",
     )
+    snapshot.add_argument(
+        "--session", default="",
+        help="с --json: id сессии Claude — её прогоны (manifest.claude_session) отдавать за любое время",
+    )
 
     story = sub.add_parser("story", help="история одного прогона для панели-мода (JSON)")
     story.add_argument("run_dir")
@@ -605,7 +642,9 @@ def main(argv: list[str] | None = None) -> int:
         )
     if args.json:
         names = frozenset(n for n in args.names.split(",") if n)
-        print(json.dumps(look_json(Path(args.project).resolve(), args.recent_min, names), ensure_ascii=False))
+        print(json.dumps(
+            look_json(Path(args.project).resolve(), args.recent_min, names, args.session), ensure_ascii=False,
+        ))
         return 0
     return look(Path(args.project))
 

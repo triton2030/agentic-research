@@ -34,39 +34,21 @@ export function summary(list: readonly CodexRun[]): string {
     .join(' · ')
 }
 
-const isStale = (run: CodexRun, now: number, mine: ReadonlySet<string>) =>
-  isEnded(run) && !mine.has(run.name) && now - endedAt(run) > KEEP_ENDED_MIN * 60
+const isStale = (run: CodexRun, now: number) =>
+  isEnded(run) && !run.mine && now - endedAt(run) > KEEP_ENDED_MIN * 60
 
 /**
  * Строки панели: идущие всегда, прогоны этой сессии всегда, чужие
  * закончившиеся — недавние или по переключателю.
  */
-export function visible(
-  list: readonly CodexRun[], now: number, showEnded: boolean, mine: ReadonlySet<string> = new Set(),
-): CodexRun[] {
+export function visible(list: readonly CodexRun[], now: number, showEnded: boolean): CodexRun[] {
   return list
-    .filter(run => showEnded || !isStale(run, now, mine))
+    .filter(run => showEnded || !isStale(run, now))
     .sort((a, b) => RANK[a.state] - RANK[b.state] || b.started - a.started)
 }
 
-export function hiddenEnded(list: readonly CodexRun[], now: number, mine: ReadonlySet<string> = new Set()): number {
-  return list.filter(run => isStale(run, now, mine)).length
-}
-
-/**
- * Каталоги прогонов, запущенных командами `codex_launch.py`: последнее звено
- * пути `--run-dir`. Звено с невычисленной переменной (`$RUN`) не угадываем.
- */
-export function launchedRunNames(commands: readonly string[]): string[] {
-  const names: string[] = []
-  for (const command of commands) {
-    if (!command.includes('codex_launch.py')) continue
-    const found = /--run-dir[= ]+(?:"([^"]+)"|'([^']+)'|(\S+))/.exec(command)
-    const path = found?.[1] ?? found?.[2] ?? found?.[3]
-    const name = path?.replace(/\/+$/, '').split('/').pop()
-    if (name && !name.includes('$') && !names.includes(name)) names.push(name)
-  }
-  return names
+export function hiddenEnded(list: readonly CodexRun[], now: number): number {
+  return list.filter(run => isStale(run, now)).length
 }
 
 /** «12 мин назад»: секунды у давно закончившегося — шум. */
@@ -80,9 +62,11 @@ export function ago(seconds: number): string {
 /** «3 мин» / «1 ч 05 мин» — сколько шёл прогон. */
 export function took(seconds: number | null): string {
   if (seconds === null || seconds < 0) return '?'
-  if (seconds < 60) return `${Math.round(seconds)} с`
-  if (seconds < 3600) return `${Math.round(seconds / 60)} мин`
-  return `${Math.floor(seconds / 3600)} ч ${String(Math.round((seconds % 3600) / 60)).padStart(2, '0')} мин`
+  const s = Math.round(seconds)
+  if (s < 60) return `${s} с`
+  const minutes = Math.round(s / 60)
+  if (minutes < 60) return `${minutes} мин`
+  return `${Math.floor(minutes / 60)} ч ${String(minutes % 60).padStart(2, '0')} мин`
 }
 
 export function plural(n: number, one: string, few: string, many: string): string {

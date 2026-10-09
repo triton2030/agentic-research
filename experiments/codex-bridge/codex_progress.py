@@ -43,10 +43,19 @@ LEDGER_METHODS = frozenset(
 )
 
 DETAIL_LIMIT = 200
+# Слова и мысли Codex журнал хранит с переносами строк и длиннее: история
+# прогона в панели рисует их markdown-ом — таблицы и списки, сплющенные в одну
+# строку, превращались в кашу. Однострочные витрины схлопывают текст сами.
+WORDS_LIMIT = 4000
 
 
 def _short(text: Any, limit: int = DETAIL_LIMIT) -> str:
     value = " ".join(str(text or "").split())
+    return value if len(value) <= limit else value[: limit - 1] + "…"
+
+
+def _words(text: Any, limit: int = WORDS_LIMIT) -> str:
+    value = str(text or "").strip()
     return value if len(value) <= limit else value[: limit - 1] + "…"
 
 
@@ -74,12 +83,12 @@ def _item_projection(item: Any) -> tuple[str, str]:
     if kind == "agentMessage":
         text = getattr(node, "text", "") or ""
         # Длина плюс начало текста: витрине есть что показать, кроме числа.
-        return kind, f"{len(text)} симв.: {_short(text, 400)}" if text else "0 симв."
+        return kind, f"{len(text)} симв.: {_words(text)}" if text else "0 симв."
     if kind == "reasoning":
         # Мысли — это summary (список строк), а не text; текст у reasoning пуст.
         parts = [str(x) for x in (getattr(node, "summary", None) or []) if x]
-        text = " ".join(parts) or (getattr(node, "text", "") or "")
-        return kind, f"{len(text)} симв.: {_short(text, 400)}" if text else "0 симв."
+        text = "\n\n".join(parts) or (getattr(node, "text", "") or "")
+        return kind, f"{len(text)} симв.: {_words(text)}" if text else "0 симв."
     if kind == "userMessage":
         text = getattr(node, "text", "") or ""
         return kind, f"{len(text)} симв."
@@ -340,7 +349,12 @@ def digest(run_dir: Any, *, tail: int = 6) -> str:
         except Exception:  # noqa: BLE001
             lines.append("status: result.json нечитаем")
     else:
-        lines.append("status: идёт (result.json ещё нет)")
+        from codex_watch import run_state
+
+        if run_state(root) == "lost":
+            lines.append("status: без связи (result.json нет, событий нет дольше трёх heartbeat)")
+        else:
+            lines.append("status: идёт (result.json ещё нет)")
 
     events_path = root / "events.jsonl"
     if not events_path.is_file():
@@ -411,17 +425,13 @@ def board(project: Any, *, limit: int = 12) -> str:
     if not runs:
         return f"прогонов нет: {root} пуст"
 
+    from codex_watch import STATE_RU, run_state
+
     lines = [f"прогоны в {root} (свежие сверху, показано {len(runs)}):"]
     for run in runs:
-        result = run / "result.json"
-        state = "идёт"
+        # Состояние — то же, что видит владелец в панели: одна функция на всех.
+        state = STATE_RU[run_state(run)]
         detail = ""
-        if result.is_file():
-            try:
-                data = json.loads(result.read_text(encoding="utf-8"))
-                state = "ok" if data.get("ok") else "провал"
-            except Exception:  # noqa: BLE001
-                state = "result.json нечитаем"
 
         beat: dict[str, Any] | None = None
         events = run / "events.jsonl"
@@ -433,7 +443,7 @@ def board(project: Any, *, limit: int = 12) -> str:
                     continue
                 if event.get("event") == "heartbeat":
                     beat = event
-        if state == "идёт" and beat:
+        if state in (STATE_RU["live"], STATE_RU["lost"]) and beat:
             # Растущий idle при живом процессе — единственный честный признак
             # зависания.
             detail += f" elapsed={beat.get('elapsed_sec')}s"

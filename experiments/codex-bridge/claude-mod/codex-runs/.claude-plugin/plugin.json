@@ -1,6 +1,6 @@
 {
   "name": "codex-runs",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Панель живых прогонов Codex моста codex-bridge: модель, время, шаги, последние слова. Только чтение; в контекст Claude не попадает.",
   "types": "./types/index.d.ts",
   "author": {

@@ -6,6 +6,8 @@ export type CodexRun = {
   task: string
   /** live — идёт; lost — нет событий дольше трёх heartbeat; ok / failed — закончился */
   state: 'live' | 'lost' | 'ok' | 'failed'
+  /** запущен этой сессией Claude (manifest.claude_session) — виден без срока */
+  mine: boolean
   started: number
   elapsed_s: number | null
   quiet_s: number | null
@@ -33,6 +35,6 @@ export type CodexStory = {
 
 declare module 'claude-code' {
   interface PluginState {
-    'codex-runs': { runs: CodexRun[]; polledAt: number; error: string; isPaneOpen: boolean; showEnded: boolean; sessionRuns: string[]; selected: string; story: CodexStory | null; showFullTask: boolean }
+    'codex-runs': { runs: CodexRun[]; polledAt: number; error: string; isPaneOpen: boolean; showEnded: boolean; closedByOwner: boolean; selected: string; story: CodexStory | null; showFullTask: boolean }
   }
 }

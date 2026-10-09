@@ -3,13 +3,18 @@ import type { EngineInterface, Register } from 'claude-code'
 
 import type { CodexRun, CodexStory } from '../types'
 import {
-  activity, clock, COLOR, hiddenEnded, launchedRunNames, MARK, meta, plural, rowTime, shortName, summary,
+  activity, clock, COLOR, hiddenEnded, MARK, meta, plural, rowTime, shortName, summary,
   summaryParts, tierLabel, took, transition, visible, workLabel,
 } from './view'
 
 // Панель для владельца, а не для Claude: ни одна строка отсюда не начинает ход
 // и не попадает в контекст агента. Будит Claude по-прежнему только завершение
 // фоновой карточки запуска.
+//
+// Данные — только из команд моста (`codex_watch.py look --json`, `story`);
+// их поля сверяет с `types/index.d.ts` тест моста test_json_fields_match_mod_types.
+// Путь к мосту зашит: установленный плагин живёт копией в кеше и не может
+// вычислить репо относительно себя.
 const BRIDGE = '/Users/triton/Documents/GitHub/agentic-research/experiments/codex-bridge'
 const PYTHON = `${BRIDGE}/.venv/bin/python`
 const WATCH = `${BRIDGE}/codex_watch.py`
@@ -17,34 +22,39 @@ const PANE = 'codex-runs'
 const POLL_MS = 5000
 // Мост отдаёт закончившиеся за два часа; сколько из них видно, решает панель.
 const RECENT_MIN = '120'
+// Разрыв между опросами больше этого — Mac спал: тосты о смене состояния
+// на этом круге ложные, их не показываем.
+const SLEEP_GAP_S = 60
 
 const runs = atom({ plugin: 'codex-runs', key: 'runs' } as const, [] as CodexRun[])
 const polledAt = atom({ plugin: 'codex-runs', key: 'polledAt' } as const, 0)
 const error = atom({ plugin: 'codex-runs', key: 'error' } as const, '')
 const isPaneOpen = atom({ plugin: 'codex-runs', key: 'isPaneOpen' } as const, false)
+// Владелец сам закрыл панель — заново её не открываем, даже после перезагрузки мода.
+const closedByOwner = atom({ plugin: 'codex-runs', key: 'closedByOwner' } as const, false)
 const showEnded = atom({ plugin: 'codex-runs', key: 'showEnded' } as const, false)
-// Каталоги прогонов, запущенных этой сессией: состояние сессии переживает
-// перезагрузку мода, а история сессии даёт и те, что были до его загрузки.
-const sessionRuns = atom({ plugin: 'codex-runs', key: 'sessionRuns' } as const, [] as string[])
 // Открытая история: каталог прогона и то, что о нём отдал мост.
 const selected = atom({ plugin: 'codex-runs', key: 'selected' } as const, '')
 const story = atom({ plugin: 'codex-runs', key: 'story' } as const, null as CodexStory | null)
 const showFullTask = atom({ plugin: 'codex-runs', key: 'showFullTask' } as const, false)
 const TASK_PREVIEW_LINES = 6
 
-async function remember($: EngineInterface, names: readonly string[]) {
-  if (!names.length) return
-  await update($, sessionRuns, known => [...known, ...names.filter(name => !known.includes(name))])
+/** Что сказал мост при отказе: последняя строка stderr, иначе stdout — туда он пишет свои падения. */
+function failureOf(r: { exitCode: number; stdout: string; stderr: string }): string {
+  const last = (text: string) => text.trim().split('\n').pop() ?? ''
+  return last(r.stderr) || last(r.stdout) || `код ${r.exitCode}`
 }
 
 async function loadStory($: EngineInterface, runDir: string) {
   if (!runDir) return
   const r = await $.process.run([PYTHON, WATCH, 'story', runDir], { timeoutMs: 15000 })
   if (r.exitCode !== 0) {
-    await update($, error, () => (r.stderr.trim().split('\n').pop() || `код ${r.exitCode}`))
+    await update($, error, () => failureOf(r))
     return
   }
-  await update($, story, () => JSON.parse(r.stdout) as CodexStory)
+  const loaded = JSON.parse(r.stdout) as CodexStory
+  // Пока шёл опрос, владелец мог открыть другой прогон — чужую историю не кладём.
+  if ((await read($, selected)) === runDir) await update($, story, () => loaded)
 }
 
 async function openStory($: EngineInterface, runDir: string) {
@@ -55,6 +65,7 @@ async function openStory($: EngineInterface, runDir: string) {
 }
 
 async function showPane($: EngineInterface) {
+  await update($, closedByOwner, () => false)
   const shown = await $.ui.open({ id: PANE, title: 'Codex' })
   await update($, isPaneOpen, () => shown.isPlaced)
 }
@@ -65,7 +76,7 @@ export const register: Register = on => {
   let seen = new Map<string, CodexRun['state']>()
   let primed = false
   let busy = false
-  let opened = false
+  let lastNow = 0
 
   on('session.start', async ($, e, next) => {
     await $.command.register({
@@ -73,40 +84,37 @@ export const register: Register = on => {
       description: 'Панель прогонов Codex: кто жив, модель, время, последние слова',
     })
     const cwd = await $.session.cwd()
-    const history = await $.session.messages()
-    if (Array.isArray(history)) {
-      const commands = history.flatMap(message =>
-        message.toolUses.filter(use => use.tool === 'Bash').map(use => String(use.input.command ?? '')))
-      await remember($, launchedRunNames(commands))
-    }
+    // Прогоны этой сессии мост находит по manifest.claude_session — без
+    // угадывания по тексту команд.
+    const sessionId = await $.session.id()
 
     const poll = async () => {
       if (busy) return
       busy = true
       try {
-        const mine = await read($, sessionRuns)
         const r = await $.process.run(
-          [PYTHON, WATCH, 'look', '--json', '--recent-min', RECENT_MIN, '--names', mine.join(','), cwd],
+          [PYTHON, WATCH, 'look', '--json', '--recent-min', RECENT_MIN, `--session=${sessionId}`, cwd],
           { timeoutMs: 15000 },
         )
         if (r.exitCode !== 0) {
-          await update($, error, () => (r.stderr.trim().split('\n').pop() || `код ${r.exitCode}`))
+          await update($, error, () => failureOf(r))
           return
         }
-        const data = JSON.parse(r.stdout) as { now: number; runs?: CodexRun[] }
+        const data = JSON.parse(r.stdout) as { now: number; runs?: CodexRun[]; skipped?: number }
         const list = data.runs ?? []
         await update($, runs, () => list)
         await update($, polledAt, () => data.now)
-        await update($, error, () => '')
+        await update($, error, () => (data.skipped ? `не прочитано каталогов прогонов: ${data.skipped}` : ''))
 
-        const current = new Map(list.map(run => [run.name, run.state] as const))
-        if (primed) {
+        const woke = lastNow > 0 && data.now - lastNow > SLEEP_GAP_S
+        lastNow = data.now
+        if (primed && !woke) {
           for (const run of list) {
             const said = transition(run.name, seen.get(run.name), run)
             if (said) $.ui.toast(said, { timeoutMs: 8000 })
           }
         }
-        seen = current
+        seen = new Map(list.map(run => [run.name, run.state] as const))
         primed = true
 
         const open = await read($, selected)
@@ -114,11 +122,9 @@ export const register: Register = on => {
 
         const active = list.filter(run => run.state === 'live' || run.state === 'lost')
         $.ui.status(active.length ? `Codex: ${summary(active)}` : undefined)
-        if (active.some(run => run.state === 'live') && !opened) {
-          opened = true
-          await showPane($)
-        }
-        if (!active.length) opened = false
+        const shouldOpen = active.some(run => run.state === 'live')
+          && !(await read($, isPaneOpen)) && !(await read($, closedByOwner))
+        if (shouldOpen) await showPane($)
       } catch (err) {
         await update($, error, () => String((err as Error)?.message ?? err))
       } finally {
@@ -132,39 +138,33 @@ export const register: Register = on => {
   })
 
   on('command.run', { command: 'codex-runs' }, async $ => {
-    opened = true
     await showPane($)
     return {}
   })
 
-  // Новый запуск запоминаем сразу, не дожидаясь, пока он появится в истории.
-  on('tool.call', { tool: 'Bash' }, async ($, e, next) => {
-    if (e.command.includes('codex_launch.py')) await remember($, launchedRunNames([e.command]))
-    return next(e)
-  }).catch(($, e, next) => (next.called ? undefined : next(e)))
-
   // Маленькая кнопка справа в нижней строке под полем ввода: панель открывается
   // в любой момент, даже когда Codex сейчас не работает.
   on('ui.render', { component: 'SessionMode' }, async ($, e, next) => {
-    const mine = await read($, sessionRuns)
-    const live = (await read($, runs)).filter(run => run.state === 'live').length
-    if (!mine.length && !live) return next(e)
+    const all = await read($, runs)
+    const mine = all.filter(run => run.mine).length
+    const live = all.filter(run => run.state === 'live').length
+    if (!mine && !live) return next(e)
     const { Box, Button, Text } = $.ui.resolve(e)
     return (
       <Box flexDirection="row">
         {e.props.modes.length > 0 && <Text dimColor>{`${e.props.modes.join(' & ')} · `}</Text>}
-        <Button key="codex-footer" label={live ? `Codex ◐${live}` : `Codex ${mine.length}`} onPress={async () => {
-          opened = true
-          await showPane($)
-        }} />
+        <Button key="codex-footer" label={live ? `Codex ◐${live}` : `Codex ${mine}`} onPress={() => showPane($)} />
       </Box>
     )
   })
 
-  // Закрытую панель сам не открываем заново — это выбор владельца; открыть её
-  // снова можно кнопкой в нижней строке или командой /codex-runs.
+  // Закрытую владельцем панель сам не открываем заново; открыть её снова можно
+  // кнопкой в нижней строке или командой /codex-runs.
   on('ui.close', async ($, e, next) => {
-    if (e.id === PANE) await update($, isPaneOpen, () => false)
+    if (e.id === PANE) {
+      await update($, isPaneOpen, () => false)
+      if (e.origin.kind === 'person') await update($, closedByOwner, () => true)
+    }
     return next(e)
   }).catch(($, e, next) => (next.called ? undefined : next(e)))
 
@@ -235,9 +235,8 @@ export const register: Register = on => {
     const all = await read($, runs)
     const now = await read($, polledAt)
     const isShowingEnded = await read($, showEnded)
-    const mine = new Set(await read($, sessionRuns))
-    const list = visible(all, now, isShowingEnded, mine)
-    const hidden = hiddenEnded(all, now, mine)
+    const list = visible(all, now, isShowingEnded)
+    const hidden = hiddenEnded(all, now)
     // Одна работа на всех — пишем её один раз под сводкой, а не в каждой строке.
     const works = [...new Set(list.map(run => run.work))]
     const sharedWork = works.length === 1 ? workLabel(works[0] ?? '') : ''

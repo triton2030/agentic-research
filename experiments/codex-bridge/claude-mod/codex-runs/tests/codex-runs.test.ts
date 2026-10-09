@@ -1,7 +1,7 @@
 import { expect, test } from 'claude-code/testing'
 
 import {
-  activity, ago, clock, dur, hiddenEnded, launchedRunNames, meta, plainText, plural, rowTime, shortName, summary, tierLabel,
+  activity, ago, clock, dur, hiddenEnded, meta, plainText, plural, rowTime, shortName, summary, tierLabel, took,
   transition, visible, workLabel,
 } from '../hooks/view'
 import type { CodexRun } from '../types'
@@ -9,7 +9,7 @@ import type { CodexRun } from '../types'
 const NOW = 100_000
 const run = (name: string, state: CodexRun['state'], over: Partial<CodexRun> = {}): CodexRun => ({
   name, run_dir: `/x/${name}`, work: 'w', tier: 'gpt-6-luna/max', task: 'задача',
-  state, started: NOW - 75, elapsed_s: 75, quiet_s: 400, steps: 3, last_words: 'читаю', ...over,
+  state, mine: false, started: NOW - 75, elapsed_s: 75, quiet_s: 400, steps: 3, last_words: 'читаю', ...over,
 })
 
 test('длительность пишется по-русски коротко', () => {
@@ -64,20 +64,14 @@ test('слова и имена для человека', () => {
   expect([30, 600, 7200, 200000].map(ago)).toEqual(['только что', '10 мин назад', '2 ч назад', '2 дн назад'])
 })
 
-test('из команд запуска берётся каталог прогона, переменная в имени — нет', () => {
-  expect(launchedRunNames([
-    'B=/x; $B/.venv/bin/python $B/codex_launch.py agent --name a --run-dir $W/codex-artifacts/20261009T1400-check-intent --prompt-file p.md',
-    `python codex_launch.py agent --run-dir "/w/agents/codex-artifacts/20261009T1500-two/" --name b`,
-    'python codex_launch.py agent --run-dir=$RUN --name c',
-    'git status --run-dir /not/a/launch',
-    'python codex_launch.py agent --run-dir $W/codex-artifacts/20261009T1400-check-intent',
-  ])).toEqual(['20261009T1400-check-intent', '20261009T1500-two'])
+test('прогон этой сессии виден и через час после конца', () => {
+  const old = run('old', 'ok', { started: NOW - 3600, elapsed_s: 60, mine: true })
+  expect(visible([old], NOW, false).map(r => r.name)).toEqual(['old'])
+  expect(hiddenEnded([old], NOW)).toBe(0)
 })
 
-test('прогон этой сессии виден и через час после конца', () => {
-  const old = run('old', 'ok', { started: NOW - 3600, elapsed_s: 60 })
-  expect(visible([old], NOW, false, new Set(['old'])).map(r => r.name)).toEqual(['old'])
-  expect(hiddenEnded([old], NOW, new Set(['old']))).toBe(0)
+test('длительность прогона округляется до целых минут без «60 мин»', () => {
+  expect([59.6, 7170, 3725].map(took)).toEqual(['1 мин', '2 ч 00 мин', '1 ч 02 мин'])
 })
 
 test('время записи от старта прогона', () => {
