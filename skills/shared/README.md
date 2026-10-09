@@ -28,16 +28,19 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   Codex UI metadata — `platforms/codex/agents/openai.yaml`.
 - `1agent-steering/portable/` — общий скилл знания: полное чтение науки
   управления агентами и объяснение её применения при авторинге. Материал —
-  `references/steering-science.md`; потребители — `1skill-creation`,
-  `1instruction-authoring`, `1goal`. Codex metadata
-  живёт в `platforms/codex/agents/openai.yaml`.
+  `references/steering-science.md`: рычаги управляющего текста с пробой
+  у каждого (с 2026-10-10 по образцу `writing-for-agents` Matt Pocock).
+  Потребители — `1skill-creation`, `1instruction-authoring`, `1goal`,
+  `1orchestration`. Codex metadata живёт в `platforms/codex/agents/openai.yaml`.
 - Семья авторинга — пять скилов по различимым моментам запуска, заменили пару
   `1skill-shaping` + `1instruction-shaping`, снятую 2026-08-26 (архивы в
   `skills/1skill-shaping/` и `skills/1instruction-shaping/`; решение владельца —
   `_ops/chat-recall/raw/2026-08-26-201025-claude-4e40828f.md#L15`):
-  - `1instruction-authoring/portable/` — местные корневые и папочные
-    инструкции. Дельта сильной модели, объяснение важности через ситуацию,
-    остаточные критерии и минимальный одновременно необходимый набор.
+  - `1instruction-authoring/portable/` — механика местного слоя корневых
+    и папочных инструкций: что найти, куда положить, как проверить доставку.
+    Общая наука письма — у `1agent-steering`, здесь не повторяется.
+    Названная заранее правка обходится без discovery и тройной проверки,
+    если не вводит новое обязательство или зону и не снимает дорогое.
     `references/discovery.md` находит подтверждённые местные обязательства,
     `writing.md` выбирает носитель, владельца и момент применения,
     `verification.md` разделяет три проверки: смысл, необходимость, доставка.
