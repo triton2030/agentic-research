@@ -17,12 +17,14 @@ description: >-
 
 ## Что Уже Установлено
 
-Перечень сверен 2026-09-26; Graphify — 2026-10-02.
+Перечень сверен 2026-09-26; Graphify — 2026-10-02; PostgreSQL, `caffeinate`
+и трасса Playwright — 2026-10-10.
 Перед использованием — `command -v TOOL`.
 
 | Работа | Инструменты |
 |---|---|
 | данные: JSONL, CSV, JSON, история сессий | `duckdb` — SQL прямо по файлам и glob, `jq`, `gron` |
+| PostgreSQL 17 | `psql`, `pgbench` — нагрузка базы, `pg_dump` и `pg_restore` — копия и восстановление |
 | YAML, frontmatter Markdown | `yq --front-matter=extract` |
 | поиск и замена в тексте | `rg`, `fd`, `sd` — без различий BSD/GNU `sed` |
 | структура кода | `ast-grep` — поиск и переписывание по AST |
@@ -30,9 +32,9 @@ description: >-
 | Markdown | `md` (md-tools), `rumdl`, `markdownlint-cli2`, `mdq`, `lychee` — ссылки |
 | JS/TS | `biome`, `eslint`, `prettier`, `stylelint`, `tsc` 7, `vitest` 5, `knip`, `dependency-cruiser`, `publint`, `attw`, `syncpack` |
 | Python | `ruff`, `pyright`, `mypy`, `pytest`, `coverage`, `vulture`, `deptry`, `xenon` |
-| shell и CI | `shellcheck`, `shfmt`, `actionlint`, `pre-commit`, `just`, `gtimeout` (coreutils) — `timeout` в macOS нет |
+| shell и CI | `shellcheck`, `shfmt`, `actionlint`, `pre-commit`, `just`, `gtimeout` (coreutils) — `timeout` в macOS нет; `caffeinate -d -i <команда>` — Mac не уснёт и не заблокирует экран, пока идёт долгий прогон |
 | безопасность | `semgrep`, `gitleaks`, `trufflehog`, `trivy`, `osv-scanner`, `bandit`, `pip-audit` |
-| браузер и UI | `agent-browser`, `playwright`, `impeccable detect` — анти-паттерны UI |
+| браузер и UI | `agent-browser`, `playwright`, `impeccable detect` — анти-паттерны UI; нестабильный браузерный прогон — трасса Playwright при сбое: `tracing.start` и `stopChunk`, разбор — `playwright show-trace` |
 | медиа и документы | `ffmpeg`, `whisper-cli`, `fpcalc`, `pdftotext`, `soffice` |
 | сервисы | `gh`, `vercel`, `supabase`, `firecrawl`, `ntn` — Notion |
 | модели и агенты | `claude`, `hermes`, `droid`, Codex — `/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex` |
