@@ -1,50 +1,60 @@
 # Agentic Research
 
-`agentic-research` помогает строить систему `skills`, hooks, prompts,
-инструкций и рабочих контрактов для агентной среды, которая лучше понимает мой
-контекст, действует в меру автономно и не пишет из общего знания, когда есть
-локальные знания, критерии и owner-маршрут.
+`agentic-research` is a knowledge workshop and testing ground for AI agent skills,
+hooks, prompts, instructions, and working agreements.
+It helps agents understand the owner's context, act with appropriate autonomy,
+and use local knowledge and criteria when making decisions.
 
-Точный рабочий набор моделей и их роли задаёт `_ops/GOAL.md`. Предыдущие
-OpenAI-модели остаются только историческим research evidence, не рабочим
-baseline.
+The deliverables are reusable skills and patterns used across projects.
+This repository holds their research, source packages, experiments, and history.
+Most working documents are in Russian; this README is the English entry point.
 
-## Как Читать
+## Start here
 
-1. `AGENTS.md` — центральная инструкция для обоих агентов: что за репо, карта
-   репо с владельцами правды и короткий набор правил этого репозитория. Codex
-   читает напрямую, Claude — через `@AGENTS.md`.
-2. [`INDEX.md`](INDEX.md) — маршруты, оплаченные прошлым поиском: где лежит
-   знание, которое холодный агент стал бы искать не там. Владелец — `1index`.
-3. `CLAUDE.md` — shim из одной строки `@AGENTS.md`; отдельной правды не держит.
-4. `_ops/GOAL.md` — рабочий контракт проекта: что делаем, что не делаем, когда
-   остановиться и вернуться к стратегии.
-5. `_ops/product-frames/agentic-research{,.principles}.md` — постоянный
-   product-controller для любой содержательной работы. При правке скила к нему
-   добавляется `product-frame*.md` из tracked owner-папки скила
-   (`skills/shared|claude|codex/<skill>/`); `skills/1<skill>/` — архив истории,
-   его Frame не действует.
-6. `_ops/chat-recall/` — слова владельца: один слой, файл на разговор,
-   дословные выдержки; пишет `1chat-recall` в момент, когда прозвучало.
-   Соседний `topics.md` — словарь тем, а не пересказ; производный слой тем снят
-   владельцем 2026-08-28. Контракт — `_ops/chat-recall/AGENTS.md`.
-   `_ops/user-said/` — замороженный предшественник, только для чтения.
-7. `knowledge/` — база знаний, разложенная по предметам: `модель/`,
-   `рантайм/`, `агент/`, `скил/`, `инструкция/`, `понятия/`. Для написания
-   скилов начинать с `knowledge/скил/`.
-8. `science/` — научная программа изучения мышления ЛЛМ: тезисы с
-   evidence-статусами, верификация и эксперименты; вход —
-   [`science/README.md`](science/README.md).
-9. `skills/shared/` — owner cross-runtime packages; `skills/claude/` и
-   `skills/codex/` — runtime owners либо их tracked projections согласно
-   [`skills/shared/README.md`](skills/shared/README.md). `~/.claude/skills/` и
-   `~/.codex/skills/` — installed projections.
-10. `_ops/findings/`, `_ops/interviews/`, `_ops/plans/` — временные рабочие
-    поверхности; открывать их только когда текущая задача на них указывает.
+1. [AGENTS.md](AGENTS.md) — shared agent instructions, repository map,
+   and sources of truth.
+2. [INDEX.md](INDEX.md) — shortcuts to knowledge found through earlier research.
+3. [Project goal](_ops/GOAL.md) — scope, current model targets,
+   completion criteria, and stop rules.
+4. [Product frame](_ops/product-frames/agentic-research.md) and
+   [product principles](_ops/product-frames/agentic-research.principles.md) —
+   guidance to read before substantive work.
 
-## Подход
+The goal document defines the working model set and each model's role.
+Older model references remain historical research evidence.
 
-Главный контракт живёт в `_ops/GOAL.md`, а этот README остаётся коротким входом
-для человека и свежего агента. Перед содержательной правкой агент сначала
-восстанавливает цель, читает локальные owner-файлы и применяет критерии по
-типу работы, а не по названию редактируемого файла.
+## Repository map
+
+| Location | Contents |
+| --- | --- |
+| [knowledge/](knowledge/README.md) | Knowledge organized by subject: models, runtimes, agents, skills, instructions, and concepts. |
+| [science/](science/README.md) | Research into LLM reasoning, with evidence status, verification, and experiments. |
+| [skills/shared/](skills/shared/README.md) | Source packages shared across runtimes and the package ownership registry. |
+| [skills/claude/](skills/claude/README.md), [skills/codex/](skills/codex/README.md) | Runtime-specific source packages or tracked copies of shared packages. |
+| `skills/1<name>/` | Skill development history, snapshots, and research evidence. |
+| [experiments/](experiments/) | Independent experiments governed by their local instructions. |
+| [_ops/](_ops/README.md) | Project goals, owner quotes, findings, interviews, plans, and handoffs. |
+| [_workspace/](_workspace/README.md) | Local working artifacts, HTML previews, and orchestration materials; generally excluded from Git. |
+
+## Working with this repository
+
+Before changing a skill, start with [skill knowledge](knowledge/скил/README.md)
+and locate its source package through the ownership registry.
+Read any `product-frame*.md` files in that package alongside the project frame
+and principles.
+Frames under `skills/1<name>/` belong to the historical archive.
+
+When a tracked source package exists, edit it first; the installed copies in
+`~/.claude/skills/` and `~/.codex/skills/` are its projections.
+If there is no tracked source package, the installed package remains
+the source of truth.
+
+[_ops/chat-recall/](_ops/chat-recall/AGENTS.md) stores verbatim owner quotes,
+one file per conversation, captured by `1chat-recall`.
+Its `topics.md` is a topic vocabulary, not a summary of decisions.
+`_ops/user-said/` is its frozen, read-only predecessor.
+Read findings, interviews, and plans when the current task calls for them.
+
+This README provides navigation; the project contract lives in `_ops/GOAL.md`.
+Use the applicable source documents and task criteria before making
+substantive changes.

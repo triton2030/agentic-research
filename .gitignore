@@ -18,3 +18,11 @@ experiments/clickup-tool/.state/
 _workspace/
 experiments/flowpage-v4-elk/dist/
 .firecrawl/
+
+# Local indexes, tool caches, and previews
+**/.md-navigator/
+**/.rumdl_cache/
+/.site-design-previews/
+/.antigravitycli/
+/output/obsidian-html-test/
+/_ops/chat-recall/.capture.lock
