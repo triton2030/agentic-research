@@ -1,4 +1,5 @@
-/* Общий слой зоны HTML_artifacts. Тема — DaisyUI bumblebee, второй палитры нет.
+/* Общий слой зоны HTML_artifacts. Тема — DaisyUI bumblebee, второй палитры нет;
+   её цвета — в theme.css, здесь цветов нет, только токены.
    Здесь живёт то, что должно быть одинаковым у всех страниц: типографика,
    шкала, роли поверхностей, раскладка. Дизайн конкретной страницы — в
    assets/<slug>.css. */
@@ -49,14 +50,14 @@ h1 { letter-spacing: -0.05em; line-height: 0.9; }
       surface-* — заливка: текст внутри уже правильный.
       ink-*     — цвет текста на бумаге: всегда из *-content, всегда читается.
       Сырые токены бренда как цвет текста (text-primary и подобные) на бумаге
-      не читаются: жёлтый на белом даёт 1,57:1. ── */
+      не читаются: мёд на креме — около 1,5:1. ── */
 .ink-brand  { color: var(--color-primary-content); }
 .ink-second { color: var(--color-secondary-content); }
 .ink-strong { color: var(--color-accent); }
 .ink-quiet  { color: var(--quiet); }
 
-/* ── Роли поверхностей. Bumblebee даёт настоящий контраст: белая бумага,
-      чёрные чернила, жёлтый бренд. Хотя бы одно поле на странице — не бумага. ── */
+/* ── Роли поверхностей. Тёплый bumblebee даёт настоящий контраст: кремовая
+      бумага, чернила эспрессо, медовый бренд. Хотя бы одно поле на странице — не бумага. ── */
 .surface-paper { background: var(--color-base-100); color: var(--color-base-content); }
 .surface-quiet { background: var(--color-base-200); color: var(--color-base-content); }
 .surface-ink   { background: var(--color-accent);   color: var(--color-accent-content); }

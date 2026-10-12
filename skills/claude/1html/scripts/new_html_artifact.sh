@@ -66,6 +66,8 @@ done
 if [ ! -e "$shared_assets/components.css" ]; then
   cp "$zone_source/components.css" "$shared_assets/components.css"
 fi
+# The palette belongs to the zone once copied: later runs never overwrite it.
+copy_once "$zone_source/theme.css" "$shared_assets/theme.css"
 
 copy_once "$skill_dir/assets/table/assets/artifact-table.js" \
   "$shared_assets/artifact-table.js"

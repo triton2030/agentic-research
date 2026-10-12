@@ -4,7 +4,8 @@
 Что здесь правда об этой папке. Как думать про дизайн и объяснение — в skill
 `1html`; здесь это не дублируется.
 
-Тема — DaisyUI `bumblebee`, вторая палитра не заводится. Tailwind, Alpine и
+Тема — DaisyUI `bumblebee`, вторая палитра не заводится; её тёплые цвета —
+в `assets/shared/theme.css`, цвет страницы берёт только из токенов. Tailwind, Alpine и
 Lucide уже подключены; Table, Mermaid, ECharts и React Flow лежат в `lib/` и
 `assets/shared/`. Точные теги, роли поверхностей и классы раскладки —
 в `COMPONENTS.md`, открывай его перед первой разметкой.

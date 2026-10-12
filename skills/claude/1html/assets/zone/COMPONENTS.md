@@ -1,8 +1,9 @@
 <!-- 1html-generated: shared carrier map -->
 # Что Уже Установлено В Зоне
 
-Тема — DaisyUI `bumblebee`, второй палитры нет. Всё ниже лежит рядом и работает
-по `file://`.
+Тема — DaisyUI `bumblebee`, второй палитры нет; её цвета переопределены в
+`assets/shared/theme.css` — облик меняется только там. Всё ниже лежит рядом и
+работает по `file://`.
 
 Alpine — ядро с плагинами Intersect и Collapse; Focus, Mask и Persist не
 подключены. Иконку Lucide, вставленную после загрузки, дорисуй
@@ -14,17 +15,17 @@ Alpine — ядро с плагинами Intersect и Collapse; Focus, Mask и 
 
 | Роль | Класс | Токены | В bumblebee |
 |---|---|---|---|
-| бумага | `.surface-paper` | `base-100` / `base-content` | белое, почти чёрный текст |
-| тихая бумага | `.surface-quiet` | `base-200`, `base-300` | лёгкие ступени фона |
-| **чернила** | `.surface-ink` | `accent` / `accent-content` | **чистый чёрный, белый текст** |
-| тёмное поле | `.surface-dark` | `neutral` / `neutral-content` | тёплый тёмно-серый |
-| **бренд** | `.surface-brand` | `primary` / `primary-content` | **жёлтый, тёмно-янтарный текст** |
-| второй бренд | — | `secondary` / `secondary-content` | оранжевый |
+| бумага | `.surface-paper` | `base-100` / `base-content` | крем, текст эспрессо |
+| тихая бумага | `.surface-quiet` | `base-200`, `base-300` | ступени льна |
+| **чернила** | `.surface-ink` | `accent` / `accent-content` | **эспрессо, кремовый текст** |
+| тёмное поле | `.surface-dark` | `neutral` / `neutral-content` | какао |
+| **бренд** | `.surface-brand` | `primary` / `primary-content` | **мёд, тёмно-янтарный текст** |
+| второй бренд | — | `secondary` / `secondary-content` | терракота |
 
 ### Две семьи краски
 
 Их нельзя перепутать, и брать нужно всегда одну из них — сырой токен бренда
-как цвет текста на бумаге не читается: жёлтый на белом даёт 1,57:1.
+как цвет текста на бумаге не читается: мёд на креме — около 1,5:1.
 
 | Нужно | Бери | Что гарантировано |
 |---|---|---|
