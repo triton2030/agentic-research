@@ -54,6 +54,11 @@ def _short(text: Any, limit: int = DETAIL_LIMIT) -> str:
     return value if len(value) <= limit else value[: limit - 1] + "…"
 
 
+def _enum_value(value: Any) -> str:
+    """Значение enum или строки SDK одной строкой; пусто, если значения нет."""
+    return str(getattr(value, "value", value) or "")
+
+
 def _words(text: Any, limit: int = WORDS_LIMIT) -> str:
     value = str(text or "").strip()
     return value if len(value) <= limit else value[: limit - 1] + "…"
@@ -92,6 +97,20 @@ def _item_projection(item: Any) -> tuple[str, str]:
     if kind == "userMessage":
         text = getattr(node, "text", "") or ""
         return kind, f"{len(text)} симв."
+    if kind == "subAgentActivity":
+        # Собственные субагенты Codex: что случилось и с кем. Без этого журнал
+        # терял сам факт, что прогон работал не один.
+        what = _enum_value(getattr(node, "kind", ""))
+        path = str(getattr(node, "agent_path", "") or "")
+        return kind, _short(": ".join(x for x in (what, path) if x))
+    if kind == "collabAgentToolCall":
+        tool = _enum_value(getattr(node, "tool", ""))
+        tier = "/".join(
+            x for x in (str(getattr(node, "model", "") or ""), _enum_value(getattr(node, "reasoning_effort", ""))) if x
+        )
+        head = " · ".join(x for x in (tool, tier) if x)
+        prompt = getattr(node, "prompt", None) or ""
+        return kind, f"{head}: {_words(prompt, 600)}" if prompt else head
     if kind == "imageGeneration":
         failure = _failure_text(getattr(node, "failure", None))
         if failure:

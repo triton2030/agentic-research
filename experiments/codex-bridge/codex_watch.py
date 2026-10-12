@@ -106,6 +106,23 @@ class Journal:
                 continue
 
 
+def _agent_text(kind: str, detail: str) -> str:
+    """Собственный субагент Codex словами для истории; пусто — событие не о том.
+
+    В журнале: `spawnAgent · модель/усилие: задание` у вызова и
+    `completed: /путь/агента` у активности (codex_progress._item_projection).
+    Ожидания, пересылки и старые журналы без detail в историю не идут.
+    """
+    head, _, rest = detail.partition(": ")
+    if kind == "collabAgentToolCall" and head.split(" · ")[0] == "spawnAgent":
+        tier = head.partition(" · ")[2]
+        return "🤖 запустил субагента" + (f" ({tier})" if tier else "") + (f": {_short(rest, 300)}" if rest else "")
+    if kind == "subAgentActivity" and head in ("completed", "interrupted") and rest:
+        name = rest.rstrip("/").rsplit("/", 1)[-1]
+        return f"🤖 субагент {name} " + ("закончил" if head == "completed" else "прерван")
+    return ""
+
+
 def _failure_text(detail: str) -> str:
     """Сбой движка словами для человека; сырой текст — только если не узнали."""
     if "stream disconnected" in detail:
@@ -276,6 +293,12 @@ class Run:
                             "t": round(stamp - self.run_start) if stamp else None,
                             "kind": "thought" if event.get("kind") == "reasoning" else "words",
                             "text": words,
+                        })
+                if event.get("kind") in ("collabAgentToolCall", "subAgentActivity"):
+                    said = _agent_text(str(event["kind"]), str(event.get("detail") or ""))
+                    if said:
+                        self.story.append({
+                            "t": round(stamp - self.run_start) if stamp else None, "kind": "agent", "text": said,
                         })
                 if self.pulse and event.get("kind") in self.PULSE_KINDS:
                     line = self.pulse_line(

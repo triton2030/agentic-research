@@ -167,6 +167,20 @@ class TaskLineTests(unittest.TestCase):
             (run_dir / "prompt.md").write_text("Проверь ссылки в README.\n", encoding="utf-8")
             self.assertEqual(codex_progress._task_line(run_dir), "Проверь ссылки в README.")
 
+    def test_subagent_items_keep_who_and_what(self) -> None:
+        from types import SimpleNamespace
+        kind, detail = codex_progress._item_projection(SimpleNamespace(
+            type="subAgentActivity", kind=SimpleNamespace(value="started"), agent_path="/root/explorer",
+        ))
+        self.assertEqual((kind, detail), ("subAgentActivity", "started: /root/explorer"))
+        kind, detail = codex_progress._item_projection(SimpleNamespace(
+            type="collabAgentToolCall", tool=SimpleNamespace(value="spawnAgent"), model="gpt-6-luna",
+            reasoning_effort=SimpleNamespace(value="low"), prompt="Найди\nвсе вызовы",
+        ))
+        self.assertEqual(detail, "spawnAgent · gpt-6-luna/low: Найди\nвсе вызовы")
+        _, bare = codex_progress._item_projection(SimpleNamespace(type="collabAgentToolCall", tool="wait"))
+        self.assertEqual(bare, "wait")
+
     def test_digest_shows_task_line(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             run_dir = Path(tmp)

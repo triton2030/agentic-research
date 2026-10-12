@@ -15,7 +15,7 @@ export type CodexRun = {
   last_words: string
 }
 
-export type StoryItem = { t: number | null; kind: 'words' | 'thought' | 'fail'; text: string }
+export type StoryItem = { t: number | null; kind: 'words' | 'thought' | 'fail' | 'agent'; text: string }
 
 /** История одного прогона — `codex_watch.py story RUN_DIR`. */
 export type CodexStory = {

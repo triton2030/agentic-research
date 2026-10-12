@@ -159,6 +159,26 @@ class LookJsonTests(unittest.TestCase):
             self.assertEqual(story["task"], "# Заголовок\nПочинить витрину")
             self.assertEqual(story["state"], "ok")
 
+    def test_story_shows_codex_own_subagents(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            run_dir = self._run(Path(tmp), "s-3", "2026-01-01T00:00:30+00:00", {"ok": True})
+            with (run_dir / "events.jsonl").open("a", encoding="utf-8") as f:
+                for kind, detail in [
+                    ("collabAgentToolCall", "spawnAgent · gpt-6-luna/low: Найди все вызовы"),
+                    ("collabAgentToolCall", "wait"),
+                    ("subAgentActivity", "started: /root/explorer"),
+                    ("subAgentActivity", "completed: /root/explorer"),
+                    ("subAgentActivity", ""),
+                ]:
+                    f.write(json.dumps({"ts": "2026-01-01T00:02:00+00:00", "event": "codex",
+                                        "method": "item/completed", "kind": kind, "detail": detail},
+                                       ensure_ascii=False) + "\n")
+            agents = [i["text"] for i in codex_watch.story_json(run_dir)["items"] if i["kind"] == "agent"]
+            self.assertEqual(agents, [
+                "🤖 запустил субагента (gpt-6-luna/low): Найди все вызовы",
+                "🤖 субагент explorer закончил",
+            ])
+
     def test_story_ignores_links_outside_run(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             run_dir = self._run(Path(tmp), "s-2", "2026-01-01T00:00:30+00:00", {"ok": True})
