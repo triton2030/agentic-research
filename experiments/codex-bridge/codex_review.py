@@ -388,6 +388,14 @@ def main() -> int:
         help="Codex service tier (default: наследуется из ~/.codex/config.toml). "
         "Явное значение, например 'priority', — осознанный opt-in fast на этот прогон.",
     )
+    parser.add_argument(
+        "--context-window",
+        type=int,
+        default=None,
+        help="Окно контекста на этот прогон в токенах (default: 272000 из каталога движка). "
+        "Движок режет значение по максимуму модели — 872000 у поколения 6; рабочее окно — 95%% от него. "
+        "Для длинной работы, которая иначе упирается в окно и сжимает контекст на ходу.",
+    )
     parser.add_argument("--include-thinking", action="store_true", help="Включить блоки размышлений Claude в транскрипт.")
     parser.add_argument("--max-chars", type=int, default=200_000, help="Бюджет транскрипта; при превышении остаётся свежий хвост.")
     parser.add_argument(
@@ -574,6 +582,7 @@ def main() -> int:
     # диске («no rollout found» для эфемерных — проверено живым пробником).
     thread_persistent = bool(args.dialog or args.continue_thread)
     codex_runtime = {
+        "context_window_requested": args.context_window,
         "model": args.model,
         # mode=diff идёт через review/start, который effort не принимает, а
         # thread_start его не несёт: усилие там НАСЛЕДУЕТСЯ из конфига движка.
@@ -760,6 +769,8 @@ def main() -> int:
         snapshot=progress.snapshot,
         mode=args.mode,
     )
+    # Окно контекста — настройка треда: движок сам режет её по максимуму модели.
+    thread_config = {"model_context_window": args.context_window} if args.context_window else None
     try:
         with Codex(config) as codex:
             if args.continue_thread:
@@ -777,6 +788,7 @@ def main() -> int:
                         model=args.model,
                         service_tier=args.service_tier,
                         developer_instructions=dev_instructions,
+                        config=thread_config,
                     ),
                     run_dir=run_dir,
                 )
@@ -790,6 +802,7 @@ def main() -> int:
                         service_tier=args.service_tier,
                         developer_instructions=dev_instructions,
                         ephemeral=codex_runtime["thread_ephemeral"],
+                        config=thread_config,
                     ),
                     run_dir=run_dir,
                     operation="thread_start",

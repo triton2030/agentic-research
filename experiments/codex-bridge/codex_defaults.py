@@ -31,7 +31,8 @@ from pathlib import Path
 # живой пробник 2026-10-02 на движке 0.159.2 — ответ получен. Луна и астра — 6.
 #
 # Каталог не блокируется (там же, #L17): --model и --effort — выбор по ситуации,
-# terra, gpt-5.6-*, gpt-5.5, max/ultra и прочее остаются доступны явным флагом.
+# terra, gpt-5.6-*, max/ultra и прочее остаются доступны явным флагом;
+# gpt-5.5 с 2026-10-14 снят с Codex при входе через ChatGPT.
 DEFAULT_CODEX_MODEL = "gpt-6.1-sol"
 DEFAULT_CODEX_EFFORT = "medium"
 

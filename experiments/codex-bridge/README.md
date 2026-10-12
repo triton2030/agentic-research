@@ -111,6 +111,17 @@ effort не зависят от текущего `~/.codex/config.toml`; фла�
 Какой ярус брать по роду работы, решает скил `1codex` — его таблица ярусов
 единственная; мосту принадлежит только дефолт в `codex_defaults.py`.
 
+**Окно контекста.** Каталог движка даёт моделям поколения 6 `context_window`
+272000 и `max_context_window` 872000; рабочее окно — 95 % от выбранного.
+По умолчанию мост окно не задаёт: во всех прогонах до 2026-10-12 оно
+258400. Флаг `--context-window N` шлёт `model_context_window` в `config`
+треда (`thread_start` и `thread_resume`), движок режет значение по максимуму
+модели; manifest пишет `codex.context_window_requested`, фактическое окно —
+`model_context_window` в `usage` результата. Живой пробник
+`20261012T1930-probe-context-window` (`gpt-6-luna`/`low`, `--context-window
+872000`): `completed`, окно 828400. Зачем: с 2026-10-01 в 93 прогонах из 327
+движок сжимал контекст на ходу (`contextCompaction` в журнале).
+
 Под ChatGPT-биллингом работают не все слаги каталога: пробники 2026-07-10
 отсекли `gpt-5.6-pro` и `gpt-5.6` (без суффикса) — `HTTP 400 — "not supported
 when using Codex with a ChatGPT account"` (исторический probe 2026-07-02
@@ -121,7 +132,8 @@ when using Codex with a ChatGPT account"` (исторический probe 2026-0
 `completed`, `ok=true`), `gpt-6-sol` — пробником картинки ниже. Каталог
 движка 0.155.0 (`~/.codex/models_cache.json`, снимок 2026-09-18) идёт в
 порядке `gpt-5.6-sol`, `gpt-6-astra` («Our most capable model for complex,
-demanding work», default effort `medium`), дальше `terra` / `luna`, `gpt-5.5`;
+demanding work», default effort `medium`), дальше `terra` / `luna`, `gpt-5.5`
+(с 2026-10-14 снят с Codex при входе через ChatGPT);
 скрытыми (`visibility=hide`) — `gpt-reserve` («Fast and affordable»,
 запасной ярус при исчерпании луны, `openai/codex#42372`) и
 `codex-auto-review` (модель автоматического approval-ревью). `gpt-5.4-mini` и
