@@ -28,3 +28,5 @@ description: "История скила 1muse: вызов Muse Wonder из Claud
   `work/audit-2026-10-13.md`.
 - `work/steer-probe-2026-10-14/` — рабочие клиенты протокола `muse serve`: `probe_echo.py`
   на бесплатном эхо-провайдере и `probe_live.py` с репликой в идущий ход.
+- `work/t3-probe-2026-10-14.md` — проба Muse и Gemini через MCP-сервер T3 Code
+  на одной задаче; итоги — в справках обоих скилов.

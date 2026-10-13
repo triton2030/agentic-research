@@ -30,3 +30,5 @@ description: "История скила 1gemini: вызов Gemini 3.8 Flash Hig
   `skills/1muse/work/html-writer-2026-10-13.md`.
 - `versions/draft-2026-10-13-v4/` — общие исправления обёртки после аудита `1muse`:
   `skills/1muse/work/audit-2026-10-13.md`.
+- Проба Gemini через T3 Code рядом с Muse лежит в общем файле
+  `skills/1muse/work/t3-probe-2026-10-14.md`.
