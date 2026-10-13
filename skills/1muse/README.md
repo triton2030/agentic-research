@@ -20,3 +20,5 @@ description: "История скила 1muse: вызов Muse Wonder из Claud
   что перенесено и чем проверено — `skills/1muse/work/codex-ideas-2026-10-13.md`.
 - Вопрос к владельцу о том, какую работу отдавать Muse, лежит в общем файле
   `skills/1gemini/work/roster-2026-10-13.md`.
+- `versions/draft-2026-10-13-v3/` — снимок после пробы исполнителей на HTML-странице:
+  `skills/1muse/work/html-writer-2026-10-13.md`.

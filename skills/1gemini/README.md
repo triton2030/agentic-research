@@ -26,3 +26,5 @@ description: "История скила 1gemini: вызов Gemini 3.8 Flash Hig
 - `versions/draft-2026-10-13/` — первый установленный снимок пакета.
 - `versions/draft-2026-10-13-v2/` — снимок после переноса идей `1codex`;
   что перенесено и чем проверено — `skills/1muse/work/codex-ideas-2026-10-13.md`.
+- `versions/draft-2026-10-13-v3/` — снимок после пробы исполнителей на HTML-странице:
+  `skills/1muse/work/html-writer-2026-10-13.md`.

@@ -14,6 +14,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 
 MODEL = "gemini-3.8-flash-high"
@@ -84,17 +85,49 @@ def run_agy(args, brief, cwd):
         command += ["--json-schema", args.schema]
     note = FULL_NOTE if args.full else READ_ONLY_NOTE
     started = time.monotonic()
-    try:
-        done = subprocess.run(command, input=note + brief, cwd=cwd, capture_output=True, text=True, check=False, timeout=seconds(args.timeout) + 60)
-    except subprocess.TimeoutExpired:
+    killed = threading.Event()
+    with tempfile.TemporaryFile("w+", encoding="utf-8") as brief_file, tempfile.TemporaryFile("w+", encoding="utf-8") as stderr_file:
+        brief_file.write(note + brief)
+        brief_file.seek(0)
+        process = subprocess.Popen(command, cwd=cwd, stdin=brief_file, stdout=subprocess.PIPE, stderr=stderr_file, text=True)
+
+        def kill_late():
+            killed.set()
+            process.kill()
+
+        timer = threading.Timer(seconds(args.timeout) + 60, kill_late)
+        timer.start()
+        lines, announced = [], set()
+        for line in process.stdout:
+            lines.append(line)
+            show_progress(line, announced)
+        process.wait()
+        timer.cancel()
+        stderr_file.seek(0)
+        stderr = stderr_file.read()
+    if killed.is_set():
         fail(EXIT_TIMEOUT, f"agy did not exit within {args.timeout} plus a minute; raise --timeout")
-    return done, time.monotonic() - started
+    return subprocess.CompletedProcess(command, process.returncode, "".join(lines), stderr), time.monotonic() - started
+
+
+def show_progress(line, announced):
+    """Print one line per tool call as it starts, so a long run is visibly alive."""
+    try:
+        step = json.loads(line).get("step_update") or {}
+    except ValueError:
+        return
+    if step.get("step_type") != "tool" or step.get("step_index") in announced:
+        return
+    announced.add(step.get("step_index"))
+    params = (step.get("tool_info") or {}).get("parameters") or {}
+    detail = next((str(params[key]) for key in ("AbsolutePath", "TargetFile", "CommandLine", "query", "Url") if params.get(key)), "")
+    print(f"[gemini] · {step.get('tool_name', '?')} {detail[:110]}".rstrip(), file=sys.stderr, flush=True)
 
 
 def read_events(stdout):
-    """Return (model, tool counter, viewed paths, failed tool calls, conversation id, result) from agy's NDJSON stream."""
+    """Return (model, tool counter, viewed paths, failed tool calls, conversation id, result, last text) from agy's NDJSON stream."""
     model, result, conversation = None, None, None
-    tools, viewed, failed = collections.Counter(), [], []
+    tools, viewed, failed, texts = collections.Counter(), [], [], {}
     for line in stdout.splitlines():
         try:
             event = json.loads(line)
@@ -107,6 +140,8 @@ def read_events(stdout):
             result = event["result"]
         elif event.get("event") == "step_update":
             step = event["step_update"]
+            if step.get("step_type") == "agent_response" and step.get("text_delta"):
+                texts[step.get("step_index")] = texts.get(step.get("step_index"), "") + step["text_delta"]
             if step.get("step_type") != "tool":
                 continue
             info = step.get("tool_info") or {}
@@ -118,7 +153,20 @@ def read_events(stdout):
             elif step.get("state") == "ERROR":
                 reason = (info.get("error") or {}).get("message", "unknown error").rsplit("(invalid_args) ", 1)[-1]
                 failed.append(f"{step.get('tool_name', '?')} {path or ''} — {reason[:160]}".replace("  ", " "))
-    return model, tools, viewed, failed, conversation, result
+    last_text = texts[max(texts)] if texts else ""
+    return model, tools, viewed, failed, conversation, result, last_text
+
+
+def changed_files(cwd, marker):
+    """List files under the working folder modified after the marker: the observable trace of a --full run.
+
+    Git is not asked on purpose: it would hide files in ignored folders.
+    """
+    found = subprocess.run(["find", cwd, "-path", os.path.join(cwd, ".git"), "-prune", "-o", "-type", "f", "-newer", marker, "-print"],
+                           capture_output=True, text=True, check=False)
+    roots = (cwd + os.sep, os.path.realpath(cwd) + os.sep)
+    paths = [path.removeprefix(roots[0]).removeprefix(roots[1]) for path in sorted(found.stdout.splitlines())]
+    return ", ".join(paths[:20]) + (f" and {len(paths) - 20} more" if len(paths) > 20 else "")
 
 
 def main():
@@ -130,11 +178,13 @@ def main():
     cwd = tempfile.mkdtemp(prefix="gemini-neutral-") if args.neutral else os.path.abspath(args.dir or os.getcwd())
     if not os.path.isdir(cwd):
         fail(EXIT_USAGE, f"--dir is not a folder: {cwd}")
-    done, elapsed = run_agy(args, brief, cwd)
+    with tempfile.NamedTemporaryFile(prefix="gemini-started-") as marker:
+        done, elapsed = run_agy(args, brief, cwd)
+        changed = changed_files(cwd, marker.name) if args.full else ""
     if args.neutral and not os.listdir(cwd):
         os.rmdir(cwd)
 
-    model, tools, viewed, failed, conversation, result = read_events(done.stdout)
+    model, tools, viewed, failed, conversation, result, last_text = read_events(done.stdout)
     stderr = done.stderr.strip()
     conversation = (result or {}).get("conversation_id") or conversation
     resume_hint = f" Conversation {conversation} keeps what Gemini already read: --resume it." if conversation else ""
@@ -145,7 +195,10 @@ def main():
             reason += " — run `agy` once in a terminal and sign in"
         if "invalid model selection" in reason:
             reason = f"the pinned model {MODEL} is gone from this account; do not substitute another, the owner picks the replacement. agy said: {reason}"
-        fail(EXIT_RUNTIME, reason.strip()[:1500])
+        if last_text.strip():
+            print(last_text.rstrip())
+            reason += " — the text above is the last thing Gemini wrote before the error, not a confirmed answer"
+        fail(EXIT_RUNTIME, f"{reason.strip()[:1500]}.{resume_hint}")
     if model and model != MODEL:
         fail(EXIT_RUNTIME, f"agy ran {model} instead of {MODEL}; the answer is discarded")
 
@@ -176,6 +229,8 @@ def main():
         f"conversation {conversation}",
         "tools: " + (", ".join(f"{name}×{count}" for name, count in tools.items()) or "none"),
     ]
+    if args.full:
+        receipt.append("changed: " + (changed or "nothing"))
     if denied:
         receipt.append(f'WARNING: a call needing the "{denied.group(1)}" permission was denied, the answer may be incomplete')
     if viewed:

@@ -17,6 +17,7 @@ import signal
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 
 DEFAULT_MODEL = "muse-wonder-1.0"
@@ -115,23 +116,52 @@ def run_muse(args, brief, cwd, scratch):
                 handle.write(args.schema)
         command += ["--output-schema", os.path.abspath(schema_file)]
     started = time.monotonic()
-    process = subprocess.Popen(command, cwd=cwd, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE, text=True, start_new_session=True)
+    timed_out = threading.Event()
+    with open(os.path.join(scratch, "stderr.txt"), "w+", encoding="utf-8") as stderr_file:
+        process = subprocess.Popen(command, cwd=cwd, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                                   stderr=stderr_file, text=True, start_new_session=True)
 
-    def stop_with_muse(signum, _frame):  # Muse runs in its own session, so it would outlive a killed wrapper
-        os.killpg(process.pid, signal.SIGTERM)
-        sys.exit(128 + signum)
+        def stop_with_muse(signum, _frame):  # Muse runs in its own session, so it would outlive a killed wrapper
+            os.killpg(process.pid, signal.SIGTERM)
+            sys.exit(128 + signum)
 
-    signal.signal(signal.SIGTERM, stop_with_muse)
-    signal.signal(signal.SIGINT, stop_with_muse)
+        def stop_late():
+            timed_out.set()
+            os.killpg(process.pid, signal.SIGTERM)
+
+        signal.signal(signal.SIGTERM, stop_with_muse)
+        signal.signal(signal.SIGINT, stop_with_muse)
+        timer = threading.Timer(seconds(args.timeout), stop_late)
+        timer.start()
+        lines = []
+        for line in process.stdout:
+            lines.append(line)
+            show_progress(line)
+        process.wait()
+        timer.cancel()
+        stderr_file.seek(0)
+        stderr = stderr_file.read()
+    return process.returncode, "".join(lines), stderr, timed_out.is_set(), time.monotonic() - started
+
+
+def show_progress(line):
+    """Print one line per finished tool call, so a long run is visibly alive."""
     try:
-        stdout, stderr = process.communicate(timeout=seconds(args.timeout))
-        timed_out = False
-    except subprocess.TimeoutExpired:
-        os.killpg(process.pid, signal.SIGTERM)
-        stdout, stderr = process.communicate()
-        timed_out = True
-    return process.returncode, stdout, stderr, timed_out, time.monotonic() - started
+        record = json.loads(line)
+    except ValueError:
+        return
+    if record.get("payload_type") != "tool.result":
+        return
+    payload = record.get("payload") or {}
+    name, text = (payload.get("correlation_facts") or {}).get("tool_name", "?"), payload.get("text") or ""
+    detail = text.splitlines()[0][:110] if text else ""
+    if name == "bash":
+        try:
+            shell = json.loads(text)
+            detail = f"{str(shell.get('command', ''))[:90]} (exit {shell.get('exit_code')})"
+        except ValueError:
+            pass
+    print(f"[muse] · {name} {detail}".rstrip(), file=sys.stderr, flush=True)
 
 
 def read_events(stdout):
@@ -172,25 +202,21 @@ def read_events(stdout):
     return seen
 
 
-def changed_files(cwd, since):
-    """List files in the working folder touched after `since`: the observable trace of what Muse wrote."""
-    listed = subprocess.run(["git", "ls-files", "-m", "-o", "--exclude-standard"], cwd=cwd, capture_output=True, text=True, check=False)
-    if listed.returncode == 0:
-        candidates = [os.path.join(cwd, name) for name in listed.stdout.splitlines()]
-    else:
-        candidates = []
-        for folder, subfolders, names in os.walk(cwd):
-            subfolders[:] = [name for name in subfolders if name not in (".git", "node_modules", ".venv")]
-            candidates += [os.path.join(folder, name) for name in names]
-            if len(candidates) > 20000:
-                return None
-    return [path for path in candidates if os.path.isfile(path) and os.path.getmtime(path) >= since]
+def changed_files(cwd, marker):
+    """List files under the working folder modified after the marker: the observable trace of what Muse wrote.
+
+    Git is not asked on purpose: it would hide files in ignored folders.
+    """
+    found = subprocess.run(["find", cwd, "-path", os.path.join(cwd, ".git"), "-prune", "-o", "-type", "f", "-newer", marker, "-print"],
+                           capture_output=True, text=True, check=False)
+    return sorted(found.stdout.splitlines())
 
 
 def short(paths, cwd):
-    """Show paths under the working folder as relative."""
+    """Show paths under the working folder as relative, twenty at most."""
     roots = (cwd + os.sep, os.path.realpath(cwd) + os.sep)
-    return ", ".join(path.removeprefix(roots[0]).removeprefix(roots[1]) for path in paths[:20])
+    shown = ", ".join(path.removeprefix(roots[0]).removeprefix(roots[1]) for path in paths[:20])
+    return shown + (f" and {len(paths) - 20} more" if len(paths) > 20 else "")
 
 
 def main():
@@ -203,9 +229,11 @@ def main():
         fail(EXIT_USAGE, f"--dir is not a folder: {cwd}")
     check_catalog(args.model, args.effort)
 
-    wall_start = time.time() - 1
     with tempfile.TemporaryDirectory(prefix="muse-brief-") as scratch:
+        marker = os.path.join(scratch, "started")
+        open(marker, "w", encoding="utf-8").close()
         code, stdout, stderr, timed_out, elapsed = run_muse(args, brief, cwd, scratch)
+        changed = [] if args.read_only else changed_files(cwd, marker)
     seen = read_events(stdout)
     notices = [line for line in stderr.splitlines() if "Skills:" not in line and "skills" not in line and "workspace root" not in line]
     resume_hint = f" Session {seen['session']} keeps the work done so far: --resume it with the same --dir." if seen["session"] else ""
@@ -236,8 +264,7 @@ def main():
     if seen["read"]:
         receipt.append("read: " + short(seen["read"], cwd))
     if not args.read_only:
-        changed = changed_files(cwd, wall_start)
-        receipt.append("changed: " + ("too many files to list" if changed is None else short(sorted(changed), cwd) or "nothing"))
+        receipt.append("changed: " + (short(changed, cwd) or "nothing"))
     print("[muse] " + " · ".join(receipt), file=sys.stderr)
     for line in seen["failed"]:
         hint = " PDF, audio and other binary files do not open; text and images do." if "not valid UTF-8" in line else ""
