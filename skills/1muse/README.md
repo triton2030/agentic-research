@@ -26,3 +26,5 @@ description: "История скила 1muse: вызов Muse Wonder из Claud
   `_ops/chat-recall/2026-10-13-134632-claude-bee1af57.md#recall-64f041739dc045febe04fb9dd65c9410`.
 - `versions/draft-2026-10-13-v5/` — после аудита самим Muse:
   `work/audit-2026-10-13.md`.
+- `work/steer-probe-2026-10-14/` — рабочие клиенты протокола `muse serve`: `probe_echo.py`
+  на бесплатном эхо-провайдере и `probe_live.py` с репликой в идущий ход.
