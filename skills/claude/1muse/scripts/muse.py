@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Call Muse Wonder as a subagent through Muse Code (muse exec).
+"""Call a Muse model as a subagent through Muse Code (muse exec).
 
 The brief comes on stdin. The answer goes to stdout, a one-line receipt to
 stderr. Bare `muse exec` accepts an unknown model id without an error, imports
@@ -19,24 +19,28 @@ import sys
 import tempfile
 import time
 
-MODEL = "muse-wonder-1.0"
-EFFORT = "high"
+DEFAULT_MODEL = "muse-wonder-1.0"
+DEFAULT_EFFORT = "high"
 CATALOG = "~/.local/share/muse/model-catalog/*.json"
 
-COMMON_NOTE = (
-    "Do not launch workflows or subagents and do not call other agents unless the "
-    "brief asks for it. Cite files as path:line.\n\n"
+SHARED_RULES = (
+    "Shared rules: do not commit unless the brief asks; leave edits that are not "
+    "yours alone and never revert them; do not launch workflows or subagents and "
+    "do not call other agents (Claude, Codex, Gemini) unless the brief asks; this "
+    "brief and your replies come from an agent, so do not record them anywhere as "
+    "the owner's words. Cite files as path:line.\n\n"
 )
+WRITER_NOTE = (
+    "[Runtime note] You run headless as a subagent of another agent. You may edit "
+    "files in the working folder and run shell commands in the sandbox; nobody "
+    "confirms them. What you may change is set by the words of the brief: if it "
+    "says to change no files, change none. "
+) + SHARED_RULES
 READ_ONLY_NOTE = (
     "[Runtime note] You run headless as a read-only subagent of another agent. "
     "You can read files, search and use the web. File writes and the shell are "
     "disabled for this run: if the task needs them, say so in the answer. "
-) + COMMON_NOTE
-WRITE_NOTE = (
-    "[Runtime note] You run headless as a subagent of another agent. You may edit "
-    "files in the working folder and run shell commands in the sandbox; nobody "
-    "confirms them. Do only what the brief asks and touch nothing outside it. "
-) + COMMON_NOTE
+) + SHARED_RULES
 
 EXIT_RUNTIME, EXIT_USAGE, EXIT_TIMEOUT = 1, 2, 4
 
@@ -55,8 +59,10 @@ def seconds(text):
 
 def parse_args():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--dir", help="working folder; in --write mode Muse edits files only here (default: current folder)")
-    parser.add_argument("--write", action="store_true", help="let Muse edit files in the working folder and run sandboxed shell commands")
+    parser.add_argument("--dir", help="working folder; Muse edits files only here (default: current folder)")
+    parser.add_argument("--read-only", action="store_true", help="disable file writes and the shell for this run")
+    parser.add_argument("--model", default=DEFAULT_MODEL, help=f"model id from the Muse catalog (default: {DEFAULT_MODEL})")
+    parser.add_argument("--effort", default=DEFAULT_EFFORT, help=f"reasoning effort (default: {DEFAULT_EFFORT})")
     parser.add_argument("--project-rules", action="store_true", help="trust the working folder for this run: load its AGENTS.md, skills and hooks")
     parser.add_argument("--resume", metavar="ID", help="continue the session with this id; needs the same --dir")
     parser.add_argument("--image", action="append", default=[], metavar="PATH", help="attach an image to the brief (repeatable)")
@@ -65,17 +71,24 @@ def parse_args():
     return parser.parse_args()
 
 
-def check_catalog():
-    """Muse serves an unknown model id without an error, so the pin is checked against the local catalog."""
-    known = set()
+def check_catalog(model, effort):
+    """Muse serves an unknown model id without an error, so the choice is checked against the local catalog."""
+    rows = {}
     for path in glob.glob(os.path.expanduser(CATALOG)):
         try:
             with open(path, encoding="utf-8") as handle:
-                known.update(row.get("model_id") for row in json.load(handle).get("rows", []))
+                rows.update({row.get("model_id"): row for row in json.load(handle).get("rows", [])})
         except (OSError, ValueError):
             continue
-    if known and MODEL not in known:
-        fail(EXIT_RUNTIME, f"the pinned model {MODEL} is not in the Muse catalog; do not substitute another, the owner picks the replacement")
+    if not rows:
+        return
+    if model not in rows:
+        visible = ", ".join(sorted(name for name, row in rows.items() if row.get("visibility") == "visible"))
+        advice = "the owner picks the replacement for the default" if model == DEFAULT_MODEL else f"available: {visible}"
+        fail(EXIT_RUNTIME, f"model {model} is not in the Muse catalog, and Muse would answer under that name with some other model; {advice}")
+    tiers = [variant.get("tier") for variant in rows[model].get("reasoning_effort_variants") or []]
+    if tiers and effort not in tiers:
+        fail(EXIT_USAGE, f"effort {effort} is not offered for {model}; available: {', '.join(tiers)}")
 
 
 def run_muse(args, brief, cwd, scratch):
@@ -84,10 +97,10 @@ def run_muse(args, brief, cwd, scratch):
         fail(EXIT_RUNTIME, "muse (Muse Code) is not in PATH")
     prompt_file = os.path.join(scratch, "brief.txt")
     with open(prompt_file, "w", encoding="utf-8") as handle:
-        handle.write((WRITE_NOTE if args.write else READ_ONLY_NOTE) + brief)
-    command = [muse, "exec", "--json", "--model", MODEL, "--reasoning-effort", EFFORT,
+        handle.write((READ_ONLY_NOTE if args.read_only else WRITER_NOTE) + brief)
+    command = [muse, "exec", "--json", "--model", args.model, "--reasoning-effort", args.effort,
                "--no-foreign-personal-context", "--prompt-file", prompt_file]
-    command += ["--disable-approval"] if args.write else ["--disable-write", "--disable-shell"]
+    command += ["--disable-write", "--disable-shell"] if args.read_only else ["--disable-approval"]
     if args.project_rules:
         command.append("--trust-workspace")
     if args.resume:
@@ -160,7 +173,7 @@ def read_events(stdout):
 
 
 def changed_files(cwd, since):
-    """List files in the working folder touched after `since`: the observable trace of a --write run."""
+    """List files in the working folder touched after `since`: the observable trace of what Muse wrote."""
     listed = subprocess.run(["git", "ls-files", "-m", "-o", "--exclude-standard"], cwd=cwd, capture_output=True, text=True, check=False)
     if listed.returncode == 0:
         candidates = [os.path.join(cwd, name) for name in listed.stdout.splitlines()]
@@ -188,7 +201,7 @@ def main():
     cwd = os.path.abspath(args.dir or os.getcwd())
     if not os.path.isdir(cwd):
         fail(EXIT_USAGE, f"--dir is not a folder: {cwd}")
-    check_catalog()
+    check_catalog(args.model, args.effort)
 
     wall_start = time.time() - 1
     with tempfile.TemporaryDirectory(prefix="muse-brief-") as scratch:
@@ -205,8 +218,8 @@ def main():
     if code != 0 or terminal.get("terminal") != "completed":
         reason = terminal.get("reason") or terminal.get("text") or "\n".join(notices) or f"muse exited {code} without a result"
         fail(EXIT_RUNTIME, f"{str(reason).strip()[:1500]}.{resume_hint}")
-    if seen["model"] != MODEL:
-        fail(EXIT_RUNTIME, f"muse ran {seen['model']} instead of {MODEL}; the answer is discarded")
+    if seen["model"] != args.model:
+        fail(EXIT_RUNTIME, f"muse ran {seen['model']} instead of {args.model}; the answer is discarded")
     answer = (terminal.get("text") or "").strip()
     if not answer:
         fail(EXIT_RUNTIME, f"muse completed with an empty answer. muse stderr: {' | '.join(notices)[:800] or 'empty'}")
@@ -218,11 +231,11 @@ def main():
             pass
     print(answer)
 
-    receipt = ["ok", f"{MODEL}/{EFFORT}", f"{elapsed:.0f}s", f"session {seen['session']}",
+    receipt = ["ok", f"{args.model}/{args.effort}", f"{elapsed:.0f}s", f"session {seen['session']}",
                "tools: " + (", ".join(f"{name}×{count}" for name, count in seen["tools"].items()) or "none")]
     if seen["read"]:
         receipt.append("read: " + short(seen["read"], cwd))
-    if args.write:
+    if not args.read_only:
         changed = changed_files(cwd, wall_start)
         receipt.append("changed: " + ("too many files to list" if changed is None else short(sorted(changed), cwd) or "nothing"))
     print("[muse] " + " · ".join(receipt), file=sys.stderr)

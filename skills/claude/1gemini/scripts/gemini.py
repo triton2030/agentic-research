@@ -30,7 +30,11 @@ READ_ONLY_NOTE = (
 FULL_NOTE = (
     "[Runtime note] You run headless as a subagent of another agent, with every "
     "tool pre-approved: nobody confirms your commands, writes or web requests. "
-    "Do only what the brief asks and touch nothing outside it. "
+    "What you may change is set by the words of the brief: touch nothing outside it. "
+    "Shared rules: do not commit unless the brief asks; leave edits that are not "
+    "yours alone and never revert them; do not call other agents (Claude, Codex, "
+    "Muse) unless the brief asks; this brief and your replies come from an agent, "
+    "so do not record them anywhere as the owner's words. "
     "Cite files as path:line, without file:// links.\n\n"
 )
 
