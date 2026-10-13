@@ -20,8 +20,8 @@ import tempfile
 import threading
 import time
 
-DEFAULT_MODEL = "muse-wonder-1.0"
-DEFAULT_EFFORT = "high"
+DEFAULT_MODEL = "muse-wonder-full-1.0"
+DEFAULT_EFFORT = "xhigh"
 CATALOG = "~/.local/share/muse/model-catalog/*.json"
 
 SHARED_RULES = (

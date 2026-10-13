@@ -22,3 +22,5 @@ description: "История скила 1muse: вызов Muse Wonder из Claud
   `skills/1gemini/work/roster-2026-10-13.md`.
 - `versions/draft-2026-10-13-v3/` — снимок после пробы исполнителей на HTML-странице:
   `skills/1muse/work/html-writer-2026-10-13.md`.
+- `versions/draft-2026-10-13-v4/` — умолчание сменено владельцем на `muse-wonder-full-1.0` + `xhigh`:
+  `_ops/chat-recall/2026-10-13-134632-claude-bee1af57.md#recall-64f041739dc045febe04fb9dd65c9410`.
