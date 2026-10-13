@@ -23,6 +23,8 @@ import time
 DEFAULT_MODEL = "muse-wonder-full-1.0"
 DEFAULT_EFFORT = "xhigh"
 CATALOG = "~/.local/share/muse/model-catalog/*.json"
+SESSIONS = "~/.local/share/muse/sessions/*/*/*/"
+NOISE = ("muse: Skills:", "muse:   `skills_catalog`", "muse:   Run `muse skills list", "muse: workspace root:", "muse: Agent delegation:")
 
 SHARED_RULES = (
     "Shared rules: do not commit unless the brief asks; leave edits that are not "
@@ -69,11 +71,34 @@ def parse_args():
     parser.add_argument("--image", action="append", default=[], metavar="PATH", help="attach an image to the brief (repeatable)")
     parser.add_argument("--schema", help="JSON schema (string or file path); stdout becomes the parsed object")
     parser.add_argument("--timeout", default="9m", help="wall-clock limit; muse exec has none of its own (default: 9m)")
-    return parser.parse_args()
+    args = parser.parse_args()
+    args.limit = seconds(args.timeout)
+    return args
+
+
+def check_inputs(args):
+    """Refuse before the paid call what Muse would accept and quietly get wrong."""
+    for path in args.image:
+        if not os.path.isfile(path):
+            fail(EXIT_USAGE, f"--image is not a file: {path}")
+    if args.schema:
+        try:
+            if os.path.isfile(args.schema):
+                with open(args.schema, encoding="utf-8") as handle:
+                    json.load(handle)
+            else:
+                json.loads(args.schema)
+        except ValueError as error:
+            fail(EXIT_USAGE, f"--schema is not valid JSON: {error}")
+    if args.resume and not glob.glob(os.path.expanduser(SESSIONS) + args.resume):
+        fail(EXIT_USAGE, f"session {args.resume} is not in Muse's store, and Muse would quietly start a new conversation under that id")
 
 
 def check_catalog(model, effort):
-    """Muse serves an unknown model id without an error, so the choice is checked against the local catalog."""
+    """Muse serves an unknown model id without an error, so the choice is checked against the local catalog.
+
+    Returns False when there is no catalog to check against.
+    """
     rows = {}
     for path in glob.glob(os.path.expanduser(CATALOG)):
         try:
@@ -82,14 +107,16 @@ def check_catalog(model, effort):
         except (OSError, ValueError):
             continue
     if not rows:
-        return
-    if model not in rows:
-        visible = ", ".join(sorted(name for name, row in rows.items() if row.get("visibility") == "visible"))
-        advice = "the owner picks the replacement for the default" if model == DEFAULT_MODEL else f"available: {visible}"
-        fail(EXIT_RUNTIME, f"model {model} is not in the Muse catalog, and Muse would answer under that name with some other model; {advice}")
+        return False
+    visible = sorted(name for name, row in rows.items() if row.get("visibility") == "visible")
+    if model not in visible:
+        state = "is hidden in the Muse catalog" if model in rows else "is not in the Muse catalog, and Muse would answer under that name with some other model"
+        advice = "the owner picks the replacement for the default" if model == DEFAULT_MODEL else f"available: {', '.join(visible)}"
+        fail(EXIT_RUNTIME, f"model {model} {state}; {advice}")
     tiers = [variant.get("tier") for variant in rows[model].get("reasoning_effort_variants") or []]
-    if tiers and effort not in tiers:
-        fail(EXIT_USAGE, f"effort {effort} is not offered for {model}; available: {', '.join(tiers)}")
+    if effort not in tiers:
+        fail(EXIT_USAGE, f"effort {effort} is not offered for {model}; available: {', '.join(tiers) or 'none listed'}")
+    return True
 
 
 def run_muse(args, brief, cwd, scratch):
@@ -121,17 +148,28 @@ def run_muse(args, brief, cwd, scratch):
         process = subprocess.Popen(command, cwd=cwd, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
                                    stderr=stderr_file, text=True, start_new_session=True)
 
-        def stop_with_muse(signum, _frame):  # Muse runs in its own session, so it would outlive a killed wrapper
+        def stop_group():  # Muse runs in its own session, so it would outlive the wrapper; SIGKILL follows an ignored SIGTERM
             os.killpg(process.pid, signal.SIGTERM)
-            sys.exit(128 + signum)
+            force = threading.Timer(5, lambda: process.poll() is None and os.killpg(process.pid, signal.SIGKILL))
+            force.daemon = True
+            force.start()
+
+        def stop_with_muse(signum, _frame):
+            os.killpg(process.pid, signal.SIGTERM)
+            try:
+                process.wait(timeout=3)
+            except subprocess.TimeoutExpired:
+                os.killpg(process.pid, signal.SIGKILL)
+            os._exit(128 + signum)
 
         def stop_late():
             timed_out.set()
-            os.killpg(process.pid, signal.SIGTERM)
+            stop_group()
 
         signal.signal(signal.SIGTERM, stop_with_muse)
         signal.signal(signal.SIGINT, stop_with_muse)
-        timer = threading.Timer(seconds(args.timeout), stop_late)
+        timer = threading.Timer(args.limit, stop_late)
+        timer.daemon = True
         timer.start()
         lines = []
         for line in process.stdout:
@@ -165,8 +203,8 @@ def show_progress(line):
 
 
 def read_events(stdout):
-    """Pick the model, session id, tool results, pending tool call and last terminal event out of Muse's JSONL."""
-    seen = {"model": None, "session": None, "terminal": None, "pending": {},
+    """Pick the model, session id, tool results, pending tool call, streamed text and last terminal event out of Muse's JSONL."""
+    seen = {"model": None, "session": None, "terminal": None, "pending": {}, "text": "",
             "tools": collections.Counter(), "read": [], "failed": []}
     for line in stdout.splitlines():
         try:
@@ -178,6 +216,8 @@ def read_events(stdout):
             seen["session"] = seen["session"] or record["stream"].get("id")
         if kind == "run.model.configured":
             seen["model"] = payload.get("model_id")
+        elif kind == "run.output.delta":
+            seen["text"] += payload.get("text") or ""
         elif kind.startswith("run.terminal"):
             seen["terminal"] = payload
         elif kind.startswith("task.lifecycle"):
@@ -202,19 +242,20 @@ def read_events(stdout):
     return seen
 
 
-def changed_files(cwd, marker):
-    """List files under the working folder modified after the marker: the observable trace of what Muse wrote.
+def list_files(cwd, newer_than=None):
+    """List files under the working folder, optionally only those modified after a marker file.
 
     Git is not asked on purpose: it would hide files in ignored folders.
     """
-    found = subprocess.run(["find", cwd, "-path", os.path.join(cwd, ".git"), "-prune", "-o", "-type", "f", "-newer", marker, "-print"],
-                           capture_output=True, text=True, check=False)
-    return sorted(found.stdout.splitlines())
+    command = ["find", cwd, "-path", os.path.join(cwd, ".git"), "-prune", "-o", "-type", "f"]
+    command += ["-newer", newer_than] if newer_than else []
+    return set(subprocess.run(command + ["-print"], capture_output=True, text=True, check=False).stdout.splitlines())
 
 
 def short(paths, cwd):
     """Show paths under the working folder as relative, twenty at most."""
     roots = (cwd + os.sep, os.path.realpath(cwd) + os.sep)
+    paths = sorted(paths)
     shown = ", ".join(path.removeprefix(roots[0]).removeprefix(roots[1]) for path in paths[:20])
     return shown + (f" and {len(paths) - 20} more" if len(paths) > 20 else "")
 
@@ -227,51 +268,64 @@ def main():
     cwd = os.path.abspath(args.dir or os.getcwd())
     if not os.path.isdir(cwd):
         fail(EXIT_USAGE, f"--dir is not a folder: {cwd}")
-    check_catalog(args.model, args.effort)
+    check_inputs(args)
+    checked = check_catalog(args.model, args.effort)
 
     with tempfile.TemporaryDirectory(prefix="muse-brief-") as scratch:
         marker = os.path.join(scratch, "started")
         open(marker, "w", encoding="utf-8").close()
+        before = set() if args.read_only else list_files(cwd)
         code, stdout, stderr, timed_out, elapsed = run_muse(args, brief, cwd, scratch)
-        changed = [] if args.read_only else changed_files(cwd, marker)
+        changed = set() if args.read_only else list_files(cwd, marker)
+        deleted = set() if args.read_only else before - list_files(cwd)
     seen = read_events(stdout)
-    notices = [line for line in stderr.splitlines() if "Skills:" not in line and "skills" not in line and "workspace root" not in line]
+    notices = [line for line in stderr.splitlines() if line.strip() and not line.startswith(NOISE)]
+    trace = [] if args.read_only else ["changed: " + (short(changed, cwd) or "nothing")]
+    if deleted:
+        trace.append("deleted: " + short(deleted, cwd))
     resume_hint = f" Session {seen['session']} keeps the work done so far: --resume it with the same --dir." if seen["session"] else ""
+
+    def give_up(exit_code, message):
+        """Fail without losing what the run already wrote or said."""
+        partial = ((seen["terminal"] or {}).get("text") or seen["text"]).strip()
+        if partial:
+            print(partial)
+            message += " The text above is what Muse wrote before the failure, not a confirmed answer."
+        if trace:
+            print("[muse] " + " · ".join(trace), file=sys.stderr)
+        fail(exit_code, message)
 
     if timed_out:
         waiting = ", ".join(sorted(set(seen["pending"].values())))
         cause = f"Muse was inside {waiting}: a long command, or an approval nobody can give" if waiting else "the work did not finish"
-        fail(EXIT_TIMEOUT, f"stopped after {args.timeout}: {cause}. Raise --timeout or narrow the brief.{resume_hint}")
+        give_up(EXIT_TIMEOUT, f"stopped after {args.timeout}: {cause}. Raise --timeout or narrow the brief.{resume_hint}")
     terminal = seen["terminal"] or {}
     if code != 0 or terminal.get("terminal") != "completed":
-        reason = terminal.get("reason") or terminal.get("text") or "\n".join(notices) or f"muse exited {code} without a result"
-        fail(EXIT_RUNTIME, f"{str(reason).strip()[:1500]}.{resume_hint}")
+        reason = terminal.get("reason") or "\n".join(notices) or f"muse exited {code} without a result"
+        give_up(EXIT_RUNTIME, f"{str(reason).strip()[:1500]}.{resume_hint}")
     if seen["model"] != args.model:
-        fail(EXIT_RUNTIME, f"muse ran {seen['model']} instead of {args.model}; the answer is discarded")
+        give_up(EXIT_RUNTIME, f"muse ran {seen['model']} instead of {args.model}; treat the answer as unconfirmed.")
     answer = (terminal.get("text") or "").strip()
     if not answer:
-        fail(EXIT_RUNTIME, f"muse completed with an empty answer. muse stderr: {' | '.join(notices)[:800] or 'empty'}")
-
+        give_up(EXIT_RUNTIME, f"muse completed with an empty answer. muse stderr: {' | '.join(notices)[:800] or 'empty'}.")
     if args.schema:
         try:
             answer = json.dumps(json.loads(answer), ensure_ascii=False, indent=2)
         except ValueError:
-            pass
+            give_up(EXIT_RUNTIME, "the answer is not valid JSON although --schema was given.")
     print(answer)
 
-    receipt = ["ok", f"{args.model}/{args.effort}", f"{elapsed:.0f}s", f"session {seen['session']}",
+    receipt = ["ok", f"{args.model}/{args.effort}" + ("" if checked else " (model name NOT checked: no Muse catalog found)"),
+               f"{elapsed:.0f}s", f"session {seen['session']}",
                "tools: " + (", ".join(f"{name}×{count}" for name, count in seen["tools"].items()) or "none")]
     if seen["read"]:
         receipt.append("read: " + short(seen["read"], cwd))
-    if not args.read_only:
-        receipt.append("changed: " + (short(changed, cwd) or "nothing"))
-    print("[muse] " + " · ".join(receipt), file=sys.stderr)
+    print("[muse] " + " · ".join(receipt + trace), file=sys.stderr)
     for line in seen["failed"]:
         hint = " PDF, audio and other binary files do not open; text and images do." if "not valid UTF-8" in line else ""
         print(f"[muse] WARNING: tool call failed: {line}.{hint}", file=sys.stderr)
     for line in notices:
-        if "warning" in line.lower():
-            print(f"[muse] {line.removeprefix('muse: ')}", file=sys.stderr)
+        print(f"[muse] {line.removeprefix('muse: ')}", file=sys.stderr)
 
 
 if __name__ == "__main__":

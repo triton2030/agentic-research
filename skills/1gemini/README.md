@@ -28,3 +28,5 @@ description: "История скила 1gemini: вызов Gemini 3.8 Flash Hig
   что перенесено и чем проверено — `skills/1muse/work/codex-ideas-2026-10-13.md`.
 - `versions/draft-2026-10-13-v3/` — снимок после пробы исполнителей на HTML-странице:
   `skills/1muse/work/html-writer-2026-10-13.md`.
+- `versions/draft-2026-10-13-v4/` — общие исправления обёртки после аудита `1muse`:
+  `skills/1muse/work/audit-2026-10-13.md`.

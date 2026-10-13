@@ -65,6 +65,7 @@ def parse_args():
     parser.add_argument("--timeout", default="10m", help="time limit for the answer (default: 10m)")
     parser.add_argument("--json", action="store_true", help="print the raw agy result object instead of the answer text")
     args = parser.parse_args()
+    args.limit = seconds(args.timeout)
     if args.neutral and args.dir:
         fail(EXIT_USAGE, "--neutral and --dir exclude each other; give project folders to --neutral through --add-dir")
     return args
@@ -95,7 +96,8 @@ def run_agy(args, brief, cwd):
             killed.set()
             process.kill()
 
-        timer = threading.Timer(seconds(args.timeout) + 60, kill_late)
+        timer = threading.Timer(args.limit + 60, kill_late)
+        timer.daemon = True
         timer.start()
         lines, announced = [], set()
         for line in process.stdout:
@@ -198,6 +200,8 @@ def main():
         if last_text.strip():
             print(last_text.rstrip())
             reason += " — the text above is the last thing Gemini wrote before the error, not a confirmed answer"
+        if args.full:
+            print(f"[gemini] changed: {changed or 'nothing'}", file=sys.stderr)
         fail(EXIT_RUNTIME, f"{reason.strip()[:1500]}.{resume_hint}")
     if model and model != MODEL:
         fail(EXIT_RUNTIME, f"agy ran {model} instead of {MODEL}; the answer is discarded")
