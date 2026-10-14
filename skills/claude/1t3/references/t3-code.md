@@ -168,6 +168,9 @@ exist or you lack access`.
 - Реплика в законченный тред начинает новый ход с памятью прежнего и той же
   моделью: `delivery: "started"`.
 - `clientRequestId` делает повтор отправки безопасным.
+- Архив — `t3_thread_organize` с `action: "archive"`, обратно — `"unarchive"`.
+  Архивный тред пропадает из `t3_thread_list`, но по `threadId` читается
+  целиком (`archived: true`) — замер 2026-10-14.
 
 ## Ожидание и чтение
 
