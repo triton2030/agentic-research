@@ -1,9 +1,9 @@
 ---
 name: 1t3
 description: >-
-  Use when the user asks for T3 Code, Muse or a Meta model, Gemini or
-  Antigravity, audio or video must be heard or watched, bulk reading can go to
-  a fast outside reader, or a T3 thread is live.
+  Use when work should go to a subagent of another model family such as Muse
+  or Gemini, a T3 Code thread is live or needs a follow-up, or subscription
+  limits matter. Codex: 1codex. Hermes: 1hermes.
 ---
 
 # T3 Code — треды Muse и Gemini, возможности приложения
@@ -256,7 +256,11 @@ python3 ~/.claude/skills/1t3/scripts/limits.py
 
 Скрипт за минуту показывает остаток Codex, Gemini и Claude на подписке Google
 и Muse. Проверка Muse тратит один минимальный запрос: без хода модели Muse
-остатка не знает. Бесплатно — `--only codex,google`.
+остатка не знает. Бесплатно — `--only codex,google`. Остаток твоей
+собственной подписки Claude скрипт не видит; в приложении Claude его
+показывает инструмент `mcp__ccd_session_mgmt__get_usage`. Мало осталось
+у тебя — Claude на подписке Google и есть запас, который владелец хочет
+тратить.
 
 Остатка не хватает на задуманное — скажи владельцу и предложи подписку, где
 запас есть. Бесплатные сбросы лимита Codex, которые видит скрипт, тратит
