@@ -37,3 +37,7 @@ description: "История скила 1t3: треды Muse и Gemini чере�
   в `work/probe-2026-10-14.md`.
 - `versions/draft-2026-10-14-v4/` — строка Codex: когда и в какой роли решает `1codex`,
   запуск — здесь; решение владельца — P-005 в `skills/claude/1codex/product-frame.principles.md`.
+- `versions/draft-2026-10-14-v5/` — проверка остатка подписок (`scripts/limits.py`) и Claude на
+  подписке Google через `--model` скрипта: слова владельца
+  `2026-10-14-011724-claude-92511fd9.md#recall-ff1252e8f362427fae5dae357364c267`
+  и `#recall-e32c5a6e78794e5987098b0e87d5b469`.

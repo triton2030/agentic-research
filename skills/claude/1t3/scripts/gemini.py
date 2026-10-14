@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Call Gemini 3.8 Flash High as a subagent through the Antigravity CLI (agy).
+"""Call Gemini 3.8 Flash High — or, with --model, Claude on the same Google
+subscription — as a subagent through the Antigravity CLI (agy).
 
 The brief comes on stdin. The answer goes to stdout, a one-line receipt to
 stderr. agy reports a denied tool or a timeout as exit 0 with an empty answer;
@@ -18,6 +19,7 @@ import threading
 import time
 
 MODEL = "gemini-3.8-flash-high"
+CLAUDE_PREFIX = "claude-"  # Claude models of the Google subscription, listed by `agy models`
 
 READ_ONLY_NOTE = (
     "[Runtime note] You run headless as a read-only subagent of another agent. "
@@ -64,7 +66,10 @@ def parse_args():
     parser.add_argument("--schema", help="JSON schema (string or file path); stdout becomes the parsed object")
     parser.add_argument("--timeout", default="10m", help="time limit for the answer (default: 10m)")
     parser.add_argument("--json", action="store_true", help="print the raw agy result object instead of the answer text")
+    parser.add_argument("--model", default=MODEL, help=f"{MODEL} (default) or a claude-* id from `agy models`: Claude billed to the Google subscription")
     args = parser.parse_args()
+    if args.model != MODEL and not args.model.startswith(CLAUDE_PREFIX):
+        fail(EXIT_USAGE, f"--model takes {MODEL} or a claude-* id from `agy models`; Gemini stays pinned to {MODEL}")
     args.limit = seconds(args.timeout)
     if args.neutral and args.dir:
         fail(EXIT_USAGE, "--neutral and --dir exclude each other; give project folders to --neutral through --add-dir")
@@ -75,7 +80,7 @@ def run_agy(args, brief, cwd):
     agy = shutil.which("agy")
     if not agy:
         fail(EXIT_RUNTIME, "agy (Antigravity CLI) is not in PATH")
-    command = [agy, "--model", MODEL, "--output-format", "stream-json", "--print-timeout", args.timeout]
+    command = [agy, "--model", args.model, "--output-format", "stream-json", "--print-timeout", args.timeout]
     if args.full:
         command.append("--dangerously-skip-permissions")
     for path in args.add_dir:
@@ -196,15 +201,15 @@ def main():
         if "authentication required" in reason:
             reason += " — run `agy` once in a terminal and sign in"
         if "invalid model selection" in reason:
-            reason = f"the pinned model {MODEL} is gone from this account; do not substitute another, the owner picks the replacement. agy said: {reason}"
+            reason = f"the model {args.model} is gone from this account; do not substitute another, the owner picks the replacement. agy said: {reason}"
         if last_text.strip():
             print(last_text.rstrip())
             reason += " — the text above is the last thing Gemini wrote before the error, not a confirmed answer"
         if args.full:
             print(f"[gemini] changed: {changed or 'nothing'}", file=sys.stderr)
         fail(EXIT_RUNTIME, f"{reason.strip()[:1500]}.{resume_hint}")
-    if model and model != MODEL:
-        fail(EXIT_RUNTIME, f"agy ran {model} instead of {MODEL}; the answer is discarded")
+    if model and model != args.model:
+        fail(EXIT_RUNTIME, f"agy ran {model} instead of {args.model}; the answer is discarded")
 
     response = result.get("response") or ""
     if "print timeout" in stderr:
@@ -228,7 +233,7 @@ def main():
 
     usage = result.get("usage", {})
     receipt = [
-        "ok", model or MODEL, f"{elapsed:.0f}s",
+        "ok", model or args.model, f"{elapsed:.0f}s",
         f"tokens in {usage.get('input_tokens', 0)} out {usage.get('output_tokens', 0)}" + (" (whole conversation)" if args.resume else ""),
         f"conversation {conversation}",
         "tools: " + (", ".join(f"{name}×{count}" for name, count in tools.items()) or "none"),
