@@ -35,3 +35,5 @@ description: "История скила 1t3: треды Muse и Gemini чере�
 - `versions/draft-2026-10-14-v3/` — правило брифа покрывает и следующие реплики
   и запрещает звать других агентов; факты о Codex в треде: четвёртая проба
   в `work/probe-2026-10-14.md`.
+- `versions/draft-2026-10-14-v4/` — строка Codex: когда и в какой роли решает `1codex`,
+  запуск — здесь; решение владельца — P-005 в `skills/claude/1codex/product-frame.principles.md`.

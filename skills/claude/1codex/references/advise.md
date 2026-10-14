@@ -6,6 +6,10 @@
 
 ## Тред советника
 
+В T3 Code каждый тред — диалог: продолжение — реплика в тот же тред по
+`1t3`. Команды ниже — для моста; правила выбора между тем же и свежим тредом
+действуют на обоих путях.
+
 ```bash
 B=/Users/triton/Documents/GitHub/agentic-research/experiments/codex-bridge
 $B/.venv/bin/python $B/codex_launch.py agent --name советник-<тема> --run-dir RUN_DIR --prompt-file ВОПРОС.md --project "$PWD" -- --dialog --topic "ТЕМА"
