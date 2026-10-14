@@ -201,7 +201,6 @@ no complete local package` (замер 2026-09-18). Упакованный CLI 0
 
 | Вызывающий | Где |
 |---|---|
-| `1-max-review` | `skills/shared/1-max-review/portable/scripts/max_review.py`, `_codex_path` |
 | `1folder-tree` | `skills/shared/1folder-tree/portable/scripts/check_tree.py` |
 | md-scout | `md-tools/scripts/run_md_scout.py`, `resolve_codex` (плюс флаг `--codex`) |
 | `1design-review` | `experiments/1design-review/scripts/run-clean-design-agent.sh` |

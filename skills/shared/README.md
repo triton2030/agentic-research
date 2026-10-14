@@ -15,12 +15,6 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   пакетов и дополнительно доставляется в `~/.{claude,codex}/agents/`.
   Остальные native-профили сохраняют существующих владельцев.
   Доставка — по явному manifest из истории `skills/1fresh-eyes/`.
-- `1-max-review/portable/` — проверка выбранных файлов или корпуса по исходным
-  участкам применимых правил: готовые небольшие пакеты, отдельный координатор
-  и общий CLI с учётом покрытия участков и ответов. Luna Max закреплена в теле.
-  `platforms/{codex,claude}/references/runtime.md` держат особенности запуска;
-  Codex metadata — `platforms/codex/agents/openai.yaml`.
-  Локальная история создания и проверки — `_workspace/orchestration/2026-09-19-maxrevie/`.
 - `1illustrations-and-charts/portable/` — компактные схемы, SVG и макеты интерфейса рядом со сложным объяснением; переносимое ядро для Claude и Codex. Проектные пути и CSS остаются в документации проекта.
 - `1writing-rule/portable/` — личное «Правило письма»: качество заказанного текста,
   подробный материал для файлов и маршруты к `1docs-write`, `1folder-tree`

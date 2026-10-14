@@ -58,6 +58,7 @@
 - `response-language` — Предпочтительный язык ответов и рабочих сообщений агента
 - `semantic-compression` — Смысловое сжатие и lossy product refactor документов
 - `skill-instruction-authoring` — Проектирование и рефакторинг skills, prompts и агентных инструкций
+- `skill-retirement` — Снятие скилов: перенос пакета в историю, причина снятия, судьба установленных копий
 - `skill-routing` — Имена, descriptions и автоматическая активация skills
 - `ui-design-review` — Аудит визуального UI и порядка чтения страницы
 
