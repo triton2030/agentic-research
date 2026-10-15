@@ -12,6 +12,20 @@ import {
   createClaudeSessionAdapter
 } from "./claude-session.js";
 
+const runtimeSchema = z.object({ sdk_version: z.string(), claude_code_version: z.string().nullable() });
+const rateLimitSchema = z.object({
+  status: z.enum(["allowed", "allowed_warning", "rejected"]),
+  rate_limit_type: z.string().optional(),
+  resets_at: z.number().nonnegative().optional(),
+  utilization: z.number().nonnegative().optional(),
+  overage_enabled: z.boolean().optional(),
+  is_using_overage: z.boolean().optional(),
+  overage_status: z.string().optional(),
+  overage_resets_at: z.number().nonnegative().optional(),
+  overage_disabled_reason: z.string().optional(),
+  error_code: z.string().optional()
+});
+
 const askResultSchema = {
   text: z.string(),
   session_id: z.string().uuid(),
@@ -19,7 +33,9 @@ const askResultSchema = {
   requested_effort: z.enum(["medium", "high", "xhigh", "max"]).nullable(),
   resolved_model: z.string().min(1),
   duration_ms: z.number().int().nonnegative(),
-  warnings: z.array(z.string())
+  warnings: z.array(z.string()),
+  runtime: runtimeSchema.optional(),
+  rate_limit: rateLimitSchema.optional()
 };
 
 const visibleTerminalSchema = z.object({
@@ -28,7 +44,8 @@ const visibleTerminalSchema = z.object({
   num_turns: z.number().int().nonnegative().optional(),
   code: z.string().optional(),
   resumable: z.boolean().optional(),
-  message: z.string().optional()
+  message: z.string().optional(),
+  startup_failure_reason: z.string().optional()
 });
 
 const observationFields = {
@@ -58,6 +75,8 @@ const observationFields = {
   requested_model: z.enum(["opus", "fable"]).nullable(),
   requested_effort: z.enum(["medium", "high", "xhigh", "max"]).nullable(),
   resolved_model: z.string().nullable(),
+  runtime: runtimeSchema.optional(),
+  rate_limit: rateLimitSchema.optional(),
   terminal: visibleTerminalSchema.nullable(),
   warnings: z.array(z.string()),
   events: z.array(z.object({
@@ -187,7 +206,8 @@ export function createClaudeAskServer(
       title: "Observe Claude Session",
       description:
         "Pull one bounded snapshot for an active native Claude session. Summary is context-cheap; activity, conversation, " +
-        "and diagnostic detail are explicit bounded peeks. Never returns hidden reasoning, raw tool I/O, or an event stream.",
+        "and diagnostic detail are explicit bounded peeks. Diagnostic also reads estimated context usage without token-count API calls. " +
+        "Never returns hidden reasoning, raw tool I/O, or an event stream.",
       inputSchema: claudeObserveInputSchema,
       outputSchema: observationFields,
       annotations: {

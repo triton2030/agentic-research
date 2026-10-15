@@ -55,6 +55,14 @@ version. Resumed sessions accept Opus 5 or Fable 5 and retain their initial
 family; cross-family fallback fails closed. Fresh calls also reject a fallback
 to an older version of the selected family.
 
+`runtime` identifies the loaded SDK and the CLI version reported by native init;
+an unavailable CLI version is `null`. Optional `rate_limit` retains the latest
+subscription event: status, limit type, reset time, utilization, and reported
+overage state. Reset times are Unix seconds. Absent fields are unknown, not zero
+or false. These observations do not establish an account-wide spending guarantee.
+Known native startup failures preserve `startup_failure_reason` under the typed
+`claude_startup` error, including failures before init.
+
 A nominal SDK success with a non-completing `terminal_reason`, such as
 `background_requested`, fails closed with a resumable typed error. The blocking
 path never labels an answer terminal after Claude moved required work into the
@@ -113,6 +121,16 @@ The caller selects a summary, activity, conversation, or diagnostic view:
 - conversation reports a bounded user/assistant view;
 - diagnostic reports compact session, model, queue, timeout, and failure
   evidence.
+
+Diagnostic observation also asks the native SDK for context usage with
+`detail: "summary"`, which uses local estimates without token-count API calls.
+`diagnostic.context_usage` contains only `used_tokens`, `max_tokens`,
+`used_percent`, and `estimated: true`; file paths and prompt/tool breakdowns are
+not returned. `context_usage_status` is `available`, `unavailable`, `timeout`,
+or `closed`. The probe waits at most two seconds, respects host cancellation,
+and shares a pending native request across repeated observations. Summary,
+activity, and conversation views do not request context usage.
+All observation views include runtime versions and any latest subscription event.
 
 Every observation exposes a typed terminal outcome: `terminal.kind` is one of
 `success`, `error`, or `timeout` when a turn has ended, and is `null` while no
@@ -178,6 +196,13 @@ remain backward-compatible model selectors, not role selectors.
 of a conversation that originally used the old custom advisor prompt. A fresh
 session is still needed for an opinion independent of the previous conversation.
 
+Prompts use `verbatimPrompts`: the SDK delivers text without expanding `@path`
+mentions or dispatching a leading `/` as a slash command. Claude can still
+deliberately read a path when the task calls for it. The bridge's prompt field
+is a task message; native interactive commands belong to a direct CLI/SDK route.
+In the current CLI this mode also skips turn-start attachments and reminders;
+most of that context arrives after the first tool call, if the turn makes one.
+
 The owner explicitly includes execution and file changes in the bridge's scope
 (2026-09-12). A read-only review is requested in its prompt; the bridge is not
 an enforced read-only sandbox. macOS privacy controls remain the outer boundary.
@@ -207,9 +232,9 @@ a contradiction aborts the turn before its result is accepted.
 
 That proves the observed credential route, not the account's Usage credits
 setting. The owner must disable Usage credits in Claude Settings to make
-out-of-plan spend unavailable. Claude exposes no documented machine-readable
-switch for that account state, so the bridge must not invent billing accounting
-or claim to verify it.
+out-of-plan spend unavailable. The auth preflight cannot verify that account
+setting; later subscription events may report its state but are not a
+pre-inference spending guard.
 See [`docs/subscription-billing.md`](docs/subscription-billing.md) for the exact
 maintainer checklist and official sources.
 
@@ -250,9 +275,9 @@ an abstraction only when current complexity makes the seam real.
 
 ## Develop And Verify
 
-The current dependency pair is Agent SDK `0.3.268` and local Claude Code
-`2.1.280`. The SDK is pinned in the lockfile; the local executable is managed
-separately with `claude install 2.1.280`. Check `claude --version` on upgrades:
+The verified dependency pair is Agent SDK `0.3.300` and local Claude Code
+`2.1.300`. The SDK is pinned in the lockfile; the local executable is managed
+separately with `claude install 2.1.300`. Check `claude --version` on upgrades:
 installing the npm dependency does not update that executable.
 The [official SDK changelog](https://github.com/anthropics/claude-agent-sdk-typescript/blob/main/CHANGELOG.md)
 records SDK runtime changes; this installed pair is verified below.
@@ -266,6 +291,16 @@ their terminal error; regression coverage prevents them becoming endless waits.
 On 2026-09-23, the same 42 tests, clean install, and live Opus 5.5 suite passed
 with Claude Code 2.1.280. A live Fable 5.1 Medium call resolved to
 `claude-fable-5-1`.
+
+Verified on 2026-10-16: clean install with optional binaries omitted, 50
+deterministic tests, and live parallel calls, native resume, follow-up, steer,
+stop, literal slash-prefixed prompts, context diagnostics, and native
+cancellation with no surviving observed processes. The compatible dependency
+patches also passed `npm audit` with zero reported vulnerabilities.
+A fresh Codex process discovered and called all four tools, including the new
+runtime, rate-limit, and context fields. A separate native invalid-proxy startup
+probe returned `proxy_invalid` before init with `resumable: false`; fixtures
+also cover startup results without a reason code followed by process exit.
 
 Install the exact lockfile and run the deterministic contract suite:
 

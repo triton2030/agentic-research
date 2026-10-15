@@ -1,6 +1,11 @@
 import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { query } from "@anthropic-ai/claude-agent-sdk";
-import { ClaudeAskError } from "./claude-result.js";
+import { ClaudeAskError, claudeSdkResultError } from "./claude-result.js";
+
+export const CLAUDE_SDK_VERSION = JSON.parse(readFileSync(
+  new URL("./package.json", import.meta.resolve("@anthropic-ai/claude-agent-sdk")), "utf8"
+)).version;
 
 const CLIENT_APP = "claude-bridge/2.0";
 const MAX_TURNS = 48;
@@ -30,6 +35,7 @@ export function claudeRuntimeWarning(message) {
     if (info.errorCode === "credits_required") warning = "subscription_credits_required";
     else if (info.isUsingOverage || info.overageInUse) warning = "subscription_overage_in_use";
     else if (info.status === "rejected") warning = `subscription_rate_limit:${info.rateLimitType || "unknown"}`;
+    else if (info.status === "allowed_warning") warning = `subscription_rate_limit_warning:${info.rateLimitType || "unknown"}`;
   } else if (message.type === "system" && message.subtype === "permission_denied") {
     warning = `permission_denied:${message.tool_name || "tool"}`;
   } else if (message.type === "system" && message.subtype === "model_refusal_fallback") {
@@ -41,6 +47,44 @@ export function claudeRuntimeWarning(message) {
     ].join(":");
   }
   return warning;
+}
+
+/** Keep actionable subscription facts, never account/payment data or raw events. */
+export function claudeRateLimit(message) {
+  if (message.type !== "rate_limit_event") return null;
+  const info = message.rate_limit_info || {};
+  if (!["allowed", "allowed_warning", "rejected"].includes(info.status)) return null;
+  const result = { status: info.status };
+  for (const [source, target] of [
+    ["resetsAt", "resets_at"], ["overageResetsAt", "overage_resets_at"],
+    ["utilization", "utilization"]
+  ]) {
+    if (Number.isFinite(info[source]) && info[source] >= 0) result[target] = info[source];
+  }
+  for (const [source, target] of [
+    ["rateLimitType", "rate_limit_type"], ["overageStatus", "overage_status"],
+    ["overageDisabledReason", "overage_disabled_reason"], ["errorCode", "error_code"]
+  ]) {
+    if (typeof info[source] === "string" && /^[a-z0-9_]{1,64}$/u.test(info[source])) {
+      result[target] = info[source];
+    }
+  }
+  if (typeof info.overageEnabled === "boolean") result.overage_enabled = info.overageEnabled;
+  if (typeof info.isUsingOverage === "boolean" || typeof info.overageInUse === "boolean") {
+    result.is_using_overage = info.isUsingOverage === true || info.overageInUse === true;
+  }
+  return result;
+}
+
+function contextSummary(usage) {
+  if (![usage?.totalTokens, usage?.maxTokens, usage?.percentage]
+    .every((value) => Number.isFinite(value) && value >= 0) || usage.maxTokens === 0) return null;
+  return {
+    used_tokens: usage.totalTokens,
+    max_tokens: usage.maxTokens,
+    used_percent: usage.percentage,
+    estimated: true
+  };
 }
 
 function collectRuntimeWarning(warnings, message) {
@@ -94,7 +138,8 @@ function queryOptions(launch, options) {
     env: {
       ...launch.env,
       CLAUDE_AGENT_SDK_CLIENT_APP: CLIENT_APP,
-      CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1"
+      CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1",
+      CLAUDE_CODE_STARTUP_FAILURE_RESULTS: "1"
     },
     forwardSubagentText: false,
     includeHookEvents: false,
@@ -122,6 +167,7 @@ function queryOptions(launch, options) {
     // Re-render on resume instead of inheriting a previous custom advisor prompt.
     systemPrompt: { type: "preset", preset: "claude_code", snapshot: false },
     tools: { type: "preset", preset: "claude_code" },
+    verbatimPrompts: true,
     ...(!isResume ? { effort: launch.profile.effort, model: launch.profile.model } : {})
   };
 }
@@ -153,6 +199,7 @@ export function startClaudeSdkSession(launch, options = {}) {
   let terminalError = null;
   let stopping = false;
   let terminated = false;
+  let contextRequest = null;
 
   const handle = queryFactory({
     prompt: mailbox,
@@ -189,6 +236,11 @@ export function startClaudeSdkSession(launch, options = {}) {
         }
         emit(message);
         if (currentTurn) collectRuntimeWarning(currentTurn.runtimeWarnings, message);
+        const rateLimit = claudeRateLimit(message);
+        if (currentTurn && rateLimit) {
+          currentTurn.rateLimit = rateLimit;
+          if (currentTurn.raw) currentTurn.raw.rateLimit = rateLimit;
+        }
         if (message.type === "system" && message.subtype === "init") {
           init = message;
           initReady.resolve(message);
@@ -212,6 +264,12 @@ export function startClaudeSdkSession(launch, options = {}) {
             result: message,
             primaryModels: currentTurn?.primaryModels || [],
             runtimeWarnings: currentTurn?.runtimeWarnings || [],
+            rateLimit: currentTurn?.rateLimit || null,
+            runtime: {
+              sdk_version: CLAUDE_SDK_VERSION,
+              claude_code_version: typeof init?.claude_code_version === "string"
+                ? init.claude_code_version.slice(0, 80) : null
+            },
             usageModels: Object.keys(message.modelUsage || {}),
             iteratorError: null
           };
@@ -220,6 +278,7 @@ export function startClaudeSdkSession(launch, options = {}) {
             currentTurn.raw = raw;
             settleCurrentTurn();
           }
+          if (!init) throw claudeSdkResultError(raw);
           continue;
         }
         if (
@@ -279,6 +338,7 @@ export function startClaudeSdkSession(launch, options = {}) {
         ...turn,
         completed: false,
         primaryModels: [],
+        rateLimit: null,
         raw: null,
         runtimeWarnings: [],
         uuid: message.uuid
@@ -290,6 +350,15 @@ export function startClaudeSdkSession(launch, options = {}) {
     async interrupt(options) {
       if (stopping) return undefined;
       return handle.interrupt?.(options);
+    },
+    getContextUsage() {
+      if (stopping || terminated || !init || !handle.getContextUsage) return Promise.resolve(null);
+      // Repeated observations share a slow native request instead of queuing probes.
+      if (!contextRequest) {
+        contextRequest = Promise.resolve().then(() => handle.getContextUsage({ detail: "summary" }))
+          .then(contextSummary).finally(() => { contextRequest = null; });
+      }
+      return contextRequest;
     },
     closeInput() {
       mailbox.close();

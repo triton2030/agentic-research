@@ -24,6 +24,53 @@ test("rejected SDK results become terminal failures instead of losing turn owner
   }
 });
 
+test("diagnostic reads context on demand and subscription snapshots retain recovery facts", async () => {
+  const { adapter, engines } = createHarness();
+  try {
+    const opened = await adapter.command({ op: "open_fresh", cwd: "/workspace", profile: "opus_advisor", prompt: "Inspect." });
+    let calls = 0;
+    engines[0].getContextUsage = async () => {
+      calls += 1;
+      return { used_tokens: 100, max_tokens: 1000, used_percent: 10, estimated: true };
+    };
+    engines[0].emit({ type: "rate_limit_event", rate_limit_info: {
+      status: "allowed_warning", rateLimitType: "five_hour", resetsAt: 1800000000, overageEnabled: false
+    } });
+    const summary = await adapter.observe({ session_id: opened.session_id });
+    assert.equal(calls, 0);
+    assert.equal(summary.rate_limit.resets_at, 1800000000);
+    assert.equal(summary.rate_limit.overage_enabled, false);
+    assert.ok(summary.warnings.includes("subscription_rate_limit_warning:five_hour"));
+    const diagnostic = await adapter.observe({ session_id: opened.session_id, detail: "diagnostic" });
+    assert.equal(calls, 1);
+    assert.equal(diagnostic.diagnostic.context_usage_status, "available");
+    assert.equal(diagnostic.diagnostic.context_usage.used_percent, 10);
+    assert.equal(diagnostic.runtime.claude_code_version, null);
+    engines[0].emit({ type: "rate_limit_event", rate_limit_info: { status: "allowed" } });
+    assert.deepEqual((await adapter.observe({ session_id: opened.session_id })).rate_limit, { status: "allowed" });
+  } finally { await adapter.shutdown(); }
+});
+
+test("unavailable context cannot hang observation, swallow cancellation or outlive a closed engine", async () => {
+  const { adapter, engines } = createHarness();
+  try {
+    const opened = await adapter.command({ op: "open_fresh", cwd: "/workspace", profile: "opus_advisor", prompt: "Inspect." });
+    const request = { session_id: opened.session_id, detail: "diagnostic" };
+    engines[0].getContextUsage = () => new Promise(() => {});
+    assert.equal((await adapter.observe(request)).diagnostic.context_usage_status, "timeout");
+    const controller = new AbortController();
+    const pending = adapter.observe(request, controller.signal);
+    controller.abort();
+    await expectAdapterError(pending, "cancelled");
+    engines[0].getContextUsage = async () => { throw new Error("PRIVATE_NATIVE_ERROR"); };
+    const unavailable = await adapter.observe(request);
+    assert.equal(unavailable.diagnostic.context_usage_status, "unavailable");
+    assert.doesNotMatch(JSON.stringify(unavailable), /PRIVATE_NATIVE_ERROR/u);
+    await adapter.command({ op: "stop", session_id: opened.session_id });
+    assert.equal((await adapter.observe(request)).diagnostic.context_usage_status, "closed");
+  } finally { await adapter.shutdown(); }
+});
+
 function deferred() {
   let reject;
   let resolve;
@@ -146,13 +193,15 @@ class FakeEngine {
 function createHarness({
   maxSessions = 4,
   sessionIds = [OPUS_SESSION, SECOND_SESSION, THIRD_SESSION],
-  steerSettleMs = 25
+  steerSettleMs = 25,
+  contextTimeoutMs = 25
 } = {}) {
   const engines = [];
   const prepared = [];
   let freshIndex = 0;
   const adapter = createClaudeSessionAdapter({
     maxSessions,
+    contextTimeoutMs,
     prepareRequest: async (request) => {
       prepared.push(request);
       return launchFor(request);

@@ -8,6 +8,8 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { askClaude, ClaudeAskError, withClaudeAskTestDependencies } from "../src/claude-ask.js";
 import { createClaudeAskServer } from "../src/ask-server.js";
+import { prepareClaudeRequest } from "../src/claude-policy.js";
+import { CLAUDE_SDK_VERSION } from "../src/claude-sdk.js";
 
 const testDir = path.dirname(fileURLToPath(import.meta.url));
 const bridgeRoot = path.resolve(testDir, "..");
@@ -130,6 +132,7 @@ test("one-shot uses fixed profile and clean SDK authority", async () => {
     requested_effort: "high",
     resolved_model: "claude-opus-5-5",
     duration_ms: 123,
+    runtime: { sdk_version: CLAUDE_SDK_VERSION, claude_code_version: "2.1.280" },
     warnings: []
   });
   assert.equal(capture.prompt[Symbol.asyncIterator](), capture.prompt);
@@ -149,6 +152,8 @@ test("one-shot uses fixed profile and clean SDK authority", async () => {
   assert.equal(capture.options.allowDangerouslySkipPermissions, true);
   assert.equal(capture.options.permissionMode, "bypassPermissions");
   assert.equal(capture.options.persistSession, true);
+  assert.equal(capture.options.verbatimPrompts, true);
+  assert.equal(capture.options.env.CLAUDE_CODE_STARTUP_FAILURE_RESULTS, "1");
   assert.deepEqual(capture.options.settingSources, []);
   assert.deepEqual(capture.options.settings, {
     allowedMcpServers: [],
@@ -351,6 +356,59 @@ test("cancellation during auth stops the probe before SDK query", async (t) => {
   assert.equal(queried, false);
 });
 
+test("request deadline during auth stops the child before SDK query", async (t) => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "claude-sdk-auth-timeout-"));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const pidFile = path.join(root, "auth.pid");
+  let queried = false;
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  const pending = expectClaudeError(askTest(
+    { prompt: "Never run.", profile: "opus_advisor", cwd: bridgeRoot },
+    {
+      executable: fakeClaude,
+      env: { FAKE_AUTH_DELAY_MS: "5000", FAKE_AUTH_PID_FILE: pidFile },
+      timeoutMs: 50,
+      queryFactory: () => { queried = true; throw new Error("must not query"); }
+    }
+  ), "timeout");
+  // Advance the deadline only after the real auth child exists, independent of startup speed.
+  const startupDeadline = Date.now() + 3000;
+  while (!fs.existsSync(pidFile) && Date.now() < startupDeadline) await new Promise(setImmediate);
+  assert.equal(fs.existsSync(pidFile), true);
+  const pid = fs.readFileSync(pidFile, "utf8");
+  assert.equal(processAlive(pid), true);
+  t.mock.timers.tick(50);
+  await pending;
+  const cleanupDeadline = Date.now() + 3000;
+  while (processAlive(pid) && Date.now() < cleanupDeadline) await new Promise(setImmediate);
+  assert.equal(processAlive(pid), false);
+  assert.equal(queried, false);
+});
+
+test("pre-init native failures survive one-shot credential validation and process exit", async () => {
+  for (const reason of ["provider_not_allowed", undefined]) {
+    const error = await expectClaudeError(askTest(
+      { prompt: "Never run.", profile: "opus_advisor", cwd: bridgeRoot },
+      {
+        executable: fakeClaude,
+        queryFactory: () => ({
+          async *[Symbol.asyncIterator]() {
+            yield { type: "result", subtype: "error_during_execution", is_error: true,
+              session_id: OPUS_SESSION, startup_failure_reason: reason,
+              errors: ["Organization login could not be verified."] };
+            throw new Error("Claude Code process exited with code 1");
+          },
+          close() {}
+        })
+      }
+    ), reason ? "claude_startup" : "claude_sdk_result");
+    assert.equal(error.message, "Organization login could not be verified.");
+    assert.equal(error.details.startup_failure_reason, reason);
+    assert.equal(error.details.resumable, false);
+    assert.equal(error.details.runtime.claude_code_version, null);
+  }
+});
+
 function blockingQueryFactory(capture) {
   capture.events = [];
   capture.started = new Promise((resolve) => {
@@ -481,11 +539,15 @@ test("host cancellation and timeout interrupt before hard-closing the SDK query"
   assert.deepEqual(cancellationEvents.map(({ type }) => type), ["native_interrupt", "hard_abort"]);
 
   const timedOut = {};
+  const request = { prompt: "Wait.", profile: "opus_advisor", cwd: bridgeRoot };
+  // Auth process startup is tested separately; this deadline must reach the SDK.
+  const prepared = await prepareClaudeRequest(request, { executable: fakeClaude });
   await expectClaudeError(
     askTest(
-      { prompt: "Wait.", profile: "opus_advisor", cwd: bridgeRoot },
+      request,
       {
         executable: fakeClaude,
+        prepareRequest: async () => prepared,
         interruptGraceMs: 20,
         queryFactory: blockingQueryFactory(timedOut),
         timeoutMs: 50
@@ -580,7 +642,8 @@ test("max-turn failure keeps native resume details when the iterator later throw
     duration_ms: 123,
     num_turns: 48,
     terminal_reason: "max_turns",
-    subtype: "error_max_turns"
+    subtype: "error_max_turns",
+    runtime: { sdk_version: CLAUDE_SDK_VERSION, claude_code_version: "2.1.280" }
   });
   assert.match(error.message, /maximum number of turns/u);
   assert.equal(capture.closed, true);
@@ -646,6 +709,20 @@ test("typed limit, fallback, and permission evidence stays compact", async () =>
   assert.doesNotMatch(JSON.stringify(result), /RAW_/u);
 });
 
+test("subscription details survive both success and terminal errors", async () => {
+  const beforeResult = [{ type: "rate_limit_event", rate_limit_info: {
+    status: "rejected", rateLimitType: "five_hour", resetsAt: 1800000000, overageEnabled: false
+  } }];
+  const request = { prompt: "Inspect.", profile: "opus_advisor", cwd: bridgeRoot };
+  const success = await askTest(request, fakeOptions(sdkMessages({ beforeResult })));
+  const failure = await expectClaudeError(askTest(request, fakeOptions(sdkMessages({
+    beforeResult, resultSubtype: "error_during_execution", errors: ["Usage limit."]
+  }))), "claude_sdk_result");
+  assert.deepEqual(failure.details.rate_limit, success.rate_limit);
+  assert.equal(success.rate_limit.resets_at, 1800000000);
+  assert.equal(failure.details.runtime.sdk_version, CLAUDE_SDK_VERSION);
+});
+
 test("MCP exposes exactly four tools with honest annotations", async () => {
   const packet = {
     text: "MCP_OK",
@@ -654,14 +731,26 @@ test("MCP exposes exactly four tools with honest annotations", async () => {
     requested_effort: null,
     resolved_model: "claude-opus-5",
     duration_ms: 5,
-    warnings: ["resume_session_owns_model"]
+    warnings: ["resume_session_owns_model"],
+    runtime: { sdk_version: CLAUDE_SDK_VERSION, claude_code_version: "2.1.300" },
+    rate_limit: { status: "allowed_warning", resets_at: 1800000000, overage_enabled: false }
+  };
+  const observation = {
+    session_id: OPUS_SESSION, state: "idle", cursor: 1, changed: true,
+    last_activity_age_ms: 0, direction: "Claude turn completed", active_tool: null,
+    thinking_tokens: null, background_tasks: 0, possibly_stalled: false,
+    requested_model: null, requested_effort: null, resolved_model: "claude-opus-5",
+    runtime: packet.runtime, rate_limit: packet.rate_limit, terminal: { kind: "success" },
+    warnings: [], events: [], messages: [],
+    diagnostic: { context_usage: { used_tokens: 100, max_tokens: 1000, used_percent: 10, estimated: true },
+      context_usage_status: "available" }
   };
   const sessionAdapter = {
     async command() {
       throw new Error("not exercised");
     },
     async observe() {
-      throw new Error("not exercised");
+      return observation;
     },
     async shutdown() {}
   };
@@ -734,6 +823,10 @@ test("MCP exposes exactly four tools with honest annotations", async () => {
     }
     assert.match(JSON.stringify(byName.claude_ask.outputSchema.properties.requested_model), /null/u);
     assert.match(JSON.stringify(byName.claude_ask.outputSchema.properties.requested_effort), /null/u);
+    for (const name of ["claude_ask", "claude_session", "claude_observe"]) {
+      assert.ok(byName[name].outputSchema.properties.runtime);
+      assert.ok(byName[name].outputSchema.properties.rate_limit);
+    }
     assert.match(JSON.stringify(byName.claude_observe.outputSchema.properties.state), /requires_action/u);
     assert.match(JSON.stringify(byName.claude_observe.outputSchema.properties.state), /closing/u);
     assert.match(JSON.stringify(byName.claude_observe.outputSchema.properties.terminal), /success/u);
@@ -750,6 +843,9 @@ test("MCP exposes exactly four tools with honest annotations", async () => {
     assert.deepEqual(called.structuredContent, packet);
     assert.equal(called.content[0].text, "Claude bridge returned a structured result.");
     assert.doesNotMatch(called.content[0].text, /MCP_OK|11111111/u);
+    const observed = await client.callTool({ name: "claude_observe",
+      arguments: { session_id: OPUS_SESSION, detail: "diagnostic" } });
+    assert.deepEqual(observed.structuredContent, observation);
     const listed = await client.callTool({
       name: "claude_sessions",
       arguments: { op: "list_active" }

@@ -37,7 +37,7 @@ export async function askClaude(request, signal) {
   const lifetime = requestLifetime(signal, dependencies.timeoutMs ?? DEFAULT_TIMEOUT_MS);
   try {
     if (lifetime.stoppedBy()) throw new Error("Claude request stopped before launch.");
-    const launch = await prepareClaudeRequest(request, {
+    const launch = await (dependencies.prepareRequest || prepareClaudeRequest)(request, {
       authTimeoutMs: dependencies.authTimeoutMs,
       env: dependencies.env,
       executable: dependencies.executable,

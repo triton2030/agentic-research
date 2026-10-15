@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { assertSdkRuntimeEvidence, claudeAskInputSchema, prepareClaudeRequest } from "./claude-policy.js";
 import { ClaudeAskError, compactClaudeAskError, formatClaudeResult, isClaudeSessionId } from "./claude-result.js";
-import { claudeRuntimeWarning, startClaudeSdkSession } from "./claude-sdk.js";
+import { CLAUDE_SDK_VERSION, claudeRateLimit, claudeRuntimeWarning, startClaudeSdkSession } from "./claude-sdk.js";
 
 const DEFAULT_TURN_TIMEOUT_MS = 29 * 60 * 1000;
 const DEFAULT_STALLED_AFTER_MS = 2 * 60 * 1000;
@@ -110,6 +110,7 @@ function visibleTerminal(terminal, diagnostic = false) {
   return {
     kind: terminal.kind,
     code: error.code,
+    ...(error.startup_failure_reason ? { startup_failure_reason: error.startup_failure_reason } : {}),
     ...(error.resumable !== undefined ? { resumable: error.resumable } : {}),
     ...(error.duration_ms !== undefined ? { duration_ms: error.duration_ms } : {}),
     ...(diagnostic ? { message: bound(error.message, 800) } : {})
@@ -159,6 +160,8 @@ function createRecord(launch, now) {
     requestedEffort: launch.sessionId ? null : launch.profile.effort,
     requestedModel: launch.sessionId ? null : launch.profile.requestedModel,
     resolvedModel: null,
+    runtime: { sdk_version: CLAUDE_SDK_VERSION, claude_code_version: null },
+    rateLimit: null,
     sessionId: launch.sessionId || null,
     state: "starting",
     terminal: null,
@@ -187,6 +190,7 @@ export function createClaudeSessionAdapter(options = {}) {
   const turnTimeoutMs = options.turnTimeoutMs ?? DEFAULT_TURN_TIMEOUT_MS;
   const steerSettleMs = options.steerSettleMs ?? DEFAULT_STEER_SETTLE_MS;
   const closeTimeoutMs = options.closeTimeoutMs ?? 5_000;
+  const contextTimeoutMs = options.contextTimeoutMs ?? 2_000;
   const records = new Map();
   const pendingOpenRecords = new Set();
   const reservedSessionIds = new Set();
@@ -244,6 +248,11 @@ export function createClaudeSessionAdapter(options = {}) {
       record.backgroundTasks.clear();
       update(record, {
         resolvedModel: message.model || record.resolvedModel,
+        runtime: {
+          sdk_version: CLAUDE_SDK_VERSION,
+          claude_code_version: typeof message.claude_code_version === "string"
+            ? bound(message.claude_code_version, 80) : null
+        },
         sessionId: message.session_id || record.sessionId,
         state: record.state === "starting" ? "thinking" : record.state,
         direction: "Claude session initialized"
@@ -365,9 +374,13 @@ export function createClaudeSessionAdapter(options = {}) {
       return;
     }
     if (message.type === "rate_limit_event") {
+      const rateLimit = claudeRateLimit(message);
       update(
         record,
-        runtimeWarning ? { direction: "Claude reported a subscription limit signal" } : {},
+        {
+          ...(rateLimit ? { rateLimit } : {}),
+          ...(runtimeWarning ? { direction: "Claude reported a subscription limit signal" } : {})
+        },
         runtimeWarning ? { type: "limit", summary: runtimeWarning } : null
       );
       return;
@@ -432,6 +445,8 @@ export function createClaudeSessionAdapter(options = {}) {
       requested_model: record.requestedModel,
       requested_effort: record.requestedEffort,
       resolved_model: record.resolvedModel,
+      runtime: record.runtime,
+      ...(record.rateLimit ? { rate_limit: record.rateLimit } : {}),
       terminal: visibleTerminal(record.terminal),
       warnings: record.warnings.slice(-8),
       events: [],
@@ -931,13 +946,39 @@ export function createClaudeSessionAdapter(options = {}) {
         "No process-local lease exists for that session_id; use open_resume to continue native history."
       );
     }
+    let context = null;
     try {
       await waitForChange(record, request.cursor, request.wait_ms, signal);
+      if (request.detail === "diagnostic") {
+        const engine = record.engine;
+        context = { context_usage: null, context_usage_status: engine ? "unavailable" : "closed" };
+        if (engine?.getContextUsage) {
+          let timer;
+          try {
+            context = await waitWithSignal(Promise.race([
+              Promise.resolve().then(() => engine.getContextUsage()).then((usage) => ({
+                context_usage: usage,
+                context_usage_status: usage ? "available" : "unavailable"
+              })),
+              new Promise((resolve) => {
+                timer = setTimeout(() => resolve({ context_usage: null, context_usage_status: "timeout" }), contextTimeoutMs);
+              })
+            ]), signal);
+          } catch (error) {
+            if (signal?.aborted) throw error;
+          } finally {
+            clearTimeout(timer);
+          }
+          if (record.engine !== engine) context = { context_usage: null, context_usage_status: "closed" };
+        }
+      }
     } catch (error) {
       if (signal?.aborted) throw new ClaudeAskError("cancelled", "Claude observation wait was cancelled.");
       throw error;
     }
-    return snapshot(record, request);
+    const packet = snapshot(record, request);
+    if (context) Object.assign(packet.diagnostic, context);
+    return packet;
   }
 
   return {

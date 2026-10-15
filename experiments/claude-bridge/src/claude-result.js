@@ -35,23 +35,36 @@ export function isAdvisorModel(value, family) {
   return Boolean(match && (!family || match[1].toLowerCase() === family));
 }
 
+/** Project a failed SDK result, including failures that precede system/init. */
+export function claudeSdkResultError(raw) {
+  const result = raw.result;
+  const errors = Array.isArray(result?.errors) ? result.errors.join(" ") : "SDK query ended without success.";
+  const sessionId = isClaudeSessionId(result?.session_id) ? result.session_id : undefined;
+  const details = {
+    ...(sessionId ? { session_id: sessionId, resumable: true } : {}),
+    ...(Number.isFinite(result?.duration_ms) ? { duration_ms: result.duration_ms } : {}),
+    ...(Number.isInteger(result?.num_turns) ? { num_turns: result.num_turns } : {}),
+    ...(typeof result?.terminal_reason === "string" ? { terminal_reason: result.terminal_reason } : {}),
+    ...(typeof result?.subtype === "string" ? { subtype: result.subtype } : {})
+  };
+  if (!raw.init) details.resumable = false;
+  if (raw.runtime) details.runtime = raw.runtime;
+  if (raw.rateLimit) details.rate_limit = raw.rateLimit;
+  if (typeof result?.startup_failure_reason === "string") {
+    details.startup_failure_reason = compactTail(result.startup_failure_reason, 100);
+    details.resumable = false;
+    return new ClaudeAskError("claude_startup", compactTail(errors), details);
+  }
+  if (result?.subtype === "error_max_turns") {
+    return new ClaudeAskError("max_turns", compactTail(errors || "Claude reached its turn limit."), details);
+  }
+  return new ClaudeAskError("claude_sdk_result", compactTail(errors), details);
+}
+
 /** Validate SDK evidence and create the only public success packet. */
 export function formatClaudeResult(raw, launch) {
   if (!raw.result || raw.result.subtype !== "success" || raw.result.is_error) {
-    const result = raw.result;
-    const errors = Array.isArray(result?.errors) ? result.errors.join(" ") : "SDK query ended without success.";
-    const sessionId = isClaudeSessionId(result?.session_id) ? result.session_id : undefined;
-    const details = {
-      ...(sessionId ? { session_id: sessionId, resumable: true } : {}),
-      ...(Number.isFinite(result?.duration_ms) ? { duration_ms: result.duration_ms } : {}),
-      ...(Number.isInteger(result?.num_turns) ? { num_turns: result.num_turns } : {}),
-      ...(typeof result?.terminal_reason === "string" ? { terminal_reason: result.terminal_reason } : {}),
-      ...(typeof result?.subtype === "string" ? { subtype: result.subtype } : {})
-    };
-    if (result?.subtype === "error_max_turns") {
-      throw new ClaudeAskError("max_turns", compactTail(errors || "Claude reached its turn limit."), details);
-    }
-    throw new ClaudeAskError("claude_sdk_result", compactTail(errors), details);
+    throw claudeSdkResultError(raw);
   }
   if (
     typeof raw.result.terminal_reason === "string" &&
@@ -114,6 +127,8 @@ export function formatClaudeResult(raw, launch) {
     requested_effort: requestedEffort,
     resolved_model: resolvedModel,
     duration_ms: raw.result.duration_ms,
+    ...(raw.runtime ? { runtime: raw.runtime } : {}),
+    ...(raw.rateLimit ? { rate_limit: raw.rateLimit } : {}),
     warnings: warnings.slice(0, 8)
   };
 }
@@ -129,6 +144,9 @@ export function compactClaudeAskError(error) {
     ...(details.num_turns !== undefined ? { num_turns: details.num_turns } : {}),
     ...(details.terminal_reason ? { terminal_reason: compactTail(details.terminal_reason, 200) } : {}),
     ...(details.subtype ? { subtype: compactTail(details.subtype, 100) } : {}),
-    ...(details.resumable !== undefined ? { resumable: Boolean(details.resumable) } : {})
+    ...(details.resumable !== undefined ? { resumable: Boolean(details.resumable) } : {}),
+    ...(details.startup_failure_reason ? { startup_failure_reason: details.startup_failure_reason } : {}),
+    ...(details.runtime ? { runtime: details.runtime } : {}),
+    ...(details.rate_limit ? { rate_limit: details.rate_limit } : {})
   };
 }

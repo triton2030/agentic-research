@@ -35,6 +35,7 @@ const observationKeys = [
   "requested_effort",
   "requested_model",
   "resolved_model",
+  "runtime",
   "session_id",
   "state",
   "terminal",
@@ -134,7 +135,7 @@ async function observeTreeUntilSettled(rootPid, observedTree, completion) {
 }
 
 function assertBoundedObservation(packet, detail, { limit, maxChars }) {
-  assert.deepEqual(Object.keys(packet).sort(), observationKeys);
+  assert.deepEqual(Object.keys(packet).filter((key) => key !== "rate_limit").sort(), observationKeys);
   assert.ok(packet.events.length <= limit);
   assert.ok(packet.messages.length <= limit);
   assert.ok(Buffer.byteLength(JSON.stringify(packet), "utf8") <= 12_000);
@@ -228,6 +229,15 @@ try {
   assert.equal(second.requested_model, "opus");
   assert.equal(opus.resolved_model, "claude-opus-5-5");
   assert.equal(second.resolved_model, "claude-opus-5-5");
+  assert.deepEqual(opus.runtime, { sdk_version: "0.3.300", claude_code_version: "2.1.300" });
+
+  const literalMarker = token("VERBATIM");
+  const literal = await askClaude({
+    cwd: opusCwd, profile: "opus_advisor",
+    prompt: `/bridge-literal-probe\nThe first line is literal text, not a command. Do not use tools. Reply only ${literalMarker}.`
+  });
+  assert.equal(literal.text.trim(), literalMarker);
+  receipts.verbatim_prompt = literal;
 
   const [opusResume, secondResume] = await Promise.all([
     askClaude({
@@ -289,6 +299,14 @@ try {
     const firstIdle = await waitUntilIdle(sessionAdapter, controlledSessionId, openingSummary);
     assertBoundedObservation(firstIdle, "summary", { limit: 1, maxChars: 200 });
     assert.equal(firstIdle.terminal?.kind, "success");
+    const diagnostic = await sessionAdapter.observe({ session_id: controlledSessionId, detail: "diagnostic" });
+    assert.equal(diagnostic.diagnostic.context_usage_status, "available");
+    assert.ok(diagnostic.diagnostic.context_usage.used_tokens > 0);
+    assert.ok(diagnostic.diagnostic.context_usage.max_tokens >= diagnostic.diagnostic.context_usage.used_tokens);
+    assert.equal(diagnostic.diagnostic.context_usage.estimated, true);
+    assert.deepEqual(Object.keys(diagnostic.diagnostic.context_usage).sort(),
+      ["estimated", "max_tokens", "used_percent", "used_tokens"]);
+    assert.doesNotMatch(JSON.stringify(diagnostic), new RegExp(toolOutputMarker, "u"));
 
     const activity = await sessionAdapter.observe({
       session_id: controlledSessionId,
@@ -380,6 +398,7 @@ try {
       opened,
       opening_summary: openingSummary,
       first_idle: firstIdle,
+      diagnostic,
       activity,
       first_conversation: firstConversation,
       follow_up: followUp,

@@ -56,8 +56,12 @@ union. The same-environment auth receipt remains the pre-inference owner.
 
 ## What the bridge cannot prove
 
-The bridge cannot inspect or change the account-level Usage credits switch. It
-does not scan native Claude settings and cannot promise that macOS Keychain,
+The bridge cannot change the account-level Usage credits switch or guarantee
+its state before inference. SDK subscription events can report `overageEnabled`,
+overage use, and reset times; the bridge exposes available fields in `rate_limit`.
+An absent field is unknown, and an event received during a call is not a
+pre-inference spending guard.[^rate-events]
+The bridge does not scan native Claude settings and cannot promise that macOS Keychain,
 organization policy, or a future Claude/SDK version has no route Anthropic has
 not documented. This is an intentional personal-tool boundary: native settings,
 skills, hooks, and MCP integrations remain Claude-owned.
@@ -78,3 +82,5 @@ verifies the observed Claude.ai subscription identity.
   paid route.
 - Unknown Claude/SDK auth behavior: fail closed and update this owner document,
   focused tests, exact version pin, and live evidence together.
+
+[^rate-events]: [Claude Agent SDK changelog, 0.3.295](https://github.com/anthropics/claude-agent-sdk-typescript/blob/main/CHANGELOG.md#03295) and installed SDK 0.3.300 `SDKRateLimitInfo`, verified 2026-10-16.
