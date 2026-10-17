@@ -34,7 +34,7 @@ description: >-
 | Python | `ruff`, `pyright`, `mypy`, `pytest`, `coverage`, `vulture`, `deptry`, `xenon` |
 | shell и CI | `shellcheck`, `shfmt`, `actionlint`, `pre-commit`, `just`, `gtimeout` (coreutils) — `timeout` в macOS нет; `caffeinate -d -i <команда>` — Mac не уснёт и не заблокирует экран, пока идёт долгий прогон |
 | безопасность | `semgrep`, `gitleaks`, `trufflehog`, `trivy`, `osv-scanner`, `bandit`, `pip-audit` |
-| браузер и UI | `agent-browser`, `playwright`, `impeccable detect` — анти-паттерны UI; нестабильный браузерный прогон — трасса Playwright при сбое: `tracing.start` и `stopChunk`, разбор — `playwright show-trace` |
+| браузер и UI | `agent-browser`, `playwright`; нестабильный браузерный прогон — трасса Playwright при сбое: `tracing.start` и `stopChunk`, разбор — `playwright show-trace` |
 | медиа и документы | `ffmpeg`, `whisper-cli`, `fpcalc`, `pdftotext`, `soffice` |
 | сервисы | `gh`, `vercel`, `supabase`, `firecrawl`, `ntn` — Notion |
 | модели и агенты | `claude`, `hermes`, `droid`, Codex — `/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex` |
