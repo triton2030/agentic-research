@@ -1,0 +1,34 @@
+{
+  "deleteAllowed": false,
+  "evaluatedAt": "2026-10-18T12:30:37.437690Z",
+  "evidence": {
+    "after": null,
+    "before": {
+      "accountKey": "synthetic_account",
+      "binaryFile": true,
+      "canDownload": true,
+      "checkedAt": "2026-10-18T12:30:35.780245Z",
+      "fileId": "synthetic_file",
+      "md5Checksum": "11ab5e79d70f1e4d17f28c9fcc5fa437",
+      "ownedByMe": true,
+      "schemaVersion": 1,
+      "sha256Checksum": "471f8ee6f0fc8393e3c1dd4e1659910593ae7146b73f4425feea86a02599aa25",
+      "size": "2010",
+      "trashed": false,
+      "version": "41"
+    },
+    "local": {
+      "bytesRead": 2010,
+      "finishedAt": "2026-10-18T12:30:36.780528Z",
+      "md5": "11ab5e79d70f1e4d17f28c9fcc5fa437",
+      "sha256": "471f8ee6f0fc8393e3c1dd4e1659910593ae7146b73f4425feea86a02599aa25",
+      "startedAt": "2026-10-18T12:30:36.780245Z"
+    }
+  },
+  "evidenceCheckedAt": null,
+  "kind": "archive-comparison",
+  "reason": "INVALID_REMOTE_AFTER",
+  "restoreAccessConfirmed": false,
+  "schemaVersion": 1,
+  "status": "UNVERIFIED"
+}

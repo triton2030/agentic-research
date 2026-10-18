@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-18",
+  "python": {
+    "status": "fulfilled",
+    "value": {
+      "chunk_id": "c48dd9",
+      "wall_time_seconds": 0.521701086,
+      "exit_code": 0,
+      "original_token_count": 926,
+      "output": "test_atomic_publication_never_overwrites_racing_file (test_archive_verify.ArchiveVerifyTests.test_atomic_publication_never_overwrites_racing_file) ... ok\ntest_cli_hash_then_compare_writes_private_reports_silently (test_archive_verify.ArchiveVerifyTests.test_cli_hash_then_compare_writes_private_reports_silently) ... ok\ntest_compare_cannot_clobber_any_input (test_archive_verify.ArchiveVerifyTests.test_compare_cannot_clobber_any_input) ... ok\ntest_controlled_mutation_during_read (test_archive_verify.ArchiveVerifyTests.test_controlled_mutation_during_read) ... ok\ntest_help_is_available (test_archive_verify.ArchiveVerifyTests.test_help_is_available) ... ok\ntest_invalid_local_and_unstable_record (test_archive_verify.ArchiveVerifyTests.test_invalid_local_and_unstable_record) ... ok\ntest_malformed_after (test_archive_verify.ArchiveVerifyTests.test_malformed_after) ... ok\ntest_md5_conflict_and_absence (test_archive_verify.ArchiveVerifyTests.test_md5_conflict_and_absence) ... ok\ntest_missing_malformed_duplicate_and_nan_inputs_produce_fixed_report (test_archive_verify.ArchiveVerifyTests.test_missing_malformed_duplicate_and_nan_inputs_produce_fixed_report) ... ok\ntest_missing_or_malformed_remote_fields (test_archive_verify.ArchiveVerifyTests.test_missing_or_malformed_remote_fields) ... ok\ntest_missing_sha_is_never_md5_match (test_archive_verify.ArchiveVerifyTests.test_missing_sha_is_never_md5_match) ... ok\ntest_not_binary_and_trashed_metadata (test_archive_verify.ArchiveVerifyTests.test_not_binary_and_trashed_metadata) ... ok\ntest_output_cannot_clobber_source_or_existing_file (test_archive_verify.ArchiveVerifyTests.test_output_cannot_clobber_source_or_existing_file) ... ok\ntest_rejects_empty_directory_and_symlink (test_archive_verify.ArchiveVerifyTests.test_rejects_empty_directory_and_symlink) ... ok\ntest_remote_identity_must_match (test_archive_verify.ArchiveVerifyTests.test_remote_identity_must_match) ... ok\ntest_remote_sha_changes (test_archive_verify.ArchiveVerifyTests.test_remote_sha_changes) ... ok\ntest_replaced_path_with_identical_bytes_during_read (test_archive_verify.ArchiveVerifyTests.test_replaced_path_with_identical_bytes_during_read) ... ok\ntest_report_binds_historical_evidence_without_relabeling_cloud_time (test_archive_verify.ArchiveVerifyTests.test_report_binds_historical_evidence_without_relabeling_cloud_time) ... ok\ntest_sha_mismatch_despite_identical_md5 (test_archive_verify.ArchiveVerifyTests.test_sha_mismatch_despite_identical_md5) ... ok\ntest_size_change_and_local_size_mismatch (test_archive_verify.ArchiveVerifyTests.test_size_change_and_local_size_mismatch) ... ok\ntest_stable_hash_and_match (test_archive_verify.ArchiveVerifyTests.test_stable_hash_and_match) ... ok\ntest_symlink_replaces_path_during_read (test_archive_verify.ArchiveVerifyTests.test_symlink_replaces_path_during_read) ... ok\ntest_synthetic_secret_redaction (test_archive_verify.ArchiveVerifyTests.test_synthetic_secret_redaction) ... ok\ntest_timestamp_strict_bracketing (test_archive_verify.ArchiveVerifyTests.test_timestamp_strict_bracketing) ... ok\ntest_unknown_access_still_proves_sha_but_not_restore_access (test_archive_verify.ArchiveVerifyTests.test_unknown_access_still_proves_sha_but_not_restore_access) ... ok\ntest_unknown_version (test_archive_verify.ArchiveVerifyTests.test_unknown_version) ... ok\ntest_unstable_or_missing_remote_sha_prevents_candidate_difference (test_archive_verify.ArchiveVerifyTests.test_unstable_or_missing_remote_sha_prevents_candidate_difference) ... ok\ntest_version_change (test_archive_verify.ArchiveVerifyTests.test_version_change) ... ok\n\n----------------------------------------------------------------------\nRan 28 tests in 0.067s\n\nOK\n"
+    }
+  },
+  "node": {
+    "status": "fulfilled",
+    "value": {
+      "chunk_id": "d972bd",
+      "wall_time_seconds": 0.561231475,
+      "exit_code": 0,
+      "original_token_count": 476,
+      "output": "✔ safe empty config rejects before Drive calls (4.843667ms)\n✔ snapshot exact schema, decimal strings, null optionals; no names or secrets (4.865375ms)\n✔ snapshot wrong ID / missing fields / malformed optional fail without rows (1.122333ms)\n✔ full pagination incl empty advancing page and private tokens (1.174792ms)\n✔ 20-page bound resumes >=200 pages without fingerprint quota exhaustion (19.911459ms)\n✔ finished same RUN_ID is not fresh; new unique RUN_ID starts new inventory (1.089709ms)\n✔ config/account change rejects same RUN_ID; new RUN_ID can bind new config (0.850667ms)\n✔ API error resumes exact failed page; error never logged (0.663291ms)\n✔ cycle token halts fail closed and does not commit offending page (0.755208ms)\n✔ incomplete search halts without committing page; duplicate page rows fail closed (1.615125ms)\n✔ candidate pair duplicates across pages are deduplicated (0.765334ms)\n✔ MD5/name-size are candidates only; SHA256 mismatch never downgraded (0.724291ms)\n✔ zero bytes and Google-native files are never backup candidates (0.472708ms)\n✔ candidate overflow never loses page while claiming complete (0.934125ms)\n✔ state size quota stops incomplete; property write failure does not commit page (0.9285ms)\n✔ scan manifest binds account/run/config/scope and preserves old resumed timestamps (0.678792ms)\n✔ persisted manifest identity/timestamps reject corruption without reflecting values (2.971125ms)\n✔ emitted snapshot JSON passes sibling Python valid_remote schema without hashing (60.229291ms)\n✔ setter uncertain success is checked by read-back (1.082ms)\n✔ specific shared drive uses drive corpus and exact ID (0.548292ms)\n✔ manifest contains only metadata-readonly scope, V8, Drive v3, no exception logging (0.626459ms)\nℹ tests 21\nℹ suites 0\nℹ pass 21\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 266.613916\n"
+    }
+  },
+  "structural": {
+    "status": "fulfilled",
+    "value": {
+      "chunk_id": "274b59",
+      "wall_time_seconds": 0.047788175,
+      "exit_code": 0,
+      "original_token_count": 4,
+      "output": "Skill is valid!\n"
+    }
+  }
+}

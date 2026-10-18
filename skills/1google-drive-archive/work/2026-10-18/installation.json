@@ -1,0 +1,85 @@
+{
+  "date": "2026-10-18T12:40:05.304270+00:00",
+  "name": "1google-drive-archive",
+  "source": "/Users/triton/Documents/GitHub/agentic-research/skills/shared/1google-drive-archive",
+  "release": "release-2026-10-18",
+  "installation": "sync_simple_projections.py --write --install",
+  "projections": {
+    "codex_tracked": {
+      "path": "/Users/triton/Documents/GitHub/agentic-research/skills/codex/1google-drive-archive",
+      "files": 9,
+      "sha256": {
+        "SKILL.md": "bb2b35d7052fa7b0aa9572894075176132c9ea3ff77e432954d075aacbfa688a",
+        "agents/openai.yaml": "2ea63ebd913509efe7043d21564fbad3b5e5d9f5c01b715feaeef7c8d3c202ed",
+        "assets/apps-script/Code.gs": "3b8bda51e17c49aecb900ca2d17432ec9a6ebcf681957c83969354b041fdd7db",
+        "assets/apps-script/appsscript.json": "3e707a9cb712b36dfd2551f39ccfa3e9487a8635bb6d097fa8ae560d34b883d9",
+        "references/access.md": "4409f7e9c1900faafffe92268834a72769140086e94e1aad5132426a9c3e1871",
+        "references/discovery.md": "c501a0c8e2291f396ffba65e696d6032d852e7eb556c164ebfb642ba952bb7d7",
+        "references/local-release.md": "9af2b97c8f5378094b698e2ece79c2837b908414ab10de0b19e7f6c079655129",
+        "references/verification.md": "c6c1954865d346a4481da5d101a63752a81fd25ff728649ac3913b03ff5df4b9",
+        "scripts/archive_verify.py": "e04cbc06d09250497e887960293a41b26123f3744ff6de9862d106b6793e0f02"
+      },
+      "matchesOwner": true
+    },
+    "codex_installed": {
+      "path": "/Users/triton/.codex/skills/1google-drive-archive",
+      "files": 9,
+      "sha256": {
+        "SKILL.md": "bb2b35d7052fa7b0aa9572894075176132c9ea3ff77e432954d075aacbfa688a",
+        "agents/openai.yaml": "2ea63ebd913509efe7043d21564fbad3b5e5d9f5c01b715feaeef7c8d3c202ed",
+        "assets/apps-script/Code.gs": "3b8bda51e17c49aecb900ca2d17432ec9a6ebcf681957c83969354b041fdd7db",
+        "assets/apps-script/appsscript.json": "3e707a9cb712b36dfd2551f39ccfa3e9487a8635bb6d097fa8ae560d34b883d9",
+        "references/access.md": "4409f7e9c1900faafffe92268834a72769140086e94e1aad5132426a9c3e1871",
+        "references/discovery.md": "c501a0c8e2291f396ffba65e696d6032d852e7eb556c164ebfb642ba952bb7d7",
+        "references/local-release.md": "9af2b97c8f5378094b698e2ece79c2837b908414ab10de0b19e7f6c079655129",
+        "references/verification.md": "c6c1954865d346a4481da5d101a63752a81fd25ff728649ac3913b03ff5df4b9",
+        "scripts/archive_verify.py": "e04cbc06d09250497e887960293a41b26123f3744ff6de9862d106b6793e0f02"
+      },
+      "matchesOwner": true
+    },
+    "claude_tracked": {
+      "path": "/Users/triton/Documents/GitHub/agentic-research/skills/claude/1google-drive-archive",
+      "files": 8,
+      "sha256": {
+        "SKILL.md": "bb2b35d7052fa7b0aa9572894075176132c9ea3ff77e432954d075aacbfa688a",
+        "assets/apps-script/Code.gs": "3b8bda51e17c49aecb900ca2d17432ec9a6ebcf681957c83969354b041fdd7db",
+        "assets/apps-script/appsscript.json": "3e707a9cb712b36dfd2551f39ccfa3e9487a8635bb6d097fa8ae560d34b883d9",
+        "references/access.md": "4409f7e9c1900faafffe92268834a72769140086e94e1aad5132426a9c3e1871",
+        "references/discovery.md": "c501a0c8e2291f396ffba65e696d6032d852e7eb556c164ebfb642ba952bb7d7",
+        "references/local-release.md": "9af2b97c8f5378094b698e2ece79c2837b908414ab10de0b19e7f6c079655129",
+        "references/verification.md": "c6c1954865d346a4481da5d101a63752a81fd25ff728649ac3913b03ff5df4b9",
+        "scripts/archive_verify.py": "e04cbc06d09250497e887960293a41b26123f3744ff6de9862d106b6793e0f02"
+      },
+      "matchesOwner": true
+    },
+    "claude_installed": {
+      "path": "/Users/triton/.claude/skills/1google-drive-archive",
+      "files": 8,
+      "sha256": {
+        "SKILL.md": "bb2b35d7052fa7b0aa9572894075176132c9ea3ff77e432954d075aacbfa688a",
+        "assets/apps-script/Code.gs": "3b8bda51e17c49aecb900ca2d17432ec9a6ebcf681957c83969354b041fdd7db",
+        "assets/apps-script/appsscript.json": "3e707a9cb712b36dfd2551f39ccfa3e9487a8635bb6d097fa8ae560d34b883d9",
+        "references/access.md": "4409f7e9c1900faafffe92268834a72769140086e94e1aad5132426a9c3e1871",
+        "references/discovery.md": "c501a0c8e2291f396ffba65e696d6032d852e7eb556c164ebfb642ba952bb7d7",
+        "references/local-release.md": "9af2b97c8f5378094b698e2ece79c2837b908414ab10de0b19e7f6c079655129",
+        "references/verification.md": "c6c1954865d346a4481da5d101a63752a81fd25ff728649ac3913b03ff5df4b9",
+        "scripts/archive_verify.py": "e04cbc06d09250497e887960293a41b26123f3744ff6de9862d106b6793e0f02"
+      },
+      "matchesOwner": true
+    }
+  },
+  "technicalTests": {
+    "python": 28,
+    "node": 21
+  },
+  "reviewers": 3,
+  "reviewWaves": 2,
+  "officialQuickValidate": "passed owner, Codex, Claude",
+  "runtimeProbes": {
+    "codex": "passed fresh CLI",
+    "claude": "passed Skill invocation"
+  },
+  "newCloudAssetLiveVerified": false,
+  "deletionOrUploadPerformed": false,
+  "newConsentOrBillingPerformed": false
+}

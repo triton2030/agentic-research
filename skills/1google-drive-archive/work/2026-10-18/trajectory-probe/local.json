@@ -1,0 +1,42 @@
+{
+  "bytesRead": 2010,
+  "deleteAllowed": false,
+  "finishedAt": "2026-10-18T12:30:36.780528Z",
+  "fstatAfter": {
+    "ctime_ns": 1792326636710922084,
+    "device": 16777231,
+    "inode": 194375760,
+    "mtime_ns": 1792326636710922084,
+    "size": 2010
+  },
+  "fstatBefore": {
+    "ctime_ns": 1792326636710922084,
+    "device": 16777231,
+    "inode": 194375760,
+    "mtime_ns": 1792326636710922084,
+    "size": 2010
+  },
+  "kind": "local-hash",
+  "md5": "11ab5e79d70f1e4d17f28c9fcc5fa437",
+  "pathAfter": {
+    "ctime_ns": 1792326636710922084,
+    "device": 16777231,
+    "inode": 194375760,
+    "mtime_ns": 1792326636710922084,
+    "realPath": "/private/tmp/google-drive-skill-20261018/trajectory-probe/synthetic-original.bin",
+    "size": 2010
+  },
+  "pathBefore": {
+    "ctime_ns": 1792326636710922084,
+    "device": 16777231,
+    "inode": 194375760,
+    "mtime_ns": 1792326636710922084,
+    "realPath": "/private/tmp/google-drive-skill-20261018/trajectory-probe/synthetic-original.bin",
+    "size": 2010
+  },
+  "schemaVersion": 1,
+  "sha256": "471f8ee6f0fc8393e3c1dd4e1659910593ae7146b73f4425feea86a02599aa25",
+  "sourcePath": "/tmp/google-drive-skill-20261018/trajectory-probe/synthetic-original.bin",
+  "startedAt": "2026-10-18T12:30:36.780245Z",
+  "status": "LOCAL_HASHED"
+}

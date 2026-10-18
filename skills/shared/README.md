@@ -9,6 +9,13 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
 
 ## Живые Owners
 
+- `1google-drive-archive/portable/` — проверка оригиналов Google Drive перед
+  освобождением места на Mac, свежие свидетельства и отдельное согласование
+  локального действия. Общий пакет Codex/Claude; `platforms/codex/agents/openai.yaml`
+  содержит только UI metadata. Доставка:
+  `sync_simple_projections.py 1google-drive-archive --write --install`.
+  История — `skills/1google-drive-archive/`.
+
 - `1fresh-eyes` — два runtime owners: `skills/{claude,codex}/1fresh-eyes/`.
   Общая продуктовая пара живёт у Claude owner и не устанавливается.
   Профиль Expansionist принадлежит `agents/expansionist.{md,toml}` этих

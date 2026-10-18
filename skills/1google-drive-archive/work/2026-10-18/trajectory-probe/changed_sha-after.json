@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-18T12:30:37.780528Z",
+  "accountKey": "synthetic_account",
+  "fileId": "synthetic_file",
+  "size": "2010",
+  "sha256Checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "md5Checksum": "11ab5e79d70f1e4d17f28c9fcc5fa437",
+  "version": "41",
+  "trashed": false,
+  "binaryFile": true,
+  "canDownload": true,
+  "ownedByMe": true
+}

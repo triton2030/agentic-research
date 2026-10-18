@@ -1,0 +1,33 @@
+test_atomic_publication_never_overwrites_racing_file (fixed_tests.ArchiveVerifyTests.test_atomic_publication_never_overwrites_racing_file) ... ok
+test_cli_hash_then_compare_writes_private_reports_silently (fixed_tests.ArchiveVerifyTests.test_cli_hash_then_compare_writes_private_reports_silently) ... ok
+test_compare_cannot_clobber_any_input (fixed_tests.ArchiveVerifyTests.test_compare_cannot_clobber_any_input) ... ok
+test_controlled_mutation_during_read (fixed_tests.ArchiveVerifyTests.test_controlled_mutation_during_read) ... ok
+test_help_is_available (fixed_tests.ArchiveVerifyTests.test_help_is_available) ... ok
+test_invalid_local_and_unstable_record (fixed_tests.ArchiveVerifyTests.test_invalid_local_and_unstable_record) ... ok
+test_malformed_after (fixed_tests.ArchiveVerifyTests.test_malformed_after) ... ok
+test_md5_conflict_and_absence (fixed_tests.ArchiveVerifyTests.test_md5_conflict_and_absence) ... ok
+test_missing_malformed_duplicate_and_nan_inputs_produce_fixed_report (fixed_tests.ArchiveVerifyTests.test_missing_malformed_duplicate_and_nan_inputs_produce_fixed_report) ... ok
+test_missing_or_malformed_remote_fields (fixed_tests.ArchiveVerifyTests.test_missing_or_malformed_remote_fields) ... ok
+test_missing_sha_is_never_md5_match (fixed_tests.ArchiveVerifyTests.test_missing_sha_is_never_md5_match) ... ok
+test_not_binary_and_trashed_metadata (fixed_tests.ArchiveVerifyTests.test_not_binary_and_trashed_metadata) ... ok
+test_output_cannot_clobber_source_or_existing_file (fixed_tests.ArchiveVerifyTests.test_output_cannot_clobber_source_or_existing_file) ... ok
+test_rejects_empty_directory_and_symlink (fixed_tests.ArchiveVerifyTests.test_rejects_empty_directory_and_symlink) ... ok
+test_remote_identity_must_match (fixed_tests.ArchiveVerifyTests.test_remote_identity_must_match) ... ok
+test_remote_sha_changes (fixed_tests.ArchiveVerifyTests.test_remote_sha_changes) ... ok
+test_replaced_path_with_identical_bytes_during_read (fixed_tests.ArchiveVerifyTests.test_replaced_path_with_identical_bytes_during_read) ... ok
+test_report_binds_historical_evidence_without_relabeling_cloud_time (fixed_tests.ArchiveVerifyTests.test_report_binds_historical_evidence_without_relabeling_cloud_time) ... ok
+test_sha_mismatch_despite_identical_md5 (fixed_tests.ArchiveVerifyTests.test_sha_mismatch_despite_identical_md5) ... ok
+test_size_change_and_local_size_mismatch (fixed_tests.ArchiveVerifyTests.test_size_change_and_local_size_mismatch) ... ok
+test_stable_hash_and_match (fixed_tests.ArchiveVerifyTests.test_stable_hash_and_match) ... ok
+test_symlink_replaces_path_during_read (fixed_tests.ArchiveVerifyTests.test_symlink_replaces_path_during_read) ... ok
+test_synthetic_secret_redaction (fixed_tests.ArchiveVerifyTests.test_synthetic_secret_redaction) ... ok
+test_timestamp_strict_bracketing (fixed_tests.ArchiveVerifyTests.test_timestamp_strict_bracketing) ... ok
+test_unknown_access_still_proves_sha_but_not_restore_access (fixed_tests.ArchiveVerifyTests.test_unknown_access_still_proves_sha_but_not_restore_access) ... ok
+test_unknown_version (fixed_tests.ArchiveVerifyTests.test_unknown_version) ... ok
+test_unstable_or_missing_remote_sha_prevents_candidate_difference (fixed_tests.ArchiveVerifyTests.test_unstable_or_missing_remote_sha_prevents_candidate_difference) ... ok
+test_version_change (fixed_tests.ArchiveVerifyTests.test_version_change) ... ok
+
+----------------------------------------------------------------------
+Ran 28 tests in 0.084s
+
+OK

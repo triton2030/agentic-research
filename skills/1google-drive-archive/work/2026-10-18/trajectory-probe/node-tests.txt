@@ -1,0 +1,29 @@
+✔ safe empty config rejects before Drive calls (3.546584ms)
+✔ snapshot exact schema, decimal strings, null optionals; no names or secrets (9.154792ms)
+✔ snapshot wrong ID / missing fields / malformed optional fail without rows (1.348875ms)
+✔ full pagination incl empty advancing page and private tokens (1.372583ms)
+✔ 20-page bound resumes >=200 pages without fingerprint quota exhaustion (21.421792ms)
+✔ finished same RUN_ID is not fresh; new unique RUN_ID starts new inventory (0.9545ms)
+✔ config/account change rejects same RUN_ID; new RUN_ID can bind new config (0.760583ms)
+✔ API error resumes exact failed page; error never logged (0.933792ms)
+✔ cycle token halts fail closed and does not commit offending page (0.794125ms)
+✔ incomplete search halts without committing page; duplicate page rows fail closed (1.53875ms)
+✔ candidate pair duplicates across pages are deduplicated (0.72675ms)
+✔ MD5/name-size are candidates only; SHA256 mismatch never downgraded (0.858125ms)
+✔ zero bytes and Google-native files are never backup candidates (0.47775ms)
+✔ candidate overflow never loses page while claiming complete (0.68225ms)
+✔ state size quota stops incomplete; property write failure does not commit page (1.268292ms)
+✔ scan manifest binds account/run/config/scope and preserves old resumed timestamps (1.092375ms)
+✔ persisted manifest identity/timestamps reject corruption without reflecting values (3.487ms)
+✔ emitted snapshot JSON passes sibling Python valid_remote schema without hashing (65.770458ms)
+✔ setter uncertain success is checked by read-back (0.813916ms)
+✔ specific shared drive uses drive corpus and exact ID (0.470333ms)
+✔ manifest contains only metadata-readonly scope, V8, Drive v3, no exception logging (0.701916ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 335.640625

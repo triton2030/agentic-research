@@ -1,0 +1,13 @@
+{
+  "platforms/codex/agents/openai.yaml": "2ea63ebd913509efe7043d21564fbad3b5e5d9f5c01b715feaeef7c8d3c202ed",
+  "portable/SKILL.md": "bb2b35d7052fa7b0aa9572894075176132c9ea3ff77e432954d075aacbfa688a",
+  "portable/assets/apps-script/Code.gs": "3b8bda51e17c49aecb900ca2d17432ec9a6ebcf681957c83969354b041fdd7db",
+  "portable/assets/apps-script/appsscript.json": "3e707a9cb712b36dfd2551f39ccfa3e9487a8635bb6d097fa8ae560d34b883d9",
+  "portable/references/access.md": "4409f7e9c1900faafffe92268834a72769140086e94e1aad5132426a9c3e1871",
+  "portable/references/discovery.md": "c501a0c8e2291f396ffba65e696d6032d852e7eb556c164ebfb642ba952bb7d7",
+  "portable/references/local-release.md": "9af2b97c8f5378094b698e2ece79c2837b908414ab10de0b19e7f6c079655129",
+  "portable/references/verification.md": "c6c1954865d346a4481da5d101a63752a81fd25ff728649ac3913b03ff5df4b9",
+  "portable/scripts/archive_verify.py": "e04cbc06d09250497e887960293a41b26123f3744ff6de9862d106b6793e0f02",
+  "product-frame.md": "60f5d52a4c325bf1efab56c648d0b71f6a0c4683caed659a28105d16722fd8d8",
+  "product-frame.principles.md": "3eefc0186db19e4e18bc8dba2584bfe036b127f163484697313a8c70450aaeeb"
+}

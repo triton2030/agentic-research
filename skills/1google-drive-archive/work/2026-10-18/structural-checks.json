@@ -1,0 +1,33 @@
+{
+  "status": "passed",
+  "relativeLinks": [
+    {
+      "source": "portable/SKILL.md",
+      "target": "references/access.md",
+      "exists": true,
+      "insidePortable": true
+    },
+    {
+      "source": "portable/SKILL.md",
+      "target": "references/discovery.md",
+      "exists": true,
+      "insidePortable": true
+    },
+    {
+      "source": "portable/SKILL.md",
+      "target": "references/verification.md",
+      "exists": true,
+      "insidePortable": true
+    },
+    {
+      "source": "portable/SKILL.md",
+      "target": "references/local-release.md",
+      "exists": true,
+      "insidePortable": true
+    }
+  ],
+  "descriptionLength": 137,
+  "codexUiMetadataValid": true,
+  "knownPrivateMarkerMatches": [],
+  "limitations": "Heuristic marker check, not an exhaustive secret scanner."
+}

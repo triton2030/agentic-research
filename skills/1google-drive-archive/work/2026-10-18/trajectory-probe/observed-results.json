@@ -1,0 +1,127 @@
+{
+  "date": "2026-10-18",
+  "fixed_package": "/Users/triton/Documents/GitHub/agentic-research/skills/1google-drive-archive/versions/candidate-2026-10-18",
+  "cwd": "/tmp/google-drive-skill-20261018/trajectory-probe/foreign-cwd",
+  "synthetic_bytes": 2010,
+  "manifest_checks": {
+    "platforms/codex/agents/openai.yaml": true,
+    "portable/SKILL.md": true,
+    "portable/assets/apps-script/Code.gs": true,
+    "portable/assets/apps-script/appsscript.json": true,
+    "portable/references/access.md": true,
+    "portable/references/discovery.md": true,
+    "portable/references/local-release.md": true,
+    "portable/references/verification.md": true,
+    "portable/scripts/archive_verify.py": true
+  },
+  "hash": {
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "comparisons": {
+    "stable": {
+      "exit": 0,
+      "stdout": "",
+      "stderr": "",
+      "status": "MATCH_SHA256",
+      "reason": "SHA256_SIZE_VERSION_CONFIRMED",
+      "deleteAllowed": false,
+      "restoreAccessConfirmed": true,
+      "mode": "0o600"
+    },
+    "missing_sha": {
+      "exit": 2,
+      "stdout": "",
+      "stderr": "",
+      "status": "UNVERIFIED",
+      "reason": "REMOTE_SHA256_UNAVAILABLE",
+      "deleteAllowed": false,
+      "restoreAccessConfirmed": false,
+      "mode": "0o600"
+    },
+    "changed_version": {
+      "exit": 2,
+      "stdout": "",
+      "stderr": "",
+      "status": "UNVERIFIED",
+      "reason": "REMOTE_VERSION_CHANGED",
+      "deleteAllowed": false,
+      "restoreAccessConfirmed": false,
+      "mode": "0o600"
+    },
+    "changed_account": {
+      "exit": 2,
+      "stdout": "",
+      "stderr": "",
+      "status": "UNVERIFIED",
+      "reason": "REMOTE_ACCOUNT_CHANGED",
+      "deleteAllowed": false,
+      "restoreAccessConfirmed": false,
+      "mode": "0o600"
+    },
+    "changed_id": {
+      "exit": 2,
+      "stdout": "",
+      "stderr": "",
+      "status": "UNVERIFIED",
+      "reason": "REMOTE_ID_CHANGED",
+      "deleteAllowed": false,
+      "restoreAccessConfirmed": false,
+      "mode": "0o600"
+    },
+    "changed_sha": {
+      "exit": 2,
+      "stdout": "",
+      "stderr": "",
+      "status": "UNVERIFIED",
+      "reason": "REMOTE_SHA256_CHANGED",
+      "deleteAllowed": false,
+      "restoreAccessConfirmed": false,
+      "mode": "0o600"
+    },
+    "unknown_download": {
+      "exit": 0,
+      "stdout": "",
+      "stderr": "",
+      "status": "MATCH_SHA256",
+      "reason": "SHA256_SIZE_VERSION_CONFIRMED",
+      "deleteAllowed": false,
+      "restoreAccessConfirmed": false,
+      "mode": "0o600"
+    },
+    "missing_version": {
+      "exit": 2,
+      "stdout": "",
+      "stderr": "",
+      "status": "UNVERIFIED",
+      "reason": "REMOTE_VERSION_UNAVAILABLE",
+      "deleteAllowed": false,
+      "restoreAccessConfirmed": false,
+      "mode": "0o600"
+    },
+    "invalid_extra": {
+      "exit": 2,
+      "stdout": "",
+      "stderr": "",
+      "status": "UNVERIFIED",
+      "reason": "INVALID_REMOTE_AFTER",
+      "deleteAllowed": false,
+      "restoreAccessConfirmed": false,
+      "mode": "0o600"
+    }
+  },
+  "no_clobber": {
+    "exit": 2,
+    "stdout": "",
+    "stderr": "OUTPUT_EXISTS\n"
+  },
+  "symlink": {
+    "exit": 2,
+    "stdout": "",
+    "stderr": "SOURCE_SYMLINK\n"
+  },
+  "source_unchanged": true,
+  "cloud_executed": false,
+  "network_executed": false
+}

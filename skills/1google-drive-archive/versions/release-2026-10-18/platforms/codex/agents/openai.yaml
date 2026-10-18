@@ -1,0 +1,6 @@
+interface:
+  display_name: "Проверяемый архив Google Drive"
+  short_description: "Сверить оригиналы Drive и безопасно освободить место"
+  default_prompt: "Используй $1google-drive-archive: проверь выбранный архив в Google Drive и подготовь безопасное освобождение места."
+policy:
+  allow_implicit_invocation: true
