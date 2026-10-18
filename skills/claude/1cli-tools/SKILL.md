@@ -2,7 +2,8 @@
 name: 1cli-tools
 description: >-
   Use before writing a helper script or choosing a CLI for data, YAML, text
-  edits, lint, security, media or browser work; before npm install/ci, global
+  edits, lint, security, media, browser, disk-space or system-health work;
+  before npm install/ci, global
   tsc, agent-browser, vercel, gh agent-task/skill, uv tool or ffmpeg; and when
   an install succeeds but a package fails. Lists what is installed on this Mac
   and capabilities newer than model memory. Markdown corpus search belongs to
@@ -18,7 +19,7 @@ description: >-
 ## Что Уже Установлено
 
 Перечень сверен 2026-09-26; Graphify — 2026-10-02; PostgreSQL, `caffeinate`
-и трасса Playwright — 2026-10-10.
+и трасса Playwright — 2026-10-10; диск и здоровье системы — 2026-10-18.
 Перед использованием — `command -v TOOL`.
 
 | Работа | Инструменты |
@@ -36,6 +37,9 @@ description: >-
 | безопасность | `semgrep`, `gitleaks`, `trufflehog`, `trivy`, `osv-scanner`, `bandit`, `pip-audit` |
 | браузер и UI | `agent-browser`, `playwright`; нестабильный браузерный прогон — трасса Playwright при сбое: `tracing.start` и `stopChunk`, разбор — `playwright show-trace` |
 | медиа и документы | `ffmpeg`, `whisper-cli`, `fpcalc`, `pdftotext`, `soffice` |
+| диск: что занимает место | `ncdu` 2.9 — `ncdu -o- -x <папка>` выдаёт дерево размеров JSON-ом; `duf --json` — свободное место томов; `mo analyze` (Mole) — интерактивно |
+| здоровье системы | `mo status --json` (Mole 1.61) — снимок: память и своп, топ процессов, температуры, размер Корзины; `btop` — интерактивный монитор; Stats — монитор владельца в строке меню |
+| чистка Mac | Mole: `mo installer`, `mo clean`, `mo purge` — сборки проектов, `mo uninstall` — приложение с остатками; все интерактивные, первый запуск — `--dry-run` |
 | сервисы | `gh`, `vercel`, `supabase`, `firecrawl`, `ntn` — Notion |
 | модели и агенты | `claude`, `hermes`, `droid`, Codex — `/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex` |
 | токены и скилы | `token-counter`, `qv-skill` — проверка пакета скила |
@@ -49,9 +53,15 @@ description: >-
   выполнены: npm 12 блокирует их по умолчанию → [npm 12](references/npm-12.md).
 - `brew upgrade node` может откатить глобальный npm до комплектного →
   [обновление](references/runtime-update.md).
-- Оболочка инструмента Bash здесь — zsh: `$VAR` с несколькими аргументами не
-  делится на слова, `=слово` без кавычек раскрывается как путь команды, а
-  `for f in $(…)` рвёт пути с пробелами — используй `-z | xargs -0`.
+- Оболочка инструмента Bash здесь — bash 5, а не zsh: `setopt` и модификаторы
+  вроде `${f:t}` молча не работают, а глоб без совпадений остаётся строкой.
+  Проверка совпадения — `compgen -G '<шаблон>'`; пути с пробелами —
+  `-z | xargs -0`. Перед массовым `mv` или `rm` по условию выведи список.
+- `gdu` здесь — GNU `du` из coreutils, а не анализатор диска gdu; анализ места —
+  `ncdu`.
+- `mo clean`, `mo purge` и `mo installer` удаляют навсегда, мимо Корзины.
+  Кеши `~/.npm/_npx` и `~/.cache/uv` — место запуска MCP-серверов плагинов:
+  до их чистки проверь `pgrep -fl 'npx|uvx'`.
 - Абзац Markdown часто одна строка: `cut -c` молча прячет её конец, а
   `rg -M 300 --max-columns-preview` помечает обрезанное.
 - `npx --no-install lychee` добавляет строки `npm notice`, и `tail -1` может
