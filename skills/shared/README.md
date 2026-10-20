@@ -16,6 +16,12 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   `sync_simple_projections.py 1google-drive-archive --write --install`.
   История — `skills/1google-drive-archive/`.
 
+- `1t3/portable/` — общий пакет Claude Code и Codex: агенты и треды T3 Code,
+  медиа через Antigravity CLI и остатки подписок. Различия подключения,
+  выбора Codex и фонового ожидания описаны по вызывающей среде;
+  `platforms/codex/agents/openai.yaml` — только Codex UI metadata.
+  Обе проекции доставляет `sync_simple_projections.py 1t3 --write --install`.
+  История — `skills/1t3/`.
 - `1fresh-eyes` — два runtime owners: `skills/{claude,codex}/1fresh-eyes/`.
   Общая продуктовая пара живёт у Claude owner и не устанавливается.
   Профиль Expansionist принадлежит `agents/expansionist.{md,toml}` этих

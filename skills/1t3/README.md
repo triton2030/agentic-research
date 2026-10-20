@@ -6,8 +6,10 @@ description: "История скила 1t3: треды Muse и Gemini чере�
 
 Эта папка хранит историю `1t3` и не является пакетом скила.
 
-Живой владелец для Claude Code — `skills/claude/1t3/`; установленная копия
-лежит в `~/.claude/skills/1t3/`. У Codex такого скила нет.
+Живой владелец для Claude Code и Codex — `skills/shared/1t3/portable/`.
+Tracked-проекции — `skills/{claude,codex}/1t3/`, установленные —
+`~/.{claude,codex}/skills/1t3/`. Их собирает
+`skills/shared/sync_simple_projections.py 1t3 --write --install`.
 
 Скил заменил `1muse` и `1gemini`; их истории — `skills/1muse/`
 и `skills/1gemini/`. Скрипт `scripts/gemini.py` перенесён из `1gemini`
@@ -44,3 +46,6 @@ description: "История скила 1t3: треды Muse и Gemini чере�
 - `versions/draft-2026-10-14-v6/` — новое описание: субагенты другой семьи, идущий тред,
   лимиты; слова владельца `#recall-2bafc7eca12d43fa8c6cbe290f14bbdb`; пятая проба
   в `work/probe-2026-10-14.md`.
+- `work/codex-2026-10-18.md` — общий owner, адаптация для Codex и проверка
+  прямого MCP-вызова. Заказ: «Ну установи. Также этот скилл у нас для кодекса тоже.» —
+  `_ops/chat-recall/2026-10-18-133714-codex-01a14e26.md#recall-20d88ccf5640449284a8e839ba204574`.
