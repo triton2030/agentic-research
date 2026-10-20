@@ -48,6 +48,26 @@ T3 → Settings → Connections и подтвердил вход. Codex верн
 прошёл с автоматической проверкой разрешений. Штатный режим подтверждений
 сохраняй; повторная авторизация T3 эту ошибку не исправляет.
 
+### Провайдер Cursor
+
+Grok приходит в T3 через провайдера `cursor`. Аккаунт владельца — Cursor
+под маркой Grok, с кабинетом на grok.com; тариф Premium покрывает только
+модели Grok.
+
+Проверено 2026-10-20 на T3 Code 0.1.1-nightly.20261020.3411:
+
+- Вход работает только через поле «Cursor API key» в настройках провайдера.
+  Вход через браузер для аккаунта без почты T3 не сохраняет: «Could not
+  save the Cursor sign-in». SDK Cursor кладёт `email: undefined`, а схема
+  T3 такое поле отвергает. Это ошибка T3, а не скила.
+- `grok-4.7` в треде `scratch` ответил верно, ход 8,5 с:
+  `mcp:d53e0a19-678a-4bb5-98a8-56cfd0c8deb1`.
+- `glm-5p3-flash` упал: «not included in your weekly usage. Buy credits
+  or switch to a Grok model» — `mcp:fc9da251-99e6-4b6a-8c26-ba270e5c6d2b`.
+
+Отдельный провайдер `grok` (модель Grok Build) в каталоге есть, но выключен;
+он не проверялся.
+
 ## Инструменты сервера
 
 Сервер отдаёт около сотни инструментов. Часть из них действует от имени
@@ -156,6 +176,38 @@ T3 thread … This MCP client signed in from outside a thread`. Агент вн�
   его присылает хук проекта, а не T3 Code.
 - Скил плагина вызывается полным именем: `mattpocock-skills:tdd`, не `tdd`.
 
+## Grok в треде
+
+Провайдер `cursor`, модель `grok-4.7`. Опции: `reasoning_effort` — `low`,
+`medium`, `high`, `xhigh`, по умолчанию `high`; `fastMode` — по умолчанию
+включён, что он меняет, не установлено; `contextWindow` — `256k` или `500k`,
+по умолчанию `500k`.
+
+Проба 2026-10-20 в проекте `agentic-research`, `high`, тред
+`mcp:b010ce11-027e-49c1-86ff-e50e2d957536`. Сведения о контексте — из ответа
+треда, снятого до вызова инструментов:
+
+- В контексте: системный промпт Cursor с блоком T3 «you are running in T3
+  Code through the Cursor harness, as grok-4.7»; корневой `AGENTS.md`
+  проекта; четыре правила пользователя Cursor — среди них «коммить только
+  по просьбе». Нет `~/.claude/CLAUDE.md` и `~/.codex/AGENTS.md`.
+- Скилов 138, в контекст приходят пути, тексты читаются по надобности.
+  Источники: `~/.claude/skills` (и восемь старых снимков из его `_backups/`),
+  `~/.codex/skills`, `~/.agents/skills`, `~/.cursor/skills`,
+  `~/.cursor/skills-cursor`.
+- Инструменты: `Shell`, `Read`, `Write`, `StrReplace`, `Grep`, `Glob`;
+  пространство `cursor` — среди прочего `Task` (дочерние агенты),
+  `GenerateImage`, `WebSearch`, `WebFetch`; MCP-сервер `t3-code` с
+  `delegate_task` и `t3_thread_launch`. Поиска по X нет.
+- Инструмент `Write` записал файл в `~/Library/Caches/`, `Read` прочитал
+  `/etc/shells`: запись и чтение вне рабочей папки проходят. Оболочка вне
+  папки не проверена: Grok вызвал `Write` и `Shell` параллельно, команда
+  выполнилась раньше, чем появилась папка, и упала. Повтор и обход он
+  по брифу не делал.
+- Ход с перечнем контекста — 112 с. Реплика в законченный тред начала новый
+  ход с памятью прежнего; один поиск в вебе — 31 с, две статьи CoinDesk
+  с датами; обе открываются, даты совпали.
+
 ## Проект и рабочая папка
 
 - Вызывающий вне треда обязан дать `projectId` или `scratch: true`.
@@ -174,15 +226,15 @@ T3 thread … This MCP client signed in from outside a thread`. Агент вн�
 
 ## Права и контекст агентов
 
-| Что | Muse | Gemini |
-| --- | --- | --- |
-| уровни прав | `full-access` и `approval-required` | все четыре |
-| запись инструментом вне рабочей папки | проходит | отклоняется: `Access to path … is denied. It is outside the workspace` |
-| чтение инструментом вне рабочей папки | не мерилось в треде; под `muse exec` читает любой файл | отклоняется: `Access to path … is denied. It is outside the allowed workspace directories` |
-| команды оболочки вне рабочей папки | не мерилось | пишут и читают |
-| личные правила и скилы владельца из Claude Code и Codex | загружены: 95 скилов и заголовки личных инструкций | не загружены |
-| `AGENTS.md` проекта | выполнен | не выполнен; загружен ли файл, не установлено |
-| коммит без просьбы | не делал | не делал |
+| Что | Muse | Gemini | Grok |
+| --- | --- | --- | --- |
+| уровни прав | `full-access` и `approval-required` | все четыре | каталог не ограничивает; проверен `full-access` |
+| запись инструментом вне рабочей папки | проходит | отклоняется: `Access to path … is denied. It is outside the workspace` | проходит |
+| чтение инструментом вне рабочей папки | не мерилось в треде; под `muse exec` читает любой файл | отклоняется: `Access to path … is denied. It is outside the allowed workspace directories` | проходит |
+| команды оболочки вне рабочей папки | не мерилось | пишут и читают | не мерилось |
+| личные правила и скилы владельца из Claude Code и Codex | загружены: 95 скилов и заголовки личных инструкций | не загружены | скилы загружены, личные инструкции нет |
+| `AGENTS.md` проекта | выполнен | не выполнен; загружен ли файл, не установлено | загружен; выполнение не проверялось |
+| коммит без просьбы | не делал | не делал | не делал |
 
 Muse умеет сам писать сценарий и запускать до восьми дочерних агентов — по
 документации Muse Code; по документации T3 Code он получает и инструменты
@@ -208,6 +260,7 @@ Antigravity берёт из `~/.gemini/config/skills` — по документ�
 | `claudeAgent` | Opus 5.5, Fable 5.1, Sonnet 5.5, Haiku 5.5 | `effort` до `max`, плюс `ultracode` и `ultrathink` |
 | `antigravity` | `gemini-4-argon-low`, `-medium`, `-high`, `gemini-3.8-flash-high` | в имени модели |
 | `muse` | `muse-wonder-full-1.0`, `muse-wonder-1.0` | от `minimal` до `max` |
+| `cursor` | `grok-4.7`; `glm-5p3-flash` — вне тарифа владельца | у Grok `reasoning_effort` до `xhigh`, у GLM `reasoning` до `max` |
 
 Старые Gemini, Codex и Claude скрыты в настройках T3 Code
 (`providerModelPreferences.*.hiddenModels`); Gemini 4 Argon вышел позже
@@ -300,7 +353,7 @@ Gemini в треде проекта свёл семь файлов за 84 се�
 
 ## Данные и лимиты
 
-Запросы и прочитанные файлы уходят в Meta и Google. По документации в подписке
+Запросы и прочитанные файлы уходят в Meta, Google и Cursor. По документации в подписке
 Meta по умолчанию включён режим Contributor: Meta вправе учить модели на
 содержимом; режим меняет владелец.
 
@@ -311,6 +364,7 @@ Meta по умолчанию включён режим Contributor: Meta впр�
 | Codex | метод `account/rateLimits/read` движка `codex app-server`: окна, кредиты, бесплатные сбросы лимита | бесплатно |
 | Google: Gemini, Claude и GPT | `agy -p /usage`: неделя и пять часов, у Gemini и у Claude с GPT свои; у Gemini 4 Argon своя неделя — с 2026-10-20 | бесплатно |
 | Meta: Muse | метод `usage/read` протокола `muse serve` | один минимальный запрос |
+| Cursor: Grok | скрипт не видит; по тексту отказа GLM лимит тарифа недельный | — |
 
 Для владельца остаток Codex и Gemini по документации показывает T3 Code:
 раздел Usage → Limits или команда `/usage-limits` в треде. Muse там нет: ни
@@ -330,6 +384,8 @@ Claude Opus 5.5 и Sonnet 5.5 на подписке Google доступны то
 Уровень `approval-required`, вложения, стратегия `worktree`, PDF в треде Gemini,
 создание расписания, слежение за пул-реквестом, ветки тредов, режим `restart`
 у `t3_thread_send`, смена провайдера в треде, продолжение после лимита.
+У Grok — поправка в идущий ход, оболочка вне рабочей папки, PDF, что меняет
+`fastMode`, ход на исчерпанном лимите и качество аудита на настоящей задаче.
 
 Документация T3 Code лежит в репозитории `pingdotgg/t3code`, папка `docs/`:
 `user/outside-agents.md`, `user/providers-muse.md`,
