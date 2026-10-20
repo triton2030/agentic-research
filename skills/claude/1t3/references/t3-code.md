@@ -160,6 +160,9 @@ T3 thread … This MCP client signed in from outside a thread`. Агент вн�
 
 ## Claude в треде
 
+Раздел для вызывающего Codex. Из Claude Code Claude тредом T3 не зовут:
+своих агентов Claude Code зовёт своими субагентами.
+
 Провайдер `claudeAgent`: Opus 5.5, Fable 5.1, Sonnet 5.5, Haiku 5.5. Усилие
 передаётся опцией с другим именем, чем у Codex и Muse:
 `{"id": "effort", "value": "high"}`. Среди уровней есть `ultracode` — xhigh

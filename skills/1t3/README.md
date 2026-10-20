@@ -58,3 +58,7 @@ Tracked-проекции — `skills/{claude,codex}/1t3/`, установлен�
   и советник, вопросы о крипте — ему. Выбор владельца
   `2026-10-20-163157-claude-code-2e9cd32c.md#recall-387e516a21fb448ba1c6188da5917839`;
   пробы и проверки — `work/grok-2026-10-20.md`.
+- `versions/draft-2026-10-20-v3/` — из Claude Code Claude тредом T3 не зовут:
+  своих агентов Claude Code зовёт субагентами; тред Claude остаётся вызывающему
+  Codex, Claude на подписке Google через скрипт — обоим. Слова владельца
+  `2026-10-20-152342-claude-code-62efc45c.md#recall-49cf3976efe94591b31db69197a0319f`.
