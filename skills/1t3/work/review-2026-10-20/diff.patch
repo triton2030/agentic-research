@@ -1,0 +1,542 @@
+diff --git a/skills/1t3/versions/draft-2026-10-20/SKILL.md b/skills/shared/1t3/portable/SKILL.md
+index 60e68881..bde558f6 100644
+--- a/skills/1t3/versions/draft-2026-10-20/SKILL.md
++++ b/skills/shared/1t3/portable/SKILL.md
+@@ -2,8 +2,9 @@
+ name: 1t3
+ description: >-
+   Use when the user asks for T3 Code agents, work should go to another model
+-  family such as Muse or Gemini, a T3 thread needs a follow-up, or subscription
+-  limits matter. In Claude, Codex roles: 1codex. Hermes: 1hermes.
++  family such as Muse, Gemini or Grok, a crypto question needs Grok, a T3
++  thread needs a follow-up, or subscription limits matter. In Claude, Codex
++  roles: 1codex. Hermes: 1hermes.
+ ---
+ 
+ # T3 Code — агенты из Claude Code и Codex
+@@ -11,15 +12,17 @@ description: >-
+ ## Контекст
+ 
+ У владельца работает приложение T3 Code: оно ведёт треды агентов разных
+-семей на его подписках — Codex, Claude, Gemini и Muse. Его MCP-сервер
++семей на его подписках — Codex, Claude, Gemini, Muse и Grok. Его MCP-сервер
+ подключён к Claude Code и Codex под именем `t3`: около сотни инструментов
+ `mcp__t3__*`, доступных через поиск инструментов среды. Каждая среда входит
+ отдельно; агент внутри треда видит тот же сервер как `t3-code`.
+ Тред виден владельцу в приложении, а в идущий ход можно послать поправку.
+ 
+-Этим путём владелец решил звать агентов двух семей: Muse Wonder, которого Meta
+-строила под сложную инженерную работу, и Gemini от Google — Gemini 4 Argon,
+-передовую модель для аудита и совета, и Gemini Flash, быстрого читателя.
++Этим путём владелец решил звать агентов трёх семей: Muse Wonder, которого Meta
++строила под сложную инженерную работу; Gemini от Google — Gemini 4 Argon,
++передовую модель для аудита и совета, и Gemini Flash, быстрого читателя;
++Grok 4.7 от xAI через провайдера Cursor — аудитора и советника, которого
++владелец купил ради крипты.
+ Из Claude Code момент, роль и ярус Codex выбирает скил `1codex`; запуск
+ и ведение треда — здесь. Из Codex этот скил также запускает треды
+ напрямую: посредник Claude и скил `1codex` для этого не нужны. Модель,
+@@ -42,10 +45,10 @@ description: >-
+   только Antigravity CLI, поэтому в пакете остался скрипт `scripts/gemini.py`.
+   Замерено на Flash; Argon в треде с медиа не проверялся.
+ - Muse в треде получает личные правила и все скилы владельца из Claude Code
+-  и Codex. Прочитав чужой скил, он однажды сам запустил семь дочерних агентов
+-  ради вопроса о шести файлах.
+-- Песочницы нет, и правил к брифу никто не приписывает: Muse пишет и вне
+-  рабочей папки, Gemini — командами оболочки. Границы держат слова брифа,
++  и Codex, Grok — те же скилы без личных правил. Прочитав чужой скил, Muse
++  однажды сам запустил семь дочерних агентов ради вопроса о шести файлах.
++- Песочницы нет, и правил к брифу никто не приписывает: Muse и Grok пишут
++  и вне рабочей папки, Gemini — командами оболочки. Границы держат слова брифа,
+   а что агент сделал, ты видишь сам.
+ - T3 Code не различает, кто из агентов владельца запустил тред. Все сессии
+   Claude Code и их субагенты входят одним клиентом: видят треды друг друга,
+@@ -53,7 +56,7 @@ description: >-
+ 
+ ## Задача
+ 
+-Поручи работу треду Muse или Gemini, аудио и видео — скрипту, веди тред
++Поручи работу треду Muse, Gemini или Grok, аудио и видео — скрипту, веди тред
+ разговором и закрой ответ.
+ 
+ ## Цель
+@@ -70,6 +73,7 @@ description: >-
+ | Muse, тред | аудит до того, как назовёшь работу готовой; совет до выбора маршрута; исполнение работы целиком | PDF, аудио и видео: он их не открывает |
+ | Gemini Argon, тред | аудит до того, как назовёшь работу готовой; совет до выбора маршрута; суждение о сложной системе — взгляд третьей семьи рядом с Muse и Codex | аудио, видео и PDF: их берёт скрипт |
+ | Gemini Flash, тред | прочитать и свести пачку файлов проекта, длинный документ, страницы веба; исполнить чётко заданную правку | аудит, выбор маршрута, суждение о сложной системе: Flash отвечает уверенно и там, где ошибается, — это работа Argon |
++| Grok, тред | аудит и совет, а вопросы о крипте — в первую очередь: рынок, токены, проекты, настроения и психология крипто-сообщества | сводку ленты X: поиска по X у него в треде нет, только веб; аудио, видео и PDF: его инструмент чтения, по описанию, берёт текст и картинки |
+ | Gemini, скрипт | прослушать аудио, посмотреть видео, прочитать PDF; прочитать файлы вне проекта треда: в треде Gemini их не открывает | — |
+ | Codex, тред | из Claude — работа по скилу `1codex`; из Codex — порученная работа в видимом треде T3 | нативное ревью диффа и взгляд на транскрипт вызывающей сессии: T3 их не предоставляет; из Claude их даёт мост `1codex` |
+ | Claude на подписке Google, скрипт с `--model claude-opus-5-5-high` | чтение, сводка, черновик, поиск в вебе, если задаче хватает брифа и папки | независимый взгляд другой модельной семьи, если вызывающий агент сам Claude |
+@@ -77,6 +81,9 @@ description: >-
+ Как звать скрипт и проверять расшифровку —
+ [references/gemini-media.md](references/gemini-media.md).
+ 
++Тред Claude в T3 Code запускает только Codex. Из Claude Code Claude через
++T3 не зови: своих агентов Claude Code зовёт своими субагентами.
++
+ В подписке Google владельца есть Claude Opus и Sonnet со своим лимитом,
+ отдельным от Gemini, и владелец хочет, чтобы этот лимит тоже расходовался.
+ 
+@@ -94,13 +101,24 @@ Muse по умолчанию — `muse-wonder-full-1.0` с усилием `xhigh
+ У Argon своя недельная квота, отдельная от Flash. Скрипт по умолчанию
+ работает на Flash; Argon ему даёт `--model gemini-4-argon-high`.
+ 
++Grok владелец купил ради крипты: по его словам, Grok учился на X
++и на обсуждениях крипто-сообщества и лучше понимает психологию его людей.
++Вопрос о крипте отдавай ему. В аудите и совете вне крипты он стоит рядом
++с Argon: бери того, у кого есть остаток, или обоих, когда нужны два
++независимых взгляда. Свежие события Grok находит поиском в вебе, X в треде
++не ищет, поэтому проси у него источники с датами. Модель — `grok-4.7`,
++усилие — опция `reasoning_effort`, по умолчанию `high`; выбирай его по
++ситуации. Вторая модель провайдера, GLM 5.3 Flash, в тариф владельца
++не входит.
++
+ ## Когда пишешь бриф
+ 
+ Агент не видит твоего разговора. Пиши разделами **Контекст → Цель → Границы →
+ Готово, когда** и отдавай первичные артефакты путями: твой пересказ передаёт
+ агенту твою же ошибку вместе с задачей. `AGENTS.md` проекта Muse выполняет
+ сам; Gemini Flash в пробе не выполнил, Argon не проверялся — Gemini нужные
+-правила проекта назови в брифе.
++правила проекта назови в брифе. Grok корневой `AGENTS.md` получает;
++выполняет ли, не проверялось.
+ 
+ | Роль | Что в брифе |
+ | --- | --- |
+@@ -118,7 +136,7 @@ Muse по умолчанию — `muse-wonder-full-1.0` с усилием `xhigh
+ > записывай.
+ 
+ Два последних правила нужны агентам, которые получают личные правила и скилы
+-владельца, — Muse, Codex и Claude. Codex в пробе прочёл скил сохранения
++владельца, — Muse, Codex, Claude и Grok. Codex в пробе прочёл скил сохранения
+ цитат и собрался записать поправку агента как слова владельца; в его инструментах
+ есть и вызов Claude. Брифу Gemini добавь: «Не получилось —
+ запиши дословную ошибку и остановись, обходов не ищи». С этой строкой Flash
+@@ -126,8 +144,8 @@ Muse по умолчанию — `muse-wonder-full-1.0` с усилием `xhigh
+ ошибку, он четыре минуты искал обход: писал распознаватель речи и запускал
+ поиск по всей домашней папке.
+ 
+-Всё прочитанное уходит в Meta или Google. Файлы с ключами и паролями в брифе
+-не называй.
++Всё прочитанное уходит в Meta, Google или Cursor. Файлы с ключами и паролями
++в брифе не называй.
+ 
+ ## Когда запускаешь тред
+ 
+@@ -156,6 +174,9 @@ Muse по умолчанию — `muse-wonder-full-1.0` с усилием `xhigh
+   `{"instanceId": "antigravity", "model": "gemini-4-argon-high"}` аудитору
+   и советнику, `{"instanceId": "antigravity", "model": "gemini-3.8-flash-high"}`
+   читателю и исполнителю. Усилие у Gemini — в имени модели.
++- Для Grok — `{"instanceId": "cursor", "model": "grok-4.7", "options":
++  [{"id": "reasoning_effort", "value": "high"}]}`. Опция усилия называется
++  иначе, чем у Codex и Muse.
+ - Для Codex — `{"instanceId": "codex", "model": "gpt-6.1-sol", "options":
+   [{"id": "reasoningEffort", "value": "medium"}]}`; из Claude ярус берёт `1codex`.
+   Усилие ставь всегда: T3 Code по умолчанию даёт солу `low`.
+@@ -187,7 +208,7 @@ bash "<skill-dir>/scripts/wake_on_done.sh" '<runId>'
+ ```
+ 
+ Он раз в три секунды читает статус хода из базы T3 Code, токенов не тратит
+-и выходит, когда ход кончился или агент ждёт ответа.
++и выходит, когда ход кончился или агент задал вопрос.
+ В Claude Code ставь `run_in_background: true`: выход фоновой команды будит
+ сессию. В Codex запусти команду через `exec_command` с коротким
+ `yield_time_ms`, сохрани `session_id` и получи завершение через `write_stdin`;
+@@ -235,7 +256,8 @@ id текущей сессии (`CLAUDE_CODE_SESSION_ID` в Claude, `CODEX_THREA
+ значит, что ход закончился, а не что работа верна.
+ 
+ - Исполнителя принимай по `git status` и `git diff` его зоны против брифа
+-  и посланных поправок, а проверку перезапусти сам. Запись `checkpoint`
++  и всех посланных реплик, а проверку перезапусти сам: итоговое сообщение
++  может пересказать прежнюю задачу как сделанную. Запись `checkpoint`
+   в ленте перечисляет изменённые файлы всей рабочей папки вместе с правками
+   соседей и не видит файлов вне её.
+ - У аудитора, советника и читателя `git status` после треда тот же, что до
+@@ -253,8 +275,8 @@ id текущей сессии (`CLAUDE_CODE_SESSION_ID` в Claude, `CODEX_THREA
+ 
+ ## Когда разговор продолжается
+ 
+-Уточняющий вопрос к ответу, ремонт сданной работы, следующая задача по той же
+-теме — реплика в тот же тред. Она начинает новый ход с памятью прежнего:
++Уточняющий вопрос к ответу, небольшой ремонт сданной работы, вопрос по уже
++прочитанной теме — реплика в тот же тред. Она начинает новый ход с памятью прежнего:
+ агент, который уже изучил тему в вебе или разобрал файлы проекта, отвечает
+ по прочитанному и не тратит время на повторное чтение. В пробах Muse так
+ ответил о своей сданной правке, а Gemini за десять секунд — на вопрос
+@@ -267,6 +289,13 @@ id текущей сессии (`CLAUDE_CODE_SESSION_ID` в Claude, `CODEX_THREA
+ и вызовов инструментов прежнего агента. Смена модели или усилия у того же
+ провайдера разговор сохраняет (по документации T3 Code).
+ 
++Новый раунд работы в длинном треде — новый список правок или бриф, когда
++в `itemCount` треда сотни записей, — тоже отдавай новому треду, с брифом
++в файле. В работе 2026-10-20 тред Codex на 636 записей получил такой раунд
++репликой: двенадцать правок и новый порт сервера. Он проверял старый порт
++и отчитался по прежней спецификации, раунд пришлось отдать заново; новый тред
++с брифом в файле сделал все двенадцать.
++
+ Тред, к которому вернёшься в другой сессии, назови по сути, а его `threadId`
+ запиши туда, где следующая сессия найдёт его: в рабочую заметку или пакет
+ передачи. По заголовку в `t3_thread_list` тред тоже находится, но чей он,
+@@ -289,9 +318,10 @@ python3 "<skill-dir>/scripts/limits.py"
+ 
+ Скрипт за минуту показывает остаток Codex, Gemini и Claude на подписке Google
+ и Muse. Проверка Muse тратит один минимальный запрос: без хода модели Muse
+-остатка не знает. Бесплатно — `--only codex,google`. Остаток подписки
+-Claude Code скрипт не видит; в приложении Claude его
+-показывает инструмент `mcp__ccd_session_mgmt__get_usage`. Мало осталось
++остатка не знает. Бесплатно — `--only codex,google`. Остаток Grok
++на подписке Cursor скрипт не видит. Не видит он и подписки Claude Code;
++в приложении Claude её показывает инструмент
++`mcp__ccd_session_mgmt__get_usage`. Мало осталось
+ у вызывающего Claude — Claude на подписке Google и есть запас, который
+ владелец хочет тратить.
+ 
+@@ -312,8 +342,7 @@ Claude Code скрипт не видит; в приложении Claude его
+ | общий с владельцем браузер, симулятор телефона, страница прямо в ответе, дочерние агенты любой семьи | `preview_*`, `device_*`, `html_render`, `delegate_task` | только агенту внутри треда |
+ 
+ Инструменты последней строки тебе отказывают: клиент вошёл не из треда. Нужен
+-их результат — поручи его треду: агент внутри получает их сам. Тем же
+-`t3_thread_launch` запускаются и треды Claude.
++их результат — поручи его треду: агент внутри получает их сам.
+ 
+ Замерены запуск и ведение тредов, чтение расписаний и очереди, отказ
+ в инструментах треда; остальные строки — по описаниям инструментов. Подробности
+@@ -335,6 +364,10 @@ Claude Code скрипт не видит; в приложении Claude его
+   на чтение. Чинит владелец; что ему сказать, написано в справке.
+ - Модели нет в `orchestrator_capabilities` или ход упал с `does not exist or
+   you lack access` — она ушла из подписки. Замену выбирает владелец.
++- Ход Cursor упал с `not included in your weekly usage` — модель вне тарифа
++  владельца: его тариф покрывает только модели Grok. Провайдер Cursor
++  не вошёл — вход чинит владелец ключом API:
++  [провайдер Cursor](references/t3-code.md#провайдер-cursor).
+ - Ход упал на лимите подписки — в приложении тред помечен Limited, работа на
+   диске осталась. Скажи владельцу, когда сброс, и проверь остаток. Продолжит
+   реплика в тот же тред после сброса; запланированное владельцем продолжение
+diff --git a/skills/1t3/versions/draft-2026-10-20/references/t3-code.md b/skills/shared/1t3/portable/references/t3-code.md
+index 19335038..c5b2efa1 100644
+--- a/skills/1t3/versions/draft-2026-10-20/references/t3-code.md
++++ b/skills/shared/1t3/portable/references/t3-code.md
+@@ -48,6 +48,26 @@ T3 → Settings → Connections и подтвердил вход. Codex верн
+ прошёл с автоматической проверкой разрешений. Штатный режим подтверждений
+ сохраняй; повторная авторизация T3 эту ошибку не исправляет.
+ 
++### Провайдер Cursor
++
++Grok приходит в T3 через провайдера `cursor`. Аккаунт владельца — Cursor
++под маркой Grok, с кабинетом на grok.com; тариф Premium покрывает только
++модели Grok.
++
++Проверено 2026-10-20 на T3 Code 0.1.1-nightly.20261020.3411:
++
++- Вход работает только через поле «Cursor API key» в настройках провайдера.
++  Вход через браузер для аккаунта без почты T3 не сохраняет: «Could not
++  save the Cursor sign-in». SDK Cursor кладёт `email: undefined`, а схема
++  T3 такое поле отвергает. Это ошибка T3, а не скила.
++- `grok-4.7` в треде `scratch` ответил верно, ход 8,5 с:
++  `mcp:d53e0a19-678a-4bb5-98a8-56cfd0c8deb1`.
++- `glm-5p3-flash` упал: «not included in your weekly usage. Buy credits
++  or switch to a Grok model» — `mcp:fc9da251-99e6-4b6a-8c26-ba270e5c6d2b`.
++
++Отдельный провайдер `grok` (модель Grok Build) в каталоге есть, но выключен;
++он не проверялся.
++
+ ## Инструменты сервера
+ 
+ Сервер отдаёт около сотни инструментов. Часть из них действует от имени
+@@ -140,6 +160,9 @@ T3 thread … This MCP client signed in from outside a thread`. Агент вн
+ 
+ ## Claude в треде
+ 
++Раздел для вызывающего Codex. Из Claude Code Claude тредом T3 не зовут:
++своих агентов Claude Code зовёт своими субагентами.
++
+ Провайдер `claudeAgent`: Opus 5.5, Fable 5.1, Sonnet 5.5, Haiku 5.5. Усилие
+ передаётся опцией с другим именем, чем у Codex и Muse:
+ `{"id": "effort", "value": "high"}`. Среди уровней есть `ultracode` — xhigh
+@@ -156,6 +179,38 @@ T3 thread … This MCP client signed in from outside a thread`. Агент вн
+   его присылает хук проекта, а не T3 Code.
+ - Скил плагина вызывается полным именем: `mattpocock-skills:tdd`, не `tdd`.
+ 
++## Grok в треде
++
++Провайдер `cursor`, модель `grok-4.7`. Опции: `reasoning_effort` — `low`,
++`medium`, `high`, `xhigh`, по умолчанию `high`; `fastMode` — по умолчанию
++включён, что он меняет, не установлено; `contextWindow` — `256k` или `500k`,
++по умолчанию `500k`.
++
++Проба 2026-10-20 в проекте `agentic-research`, `high`, тред
++`mcp:b010ce11-027e-49c1-86ff-e50e2d957536`. Сведения о контексте — из ответа
++треда, снятого до вызова инструментов:
++
++- В контексте: системный промпт Cursor с блоком T3 «you are running in T3
++  Code through the Cursor harness, as grok-4.7»; корневой `AGENTS.md`
++  проекта; четыре правила пользователя Cursor — среди них «коммить только
++  по просьбе». Нет `~/.claude/CLAUDE.md` и `~/.codex/AGENTS.md`.
++- Скилов 138, в контекст приходят пути, тексты читаются по надобности.
++  Источники: `~/.claude/skills` (и восемь старых снимков из его `_backups/`),
++  `~/.codex/skills`, `~/.agents/skills`, `~/.cursor/skills`,
++  `~/.cursor/skills-cursor`.
++- Инструменты: `Shell`, `Read`, `Write`, `StrReplace`, `Grep`, `Glob`;
++  пространство `cursor` — среди прочего `Task` (дочерние агенты),
++  `GenerateImage`, `WebSearch`, `WebFetch`; MCP-сервер `t3-code` с
++  `delegate_task` и `t3_thread_launch`. Поиска по X нет.
++- Инструмент `Write` записал файл в `~/Library/Caches/`, `Read` прочитал
++  `/etc/shells`: запись и чтение вне рабочей папки проходят. Оболочка вне
++  папки не проверена: Grok вызвал `Write` и `Shell` параллельно, команда
++  выполнилась раньше, чем появилась папка, и упала. Повтор и обход он
++  по брифу не делал.
++- Ход с перечнем контекста — 112 с. Реплика в законченный тред начала новый
++  ход с памятью прежнего; один поиск в вебе — 31 с, две статьи CoinDesk
++  с датами; обе открываются, даты совпали.
++
+ ## Проект и рабочая папка
+ 
+ - Вызывающий вне треда обязан дать `projectId` или `scratch: true`.
+@@ -174,15 +229,15 @@ T3 thread … This MCP client signed in from outside a thread`. Агент вн
+ 
+ ## Права и контекст агентов
+ 
+-| Что | Muse | Gemini |
+-| --- | --- | --- |
+-| уровни прав | `full-access` и `approval-required` | все четыре |
+-| запись инструментом вне рабочей папки | проходит | отклоняется: `Access to path … is denied. It is outside the workspace` |
+-| чтение инструментом вне рабочей папки | не мерилось в треде; под `muse exec` читает любой файл | отклоняется: `Access to path … is denied. It is outside the allowed workspace directories` |
+-| команды оболочки вне рабочей папки | не мерилось | пишут и читают |
+-| личные правила и скилы владельца из Claude Code и Codex | загружены: 95 скилов и заголовки личных инструкций | не загружены |
+-| `AGENTS.md` проекта | выполнен | не выполнен; загружен ли файл, не установлено |
+-| коммит без просьбы | не делал | не делал |
++| Что | Muse | Gemini | Grok |
++| --- | --- | --- | --- |
++| уровни прав | `full-access` и `approval-required` | все четыре | каталог не ограничивает; проверен `full-access` |
++| запись инструментом вне рабочей папки | проходит | отклоняется: `Access to path … is denied. It is outside the workspace` | проходит |
++| чтение инструментом вне рабочей папки | не мерилось в треде; под `muse exec` читает любой файл | отклоняется: `Access to path … is denied. It is outside the allowed workspace directories` | проходит |
++| команды оболочки вне рабочей папки | не мерилось | пишут и читают | не мерилось |
++| личные правила и скилы владельца из Claude Code и Codex | загружены: 95 скилов и заголовки личных инструкций | не загружены | скилы загружены, личные инструкции нет |
++| `AGENTS.md` проекта | выполнен | не выполнен; загружен ли файл, не установлено | загружен; выполнение не проверялось |
++| коммит без просьбы | не делал | не делал | не делал |
+ 
+ Muse умеет сам писать сценарий и запускать до восьми дочерних агентов — по
+ документации Muse Code; по документации T3 Code он получает и инструменты
+@@ -208,6 +263,7 @@ Antigravity берёт из `~/.gemini/config/skills` — по документ
+ | `claudeAgent` | Opus 5.5, Fable 5.1, Sonnet 5.5, Haiku 5.5 | `effort` до `max`, плюс `ultracode` и `ultrathink` |
+ | `antigravity` | `gemini-4-argon-low`, `-medium`, `-high`, `gemini-3.8-flash-high` | в имени модели |
+ | `muse` | `muse-wonder-full-1.0`, `muse-wonder-1.0` | от `minimal` до `max` |
++| `cursor` | `grok-4.7`; `glm-5p3-flash` — вне тарифа владельца | у Grok `reasoning_effort` до `xhigh`, у GLM `reasoning` до `max` |
+ 
+ Старые Gemini, Codex и Claude скрыты в настройках T3 Code
+ (`providerModelPreferences.*.hiddenModels`); Gemini 4 Argon вышел позже
+@@ -254,13 +310,27 @@ exist or you lack access`.
+ 
+ - `t3_thread_wait` с `timeoutMs` 58000 проходит; 180000 клиент обрывает
+   с `The operation timed out`. Работу треда это не прерывает.
+-- Сторож `scripts/wake_on_done.sh` читает статус хода из таблицы
+-  `orchestration_v2_projection_runs` базы `~/.t3/userdata/statev2.sqlite`
+-  только на чтение. `run_id` там тот же, что возвращают запуск и реплика.
+-  Замер 2026-10-15: ход Gemini кончился через 54 секунды после запуска,
+-  сторож разбудил сессию на 52-й секунде своего ожидания. Схема базы —
+-  внутренняя и может смениться с ночной сборкой; тогда сторож выходит
+-  с сообщением, а не висит. Запасные пути: фоновый субагент, повторяющий
++- Сторож `scripts/wake_on_done.sh` читает базу
++  `~/.t3/userdata/statev2.sqlite` только на чтение: статус хода — из
++  `orchestration_v2_projection_runs`, вопросы агента — из
++  `orchestration_v2_projection_runtime_requests`, те же, что отдаёт
++  `t3_pending_request_list`. `run_id` там тот же, что возвращают запуск
++  и реплика. Замер 2026-10-15: ход Gemini кончился через 54 секунды после
++  запуска, сторож разбудил сессию на 52-й секунде своего ожидания. Схема
++  базы — внутренняя и может смениться с ночной сборкой; тогда сторож через
++  минуту выходит с сообщением, а не висит.
++- Статус хода `waiting` — не вопрос агента. В коде T3 0.1.1 так помечен ход,
++  у которого провайдер закончил, а checkpoint ещё записывается: «`waiting` is
++  provider-finished with checkpoint capture still pending». До 2026-10-20
++  сторож принимал этот статус за вопрос: дважды разбудил сессию сообщением
++  «waits for an answer», хотя список вопросов был пуст.
++- При перезапуске T3 Code сторож получал `unable to open database file (14)`
++  и выходил с ошибкой (наблюдение 2026-10-20). Идущие ходы перезапуск
++  отменяет (`cancelled`), а через 9–13 с T3 продолжает каждый новым ходом
++  со следующим `ordinal` и полем `restartContinuationOfRunId`; продолжение
++  включает настройка `continueThreadsAfterServerUpdate` — по базе и коду
++  сервера. Сторож теперь ждёт базу и продолжение до минуты и следит за новым
++  ходом. Запасные пути: фоновый субагент, повторяющий
+   `t3_thread_wait`, — 65 тыс. токенов `haiku` на четыре минуты; либо токен
+   `t3 auth session issue --scope orchestration:read` и вызов MCP из скрипта —
+   не настроен: это новый ключ доступа, его выпускает владелец.
+@@ -300,7 +370,7 @@ Gemini в треде проекта свёл семь файлов за 84 се
+ 
+ ## Данные и лимиты
+ 
+-Запросы и прочитанные файлы уходят в Meta и Google. По документации в подписке
++Запросы и прочитанные файлы уходят в Meta, Google и Cursor. По документации в подписке
+ Meta по умолчанию включён режим Contributor: Meta вправе учить модели на
+ содержимом; режим меняет владелец.
+ 
+@@ -311,6 +381,7 @@ Meta по умолчанию включён режим Contributor: Meta впр
+ | Codex | метод `account/rateLimits/read` движка `codex app-server`: окна, кредиты, бесплатные сбросы лимита | бесплатно |
+ | Google: Gemini, Claude и GPT | `agy -p /usage`: неделя и пять часов, у Gemini и у Claude с GPT свои; у Gemini 4 Argon своя неделя — с 2026-10-20 | бесплатно |
+ | Meta: Muse | метод `usage/read` протокола `muse serve` | один минимальный запрос |
++| Cursor: Grok | скрипт не видит; по тексту отказа GLM лимит тарифа недельный | — |
+ 
+ Для владельца остаток Codex и Gemini по документации показывает T3 Code:
+ раздел Usage → Limits или команда `/usage-limits` в треде. Muse там нет: ни
+@@ -330,6 +401,8 @@ Claude Opus 5.5 и Sonnet 5.5 на подписке Google доступны то
+ Уровень `approval-required`, вложения, стратегия `worktree`, PDF в треде Gemini,
+ создание расписания, слежение за пул-реквестом, ветки тредов, режим `restart`
+ у `t3_thread_send`, смена провайдера в треде, продолжение после лимита.
++У Grok — поправка в идущий ход, оболочка вне рабочей папки, PDF, что меняет
++`fastMode`, ход на исчерпанном лимите и качество аудита на настоящей задаче.
+ 
+ Документация T3 Code лежит в репозитории `pingdotgg/t3code`, папка `docs/`:
+ `user/outside-agents.md`, `user/providers-muse.md`,
+diff --git a/skills/1t3/versions/draft-2026-10-20/scripts/wake_on_done.sh b/skills/shared/1t3/portable/scripts/wake_on_done.sh
+index 63243534..d4b81087 100755
+--- a/skills/1t3/versions/draft-2026-10-20/scripts/wake_on_done.sh
++++ b/skills/shared/1t3/portable/scripts/wake_on_done.sh
+@@ -1,9 +1,9 @@
+ #!/usr/bin/env bash
+-# Wait until a T3 Code run ends, then exit. Started as a background Bash task,
+-# its exit wakes the Claude Code session; waiting costs no tokens.
+-# It reads T3 Code's own state database read-only. That schema is internal and
+-# may change with a nightly build, so every unexpected answer ends the wait
+-# with a message instead of hanging.
++# Wait until a T3 Code run ends or its agent asks a question, then exit.
++# Started as a background Bash task, its exit wakes the Claude Code session;
++# waiting costs no tokens. It reads T3 Code's own state database read-only.
++# That schema is internal and may change with a nightly build, so a read that
++# keeps failing for a minute ends the wait with a message instead of hanging.
+ set -u
+ 
+ if [ $# -lt 1 ]; then
+@@ -13,41 +13,117 @@ fi
+ ID="$1"
+ MAX_MIN="${2:-120}"
+ DB="${T3CODE_HOME:-$HOME/.t3}/userdata/statev2.sqlite"
++RUNS=orchestration_v2_projection_runs
++REQUESTS=orchestration_v2_projection_runtime_requests
++GRACE=20 # polls of 3 s: one minute
+ 
+ case "$ID" in
+ *"'"*) echo "[wake] id must not contain quotes: $ID"; exit 2 ;;
+-run:*) QUERY="select status from orchestration_v2_projection_runs where run_id='$ID'" ;;
+-*) QUERY="select status from orchestration_v2_projection_runs where thread_id='$ID' order by ordinal desc limit 1" ;;
++run:*) RUN="$ID"; THREAD="" ;;
++*) RUN=""; THREAD="$ID" ;;
+ esac
+ [ -r "$DB" ] || { echo "[wake] no T3 Code state database at $DB"; exit 1; }
+ 
++# One row: run, ordinal, status, the kind of a request the agent opened during
++# this run and still waits on, the run that continues this one after a
++# T3 Code restart and the run this one continues. A thread id follows the
++# thread's latest run.
++row_sql() {
++	local where
++	if [ -n "$RUN" ]; then
++		where="r.run_id = '$RUN'"
++	else
++		where="r.thread_id = '$THREAD' order by r.ordinal desc limit 1"
++	fi
++	echo "select r.run_id, r.ordinal, r.status,
++		(select q.kind from $REQUESTS q where q.thread_id = r.thread_id
++			and q.status = 'pending' and q.created_at >= r.requested_at
++			order by q.kind = 'user_input' desc limit 1),
++		(select c.run_id from $RUNS c
++			where json_extract(c.payload_json, '$.restartContinuationOfRunId') = r.run_id
++			limit 1),
++		json_extract(r.payload_json, '$.restartContinuationOfRunId')
++		from $RUNS r where $where"
++}
++
+ start=$(date +%s)
+ empty=0
++unreadable=0 # T3 Code closes its database for seconds while it restarts
++finishing=0  # `waiting`: the provider finished, T3 Code still saves the checkpoint
++cancelled=0  # a restart cancels the run and continues it as a new one
++seen=""
++note=""
+ while :; do
+-	if ! status=$(sqlite3 -readonly "$DB" "$QUERY" 2>&1); then
+-		echo "[wake] cannot read T3 Code state, the schema may have changed: $status"
+-		exit 1
+-	fi
+ 	elapsed=$(($(date +%s) - start))
++	if ! row=$(sqlite3 -readonly "$DB" "$(row_sql)" 2>&1); then
++		unreadable=$((unreadable + 1))
++		if [ "$unreadable" -ge "$GRACE" ]; then
++			echo "[wake] $ID: cannot read T3 Code state for a minute: $row. T3 Code may be closed, or an update changed its schema"
++			exit 1
++		fi
++		sleep 3
++		continue
++	fi
++	if [ "$unreadable" -gt 0 ]; then
++		note="$note; T3 Code state was unreadable for $((unreadable * 3)) s"
++		unreadable=0
++	fi
++	IFS='|' read -r run ordinal status request continuation continues <<<"$row"
++	if [ -z "$status" ]; then
++		empty=$((empty + 1))
++		if [ "$empty" -ge 40 ]; then
++			echo "[wake] $ID: no such run in T3 Code after two minutes"
++			exit 1
++		fi
++		sleep 3
++		continue
++	fi
++	empty=0
++	if [ -n "$seen" ] && [ "$run" != "$seen" ]; then
++		why=""
++		[ "$continues" = "$seen" ] && why="T3 Code restarted, "
++		note="$note; ${why}the thread went on as ordinal $ordinal ($run)"
++		finishing=0
++		cancelled=0
++	fi
++	seen="$run"
++	case "$request" in
++	"") ;;
++	user_input)
++		echo "[wake] $run: the agent asks a question (t3_pending_request_list) after ${elapsed}s, run $status$note"
++		exit 0
++		;;
++	*)
++		echo "[wake] $run: the agent waits for a $request approval in the T3 Code app after ${elapsed}s$note"
++		exit 0
++		;;
++	esac
+ 	case "$status" in
+-	completed | failed | cancelled | interrupted | rolled_back)
+-		echo "[wake] $ID: $status after ${elapsed}s"
++	completed | failed | interrupted | rolled_back)
++		echo "[wake] $run: $status after ${elapsed}s$note"
+ 		exit 0
+ 		;;
+ 	waiting)
+-		echo "[wake] $ID: the agent waits for an answer (t3_pending_request_list) after ${elapsed}s"
+-		exit 0
++		finishing=$((finishing + 1))
++		if [ "$finishing" -ge "$GRACE" ]; then
++			echo "[wake] $run: the agent finished after ${elapsed}s; T3 Code is still saving the checkpoint$note"
++			exit 0
++		fi
+ 		;;
+-	"")
+-		empty=$((empty + 1))
+-		if [ "$empty" -ge 40 ]; then
+-			echo "[wake] $ID: no such run in T3 Code after two minutes"
+-			exit 1
++	cancelled)
++		if [ -n "$continuation" ]; then
++			[ -n "$RUN" ] && RUN="$continuation"
++			continue
++		fi
++		cancelled=$((cancelled + 1))
++		if [ "$cancelled" -ge "$GRACE" ]; then
++			echo "[wake] $run: cancelled after ${elapsed}s$note"
++			exit 0
+ 		fi
+ 		;;
+ 	esac
+ 	if [ "$elapsed" -ge $((MAX_MIN * 60)) ]; then
+-		echo "[wake] $ID: still ${status} after ${MAX_MIN} min; the run goes on, start the watch again"
++		echo "[wake] $run: still ${status} after ${MAX_MIN} min; the run goes on, start the watch again$note"
+ 		exit 0
+ 	fi
+ 	sleep 3
