@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Call Gemini 3.8 Flash High — or, with --model, Claude on the same Google
-subscription — as a subagent through the Antigravity CLI (agy).
+"""Call Gemini 3.8 Flash High — or, with --model, Gemini 4 Argon or Claude on the
+same Google subscription — as a subagent through the Antigravity CLI (agy).
 
 The brief comes on stdin. The answer goes to stdout, a one-line receipt to
 stderr. agy reports a denied tool or a timeout as exit 0 with an empty answer;
@@ -19,11 +19,11 @@ import threading
 import time
 
 MODEL = "gemini-3.8-flash-high"
-CLAUDE_PREFIX = "claude-"  # Claude models of the Google subscription, listed by `agy models`
+MODEL_PREFIXES = ("gemini-4-argon-", "claude-")  # Argon and Claude on the Google subscription, listed by `agy models`
 
 READ_ONLY_NOTE = (
     "[Runtime note] You run headless as a read-only subagent of another agent. "
-    "Only file-reading tools work: view_file, grep_search, list_dir, find_by_name. "
+    "Only the file-reading tool works, on paths named in the brief. "
     "Do NOT call run_command, write_to_file, search_web, read_url_content or any "
     "other tool: the first denied call ends the run with an empty answer. If the "
     "task needs such a tool, say so in the answer instead of calling it. "
@@ -66,10 +66,10 @@ def parse_args():
     parser.add_argument("--schema", help="JSON schema (string or file path); stdout becomes the parsed object")
     parser.add_argument("--timeout", default="10m", help="time limit for the answer (default: 10m)")
     parser.add_argument("--json", action="store_true", help="print the raw agy result object instead of the answer text")
-    parser.add_argument("--model", default=MODEL, help=f"{MODEL} (default) or a claude-* id from `agy models`: Claude billed to the Google subscription")
+    parser.add_argument("--model", default=MODEL, help=f"{MODEL} (default), gemini-4-argon-high for an audit or advice, or a claude-* id from `agy models`: Claude billed to the Google subscription")
     args = parser.parse_args()
-    if args.model != MODEL and not args.model.startswith(CLAUDE_PREFIX):
-        fail(EXIT_USAGE, f"--model takes {MODEL} or a claude-* id from `agy models`; Gemini stays pinned to {MODEL}")
+    if args.model != MODEL and not args.model.startswith(MODEL_PREFIXES):
+        fail(EXIT_USAGE, f"--model takes {MODEL}, a gemini-4-argon-* or a claude-* id from `agy models`; other Gemini models are not used")
     args.limit = seconds(args.timeout)
     if args.neutral and args.dir:
         fail(EXIT_USAGE, "--neutral and --dir exclude each other; give project folders to --neutral through --add-dir")
@@ -127,7 +127,7 @@ def show_progress(line, announced):
         return
     announced.add(step.get("step_index"))
     params = (step.get("tool_info") or {}).get("parameters") or {}
-    detail = next((str(params[key]) for key in ("AbsolutePath", "TargetFile", "CommandLine", "query", "Url") if params.get(key)), "")
+    detail = next((str(params[key]) for key in ("AbsolutePath", "Path", "TargetFile", "CommandLine", "query", "Url") if params.get(key)), "")
     print(f"[gemini] · {step.get('tool_name', '?')} {detail[:110]}".rstrip(), file=sys.stderr, flush=True)
 
 
@@ -152,10 +152,11 @@ def read_events(stdout):
             if step.get("step_type") != "tool":
                 continue
             info = step.get("tool_info") or {}
-            path = (info.get("parameters") or {}).get("AbsolutePath")
+            params = info.get("parameters") or {}
+            path = params.get("AbsolutePath") or params.get("Path")  # agy 1.4 reports view_file as read_file with Path
             if step.get("state") == "DONE":
                 tools[step.get("tool_name", "?")] += 1
-                if step.get("tool_name") == "view_file" and path and path not in viewed:
+                if step.get("tool_name") in ("view_file", "read_file") and path and path not in viewed:
                     viewed.append(path)
             elif step.get("state") == "ERROR":
                 reason = (info.get("error") or {}).get("message", "unknown error").rsplit("(invalid_args) ", 1)[-1]
