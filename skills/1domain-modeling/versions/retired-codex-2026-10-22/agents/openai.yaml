@@ -1,0 +1,4 @@
+interface:
+  display_name: "1domain-modeling"
+  short_description: "Выделяйте изменчивый смысл в коде"
+  default_prompt: "Use $1domain-modeling to place changing domain meaning and component boundaries in code."

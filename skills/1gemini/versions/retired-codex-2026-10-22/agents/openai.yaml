@@ -1,0 +1,7 @@
+interface:
+  display_name: "1gemini"
+  short_description: "Account-backed Gemini advisor and media analysis"
+  default_prompt: "Use $1gemini to get a verified Gemini perspective on this task."
+
+policy:
+  allow_implicit_invocation: true

@@ -11,10 +11,12 @@ description: "История скила 1gemini: вызов Gemini 3.8 Flash Hig
 `versions/draft-2026-10-14/`. Пути `skills/claude/1gemini/` ниже относятся ко
 времени записи.
 
-У Codex есть отдельный одноимённый пакет `~/.codex/skills/1gemini/` без
+У Codex был отдельный одноимённый пакет `~/.codex/skills/1gemini/` без
 владельца в репозитории. Он создан 2026-08-19, устроен иначе (изолированный
 советник с обёрткой `gemini_advisor.py`) и закреплён на `gemini-3.1-pro-high`,
-которой на 2026-10-13 нет в `agy models`. Этот пакет здесь не менялся.
+которой на 2026-10-13 нет в `agy models`. Снят 2026-10-22 при уборке скилов:
+ни одного чтения в сессиях Codex. Решение владельца — «да удаляй»[^codex-removal].
+Последний пакет — `versions/retired-codex-2026-10-22/`.
 
 Заказ владельца на версию для Claude Code —
 `_ops/chat-recall/2026-10-13-134632-claude-bee1af57.md#recall-f43f9e14341a47e2bd208c52ac0a8a8d`,
@@ -34,3 +36,5 @@ description: "История скила 1gemini: вызов Gemini 3.8 Flash Hig
   `skills/1muse/work/audit-2026-10-13.md`.
 - Проба Gemini через T3 Code рядом с Muse лежит в общем файле
   `skills/1muse/work/t3-probe-2026-10-14.md`.
+
+[^codex-removal]: [Слова владельца, 2026-10-22](../../_ops/chat-recall/2026-10-22-235727-claude-code-4acb96f5.md#recall-5032b37f05484540b0fce2ffa92b31b2).
