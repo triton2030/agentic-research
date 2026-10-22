@@ -71,6 +71,7 @@ class ChatCaptureTests(unittest.TestCase):
         contested: str | None = None,
         supersedes_none: bool | None = None,
         ensure_topic_map: bool = True,
+        replace: str | None = None,
     ) -> subprocess.CompletedProcess[str]:
         topic_map = self.root / "_ops" / "chat-recall" / "topics.md"
         if (
@@ -119,6 +120,8 @@ class ChatCaptureTests(unittest.TestCase):
             supersedes_none = not supersedes and not contested
         if supersedes_none:
             command.append("--supersedes-none")
+        if replace:
+            command += ["--replace", replace]
         if json_output:
             command.append("--json")
         result = subprocess.run(
@@ -988,6 +991,127 @@ class ChatCaptureTests(unittest.TestCase):
         )
         self.assertEqual(refused.returncode, 2)
         self.assertIn("contradicts", refused.stderr)
+
+    def load_digest(self):
+        spec = importlib.util.spec_from_file_location(
+            "chat_digest_replace_boundary", SCRIPT.parent / "chat_digest.py"
+        )
+        if spec is None or spec.loader is None:
+            raise RuntimeError("cannot load chat_digest.py for replace test")
+        digest = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(digest)
+        return digest
+
+    def test_replace_overwrites_a_record_of_this_conversation(self) -> None:
+        self.write_topic_map("- `chat-recall-corpus` — Формат корпуса")
+        first = json.loads(self.run_capture(
+            "Выносим портрет в отдельную статью", "решение", "chat-recall-corpus",
+            env=self.claude_env(), json_output=True,
+        ).stdout)
+        self.run_capture(
+            "Соседняя реплика", "идея", "chat-recall-corpus",
+            env=self.claude_env(), source_timestamp="2001-02-03T04:06:06.789Z",
+        )
+        replaced = json.loads(self.run_capture(
+            "Выносим портрет в отдельную статью Или нет Как ты думаешь?",
+            "идея", "chat-recall-corpus", env=self.claude_env(),
+            source_timestamp="2001-02-03T04:07:06.789Z",
+            replace=first["anchor"], json_output=True,
+        ).stdout)
+
+        self.assertEqual(replaced["status"], "replaced")
+        self.assertEqual(replaced["anchor"], first["anchor"])
+        self.assertEqual(len(self.recall_files()), 1)
+        text = self.recall_files()[0].read_text(encoding="utf-8")
+        self.assertNotIn('"Выносим портрет в отдельную статью" —', text)
+        self.assertEqual(text.count(f"### {first['record_id']}"), 1)
+        self.assertIn("Или нет", text.rstrip().splitlines()[-1])
+        self.assertNotIn("  - решение", text)
+        self.assertNotIn("\n\n\n", text)
+        records, _ = self.load_digest().load(self.root / "_ops" / "chat-recall")
+        self.assertEqual([r["text"] for r in records], [
+            "Соседняя реплика",
+            "Выносим портрет в отдельную статью Или нет Как ты думаешь?",
+        ])
+        self.assertFalse([r for r in records if r["diagnostics"]])
+
+    def test_replace_refuses_a_record_of_another_conversation(self) -> None:
+        self.write_topic_map("- `chat-recall-corpus` — Формат корпуса")
+        other = json.loads(self.run_capture(
+            "Старая позиция", "решение", "chat-recall-corpus",
+            env=self.claude_env(str(uuid.uuid4())), json_output=True,
+        ).stdout)
+        self.run_capture("Своя реплика", "идея", "chat-recall-corpus", env=self.claude_env())
+        refused = self.run_capture(
+            "Новая позиция", "идея", "chat-recall-corpus",
+            env=self.claude_env(), replace=other["anchor"], expect_ok=False,
+        )
+        self.assertEqual(refused.returncode, 2)
+        self.assertIn("another conversation", refused.stderr)
+        old_file = self.root / "_ops" / "chat-recall" / other["anchor"].split("#")[0]
+        self.assertIn('"Старая позиция"', old_file.read_text(encoding="utf-8"))
+
+        legacy = self.run_capture(
+            "Новая позиция", "идея", "chat-recall-corpus", env=self.claude_env(),
+            replace=f"{other['line_anchor'].replace('#L', ':')} sha:{other['record_sha256']}",
+            expect_ok=False,
+        )
+        self.assertIn("stable address", legacy.stderr)
+
+    def test_replace_refuses_a_record_already_referenced(self) -> None:
+        self.write_topic_map("- `chat-recall-corpus` — Формат корпуса")
+        first = json.loads(self.run_capture(
+            "Позиция", "решение", "chat-recall-corpus",
+            env=self.claude_env(), json_output=True,
+        ).stdout)
+        self.run_capture(
+            "Позиция из другого разговора отменяет её", "решение", "chat-recall-corpus",
+            env=self.claude_env(str(uuid.uuid4())),
+            source_timestamp="2001-02-04T04:05:06.789Z", supersedes=first["anchor"],
+        )
+        refused = self.run_capture(
+            "Позиция иначе", "идея", "chat-recall-corpus", env=self.claude_env(),
+            replace=first["anchor"], expect_ok=False,
+        )
+        self.assertEqual(refused.returncode, 2)
+        self.assertIn("already referenced", refused.stderr)
+
+        unknown = self.run_capture(
+            "Позиция иначе", "идея", "chat-recall-corpus", env=self.claude_env(),
+            replace=first["anchor"].split("#")[0] + "#recall-" + "0" * 32, expect_ok=False,
+        )
+        self.assertIn("copy the anchor", unknown.stderr)
+
+    def test_replace_reports_relations_it_did_not_repeat(self) -> None:
+        self.write_topic_map("- `chat-recall-corpus` — Формат корпуса")
+        old = json.loads(self.run_capture(
+            "Старая позиция", "решение", "chat-recall-corpus",
+            env=self.claude_env(str(uuid.uuid4())), json_output=True,
+        ).stdout)
+        first = json.loads(self.run_capture(
+            "Новая позиция", "решение", "chat-recall-corpus", env=self.claude_env(),
+            source_timestamp="2001-02-04T04:05:06.789Z", supersedes=old["anchor"],
+            json_output=True,
+        ).stdout)
+        replaced = json.loads(self.run_capture(
+            "Новая позиция Или нет", "идея", "chat-recall-corpus", env=self.claude_env(),
+            source_timestamp="2001-02-04T04:06:06.789Z", replace=first["anchor"],
+            json_output=True,
+        ).stdout)
+        self.assertEqual(replaced["dropped_relations"], {"supersedes": old["anchor"]})
+
+    def test_replace_refuses_a_relation_to_itself(self) -> None:
+        self.write_topic_map("- `chat-recall-corpus` — Формат корпуса")
+        first = json.loads(self.run_capture(
+            "Позиция", "решение", "chat-recall-corpus",
+            env=self.claude_env(), json_output=True,
+        ).stdout)
+        refused = self.run_capture(
+            "Позиция иначе", "решение", "chat-recall-corpus", env=self.claude_env(),
+            replace=first["anchor"], supersedes=first["anchor"], expect_ok=False,
+        )
+        self.assertEqual(refused.returncode, 2)
+        self.assertIn("itself", refused.stderr)
 
     def test_supersedes_binds_the_address_to_a_fingerprint(self) -> None:
         self.write_topic_map("- `chat-recall-corpus` — Формат корпуса")

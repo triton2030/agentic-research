@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Append one caller-confirmed owner excerpt and preserve its non-inferable context."""
+"""Append one caller-confirmed owner excerpt, or overwrite one record of this
+conversation, and preserve its non-inferable context."""
 
 from __future__ import annotations
 
@@ -17,7 +18,7 @@ from difflib import SequenceMatcher
 from pathlib import Path
 from typing import NamedTuple
 
-from record_identity import corpus_lock, record_blocks, record_hash, resolve_record
+from record_identity import ADDRESS_RE, corpus_lock, record_blocks, record_hash, resolve_record
 
 from recall_metadata import (
     REPAIR_TOPIC,
@@ -474,6 +475,77 @@ def session_file_label(path: Path) -> str:
     return f"{path} (agent: {session_file_agent(path)})"
 
 
+def replaced_record(
+    log_dir: Path, path: Path, value: str, supersedes: str | None, contested: str | None
+) -> str:
+    """Only an unreferenced record of this conversation's own file is overwritten."""
+    address = anchor(value, "replace")
+    match = ADDRESS_RE.fullmatch(address)
+    if not match or not match["id"] or match["sha"]:
+        raise CaptureError(
+            "--replace needs the stable address <file>.md#recall-<id> from the capture receipt"
+        )
+    identity = match["id"]
+    if match["file"] != path.name or not path.exists():
+        raise CaptureError(
+            f"--replace overwrites only a record of this conversation ({path.name}); "
+            f"{match['file']} belongs to another conversation: link the new record with "
+            "--supersedes or --contested, or change the old one only by the owner's "
+            "explicit order about it"
+        )
+    ids = [row[2] for row in record_blocks(path.read_text(encoding="utf-8-sig").splitlines())]
+    if ids.count(identity) != 1:
+        raise CaptureError(
+            f"no single record {identity} in {path.name}; copy the anchor from its capture receipt"
+        )
+    if any(relation and identity in relation for relation in (supersedes, contested)):
+        raise CaptureError("a replaced record cannot supersede or contest itself")
+    # A link written against the old text must not silently change its meaning.
+    address = f"{path.name}#{identity}"
+    holders = sorted(
+        other.name for other in log_dir.glob("*.md")
+        if address in other.read_text(encoding="utf-8-sig")
+    )
+    if holders:
+        raise CaptureError(
+            f"{address} is already referenced from {', '.join(holders)}: keep it and "
+            "save the new reply as a new record with --supersedes"
+        )
+    return identity
+
+
+def drop_record(lines: list[str], record_id: str) -> str:
+    """Remove one identified block with its heading; return the removed record."""
+    rows = [row for row in record_blocks(lines) if row[2] == record_id]
+    if len(rows) != 1:
+        raise CaptureError(f"{record_id} resolved to {len(rows)} records; repair explicitly")
+    number, raw, _identity = rows[0]
+    start = number - 1
+    end = start + len(raw.split("\n"))
+    head = start - 1
+    while head >= 0 and not lines[head].strip():
+        head -= 1
+    del lines[head:end]
+    if 0 < head < len(lines) and not lines[head - 1].strip() and not lines[head].strip():
+        del lines[head]
+    return raw
+
+
+def drop_unused_inventory(lines: list[str], key: str, value: str, used: set[str]) -> None:
+    if value in used:
+        return
+    end = frontmatter_end(lines)
+    header = f"{key}:"
+    if header not in lines[:end]:
+        return
+    index = lines.index(header) + 1
+    while index < end and lines[index].startswith("  - "):
+        if lines[index][4:].strip() == value:
+            del lines[index]
+            return
+        index += 1
+
+
 def verified_relations(log_dir: Path, values: list[str] | None, field: str) -> str | None:
     """Keep the single-address format; multiple addresses are a JSON array."""
     addresses = list(dict.fromkeys(
@@ -799,6 +871,58 @@ def append_entry(
     return True, context_updated, target
 
 
+def replace_entry(
+    path: Path,
+    record_id: str,
+    type_: str,
+    topic: str,
+    quote: str,
+    source: SourceTimestamp,
+    kind: str,
+    context: str | None,
+    session_card: str | None,
+    supersedes: str | None,
+    contested: str | None,
+    supersedes_unresolved: str | None,
+    source_ref: str | None,
+) -> tuple[bool, dict[str, str]]:
+    """Move the record to the end of its file in its new version, keeping its id.
+
+    Returns whether the session card changed and the previous version's relations
+    that the new version does not repeat.
+    """
+    from chat_digest import _parse_block, _frontmatter
+    lines = path.read_text(encoding="utf-8-sig").splitlines()
+    old = _parse_block(path, 0, drop_record(lines, record_id), _frontmatter(lines))
+    context_updated = bool(
+        session_card is not None
+        and set_frontmatter_scalar(lines, "session-context", session_card)
+    )
+    ensure_inventory(lines, "types", type_)
+    ensure_inventory(lines, "topics", topic)
+    while lines and not lines[-1].strip():
+        lines.pop()
+    lines += ["", *_entry_line(
+        quote, type_, topic, source, kind, context, supersedes, contested,
+        supersedes_unresolved, record_id, source_ref,
+    ).rstrip("\n").split("\n")]
+    header = _frontmatter(lines)
+    records = [_parse_block(path, number, raw, header) for number, raw, _ in record_blocks(lines)]
+    if old.get("type_raw"):
+        drop_unused_inventory(lines, "types", old["type_raw"], {r["type_raw"] for r in records})
+    drop_unused_inventory(lines, "topics", old["topic"], {r["topic"] for r in records})
+    write_atomic(path, "\n".join(lines) + "\n")
+    new_relations = {"supersedes": supersedes, "contested": contested,
+                     "supersedes-unresolved": supersedes_unresolved}
+    dropped = {
+        field: old[key]
+        for field, key in (("supersedes", "supersedes"), ("contested", "contested"),
+                           ("supersedes-unresolved", "supersedes_unresolved"))
+        if old.get(key) and old[key] != new_relations[field]
+    }
+    return context_updated, dropped
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -903,6 +1027,20 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--model")
     parser.add_argument("--session", help="conversation id; if omitted, taken from the runtime environment when available (Codex: CODEX_THREAD_ID or CODEX_SESSION_ID); pass it explicitly after a branch")
     parser.add_argument("--source-ref", help="optional source message/selection occurrence ID; may be omitted for same-turn capture without transcript lookup. Exact excerpts from the same occurrence retry idempotently. Without it, an explicit exact source timestamp plus kind, quote, topic and context identify the occurrence; date/minute or implicit write time do not deduplicate")
+    parser.add_argument(
+        "--replace",
+        metavar="ANCHOR",
+        help=(
+            "overwrite one record of this conversation instead of appending: "
+            "<file>.md#recall-<id> from its receipt, in the conversation file this "
+            "capture writes to. The old block is removed and the new version is "
+            "appended under the same id, so links lead to it. Relations of the old "
+            "version are not carried over: pass again those still true; the receipt "
+            "lists dropped ones. Refused when another record already references it "
+            "or it belongs to another conversation: link the new record with "
+            "--supersedes/--contested instead"
+        ),
+    )
     parser.add_argument(
         "--json",
         action="store_true",
@@ -1041,9 +1179,13 @@ def capture_locked(args, root, log_dir, quote, type_, topic, agent, model, conte
         payload = json.dumps([source.rendered, args.kind, quote, topic, context], ensure_ascii=False)
         source_ref = "timestamp-" + hashlib.sha256(payload.encode()).hexdigest()
         deduplication = "exact-timestamp-and-scene"
-    existing = matching_occurrence(path, quote, args.kind, source, source_ref, context, topic, type_, supersedes, contested, unresolved)
+    replaced = (
+        replaced_record(log_dir, path, args.replace, supersedes, contested)
+        if args.replace else None
+    )
+    existing = None if replaced else matching_occurrence(path, quote, args.kind, source, source_ref, context, topic, type_, supersedes, contested, unresolved)
     already_present = existing is not None
-    record_id = existing[2] if existing else "recall-" + uuid.uuid4().hex
+    record_id = replaced or (existing[2] if existing else "recall-" + uuid.uuid4().hex)
     if existing and not record_id:
         raise CaptureError("source occurrence exists without stable heading; use the repair helper first")
     topic_transaction = bool(
@@ -1069,7 +1211,14 @@ def capture_locked(args, root, log_dir, quote, type_, topic, agent, model, conte
             # Validate and commit the dictionary row first. A later holder failure
             # rolls it back, so a failed operation never leaves only one side.
             add_topic_row(topic_map, topic, new_topic_row)
-        if path.exists():
+        dropped: dict[str, str] = {}
+        if replaced:
+            context_updated, dropped = replace_entry(
+                path, replaced, type_, topic, quote, source, args.kind, context,
+                session_card, supersedes, contested, unresolved, source_ref,
+            )
+            written = True
+        elif path.exists():
             written, context_updated, path = append_entry(
                 path,
                 agent,
@@ -1116,16 +1265,20 @@ def capture_locked(args, root, log_dir, quote, type_, topic, agent, model, conte
             quote,
             topic,
             session,
-            "written"
+            "replaced"
+            if replaced
+            else "written"
             if written
             else "context-updated"
             if context_updated
             else "already-present",
             record_id,
         )
-        receipt["deduplication"] = deduplication
-        if deduplication == "none":
+        receipt["deduplication"] = "replaced-record-id" if replaced else deduplication
+        if receipt["deduplication"] == "none":
             receipt["warning"] = "no source occurrence identity; retries create separate records; pass --source-ref"
+        if dropped:
+            receipt["dropped_relations"] = dropped
     except (CaptureError, OSError) as error:
         try:
             restore_files(before)
@@ -1137,7 +1290,11 @@ def capture_locked(args, root, log_dir, quote, type_, topic, agent, model, conte
     if args.json:
         print(json.dumps(receipt, ensure_ascii=False))
     else:
-        if written:
+        if replaced:
+            print(f"replaced {replaced} in {path}")
+            for field, value in dropped.items():
+                print(f"previous version had {field}: {value} — not repeated; pass it again if still true")
+        elif written:
             print(f"appended to {path}")
         elif context_updated:
             print(f"quote already present; session-context updated in {path}")
