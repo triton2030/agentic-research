@@ -9,4 +9,4 @@
 - правила канона живут в самом скиле, скил глобальный и заводит `_canon` в новом проекте — `_ops/chat-recall/2026-09-05-013445-claude-cfb9aa25.md#L16`, `#L17`;
 - решение «это канон» принимает `1docs-write` или Founder, скил канона держит только науку — `#L19`, `#L22`.
 
-Снимок растворённого `1docs-system` с его intent и cut — `~/.claude/skills/_backups/1docs-system-dissolved-2026-09-05/`; архивы `1product-shaping` и `1use-principles` того же дня — рядом в `_backups/`.
+Снимок растворённого `1docs-system` с его intent и cut — [`skills/1docs-system/`](../1docs-system/README.md); архив `1product-shaping` того же дня — [`skills/1product-shaping/live-claude-2026-09-04/`](../1product-shaping/live-claude-2026-09-04/), архив `1use-principles` совпал с [`skills/1use-principles/candidate-2026-08-30/`](../1use-principles/candidate-2026-08-30/). До 2026-10-22 все они лежали в `~/.claude/skills/_backups/`.

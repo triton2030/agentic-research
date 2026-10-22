@@ -19,6 +19,10 @@ description: "Origin, snapshots, cuts and verification evidence for 1product-sha
   прогон нового;
 - `live-claude-2026-08-08/`, `live-codex-2026-08-08/` — снапшоты
   предшественника.
+- `live-claude-2026-09-04/` — установленный пакет Claude на 2026-09-04; до
+  2026-10-22 лежал в `~/.claude/skills/_backups/`. Файлы Codex-копии того дня
+  уже есть в `candidate-repair-2026-08-31/` и
+  `candidate-2026-08-30/platforms/codex/`[^backups].
 
 ## Синхронизация после правки owner-а
 
@@ -26,3 +30,5 @@ description: "Origin, snapshots, cuts and verification evidence for 1product-sha
 python3 skills/shared/sync_simple_projections.py 1product-shaping --write --install
 python3 skills/shared/sync_simple_projections.py 1product-shaping --check
 ```
+
+[^backups]: [Слова владельца, 2026-10-22](../../_ops/chat-recall/2026-10-22-235727-claude-code-4acb96f5.md#recall-bdd2d81f8fce4bd79924703b6be3c6c6).

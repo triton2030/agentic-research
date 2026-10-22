@@ -8,4 +8,4 @@
 - оба скила описывают папки и имена своей области — `#L44`;
 - ступень решает этот скил, наука канона в него не грузится — `_ops/chat-recall/2026-09-05-013445-claude-cfb9aa25.md#L19`, `#L20`, `#L22`; дешёвое утверждённое — в задачу, документа нет — `#L21`.
 
-Снимок растворённого `1docs-system` с его intent и cut — `~/.claude/skills/_backups/1docs-system-dissolved-2026-09-05/`.
+Снимок растворённого `1docs-system` с его intent и cut — [`skills/1docs-system/`](../1docs-system/README.md) (до 2026-10-22 лежал в `~/.claude/skills/_backups/1docs-system-dissolved-2026-09-05/`).

@@ -9,3 +9,10 @@
 2026-10-14: путь по умолчанию — тред T3 Code через скил `1t3`, мост — справкой
 `references/bridge.md`; прежняя версия — `versions/tracked-owner-2026-10-14/`,
 карта правки — внизу `cut.md`, решение — P-005 у владельца пакета.
+
+2026-10-22: `work/references-backup-2026-09-01/` — справки `delegate.md`, `threads.md`,
+`watch.md` на 2026-09-01 19:08 из бывшей `~/.claude/skills/_backups/`; уникален только
+`delegate.md`, две другие совпадают с `draft-2026-08-31/references/`.
+Перенесены по решению владельца[^backups].
+
+[^backups]: [Слова владельца, 2026-10-22](../../_ops/chat-recall/2026-10-22-235727-claude-code-4acb96f5.md#recall-bdd2d81f8fce4bd79924703b6be3c6c6).
