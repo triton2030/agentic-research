@@ -1034,7 +1034,7 @@ def build_parser() -> argparse.ArgumentParser:
             "overwrite one record of this conversation instead of appending: "
             "<file>.md#recall-<id> from its receipt, in the conversation file this "
             "capture writes to. The old block is removed and the new version is "
-            "appended under the same id, so links lead to it. Relations of the old "
+            "appended under the same id. Relations of the old "
             "version are not carried over: pass again those still true; the receipt "
             "lists dropped ones. Refused when another record already references it "
             "or it belongs to another conversation: link the new record with "
