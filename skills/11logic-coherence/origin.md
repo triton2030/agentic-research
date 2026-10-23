@@ -14,9 +14,12 @@
 Скил, по его словам, скорее про карту и допущения: откуда агент взял допущение, конфликт того, чего хочет владелец, и того, чего хочет бизнес, мышление при недостатке информации.[^criteria]
 Идею с субагентами он поставил под сомнение.[^subagents]
 
+2026-10-23, после атаки, снявшей два разрыва ссылкой на его решение и ADR, владелец поправил метод: «Факт того что я что то сказал или факт того что иснтрукция опирается на мои слова вообще не значит что это логический обоснованно я же поэтому этот скил выбрал».[^authority]
+
 [^liked]: `_ops/chat-recall/2026-10-02-130519-codex-01a0fba2.md#recall-f3ec2a5825cb41909ac39b2eee7685bd`.
 [^fixes]: `_ops/chat-recall/2026-10-02-130519-codex-01a0fba2.md#recall-9be112a7995a408080a5d3d6029063a7`.
 [^evidence]: `_ops/chat-recall/2026-10-02-130519-codex-01a0fba2.md#recall-2653701ca96641838fca7ba0ff493448`.
 [^problem]: `_ops/chat-recall/2026-10-03-121632-claude-de9ab7e0.md#recall-44a02d4383eb4ba6b336b534d76e4cb7`.
 [^criteria]: `_ops/chat-recall/2026-10-03-121632-claude-de9ab7e0.md#recall-4d829be7a3804995b83f133fee5c91a3`.
 [^subagents]: `_ops/chat-recall/2026-10-03-121632-claude-de9ab7e0.md#recall-9d0dfea4342047a6a0344e4429d44b8a`.
+[^authority]: `~/Documents/My_projects/subfrost/_ops/chat-recall/2026-10-23-103008-claude-code-72aa39ed.md#recall-8e060d28da1448b5ab5880a7e0b4d332`.
