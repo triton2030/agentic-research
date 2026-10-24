@@ -86,8 +86,8 @@
 `_ops/chat-recall/2026-10-14-011724-claude-92511fd9.md#recall-342824c7cc2a4e49977d6d91e66dcfb4`.
 База — `versions/draft-2026-10-24/`. Переведены `SKILL.md`, обе справки
 и `platforms/codex/agents/openai.yaml`; вывод `scripts/limits.py` остался
-русским — это отчёт владельцу. Токены (cl100k): `SKILL.md` 9487 → 5418,
-`t3-code.md` 11330 → 7323, `gemini-media.md` 3942 → 2442.
+русским — это отчёт владельцу. Токены (cl100k): `SKILL.md` 9487 → 5537,
+`t3-code.md` 11330 → 7356, `gemini-media.md` 3942 → 2442.
 
 | Снято | Почему | Что держит смысл |
 | --- | --- | --- |
