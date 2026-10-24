@@ -30,15 +30,16 @@
   `AGENTS.md`), operator/router — `skills/claude/1codex/`. Витрина прогонов:
   `codex_watch.py` там же, `hermes_watch.py` — в `scripts/` скила Hermes.
 
-## Ищу, что владелец говорил или решал
+## Ищу, как владелец думал о предмете
 
-- `_ops/chat-recall/` — дословные выдержки, файл на разговор. Читать не глазами,
+- `_ops/chat-recall/` — дословные выдержки, файл на разговор; контекст, а не
+  канон. Читать не глазами,
   а запросом:
 
   ```bash
   uv run --locked --script \
     ~/.claude/skills/1chat-recall/scripts/chat_digest.py \
-    _ops/chat-recall --query "<предмет решения>" --json
+    _ops/chat-recall --query "<предмет вопроса>" --json
   ```
 
 - `_ops/user-said/` — замороженный предшественник (по 2026-05-28), read-only.

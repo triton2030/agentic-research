@@ -2,8 +2,8 @@
 name: 1chat-recall
 description: >-
   Use to record owner words a future choice will need — his words or an agent
-  proposal he accepted — or to read his past quotes as dated context on how he
-  thought about a subject; also corpus repair. His current decisions live in
+  proposal he accepted — or, when a task or discussion touches a subject, to
+  read his past quotes as dated context on how he thought; also corpus repair. His current decisions live in
   project docs and instructions, not here. Excludes handoffs and updating
   project docs.
 ---
@@ -12,15 +12,18 @@ description: >-
 
 ## Why this exists
 
-The corpus serves a future agent facing a choice the owner never discussed with
-it: how he thinks about the subject, what he likes and dislikes, and why. Its
-core material is his longer reasoning about a concrete thing. A record is worth
-keeping only if it would change such a choice.
+The corpus exists so that conversations with the owner do not start from
+scratch each time. It serves a future agent facing a choice the owner never
+discussed with it: how he thinks about the subject, what he likes and
+dislikes, and why. Its core material is his longer reasoning about a concrete
+thing. A record is worth keeping only if it would change such a choice.
 
 The corpus is context, not canon. The owner's current decisions live in project
 docs, instructions and the current conversation. A quote says what he thought
-then; it is not a lookup of his decisions. He may have changed his mind, and a
-record's type is the strength of his words at that moment.
+then; it is not a lookup of his decisions. It is the past and has probably
+aged: he may have changed his mind, and a record's type is the strength of his
+words at that moment. Still, it helps understand his intentions and wishes in
+general.
 
 He thinks aloud, and many remarks steer only the thing at hand: «сделай этот
 текст разговорнее», «да удаляй». Recorded, they read as policy — a later agent
@@ -56,11 +59,10 @@ intent.
 - When an owner remark or agreement may matter to a future choice, a
   `capture-needed` arrives, or a later remark changes a record of this same
   conversation → [Capture](references/capture.md).
-- When you need to understand how the owner thought about a subject and live
-  files plus the current conversation do not settle it →
-  [Retrieval](references/retrieval.md). In a discussion with the owner, do not
-  search unless he refers to an earlier conversation: what he thinks now
-  matters more.
+- When a subject comes up — in a discussion or a task — and his earlier
+  thinking would help you understand what he wants →
+  [Retrieval](references/retrieval.md). Gather it so the conversation does not
+  start from scratch; what he says now still outweighs it.
 - When the owner explicitly orders validation, repair or backfill →
   [Integrity](references/integrity.md).
 
@@ -70,7 +72,8 @@ The corpus is `_ops/chat-recall/` of the target project: one file per
 conversation; `topics.md` is the subject vocabulary, not a summary of decisions.
 Capture and retrieval share one root, `TARGET_PROJECT_ROOT` (default: the
 current folder); an explicit `--project` overrides it for Capture. From a
-subfolder, pass the project root.
+subfolder, pass the project root. No `_ops/chat-recall/` at the root means
+no corpus here: say so and continue on docs and the conversation.
 
 Commands and schema belong to `--help` of the scripts in `scripts/`; a mismatch
 between help and behavior is a tool defect. The corpus stays local; retrieval
