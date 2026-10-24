@@ -154,7 +154,6 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   и шагов, имя как обещание, проверяемое по тексту файлов, вложенность по
   общему изменению; одобрено владельцем (`mavo3/_ops/chat-recall/2026-09-27-162252-Claude-7447c57c.md#recall-05230b0e33454b6f92d2f4bf4e6b9e52`);
   история — `skills/1folder-tree/work/kinds-and-names-2026-09-27/`.
-- `1index/portable/` держит подтверждённые маршруты к источникам, включая локальную навигацию по задачам при авторинге инструкций.
 - `1interview-tool/portable/` исследует будущие ошибки исполнения документов
   и создаёт Markdown-интервью с полноценными вариантами. Разобранные формы
   сохраняются как архив контекста в `_ops/interviews/_archive/`, не канон.
@@ -190,7 +189,6 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
 - `1product-shaping/portable/` создаёт чистые Product Principles + Frame и
   журнал обоснований; `1use-principles/portable/` применяет их к развилкам и
   пустотам.
-- `1index/portable/` держит подтверждённые маршруты к источникам, включая локальную навигацию по задачам при авторинге инструкций.
 - `1interview-tool/portable/` исследует будущие ошибки исполнения документов
   и создаёт Markdown-интервью с полноценными вариантами. Разобранные формы
   сохраняются как архив контекста в `_ops/interviews/_archive/`, не канон.
@@ -254,6 +252,9 @@ Runtime `1hermes` с 2026-08-22 tracked: `skills/claude/1hermes/` и
 намеренно (`--isolated` только у Claude, `agents/openai.yaml` только у Codex),
 поэтому правку кода вноси в обе руками, а не через sync.
 
+`1index` снят 2026-10-24 вместе с концепцией INDEX-файлов. История пакетов и
+прежние принципы — [`../1index/README.md`](../1index/README.md).
+
 ## Синхронизация
 
 После правки source owner-а передай имена изменённых пакетов позиционными
@@ -261,9 +262,9 @@ Runtime `1hermes` с 2026-08-22 tracked: `skills/claude/1hermes/` и
 
 ```bash
 python3 skills/shared/sync_simple_projections.py \
-  1product-shaping 1use-principles 1planning 1index --write --install
+  1product-shaping 1use-principles 1planning --write --install
 python3 skills/shared/sync_simple_projections.py \
-  1product-shaping 1use-principles 1planning 1index --check
+  1product-shaping 1use-principles 1planning --check
 ```
 
 Generic script собирает все portable files и непересекающуюся runtime delta.

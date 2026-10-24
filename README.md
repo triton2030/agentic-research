@@ -13,10 +13,9 @@ Most working documents are in Russian; this README is the English entry point.
 
 1. [AGENTS.md](AGENTS.md) — shared agent instructions, repository map,
    and sources of truth.
-2. [INDEX.md](INDEX.md) — shortcuts to knowledge found through earlier research.
-3. [Project goal](_ops/GOAL.md) — scope, current model targets,
+2. [Project goal](_ops/GOAL.md) — scope, current model targets,
    completion criteria, and stop rules.
-4. [Product frame](_ops/product-frames/agentic-research.md) and
+3. [Product frame](_ops/product-frames/agentic-research.md) and
    [product principles](_ops/product-frames/agentic-research.principles.md) —
    guidance to read before substantive work.
 

@@ -1,32 +1,27 @@
 ---
-description: "Origin, rejected rules and archived versions of 1index."
+description: "Retired 1index: why it was removed and where its packages and history live."
 ---
 
-# 1index — папка скила: происхождение, потери, версии
+# 1index — снят
 
-Живой owner: `skills/shared/1index/`. Tracked проекции — `skills/claude/` и
-`skills/codex/`; installed — `~/.claude/skills/` и `~/.codex/skills/`. Их не
-редактируют напрямую.
+Скил снят 2026-10-24 вместе с концепцией INDEX-файлов: владелец счёл её
+устаревшей. Корневой `INDEX.md` удалён.[^removal] Действующих runtime owners
+и установленных копий больше нет.
 
-Текущая адресная редакция — [локальные индексы и авторинг инструкций](work/local-index-2026-09-15/state.md), 2026-09-15. Подтверждённая навигация по задачам может жить в полезном локальном INDEX; обязательные правила остаются в инструкции.
+- [`versions/retired-shared-2026-10-24/`](versions/retired-shared-2026-10-24/) —
+  последний общий owner: `portable/` и Codex-дельта `platforms/`.
+- [`versions/retired-claude-2026-10-24/`](versions/retired-claude-2026-10-24/),
+  [`versions/retired-codex-2026-10-24/`](versions/retired-codex-2026-10-24/) —
+  последние tracked-проекции.
+- [`product-frame.md`](product-frame.md) и
+  [`product-frame.principles.md`](product-frame.principles.md) — прежний
+  замысел; после снятия не направляют работу.
+- `origin.md`, `cut.md`, `evidence.md`, `state.md`, `work/`, `review-*`,
+  `candidate-*`, `before-*`, `live-*` — история разработки и проверок до
+  снятия.
 
-Предыдущая установленная редакция — 2026-09-08: каждая запись INDEX выражает
-условие работы и даёт точные ссылки с действием у источников. Её состояние —
-`state.md`, основания и проверки — `review-2026-09-08/decisions.md`;
-старый пакет — `before-2026-09-08/`.
+Из действующих `1goal`, `1instruction-authoring`, `1context-refactor` и
+`1handoff` убраны ссылки на `1index` и INDEX. Эти снимки хранят историю и не
+предназначены для запуска.
 
-Переформирован 2026-08-08 через `1skill-shaping`: суть — запись в INDEX
-оплачена прошлым поиском, не сгенерирована из листинга.
-
-- `origin.md` — класс, дефицит, решения и цитаты владельца, evidence;
-- `cut.md` — таблица потерь против прежней версии;
-- `evidence.md` — support envelope и честный статус;
-- `live-claude-2026-08-08/`, `live-codex-2026-08-08/` — прежние установленные
-  версии (разошедшиеся; repo-владельца до этого дня не было).
-
-## Синхронизация после правки owner-а
-
-```bash
-python3 skills/shared/sync_simple_projections.py 1index --write --install
-python3 skills/shared/sync_simple_projections.py 1index --check
-```
+[^removal]: [Слова владельца, 2026-10-24](../../_ops/chat-recall/2026-10-24-161239-claude-code-fe5b972b.md#recall-21245be217cc4c3d81e311e0cc0612ab).
