@@ -1,0 +1,7 @@
+interface:
+  display_name: "1t3"
+  short_description: "Агенты и треды T3 Code, медиа и лимиты подписок"
+  default_prompt: "Используй $1t3, чтобы поручить работу агенту через T3 Code, дождаться результата и проверить его."
+
+policy:
+  allow_implicit_invocation: true
