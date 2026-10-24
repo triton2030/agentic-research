@@ -1,205 +1,199 @@
-# Аудио, видео и PDF через Gemini
+# Audio, video and PDF through Gemini
 
-Тред Gemini в T3 Code не слышит и не видит: аудио и видео он получает сырыми
-байтами и ищет обход. Слышит и видит Antigravity CLI (`agy`), поэтому для
-медиа в пакете лежит скрипт `scripts/gemini.py`. Он же читает PDF и файлы вне
-проекта треда. T3 Code ему не нужен.
+A Gemini thread in T3 Code can't hear or see: it gets audio and video as raw
+bytes and hunts for a workaround. The Antigravity CLI (`agy`) hears and sees,
+so the package carries `scripts/gemini.py` for media. It also reads PDF and
+files outside the thread's project. It doesn't need T3 Code.
 
-## Когда запускаешь
+## When running it
 
 ```bash
-python3 "<skill-dir>/scripts/gemini.py" --dir /абсолютный/путь/папки <<'BRIEF'
-<что услышать или увидеть и в какой форме ответить>
+python3 "<skill-dir>/scripts/gemini.py" --dir /absolute/folder/path <<'BRIEF'
+<what to hear or see, and the answer's form>
 BRIEF
 ```
 
-- Файл лежит в `--dir` или в папке из `--add-dir`. Аудио открывается в MP3,
-  WAV, OGG и Opus; M4A, AAC, AIFF и FLAC сначала перекодируй:
-  `ffmpeg -i запись.m4a запись.mp3`. Видео — MP4, MOV и WebM.
-- В бриф клади строку «Не получилось — запиши дословную ошибку и остановись,
-  обходов не ищи»: без неё Flash на неоткрывшемся файле ищет обход.
-- `<skill-dir>` — папка текущего `1t3`, из которой прочитан `SKILL.md`.
-- Назови запуск `Gemini 3.8 Flash/high · <суть>`, с Argon —
-  `Gemini 4 Argon/high · <суть>`. В Claude Code короткой записи ставь
-  `timeout: 300000`, длинной — `run_in_background: true`.
-  В Codex получи `session_id` из `exec_command` и дождись через `write_stdin`.
-  Длинной записи передай скрипту `--timeout 30m`: по умолчанию он ждёт
-  десять минут. Длинные записи не замерялись.
+- The file lies in `--dir` or in a folder from `--add-dir`. Audio opens as
+  MP3, WAV, OGG and Opus; convert M4A, AAC, AIFF and FLAC first:
+  `ffmpeg -i recording.m4a recording.mp3`. Video: MP4, MOV and WebM.
+- Put "If something fails, record the exact error and stop; don't look for
+  workarounds" into the brief: without it Flash hunts for a workaround on a
+  file that didn't open.
+- Title the run `Gemini 3.8 Flash/high · <gist>`, with Argon
+  `Gemini 4 Argon/high · <gist>`. In Claude Code use `timeout: 300000` for a
+  short recording and `run_in_background: true` for a long one. In Codex take
+  the `session_id` from `exec_command` and wait with `write_stdin`. For a
+  long recording pass `--timeout 30m`: the default wait is ten minutes. Long
+  recordings were not measured.
 
-## Когда пришёл ответ
+## When the answer arrives
 
-- В stderr придёт квитанция. Файла нет в её строке `viewed:` — Gemini его не
-  открывал, и ответ о нём написан по памяти. Строка `WARNING` под квитанцией
-  называет сорвавшийся вызов инструмента, например неподдержанный формат.
-- Запись ты сам не слышишь. Когда решение зависит от имени, числа или даты из
-  расшифровки, получи вторую независимо — отдельным вызовом с `--neutral
-  --add-dir /папка` или локальным `whisper-cli` — и сравни.
+- stderr carries a receipt. If the file is missing from its `viewed:` line,
+  Gemini never opened it and wrote from memory. A `WARNING` line under the
+  receipt names a failed tool call, such as an unsupported format.
+- You can't hear the recording yourself. When a decision depends on a name,
+  number or date from the transcript, get a second one independently — a
+  separate call with `--neutral --add-dir /folder` or local `whisper-cli` —
+  and compare.
 
-## Когда скрипт вернул ошибку
+## When the script returns an error
 
-- `SUCCESS with an empty answer` без отказа в правах и без таймаута —
-  повтори вызов один раз: в пробе повтор с тем же брифом прошёл.
-- `invalid model selection` — выбранная модель ушла из подписки. Замену
-  выбирает владелец.
-- Отказ в правах или таймаут скрипт называет сам вместе со следующим шагом.
-  Остаток лимитов показывает `agy -p /usage`.
+- `SUCCESS with an empty answer` without a permission refusal or timeout —
+  retry once: in a probe the same brief passed on retry.
+- `invalid model selection` — the chosen model left the subscription. The
+  owner picks a replacement.
+- The script names a permission refusal or timeout itself, with the next
+  step. `agy -p /usage` shows the remaining quota.
 
-## Устройство скрипта
+## How the script works
 
-Замеры сделаны 2026-10-13 на `agy` 1.2.14 с моделью `gemini-3.8-flash-high`.
-На `agy` 1.3.4 2026-10-14 аудио MP3 и видео MP4 открылись так же; один вызов
-из трёх вернул пустой ответ без причины (`run ended with no output and no
-recorded error`), повтор с тем же брифом прошёл.
-На `agy` 1.4.3 2026-10-20 MP3 расшифрован дословно за 20 секунд. В потоке
-событий чтение файла теперь называется `read_file` с параметром `Path`
-вместо `view_file` и `AbsolutePath`; обёртка понимает оба. Без `--full`
-Gemini не получил ни списка папки, ни поиска по файлам: читает только пути,
-названные в брифе.
-Где сказано «по документации», живой проверки не было. Обёртка здесь —
-`scripts/gemini.py`.
+Measured on 2026-10-13 on `agy` 1.2.14 with `gemini-3.8-flash-high`. On `agy`
+1.3.4 on 2026-10-14, MP3 audio and MP4 video opened the same way; one call of
+three returned an empty answer with no reason (`run ended with no output and
+no recorded error`), and a retry with the same brief passed. On `agy` 1.4.3
+on 2026-10-20, an MP3 was transcribed verbatim in 20 seconds. The event
+stream now calls file reads `read_file` with a `Path` parameter instead of
+`view_file` and `AbsolutePath`; the wrapper understands both. Without
+`--full`, Gemini got no folder listing or file search: it reads only paths
+named in the brief. "Per the docs" means no live check.
 
-### Режимы обёртки
+### Wrapper modes
 
-| Нужно | Флаг |
+| Need | Flag |
 | --- | --- |
-| дать прочитать ещё одну папку | `--add-dir /путь`, можно несколько |
-| взгляд без инструкций проекта | `--neutral` и `--add-dir` на нужные папки |
-| веб-поиск, команды, запись файлов | `--full` |
-| продолжить тот же разговор | `--resume <id из квитанции>`; папки и права задай заново |
-| ответ строго по форме | `--schema '<JSON Schema>'` |
-| Gemini 4 Argon вместо Flash: аудит, совет | `--model gemini-4-argon-high` |
-| Claude на подписке Google вместо Gemini | `--model claude-opus-5-5-high` или другой `claude-*` из `agy models` |
-| работа дольше 10 минут | `--timeout 30m` |
+| let it read another folder | `--add-dir /path`, repeatable |
+| a view without project instructions | `--neutral` plus `--add-dir` for the needed folders |
+| web search, commands, writing files | `--full` |
+| continue the same conversation | `--resume <id from the receipt>`; set folders and permissions again |
+| a strictly shaped answer | `--schema '<JSON Schema>'` |
+| Gemini 4 Argon instead of Flash: audit, advice | `--model gemini-4-argon-high` |
+| Claude on the Google subscription instead of Gemini | `--model claude-opus-5-5-high` or another `claude-*` from `agy models` |
+| work longer than 10 minutes | `--timeout 30m` |
 
-Без `--full` Gemini только читает. `--full` снимает все подтверждения сразу:
-отдельного права «только веб» у `agy` нет. С ним обёртка сама кладёт в прогон
-общие правила: не коммитить без просьбы, чужие правки не трогать, других
-агентов не звать, бриф не записывать как слова владельца.
+Without `--full` Gemini only reads. `--full` lifts all approvals at once:
+`agy` has no separate web-only permission. With it the wrapper itself adds
+the shared rules to the run: don't commit unasked, don't touch others' edits,
+don't call other agents, don't record the brief as the owner's words.
 
-В stdout лежит ответ. В stderr по ходу работы идёт строка на каждый вызов
-инструмента, а в конце — квитанция: модель, время, токены, id разговора,
-инструменты, прочитанные файлы (`viewed:`) и после `--full` тронутые
-(`changed:`). Отказ в правах и таймаут обёртка возвращает ошибкой с причиной
-и следующим шагом; голый `agy` сообщил бы их кодом 0 с пустым ответом.
+stdout carries the answer. stderr carries a line per tool call while it
+works and a receipt at the end: model, time, tokens, conversation id, tools,
+files read (`viewed:`) and, after `--full`, files touched (`changed:`). The
+wrapper returns a permission refusal or timeout as an error with the cause
+and next step; bare `agy` would report them as exit 0 with an empty answer.
 
-### Права в режиме без диалога
+### Permissions in non-interactive mode
 
-| Действие | Без флагов | Что открывает |
+| Action | No flags | Opened by |
 | --- | --- | --- |
-| читать файл рабочей папки по пути | да | — |
-| читать другую папку | нет | `--add-dir` |
-| писать файл, даже в рабочей папке | нет | `--full` |
-| запускать команду оболочки | нет | `--full` |
-| искать в вебе и читать URL | нет | `--full` |
+| read a working-folder file by path | yes | — |
+| read another folder | no | `--add-dir` |
+| write a file, even in the working folder | no | `--full` |
+| run a shell command | no | `--full` |
+| search the web and read URLs | no | `--full` |
 
-Документация обещает, что запись в рабочую папку разрешена сама. На этой
-машине она запрещена. Флаги `agy` `--mode accept-edits`, `--mode plan`
-и `--sandbox` поодиночке ничего из таблицы не открывают, поэтому обёртка их не
-передаёт.
+The docs promise writing to the working folder is allowed by default; on
+this machine it is denied. The `agy` flags `--mode accept-edits`,
+`--mode plan` and `--sandbox` alone open nothing in the table, so the wrapper
+doesn't pass them.
 
-`--full` — это `--dangerously-skip-permissions`. Песочница `--sandbox` вместе
-с ним ограничивает только команды оболочки: запись вне рабочей и временной
-папок получает `Operation not permitted`. Инструмент записи файлов она не
-ограничивает, сеть в командах остаётся.
+`--full` is `--dangerously-skip-permissions`. Together with it, `--sandbox`
+limits only shell commands: writing outside the working and temporary
+folders gets `Operation not permitted`. It doesn't limit the file-writing
+tool, and commands keep network access.
 
-Постоянная альтернатива `--full` — правила `permissions.allow`
-в `~/.gemini/antigravity-cli/settings.json`, например `read_url(*)` для веба
-без остальных прав. Это глобальная настройка Antigravity, она действует
-и в его диалоговом режиме. Меняет её владелец; здесь не проверялась.
+A persistent alternative to `--full` is `permissions.allow` rules in
+`~/.gemini/antigravity-cli/settings.json`, e.g. `read_url(*)` for the web
+without other permissions. It is a global Antigravity setting that also
+applies in its interactive mode. The owner changes it; not tested here.
 
-### Что обёртка читает из `agy`
+### What the wrapper reads from `agy`
 
-Обёртка запускает `agy --output-format stream-json` и берёт модель из события
-`init`, инструменты из событий `step_update`, ответ из события `result`.
+It runs `agy --output-format stream-json` and takes the model from the `init`
+event, tools from `step_update` events and the answer from the `result`
+event.
 
-Пустой ответ при статусе `SUCCESS` она распознаёт по тексту в stderr:
-`required the "<право>" permission` — отказ, `print timeout` — таймаут.
-Если `agy` сменит эти формулировки, обёртка вернёт общую ошибку «SUCCESS with
-an empty answer» вместе с исходным stderr.
+It recognizes an empty answer with status `SUCCESS` by stderr text:
+`required the "<permission>" permission` is a refusal, `print timeout` a
+timeout. If `agy` changes these wordings, the wrapper returns the generic
+"SUCCESS with an empty answer" error with the raw stderr.
 
-Счётчики токенов и длительность в продолженном разговоре накопительные:
-они считают весь разговор, а не последний ход.
+Token counts and duration in a resumed conversation are cumulative: they
+cover the whole conversation, not the last turn.
 
-### Длинная работа с полными правами
+### Long work with full permissions
 
-Замер 2026-10-13: Gemini с `--full` собрал HTML-страницу на 70 КБ, сам
-запустил браузерную проверку и исправил найденное. Оба хода, первый на
-10 минут и продолжение на 3, закончились ошибкой `There was a network issue
-connecting to the server` уже после сделанной работы; файлы на диске остались.
-Обёртка в таком случае печатает последний текст Gemini и подсказку
-с `--resume`. Причина обрывов не установлена.
+Measured on 2026-10-13: Gemini with `--full` built a 70 KB HTML page, ran a
+browser check itself and fixed what it found. Both turns, the first of 10
+minutes and a 3-minute continuation, ended with `There was a network issue
+connecting to the server` after the work was done; the files stayed on disk.
+The wrapper then prints Gemini's last text and a `--resume` hint. The cause
+of the drops is unknown.
 
-Неизвестное Flash заполняет утверждением: в сравнительной таблице он написал
-«нет» там, где источники молчали.
+Flash fills in the unknown with assertions: in a comparison table it wrote
+"no" where the sources were silent.
 
-### Разговоры
+### Conversations
 
-`--resume` продолжает разговор по id из любой папки. Разговоры лежат
-в `~/.gemini/antigravity-cli/`; содержимое запросов уходит в Google.
-Официальной команды удаления нет; базы вручную не удаляй.
+`--resume` continues a conversation by id from any folder. Conversations live
+in `~/.gemini/antigravity-cli/`; request contents go to Google. There is no
+official delete command; don't delete the databases by hand.
 
-### Медиа
+### Media
 
-Gemini открывает файл своим инструментом чтения, поэтому файл должен
-лежать в рабочей папке или в папке из `--add-dir`, а бриф — называть его путь.
+Gemini opens a file with its read tool, so the file must be in the working
+folder or a folder from `--add-dir`, and the brief must name its path.
 
-| Вид | Открывается | Не открывается |
+| Kind | Opens | Doesn't open |
 | --- | --- | --- |
-| аудио | MP3, WAV, OGG, Opus | M4A, AAC, AIFF, FLAC |
-| видео со звуком | MP4, MOV, WebM | — |
-| картинки | PNG, JPG | — |
-| документы | PDF | — |
+| audio | MP3, WAV, OGG, Opus | M4A, AAC, AIFF, FLAC |
+| video with sound | MP4, MOV, WebM | — |
+| images | PNG, JPG | — |
+| documents | PDF | — |
 
-Замеры сделаны на синтетических файлах по 3–10 секунд; длинные записи не
-замерялись. Неподдержанный файл инструмент чтения отвергает с ошибкой
-`unsupported mime type`. Ответ при этом приходит непустой, поэтому обёртка
-печатает `WARNING`, а не завершается ошибкой.
+Measured on synthetic 3–10 second files; long recordings were not measured.
+The read tool rejects an unsupported file with `unsupported mime type`. The
+answer still comes back non-empty, so the wrapper prints `WARNING` instead of
+failing.
 
-В августе 2026 на `agy` 1.1.22 WAV проходил только упакованным в MP4.
-На 1.2.14 упаковка не нужна.
+### Instructions and cost
 
-### Инструкции и расход
+Antigravity injects the working folder's `AGENTS.md` and `GEMINI.md` itself,
+and Gemini follows them. `--neutral` runs it in an empty temporary folder
+without them.
 
-`AGENTS.md` и `GEMINI.md` рабочей папки Antigravity подставляет сам, и Gemini
-им следует. `--neutral` запускает его в пустой временной папке без них.
+An empty question costs about 12 thousand input tokens, a call with one file
+read about 24 thousand. A web search for one question took 70 seconds and
+170 thousand tokens: pages are read whole.
 
-Пустой вопрос стоит около 12 тысяч входных токенов, вызов с одним чтением
-файла — около 24 тысяч. Веб-поиск по одному вопросу занял 70 секунд
-и 170 тысяч токенов: страницы читаются целиком.
+### Model and quotas
 
-### Модель и лимиты
+The script defaults to `gemini-3.8-flash-high` — the `MODEL` constant in
+`scripts/gemini.py`. `--model` also accepts `gemini-4-argon-*` and `claude-*`;
+the script rejects other Gemini models: the owner chose these. `agy models`
+lists what is available; Gemini 3.1 Pro is in the docs but not in this
+account's list.
 
-По умолчанию скрипт работает на `gemini-3.8-flash-high` — константа `MODEL`
-в `scripts/gemini.py`. `--model` принимает ещё `gemini-4-argon-*` и `claude-*`;
-другие Gemini скрипт отвергает: модели выбрал владелец. Доступные модели
-показывает `agy models`. В документации числится Gemini 3.1 Pro, но в списке
-этого аккаунта его нет.
+`agy -p /usage` shows the weekly and five-hour remainders: for Gemini, for
+Claude with GPT, and a separate weekly one for Gemini 4 Argon. Probe
+2026-10-20: `gemini-4-argon-high` read a file and answered in 33 seconds;
+media on Argon were not tried.
 
-`agy -p /usage` показывает остаток недельного и пятичасового лимита: у Gemini,
-у Claude с GPT и отдельно недельный у Gemini 4 Argon. Проба 2026-10-20:
-`gemini-4-argon-high` прочитал файл и ответил за 33 секунды; медиа на Argon
-не проверялись.
+### What the wrapper doesn't use
 
-### Обновление
+`agy` has image generation (`generate_image`), browser control, its own
+agents (`~/.gemini/config/agents/*.md` and `--agent`), MCP and several turns
+in one process (`--input-format stream-json`). The wrapper uses none of them.
+Generation was checked on 2026-10-16 through a T3 thread with `instanceId`
+`antigravity` (`gemini-3.8-flash-high`): the agent calls the built-in
+`generate_image` (`prompt`, `image_name`, `aspect_ratio`) itself and saves a
+1024×1024 JPEG without alpha to
+`~/.t3/userdata/providers/antigravity/<hash>/antigravity-acp/brain/<session>/`,
+so the task says where to copy the result; the tool doesn't name the image
+model. The other capabilities are untested as a subagent route.
 
-`agy update`, затем `agy --version`, `agy models` и один вызов обёртки.
-
-### Чего обёртка не даёт
-
-В `agy` есть генерация картинок (`generate_image`), управление браузером, свои
-агенты (`~/.gemini/config/agents/*.md` и флаг `--agent`), MCP и несколько ходов
-в одном процессе (`--input-format stream-json`). Обёртка их не использует.
-Генерация проверена 16 октября 2026 года через T3-поток с `instanceId`
-`antigravity` (`gemini-3.8-flash-high`): агент сам вызывает встроенный
-`generate_image` (`prompt`, `image_name`, `aspect_ratio`) и кладёт JPEG
-1024×1024 без альфа-канала в
-`~/.t3/userdata/providers/antigravity/<hash>/antigravity-acp/brain/<сессия>/`,
-поэтому задание называет, куда скопировать результат; модель картинки инструмент
-не называет. Остальные возможности как маршрут для субагента не проверены.
-
-Документация, прочитана 2026-10-13:
-[режим без диалога](https://antigravity.google/docs/cli/headless/),
-[права](https://antigravity.google/docs/cli/permissions/),
-[песочница](https://antigravity.google/docs/cli/sandbox/),
-[режимы](https://antigravity.google/docs/cli/modes/),
-[модели](https://antigravity.google/docs/models/).
+Docs, read 2026-10-13:
+[headless mode](https://antigravity.google/docs/cli/headless/),
+[permissions](https://antigravity.google/docs/cli/permissions/),
+[sandbox](https://antigravity.google/docs/cli/sandbox/),
+[modes](https://antigravity.google/docs/cli/modes/),
+[models](https://antigravity.google/docs/models/).

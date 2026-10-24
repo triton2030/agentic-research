@@ -1,0 +1,7 @@
+interface:
+  display_name: "1t3"
+  short_description: "T3 Code agents and threads, media, subscription limits"
+  default_prompt: "Use $1t3 to hand work to an agent through T3 Code, wait for the result and check it."
+
+policy:
+  allow_implicit_invocation: true

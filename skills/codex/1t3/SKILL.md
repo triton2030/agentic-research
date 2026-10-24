@@ -7,147 +7,142 @@ description: >-
   1codex.
 ---
 
-# T3 Code — агенты из Claude Code и Codex
+# T3 Code — agents for Claude Code and Codex
 
-## Контекст
+## Context
 
-У владельца работает приложение T3 Code: оно ведёт треды агентов разных
-семей на его подписках — Codex, Claude, Gemini, Muse и Grok. Его MCP-сервер
-подключён к Claude Code и Codex под именем `t3`: около сотни инструментов
-`mcp__t3__*`, доступных через поиск инструментов среды. Каждая среда входит
-отдельно; агент внутри треда видит тот же сервер как `t3-code`.
-Тред виден владельцу в приложении, а в идущий ход можно послать поправку.
+The owner runs the T3 Code app. It hosts threads of agents from several
+families on his subscriptions: Codex, Claude, Gemini, Muse and Grok. Its MCP
+server is connected to Claude Code and Codex as `t3`: about a hundred
+`mcp__t3__*` tools, loaded through the environment's tool search. Each
+environment signs in separately; an agent inside a thread sees the same
+server as `t3-code`. The owner watches threads in the app.
 
-Этим путём владелец решил звать агентов трёх семей: Muse Wonder, которого Meta
-строила под сложную инженерную работу; Gemini от Google — Gemini 4 Argon,
-передовую модель для аудита и совета, и Gemini Flash, быстрого читателя;
-Grok 4.7 от xAI через провайдера Cursor — аудитора и советника, которого
-владелец купил ради крипты.
-Из Claude Code момент, роль и ярус Codex выбирает скил `1codex`; запуск
-и ведение треда — здесь. Из Codex этот скил также запускает треды
-напрямую: посредник Claude и скил `1codex` для этого не нужны. Модель,
-усилие и допустимость делегирования определяют поручение и правила текущей
-среды. Расходуются лимиты этих подписок, а не твой контекст.
+The owner chose this route for three families: Muse Wonder, which Meta built
+for hard engineering work; Gemini 4 Argon and Gemini Flash from Google; and
+Grok 4.7 from xAI through the Cursor provider. From Claude Code, the skill
+`1codex` decides when Codex is used, in which role and tier; launching and
+running the thread happen here. From Codex, this skill launches threads
+directly, without Claude or `1codex`. Whether to delegate at all, and with
+which model and effort, follows the task and the current environment's rules.
+Runs spend those subscriptions, not your context.
 
-Тред — не одноразовый прогон, а собеседник: он помнит прочитанное и сделанное.
-Ему можно задать уточняющий вопрос, дать следующую задачу по той же теме,
-сообщить, что обстоятельства изменились.
+In commands below, `<skill-dir>` is the absolute path of the folder this
+`SKILL.md` was read from, usually `~/.claude/skills/1t3` or
+`~/.codex/skills/1t3`.
 
-В командах ниже `<skill-dir>` — абсолютный путь к папке, из которой прочитан
-этот `SKILL.md`: обычно `~/.claude/skills/1t3` или `~/.codex/skills/1t3`.
-Скрипты берутся из своего пакета, наличие второй среды им не требуется.
+## Task
 
-## Задача
+Hand work to a Muse, Gemini or Grok thread, and audio and video to the
+script; run the thread as a conversation and close out its answer.
 
-Поручи работу треду Muse, Gemini или Grok, аудио и видео — скрипту, веди тред
-разговором и закрой ответ.
+## Goal
 
-## Цель
+Every paid run ends with a named effect: what it changed in your work or
+decision, or why it changed nothing. From the thread title in T3 Code the
+owner can tell what his quota was spent on. Other agents' threads are the
+same after your work as before it.
 
-Каждый оплаченный прогон закрыт названным эффектом: что он изменил в твоей
-работе или решении либо почему не изменил. Владелец видит тред в T3 Code
-и по его заголовку понимает, на что ушёл его лимит. Треды других агентов
-после твоей работы такие же, какими были до неё.
+## When choosing who gets the work
 
-## Когда выбираешь, кому поручить
-
-| Кому | Что | Чего не отдавать |
+| Who | What | Not for |
 | --- | --- | --- |
-| Muse, тред | аудит до того, как назовёшь работу готовой; совет до выбора маршрута; исполнение работы целиком | PDF, аудио и видео: он их не открывает |
-| Gemini Argon, тред | аудит до того, как назовёшь работу готовой; совет до выбора маршрута; суждение о сложной системе — взгляд третьей семьи рядом с Muse и Codex | аудио, видео и PDF: их берёт скрипт; тексты: их пишет Flash |
-| Gemini Flash, тред | прочитать и свести пачку файлов проекта, длинный документ, страницы веба; написать, отредактировать или сократить текст; исполнить чётко заданную правку | аудит, выбор маршрута, суждение о сложной системе: Flash отвечает уверенно и там, где ошибается, — это работа Argon |
-| Grok, тред | аудит и совет, а вопросы о крипте — в первую очередь: рынок, токены, проекты, настроения и психология крипто-сообщества | сводку ленты X: поиска по X у него в треде нет, только веб; аудио, видео и PDF: его инструмент чтения, по описанию, берёт текст и картинки |
-| Gemini, скрипт | прослушать аудио, посмотреть видео, прочитать PDF; прочитать файлы вне проекта треда: в треде Gemini их не открывает | — |
-| Codex, тред | из Claude — работа по скилу `1codex`; из Codex — порученная работа в видимом треде T3 | нативное ревью диффа и взгляд на транскрипт вызывающей сессии: T3 их не предоставляет; из Claude их даёт мост `1codex` |
-| Claude на подписке Google, скрипт с `--model claude-opus-5-5-high` | чтение, сводка, черновик, поиск в вебе, если задаче хватает брифа и папки | независимый взгляд другой модельной семьи, если вызывающий агент сам Claude |
+| Muse, thread | audit before you call work done; advice before choosing a route; doing a whole piece of work | PDF, audio, video: he can't open them |
+| Gemini Argon, thread | audit before you call work done; advice before choosing a route; judging a complex system — a third family next to Muse and Codex | audio, video, PDF: the script takes them; writing: Flash does it |
+| Gemini Flash, thread | read and summarize a batch of project files, a long document, web pages; write, edit or shorten text; carry out a precisely specified edit | audit, route choice, judging a complex system: Flash is confident where it is wrong — that is Argon's work |
+| Grok, thread | audit and advice; crypto questions first of all: market, tokens, projects, sentiment and psychology of the crypto community | X feed summaries: his thread has web search only, no X search; audio, video, PDF: his read tool takes text and images, per its description |
+| Gemini, script | listen to audio, watch video, read PDF; read files outside the thread's project — Gemini in a thread won't open them | — |
+| Codex, thread | from Claude — work per `1codex`; from Codex — delegated work in a visible T3 thread | native diff review and reading the caller's transcript: T3 lacks them; from Claude the `1codex` bridge has them |
+| Claude on the Google subscription, script with `--model claude-opus-5-5-high` | reading, summary, draft, web search, when the brief and a folder are enough | an independent view from another family when the caller is Claude itself |
 
-Аудио и видео — только скрипту: Gemini в треде — другой агент Google, без
-слуха и зрения. Медиа он получает сырыми байтами и минутами ищет обход
-по всему диску. Слышит и видит только Antigravity CLI, поэтому в пакете
-остался скрипт `scripts/gemini.py`. Замерено на Flash; Argon в треде
-с медиа не проверялся. Как звать скрипт и проверять расшифровку —
+Audio and video go only to the script. Gemini in a thread is a different
+Google agent that can't hear or see: it gets media as raw bytes and spends
+minutes hunting for a workaround across the disk. Only the Antigravity CLI
+hears and sees, hence `scripts/gemini.py`. Measured on Flash; Argon was not
+tried with media. How to call the script and check a transcript —
 [references/gemini-media.md](references/gemini-media.md).
 
-Тред Claude в T3 Code запускает только Codex. Из Claude Code Claude через
-T3 не зови: своих агентов Claude Code зовёт своими субагентами.
+Only Codex launches Claude threads in T3 —
+[how](references/t3-code.md#claude-in-a-thread). From Claude Code, don't call
+Claude through T3; use your own subagents.
 
-В подписке Google владельца есть Claude Opus и Sonnet со своим лимитом,
-отдельным от Gemini, и владелец хочет, чтобы этот лимит тоже расходовался.
+The owner's Google subscription includes Claude Opus and Sonnet with a quota
+separate from Gemini, and he wants that quota spent too.
 
-Muse зови, когда владелец назвал его, модель Meta или T3 Code. Сам его не
-выбирай: когда звать Muse без просьбы, владелец ещё не решил.
+Call Muse when the owner names him, a Meta model or T3 Code. Don't pick him
+yourself: the owner hasn't decided when Muse is called unasked.
 
-Muse по умолчанию — `muse-wonder-full-1.0` с усилием `xhigh`: небольшая правка
-с тестами идёт две минуты, аудит нескольких файлов — около девяти. Короткому
-вопросу, где скорость важнее глубины, бери `muse-wonder-1.0` + `high`. Это
-умолчание владельца, а не граница: модель и усилие Muse выбирай по ситуации
-из `orchestrator_capabilities`.
+Muse defaults to `muse-wonder-full-1.0` at `xhigh`: a small edit with tests
+takes two minutes, an audit of several files about nine. For a short question
+where speed beats depth, take `muse-wonder-1.0` at `high`. These are the
+owner's defaults, not limits: choose Muse's model and effort for the
+situation from `orchestrator_capabilities`.
 
-У Gemini две модели, обе выбрал владелец: `gemini-4-argon-high` — аудитор
-и советник, `gemini-3.8-flash-high` — читатель, автор текстов и исполнитель
-чётких правок. Текст — написать, отредактировать, сократить — Gemini пишет
-только на Flash High: Argon дорогой, и владелец не хочет тратить его на тексты.
-У Argon своя недельная квота, отдельная от Flash. Скрипт по умолчанию
-работает на Flash; Argon ему даёт `--model gemini-4-argon-high`.
+Gemini has two models, both chosen by the owner: `gemini-4-argon-high` is the
+auditor and adviser; `gemini-3.8-flash-high` is the reader, writer and doer
+of precise edits. Gemini writes text — writing, editing, shortening — only on
+Flash High: Argon is expensive and the owner won't spend it on text. Argon
+has its own weekly quota, separate from Flash. The script defaults to Flash;
+`--model gemini-4-argon-high` switches it to Argon.
 
-Вопрос о крипте отдавай Grok: по словам владельца, он учился на X
-и на обсуждениях крипто-сообщества и лучше понимает психологию его людей.
-В аудите и совете вне крипты он стоит рядом с Argon: бери одного или обоих,
-когда нужны два независимых взгляда. Свежие события Grok находит только
-поиском в вебе — проси у него источники с датами.
+Crypto questions go to Grok: in the owner's words, it learned from X and the
+crypto community's discussions and understands those people better. Outside
+crypto it stands next to Argon in audit and advice; take one or both when you
+need two independent views. Grok finds recent events only through web search,
+so ask it for dated sources.
 
-## Когда пишешь бриф
+## When writing the brief
 
-Агент не видит твоего разговора. Пиши разделами **Контекст → Цель → Границы →
-Готово, когда** и отдавай первичные артефакты путями: твой пересказ передаёт
-агенту твою же ошибку вместе с задачей. `AGENTS.md` проекта Muse выполняет
-сам; Gemini Flash в пробе не выполнил, Argon не проверялся — Gemini нужные
-правила проекта назови в брифе. Grok корневой `AGENTS.md` получает, но
-выполнение не проверялось — нужные правила проекта назови и ему.
+Write sections **Context → Goal → Boundaries → Done when** and pass primary
+artifacts as paths: your retelling hands the agent your own mistake along
+with the task. Muse follows the project's `AGENTS.md` himself; Gemini Flash
+did not in a probe, Argon wasn't checked; Grok receives the root `AGENTS.md`,
+but following it wasn't checked — name the project rules they need in the
+brief.
 
-| Роль | Что в брифе |
+| Role | In the brief |
 | --- | --- |
-| аудитор | работа и исходные критерии без твоего вывода; «файлы не меняй»; по каждой проверке команда и код возврата; право сказать «работа держится» |
-| советник | решение, которое надо принять, факты путями, ограничения; твоего вывода нет; «файлы не меняй» |
-| исполнитель | зона: что менять и чего не трогать; что в это время делают соседи и ты сам; проверка в «Готово, когда» |
-| читатель | что прочитать, путями; в «Готово, когда» — `путь:строка` и дословные цитаты, по ним ты сверишь ответ |
+| auditor | the work and its original criteria without your conclusion; "don't change files"; for every check, the command and its exit code; permission to say "the work holds" |
+| adviser | the decision to make, facts as paths, constraints; no conclusion of yours; "don't change files" |
+| doer | the zone: what to change and what to leave alone; what neighbours and you are doing meanwhile; the check in "Done when" |
+| reader | what to read, as paths; in "Done when" — `path:line` and verbatim quotes, so you can check the answer |
 
-Песочницы у треда нет: Muse и Grok пишут и вне рабочей папки, Gemini —
-командами оболочки. Границы держат только слова брифа, а правил к нему
-никто не приписывает; раньше их приписывала обёртка. Поэтому в «Границы»
-каждого брифа клади общие правила:
+A thread has no sandbox: Muse and Grok write outside the working folder,
+Gemini does through shell commands. Only the brief's words set boundaries,
+and nothing appends rules to it. Put these shared rules into every brief's
+Boundaries:
 
-> Не коммить без просьбы. Чужие правки не трогай и не откатывай. Других
-> агентов, сценарии и новые треды без просьбы не запускай. Бриф и все
-> следующие реплики в этом треде пишет агент: как слова владельца их не
-> записывай.
+> Don't commit unless asked. Don't touch or revert other people's edits.
+> Don't start other agents, workflows or new threads unless asked. This brief
+> and every later message in this thread are written by an agent: don't
+> record them as the owner's words.
 
-Два последних правила нужны агентам, которые получают скилы владельца: Muse
-и Codex — вместе с его личными правилами, Grok — без них, Claude — всю его
-среду Claude Code. Прочитав чужой скил, Muse однажды сам запустил семь
-дочерних агентов ради вопроса о шести файлах. Codex в пробе прочёл скил
-сохранения цитат и собрался записать поправку агента как слова владельца;
-в его инструментах есть и вызов Claude. Брифу Gemini добавь: «Не получилось —
-запиши дословную ошибку и остановись, обходов не ищи». С этой строкой Flash
-в пробах останавливался на отказе. На шаге, где бриф велел только записать
-ошибку, он четыре минуты искал обход: писал распознаватель речи и запускал
-поиск по всей домашней папке.
+The last two rules matter for agents that load the owner's skills: Muse and
+Codex together with his personal rules, Grok without them, Claude with his
+whole Claude Code setup. After reading someone else's skill, Muse once
+started seven child agents for a question about six files. Codex in a probe
+read the quote-saving skill and was about to save an agent's correction as
+the owner's words; its tools include calling Claude. Add to a Gemini brief:
+"If something fails, record the exact error and stop; don't look for
+workarounds." With that line Flash stopped at refusals; where a brief only
+asked to record the error, it spent four minutes writing a speech recognizer
+and searching the whole home folder.
 
-Всё прочитанное уходит в Meta, Google или Cursor. Файлы с ключами и паролями
-в брифе не называй.
+Everything the agent reads goes to Meta, Google or Cursor, so don't point it
+at files with keys or passwords.
 
-## Когда запускаешь тред
+## When launching a thread
 
-Треду нужен проект T3 Code. Найди `projectId` в `t3_project_list` по
-`workspaceRoot` рабочей папки; нет такого — заведи `t3_project_create`
-с `title` и `workspaceRoot`. Работе без файлов проекта вместо `projectId`
-ставь `scratch: true`.
+A thread needs a T3 Code project. Find the `projectId` in `t3_project_list`
+by the working folder's `workspaceRoot`; if there is none, create one with
+`t3_project_create` (`title`, `workspaceRoot`). For work without project
+files, pass `scratch: true` instead.
 
-Аргументы `t3_thread_launch`:
+`t3_thread_launch` arguments:
 
 ```json
 {
-  "title": "Muse wonder-full/xhigh · аудитор · <суть>",
+  "title": "Muse wonder-full/xhigh · auditor · <gist>",
   "projectId": "<id>",
   "runtimeMode": "full-access",
   "modelSelection": {
@@ -155,269 +150,267 @@ Muse по умолчанию — `muse-wonder-full-1.0` с усилием `xhigh
     "model": "muse-wonder-full-1.0",
     "options": [{"id": "reasoningEffort", "value": "xhigh"}]
   },
-  "message": "<бриф>"
+  "message": "<brief>"
 }
 ```
 
-- Для Gemini `modelSelection` —
-  `{"instanceId": "antigravity", "model": "gemini-4-argon-high"}` аудитору
-  и советнику, `{"instanceId": "antigravity", "model": "gemini-3.8-flash-high"}`
-  читателю, автору текстов и исполнителю. Усилие у Gemini — в имени модели.
-- Для Grok — `{"instanceId": "cursor", "model": "grok-4.7", "options":
-  [{"id": "reasoning_effort", "value": "high"}]}`. Опция усилия называется
-  иначе, чем у Codex и Muse.
-- Для Codex — `{"instanceId": "codex", "model": "gpt-6.1-sol", "options":
-  [{"id": "reasoningEffort", "value": "medium"}]}`; из Claude ярус берёт `1codex`.
-  Усилие ставь всегда: T3 Code по умолчанию даёт солу `low`.
-- `title` пиши как `<агент> <модель>/<усилие> · <роль> · <суть>`, суть —
-  несколькими словами без путей: по заголовку владелец видит в приложении,
-  куда ушёл лимит.
-- `runtimeMode` ставь всегда: без него тред с T3 Code 0.1.3 получает уровень
-  прав по умолчанию проекта (по описанию правки), а на уровне
-  с подтверждениями ждёт согласия на каждую команду, и дать его некому
-  (по документации T3 Code).
-- Тред работает в корне проекта: поверх незакоммиченных правок и рядом
-  с тредами — твоими и чужими. Пишущему треду сначала посмотри
-  `t3_thread_list` проекта со `statuses: ["running"]`: идущие треды могли
-  запустить другие агенты владельца. Дай ему зону, которую никто не правит,
-  либо отдельную копию проекта: `workspaceStrategy` с типом `worktree`
-  и `baseRef`. Незакоммиченное в копию не попадает (по описанию инструмента).
+- Gemini: `{"instanceId": "antigravity", "model": "gemini-4-argon-high"}` for
+  the auditor and adviser, `{"instanceId": "antigravity", "model":
+  "gemini-3.8-flash-high"}` for the reader, writer and doer. Gemini's effort
+  is part of the model name.
+- Grok: `{"instanceId": "cursor", "model": "grok-4.7", "options":
+  [{"id": "reasoning_effort", "value": "high"}]}` — the effort option has a
+  different name than for Codex and Muse.
+- Codex: `{"instanceId": "codex", "model": "gpt-6.1-sol", "options":
+  [{"id": "reasoningEffort", "value": "medium"}]}`; from Claude, `1codex`
+  picks the tier. Always set effort: T3 Code gives sol `low` by default.
+- `title`: `<agent> <model>/<effort> · <role> · <gist>`, the gist in a few
+  words without paths: the title is how the owner sees where his quota went.
+- Always set `runtimeMode`. Without it, since T3 Code 0.1.3 the thread gets
+  the project's default permission level (per the change description); at an
+  approval level it waits for consent on every command, and nobody is there
+  to give it (per T3 Code docs).
+- The thread works in the project root, on top of uncommitted edits and next
+  to other threads, yours and others'. Before a writing thread, check
+  `t3_thread_list` for the project with `statuses: ["running"]`: other agents
+  of the owner may have started threads. Give it a zone nobody else edits, or
+  a separate copy: `workspaceStrategy` of type `worktree` with `baseRef`.
+  Uncommitted work doesn't reach the copy (per the tool description).
 
-T3 Code не различает, кто из агентов владельца запустил тред: все сессии
-Claude Code и их субагенты входят одним клиентом и видят треды друг друга,
-а заголовки у агентов похожи. Поэтому `threadId` из ответа запуска —
-единственное, по чему тред твой. Держи его до конца работы.
-Запустив, дай владельцу ссылку `[заголовок](t3-thread://v1/<threadId>)`
-и назови роль и задачу.
+T3 Code doesn't know which of the owner's agents launched a thread: all
+Claude Code sessions and their subagents sign in as one client and see each
+other's threads, and titles look alike. So the `threadId` from the launch
+response is the only proof the thread is yours; keep it until the work ends.
+After launching, give the owner the link `[title](t3-thread://v1/<threadId>)`
+with the role and task.
 
-## Когда ждёшь конца хода
+## When waiting for a turn to end
 
-Завершение треда само тебя не разбудит. Короткий ход дождись через
-`t3_thread_wait` с `timeoutMs` не больше 55000: трёхминутное ожидание клиент
-обрывает ошибкой. Для долгого хода запусти сторож с `runId` из ответа:
+A finished thread won't wake you. Wait out a short turn with `t3_thread_wait`,
+`timeoutMs` at most 55000: the client aborts a three-minute wait with an
+error. For a long turn, start the watcher with the `runId` from the response:
 
 ```bash
 bash "<skill-dir>/scripts/wake_on_done.sh" '<runId>'
 ```
 
-Он раз в три секунды читает статус хода из базы T3 Code, токенов не тратит
-и выходит, когда ход кончился или агент задал вопрос.
-В Claude Code ставь `run_in_background: true`: выход фоновой команды будит
-сессию. В Codex запусти команду через `exec_command` с коротким
-`yield_time_ms`, сохрани `session_id` и получи завершение через `write_stdin`;
-автоматического пробуждения этот способ не обещает. Пока сторож ждёт,
-делай независимую работу; затем продолжай ожидание, пока не прочитан итог
-треда или не установлен блокер.
+It reads the turn's status from T3 Code's database every three seconds, spends
+no tokens, and exits when the turn ends or the agent asks a question. In
+Claude Code, set `run_in_background: true`: the background command's exit
+wakes the main session. In two probes subagents waited on the turn with
+`t3_thread_wait` instead; a subagent can do the same. In Codex, start it with
+`exec_command` and a short `yield_time_ms`, keep the `session_id` and collect
+the result with `write_stdin`; this doesn't promise an automatic wake-up. Do
+independent work while it waits, then keep waiting until you have read the
+thread's result or established a blocker.
 
-Ответ на следующую реплику сторож не ждёт: его приносит сама команда
-отправки — «Когда продолжаешь разговор».
+A follow-up message doesn't need the watcher: the send command brings the
+answer back — see "When continuing the conversation".
 
-## Когда ход идёт
+## While a turn runs
 
-Что происходит, показывает `t3_thread_read` с `view: "activity"`. Различитель
-— рамка, а не время:
+`t3_thread_read` with `view: "activity"` shows what is happening. Judge by
+the frame, not by elapsed time:
 
-| Что видно | Ход |
+| What you see | Move |
 | --- | --- |
-| шаги идут по брифу | ничего |
-| цель верна, но агент ушёл вбок | одна реплика с поправкой |
-| неверна рамка, объём или предпосылка | `t3_thread_interrupt` и новый тред с исправленным брифом |
-| шаги стоят: агент задал вопрос | раздел «Когда агент задал вопрос» |
-| шаги стоят без вопроса | `t3_thread_interrupt` |
+| steps follow the brief | nothing |
+| right goal, but the agent drifted | one correcting message |
+| wrong frame, scope or premise — your brief was wrong | `t3_thread_interrupt` and a new thread with a fixed brief |
+| steps stall: the agent asked a question | "When the agent asks a question" |
+| steps stall without a question | `t3_thread_interrupt` |
 
-Реплику в идущий ход шли `t3_thread_send` с `mode: "auto"`. Muse принимает её
-в тот же ход; Gemini отменяет ход и начинает заново с поправкой, сделанное
-на диске остаётся. Доставлена — не значит выполнена: Gemini в пробе
-переименовал функцию по поправке и оставил старое имя рядом.
+Send a message into a running turn with `t3_thread_send`, `mode: "auto"`.
+Muse takes it into the same turn; Gemini cancels the turn and restarts with
+the correction, keeping what is already on disk. Delivered isn't done: in a
+probe Gemini renamed a function as asked and left the old name beside it.
 
-Поправка курса — одна. Следующие шаги не тронули то, к чему ты вернул, —
-останавливай: вторая поправка того же отклонения делает бриф движущейся
-целью.
+Correct course once. If the next steps still ignore the correction, stop the
+thread: a second correction of the same drift turns the brief into a moving
+target.
 
-Новые обстоятельства — другое дело, их сообщай сразу, даже если агент идёт
-верно: владелец поправил задачу, ты узнал факт, который меняет вывод, сосед
-изменил файл из зоны агента. Реплика называет, что изменилось, что это меняет
-в задаче и что в брифе остаётся в силе. Если изменилась сама рамка, а то, что
-агент уже прочитал, ещё пригодится, — `mode: "restart"`: он прерывает ход
-и начинает заново с поправкой в том же разговоре (по описанию инструмента).
+New circumstances are different — the owner changed the task, a neighbour
+edited a file in the agent's zone: report them at once, even when the agent is
+on track. The message says what changed, what that changes in the task, and
+what in the brief still stands. If the frame itself changed under a sound
+brief and what the agent has read is still useful, use `mode: "restart"`: it
+stops the turn and starts over with the correction in the same conversation
+(per the tool description).
 
-`clientRequestId` не ставь, если не собираешься повторять вызов. Ключ общий
-для всех агентов владельца: в пробе ключ, однажды отправленный в тред, на
-повторе с другим текстом молча вернул старую квитанцию, и новое сообщение
-не дошло. Для безопасного повтора делай ключ уникальным:
-id текущей сессии (`CLAUDE_CODE_SESSION_ID` в Claude, `CODEX_THREAD_ID`
-в Codex), суть и номер.
+Don't set `clientRequestId` unless you plan to retry the call. The key is
+shared by all the owner's agents: in a probe a key already sent to a thread,
+reused with different text, silently returned the old receipt and the new
+message was never delivered. For a safe retry make the key unique: the
+current session id (`CLAUDE_CODE_SESSION_ID` in Claude, `CODEX_THREAD_ID` in
+Codex), the gist and a number.
 
-## Когда агент задал вопрос
+## When the agent asks a question
 
-Вопрос показывает `t3_pending_request_list`, его варианты —
-`t3_pending_request_read`, ответ шли `t3_pending_request_respond`. Gemini
-принимает только один из предложенных вариантов: свободный текст дойдёт
-до него как пропущенный вопрос, «User Skipped» (по описанию правки T3 Code
-0.1.3). Разрешение на команду так не даётся: его даёт владелец в приложении.
+`t3_pending_request_list` shows the question, `t3_pending_request_read` its
+options; answer with `t3_pending_request_respond`. Gemini accepts only one of
+the offered options: free text reaches it as a skipped question, "User
+Skipped" (per the T3 Code 0.1.3 change description). Command approvals can't
+be given this way: the owner gives them in the app.
 
-## Когда тред закончился
+## When the thread has finished
 
-Ответ — последнее сообщение агента в `t3_thread_read`. `status: "completed"`
-значит, что ход закончился, а не что работа верна.
+`status: "completed"` means the turn ended, not that the work is right.
 
-- Исполнителя принимай по `git status` и `git diff` его зоны против брифа
-  и всех посланных реплик, а проверку перезапусти сам: итоговое сообщение
-  может пересказать прежнюю задачу как сделанную. Запись `checkpoint`
-  в ленте перечисляет изменённые файлы всей рабочей папки вместе с правками
-  соседей и не видит файлов вне её.
-- У аудитора, советника и читателя `git status` после треда тот же, что до
-  него. Изменился — агент правил вопреки брифу либо рядом писал кто-то ещё.
-- Ответ аудитора или советника разложи на существенные выводы и закрой каждый:
+- Accept a doer by `git status` and `git diff` of its zone against the brief
+  and every message you sent, and rerun the check yourself: the final message
+  may report an earlier task as done. The `checkpoint` entry lists changed
+  files in the whole working folder, neighbours' edits included, and misses
+  files outside it.
+- For an auditor, adviser or reader, `git status` after the thread equals the
+  one before. If it changed, the agent edited against the brief or someone
+  wrote nearby.
+- Split an auditor's or adviser's answer into substantive findings and close
+  each:
 
-  | Исход | Чем закрывается |
+  | Outcome | Closed by |
   | --- | --- |
-  | принят | внесён в названное решение или артефакт; вывод «работа держится» — названа проверка, на которую он опирается |
-  | отклонён | контрдоказательством из первички, а не твоим несогласием |
-  | не решён | остаётся явно открытым |
+  | accepted | applied to a named decision or artifact; for "the work holds", the check it rests on is named |
+  | rejected | counter-evidence from primary sources, not your disagreement |
+  | unresolved | stays explicitly open |
 
-- Сводку читателя сверь с первичкой по присланным адресам там, где от неё
-  зависит решение.
+- Check a reader's summary against the primary source at the addresses it
+  gave wherever a decision rests on it.
 
-## Когда продолжаешь разговор
+## When continuing the conversation
 
-Уточняющий вопрос к ответу, ремонт сданной работы, следующая задача по той же
-теме — реплика в тот же тред. Она начинает новый ход с памятью прежнего:
-агент, который уже изучил тему в вебе или разобрал файлы проекта, отвечает
-по прочитанному и не тратит время на повторное чтение. В пробах Muse так
-ответил о своей сданной правке, а Gemini за десять секунд — на вопрос
-к прочитанной пачке.
+A follow-up on the answer, a repair of delivered work, the next task on the
+same topic — send it to the same thread. It starts a new turn with the
+previous memory: an agent that already researched the web or read the
+project's files answers from what it read.
 
-Исключение — новый раунд работы в длинном треде, где в `itemCount` из
-`t3_thread_read` сотни записей: новый список правок или бриф отдавай новому
-треду с полным брифом, даже по той же теме. В работе 2026-10-20 тред Codex
-на 636 записей получил такой раунд репликой: двенадцать правок и новый порт
-сервера. Он проверял старый порт и отчитался по прежней спецификации, раунд
-пришлось отдать заново; новый тред сделал все двенадцать.
+Exception: a new round of work in a long thread, where `itemCount` from
+`t3_thread_read` is in the hundreds — give a new edit list or brief to a new
+thread with a full brief, even on the same topic. On 2026-10-20 a Codex
+thread of 636 items got such a round as a message — twelve edits and a new
+server port; it checked the old port and reported against the old spec, and
+the round had to be redone. A new thread did all twelve.
 
-Новый тред бери, когда нужен независимый взгляд — продолженный уже видел твою
-реакцию, — или когда прежний контекст устарел: файлы с тех пор изменились,
-тема другая. Другую семью тоже зови новым тредом: `t3_thread_configure`
-на другого провайдера передаёт ему лишь выборку сообщений, без рассуждений
-и вызовов инструментов прежнего агента. Смена модели или усилия у того же
-провайдера разговор сохраняет (по документации T3 Code).
+Take a new thread when you need an independent view — the continued one has
+seen your reaction — or when the earlier context is stale. A different family
+also gets a new thread: `t3_thread_configure` to another provider passes only
+a selection of messages, without the previous agent's reasoning and tool
+calls. Changing model or effort within the same provider keeps the
+conversation (per T3 Code docs).
 
-Реплику в тот же тред шли командой; в Claude Code — с `run_in_background: true`,
-в Codex — как сторожа. Из Codex команда не проверялась: упала — шли
-`t3_thread_send` и жди сторожем по `threadId`.
+Send a message to the same thread with this command; in Claude Code with
+`run_in_background: true`, in Codex like the watcher. It has not been tried
+from Codex: if it fails there, use `t3_thread_send` and wait with the watcher
+on the `threadId`.
 
 ```bash
 ~/.t3/bin/t3 thread send '<threadId>' - --wait <<'EOF'
-<реплика>
+<message>
 EOF
 ```
 
-Команда ждёт именно свой ход, печатает ответ агента и выходит: сторож
-и `t3_thread_read` не нужны.
+The command waits for its own turn, prints the agent's answer and exits; no
+watcher or `t3_thread_read` needed.
 
-| Код | Что дальше |
+| Exit code | Next |
 | --- | --- |
-| 0 | в выводе ответ агента |
-| 1 | ход упал или отменён: в выводе только текст ошибки, написанное агентом до сбоя — в `t3_thread_read` |
-| 2 | агент задал вопрос: «Когда агент задал вопрос» |
+| 0 | the output is the agent's answer |
+| 1 | the turn failed or was cancelled: the output is only the error; what the agent wrote before the failure is in `t3_thread_read` |
+| 2 | the agent asked a question: "When the agent asks a question" |
 
-В идущий ход команда не вмешивается: реплика встаёт следующим ходом,
-поправка идущего хода — только `t3_thread_send`. Перезапуск T3 Code
-рвёт связь команды, и она выходит с ошибкой; T3 продолжает тред новым
-ходом — его дождись сторожем по `threadId`.
+The command doesn't touch a running turn: the message queues as the next
+turn; correcting a running turn is `t3_thread_send` only. A T3 Code restart
+breaks the command's connection and it exits with an error; T3 continues the
+thread in a new turn — wait for it with the watcher on the `threadId`.
 
-Тред, к которому вернёшься в другой сессии, назови по сути, а его `threadId`
-запиши туда, где следующая сессия найдёт его: в рабочую заметку или пакет
-передачи. По заголовку в `t3_thread_list` тред тоже находится, но чей он,
-скажет только его первое сообщение — твой бриф.
+If another session will return to the thread, write its `threadId` into the
+work note or handoff: by title `t3_thread_list` finds look-alikes, and only
+the first message — your brief — tells whose a thread is.
 
-## Когда видишь чужой тред
+## When you see another agent's thread
 
-Чужие треды читай, если нужен их контекст. Реплику, прерывание, архив и
-закрепление в чужом треде делай только по просьбе владельца: тред ведёт
-другой агент, и твоя реплика станет для него поправкой, которой он не ждёт.
+Read other threads when you need their context. Messages, interrupts, archive
+and pinning in someone else's thread — only at the owner's request: another
+agent runs it, and your message becomes a correction it doesn't expect.
 
-## Когда стоит проверить остаток
+## When to check remaining quota
 
-Лимиты чужих подписок кончаются молча: тред упадёт посреди работы, и
-переделывать придётся тебе. Смотри остаток перед большой работой на чужой
-подписке — несколько тредов, старший ярус, долгий прогон, — после отказа по
-лимиту и в начале сессии, где собираешься много работать чужими руками.
+Other subscriptions run out silently: the thread fails mid-work and you redo
+it. Check before big work on another subscription — several threads, a top
+tier, a long run — after a quota refusal, and at the start of a session where
+you plan to work through other agents a lot.
 
 ```bash
 python3 "<skill-dir>/scripts/limits.py"
 ```
 
-Скрипт за минуту показывает остаток Codex, Gemini и Claude на подписке Google
-и Muse. Проверка Muse тратит один минимальный запрос: без хода модели Muse
-остатка не знает. Бесплатно — `--only codex,google`. Остаток Grok
-на подписке Cursor не видят ни скрипт, ни T3: при входе ключом API T3 его
-не читает. Не видит скрипт и подписки Claude Code;
-в приложении Claude её показывает инструмент
-`mcp__ccd_session_mgmt__get_usage`. Мало осталось
-у вызывающего Claude — Claude на подписке Google и есть запас, который
-владелец хочет тратить.
+Within a minute it shows what is left of Codex, Gemini, Claude on the Google
+subscription, and Muse. The Muse check spends one minimal request: Muse
+doesn't know its remainder without a model turn. Free: `--only codex,google`.
+Grok's quota on the Cursor subscription is visible to neither the script nor
+T3: with API-key sign-in T3 doesn't read it. The script doesn't see the
+Claude Code subscription either; in the Claude app the tool
+`mcp__ccd_session_mgmt__get_usage` shows it. When the calling Claude runs
+low, Claude on the Google subscription is the reserve the owner wants spent.
 
-Остатка не хватает на задуманное — скажи владельцу и предложи подписку, где
-запас есть. Бесплатные сбросы лимита Codex, которые видит скрипт, тратит
-только владелец.
+If the remainder won't cover the plan, tell the owner and suggest a
+subscription that has room. Codex's free quota resets, which the script
+shows, are spent only by the owner.
 
-## Когда нужно больше, чем тред
+## When you need more than a thread
 
-| Нужно | Чем | Кому доступно |
+| Need | Tools | Available to |
 | --- | --- | --- |
-| работа по расписанию или по вебхуку, когда ни одна сессия не открыта | `schedule_task`, `list_scheduled_tasks` | тебе |
-| слежение за пул-реквестом: упавшая проверка, комментарий или конфликт будят тред | `watch_pull_request`, `link_pull_request` | тебе, с `threadId` |
-| ветка разговора, чтобы попробовать другой путь, не теряя исходного; перенос контекста между тредами | `t3_thread_fork`, `t3_thread_merge_back` | тебе |
-| очередь реплик за идущим ходом | `t3_queue_*` | тебе |
-| картинка или файл в тред | `t3_attachment_prepare_upload`, `t3_thread_send_attachments` | тебе |
-| порядок в списке тредов: переименовать, закрепить, отложить, убрать в архив | `t3_thread_update`, `t3_thread_organize` | тебе |
-| общий с владельцем браузер, симулятор телефона, страница прямо в ответе, дочерние агенты любой семьи | `preview_*`, `device_*`, `html_render`, `delegate_task` | только агенту внутри треда |
+| scheduled or webhook work while no session is open | `schedule_task`, `list_scheduled_tasks` | you |
+| watching a pull request: a failed check, comment or conflict wakes the thread | `watch_pull_request`, `link_pull_request` | you, with a `threadId` |
+| branch a conversation to try another path without losing the original; move context between threads | `t3_thread_fork`, `t3_thread_merge_back` | you |
+| a queue of messages behind a running turn | `t3_queue_*` | you |
+| an image or file into a thread | `t3_attachment_prepare_upload`, `t3_thread_send_attachments` | you |
+| tidy the thread list: rename, pin, snooze, archive | `t3_thread_update`, `t3_thread_organize` | you |
+| a browser shared with the owner, a phone simulator, a page rendered in the reply, child agents of any family | `preview_*`, `device_*`, `html_render`, `delegate_task` | only an agent inside a thread |
 
-Инструменты последней строки тебе отказывают: клиент вошёл не из треда. Нужен
-их результат — поручи его треду: агент внутри получает их сам.
+The last row's tools refuse you: your client signed in from outside a
+thread. If you need their result, give it to a thread as a task. Which rows
+are measured and each group's limits — in the reference.
 
-Замерены запуск и ведение тредов, чтение расписаний и очереди, отказ
-в инструментах треда; остальные строки — по описаниям инструментов. Подробности
-и границы каждой группы — в справке.
+## When the route fails
 
-## Когда путь не сработал
-
-- Ответа нет — скажи владельцу, что агент не ответил и почему. Свой ответ или
-  ответ другой модели на это место не ставь.
-- Инструментов `mcp__t3__*` нет или сервер не отвечает — проверь
+- No answer — tell the owner the agent didn't answer and why. Don't put your
+  own answer or another model's in its place.
+- No `mcp__t3__*` tools or the server doesn't respond — run
   `curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3773/mcp`.
-  `401` подтверждает живой сервер; ошибка соединения означает, что он
-  недоступен. MCP живёт внутри приложения T3 Code: если оно закрыто,
-  попроси владельца открыть его. Сервер жив, а инструментов нет — проверь
-  подключение и вход именно вызывающей среды, затем свежую сессию:
-  [подключение](references/t3-code.md#подключение). Установка скила сама
-  MCP не подключает.
-- Запуск отклонён с `capability_denied` — вход клиента истёк или дан только
-  на чтение. Чинит владелец; что ему сказать, написано в справке.
-- Модели нет в `orchestrator_capabilities` — найди её параметром `search`:
-  с T3 Code 0.1.3 список показывает все модели только у Codex, Claude
-  и Muse, а у Cursor с Grok 4.7, у Gemini и у остальных провайдеров —
-  первые восемь. Нет и там или ход упал
-  с `does not exist or you lack access` — модель ушла из подписки. Замену
-  выбирает владелец.
-- Ход Cursor упал с `not included in your weekly usage` — модель вне тарифа
-  владельца: так падает GLM 5.3 Flash, тариф покрывает только модели Grok.
-- Ход Grok упал с `Agent turn stopped after repeated resume attempts made no
-  progress` — полный ответ обычно уже в ленте: бери последний, доработку
-  проси репликой в тот же тред. Так 2026-10-20 кончились два из девяти
-  долгих ходов Grok.
-- Ход Grok упал с ошибкой транспорта Cursor вроде `WritableIterable is
-  closed` — с T3 Code 0.1.3 так кончается ход, где связь оборвалась после
-  начатого текста. Последнее сообщение тогда — текст ошибки, перед ним
-  бывает лишь вступление. Ответом их не считай: продолжение проси репликой
-  в тот же тред (по описанию правки).
-- Ход упал на лимите подписки — в приложении тред помечен Limited, работа на
-  диске осталась. Скажи владельцу, когда сброс, и проверь остаток. Продолжит
-  реплика в тот же тред после сброса; запланированное владельцем продолжение
-  она отменяет.
+  `401` means the server is alive; a connection error means it is down. The
+  MCP server lives inside the T3 Code app: if the app is closed, ask the
+  owner to open it. Server alive but no tools — check the calling
+  environment's connection and sign-in, then a fresh session:
+  [connection](references/t3-code.md#connection). Installing the skill
+  doesn't connect MCP.
+- Launch refused with `capability_denied` — the client's sign-in expired or
+  is read-only. The owner fixes it; what to tell him is in the reference.
+- A model is missing from `orchestrator_capabilities` — find it with the
+  `search` parameter: since T3 Code 0.1.3 the list shows every model only for
+  Codex, Claude and Muse; Cursor with Grok 4.7, Gemini and other providers
+  show their first eight. Not there either, or the turn failed with `does not
+  exist or you lack access` — the model left the subscription. The owner
+  picks a replacement.
+- A Cursor turn failed with `not included in your weekly usage` — the model
+  is outside the owner's plan: GLM 5.3 Flash fails this way; the plan covers
+  only Grok models.
+- A Grok turn failed with `Agent turn stopped after repeated resume attempts
+  made no progress` — the full answer is usually already in the feed: take
+  the last one and ask for more in the same thread. Two of nine long Grok
+  turns ended this way on 2026-10-20.
+- A Grok turn failed with a Cursor transport error such as `WritableIterable
+  is closed` — since T3 Code 0.1.3 this is how a turn ends when the
+  connection drops after it began writing. The last message is then the
+  error text, at most preceded by an opening line. Don't take either as the
+  answer: ask for the continuation in the same thread (per the change
+  description).
+- A turn failed on a subscription limit — the app marks the thread Limited;
+  work on disk stays. Tell the owner when the quota resets and check the
+  remainder. A message to the same thread after the reset continues it; it
+  cancels a continuation the owner scheduled.
 
-Устройство тредов, права агентов, группы инструментов сервера, команда
-`t3 thread` и замеры — [references/t3-code.md](references/t3-code.md): открой,
-когда тред ведёт себя иначе, чем здесь написано, или нужна возможность
-из таблицы выше.
+Thread internals, agents' permissions, server tool groups, the `t3 thread`
+command and measurements are in
+[references/t3-code.md](references/t3-code.md): open it when a thread behaves
+differently from this text or you need a capability from the table above.
