@@ -944,21 +944,19 @@ class ChatCaptureTests(unittest.TestCase):
         self.assertEqual(self.recall_files(), [old_path])
         self.assertEqual(old_path.read_text(encoding="utf-8"), holder_before)
 
-    def test_position_must_answer_what_it_overturns(self) -> None:
-        """The rule to mark a cancellation was written down all along and used
-        once in 1931 records, because it was the one field nobody had to fill."""
-        refused = self.run_capture(
+    def test_position_records_without_a_relation_answer(self) -> None:
+        """The corpus is context, not a decision registry (owner, 2026-10-24):
+        a position no longer has to say what it overturns before it is saved."""
+        written = self.run_capture(
             "Запускаемся через две недели, весь состав целиком",
             "решение",
             "цели-и-приоритеты",
             env=self.claude_env(),
             supersedes_none=False,
-            expect_ok=False,
         )
-        self.assertEqual(refused.returncode, 2)
-        self.assertIn("--supersedes-none", refused.stderr)
-        self.assertIn("identify the relation before writing", refused.stderr)
-        self.assertEqual(self.recall_files(), [])
+        self.assertEqual(written.returncode, 0, written.stderr)
+        self.assertEqual(len(self.recall_files()), 1)
+        self.assertNotIn("supersedes", self.recall_files()[0].read_text(encoding="utf-8"))
 
     def test_a_reply_that_states_no_position_answers_nothing(self) -> None:
         """An idea proposes and cannot overturn; demanding an answer is noise."""

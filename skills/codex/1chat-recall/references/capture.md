@@ -1,182 +1,151 @@
 # Capture
 
-## Задача
+## Goal
 
-Реши, изменит ли реплика владельца или его согласие будущий выбор, и если
-изменит — сохрани его позицию так, чтобы её понял агент, который не видел
-разговора.
+The corpus gets owner positions with their subject, conditions and strength;
+working remarks about the thing at hand and bare agreements stay out. A record
+is made in the same turn it was said, and a helper receipt proves it.
 
-## Цель
+## Why
 
-В корпус попадают позиции владельца с предметом, условиями и силой сказанного;
-рабочие реплики текущей вещи и голые согласия туда не попадают. Запись сделана
-в том же ходе, когда прозвучала; её отношение к прежним словам доказано адресом
-либо явно оставлено неизвестным.
+The scene is available now; a future reader has only the record. A missed
+position cannot be found later, an unneeded record distorts the picture of how
+he thinks, and a wrong subject makes an exact quote useless. A user message may contain pasted
+documents or other people's and agents' conversations: the message role does
+not prove who wrote each fragment. The helper takes text you already confirmed;
+it does not establish authorship.
 
-## Зачем
+## Criteria
 
-Сцена доступна сейчас, а будущий читатель знает только запись. Пропущенную
-позицию потом не найти, а лишняя запись становится ложным правилом; ошибка
-в предмете делает точную цитату бесполезной.
-В user-сообщение могут быть вставлены документы и разговоры других людей или
-агентов: роль сообщения не доказывает авторство каждого фрагмента. Helper
-принимает уже подтверждённый агентом текст и авторства не устанавливает.
+- A `quote` is shortened only by deletion, keeping words, order and essential
+  conditions. Unclear authorship stays a gap; a pasted fragment is never
+  recorded as the owner's.
+- Kind and type never strengthen what was said: a `note` is your explanation,
+  not owner speech; an idea or rule-candidate does not become a decision; a
+  reaction to one case does not become `предпочтение` or `обо-мне` just because
+  of «мне не нравится».
+- `context-note` is a short set of search keys: missing names and synonyms. A
+  paraphrase of the position or of your proposal there creates false evidence.
+  `session-context` holds the subjects of the whole conversation.
+- The result is a helper receipt with the record address, or an explicit
+  failure. A manual write bypasses the helper's checks and atomicity.
 
-## Критерии принятия
+## When you decide whether to record
 
-- `quote` сокращён только удалением, с сохранением слов, порядка и
-  существенных условий. Неясное авторство остаётся пробелом; чужая вставка не
-  записана от имени владельца.
-- Вид и тип не усиливают сказанное: `note` — объяснение агента, а не речь
-  владельца; идея и правило-кандидат не становятся решением; реакция на
-  отдельный случай не становится `предпочтение` или `обо-мне` только из-за
-  слов «мне не нравится».
-- `context-note` — короткий набор поисковых ключей: недостающие имена предмета
-  и синонимы. Пересказ позиции или предложения агента в нём создаёт ложное
-  evidence; `session-context` хранит предметы всего разговора.
-- Результат — квитанция helper-а с адресом записи или явное сообщение о сбое.
-  Ручная запись в обход helper-а лишает корпус его проверок и атомарности.
+One test: would an agent a month from now, facing a similar choice, decide
+differently knowing these words?
 
-## Когда решаешь, записывать ли
+Passes: longer reasoning about a concrete thing — what he likes, dislikes and
+why; a choice of path with a reason; a boundary he drew; a correction of your
+understanding that will recur in similar work.
 
-Мерило одно: решит ли агент через месяц, перед похожим выбором, иначе,
-зная эти слова?
+Does not pass: an instruction about the current thing («сделай этот текст
+разговорнее», «возьми для этой задачи модель X»), agreement to a step of current
+work («да удаляй»), anything that says nothing outside this task. Its work ends
+in this turn.
 
-Проходят развёрнутое суждение о конкретной вещи — что нравится, что нет
-и почему; выбор пути с причиной; граница, которую провёл владелец; поправка
-понимания агента, которая повторится в похожей работе.
+## When the owner agrees with your proposal
 
-Не проходят указание к текущей вещи («сделай этот текст разговорнее», «возьми
-для этой задачи модель X»), согласие на шаг текущей работы («да удаляй»)
-и любая реплика, которая вне этой задачи ничего не говорит: их работа
-заканчивается в текущем ходе.
+«Окей», «да», «давай» mark a choice: judge by what he agreed to, not by the
+word. A package of several items is several choices — test each. Agreement to a
+whole draft or artifact needs no record: the decision lives in the artifact, and
+only individual choices in it can pass the test. Record a passing choice as
+`selection`: its text is the words of the accepted proposal, shortened only by
+deletion, like a `quote`. His own words added to the agreement — a condition, a
+caveat, a reason — go next to it as a separate `quote`.
 
-## Когда владелец соглашается с предложением агента
+## When you set subject, scope and type
 
-«Окей», «да», «давай» — знак выбора: суди по тому, с чем владелец согласился,
-а не по слову ответа. Пакет из нескольких пунктов — несколько выборов, мерилом
-проверь каждый. Согласие на целый черновик или артефакт само записи не требует:
-решение живёт в артефакте, а мерило проходят только отдельные выборы в нём.
-Прошедший выбор запиши `selection`: его текст — слова принятого предложения,
-сокращённые только удалением, как у `quote`. Собственные слова владельца
-к согласию — условие, оговорку, причину — сохраняй рядом отдельной выдержкой
-`quote`.
+Keep in the excerpt the words that limit subject, situation, time and firmness.
+Add missing names of the subject and project as keys in `context-note` if the
+conversation shows them. Unknown scope stays unknown, not "all projects
+forever", and no field widens it: «в этой папке стало слишком много файлов» is
+about that folder; "the owner dislikes big folders" attributes a generalization
+he never made, even with a verbatim quote.
 
-## Когда определяешь предмет, область и тип
+The type is the strength of the remark at that moment. A remark with no sign of
+acceptance that reads as either a question or a wish is `идея`; if work depends
+on its meaning, ask. A judgment about a concrete thing — what is good and bad in
+it and why — is usually that thing's `критерий`; `предпочтение` needs words
+about a recurring expectation. A change of his own position is `решение` or
+`предпочтение`; `коррекция` fixes your understanding or action.
 
-Сохрани в выдержке слова, ограничивающие предмет, ситуацию, время и
-категоричность. Недостающие имена предмета и проекта добавь ключами
-в `context-note`, если они известны из разговора. Неизвестная область действия
-остаётся неизвестной, а не «во всех проектах и навсегда», и ни одно поле её
-не расширяет. Замечание «в этой папке стало слишком много файлов» говорит об
-этой папке; запись «владелец не любит большие папки» приписывает ему
-несказанное обобщение, даже если цитата дословна.
+## When you prepare the record
 
-Тип описывает силу самой реплики в тот момент, а не нынешнюю правду.
-Реплика без признаков принятого, которую можно прочесть и как вопрос,
-и как пожелание, — `идея`; если от её смысла зависит работа, спроси владельца.
-Суждение о конкретной вещи — что в ней хорошо и плохо и почему — обычно
-`критерий` этой вещи; `предпочтение` требует слов о повторяемом ожидании.
-Смена собственной позиции владельца — `решение` или `предпочтение` со ссылкой
-на прежнее; `коррекция` исправляет понимание или действие агента.
+[chat_capture.py](../scripts/chat_capture.py) runs with `python3`. Read the
+whole topic map from `--list-metadata` before choosing a topic: matching words
+do not define a subject's boundary. No fitting topic — `--new-topic` adds it in
+the same call; in an empty project it creates the first map and record. A topic
+holding a third of the corpus or more no longer separates subjects: for a new
+independent subject inside it, create a narrow topic. A record linked to an
+earlier one (below) stays in the earlier one's topic: the helper accepts links
+only within one topic.
 
-## Подготовка записи
+`--add-subjects "subject; synonym"` appends search keys to the existing session
+card and keeps the old ones. The first record of a file needs a full
+`--session-context`; replacing the whole card requires reading the conversation
+first. Do not mix the two in one call.
 
-[chat_capture.py](../scripts/chat_capture.py) запускается через `python3`.
-Полная карта тем доступна через `--list-metadata`: до выбора темы она должна
-быть прочитана целиком, потому что совпадение слов не определяет границу
-предмета. Нет подходящей темы — `--new-topic` добавляет её той же операцией;
-в пустом проекте этот вызов создаёт первую карту и запись.
-Тема, в которой уже треть разговоров корпуса и больше, перестаёт различать
-предметы: для нового независимого предмета внутри неё заведи узкую тему.
-Долю видно по числу разговоров темы в `--list-metadata` против числа файлов
-корпуса. Реплика, которая отменяет прежнюю запись или спорит с ней, остаётся
-в теме этой записи: helper признаёт отмену и конфликт только внутри одной темы.
-Ради связи прежние записи не перекладываются.
+For a same-turn record `--source-timestamp` and `--source-ref` may be omitted.
+For a historical `capture-needed`, pass the original remark's time.
 
-При появлении нового предмета `--add-subjects "предмет; синоним"` дописывает
-поисковые ключи к существующей карточке вместе с цитатой, сохраняя прежние;
-читать весь файл разговора для этого не нужно. Первой записи нужна полная
-`--session-context`. Полная замена карточки требует прочитать разговор
-целиком, чтобы не стереть прежние маршруты поиска. Эти два режима в одном
-вызове не смешиваются.
+## When a new remark changes an earlier one
 
-При записи в том же ходе `--source-timestamp` и `--source-ref` можно опустить:
-helper использует время записи. Для исторического `capture-needed` передай
-время исходной реплики из доступного источника, а не время запуска.
+Searching for the earlier record is not required: the corpus is context, and
+the current rule lives in live files and the conversation. If you already have
+its address — from this conversation's receipt or from what you just read —
+link it with `--supersedes`: ordinary search then returns the new words, and
+the old ones stay visible in `--topic … --timeline`. Avoid `--contested`: it
+removes both records from ordinary search and leaves them only under
+`conflicts`. Link by a verbatim record that cannot hold together with the new
+remark under the same conditions, never by guess.
 
-## Отношение к прежним словам
+A record is not the rule. If the remark changes a rule the project keeps in a
+live file, change that file by its own route as well.
 
-Порядок владельца: «Сначала найти старую цитату, затем сохранить новую».
-Он относится к явно отменяющей реплике: адрес необходим до вызова Capture,
-иначе отмена не свяжется с прежним решением. Совместимое дополнение ничего
-не отменяет; при неясном победителе сохраняется связь конфликта.
+## When a later remark changes a record of this conversation
 
-Отменяемую запись ищи сам по [Retrieval](retrieval.md): начни с известных темы
-и типа прежней записи — тип новой реплики не определяет тип прежней; при
-ненахождении расширяй фильтры, ищи по смыслу и в соседних темах. Прежняя позиция могла прозвучать в другом разговоре.
-Выбранные разговоры прочитай целиком; адрес отмены берётся из дословной записи,
-несовместимой с новой репликой в тех же условиях, а не из догадки. Ошибка
-инструмента — причина непроверенного поиска, а не доказательство отсутствия
-старой записи.
+The owner thinks aloud, and the next remark may take back or reshape what was
+just recorded: «давай вынесем» followed by «Или нет. Как ты думаешь?». A
+correction record with `--contested` on top would leave a "decision" that never
+existed and the owner arguing with himself.
 
-Уточнение владельца для безрезультатного поиска: «Нет, сохранить новую
-реплику, явно указав, что старая запись не найдена». Отсутствие адреса после
-поиска сохраняется как неустановленная отмена по `--help`, а не как «ничего
-не отменяет»; старая запись при этом не отменяется по догадке.
+Overwrite when the later remark shows the record was not yet a position — he
+took it back, asked your opinion instead of deciding, or clarified what it
+referred to — and nothing has changed on the basis of the record yet. If
+something has already changed on its basis, or he named a reason for the change
+— a result, a new fact, someone else's opinion — save the new remark linked
+with `--supersedes`: the future agent needs this turn and its reason. When in
+doubt, link: an erased turn cannot be restored, while the superseded record
+stays visible in the topic timeline. A link to the record from another record
+or a document also counts as a change on its basis; the helper refuses to
+overwrite a record linked from the corpus.
 
-## Когда поздняя реплика меняет запись этого разговора
+`--replace <file>.md#recall-<id>` from the receipt removes the old block and
+appends the new version at the end of the file under the same address. Build
+the version from all his remarks on the subject. The type describes the outcome,
+not the first remark; the time is that of the remark that settled the outcome —
+the write time in the same turn, otherwise its `--source-timestamp`. The helper
+does not carry over the old version's links: pass again those that still hold;
+the receipt lists dropped ones. It never overwrites a record of another
+conversation.
 
-Владелец думает вслух, и следующая реплика может забрать или переоформить
-только что сохранённое: за «давай вынесем» идёт «Или нет. Как ты думаешь?».
-Запись-коррекция с `--contested` поверх оставит в корпусе «решение», которого
-не было, и спор владельца с самим собой; будущий агент прочтёт их как историю
-его позиции.
+## When you store an answer and its address
 
-Перезаписывай, когда поздняя реплика показывает, что сохранённое ещё не было
-позицией — владелец забрал его, спросил твоё мнение вместо решения или уточнил,
-к чему оно относилось, — и по записи ещё ничего не изменено.
-Если изменения по ней уже были или владелец назвал причину смены — результат,
-новый факт, чужое мнение, — сохрани новую реплику со ссылкой `--supersedes`:
-будущему агенту нужен этот поворот и его причина.
-В сомнении выбирай ссылку: стёртый поворот не восстановить, а лишняя запись
-видна и уже помечена отменённой.
-Ссылка на запись из другой записи или документа — тоже изменение по ней:
-на ссылку из корпуса helper ответит отказом.
+Two answers in one message are told apart by `--source-ref` of the specific
+fragment, e.g. `<message-id>#goal` and `<message-id>#scenes`; reuse it on retry.
+Without it, the exact original time plus metadata tell scenes apart. A retry
+after an error does not need a changed quote.
 
-`--replace <файл>.md#recall-<id>` из квитанции убирает прежний блок и ставит
-новую версию в конец файла под тем же адресом. Версию собери по правилам выше
-из всех реплик владельца об этом предмете. Тип описывает итог, а не первую
-реплику; время — реплику, решившую итог: в том же ходе это время записи,
-позже — её `--source-timestamp`.
-Связи прежней версии helper не переносит: верные итогу передай заново,
-квитанция покажет отброшенные. Запись другого разговора helper не
-перезаписывает: её связывают через `--supersedes` или `--contested`.
+To link an old record without a stable heading, use
+`file.md:line sha:<record_sha256>`; take the hash from output after reading and
+confirming the quote — the current line alone is not enough, and no repair of
+the old file is needed. Several addresses: repeat values or the flag. Pass
+text, metadata and any known link in one Capture call.
 
-## Когда сохраняешь ответ и ссылку
+For a footnote use `anchor` from the receipt, `<file>.md#recall-<id>`;
+`line_anchor` is only the current reading position.
 
-Два ответа одного сообщения различает `--source-ref` конкретного фрагмента:
-например, `<message-id>#goal` и `<message-id>#scenes`; для повторной попытки
-используй тот же адрес. Без него точное исходное время вместе с метаданными
-различает сцены. Если helper не может обеспечить идемпотентность, квитанция
-это показывает. Повтор после ошибки не требует менять цитату.
+## When the conversation branched or words came in a command
 
-Для `--supersedes` и `--contested` у старой записи без устойчивого заголовка
-поддерживается `file.md:line sha:<record_sha256>`. Хеш бери из выдачи после
-чтения и подтверждения самой цитаты; одной нынешней строки недостаточно,
-а ремонт старого файла для такой связи не нужен. Один вызов принимает несколько адресов: `--supersedes "адрес-1" "адрес-2"`
-или повтор флага; каждый адрес подтверждается отдельно, отмену и конфликт
-в одном вызове не смешивай.
-
-Для сноски используй `anchor` из квитанции: `<файл>.md#recall-<id>`.
-`line_anchor` — только текущая позиция для чтения: шапка растёт, и номер строки
-постоянной ссылкой не становится.
-
-Текст, метаданные и отношение к прошлому передаются одной Capture-операцией.
-Обдуманное отсутствие отмены, доказанная отмена, конфликт и ненайденная
-отменяемая запись — разные ответы, а не взаимозаменяемые способы получить
-квитанцию.
-
-## Когда разговор ветвился или слова пришли в команде
-
-Слова владельца бывают и в аргументах слэш-команды: это его речь, а не текст скила, и она проходит тот же отбор. После ветвления разговора у ветки новый id сессии; запись под прежним id смешает ветки в одном файле. В Codex id текущего окна helper берёт из `CODEX_THREAD_ID` или `CODEX_SESSION_ID`, если `--session` не передан; после ветвления проверь, что это id ветки. Карточку сессии передавай при первой записи файла; дальше прежние предметы сохраняются, а новый добавляется через `--add-subjects`.
+Owner words in slash-command arguments are his speech and pass the same test. After a branch the conversation has a new session id; recording under the old id mixes branches in one file. In Codex the helper takes the current window id from `CODEX_THREAD_ID` or `CODEX_SESSION_ID` when `--session` is not passed; after a branch, check that it is the branch id. Pass the session card on the first record of a file; later the old subjects stay and new ones are added with `--add-subjects`.

@@ -1,89 +1,88 @@
 ---
 name: 1chat-recall
 description: >-
-  Use to record owner positions a future choice will need — his words or an
-  agent proposal he accepted — or to retrieve his exact quotes as dated context
-  for decisions about intent, preferences, or prior choices; also corpus repair.
-  Excludes handoffs and project-truth updates.
+  Use to record owner words a future choice will need — his words or an agent
+  proposal he accepted — or to read his past quotes as dated context on how he
+  thought about a subject; also corpus repair. His current decisions live in
+  project docs and instructions, not here. Excludes handoffs and updating
+  project docs.
 ---
 
-# Память чата
+# Chat recall
 
-## Контекст
+## Why this exists
 
-Корпус нужен будущему агенту, который стоит перед выбором и не слышал
-владельца. Главное в нём — развёрнутые слова владельца о конкретной вещи:
-что ему нравится и не нравится и почему, почему он выбрал одно, а не другое.
-Запись ценна, если меняет такой выбор.
+The corpus serves a future agent facing a choice the owner never discussed with
+it: how he thinks about the subject, what he likes and dislikes, and why. Its
+core material is his longer reasoning about a concrete thing. A record is worth
+keeping only if it would change such a choice.
 
-Владелец думает вслух и по ходу работы говорит много реплик, которые управляют
-только текущей вещью: «сделай этот текст разговорнее», «да удаляй». Записанные,
-они читаются как курс: из правки одного текста следующий агент выводит «все
-тексты здесь разговорные» — правило, которого владелец не давал. Лишняя запись
-не безвредна, она становится ложным правилом.
+The corpus is context, not canon. The owner's current decisions live in project
+docs, instructions and the current conversation. A quote says what he thought
+then; it is not a lookup of his decisions. He may have changed his mind, and a
+record's type is the strength of his words at that moment.
 
-Позиция владельца часто звучит как согласие с предложением агента: агент
-говорит «так делать не будем», владелец отвечает «окей». Одно «окей» в корпусе
-ничего не сообщает; позиция — то, с чем он согласился. В корпусе это
-`selection`: его текст — слова принятого предложения, а не речь владельца.
+He thinks aloud, and many remarks steer only the thing at hand: «сделай этот
+текст разговорнее», «да удаляй». Recorded, they read as policy — a later agent
+turns one text edit into "all texts here are conversational", a rule he never
+gave. An unneeded record is not harmless: a later agent reads it as how he
+thinks, and it buries the reasoning that matters.
 
-Запись хранит сказанное тогда. Владелец мог передумать, предмет мог измениться,
-а тип «решение» описывает силу слов в тот момент, а не нынешнюю правду. Прежние
-слова — дополнительный контекст к текущему разговору, а не канон; найденная
-сегодня цитата легко воспринимается как свежее указание.
+His position often arrives as agreement with an agent's proposal: the agent says
+"let's not do that", he answers «окей». A bare «окей» says nothing; the position
+is what he agreed to. In the corpus that is a `selection` whose text is the
+words of the accepted proposal, not his speech.
 
-Пересказ теряет формулировки и условия и затем читается как позиция владельца.
-Поэтому его слова хранятся дословно, а агент, принимающий решение, сам ищет
-и читает цитаты; поиск и понимание слов не передаются другому агенту или чату.
-Владелец говорит обрывками и называет один предмет разными словами: поиск по
-смыслу и соседним темам находит разговор, а чтение целиком восстанавливает,
-к чему относилась реплика. Метаданные и ранги ведут к источнику, но позицию
-не доказывают.
+He speaks Russian, in fragments, and names one subject in different words.
+Quotes stay verbatim: a paraphrase loses conditions and is later read as his
+position.
 
-## Задача
+## Task
 
-Сохраняй позицию владельца, которая изменит будущий выбор, — его слова или
-принятое им предложение агента — вместе с предметом и условиями сказанного,
-и сам добывай из сохранённых записей датированный контекст для текущей задачи.
+Record owner words that will change a future choice — his speech or an agent
+proposal he accepted — with their subject and conditions, and read stored
+quotes yourself as dated context on how he thought.
 
-## Цель
+## Goal
 
-Будущий агент понимает, чего хочет владелец, без повторного вопроса и не
-принимает прежнюю или локальную реплику за нынешнее общее правило. Корпус
-держит позиции владельца с их предметом, а не поток рабочих реплик. Суждение
-агента различимо и не выдаётся за намерение владельца.
+A future agent understands how the owner thinks without asking again and takes
+the current rule from live files and the current conversation. The corpus holds
+words with their subject — not a stream of working remarks and not a decision
+registry. Your own judgment stays distinguishable and is never presented as his
+intent.
 
-## Режимы
+## Modes
 
-- Реплика владельца или его согласие с предложением агента может понадобиться
-  будущему выбору, пришёл `capture-needed` или поздняя реплика меняет запись
-  этого же разговора → [Capture](references/capture.md).
-- Решение зависит от прежних слов владельца → [Retrieval](references/retrieval.md).
-  Найденный разговор читай целиком, а не от найденной строки: позже
-  в том же разговоре владелец мог передумать, а намерение видно между
-  репликами. Адрес из выдачи нужен для ссылки на цитату.
-- Владелец явно заказал validation, repair или backfill → [Integrity](references/integrity.md).
+- When an owner remark or agreement may matter to a future choice, a
+  `capture-needed` arrives, or a later remark changes a record of this same
+  conversation → [Capture](references/capture.md).
+- When you need to understand how the owner thought about a subject and live
+  files plus the current conversation do not settle it →
+  [Retrieval](references/retrieval.md). In a discussion with the owner, do not
+  search unless he refers to an earlier conversation: what he thinks now
+  matters more.
+- When the owner explicitly orders validation, repair or backfill →
+  [Integrity](references/integrity.md).
 
-## Среда
+## Environment
 
-Корпус — `_ops/chat-recall/` целевого проекта: файл на разговор, `topics.md` —
-словарь предметов, а не пересказ решений. Запись и поиск используют один корень
-`TARGET_PROJECT_ROOT`, по умолчанию текущую папку; явный `--project` Capture
-перекрывает его. Работа из подпапки требует указать корень проекта.
+The corpus is `_ops/chat-recall/` of the target project: one file per
+conversation; `topics.md` is the subject vocabulary, not a summary of decisions.
+Capture and retrieval share one root, `TARGET_PROJECT_ROOT` (default: the
+current folder); an explicit `--project` overrides it for Capture. From a
+subfolder, pass the project root.
 
-Команды и schema принадлежат `--help` скриптов в `scripts/` этого пакета.
-Наблюдаемое расхождение справки и поведения — дефект инструмента.
-Корпус остаётся локальным; обычный Retrieval читает сохранённые цитаты,
-а не транскрипты и не сеть. Постоянный профиль владельца и производный слой
-пересказов не заводятся.
+Commands and schema belong to `--help` of the scripts in `scripts/`; a mismatch
+between help and behavior is a tool defect. The corpus stays local; retrieval
+reads stored quotes, not transcripts or the web. No owner profile and no derived
+summary layer.
 
-Новая запись разрешения не требует. Запись текущего разговора агент
-перезаписывает новой версией по правилу Capture. Удаление записи без новой
-версии и любое изменение записи другого разговора — только по явному поручению
-владельца об этой записи. Новая запись может обновить поисковую карточку своего
-разговора, сохраняя его прежние предметы.
+A new record needs no permission. A record of the current conversation may be
+overwritten by the Capture rule. Deleting a record without a new version, or
+changing a record of another conversation, only on the owner's explicit order
+about that record.
 
-Пересмотреть скил, если в корпус снова идут рабочие реплики текущей вещи
-или голые согласия, агент объявляет запись без квитанции, подменяет слова
-пересказом, теряет условия или считает один пустой запрос доказательством,
-что владелец ничего не говорил.
+Revisit this skill if an agent relies on a quote as a current decision against
+a live file or the current conversation, working remarks or bare agreements
+reach the corpus again, a record is announced without a receipt, words are
+paraphrased, or one empty query is taken as proof the owner said nothing.

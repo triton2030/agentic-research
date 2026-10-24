@@ -1,39 +1,35 @@
 # Integrity
 
-## Задача
+## Goal
 
-Проверь корпус или восстанови явно заказанные владельцем записи по их источнику.
+The corpus state is checkable, and each change the owner ordered is backed by
+its source scene and a visible before/after. His words are never replaced by
+your editing; whatever stays unrepaired is named with a reason.
 
-## Цель
+## Why
 
-Состояние корпуса проверяемо, а каждое заказанное изменение подтверждено
-исходной сценой и различимым «было / стало».
-Слова владельца не заменены редактурой агента, и непочиненное названо с причиной.
+A diagnostic reports state; it does not authorize changing history. A transcript
+may disappear, and then a past scene cannot be rebuilt.
+[chat_recall.py](../scripts/chat_recall.py) confirms message provenance,
+timestamp and source address, but not who wrote each fragment inside a paste.
+Source and stored quote are for comparison, not for improving speech.
 
-## Зачем
+## Criteria
 
-Диагностика сообщает состояние, но не даёт разрешения менять историю.
-Транскрипт может исчезнуть; без него прежнюю сцену нельзя сочинить заново.
-[chat_recall.py](../scripts/chat_recall.py) подтверждает provenance сообщения,
-timestamp и адрес источника, но не авторство каждого фрагмента внутри вставки.
-Источник и сохранённая цитата нужны для сравнения, а не для улучшения речи.
+- Only records the owner explicitly ordered are changed, each with its source
+  and a before/after comparison. Validation alone does not authorize repair; a
+  label that honestly describes an old unknown is not a formatting error.
+- The raw source stays unchanged and the backup lives outside the corpus;
+  otherwise a check compares a repaired record with already repaired evidence,
+  or finds the backup as a second voice of the owner.
+- Restored units do not duplicate stored remarks: a repeat creates false
+  independent confirmation. An unrecoverable scene stays a gap.
+- After a change, show a repeated validation and the remaining diagnostics. A
+  clean report before the change proves nothing about its result.
 
-## Критерии принятия
+## When you check or change the corpus
 
-- Изменены только явно заказанные записи, и у каждого изменения есть источник
-  и сравнение до/после. Валидация сама по себе не разрешает repair; метка,
-  честно описывающая старую неизвестность, не является ошибкой оформления.
-- Сырой источник неизменён, backup расположен вне корпуса; иначе проверка
-  сверит исправленную запись с уже исправленным доказательством либо найдёт
-  backup как второй голос владельца.
-- Новые восстановленные единицы не дублируют сохранённые реплики: повтор
-  создаёт ложное независимое подтверждение. Невосстановимая сцена остаётся gap.
-- После mutation предъявлены повторная validation и оставшиеся diagnostics.
-  Чистый отчёт до правки не доказывает целостности её результата.
-
-## Инструменты и порядок изменения
-
-[chat_digest.py](../scripts/chat_digest.py) выполняет проверку:
+[chat_digest.py](../scripts/chat_digest.py) runs the check:
 
 ```bash
 ROOT="${CLAUDE_SKILL_DIR:-$HOME/.claude/skills/1chat-recall}"
@@ -42,41 +38,39 @@ uv run --locked --script "$ROOT/scripts/chat_digest.py" \
   "$TARGET_PROJECT_ROOT/_ops/chat-recall" --check --strict
 ```
 
-Для явно заказанного восстановления названной сессии `chat_recall.py`
-запускается через `python3`; его интерфейс — `--help`. Транскрипт не становится
-fallback обычного поиска: доступ к нему относится только к этому поручению.
-Сессия не названа — найди её id через `duckdb`: `select filename from
+For an explicitly ordered restore of a named session, run `chat_recall.py` with
+`python3`; its interface is `--help`. A transcript is not a fallback for
+ordinary search: access to it belongs to this order only. If the session is not
+named, find its id with `duckdb`: `select filename from
 read_text('~/.claude/projects/**/*.jsonl') where content like '%<фрагмент сцены>%'`.
-Цитата и её provenance берутся только из `chat_recall.py`.
+Quote and provenance come only from `chat_recall.py`.
 
-До изменения нужны исходная validation, доказанный источник и внешний backup;
-после изменения — повторная validation. Это необходимый порядок для сравнения,
-а не разрешение чинить всё найденное.
+Before a change: an initial validation, a proven source and an external backup;
+after it: a repeated validation. This order makes comparison possible; it is
+not a license to fix everything found.
 
-Подтверждённая отсутствующая реплика возвращается в router как `capture-needed`
-с целевым проектом, сессией и исходным timestamp; далее обычный Capture
-сохраняет её своей операцией. Текст существующей цитаты не переписывается:
-допустимо только подтверждённое источником вычёркивание в пределах поручения.
-Метаданные опираются на ту же сцену, а удаление требует слова владельца
-об этой записи.
+A confirmed missing remark goes back to the router as `capture-needed` with
+target project, session and original timestamp, and ordinary Capture records
+it. The text of an existing quote is not rewritten: only a source-confirmed
+deletion within the order is allowed. Metadata rely on the same scene; deleting
+a record requires the owner's word about it.
 
-## Когда восстанавливаешь адреса
+## When you restore addresses
 
-`#L` обозначает нынешнюю строку, а не личность записи. Сначала прочитай
-ссылающийся документ и цитату: соседняя строка может быть другим решением.
-Хеш, вычисленный от случайной нынешней строки, этого не исправляет.
+`#L` marks a current line, not a record's identity. First read the referring
+document and the quote: a neighboring line may be another decision. A hash
+computed from whatever line is there now fixes nothing.
 
-[chat_repair.py](../scripts/chat_repair.py) добавляет устойчивые заголовки к
-проверенным старым записям. Передай каждую как
-`--address 'file.md:line sha:проверенный-хеш'` и сохрани `--plan-out` вне корпуса.
-Этот вызов только строит план с прежними и новыми адресами. После проверки
-соответствий `--apply-plan` сверяет хеши файлов перед записью и применяет план
-под общей блокировкой. При расхождении с планом он отказывается писать.
-На время применения исключи ручные записи и работу старых helpers в этих
-файлах: они обходят блокировку и могут изменить их после проверки хеша.
+[chat_repair.py](../scripts/chat_repair.py) adds stable headings to verified
+old records. Pass each as `--address 'file.md:line sha:verified-hash'` and keep
+`--plan-out` outside the corpus. That call only builds a plan with old and new
+addresses. After checking the mapping, `--apply-plan` re-checks file hashes and
+applies the plan under the shared lock; on any mismatch it refuses to write.
+While it runs, keep manual edits and old helpers away from those files: they
+bypass the lock.
 
-Заголовки не меняют цитаты и имена файлов,
-но сдвигают прежние номера строк: вместе с ними перенеси проверенные входящие
-ссылки на адреса `#recall-…` из плана. Помощник не угадывает смысл старой ссылки
-и не переписывает документы. Покажи охват переноса и оставшиеся старые ссылки;
-архивный материал не становится действующим документом ради чистого отчёта.
+Headings change neither quotes nor file names but shift line numbers: move the
+verified incoming links to the `#recall-…` addresses from the plan. The helper
+does not guess what an old link meant and does not rewrite documents. Show how
+much was moved and which old links remain; archived material does not become a
+live document for the sake of a clean report.

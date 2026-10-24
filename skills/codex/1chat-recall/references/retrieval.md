@@ -1,112 +1,102 @@
 # Retrieval
 
-## Контекст
+## Why
 
-Поиск возвращает кандидатов на чтение. Обрезанный фрагмент, карточка разговора
-и высокий ранг не заменяют слова владельца. Одна точная фраза может ничего
-не найти, хотя владелец обсуждал тот же выбор другой лексикой. Более поздняя
-реплика способна изменить решение без повторения имени предмета.
+The corpus is context — what the owner thought then — not his current
+decisions; those live in project docs, instructions and the current
+conversation. Search returns candidates to read: a cut fragment, a session card
+or a high rank does not replace his words. One exact phrase may find nothing
+where he discussed the same subject in other words, and a later remark may
+change his thinking without naming the subject.
 
-## Задача
+## Task
 
-Сам найди и прочитай исходные разговоры, чтобы дополнить контекст текущего
-вопроса. Не делегируй поиск или толкование и не заменяй найденное
-отчётом другого агента.
+Find and read the source conversations yourself to understand how the owner
+thought about the current question. Do not delegate search or interpretation,
+and do not replace what you found with another agent's report.
 
-## Цель
+## Goal
 
-Для существенного выбора доступны применимые слова владельца с точным адресом,
-датой и условиями. Цитата отличима от собственного решения агента; отсутствие
-источника, конфликт и незавершённый поиск остаются видимыми.
+You understand his thinking on the subject — with exact address, date and
+conditions — and never present a quote as a current decision. A quote and your
+own judgment stay distinguishable; a missing source or an unfinished search
+stays visible.
 
-## Когда ищешь
+## When you search
 
-Прочитай [механику поиска](search-mechanics.md) перед первым поиском: она
-объясняет лексический допуск, фильтры и ограничения семантического ранжирования.
-Назови предмет текущего решения и известный проект. Ищи не только его имя,
-но и обсуждаемый выбор: например, скорость разработки и надёжность, если
-вопрос о проверках в приложении. Это расширение запроса, а не приписывание
-владельцу желаний.
-
-[chat_digest.py](../scripts/chat_digest.py) запускается так:
+Read [search mechanics](search-mechanics.md) before the first search. Name the
+subject of the current question and the project. Search not only its name but
+the choice under discussion — e.g. development speed versus reliability when
+the question is about checks in an app. That widens the query; it does not
+attribute wishes to the owner.
 
 ```bash
 ROOT="${CODEX_HOME:-$HOME/.codex}/skills/1chat-recall"
 TARGET_PROJECT_ROOT="${TARGET_PROJECT_ROOT:-$PWD}"
 uv run --locked --script "$ROOT/scripts/chat_digest.py" \
-  "$TARGET_PROJECT_ROOT/_ops/chat-recall" --query "<предмет и выбор>" --json
+  "$TARGET_PROJECT_ROOT/_ops/chat-recall" --query "<subject and choice>" --json
 ```
 
-При недостаточной выдаче попробуй другие формулировки, синонимы и корни с `*`.
-Проверь `topic_candidates` и карточки, затем подходящую тему через
-`--topic <handle> --timeline --json`. Расширь мешающий фильтр; увеличь лимит
-при `truncated` и устрани также усечение tool output. Повтор того же запроса
-с большим лимитом не заменяет смену лексики. Если helper недоступен,
-используй локальный `--lexical` или `rg` по корпусу, назвав ограничение;
-не считай ошибку инструмента пустым корпусом.
+With thin results, try other wordings, synonyms and stems with `*`. Check
+`topic_candidates` and session cards, then the fitting topic via
+`--topic <handle> --timeline --json`. Widen a blocking filter; raise the limit on
+`truncated` and fix tool-output truncation too. The same query with a higher
+limit does not replace new wording. If the helper is unavailable, use
+`--lexical` or `rg` over the corpus and name the limitation; a tool error is
+not an empty corpus.
 
-При `no-eligible-records` выбранный фильтрами набор не содержит допустимых
-цитат: проверь фильтры и исключённые записи. При `no-lexical-match` совпадений
-по словам нет; hybrid может вернуть семантических кандидатов. Смотри `channels` у конкретной цитаты: даже когда
-другие результаты найдены по словам, эта цитата могла прийти только из dense.
-Такой результат указывает разговор для чтения; наличие `strongest_quote`
-или `query_domain=in-domain` не означает, что ответ на вопрос найден.
-Если слова отвечают на соседний вопрос, продолжи поиск или назови пробел.
+`no-eligible-records`: the filtered set holds no eligible quotes — check filters
+and excluded records. `no-lexical-match`: no word matches, though hybrid may
+still return semantic candidates. Check `channels` per quote: a quote may come
+from dense alone. Such a result points to a conversation to read;
+`strongest_quote` or `query_domain=in-domain` does not mean the question is
+answered.
 
-## Когда выбираешь цитаты
+## When you choose quotes
 
-Читай каждый выбранный разговор целиком, в хронологии, включая реплики после
-совпадения. Открывай файл без начальной строки и лимита: общий совет читать
-только нужную часть здесь не работает, потому что нужная часть — весь
-разговор, а файлы короткие, десятки строк. Не обрезай и строки (`cut -c`):
-реплика владельца записана одной строкой, и обрезка теряет её конец.
-Проверь более поздние разговоры по тому же предмету и соседние сессии вокруг его изменения: реплика «начнём заново» может не назвать предмет.
-Если поиск не показывает свежих слов, просмотри карточки свежих разговоров
-через `--digest --json` и открой потенциально связанные целиком.
-После backfill или repair перечитай затронутый разговор независимо от даты.
-Если вывод не помещается, читай последовательные диапазоны до конца файла;
-обрезанный tool output не считается полным чтением. Для точного поиска
-кириллических слов используй Unicode-поиск `rg`, например `rg -n -w 'сцены'`.
+Read each chosen conversation whole, in order, including remarks after the
+match: open the file with no start line or limit — files are short — and do not
+cut lines with `cut -c`, because an owner remark is one line. If the output does
+not fit, read consecutive ranges to the end: a truncated output is not a full
+read. A later conversation may show he changed his mind, and «начнём заново» may
+not name the subject: recent cards are in `--digest --json`. A changed position
+shows in `--topic … --timeline` — ordinary search returns a superseded record's
+replacement, not the record, and contested records appear only under
+`conflicts`. For exact Cyrillic words use `rg -n -w`.
 
-У старой записи без устойчивого якоря ссылка на файл сопровождается началом
-цитаты и датой; номер строки помогает найти её в прочитанном файле. Не превращай найденный
-`#L` в новую постоянную ссылку. Адресацию legacy-записей добавляет только явно
-заказанный [Integrity](integrity.md), обычный поиск корпус не изменяет.
+For an old record without a stable anchor, cite the file with the quote's
+opening and date; do not turn a found `#L` into a permanent link. Only an
+explicitly ordered [Integrity](integrity.md) adds addressing to legacy records.
 
-Для каждой применяемой цитаты установи дату высказывания, автора, объект,
-обстоятельства, силу, отмену или конфликт и применимый живой документ проекта.
-Оцени, что могло измениться с той даты; возраст цитаты влияет на её применимость,
-а не служит только подписью к ссылке.
-Более поздняя дата сама по себе не отменяет совместимую мысль.
-Локальное «не нравится» не становится общей чертой; явно общее предпочтение
-сохраняет широту и исключения. Слова из соседней темы могут объяснить выбор,
-но их перенос на новый объект — отдельное суждение агента.
+For each quote establish date, author, object, circumstances and strength at
+the time, and find the live project document on the same subject. Judge what
+may have changed since; a later date alone does not cancel a compatible
+thought. A local «не нравится» does not become a general trait; words from a
+neighboring topic may explain a choice, but carrying them to a new object is
+your own judgment.
 
-## Когда применяешь
+## When you use what you found
 
-Прежние слова — дополнительный контекст с меньшим весом, чем нынешние слова
-владельца по тому же вопросу. Они не переопределяют текущий заказ и проверенное
-состояние дел. Явное уточнение в текущем разговоре разрешает расхождение с
-прошлым без повторного согласования. При отсутствии такого расхождения история
-помогает продолжить работу, если её условия ещё применимы.
+A quote is context, not a decision. Take the current rule from live project
+files and the current conversation; a quote that diverges from them tells what
+the owner thought earlier and changes nothing. A quote fresher than a live file
+and diverging from it calls for a finding via `1findings` or a question to him:
+the file changes on his current word, not on a quote. Without divergence,
+history explains why things are as they are.
 
-Предъяви существенную опору в виде «<дословная цитата>» — дата,
-устойчивый `address` из выдачи (`<файл>.md#recall-<id>`), а для старой записи
-без него — ссылка на файл по правилу legacy выше. Укажи объект и условия,
-если без них реплика двусмысленна. Сокращай только удалением, сохраняя слова, порядок,
-условия и оговорки. Комментарий не подменяет цитату, а догадка не попадает
-в кавычки. Не выдавай ответ «как сказал бы владелец».
+Present a material support as «<verbatim quote>» — date, the stable `address`
+from output (`<file>.md#recall-<id>`), or the legacy reference above. Name
+object and conditions if the remark is ambiguous without them. For
+`kind: selection` the text is the words of a proposal he accepted, not his
+speech — say so. Shorten only by deletion; a guess never goes inside quotation
+marks. Never answer "as the owner would say".
 
-Идея остаётся возможностью, предпочтение — ориентиром, решение — решением
-в своих условиях. Если после учёта текущего разговора и состояния проекта
-остаётся существенная неопределённость, покажи датированные опоры и спроси
-владельца до зависимого действия, продолжая независимую работу.
-Расхождение с живой инструкцией оставь через `1findings`, если он доступен.
+The record type is the strength of his words then: an idea, a preference and a
+decision all remain context. If live files and the conversation do not settle
+the question, quotes help you propose an option or ask a precise question.
+Make a reversible choice yourself; ask before an irreversible one and continue
+independent work meanwhile.
 
-Нет применимых слов после расширенного поиска — назови предмет и границы
-поиска, затем отдели собственное суждение от слов владельца. Восстановимый
-выбор можно сделать самостоятельно; неизвестность, требующая решения
-владельца или ведущая к невосстановимому действию, требует вопроса.
-Не заполняй пробел выдуманным предпочтением. Когда источники, условия и
-возможная отмена установлены, переходи к задаче: полнота всего корпуса не
-является целью. При смене предмета проверь применимость опор заново.
+No fitting words after a widened search — name the subject and the search
+bounds, and separate your judgment from his words. Never fill the gap with an
+invented preference. Once sources and conditions are clear, return to the task.

@@ -159,17 +159,6 @@ CONTEXT_NOTE_GUIDANCE = (
     "keyword exists, inspect the source context instead of inventing one"
 )
 CONTEXT_NOTE_REMINDER = f"remember: {CONTEXT_NOTE_GUIDANCE}"
-POSITION_TYPES = frozenset(
-    {"решение", "коррекция", "критерий", "правило-кандидат", "предпочтение"}
-)
-SUPERSESSION_GUIDANCE = (
-    "identify the relation before writing: --supersedes <file>.md#recall-<id> for a "
-    "verified cancellation, --supersedes-none for no cancellation, --contested "
-    "<file>.md#recall-<id> for a conflict without a winner. If the old quote was not "
-    "found after search, use --supersedes-unresolved <search-note>; the new "
-    "quote is saved without guessing which old record it cancels."
-)
-
 SESSION_CONTEXT_GUIDANCE = (
     "one-line search card for the whole session; pass the complete current card, "
     "not a delta; keep earlier major subjects when work changes; use brief "
@@ -958,7 +947,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--supersedes-unresolved", metavar="SEARCH_NOTE",
-        help="old quote was not found after search: preserve the new quote and the search gap without cancelling an address",
+        help="not required and rarely useful: an earlier record exists but its address is unknown. The new record then leaves ordinary search and shows only under conflicts; usually just omit any relation",
     )
     parser.add_argument("--kind", choices=KINDS, default="quote", help="quote: owner words; selection: the option the owner chose; note: agent explanation, not owner evidence")
     parser.add_argument(
@@ -967,7 +956,7 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="ANCHOR",
         help=(
             "one or more addresses (option may repeat): <file>.md#recall-<id> or verified legacy <file>.md:<line> sha:<record_sha256> "
-            "from retrieval after reading the earlier quote; "
+            "already known from this conversation's receipt or from reading the earlier quote; no search is required; "
             "only when both cannot be true at once in the same scope"
         ),
     )
@@ -977,8 +966,8 @@ def build_parser() -> argparse.ArgumentParser:
         metavar="ANCHOR",
         help=(
             "one or more addresses (option may repeat): <file>.md#recall-<id> or verified legacy <file>.md:<line> sha:<record_sha256> "
-            "from retrieval after reading the conflicting quote; when the winner "
-            "is unclear; marks the conflict instead of choosing silently"
+            "already known; when the winner is unclear. Avoid in ordinary capture: "
+            "both records then leave ordinary search and show only under conflicts"
         ),
     )
     parser.add_argument(
@@ -1018,8 +1007,8 @@ def build_parser() -> argparse.ArgumentParser:
         "--supersedes-none",
         action="store_true",
         help=(
-            "this reply overturns no earlier position — the answer required of "
-            "every position when it cancels nothing"
+            "optional: this reply overturns no earlier position. No relation answer "
+            "is required; link only an address you already have"
         ),
     )
     parser.add_argument("--project", default=default_project())
@@ -1089,19 +1078,6 @@ def main() -> int:
         )
         if unresolved and "|" in unresolved:
             raise CaptureError("unresolved supersession search note cannot contain metadata delimiter '|'")
-        if (
-            args.kind in ("quote", "selection")
-            and type_ in POSITION_TYPES
-            and topic != REPAIR_TOPIC
-            and not args.supersedes
-            and not args.contested
-            and not args.supersedes_none
-            and unresolved is None
-        ):
-            raise CaptureError(
-                "--supersedes, --contested, --supersedes-unresolved or --supersedes-none is required for "
-                "a position; " + SUPERSESSION_GUIDANCE
-            )
         if context and args.kind == "note":
             raise CaptureError("--context-note cannot be attached to --kind note")
         implicit_now = args.source_timestamp is None

@@ -1,45 +1,44 @@
-# Как искать с учётом устройства кода
+# Search mechanics
 
-## Назначение
+## Purpose
 
-Поиск выбирает источники для чтения. Он не устанавливает позицию владельца
-и не гарантирует, что все подходящие слова найдены. Этот материал связывает
-механику инструмента с выбором следующего действия рабочего агента.
+Search picks sources to read. It does not establish the owner's position and
+does not guarantee that every fitting remark is found. This note ties the tool's
+mechanics to your next move.
 
-Истина о поведении — [chat_digest.py](../scripts/chat_digest.py), проверяемые
-случаи — [test_chat_digest.py](../tests/test_chat_digest.py). Имена функций
-ниже помогают проверить конкретное расхождение после обновления кода.
+The truth about behavior is [chat_digest.py](../scripts/chat_digest.py); the
+checked cases are [test_chat_digest.py](../tests/test_chat_digest.py). Function
+names below help verify a specific mismatch after a code update.
 
-## Перед первым поиском
+## Before the first search
 
-Прочитай этот материал целиком. При изменении поискового кода или расхождении
-выдачи с описанием проверь затронутую функцию и её тесты; прежнее понимание
-инструмента не подтверждает поведение новой версии.
+Read this note whole. When the search code changes or output disagrees with
+this description, check the function and its tests: an earlier understanding
+of the tool does not confirm a new version.
 
-| Механика | Сильная сторона и ограничение | Следствие для исследования |
+| Mechanism | Strength and limit | What it means for your search |
 | --- | --- | --- |
-| `_dense_text`, `_search_dense_texts`: вектор строится из текста одной записи и `context-note`. Текущая модель — `Xenova/multilingual-e5-large`, локальная, с префиксами `query:` и `passage:`. | Семантическая близость помогает найти иначе сформулированную мысль. Вектор записи не представляет весь разговор. | Формулируй запрос на уровне смысла решения; найденную реплику понимай через полный разговор. |
-| `_fts_query`, `_fts_term`, `search_bm25`: SQLite FTS5 `unicode61`, слова запроса соединяются через OR без служебных слов (`QUERY_STOPWORDS`); русское слово ищется по основе Snowball с префиксом, `*` в конце задаёт префикс явно. | Формы слова находятся: «телефон» ловит «телефона». Основа грубая: чередования и супплетивы не сводятся, короткая основа может захватить чужие слова; без стеммера из fastembed (запуск не через `uv`) поиск буквальный. | Используй несколько содержательных формулировок. `--lexical` сохраняет только лексический поиск, поэтому не даёт той же полноты, что hybrid. |
-| `search_hybrid`: BM25 и dense независимо ищут по отфильтрованным записям, затем ранги объединяются через RRF. `lexical_matched` считает BM25-совпадения; ноль отмечен `no-lexical-match`, а пустой допустимый набор — `no-eligible-records`. | Парафраз без общих слов теперь может найти разговор. Ближайшие векторы существуют и для вопроса без ответа. | Проверяй `channels` у каждой цитаты: `bm25` для буквального совпадения, `dense` для участия в ограниченном векторном наборе или оба. `dense` без BM25 — кандидат на чтение; дословность результата сама по себе не доказывает, что он отвечает на вопрос. |
-| `_merge_file_rankings`: объединение рангов BM25 и dense через RRF, ограничение глубины, затем выдача разговоров с опорными репликами. | Несколько каналов и группировка помогают выбирать разговоры. Место в выдаче не измеряет истинность, силу решения или полноту evidence. | Читай выбранные разговоры; не принимай список опорных реплик за все совпадения. Увеличение `--limit` не снимает внутреннюю глубину поиска. |
-| `search_session_routes`, `search_topic_candidates`: карточки разговоров и описания тем имеют отдельные маршруты и условия допуска. | Карточка может вывести к разговору, который не найден по цитатам. Dense-карточка сама по себе не гарантирует допуск: используются пересечение первых пяти BM25/dense либо лексические условия; темы тоже требуют лексического совпадения. | `admitted_by=lexical+dense` у темы означает попадание в ограниченный dense top-k; иначе `lexical`. Независимый dense цитат не открывает автоматически карточки и темы. Проверяй `card_route`, `admitted_by` и `topic_candidates`. Пробуй другую формулировку, два содержательных корня с `*` или `--topic … --timeline`. Карточка указывает источник, но не доказывает позицию. |
-| `_filter`, `_decision_records`, `_query_conflicts`: фильтры действуют до ранжирования; обычный поиск позиции исключает служебные, отменённые и спорные записи, а конфликты ищет отдельно. Поиск конфликтов сохраняет лексический допуск: новый dense-only путь цитат не доказывает релевантность конфликта. | Выдача защищена от части неприменимых записей. Узкий фильтр может заранее убрать нужное; отсутствие найденных конфликтов не доказывает согласованность всего корпуса. | Если evidence мало, расширь тему, тип или период; смотри отдельные конфликты и хронологию. `--since` относится к дате реплики, поэтому старый backfill требует перечитать затронутый разговор независимо от этого фильтра. |
-| `_domain_verdict`, `_bounded*` и формирование JSON: близость к предметной области и усечение — разные сигналы. | `in-domain` означает близость к предмету корпуса, а не наличие позиции. `truncated=false` означает отсутствие отмеченного усечения выдачи скриптом, а не полноту поиска или доставки текста инструментом. | Устраняй указанное `truncated_by`; отдельно замечай обрезанный tool output. Высокую близость и отсутствие усечения не превращай в уверенность в позиции. |
+| `_dense_text`, `_search_dense_texts`: a vector per record from its text and `context-note`. Current model: `Xenova/multilingual-e5-large`, local, with `query:` and `passage:` prefixes. | Semantic closeness finds a thought phrased differently. A record vector does not represent the whole conversation. | Phrase the query at the level of meaning; understand a found remark through its whole conversation. |
+| `_fts_query`, `_fts_term`, `search_bm25`: SQLite FTS5 `unicode61`; query words joined by OR without stopwords (`QUERY_STOPWORDS`); a Russian word is searched by its Snowball stem as a prefix, a trailing `*` sets a prefix explicitly. | Word forms match: «телефон» catches «телефона». The stem is crude: alternations and suppletive forms do not merge, a short stem can catch unrelated words; without fastembed's stemmer (a run not via `uv`) search is literal. | Use several meaningful wordings. `--lexical` keeps only lexical search and is less complete than hybrid. |
+| `search_hybrid`: BM25 and dense search the filtered records independently; ranks merge by RRF. `lexical_matched` counts BM25 hits; zero is marked `no-lexical-match`, an empty eligible set `no-eligible-records`. | A paraphrase with no shared words can now find a conversation. Nearest vectors exist even for a question with no answer. | Check `channels` per quote: `bm25` for a literal match, `dense` for a place in the bounded vector set, or both. Dense without BM25 is a candidate to read; a verbatim result does not by itself answer the question. |
+| `_merge_file_rankings`: RRF merge, depth limit, then conversations with supporting remarks. | Several channels and grouping help pick conversations. Rank does not measure truth, strength or completeness. | Read the chosen conversations; supporting remarks are not all matches. A higher `--limit` does not lift the internal depth. |
+| `search_session_routes`, `search_topic_candidates`: session cards and topic descriptions have their own routes and admission rules. | A card can lead to a conversation the quotes did not. A dense card alone is not admitted: the first five BM25/dense must overlap, or lexical conditions apply; topics also need a lexical match. | `admitted_by=lexical+dense` on a topic means it entered the bounded dense top-k; otherwise `lexical`. Independent dense quote hits do not open cards and topics automatically. Check `card_route`, `admitted_by` and `topic_candidates`; try another wording, two stems with `*`, or `--topic … --timeline`. A card points to a source; it proves nothing. |
+| `_filter`, `_decision_records`, `_query_conflicts`: filters apply before ranking; ordinary search excludes service, superseded and contested records and looks for conflicts separately with lexical admission only. | Output is protected from some inapplicable records. A narrow filter can drop what you need; no conflicts found does not prove the corpus is consistent. | With thin evidence, widen topic, type or period; look at conflicts and the timeline. `--since` filters by remark date, so an old backfill means re-reading the affected conversation regardless. |
+| `_domain_verdict`, `_bounded*`, JSON assembly: closeness to the corpus domain and truncation are different signals. | `in-domain` means closeness to the corpus subject, not that a position exists. `truncated=false` means the script marked no truncation, not that search was complete or the tool delivered the full text. | Fix the reported `truncated_by`; watch separately for truncated tool output. Do not turn high closeness into certainty. |
 
-## Когда результат неполон или инструмент недоступен
+## When the result is incomplete or the tool is unavailable
 
-Выбирай следующий ход по причине пробела: другая лексика меняет кандидатов,
-расширение фильтра возвращает исключённые записи, чтение темы восстанавливает
-хронологию, полный разговор даёт сцену. Повтор одного запроса с большим лимитом
-не исправляет все эти причины.
+Choose the next move by the cause of the gap: new wording changes candidates,
+a wider filter returns excluded records, a topic timeline restores order, the
+whole conversation gives the scene. One query repeated with a higher limit does
+not fix these causes.
 
-Hybrid требует подготовленного локального runtime и кеша. `--prepare` может
-потребовать сеть; обычный поиск использует локальную модель. Кеш векторов
-привязан к содержимому и профилю модели, а тяжёлые hybrid-вызовы сериализуются
-общей очередью (`_cached_vectors`, `_content_hash`, `_hybrid_queue`). Ошибка
-подготовки или тайм-аут очереди говорят о недоступности инструмента, а не о
-корпусе. При переходе на `--lexical` назови ограничение, если оно влияет на вывод.
+Hybrid needs a prepared local runtime and cache. `--prepare` may need the
+network; ordinary search uses the local model. The vector cache is tied to
+content and model profile, and heavy hybrid calls are serialized by a shared
+queue (`_cached_vectors`, `_content_hash`, `_hybrid_queue`). A prepare error or
+queue timeout means the tool is unavailable, not that the corpus is empty. When
+you fall back to `--lexical`, name the limitation if it could change the result.
 
-В ответе достаточно назвать ограничения, которые действительно могли изменить
-результат. Вывод об отсутствии применимых слов требует расширенного поиска;
-один пустой запрос, высокий score или прочитанная инструкция его не обосновывают.
+Concluding that no fitting words exist requires a widened search; one empty
+query, a high score or a read instruction does not justify it.
