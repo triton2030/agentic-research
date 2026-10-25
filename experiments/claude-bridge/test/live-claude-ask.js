@@ -229,7 +229,7 @@ try {
   assert.equal(second.requested_model, "opus");
   assert.equal(opus.resolved_model, "claude-opus-5-5");
   assert.equal(second.resolved_model, "claude-opus-5-5");
-  assert.deepEqual(opus.runtime, { sdk_version: "0.3.300", claude_code_version: "2.1.300" });
+  assert.deepEqual(opus.runtime, { sdk_version: "0.3.310", claude_code_version: "2.1.310" });
 
   const literalMarker = token("VERBATIM");
   const literal = await askClaude({

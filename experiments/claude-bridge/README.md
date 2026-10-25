@@ -275,9 +275,9 @@ an abstraction only when current complexity makes the seam real.
 
 ## Develop And Verify
 
-The verified dependency pair is Agent SDK `0.3.300` and local Claude Code
-`2.1.300`. The SDK is pinned in the lockfile; the local executable is managed
-separately with `claude install 2.1.300`. Check `claude --version` on upgrades:
+The verified dependency pair is Agent SDK `0.3.310` and local Claude Code
+`2.1.310`. The SDK is pinned in the lockfile; the local executable is managed
+separately with `claude install 2.1.310`. Check `claude --version` on upgrades:
 installing the npm dependency does not update that executable.
 The [official SDK changelog](https://github.com/anthropics/claude-agent-sdk-typescript/blob/main/CHANGELOG.md)
 records SDK runtime changes; this installed pair is verified below.
@@ -301,6 +301,15 @@ A fresh Codex process discovered and called all four tools, including the new
 runtime, rate-limit, and context fields. A separate native invalid-proxy startup
 probe returned `proxy_invalid` before init with `resumable: false`; fixtures
 also cover startup results without a reason code followed by process exit.
+
+Verified on 2026-10-25 with SDK 0.3.310 / Claude Code 2.1.310: clean install
+with optional binaries omitted, 50 deterministic tests, and the live suite
+covering parallel calls, native resume, follow-up, steer, stop, literal prompts,
+context diagnostics, and native cancellation with no surviving observed processes.
+Model routing and the four MCP schemas are unchanged.
+A separate fresh MCP process exposed all four tools and passed real ask,
+managed resume, follow-up, list/read, and active-turn stop with no surviving
+observed child processes.
 
 Install the exact lockfile and run the deterministic contract suite:
 

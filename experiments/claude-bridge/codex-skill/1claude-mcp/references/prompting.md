@@ -50,7 +50,7 @@ Anthropic рекомендует отдавать ему неоднозначн�
 попытки расписать внутреннее мышление. Настройки High/Max/Medium из тела скила
 относятся к вычислительному effort, а не к требуемой длине ответа.
 
-[^verbatim]: [Agent SDK, `verbatimPrompts` и `client_composed`](https://code.claude.com/docs/en/agent-sdk/typescript), проверено по SDK 0.3.300 и живому вызову 2026-10-16.
+[^verbatim]: [Agent SDK, `verbatimPrompts` и `client_composed`](https://code.claude.com/docs/en/agent-sdk/typescript), проверено по SDK 0.3.310 и живому вызову 2026-10-25.
 
 Источники проверены 2026-09-12:
 [работа с Fable и effort](https://code.claude.com/docs/en/model-config),
