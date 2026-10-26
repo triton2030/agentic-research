@@ -72,6 +72,9 @@ about a recurring expectation. A change of his own position is `решение` 
 
 ## When you prepare the record
 
+A subject this conversation already recorded is updated with `--replace`
+(below), not recorded again.
+
 [chat_capture.py](../scripts/chat_capture.py) runs with `python3`. Read the
 whole topic map from `--list-metadata` before choosing a topic: matching words
 do not define a subject's boundary. No fitting topic — `--new-topic` adds it in
@@ -93,8 +96,9 @@ For a historical `capture-needed`, pass the original remark's time.
 
 Searching for the earlier record is not required: the corpus is context, and
 the current rule lives in live files and the conversation. If you already have
-its address — from this conversation's receipt or from what you just read —
-link it with `--supersedes`: ordinary search then returns the new words, and
+the address of another conversation's record — from what you just read —
+link it with `--supersedes` (a record of this conversation is replaced
+instead, below): ordinary search then returns the new words, and
 the old ones stay visible in `--topic … --timeline`. Avoid `--contested`: it
 removes both records from ordinary search and leaves them only under
 `conflicts`. Link by a verbatim record that cannot hold together with the new
@@ -103,32 +107,28 @@ remark under the same conditions, never by guess.
 A record is not the rule. If the remark changes a rule the project keeps in a
 live file, change that file by its own route as well.
 
-## When a later remark changes a record of this conversation
+## When a later remark of this conversation touches a recorded subject
 
-The owner thinks aloud, and the next remark may take back or reshape what was
-just recorded: «давай вынесем» followed by «Или нет. Как ты думаешь?». A
-correction record with `--contested` on top would leave a "decision" that never
-existed and the owner arguing with himself.
+One conversation keeps one record per subject, and the record evolves: the
+owner decided so on 26 Oct 2026, because corrections appended beside earlier
+records made conversation files long, and a reader had to read a whole file to
+find the final position. A later remark on the same subject — taking it back,
+a new condition, a reason, a change of mind — goes into the existing record
+with `--replace`, not into a new record beside it. Build the version from all
+his remarks on the subject, shortened only by deletion and kept in order. A
+reason he named for a change (a result, a new fact, someone else's opinion)
+stays inside the version: the next agent needs it. The type describes the
+outcome; the time is that of the remark that settled it — the write time in
+the same turn, otherwise its `--source-timestamp`.
 
-Overwrite when the later remark shows the record was not yet a position — he
-took it back, asked your opinion instead of deciding, or clarified what it
-referred to — and nothing has changed on the basis of the record yet. If
-something has already changed on its basis, or he named a reason for the change
-— a result, a new fact, someone else's opinion — save the new remark linked
-with `--supersedes`: the future agent needs this turn and its reason. When in
-doubt, link: an erased turn cannot be restored, while the superseded record
-stays visible in the topic timeline. A link to the record from another record
-or a document also counts as a change on its basis; the helper refuses to
-overwrite a record linked from the corpus.
-
-`--replace <file>.md#recall-<id>` from the receipt removes the old block and
-appends the new version at the end of the file under the same address. Build
-the version from all his remarks on the subject. The type describes the outcome,
-not the first remark; the time is that of the remark that settled the outcome —
-the write time in the same turn, otherwise its `--source-timestamp`. The helper
-does not carry over the old version's links: pass again those that still hold;
-the receipt lists dropped ones. It never overwrites a record of another
-conversation.
+`--replace <file>.md#recall-<id>` removes the old block and appends the new
+version under the same address; the address is in the receipt or in this
+conversation's file. The helper does not carry
+over the old version's links: pass again those that still hold; the receipt
+lists dropped ones. It refuses a record linked from another record and a
+record of another conversation. A document may cite the record too: search its anchor in the project with
+`rg`; a document rests on the old words. In any of these cases save the new
+remark as its own record linked with `--supersedes`, as above.
 
 ## When you store an answer and its address
 

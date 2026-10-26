@@ -37,6 +37,8 @@ uv run --locked --script "$ROOT/scripts/chat_digest.py" \
   "$TARGET_PROJECT_ROOT/_ops/chat-recall" --query "<subject and choice>" --json
 ```
 
+Without `--json` the digest prints readable quotes, and `--head` sets their
+length; in JSON each candidate sits in `.holders[]` with its `.strongest_quote`.
 With thin results, try other wordings, synonyms and stems with `*`. Check
 `topic_candidates` and session cards, then the fitting topic via
 `--topic <handle> --timeline --json`. Widen a blocking filter; raise the limit on
@@ -54,15 +56,20 @@ answered.
 
 ## When you choose quotes
 
-Read each chosen conversation whole, in order, including remarks after the
-match: open the file with no start line or limit — files are short — and do not
-cut lines with `cut -c`, because an owner remark is one line. If the output does
-not fit, read consecutive ranges to the end: a truncated output is not a full
-read. A later conversation may show he changed his mind, and «начнём заново» may
-not name the subject: recent cards are in `--digest --json`. A changed position
-shows in `--topic … --timeline` — ordinary search returns a superseded record's
-replacement, not the record, and contested records appear only under
-`conflicts`. For exact Cyrillic words use `rg -n -w`.
+Start from the subject's records in date order: `--topic <handle> --timeline`
+shows each conversation's record on it, the latest position included. Since
+26 Oct 2026 a conversation keeps one evolving record per subject, so that
+record carries the conversation's final position. Open a conversation file
+only for the scene around a deciding quote: read a short file whole; in a long
+one read all records of the subject, the replaced one sits at the end of the
+file. Older files may still hold several records on one subject: read to the
+last of them. A part you read must arrive whole: a truncated output is not a
+read. A later conversation may change his position under other words: check
+the cards of later conversations before you rely on a quote. Do not
+cut lines with `cut -c`: an owner remark is one line. «начнём заново» may not
+name the subject: recent cards are in `--digest --json`. Ordinary search
+returns a superseded record's replacement, not the record, and contested
+records appear only under `conflicts`. For exact Cyrillic words use `rg -n -w`.
 
 For an old record without a stable anchor, cite the file with the quote's
 opening and date; do not turn a found `#L` into a permanent link. Only an

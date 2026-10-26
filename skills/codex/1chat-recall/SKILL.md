@@ -57,8 +57,8 @@ intent.
 ## Modes
 
 - When an owner remark or agreement may matter to a future choice, a
-  `capture-needed` arrives, or a later remark changes a record of this same
-  conversation → [Capture](references/capture.md).
+  `capture-needed` arrives, or a later remark touches a subject already recorded in
+  this conversation → [Capture](references/capture.md).
 - When a subject comes up — in a discussion or a task — and his earlier
   thinking would help you understand what he wants →
   [Retrieval](references/retrieval.md). Gather it so the conversation does not

@@ -30,7 +30,7 @@ of the tool does not confirm a new version.
 
 Choose the next move by the cause of the gap: new wording changes candidates,
 a wider filter returns excluded records, a topic timeline restores order, the
-whole conversation gives the scene. One query repeated with a higher limit does
+conversation file around a deciding quote gives the scene. One query repeated with a higher limit does
 not fix these causes.
 
 Hybrid needs a prepared local runtime and cache. `--prepare` may need the
