@@ -1,0 +1,209 @@
+{
+  "parentThreadId": null,
+  "inheritedProviderInstanceId": null,
+  "inheritedModel": null,
+  "inheritedOptions": [],
+  "runtimeMode": "full-access",
+  "interactionMode": "default",
+  "providers": [
+    {
+      "providerInstanceId": "codex",
+      "driverKind": "codex",
+      "displayName": "Codex",
+      "models": [],
+      "canRunChildTask": true,
+      "canRunCrossProviderChildTask": true,
+      "constraints": []
+    },
+    {
+      "providerInstanceId": "claudeAgent",
+      "driverKind": "claudeAgent",
+      "displayName": "Claude",
+      "models": [
+        {
+          "id": "claude-opus-5-5",
+          "label": "Claude Opus 5.5",
+          "options": [
+            {
+              "id": "effort",
+              "values": [
+                "low",
+                "medium",
+                "high",
+                "xhigh",
+                "max",
+                "ultracode",
+                "ultrathink"
+              ],
+              "default": "medium"
+            },
+            {
+              "id": "fastMode",
+              "values": [
+                false,
+                true
+              ]
+            }
+          ]
+        },
+        {
+          "id": "claude-fable-5-1",
+          "label": "Claude Fable 5.1",
+          "options": [
+            {
+              "id": "effort",
+              "values": [
+                "low",
+                "medium",
+                "high",
+                "xhigh",
+                "max",
+                "ultracode",
+                "ultrathink"
+              ],
+              "default": "medium"
+            }
+          ]
+        },
+        {
+          "id": "claude-sonnet-5-5",
+          "label": "Claude Sonnet 5.5",
+          "options": [
+            {
+              "id": "effort",
+              "values": [
+                "low",
+                "medium",
+                "high",
+                "xhigh",
+                "max",
+                "ultrathink"
+              ],
+              "default": "high"
+            }
+          ]
+        },
+        {
+          "id": "claude-haiku-5-5",
+          "label": "Claude Haiku 5.5",
+          "options": [
+            {
+              "id": "effort",
+              "values": [
+                "low",
+                "medium",
+                "high",
+                "xhigh",
+                "max",
+                "ultrathink"
+              ],
+              "default": "medium"
+            }
+          ]
+        }
+      ],
+      "canRunChildTask": true,
+      "canRunCrossProviderChildTask": true,
+      "constraints": []
+    },
+    {
+      "providerInstanceId": "cursor",
+      "driverKind": "cursor",
+      "displayName": "Cursor",
+      "models": [],
+      "canRunChildTask": true,
+      "canRunCrossProviderChildTask": true,
+      "constraints": []
+    },
+    {
+      "providerInstanceId": "grok",
+      "driverKind": "grok",
+      "displayName": "Grok",
+      "models": [],
+      "runtimeModes": [
+        "approval-required",
+        "auto",
+        "full-access"
+      ],
+      "canRunChildTask": false,
+      "canRunCrossProviderChildTask": false,
+      "constraints": [
+        "Provider instance is disabled."
+      ]
+    },
+    {
+      "providerInstanceId": "opencode",
+      "driverKind": "opencode",
+      "displayName": "OpenCode",
+      "models": [],
+      "canRunChildTask": false,
+      "canRunCrossProviderChildTask": false,
+      "constraints": [
+        "Provider instance is disabled."
+      ]
+    },
+    {
+      "providerInstanceId": "antigravity",
+      "driverKind": "antigravity",
+      "displayName": "Antigravity",
+      "models": [],
+      "canRunChildTask": true,
+      "canRunCrossProviderChildTask": true,
+      "constraints": []
+    },
+    {
+      "providerInstanceId": "fx",
+      "driverKind": "fx",
+      "displayName": "fx",
+      "models": [],
+      "runtimeModes": [
+        "approval-required",
+        "auto"
+      ],
+      "canRunChildTask": false,
+      "canRunCrossProviderChildTask": false,
+      "constraints": [
+        "Provider instance is disabled."
+      ]
+    },
+    {
+      "providerInstanceId": "muse",
+      "driverKind": "muse",
+      "displayName": "Muse Code",
+      "models": [],
+      "runtimeModes": [
+        "approval-required",
+        "full-access"
+      ],
+      "canRunChildTask": true,
+      "canRunCrossProviderChildTask": true,
+      "constraints": []
+    },
+    {
+      "providerInstanceId": "pi",
+      "driverKind": "pi",
+      "displayName": "Pi",
+      "models": [],
+      "runtimeModes": [
+        "approval-required",
+        "auto-accept-edits",
+        "full-access"
+      ],
+      "canRunChildTask": false,
+      "canRunCrossProviderChildTask": false,
+      "constraints": [
+        "Provider instance is disabled."
+      ]
+    }
+  ],
+  "features": {
+    "appOwnedSubagents": true,
+    "asyncPolling": true,
+    "cancellation": true,
+    "batchThreadCreation": true,
+    "threadManagement": true,
+    "incrementalThreadRead": true,
+    "scheduledTasks": true,
+    "maxBatchThreads": 20
+  }
+}

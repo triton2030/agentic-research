@@ -6,10 +6,14 @@ description: "История скила 1t3: треды Muse, Gemini и Grok ч�
 
 Эта папка хранит историю `1t3` и не является пакетом скила.
 
-Живой владелец для Claude Code и Codex — `skills/shared/1t3/portable/`.
-Tracked-проекции — `skills/{claude,codex}/1t3/`, установленные —
-`~/.{claude,codex}/skills/1t3/`. Их собирает
+Живой владелец `1t3` — `skills/claude/1t3/`, установленный пакет —
+`~/.claude/skills/1t3/`. Его доставляет
 `skills/shared/sync_simple_projections.py 1t3 --write --install`.
+
+С 2026-10-27 версия Codex называется `1t3-codex` и имеет отдельного владельца
+`skills/codex/1t3-codex/`; её история — [`../1t3-codex/README.md`](../1t3-codex/README.md).
+Прежний общий owner сохранён в `versions/shared-owner-2026-10-27/`.
+Он снят, чтобы правки версии Codex не меняли пакет Claude.
 
 Скил заменил `1muse` и `1gemini`; их истории — `skills/1muse/`
 и `skills/1gemini/`. Скрипт `scripts/gemini.py` перенесён из `1gemini`

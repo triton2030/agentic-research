@@ -1,0 +1,7 @@
+interface:
+  display_name: "1t3-codex"
+  short_description: "Call Claude and other T3 Code agents from Codex"
+  default_prompt: "Use $1t3-codex to hand work to an agent through T3 Code, wait for the result and check it."
+
+policy:
+  allow_implicit_invocation: true

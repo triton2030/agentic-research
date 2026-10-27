@@ -1,0 +1,14 @@
+{
+  "skills/codex/1fresh-eyes/references/premortem.md": "551260d756784408c1d03944750d7b0d7dc70074b594e8b12ab897153f0451aa",
+  "skills/codex/1fresh-eyes/references/steering.md": "7fc6065de5b9cf595f3a79a8d4c2331cf5186ba450ef4b6bd8eb99c1d4b3110a",
+  "skills/codex/1orchestration/SKILL.md": "ab77ecbe99be06c0c2bd1df247c532f260b311b0c88e025c63bc65369e9ae4a9",
+  "skills/codex/1orchestration/references/desktop-sessions.md": "58cd5dcc9fb4eb9182eff17f73bbdda8590d0e49f9bd430c0fa1450f1f479b0f",
+  "skills/codex/1t3-codex/SKILL.md": "67519ab0c56f352dd9a21905711a54a10851970d9d60fa01d2a14541319c3621",
+  "skills/codex/1t3-codex/agents/openai.yaml": "5c8a45557e82ea7ad1fa9da2312dea965d0eb1627e268490a54e7f3e3f4f6d69",
+  "skills/codex/1t3-codex/references/claude.md": "de30be0057c18c9143a5f7fe0ff4987d370ed805ebbdfbb6ad6a0e661b3f1fc9",
+  "skills/codex/1t3-codex/references/gemini-media.md": "e545c28e0c7ac4292e714012e65f00637c3170be4e885dbbc9d3bf3d16962869",
+  "skills/codex/1t3-codex/references/t3-code.md": "117df60051e5c922d643dd078616fe4a9fc5d439b2098c400197f6abba565007",
+  "skills/codex/1t3-codex/scripts/gemini.py": "dcd265a6fb5a60054f4007695578eb688ae1a980cdd59eed1470dc3e7648655d",
+  "skills/codex/1t3-codex/scripts/limits.py": "84ba8a23e39940ef313695c2bd5eb50241867f2cc37b2ac9e804d2f8befe4e29",
+  "skills/codex/1t3-codex/scripts/wake_on_done.sh": "a43b021f1e5ddf0611611e16e7bee9056b651e90fd588af96a232c9465888743"
+}

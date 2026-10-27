@@ -1,0 +1,55 @@
+{
+  "claude_t3_installed": {
+    "path": "/Users/triton/.claude/skills/1t3",
+    "files": {
+      "SKILL.md": "78ff723931942e4552a324f85b0d87f659949f8e4242bbc3c7add09f048bacac",
+      "references/gemini-media.md": "e545c28e0c7ac4292e714012e65f00637c3170be4e885dbbc9d3bf3d16962869",
+      "references/t3-code.md": "b30968ceedac29af590bba8f7157441f3d9ca966321fa5b4bd2967850ae34cab",
+      "scripts/gemini.py": "dcd265a6fb5a60054f4007695578eb688ae1a980cdd59eed1470dc3e7648655d",
+      "scripts/limits.py": "84ba8a23e39940ef313695c2bd5eb50241867f2cc37b2ac9e804d2f8befe4e29",
+      "scripts/wake_on_done.sh": "a43b021f1e5ddf0611611e16e7bee9056b651e90fd588af96a232c9465888743"
+    }
+  },
+  "claude_t3_tracked": {
+    "path": "/Users/triton/Documents/GitHub/agentic-research/skills/claude/1t3",
+    "files": {
+      "SKILL.md": "78ff723931942e4552a324f85b0d87f659949f8e4242bbc3c7add09f048bacac",
+      "references/gemini-media.md": "e545c28e0c7ac4292e714012e65f00637c3170be4e885dbbc9d3bf3d16962869",
+      "references/t3-code.md": "b30968ceedac29af590bba8f7157441f3d9ca966321fa5b4bd2967850ae34cab",
+      "scripts/gemini.py": "dcd265a6fb5a60054f4007695578eb688ae1a980cdd59eed1470dc3e7648655d",
+      "scripts/limits.py": "84ba8a23e39940ef313695c2bd5eb50241867f2cc37b2ac9e804d2f8befe4e29",
+      "scripts/wake_on_done.sh": "a43b021f1e5ddf0611611e16e7bee9056b651e90fd588af96a232c9465888743"
+    }
+  },
+  "claude_fresh_eyes_installed": {
+    "path": "/Users/triton/.claude/skills/1fresh-eyes",
+    "files": {
+      "SKILL.md": "640494bce24ea7b0785de32185d913ee401f8afa838c06382b6d0d044d387ae5",
+      "agents/expansionist.md": "67f71ef01321acd72d219d2ef9442611334e39d1e8cc2c7dcd9576bdebf5ad73",
+      "references/named.md": "7bcb0a037f29cbc0553ce4f831256fcf2b1ffcc021e91d0fa6c4b1b2995392bb",
+      "references/packet.md": "2c8bc5cb69bb122704b33ec97d7237ee0cc9a6e864e76ade55a477554e9ea47c",
+      "references/panel.md": "3d75aa93e707b50b7b8befc2c35e2e4a818f04b4cdfd7f0524561398c296eb66",
+      "references/premortem.md": "38567efd5d091a6f11a621c74ab6c2a473df2996ca12a134cc2b162dfea7804f",
+      "references/steering.md": "14b52b0958e073c6070d238004f151fe722e7f8ee9c4fb50686be5c85f26d91c",
+      "references/synthesis.md": "3964d7ebd8ee4318868fbebd17c0cc11d29e380305badcca2d840738c9e6d6f1"
+    }
+  },
+  "claude_orchestration_installed": {
+    "path": "/Users/triton/.claude/skills/1orchestration",
+    "files": {
+      "SKILL.md": "db8eafa5884eed31037a55b47761ae502a2588d745a575ac2d176e45c30dd0b4"
+    }
+  },
+  "codex_t3_installed": {
+    "path": "/Users/triton/.codex/skills/1t3",
+    "files": {
+      "SKILL.md": "78ff723931942e4552a324f85b0d87f659949f8e4242bbc3c7add09f048bacac",
+      "agents/openai.yaml": "815fc0bdfe7394072bdbe439e54e9c92198600109e781404c4063e1877287c67",
+      "references/gemini-media.md": "e545c28e0c7ac4292e714012e65f00637c3170be4e885dbbc9d3bf3d16962869",
+      "references/t3-code.md": "b30968ceedac29af590bba8f7157441f3d9ca966321fa5b4bd2967850ae34cab",
+      "scripts/gemini.py": "dcd265a6fb5a60054f4007695578eb688ae1a980cdd59eed1470dc3e7648655d",
+      "scripts/limits.py": "84ba8a23e39940ef313695c2bd5eb50241867f2cc37b2ac9e804d2f8befe4e29",
+      "scripts/wake_on_done.sh": "a43b021f1e5ddf0611611e16e7bee9056b651e90fd588af96a232c9465888743"
+    }
+  }
+}
