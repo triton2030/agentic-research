@@ -26,3 +26,6 @@ experiments/flowpage-v4-elk/dist/
 /.antigravitycli/
 /output/obsidian-html-test/
 /_ops/chat-recall/.capture.lock
+
+# Personal source material removed from the public repository
+/experiments/openviking-chat-recall/artifacts/transfer-kumysbekov/

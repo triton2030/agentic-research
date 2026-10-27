@@ -374,7 +374,7 @@ date: 2026-08-24
 
 - исполнимая последовательность: [`RUNBOOK.md`](RUNBOOK.md);
 - источник: `_ops/chat-recall/raw/`;
-- перенос на чужой корпус: `artifacts/transfer-kumysbekov/`;
+- перенос на чужой корпус: личная выборка удалена из репозитория 2026-10-27;
 - контракты: `experiments/openviking-chat-recall/prompts/flatten-file.v1.md`,
   `merge-topic.v1.md`, `backfill-missed.v1.md`; контракты снятых стадий —
   `prompts/_snyatye-stadii/`;

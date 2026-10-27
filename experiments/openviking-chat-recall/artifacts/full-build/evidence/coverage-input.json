@@ -8324,15 +8324,6 @@
       "diagnostics": [],
       "disposition": "used",
       "reason": "parsed from exact Git blob with no source diagnostics",
-      "record_id": "cr-afafe5632030397a",
-      "source_address": "_ops/chat-recall/2026-08-19-154822-codex-01a019a2.md:27",
-      "source_line": 27,
-      "source_path": "_ops/chat-recall/2026-08-19-154822-codex-01a019a2.md"
-    },
-    {
-      "diagnostics": [],
-      "disposition": "used",
-      "reason": "parsed from exact Git blob with no source diagnostics",
       "record_id": "cr-24d0601264e5a604",
       "source_address": "_ops/chat-recall/2026-08-19-160259-codex-01a019a8.md:19",
       "source_line": 19,

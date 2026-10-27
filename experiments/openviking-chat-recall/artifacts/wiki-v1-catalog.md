@@ -342,8 +342,6 @@
 ## gemini — Gemini/Antigravity skill и обработка audio/video  (6 страниц)
 
 - `method/gemini-skill-autonomous-build.md` [method] **В каком режиме создаётся Gemini skill и что служит критерием реализации?** — Создание Gemini skill определено как полностью автономная работа без промежуточных вопросов, а критерием реализации задано изучение свежей документации.
-- `entity/audio-files-for-gemini-processing.md` [entity] **Где лежат аудиофайлы, которые владелец планирует обрабатывать через Gemini?** — Аудиофайлы для обработки через Gemini находятся в /Users/triton/Documents/My_projects/kumysbekov/_workspace/оцифровка.
-- `entity/audio-files-for-gemini.md` [entity] **Где лежат аудиофайлы, которые владелец планирует обрабатывать через Gemini?** — Аудиофайлы для обработки через Gemini лежат в рабочей папке «оцифровка» проекта kumysbekov.
 - `entity/gemini-skill-via-antigravity.md` [entity] **Есть ли отдельный скилл для вызова Gemini и каким маршрутом он должен работать?** — Отдельный Gemini skill решено сделать по образцу маршрута Hermes, чтобы Gemini можно было вызывать; маршрутом определён Antigravity, подключённый через аккаунт владельца.
 - `method/gemini-skill-creation.md` [method] **Как владелец определил создание Gemini skill и его инструкции по обработке audio/video?** — Создание Gemini skill выполняется полностью автономно, с изучением свежей документации как критерием реализации и с инструкциями по мультимодальному анализу аудио- и видео.
 - `entity/gemini-skill-audio-video-instructions.md` [entity] **Что внутри Gemini skill отвечает за обработку аудио и видео?** — В Gemini skill решено включить инструкции по отправке Gemini аудио- и видеофайлов для мультимодального анализа.

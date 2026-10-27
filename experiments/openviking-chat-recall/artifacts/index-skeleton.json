@@ -1,11 +1,11 @@
 {
- "page_count": 367,
+ "page_count": 366,
  "section_count": 40,
  "types": {
   "analysis": 8,
   "comparison": 7,
   "concept": 177,
-  "entity": 80,
+  "entity": 79,
   "method": 95
  },
  "missing_title": [],
@@ -2238,13 +2238,6 @@
      "description": "Создание Gemini skill определено как полностью автономная работа без промежуточных вопросов, а критерием реализации задано изучение свежей документации.",
      "topic": "gemini",
      "path": "method/gemini-skill-autonomous-build.md"
-    },
-    {
-     "type": "entity",
-     "title": "Где лежат аудиофайлы, которые владелец планирует обрабатывать через Gemini?",
-     "description": "Аудиофайлы для обработки через Gemini находятся в /Users/triton/Documents/My_projects/kumysbekov/_workspace/оцифровка.",
-     "topic": "gemini",
-     "path": "entity/audio-files-for-gemini-processing.md"
     },
     {
      "type": "entity",

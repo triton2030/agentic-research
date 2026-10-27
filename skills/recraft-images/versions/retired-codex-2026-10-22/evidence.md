@@ -21,7 +21,7 @@
   background removal routed to `remove_background`, then upload/save/get_user;
   no operation executed.
 - Final fresh Codex `019fface-cdeb-7d92-96ad-3b3d230ab450`: live `get_user` succeeded,
-  account `triton2030`, balance 1000; no paid image tool called.
+  no paid image tool called.
 - Two independent read-only audits: bloat and provenance/loss. Accepted fixes:
   absolute project root, exact Design Agent message provenance, durable owner
   addresses, selected SVG/one-output evidence, executed-test receipts.
@@ -54,7 +54,7 @@ Owner correction: `_ops/chat-recall/2026-08-13-154355-Codex-019ffa9f.md:21-22`.
   `NO`; Recraft и файловые операции не вызывались.
 - Paid acceptance run `019ffadd-f659-7f40-af5e-d4a069b02867`: ровно один
   `generate_image(prompt, model=recraftv4_1, image_size=4:5, n=1)` и один
-  последующий `get_user`; баланс после вызова — 998 кредитов.
+  последующий `get_user` успешно завершён.
 - Output сохранён как
   `Workspace/Recraft/13-августа/blank-tshirt-tight-frame.png` и парный `.md`.
   `sips` подтвердил PNG 896 × 1152; `.md` содержит только точный отправленный

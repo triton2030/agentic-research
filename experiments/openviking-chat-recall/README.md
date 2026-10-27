@@ -68,6 +68,11 @@ never belong in this directory or its receipt.
 
 ## Evidence boundary
 
+2026-10-27: личная выборка другого проекта и сведения о личных входных файлах
+удалены по просьбе владельца. Рабочие цитаты сохранены. Очищенные снимки
+не воспроизводят исходный прогон побайтно; прежние хеши и метрики относятся
+к состоянию до этой очистки.
+
 `artifacts/` is the committed, human-readable pilot evidence and the explicitly
 labelled diagnostic Wiki tree. `.runtime/` and `.venv/` are ignored. A
 successful command or a smooth generated page is not a pilot verdict:
