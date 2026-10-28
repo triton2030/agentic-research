@@ -52,7 +52,7 @@ same after your work as before it.
 | Grok, thread | audit and advice; crypto questions first of all: market, tokens, projects, sentiment and psychology of the crypto community | X feed summaries: his thread has web search only, no X search; audio, video, PDF: his read tool takes text and images, per its description |
 | Gemini, script | listen to audio, watch video, read PDF; read files outside the thread's project — Gemini in a thread won't open them | — |
 | Codex, thread | delegated work in a visible T3 thread | a second model family's judgment; native diff-review mode and automatic packaging of the caller's transcript |
-| Claude on the Google subscription, script with `--model claude-opus-5-5-high` | reading, summary, draft, web search, when the brief and a folder are enough | a T3 conversation with the owner's Claude Code tools and setup |
+| Claude Sonnet on the Google subscription, script | reading, summary, draft, web search, when the brief and a folder are enough | a T3 conversation with the owner's Claude Code tools and setup |
 
 Audio and video go only to the script. Gemini in a thread is a different
 Google agent that can't hear or see: it gets media as raw bytes and spends
@@ -65,8 +65,8 @@ Before choosing or launching Claude, read [Claude from Codex](references/claude.
 the owner's model defaults, T3 options and the context difference from the
 retired bridge.
 
-The owner's Google subscription includes Claude Opus and Sonnet with a quota
-separate from Gemini, and he wants that quota spent too.
+The owner's Google subscription includes a Claude quota separate from
+Gemini, and he wants that quota spent too.
 
 Call Muse when the owner names him, a Meta model or T3 Code. Don't pick him
 yourself: the owner hasn't decided when Muse is called unasked.

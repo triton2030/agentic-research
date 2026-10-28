@@ -1,5 +1,13 @@
 # Claude from Codex
 
+## When choosing the route
+
+From Codex, launch Opus only in a T3 Code thread, where the owner watches
+the work. The standalone Claude MCP bridge, Claude CLI and Google script
+are not Opus fallbacks, even if their tools remain available. If T3 is
+unavailable, follow the [connection checks](t3-code.md#connection) and report
+any remaining blocker; do not switch transports.
+
 ## When choosing the model
 
 Use Claude for an independent second opinion when no other family was named.

@@ -67,7 +67,7 @@ named in the brief. "Per the docs" means no live check.
 | continue the same conversation | `--resume <id from the receipt>`; set folders and permissions again |
 | a strictly shaped answer | `--schema '<JSON Schema>'` |
 | Gemini 4 Argon instead of Flash: audit, advice | `--model gemini-4-argon-high` |
-| Claude on the Google subscription instead of Gemini | `--model claude-opus-5-5-high` or another `claude-*` from `agy models` |
+| Claude Sonnet on the Google subscription instead of Gemini | `--model <Sonnet model ID from agy models>` |
 | work longer than 10 minutes | `--timeout 30m` |
 
 Without `--full` Gemini only reads. `--full` lifts all approvals at once:
@@ -172,6 +172,9 @@ The script defaults to `gemini-3.8-flash-high` — the `MODEL` constant in
 the script rejects other Gemini models: the owner chose these. `agy models`
 lists what is available; Gemini 3.1 Pro is in the docs but not in this
 account's list.
+
+Accepted model IDs describe the wrapper's capability; Opus follows the
+[Codex launch route](claude.md#when-choosing-the-route).
 
 `agy -p /usage` shows the weekly and five-hour remainders: for Gemini, for
 Claude with GPT, and a separate weekly one for Gemini 4 Argon. Probe
