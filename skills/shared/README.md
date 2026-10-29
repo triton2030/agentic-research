@@ -33,6 +33,12 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   подробный материал для файлов и маршруты к `1docs-write`, `1folder-tree`
   `1smart-simple` и `1illustrations-and-charts`.
   Codex UI metadata — `platforms/codex/agents/openai.yaml`.
+- `1write-as-me/portable/` — сообщения коллегам и друзьям голосом владельца:
+  его английский с ошибками, серии коротких сообщений, пары «как надо / как не надо».
+  Для его сообщений заменяет гладкость `1writing-rule`.
+  Codex UI metadata — `platforms/codex/agents/openai.yaml`.
+  Образцы и разбор стиля — в рабочей папке Subfrost
+  `_workspace/work-artifacts/2026-10-29-стиль-письма-владельца/`.
 - `1agent-steering/portable/` — общий скилл знания: полное чтение науки
   управления агентами и объяснение её применения при авторинге. Материал —
   `references/steering-science.md`: рычаги управляющего текста с пробой

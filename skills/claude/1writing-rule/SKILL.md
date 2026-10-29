@@ -1,7 +1,7 @@
 ---
 name: 1writing-rule
 description: >-
-  Use when the text itself is the task: write, edit, or shorten prose. Reading, analysis, and ordinary chat replies do not trigger this skill.
+  Use when the text itself is the task: write, edit, or shorten prose. Reading, analysis, ordinary chat replies and messages written as the owner (1write-as-me) do not trigger this skill.
 ---
 
 # Правило письма

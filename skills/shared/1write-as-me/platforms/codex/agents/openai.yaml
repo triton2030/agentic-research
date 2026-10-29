@@ -1,0 +1,6 @@
+interface:
+  display_name: "Пишу как я"
+  short_description: "Сообщение коллегам или друзьям голосом владельца"
+  default_prompt: "Примени $1write-as-me: напиши это сообщение так, как я сам написал бы его по-английски."
+policy:
+  allow_implicit_invocation: true
