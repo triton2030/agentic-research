@@ -1,0 +1,7 @@
+interface:
+  display_name: "1work-artifacts"
+  short_description: "Use for a work folder: create, join, end, stale sweep"
+  default_prompt: "Используй $1work-artifacts для рабочей папки этой работы."
+
+policy:
+  allow_implicit_invocation: true

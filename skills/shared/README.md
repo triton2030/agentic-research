@@ -104,6 +104,16 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
 - `1local-rules/portable/` — общая локальная дельта для project-local `2*`
   скилов Claude и Codex; `platforms/codex/agents/openai.yaml` содержит только
   Codex UI metadata.
+- `1work-artifacts/portable/` — рабочая папка одной работы во всех проектах
+  владельца, с 2026-10-29: найти или завести, строка каждой сессии в
+  `agents/sessions.md` скриптом `scripts/session_line.py`, вопрос об архиве в
+  конце, застывшие папки — одним списком после вопроса их живым сессиям.
+  Маршруты сообщений между Claude и Codex — `references/reach-a-session.md`.
+  Потребители со своими папками файлов — `1orchestration`, мост `1codex`,
+  `1recraft`, Codex `1design-review`, проектный `2design-parliament`.
+  Codex UI metadata — `platforms/codex/agents/openai.yaml`; история —
+  `skills/1work-artifacts/`. Доставка:
+  `sync_simple_projections.py 1work-artifacts --write --install`.
 - `1product-shaping/portable/` создаёт чистые Product Principles + Frame и
   журнал обоснований; `1use-principles/portable/` применяет их к развилкам и
   пустотам.

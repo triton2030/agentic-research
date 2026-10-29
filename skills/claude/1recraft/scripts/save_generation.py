@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Persist Recraft outputs and their exact prompt in the current project."""
+"""Persist Recraft outputs and their exact prompt in the work folder they serve."""
 
 from __future__ import annotations
 
@@ -14,19 +14,18 @@ import tempfile
 import unicodedata
 import urllib.parse
 import urllib.request
-from datetime import date, datetime
 from pathlib import Path
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Save Recraft outputs under _workspace/design/recraft-images."
+        description="Save Recraft outputs into a folder of the current work."
     )
     parser.add_argument(
-        "--project-root",
+        "--dest-dir",
         type=Path,
         required=True,
-        help="Absolute root of the active project/workspace.",
+        help="Folder to save into, such as <work folder>/images; created if missing.",
     )
     parser.add_argument("--name", required=True, help="Readable image name.")
     parser.add_argument(
@@ -40,13 +39,6 @@ def parse_args() -> argparse.Namespace:
         required=True,
         help="Exact prompt or prompt-less operation instruction for the .md pair.",
     )
-    parser.add_argument(
-        "--date",
-        dest="generation_date",
-        type=date.fromisoformat,
-        default=datetime.now().astimezone().date(),
-        help=argparse.SUPPRESS,
-    )
     return parser.parse_args()
 
 
@@ -56,15 +48,6 @@ def slugify(value: str) -> str:
     if not slug:
         raise ValueError("--name must contain at least one letter or number")
     return slug
-
-
-def day_directory(project_root: Path, generation_date: date) -> Path:
-    folder = generation_date.strftime("%m-%d")
-    destination = (
-        project_root.resolve() / "_workspace" / "design" / "recraft-images" / folder
-    )
-    destination.mkdir(parents=True, exist_ok=True)
-    return destination
 
 
 def next_basename(destination: Path, requested: str) -> str:
@@ -178,7 +161,8 @@ def main() -> int:
     args = parse_args()
     if not args.prompt.strip():
         raise ValueError("--prompt must not be empty")
-    destination = day_directory(args.project_root, args.generation_date)
+    destination = args.dest_dir.expanduser().resolve()
+    destination.mkdir(parents=True, exist_ok=True)
     root_name = slugify(args.name)
     multiple = len(args.source) > 1
     saved: list[dict[str, str]] = []

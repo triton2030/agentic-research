@@ -14,7 +14,8 @@ true`): заранее не знаешь, что окажется долгим, 
 B=/Users/triton/Documents/GitHub/agentic-research/experiments/codex-bridge
 $B/.venv/bin/python $B/codex_launch.py agent --name <роль-суть> \
     --run-dir <рабочая-папка>/agents/codex-artifacts/<стамп>-<имя> \
-    --prompt-file ЗАДАНИЕ.md --project "$PWD" -- [--model … --effort … --dialog …]
+    --prompt-file ЗАДАНИЕ.md --project "$PWD" \
+    -- [--model … --effort … --dialog …]
 ```
 
 - Задание лежит в файле, подготовленном отдельным вызовом. Тогда в карточке
@@ -24,8 +25,8 @@ $B/.venv/bin/python $B/codex_launch.py agent --name <роль-суть> \
   и усилие пиши даже дефолтные: по заголовку владелец решает, туда ли ушли его
   кредиты.
 - `--run-dir` обязателен; это флаг `codex_launch.py`, а не входа после `--`.
-  Путь — новый каталог в рабочей папке текущей работы:
-  `_workspace/work-artifacts/<дата-тема>/agents/codex-artifacts/<стамп>-<имя>`,
+  Путь — новый каталог `agents/codex-artifacts/<стамп>-<имя>` в рабочей папке
+  текущей работы, которую находит или заводит `1work-artifacts`,
   прогон уходит в архив вместе с ней; существующий каталог мост отвергает.
   Если тесты или хуки чистят эту папку, возьми путь вне проекта, который
   переживёт сессию.
@@ -60,10 +61,13 @@ astra молча доделает sol.
 ## Диагностика
 
 Бесплатная диагностика до траты: `codex_review.py --doctor --project "$PWD"` —
-когда не работает мост; `/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex doctor`
-(в PATH его нет) — когда подозреваешь сам движок: auth, конфиг, базу тредов,
-диск; тот же бинарь с `debug prompt-input` — когда неясно, что Codex получит на
-вход помимо задания.
+когда не работает мост;
+`/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex doctor`
+— когда подозреваешь сам движок: auth, конфиг, базу тредов, диск; тот же
+бинарь с `debug prompt-input` — когда неясно, что Codex получит на вход помимо
+задания. Зови движок полным путём: мост запускает бинарь приложения, а `codex`
+из PATH — отдельная установка из npm `@openai/codex`, и её `doctor` проверит
+не тот движок. Какой бинарь взял мост, показывает первая строка `--doctor`.
 
 ## Пока прогон идёт
 
