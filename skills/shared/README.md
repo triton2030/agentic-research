@@ -89,8 +89,8 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   contract; runtime launch deltas для Codex `spawn_agent` и Claude `Agent`
   живут в одной адресуемой reference, а Codex UI metadata — в
   `platforms/codex/agents/openai.yaml`.
-- `1readable-code/portable/` — стратегический взгляд при существенном выборе
-  в коде для Claude и Codex; `platforms/codex/agents/openai.yaml` содержит только Codex UI
+- `1readable-code/portable/` — обязательный стратегический взгляд перед кодом
+  для Claude и Codex с маршрутами к книжным скилам; `platforms/codex/agents/openai.yaml` содержит только Codex UI
   metadata.
 - `1orchestration` с 2026-09-06 имеет два runtime owners:
   `skills/codex/1orchestration/` — выбор фоновых Luna Max, Opus и собственных
@@ -173,8 +173,8 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
   contract; runtime launch deltas для Codex `spawn_agent` и Claude `Agent`
   живут в одной адресуемой reference, а Codex UI metadata — в
   `platforms/codex/agents/openai.yaml`.
-- `1readable-code/portable/` — стратегический взгляд при существенном выборе
-  в коде для Claude и Codex; `platforms/codex/agents/openai.yaml` содержит только Codex UI
+- `1readable-code/portable/` — обязательный стратегический взгляд перед кодом
+  для Claude и Codex с маршрутами к книжным скилам; `platforms/codex/agents/openai.yaml` содержит только Codex UI
   metadata.
 - `1orchestration` с 2026-09-06 имеет два runtime owners:
   `skills/codex/1orchestration/` — выбор фоновых Luna Max, Opus и собственных
@@ -234,7 +234,7 @@ description: "Semantic owners and projection contracts for cross-runtime skills.
 
 ## Product Owners
 
-`1chat-recall/`, `1handoff/` и `1hermes/` владеют только общей продуктовой
+`1chat-recall/` и `1handoff/` владеют только общей продуктовой
 правдой `product-frame*.md` — Frame и, где она уже существует, Principles.
 Они не становятся source owner-ами runtime package и не входят в projection
 sync. Поведение остаётся у tracked или live `SKILL.md`; при расхождении product
@@ -246,11 +246,8 @@ intent и runtime нужен явный reconcile, а не копия пары �
 (решение владельца 2026-09-14). Правь оба дерева адресно: копирование
 runtime-теста целиком уже стирало Codex-специфичные проверки.
 
-Runtime `1hermes` с 2026-08-22 tracked: `skills/claude/1hermes/` и
-`skills/codex/1hermes/` — owner-ы своих семей, установленные пути стали
-симлинками. Общего portable-ядра у них нет и не планируется: копии расходятся
-намеренно (`--isolated` только у Claude, `agents/openai.yaml` только у Codex),
-поэтому правку кода вноси в обе руками, а не через sync.
+`1hermes` снят 2026-10-21 после удаления Hermes. История пакетов и прежняя
+продуктовая пара — [`../1hermes/README.md`](../1hermes/README.md).
 
 `1index` снят 2026-10-24 вместе с концепцией INDEX-файлов. История пакетов и
 прежние принципы — [`../1index/README.md`](../1index/README.md).
