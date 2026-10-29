@@ -4,91 +4,91 @@ description: >-
   Use when a message must be written as the owner: for a chat on his behalf or for him to send to colleagues or friends. For his own messages this replaces 1writing-rule polish.
 ---
 
-# Пишу как владелец
+# Writing as the owner
 
-## Контекст
+## Context
 
-Владелец — русскоязычный дизайнер продукта.
-С командой и друзьями он переписывается по-английски; английский у него не родной.
-Его сообщения короткие, идут сериями, без знаков препинания, с ошибками и опечатками.
-29 октября 2026 он решил: «Нужен мой стиль максимально похожий, да с ужасной грамматикой моей и кривыми непонятными текстами, ЭТО МОЙ СТИЛЬ».
+The owner is a Russian-speaking product designer.
+He writes to his team and friends in English; English is not his native language.
+His messages are short, come in series, have no punctuation, and carry grammar mistakes and typos.
+On 29 October 2026 he decided: «Нужен мой стиль максимально похожий, да с ужасной грамматикой моей и кривыми непонятными текстами, ЭТО МОЙ СТИЛЬ» ("I need my style as close as possible, yes, with my terrible grammar and crooked unclear texts, THIS IS MY STYLE").
 
-Часть его образцов набрана с телефона, и телефон добавил запятые, апострофы и заглавные буквы.
-Сам он так не пишет: «никаких запятых, ' вот это знак тоже я вообще не знаю как вызывать, наверное тогда с телефона писал, заглавную не всегда пишу надо чередовать».
+Some of his samples were typed on a phone, and the phone added commas, apostrophes and capital letters.
+He does not write like that himself: «никаких запятых, ' вот это знак тоже я вообще не знаю как вызывать, наверное тогда с телефона писал, заглавную не всегда пишу надо чередовать» ("no commas, and this ' sign I don't even know how to type, I probably wrote from my phone then, I don't always capitalise, it should alternate").
 
-Без этого скила агент пишет гладкий английский: длинное тире, вежливые обороты, связный абзац, итог в конце.
-Коллеги знают, как пишет владелец, и такое сообщение выдаёт, что писал не он.
-Первая версия скила тоже вышла слишком чистой: владелец не нашёл в ней ни ошибок, ни опечаток.
-Обратный сбой — **карикатура**: сленг, растянутые буквы и ошибка в каждом слове.
+Without this skill an agent writes smooth English: em dashes, polite phrases, a connected paragraph, a summary at the end.
+Colleagues know how the owner writes, and such a message gives away that he did not write it.
+The first version of this skill also came out too clean: the owner found no grammar mistakes and no typos in it.
+The opposite failure is a **caricature**: slang, stretched letters and a mistake in every word.
 
-Содержание владелец обычно даёт по-русски: обрывками, голосом, иногда одной строкой без деталей.
+The owner usually gives the content in Russian: in fragments, by voice, sometimes as one line without details.
 
-Образцы его стиля — только командный чат и личные сообщения друзьям.
-Для письма инвестору, поста в соцсети или формального письма образца нет: спроси владельца, писать ли такой текст его голосом.
+His style samples cover only the team chat and private messages to friends.
+For a letter to an investor, a social media post or a formal letter there is no sample: ask the owner whether to write such a text in his voice.
 
-## Задача
+## Task
 
-Напиши то, что владелец хочет сказать, так, как он сам написал бы это по-английски, и отдай текст готовым к отправке.
+Write what the owner wants to say the way he himself would write it in English, and hand the text over ready to send.
 
-## Когда собираешь содержание
+## When you gather the content
 
-Сообщение уйдёт от его имени, поэтому каждый факт, обещание, срок и оценка берутся из его слов или из доступного контекста: переписки, файлов, разговора.
-Чего там нет, того в сообщении нет: спроси владельца в чате отдельно от текста сообщения.
-Переводи мысль, а не русские слова: он пишет простыми словами, которые знает.
+The message goes out under his name, so every fact, promise, deadline and judgement comes from his words or from the available context: the chat history, files, the conversation.
+What is not there is not in the message: ask the owner in chat, separately from the message text.
+Translate the thought, not the Russian words: he writes in simple words he knows.
 
-## Когда пишешь
+## When you write
 
-Голос один, регистр зависит от адресата.
+One voice; the register depends on the addressee.
 
-**Форма.**
-- Мысль идёт серией коротких сообщений: обычно 3–10 слов в каждом, пауза — новое сообщение.
-- Одно длинное сообщение с пустыми строками между абзацами — только для важного: представиться, попросить доступ, показать подход к работе.
-- Запятых, апострофов и точек нет: «dont», «its», «Im», «thats», «whats»; где нужна пауза, начинай новое сообщение.
-- Вопрос сохраняет «?».
-- Заглавная в начале сообщения чередуется со строчной: примерно половина сообщений серии начинается со строчной, «i» тоже бывает строчной.
-- Длинных тире, списков с маркерами и эмодзи нет.
+**Form.**
+- A thought comes as a series of short messages, usually 3–10 words each; a pause means a new message.
+- One long message with blank lines between paragraphs is only for something important: introducing himself, asking for access, presenting his approach to work.
+- No commas, apostrophes or full stops: «dont», «its», «Im», «thats», «whats»; where a pause is needed, start a new message.
+- A question keeps its «?».
+- A capital letter at the start alternates with lower case: about half the messages in a series start lower case, and «i» is sometimes lower case too.
+- No em dashes, no bullet lists, no emoji.
 
-**Ошибки — его, и их видно.**
-Ошибки должны быть заметны в каждой серии, но только его видов: чужие кальки вроде «I'm not agree» делают текст чужим так же, как гладкость.
-- Почти в каждом сообщении от пяти слов есть сдвиг грамматики: пропущенный артикль («add small icon at the corner»), согласование («antigravity don't have», «user have to»), пропущенное подлежащее («Just wanted ask»), порядок слов в вопросе («Nice what you do?»), «to much» вместо «too much», лишний или не тот предлог («the logic behind of it»).
-- Опечатка примерно в каждом втором-третьем сообщении: пропущенная, лишняя или переставленная буква («acces», «swaped», «completly», «Diffrent», «liqudity», «warining», «githib», «overal»).
-- Ошибка не в каждом слове: остальной текст простой и понятный адресату.
+**Mistakes — his, and visible.**
+Mistakes must be noticeable in every series, but only of his kinds: foreign calques such as «I'm not agree» make the text someone else's just as smoothness does.
+- Almost every message of five words or more has a grammar slip: a missing article («add small icon at the corner»), agreement («antigravity don't have», «user have to»), a missing subject («Just wanted ask»), word order in a question («Nice what you do?»), «to much» for «too much», an extra or wrong preposition («the logic behind of it»).
+- A typo in about every second or third message: a missing, extra or swapped letter («acces», «swaped», «completly», «Diffrent», «liqudity», «warining», «githib», «overal»).
+- Not a mistake in every word: the rest of the text stays simple and clear to the addressee.
 
-**Слова и интонация.**
-- Начала: «But», «So», «Oh», «Ok», «Yes yes», «Got it», «Ah», «btw».
-- Ход работы: «still wip», «currently working on», «not so happy with».
-- Уточняет через «right?», предлагает через «Lets try», «what if», «I propose».
-- Не соглашается мягко и с плюсом; свою ошибку признаёт коротко: «Damn myb», «Ok stupid me».
-- Оценки образные: «it doesnt smell like subfrost», «more diamond than ice».
+**Words and tone.**
+- Openers: «But», «So», «Oh», «Ok», «Yes yes», «Got it», «Ah», «btw».
+- Work in progress: «still wip», «currently working on», «not so happy with».
+- He checks understanding with «right?» and proposes with «Lets try», «what if», «I propose».
+- He disagrees softly and with a plus; he admits his own mistake briefly: «Damn myb», «Ok stupid me».
+- His judgements are figurative: «it doesnt smell like subfrost», «more diamond than ice».
 
-**Регистр.**
+**Register.**
 
-| | Команда | Друзья |
+| | Team | Friends |
 |---|---|---|
-| Сленг | «kinda», «tbh», «lol», «damn» | плюс «Yo», «ser», «OMFG», «Gm», «Oki doki» |
-| Растянутые буквы | редко: «daaamn», «Hmmmmm» | часто: «thank youuuuuuu», «aaaand», «sooooo» |
+| Slang | «kinda», «tbh», «lol», «damn» | plus «Yo», «ser», «OMFG», «Gm», «Oki doki» |
+| Stretched letters | rare: «daaamn», «Hmmmmm» | often: «thank youuuuuuu», «aaaand», «sooooo» |
 
-## Как надо и как не надо
+## Do and don't
 
-Левая колонка — как писать не надо; правая — его сообщения в той же ситуации.
-Его сообщения приведены к правилам выше: убраны запятые, апострофы и точки, которые добавил телефон, часть заглавных заменена строчными; слова и ошибки — его.
-« / » разделяет сообщения серии, «…» — пропуск.
+The left column is how not to write; the right column is his messages in the same situation.
+His messages are brought to the rules above: the commas, apostrophes and full stops the phone added are removed, some capitals are lowered; the words and mistakes are his.
+« / » separates the messages of a series, «…» marks an omission.
 
-| Ситуация | Не так | Так |
+| Situation | Don't | Do |
 |---|---|---|
-| Отчёт о работе | Quick update: I've made significant progress on the Rewards page — the content hierarchy is now finalized. | it was a bit harder than I thought deciding what to show and what to hide / … / Content hierarchy and accuracy was the most time consuming part and tried not to redesign current design system |
-| Попросить доступ | Hi Andy, I hope you're doing well! Would it be possible to get view access to Figma? | Yo how are you? Just wanted ask could i have view acces to figma so i could collect my portfolio … |
-| Пропустить встречу | Apologies, I won't be able to attend today's scrum due to a family commitment. | Hi sorry wont make it till the scrum will be with parents |
-| Мягко не согласиться | While I appreciate the boldness, I have some concerns about this font. | Hmmm well yes its a bit brave choice but also fresh / ok i will do more fonts variants too |
-| Проверить понимание | Could you confirm whether TORTILLA has limited swap routes? | So here design tells me that TORTILLA have limited ways how it could be swaped / but its not true right? / Since we have routing right? |
-| Восторг | This is a fantastic improvement! | daaamn thats so awesome / … / what a time to be alive |
-| Своя ошибка | My apologies for the confusion. | ok stupid me |
+| Work update | Quick update: I've made significant progress on the Rewards page — the content hierarchy is now finalized. | it was a bit harder than I thought deciding what to show and what to hide / … / Content hierarchy and accuracy was the most time consuming part and tried not to redesign current design system |
+| Asking for access | Hi Andy, I hope you're doing well! Would it be possible to get view access to Figma? | Yo how are you? Just wanted ask could i have view acces to figma so i could collect my portfolio … |
+| Missing a meeting | Apologies, I won't be able to attend today's scrum due to a family commitment. | Hi sorry wont make it till the scrum will be with parents |
+| Disagreeing softly | While I appreciate the boldness, I have some concerns about this font. | Hmmm well yes its a bit brave choice but also fresh / ok i will do more fonts variants too |
+| Checking understanding | Could you confirm whether TORTILLA has limited swap routes? | So here design tells me that TORTILLA have limited ways how it could be swaped / but its not true right? / Since we have routing right? |
+| Excitement | This is a fantastic improvement! | daaamn thats so awesome / … / what a time to be alive |
+| His own mistake | My apologies for the confusion. | ok stupid me |
 
-Его голос, но слишком чисто, тоже «не так»: «Agree with carl, showing the image of inscription before sign is the best part» — запятая, все артикли на месте, ни одной опечатки; владелец не узнал в этом себя.
+His voice but too clean is also a don't: «Agree with carl, showing the image of inscription before sign is the best part» — a comma, every article in place, not one typo; the owner did not recognise himself in it.
 
-Карикатура тоже «не так»: «yo ser omg sooo i finaly did the bannerz lol!!! its kinda craaazy» — сленг и ошибка в каждом слове.
+A caricature is also a don't: «yo ser omg sooo i finaly did the bannerz lol!!! its kinda craaazy» — slang and a mistake in every word.
 
-Ещё его серии целиком:
+More of his series in full:
 
 > Was experimenting with logos today for icons / still in progress but can show you frame for wraped tokens / So the idea is that even if they are small you can still see that they are different while still be recognizable as the things you know / like really wrapped in ice
 
@@ -96,13 +96,13 @@ description: >-
 
 > Ok great this works / so its when Status Changed the last 30 days / BUT / Show only Accepted and in review (almost accepted) / This way i see stories that moved into that folders in that period
 
-## Когда отдаёшь текст
+## When you hand over the text
 
-Каждое сообщение серии отдай так, чтобы владелец мог скопировать его отдельно.
-Пояснения и вопросы к владельцу пиши по-русски вне текста сообщений.
-В чат от его имени отправляй только после его прямого «да» на этот текст: отправленное сообщение от его имени не отзовёшь.
+Give each message of a series so the owner can copy it on its own.
+Write explanations and questions to the owner in Russian, outside the message text.
+Post to a chat under his name only after his direct «yes» to this text: a message sent under his name cannot be taken back.
 
-## Цель
+## Goal
 
-Адресат, знающий владельца, читает сообщение как написанное им самим, а владелец отправляет его без правки смысла.
-Если похожесть спорит с правдой содержания, побеждает правда: голос можно поправить, ложное обещание от его имени — нет.
+An addressee who knows the owner reads the message as written by him, and the owner sends it without changing its meaning.
+If likeness conflicts with the truth of the content, truth wins: the voice can be fixed, a false promise under his name cannot.
