@@ -13,6 +13,7 @@ const COLLAPSED_KEY = 'collapsed'
 const FAVORITES = 'Избранное'
 const MINE = 'Мои'
 const OTHER_PLUGINS = 'Плагины'
+const COMMANDS = 'Команды'
 
 // Change a tag when that value's form changes: old stored values are then ignored.
 const skills = atom({ plugin: 'skill-gallery', key: 'skills' } as const, [], {
@@ -26,11 +27,11 @@ const collapsed = atom({ plugin: 'skill-gallery', key: 'collapsed' } as const, [
 })
 const isOpen = atom({ plugin: 'skill-gallery', key: 'isOpen' } as const, false)
 
-// Skills and plugin commands; built-in commands and MCP prompts are left out.
+// Skills, plugin commands and built-in commands; MCP prompts are left out.
 async function refresh($: EngineInterface) {
   const all = await $.command.list()
   const list: SkillEntry[] = all
-    .filter(c => c.source === 'user' || c.source === 'plugin')
+    .filter(c => c.source !== 'mcp')
     .filter(c => c.name !== COMMAND)
     .map(c => ({ name: c.name, description: c.description, source: c.source }))
     .sort((a, b) => a.name.localeCompare(b.name))
@@ -91,6 +92,8 @@ function sectionOf(skill: SkillEntry) {
   const colon = skill.name.indexOf(':')
   if (colon > 0) return skill.name.slice(0, colon)
 
+  if (skill.source === 'builtin') return COMMANDS
+
   return skill.source === 'user' ? MINE : OTHER_PLUGINS
 }
 
@@ -109,14 +112,15 @@ function sectionsOf(list: SkillEntry[], favs: string[]): Section[] {
     const title = sectionOf(skill)
     groups.set(title, [...(groups.get(title) ?? []), skill.name])
   }
-  const rank = (t: string) => (t === MINE ? 0 : t === OTHER_PLUGINS ? 2 : 1)
+  const rank = (t: string) =>
+    t === MINE ? 0 : t === COMMANDS ? 1 : t === OTHER_PLUGINS ? 3 : 2
   const titles = [...groups.keys()].sort(
     (a, b) => rank(a) - rank(b) || a.localeCompare(b),
   )
   const result: Section[] = titles.map(title => ({
     title,
     names: groups.get(title) ?? [],
-    isPlugin: title !== MINE && title !== OTHER_PLUGINS,
+    isPlugin: title !== MINE && title !== OTHER_PLUGINS && title !== COMMANDS,
   }))
   if (favs.length > 0) {
     result.unshift({ title: FAVORITES, names: favs, isPlugin: false })
@@ -214,7 +218,10 @@ export const register: Register = on => {
     return (
       <Box flexDirection="column" gap="lg">
         <Box flexDirection="row" gap={1}>
-          <Text dimColor>{list.length} skills</Text>
+          <Text dimColor>
+            {list.filter(s => s.source !== 'builtin').length} skills ·{' '}
+            {list.filter(s => s.source === 'builtin').length} commands
+          </Text>
           <Button key="refresh" plain dimColor onPress={() => refreshAll($)}>
             refresh
           </Button>

@@ -38,8 +38,8 @@ test('a skill button puts /name into the prompt box', async ($, on) => {
 
   for (const surface of ['terminal', 'desktop'] as const) {
     const ui = await $.ui.mount({ ...PANE, surface })
-    expect((await ui.find({ type: 'Text', text: /skills/ }))?.text).toBe('3 skills')
-    expect(await ui.find({ key: 'skill:help' })).toBeUndefined()
+    expect((await ui.find({ type: 'Text', text: /skills/ }))?.text).toBe('3 skills · 1 commands')
+    expect((await ui.find({ key: 'skill:help' }))?.text).toBe('help')
     expect(await ui.find({ key: 'skill:skill-gallery' })).toBeUndefined()
     await ui.press({ key: 'skill:zeta' })
     await ui.unmount()
@@ -174,6 +174,7 @@ test('skills sit in sections that fold and remember it', async ($, on) => {
   for (const surface of ['terminal', 'desktop'] as const) {
     const ui = await $.ui.mount({ ...PANE, surface })
     expect((await ui.find({ key: 'sec:Мои' }))?.text).toBe('▾ Мои 1')
+    expect((await ui.find({ key: 'sec:Команды' }))?.text).toBe('▾ Команды 1')
     expect((await ui.find({ key: 'sec:pk' }))?.text).toBe('▾ pk 1')
     expect((await ui.find({ key: 'sec:Плагины' }))?.text).toBe('▾ Плагины 1')
     // A plugin's skill is listed by its short name, inserted by its full one.
