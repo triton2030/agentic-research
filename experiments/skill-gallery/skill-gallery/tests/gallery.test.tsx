@@ -173,10 +173,10 @@ test('skills sit in sections that fold and remember it', async ($, on) => {
 
   for (const surface of ['terminal', 'desktop'] as const) {
     const ui = await $.ui.mount({ ...PANE, surface })
-    expect((await ui.find({ key: 'sec:Мои' }))?.text).toBe('▾ Мои 1')
-    expect((await ui.find({ key: 'sec:Команды' }))?.text).toBe('▾ Команды 1')
-    expect((await ui.find({ key: 'sec:pk' }))?.text).toBe('▾ pk 1')
-    expect((await ui.find({ key: 'sec:Плагины' }))?.text).toBe('▾ Плагины 1')
+    expect((await ui.find({ key: 'sec:Мои' }))?.text).toBe('▾')
+    for (const title of ['Мои', 'Команды', 'pk', 'Плагины']) {
+      expect((await ui.find({ type: 'Text', text: title }))?.text).toBe(title)
+    }
     // A plugin's skill is listed by its short name, inserted by its full one.
     expect((await ui.find({ key: 'skill:pk:beta' }))?.text).toBe('beta')
     await ui.unmount()
@@ -184,7 +184,7 @@ test('skills sit in sections that fold and remember it', async ($, on) => {
 
   const ui = await $.ui.mount({ ...PANE, surface: 'desktop' })
   await ui.press({ key: 'sec:pk' })
-  expect((await ui.find({ key: 'sec:pk' }))?.text).toBe('▸ pk 1')
+  expect((await ui.find({ key: 'sec:pk' }))?.text).toBe('▸')
   expect(await ui.find({ key: 'skill:pk:beta' })).toBeUndefined()
   expect(held.get('collapsed')).toEqual(['pk'])
   await ui.unmount()

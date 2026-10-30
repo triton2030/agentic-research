@@ -243,17 +243,25 @@ export const register: Register = on => {
               flexDirection="column"
               gap="xs"
             >
-              <Button
-                key={`sec:${section.title}`}
-                plain
-                onPress={() => toggleSection($, section.title)}
+              {/* The title sits outside the button: the desktop sizes text
+                  only there. The arrow folds the section. */}
+              <Box
+                key={`head:${section.title}`}
+                flexDirection="row"
+                alignItems="center"
+                gap="sm"
               >
-                <Text bold>
-                  {isFolded ? '▸ ' : '▾ '}
+                <Button
+                  key={`sec:${section.title}`}
+                  plain
+                  label={isFolded ? '▸' : '▾'}
+                  onPress={() => toggleSection($, section.title)}
+                />
+                <Text size="title" weight="bold">
                   {section.title}
                 </Text>
-                <Text dimColor> {section.names.length}</Text>
-              </Button>
+                <Text dimColor>{section.names.length}</Text>
+              </Box>
               {!isFolded &&
                 section.names.map(name =>
                   row(
